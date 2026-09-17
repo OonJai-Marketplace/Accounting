@@ -14,7 +14,7 @@ let accounts = [
 
 // Unified System Access arrays
 let adminUsers = [
-  { id: "ADM-1", role: "admin", name: "Master Admin", email: "admin@oonjai.com", password: "admin" }
+  { id: "ADM-1", role: "admin", name: "Santos", email: "santos@oonjai.org", password: "admin123" }
 ];
 let subAccounts = [
   { id: "SUB-1", role: "sub", name: "Kitchen Petty Cash", email: "kitchen@oonjai.com", password: "sub", desc: "Daily market produce", currency: "USD" }
