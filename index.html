@@ -13,23 +13,15 @@
   <div id="loginOverlay">
     <div class="login-card">
       <h2 style="color: var(--primary); margin-bottom: 16px; text-align: center;">System Sign In</h2>
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label>Email Address:</label>
+        <input type="email" id="loginEmail" placeholder="name@oonjai.com" />
+      </div>
       <div class="form-group">
-        <label>Access Profile:</label>
-        <select id="loginRoleSelect" onchange="toggleLoginSubAccount()">
-          <option value="admin">Master Account (Admin)</option>
-          <option value="sub">Sub-Account Officer</option>
-        </select>
-      </div>
-      <!-- ONLY APPEARS FOR SUB-ACCOUNT MODE -->
-      <div class="form-group" id="loginSubAccountGroup" style="display: none; margin-top: 16px;">
-        <label>Assigned Sub-Account:</label>
-        <select id="loginSubAccountSelect"></select>
-      </div>
-      <div class="form-group" style="margin-top: 16px;">
         <label>Password:</label>
         <input type="password" id="loginPassword" placeholder="Enter password" />
       </div>
-      <button class="btn" style="width: 100%; margin-top: 24px;" onclick="handleLogin()">Access System</button>
+      <button class="btn" style="width: 100%; margin-top: 24px;" onclick="handleLogin()">Secure Login</button>
     </div>
   </div>
 
@@ -80,8 +72,8 @@
         </div>
         <div class="panel" style="flex: 1; min-width: 250px;">
           <div class="panel-header">Select Accounts to View</div>
-          <!-- Graph Checkbox Search Bar -->
-          <input type="text" id="chartAccountSearch" placeholder="Search accounts to graph..." onkeyup="renderChartCheckboxes()" style="margin-bottom: 12px; padding: 8px;" />
+          <!-- UNIVERSAL CHART SEARCH BAR -->
+          <input type="text" id="chartAccountSearch" placeholder="Search any account (e.g. Expense, Cash)..." onkeyup="renderChartCheckboxes()" style="margin-bottom: 12px; padding: 8px;" />
           <div style="max-height: 220px; overflow-y: auto; padding-right: 4px;" id="chartAccountCheckboxes"></div>
           <button id="refreshChartBtn" class="btn btn-accent" style="margin-top: 16px; width: 100%;" onclick="updateChart()">🔄 Refresh Graph</button>
         </div>
@@ -137,10 +129,8 @@
         </div>
       </div>
 
-      <!-- Wrapped content for printing without affecting screen theme -->
       <div id="reportWrapper">
         <div style="position: relative;">
-          <!-- Print-Only Assets -->
           <div class="print-img-centered print-only" id="reportHeaderImgContainer"><img id="reportHeaderImg" /></div>
           <img id="reportLogoImg" class="print-logo-box print-only" />
 
@@ -151,24 +141,17 @@
 
           <div class="table-container">
             <table>
-              <thead>
-                <tr><th colspan="3" style="text-align: left; font-size: 14px;">1. Income Statement (P&L)</th></tr>
-                <tr><th>Account</th><th>Currency</th><th>Amount</th></tr>
-              </thead>
+              <thead><tr><th colspan="3" style="text-align: left; font-size: 14px;">1. Income Statement (P&L)</th></tr><tr><th>Account</th><th>Currency</th><th>Amount</th></tr></thead>
               <tbody id="incomeStatementBody"></tbody>
             </table>
           </div>
 
           <div class="table-container">
             <table>
-              <thead>
-                <tr><th colspan="3" style="text-align: left; font-size: 14px;">2. Balance Sheet Summary</th></tr>
-                <tr><th>Classification / Account</th><th>Currency</th><th>Balance</th></tr>
-              </thead>
+              <thead><tr><th colspan="3" style="text-align: left; font-size: 14px;">2. Balance Sheet Summary</th></tr><tr><th>Classification / Account</th><th>Currency</th><th>Balance</th></tr></thead>
               <tbody id="balanceSheetBody"></tbody>
             </table>
           </div>
-
           <div class="print-footer-centered print-only" id="reportFooterImgContainer"><img id="reportFooterImg" /></div>
         </div>
       </div>
@@ -236,9 +219,7 @@
 
         <div class="table-container">
           <table>
-            <thead>
-              <tr><th>Date</th><th>Entry #</th><th>Description / Memo</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>
-            </thead>
+            <thead><tr><th>Date</th><th>Entry #</th><th>Description / Memo</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead>
             <tbody id="glTableBody"></tbody>
           </table>
         </div>
@@ -269,78 +250,29 @@
         <button class="btn btn-warning" onclick="cancelSubEdit()">Cancel Edit</button>
       </div>
 
-      <!-- Single-Entry Form -->
       <div class="panel no-print" id="subEntryFormPanel">
         <div class="panel-header" id="subEntryFormTitle">Record Single-Entry Voucher</div>
         <div class="form-row">
-          <div class="form-group" style="max-width: 160px;">
-            <label>Date:</label>
-            <input type="date" id="subEntryDate" onchange="checkEntryDateLock()" onclick="this.showPicker && this.showPicker()" />
-          </div>
-          <div class="form-group" style="max-width: 220px;">
-            <label>Category:</label>
-            <select id="subEntryCategory">
-              <option value="Supplies / Materials">Supplies / Materials</option>
-              <option value="Meals & Refreshments">Meals & Refreshments</option>
-              <option value="Transport / Logistics">Transport / Logistics</option>
-              <option value="Direct Sales Cash">Direct Sales (Cash In)</option>
-              <option value="Miscellaneous">Miscellaneous</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Particulars / Description:</label>
-            <input type="text" id="subEntryDesc" placeholder="e.g. Market purchase" />
-          </div>
-          <div class="form-group" style="max-width: 160px;">
-            <label>Transaction Type:</label>
-            <select id="subEntryType">
-              <option value="IN">Cash IN (Receive)</option>
-              <option value="OUT" selected>Cash OUT (Spend)</option>
-            </select>
-          </div>
-          <div class="form-group" style="max-width: 140px;">
-            <label>Amount:</label>
-            <input type="number" step="any" id="subEntryAmount" placeholder="0.00" />
-          </div>
+          <div class="form-group" style="max-width: 160px;"><label>Date:</label><input type="date" id="subEntryDate" onchange="checkEntryDateLock()" onclick="this.showPicker && this.showPicker()" /></div>
+          <div class="form-group" style="max-width: 220px;"><label>Category:</label><select id="subEntryCategory"><option value="Supplies / Materials">Supplies / Materials</option><option value="Meals & Refreshments">Meals & Refreshments</option><option value="Transport / Logistics">Transport / Logistics</option><option value="Direct Sales Cash">Direct Sales (Cash In)</option><option value="Miscellaneous">Miscellaneous</option></select></div>
+          <div class="form-group"><label>Particulars / Description:</label><input type="text" id="subEntryDesc" placeholder="e.g. Market purchase" /></div>
+          <div class="form-group" style="max-width: 160px;"><label>Transaction Type:</label><select id="subEntryType"><option value="IN">Cash IN (Receive)</option><option value="OUT" selected>Cash OUT (Spend)</option></select></div>
+          <div class="form-group" style="max-width: 140px;"><label>Amount:</label><input type="number" step="any" id="subEntryAmount" placeholder="0.00" /></div>
         </div>
         <div style="margin-top: 10px;">
           <button class="btn" id="subSaveBtn" onclick="saveSubAccountEntry()">+ Save Entry</button>
-          <div id="subEntryLockWarning" style="color: var(--danger); font-size: 13px; margin-top: 12px; display: none;">
-            ⚠️ Date is outside allowed period (current month + 7 days). Locked.
-          </div>
+          <div id="subEntryLockWarning" style="color: var(--danger); font-size: 13px; margin-top: 12px; display: none;">⚠️ Date is outside allowed period (current month + 7 days). Locked.</div>
         </div>
       </div>
 
-      <!-- Sub-Account Filter Bar -->
       <div class="panel no-print form-row" style="align-items: flex-end;">
-        <div class="form-group">
-          <label>Search Log:</label>
-          <input type="text" id="subSearchInput" placeholder="Voucher #, keyword..." onkeyup="renderSubAccountLog()" />
-        </div>
-        <div class="form-group" style="max-width: 150px;">
-          <label>Filter Date:</label>
-          <select id="subFilterType" onchange="toggleSubDateInputs()">
-            <option value="all">All Dates</option>
-            <option value="month">Month</option>
-            <option value="year">Year</option>
-            <option value="custom">Custom</option>
-          </select>
-        </div>
-        <div class="form-group" id="subMonthWrap" style="display: none; max-width: 150px;">
-          <label>Select Month:</label>
-          <input type="month" id="subMonthInput" onchange="renderSubAccountLog()" onclick="this.showPicker && this.showPicker()" />
-        </div>
-        <div class="form-group" id="subYearWrap" style="display: none; max-width: 120px;">
-          <label>Select Year:</label>
-          <input type="number" id="subYearInput" placeholder="2026" onchange="renderSubAccountLog()" />
-        </div>
-        <div class="form-group" id="subRangeWrap" style="display: none; flex-direction: row; gap: 8px;">
-          <div class="form-group"><label>From:</label><input type="date" id="subStartDate" onchange="renderSubAccountLog()" onclick="this.showPicker && this.showPicker()" /></div>
-          <div class="form-group"><label>To:</label><input type="date" id="subEndDate" onchange="renderSubAccountLog()" onclick="this.showPicker && this.showPicker()" /></div>
-        </div>
+        <div class="form-group"><label>Search Log:</label><input type="text" id="subSearchInput" placeholder="Voucher #, keyword..." onkeyup="renderSubAccountLog()" /></div>
+        <div class="form-group" style="max-width: 150px;"><label>Filter Date:</label><select id="subFilterType" onchange="toggleSubDateInputs()"><option value="all">All Dates</option><option value="month">Month</option><option value="year">Year</option><option value="custom">Custom</option></select></div>
+        <div class="form-group" id="subMonthWrap" style="display: none; max-width: 150px;"><label>Select Month:</label><input type="month" id="subMonthInput" onchange="renderSubAccountLog()" onclick="this.showPicker && this.showPicker()" /></div>
+        <div class="form-group" id="subYearWrap" style="display: none; max-width: 120px;"><label>Select Year:</label><input type="number" id="subYearInput" placeholder="2026" onchange="renderSubAccountLog()" /></div>
+        <div class="form-group" id="subRangeWrap" style="display: none; flex-direction: row; gap: 8px;"><div class="form-group"><label>From:</label><input type="date" id="subStartDate" onchange="renderSubAccountLog()" onclick="this.showPicker && this.showPicker()" /></div><div class="form-group"><label>To:</label><input type="date" id="subEndDate" onchange="renderSubAccountLog()" onclick="this.showPicker && this.showPicker()" /></div></div>
       </div>
 
-      <!-- Printable Area -->
       <div id="subAccountPrintWrapper">
         <div id="subPrintArea" style="position: relative;">
           <div class="print-img-centered print-only" id="subHeaderImgContainer"><img id="subHeaderImg" /></div>
@@ -359,13 +291,7 @@
 
           <div class="table-container">
             <table>
-              <thead>
-                <tr>
-                  <th>Voucher #</th><th>Date</th><th>Category</th><th>Description</th>
-                  <th>Cash IN</th><th>Cash OUT</th><th>Balance</th>
-                  <th class="no-print">Action</th>
-                </tr>
-              </thead>
+              <thead><tr><th>Voucher #</th><th>Date</th><th>Category</th><th>Description</th><th>Cash IN</th><th>Cash OUT</th><th>Balance</th><th class="no-print">Action</th></tr></thead>
               <tbody id="subAccountLogBody"></tbody>
             </table>
           </div>
@@ -383,7 +309,6 @@
         <button class="btn btn-warning" onclick="cancelJournalEdit()">Cancel Edit</button>
       </div>
 
-      <!-- Journal Entry Panel -->
       <div class="panel">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--panel-border); padding-bottom: 12px; margin-bottom: 16px;">
           <h3 id="journalFormTitle" style="color: var(--primary);">Post Double-Entry Transaction</h3>
@@ -391,14 +316,8 @@
         </div>
 
         <div class="form-row">
-          <div class="form-group" style="max-width: 180px;">
-            <label>Date:</label>
-            <input type="date" id="jeDate" onclick="this.showPicker && this.showPicker()" />
-          </div>
-          <div class="form-group">
-            <label>Transaction Memo:</label>
-            <input type="text" id="jeDescription" placeholder="General description of transaction" />
-          </div>
+          <div class="form-group" style="max-width: 180px;"><label>Date:</label><input type="date" id="jeDate" onclick="this.showPicker && this.showPicker()" /></div>
+          <div class="form-group"><label>Transaction Memo:</label><input type="text" id="jeDescription" placeholder="General description of transaction" /></div>
         </div>
 
         <div class="table-container" style="margin-bottom: 20px;">
@@ -417,15 +336,10 @@
         </div>
       </div>
 
-      <!-- Journal Log Data Search Bar -->
       <div class="panel form-row" style="align-items: flex-end; padding: 12px 20px; margin-bottom: 16px;">
-        <div class="form-group" style="flex: 1;">
-          <label>Search Journal (Universal):</label>
-          <input type="text" id="journalSearchInput" placeholder="Search by Entry #, Account Name, Amount, or Description..." onkeyup="renderJournalLog()" />
-        </div>
+        <div class="form-group" style="flex: 1;"><label>Search Journal (Universal):</label><input type="text" id="journalSearchInput" placeholder="Search by Entry #, Account Name, Amount, or Description..." onkeyup="renderJournalLog()" /></div>
       </div>
 
-      <!-- Journal Log Data -->
       <div class="table-container">
         <table>
           <thead><tr id="journalViewHeaderRow"></tr></thead>
@@ -442,10 +356,9 @@
         <div class="panel-header">Trial Balance (Multi-Currency)</div>
         <div class="table-container">
           <table>
-            <thead id="tbHead">
-              <!-- Dynamically generated columns -->
-            </thead>
+            <thead id="tbHead"></thead>
             <tbody id="tbBody"></tbody>
+            <tfoot id="tbFoot" class="tb-footer"></tfoot> <!-- NEW FOOTER ROW FOR TOTALS -->
           </table>
         </div>
       </div>
@@ -458,35 +371,16 @@
       <div class="panel">
         <div class="panel-header" id="coaFormTitle">Create / Edit Account</div>
         <div class="form-row" style="align-items: flex-end;">
-          <div class="form-group" style="max-width: 140px;">
-            <label>Account Code:</label>
-            <input type="text" id="coaCode" placeholder="e.g. 1050" />
-          </div>
-          <div class="form-group">
-            <label>Account Name:</label>
-            <input type="text" id="coaName" placeholder="e.g. Main Bank" />
-          </div>
-          <div class="form-group" style="max-width: 180px;">
-            <label>Account Type:</label>
-            <select id="coaType">
-              <option value="Asset">Asset</option>
-              <option value="Liability">Liability</option>
-              <option value="Equity">Equity</option>
-              <option value="Revenue">Revenue</option>
-              <option value="Expense">Expense</option>
-            </select>
-          </div>
-          <div class="form-group" style="max-width: 140px;">
-            <label>Currency:</label>
-            <select id="coaCurrency"></select>
-          </div>
+          <div class="form-group" style="max-width: 140px;"><label>Account Code:</label><input type="text" id="coaCode" placeholder="e.g. 1050" /></div>
+          <div class="form-group"><label>Account Name:</label><input type="text" id="coaName" placeholder="e.g. Main Bank" /></div>
+          <div class="form-group" style="max-width: 180px;"><label>Account Type:</label><select id="coaType"><option value="Asset">Asset</option><option value="Liability">Liability</option><option value="Equity">Equity</option><option value="Revenue">Revenue</option><option value="Expense">Expense</option></select></div>
+          <div class="form-group" style="max-width: 140px;"><label>Currency:</label><select id="coaCurrency"></select></div>
           <div style="display: flex; gap: 8px;">
             <button class="btn" id="coaSaveBtn" onclick="addOrUpdateChartAccount()">Save Account</button>
             <button class="btn btn-secondary" id="coaCancelBtn" style="display:none;" onclick="cancelCoaEdit()">Cancel</button>
           </div>
         </div>
       </div>
-
       <div class="table-container">
         <table>
           <thead><tr><th>Code</th><th>Account Name</th><th>Type</th><th>Currency</th><th>Net Balance</th><th>Action</th></tr></thead>
@@ -500,45 +394,19 @@
     <!-- ============================================================== -->
     <div id="reconciliation" class="tab-content">
       <div class="panel form-row" style="align-items: flex-end;">
-        <div class="form-group" style="flex: 2;">
-          <label>Account to Reconcile:</label>
-          <select id="reconAccountSelect" onchange="runReconciliation()"></select>
-        </div>
-        <div class="form-group" style="max-width: 160px;">
-          <label>Recon Filter:</label>
-          <select id="reconFilterType" onchange="toggleReconDateInputs()">
-            <option value="all">All-Time</option>
-            <option value="month">Specific Month</option>
-            <option value="year">Specific Year</option>
-            <option value="custom">Custom Range</option>
-          </select>
-        </div>
-        <div class="form-group" id="reconMonthWrap" style="display: none; max-width: 160px;">
-          <label>Month:</label>
-          <input type="month" id="reconMonthInput" onchange="runReconciliation()" onclick="this.showPicker && this.showPicker()" />
-        </div>
-        <div class="form-group" id="reconYearWrap" style="display: none; max-width: 120px;">
-          <label>Year:</label>
-          <input type="number" id="reconYearInput" placeholder="2026" onchange="runReconciliation()" />
-        </div>
-        <div class="form-group" id="reconRangeWrap" style="display: none; flex-direction: row; gap: 8px;">
-          <div class="form-group"><label>To Date:</label><input type="date" id="reconEndDate" onchange="runReconciliation()" onclick="this.showPicker && this.showPicker()" /></div>
-        </div>
-        <div class="form-group">
-          <label>Actual Bank/Count Balance:</label>
-          <input type="number" id="reconActualBalance" step="any" oninput="runReconciliation()" placeholder="0.00" />
-        </div>
+        <div class="form-group" style="flex: 2;"><label>Account to Reconcile:</label><select id="reconAccountSelect" onchange="runReconciliation()"></select></div>
+        <div class="form-group" style="max-width: 160px;"><label>Recon Filter:</label><select id="reconFilterType" onchange="toggleReconDateInputs()"><option value="all">All-Time</option><option value="month">Specific Month</option><option value="year">Specific Year</option><option value="custom">Custom Range</option></select></div>
+        <div class="form-group" id="reconMonthWrap" style="display: none; max-width: 160px;"><label>Month:</label><input type="month" id="reconMonthInput" onchange="runReconciliation()" onclick="this.showPicker && this.showPicker()" /></div>
+        <div class="form-group" id="reconYearWrap" style="display: none; max-width: 120px;"><label>Year:</label><input type="number" id="reconYearInput" placeholder="2026" onchange="runReconciliation()" /></div>
+        <div class="form-group" id="reconRangeWrap" style="display: none; flex-direction: row; gap: 8px;"><div class="form-group"><label>To Date:</label><input type="date" id="reconEndDate" onchange="runReconciliation()" onclick="this.showPicker && this.showPicker()" /></div></div>
+        <div class="form-group"><label>Actual Bank/Count Balance:</label><input type="number" id="reconActualBalance" step="any" oninput="runReconciliation()" placeholder="0.00" /></div>
       </div>
-
       <div class="panel" id="reconResultsPanel" style="display: none; max-width: 600px;">
         <h3 id="reconTitle" style="margin-bottom: 20px; color: var(--primary);"></h3>
         <table style="background: transparent; border: none;">
           <tr style="background: transparent;"><td style="border:none; padding:8px 0; font-size: 15px;"><strong>System Book Balance (Filtered):</strong></td><td id="reconSystemBal" class="num" style="border:none; font-weight:bold; font-size: 15px;"></td></tr>
           <tr style="background: transparent;"><td style="border:none; padding:8px 0; font-size: 15px;"><strong>Actual Entered Balance:</strong></td><td id="reconActualBal" class="num" style="border:none; font-size: 15px;"></td></tr>
-          <tr style="border-top: 1px solid var(--grid-border); background: rgba(255,255,255,0.05);">
-            <td style="border:none; padding:12px 0;"><strong>Variance:</strong></td>
-            <td id="reconDiff" class="num" style="border:none; font-weight:bold; font-size:18px;"></td>
-          </tr>
+          <tr style="border-top: 1px solid var(--grid-border); background: rgba(255,255,255,0.05);"><td style="border:none; padding:12px 0;"><strong>Variance:</strong></td><td id="reconDiff" class="num" style="border:none; font-weight:bold; font-size:18px;"></td></tr>
         </table>
         <div id="reconStatus" style="text-align: center; margin-top: 20px; padding: 12px; border-radius: 6px; font-size: 15px;"></div>
       </div>
@@ -548,7 +416,6 @@
     <!-- 9. SETTINGS TAB                                                -->
     <!-- ============================================================== -->
     <div id="settings" class="tab-content">
-      <!-- Data Backup & Restore Panel -->
       <div class="panel" style="border-left: 4px solid var(--warning);">
         <div class="panel-header">Data Protection (Backup & Restore)</div>
         <p style="color: var(--text-muted); margin-bottom: 16px;">Download your entire journal and settings as a JSON file, or restore from a previous backup.</p>
@@ -561,91 +428,111 @@
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px;">
-        <!-- Corporate Identity -->
-        <div class="panel">
-          <div class="panel-header">Corporate Identity & Logo</div>
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label>Entity / Company Name</label>
-            <input type="text" id="settingCompanyName" value="Oon Jai Marketplace" oninput="updateCompanyProfile()" />
-            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Changes journal prefixes automatically.</span>
+      <!-- REARRANGED GRID (Left: Identity/Currency. Right: Letterheads/Signatures) -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+        
+        <!-- LEFT COLUMN -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <!-- Corporate Identity -->
+          <div class="panel" style="margin-bottom: 0;">
+            <div class="panel-header">Corporate Identity & Logo</div>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label>Entity / Company Name</label>
+              <input type="text" id="settingCompanyName" value="Oon Jai Marketplace" oninput="updateCompanyProfile()" />
+            </div>
+            <div class="form-group" style="margin-bottom: 16px;"><label>Upload Logo</label><input type="file" accept="image/*" onchange="handleLogoUpload(event)" style="padding: 6px;" /></div>
+            <div class="form-row">
+              <div class="form-group"><label>Print Logo?</label><select id="settingApplyLogo"><option value="yes">Yes - Display</option><option value="no">No - Hide</option></select></div>
+              <div class="form-group"><label>Logo Position</label><select id="settingLogoPosition"><option value="logo-top-left">Top-Left</option><option value="logo-top-right">Top-Right</option><option value="logo-bottom-left">Bottom-Left</option><option value="logo-bottom-right">Bottom-Right</option></select></div>
+            </div>
           </div>
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label>Upload Logo</label>
-            <input type="file" accept="image/*" onchange="handleLogoUpload(event)" style="padding: 6px;" />
+
+          <!-- Currencies Config -->
+          <div class="panel" style="margin-bottom: 0;">
+            <div class="panel-header">Currencies Configuration</div>
+            <div class="form-group" style="margin-bottom: 16px;"><label>Set Base / Main Currency:</label><select id="settingBaseCurrency" onchange="updateBaseCurrency()"></select></div>
+            <div class="form-row" style="align-items: flex-end;">
+              <div class="form-group"><label>Add Currency:</label><input type="text" id="settingsNewCurrency" placeholder="e.g. THB" style="text-transform: uppercase;" /></div>
+              <button class="btn" onclick="addCurrencyFromSettings()">+ Add</button>
+            </div>
+            <div id="settingsCurrencyList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;"></div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Print Logo?</label>
-              <select id="settingApplyLogo">
-                <option value="yes">Yes - Display Logo</option>
-                <option value="no">No - Hide Logo</option>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <!-- Print Letterheads -->
+          <div class="panel" style="margin-bottom: 0;">
+            <div class="panel-header">Print Letterheads (Centered on Documents)</div>
+            <div class="form-row">
+              <div class="form-group" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; flex: 1;">
+                <label>Header Image:</label>
+                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'header')" />
+                <div style="text-align: center; margin-top: 10px;"><img id="headerImagePreview" style="max-width: 100%; max-height: 80px; display: none;" /></div>
+              </div>
+              <div class="form-group" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; flex: 1;">
+                <label>Footer Image:</label>
+                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'footer')" />
+                <div style="text-align: center; margin-top: 10px;"><img id="footerImagePreview" style="max-width: 100%; max-height: 80px; display: none;" /></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Signatories -->
+          <div class="panel" style="margin-bottom: 0;">
+            <div class="panel-header">Document Signatories (Print Approvals)</div>
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label>Number of Signatories required on printouts:</label>
+              <select id="settingSignatoryCount" onchange="renderSignatoryInputs()">
+                <option value="0">0 (No Signatures)</option>
+                <option value="1">1 Person</option>
+                <option value="2">2 People</option>
+                <option value="3">3 People</option>
+                <option value="4">4 People</option>
+                <option value="5">5 People</option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Print Logo Alignment</label>
-              <select id="settingLogoPosition">
-                <option value="logo-top-left">Top-Left</option>
-                <option value="logo-top-right">Top-Right</option>
-                <option value="logo-bottom-left">Bottom-Left</option>
-                <option value="logo-bottom-right">Bottom-Right</option>
-              </select>
-            </div>
+            <div id="signatoryInputArea" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;"></div>
+            <button class="btn" onclick="saveSignatories()">Save Signatories</button>
           </div>
         </div>
+      </div>
 
-        <!-- Currencies Config -->
-        <div class="panel">
-          <div class="panel-header">Currencies Configuration</div>
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label>Set Base / Main Currency:</label>
-            <select id="settingBaseCurrency" onchange="updateBaseCurrency()"></select>
-          </div>
-          <div class="form-row" style="align-items: flex-end;">
-            <div class="form-group"><label>Add Currency:</label><input type="text" id="settingsNewCurrency" placeholder="e.g. THB" style="text-transform: uppercase;" /></div>
-            <button class="btn" onclick="addCurrencyFromSettings()">+ Add</button>
-          </div>
-          <div id="settingsCurrencyList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;"></div>
+      <!-- SYSTEM ACCESS & ACCOUNTS -->
+      <div class="panel" style="margin-top: 24px;">
+        <div class="panel-header" id="userFormTitle">System Access & User Accounts</div>
+        
+        <div id="userEditBanner" class="edit-mode-banner no-print">
+          <div><span style="font-size: 18px;">✏️</span> <strong>EDIT MODE:</strong> Updating user <strong id="editingUserBadge"></strong>.</div>
+          <button class="btn btn-warning" onclick="cancelUserEdit()">Cancel Edit</button>
         </div>
 
-        <!-- Sub-Accounts Config (WITH PASSWORD MANAGEMENT) -->
-        <div class="panel" style="grid-column: 1 / -1;">
-          <div class="panel-header">Sub-Accounts & Passwords</div>
-          <div class="form-row" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; align-items: flex-end;">
-            <div class="form-group"><label>Sub-Account Name:</label><input type="text" id="newSubAccountName" placeholder="e.g. Farm Report" /></div>
-            <div class="form-group"><label>Description / Scope:</label><input type="text" id="newSubAccountDesc" placeholder="Purpose" /></div>
-            <div class="form-group" style="max-width: 150px;"><label>Currency:</label><select id="newSubAccountCurrency"></select></div>
-            <div class="form-group" style="max-width: 150px;"><label>Secure Password:</label><input type="text" id="newSubAccountPassword" placeholder="Set Password" /></div>
-            <button class="btn" onclick="addNewSubAccount()">+ Add Sub-Account</button>
+        <div class="form-row" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; align-items: flex-end;">
+          <div class="form-group" style="max-width: 140px;">
+            <label>Profile Role:</label>
+            <select id="newUserRole" onchange="toggleUserFormFields()">
+              <option value="admin">Admin</option>
+              <option value="sub" selected>Sub-Account</option>
+            </select>
           </div>
-          <div class="table-container">
-            <table>
-              <thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Currency</th><th>Password</th><th>Action</th></tr></thead>
-              <tbody id="settingsSubAccountsBody"></tbody>
-            </table>
-          </div>
+          <div class="form-group"><label>Display Name:</label><input type="text" id="newUserName" placeholder="e.g. Master Admin or Farm Report" /></div>
+          <div class="form-group"><label>Email Address:</label><input type="email" id="newUserEmail" placeholder="user@oonjai.com" /></div>
+          <div class="form-group" style="max-width: 140px;"><label>Password:</label><input type="text" id="newUserPassword" placeholder="Set Password" /></div>
+          
+          <div class="form-group sub-only-field"><label>Scope / Desc:</label><input type="text" id="newUserDesc" placeholder="Purpose" /></div>
+          <div class="form-group sub-only-field" style="max-width: 120px;"><label>Currency:</label><select id="newUserCurrency"></select></div>
+          
+          <button class="btn" id="userSaveBtn" onclick="saveSystemUser()">+ Create User</button>
         </div>
 
-        <!-- Print Letterheads -->
-        <div class="panel" style="grid-column: 1 / -1;">
-          <div class="panel-header">Print Letterheads (Centered on Documents)</div>
-          <div class="form-row">
-            <div class="form-group" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; flex: 1;">
-              <label>Print Header Image:</label>
-              <input type="file" accept="image/*" onchange="handleImageUpload(event, 'header')" />
-              <div style="text-align: center; margin-top: 10px;"><img id="headerImagePreview" style="max-width: 100%; max-height: 80px; display: none;" /></div>
-            </div>
-            <div class="form-group" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; flex: 1;">
-              <label>Print Footer Image:</label>
-              <input type="file" accept="image/*" onchange="handleImageUpload(event, 'footer')" />
-              <div style="text-align: center; margin-top: 10px;"><img id="footerImagePreview" style="max-width: 100%; max-height: 80px; display: none;" /></div>
-            </div>
-          </div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>ID</th><th>Role</th><th>Name</th><th>Email / Login</th><th>Password</th><th>Currency / Scope</th><th>Action</th></tr></thead>
+            <tbody id="settingsUsersBody"></tbody>
+          </table>
         </div>
-
       </div>
     </div>
-
   </div>
 
   <script src="script.js"></script>
