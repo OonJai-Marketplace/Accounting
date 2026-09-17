@@ -12,10 +12,10 @@ let accounts = [
   { code: "5010", name: "General Expenses", type: "Expense", currency: "USD" }
 ];
 
-// Unified System Access arrays
 let adminUsers = [
-  { id: "ADM-1", role: "admin", name: "Santos", email: "santos@oonjai.org", password: "admin123" }
+  { id: "ADM-1", role: "admin", name: "Santos", email: "santos@onjoy.org", password: "admin123" }
 ];
+
 let subAccounts = [
   { id: "SUB-1", role: "sub", name: "Kitchen Petty Cash", email: "kitchen@oonjai.com", password: "sub", desc: "Daily market produce", currency: "USD" }
 ];
@@ -26,10 +26,10 @@ let subAccountLogs = { "SUB-1": [] };
 let journalEntries = [];
 let entryCounter = 1;
 let subCounter = 1;
-let adminCounter = 2; // Next admin ID
+let adminCounter = 2;
 
 let chartInstance = null;
-let chartCheckedAccounts = ['1010', '1020', '2010']; // State tracker for graph
+let chartCheckedAccounts = ['1010', '1020', '2010', '4010', '5010'];
 
 let editingJournalId = null;
 let editingSubVoucherId = null;
@@ -39,16 +39,14 @@ let editingUserId = null;
 let uploadedHeaderImg = "";
 let uploadedFooterImg = "";
 let uploadedLogoImg = "";
-let signatories = []; // Holds signature blocks for printing
+let signatories = [];
 
 window.onload = function() {
   const defaultDate = "2026-09-17";
-  const defaultMonth = "2026-09";
   document.getElementById('jeDate').value = defaultDate;
   document.getElementById('subEntryDate').value = defaultDate;
 
   injectSampleData();
-  
   updateCompanyProfile();
   refreshAllCurrencyDropdowns(); 
   renderSettingsCurrencyList();
@@ -66,11 +64,29 @@ window.onload = function() {
 
 function toggleMenu() { document.getElementById('navMenuBar').classList.toggle('open'); }
 
-// STRICT NUMBER FORMATTING (#,###.00)
+// --- STRICT MONEY FORMATTING (#,##0.00) ---
+function parseCleanNumber(val) {
+  if (!val) return 0;
+  const cleaned = String(val).replace(/,/g, '').trim();
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
 function formatNum(num) {
   if (num === null || num === undefined || isNaN(num) || num === '') return '-';
-  if (Number(num) === 0) return '0.00';
-  return Number(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const val = Number(num);
+  return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatMoneyField(el) {
+  const val = parseCleanNumber(el.value);
+  el.value = val !== 0 ? formatNum(val) : '';
+  computeEntryBalance();
+}
+
+function unformatMoneyField(el) {
+  const val = parseCleanNumber(el.value);
+  el.value = val !== 0 ? String(val) : '';
 }
 
 function getEntryPrefix() {
@@ -86,20 +102,27 @@ function getEntryPrefix() {
 function injectSampleData() {
   const pfx = getEntryPrefix();
   journalEntries.push({
-    entryId: `${pfx}-0001`, date: "2026-09-01", desc: "Initial Capital Investment",
+    entryId: `${pfx}-0001`, date: "2026-08-15", desc: "Initial Capital Investment",
     lines: [
       { accountCode: "1020", memo: "Deposit", currency: "USD", dr: 10000, cr: 0 },
       { accountCode: "3010", memo: "Capital", currency: "USD", dr: 0, cr: 10000 }
     ]
   });
   journalEntries.push({
-    entryId: `${pfx}-0002`, date: "2026-09-15", desc: "Office Supplies",
+    entryId: `${pfx}-0002`, date: "2026-09-01", desc: "Operating Sales Deposit",
+    lines: [
+      { accountCode: "1010", memo: "Cash Inflow", currency: "USD", dr: 2500, cr: 0 },
+      { accountCode: "4010", memo: "Sales Register", currency: "USD", dr: 0, cr: 2500 }
+    ]
+  });
+  journalEntries.push({
+    entryId: `${pfx}-0003`, date: "2026-09-15", desc: "Office Supplies Expense",
     lines: [
       { accountCode: "5010", memo: "Pens & Paper", currency: "USD", dr: 150, cr: 0 },
       { accountCode: "1010", memo: "Cash paid", currency: "USD", dr: 0, cr: 150 }
     ]
   });
-  entryCounter = 3;
+  entryCounter = 4;
 
   subAccountLogs["SUB-1"].push({ voucherId: "V-0001", date: "2026-09-05", category: "Supplies / Materials", desc: "Initial funding", inAmount: 500, outAmount: 0 });
   subAccountLogs["SUB-1"].push({ voucherId: "V-0002", date: "2026-09-16", category: "Meals & Refreshments", desc: "Staff lunch", inAmount: 0, outAmount: 45 });
@@ -133,7 +156,6 @@ function restoreData(event) {
       entryCounter = data.entryCounter || journalEntries.length + 1;
       subCounter = data.subCounter || 1;
       adminCounter = data.adminCounter || adminUsers.length + 1;
-      
       alert('Data restored successfully!');
       window.location.reload(); 
     } catch (err) { alert('Invalid backup file'); }
@@ -141,32 +163,22 @@ function restoreData(event) {
   reader.readAsText(file);
 }
 
-// --- AUTHENTICATION & LOGIN LOGIC ---
+// --- AUTHENTICATION ---
 function handleLogin() {
-  const emailInput = document.getElementById('loginEmail');
-  const passInput = document.getElementById('loginPassword');
+  const email = (document.getElementById('loginEmail')?.value || '').trim().toLowerCase();
+  const pass = (document.getElementById('loginPassword')?.value || '').trim();
   
-  if (!emailInput || !passInput) return;
+  if (!email || !pass) { alert('Enter Email and Password'); return; }
 
-  const email = emailInput.value.trim().toLowerCase();
-  const pass = passInput.value.trim();
-
-  // Checks santos@onjoy.org and admin123 (ignores case differences)
-  const admin = adminUsers.find(u => 
-    u.email.trim().toLowerCase() === email && u.password.trim() === pass
-  );
-  
+  const admin = adminUsers.find(u => u.email.toLowerCase() === email && u.password === pass);
   if (admin) {
     currentUserRole = 'admin';
     document.getElementById('loginOverlay').style.display = 'none';
     applyRolePermissions();
     return;
   }
-
-  const sub = subAccounts.find(u => 
-    u.email.trim().toLowerCase() === email && u.password.trim() === pass
-  );
   
+  const sub = subAccounts.find(u => u.email.toLowerCase() === email && u.password === pass);
   if (sub) {
     currentUserRole = 'sub';
     activeSubAccountId = sub.id;
@@ -187,13 +199,11 @@ function applyRolePermissions() {
   document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
   
   if (!isAdmin) { 
-    // Sub-Account Mode Privacy: Hide dropdown so they can't switch to other sub-accounts
     document.getElementById('subAccountSelectorWrapper').style.display = 'none';
     updateActiveSubAccountHeader();
     renderSubAccountLog();
     switchTab('sub-accounts'); 
   } else { 
-    // Admin Mode: Restore the dropdown
     document.getElementById('subAccountSelectorWrapper').style.display = 'block';
     switchTab('summary'); 
   }
@@ -270,7 +280,7 @@ function removeCurrency(c) {
   }
 }
 
-// --- CHART OF ACCOUNTS (WITH EDIT/DELETE) ---
+// --- CHART OF ACCOUNTS ---
 function addOrUpdateChartAccount() {
   const code = document.getElementById('coaCode').value.trim();
   const name = document.getElementById('coaName').value.trim();
@@ -324,15 +334,15 @@ function renderChartOfAccounts() {
     </tr>`).join('');
 }
 
-// --- SYSTEM ACCOUNTS LOGIC (ADMINS & SUB-ACCOUNTS) ---
+// --- SYSTEM ACCOUNTS LOGIC ---
 function toggleUserFormFields() {
   const role = document.getElementById('newUserRole').value;
   document.querySelectorAll('.sub-only-field').forEach(el => el.style.display = role === 'sub' ? 'flex' : 'none');
 }
 function populateSubAccountDropdowns() {
   const select = document.getElementById('subAccountActiveSelect');
-  const html = subAccounts.map(s => `<option value="${s.id}">${s.name} (${s.currency})</option>`).join('');
-  select.innerHTML = html; select.value = activeSubAccountId;
+  select.innerHTML = subAccounts.map(s => `<option value="${s.id}">${s.name} (${s.currency})</option>`).join('');
+  select.value = activeSubAccountId;
   updateActiveSubAccountHeader();
 }
 function switchActiveSubAccount() {
@@ -341,7 +351,7 @@ function switchActiveSubAccount() {
 }
 function updateActiveSubAccountHeader() {
   const sub = subAccounts.find(s => s.id === activeSubAccountId) || subAccounts[0];
-  if(sub) {
+  if (sub) {
     document.getElementById('subPrintDocAccountName').textContent = sub.name;
     document.getElementById('subPrintDocDesc').textContent = `Scope: ${sub.desc} | Currency: ${sub.currency}`;
   }
@@ -358,7 +368,6 @@ function saveSystemUser() {
   if (!name || !email || !pass) { alert('Name, Email, and Password are required'); return; }
   
   if (editingUserId) {
-    // Determine if it was an admin or sub being edited
     let userList = editingUserId.startsWith('ADM') ? adminUsers : subAccounts;
     const idx = userList.findIndex(u => u.id === editingUserId);
     if (idx !== -1) {
@@ -370,7 +379,6 @@ function saveSystemUser() {
     }
     cancelUserEdit();
   } else {
-    // New User logic
     if (role === 'admin') {
       adminUsers.push({ id: "ADM-" + String(adminCounter++), role: "admin", name, email, password: pass });
     } else {
@@ -380,7 +388,6 @@ function saveSystemUser() {
     }
   }
   
-  // Clear the fields
   document.getElementById('newUserName').value = ''; 
   document.getElementById('newUserEmail').value = '';
   document.getElementById('newUserPassword').value = '';
@@ -397,7 +404,6 @@ function loadUserForEdit(id) {
   editingUserId = id;
   document.getElementById('userEditBanner').style.display = 'flex';
   document.getElementById('editingUserBadge').textContent = id;
-  
   document.getElementById('newUserRole').value = user.role;
   document.getElementById('newUserName').value = user.name;
   document.getElementById('newUserEmail').value = user.email;
@@ -454,16 +460,18 @@ function renderSystemUsers() {
     </td></tr>`).join('');
 }
 
-// --- SUB-ACCOUNT VOUCHERS LOGIC ---
+// --- SUB-ACCOUNT TRANSACTIONS ---
 function saveSubAccountEntry() {
   const date = document.getElementById('subEntryDate').value || new Date().toISOString().split('T')[0];
   if (isDateLockedForSubAccount(date)) return;
   const cat = document.getElementById('subEntryCategory').value;
   const desc = document.getElementById('subEntryDesc').value.trim();
   const type = document.getElementById('subEntryType').value;
-  const amt = parseFloat(document.getElementById('subEntryAmount').value || 0);
-  if (amt <= 0) return;
-  const inAmt = type === 'IN' ? amt : 0; const outAmt = type === 'OUT' ? amt : 0;
+  const amt = parseCleanNumber(document.getElementById('subEntryAmount').value);
+  if (amt <= 0) { alert('Please enter a valid amount.'); return; }
+
+  const inAmt = type === 'IN' ? amt : 0; 
+  const outAmt = type === 'OUT' ? amt : 0;
 
   if (!subAccountLogs[activeSubAccountId]) subAccountLogs[activeSubAccountId] = [];
 
@@ -474,9 +482,11 @@ function saveSubAccountEntry() {
   } else {
     subAccountLogs[activeSubAccountId].push({ voucherId: "V-" + String(subCounter++).padStart(4, '0'), date, category: cat, desc, inAmount: inAmt, outAmount: outAmt });
   }
-  document.getElementById('subEntryDesc').value = ''; document.getElementById('subEntryAmount').value = '';
+  document.getElementById('subEntryDesc').value = ''; 
+  document.getElementById('subEntryAmount').value = '';
   renderSubAccountLog();
 }
+
 function loadSubEntryForEdit(id) {
   const item = subAccountLogs[activeSubAccountId].find(e => e.voucherId === id);
   if (!item || isDateLockedForSubAccount(item.date)) { alert('Entry is locked or missing.'); return; }
@@ -487,22 +497,27 @@ function loadSubEntryForEdit(id) {
   document.getElementById('subEntryCategory').value = item.category;
   document.getElementById('subEntryDesc').value = item.desc;
   document.getElementById('subEntryType').value = item.inAmount > 0 ? 'IN' : 'OUT';
-  document.getElementById('subEntryAmount').value = item.inAmount > 0 ? item.inAmount : item.outAmount;
+  document.getElementById('subEntryAmount').value = formatNum(item.inAmount > 0 ? item.inAmount : item.outAmount);
   checkEntryDateLock(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 function cancelSubEdit() {
   editingSubVoucherId = null;
   document.getElementById('subEditModeBanner').style.display = 'none';
-  document.getElementById('subEntryDesc').value = ''; document.getElementById('subEntryAmount').value = '';
+  document.getElementById('subEntryDesc').value = ''; 
+  document.getElementById('subEntryAmount').value = '';
 }
+
 function deleteSubEntry(id) {
   const item = subAccountLogs[activeSubAccountId].find(e => e.voucherId === id);
   if (!item || isDateLockedForSubAccount(item.date)) return;
   if (confirm(`Remove ${id}?`)) {
     subAccountLogs[activeSubAccountId] = subAccountLogs[activeSubAccountId].filter(e => e.voucherId !== id);
-    if (editingSubVoucherId === id) cancelSubEdit(); renderSubAccountLog();
+    if (editingSubVoucherId === id) cancelSubEdit(); 
+    renderSubAccountLog();
   }
 }
+
 function toggleSubDateInputs() {
   const v = document.getElementById('subFilterType').value;
   document.getElementById('subMonthWrap').style.display = v === 'month' ? 'flex' : 'none';
@@ -510,6 +525,7 @@ function toggleSubDateInputs() {
   document.getElementById('subRangeWrap').style.display = v === 'custom' ? 'flex' : 'none';
   renderSubAccountLog();
 }
+
 function renderSubAccountLog() {
   const tbody = document.getElementById('subAccountLogBody'); tbody.innerHTML = '';
   const list = subAccountLogs[activeSubAccountId] || [];
@@ -546,9 +562,10 @@ function renderSubAccountLog() {
   document.getElementById('subNetBalance').textContent = formatNum(run);
 }
 
-// --- MASTER JOURNAL ---
+// --- MASTER JOURNAL (WITH AUTO FORMAT & DIFFERENCE WARNING) ---
 function setupJournalColumns() {
-  const hRow = document.getElementById('jeHeaderRow'); const vRow = document.getElementById('journalViewHeaderRow');
+  const hRow = document.getElementById('jeHeaderRow'); 
+  const vRow = document.getElementById('journalViewHeaderRow');
   let formHtml = `<th style="width:250px; text-align:left;">Account</th><th style="text-align:left;">Description</th><th class="num">DR</th>`;
   let viewHtml = `<th style="text-align:left;">Entry #</th><th style="text-align:left;">Date</th><th style="text-align:left;">Account</th><th style="text-align:left;">Description</th><th class="num">DR</th>`;
   currencies.forEach(c => { formHtml += `<th class="num">CR ${c}</th>`; viewHtml += `<th class="num">CR ${c}</th>`; });
@@ -557,6 +574,7 @@ function setupJournalColumns() {
   if (!editingJournalId) { document.getElementById('jeLinesBody').innerHTML = ''; addJournalLineRow(); addJournalLineRow(); }
   document.getElementById('jeNumberDisplay').textContent = `${getEntryPrefix()}-${String(entryCounter).padStart(4, '0')}`;
 }
+
 function refreshAccountDropdowns() {
   const selects = [document.getElementById('glAccountSelect'), document.getElementById('reconAccountSelect'), ...document.querySelectorAll('.line-account-select')];
   selects.forEach(sel => {
@@ -566,46 +584,83 @@ function refreshAccountDropdowns() {
     sel.value = current || accounts[0]?.code;
   });
 }
+
 function addJournalLineRow(accVal = '', memoVal = '', drVal = '', crDict = {}) {
   const tr = document.createElement('tr');
+  const drDisplay = drVal !== '' && !isNaN(drVal) ? formatNum(drVal) : '';
+  
   let cols = `<td style="padding:0;"><select class="line-account-select" onchange="computeEntryBalance()" style="border-radius:0; border:none; border-right: 1px solid var(--grid-border);">${accounts.map(a => `<option value="${a.code}" ${a.code === accVal ? 'selected' : ''}>${a.code} - ${a.name}</option>`).join('')}</select></td>
     <td style="padding:0;"><input type="text" class="line-memo" value="${memoVal}" style="border-radius:0; border:none; border-right: 1px solid var(--grid-border);" /></td>
-    <td style="padding:0;"><input type="number" step="any" class="line-dr num" value="${drVal}" oninput="computeEntryBalance()" style="border-radius:0; border:none; border-right: 1px solid var(--grid-border);" /></td>`;
-  currencies.forEach(c => { cols += `<td style="padding:0;"><input type="number" step="any" class="line-cr cr-${c} num" value="${crDict[c] || ''}" oninput="computeEntryBalance()" style="border-radius:0; border:none; border-right: 1px solid var(--grid-border);" /></td>`; });
+    <td style="padding:0;"><input type="text" class="line-dr num" value="${drDisplay}" onblur="formatMoneyField(this)" onfocus="unformatMoneyField(this)" style="border-radius:0; border:none; border-right: 1px solid var(--grid-border);" /></td>`;
+  
+  currencies.forEach(c => { 
+    const crVal = crDict[c] !== undefined && crDict[c] !== '' ? formatNum(crDict[c]) : '';
+    cols += `<td style="padding:0;"><input type="text" class="line-cr cr-${c} num" value="${crVal}" onblur="formatMoneyField(this)" onfocus="unformatMoneyField(this)" style="border-radius:0; border:none; border-right: 1px solid var(--grid-border);" /></td>`; 
+  });
+  
   cols += `<td style="text-align:center; vertical-align:middle; padding: 0;"><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove(); computeEntryBalance();">×</button></td>`;
-  tr.innerHTML = cols; document.getElementById('jeLinesBody').appendChild(tr);
+  tr.innerHTML = cols; 
+  document.getElementById('jeLinesBody').appendChild(tr);
 }
 
 function computeEntryBalance() {
-  let drByCurr = {}, crByCurr = {}; currencies.forEach(c => { drByCurr[c] = 0; crByCurr[c] = 0; });
+  let drByCurr = {}, crByCurr = {}; 
+  currencies.forEach(c => { drByCurr[c] = 0; crByCurr[c] = 0; });
+
   document.querySelectorAll('#jeLinesBody tr').forEach(r => {
-    const code = r.querySelector('.line-account-select').value; const dr = parseFloat(r.querySelector('.line-dr').value || 0);
-    if (code && dr > 0) { const acc = accounts.find(a => a.code === code); if (acc) drByCurr[acc.currency] += dr; }
-    currencies.forEach(c => { const cr = parseFloat(r.querySelector(`.cr-${c}`).value || 0); if (cr > 0) crByCurr[c] += cr; });
+    const code = r.querySelector('.line-account-select').value; 
+    const dr = parseCleanNumber(r.querySelector('.line-dr').value);
+    if (code && dr > 0) { 
+      const acc = accounts.find(a => a.code === code); 
+      if (acc) drByCurr[acc.currency] += dr; 
+    }
+    currencies.forEach(c => { 
+      const cr = parseCleanNumber(r.querySelector(`.cr-${c}`).value); 
+      if (cr > 0) crByCurr[c] += cr; 
+    });
   });
+
   let stat = [], bal = true, active = false;
   currencies.forEach(c => {
     const d = drByCurr[c], cr = crByCurr[c];
     if (d > 0 || cr > 0) {
       active = true;
-      if (Math.abs(d - cr) > 0.001) { bal = false; stat.push(`<span style="color:var(--danger)">${c}: DR ≠ CR</span>`); } 
-      else stat.push(`<span style="color:var(--success)">${c} Balanced</span>`);
+      const diff = Math.abs(d - cr);
+      if (diff > 0.001) { 
+        bal = false; 
+        stat.push(`<span style="color:var(--danger)">${c}: DR ≠ CR (Diff: ${formatNum(diff)})</span>`); 
+      } else {
+        stat.push(`<span style="color:var(--success)">${c} Balanced</span>`);
+      }
     }
   });
-  document.getElementById('journalBalanceStatus').innerHTML = active ? stat.join(' | ') : ''; return bal;
+
+  document.getElementById('journalBalanceStatus').innerHTML = active ? stat.join(' | ') : ''; 
+  return bal;
 }
 
 function saveJournalEntry() {
-  if (!computeEntryBalance()) return;
+  if (!computeEntryBalance()) {
+    alert("Cannot post entry: Total Debits (DR) and Credits (CR) do not match!");
+    return;
+  }
   const lines = [];
   document.querySelectorAll('#jeLinesBody tr').forEach(r => {
-    const code = r.querySelector('.line-account-select').value; const memo = r.querySelector('.line-memo').value; const dr = parseFloat(r.querySelector('.line-dr').value || 0);
+    const code = r.querySelector('.line-account-select').value; 
+    const memo = r.querySelector('.line-memo').value; 
+    const dr = parseCleanNumber(r.querySelector('.line-dr').value);
     if (code) {
       const acc = accounts.find(a => a.code === code);
       if (dr > 0) lines.push({ accountCode: code, memo, currency: acc.currency, dr, cr: 0 });
-      currencies.forEach(c => { const cr = parseFloat(r.querySelector(`.cr-${c}`).value || 0); if (cr > 0) lines.push({ accountCode: code, memo, currency: c, dr: 0, cr }); });
+      currencies.forEach(c => { 
+        const cr = parseCleanNumber(r.querySelector(`.cr-${c}`).value); 
+        if (cr > 0) lines.push({ accountCode: code, memo, currency: c, dr: 0, cr }); 
+      });
     }
   });
+
+  if (lines.length === 0) { alert('Enter at least one valid transaction row.'); return; }
+
   const date = document.getElementById('jeDate').value || new Date().toISOString().split('T')[0];
   const desc = document.getElementById('jeDescription').value;
 
@@ -616,35 +671,54 @@ function saveJournalEntry() {
     if (auditReason.trim() === "") auditReason = "Manual revision (No reason provided)";
 
     const idx = journalEntries.findIndex(e => e.entryId === editingJournalId);
-    if (idx !== -1) journalEntries[idx] = { entryId: editingJournalId, date, desc, lines, auditReason: auditReason, auditDate: new Date().toISOString().split('T')[0] };
+    if (idx !== -1) journalEntries[idx] = { entryId: editingJournalId, date, desc, lines, auditReason, auditDate: new Date().toISOString().split('T')[0] };
     cancelJournalEdit();
   } else {
     const pfx = getEntryPrefix();
     journalEntries.push({ entryId: `${pfx}-${String(entryCounter++).padStart(4, '0')}`, date, desc, lines });
     document.getElementById('jeNumberDisplay').textContent = `${pfx}-${String(entryCounter).padStart(4, '0')}`;
-    document.getElementById('jeDescription').value = ''; document.getElementById('jeLinesBody').innerHTML = '';
+    document.getElementById('jeDescription').value = ''; 
+    document.getElementById('jeLinesBody').innerHTML = '';
     addJournalLineRow(); addJournalLineRow();
   }
   renderJournalLog(); renderTrialBalance(); generateAutomatedReports(); updateChart();
 }
+
 function loadJournalForEdit(id) {
   const e = journalEntries.find(x => x.entryId === id); if (!e) return;
   editingJournalId = id;
   document.getElementById('journalEditModeBanner').style.display = 'flex';
   document.getElementById('editingJournalBadge').textContent = id;
-  document.getElementById('jeDate').value = e.date; document.getElementById('jeDescription').value = e.desc;
+  document.getElementById('jeDate').value = e.date; 
+  document.getElementById('jeDescription').value = e.desc;
   document.getElementById('jeLinesBody').innerHTML = '';
-  e.lines.forEach(l => { let crDict = {}; if (l.cr > 0) crDict[l.currency] = l.cr; addJournalLineRow(l.accountCode, l.memo, l.dr > 0 ? l.dr : '', crDict); });
+  
+  e.lines.forEach(l => { 
+    let crDict = {}; 
+    if (l.cr > 0) crDict[l.currency] = l.cr; 
+    addJournalLineRow(l.accountCode, l.memo, l.dr > 0 ? l.dr : '', crDict); 
+  });
+  computeEntryBalance();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 function cancelJournalEdit() {
-  editingJournalId = null; document.getElementById('journalEditModeBanner').style.display = 'none';
-  document.getElementById('jeDescription').value = ''; document.getElementById('jeLinesBody').innerHTML = '';
+  editingJournalId = null; 
+  document.getElementById('journalEditModeBanner').style.display = 'none';
+  document.getElementById('jeDescription').value = ''; 
+  document.getElementById('jeLinesBody').innerHTML = '';
   addJournalLineRow(); addJournalLineRow();
+  computeEntryBalance();
 }
+
 function deleteJournalEntry(id) {
-  if (confirm(`Delete ${id}?`)) { journalEntries = journalEntries.filter(e => e.entryId !== id); if (editingJournalId === id) cancelJournalEdit(); renderJournalLog(); renderTrialBalance(); generateAutomatedReports(); updateChart(); }
+  if (confirm(`Delete ${id}?`)) { 
+    journalEntries = journalEntries.filter(e => e.entryId !== id); 
+    if (editingJournalId === id) cancelJournalEdit(); 
+    renderJournalLog(); renderTrialBalance(); generateAutomatedReports(); updateChart(); 
+  }
 }
+
 function renderJournalLog() {
   const tbody = document.getElementById('journalLogBody'); 
   tbody.innerHTML = '';
@@ -710,13 +784,13 @@ function renderTrialBalance() {
     row += `</tr>`; tbody.innerHTML += row;
   });
 
-  // Calculate and Render Trial Balance Totals
   let tfootHtml = `<tr><td colspan="2" style="text-align:right;"><strong>TOTAL BALANCE SUMMARY</strong></td>`;
   sortedCurr.forEach(c => {
     let tDr = 0, tCr = 0;
-    journalEntries.forEach(je => je.lines.forEach(l => { if(l.currency === c) { tDr += l.dr; tCr += l.cr; } }));
+    journalEntries.forEach(je => je.lines.forEach(l => { if (l.currency === c) { tDr += l.dr; tCr += l.cr; } }));
     const isBalanced = Math.abs(tDr - tCr) < 0.001;
-    const balStr = isBalanced ? `<span style="color:var(--success)">✔ BALANCED</span>` : `<span style="color:var(--danger)">✖ UNBALANCED</span>`;
+    const diff = Math.abs(tDr - tCr);
+    const balStr = isBalanced ? `<span style="color:var(--success)">✔ BALANCED</span>` : `<span style="color:var(--danger)">✖ DIFF: ${formatNum(diff)}</span>`;
     tfootHtml += `<td class="num"><strong>${formatNum(tDr)}</strong></td><td class="num"><strong>${formatNum(tCr)}</strong></td><td style="text-align:center;"><strong>${balStr}</strong></td>`;
   });
   tfootHtml += `</tr>`;
@@ -731,7 +805,10 @@ function toggleGlDateInputs() {
   renderGeneralLedger();
 }
 function renderGeneralLedger() {
-  const code = document.getElementById('glAccountSelect').value; const acc = accounts.find(a => a.code === code); if (!acc) return;
+  const code = document.getElementById('glAccountSelect').value; 
+  const acc = accounts.find(a => a.code === code) || accounts[0]; 
+  if (!acc) return;
+
   document.getElementById('soaAccountTitle').textContent = `Statement: ${acc.code} - ${acc.name}`;
   document.getElementById('soaDateGenerated').textContent = `Generated: ${new Date().toISOString().split('T')[0]}`;
   
@@ -748,7 +825,7 @@ function renderGeneralLedger() {
 
   let prev = 0;
   if (filterStartDate) {
-    journalEntries.forEach(je => { if (je.date < filterStartDate) { je.lines.forEach(l => { if (l.accountCode === code) prev += (acc.type === 'Asset' || acc.type === 'Expense') ? (l.dr - l.cr) : (l.cr - l.dr); }); } });
+    journalEntries.forEach(je => { if (je.date < filterStartDate) { je.lines.forEach(l => { if (l.accountCode === acc.code) prev += (acc.type === 'Asset' || acc.type === 'Expense') ? (l.dr - l.cr) : (l.cr - l.dr); }); } });
   }
 
   const periodEntries = journalEntries.filter(je => {
@@ -764,7 +841,7 @@ function renderGeneralLedger() {
   let run = prev, tDr = 0, tCr = 0;
   periodEntries.forEach(je => {
     je.lines.forEach(l => {
-      if (l.accountCode === code) {
+      if (l.accountCode === acc.code) {
         tDr += l.dr; tCr += l.cr; run += (acc.type === 'Asset' || acc.type === 'Expense') ? (l.dr - l.cr) : (l.cr - l.dr);
         tbody.innerHTML += `<tr><td>${je.date}</td><td>${je.entryId}</td><td style="text-align:left;">${l.memo || je.desc}</td><td class="num">${formatNum(l.dr)}</td><td class="num">${formatNum(l.cr)}</td><td class="num" style="font-weight:bold;">${formatNum(run)}</td></tr>`;
       }
@@ -845,6 +922,7 @@ function toggleReconDateInputs() {
   document.getElementById('reconRangeWrap').style.display = v === 'custom' ? 'flex' : 'none';
   runReconciliation();
 }
+
 function runReconciliation() {
   const code = document.getElementById('reconAccountSelect').value; 
   const panel = document.getElementById('reconResultsPanel');
@@ -886,8 +964,6 @@ function handleLogoUpload(e) {
     const reader = new FileReader();
     reader.onload = function(event) {
       uploadedLogoImg = event.target.result;
-      document.getElementById('mainAppLogo').src = uploadedLogoImg;
-      document.getElementById('mainAppLogo').style.display = 'block';
       ['reportLogoImg', 'glLogoImg', 'subLogoImg'].forEach(id => { const el = document.getElementById(id); if (el) el.src = uploadedLogoImg; });
     };
     reader.readAsDataURL(file);
@@ -900,10 +976,14 @@ function handleImageUpload(e, type) {
     reader.onload = function(event) {
       const b64 = event.target.result;
       if (type === 'header') {
-        uploadedHeaderImg = b64; document.getElementById('headerImagePreview').src = b64; document.getElementById('headerImagePreview').style.display = 'inline-block';
+        uploadedHeaderImg = b64; 
+        document.getElementById('headerImagePreview').src = b64; 
+        document.getElementById('headerImagePreview').style.display = 'inline-block';
         ['reportHeaderImg', 'glHeaderImg', 'subHeaderImg'].forEach(id => { const el = document.getElementById(id); if (el) el.src = b64; });
       } else {
-        uploadedFooterImg = b64; document.getElementById('footerImagePreview').src = b64; document.getElementById('footerImagePreview').style.display = 'inline-block';
+        uploadedFooterImg = b64; 
+        document.getElementById('footerImagePreview').src = b64; 
+        document.getElementById('footerImagePreview').style.display = 'inline-block';
         ['reportFooterImg', 'glFooterImg', 'subFooterImg'].forEach(id => { const el = document.getElementById(id); if (el) el.src = b64; });
       }
     };
@@ -918,7 +998,6 @@ function updateCompanyProfile() {
   document.getElementById('jeNumberDisplay').textContent = `${getEntryPrefix()}-${String(entryCounter).padStart(4, '0')}`;
 }
 
-// Signatory Management
 function renderSignatoryInputs() {
   const count = parseInt(document.getElementById('settingSignatoryCount').value);
   const container = document.getElementById('signatoryInputArea');
@@ -941,24 +1020,37 @@ function saveSignatories() {
     const title = document.getElementById(`sigTitle${i}`).value.trim();
     if (name) signatories.push({ name, title });
   }
-  alert('Signatories saved. They will appear at the bottom of printed documents.');
+  alert('Signatories saved. They will appear on all printed documents.');
 }
 
 function prepareAndPrint(containerId) {
+  const target = document.getElementById(containerId);
+  if (!target) { alert("Print area not found"); return; }
+
   const showLogo = document.getElementById('settingApplyLogo').value === 'yes' && uploadedLogoImg;
   const logoPos = document.getElementById('settingLogoPosition').value;
-  ['reportLogoImg', 'glLogoImg', 'subLogoImg'].forEach(id => { const el = document.getElementById(id); if (el) { el.className = `print-logo-box print-only ${logoPos}`; el.style.display = showLogo ? 'block' : 'none'; } });
-  ['reportHeaderImgContainer', 'glHeaderImgContainer', 'subHeaderImgContainer'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = uploadedHeaderImg ? 'block' : 'none'; });
-  ['reportFooterImgContainer', 'glFooterImgContainer', 'subFooterImgContainer'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = uploadedFooterImg ? 'block' : 'none'; });
+  ['reportLogoImg', 'glLogoImg', 'subLogoImg'].forEach(id => { 
+    const el = document.getElementById(id); 
+    if (el) { el.className = `print-logo-box print-only ${logoPos}`; el.style.display = showLogo ? 'block' : 'none'; } 
+  });
+
+  ['reportHeaderImgContainer', 'glHeaderImgContainer', 'subHeaderImgContainer'].forEach(id => { 
+    const el = document.getElementById(id); if (el) el.style.display = uploadedHeaderImg ? 'block' : 'none'; 
+  });
+  ['reportFooterImgContainer', 'glFooterImgContainer', 'subFooterImgContainer'].forEach(id => { 
+    const el = document.getElementById(id); if (el) el.style.display = uploadedFooterImg ? 'block' : 'none'; 
+  });
 
   let printContainer = document.getElementById('printableDocArea');
-  if (!printContainer) { printContainer = document.createElement('div'); printContainer.id = 'printableDocArea'; document.body.appendChild(printContainer); }
+  if (!printContainer) { 
+    printContainer = document.createElement('div'); 
+    printContainer.id = 'printableDocArea'; 
+    document.body.appendChild(printContainer); 
+  }
   printContainer.innerHTML = ''; 
   
-  // Clone the element so we don't mess up the screen UI
-  let clone = document.getElementById(containerId).cloneNode(true);
+  let clone = target.cloneNode(true);
   
-  // Inject Signatories before the footer
   if (signatories.length > 0) {
     let sigArea = document.createElement('div');
     sigArea.className = 'signatories-area print-only';
@@ -976,13 +1068,21 @@ function prepareAndPrint(containerId) {
   window.print();
 }
 
-// --- SUMMARY CHART LOGIC ---
+// --- SUMMARY MULTI-LINE / MULTI-BAR TIME-SERIES GRAPH ---
+function toggleChartDateInputs() {
+  const v = document.getElementById('chartFilterType').value;
+  document.getElementById('chartMonthWrap').style.display = v === 'month' ? 'flex' : 'none';
+  document.getElementById('chartQtrWrap').style.display = v === 'quarter' ? 'flex' : 'none';
+  document.getElementById('chartYearWrap').style.display = v === 'year' ? 'flex' : 'none';
+  document.getElementById('chartRangeWrap').style.display = v === 'custom' ? 'flex' : 'none';
+  updateChart();
+}
+
 function renderChartCheckboxes() {
   const box = document.getElementById('chartAccountCheckboxes');
   const query = (document.getElementById('chartAccountSearch')?.value || '').toLowerCase();
   
-  let validAccounts = accounts; // Allows searching ANY account type now
-  
+  let validAccounts = accounts;
   if (query) {
     validAccounts = validAccounts.filter(a => a.code.toLowerCase().includes(query) || a.name.toLowerCase().includes(query) || a.type.toLowerCase().includes(query));
   }
@@ -1018,24 +1118,20 @@ function initSummaryChart() {
   Chart.defaults.color = '#a7f3d0';
   
   chartInstance = new Chart(ctx, { 
-    type: 'bar', 
-    data: { 
-      labels: [], 
-      datasets: [{ 
-        label: 'Net Balance', 
-        data: [], 
-        backgroundColor: '#10b981',
-        borderColor: '#34d399',       
-        borderWidth: 2,               
-        pointBackgroundColor: '#fff', 
-        pointRadius: 4,               
-        fill: false,                  
-        tension: 0.2                  
-      }] 
-    }, 
+    type: 'line', 
+    data: { labels: [], datasets: [] }, 
     options: { 
       responsive: true, 
-      maintainAspectRatio: false, 
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return ` ${ctx.dataset.label}: ${formatNum(ctx.raw)}`; }
+          }
+        }
+      },
       scales: { 
         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } }, 
         x: { grid: { color: 'rgba(255,255,255,0.1)' } } 
@@ -1045,48 +1141,165 @@ function initSummaryChart() {
   renderChartCheckboxes(); 
 }
 
+const PALETTE = [
+  '#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', 
+  '#06b6d4', '#14b8a6', '#f97316', '#6366f1', '#84cc16'
+];
+
+function getTimeBucketKey(dateStr, scale) {
+  const d = new Date(dateStr + "T00:00:00");
+  const year = d.getFullYear();
+  const month = d.getMonth() + 1;
+
+  if (scale === 'daily') return dateStr;
+  if (scale === 'weekly') {
+    const oneJan = new Date(year, 0, 1);
+    const numberOfDays = Math.floor((d - oneJan) / (24 * 60 * 60 * 1000));
+    const week = Math.ceil((numberOfDays + oneJan.getDay() + 1) / 7);
+    return `${year}-W${String(week).padStart(2, '0')}`;
+  }
+  if (scale === 'monthly') return `${year}-${String(month).padStart(2, '0')}`;
+  if (scale === 'quarterly') {
+    const q = Math.ceil(month / 3);
+    return `${year}-Q${q}`;
+  }
+  if (scale === 'yearly') return `${year}`;
+  return dateStr;
+}
+
 function updateChart() {
   if (!chartInstance) return;
   const btn = document.getElementById('refreshChartBtn');
   if (btn) { btn.innerHTML = '⏳ Processing...'; btn.disabled = true; }
 
   setTimeout(() => {
-    const cType = document.getElementById('chartTypeSelect')?.value || 'bar';
-    chartInstance.config.type = cType;
+    const cType = document.getElementById('chartTypeSelect')?.value || 'line';
+    const scale = document.getElementById('chartTimeScale')?.value || 'monthly';
+    const fType = document.getElementById('chartFilterType')?.value || 'all';
+    const mVal = document.getElementById('chartMonthInput')?.value;
+    const qVal = document.getElementById('chartQtrSelect')?.value;
+    const qYear = document.getElementById('chartQtrYear')?.value;
+    const yVal = document.getElementById('chartYearInput')?.value;
+    const sVal = document.getElementById('chartStartDate')?.value;
+    const eVal = document.getElementById('chartEndDate')?.value;
 
-    const sel = accounts.filter(a => chartCheckedAccounts.includes(a.code));
-    
-    chartInstance.data.labels = sel.map(a => `${a.name}`);
-    chartInstance.data.datasets[0].data = sel.map(a => calculateAccountNet(a.code));
+    const filteredEntries = journalEntries.filter(je => {
+      if (fType === 'month' && mVal && !je.date.startsWith(mVal)) return false;
+      if (fType === 'year' && yVal && !je.date.startsWith(yVal)) return false;
+      if (fType === 'custom' && sVal && eVal && (je.date < sVal || je.date > eVal)) return false;
+      if (fType === 'quarter' && qVal && qYear) {
+        const month = parseInt(je.date.split('-')[1]);
+        const year = je.date.split('-')[0];
+        if (year !== qYear) return false;
+        if (qVal === 'Q1') return month >= 1 && month <= 3;
+        if (qVal === 'Q2') return month >= 4 && month <= 6;
+        if (qVal === 'Q3') return month >= 7 && month <= 9;
+        if (qVal === 'Q4') return month >= 10 && month <= 12;
+      }
+      return true;
+    }).sort((a, b) => a.date.localeCompare(b.date));
+
+    // Determine Timeline Buckets
+    let bucketSet = new Set();
+    filteredEntries.forEach(je => bucketSet.add(getTimeBucketKey(je.date, scale)));
+    let buckets = Array.from(bucketSet).sort();
+    if (buckets.length === 0) buckets = [getTimeBucketKey(new Date().toISOString().split('T')[0], scale)];
+
+    const selectedAccs = accounts.filter(a => chartCheckedAccounts.includes(a.code));
+
+    // Construct Separate Series Dataset for Each Account
+    const datasets = selectedAccs.map((acc, idx) => {
+      const color = PALETTE[idx % PALETTE.length];
+      
+      let runningBal = 0;
+      const data = buckets.map(bucket => {
+        filteredEntries.forEach(je => {
+          if (getTimeBucketKey(je.date, scale) === bucket) {
+            je.lines.forEach(l => {
+              if (l.accountCode === acc.code) {
+                runningBal += (acc.type === 'Asset' || acc.type === 'Expense') ? (l.dr - l.cr) : (l.cr - l.dr);
+              }
+            });
+          }
+        });
+        return runningBal;
+      });
+
+      return {
+        type: cType,
+        label: `${acc.code} - ${acc.name}`,
+        data: data,
+        backgroundColor: color + (cType === 'bar' ? 'B3' : '22'),
+        borderColor: color,
+        borderWidth: 2,
+        pointBackgroundColor: '#fff',
+        pointRadius: 4,
+        fill: false,
+        tension: 0.25
+      };
+    });
+
+    chartInstance.config.type = cType;
+    chartInstance.data.labels = buckets;
+    chartInstance.data.datasets = datasets;
     chartInstance.update();
 
+    // Summary Widgets
     const w = document.getElementById('currencySummaryWidgets'); 
     if (w) {
       w.innerHTML = '';
       currencies.forEach(c => {
-        let total = 0; accounts.filter(a => a.currency === c && a.type === 'Asset').forEach(a => total += calculateAccountNet(a.code));
+        let total = 0; 
+        accounts.filter(a => a.currency === c && a.type === 'Asset').forEach(a => total += calculateAccountNet(a.code));
         w.innerHTML += `<div class="kpi-card"><div class="kpi-label">Assets (${c})</div><div class="kpi-value" style="color:var(--primary);">${formatNum(total)}</div></div>`;
       });
     }
     
     if (btn) { btn.innerHTML = '🔄 Refresh Graph'; btn.disabled = false; }
-  }, 400); 
+  }, 300);
 }
 
+// --- CSV EXPORTS ---
 function exportGlCSV() {
-  const code = document.getElementById('glAccountSelect').value; const acc = accounts.find(a => a.code === code) || accounts[0];
+  const code = document.getElementById('glAccountSelect').value; 
+  const acc = accounts.find(a => a.code === code) || accounts[0];
   let csv = [`"Statement: ${acc.name}"`, `"Currency: ${acc.currency}"`, ''];
-  document.querySelectorAll('#glTable tr').forEach(r => { let cols = []; r.querySelectorAll('th, td').forEach(c => cols.push(`"${c.innerText.trim()}"`)); csv.push(cols.join(',')); });
-  const b = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Statement_${acc.code}.csv`; a.click();
+  document.querySelectorAll('#glTable tr').forEach(r => { 
+    let cols = []; 
+    r.querySelectorAll('th, td').forEach(c => cols.push(`"${c.innerText.replace(/"/g, '""').trim()}"`)); 
+    csv.push(cols.join(',')); 
+  });
+  const b = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' }); 
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Statement_${acc.code}.csv`; a.click();
 }
+
 function exportSubAccountCSV() {
   const sub = subAccounts.find(s => s.id === activeSubAccountId) || subAccounts[0];
   let csv = [`"Sub-Account Ledger: ${sub.name}"`, `"Currency: ${sub.currency}"`, ''];
-  document.querySelectorAll('#subAccountTable tr').forEach(r => { let cols = []; r.querySelectorAll('th, td').forEach(c => cols.push(`"${c.innerText.replace(/"/g, '""').trim()}"`)); csv.push(cols.join(',')); });
-  const b = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `SubAccount_${sub.id}.csv`; a.click();
+  document.querySelectorAll('#subAccountTable tr').forEach(r => { 
+    let cols = []; 
+    r.querySelectorAll('th, td').forEach(c => cols.push(`"${c.innerText.replace(/"/g, '""').trim()}"`)); 
+    csv.push(cols.join(',')); 
+  });
+  const b = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' }); 
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `SubAccount_${sub.id}.csv`; a.click();
 }
+
 function exportReportsCSV() {
-  let csv = ['"Financial Statement"',''];
-  [document.getElementById('incomeStatementTable'), document.getElementById('balanceSheetTable')].forEach(tbl => { tbl.querySelectorAll('tr').forEach(r => { let cols = []; r.querySelectorAll('th, td').forEach(c => cols.push(`"${c.innerText.trim()}"`)); csv.push(cols.join(',')); }); csv.push(''); });
-  const b = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' }); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Financials_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  let csv = ['"Financial Statement"', ''];
+  const incTable = document.getElementById('incomeStatementTable');
+  const balTable = document.getElementById('balanceSheetTable');
+  
+  [incTable, balTable].forEach(tbl => { 
+    if (tbl) {
+      tbl.querySelectorAll('tr').forEach(r => { 
+        let cols = []; 
+        r.querySelectorAll('th, td').forEach(c => cols.push(`"${c.innerText.replace(/"/g, '""').trim()}"`)); 
+        csv.push(cols.join(',')); 
+      }); 
+      csv.push(''); 
+    }
+  });
+  const b = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' }); 
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `Financials_${new Date().toISOString().split('T')[0]}.csv`; a.click();
 }
