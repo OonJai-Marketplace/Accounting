@@ -23,6 +23,8 @@ let entryCounter = 1;
 let subCounter = 1;
 
 let chartInstance = null;
+let chartCheckedAccounts = ['1010', '1020', '2010']; // State tracker for graph selections
+
 let editingJournalId = null;
 let editingSubVoucherId = null;
 let editingCoaCode = null; 
@@ -57,8 +59,11 @@ function toggleMenu() {
   document.getElementById('navMenuBar').classList.toggle('open');
 }
 
+// STRICT NUMBER FORMATTING (#,###.00)
 function formatNum(num) {
-  return num ? num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-';
+  if (num === null || num === undefined || isNaN(num) || num === '') return '-';
+  if (Number(num) === 0) return '0.00';
+  return Number(num).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 
 function getEntryPrefix() {
@@ -126,24 +131,50 @@ function restoreData(event) {
   reader.readAsText(file);
 }
 
-// --- AUTHENTICATION & LOCKS ---
+// --- AUTHENTICATION, SUB-ACCOUNT PRIVACY & LOCKS ---
+function toggleLoginSubAccount() {
+  const role = document.getElementById('loginRoleSelect').value;
+  document.getElementById('loginSubAccountGroup').style.display = role === 'sub' ? 'block' : 'none';
+}
+
 function handleLogin() {
   const role = document.getElementById('loginRoleSelect').value;
   const pass = document.getElementById('loginPassword').value;
+  
   if (role === 'admin' && pass !== 'admin123') { alert('Invalid Password'); return; }
-  if (role === 'sub' && pass !== 'sub123') { alert('Invalid Password'); return; }
+  if (role === 'sub') {
+    if (pass !== 'sub123') { alert('Invalid Password'); return; }
+    const assignedSub = document.getElementById('loginSubAccountSelect').value;
+    if (!assignedSub) { alert('No sub-account selected or available.'); return; }
+    activeSubAccountId = assignedSub; 
+  }
+  
   currentUserRole = role;
   document.getElementById('loginOverlay').style.display = 'none';
   applyRolePermissions();
 }
+
 function handleLogout() { document.getElementById('loginOverlay').style.display = 'flex'; }
+
 function applyRolePermissions() {
   const isAdmin = currentUserRole === 'admin';
   document.getElementById('userRoleBadge').textContent = isAdmin ? 'Admin Mode' : 'Sub-Account Mode';
   document.getElementById('currentUserDisplay').textContent = `Logged in: ${isAdmin ? 'Admin' : 'Sub-Officer'}`;
   document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
-  if (!isAdmin) { switchTab('sub-accounts'); } else { switchTab('summary'); }
+  
+  if (!isAdmin) { 
+    // Sub-Account Mode Privacy: Hide the top dropdown so they can't switch to other sub-accounts
+    document.getElementById('subAccountSelectorWrapper').style.display = 'none';
+    updateActiveSubAccountHeader();
+    renderSubAccountLog();
+    switchTab('sub-accounts'); 
+  } else { 
+    // Admin Mode: Restore the dropdown
+    document.getElementById('subAccountSelectorWrapper').style.display = 'block';
+    switchTab('summary'); 
+  }
 }
+
 function isDateLockedForSubAccount(entryDateStr) {
   if (currentUserRole === 'admin') return false; 
   const entryDate = new Date(entryDateStr + "T00:00:00");
@@ -153,6 +184,7 @@ function isDateLockedForSubAccount(entryDateStr) {
   const lockDeadline = new Date(dYear, dMonth, 7, 23, 59, 59);
   return new Date() > lockDeadline; 
 }
+
 function checkEntryDateLock() {
   const isLocked = isDateLockedForSubAccount(document.getElementById('subEntryDate').value);
   document.getElementById('subEntryLockWarning').style.display = isLocked ? 'block' : 'none';
@@ -161,14 +193,14 @@ function checkEntryDateLock() {
 
 // --- TAB SWITCHING ---
 function switchTab(tabId) {
-  if (currentUserRole === 'sub' && tabId !== 'sub-accounts') { alert('Restricted'); return; }
+  if (currentUserRole === 'sub' && tabId !== 'sub-accounts') { alert('Restricted Area'); return; }
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
   if (btn) btn.classList.add('active');
   document.getElementById(tabId).classList.add('active');
   
-  document.getElementById('navMenuBar').classList.remove('open'); // Close mobile menu
+  document.getElementById('navMenuBar').classList.remove('open'); 
 
   if (tabId === 'gl') renderGeneralLedger();
   if (tabId === 'trial-balance') renderTrialBalance();
@@ -235,7 +267,7 @@ function addOrUpdateChartAccount() {
     accounts.push({ code, name, type, currency });
     document.getElementById('coaCode').value = ''; document.getElementById('coaName').value = '';
   }
-  renderChartOfAccounts(); refreshAccountDropdowns(); refreshChartCheckboxes(); updateChart();
+  renderChartOfAccounts(); refreshAccountDropdowns(); renderChartCheckboxes(); updateChart();
 }
 function loadCoaForEdit(code) {
   const acc = accounts.find(a => a.code === code); if (!acc) return;
@@ -259,7 +291,7 @@ function deleteCoa(code) {
   if (confirm(`Permanently delete account ${code}?`)) {
     accounts = accounts.filter(a => a.code !== code);
     if (editingCoaCode === code) cancelCoaEdit();
-    renderChartOfAccounts(); refreshAccountDropdowns(); refreshChartCheckboxes(); updateChart();
+    renderChartOfAccounts(); refreshAccountDropdowns(); renderChartCheckboxes(); updateChart();
   }
 }
 function renderChartOfAccounts() {
@@ -277,8 +309,16 @@ function renderChartOfAccounts() {
 // --- SUB ACCOUNTS LOGIC ---
 function populateSubAccountDropdowns() {
   const select = document.getElementById('subAccountActiveSelect');
-  select.innerHTML = subAccounts.map(s => `<option value="${s.id}">${s.name} (${s.currency})</option>`).join('');
+  const loginSelect = document.getElementById('loginSubAccountSelect');
+  const html = subAccounts.map(s => `<option value="${s.id}">${s.name} (${s.currency})</option>`).join('');
+  
+  select.innerHTML = html;
   select.value = activeSubAccountId;
+  
+  if (loginSelect) {
+    loginSelect.innerHTML = html;
+  }
+  
   updateActiveSubAccountHeader();
 }
 function switchActiveSubAccount() {
@@ -777,22 +817,77 @@ function prepareAndPrint(containerId) {
   window.print();
 }
 
-function refreshChartCheckboxes() {
+// --- NEW CHART LOGIC WITH SEARCH, SORT, AND LINE STYLING ---
+function renderChartCheckboxes() {
   const box = document.getElementById('chartAccountCheckboxes');
-  box.innerHTML = accounts.filter(a => a.type === 'Asset' || a.type === 'Liability').map((a, i) => `
+  const query = (document.getElementById('chartAccountSearch')?.value || '').toLowerCase();
+  
+  // Get all valid accounts for graphing (Assets and Liabilities)
+  let validAccounts = accounts.filter(a => a.type === 'Asset' || a.type === 'Liability');
+  
+  // Apply Search filter
+  if (query) {
+    validAccounts = validAccounts.filter(a => a.code.toLowerCase().includes(query) || a.name.toLowerCase().includes(query));
+  }
+  
+  // Custom Sort: Checked items at the top, then alphabetically by code
+  validAccounts.sort((a, b) => {
+    const aChecked = chartCheckedAccounts.includes(a.code);
+    const bChecked = chartCheckedAccounts.includes(b.code);
+    if (aChecked && !bChecked) return -1;
+    if (!aChecked && bChecked) return 1;
+    return a.code.localeCompare(b.code);
+  });
+
+  box.innerHTML = validAccounts.map((a) => `
     <label class="checkbox-list-item">
-      <input type="checkbox" value="${a.code}" class="chart-acc-toggle" ${i < 3 ? 'checked' : ''} onchange="updateChart()" />
+      <input type="checkbox" value="${a.code}" class="chart-acc-toggle" ${chartCheckedAccounts.includes(a.code) ? 'checked' : ''} onchange="toggleChartAccount('${a.code}')" />
       <span><strong>${a.code}</strong><br>${a.name}</span>
     </label>
   `).join('');
+}
+
+function toggleChartAccount(code) {
+  if (chartCheckedAccounts.includes(code)) {
+    chartCheckedAccounts = chartCheckedAccounts.filter(c => c !== code);
+  } else {
+    chartCheckedAccounts.push(code);
+  }
+  renderChartCheckboxes();
   updateChart();
 }
 
 function initSummaryChart() {
   const ctx = document.getElementById('summaryChart').getContext('2d');
   Chart.defaults.color = '#a7f3d0';
-  chartInstance = new Chart(ctx, { type: 'bar', data: { labels: [], datasets: [{ label: 'Net Balance', data: [], backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { grid: { color: 'rgba(255,255,255,0.1)' } } } } });
-  refreshChartCheckboxes(); 
+  
+  chartInstance = new Chart(ctx, { 
+    type: 'bar', 
+    data: { 
+      labels: [], 
+      datasets: [{ 
+        label: 'Net Balance', 
+        data: [], 
+        backgroundColor: '#10b981',
+        borderColor: '#34d399',       // Added for line graph
+        borderWidth: 2,               // Added for line graph
+        pointBackgroundColor: '#fff', // Added for line graph
+        pointRadius: 4,               // Added for line graph
+        fill: false,                  // Crucial: stops the line graph from being a solid block
+        tension: 0.2                  // Smooths the line
+      }] 
+    }, 
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false, 
+      scales: { 
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } }, 
+        x: { grid: { color: 'rgba(255,255,255,0.1)' } } 
+      } 
+    } 
+  });
+  
+  renderChartCheckboxes(); 
 }
 
 function updateChart() {
@@ -804,9 +899,7 @@ function updateChart() {
     const cType = document.getElementById('chartTypeSelect')?.value || 'bar';
     chartInstance.config.type = cType;
 
-    const toggles = document.querySelectorAll('.chart-acc-toggle:checked');
-    const checked = Array.from(toggles).map(cb => cb.value);
-    const sel = accounts.filter(a => checked.includes(a.code));
+    const sel = accounts.filter(a => chartCheckedAccounts.includes(a.code));
     
     chartInstance.data.labels = sel.map(a => `${a.name}`);
     chartInstance.data.datasets[0].data = sel.map(a => calculateAccountNet(a.code));
