@@ -143,28 +143,34 @@ function restoreData(event) {
 
 // --- AUTHENTICATION & LOGIN LOGIC ---
 function handleLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPassword').value.trim();
+  const emailInput = document.getElementById('loginEmail');
+  const passInput = document.getElementById('loginPassword');
   
-  if (!email || !pass) { alert('Enter Email and Password'); return; }
+  if (!emailInput || !passInput) return;
 
-  // Check Admin first
-  const admin = adminUsers.find(u => u.email === email && u.password === pass);
+  const email = emailInput.value.trim().toLowerCase();
+  const pass = passInput.value.trim();
+
+  // Checks santos@onjoy.org and admin123 (ignores case differences)
+  const admin = adminUsers.find(u => 
+    u.email.trim().toLowerCase() === email && u.password.trim() === pass
+  );
+  
   if (admin) {
     currentUserRole = 'admin';
     document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('loginPassword').value = '';
     applyRolePermissions();
     return;
   }
+
+  const sub = subAccounts.find(u => 
+    u.email.trim().toLowerCase() === email && u.password.trim() === pass
+  );
   
-  // Check Sub-Accounts
-  const sub = subAccounts.find(u => u.email === email && u.password === pass);
   if (sub) {
     currentUserRole = 'sub';
     activeSubAccountId = sub.id;
     document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('loginPassword').value = '';
     applyRolePermissions();
     return;
   }
