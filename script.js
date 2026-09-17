@@ -32,12 +32,10 @@ let uploadedFooterImg = "";
 let uploadedLogoImg = "";
 
 window.onload = function() {
-  // Default to exact context date: Sept 17, 2026
   const defaultDate = "2026-09-17";
   const defaultMonth = "2026-09";
   document.getElementById('jeDate').value = defaultDate;
   document.getElementById('subEntryDate').value = defaultDate;
-  document.getElementById('reportMonthFilter').value = defaultMonth;
 
   injectSampleData();
   
@@ -472,8 +470,14 @@ function saveJournalEntry() {
   const desc = document.getElementById('jeDescription').value;
 
   if (editingJournalId) {
+    if (!confirm(`WARNING: You are about to modify and overwrite historical Entry ${editingJournalId}. Are you sure you want to proceed?`)) return;
+    
+    let auditReason = prompt("AUDIT REQUIREMENT:\nPlease enter a brief reason for changing this entry:");
+    if (auditReason === null) return; 
+    if (auditReason.trim() === "") auditReason = "Manual revision (No reason provided)";
+
     const idx = journalEntries.findIndex(e => e.entryId === editingJournalId);
-    if (idx !== -1) journalEntries[idx] = { entryId: editingJournalId, date, desc, lines };
+    if (idx !== -1) journalEntries[idx] = { entryId: editingJournalId, date, desc, lines, auditReason: auditReason, auditDate: new Date().toISOString().split('T')[0] };
     cancelJournalEdit();
   } else {
     const pfx = getEntryPrefix();
@@ -503,16 +507,36 @@ function deleteJournalEntry(id) {
   if (confirm(`Delete ${id}?`)) { journalEntries = journalEntries.filter(e => e.entryId !== id); if (editingJournalId === id) cancelJournalEdit(); renderJournalLog(); renderTrialBalance(); generateAutomatedReports(); updateChart(); }
 }
 function renderJournalLog() {
-  const tbody = document.getElementById('journalLogBody'); tbody.innerHTML = '';
+  const tbody = document.getElementById('journalLogBody'); 
+  tbody.innerHTML = '';
+  const query = (document.getElementById('journalSearchInput')?.value || '').toLowerCase();
+
   journalEntries.forEach(je => {
+    let matchesSearch = false;
+    if (je.entryId.toLowerCase().includes(query) || je.desc.toLowerCase().includes(query)) matchesSearch = true;
+    je.lines.forEach(l => {
+      const acc = accounts.find(a => a.code === l.accountCode);
+      if (acc && acc.name.toLowerCase().includes(query)) matchesSearch = true;
+      if (l.memo && l.memo.toLowerCase().includes(query)) matchesSearch = true;
+      if (l.dr.toString().includes(query) || l.cr.toString().includes(query)) matchesSearch = true;
+    });
+
+    if (!matchesSearch) return; 
+
     je.lines.forEach((l, idx) => {
       const acc = accounts.find(a => a.code === l.accountCode);
       let row = `<tr>${idx === 0 ? `<td rowspan="${je.lines.length}"><strong>${je.entryId}</strong></td><td rowspan="${je.lines.length}">${je.date}</td>` : ''}
         <td>${acc ? acc.code + ' - ' + acc.name : l.accountCode} <span class="currency-tag">${l.currency}</span></td><td style="text-align:left;">${l.memo || je.desc}</td><td class="num">${formatNum(l.dr)}</td>`;
       currencies.forEach(c => row += `<td class="num">${(l.currency === c && l.cr > 0) ? formatNum(l.cr) : '-'}</td>`);
       if (idx === 0) row += `<td rowspan="${je.lines.length}" style="text-align:center;"><button class="btn btn-secondary btn-sm" onclick="loadJournalForEdit('${je.entryId}')">✏️</button> <button class="btn btn-danger btn-sm" onclick="deleteJournalEntry('${je.entryId}')">🗑️</button></td>`;
-      row += `</tr>`; tbody.innerHTML += row;
+      row += `</tr>`; 
+      tbody.innerHTML += row;
     });
+
+    if (je.auditReason) {
+      const totalColumns = 5 + currencies.length;
+      tbody.innerHTML += `<tr class="audit-row"><td colspan="${totalColumns}"><strong>⚠️ Audit Note (${je.auditDate}):</strong> ${je.auditReason}</td></tr>`;
+    }
   });
 }
 
@@ -527,8 +551,6 @@ function calculateAccountNet(code) {
 function renderTrialBalance() {
   const tbody = document.getElementById('tbBody'); tbody.innerHTML = '';
   const thead = document.getElementById('tbHead');
-
-  // Sort currencies: baseCurrency first
   const sortedCurr = [baseCurrency, ...currencies.filter(c => c !== baseCurrency)];
 
   let theadHtml = `<tr><th style="text-align:left;">Code</th><th style="text-align:left;">Account Name</th>`;
@@ -548,7 +570,6 @@ function renderTrialBalance() {
   });
 }
 
-// GL Logic
 function toggleGlDateInputs() {
   const v = document.getElementById('glFilterType').value;
   document.getElementById('glMonthWrap').style.display = v === 'month' ? 'flex' : 'none';
@@ -602,14 +623,45 @@ function renderGeneralLedger() {
   document.getElementById('glEndingBalance').textContent = formatNum(run);
 }
 
-// Auto Reports
+function toggleReportDateInputs() {
+  const v = document.getElementById('reportFilterType').value;
+  document.getElementById('repMonthWrap').style.display = v === 'month' ? 'flex' : 'none';
+  document.getElementById('repQtrWrap').style.display = v === 'quarter' ? 'flex' : 'none';
+  document.getElementById('repYearWrap').style.display = v === 'year' ? 'flex' : 'none';
+  document.getElementById('repRangeWrap').style.display = v === 'custom' ? 'flex' : 'none';
+  generateAutomatedReports();
+}
 function generateAutomatedReports() {
-  const month = document.getElementById('reportMonthFilter').value;
-  document.getElementById('reportPeriodTitle').textContent = month ? `Financial Statement (${month})` : `Financial Statement (All-Time)`;
+  const fType = document.getElementById('reportFilterType')?.value || 'all';
+  const mVal = document.getElementById('repMonthInput')?.value;
+  const qVal = document.getElementById('repQtrSelect')?.value;
+  const qYear = document.getElementById('repQtrYear')?.value;
+  const yVal = document.getElementById('repYearInput')?.value;
+  const sVal = document.getElementById('repStartDate')?.value;
+  const eVal = document.getElementById('repEndDate')?.value;
 
-  const entries = journalEntries.filter(je => !month || je.date.startsWith(month));
+  let title = "Financial Statement (All-Time)";
+  
+  const entries = journalEntries.filter(je => {
+    if (fType === 'month' && mVal) { title = `Statement (${mVal})`; return je.date.startsWith(mVal); }
+    if (fType === 'year' && yVal) { title = `Statement (${yVal})`; return je.date.startsWith(yVal); }
+    if (fType === 'custom' && sVal && eVal) { title = `Statement (${sVal} to ${eVal})`; return je.date >= sVal && je.date <= eVal; }
+    if (fType === 'quarter' && qVal && qYear) {
+      title = `Statement (${qVal} ${qYear})`;
+      const month = parseInt(je.date.split('-')[1]);
+      const year = je.date.split('-')[0];
+      if (year !== qYear) return false;
+      if (qVal === 'Q1') return month >= 1 && month <= 3;
+      if (qVal === 'Q2') return month >= 4 && month <= 6;
+      if (qVal === 'Q3') return month >= 7 && month <= 9;
+      if (qVal === 'Q4') return month >= 10 && month <= 12;
+    }
+    return true;
+  });
+
+  document.getElementById('reportPeriodTitle').textContent = title;
+
   const pnlBody = document.getElementById('incomeStatementBody'); pnlBody.innerHTML = '';
-
   let rev = {}, exp = {}; currencies.forEach(c => { rev[c] = 0; exp[c] = 0; });
 
   pnlBody.innerHTML += `<tr style="background:rgba(255,255,255,0.05);"><td colspan="3"><strong>REVENUES</strong></td></tr>`;
@@ -633,7 +685,6 @@ function generateAutomatedReports() {
   });
 }
 
-// --- RECONCILIATION ---
 function toggleReconDateInputs() {
   const v = document.getElementById('reconFilterType').value;
   document.getElementById('reconMonthWrap').style.display = v === 'month' ? 'flex' : 'none';
@@ -676,7 +727,6 @@ function runReconciliation() {
   else { st.innerHTML = '<span style="color:var(--danger); font-weight:bold;">⚠ Variance</span>'; st.style.background = 'rgba(239,68,68,0.1)'; }
 }
 
-// --- BRANDING & PRINTING ---
 function handleLogoUpload(e) {
   const file = e.target.files[0];
   if (file) {
@@ -727,11 +777,13 @@ function prepareAndPrint(containerId) {
   window.print();
 }
 
-// --- SUMMARY CHART ---
 function refreshChartCheckboxes() {
   const box = document.getElementById('chartAccountCheckboxes');
   box.innerHTML = accounts.filter(a => a.type === 'Asset' || a.type === 'Liability').map((a, i) => `
-    <label style="display:flex; gap:8px; padding:6px 4px; align-items:center; cursor:pointer;"><input type="checkbox" value="${a.code}" class="chart-acc-toggle" ${i < 3 ? 'checked' : ''} onchange="updateChart()" /> ${a.code} - ${a.name}</label>
+    <label class="checkbox-list-item">
+      <input type="checkbox" value="${a.code}" class="chart-acc-toggle" ${i < 3 ? 'checked' : ''} onchange="updateChart()" />
+      <span><strong>${a.code}</strong><br>${a.name}</span>
+    </label>
   `).join('');
   updateChart();
 }
@@ -740,26 +792,39 @@ function initSummaryChart() {
   const ctx = document.getElementById('summaryChart').getContext('2d');
   Chart.defaults.color = '#a7f3d0';
   chartInstance = new Chart(ctx, { type: 'bar', data: { labels: [], datasets: [{ label: 'Net Balance', data: [], backgroundColor: '#10b981' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { grid: { color: 'rgba(255,255,255,0.1)' } } } } });
-  refreshChartCheckboxes(); // populate on load
+  refreshChartCheckboxes(); 
 }
+
 function updateChart() {
   if (!chartInstance) return;
-  const toggles = document.querySelectorAll('.chart-acc-toggle:checked');
-  if (toggles.length === 0) return;
-  const checked = Array.from(toggles).map(cb => cb.value);
-  const sel = accounts.filter(a => checked.includes(a.code));
-  chartInstance.data.labels = sel.map(a => `${a.name}`);
-  chartInstance.data.datasets[0].data = sel.map(a => calculateAccountNet(a.code));
-  chartInstance.update();
+  const btn = document.getElementById('refreshChartBtn');
+  if (btn) { btn.innerHTML = '⏳ Processing...'; btn.disabled = true; }
 
-  const w = document.getElementById('currencySummaryWidgets'); w.innerHTML = '';
-  currencies.forEach(c => {
-    let total = 0; accounts.filter(a => a.currency === c && a.type === 'Asset').forEach(a => total += calculateAccountNet(a.code));
-    w.innerHTML += `<div class="kpi-card"><div class="kpi-label">Assets (${c})</div><div class="kpi-value" style="color:var(--primary);">${formatNum(total)}</div></div>`;
-  });
+  setTimeout(() => {
+    const cType = document.getElementById('chartTypeSelect')?.value || 'bar';
+    chartInstance.config.type = cType;
+
+    const toggles = document.querySelectorAll('.chart-acc-toggle:checked');
+    const checked = Array.from(toggles).map(cb => cb.value);
+    const sel = accounts.filter(a => checked.includes(a.code));
+    
+    chartInstance.data.labels = sel.map(a => `${a.name}`);
+    chartInstance.data.datasets[0].data = sel.map(a => calculateAccountNet(a.code));
+    chartInstance.update();
+
+    const w = document.getElementById('currencySummaryWidgets'); 
+    if (w) {
+      w.innerHTML = '';
+      currencies.forEach(c => {
+        let total = 0; accounts.filter(a => a.currency === c && a.type === 'Asset').forEach(a => total += calculateAccountNet(a.code));
+        w.innerHTML += `<div class="kpi-card"><div class="kpi-label">Assets (${c})</div><div class="kpi-value" style="color:var(--primary);">${formatNum(total)}</div></div>`;
+      });
+    }
+    
+    if (btn) { btn.innerHTML = '🔄 Refresh Graph'; btn.disabled = false; }
+  }, 400); 
 }
 
-// --- CSV EXPORT FIXES ---
 function exportGlCSV() {
   const code = document.getElementById('glAccountSelect').value; const acc = accounts.find(a => a.code === code) || accounts[0];
   let csv = [`"Statement: ${acc.name}"`, `"Currency: ${acc.currency}"`, ''];
