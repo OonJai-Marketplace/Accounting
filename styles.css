@@ -108,6 +108,7 @@ tr:hover td { background-color: rgba(255,255,255,0.04); }
 
 /* Print Visibility Classes */
 .print-only { display: none; }
+#printableDocArea { display: none; } /* <-- ADDED THIS LINE TO HIDE IT ON SCREEN */
 .print-logo-box { position: absolute; max-width: 120px; max-height: 80px; object-fit: contain; z-index: 10; display: none; }
 .logo-top-left { top: 10px; left: 10px; }
 .logo-top-right { top: 10px; right: 10px; }
@@ -121,7 +122,9 @@ tr:hover td { background-color: rgba(255,255,255,0.04); }
   body, .main-container, .tab-content, .panel, .table-container, .kpi-card { background: #fff !important; color: #000 !important; }
   body * { visibility: hidden; }
   #printableDocArea, #printableDocArea * { visibility: visible; }
-  #printableDocArea { position: absolute; left: 0; top: 0; width: 100%; }
+  
+  /* MODIFIED THIS LINE TO SHOW IT DURING PRINTING */
+  #printableDocArea { display: block !important; position: absolute; left: 0; top: 0; width: 100%; } 
   
   .no-print, .btn, input, select, textarea, .menu-bar, .sheet-header { display: none !important; }
   .print-only { display: block !important; }
