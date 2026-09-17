@@ -15,10 +15,15 @@
       <h2 style="color: var(--primary); margin-bottom: 16px; text-align: center;">System Sign In</h2>
       <div class="form-group">
         <label>Access Profile:</label>
-        <select id="loginRoleSelect">
+        <select id="loginRoleSelect" onchange="toggleLoginSubAccount()">
           <option value="admin">Master Account (Admin)</option>
           <option value="sub">Sub-Account Officer</option>
         </select>
+      </div>
+      <!-- ONLY APPEARS FOR SUB-ACCOUNT MODE -->
+      <div class="form-group" id="loginSubAccountGroup" style="display: none; margin-top: 16px;">
+        <label>Assigned Sub-Account:</label>
+        <select id="loginSubAccountSelect"></select>
       </div>
       <div class="form-group" style="margin-top: 16px;">
         <label>Password:</label>
@@ -75,6 +80,10 @@
         </div>
         <div class="panel" style="flex: 1; min-width: 250px;">
           <div class="panel-header">Select Accounts to View</div>
+          
+          <!-- NEW: Graph Checkbox Search Bar -->
+          <input type="text" id="chartAccountSearch" placeholder="Search accounts to graph..." onkeyup="renderChartCheckboxes()" style="margin-bottom: 12px; padding: 8px;" />
+          
           <div style="max-height: 220px; overflow-y: auto; padding-right: 4px;" id="chartAccountCheckboxes"></div>
           <button id="refreshChartBtn" class="btn btn-accent" style="margin-top: 16px; width: 100%;" onclick="updateChart()">🔄 Refresh Graph</button>
         </div>
@@ -245,8 +254,11 @@
     <div id="sub-accounts" class="tab-content">
       <div class="panel no-print form-row" style="align-items: flex-end; justify-content: space-between;">
         <div class="form-group" style="max-width: 300px;">
-          <label>Active Sub-Account:</label>
-          <select id="subAccountActiveSelect" onchange="switchActiveSubAccount()"></select>
+          <!-- Wrapper hides this dropdown if logged in as Sub-Officer -->
+          <div id="subAccountSelectorWrapper">
+            <label>Active Sub-Account:</label>
+            <select id="subAccountActiveSelect" onchange="switchActiveSubAccount()"></select>
+          </div>
         </div>
         <div style="display: flex; gap: 8px;">
           <button class="btn btn-secondary" onclick="exportSubAccountCSV()">📥 CSV</button>
