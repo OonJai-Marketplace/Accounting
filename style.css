@@ -1,0 +1,141 @@
+:root {
+  /* Dark Emerald Theme */
+  --bg-dark: #022c22;        
+  --panel-bg: #064e3b;       
+  --panel-border: #065f46;
+  --primary: #10b981;        
+  --primary-hover: #059669;
+  --text-main: #f8fafc;
+  --text-muted: #a7f3d0;
+  --input-bg: #021a14;
+  --grid-border: rgba(255, 255, 255, 0.15);
+  
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #34d399;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body { background-color: var(--bg-dark); color: var(--text-main); font-size: 14px; color-scheme: dark; }
+
+/* Login Modal */
+#loginOverlay { position: fixed; inset: 0; background: rgba(2, 44, 34, 0.95); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.login-card { background: var(--panel-bg); width: 90%; max-width: 360px; padding: 24px; border-radius: 8px; border-top: 4px solid var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+
+/* Top Navigation Bar */
+.sheet-header { background: #021a14; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--panel-border); }
+.sheet-title { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+
+.mobile-menu-toggle { display: none; background: transparent; border: none; color: var(--primary); font-size: 26px; cursor: pointer; }
+
+/* Responsive Menu Tabs */
+.menu-bar { display: flex; background: var(--panel-bg); border-bottom: 1px solid var(--panel-border); }
+.tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 14px 16px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; transition: 0.2s; border-bottom: 3px solid transparent; display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center; }
+.tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.tab-btn.active { color: #fff; border-bottom: 3px solid var(--primary); background: rgba(16, 185, 129, 0.1); }
+
+/* Mobile Adaptations */
+@media (max-width: 768px) {
+  .mobile-menu-toggle { display: block; }
+  .menu-bar { display: none; flex-direction: column; width: 100%; border-bottom: none; }
+  .menu-bar.open { display: flex; }
+  .tab-btn { border-bottom: 1px solid var(--panel-border); border-left: 3px solid transparent; justify-content: flex-start; padding: 16px 20px; font-size: 15px; }
+  .tab-btn.active { border-bottom: 1px solid var(--panel-border); border-left: 3px solid var(--primary); }
+  .header-controls { display: none; }
+}
+
+.main-container { padding: 16px; max-width: 1600px; margin: 0 auto; overflow-x: hidden; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Forms: Labels on Top */
+.form-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; align-items: flex-start; }
+.form-group { display: flex; flex-direction: column; flex: 1; min-width: 160px; }
+.form-group label { margin-bottom: 6px; font-weight: 600; color: var(--text-muted); font-size: 12px; }
+
+input, select, textarea { background: var(--input-bg); border: 1px solid var(--panel-border); color: #fff; border-radius: 6px; padding: 10px 12px; font-size: 14px; width: 100%; transition: 0.2s; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16,185,129,0.3); }
+
+/* Perfect Dropdown Styling */
+select { 
+  appearance: none; -webkit-appearance: none; 
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2310b981%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat; background-position: right 12px top 50%; background-size: 12px auto; padding-right: 32px; cursor: pointer;
+}
+select option { background-color: var(--bg-dark); color: #fff; }
+
+/* Clickable Date Boxes */
+input[type="date"], input[type="month"] { position: relative; cursor: pointer; }
+input[type="date"]::-webkit-calendar-picker-indicator, input[type="month"]::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+/* Distinct Panels */
+.panel { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 20px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+.panel-header { border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 16px; color: var(--primary); font-size: 16px; font-weight: bold; }
+
+/* Tables (Zoomable & Responsive) */
+.table-container { background: var(--bg-dark); border: 1px solid var(--grid-border); border-radius: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { border: 1px solid var(--grid-border); padding: 12px; white-space: nowrap; }
+th { background: rgba(0,0,0,0.3); font-weight: bold; color: var(--text-muted); font-size: 12px; text-transform: uppercase; text-align: center !important; }
+td { font-size: 14px; }
+tr:hover td { background-color: rgba(255,255,255,0.04); }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Clean Journal Entry Grid */
+.je-lines-table td { padding: 0; }
+.je-lines-table input, .je-lines-table select { border: none; background: transparent; border-radius: 0; width: 100%; height: 100%; padding: 12px; box-shadow: none; }
+.je-lines-table input:focus, .je-lines-table select:focus { background: rgba(16,185,129,0.1); }
+
+.currency-tag { font-size: 10px; background: rgba(255,255,255,0.1); color: var(--text-main); padding: 3px 6px; border-radius: 4px; margin-left: 6px; font-weight: bold; }
+.badge-admin { background: var(--primary); color: #000; font-size: 10px; padding: 4px 8px; border-radius: 12px; font-weight: bold; }
+
+/* Buttons */
+.btn { background: var(--primary); color: #022c22; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+.btn:hover { background: var(--primary-hover); color: #fff; }
+.btn-secondary { background: #334155; color: #fff; }
+.btn-secondary:hover { background: #475569; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-warning { background: var(--warning); color: #000; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+.edit-mode-banner { background: rgba(245, 158, 11, 0.15); border: 2px solid var(--warning); color: #fcd34d; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; }
+
+/* KPI Row */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: var(--bg-dark); border: 1px solid var(--grid-border); border-radius: 8px; padding: 16px; border-left: 4px solid var(--primary); }
+.kpi-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.kpi-value { font-size: 22px; font-weight: bold; color: #fff; }
+
+/* Print Visibility Classes */
+.print-only { display: none; }
+.print-logo-box { position: absolute; max-width: 120px; max-height: 80px; object-fit: contain; z-index: 10; display: none; }
+.logo-top-left { top: 10px; left: 10px; }
+.logo-top-right { top: 10px; right: 10px; }
+.logo-bottom-left { bottom: 10px; left: 10px; }
+.logo-bottom-right { bottom: 10px; right: 10px; }
+
+/* ---------------------------------------------------- */
+/* STRICT BLACK & WHITE PRINT CSS                       */
+/* ---------------------------------------------------- */
+@media print {
+  body, .main-container, .tab-content, .panel, .table-container, .kpi-card { background: #fff !important; color: #000 !important; }
+  body * { visibility: hidden; }
+  #printableDocArea, #printableDocArea * { visibility: visible; }
+  #printableDocArea { position: absolute; left: 0; top: 0; width: 100%; }
+  
+  .no-print, .btn, input, select, textarea, .menu-bar, .sheet-header { display: none !important; }
+  .print-only { display: block !important; }
+  
+  .panel { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 20px !important; }
+  .kpi-card { border: 1px solid #000 !important; border-left: 2px solid #000 !important; color: #000 !important; margin-bottom: 10px; }
+  .kpi-value, .kpi-label, .panel-header, h2, h3, h4, td, span, strong { color: #000 !important; }
+  
+  table { border-collapse: collapse !important; width: 100% !important; }
+  table, th, td { border: 1px solid #000 !important; }
+  th { background-color: transparent !important; color: #000 !important; font-weight: bold !important; border-bottom: 2px solid #000 !important; text-align: center !important; }
+  
+  /* Ensure logo obeys visibility rules in print */
+  .print-logo-box { display: block !important; }
+
+  @page { margin: 15mm; }
+}
