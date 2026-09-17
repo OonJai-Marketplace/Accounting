@@ -12,27 +12,34 @@ let accounts = [
   { code: "5010", name: "General Expenses", type: "Expense", currency: "USD" }
 ];
 
-// Added password field to sub-accounts
-let subAccounts = [
-  { id: "SUB-1", name: "Kitchen Petty Cash", desc: "Daily market produce", currency: "USD", password: "sub123" }
+// Unified System Access arrays
+let adminUsers = [
+  { id: "ADM-1", role: "admin", name: "Master Admin", email: "admin@oonjai.com", password: "admin" }
 ];
+let subAccounts = [
+  { id: "SUB-1", role: "sub", name: "Kitchen Petty Cash", email: "kitchen@oonjai.com", password: "sub", desc: "Daily market produce", currency: "USD" }
+];
+
 let activeSubAccountId = "SUB-1";
 let subAccountLogs = { "SUB-1": [] };
 
 let journalEntries = [];
 let entryCounter = 1;
 let subCounter = 1;
+let adminCounter = 2; // Next admin ID
 
 let chartInstance = null;
-let chartCheckedAccounts = ['1010', '1020', '2010']; // State tracker for graph selections
+let chartCheckedAccounts = ['1010', '1020', '2010']; // State tracker for graph
 
 let editingJournalId = null;
 let editingSubVoucherId = null;
 let editingCoaCode = null; 
+let editingUserId = null;
 
 let uploadedHeaderImg = "";
 let uploadedFooterImg = "";
 let uploadedLogoImg = "";
+let signatories = []; // Holds signature blocks for printing
 
 window.onload = function() {
   const defaultDate = "2026-09-17";
@@ -51,14 +58,13 @@ window.onload = function() {
   initSummaryChart();
   renderTrialBalance();
   generateAutomatedReports();
-  renderSettingsSubAccounts();
+  renderSystemUsers();
   populateSubAccountDropdowns();
   renderJournalLog();
+  toggleUserFormFields();
 };
 
-function toggleMenu() {
-  document.getElementById('navMenuBar').classList.toggle('open');
-}
+function toggleMenu() { document.getElementById('navMenuBar').classList.toggle('open'); }
 
 // STRICT NUMBER FORMATTING (#,###.00)
 function formatNum(num) {
@@ -102,7 +108,7 @@ function injectSampleData() {
 
 // --- DATA BACKUP & RESTORE ---
 function backupData() {
-  const data = { accounts, subAccounts, journalEntries, subAccountLogs, currencies, baseCurrency, entryCounter, subCounter };
+  const data = { accounts, adminUsers, subAccounts, journalEntries, subAccountLogs, currencies, baseCurrency, entryCounter, subCounter, adminCounter, signatories };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -117,13 +123,16 @@ function restoreData(event) {
     try {
       const data = JSON.parse(e.target.result);
       if (data.accounts) accounts = data.accounts;
+      if (data.adminUsers) adminUsers = data.adminUsers;
       if (data.subAccounts) subAccounts = data.subAccounts;
       if (data.journalEntries) journalEntries = data.journalEntries;
       if (data.subAccountLogs) subAccountLogs = data.subAccountLogs;
       if (data.currencies) currencies = data.currencies;
       if (data.baseCurrency) baseCurrency = data.baseCurrency;
+      if (data.signatories) signatories = data.signatories;
       entryCounter = data.entryCounter || journalEntries.length + 1;
       subCounter = data.subCounter || 1;
+      adminCounter = data.adminCounter || adminUsers.length + 1;
       
       alert('Data restored successfully!');
       window.location.reload(); 
@@ -132,36 +141,35 @@ function restoreData(event) {
   reader.readAsText(file);
 }
 
-// --- AUTHENTICATION, SUB-ACCOUNT PRIVACY & LOCKS ---
-function toggleLoginSubAccount() {
-  const role = document.getElementById('loginRoleSelect').value;
-  document.getElementById('loginSubAccountGroup').style.display = role === 'sub' ? 'block' : 'none';
-}
-
+// --- AUTHENTICATION & LOGIN LOGIC ---
 function handleLogin() {
-  const role = document.getElementById('loginRoleSelect').value;
-  const pass = document.getElementById('loginPassword').value;
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value.trim();
   
-  if (role === 'admin' && pass !== 'admin123') { alert('Invalid Password'); return; }
-  
-  if (role === 'sub') {
-    const assignedSubId = document.getElementById('loginSubAccountSelect').value;
-    if (!assignedSubId) { alert('No sub-account selected.'); return; }
-    
-    // Find specific sub-account and verify its unique password
-    const selectedSubAccount = subAccounts.find(s => s.id === assignedSubId);
-    if (!selectedSubAccount || pass !== selectedSubAccount.password) { 
-      alert('Invalid Password for this specific Sub-Account'); 
-      return; 
-    }
-    
-    activeSubAccountId = assignedSubId; 
+  if (!email || !pass) { alert('Enter Email and Password'); return; }
+
+  // Check Admin first
+  const admin = adminUsers.find(u => u.email === email && u.password === pass);
+  if (admin) {
+    currentUserRole = 'admin';
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('loginPassword').value = '';
+    applyRolePermissions();
+    return;
   }
   
-  currentUserRole = role;
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('loginPassword').value = ''; // clear for security
-  applyRolePermissions();
+  // Check Sub-Accounts
+  const sub = subAccounts.find(u => u.email === email && u.password === pass);
+  if (sub) {
+    currentUserRole = 'sub';
+    activeSubAccountId = sub.id;
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('loginPassword').value = '';
+    applyRolePermissions();
+    return;
+  }
+
+  alert('Invalid Email or Password');
 }
 
 function handleLogout() { document.getElementById('loginOverlay').style.display = 'flex'; }
@@ -173,7 +181,7 @@ function applyRolePermissions() {
   document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
   
   if (!isAdmin) { 
-    // Sub-Account Mode Privacy: Hide the top dropdown so they can't switch to other sub-accounts
+    // Sub-Account Mode Privacy: Hide dropdown so they can't switch to other sub-accounts
     document.getElementById('subAccountSelectorWrapper').style.display = 'none';
     updateActiveSubAccountHeader();
     renderSubAccountLog();
@@ -208,7 +216,6 @@ function switchTab(tabId) {
   const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
   if (btn) btn.classList.add('active');
   document.getElementById(tabId).classList.add('active');
-  
   document.getElementById('navMenuBar').classList.remove('open'); 
 
   if (tabId === 'gl') renderGeneralLedger();
@@ -221,7 +228,7 @@ function switchTab(tabId) {
 
 // --- GLOBAL CURRENCY MANAGEMENT ---
 function refreshAllCurrencyDropdowns() {
-  const selects = ['coaCurrency', 'newSubAccountCurrency', 'settingBaseCurrency'];
+  const selects = ['coaCurrency', 'newUserCurrency', 'settingBaseCurrency'];
   selects.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -234,8 +241,7 @@ function refreshAllCurrencyDropdowns() {
 }
 function updateBaseCurrency() {
   baseCurrency = document.getElementById('settingBaseCurrency').value;
-  renderSettingsCurrencyList();
-  renderTrialBalance();
+  renderSettingsCurrencyList(); renderTrialBalance();
 }
 function renderSettingsCurrencyList() {
   document.getElementById('settingsCurrencyList').innerHTML = currencies.map(c => `
@@ -247,8 +253,7 @@ function renderSettingsCurrencyList() {
 function addCurrencyFromSettings() {
   const val = document.getElementById('settingsNewCurrency').value.trim().toUpperCase();
   if (val && !currencies.includes(val)) {
-    currencies.push(val);
-    document.getElementById('settingsNewCurrency').value = '';
+    currencies.push(val); document.getElementById('settingsNewCurrency').value = '';
     refreshAllCurrencyDropdowns(); renderSettingsCurrencyList(); setupJournalColumns(); renderTrialBalance();
   }
 }
@@ -290,11 +295,9 @@ function loadCoaForEdit(code) {
   document.getElementById('coaCancelBtn').style.display = 'inline-flex';
 }
 function cancelCoaEdit() {
-  editingCoaCode = null;
-  document.getElementById('coaFormTitle').textContent = 'Create / Edit Account';
+  editingCoaCode = null; document.getElementById('coaFormTitle').textContent = 'Create / Edit Account';
   document.getElementById('coaCode').value = ''; document.getElementById('coaName').value = '';
-  document.getElementById('coaSaveBtn').textContent = 'Save Account';
-  document.getElementById('coaCancelBtn').style.display = 'none';
+  document.getElementById('coaSaveBtn').textContent = 'Save Account'; document.getElementById('coaCancelBtn').style.display = 'none';
 }
 function deleteCoa(code) {
   if (confirm(`Permanently delete account ${code}?`)) {
@@ -315,16 +318,15 @@ function renderChartOfAccounts() {
     </tr>`).join('');
 }
 
-// --- SUB ACCOUNTS LOGIC & PASSWORD MANAGEMENT ---
+// --- SYSTEM ACCOUNTS LOGIC (ADMINS & SUB-ACCOUNTS) ---
+function toggleUserFormFields() {
+  const role = document.getElementById('newUserRole').value;
+  document.querySelectorAll('.sub-only-field').forEach(el => el.style.display = role === 'sub' ? 'flex' : 'none');
+}
 function populateSubAccountDropdowns() {
   const select = document.getElementById('subAccountActiveSelect');
-  const loginSelect = document.getElementById('loginSubAccountSelect');
   const html = subAccounts.map(s => `<option value="${s.id}">${s.name} (${s.currency})</option>`).join('');
-  
-  select.innerHTML = html;
-  select.value = activeSubAccountId;
-  if (loginSelect) loginSelect.innerHTML = html;
-  
+  select.innerHTML = html; select.value = activeSubAccountId;
   updateActiveSubAccountHeader();
 }
 function switchActiveSubAccount() {
@@ -333,56 +335,120 @@ function switchActiveSubAccount() {
 }
 function updateActiveSubAccountHeader() {
   const sub = subAccounts.find(s => s.id === activeSubAccountId) || subAccounts[0];
-  document.getElementById('subPrintDocAccountName').textContent = sub.name;
-  document.getElementById('subPrintDocDesc').textContent = `Scope: ${sub.desc} | Currency: ${sub.currency}`;
-}
-function addNewSubAccount() {
-  const name = document.getElementById('newSubAccountName').value.trim();
-  const desc = document.getElementById('newSubAccountDesc').value.trim();
-  const curr = document.getElementById('newSubAccountCurrency').value;
-  const pass = document.getElementById('newSubAccountPassword').value.trim();
-  
-  if (!name) { alert('Enter Name'); return; }
-  if (!pass) { alert('You must set a password for this sub-account'); return; }
-  
-  const id = "SUB-" + (subAccounts.length + 1);
-  subAccounts.push({ id, name, desc, currency: curr, password: pass });
-  subAccountLogs[id] = [];
-  
-  document.getElementById('newSubAccountName').value = ''; 
-  document.getElementById('newSubAccountDesc').value = '';
-  document.getElementById('newSubAccountPassword').value = '';
-  
-  renderSettingsSubAccounts(); populateSubAccountDropdowns();
-}
-function renderSettingsSubAccounts() {
-  document.getElementById('settingsSubAccountsBody').innerHTML = subAccounts.map(s => `<tr>
-    <td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.desc}</td><td>${s.currency}</td>
-    <td><span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">${s.password}</span></td>
-    <td style="text-align:center;">
-      <button class="btn btn-secondary btn-sm" onclick="changeSubAccountPassword('${s.id}')">🔑 Pwd</button>
-      <button class="btn btn-danger btn-sm" onclick="removeSubAccount('${s.id}')">Delete</button>
-    </td></tr>`).join('');
-}
-function changeSubAccountPassword(id) {
-  const sub = subAccounts.find(s => s.id === id);
-  const newPass = prompt(`Enter new password for ${sub.name}:`, sub.password);
-  if (newPass && newPass.trim() !== "") {
-    sub.password = newPass.trim();
-    renderSettingsSubAccounts();
-    alert('Password updated successfully.');
-  }
-}
-function removeSubAccount(id) {
-  if (subAccounts.length <= 1) { alert('Minimum 1 account required.'); return; }
-  if (confirm(`Remove ${id}?`)) {
-    subAccounts = subAccounts.filter(s => s.id !== id);
-    delete subAccountLogs[id];
-    activeSubAccountId = subAccounts[0].id;
-    renderSettingsSubAccounts(); populateSubAccountDropdowns(); renderSubAccountLog();
+  if(sub) {
+    document.getElementById('subPrintDocAccountName').textContent = sub.name;
+    document.getElementById('subPrintDocDesc').textContent = `Scope: ${sub.desc} | Currency: ${sub.currency}`;
   }
 }
 
+function saveSystemUser() {
+  const role = document.getElementById('newUserRole').value;
+  const name = document.getElementById('newUserName').value.trim();
+  const email = document.getElementById('newUserEmail').value.trim();
+  const pass = document.getElementById('newUserPassword').value.trim();
+  const desc = document.getElementById('newUserDesc').value.trim();
+  const curr = document.getElementById('newUserCurrency').value;
+  
+  if (!name || !email || !pass) { alert('Name, Email, and Password are required'); return; }
+  
+  if (editingUserId) {
+    // Determine if it was an admin or sub being edited
+    let userList = editingUserId.startsWith('ADM') ? adminUsers : subAccounts;
+    const idx = userList.findIndex(u => u.id === editingUserId);
+    if (idx !== -1) {
+      if (editingUserId.startsWith('ADM')) {
+        adminUsers[idx] = { id: editingUserId, role: 'admin', name, email, password: pass };
+      } else {
+        subAccounts[idx] = { id: editingUserId, role: 'sub', name, email, password: pass, desc, currency: curr };
+      }
+    }
+    cancelUserEdit();
+  } else {
+    // New User logic
+    if (role === 'admin') {
+      adminUsers.push({ id: "ADM-" + String(adminCounter++), role: "admin", name, email, password: pass });
+    } else {
+      const id = "SUB-" + (subAccounts.length + 1);
+      subAccounts.push({ id, role: "sub", name, desc, currency: curr, email, password: pass });
+      subAccountLogs[id] = [];
+    }
+  }
+  
+  // Clear the fields
+  document.getElementById('newUserName').value = ''; 
+  document.getElementById('newUserEmail').value = '';
+  document.getElementById('newUserPassword').value = '';
+  document.getElementById('newUserDesc').value = '';
+  
+  renderSystemUsers(); 
+  populateSubAccountDropdowns();
+}
+
+function loadUserForEdit(id) {
+  let user = id.startsWith('ADM') ? adminUsers.find(u => u.id === id) : subAccounts.find(u => u.id === id);
+  if (!user) return;
+  
+  editingUserId = id;
+  document.getElementById('userEditBanner').style.display = 'flex';
+  document.getElementById('editingUserBadge').textContent = id;
+  
+  document.getElementById('newUserRole').value = user.role;
+  document.getElementById('newUserName').value = user.name;
+  document.getElementById('newUserEmail').value = user.email;
+  document.getElementById('newUserPassword').value = user.password;
+  
+  if (user.role === 'sub') {
+    document.getElementById('newUserDesc').value = user.desc;
+    document.getElementById('newUserCurrency').value = user.currency;
+  }
+  toggleUserFormFields();
+  document.getElementById('userSaveBtn').textContent = 'Update User';
+  window.scrollTo({ top: document.getElementById('userFormTitle').offsetTop, behavior: 'smooth' });
+}
+
+function cancelUserEdit() {
+  editingUserId = null;
+  document.getElementById('userEditBanner').style.display = 'none';
+  document.getElementById('userSaveBtn').textContent = '+ Create User';
+  document.getElementById('newUserName').value = ''; 
+  document.getElementById('newUserEmail').value = '';
+  document.getElementById('newUserPassword').value = '';
+  document.getElementById('newUserDesc').value = '';
+}
+
+function removeSystemUser(id) {
+  if (id === 'ADM-1') { alert('Cannot delete the Master Admin.'); return; }
+  if (id.startsWith('SUB') && subAccounts.length <= 1) { alert('Must have at least 1 Sub-Account.'); return; }
+  
+  if (confirm(`Permanently remove user ${id}?`)) {
+    if (id.startsWith('ADM')) {
+      adminUsers = adminUsers.filter(u => u.id !== id);
+    } else {
+      subAccounts = subAccounts.filter(s => s.id !== id);
+      delete subAccountLogs[id];
+      activeSubAccountId = subAccounts[0].id;
+    }
+    if (editingUserId === id) cancelUserEdit();
+    renderSystemUsers(); populateSubAccountDropdowns(); renderSubAccountLog();
+  }
+}
+
+function renderSystemUsers() {
+  const tbody = document.getElementById('settingsUsersBody');
+  const allUsers = [...adminUsers, ...subAccounts];
+  tbody.innerHTML = allUsers.map(u => `<tr>
+    <td><strong>${u.id}</strong></td>
+    <td><span class="${u.role === 'admin' ? 'badge-admin' : 'currency-tag'}">${u.role.toUpperCase()}</span></td>
+    <td>${u.name}</td><td>${u.email}</td>
+    <td><span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">${u.password}</span></td>
+    <td>${u.role === 'sub' ? `${u.currency} | ${u.desc}` : 'System Wide'}</td>
+    <td style="text-align:center;">
+      <button class="btn btn-secondary btn-sm" onclick="loadUserForEdit('${u.id}')">✏️</button>
+      ${u.id !== 'ADM-1' ? `<button class="btn btn-danger btn-sm" onclick="removeSystemUser('${u.id}')">🗑️</button>` : ''}
+    </td></tr>`).join('');
+}
+
+// --- SUB-ACCOUNT VOUCHERS LOGIC ---
 function saveSubAccountEntry() {
   const date = document.getElementById('subEntryDate').value || new Date().toISOString().split('T')[0];
   if (isDateLockedForSubAccount(date)) return;
@@ -539,7 +605,6 @@ function saveJournalEntry() {
 
   if (editingJournalId) {
     if (!confirm(`WARNING: You are about to modify and overwrite historical Entry ${editingJournalId}. Are you sure you want to proceed?`)) return;
-    
     let auditReason = prompt("AUDIT REQUIREMENT:\nPlease enter a brief reason for changing this entry:");
     if (auditReason === null) return; 
     if (auditReason.trim() === "") auditReason = "Manual revision (No reason provided)";
@@ -619,6 +684,8 @@ function calculateAccountNet(code) {
 function renderTrialBalance() {
   const tbody = document.getElementById('tbBody'); tbody.innerHTML = '';
   const thead = document.getElementById('tbHead');
+  const tfoot = document.getElementById('tbFoot');
+  
   const sortedCurr = [baseCurrency, ...currencies.filter(c => c !== baseCurrency)];
 
   let theadHtml = `<tr><th style="text-align:left;">Code</th><th style="text-align:left;">Account Name</th>`;
@@ -636,6 +703,18 @@ function renderTrialBalance() {
     });
     row += `</tr>`; tbody.innerHTML += row;
   });
+
+  // Calculate and Render Trial Balance Totals
+  let tfootHtml = `<tr><td colspan="2" style="text-align:right;"><strong>TOTAL BALANCE SUMMARY</strong></td>`;
+  sortedCurr.forEach(c => {
+    let tDr = 0, tCr = 0;
+    journalEntries.forEach(je => je.lines.forEach(l => { if(l.currency === c) { tDr += l.dr; tCr += l.cr; } }));
+    const isBalanced = Math.abs(tDr - tCr) < 0.001;
+    const balStr = isBalanced ? `<span style="color:var(--success)">✔ BALANCED</span>` : `<span style="color:var(--danger)">✖ UNBALANCED</span>`;
+    tfootHtml += `<td class="num"><strong>${formatNum(tDr)}</strong></td><td class="num"><strong>${formatNum(tCr)}</strong></td><td style="text-align:center;"><strong>${balStr}</strong></td>`;
+  });
+  tfootHtml += `</tr>`;
+  tfoot.innerHTML = tfootHtml;
 }
 
 function toggleGlDateInputs() {
@@ -760,7 +839,6 @@ function toggleReconDateInputs() {
   document.getElementById('reconRangeWrap').style.display = v === 'custom' ? 'flex' : 'none';
   runReconciliation();
 }
-
 function runReconciliation() {
   const code = document.getElementById('reconAccountSelect').value; 
   const panel = document.getElementById('reconResultsPanel');
@@ -795,6 +873,7 @@ function runReconciliation() {
   else { st.innerHTML = '<span style="color:var(--danger); font-weight:bold;">⚠ Variance</span>'; st.style.background = 'rgba(239,68,68,0.1)'; }
 }
 
+// --- BRANDING, SIGNATORIES & PRINTING ---
 function handleLogoUpload(e) {
   const file = e.target.files[0];
   if (file) {
@@ -832,6 +911,33 @@ function updateCompanyProfile() {
   document.getElementById('soaCompanyName').textContent = name;
   document.getElementById('jeNumberDisplay').textContent = `${getEntryPrefix()}-${String(entryCounter).padStart(4, '0')}`;
 }
+
+// Signatory Management
+function renderSignatoryInputs() {
+  const count = parseInt(document.getElementById('settingSignatoryCount').value);
+  const container = document.getElementById('signatoryInputArea');
+  container.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const existing = signatories[i] || { name: '', title: '' };
+    container.innerHTML += `
+      <div style="display:flex; gap:10px; align-items:center;">
+        <strong>#${i+1}</strong>
+        <input type="text" id="sigName${i}" value="${existing.name}" placeholder="Full Name" style="flex:1" />
+        <input type="text" id="sigTitle${i}" value="${existing.title}" placeholder="Job Title / Role" style="flex:1" />
+      </div>`;
+  }
+}
+function saveSignatories() {
+  const count = parseInt(document.getElementById('settingSignatoryCount').value);
+  signatories = [];
+  for (let i = 0; i < count; i++) {
+    const name = document.getElementById(`sigName${i}`).value.trim();
+    const title = document.getElementById(`sigTitle${i}`).value.trim();
+    if (name) signatories.push({ name, title });
+  }
+  alert('Signatories saved. They will appear at the bottom of printed documents.');
+}
+
 function prepareAndPrint(containerId) {
   const showLogo = document.getElementById('settingApplyLogo').value === 'yes' && uploadedLogoImg;
   const logoPos = document.getElementById('settingLogoPosition').value;
@@ -841,22 +947,40 @@ function prepareAndPrint(containerId) {
 
   let printContainer = document.getElementById('printableDocArea');
   if (!printContainer) { printContainer = document.createElement('div'); printContainer.id = 'printableDocArea'; document.body.appendChild(printContainer); }
-  printContainer.innerHTML = ''; printContainer.appendChild(document.getElementById(containerId).cloneNode(true));
+  printContainer.innerHTML = ''; 
+  
+  // Clone the element so we don't mess up the screen UI
+  let clone = document.getElementById(containerId).cloneNode(true);
+  
+  // Inject Signatories before the footer
+  if (signatories.length > 0) {
+    let sigArea = document.createElement('div');
+    sigArea.className = 'signatories-area print-only';
+    sigArea.innerHTML = signatories.map(s => `<div class="sig-box"><strong>${s.name}</strong><br>${s.title}</div>`).join('');
+    
+    let footerContainers = clone.querySelectorAll('.print-footer-centered');
+    if (footerContainers.length > 0) {
+      clone.insertBefore(sigArea, footerContainers[footerContainers.length - 1]);
+    } else {
+      clone.appendChild(sigArea);
+    }
+  }
+
+  printContainer.appendChild(clone);
   window.print();
 }
 
-// --- NEW CHART LOGIC WITH SEARCH, SORT, AND LINE STYLING ---
+// --- SUMMARY CHART LOGIC ---
 function renderChartCheckboxes() {
   const box = document.getElementById('chartAccountCheckboxes');
   const query = (document.getElementById('chartAccountSearch')?.value || '').toLowerCase();
   
-  let validAccounts = accounts.filter(a => a.type === 'Asset' || a.type === 'Liability');
+  let validAccounts = accounts; // Allows searching ANY account type now
   
   if (query) {
-    validAccounts = validAccounts.filter(a => a.code.toLowerCase().includes(query) || a.name.toLowerCase().includes(query));
+    validAccounts = validAccounts.filter(a => a.code.toLowerCase().includes(query) || a.name.toLowerCase().includes(query) || a.type.toLowerCase().includes(query));
   }
   
-  // Custom Sort: Checked items at the top, then alphabetically by code
   validAccounts.sort((a, b) => {
     const aChecked = chartCheckedAccounts.includes(a.code);
     const bChecked = chartCheckedAccounts.includes(b.code);
@@ -868,7 +992,7 @@ function renderChartCheckboxes() {
   box.innerHTML = validAccounts.map((a) => `
     <label class="checkbox-list-item">
       <input type="checkbox" value="${a.code}" class="chart-acc-toggle" ${chartCheckedAccounts.includes(a.code) ? 'checked' : ''} onchange="toggleChartAccount('${a.code}')" />
-      <span><strong>${a.code}</strong><br>${a.name}</span>
+      <span><strong>${a.code}</strong><br>${a.name} <em style="opacity:0.6; font-size:10px;">(${a.type})</em></span>
     </label>
   `).join('');
 }
@@ -899,7 +1023,7 @@ function initSummaryChart() {
         borderWidth: 2,               
         pointBackgroundColor: '#fff', 
         pointRadius: 4,               
-        fill: false,                  // Fixed line graph styling
+        fill: false,                  
         tension: 0.2                  
       }] 
     }, 
@@ -912,7 +1036,6 @@ function initSummaryChart() {
       } 
     } 
   });
-  
   renderChartCheckboxes(); 
 }
 
