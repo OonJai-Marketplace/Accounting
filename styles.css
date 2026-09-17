@@ -142,3 +142,31 @@ tr:hover td { background-color: rgba(255,255,255,0.04); }
 
   @page { margin: 15mm; }
 }
+/* --- NEW STYLES FOR UPDATES --- */
+
+/* Fix for messy Checkbox lists */
+.checkbox-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--grid-border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.checkbox-list-item:hover { background: rgba(255,255,255,0.05); border-color: var(--primary); }
+.checkbox-list-item input { width: 18px; height: 18px; margin: 0; cursor: pointer; flex-shrink: 0; }
+.checkbox-list-item span { font-size: 14px; color: #fff; line-height: 1.2; }
+
+/* Audit row in Journal */
+.audit-row td { 
+  background: rgba(245, 158, 11, 0.1) !important; 
+  color: #fcd34d; 
+  font-style: italic; 
+  font-size: 13px; 
+  padding: 8px 12px !important;
+  border-top: none !important;
+}
