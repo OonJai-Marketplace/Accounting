@@ -27,7 +27,7 @@
       </div>
       <div class="form-group" style="margin-top: 16px;">
         <label>Password:</label>
-        <input type="password" id="loginPassword" placeholder="admin123 or sub123" />
+        <input type="password" id="loginPassword" placeholder="Enter password" />
       </div>
       <button class="btn" style="width: 100%; margin-top: 24px;" onclick="handleLogin()">Access System</button>
     </div>
@@ -80,10 +80,8 @@
         </div>
         <div class="panel" style="flex: 1; min-width: 250px;">
           <div class="panel-header">Select Accounts to View</div>
-          
-          <!-- NEW: Graph Checkbox Search Bar -->
+          <!-- Graph Checkbox Search Bar -->
           <input type="text" id="chartAccountSearch" placeholder="Search accounts to graph..." onkeyup="renderChartCheckboxes()" style="margin-bottom: 12px; padding: 8px;" />
-          
           <div style="max-height: 220px; overflow-y: auto; padding-right: 4px;" id="chartAccountCheckboxes"></div>
           <button id="refreshChartBtn" class="btn btn-accent" style="margin-top: 16px; width: 100%;" onclick="updateChart()">🔄 Refresh Graph</button>
         </div>
@@ -254,7 +252,7 @@
     <div id="sub-accounts" class="tab-content">
       <div class="panel no-print form-row" style="align-items: flex-end; justify-content: space-between;">
         <div class="form-group" style="max-width: 300px;">
-          <!-- Wrapper hides this dropdown if logged in as Sub-Officer -->
+          <!-- Wrapper hides this dropdown if logged in as Sub-Officer (Privacy Wall) -->
           <div id="subAccountSelectorWrapper">
             <label>Active Sub-Account:</label>
             <select id="subAccountActiveSelect" onchange="switchActiveSubAccount()"></select>
@@ -610,18 +608,19 @@
           <div id="settingsCurrencyList" style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;"></div>
         </div>
 
-        <!-- Sub-Accounts Config -->
+        <!-- Sub-Accounts Config (WITH PASSWORD MANAGEMENT) -->
         <div class="panel" style="grid-column: 1 / -1;">
-          <div class="panel-header">Sub-Accounts Management</div>
+          <div class="panel-header">Sub-Accounts & Passwords</div>
           <div class="form-row" style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; align-items: flex-end;">
             <div class="form-group"><label>Sub-Account Name:</label><input type="text" id="newSubAccountName" placeholder="e.g. Farm Report" /></div>
             <div class="form-group"><label>Description / Scope:</label><input type="text" id="newSubAccountDesc" placeholder="Purpose" /></div>
             <div class="form-group" style="max-width: 150px;"><label>Currency:</label><select id="newSubAccountCurrency"></select></div>
+            <div class="form-group" style="max-width: 150px;"><label>Secure Password:</label><input type="text" id="newSubAccountPassword" placeholder="Set Password" /></div>
             <button class="btn" onclick="addNewSubAccount()">+ Add Sub-Account</button>
           </div>
           <div class="table-container">
             <table>
-              <thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Currency</th><th>Action</th></tr></thead>
+              <thead><tr><th>ID</th><th>Name</th><th>Description</th><th>Currency</th><th>Password</th><th>Action</th></tr></thead>
               <tbody id="settingsSubAccountsBody"></tbody>
             </table>
           </div>
