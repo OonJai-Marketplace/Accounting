@@ -15,7 +15,7 @@
       <h2 style="color: var(--primary); margin-bottom: 16px; text-align: center;">System Sign In</h2>
       <div class="form-group" style="margin-bottom: 16px;">
         <label>Email Address:</label>
-        <input type="email" id="loginEmail" value="santos@oonjai.org" />
+        <input type="email" id="loginEmail" value="santos@onjoy.org" />
       </div>
       <div class="form-group">
         <label>Password:</label>
@@ -54,30 +54,78 @@
   <div class="main-container">
 
     <!-- ============================================================== -->
-    <!-- 1. SUMMARY TAB                                                 -->
+    <!-- 1. SUMMARY TAB (ADVANCED MULTI-TIMELINE GRAPH)                 -->
     <!-- ============================================================== -->
     <div id="summary" class="tab-content active">
-      <div class="form-row">
-        <div class="panel" style="flex: 2; min-width: 300px;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-            <div class="panel-header" style="margin-bottom: 0; border: none;">Asset Comparison</div>
-            <div class="form-group" style="max-width: 150px;">
-              <select id="chartTypeSelect" onchange="updateChart()" style="padding: 6px 10px; font-size: 13px;">
-                <option value="bar">Column / Bar Graph</option>
-                <option value="line">Line Graph</option>
-              </select>
-            </div>
-          </div>
-          <canvas id="summaryChart" style="max-height: 300px; width: 100%;"></canvas>
+      <div class="panel no-print form-row" style="align-items: flex-end; margin-bottom: 16px;">
+        <div class="form-group" style="max-width: 140px;">
+          <label>Graph Style:</label>
+          <select id="chartTypeSelect" onchange="updateChart()">
+            <option value="line">Line Graph</option>
+            <option value="bar">Bar / Column</option>
+          </select>
         </div>
-        <div class="panel" style="flex: 1; min-width: 250px;">
-          <div class="panel-header">Select Accounts to View</div>
-          <!-- UNIVERSAL CHART SEARCH BAR -->
-          <input type="text" id="chartAccountSearch" placeholder="Search any account (e.g. Expense, Cash)..." onkeyup="renderChartCheckboxes()" style="margin-bottom: 12px; padding: 8px;" />
-          <div style="max-height: 220px; overflow-y: auto; padding-right: 4px;" id="chartAccountCheckboxes"></div>
-          <button id="refreshChartBtn" class="btn btn-accent" style="margin-top: 16px; width: 100%;" onclick="updateChart()">🔄 Refresh Graph</button>
+        <div class="form-group" style="max-width: 140px;">
+          <label>Time Grouping:</label>
+          <select id="chartTimeScale" onchange="updateChart()">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly" selected>Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+        <div class="form-group" style="max-width: 150px;">
+          <label>Date Filter:</label>
+          <select id="chartFilterType" onchange="toggleChartDateInputs()">
+            <option value="all">All-Time</option>
+            <option value="month">Specific Month</option>
+            <option value="quarter">Quarterly</option>
+            <option value="year">Specific Year</option>
+            <option value="custom">Custom Range</option>
+          </select>
+        </div>
+        <div class="form-group" id="chartMonthWrap" style="display: none; max-width: 150px;">
+          <label>Month:</label>
+          <input type="month" id="chartMonthInput" onchange="updateChart()" />
+        </div>
+        <div class="form-group" id="chartQtrWrap" style="display: none; max-width: 220px;">
+          <label>Quarter & Year:</label>
+          <div style="display:flex; gap: 8px;">
+            <select id="chartQtrSelect" onchange="updateChart()">
+              <option value="Q1">Q1 (Jan-Mar)</option>
+              <option value="Q2">Q2 (Apr-Jun)</option>
+              <option value="Q3">Q3 (Jul-Sep)</option>
+              <option value="Q4">Q4 (Oct-Dec)</option>
+            </select>
+            <input type="number" id="chartQtrYear" value="2026" onchange="updateChart()" style="width: 80px;" />
+          </div>
+        </div>
+        <div class="form-group" id="chartYearWrap" style="display: none; max-width: 110px;">
+          <label>Year:</label>
+          <input type="number" id="chartYearInput" placeholder="2026" onchange="updateChart()" />
+        </div>
+        <div class="form-group" id="chartRangeWrap" style="display: none; flex-direction: row; gap: 8px;">
+          <div class="form-group"><label>From:</label><input type="date" id="chartStartDate" onchange="updateChart()" /></div>
+          <div class="form-group"><label>To:</label><input type="date" id="chartEndDate" onchange="updateChart()" /></div>
         </div>
       </div>
+
+      <div class="form-row">
+        <div class="panel" style="flex: 2; min-width: 320px;">
+          <div class="panel-header" style="margin-bottom: 8px;">Timeline Account Performance</div>
+          <div style="position: relative; height: 320px; width: 100%;">
+            <canvas id="summaryChart"></canvas>
+          </div>
+        </div>
+        <div class="panel" style="flex: 1; min-width: 250px;">
+          <div class="panel-header">Select Accounts to Compare</div>
+          <input type="text" id="chartAccountSearch" placeholder="Filter accounts..." onkeyup="renderChartCheckboxes()" style="margin-bottom: 12px; padding: 8px;" />
+          <div style="max-height: 250px; overflow-y: auto; padding-right: 4px;" id="chartAccountCheckboxes"></div>
+          <button id="refreshChartBtn" class="btn btn-accent" style="margin-top: 14px; width: 100%;" onclick="updateChart()">🔄 Refresh Graph</button>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-header">Total Assets by Currency</div>
         <div id="currencySummaryWidgets" class="kpi-row"></div>
@@ -140,14 +188,14 @@
           </div>
 
           <div class="table-container">
-            <table>
+            <table id="incomeStatementTable">
               <thead><tr><th colspan="3" style="text-align: left; font-size: 14px;">1. Income Statement (P&L)</th></tr><tr><th>Account</th><th>Currency</th><th>Amount</th></tr></thead>
               <tbody id="incomeStatementBody"></tbody>
             </table>
           </div>
 
           <div class="table-container">
-            <table>
+            <table id="balanceSheetTable">
               <thead><tr><th colspan="3" style="text-align: left; font-size: 14px;">2. Balance Sheet Summary</th></tr><tr><th>Classification / Account</th><th>Currency</th><th>Balance</th></tr></thead>
               <tbody id="balanceSheetBody"></tbody>
             </table>
@@ -218,7 +266,7 @@
         </div>
 
         <div class="table-container">
-          <table>
+          <table id="glTable">
             <thead><tr><th>Date</th><th>Entry #</th><th>Description / Memo</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead>
             <tbody id="glTableBody"></tbody>
           </table>
@@ -233,7 +281,6 @@
     <div id="sub-accounts" class="tab-content">
       <div class="panel no-print form-row" style="align-items: flex-end; justify-content: space-between;">
         <div class="form-group" style="max-width: 300px;">
-          <!-- Wrapper hides this dropdown if logged in as Sub-Officer (Privacy Wall) -->
           <div id="subAccountSelectorWrapper">
             <label>Active Sub-Account:</label>
             <select id="subAccountActiveSelect" onchange="switchActiveSubAccount()"></select>
@@ -257,7 +304,7 @@
           <div class="form-group" style="max-width: 220px;"><label>Category:</label><select id="subEntryCategory"><option value="Supplies / Materials">Supplies / Materials</option><option value="Meals & Refreshments">Meals & Refreshments</option><option value="Transport / Logistics">Transport / Logistics</option><option value="Direct Sales Cash">Direct Sales (Cash In)</option><option value="Miscellaneous">Miscellaneous</option></select></div>
           <div class="form-group"><label>Particulars / Description:</label><input type="text" id="subEntryDesc" placeholder="e.g. Market purchase" /></div>
           <div class="form-group" style="max-width: 160px;"><label>Transaction Type:</label><select id="subEntryType"><option value="IN">Cash IN (Receive)</option><option value="OUT" selected>Cash OUT (Spend)</option></select></div>
-          <div class="form-group" style="max-width: 140px;"><label>Amount:</label><input type="number" step="any" id="subEntryAmount" placeholder="0.00" /></div>
+          <div class="form-group" style="max-width: 160px;"><label>Amount:</label><input type="text" id="subEntryAmount" placeholder="0.00" class="num" onblur="formatMoneyField(this)" onfocus="unformatMoneyField(this)" /></div>
         </div>
         <div style="margin-top: 10px;">
           <button class="btn" id="subSaveBtn" onclick="saveSubAccountEntry()">+ Save Entry</button>
@@ -290,7 +337,7 @@
           </div>
 
           <div class="table-container">
-            <table>
+            <table id="subAccountTable">
               <thead><tr><th>Voucher #</th><th>Date</th><th>Category</th><th>Description</th><th>Cash IN</th><th>Cash OUT</th><th>Balance</th><th class="no-print">Action</th></tr></thead>
               <tbody id="subAccountLogBody"></tbody>
             </table>
@@ -358,7 +405,7 @@
           <table>
             <thead id="tbHead"></thead>
             <tbody id="tbBody"></tbody>
-            <tfoot id="tbFoot" class="tb-footer"></tfoot> <!-- NEW FOOTER ROW FOR TOTALS -->
+            <tfoot id="tbFoot" class="tb-footer"></tfoot>
           </table>
         </div>
       </div>
@@ -428,12 +475,8 @@
         </div>
       </div>
 
-      <!-- REARRANGED GRID (Left: Identity/Currency. Right: Letterheads/Signatures) -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
-        
-        <!-- LEFT COLUMN -->
         <div style="display: flex; flex-direction: column; gap: 24px;">
-          <!-- Corporate Identity -->
           <div class="panel" style="margin-bottom: 0;">
             <div class="panel-header">Corporate Identity & Logo</div>
             <div class="form-group" style="margin-bottom: 16px;">
@@ -447,7 +490,6 @@
             </div>
           </div>
 
-          <!-- Currencies Config -->
           <div class="panel" style="margin-bottom: 0;">
             <div class="panel-header">Currencies Configuration</div>
             <div class="form-group" style="margin-bottom: 16px;"><label>Set Base / Main Currency:</label><select id="settingBaseCurrency" onchange="updateBaseCurrency()"></select></div>
@@ -459,9 +501,7 @@
           </div>
         </div>
 
-        <!-- RIGHT COLUMN -->
         <div style="display: flex; flex-direction: column; gap: 24px;">
-          <!-- Print Letterheads -->
           <div class="panel" style="margin-bottom: 0;">
             <div class="panel-header">Print Letterheads (Centered on Documents)</div>
             <div class="form-row">
@@ -478,7 +518,6 @@
             </div>
           </div>
 
-          <!-- Document Signatories -->
           <div class="panel" style="margin-bottom: 0;">
             <div class="panel-header">Document Signatories (Print Approvals)</div>
             <div class="form-group" style="margin-bottom: 16px;">
@@ -498,7 +537,6 @@
         </div>
       </div>
 
-      <!-- SYSTEM ACCESS & ACCOUNTS -->
       <div class="panel" style="margin-top: 24px;">
         <div class="panel-header" id="userFormTitle">System Access & User Accounts</div>
         
@@ -535,6 +573,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>
