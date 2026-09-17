@@ -12,8 +12,9 @@ let accounts = [
   { code: "5010", name: "General Expenses", type: "Expense", currency: "USD" }
 ];
 
+// Added password field to sub-accounts
 let subAccounts = [
-  { id: "SUB-1", name: "Kitchen Petty Cash", desc: "Daily market produce", currency: "USD" }
+  { id: "SUB-1", name: "Kitchen Petty Cash", desc: "Daily market produce", currency: "USD", password: "sub123" }
 ];
 let activeSubAccountId = "SUB-1";
 let subAccountLogs = { "SUB-1": [] };
@@ -142,15 +143,24 @@ function handleLogin() {
   const pass = document.getElementById('loginPassword').value;
   
   if (role === 'admin' && pass !== 'admin123') { alert('Invalid Password'); return; }
+  
   if (role === 'sub') {
-    if (pass !== 'sub123') { alert('Invalid Password'); return; }
-    const assignedSub = document.getElementById('loginSubAccountSelect').value;
-    if (!assignedSub) { alert('No sub-account selected or available.'); return; }
-    activeSubAccountId = assignedSub; 
+    const assignedSubId = document.getElementById('loginSubAccountSelect').value;
+    if (!assignedSubId) { alert('No sub-account selected.'); return; }
+    
+    // Find specific sub-account and verify its unique password
+    const selectedSubAccount = subAccounts.find(s => s.id === assignedSubId);
+    if (!selectedSubAccount || pass !== selectedSubAccount.password) { 
+      alert('Invalid Password for this specific Sub-Account'); 
+      return; 
+    }
+    
+    activeSubAccountId = assignedSubId; 
   }
   
   currentUserRole = role;
   document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('loginPassword').value = ''; // clear for security
   applyRolePermissions();
 }
 
@@ -184,7 +194,6 @@ function isDateLockedForSubAccount(entryDateStr) {
   const lockDeadline = new Date(dYear, dMonth, 7, 23, 59, 59);
   return new Date() > lockDeadline; 
 }
-
 function checkEntryDateLock() {
   const isLocked = isDateLockedForSubAccount(document.getElementById('subEntryDate').value);
   document.getElementById('subEntryLockWarning').style.display = isLocked ? 'block' : 'none';
@@ -306,7 +315,7 @@ function renderChartOfAccounts() {
     </tr>`).join('');
 }
 
-// --- SUB ACCOUNTS LOGIC ---
+// --- SUB ACCOUNTS LOGIC & PASSWORD MANAGEMENT ---
 function populateSubAccountDropdowns() {
   const select = document.getElementById('subAccountActiveSelect');
   const loginSelect = document.getElementById('loginSubAccountSelect');
@@ -314,10 +323,7 @@ function populateSubAccountDropdowns() {
   
   select.innerHTML = html;
   select.value = activeSubAccountId;
-  
-  if (loginSelect) {
-    loginSelect.innerHTML = html;
-  }
+  if (loginSelect) loginSelect.innerHTML = html;
   
   updateActiveSubAccountHeader();
 }
@@ -334,16 +340,38 @@ function addNewSubAccount() {
   const name = document.getElementById('newSubAccountName').value.trim();
   const desc = document.getElementById('newSubAccountDesc').value.trim();
   const curr = document.getElementById('newSubAccountCurrency').value;
+  const pass = document.getElementById('newSubAccountPassword').value.trim();
+  
   if (!name) { alert('Enter Name'); return; }
+  if (!pass) { alert('You must set a password for this sub-account'); return; }
+  
   const id = "SUB-" + (subAccounts.length + 1);
-  subAccounts.push({ id, name, desc, currency: curr });
+  subAccounts.push({ id, name, desc, currency: curr, password: pass });
   subAccountLogs[id] = [];
-  document.getElementById('newSubAccountName').value = ''; document.getElementById('newSubAccountDesc').value = '';
+  
+  document.getElementById('newSubAccountName').value = ''; 
+  document.getElementById('newSubAccountDesc').value = '';
+  document.getElementById('newSubAccountPassword').value = '';
+  
   renderSettingsSubAccounts(); populateSubAccountDropdowns();
 }
 function renderSettingsSubAccounts() {
-  document.getElementById('settingsSubAccountsBody').innerHTML = subAccounts.map(s => `<tr><td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.desc}</td><td>${s.currency}</td>
-    <td style="text-align:center;"><button class="btn btn-danger btn-sm" onclick="removeSubAccount('${s.id}')">Delete</button></td></tr>`).join('');
+  document.getElementById('settingsSubAccountsBody').innerHTML = subAccounts.map(s => `<tr>
+    <td><strong>${s.id}</strong></td><td>${s.name}</td><td>${s.desc}</td><td>${s.currency}</td>
+    <td><span style="font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">${s.password}</span></td>
+    <td style="text-align:center;">
+      <button class="btn btn-secondary btn-sm" onclick="changeSubAccountPassword('${s.id}')">🔑 Pwd</button>
+      <button class="btn btn-danger btn-sm" onclick="removeSubAccount('${s.id}')">Delete</button>
+    </td></tr>`).join('');
+}
+function changeSubAccountPassword(id) {
+  const sub = subAccounts.find(s => s.id === id);
+  const newPass = prompt(`Enter new password for ${sub.name}:`, sub.password);
+  if (newPass && newPass.trim() !== "") {
+    sub.password = newPass.trim();
+    renderSettingsSubAccounts();
+    alert('Password updated successfully.');
+  }
 }
 function removeSubAccount(id) {
   if (subAccounts.length <= 1) { alert('Minimum 1 account required.'); return; }
@@ -822,10 +850,8 @@ function renderChartCheckboxes() {
   const box = document.getElementById('chartAccountCheckboxes');
   const query = (document.getElementById('chartAccountSearch')?.value || '').toLowerCase();
   
-  // Get all valid accounts for graphing (Assets and Liabilities)
   let validAccounts = accounts.filter(a => a.type === 'Asset' || a.type === 'Liability');
   
-  // Apply Search filter
   if (query) {
     validAccounts = validAccounts.filter(a => a.code.toLowerCase().includes(query) || a.name.toLowerCase().includes(query));
   }
@@ -869,12 +895,12 @@ function initSummaryChart() {
         label: 'Net Balance', 
         data: [], 
         backgroundColor: '#10b981',
-        borderColor: '#34d399',       // Added for line graph
-        borderWidth: 2,               // Added for line graph
-        pointBackgroundColor: '#fff', // Added for line graph
-        pointRadius: 4,               // Added for line graph
-        fill: false,                  // Crucial: stops the line graph from being a solid block
-        tension: 0.2                  // Smooths the line
+        borderColor: '#34d399',       
+        borderWidth: 2,               
+        pointBackgroundColor: '#fff', 
+        pointRadius: 4,               
+        fill: false,                  // Fixed line graph styling
+        tension: 0.2                  
       }] 
     }, 
     options: { 
