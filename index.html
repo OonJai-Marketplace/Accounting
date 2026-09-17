@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Crucial for Android/Mobile zoom and scaling -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>Oon Jai Marketplace - Ledger</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -63,13 +62,21 @@
     <div id="summary" class="tab-content active">
       <div class="form-row">
         <div class="panel" style="flex: 2; min-width: 300px;">
-          <div class="panel-header">Asset Comparison</div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div class="panel-header" style="margin-bottom: 0; border: none;">Asset Comparison</div>
+            <div class="form-group" style="max-width: 150px;">
+              <select id="chartTypeSelect" onchange="updateChart()" style="padding: 6px 10px; font-size: 13px;">
+                <option value="bar">Column / Bar Graph</option>
+                <option value="line">Line Graph</option>
+              </select>
+            </div>
+          </div>
           <canvas id="summaryChart" style="max-height: 300px; width: 100%;"></canvas>
         </div>
         <div class="panel" style="flex: 1; min-width: 250px;">
           <div class="panel-header">Select Accounts to View</div>
-          <div style="max-height: 220px; overflow-y: auto; background: var(--bg-dark); padding: 12px; border-radius: 6px; border: 1px solid var(--grid-border);" id="chartAccountCheckboxes"></div>
-          <button class="btn btn-accent" style="margin-top: 16px; width: 100%;" onclick="updateChart()">Refresh Graph</button>
+          <div style="max-height: 220px; overflow-y: auto; padding-right: 4px;" id="chartAccountCheckboxes"></div>
+          <button id="refreshChartBtn" class="btn btn-accent" style="margin-top: 16px; width: 100%;" onclick="updateChart()">🔄 Refresh Graph</button>
         </div>
       </div>
       <div class="panel">
@@ -82,13 +89,42 @@
     <!-- 2. FINANCIAL REPORTS TAB                                       -->
     <!-- ============================================================== -->
     <div id="reports" class="tab-content">
-      <div class="panel no-print form-row" style="align-items: flex-end; justify-content: space-between;">
-        <div class="form-group" style="max-width: 220px;">
-          <label>Report Period:</label>
-          <input type="month" id="reportMonthFilter" onchange="generateAutomatedReports()" onclick="this.showPicker && this.showPicker()" />
+      <div class="panel no-print form-row" style="align-items: flex-end;">
+        <div class="form-group" style="max-width: 160px;">
+          <label>Report Filter:</label>
+          <select id="reportFilterType" onchange="toggleReportDateInputs()">
+            <option value="all">All-Time</option>
+            <option value="month">Specific Month</option>
+            <option value="quarter">Quarterly</option>
+            <option value="year">Specific Year</option>
+            <option value="custom">Custom Range</option>
+          </select>
         </div>
-        <div style="display: flex; gap: 10px;">
-          <button class="btn btn-secondary" onclick="document.getElementById('reportMonthFilter').value=''; generateAutomatedReports();">All-Time</button>
+        <div class="form-group" id="repMonthWrap" style="display: none; max-width: 160px;">
+          <label>Month:</label>
+          <input type="month" id="repMonthInput" onchange="generateAutomatedReports()" />
+        </div>
+        <div class="form-group" id="repQtrWrap" style="display: none; max-width: 220px;">
+          <label>Quarter & Year:</label>
+          <div style="display:flex; gap: 8px;">
+            <select id="repQtrSelect" onchange="generateAutomatedReports()">
+              <option value="Q1">Q1 (Jan-Mar)</option>
+              <option value="Q2">Q2 (Apr-Jun)</option>
+              <option value="Q3">Q3 (Jul-Sep)</option>
+              <option value="Q4">Q4 (Oct-Dec)</option>
+            </select>
+            <input type="number" id="repQtrYear" value="2026" onchange="generateAutomatedReports()" style="width: 90px;" />
+          </div>
+        </div>
+        <div class="form-group" id="repYearWrap" style="display: none; max-width: 120px;">
+          <label>Year:</label>
+          <input type="number" id="repYearInput" placeholder="2026" onchange="generateAutomatedReports()" />
+        </div>
+        <div class="form-group" id="repRangeWrap" style="display: none; flex-direction: row; gap: 10px;">
+          <div class="form-group"><label>From:</label><input type="date" id="repStartDate" onchange="generateAutomatedReports()" /></div>
+          <div class="form-group"><label>To:</label><input type="date" id="repEndDate" onchange="generateAutomatedReports()" /></div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-left: auto;">
           <button class="btn btn-secondary" onclick="exportReportsCSV()">📥 CSV</button>
           <button class="btn" onclick="prepareAndPrint('reportWrapper')">🖨️ Print Report</button>
         </div>
@@ -368,6 +404,14 @@
             <div id="journalBalanceStatus" style="font-weight: bold; font-size: 14px;"></div>
             <button class="btn" id="saveEntryBtn" style="padding: 12px 24px;" onclick="saveJournalEntry()">Post Entry</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Journal Log Data Search Bar -->
+      <div class="panel form-row" style="align-items: flex-end; padding: 12px 20px; margin-bottom: 16px;">
+        <div class="form-group" style="flex: 1;">
+          <label>Search Journal (Universal):</label>
+          <input type="text" id="journalSearchInput" placeholder="Search by Entry #, Account Name, Amount, or Description..." onkeyup="renderJournalLog()" />
         </div>
       </div>
 
