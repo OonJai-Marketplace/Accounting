@@ -217,3 +217,41 @@ input[type="number"] {
   padding: 8px 12px !important;
   border-top: none !important;
 }
+/* --- TRIAL BALANCE FOOTER --- */
+.tb-footer {
+  background: rgba(0,0,0,0.4);
+  border-top: 2px solid var(--primary);
+}
+
+/* --- SIGNATORIES (HIDDEN ON SCREEN, VISIBLE ON PRINT) --- */
+.signatories-area { display: none; }
+
+/* --- PRINT OPTIMIZATIONS (COST EFFECTIVE & DENSE) --- */
+@media print {
+  /* Compress table padding and font size to save paper */
+  table { border-spacing: 0; margin-bottom: 10px !important; }
+  th, td { padding: 4px 6px !important; font-size: 11px !important; }
+  .panel { margin-bottom: 10px !important; }
+  h2 { font-size: 18px !important; margin-bottom: 4px !important; }
+  h3, h4 { font-size: 14px !important; margin-bottom: 4px !important; }
+  .kpi-row { gap: 8px !important; margin-bottom: 12px !important; }
+  .kpi-card { padding: 8px !important; }
+  .kpi-value { font-size: 16px !important; }
+  
+  /* Signatories Print Layout */
+  .signatories-area { 
+    display: flex !important; 
+    justify-content: space-around; 
+    margin-top: 40px !important; 
+    margin-bottom: 20px !important;
+    page-break-inside: avoid; 
+  }
+  .sig-box { 
+    width: 160px; 
+    text-align: center; 
+    border-top: 1px solid #000; 
+    padding-top: 6px; 
+    font-size: 12px !important; 
+    color: #000 !important;
+  }
+}
