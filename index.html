@@ -2,351 +2,708 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <title>Oon Jai Marketplace - Ledger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Oon Jai Marketplace — Accounting Core</title>
+  <!-- Chart.js for dashboard visualizations -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- 
-  ======================================================================
-  HTML 1: MODALS & OVERLAYS (HTML CLUSTER 1)
-  Purpose: Houses all system-blocking popups: custom alerts, pre-print configuration, and login authentication.
-  Editing note: Located immediately after <body>. Displays centered over the full screen when active.
-  ======================================================================
-  -->
-  
-  <!-- Custom Alert/Confirm/Prompt Modal -->
-  <div id="systemModal" class="modal-overlay">
-    <div class="modal-card">
-      <h3 id="sysModalTitle" style="color: var(--primary); margin-top: 0; margin-bottom: 12px;">System Prompt</h3>
-      <p id="sysModalMessage" style="color: var(--text-light); margin-bottom: 16px;"></p>
-      <input type="text" id="sysModalInput" style="display:none; width: 100%; margin-top: 8px; margin-bottom: 12px;" />
-      <div class="modal-buttons">
-        <button id="sysModalCancel" class="btn btn-secondary" style="display:none;">Cancel</button>
-        <button id="sysModalConfirm" class="btn">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pre-Print Configuration Modal -->
-  <div id="printConfigModal" class="modal-overlay">
-    <div class="modal-card">
-      <h3 style="color: var(--primary); margin-top: 0;">🖨️ Document Print Configuration</h3>
-      <div class="modal-scroll-area">
-        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">Select which elements to include in this specific printout.</p>
-        <div style="margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
-          <label><input type="checkbox" id="printOptHeader" checked /> Include Corporate Header Image</label>
-          <label><input type="checkbox" id="printOptFooter" checked /> Include Corporate Footer Image</label>
-          <label><input type="checkbox" id="printOptLogo" checked /> Include Entity Logo</label>
-          <label><input type="checkbox" id="printOptSignatures" checked /> Include Assigned Signatories</label>
-        </div>
-        <div style="margin-bottom: 8px;">
-          <label>Custom Footnote / Variance Notes:</label>
-          <textarea id="printOptNotes" rows="3" style="width: 100%; margin-top: 6px;" placeholder="Enter specific commentary..."></textarea>
-        </div>
-      </div>
-      <div class="modal-buttons">
-        <button class="btn btn-secondary" onclick="closePrintConfig()">Cancel</button>
-        <button class="btn" onclick="executePrintJob()">🖨️ Confirm & Print</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Secure Login Overlay -->
-  <div id="loginOverlay" class="modal-overlay" style="display: flex;">
-    <div class="login-card">
-      <h2 style="color: var(--primary); margin-top: 0; margin-bottom: 20px; text-align: center;">System Sign In</h2>
-      <div class="form-group" style="margin-bottom: 16px;">
-        <label>Email Address:</label>
-        <input type="email" id="loginEmail" autocomplete="username" value="santos@onjoy.org" />
-      </div>
-      <div class="form-group">
-        <label>Password:</label>
-        <input type="password" id="loginPassword" autocomplete="new-password" value="" />
-      </div>
-      <button class="btn" style="width: 100%; margin-top: 24px;" onclick="handleLogin()">Secure Login</button>
-    </div>
-  </div>
-
-  <!-- Hidden Datalist for Journal Autocomplete -->
+  <!-- Hidden list for journal account search autocomplete -->
   <datalist id="coaList"></datalist>
 
-  <!-- 
-  ======================================================================
-  HTML 2: CORE LAYOUT & NAVIGATION (HTML CLUSTER 2)
-  Purpose: The main top bar and left accordion sidebar with category dropdown arrows.
-  Editing note: Visible at the very top (sticky header) and docked along the left edge of the screen.
-  ======================================================================
-  -->
-  <div class="sheet-header">
-    <div class="sheet-title">
-      <span id="appHeaderTitle">Oon Jai Marketplace</span>
-      <span id="userRoleBadge" class="badge-admin">Admin Mode</span>
-    </div>
-    <div class="header-controls" style="display: flex; gap: 12px; align-items: center;">
-      <span id="currentUserDisplay" style="font-size: 13px; color: var(--text-muted);">Logged in: Admin</span>
-      <button class="btn btn-secondary btn-sm" onclick="handleLogout()">Sign Out</button>
-    </div>
-  </div>
-
   <div class="app-layout">
-    <!-- Left Navigation Sidebar -->
-    <aside class="sidebar no-print">
-      <div class="nav-category open">
-        <div class="nav-header" onclick="toggleNavCat(this)">Dashboards <span class="arrow">▼</span></div>
-        <div class="nav-links">
-          <button class="tab-btn active" onclick="switchTab('summary')">📊 Summary</button>
-          <button class="tab-btn" onclick="switchTab('reports')">📈 Reports</button>
+
+<!-- ============================================================================== -->
+<!-- HTML 1: LEFT VERTICAL NAVIGATION SIDEBAR                                       -->
+<!-- Sidebar navigation with brand emblem, accordion categories, and submenu links. -->
+<!-- ============================================================================== -->
+    <aside class="sidebar no-print" id="appSidebar">
+
+      <!-- ---------------------------------------------------------------------- -->
+      <!-- SIDEBAR BRAND LOGO & EMBLEM                                            -->
+      <!-- ---------------------------------------------------------------------- -->
+      <div class="sidebar-brand">
+        <div class="brand-icon-emblem">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C8 2 6 5 6 7c0 2 1.5 3.5 3 4.5V21h6v-9.5c1.5-1 3-2.5 3-4.5 0-2-2-5-6-5z" />
+            <circle cx="12" cy="7" r="2.5" fill="#a7f3d0" />
+          </svg>
         </div>
+        <h2>Oon Jai<br><span>Marketplace</span></h2>
       </div>
-      <div class="nav-category open">
-        <div class="nav-header" onclick="toggleNavCat(this)">General Ledger <span class="arrow">▼</span></div>
-        <div class="nav-links">
-          <button class="tab-btn" onclick="switchTab('journal')">📝 Journal</button>
-          <button class="tab-btn" onclick="switchTab('gl')">📔 Statement of Acct</button>
-          <button class="tab-btn" onclick="switchTab('trial-balance')">⚖️ Trial Balance</button>
-        </div>
-      </div>
-      <div class="nav-category open">
-        <div class="nav-header" onclick="toggleNavCat(this)">Operations <span class="arrow">▼</span></div>
-        <div class="nav-links">
-          <button class="tab-btn" onclick="switchTab('sub-accounts')">📋 Sub-Accounts</button>
-          <button class="tab-btn" onclick="switchTab('reconciliation')">🔍 Reconciliation</button>
-        </div>
-      </div>
+
+      <!-- ---------------------------------------------------------------------- -->
+      <!-- NAVIGATION ACCORDION CATEGORIES                                        -->
+      <!-- ---------------------------------------------------------------------- -->
+      <!-- 1. Dashboard -->
       <div class="nav-category">
-        <div class="nav-header" onclick="toggleNavCat(this)">System Config <span class="arrow">▼</span></div>
+        <div class="nav-header" onclick="activateCategory(this, 'dashboard')">Dashboard</div>
+      </div>
+
+      <!-- 2. Transactions (Journal first, then New, then All Transactions) -->
+      <div class="nav-category open">
+        <div class="nav-header" onclick="activateCategory(this, 'journal')">Transactions <span class="arrow">▼</span></div>
         <div class="nav-links">
-          <button class="tab-btn" onclick="switchTab('chart-accounts')">🗂️ Accounts (COA)</button>
-          <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+          <button type="button" class="tab-btn active" onclick="switchTab('journal')">Journal</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-new')">New Transactions</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-all')">All Transactions</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-recurring')">Recurring Transactions</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-voided')">Voided Transactions</button>
+        </div>
+      </div>
+
+      <!-- 3. Accounts (Continuous Modular Workspace) -->
+      <div class="nav-category">
+        <div class="nav-header" onclick="activateCategory(this, 'sec-chart-accounts')">Accounts <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-chart-accounts')">Chart of Accounts</button>
+          <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-sub-accounts')">Sub-Accounts</button>
+          <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-general-ledger')">General Ledger</button>
+          <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-other-accounts')">Other Account Sections</button>
+          <button type="button" class="tab-btn" onclick="switchTab('trial-balance')">Trial Balance</button>
+          <button type="button" class="tab-btn" onclick="switchTab('account-balances')">Account Balances</button>
+        </div>
+      </div>
+
+      <!-- 4. Payroll -->
+      <div class="nav-category">
+        <div class="nav-header" onclick="activateCategory(this, 'payroll-overview')">Payroll <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-overview')">Payroll Overview</button>
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-employees')">Employees</button>
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-entries')">Payroll Entries</button>
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-history')">Salary History</button>
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-deductions')">Payroll Deductions</button>
+        </div>
+      </div>
+
+      <!-- 5. Reports -->
+      <div class="nav-category">
+        <div class="nav-header" onclick="activateCategory(this, 'report-pl')">Report <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('report-pl')">Profit and Loss</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-bs')">Balance Sheet</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-cf')">Cash Flow</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-tb')">Trial Balance</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-gl')">General Ledger</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-activity')">Account Activity</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-expense')">Expense Report</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-payroll')">Payroll Report</button>
+        </div>
+      </div>
+
+      <!-- 6. Tax and SSO -->
+      <div class="nav-category">
+        <div class="nav-header" onclick="activateCategory(this, 'tax-overview')">Tax and SSO <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('tax-overview')">Tax Overview</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-vat')">VAT</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-pit')">Personal Income Tax</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-social')">Social Security</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-payment')">Tax and Social Payment</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-sso-payment')">SSO Payment</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-records')">Tax and SSO Records</button>
+        </div>
+      </div>
+
+      <!-- 7. Inventory -->
+      <div class="nav-category">
+        <div class="nav-header" onclick="activateCategory(this, 'inv-overview')">Inventory <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('inv-overview')">Inventory Overview</button>
+          <button type="button" class="tab-btn" onclick="switchTab('inv-items')">Items</button>
+          <button type="button" class="tab-btn" onclick="switchTab('inv-stock-in')">Stock In</button>
+          <button type="button" class="tab-btn" onclick="switchTab('inv-stock-out')">Stock Out</button>
+          <button type="button" class="tab-btn" onclick="switchTab('inv-adj')">Stock Adjustment</button>
+          <button type="button" class="tab-btn" onclick="switchTab('inv-val')">Inventory Valuation</button>
+        </div>
+      </div>
+
+      <!-- 8. Menu -->
+      <div class="nav-category">
+        <div class="nav-header" onclick="activateCategory(this, 'menu-ingredients')">Menu <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('menu-ingredients')">Ingredient Master List</button>
+          <button type="button" class="tab-btn" onclick="switchTab('menu-details')">Menu Details</button>
+          <button type="button" class="tab-btn" onclick="switchTab('menu-recipe')">Recipe/Ingredients</button>
+          <button type="button" class="tab-btn" onclick="switchTab('menu-pricing')">Menu Pricing</button>
+          <button type="button" class="tab-btn" onclick="switchTab('menu-categories')">Menu Categories</button>
+          <button type="button" class="tab-btn" onclick="switchTab('menu-costing')">Recipe Costing</button>
+          <button type="button" class="tab-btn" onclick="switchTab('menu-avail')">Menu Availability</button>
+        </div>
+      </div>
+
+      <!-- 9. Settings -->
+      <div class="nav-category">
+        <div class="nav-header" onclick="activateCategory(this, 'settings-business')">Setting <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('settings-business')">Business Information</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-users')">Users and Permission</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-accounting')">Accounting Settings</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-payroll')">Payroll Settings</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-tax')">Tax Settings</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-print')">Printing Settings</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-backup')">Backup and Export</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-system')">System Setting</button>
         </div>
       </div>
     </aside>
+<!-- ============================================================================== -->
+
 
     <!-- Main Workspace Area -->
-    <main class="main-content-area" id="printableDocArea">
+    <main class="main-content-area">
 
-      <!-- 
-      ======================================================================
-      HTML 3: SUMMARY & DASHBOARDS (HTML CLUSTER 3)
-      Purpose: Summary timeline graph canvas, time grouping filters, and account checkbox sidebar.
-      Editing note: Visible in the main content window when clicking '📊 Summary' on the left sidebar.
-      ======================================================================
-      -->
-      <div id="summary" class="tab-content active">
-        <div class="panel no-print form-row" style="align-items: flex-end; margin-bottom: 16px;">
-          <div class="form-group">
-            <label>Time Grouping:</label>
-            <select id="chartTimeScale" onchange="updateChart()">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly" selected>Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="yearly">Yearly</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Period Filter:</label>
-            <select id="chartFilterType" onchange="updateChart()">
-              <option value="all" selected>All-Time</option>
-              <option value="this-month">This Month</option>
-              <option value="this-quarter">This Quarter</option>
-              <option value="this-year">This Year</option>
-            </select>
-          </div>
+<!-- ============================================================================== -->
+<!-- HTML 2: TOP WORKSPACE HEADER                                                  -->
+<!-- Title indicator, top-right search, and fiscal year badge.                      -->
+<!-- ============================================================================== -->
+      <header class="module-header no-print">
+        <div class="header-left-tools">
+          <button type="button" class="btn btn-print" onclick="window.print()">🖨️ Print</button>
+          <div id="mainHeaderTitle" class="module-header-title">Journal Entry</div>
         </div>
-
-        <div class="form-row">
-          <div class="panel" style="flex: 2; min-width: 320px;">
-            <div class="panel-header">Timeline Account Performance</div>
-            <div style="position: relative; height: 320px; width: 100%;"><canvas id="summaryChart"></canvas></div>
+        
+        <div class="header-right-tools">
+          <div class="header-search-box">
+            <input type="text" id="quickAccountSearch" placeholder="Search accounts..." oninput="handleTableSearch(this.value)">
           </div>
-          <div class="panel" style="flex: 1; min-width: 250px;">
-            <div class="panel-header">Select Accounts</div>
-            <input type="text" id="chartAccountSearch" placeholder="Search accounts..." onkeyup="renderChartCheckboxes()" style="margin-bottom: 12px; width: 100%;" />
-            <div style="max-height: 240px; overflow-y: auto;" id="chartAccountCheckboxes"></div>
-            <button class="btn" style="margin-top: 14px; width: 100%;" onclick="updateChart()">🔄 Refresh Graph</button>
-          </div>
+          <span class="fiscal-badge">FY 2026 Active</span>
         </div>
-      </div>
+      </header>
+<!-- ============================================================================== -->
 
-      <!-- 
-      ======================================================================
-      HTML 4: GENERAL JOURNAL (HTML CLUSTER 4)
-      Purpose: Chart of accounts datalist, double-entry posting form, and the filtered journal log table.
-      Editing note: Visible in the main window under '📝 Journal'. Controls debit/credit inputs and past entry tables.
-      ======================================================================
-      -->
-      <div id="journal" class="tab-content">
-        <div class="panel no-print">
-          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--panel-border); padding-bottom: 12px; margin-bottom: 16px;">
-            <h3 style="color: var(--primary); margin: 0;">Post Double-Entry Transaction</h3>
-            <div>Entry ID: <strong id="jeNumberDisplay">Auto</strong></div>
-          </div>
-          <div class="form-row" style="margin-bottom: 16px;">
-            <div class="form-group"><label>Transaction Date:</label><input type="date" id="jeDate" class="default-today" /></div>
-            <div class="form-group" style="flex: 2;"><label>Description / Memo:</label><input type="text" id="jeDescription" placeholder="Enter general journal memo..." /></div>
-          </div>
-          <div class="table-container" style="margin-bottom: 16px;">
-            <table class="je-lines-table">
-              <thead><tr id="jeHeaderRow"></tr></thead>
-              <tbody id="jeLinesBody"></tbody>
-            </table>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button class="btn btn-secondary" onclick="addJournalLineRow()">+ Add Row</button>
-            <div style="display: flex; gap: 20px; align-items: center;">
-              <div id="journalBalanceStatus" style="font-weight: bold;">Balanced</div>
-              <button class="btn" onclick="saveJournalEntry()">Post Entry</button>
+
+      <!-- Scrollable Continuous Workspace Zone -->
+      <div class="workspace-scroll" id="printableDocArea">
+
+<!-- ============================================================================== -->
+<!-- HTML 3: DOUBLE-ENTRY JOURNAL & CLUSTERED TRANSACTION LOG                       -->
+<!-- Universal date picker, universal debit, multi-currency credits & audit table.  -->
+<!-- ============================================================================== -->
+        <div id="journal" class="tab-content active">
+
+          <!-- CARD 1: POST GENERAL JOURNAL ENTRY -->
+          <section class="je-card no-print">
+            <div class="je-card-header">
+              <div>
+                <h3 class="je-title">Post Double-Entry Transaction</h3>
+                <p class="je-subtitle">Universal debit with dynamically configured currency credit columns.</p>
+              </div>
+              <span class="je-auto-id" id="jeNextIdDisplay">Entry ID: Auto</span>
             </div>
-          </div>
-        </div>
 
-        <!-- Filter and Action Bar -->
-        <div class="panel form-row no-print" style="align-items: flex-end; padding: 12px 20px; margin-bottom: 16px;">
-          <div class="form-group" style="flex: 1;"><label>Search Journal:</label><input type="text" id="journalSearchInput" onkeyup="renderJournalLog()" placeholder="Search description, account..." /></div>
-          <div class="form-group"><label>Group By:</label><select id="journalGroupSelect" onchange="renderJournalLog()"><option value="none">None</option><option value="month">Month</option><option value="year">Year</option></select></div>
-          <div class="form-group"><label>Period Filter:</label><select id="journalFilterType" onchange="renderJournalLog()"><option value="all">All-Time</option></select></div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary" onclick="exportJournalCSV()">📥 CSV</button>
-            <button class="btn" onclick="openPrintConfig('journalPrintArea', 'journal')">🖨️ Print</button>
-          </div>
-        </div>
-
-        <div id="journalPrintArea" class="table-container">
-          <table id="journalTable">
-            <thead>
-              <tr>
-                <th>Entry ID</th>
-                <th>Date</th>
-                <th>Account</th>
-                <th>Memo</th>
-                <th class="num">Debit</th>
-                <th class="num">Credit</th>
-              </tr>
-            </thead>
-            <tbody id="journalLogBody"></tbody>
-          </table>
-          <div class="print-footnote print-only" style="margin-top: 16px;"></div>
-        </div>
-      </div>
-
-      <!-- 
-      ======================================================================
-      HTML 5: FINANCIAL REPORTS (HTML CLUSTER 5)
-      Purpose: Printable document wrapper containing the Income Statement (P&L) and Balance Sheet tables.
-      Editing note: Visible under '📈 Reports'. Formatted as a formal centered document sheet on screen.
-      ======================================================================
-      -->
-      <div id="reports" class="tab-content">
-        <div class="panel no-print form-row" style="align-items: flex-end; justify-content: space-between;">
-          <div class="form-group">
-            <label>Report Period:</label>
-            <select id="reportFilterType" onchange="generateAutomatedReports()">
-              <option value="all">All-Time</option>
-              <option value="this-month">This Month</option>
-              <option value="this-quarter">This Quarter</option>
-              <option value="this-year">This Year</option>
-            </select>
-          </div>
-          <button class="btn" onclick="openPrintConfig('reportWrapper', 'reports')">🖨️ Print Statements</button>
-        </div>
-
-        <div id="reportWrapper">
-          <div style="text-align: center; margin-bottom: 24px;">
-            <h2 id="reportHeaderCompanyName" style="margin-bottom: 4px;">Oon Jai Marketplace</h2>
-            <h4 id="reportPeriodTitle" style="color: var(--text-muted); font-weight: normal; margin: 0;">Financial Statement</h4>
-          </div>
-
-          <table id="incomeStatementTable">
-            <thead>
-              <tr><th colspan="3">1. Income Statement (Profit & Loss)</th></tr>
-              <tr><th>Account</th><th>Currency</th><th class="num">Amount</th></tr>
-            </thead>
-            <tbody id="incomeStatementBody"></tbody>
-          </table>
-
-          <table id="balanceSheetTable">
-            <thead>
-              <tr><th colspan="3">2. Balance Sheet Summary</th></tr>
-              <tr><th>Account</th><th>Currency</th><th class="num">Balance</th></tr>
-            </thead>
-            <tbody id="balanceSheetBody"></tbody>
-          </table>
-
-          <div class="print-footnote print-only" style="margin-top: 20px;"></div>
-        </div>
-      </div>
-
-      <!-- 
-      ======================================================================
-      HTML 6: RECONCILIATION (HTML CLUSTER 6)
-      Purpose: Bank balance comparison card, book vs. actual variance table, and variance explanation textarea.
-      Editing note: Visible under '🔍 Reconciliation'. Shows the side-by-side paper-style reconciliation form.
-      ======================================================================
-      -->
-      <div id="reconciliation" class="tab-content">
-        <div class="panel form-row no-print" style="align-items: flex-end; margin-bottom: 16px;">
-          <div class="form-group" style="flex: 2;"><label>Account to Reconcile:</label><select id="reconAccountSelect" onchange="runReconciliation()"></select></div>
-          <div class="form-group"><label>Actual Bank/Count Balance:</label><input type="number" id="reconActualBalance" step="any" placeholder="0.00" oninput="runReconciliation()" /></div>
-          <button class="btn" onclick="openPrintConfig('reconPrintArea', 'reconciliation')">🖨️ Print Statement</button>
-        </div>
-
-        <div id="reconPrintArea" class="recon-card" style="display: none;">
-          <h2 style="text-align: center; margin-top: 0; margin-bottom: 20px;">Bank Reconciliation Statement</h2>
-          <table style="width: 100%; margin-bottom: 20px;">
-            <tr><td><strong>Account:</strong></td><td id="reconTitle"></td></tr>
-            <tr><td><strong>Cutoff Date:</strong></td><td id="reconDate"></td></tr>
-            <tr><td><strong>System Book Balance:</strong></td><td id="reconSystemBal" class="num" style="font-weight: bold;"></td></tr>
-            <tr><td><strong>Actual Count Balance:</strong></td><td id="reconActualBal" class="num"></td></tr>
-            <tr><td><strong>Variance (Difference):</strong></td><td id="reconDiff" class="num" style="font-size: 16px; font-weight: bold;"></td></tr>
-          </table>
-          <div id="reconStatus" style="text-align: center; margin-bottom: 16px; font-weight: bold;"></div>
-          <div class="form-group">
-            <label><strong>Variance Notes / Report Explanation:</strong></label>
-            <textarea id="reconVarianceNotes" rows="3" style="width: 100%; margin-top: 6px;" placeholder="Document reason for variance..."></textarea>
-          </div>
-          <div class="print-footnote print-only" style="margin-top: 20px;"></div>
-        </div>
-      </div>
-
-      <!-- 
-      ======================================================================
-      HTML 7: SYSTEM SETTINGS & USERS (HTML CLUSTER 7)
-      Purpose: Two-column settings panel (branding, letterheads, currencies, signatories) and user access table.
-      Editing note: Visible under '⚙️ Settings'. Left column = Identity/Letterheads; Right column = Currencies/Signers.
-      ======================================================================
-      -->
-      <div id="settings" class="tab-content">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
-          <!-- Left Column -->
-          <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="panel">
-              <div class="panel-header">Corporate Identity</div>
-              <div class="form-group" style="margin-bottom: 12px;">
-                <label>Company / Entity Name:</label>
-                <input type="text" id="settingCompanyName" value="Oon Jai Marketplace" />
+            <!-- Meta Controls: Clickable Date & General Memo -->
+            <div class="je-meta-grid">
+              <div class="je-field-group" style="max-width: 190px;">
+                <label for="jeTransDate">Transaction Date (Click box to open):</label>
+                <input type="date" id="jeTransDate" class="je-input default-today" onclick="if(this.showPicker) this.showPicker();" />
+              </div>
+              <div class="je-field-group" style="flex: 1;">
+                <label for="jeGeneralMemo">General Description / Memo *:</label>
+                <input type="text" id="jeGeneralMemo" class="je-input" placeholder="e.g., Daily register cash closeout & food sales allocation..." />
               </div>
             </div>
-          </div>
-          <!-- Right Column -->
-          <div style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="panel">
-              <div class="panel-header">Currency Configuration</div>
-              <div class="form-group">
-                <label>Base Currency:</label>
-                <select id="settingBaseCurrency"></select>
+
+            <!-- Dynamic Input Table (Adapts to Active Currencies) -->
+            <div class="table-container">
+              <table class="je-table">
+                <thead>
+                  <tr id="jeHeaderRow">
+                    <!-- Populated dynamically via JS: Account | Memo | DR | CR-LAK | CR-USD | CR-THB ... | Actions -->
+                  </tr>
+                </thead>
+                <tbody id="jeLinesBody">
+                  <!-- Dynamically populated via script.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <div class="je-actions-bar">
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="je-btn je-btn-secondary" onclick="addJournalLineRow()">+ Add Row</button>
+                <button type="button" class="je-btn je-btn-secondary" onclick="setupJournalColumns()">↺ Reset Rows</button>
               </div>
+              <div class="je-actions-right">
+                <span id="jeBalanceIndicator" class="je-status-badge balanced">Balanced</span>
+                <button type="button" id="btnPostJournal" class="je-btn je-btn-emerald" onclick="submitJournalEntry()">Post Entry</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- CARD 2: CLUSTERED JOURNAL TRANSACTION HISTORY (UNIFIED GENERAL MASTER HEADER) -->
+          <section class="je-card">
+            <div class="je-card-header" style="margin-bottom: 12px;">
+              <div>
+                <h3 class="je-title">Journal Transaction History</h3>
+                <p class="je-subtitle">Unified master table displaying clean account names carrying currency, DR, and currency credits.</p>
+              </div>
+            </div>
+
+            <div class="je-filter-toolbar no-print">
+              <div class="je-field-group" style="flex: 2;">
+                <label for="jeSearchInput">Search Journal:</label>
+                <input type="text" id="jeSearchInput" class="je-input" placeholder="Search by account name, memo, or Entry ID..." oninput="filterJournalHistory()" />
+              </div>
+              <div class="je-field-group" style="width: 140px;">
+                <label for="jePeriodSelect">Period Filter:</label>
+                <select id="jePeriodSelect" class="je-select" onchange="filterJournalHistory()">
+                  <option value="all" selected>All-Time</option>
+                  <option value="month">This Month</option>
+                  <option value="year">This Year</option>
+                </select>
+              </div>
+              <div class="je-toolbar-buttons">
+                <button type="button" class="je-btn je-btn-outline" onclick="exportJournalCSV()">📦 CSV</button>
+                <button type="button" class="je-btn je-btn-outline" onclick="window.print()">🖨️ Print</button>
+              </div>
+            </div>
+
+            <!-- Unified Master Table for Journal History -->
+            <div class="table-container">
+              <table class="clustered-journal-table" id="tblJournalHistory">
+                <thead>
+                  <tr class="general-master-header" id="thJournalHistoryRow">
+                    <!-- Populated dynamically: Date | Entry ID | Memo | Account | DR | CR-LAK | CR-USD | CR-THB ... | Action -->
+                  </tr>
+                </thead>
+                <tbody id="tblJournalHistoryBody">
+                  <!-- Injected dynamically via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </div>
+
+<!-- ============================================================================== -->
+<!-- HTML 4: NEW TRANSACTIONS & ALL TRANSACTIONS TABS                               -->
+<!-- All transaction views use the identical general header layout.                 -->
+<!-- ============================================================================== -->
+        <!-- TAB: NEW TRANSACTIONS (CURRENT MONTH ONLY) -->
+        <div id="transactions-new" class="tab-content">
+          <div class="je-card">
+            <div class="je-card-header">
+              <div>
+                <h3 class="je-title">New Transactions — Current Month</h3>
+                <p class="je-subtitle">All postings recorded within the active monthly cycle.</p>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="clustered-journal-table" id="tblNewTransactions">
+                <thead>
+                  <tr class="general-master-header" id="thNewTransRow">
+                    <!-- Populated dynamically via script.js -->
+                  </tr>
+                </thead>
+                <tbody id="newTransactionsBody">
+                  <!-- Populated dynamically via script.js -->
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
-      </div>
 
+        <!-- TAB: ALL TRANSACTIONS (HISTORICAL ARCHIVE EXCLUDING CURRENT MONTH) -->
+        <div id="transactions-all" class="tab-content">
+          <div class="je-card">
+            <div class="je-card-header">
+              <div>
+                <h3 class="je-title">All Transactions — Historical Archive</h3>
+                <p class="je-subtitle">Historical double-entry records from previous monthly periods.</p>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="clustered-journal-table" id="tblAllTransactions">
+                <thead>
+                  <tr class="general-master-header" id="thAllTransRow">
+                    <!-- Populated dynamically via script.js -->
+                  </tr>
+                </thead>
+                <tbody id="allTransactionsBody">
+                  <!-- Populated dynamically via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+<!-- ============================================================================== -->
+<!-- HTML 5: CONTINUOUS ACCOUNTS WORKSPACE (MODULES 1 TO 4)                         -->
+<!-- Chart of Accounts with currency column & filter, Sub-Accounts, and Ledgers.   -->
+<!-- ============================================================================== -->
+        <div id="accounts-modular-container" class="tab-content">
+
+          <!-- MODULE 1 — CHART OF ACCOUNTS -->
+          <section id="sec-chart-accounts" class="module-card">
+            <div class="card-header-flex">
+              <div>
+                <h3 class="card-title">MODULE 1 — CHART OF ACCOUNTS</h3>
+                <p class="card-subtitle">Master list of general ledger accounts organized by classification and currency.</p>
+              </div>
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <label for="filterCoaCurrency" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Currency:</label>
+                  <select id="filterCoaCurrency" class="filter-select" onchange="renderChartOfAccountsTable()">
+                    <option value="ALL">All Currencies</option>
+                  </select>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="openAddAccountModal()">+ ADD ACCOUNT</button>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table id="tblChartOfAccounts">
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Account Code</th>
+                    <th style="width: 250px;">Account Name</th>
+                    <th style="width: 110px;">Currency</th>
+                    <th style="width: 130px;">Account Type</th>
+                    <th>Description</th>
+                    <th style="width: 90px; text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="coaTableBody">
+                  <!-- Populated dynamically via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- MODULE 2 — SUB-ACCOUNTS -->
+          <section id="sec-sub-accounts" class="module-card">
+            <div class="card-header-flex">
+              <div>
+                <h3 class="card-title">MODULE 2 — SUB-ACCOUNTS</h3>
+                <p class="card-subtitle">Detailed child accounts mapped to parent accounts for granular reporting.</p>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="openAddSubAccountModal()">+ ADD SUB-ACCOUNT</button>
+            </div>
+
+            <div class="table-container">
+              <table id="tblSubAccounts">
+                <thead>
+                  <tr>
+                    <th style="width: 240px;">Parent Account</th>
+                    <th style="width: 160px;">Sub-Account Code</th>
+                    <th style="width: 260px;">Sub-Account Name</th>
+                    <th>Description</th>
+                    <th style="width: 100px; text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="subAccountTableBody">
+                  <!-- Populated dynamically via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- MODULE 3 — GENERAL LEDGER (DESIGN PREVIEW) -->
+          <section id="sec-general-ledger" class="module-card">
+            <div class="card-header-flex">
+              <div>
+                <h3 class="card-title">MODULE 3 — GENERAL LEDGER <span class="preview-pill">DESIGN PREVIEW</span></h3>
+                <p class="card-subtitle">Chronological ledger journal entries and audit transaction trail.</p>
+              </div>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Date</th>
+                    <th style="width: 140px;">Journal #</th>
+                    <th style="width: 240px;">Account</th>
+                    <th>Description / Memo</th>
+                    <th class="num" style="width: 130px;">Debit</th>
+                    <th class="num" style="width: 130px;">Credit</th>
+                    <th class="num" style="width: 140px;">Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>2026-09-18</td>
+                    <td><span class="ref-pill">JRN-2026-001</span></td>
+                    <td><strong>Cash on Hand (USD)</strong></td>
+                    <td>Dining room daily register cash closeout</td>
+                    <td class="num font-bold green">1,420.50</td>
+                    <td class="num muted">-</td>
+                    <td class="num font-bold green">1,420.50</td>
+                  </tr>
+                  <tr>
+                    <td>2026-09-18</td>
+                    <td><span class="ref-pill">JRN-2026-001</span></td>
+                    <td><strong>Food Sales — Dine-in (USD)</strong></td>
+                    <td>Daily food gross receipts allocation</td>
+                    <td class="num muted">-</td>
+                    <td class="num font-bold green">1,420.50</td>
+                    <td class="num font-bold green">1,420.50</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- MODULE 4 — OTHER ACCOUNT SECTIONS -->
+          <section id="sec-other-accounts" class="module-card">
+            <div class="card-header-flex">
+              <div>
+                <h3 class="card-title">MODULE 4 — OTHER ACCOUNT SECTIONS <span class="preview-pill neutral">COMING SOON</span></h3>
+                <p class="card-subtitle">Auxiliary configurations, asset depreciation, and automated banking.</p>
+              </div>
+            </div>
+            <div class="aux-grid">
+              <div class="aux-tile">
+                <h4>Fixed Asset Register & Depreciation</h4>
+                <p>Track restaurant kitchen ranges, refrigeration, and straight-line monthly depreciation schedules.</p>
+                <span class="tile-status green">5 Assets Configured</span>
+              </div>
+              <div class="aux-tile">
+                <h4>Bank Reconciliation Engine</h4>
+                <p>Automated statement matching for commercial bank accounts and POS settlement batches.</p>
+                <span class="tile-status amber">Last Checked: 2 Days Ago</span>
+              </div>
+              <div class="aux-tile">
+                <h4>Statutory Tax Mapping</h4>
+                <p>Configured account rules for standard VAT collections and employee tax withholding.</p>
+                <span class="tile-status green">Standard VAT Active</span>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+<!-- ============================================================================== -->
+<!-- HTML 6: SETTINGS WORKSPACES (BUSINESS & MULTI-CURRENCY MANAGER)                -->
+<!-- Adding a currency here adds a new CR column to all transaction tables.         -->
+<!-- ============================================================================== -->
+        <!-- SETTINGS: ACCOUNTING (MULTI-CURRENCY MANAGER) -->
+        <div id="settings-accounting" class="tab-content">
+          <div class="je-card">
+            <div class="je-card-header">
+              <div>
+                <h3 class="je-title">Accounting Settings — Multi-Currency Manager</h3>
+                <p class="je-subtitle">Define operating currencies. Adding a new currency automatically adds a dedicated credit column (CR-Currency) to all transaction tables.</p>
+              </div>
+            </div>
+
+            <!-- Currency Addition Form -->
+            <div class="currency-add-bar">
+              <div class="je-field-group" style="width: 140px;">
+                <label for="newCurrencyCode">Currency Code *</label>
+                <input type="text" id="newCurrencyCode" class="je-input" placeholder="e.g., CNY, EUR" maxlength="5" style="text-transform: uppercase;" />
+              </div>
+              <div class="je-field-group" style="flex: 1;">
+                <label for="newCurrencyName">Currency Name *</label>
+                <input type="text" id="newCurrencyName" class="je-input" placeholder="e.g., Chinese Yuan, Euro" />
+              </div>
+              <div class="je-field-group" style="width: 120px;">
+                <label for="newCurrencySymbol">Symbol</label>
+                <input type="text" id="newCurrencySymbol" class="je-input" placeholder="e.g., ¥, €" />
+              </div>
+              <button type="button" class="je-btn je-btn-emerald" style="margin-top: auto;" onclick="handleAddCurrency()">+ Add Currency</button>
+            </div>
+
+            <!-- Active Currencies Table -->
+            <div class="table-container" style="margin-top: 16px;">
+              <table class="je-table">
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Code</th>
+                    <th>Currency Name</th>
+                    <th style="width: 100px;">Symbol</th>
+                    <th style="width: 160px;">Status</th>
+                    <th style="width: 120px; text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="currencyTableBody">
+                  <!-- Injected via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SETTINGS: BUSINESS INFORMATION -->
+        <div id="settings-business" class="tab-content">
+          <div class="panel">
+            <div class="panel-header">Business Information</div>
+            <div class="form-group" style="margin-bottom: 12px; max-width: 400px;">
+              <label for="settingCompanyName">Company / Entity Name:</label>
+              <input type="text" id="settingCompanyName" value="Oon Jai Marketplace" oninput="updateCompanySettings()" />
+            </div>
+          </div>
+        </div>
+
+        <!-- OTHER APPLICATION TAB PLACEHOLDERS -->
+        <div id="dashboard" class="tab-content">
+          <div class="panel form-row no-print">
+            <div class="form-group"><label>Time Grouping:</label><select id="chartTimeScale" onchange="updateChart()"><option value="monthly" selected>Monthly</option></select></div>
+          </div>
+          <div class="panel" style="height: 400px;"><canvas id="summaryChart"></canvas></div>
+        </div>
+        <div id="transactions-recurring" class="tab-content"><div class="placeholder-warning">No data available for Recurring Transactions.</div></div>
+        <div id="transactions-voided" class="tab-content"><div class="placeholder-warning">No data available for Voided Transactions.</div></div>
+        <div id="trial-balance" class="tab-content"><div class="placeholder-warning">No data available for Trial Balance.</div></div>
+        <div id="account-balances" class="tab-content"><div class="placeholder-warning">No data available for Account Balances.</div></div>
+        <div id="payroll-overview" class="tab-content"><div class="placeholder-warning">No data available for Payroll Overview.</div></div>
+        <div id="payroll-employees" class="tab-content"><div class="placeholder-warning">No data available for Employees.</div></div>
+        <div id="payroll-entries" class="tab-content"><div class="placeholder-warning">No data available for Payroll Entries.</div></div>
+        <div id="payroll-history" class="tab-content"><div class="placeholder-warning">No data available for Salary History.</div></div>
+        <div id="payroll-deductions" class="tab-content"><div class="placeholder-warning">No data available for Payroll Deductions.</div></div>
+        <div id="report-pl" class="tab-content"><div class="placeholder-warning">No data available for Profit and Loss.</div></div>
+        <div id="report-bs" class="tab-content"><div class="placeholder-warning">No data available for Balance Sheet.</div></div>
+        <div id="report-cf" class="tab-content"><div class="placeholder-warning">No data available for Cash Flow.</div></div>
+        <div id="report-tb" class="tab-content"><div class="placeholder-warning">No data available for Trial Balance.</div></div>
+        <div id="report-gl" class="tab-content"><div class="placeholder-warning">No data available for General Ledger.</div></div>
+        <div id="report-activity" class="tab-content"><div class="placeholder-warning">No data available for Account Activity.</div></div>
+        <div id="report-expense" class="tab-content"><div class="placeholder-warning">No data available for Expense Report.</div></div>
+        <div id="report-payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Report.</div></div>
+        <div id="tax-overview" class="tab-content"><div class="placeholder-warning">No data available for Tax Overview.</div></div>
+        <div id="tax-vat" class="tab-content"><div class="placeholder-warning">No data available for VAT.</div></div>
+        <div id="tax-pit" class="tab-content"><div class="placeholder-warning">No data available for Personal Income Tax.</div></div>
+        <div id="tax-social" class="tab-content"><div class="placeholder-warning">No data available for Social Security.</div></div>
+        <div id="tax-payment" class="tab-content"><div class="placeholder-warning">No data available for Tax and Social Payment.</div></div>
+        <div id="tax-sso-payment" class="tab-content"><div class="placeholder-warning">No data available for SSO Payment.</div></div>
+        <div id="tax-records" class="tab-content"><div class="placeholder-warning">No data available for Tax and SSO Records.</div></div>
+        <div id="inv-overview" class="tab-content"><div class="placeholder-warning">No data available for Inventory Overview.</div></div>
+        <div id="inv-items" class="tab-content"><div class="placeholder-warning">No data available for Items.</div></div>
+        <div id="inv-stock-in" class="tab-content"><div class="placeholder-warning">No data available for Stock In.</div></div>
+        <div id="inv-stock-out" class="tab-content"><div class="placeholder-warning">No data available for Stock Out.</div></div>
+        <div id="inv-adj" class="tab-content"><div class="placeholder-warning">No data available for Stock Adjustment.</div></div>
+        <div id="inv-val" class="tab-content"><div class="placeholder-warning">No data available for Inventory Valuation.</div></div>
+        <div id="menu-ingredients" class="tab-content"><div class="placeholder-warning">No data available for Ingredient Master List.</div></div>
+        <div id="menu-details" class="tab-content"><div class="placeholder-warning">No data available for Menu Details.</div></div>
+        <div id="menu-recipe" class="tab-content"><div class="placeholder-warning">No data available for Recipe/Ingredients.</div></div>
+        <div id="menu-pricing" class="tab-content"><div class="placeholder-warning">No data available for Menu Pricing.</div></div>
+        <div id="menu-categories" class="tab-content"><div class="placeholder-warning">No data available for Menu Categories.</div></div>
+        <div id="menu-costing" class="tab-content"><div class="placeholder-warning">No data available for Recipe Costing.</div></div>
+        <div id="menu-avail" class="tab-content"><div class="placeholder-warning">No data available for Menu Availability.</div></div>
+        <div id="settings-users" class="tab-content"><div class="placeholder-warning">No data available for Users and Permission.</div></div>
+        <div id="settings-payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Settings.</div></div>
+        <div id="settings-tax" class="tab-content"><div class="placeholder-warning">No data available for Tax Settings.</div></div>
+        <div id="settings-print" class="tab-content"><div class="placeholder-warning">No data available for Printing Settings.</div></div>
+        <div id="settings-backup" class="tab-content"><div class="placeholder-warning">No data available for Backup and Export.</div></div>
+        <div id="settings-system" class="tab-content"><div class="placeholder-warning">No data available for System Setting.</div></div>
+
+      </div>
     </main>
   </div>
 
+<!-- ============================================================================== -->
+<!-- HTML 7: INTERACTIVE MODALS & CONFIRMATION DIALOGS                             -->
+<!-- Add/Edit Account Modal, Add/Edit Sub-Account Modal, and Deletion Dialog.       -->
+<!-- ============================================================================== -->
+  <!-- MODAL: ADD / EDIT PRIMARY ACCOUNT (WITH SETTINGS-DRIVEN CURRENCY) -->
+  <div id="modalAccount" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h4 id="modalAccountTitle">Add New Account</h4>
+        <button type="button" class="modal-close-x" onclick="closeModal('modalAccount')">&times;</button>
+      </div>
+      <form id="formAccount" onsubmit="handleAccountFormSubmit(event)">
+        <input type="hidden" id="accountOrigCode" value="">
+        <div class="modal-body">
+          <div class="form-row" style="display: flex; gap: 12px;">
+            <div class="form-group" style="flex: 1;">
+              <label for="accCode">Account Code *</label>
+              <input type="text" id="accCode" required placeholder="e.g., 1020">
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label for="accCurrency">Account Currency *</label>
+              <select id="accCurrency" required>
+                <!-- Populated dynamically via CurrencyStore -->
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="accName">Account Name *</label>
+            <input type="text" id="accName" required placeholder="e.g., Beverage Inventory">
+          </div>
+          <div class="form-group">
+            <label for="accType">Account Type *</label>
+            <select id="accType" required>
+              <option value="ASSET">Asset</option>
+              <option value="LIABILITY">Liability</option>
+              <option value="EQUITY">Equity</option>
+              <option value="REVENUE">Revenue</option>
+              <option value="EXPENSE">Expense</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="accDesc">Description</label>
+            <textarea id="accDesc" rows="3" placeholder="Context or purpose of this account..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalAccount')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT SUB-ACCOUNT -->
+  <div id="modalSubAccount" class="modal-backdrop">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h4 id="modalSubAccountTitle">Add Sub-Account</h4>
+        <button type="button" class="modal-close-x" onclick="closeModal('modalSubAccount')">&times;</button>
+      </div>
+      <form id="formSubAccount" onsubmit="handleSubAccountFormSubmit(event)">
+        <input type="hidden" id="subAccountOrigCode" value="">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="subParentCode">Parent Account *</label>
+            <select id="subParentCode" required>
+              <!-- Injected dynamically from active chart of accounts -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="subCode">Sub-Account Code *</label>
+            <input type="text" id="subCode" required placeholder="e.g., 1000-01">
+          </div>
+          <div class="form-group">
+            <label for="subName">Sub-Account Name *</label>
+            <input type="text" id="subName" required placeholder="e.g., Restaurant Cash Drawer">
+          </div>
+          <div class="form-group">
+            <label for="subDesc">Description</label>
+            <textarea id="subDesc" rows="3" placeholder="Operational allocation details..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalSubAccount')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Sub-Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DELETE CONFIRMATION -->
+  <div id="modalConfirmDelete" class="modal-backdrop">
+    <div class="modal-dialog confirm-dialog">
+      <div class="confirm-warning-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+      <h3 style="font-size: 16px; margin-bottom: 6px; color: var(--text-main);">Confirm Deletion</h3>
+      <p id="confirmDeletePrompt" style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;"></p>
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalConfirmDelete')">Cancel</button>
+        <button type="button" id="btnDeleteConfirmAction" class="btn btn-danger">Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- External controller script -->
   <script src="script.js"></script>
 </body>
 </html>
