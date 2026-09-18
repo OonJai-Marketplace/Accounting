@@ -1,6 +1,6 @@
 /**
 ======================================================================
-SECTION 1: STATE MANAGEMENT & INITIALIZATION (JS CLUSTER 1)
+SCRIPT 1: STATE MANAGEMENT & INITIALIZATION (JS CLUSTER 1)
 Purpose: Global variables, account data arrays, window.onload event, and default date assignment.
 Editing note: Runs on application boot. Automates today's date on all calendar selectors and starts timers.
 ======================================================================
@@ -41,7 +41,7 @@ function populateDropdowns() {
 
 /**
 ======================================================================
-SECTION NAME: CORE LAYOUT & NAVIGATION (JS CLUSTER 2)
+SCRIPT 2: CORE LAYOUT & NAVIGATION (JS CLUSTER 2)
 Purpose: Functions controlling sidebar accordion expansion (toggleNavCat) and tab switching (switchTab).
 Editing note: Governs screen routing when clicking any tab on the left sidebar.
 ======================================================================
@@ -67,7 +67,7 @@ function switchTab(tabId) {
 
 /**
 ======================================================================
-SECTION 2: MODALS & SECURITY CONTROLS (JS CLUSTER 3)
+SCRIPT 3: MODALS & SECURITY CONTROLS (JS CLUSTER 3)
 Purpose: Custom Promise-based modal handler (showModal/sysAlert/sysPrompt), 30-min inactivity timer, and logout.
 Editing note: Replaces browser alert/confirm and forces session termination if no mouse movement occurs for 30 min.
 ======================================================================
@@ -139,7 +139,7 @@ const sysPrompt = (t, m) => showModal(t, m, true, true);
 
 /**
 ======================================================================
-SECTION 3: SUMMARY & DASHBOARDS (JS CLUSTER 4)
+SCRIPT 4: SUMMARY & DASHBOARDS (JS CLUSTER 4)
 Purpose: Chart.js rendering (initSummaryChart), single-dataset hover tooltip, and legend thickness toggling.
 Editing note: Controls the line graph in the Summary tab. Prevents legends from hiding lines; highlights instead.
 ======================================================================
@@ -204,7 +204,7 @@ function updateChart() {
 
 /**
 ======================================================================
-SECTION 4: GENERAL JOURNAL LOGIC (JS CLUSTER 5)
+SCRIPT 5: GENERAL JOURNAL LOGIC (JS CLUSTER 5)
 Purpose: Journal entry setup, datalist population, row additions, newest-first sorting, and date grouping.
 Editing note: Handles journal table rendering. Reverses entry display order and groups rows by Month/Year.
 ======================================================================
@@ -324,7 +324,7 @@ function renderJournalLog() {
 
 /**
 ======================================================================
-SECTION 5: FINANCIAL REPORTS LOGIC (JS CLUSTER 6)
+SCRIPT 6: FINANCIAL REPORTS LOGIC (JS CLUSTER 6)
 Purpose: P&L revenue/expense calculations, balance sheet asset/liability summaries, and period filtering.
 Editing note: Computes totals for the Income Statement and Balance Sheet tables under '📈 Reports'.
 ======================================================================
@@ -349,7 +349,7 @@ function generateAutomatedReports() {
 
 /**
 ======================================================================
-SECTION 6: RECONCILIATION LOGIC (JS CLUSTER 7)
+SCRIPT 7: RECONCILIATION LOGIC (JS CLUSTER 7)
 Purpose: Bank vs. system book balance computation, variance detection, and saving audit notes.
 Editing note: Runs in the Reconciliation tab when typing actual cash/bank counts into the input field.
 ======================================================================
@@ -382,7 +382,7 @@ function runReconciliation() {
 
 /**
 ======================================================================
-SECTION 7: PRE-PRINT CONFIGURATION & EXPORT (JS CLUSTER 8)
+SCRIPT 8: PRE-PRINT CONFIGURATION & EXPORT (JS CLUSTER 8)
 Purpose: Handles pre-print option modal triggers, footnote injections, window.print(), and CSV export.
 Editing note: Intercepts all 'Print' button clicks to let you choose headers/footers/notes before sending to printer.
 ======================================================================
