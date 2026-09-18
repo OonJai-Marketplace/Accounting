@@ -2,7 +2,7 @@
 ======================================================================
 SCRIPT 1: STATE MANAGEMENT & INITIALIZATION (JS CLUSTER 1)
 Purpose: Global variables, account data arrays, window.onload event, and default date assignment.
-Editing note: Runs on application boot. Automates today's date on all calendar selectors and starts timers.
+Editing note:  Runs on application boot. Automates today's date on all calendar selectors and starts timers.
 ======================================================================
 */
 let currentUserRole = "admin";
