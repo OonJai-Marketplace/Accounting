@@ -1,6 +1,6 @@
 /* 
 ======================================================================
-SECTION NAME: DESIGN SYSTEM & THEME TOKENS (CSS CLUSTER 1)
+STYLE 1: DESIGN SYSTEM & THEME TOKENS (CSS CLUSTER 1)
 Purpose: Global CSS variables for background colors, emerald accents, text muted colors, and borders.
 Editing note: Located at top of styles.css. Dictates the dark green and charcoal color scheme of the whole app.
 ======================================================================
@@ -26,7 +26,7 @@ Editing note: Located at top of styles.css. Dictates the dark green and charcoal
 
 /* 
 ======================================================================
-SECTION NAME: CORE LAYOUT & NAVIGATION (CSS CLUSTER 2)
+STYLE 2: CORE LAYOUT & NAVIGATION (CSS CLUSTER 2)
 Purpose: Sticky header positioning, body flex layout, and left accordion sidebar styling with arrow rotations.
 Editing note: Controls top 56px header, 250px left sidebar drawer, and smooth transition effects on hover.
 ======================================================================
@@ -167,7 +167,7 @@ html, body {
 
 /* 
 ======================================================================
-SECTION NAME: MODALS & OVERLAYS (CSS CLUSTER 3)
+STYLE 3: MODALS & OVERLAYS (CSS CLUSTER 3)
 Purpose: Fullscreen dark backdrop, centered card shadows, scrollable modal body, and bottom button bars.
 Editing note: Targets .modal-overlay and .modal-card. Keeps popup height capped to 75vh so buttons stay visible.
 ======================================================================
@@ -227,7 +227,7 @@ Editing note: Targets .modal-overlay and .modal-card. Keeps popup height capped 
 
 /* 
 ======================================================================
-SECTION NAME: FORM CONTROLS & TABLE BASICS (CSS CLUSTER 4)
+STYLE 4: FORM CONTROLS & TABLE BASICS (CSS CLUSTER 4)
 Purpose: Reusable form inputs, text boxes, buttons (.btn), panels, and base table row striping.
 Editing note: Dictates all dark text input boxes, dropdown selectors, and green submit buttons across all tabs.
 ======================================================================
@@ -326,7 +326,7 @@ th {
 
 /* 
 ======================================================================
-SECTION NAME: GENERAL JOURNAL STYLES (CSS CLUSTER 5)
+STYLE 5: GENERAL JOURNAL STYLES (CSS CLUSTER 5)
 Purpose: Specific styling for journal input grids, autocomplete boxes, and Google Sheets-style group rows.
 Editing note: Controls the borderless inputs inside the posting row and the green summary bar for monthly groups.
 ======================================================================
@@ -356,7 +356,7 @@ Editing note: Controls the borderless inputs inside the posting row and the gree
 
 /* 
 ======================================================================
-SECTION NAME: FINANCIAL REPORTS STYLES (CSS CLUSTER 6)
+STYLE 6: FINANCIAL REPORTS STYLES (CSS CLUSTER 6)
 Purpose: Strict table-layout column alignments (55% Account, 15% Currency, 30% Amount) and outer borders.
 Editing note: Controls #incomeStatementTable and #balanceSheetTable so column lines match up seamlessly.
 ======================================================================
@@ -374,7 +374,7 @@ Editing note: Controls #incomeStatementTable and #balanceSheetTable so column li
 
 /* 
 ======================================================================
-SECTION NAME: RECONCILIATION STYLES (CSS CLUSTER 7)
+STYLE 7: RECONCILIATION STYLES (CSS CLUSTER 7)
 Purpose: Visual cards for the reconciliation sheet, large difference indicators, and warning text banners.
 Editing note: Controls the layout of the reconciliation summary card and highlighted variance text blocks.
 ======================================================================
@@ -390,7 +390,7 @@ Editing note: Controls the layout of the reconciliation summary card and highlig
 
 /* 
 ======================================================================
-SECTION NAME: PRINT & MEDIA QUERIES (CSS CLUSTER 8)
+STYLE 8: PRINT & MEDIA QUERIES (CSS CLUSTER 8)
 Purpose: Print rules (@media print) hiding screen-only elements and enforcing crisp black-and-white printouts.
 Editing note: Hides sidebar and top menu on paper printouts. Sets clean 1px interior and 2px outer table borders.
 ======================================================================
