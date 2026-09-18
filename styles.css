@@ -1,257 +1,420 @@
+/* 
+======================================================================
+SECTION NAME: DESIGN SYSTEM & THEME TOKENS (CSS CLUSTER 1)
+Purpose: Global CSS variables for background colors, emerald accents, text muted colors, and borders.
+Editing note: Located at top of styles.css. Dictates the dark green and charcoal color scheme of the whole app.
+======================================================================
+*/
 :root {
-  /* Dark Emerald Theme */
-  --bg-dark: #022c22;        
-  --panel-bg: #064e3b;       
-  --panel-border: #065f46;
-  --primary: #10b981;        
+  --bg-dark: #0f172a;
+  --panel-bg: #1e293b;
+  --panel-border: #334155;
+  --primary: #10b981;
   --primary-hover: #059669;
-  --text-main: #f8fafc;
-  --text-muted: #a7f3d0;
-  --input-bg: #021a14;
-  --grid-border: rgba(255, 255, 255, 0.15);
-  
+  --text-light: #f8fafc;
+  --text-muted: #94a3b8;
   --danger: #ef4444;
   --warning: #f59e0b;
-  --success: #34d399;
+  --success: #10b981;
+  --grid-border: rgba(255, 255, 255, 0.1);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-body { background-color: var(--bg-dark); color: var(--text-main); font-size: 14px; color-scheme: dark; }
-
-/* Login Modal */
-#loginOverlay { position: fixed; inset: 0; background: rgba(2, 44, 34, 0.95); display: flex; align-items: center; justify-content: center; z-index: 9999; }
-.login-card { background: var(--panel-bg); width: 90%; max-width: 360px; padding: 24px; border-radius: 8px; border-top: 4px solid var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-
-/* Top Navigation Bar */
-.sheet-header { background: #021a14; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--panel-border); }
-.sheet-title { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-
-.mobile-menu-toggle { display: none; background: transparent; border: none; color: var(--primary); font-size: 26px; cursor: pointer; }
-
-/* Responsive Menu Tabs */
-.menu-bar { display: flex; background: var(--panel-bg); border-bottom: 1px solid var(--panel-border); }
-.tab-btn { background: transparent; color: var(--text-muted); border: none; padding: 14px 16px; cursor: pointer; font-size: 13px; font-weight: 600; white-space: nowrap; transition: 0.2s; border-bottom: 3px solid transparent; display: flex; align-items: center; gap: 6px; flex: 1; justify-content: center; }
-.tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
-.tab-btn.active { color: #fff; border-bottom: 3px solid var(--primary); background: rgba(16, 185, 129, 0.1); }
-
-/* Mobile Adaptations */
-@media (max-width: 768px) {
-  .mobile-menu-toggle { display: block; }
-  .menu-bar { display: none; flex-direction: column; width: 100%; border-bottom: none; }
-  .menu-bar.open { display: flex; }
-  .tab-btn { border-bottom: 1px solid var(--panel-border); border-left: 3px solid transparent; justify-content: flex-start; padding: 16px 20px; font-size: 15px; }
-  .tab-btn.active { border-bottom: 1px solid var(--panel-border); border-left: 3px solid var(--primary); }
-  .header-controls { display: none; }
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-.main-container { padding: 16px; max-width: 1600px; margin: 0 auto; overflow-x: hidden; }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-/* Forms: Labels on Top */
-.form-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; align-items: flex-start; }
-.form-group { display: flex; flex-direction: column; flex: 1; min-width: 160px; }
-.form-group label { margin-bottom: 6px; font-weight: 600; color: var(--text-muted); font-size: 12px; }
-
-input, select, textarea { background: var(--input-bg); border: 1px solid var(--panel-border); color: #fff; border-radius: 6px; padding: 10px 12px; font-size: 14px; width: 100%; transition: 0.2s; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(16,185,129,0.3); }
-
-/* Perfect Dropdown Styling */
-select { 
-  appearance: none; -webkit-appearance: none; 
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2310b981%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-  background-repeat: no-repeat; background-position: right 12px top 50%; background-size: 12px auto; padding-right: 32px; cursor: pointer;
+/* 
+======================================================================
+SECTION NAME: CORE LAYOUT & NAVIGATION (CSS CLUSTER 2)
+Purpose: Sticky header positioning, body flex layout, and left accordion sidebar styling with arrow rotations.
+Editing note: Controls top 56px header, 250px left sidebar drawer, and smooth transition effects on hover.
+======================================================================
+*/
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--bg-dark);
+  color: var(--text-light);
 }
-select option { background-color: var(--bg-dark); color: #fff; }
 
-/* Clickable Date Boxes */
-input[type="date"], input[type="month"] { position: relative; cursor: pointer; }
-input[type="date"]::-webkit-calendar-picker-indicator, input[type="month"]::-webkit-calendar-picker-indicator { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.sheet-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: var(--panel-bg);
+  border-bottom: 1px solid var(--panel-border);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
 
-/* Distinct Panels */
-.panel { background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 20px; border-radius: 8px; margin-bottom: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
-.panel-header { border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 12px; margin-bottom: 16px; color: var(--primary); font-size: 16px; font-weight: bold; }
+.sheet-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: bold;
+}
 
-/* Tables (Zoomable & Responsive) */
-.table-container { background: var(--bg-dark); border: 1px solid var(--grid-border); border-radius: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 16px; }
-table { width: 100%; border-collapse: collapse; text-align: left; }
-th, td { border: 1px solid var(--grid-border); padding: 12px; white-space: nowrap; }
-th { background: rgba(0,0,0,0.3); font-weight: bold; color: var(--text-muted); font-size: 12px; text-transform: uppercase; text-align: center !important; }
-td { font-size: 14px; }
-tr:hover td { background-color: rgba(255,255,255,0.04); }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
+.badge-admin {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--primary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
 
-/* Clean Journal Entry Grid */
-.je-lines-table td { padding: 0; }
-.je-lines-table input, .je-lines-table select { border: none; background: transparent; border-radius: 0; width: 100%; height: 100%; padding: 12px; box-shadow: none; }
-.je-lines-table input:focus, .je-lines-table select:focus { background: rgba(16,185,129,0.1); }
+.app-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
 
-.currency-tag { font-size: 10px; background: rgba(255,255,255,0.1); color: var(--text-main); padding: 3px 6px; border-radius: 4px; margin-left: 6px; font-weight: bold; }
-.badge-admin { background: var(--primary); color: #000; font-size: 10px; padding: 4px 8px; border-radius: 12px; font-weight: bold; }
+.sidebar {
+  width: 250px;
+  background-color: var(--bg-dark);
+  border-right: 1px solid var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
 
-/* Buttons */
-.btn { background: var(--primary); color: #022c22; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
-.btn:hover { background: var(--primary-hover); color: #fff; }
-.btn-secondary { background: #334155; color: #fff; }
+.main-content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.nav-category {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-header {
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.nav-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-header .arrow {
+  transition: transform 0.3s ease;
+  font-size: 10px;
+}
+
+.nav-category.open .nav-header .arrow {
+  transform: rotate(180deg);
+}
+
+.nav-links {
+  display: none;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.nav-category.open .nav-links {
+  display: flex;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  padding: 12px 16px 12px 28px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--primary);
+}
+
+.tab-btn.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--primary);
+  border-left: 4px solid var(--primary);
+  font-weight: bold;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* 
+======================================================================
+SECTION NAME: MODALS & OVERLAYS (CSS CLUSTER 3)
+Purpose: Fullscreen dark backdrop, centered card shadows, scrollable modal body, and bottom button bars.
+Editing note: Targets .modal-overlay and .modal-card. Keeps popup height capped to 75vh so buttons stay visible.
+======================================================================
+*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.modal-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  text-align: left;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-scroll-area {
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.login-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 32px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+/* 
+======================================================================
+SECTION NAME: FORM CONTROLS & TABLE BASICS (CSS CLUSTER 4)
+Purpose: Reusable form inputs, text boxes, buttons (.btn), panels, and base table row striping.
+Editing note: Dictates all dark text input boxes, dropdown selectors, and green submit buttons across all tabs.
+======================================================================
+*/
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.panel-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+input, select, textarea {
+  background: var(--bg-dark);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--text-light);
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+}
+
+.btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn:hover { background: var(--primary-hover); }
+.btn-secondary { background: var(--panel-border); }
 .btn-secondary:hover { background: #475569; }
-.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger { background: var(--danger); }
+.btn-danger:hover { background: #dc2626; }
 .btn-warning { background: var(--warning); color: #000; }
-.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-sm { padding: 4px 8px; font-size: 12px; }
 
-.edit-mode-banner { background: rgba(245, 158, 11, 0.15); border: 2px solid var(--warning); color: #fcd34d; padding: 16px; border-radius: 8px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; }
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
 
-/* KPI Row */
-.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.kpi-card { background: var(--bg-dark); border: 1px solid var(--grid-border); border-radius: 8px; padding: 16px; border-left: 4px solid var(--primary); }
-.kpi-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
-.kpi-value { font-size: 22px; font-weight: bold; color: #fff; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
 
-/* Print Visibility Classes */
+th, td {
+  padding: 10px 12px;
+  border: 1px solid var(--grid-border);
+  text-align: left;
+}
+
+th {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.num {
+  text-align: right;
+  font-family: monospace;
+}
+
+/* 
+======================================================================
+SECTION NAME: GENERAL JOURNAL STYLES (CSS CLUSTER 5)
+Purpose: Specific styling for journal input grids, autocomplete boxes, and Google Sheets-style group rows.
+Editing note: Controls the borderless inputs inside the posting row and the green summary bar for monthly groups.
+======================================================================
+*/
+.je-lines-table input {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 8px;
+  width: 100%;
+}
+
+.je-lines-table input:focus {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.group-header {
+  background: rgba(16, 185, 129, 0.15) !important;
+  font-weight: bold;
+}
+
+.group-header td {
+  border-top: 2px solid var(--primary);
+  border-bottom: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+/* 
+======================================================================
+SECTION NAME: FINANCIAL REPORTS STYLES (CSS CLUSTER 6)
+Purpose: Strict table-layout column alignments (55% Account, 15% Currency, 30% Amount) and outer borders.
+Editing note: Controls #incomeStatementTable and #balanceSheetTable so column lines match up seamlessly.
+======================================================================
+*/
+#incomeStatementTable, #balanceSheetTable {
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+
+#incomeStatementTable th:nth-child(1), #balanceSheetTable th:nth-child(1) { width: 55%; text-align: left !important; }
+#incomeStatementTable th:nth-child(2), #balanceSheetTable th:nth-child(2) { width: 15%; text-align: center !important; }
+#incomeStatementTable th:nth-child(3), #balanceSheetTable th:nth-child(3) { width: 30%; text-align: right !important; }
+
+/* 
+======================================================================
+SECTION NAME: RECONCILIATION STYLES (CSS CLUSTER 7)
+Purpose: Visual cards for the reconciliation sheet, large difference indicators, and warning text banners.
+Editing note: Controls the layout of the reconciliation summary card and highlighted variance text blocks.
+======================================================================
+*/
+.recon-card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+/* 
+======================================================================
+SECTION NAME: PRINT & MEDIA QUERIES (CSS CLUSTER 8)
+Purpose: Print rules (@media print) hiding screen-only elements and enforcing crisp black-and-white printouts.
+Editing note: Hides sidebar and top menu on paper printouts. Sets clean 1px interior and 2px outer table borders.
+======================================================================
+*/
 .print-only { display: none; }
-#printableDocArea { display: none; } /* <-- ADDED THIS LINE TO HIDE IT ON SCREEN */
-.print-logo-box { position: absolute; max-width: 120px; max-height: 80px; object-fit: contain; z-index: 10; display: none; }
-.logo-top-left { top: 10px; left: 10px; }
-.logo-top-right { top: 10px; right: 10px; }
-.logo-bottom-left { bottom: 10px; left: 10px; }
-.logo-bottom-right { bottom: 10px; right: 10px; }
 
-/* ---------------------------------------------------- */
-/* STRICT BLACK & WHITE PRINT CSS                       */
-/* ---------------------------------------------------- */
 @media print {
-  body, .main-container, .tab-content, .panel, .table-container, .kpi-card { background: #fff !important; color: #000 !important; }
-  body * { visibility: hidden; }
-  #printableDocArea, #printableDocArea * { visibility: visible; }
-  
-  /* MODIFIED THIS LINE TO SHOW IT DURING PRINTING */
-  #printableDocArea { display: block !important; position: absolute; left: 0; top: 0; width: 100%; } 
-  
-  .no-print, .btn, input, select, textarea, .menu-bar, .sheet-header { display: none !important; }
+  .sidebar, .sheet-header, .no-print, .modal-overlay { display: none !important; }
+  .app-layout, .main-content-area { overflow: visible !important; height: auto !important; padding: 0 !important; display: block !important; }
   .print-only { display: block !important; }
   
-  .panel { border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 20px !important; }
-  .kpi-card { border: 1px solid #000 !important; border-left: 2px solid #000 !important; color: #000 !important; margin-bottom: 10px; }
-  .kpi-value, .kpi-label, .panel-header, h2, h3, h4, td, span, strong { color: #000 !important; }
+  body { background: #fff !important; color: #000 !important; }
+  .panel { border: none !important; padding: 0 !important; }
   
-  table { border-collapse: collapse !important; width: 100% !important; }
-  table, th, td { border: 1px solid #000 !important; }
-  th { background-color: transparent !important; color: #000 !important; font-weight: bold !important; border-bottom: 2px solid #000 !important; text-align: center !important; }
-  
-  /* Ensure logo obeys visibility rules in print */
-  .print-logo-box { display: block !important; }
-
-  @page { margin: 15mm; }
-}
-/* --- NEW STYLES FOR UPDATES --- */
-
-/* Fix for messy Checkbox lists */
-.checkbox-list-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: rgba(0,0,0,0.25);
-  border: 1px solid var(--grid-border);
-  border-radius: 6px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.checkbox-list-item:hover { background: rgba(255,255,255,0.05); border-color: var(--primary); }
-.checkbox-list-item input { width: 18px; height: 18px; margin: 0; cursor: pointer; flex-shrink: 0; }
-.checkbox-list-item span { font-size: 14px; color: #fff; line-height: 1.2; }
-
-/* Audit row in Journal */
-.audit-row td { 
-  background: rgba(245, 158, 11, 0.1) !important; 
-  color: #fcd34d; 
-  font-style: italic; 
-  font-size: 13px; 
-  padding: 8px 12px !important;
-  border-top: none !important;
-}
-/* Remove up/down arrows (spinners) from number inputs */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
-}
-/* --- NEW STYLES FOR UPDATES --- */
-
-/* Remove up/down arrows (spinners) from number inputs */
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
-}
-
-/* Fix for messy Checkbox lists in Summary */
-.checkbox-list-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  background: rgba(0,0,0,0.25);
-  border: 1px solid var(--grid-border);
-  border-radius: 6px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.checkbox-list-item:hover { background: rgba(255,255,255,0.05); border-color: var(--primary); }
-.checkbox-list-item input { width: 18px; height: 18px; margin: 0; cursor: pointer; flex-shrink: 0; }
-.checkbox-list-item span { font-size: 14px; color: #fff; line-height: 1.2; }
-
-/* Audit row in Journal */
-.audit-row td { 
-  background: rgba(245, 158, 11, 0.1) !important; 
-  color: #fcd34d; 
-  font-style: italic; 
-  font-size: 13px; 
-  padding: 8px 12px !important;
-  border-top: none !important;
-}
-/* --- TRIAL BALANCE FOOTER --- */
-.tb-footer {
-  background: rgba(0,0,0,0.4);
-  border-top: 2px solid var(--primary);
-}
-
-/* --- SIGNATORIES (HIDDEN ON SCREEN, VISIBLE ON PRINT) --- */
-.signatories-area { display: none; }
-
-/* --- PRINT OPTIMIZATIONS (COST EFFECTIVE & DENSE) --- */
-@media print {
-  /* Compress table padding and font size to save paper */
-  table { border-spacing: 0; margin-bottom: 10px !important; }
-  th, td { padding: 4px 6px !important; font-size: 11px !important; }
-  .panel { margin-bottom: 10px !important; }
-  h2 { font-size: 18px !important; margin-bottom: 4px !important; }
-  h3, h4 { font-size: 14px !important; margin-bottom: 4px !important; }
-  .kpi-row { gap: 8px !important; margin-bottom: 12px !important; }
-  .kpi-card { padding: 8px !important; }
-  .kpi-value { font-size: 16px !important; }
-  
-  /* Signatories Print Layout */
-  .signatories-area { 
-    display: flex !important; 
-    justify-content: space-around; 
-    margin-top: 40px !important; 
-    margin-bottom: 20px !important;
-    page-break-inside: avoid; 
+  #incomeStatementTable, #balanceSheetTable, #journalTable {
+    border: 2px solid #000 !important;
+    margin-bottom: 15px !important;
   }
-  .sig-box { 
-    width: 160px; 
-    text-align: center; 
-    border-top: 1px solid #000; 
-    padding-top: 6px; 
-    font-size: 12px !important; 
+  
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 5px 8px !important;
     color: #000 !important;
   }
+  
+  th { background: #f1f5f9 !important; }
 }
