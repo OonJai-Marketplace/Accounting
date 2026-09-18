@@ -1,6 +1,6 @@
 // ==============================================================================
 // JS 1: STATE STORE & REALISTIC RESTAURANT ACCOUNTING INITIAL STATE
-// Holds Chart of Accounts, Sub-Accounts, and company configurations.
+// Holds Chart of Accounts, Sub-Accounts,and company configurations.
 // ==============================================================================
 const AccountingStore = {
   companyName: "Oon Jai Marketplace",
