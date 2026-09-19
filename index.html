@@ -3,29 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Oon Jai Marketplace — Accounting Core</title>
-  <!-- Chart.js for dashboard visualizations -->
+  <title>Accounting Core</title>
+  <!-- Chart.js for dashboard graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Backbone Stylesheet -->
   <link rel="stylesheet" href="styles.css">
+  <!-- Transaction Sub-Module Stylesheet -->
+  <link rel="stylesheet" href="transactions.css">
 </head>
 <body>
 
-  <!-- Hidden list for journal account search autocomplete -->
+  <div id="loginGate" class="login-gate no-print">
+    <form class="login-card" onsubmit="handleDemoLogin(event)">
+      <div class="login-brand-mark">OJ</div>
+      <h1>Accounting Core</h1>
+      <p>Sign in with your assigned email account.</p>
+      <label>Email Address<input id="loginEmail" type="email" autocomplete="username" required placeholder="name@example.com"></label>
+      <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Enter password"></label>
+      <div id="loginError" class="login-error" aria-live="polite"></div>
+      <button type="submit" class="je-btn je-btn-emerald login-submit">Sign In</button>
+    </form>
+  </div>
+
+  <!-- Hidden Datalist for Chart of Accounts autocomplete -->
   <datalist id="coaList"></datalist>
 
   <div class="app-layout">
 
 <!-- ============================================================================== -->
-<!-- HTML 1: LEFT VERTICAL NAVIGATION SIDEBAR                                       -->
-<!-- Sidebar navigation with brand emblem, accordion categories, and submenu links. -->
+<!-- HTML 1: LEFT VERTICAL NAVIGATION SIDEBAR (BACKBONE)                            -->
+<!-- Main navigation shell with branding and collapsible accordion categories.      -->
 <!-- ============================================================================== -->
     <aside class="sidebar no-print" id="appSidebar">
 
       <!-- ---------------------------------------------------------------------- -->
-      <!-- SIDEBAR BRAND LOGO & EMBLEM                                            -->
+      <!-- BRAND EMBLEM & LOGO                                                    -->
       <!-- ---------------------------------------------------------------------- -->
       <div class="sidebar-brand">
         <div class="brand-icon-emblem">
@@ -34,31 +50,41 @@
             <circle cx="12" cy="7" r="2.5" fill="#a7f3d0" />
           </svg>
         </div>
-        <h2>Oon Jai<br><span>Marketplace</span></h2>
+        <h2>Accounting<br><span>Core</span></h2>
       </div>
 
       <!-- ---------------------------------------------------------------------- -->
-      <!-- NAVIGATION ACCORDION CATEGORIES                                        -->
+      <!-- NAVIGATION ACCORDIONS                                                  -->
       <!-- ---------------------------------------------------------------------- -->
       <!-- 1. Dashboard -->
-      <div class="nav-category">
+      <div class="nav-category" id="nav-module-dashboard" data-module="dashboard">
         <div class="nav-header" onclick="activateCategory(this, 'dashboard')">Dashboard</div>
       </div>
 
-      <!-- 2. Transactions (Journal first, then New, then All Transactions) -->
-      <div class="nav-category open">
+      <!-- 2. Transactions (Journal First -> New Transactions -> All Transactions) -->
+      <div class="nav-category" id="nav-module-transactions" data-module="transactions">
         <div class="nav-header" onclick="activateCategory(this, 'journal')">Transactions <span class="arrow">▼</span></div>
         <div class="nav-links">
-          <button type="button" class="tab-btn active" onclick="switchTab('journal')">Journal</button>
+          <button type="button" class="tab-btn" onclick="switchTab('journal')">Journal</button>
           <button type="button" class="tab-btn" onclick="switchTab('transactions-new')">New Transactions</button>
           <button type="button" class="tab-btn" onclick="switchTab('transactions-all')">All Transactions</button>
-          <button type="button" class="tab-btn" onclick="switchTab('transactions-recurring')">Recurring Transactions</button>
-          <button type="button" class="tab-btn" onclick="switchTab('transactions-voided')">Voided Transactions</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-recurring')">Upcoming Transactions</button>
+          <button type="button" class="tab-btn" onclick="switchTab('period-review')">Period Review & Closing</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-voided')">Transaction Audit Log</button>
         </div>
       </div>
 
-      <!-- 3. Accounts (Continuous Modular Workspace) -->
-      <div class="nav-category">
+      <!-- 3. Accounts (Continuous Scrolling Workspace) -->
+      <div class="nav-category" id="nav-module-submissions" data-module="submissions">
+        <div class="nav-header" onclick="activateCategory(this, 'entry-submissions')">Entry Submissions <span class="submission-count-badge" id="navSubmissionCount">0</span></div>
+      </div>
+
+      <div class="nav-category" id="nav-module-user-review" data-module="user-review">
+        <div class="nav-header" onclick="activateCategory(this, 'user-entry-review')">User Entry Review <span class="submission-count-badge" id="navUserReviewCount">0</span></div>
+      </div>
+
+      <!-- 3. Accounts (Continuous Scrolling Workspace) -->
+      <div class="nav-category" id="nav-module-accounts" data-module="accounts">
         <div class="nav-header" onclick="activateCategory(this, 'sec-chart-accounts')">Accounts <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-chart-accounts')">Chart of Accounts</button>
@@ -71,7 +97,7 @@
       </div>
 
       <!-- 4. Payroll -->
-      <div class="nav-category">
+      <div class="nav-category" id="nav-module-payroll" data-module="payroll">
         <div class="nav-header" onclick="activateCategory(this, 'payroll-overview')">Payroll <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('payroll-overview')">Payroll Overview</button>
@@ -83,7 +109,7 @@
       </div>
 
       <!-- 5. Reports -->
-      <div class="nav-category">
+      <div class="nav-category" id="nav-module-reports" data-module="reports">
         <div class="nav-header" onclick="activateCategory(this, 'report-pl')">Report <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('report-pl')">Profit and Loss</button>
@@ -98,7 +124,7 @@
       </div>
 
       <!-- 6. Tax and SSO -->
-      <div class="nav-category">
+      <div class="nav-category" id="nav-module-tax-sso" data-module="tax-sso">
         <div class="nav-header" onclick="activateCategory(this, 'tax-overview')">Tax and SSO <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('tax-overview')">Tax Overview</button>
@@ -112,7 +138,7 @@
       </div>
 
       <!-- 7. Inventory -->
-      <div class="nav-category">
+      <div class="nav-category" id="nav-module-inventory" data-module="inventory">
         <div class="nav-header" onclick="activateCategory(this, 'inv-overview')">Inventory <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('inv-overview')">Inventory Overview</button>
@@ -125,7 +151,7 @@
       </div>
 
       <!-- 8. Menu -->
-      <div class="nav-category">
+      <div class="nav-category" id="nav-module-menu" data-module="menu">
         <div class="nav-header" onclick="activateCategory(this, 'menu-ingredients')">Menu <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('menu-ingredients')">Ingredient Master List</button>
@@ -139,7 +165,7 @@
       </div>
 
       <!-- 9. Settings -->
-      <div class="nav-category">
+      <div class="nav-category" id="nav-module-settings" data-module="settings">
         <div class="nav-header" onclick="activateCategory(this, 'settings-business')">Setting <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('settings-business')">Business Information</button>
@@ -153,191 +179,347 @@
         </div>
       </div>
     </aside>
+    <button type="button" class="sidebar-scrim no-print" id="sidebarScrim" aria-label="Close navigation" onclick="closeMobileNavigation()"></button>
 <!-- ============================================================================== -->
 
 
-    <!-- Main Workspace Area -->
+    <!-- Main Stage Workspace -->
     <main class="main-content-area">
 
 <!-- ============================================================================== -->
-<!-- HTML 2: TOP WORKSPACE HEADER                                                  -->
-<!-- Title indicator, top-right search, and fiscal year badge.                      -->
+<!-- HTML 2: TOP APPLICATION HEADER (BACKBONE)                                     -->
+<!-- Print button, dynamic section title indicator, & fiscal badge.    -->
 <!-- ============================================================================== -->
-      <header class="module-header no-print">
-        <div class="header-left-tools">
-          <button type="button" class="btn btn-print" onclick="window.print()">🖨️ Print</button>
-          <div id="mainHeaderTitle" class="module-header-title">Journal Entry</div>
-        </div>
+<header class="module-header no-print">
         
-        <div class="header-right-tools">
-          <div class="header-search-box">
-            <input type="text" id="quickAccountSearch" placeholder="Search accounts..." oninput="handleTableSearch(this.value)">
-          </div>
-          <span class="fiscal-badge">FY 2026 Active</span>
-        </div>
-      </header>
+<!-- ---------------------------------------------------------------------- -->
+<!-- HEADER LEFT: PAGE TITLE                                                -->
+<!-- ---------------------------------------------------------------------- -->
+<div class="header-left-tools">
+  <button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false" onclick="toggleMobileNavigation()">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="mainHeaderTitle" class="module-header-title">Journal Entry</div>
+</div>
+
+<!-- ---------------------------------------------------------------------- -->
+<!-- HEADER RIGHT: EXPORT TOOLS & FISCAL BADGE                              -->
+<!-- ---------------------------------------------------------------------- -->
+<div class="header-right-tools">
+  <span class="current-user-chip" id="currentUserChip"></span>
+  <button type="button" class="btn btn-print" onclick="logoutDemoUser()">Sign Out</button>
+  <span class="fiscal-badge" style="margin-right: 12px;">FY 2026 Active</span>
+  <button type="button" class="btn btn-print" id="global-csv-btn" onclick="if(typeof exportJournalCSV === 'function') exportJournalCSV()">📦 CSV</button>
+  <button type="button" class="btn btn-print" onclick="openPrintDialog()">🖨️ Print</button>
+</div>
+
+</header>
 <!-- ============================================================================== -->
 
 
-      <!-- Scrollable Continuous Workspace Zone -->
+      <!-- Scrollable Continuous Stage -->
       <div class="workspace-scroll" id="printableDocArea">
 
+        <!-- -------------------------------------------------------------------- -->
+        <!-- SUB-MODULE MOUNT POINT: TRANSACTIONS                                 -->
+        <!-- Dynamic mount point for transactions.html (Journal, New & Archive)    -->
+        <!-- -------------------------------------------------------------------- -->
+        <div id="transactions-module" class="app-module" data-module="transactions">
+          <div id="transactions-container">
 <!-- ============================================================================== -->
-<!-- HTML 3: DOUBLE-ENTRY JOURNAL & CLUSTERED TRANSACTION LOG                       -->
-<!-- Universal date picker, universal debit, multi-currency credits & audit table.  -->
+<!-- HTML SUB-MODULE: TRANSACTIONS (JOURNAL, NEW, ARCHIVE, VOIDED)                  -->
+<!-- Self-contained module holding the Journal Post form, History log, & archives.  -->
 <!-- ============================================================================== -->
-        <div id="journal" class="tab-content active">
 
-          <!-- CARD 1: POST GENERAL JOURNAL ENTRY -->
-          <section class="je-card no-print">
-            <div class="je-card-header">
-              <div>
-                <h3 class="je-title">Post Double-Entry Transaction</h3>
-                <p class="je-subtitle">Universal debit with dynamically configured currency credit columns.</p>
-              </div>
-              <span class="je-auto-id" id="jeNextIdDisplay">Entry ID: Auto</span>
-            </div>
+<!-- ---------------------------------------------------------------------------- -->
+<!-- TAB 1: JOURNAL ENTRY MODULE & AUDIT LOG                                      -->
+<!-- ---------------------------------------------------------------------------- -->
+<div id="journal" class="tab-content">
 
-            <!-- Meta Controls: Clickable Date & General Memo -->
-            <div class="je-meta-grid">
-              <div class="je-field-group" style="max-width: 190px;">
-                <label for="jeTransDate">Transaction Date (Click box to open):</label>
-                <input type="date" id="jeTransDate" class="je-input default-today" onclick="if(this.showPicker) this.showPicker();" />
-              </div>
-              <div class="je-field-group" style="flex: 1;">
-                <label for="jeGeneralMemo">General Description / Memo *:</label>
-                <input type="text" id="jeGeneralMemo" class="je-input" placeholder="e.g., Daily register cash closeout & food sales allocation..." />
-              </div>
-            </div>
+<!-- CARD 1: POST GENERAL JOURNAL ENTRY -->
+<section class="je-card no-print">
+  <div class="je-card-header">
+    <div>
+      <h3 class="je-title">Post Double-Entry Transaction</h3>
+      <p class="je-subtitle">Universal debit with dynamically configured currency credit columns.</p>
+    </div>
+    <div class="je-header-actions">
+      <button type="button" class="je-btn je-btn-secondary" onclick="openTemplateManager()">Templates</button>
+      <button type="button" class="je-btn je-btn-secondary" onclick="createTemplateFromCurrent()">+ Create Template</button>
+      <span class="je-auto-id" id="jeNextIdDisplay">Entry ID: Auto</span>
+    </div>
+  </div>
 
-            <!-- Dynamic Input Table (Adapts to Active Currencies) -->
-            <div class="table-container">
-              <table class="je-table">
-                <thead>
-                  <tr id="jeHeaderRow">
-                    <!-- Populated dynamically via JS: Account | Memo | DR | CR-LAK | CR-USD | CR-THB ... | Actions -->
-                  </tr>
-                </thead>
-                <tbody id="jeLinesBody">
-                  <!-- Dynamically populated via script.js -->
-                </tbody>
-              </table>
-            </div>
+  <!-- Meta Controls: General Memo & Transaction Date -->
+  <div class="je-meta-grid">
+    <div class="je-field-group transaction-date-field">
+      <div class="je-label-row"><label for="jeTransDate">Date:</label><label class="multi-date-toggle"><input type="checkbox" id="jeMultipleDates" onchange="toggleMultipleDates()"> Multiple Dates</label></div>
+      <input type="date" id="jeTransDate" class="je-input default-today" onclick="if(this.showPicker) this.showPicker();" />
+    </div>
+    <div class="je-field-group" style="flex: 1;">
+      <label for="jeGeneralMemo">General Description / Memo *:</label>
+      <input type="text" id="jeGeneralMemo" class="je-input" placeholder="e.g., Daily register cash closeout & food sales allocation..." />
+    </div>
+  </div>
 
-            <div class="je-actions-bar">
-              <div style="display: flex; gap: 8px;">
-                <button type="button" class="je-btn je-btn-secondary" onclick="addJournalLineRow()">+ Add Row</button>
-                <button type="button" class="je-btn je-btn-secondary" onclick="setupJournalColumns()">↺ Reset Rows</button>
-              </div>
-              <div class="je-actions-right">
-                <span id="jeBalanceIndicator" class="je-status-badge balanced">Balanced</span>
-                <button type="button" id="btnPostJournal" class="je-btn je-btn-emerald" onclick="submitJournalEntry()">Post Entry</button>
-              </div>
-            </div>
-          </section>
+  <!-- Dynamic Input Table (Adapts to Active Currencies) -->
+  <div class="table-container">
+    <table class="je-table">
+      <thead>
+        <tr id="jeHeaderRow">
+          <th style="width: 28%;">Account</th>
+          <th style="width: 32%;">Line Memo / Reference</th>
+          <th class="num" style="width: 120px;">DR (Debit)</th>
+          <th class="num" style="width: 120px;">CR-LAK</th>
+          <th class="num" style="width: 120px;">CR-USD</th>
+          <th class="num" style="width: 120px;">CR-THB</th>
+          <th class="action-col no-print" style="width: 64px; text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="jeLinesBody">
+        <!-- Two starter rows are present by default; script.js rebuilds them with live account/currency controls. -->
+        <tr class="journal-starter-fallback"><td colspan="7" style="padding:10px;color:#64748b;">Loading entry rows…</td></tr>
+        <tr class="journal-starter-fallback"><td colspan="7" style="padding:10px;color:#64748b;">Loading entry rows…</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-          <!-- CARD 2: CLUSTERED JOURNAL TRANSACTION HISTORY (UNIFIED GENERAL MASTER HEADER) -->
-          <section class="je-card">
-            <div class="je-card-header" style="margin-bottom: 12px;">
-              <div>
-                <h3 class="je-title">Journal Transaction History</h3>
-                <p class="je-subtitle">Unified master table displaying clean account names carrying currency, DR, and currency credits.</p>
-              </div>
-            </div>
+  <div class="je-actions-bar">
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="je-btn je-btn-secondary" onclick="addJournalLineRow()">+ Add Row</button>
+      <button type="button" class="je-btn je-btn-secondary" onclick="setupJournalColumns()">↺ Reset</button>
+    </div>
+    <div class="je-actions-right">
+      <span id="jeBalanceIndicator" class="je-status-badge balanced">Balanced</span>
+      <button type="button" id="btnPostJournal" class="je-btn je-btn-emerald" onclick="submitJournalEntry()">Post Entry</button>
+    </div>
+  </div>
+</section>
 
-            <div class="je-filter-toolbar no-print">
-              <div class="je-field-group" style="flex: 2;">
-                <label for="jeSearchInput">Search Journal:</label>
-                <input type="text" id="jeSearchInput" class="je-input" placeholder="Search by account name, memo, or Entry ID..." oninput="filterJournalHistory()" />
-              </div>
-              <div class="je-field-group" style="width: 140px;">
-                <label for="jePeriodSelect">Period Filter:</label>
-                <select id="jePeriodSelect" class="je-select" onchange="filterJournalHistory()">
-                  <option value="all" selected>All-Time</option>
-                  <option value="month">This Month</option>
-                  <option value="year">This Year</option>
-                </select>
-              </div>
-              <div class="je-toolbar-buttons">
-                <button type="button" class="je-btn je-btn-outline" onclick="exportJournalCSV()">📦 CSV</button>
-                <button type="button" class="je-btn je-btn-outline" onclick="window.print()">🖨️ Print</button>
-              </div>
-            </div>
+<!-- CARD 2: CLUSTERED JOURNAL TRANSACTION HISTORY -->
+<section class="je-card">
+  <div class="je-card-header" style="margin-bottom: 12px;">
+    <div>
+      <h3 class="je-title">Journal Transaction History</h3>
+      <p class="je-subtitle">Unified master table displaying memo, clean account names, DR, and currency credits.</p>
+    </div>
+  </div>
 
-            <!-- Unified Master Table for Journal History -->
-            <div class="table-container">
-              <table class="clustered-journal-table" id="tblJournalHistory">
-                <thead>
-                  <tr class="general-master-header" id="thJournalHistoryRow">
-                    <!-- Populated dynamically: Date | Entry ID | Memo | Account | DR | CR-LAK | CR-USD | CR-THB ... | Action -->
-                  </tr>
-                </thead>
-                <tbody id="tblJournalHistoryBody">
-                  <!-- Injected dynamically via script.js -->
-                </tbody>
-              </table>
-            </div>
-          </section>
+  <div class="je-filter-toolbar no-print">
+    <div class="je-field-group" style="flex: 2;">
+      <label for="jeSearchInput">Search Journal:</label>
+      <input type="text" id="jeSearchInput" class="je-input" placeholder="Search by account name, memo, or Entry ID..." oninput="filterJournalHistory()" />
+    </div>
+  </div>
 
-        </div>
+  <!-- Unified Master Table for Journal History -->
+  <div class="table-container">
+    <table class="clustered-journal-table" id="tblJournalHistory">
+      <thead>
+        <tr class="general-master-header" id="thJournalHistoryRow">
+<th style="width: 100px;">Date</th>
+          <th style="width: 130px;">Entry ID</th>
+          <th style="width: 200px;">Account</th>
+          <th style="width: 260px;">Memo / Reference</th>
+          <th class="num" style="width: 110px;">DR</th>
+          <th class="num" style="width: 110px;">CR-LAK</th>
+          <th class="num" style="width: 110px;">CR-USD</th>
+          <th class="num" style="width: 110px;">CR-THB</th>
+          <th class="action-col no-print" style="width: 64px; text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="tblJournalHistoryBody">
+        <!-- Injected dynamically via transactions.js -->
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<!-- ---------------------------------------------------------------------------- -->
+<!-- TAB 2: NEW TRANSACTIONS (CURRENT MONTH ONLY)                                 -->
+<!-- ---------------------------------------------------------------------------- -->
+<div id="transactions-new" class="tab-content">
+<div class="je-card">
+  <div class="je-card-header">
+    <div>
+      <h3 class="je-title">New Transactions — Current Month</h3>
+      <p class="je-subtitle">All postings recorded within the active monthly cycle.</p>
+    </div>
+  </div>
+  <div id="newTransactionsGroupedContainer">
+    <!-- Unarchived monthly transaction clusters are rendered here by script.js. -->
+  </div>
+</div>
+</div>
+
+<!-- ---------------------------------------------------------------------------- -->
+<!-- TAB 3: ALL TRANSACTIONS (HISTORICAL ARCHIVE EXCLUDING CURRENT MONTH)         -->
+<!-- ---------------------------------------------------------------------------- -->
+<div id="transactions-all" class="tab-content">
+<div class="je-card">
+  <div class="je-card-header">
+    <div>
+      <h3 class="je-title">All Transactions — Historical Review</h3>
+      <p class="je-subtitle">Posted transactions from prior periods. Review, correct, or void records without removing the audit trail.</p>
+    </div>
+  </div>
+  <div class="table-container">
+    <table class="clustered-journal-table" id="tblAllTransactions">
+      <thead>
+        <tr class="general-master-header" id="thAllTransRow">
+          <!-- Populated dynamically via transactions.js -->
+        </tr>
+      </thead>
+      <tbody id="allTransactionsBody">
+        <!-- Populated dynamically via transactions.js -->
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ---------------------------------------------------------------------------- -->
+<!-- TAB 4: VOIDED & MODIFIED TRANSACTIONS AUDIT                                  -->
+<!-- ---------------------------------------------------------------------------- -->
+<div id="transactions-voided" class="tab-content">
+<div class="je-card">
+  <div class="je-card-header">
+    <div>
+      <h3 class="je-title">Transaction Audit Log</h3>
+      <p class="je-subtitle">Chronological log of edits, voids, reviews, and adjustments.</p>
+    </div>
+  </div>
+  <div class="table-container">
+    <table class="clustered-journal-table" id="tblVoidedTransactions">
+      <thead>
+        <tr class="general-master-header" id="thVoidedTransRow">
+          <!-- Populated dynamically via transactions.js -->
+        </tr>
+      </thead>
+      <tbody id="voidedTransactionsBody">
+        <!-- Populated dynamically via transactions.js -->
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- PERIOD REVIEW & CLOSING -->
+<div id="period-review" data-module="transactions" class="tab-content">
+  <div class="period-review-shell">
+  <div class="period-review-toolbar">
+    <div>
+      <h3 class="je-title">Period Review & Closing</h3>
+      <p class="je-subtitle">Review a month, record findings, and post traceable adjustments.</p>
+    </div>
+    <div class="period-review-picker">
+      <label for="periodReviewMonthSelect">Period</label>
+      <div class="period-selector-controls">
+        <select id="periodReviewMonthSelect" class="je-select" onchange="selectReviewPeriodFromControls()"></select>
+        <button type="button" class="period-year-step" onclick="stepReviewYear(-1)" aria-label="Previous year">‹</button>
+        <input id="periodReviewYear" class="je-input" type="number" min="2000" max="2100" onchange="selectReviewPeriodFromControls()">
+        <button type="button" class="period-year-step" onclick="stepReviewYear(1)" aria-label="Next year">›</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="periodReviewUnavailable" class="period-review-unavailable" hidden>
+    This period is still open. Edit its transactions directly from Journal History or New Transactions. Submit the month for archiving before beginning period review.
+  </div>
+
+  <div class="period-summary-grid">
+    <div class="period-summary-card"><span>Status</span><strong id="periodReviewStatus">OPEN</strong></div>
+    <div class="period-summary-card"><span>Journal Entries</span><strong id="periodReviewEntries">0</strong></div>
+    <div class="period-summary-card"><span>Total Debits</span><strong id="periodReviewDebits">0.00</strong></div>
+    <div class="period-summary-card"><span>Open Findings</span><strong id="periodReviewOpenFindings">0</strong></div>
+  </div>
+
+  <section class="je-card">
+    <div class="je-card-header">
+      <div><h3 class="je-title">Review Findings</h3></div>
+      <button type="button" class="je-btn je-btn-emerald" onclick="openPeriodFindingForm()">+ Add Finding</button>
+    </div>
+    <form id="periodFindingForm" class="period-finding-form" onsubmit="savePeriodFinding(event)" hidden>
+      <div class="settings-form-grid">
+        <div class="settings-field"><label>Related Transaction</label><select id="findingTransactionId" class="je-select"><option value="">General period finding</option></select></div>
+        <div class="settings-field"><label>Finding Type</label><select id="findingType" class="je-select"><option value="classification">Wrong Classification</option><option value="amount">Incorrect Amount</option><option value="missing">Missing Entry</option><option value="document">Missing Document</option><option value="other">Other</option></select></div>
+        <div class="settings-field span-2"><label>Finding *</label><textarea id="findingDescription" class="je-input" rows="3" required></textarea></div>
+      </div>
+      <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="closePeriodFindingForm()">Cancel</button><button type="submit" class="je-btn je-btn-emerald">Save Finding</button></div>
+    </form>
+    <div id="periodFindingsList" class="period-findings-list"></div>
+  </section>
+
+  <section class="je-card">
+    <div class="je-card-header"><div><h3 class="je-title">Period Transactions</h3></div></div>
+    <div class="table-container"><table class="clustered-journal-table period-review-table"><thead><tr class="general-master-header"><th>Date</th><th>Entry ID</th><th>Account</th><th>Memo / Reference</th><th class="num">Debit</th><th class="num">Credit</th><th class="action-col">Action</th></tr></thead><tbody id="periodTransactionsBody"></tbody></table></div>
+  </section>
+
+  <div class="period-closing-bar">
+    <span id="periodClosingMessage">Open periods accept normal postings.</span>
+    <div><button type="button" class="je-btn je-btn-secondary" onclick="changePeriodStatus('open')">Reopen</button><button type="button" class="je-btn je-btn-secondary" onclick="changePeriodStatus('review')">Start Review</button><button type="button" class="je-btn je-btn-emerald" onclick="changePeriodStatus('closed')">Close Period</button><button type="button" class="je-btn je-btn-danger" onclick="changePeriodStatus('locked')">Lock</button></div>
+  </div>
+  </div>
+</div>
 
 <!-- ============================================================================== -->
-<!-- HTML 4: NEW TRANSACTIONS & ALL TRANSACTIONS TABS                               -->
-<!-- All transaction views use the identical general header layout.                 -->
+<!-- MODAL: TRANSACTION MODIFICATION / OVERRIDE REASON                              -->
 <!-- ============================================================================== -->
-        <!-- TAB: NEW TRANSACTIONS (CURRENT MONTH ONLY) -->
-        <div id="transactions-new" class="tab-content">
-          <div class="je-card">
-            <div class="je-card-header">
-              <div>
-                <h3 class="je-title">New Transactions — Current Month</h3>
-                <p class="je-subtitle">All postings recorded within the active monthly cycle.</p>
-              </div>
-            </div>
-            <div class="table-container">
-              <table class="clustered-journal-table" id="tblNewTransactions">
-                <thead>
-                  <tr class="general-master-header" id="thNewTransRow">
-                    <!-- Populated dynamically via script.js -->
-                  </tr>
-                </thead>
-                <tbody id="newTransactionsBody">
-                  <!-- Populated dynamically via script.js -->
-                </tbody>
-              </table>
-            </div>
+<div id="modalEditReason" class="modal-backdrop">
+<div class="modal-dialog modal-center">
+  <div class="modal-header">
+    <h4 style="color: #064e3b;">Reason for Transaction Modification</h4>
+    <button type="button" class="modal-close-x" onclick="closeModal('modalEditReason')">&times;</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size: 12.5px; color: #475569; margin-bottom: 12px;">
+      Provide the reason for modifying this posted transaction. The original record and this explanation will be logged to the <strong>Transaction Audit Log</strong>.
+    </p>
+    <div class="je-field-group">
+      <label for="txtEditReason">Explanation / Cause *</label>
+      <textarea id="txtEditReason" class="je-input" rows="4" placeholder="e.g., Reallocating dining receipts from food revenue to bar revenue..." required></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalEditReason')">Cancel</button>
+    <button type="button" class="je-btn je-btn-emerald" onclick="confirmEntryOverride()">Apply & Override</button>
+  </div>
+</div>
+</div>
+<!-- ============================================================================== -->
+
+<!-- UNIVERSAL RED VOID CONFIRMATION -->
+<div id="modalVoidTransaction" class="modal-backdrop">
+  <div class="modal-dialog modal-center universal-danger-dialog">
+    <div class="modal-header universal-danger-header">
+      <div><h4>Void Transaction</h4><p id="voidTransactionCaption">The original record will remain in the audit trail.</p></div>
+      <button type="button" class="modal-close-x" onclick="closeVoidTransactionModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="danger-modal-note">Voiding does not delete the transaction. Its original details, reason, user, and date will remain available for review.</div>
+      <div class="je-field-group">
+        <label for="voidTransactionReason">Reason for voiding *</label>
+        <textarea id="voidTransactionReason" class="je-input" rows="4" placeholder="Explain why this transaction must be voided." required></textarea>
+      </div>
+      <div id="voidTransactionError" class="danger-modal-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="je-btn je-btn-secondary" onclick="closeVoidTransactionModal()">Cancel</button>
+      <button type="button" class="je-btn je-btn-danger" onclick="confirmVoidTransaction()">Void Transaction</button>
+    </div>
+  </div>
+</div>
+<!-- ============================================================================== -->
           </div>
         </div>
 
-        <!-- TAB: ALL TRANSACTIONS (HISTORICAL ARCHIVE EXCLUDING CURRENT MONTH) -->
-        <div id="transactions-all" class="tab-content">
-          <div class="je-card">
-            <div class="je-card-header">
-              <div>
-                <h3 class="je-title">All Transactions — Historical Archive</h3>
-                <p class="je-subtitle">Historical double-entry records from previous monthly periods.</p>
-              </div>
-            </div>
-            <div class="table-container">
-              <table class="clustered-journal-table" id="tblAllTransactions">
-                <thead>
-                  <tr class="general-master-header" id="thAllTransRow">
-                    <!-- Populated dynamically via script.js -->
-                  </tr>
-                </thead>
-                <tbody id="allTransactionsBody">
-                  <!-- Populated dynamically via script.js -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
 <!-- ============================================================================== -->
-<!-- HTML 5: CONTINUOUS ACCOUNTS WORKSPACE (MODULES 1 TO 4)                         -->
-<!-- Chart of Accounts with currency column & filter, Sub-Accounts, and Ledgers.   -->
+<!-- HTML 3: CONTINUOUS ACCOUNTS WORKSPACE (MODULES 1 TO 4)                         -->
+<!-- Master list of accounts, parent-linked sub-accounts, and general ledgers.     -->
 <!-- ============================================================================== -->
-        <div id="accounts-modular-container" class="tab-content">
+        <div id="accounts-modular-container" class="tab-content app-module" data-module="accounts">
 
           <!-- MODULE 1 — CHART OF ACCOUNTS -->
           <section id="sec-chart-accounts" class="module-card">
@@ -346,10 +528,10 @@
                 <h3 class="card-title">MODULE 1 — CHART OF ACCOUNTS</h3>
                 <p class="card-subtitle">Master list of general ledger accounts organized by classification and currency.</p>
               </div>
-              <div style="display: flex; gap: 10px; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <label for="filterCoaCurrency" style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Currency:</label>
-                  <select id="filterCoaCurrency" class="filter-select" onchange="renderChartOfAccountsTable()">
+              <div class="coa-toolbar">
+                <div class="coa-filter-box">
+                  <label for="filterCoaCurrency">Currency</label>
+                  <select id="filterCoaCurrency" class="je-select universal-filter-select" onchange="renderChartOfAccountsTable()">
                     <option value="ALL">All Currencies</option>
                   </select>
                 </div>
@@ -404,7 +586,7 @@
             </div>
           </section>
 
-          <!-- MODULE 3 — GENERAL LEDGER (DESIGN PREVIEW) -->
+          <!-- MODULE 3 — GENERAL LEDGER PREVIEW -->
           <section id="sec-general-ledger" class="module-card">
             <div class="card-header-flex">
               <div>
@@ -477,22 +659,22 @@
           </section>
 
         </div>
+<!-- ============================================================================== -->
+
 
 <!-- ============================================================================== -->
-<!-- HTML 6: SETTINGS WORKSPACES (BUSINESS & MULTI-CURRENCY MANAGER)                -->
-<!-- Adding a currency here adds a new CR column to all transaction tables.         -->
+<!-- HTML 4: SETTINGS MODULES (MULTI-CURRENCY PRESERVED IN MAIN)                     -->
+<!-- Configures business identity and currency manager for general ledgers.         -->
 <!-- ============================================================================== -->
         <!-- SETTINGS: ACCOUNTING (MULTI-CURRENCY MANAGER) -->
-        <div id="settings-accounting" class="tab-content">
+        <div id="settings-accounting" data-module="settings" class="tab-content">
           <div class="je-card">
             <div class="je-card-header">
               <div>
-                <h3 class="je-title">Accounting Settings — Multi-Currency Manager</h3>
-                <p class="je-subtitle">Define operating currencies. Adding a new currency automatically adds a dedicated credit column (CR-Currency) to all transaction tables.</p>
+                <h3 class="je-title">Accounting Settings <button type="button" class="setting-help" onclick="openSettingHelp('accounting-settings')" aria-label="Explain Accounting Settings">*</button></h3>
               </div>
             </div>
 
-            <!-- Currency Addition Form -->
             <div class="currency-add-bar">
               <div class="je-field-group" style="width: 140px;">
                 <label for="newCurrencyCode">Currency Code *</label>
@@ -509,7 +691,6 @@
               <button type="button" class="je-btn je-btn-emerald" style="margin-top: auto;" onclick="handleAddCurrency()">+ Add Currency</button>
             </div>
 
-            <!-- Active Currencies Table -->
             <div class="table-container" style="margin-top: 16px;">
               <table class="je-table">
                 <thead>
@@ -530,78 +711,345 @@
         </div>
 
         <!-- SETTINGS: BUSINESS INFORMATION -->
-        <div id="settings-business" class="tab-content">
-          <div class="panel">
-            <div class="panel-header">Business Information</div>
-            <div class="form-group" style="margin-bottom: 12px; max-width: 400px;">
-              <label for="settingCompanyName">Company / Entity Name:</label>
-              <input type="text" id="settingCompanyName" value="Oon Jai Marketplace" oninput="updateCompanySettings()" />
+        <div id="settings-business" data-module="settings" class="tab-content">
+          <div class="settings-page-heading">
+            <div>
+              <h3>Business Information</h3>
             </div>
+            <span class="settings-saved-badge" id="businessSavedBadge">Not yet saved</span>
           </div>
+
+          <form id="businessSettingsForm" onsubmit="saveBusinessSettings(event)" novalidate>
+            <section class="settings-section-card">
+              <div class="settings-section-header">
+              <div><h4>Company Identity <button type="button" class="setting-help" onclick="openSettingHelp('company-identity')" aria-label="Explain Company Identity">*</button></h4></div>
+              </div>
+              <div class="settings-form-grid">
+                <div class="settings-field span-2"><label for="settingLegalName">Registered Legal Name <span>*</span></label><input class="je-input" type="text" id="settingLegalName" placeholder="Enter registered legal name" required></div>
+                <div class="settings-field span-2"><label for="settingCompanyName">Trading / Display Name <span>*</span></label><input class="je-input" type="text" id="settingCompanyName" placeholder="Enter trading or display name" required></div>
+                <div class="settings-field"><label for="settingEnterpriseNo">Enterprise Registration No.</label><input class="je-input" type="text" id="settingEnterpriseNo" placeholder="Registration number"></div>
+                <div class="settings-field"><label for="settingTaxId">Tax Identification No.</label><input class="je-input" type="text" id="settingTaxId" placeholder="Tax ID / TIN"></div>
+                <div class="settings-field"><label for="settingBusinessLicense">Business License No.</label><input class="je-input" type="text" id="settingBusinessLicense" placeholder="License number"></div>
+                <div class="settings-field"><label for="settingIndustry">Business Type</label><input class="je-input" type="text" id="settingIndustry" placeholder="Industry or business type"></div>
+              </div>
+            </section>
+
+            <section class="settings-section-card">
+              <div class="settings-section-header"><div><h4>Contact & Address</h4></div></div>
+              <div class="settings-form-grid">
+                <div class="settings-field"><label for="settingPhone">Phone Number</label><input class="je-input" type="tel" id="settingPhone" placeholder="+856 ..."></div>
+                <div class="settings-field"><label for="settingEmail">Business Email</label><input class="je-input" type="email" id="settingEmail" placeholder="name@example.com"></div>
+                <div class="settings-field span-2"><label for="settingWebsite">Website / Social Page</label><input class="je-input" type="url" id="settingWebsite" placeholder="https://..."></div>
+                <div class="settings-field span-2"><label for="settingAddress1">Street Address <span>*</span></label><input class="je-input" type="text" id="settingAddress1" placeholder="Street, village, or building" required></div>
+                <div class="settings-field"><label for="settingCity">City / Province</label><input class="je-input" type="text" id="settingCity" placeholder="City or province"></div>
+                <div class="settings-field"><label for="settingPostalCode">Postal Code</label><input class="je-input" type="text" id="settingPostalCode" inputmode="numeric" placeholder="Optional"></div>
+                <div class="settings-field"><label for="settingCountry">Country</label><select class="je-select" id="settingCountry"><option value="Laos">Laos</option><option value="Philippines">Philippines</option><option value="Thailand">Thailand</option><option value="Other">Other</option></select></div>
+                <div class="settings-field"><label for="settingTimezone">Time Zone</label><select class="je-select" id="settingTimezone"><option value="Asia/Vientiane">Asia/Vientiane (UTC+7)</option><option value="Asia/Manila">Asia/Manila (UTC+8)</option><option value="Asia/Bangkok">Asia/Bangkok (UTC+7)</option></select></div>
+              </div>
+            </section>
+
+            <section class="settings-section-card">
+              <div class="settings-section-header legal-docs-header">
+                <div><h4>Current Legal Documents <button type="button" class="setting-help" onclick="openSettingHelp('legal-documents')" aria-label="Explain Current Legal Documents">*</button></h4></div>
+                <label class="je-btn je-btn-emerald legal-upload-button" for="legalDocumentInput">+ Upload Documents</label>
+              </div>
+              <input type="file" id="legalDocumentInput" class="visually-hidden" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="uploadLegalDocuments(event)">
+              <div class="legal-doc-note">Maximum 10 MB per file.</div>
+              <div id="legalDocumentsStatus" class="legal-doc-status" aria-live="polite"></div>
+              <div id="legalDocumentsList" class="legal-documents-list"><div class="legal-doc-empty">No legal documents uploaded yet.</div></div>
+            </section>
+
+            <section class="settings-profile-preview" aria-live="polite">
+              <div class="settings-preview-mark" id="businessPreviewInitials">--</div>
+              <div><strong id="businessPreviewName">Business Name</strong><p id="businessPreviewDetails">Default business profile</p></div>
+            </section>
+
+            <div class="settings-action-bar">
+              <span id="businessSettingsStatus" class="settings-action-status">Default settings</span>
+              <div><button type="button" class="je-btn je-btn-secondary" onclick="reloadBusinessSettings()">Undo Changes</button><button type="submit" class="je-btn je-btn-emerald">Save Business Information</button></div>
+            </div>
+          </form>
         </div>
 
         <!-- OTHER APPLICATION TAB PLACEHOLDERS -->
-        <div id="dashboard" class="tab-content">
+        <div id="entry-submissions" data-module="submissions" class="tab-content">
+          <div class="settings-page-heading"><div><h3>My Transaction Journal</h3><p>Post individual entries to the monthly summary, then submit the complete summary for review.</p></div><span class="settings-saved-badge" id="staffJournalStatusBadge">Draft</span></div>
+          <section class="je-card">
+            <div class="staff-journal-topbar">
+              <div class="settings-field"><label for="staffJournalPeriod">Journal Period</label><input id="staffJournalPeriod" class="je-input" type="month" onchange="openStaffJournalPeriod(this.value)" onclick="if(this.showPicker)this.showPicker()"></div>
+              <div class="settings-field"><label for="staffJournalMemo">General Description / Memo</label><input id="staffJournalMemo" class="je-input" placeholder="Optional monthly memo or reference"></div>
+            </div>
+            <div class="table-container staff-journal-table-wrap"><table class="je-table staff-journal-table"><thead><tr id="staffEntryHeader"></tr></thead><tbody id="staffJournalEntryBody"></tbody></table></div>
+            <div class="staff-journal-actions"><span id="staffJournalSaveStatus"></span><div><button type="button" class="je-btn je-btn-emerald" onclick="postStaffEntry()">Post Entry</button></div></div>
+          </section>
+          <section class="je-card"><div class="je-card-header"><div><h3 class="je-title">Journal Summary</h3><p class="je-subtitle">All entries posted for the selected period.</p></div><button type="button" class="je-btn je-btn-emerald" id="staffSubmitSummaryButton" onclick="submitStaffJournal()">Submit for Review</button></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="staffSummaryHeader"></tr></thead><tbody id="staffJournalSummary"></tbody></table></div></section>
+          <section class="je-card"><div class="je-card-header"><div><h3 class="je-title">Submitted Journals</h3><p class="je-subtitle">Your submitted, returned, and posted journals remain available here.</p></div></div><div id="staffSubmittedHistory" class="staff-submitted-history"></div></section>
+        </div>
+
+        <div id="user-entry-review" data-module="user-review" class="tab-content">
+          <div class="settings-page-heading"><div><h3>User Entry Review</h3><p>Review single-entry submissions by user before posting them to the journal.</p></div></div>
+          <section class="je-card">
+            <div class="user-review-filters">
+              <div class="settings-field"><label>User</label><select id="userReviewUser" class="je-select" onchange="renderUserEntryReview()"><option value="all">All users</option></select></div>
+              <div class="settings-field"><label>Status</label><select id="userReviewStatus" class="je-select" onchange="renderUserEntryReview()"><option value="pending">Submitted</option><option value="all">All statuses</option><option value="draft">Draft</option><option value="returned">Returned</option><option value="posted">Posted</option></select></div>
+            </div>
+            <div id="userEntryReviewSummary" class="user-review-summary"></div>
+            <div class="table-container"><table class="je-table"><thead><tr><th>Period</th><th>User</th><th>Lines</th><th class="num">Total</th><th>Status</th><th>Action</th></tr></thead><tbody id="userEntryReviewBody"></tbody></table></div>
+          </section>
+        </div>
+
+        <div id="dashboard" data-module="dashboard" class="tab-content active">
           <div class="panel form-row no-print">
             <div class="form-group"><label>Time Grouping:</label><select id="chartTimeScale" onchange="updateChart()"><option value="monthly" selected>Monthly</option></select></div>
           </div>
           <div class="panel" style="height: 400px;"><canvas id="summaryChart"></canvas></div>
         </div>
-        <div id="transactions-recurring" class="tab-content"><div class="placeholder-warning">No data available for Recurring Transactions.</div></div>
-        <div id="transactions-voided" class="tab-content"><div class="placeholder-warning">No data available for Voided Transactions.</div></div>
-        <div id="trial-balance" class="tab-content"><div class="placeholder-warning">No data available for Trial Balance.</div></div>
+        <div id="transactions-recurring" data-module="transactions" class="tab-content">
+  <div class="je-card no-print">
+    <div class="je-card-header">
+      <div>
+        <h3 class="je-title">Add Upcoming Transaction</h3>
+        <p class="je-subtitle">Schedule a one-time or recurring obligation and receive advance reminders.</p>
+      </div>
+    </div>
+    <div class="recurring-form-grid">
+      <div class="je-field-group"><label>Transaction Type *</label><select id="recurringType" class="je-select" onchange="updateUpcomingTypeFields()"><option value="recurring" selected>Recurring</option><option value="one-time">One-Time</option></select></div>
+      <div class="je-field-group"><label>Description / Memo *</label><input id="recurringMemo" class="je-input" type="text" placeholder="e.g., Monthly facility rent"></div>
+      <div class="je-field-group" id="recurringFrequencyGroup"><label>Frequency *</label><select id="recurringFrequency" class="je-select"><option>Weekly</option><option selected>Monthly</option><option>Quarterly</option><option>Yearly</option><option>Custom</option></select></div>
+      <div class="je-field-group"><label>Next Due Date *</label><input id="recurringNextDate" class="je-input" type="date" onclick="if(this.showPicker) this.showPicker();"></div>
+      <div class="je-field-group"><label>Amount</label><input id="recurringAmount" class="je-input" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="je-field-group"><label>Currency</label><select id="recurringCurrency" class="je-select"><option>LAK</option><option>USD</option><option>THB</option></select></div>
+      <div class="je-field-group"><label>Reference</label><input id="recurringReference" class="je-input" type="text" placeholder="Optional reference"></div>
+    </div>
+    <div class="reminder-builder">
+      <div>
+        <strong>Reminder Warnings</strong>
+        <div class="je-subtitle">You may use more than one warning for the same upcoming item.</div>
+      </div>
+      <div class="reminder-row">
+        <input id="reminderCount" type="number" min="1" value="2">
+        <select id="reminderUnit"><option value="days">Days before</option><option value="weeks" selected>Weeks before</option><option value="months">Months before</option></select>
+        <button type="button" class="je-btn je-btn-secondary" onclick="addPendingReminder()">+ Add Warning</button>
+      </div>
+      <div id="pendingReminderList" class="reminder-chip-list"></div>
+    </div>
+    <div class="je-actions-bar">
+      <span class="je-subtitle">Warnings remain active until the item is marked Paid.</span>
+      <div class="upcoming-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetRecurringForm()">Clear</button><button type="button" class="je-btn je-btn-emerald" onclick="saveRecurringTransaction()">Save Transaction</button></div>
+    </div>
+  </div>
+
+  <div class="je-card">
+    <div class="je-card-header">
+      <div><h3 class="je-title">Upcoming Transactions</h3><p class="je-subtitle">One-time and recurring obligations, ordered by the nearest due date.</p></div>
+    </div>
+    <div class="table-container">
+      <table class="clustered-journal-table" id="tblRecurringTransactions">
+        <thead><tr class="general-master-header"><th>Next Due</th><th>Schedule</th><th>Description / Memo</th><th class="num">Amount</th><th>Warnings</th><th>Status</th><th class="action-col upcoming-action-col no-print">Action</th></tr></thead>
+        <tbody id="tblRecurringTransactionsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="trial-balance" class="tab-content"><div class="placeholder-warning">No data available for Trial Balance.</div></div>
         <div id="account-balances" class="tab-content"><div class="placeholder-warning">No data available for Account Balances.</div></div>
-        <div id="payroll-overview" class="tab-content"><div class="placeholder-warning">No data available for Payroll Overview.</div></div>
-        <div id="payroll-employees" class="tab-content"><div class="placeholder-warning">No data available for Employees.</div></div>
-        <div id="payroll-entries" class="tab-content"><div class="placeholder-warning">No data available for Payroll Entries.</div></div>
-        <div id="payroll-history" class="tab-content"><div class="placeholder-warning">No data available for Salary History.</div></div>
-        <div id="payroll-deductions" class="tab-content"><div class="placeholder-warning">No data available for Payroll Deductions.</div></div>
-        <div id="report-pl" class="tab-content"><div class="placeholder-warning">No data available for Profit and Loss.</div></div>
-        <div id="report-bs" class="tab-content"><div class="placeholder-warning">No data available for Balance Sheet.</div></div>
-        <div id="report-cf" class="tab-content"><div class="placeholder-warning">No data available for Cash Flow.</div></div>
-        <div id="report-tb" class="tab-content"><div class="placeholder-warning">No data available for Trial Balance.</div></div>
-        <div id="report-gl" class="tab-content"><div class="placeholder-warning">No data available for General Ledger.</div></div>
-        <div id="report-activity" class="tab-content"><div class="placeholder-warning">No data available for Account Activity.</div></div>
-        <div id="report-expense" class="tab-content"><div class="placeholder-warning">No data available for Expense Report.</div></div>
-        <div id="report-payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Report.</div></div>
-        <div id="tax-overview" class="tab-content"><div class="placeholder-warning">No data available for Tax Overview.</div></div>
-        <div id="tax-vat" class="tab-content"><div class="placeholder-warning">No data available for VAT.</div></div>
-        <div id="tax-pit" class="tab-content"><div class="placeholder-warning">No data available for Personal Income Tax.</div></div>
-        <div id="tax-social" class="tab-content"><div class="placeholder-warning">No data available for Social Security.</div></div>
-        <div id="tax-payment" class="tab-content"><div class="placeholder-warning">No data available for Tax and Social Payment.</div></div>
-        <div id="tax-sso-payment" class="tab-content"><div class="placeholder-warning">No data available for SSO Payment.</div></div>
-        <div id="tax-records" class="tab-content"><div class="placeholder-warning">No data available for Tax and SSO Records.</div></div>
-        <div id="inv-overview" class="tab-content"><div class="placeholder-warning">No data available for Inventory Overview.</div></div>
-        <div id="inv-items" class="tab-content"><div class="placeholder-warning">No data available for Items.</div></div>
-        <div id="inv-stock-in" class="tab-content"><div class="placeholder-warning">No data available for Stock In.</div></div>
-        <div id="inv-stock-out" class="tab-content"><div class="placeholder-warning">No data available for Stock Out.</div></div>
-        <div id="inv-adj" class="tab-content"><div class="placeholder-warning">No data available for Stock Adjustment.</div></div>
-        <div id="inv-val" class="tab-content"><div class="placeholder-warning">No data available for Inventory Valuation.</div></div>
-        <div id="menu-ingredients" class="tab-content"><div class="placeholder-warning">No data available for Ingredient Master List.</div></div>
-        <div id="menu-details" class="tab-content"><div class="placeholder-warning">No data available for Menu Details.</div></div>
-        <div id="menu-recipe" class="tab-content"><div class="placeholder-warning">No data available for Recipe/Ingredients.</div></div>
-        <div id="menu-pricing" class="tab-content"><div class="placeholder-warning">No data available for Menu Pricing.</div></div>
-        <div id="menu-categories" class="tab-content"><div class="placeholder-warning">No data available for Menu Categories.</div></div>
-        <div id="menu-costing" class="tab-content"><div class="placeholder-warning">No data available for Recipe Costing.</div></div>
-        <div id="menu-avail" class="tab-content"><div class="placeholder-warning">No data available for Menu Availability.</div></div>
-        <div id="settings-users" class="tab-content"><div class="placeholder-warning">No data available for Users and Permission.</div></div>
-        <div id="settings-payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Settings.</div></div>
-        <div id="settings-tax" class="tab-content"><div class="placeholder-warning">No data available for Tax Settings.</div></div>
-        <div id="settings-print" class="tab-content"><div class="placeholder-warning">No data available for Printing Settings.</div></div>
-        <div id="settings-backup" class="tab-content"><div class="placeholder-warning">No data available for Backup and Export.</div></div>
-        <div id="settings-system" class="tab-content"><div class="placeholder-warning">No data available for System Setting.</div></div>
+        <div id="payroll-overview" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Overview.</div></div>
+        <div id="payroll-employees" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Employees.</div></div>
+        <div id="payroll-entries" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Entries.</div></div>
+        <div id="payroll-history" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Salary History.</div></div>
+        <div id="payroll-deductions" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Deductions.</div></div>
+        <div id="report-pl" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Profit and Loss.</div></div>
+        <div id="report-bs" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Balance Sheet.</div></div>
+        <div id="report-cf" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Cash Flow.</div></div>
+        <div id="report-tb" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Trial Balance.</div></div>
+        <div id="report-gl" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for General Ledger.</div></div>
+        <div id="report-activity" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Account Activity.</div></div>
+        <div id="report-expense" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Expense Report.</div></div>
+        <div id="report-payroll" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Payroll Report.</div></div>
+        <div id="tax-overview" data-module="tax-sso" class="tab-content"><div class="placeholder-warning">No data available for Tax Overview.</div></div>
+        <div id="tax-vat" data-module="tax-sso" class="tab-content"><div class="placeholder-warning">No data available for VAT.</div></div>
+        <div id="tax-pit" data-module="tax-sso" class="tab-content"><div class="placeholder-warning">No data available for Personal Income Tax.</div></div>
+        <div id="tax-social" data-module="tax-sso" class="tab-content"><div class="placeholder-warning">No data available for Social Security.</div></div>
+        <div id="tax-payment" data-module="tax-sso" class="tab-content"><div class="placeholder-warning">No data available for Tax and Social Payment.</div></div>
+        <div id="tax-sso-payment" data-module="tax-sso" class="tab-content"><div class="placeholder-warning">No data available for SSO Payment.</div></div>
+        <div id="tax-records" data-module="tax-sso" class="tab-content"><div class="placeholder-warning">No data available for Tax and SSO Records.</div></div>
+        <div id="inv-overview" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Inventory Overview.</div></div>
+        <div id="inv-items" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Items.</div></div>
+        <div id="inv-stock-in" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Stock In.</div></div>
+        <div id="inv-stock-out" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Stock Out.</div></div>
+        <div id="inv-adj" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Stock Adjustment.</div></div>
+        <div id="inv-val" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Inventory Valuation.</div></div>
+        <div id="menu-ingredients" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Ingredient Master List.</div></div>
+        <div id="menu-details" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Menu Details.</div></div>
+        <div id="menu-recipe" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Recipe/Ingredients.</div></div>
+        <div id="menu-pricing" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Menu Pricing.</div></div>
+        <div id="menu-categories" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Menu Categories.</div></div>
+        <div id="menu-costing" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Recipe Costing.</div></div>
+        <div id="menu-avail" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Menu Availability.</div></div>
+        <div id="settings-pos" data-module="settings" class="tab-content" hidden>
+          <div class="settings-page-heading"><div><h3>POS &amp; Shift-Close Setup <button type="button" class="setting-help" onclick="openSettingHelp('pos-shift-close')" aria-label="Explain POS and Shift-Close Setup">*</button></h3><p>Configure the report your present POS produces. Change these settings if you replace the POS later.</p></div><span class="settings-saved-badge" data-settings-badge="pos">Using defaults</span></div>
+          <form class="settings-section-card app-settings-form" data-settings-group="pos">
+            <div class="settings-section-header"><h4>POS Report Rules <button type="button" class="setting-help" onclick="openSettingHelp('pos-report-rules')" aria-label="Explain POS Report Rules">*</button></h4></div>
+            <div class="settings-form-grid">
+              <div class="settings-field"><label>POS Reporting Currency</label><select class="je-select settings-currency-select" name="reportingCurrency"><option value="LAK">LAK</option></select></div>
+              <div class="settings-field"><label>Shift Close Frequency</label><select class="je-select" name="shiftCloseFrequency"><option value="per_shift">Every shift</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select></div>
+              <div class="settings-field"><label>Default Sales Account</label><input class="je-input" name="salesAccountLabel" value="Sales Revenue" placeholder="e.g., Sales Revenue"></div>
+              <div class="settings-field"><label>Cashier Clearing Account</label><input class="je-input" name="clearingAccountLabel" value="Cashier Clearing" placeholder="e.g., Cashier Clearing"></div>
+            </div>
+            <div class="settings-section-header pos-subheading"><h4>How the POS labels are interpreted <button type="button" class="setting-help" onclick="openSettingHelp('pos-payment-labels')" aria-label="Explain POS labels">*</button></h4><p>The POS total stays in the reporting currency. These labels describe how money was actually received.</p></div>
+            <div class="settings-form-grid">
+              <div class="settings-field"><label>Cash / Kip label</label><input class="je-input" name="cashLabel" value="Cash" placeholder="e.g., Cash"></div>
+              <div class="settings-field"><label>Bank / QR label</label><input class="je-input" name="bankLabel" value="BCEL" placeholder="e.g., BCEL"></div>
+              <div class="settings-field"><label>USD label</label><input class="je-input" name="usdLabel" value="USD" placeholder="e.g., USD"></div>
+              <div class="settings-field"><label>THB label</label><input class="je-input" name="thbLabel" value="THB" placeholder="e.g., THB"></div>
+            </div>
+            <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('pos')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save POS Setup</button></div>
+          </form>
+        </div>
+
+        <div id="settings-users" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>Users and Permissions <button type="button" class="setting-help" onclick="openSettingHelp('users-permissions')" aria-label="Explain Users and Permissions">*</button></h3></div><button type="button" class="je-btn je-btn-emerald" onclick="openUserAccessEditor()">+ Add Sub-user</button></div>
+          <div class="settings-compact-note">Each sub-user receives an individual login and sees only the modules granted by an administrator.</div>
+          <section class="settings-section-card"><div class="settings-section-header"><div><h4>Current Users</h4></div></div><div id="demoUsersList" class="demo-users-list"></div></section>
+        </div>
+        <div id="settings-payroll" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>Payroll Settings <button type="button" class="setting-help" onclick="openSettingHelp('payroll-settings')" aria-label="Explain Payroll Settings">*</button></h3></div><span class="settings-saved-badge" data-settings-badge="payroll">Using defaults</span></div>
+          <form class="settings-section-card app-settings-form" data-settings-group="payroll">
+            <div class="settings-form-grid">
+              <div class="settings-field"><label>Pay Frequency</label><select class="je-select" name="payFrequency"><option value="monthly">Monthly</option><option value="semi-monthly">Twice Monthly</option><option value="biweekly">Every Two Weeks</option><option value="weekly">Weekly</option></select></div>
+              <div class="settings-field"><label>Default Currency</label><select class="je-select settings-currency-select" name="payCurrency"><option value="LAK">LAK</option><option value="USD">USD</option><option value="THB">THB</option></select></div>
+              <div class="settings-field"><label>Standard Hours per Week</label><input class="je-input" name="weeklyHours" type="number" min="1" max="168" value="40"></div>
+              <div class="settings-field"><label>Overtime Rate</label><input class="je-input" name="overtimeRate" type="number" min="1" step="0.01" value="1.5"></div>
+            </div>
+            <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('payroll')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Payroll Settings</button></div>
+          </form>
+        </div>
+        <div id="settings-tax" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>Tax Settings <button type="button" class="setting-help" onclick="openSettingHelp('tax-settings')" aria-label="Explain Tax Settings">*</button></h3></div><span class="settings-saved-badge" data-settings-badge="tax">Using defaults</span></div>
+          <form class="settings-section-card app-settings-form" data-settings-group="tax">
+            <div class="settings-form-grid">
+              <label class="settings-toggle span-2"><input type="checkbox" name="vatRegistered"><span><strong>VAT Registered</strong></span></label>
+              <div class="settings-field"><label>Default VAT Rate (%)</label><input class="je-input" name="vatRate" type="number" min="0" max="100" step="0.01" value="0"></div>
+              <div class="settings-field"><label>Filing Period</label><select class="je-select" name="filingPeriod"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option></select></div>
+              <div class="settings-field span-2"><label>Tax Identification Number</label><input class="je-input" name="taxNumber" type="text"></div>
+            </div>
+            <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('tax')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Tax Settings</button></div>
+          </form>
+        </div>
+        <div id="settings-print" data-module="settings" class="tab-content">
+  <div class="panel">
+    <div class="panel-header">Printing Settings <button type="button" class="setting-help" onclick="openSettingHelp('printing-settings')" aria-label="Explain Printing Settings">*</button></div>
+    <div class="print-settings-grid">
+      <div class="print-setting-card">
+        <label><strong>Header Image</strong></label>
+        <input type="file" id="printHeaderImageInput" accept="image/*" onchange="handlePrintImageUpload(event, 'header')">
+        <div class="print-image-preview" id="printHeaderPreview">No header image selected.</div>
+        <button type="button" class="je-btn je-btn-secondary" onclick="clearPrintImage('header')">Remove Header</button>
+      </div>
+      <div class="print-setting-card">
+        <label><strong>Footer Image</strong></label>
+        <input type="file" id="printFooterImageInput" accept="image/*" onchange="handlePrintImageUpload(event, 'footer')">
+        <div class="print-image-preview" id="printFooterPreview">No footer image selected.</div>
+        <button type="button" class="je-btn je-btn-secondary" onclick="clearPrintImage('footer')">Remove Footer</button>
+      </div>
+    </div>
+    <form class="settings-print-options app-settings-form" data-settings-group="printing">
+      <div class="settings-form-grid">
+        <div class="settings-field"><label>Paper Size</label><select class="je-select" name="paperSize"><option value="A4">A4</option><option value="Letter">Letter</option><option value="Legal">Legal</option></select></div>
+        <div class="settings-field"><label>Orientation</label><select class="je-select" name="orientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+        <label class="settings-toggle"><input type="checkbox" name="showBusinessName" checked><span><strong>Show Business Name</strong></span></label>
+        <label class="settings-toggle"><input type="checkbox" name="showPageNumbers" checked><span><strong>Show Page Numbers</strong></span></label>
+      </div>
+      <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('printing')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Printing Settings</button></div>
+    </form>
+  </div>
+</div>
+        <div id="settings-backup" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>Backup and Export <button type="button" class="setting-help" onclick="openSettingHelp('backup-export')" aria-label="Explain Backup and Export">*</button></h3></div></div>
+          <section class="settings-section-card">
+            <div class="settings-button-grid">
+              <button type="button" class="je-btn je-btn-emerald" onclick="exportApplicationBackup()">Download Settings Backup</button>
+              <label class="je-btn je-btn-secondary settings-file-button" for="settingsBackupInput">Restore Settings Backup</label>
+              <input id="settingsBackupInput" class="visually-hidden" type="file" accept="application/json,.json" onchange="importApplicationBackup(event)">
+              <button type="button" class="je-btn je-btn-secondary" onclick="exportJournalCSV()">Download Transactions CSV</button>
+            </div>
+            <div id="backupSettingsStatus" class="settings-inline-status" aria-live="polite"></div>
+          </section>
+        </div>
+        <div id="settings-system" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>System Settings <button type="button" class="setting-help" onclick="openSettingHelp('system-settings')" aria-label="Explain System Settings">*</button></h3></div><span class="settings-saved-badge" data-settings-badge="system">Using defaults</span></div>
+          <form class="settings-section-card app-settings-form" data-settings-group="system">
+            <div class="settings-form-grid">
+              <div class="settings-field"><label>Date Format</label><select class="je-select" name="dateFormat"><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option></select></div>
+              <div class="settings-field"><label>Number Format</label><select class="je-select" name="numberFormat"><option value="1,234.56">1,234.56</option><option value="1.234,56">1.234,56</option><option value="1 234,56">1 234,56</option></select></div>
+              <div class="settings-field"><label>Language</label><select class="je-select" name="language"><option value="en">English</option><option value="lo">Lao</option></select></div>
+              <div class="settings-field"><label>Session Timeout (minutes)</label><input class="je-input" name="sessionTimeout" type="number" min="5" max="480" value="60"></div>
+            </div>
+            <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('system')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save System Settings</button></div>
+          </form>
+        </div>
 
       </div>
     </main>
   </div>
 
+<div id="printHeaderOutput" class="print-only print-brand-image"></div>
+<div id="printFooterOutput" class="print-only print-brand-image print-footer-image"></div>
+
+<div id="modalPrintOptions" class="modal-backdrop no-print">
+  <div class="modal-dialog modal-center print-options-dialog print-warning-dialog">
+    <div class="modal-header print-warning-header">
+      <div><h4>⚠ Review Before Printing</h4><div class="je-subtitle">Confirm exactly which records you want to print or export.</div></div>
+      <button type="button" class="modal-close-x" onclick="closeModal('modalPrintOptions')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="print-context-box">
+        <div class="je-field-group"><label>Current Module</label><input id="printDetectedModule" class="je-input" type="text" readonly></div>
+        <div class="je-field-group"><label>Data / Subcategory to Print</label><select id="printSubcategory" class="je-select"></select></div>
+      </div>
+      <div class="je-field-group"><label>Date Range</label><select class="je-select" id="printDatePreset" onchange="syncPrintDatePreset()"><option value="all">All available dates</option><option value="month">Current month</option><option value="quarter">Current quarter</option><option value="year">Current year</option><option value="custom">Custom date</option></select></div>
+      <div class="print-date-grid"><div class="je-field-group"><label>From</label><input class="je-input" type="date" id="printDateFrom" onclick="if(this.showPicker) this.showPicker();"></div><div class="je-field-group"><label>To</label><input class="je-input" type="date" id="printDateTo" onclick="if(this.showPicker) this.showPicker();"></div></div>
+      <label class="print-check"><input type="checkbox" id="printUseHeader" checked> Include saved centered header image</label>
+      <label class="print-check"><input type="checkbox" id="printUseFooter" checked> Include saved centered footer image</label>
+      <p class="print-warning-note">Please verify the module, data category, and date range before continuing.</p>
+    </div>
+    <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalPrintOptions')">Cancel</button><button type="button" class="je-btn je-btn-danger" onclick="executeConfiguredPrint()">Print Selected Data</button></div>
+  </div>
+</div>
+
+<!-- TEMPLATE MANAGER -->
+<div id="modalTemplateManager" class="modal-backdrop no-print">
+  <div class="modal-dialog modal-center template-dialog">
+    <div class="modal-header"><h4>Transaction Templates</h4><button type="button" class="modal-close-x" onclick="closeModal('modalTemplateManager')">&times;</button></div>
+    <div class="modal-body"><div id="templateManagerList"></div></div>
+    <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalTemplateManager')">Close</button></div>
+  </div>
+</div>
+
+<div id="modalTemplateName" class="modal-backdrop no-print">
+  <div class="modal-dialog modal-center">
+    <div class="modal-header"><h4>Save Transaction Template</h4><button type="button" class="modal-close-x" onclick="closeModal('modalTemplateName')">&times;</button></div>
+    <div class="modal-body"><div class="form-group"><label>Template Name *</label><input id="templateNameInput" type="text" placeholder="e.g., Monthly Payroll"></div><p class="je-subtitle">Only account names, line descriptions, and references are saved. Date, Entry ID, debit, and credit amounts are never copied.</p></div>
+    <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalTemplateName')">Cancel</button><button type="button" class="je-btn je-btn-emerald" onclick="confirmSaveTemplate()">Save Template</button></div>
+  </div>
+</div>
+
+<!-- RECURRING DUE WARNINGS -->
+<div id="modalRecurringWarnings" class="modal-backdrop no-print">
+  <div class="modal-dialog modal-center recurring-warning-dialog">
+    <div class="modal-header recurring-warning-header"><div><h4>⚠ Upcoming & Overdue Payments</h4><div class="je-subtitle">These reminders remain until the current occurrence is marked Paid.</div></div></div>
+    <div class="modal-body"><div id="recurringWarningList"></div></div>
+    <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalRecurringWarnings')">Close for Now</button></div>
+  </div>
+</div>
+
 <!-- ============================================================================== -->
-<!-- HTML 7: INTERACTIVE MODALS & CONFIRMATION DIALOGS                             -->
+<!-- HTML 5: INTERACTIVE MODALS & CONFIRMATION DIALOGS (BACKBONE)                   -->
 <!-- Add/Edit Account Modal, Add/Edit Sub-Account Modal, and Deletion Dialog.       -->
 <!-- ============================================================================== -->
-  <!-- MODAL: ADD / EDIT PRIMARY ACCOUNT (WITH SETTINGS-DRIVEN CURRENCY) -->
+  <!-- MODAL: ADD / EDIT PRIMARY ACCOUNT -->
   <div id="modalAccount" class="modal-backdrop">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-center account-editor-dialog">
       <div class="modal-header">
         <h4 id="modalAccountTitle">Add New Account</h4>
         <button type="button" class="modal-close-x" onclick="closeModal('modalAccount')">&times;</button>
@@ -609,25 +1057,25 @@
       <form id="formAccount" onsubmit="handleAccountFormSubmit(event)">
         <input type="hidden" id="accountOrigCode" value="">
         <div class="modal-body">
-          <div class="form-row" style="display: flex; gap: 12px;">
-            <div class="form-group" style="flex: 1;">
+          <div class="settings-form-grid">
+            <div class="settings-field">
               <label for="accCode">Account Code *</label>
-              <input type="text" id="accCode" required placeholder="e.g., 1020">
+              <input class="je-input" type="text" id="accCode" required placeholder="e.g., 1020">
             </div>
-            <div class="form-group" style="flex: 1;">
+            <div class="settings-field">
               <label for="accCurrency">Account Currency *</label>
-              <select id="accCurrency" required>
-                <!-- Populated dynamically via CurrencyStore -->
+              <select class="je-select" id="accCurrency" required>
+                <!-- Populated dynamically via script.js -->
               </select>
             </div>
           </div>
-          <div class="form-group">
+          <div class="settings-field">
             <label for="accName">Account Name *</label>
-            <input type="text" id="accName" required placeholder="e.g., Beverage Inventory">
+            <input class="je-input" type="text" id="accName" required placeholder="e.g., Beverage Inventory">
           </div>
-          <div class="form-group">
+          <div class="settings-field">
             <label for="accType">Account Type *</label>
-            <select id="accType" required>
+            <select class="je-select" id="accType" required>
               <option value="ASSET">Asset</option>
               <option value="LIABILITY">Liability</option>
               <option value="EQUITY">Equity</option>
@@ -635,14 +1083,14 @@
               <option value="EXPENSE">Expense</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="settings-field span-2">
             <label for="accDesc">Description</label>
-            <textarea id="accDesc" rows="3" placeholder="Context or purpose of this account..."></textarea>
+            <textarea class="je-input" id="accDesc" rows="3" placeholder="Context or purpose of this account..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('modalAccount')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Account</button>
+          <button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalAccount')">Cancel</button>
+          <button type="submit" class="je-btn je-btn-emerald">Save Account</button>
         </div>
       </form>
     </div>
@@ -650,7 +1098,7 @@
 
   <!-- MODAL: ADD / EDIT SUB-ACCOUNT -->
   <div id="modalSubAccount" class="modal-backdrop">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-center account-editor-dialog">
       <div class="modal-header">
         <h4 id="modalSubAccountTitle">Add Sub-Account</h4>
         <button type="button" class="modal-close-x" onclick="closeModal('modalSubAccount')">&times;</button>
@@ -658,28 +1106,28 @@
       <form id="formSubAccount" onsubmit="handleSubAccountFormSubmit(event)">
         <input type="hidden" id="subAccountOrigCode" value="">
         <div class="modal-body">
-          <div class="form-group">
+          <div class="settings-field">
             <label for="subParentCode">Parent Account *</label>
-            <select id="subParentCode" required>
-              <!-- Injected dynamically from active chart of accounts -->
+            <select class="je-select clean-parent-select" id="subParentCode" required>
+              <!-- Populated automatically from chart of accounts -->
             </select>
           </div>
-          <div class="form-group">
+          <div class="settings-field">
             <label for="subCode">Sub-Account Code *</label>
-            <input type="text" id="subCode" required placeholder="e.g., 1000-01">
+            <input class="je-input" type="text" id="subCode" required placeholder="e.g., 1000-01">
           </div>
-          <div class="form-group">
+          <div class="settings-field">
             <label for="subName">Sub-Account Name *</label>
-            <input type="text" id="subName" required placeholder="e.g., Restaurant Cash Drawer">
+            <input class="je-input" type="text" id="subName" required placeholder="e.g., Restaurant Cash Drawer">
           </div>
-          <div class="form-group">
+          <div class="settings-field">
             <label for="subDesc">Description</label>
-            <textarea id="subDesc" rows="3" placeholder="Operational allocation details..."></textarea>
+            <textarea class="je-input" id="subDesc" rows="3" placeholder="Operational allocation details..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('modalSubAccount')">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Sub-Account</button>
+          <button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalSubAccount')">Cancel</button>
+          <button type="submit" class="je-btn je-btn-emerald">Save Sub-Account</button>
         </div>
       </form>
     </div>
@@ -703,7 +1151,58 @@
     </div>
   </div>
 
-  <!-- External controller script -->
+  <div id="modalUserAccess" class="modal-backdrop">
+    <div class="modal-dialog user-access-dialog">
+      <div class="modal-header"><h4 id="userAccessModalTitle">Add Sub-user</h4><button type="button" class="modal-close-x" onclick="closeModal('modalUserAccess')">&times;</button></div>
+      <form id="userAccessForm" onsubmit="saveUserAccess(event)">
+        <div class="modal-body">
+          <input type="hidden" id="userAccessId">
+          <div class="settings-form-grid">
+            <div class="settings-field"><label>Full Name *</label><input id="userAccessName" class="je-input" required></div>
+            <div class="settings-field"><label>Email *</label><input id="userAccessEmail" class="je-input" type="email" required></div>
+            <div class="settings-field"><label>Temporary Password</label><input id="userAccessPassword" class="je-input" type="password" minlength="8" placeholder="Required for a new user"></div>
+            <div class="settings-field"><label>User Type</label><select id="userAccessType" class="je-select"><option value="sub_user">Sub-user</option><option value="manager">Manager / Reviewer</option><option value="admin">Administrator</option></select></div>
+            <div class="settings-field"><label>Supervisor</label><select id="userAccessManager" class="je-select"><option value="">Primary administrator</option></select></div>
+            <div class="settings-field"><label>Job / Assignment</label><input id="userAccessJob" class="je-input" placeholder="e.g., Head Cook or Cashier"></div>
+          </div>
+          <h5 class="permission-heading">Module Access</h5>
+          <div id="userPermissionGrid" class="permission-grid"></div>
+          <div class="permission-special-grid">
+            <label class="settings-toggle"><input id="permissionApprove" type="checkbox"><span><strong>Approve Entries</strong></span></label>
+            <label class="settings-toggle"><input id="permissionDirectPost" type="checkbox"><span><strong>Post Directly</strong></span></label>
+            <label class="settings-toggle"><input id="permissionVoid" type="checkbox"><span><strong>Void and Adjust</strong></span></label>
+            <label class="settings-toggle"><input id="permissionExport" type="checkbox"><span><strong>Export Data</strong></span></label>
+          </div>
+          <h5 class="permission-heading">Staff Journal Accounts</h5>
+          <label class="settings-toggle"><input id="permissionAllowAnyAccount" type="checkbox" onchange="toggleAllowedAccountEditor()"><span><strong>Allow any active account</strong><small>Use this only for trusted users or temporary emergency access.</small></span></label>
+          <div id="userAccountAccessGrid" class="account-access-grid"></div>
+          <div class="settings-form-grid staff-mapping-grid">
+            <div class="settings-field"><label>For Money Out, use this payment / credit account</label><select id="defaultOutCreditAccount" class="je-select"></select></div>
+            <div class="settings-field"><label>For Money In, use this receipt / debit account</label><select id="defaultInDebitAccount" class="je-select"></select></div>
+          </div>
+          <div class="permission-special-grid">
+            <label class="settings-toggle"><input id="permissionAllowOut" type="checkbox" checked><span><strong>Allow Money Out</strong><small>Purchases, expenses, and cash advances.</small></span></label>
+            <label class="settings-toggle"><input id="permissionAllowIn" type="checkbox"><span><strong>Allow Money In</strong><small>Collections and income received.</small></span></label>
+          </div>
+          <div id="userAccessStatus" class="settings-inline-status"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalUserAccess')">Cancel</button><button type="submit" class="je-btn je-btn-emerald">Save User</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalSettingHelp" class="modal-backdrop no-print" role="dialog" aria-modal="true" aria-labelledby="settingHelpTitle">
+    <div class="modal-dialog modal-center setting-help-dialog">
+      <div class="modal-header"><h4 id="settingHelpTitle">Settings help</h4><button type="button" class="modal-close-x" onclick="closeModal('modalSettingHelp')">&times;</button></div>
+      <div class="modal-body"><div id="settingHelpContent" class="setting-help-content"></div></div>
+      <div class="modal-footer"><button type="button" class="je-btn je-btn-emerald" onclick="closeModal('modalSettingHelp')">I Understand</button></div>
+    </div>
+  </div>
+
+  <!-- Supabase browser client and project configuration -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <!-- Backbone Script Engine -->
   <script src="script.js"></script>
 </body>
 </html>
