@@ -1,0 +1,3 @@
+// Browser-safe Supabase connection. Never place a service_role key here.
+window.OJM_SUPABASE_URL = 'https://nhjsesfhapnjtwlxvirm.supabase.co';
+window.OJM_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oanNlc2ZoYXBuanR3bHh2aXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjUwNTUsImV4cCI6MjEwNTIwMTA1NX0.TVr46PrBacEweD1yts3WR5NOyZnpKFLZdEuSGJKfyO0';
