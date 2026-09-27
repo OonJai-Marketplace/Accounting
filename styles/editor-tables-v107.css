@@ -1,0 +1,70 @@
+/* Shared data-row geometry and clear selection; document page styling stays in its iframe. */
+:root{--app-data-row-height:32px;--app-selected:#ccebdd}
+body .tab-content:not(#document-editor105) table tbody tr:not(.audit-detail-row):not(.period-linked-finding){height:var(--app-data-row-height)!important}
+body .tab-content:not(#document-editor105) table tbody tr:not(.audit-detail-row):not(.period-linked-finding)>:is(td,th){padding-top:3px!important;padding-bottom:3px!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;vertical-align:middle}
+body .tab-content:not(#document-editor105) table tbody tr:not(.audit-detail-row):not(.period-linked-finding)>:is(td,th):not([rowspan]){height:var(--app-data-row-height)!important}
+body .tab-content:not(#document-editor105) table tbody :is(button,input,select){max-height:26px;box-sizing:border-box}
+body .tab-content:not(#document-editor105) table tbody tr.audit-detail-row>td{white-space:normal!important;height:auto!important}
+body :is(.tab-content,#journal) .clustered-journal-table tbody tr[data-entry-id]>td{background:#fffcf6!important}
+body :is(.tab-content,#journal) .clustered-journal-table tbody tr.entry-hover-line>td,body :is(.tab-content,#journal) .clustered-journal-table tbody tr.entry-hover-owner>td.entry-shared-cell{background:#eef6ef!important}
+body :is(.tab-content,#journal) .clustered-journal-table tbody tr.entry-selected-line>td,body :is(.tab-content,#journal) .clustered-journal-table tbody tr.entry-selected-owner>td.entry-shared-cell,
+body .tab-content table tbody tr:is(.table-selected107,.audit-selected101)>:is(td,th){background:var(--app-selected)!important;box-shadow:inset 0 1px #62b492,inset 0 -1px #62b492!important}
+body :is(.tab-content,#journal) .clustered-journal-table .transaction-review-actions{align-items:center!important;gap:3px!important;min-width:0!important}
+body :is(.tab-content,#journal) .clustered-journal-table .transaction-review-actions .je-btn{display:inline-flex!important;justify-content:center;align-items:center;width:46px!important;min-width:0!important;max-width:100%!important;height:24px!important;min-height:24px!important;padding:2px 5px!important;font-size:10.5px!important;line-height:1!important;border:1px solid #087c58!important;background:#fffdf7!important;color:#086447!important;border-radius:4px!important;box-shadow:none!important}
+body :is(.tab-content,#journal) .clustered-journal-table .transaction-review-actions .je-btn-danger{border-color:#b42318!important;color:#b42318!important;background:#fff8f7!important}
+body :is(.tab-content,#journal) .clustered-journal-table .transaction-review-actions .je-btn:hover{background:#e0f1e7!important}
+body :is(.tab-content,#journal) .clustered-journal-table .transaction-review-actions .je-btn-danger:hover{background:#ffe4df!important}
+body .journal-header-actions107{display:flex!important;align-items:center;gap:8px;flex:0 0 auto;margin-left:auto}
+body #journal .je-card-header:has(.journal-header-actions107){flex-wrap:wrap;align-items:center}
+body #journal .je-card-header>.inline-control69{margin-left:auto}
+body #journal .journal-header-actions107 .je-btn{white-space:nowrap}
+/* A single floating action belongs only to the visible workspace. */
+body .tab-content.active>.doc-source-action105{position:fixed;right:24px;bottom:20px;z-index:850;margin:0;max-width:calc(100vw - 36px)}
+body .doc-source-action105 button{background:#08694d!important;color:#fff!important;border:1px solid #07583f!important;box-shadow:0 3px 10px #123d3230;padding:9px 14px!important;border-radius:7px!important}
+body .tab-content:has(>.doc-source-action105){padding-bottom:64px!important}
+/* Monetary columns retain enough space for 10,000,000,000.00 plus a DR/CR marker. */
+body :is(#report-gl,#report-activity) .r79-table{overflow-x:auto!important}
+body :is(#report-gl,#report-activity) .r79-table table{table-layout:auto!important;min-width:1180px!important;width:100%!important}
+body :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(5),body :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(6){width:180px!important;min-width:180px!important;max-width:none!important;white-space:nowrap!important;overflow:visible!important}
+body :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(7){width:224px!important;min-width:224px!important;max-width:none!important;white-space:nowrap!important;overflow:visible!important}
+body #ledger69 .ledger-account69 table{table-layout:auto!important;min-width:1080px!important}
+body #ledger69 .ledger-account69 th:nth-child(4),body #ledger69 .ledger-account69 th:nth-child(5){width:180px!important;min-width:180px!important}
+body #ledger69 .ledger-account69 th:nth-child(6){width:224px!important;min-width:224px!important}
+body #ledger69 .ledger-account69 td:has(.balance-value105){min-width:210px!important;overflow:visible!important}
+body .balance-value105{grid-template-columns:27px minmax(160px,1fr)!important}
+/* Compact Word-style ribbon with separate horizontal tabs. */
+body #document-editor105 .doc-title105{justify-content:space-between;align-items:center;flex-wrap:nowrap;margin-bottom:10px}
+body #document-editor105 h2{margin:0!important;white-space:nowrap}
+body #document-editor105 .doc-name107{width:min(420px,50%);font-size:10px}
+body #document-editor105 .doc-name107 input{width:100%!important;min-width:0!important;font-size:14px}
+body #document-editor105 .doc-actions105{padding:6px 0;gap:6px}
+body #document-editor105 #docImport105{width:210px!important;min-width:0!important;font-size:11px}
+body #document-editor105 .doc-ribbon107{border:1px solid #bdd0bf;border-radius:5px;overflow:hidden;margin:8px 0;background:#f4f7f1}
+body #document-editor105 .doc-tabs107{display:flex;gap:3px;border-bottom:1px solid #bdd0bf;overflow-x:auto;background:#fffdf7;padding:0 6px}
+body #document-editor105 .doc-tabs107 button{border:0;border-bottom:3px solid transparent;border-radius:0;background:transparent;white-space:nowrap;padding:8px 12px}
+body #document-editor105 .doc-tabs107 button[aria-selected=true]{border-bottom-color:#087c58;background:#e3f0e6;font-weight:700}
+body #document-editor105 [role=tabpanel][hidden]{display:none!important}
+body #document-editor105 [role=tabpanel]{padding:8px}
+body #document-editor105 .doc-toolbar105{border:0;background:transparent;margin:0;padding:0;gap:12px;align-items:stretch}
+body #document-editor105 .doc-group107{display:flex;flex-direction:column;gap:5px;border-right:1px solid #c9d6c9;padding-right:12px}
+body #document-editor105 .doc-group107:last-child{border-right:0}
+body #document-editor105 .doc-group107>div{display:flex;gap:4px;align-items:center}
+body #document-editor105 .doc-group107 small{font-size:10px;text-align:center;color:#5e7065;margin-top:auto;padding-top:4px}
+body #document-editor105 .doc-group107 label{min-width:0}
+body #document-editor105 .doc-icon107{display:inline-flex;align-items:center;justify-content:center;width:30px!important;height:30px!important;min-height:30px!important;padding:4px!important;background:transparent;border-color:transparent}
+body #document-editor105 .doc-icon107:hover{border-color:#a3c6b0;background:#dceee1}
+body #document-editor105 .doc-icon107 svg{width:20px;height:20px;pointer-events:none}
+body #document-editor105 .doc-color107{width:30px!important;min-width:30px!important;position:relative;display:flex;align-items:center;justify-content:center;height:30px;gap:0;font-size:16px;font-weight:bold}
+body #document-editor105 .doc-color107 input[type=color]{width:26px!important;height:9px!important;min-height:9px!important;padding:0!important;border:0;cursor:pointer}
+body #document-editor105 .doc-options105{padding-top:0;gap:9px}
+body #document-editor105 .doc-options105 label{font-size:11px}
+@media(max-width:767px){body .tab-content.active>.doc-source-action105{right:14px;bottom:76px}body #document-editor105 .doc-title105{flex-wrap:wrap}body #document-editor105 .doc-name107{width:100%}body #document-editor105 .doc-tabs107 button{padding:7px 9px}}
+@media print{body .doc-source-action105,body .journal-header-actions107{display:none!important}}
+body :is(#report-gl,#report-activity) .r79-table table{table-layout:fixed!important;min-width:1140px!important}
+body :is(#report-gl,#report-activity) .r79-table th:nth-child(1){width:94px!important}
+body :is(#report-gl,#report-activity) .r79-table th:nth-child(2){width:95px!important}
+body :is(#report-gl,#report-activity) .r79-table th:nth-child(3){width:185px!important}
+body .tab-content:not(#document-editor105) table tbody :is(button,input:not([type=checkbox]):not([type=radio]),select){min-height:24px!important;height:24px!important;max-height:24px!important}
+body .tab-content:not(#document-editor105) table details.row-menu99{margin:0!important;vertical-align:middle;line-height:1}
+body #journal #jeLinesBody td.action-col{padding-top:3px!important;padding-bottom:3px!important}
+body #journal #jeLinesBody td{overflow:visible!important}

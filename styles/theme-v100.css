@@ -1,0 +1,65 @@
+/* The approved Ivory & Emerald palette. Retain accounting/status colors and flat geometry. */
+:root{
+  --bg-workspace:#f6f1e7;
+  --surface-white:#fffcf6;
+  --text-main:#21382d;
+  --text-muted:#4b6055;
+  --border-subtle:#dce5d9;
+  --border-strong:#bbcec0;
+  --border-focus:#008563;
+  --primary:#008563;
+  --primary-hover:#006c51;
+  --sidebar-bg:#074532;
+  --sidebar-border:#0b523c;
+  --sidebar-active:#12654d;
+  --sidebar-text:#f0f7ef;
+  --sidebar-muted:#b9d4c4;
+  --oj-table-emerald:#008563;
+  --oj-primary-emerald:#008563;
+}
+body,body .main-content-area,body .workspace-scroll{background:#f6f1e7;color:#21382d}
+body .sidebar,body #appSidebar{background:#074532!important;border-color:#0b523c!important}
+body .sidebar-brand,body .sidebar-user-footer{background:#053b2c!important}
+body #appSidebar .nav-header{display:flex!important;justify-content:flex-start!important;gap:11px!important;color:#eef6ee!important;text-transform:none!important;font-size:12.5px!important;letter-spacing:0!important;padding:10px 15px!important;min-height:39px!important}
+body #appSidebar .nav-header .arrow{margin-left:auto}
+body #appSidebar .nav-icon100{display:block;flex:0 0 17px;width:17px;height:17px;color:#e6f3e9}
+body #appSidebar .nav-category.active-category>.nav-header{background:#125d46!important;color:#fff!important;box-shadow:inset 3px 0 #c5a15a!important}
+body #appSidebar .nav-category.active-category>.nav-header .nav-icon100{color:#fff}
+body #appSidebar .tab-btn.active{background:#12654d!important}
+body #appSidebar .nav-header:focus-visible,body .category-tab:focus-visible{outline:2px solid #d7b878;outline-offset:-2px}
+body .category-tab-shell,body #categoryTabShell{background:#fffcf6!important;border-color:#e5e8df!important}
+body .category-tab.active::after{background:#c5a15a!important;box-shadow:none!important}
+body #transactionsHeading98{background:#f6f1e7!important}
+body #transactionsHeading98 h1{color:#174f3d!important}
+body .module-header{background:#fffcf6!important}
+body :is(.je-card,.module-card,.settings-section-card,.system-printing-panel,.work82,.pay-group95,.archive-month,.ledger-account71,.table-module85){background-color:#fffcf6;border-color:#cbdcd0}
+body :is(.je-card,.module-card,.settings-section-card,.system-printing-panel){border-top-color:#008563!important}
+body :is(.je-card,.module-card,.settings-section-card) {box-shadow:0 2px 10px rgba(22,66,47,.045)}
+body :is(.je-card,.module-card,.settings-section-card,.work82) h2,body :is(.je-card,.module-card,.settings-section-card,.work82) h3{color:#164936}
+body .content-page-heading h2{color:#164936}
+body :is(table thead th,.je-table thead th,.clustered-journal-table thead th,.audit-compare-table th,.final-scroll-table th){background:#008563!important;color:#fff!important;border-color:#26866b!important}
+body :is(.je-table,.clustered-journal-table,.data-table82 table,.audit-table98) tbody td{border-color:#d5dfd5!important;color:#21382d}
+body #journal .clustered-journal-table tbody tr.alt-transaction100>td{background:#e7efe6!important}
+body #journal .clustered-journal-table tbody tr:not(.alt-transaction100)>td{background:#fffcf6!important}
+body #journal .clustered-journal-table tbody tr:is(.entry-selected-line,.entry-hover-line)>td{background:#d8e9da!important}
+body :is(input:not([type=checkbox]):not([type=radio]),textarea,select){border-color:#bacdbf}
+body :is(input:not([type=checkbox]):not([type=radio]),textarea,select):focus-visible{outline-color:#008563}
+body .je-btn-emerald,body .primary82,body #addEntry98{background:#008563!important;border-color:#008563!important;color:#fff!important}
+body .je-btn-emerald:hover,body .primary82:hover,body #addEntry98:hover{background:#006e54!important}
+body .sidebar-user-footer .header-account-dropdown{background:#fffcf6!important;border-color:#b7cbbd!important;border-top-color:#008563!important;box-shadow:0 10px 32px rgba(3,37,25,.18)!important}
+body .sidebar-user-footer .header-menu-item:hover{background:#e7efe6!important}
+/* Marble-like balls share a circular track; their pulses deliberately fall out of sync. */
+body #loginProgress99 .orbital-marbles100{width:66px;height:66px;margin:0 auto;position:relative;animation:orbital-track100 2.2s linear infinite}
+body #loginProgress99 .orbital-marbles100>i{position:absolute;left:31px;top:31px;display:block;width:4px;height:4px;transform:rotate(calc(var(--i)*60deg)) translateY(-26px)}
+body #loginProgress99 .orbital-marbles100>i>b{display:block;width:8px;height:8px;border-radius:50%;background:#008563;box-shadow:0 1px 3px rgba(0,96,69,.22);animation:marble-pulse100 var(--duration,1s) ease-in-out infinite alternate;animation-delay:var(--delay,0s)}
+body #loginProgress99 .orbital-marbles100>i:nth-child(1)>b{--duration:.78s;--delay:-.13s}
+body #loginProgress99 .orbital-marbles100>i:nth-child(2)>b{--duration:1.16s;--delay:-.6s}
+body #loginProgress99 .orbital-marbles100>i:nth-child(3)>b{--duration:.94s;--delay:-.34s}
+body #loginProgress99 .orbital-marbles100>i:nth-child(4)>b{--duration:1.38s;--delay:-.91s}
+body #loginProgress99 .orbital-marbles100>i:nth-child(5)>b{--duration:1.03s;--delay:-.48s}
+body #loginProgress99 .orbital-marbles100>i:nth-child(6)>b{--duration:1.27s;--delay:-1.13s}
+body #loginProgress99{color:#075b43!important;gap:3px}
+@keyframes orbital-track100{to{transform:rotate(360deg)}}
+@keyframes marble-pulse100{0%{transform:scale(.65);opacity:.58}100%{transform:scale(1.7);opacity:1}}
+@media(prefers-reduced-motion:reduce){body #loginProgress99 .orbital-marbles100,body #loginProgress99 .orbital-marbles100>i>b{animation:none!important}body #loginProgress99 .orbital-marbles100>i>b{transform:scale(1)}}
+@media print{body,body .workspace-scroll,body .main-content-area{background:#fff!important;color:#000!important}}
