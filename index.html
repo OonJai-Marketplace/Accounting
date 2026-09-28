@@ -776,12 +776,7 @@
           <section id="userEntryHistoryPanel" class="settings-section-card submission-history-panel" hidden><div class="settings-section-header"><div><h4>Submission History</h4><p>Posted, returned, and adjusted batches remain available for comparison and audit.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="toggleSubmissionHistory(false)">Close History</button></div><div id="userEntryHistoryCards" class="submission-review-cards"></div></section>
         </div>
 
-        <div id="dashboard" data-module="dashboard" class="tab-content active">
-          <div class="panel form-row no-print">
-            <div class="form-group"><label>Time Grouping:</label><select id="chartTimeScale" onchange="updateChart()"><option value="monthly" selected>Monthly</option></select></div>
-          </div>
-          <div class="panel" style="height: 400px;"><canvas id="summaryChart"></canvas></div>
-        </div>
+        <div id="dashboard" data-module="dashboard" class="tab-content active"><div class="dash-loading112">Loading dashboard…</div></div>
         <div id="transactions-recurring" data-module="transactions" class="tab-content">
   <div class="je-card no-print">
     <div class="je-card-header">
@@ -1252,7 +1247,7 @@
 <script src="scripts/transactions-v67.js?v=110"></script>
 <script src="scripts/accounts-v69.js?v=110"></script>
 <script src="scripts/review-v69.js?v=110"></script>
-<script src="scripts/interface-v69.js?v=111"></script>
+<script src="scripts/interface-v69.js?v=110"></script>
 <script src="scripts/reports-system-v71.js?v=110"></script>
 <script src="scripts/transactions-mobile-v72.js?v=110"></script>
 <script src="scripts/mobile-polish-v73.js?v=110"></script>
@@ -1265,7 +1260,7 @@
 <script src="scripts/payroll-engine-v82.js?v=110"></script>
 <script src="scripts/payroll-reports-v82.js?v=110"></script>
 <script src="scripts/payroll-samples-v83.js?v=110"></script>
-<script src="scripts/payroll-fixes-v83.js?v=111"></script>
+<script src="scripts/payroll-fixes-v83.js?v=110"></script>
 <script src="scripts/desktop-polish-v84.js?v=110"></script>
 <script src="scripts/layout-fixes-v85.js?v=110"></script>
 <script src="scripts/layout-consistency-v87.js?v=110"></script>
@@ -1274,7 +1269,7 @@
 <link rel="stylesheet" href="styles/prefixes-badges-v89.css?v=110">
 <script src="scripts/prefixes-badges-v89.js?v=110"></script>
 <link rel="stylesheet" href="styles/scheduled-journals-v91.css?v=110">
-<script src="scripts/scheduled-journals-v91.js?v=111"></script>
+<script src="scripts/scheduled-journals-v91.js?v=110"></script>
 <link rel="stylesheet" href="styles/refinements-v93.css?v=110">
 <script src="scripts/refinements-v93.js?v=110"></script>
 <link rel="stylesheet" href="styles/settings-payroll-v94.css?v=110">
@@ -1287,7 +1282,7 @@
 <script src="scripts/transactions-v98.js?v=110"></script>
 <link rel="stylesheet" href="styles/workspace-v99.css?v=110">
 <script src="scripts/payroll-v99.js?v=110"></script>
-<script src="scripts/workspace-v99.js?v=110"></script>
+<script src="scripts/workspace-v99.js?v=112"></script>
 <script src="scripts/hr-v99.js?v=110"></script>
 <link rel="stylesheet" href="styles/theme-v100.css?v=110">
 <script src="scripts/theme-v100.js?v=110"></script>
@@ -1302,24 +1297,28 @@
 <script src="scripts/header-profile-v104.js?v=110"></script>
 <script src="scripts/shortnames-v104.js?v=110"></script>
 <link rel="stylesheet" href="styles/inventory-menu-v104.css?v=110">
-<script src="scripts/inventory-menu-v104.js?v=110"></script>
+<script src="scripts/inventory-menu-v104.js?v=112"></script>
 <link rel="stylesheet" href="styles/refinements-v105.css?v=110">
 
 <script src="scripts/refinements-v105.js?v=110"></script>
 <link rel="stylesheet" href="styles/document-editor-v105.css?v=110">
 <script src="assets/vendor/docx.js?v=110"></script>
 <script src="scripts/document-export-v108.js?v=110"></script>
-<script src="scripts/document-editor-v105.js?v=111"></script>
+<script src="scripts/document-editor-v105.js?v=112"></script>
 <link rel="stylesheet" href="styles/refinements-v106.css?v=110">
 <link rel="stylesheet" href="styles/editor-tables-v107.css?v=110">
 <script src="scripts/editor-tables-v107.js?v=110"></script>
 <link rel="stylesheet" href="styles/shared-v108.css?v=110">
-<script src="scripts/shared-v108.js?v=110"></script>
+<script src="scripts/shared-v108.js?v=112"></script>
 <script src="scripts/menu-v108.js?v=110"></script>
 <link rel="stylesheet" href="styles/refinements-v109.css?v=110">
 <script src="scripts/refinements-v109.js?v=110"></script>
 <script src="scripts/item-icons-v109.js?v=110"></script>
-<link rel="stylesheet" href="styles/editor-fixes-v110.css?v=111">
+<link rel="stylesheet" href="styles/editor-fixes-v110.css?v=110">
 <script src="scripts/visual-consistency-v110.js?v=110"></script>
+<link rel="stylesheet" href="styles/dashboard-warm-v112.css?v=112">
+<script src="scripts/dashboard-warm-v112.js?v=112"></script>
+<script src="scripts/header-icons-v112.js?v=112"></script>
+<script src="scripts/keyboard-picking-v112.js?v=112"></script>
 </body>
 </html>
