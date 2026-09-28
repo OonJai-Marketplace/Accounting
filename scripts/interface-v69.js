@@ -56,7 +56,7 @@ function polish69(){
  document.querySelectorAll('#reminderUnit, #recurringReminderRows select, .recurring-reminder-row select, .reminder-row select').forEach(n=>{n.style.width=`${Math.max(12,(n.selectedOptions[0]?.textContent.length||10)+4)}ch`});
  document.querySelectorAll('.v49-adjust-body input[id^="v49Adj-"]').forEach(n=>{n.classList.add('adjustment-input69');n.placeholder='Enter corrected amount';n.setAttribute('aria-label','New actual amount');});
  document.querySelectorAll('.v56-balance-formula>strong').forEach(n=>{if(!n.dataset.labeled){n.textContent='Tracked balance: '+n.textContent.replace(/^=\s*/,'');n.dataset.labeled='1'}});
- document.querySelectorAll('table thead th').forEach(n=>n.style.setProperty('text-align','left','important'));
+ document.querySelectorAll('table thead th').forEach(n=>n.style.setProperty('text-align',n.closest('#sub-users-workspace')?'center':'left','important'));
  document.querySelectorAll('table tbody td,table tbody th,table tfoot td,table tfoot th,table tbody input').forEach(n=>n.style.setProperty('text-align','left','important'));
  sizeCurrencyTables69();editHighlight69();
 }
