@@ -17,7 +17,110 @@ body #categoryTabShell{position:relative;padding-bottom:9px!important}body #cate
 @media(max-width:767px){body .ledger-aligned85.collapse109>.ledger-summary71{grid-template-columns:minmax(90px,1fr) repeat(3,minmax(60px,.4fr)) 35px!important}body .settings-action-bar{flex-direction:row!important;align-items:center!important}body .settings-action-bar .settings-action-spacer{display:none}body .settings-action-bar>div{margin-left:auto}body #categoryTabShell{padding-bottom:10px!important}}
 body .tab-content:not(#document-editor105) table td button{min-height:22px;padding:2px 6px}body .tab-content:not(#document-editor105) table th{font-size:11px!important}body #docPanel107-2 .doc-value110 input{min-width:0!important}body #document-editor105 .doc-insert-tab110 button{overflow:visible!important}body .ui-overlay108{align-items:center!important;justify-content:center!important}body .ui-dialog108{margin:0!important;max-height:calc(100dvh - 32px)!important}body .ui-dialog108 .ui-body108{overflow:auto}
 body #document-editor105 #docPanel107-2 .doc-options105{grid-template-columns:repeat(auto-fit,minmax(108px,1fr))!important}body #document-editor105 #docPanel107-2>[class]>button{height:28px!important;min-height:28px!important;padding:3px 7px!important;font-size:11px!important}body .tab-content:not(#document-editor105) input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]):not(table input),body .tab-content:not(#document-editor105) select:not(table select){height:32px!important;min-height:32px!important}body .r79 .r79-table{overflow-x:auto!important}
-@media(min-width:1025px){body .ledger-aligned85.collapse109>.ledger-summary71{grid-template-columns:repeat(3,minmax(105px,.32fr)) 60px minmax(180px,1fr)!important}body .ledger-aligned85>.ledger-summary71>.ledger-identity85{grid-column:5;grid-row:1;justify-content:flex-end!important;text-align:right!important}body .ledger-aligned85>.ledger-summary71>.ledger-stat71:nth-child(2){grid-column:1;grid-row:1}body .ledger-aligned85>.ledger-summary71>.ledger-stat71:nth-child(3){grid-column:2;grid-row:1}body .ledger-aligned85>.ledger-summary71>.ledger-stat71:nth-child(4){grid-column:3;grid-row:1}body .ledger-aligned85>.ledger-summary71>.ledger-meta85{grid-column:4;grid-row:1}body .ledger-identity85>.ledger-name71{text-align:right!important}}
+/* Ledger identity leads the summary; totals follow in reading order. */
+@media(min-width:1025px){
+ body .ledger-aligned85.collapse109>.ledger-summary71{grid-template-columns:minmax(230px,1fr) repeat(3,minmax(120px,.42fr)) 70px!important}
+ body .ledger-aligned85>.ledger-summary71>.ledger-identity85{grid-column:1;grid-row:1;justify-content:flex-start!important;text-align:left!important}
+ body .ledger-aligned85>.ledger-summary71>.ledger-stat71:nth-child(2){grid-column:2;grid-row:1}
+ body .ledger-aligned85>.ledger-summary71>.ledger-stat71:nth-child(3){grid-column:3;grid-row:1}
+ body .ledger-aligned85>.ledger-summary71>.ledger-stat71:nth-child(4){grid-column:4;grid-row:1}
+ body .ledger-aligned85>.ledger-summary71>.ledger-meta85{grid-column:5;grid-row:1}
+ body .ledger-identity85>.ledger-name71{text-align:left!important}
+}
 @media(max-width:1024px){body .ledger-aligned85.collapse109>.ledger-summary71{display:flex!important;flex-wrap:wrap!important;gap:6px!important;padding:8px 10px 8px 24px!important}body .ledger-aligned85>.ledger-summary71>.ledger-name71{flex:1 1 calc(100% - 48px)}body .ledger-aligned85>.ledger-summary71>.ledger-stat71{flex:1 1 20%;padding:4px!important;font-size:10px!important}}
 @media(min-width:1200px){body #document-editor105 .doc-ribbon107 .doc-toolbar105{flex-wrap:nowrap!important}body #document-editor105 .doc-ribbon107 .doc-toolbar105 .doc-group107{box-sizing:border-box!important;min-width:0!important;padding-left:8px!important;padding-right:8px!important}body #document-editor105 .doc-ribbon107 .doc-toolbar105 .doc-group107:nth-child(2){flex:1 1 210px!important;max-width:260px!important}body #document-editor105 .doc-ribbon107 .doc-toolbar105 [data-format=fontName]{width:125px!important;min-width:0!important;max-width:100%!important}body #document-editor105 .doc-ribbon107 .doc-toolbar105 [data-style=fontSize]{width:55px!important;min-width:0!important}body #document-editor105 .doc-ribbon107 .doc-toolbar105 .doc-group107:nth-child(5){flex:0 0 114px!important;min-width:114px!important}body #document-editor105 .doc-ribbon107 .doc-toolbar105 .doc-group109{box-sizing:border-box!important;flex:0 0 170px!important;width:170px!important;min-width:170px!important;padding:2px 8px!important}}
 body .custom-alert-overlay{display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;box-sizing:border-box}body .custom-alert-box{position:relative!important;top:auto!important;left:auto!important;transform:none!important;margin:0!important;max-width:min(460px,calc(100vw - 32px))!important;background:#fffcf6!important;color:#214737!important;border-radius:6px!important;font-family:'Plus Jakarta Sans',Arial,sans-serif!important}body .custom-alert-box p,body .custom-alert-box button{font:12px 'Plus Jakarta Sans',Arial,sans-serif!important}body .custom-alert-box p{color:#355342!important}body .custom-alert-box h3{font-family:inherit!important;font-size:15px!important}
+
+/* The editable cells must grow with their content, including long descriptions. */
+body #sub-users-workspace .v49-desktop-entry-scroll{overflow-x:auto!important}
+body #sub-users-workspace .v49-desktop-entry-scroll table{min-width:960px!important;table-layout:fixed!important}
+body #sub-users-workspace .v49-desktop-entry-scroll th:nth-child(1){width:115px!important}
+body #sub-users-workspace .v49-desktop-entry-scroll th:nth-child(2){width:100px!important}
+body #sub-users-workspace .v49-desktop-entry-scroll th:nth-child(3){width:96px!important}
+body #sub-users-workspace .v49-desktop-entry-scroll th:nth-child(4){width:17%!important}
+body #sub-users-workspace .v49-desktop-entry-scroll th:nth-child(5){width:16%!important}
+body #sub-users-workspace .v49-desktop-entry-scroll th:nth-child(6){width:auto!important}
+body #sub-users-workspace .v49-desktop-entry-scroll th:nth-child(7){width:112px!important}
+body #sub-users-workspace .v49-desktop-entry-scroll :is(th,td):last-child{width:60px!important;min-width:60px!important;max-width:60px!important;padding:3px!important}
+body #sub-users-workspace .v49-desktop-entry-scroll td{height:auto!important;vertical-align:top!important;padding:4px 5px!important;line-height:1.4!important}
+body .tab-content#sub-users-workspace .v49-desktop-post .v49-desktop-entry-scroll table tbody td button.v49-desktop-cell{
+ display:block!important;height:auto!important;min-height:24px!important;max-height:none!important;
+ width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;
+ padding:2px 3px!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;
+ overflow-wrap:anywhere!important;line-height:1.4!important;-webkit-line-clamp:unset!important;font-size:12px!important;
+}
+body #sub-users-workspace .v49-desktop-entry-scroll td:nth-child(2) .v49-desktop-cell,
+body #sub-users-workspace .v49-desktop-entry-scroll td:nth-child(7) .v49-desktop-cell{white-space:nowrap!important}
+body #sub-users-workspace .v49-desktop-entry-scroll button.v49-desktop-cell:focus-visible{outline:2px solid #087457;outline-offset:-1px;background:#eef6ef!important}
+body #sub-users-workspace :is(.v49-desktop-entry-scroll,.v49-desktop-home-table,.v49-totals) th{text-align:center!important;vertical-align:middle!important;padding:6px 5px!important;line-height:1.3!important}
+body #sub-users-workspace :is(.v49-desktop-home-table,.v49-totals) td{height:auto!important;white-space:normal!important;overflow-wrap:anywhere;line-height:1.4!important;padding:5px 7px!important}
+body #sub-users-workspace .v49-desktop-fund-row>.action{display:grid!important;grid-template-rows:26px 28px!important;align-content:end!important;justify-items:center!important;gap:4px!important;padding:6px!important;min-width:70px!important}
+body #sub-users-workspace .v49-desktop-fund-row>.action>button:last-child{grid-row:2;min-height:28px!important;height:28px!important;padding:3px 7px!important}
+body #sub-users-workspace .v49-desktop-fund-row>.action>.v49-approved-adjustment{grid-row:1;min-height:26px!important;height:26px!important;padding:2px 7px!important}
+
+/* Summary cards keep a clear title, compact status, and aligned figures. */
+body #scheduledJournals91 .schedule-list91{padding:12px!important}
+body #scheduledJournals91 .schedule-card91{margin:0 0 8px!important;max-width:100%!important}
+body #scheduledJournals91 .schedule-card91>summary{display:grid!important;grid-template-columns:minmax(180px,1fr) 85px 135px 110px 105px!important;gap:10px!important;padding:8px 12px 8px 26px!important;min-height:48px!important}
+body #scheduledJournals91 .schedule-card91>summary :is(strong,b){font-size:12px!important;line-height:1.35!important}
+body #scheduledJournals91 .schedule-card91>summary small{font-size:11px!important;color:#4c6458!important;line-height:1.35!important}
+body #scheduledJournals91 .schedule-status108{justify-self:start;padding:3px 6px!important}
+body #scheduledJournals91 .schedule-content91{padding:10px!important}
+body #scheduledJournals91 .schedule-inner91{margin:0 0 8px!important;border-radius:4px!important}
+body #scheduledJournals91 .schedule-inner91>header{padding:7px 9px!important;gap:10px;align-items:center;flex-wrap:wrap}
+body #scheduledJournals91 .schedule-inner91>header small{color:#50685b!important;font-size:11px!important}
+body #scheduledJournals91 .schedule-inner91>p{margin:5px 0!important;padding:0 9px!important;font-size:12px!important;line-height:1.4!important}
+body #scheduledJournals91 .schedule-actions91{gap:6px!important}
+body #user-entry-review .final-record-card>summary{min-height:44px!important;padding:8px 12px 8px 26px!important}
+body #user-entry-review .final-record-card>summary :is(strong,b){font-size:12px!important;line-height:1.4!important}
+body #user-entry-review .final-record-card>summary :is(small,span){line-height:1.4!important}
+body #user-entry-review .final-record-card>summary small{font-size:11px!important;color:#50685b!important}
+
+/* The expansion marker is a narrow control next to the record, with readable rows. */
+body #auditMonths98 .audit-table98{table-layout:fixed!important;min-width:760px!important}
+body #auditMonths98 .audit-table98 th:nth-child(1){width:28px!important;min-width:28px!important}
+body #auditMonths98 .audit-table98 th:nth-child(2){width:160px!important}
+body #auditMonths98 .audit-table98 th:nth-child(3){width:150px!important}
+body #auditMonths98 .audit-table98 th:nth-child(4){width:130px!important}
+body #auditMonths98 .audit-table98 th:nth-child(5){width:auto!important}
+body #auditMonths98 .audit-table98 th:nth-child(6){width:120px!important}
+body #auditMonths98 .audit-table98 :is(th,td){padding:6px 8px!important;line-height:1.4!important;white-space:normal!important;overflow-wrap:anywhere!important;vertical-align:top!important}
+body #auditMonths98 .audit-table98 :is(th,td):first-child{padding:6px 3px!important;text-align:center!important}
+body #auditMonths98 .audit-month98>summary{padding-left:26px!important}
+body #auditMonths98 .audit-month98>summary small{font-size:11px!important}
+body #auditMonths98 .audit-month98>summary :is(strong,b){font-size:12px!important}
+
+/* Page setup uses labelled groups so every value and its unit stay together. */
+body #document-editor105 #docPanel107-2 .doc-options105{display:grid!important;grid-template-columns:minmax(190px,1fr) minmax(160px,.85fr) minmax(280px,1.5fr) minmax(115px,.65fr)!important;gap:8px!important;padding:6px!important;align-items:stretch!important}
+body #document-editor105 #docPanel107-2 .doc-page-group111{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px 8px;margin:0;padding:6px 8px 8px;border:1px solid #c6d5c7;border-radius:4px;min-width:0;align-content:start}
+body #document-editor105 #docPanel107-2 .doc-page-group111:nth-child(3){grid-template-columns:repeat(3,minmax(0,1fr))}
+body #document-editor105 #docPanel107-2 .doc-page-group111:last-child{grid-template-columns:1fr}
+body #document-editor105 #docPanel107-2 .doc-page-group111 legend{font-size:11px;font-weight:700;color:#17543d;padding:0 4px}
+body #document-editor105 #docPanel107-2 .doc-page-group111 label{font-size:11px!important;line-height:1.3!important;gap:3px!important}
+body #document-editor105 #docPanel107-2 .doc-page-group111 :is(input,select){font-size:12px!important;height:29px!important;min-height:29px!important}
+body #document-editor105 #docPanel107-2 .doc-page-group111 input[type=checkbox]{height:15px!important;min-height:15px!important}
+body #document-editor105 #docPanel107-2 .doc-value110>span{font-size:11px!important;color:#50685b}
+body #document-editor105 #docPanel107-2 .doc-page-group111 button{height:28px!important;min-height:28px!important;font-size:11px!important;padding:3px 7px!important}
+body #categoryTabShell .tab-scroll110{height:3px!important;width:144px!important}
+@media(max-width:1200px){
+ body #document-editor105 #docPanel107-2 .doc-options105{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body #scheduledJournals91 .schedule-card91>summary{grid-template-columns:minmax(150px,1fr) 75px 120px 95px 85px!important;gap:6px!important}
+}
+@media(max-width:767px){
+ body #document-editor105 #docPanel107-2 .doc-options105{grid-template-columns:1fr!important}
+ body #scheduledJournals91 .schedule-card91>summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body #scheduledJournals91 .schedule-identity91{grid-column:1/-1}
+}
+
+/* Keep ledger cards inset and review descriptions readable within their tables. */
+body #sec-general-ledger .ledger-account69{margin:10px 12px!important;width:calc(100% - 24px)!important;box-sizing:border-box!important}
+body #user-entry-review .final-source-table table{width:100%!important;min-width:760px!important;table-layout:fixed!important}
+body #user-entry-review .final-source-table :is(th,td){white-space:normal!important;overflow-wrap:anywhere!important;min-width:0!important;max-width:none!important;height:auto!important;padding:6px 8px!important;line-height:1.4!important;text-align:left!important}
+body #user-entry-review .final-source-table th:nth-child(1){width:110px!important}
+body #user-entry-review .final-source-table th:nth-child(2){width:100px!important}
+body #user-entry-review .final-source-table th:nth-child(3){width:24%!important}
+body #user-entry-review .final-source-table th:nth-child(4){width:auto!important}
+body #user-entry-review .final-source-table th:nth-child(5){width:110px!important}
+body #user-entry-review .final-source-table :is(th,td):last-child{text-align:right!important}
+body #user-entry-review .final-source-table td :is(span,strong,b,small,div){white-space:normal!important;overflow:visible!important;text-overflow:clip!important;max-width:100%!important;overflow-wrap:anywhere!important}
+body .tab-content#user-entry-review .final-record-card .final-record-content .final-source-table table tbody td{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere!important;height:auto!important;max-height:none!important}
