@@ -62,7 +62,7 @@ changePeriodStatus=async function(next){
   if(next==='open'){
     if(PeriodReview.status(m)==='open')return;
     if(liveProfile&&liveProfile.role!=='admin'){showAppNotification('Administrator Required','An administrator must reopen this book.',true);return}
-    reason=prompt('Reason for reopening this book:')?.trim();if(!reason)return;
+    reason=(await ui117.prompt('Reason for reopening this book:'))?.trim();if(!reason)return;
   }
   const saved=await statusBefore67(next);
   if(saved===false)return false;

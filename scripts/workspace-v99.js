@@ -37,7 +37,7 @@ function menu(cell){
  if(!cell.querySelector('button,[onclick]'))return;
  const details=document.createElement('details');details.className='row-menu99';const summary=document.createElement('summary');summary.textContent='⋯';summary.setAttribute('aria-label','Row actions');const panel=document.createElement('div');panel.className='row-menu-panel99';
  while(cell.firstChild)panel.append(cell.firstChild);details.append(summary,panel);cell.append(details);
- details.addEventListener('toggle',()=>{if(!details.open)return;document.querySelectorAll('.row-menu99[open]').forEach(d=>{if(d!==details)d.open=false});requestAnimationFrame(()=>{if(!details.open)return;const r=summary.getBoundingClientRect(),width=Math.min(260,Math.max(180,panel.scrollWidth)),height=Math.min(panel.scrollHeight,innerHeight-16);panel.style.left=Math.max(8,Math.min(innerWidth-width-8,r.right-width))+'px';panel.style.top=(r.bottom+height+5<=innerHeight-8?r.bottom+5:Math.max(8,r.top-height-5))+'px'})});
+ details.addEventListener('toggle',()=>{if(!details.open)return;document.querySelectorAll('.row-menu99[open]').forEach(d=>{if(d!==details)d.open=false});requestAnimationFrame(()=>{if(!details.open)return;const r=summary.getBoundingClientRect(),width=Math.min(180,Math.max(74,panel.getBoundingClientRect().width)),height=Math.min(panel.scrollHeight,innerHeight-16);panel.style.left=Math.max(8,Math.min(innerWidth-width-8,r.right-width))+'px';panel.style.top=(r.bottom+height+5<=innerHeight-8?r.bottom+5:Math.max(8,r.top-height-5))+'px'})});
  panel.addEventListener('click',e=>{if(e.target.closest('button'))details.open=false});
 }
 function updateHeading(){

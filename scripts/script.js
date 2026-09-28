@@ -414,7 +414,7 @@ async function downloadLegalDocument(id) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 async function deleteLegalDocument(id) {
-  if (!confirm('Delete this legal document from this browser?')) return;
+  if (!await ui117.confirm('Delete this legal document from this browser?')) return;
   await legalDocTransaction('readwrite', (store, resolve, reject) => {
     const req = store.delete(id); req.onsuccess = () => resolve(); req.onerror = () => reject(req.error);
   });
@@ -437,11 +437,11 @@ const CurrencyStore = {
   add(code, name, symbol) {
     const cleanCode = code.toUpperCase().trim();
     if (!cleanCode || !name.trim()) {
-      alert("Please provide both Currency Code and Name.");
+      showAppNotification('Notice',"Please provide both Currency Code and Name.");
       return;
     }
     if (this.currencies.some(c => c.code === cleanCode)) {
-      alert(`Currency ${cleanCode} already exists.`);
+      showAppNotification('Notice',`Currency ${cleanCode} already exists.`);
       return;
     }
     this.currencies.push({
@@ -455,10 +455,10 @@ const CurrencyStore = {
     initCoaCurrencyFilter();
   },
 
-  edit(code) {
+  async edit(code) {
     const cur = this.currencies.find(c => c.code === code);
     if (!cur) return;
-    const newName = prompt(`Edit name for currency ${cur.code}:`, cur.name);
+    const newName = await ui117.prompt(`Edit name for currency ${cur.code}:`, cur.name);
     if (newName && newName.trim()) {
       cur.name = newName.trim();
       this.render();
@@ -466,14 +466,14 @@ const CurrencyStore = {
     }
   },
 
-  remove(code) {
+  async remove(code) {
     const cur = this.currencies.find(c => c.code === code);
     if (!cur) return;
     if (cur.isBase) {
-      alert("Cannot remove the base currency (USD).");
+      showAppNotification('Notice',"Cannot remove the base currency (USD).");
       return;
     }
-    if (confirm(`Remove currency ${cur.code} (${cur.name})? All transaction columns will adapt automatically.`)) {
+    if (await ui117.confirm(`Remove currency ${cur.code} (${cur.name})? All transaction columns will adapt automatically.`)) {
       this.currencies = this.currencies.filter(c => c.code !== code);
       this.render();
       if (typeof setupJournalColumns === 'function') setupJournalColumns();
@@ -551,7 +551,7 @@ function closeMobileNavigation() {
 }
 
 function closeNavigationAfterSelection() {
-  if (window.matchMedia('(max-width: 1024px)').matches || (document.body.classList.contains('subusers-workspace-active') && window.matchMedia('(hover:none) and (pointer:coarse)').matches)) closeMobileNavigation();
+  if (document.body.classList.contains('tablet117') || window.matchMedia('(max-width: 1024px)').matches || (document.body.classList.contains('subusers-workspace-active') && window.matchMedia('(hover:none) and (pointer:coarse)').matches)) closeMobileNavigation();
 }
 
 function switchTab(tabId) {
@@ -755,7 +755,7 @@ function handleAccountFormSubmit(event) {
     const acc = AccountingStore.accounts.find(a => a.code === origCode);
     if (acc) {
       if (origCode !== code && AccountingStore.accounts.some(a => a.code === code)) {
-        alert('Account Code already in use.');
+        showAppNotification('Notice','Account Code already in use.');
         return;
       }
       if (origCode !== code) {
@@ -771,7 +771,7 @@ function handleAccountFormSubmit(event) {
     }
   } else {
     if (AccountingStore.accounts.some(a => a.code === code)) {
-      alert('Account Code already exists.');
+      showAppNotification('Notice','Account Code already exists.');
       return;
     }
     AccountingStore.accounts.push({ code, name, currency, type, desc });
@@ -880,7 +880,7 @@ function handleSubAccountFormSubmit(event) {
     const sub = AccountingStore.subAccounts.find(s => s.code === origCode);
     if (sub) {
       if (origCode !== code && AccountingStore.subAccounts.some(s => s.code === code)) {
-        alert('Sub-Account code already exists.');
+        showAppNotification('Notice','Sub-Account code already exists.');
         return;
       }
       sub.parentCode = parentCode;
@@ -890,7 +890,7 @@ function handleSubAccountFormSubmit(event) {
     }
   } else {
     if (AccountingStore.subAccounts.some(s => s.code === code)) {
-      alert('Sub-Account code already exists.');
+      showAppNotification('Notice','Sub-Account code already exists.');
       return;
     }
     AccountingStore.subAccounts.push({ parentCode, code, name, desc });
@@ -1460,8 +1460,8 @@ function renderJournalHistoryTable(records = JournalModule.entries) {
   renderTransactionRowsToTbody(tbody, records, true);
 }
 
-function deleteTransactionCluster(id) {
-  if (confirm(`Are you sure you want to delete transaction cluster ${id}?`)) {
+async function deleteTransactionCluster(id) {
+  if (await ui117.confirm(`Are you sure you want to delete transaction cluster ${id}?`)) {
     JournalModule.entries = JournalModule.entries.filter(t => t.id !== id);
     refreshAllTables();
   }
@@ -1769,10 +1769,10 @@ function monthLabel(monthKey) {
   return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(y, m - 1, 1));
 }
 
-function archiveTransactionMonth(monthKey) {
+async function archiveTransactionMonth(monthKey) {
   const ids = new Set(JournalModule.entries.filter(e => monthKeyFromDate(e.date) === monthKey && !e.archived).map(e => e.id));
   if (!ids.size) return;
-  if (!confirm(`Archive all unarchived transactions for ${monthLabel(monthKey)}? This closes that monthly batch and moves it to All Transactions.`)) return;
+  if (!await ui117.confirm(`Archive all unarchived transactions for ${monthLabel(monthKey)}? This closes that monthly batch and moves it to All Transactions.`)) return;
   const stamp = new Date().toISOString();
   JournalModule.entries.forEach(e => {
     if (ids.has(e.id)) { e.archived = true; e.archivedAt = stamp; }
@@ -2087,9 +2087,9 @@ function editTransactionTemplate(id){
   editingTemplateId=id; document.getElementById('templateNameInput').value=t.name;
   closeModal('modalTemplateManager'); openModal('modalTemplateName');
 }
-function deleteTransactionTemplate(id){
+async function deleteTransactionTemplate(id){
   const t=TemplateStore.templates.find(x=>x.id===id); if(!t)return;
-  if(!confirm(`Remove template "${t.name}"?`))return;
+  if(!await ui117.confirm(`Remove template "${t.name}"?`))return;
   TemplateStore.templates=TemplateStore.templates.filter(x=>x.id!==id); TemplateStore.save(); renderTemplateManager();
 }
 
@@ -2188,7 +2188,7 @@ function markRecurringPaid(id){
   showAppNotification('Marked Paid',`${item.memo} is marked paid for the current occurrence. Next due: ${formatAppDate(item.nextDate)}.`,false);
 }
 function toggleRecurringPause(id){const item=RecurringStore.items.find(x=>x.id===id);if(!item)return;item.paused=!item.paused;RecurringStore.save();renderRecurringTransactions();renderRecurringWarnings()}
-function removeRecurring(id){const item=RecurringStore.items.find(x=>x.id===id);if(!item)return;if(!confirm(`Remove recurring item "${item.memo}"?`))return;RecurringStore.items=RecurringStore.items.filter(x=>x.id!==id);RecurringStore.save();renderRecurringTransactions();renderRecurringWarnings()}
+async function removeRecurring(id){const item=RecurringStore.items.find(x=>x.id===id);if(!item)return;if(!await ui117.confirm(`Remove recurring item "${item.memo}"?`))return;RecurringStore.items=RecurringStore.items.filter(x=>x.id!==id);RecurringStore.save();renderRecurringTransactions();renderRecurringWarnings()}
 function getActiveRecurringWarnings(){
   return RecurringStore.items.filter(x=>!x.paused && ['OVERDUE','DUE SOON'].includes(recurringStatus(x))).sort((a,b)=>{
     const sa=recurringStatus(a),sb=recurringStatus(b); if(sa!==sb)return sa==='OVERDUE'?-1:1; return a.nextDate.localeCompare(b.nextDate);
@@ -2562,11 +2562,11 @@ function saveEntrySubmission(event) {
   const status = document.getElementById('submissionFormStatus'); if (status) status.textContent = 'Submitted successfully for administrative review.';
 }
 
-function reviewEntrySubmission(id, decision) {
+async function reviewEntrySubmission(id, decision) {
   if (DemoAccess.currentUser?.role !== 'admin') return;
   const item = DemoAccess.submissions.find(row => row.id === id); if (!item || item.status !== 'pending') return;
   if (decision === 'rejected') {
-    const reason = prompt('Reason for rejection:'); if (!reason) return;
+    const reason = await ui117.prompt('Reason for rejection:'); if (!reason) return;
     item.status = 'rejected'; item.rejectionReason = reason;
   } else {
     const entryId = generateEntryId(); JournalModule.sequence += 1;
@@ -2718,8 +2718,8 @@ CurrencyStore.add = async function(code,name,symbol){
   }
   await loadReferenceDataFromSupabase();showAppNotification('Currency Saved',`${clean} is now available to accounts and transactions.`,false);return true
 };
-CurrencyStore.edit = async function(code){const current=this.currencies.find(c=>c.code===code);if(!current)return;const name=prompt(`Currency name for ${code}:`,current.name);if(name===null)return;const symbol=prompt(`Symbol for ${code}:`,current.symbol);if(symbol===null)return;const{error}=await ojmDb.from('currencies').update({name:name.trim(),symbol:symbol.trim()}).eq('code',code);if(error){showAppNotification('Currency Update Failed',error.message,true);return}await loadReferenceDataFromSupabase()};
-CurrencyStore.remove = async function(code){if(!confirm(`Remove currency ${code}?`))return;const{error}=await ojmDb.from('currencies').delete().eq('code',code);if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase()};
+CurrencyStore.edit = async function(code){const current=this.currencies.find(c=>c.code===code);if(!current)return;const name=await ui117.prompt(`Currency name for ${code}:`,current.name);if(name===null)return;const symbol=await ui117.prompt(`Symbol for ${code}:`,current.symbol);if(symbol===null)return;const{error}=await ojmDb.from('currencies').update({name:name.trim(),symbol:symbol.trim()}).eq('code',code);if(error){showAppNotification('Currency Update Failed',error.message,true);return}await loadReferenceDataFromSupabase()};
+CurrencyStore.remove = async function(code){if(!await ui117.confirm(`Remove currency ${code}?`))return;const{error}=await ojmDb.from('currencies').delete().eq('code',code);if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase()};
 
 handleAccountFormSubmit = async function(event){event.preventDefault();const purpose=document.getElementById('accPurpose71');if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return}const original=document.getElementById('accountOrigCode').value;const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:document.getElementById('accPurpose71').value,created_by:liveProfile.id};const existing=AccountingStore.accounts.find(a=>a.code===original);const query=existing?ojmDb.from('accounts').update(payload).eq('id',existing.id):ojmDb.from('accounts').insert(payload);const{error}=await query;if(error){showAppNotification('Account Save Failed',String(error.message).includes('account_purpose')?'Install database/17-account-purpose.sql once, then save again.':error.message,true);return}closeModal('modalAccount');await loadReferenceDataFromSupabase()};
 promptDeleteAccount = function(code){const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{const{error}=await ojmDb.from('accounts').delete().eq('id',acc.id);if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
@@ -2809,7 +2809,7 @@ saveEntrySubmission = async function(event) {
 
 reviewEntrySubmission = async function(id,decision) {
   if(liveProfile?.role!=='admin'&&!livePermission?.can_approve)return;
-  if(decision==='rejected'){const reason=prompt('Reason for rejection:');if(!reason)return;const{error}=await ojmDb.rpc('reject_entry_submission',{p_submission_id:id,p_reason:reason});if(error){showAppNotification('Reject Failed',error.message,true);return}}
+  if(decision==='rejected'){const reason=await ui117.prompt('Reason for rejection:');if(!reason)return;const{error}=await ojmDb.rpc('reject_entry_submission',{p_submission_id:id,p_reason:reason});if(error){showAppNotification('Reject Failed',error.message,true);return}}
   else{const{error}=await ojmDb.rpc('approve_entry_submission',{p_submission_id:id});if(error){showAppNotification('Approval Failed',error.message,true);return}}
   await Promise.all([loadSubmissionsFromSupabase(),loadJournalFromSupabase()]);
 };
@@ -2822,7 +2822,7 @@ async function loadLegalDocumentsFromSupabase(){if(liveProfile?.role!=='admin')r
 renderLegalDocuments = async function(){const host=document.getElementById('legalDocumentsList');if(!host)return;host.innerHTML=liveLegalDocuments.length?liveLegalDocuments.map(d=>`<div class="legal-doc-row"><div class="legal-doc-icon">${/pdf/i.test(d.mime_type||'')?'PDF':'FILE'}</div><div class="legal-doc-meta"><strong>${escapeHtml(d.file_name)}</strong><span>${formatLegalDocSize(Number(d.size_bytes||0))} • ${new Date(d.uploaded_at).toLocaleString()}</span></div><div class="legal-doc-actions"><button type="button" class="je-btn je-btn-secondary" onclick="downloadLegalDocument('${d.id}')">Download</button><button type="button" class="btn-action-delete" onclick="deleteLegalDocument('${d.id}')">✕</button></div></div>`).join(''):'<div class="legal-doc-empty">No legal documents uploaded yet.</div>'};
 uploadLegalDocuments = async function(event){for(const file of [...event.target.files]){if(file.size>10485760){showAppNotification('File Too Large',`${file.name} exceeds 10 MB.`,true);continue}const path=`${liveProfile.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const{error:uploadError}=await ojmDb.storage.from('legal-documents').upload(path,file);if(uploadError){showAppNotification('Upload Failed',uploadError.message,true);continue}await ojmDb.from('legal_documents').insert({file_name:file.name,storage_path:path,mime_type:file.type,size_bytes:file.size,uploaded_by:liveProfile.id})}event.target.value='';await loadLegalDocumentsFromSupabase()};
 downloadLegalDocument = async function(id){const doc=liveLegalDocuments.find(d=>d.id===id);if(!doc)return;const{data,error}=await ojmDb.storage.from('legal-documents').createSignedUrl(doc.storage_path,60);if(error){showAppNotification('Download Failed',error.message,true);return}window.open(data.signedUrl,'_blank')};
-deleteLegalDocument = async function(id){if(!confirm('Delete this legal document permanently?'))return;const doc=liveLegalDocuments.find(d=>d.id===id);if(!doc)return;await ojmDb.storage.from('legal-documents').remove([doc.storage_path]);const{error}=await ojmDb.from('legal_documents').delete().eq('id',id);if(error){showAppNotification('Delete Failed',error.message,true);return}await loadLegalDocumentsFromSupabase()};
+deleteLegalDocument = async function(id){if(!await ui117.confirm('Delete this legal document permanently?'))return;const doc=liveLegalDocuments.find(d=>d.id===id);if(!doc)return;await ojmDb.storage.from('legal-documents').remove([doc.storage_path]);const{error}=await ojmDb.from('legal_documents').delete().eq('id',id);if(error){showAppNotification('Delete Failed',error.message,true);return}await loadLegalDocumentsFromSupabase()};
 
 async function hydrateSupabaseSession(session) {
   try {
@@ -3015,7 +3015,7 @@ async function saveStaffJournalDraft(){
 }
 async function submitStaffJournal(){await saveStaffJournalDraft();if(!activeStaffJournal?.id)return;const{error}=await ojmDb.rpc('submit_staff_journal',{p_journal_id:activeStaffJournal.id});if(error){showAppNotification('Journal Submission Failed',error.message,true);return}showAppNotification('Journal Submitted','Your complete journal is ready for review.',false);await openStaffJournalPeriod(staffJournalMonth())}
 async function loadStaffJournalsForReview(){if(!livePermission?.can_approve&&liveProfile?.role!=='admin')return;const journals=await ojmDb.from('staff_journals').select('*').order('submitted_at',{ascending:false});if(journals.error)return;const ids=(journals.data||[]).map(j=>j.id);const lines=ids.length?await ojmDb.from('staff_journal_lines').select('*').in('staff_journal_id',ids):{data:[]};reviewStaffJournals=(journals.data||[]).map(j=>({...j,lines:(lines.data||[]).filter(line=>line.staff_journal_id===j.id)}));renderUserEntryReview()}
-async function reviewStaffJournal(id,action){if(action==='return'){const note=prompt('Reason for returning this journal:');if(!note)return;const{error}=await ojmDb.from('staff_journals').update({status:'returned',return_note:note,reviewed_by:liveProfile.id,reviewed_at:new Date().toISOString()}).eq('id',id);if(error){showAppNotification('Return Failed',error.message,true);return}}else{const{error}=await ojmDb.rpc('approve_staff_journal',{p_journal_id:id});if(error){showAppNotification('Posting Failed',error.message,true);return}}await Promise.all([loadStaffJournalsForReview(),loadJournalFromSupabase()])}
+async function reviewStaffJournal(id,action){if(action==='return'){const note=await ui117.prompt('Reason for returning this journal:');if(!note)return;const{error}=await ojmDb.from('staff_journals').update({status:'returned',return_note:note,reviewed_by:liveProfile.id,reviewed_at:new Date().toISOString()}).eq('id',id);if(error){showAppNotification('Return Failed',error.message,true);return}}else{const{error}=await ojmDb.rpc('approve_staff_journal',{p_journal_id:id});if(error){showAppNotification('Posting Failed',error.message,true);return}}await Promise.all([loadStaffJournalsForReview(),loadJournalFromSupabase()])}
 function renderUserEntryReview(){const tbody=document.getElementById('userEntryReviewBody');if(!tbody)return;const user=document.getElementById('userReviewUser')?.value||'all',status=document.getElementById('userReviewStatus')?.value||'pending';const rows=reviewStaffJournals.filter(j=>(user==='all'||j.owner_id===user)&&(status==='all'||j.status===status||status==='pending'&&j.status==='submitted'));tbody.innerHTML=rows.length?rows.map(j=>`<tr><td>${escapeHtml(j.period_start.slice(0,7))}</td><td>${escapeHtml(getLiveUserName(j.owner_id))}</td><td>${j.lines.length}</td><td class="num">${formatAppNumber(j.lines.reduce((sum,line)=>sum+Number(line.amount),0))}</td><td><span class="submission-status ${j.status}">${escapeHtml(j.status.toUpperCase())}</span></td><td>${j.status==='submitted'?`<div class="submission-review-actions"><button class="je-btn je-btn-emerald" onclick="reviewStaffJournal('${j.id}','approve')">Approve & Post</button><button class="je-btn je-btn-danger" onclick="reviewStaffJournal('${j.id}','return')">Return</button></div>`:'Reviewed'}</td></tr>`).join(''):'<tr><td colspan="6" class="period-empty">No staff journals match this filter.</td></tr>';const summary=document.getElementById('userEntryReviewSummary');if(summary)summary.textContent=`${rows.length} journal${rows.length===1?'':'s'} shown`;const badge=document.getElementById('navUserReviewCount');if(badge)badge.textContent=reviewStaffJournals.filter(j=>j.status==='submitted').length}
 function accountKey(a){return a?String(a.id||a.code||a.name||''):''}
 function renderAccountAccessEditor(selected=[],fundSelected=[]){
@@ -3395,7 +3395,7 @@ function selectSubUserForActiveTab(userId){
   const tab=activeSubUserTab();if(!tab)return;if(tab.permanent){openWorkspaceUser(userId);return}tab.userId=userId;const results=document.getElementById('subUserSearchResults');if(results)results.hidden=true;renderSubUserWorkspace();
 }
 function subUserJournalRows(userId){return(reviewStaffJournals||[]).filter(j=>j.owner_id===userId)}
-function lineAccountName(line){return line.account_name||accountNameById(line.account_id)||'Unassigned account'}
+function lineAccountName(line){return workspaceAccount(line.account_id||line.selected_account_id)?.name||line.account_name||'Unassigned account'}
 function renderSubUserWorkspace(){
   const tabs=document.getElementById('subUserWorkspaceTabs'),panel=document.getElementById('subUserWorkspacePanel');if(!tabs||!panel)return;
   if(!openSubUserTabs.length){openSubUserTabs=[{key:'default',userId:null,permanent:true}];activeSubUserId='default'}
@@ -3425,7 +3425,7 @@ renderUserEntryReview=function(){
   host.innerHTML=rows.map(reviewCardHtml).join('');const summary=document.getElementById('userEntryReviewSummary');if(summary)summary.textContent=`${rows.length} submission${rows.length===1?'':'s'} available for review`;const badge=document.getElementById('navUserReviewCount');if(badge)badge.textContent=rows.filter(j=>j.status==='submitted'&&!j.isSample).length;
 };
 function approveReviewJournal(id){showAppConfirm('Approve & Post','Approve this complete journal and post its entries to the accounting records?','Approve & Post',async()=>{await reviewStaffJournal(id,'approve');showCenterStatus('Journal approved and posted.')},false)}
-function returnReviewJournal(id){const explanation=prompt('Explain what must be corrected before this journal is resubmitted:');if(!explanation?.trim()){showCenterStatus('A return explanation is required.',true);return}showAppConfirm('Return for Correction','Return this journal to the sub-user with the explanation provided?','Return Journal',async()=>{const{error}=await ojmDb.from('staff_journals').update({status:'returned',return_note:explanation.trim(),reviewed_by:liveProfile.id,reviewed_at:new Date().toISOString()}).eq('id',id);if(error){showCenterStatus(`Return failed: ${error.message}`,true);return}await loadStaffJournalsForReview();showCenterStatus('Journal returned for correction.')},true)}
+async function returnReviewJournal(id){const explanation=await ui117.prompt('Explain what must be corrected before this journal is resubmitted:');if(!explanation?.trim()){showCenterStatus('A return explanation is required.',true);return}showAppConfirm('Return for Correction','Return this journal to the sub-user with the explanation provided?','Return Journal',async()=>{const{error}=await ojmDb.from('staff_journals').update({status:'returned',return_note:explanation.trim(),reviewed_by:liveProfile.id,reviewed_at:new Date().toISOString()}).eq('id',id);if(error){showCenterStatus(`Return failed: ${error.message}`,true);return}await loadStaffJournalsForReview();showCenterStatus('Journal returned for correction.')},true)}
 
 const initializeFoundationControlsBeforeV2=initializeFoundationControls;
 initializeFoundationControls=function(){initializeFoundationControlsBeforeV2();mountPosInsideSystem();renderSubUserWorkspace();renderUserEntryReview()};
@@ -3476,7 +3476,7 @@ function reviewCardHtml(journal){const expanded=expandedReviewJournalId===journa
 renderUserEntryReview=function(){const host=document.getElementById('userEntryReviewCards');if(!host)return;const rows=allReviewJournals().filter(j=>j.status==='submitted'||j.status==='returned');host.innerHTML=rows.length?rows.map(reviewCardHtml).join(''):'<div class="legal-doc-empty">No submissions are waiting for review.</div>';const summary=document.getElementById('userEntryReviewSummary');if(summary)summary.textContent=`${rows.length} submission${rows.length===1?'':'s'} needs attention`;const badge=document.getElementById('navUserReviewCount');if(badge)badge.textContent=rows.filter(j=>j.status==='submitted').length};
 let pendingWorkspacePostOwnerId='',pendingWorkspacePostJournalId='',pendingWorkspacePostIsLocal=false;
 function prepareReviewJournal(id){const journal=allReviewJournals().find(j=>j.id===id);if(!journal)return;showAppConfirm('Approve & Prepare Journal','Approve this submission and copy its balanced debit and credit lines into Post Double Entry for final checking? Nothing will be posted until you press Post Entry there.','Prepare Journal',()=>{switchTab('journal');const multi=document.getElementById('jeMultipleDates');if(multi)multi.checked=true;document.body.classList.add('je-multi-date');const body=document.getElementById('jeLinesBody');if(body)body.innerHTML='';document.getElementById('jeGeneralMemo').value=`Sub-user submission — ${getLiveUserName(journal.owner_id)} — ${String(journal.period_start).slice(0,7)}`;(journal.lines||[]).forEach(line=>{const memo=[line.memo,line.reference].filter(Boolean).join(' • '),currency=line.currency_code||'LAK',debitName=lineAccountName(line),creditName=line.fund_account_name||workspaceAccountName(line.fund_account_id,'Head Cook Petty Cash');addJournalLineRow(debitName,memo,String(line.amount),{});const debitRow=body.lastElementChild;if(debitRow?.querySelector('.je-line-date'))debitRow.querySelector('.je-line-date').value=line.transaction_date;addJournalLineRow(creditName,memo,'',{[currency]:String(line.amount)});const creditRow=body.lastElementChild;if(creditRow?.querySelector('.je-line-date'))creditRow.querySelector('.je-line-date').value=line.transaction_date});calculateJournalBalance();pendingWorkspacePostOwnerId=journal.owner_id;pendingWorkspacePostJournalId=journal.id;pendingWorkspacePostIsLocal=Boolean(journal.isWorkspace);showCenterStatus('Submission approved and copied to Post Double Entry. Check it, then press Post Entry when ready.')},false)}
-returnReviewJournal=function(id){const journal=allReviewJournals().find(j=>j.id===id);if(!journal)return;const explanation=prompt('Explain what must be corrected before this submission is resubmitted:');if(!explanation?.trim()){showCenterStatus('A return explanation is required.',true);return}showAppConfirm('Return for Correction','Return this submission with the explanation provided?','Return Submission',async()=>{if(journal.isWorkspace){const data=loadSubUserWorkspaceData();data[journal.owner_id]={...(data[journal.owner_id]||{}),status:'returned',return_note:explanation.trim(),adjusted:true,updated_at:new Date().toISOString()};(data[journal.owner_id].entries||[]).forEach(e=>e.status='returned');saveSubUserWorkspaceData(data);renderUserEntryReview();renderSubUserWorkspace();showCenterStatus('Submission returned with a recorded explanation.');return}const{error}=await ojmDb.from('staff_journals').update({status:'returned',return_note:explanation.trim(),reviewed_by:liveProfile.id,reviewed_at:new Date().toISOString()}).eq('id',id);if(error){showCenterStatus(`Return failed: ${error.message}`,true);return}await loadStaffJournalsForReview();showCenterStatus('Journal returned for correction.')},true)};
+returnReviewJournal=async function(id){const journal=allReviewJournals().find(j=>j.id===id);if(!journal)return;const explanation=await ui117.prompt('Explain what must be corrected before this submission is resubmitted:');if(!explanation?.trim()){showCenterStatus('A return explanation is required.',true);return}showAppConfirm('Return for Correction','Return this submission with the explanation provided?','Return Submission',async()=>{if(journal.isWorkspace){const data=loadSubUserWorkspaceData();data[journal.owner_id]={...(data[journal.owner_id]||{}),status:'returned',return_note:explanation.trim(),adjusted:true,updated_at:new Date().toISOString()};(data[journal.owner_id].entries||[]).forEach(e=>e.status='returned');saveSubUserWorkspaceData(data);renderUserEntryReview();renderSubUserWorkspace();showCenterStatus('Submission returned with a recorded explanation.');return}const{error}=await ojmDb.from('staff_journals').update({status:'returned',return_note:explanation.trim(),reviewed_by:liveProfile.id,reviewed_at:new Date().toISOString()}).eq('id',id);if(error){showCenterStatus(`Return failed: ${error.message}`,true);return}await loadStaffJournalsForReview();showCenterStatus('Journal returned for correction.')},true)};
 approveReviewJournal=prepareReviewJournal;
 renderPermissionGrid=function(selected=[]){const host=document.getElementById('userPermissionGrid');if(host)host.innerHTML=PERMISSION_MODULES.filter(([id])=>id!=='submissions').map(([id,label])=>`<label class="permission-option"><input type="checkbox" value="${id}" ${selected.includes(id)?'checked':''}><span>${label}</span></label>`).join('')};
 const submitJournalEntryBeforeWorkspacePost=submitJournalEntry;
@@ -3544,7 +3544,7 @@ submitWorkspaceForReview=async function(userId){
 workspaceEntryTableHtml=function(user,entries){const editable=entries.every(entry=>['draft','returned'].includes(entry.status||'draft'));return`<section class="workspace-entry-card"><div class="settings-section-header"><div><h4>Entries Waiting for Submission</h4><p>${entries.length} saved entr${entries.length===1?'y':'ies'} in this workspace.</p></div></div><div class="table-container"><table class="je-table"><thead><tr><th>Date</th><th>Main Account (CR)</th><th>Entry Account (DR)</th><th>Description / Reference</th><th class="num">Amount</th>${editable?'<th>Action</th>':''}</tr></thead><tbody>${entries.map(entry=>`<tr><td>${escapeHtml(formatAppDate(entry.date||entry.transaction_date))}</td><td>${escapeHtml(workspaceAccountName(entry.fund_account_id))}</td><td>${escapeHtml(workspaceAccountName(entry.account_id))}</td><td>${escapeHtml(entry.memo||'')}${entry.reference?`<small>${escapeHtml(entry.reference)}</small>`:''}</td><td class="num">${formatAppNumber(entry.amount||0)}</td>${editable?`<td><div class="transaction-review-actions"><button type="button" class="je-btn je-btn-secondary" onclick="editWorkspaceEntry('${user.id}','${entry.id}')">Edit</button><button type="button" class="je-btn je-btn-danger" onclick="deleteWorkspaceEntry('${user.id}','${entry.id}')">Delete</button></div></td>`:''}</tr>`).join('')||`<tr><td colspan="${editable?6:5}" class="period-empty">No entries saved.</td></tr>`}</tbody></table></div></section>`};
 function editWorkspaceEntry(userId,lineId){const journal=(reviewStaffJournals||[]).find(j=>j.owner_id===userId&&['draft','returned'].includes(j.status)&&j.lines?.some(line=>line.id===lineId)),line=journal?.lines.find(item=>item.id===lineId);if(!line){showCenterStatus('Only draft or returned entries can be edited.',true);return}workspaceEditingLineId=lineId;document.getElementById('workspaceEntryDate').value=line.transaction_date;document.getElementById('workspaceEntryFund').value=line.fund_account_id||'';document.getElementById('workspaceEntryDestination').value=line.account_id||'';document.getElementById('workspaceEntryAmount').value=line.amount||'';document.getElementById('workspaceEntryMemo').value=line.memo||'';document.getElementById('workspaceEntryReference').value=line.reference||'';document.getElementById('workspaceEntryMemo').focus();showCenterStatus('Entry opened for editing. Save Entry will update this record.')}
 function deleteWorkspaceEntry(userId,lineId){const journal=(reviewStaffJournals||[]).find(j=>j.owner_id===userId&&['draft','returned'].includes(j.status)&&j.lines?.some(line=>line.id===lineId));if(!journal){showCenterStatus('Only draft or returned entries can be deleted.',true);return}showAppConfirm('Delete Workspace Entry','Delete this unsubmitted entry? This cannot be undone.','Delete',async()=>{const result=await ojmDb.from('staff_journal_lines').delete().eq('id',lineId).eq('staff_journal_id',journal.id);if(result.error){showCenterStatus(`Delete failed: ${result.error.message}`,true);return}if(workspaceEditingLineId===lineId)workspaceEditingLineId='';await loadStaffJournalsForReview();showCenterStatus('Workspace entry deleted.')},true)}
-async function reopenWorkspaceSubmission(journalId){const journal=(reviewStaffJournals||[]).find(j=>j.id===journalId&&j.owner_id===liveProfile?.id&&j.status==='submitted');if(!journal){showCenterStatus('Only your own in-review submission can be reopened.',true);return}const reason=prompt('Explain why this submission must be reopened:');if(!reason?.trim()){showCenterStatus('A reason is required to reopen a submitted batch.',true);return}const result=await ojmDb.rpc('reopen_staff_journal',{p_journal_id:journal.id,p_reason:reason.trim()});if(result.error){showCenterStatus(`Reopen failed: ${result.error.message}`,true);return}document.getElementById('workspaceReviewOverlay')?.remove();await loadStaffJournalsForReview();showCenterStatus('Submission reopened for correction. The adjustment reason was recorded.')}
+async function reopenWorkspaceSubmission(journalId){const journal=(reviewStaffJournals||[]).find(j=>j.id===journalId&&j.owner_id===liveProfile?.id&&j.status==='submitted');if(!journal){showCenterStatus('Only your own in-review submission can be reopened.',true);return}const reason=await ui117.prompt('Explain why this submission must be reopened:');if(!reason?.trim()){showCenterStatus('A reason is required to reopen a submitted batch.',true);return}const result=await ojmDb.rpc('reopen_staff_journal',{p_journal_id:journal.id,p_reason:reason.trim()});if(result.error){showCenterStatus(`Reopen failed: ${result.error.message}`,true);return}document.getElementById('workspaceReviewOverlay')?.remove();await loadStaffJournalsForReview();showCenterStatus('Submission reopened for correction. The adjustment reason was recorded.')}
 
 function workspaceReviewSingleTable(journal){return`<div class="table-container"><table class="je-table"><thead><tr><th>Entry ID</th><th>Date</th><th>Main Account</th><th>Entry Account</th><th>Description / Reference</th><th class="num">Amount</th></tr></thead><tbody>${(journal.lines||[]).map(line=>`<tr><td><strong class="workspace-entry-number">${escapeHtml(line.workspace_entry_no||'Legacy Entry')}</strong></td><td>${escapeHtml(formatAppDate(line.transaction_date))}</td><td>${escapeHtml(line.fund_account_name||workspaceAccountName(line.fund_account_id,'Assigned Fund'))}</td><td>${escapeHtml(lineAccountName(line))}</td><td>${escapeHtml(line.memo||'—')}${line.reference?`<small>${escapeHtml(line.reference)}</small>`:''}</td><td class="num">${formatAppNumber(line.amount||0)}</td></tr>`).join('')}</tbody></table></div>`}
 function openWorkspaceReview(userId){
@@ -3641,7 +3641,7 @@ function workspaceRules(user){const permission=subUserPermission(user),direction
 function pendingRowsFor(userId){return workspacePendingRows[userId]||(workspacePendingRows[userId]=[])}
 function workspaceEditableRows(user){const pending=pendingRowsFor(user.id),edits=workspaceRowEdits[user.id]||{},saved=currentWorkspaceDraftEntries(user.id).slice().sort((a,b)=>Number(b.line_no||0)-Number(a.line_no||0)).map(line=>edits[line.id]||({...line,key:String(line.id),isNew:false,selected_account_id:line.direction==='in'?line.fund_account_id:line.account_id}));return[...pending,...saved]}
 function addWorkspaceEntryRow(userId){
-  const user=availableSubUsers().find(item=>String(item.id)===String(userId))||liveProfile,rules=workspaceRules(user),date=document.getElementById('workspaceEntryDate')?.value||new Date().toISOString().slice(0,10),memo=document.getElementById('workspaceEntryMemo')?.value.trim()||'';if(!rules.directions.length||!rules.fundIds.length){showCenterStatus('Complete this user’s account and direction settings first.',true);return}const direction=rules.directions[0],key=`new-${Date.now()}`;pendingRowsFor(userId).unshift({key,isNew:true,transaction_date:date,direction,selected_account_id:'',fund_account_id:(!rules.multiple||rules.fundIds.length===1)?rules.fundIds[0]:'',memo,reference:'',amount:0,workspace_entry_no:localWorkspaceEntryPreview(user)});renderSubUserWorkspace();requestAnimationFrame(()=>openWorkspaceCellEditor(userId,key,'account'))
+  const user=availableSubUsers().find(item=>String(item.id)===String(userId))||liveProfile,rules=workspaceRules(user),date=document.getElementById('workspaceEntryDate')?.value||new Date().toISOString().slice(0,10),memo=document.getElementById('workspaceEntryMemo')?.value.trim()||'';if(!rules.directions.length||!rules.fundIds.length){showCenterStatus('Complete this user’s account and direction settings first.',true);return}const direction=rules.directions[0],key=`new-${Date.now()}`;pendingRowsFor(userId).unshift({key,isNew:true,transaction_date:date,direction,selected_account_id:'',fund_account_id:(!rules.multiple||rules.fundIds.length===1)?rules.fundIds[0]:'',memo,reference:'',amount:0,workspace_entry_no:localWorkspaceEntryPreview(user)});renderSubUserWorkspace();requestAnimationFrame(()=>window.focusWorkspaceInline117?.(userId,key,'account'))
 }
 function workspaceRowByKey(userId,key){const user=availableSubUsers().find(item=>String(item.id)===String(userId))||liveProfile;return workspaceEditableRows(user).find(row=>String(row.key)===String(key))}
 function workspaceCellValue(row,field,rules){if(field==='account')return accountLabelOnly(row.direction==='in'?(row.fund_account_id||row.selected_account_id):(row.account_id||row.selected_account_id));if(field==='fund')return row.direction==='in'?'Same as Account':accountLabelOnly(row.fund_account_id);if(field==='direction')return row.direction==='in'?'Money In':'Money Out';if(field==='amount')return Number(row.amount||0)>0?formatAppNumber(row.amount):'';if(field==='date')return formatAppDate(row.transaction_date);if(field==='memo')return row.memo||'';if(field==='reference')return row.reference||'';return''}
@@ -3877,6 +3877,7 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
     return `<section class="v49-card v49-desktop-accounts"><header><div><h3>Assigned Main Accounts</h3><p>Received, used, handed over, and remaining funds are kept together in one module.</p></div></header><div class="v49-desktop-funds">${cards||'<div class="period-empty">No main account is assigned.</div>'}</div></section>${negative.length?`<div class="v49-desktop-negative"><div><strong>Fund balance needs attention</strong><span>${negative.map(([id,balance])=>`${escapeHtml(accountLabelOnly(id))} is ${money(Math.abs(balance))} below zero`).join(' · ')}</span></div><button type="button" onclick="v49OpenAdjustment('${user.id}','${negative[0][0]}')">Review possible reasons →</button></div>`:''}`;
   }
   function desktopEntryCell(user,row,field,label) {
+    if(window.workspaceInlineCell117)return workspaceInlineCell117(user,row,field,label);
     const rules=workspaceRules(user),value=field==='date'?formatAppDate(row.transaction_date):field==='direction'?(row.entry_kind==='handover'?'Handover':row.direction==='in'?'Money In':'Money Out'):field==='account'?lineAccountName(row):field==='fund'?accountLabelOnly(row.fund_account_id):field==='description'?[row.memo,row.reference].filter(Boolean).join(' · '):field==='amount'?(Number(row.amount)>0?number(row.amount):''):'';
     const editor=field==='date'?'date':field==='description'?'memo':field;
     return `<td data-label="${label}"><button type="button" class="v49-desktop-cell ${value?'':'empty'} ${field==='amount'?'num':''}" onclick="openWorkspaceCellEditor('${user.id}','${row.key}','${editor}')">${escapeHtml(value||({date:'mm/dd/yyyy',direction:'Select',account:'Select account',fund:'Select fund',description:'Add description / reference',amount:'0'}[field]))}</button></td>`;
