@@ -4,7 +4,7 @@ const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'
 const re79=v=>escapeHtml(String(v??''));
 function reportRange79(){const r=Reports79;if(r.mode==='custom')return;let y=+r.year,m=1,n=12;if(r.mode==='monthly'){[y,m]=r.month.split('-').map(Number);n=1}if(r.mode==='quarterly'){m=(+r.quarter-1)*3+1;n=3}r.from=date71(y,m,1);const end=new Date(y,m-1+n,0);r.to=date71(end.getFullYear(),end.getMonth()+1,end.getDate())}
 function reportData79(){
- const old={...Accounts69};try{Object.assign(Accounts69,{from:Reports79.from,to:Reports79.to});return accountData69().filter(r=>!Reports79.currency||r.currency===Reports79.currency)}finally{Object.assign(Accounts69,old)}
+ const old={...Accounts69};try{Object.assign(Accounts69,{from:Reports79.from,to:Reports79.to});return accountData69().filter(r=>(!r.account.isTechnical||Reports79.account===r.key)&&(!Reports79.currency||r.currency===Reports79.currency))}finally{Object.assign(Accounts69,old)}
 }
 function reportSet79(k,v){const old={...Reports79};Reports79[k]=v;reportRange79();if(!Reports79.from||!Reports79.to||Reports79.from>Reports79.to||!/^\d{4}-\d{2}-\d{2}$/.test(Reports79.from)||(+Reports79.year<1900||+Reports79.year>9999)){Object.assign(Reports79,old);showCenterStatus('Choose a valid reporting period.',true)}renderReports79()}
 function reportSelect79(kind,key,checked){Reports79[kind]=checked?[...new Set([...Reports79[kind],key])]:Reports79[kind].filter(x=>x!==key);renderReports79()}

@@ -661,7 +661,7 @@ function syncCoaDatalist() {
   const dl = document.getElementById('coaList');
   if (!dl) return;
   dl.innerHTML = '';
-  AccountingStore.accounts.forEach(acc => {
+  AccountingStore.accounts.filter(acc=>acc.isPosting!==false).forEach(acc => {
     const opt = document.createElement('option');
     opt.value = `${acc.name} (${acc.currency})`;
     opt.textContent = `${acc.code} — ${acc.type}`;
@@ -691,7 +691,7 @@ function renderChartOfAccountsTable() {
     tr.innerHTML = `
       <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${acc.code}</td>
       <td><strong>${escapeHtml(acc.name)}</strong></td>
-      <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.currency)}">${escapeHtml(currencySymbolV6(acc.currency))} ${escapeHtml(acc.currency)}</span></td>
+      <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false&&acc.displayCurrency==='—'?'—':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${acc.type}</span></td>
       <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
       <td style="text-align: right;">
@@ -1631,7 +1631,7 @@ if (document.readyState === 'loading') {
 function getSelectedAccountInfo(rawValue) {
   const raw = (rawValue || '').trim();
   if (!raw) return null;
-  const accounts = AccountingStore.accounts || [];
+  const accounts = (AccountingStore.accounts || []).filter(a=>a.isPosting!==false);
   const normalized = raw.replace(/\s+/g, ' ').trim();
   const legacy = normalized.match(/^(.*)\s+\(([A-Z]{3})\)$/);
   if (legacy) { const matches = accounts.filter(a => a.name === legacy[1].trim() && a.currency === legacy[2]); return matches.length === 1 ? matches[0] : null; }
@@ -2693,7 +2693,7 @@ async function loadReferenceDataFromSupabase() {
   ]);
   if(currencyError||accountError||subError) throw new Error((currencyError||accountError||subError).message);
   CurrencyStore.currencies=(currencies||[]).map(c=>({code:c.code,name:c.name,symbol:c.symbol,isBase:c.is_base}));
-  AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,type:a.account_type,purpose:a.account_purpose||'regular',desc:a.description||''}));
+  AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true}));
   AccountingStore.subAccounts=(subs||[]).map(s=>({id:s.id,parentId:s.parent_account_id,parentCode:AccountingStore.accounts.find(a=>a.id===s.parent_account_id)?.code||'',code:s.code,name:s.name,desc:s.description||''}));
   CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
 }
@@ -2979,7 +2979,7 @@ hydrateSupabaseSession=async function(session){await hydrateSupabaseSessionBefor
 let activeStaffJournal=null;
 let activeStaffJournalLines=[];
 let reviewStaffJournals=[];
-function allowedStaffAccounts(){const p=livePermission||{};const all=AccountingStore.accounts||[];return p.allow_any_account||liveProfile?.role==='admin'?all.filter(a=>a.active!==false&&a.is_active!==false):all.filter(a=>(p.allowed_account_ids||[]).includes(a.id))}
+function allowedStaffAccounts(){const p=livePermission||{};const all=AccountingStore.accounts||[];return p.allow_any_account||liveProfile?.role==='admin'?all.filter(a=>a.active!==false&&a.is_active!==false&&a.isPosting!==false):all.filter(a=>a.isPosting!==false&&(p.allowed_account_ids||[]).includes(a.id))}
 function staffJournalMonth(){return document.getElementById('staffJournalPeriod')?.value||new Date().toISOString().slice(0,7)}
 function accountOptionHtml(selected=''){return allowedStaffAccounts().map(a=>`<option value="${a.id}" ${a.id===selected?'selected':''}>${escapeHtml(a.code)} — ${escapeHtml(a.name)}</option>`).join('')}
 async function openStaffJournalPeriod(month){
@@ -3585,7 +3585,7 @@ hydrateSupabaseSession=async function(session){await hydrateSupabaseSessionBefor
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',updateAccountingIdPreviews,{once:true});else updateAccountingIdPreviews();
 
 // FOUNDATION V6 — compact permission assignment and settings-driven single-entry workspace.
-function activeChartAccounts(){return(AccountingStore.accounts||[]).filter(account=>account.active!==false&&account.is_active!==false)}
+function activeChartAccounts(){return(AccountingStore.accounts||[]).filter(account=>account.active!==false&&account.is_active!==false&&account.isPosting!==false)}
 function accountLabelOnly(id){return workspaceAccount(id)?.name||'Unassigned account'}
 function renderAccountAccessEditor(selected=[],fundSelected=[]){
   const accounts=activeChartAccounts(),entryHost=document.getElementById('userAccountAccessGrid'),fundHost=document.getElementById('userFundAccountGrid');

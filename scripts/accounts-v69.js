@@ -38,7 +38,7 @@ function accountData69(through=Accounts69.to){
  });
  return [...map.values()].map(r=>{r.closing=r.opening+r.debit-r.credit;r.lines.sort((a,b)=>a.date.localeCompare(b.date)||String(a.id).localeCompare(String(b.id))||a.originalIndex-b.originalIndex);return r}).sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
 }
-function reportRows69(through=Accounts69.to){return accountData69(through).filter(r=>(!Accounts69.currency||r.currency===Accounts69.currency)&&(!Accounts69.account||r.key===Accounts69.account))}
+function reportRows69(through=Accounts69.to){return accountData69(through).filter(r=>(!r.account.isTechnical||Accounts69.account===r.key)&&(!Accounts69.currency||r.currency===Accounts69.currency)&&(!Accounts69.account||r.key===Accounts69.account))}
 function balanceText69(value){return `${money69(Math.abs(value))}${value>0?' DR':value<0?' CR':''}`}
 function reportControls69(kind){
  const rows=accountData69(),codes=[...new Set([...(CurrencyStore.currencies||[]).map(c=>c.code),...rows.map(r=>r.currency)])];
