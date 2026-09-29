@@ -22,3 +22,14 @@ body.shell113 #pos118 .pos-top118 h1>.header-icon112{display:none!important}
 
 .pos-line118 .pos-photo118{background-size:1200% 675%}
 body.shell113 #pos118 .pos-product118>.pos-photo118{width:100%!important;margin:0!important;display:block!important}
+/* Keep charging controls visible while a long order scrolls. */
+.pos-grid118:has(.pos-order-scroll118)>.pos-card118.gold{display:flex;flex-direction:column;max-height:calc(100dvh - 205px);min-height:350px}
+.pos-grid118 .pos-order-scroll118{min-height:60px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;flex:1}
+.pos-grid118 .pos-order-footer118{flex:none;background:#fffdf8;border-top:1px solid #e1e5dc;padding-top:4px}
+.pos-grid118>.pos-card118>.pos-pills118{margin:8px 0 16px}
+.pos-payment-preview118{max-height:32dvh;overflow:auto;background:#f4f2e9;padding:10px;border-radius:8px}
+.pos-payment-preview118 .receipt118{box-shadow:none}
+@media(max-height:700px){.pos-grid118:has(.pos-order-scroll118)>.pos-card118.gold{max-height:calc(100dvh - 150px)}}
+.pos118 .pos-sync118{font:600 12px Arial,sans-serif;color:#916b14;white-space:nowrap}
+.pos118 .pos-shift-link118{background:#e8efdf;border-color:#a9c0a9;font-size:12px!important}
+.pos118 .pos-top118{gap:12px;flex-wrap:wrap}
