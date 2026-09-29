@@ -28,21 +28,9 @@ let pending85=false;new MutationObserver(()=>{if(!pending85){pending85=true;requ
 desktop84.addEventListener('change',()=>{renderAccounts69();renderAllTransactionsTable();polish85()});
 
 function alignArchive85(card){
- if(!card||!desktop84.matches)return;
- const summary=card.querySelector('summary');if(!summary)return;
- let widths;
- if(card.open){
-  const cells=[...card.querySelectorAll('thead th')];
-  if(cells.length<5||!cells[0].getBoundingClientRect().width)return;
-  const measured=cells.map(n=>n.getBoundingClientRect().width);
-  widths=[measured.slice(0,4).reduce((a,b)=>a+b,0),...measured.slice(4)];
- }else{
-  const amountColumns=summary.children.length-1,width=summary.clientWidth;
-  if(!width)return;
-  widths=[width*(1-.14*amountColumns),...Array(amountColumns).fill(width*.14)];
- }
- const grid=widths.map(w=>Math.max(0,w)+'px').join(' ');
- if(card.style.getPropertyValue('--archive-grid85')!==grid)card.style.setProperty('--archive-grid85',grid);
+ if(!card)return;
+ // Summary proportions must not depend on whether the detail table is visible.
+ card.style.setProperty('--archive-grid85','minmax(180px,1fr) repeat(2,minmax(140px,180px))');
 }
 const archiveResize85=new ResizeObserver(entries=>entries.forEach(e=>alignArchive85(e.target.closest('.archive-month'))));
 document.addEventListener('toggle',e=>{if(e.target.matches?.('.archive-month')){const table=e.target.querySelector('table');if(table)archiveResize85.observe(table);requestAnimationFrame(()=>alignArchive85(e.target))}},true);
