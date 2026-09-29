@@ -1,5 +1,0 @@
-/* Keyboard submission and quick replacement of previously chosen datalist values. */
-(function(){'use strict';
-document.addEventListener('dblclick',event=>{const input=event.target.closest?.('input[list]');if(!input||input.disabled||input.readOnly)return;input.focus();input.select();try{input.showPicker?.()}catch{}},true);
-document.addEventListener('keydown',event=>{if(event.isComposing)return;const target=event.target;if(event.key==='Enter'&&target.closest?.('#loginForm')&&target.matches('input:not([type=button]):not([type=submit]),select')){const form=target.closest('form');if(form&&!form.querySelector('[type=submit]')?.disabled){event.preventDefault();form.requestSubmit()}return}if(event.key==='Escape'){document.querySelectorAll('.row-menu99[open]').forEach(n=>n.open=false);const menu=document.getElementById('headerAccountDropdown');if(menu&&!menu.hidden)menu.hidden=true;const overlay=target.closest?.('.im-edit-overlay112');if(overlay){event.preventDefault();const cancel=overlay.querySelector('[data-im-action=cancel]');cancel?.click()}}},true);
-})();
