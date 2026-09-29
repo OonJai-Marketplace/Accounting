@@ -1,0 +1,5 @@
+/* Important layered rules override legacy unlayered table-centering rules. */
+@layer tableAlignment83 {
+ table th,table thead td{text-align:left!important}
+}
+.samples83 .notice82{margin:10px 12px}

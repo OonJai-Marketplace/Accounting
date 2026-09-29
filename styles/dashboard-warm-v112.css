@@ -1,0 +1,200 @@
+/* Warm marketplace dashboard and presentation view. */
+body{--dash-forest112:#123d2b;--dash-deep112:#092f23;--dash-cream112:#fbf5e8;--dash-paper112:#fffdfa;--dash-gold112:#dcb170;--dash-brown112:#914511}
+body #appSidebar{background:#0b3426!important;border-right:1px solid #3a5d42!important;color:#f5eddb!important}
+body #appSidebar .sidebar-brand{border-bottom-color:#94714677!important;background:#0b3426!important}
+body #appSidebar .sidebar-brand h2{font-family:Georgia,serif!important;font-size:18px!important;color:#fff5dd!important;line-height:1.14!important}
+body #appSidebar .sidebar-brand h2 span{font-size:13px!important;color:#dcb170!important}
+body #appSidebar .nav-header,body #appSidebar .tab-btn{color:#f0eadc!important;border-radius:5px!important}
+body #appSidebar :is(.nav-header,.tab-btn).active,body #appSidebar .nav-selected109{background:#254e39!important;color:#fff9e8!important;border-left:3px solid #dcb170!important}
+body #appSidebar :is(.nav-header,.tab-btn):hover{background:#264b38!important}
+body #appSidebar .universal-search108 input{background:#173c2b!important;border-color:#60765a!important;color:#fff!important}
+body #appSidebar .universal-search108 input::placeholder{color:#cfcfbd!important}
+body #appSidebar .sidebar-quote108{color:#e9c184!important;border-color:#7b6849!important}
+body.dash-active112 #transactionsHeading98{display:none!important}
+body.dash-active112 .workspace-scroll{background:#f9f3e9!important}
+body #dashboard{padding:0!important;color:#312e28!important;font-family:'Plus Jakarta Sans',Arial,sans-serif!important}
+body #dashboard .dash-shell112{min-width:0}
+body #dashboard .dash-tabs112{display:flex;align-items:center;gap:2px;overflow-x:auto;background:#fffbf3;border-bottom:1px solid #dfd1b8;position:sticky;top:0;z-index:100;padding:0 16px;scrollbar-width:thin}
+body #dashboard .dash-tabs112 button{background:transparent;border:0;border-bottom:3px solid transparent;border-radius:0;padding:12px 16px;color:#4a493f;white-space:nowrap;font-size:12px;font-weight:600;min-height:42px}
+body #dashboard .dash-tabs112 button[aria-selected=true]{color:#824019;border-bottom-color:#a85a20;font-weight:800}
+body #dashboard .dash-tabs112 button:focus-visible,body #dashboard button:focus-visible{outline:2px solid #b67b35;outline-offset:2px}
+body #dashboard .dash-content112{padding:14px 16px 60px;zoom:var(--dash-zoom112,1);background:#f9f3e9;display:grid;gap:10px;min-width:0}
+body #dashboard .dash-hero112{position:relative;overflow:hidden;min-height:190px;background:#eee1cd url('../assets/dashboard/oonjai-bowl-hero112.png') right 42%/cover no-repeat;border:1px solid #e3d2b7;border-radius:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:24px 22px}
+body #dashboard .dash-hero112:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#fcf5e9f5 0%,#fcf5e9e9 30%,#fcf5e96b 55%,transparent 78%);pointer-events:none}
+body #dashboard .dash-hero112>*{position:relative;z-index:1}
+body #dashboard .dash-hero-copy112{max-width:520px}
+body #dashboard .dash-hero-copy112>small{font-size:10px;letter-spacing:.17em;color:#764520;font-weight:800}
+body #dashboard .dash-hero112 h1{margin:6px 0 4px;color:#71381d;font:normal clamp(31px,3.3vw,49px)/1.12 Georgia,serif}
+body #dashboard .dash-hero112 p{font-size:13px;margin:0;color:#665440}
+body #dashboard .dash-hero-controls112{display:flex;align-items:center;justify-content:end;gap:7px;flex-wrap:wrap;max-width:55%}
+body #dashboard .dash-hero-controls112 label,body #dashboard .dash-book112{display:flex;align-items:center;gap:6px;border:1px solid #e4d5be;border-radius:8px;background:#fffaf2e8;padding:8px 10px;box-shadow:0 2px 6px #56391612;color:#534836;font-size:11px;font-weight:700}
+body #dashboard .dash-hero-controls112 svg{width:17px;height:17px;color:#914511}
+body #dashboard .dash-hero-controls112 :is(input,select){border:0;background:transparent;min-width:0;color:#48382b;font:inherit;max-width:135px}
+body #dashboard .dash-book112:before{content:'';width:7px;height:7px;background:#26834c;border-radius:50%}
+body #dashboard .dash-flow112,body #dashboard .dash-card112,body #dashboard .dash-metric112{background:#fffdfa;border:1px solid #e6d9c5;border-top:3px solid #24724c;border-radius:9px;box-shadow:0 2px 12px #4a34100d;min-width:0}
+body #dashboard .dash-flow112{padding:13px 16px;background:linear-gradient(110deg,#fffbf2,#fffdf9)}
+body #dashboard :is(.dash-flow112,.dash-card112)>header{display:flex;justify-content:space-between;align-items:start;gap:12px}
+body #dashboard :is(.dash-flow112,.dash-card112)>header h2,body #dashboard .dash-card112 h3{font:600 17px/1.2 Georgia,serif;color:#64351c;margin:2px 0 2px}
+body #dashboard .dash-flow112 header>div>small{letter-spacing:.12em;font-size:9px;font-weight:800;color:#996125}
+body #dashboard :is(.dash-flow112,.dash-card112) header small,body #dashboard .dash-flow112 header p{font-size:10px;color:#776a59;margin:2px 0 0}
+body #dashboard :is(.dash-flow112,.dash-card112) header button,body #dashboard .dash-links112 button{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:#8d441c;font-size:10px;font-weight:750;white-space:nowrap;padding:4px}
+body #dashboard :is(.dash-flow112,.dash-card112) header svg,body #dashboard .dash-links112 svg{width:15px;height:15px}
+body #dashboard .dash-flow-track112{display:flex;align-items:center;gap:6px;margin:13px 0 10px}
+body #dashboard .dash-flow-step112{display:flex;align-items:center;gap:9px;flex:1;min-width:0;border:0;text-align:left;background:transparent;color:#332c24;padding:3px;border-radius:6px}
+body #dashboard .dash-flow-step112:hover{background:#f9efd9}
+body #dashboard .dash-flow-medallion112{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;background:#e9c58e;color:#693a1d;border-radius:50%}
+body #dashboard .dash-flow-step112:first-child .dash-flow-medallion112{background:#183f2e;color:#fff}
+body #dashboard .dash-flow-step112:last-of-type .dash-flow-medallion112{background:#9a4a19;color:#fff}
+body #dashboard .dash-flow-medallion112 svg{width:25px;height:25px}
+body #dashboard .dash-flow-step112>span:last-child{display:grid;gap:2px;min-width:0}
+body #dashboard .dash-flow-step112 b{font:600 17px Georgia,serif;color:#65341d;overflow-wrap:anywhere}
+body #dashboard .dash-flow-step112 strong{font-size:11px;color:#2f302c}
+body #dashboard .dash-flow-step112 small{font-size:9px;color:#746c5b;line-height:1.3}
+body #dashboard .dash-flow-arrow112{color:#a27e4a;font-size:18px;flex:0 0 auto}
+body #dashboard .dash-flow112 footer{display:flex;align-items:center;gap:15px;flex-wrap:wrap;padding-top:8px;border-top:1px solid #eee1cb;color:#71563d;font-size:10px}
+body #dashboard .dash-flow112 footer strong{font-size:12px;color:#67391e;margin-left:4px}
+body #dashboard .dash-flow112 footer small{margin-left:auto;color:#716c61;font-size:10px}
+body #dashboard .dash-metrics112{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+body #dashboard .dash-metric112{display:flex;gap:10px;align-items:center;text-align:left;cursor:pointer;padding:10px 12px;border-top-color:#d3a266;min-height:82px}
+body #dashboard .dash-metric112:hover,body #dashboard .dash-balance-line112:hover,body #dashboard .dash-upcoming-line112:hover{background:#fcf5e8}
+body #dashboard .dash-icon112{display:grid;place-items:center;flex:0 0 33px;width:33px;height:33px;border-radius:7px;background:#f6e5cc;color:#99501f}
+body #dashboard .dash-icon112 svg{width:19px;height:19px}
+body #dashboard .dash-metric-support112 .dash-icon112{background:#8a421f;color:#fff}
+body #dashboard .dash-metric-copy112{display:grid;gap:2px;min-width:0}
+body #dashboard .dash-metric-copy112 strong{color:#56301d;font:600 clamp(16px,1.6vw,24px)/1.12 Georgia,serif;white-space:normal;overflow-wrap:anywhere}
+body #dashboard .dash-metric-copy112 small{font-size:11px;font-weight:700;color:#37322e}
+body #dashboard .dash-metric-copy112 em{font-style:normal;font-size:9px;color:#877465}
+body #dashboard .dash-chevron112{margin-left:auto;color:#a46a36;font-size:20px}
+body #dashboard .dash-middle112{display:grid;grid-template-columns:minmax(0,1.23fr) minmax(0,.84fr) minmax(0,.85fr);gap:8px;align-items:stretch}
+body #dashboard .dash-bottom112{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+body #dashboard .dash-card112{padding:12px;min-height:200px}
+body #dashboard .dash-card112 header{margin-bottom:9px}
+body #dashboard .dash-card112 h3{font-size:16px}
+body #dashboard .dash-plot112{height:184px;display:flex;gap:8px;align-items:end;padding:8px 9px 2px;background:repeating-linear-gradient(to top,transparent 0,transparent 43px,#e7e1d6 44px);border-bottom:1px solid #cbbfae}
+body #dashboard .dash-plot-month112{display:flex;flex:1;min-width:0;height:100%;align-items:center;justify-content:end;flex-direction:column;gap:5px;color:#696354}
+body #dashboard .dash-bars112{display:flex;align-items:end;justify-content:center;gap:4px;width:100%;height:100%}
+body #dashboard .dash-bars112 i{width:21px;max-width:38%;background:#17533b;min-height:0;border-radius:2px 2px 0 0}
+body #dashboard .dash-bars112 i+i{background:#ddbd83}
+body #dashboard .dash-plot-month112 small{font-size:10px}
+body #dashboard .dash-chart112 footer{display:flex;align-items:center;gap:12px;margin-top:8px;font-size:10px;color:#5c554a}
+body #dashboard .dash-chart112 footer i{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle}
+body #dashboard .dash-legend-revenue112{background:#17533b}body #dashboard .dash-legend-expense112{background:#ddbd83}
+body #dashboard .dash-chart112 footer button{font:inherit;color:#8d441c;border:0;background:transparent;text-decoration:underline}
+body #dashboard .dash-balance-line112,body #dashboard .dash-upcoming-line112{display:flex;align-items:center;gap:7px;width:100%;border:0;border-bottom:1px solid #eee7dc;background:#fffdf9;padding:6px 3px;text-align:left;min-height:39px}
+body #dashboard .dash-balance-line112 .dash-icon112{flex-basis:26px;width:26px;height:26px;border-radius:50%;background:#eff4e7;color:#315f41}
+body #dashboard .dash-balance-line112 .dash-icon112 svg{width:15px;height:15px}
+body #dashboard .dash-balance-line112>span:nth-child(2){display:grid;min-width:0;flex:1;font-size:10px;color:#3d3b33;overflow-wrap:anywhere}
+body #dashboard .dash-balance-line112 small{color:#8a8274;font-size:9px}
+body #dashboard .dash-balance-line112>strong{font-size:11px;color:#5e351e;text-align:right;overflow-wrap:anywhere}
+body #dashboard .dash-inline112{background:transparent;border:0;color:#914511;padding:7px;font-size:10px;font-weight:700;text-decoration:underline}
+body #dashboard .dash-upcoming-line112 time{display:grid;place-items:center;flex:0 0 50px;min-height:30px;padding:3px;background:#f6eddc;color:#8a441f;border-radius:4px;font-size:9px;text-align:center}
+body #dashboard .dash-upcoming-line112>span{flex:1;min-width:0;display:grid;gap:2px}
+body #dashboard .dash-upcoming-line112 strong{font-size:10px;color:#38352f;overflow-wrap:anywhere}
+body #dashboard .dash-upcoming-line112 small{color:#8d8578;font-size:9px}
+body #dashboard .dash-upcoming-line112 b{font-size:10px;color:#975225;max-width:35%;overflow-wrap:anywhere;text-align:right}
+body #dashboard .dash-empty112{font-size:11px;line-height:1.55;color:#877868;padding:12px;background:#fdf8f0;border-radius:5px}
+body #dashboard .dash-table-wrap112{overflow:auto;max-height:230px;scrollbar-width:thin;scrollbar-color:#9b5227 #f5e7d7}
+body #dashboard table{width:100%;min-width:440px;border-collapse:collapse;table-layout:fixed;font-size:10px}
+body #dashboard table th,body #dashboard table td{padding:6px!important;border:0!important;border-bottom:1px solid #eee8df!important;white-space:normal!important;overflow-wrap:anywhere;text-align:left;line-height:1.35;height:auto!important}
+body #dashboard table th{background:#f7efe1!important;color:#65503a!important;font-size:9px!important;text-align:left!important}
+body #dashboard table tbody tr[data-go112]{cursor:pointer}body #dashboard table tbody tr[data-go112]:hover{background:#faf0dc}
+body #dashboard table td small{display:block;color:#887869;font-size:9px}
+body #dashboard .dash-count112{display:inline-grid;place-items:center;background:#a14d23;border-radius:20px;color:#fff;font:10px Arial;min-width:18px;height:18px;margin-left:6px}
+body #dashboard .dash-status112{color:#915020;background:#f9ead8;padding:3px 5px;border-radius:10px;font-size:9px}
+body #dashboard .dash-secondary112{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:start}
+body #dashboard .dash-secondary112 .dash-flow112{grid-column:1/-1}
+body #dashboard .dash-secondary112>.dash-card112>p{font-size:12px;color:#6b5e50;line-height:1.5}
+body #dashboard .dash-links112{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+body #dashboard .dash-links112 button{padding:9px 12px;background:#edf4e8;border:1px solid #aac9ad;border-radius:5px;color:#135439}
+body .ui-dialog108 .dash-map-help112{font-size:12px;line-height:1.5;color:#51463b}
+body .ui-dialog108 .dash-map-search112{width:100%;margin:8px 0;padding:9px}
+body .ui-dialog108 .dash-map-list112{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;max-height:44vh;overflow:auto}
+body .ui-dialog108 .dash-map-list112 label{display:flex;flex-direction:row;align-items:center;gap:8px;padding:7px;border:1px solid #e2d5c0;background:#fffbf4;border-radius:6px}
+body .ui-dialog108 .dash-map-list112 label[hidden]{display:none!important}
+body .ui-dialog108 .dash-map-list112 input{flex:0 0 16px;width:16px;height:16px}
+body .ui-dialog108 .dash-map-list112 label span{display:grid;gap:2px;overflow-wrap:anywhere}
+body .ui-dialog108 .dash-map-list112 label small{font-size:10px;color:#816d54}
+body .ui-dialog108 .dash-map-warning112{font-size:11px;color:#a4382a}
+body #workspaceTools108 button{border-radius:7px!important;border-color:#d9c6aa!important;background:#fffaf0!important;color:#6b461f!important}
+body #workspaceTools108 #dashZoomOut112,body #workspaceTools108 #dashZoomIn112{background:#fff8e9!important;color:#8e4b22!important}
+body #workspaceTools108 #dashFull112,body #workspaceTools108 #docExpand112{background:#14533b!important;color:#fff!important;border-color:#14533b!important}
+body #workspaceTools108 #upcomingBell101{background:#dcb170!important;color:#3a2b18!important;border-color:#bc965b!important}
+body #workspaceTools108 #dashProfile112{background:#8a421f!important;color:#fff!important;border-color:#8a421f!important;border-radius:50%!important}
+body #workspaceTools108 #dashProfile112 img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+body #workspaceTools108 #dashProfile112 span{font-weight:800;font-size:11px}
+body.dash-present112 #appSidebar,body.dash-present112 #transactionsHeading98{display:none!important}
+body.dash-present112 .main-content-area{width:100vw!important;max-width:100vw!important;margin:0!important}
+body.dash-present112 .workspace-scroll{padding:0 55px 0 0!important}
+body.dash-present112 #dashboard .dash-tabs112{z-index:200}
+body #sub-users-workspace :is(.v49-desktop-user-heading h2,.v49-user-header h2,.subuser-title93 h2){font-size:16px!important;line-height:1.3!important}
+body #sub-users-workspace .v49-desktop-user-heading{padding-block:8px!important}
+body .tab-content.active tr[data-entry-id]:hover,body .tab-content.active tr.entry-hover{background:#fff0d3!important}
+@media(max-width:1250px){body #dashboard .dash-middle112{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}body #dashboard .dash-obligations112{grid-column:1/-1}body #dashboard .dash-hero-controls112{max-width:52%}}
+@media(max-width:900px){body #dashboard .dash-metrics112{grid-template-columns:repeat(2,minmax(0,1fr))}body #dashboard .dash-hero112{flex-direction:column;min-height:230px}body #dashboard .dash-hero-controls112{max-width:100%;justify-content:start}body #dashboard .dash-flow-track112{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}body #dashboard .dash-flow-arrow112{display:none}body #dashboard .dash-middle112,body #dashboard .dash-bottom112{grid-template-columns:1fr}body #dashboard .dash-obligations112{grid-column:auto}}
+@media(max-width:650px){body #dashboard .dash-content112{padding:9px 7px 60px}body #dashboard .dash-tabs112{padding:0 4px}body #dashboard .dash-tabs112 button{padding:10px 11px;font-size:11px}body #dashboard .dash-hero112{padding:17px;min-height:235px;background-position:66% center}body #dashboard .dash-hero112:before{background:linear-gradient(90deg,#fcf5e9f5 0%,#fcf5e9dd 55%,#fcf5e933 100%)}body #dashboard .dash-hero112 h1{font-size:34px}body #dashboard .dash-hero-controls112 label,body #dashboard .dash-book112{padding:6px;font-size:10px}body #dashboard .dash-flow-track112{grid-template-columns:1fr 1fr}body #dashboard .dash-flow-step112{flex-direction:column;align-items:flex-start}body #dashboard .dash-metrics112{gap:6px}body #dashboard .dash-metric112{padding:9px 6px;gap:5px}body #dashboard .dash-metric-copy112 strong{font-size:15px}body #dashboard .dash-metric112 .dash-icon112{flex-basis:25px;width:25px;height:25px}body #dashboard .dash-metric112 .dash-icon112 svg{width:15px}body #dashboard .dash-secondary112{grid-template-columns:1fr}body #dashboard .dash-secondary112 .dash-flow112{grid-column:auto}body .ui-dialog108 .dash-map-list112{grid-template-columns:1fr}}
+@media print{body #dashboard .dash-tabs112,body #workspaceTools108{display:none!important}body #dashboard .dash-content112{zoom:1!important}}
+/* Header/footer image dialog uses the same warm controls as the dashboard. */
+body .doc-images-dialog112 .ui-dialog108{border-top-color:#9a4b21!important;background:#fffbf3!important}
+body .doc-images-dialog112 .ui-dialog108>header{background:#f7e9d2!important;color:#69391d!important}
+body .doc-images-dialog112 .doc-image-intro112{color:#645647;font-size:12px;margin:0 0 12px}
+body .doc-images-dialog112 .doc-image-settings109{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+body .doc-images-dialog112 .doc-image-card112{min-width:0;border:1px solid #dfccaf;border-top:3px solid #95613c;border-radius:7px;background:#fffdfa;padding:10px;display:grid;gap:9px;align-content:start}
+body .doc-images-dialog112 .doc-image-card112 legend{color:#603919;font:600 16px Georgia,serif;padding:0 7px}
+body .doc-images-dialog112 .doc-image-previews112{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+body .doc-images-dialog112 .doc-image-previews112>div{min-width:0;display:grid;gap:4px}
+body .doc-images-dialog112 .doc-image-previews112 strong{font-size:10px;color:#664831}
+body .doc-images-dialog112 [data-image-preview112]{display:grid;place-items:center;min-height:74px;border:1px dashed #ccb89a;border-radius:6px;background:#fcf6e9;overflow:hidden;text-align:center;color:#8b7a65;font-size:10px;padding:5px}
+body .doc-images-dialog112 [data-image-preview112] img{display:block;max-width:100%;max-height:100px;object-fit:contain}
+body .doc-images-dialog112 .doc-image-actions112{display:flex;flex-wrap:wrap;gap:5px}
+body .doc-images-dialog112 .doc-image-actions112 button{font-size:11px!important;padding:5px 8px!important;min-height:29px!important;background:#fcf4e7!important;color:#6b421f!important;border-color:#c9ad81!important}
+body .doc-images-dialog112 .doc-image-actions112 [data-original109]{background:#16553a!important;color:#fff!important;border-color:#16553a!important}
+body .doc-images-dialog112 .doc-image-actions112 button:disabled{opacity:.5!important;cursor:not-allowed}
+body .doc-images-dialog112 [data-upload109][hidden]{display:none!important}
+body .doc-images-dialog112 .doc-image-fields112{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+body .doc-images-dialog112 .doc-image-fields112 label{font-size:10px!important;color:#675544}
+body .doc-images-dialog112 .doc-image-fields112 input{width:100%;min-width:0;font-size:11px}
+body .doc-images-dialog112 .doc-image-card112>small{font-size:10px;color:#887563}
+body #document-editor105 .doc-actions105 input[type=file][hidden],body #document-editor105 #docDesign108[hidden]{display:none!important}
+@media(max-width:700px){body .doc-images-dialog112 .doc-image-settings109{grid-template-columns:1fr}}
+/* One header control for page titles, with a stable warm palette. */
+body .header-icon112{display:inline-grid;place-items:center;vertical-align:middle;flex:0 0 auto;width:34px;height:34px;margin:0 10px 1px 0;padding:6px!important;border:1px solid color-mix(in srgb,var(--header-icon-color112,#18533f) 32%,#f9f0df)!important;border-radius:9px!important;background:color-mix(in srgb,var(--header-icon-color112,#18533f) 12%,#fffaf1)!important;color:var(--header-icon-color112,#18533f)!important;cursor:pointer;box-shadow:none!important}
+body .header-icon112 svg,body .header-icon112 img{width:21px;height:21px;object-fit:contain}
+body .header-icon112:hover,body .header-icon112:focus-visible{outline:2px solid #d5a750;outline-offset:2px}
+body .dash-hero112 .header-icon112{width:44px;height:44px;vertical-align:4px}
+body .dash-hero112 .header-icon112 svg{width:29px;height:29px}
+body .ui-dialog108 .header-icon-help112{line-height:1.55;color:#594938}
+body .ui-dialog108 .header-defaults112,body .ui-dialog108 .header-palette112{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0 16px}
+body .ui-dialog108 .header-defaults112 button{display:grid;place-items:center;min-width:90px;gap:3px;padding:9px;border:1px solid #d9c9a8;border-radius:9px;background:#fff9ed;color:#21523c;text-transform:capitalize;cursor:pointer}
+body .ui-dialog108 .header-defaults112 svg{width:26px;height:26px}
+body .ui-dialog108 .header-search112{display:flex;gap:8px}
+body .ui-dialog108 .header-search112 input{flex:1;min-width:0}
+body .ui-dialog108 .header-results112{display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));max-height:180px;overflow:auto;gap:6px;padding:8px 0}
+body .ui-dialog108 .header-results112 button{min-width:0;padding:6px;border:1px solid #e4d6bb;border-radius:6px;background:#fffaf1;cursor:pointer;overflow:hidden}
+body .ui-dialog108 .header-results112 img{width:25px;height:25px;display:block;margin:auto}
+body .ui-dialog108 .header-results112 small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px}
+body .ui-dialog108 .header-upload112{position:relative;display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border-radius:7px;border:1px solid #bbab88;background:#f8edda;color:#22513e;cursor:pointer;font-weight:600}
+body .ui-dialog108 .header-upload112 input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+body .ui-dialog108 .header-palette112 button{display:flex;align-items:center;gap:5px;border:1px solid #d5c5a8;border-radius:20px;background:#fff9ef;padding:6px 9px;color:#42372b;text-transform:capitalize;cursor:pointer}
+body .ui-dialog108 .header-palette112 button[aria-pressed=true]{outline:2px solid #bd8640;outline-offset:2px}
+body .ui-dialog108 .header-palette112 i{width:17px;height:17px;border-radius:50%;background:var(--swatch112)}
+body .ui-dialog108 .header-status112{min-height:1.3em;color:#745527}
+/* Inventory editing remains inside the active workspace and above its tables. */
+body .tab-content.active .im-edit-overlay112{position:fixed;inset:0;z-index:1450;display:grid;place-items:center;padding:18px;background:#201b13a3;overflow:auto}
+body .tab-content.active .im-edit-overlay112>.im-card104{width:min(820px,100%);max-height:calc(100dvh - 36px);overflow:auto;margin:0;border:1px solid #d5be91;border-top:5px solid #ba8742;border-radius:13px;box-shadow:0 22px 70px #19150e60;background:#fffcf6}
+body .tab-content.active .im-edit-overlay112>.im-card104>header{position:sticky;top:0;z-index:1;padding:12px 18px;background:#f4e9d5;color:#164b39}
+body .tab-content.active .im-edit-overlay112>.im-card104>header h3{font-size:17px}
+body .tab-content.active .im-edit-overlay112 .im-body104{padding:16px 18px 20px}
+body .tab-content.active .im-edit-overlay112 .im-form104{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;align-items:end}
+body .tab-content.active .im-edit-overlay112 .im-form104 label{font-size:12px;gap:5px}
+body .tab-content.active .im-edit-overlay112 .im-form104 input,body .tab-content.active .im-edit-overlay112 .im-form104 select{min-height:38px;border:1px solid #c7bba2;background:#fffefa;color:#263c32}
+body .tab-content.active .im-edit-overlay112 .im-form104 input:focus,body .tab-content.active .im-edit-overlay112 .im-form104 select:focus{outline:2px solid #c69753;outline-offset:1px}
+body .tab-content.active .im-edit-overlay112 .im-recipe104{background:#f9f3e8;border-color:#e5d2ad}
+body .tab-content.active .im-edit-overlay112 .im-actions104{position:sticky;bottom:0;background:#fffcf6;padding:12px 0 0;border-top:1px solid #e4d6bb}
+body #workspaceTools108 #docExpandDock112{background:#14533b!important;color:#fff!important;border-color:#14533b!important}
+body:has(#document-editor105.expanded108) #workspaceTools108{z-index:1600!important}
+body #appSidebar #topHeaderProfile104 #headerAccountInitials{display:none!important}
+body > #headerAccountDropdown:not([hidden]){display:block!important;position:fixed!important;z-index:3100!important;background:#fffbf1!important;border:1px solid #d4be95!important;border-radius:10px!important;box-shadow:0 12px 32px #1a281a33!important;min-width:180px}
+body #sub-users-workspace .settings-page-heading h3,body #sub-users-workspace .je-card-header h3{font-size:clamp(17px,1.4vw,21px)!important;line-height:1.25!important}
+body .tab-content.active tr[data-entry-id]:focus-within,body .tab-content.active tr[data-entry-id]:hover,body .tab-content.active tbody tr[aria-selected=true]{background:#f8ebd0!important}
+@media(max-width:620px){body .tab-content.active .im-edit-overlay112{padding:8px}body .tab-content.active .im-edit-overlay112>.im-card104{max-height:calc(100dvh - 16px)}body .tab-content.active .im-edit-overlay112 .im-form104{grid-template-columns:1fr}}
+body #sub-users-workspace .v49-desktop-home-title h2,body #sub-users-workspace .v49-desktop-home-title h3{font-size:clamp(17px,1.4vw,21px)!important;line-height:1.25!important}
