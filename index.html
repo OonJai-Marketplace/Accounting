@@ -171,35 +171,7 @@
           <button type="button" class="tab-btn" onclick="switchTab('tax-records')">Tax and SSO Records</button>
         </div>
       </div>
-
-      <!-- 7. Inventory -->
-      <div class="nav-category" id="nav-module-inventory" data-module="inventory">
-        <div class="nav-header" onclick="activateCategory(this, 'inv-overview')">Inventory <span class="arrow">▼</span></div>
-        <div class="nav-links">
-          <button type="button" class="tab-btn" onclick="switchTab('inv-overview')">Inventory Overview</button>
-          <button type="button" class="tab-btn" onclick="switchTab('inv-items')">Items</button>
-          <button type="button" class="tab-btn" onclick="switchTab('inv-stock-in')">Stock In</button>
-          <button type="button" class="tab-btn" onclick="switchTab('inv-stock-out')">Stock Out</button>
-          <button type="button" class="tab-btn" onclick="switchTab('inv-adj')">Stock Adjustment</button>
-          <button type="button" class="tab-btn" onclick="switchTab('inv-val')">Inventory Valuation</button>
-        </div>
-      </div>
-
-      <!-- 8. Menu -->
-      <div class="nav-category" id="nav-module-menu" data-module="menu">
-        <div class="nav-header" onclick="activateCategory(this, 'menu-ingredients')">Menu <span class="arrow">▼</span></div>
-        <div class="nav-links">
-          <button type="button" class="tab-btn" onclick="switchTab('menu-ingredients')">Ingredient Master List</button>
-          <button type="button" class="tab-btn" onclick="switchTab('menu-details')">Menu Details</button>
-          <button type="button" class="tab-btn" onclick="switchTab('menu-recipe')">Recipe/Ingredients</button>
-          <button type="button" class="tab-btn" onclick="switchTab('menu-pricing')">Menu Pricing</button>
-          <button type="button" class="tab-btn" onclick="switchTab('menu-categories')">Menu Categories</button>
-          <button type="button" class="tab-btn" onclick="switchTab('menu-costing')">Recipe Costing</button>
-          <button type="button" class="tab-btn" onclick="switchTab('menu-avail')">Menu Availability</button>
-        </div>
-      </div>
-
-      <!-- 9. Settings -->
+      <!-- 7. Settings -->
       <div class="nav-category" id="nav-module-settings" data-module="settings">
         <div class="nav-header" onclick="activateCategory(this, 'settings-business')">Settings <span class="arrow">▼</span></div>
         <div class="nav-links">
@@ -851,39 +823,6 @@
         <div id="tax-payment" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Tax and Social Payment</h3></div><div class="placeholder-warning">No tax and social payment data available yet.</div></section></div>
         <div id="tax-sso-payment" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>SSO Payment</h3></div><div class="placeholder-warning">No SSO payment data available yet.</div></section></div>
         <div id="tax-records" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Tax and SSO Records</h3></div><div class="placeholder-warning">No tax and SSO records available yet.</div></section></div>
-        <div id="inv-overview" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Inventory Overview.</div></div>
-        <div id="inv-items" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Items.</div></div>
-        <div id="inv-stock-in" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Stock In.</div></div>
-        <div id="inv-stock-out" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Stock Out.</div></div>
-        <div id="inv-adj" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Stock Adjustment.</div></div>
-        <div id="inv-val" data-module="inventory" class="tab-content"><div class="placeholder-warning">No data available for Inventory Valuation.</div></div>
-        <div id="menu-ingredients" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Ingredient Master List.</div></div>
-        <div id="menu-details" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Menu Details.</div></div>
-        <div id="menu-recipe" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Recipe/Ingredients.</div></div>
-        <div id="menu-pricing" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Menu Pricing.</div></div>
-        <div id="menu-categories" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Menu Categories.</div></div>
-        <div id="menu-costing" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Recipe Costing.</div></div>
-        <div id="menu-avail" data-module="menu" class="tab-content"><div class="placeholder-warning">No data available for Menu Availability.</div></div>
-        <section id="settings-pos" class="system-pos-settings" hidden>
-          <div class="settings-page-heading"><div><h3>POS &amp; Shift-Close Setup <button type="button" class="setting-help" onclick="openSettingHelp('pos-shift-close')" aria-label="Explain POS and Shift-Close Setup">*</button></h3><p>Configure the report your present POS produces. Change these settings if you replace the POS later.</p></div></div>
-          <form class="settings-section-card app-settings-form" data-settings-group="pos">
-            <div class="settings-section-header"><h4>POS Report Rules <button type="button" class="setting-help" onclick="openSettingHelp('pos-report-rules')" aria-label="Explain POS Report Rules">*</button></h4></div>
-            <div class="settings-form-grid">
-              <div class="settings-field"><label>POS Reporting Currency</label><select class="je-select settings-currency-select" name="reportingCurrency"><option value="LAK">LAK</option></select></div>
-              <div class="settings-field"><label>Shift Close Frequency</label><select class="je-select" name="shiftCloseFrequency"><option value="per_shift">Every shift</option><option value="daily">Daily</option><option value="weekly">Weekly</option></select></div>
-              <div class="settings-field"><label>Default Sales Account</label><input class="je-input" name="salesAccountLabel" value="Sales Revenue" placeholder="e.g., Sales Revenue"></div>
-              <div class="settings-field"><label>Cashier Clearing Account</label><input class="je-input" name="clearingAccountLabel" value="Cashier Clearing" placeholder="e.g., Cashier Clearing"></div>
-            </div>
-            <div class="settings-section-header pos-subheading"><h4>How the POS labels are interpreted <button type="button" class="setting-help" onclick="openSettingHelp('pos-payment-labels')" aria-label="Explain POS labels">*</button></h4><p>The POS total stays in the reporting currency. These labels describe how money was actually received.</p></div>
-            <div class="settings-form-grid">
-              <div class="settings-field"><label>Cash / Kip label</label><input class="je-input" name="cashLabel" value="Cash" placeholder="e.g., Cash"></div>
-              <div class="settings-field"><label>Bank / QR label</label><input class="je-input" name="bankLabel" value="BCEL" placeholder="e.g., BCEL"></div>
-              <div class="settings-field"><label>USD label</label><input class="je-input" name="usdLabel" value="USD" placeholder="e.g., USD"></div>
-              <div class="settings-field"><label>THB label</label><input class="je-input" name="thbLabel" value="THB" placeholder="e.g., THB"></div>
-            </div>
-            <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('pos')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save POS Setup</button></div>
-          </form>
-        </section>
 
         <div id="settings-users" data-module="settings" class="tab-content">
           <div class="settings-page-heading"><div><h3>Users and Permissions <button type="button" class="setting-help" onclick="openSettingHelp('users-permissions')" aria-label="Explain Users and Permissions">*</button></h3></div><button type="button" class="je-btn je-btn-emerald" onclick="openUserAccessEditor()">+ Add Sub-user</button></div>
@@ -1297,8 +1236,6 @@
 <link rel="stylesheet" href="styles/header-profile-v104.css?v=118">
 <script src="scripts/header-profile-v104.js?v=118"></script>
 <script src="scripts/shortnames-v104.js?v=118"></script>
-<link rel="stylesheet" href="styles/inventory-menu-v104.css?v=118">
-<script src="scripts/inventory-menu-v104.js?v=118"></script>
 <link rel="stylesheet" href="styles/refinements-v105.css?v=118">
 
 <script src="scripts/refinements-v105.js?v=118"></script>
@@ -1311,10 +1248,9 @@
 <script src="scripts/editor-tables-v107.js?v=118"></script>
 <link rel="stylesheet" href="styles/shared-v108.css?v=118">
 <script src="scripts/shared-v108.js?v=118"></script>
-<script src="scripts/menu-v108.js?v=118"></script>
 <link rel="stylesheet" href="styles/refinements-v109.css?v=118">
 <script src="scripts/refinements-v109.js?v=118"></script>
-<script src="scripts/item-icons-v109.js?v=118"></script>
+
 <link rel="stylesheet" href="styles/editor-fixes-v110.css?v=118">
 <script src="scripts/visual-consistency-v110.js?v=118"></script>
 <link rel="stylesheet" href="styles/dashboard-warm-v112.css?v=118">
@@ -1333,8 +1269,6 @@
 <link rel="stylesheet" href="styles/final-v118.css?v=119">
 <script src="scripts/final-v118.js?v=119"></script>
 <script src="scripts/reports-v118.js?v=118"></script>
-<link rel="stylesheet" href="styles/pos-v118.css?v=119">
-<script src="scripts/pos-offline-v119.js?v=119"></script>
-<script src="scripts/pos-v118.js?v=119"></script>
+<script src="scripts/accounting-pos-cleanup.js?v=121"></script>
 </body>
 </html>
