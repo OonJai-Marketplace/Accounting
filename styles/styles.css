@@ -1370,7 +1370,7 @@ body[data-user-role="submitter"] .header-right-tools .fiscal-badge,body[data-use
 .period-review-toolbar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px; }
 .period-review-picker { display:flex; flex-direction:column; gap:5px; min-width:190px; }
 .period-review-picker label { font-size:11px; font-weight:750; color:#334155; }
-.period-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:16px; }
+.period-summary-grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,2fr) minmax(0,2fr) minmax(0,3fr) minmax(0,3fr); gap:10px; margin-bottom:16px; }
 .period-summary-card { padding:14px; border:1px solid #cbd5e1; border-radius:10px; background:#fff; }
 .period-summary-card span { display:block; margin-bottom:5px; color:#64748b; font-size:11px; }
 .period-summary-card strong { color:#0f172a; font-size:17px; }

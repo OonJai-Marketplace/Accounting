@@ -1,0 +1,22 @@
+/* Keep hidden history out of layout even when generic card rules set display. */
+#userEntryHistoryPanel[hidden]{display:none!important}
+#userEntryHistoryPanel{padding:16px!important;box-sizing:border-box;min-width:0}
+#userEntryHistoryPanel>.settings-section-header{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px;padding:0 0 12px!important;margin:0 0 14px!important}
+#userEntryHistoryPanel>.settings-section-header>div{min-width:0;flex:1}
+#userEntryHistoryPanel>.settings-section-header>button{flex:0 0 auto;margin:0!important;white-space:nowrap}
+#userEntryHistoryCards{padding:0!important;margin:0!important;min-width:0}
+#userEntryHistoryCards>.final-record-card{margin:0!important}
+#user-entry-review .final-record-card>summary{grid-template-columns:minmax(0,1fr) 72px auto 20px}
+#user-entry-review .final-record-card>summary:not(:has(button)){grid-template-columns:minmax(0,1fr) 72px 20px}
+#user-entry-review .final-record-content{padding:12px;min-width:0}
+#userEntryReviewCards.review-empty139:empty{display:none!important}
+#userEntryReviewSummary{padding-top:8px!important;padding-bottom:12px!important}
+#user-entry-review .review-load-error139{margin:0;padding:12px;color:#8d321a;border:1px solid #d7b798;border-radius:8px;background:#fff6ec}
+@media(max-width:767px){
+  #userEntryHistoryPanel{padding:12px!important;margin-left:8px!important;margin-right:8px!important}
+  #userEntryHistoryPanel>.settings-section-header{gap:10px}
+  #userEntryHistoryPanel>.settings-section-header>button{font-size:11px;padding:7px 9px;min-height:32px}
+  #user-entry-review .final-record-card>summary{grid-template-columns:minmax(0,1fr) 42px auto 14px;gap:6px;padding:10px}
+  #user-entry-review .final-record-card>summary:not(:has(button)){grid-template-columns:minmax(0,1fr) 42px 14px}
+  #user-entry-review .final-record-content{padding:8px}
+}
