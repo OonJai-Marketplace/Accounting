@@ -654,6 +654,7 @@ function initCoaCurrencyFilter() {
       opt.textContent = `${c.code} — ${c.name}`;
       modalSelect.appendChild(opt);
     });
+    modalSelect.insertAdjacentHTML('beforeend','<option value="__PARENT__">N/A — Parent account (non-posting)</option>');
   }
 }
 
@@ -691,7 +692,7 @@ function renderChartOfAccountsTable() {
     tr.innerHTML = `
       <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${acc.code}</td>
       <td><strong>${escapeHtml(acc.name)}</strong></td>
-      <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false&&acc.displayCurrency==='—'?'—':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
+      <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'N/A':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${acc.type}</span></td>
       <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
       <td style="text-align: right;">
@@ -735,7 +736,7 @@ function openEditAccountModal(code) {
   document.getElementById('accountOrigCode').value = acc.code;
   document.getElementById('accCode').value = acc.code;
   document.getElementById('accName').value = acc.name;
-  document.getElementById('accCurrency').value = acc.currency;
+  document.getElementById('accCurrency').value = acc.isPosting===false?'__PARENT__':acc.currency;
   document.getElementById('accType').value = acc.type;
   document.getElementById('accDesc').value = acc.desc || '';
   document.getElementById('accPurpose71').value=acc.purpose||'regular';
@@ -810,7 +811,7 @@ function syncSubAccountParentDropdown() {
   const select = document.getElementById('subParentCode');
   if (!select) return;
   select.innerHTML = '';
-  AccountingStore.accounts.forEach(acc => {
+  AccountingStore.accounts.filter(acc=>acc.isPosting!==false).forEach(acc => {
     const opt = document.createElement('option');
     opt.value = acc.code;
     opt.textContent = `${acc.code} — ${acc.name} (${acc.currency})`;
@@ -989,21 +990,7 @@ const JournalModule = {
     { id: "OJM-0003", date: "2026-08-28", account: "Utilities (Power, Gas, Water)", currency: "LAK", memo: "Archived August utilities sample", debit: 505000.00, credit: 0, editReason: "", archived: true, archivedAt: "2026-09-01" },
     { id: "OJM-0003", date: "2026-08-28", account: "Operating Bank Account", currency: "LAK", memo: "Archived August utilities sample", debit: 0, credit: 505000.00, editReason: "", archived: true, archivedAt: "2026-09-01" }
   ],
-  voidedEntries: [
-    {
-      id: "OJM-0000",
-      timestamp: "2026-09-17 15:30",
-      explanation: "Sample audit record — corrected the account allocation.",
-      oldData: [
-        { id: "OJM-0000", date: "2026-09-17", account: "Utilities (Power, Gas, Water)", currency: "LAK", memo: "Sample utility payment", debit: 505000, credit: 0 },
-        { id: "OJM-0000", date: "2026-09-17", account: "Cash on Hand", currency: "LAK", memo: "Sample utility payment", debit: 0, credit: 505000 }
-      ],
-      newData: [
-        { id: "OJM-0000", date: "2026-09-17", account: "Utilities (Power, Gas, Water)", currency: "LAK", memo: "Sample Wi-Fi payment — corrected", debit: 505000, credit: 0 },
-        { id: "OJM-0000", date: "2026-09-17", account: "Operating Bank Account", currency: "LAK", memo: "Sample Wi-Fi payment — corrected", debit: 0, credit: 505000 }
-      ]
-    }
-  ],      // Audit archive storing [Old Data] + [New Data] + Explanation
+  voidedEntries: [], // Live audit only; no built-in sample.
   sequence: 4,
   editingEntryId: null,   // Tracks active transaction loaded into the post form for editing
   pendingLines: null      // Temporarily holds lines awaiting reason modal submission
@@ -2251,7 +2238,7 @@ syncCoaDatalist = function() {
   const dl = document.getElementById('coaList');
   if (!dl) return;
   dl.innerHTML = '';
-  AccountingStore.accounts.forEach(acc => {
+  AccountingStore.accounts.filter(acc=>acc.isPosting!==false).forEach(acc => {
     const opt = document.createElement('option');
     /* Include the account code in the selected value so identically named
        accounts in different currencies cannot resolve to the wrong badge. */
@@ -2693,7 +2680,7 @@ async function loadReferenceDataFromSupabase() {
   ]);
   if(currencyError||accountError||subError) throw new Error((currencyError||accountError||subError).message);
   CurrencyStore.currencies=(currencies||[]).map(c=>({code:c.code,name:c.name,symbol:c.symbol,isBase:c.is_base}));
-  AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true}));
+  AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,baseType:a.account_type,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true}));
   AccountingStore.subAccounts=(subs||[]).map(s=>({id:s.id,parentId:s.parent_account_id,parentCode:AccountingStore.accounts.find(a=>a.id===s.parent_account_id)?.code||'',code:s.code,name:s.name,desc:s.description||''}));
   CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
 }
@@ -2719,7 +2706,7 @@ CurrencyStore.add = async function(code,name,symbol){
 CurrencyStore.edit = async function(code){const current=this.currencies.find(c=>c.code===code);if(!current)return;const name=await ui117.prompt(`Currency name for ${code}:`,current.name);if(name===null)return;const symbol=await ui117.prompt(`Symbol for ${code}:`,current.symbol);if(symbol===null)return;const{error}=await ojmDb.from('currencies').update({name:name.trim(),symbol:symbol.trim()}).eq('code',code);if(error){showAppNotification('Currency Update Failed',error.message,true);return}await loadReferenceDataFromSupabase()};
 CurrencyStore.remove = async function(code){if(!await ui117.confirm(`Remove currency ${code}?`))return;const{error}=await ojmDb.from('currencies').delete().eq('code',code);if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase()};
 
-handleAccountFormSubmit = async function(event){event.preventDefault();const purpose=document.getElementById('accPurpose71');if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return}const original=document.getElementById('accountOrigCode').value;const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:document.getElementById('accPurpose71').value,created_by:liveProfile.id};const existing=AccountingStore.accounts.find(a=>a.code===original);const query=existing?ojmDb.from('accounts').update(payload).eq('id',existing.id):ojmDb.from('accounts').insert(payload);const{error}=await query;if(error){showAppNotification('Account Save Failed',String(error.message).includes('account_purpose')?'Install database/17-account-purpose.sql once, then save again.':error.message,true);return}closeModal('modalAccount');await loadReferenceDataFromSupabase()};
+handleAccountFormSubmit = async function(event){event.preventDefault();const purpose=document.getElementById('accPurpose71');if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return}const original=document.getElementById('accountOrigCode').value;const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:document.getElementById('accPurpose71').value,created_by:liveProfile.id};const existing=AccountingStore.accounts.find(a=>a.code===original);const parent=payload.currency_code==='__PARENT__';payload.is_posting=!parent;payload.currency_label=parent?'—':payload.currency_code;if(parent){payload.currency_code=existing?.currency||CurrencyStore.currencies[0]?.code;if(!payload.currency_code){showAppNotification('Currency Required','Add at least one currency in Settings before creating an account.',true);return}if(existing?.id){const used=await ojmDb.from('journal_lines').select('id').eq('account_id',existing.id).limit(1);if(used.error){showAppNotification('Account Check Failed',used.error.message,true);return}if(used.data?.length){showAppNotification('Account Has Transactions','Keep this account as a posting account. Create a separate parent account for grouping.',true);return}}}if(existing?.isTechnical)payload.account_type=existing.baseType||'EQUITY';const query=existing?ojmDb.from('accounts').update(payload).eq('id',existing.id):ojmDb.from('accounts').insert(payload);const{error}=await query;if(error){showAppNotification('Account Save Failed',String(error.message).includes('account_purpose')?'Install database/17-account-purpose.sql once, then save again.':error.message,true);return}closeModal('modalAccount');await loadReferenceDataFromSupabase()};
 promptDeleteAccount = function(code){const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{const{error}=await ojmDb.from('accounts').delete().eq('id',acc.id);if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
 handleSubAccountFormSubmit = async function(event){event.preventDefault();const original=document.getElementById('subAccountOrigCode').value,parent=AccountingStore.accounts.find(a=>a.code===document.getElementById('subParentCode').value);const payload={parent_account_id:parent.id,code:document.getElementById('subCode').value.trim(),name:document.getElementById('subName').value.trim(),description:document.getElementById('subDesc').value.trim()};const existing=AccountingStore.subAccounts.find(s=>s.code===original);const query=existing?ojmDb.from('sub_accounts').update(payload).eq('id',existing.id):ojmDb.from('sub_accounts').insert(payload);const{error}=await query;if(error){showAppNotification('Sub-Account Save Failed',error.message,true);return}closeModal('modalSubAccount');await loadReferenceDataFromSupabase()};
 promptDeleteSubAccount = function(code){const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{const{error}=await ojmDb.from('sub_accounts').delete().eq('id',sub.id);if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
@@ -2838,7 +2825,7 @@ async function hydrateSupabaseSession(session) {
 async function initializeSupabaseApp() {
   const errorBox=document.getElementById('loginError');
   if(!window.supabase||!window.OJM_SUPABASE_URL||!window.OJM_SUPABASE_ANON_KEY){if(errorBox)errorBox.textContent='Supabase configuration could not be loaded.';return}
-  ojmDb=window.supabase.createClient(window.OJM_SUPABASE_URL,window.OJM_SUPABASE_ANON_KEY);
+  ojmDb=window.supabase.createClient(window.OJM_SUPABASE_URL,window.OJM_SUPABASE_ANON_KEY,{global:{fetch:(...args)=>window.fetch(...args)}});
   const query105=new URLSearchParams(location.search),hash105=new URLSearchParams(location.hash.slice(1));
   const recoveryHint=query105.has('password-recovery')||query105.get('type')==='recovery'||hash105.get('type')==='recovery'||query105.has('error_description')||hash105.has('error_description');passwordRecoveryMode=recoveryHint;
   const recoveryError105=query105.get('error_description')||hash105.get('error_description');
@@ -2885,8 +2872,9 @@ function renderPeriodReview(){
   setupPeriodSelector(month);
   setText('periodReviewStatus',status.toUpperCase());setText('periodReviewEntries',ids.length);
   setText('periodReviewDebits',formatAppNumber(rows.reduce((sum,row)=>sum+Number(row.debit||0),0)));
+  setText('periodReviewCredits',formatAppNumber(rows.reduce((sum,row)=>sum+Number(row.credit||0),0)));
   setText('periodReviewOpenFindings',findings.filter(item=>!['corrected','closed'].includes(item.status)).length);
-  setText('periodClosingMessage',status==='open'?'Open periods accept normal postings.':status==='review'?'The period is under review.':status==='closed'?'Normal postings are blocked. Approved adjustments remain available.':'This period is locked. Reopen it before making changes.');
+  setText('periodClosingMessage',status==='open'?'Open periods accept normal postings.':status==='review'?'The period is under review.':status==='closed'?'Normal postings are blocked. Approved adjustments remain available.':'This period is locked and final. Add a review; post corrections in an open period.');
   const statusNode=document.getElementById('periodReviewStatus');if(statusNode)statusNode.dataset.status=status;
   const reviewRoot=document.getElementById('period-review'),unavailable=document.getElementById('periodReviewUnavailable');
   if(reviewRoot)reviewRoot.classList.toggle('period-review-open',status==='open');
@@ -2931,7 +2919,8 @@ let livePermission=null;
 async function loadCurrentPermissions(){
   if(!liveProfile)return;
   if(liveProfile.role==='admin'){livePermission={user_type:'admin',modules:PERMISSION_MODULES.map(item=>item[0]),can_approve:true,can_post_directly:true,can_void:true,can_export:true};return}
-  const{data}=await ojmDb.from('user_permissions').select('*').eq('user_id',liveProfile.id).maybeSingle();
+  const{data,error}=await ojmDb.from('user_permissions').select('*').eq('user_id',liveProfile.id).maybeSingle();
+  if(error)throw new Error('Could not load this account’s permissions: '+error.message);
   livePermission=data||{user_type:'sub_user',modules:['submissions'],can_approve:false,can_post_directly:false,can_void:false,can_export:false};
 }
 function applyPermissionAccess(){
@@ -3478,7 +3467,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 // Do not force Dashboard again when Supabase refreshes an existing session: doing
 // so loses the user's current module whenever the browser tab regains focus.
 
-function toggleSubmissionHistory(force){const panel=document.getElementById('userEntryHistoryPanel'),host=document.getElementById('userEntryHistoryCards');if(!panel||!host)return;panel.hidden=force===false?true:!panel.hidden;if(!panel.hidden){const rows=allReviewJournals().filter(j=>j.status!=='submitted');host.innerHTML=rows.length?rows.map(reviewCardHtml).join(''):'<div class="legal-doc-empty">No completed submission history yet.</div>';panel.scrollIntoView({behavior:'smooth',block:'start'})}}
+function toggleSubmissionHistory(force){
+  const panel=document.getElementById('userEntryHistoryPanel');if(!panel)return;
+  panel.hidden=typeof force==='boolean'?!force:!panel.hidden;
+  const trigger=document.querySelector('#user-entry-review .settings-page-heading button');
+  trigger?.setAttribute('aria-expanded',String(!panel.hidden));
+  if(!panel.hidden){renderUserEntryReview();panel.scrollIntoView({behavior:'smooth',block:'start'})}
+}
 function openSubmissionComparison(id){const journal=allReviewJournals().find(j=>j.id===id);if(!journal)return;document.getElementById('submissionComparisonOverlay')?.remove();const doubleLines=doubleEntryLines(journal),overlay=document.createElement('div');overlay.id='submissionComparisonOverlay';overlay.className='submission-compare-overlay';overlay.innerHTML=`<div class="submission-compare-window"><div class="submission-compare-header"><div><strong>Single Entry ↔ Double Entry Comparison</strong><span>${escapeHtml(getLiveUserName(journal.owner_id))} • ${escapeHtml(String(journal.period_start).slice(0,7))}</span></div><button type="button" class="modal-close-x" onclick="document.getElementById('submissionComparisonOverlay').remove()">&times;</button></div><div class="submission-compare-grid"><section><h4>Converted Double Entry</h4><div class="table-container"><table class="je-table"><thead><tr><th>Account</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody>${doubleLines.map((l,i)=>`<tr data-compare-index="${Math.floor(i/2)}"><td>${escapeHtml(l.displayAccount)}</td><td class="num">${l.side==='debit'?formatAppNumber(l.amount):''}</td><td class="num">${l.side==='credit'?formatAppNumber(l.amount):''}</td></tr>`).join('')}</tbody></table></div></section><section><h4>Original Single Entry</h4><div class="table-container"><table class="je-table"><thead><tr><th>Date</th><th>Fund → Spending</th><th>Description</th><th class="num">Amount</th></tr></thead><tbody>${(journal.lines||[]).map((l,i)=>`<tr data-compare-index="${i}"><td>${escapeHtml(formatAppDate(l.transaction_date))}</td><td>${escapeHtml((l.fund_account_name||workspaceAccountName(l.fund_account_id,'Assigned Fund'))+' → '+lineAccountName(l))}</td><td>${escapeHtml(l.memo||'')}${l.reference?`<small>${escapeHtml(l.reference)}</small>`:''}</td><td class="num">${formatAppNumber(l.amount)}</td></tr>`).join('')}</tbody></table></div></section></div></div>`;document.body.appendChild(overlay);overlay.querySelectorAll('tr[data-compare-index]').forEach(row=>{const highlight=()=>{overlay.querySelectorAll('tr.is-compare-linked').forEach(n=>n.classList.remove('is-compare-linked'));overlay.querySelectorAll(`tr[data-compare-index="${row.dataset.compareIndex}"]`).forEach(n=>n.classList.add('is-compare-linked'))};row.addEventListener('mouseenter',highlight);row.addEventListener('click',highlight)})}
 
 // FOUNDATION V4 — secure shared sub-user workspace and compact permission pickers.
@@ -3699,6 +3694,7 @@ const APP_PERMISSION_TREE=[
   {id:'transactions',label:'Transactions',children:[['journal','Journal'],['transactions-all','All Transactions'],['transactions-recurring','Upcoming Transactions'],['user-entry-review','Entry Submission Review'],['period-review','Period Review & Closing'],['transactions-voided','Transaction Audit Log']]},
   {id:'sub-users',label:'Sub-Users',children:[['sub-users-workspace','User Workspace']]},
   {id:'accounts',label:'Accounts',children:[['sec-chart-accounts','Chart of Accounts'],['sec-sub-accounts','Sub-Accounts'],['sec-general-ledger','General Ledger'],['sec-other-accounts','Other Account Sections'],['trial-balance','Trial Balance'],['account-balances','Account Balances']]},
+  {id:'hr',label:'Human Resources',children:[['payroll-employees','Employees'],['hr-contracts','Contracts & Documents'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessments']]},
   {id:'payroll',label:'Payroll',children:[['payroll-overview','Payroll Overview'],['payroll-employees','Employees'],['payroll-entries','Payroll Entries'],['payroll-history','Salary History'],['payroll-deductions','Payroll Deductions']]},
   {id:'reports',label:'Reports',children:[['report-pl','Profit and Loss'],['report-bs','Balance Sheet'],['report-cf','Cash Flow'],['report-tb','Trial Balance'],['report-gl','General Ledger'],['report-activity','Account Activity'],['report-expense','Expense Report'],['report-payroll','Payroll Report'],['report-reconciliation','Reconciliation Reports']]},
   {id:'tax-sso',label:'Tax and SSO',children:[['tax-overview','Tax Overview'],['tax-vat','VAT'],['tax-pit','Personal Income Tax'],['tax-social','Social Security'],['tax-payment','Tax and Social Payment'],['tax-sso-payment','SSO Payment'],['tax-records','Tax and SSO Records']]},
@@ -3757,19 +3753,20 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
   const getView = userId => views[userId] || 'home';
 
   function allocation(user, fundId) {
-    const permission = subUserPermission(user);
-    return Number((permission.fund_allocations || []).find(row => String(row.account_id) === String(fundId))?.amount || 0);
+    const posted=(window.funds113?.confirmed?.get(user.id)||[]).find(r=>String(r.account_id||r.id)===String(fundId));
+    return Number(posted?.opening||0);
   }
   function activity(user, fundId) {
-    const lines = journalRows(user.id).flatMap(journal => journal.lines || []).filter(line => String(line.fund_account_id) === String(fundId));
+    const lines = journalRows(user.id).filter(journal=>['draft','returned','submitted'].includes(journal.status)).flatMap(journal => journal.lines || []).filter(line => !line.journal_entry_id && !wsIsCollection(line) && String(line.fund_account_id) === String(fundId));
     const adjustments = adjustmentRequests.filter(row => row.owner_id === user.id && row.fund_account_id === fundId && row.status === 'approved_applied').flatMap(row => row.lines || []);
-    const base = {received:0, used:0, handover:0};
+    const posted=(window.funds113?.confirmed?.get(user.id)||[]).find(r=>String(r.account_id||r.id)===String(fundId));
+    const base = {received:Number(posted?.received||0), used:Number(posted?.used||0), handover:Number(posted?.handover||0)};
     lines.forEach(line => {
       if (line.entry_kind === 'collection' || line.direction === 'in') base.received += Number(line.amount || 0);
       else if (line.entry_kind === 'handover') base.handover += Number(line.amount || 0);
       else base.used += Number(line.amount || 0);
     });
-    adjustments.forEach(line => { if (base[line.activity_key] !== undefined) base[line.activity_key] += Number(line.difference || 0); });
+    // Requests cannot change posted ledger balances; a linked journal is required.
     return base;
   }
   function remaining(user, fundId) {

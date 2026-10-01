@@ -4,7 +4,7 @@ const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'
 const re79=v=>escapeHtml(String(v??''));
 function reportRange79(){const r=Reports79;if(r.mode==='custom')return;let y=+r.year,m=1,n=12;if(r.mode==='monthly'){[y,m]=r.month.split('-').map(Number);n=1}if(r.mode==='quarterly'){m=(+r.quarter-1)*3+1;n=3}r.from=date71(y,m,1);const end=new Date(y,m-1+n,0);r.to=date71(end.getFullYear(),end.getMonth()+1,end.getDate())}
 function reportData79(){
- const old={...Accounts69};try{Object.assign(Accounts69,{from:Reports79.from,to:Reports79.to});return accountData69().filter(r=>(!r.account.isTechnical||Reports79.account===r.key)&&(!Reports79.currency||r.currency===Reports79.currency))}finally{Object.assign(Accounts69,old)}
+ const old={...Accounts69},originalEntries=JournalModule.entries;try{if(['pl','expense'].includes(Reports79.kind))JournalModule.entries=originalEntries.filter(r=>!String(r.generalMemo||'').startsWith('Year-end closing '));Object.assign(Accounts69,{from:Reports79.from,to:Reports79.to});return accountData69().filter(r=>(!r.account.isTechnical||Reports79.account===r.key)&&(!Reports79.currency||r.currency===Reports79.currency))}finally{Object.assign(Accounts69,old);JournalModule.entries=originalEntries}
 }
 function reportSet79(k,v){const old={...Reports79};Reports79[k]=v;reportRange79();if(!Reports79.from||!Reports79.to||Reports79.from>Reports79.to||!/^\d{4}-\d{2}-\d{2}$/.test(Reports79.from)||(+Reports79.year<1900||+Reports79.year>9999)){Object.assign(Reports79,old);showCenterStatus('Choose a valid reporting period.',true)}renderReports79()}
 function reportSelect79(kind,key,checked){Reports79[kind]=checked?[...new Set([...Reports79[kind],key])]:Reports79[kind].filter(x=>x!==key);renderReports79()}
@@ -17,7 +17,7 @@ function reportModel79(kind,oldest=false){
  const rev=type(rows,'REVENUE'),exp=type(rows,'EXPENSE'),income=sum(rev,r=>r.credit-r.debit),cost=sum(exp,r=>r.debit-r.credit);
  headers=['Classification','Account','Debit','Credit','Net amount'];values=(kind==='expense'?exp:[...rev,...exp]).map(r=>[r.account.type,r.account.name,money69(r.debit),money69(r.credit),money69(r.account.type==='REVENUE'?r.credit-r.debit:r.debit-r.credit)]);
  metrics=kind==='expense'?[['Net expenses',cost]]:[['Revenue',income],['Expenses',cost],['Net profit / (loss)',income-cost]];
- note='Period activity only. Revenue uses credit less debit; expenses use debit less credit. Closing transfers already posted to these accounts affect these totals.';
+ note='Period activity only. Revenue uses credit less debit; expenses use debit less credit. System year-end closing transfers are excluded from this performance report.';
  }else if(kind==='bs'){
  const assets=sum(type(rows,'ASSET'),r=>r.closing),liabilities=-sum(type(rows,'LIABILITY'),r=>r.closing),equity=-sum(type(rows,'EQUITY'),r=>r.closing),earnings=-sum([...type(rows,'REVENUE'),...type(rows,'EXPENSE')],r=>r.closing);
  headers=['Classification','Account','Closing amount'];values=['ASSET','LIABILITY','EQUITY'].flatMap(t=>type(rows,t).map(r=>[t,r.account.name,money69(t==='ASSET'?r.closing:-r.closing)]));values.push(['EQUITY','Unclosed accumulated result',money69(earnings)]);metrics=[['Assets',assets],['Liabilities + equity + result',liabilities+equity+earnings],['Difference',assets-liabilities-equity-earnings]];

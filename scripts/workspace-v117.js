@@ -29,7 +29,8 @@ const renderBefore=window.renderSubUserWorkspace;
 window.renderSubUserWorkspace=function(...args){
  if(document.activeElement?.matches('.inline-cell117')&&renderedTab===activeSubUserId){deferred=true;return}
  const staff=liveProfile&&liveProfile.role!=='admin'&&!livePermission?.can_approve;
- if(!staff&&liveProfile){
+ if(window.workspaceRequest138?.target&&liveProfile){openSubUserTabs=[{key:'user-'+liveProfile.id,userId:liveProfile.id,permanent:false}];activeSubUserId='user-'+liveProfile.id}
+ else if(!staff&&liveProfile){
   const users=availableSubUsers(),allowed=new Set(users.map(u=>String(u.id)));
   openSubUserTabs=openSubUserTabs.filter(t=>!t.userId||allowed.has(String(t.userId)));
   if(!openSubUserTabs.some(t=>!t.userId))openSubUserTabs.unshift({key:'default',userId:null,permanent:true});

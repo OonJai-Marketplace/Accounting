@@ -29,13 +29,13 @@ window.renderHr99=function(){
 };
 window.addEventListener('DOMContentLoaded',()=>{
  const nav=document.getElementById('nav-module-payroll');if(!nav)return;
- const hr=document.createElement('div');hr.id='nav-module-hr';hr.className='nav-category';hr.dataset.module='payroll';
- hr.innerHTML='<div class="nav-header" onclick="activateCategory(this, \'payroll-employees\')">HR <span class="arrow">▼</span></div><div class="nav-links"></div>';
- const links=hr.querySelector('.nav-links'),employees=nav.querySelector('[onclick*="payroll-employees"]');if(employees){employees.textContent='Employees';links.append(employees)}
+ let hr=document.getElementById('nav-module-hr');if(!hr){hr=document.createElement('div');hr.id='nav-module-hr';hr.className='nav-category';hr.dataset.module='hr';
+ hr.innerHTML='<div class="nav-header" onclick="activateCategory(this, \'payroll-employees\')">Human Resources <span class="arrow">▼</span></div><div class="nav-links"></div>';nav.before(hr)}
+ const links=hr.querySelector('.nav-links'),employees=nav.querySelector('[onclick*="payroll-employees"]');if(employees){employees.textContent='Employees';if(!links.querySelector('[onclick*="payroll-employees"]'))links.append(employees);else employees.remove()}
  for(const [id,label] of [['hr-contracts','Contracts & Documents'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessments']]){
- const b=document.createElement('button');b.type='button';b.className='tab-btn';b.textContent=label;b.setAttribute('onclick',`switchTab('${id}')`);links.append(b);
- const section=document.createElement('div');section.id=id;section.dataset.module='payroll';section.className='tab-content';document.getElementById('payroll-overview').parentElement.append(section);
- }nav.before(hr);
+ if(!links.querySelector(`[onclick*="${id}"]`)){const b=document.createElement('button');b.type='button';b.className='tab-btn';b.textContent=label;b.setAttribute('onclick',`switchTab('${id}')`);links.append(b)}
+ if(!document.getElementById(id)){const section=document.createElement('div');section.id=id;section.dataset.module='hr';section.className='tab-content';document.getElementById('payroll-overview').parentElement.append(section)}
+ }nav.before(hr);window.applyGranularPermissionAccess?.();
  const render=renderWork82;window.renderWork82=function(...args){const out=render.apply(this,args);renderHr99();const active=document.querySelector('.tab-content.active');if(active?.id.startsWith('payroll-')){const header=active.querySelector('.work82>header .actions82');if(header&&!header.querySelector('[data-hr99]')){const b=document.createElement('button');b.dataset.hr99='';b.type='button';b.textContent='Manage Employees / Leave';b.onclick=()=>switchTab('payroll-employees');header.prepend(b)}}return out};
  const change=switchTab;window.switchTab=function(id,...args){const out=change.call(this,id,...args);if(id.startsWith('hr-')){if(!Work82.loaded)loadWork82();else renderHr99()}return out};
 });

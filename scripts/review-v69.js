@@ -2,7 +2,19 @@
 function findingActions69(item){return item.status==='open'?`<div class="finding-actions69"><button class="je-btn je-btn-secondary" onclick="startFindingAdjustment('${item.id}')">Create Adjustment</button><button class="je-btn je-btn-secondary" onclick="closeFinding('${item.id}')">Close Finding</button></div>`:item.adjustmentEntryId?`<span>Adjustment: ${escapeHtml(item.adjustmentEntryId)}</span>`:''}
 const periodRenderBefore69=renderPeriodReview;
 renderPeriodReview=function(){
- periodRenderBefore69();const debitSummary=document.getElementById('periodReviewDebits');if(debitSummary){const sums={};periodEntries().forEach(r=>sums[r.currency]=(sums[r.currency]||0)+Number(r.debit||0));debitSummary.textContent=Object.entries(sums).map(([c,n])=>c+' '+formatAppNumber(n)).join(' / ')||'0.00'}const form=document.getElementById('periodFindingForm');if(form)form.hidden=false;
+ periodRenderBefore69();
+ const sums={};
+ periodEntries().forEach(row=>{
+  const currency=row.currency||'LAK';
+  const totals=sums[currency]||(sums[currency]={debit:0,credit:0});
+  totals.debit+=Number(row.debit||0);
+  totals.credit+=Number(row.credit||0);
+ });
+ for(const [id,side] of [['periodReviewDebits','debit'],['periodReviewCredits','credit']]){
+  const summary=document.getElementById(id);
+  if(summary)summary.textContent=Object.entries(sums).map(([currency,totals])=>currency+' '+formatAppNumber(totals[side])).join(' / ')||'0.00';
+ }
+ const form=document.getElementById('periodFindingForm');if(form)form.hidden=false;
  const bar=document.querySelector('.period-closing-bar>div'),month=PeriodReview.selectedMonth,state=PeriodReview.status(month);
  if(bar){let finish=document.getElementById('finishPeriod69');if(!finish){finish=document.createElement('button');finish.id='finishPeriod69';finish.className='je-btn je-btn-emerald';finish.textContent='Finish Editing';bar.prepend(finish)}finish.hidden=state!=='open';finish.onclick=()=>finishEditing69(month);const lock=bar.querySelector('[onclick*="locked"]');if(lock){lock.disabled=state!=='closed';lock.title=state==='closed'?'Lock this closed period':'Finish editing and close this period before locking'}}
  const tbody=document.getElementById('periodTransactionsBody');if(tbody){tbody.querySelectorAll('.period-linked-finding').forEach(note=>{const id=note.previousElementSibling?.dataset.entryId;if(id)tbody.querySelectorAll('tr[data-entry-id]').forEach(r=>{if(r.dataset.entryId===id)r.classList.add('finding-group69')})});const general=PeriodReview.findings.filter(f=>f.month===month&&!f.transactionId);if(general.length)tbody.insertAdjacentHTML('beforeend',general.map(f=>`<tr class="period-linked-finding"><td colspan="7"><strong>Period finding ${escapeHtml(f.number)}</strong> — ${escapeHtml(f.description)}${findingActions69(f)}</td></tr>`).join(''))}
