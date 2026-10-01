@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Oon Jai Accounting</title>
+  <title>Oon Jai Accounting — v142.1</title>
   <link rel="icon" type="image/png" href="assets/brand/oonjai-logo.png?v=118">
   <!-- Chart.js for dashboard graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -124,8 +124,19 @@
 <button type="button" class="tab-btn" onclick="switchTab('account-balances')">Balances</button>
 <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-chart-accounts')">Chart of Accounts</button>
 <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-sub-accounts')">Sub-accounts</button>
-<button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-other-accounts')">System Accounts &amp; Mapping</button>
+
 </div>
+      </div>
+
+      <div class="nav-category" id="nav-module-hr" data-module="hr">
+        <div class="nav-header" onclick="activateCategory(this, 'payroll-employees')">Human Resources <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-employees')">Employees</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-contracts')">Contracts &amp; Documents</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-attendance')">Attendance</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-leave')">Leave</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-assessments')">Assessments</button>
+        </div>
       </div>
 
       <!-- 4. Payroll -->
@@ -133,7 +144,6 @@
         <div class="nav-header" onclick="activateCategory(this, 'payroll-overview')">Payroll <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('payroll-overview')">Overview</button>
-          <button type="button" class="tab-btn" onclick="switchTab('payroll-employees')">Employees &amp; Leave</button>
           <button type="button" class="tab-btn" onclick="switchTab('payroll-deductions')">Payroll Deductions</button>
           <button type="button" class="tab-btn" onclick="switchTab('payroll-entries')">Payroll Entries</button>
           <button type="button" class="tab-btn" onclick="switchTab('payroll-history')">Salary History</button>
@@ -420,6 +430,7 @@
       <label for="periodReviewMonth105">Period</label>
       <input id="periodReviewMonth105" type="month" min="2000-01" max="2100-12" required onchange="selectReviewPeriod(this.value)">
     </div>
+    <button type="button" id="yearClose136" class="je-btn je-btn-danger" onclick="workflow136.yearClose()">Close Year &amp; Carry Forward</button>
   </div>
 
   <div id="periodReviewUnavailable" class="period-review-unavailable" hidden>
@@ -429,8 +440,9 @@
   <div class="period-summary-grid">
     <div class="period-summary-card"><span>Status</span><strong id="periodReviewStatus">OPEN</strong></div>
     <div class="period-summary-card"><span>Journal Entries</span><strong id="periodReviewEntries">0</strong></div>
-    <div class="period-summary-card"><span>Total Debits</span><strong id="periodReviewDebits">0.00</strong></div>
     <div class="period-summary-card"><span>Open Findings</span><strong id="periodReviewOpenFindings">0</strong></div>
+    <div class="period-summary-card"><span>Total Debits</span><strong id="periodReviewDebits">0.00</strong></div>
+    <div class="period-summary-card"><span>Total Credits</span><strong id="periodReviewCredits">0.00</strong></div>
   </div>
 
   <section class="je-card review-findings70">
@@ -587,7 +599,7 @@
           <section id="sec-general-ledger" class="module-card"><div id="ledger69"></div></section>
 
           <!-- MODULE 4 — OTHER ACCOUNT SECTIONS -->
-          <section id="sec-other-accounts" class="module-card"><div id="otherAccounts69"></div></section>
+          <section id="sec-other-accounts" class="module-card" hidden><div id="otherAccounts69"></div></section>
 
         </div>
 <!-- ============================================================================== -->
@@ -805,6 +817,10 @@
         <div id="payroll-overview" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Overview.</div></div>
         <div id="payroll-employees" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Employees.</div></div>
         <div id="payroll-entries" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Entries.</div></div>
+<div id="hr-contracts" data-module="hr" class="tab-content"></div>
+<div id="hr-attendance" data-module="hr" class="tab-content"></div>
+<div id="hr-leave" data-module="hr" class="tab-content"></div>
+<div id="hr-assessments" data-module="hr" class="tab-content"></div>
         <div id="payroll-history" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Salary History.</div></div>
         <div id="payroll-deductions" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Deductions.</div></div>
         <div id="report-pl" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Profit and Loss.</div></div>
@@ -1175,8 +1191,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="scripts/supabase-config.js?v=118"></script>
   <!-- Backbone Script Engine -->
-  <script src="scripts/script.js?v=118"></script>
-  <script src="scripts/workspace-settings.js?v=118"></script>
+  <script src="scripts/workspace-request-v138.js?v=141"></script>
+<script src="scripts/script.js?v=141"></script>
+  <script src="scripts/workspace-settings.js?v=138"></script>
   <script src="scripts/navigation-v48.js?v=118"></script>
   <script src="scripts/subusers-final-v53.js?v=118"></script>
   <script src="scripts/subusers-final-v54.js?v=118"></script>
@@ -1209,7 +1226,7 @@
 <link rel="stylesheet" href="styles/prefixes-badges-v89.css?v=118">
 <script src="scripts/prefixes-badges-v89.js?v=118"></script>
 <link rel="stylesheet" href="styles/scheduled-journals-v91.css?v=118">
-<script src="scripts/scheduled-journals-v91.js?v=118"></script>
+<script src="scripts/scheduled-journals-v91.js?v=138"></script>
 <link rel="stylesheet" href="styles/refinements-v93.css?v=118">
 <script src="scripts/refinements-v93.js?v=118"></script>
 <link rel="stylesheet" href="styles/settings-payroll-v94.css?v=118">
@@ -1223,7 +1240,7 @@
 <link rel="stylesheet" href="styles/workspace-v99.css?v=118">
 <script src="scripts/payroll-v99.js?v=118"></script>
 <script src="scripts/workspace-v99.js?v=118"></script>
-<script src="scripts/hr-v99.js?v=118"></script>
+<script src="scripts/hr-v99.js?v=140"></script>
 <link rel="stylesheet" href="styles/theme-v100.css?v=118">
 <script src="scripts/theme-v100.js?v=118"></script>
 <link rel="stylesheet" href="styles/polish-v101.css?v=118">
@@ -1242,12 +1259,13 @@
 <link rel="stylesheet" href="styles/document-editor-v105.css?v=118">
 <script src="assets/vendor/docx.js?v=118"></script>
 <script src="scripts/document-export-v108.js?v=118"></script>
+<script src="scripts/document-import-v1422.js?v=142.2"></script>
 <script src="scripts/document-editor-v105.js?v=118"></script>
 <link rel="stylesheet" href="styles/refinements-v106.css?v=118">
 <link rel="stylesheet" href="styles/editor-tables-v107.css?v=118">
 <script src="scripts/editor-tables-v107.js?v=118"></script>
 <link rel="stylesheet" href="styles/shared-v108.css?v=118">
-<script src="scripts/shared-v108.js?v=118"></script>
+<script src="scripts/shared-v108.js?v=141"></script>
 <link rel="stylesheet" href="styles/refinements-v109.css?v=118">
 <script src="scripts/refinements-v109.js?v=118"></script>
 
@@ -1258,17 +1276,33 @@
 <script src="scripts/header-icons-v112.js?v=118"></script>
 <script src="scripts/keyboard-picking-v112.js?v=118"></script>
 <link rel="stylesheet" href="styles/polish-v113.css?v=118">
-<script src="scripts/shell-v113.js?v=118"></script>
+<script src="scripts/shell-v113.js?v=129"></script>
 <script src="scripts/access-v113.js?v=118"></script>
-<script src="scripts/recovery-v113.js?v=127"></script>
+<script src="assets/vendor/jszip.min.js?v=129"></script>
+<script src="scripts/archive-xlsx-v129.js?v=129"></script>
+<script src="scripts/recovery-v113.js?v=130"></script>
 <script src="scripts/funds-v113.js?v=118"></script>
 <link rel="stylesheet" href="styles/final-v117.css?v=118">
-<script src="scripts/final-v117.js?v=118"></script>
+<script src="scripts/final-v117.js?v=138"></script>
 <script src="scripts/reports-v117.js?v=118"></script>
-<script src="scripts/workspace-v117.js?v=118"></script>
+<script src="scripts/workspace-v117.js?v=141"></script>
 <link rel="stylesheet" href="styles/final-v118.css?v=119">
 <script src="scripts/final-v118.js?v=119"></script>
 <script src="scripts/reports-v118.js?v=118"></script>
 <script src="scripts/accounting-pos-cleanup.js?v=121"></script>
+<link rel="stylesheet" href="styles/workflows-v136.css?v=138">
+<script src="scripts/workflows-v136.js?v=138"></script>
+<link rel="stylesheet" href="styles/combined-v138.css?v=138">
+<script src="scripts/combined-v138.js?v=141"></script>
+<link rel="stylesheet" href="styles/submission-review-v139.css?v=139">
+<script src="scripts/submission-review-v139.js?v=139"></script>
+<style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
+<link rel="stylesheet" href="styles/carry-forward-v142.css?v=142">
+<script src="scripts/carry-forward-v142.js?v=142"></script>
+<link rel="stylesheet" href="styles/recovery-reset-fix-v142.css?v=142.1">
+<script src="scripts/recovery-reset-fix-v142.js?v=142.1"></script>
+<script src="scripts/post-entry-diagnostics-v142.js?v=142.1"></script>
+<link rel="stylesheet" href="styles/focused-v1422.css?v=142.2">
+<script src="scripts/focused-v1422.js?v=142.2"></script>
 </body>
 </html>
