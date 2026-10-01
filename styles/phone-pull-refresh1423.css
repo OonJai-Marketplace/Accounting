@@ -1,0 +1,2 @@
+.pull-refresh1423{position:fixed;top:0;left:50%;transform:translate(-50%,-130%);z-index:9;min-width:165px;text-align:center;background:#07533f;color:#fff;border-radius:0 0 12px 12px;padding:10px 16px;font:700 12px Arial,sans-serif;box-shadow:0 4px 12px #12382730;transition:transform .18s ease;pointer-events:none}
+.pull-refresh1423.visible{transform:translate(-50%,0)}

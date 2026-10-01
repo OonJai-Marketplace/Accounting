@@ -1,0 +1,48 @@
+#connectedPhone132{display:none}
+html[data-device132=phone] #connectedPhone132{display:block;position:fixed;inset:0;width:100%;height:100dvh;border:0;z-index:90;background:#f8f5ed}
+html[data-device132=phone] .app-layout{position:fixed!important;left:-20000px!important;width:1280px!important;visibility:hidden!important;pointer-events:none!important}
+html[data-device132=phone] #loginGate{z-index:20000!important}
+html[data-device132=phone] :is(.ui-overlay108,.modal-overlay,.modal-backdrop,.submission-compare-overlay,.scheduled-overlay91,#status118,#centerStatusToast,#headerAccountDropdown){z-index:21000!important}
+html[data-device132=phone] :is(.ui-dialog108,.modal-content,.v49-review-dialog,.final-records-dialog,.v56-returned-dialog,.scheduled-dialog91){width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;min-width:0!important;max-height:90dvh!important;overflow:auto!important;background:#fffdf5!important;border-radius:14px!important;color:#173c2e!important}
+html[data-device132=phone] :is(.ui-dialog108,.modal-content,.v49-review-dialog,.scheduled-dialog91) :is(input,select,textarea){font-size:16px!important;max-width:100%!important}
+html[data-device132=phone] .submission-compare-grid{grid-template-columns:1fr!important}
+html[data-device132=phone] #landscape117{display:none!important}
+html[data-device132=tablet] .app-layout{min-width:var(--tablet-workspace132)!important}
+html[data-device132=tablet] body.tablet-portrait117 #landscape117{display:flex!important}
+html[data-device132=tablet] #appSidebar{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:270px!important;transform:translateX(-105%)!important;z-index:1300!important}
+html[data-device132=tablet] body.nav118 #appSidebar{transform:translateX(0)!important}
+html[data-device132=tablet] .main-content-area{margin-left:0!important;width:100%!important}
+html[data-device132=tablet] #tabletMenu118{display:inline-flex!important;flex:0 0 40px!important}
+html[data-device132=tablet] body.nav118 #tabletScrim118{display:block!important;position:fixed;inset:0;z-index:1290;background:#102a2255;border:0}
+@media print{#connectedPhone132{display:none!important}html[data-device132=phone] .app-layout{position:static!important;visibility:visible!important;left:0!important;width:100%!important}}
+html[data-device132=phone] :is(#workspaceTools108,#tx73Balance,#headerNotices104){display:none!important}
+html[data-device132=tablet] body,html[data-device132=tablet] .app-layout{width:var(--tablet-workspace132)!important;min-width:var(--tablet-workspace132)!important;max-width:var(--tablet-workspace132)!important}
+html[data-device132=tablet] :is(.login-gate,.modal-backdrop,.submission-compare-overlay,.ui-overlay108){width:var(--tablet-workspace132)!important;right:auto!important}
+/* Phone settings sheets use original fields and handlers. */
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker){padding:8px!important;align-items:center!important}
+html[data-device132=phone] #modalAccessPicker{z-index:21100!important}
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker) .modal-dialog{width:100%!important;min-width:0!important;max-width:480px!important;max-height:94dvh!important;margin:0!important;background:#faf7ef!important;color:#173c2e!important;border-radius:16px!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;font-size:14px}
+html[data-device132=phone] #userAccessForm{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker) .modal-header{background:#07533f;color:#fffaf0;padding:13px 16px!important;flex-shrink:0}
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker) .modal-header h4{color:inherit;font-size:17px}
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker) .modal-close-x{color:inherit!important;font-size:24px}
+html[data-device132=phone] :is(#modalUserAccess .modal-body,#accessPickerContent){overflow:auto!important;min-height:0;padding:12px!important;max-height:none!important}
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker) .modal-footer{padding:10px 12px!important;background:#f4efe2;flex-shrink:0;display:flex;gap:8px}
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker) .modal-footer button{flex:1;min-height:42px}
+html[data-device132=phone] :is(.user-identity-grid,.assignment-activity-row,.access-trigger-row,.account-assignment-layout){display:grid!important;grid-template-columns:1fr!important;gap:10px!important}
+html[data-device132=phone] .user-id-grid{display:grid!important;grid-template-columns:1fr 1fr 1fr!important;gap:8px!important}
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker) :is(input:not([type=checkbox]):not([type=radio]),select){width:100%!important;min-width:0!important;max-width:100%!important;font-size:16px!important;min-height:40px!important}
+html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker) input:is([type=checkbox],[type=radio]){width:18px!important;height:18px!important;accent-color:#07533f;flex-shrink:0}
+html[data-device132=phone] .settings-field[hidden]{display:none!important}
+html[data-device132=phone] .access-picker-trigger{background:#fffdf7!important;border:1px solid #e6dfce!important;border-radius:12px;padding:12px!important;color:#173c2e!important;min-width:0}
+html[data-device132=phone] .permission-grid113{display:block!important;min-width:0!important}
+html[data-device132=phone] .permission-row133{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;background:#fffdf7;border-radius:10px;padding:10px;margin:8px 0}
+html[data-device132=phone] .permission-title133{grid-column:1/-1;font-weight:700;white-space:normal!important}
+html[data-device132=phone] .permission-row133 label{display:flex!important;align-items:center;gap:5px!important;font-size:13px!important;min-height:32px;white-space:normal!important;padding:0!important}
+html[data-device132=phone] .permission-row133 label:has(input:disabled){opacity:.45}
+html[data-device132=phone] #userPermissionGrid details{background:#f3eddf;border:0;border-radius:10px;margin-bottom:8px;padding:10px}
+html[data-device132=phone] #userPermissionGrid summary{font-size:15px;color:#174735;font-weight:700;min-height:30px}
+html[data-device132=phone] .account-access-grid{grid-template-columns:1fr!important;max-height:45dvh;overflow:auto}
+html[data-device132=phone] .account-assignment-nav{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
+html[data-device132=phone] .account-assignment-options{min-width:0!important}
+html[data-device132=phone] .account-selection-bullets{max-height:70px;overflow:auto}
