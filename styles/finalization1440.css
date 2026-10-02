@@ -1,0 +1,41 @@
+/* Hidden administrator customization: artwork does not advertise interaction. */
+body .header-icon112,body .header-icon112:is(:hover,:active,:focus,:focus-visible,:disabled){cursor:default!important;outline:none!important;box-shadow:none!important;filter:none!important;transform:none!important;opacity:1!important;transition:none!important}
+body .header-icon112:is(:hover,:active,:focus,:disabled){background:color-mix(in srgb,var(--header-icon-color112,#18533f) 12%,#fffaf1)!important;border-color:color-mix(in srgb,var(--header-icon-color112,#18533f) 32%,#f9f0df)!important;color:var(--header-icon-color112,#18533f)!important}
+/* Persistent notices must be readable, scrollable and dismissible. */
+#status118{pointer-events:auto;box-sizing:border-box;max-height:75dvh;overflow:auto}
+#status118 .status-copy118{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}
+#status118 .status-close1440{flex:none;align-self:flex-start;padding:8px 12px;border:1px solid #527561;border-radius:6px;background:#fffaf2;color:#174c3b;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600}
+.discard-confirm1440{padding:12px;margin-top:12px;border:1px solid #ab7950;border-radius:6px;background:#fff3df;color:#513519}
+.discard-confirm1440 button,.journal-batch1440 button{padding:8px 12px;margin:4px;border:1px solid #53735e;border-radius:5px;background:#fffdf7;color:#174c3b;cursor:pointer}
+.journal-batch1440{padding:14px;margin:12px 0;border:1px solid #53735e;border-radius:7px;background:#fffaf1;color:#173c2e;overflow-wrap:anywhere}
+.journal-batch1440 h3{margin:0 0 8px}.journal-batch1440 li{margin:7px 0}.batch-resolve1440{padding:10px 0;border-top:1px solid #d7d9c9}
+/* Keep the existing table intact in narrow desktop windows. Scroll inside the editor. */
+@media screen and (max-width:1024px){
+ body #journalEntry98 .table-container{max-width:100%;overflow-x:auto!important}
+ body #journalEntry98 table.tx72-editor{display:table!important;table-layout:fixed!important;width:1050px!important;min-width:1050px!important}
+ body #journalEntry98 table.tx72-editor thead{display:table-header-group!important}
+ body #journalEntry98 table.tx72-editor #jeLinesBody{display:table-row-group!important;padding:0!important}
+ body #journalEntry98 table.tx72-editor #jeLinesBody tr,body #journalEntry98 #jeHeaderRow{display:table-row!important}
+ body #journalEntry98 table.tx72-editor #jeLinesBody td,body #journalEntry98 #jeHeaderRow th{display:table-cell!important;position:static!important;grid-column:auto!important;grid-row:auto!important;order:initial!important;padding:6px!important;margin:0!important;border-radius:0!important;vertical-align:middle!important}
+ body #journalEntry98 table.tx72-editor #jeLinesBody td::before{display:none!important}
+ body #journalEntry98 .tx74-remove{display:none!important}
+ body #journalEntry98 #jeHeaderRow .je-account-col{width:250px!important;min-width:250px!important}
+ body #journalEntry98 #jeHeaderRow .je-memo-col{width:250px!important;min-width:250px!important}
+ body #journalEntry98 #jeHeaderRow .action-col{width:66px!important;min-width:66px!important}
+ body:not(.je-multi-date) #journalEntry98 table.tx72-editor #jeLinesBody td.je-date-col,body:not(.je-multi-date) #journalEntry98 #jeHeaderRow th.je-date-col{display:none!important}
+ body.je-multi-date #journalEntry98 table.tx72-editor .je-date-col{display:table-cell!important;width:80px!important;min-width:80px!important}
+ body #journalEntry98 .je-date-col .oj-date-button104{min-width:0!important;width:100%!important;white-space:normal!important;padding:3px!important;font-size:11px!important}
+ body #journalEntry98 .je-date-col .oj-date-glyph104{display:none}
+ body #journalEntry98 .je-date-col .oj-date-label104{white-space:normal!important}
+ body #journalEntry98 .je-card-header{flex-wrap:wrap;gap:8px}
+ body #journalEntry98 .je-card-header>div{min-width:0;max-width:100%}
+ body #journalEntry98 .je-card-header button{white-space:normal}
+}
+/* Gentle density and readability polish; preserve artwork, colors and quotations. */
+@media screen and (min-width:601px){
+ body.shell113 .area-banner113{height:156px;min-height:156px;padding-top:14px;padding-bottom:14px}
+ body .work82>header .actions82{flex-wrap:wrap;gap:7px}
+ body .work82>header .actions82 button{min-height:30px}
+ body .je-subtitle{color:#52675c}
+}
+@media print{#journalBatch1440,.discard-confirm1440,#status118{display:none!important}}

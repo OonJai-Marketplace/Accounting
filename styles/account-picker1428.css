@@ -1,0 +1,8 @@
+.account-list1428{position:fixed;z-index:150000;overflow:auto;overscroll-behavior:contain;background:#fffaf0;color:#174c3b;border:1px solid #c5d3be;border-radius:8px;padding:5px;box-shadow:0 6px 22px #123c2b2e;font:13px/1.4 'Plus Jakarta Sans',Arial,sans-serif;box-sizing:border-box}
+.account-option1428{padding:9px 10px;min-height:34px;border-radius:5px;cursor:pointer;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box}
+.account-option1428:hover,.account-option1428[aria-selected=true]{background:#dce9d5;color:#0b503c}
+.account-empty1428{padding:12px;color:#6f7565}
+body select.account-source1428{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;border:0!important;overflow:hidden!important;clip-path:inset(50%)!important;opacity:0!important;pointer-events:none!important}
+body input.account-search1428{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:#fffdf7;color:#174c3b;border:1px solid #bdcdb7;border-radius:5px;padding:8px;font:inherit}
+body input.account-search1428:focus{outline:2px solid #b7cfaf;outline-offset:1px}
+@media(max-width:650px){.account-list1428{font-family:Arial,sans-serif;font-size:14px}.account-option1428{padding:11px;min-height:42px}}

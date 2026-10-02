@@ -1,0 +1,40 @@
+/* Desktop only. Preserve existing journal column widths and row geometry. */
+@media(min-width:1025px){
+ #journalEntry98:not(.single-entry1430) #jeLinesBody :is(input,select,textarea,.oj-date-button104,.account-input-wrap){border-color:transparent!important;box-shadow:none!important;outline:none!important;border-radius:0!important;background:transparent!important}
+ #journalEntry98:not(.single-entry1430) #jeLinesBody td:focus-within{background:#f3f7ed!important}
+ #personalWorkspace1437 [hidden]{display:none!important}
+ #personalWorkspace1437{min-width:0}
+ .personal-tabs1437{display:flex;gap:6px;border-bottom:1px solid #aebfaf;margin:0 0 16px;padding:0 12px}
+ .personal-tabs1437 button{border:0;border-bottom:3px solid transparent;padding:12px 20px;background:transparent;font:inherit;font-weight:600;color:#365248;cursor:pointer}
+ .personal-tabs1437 button.active{border-bottom-color:#126246;color:#074b36;background:#edf2e7}
+ #personalWorkspace1437 :is(.personal-home1437,.personal-history1437,.personal-totals1437,.personal-active1437){padding:16px;border:1px solid #c9d3c0;border-radius:8px;background:#fffdf7;margin:12px 0;min-width:0}
+ #personalWorkspace1437 :is(header,footer){display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0 12px}
+ #personalWorkspace1437 h3{margin:0 0 10px;color:#174d3a}
+ .personal-metrics1437,.personal-shortcuts1437{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:14px 0 22px}
+ .personal-metrics1437 article{padding:18px;background:#edf2e7;border-radius:8px;border:1px solid #d1dabe}
+ .personal-metrics1437 strong{display:block;font-size:26px;color:#174d3a;margin:8px 0}
+ .personal-metrics1437 progress{width:100%;accent-color:#1c7351;height:8px}
+ .personal-shortcuts1437 button{padding:18px;text-align:left;background:#f6efd9;border:1px solid #d4c293;border-radius:8px;cursor:pointer;color:#284d3b}
+ .personal-shortcuts1437 :is(b,span){display:block}.personal-shortcuts1437 b{font-size:17px;margin-bottom:6px}
+ .personal-recent1437{display:flex;justify-content:space-between;gap:15px;border-top:1px solid #dce2d7;padding:12px 0}
+ #personalWorkspace1437 small{display:block;color:#67756a;font-size:11px;margin-top:3px}
+ .personal-history-filters1437{display:grid;grid-template-columns:150px 190px minmax(0,1fr);gap:12px;margin-bottom:18px}
+ .personal-history-filters1437 label{display:flex;flex-direction:column;gap:6px}
+ .personal-history-filters1437 :is(input,select){width:100%;box-sizing:border-box;border:1px solid #bbcab4;padding:8px;border-radius:4px;min-width:0;background:#fffdf7}
+ .personal-history-list1437 details:not([open])>.final-record-content{display:none!important}
+ .personal-history-list1437>div{margin:10px 0}.personal-history-list1437 .final-record-card{width:100%;max-width:none;margin:0}
+ .personal-active1437 table{table-layout:fixed;width:100%;min-width:0}
+ .personal-active1437 th:nth-child(1){width:11%}.personal-active1437 th:nth-child(2){width:14%}.personal-active1437 th:nth-child(3){width:24%}.personal-active1437 th:nth-child(4){width:25%}.personal-active1437 th:nth-child(5),.personal-active1437 th:nth-child(6){width:10%}.personal-active1437 th:nth-child(7){width:6%}
+ .personal-active1437 td{overflow-wrap:anywhere;white-space:normal!important}.personal-active1437 td[rowspan]{vertical-align:top}.personal-active1437 .je-btn{padding:4px 6px;margin:2px 0;max-width:100%;white-space:normal}
+ #personalEditor1437 .je-meta-grid{display:flex;flex-wrap:wrap;gap:12px}
+ #personalEditor1437 .transaction-date-field{flex:0 0 160px!important;width:160px!important}
+ #personalEditor1437 .entry-mode1430{flex:0 0 255px!important}
+ #personalEditor1437 .je-meta-grid>.je-field-group:not(.transaction-date-field):not(.entry-mode1430){flex:1 1 280px!important}
+ #personalEditor1437 #journalEntry98{margin:0 0 18px;width:100%;box-sizing:border-box}
+ #personalEditor1437 .je-table{width:100%;table-layout:fixed}
+ #personalEditor1437 #jeHeaderRow th:first-child{width:28%!important}
+ #personalEditor1437 #jeHeaderRow th:nth-child(2){width:32%!important}
+ #personalEditor1437 .je-table td :is(input,select){max-width:100%;min-width:0;box-sizing:border-box}
+ #personalEditor1437 .je-actions-bar{display:flex;justify-content:space-between;align-items:center;gap:8px}
+ #personalFunds1437 .fund-summary113{margin:12px 0!important;width:100%!important}
+}

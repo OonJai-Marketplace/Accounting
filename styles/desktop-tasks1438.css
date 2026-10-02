@@ -1,0 +1,30 @@
+@media(min-width:1025px){
+ body #journal #journalEntry98{margin-left:0!important;margin-right:0!important;width:100%!important;max-width:none!important;box-sizing:border-box}
+ body #personalEditor1437 #journalEntry98>.je-meta-grid,
+ body #personalEditor1437 #journalEntry98>#simpleEntry1430{margin-left:16px!important;margin-right:16px!important}
+ body #personalEditor1437 #journalEntry98>.je-actions-bar{padding:12px 16px!important;box-sizing:border-box}
+ body #personalEditor1437 .je-meta-grid{align-items:flex-end}
+ body #personalEditor1437 .simple-row1430{grid-template-columns:120px minmax(120px,1fr) minmax(120px,1fr) 135px minmax(120px,.8fr) 36px}
+ body.je-multi-date #personalEditor1437 .simple-row1430{grid-template-columns:145px 110px minmax(120px,1fr) minmax(120px,1fr) 120px 36px}
+ body #personalEditor1437 .entry-mode1430{min-width:255px}
+ body #sub-users-workspace .fund-summary113>p{margin-left:16px!important;margin-right:16px!important}
+ body.subuser-expanded1438 #sub-users-workspace>.area-banner113{display:none!important}
+ body.subuser-expanded1438 #workspaceActor136{margin-top:0}
+ .workspace-expand1438{margin-left:auto;white-space:nowrap}
+}
+.todo-form1438{width:min(720px,92vw);box-sizing:border-box;max-height:90vh;overflow:auto;padding:22px!important}
+.todo-form1438>label,.todo-form1438 .todo-grid1438>label{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+.todo-form1438 :is(input:not([type=checkbox]),select,textarea){width:100%;min-width:0;box-sizing:border-box;padding:9px;border:1px solid #aebfae;border-radius:5px;background:#fffdf7;color:#244e3e;font:inherit}
+.todo-grid1438{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.todo-form1438 [hidden]{display:none!important}
+.todo-form1438 footer,.todo-buttons1438{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+#todos136 .todo-intro1438,#todos136 .todo-templates1438{padding:0 16px 12px}
+.todo-templates1438{display:flex;gap:8px;flex-wrap:wrap}
+#todos136 .todo136{margin:12px 16px!important;border:1px solid #bdcbb9;border-radius:7px;padding:12px;background:#fffdf7}
+#todos136 .todo136 summary{display:flex;justify-content:space-between;gap:14px;cursor:pointer;flex-wrap:wrap}
+.todo-progress1438{display:flex;align-items:center;gap:12px;margin:10px 0}
+.todo-progress1438 progress{flex:1;height:10px;accent-color:#147754}
+.todo136 li{padding:6px 0}.todo136 label{display:flex;align-items:center;gap:10px}
+.todo136 .todo-next1438{color:#164e3a;font-weight:600}
+.todo-error1438{color:#ad251d;white-space:pre-wrap}
+@media(max-width:600px){.todo-grid1438{grid-template-columns:1fr}}

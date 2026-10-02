@@ -1,0 +1,49 @@
+/* One full-screen workspace control, with the original layout restored on exit. */
+body.workspace-full1439 .main-content-area{flex:1 1 100%!important;width:100%!important;max-width:none!important;margin:0!important;min-width:0!important}
+body.workspace-full1439 #appSidebar,body.workspace-full1439 .sidebar-scrim{display:none!important}
+body.workspace-full1439 .workspace-scroll{width:100%!important;max-width:none!important;box-sizing:border-box;padding:0 58px 24px 12px!important}
+body.workspace-full1439 .tab-content.active{width:100%!important;max-width:none!important;box-sizing:border-box}
+body.workspace-full1439 #document-editor105 #docFrame105{height:calc(100dvh - 220px)}
+body #docExpandDock112,.workspace-expand1438{display:none!important}
+/* Separate the Fund Summary frame from the table frame inside it. */
+body.shell113 #sub-users-workspace #subUserWorkspacePanel #teamSummary113{margin:18px 0 16px!important;padding:0 0 14px!important}
+body.shell113 #sub-users-workspace #subUserWorkspacePanel #teamSummary113>[role=status]{margin:0 14px!important;min-width:0}
+body.shell113 #sub-users-workspace #subUserWorkspacePanel #teamSummary113>[role=status]>.table-module109,
+body.shell113 #sub-users-workspace #subUserWorkspacePanel #teamSummary113>[role=status]>.table-container{width:100%!important;max-width:100%!important;box-sizing:border-box;margin:0!important}
+.coa-search1439{flex:1 1 260px;min-width:180px}.coa-search1439 input{width:100%;box-sizing:border-box;padding:9px;border:1px solid #bdcdb7;border-radius:5px;background:#fffdf7;color:#174c3b;font:inherit}
+#sec-chart-accounts .coa-toolbar{flex-wrap:wrap;gap:12px;max-width:100%}
+.direction-toggle1439{width:100%;min-height:36px;white-space:nowrap;background:#f4e9d8!important;color:#78411d!important;border:1px solid #c6aa7b!important}
+.direction-toggle1439[data-direction=in]{background:#e3eedf!important;color:#135438!important;border-color:#a6bca0!important}
+.direction-toggle1439:disabled{opacity:.65;cursor:default}
+/* All on-screen debit/credit columns can hold 10,000,000,000.00 plus a currency mark. */
+@media screen{
+ body table.money-table1439{min-width:var(--money-min1439)!important}
+ body table.money-table1439 :is(th,td)[data-money1439]{width:180px!important;min-width:180px!important;max-width:none!important;box-sizing:border-box!important;white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;font-variant-numeric:tabular-nums}
+ body table.money-table1439 [data-money1439] :is(input,.journal-money102){width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;font-variant-numeric:tabular-nums}
+ body table.money-table1439 [data-money1439] input{padding-left:5px!important;padding-right:5px!important;text-overflow:clip!important}
+ body table.money-table1439 [data-money1439] .journal-money102 input{flex:1 1 0!important;width:0!important}
+}
+@media(min-width:1025px){
+ body #journalEntry98 .je-table:has(#jeHeaderRow){width:100%!important;table-layout:fixed!important;min-width:900px!important}
+ body #journalEntry98 .je-table #jeHeaderRow th.je-date-col{width:80px!important;min-width:80px!important;max-width:80px!important}
+ body #journalEntry98 .je-table #jeHeaderRow th.je-account-col{width:28%!important;min-width:0!important;max-width:none!important}
+ body #journalEntry98 .je-table #jeHeaderRow th.je-memo-col{width:auto!important;min-width:160px!important}
+ body #journalEntry98 .je-table #jeHeaderRow th.num,body #journalEntry98 .je-table #jeLinesBody td[data-money1439]{width:180px!important;min-width:180px!important;max-width:none!important}
+ body #journalEntry98 .je-date-col .oj-date-glyph104{display:none}
+ body #journalEntry98 .je-date-col .oj-date-button104{width:100%!important;min-width:0!important;padding:3px!important;white-space:normal!important;font-size:11px!important}
+ body #journalEntry98 .je-date-col .oj-date-label104{white-space:normal!important;line-height:1.15}
+ body #journalEntry98 .simple-row1430{grid-template-columns:110px minmax(150px,1fr) minmax(150px,1fr) 180px minmax(160px,1fr) 36px!important}
+ body.je-multi-date #journalEntry98 .simple-row1430{grid-template-columns:80px 110px minmax(150px,1fr) minmax(150px,1fr) 180px 36px!important}
+ body.je-multi-date #journalEntry98 .simple-row1430>label:has([data-simple=memo]){grid-column:2/6;grid-row:2}
+ #simpleEntry1430{overflow-x:auto}
+ #simpleRows1430{min-width:850px}
+}
+@media(max-width:600px){body.workspace-full1439 .workspace-scroll{padding:0 8px 90px!important}}
+@media screen{
+ body #printableDocArea .tab-content table.money-table1439 :is(th,td)[data-money1439],
+ body #printableDocArea #journalEntry98 .je-table #jeHeaderRow th.num,
+ body #printableDocArea #journalEntry98 .je-table #jeLinesBody td[data-money1439]{width:180px!important;min-width:180px!important;max-width:none!important}
+}
+@media screen{
+ body table.money-table1439 th:not([data-money1439]){white-space:normal!important;overflow-wrap:break-word!important}
+}

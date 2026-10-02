@@ -1,6 +1,6 @@
 /* Phone Sub-users parity with the final September 21 Workbench v04.
    All phone overrides are scoped to Sub-users; desktop exception is last. */
-@media(max-width:767px), (hover:none) and (pointer:coarse){
+@media(max-width:767px){
 body.subusers-workspace-active #sub-users-workspace{padding-bottom:calc(64px + env(safe-area-inset-bottom))!important}
 body.subusers-workspace-active #sub-users-workspace .sub-user-tabs-shell{position:sticky!important;top:0!important;z-index:46!important;min-height:45px!important;height:45px!important;margin:0!important;padding:3px 5px 0!important}
 body.subusers-workspace-active #sub-users-workspace .sub-user-browser-tabs{min-height:36px!important;align-items:stretch!important}
@@ -126,7 +126,7 @@ body.subusers-workspace-active .v49-user-overview em{font-size:7px!important}
 }
 
 /* Phone header stays in layout; only the content below it scrolls. */
-@media(max-width:767px), (hover:none) and (pointer:coarse){
+@media(max-width:767px){
 body.subusers-workspace-active .workspace-scroll{overflow:hidden!important;min-height:0!important}
 body.subusers-workspace-active #sub-users-workspace.active{display:flex!important;flex-direction:column!important;height:calc(100dvh - 12px)!important;min-height:0!important;box-sizing:border-box!important;padding-bottom:calc(63px + env(safe-area-inset-bottom))!important;overflow:hidden!important}
 body.subusers-workspace-active #sub-users-workspace .sub-user-tabs-shell{position:relative!important;top:auto!important;flex:0 0 45px!important;margin:0!important}
@@ -153,7 +153,7 @@ body.subusers-workspace-active .v64-entry-actions .je-btn-danger{background:#b42
 }
 
 /* V65: one compact Sub-users surface for phones and touch-first tablets. */
-@media(max-width:767px), (hover:none) and (pointer:coarse){
+@media(max-width:767px){
 body.subusers-workspace-active .module-header{display:none!important}
 body.subusers-workspace-active .workspace-scroll{padding:0 6px!important;height:100dvh!important;max-height:100dvh!important}
 body.subusers-workspace-active #sub-users-workspace.active{height:100dvh!important}

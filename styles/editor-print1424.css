@@ -1,0 +1,28 @@
+/* Compact tools, matching the existing forest and warm document workspace. */
+body #document-editor105 .doc-ribbon107 [role=tabpanel][hidden],body #document-editor105 [hidden]{display:none!important}
+body #document-editor105 .doc-tabs107 button[aria-expanded=false]{box-shadow:none}
+body #document-editor105 .doc-tabs107 button[aria-expanded=true]{border-bottom:2px solid #08724f}
+body #document-editor105 .format-active1424,body #document-editor105 button[aria-pressed=true]{background:#dbeadd!important;color:#064c36!important;border-color:#338265!important}
+body #document-editor105 .doc-table-panel113{padding:7px!important;margin-top:5px;border:1px solid #c5d4c4;border-radius:6px;background:#f8f7ef}
+body #document-editor105 .doc-table-panel-title113{margin-bottom:5px}
+body #document-editor105 .doc-table-controls1424{display:flex!important;align-items:stretch!important;gap:6px!important;flex-wrap:wrap!important;padding:0!important}
+body #document-editor105 .doc-table-controls1424>fieldset{min-width:0;flex:1 1 170px;display:flex;align-content:start;align-items:end;flex-wrap:wrap;gap:6px;padding:7px;border:1px solid #d3dccb;border-radius:5px;background:#fffdf7;margin:0}
+body #document-editor105 .doc-table-controls1424 legend,body #document-editor105 .doc-image-wrap1424 legend{font-size:11px;font-weight:750;color:#23563f;padding:0 4px}
+body #document-editor105 .doc-table-controls1424 label{font-size:10px;gap:3px;flex:0 1 auto}
+body #document-editor105 .doc-table-controls1424 input[type=number]{width:58px!important;min-height:28px!important;padding:4px 6px!important}
+body #document-editor105 .doc-table-controls1424 input[type=color]{width:32px!important;height:28px!important;min-height:28px!important;padding:2px!important}
+body #document-editor105 .doc-table-controls1424 select{min-height:28px!important;padding:4px 22px 4px 6px!important}
+body #document-editor105 .doc-table-controls1424 button{min-height:29px!important;padding:4px 7px!important;font-size:11px!important}
+body #document-editor105 .doc-icon-row1424{display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+body #document-editor105 .doc-icon-row1424 button,body #document-editor105 .doc-image-wrap1424 button{display:grid;place-items:center;width:30px;height:30px;padding:4px!important;min-height:30px!important;border:1px solid #bfd1bf;background:#fffef7;color:#24543b;border-radius:4px;cursor:pointer}
+body #document-editor105 .doc-icon-row1424 svg,body #document-editor105 .doc-image-wrap1424 svg{width:21px;height:21px;flex-shrink:0}
+body #document-editor105 .doc-image-wrap1424{display:inline-flex;gap:6px;margin:5px 0;padding:5px 8px;border:1px solid #d3dccb;border-radius:5px;background:#fffdf7}
+body #document-editor105 .doc-image-wrap1424 button:disabled{opacity:.4;cursor:default}
+body #document-editor105 #docCellSelection1424{flex-basis:100%;font-size:10px;color:#627663}
+.print-options1424 .ui-dialog108{max-width:500px!important}
+.print-options1424 form,.print-sign-fields1424{display:grid;gap:12px}
+.print-options1424 label:not(.print-check1424){display:grid;gap:5px;font-size:13px;font-weight:650}
+.print-options1424 input:not([type=checkbox]){width:100%;min-width:0;min-height:38px;border:1px solid #bccdbb;border-radius:5px;padding:8px;background:#fffdf7}
+.print-options1424 .print-check1424{display:flex;flex-direction:row!important;align-items:center;gap:8px;font-size:13px}
+.print-options1424 [hidden]{display:none!important}
+@media(max-width:650px){body #document-editor105 .doc-table-controls1424>fieldset{flex-basis:145px}}

@@ -1,0 +1,17 @@
+/* The previous date control was 290px. 160px is approximately 45% shorter. */
+body #journal #journalEntry98 .transaction-date-field{width:160px!important;max-width:160px!important;min-width:0!important;flex:0 0 160px!important}
+body #journal #journalEntry98 .transaction-date-field .je-label-row{justify-content:flex-start!important;gap:4px!important}
+body #journal #journalEntry98 .je-meta-grid{align-items:flex-end;flex-wrap:wrap}
+body #journal #journalEntry98 .entry-mode1430{flex:0 0 158px;min-width:150px;gap:5px}
+#journalEntry98 .simple-row1430{display:grid;grid-template-columns:120px minmax(180px,1fr) minmax(180px,1fr) 135px minmax(130px,.8fr) 36px;gap:10px;align-items:end;padding:12px 0;border-bottom:1px solid #d4ddcd}
+#journalEntry98 .simple-row1430>label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:var(--text-color,#284f3e);min-width:0}
+#journalEntry98 .simple-row1430 input,#journalEntry98 .simple-row1430 select{width:100%;box-sizing:border-box;min-width:0}
+#journalEntry98 .simple-row1430 .simple-date1430{display:none}
+body.je-multi-date #journalEntry98 .simple-row1430{grid-template-columns:145px 110px minmax(170px,1fr) minmax(170px,1fr) 120px 36px}
+body.je-multi-date #journalEntry98 .simple-row1430 .simple-date1430{display:flex}
+body.je-multi-date #journalEntry98 .simple-row1430>label:has([data-simple=memo]){grid-column:2/6;grid-row:2}
+#simplePreview1430{font-size:12px;line-height:1.6;color:#3d654b;white-space:normal;overflow-wrap:anywhere;margin:12px 0}
+#simplePreview1430.invalid1430{color:#9b3d25}
+#journalEntry98 [hidden]{display:none!important}
+@media(max-width:1100px){#journalEntry98 .simple-row1430,body.je-multi-date #journalEntry98 .simple-row1430{grid-template-columns:repeat(2,minmax(130px,1fr))}body.je-multi-date #journalEntry98 .simple-row1430>label:has([data-simple=memo]){grid-column:auto;grid-row:auto}}
+@media(max-width:600px){body #journal #journalEntry98 .je-meta-grid>.je-field-group:not(.transaction-date-field):not(.entry-mode1430){flex:1 1 100%!important;order:2}#journalEntry98 .simple-row1430,body.je-multi-date #journalEntry98 .simple-row1430{grid-template-columns:minmax(0,1fr)}body #journal #journalEntry98 .entry-mode1430{flex:1 1 150px}}

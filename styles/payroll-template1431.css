@@ -1,0 +1,10 @@
+.pay-template1431{max-width:none;width:100%}.pay-template1431 .data-table82{overflow-x:auto}.pay-template1431 .data-table82>table{min-width:800px}
+.pay-template1431 #payTemplateLines1429 input,.pay-template1431 #payTemplateLines1429 select{margin-bottom:5px}
+.pay-template1431 #payTemplateLines1429 td:last-child button{display:block;width:30px;margin-bottom:3px}
+.pay-mappings1431{padding:10px 0}.pay-mappings1431 summary{cursor:pointer;font-weight:700}
+#payEmployeeMappings1431{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin-top:8px}
+#payEmployeeMappings1431 label{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.pay-balances1431{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pay-balances1431>span{padding:8px;background:#e7f3e5;color:#204b34;border:1px solid #abc1a2;border-radius:5px}
+.pay-balances1431>span.unbalanced1431{background:#fff0e5;color:#993a1b;border-color:#dfad91}
+#payPreview1431 table{table-layout:auto}#payPreview1431 th:nth-last-child(-n+2),#payPreview1431 td:nth-last-child(-n+2){white-space:nowrap;text-align:right}
+@media(max-width:650px){#payEmployeeMappings1431{grid-template-columns:1fr}.pay-template1431 .template-tools1429{gap:5px}}
