@@ -17,15 +17,15 @@ function polish(){
  const cell=row.querySelector('.action-col')||row.lastElementChild;if(!cell)return;
  if(!cell.querySelector('[data-row-tools99]')){
  const box=document.createElement('span');box.dataset.rowTools99='';
- for(const [title,hint,fn] of [['Add','Add a row below',()=>{addJournalLineRow();const added=$('jeLinesBody').lastElementChild;row.after(added);calculateJournalBalance()}],['↑','Move row up',()=>{const prev=row.previousElementSibling;if(prev)prev.before(row)}],['↓','Move row down',()=>{const next=row.nextElementSibling;if(next)next.after(row)}]]){const b=document.createElement('button');b.type='button';b.textContent=title;b.title=hint;b.setAttribute('aria-label',hint);b.onclick=fn;box.append(b)}
+ for(const [title,hint,fn] of [['↑','Move row up',()=>{const prev=row.previousElementSibling;if(prev)prev.before(row)}],['↓','Move row down',()=>{const next=row.nextElementSibling;if(next)next.after(row)}]]){const b=document.createElement('button');b.type='button';b.textContent=title;b.title=hint;b.setAttribute('aria-label',hint);b.onclick=fn;box.append(b)}
  (cell.querySelector('.row-menu-panel99')||cell).append(box);
  }menu(cell);
  });
- document.querySelectorAll('#jeHeaderRow .add-row81,#lineUp82,#lineDown82,#journal .je-actions-bar [onclick="addJournalLineRow()"] ').forEach(n=>n.hidden=true);
+ document.querySelectorAll('#jeHeaderRow .add-row81,#lineUp82,#lineDown82').forEach(n=>n.hidden=true);
  document.querySelectorAll('#auditMonths98 .audit-month98').forEach(card=>{
  if(card.dataset.aligned99)return;card.dataset.aligned99='true';const summary=card.querySelector('summary'),title=summary.querySelector('.audit-month-title98');if(!title)return;
  const counts={edit:0,void:0,destructive:0,info:0};summary.querySelectorAll('.audit-count98').forEach(n=>{const key=Object.keys(counts).find(k=>n.classList.contains(k));if(key)counts[key]+=Number(n.querySelector('b')?.textContent||0)});
- summary.replaceChildren(title);for(const [key,label] of [['edit','Updated'],['void','Voided'],['destructive','Deleted'],['info','Other actions']]){const span=document.createElement('span');span.className='audit-stat99 '+key;span.innerHTML='<small>'+label+'</small><b>'+counts[key]+'</b>';summary.append(span)}
+ summary.replaceChildren(title);for(const [key,label] of [['edit','Updated'],['void','Voided'],['destructive','Deleted'],['info','Other actions']]){if(!counts[key])continue;const span=document.createElement('span');span.className='audit-stat99 '+key;span.innerHTML='<small>'+label+'</small><b>'+counts[key]+'</b>';summary.append(span)}
  card.style.setProperty('--archive-grid85','minmax(190px,1fr) repeat(4,minmax(80px,12%))');
  });
  document.querySelectorAll('[data-auto-close99]').forEach(armCollapse);
@@ -33,7 +33,7 @@ function polish(){
 }
 function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(polish)}}
 function menu(cell){
- if(!cell||cell.closest('.clustered-journal-table')||cell.querySelector('.row-menu99'))return;
+ if(!cell||cell.closest('.clustered-journal-table,.audit-table98')||cell.querySelector('.row-menu99'))return;
  if(!cell.querySelector('button,[onclick]'))return;
  const details=document.createElement('details');details.className='row-menu99';const summary=document.createElement('summary');summary.textContent='⋯';summary.setAttribute('aria-label','Row actions');const panel=document.createElement('div');panel.className='row-menu-panel99';
  while(cell.firstChild)panel.append(cell.firstChild);details.append(summary,panel);cell.append(details);
@@ -47,7 +47,7 @@ function updateHeading(){
 }
 const timers=new WeakMap(),dirty=new WeakSet();
 function armCollapse(panel){
- if(panel.hidden||dirty.has(panel)||timers.has(panel))return;
+ if(panel.id==='journalEntry98'||panel.hidden||dirty.has(panel)||timers.has(panel))return;
  timers.set(panel,setTimeout(()=>{timers.delete(panel);if(dirty.has(panel)||panel.hidden)return;if(panel.id==='journalEntry98')showJournalEntry98(false,false);else if(panel.id==='periodFindingForm')closePeriodFindingForm();else panel.hidden=true},30000));
 }
 window.addEventListener('DOMContentLoaded',()=>{
@@ -98,15 +98,17 @@ function installPosting(){
  }
  window.submitJournalEntry=async function(){
  recover();
+ if(navigator.onLine===false){showAppNotification('Offline','Your entry has not been sent. Keep it open and post after the connection returns.',true);return}
  // Existing correction and submission workflows retain their approval/audit handlers.
  if(JournalModule.editingEntryId||pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId||PeriodReview.pendingAdjustment)return legacy();
  if(liveProfile?.role!=='admin'&&!livePermission?.can_post_directly)return legacy();
  const state=getMultiDateJournalState(),collected=collectLiveJournalGroups();if(state.errors.length||collected.errors.length||collected.differences.length)return legacy();
- const groups=Object.entries(collected.grouped).filter(([,g])=>g.lines.length);if(groups.length!==1)return legacy();
+ const groups=Object.entries(collected.grouped).filter(([,g])=>g.lines.length);if(groups.length!==1||window.journalBatch1440?.hasPending())return legacy();
  const [date,group]=groups[0];if(group.lines.length<2||group.lines.some(l=>!l.account?.id)||PeriodReview.status(date.slice(0,7))!=='open')return legacy();
  const saved=snapshot(),id=crypto.randomUUID(),owner=liveProfile.id,job={id,snapshot:saved,status:'saving'};jobs.set(id,job);
  // Capture every RPC argument before clearing the editor. Pending entries are not ledger totals.
  const payload={p_transaction_date:date,p_memo:saved.memo.trim(),p_lines:group.lines.map(l=>({account_id:l.account.id,description:l.memo,currency_code:l.currency,debit:Number(l.debit||0),credit:Number(l.credit||0)})),p_prefix:String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'OJM').trim(),p_digits:Math.max(3,Math.min(9,Number(ApplicationSettings.accounting?.journalDigits)||6))};
+ try{sessionStorage.setItem('ojm_pending_posts99_'+owner,JSON.stringify([...jobs.values()]))}catch(_){jobs.delete(id);showAppNotification('Entry not sent','Device recovery storage is unavailable. Your entry remains in the editor. Free storage or keep an external copy before posting.',true);return}
  clearJournalEntry();draw();
  try{const result=await ojmDb.rpc('post_manual_journal',payload);if(result.error)throw result.error;job.status='saved';if(liveProfile?.id!==owner){saveDetached(job,owner);return}draw();
  if(liveProfile?.id===owner){await loadJournalFromSupabase();jobs.delete(id);draw()}

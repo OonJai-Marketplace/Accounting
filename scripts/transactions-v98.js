@@ -9,7 +9,7 @@
   window.showJournalEntry98 = function (show = true, scroll = true) {
     const form = byId('journalEntry98');
     if (!form) return;
-    form.hidden = !show;
+    form.hidden = false;
     const button = byId('addEntry98');
     button?.setAttribute('aria-expanded', String(show));
     if (button && button.textContent !== '+ Add Entry') button.textContent = '+ Add Entry';
@@ -153,12 +153,7 @@
     const shell=byId('categoryTabShell'),journal=byId('journal');
     if(!shell||!journal||byId('transactionsHeading98'))return;
     const heading=document.createElement('header');heading.id='transactionsHeading98';heading.className='transactions-heading98 no-print';heading.innerHTML='<h1>Transactions</h1>';shell.before(heading);
-    const toolbar=document.createElement('div');toolbar.className='journal-toolbar98 no-print';
-    toolbar.innerHTML='<button type="button" id="addEntry98" class="je-btn je-btn-emerald" aria-controls="journalEntry98" aria-expanded="false">+ Add Entry</button>';
-    journal.prepend(toolbar);
-    byId('addEntry98').onclick=()=>showJournalEntry98(byId('journalEntry98').hidden);
-    const close=document.createElement('button');close.type='button';close.className='je-btn je-btn-secondary';close.textContent='Hide Entry';close.onclick=()=>showJournalEntry98(false);
-    byId('journalEntry98').querySelector('.je-header-actions').append(close);
+    byId('journalEntry98').hidden=false;
     setupJournalColumns();calculateJournalBalance();syncTitle();renderVoidedTransactionsTable();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();

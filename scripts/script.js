@@ -285,7 +285,8 @@ function resetSettingsGroup(group) {
 }
 
 function refreshSettingsCurrencyOptions() {
-  document.querySelectorAll('.settings-currency-select').forEach(select => {
+  // Searchable dropdowns also have a text proxy; only update native selects.
+  document.querySelectorAll('select.settings-currency-select').forEach(select => {
     const selected = select.value || 'LAK';
     const currencies = (CurrencyStore.currencies || []).filter(item => item.active !== false);
     if (currencies.length) select.innerHTML = currencies.map(item => `<option value="${escapeHtml(item.code)}">${escapeHtml(item.code)}</option>`).join('');
@@ -613,12 +614,12 @@ function handleTableSearch(term) {
 
 function openModal(id) {
   const modal = document.getElementById(id);
-  if (modal) modal.classList.add('active');
+  if (modal) {modal.classList.add('active');if(['modalAccount','modalSubAccount','modalUserAccess','modalAccessPicker'].includes(id))window.dialogs1440?.attach(modal,{close:()=>id==='modalAccessPicker'?closeAccessPicker():closeModal(id)});}
 }
 
 function closeModal(id) {
   const modal = document.getElementById(id);
-  if (modal) modal.classList.remove('active');
+  if (modal) {modal.classList.remove('active');window.dialogs1440?.detach(modal);}
 }
 
 function escapeHtml(str) {
@@ -677,12 +678,14 @@ function renderChartOfAccountsTable() {
   const filterCurr = document.getElementById('filterCoaCurrency')?.value || 'ALL';
   tbody.innerHTML = '';
 
+  const terms=(document.getElementById('searchCoa1439')?.value||'').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   const visibleAccounts = AccountingStore.accounts.filter(acc => {
-    return filterCurr === 'ALL' || acc.currency === filterCurr;
+    const text=[acc.code,acc.name,acc.currency,currencySymbolV6(acc.currency),acc.type,acc.desc].join(' ').toLocaleLowerCase();
+    return (filterCurr === 'ALL' || acc.currency === filterCurr)&&terms.every(term=>text.includes(term));
   });
 
   if (visibleAccounts.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No accounts found for currency: ${filterCurr}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No accounts match the current search and currency filter.</td></tr>`;
     return;
   }
 
@@ -811,10 +814,11 @@ function syncSubAccountParentDropdown() {
   const select = document.getElementById('subParentCode');
   if (!select) return;
   select.innerHTML = '';
-  AccountingStore.accounts.filter(acc=>acc.isPosting!==false).forEach(acc => {
+  select.add(new Option('Choose parent account…',''));
+  AccountingStore.accounts.filter(acc=>acc.isPosting===false&&!acc.isTechnical).sort((a,b)=>a.code.localeCompare(b.code,undefined,{numeric:true})).forEach(acc => {
     const opt = document.createElement('option');
     opt.value = acc.code;
-    opt.textContent = `${acc.code} — ${acc.name} (${acc.currency})`;
+    opt.textContent = `${acc.code} — ${acc.name}`;
     select.appendChild(opt);
   });
 }
@@ -826,13 +830,14 @@ function renderSubAccountsTable() {
 
   AccountingStore.subAccounts.forEach(sub => {
     const parent = AccountingStore.accounts.find(a => a.code === sub.parentCode);
-    const parentLabel = parent ? `${parent.code} — ${parent.name} (${parent.currency})` : sub.parentCode;
+    const parentLabel = parent ? `${parent.code} — ${parent.name}` : sub.parentCode;
+    const currency = sub.currency || parent?.currency || '';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><span class="parent-account-label">${escapeHtml(parentLabel)}</span></td>
       <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${sub.code}</td>
-      <td><strong>${escapeHtml(sub.name)}</strong></td>
+      <td><span class="currency-symbol-badge" data-currency-code="${escapeHtml(currency)}" title="${escapeHtml(currency)}">${escapeHtml(currencySymbolV6(currency))}</span> <strong>${escapeHtml(sub.name)}</strong></td>
       <td style="color: var(--text-muted);">${escapeHtml(sub.desc || '—')}</td>
       <td style="text-align: right;">
         <div style="display: inline-flex; gap: 6px;">
@@ -847,11 +852,28 @@ function renderSubAccountsTable() {
   });
 }
 
+function syncSubAccountCurrencyDropdown(selected = '') {
+  const select = document.getElementById('subCurrency');
+  if (!select) return;
+  select.replaceChildren(new Option('Choose currency…', ''));
+  for (const currency of CurrencyStore.currencies.filter(c => c.active !== false)) {
+    select.add(new Option(`${currency.code}${currency.name ? ' — ' + currency.name : ''}`, currency.code));
+  }
+  if (selected && !Array.from(select.options).some(o => o.value === selected)) {
+    const unavailable = new Option(`${selected} — inactive; choose a currency`, selected);
+    unavailable.disabled = true;
+    select.add(unavailable);
+  }
+  select.value = selected;
+  window.dropdown1434?.enhance(document.getElementById('formSubAccount'));
+}
+
 function openAddSubAccountModal() {
   syncSubAccountParentDropdown();
   document.getElementById('modalSubAccountTitle').innerText = 'Add Sub-Account';
   document.getElementById('subAccountOrigCode').value = '';
   document.getElementById('formSubAccount').reset();
+  syncSubAccountCurrencyDropdown();
   openModal('modalSubAccount');
   document.getElementById('subCode').focus();
 }
@@ -866,6 +888,7 @@ function openEditSubAccountModal(code) {
   document.getElementById('subCode').value = sub.code;
   document.getElementById('subName').value = sub.name;
   document.getElementById('subDesc').value = sub.desc || '';
+  syncSubAccountCurrencyDropdown(sub.currency || AccountingStore.accounts.find(a => a.code === sub.parentCode)?.currency || '');
   openModal('modalSubAccount');
 }
 
@@ -876,6 +899,7 @@ function handleSubAccountFormSubmit(event) {
   const code = document.getElementById('subCode').value.trim();
   const name = document.getElementById('subName').value.trim();
   const desc = document.getElementById('subDesc').value.trim();
+  const currency = document.getElementById('subCurrency').value;
 
   if (origCode) {
     const sub = AccountingStore.subAccounts.find(s => s.code === origCode);
@@ -888,13 +912,14 @@ function handleSubAccountFormSubmit(event) {
       sub.code = code;
       sub.name = name;
       sub.desc = desc;
+      sub.currency = currency;
     }
   } else {
     if (AccountingStore.subAccounts.some(s => s.code === code)) {
       showAppNotification('Notice','Sub-Account code already exists.');
       return;
     }
-    AccountingStore.subAccounts.push({ parentCode, code, name, desc });
+    AccountingStore.subAccounts.push({ parentCode, code, name, desc, currency });
   }
 
   closeModal('modalSubAccount');
@@ -1051,7 +1076,7 @@ function getCleanAccountDisplay(accountStr, explicitCurrency = null) {
 function setupJournalColumns() {
   syncCoaDatalist(); updateNextEntryIdDisplay();
   const header=document.getElementById('jeHeaderRow');
-  if(header) header.innerHTML='<th>Account</th><th>Line Memo / Reference</th><th class="num">DR</th><th class="num">CR</th><th class="action-col no-print">Action</th>';
+  if(header) header.innerHTML='<th>Account</th><th>Line Memo / Reference</th><th class="num">Debit</th><th class="num">Credit</th><th class="action-col no-print">Action</th>';
   // Currency settings must never erase an in-progress journal draft.
   const body=document.getElementById('jeLinesBody');
   if(body && !body.querySelector('.je-line-acc')) resetJournalLinesForm();
@@ -1113,7 +1138,7 @@ function addJournalLineRow(accountVal = '', memoVal = '', drVal = '', crMap = {}
     </td>
     ${crInputs}
     <td class="action-col no-print" style="text-align: center;">
-      <button type="button" class="je-btn-del" style="width: 22px; height: 22px; font-size: 11px;" onclick="removeJournalLineRow(this)">✕</button>
+      <button type="button" class="je-btn-del" style="width: 22px; height: 22px; font-size: 11px;" data-permission-action1440="edit" onclick="removeJournalLineRow(this)">✕</button>
     </td>
   `;
   tbody.appendChild(tr);
@@ -1310,7 +1335,7 @@ async function confirmEntryOverride() {
       p_memo: document.getElementById('jeGeneralMemo').value.trim(),
       p_lines: payload
     });
-    if (error) { showAppNotification('Update Failed', error.code==='PGRST202' ? 'The journal revision function is missing or outdated. Run database/16-revise-open-journal-entry.sql from this update, then retry. Your original entry has not been changed.' : error.message, true); return; }
+    if (error) { showAppNotification('Update Failed', error.code==='PGRST202' ? 'The journal revision function is missing or outdated. Read setup/SETUP-GUIDE-v142.20.txt for the required existing database setup. Your original entry has not been changed.' : error.message, true); return; }
     closeModal('modalEditReason');
     await loadJournalFromSupabase();
     showAppNotification('Update Successful', `Entry ${targetId} was revised and the original values were retained in the audit trail.`, false);
@@ -1792,7 +1817,7 @@ function renderNewTransactionsTable() {
     container.appendChild(card);
     const header = card.querySelector('thead tr');
     const currencies = CurrencyStore.currencies || [];
-    header.innerHTML = `<th>Date</th><th>Entry ID</th><th>Account</th><th>Memo / Reference</th><th class="num">DR</th>${currencies.map(c=>`<th class="num">CR-${c.code}</th>`).join('')}`;
+    header.innerHTML = `<th>Date</th><th>Entry ID</th><th>Account</th><th>Memo / Reference</th><th class="num">Debit</th>${currencies.map(c=>`<th class="num">Credit-${c.code}</th>`).join('')}`;
     renderTransactionRowsToTbody(card.querySelector('tbody'), records.filter(e => monthKeyFromDate(e.date) === month), false);
   });
 }
@@ -2154,7 +2179,7 @@ function renderRecurringTransactions(){
       <td class="${cls}">${formatAppDate(item.nextDate)}</td><td>${escapeHtml(item.type==='one-time'?'One-Time':item.frequency)}</td><td>${escapeHtml(item.memo)}${item.reference?`<div class="je-subtitle">${escapeHtml(item.reference)}</div>`:''}</td>
       <td class="num">${formatAppNumber(item.amount)} ${escapeHtml(item.currency)}</td>
       <td>${escapeHtml(reminderText(item))}</td><td class="${cls}">${status}</td>
-      <td class="action-col upcoming-action-col no-print"><div class="recurring-inline-actions"><button class="je-btn je-btn-emerald" onclick="markRecurringPaid('${item.id}')">Paid</button><button class="je-btn je-btn-secondary" onclick="toggleRecurringPause('${item.id}')">${item.paused?'Resume':'Pause'}</button><button class="je-btn je-btn-danger recurring-remove-x" onclick="removeRecurring('${item.id}')" title="Remove upcoming transaction" aria-label="Remove upcoming transaction">&times;</button></div></td>
+      <td class="action-col upcoming-action-col no-print"><div class="recurring-inline-actions"><button class="je-btn je-btn-emerald" onclick="markRecurringPaid('${item.id}')">Mark reminder paid</button><button class="je-btn je-btn-secondary" onclick="toggleRecurringPause('${item.id}')">${item.paused?'Resume':'Pause'}</button><button class="je-btn je-btn-danger recurring-remove-x" onclick="removeRecurring('${item.id}')" title="Remove upcoming transaction" aria-label="Remove upcoming transaction">&times;</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -2169,8 +2194,8 @@ function advanceRecurringDate(item){
 }
 function markRecurringPaid(id){
   const item=RecurringStore.items.find(x=>x.id===id);if(!item)return;
-  item.lastPaidDate=new Date().toISOString().slice(0,10);if(item.type==='one-time'||item.frequency==='One-Time'){RecurringStore.items=RecurringStore.items.filter(x=>x.id!==id);RecurringStore.save();renderRecurringTransactions();renderRecurringWarnings();showAppNotification('Marked Paid',`${item.memo} was completed and removed from upcoming transactions.`,false);return}advanceRecurringDate(item); RecurringStore.save(); renderRecurringTransactions(); renderRecurringWarnings();
-  showAppNotification('Marked Paid',`${item.memo} is marked paid for the current occurrence. Next due: ${formatAppDate(item.nextDate)}.`,false);
+  item.lastPaidDate=new Date().toISOString().slice(0,10);if(item.type==='one-time'||item.frequency==='One-Time'){RecurringStore.items=RecurringStore.items.filter(x=>x.id!==id);RecurringStore.save();renderRecurringTransactions();renderRecurringWarnings();showAppNotification('Marked Paid',`${item.memo} was completed and removed from upcoming transactions. No journal payment was posted.`,false);return}advanceRecurringDate(item); RecurringStore.save(); renderRecurringTransactions(); renderRecurringWarnings();
+  showAppNotification('Marked Paid',`${item.memo} is marked paid for the current occurrence. Next due: ${formatAppDate(item.nextDate)}. No journal payment was posted.`,false);
 }
 function toggleRecurringPause(id){const item=RecurringStore.items.find(x=>x.id===id);if(!item)return;item.paused=!item.paused;RecurringStore.save();renderRecurringTransactions();renderRecurringWarnings()}
 async function removeRecurring(id){const item=RecurringStore.items.find(x=>x.id===id);if(!item)return;if(!await ui117.confirm(`Remove recurring item "${item.memo}"?`))return;RecurringStore.items=RecurringStore.items.filter(x=>x.id!==id);RecurringStore.save();renderRecurringTransactions();renderRecurringWarnings()}
@@ -2186,7 +2211,7 @@ function renderRecurringWarnings(){
     <h5>${recurringStatus(item)==='OVERDUE'?'OVERDUE':'UPCOMING'} — ${escapeHtml(item.memo)}</h5>
     <div>Due: <strong>${item.nextDate}</strong> • ${formatAppNumber(item.amount)} ${escapeHtml(item.currency)}</div>
     <div class="je-subtitle">Reminder: ${escapeHtml(reminderText(item))}</div>
-    <div style="margin-top:7px"><button class="je-btn je-btn-emerald" onclick="markRecurringPaid('${item.id}')">Mark Paid</button></div>
+    <div style="margin-top:7px"><button class="je-btn je-btn-emerald" onclick="markRecurringPaid('${item.id}')">Mark reminder paid</button></div>
   </div>`).join(''):'<div class="empty-archive-state">No recurring warnings are currently due.</div>';
 }
 function showRecurringWarningsOnLogin(){
@@ -2234,6 +2259,10 @@ function currencySymbolV6(code) {
 }
 
 // Keep account choices short and currency-aware. The selected row shows a compact badge.
+function accountDisplayName1439(account){
+ const currency=String(account.currency||'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ return String(account.name||'').replace(new RegExp('\\s*\\('+currency+'\\)\\s*$','i'),'').replace(new RegExp('(?:\\s*[-—–·]\\s*|\\s+)'+currency+'$','i'),'').trim();
+}
 syncCoaDatalist = function() {
   const dl = document.getElementById('coaList');
   if (!dl) return;
@@ -2242,7 +2271,7 @@ syncCoaDatalist = function() {
     const opt = document.createElement('option');
     /* Include the account code in the selected value so identically named
        accounts in different currencies cannot resolve to the wrong badge. */
-    opt.value = `${acc.code} — ${acc.name}`;
+    opt.value = `${acc.code} — ${accountDisplayName1439(acc)}`;
     opt.textContent = `${currencySymbolV6(acc.currency)}  ${acc.currency} — ${acc.type}`;
     dl.appendChild(opt);
   });
@@ -2270,7 +2299,7 @@ addJournalLineRow = function(accountVal = '', memoVal = '', drVal = '', crMap = 
   const currencies = CurrencyStore.currencies || [];
   const account = getSelectedAccountInfo(accountVal);
   const cleanAccount = account
-    ? `${account.code} — ${account.name}`
+    ? `${account.code} — ${accountDisplayName1439(account)}`
     : String(accountVal || '').replace(/\s*\([A-Z]{3}\)$/, '').trim();
   const creditCurrency = account?.currency || Object.keys(crMap)[0] || '';
   const creditValue = crMap[creditCurrency] || '';
@@ -2282,7 +2311,7 @@ addJournalLineRow = function(accountVal = '', memoVal = '', drVal = '', crMap = 
     <td><input type="text" class="je-line-memo" placeholder="Line note / reference..." value="${escapeHtml(String(memoVal))}" /></td>
     <td><input type="text" class="num je-line-dr" placeholder="0.00" value="${drVal}" onfocus="unformatNumber(this)" onblur="formatNumber(this)" oninput="calculateJournalBalance()" /></td>
     ${crInputs}
-    <td class="action-col no-print" style="text-align:center"><button type="button" class="je-btn-del" style="width:22px;height:22px;font-size:11px" onclick="removeJournalLineRow(this)">✕</button></td>`;
+    <td class="action-col no-print" style="text-align:center"><button type="button" class="je-btn-del" style="width:22px;height:22px;font-size:11px" data-permission-action1440="edit" onclick="removeJournalLineRow(this)">✕</button></td>`;
   tbody.appendChild(tr);
   calculateJournalBalance();
 };
@@ -2681,7 +2710,7 @@ async function loadReferenceDataFromSupabase() {
   if(currencyError||accountError||subError) throw new Error((currencyError||accountError||subError).message);
   CurrencyStore.currencies=(currencies||[]).map(c=>({code:c.code,name:c.name,symbol:c.symbol,isBase:c.is_base}));
   AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,baseType:a.account_type,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true}));
-  AccountingStore.subAccounts=(subs||[]).map(s=>({id:s.id,parentId:s.parent_account_id,parentCode:AccountingStore.accounts.find(a=>a.id===s.parent_account_id)?.code||'',code:s.code,name:s.name,desc:s.description||''}));
+  AccountingStore.subAccounts=(subs||[]).map(s=>({id:s.id,parentId:s.parent_account_id,parentCode:AccountingStore.accounts.find(a=>a.id===s.parent_account_id)?.code||'',currency:s.currency_code||AccountingStore.accounts.find(a=>a.id===s.parent_account_id)?.currency||'',code:s.code,name:s.name,desc:s.description||''}));
   CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
 }
 
@@ -2706,9 +2735,37 @@ CurrencyStore.add = async function(code,name,symbol){
 CurrencyStore.edit = async function(code){const current=this.currencies.find(c=>c.code===code);if(!current)return;const name=await ui117.prompt(`Currency name for ${code}:`,current.name);if(name===null)return;const symbol=await ui117.prompt(`Symbol for ${code}:`,current.symbol);if(symbol===null)return;const{error}=await ojmDb.from('currencies').update({name:name.trim(),symbol:symbol.trim()}).eq('code',code);if(error){showAppNotification('Currency Update Failed',error.message,true);return}await loadReferenceDataFromSupabase()};
 CurrencyStore.remove = async function(code){if(!await ui117.confirm(`Remove currency ${code}?`))return;const{error}=await ojmDb.from('currencies').delete().eq('code',code);if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase()};
 
-handleAccountFormSubmit = async function(event){event.preventDefault();const purpose=document.getElementById('accPurpose71');if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return}const original=document.getElementById('accountOrigCode').value;const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:document.getElementById('accPurpose71').value,created_by:liveProfile.id};const existing=AccountingStore.accounts.find(a=>a.code===original);const parent=payload.currency_code==='__PARENT__';payload.is_posting=!parent;payload.currency_label=parent?'—':payload.currency_code;if(parent){payload.currency_code=existing?.currency||CurrencyStore.currencies[0]?.code;if(!payload.currency_code){showAppNotification('Currency Required','Add at least one currency in Settings before creating an account.',true);return}if(existing?.id){const used=await ojmDb.from('journal_lines').select('id').eq('account_id',existing.id).limit(1);if(used.error){showAppNotification('Account Check Failed',used.error.message,true);return}if(used.data?.length){showAppNotification('Account Has Transactions','Keep this account as a posting account. Create a separate parent account for grouping.',true);return}}}if(existing?.isTechnical)payload.account_type=existing.baseType||'EQUITY';const query=existing?ojmDb.from('accounts').update(payload).eq('id',existing.id):ojmDb.from('accounts').insert(payload);const{error}=await query;if(error){showAppNotification('Account Save Failed',String(error.message).includes('account_purpose')?'Install database/17-account-purpose.sql once, then save again.':error.message,true);return}closeModal('modalAccount');await loadReferenceDataFromSupabase()};
+handleAccountFormSubmit = async function(event){event.preventDefault();const purpose=document.getElementById('accPurpose71');if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return}const original=document.getElementById('accountOrigCode').value;const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:document.getElementById('accPurpose71').value,created_by:liveProfile.id};const existing=AccountingStore.accounts.find(a=>a.code===original);const parent=payload.currency_code==='__PARENT__';payload.is_posting=!parent;payload.currency_label=parent?'—':payload.currency_code;if(parent){payload.currency_code=existing?.currency||CurrencyStore.currencies[0]?.code;if(!payload.currency_code){showAppNotification('Currency Required','Add at least one currency in Settings before creating an account.',true);return}if(existing?.id){const used=await ojmDb.from('journal_lines').select('id').eq('account_id',existing.id).limit(1);if(used.error){showAppNotification('Account Check Failed',used.error.message,true);return}if(used.data?.length){showAppNotification('Account Has Transactions','Keep this account as a posting account. Create a separate parent account for grouping.',true);return}}}if(existing?.isTechnical)payload.account_type=existing.baseType||'EQUITY';const query=existing?ojmDb.from('accounts').update(payload).eq('id',existing.id):ojmDb.from('accounts').insert(payload);const{error}=await query;if(error){showAppNotification('Account Save Failed',String(error.message).includes('account_purpose')?'Read setup/SETUP-GUIDE-v142.20.txt for the required existing database setup.':error.message,true);return}closeModal('modalAccount');await loadReferenceDataFromSupabase()};
 promptDeleteAccount = function(code){const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{const{error}=await ojmDb.from('accounts').delete().eq('id',acc.id);if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
-handleSubAccountFormSubmit = async function(event){event.preventDefault();const original=document.getElementById('subAccountOrigCode').value,parent=AccountingStore.accounts.find(a=>a.code===document.getElementById('subParentCode').value);const payload={parent_account_id:parent.id,code:document.getElementById('subCode').value.trim(),name:document.getElementById('subName').value.trim(),description:document.getElementById('subDesc').value.trim()};const existing=AccountingStore.subAccounts.find(s=>s.code===original);const query=existing?ojmDb.from('sub_accounts').update(payload).eq('id',existing.id):ojmDb.from('sub_accounts').insert(payload);const{error}=await query;if(error){showAppNotification('Sub-Account Save Failed',error.message,true);return}closeModal('modalSubAccount');await loadReferenceDataFromSupabase()};
+handleSubAccountFormSubmit = async function(event){
+  event.preventDefault();
+  const form=document.getElementById('formSubAccount');
+  const original=document.getElementById('subAccountOrigCode').value;
+  const parent=AccountingStore.accounts.find(a=>a.code===document.getElementById('subParentCode').value);
+  if(!parent||parent.isPosting!==false){showCenterStatus('Choose a parent grouping account from the Chart of Accounts.',true);return}
+  const currency=document.getElementById('subCurrency').value;
+  if(!CurrencyStore.currencies.some(c=>c.code===currency&&c.active!==false)){
+    showCenterStatus('Choose an active currency from Currency Settings.',true);return;
+  }
+  const payload={parent_account_id:parent.id,currency_code:currency,code:document.getElementById('subCode').value.trim(),name:document.getElementById('subName').value.trim(),description:document.getElementById('subDesc').value.trim()};
+  if(!payload.code||!payload.name){showCenterStatus('Enter a sub-account code and name.',true);return}
+  const existing=AccountingStore.subAccounts.find(s=>s.code===original);
+  const button=form.querySelector('[type=submit]');
+  if(button.disabled)return;
+  button.disabled=true;
+  try{
+    const query=existing?ojmDb.from('sub_accounts').update(payload).eq('id',existing.id):ojmDb.from('sub_accounts').insert(payload);
+    const {error}=await query;
+    if(error)throw error;
+    closeModal('modalSubAccount');
+    await loadReferenceDataFromSupabase();
+  }catch(error){
+    const message=/currency_code/i.test(error.message||'')&&['PGRST204','42703'].includes(error.code)
+      ?'Run setup/INSTALL-SUBACCOUNT-CURRENCY-v142.16.sql once in Supabase, then save again.'
+      :error.message||'The sub-account could not be saved.';
+    showAppNotification('Sub-Account Save Failed',message,true);
+  }finally{button.disabled=false}
+};
 promptDeleteSubAccount = function(code){const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{const{error}=await ojmDb.from('sub_accounts').delete().eq('id',sub.id);if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
 
 async function loadBusinessSettingsFromSupabase() {
@@ -2769,6 +2826,7 @@ submitJournalEntry = async function() {
     JournalModule.pendingLines=g.lines.map(line=>({date,account:line.account,accountId:line.account.id,currency:line.currency,memo:line.memo,debit:line.debit,credit:line.credit}));
     document.getElementById('txtEditReason').value='';openModal('modalEditReason');return;
   }
+  if(groups.length>1||window.journalBatch1440?.hasPending())return window.journalBatch1440.post(groups);
   for(const [date,g] of groups){
     const memo=document.getElementById('jeGeneralMemo').value.trim(),prefix=String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'OJM').trim(),digits=Math.max(3,Math.min(9,Number(ApplicationSettings.accounting?.journalDigits)||6));
     const lines=g.lines.map(line=>({account_id:line.account?.id||null,description:line.memo,currency_code:line.currency,debit:Number(line.debit||0),credit:Number(line.credit||0)}));
@@ -2810,16 +2868,38 @@ downloadLegalDocument = async function(id){const doc=liveLegalDocuments.find(d=>
 deleteLegalDocument = async function(id){if(!await ui117.confirm('Delete this legal document permanently?'))return;const doc=liveLegalDocuments.find(d=>d.id===id);if(!doc)return;await ojmDb.storage.from('legal-documents').remove([doc.storage_path]);const{error}=await ojmDb.from('legal_documents').delete().eq('id',id);if(error){showAppNotification('Delete Failed',error.message,true);return}await loadLegalDocumentsFromSupabase()};
 
 async function hydrateSupabaseSession(session) {
+  const epoch=sessionEpoch1430;
+  const checkSession=()=>{if(epoch!==sessionEpoch1430)throw new Error('Session changed while loading.');};
   try {
-    await loadLiveProfile(session.user);
-    await loadCurrentPermissions();
+    await loadLiveProfile(session.user);checkSession();
+    await loadCurrentPermissions();checkSession();
     if(typeof restoreStartup88==='function')restoreStartup88();
     const referenceReady=loadReferenceDataFromSupabase();
     await Promise.all([referenceReady.then(()=>loadJournalFromSupabase()),loadBusinessSettingsFromSupabase(),loadSubmissionsFromSupabase(),loadProfilesFromSupabase(),loadLegalDocumentsFromSupabase()]);
-    applyLiveRoleAccess();
+    checkSession();applyLiveRoleAccess();
     // Session location is restored once by interface-v69.js.
     freshLoginRequested=false;
-  } catch(error) { document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=document.getElementById('loginError');if(box)box.textContent=error.message; }
+  } catch(error) { liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=document.getElementById('loginError');if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
+}
+
+// One complete hydration per authenticated identity, including extension wrappers.
+let sessionLoad1430=null, sessionReady1430='', sessionEpoch1430=0;
+function resetSessionLoad1430(){sessionEpoch1430++;sessionReady1430='';}
+function startSessionLoad1430(session){
+ const id=session?.user?.id;if(!id||passwordRecoveryMode)return Promise.resolve();
+ if(sessionLoad1430){
+  if(sessionLoad1430.id===id)return sessionLoad1430.promise;
+  return sessionLoad1430.promise.then(()=>startSessionLoad1430(session));
+ }
+ if(sessionReady1430===id&&document.getElementById('loginGate')?.classList.contains('is-authenticated'))return Promise.resolve();
+ const epoch=sessionEpoch1430,job={id,promise:null};
+ sessionLoad1430=job;
+ job.promise=Promise.resolve().then(()=>hydrateSupabaseSession(session)).then(()=>{
+  if(epoch===sessionEpoch1430&&liveProfile?.id===id&&document.getElementById('loginGate')?.classList.contains('is-authenticated'))sessionReady1430=id;
+ }).catch(error=>{
+  if(epoch===sessionEpoch1430){document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=document.getElementById('loginError');if(box)box.textContent=error.message||'Unable to load your account. Please sign in again.';}
+ }).finally(()=>{if(sessionLoad1430===job)sessionLoad1430=null;});
+ return job.promise;
 }
 
 async function initializeSupabaseApp() {
@@ -2832,8 +2912,8 @@ async function initializeSupabaseApp() {
   if(recoveryHint)showPasswordRecoveryForm('Opening the secure recovery session…');
   ojmDb.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){showPasswordRecoveryForm();const button=document.querySelector('#passwordRecoveryForm [type=submit]');if(button)button.disabled=false;return}
-    if(event==='SIGNED_IN'&&session&&!passwordRecoveryMode)setTimeout(()=>hydrateSupabaseSession(session),0);
-    if(event==='SIGNED_OUT'){liveProfile=null;DemoAccess.currentUser=null;const error=document.getElementById('loginError');if(error&&!passwordRecoveryMode)error.textContent='';document.getElementById('loginGate')?.classList.remove('is-authenticated')}
+    if(event==='SIGNED_IN'&&session&&!passwordRecoveryMode)setTimeout(()=>startSessionLoad1430(session),0);
+    if(event==='SIGNED_OUT'){window.invalidateRequests1430?.();resetSessionLoad1430();liveProfile=null;DemoAccess.currentUser=null;const error=document.getElementById('loginError');if(error&&!passwordRecoveryMode)error.textContent='';document.getElementById('loginGate')?.classList.remove('is-authenticated')}
   });
   // Handle custom recovery templates with token_hash as well as SDK-managed implicit/PKCE links.
   try{
@@ -2847,7 +2927,7 @@ async function initializeSupabaseApp() {
     showPasswordRecoveryForm(session?'Choose a new password for this account.':'This recovery link is invalid, expired, or already used. Return to Sign In and request a new email.');
     const button=document.querySelector('#passwordRecoveryForm [type=submit]');if(button)button.disabled=!session;return;
    }
-   if(session)await hydrateSupabaseSession(session);
+   if(session)await startSessionLoad1430(session);
   }catch(error){
    if(recoveryHint||passwordRecoveryMode){showPasswordRecoveryForm(error.message||'The recovery link could not be verified. Request a new email.');const button=document.querySelector('#passwordRecoveryForm [type=submit]');if(button)button.disabled=true}
    else if(errorBox)errorBox.textContent=error.message||'Unable to connect. Please reload.';
@@ -3021,7 +3101,7 @@ saveUserAccess=async function(event){
   const originalUpsert=ojmDb.from;let captured=null;ojmDb.from=function(table){const api=originalUpsert.call(ojmDb,table);if(table==='user_permissions'){const original=api.upsert.bind(api);api.upsert=(payload,...rest)=>original({...payload,...extra},...rest)}return api};try{await saveUserAccessBeforeStaffConfig(event)}finally{ojmDb.from=originalUpsert}
 };
 const hydrateBeforeStaffJournal=hydrateSupabaseSession;
-hydrateSupabaseSession=async function(session){await hydrateBeforeStaffJournal(session);if(liveProfile){const month=new Date().toISOString().slice(0,7);const picker=document.getElementById('staffJournalPeriod');if(picker)picker.value=month;await Promise.all([openStaffJournalPeriod(month),loadStaffJournalsForReview()]);freshLoginRequested=false}};
+hydrateSupabaseSession=async function(session){await hydrateBeforeStaffJournal(session);if(liveProfile&&document.getElementById('loginGate')?.classList.contains('is-authenticated')){const month=new Date().toISOString().slice(0,7);const picker=document.getElementById('staffJournalPeriod');if(picker)picker.value=month;await Promise.all([...(liveProfile.role==='admin'?[]:[openStaffJournalPeriod(month)]),loadStaffJournalsForReview()]);freshLoginRequested=false}};
 const switchTabBeforeStaffJournal=switchTab;
 switchTab=function(tabId){switchTabBeforeStaffJournal(tabId);if(tabId==='entry-submissions')openStaffJournalPeriod(staffJournalMonth());if(tabId==='user-entry-review')loadStaffJournalsForReview()};
 
@@ -3036,7 +3116,7 @@ const SETTING_HELP = {
   'printing-settings': {title:'Printing Settings', body:'<p>Control paper size, margins, branding placement, page numbers, and downloaded file names. Header and footer images are visual only; they do not change accounting data.</p>'},
   'backup-export': {title:'Backup and Export', body:'<p>Download a backup before major changes. A settings backup preserves browser-held configuration; transaction exports are for checking or keeping a separate copy. Restoring a backup replaces the matching saved settings in this browser.</p>'},
   'system-settings': {title:'System Settings', body:'<p>Choose display formats, inactivity protection, the preferred opening page, and record-policy reminders. Retention and archive choices are reminders only: the application will never delete records automatically.</p>'},
-  'session-timeout': {title:'Session Timeout', body:'<p>The system automatically signs out a user after the selected number of minutes without activity. Clicking, typing, scrolling, or navigating resets the timer.</p>'},
+  'session-timeout': {title:'Inactivity Timeout', body:'<p>The system automatically signs out a user after the selected number of minutes without activity. Clicking, typing, scrolling, or navigating resets the timer.</p>'},
   'timeout-warning': {title:'Timeout Warning', body:'<p>Choose how many minutes before automatic sign-out the user should receive a warning so they can remain signed in.</p>'},
   'record-retention': {title:'Record Retention', body:'<p>This is a policy reminder only. Accounting records are never deleted automatically by this setting.</p>'}
 };
@@ -3071,7 +3151,7 @@ document.addEventListener('click',event=>{
 // STAFF JOURNAL V20 — line entry mirrors the main journal; the monthly summary is submitted as one batch.
 let staffEntryDraft={};
 function staffCurrencyCodes(){return (CurrencyStore.currencies||[]).filter(c=>c.is_active!==false).map(c=>c.code)||['LAK'];}
-function renderStaffEntryHeaders(){const currencies=staffCurrencyCodes();const h=document.getElementById('staffEntryHeader'),s=document.getElementById('staffSummaryHeader');const cells=`<th style="width:120px">Date</th><th style="width:28%">Account</th><th style="width:32%">Particulars / Memo / Reference</th><th class="num">DR</th>${currencies.map(c=>`<th class="num">CR-${escapeHtml(c)}</th>`).join('')}<th class="action-col"></th>`;if(h)h.innerHTML=cells;if(s)s.innerHTML=cells;}
+function renderStaffEntryHeaders(){const currencies=staffCurrencyCodes();const h=document.getElementById('staffEntryHeader'),s=document.getElementById('staffSummaryHeader');const cells=`<th style="width:120px">Date</th><th style="width:28%">Account</th><th style="width:32%">Particulars / Memo / Reference</th><th class="num">Debit</th>${currencies.map(c=>`<th class="num">Credit-${escapeHtml(c)}</th>`).join('')}<th class="action-col"></th>`;if(h)h.innerHTML=cells;if(s)s.innerHTML=cells;}
 function renderStaffJournal(){
   const period=staffJournalMonth(),editable=!activeStaffJournal||['draft','returned'].includes(activeStaffJournal.status),currencies=staffCurrencyCodes();renderStaffEntryHeaders();
   const badge=document.getElementById('staffJournalStatusBadge');if(badge){badge.textContent=(activeStaffJournal?.status||'draft').toUpperCase();badge.classList.toggle('is-saved',!editable)}
@@ -3110,7 +3190,7 @@ function renderTransactionReviewTable(tbody, records, actionMode='none'){
   const hasActions=actionMode!=='none',ids=Object.keys(groups); if(!ids.length){tbody.innerHTML=`<tr><td colspan="${6+(hasActions?1:0)}" class="period-empty">No transactions found.</td></tr>`;return;}
   tbody.innerHTML=ids.sort((a,b)=>String(groups[b][0].date).localeCompare(String(groups[a][0].date))||String(b).localeCompare(String(a))).map(id=>{const lines=groups[id],first=lines[0],dbId=first.dbEntryId||'',adjusted=isAdjustedTransaction(lines);return lines.map((line,index)=>{const account=getCleanAccountDisplay(line.account,line.currency),rowClass=lines.length===1?'cluster-row-start cluster-row-end':index===0?'cluster-row-start':index===lines.length-1?'cluster-row-cont cluster-row-end':'cluster-row-cont',actions=actionMode==='edit'?`<button class="je-btn je-btn-secondary" onclick="loadEntryForEdit('${escapeHtml(id)}')">Edit</button>${canVoidTransactions()&&dbId?`<button class="je-btn je-btn-danger" onclick="voidLiveJournalEntry('${dbId}','${escapeHtml(id)}')">Void</button>`:''}`:actionMode==='review'?`<button class="je-btn je-btn-secondary" onclick="openTransactionReview('${escapeHtml(id)}')">Review</button>${canVoidTransactions()&&dbId?`<button class="je-btn je-btn-danger" onclick="voidLiveJournalEntry('${dbId}','${escapeHtml(id)}')">Void</button>`:''}`:'';return`<tr class="${rowClass}" data-created-at="${escapeHtml(first.created_at||first.createdAt||first.date||'')}" data-entry-id="${escapeHtml(id)}" data-line-index="${index}">${index===0?`<td rowspan="${lines.length}" class="entry-shared-cell">${formatAppDate(first.date)}</td><td rowspan="${lines.length}" class="entry-shared-cell"><div class="entry-id-stack"><span style="font-family:monospace;color:#065f46">${escapeHtml(id)}</span>${adjusted?`<button type="button" class="adjusted-entry-badge adjusted-entry-button" onclick="event.stopPropagation();openAdjustedDetails('${escapeHtml(id)}')">Adjusted</button>`:''}</div></td>`:''}<td><div class="transaction-account-display"><span class="currency-symbol-badge">${currencySymbolV6(account.currency)}</span><span class="account-clean-name">${escapeHtml(account.name)}</span></div></td><td>${escapeHtml(line.memo||'')}</td><td class="num">${line.debit>0?formatAppNumber(line.debit):'-'}</td><td class="num">${line.credit>0?formatAppNumber(line.credit):'-'}</td>${hasActions&&index===0?`<td rowspan="${lines.length}" class="action-col entry-shared-cell"><div class="transaction-review-actions">${actions}</div></td>`:''}</tr>`}).join('')}).join('');
 }
-function setTransactionTableHeaders(id,withActions){const header=document.getElementById(id);if(!header)return;const currencies=transactionCurrencies();header.innerHTML=`<th>Date</th><th>Entry ID</th><th>Account</th><th>Memo / Reference</th><th class="num">DR</th><th class="num">CR</th>${withActions?'<th class="action-col">Action</th>':''}`}
+function setTransactionTableHeaders(id,withActions){const header=document.getElementById(id);if(!header)return;const currencies=transactionCurrencies();header.innerHTML=`<th>Date</th><th>Entry ID</th><th>Account</th><th>Memo / Reference</th><th class="num">Debit</th><th class="num">Credit</th>${withActions?'<th class="action-col">Action</th>':''}`}
 renderJournalHistoryTable=function(records=JournalModule.entries){const current=getCurrentMonthPrefix();setTransactionTableHeaders('thJournalHistoryRow',true);renderTransactionReviewTable(document.getElementById('tblJournalHistoryBody'),records.filter(r=>String(r.date).slice(0,7)===current&&!r.archived),'edit')};
 renderAllTransactionsTable=function(){setTransactionTableHeaders('thAllTransRow',false);renderTransactionReviewTable(document.getElementById('allTransactionsBody'),JournalModule.entries.filter(r=>r.archived),'none')};
 renderNewTransactionsTable=function(){const host=document.getElementById('newTransactionsGroupedContainer');if(!host)return;const rows=JournalModule.entries.filter(r=>!r.archived),months=[...new Set(rows.map(r=>String(r.date).slice(0,7)))].sort().reverse(),current=getCurrentMonthPrefix();if(!months.length){host.innerHTML='<div class="empty-archive-state">No open transactions. All monthly batches have been submitted for review.</div>';return}host.innerHTML=months.map((month,index)=>`<section class="monthly-unarchived-cluster ${month===current?'current-month-cluster':'overdue-month-cluster'}"><div class="monthly-cluster-header"><div><h4>${month===current?'Current Period':'Open Period'} — ${monthLabel(month)}</h4><span class="archive-status ${month===current?'current':'overdue'}">${month===current?'OPEN':'UNARCHIVED'}</span></div><button type="button" class="je-btn je-btn-emerald no-print" onclick="archiveTransactionMonth('${month}')">Archive &amp; Submit</button></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="openPeriodHeader${index}"></tr></thead><tbody id="openPeriodBody${index}"></tbody></table></div></section>`).join('');months.forEach((month,index)=>{setTransactionTableHeaders(`openPeriodHeader${index}`,true);renderTransactionReviewTable(document.getElementById(`openPeriodBody${index}`),rows.filter(r=>String(r.date).slice(0,7)===month),'edit')})};
@@ -3145,7 +3225,7 @@ function auditComparisonHtml(oldData,newData,action){const oldLines=auditLines(o
 function toggleAuditDetails(id,row){const detail=document.getElementById(id);if(!detail)return;const opening=detail.hidden;detail.hidden=!opening;row.setAttribute('aria-expanded',String(opening));const icon=row.querySelector('.audit-expand-cell');if(icon)icon.textContent=opening?'▼':'▶'}
 function openAdjustedDetails(entryId){const local=(JournalModule.voidedEntries||[]).map((item,index)=>({id:item.id||`local-${index}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp,actor_id:null})),audits=[...LiveTransactionAudit,...local],item=audits.find(record=>auditRecordId(record)===entryId||auditLines(record.old_data).some(row=>row.id===entryId||row.entry_no===entryId)||auditLines(record.new_data).some(row=>row.id===entryId||row.entry_no===entryId));let modal=document.getElementById('modalAdjustmentQuickView');if(!modal){modal=document.createElement('div');modal.id='modalAdjustmentQuickView';modal.className='modal-backdrop';modal.innerHTML='<div class="modal-dialog modal-center adjustment-quick-dialog"><div class="modal-header"><h4>Adjustment Details</h4><button type="button" class="modal-close-x" onclick="closeModal(\'modalAdjustmentQuickView\')">&times;</button></div><div class="modal-body" id="adjustmentQuickViewBody"></div><div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal(\'modalAdjustmentQuickView\')">Close</button></div></div>';document.body.appendChild(modal)}const body=document.getElementById('adjustmentQuickViewBody');body.innerHTML=item?`<div class="je-subtitle" style="margin-bottom:7px"><strong>${escapeHtml(String(item.action||'ADJUSTMENT').replaceAll('_',' '))}</strong> • ${escapeHtml(item.reason||'No reason recorded')}</div>${auditComparisonHtml(item.old_data,item.new_data,item.action)}`:'<div class="empty-archive-state">No linked audit details are available for this adjusted entry.</div>';openModal('modalAdjustmentQuickView')}
 const loadJournalFromSupabaseBeforeAudit=loadJournalFromSupabase;
-loadJournalFromSupabase=async function(){await loadJournalFromSupabaseBeforeAudit();await loadTransactionAudit();};
+loadJournalFromSupabase=async function(){await loadJournalFromSupabaseBeforeAudit();if(document.querySelector('.tab-content.active')?.id==='transactions-voided')await loadTransactionAudit();};
 const switchTabBeforeTransactionAudit=switchTab;
 switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided')loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
 
@@ -3325,8 +3405,8 @@ function initializeFoundationControls(){
   const form=document.getElementById('businessSettingsForm');form?.addEventListener('input',reconcileBusinessDirtyState);
   setBusinessSettingsBaseline();
   SessionTimeoutManager.events.forEach(name=>document.addEventListener(name,()=>{if(liveProfile)SessionTimeoutManager.reset()},{passive:true}));
-  window.addEventListener('focus',()=>{if(liveProfile)SessionTimeoutManager.reset()});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&liveProfile)SessionTimeoutManager.reset()});
+  window.addEventListener('focus',()=>{if(liveProfile)SessionTimeoutManager.check1434?.()});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&liveProfile)SessionTimeoutManager.check1434?.()});
   document.addEventListener('click',event=>{if(!event.target.closest('.sub-user-search-wrap')){const results=document.getElementById('subUserSearchResults');if(results)results.hidden=true}});
   const active=document.querySelector('.tab-content.active')?.id||'dashboard';updateSettingsBrowser(active);updateGlobalExportTools(active);
 }
@@ -3560,7 +3640,7 @@ function localWorkspaceEntryPreview(user){const digits=Number(ApplicationSetting
 async function refreshWorkspaceEntryId(userId){const host=document.getElementById('workspaceNextEntryId'),user=availableSubUsers().find(u=>u.id===userId)||liveProfile;if(!host||!user)return;host.textContent=localWorkspaceEntryPreview(user);if(!ojmDb)return;const{data,error}=await ojmDb.rpc('preview_staff_workspace_entry_no',{p_user_id:userId});if(!error&&data)host.textContent=data}
 function currentWorkspaceJournal(userId){const month=new Date().toISOString().slice(0,7);return(reviewStaffJournals||[]).find(j=>j.owner_id===userId&&String(j.period_start).slice(0,7)===month)}
 function currentWorkspaceDraftEntries(userId){const journal=currentWorkspaceJournal(userId);return journal&&['draft','returned'].includes(journal.status)?(journal.lines||[]).map(line=>({...line,date:line.transaction_date,status:journal.status})):[]}
-function workspaceJournalEntryFormHtml(user){const cfg=userWorkspaceConfig(user),fundOptions=cfg.fundIds.map(id=>`<option value="${escapeHtml(id)}">${escapeHtml(workspaceAccountName(id))}</option>`).join(''),entryOptions=cfg.destinationIds.map(id=>`<option value="${escapeHtml(id)}">${escapeHtml(workspaceAccountName(id))}</option>`).join('');return`<section class="je-card workspace-journal-entry-card"><div class="je-card-header"><div><h3 class="je-title">Post Double Entry</h3><p class="je-subtitle">Employee workspace entry — saved here for review before it reaches the official journal.</p></div><div class="je-entry-id-box"><span>Next Entry ID</span><strong id="workspaceNextEntryId">${escapeHtml(localWorkspaceEntryPreview(user))}</strong></div></div><div class="je-meta-grid"><div class="je-field-group transaction-date-field"><label for="workspaceEntryDate">Date:</label><input id="workspaceEntryDate" class="je-input" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="je-field-group" style="flex:1"><label for="workspaceEntryMemo">General Description / Memo *:</label><input id="workspaceEntryMemo" class="je-input" placeholder="e.g., Food supplies purchased for kitchen operations"></div></div><div class="table-container"><table class="je-table workspace-journal-table"><thead><tr><th style="width:28%">Account</th><th style="width:32%">Line Memo / Reference</th><th class="num">DR (Debit)</th><th class="num">CR (Credit)</th></tr></thead><tbody><tr><td><select id="workspaceEntryDestination" class="je-select"><option value="">Choose entry account</option>${entryOptions}</select></td><td><input id="workspaceEntryReference" class="je-input" placeholder="Receipt or reference"></td><td><input id="workspaceEntryAmount" class="je-input num" type="number" min="0.01" step="0.01" placeholder="0.00" oninput="syncWorkspaceCredit()"></td><td class="num muted-cell">—</td></tr><tr><td><select id="workspaceEntryFund" class="je-select"><option value="">Choose main account</option>${fundOptions}</select></td><td><span class="workspace-auto-memo">Uses the general description above</span></td><td class="num muted-cell">—</td><td><input id="workspaceEntryCredit" class="je-input num" type="number" tabindex="-1" readonly placeholder="0.00"></td></tr></tbody></table></div><div class="je-actions-bar"><div><button type="button" class="je-btn je-btn-secondary" onclick="resetWorkspaceEntryForm('${user.id}')">↺ Reset</button></div><div class="je-actions-right"><span id="workspaceBalanceIndicator" class="je-status-badge balanced">Balanced</span><button type="button" class="je-btn je-btn-emerald" onclick="saveWorkspaceEntry('${user.id}')">Save Entry</button></div></div></section>`}
+function workspaceJournalEntryFormHtml(user){const cfg=userWorkspaceConfig(user),fundOptions=cfg.fundIds.map(id=>`<option value="${escapeHtml(id)}">${escapeHtml(workspaceAccountName(id))}</option>`).join(''),entryOptions=cfg.destinationIds.map(id=>`<option value="${escapeHtml(id)}">${escapeHtml(workspaceAccountName(id))}</option>`).join('');return`<section class="je-card workspace-journal-entry-card"><div class="je-card-header"><div><h3 class="je-title">Post Double Entry</h3><p class="je-subtitle">Employee workspace entry — saved here for review before it reaches the official journal.</p></div><div class="je-entry-id-box"><span>Next Entry ID</span><strong id="workspaceNextEntryId">${escapeHtml(localWorkspaceEntryPreview(user))}</strong></div></div><div class="je-meta-grid"><div class="je-field-group transaction-date-field"><label for="workspaceEntryDate">Date:</label><input id="workspaceEntryDate" class="je-input" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="je-field-group" style="flex:1"><label for="workspaceEntryMemo">General Description / Memo *:</label><input id="workspaceEntryMemo" class="je-input" placeholder="e.g., Food supplies purchased for kitchen operations"></div></div><div class="table-container"><table class="je-table workspace-journal-table"><thead><tr><th style="width:28%">Account</th><th style="width:32%">Line Memo / Reference</th><th class="num">Debit (Debit)</th><th class="num">Credit (Credit)</th></tr></thead><tbody><tr><td><select id="workspaceEntryDestination" class="je-select"><option value="">Choose entry account</option>${entryOptions}</select></td><td><input id="workspaceEntryReference" class="je-input" placeholder="Receipt or reference"></td><td><input id="workspaceEntryAmount" class="je-input num" type="number" min="0.01" step="0.01" placeholder="0.00" oninput="syncWorkspaceCredit()"></td><td class="num muted-cell">—</td></tr><tr><td><select id="workspaceEntryFund" class="je-select"><option value="">Choose main account</option>${fundOptions}</select></td><td><span class="workspace-auto-memo">Uses the general description above</span></td><td class="num muted-cell">—</td><td><input id="workspaceEntryCredit" class="je-input num" type="number" tabindex="-1" readonly placeholder="0.00"></td></tr></tbody></table></div><div class="je-actions-bar"><div><button type="button" class="je-btn je-btn-secondary" onclick="resetWorkspaceEntryForm('${user.id}')">↺ Reset</button></div><div class="je-actions-right"><span id="workspaceBalanceIndicator" class="je-status-badge balanced">Balanced</span><button type="button" class="je-btn je-btn-emerald" onclick="saveWorkspaceEntry('${user.id}')">Save Entry</button></div></div></section>`}
 function syncWorkspaceCredit(){const amount=document.getElementById('workspaceEntryAmount')?.value||'',credit=document.getElementById('workspaceEntryCredit');if(credit)credit.value=amount;const numeric=parseAppNumber(amount);const badge=document.getElementById('workspaceBalanceIndicator');if(badge){badge.textContent=numeric>0?'Balanced':'Enter Amount';badge.classList.toggle('balanced',numeric>0)}}
 function resetWorkspaceEntryForm(userId){workspaceEditingLineId='';const user=availableSubUsers().find(u=>u.id===userId)||liveProfile,form=document.querySelector('.workspace-journal-entry-card');form?.querySelectorAll('input').forEach(input=>{if(input.type==='date')input.value=new Date().toISOString().slice(0,10);else input.value=''});form?.querySelectorAll('select').forEach(select=>select.selectedIndex=0);syncWorkspaceCredit();refreshWorkspaceEntryId(userId);showCenterStatus('Employee journal form reset.')}
 workspaceEntryTableHtml=function(user,entries){return`<section class="workspace-entry-card current-draft-card"><div class="settings-section-header"><div><h4>Current Month — Ready for Submission</h4><p>Only unsubmitted entries for ${new Date().toISOString().slice(0,7)} are shown here.</p></div></div><div class="table-container"><table class="je-table"><thead><tr><th>Entry ID</th><th>Date</th><th>Main Account (CR)</th><th>Entry Account (DR)</th><th>Description / Reference</th><th class="num">Amount</th><th>Action</th></tr></thead><tbody>${entries.map(entry=>`<tr><td><strong class="workspace-entry-number">${escapeHtml(entry.workspace_entry_no||'Pending ID')}</strong></td><td>${escapeHtml(formatAppDate(entry.date||entry.transaction_date))}</td><td>${escapeHtml(workspaceAccountName(entry.fund_account_id))}</td><td>${escapeHtml(workspaceAccountName(entry.account_id))}</td><td>${escapeHtml(entry.memo||'')}${entry.reference?`<small>${escapeHtml(entry.reference)}</small>`:''}</td><td class="num">${formatAppNumber(entry.amount||0)}</td><td><div class="transaction-review-actions"><button type="button" class="je-btn je-btn-secondary" onclick="editWorkspaceEntry('${user.id}','${entry.id}')">Edit</button><button type="button" class="je-btn je-btn-danger" onclick="deleteWorkspaceEntry('${user.id}','${entry.id}')">Delete</button></div></td></tr>`).join('')||'<tr><td colspan="7" class="period-empty">No unsubmitted entries for the current month.</td></tr>'}</tbody></table></div></section>`};
@@ -3696,6 +3776,7 @@ const APP_PERMISSION_TREE=[
   {id:'accounts',label:'Accounts',children:[['sec-chart-accounts','Chart of Accounts'],['sec-sub-accounts','Sub-Accounts'],['sec-general-ledger','General Ledger'],['sec-other-accounts','Other Account Sections'],['trial-balance','Trial Balance'],['account-balances','Account Balances']]},
   {id:'hr',label:'Human Resources',children:[['payroll-employees','Employees'],['hr-contracts','Contracts & Documents'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessments']]},
   {id:'payroll',label:'Payroll',children:[['payroll-overview','Payroll Overview'],['payroll-employees','Employees'],['payroll-entries','Payroll Entries'],['payroll-history','Salary History'],['payroll-deductions','Payroll Deductions']]},
+  {id:'documents',label:'Documents',children:[['document-editor105','Document Editor / Print Preparation']]},
   {id:'reports',label:'Reports',children:[['report-pl','Profit and Loss'],['report-bs','Balance Sheet'],['report-cf','Cash Flow'],['report-tb','Trial Balance'],['report-gl','General Ledger'],['report-activity','Account Activity'],['report-expense','Expense Report'],['report-payroll','Payroll Report'],['report-reconciliation','Reconciliation Reports']]},
   {id:'tax-sso',label:'Tax and SSO',children:[['tax-overview','Tax Overview'],['tax-vat','VAT'],['tax-pit','Personal Income Tax'],['tax-social','Social Security'],['tax-payment','Tax and Social Payment'],['tax-sso-payment','SSO Payment'],['tax-records','Tax and SSO Records']]},
   {id:'settings',label:'Settings',children:[['settings-business','Business Information'],['settings-users','Users & Permissions'],['settings-accounting','Accounting'],['settings-payroll','Payroll'],['settings-tax','Statutory'],['settings-print','Printing'],['settings-system','System']]}
@@ -3712,7 +3793,7 @@ updateUserAccessSummaries=function(){const modules=selectedPermissionLabels(),ac
 function modulePermissionList(){return liveProfile?.role==='admin'?APP_PERMISSION_TREE.map(parent=>parent.id):(livePermission?.modules||[])}
 function canAccessAppTarget(target){if(!liveProfile||liveProfile.role==='admin')return true;const parent=permissionTreeNodeForTarget(target);if(!parent)return false;const modules=modulePermissionList(),legacyParent=modules.includes(parent.id)&&(parent.id!=='sub-users'||target==='sub-users-workspace');return modules.includes(`all:${parent.id}`)||legacyParent||modules.includes(permissionToken(parent.id,target))||(target==='user-entry-review'&&modules.includes('user-review'))}
 function firstPermittedAppTarget(){for(const parent of APP_PERMISSION_TREE)for(const[target]of parent.children)if(canAccessAppTarget(target))return target;return''}
-function navButtonTarget(button){const code=button.getAttribute('onclick')||'',match=code.match(/(?:switchTab|scrollToAccountModule)\('([^']+)'\)/);return match?.[1]||''}
+function navButtonTarget(button){const code=button.getAttribute('onclick')||'';if(code.includes('openDocumentEditor105'))return 'document-editor105';const match=code.match(/(?:switchTab|scrollToAccountModule)\('([^']+)'\)/);return match?.[1]||''}
 function applyGranularPermissionAccess(){
   document.querySelectorAll('.nav-category[data-module]').forEach(category=>{const parent=APP_PERMISSION_TREE.find(item=>item.id===category.dataset.module);if(!parent){category.hidden=true;return}const buttons=[...category.querySelectorAll('.nav-links .tab-btn')];buttons.forEach(button=>{const target=navButtonTarget(button);button.hidden=!canAccessAppTarget(target)});category.hidden=!parent.children.some(([target])=>canAccessAppTarget(target))});
   document.querySelectorAll('.settings-browser-tab[data-settings-target]').forEach(button=>button.hidden=!canAccessAppTarget(button.dataset.settingsTarget));
@@ -3802,7 +3883,7 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
     const rows = accountTotals(user, lines);
     const dr = rows.reduce((sum, [, row]) => sum + row.dr, 0);
     const cr = rows.reduce((sum, [, row]) => sum + row.cr, 0);
-    return `<section class="v49-card v49-totals ${className}"><header><div><h3>Account Totals</h3><p>${phone?'Double-entry counterpart preview for the current unsubmitted entries.':'DR and CR are positive; Balance is DR minus CR.'}</p></div><b>${rows.length} accounts</b></header><div class="v49-table-scroll"><table><thead><tr><th>Account</th><th>DR</th><th>CR</th><th>Balance</th></tr></thead><tbody>${rows.length ? rows.map(([name,row]) => `<tr><td>${escapeHtml(name)}</td><td>${row.dr ? number(row.dr) : (phone?'':'—')}</td><td>${row.cr ? number(row.cr) : (phone?'':'—')}</td><td class="${row.dr-row.cr<0?'negative-amount':''}">${number(row.dr-row.cr)}</td></tr>`).join('') + `<tr class="v49-overall"><td>Overall total</td><td>${number(dr)}</td><td>${number(cr)}</td><td>${number(dr-cr)}</td></tr>` : '<tr><td colspan="4" class="period-empty">No account activity yet.</td></tr>'}</tbody></table></div></section>`;
+    return `<section class="v49-card v49-totals ${className}"><header><div><h3>Account Totals</h3><p>${phone?'Double-entry counterpart preview for the current unsubmitted entries.':'Debit and Credit are positive; Balance is Debit minus Credit.'}</p></div><b>${rows.length} accounts</b></header><div class="v49-table-scroll"><table><thead><tr><th>Account</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>${rows.length ? rows.map(([name,row]) => `<tr><td>${escapeHtml(name)}</td><td>${row.dr ? number(row.dr) : (phone?'':'—')}</td><td>${row.cr ? number(row.cr) : (phone?'':'—')}</td><td class="${row.dr-row.cr<0?'negative-amount':''}">${number(row.dr-row.cr)}</td></tr>`).join('') + `<tr class="v49-overall"><td>Overall total</td><td>${number(dr)}</td><td>${number(cr)}</td><td>${number(dr-cr)}</td></tr>` : '<tr><td colspan="4" class="period-empty">No account activity yet.</td></tr>'}</tbody></table></div></section>`;
   }
   function workspaceHeader(user) {
     return `<header class="v49-user-header"><div><h2>${escapeHtml(subUserName(user))}’s Account</h2><p>Sub-user Account / ${escapeHtml(monthLabel(new Date().toISOString().slice(0,7)))}</p></div></header>`;

@@ -17,7 +17,7 @@
   }
   function totalsHtml(lines){
     const rows=ledgerRows(lines),dr=rows.reduce((sum,[,row])=>sum+row.dr,0),cr=rows.reduce((sum,[,row])=>sum+row.cr,0);
-    return `<section class="final-account-totals v56-book-totals"><div class="final-section-title">Account Totals</div><div class="final-scroll-table"><table><thead><tr><th>Account</th><th>DR</th><th>CR</th><th>Balance</th></tr></thead><tbody>${rows.map(([name,row])=>`<tr><td>${escapeHtml(name)}</td><td>${row.dr?fmt(row.dr):'—'}</td><td>${row.cr?fmt(row.cr):'—'}</td><td class="${row.dr-row.cr<0?'negative-amount':''}">${fmt(row.dr-row.cr)}</td></tr>`).join('')}<tr class="final-overall"><td>Overall total</td><td>${fmt(dr)}</td><td>${fmt(cr)}</td><td>${fmt(dr-cr)}</td></tr></tbody></table></div></section>`;
+    return `<section class="final-account-totals v56-book-totals"><div class="final-section-title">Account Totals</div><div class="final-scroll-table"><table><thead><tr><th>Account</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>${rows.map(([name,row])=>`<tr><td>${escapeHtml(name)}</td><td>${row.dr?fmt(row.dr):'—'}</td><td>${row.cr?fmt(row.cr):'—'}</td><td class="${row.dr-row.cr<0?'negative-amount':''}">${fmt(row.dr-row.cr)}</td></tr>`).join('')}<tr class="final-overall"><td>Overall total</td><td>${fmt(dr)}</td><td>${fmt(cr)}</td><td>${fmt(dr-cr)}</td></tr></tbody></table></div></section>`;
   }
   function bookHtml(journal){
     const lines=journal.lines||[];
@@ -48,6 +48,7 @@
     overlay.innerHTML=`<section class="final-records-dialog"><header><div><span>${mode==='history'?'EMPLOYEE HISTORY':'SUBMISSIONS'}</span><h2>${mode==='history'?'History':'Review'}</h2><p>${escapeHtml(subUserName(user||{}))} · ${mode==='history'?'approved and posted records, newest first.':'under-review and returned records.'}</p></div><button type="button" aria-label="Close" onclick="document.getElementById('finalRecordsOverlay').remove()">×</button></header><div class="final-record-search"><input type="search" placeholder="Search period, reference, or status" oninput="finalFilterRecords(this.value)"></div><div id="finalRecordList" class="final-record-list">${items.map(employeeCard).join('')||'<div class="period-empty">No matching records.</div>'}</div></section>`;
     document.body.appendChild(overlay);
   }
+  window.workspaceRecords1437={card:employeeCard,getAdjustments};
   window.openWorkspaceReview=(userId,mode='review')=>openEmployeeReview(userId,mode==='history'?'history':'review');
   window.v49OpenReview=userId=>openEmployeeReview(userId,'review');
 

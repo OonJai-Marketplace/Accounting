@@ -25,7 +25,7 @@ async function enter(id){
   const candidate=saved||{profile:structuredClone(liveProfile),permission:structuredClone(livePermission||{modules:[]}),users:structuredClone(liveProfiles),demo:structuredClone(DemoAccess.currentUser)};
   ctx.target=id;ctx.actor=actor.id;
   const verified=await ojmDb.rpc('workspace_context138');
-  if(verified.error||verified.data?.effective_user!==id||verified.data?.actor!==actor.id)throw Error('Account switching could not be verified. Run setup/INSTALL-SWITCH-ACCOUNT-v141.sql once, then try again. '+(verified.error?.message||''));
+  if(verified.error||verified.data?.effective_user!==id||verified.data?.actor!==actor.id)throw Error('Account switching could not be verified. Read setup/SETUP-GUIDE-v142.20.txt before trying again. '+(verified.error?.message||''));
   const profileResult=await ojmDb.from('profiles').select('id,email,full_name,role,status').eq('id',id).single();
   if(profileResult.error||profileResult.data?.id!==id||profileResult.data.status!=='active'||profileResult.data.role==='admin')throw Error(profileResult.error?.message||'This sub-user is no longer active.');
   const permissionResult=await ojmDb.from('user_permissions').select('*').eq('user_id',id).maybeSingle();

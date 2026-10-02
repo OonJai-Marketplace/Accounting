@@ -27,7 +27,7 @@ const editorBefore=window.openWorkspaceCellEditor;window.openWorkspaceCellEditor
 window.focusWorkspaceInline117=(u,k,f)=>document.querySelector(selector(u,k)+`[data-inline-field117="${f}"]`)?.focus();
 const renderBefore=window.renderSubUserWorkspace;
 window.renderSubUserWorkspace=function(...args){
- if(document.activeElement?.matches('.inline-cell117')&&renderedTab===activeSubUserId){deferred=true;return}
+ if(document.activeElement?.matches('.inline-cell117,.account-search1428')&&renderedTab===activeSubUserId){deferred=true;return}
  const staff=liveProfile&&liveProfile.role!=='admin'&&!livePermission?.can_approve;
  if(window.workspaceRequest138?.target&&liveProfile){openSubUserTabs=[{key:'user-'+liveProfile.id,userId:liveProfile.id,permanent:false}];activeSubUserId='user-'+liveProfile.id}
  else if(!staff&&liveProfile){
@@ -78,12 +78,12 @@ async function commit(u,k){
  const tr=document.querySelector(selector(u,k))?.closest('tr');if(tr){tr.dataset.saving117='1';tr.querySelectorAll('input,select').forEach(n=>n.disabled=true);tr.querySelectorAll('[contenteditable]').forEach(n=>n.contentEditable='false')}
  try{await persistWorkspaceSingleRow(user,row,rules);if(row.isNew?!pendingRowsFor(u).some(r=>r.key===k):!workspaceRowEdits[u]?.[row.id])dirty.delete(token)}
  catch(error){showCenterStatus('Entry save failed: '+error.message,true)}
- finally{inFlight.delete(token);saving--;if(tr?.isConnected){delete tr.dataset.saving117;tr.querySelectorAll('input,select').forEach(n=>n.disabled=false);tr.querySelectorAll('[role=textbox]').forEach(n=>n.contentEditable='plaintext-only')}if(!document.activeElement?.matches('.inline-cell117'))renderSubUserWorkspace()}
+ finally{inFlight.delete(token);saving--;if(tr?.isConnected){delete tr.dataset.saving117;tr.querySelectorAll('input,select').forEach(n=>n.disabled=false);tr.querySelectorAll('[role=textbox]').forEach(n=>n.contentEditable='plaintext-only')}if(!document.activeElement?.matches('.inline-cell117,.account-search1428'))renderSubUserWorkspace()}
 }
 document.addEventListener('input',e=>{if(e.target.matches('.inline-cell117:not(select)'))update(e.target)});
 document.addEventListener('change',e=>{if(e.target.matches('select.inline-cell117'))update(e.target)});
-document.addEventListener('focusout',e=>{const n=e.target;if(!n.matches('.inline-cell117'))return;const {inlineUser117:u,inlineRow117:k}=n.dataset;setTimeout(()=>{const next=document.activeElement;if(next?.matches(selector(u,k)))return;commit(u,k);if(deferred&&!saving&&!next?.matches('.inline-cell117'))renderSubUserWorkspace()},0)});
-document.addEventListener('keydown',e=>{const n=e.target;if(!n.matches('.inline-cell117'))return;if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||n.dataset.inlineField117==='amount')){e.preventDefault();n.blur();commit(n.dataset.inlineUser117,n.dataset.inlineRow117)}});
+document.addEventListener('focusout',e=>{const n=window.dropdown1434?.source(e.target)||e.target;if(!n.matches('.inline-cell117,.account-search1428'))return;const {inlineUser117:u,inlineRow117:k}=n.dataset;setTimeout(()=>{const next=document.activeElement;if(next?.matches(selector(u,k)))return;commit(u,k);if(deferred&&!saving&&!next?.matches('.inline-cell117,.account-search1428'))renderSubUserWorkspace()},0)});
+document.addEventListener('keydown',e=>{const n=e.target;if(!n.matches('.inline-cell117,.account-search1428'))return;if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||n.dataset.inlineField117==='amount')){e.preventDefault();n.blur();commit(n.dataset.inlineUser117,n.dataset.inlineRow117)}});
 function tablet(){const touch=navigator.maxTouchPoints>1||matchMedia('(pointer:coarse)').matches;const isTablet=touch&&Math.min(screen.width,screen.height)>=600&&Math.min(innerWidth,innerHeight)>=600;document.body.classList.toggle('tablet117',isTablet);document.body.classList.toggle('tablet-portrait117',isTablet&&innerHeight>innerWidth);const guard=document.getElementById('landscape117');if(guard)guard.setAttribute('aria-hidden',String(!(isTablet&&innerHeight>innerWidth)))}
 function ready(){const guard=document.createElement('section');guard.id='landscape117';guard.setAttribute('role','status');guard.innerHTML='<div><svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><rect x="9" y="22" width="62" height="40" rx="5"/><path d="M20 13A28 28 0 0 1 60 13M52 4l9 9-12 3"/><circle cx="64" cy="42" r="1"/></svg><h2>Rotate to landscape</h2><p>Turn your tablet sideways to use Oon Jai Accounting. The wider view keeps your tables and controls together.</p></div>';document.body.append(guard);tablet();window.addEventListener('resize',tablet);window.addEventListener('orientationchange',tablet);renderSubUserWorkspace()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

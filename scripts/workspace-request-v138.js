@@ -1,13 +1,15 @@
 /* Per-tab effective workspace. The Supabase Auth session remains the administrator. */
 (function(){'use strict';
 const context=window.workspaceRequest138={target:null,actor:null,busy:false};
+let authGeneration=0;
+window.invalidateRequests1430=()=>{authGeneration++;};
 const nativeFetch=window.fetch.bind(window);
 window.fetch=function(input,options={}){
  const url=new URL(typeof input==='string'?input:input instanceof URL?input.href:input.url,location.href);
  const base=window.OJM_SUPABASE_URL?new URL(window.OJM_SUPABASE_URL):null;
- const effective=context.target;
+ const effective=context.target,generation=authGeneration;
  const send=(request,init)=>nativeFetch(request,init).then(response=>{
-  if(base&&url.origin===base.origin&&url.pathname.startsWith('/rest/v1/')&&context.target!==effective)throw new DOMException('Account changed while this request was loading.','AbortError');
+  if(base&&url.origin===base.origin&&url.pathname.startsWith('/rest/v1/')&&(context.target!==effective||generation!==authGeneration))throw new DOMException('Account changed while this request was loading.','AbortError');
   return response;
  });
  if(context.target&&base&&url.origin===base.origin){

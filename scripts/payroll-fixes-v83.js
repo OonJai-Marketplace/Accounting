@@ -1,5 +1,5 @@
 /* Version 83: legacy payroll schema compatibility, explicit examples and table alignment. */
-const repairUrl83='setup/83-payroll-repair-and-samples.sql';
+const repairUrl83='setup/SETUP-GUIDE-v142.20.txt';
 loadWork82=async function(force=false){
  if(!admin82()||!ojmDb||Work82.loading)return;
  if(Work82.loaded&&Work82.owner===liveProfile.id&&!force)return;
@@ -22,12 +22,12 @@ const renderBefore83=renderWork82;renderWork82=function(){renderBefore83();if(!d
   if(Work82.legacyRuns83){const note=document.createElement('p');note.className='notice82';note.textContent=Work82.legacyRuns83+' original-format payroll record(s) are preserved in the database. This screen lists the new payroll snapshots; original records have not been converted or deleted.';host.append(note)}
  }
  if(id==='payroll-entries'&&Work82.run?.isSample){const note=document.createElement('p');note.className='notice82 warn82';note.textContent='SAMPLE PAYROLL — '+Work82.run.notes;host.querySelector('header').after(note);host.querySelectorAll('button[onclick="saveRun82(true)"]').forEach(n=>n.remove());if(Work82.run.previewOnly83){host.querySelectorAll('button[onclick="saveRun82(false)"]').forEach(n=>n.remove());const p=document.createElement('p');p.className='notice82';p.innerHTML=`This is an unsaved preview. <a href="${repairUrl83}" download>Run the repair and sample SQL</a> to add both examples to Payroll History and Payroll Reports.`;host.append(p)}}
- host.querySelectorAll('a[href="setup/82-payroll-reports.sql"]').forEach(a=>a.href=repairUrl83);alignTableHeaders83(host);
+ host.querySelectorAll('a[href="setup/SETUP-GUIDE-v142.20.txt"]').forEach(a=>a.href=repairUrl83);alignTableHeaders83(host);
 };
 function previewRun83(id){const s=PayrollSamples83.runs.find(r=>r.id===id);if(!s)return;Work82.runRecord=null;Work82.run={...structuredClone(s.data),previewOnly83:true};switchTab('payroll-entries')}
 const saveRunBefore83=saveRun82;saveRun82=function(finalize=false){if(Work82.run?.previewOnly83)return showCenterStatus('Install the repair and sample SQL to save these examples.',true);if(finalize&&Work82.run?.isSample)return showCenterStatus('A sample cannot be finalized as actual payroll. Create a real payroll run after reviewing your employee records.',true);return saveRunBefore83(finalize)};
 const employeeFormBefore83=employeeForm82;employeeForm82=function(record){return employeeFormBefore83(record).replace('<div class="form-actions82">',`<div class="fields82">${check82('Sample employee — excluded from normal new payroll','isSample',record?.data?.isSample||false)}</div><div class="form-actions82">`)};
-function alignTableHeaders83(root=document){root.querySelectorAll('table thead th,table thead td').forEach(n=>{if(n.closest('#document-editor105'))return;n.style.setProperty('text-align','center','important')})}
+function alignTableHeaders83(root=document){root.querySelectorAll('table thead th,table thead td').forEach(n=>{if(n.closest('#document-editor105'))return;n.style.setProperty('text-align','left','important');n.style.setProperty('font-weight','700','important')})}
 function alignAllHeaders83(){alignTableHeaders83()}
 let headerPending83=false;function scheduleHeaders83(){if(headerPending83)return;headerPending83=true;requestAnimationFrame(()=>{headerPending83=false;alignAllHeaders83()})}
 document.addEventListener('DOMContentLoaded',()=>{alignAllHeaders83();new MutationObserver(scheduleHeaders83).observe(document.body,{childList:true,subtree:true});renderWork82()});

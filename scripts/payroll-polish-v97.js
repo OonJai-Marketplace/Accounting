@@ -44,7 +44,7 @@
     label.append('Employee payroll account', select);
     const hint = document.createElement('small');
     hint.className = 'employee-field-hint97';
-    hint.textContent = 'Choose the employee-specific liability account used when preparing a payroll journal.';
+    hint.textContent = 'Choose this employee’s personal clearing account in their salary currency for payroll, advances and recoveries.';
     label.append(hint);
     return label;
   }
@@ -277,7 +277,7 @@
       const status = window.recurringStatus(item);
       return `<article class="recurring-warning-item ${status === 'OVERDUE' ? 'overdue' : ''}" data-preparation-card97="${escape(item.id)}">
         <div class="recurring-warning-item-heading97"><h5>${status === 'OVERDUE' ? 'OVERDUE' : item.preparedUntil ? 'FINAL WARNING' : 'DUE SOON'} — ${escape(item.memo)}</h5>
-          <div class="recurring-warning-actions97"><button type="button" class="je-btn je-btn-secondary" onclick="openPreparationDate97('${escape(item.id)}')">Preparation Done</button><button type="button" class="je-btn je-btn-emerald" onclick="markRecurringPaid('${escape(item.id)}')">Mark Paid</button></div></div>
+          <div class="recurring-warning-actions97"><button type="button" class="je-btn je-btn-secondary" onclick="openPreparationDate97('${escape(item.id)}')">Preparation Done</button><button type="button" class="je-btn je-btn-emerald" onclick="markRecurringPaid('${escape(item.id)}')">Mark reminder paid</button></div></div>
         <div>Due: <strong>${escape(window.formatAppDate(item.nextDate))}</strong> · ${escape(window.formatAppNumber(item.amount))} ${escape(item.currency)}</div>
         <div class="je-subtitle">Reminder schedule: ${escape(window.reminderText(item))}${item.preparedUntil ? ` · Prepared; final warning on ${escape(window.formatAppDate(item.preparedUntil))}` : ''}</div>
         <div class="preparation-date-form97" data-preparation-form97 hidden><label>Final warning date<input type="date" min="${escape(localDate())}" value="${escape(defaultFinalReminderDate(item))}"></label><button type="button" class="je-btn je-btn-emerald" onclick="savePreparationDone97('${escape(item.id)}',this)">Save Preparation</button></div>
@@ -370,17 +370,17 @@
       const label = cell.textContent.trim().toUpperCase();
       let fixed = '';
       if (cell.classList.contains('action-col') || label === 'ACTION') fixed = '1.7cm';
-      else if (label === 'DR' || label === 'DEBIT' || label.startsWith('DR ')) fixed = '3cm';
+      else if (label === 'DR' || label === 'DEBIT' || label.startsWith('DR ')) fixed = '180px';
       else if (/^CR[\s:-]*/.test(label)) {
         const currency = label.replace(/^CR[\s:-]*/, '').trim();
-        fixed = '3cm';
+        fixed = '180px';
       }
       if (fixed) for (const property of ['width', 'min-width', 'max-width']) cell.style.setProperty(property, fixed, 'important');
       else if (/MEMO|DESCRIPTION/.test(label)) cell.style.width = 'auto';
-      if (fixed) cell.style.setProperty('text-align', 'right', 'important');
+      if (fixed) { cell.style.setProperty('text-align', 'left', 'important'); cell.style.setProperty('font-weight', '700', 'important'); }
     });
-    body.querySelectorAll('.je-line-dr').forEach(input => { input.closest('td').style.setProperty('width', '3cm', 'important'); input.style.setProperty('text-align', 'right', 'important'); });
-    body.querySelectorAll('.je-line-cr').forEach(input => { input.closest('td').style.setProperty('width', '3cm', 'important'); input.style.setProperty('text-align', 'right', 'important'); });
+    body.querySelectorAll('.je-line-dr').forEach(input => { input.closest('td').style.setProperty('width', '180px', 'important'); input.style.setProperty('text-align', 'right', 'important'); });
+    body.querySelectorAll('.je-line-cr').forEach(input => { input.closest('td').style.setProperty('width', '180px', 'important'); input.style.setProperty('text-align', 'right', 'important'); });
     body.querySelectorAll('.action-col').forEach(cell => { cell.style.setProperty('width', '1.7cm', 'important'); cell.style.setProperty('text-align', 'right', 'important'); });
   }
 
