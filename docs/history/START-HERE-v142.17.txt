@@ -1,0 +1,58 @@
+OON JAI ACCOUNTING v142.17 — COMPLETE APPLICATION
+
+INSTALL
+1. Run setup/INSTALL-v142.17.sql once in Supabase SQL Editor. It contains both
+   the sub-account currency update and the desktop journal/audit functions.
+   Installation does not delete logs or transactions or reset any balances.
+2. Extract the full ZIP, keeping index.html and all folders together. Replace
+   your previous application files and reopen index.html or reload your host.
+3. Existing v142.14 workflow setup remains required for saved report printing
+   and signatory defaults. No need to repeat it if already installed.
+
+THE FOUR CHANGES
+1. SUB-ACCOUNT CURRENCY
+   Currency Type appears to the right of Parent Account on the same row.
+   Choices come from Currency Settings. The currency saves with the sub-account,
+   returns when editing, and appears beside its name. Existing sub-accounts
+   keep their previous parent-derived currency until changed.
+2. INDIVIDUAL AUDIT DELETION
+   Each row's Delete action calls a dedicated administrator-only function with
+   exactly one source and one ID. The other loaded rows remain visible.
+   Monthly deletion is a separate button labelled Delete entire month.
+3. DOUBLE-ENTRY CELLS
+   Inner input outlines are removed on desktop, including row date controls.
+   Existing main-journal cell widths, heights and layout are preserved.
+4. DESKTOP PERSONAL WORKSPACE
+   Four tabs beneath the user's header: Home, Journal, Summary, History.
+   Home: remaining funds, available/used indicators, shortcuts, recent entries.
+   Journal: the main Post Entry editor above that user's Active Journal.
+   The same Single/Double switch, calculator, date controls, general description,
+   row tools and templates are used. Drafts are separate for the company journal
+   and each personal workspace. Earlier unfinished rows migrate to the new form.
+   Post Entry saves to the personal workspace for review. All component saves
+   are atomic; one error rolls back the whole save. Existing assigned-account,
+   direction, locked-period and review rules remain authoritative. Money In
+   collections retain their existing report-only treatment.
+   Summary: Fund Summary and Account Totals, with period selection.
+   History: completed reports in a full tab, with year/month filters, search,
+   collapsible records, 12 records per page, and saved-report printing.
+   Review stays in its existing workflow. Submitted records remain in Review;
+   approved/posted/reviewed records appear in History.
+
+PHONE
+The phone HTML, phone controller, phone bridge and mobile styles are unchanged.
+The new desktop workspace and border styling apply only at desktop widths.
+
+VERIFIED
+Browser checks with simulated backend data covered single/double entry saving,
+editing, split entries, failed-save draft preservation, separate personal/company
+workspaces, staff Edit permission without company Post rights, History paging,
+completed-record movement, collapsed history, and deleting only one of two audit
+records in the same month. The main journal's cell dimensions were measured
+before/after border styling and matched. Sub-account currency, sign-in loading,
+main-journal posting, editor undo/redo, document tabs and app-switching checks
+passed. JavaScript and SQL/PLpgSQL syntax were checked.
+
+No live deployment, database migration or actual audit deletion was performed.
+The new server functions must be installed and have not been executed against
+an actual Supabase database during these checks.

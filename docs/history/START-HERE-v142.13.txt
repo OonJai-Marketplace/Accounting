@@ -1,0 +1,44 @@
+OON JAI ACCOUNTING v142.13 — COMPLETE APPLICATION
+Includes all v142.12 changes and the bundled Restaurant workspace.
+
+INSTALL
+Extract the whole ZIP and keep all folders together. Open the root index.html.
+For a hosted installation, upload the complete extracted structure and reload.
+No new SQL is required for this update. Earlier login and Restaurant setup
+requirements remain as described in START-HERE-v142.12.txt. Do not reset data.
+
+SUB-ACCOUNTS
+The table now uses the main Chart of Accounts fitted layout and existing table
+styling. Parent accounts, codes, names and descriptions wrap inside the page;
+rows grow to show complete text. The existing row action menu is retained.
+
+PAYROLL VOUCHERS ONLY
+The DRAFT — NOT FINALIZED label is removed from newly generated vouchers.
+The payroll run's status and finalization workflow are unchanged.
+The SAMPLE — NOT FOR PAYMENT label remains on sample vouchers.
+
+Choose two or three distinct signatories before opening vouchers in Documents.
+The employee is always Received by, at the end of the signature row.
+For your own voucher, the first role defaults to Verified by and the other
+signer's name is blank for you to select. For another employee, Prepared by
+initially uses your name. The first role can be Prepared by or Verified by;
+a two-person voucher can also use Approved by. Three-person vouchers add a
+separate Approved by signer. No receiver may also be another signer, and the
+first signer and approver must differ.
+
+Identity checks use linked user IDs, email addresses and normalized full names,
+including middle initials. Keep employee and user identities consistent; the
+system cannot reliably match unrelated aliases without a shared identifier.
+Choose the actual people who will sign. Names label unsigned signature lines
+and do not record an approval. Printing lets you review or change these choices.
+Other reports retain their existing signatory flow.
+
+VERIFICATION
+Browser checks with mocked remote data covered two/three distinct signers,
+self-voucher detection, duplicate rejection, actual voucher generation in the
+editor and printing, sample labels, and Sub-accounts fitting at 1440, 1100,
+1024 and 800 pixel viewport widths. Existing editor typing groups, undo/redo,
+color palettes, document tabs, saved drafts, account separation and Restaurant
+switching passed their regression checks. JavaScript syntax and local entry
+page resources were checked; the ZIP was verified against the source files.
+No live database posting or website deployment was performed.

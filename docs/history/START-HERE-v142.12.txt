@@ -1,0 +1,87 @@
+OON JAI ACCOUNTING v142.12 — COMPLETE APPLICATION
+Historical v142.12 release notes. Current repository separation and admin login
+setup supersede its former embedded Restaurant design; see
+START-HERE-SEPARATE-REPOSITORIES.txt.
+This version includes all six requested changes and the v142.11 payroll fixes.
+
+INSTALL
+Read START-HERE-SEPARATE-REPOSITORIES.txt for the current installation.
+The Accounting ZIP contains Accounting only. Keep its files together at the
+Accounting repository root. Do not reset data or re-run sample-data installers.
+
+1. SINGLE / DOUBLE ENTRY SWITCH
+Entry type is now a tap/click switch, with Single Entry and Double Entry labels.
+Keyboard Space or Enter also toggles it. Existing amounts and valid simple
+account pairs are preserved when switching. Complex drafts and prepared payroll
+stay in Double Entry so their lines are not discarded.
+
+2. LARGER UNDO / REDO GROUPS
+Continuous typing groups across words, spaces, punctuation and paragraph breaks.
+A pause of 10 seconds, moving the caret, a formatting action, paste, or changing
+editing action begins a separate group. Undo/Redo buttons and keyboard shortcuts
+use the same history. Each open document tab keeps its own history during the
+session. Reopening the editor or switching tabs does not clear that history.
+Draft content and open tabs survive reload; undo history starts fresh on reload.
+
+3. FONT AND HIGHLIGHT COLOR PALETTES
+Both toolbar controls open a grid of colors instead of the native color dialog.
+The grid includes neutrals plus six shades each of red, orange, yellow, green,
+cyan, blue, indigo, purple, pink and brown. There is a custom hex-color field,
+Automatic text color, and None for highlighting. Colors apply to the current
+selection and can be undone. Palette buttons also support keyboard navigation.
+
+4. DOCUMENT WORKSPACE TABS
+Use + Add tab above the document name to work on another document. Switch back
+to resume the earlier document. Each tab retains its title, text, formatting,
+page setup, company-record link, and session undo history.
+Open reports, payroll vouchers, saved documents or imported files with a choice:
+  Add new tab, or Replace selected tab.
+Replacing or closing an unsaved document offers save/discard/cancel controls.
+Device drafts store the open tabs separately for each signed-in user. Save
+Document stores the selected document in company records. Device drafts are
+local to this browser; they are not a shared backup or company save.
+
+5. ACCOUNTING / RESTAURANT SWITCH — SUPERSEDED
+The current floating switch is admin-only and navigates to a separate Restaurant
+repository. No Restaurant folder is bundled. See the current separation guide.
+
+6. DIRECTLY EDITABLE PAYROLL JOURNAL
+The former rule table and separate preview are replaced by one journal table:
+  Account | Description / Reference | Currency | Debit | Credit.
+The USD gross salary line is followed by individual employee clearing lines,
+then the bridge and LAK tax entries, followed by local payroll. The displayed
+rows are the rows you edit and prepare for Transactions.
+Account, description, debit and credit are editable. Add Line, Remove Line,
+Save Journal, Prepare in Transactions and Refresh Posting Status are available.
+Automatic figures use saved PIT brackets/shares and SSO rates/ceiling; finalized
+payroll uses its frozen results. Editing an amount makes it an override for that
+payroll. Use default journal restores automatic amounts after confirmation.
+Local PIT expense remains only the company share. Employee and company credits
+combine in PIT Payable. Balances are checked separately for each currency.
+Missing mappings and invalid values block preparation. Non-zero foreign rounding
+still requires an appropriate account in that currency. No chart accounts are
+invented. Posting confirmation, separate payroll/journal IDs, duplicate-post
+protection and posted-only Salary History remain intact.
+Journal edits are saved with the selected payroll; they are not copied as fixed
+amounts into another month's payroll.
+
+VERIFICATION
+Browser checks used mocked remote data, including:
+- Toggle interaction, preserved drafts, complex-journal guard, amount/currency
+  validation, posting success/failure and multiple dates.
+- Grouped typing across multiple paragraphs, short/long pause boundaries,
+  undo/redo, font/highlight application and formatting undo.
+- Independent tabs and history, report new/replace routing, tab save/cancel,
+  IndexedDB drafts, reload restoration and separation between signed-in users.
+- Historical same-page switching checks applied to the original v142.12 release;
+  current independent-site verification is documented in the separation guide.
+- Settings-derived PIT and SSO, frozen finalized calculations, direct payroll
+  editing, balanced preparation, posting failure/retry, linked IDs and duplicates.
+- Login/session regression: one complete load, draft preservation, permission
+  failure, retry and sign-out during loading.
+The editor color palette, document tabs and payroll journal were visually checked.
+All bundled JavaScript passed syntax checks and both entry pages' local resources
+were checked. The ZIP was verified against the application files.
+
+Live Supabase calls, production posting and deployment were not performed.
+This is a complete installable file update, not a live website deployment.

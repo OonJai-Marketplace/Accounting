@@ -1,0 +1,71 @@
+OON JAI ACCOUNTING v142.14 — COMPLETE APPLICATION
+Includes all previous payroll, journal, document-editor and Restaurant fixes.
+
+INSTALL
+1. Run setup/INSTALL-WORKFLOWS-v142.14.sql once in Supabase SQL Editor.
+   This adds personal print defaults and protected report/audit functions.
+   Installing it does not delete, reset or seed any business records.
+2. Extract the entire ZIP. Keep index.html and every folder together. Open the
+   root index.html, or replace the full extracted structure on your host.
+3. Reload the application. In Users & Permissions, enable Documents > Document
+   Editor / Print Preparation > View and Export / Print for users who print.
+   Enable Edit as well if they should edit and format the prepared document.
+Earlier login and Restaurant setup requirements remain in the prior guides.
+
+WHAT CHANGED
+- Add Sub-account searches actual parent grouping accounts, including Cash and
+  Cash Equivalents and Administrative Expenses. Posting accounts are excluded
+  from that parent selector. Labels and fields now fill a compact 640px dialog.
+- Sub-accounts retains the fitted, wrapped table from v142.13.
+- Dropdowns throughout Accounting, including the phone interface, use the same
+  interaction: click an empty field to choose; click an existing selection once
+  to type a replacement; double-click to reopen all choices. Choosing replaces
+  the existing value. Search matches labels and full codes. Keyboard arrows,
+  Enter and Escape work. Disabled choices and existing form handlers remain.
+  Multi-select lists and calendar date pickers retain their own controls.
+- Audit Log month headers put the month and count on the left and Delete logs on
+  the right. Counts with zero values are omitted. Each individual audit record
+  also has Delete. Monthly deletion confirms a snapshot of that month's records;
+  single deletion sends only the chosen ID. Both require administrator access.
+  Cancelling deletes nothing. Business transactions themselves are unaffected.
+- Fund Summary, Post Single Entry and Account Totals use matching table insets.
+  Action cells have extra spacing. Financial headers spell out Debit and Credit.
+- The bottom-left user-profile image background is always white.
+- Reports sent to Documents omit all-zero currency sections/columns and add a
+  brief zero-value note. Nonzero activity remains even when the balance is zero.
+- Sub-users can print approved saved reports from History or Print report.
+  Submission Review uses the same report builder. The printout contains one
+  user identity heading, saved entries (or actual posted journal lines when
+  available), account totals, category totals per currency, and signatories.
+  It does not copy the live Fund Summary, entry form, unsaved rows or repeated
+  workspace headings. Reported collections stay separate from posted totals.
+- Saved reports load through a permission-checked server function. Staff can
+  print their own approved reports; assigned reviewers require the appropriate
+  review and Documents permissions. Administrators can print saved submissions.
+- Payroll voucher signatories have Save these signatories as my defaults. Saved
+  names, two/three-person layout and approval name are restored for that user,
+  including across devices after sign-in. A receiver cannot also be another
+  voucher signer. Names are unsigned signature labels, not recorded approvals.
+- Inactivity Timeout measures time without interaction. Typing and scrolling in
+  the document editor and embedded workspaces count as activity. Active work
+  does not expire merely because the configured number of minutes has elapsed.
+- Document Editor / Print Preparation is available in the Module Access matrix.
+  Staff document drafts are kept on their device; company document storage
+  retains its administrator access. Print permission is checked independently.
+- Phone report buttons open the same prepared document and include Back to
+  report. The earlier document tabs, grouped undo/redo and color palettes remain.
+
+VERIFIED
+Mocked browser checks covered parent selection, form widths, empty/selected
+single/double-click dropdowns, non-account choices, inline entry account changes,
+zero-currency omission and retained activity, monthly and individual audit delete
+confirmation/cancellation, saved signatory defaults, editor-iframe inactivity,
+shared staff/admin report layout, denied access, and the phone document return.
+Workspace tables were measured to align within one pixel. Journal posting UI,
+Single/Double Entry and document workspace regressions also passed. JavaScript
+syntax, local resources and SQL/PLpgSQL parsing were checked; the ZIP was compared
+byte-for-byte to the application files.
+
+Database calls in browser checks were mocked. The SQL migration has not been run
+against your live database; live server permissions and deployment are not tested.
+No real audit logs or transactions were deleted while preparing this update.

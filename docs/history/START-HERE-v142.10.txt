@@ -1,0 +1,67 @@
+OON JAI ACCOUNTING v142.10 — COMPLETE APPLICATION
+Based on Oon-Jai-Accounting-v142.9-Full.zip.
+
+INSTALL
+1. Run setup/INSTALL-LOGIN-REPAIR-v142.10.sql once in Supabase SQL Editor.
+   Both result columns should be true. This repairs the existing v138/v141
+   request hook. It does not reset data or modify table policies.
+2. Extract this complete ZIP and replace the matching website files/folders.
+   For your local-file workflow, open index.html from the extracted folder.
+   Internet access is still needed for Supabase and existing CDN dependencies.
+3. Reload the application. For a repository deployment, upload the extracted
+   contents at the repository root and hard-refresh after deployment.
+
+CURRENT CHANGES
+- The request hook can execute for anonymous and authenticated requests while
+  retaining the existing administrator-only account-switch checks and chained
+  hook. No new permissions are granted to tables or posting functions.
+- Concurrent/repeated authentication events share one complete session load.
+  Repeated SIGNED_IN events do not reload extensions or overwrite an open draft.
+- Workflow initialization no longer triggers a second ledger load before the
+  reference data is ready. Audit history loads when its view is opened. Returning
+  focus within one minute no longer repeats the full workflow refresh.
+- Login fails closed when required data cannot load; a later login can retry.
+  Requests completing after sign-out cannot reopen the authenticated workspace.
+- The journal entry form remains open. Add Entry / Hide Entry controls and the
+  journal form's automatic collapse are removed. Add row and Reset remain.
+- The date field is 160px (previously 290px, approximately 45% shorter).
+  The Multiple checkbox sits at the left above the date field.
+- Single Entry / Double Entry is beside General Description / Memo.
+
+SINGLE ENTRY
+Money Out is the default direction for a new row:
+  DR affected/category account; CR source/payment account.
+Money In reverses those sides:
+  DR source/payment account; CR affected/category account.
+Choose both accounts, enter the amount and the general memo, then Post Entry.
+The existing posting workflow writes the matching journal lines. Pending saves
+are not included in ledger totals before the server confirms them.
+
+Add creates another pair. Multiple enables an individual date per simple row.
+Both accounts in a simple row must have the same currency and be different.
+Use Double Entry for currency bridging or complex split transactions. Switching
+preserves draft lines, including unfinished values; an unchanged simple draft
+also retains its chosen Money In / Money Out direction when switched back.
+Existing edits, prepared payroll and approval drafts stay in Double Entry.
+
+An ordinary balanced pair can be displayed as Money Out with its credited account
+as source; review the selected accounts when converting a manually entered pair.
+Multiple-date posting uses the existing sequential posting workflow. If a later
+transaction fails, check Active Journal for earlier successful dates before retrying.
+
+VERIFICATION
+- 92 JavaScript files passed syntax checking; no missing linked local resources.
+- Browser tests with mocked database calls covered layout, default direction,
+  debit/credit mapping, invalid amounts, matching currencies, multiple dates,
+  incomplete and complex draft preservation, reset, posting success/failure,
+  restricted posting permissions and duplicate session-load prevention.
+- Full session tests covered one ledger read, repeated events preserving a draft,
+  permission failure, successful retry, and sign-out during loading.
+- Desktop screenshot visually checked at 1440 x 900.
+- The SQL hook body was checked against the supplied v141 installer: its
+  authorization logic is unchanged; the execute grant is the targeted repair.
+
+The SQL has not been executed against your live database. Browser tests used
+mocked data; live connection speed and production posting remain unverified.
+Your repository and live website have not been deployed by this update.
+All other v142.9 features, including payroll templates, are retained.

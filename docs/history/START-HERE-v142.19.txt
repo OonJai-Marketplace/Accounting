@@ -1,0 +1,34 @@
+OON JAI ACCOUNTING — v142.19 FULL PACKAGE
+
+Based on Oon-Jai-Accounting-v142.18-Full.zip, latest saved revision.
+
+Extract this complete ZIP into a new folder and open index.html, using the same
+local-file workflow as the previous package. If updating your repository, use
+these files in the ACCOUNTING repository. Keep the restaurant repository separate.
+
+Changes in this version:
+- Fund Summary now has space between its outer frame and inner table.
+- Chart of Accounts search filters code, name, currency/symbol, type and description,
+  together with the existing currency filter.
+- Account pickers use a true placeholder for the empty choice. Typing replaces it.
+- Currency symbols appear with account choices; redundant currency suffixes are
+  removed from display labels. Stored account names, IDs and currencies are unchanged.
+- Single Entry uses a Money In / Money Out toggle in both the main and personal
+  sub-user journal. Assigned accounts and allowed directions still apply.
+- Multiple-date journal rows use a compact date column and a flexible line memo.
+- Debit/Credit columns across accounting tables reserve room for 10,000,000,000.00,
+  including dynamic reports, reviews and payroll journals.
+- The existing full-screen button works throughout the main accounting workspace
+  and stays active between tabs. Use it again or Escape to exit. The separate
+  Sub-user Expand Dashboard control is removed.
+
+No new SQL migration is required for these presentation changes.
+Earlier setup SQL files are retained for existing features; their prior setup
+requirements have not changed. No live database or hosted repository was changed.
+
+Verification: local Chromium browser with external requests blocked and temporary
+in-memory test accounts. Verified picker typing and selection, currency labels,
+Money In/Out debit/credit reversal, assigned-account restrictions, main/personal
+journal widths, formatted 10-billion amounts, Chart of Accounts search, grouped
+report columns, Fund Summary spacing, and full-screen tab switching/exit.
+Live sign-in and posting were not performed.

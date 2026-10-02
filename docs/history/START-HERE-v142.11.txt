@@ -1,0 +1,89 @@
+OON JAI ACCOUNTING v142.11 — COMPLETE APPLICATION
+Includes the v142.10 login and transaction fixes plus the completed payroll update.
+
+INSTALL
+1. Extract this complete ZIP and replace the matching website files/folders.
+   For the local-file workflow, open index.html from the extracted folder.
+   For repository deployment, replace the repository-root files and reload after
+   deployment. Supabase and existing CDN dependencies require internet access.
+2. No additional SQL is required for the payroll changes in this version.
+   If you have not applied the v142.10 login repair, its existing installer is
+   included at setup/INSTALL-LOGIN-REPAIR-v142.10.sql. Follow START-HERE-v142.10.txt.
+   Do not reset the database or re-run sample-data installers.
+
+PAYROLL CALCULATIONS
+- Draft payroll reads the saved PIT bracket boundaries and rates, PIT sharing
+  mode, employee-specific percentage when Custom is selected, SSO employee and
+  company rates, SSO maximum contribution base, and employee enrollment flags.
+- PIT sharing supports 50/50, employee 100%, company 100%, and Custom per employee.
+  An invalid sharing setting or missing required custom percentage is blocked.
+- The older startup migration no longer replaces saved PIT brackets merely
+  because its formula94 marker is absent. New installations still receive the
+  application's defaults. Review Settings before finalizing an actual payroll.
+- Finalization retains the calculated results and settings snapshot. Later
+  settings changes affect draft calculations, not finalized payroll amounts.
+- The journal uses those payroll results and the payroll's recorded LAK exchange
+  rates. Manually overridden journal amounts remain explicitly editable.
+
+DEFAULT JOURNAL
+Foreign-currency workers appear first (USD first), followed by LAK workers.
+Foreign payroll:
+  DR salary expense for gross salaries; CR each employee's personal clearing
+  account for final payment, salary advance recovery and loan/MOU recovery.
+  CR the USD Payroll Tax Bridge for the foreign employee PIT withholding total.
+  DR LAK PIT Expense separately for company PIT and employee PIT equivalents.
+  CR LAK PIT Payable for the combined foreign PIT amount.
+Local payroll:
+  DR salary expense for gross salaries; CR each employee's personal clearing
+  account for final payment and applicable recoveries.
+  CR PIT Payable for employee withholding.
+  DR PIT Expense for the company share; CR PIT Payable for that company share.
+  Local PIT Expense is not doubled: the employee withholding already credits
+  PIT Payable. Both credits together equal the total PIT.
+SSO uses the saved rates and ceiling when the employee is enrolled:
+  Employee withholding credits SSO Payable; company SSO debits SSO Expense and
+  credits SSO Payable. Zero-value lines are omitted.
+
+REVIEW AND POST
+Open a payroll and choose Payroll template / Journal.
+- The default resolves accounts against your actual chart and configured PIT /
+  SSO payable accounts. Existing custom templates remain intact. Use default
+  template replaces those rules only after confirmation.
+- Review each employee's personal clearing account in their salary currency.
+- Change the posting account, DR/CR, amount source, description, employee filter
+  and grouping. Add, remove or reorder lines. Blank override fields calculate
+  automatically; a manual amount is in the selected account's currency.
+- Review the live journal preview and separate currency balances. Save template
+  retains the rules and mappings with that payroll.
+- Finalize payroll before Prepare journal. Preparation opens an editable Double
+  Entry draft in Transactions. Review it, then choose Post Payroll Journal.
+- Payroll and journal retain separate linked IDs. Salary History includes the
+  payroll only after its journal posting is confirmed.
+- A pending/interrupted posting is protected from blind retry. Use Refresh
+  posting status and review Journal History to confirm its outcome.
+
+ACCOUNT MAPPINGS THAT NEED YOUR REVIEW
+Your supplied chart contains a LAK Rounding Difference account but no USD
+Rounding Difference account. If conversion creates a small USD difference,
+select an appropriate existing USD rounding account in the rounding row.
+The app does not use a LAK account for a USD difference or invent an account.
+Foreign SSO bridge accounts and reimbursement expense accounts require explicit
+selection when those amounts apply. Missing accounts and currency mismatches
+are shown in the preview and block journal preparation.
+
+VERIFICATION
+93 JavaScript files passed syntax checks; linked local resources are present.
+Browser tests with mocked database calls covered:
+- Saved custom PIT brackets surviving startup without the legacy marker.
+- Custom 30/70 and 50/50, employee-only and company-only PIT sharing.
+- SSO rates, ceiling, enrollment, draft recalculation and finalized snapshots.
+- Current chart and configured payable mappings, omitted zero-value lines,
+  local company-only PIT expense, foreign rounding and currency validation.
+- Editing, saving, reordering and preparing template lines; separate currency
+  balance checks; failed posting/retry; uncertain-posting retry protection;
+  separate linked IDs, posted Salary History and duplicate-post protection.
+- The v142.10 login/session loading and Single/Double Entry regression tests.
+The payroll dialog was visually checked at 1440 x 900.
+
+This ZIP updates the application files. It has not been deployed to your live
+website, and these tests did not write to your live database.

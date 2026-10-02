@@ -1,0 +1,60 @@
+OON JAI ACCOUNTING v142.18 — COMPLETE APPLICATION
+
+INSTALL
+1. Run setup/INSTALL-v142.18.sql once in Supabase SQL Editor. It includes the
+   v142.17 changes and the saved To-do List fields. If v142.17 is already
+   installed, running only setup/INSTALL-TODO-v142.18.sql is sufficient.
+2. Extract the ZIP and replace your previous application files. Keep index.html
+   and all folders together. Reopen index.html or reload your hosted copy.
+3. Keep the previously installed v142.14 workflow functions. Earlier setup files
+   remain included for installations that have not applied them.
+
+DESKTOP CORRECTIONS
+- Main Journal: posting card edges now align with the banner and Active Journal.
+  Double-entry cell input outlines remain removed.
+- Sub-user Journal: spacing inside the posting card keeps form controls away
+  from the edges. Posting and Active Journal module widths are preserved.
+- The top-right Expand dashboard button hides the sub-user banner so the
+  personal account heading leads the workspace. Restore banner brings it back.
+  This is an in-app layout control, not browser fullscreen.
+- Sub-user Single Entry: Source lists only assigned funds and automatically
+  selects a sole assigned fund. Money Out categories come from assigned entry /
+  spending accounts; Money In uses its configured counterpart. Direction choices
+  follow Settings. Category currency matches the chosen source. Save validation
+  and existing staff review rules still apply. Inflows keep their existing
+  collection/report treatment. No accounting posting logic has been changed.
+
+TO-DO LISTS — SEPARATE FROM UPCOMING TRANSACTIONS
+The existing dedicated To-do Lists card contains these enhancements. Completing
+or deleting a task never posts, pays, or deletes an upcoming transaction.
+- Types: Regular task, Sequential checklist, Recurring task / checklist.
+- Default editable templates: Journal / period closing, Payroll processing,
+  Bank / cash reconciliation, PIT / SSO preparation.
+- Add, edit, reorder steps by moving lines, and save reusable personal templates.
+  Using a template creates a fresh checklist; the original template is retained.
+- Ordered steps unlock in sequence; undoing a step resets later steps.
+- Progress bar, completed count, percentage and next step; notification links
+  open the relevant checklist.
+- Optional due date/time and reminder date/time. Repeat reminders hourly,
+  every two hours or every custom number of minutes, within a daily time window.
+- Recurring tasks repeat daily, weekly, monthly or every N hours. Completing
+  the checklist starts the next scheduled cycle and records the completed-cycle
+  count plus the latest completed steps/time. Missed cycles are consolidated.
+- Times use the device timezone. Reminders run while the app is open; this ZIP
+  does not install an operating-system/background push notification service.
+- Tasks and custom templates are saved per signed-in user, protected by the
+  existing owner-only database policy. Failed saves retain the form; concurrent
+  edits are checked to avoid silently overwriting another saved update.
+
+PHONE
+Phone HTML, controllers, phone bridge and mobile styles are unchanged. Desktop
+layout and assigned-account changes are scoped to the desktop personal editor.
+
+VERIFICATION
+Browser checks used a simulated backend, covering exact card alignment, inner
+spacing, banner toggle, role-specific account choices, single/double conversion,
+main journal posting, saved templates, ordered progress, reminder windows and
+recurrence rollover. The existing personal journal save/edit/review draft tests
+also passed. Changed JavaScript files passed syntax checks.
+
+No live database migration, live transaction change, or deployment was performed.

@@ -1,0 +1,19 @@
+OON JAI ACCOUNTING v142.15 — COMPLETE APPLICATION / LOGIN FIX
+
+Fixes the login error: select.options is not iterable.
+The currency settings refresh now updates only the native dropdown, not its
+searchable text box. All v142.14 features and the bundled Restaurant remain.
+
+INSTALL
+Extract the complete ZIP, keeping all folders with index.html. Replace the
+previous app files and reopen index.html, or reload your hosted application.
+No new SQL is required for this login fix. If you have already installed
+setup/INSTALL-WORKFLOWS-v142.14.sql, do not reinstall it for this fix.
+For earlier versions, follow START-HERE-v142.14.txt for its feature setup.
+
+VERIFIED
+Reproduced the exact error in v142.14 during session loading. The same browser
+check now completes sign-in loading, preserves drafts on repeated auth events,
+blocks genuine permission failures, permits retry, and prevents stale loading
+from reopening a signed-out session. Existing v142.14 workflow checks passed.
+Backend responses were mocked; no live database or hosted files were changed.

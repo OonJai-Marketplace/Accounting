@@ -1,0 +1,29 @@
+OON JAI ACCOUNTING v142.16 — SUB-ACCOUNT CURRENCY
+
+INSTALL
+1. Run setup/INSTALL-SUBACCOUNT-CURRENCY-v142.16.sql once in Supabase SQL Editor.
+   This adds the saved currency field linked to Currency Settings. Existing
+   sub-accounts retain their previous parent-derived currency. It does not
+   change balances, journal transactions, permissions, or audit logs.
+2. Extract the entire ZIP and replace the previous app files, keeping index.html
+   and all folders together. Reopen index.html or reload your hosted app.
+3. If you have not installed v142.14's workflows, follow its separate guide.
+   Its installation is not repeated for this currency change.
+
+CHANGES
+- Add/Edit Sub-account has Parent Account on the left and Currency Type on the
+  right, in one row. Currency is a required, searchable choice.
+- Choices come from active Currency Settings, including newly added currencies.
+- The chosen currency is stored independently of the grouping parent, restored
+  when editing, and shown as a currency badge beside the sub-account name.
+- Sub-account archive workbook exports now include Currency.
+- If the new database field is missing, saving explains which SQL file to run
+  and keeps the form available to retry.
+- All previous fixes remain, including the v142.15 login correction.
+
+VALIDATION
+Browser checks with mocked backend data passed: configured currency choices,
+USD creation and reload, editing to EUR, newly configured currency availability,
+save-failure recovery, legacy currency fallback, desktop layout and narrow-screen
+field fit. Session-loading checks also passed. SQL and JavaScript syntax parsed.
+The SQL migration has not been applied to your live database.

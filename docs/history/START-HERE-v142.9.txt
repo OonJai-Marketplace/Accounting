@@ -1,0 +1,81 @@
+HISTORICAL v142.9 NOTES: follow START-HERE-v142.10.txt for the current release.
+The current release includes a required targeted SQL repair.
+
+OON JAI ACCOUNTING v142.9 — COMPLETE APPLICATION
+
+This complete ZIP includes the prior delivered application and editor repair,
+plus the requested editor, account-picker, journal-layout and payroll changes.
+You do not need to apply the earlier ZIPs separately.
+
+UPLOAD
+Extract this ZIP. Upload its files and folders to your repository root, replacing
+matching paths and preserving the scripts/, styles/ and assets/ folder structure.
+Do not upload the ZIP itself. Do not delete the repository first.
+After GitHub Pages deployment, hard-refresh the application to load updated files.
+No new SQL migration is required by these changes. Existing database configuration
+is retained; this ZIP is application code, not a backup of your database records.
+
+DOCUMENT EDITOR
+- Undo groups continuous typing by word, pause and editing action. Redo restores
+  those groups. Enter and formatting remain separate actions.
+- Autosave and undo keep the editor surface loaded; new paragraphs stay separate.
+- Text colour has an underlined A; highlight colour has a marker icon. Both show
+  colour indicators and tooltips.
+- Numeric up/down arrows sit inside the number fields, including font size,
+  table sizes, padding and Page setup. Row height can shrink or fit content.
+
+POST DOUBLE ENTRY
+- Account choices use the application colours and show the code, name and currency.
+- Type to filter. Double-click the selected account to select its text and reopen
+  the choices. Choosing another account replaces it completely.
+- Ctrl+Z / Ctrl+Y restore whole account choices without concatenating account names.
+- Account selection does not resize the columns.
+- The date picker spans the same width as the Single / Multiple controls together.
+- Add is always beside Reset, and is removed from the per-row Action menu.
+- Table headings are bold and left aligned, including DR and CR.
+- The calculator distinguishes multiple selected currencies and still requires
+  balanced debit/credit totals in each currency before posting.
+
+PAYROLL TEMPLATE AND JOURNAL REFERENCES
+1. In Payroll Entries or Deductions, click Payroll template / Journal.
+2. Configure accounts, DR/CR, payroll amount sources, employee currencies and
+   per-employee or total grouping. Add/remove lines as needed. No account mappings
+   are guessed. Save template stores it with the payroll and remembers it in this
+   browser for reuse. The saved payroll template is also available after re-login.
+3. Finalize the payroll through the existing reviewed-payroll action.
+4. Click Prepare journal. Review and freely edit the lines in Transactions.
+5. Click Post Payroll Journal. The server assigns the journal ID using the existing
+   journal numbering settings. The payroll reference remains unchanged.
+6. A confirmed posted journal qualifies the payroll for Salary History. The two
+   references are shown separately. Saved unposted payroll remains accessible under
+   Saved payroll awaiting journal posting and is excluded from posted totals.
+
+The template converts LAK payroll amounts using the payroll's saved rates into
+selected accounts' currencies. Foreign PIT bridge lines can use Employee PIT
+with the USD bridge and LAK bridge accounts you choose. SSO lines with zero amounts
+are omitted. Posting still requires each currency to balance independently.
+
+For an existing journal, use Link an already posted journal and select its journal
+ID after reviewing its accounts and amounts. This links references without creating
+another transaction. View Journal opens the related journal reference.
+
+Failed posting retains the prepared entry. An uncertain/interrupted request is
+blocked from automatic reposting. Use Refresh posting status to retrieve a journal
+that committed on the server. Concurrent attempts for the same saved payroll use
+its existing version check. No payroll is marked posted merely by preparing it.
+
+The duplicate missing-rate banner and automatic floating reminder have been
+removed from Entries and Deductions. Rate/source validation still applies when
+saving/finalizing payroll and preparing currency-dependent posting lines.
+
+VERIFICATION
+Browser tests with mocked storage covered grouped undo/redo and Enter, no iframe
+reloads, inset arrows, account filtering/replacement and undo/redo, fixed column and
+date widths, Add beside Reset, bold left-aligned headings, missing-rate alerts with
+an actual USD employee, template controls, USD/LAK bridge calculation, zero SSO
+omission, failed posting, interrupted posting and later confirmation, separate
+payroll/journal IDs, duplicate-post prevention, and Salary History eligibility.
+Tests did not write to your production database. Your repository and the previously
+shared live preview have not been deployed automatically.
+
+The proposed Sheets module is not included.
