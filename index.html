@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <title>Oon Jai Accounting — v142.1</title>
+  <script src="scripts/device-mode132.js?v=142.4"></script>
+  <title>Oon Jai Accounting — v142.7</title>
   <link rel="icon" type="image/png" href="assets/brand/oonjai-logo.png?v=118">
   <!-- Chart.js for dashboard graphs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,8 +18,8 @@
   <link rel="stylesheet" href="styles/subusers-final-v55.css?v=118">
   <link rel="stylesheet" href="styles/subusers-final-v56.css?v=118">
   <link rel="stylesheet" href="styles/design-system-v58.css?v=118">
-  <link rel="stylesheet" href="styles/subusers-mobile-v61.css?v=118">
-  <link rel="stylesheet" href="styles/mobile-tables-v66.css?v=118">
+  <link rel="stylesheet" href="styles/subusers-mobile-v61.css?v=142.4">
+  <link rel="stylesheet" href="styles/mobile-tables-v66.css?v=142.4">
 <link rel="stylesheet" href="styles/transactions-v67.css?v=118">
 <link rel="stylesheet" href="styles/accounts-review-v69.css?v=118">
 <link rel="stylesheet" href="styles/desktop-v71.css?v=118">
@@ -36,6 +37,8 @@
 <link rel="stylesheet" href="styles/desktop-polish-v84.css?v=118">
 <link rel="stylesheet" href="styles/layout-fixes-v85.css?v=118">
 <link rel="stylesheet" href="styles/layout-consistency-v87.css?v=118">
+
+<script src="scripts/backup-validation1441.js?v=142.21"></script>
 </head>
 <body>
 
@@ -265,7 +268,7 @@
 <div id="journal" class="tab-content">
 
 <!-- CARD 1: POST GENERAL JOURNAL ENTRY -->
-<section class="je-card no-print" id="journalEntry98" hidden>
+<section class="je-card no-print" id="journalEntry98">
   <div class="je-card-header">
     <div>
       <h3 class="je-title">Post Double-Entry Transaction</h3>
@@ -281,7 +284,7 @@
   <!-- Meta Controls: General Memo & Transaction Date -->
   <div class="je-meta-grid">
     <div class="je-field-group transaction-date-field">
-      <div class="je-label-row"><label class="multi-date-toggle"><input type="radio" name="journalDateMode" id="jeSingleDate" checked onchange="setJournalDateMode(false)"> Single Date</label><label class="multi-date-toggle"><input type="radio" name="journalDateMode" id="jeMultipleDates" onchange="setJournalDateMode(true)"> Multiple Dates</label></div>
+      <div class="je-label-row"><label class="multi-date-toggle"><input type="checkbox" id="jeMultipleDates" onchange="setJournalDateMode(this.checked)"> Multiple</label><input type="radio" name="journalDateMode" id="jeSingleDate" checked hidden aria-hidden="true" tabindex="-1"></div>
       <input type="date" id="jeTransDate" class="je-input default-today" onclick="if(this.showPicker) this.showPicker();" />
     </div>
     <div class="je-field-group" style="flex: 1;">
@@ -297,10 +300,10 @@
         <tr id="jeHeaderRow">
           <th style="width: 28%;">Account</th>
           <th style="width: 32%;">Line Memo / Reference</th>
-          <th class="num" style="width: 120px;">DR (Debit)</th>
-          <th class="num" style="width: 120px;">CR-LAK</th>
-          <th class="num" style="width: 120px;">CR-USD</th>
-          <th class="num" style="width: 120px;">CR-THB</th>
+          <th class="num" style="width: 120px;">Debit (Debit)</th>
+          <th class="num" style="width: 120px;">Credit-LAK</th>
+          <th class="num" style="width: 120px;">Credit-USD</th>
+          <th class="num" style="width: 120px;">Credit-THB</th>
           <th class="action-col no-print" style="width: 64px; text-align: center;">Action</th>
         </tr>
       </thead>
@@ -350,10 +353,10 @@
           <th style="width: 130px;">Entry ID</th>
           <th style="width: 200px;">Account</th>
           <th style="width: 260px;">Memo / Reference</th>
-          <th class="num" style="width: 110px;">DR</th>
-          <th class="num" style="width: 110px;">CR-LAK</th>
-          <th class="num" style="width: 110px;">CR-USD</th>
-          <th class="num" style="width: 110px;">CR-THB</th>
+          <th class="num" style="width: 110px;">Debit</th>
+          <th class="num" style="width: 110px;">Credit-LAK</th>
+          <th class="num" style="width: 110px;">Credit-USD</th>
+          <th class="num" style="width: 110px;">Credit-THB</th>
           <th class="action-col no-print" style="width: 64px; text-align: center;">Action</th>
         </tr>
       </thead>
@@ -538,6 +541,10 @@
                 <p class="card-subtitle">Master list of general ledger accounts organized by classification and currency.</p>
               </div>
               <div class="coa-toolbar">
+                <div class="coa-filter-box coa-search1439">
+                  <label for="searchCoa1439">Search accounts</label>
+                  <input id="searchCoa1439" type="search" placeholder="Search code, name, currency, type or description" oninput="renderChartOfAccountsTable()">
+                </div>
                 <div class="coa-filter-box">
                   <label for="filterCoaCurrency">Currency</label>
                   <select id="filterCoaCurrency" class="je-select universal-filter-select" onchange="renderChartOfAccountsTable()">
@@ -922,7 +929,7 @@
             <div class="settings-compact-grid cols-3">
               <div class="settings-field"><label>Date Format</label><select class="je-select" name="dateFormat"><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option></select></div>
               <div class="settings-field"><label>Number Format</label><select class="je-select" name="numberFormat"><option value="1,234.56">1,234.56</option><option value="1.234,56">1.234,56</option><option value="1 234,56">1 234,56</option></select></div>
-              <div class="settings-field"><label>Session Timeout (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('session-timeout')" aria-label="Explain Session Timeout">*</button></label><input class="je-input" name="sessionTimeout" type="number" min="5" max="480" value="30"></div>
+              <div class="settings-field"><label>Inactivity Timeout (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('session-timeout')" aria-label="Explain Inactivity Timeout">*</button></label><input class="je-input" name="sessionTimeout" type="number" min="5" max="480" value="30"></div>
               <div class="settings-field"><label>Timeout Warning (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('timeout-warning')" aria-label="Explain Timeout Warning">*</button></label><input class="je-input" name="sessionWarning" type="number" min="1" max="30" value="1"></div>
               <div class="settings-field"><label>Default Opening Page</label><select class="je-select" name="defaultLandingPage"><option value="dashboard">Dashboard</option><option value="entry-submissions">Entry Submission</option><option value="reports">Reports</option></select></div>
               <div class="settings-field"><label>Record Retention (years) <button type="button" class="setting-help" onclick="openSettingHelp('record-retention')" aria-label="Explain Record Retention">*</button></label><select class="je-select" name="retentionYears"><option value="3">3 years</option><option value="5">5 years</option><option value="7">7 years</option><option value="10">10 years</option></select></div>
@@ -1059,11 +1066,17 @@
       <form id="formSubAccount" onsubmit="handleSubAccountFormSubmit(event)">
         <input type="hidden" id="subAccountOrigCode" value="">
         <div class="modal-body">
+          <div class="sub-parent-currency1436">
           <div class="settings-field">
             <label for="subParentCode">Parent Account *</label>
             <select class="je-select clean-parent-select" id="subParentCode" required>
               <!-- Populated automatically from chart of accounts -->
             </select>
+          </div>
+          <div class="settings-field">
+            <label for="subCurrency">Currency Type *</label>
+            <select class="je-select" id="subCurrency" required aria-label="Currency Type"></select>
+          </div>
           </div>
           <div class="settings-field">
             <label for="subCode">Sub-Account Code *</label>
@@ -1191,55 +1204,55 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="scripts/supabase-config.js?v=118"></script>
   <!-- Backbone Script Engine -->
-  <script src="scripts/workspace-request-v138.js?v=141"></script>
-<script src="scripts/script.js?v=141"></script>
-  <script src="scripts/workspace-settings.js?v=138"></script>
+  <script src="scripts/workspace-request-v138.js?v=142.10"></script>
+<script src="scripts/script.js?v=142.21"></script>
+  <script src="scripts/workspace-settings.js?v=142.21"></script>
   <script src="scripts/navigation-v48.js?v=118"></script>
-  <script src="scripts/subusers-final-v53.js?v=118"></script>
+  <script src="scripts/subusers-final-v53.js?v=142.14"></script>
   <script src="scripts/subusers-final-v54.js?v=118"></script>
   <script src="scripts/subusers-final-v55.js?v=118"></script>
-  <script src="scripts/subusers-final-v56.js?v=118"></script>
+  <script src="scripts/subusers-final-v56.js?v=142.17"></script>
   <script src="scripts/design-system-v58.js?v=118"></script>
   <script src="scripts/mobile-tables-v66.js?v=118"></script>
 <script src="scripts/transactions-v67.js?v=118"></script>
 <script src="scripts/accounts-v69.js?v=118"></script>
 <script src="scripts/review-v69.js?v=118"></script>
-<script src="scripts/interface-v69.js?v=118"></script>
-<script src="scripts/reports-system-v71.js?v=118"></script>
+<script src="scripts/interface-v69.js?v=142.19"></script>
+<script src="scripts/reports-system-v71.js?v=142.6&previous=118"></script>
 <script src="scripts/transactions-mobile-v72.js?v=118"></script>
 <script src="scripts/mobile-polish-v73.js?v=118"></script>
 <script src="scripts/mobile-refinements-v74.js?v=118"></script>
 <script src="scripts/review-mobile-v78.js?v=118"></script>
-<script src="scripts/reports-desktop-v79.js?v=118"></script>
+<script src="scripts/reports-desktop-v79.js?v=142.6&previous=118"></script>
 <script src="scripts/desktop-corrections-v80.js?v=118"></script>
 <script src="scripts/desktop-refinements-v81.js?v=118"></script>
 <script src="scripts/desktop-layout-v82.js?v=118"></script>
-<script src="scripts/payroll-engine-v82.js?v=118"></script>
-<script src="scripts/payroll-reports-v82.js?v=118"></script>
+<script src="scripts/payroll-engine-v82.js?v=142.11"></script>
+<script src="scripts/payroll-reports-v82.js?v=142.20&previous=118"></script>
 <script src="scripts/payroll-samples-v83.js?v=118"></script>
-<script src="scripts/payroll-fixes-v83.js?v=118"></script>
+<script src="scripts/payroll-fixes-v83.js?v=142.20"></script>
 <script src="scripts/desktop-polish-v84.js?v=118"></script>
 <script src="scripts/layout-fixes-v85.js?v=118"></script>
 <script src="scripts/layout-consistency-v87.js?v=118"></script>
 <link rel="stylesheet" href="styles/session-inputs-v88.css?v=118">
-<script src="scripts/session-inputs-v88.js?v=118"></script>
+<script src="scripts/session-inputs-v88.js?v=142.9"></script>
 <link rel="stylesheet" href="styles/prefixes-badges-v89.css?v=118">
-<script src="scripts/prefixes-badges-v89.js?v=118"></script>
+<script src="scripts/prefixes-badges-v89.js?v=142.20"></script>
 <link rel="stylesheet" href="styles/scheduled-journals-v91.css?v=118">
-<script src="scripts/scheduled-journals-v91.js?v=138"></script>
+<script src="scripts/scheduled-journals-v91.js?v=142.22"></script>
 <link rel="stylesheet" href="styles/refinements-v93.css?v=118">
 <script src="scripts/refinements-v93.js?v=118"></script>
 <link rel="stylesheet" href="styles/settings-payroll-v94.css?v=118">
-<script src="scripts/settings-payroll-v94.js?v=118"></script>
+<script src="scripts/settings-payroll-v94.js?v=142.11"></script>
 <link rel="stylesheet" href="styles/payroll-groups-v95.css?v=118">
-<script src="scripts/payroll-groups-v96.js?v=118"></script>
+<script src="scripts/payroll-groups-v96.js?v=142.20"></script>
 <link rel="stylesheet" href="styles/payroll-polish-v97.css?v=118">
-<script src="scripts/payroll-polish-v97.js?v=118"></script>
+<script src="scripts/payroll-polish-v97.js?v=142.20"></script>
 <link rel="stylesheet" href="styles/transactions-v98.css?v=118">
-<script src="scripts/transactions-v98.js?v=118"></script>
+<script src="scripts/transactions-v98.js?v=142.10"></script>
 <link rel="stylesheet" href="styles/workspace-v99.css?v=118">
 <script src="scripts/payroll-v99.js?v=118"></script>
-<script src="scripts/workspace-v99.js?v=118"></script>
+<script src="scripts/workspace-v99.js?v=142.21"></script>
 <script src="scripts/hr-v99.js?v=140"></script>
 <link rel="stylesheet" href="styles/theme-v100.css?v=118">
 <script src="scripts/theme-v100.js?v=118"></script>
@@ -1251,49 +1264,49 @@
 <link rel="stylesheet" href="styles/universal-date-v104.css?v=118">
 <script src="scripts/universal-date-v104.js?v=118"></script>
 <link rel="stylesheet" href="styles/header-profile-v104.css?v=118">
-<script src="scripts/header-profile-v104.js?v=118"></script>
+<script src="scripts/header-profile-v104.js?v=142.18"></script>
 <script src="scripts/shortnames-v104.js?v=118"></script>
 <link rel="stylesheet" href="styles/refinements-v105.css?v=118">
 
-<script src="scripts/refinements-v105.js?v=118"></script>
+<script src="scripts/refinements-v105.js?v=142.20"></script>
 <link rel="stylesheet" href="styles/document-editor-v105.css?v=118">
 <script src="assets/vendor/docx.js?v=118"></script>
 <script src="scripts/document-export-v108.js?v=118"></script>
 <script src="scripts/document-import-v1422.js?v=142.2"></script>
-<script src="scripts/document-editor-v105.js?v=118"></script>
+<script src="scripts/document-editor-v105.js?v=142.20"></script>
 <link rel="stylesheet" href="styles/refinements-v106.css?v=118">
 <link rel="stylesheet" href="styles/editor-tables-v107.css?v=118">
-<script src="scripts/editor-tables-v107.js?v=118"></script>
+<script src="scripts/editor-tables-v107.js?v=142.10"></script>
 <link rel="stylesheet" href="styles/shared-v108.css?v=118">
-<script src="scripts/shared-v108.js?v=141"></script>
+<script src="scripts/shared-v108.js?v=142.20"></script>
 <link rel="stylesheet" href="styles/refinements-v109.css?v=118">
-<script src="scripts/refinements-v109.js?v=118"></script>
+<script src="scripts/refinements-v109.js?v=142.18"></script>
 
 <link rel="stylesheet" href="styles/editor-fixes-v110.css?v=118">
 <script src="scripts/visual-consistency-v110.js?v=118"></script>
 <link rel="stylesheet" href="styles/dashboard-warm-v112.css?v=118">
-<script src="scripts/dashboard-warm-v112.js?v=118"></script>
-<script src="scripts/header-icons-v112.js?v=118"></script>
+<script src="scripts/dashboard-warm-v112.js?v=142.20"></script>
+<script src="scripts/header-icons-v112.js?v=142.20"></script>
 <script src="scripts/keyboard-picking-v112.js?v=118"></script>
 <link rel="stylesheet" href="styles/polish-v113.css?v=118">
 <script src="scripts/shell-v113.js?v=129"></script>
-<script src="scripts/access-v113.js?v=118"></script>
+<script src="scripts/access-v113.js?v=142.21"></script>
 <script src="assets/vendor/jszip.min.js?v=129"></script>
-<script src="scripts/archive-xlsx-v129.js?v=129"></script>
-<script src="scripts/recovery-v113.js?v=130"></script>
-<script src="scripts/funds-v113.js?v=118"></script>
+<script src="scripts/archive-xlsx-v129.js?v=142.22"></script>
+<script src="scripts/recovery-v113.js?v=142.21"></script>
+<script src="scripts/funds-v113.js?v=142.14"></script>
 <link rel="stylesheet" href="styles/final-v117.css?v=118">
 <script src="scripts/final-v117.js?v=138"></script>
 <script src="scripts/reports-v117.js?v=118"></script>
-<script src="scripts/workspace-v117.js?v=141"></script>
+<script src="scripts/workspace-v117.js?v=142.14"></script>
 <link rel="stylesheet" href="styles/final-v118.css?v=119">
-<script src="scripts/final-v118.js?v=119"></script>
+<script src="scripts/final-v118.js?v=142.20"></script>
 <script src="scripts/reports-v118.js?v=118"></script>
 <script src="scripts/accounting-pos-cleanup.js?v=121"></script>
 <link rel="stylesheet" href="styles/workflows-v136.css?v=138">
-<script src="scripts/workflows-v136.js?v=138"></script>
+<script src="scripts/workflows-v136.js?v=142.18"></script>
 <link rel="stylesheet" href="styles/combined-v138.css?v=138">
-<script src="scripts/combined-v138.js?v=141"></script>
+<script src="scripts/combined-v138.js?v=142.20"></script>
 <link rel="stylesheet" href="styles/submission-review-v139.css?v=139">
 <script src="scripts/submission-review-v139.js?v=139"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
@@ -1301,8 +1314,44 @@
 <script src="scripts/carry-forward-v142.js?v=142"></script>
 <link rel="stylesheet" href="styles/recovery-reset-fix-v142.css?v=142.1">
 <script src="scripts/recovery-reset-fix-v142.js?v=142.1"></script>
-<script src="scripts/post-entry-diagnostics-v142.js?v=142.1"></script>
+<script src="scripts/post-entry-diagnostics-v142.js?v=142.9"></script>
 <link rel="stylesheet" href="styles/focused-v1422.css?v=142.2">
 <script src="scripts/focused-v1422.js?v=142.2"></script>
+<link rel="stylesheet" href="styles/device-mode132.css?v=142.4">
+<script src="scripts/phone-bridge132.js?v=142.21"></script>
+<script src="scripts/settings-phone133.js?v=142.3"></script>
+<link rel="stylesheet" href="styles/editor-print1424.css?v=142.4">
+<script src="scripts/voucher-signatories1433.js?v=142.14"></script>
+<script src="scripts/payroll-print1424.js?v=142.14"></script>
+<script src="scripts/print-preview1426.js?v=142.6"></script>
+<link rel="stylesheet" href="styles/editor-menus1426.css?v=142.6">
+<script src="scripts/drafts1427.js?v=142.17"></script>
+<script src="scripts/focused1427.js?v=142.9"></script>
+<link rel="stylesheet" href="styles/focused1427.css?v=142.8">
+<link rel="stylesheet" href="styles/account-picker1428.css?v=142.8">
+<script src="scripts/account-picker1428.js?v=142.20"></script>
+<link rel="stylesheet" href="styles/fixes1429.css?v=142.9">
+<script src="scripts/payroll-template1431.js?v=142.12"></script>
+<link rel="stylesheet" href="styles/payroll-template1431.css?v=142.11">
+<script src="scripts/payroll-journal1429.js?v=142.12"></script>
+<link rel="stylesheet" href="styles/entry1430.css?v=142.10">
+<script src="scripts/entry1430.js?v=142.20"></script>
+<link rel="stylesheet" href="styles/workspaces1432.css?v=142.12">
+<script src="scripts/workspace-config123.js?v=123"></script><script src="scripts/workspace-links123.js?v=123"></script>
+<link rel="stylesheet" href="styles/voucher-accounts1433.css?v=142.13">
+<script src="scripts/workflows1434.js?v=142.17"></script>
+<script src="scripts/saved-reports1434.js?v=142.21"></script>
+<link rel="stylesheet" href="styles/workflows1434.css?v=142.16">
+<link rel="stylesheet" href="styles/personal-journal1437.css?v=142.17">
+<script src="scripts/personal-journal1437.js?v=142.21"></script>
+<link rel="stylesheet" href="styles/desktop-tasks1438.css?v=142.18">
+
+<script src="scripts/todos1438.js?v=142.20"></script>
+<link rel="stylesheet" href="styles/workspace1439.css?v=142.19">
+<script src="scripts/workspace1439.js?v=142.19"></script>
+<link rel="stylesheet" href="styles/finalization1440.css?v=142.20">
+<script src="scripts/dialogs1440.js?v=142.20"></script>
+<script src="scripts/journal-batch1440.js?v=142.21"></script>
+<script src="scripts/permissions1441.js?v=142.21"></script>
 </body>
 </html>
