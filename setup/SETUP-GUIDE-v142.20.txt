@@ -1,0 +1,31 @@
+OON JAI ACCOUNTING SETUP AND REPAIR GUIDE
+
+For a working accounting database, v142.20 requires NO new SQL.
+This is a guide, not a SQL script. Do not paste this file into SQL Editor.
+Do not reset data in response to a missing-function error.
+
+Included incremental installers (unchanged in this release):
+- INSTALL-v142.18.sql contains the v142.17 incremental changes and to-do update.
+- If v142.17 is already installed, INSTALL-TODO-v142.18.sql is the smaller update.
+- INSTALL-v142.17.sql includes the sub-account currency and desktop journal update.
+- INSTALL-SUBACCOUNT-CURRENCY-v142.16.sql is the individual currency update.
+- INSTALL-DESKTOP-JOURNAL-v142.17.sql is the personal journal/audit update.
+- INSTALL-WORKFLOWS-v142.14.sql is the saved-report and audit action update.
+- INSTALL-LOGIN-REPAIR-v142.10.sql and 08-workspace-separation123.sql are
+  earlier, separate login/workspace repairs; they are not required by v142.20.
+
+These scripts depend on an existing Oon Jai database. They are NOT a complete
+fresh-database installer, and their installation status was not checked live.
+Confirm installed migrations before running any script with your administrator.
+
+Older links for payroll storage, prefix registry, scheduled journals, document
+storage, record actions, account switching, account purpose and journal revision
+previously referred to files absent from this release. Those links now point here.
+Their original base migrations have NOT been recreated or replaced with unrelated
+SQL. If one of these services is missing, record the exact error and feature,
+then obtain the matching original migration from the established database project
+or its maintainer. Do not assume the included v142.18 installer repairs all older
+features. Keep the current draft and a verified backup while troubleshooting.
+
+Do not deploy a new database from only this folder. This package updates the web
+client of the existing accounting installation; the restaurant is kept separate.
