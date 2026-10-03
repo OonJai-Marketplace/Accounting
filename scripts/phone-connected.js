@@ -4,8 +4,8 @@ const S={module:'dashboard',page:'home',user:null,search:'',month:A.previewMonth
 let draftOwner1427='',phoneSession14225='',phoneDrafts1427={staff:{}};
 function draftKey1427(id){return 'ojm_phone_draft1427:'+String(parent.OJM_SUPABASE_URL||location.origin)+':'+id}
 function ensurePhoneOwner1427(){
- const me=A.profile(),id=me?.id,session=A.session();if(!id)return false;if(id===draftOwner1427&&phoneSession14225===session)return true;
- draftOwner1427=id;phoneSession14225=session;document.querySelectorAll('main.screen').forEach(n=>n.replaceChildren());
+ const me=A.profile(),id=me?.id,session=A.session();if(!id||!A.ready())return false;if(id===draftOwner1427&&phoneSession14225===session)return true;
+ draftOwner1427=id;phoneSession14225=session;last='';document.querySelectorAll('main.screen').forEach(n=>n.replaceChildren());
  try{phoneDrafts1427=JSON.parse(localStorage.getItem(draftKey1427(id)))||{staff:{}}}catch{phoneDrafts1427={staff:{}}}
  phoneDrafts1427.staff||={};
  Object.assign(S,{module:me.role==='admin'?'dashboard':'subusers',page:'home',user:me.role==='admin'?null:id,search:'',staffDraft:null,journalDraft:null,editingStaff:false,editingJournal:false,journalForm:false,pendingStaff:null});
@@ -46,9 +46,11 @@ function navigate(module,page='home',capture=true){
  if(!pageAllowed1441()){Object.assign(S,before);parent.showCenterStatus('This area is not included in your permissions.',true);return;}
  S.search='';last='';
  const target=module==='settings'?'settings-users':module==='dashboard'?'dashboard':module==='transactions'?({journal:'journal',upcoming:'transactions-recurring',review:'user-entry-review',closing:'period-review',history:'transactions-all',audit:'transactions-voided'}[page]||'journal'):module==='accounts'?({ledger:'sec-general-ledger',trial:'trial-balance',balances:'account-balances',chart:'sec-chart-accounts'}[page]||'sec-general-ledger'):'sub-users-workspace';
- if(module!=='settings'||A.allowed(target))A.navigate(target);
- if(module==='subusers'&&S.user)A.openUser(S.user,page==='totals'?'records':page);
+ // Paint the phone independently; an unavailable hidden desktop view must not blank it.
  render();window.scrollTo(0,0);
+ try{if(module!=='settings'||A.allowed(target))A.navigate(target);
+ if(module==='subusers'&&S.user)A.openUser(S.user,page==='totals'?'records':page);
+ }catch(e){console.error('Workspace synchronization failed',e);parent.showCenterStatus('The phone workspace is open, but some data could not update. Please try again.',true)}
 }
 const modulePages={dashboard:[['home','dashboard']],transactions:[['journal','journal'],['history','transactions-all'],['review','user-entry-review'],['upcoming','transactions-recurring'],['closing','period-review'],['audit','transactions-voided']],accounts:[['ledger','sec-general-ledger'],['trial','trial-balance'],['balances','account-balances'],['chart','sec-chart-accounts']],subusers:[['home','sub-users-workspace']],settings:[['home','settings-users']]};
 const firstModulePage=m=>modulePages[m]?.find(([,target])=>A.allowed(target))?.[0];
@@ -78,11 +80,13 @@ function refresh(force=false){
  if(!A.profile()){draftOwner1427='';document.querySelectorAll('main.screen').forEach(n=>n.replaceChildren());return}
  if(!A.ready())return;
  if(draftOwner1427!==A.profile().id||phoneSession14225!==A.session()){ensurePhoneOwner1427();navigate(S.module,S.page,false);return}
+ const visible=document.querySelector('main.screen:not(.hidden)');
+ if(!visible?.childElementCount){initializePhone1425();return}
  if(busy||(!force&&S.page==='post')||(!force&&S.journalForm))return;
  const signature=snapshot();if(force||signature!==last){last=signature;render()}
 }
 window.phoneRefresh132=()=>refresh();
-function pageAllowed1441(){if(S.module==='settings')return S.page==='profile'||A.allowed('settings-users');if(S.module==='dashboard')return A.allowed('dashboard');if(S.module==='subusers')return A.allowed('sub-users-workspace')&&(!S.user||A.users().some(u=>String(u.id)===String(S.user)));const target=S.module==='accounts'?({home:'sec-general-ledger',ledger:'sec-general-ledger',trial:'trial-balance',balances:'account-balances',chart:'sec-chart-accounts',sub:'sec-sub-accounts'}[S.page]):S.module==='transactions'?({home:'journal',journal:'journal',audit:'transactions-voided',post:'journal',entries:'transactions-all',history:'transactions-all',upcoming:'transactions-recurring',review:'user-entry-review',closing:'period-review'}[S.page]):null;return !!target&&A.allowed(target)}
+function pageAllowed1441(){const pages={settings:['home','users','access','profile'],dashboard:['home','finance','people','operation','compliance','documents'],subusers:['home','accounts','post','entries','totals'],accounts:['ledger','trial','balances','chart'],transactions:['journal','history','review','upcoming','closing','audit']};if(!pages[S.module]?.includes(S.page))return false;if(S.module==='settings')return S.page==='profile'||A.allowed('settings-users');if(S.module==='dashboard')return A.allowed('dashboard');if(S.module==='subusers')return A.allowed('sub-users-workspace')&&(!S.user||A.users().some(u=>String(u.id)===String(S.user)));const target=S.module==='accounts'?({ledger:'sec-general-ledger',trial:'trial-balance',balances:'account-balances',chart:'sec-chart-accounts'}[S.page]):S.module==='transactions'?({journal:'journal',audit:'transactions-voided',history:'transactions-all',upcoming:'transactions-recurring',review:'user-entry-review',closing:'period-review'}[S.page]):null;return !!target&&A.allowed(target)}
 function render(){if(!A.profile()||!ensurePhoneOwner1427())return;nav();actions=[];const open=[...document.querySelectorAll('details[open][data-key]')].map(n=>n.dataset.key);let id=S.module==='settings'?'settings-'+S.page:S.module==='dashboard'?'dash-'+S.page:S.module==='transactions'?'tx-'+S.page:S.module==='accounts'?'acc-'+S.page:!S.user?'workspace-home':S.page;const root=$(id);if(!root)return;document.querySelectorAll('main.screen').forEach(n=>n.classList.toggle('hidden',n!==root));root.innerHTML=!pageAllowed1441()?empty('This area is not included in your permissions.'):S.module==='settings'?settings():S.module==='dashboard'?dashboard():S.module==='accounts'?accounts():S.module==='transactions'?transactions():subusers();root.querySelectorAll('[data-key]').forEach(n=>{if(open.includes(n.dataset.key))n.open=true});bindInputs();last=snapshot();persistPhoneDraft1427();}
 
 function settings(){const me=A.profile(),admin=A.allowed('settings-users','edit'),users=A.settingsUsers();
