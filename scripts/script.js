@@ -2874,9 +2874,10 @@ async function hydrateSupabaseSession(session) {
     await loadLiveProfile(session.user);checkSession();
     await loadCurrentPermissions();checkSession();
     if(typeof restoreStartup88==='function')restoreStartup88();
-    const referenceReady=loadReferenceDataFromSupabase();
-    await Promise.all([referenceReady.then(()=>loadJournalFromSupabase()),loadBusinessSettingsFromSupabase(),loadSubmissionsFromSupabase(),loadProfilesFromSupabase(),loadLegalDocumentsFromSupabase()]);
-    checkSession();applyLiveRoleAccess();
+    checkSession();applyLiveRoleAccess();window.releaseLogin1443?.();
+    if(window.startupData1443)await startupData1443(checkSession);
+    else {const referenceReady=loadReferenceDataFromSupabase();await Promise.all([referenceReady.then(()=>loadJournalFromSupabase()),loadBusinessSettingsFromSupabase(),loadSubmissionsFromSupabase(),loadProfilesFromSupabase(),loadLegalDocumentsFromSupabase()]);}
+    checkSession();
     // Session location is restored once by interface-v69.js.
     freshLoginRequested=false;
   } catch(error) { liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=document.getElementById('loginError');if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }

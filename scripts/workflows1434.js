@@ -7,11 +7,46 @@ window.printPreferences1434={
 };
 // Measure the actual time since interaction; activity within an editor iframe counts.
 const session=SessionTimeoutManager;
-session.reset=function(){this.lastActivity=Date.now();this.hideWarning();if(Date.now()-this.lastArmed>1000)this.arm()};
-session.arm=function(){clearTimeout(this.logoutTimer);clearTimeout(this.warningTimer);if(!liveProfile)return;this.lastArmed=Date.now();const remaining=Math.max(0,this.minutes()*60000-(Date.now()-this.lastActivity)),warning=Math.min(this.minutes()-1,Math.max(1,Number(ApplicationSettings.system?.sessionWarning)||1))*60000;this.logoutTimer=setTimeout(()=>this.check1434(),remaining);if(remaining>warning)this.warningTimer=setTimeout(()=>this.warn(Math.ceil(warning/60000)),remaining-warning);else if(remaining>0)this.warn(Math.max(1,Math.ceil(remaining/60000)))};
-session.check1434=function(){if(!liveProfile)return;if(Date.now()-this.lastActivity>=this.minutes()*60000)return this.logout();this.arm()};
-window.startSessionTimeoutManager=()=>{session.lastActivity=Date.now();session.hideWarning();session.arm()};
-const logout=session.logout.bind(session);session.logout=async function(){if(Date.now()-this.lastActivity<this.minutes()*60000){this.arm();return}try{await window.documentWorkspace105?.flush()}catch{}return logout()};
+// Persist interaction separately from navigation so iframe activity survives mobile suspension.
+let activityWrite1443=0;
+function persistActivity1443(force=false){
+ if(!liveProfile||(!force&&Date.now()-activityWrite1443<1000))return;
+ activityWrite1443=Date.now();
+ try{const key=locationKey69(),saved=readLocation69()||{};localStorage.setItem(key,JSON.stringify({...saved,lastActivity:session.lastActivity}));}catch{}
+}
+function syncActivity1443(){const saved=readLocation69();const value=Number(saved?.lastActivity);if(value>session.lastActivity&&value<=Date.now())session.lastActivity=value;}
+session.reset=function(){
+ if(!liveProfile||Location69.hydrating)return;
+ syncActivity1443();
+ if(Date.now()-this.lastActivity>=this.minutes()*60000){this.check1434();return;}
+ this.lastActivity=Date.now();this.hideWarning();persistActivity1443();if(Date.now()-this.lastArmed>1000)this.arm();
+};
+session.arm=function(){
+ clearTimeout(this.logoutTimer);clearTimeout(this.warningTimer);if(!liveProfile||Location69.hydrating)return;
+ syncActivity1443();this.lastArmed=Date.now();
+ const remaining=Math.max(0,this.minutes()*60000-(Date.now()-this.lastActivity)),warning=Math.min(this.minutes()-1,Math.max(1,Number(ApplicationSettings.system?.sessionWarning)||1))*60000;
+ this.logoutTimer=setTimeout(()=>this.check1434(),remaining);
+ if(remaining>warning)this.warningTimer=setTimeout(()=>this.warn(Math.ceil(warning/60000)),remaining-warning);
+ else if(remaining>0)this.warn(Math.max(1,Math.ceil(remaining/60000)));
+};
+session.check1434=async function(){
+ if(!liveProfile||Location69.hydrating)return;syncActivity1443();
+ if(Date.now()-this.lastActivity>=this.minutes()*60000){
+  if(this.policyCheck1443)return this.policyCheck1443;const actor=liveProfile.id;
+  this.policyCheck1443=(async()=>{try{await window.loadSessionPolicy1443?.(actor)}catch{}if(liveProfile?.id!==actor)return;syncActivity1443();if(Date.now()-this.lastActivity>=this.minutes()*60000)return this.logout();this.arm()})();
+  try{return await this.policyCheck1443}finally{this.policyCheck1443=null}
+ }this.arm();
+};
+window.startSessionTimeoutManager=()=>{session.hideWarning();session.arm()};
+const logout=session.logout.bind(session);session.logout=async function(){
+ if(Location69.hydrating)return;syncActivity1443();
+ if(Date.now()-this.lastActivity<this.minutes()*60000){this.arm();return}
+ if(this.expiring1443)return;this.expiring1443=true;
+ try{try{await window.documentWorkspace105?.flush()}catch{}return await logout()}finally{this.expiring1443=false}
+};
+window.addEventListener('pagehide',()=>persistActivity1443(true));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)persistActivity1443(true);else session.check1434()});
+window.addEventListener('storage',event=>{if(event.key===locationKey69()||event.key===APP_SETTINGS_KEY){if(event.key===APP_SETTINGS_KEY)ApplicationSettings=loadApplicationSettings();session.check1434()}});
 const boundDocs=new WeakSet();function bindActivity(doc){if(!doc||boundDocs.has(doc))return;boundDocs.add(doc);for(const type of ['pointerdown','pointermove','keydown','input','wheel','scroll','touchstart'])doc.addEventListener(type,()=>{if(liveProfile)session.reset()},{capture:true,passive:true})}
 window.bindSessionActivity1434=bindActivity;bindActivity(document);
 function frames(){for(const frame of document.querySelectorAll('iframe')){try{bindActivity(frame.contentDocument)}catch{}if(!frame.dataset.activity1434){frame.dataset.activity1434='1';frame.addEventListener('load',()=>{try{bindActivity(frame.contentDocument)}catch{}})}}}

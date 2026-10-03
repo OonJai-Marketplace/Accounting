@@ -3,7 +3,7 @@ const Location69={hydrating:false,ready:false,view:'dashboard',lastWrite:0,userN
 function locationKey69(id=liveProfile?.id){return `ojm_location_69_${id||'local'}`}
 function readLocation69(id){try{return JSON.parse(localStorage.getItem(locationKey69(id))||'null')}catch{return null}}
 function sessionDuration88(){return Math.max(5,Math.min(480,Number(ApplicationSettings.system?.sessionTimeout)||30))*60000}
-function saveLocation69(){if(!Location69.ready||!liveProfile)return;const old=readLocation69();localStorage.setItem(locationKey69(),JSON.stringify({view:Location69.view,scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}
+function saveLocation69(){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:Location69.view,scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
 function recentLocation69(record,now=Date.now()){return !!record&&now-record.lastActivity>=0&&now-record.lastActivity<sessionDuration88()}
 const hydrateBefore69=hydrateSupabaseSession;
 let hydration69=null,hydratedUser69='',startup88=null;
@@ -19,13 +19,15 @@ function restoreStartup88(){
 hydrateSupabaseSession=async function(session){
  if(hydration69)return hydration69;
  if(hydratedUser69===session?.user?.id&&document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;
+ ApplicationSettings=loadApplicationSettings();
+ if(window.loadSessionPolicy1443)await loadSessionPolicy1443(session?.user?.id);
  const saved=readLocation69(session?.user?.id),fresh=freshLoginRequested;
  if(!fresh&&saved&&!recentLocation69(saved)){await logoutDemoUser();showLoginForm('Session expired. Please sign in again.');return;}
- startup88={saved,restore:!fresh&&recentLocation69(saved)};Location69.hydrating=true;Location69.userNavigated=false;
- SessionTimeoutManager.lastActivity=startup88.restore?saved.lastActivity:Date.now();
+ startup88={saved,restore:!!saved&&recentLocation69(saved)};Location69.hydrating=true;Location69.userNavigated=false;
+ SessionTimeoutManager.lastActivity=!fresh&&startup88.restore?saved.lastActivity:Date.now();
  hydration69=(async()=>{try{await hydrateBefore69(session);if(!liveProfile||liveProfile.id!==session?.user?.id||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;hydratedUser69=liveProfile.id;Location69.ready=true;saveLocation69();
  requestAnimationFrame(()=>requestAnimationFrame(()=>showRecurringWarningsOnLogin()));
- }finally{Location69.hydrating=false;startup88=null;hydration69=null}})();return hydration69;
+ }finally{Location69.hydrating=false;startup88=null;hydration69=null;SessionTimeoutManager.arm()}})();return hydration69;
 };
 const logoutBefore69=logoutDemoUser;
 logoutDemoUser=async function(){const id=liveProfile?.id;hydratedUser69='';Location69.ready=false;Location69.hydrating=false;startup88=null;clearTimeout(SessionTimeoutManager.logoutTimer);clearTimeout(SessionTimeoutManager.warningTimer);if(id)localStorage.removeItem(locationKey69(id));return logoutBefore69()};

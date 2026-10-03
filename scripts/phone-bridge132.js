@@ -10,7 +10,7 @@ function nativeTarget(n){return n?.closest('[id^=sec-]')?.id||n?.closest('.tab-c
 function nativeAllowed(n){const target=nativeTarget(n),action=window.access113?.actionFor(n)||'view';return !!target&&allowed(target,action)}
 function put(id,value){const n=$(id);if(!n)throw Error('The entry form is unavailable.');n.value=value??'';n.dispatchEvent(new Event('input',{bubbles:true}));return n}
 const api=window.PhoneApp132={
- profile,users,allowed,
+ profile,users,allowed,documents:()=>run('document-editor105','view',()=>openDocumentEditor105()),reportHistory:id=>reportHistory1443.open(id),
  settingsUsers:()=>allowed('settings-users')?liveProfiles||[]:[],
  editUser:(id='',section)=>run('settings-users','edit',()=>{switchTab('settings-users');openUserAccessEditor(id);window.compactUserSettings133?.();if(section)openAccessPicker(section==='accounts'?'Account Assignment':'Module Access',section==='accounts'?'userAccountAssignmentPanel':'userModuleAccessPanel');}),
  resetOwnPassword:async()=>{const me=profile();if(!me?.email)throw Error('Your account email is unavailable.');const {error}=await ojmDb.auth.resetPasswordForEmail(me.email,{redirectTo:passwordRecoveryRedirectUrl()});if(error)throw error;showCenterStatus('Password-reset email requested. Check your inbox.');},
@@ -24,7 +24,7 @@ const api=window.PhoneApp132={
  navigate:(target)=>{if(!allowed(target))return false;if(target.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target);return true},
  saveStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{window.phoneResetStaff132?.();selectUser(id,'post');put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',[data.memo,data.reference].filter(Boolean).join(' — '));v49ValidatePost();return v49SavePost(id)}),
  editStaff:(id,line)=>run('sub-users-workspace','edit',()=>{selectUser(id,'entries');v49EditEntry(id,line);const val=n=>$(n)?.value;return {date:val('v49Date'),direction:val('v49Direction'),fund:val('v49Fund'),account:val('v49Account'),amount:val('v49Amount'),memo:val('v49Description')}}),
- saveEditedStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',data.memo);v49ValidatePost();return v49SavePost(id)}),
+ saveEditedStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',[data.memo,data.reference].filter(Boolean).join(' — '));v49ValidatePost();return v49SavePost(id)}),
  deleteStaff:(id,line)=>run('sub-users-workspace','void',()=>{if(!allowed('sub-users-workspace','edit')||!user(id))return false;return voidWorkspaceSingleRow(id,line)}),
  submit:id=>run('sub-users-workspace','edit',()=>{selectUser(id,'entries');return submitWorkspaceForReview(id)}),
  staffHistory:(id,mode)=>{selectUser(id,'entries');openWorkspaceReview(id,mode)},
@@ -56,12 +56,12 @@ const api=window.PhoneApp132={
  schedule:id=>run('transactions-recurring','edit',()=>openScheduledEditor91(id||'')),
  nativeCards:(selector)=>[...document.querySelectorAll(selector)].map((n,i)=>({node:n,index:i})).filter(x=>allowed(nativeTarget(x.node))).map(({node:n,index:i})=>({index:i,text:n.textContent.trim(),title:n.querySelector('summary')?.textContent.trim()||n.textContent.trim(),actions:[...n.querySelectorAll('button')].map((b,j)=>({index:j,label:b.textContent.trim()||b.title,disabled:b.disabled||b.hidden||!nativeAllowed(b)}))})),
  nativeAction:(selector,i,j)=>{const b=document.querySelectorAll(selector)[i]?.querySelectorAll('button')[j];if(b&&!b.disabled&&!b.hidden&&nativeAllowed(b))b.click()},
- printStaff:id=>run('document-editor105','export',()=>savedReports1434.choose(id)),
- printSavedReport:id=>run('document-editor105','export',()=>savedReports1434.print(id)),
+ printStaff:id=>run('document-editor105','export',()=>reportHistory1443.open(id)),
+ printSavedReport:id=>run('document-editor105','export',()=>reportHistory1443.has(id)?reportHistory1443.print(id):savedReports1434.print(id)),
  logout:()=>logoutDemoUser(),
  refresh:async()=>{if(!profile())return;await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.14';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.23';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
