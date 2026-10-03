@@ -9,10 +9,14 @@ const hydrateBefore69=hydrateSupabaseSession;
 let hydration69=null,hydratedUser69='',startup88=null;
 function restoreStartup88(){
  if(!startup88||Location69.userNavigated)return;
- const saved=startup88.saved,restore=startup88.restore;
+ const personal=liveProfile?.role!=='admin'&&canAccessAppTarget('sub-users-workspace');
+ const saved=startup88.saved,restore=startup88.restore&&!(startup88.fresh&&personal);
  if(restore&&Array.isArray(saved.openTabs)){openSubUserTabs=saved.openTabs;activeSubUserId=saved.activeSubUserId;}
- const target=restore&&document.getElementById(saved.view)&&canAccessAppTarget(saved.view)?saved.view:(canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
+ window.phoneLanding14225={id:liveProfile?.id,fresh:!!startup88.fresh};
+ const target=restore&&document.getElementById(saved.view)&&canAccessAppTarget(saved.view)?saved.view:(personal?'sub-users-workspace':canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
+ if(personal&&!restore){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:!livePermission?.can_approve}];activeSubUserId='self';window.v49SetView?.(liveProfile.id,'home');}
  if(target?.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target||'dashboard');Location69.view=target;
+ if(personal&&!restore)window.personalJournal1437?.show(String(liveProfile.id),'home');
  Location69.ready=true;
  requestAnimationFrame(()=>{if(!Location69.userNavigated&&restore&&appWorkspaceScroller())appWorkspaceScroller().scrollTop=saved.scroll||0});
 }
@@ -23,7 +27,7 @@ hydrateSupabaseSession=async function(session){
  if(window.loadSessionPolicy1443)await loadSessionPolicy1443(session?.user?.id);
  const saved=readLocation69(session?.user?.id),fresh=freshLoginRequested;
  if(!fresh&&saved&&!recentLocation69(saved)){await logoutDemoUser();showLoginForm('Session expired. Please sign in again.');return;}
- startup88={saved,restore:!!saved&&recentLocation69(saved)};Location69.hydrating=true;Location69.userNavigated=false;
+ startup88={saved,fresh,restore:!!saved&&recentLocation69(saved)};Location69.hydrating=true;Location69.userNavigated=false;
  SessionTimeoutManager.lastActivity=!fresh&&startup88.restore?saved.lastActivity:Date.now();
  hydration69=(async()=>{try{await hydrateBefore69(session);if(!liveProfile||liveProfile.id!==session?.user?.id||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;hydratedUser69=liveProfile.id;Location69.ready=true;saveLocation69();
  requestAnimationFrame(()=>requestAnimationFrame(()=>showRecurringWarningsOnLogin()));
