@@ -488,7 +488,7 @@
   };
 
   function makeLoadingMarkup() {
-    return `<span class="login-loader97" role="status" aria-label="Signing in and loading the workspace"><span class="loader-stage97"><i class="loader-ball97"></i><span class="loader-orbit97"><i></i><i></i><i></i><i></i><i></i></span><span class="loader-pulse-spinner97"><i class="loader-pulse97"></i></span></span><span class="loader-copy97">Signing in and preparing your workspace…</span></span>`;
+    return '<span class="login-loader97" role="status" aria-label="Signing in and loading the workspace">'+loading1444.markup()+'</span>';
   }
   let pulseTimer97 = null;
   function randomizePulse97() {

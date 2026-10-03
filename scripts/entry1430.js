@@ -39,7 +39,7 @@ function add(row={}){
  '<label>Direction<select class="je-select" data-simple="direction"><option value="out">Money Out</option><option value="in">Money In</option></select></label>'+
  '<label>Source / payment account<select class="je-select" name="sourceAccount1430" data-simple="source" aria-label="Source / payment account">'+options(row.source,'source',row.direction||'out')+'</select></label>'+
  '<label>Affected / category account<select class="je-select" name="affectedAccount1430" data-simple="affected" aria-label="Affected / category account">'+options(row.affected,'affected',row.direction||'out',row.source)+'</select></label>'+
- '<label>Amount <small data-currency1430></small><input class="je-input num" inputmode="decimal" data-simple="amount" value="'+esc(row.amount||'')+'" placeholder="0.00"></label>'+
+ '<label>Amount<span class="simple-amount1444"><small data-currency1430></small><input class="je-input num" inputmode="decimal" data-simple="amount" value="'+esc(row.amount||'')+'" placeholder="0.00"></span></label>'+
  '<label>Line memo / reference<input class="je-input" data-simple="memo" value="'+esc(row.memo||'')+'" placeholder="Uses the general memo"></label>'+
  '<button type="button" class="je-btn je-btn-secondary" data-remove1430 data-permission-action1440="edit" aria-label="Remove single-entry row">×</button>';
  n.querySelector('[data-simple=direction]').value=row.direction||'out';
@@ -53,7 +53,7 @@ function sync(){
  const errors=[],rows=read(),body=$('jeLinesBody');body.replaceChildren();
  rows.forEach((row,i)=>{
   const source=account(row.source),affected=account(row.affected),value=amount(row.amount),used=(window.personalJournal1437?.active?'':row.source)||row.affected||row.amount||row.memo;
-  $('simpleRows1430').children[i].querySelector('[data-currency1430]').textContent=source?.currency||affected?.currency||'';
+  $('simpleRows1430').children[i].querySelector('[data-currency1430]').textContent=currencySymbolV6(source?.currency||affected?.currency||'');
   if(!used)return;
   if(!source||!affected)errors.push('Row '+(i+1)+': choose both accounts.');
   if(source&&affected&&source.id===affected.id)errors.push('Row '+(i+1)+': choose two different accounts.');
@@ -105,16 +105,14 @@ function display(){
 }
 function signature(){return JSON.stringify([...$('jeLinesBody').rows].map(r=>[...r.querySelectorAll('input')].map(n=>n.value)));}
 function setMode(next){
- if(next===mode)return;
- if(next==='single'){
-  if(!window.personalJournal1437?.active&&(JournalModule.editingEntryId||pendingWorkspacePostOwnerId||pendingWorkspacePostJournalId||PeriodReview.pendingAdjustment||$('payrollPostBanner1429')||$('jeGeneralMemo').value.includes('[Payroll:'))){
-   $('jeEntryMode1430').value=mode;showAppNotification('Keep Double Entry','Review this prepared or existing journal in Double Entry.',false);return;
-  }
-  const converted=lastSingle?.signature===signature()?lastSingle.rows:pairs();if(converted===null){$('jeEntryMode1430').value=mode;showAppNotification('Keep Double Entry','This draft has lines that cannot be represented by simple account pairs. Finish or reset it before using Single Entry.',false);return;}
-  $('simpleRows1430').replaceChildren();(converted.length?converted:[{}]).forEach(add);
- }
- if(mode==='single'&&next==='double')lastSingle={rows:read(),signature:signature()};
- mode=next;display();if(mode==='single')sync();saveDraft();
+ if(next===mode||!['single','double'].includes(next))return;
+ const pending=!!($('jeGeneralMemo').value.trim()||JournalModule.editingEntryId||pendingWorkspacePostOwnerId||pendingWorkspacePostJournalId||PeriodReview.pendingAdjustment||$('payrollPostBanner1429'));
+ const typed=mode==='single'?read().some(r=>r.affected||r.amount||r.memo||(!window.personalJournal1437?.active&&r.source)||r.direction==='in'):[...$('jeLinesBody').querySelectorAll('.je-line-acc,.je-line-memo,.je-line-dr,.je-line-cr')].some(n=>n.value.trim()&&!['0','0.00'].includes(n.value));
+ const draft=[...$('journalEntry98').querySelectorAll('.account-search1428')].some(n=>n.dataset.pickerDraft1444==='true');
+ const dated=$('jeMultipleDates').checked&&[...(mode==='single'?$('simpleRows1430'):$('jeLinesBody')).querySelectorAll('input[type=date]')].some(n=>n.value&&n.value!==$('jeTransDate').value);
+ if(pending||typed||draft||dated){$('jeEntryMode1430').value=mode;showAppNotification('Finish or reset entry','Post this entry or use Reset before switching entry type.',false);return;}
+ if(next==='single'){$('simpleRows1430').replaceChildren();add();}
+ lastSingle=null;mode=next;display();if(mode==='single')sync();saveDraft();
 }
 function refreshAccounts(){for(const n of $('simpleRows1430').querySelectorAll('select[data-simple=source],select[data-simple=affected]')){const selected=n.value,r=n.closest('.simple-row1430');n.innerHTML=options(selected,n.dataset.simple,r.querySelector('[data-simple=direction]').value,r.querySelector('[data-simple=source]').value);}if(mode==='single')sync();}
 function ready(){
@@ -127,7 +125,7 @@ function ready(){
  for(const type of ['input','change'])panel.addEventListener(type,()=>{sync();saveDraft();});
  for(const id of ['jeTransDate','jeMultipleDates'])$(id).addEventListener('change',sync);
  const calc=window.calculateJournalBalance;window.calculateJournalBalance=function(...args){const result=calc.apply(this,args),error=mode==='single'&&panel.dataset.error;if(error){$('btnPostJournal').disabled=true;const b=$('jeBalanceIndicator');b.textContent=error;b.title=error;b.className='je-status-badge unbalanced';}return result;};
- const post=window.submitJournalEntry;window.submitJournalEntry=async function(...args){if(mode==='single'){sync();if(panel.dataset.error){showAppNotification('Check Entry',panel.dataset.error,true);return;}}return post.apply(this,args);};
+ const post=window.submitJournalEntry;window.submitJournalEntry=async function(...args){const invalid=card.querySelector('.account-search1428:invalid');if(invalid){invalid.focus();invalid.reportValidity();return;}if(mode==='single'){sync();if(panel.dataset.error){showAppNotification('Check Entry',panel.dataset.error,true);return;}}return post.apply(this,args);};
  card.addEventListener('click',e=>{if(mode==='single'&&e.target.closest('[onclick="addJournalLineRow()"]')){e.preventDefault();e.stopImmediatePropagation();add();sync();saveDraft();}},true);
  const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){lastSingle=null;const result=reset.apply(this,args);$('simpleRows1430').replaceChildren();add();panel.dataset.error='';if(mode==='single')sync();display();return result;};
  const addLine=window.addJournalLineRow;window.addJournalLineRow=function(...args){if(mode==='single'&&!building&&args[0]){mode='double';display();}return addLine.apply(this,args);};

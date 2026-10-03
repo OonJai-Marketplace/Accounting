@@ -13,7 +13,7 @@ function clean(){document.querySelectorAll('.modal-backdrop.active,.submission-c
  if(typeof Work82!=='undefined')Object.assign(Work82,{owner:null,loaded:false,loading:false,error:'',employees:[],leaves:[],runs:[],reports:[],run:null,runRecord:null,employee:null,report:null,reportRecord:null});
 }
 function apply(){document.querySelectorAll('.tab-content').forEach(n=>{if(ctx.target&&!canAccessAppTarget(n.id))n.dataset.restrictedHidden138='';else delete n.dataset.restrictedHidden138;});applyLiveRoleAccess();applyPermissionAccess();access113.enforce();workflow136.decorate();badge();updateHeaderProfile104?.();}
-function transition(name){const old=$('workspaceSwitchBusy141');old?.remove();if(!name)return;const box=document.createElement('div');box.id='workspaceSwitchBusy141';box.setAttribute('role','status');box.textContent='Opening '+name+'’s account…';document.body.append(box);}
+function transition(name){const old=$('workspaceSwitchBusy141');old?.remove();if(!name)return;const box=document.createElement('div');box.id='workspaceSwitchBusy141';box.setAttribute('role','status');box.innerHTML=loading1444.markup();box.setAttribute('aria-label','Opening '+name+'’s account');document.body.append(box);}
 function reportSwitchError(message){showCenterStatus(message,true);const panel=$('switchWorkspace136');if(panel){let error=panel.querySelector('[data-switch-error141]');if(!error){error=document.createElement('p');error.dataset.switchError141='';error.setAttribute('role','alert');panel.append(error)}error.textContent=message}}
 async function enter(id){
  if(switching)return;const actor=saved?.profile||liveProfile;if(actor?.role!=='admin')return;

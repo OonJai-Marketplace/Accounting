@@ -68,7 +68,7 @@ window.addEventListener('DOMContentLoaded',()=>{
  installTablet();polish();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
  installPosting();
 });
-function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let p=$('loginProgress99');if(!p){p=document.createElement('div');p.id='loginProgress99';p.setAttribute('role','status');p.innerHTML='<div class="login-motion99 orbital-marbles100" aria-hidden="true">'+Array.from({length:6},(_,i)=>`<i style="--i:${i}"><b></b></i>`).join('')+'</div><span>Preparing your workspace…</span>';$('loginForm').append(p)}p.hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('button[type=submit]').disabled=true;}
+function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let p=$('loginProgress99');if(!p){p=document.createElement('div');p.id='loginProgress99';p.setAttribute('role','status');p.innerHTML=loading1444.markup()+'<span class="loading-status1444">Preparing your workspace…</span>';$('loginForm').append(p)}p.hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('button[type=submit]').disabled=true;}
 window.releaseLogin1443=()=>endLogin();
 function endLogin(){$('loginGate')?.classList.remove('busy99');if($('loginProgress99'))$('loginProgress99').hidden=true;$('loginForm')?.removeAttribute('aria-busy');const b=$('loginForm')?.querySelector('button[type=submit]');if(b)b.disabled=false;}
 function installTablet(){

@@ -2905,7 +2905,7 @@ function startSessionLoad1430(session){
 
 async function initializeSupabaseApp() {
   const errorBox=document.getElementById('loginError');
-  if(!window.supabase||!window.OJM_SUPABASE_URL||!window.OJM_SUPABASE_ANON_KEY){if(errorBox)errorBox.textContent='Supabase configuration could not be loaded.';return}
+  if(!window.supabase||!window.OJM_SUPABASE_URL||!window.OJM_SUPABASE_ANON_KEY){if(errorBox)errorBox.textContent='Supabase configuration could not be loaded.';document.documentElement.classList.remove('session-checking1444');return}
   ojmDb=window.supabase.createClient(window.OJM_SUPABASE_URL,window.OJM_SUPABASE_ANON_KEY,{global:{fetch:(...args)=>window.fetch(...args)}});
   const query105=new URLSearchParams(location.search),hash105=new URLSearchParams(location.hash.slice(1));
   const recoveryHint=query105.has('password-recovery')||query105.get('type')==='recovery'||hash105.get('type')==='recovery'||query105.has('error_description')||hash105.has('error_description');passwordRecoveryMode=recoveryHint;
@@ -2932,7 +2932,7 @@ async function initializeSupabaseApp() {
   }catch(error){
    if(recoveryHint||passwordRecoveryMode){showPasswordRecoveryForm(error.message||'The recovery link could not be verified. Request a new email.');const button=document.querySelector('#passwordRecoveryForm [type=submit]');if(button)button.disabled=true}
    else if(errorBox)errorBox.textContent=error.message||'Unable to connect. Please reload.';
-  }
+  }finally{document.documentElement.classList.remove('session-checking1444')}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initializeSupabaseApp,{once:true});else initializeSupabaseApp();
 // ==============================================================================
