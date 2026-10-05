@@ -5252,7 +5252,7 @@ function restoreStartup88(){
  const saved=startup88.saved,restore=startup88.restore&&!(startup88.fresh&&personal);
  if(restore&&Array.isArray(saved.openTabs)){openSubUserTabs=saved.openTabs;activeSubUserId=saved.activeSubUserId;}
  window.phoneLanding14225={id:liveProfile?.id,fresh:!!startup88.fresh};
- const target=restore&&document.getElementById(saved.view)&&canAccessAppTarget(saved.view)?saved.view:(personal?'sub-users-workspace':canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
+ const target=document.documentElement.dataset.device132==='phone'?(personal?'sub-users-workspace':'sub-users-home14229'):restore&&document.getElementById(saved.view)&&canAccessAppTarget(saved.view)?saved.view:(personal?'sub-users-workspace':canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
  if(personal&&!restore){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:!livePermission?.can_approve}];activeSubUserId='self';window.v49SetView?.(liveProfile.id,'home');}
  if(target?.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target||'dashboard');Location69.view=target;
  if(personal&&!restore)window.personalJournal1437?.show(String(liveProfile.id),'home');

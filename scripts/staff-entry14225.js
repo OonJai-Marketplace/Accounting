@@ -18,13 +18,13 @@
       return a;
     };
     const items = [], rows = [], single = [];
-    const add = (direction, fund, affected, value, description) => {
+    const add = (direction, fund, affected, value, description, date = data.date, reference = data.reference || '') => {
       if (!rules.directions.includes(direction)) throw Error(direction === 'in' ? 'Money In is not enabled for this user.' : 'Money Out is not enabled for this user.');
       if (!rules.fundIds.includes(fund)) throw Error('Choose an assigned fund account.');
       if (direction === 'out' ? !rules.entryIds.includes(affected) : affected !== rules.counterpart) throw Error('Choose an account enabled for this direction in Settings.');
       if (fund === affected) throw Error('The fund and affected account must be different.');
       if (account(fund).currency !== account(affected).currency) throw Error('Currency mismatch: the fund and affected account must use the same currency.');
-      items.push({direction, fund, account: direction === 'in' ? fund : affected, amount: value, date: data.date, memo: description || memo, reference: data.reference || '', kind: direction === 'in' ? 'collection' : 'payment'});
+      items.push({direction, fund, account: direction === 'in' ? fund : affected, amount: value, date, memo: description || memo, reference, kind: direction === 'in' ? 'collection' : 'payment'});
     };
     if (data.mode === 'double') {
       const groups = new Map();
@@ -57,12 +57,15 @@
         const amount = number(l.amount);
         if (!l.source && !l.affected && !amount && !l.memo) continue;
         if (!(amount > 0)) throw Error('Enter a positive amount on each entry line.');
-        add(l.direction, l.source, l.affected, amount, l.memo);
-        single.push({...l, amount: String(amount), date: data.date});
+        const date=l.date||data.date, description=l.description===undefined?memo:String(l.description).trim();
+        if (!description) throw Error('Add the General Description for each entry.');
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z'))||new Date(date+'T00:00:00Z').toISOString().slice(0,10)!==date) throw Error('Choose a valid date for each entry.');
+        add(l.direction, l.source, l.affected, amount, [description,l.memo].filter(Boolean).join(' — '),date,l.reference||data.reference||'');
+        single.push({...l, amount: String(amount), date, description});
       }
     }
     if (!items.length) throw Error('Enter at least one complete transaction.');
-    return {items, snapshot: {mode: data.mode === 'double' ? 'double' : 'single', date: data.date, memo, reference: data.reference || '', multiple: false, rows, single, owner: '', journal: '', local: false, editIds: data.editIds || [], requestKey: data.requestKey, components1437: items}};
+    return {items, snapshot: {mode: data.mode === 'double' ? 'double' : 'single', date: data.date, memo, reference: data.reference || '', multiple: data.mode!=='double'&&new Set(single.map(l=>l.date)).size>1, rows, single, owner: '', journal: '', local: false, editIds: data.editIds || [], requestKey: data.requestKey, components1437: items}};
   }
   const api = {prepare};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

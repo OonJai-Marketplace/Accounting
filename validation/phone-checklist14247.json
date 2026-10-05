@@ -1,0 +1,78 @@
+[
+  {
+    "name": "Tab navigation stays available during an online save",
+    "passed": true
+  },
+  {
+    "name": "Late save confirmation preserves the tab selected by the user",
+    "passed": true
+  },
+  {
+    "name": "Confirmed save clears the saved draft and leaves the editor enabled",
+    "passed": true
+  },
+  {
+    "name": "Administrator phone navigation exposes only Sub-users and its settings",
+    "passed": true
+  },
+  {
+    "name": "Post Entry repeats the complete cluster and preserves distinct dates/descriptions",
+    "passed": true
+  },
+  {
+    "name": "Entries contains only unsubmitted entries and no date picker",
+    "passed": true
+  },
+  {
+    "name": "History contains submitted and posted reports in separate groups",
+    "passed": true
+  },
+  {
+    "name": "Phone pages fit 360, 390 and 430 pixels with no banners",
+    "passed": true
+  },
+  {
+    "name": "Large decimal amounts remain readable",
+    "passed": true
+  },
+  {
+    "name": "Source/category choices and currency markers respect assigned funds",
+    "passed": true
+  },
+  {
+    "name": "Single/Double switch retains a balanced entry and its memo",
+    "passed": true
+  },
+  {
+    "name": "Account picker is searchable and shows currency before account name",
+    "passed": true
+  },
+  {
+    "name": "Home has summary, Submit and Print Report",
+    "passed": true
+  },
+  {
+    "name": "Last valid phone location survives reload",
+    "passed": true
+  },
+  {
+    "name": "Phone Attention dialog is centered and separated into cards",
+    "passed": true
+  },
+  {
+    "name": "Phone notification is centered",
+    "passed": true
+  },
+  {
+    "name": "Desktop Attention dialog is centered",
+    "passed": true
+  },
+  {
+    "name": "Staff login hides user tabs and admin settings",
+    "passed": true
+  },
+  {
+    "name": "Staff document editor fits the phone and offers Print without Save",
+    "passed": true
+  }
+]

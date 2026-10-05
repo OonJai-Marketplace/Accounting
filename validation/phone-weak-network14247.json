@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Populated workspaces load their own balances without desktop mounting",
+    "passed": true
+  },
+  {
+    "name": "A stalled directory lookup does not trap navigation or override a later choice",
+    "passed": true
+  },
+  {
+    "name": "Failed refresh retains balances and worklist with an explicit stale-data notice",
+    "passed": true
+  },
+  {
+    "name": "Stalled new workspace times out; tabs remain usable; retry ignores the old response",
+    "passed": true
+  },
+  {
+    "name": "No uncaught errors",
+    "passed": true
+  }
+]

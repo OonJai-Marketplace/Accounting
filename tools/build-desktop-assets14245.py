@@ -13,7 +13,7 @@ if styles:
         global first
         if first:
             first=False
-            return '<link rel="stylesheet" href="styles/desktop14245.css?v=142.46">'
+            return '<link rel="stylesheet" href="styles/desktop14245.css?v=142.47">'
         return ''
     html=css.sub(style_tag,html)
 # Preserve configuration and third-party script boundaries. Only pack contiguous
@@ -28,16 +28,16 @@ def script_group(m):
     packed_sources.extend(paths)
     output='scripts/desktop14245-'+str(count)+'.js'
     (ROOT/output).write_text('\n;\n'.join('/* '+p+' */\n'+(ROOT/p).read_text() for p in paths)+'\n;\n')
-    return '<script src="'+output+'?v=142.46"></script>\n'
+    return '<script src="'+output+'?v=142.47"></script>\n'
 html=pat.sub(script_group,html)
-html=re.sub(r'(src|href)="((?:scripts/|styles/|assets/vendor/)[^"?]+)\?v=[^"]+"',r'\1="\2?v=142.46"',html)
-html=html.replace('Accounting — v142.42','Accounting — v142.46')
+html=re.sub(r'(src|href)="((?:scripts/|styles/|assets/vendor/)[^"?]+)\?v=[^"]+"',r'\1="\2?v=142.47"',html)
+html=html.replace('Accounting — v142.42','Accounting — v142.47')
 html='\n'.join(line.rstrip() for line in html.splitlines())+'\n'
 (ROOT/'desktop.html').write_text(html)
 manifest=ROOT/'offline-assets14239.js'
 assets=json.loads((ROOT/'tools/offline-source14245.json').read_text())
 removed=set(styles+packed_sources)
 assets=[p for p in assets if p not in removed and not p.startswith('assets/banners/') and p!='assets/dashboard/oonjai-bowl-hero112.png']
-assets+=['phone-accounting.html','styles/phone-accounting14246.css','assets/banners/transactions.webp','styles/desktop14245.css']+['scripts/desktop14245-'+str(i)+'.js' for i in range(1,count+1)]
+assets+=['styles/phone-approved14247.css','phone-accounting.html','styles/phone-accounting14246.css','assets/banners/transactions.webp','styles/desktop14245.css']+['scripts/desktop14245-'+str(i)+'.js' for i in range(1,count+1)]
 manifest.write_text('self.OJM_OFFLINE_ASSETS='+json.dumps(list(dict.fromkeys(assets)),separators=(',',':'))+';\n')
 print(json.dumps({'stylesheets_before':len(styles),'stylesheets_after':1,'script_groups':count,'scripts_packed':len(packed_sources)}))

@@ -190,13 +190,13 @@ window.loadTransactionAudit=async function(...args){await cleanResetCache();retu
       return a;
     };
     const items = [], rows = [], single = [];
-    const add = (direction, fund, affected, value, description) => {
+    const add = (direction, fund, affected, value, description, date = data.date, reference = data.reference || '') => {
       if (!rules.directions.includes(direction)) throw Error(direction === 'in' ? 'Money In is not enabled for this user.' : 'Money Out is not enabled for this user.');
       if (!rules.fundIds.includes(fund)) throw Error('Choose an assigned fund account.');
       if (direction === 'out' ? !rules.entryIds.includes(affected) : affected !== rules.counterpart) throw Error('Choose an account enabled for this direction in Settings.');
       if (fund === affected) throw Error('The fund and affected account must be different.');
       if (account(fund).currency !== account(affected).currency) throw Error('Currency mismatch: the fund and affected account must use the same currency.');
-      items.push({direction, fund, account: direction === 'in' ? fund : affected, amount: value, date: data.date, memo: description || memo, reference: data.reference || '', kind: direction === 'in' ? 'collection' : 'payment'});
+      items.push({direction, fund, account: direction === 'in' ? fund : affected, amount: value, date, memo: description || memo, reference, kind: direction === 'in' ? 'collection' : 'payment'});
     };
     if (data.mode === 'double') {
       const groups = new Map();
@@ -229,12 +229,15 @@ window.loadTransactionAudit=async function(...args){await cleanResetCache();retu
         const amount = number(l.amount);
         if (!l.source && !l.affected && !amount && !l.memo) continue;
         if (!(amount > 0)) throw Error('Enter a positive amount on each entry line.');
-        add(l.direction, l.source, l.affected, amount, l.memo);
-        single.push({...l, amount: String(amount), date: data.date});
+        const date=l.date||data.date, description=l.description===undefined?memo:String(l.description).trim();
+        if (!description) throw Error('Add the General Description for each entry.');
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z'))||new Date(date+'T00:00:00Z').toISOString().slice(0,10)!==date) throw Error('Choose a valid date for each entry.');
+        add(l.direction, l.source, l.affected, amount, [description,l.memo].filter(Boolean).join(' — '),date,l.reference||data.reference||'');
+        single.push({...l, amount: String(amount), date, description});
       }
     }
     if (!items.length) throw Error('Enter at least one complete transaction.');
-    return {items, snapshot: {mode: data.mode === 'double' ? 'double' : 'single', date: data.date, memo, reference: data.reference || '', multiple: false, rows, single, owner: '', journal: '', local: false, editIds: data.editIds || [], requestKey: data.requestKey, components1437: items}};
+    return {items, snapshot: {mode: data.mode === 'double' ? 'double' : 'single', date: data.date, memo, reference: data.reference || '', multiple: data.mode!=='double'&&new Set(single.map(l=>l.date)).size>1, rows, single, owner: '', journal: '', local: false, editIds: data.editIds || [], requestKey: data.requestKey, components1437: items}};
   }
   const api = {prepare};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
@@ -279,7 +282,7 @@ function staffEditorDraft(id,lineId){
  const actual=group.lines.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo}));
  const valid=saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(r=>r.date===first.transaction_date));
  const resolve=label=>AccountingStore.accounts.find(a=>a.code+' — '+a.name===label||String(a.id)===String(label))?.id||'';
- return {mode:valid?saved.mode:'single',date:first.transaction_date,memo:valid?saved.memo:first.memo,reference:valid?saved.reference||'':first.reference||'',requestKey:'phone-'+crypto.randomUUID(),editIds:group.lines.map(l=>l.id),
+ return {entryNo:first.workspace_entry_no||first.reference||'',mode:valid?saved.mode:'single',date:first.transaction_date,memo:valid?saved.memo:first.memo,reference:valid?saved.reference||'':first.reference||'',requestKey:'phone-'+crypto.randomUUID(),editIds:group.lines.map(l=>l.id),
   lines:valid?(saved.rows||[]).filter(r=>!saved.multiple||r.date===first.transaction_date).map(r=>({account:resolve(r.account),memo:r.memo||'',debit:r.dr||'',credit:Object.values(r.credits||{}).find(v=>Number(String(v).replaceAll(',',''))>0)||''})):[],
   single:valid&&saved.mode==='single'?(saved.single||[]).filter(r=>!saved.multiple||r.date===first.transaction_date):group.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'?rules.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
 }
@@ -343,7 +346,7 @@ const api=window.PhoneApp132={
  settingsUsers:()=>allowed('settings-users')?liveProfiles||[]:[],
  editUser:(id='',section)=>run('settings-users','edit',()=>{switchTab('settings-users');openUserAccessEditor(id);window.compactUserSettings133?.();if(section)openAccessPicker(section==='accounts'?'Account Assignment':'Module Access',section==='accounts'?'userAccountAssignmentPanel':'userModuleAccessPanel');}),
  resetOwnPassword:async()=>{const me=profile();if(!me?.email)throw Error('Your account email is unavailable.');const {error}=await ojmDb.auth.resetPasswordForEmail(me.email,{redirectTo:passwordRecoveryRedirectUrl()});if(error)throw error;showCenterStatus('Password-reset email requested. Check your inbox.');},
- accounts:()=>{const all=AccountingStore.accounts||[];if(['journal','transactions-all','sec-chart-accounts','sec-general-ledger','trial-balance','account-balances'].some(t=>allowed(t)))return all;if(!allowed('sub-users-workspace'))return [];const ids=new Set(users().flatMap(u=>{const r=workspaceRules(u);return [...r.fundIds,...r.entryIds,r.counterpart]}));return all.filter(a=>ids.has(a.id))},
+ accounts:()=>{const all=AccountingStore.accounts||[];if(!phone()&&['journal','transactions-all','sec-chart-accounts','sec-general-ledger','trial-balance','account-balances'].some(t=>allowed(t)))return all;if(!allowed('sub-users-workspace'))return [];const ids=new Set(users().flatMap(u=>{const r=workspaceRules(u);return [...r.fundIds,...r.entryIds,r.counterpart]}));return all.filter(a=>ids.has(a.id))},
  subAccounts:()=>{const permitted=new Set(api.accounts().map(a=>String(a.id||a.code)));return (AccountingStore.subAccounts||[]).filter(s=>permitted.has(String(s.parentId||AccountingStore.accounts.find(a=>a.code===s.parentCode)?.id||s.parentCode)))},
  accountName:id=>accountLabelOnly(id),
  rules:id=>{const u=user(id);return u?workspaceRules(u):null},
@@ -351,7 +354,7 @@ const api=window.PhoneApp132={
  reports:id=>{if(id&&(!allowed('sub-users-workspace')||!user(id)))return [];phoneIdentity14237();return (reviewStaffJournals||[]).filter(j=>id?String(j.owner_id)===String(id):allowed('user-entry-review'))},
  funds:id=>{phoneIdentity14237();return user(id)?phoneFunds14237.get(id):undefined;},
  openUser:selectUser,
- navigate:(target)=>{if(!allowed(target))return false;if(target.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target);return true},
+ navigate:(target)=>{if(phone()&&!['sub-users-workspace','sub-users-home14229','settings-users','document-editor105'].includes(target))return false;if(!allowed(target))return false;if(target.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target);return true},
  saveStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{window.phoneResetStaff132?.();selectUser(id,'post');put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',[data.memo,data.reference].filter(Boolean).join(' — '));v49ValidatePost();return v49SavePost(id)}),
  editStaff:(id,line)=>run('sub-users-workspace','edit',()=>{selectUser(id,'entries');v49EditEntry(id,line);const val=n=>$(n)?.value;return {date:val('v49Date'),direction:val('v49Direction'),fund:val('v49Fund'),account:val('v49Account'),amount:val('v49Amount'),memo:val('v49Description')}}),
  saveEditedStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',[data.memo,data.reference].filter(Boolean).join(' — '));v49ValidatePost();return v49SavePost(id)}),
@@ -403,7 +406,7 @@ const api=window.PhoneApp132={
  refresh:async()=>{if(!profile())return;const selected=$('connectedPhone132')?.contentWindow?.phoneSelection14237?.();if(selected?.module==='subusers'){if(selected.user)await loadPhoneWorkspace14237(selected.user,true);else await window.TeamHome14227?.reload();notify();return;}await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone-accounting.html?v=142.46';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone-accounting.html?v=142.47';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
 
@@ -1649,7 +1652,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 /* scripts/startup1443.js */
 /* Authenticated shell first; protected content stays unavailable until its data is ready. */
 (()=>{'use strict';let currentJob=null;
-function needs(view){if(view==='document-editor105')return ['business'];if(view==='settings-users')return ['profiles'];const names=['reference','journal','business','profiles'];if(view==='settings-business')names.push('legal');if(['submissions','entry-submissions','user-entry-review'].includes(view))names.push('submissions');return names}
+const phone=()=>document.documentElement.dataset.device132==='phone';
+function needs(view){if(phone())return view==='document-editor105'?['business']:['reference','profiles','business'];if(view==='document-editor105')return ['business'];if(view==='settings-users')return ['profiles'];const names=['reference','journal','business','profiles'];if(view==='settings-business')names.push('legal');if(['submissions','entry-submissions','user-entry-review'].includes(view))names.push('submissions');return names}
 function pending(show,message='Loading your workspace…'){document.body.classList.toggle('startup-pending1443',show);let box=document.getElementById('startup1443');if(!box){box=document.createElement('section');box.id='startup1443';box.setAttribute('role','status');box.innerHTML=loading1444.markup()+'<p></p><button class="je-btn je-btn-secondary" hidden>Retry loading</button>';document.body.append(box)}box.hidden=!show;box.querySelector('p').textContent=message;const error=message.includes('could not load');box.classList.toggle('loading-error1444',error);box.querySelector('.loading-orbit1444').hidden=error;box.querySelector('p').classList.toggle('loading-status1444',!error);if(!error)box.querySelector('button').hidden=true;}
 window.startupData1443=async function(checkSession){
  const actor=liveProfile.id;const target=Location69.view;pending(true);const job={actor};currentJob=job;
@@ -1657,7 +1661,7 @@ window.startupData1443=async function(checkSession){
  const tasks={reference:guard(loadReferenceDataFromSupabase),journal:guard(loadJournalFromSupabase),business:guard(loadBusinessSettingsFromSupabase),submissions:guard(loadSubmissionsFromSupabase),profiles:guard(loadProfilesFromSupabase),legal:guard(loadLegalDocumentsFromSupabase)};
  const ready=new Map();const run=name=>{if(!ready.has(name))ready.set(name,Promise.resolve().then(()=>name==='journal'?run('reference'):null).then(tasks[name]).then(value=>{(job.done??=new Set()).add(name);return value}));return ready.get(name)};
  const critical=needs(target);
- async function loadAll(){try{await Promise.all([...critical.map(run),window.workflowReady1443]);checkSession();if(currentJob!==job)return;pending(false);for(const name of Object.keys(tasks))run(name).catch(error=>{if(currentJob===job&&liveProfile?.id===actor)showCenterStatus('Some background data could not load: '+error.message+'. Use Refresh to retry.',true)});return true}catch(e){if(currentJob===job&&liveProfile?.id===actor){pending(true,'Workspace data could not load: '+e.message);const b=document.querySelector('#startup1443 button');b.hidden=false;b.onclick=()=>{ready.clear();window.workflowReady1443=workflow136.reload({skipJournal:true});b.hidden=true;pending(true);loadAll()};}return false}}
+ async function loadAll(){try{await Promise.all([...critical.map(run),window.workflowReady1443]);checkSession();if(currentJob!==job)return;pending(false);for(const name of (phone()?critical:Object.keys(tasks)))run(name).catch(error=>{if(currentJob===job&&liveProfile?.id===actor)showCenterStatus('Some background data could not load: '+error.message+'. Use Refresh to retry.',true)});return true}catch(e){if(currentJob===job&&liveProfile?.id===actor){pending(true,'Workspace data could not load: '+e.message);const b=document.querySelector('#startup1443 button');b.hidden=false;b.onclick=()=>{ready.clear();window.workflowReady1443=workflow136.reload({skipJournal:true});b.hidden=true;pending(true);loadAll()};}return false}}
  job.activate=async()=>{const view=Location69.view,required=needs(view);if(required.every(n=>job.done?.has(n))){pending(false);return}pending(true);try{await Promise.all([...required.map(run),window.workflowReady1443]);if(currentJob===job&&Location69.view===view)pending(false)}catch(e){if(currentJob===job&&Location69.view===view){pending(true,'This area could not load: '+e.message);const b=document.querySelector('#startup1443 button');b.hidden=false;b.onclick=()=>{ready.clear();window.workflowReady1443=workflow136.reload({skipJournal:true});b.hidden=true;job.activate()}}}};
  const slow=setTimeout(()=>{if(currentJob===job&&document.body.classList.contains('startup-pending1443'))pending(true,'The connection is taking longer than usual. Your data is still loading…')},12000);
  try{return await loadAll()}finally{clearTimeout(slow)}
