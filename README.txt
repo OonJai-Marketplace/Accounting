@@ -1,4 +1,6 @@
-OON JAI ACCOUNTING v142.35 — FULL WEBSITE
+OON JAI ACCOUNTING v142.36 — FULL WEBSITE
+
+v142.36: phone Home now has horizontal named sub-user tabs; the administrator’s own listed workspace opens; failed directory loads show a visible retry on the phone. No database update required.
 
 v142.35 phone fixes: refresh missing sub-user directory before opening; formatting controls appear only when Format is tapped; Back returns from the document editor to the previous workspace. No database update is required for these phone fixes.
 

@@ -3,7 +3,12 @@
 const allowed=(target,verb='view')=>!!window.access113?.can(target,verb);
 function run(target,verb,fn){if(!allowed(target,verb)){showCenterStatus('This action is not included in your permissions.',true);return false}return fn()}
 function profile(){return typeof liveProfile==='undefined'?null:liveProfile}
-function users(){const me=profile();if(!me)return [];return availableSubUsers().filter(u=>window.Organization14229?Organization14229.mayOpen(u.id):u.id===me.id||me.role==='admin') }
+function users(){const me=profile();if(!me)return [];const list=availableSubUsers();
+ // Branch Home can list the signed-in administrator's own account as well.
+ if(window.Organization14229?.homeUsers().some(u=>String(u.id)===String(me.id))&&!list.some(u=>String(u.id)===String(me.id)))list.push({...me,user_permissions:livePermission||{}});
+ return list.filter(u=>window.Organization14229?Organization14229.mayOpen(u.id):u.id===me.id||me.role==='admin');
+}
+function workspaceUsers(){const all=new Map();for(const u of [...(window.Organization14229?.homeUsers()||[]),...users()])all.set(String(u.id),u);return [...all.values()];}
 
 function user(id){return users().find(u=>String(u.id)===String(id))}
 function selectUser(id,view='home'){if(!allowed('sub-users-workspace')||!user(id))throw Error('This user is not assigned to you.');switchTab('sub-users-workspace');openWorkspaceUser(id);v49SetView(id,view)}
@@ -42,7 +47,7 @@ const api=window.PhoneApp132={
   if(!allowed('sub-users-workspace')||!user(id))throw Error('This workspace is not included in your current access.');
   return true;
  },
- profile,users,allowed,documents:()=>run('document-editor105','view',()=>openDocumentEditor105()),reportHistory:id=>reportHistory1443.open(id),
+ profile,users,workspaceUsers,allowed,documents:()=>run('document-editor105','view',()=>openDocumentEditor105()),reportHistory:id=>reportHistory1443.open(id),
  landing:()=>window.phoneLanding14225,
  numberFormat:()=>ApplicationSettings.system?.numberFormat||'1,234.56',
  decimalPlaces:()=>appDecimalPlaces(),
@@ -119,6 +124,6 @@ const api=window.PhoneApp132={
  refresh:async()=>{if(!profile())return;await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.35';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.36';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
