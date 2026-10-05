@@ -10,7 +10,7 @@ function ensurePhoneOwner1427(){
  try{phoneDrafts1427=JSON.parse(localStorage.getItem(draftKey1427(id)))||{staff:{}}}catch{phoneDrafts1427={staff:{}}}
  phoneDrafts1427.staff||={};
  Object.assign(S,{module:'subusers',page:'home',user:me.role==='admin'||(!A.allowed('sub-users-workspace')&&A.teamHomeAllowed())?null:id,search:'',staffDraft:null,journalDraft:null,editingStaff:false,editingJournal:false,journalForm:false,pendingStaff:null});
- const saved=phoneDrafts1427.location,landing=A.landing?.();if(saved?.page==='totals')saved.page='history';
+ const saved=phoneDrafts1427.location,landing=A.landing?.();if(saved?.page==='totals')saved.page='history';if(saved?.module==='settings'&&saved.page==='access')saved.page='users';
  if(saved&&!(me.role!=='admin'&&landing?.id===id&&landing.fresh)){const before={module:S.module,page:S.page,user:S.user};Object.assign(S,saved);if(!pageAllowed1441())Object.assign(S,before);}
  if(S.module==='subusers'&&me.role!=='admin'&&!S.user&&!A.teamHomeAllowed())S.user=id;
  const staff=phoneDrafts1427.staff[S.user];if(staff){S.staffDraft=staff.data;S.editingStaff=staff.editing}
@@ -49,7 +49,7 @@ function navigate(module,page='home',capture=true){
  S.search='';S.ledgerAccount14248=null;S.entryLimit14237=30;last='';
  const target=module==='subusers'&&!S.user?'sub-users-home14229':module==='settings'?'settings-users':module==='dashboard'?'dashboard':module==='transactions'?({journal:'journal',upcoming:'transactions-recurring',review:'user-entry-review',closing:'period-review',history:'transactions-all',audit:'transactions-voided'}[page]||'journal'):module==='accounts'?({ledger:'sec-general-ledger',trial:'trial-balance',balances:'account-balances',chart:'sec-chart-accounts'}[page]||'sec-general-ledger'):'sub-users-workspace';
  // Paint the phone independently; an unavailable hidden desktop view must not blank it.
- render();window.scrollTo(0,0);
+ if(!render())return;window.scrollTo(0,0);
  try{if(module==='subusers'){
   if(S.user){const owner=S.user;A.loadWorkspace(owner).catch(()=>{});}
   else if(A.teamHomeAllowed())parent.TeamHome14227?.reload();
@@ -59,7 +59,7 @@ function navigate(module,page='home',capture=true){
 const modulePages={dashboard:[['home','dashboard']],transactions:[['journal','journal'],['history','transactions-all'],['review','user-entry-review'],['upcoming','transactions-recurring'],['closing','period-review'],['audit','transactions-voided']],accounts:[['ledger','sec-general-ledger'],['trial','trial-balance'],['balances','account-balances'],['chart','sec-chart-accounts']],subusers:[['home','sub-users-workspace'],['home','sub-users-home14229']],settings:[['home','settings-users']]};
 const firstModulePage=m=>['subusers','settings'].includes(m)&&modulePages[m]?.find(([,target])=>A.allowed(target))?.[0];
 window.switchModule=m=>{toggleDrawer(false);if(m==='subusers'&&!A.allowed('sub-users-workspace')&&A.teamHomeAllowed())S.user=null;const page=firstModulePage(m);if(page)navigate(m,page)};
-window.settingsGo=p=>navigate('settings',p);window.dashGo=p=>navigate('dashboard',p);window.txGo=p=>navigate('transactions',p);window.accGo=p=>navigate('accounts',p);window.go=p=>navigate('subusers',p);
+window.settingsGo=p=>navigate('settings',p==='access'?'users':p);window.dashGo=p=>navigate('dashboard',p);window.txGo=p=>navigate('transactions',p);window.accGo=p=>navigate('accounts',p);window.go=p=>navigate('subusers',p);
 window.chooseWorkspace=async id=>{
  capturePhoneDraft1427();
  if(id==='home'&&!A.teamHomeAllowed())return;
@@ -106,18 +106,42 @@ function refresh(force=false){
  const visible=document.querySelector('main.screen:not(.hidden)');
  if(!visible?.childElementCount){initializePhone1425();return}
  if(document.getElementById('phoneAccountPicker14227')||busy||(!force&&S.page==='post'&&document.querySelector('#post .staff-editor14225'))||(!force&&S.journalForm))return;
- const signature=snapshot();if(force||signature!==last){last=signature;render()}
+ const signature=snapshot();if(force||signature!==last)render()
 }
-window.phoneRefresh132=()=>refresh();window.phoneSelection14237=()=>({module:S.module,user:S.user,page:S.page});
+window.phoneRefresh132=()=>{try{refresh()}catch(error){reportRenderError14250(error)}};window.phoneSelection14237=()=>({module:S.module,user:S.user,page:S.page});
 function pageAllowed1441(){if(!['subusers','settings'].includes(S.module))return false;const pages={settings:['home','users','access','profile'],dashboard:['home','finance','people','operation','compliance','documents'],subusers:['home','accounts','post','entries','history'],accounts:['ledger','trial','balances','chart'],transactions:['journal','history','review','upcoming','closing','audit']};if(!pages[S.module]?.includes(S.page))return false;if(S.module==='settings')return S.page==='profile'||A.profile()?.role==='admin'&&A.allowed('settings-users');if(S.module==='dashboard')return A.allowed('dashboard');if(S.module==='subusers')return S.user?A.allowed('sub-users-workspace')&&A.users().some(u=>String(u.id)===String(S.user)):A.teamHomeAllowed();const target=S.module==='accounts'?({ledger:'sec-general-ledger',trial:'trial-balance',balances:'account-balances',chart:'sec-chart-accounts'}[S.page]):S.module==='transactions'?({journal:'journal',audit:'transactions-voided',history:'transactions-all',upcoming:'transactions-recurring',review:'user-entry-review',closing:'period-review'}[S.page]):null;return !!target&&A.allowed(target)}
-function render(){if(!A.profile()||!ensurePhoneOwner1427())return;nav();actions=[];const open=[...document.querySelectorAll('details[open][data-key]')].map(n=>n.dataset.key);let id=S.module==='settings'?'settings-'+S.page:S.module==='dashboard'?'dash-'+S.page:S.module==='transactions'?'tx-'+S.page:S.module==='accounts'?'acc-'+S.page:!S.user?'workspace-home':S.page;const root=$(id);if(!root)return;document.querySelectorAll('main.screen').forEach(n=>n.classList.toggle('hidden',n!==root));root.innerHTML=!pageAllowed1441()?empty('This area is not included in your permissions.'):S.module==='settings'?settings():S.module==='dashboard'?dashboard():S.module==='accounts'?accounts():S.module==='transactions'?transactions():subusers();root.querySelectorAll('[data-key]').forEach(n=>{if(open.includes(n.dataset.key))n.open=true});if(S.module==='subusers'&&A.teamHomeAllowed()){if(!S.user)parent.TeamHome14227?.mount(root.querySelector('#phoneTeam14227'),{phone:true,onUser:id=>chooseWorkspace(id),onReview:id=>{if(id)A.compare(id)},onAccess:()=>navigate('settings','users')});}bindInputs();last=snapshot();persistPhoneDraft1427();paintSaveErrors14234();}
+let renderedLocation14250=null,renderError14250='';
+function reportRenderError14250(error){const message=error?.message||String(error);console.error('Phone workspace render failed',error);if(renderError14250!==message){renderError14250=message;parent.showCenterStatus('This view could not update. Please try opening the tab again.',true);}}
+function render(){
+ if(!A.profile()||!ensurePhoneOwner1427())return false;
+ const previousActions=actions,identity=A.session();let committed=false;
+ const id=S.module==='settings'?'settings-'+S.page:S.module==='dashboard'?'dash-'+S.page:S.module==='transactions'?'tx-'+S.page:S.module==='accounts'?'acc-'+S.page:!S.user?'workspace-home':S.page,root=$(id);
+ if(!root)return false;
+ try{
+  const open=[...document.querySelectorAll('details[open][data-key]')].map(n=>n.dataset.key);
+  actions=[];
+  const html=!pageAllowed1441()?empty('This area is not included in your permissions.'):S.module==='settings'?settings():S.module==='dashboard'?dashboard():S.module==='accounts'?accounts():S.module==='transactions'?transactions():subusers();
+  const signature=snapshot();
+  // Keep the existing DOM and its callbacks together until replacement content is ready.
+  root.innerHTML=html;committed=true;
+  document.querySelectorAll('main.screen').forEach(n=>n.classList.toggle('hidden',n!==root));
+  renderedLocation14250={session:identity,module:S.module,page:S.page,user:S.user};nav();
+  root.querySelectorAll('[data-key]').forEach(n=>{if(open.includes(n.dataset.key))n.open=true});
+  if(S.module==='subusers'&&A.teamHomeAllowed()&&!S.user)parent.TeamHome14227?.mount(root.querySelector('#phoneTeam14227'),{phone:true,onUser:id=>chooseWorkspace(id),onReview:id=>{if(id)A.compare(id)},onAccess:()=>navigate('settings','users')});
+  bindInputs();last=signature;persistPhoneDraft1427();paintSaveErrors14234();renderError14250='';return true;
+ }catch(error){
+  if(!committed){actions=previousActions;if(renderedLocation14250?.session===identity){const {module,page,user}=renderedLocation14250;Object.assign(S,{module,page,user});}}
+  reportRenderError14250(error);
+  return false;
+ }
+}
 
 function settings(){const me=A.profile(),admin=A.allowed('settings-users','edit'),users=A.settingsUsers();
 const edit=(id,section)=>A.editUser(id,section);
 if(S.page==='profile')return head('My Profile','Account and security')+`<div class="card"><div class="row"><span class="round">${icon('people')}</span><div><h2>${esc(me.full_name||'My account')}</h2><small>${esc(me.email||'')}</small></div></div><p>${esc(me.role==='admin'?'Administrator':me.role||'User')}</p></div><div class="card"><h2>Password & sign-in</h2><p>Send a recovery link to your account email.</p>${button('Send password reset',()=>{if(confirm('Send a password-reset email to your account?'))return A.resetOwnPassword()},true)}</div>${button('Sign out',()=>{if(confirm('Sign out of Oon Jai?'))return A.logout()})}`;
 if(!admin)return head('Settings')+row('My Profile','Account and password','',()=>settingsGo('profile'),'people')+empty('User permissions and account assignments are managed by your administrator.');
-if(S.page==='home')return head('Settings','Manage access and account assignments')+`<div class="card hero"><small>Access management</small><strong>${users.length} ${users.length===1?'user':'users'}</strong><small>Administrator</small></div><div class="grid"><button class="tile" ${action(()=>settingsGo('users'))}><span class="round">${icon('people')}</span><b>Users</b><small>Add and edit accounts</small></button><button class="tile" ${action(()=>settingsGo('access'))}><span class="round orange">${icon('shield')}</span><b>Permissions</b><small>Modules and actions</small></button></div>`+row('Assigned Accounts','Funds, categories and money in / out','',()=>settingsGo('access'),'wallet')+row('My Profile','Account and password','',()=>settingsGo('profile'),'people')+`<p class="settings-note133">Full accounting, backup and recovery settings are available on your laptop or tablet.</p>`;
-const access=S.page==='access';return head(access?'Access & Accounts':'Users',access?'Choose a user to adjust their access':'Manage individual logins')+(!access?button('Add sub-user',()=>edit(''),true):'')+`<div class="search"><input id="liveSearch" aria-label="Search users" placeholder="Search name or email…" value="${esc(S.search)}"></div>`+users.filter(u=>(u.full_name+' '+u.email).toLowerCase().includes(S.search.toLowerCase())).map(u=>{const p=u.user_permissions||{},funds=p.assigned_fund_account_ids||[];return `<div class="card settings-user133"><div class="row"><span class="round">${icon('people')}</span><div class="desc"><h2>${esc(u.full_name||'Unnamed user')}</h2><small>${esc(u.email||'')}</small></div><span class="badge">${esc(u.role==='admin'?'Admin':p.user_type==='manager'?'Manager':'Sub-user')}</span></div><p>${esc(p.job_title||'')}${p.job_title?' · ':''}${esc(u.status||'')}</p><small>${funds.length?funds.map(id=>esc(A.accountName(id))).join(' · '):'No fund accounts assigned'}</small><div class="actions">${button(access?'Permissions':'Edit user',()=>edit(u.id,access?'permissions':null),true)}${button('Accounts',()=>edit(u.id,'accounts'))}</div></div>`}).join('')||empty('No users match your search.')}
+if(S.page==='home')return head('Settings','Manage access and account assignments')+`<div class="card hero"><small>Access management</small><strong>${users.length} ${users.length===1?'user':'users'}</strong><small>Administrator</small></div>`+row('Users','Details, permissions and assigned accounts','',()=>settingsGo('users'),'people')+row('My Profile','Account and password','',()=>settingsGo('profile'),'people')+`<p class="settings-note133">Full accounting, backup and recovery settings are available on your laptop or tablet.</p>`;
+return head('Users','Manage details, permissions and assigned accounts')+button('Add sub-user',()=>edit(''),true)+`<div class="search"><input id="liveSearch" aria-label="Search users" placeholder="Search name or email…" value="${esc(S.search)}"></div>`+users.filter(u=>(u.full_name+' '+u.email).toLowerCase().includes(S.search.toLowerCase())).map(u=>{const p=u.user_permissions||{},funds=p.assigned_fund_account_ids||[];return `<div class="card settings-user133"><div class="row"><span class="round">${icon('people')}</span><div class="desc"><h2>${esc(u.full_name||'Unnamed user')}</h2><small>${esc(u.email||'')}</small></div><span class="badge">${esc(u.role==='admin'?'Admin':p.user_type==='manager'?'Manager':'Sub-user')}</span></div><p>${esc(p.job_title||'')}${p.job_title?' · ':''}${esc(u.status||'')}</p><small>${funds.length?funds.map(id=>esc(A.accountName(id))).join(' · '):'No fund accounts assigned'}</small><div class="actions">${button('Edit user',()=>edit(u.id),true)}</div></div>`}).join('')||empty('No users match your search.')}
 
 function dashboard(){const d=A.dashboard(),cur=d.state.currency,m=d.state.month,amount=d.amount;const labels={home:'Home',finance:'Finance',people:'People',operation:'Operation',compliance:'Compliance',documents:'Documents'};let h=S.page==='home'?'':head(labels[S.page],S.page==='finance'?'Revenue, expenses and balances':S.page==='people'?'Manage staff and approvals':S.page==='compliance'?'Accounting, tax and regulatory':'');const f=field('Month','dashMonth','month',m)+select('Currency','dashCurrency',['LAK','USD','THB'].map(c=>`<option ${c===cur?'selected':''}>${c}</option>`).join(''));h+=`<div class="grid">${f}</div>`;
 const metric=(key,label,k)=>`<button class="card metric132" ${action(()=>A.map(key))}><span class="round ${key==='cogs'||key==='support'?'orange':''}">${icon(k)}</span><span><b>${amount(key)==null?'Choose accounts':money(amount(key),cur)}</b><small>${label}</small></span></button>`;

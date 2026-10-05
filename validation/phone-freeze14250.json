@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Administrator tabs remain usable during invalidated and delayed Home cache refresh",
+    "passed": true
+  },
+  {
+    "name": "Other users remain navigable",
+    "passed": true
+  },
+  {
+    "name": "Failed rebuild preserves displayed buttons and surfaces an error",
+    "passed": true
+  },
+  {
+    "name": "Phone Settings has one Users tab and one direct Edit user action",
+    "passed": true
+  },
+  {
+    "name": "Actual permission denial is still enforced for administrator workspace",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors or production-style fixture writes",
+    "passed": true
+  }
+]

@@ -252,8 +252,8 @@ const allowed=(target,verb='view')=>!!window.access113?.can(target,verb);
 function run(target,verb,fn){if(!allowed(target,verb)){showCenterStatus('This action is not included in your permissions.',true);return false}return fn()}
 function profile(){return typeof liveProfile==='undefined'?null:liveProfile}
 function users(){const me=profile();if(!me)return [];const list=availableSubUsers();
- // Branch Home can list the signed-in administrator's own account as well.
- if(window.Organization14229?.homeUsers().some(u=>String(u.id)===String(me.id))&&!list.some(u=>String(u.id)===String(me.id)))list.push({...me,user_permissions:livePermission||{}});
+ // Keep authorized administrator self-access independent of the refreshing Home cache.
+ if((me.role==='admin'&&allowed('sub-users-workspace')||window.Organization14229?.homeUsers().some(u=>String(u.id)===String(me.id)))&&!list.some(u=>String(u.id)===String(me.id)))list.push({...me,user_permissions:livePermission||{}});
  return list.filter(u=>window.Organization14229?Organization14229.mayOpen(u.id):u.id===me.id||me.role==='admin');
 }
 function workspaceUsers(){const all=new Map();for(const u of [...(window.Organization14229?.homeUsers()||[]),...users()])all.set(String(u.id),u);return [...all.values()];}
