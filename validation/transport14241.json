@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Delayed complete online response is accepted",
+    "passed": true
+  },
+  {
+    "name": "Complete cached data survives 500 while browser stays online",
+    "passed": true
+  },
+  {
+    "name": "Complete cached data survives headers-stall while browser stays online",
+    "passed": true
+  },
+  {
+    "name": "Complete cached data survives body-stall while browser stays online",
+    "passed": true
+  },
+  {
+    "name": "Complete cached data survives malformed while browser stays online",
+    "passed": true
+  },
+  {
+    "name": "Stalled uncached body fails within a bound instead of hanging",
+    "passed": true
+  },
+  {
+    "name": "Permission denial is returned without cached replacement",
+    "passed": true
+  },
+  {
+    "name": "Lost mutation receipt never reports a confirmed save",
+    "passed": true
+  },
+  {
+    "name": "A denied response with an interrupted body still enforces denial",
+    "passed": true
+  },
+  {
+    "name": "Explicit caller cancellation never falls back to cached data",
+    "passed": true
+  },
+  {
+    "name": "A valid empty mutation response retains its 204 status",
+    "passed": true
+  },
+  {
+    "name": "Offline downloaded reads remain isolated by account",
+    "passed": true
+  }
+]

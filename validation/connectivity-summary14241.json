@@ -1,0 +1,78 @@
+{
+  "release": "142.41",
+  "total_passed": 147,
+  "browser": "Headless Chromium; desktop, tablet, iPad-sized portrait and phone layouts",
+  "roles": [
+    "administrator",
+    "manager",
+    "staff"
+  ],
+  "authentication": "Real bundled Supabase SDK tested for online login and offline reopening with a valid saved session. Local service fixtures; no live financial writes.",
+  "coverage": [
+    "Delayed headers and interrupted response bodies",
+    "Complete cached reads after transient service errors",
+    "Preserved drafts, loaded worklists and fund balances",
+    "Navigation during saves; late confirmation guards",
+    "Pending save receipts and stable retry references",
+    "Account-specific offline data and explicit-only sync",
+    "Offline shell installation interruption, recovery and release updates"
+  ],
+  "suites": [
+    {
+      "suite": "offline14239",
+      "passed": 14
+    },
+    {
+      "suite": "offline-desktop14239",
+      "passed": 4
+    },
+    {
+      "suite": "offline-tablet14239",
+      "passed": 3
+    },
+    {
+      "suite": "offline-phone14239",
+      "passed": 4
+    },
+    {
+      "suite": "phone-audit14237",
+      "passed": 12
+    },
+    {
+      "suite": "phone-weak-network14238",
+      "passed": 5
+    },
+    {
+      "suite": "connectivity-matrix14241",
+      "passed": 68
+    },
+    {
+      "suite": "transport14241",
+      "passed": 12
+    },
+    {
+      "suite": "offline-reopen14241",
+      "passed": 12
+    },
+    {
+      "suite": "online-cache14240",
+      "passed": 2
+    },
+    {
+      "suite": "online-phone14240",
+      "passed": 3
+    },
+    {
+      "suite": "startup14240",
+      "passed": 1
+    },
+    {
+      "suite": "desktop-save14241",
+      "passed": 4
+    },
+    {
+      "suite": "shell-update14241",
+      "passed": 3
+    }
+  ]
+}

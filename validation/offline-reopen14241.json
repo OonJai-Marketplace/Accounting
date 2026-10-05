@@ -1,0 +1,50 @@
+[
+  {
+    "name": "desktop / admin signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "desktop / admin reopens a downloaded signed-in workspace without internet",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff reopens a downloaded signed-in workspace without internet",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin reopens a downloaded signed-in workspace without internet",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff reopens a downloaded signed-in workspace without internet",
+    "passed": true
+  },
+  {
+    "name": "phone / admin signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "phone / admin reopens a downloaded signed-in workspace without internet",
+    "passed": true
+  },
+  {
+    "name": "phone / staff signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "phone / staff reopens a downloaded signed-in workspace without internet",
+    "passed": true
+  }
+]

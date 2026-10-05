@@ -36,7 +36,7 @@ function ready(){
    if(r.data?.profile?.id!==id||r.data.profile.status!=='active')throw Object.assign(Error('This account is inactive or no longer permitted.'),{code:'ACCESS_REVOKED'});
    const changed14229=JSON.stringify([liveProfile,livePermission])!==JSON.stringify([r.data.profile,r.data.permissions]);liveProfile=r.data.profile;livePermission=r.data.permissions;if(changed14229){window.Organization14229?.invalidate();window.PrivateReminders14229?.invalidate();}
    const self=liveProfiles.find(u=>u.id===id);if(self)Object.assign(self,liveProfile,{user_permissions:livePermission});
-   window.permissions1441.verified=true;clearTimeout(retryTimer);reconnect(false);
+   window.permissions1441.verified=true;window.permissions1441.stale=false;clearTimeout(retryTimer);reconnect(false);
    refresh();
    await window.Organization14229?.revalidate();
    if(!can('document-editor105','view')||!can('document-editor105','export')){
@@ -50,11 +50,11 @@ function ready(){
    const previouslyVerified=window.permissions1441.verified;
    const denied=['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e.code)||[401,403].includes(Number(e.status));
    if(denied){window.permissions1441.verified=false;reconnect(false);document.getElementById('loginGate')?.classList.remove('is-authenticated');await logoutDemoUser();const error=document.getElementById('loginError');if(error)error.textContent='Please sign in again. '+(e.message||'Access is no longer available.');}
-   else if(previouslyVerified&&window.offline14239?.offline()){reconnect(false);clearTimeout(retryTimer);window.offline14239.changed();}
+   else if(previouslyVerified){window.permissions1441.stale=true;reconnect(false);clearTimeout(retryTimer);window.offline14239?.connectionIssue?.(e.message||'Access refresh interrupted');retryTimer=setTimeout(verify,15000);}
    else{window.permissions1441.verified=false;reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));clearTimeout(retryTimer);retryTimer=setTimeout(verify,5000);}
   }finally{verification=null}})();return verification;
  }
- window.permissions1441={refresh,verify,verified:true,reconnecting:false};refresh();
+ window.permissions1441={refresh,verify,verified:true,reconnecting:false,stale:false};refresh();
  window.addEventListener('online',verify);window.addEventListener('focus',verify);document.addEventListener('visibilitychange',()=>{if(!document.hidden)verify()});
  setInterval(()=>{if(!document.hidden)verify()},30000);verify();
 }

@@ -1,0 +1,274 @@
+[
+  {
+    "name": "desktop / admin keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "desktop / admin keeps loaded fund balances on a failed summary refresh",
+    "passed": true
+  },
+  {
+    "name": "desktop / admin keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "desktop / admin preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "desktop / admin still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "desktop / admin has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "desktop / manager keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "desktop / manager keeps loaded fund balances on a failed summary refresh",
+    "passed": true
+  },
+  {
+    "name": "desktop / manager keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "desktop / manager preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "desktop / manager still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "desktop / manager has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin keeps loaded fund balances on a failed summary refresh",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "tablet / manager keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "tablet / manager keeps loaded fund balances on a failed summary refresh",
+    "passed": true
+  },
+  {
+    "name": "tablet / manager keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "tablet / manager preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "tablet / manager still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "tablet / manager has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / admin keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / admin keeps loaded fund balances on a failed summary refresh",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / admin keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / admin preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / admin still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / admin has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / manager keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / manager keeps loaded fund balances on a failed summary refresh",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / manager keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / manager preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / manager still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / manager has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / staff keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / staff keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / staff preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / staff still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "iPad portrait / staff has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "phone / admin keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "phone / admin keeps loaded fund balances on a failed summary refresh",
+    "passed": true
+  },
+  {
+    "name": "phone / admin keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "phone / admin preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "phone / admin still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "phone / admin has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "phone / manager keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "phone / manager keeps loaded fund balances on a failed summary refresh",
+    "passed": true
+  },
+  {
+    "name": "phone / manager keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "phone / manager preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "phone / manager still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "phone / manager has no uncaught errors",
+    "passed": true
+  },
+  {
+    "name": "phone / staff keeps loaded data on a temporary team-refresh failure",
+    "passed": true
+  },
+  {
+    "name": "phone / staff keeps browsing available when online access check returns 503",
+    "passed": true
+  },
+  {
+    "name": "phone / staff preserves a form and navigation through offline and reconnect",
+    "passed": true
+  },
+  {
+    "name": "phone / staff still enforces a confirmed access denial",
+    "passed": true
+  },
+  {
+    "name": "phone / staff has no uncaught errors",
+    "passed": true
+  }
+]

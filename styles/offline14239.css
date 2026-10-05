@@ -3,6 +3,7 @@
 .area-banner113>.connection14239,.dash-hero112>.connection14239{position:absolute;right:16px;top:12px}
 .connection14239[data-state=online]{background:#125c42!important;color:#fff!important}
 .connection14239[data-state=offline]{background:#fff!important;color:#273b33!important}
+.connection14239[data-state=limited]{background:#a24f0b!important;color:#fff!important}
 .connection14239[data-state=syncing]{background:#a24f0b!important;color:#fff!important}
 .connection14239[data-state=attention]{background:#a32e2e!important;color:#fff!important}
 .top>.connection14239{margin-left:auto;margin-right:8px;width:auto!important;min-width:65px;padding:6px 9px!important;font-size:11px!important}
