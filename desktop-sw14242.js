@@ -1,7 +1,7 @@
 /* Static app files only. Financial records and authentication stay in account-scoped storage. */
 importScripts('offline-assets14239.js');
 OJM_OFFLINE_ASSETS=[...OJM_OFFLINE_ASSETS,'desktop.html'];
-const VERSION='142.42',STATIC_VERSION='142.41',CACHE='ojm-accounting-shell-'+STATIC_VERSION;
+const VERSION='142.45',STATIC_VERSION='142.45',CACHE='ojm-accounting-shell-'+STATIC_VERSION;
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);
  try{

@@ -19,7 +19,7 @@ body #dashboard .dash-tabs112 button{background:transparent;border:0;border-bott
 body #dashboard .dash-tabs112 button[aria-selected=true]{color:#824019;border-bottom-color:#a85a20;font-weight:800}
 body #dashboard .dash-tabs112 button:focus-visible,body #dashboard button:focus-visible{outline:2px solid #b67b35;outline-offset:2px}
 body #dashboard .dash-content112{padding:14px 16px 60px;zoom:var(--dash-zoom112,1);background:#f9f3e9;display:grid;gap:10px;min-width:0}
-body #dashboard .dash-hero112{position:relative;overflow:hidden;min-height:190px;background:#eee1cd url('../assets/dashboard/oonjai-bowl-hero112.png') right 42%/cover no-repeat;border:1px solid #e3d2b7;border-radius:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:24px 22px}
+body #dashboard .dash-hero112{position:relative;overflow:hidden;min-height:190px;background:#eee1cd url('../assets/banners/transactions.webp') right 42%/cover no-repeat;border:1px solid #e3d2b7;border-radius:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding:24px 22px}
 body #dashboard .dash-hero112:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#fcf5e9f5 0%,#fcf5e9e9 30%,#fcf5e96b 55%,transparent 78%);pointer-events:none}
 body #dashboard .dash-hero112>*{position:relative;z-index:1}
 body #dashboard .dash-hero-copy112{max-width:520px}

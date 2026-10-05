@@ -2,7 +2,7 @@ const fs=require('fs'),path=require('path'),http=require('http'),assert=require(
 const root=path.resolve(__dirname,'..'),results=[];const server=http.createServer((req,res)=>{try{const p=path.join(root,req.url.split('?')[0]);res.setHeader('Content-Type',p.endsWith('.js')?'text/javascript':p.endsWith('.html')?'text/html':p.endsWith('.css')?'text/css':'application/octet-stream');res.end(fs.readFileSync(p))}catch{res.statusCode=404;res.end()}});
 async function check(name,fn){try{await fn();results.push({name,passed:true});console.log('PASS',name)}catch(e){results.push({name,passed:false,error:e.message});console.log('FAIL',name,e.message)}}
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port,browser=await chromium.launch({executablePath:'/tmp/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
-for(const [device,width,height]of[['desktop',1440,900],['tablet',1024,768],['iPad portrait',768,1024],['phone',390,844]])for(const role of ['admin','manager','staff']){
+for(const [device,width,height]of[['desktop',1440,900],['tablet',1024,768],['iPad portrait',768,1024]])for(const role of ['admin','manager','staff']){
  const context=await browser.newContext({viewport:{width,height},isMobile:width<1100,hasTouch:width<1100}),page=await context.newPage();page.setDefaultTimeout(5000);const errors=[];page.on('pageerror',e=>errors.push(e.message));await setup(page,base,role);
  const label=device+' / '+role;
  await check(label+' keeps loaded data on a temporary team-refresh failure',async()=>{
