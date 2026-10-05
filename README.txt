@@ -1,3 +1,27 @@
+OON JAI ACCOUNTING v142.42 — INDEPENDENT PHONE WORKSPACE
+
+Phones open phone.html directly. Sign-in and the five workspace tabs load without
+any desktop modules, banner/photo downloads, general ledger, or payroll.
+Sub-users have only their own funds, accounts, entries, and submission. Their Home
+name tabs are removed to leave more space.
+
+Administrators open the sub-user directory with slim horizontal user tabs. They
+can assist any selected workspace using the same five tabs. Only sub-user Settings
+and Documents are added. Those tools download when opened; the old full interface
+and its large login module never mount in the phone page. Settings supports access,
+assigned funds/accounts, user creation, and password-reset links. Documents supports
+editing, printing, and version-checked saves to existing company documents.
+
+Downloaded records, separate drafts, and pending entries stay on the device.
+Interrupted saves retain their original reference for safe retry. Administration
+and each selected user's records are stored separately. Submission needs a
+connection and confirmed saves. Earlier own phone drafts/pending saves are recovered.
+
+No new SQL is required. Desktop/tablet keep their full application and script order.
+Their updated worker reuses existing assets and migrates cached entry pages safely.
+See docs/PHONE-v142.42.txt and the three v142.42 browser validation suites.
+
+PREVIOUS RELEASE NOTES
 OON JAI ACCOUNTING v142.38 — FULL WEBSITE
 
 v142.38: keep phone navigation usable during missing-user lookups; ignore superseded navigation responses; time out workspace reads after 12 seconds; retain previously loaded records with a refresh-failure notice. No offline/sync features or connection indicators added. No database changes. Validated with 5 focused network checks and 12 populated phone regression checks using simulated responses.

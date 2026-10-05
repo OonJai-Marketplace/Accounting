@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <script src="scripts/offline14239.js?v=142.42"></script>
+  <link rel="stylesheet" href="styles/offline14239.css?v=142.41">
+  <script src="scripts/device-mode132.js?v=142.41"></script>
+  <script src="scripts/loading1444.js?v=142.41"></script>
+  <link rel="stylesheet" href="styles/loading1444.css?v=142.41">
+  <title>Oon Jai Accounting — v142.42</title>
+  <link rel="icon" type="image/png" href="assets/brand/oonjai-logo.png?v=118">
+  <!-- Chart.js for dashboard graphs -->
+  <script src="assets/vendor/chart.js?v=142.41"></script>
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Caveat+Brush&family=Kalam:wght@400&family=Permanent+Marker&family=Caveat&family=Patrick+Hand&family=Marck+Script&family=Sriracha&family=Kaushan+Script&display=swap" rel="stylesheet">
+  <!-- Backbone Stylesheet -->
+  <link rel="stylesheet" href="styles/styles.css?v=142.41">
+  <link rel="stylesheet" href="styles/subusers-final-v53.css?v=142.41">
+  <link rel="stylesheet" href="styles/subusers-final-v55.css?v=142.41">
+  <link rel="stylesheet" href="styles/subusers-final-v56.css?v=142.41">
+  <link rel="stylesheet" href="styles/design-system-v58.css?v=142.41">
+  <link rel="stylesheet" href="styles/subusers-mobile-v61.css?v=142.41">
+  <link rel="stylesheet" href="styles/mobile-tables-v66.css?v=142.41">
+<link rel="stylesheet" href="styles/transactions-v67.css?v=142.41">
+<link rel="stylesheet" href="styles/accounts-review-v69.css?v=142.41">
+<link rel="stylesheet" href="styles/desktop-v71.css?v=142.41">
+<link rel="stylesheet" href="styles/transactions-mobile-v72.css?v=142.41">
+<link rel="stylesheet" href="styles/mobile-polish-v73.css?v=142.41">
+<link rel="stylesheet" href="styles/mobile-refinements-v74.css?v=142.41">
+<link rel="stylesheet" href="styles/subusers-polish-v75.css?v=142.41">
+<link rel="stylesheet" href="styles/review-mobile-v78.css?v=142.41">
+<link rel="stylesheet" href="styles/reports-desktop-v79.css?v=142.41">
+<link rel="stylesheet" href="styles/desktop-corrections-v80.css?v=142.41">
+<link rel="stylesheet" href="styles/desktop-refinements-v81.css?v=142.41">
+<link rel="stylesheet" href="styles/desktop-layout-v82.css?v=142.41">
+<link rel="stylesheet" href="styles/payroll-reports-v82.css?v=142.41">
+<link rel="stylesheet" href="styles/table-alignment-v83.css?v=142.41">
+<link rel="stylesheet" href="styles/desktop-polish-v84.css?v=142.41">
+<link rel="stylesheet" href="styles/layout-fixes-v85.css?v=142.41">
+<link rel="stylesheet" href="styles/layout-consistency-v87.css?v=142.41">
+
+<script src="scripts/backup-validation1441.js?v=142.41"></script>
+<script src="scripts/cell-navigation14233.js?v=142.41"></script><link rel="stylesheet" href="styles/fixes14234.css?v=142.41"></head>
+<body>
+
+  <div id="loginGate" class="login-gate no-print">
+    <div id="sessionRestore1444" role="status" aria-label="Restoring your session"><span class="loading-orbit1444" aria-hidden="true"><i style="--i:0"><b></b></i><i style="--i:1"><b></b></i><i style="--i:2"><b></b></i><i style="--i:3"><b></b></i><i style="--i:4"><b></b></i><i style="--i:5"><b></b></i></span></div>
+    <form id="loginForm" class="login-card" onsubmit="handleDemoLogin(event)">
+      <div class="login-brand-mark">OJ</div>
+      <h1>Oon Jai Accounting</h1>
+      <p>Sign in with your assigned email account.</p>
+      <label>Email Address<input id="loginEmail" type="email" autocomplete="username" required placeholder="name@example.com"></label>
+      <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Enter password"></label>
+      <div id="loginError" class="login-error" aria-live="polite"></div>
+      <button type="submit" class="je-btn je-btn-emerald login-submit">Sign In</button>
+      <button type="button" class="login-link-button" onclick="requestPasswordReset()">Forgot password?</button>
+    </form>
+    <form id="passwordRecoveryForm" class="login-card" onsubmit="saveRecoveredPassword(event)" hidden>
+      <div class="login-brand-mark">OJ</div>
+      <h1>Set a New Password</h1>
+      <p>Enter a secure password for your Oon Jai account.</p>
+      <label>New Password<input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="Minimum 8 characters"></label>
+      <label>Confirm Password<input id="recoveryPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="Repeat the new password"></label>
+      <div id="recoveryPasswordStatus" class="login-error" aria-live="polite"></div>
+      <button type="submit" class="je-btn je-btn-emerald login-submit">Update Password</button>
+      <button type="button" class="login-link-button" onclick="cancelPasswordRecovery()">Return to Sign In</button>
+    </form>
+  </div>
+
+  <!-- Hidden Datalist for Chart of Accounts autocomplete -->
+  <datalist id="coaList"></datalist>
+
+  <div class="app-layout">
+
+<!-- ============================================================================== -->
+<!-- HTML 1: LEFT VERTICAL NAVIGATION SIDEBAR (BACKBONE)                            -->
+<!-- Main navigation shell with branding and collapsible accordion categories.      -->
+<!-- ============================================================================== -->
+    <aside class="sidebar no-print" id="appSidebar">
+
+      <!-- ---------------------------------------------------------------------- -->
+      <!-- BRAND EMBLEM & LOGO                                                    -->
+      <!-- ---------------------------------------------------------------------- -->
+      <div class="sidebar-brand">
+        <div class="brand-icon-emblem">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C8 2 6 5 6 7c0 2 1.5 3.5 3 4.5V21h6v-9.5c1.5-1 3-2.5 3-4.5 0-2-2-5-6-5z" />
+            <circle cx="12" cy="7" r="2.5" fill="#a7f3d0" />
+          </svg>
+        </div>
+        <h2>Accounting<br><span>Core</span></h2>
+      </div>
+
+      <!-- ---------------------------------------------------------------------- -->
+      <!-- NAVIGATION ACCORDIONS                                                  -->
+      <!-- ---------------------------------------------------------------------- -->
+      <!-- 1. Dashboard -->
+      <div class="nav-category" id="nav-module-dashboard" data-module="dashboard">
+        <div class="nav-header" onclick="activateCategory(this, 'dashboard')">Dashboard</div>
+      </div>
+
+      <!-- 2. Transactions (Journal First -> New Transactions -> All Transactions) -->
+      <div class="nav-category" id="nav-module-transactions" data-module="transactions">
+        <div class="nav-header" onclick="activateCategory(this, 'journal')">Transactions <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('journal')">Journal</button>
+          
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-recurring')">Upcoming Transactions</button>
+          <button type="button" class="tab-btn" onclick="switchTab('user-entry-review')">Entry Submission Review <span class="submission-count-badge" id="navUserReviewCount">0</span></button>
+          <button type="button" class="tab-btn" onclick="switchTab('period-review')">Period Review & Closing</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-all')">Transaction History</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-voided')">Transaction Audit Log</button>
+        </div>
+      </div>
+
+      <div class="nav-category" id="nav-module-sub-users" data-module="sub-users">
+        <div class="nav-header" onclick="switchTab('sub-users-workspace');closeMobileNavigation()">Sub-Users</div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('sub-users-workspace')">User Workspace</button>
+        </div>
+      </div>
+
+      <!-- 3. Accounts (Continuous Scrolling Workspace) -->
+      <div class="nav-category" id="nav-module-accounts" data-module="accounts">
+        <div class="nav-header" onclick="activateCategory(this, 'sec-general-ledger')">Accounts <span class="arrow">▼</span></div>
+        <div class="nav-links">
+<button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-general-ledger')">General Ledger</button>
+<button type="button" class="tab-btn" onclick="switchTab('trial-balance')">Trial Balance</button>
+<button type="button" class="tab-btn" onclick="switchTab('account-balances')">Balances</button>
+<button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-chart-accounts')">Chart of Accounts</button>
+<button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-sub-accounts')">Sub-accounts</button>
+
+</div>
+      </div>
+
+      <div class="nav-category" id="nav-module-hr" data-module="hr">
+        <div class="nav-header" onclick="activateCategory(this, 'payroll-employees')">Human Resources <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-employees')">Employees</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-contracts')">Contracts &amp; Documents</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-attendance')">Attendance</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-leave')">Leave</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-assessments')">Assessments</button>
+        </div>
+      </div>
+
+      <!-- 4. Payroll -->
+      <div class="nav-category" id="nav-module-payroll" data-module="payroll">
+        <div class="nav-header" onclick="activateCategory(this, 'payroll-overview')">Payroll <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-overview')">Overview</button>
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-deductions')">Payroll Deductions</button>
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-entries')">Payroll Entries</button>
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-history')">Salary History</button>
+        </div>
+      </div>
+
+      <!-- 5. Reports -->
+      <div class="nav-category" id="nav-module-reports" data-module="reports">
+        <div class="nav-header" onclick="activateCategory(this, 'report-pl')">Report <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('report-pl')">Profit and Loss</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-bs')">Balance Sheet</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-cf')">Cash Flow</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-tb')">Trial Balance</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-gl')">General Ledger</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-activity')">Account Activity</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-expense')">Expense Report</button>
+          <button type="button" class="tab-btn only-desktop82" onclick="switchTab('report-subusers82')">Sub-user Reports</button>
+          <button type="button" class="tab-btn only-desktop82" onclick="switchTab('report-financing82')">Financing & Budgets</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-payroll')">Payroll Report</button>
+<button type="button" class="tab-btn" onclick="switchTab('report-reconciliation');renderReconciliationList71()">Reconciliation Reports</button>
+        </div>
+      </div>
+
+      <!-- 6. Tax and SSO -->
+      <div class="nav-category" id="nav-module-tax-sso" data-module="tax-sso">
+        <div class="nav-header" onclick="activateCategory(this, 'tax-overview')">Tax and SSO <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('tax-overview')">Tax Overview</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-vat')">VAT</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-pit')">Personal Income Tax</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-social')">Social Security</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-payment')">Tax and Social Payment</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-sso-payment')">SSO Payment</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-records')">Tax and SSO Records</button>
+        </div>
+      </div>
+      <!-- 7. Settings -->
+      <div class="nav-category" id="nav-module-settings" data-module="settings">
+        <div class="nav-header" onclick="activateCategory(this, 'settings-business')">Settings <span class="arrow">▼</span></div>
+        <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('settings-business')">Business Information</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-users')">Users &amp; Permissions</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-accounting')">Accounting</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-payroll')">Payroll</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-tax')">Statutory</button>
+          <button type="button" class="tab-btn" onclick="switchTab('settings-system')">System</button>
+        </div>
+      </div>
+
+      <div class="sidebar-user-footer">
+        <div class="sidebar-user-avatar" id="headerAccountInitials" aria-hidden="true">OJ</div>
+        <div class="sidebar-user-copy">
+          <strong id="currentUserChip">Signed-in user</strong>
+          <span id="sidebarUserRole">Account role</span>
+        </div>
+        <div class="header-account-menu">
+          <button type="button" class="header-account-trigger" id="headerAccountTrigger" aria-label="Open account and module actions" aria-expanded="false" onclick="toggleHeaderAccountMenu()">•••</button>
+          <div class="header-account-dropdown" id="headerAccountDropdown" hidden>
+            <div class="header-account-identity"><strong>Account &amp; Module Actions</strong><span>FY 2026 Active</span></div>
+            <div class="header-account-divider"></div>
+            <button type="button" class="header-menu-item" id="global-csv-btn" onclick="exportJournalCSV();closeHeaderAccountMenu()">📦 <span>Export CSV</span></button>
+            <button type="button" class="header-menu-item" id="global-print-btn" onclick="openPrintDialog();closeHeaderAccountMenu()">🖨️ <span>Print</span></button>
+            <div class="header-account-divider module-export-divider"></div>
+            <button type="button" class="header-menu-item" onclick="switchAccount()">⇄ <span>Switch Account</span></button>
+            <button type="button" class="header-menu-item danger" onclick="confirmSignOut()">↪ <span>Sign Out</span></button>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <button type="button" class="sidebar-scrim no-print" id="sidebarScrim" aria-label="Close navigation" onclick="closeMobileNavigation()"></button>
+<!-- ============================================================================== -->
+
+
+    <!-- Main Stage Workspace -->
+    <main class="main-content-area">
+
+<!-- ============================================================================== -->
+<!-- HTML 2: TOP APPLICATION HEADER (BACKBONE)                                     -->
+<!-- Print button, dynamic section title indicator, & fiscal badge.    -->
+<!-- ============================================================================== -->
+<header class="module-header no-print">
+        
+<!-- ---------------------------------------------------------------------- -->
+<!-- HEADER LEFT: PAGE TITLE                                                -->
+<!-- ---------------------------------------------------------------------- -->
+<div class="header-left-tools">
+  <button type="button" class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Open navigation" aria-controls="appSidebar" aria-expanded="false" onclick="toggleMobileNavigation()">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="mainHeaderTitle" class="module-header-title">Journal Entry</div>
+</div>
+
+</header>
+<!-- ============================================================================== -->
+
+      <div id="categoryTabShell" class="category-tab-shell no-print" hidden>
+        <div id="categoryTabs" class="category-tabs" role="tablist" aria-label="Current category pages"></div>
+      </div>
+
+
+      <!-- Scrollable Continuous Stage -->
+      <div class="workspace-scroll" id="printableDocArea">
+
+        <!-- -------------------------------------------------------------------- -->
+        <!-- SUB-MODULE MOUNT POINT: TRANSACTIONS                                 -->
+        <!-- Dynamic mount point for transactions.html (Journal, New & Archive)    -->
+        <!-- -------------------------------------------------------------------- -->
+        <div id="transactions-module" class="app-module" data-module="transactions">
+          <div id="transactions-container">
+<!-- ============================================================================== -->
+<!-- HTML SUB-MODULE: TRANSACTIONS (JOURNAL, NEW, ARCHIVE, VOIDED)                  -->
+<!-- Self-contained module holding the Journal Post form, History log, & archives.  -->
+<!-- ============================================================================== -->
+
+<!-- ---------------------------------------------------------------------------- -->
+<!-- TAB 1: JOURNAL ENTRY MODULE & AUDIT LOG                                      -->
+<!-- ---------------------------------------------------------------------------- -->
+<div id="journal" class="tab-content">
+
+<!-- CARD 1: POST GENERAL JOURNAL ENTRY -->
+<section class="je-card no-print" id="journalEntry98">
+  <div class="je-card-header">
+    <div>
+      <h3 class="je-title">Post Double-Entry Transaction</h3>
+      <p class="je-subtitle">Currency follows the selected account.</p>
+    </div>
+    <div class="je-header-actions">
+      <span class="je-auto-id" id="jeNextIdDisplay">Entry ID: Auto</span>
+      <button type="button" class="je-btn je-btn-secondary" onclick="openTemplateManager()">Templates</button>
+      <button type="button" class="je-btn je-btn-secondary" onclick="createTemplateFromCurrent()">+ Create Template</button>
+    </div>
+  </div>
+
+  <!-- Meta Controls: General Memo & Transaction Date -->
+  <div class="je-meta-grid">
+    <div class="je-field-group transaction-date-field">
+      <div class="je-label-row"><label class="multi-date-toggle"><input type="checkbox" id="jeMultipleDates" onchange="setJournalDateMode(this.checked)"> Multiple</label><input type="radio" name="journalDateMode" id="jeSingleDate" checked hidden aria-hidden="true" tabindex="-1"></div>
+      <input type="date" id="jeTransDate" class="je-input default-today" onclick="if(this.showPicker) this.showPicker();" />
+    </div>
+    <div class="je-field-group" style="flex: 1;">
+      <label for="jeGeneralMemo">General Description / Memo *:</label>
+      <input type="text" id="jeGeneralMemo" class="je-input" placeholder="e.g., Daily register cash closeout & food sales allocation..." />
+    </div>
+  </div>
+
+  <!-- Dynamic Input Table (Adapts to Active Currencies) -->
+  <div class="table-container">
+    <table class="je-table">
+      <thead>
+        <tr id="jeHeaderRow">
+          <th style="width: 28%;">Account</th>
+          <th style="width: 32%;">Line Memo / Reference</th>
+          <th class="num" style="width: 120px;">Debit (Debit)</th>
+          <th class="num" style="width: 120px;">Credit-LAK</th>
+          <th class="num" style="width: 120px;">Credit-USD</th>
+          <th class="num" style="width: 120px;">Credit-THB</th>
+          <th class="action-col no-print" style="width: 64px; text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="jeLinesBody">
+        <!-- Two starter rows are present by default; script.js rebuilds them with live account/currency controls. -->
+        <tr class="journal-starter-fallback"><td colspan="7" style="padding:10px;color:#64748b;">Loading entry rows…</td></tr>
+        <tr class="journal-starter-fallback"><td colspan="7" style="padding:10px;color:#64748b;">Loading entry rows…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="je-actions-bar">
+    <div class="entry-actions1444" style="display: flex; gap: 8px;">
+      <button type="button" class="je-btn je-btn-secondary" onclick="addJournalLineRow()">+ Add Row</button>
+      <button type="button" class="je-btn je-btn-secondary" onclick="clearJournalEntry()">↺ Reset</button>
+    </div>
+    <div class="je-actions-right">
+      <span id="jeBalanceIndicator" class="je-status-badge balanced">Balanced</span>
+      <button type="button" id="btnPostJournal" class="je-btn je-btn-emerald" onclick="submitJournalEntry()">Post Entry</button>
+    </div>
+  </div>
+</section>
+
+<section id="reopenedBooks" hidden></section>
+<!-- CARD 2: ACTIVE JOURNAL -->
+<section class="je-card">
+  <div class="je-card-header" style="margin-bottom: 12px;">
+    <div>
+      <h3 class="je-title">Active Journal</h3>
+      <p class="je-subtitle">Open transactions awaiting period review and closing. Reopened books appear separately above.</p>
+    </div>
+  </div>
+
+  <div class="je-filter-toolbar no-print">
+    <div class="je-field-group" style="flex: 2;">
+      <label for="jeSearchInput">Search Journal:</label>
+      <input type="text" id="jeSearchInput" class="je-input" placeholder="Search by account name, memo, or Entry ID..." oninput="filterJournalHistory()" />
+    </div>
+  </div>
+
+  <!-- Unified Master Table for Journal History -->
+  <div class="table-container">
+    <table class="clustered-journal-table" id="tblJournalHistory">
+      <thead>
+        <tr class="general-master-header" id="thJournalHistoryRow">
+<th style="width: 100px;">Date</th>
+          <th style="width: 130px;">Entry ID</th>
+          <th style="width: 200px;">Account</th>
+          <th style="width: 260px;">Memo / Reference</th>
+          <th class="num" style="width: 110px;">Debit</th>
+          <th class="num" style="width: 110px;">Credit-LAK</th>
+          <th class="num" style="width: 110px;">Credit-USD</th>
+          <th class="num" style="width: 110px;">Credit-THB</th>
+          <th class="action-col no-print" style="width: 64px; text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody id="tblJournalHistoryBody">
+        <!-- Injected dynamically via transactions.js -->
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</div>
+
+<!-- ---------------------------------------------------------------------------- -->
+<!-- TAB 2: NEW TRANSACTIONS (CURRENT MONTH ONLY)                                 -->
+<!-- ---------------------------------------------------------------------------- -->
+<div id="transactions-all" class="tab-content">
+<div class="je-card">
+  <div class="je-card-header">
+    <div>
+      <h3 class="je-title">Transaction History</h3>
+      <p class="je-subtitle">Closed records grouped by year and month, with linked review findings and adjustments.</p>
+    </div>
+  </div>
+  <div class="table-container">
+    <table class="clustered-journal-table" id="tblAllTransactions">
+      <thead>
+        <tr class="general-master-header" id="thAllTransRow">
+          <!-- Populated dynamically via transactions.js -->
+        </tr>
+      </thead>
+      <tbody id="allTransactionsBody">
+        <!-- Populated dynamically via transactions.js -->
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ---------------------------------------------------------------------------- -->
+<!-- TAB 4: VOIDED & MODIFIED TRANSACTIONS AUDIT                                  -->
+<!-- ---------------------------------------------------------------------------- -->
+<div id="transactions-voided" class="tab-content">
+<div class="je-card">
+  <div class="je-card-header">
+    <div>
+      <h3 class="je-title">Transaction Audit Log</h3>
+      <p class="je-subtitle">Chronological log of edits, voids, reviews, and adjustments.</p>
+    </div>
+  </div>
+  <div class="table-container">
+    <table class="clustered-journal-table" id="tblVoidedTransactions">
+      <thead>
+        <tr class="general-master-header" id="thVoidedTransRow">
+          <!-- Populated dynamically via transactions.js -->
+        </tr>
+      </thead>
+      <tbody id="voidedTransactionsBody">
+        <!-- Populated dynamically via transactions.js -->
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- PERIOD REVIEW & CLOSING -->
+<div id="period-review" data-module="transactions" class="tab-content">
+  <div class="period-review-shell">
+  <div class="period-review-toolbar">
+    <div>
+      <h3 class="je-title">Period Review & Closing</h3>
+      <p class="je-subtitle">Review a month, record findings, and post traceable adjustments.</p>
+    </div>
+    <div class="period-review-picker">
+      <label for="periodReviewMonth105">Period</label>
+      <input id="periodReviewMonth105" type="month" min="2000-01" max="2100-12" required onchange="selectReviewPeriod(this.value)">
+    </div>
+    <button type="button" id="yearClose136" class="je-btn je-btn-danger" onclick="workflow136.yearClose()">Close Year &amp; Carry Forward</button>
+  </div>
+
+  <div id="periodReviewUnavailable" class="period-review-unavailable" hidden>
+    This period is open. Review its transactions in Active Journal and its balances in Accounts before closing the month.
+  </div>
+
+  <div class="period-summary-grid">
+    <div class="period-summary-card"><span>Status</span><strong id="periodReviewStatus">OPEN</strong></div>
+    <div class="period-summary-card"><span>Journal Entries</span><strong id="periodReviewEntries">0</strong></div>
+    <div class="period-summary-card"><span>Open Findings</span><strong id="periodReviewOpenFindings">0</strong></div>
+    <div class="period-summary-card"><span>Total Debits</span><strong id="periodReviewDebits">0.00</strong></div>
+    <div class="period-summary-card"><span>Total Credits</span><strong id="periodReviewCredits">0.00</strong></div>
+  </div>
+
+  <section class="je-card review-findings70">
+    <div class="je-card-header">
+      <div><h3 class="je-title">Review Findings</h3></div>
+      
+    </div>
+    <form id="periodFindingForm" class="period-finding-form" onsubmit="savePeriodFinding(event)">
+      <div class="settings-form-grid">
+        <div class="settings-field"><label>Related Transaction</label><select id="findingTransactionId" class="je-select"><option value="">General period finding</option></select></div>
+        <div class="settings-field"><label>Finding Type</label><select id="findingType" class="je-select"><option value="classification">Wrong Classification</option><option value="amount">Incorrect Amount</option><option value="missing">Missing Entry</option><option value="document">Missing Document</option><option value="other">Other</option></select></div>
+        <div class="settings-field span-2"><label>Finding *</label><textarea id="findingDescription" class="je-input" rows="3" required></textarea></div>
+      </div>
+      <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="closePeriodFindingForm()">Clear</button><button type="submit" class="je-btn je-btn-emerald">Save Finding</button></div>
+    </form>
+    <div id="periodFindingsList" hidden></div>
+  </section>
+
+  <section class="je-card">
+    <div class="je-card-header"><div><h3 class="je-title">Period Transactions</h3></div></div>
+    <div class="table-container"><table class="clustered-journal-table period-review-table"><thead><tr class="general-master-header"><th>Date</th><th>Entry ID</th><th>Account</th><th>Memo / Reference</th><th class="num">Debit</th><th class="num">Credit</th><th class="action-col">Action</th></tr></thead><tbody id="periodTransactionsBody"></tbody></table></div>
+  </section>
+
+  <div class="period-closing-bar">
+    <span id="periodClosingMessage">Open periods accept normal postings.</span>
+    <div><button type="button" class="je-btn je-btn-secondary" onclick="changePeriodStatus('open')">Reopen</button><button type="button" class="je-btn je-btn-danger" onclick="changePeriodStatus('locked')">Lock</button></div>
+  </div>
+  </div>
+</div>
+
+<!-- ============================================================================== -->
+<!-- MODAL: TRANSACTION MODIFICATION / OVERRIDE REASON                              -->
+<!-- ============================================================================== -->
+<div id="modalEditReason" class="modal-backdrop">
+<div class="modal-dialog modal-center">
+  <div class="modal-header">
+    <h4 style="color: #064e3b;">Reason for Transaction Modification</h4>
+    <button type="button" class="modal-close-x" onclick="closeModal('modalEditReason')">&times;</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size: 12.5px; color: #475569; margin-bottom: 12px;">
+      Provide the reason for modifying this posted transaction. The original record and this explanation will be logged to the <strong>Transaction Audit Log</strong>.
+    </p>
+    <div class="je-field-group">
+      <label for="txtEditReason">Explanation / Cause *</label>
+      <textarea id="txtEditReason" class="je-input" rows="4" placeholder="e.g., Reallocating dining receipts from food revenue to bar revenue..." required></textarea>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalEditReason')">Cancel</button>
+    <button type="button" class="je-btn je-btn-emerald" onclick="confirmEntryOverride()">Apply & Override</button>
+  </div>
+</div>
+</div>
+<!-- ============================================================================== -->
+
+<!-- UNIVERSAL RED VOID CONFIRMATION -->
+<div id="modalVoidTransaction" class="modal-backdrop">
+  <div class="modal-dialog modal-center universal-danger-dialog">
+    <div class="modal-header universal-danger-header">
+      <div><h4>Void Transaction</h4><p id="voidTransactionCaption">The original record will remain in the audit trail.</p></div>
+      <button type="button" class="modal-close-x" onclick="closeVoidTransactionModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="danger-modal-note">Voiding does not delete the transaction. Its original details, reason, user, and date will remain available for review.</div>
+      <div class="je-field-group">
+        <label for="voidTransactionReason">Reason for voiding *</label>
+        <textarea id="voidTransactionReason" class="je-input" rows="4" placeholder="Explain why this transaction must be voided." required></textarea>
+      </div>
+      <div id="voidTransactionError" class="danger-modal-error"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="je-btn je-btn-secondary" onclick="closeVoidTransactionModal()">Cancel</button>
+      <button type="button" class="je-btn je-btn-danger" onclick="confirmVoidTransaction()">Void Transaction</button>
+    </div>
+  </div>
+</div>
+<!-- ============================================================================== -->
+          </div>
+        </div>
+
+<!-- ============================================================================== -->
+<!-- HTML 3: CONTINUOUS ACCOUNTS WORKSPACE (MODULES 1 TO 4)                         -->
+<!-- Master list of accounts, parent-linked sub-accounts, and general ledgers.     -->
+<!-- ============================================================================== -->
+        <div id="accounts-modular-container" class="tab-content app-module" data-module="accounts">
+
+          <!-- MODULE 1 — CHART OF ACCOUNTS -->
+          <section id="sec-chart-accounts" class="module-card">
+            <div class="card-header-flex">
+              <div>
+                <h3 class="card-title">Chart of Accounts</h3>
+                <p class="card-subtitle">Master list of general ledger accounts organized by classification and currency.</p>
+              </div>
+              <div class="coa-toolbar">
+                <div class="coa-filter-box coa-search1439">
+                  <label for="searchCoa1439">Search accounts</label>
+                  <input id="searchCoa1439" type="search" placeholder="Search code, name, currency, type or description" oninput="renderChartOfAccountsTable()">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="openAddAccountModal()">+ ADD ACCOUNT</button>
+                <button type="button" id="openingBalances14234" class="btn btn-primary" hidden>Opening Balances</button>
+              </div>
+            </div>
+
+            <div class="table-container">
+              <table id="tblChartOfAccounts">
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Account Code</th>
+                    <th style="width: 250px;">Account Name</th>
+                    <th style="width: 110px;">Currency</th>
+                    <th style="width: 130px;">Account Type</th>
+                    <th>Description</th>
+                    <th style="width: 90px; text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="coaTableBody">
+                  <!-- Populated dynamically via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- MODULE 2 — SUB-ACCOUNTS -->
+          <section id="sec-sub-accounts" class="module-card">
+            <div class="card-header-flex">
+              <div>
+                <h3 class="card-title">Sub-accounts</h3>
+                <p class="card-subtitle">Detailed child accounts mapped to parent accounts for granular reporting.</p>
+              </div>
+              <button type="button" class="btn btn-primary" onclick="openAddSubAccountModal()">+ ADD SUB-ACCOUNT</button>
+            </div>
+
+            <div class="table-container">
+              <table id="tblSubAccounts">
+                <thead>
+                  <tr>
+                    <th style="width: 240px;">Parent Account</th>
+                    <th style="width: 160px;">Sub-Account Code</th>
+                    <th style="width: 260px;">Sub-Account Name</th>
+                    <th>Description</th>
+                    <th style="width: 100px; text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="subAccountTableBody">
+                  <!-- Populated dynamically via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- MODULE 3 — GENERAL LEDGER PREVIEW -->
+          <section id="sec-general-ledger" class="module-card"><div id="ledger69"></div></section>
+
+          <!-- MODULE 4 — OTHER ACCOUNT SECTIONS -->
+          <section id="sec-other-accounts" class="module-card" hidden><div id="otherAccounts69"></div></section>
+
+        </div>
+<!-- ============================================================================== -->
+
+
+<!-- ============================================================================== -->
+<!-- HTML 4: SETTINGS MODULES (MULTI-CURRENCY PRESERVED IN MAIN)                     -->
+<!-- Configures business identity and currency manager for general ledgers.         -->
+<!-- ============================================================================== -->
+        <div id="settingsTabShell" class="settings-browser-shell no-print" hidden>
+          <div class="settings-browser-tabs" role="tablist" aria-label="Settings categories">
+            <button type="button" class="settings-browser-tab" data-settings-target="settings-business" onclick="switchTab('settings-business')">Business Information</button>
+            <button type="button" class="settings-browser-tab" data-settings-target="settings-users" onclick="switchTab('settings-users')">Users &amp; Permissions</button>
+            <button type="button" class="settings-browser-tab" data-settings-target="settings-accounting" onclick="switchTab('settings-accounting')">Accounting</button>
+            <button type="button" class="settings-browser-tab" data-settings-target="settings-payroll" onclick="switchTab('settings-payroll')">Payroll</button>
+            <button type="button" class="settings-browser-tab" data-settings-target="settings-tax" onclick="switchTab('settings-tax')">Statutory</button>
+            <button type="button" class="settings-browser-tab" data-settings-target="settings-system" onclick="switchTab('settings-system')">System</button>
+          </div>
+        </div>
+        <!-- SETTINGS: ACCOUNTING (MULTI-CURRENCY MANAGER) -->
+        <div id="settings-accounting" data-module="settings" class="tab-content">
+          <div class="je-card">
+            <div class="je-card-header">
+              <div>
+                <h3 class="je-title">Accounting <button type="button" class="setting-help" onclick="openSettingHelp('accounting-settings')" aria-label="Explain Accounting Settings">*</button></h3>
+              </div>
+            </div>
+
+            <form class="settings-compact-block app-settings-form" data-settings-group="accounting">
+              <div class="settings-mini-header"><div><h4>Accounting Defaults</h4><p>Controls the starting values used by journals and reporting.</p></div></div>
+              <div class="settings-compact-grid cols-3">
+                <div class="settings-field"><label>Base Currency</label><select class="je-select settings-currency-select" name="baseCurrency"><option value="LAK">LAK</option></select></div>
+                <div class="settings-field"><label>Fiscal Year Starts</label><select class="je-select" name="fiscalYearStart"><option value="01">January</option><option value="04">April</option><option value="07">July</option><option value="10">October</option></select></div>
+                <div class="settings-field"><label>Main Journal Prefix</label><input class="je-input" name="journalPrefix" maxlength="8" placeholder="JRN"></div>
+
+                <div class="settings-field"><label>Main Entry Number Digits</label><select class="je-select" name="journalDigits"><option value="3">3 — 001</option><option value="4">4 — 0001</option><option value="5">5 — 00001</option><option value="6">6 — 000001</option></select></div>
+
+                <div class="settings-field"><label>Default Cash Account</label><input class="je-input" name="defaultCashAccount" placeholder="Cash on Hand"></div>
+                <div class="settings-field"><label>Default Bank Account</label><input class="je-input" name="defaultBankAccount" placeholder="BCEL Bank"></div>
+                <div class="settings-field"><label>Exchange Rates</label><select class="je-select" name="exchangeRatePolicy"><option value="manual">Enter manually</option><option value="daily">One daily rate</option><option value="transaction">Rate per transaction</option></select></div>
+                <div class="settings-field"><label>Amount Decimals</label><select class="je-select" name="decimalPlaces"><option value="0">0</option><option value="2">2</option><option value="4">4</option></select></div>
+
+              </div>
+              <div class="settings-form-actions compact-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('accounting')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Accounting Defaults</button></div>
+            </form>
+
+            <div class="settings-mini-header currency-manager-heading"><div><h4>Currency Manager</h4><p>Add only currencies used by Oon Jai accounts or transactions.</p></div></div>
+
+            <div class="currency-add-bar">
+              <div class="je-field-group" style="width: 140px;">
+                <label for="newCurrencyCode">Currency Code *</label>
+                <input type="text" id="newCurrencyCode" class="je-input" placeholder="e.g., CNY, EUR" maxlength="3" pattern="[A-Za-z]{3}" inputmode="text" autocomplete="off" style="text-transform: uppercase;" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,3)" />
+              </div>
+              <div class="je-field-group" style="flex: 1;">
+                <label for="newCurrencyName">Currency Name *</label>
+                <input type="text" id="newCurrencyName" class="je-input" placeholder="e.g., Chinese Yuan, Euro" />
+              </div>
+              <div class="je-field-group" style="width: 120px;">
+                <label for="newCurrencySymbol">Symbol</label>
+                <input type="text" id="newCurrencySymbol" class="je-input" placeholder="e.g., ¥, €" />
+              </div>
+              <button type="button" class="je-btn je-btn-emerald" style="margin-top: auto;" onclick="handleAddCurrency()">+ Add Currency</button>
+            </div>
+
+            <div class="table-container" style="margin-top: 16px;">
+              <table class="je-table">
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Code</th>
+                    <th>Currency Name</th>
+                    <th style="width: 100px;">Symbol</th>
+                    <th style="width: 160px;">Status</th>
+                    <th style="width: 120px; text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="currencyTableBody">
+                  <!-- Injected via script.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SETTINGS: BUSINESS INFORMATION -->
+        <div id="settings-business" data-module="settings" class="tab-content">
+          <form id="businessSettingsForm" onsubmit="saveBusinessSettings(event)" novalidate>
+            <section class="settings-section-card">
+              <div class="settings-section-header">
+              <div><h4>Company Identity <button type="button" class="setting-help" onclick="openSettingHelp('company-identity')" aria-label="Explain Company Identity">*</button></h4></div>
+              </div>
+              <div class="settings-form-grid business-identity-grid">
+                <div class="settings-field"><label for="settingLegalName">Registered Legal Name <span>*</span></label><input class="je-input" type="text" id="settingLegalName" placeholder="Enter registered legal name" required></div>
+                <div class="settings-field"><label for="settingCompanyName">Trading / Display Name <span>*</span></label><input class="je-input" type="text" id="settingCompanyName" placeholder="Enter trading or display name" required></div>
+                <div class="settings-field"><label for="settingEnterpriseNo">Enterprise Registration No.</label><input class="je-input" type="text" id="settingEnterpriseNo" placeholder="Registration number"></div>
+                <div class="settings-field"><label for="settingTaxId">Tax Identification No.</label><input class="je-input" type="text" id="settingTaxId" placeholder="Tax ID / TIN"></div>
+                <div class="settings-field"><label for="settingBusinessLicense">Business License No.</label><input class="je-input" type="text" id="settingBusinessLicense" placeholder="License number"></div>
+                <div class="settings-field"><label for="settingIndustry">Business Type</label><input class="je-input" type="text" id="settingIndustry" placeholder="Industry or business type"></div>
+              </div>
+            </section>
+
+            <section class="settings-section-card">
+              <div class="settings-section-header"><div><h4>Contact & Address</h4></div></div>
+              <div class="settings-form-grid contact-address-grid">
+                <div class="settings-field"><label for="settingPhone">Phone Number</label><input class="je-input" type="tel" id="settingPhone" placeholder="+856 ..."></div>
+                <div class="settings-field"><label for="settingEmail">Business Email</label><input class="je-input" type="email" id="settingEmail" placeholder="name@example.com"></div>
+                <div class="settings-field"><label for="settingWebsite">Website / Social Page</label><input class="je-input" type="url" id="settingWebsite" placeholder="https://..."></div>
+                <div class="settings-field"><label for="settingAddress1">Street Address <span>*</span></label><input class="je-input" type="text" id="settingAddress1" placeholder="Street, village, or building" required></div>
+                <div class="settings-field-pair"><div class="settings-field"><label for="settingCity">City / Province</label><input class="je-input" type="text" id="settingCity" placeholder="City or province"></div><div class="settings-field"><label for="settingPostalCode">Postal Code</label><input class="je-input" type="text" id="settingPostalCode" inputmode="numeric" placeholder="Optional"></div></div>
+                <div class="settings-field-pair"><div class="settings-field"><label for="settingCountry">Country</label><select class="je-select" id="settingCountry"><option value="Laos">Laos</option><option value="Philippines">Philippines</option><option value="Thailand">Thailand</option><option value="Other">Other</option></select></div><div class="settings-field"><label for="settingTimezone">Time Zone</label><select class="je-select" id="settingTimezone"><option value="Asia/Vientiane">Asia/Vientiane (UTC+7)</option><option value="Asia/Manila">Asia/Manila (UTC+8)</option><option value="Asia/Bangkok">Asia/Bangkok (UTC+7)</option></select></div></div>
+              </div>
+            </section>
+
+            <section class="settings-section-card">
+              <div class="settings-section-header legal-docs-header">
+                <div><h4>Current Legal Documents <button type="button" class="setting-help" onclick="openSettingHelp('legal-documents')" aria-label="Explain Current Legal Documents">*</button></h4></div>
+                <label class="je-btn je-btn-emerald legal-upload-button" for="legalDocumentInput" title="Upload legal documents">Upload</label>
+              </div>
+              <input type="file" id="legalDocumentInput" class="visually-hidden" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="uploadLegalDocuments(event)">
+              <div class="legal-doc-note">Maximum 10 MB per file.</div>
+              <div id="legalDocumentsStatus" class="legal-doc-status" aria-live="polite"></div>
+              <div id="legalDocumentsList" class="legal-documents-list"><div class="legal-doc-empty">No legal documents uploaded yet.</div></div>
+            </section>
+
+            <div class="settings-action-bar">
+              <div class="settings-action-spacer"></div>
+              <div><button type="button" class="je-btn je-btn-secondary" onclick="reloadBusinessSettings(true)" title="Discard unsaved changes">Reset</button><button type="submit" class="je-btn je-btn-emerald" title="Save business information">Save</button></div>
+            </div>
+          </form>
+        </div>
+
+        <!-- OTHER APPLICATION TAB PLACEHOLDERS -->
+        <div id="entry-submissions" data-module="submissions" class="tab-content">
+          <div class="settings-page-heading"><div><h3>My Transaction Journal</h3><p>Post individual entries to the monthly summary, then submit the complete summary for review.</p></div><span class="settings-saved-badge" id="staffJournalStatusBadge">Draft</span></div>
+          <section class="je-card">
+            <div class="staff-journal-topbar">
+              <div class="settings-field"><label for="staffJournalPeriod">Journal Period</label><input id="staffJournalPeriod" class="je-input" type="month" onchange="openStaffJournalPeriod(this.value)" onclick="if(this.showPicker)this.showPicker()"></div>
+              <div class="settings-field"><label for="staffJournalMemo">General Description / Memo</label><input id="staffJournalMemo" class="je-input" placeholder="Optional monthly memo or reference"></div>
+            </div>
+            <div class="table-container staff-journal-table-wrap"><table class="je-table staff-journal-table"><thead><tr id="staffEntryHeader"></tr></thead><tbody id="staffJournalEntryBody"></tbody></table></div>
+            <div class="staff-journal-actions"><span id="staffJournalSaveStatus"></span><div><button type="button" class="je-btn je-btn-emerald" onclick="postStaffEntry()">Post Entry</button></div></div>
+          </section>
+          <section class="je-card"><div class="je-card-header"><div><h3 class="je-title">Journal Summary</h3><p class="je-subtitle">All entries posted for the selected period.</p></div><button type="button" class="je-btn je-btn-emerald" id="staffSubmitSummaryButton" onclick="submitStaffJournal()">Submit for Review</button></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="staffSummaryHeader"></tr></thead><tbody id="staffJournalSummary"></tbody></table></div></section>
+          <section class="je-card"><div class="je-card-header"><div><h3 class="je-title">Submitted Journals</h3><p class="je-subtitle">Your submitted, returned, and posted journals remain available here.</p></div></div><div id="staffSubmittedHistory" class="staff-submitted-history"></div></section>
+        </div>
+
+        <div id="sub-users-workspace" data-module="sub-users" class="tab-content">
+          <div class="sub-user-tabs-shell no-print">
+            <div id="subUserWorkspaceTabs" class="sub-user-browser-tabs" role="tablist" aria-label="Open sub-user workspaces"></div>
+          </div>
+          <section id="subUserWorkspacePanel" class="settings-section-card sub-user-workspace-panel">
+            <div class="sub-user-empty-state">Search for a sub-user in the Home tab.</div>
+          </section>
+        </div>
+
+        <div id="user-entry-review" data-module="transactions" class="tab-content">
+          <div class="settings-page-heading"><div><h3>Entry Submission Review</h3><p>Review sub-user submissions and fund adjustments before anything reaches the official ledger.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="toggleSubmissionHistory()">History</button></div>
+          <div id="userEntryReviewSummary" class="user-review-summary"></div>
+          <div id="userEntryReviewCards" class="submission-review-cards"></div>
+          <section id="userEntryHistoryPanel" class="settings-section-card submission-history-panel" hidden><div class="settings-section-header"><div><h4>Submission History</h4><p>Posted, returned, and adjusted batches remain available for comparison and audit.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="toggleSubmissionHistory(false)">Close History</button></div><div id="userEntryHistoryCards" class="submission-review-cards"></div></section>
+        </div>
+
+        <div id="dashboard" data-module="dashboard" class="tab-content active"><div class="dash-loading112">Loading dashboard…</div></div>
+        <div id="transactions-recurring" data-module="transactions" class="tab-content">
+  <div class="je-card no-print">
+    <div class="je-card-header">
+      <div>
+        <h3 class="je-title">Add Upcoming Transaction</h3>
+        <p class="je-subtitle">Schedule a one-time or recurring obligation and receive advance reminders.</p>
+      </div>
+    </div>
+    <div class="recurring-form-grid">
+      <div class="je-field-group"><label>Transaction Type *</label><select id="recurringType" class="je-select" onchange="updateUpcomingTypeFields()"><option value="recurring" selected>Recurring</option><option value="one-time">One-Time</option></select></div>
+      <div class="je-field-group"><label>Description / Memo *</label><input id="recurringMemo" class="je-input" type="text" placeholder="e.g., Monthly facility rent"></div>
+      <div class="je-field-group" id="recurringFrequencyGroup"><label>Frequency *</label><select id="recurringFrequency" class="je-select"><option>Weekly</option><option selected>Monthly</option><option>Quarterly</option><option>Yearly</option><option>Custom</option></select></div>
+      <div class="je-field-group"><label>Next Due Date *</label><input id="recurringNextDate" class="je-input" type="date" onclick="if(this.showPicker) this.showPicker();"></div>
+      <div class="je-field-group"><label>Amount</label><input id="recurringAmount" class="je-input" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="je-field-group"><label>Currency</label><select id="recurringCurrency" class="je-select"><option>LAK</option><option>USD</option><option>THB</option></select></div>
+      <div class="je-field-group"><label>Reference</label><input id="recurringReference" class="je-input" type="text" placeholder="Optional reference"></div>
+    </div>
+    <div class="reminder-builder">
+      <div>
+        <strong>Reminder Warnings</strong>
+        <div class="je-subtitle">You may use more than one warning for the same upcoming item.</div>
+      </div>
+      <div class="reminder-row">
+        <input id="reminderCount" type="number" min="1" value="2">
+        <select id="reminderUnit"><option value="days">Days before</option><option value="weeks" selected>Weeks before</option><option value="months">Months before</option></select>
+        <button type="button" class="je-btn je-btn-secondary" onclick="addPendingReminder()">+ Add Warning</button>
+      </div>
+      <div id="pendingReminderList" class="reminder-chip-list"></div>
+    </div>
+    <div class="je-actions-bar">
+      <span class="je-subtitle">Warnings remain active until the item is marked Paid.</span>
+      <div class="upcoming-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetRecurringForm()">Clear</button><button type="button" class="je-btn je-btn-emerald" onclick="saveRecurringTransaction()">Save Transaction</button></div>
+    </div>
+  </div>
+
+  <div class="je-card">
+    <div class="je-card-header">
+      <div><h3 class="je-title">Upcoming Transactions</h3><p class="je-subtitle">One-time and recurring obligations, newest records first.</p></div>
+    </div>
+    <div class="table-container">
+      <table class="clustered-journal-table" id="tblRecurringTransactions">
+        <thead><tr class="general-master-header"><th>Next Due</th><th>Schedule</th><th>Description / Memo</th><th class="num">Amount</th><th>Warnings</th><th>Status</th><th class="action-col upcoming-action-col no-print">Action</th></tr></thead>
+        <tbody id="tblRecurringTransactionsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="trial-balance" class="tab-content"><div id="trial69" class="je-card"></div></div>
+        <div id="account-balances" class="tab-content"><div id="balances69" class="je-card"></div></div>
+  <div id="report-subusers82" data-module="reports" class="tab-content"></div>
+  <div id="report-financing82" data-module="reports" class="tab-content"></div>
+  <div id="settings-integration82" data-module="settings" class="tab-content"></div>
+        <div id="payroll-overview" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Overview.</div></div>
+        <div id="payroll-employees" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Employees.</div></div>
+        <div id="payroll-entries" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Entries.</div></div>
+<div id="hr-contracts" data-module="hr" class="tab-content"></div>
+<div id="hr-attendance" data-module="hr" class="tab-content"></div>
+<div id="hr-leave" data-module="hr" class="tab-content"></div>
+<div id="hr-assessments" data-module="hr" class="tab-content"></div>
+        <div id="payroll-history" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Salary History.</div></div>
+        <div id="payroll-deductions" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Deductions.</div></div>
+        <div id="report-pl" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Profit and Loss.</div></div>
+        <div id="report-bs" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Balance Sheet.</div></div>
+        <div id="report-cf" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Cash Flow.</div></div>
+        <div id="report-tb" data-module="reports" class="tab-content"><div class="je-card"><div class="je-card-header"><h3>Trial Balance Report</h3><button class="je-btn je-btn-emerald" onclick="switchTab('trial-balance')">Open Trial Balance</button></div><p style="padding:12px">Use the Accounts Trial Balance filters and export to review the same posted records.</p></div></div>
+        <div id="report-reconciliation" data-module="reports" class="tab-content"><section class="module-card" id="reconciliationList71"></section></div>
+<div id="report-gl" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for General Ledger.</div></div>
+        <div id="report-activity" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Account Activity.</div></div>
+        <div id="report-expense" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Expense Report.</div></div>
+        <div id="report-payroll" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Payroll Report.</div></div>
+        <div id="tax-overview" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Tax Overview</h3></div><div class="placeholder-warning">No tax overview data available yet.</div></section></div>
+        <div id="tax-vat" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>VAT</h3></div><div class="placeholder-warning">No VAT data available yet.</div></section></div>
+        <div id="tax-pit" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Personal Income Tax</h3></div><div class="placeholder-warning">No personal income tax data available yet.</div></section></div>
+        <div id="tax-social" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Social Security</h3></div><div class="placeholder-warning">No social security data available yet.</div></section></div>
+        <div id="tax-payment" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Tax and Social Payment</h3></div><div class="placeholder-warning">No tax and social payment data available yet.</div></section></div>
+        <div id="tax-sso-payment" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>SSO Payment</h3></div><div class="placeholder-warning">No SSO payment data available yet.</div></section></div>
+        <div id="tax-records" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Tax and SSO Records</h3></div><div class="placeholder-warning">No tax and SSO records available yet.</div></section></div>
+
+        <div id="settings-users" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>Users and Permissions <button type="button" class="setting-help" onclick="openSettingHelp('users-permissions')" aria-label="Explain Users and Permissions">*</button></h3></div><button type="button" class="je-btn je-btn-emerald" onclick="openUserAccessEditor()">+ Add Sub-user</button></div>
+          <div class="settings-compact-note">Each sub-user receives an individual login and sees only the modules granted by an administrator.</div>
+          <section class="settings-section-card"><div class="settings-section-header"><div><h4>Current Users</h4></div></div><div id="demoUsersList" class="demo-users-list"></div></section>
+        </div>
+        <div id="settings-payroll" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>Payroll <button type="button" class="setting-help" onclick="openSettingHelp('payroll-settings')" aria-label="Explain Payroll Settings">*</button></h3></div></div>
+          <form class="settings-section-card app-settings-form" data-settings-group="payroll">
+            <div class="settings-compact-grid cols-3">
+              <div class="settings-field"><label>Pay Frequency</label><select class="je-select" name="payFrequency"><option value="monthly">Monthly</option><option value="semi-monthly">Twice Monthly</option><option value="biweekly">Every Two Weeks</option><option value="weekly">Weekly</option></select></div>
+              <div class="settings-field"><label>Default Currency</label><select class="je-select settings-currency-select" name="payCurrency"><option value="LAK">LAK</option><option value="USD">USD</option><option value="THB">THB</option></select></div>
+              <fieldset class="settings-field payroll-currency-field"><legend>Enabled Payroll Currencies</legend><div class="payroll-currency-options"><label><input type="checkbox" name="payCurrencyLAK" checked> LAK</label><label><input type="checkbox" name="payCurrencyUSD" checked> USD</label><label><input type="checkbox" name="payCurrencyTHB" checked> THB</label></div></fieldset>
+              <div class="settings-field"><label>Standard Hours per Week</label><input class="je-input" name="weeklyHours" type="number" min="1" max="168" value="40"></div>
+              <div class="settings-field"><label>Working Days per Month</label><input class="je-input" name="workDaysMonth" type="number" min="1" max="31" value="26"></div>
+              <div class="settings-field"><label>Hours per Working Day</label><input class="je-input" name="hoursPerDay" type="number" min="1" max="24" step="0.5" value="8"></div>
+              <div class="settings-field"><label>Overtime Multiplier</label><input class="je-input" name="overtimeRate" type="number" min="1" step="0.01" value="1.5"></div>
+              <div class="settings-field"><label>Payroll Cutoff Day</label><input class="je-input" name="payrollCutoff" type="number" min="1" max="31" value="25"></div>
+              <div class="settings-field"><label>Default Payment Day</label><input class="je-input" name="paymentDay" type="number" min="1" max="31" value="30"></div>
+              <div class="settings-field"><label>Late Grace Period (minutes)</label><input class="je-input" name="lateGraceMinutes" type="number" min="0" max="120" value="5"></div>
+              <div class="settings-field"><label>Employee SSO Rate (%)</label><input class="je-input" name="employeeSsoRate" type="number" min="0" max="100" step="0.1" value="5.5"></div>
+              <div class="settings-field"><label>Employer SSO Rate (%)</label><input class="je-input" name="employerSsoRate" type="number" min="0" max="100" step="0.1" value="6"></div>
+              <div class="settings-field"><label>PIT Sharing</label><select class="je-select" name="pitSharing"><option value="equal">50% employer / 50% employee</option><option value="employee">Employee pays 100%</option><option value="employer">Employer pays 100%</option><option value="custom">Custom per employee</option></select></div>
+            </div>
+            <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('payroll')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Payroll Settings</button></div>
+          </form>
+        </div>
+        <div id="settings-tax" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>Statutory <button type="button" class="setting-help" onclick="openSettingHelp('tax-settings')" aria-label="Explain Statutory Settings">*</button></h3></div></div>
+          <form class="settings-section-card app-settings-form" data-settings-group="tax">
+            <section class="statutory-block"><div class="settings-mini-header"><div><h4>Personal Income Tax Brackets</h4><p>Editable progressive monthly salary brackets. Only the amount inside each bracket uses that bracket’s rate.</p></div></div><div class="table-container"><table class="je-table statutory-bracket-table"><thead><tr><th>Bracket</th><th class="num">From (LAK)</th><th class="num">To (LAK)</th><th class="num">Rate %</th></tr></thead><tbody>
+              <tr><td>Exempt</td><td><input class="je-input" name="pit1From" type="number" value="0"></td><td><input class="je-input" name="pit1To" type="number" value="1300000"></td><td><input class="je-input" name="pit1Rate" type="number" value="0"></td></tr>
+              <tr><td>Bracket 1</td><td><input class="je-input" name="pit2From" type="number" value="1300000"></td><td><input class="je-input" name="pit2To" type="number" value="5000000"></td><td><input class="je-input" name="pit2Rate" type="number" value="5"></td></tr>
+              <tr><td>Bracket 2</td><td><input class="je-input" name="pit3From" type="number" value="5000000"></td><td><input class="je-input" name="pit3To" type="number" value="15000000"></td><td><input class="je-input" name="pit3Rate" type="number" value="10"></td></tr>
+              <tr><td>Bracket 3</td><td><input class="je-input" name="pit4From" type="number" value="15000000"></td><td><input class="je-input" name="pit4To" type="number" value="25000000"></td><td><input class="je-input" name="pit4Rate" type="number" value="15"></td></tr>
+              <tr><td>Bracket 4</td><td><input class="je-input" name="pit5From" type="number" value="25000000"></td><td><input class="je-input" name="pit5To" type="number" value="65000000"></td><td><input class="je-input" name="pit5Rate" type="number" value="20"></td></tr>
+              <tr><td>Bracket 5</td><td><input class="je-input" name="pit6From" type="number" value="65000000"></td><td><input class="je-input" name="pit6To" type="number" placeholder="No maximum"></td><td><input class="je-input" name="pit6Rate" type="number" value="25"></td></tr>
+            </tbody></table></div></section>
+            <section class="statutory-block"><div class="settings-mini-header"><div><h4>Social Security</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Employee Rate (%)</label><input class="je-input" name="ssoEmployeeRate" type="number" step="0.1" value="5.5"></div><div class="settings-field"><label>Employer Rate (%)</label><input class="je-input" name="ssoEmployerRate" type="number" step="0.1" value="6"></div><div class="settings-field"><label>Maximum Contribution Base (LAK)</label><input class="je-input" name="ssoMaxBase" type="number" placeholder="Enter official ceiling"></div><div class="settings-field"><label>SSO Payable Account</label><input class="je-input" name="ssoAccount" value="SSO Payable"></div></div></section>
+            <section class="statutory-block"><div class="settings-mini-header"><div><h4>Value Added Tax</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Standard VAT Rate (%)</label><input class="je-input" name="vatRate" type="number" min="0" max="100" step="0.01" value="10"></div><div class="settings-field"><label>Filing Period</label><select class="je-select" name="filingPeriod"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option></select></div><div class="settings-field"><label>VAT Payable Account</label><input class="je-input" name="vatAccount" value="VAT Payable"></div><div class="settings-field"><label>PIT Payable Account</label><input class="je-input" name="pitAccount" value="PIT Payable"></div></div></section>
+            <section class="statutory-block compliance-reminder-block"><div class="settings-mini-header"><div><h4>Compliance Reminders</h4><p>Set a separate due day and advance warning for each obligation.</p></div></div><div class="settings-compact-grid cols-3 compliance-reminder-grid"><div class="settings-field"><label>PIT Due Day</label><input class="je-input" name="pitDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>SSO Due Day</label><input class="je-input" name="ssoDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>VAT Due Day</label><input class="je-input" name="vatDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>PIT Reminder</label><select class="je-select" name="pitReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div><div class="settings-field"><label>SSO Reminder</label><select class="je-select" name="ssoReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div><div class="settings-field"><label>VAT Reminder</label><select class="je-select" name="vatReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div></div></section>
+            <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('tax')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Statutory Settings</button></div>
+          </form>
+        </div>
+        <div id="settings-print" data-module="settings" class="tab-content">
+  <div class="panel">
+    <div class="panel-header">Printing <button type="button" class="setting-help" onclick="openSettingHelp('printing-settings')" aria-label="Explain Printing Settings">*</button></div>
+    <div class="print-settings-grid">
+      <div class="print-setting-card">
+        <label><strong>Header Image</strong></label>
+        <input type="file" id="printHeaderImageInput" accept="image/*" onchange="handlePrintImageUpload(event, 'header')">
+        <div class="print-image-preview" id="printHeaderPreview">No header image selected.</div>
+        <button type="button" class="je-btn je-btn-secondary" onclick="clearPrintImage('header')">Remove Header</button>
+      </div>
+      <div class="print-setting-card">
+        <label><strong>Footer Image</strong></label>
+        <input type="file" id="printFooterImageInput" accept="image/*" onchange="handlePrintImageUpload(event, 'footer')">
+        <div class="print-image-preview" id="printFooterPreview">No footer image selected.</div>
+        <button type="button" class="je-btn je-btn-secondary" onclick="clearPrintImage('footer')">Remove Footer</button>
+      </div>
+    </div>
+    <form class="settings-print-options settings-compact-block app-settings-form" data-settings-group="printing">
+      <div class="settings-compact-grid cols-3">
+        <div class="settings-field"><label>Paper Size</label><select class="je-select" name="paperSize"><option value="A4">A4</option><option value="Letter">Letter</option><option value="Legal">Legal</option></select></div>
+        <div class="settings-field"><label>Orientation</label><select class="je-select" name="orientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+        <div class="settings-field"><label>Margins</label><select class="je-select" name="marginSize"><option value="narrow">Narrow</option><option value="normal">Normal</option><option value="wide">Wide</option></select></div>
+        <div class="settings-field"><label>Header Placement</label><select class="je-select" name="headerPlacement"><option value="first">First page only</option><option value="all">Every page</option><option value="none">Do not print</option></select></div>
+        <div class="settings-field"><label>Footer Placement</label><select class="je-select" name="footerPlacement"><option value="last">Last page only</option><option value="all">Every page</option><option value="none">Do not print</option></select></div>
+        <div class="settings-field"><label>Page Number Style</label><select class="je-select" name="pageNumberFormat"><option value="page-total">Page 1 of 3</option><option value="page">Page 1</option><option value="number">1</option></select></div>
+        <div class="settings-field"><label>Downloaded File Name</label><select class="je-select" name="fileNamePattern"><option value="report-date">Report name + date</option><option value="business-report-date">Business + report + date</option><option value="report-period">Report name + period</option></select></div>
+        <label class="settings-toggle compact-toggle"><input type="checkbox" name="showBusinessName" checked><span><strong>Show Business Name</strong><small>Display the saved trading name.</small></span></label>
+        <label class="settings-toggle compact-toggle"><input type="checkbox" name="showPageNumbers" checked><span><strong>Show Page Numbers</strong><small>Use the selected number style.</small></span></label>
+      </div>
+      <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('printing')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Printing Settings</button></div>
+    </form>
+  </div>
+</div>
+        <div id="settings-system" data-module="settings" class="tab-content">
+          <div class="settings-page-heading"><div><h3>System <button type="button" class="setting-help" onclick="openSettingHelp('system-settings')" aria-label="Explain System Settings">*</button></h3></div></div>
+          <form class="settings-section-card app-settings-form" data-settings-group="system">
+            <div class="settings-compact-grid cols-3">
+              <div class="settings-field"><label>Date Format</label><select class="je-select" name="dateFormat"><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option></select></div>
+              <div class="settings-field"><label>Number Format</label><select class="je-select" name="numberFormat"><option value="1,234.56">1,234.56</option><option value="1.234,56">1.234,56</option><option value="1 234,56">1 234,56</option></select></div>
+              <div class="settings-field"><label>Inactivity Timeout (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('session-timeout')" aria-label="Explain Inactivity Timeout">*</button></label><input class="je-input" name="sessionTimeout" type="number" min="5" max="480" value="30"></div>
+              <div class="settings-field"><label>Timeout Warning (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('timeout-warning')" aria-label="Explain Timeout Warning">*</button></label><input class="je-input" name="sessionWarning" type="number" min="1" max="30" value="1"></div>
+              <div class="settings-field"><label>Default Opening Page</label><select class="je-select" name="defaultLandingPage"><option value="dashboard">Dashboard</option><option value="entry-submissions">Entry Submission</option><option value="reports">Reports</option></select></div>
+              <div class="settings-field"><label>Record Retention (years) <button type="button" class="setting-help" onclick="openSettingHelp('record-retention')" aria-label="Explain Record Retention">*</button></label><select class="je-select" name="retentionYears"><option value="3">3 years</option><option value="5">5 years</option><option value="7">7 years</option><option value="10">10 years</option></select></div>
+              <div class="settings-field"><label>Archive Reminder</label><select class="je-select" name="archiveFrequency"><option value="quarterly">Quarterly</option><option value="semiannual">Every 6 months</option><option value="annual">Annually</option><option value="never">Never</option></select></div>
+              <label class="settings-toggle compact-toggle"><input type="checkbox" name="confirmHighRisk" checked><span><strong>Confirm High-risk Actions</strong><small>Keep a second warning for destructive actions.</small></span></label>
+            </div>
+            <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('system')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save System Settings</button></div>
+          </form>
+          <section class="settings-section-card">
+            <div class="settings-section-header"><div><h4>Backup &amp; Export <button type="button" class="setting-help" onclick="openSettingHelp('backup-export')" aria-label="Explain Backup and Export">*</button></h4></div></div>
+            <div class="settings-button-grid">
+              <button type="button" class="je-btn je-btn-emerald" onclick="exportApplicationBackup()">Download Settings Backup</button>
+              <label class="je-btn je-btn-secondary settings-file-button" for="settingsBackupInput">Restore Settings Backup</label>
+              <input id="settingsBackupInput" class="visually-hidden" type="file" accept="application/json,.json" onchange="importApplicationBackup(event)">
+            </div>
+          </section>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+<div id="printHeaderOutput" class="print-only print-brand-image"></div>
+<div id="printFooterOutput" class="print-only print-brand-image print-footer-image"></div>
+
+<div id="modalPrintOptions" class="modal-backdrop no-print">
+  <div class="modal-dialog modal-center print-options-dialog print-warning-dialog">
+    <div class="modal-header print-warning-header">
+      <div><h4>⚠ Review Before Printing</h4><div class="je-subtitle">Confirm exactly which records you want to print or export.</div></div>
+      <button type="button" class="modal-close-x" onclick="closeModal('modalPrintOptions')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="print-context-box">
+        <div class="je-field-group"><label>Current Module</label><input id="printDetectedModule" class="je-input" type="text" readonly></div>
+        <div class="je-field-group"><label>Data / Subcategory to Print</label><select id="printSubcategory" class="je-select"></select></div>
+      </div>
+      <div class="je-field-group"><label>Date Range</label><select class="je-select" id="printDatePreset" onchange="syncPrintDatePreset()"><option value="all">All available dates</option><option value="month">Current month</option><option value="quarter">Current quarter</option><option value="year">Current year</option><option value="custom">Custom date</option></select></div>
+      <div class="print-date-grid"><div class="je-field-group"><label>From</label><input class="je-input" type="date" id="printDateFrom" onclick="if(this.showPicker) this.showPicker();"></div><div class="je-field-group"><label>To</label><input class="je-input" type="date" id="printDateTo" onclick="if(this.showPicker) this.showPicker();"></div></div>
+      <label class="print-check"><input type="checkbox" id="printUseHeader" checked> Include saved centered header image</label>
+      <label class="print-check"><input type="checkbox" id="printUseFooter" checked> Include saved centered footer image</label>
+      <p class="print-warning-note">Please verify the module, data category, and date range before continuing.</p>
+    </div>
+    <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalPrintOptions')">Cancel</button><button type="button" class="je-btn je-btn-danger" onclick="executeConfiguredPrint()">Print Selected Data</button></div>
+  </div>
+</div>
+
+<!-- TEMPLATE MANAGER -->
+<div id="modalTemplateManager" class="modal-backdrop no-print">
+  <div class="modal-dialog modal-center template-dialog">
+    <div class="modal-header"><h4>Transaction Templates</h4><button type="button" class="modal-close-x" onclick="closeModal('modalTemplateManager')">&times;</button></div>
+    <div class="modal-body"><div id="templateManagerList"></div></div>
+    <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalTemplateManager')">Close</button></div>
+  </div>
+</div>
+
+<div id="modalTemplateName" class="modal-backdrop no-print">
+  <div class="modal-dialog modal-center">
+    <div class="modal-header"><h4>Save Transaction Template</h4><button type="button" class="modal-close-x" onclick="closeModal('modalTemplateName')">&times;</button></div>
+    <div class="modal-body"><div class="form-group"><label>Template Name *</label><input id="templateNameInput" type="text" placeholder="e.g., Monthly Payroll"></div><p class="je-subtitle">Only account names, line descriptions, and references are saved. Date, Entry ID, debit, and credit amounts are never copied.</p></div>
+    <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalTemplateName')">Cancel</button><button type="button" class="je-btn je-btn-emerald" onclick="confirmSaveTemplate()">Save Template</button></div>
+  </div>
+</div>
+
+<!-- RECURRING DUE WARNINGS -->
+<div id="modalRecurringWarnings" class="modal-backdrop no-print">
+  <div class="modal-dialog modal-center recurring-warning-dialog">
+    <div class="modal-header recurring-warning-header"><div><h4>⚠ Upcoming & Overdue Payments</h4><div class="je-subtitle">These reminders remain until the current occurrence is marked Paid.</div></div></div>
+    <div class="modal-body"><div id="recurringWarningList"></div></div>
+    <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalRecurringWarnings')">Close for Now</button></div>
+  </div>
+</div>
+
+<!-- ============================================================================== -->
+<!-- HTML 5: INTERACTIVE MODALS & CONFIRMATION DIALOGS (BACKBONE)                   -->
+<!-- Add/Edit Account Modal, Add/Edit Sub-Account Modal, and Deletion Dialog.       -->
+<!-- ============================================================================== -->
+  <!-- MODAL: ADD / EDIT PRIMARY ACCOUNT -->
+  <div id="modalAccount" class="modal-backdrop">
+    <div class="modal-dialog modal-center account-editor-dialog">
+      <div class="modal-header">
+        <h4 id="modalAccountTitle">Add New Account</h4>
+        <button type="button" class="modal-close-x" onclick="closeModal('modalAccount')">&times;</button>
+      </div>
+      <form id="formAccount" onsubmit="handleAccountFormSubmit(event)">
+        <input type="hidden" id="accountOrigCode" value="">
+        <div class="modal-body">
+          <div class="settings-form-grid user-identity-grid">
+            <div class="settings-field">
+              <label for="accCode">Account Code *</label>
+              <input class="je-input" type="text" id="accCode" required placeholder="e.g., 1020">
+            </div>
+            <div class="settings-field">
+              <label for="accCurrency">Account Currency *</label>
+              <select class="je-select" id="accCurrency" required>
+                <!-- Populated dynamically via script.js -->
+              </select>
+            </div>
+          </div>
+          <div class="settings-field">
+            <label for="accName">Account Name *</label>
+            <input class="je-input" type="text" id="accName" required placeholder="e.g., Beverage Inventory">
+          </div>
+          <div class="settings-field">
+            <label for="accType">Accounting Classification *</label>
+            <select class="je-select" id="accType" required>
+              <option value="ASSET">Asset</option>
+              <option value="LIABILITY">Liability</option>
+              <option value="EQUITY">Equity</option>
+              <option value="REVENUE">Revenue</option>
+              <option value="EXPENSE">Expense</option>
+            </select>
+          </div>
+          <div class="settings-field span-2">
+            <label for="accPurpose71">Account Purpose * <button type="button" class="purpose-help71" onclick="purposeHelp71()" aria-label="Explain account purposes">?</button></label><select id="accPurpose71" class="je-select" required><option value="regular">Regular</option><option value="clearing">Clearing</option><option value="suspense">Suspense</option><option value="settlement">Payment Settlement</option><option value="payroll">Payroll Control</option><option value="opening">Opening Balance Offset</option></select>
+<label for="accDesc">Description</label>
+            <textarea class="je-input" id="accDesc" rows="3" placeholder="Context or purpose of this account..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalAccount')">Cancel</button>
+          <button type="submit" class="je-btn je-btn-emerald">Save Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT SUB-ACCOUNT -->
+  <div id="modalSubAccount" class="modal-backdrop">
+    <div class="modal-dialog modal-center account-editor-dialog">
+      <div class="modal-header">
+        <h4 id="modalSubAccountTitle">Add Sub-Account</h4>
+        <button type="button" class="modal-close-x" onclick="closeModal('modalSubAccount')">&times;</button>
+      </div>
+      <form id="formSubAccount" onsubmit="handleSubAccountFormSubmit(event)">
+        <input type="hidden" id="subAccountOrigCode" value="">
+        <div class="modal-body">
+          <div class="sub-parent-currency1436">
+          <div class="settings-field">
+            <label for="subParentCode">Parent Account *</label>
+            <select class="je-select clean-parent-select" id="subParentCode" required>
+              <!-- Populated automatically from chart of accounts -->
+            </select>
+          </div>
+          <div class="settings-field">
+            <label for="subCurrency">Currency Type *</label>
+            <select class="je-select" id="subCurrency" required aria-label="Currency Type"></select>
+          </div>
+          </div>
+          <div class="settings-field">
+            <label for="subCode">Sub-Account Code *</label>
+            <input class="je-input" type="text" id="subCode" required placeholder="e.g., 1000-01">
+          </div>
+          <div class="settings-field">
+            <label for="subName">Sub-Account Name *</label>
+            <input class="je-input" type="text" id="subName" required placeholder="e.g., Restaurant Cash Drawer">
+          </div>
+          <div class="settings-field">
+            <label for="subDesc">Description</label>
+            <textarea class="je-input" id="subDesc" rows="3" placeholder="Operational allocation details..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalSubAccount')">Cancel</button>
+          <button type="submit" class="je-btn je-btn-emerald">Save Sub-Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DELETE CONFIRMATION -->
+  <div id="modalConfirmDelete" class="modal-backdrop">
+    <div class="modal-dialog confirm-dialog">
+      <div class="confirm-warning-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </div>
+      <h3 style="font-size: 16px; margin-bottom: 6px; color: var(--text-main);">Confirm Deletion</h3>
+      <p id="confirmDeletePrompt" style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;"></p>
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalConfirmDelete')">Cancel</button>
+        <button type="button" id="btnDeleteConfirmAction" class="btn btn-danger">Delete Account</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalUserAccess" class="modal-backdrop">
+    <div class="modal-dialog user-access-dialog">
+      <div class="modal-header"><h4 id="userAccessModalTitle">Add Sub-user</h4><button type="button" class="modal-close-x" onclick="closeModal('modalUserAccess')">&times;</button></div>
+      <form id="userAccessForm" onsubmit="saveUserAccess(event)">
+        <div class="modal-body">
+          <input type="hidden" id="userAccessId">
+          <div class="settings-form-grid user-identity-grid">
+            <div class="settings-field"><label>Full Name *</label><input id="userAccessName" class="je-input" required></div>
+            <div class="settings-field"><label>Email *</label><input id="userAccessEmail" class="je-input" type="email" required></div>
+            <div class="settings-field"><label>Temporary Password</label><input id="userAccessPassword" class="je-input" type="password" minlength="8" placeholder="Required for a new user"></div>
+            <div class="settings-field"><label>User Type</label><select id="userAccessType" class="je-select"><option value="sub_user">Sub-user</option><option value="manager">Manager / Reviewer</option><option value="admin">Administrator</option></select></div>
+            <div class="settings-field"><label>Direct Supervisor / Reports to</label><select id="userAccessManager" class="je-select"><option value="">Primary administrator</option></select></div>
+            <div class="settings-field"><label>Position</label><input id="userAccessJob" class="je-input" maxlength="100" list="organizationPositions14229" placeholder="e.g., President, Manager or Cashier"><datalist id="organizationPositions14229"><option>President</option><option>Vice President</option><option>Director</option><option>Manager</option><option>Supervisor</option><option>Cashier</option></datalist></div><div class="settings-field"><label>Department / Team</label><input id="userAccessDepartment14229" class="je-input" maxlength="100" placeholder="e.g., Finance or Branch A"></div>
+          </div>
+          <div class="access-trigger-row">
+            <button type="button" class="access-picker-trigger" onclick="openAccessPicker('Module Access','userModuleAccessPanel',this)"><span><strong>Module Access</strong><span id="userModuleAccessSummary" class="access-selection-summary">No modules selected</span></span><span class="access-picker-chevron">›</span></button>
+            <button type="button" class="access-picker-trigger" onclick="openAccessPicker('Security & Action Access','userSecurityAccessPanel',this)"><span><strong>Security &amp; Action Access</strong><span id="userSecurityAccessSummary" class="access-selection-summary">No special actions selected</span></span><span class="access-picker-chevron">›</span></button>
+          </div>
+          <div id="userModuleAccessPanel" class="access-picker-panel" hidden><div id="userPermissionGrid" class="permission-grid"></div></div>
+          <div id="userSecurityAccessPanel" class="access-picker-panel" hidden><div class="permission-special-grid">
+            <label class="settings-toggle"><input id="permissionApprove" type="checkbox"><span><strong>Approve Entries</strong></span></label>
+            <label class="settings-toggle"><input id="permissionDirectPost" type="checkbox"><span><strong>Post Directly</strong></span></label>
+            <label class="settings-toggle"><input id="permissionVoid" type="checkbox"><span><strong>Void and Adjust</strong></span></label>
+            <label class="settings-toggle"><input id="permissionExport" type="checkbox"><span><strong>Export Data</strong></span></label>
+            <label class="settings-toggle"><input id="permissionManageData" type="checkbox"><span><strong>Manage Data</strong><small>Maintain records made available to this user.</small></span></label>
+          </div></div>
+
+          <div class="access-trigger-row assignment-activity-row">
+          <button type="button" class="access-picker-trigger" onclick="openAccessPicker('Account Assignment','userAccountAssignmentPanel',this)"><span><strong>Account Assignment</strong><span id="userAccountAssignmentSummary" class="access-selection-summary">Select main and entry accounts</span></span><span class="access-picker-chevron">›</span></button>
+          <div class="settings-field"><label for="userTransactionActivity">Transaction Activity</label><select id="userTransactionActivity" class="je-select" onchange="syncTransactionActivitySelection()"><option value="out">Money Out Only</option><option value="in">Money In Only</option><option value="both">Money In &amp; Money Out (Both)</option></select></div></div>
+          <div class="settings-form-grid user-id-grid">
+            <div class="settings-field"><label>Entry Prefix</label><input id="userEntryPrefix" class="je-input" maxlength="8" pattern="[A-Za-z0-9]+" value="SJR" required></div>
+            <div class="settings-field"><label>Entry Initials</label><input id="userEntryInitials" class="je-input" maxlength="8" pattern="[A-Za-z0-9]+" placeholder="RP" required></div>
+            <div class="settings-field"><label>Number Digits</label><input id="userEntryDigits" class="je-input" type="number" min="3" max="9" value="4" required></div>
+          </div>
+          <div id="userAccountAssignmentPanel" class="access-picker-panel" hidden>
+            <label class="settings-toggle multiple-fund-rule"><input id="permissionMultipleFunds" type="checkbox" onchange="enforceFundSelection()"><span><strong>Uses Multiple Main / Fund Accounts</strong><small>Unchecked: choose one main account. Checked: assign several and let the user choose the fund used. Spending accounts always allow multiple selections.</small></span></label>
+            <div class="account-assignment-layout">
+              <div class="account-assignment-nav">
+                <button type="button" class="account-assignment-tab active" data-account-pane="main" onclick="showAccountAssignmentPane('main')"><strong>Main Accounts</strong><span id="userFundSelectionBullets" class="account-selection-bullets">0 selected</span></button>
+                <button type="button" class="account-assignment-tab" data-account-pane="entry" onclick="showAccountAssignmentPane('entry')"><strong>Entry / Spending Accounts</strong><span id="userEntrySelectionBullets" class="account-selection-bullets">0 selected</span></button>
+              </div>
+              <div class="account-assignment-options">
+                <section id="accountAssignmentMainPane">
+                  <h5 class="permission-heading">Main Accounts</h5>
+                  <p class="permission-explanation">Accounts directly held by this user.</p>
+                  <div id="userFundAccountGrid" class="account-access-grid"></div>
+                </section>
+                <section id="accountAssignmentEntryPane" hidden>
+                  <h5 class="permission-heading">Entry / Spending Accounts</h5>
+                  <p class="permission-explanation">Accounts available when the user records money out.</p>
+                  <div id="userAccountAccessGrid" class="account-access-grid"></div>
+                </section>
+              </div>
+            </div>
+            <div class="permission-special-grid account-rule-grid">
+              <input id="permissionAllowOut" type="checkbox" checked hidden>
+              <input id="permissionAllowIn" type="checkbox" hidden>
+            </div>
+          </div>
+          <div id="userAccessStatus" class="settings-inline-status"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal('modalUserAccess')">Cancel</button><button type="submit" class="je-btn je-btn-emerald">Save User</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modalAccessPicker" class="modal-backdrop">
+    <div class="modal-dialog access-picker-dialog">
+      <div class="modal-header"><h4 id="accessPickerTitle">Select Access</h4><button type="button" class="modal-close-x" onclick="closeAccessPicker()">&times;</button></div>
+      <div id="accessPickerContent" class="access-picker-scroll"></div>
+      <div class="modal-footer"><button type="button" class="je-btn je-btn-emerald" onclick="closeAccessPicker()">Done</button></div>
+    </div>
+  </div>
+
+  <div id="modalSettingHelp" class="modal-backdrop no-print" role="dialog" aria-modal="true" aria-labelledby="settingHelpTitle">
+    <div class="modal-dialog modal-center setting-help-dialog">
+      <div class="modal-header"><h4 id="settingHelpTitle">Settings help</h4><button type="button" class="modal-close-x" onclick="closeModal('modalSettingHelp')">&times;</button></div>
+      <div class="modal-body"><div id="settingHelpContent" class="setting-help-content"></div></div>
+      <div class="modal-footer"><button type="button" class="je-btn je-btn-emerald" onclick="closeModal('modalSettingHelp')">I Understand</button></div>
+    </div>
+  </div>
+
+  <!-- Supabase browser client and project configuration -->
+  <script src="assets/vendor/supabase.js?v=142.41"></script>
+  <script src="scripts/supabase-config.js?v=142.41"></script>
+  <!-- Backbone Script Engine -->
+  <script src="scripts/workspace-request-v138.js?v=142.41"></script>
+<script src="scripts/script.js?v=142.41"></script>
+  <script src="scripts/workspace-settings.js?v=142.41"></script>
+  <script src="scripts/navigation-v48.js?v=142.41"></script>
+  <script src="scripts/subusers-final-v53.js?v=142.41"></script>
+  <script src="scripts/subusers-final-v54.js?v=142.41"></script>
+  <script src="scripts/subusers-final-v55.js?v=142.41"></script>
+  <script src="scripts/subusers-final-v56.js?v=142.41"></script>
+  <script src="scripts/design-system-v58.js?v=142.41"></script>
+  <script src="scripts/mobile-tables-v66.js?v=142.41"></script>
+<script src="scripts/transactions-v67.js?v=142.41"></script>
+<script src="scripts/accounts-v69.js?v=142.41"></script>
+<script src="scripts/review-v69.js?v=142.41"></script>
+<script src="scripts/interface-v69.js?v=142.41"></script>
+<script src="scripts/reports-system-v71.js?v=142.41"></script>
+<script src="scripts/transactions-mobile-v72.js?v=142.41"></script>
+<script src="scripts/mobile-polish-v73.js?v=142.41"></script>
+<script src="scripts/mobile-refinements-v74.js?v=142.41"></script>
+<script src="scripts/review-mobile-v78.js?v=142.41"></script>
+<script src="scripts/reports-desktop-v79.js?v=142.41"></script>
+<script src="scripts/desktop-corrections-v80.js?v=142.41"></script>
+<script src="scripts/desktop-refinements-v81.js?v=142.41"></script>
+<script src="scripts/desktop-layout-v82.js?v=142.41"></script>
+<script src="scripts/payroll-engine-v82.js?v=142.41"></script>
+<script src="scripts/payroll-reports-v82.js?v=142.41"></script>
+<script src="scripts/payroll-samples-v83.js?v=142.41"></script>
+<script src="scripts/payroll-fixes-v83.js?v=142.41"></script>
+<script src="scripts/desktop-polish-v84.js?v=142.41"></script>
+<script src="scripts/layout-fixes-v85.js?v=142.41"></script>
+<script src="scripts/layout-consistency-v87.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/session-inputs-v88.css?v=142.41">
+<script src="scripts/session-inputs-v88.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/prefixes-badges-v89.css?v=142.41">
+<script src="scripts/prefixes-badges-v89.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/scheduled-journals-v91.css?v=142.41">
+<script src="scripts/scheduled-journals-v91.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/refinements-v93.css?v=142.41">
+<script src="scripts/refinements-v93.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/settings-payroll-v94.css?v=142.41">
+<script src="scripts/settings-payroll-v94.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/payroll-groups-v95.css?v=142.41">
+<script src="scripts/payroll-groups-v96.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/payroll-polish-v97.css?v=142.41">
+<script src="scripts/payroll-polish-v97.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/transactions-v98.css?v=142.41">
+<script src="scripts/transactions-v98.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/workspace-v99.css?v=142.41">
+<script src="scripts/payroll-v99.js?v=142.41"></script>
+<script src="scripts/workspace-v99.js?v=142.41"></script>
+<script src="scripts/hr-v99.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/theme-v100.css?v=142.41">
+<script src="scripts/theme-v100.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/polish-v101.css?v=142.41">
+<script src="scripts/polish-v101.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/reports-tax-v102.css?v=142.41">
+<script src="scripts/tax-reports-v102.js?v=142.41"></script>
+<script src="scripts/journal-actions-v102.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/universal-date-v104.css?v=142.41">
+<script src="scripts/universal-date-v104.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/header-profile-v104.css?v=142.41">
+<script src="scripts/header-profile-v104.js?v=142.41"></script>
+<script src="scripts/shortnames-v104.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/refinements-v105.css?v=142.41">
+
+<script src="scripts/refinements-v105.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/document-editor-v105.css?v=142.41">
+<script src="assets/vendor/docx.js?v=118"></script>
+<script src="scripts/document-export-v108.js?v=142.41"></script>
+<script src="scripts/document-import-v1422.js?v=142.41"></script>
+<script src="scripts/document-editor-v105.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/refinements-v106.css?v=142.41">
+<link rel="stylesheet" href="styles/editor-tables-v107.css?v=142.41">
+<script src="scripts/editor-tables-v107.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/shared-v108.css?v=142.41">
+<script src="scripts/shared-v108.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/refinements-v109.css?v=142.41">
+<script src="scripts/refinements-v109.js?v=142.41"></script>
+
+<link rel="stylesheet" href="styles/editor-fixes-v110.css?v=142.41">
+<script src="scripts/visual-consistency-v110.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/dashboard-warm-v112.css?v=142.41">
+<script src="scripts/dashboard-warm-v112.js?v=142.41"></script>
+<script src="scripts/header-icons-v112.js?v=142.41"></script>
+<script src="scripts/keyboard-picking-v112.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/polish-v113.css?v=142.41">
+<script src="scripts/shell-v113.js?v=142.41"></script>
+<script src="scripts/access-v113.js?v=142.41"></script>
+<script src="assets/vendor/jszip.min.js?v=129"></script>
+<script src="scripts/archive-xlsx-v129.js?v=142.41"></script>
+<script src="scripts/recovery-v113.js?v=142.41"></script>
+<script src="scripts/funds-v113.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/final-v117.css?v=142.41">
+<script src="scripts/final-v117.js?v=142.41"></script>
+<script src="scripts/reports-v117.js?v=142.41"></script>
+<script src="scripts/workspace-v117.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/final-v118.css?v=142.41">
+<script src="scripts/final-v118.js?v=142.41"></script>
+<script src="scripts/reports-v118.js?v=142.41"></script>
+<script src="scripts/accounting-pos-cleanup.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/workflows-v136.css?v=142.41">
+<script src="scripts/workflows-v136.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/combined-v138.css?v=142.41">
+<script src="scripts/combined-v138.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/submission-review-v139.css?v=142.41">
+<script src="scripts/submission-review-v139.js?v=142.41"></script>
+<style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
+<link rel="stylesheet" href="styles/carry-forward-v142.css?v=142.41">
+<script src="scripts/carry-forward-v142.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/recovery-reset-fix-v142.css?v=142.41">
+<script src="scripts/recovery-reset-fix-v142.js?v=142.41"></script>
+<script src="scripts/post-entry-diagnostics-v142.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/focused-v1422.css?v=142.41">
+<script src="scripts/focused-v1422.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/device-mode132.css?v=142.41">
+<script src="scripts/staff-entry14225.js?v=142.41"></script>
+<script src="scripts/phone-bridge132.js?v=142.41"></script>
+<script src="scripts/settings-phone133.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/editor-print1424.css?v=142.41">
+<script src="scripts/voucher-signatories1433.js?v=142.41"></script>
+<script src="scripts/payroll-print1424.js?v=142.41"></script>
+<script src="scripts/print-preview1426.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/editor-menus1426.css?v=142.41">
+<script src="scripts/drafts1427.js?v=142.41"></script>
+<script src="scripts/focused1427.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/focused1427.css?v=142.41">
+<link rel="stylesheet" href="styles/account-picker1428.css?v=142.41">
+<script src="scripts/account-picker1428.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/fixes1429.css?v=142.41">
+<script src="scripts/payroll-template1431.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/payroll-template1431.css?v=142.41">
+<script src="scripts/payroll-journal1429.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/entry1430.css?v=142.41">
+<script src="scripts/entry1430.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/workspaces1432.css?v=142.41">
+<script src="scripts/workspace-config123.js?v=142.41"></script><script src="scripts/workspace-links123.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/voucher-accounts1433.css?v=142.41">
+<script src="scripts/workflows1434.js?v=142.41"></script>
+<script src="scripts/saved-reports1434.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/workflows1434.css?v=142.41">
+<link rel="stylesheet" href="styles/personal-journal1437.css?v=142.41">
+<script src="scripts/personal-journal1437.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/desktop-tasks1438.css?v=142.41">
+
+<script src="scripts/todos1438.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/workspace1439.css?v=142.41">
+<script src="scripts/workspace1439.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/finalization1440.css?v=142.41">
+<script src="scripts/dialogs1440.js?v=142.41"></script>
+<script src="scripts/journal-batch1440.js?v=142.41"></script>
+<script src="scripts/permissions1441.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/polish1443.css?v=142.41">
+<script src="scripts/mobile-document1443.js?v=142.41"></script>
+<script src="scripts/report-history1443.js?v=142.41"></script>
+<script src="scripts/startup1443.js?v=142.41"></script>
+<script src="scripts/session-policy1443.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/polish1444.css?v=142.41">
+<link rel="stylesheet" href="styles/subusers-header14226.css?v=142.41">
+<link rel="stylesheet" href="styles/team-home14227.css?v=142.41">
+<script src="scripts/organization14229.js?v=142.41"></script>
+<script src="scripts/private-reminders14229.js?v=142.41"></script>
+<script src="scripts/team-home14227.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/corrections14231.css?v=142.41">
+<script src="scripts/corrections14231.js?v=142.41"></script>
+<script src="scripts/currency-colors14231.js?v=142.41"></script>
+<script src="scripts/financial-numbers14231.js?v=142.41"></script>
+<script src="scripts/archive-scopes14232.js?v=142.41"></script>
+<script src="scripts/audit-engine14232.js?v=142.41"></script>
+<script src="scripts/audit-storage14232.js?v=142.41"></script>
+<link rel="stylesheet" href="styles/data-tools14232.css?v=142.41">
+<script src="scripts/data-tools14232.js?v=142.41"></script>
+<script src="scripts/save-notices14234.js?v=142.41"></script><script src="scripts/opening-balances14234.js?v=142.41"></script></body>
+</html>

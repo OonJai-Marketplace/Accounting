@@ -1,0 +1,82 @@
+OON JAI ACCOUNTING v142.42
+
+Open the normal Accounting website link. Phones open an independent phone.html;
+desktop and tablet open the full desktop.html application. Phone startup mounts
+only its own shell, bundled Supabase SDK/configuration, and existing entry validator.
+There are no banners, photos, desktop modules, hidden full application, or login
+placeholder module in that entry page.
+
+SUB-USERS
+Home, Accounts, Post, Entries, and Totals cover gathering data and submitting the
+selected period. The horizontal user-name row is absent. Reads request only the
+signed-in user's access, assigned account metadata/fund balances, own journal
+headers, and selected period's own lines. Complete paginated reads replace a cached
+period only after every page arrives. Slow/partial reads retain complete old records
+and keep navigation responsive. A confirmed access denial gates the workspace,
+even if its response body is incomplete.
+
+ADMINISTRATORS
+The initial Home view lists all accounting sub-users; its horizontal selectors are
+small and slim. Selecting one opens that user's workspace using the same five tabs.
+Only Sub-users, Settings, and Documents are available as administrator areas.
+The directory contains access metadata; it does not download all users' entries.
+Settings and the document editor are a separate optional script loaded on demand.
+
+Settings uses existing administrator APIs for names, roles, managers, departments,
+workspace/document permissions, assigned funds, entry accounts, directions, and
+numbering. Other saved permissions are retained. New users use the existing secure
+account-creation endpoint. Password resets redirect to the independent phone
+recovery form through the configured public HTTPS URL; Supabase must permit that
+redirect URL. The editor lists document titles only and fetches full content only
+when a document is selected. Version checks prevent overwriting concurrent edits.
+An uncertain save keeps a stable document reference for confirmation before retry.
+
+CACHE AND SAVING
+Drafts and confirmed downloaded records are kept per account/database in this
+browser. An administrator's selected-user records additionally include the signed-in
+administrator's ID in their storage key. Navigation retains separate drafts for each
+assisted user. Temporary staff report editing has no company save/list controls.
+Administrator settings and document drafts are retained without caching passwords.
+
+Save on device can gather entries offline. Sync now sends the immutable original
+request through the existing atomic staff-save API. Incomplete/uncertain receipts
+keep the same request reference. Pending device entries are excluded from server
+balances until confirmed. Submission checks fresh access and records, confirms all
+pending entries, and submits only the selected user's selected period.
+
+The initial seven-file cache contains index.html, phone.html, one stylesheet, the
+independent runtime, Supabase SDK/configuration, and the existing entry validator.
+It excludes images and desktop code. The tools script is cached only after opening
+Settings, Documents, or a working report. First sign-in/downloads need a connection.
+Later downloaded records/drafts reopen offline while the stored sign-in is valid.
+Browser storage remains local to this device; it is not a server backup.
+
+Earlier own phone drafts/pending staff requests are imported from this browser's
+old account/database-scoped storage. Payloads/retry keys remain unchanged. Only
+confirmed legacy requests are removed; other owners' requests/drafts are retained.
+Old full-app cache files remain for compatibility with already-open tabs. Desktop
+and tablet reuse downloaded v142.41 assets, with refreshed entry pages and a
+v142.42 worker loader. No SQL or live database changes are part of this update.
+
+VALIDATION
+Chromium uses synthetic records and the real bundled sign-in SDK. The phone suite
+covers scoped/offline data, all tabs, separate drafts, atomic saving/submission,
+uncertain retries, pagination, slow requests, revocation, admin settings/creation,
+password resets/recovery, document saves/conflicts, compact layouts and legacy data.
+The desktop/tablet suite checks administrator/staff sign-in and offline reopen.
+The cache-upgrade suite installs an earlier v142.41 cache and verifies phone and
+desktop migration, image-download isolation, and offline root reopening.
+
+Run with Playwright available on NODE_PATH and Chromium on its configured path:
+CHROMIUM_EXECUTABLE=/tmp/chromium node validation/test-phone-independent14242.cjs
+CHROMIUM_EXECUTABLE=/tmp/chromium node validation/test-desktop-isolation14242.cjs
+CHROMIUM_EXECUTABLE=/tmp/chromium node validation/test-shell-upgrade14242.cjs
+
+Results: validation/phone-independent14242.json,
+validation/desktop-isolation14242.json, validation/shell-upgrade14242.json.
+Checks used fixture accounts and sent no live email or database writes. They do not
+measure the user's physical phone/network or verify production RLS and printer output.
+
+Performance references:
+https://web.dev/articles/reduce-javascript-payloads-with-code-splitting
+https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
