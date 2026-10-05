@@ -17,6 +17,11 @@
 .top:has(>.connection14239) .profile>div:not(.avatar),.top:has(>.connection14239) .profile>span{display:none}
 .top:has(>.connection14239) .profile{flex:none}
 
+/* Center the native dialog independently of global application resets. */
+html body dialog.connection-dialog14239{position:fixed!important;inset:0!important;margin:auto!important;transform:none!important;width:min(560px,calc(100vw - 28px))!important;max-height:calc(100dvh - 32px)!important;padding:18px!important;background:#fffdf7!important;color:#173c2e!important;line-height:1.5!important}
+.connection-dialog14239>header{border-bottom:1px solid #d9e2d3;padding-bottom:12px;margin-bottom:12px}.connection-dialog14239 h2{margin:0 0 6px;font-size:20px}.connection-dialog14239 p{margin:6px 0!important;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.connection-dialog14239 .sync-section14246{display:block;padding:12px;margin:10px 0;border:1px solid #dbe3d3;border-radius:11px;background:#f1f5e9}.connection-dialog14239 h3{margin:0 0 7px;color:#075440;font-size:14px}.connection-dialog14239 h4{margin:14px 0 7px;font-size:12px;color:#8b4d20}.connection-dialog14239 .sync-warning14246{background:#fff0df;border-color:#d9aa7c}.connection-dialog14239 article.sync-entry14246{display:block;padding:11px;margin:8px 0;border:1px solid #d7dfcc;border-radius:9px;background:#fffdf7}.sync-entry14246 strong,.sync-entry14246 small{display:block;overflow-wrap:anywhere}.sync-entry14246 small{font-size:11px;color:#61756b}.connection-dialog14239>footer{position:sticky;bottom:-18px;display:flex;gap:8px;padding:12px 0 4px;background:#fffdf7;border-top:1px solid #d9e2d3}.connection-dialog14239>footer button{margin:0;min-height:42px}.connection-dialog14239>footer button:last-child{background:#fffdf7;color:#174b38}
+html body #status118{left:var(--view-center-x118,50%)!important;top:var(--view-center-y118,50%)!important;right:auto!important;bottom:auto!important;margin:0!important;transform:translate(-50%,-50%)!important;max-height:calc(100dvh - 40px);overflow:auto;white-space:pre-wrap}
+
 /* styles/loading1444.css */
 /* Shared circular animation; no delayed switch to legacy designs. */
 body .loading-orbit1444{display:block;position:relative;flex:none;width:66px;height:66px;margin:12px auto;animation:loading-turn1444 2.2s linear infinite}

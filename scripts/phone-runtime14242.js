@@ -1,7 +1,7 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '142.44', $ = id => document.getElementById(id);
+  const VERSION = '142.46', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
   const pages = ['home', 'accounts', 'post', 'entries', 'totals'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -19,7 +19,7 @@
   const fail = (message, code = '') => Object.assign(Error(message), {code});
   const denied = e => ['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e?.code) || [401,403].includes(Number(e?.status));
   const ambiguous = e => !e?.status || Number(e.status) >= 500 || ['NETWORK_TIMEOUT','INVALID_RESPONSE'].includes(e.code);
-  function notice(message = '', error = false) { $('notice').textContent = message; $('notice').classList.toggle('error', error); }
+  let noticeTimer14246;function notice(message = '', error = false) {const box=$('notice');clearTimeout(noticeTimer14246);box.replaceChildren();box.classList.toggle('error',error);if(!message)return;const copy=document.createElement('span');copy.textContent=message;box.append(copy);const close=document.createElement('button');close.type='button';close.textContent='Close';close.setAttribute('aria-label','Close notification');close.onclick=()=>notice();box.append(close);if(!error)noticeTimer14246=setTimeout(()=>notice(),4500);}
   function openDB() {
     return database ??= new Promise((resolve, reject) => {
       const request = indexedDB.open('ojm-phone14242', 1), timer = setTimeout(() => reject(fail('Device storage is unavailable. Your draft has not been saved.')), 2000);
@@ -440,7 +440,7 @@
     const title=(targetName()||'My workspace')+' · '+S.month,rows=lines(),html='<h1>'+esc(title)+'</h1><table><thead><tr><th>Date</th><th>Entry</th><th>Amount</th><th>Memo</th></tr></thead><tbody>'+rows.map(l=>'<tr><td>'+esc(l.transaction_date)+'</td><td>'+esc(l.direction==='in'?'Money In':'Money Out')+'<br>'+esc(name(l.fund_account_id))+(l.direction==='out'?'<br>'+esc(name(l.account_id)):'')+'</td><td>'+esc(money(l.amount,l.currency_code||currency(l.fund_account_id)))+'</td><td>'+esc(l.memo)+(l.reference?'<br>'+esc(l.reference):'')+'</td></tr>').join('')+'</tbody></table><p>Downloaded records as of '+esc(new Date(S.data.months[S.month].savedAt).toLocaleString())+'. This document is a working copy.</p>';
     if(permission('document-editor105'))await openTools('documents',{title,html,category:'Sub-users',savedReport1434:true,sourceJournal1434:monthHeaders().length===1?monthHeaders()[0].id:undefined});else{const previous=S.page,oldLimit=S.limit;S.page='entries';S.limit=Infinity;render();window.print();S.page=previous;S.limit=oldLimit;render();}
   }
-  function connectionDialog(){const dialog=$('dialog');dialog.close();$('dialogBody').innerHTML='<h2>Connection</h2><p>'+esc(navigator.onLine?(S.online?'Online':'The connection is limited'):'Offline')+'</p><p>'+queue().length+' device entries waiting for confirmation.</p><p>'+esc(S.shellReady?'Phone files are downloaded for offline reopening.':'Phone files are still preparing for offline reopening.')+'</p>';$('dialogButtons').innerHTML=action('sync','Sync now',S.syncing||!navigator.onLine||!queue().length?'disabled':'',true)+'<button class="btn" value="close">Close</button>';dialog.onclose=null;dialog.showModal();}
+  function connectionDialog(){const dialog=$('dialog');dialog.close();dialog.classList.add('phone-connection14246');$('dialogBody').innerHTML='<h2>Connection & sync</h2><section class="sync-section14246"><h3>Connection</h3><p>'+esc(navigator.onLine?(S.online?'Online':'Limited connection'):'Offline')+'</p></section><section class="sync-section14246"><h3>Website files</h3><p>'+esc(S.shellReady?'Downloaded for reopening without connection.':'Still preparing for offline reopening.')+'</p></section><section class="sync-section14246"><h3>Device entries · '+queue().length+'</h3>'+(queue().map(q=>'<article class="sync-entry14246"><strong>'+esc(q.draft.date+' · '+q.draft.memo)+'</strong><p>'+esc(q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Waiting to sync')+'</p>'+(q.message?'<p>'+esc(q.message)+'</p>':'')+'<small>Reference: '+esc(q.key)+'</small></article>').join('')||'<p>No device entries waiting to sync.</p>')+'</section>';$('dialogButtons').innerHTML=action('sync','Sync now',S.syncing||!navigator.onLine||!queue().length?'disabled':'',true)+'<button class="btn" value="close">Close</button>';dialog.onclose=()=>dialog.classList.remove('phone-connection14246');dialog.showModal();}
   async function handle(name,index){try{
     if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return boot();if(name==='directory-refresh')return loadDirectory();if(name==='signout')return signout();if(name==='refresh')return refresh();if(name==='sync')return sync();if(name==='submit')return submit();if(name==='print')return printReport();if(name==='edit')return edit(index);if(name==='void')return voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
