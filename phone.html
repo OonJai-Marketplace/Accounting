@@ -3,6 +3,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#07513e"><title>Oon Jai · My workspace</title>
   <link rel="stylesheet" href="styles/phone14242.css?v=142.42">
+  <script>setTimeout(()=>{if(window.PhoneWorkspace14242)return;const m=document.getElementById('workspace');if(!m)return;m.hidden=false;m.textContent='Phone files did not finish loading. Reconnect and retry.';const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Retry';b.onclick=()=>location.reload();m.append(b)},10000);</script>
   <script defer src="assets/vendor/supabase.js?v=142.41"></script>
   <script defer src="scripts/supabase-config.js?v=142.41"></script>
   <script defer src="scripts/staff-entry14225.js?v=142.41"></script>
@@ -10,9 +11,12 @@
 </head><body><div class="app">
   <header class="top"><div class="brand">Oon Jai<small>My workspace</small></div><div class="top-actions"><button id="connection" class="connection" type="button">Starting…</button><button id="avatar" class="avatar" type="button" aria-label="Account" aria-expanded="false" hidden></button></div></header>
   <div id="accountMenu" class="account-menu" hidden><strong id="accountName"></strong><button type="button" data-action="refresh">Refresh records</button><button type="button" data-action="print">Print report</button><button type="button" data-action="signout">Sign out</button></div>
+  <nav id="adminNav" class="admin-nav" aria-label="Administrator areas" hidden><button type="button" data-area="users">Sub-users</button><button type="button" data-area="settings">Settings</button><button type="button" data-area="documents">Documents</button></nav>
+  <nav id="userTabs" class="user-tabs" aria-label="Sub-user workspaces" hidden></nav>
   <p id="notice" class="notice" role="status" aria-live="polite"></p>
   <section id="login" class="screen" hidden><h1>Welcome back</h1><p>Sign in to your own workspace.</p><form id="loginForm" class="card"><label>Email<input id="loginEmail" name="email" type="email" autocomplete="username" required></label><label>Password<input id="loginPassword" name="password" type="password" autocomplete="current-password" required></label><p id="loginError" role="alert"></p><button class="btn primary" type="submit">Sign in</button></form></section>
-  <main id="workspace" class="screen"><h1>Opening your workspace…</h1><p>Your saved records will appear here.</p></main>
+  <section id="recovery" class="screen" hidden><h1>Choose a new password</h1><form id="phoneRecoveryForm" class="card"><label>New password<input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required></label><label>Confirm password<input id="recoveryConfirm" type="password" autocomplete="new-password" minlength="8" required></label><p id="recoveryStatus" role="status"></p><button class="btn primary" type="submit">Update password</button></form></section>
+  <main id="workspace" class="screen" hidden></main>
   <nav id="bottom" class="bottom" aria-label="Workspace navigation" hidden>
     <button type="button" data-page="home"><span data-icon="home"></span>Home</button>
     <button type="button" data-page="accounts"><span data-icon="wallet"></span>Accounts</button>

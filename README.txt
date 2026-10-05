@@ -1,21 +1,25 @@
 OON JAI ACCOUNTING v142.42 — INDEPENDENT PHONE WORKSPACE
 
-Phones now open phone.html directly from the main link. The phone downloads only
-its own small interface, sign-in library, and existing entry validator. It loads
-only the signed-in user's access, assigned fund accounts, balances, and entries.
-Home, Accounts, Post, Entries, and Totals support gathering data and submitting
-the user's saved period for review. Settings and the full accounting interface
-remain available on desktop and tablet through desktop.html.
+Phones open phone.html directly. Sign-in and the five workspace tabs load without
+any desktop modules, banner/photo downloads, general ledger, or payroll.
+Sub-users have only their own funds, accounts, entries, and submission. Their Home
+name tabs are removed to leave more space.
 
-Downloaded own records, unfinished drafts, and pending entries stay on the device.
-Offline reopening needs the phone files and own records to finish downloading once.
-Sync now retains the original save reference after an interrupted response.
-Earlier own phone drafts and pending staff saves are recovered without importing
-another user's workspace. Submission requires a connection and confirmed saves.
+Administrators open the sub-user directory with slim horizontal user tabs. They
+can assist any selected workspace using the same five tabs. Only sub-user Settings
+and Documents are added. Those tools download when opened; the old full interface
+and its large login module never mount in the phone page. Settings supports access,
+assigned funds/accounts, user creation, and password-reset links. Documents supports
+editing, printing, and version-checked saves to existing company documents.
 
-No new SQL is required. Desktop/tablet retain the original application body and
-script order; their offline worker also includes the new desktop.html entry point.
-See docs/PHONE-v142.42.txt and validation/test-phone-independent14242.cjs.
+Downloaded records, separate drafts, and pending entries stay on the device.
+Interrupted saves retain their original reference for safe retry. Administration
+and each selected user's records are stored separately. Submission needs a
+connection and confirmed saves. Earlier own phone drafts/pending saves are recovered.
+
+No new SQL is required. Desktop/tablet keep their full application and script order.
+Their updated worker reuses existing assets and migrates cached entry pages safely.
+See docs/PHONE-v142.42.txt and the three v142.42 browser validation suites.
 
 PREVIOUS RELEASE NOTES
 OON JAI ACCOUNTING v142.38 — FULL WEBSITE
