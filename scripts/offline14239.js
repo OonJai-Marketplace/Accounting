@@ -80,7 +80,7 @@ function registerShell(){
  if(navigator.onLine===false){navigator.serviceWorker.getRegistration().then(reg=>checkShell(reg?.active)).catch(()=>{});return}
  if(document.readyState!=='complete'){if(!waitingForLoad){waitingForLoad=true;window.addEventListener('load',registerShell,{once:true})}return}
  if(shellRegistration){shellRegistration.then(reg=>{if(reg&&!reg.installing&&!reg.waiting&&!shellReady)reg.update().catch(()=>{shellRegistration=null;registerShell()})});return}
- shellRegistration=navigator.serviceWorker.register('sw14239.js?v='+SHELL_VERSION,{updateViaCache:'none'}).then(reg=>{
+ shellRegistration=navigator.serviceWorker.register('desktop-sw14242.js?v='+SHELL_VERSION,{updateViaCache:'none'}).then(reg=>{
   const watch=()=>{const worker=reg.installing;if(worker)worker.addEventListener('statechange',()=>{if(worker.state==='activated')checkShell(reg.active);if(worker.state==='redundant'){shellReady=false;storageError='Offline files could not finish downloading. Continue working online and retry when connected.';shellRegistration=null;if(navigator.onLine&&++shellFailures<=3){clearTimeout(shellRetry);shellRetry=setTimeout(registerShell,1500)}changed()}})};
   reg.addEventListener('updatefound',watch);watch();checkShell(reg.active);return reg;
  }).catch(e=>{shellRegistration=null;storageError='Offline reopening is unavailable: '+e.message;changed()});

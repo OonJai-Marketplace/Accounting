@@ -1,0 +1,682 @@
+{
+  "results": [
+    {
+      "name": "Main phone link loads only the independent phone files",
+      "passed": true
+    },
+    {
+      "name": "Real SDK sign-in loads only assigned accounts and own records",
+      "passed": true
+    },
+    {
+      "name": "Phone cache has no desktop modules, banners, or photos",
+      "passed": true
+    },
+    {
+      "name": "Cached phone reopens from the main link completely offline",
+      "passed": true
+    },
+    {
+      "name": "All five phone tabs remain usable while offline",
+      "passed": true
+    },
+    {
+      "name": "Typing survives navigation and an offline reload",
+      "passed": true
+    },
+    {
+      "name": "Offline save persists a complete immutable entry on the device",
+      "passed": true
+    },
+    {
+      "name": "Submission is blocked until device entries are confirmed",
+      "passed": true
+    },
+    {
+      "name": "Interrupted complete response preserves the retry reference",
+      "passed": true
+    },
+    {
+      "name": "Retry confirms the same save without a duplicate entry",
+      "passed": true
+    },
+    {
+      "name": "Double-entry phone save uses the established atomic API",
+      "passed": true
+    },
+    {
+      "name": "Pagination downloads and caches the complete selected period",
+      "passed": true
+    },
+    {
+      "name": "Partial reads do not replace the previous complete cache",
+      "passed": true
+    },
+    {
+      "name": "Navigation stays responsive during a stalled data request",
+      "passed": true
+    },
+    {
+      "name": "Submission sends only the signed-in user period",
+      "passed": true
+    },
+    {
+      "name": "Revoked access clears the visible workspace instead of showing stale data",
+      "passed": true
+    },
+    {
+      "name": "A different login cannot read the previous account cache",
+      "passed": true
+    },
+    {
+      "name": "One-hour inactivity requires sign-in again",
+      "passed": true
+    },
+    {
+      "name": "Phone has no JavaScript exceptions or horizontal overflow",
+      "passed": true
+    },
+    {
+      "name": "Desktop and tablet keep the original application body and script order",
+      "passed": true
+    },
+    {
+      "name": "An administrator phone imports only its own earlier unfinished draft and pending entry",
+      "passed": true
+    },
+    {
+      "name": "An imported retry preserves the original payload and clears only confirmed own legacy copies",
+      "passed": true
+    }
+  ],
+  "phoneStaticFiles": [
+    {
+      "file": "index.html",
+      "bytes": 856
+    },
+    {
+      "file": "phone.html",
+      "bytes": 2554
+    },
+    {
+      "file": "styles/phone14242.css",
+      "bytes": 6482
+    },
+    {
+      "file": "scripts/phone-runtime14242.js",
+      "bytes": 53178
+    },
+    {
+      "file": "assets/vendor/supabase.js",
+      "bytes": 217945
+    },
+    {
+      "file": "scripts/supabase-config.js",
+      "bytes": 600
+    },
+    {
+      "file": "scripts/staff-entry14225.js",
+      "bytes": 5346
+    }
+  ],
+  "requests": [
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/save_staff_editor1437",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/save_staff_editor1437",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/save_staff_editor1437",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=200",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=200",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/submit_staff_journal",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=200",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000014%2C00000000-0000-4000-8000-000000000015%2C00000000-0000-4000-8000-000000000016%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000002&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000022%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000002"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000001&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000021%29&select=*&order=id.asc&limit=200&offset=200",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000001"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000003&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000023%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/rpc/save_staff_editor1437",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/accounts",
+      "search": "?id=in.%2800000000-0000-4000-8000-000000000011%2C00000000-0000-4000-8000-000000000012%2C00000000-0000-4000-8000-000000000013%29&select=id%2Ccode%2Cname%2Ccurrency_code%2Cis_posting%2Cis_active&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/rpc/fund_balances136",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/staff_journals",
+      "search": "?owner_id=eq.00000000-0000-4000-8000-000000000003&select=id%2Cowner_id%2Cperiod_start%2Cstatus%2Csubmitted_at%2Creturn_note%2Cupdated_at&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/staff_journal_lines",
+      "search": "?staff_journal_id=in.%2800000000-0000-4000-8000-000000000023%29&select=*&order=id.asc&limit=200&offset=0",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/session_policy1443",
+      "search": "?select=timeout_minutes%2Cwarning_minutes&id=eq.true",
+      "method": "GET",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    },
+    {
+      "path": "/rest/v1/rpc/current_access14228",
+      "search": "",
+      "method": "POST",
+      "owner": "00000000-0000-4000-8000-000000000003"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+OON JAI ACCOUNTING v142.42
+
+Open the normal Accounting website link. Phones go directly to their independent
+workspace; desktop and tablet open the full application. The phone uses Home,
+Accounts, Post, Entries, and Totals for the signed-in user's own work. It has no
+settings, banner/photo downloads, team directory, general ledger, or payroll.
+
+The phone reads current own access, assigned account metadata and fund balances,
+own journal headers, and the selected period's own entry lines. Complete paginated
+reads replace a cached period only after every page has arrived. An interrupted
+read retains the last downloaded complete period and keeps navigation responsive.
+
+Drafts are kept per account in this browser. Save on device can gather entries
+offline. Sync now sends the immutable original request through the existing atomic
+staff-save API. Incomplete or uncertain receipts keep the same request reference
+for retry. Device entries are excluded from server balances until confirmed.
+Submission checks current access and fresh own records, requires every pending
+entry to be confirmed, and submits only the selected user's selected period.
+
+The seven-file phone cache contains index.html, phone.html, one stylesheet, the
+independent runtime, the existing Supabase SDK/configuration, and the existing
+staff-entry validator. It contains no images or desktop runtime. First sign-in and
+first downloads require a connection. Later downloaded records and unfinished
+drafts can reopen offline while the stored sign-in remains valid. Current server
+permission denials clear visible/cached access. Account changes isolate records.
+
+Earlier own phone drafts and pending staff-save requests are imported from this
+browser's old account/database-scoped storage. Original payloads and retry keys
+remain unchanged. Only confirmed legacy requests are removed; another owner's
+requests and drafts remain untouched. Earlier full-app cache files are retained
+for compatibility with already-open tabs and are not downloaded by the phone.
+
+Desktop and tablet use the original full application in desktop.html, with the
+same CSS/script order and existing data behavior. The desktop worker reuses its
+already-downloaded v142.41 files and downloads the two current HTML entry points.
+No SQL/database migration or live record writes are part of this release.
+
+Validation uses synthetic records and the real bundled sign-in SDK in Chromium.
+The phone suite covers independent routing, allowed network requests, seven-file
+cache, offline root reopening, all tabs, draft retention, queued saves, uncertain
+response retry without duplicates, single/double entries, paginated reads, partial
+responses, slow-request navigation, submission, revoked access, account isolation,
+inactivity, layout, original desktop/tablet routing, and legacy draft/save recovery.
+The desktop/tablet suite covers administrator and staff sign-in and offline reopen.
+
+Run with Playwright available on NODE_PATH:
+CHROMIUM_EXECUTABLE=/tmp/chromium node validation/test-phone-independent14242.cjs
+node validation/test-desktop-isolation14242.cjs
+
+Results are recorded in validation/phone-independent14242.json and
+validation/desktop-isolation14242.json. Fixture timings and bytes establish the
+download/behavior change; they do not measure the user's physical phone or network.
