@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Five phone tabs; logo restored; no hamburger or document editor menu",
+    "passed": true
+  },
+  {
+    "name": "Home month and history summary match selected user without mixing currencies",
+    "passed": true
+  },
+  {
+    "name": "Entries has Active and Pending, without History button",
+    "passed": true
+  },
+  {
+    "name": "History month filter shows submitted records without print/summary",
+    "passed": true
+  },
+  {
+    "name": "Connection details float without moving page; outside and X close",
+    "passed": true
+  },
+  {
+    "name": "Connection indicator red offline and orange for weak service",
+    "passed": true
+  },
+  {
+    "name": "Ledger drill-down, month/quarter/year and running balances",
+    "passed": true
+  },
+  {
+    "name": "Unassigned account cannot be read",
+    "passed": true
+  },
+  {
+    "name": "Phone layout fits 360/390/430 pixels",
+    "passed": true
+  },
+  {
+    "name": "Automatic sync retains immutable reference and confirms receipt",
+    "passed": true
+  },
+  {
+    "name": "Other users and saved-record edits are excluded from phone autosync",
+    "passed": true
+  },
+  {
+    "name": "Post retains both entry switches and existing draft controls",
+    "passed": true
+  },
+  {
+    "name": "No browser runtime errors",
+    "passed": true
+  }
+]
