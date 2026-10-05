@@ -84,6 +84,7 @@ const api=window.PhoneApp132={
   const actor=profile().id,{items,snapshot}=api.validateStaff(id,data);
   const result=await window.staffSave14228({p_owner:id,p_key:data.requestKey,p_items:items,p_snapshot:snapshot,p_edit_ids:data.editIds||[]});
   if(result.error)throw Error(result.error.message+(result.error.code==='PGRST202'?' Run setup/INSTALL-DESKTOP-JOURNAL-v142.17.sql once.':''));
+  if(result.queued)return {queued:true,actor};
   if(profile()?.id===actor){try{await loadPhoneWorkspace14237(id,true)}catch{showCenterStatus('Entry saved. Refresh Entries to load the updated records.',true)}}
   return {saved:true,actor};
  },
@@ -111,6 +112,7 @@ const api=window.PhoneApp132={
  saveEditedStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',[data.memo,data.reference].filter(Boolean).join(' — '));v49ValidatePost();return v49SavePost(id)}),
  deleteStaff:(id,line)=>run('sub-users-workspace','void',()=>{if(!allowed('sub-users-workspace','edit')||!user(id))return false;return voidWorkspaceSingleRow(id,line)}),
  submit:async(id,month='')=>{
+  if(window.offline14239?.pendingOwner(id))throw Error('Sync all pending entries for this user before submitting for review.');
   if(!canWriteStaff(id))throw Error('Submitting is not enabled for this workspace.');
   const batches=api.reports(id).filter(j=>['draft','returned'].includes(j.status)&&j.lines?.length&&(!month||String(j.period_start).startsWith(month)));
   if(!batches.length)throw Error('No saved entries are ready to submit for this selection.');
@@ -156,6 +158,6 @@ const api=window.PhoneApp132={
  refresh:async()=>{if(!profile())return;const selected=$('connectedPhone132')?.contentWindow?.phoneSelection14237?.();if(selected?.module==='subusers'){if(selected.user)await loadPhoneWorkspace14237(selected.user,true);else await window.TeamHome14227?.reload();notify();return;}await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.38';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.39';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

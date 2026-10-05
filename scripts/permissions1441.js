@@ -47,10 +47,11 @@ function ready(){
     }
    }
   }catch(e){if(!current())return;
-   window.permissions1441.verified=false;
+   const previouslyVerified=window.permissions1441.verified;
    const denied=['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e.code)||[401,403].includes(Number(e.status));
-   if(denied){reconnect(false);document.getElementById('loginGate')?.classList.remove('is-authenticated');await logoutDemoUser();const error=document.getElementById('loginError');if(error)error.textContent='Please sign in again. '+(e.message||'Access is no longer available.');}
-   else{reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));clearTimeout(retryTimer);retryTimer=setTimeout(verify,5000);}
+   if(denied){window.permissions1441.verified=false;reconnect(false);document.getElementById('loginGate')?.classList.remove('is-authenticated');await logoutDemoUser();const error=document.getElementById('loginError');if(error)error.textContent='Please sign in again. '+(e.message||'Access is no longer available.');}
+   else if(previouslyVerified&&window.offline14239?.offline()){reconnect(false);clearTimeout(retryTimer);window.offline14239.changed();}
+   else{window.permissions1441.verified=false;reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));clearTimeout(retryTimer);retryTimer=setTimeout(verify,5000);}
   }finally{verification=null}})();return verification;
  }
  window.permissions1441={refresh,verify,verified:true,reconnecting:false};refresh();

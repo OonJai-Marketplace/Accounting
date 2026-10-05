@@ -99,9 +99,10 @@ function installPosting(){
  host.querySelectorAll('[data-copy99]').forEach(b=>b.onclick=()=>{const j=jobs.get(b.dataset.copy99),u=URL.createObjectURL(new Blob([JSON.stringify(j.snapshot,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download='journal-recovery-'+j.id+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)});
  }
  window.mainRetry14234=async function(id){recover();const job=jobs.get(id),owner=liveProfile?.id;if(!job?.payload||!owner||!access113.can('journal','post'))throw Error('Sign in with posting access to retry.');
- if(job.status==='saving')return;job.status='saving';draw();try{const r=await ojmDb.rpc('post_manual_journal14228',job.payload);if(r.error)throw r.error;job.status='saved';await loadJournalFromSupabase();if(liveProfile?.id===owner)jobs.delete(id);else saveDetached(job,owner);}catch(e){job.status=job.status==='saved'?'saved':'uncertain';job.message=e.message||'Connection interrupted';if(liveProfile?.id!==owner)saveDetached(job,owner);throw e}finally{if(liveProfile?.id===owner)draw()}};
+ if(job.status==='saving')return;job.status='saving';draw();try{const r=await ojmDb.rpc('post_manual_journal14228',job.payload);if(r.error)throw r.error;if(!Array.isArray(r.data)||r.data.length!==1||!r.data[0]?.entry_id)throw Error('Database posting receipt not confirmed. Retry the same reference.');job.status='saved';await loadJournalFromSupabase();if(liveProfile?.id===owner)jobs.delete(id);else saveDetached(job,owner);}catch(e){job.status=job.status==='saved'?'saved':'uncertain';job.message=e.message||'Connection interrupted';if(liveProfile?.id!==owner)saveDetached(job,owner);throw e}finally{if(liveProfile?.id===owner)draw()}};
  document.addEventListener('input',e=>{if(e.isTrusted&&e.target.closest('#journalEntry98'))restoredKey14228=null},true);
  window.submitJournalEntry=async function(){
+ if(window.offline14239?.offline()){showCenterStatus('Final posting requires connection. Your entry stays in the editor.',true);return;}
  recover();
  
  // Existing correction and submission workflows retain their approval/audit handlers.
@@ -116,7 +117,7 @@ function installPosting(){
  job.payload=payload;restoredKey14228=null;
  try{localStorage.setItem('ojm_pending_posts99_'+owner,JSON.stringify([...jobs.values()]))}catch(_){jobs.delete(id);showAppNotification('Entry not sent','Device recovery storage is unavailable. Your entry remains in the editor. Free storage or keep an external copy before posting.',true);return}
  clearJournalEntry();draw();
- try{const result=await ojmDb.rpc('post_manual_journal14228',payload);if(result.error)throw result.error;if(result.data?.staged14228){jobs.delete(id);draw();showCenterStatus('Entry saved in the correction session. Finish the session to commit the book.');return}job.status='saved';if(liveProfile?.id!==owner){saveDetached(job,owner);return}draw();
+ try{const result=await ojmDb.rpc('post_manual_journal14228',payload);if(result.error)throw result.error;if(result.data?.staged14228){jobs.delete(id);draw();showCenterStatus('Entry saved in the correction session. Finish the session to commit the book.');return}if(!Array.isArray(result.data)||result.data.length!==1||!result.data[0]?.entry_id)throw Error('Database posting receipt not confirmed. Retry the same reference.');job.status='saved';if(liveProfile?.id!==owner){saveDetached(job,owner);return}draw();
  if(liveProfile?.id===owner){await loadJournalFromSupabase();jobs.delete(id);draw()}
  }catch(e){if(liveProfile?.id!==owner){job.status=job.status==='saved'?'saved':'uncertain';job.message=e.message||'Check posting status.';saveDetached(job,owner);return}if(job.status==='saved'){job.message='Saved successfully; the journal refresh failed. Refresh to see the confirmed entry.';draw();return}
  // Transport failures can happen after commit. Never automatically repeat an uncertain write.

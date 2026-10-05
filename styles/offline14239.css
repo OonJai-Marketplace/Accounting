@@ -1,0 +1,16 @@
+.area-banner113,.dash-hero112{position:relative}
+.connection14239{font-family:inherit!important;font-size:12px!important;font-weight:600!important;line-height:1.3!important;border:1px solid #b5c7be!important;border-radius:20px!important;padding:7px 12px!important;min-width:78px;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px #0002;z-index:3}
+.area-banner113>.connection14239,.dash-hero112>.connection14239{position:absolute;right:16px;top:12px}
+.connection14239[data-state=online]{background:#125c42!important;color:#fff!important}
+.connection14239[data-state=offline]{background:#fff!important;color:#273b33!important}
+.connection14239[data-state=syncing]{background:#a24f0b!important;color:#fff!important}
+.connection14239[data-state=attention]{background:#a32e2e!important;color:#fff!important}
+.top>.connection14239{margin-left:auto;margin-right:8px;width:auto!important;min-width:65px;padding:6px 9px!important;font-size:11px!important}
+.connection-dialog14239{color:#18372c;background:#f5f8f5;border:1px solid #96b2a2;border-radius:16px;padding:20px;max-width:540px;width:calc(100% - 32px);max-height:85dvh;overflow:auto;box-sizing:border-box;z-index:2147483647}
+.connection-dialog14239::backdrop{background:#061e19aa}
+.connection-dialog14239 article{padding:12px 0;border-top:1px solid #b5c7be;overflow-wrap:anywhere}
+.connection-dialog14239 button{padding:10px 16px;margin:8px 8px 0 0;cursor:pointer;border-radius:8px;border:1px solid #789785;background:#125c42;color:white}
+.connection-dialog14239 button:disabled{opacity:.5;cursor:default}
+.top:has(>.connection14239) .brand{min-width:0}
+.top:has(>.connection14239) .profile>div:not(.avatar),.top:has(>.connection14239) .profile>span{display:none}
+.top:has(>.connection14239) .profile{flex:none}

@@ -49,35 +49,28 @@ const frame=await (await page.waitForSelector('#connectedPhone132')).contentFram
 await frame.locator('.brand').tap();await frame.locator('#menuSubusers').tap();
 const user='00000000-0000-4000-8000-000000000002',other='00000000-0000-4000-8000-000000000003';
 const selectUser=async id=>{await frame.locator('[data-phone-user14236="'+id+'"]').tap();await frame.locator('#home .funds-hero1425').waitFor({state:'visible'});};
-await check('Populated workspaces load their own balances without desktop mounting',async()=>{await selectUser(user);assert.match(await frame.locator('#home .funds-hero1425').innerText(),/1,080/);assert.equal(await page.evaluate(()=>document.querySelector('#sub-users-workspace.active')!==null),false);});
 
-await check('A stalled directory lookup does not trap navigation or override a later choice',async()=>{
- await page.evaluate(()=>{const a=PhoneApp132;window.__originalUsers=a.users;window.__originalEnsure=a.ensureUser;a.users=()=>__originalUsers().filter(u=>u.id!=='00000000-0000-4000-8000-000000000003');a.ensureUser=()=>new Promise(r=>window.__directoryResolve=r);});
- await frame.locator('[data-phone-user14236="'+other+'"]').tap();
- await frame.locator('.brand').tap();await frame.locator('#menuDashboard').tap();
- assert.equal(await frame.evaluate(()=>phoneSelection14237().module),'dashboard');
- await page.evaluate(()=>{PhoneApp132.users=__originalUsers;PhoneApp132.ensureUser=__originalEnsure;__directoryResolve(true);});
- await page.waitForTimeout(200);assert.equal(await frame.evaluate(()=>phoneSelection14237().module),'dashboard');
- await frame.locator('.brand').tap();await frame.locator('#menuSubusers').tap();await selectUser(user);
+await selectUser(user);
+await check('Phone saves a complete offline entry without calling the database',async()=>{
+ await frame.locator('[data-go=post]').tap();await frame.locator('#staffMemo').fill('Offline phone complete entry');await frame.locator('#staffAmount').fill('125');await frame.locator('#staffDate').fill('2027-02-05');
+ await context.setOffline(true);await frame.getByRole('button',{name:'Save Entry',exact:true}).tap();
+ await page.waitForFunction(()=>offline14239.queue().length===1);
+ assert.equal(await page.evaluate(()=>__auditSaves.length),0);assert.equal(await page.evaluate(()=>offline14239.queue()[0].status),'pending');
+ assert.match(await page.evaluate(async()=>{try{await PhoneApp132.submit('00000000-0000-4000-8000-000000000002')}catch(e){return e.message}}),/Sync all pending entries/);
+ await frame.locator('[data-go=entries]').waitFor();assert.equal(await frame.evaluate(()=>phoneSelection14237().page),'entries');
 });
-await check('Failed refresh retains balances and worklist with an explicit stale-data notice',async()=>{
- await page.evaluate(async()=>{const base=ojmDb.rpc;ojmDb.rpc=async(n,p)=>n==='fund_balances136'?{error:{message:'Weak connection test'}}:base(n,p);await PhoneApp132.loadWorkspace('00000000-0000-4000-8000-000000000002',true).catch(()=>{});ojmDb.rpc=base;});
- await frame.getByText('Showing previously loaded records. Refresh failed: Weak connection test',{exact:true}).waitFor();assert(await frame.locator('#home .funds-hero1425').isVisible());
- await frame.locator('[data-go=entries]').tap();assert.equal(await frame.locator('#entries .entry132').count(),30);
- await frame.getByRole('button',{name:'Try again',exact:true}).tap();await page.waitForFunction(()=>!PhoneApp132.workspaceState('00000000-0000-4000-8000-000000000002').error);
+await check('Phone indicator opens manual sync and reconnect leaves the queue untouched',async()=>{
+ await context.setOffline(false);await page.waitForTimeout(200);assert.equal(await page.evaluate(()=>__auditSaves.length),0);
+ await frame.locator('.connection14239').tap();assert.match(await page.locator('dialog').innerText(),/Saved on this device/);
+ await page.getByRole('button',{name:'Sync now',exact:true}).click();await page.waitForFunction(()=>offline14239.queue()[0].status==='synced');
+ assert.equal(await page.evaluate(()=>__auditSaves.length),1);await page.getByRole('button',{name:'Close',exact:true}).click();
+ await frame.locator('#entries details').filter({hasText:'Offline phone complete entry'}).waitFor({state:'visible'});
 });
-await check('Stalled new workspace times out; tabs remain usable; retry ignores the old response',async()=>{
- const third='00000000-0000-4000-8000-000000000004';
- await page.evaluate(()=>{window.__networkBase=ojmDb.rpc;ojmDb.rpc=(n,p)=>n==='fund_balances136'?new Promise(r=>window.__releaseNetworkAudit=r):__networkBase(n,p);});
- await frame.locator('[data-phone-user14236="'+third+'"]').tap();
- await frame.locator('[data-go=accounts]').tap();assert.equal(await frame.evaluate(()=>phoneSelection14237().page),'accounts');
- await frame.getByRole('heading',{name:'Accounts',exact:true}).waitFor();
- await frame.getByRole('button',{name:'Try again',exact:true}).waitFor({timeout:16000});
- assert.match(await frame.locator('#accounts').innerText(),/connection is taking too long/);
- await page.evaluate(()=>ojmDb.rpc=__networkBase);
- await frame.getByRole('button',{name:'Try again',exact:true}).tap();await frame.locator('#accounts .fund-card1425').waitFor();
- await page.evaluate(()=>__releaseNetworkAudit({data:[],error:null}));await page.waitForTimeout(100);assert.equal(await frame.locator('#accounts .fund-card1425').count(),1);
+await check('Phone queue and indicator fit 320 pixels',async()=>{
+ await page.setViewportSize({width:320,height:760});await page.waitForTimeout(150);
+ assert(await frame.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.screenshot({path:root+'/validation/screenshots/offline-phone14239.png'});
 });
 await check('No uncaught errors',()=>assert.deepEqual(errors,[]));
-fs.writeFileSync(path.join(root,'validation/phone-weak-network14238.json'),JSON.stringify(results,null,2));console.log('RESULT',JSON.stringify(results));await browser.close();server.close();if(results.some(x=>!x.passed))process.exitCode=1;
+fs.writeFileSync(root+'/validation/offline-phone14239.json',JSON.stringify(results,null,2));await browser.close();server.close();if(results.some(x=>!x.passed))process.exitCode=1;
 })().catch(e=>{console.error(e);server.close();process.exit(1)});

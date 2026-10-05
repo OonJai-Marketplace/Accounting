@@ -1,5 +1,6 @@
 /* Approved phone presentation, backed by the parent application's single runtime. */
-(()=>{'use strict';const A=parent.PhoneApp132,$=id=>document.getElementById(id);if(!A){document.body.textContent='Open Oon Jai from the main website.';return}
+(()=>{'use strict';
+window.addEventListener('load',()=>parent.offline14239?.paint(document,true));const A=parent.PhoneApp132,$=id=>document.getElementById(id);if(!A){document.body.textContent='Open Oon Jai from the main website.';return}
 const S={module:'dashboard',page:'home',user:null,search:'',month:A.previewMonth||new Date().toISOString().slice(0,7),review:'submitted',journalForm:false,editingStaff:false,editingJournal:false};let actions=[],last='',busy=false;
 let lastDraft14237='';let draftOwner1427='',phoneSession14225='',phoneDrafts1427={staff:{}};
 function draftKey1427(id){return 'ojm_phone_draft1427:'+String(parent.OJM_SUPABASE_URL||location.origin)+':'+id}
@@ -208,7 +209,8 @@ async function saveStaff(){
  const controls=[...$('post').querySelectorAll('input,select,button')].map(n=>[n,n.disabled]);controls.forEach(([n])=>n.disabled=true);
  try{
   const result=await A.saveStaffEditor(owner,data);
-  if(result?.saved){
+  if(result?.saved||result?.queued){
+   if(result.queued)parent.showCenterStatus('Saved on this device. Tap the connection indicator, then Sync now when connected.');
    delete phoneDrafts1427.staff[owner];
    // A failed refresh after a confirmed save must not leave a resubmittable draft.
    if(A.profile()?.id===actor){S.staffDraft=null;S.editingStaff=false;S.month=data.date.slice(0,7);persistPhoneDraft1427();busy=false;navigate('subusers','entries',false);}

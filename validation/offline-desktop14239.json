@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Desktop connection indicator is placed on the existing banner",
+    "passed": true
+  },
+  {
+    "name": "Journal cache extension restores a complete offline snapshot",
+    "passed": true
+  },
+  {
+    "name": "Offline desktop final posting preserves its draft",
+    "passed": true
+  },
+  {
+    "name": "No uncaught errors",
+    "passed": true
+  }
+]

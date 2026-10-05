@@ -1,0 +1,35 @@
+Oon Jai Accounting v142.39 — offline preparation and explicit sync
+
+Open the updated app while connected. The connection indicator appears at the
+upper right of desktop/tablet banners and next to the phone avatar. Open it to
+check that the app files have finished downloading before closing the tab.
+
+Downloaded records remain available with their snapshot time. Records never
+loaded on this device require a connection. The journal cache is replaced only
+after every page of the journal has loaded; an interrupted refresh cannot publish
+a partial journal or mix an incomplete refresh into the previous snapshot.
+
+New personal journal entries can be saved on this device while offline. Their
+complete payload, editor snapshot and stable reference are written together before
+the editor clears. They do not change database balances until confirmed. Pending
+entries must be synced before submitting that user's report for review.
+
+Reconnecting NEVER uploads queued entries. Tap the connection indicator and then
+Sync now. Each item uses the existing atomic save_staff_editor1437 database RPC.
+A complete line_ids receipt is required before showing Synced to database. Failed,
+missing or interrupted confirmations remain available with the same reference.
+The existing database receipt protocol prevents a retry from creating a duplicate.
+
+Changes to saved records stay as drafts when offline and require connected review;
+they are not silently queued for overwrite. First sign-in, renewed/expired sessions,
+new records not downloaded, approvals, final ledger posting and period closing
+require a connection. Existing session expiration rules remain in force.
+
+Colors: green Online; orange Syncing; white Offline; red Attention.
+The details panel shows pending entries, confirmed entries, errors and last sync.
+Storage failures keep the input draft and report the failure. Device-local copies
+are scoped by account and database; API cache keys also separate simulated workspaces.
+
+No SQL migration is introduced. The existing v142.28 atomic receipt functions are
+required, as in v142.38. Testing uses mocked transactions; no live accounting rows
+are created, edited or deleted by these tests.

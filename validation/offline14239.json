@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Complete account/workspace-specific reads are cached",
+    "passed": true
+  },
+  {
+    "name": "Offline cached records are explicit; unseen records and other accounts stay unavailable",
+    "passed": true
+  },
+  {
+    "name": "Offline entries persist complete payloads without sending anything",
+    "passed": true
+  },
+  {
+    "name": "Mismatched payloads and offline edits cannot overwrite queued or saved records",
+    "passed": true
+  },
+  {
+    "name": "Reconnect never uploads; only Sync now sends",
+    "passed": true
+  },
+  {
+    "name": "Lost response after commit stays unconfirmed; retry reuses reference without duplicate",
+    "passed": true
+  },
+  {
+    "name": "Missing/partial database receipts never mark an entry synced",
+    "passed": true
+  },
+  {
+    "name": "Whole journal snapshot survives interrupted refresh without partial replacement",
+    "passed": true
+  },
+  {
+    "name": "HTTP permission denial is never replaced by old cached data",
+    "passed": true
+  },
+  {
+    "name": "Queued entries remain isolated by signed-in account",
+    "passed": true
+  },
+  {
+    "name": "Indicator and detail panel show pending, confirmed, manual sync and last sync",
+    "passed": true
+  },
+  {
+    "name": "Versioned app shell finishes caching and reopens without network",
+    "passed": true
+  },
+  {
+    "name": "Pending and confirmed queue records survive reopening",
+    "passed": true
+  },
+  {
+    "name": "No uncaught runtime errors",
+    "passed": true
+  }
+]

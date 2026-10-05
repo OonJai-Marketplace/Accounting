@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Tablet uses its desktop-scale layout and banner indicator",
+    "passed": true
+  },
+  {
+    "name": "Offline tablet final posting preserves its draft",
+    "passed": true
+  },
+  {
+    "name": "No uncaught errors",
+    "passed": true
+  }
+]
