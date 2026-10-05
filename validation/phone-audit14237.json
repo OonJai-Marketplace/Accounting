@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Populated workspaces load their own balances without desktop mounting",
+    "passed": true
+  },
+  {
+    "name": "Worklist includes older months, paginates, searches, and filters",
+    "passed": true
+  },
+  {
+    "name": "Draft inputs survive user switching and do not leak into another user",
+    "passed": true
+  },
+  {
+    "name": "Single entry saves once, appears in Entries, and edits without duplicating",
+    "passed": true
+  },
+  {
+    "name": "Submission targets the selected period and refreshes the worklist status",
+    "passed": true
+  },
+  {
+    "name": "Phone navigation remains responsive with 480 stored entry lines",
+    "passed": true
+  },
+  {
+    "name": "Layout fits 320, 390 and 430 pixel phone widths",
+    "passed": true
+  },
+  {
+    "name": "Double-entry switching retains values and validates the balanced pair",
+    "passed": true
+  },
+  {
+    "name": "Failed fund loading shows a retry instead of an empty worklist",
+    "passed": true
+  },
+  {
+    "name": "Reviewed report opens in the phone editor and Back returns safely",
+    "passed": true
+  },
+  {
+    "name": "Staff login opens only permitted workspaces and hides administrative navigation",
+    "passed": true
+  },
+  {
+    "name": "No uncaught application errors",
+    "passed": true
+  }
+]

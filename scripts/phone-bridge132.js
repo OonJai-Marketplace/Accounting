@@ -39,6 +39,25 @@ function staffEditorDraft(id,lineId){
   single:valid&&saved.mode==='single'?(saved.single||[]).filter(r=>!saved.multiple||r.date===first.transaction_date):group.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'?rules.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
 }
 async function reminderEditor14229(){const editor=document.getElementById('upcomingEditor92');if(!editor)throw Error('Reminder form is unavailable. Refresh and try again.');const marker=document.createComment('restore reminder form');editor.before(marker);const done=ui108.modal('Add reminder','<div data-reminder-editor14229></div>',[{label:'Cancel',value:false}],true),overlay=document.querySelector('.ui-overlay108:last-child');overlay.querySelector('[data-reminder-editor14229]').append(editor);editor.hidden=false;editor.dataset.edited='true';const observer=new MutationObserver(()=>{if(editor.hidden)overlay.resolve108(false)});observer.observe(editor,{attributes:true,attributeFilter:['hidden']});try{document.getElementById('recurringMemo')?.focus();await done;}finally{observer.disconnect();if(marker.parentNode){marker.before(editor);marker.remove()}editor.hidden=true;}}
+// Phone reads do not depend on mounting the hidden desktop workspace.
+const phoneFunds14237=new Map(),phoneLoads14237=new Map(),phoneErrors14237=new Map();let phoneActor14237='',phoneReports14237=null,phoneReportsRequest14237=null;
+function phoneIdentity14237(){const id=api.session();if(phoneActor14237!==id){phoneActor14237=id;phoneFunds14237.clear();phoneLoads14237.clear();phoneErrors14237.clear();phoneReports14237=null;phoneReportsRequest14237=null;}return id;}
+async function loadPhoneWorkspace14237(id,force=false){
+ const who=phoneIdentity14237();if(!user(id)||!allowed('sub-users-workspace'))throw Error('This workspace is not included in your access.');
+ if(phoneLoads14237.has(id))return phoneLoads14237.get(id);
+ if(!force&&phoneFunds14237.has(id)&&phoneReports14237)return;
+ phoneErrors14237.delete(id);
+ const task=(async()=>{try{
+  if(!phoneReportsRequest14237&&(force||!phoneReports14237)){
+   const request=ojmDb.rpc('review_inbox14229').then(r=>{if(r.error)throw Error(r.error.message);if(who===api.session()){if(!Array.isArray(r.data))throw Error('Entry data could not be read.');phoneReports14237=r.data;reviewStaffJournals=r.data;}});
+   phoneReportsRequest14237=request;request.finally(()=>{if(phoneReportsRequest14237===request)phoneReportsRequest14237=null;}).catch(()=>{});
+  }
+  const [funds]=await Promise.all([ojmDb.rpc('fund_balances136',{p_owner:id,p_month:null}),phoneReportsRequest14237]);
+  if(who!==api.session()||!user(id))return;
+  if(funds.error)throw Error(funds.error.message);if(!Array.isArray(funds.data))throw Error('Fund balances could not be read.');phoneFunds14237.set(id,funds.data);
+ }catch(e){if(who===api.session())phoneErrors14237.set(id,e.message||'Loading failed.');throw e;}finally{if(who===api.session()){phoneLoads14237.delete(id);notify();}}})();
+ phoneLoads14237.set(id,task);return task;
+}
 const api=window.PhoneApp132={
  async ensureUser(id){
   const who=api.session();
@@ -47,6 +66,8 @@ const api=window.PhoneApp132={
   if(!allowed('sub-users-workspace')||!user(id))throw Error('This workspace is not included in your current access.');
   return true;
  },
+ loadWorkspace:loadPhoneWorkspace14237,
+ workspaceState(id){phoneIdentity14237();return {loading:phoneLoads14237.has(id),error:phoneErrors14237.get(id)||'',loaded:phoneFunds14237.has(id)&&phoneReports14237!==null};},
  profile,users,workspaceUsers,allowed,documents:()=>run('document-editor105','view',()=>openDocumentEditor105()),reportHistory:id=>reportHistory1443.open(id),
  landing:()=>window.phoneLanding14225,
  numberFormat:()=>ApplicationSettings.system?.numberFormat||'1,234.56',
@@ -62,7 +83,7 @@ const api=window.PhoneApp132={
   const actor=profile().id,{items,snapshot}=api.validateStaff(id,data);
   const result=await window.staffSave14228({p_owner:id,p_key:data.requestKey,p_items:items,p_snapshot:snapshot,p_edit_ids:data.editIds||[]});
   if(result.error)throw Error(result.error.message+(result.error.code==='PGRST202'?' Run setup/INSTALL-DESKTOP-JOURNAL-v142.17.sql once.':''));
-  if(profile()?.id===actor){try{await loadStaffJournalsForReview();window.funds113?.refresh()}catch{showCenterStatus('Entry saved. Refresh Entries to load the updated records.',true)}}
+  if(profile()?.id===actor){try{await loadPhoneWorkspace14237(id,true)}catch{showCenterStatus('Entry saved. Refresh Entries to load the updated records.',true)}}
   return {saved:true,actor};
  },
  voidStaffGroup:async(id,lineId)=>{
@@ -70,7 +91,7 @@ const api=window.PhoneApp132={
   const group=staffGroups(id).find(g=>g.lines.some(l=>l.id===lineId));if(!group||!['draft','returned'].includes(group.batch.status))throw Error('This entry is no longer editable.');
   const reason=await ui117.prompt('Reason for voiding this personal journal entry:');if(!reason?.trim())return;
   const result=await ojmDb.rpc('void_staff_editor1437',{p_owner:id,p_ids:group.lines.map(l=>l.id),p_reason:reason.trim()});
-  if(result.error)throw Error(result.error.message);await loadStaffJournalsForReview();
+  if(result.error)throw Error(result.error.message);await loadPhoneWorkspace14237(id,true);
  },
  settingsUsers:()=>allowed('settings-users')?liveProfiles||[]:[],
  editUser:(id='',section)=>run('settings-users','edit',()=>{switchTab('settings-users');openUserAccessEditor(id);window.compactUserSettings133?.();if(section)openAccessPicker(section==='accounts'?'Account Assignment':'Module Access',section==='accounts'?'userAccountAssignmentPanel':'userModuleAccessPanel');}),
@@ -80,15 +101,25 @@ const api=window.PhoneApp132={
  accountName:id=>accountLabelOnly(id),
  rules:id=>{const u=user(id);return u?workspaceRules(u):null},
  journals:()=>allowed('journal')||allowed('transactions-all')?JournalModule.entries||[]:[],
- reports:id=>{if(id&&(!allowed('sub-users-workspace')||!user(id)))return [];return (reviewStaffJournals||[]).filter(j=>id?j.owner_id===id:allowed('user-entry-review'))},
- funds:id=>user(id)?window.funds113?.cache.get(id):undefined,
+ reports:id=>{if(id&&(!allowed('sub-users-workspace')||!user(id)))return [];phoneIdentity14237();return (reviewStaffJournals||[]).filter(j=>id?String(j.owner_id)===String(id):allowed('user-entry-review'))},
+ funds:id=>{phoneIdentity14237();return user(id)?phoneFunds14237.get(id):undefined;},
  openUser:selectUser,
  navigate:(target)=>{if(!allowed(target))return false;if(target.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target);return true},
  saveStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{window.phoneResetStaff132?.();selectUser(id,'post');put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',[data.memo,data.reference].filter(Boolean).join(' — '));v49ValidatePost();return v49SavePost(id)}),
  editStaff:(id,line)=>run('sub-users-workspace','edit',()=>{selectUser(id,'entries');v49EditEntry(id,line);const val=n=>$(n)?.value;return {date:val('v49Date'),direction:val('v49Direction'),fund:val('v49Fund'),account:val('v49Account'),amount:val('v49Amount'),memo:val('v49Description')}}),
  saveEditedStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',[data.memo,data.reference].filter(Boolean).join(' — '));v49ValidatePost();return v49SavePost(id)}),
  deleteStaff:(id,line)=>run('sub-users-workspace','void',()=>{if(!allowed('sub-users-workspace','edit')||!user(id))return false;return voidWorkspaceSingleRow(id,line)}),
- submit:id=>run('sub-users-workspace','edit',()=>{selectUser(id,'entries');return submitWorkspaceForReview(id)}),
+ submit:async(id,month='')=>{
+  if(!canWriteStaff(id))throw Error('Submitting is not enabled for this workspace.');
+  const batches=api.reports(id).filter(j=>['draft','returned'].includes(j.status)&&j.lines?.length&&(!month||String(j.period_start).startsWith(month)));
+  if(!batches.length)throw Error('No saved entries are ready to submit for this selection.');
+  const who=api.session();const content='<p>Submit this period and lock its saved entries for review?</p><label>Period<select id="phoneSubmitPeriod14237">'+batches.map(j=>'<option value="'+escapeHtml(j.id)+'">'+escapeHtml(String(j.period_start).slice(0,7))+' · '+j.lines.length+' entries</option>').join('')+'</select></label>';
+  const answer=ui108.modal('Submit for Review',content,[{label:'Cancel',value:false},{label:'Submit',value:true,primary:true}]);
+  const select=document.getElementById('phoneSubmitPeriod14237');let selected=select.value;select.onchange=()=>selected=select.value;
+  if(!await answer)return;if(who!==api.session()||!canWriteStaff(id))throw Error('Your access changed. Open the workspace again.');
+  if(!api.reports(id).some(j=>j.id===selected&&['draft','returned'].includes(j.status)))throw Error('This period is no longer ready to submit.');
+  const result=await ojmDb.rpc('submit_staff_journal',{p_journal_id:selected});if(result.error)throw Error(result.error.message);await loadPhoneWorkspace14237(id,true);
+ },
  staffHistory:(id,mode)=>{selectUser(id,'entries');openWorkspaceReview(id,mode)},
  adjust:(id,fund)=>run('sub-users-workspace','edit',()=>{selectUser(id,'accounts');v49OpenAdjustment(id,fund)}),
  compare:id=>run('user-entry-review','view',()=>{switchTab('user-entry-review');openSubmissionComparison(id)}),
@@ -121,9 +152,9 @@ const api=window.PhoneApp132={
  printStaff:id=>run('document-editor105','export',()=>reportHistory1443.open(id)),
  printSavedReport:id=>run('document-editor105','export',()=>reportHistory1443.has(id)?reportHistory1443.print(id):savedReports1434.print(id)),
  logout:()=>logoutDemoUser(),
- refresh:async()=>{if(!profile())return;await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
+ refresh:async()=>{if(!profile())return;const selected=$('connectedPhone132')?.contentWindow?.phoneSelection14237?.();if(selected?.module==='subusers'){if(selected.user)await loadPhoneWorkspace14237(selected.user,true);else await window.TeamHome14227?.reload();notify();return;}await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.36';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.37';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

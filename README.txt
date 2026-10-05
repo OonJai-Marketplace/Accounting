@@ -1,11 +1,14 @@
-OON JAI ACCOUNTING v142.36 — FULL WEBSITE
+OON JAI ACCOUNTING v142.37 — FULL WEBSITE
+
+v142.37: repair phone workspace loading, show all worklist months with pagination, preserve drafts per user, submit the selected period, and close report history when opening the editor. Stop repeated currency/account DOM updates that slowed phones. No database update required.
+Validation: 12 populated phone checks and 11 existing UI regression checks passed with a simulated backend. Phone checks include 320/390/430 widths, restricted staff, error/retry, saving/editing, and report Back navigation. Local CPU-throttled timings are not real-device or live-backend guarantees.
 
 v142.36: phone Home now has horizontal named sub-user tabs; the administrator’s own listed workspace opens; failed directory loads show a visible retry on the phone. No database update required.
 
 v142.35 phone fixes: refresh missing sub-user directory before opening; formatting controls appear only when Format is tapped; Back returns from the document editor to the previous workspace. No database update is required for these phone fixes.
 
 Upload the extracted contents to the Accounting repository, keeping folders intact.
-Keep the Restaurant package in its own repository. This release was not deployed.
+Keep the Restaurant package in its own repository.
 
 INSTALL ONCE
 Run setup/INSTALL-OPENING-BALANCES-v142.34.sql in your existing Supabase SQL Editor.
