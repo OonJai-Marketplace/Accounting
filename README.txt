@@ -1,4 +1,6 @@
-OON JAI ACCOUNTING v142.34 — FULL WEBSITE
+OON JAI ACCOUNTING v142.35 — FULL WEBSITE
+
+v142.35 phone fixes: refresh missing sub-user directory before opening; formatting controls appear only when Format is tapped; Back returns from the document editor to the previous workspace. No database update is required for these phone fixes.
 
 Upload the extracted contents to the Accounting repository, keeping folders intact.
 Keep the Restaurant package in its own repository. This release was not deployed.

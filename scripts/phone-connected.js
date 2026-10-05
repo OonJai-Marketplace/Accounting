@@ -57,10 +57,16 @@ const modulePages={dashboard:[['home','dashboard']],transactions:[['journal','jo
 const firstModulePage=m=>modulePages[m]?.find(([,target])=>A.allowed(target))?.[0];
 window.switchModule=m=>{toggleDrawer(false);if(m==='subusers'&&!A.allowed('sub-users-workspace')&&A.teamHomeAllowed())S.user=null;const page=firstModulePage(m);if(page)navigate(m,page)};
 window.settingsGo=p=>navigate('settings',p);window.dashGo=p=>navigate('dashboard',p);window.txGo=p=>navigate('transactions',p);window.accGo=p=>navigate('accounts',p);window.go=p=>navigate('subusers',p);
-window.chooseWorkspace=id=>{
+window.chooseWorkspace=async id=>{
  if(busy)return;capturePhoneDraft1427();
- if(id==='home'&&!A.teamHomeAllowed()||id!=='home'&&!A.users().some(u=>String(u.id)===String(id)))return;
- S.user=id==='home'?null:id;const draft=phoneDrafts1427.staff[S.user];S.staffDraft=draft?.data||null;S.editingStaff=!!draft?.editing;S.page='home';navigate('subusers','home',false);
+ if(id==='home'&&!A.teamHomeAllowed())return;
+ const who=A.session();busy=true;
+ try{
+  if(id!=='home'&&!A.users().some(u=>String(u.id)===String(id)))await A.ensureUser(id);
+  if(who!==A.session())return;
+  S.user=id==='home'?null:String(id);const draft=phoneDrafts1427.staff[S.user];S.staffDraft=draft?.data||null;S.editingStaff=!!draft?.editing;S.page='home';
+  busy=false;navigate('subusers','home',false);
+ }catch(e){parent.showCenterStatus('Unable to open this workspace. '+(e.message||'Please try again.'),true)}finally{busy=false}
 };
 window.toggleDrawer=force=>{const open=force===undefined?!$('drawerBackdrop').classList.contains('open'):force;$('drawerBackdrop').classList.toggle('open',open);document.querySelector('.brand')?.setAttribute('aria-expanded',String(open));if(open)$('drawerBackdrop').querySelector('button:not([hidden])')?.focus({preventScroll:true});else document.querySelector('.brand')?.focus({preventScroll:true})};
 

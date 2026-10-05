@@ -35,6 +35,13 @@ function staffEditorDraft(id,lineId){
 }
 async function reminderEditor14229(){const editor=document.getElementById('upcomingEditor92');if(!editor)throw Error('Reminder form is unavailable. Refresh and try again.');const marker=document.createComment('restore reminder form');editor.before(marker);const done=ui108.modal('Add reminder','<div data-reminder-editor14229></div>',[{label:'Cancel',value:false}],true),overlay=document.querySelector('.ui-overlay108:last-child');overlay.querySelector('[data-reminder-editor14229]').append(editor);editor.hidden=false;editor.dataset.edited='true';const observer=new MutationObserver(()=>{if(editor.hidden)overlay.resolve108(false)});observer.observe(editor,{attributes:true,attributeFilter:['hidden']});try{document.getElementById('recurringMemo')?.focus();await done;}finally{observer.disconnect();if(marker.parentNode){marker.before(editor);marker.remove()}editor.hidden=true;}}
 const api=window.PhoneApp132={
+ async ensureUser(id){
+  const who=api.session();
+  if(!user(id))await window.Organization14229?.loadProfiles();
+  if(who!==api.session())throw Error('Your session changed. Open the workspace again.');
+  if(!allowed('sub-users-workspace')||!user(id))throw Error('This workspace is not included in your current access.');
+  return true;
+ },
  profile,users,allowed,documents:()=>run('document-editor105','view',()=>openDocumentEditor105()),reportHistory:id=>reportHistory1443.open(id),
  landing:()=>window.phoneLanding14225,
  numberFormat:()=>ApplicationSettings.system?.numberFormat||'1,234.56',
@@ -112,6 +119,6 @@ const api=window.PhoneApp132={
  refresh:async()=>{if(!profile())return;await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.34';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.35';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

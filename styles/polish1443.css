@@ -48,3 +48,20 @@ html body #journalEntry98 .simple-row1430 [data-remove1430]{grid-column:-2/-1;gr
 html body #journalEntry98 .je-date-col .oj-date-label104{white-space:nowrap!important;line-height:1.3!important}
 
 @media(max-width:700px){html[data-device132=phone] body #document-editor105.phone-document1434.mobile-editor1443{left:0!important;top:0!important;right:0!important;bottom:0!important;width:100vw!important;padding:0!important;margin:0!important}html body #document-editor105.mobile-editor1443 .doc-shell105{width:100%!important;padding:0!important}html body #document-editor105.mobile-editor1443 .doc-canvas105{margin:0!important;border:0!important}}
+
+/* Phone formatting is an on-demand panel above the document navigation. */
+@media(max-width:700px){
+html body #document-editor105.mobile-editor1443 .mobile-doc-format1443{bottom:76px;left:8px;right:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px;max-height:45dvh;overflow:auto;padding:12px;z-index:10;background:#fffdf8;color:#254c3c}
+html body #document-editor105.mobile-editor1443 .mobile-doc-format1443 button{color:#254c3c!important;min-height:36px}
+.mobile-doc-format1443 label{display:flex;align-items:center;margin:0;gap:4px}
+.mobile-doc-format1443 input,.mobile-doc-format1443 select{max-width:150px;min-height:36px;font-size:14px}
+.mobile-doc-format1443 .doc-color107{min-width:40px;min-height:40px;cursor:pointer}
+.mobile-doc-format1443 svg{width:20px;height:20px}
+.mobile-doc-bottom1443 [aria-expanded=true]{background:#ffffff22;border-radius:7px}
+.mobile-doc-top1443 small{font-size:10px}
+}
+
+@media(max-width:700px){
+.mobile-doc-format1443 .doc-step-buttons1428{display:none!important}
+.mobile-doc-format1443 input[data-style=fontSize]{width:64px!important}
+}
