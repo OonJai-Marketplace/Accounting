@@ -46,9 +46,9 @@ function add(row={}){
  n.querySelector('[data-remove1430]').onclick=()=>{n.remove();if(!$('simpleRows1430').children.length)add();sync();saveDraft();};
  $('simpleRows1430').append(n);restrictRow1438(n);directionToggle(n);return n;
 }
-function saveDraft(){if(mode==='single')$('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles:true}));}
+function saveDraft(){$('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles:true}));}
 function sync(){
- if(mode!=='single'||building)return;building=true;
+ if(mode!=='single'||building)return;if(lastSingle?.unmapped){$('simpleEntry1430').dataset.error='These complete lines are retained in Double Entry. Switch back to review or post.';return;}building=true;
  for(const n of $('simpleRows1430').children){restrictRow1438(n);directionToggle(n);}
  const errors=[],rows=read(),body=$('jeLinesBody');body.replaceChildren();
  rows.forEach((row,i)=>{
@@ -83,36 +83,47 @@ function sync(){
 function pairs(){
  const rows=[...$('jeLinesBody').rows].filter(r=>[...r.querySelectorAll('.je-line-acc,.je-line-dr,.je-line-cr,.je-line-memo')].some(n=>n.value.trim()&&!['0','0.00'].includes(n.value)));
  if(!rows.length)return [];
- if(rows.length%2)return null;
+ // Include the empty counterpart of an unfinished draft rather than treating
+ // a selected account as a complex journal.
+ if(rows.length%2){const blank=document.createElement('tr');blank.innerHTML='<td><input class="je-line-acc"><input class="je-line-dr"><input class="je-line-cr"><input class="je-line-memo"><input class="je-line-date"></td>';rows.push(blank)}
  const result=[];
  for(let i=0;i<rows.length;i+=2){
   const parts=rows.slice(i,i+2).map(r=>({a:getSelectedAccountInfo(r.querySelector('.je-line-acc')?.value),dr:amount(r.querySelector('.je-line-dr')?.value),cr:amount(r.querySelector('.je-line-cr')?.value),memo:r.querySelector('.je-line-memo')?.value||'',date:r.querySelector('.je-line-date')?.value||$('jeTransDate').value}));
-  const d=parts.find(r=>r.dr>0&&!r.cr),c=parts.find(r=>r.cr>0&&!r.dr);
-  if(!d?.a?.id||!c?.a?.id||d.a.id===c.a.id||d.a.currency!==c.a.currency||Math.abs(d.dr-c.cr)>.0000001||d.memo!==c.memo||($('jeMultipleDates').checked&&d.date!==c.date))return null;
-  const rules=window.personalJournal1437?.rules;
-  if(rules){const outgoing=rules.directions.includes('out')&&rules.fundIds.includes(c.a.id)&&rules.entryIds.includes(d.a.id),incoming=rules.directions.includes('in')&&rules.fundIds.includes(d.a.id)&&rules.counterpart===c.a.id;
-   if(!outgoing&&!incoming)return null;
-   result.push({direction:outgoing?'out':'in',source:outgoing?c.a.id:d.a.id,affected:outgoing?d.a.id:c.a.id,amount:String(d.dr),memo:d.memo,date:d.date});
-  }else result.push({direction:'out',source:c.a.id,affected:d.a.id,amount:String(d.dr),memo:d.memo,date:d.date});
+  const hasValues=parts.some(r=>r.dr||r.cr);
+  const d=parts.find(r=>r.dr>0&&!r.cr)||(!hasValues?parts[0]:null),c=parts.find(r=>r.cr>0&&!r.dr)||(!hasValues?parts[1]:null);
+  const debit=d||parts.find(r=>r!==c),credit=c||parts.find(r=>r!==d);
+  if(!debit||!credit||debit===credit||parts.some(r=>r.dr&&r.cr)||(debit.a&&credit.a&&(debit.a.id===credit.a.id||debit.a.currency!==credit.a.currency))||(debit.dr&&credit.cr&&Math.abs(debit.dr-credit.cr)>.0000001)||debit.memo&&credit.memo&&debit.memo!==credit.memo||($('jeMultipleDates').checked&&debit.date&&credit.date&&debit.date!==credit.date))return null;
+  const da=debit.a,ca=credit.a,value=debit.dr||credit.cr,memo=debit.memo||credit.memo,date=debit.date||credit.date;
+  const rules=window.personalJournal1437?.rules,previous=lastSingle?.single?.[i/2];
+  let incoming=previous?.direction==='in'&&(!da||previous.source===da.id)||da?.type==='ASSET'&&ca?.type!=='ASSET';
+  if(rules){const outgoing=rules.directions.includes('out')&&(!ca||rules.fundIds.includes(ca.id))&&(!da||rules.entryIds.includes(da.id)),inc=rules.directions.includes('in')&&(!da||rules.fundIds.includes(da.id))&&(!ca||rules.counterpart===ca.id);if(!outgoing&&!inc)return null;incoming=inc&&!outgoing;}
+  result.push({direction:incoming?'in':'out',source:(incoming?da:ca)?.id||'',affected:(incoming?ca:da)?.id||'',amount:value?String(value):'',memo,date});
  }
  return result;
 }
 function display(){
  const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.setAttribute('aria-checked',String(!single));toggle.dataset.mode=mode;
  $('simpleEntry1430').hidden=!single;$('jeLinesBody').closest('.table-container').hidden=single;
- $('journalEntry98').classList.toggle('single-entry1430',single);
+ $('journalEntry98').classList.toggle('single-entry1430',single);$('simpleEntry1430').querySelectorAll('input,select,button').forEach(n=>{n.disabled=!!lastSingle?.unmapped;});
  $('journalEntry98').querySelector('.je-title').textContent=single?'Post Single-Entry Transaction':'Post Double-Entry Transaction';
 }
-function signature(){return JSON.stringify([...$('jeLinesBody').rows].map(r=>[...r.querySelectorAll('input')].map(n=>n.value)));}
+function signature(){return JSON.stringify(canonicalRows14232().map(r=>({account:r.account,memo:r.memo,date:r.date,dr:amount(r.dr),credits:r.credits.map(c=>({currency:c.currency,value:amount(c.value)}))})));}
+function canonicalRows14232(){return [...$('jeLinesBody').rows].map(r=>({account:r.querySelector('.je-line-acc')?.value||'',memo:r.querySelector('.je-line-memo')?.value||'',date:r.querySelector('.je-line-date')?.value||$('jeTransDate').value,dr:r.querySelector('.je-line-dr')?.value||'',credits:[...r.querySelectorAll('.je-line-cr')].map(n=>({currency:n.dataset.currency||'',value:n.value}))}));}
+function restoreCanonical14232(rows){building=true;$('jeLinesBody').replaceChildren();for(const saved of rows){addJournalLineRow(saved.account,saved.memo,saved.dr,{});const r=$('jeLinesBody').lastElementChild;for(const credit of saved.credits){const n=[...r.querySelectorAll('.je-line-cr')].find(n=>n.dataset.currency===credit.currency)||r.querySelector('.je-line-cr');if(n)n.value=credit.value}const date=r.querySelector('.je-line-date');if(date)date.value=saved.date}building=false;calculateJournalBalance();}
+function loosePairs14232(){const rows=canonicalRows14232();return rows.filter(r=>r.account||r.dr||r.credits.some(x=>x.value)||r.memo).map(r=>{const a=getSelectedAccountInfo(r.account),debit=amount(r.dr),credit=r.credits.find(x=>amount(x.value)>0);return {direction:debit?'in':'out',source:debit?a?.id||'':'',affected:credit?a?.id||'':'',amount:r.dr||credit?.value||'',memo:r.memo,date:r.date}});}
 function setMode(next){
  if(next===mode||!['single','double'].includes(next))return;
- const pending=!!($('jeGeneralMemo').value.trim()||JournalModule.editingEntryId||pendingWorkspacePostOwnerId||pendingWorkspacePostJournalId||PeriodReview.pendingAdjustment||$('payrollPostBanner1429'));
- const typed=mode==='single'?read().some(r=>r.affected||r.amount||r.memo||(!window.personalJournal1437?.active&&r.source)||r.direction==='in'):[...$('jeLinesBody').querySelectorAll('.je-line-acc,.je-line-memo,.je-line-dr,.je-line-cr')].some(n=>n.value.trim()&&!['0','0.00'].includes(n.value));
- const draft=[...$('journalEntry98').querySelectorAll('.account-search1428')].some(n=>n.dataset.pickerDraft1444==='true');
- const dated=$('jeMultipleDates').checked&&[...(mode==='single'?$('simpleRows1430'):$('jeLinesBody')).querySelectorAll('input[type=date]')].some(n=>n.value&&n.value!==$('jeTransDate').value);
- if(pending||typed||draft||dated){$('jeEntryMode1430').value=mode;showAppNotification('Finish or reset entry','Post this entry or use Reset before switching entry type.',false);return;}
- if(next==='single'){$('simpleRows1430').replaceChildren();add();}
- lastSingle=null;mode=next;display();if(mode==='single')sync();saveDraft();
+ if(next==='double'){
+  if(lastSingle?.unmapped){if(JSON.stringify(read())!==lastSingle.simple){$('simplePreview1430').textContent='The full double-entry details were retained. Review these lines before posting.';}restoreCanonical14232(lastSingle.rows);}else sync();
+  lastSingle={single:read(),signature:signature()};mode='double';display();saveDraft();return;
+ }
+ const original=canonicalRows14232(),paired=pairs(),same=lastSingle?.signature===signature();
+ const list=same?lastSingle.single:paired;
+ $('simpleRows1430').replaceChildren();(list?.length?list:paired===null?loosePairs14232():[{}]).forEach(add);
+ mode='single';display();
+ if(paired===null&&!same){lastSingle={unmapped:true,rows:original,simple:JSON.stringify(read())};display();$('simpleEntry1430').dataset.error='These journal lines need Double Entry. Their complete details are retained; switch back to edit or post.';$('simplePreview1430').textContent=$('simpleEntry1430').dataset.error;calculateJournalBalance();}
+ else{lastSingle=null;sync();}
+ saveDraft();
 }
 function refreshAccounts(){for(const n of $('simpleRows1430').querySelectorAll('select[data-simple=source],select[data-simple=affected]')){const selected=n.value,r=n.closest('.simple-row1430');n.innerHTML=options(selected,n.dataset.simple,r.querySelector('[data-simple=direction]').value,r.querySelector('[data-simple=source]').value);}if(mode==='single')sync();}
 function ready(){
@@ -126,14 +137,14 @@ function ready(){
  for(const id of ['jeTransDate','jeMultipleDates'])$(id).addEventListener('change',sync);
  const calc=window.calculateJournalBalance;window.calculateJournalBalance=function(...args){const result=calc.apply(this,args),error=mode==='single'&&panel.dataset.error;if(error){$('btnPostJournal').disabled=true;const b=$('jeBalanceIndicator');b.textContent=error;b.title=error;b.className='je-status-badge unbalanced';}return result;};
  const post=window.submitJournalEntry;window.submitJournalEntry=async function(...args){const invalid=card.querySelector('.account-search1428:invalid');if(invalid){invalid.focus();invalid.reportValidity();return;}if(mode==='single'){sync();if(panel.dataset.error){showAppNotification('Check Entry',panel.dataset.error,true);return;}}return post.apply(this,args);};
- card.addEventListener('click',e=>{if(mode==='single'&&e.target.closest('[onclick="addJournalLineRow()"]')){e.preventDefault();e.stopImmediatePropagation();add();sync();saveDraft();}},true);
+ card.addEventListener('click',e=>{if(mode==='single'&&e.target.closest('[onclick="addJournalLineRow()"]')){e.preventDefault();e.stopImmediatePropagation();if(lastSingle?.unmapped){showCenterStatus('Switch to Double Entry to edit the retained journal lines.',true);return;}add();sync();saveDraft();}},true);
  const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){lastSingle=null;const result=reset.apply(this,args);$('simpleRows1430').replaceChildren();add();panel.dataset.error='';if(mode==='single')sync();display();return result;};
  const addLine=window.addJournalLineRow;window.addJournalLineRow=function(...args){if(mode==='single'&&!building&&args[0]){mode='double';display();}return addLine.apply(this,args);};
  const refs=window.loadReferenceDataFromSupabase;window.loadReferenceDataFromSupabase=async function(...args){const r=await refs.apply(this,args);refreshAccounts();return r;};
- const hydrate=window.hydrateSupabaseSession;window.hydrateSupabaseSession=async function(...args){const r=await hydrate.apply(this,args);if(liveProfile&&owner!==liveProfile.id){owner=liveProfile.id;lastSingle=null;mode='double';panel.dataset.error='';$('simpleRows1430').replaceChildren();add();display();}return r;};
+ const hydrate=window.hydrateSupabaseSession;window.hydrateSupabaseSession=async function(...args){const r=await hydrate.apply(this,args);if(liveProfile&&owner!==liveProfile.id){owner=liveProfile.id;lastSingle=null;mode='double';panel.dataset.error='';$('simpleRows1430').replaceChildren();add();display();window.drafts1427?.restore();}return r;};
  const dateMode=window.setJournalDateMode;window.setJournalDateMode=function(...args){const r=dateMode.apply(this,args);sync();return r;};
  card.hidden=false;display();
- window.entry1430={setMode,sync,read,get mode(){return mode;},restore(savedMode,rows){lastSingle=null;mode=savedMode==='single'?'single':'double';$('simpleRows1430').replaceChildren();(rows?.length?rows:[{}]).forEach(add);panel.dataset.error='';display();if(mode==='single')sync();}};
+ window.entry1430={setMode,sync,read,get mode(){return mode;},get retained(){return lastSingle?.unmapped?JSON.parse(JSON.stringify(lastSingle)):null},restore(savedMode,rows,retained){lastSingle=retained||null;mode=savedMode==='single'?'single':'double';$('simpleRows1430').replaceChildren();(rows?.length?rows:[{}]).forEach(add);panel.dataset.error='';display();if(retained){restoreCanonical14232(retained.rows);sync()}else if(mode==='single')sync();}};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

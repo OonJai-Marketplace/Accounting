@@ -85,6 +85,7 @@
     const ledger = document.getElementById('sec-general-ledger');
     const other = document.getElementById('sec-other-accounts');
     if (!chart || !sub || !ledger || !other) return;
+    document.getElementById('accounts-modular-container').dataset.accountView14231=target;
     const showLedger = target === 'sec-general-ledger';
     const permitted = section => typeof canAccessAppTarget !== 'function' || canAccessAppTarget(section.id);
     [chart, sub, other].forEach(section => { section.hidden = section.id !== target || !permitted(section); });

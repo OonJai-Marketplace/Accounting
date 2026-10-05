@@ -1,3 +1,5 @@
+-- Historical installer. Preserved for reference only after v142.28.
+DO $$ BEGIN RAISE EXCEPTION 'Superseded installer: use INSTALL-SECURITY-v142.28.sql and START-HERE-v142.28.txt';END $$;
 -- Apply as the database owner after reviewing this file. No accounting records are changed.
 -- Updates saved-report access: active account, assigned owner/reviewer,
 -- View + Export permissions, and only report-related accounts and their parents.

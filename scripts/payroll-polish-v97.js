@@ -169,7 +169,7 @@
       const results = new Map(resultRows(run).map(row => [row.employeeId, row]));
       const rows = (run.rows || []).map(row => {
         const x = results.get(row.employeeId);
-        return `<tr><td>${escape(row.employee?.name || 'Employee')}</td><td>${escape(row.employee?.employmentType === 'contractual' ? 'Contractual' : 'Full-time')}</td><td>${money(row.employee?.salary, row.employee?.currency || 'LAK')}</td><td>${x ? amount(x.gross) + ' ₭' : '—'}</td><td>${x ? amount(x.taxable) + ' ₭' : '—'}</td><td>${x ? amount(x.paidAmount ?? x.adjusted ?? 0) + ' ' + escape(window.currencySymbolV6?.(row.employee?.currency) || row.employee?.currency || '') : '—'}</td></tr>`;
+        return `<tr><td>${escape(row.employee?.name || 'Employee')}</td><td>${escape(row.employee?.employmentType === 'contractual' ? 'Contractual' : 'Full-time')}</td><td>${money(row.employee?.salary, row.employee?.currency || 'LAK')}</td><td>${x ? '₭ ' + amount(x.gross) : '—'}</td><td>${x ? '₭ ' + amount(x.taxable) : '—'}</td><td>${x ? escape(window.currencySymbolV6?.(row.employee?.currency) || row.employee?.currency || '') + ' ' + amount(x.paidAmount ?? x.adjusted ?? 0) : '—'}</td></tr>`;
       }).join('');
       payroll = `<div class="overview-run-summary97"><div><strong>${escape(run.reference || 'Payroll')}</strong><span>${escape(run.status==='finalized'?'Saved & archived':'In progress')} · ${run.rows?.length || 0} employees</span></div></div><div class="data-table82"><table><thead><tr><th>Employee</th><th>Employment type</th><th>Contracted salary</th><th>Gross salary (SSO)</th><th>Adjusted salary (PIT)</th><th>Net pay</th></tr></thead><tbody>${rows || '<tr><td colspan="6">No employee rows are available.</td></tr>'}</tbody></table></div>`;
     }
@@ -210,6 +210,7 @@
   }
 
   window.getActiveRecurringWarnings = function () {
+    if(!window.PrivateReminders14229?.ready())return [];
     const today = localDate();
     return (typeof RecurringStore !== 'undefined' ? RecurringStore.items : [])
       .filter(item => !item.paused && (!item.preparedUntil || item.preparedUntil <= today) && ['OVERDUE', 'DUE SOON'].includes(window.recurringStatus(item)))
@@ -245,7 +246,7 @@
     input?.focus();
   };
 
-  window.savePreparationDone97 = function (id, button) {
+  window.savePreparationDone97 = async function (id, button) {
     const item = RecurringStore.items.find(record => record.id === id);
     const card = button?.closest('[data-preparation-card97]');
     const date = card?.querySelector('[data-preparation-form97] input[type="date"]')?.value;
@@ -254,8 +255,8 @@
       window.showAppNotification?.('Choose a later date', 'Set the final warning for a future date.', true);
       return;
     }
-    item.preparedUntil = date;
-    RecurringStore.save();
+    const saved=await PrivateReminders14229.mutate(()=>{const item=RecurringStore.items.find(record=>record.id===id);if(!item)throw Error("Reminder changed. Reload first.");item.preparedUntil=date},'prepare:'+id+':'+date);
+    if(!saved)return;
     window.renderRecurringWarnings();
     window.showAppNotification?.('Preparation recorded', `The next warning is set for ${window.formatAppDate(date)}.`, false);
   };
@@ -487,48 +488,7 @@
     }
   };
 
-  function makeLoadingMarkup() {
-    return '<span class="login-loader97" role="status" aria-label="Signing in and loading the workspace">'+loading1444.markup()+'</span>';
-  }
-  let pulseTimer97 = null;
-  function randomizePulse97() {
-    const line = document.querySelector('.loader-pulse97');
-    if (!line) return;
-    line.style.setProperty('--pulse-size97', `${0.5 + Math.random() * 0.9}`);
-    line.style.setProperty('--pulse-angle97', `${Math.floor(Math.random() * 360)}deg`);
-  }
-  function showLoginLoader97() {
-    const gate = document.getElementById('loginGate'), status = document.getElementById('loginError');
-    if (!gate || !status) return;
-    gate.classList.add('is-loading97');
-    status.innerHTML = makeLoadingMarkup();
-    clearInterval(pulseTimer97);
-    randomizePulse97();
-    pulseTimer97 = setInterval(randomizePulse97, 420);
-  }
-  function clearLoginLoader97() {
-    const gate = document.getElementById('loginGate'), status = document.getElementById('loginError');
-    gate?.classList.remove('is-loading97');
-    if (status?.querySelector('.login-loader97')) status.textContent = '';
-    clearInterval(pulseTimer97); pulseTimer97 = null;
-  }
-  if (typeof window.handleDemoLogin === 'function') {
-    const submitLogin = window.handleDemoLogin;
-    window.handleDemoLogin = async function (...args) {
-      const result = submitLogin.apply(this, args);
-      const status = document.getElementById('loginError');
-      if (status?.textContent.includes('Signing in')) showLoginLoader97();
-      await result;
-      if (!document.getElementById('loginError')?.querySelector('.login-loader97')) clearLoginLoader97();
-    };
-  }
-  if (typeof window.hydrateSupabaseSession === 'function') {
-    const hydrate = window.hydrateSupabaseSession;
-    window.hydrateSupabaseSession = async function (...args) {
-      await hydrate.apply(this, args);
-      clearLoginLoader97();
-    };
-  }
+  // The workspace login coordinator owns the one loading indicator below the buttons.
 
   function installLazyModuleLoading() {
     const previous = window.switchTab;

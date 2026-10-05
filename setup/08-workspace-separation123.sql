@@ -1,3 +1,5 @@
+-- Historical installer. Preserved for reference only after v142.28.
+DO $$ BEGIN RAISE EXCEPTION 'Superseded installer: use INSTALL-SECURITY-v142.28.sql and START-HERE-v142.28.txt';END $$;
 -- ADMINISTRATOR-ONLY SHARED WORKSPACE ACCESS.
 -- Run once in the existing Supabase project's SQL editor BEFORE publishing.
 -- This does not change profile roles, passwords, accounts, journals or calculations.

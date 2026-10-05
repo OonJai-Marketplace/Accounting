@@ -4,17 +4,17 @@
   const epsilon = 0.00000001;
   const number = value => {
     const n = Number(String(value ?? '').replaceAll(',', ''));
-    if (!Number.isFinite(n) || n < 0) throw Error('Enter a valid, non-negative amount.');
+    if (!Number.isFinite(n) || n < 0 || Math.abs(n * 100 - Math.round(n * 100)) > 0.000001) throw Error('Enter a valid, non-negative amount.');
     return n;
   };
   function prepare(data, accounts, rules) {
     const memo = String(data.memo || '').trim();
     if (!memo) throw Error('Add the General Description / Memo.');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date || '')) throw Error('Choose a transaction date.');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date || '') || !Number.isFinite(Date.parse(data.date + 'T00:00:00Z')) || new Date(data.date + 'T00:00:00Z').toISOString().slice(0, 10) !== data.date) throw Error('Choose a transaction date.');
     const permitted = new Set([...rules.fundIds, ...rules.entryIds, rules.counterpart].map(String));
     const account = id => {
       const a = accounts.find(a => String(a.id || a.code) === String(id));
-      if (!a || a.isPosting === false || !permitted.has(String(a.id))) throw Error('Choose an account assigned to this user in Settings.');
+      if (!a || a.isPosting === false || a.isActive === false || a.is_active === false || !permitted.has(String(a.id))) throw Error('Choose an account assigned to this user in Settings.');
       return a;
     };
     const items = [], rows = [], single = [];

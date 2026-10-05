@@ -1,0 +1,12 @@
+Oon Jai Accounting v142.26 - PATCH ONLY
+
+Requires v142.25, including its earlier patch files.
+Extract into the Accounting website folder and replace matching files.
+Keep the scripts/ and styles/ folders in place and keep all other files.
+Reload the website after uploading the patch. No new SQL is required.
+
+Includes the corrected main Sub-users Home search/Report History header,
+phone blank-screen recovery, and a circle-only pull-to-refresh indicator.
+The approved compact phone entry design is retained.
+
+Validated locally with synthetic data, not against the live account.

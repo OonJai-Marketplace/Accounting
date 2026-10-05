@@ -1,0 +1,72 @@
+/* Only the requested alignment, colors, chart and settings grouping. */
+#status118 .status-motion118 svg{width:24px;height:24px;display:block}
+#status118.warning{border-color:#b45309;color:#92400e;background:#fffbeb}
+#status118.info{border-color:#2563eb;color:#1e40af;background:#eff6ff}
+#status118.error{background:#fff1f2}#status118.success{border-color:#15803d;color:#166534;background:#f0fdf4}
+body .team-tabs14230{overflow:visible;gap:14px;margin-bottom:8px}
+.team-user-tabs14231{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin;padding:3px 0}
+body .team-tabs14230 .team-search14231{display:flex;align-items:center;gap:8px;flex:0 0 290px;margin:0 0 0 auto;height:38px;box-sizing:border-box;padding:0 10px;border:1px solid #b7cbbd;border-radius:7px;background:#fffdf6}
+body .team-tabs14230 .team-search14231 input{width:100%;min-width:0;height:36px;padding:0!important;border:0!important;border-radius:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;font:12px inherit;font-size:12px}
+.team-search14231:focus-within{outline:2px solid #b45309;outline-offset:2px}
+.team-search14231 svg{flex:0 0 17px}
+.th-home-tools14230:empty{display:none!important}
+body.shell113 .banner-copy113 h1,body.shell113 .dash-hero112 h1{display:flex!important;align-items:center!important;gap:12px!important;line-height:1.15!important;margin-top:8px!important;margin-bottom:8px!important}
+body.shell113 .banner-copy113 h1 .header-icon112,body.shell113 .dash-hero112 h1 .header-icon112{align-self:center!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 34px!important;width:34px!important;height:34px!important;margin:0!important;transform:none!important}
+@media(min-width:1025px){body .r79-filters{align-items:flex-end!important;gap:12px!important}body .r79-filters>label,body .r79-filters>.cash-filter14230{display:flex!important;flex-direction:column!important;gap:6px!important;flex:1 1 0!important;min-width:120px!important;max-width:none!important;margin:0!important;padding:0!important}body .r79-filters>label>input,body .r79-filters>label>select,body .r79-filters>label>.account-search1428,body .r79-filters>.cash-filter14230 summary{height:40px!important;min-height:40px!important;box-sizing:border-box!important;margin:0!important}body .r79-filters>.cash-filter14230{flex-basis:70px!important}}
+.account-option1428,.phone-picker-list14227 [role=option]{display:flex;align-items:center;gap:10px}.account-option1428 .currency-tag,.phone-picker-list14227 .currency-tag{flex:none;padding:3px 6px;border:1px solid;border-radius:5px;font-size:11px;font-weight:700}
+.embedded-settings14231{display:block!important;margin:20px 0 0;scroll-margin-top:16px}
+.orange-module14231{border-top-color:#b45309!important}
+.organization-scroll14231{overflow:auto;padding:12px 12px 24px}
+.organization-tree14231,.organization-tree14231 ul{display:flex;justify-content:center;list-style:none;margin:0;padding:24px 0 0;width:max-content;min-width:100%;box-sizing:border-box}
+.organization-tree14231>li{padding-top:0}.organization-tree14231>li::before,.organization-tree14231>li::after{display:none}
+.organization-tree14231 li{position:relative;text-align:center;padding:24px 12px 0;box-sizing:border-box}
+.organization-tree14231 li::before,.organization-tree14231 li::after{content:'';position:absolute;top:0;width:50%;height:24px;border-top:1px solid #b7cbbd}
+.organization-tree14231 li::before{right:50%}.organization-tree14231 li::after{left:50%;border-left:1px solid #b7cbbd}
+.organization-tree14231 li:first-child::before,.organization-tree14231 li:last-child::after{border-top:0}.organization-tree14231 li:only-child::before{display:none}.organization-tree14231 ul{position:relative}.organization-tree14231 ul::before{content:'';position:absolute;left:50%;top:0;height:24px;border-left:1px solid #b7cbbd}
+.org-person14231{display:flex;flex-direction:column;gap:8px;align-items:center;width:220px;padding:16px;border:1px solid #b7cbbd;border-top:4px solid #b45309;border-radius:8px;background:#fffdf6;margin:0 auto;box-sizing:border-box}
+.org-position14231{font-size:12px;font-weight:700;color:#92400e}.org-person14231 small{color:#61766b}.org-person14231 button{align-self:flex-end;font-size:12px}
+#organizationEditor14231{display:grid;gap:14px}#organizationEditor14231 label{display:flex;flex-direction:column;gap:6px}#organizationEditor14231 button[type=submit]{justify-self:end}
+@media(max-width:767px){body .team-tabs14230{flex-wrap:wrap}.team-user-tabs14231{flex-basis:100%}body .team-tabs14230 .team-search14231{flex-basis:100%}.organization-scroll14231{padding-left:0;padding-right:0}}
+@media print{.team-search14231,.org-person14231 button{display:none!important}}
+
+.currency-tag.currency-lak,.currency-symbol-badge.currency-lak,.currency-coded14231.currency-lak{background:#e9f8f1!important;border-color:#6cc3a5!important;color:#047857!important}
+.currency-tag.currency-usd,.currency-symbol-badge.currency-usd,.currency-coded14231.currency-usd{background:#eff6ff!important;border-color:#93c5fd!important;color:#1d4ed8!important}
+.currency-tag.currency-thb,.currency-symbol-badge.currency-thb,.currency-coded14231.currency-thb{background:#fff8e6!important;border-color:#f4c66b!important;color:#9a5b00!important}
+.currency-tag.currency-eur,.currency-symbol-badge.currency-eur,.currency-coded14231.currency-eur{background:#f5edff!important;border-color:#c4a7e7!important;color:#6b3ca0!important}
+.currency-tag.currency-custom,.currency-symbol-badge.currency-custom,.currency-coded14231.currency-custom{background:var(--currency-custom-bg)!important;border-color:var(--currency-custom-border)!important;color:var(--currency-custom-text)!important}
+/* Override inherited form rules on these two requested control rows. */
+body.shell113 #sub-users-home14229 .team-tabs14230 .team-search14231 input{border:0!important;border-radius:0!important;background:transparent!important;outline:0!important;box-shadow:none!important;height:36px!important;min-height:0!important;margin:0!important;padding:0!important}
+@media(min-width:1025px){
+body.shell113 #report-cf .r79-filters{display:flex!important;flex-wrap:nowrap!important;align-items:flex-end!important}
+body.shell113 #report-cf .r79-filters>label,body.shell113 #report-cf .r79-filters>.cash-filter14230{flex:1 1 0!important;min-width:0!important;width:auto!important;max-width:none!important;display:flex!important;flex-direction:column!important;gap:6px!important;margin:0!important;line-height:18px!important;padding:0!important}
+body.shell113 #report-cf .r79-filters>.cash-filter14230{flex-grow:1.35!important}
+body.shell113 #report-cf .r79-filters>label>.account-search1428,body.shell113 #report-cf .r79-filters .oj-date-shell104,body.shell113 #report-cf .r79-filters .oj-date-button104,body.shell113 #report-cf .r79-filters .cash-picker14230 summary{height:40px!important;min-height:40px!important;width:100%!important;box-sizing:border-box!important;margin:0!important;font-size:14px!important}
+}
+@media(min-width:1025px){body.shell113 #report-cf .r79-filters .cash-picker14230{height:40px!important;min-height:40px!important;margin:0!important;padding:0!important;border:0!important;box-sizing:border-box!important}}
+
+/* Reconciliation's discard confirmation must be above its report window. */
+body #activeAppConfirm.rec-confirm14231{z-index:100001!important}
+
+.account-choice14231{display:inline-flex!important;align-items:center;gap:8px;min-width:0;max-width:100%;width:100%;box-sizing:border-box;border:1px solid #b8cbbb;border-radius:5px;background:#fffcf6;padding:0 8px}
+.account-choice14231[hidden]{display:none!important}.account-choice14231.disabled14231{opacity:.65}
+.account-choice14231>.currency-symbol-badge{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:24px;height:24px;padding:0 3px;border:1px solid;border-radius:5px;font-size:12px}
+body.shell113 .tab-content .account-choice14231>input.account-search1428:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=file]){flex:1;min-width:0;width:100%;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;padding-left:0!important;padding-right:0!important}
+.account-choice14231:focus-within{outline:2px solid #b45309;outline-offset:1px}
+.account-option1428>.currency-tag,.phone-picker-list14227 [role=option]>.currency-tag{display:inline-flex;align-items:center;justify-content:center;min-width:24px;min-height:24px;box-sizing:border-box}
+
+body .account-choice14231>input.account-search1428:not([type=checkbox]):not([type=radio]){border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;outline:0!important;padding-left:0!important;padding-right:0!important}
+
+/* A fixed left symbol and a separate, right-aligned numeric editing area. */
+body .money-field14231,body #journalEntry98 .journal-money102,body #journalEntry98 .simple-amount1444{position:relative!important;display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important}
+body .money-symbol14231,body #journalEntry98 .journal-money102>.journal-currency102,body #journalEntry98 .simple-amount1444>[data-currency1430]{position:absolute!important;left:6px!important;right:auto!important;top:50%!important;transform:translateY(-50%)!important;min-width:18px;max-width:40px;white-space:nowrap;pointer-events:none;margin:0!important;text-align:left!important;font-size:12px;z-index:1}
+body .money-field14231>input,body #journalEntry98 #jeLinesBody .journal-money102>input,body #journalEntry98 .simple-amount1444>input{width:100%!important;min-width:0!important;flex:none!important;box-sizing:border-box!important;text-align:right!important;padding-left:40px!important;padding-right:6px!important;font-variant-numeric:tabular-nums}
+
+.financial-display14231{white-space:nowrap}.financial-display-symbol14231{float:left;margin-right:10px}.financial-display-value14231{display:block;text-align:right;font-variant-numeric:tabular-nums}
+
+body .money-field14231[hidden]{display:none!important}
+
+/* Outer modules have stronger top borders than their contained modules. */
+.orange-module14231[data-module-depth14232="outer"]{border-top-width:4px!important}.orange-module14231[data-module-depth14232="inner"]{border-top-width:2px!important}
+#settings-accounting>.je-card>.currency-manager-heading,#settings-accounting>.je-card>.currency-add-bar,#settings-accounting>.je-card>.table-container{margin-left:20px!important;margin-right:20px!important}
+
+#settings-accounting .settings-module94.currency-manager14232{margin-left:15px!important;margin-right:15px!important}

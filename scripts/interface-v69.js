@@ -3,7 +3,7 @@ const Location69={hydrating:false,ready:false,view:'dashboard',lastWrite:0,userN
 function locationKey69(id=liveProfile?.id){return `ojm_location_69_${id||'local'}`}
 function readLocation69(id){try{return JSON.parse(localStorage.getItem(locationKey69(id))||'null')}catch{return null}}
 function sessionDuration88(){return Math.max(5,Math.min(480,Number(ApplicationSettings.system?.sessionTimeout)||30))*60000}
-function saveLocation69(){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:Location69.view,scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
+function saveLocation69(){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:document.getElementById('accounts-modular-container')?.classList.contains('active')?(document.getElementById('accounts-modular-container').dataset.accountView14231||Location69.view):Location69.view,scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
 function recentLocation69(record,now=Date.now()){return !!record&&now-record.lastActivity>=0&&now-record.lastActivity<sessionDuration88()}
 const hydrateBefore69=hydrateSupabaseSession;
 let hydration69=null,hydratedUser69='',startup88=null;

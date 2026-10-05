@@ -1,0 +1,78 @@
+OON JAI ACCOUNTING v142.28 — CONSOLIDATED LOGIC / SECURITY UPDATE
+
+Status: prepared and tested locally; not installed in the live Supabase project.
+This is a complete application copy based on the assessed v142.27 baseline.
+Extract the ZIP: index.html, scripts/, styles/, assets/ and setup/ are at its root.
+Do not apply it to Restaurant's separate repository.
+
+WHAT CHANGED
+- Current active-account and module permission checks, including saved reports,
+  direct table access, assigned reviewer scope, and Restaurant/Accounting separation.
+- Missing atomic administrator role/permission-save function restored and validated.
+- Server receipts recognize retries and reject the same reference with changed data.
+- Manual multi-date posting is all-or-nothing. One failure leaves no dates posted.
+- Per-currency balance, posting child account, currency/date and amount checks.
+- Authorized collections into cash/bank assets remain report-only in workspace review.
+- Personal editor and returned-book component saves are atomic.
+- Desktop and phone use one uncertain-save coordinator.
+- Obsolete approve-and-post/save APIs are disabled; retained app handlers use current APIs.
+- Current access is refreshed on focus and every 30 seconds while visible.
+  Saved-report printing rechecks the server; app exports recheck current permissions.
+- Correction-session staging recognizes retries; payroll uses a stable posting reference.
+
+VISUAL BASELINE
+All 82 stylesheets and 19 visual assets match the assessed build.
+HTML structure is unchanged. Existing script cache versions were updated.
+No layout redesign is included. Later layout work should deliberately update the
+visual baseline manifest, separately from the security behavior tests.
+
+YOUR NEXT STEP — STAGING FIRST
+1. Keep your existing website and production database as they are. Back them up.
+   Resolve any older-version unconfirmed posting attempts by checking their History;
+   those older requests did not create the new server receipts. Keep their entry copies.
+2. Prepare a separate Supabase staging project with the actual current schema,
+   functions and triggers, and dummy users/data. The SQL is an update for the
+   existing v142.27 schema, not a fresh-database installer.
+3. Run ONLY setup/INSTALL-SECURITY-v142.28.sql in that staging project's SQL Editor
+   as database owner. It runs in one transaction. It does not rewrite old journals
+   or delete data. The existing pre-request hook name and its chained hook are preserved.
+4. Use a separate copy of this website configured with the STAGING URL and anon key.
+   Confirm with CHECK-SECURITY-v142.28.sql, then follow STAGING-CHECKLIST.txt.
+5. After staging passes, apply the same migration and application files together
+   during the production update. The new app requires the new SQL functions;
+   the old app's unkeyed posting endpoints are intentionally blocked after migration.
+   Refresh the browser after the matched application/database update.
+
+No production installation, deployment, or database access was performed here.
+There is no automatic migration or deployment in this package.
+
+LOCAL VERIFICATION
+86 PostgreSQL tests passed; 27 client logic tests passed; zero failures.
+SQL tests ran in embedded PostgreSQL 18.3 (PGlite), using a dummy schema
+reconstructed from your supplied catalog and function definitions.
+Catalog results did not include defaults, enum values, or every table/trigger body.
+Defaults/enums and auxiliary workflow table shapes were inferred for this fixture.
+Eight original triggers were not supplied and were omitted, not mocked as passing.
+Their names and all results are recorded in validation/fixture-limitations.json.
+Client tests execute the actual patched modules with fixture DOM/storage/RPC adapters.
+Full-browser and real Supabase Data API/Storage/Realtime tests have not been run.
+Native simultaneous-connection tests are still required on staging.
+
+STABILITY / FUTURE CHANGES
+The authoritative migration is INSTALL-SECURITY-v142.28.sql. Do not rerun an older
+permission/workspace/finalization installer afterward: it can restore older rules.
+Historical installers are retained for reference and deliberately stop with a message.
+The behavior ownership map and visual hashes are in validation/baseline-manifest.json.
+The included GitHub workflow runs the regressions on future pushes/PRs when the
+entire extracted package (including .github/) is committed. It does not deploy.
+To run locally: cd validation; npm install; npm test.
+
+POSTING AND REVOCATION NOTES
+Receipts are kept in operation_receipts14228. Do not clear them as routine cache;
+they prevent an old pending request from posting twice. Archive them only with a
+deliberate retention plan that also invalidates old client request references.
+An employee's own historical report now requires current Workspace View plus
+Documents View + Export. Removing those grants immediately denies new server requests.
+Revocation cannot remove copies the employee already downloaded or printed.
+Existing historical records are preserved, even if already invalid; the migration
+does not silently repair or reclassify them. Staging's diagnostic reports counts.

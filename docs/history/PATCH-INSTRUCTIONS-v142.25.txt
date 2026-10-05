@@ -1,0 +1,18 @@
+OON JAI ACCOUNTING - v142.25 PATCH
+
+Base version: v142.24
+
+Extract this ZIP and merge its contents into your existing Accounting folder
+or repository root. Replace matching files and preserve the scripts/ and styles/
+folder structure. Keep all other existing files. Do not delete or replace whole
+folders with this partial package.
+
+The patch contains the nine changed or added files from the v142.25 Full package.
+After applying it, reload the website to load the updated versioned assets.
+
+No new database migration is introduced. Double Entry uses the same existing
+personal-journal database functions as the desktop version. Existing database
+prerequisites remain applicable. No database reset is needed.
+
+This patch is for Accounting only. Apply it to v142.24, not to the Restaurant
+repository. The supplied README.txt contains the complete v142.25 release notes.

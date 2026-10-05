@@ -1,3 +1,5 @@
+-- Historical installer. Preserved for reference only after v142.28.
+DO $$ BEGIN RAISE EXCEPTION 'Superseded installer: use INSTALL-SECURITY-v142.28.sql and START-HERE-v142.28.txt';END $$;
 BEGIN;
 -- Private task data only. No upcoming transactions or accounting entries are changed.
 CREATE TABLE IF NOT EXISTS public.workspace_todos136 (

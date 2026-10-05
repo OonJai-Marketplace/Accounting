@@ -3,7 +3,8 @@
 const allowed=(target,verb='view')=>!!window.access113?.can(target,verb);
 function run(target,verb,fn){if(!allowed(target,verb)){showCenterStatus('This action is not included in your permissions.',true);return false}return fn()}
 function profile(){return typeof liveProfile==='undefined'?null:liveProfile}
-function users(){const me=profile();if(!me)return[];const self={...me,user_permissions:livePermission||{}};return me.role==='admin'?availableSubUsers():me.role==='manager'||livePermission?.can_approve?[self,...availableSubUsers().filter(u=>u.id!==me.id&&u.user_permissions?.manager_id===me.id)]:[self]}
+function users(){const me=profile();if(!me)return [];return availableSubUsers().filter(u=>window.Organization14229?Organization14229.mayOpen(u.id):u.id===me.id||me.role==='admin') }
+
 function user(id){return users().find(u=>String(u.id)===String(id))}
 function selectUser(id,view='home'){if(!allowed('sub-users-workspace')||!user(id))throw Error('This user is not assigned to you.');switchTab('sub-users-workspace');openWorkspaceUser(id);v49SetView(id,view)}
 function nativeTarget(n){return n?.closest('[id^=sec-]')?.id||n?.closest('.tab-content')?.id}
@@ -32,9 +33,14 @@ function staffEditorDraft(id,lineId){
   lines:valid?(saved.rows||[]).filter(r=>!saved.multiple||r.date===first.transaction_date).map(r=>({account:resolve(r.account),memo:r.memo||'',debit:r.dr||'',credit:Object.values(r.credits||{}).find(v=>Number(String(v).replaceAll(',',''))>0)||''})):[],
   single:valid&&saved.mode==='single'?(saved.single||[]).filter(r=>!saved.multiple||r.date===first.transaction_date):group.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'?rules.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
 }
+async function reminderEditor14229(){const editor=document.getElementById('upcomingEditor92');if(!editor)throw Error('Reminder form is unavailable. Refresh and try again.');const marker=document.createComment('restore reminder form');editor.before(marker);const done=ui108.modal('Add reminder','<div data-reminder-editor14229></div>',[{label:'Cancel',value:false}],true),overlay=document.querySelector('.ui-overlay108:last-child');overlay.querySelector('[data-reminder-editor14229]').append(editor);editor.hidden=false;editor.dataset.edited='true';const observer=new MutationObserver(()=>{if(editor.hidden)overlay.resolve108(false)});observer.observe(editor,{attributes:true,attributeFilter:['hidden']});try{document.getElementById('recurringMemo')?.focus();await done;}finally{observer.disconnect();if(marker.parentNode){marker.before(editor);marker.remove()}editor.hidden=true;}}
 const api=window.PhoneApp132={
  profile,users,allowed,documents:()=>run('document-editor105','view',()=>openDocumentEditor105()),reportHistory:id=>reportHistory1443.open(id),
  landing:()=>window.phoneLanding14225,
+ numberFormat:()=>ApplicationSettings.system?.numberFormat||'1,234.56',
+ decimalPlaces:()=>appDecimalPlaces(),
+ reminders:()=>window.PrivateReminders14229?.ready()?RecurringStore.items:[],addReminder:()=>run('transactions-recurring','edit',reminderEditor14229),markReminderPaid:id=>run('transactions-recurring','edit',()=>markRecurringPaid(id)),pauseReminder:id=>run('transactions-recurring','edit',()=>toggleRecurringPause(id)),removeReminder:id=>run('transactions-recurring','edit',()=>removeRecurring(id)),
+ teamHome:()=>window.TeamHome14227?.home(),teamHomeAllowed:()=>!!window.Organization14229?.homeAllowed(),reviewPending:j=>!!window.Organization14229?.pending(j),reviewInfo:j=>window.Organization14229?.info(j),
  session:()=>String(profile()?.id||'')+':'+String(typeof sessionEpoch1430==='undefined'?'':sessionEpoch1430),
  ready:()=>!!profile()&&!!livePermission&&(!$('loginGate')||$('loginGate').classList.contains('is-authenticated')),
  canWriteStaff,staffGroups,staffEditorDraft,
@@ -42,7 +48,7 @@ const api=window.PhoneApp132={
  saveStaffEditor:async(id,data)=>{
   if(!canWriteStaff(id))throw Error('Editing is not enabled for this workspace.');
   const actor=profile().id,{items,snapshot}=api.validateStaff(id,data);
-  const result=await ojmDb.rpc('save_staff_editor1437',{p_owner:id,p_key:data.requestKey,p_items:items,p_snapshot:snapshot,p_edit_ids:data.editIds||[]});
+  const result=await window.staffSave14228({p_owner:id,p_key:data.requestKey,p_items:items,p_snapshot:snapshot,p_edit_ids:data.editIds||[]});
   if(result.error)throw Error(result.error.message+(result.error.code==='PGRST202'?' Run setup/INSTALL-DESKTOP-JOURNAL-v142.17.sql once.':''));
   if(profile()?.id===actor){try{await loadStaffJournalsForReview();window.funds113?.refresh()}catch{showCenterStatus('Entry saved. Refresh Entries to load the updated records.',true)}}
   return {saved:true,actor};
@@ -58,10 +64,11 @@ const api=window.PhoneApp132={
  editUser:(id='',section)=>run('settings-users','edit',()=>{switchTab('settings-users');openUserAccessEditor(id);window.compactUserSettings133?.();if(section)openAccessPicker(section==='accounts'?'Account Assignment':'Module Access',section==='accounts'?'userAccountAssignmentPanel':'userModuleAccessPanel');}),
  resetOwnPassword:async()=>{const me=profile();if(!me?.email)throw Error('Your account email is unavailable.');const {error}=await ojmDb.auth.resetPasswordForEmail(me.email,{redirectTo:passwordRecoveryRedirectUrl()});if(error)throw error;showCenterStatus('Password-reset email requested. Check your inbox.');},
  accounts:()=>{const all=AccountingStore.accounts||[];if(['journal','transactions-all','sec-chart-accounts','sec-general-ledger','trial-balance','account-balances'].some(t=>allowed(t)))return all;if(!allowed('sub-users-workspace'))return [];const ids=new Set(users().flatMap(u=>{const r=workspaceRules(u);return [...r.fundIds,...r.entryIds,r.counterpart]}));return all.filter(a=>ids.has(a.id))},
+ subAccounts:()=>{const permitted=new Set(api.accounts().map(a=>String(a.id||a.code)));return (AccountingStore.subAccounts||[]).filter(s=>permitted.has(String(s.parentId||AccountingStore.accounts.find(a=>a.code===s.parentCode)?.id||s.parentCode)))},
  accountName:id=>accountLabelOnly(id),
  rules:id=>{const u=user(id);return u?workspaceRules(u):null},
  journals:()=>allowed('journal')||allowed('transactions-all')?JournalModule.entries||[]:[],
- reports:id=>{if(id&&(!allowed('sub-users-workspace')||!user(id)))return[];return (reviewStaffJournals||[]).filter(j=>id?String(j.owner_id)===String(id):allowed('user-entry-review')&&(profile()?.role==='admin'||availableSubUsers().some(u=>u.id===j.owner_id&&u.user_permissions?.manager_id===profile()?.id)))},
+ reports:id=>{if(id&&(!allowed('sub-users-workspace')||!user(id)))return [];return (reviewStaffJournals||[]).filter(j=>id?j.owner_id===id:allowed('user-entry-review'))},
  funds:id=>user(id)?window.funds113?.cache.get(id):undefined,
  openUser:selectUser,
  navigate:(target)=>{if(!allowed(target))return false;if(target.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target);return true},
@@ -102,9 +109,9 @@ const api=window.PhoneApp132={
  printStaff:id=>run('document-editor105','export',()=>reportHistory1443.open(id)),
  printSavedReport:id=>run('document-editor105','export',()=>reportHistory1443.has(id)?reportHistory1443.print(id):savedReports1434.print(id)),
  logout:()=>logoutDemoUser(),
- refresh:async()=>{if(!profile())return;await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();notify()}
+ refresh:async()=>{if(!profile())return;await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.26';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.34';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

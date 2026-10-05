@@ -90,12 +90,16 @@
   }
   window.renderReturnedBookTotals=function(){const host=document.getElementById('v56CorrectionTotals');if(host)host.innerHTML=totalsHtml(returnedBookLines())};
   window.saveReturnedBook=async function(journalId,resubmit){
-    const dialog=document.querySelector('.v56-returned-dialog');if(dialog?.dataset.saving)return;
+    const dialog=document.querySelector('.v56-returned-dialog');if(!dialog||dialog.dataset.saving)return;
     const journal=journalById(journalId);if(!journal||journal.status!=='returned'){showCenterStatus('This book is no longer available for correction.',true);return}
     const lines=returnedBookLines(),invalid=lines.find(line=>!line.transaction_date||!line.account_id||!line.fund_account_id||!line.memo||!(line.amount>0));if(invalid){showCenterStatus('Complete the date, account, main fund, description, and amount in every row.',true);return}
     if(dialog){dialog.dataset.saving='true';dialog.querySelectorAll('button,input,select,textarea').forEach(n=>n.disabled=true)}
     try{
-    for(const line of lines){const result=await ojmDb.rpc('save_staff_workspace_entry_v3',{p_owner_id:journal.owner_id,p_line_id:line.id,p_client_key:null,p_transaction_date:line.transaction_date,p_direction:line.direction,p_fund_account_id:line.fund_account_id,p_account_id:line.account_id,p_memo:line.memo,p_reference:line.reference,p_amount:line.amount,p_entry_kind:line.entry_kind});if(result.error){showCenterStatus(`Correction save stopped: ${result.error.message}. Earlier rows may already be saved; reload the book before retrying`,true);return}}
+    const items=lines.map(line=>({date:line.transaction_date,direction:line.direction,fund:line.fund_account_id,account:line.account_id,memo:line.memo,reference:line.reference||'',amount:Number(line.amount),kind:line.entry_kind==='legacy'?(line.direction==='in'?'collection':'payment'):line.entry_kind}));
+    const fingerprint=JSON.stringify(items);if(dialog?._fingerprint14228!==fingerprint){dialog._fingerprint14228=fingerprint;dialog._requestKey14228='returned-'+crypto.randomUUID();}
+    const result=await window.staffSave14228({p_owner:journal.owner_id,p_key:dialog._requestKey14228,p_items:items,p_snapshot:{components1437:items,editIds:lines.map(l=>l.id)},p_edit_ids:lines.map(l=>l.id)});
+    if(result.error){showCenterStatus('Correction save was not confirmed. The complete draft is kept: '+result.error.message,true);return;}
+
     if(resubmit){const submitted=await ojmDb.rpc('submit_staff_journal',{p_journal_id:journal.id});if(submitted.error){showCenterStatus(`Corrections were saved, but resubmission failed: ${submitted.error.message}`,true);return}}
     document.getElementById('returnedBookOverlay')?.remove();await loadStaffJournalsForReview();await openEmployeeReview(journal.owner_id,'review');showCenterStatus(resubmit?'Corrections saved and resubmitted for review.':'Corrections saved. The book remains returned until resubmitted.');
     }catch(error){showCenterStatus('Correction save failed: '+error.message,true)}finally{if(dialog?.isConnected){delete dialog.dataset.saving;dialog.querySelectorAll('button,input,select,textarea').forEach(n=>n.disabled=false)}}

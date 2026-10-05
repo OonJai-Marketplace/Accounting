@@ -1,0 +1,13 @@
+Oon Jai Accounting v142.27 - PATCH ONLY
+
+Requires v142.26 with all its earlier patch files.
+Extract into your Accounting website folder and replace matching files.
+Keep the scripts/ and styles/ folder structure and all other website files.
+Reload the website after uploading. No new SQL or database changes are needed.
+
+Includes the approved first desktop/tablet team dashboard; compact phone Home
+without banners; logo navigation without a hamburger/arrow; the searchable phone
+account picker; clearer Post field contrast; and preservation of personal drafts.
+
+Dashboard data is live application data, not the samples from the mockups.
+Validated locally with synthetic data. Not deployed or live-account tested.

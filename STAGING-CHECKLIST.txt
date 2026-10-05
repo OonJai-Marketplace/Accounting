@@ -1,0 +1,75 @@
+STAGING ACCEPTANCE — actual Supabase copy, dummy data only
+
+Use an administrator, two separately assigned reviewers, two accounting employees,
+and a separate Restaurant employee. Do not use production employee credentials.
+
+1. Install the migration, confirm the unchanged hook/chained-hook configuration,
+   and run setup/CHECK-SECURITY-v142.28.sql. Confirm existing data counts are unchanged.
+2. With an employee session already open, deactivate that employee's profile from
+   the administrator session. Use their old token to request tables, report/history,
+   fund balances and saving RPCs. Every new company-data request must be denied.
+   Check existing tab/focus refresh and that print/export cannot proceed.
+3. Reactivate, then remove Workspace View or Documents Export. Old report links and
+   RPCs must be denied. Assigned reviewer access must work; another reviewer must fail.
+4. Try a foreign fund/category, posting parent, inactive account, wrong currency,
+   impossible date, negative/zero/NaN amount, and fractional cents. No invalid save.
+5. Save a payment and a collection into an assigned cash/bank ASSET. Collection stays
+   report-only. Submit, approve exact source, and post. Original snapshot stays immutable.
+6. Lose the response after committing a manual journal and a personal save. Refresh
+   and retry unchanged. The same IDs must return; database row counts must not increase.
+   Try changing a pending draft: the earlier outcome must be resolved first.
+7. Make the later date in a multi-date batch invalid/closed. No earlier dates may be
+   posted. Make a later component of a returned-book correction invalid: no partial edits.
+8. From two independent HTTP/database sessions, send the same request concurrently;
+   exactly one journal/receipt must be created. Also race posting with period closure.
+9. Check payroll finalization/posting/history, cash handover linking, correction-session
+   staging and finish, audit adjustment retries, sequential To-Do completion history,
+   admin switch-account auditing, user creation and atomic permission saving.
+10. Exercise the eight original triggers omitted from local reconstruction, especially
+    scheduled postings/archive gates and payroll record/deletion guards.
+11. Check actual PostgREST roles, Storage policies, Realtime access and Edge Functions.
+    Check database connection settings in addition to the reported SQL metadata.
+12. Check desktop, tablet and phone logic with the preserved layouts. Clear only stale
+    browser code caches; do not discard drafts or unresolved posting recovery records.
+
+Only after these checks pass should the matched SQL + website update be installed live.
+Do not run the fixture-schema.sql in production: it is dummy test scaffolding only.
+
+v142.29 ADDITIONAL CHECKS
+Install INSTALL-ORGANIZATION-v142.29.sql after the matched v142.28 baseline.
+Create two different reporting branches and a head above each manager.
+- Give Main Home without Workspace access. Branch summaries should work; account detail must stay unavailable.
+- Remove Main Home; refresh both desktop and phone. It must no longer be available.
+- Confirm positions/departments/supervisors save. Job title alone must not make anyone an administrator.
+- Reject self-supervision, reporting loops and supervisors without current review permission.
+- Submit as employee; manager receives it. Submit as manager; head receives it.
+- Review & Forward; next supervisor receives it and earlier reviewer keeps history.
+- Retry forwarding and final posting; each review stage and journal must appear once.
+- A forwarded report must not expose another period for the same employee.
+- Remove review access or deactivate a reviewer while their session is open; requests must fail.
+- Save an Upcoming reminder with each account. Only its owner sees it in Upcoming, dashboard and login notifications.
+- Test reminder save interruption, replay and stale-device conflicts. Do not accept a saved message without confirmation.
+- On a phone, Add reminder must show the editor; paid/pause/remove must affect only that account.
+- Review & Forward must be visible even when the first review already captured an immutable snapshot.
+- Settings > Banner must have no quotation controls. Drag a tall uploaded image vertically, save, reload and compare.
+- Review Business and Accounting banners, top-right Home buttons and Santos’ Account/Maria’s Account.
+The local fixture excludes eight original triggers and does not exercise real Data API,
+Storage, Realtime or native concurrent connections. Run those checks on the actual staging copy.
+
+
+v142.32 ADDITIONAL TEST-PROJECT CHECKS
+Install only INSTALL-DATA-TOOLS-v142.32.sql after the matched v142.29 database update.
+Record counts must remain unchanged after installation.
+- Switch typed Money In/Out drafts between entry modes on desktop and phone.
+- Check sequential To-do steps without confirmation; uncheck ordinary steps.
+- Prepare a chosen period/module JSON; verify supporting references and all lines.
+- Copy current data for audit; no archive/history record should be inserted.
+- Edit copied journals, employees and payroll, then compare/export/print.
+  Confirm live records and the downloaded original remain unchanged.
+- Reload and resume the local audit; load another file, Keep then Replace.
+- Reset only Audit Log on synthetic data; accounts, payroll, users, IDs remain.
+- Add/change a record after preparing reset; the old backup must be rejected.
+- Test linked reset areas; required unselected tables must block reset.
+- Verify anonymous/employee/deactivated admin cannot call either reset RPC.
+- Check real full backup RPCs and original auxiliary schema; no live schema was
+  available during this isolated test. Do not apply fixture-schema.sql to Supabase.

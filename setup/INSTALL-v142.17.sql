@@ -1,3 +1,5 @@
+-- Historical installer. Preserved for reference only after v142.28.
+DO $$ BEGIN RAISE EXCEPTION 'Superseded installer: use INSTALL-SECURITY-v142.28.sql and START-HERE-v142.28.txt';END $$;
 -- Oon Jai Accounting v142.17: run once in Supabase SQL Editor.
 BEGIN;
 -- Run once in Supabase SQL Editor as the database owner.

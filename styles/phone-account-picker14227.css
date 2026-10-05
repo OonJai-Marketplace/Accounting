@@ -1,0 +1,15 @@
+body.account-picker-open14227{overflow:hidden!important;overscroll-behavior:none}
+.phone-account-picker14227{position:fixed;inset:0;z-index:160000;display:flex;flex-direction:column;box-sizing:border-box;background:#f6f3e9;color:#173e2d;padding:env(safe-area-inset-top) 12px env(safe-area-inset-bottom);overflow:hidden;font:14px/1.5 Arial,sans-serif}
+.phone-account-picker14227 header{display:flex;align-items:center;gap:16px;flex:none;min-height:60px;border-bottom:1px solid #c4d0bc}
+.phone-account-picker14227 header button{border:0;background:transparent;color:#07543c;font:700 14px Arial;padding:12px 0;min-height:44px}
+.phone-account-picker14227 h2{font-size:19px;margin:0;color:#17422f}
+.phone-picker-search14227{display:block;margin:12px 0;flex:none}
+.phone-picker-search14227 span{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
+.phone-picker-search14227 input{box-sizing:border-box;width:100%;height:46px;border:1px solid #728f78;border-radius:8px;background:#fff;color:#163d2c;font:16px Arial;padding:10px 12px}
+.phone-picker-list14227{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding:8px}
+.phone-picker-list14227 button{display:block;width:100%;min-height:52px;padding:13px 14px;border:1px solid #c4d0bc;border-radius:7px;background:#fff;color:#173e2d;font:15px/1.5 Arial;text-align:left;margin-bottom:7px;overflow-wrap:anywhere;cursor:pointer}
+.phone-picker-list14227 button[aria-selected=true]{background:#e4efdf;border:2px solid #206b46;font-weight:700;padding:12px 13px}
+.phone-picker-list14227 button[aria-selected=true]:after{content:'✓';margin-left:10px;color:#07543c}
+.phone-picker-count14227{flex:none;margin:0;padding:8px 0;font-size:12px;color:#506550}
+.phone-account-picker14227 :is(button,input):focus-visible{outline:2px solid #b75b25;outline-offset:1px}
+body input.account-search1428[readonly]{cursor:pointer;background:#fff!important;color:#163d2c!important;-webkit-text-fill-color:#163d2c;opacity:1}

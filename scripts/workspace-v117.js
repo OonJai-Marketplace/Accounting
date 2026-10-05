@@ -28,15 +28,15 @@ window.focusWorkspaceInline117=(u,k,f)=>document.querySelector(selector(u,k)+`[d
 const renderBefore=window.renderSubUserWorkspace;
 window.renderSubUserWorkspace=function(...args){
  if(document.activeElement?.matches('.inline-cell117,.account-search1428')&&renderedTab===activeSubUserId){deferred=true;return}
- const staff=liveProfile&&liveProfile.role!=='admin'&&!livePermission?.can_approve;
+ const staff=liveProfile&&liveProfile.role!=='admin'&&!(window.access113?.can('user-entry-review'));
  if(window.workspaceRequest138?.target&&liveProfile){openSubUserTabs=[{key:'user-'+liveProfile.id,userId:liveProfile.id,permanent:false}];activeSubUserId='user-'+liveProfile.id}
  else if(!staff&&liveProfile){
   const users=availableSubUsers(),allowed=new Set(users.map(u=>String(u.id)));
   openSubUserTabs=openSubUserTabs.filter(t=>!t.userId||allowed.has(String(t.userId)));
-  if(!openSubUserTabs.some(t=>!t.userId))openSubUserTabs.unshift({key:'default',userId:null,permanent:true});
+  if(window.Organization14229?.homeAllowed()){if(!openSubUserTabs.some(t=>!t.userId))openSubUserTabs.unshift({key:'default',userId:null,permanent:true})}else openSubUserTabs=openSubUserTabs.filter(t=>t.userId);
   for(const u of users)if(!openSubUserTabs.some(t=>String(t.userId)===String(u.id)))openSubUserTabs.push({key:'user-'+u.id,userId:String(u.id),permanent:false});
   openSubUserTabs=openSubUserTabs.filter(t=>t.userId||t.permanent);
-  if(!openSubUserTabs.some(t=>t.key===activeSubUserId))activeSubUserId='default';
+  if(!openSubUserTabs.some(t=>t.key===activeSubUserId))activeSubUserId=openSubUserTabs.find(t=>t.userId)?.key||'default';
  }
  const out=renderBefore.apply(this,args);renderedTab=activeSubUserId;deferred=false;
  const tabs=document.getElementById('subUserWorkspaceTabs');
@@ -84,6 +84,7 @@ document.addEventListener('input',e=>{if(e.target.matches('.inline-cell117:not(s
 document.addEventListener('change',e=>{if(e.target.matches('select.inline-cell117'))update(e.target)});
 document.addEventListener('focusout',e=>{const n=window.dropdown1434?.source(e.target)||e.target;if(!n.matches('.inline-cell117,.account-search1428'))return;const {inlineUser117:u,inlineRow117:k}=n.dataset;setTimeout(()=>{const next=document.activeElement;if(next?.matches(selector(u,k)))return;commit(u,k);if(deferred&&!saving&&!next?.matches('.inline-cell117,.account-search1428'))renderSubUserWorkspace()},0)});
 document.addEventListener('keydown',e=>{const n=e.target;if(!n.matches('.inline-cell117,.account-search1428'))return;if(e.key==='Enter'&&(e.ctrlKey||e.metaKey||n.dataset.inlineField117==='amount')){e.preventDefault();n.blur();commit(n.dataset.inlineUser117,n.dataset.inlineRow117)}});
+window.workspaceCellCommit14233=commit;
 function tablet(){const touch=navigator.maxTouchPoints>1||matchMedia('(pointer:coarse)').matches;const isTablet=touch&&Math.min(screen.width,screen.height)>=600&&Math.min(innerWidth,innerHeight)>=600;document.body.classList.toggle('tablet117',isTablet);document.body.classList.toggle('tablet-portrait117',isTablet&&innerHeight>innerWidth);const guard=document.getElementById('landscape117');if(guard)guard.setAttribute('aria-hidden',String(!(isTablet&&innerHeight>innerWidth)))}
 function ready(){const guard=document.createElement('section');guard.id='landscape117';guard.setAttribute('role','status');guard.innerHTML='<div><svg viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><rect x="9" y="22" width="62" height="40" rx="5"/><path d="M20 13A28 28 0 0 1 60 13M52 4l9 9-12 3"/><circle cx="64" cy="42" r="1"/></svg><h2>Rotate to landscape</h2><p>Turn your tablet sideways to use Oon Jai Accounting. The wider view keeps your tables and controls together.</p></div>';document.body.append(guard);tablet();window.addEventListener('resize',tablet);window.addEventListener('orientationchange',tablet);renderSubUserWorkspace()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

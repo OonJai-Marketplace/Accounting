@@ -1,3 +1,5 @@
+-- Historical installer. Preserved for reference only after v142.28.
+DO $$ BEGIN RAISE EXCEPTION 'Superseded installer: use INSTALL-SECURITY-v142.28.sql and START-HERE-v142.28.txt';END $$;
 -- Adds personal print defaults and an administrator-only audit-log action.
 -- Run once in Supabase SQL Editor. Installing this does not delete any records.
 begin;
