@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Existing administrator receives all active posting accounts through authorized RPC",
+    "passed": true
+  },
+  {
+    "name": "All administrator module actions are allowed without individual checkboxes",
+    "passed": true
+  },
+  {
+    "name": "Administrator account groups and tabs remain available during Home invalidation",
+    "passed": true
+  },
+  {
+    "name": "Administrator editor shows automatic access; next sub-user retains its restrictions",
+    "passed": true
+  },
+  {
+    "name": "Sub-user account restrictions and server-sync boundary remain intact",
+    "passed": true
+  },
+  {
+    "name": "Administrator Money In uses accessible categories without bypassing currency validation",
+    "passed": true
+  },
+  {
+    "name": "Selecting Administrator saves full grants without manual checkbox selection",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors",
+    "passed": true
+  }
+]
