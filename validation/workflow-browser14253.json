@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Unloaded chart never submits placeholder account IDs; retry succeeds after loading",
+    "passed": true
+  },
+  {
+    "name": "Existing administrator receives all active posting accounts through authorized RPC",
+    "passed": true
+  },
+  {
+    "name": "All administrator module actions are allowed without individual checkboxes",
+    "passed": true
+  },
+  {
+    "name": "Administrator account groups and tabs remain available during Home invalidation",
+    "passed": true
+  },
+  {
+    "name": "Administrator editor shows automatic access; next sub-user retains its restrictions",
+    "passed": true
+  },
+  {
+    "name": "Sub-user account restrictions and server-sync boundary remain intact",
+    "passed": true
+  },
+  {
+    "name": "Administrator Money In uses accessible categories without bypassing currency validation",
+    "passed": true
+  },
+  {
+    "name": "Selecting Administrator saves full grants without manual checkbox selection",
+    "passed": true
+  },
+  {
+    "name": "Phone Users cards show authority and position without account lists",
+    "passed": true
+  },
+  {
+    "name": "Keyboard viewport keeps a bottom field visible and restores the phone layout",
+    "passed": true
+  },
+  {
+    "name": "User editor input stays above the keyboard without losing its value",
+    "passed": true
+  },
+  {
+    "name": "Administrator Home omits its long account list; phone picker filters permitted choices",
+    "passed": true
+  },
+  {
+    "name": "Weak connection notice is routed to signal details, while other errors remain visible",
+    "passed": true
+  },
+  {
+    "name": "Report submission permits multiple types and uses reporting month, not current date",
+    "passed": true
+  },
+  {
+    "name": "System classification offers an explicit underlying accounting type",
+    "passed": true
+  },
+  {
+    "name": "Shared types management and user lifecycle controls are accessible",
+    "passed": true
+  },
+  {
+    "name": "Desktop journal preparation summarizes details and retains references in line memos",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors",
+    "passed": true
+  }
+]

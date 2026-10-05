@@ -1,0 +1,1 @@
+(()=>{'use strict';function capture(e){const n=e.target;if(!n.matches?.('input,textarea,select')||n===document.activeElement)return;n.style.setProperty('--normal-border14253',getComputedStyle(n).borderColor);n.dataset.focusBorder14253='1';}document.addEventListener('pointerdown',capture,true);document.addEventListener('pointerover',capture,true);})();

@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Desktop journal preparation summarizes details and retains references in line memos",
+    "passed": true
+  },
+  {
+    "name": "Desktop posting sends the exact source links with the one summary journal",
+    "passed": true
+  },
+  {
+    "name": "Account assignment categories and search combine without changing selections",
+    "passed": true
+  },
+  {
+    "name": "Desktop browser has no uncaught errors",
+    "passed": true
+  }
+]

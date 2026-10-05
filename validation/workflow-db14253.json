@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Reject balanced tampering and wrong source IDs before writing",
+    "passed": true
+  },
+  {
+    "name": "One summary journal retains exact per-line original source links",
+    "passed": true
+  },
+  {
+    "name": "Retry returns the same journal without duplicates",
+    "passed": true
+  },
+  {
+    "name": "Reject another month and changed approved details",
+    "passed": true
+  },
+  {
+    "name": "Sub-user cannot manage types or delete other accounts",
+    "passed": true
+  },
+  {
+    "name": "Deactivate/re-activate, reject self-removal and preserve source history after eligible login deletion",
+    "passed": true
+  },
+  {
+    "name": "Unknown public Auth reference blocks deletion without a cascade",
+    "passed": true
+  }
+]

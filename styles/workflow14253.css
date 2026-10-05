@@ -1,0 +1,11 @@
+/* Preserve normal input borders while removing the extra touch/focus halo. */
+html body input:not([type=checkbox]):not([type=radio]):focus,html body textarea:focus,html body select:focus{outline:none!important;box-shadow:none!important}
+html body [data-focus-border14253]:focus{border-color:var(--normal-border14253)!important}
+.account-types14253{display:flex;gap:7px;overflow-x:auto;padding:8px 0 12px;max-width:100%;flex-shrink:0}
+.account-types14253 button{flex:0 0 auto!important;width:auto!important;min-height:40px;padding:8px 12px!important;border:1px solid #d4e0da;border-radius:9px;background:#fff;color:#244d40;font:inherit;font-size:13px!important}
+.account-types14253 button[aria-pressed=true]{background:#07513e;color:white;border-color:#07513e}
+.account-types14253 button span{margin-right:5px}
+.report-types14253{display:grid;gap:10px;margin:12px 0}.report-types14253 label{display:flex;align-items:center;gap:10px}.report-types14253 input{width:auto!important;min-height:0!important}
+.user-actions14253{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.user-actions14253 button{flex:1;min-width:85px;min-height:42px}
+.report-manager14253{display:grid;gap:10px;max-height:65vh;overflow:auto}.report-manager14253 .row14253{display:flex;align-items:center;gap:8px}.report-manager14253 .row14253 input{flex:1;min-width:0}.report-manager14253 button{min-height:40px}
+#summaryNotice14253{padding:12px;border:1px solid #b7d9cc;background:#edf8f2;border-radius:8px;margin:10px 0}
