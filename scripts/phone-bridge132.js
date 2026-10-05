@@ -85,7 +85,7 @@ const api=window.PhoneApp132={
   const result=await window.staffSave14228({p_owner:id,p_key:data.requestKey,p_items:items,p_snapshot:snapshot,p_edit_ids:data.editIds||[]});
   if(result.error)throw Error(result.error.message+(result.error.code==='PGRST202'?' Run setup/INSTALL-DESKTOP-JOURNAL-v142.17.sql once.':''));
   if(result.queued)return {queued:true,actor};
-  if(profile()?.id===actor){try{await loadPhoneWorkspace14237(id,true)}catch{showCenterStatus('Entry saved. Refresh Entries to load the updated records.',true)}}
+  if(profile()?.id===actor)void loadPhoneWorkspace14237(id,true).catch(()=>{if(profile()?.id===actor)showCenterStatus('Entry saved. Refresh Entries to load the updated records.',true)});
   return {saved:true,actor};
  },
  voidStaffGroup:async(id,lineId)=>{
@@ -158,6 +158,6 @@ const api=window.PhoneApp132={
  refresh:async()=>{if(!profile())return;const selected=$('connectedPhone132')?.contentWindow?.phoneSelection14237?.();if(selected?.module==='subusers'){if(selected.user)await loadPhoneWorkspace14237(selected.user,true);else await window.TeamHome14227?.reload();notify();return;}await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.39';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.40';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

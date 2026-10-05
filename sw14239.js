@@ -1,7 +1,7 @@
 /* Static application files only. No authentication, financial API data or uploads here. */
 importScripts('offline-assets14239.js');
-const VERSION='142.39',CACHE='ojm-accounting-shell-'+VERSION;
-self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);try{for(let i=0;i<OJM_OFFLINE_ASSETS.length;i+=12)await cache.addAll(OJM_OFFLINE_ASSETS.slice(i,i+12));}catch(e){await caches.delete(CACHE);throw e}})()));
+const VERSION='142.40',CACHE='ojm-accounting-shell-'+VERSION;
+self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);try{for(let i=0;i<OJM_OFFLINE_ASSETS.length;i+=2)await cache.addAll(OJM_OFFLINE_ASSETS.slice(i,i+2));}catch(e){await caches.delete(CACHE);throw e}})()));
 self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',event=>{const r=event.request,u=new URL(r.url);if(r.method!=='GET'||u.origin!==self.location.origin||!u.pathname.startsWith(new URL(self.registration.scope).pathname))return;
  const relative=u.pathname.slice(new URL(self.registration.scope).pathname.length)||'index.html';if(!OJM_OFFLINE_ASSETS.includes(relative))return;

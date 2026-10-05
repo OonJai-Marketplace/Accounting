@@ -19,9 +19,9 @@ function ensurePhoneOwner1427(){
 }
 function persistPhoneDraft1427(){if(!ensurePhoneOwner1427())return;if(S.user){if(S.staffDraft)phoneDrafts1427.staff[S.user]={data:S.staffDraft,editing:S.editingStaff};else delete phoneDrafts1427.staff[S.user]}phoneDrafts1427.journal=S.journalDraft?{data:S.journalDraft,editing:S.editingJournal}:null;phoneDrafts1427.location={module:S.module,page:S.page,user:S.user};try{const value=JSON.stringify(phoneDrafts1427);if(value!==lastDraft14237){localStorage.setItem(draftKey1427(draftOwner1427),value);lastDraft14237=value;}}catch{parent.showCenterStatus('Phone draft storage is unavailable. Save the entry before leaving.',true)}}
 function capturePhoneDraft1427(){
- if(busy)return;if(draftOwner1427!==A.profile()?.id||phoneSession14225!==A.session()){ensurePhoneOwner1427();return;}if(!ensurePhoneOwner1427())return;
+ if(draftOwner1427!==A.profile()?.id||phoneSession14225!==A.session()){ensurePhoneOwner1427();return;}if(!ensurePhoneOwner1427())return;
  const visible=n=>n&&!n.closest('main')?.classList.contains('hidden');
- if(visible($('staffMemo')))S.staffDraft=staffData();
+ if(!busy&&visible($('staffMemo')))S.staffDraft=staffData();
  if(visible($('jLines')))S.journalDraft={date:$('jDate').value,memo:$('jMemo').value,lines:[...$('jLines').children].map(n=>({account:n.querySelector('select').value,memo:n.querySelector('[data-memo]').value,debit:n.querySelector('[data-debit]').value,credit:n.querySelector('[data-credit]').value}))};
  persistPhoneDraft1427();
 }
@@ -41,7 +41,6 @@ const select=(label,id,html)=>`<div class="field"><label for="${id}">${label}</l
 function call(fn){try{const result=fn();if(result?.then)result.catch(e=>parent.showCenterStatus(e.message,true));setTimeout(()=>refresh(),250);return result}catch(e){parent.showCenterStatus(e.message,true)}}
 let workspaceOpen14238=0;
 function navigate(module,page='home',capture=true){
- if(busy)return;
  workspaceOpen14238++;document.getElementById('workspaceNotice14236')?.remove();
  if(capture)capturePhoneDraft1427();
  const before={module:S.module,page:S.page,user:S.user};S.module=module;S.page=page;if(module==='subusers'&&!A.allowed('sub-users-workspace')&&A.teamHomeAllowed())S.user=null;
@@ -62,7 +61,7 @@ const firstModulePage=m=>modulePages[m]?.find(([,target])=>A.allowed(target))?.[
 window.switchModule=m=>{toggleDrawer(false);if(m==='subusers'&&!A.allowed('sub-users-workspace')&&A.teamHomeAllowed())S.user=null;const page=firstModulePage(m);if(page)navigate(m,page)};
 window.settingsGo=p=>navigate('settings',p);window.dashGo=p=>navigate('dashboard',p);window.txGo=p=>navigate('transactions',p);window.accGo=p=>navigate('accounts',p);window.go=p=>navigate('subusers',p);
 window.chooseWorkspace=async id=>{
- if(busy)return;capturePhoneDraft1427();
+ capturePhoneDraft1427();
  if(id==='home'&&!A.teamHomeAllowed())return;
  const who=A.session(),opening=++workspaceOpen14238;workspaceNotice14236('Opening workspace… You can continue using navigation.');
  try{
@@ -177,7 +176,7 @@ function staffForm(){
  '<button id="staffDirectionToggle" class="btn direction-toggle14225 '+(dir==='out'?'out':'in')+'" type="button" '+action(()=>setDirection(dir==='out'?'in':'out'))+' '+(r.directions.length<2||d.unmapped14232?'disabled':'')+' aria-label="'+(dir==='out'?'Money Out':'Money In')+'. Tap to switch.">'+swap14225+(dir==='out'?'Money Out':'Money In')+'</button>')+'</div>';
  const common='<div class="grid staff-date14225">'+field('Date','staffDate','date',d.date)+field('Reference (optional)','staffReference','text',d.reference)+'</div>';
  const description=field('Description','staffMemo','text',d.memo);
- return head(S.editingStaff?'Edit Entry':'Post Entry','Record a new transaction')+'<fieldset class="staff-editor14225" '+(!can?'disabled':'')+'>'+toggle+common+
+ return head(S.editingStaff?'Edit Entry':'Post Entry','Record a new transaction')+'<fieldset class="staff-editor14225" '+(!can||busy?'disabled':'')+'>'+toggle+common+
  (d.unmapped14232?'<p role="status">Complete journal details retained. Switch to Double Entry to review and save.</p>':'')+(double?description+'<div id="staffDoubleLines">'+d.lines.map(staffDoubleLine14225).join('')+'</div><div id="staffDoubleTotals" class="staff-summary1425"></div><div id="staffBalance14225" class="staff-balance14225" role="status" aria-live="polite"></div>':
  '<input id="staffDirection" type="hidden" value="'+esc(dir)+'"><fieldset '+(d.unmapped14232?'disabled':'')+'><div id="staffSingleLines">'+d.single.map(staffLine14225).join('')+'</div>'+description+
  '<button class="btn staff-add-single14225" type="button" '+action(()=>{S.staffDraft=staffData();S.staffDraft.single.push({direction:dir,source:r.fundIds.length===1?r.fundIds[0]:'',affected:dir==='in'?r.counterpart:'',amount:'',memo:''});render()})+'>'+icon('plus')+'Add another entry line</button><div id="staffSummary1425" class="staff-summary1425"></div></fieldset>')+
@@ -203,7 +202,7 @@ function setDirection(dir){
 async function saveStaff(){
  if(busy)return;if(S.staffDraft?.unmapped14232){parent.showCenterStatus('The complete journal is retained. Switch to Double Entry to review and save it.',true);return;}
  const invalid=$('post').querySelector('.account-search1428:invalid');if(invalid){invalid.reportValidity();invalid.focus();return}
- const data=staffData(),owner=S.user,actor=A.profile().id;
+ const data=staffData(),owner=S.user,actor=A.profile().id,session=A.session(),navigation=workspaceOpen14238;
  try{A.validateStaff(owner,data)}catch(e){parent.showCenterStatus(e.message,true);return}
  S.staffDraft=data;persistPhoneDraft1427();busy=true;
  const controls=[...$('post').querySelectorAll('input,select,button')].map(n=>[n,n.disabled]);controls.forEach(([n])=>n.disabled=true);
@@ -211,12 +210,13 @@ async function saveStaff(){
   const result=await A.saveStaffEditor(owner,data);
   if(result?.saved||result?.queued){
    if(result.queued)parent.showCenterStatus('Saved on this device. Tap the connection indicator, then Sync now when connected.');
+   if(A.profile()?.id!==actor||A.session()!==session)return;
    delete phoneDrafts1427.staff[owner];
    // A failed refresh after a confirmed save must not leave a resubmittable draft.
-   if(A.profile()?.id===actor){S.staffDraft=null;S.editingStaff=false;S.month=data.date.slice(0,7);persistPhoneDraft1427();busy=false;navigate('subusers','entries',false);}
+   if(S.user===owner){S.staffDraft=null;S.editingStaff=false;S.month=data.date.slice(0,7);}persistPhoneDraft1427();busy=false;if(workspaceOpen14238===navigation)navigate('subusers','entries',false);
   }
  }catch(e){parent.showCenterStatus('Saving was not confirmed. Your draft is kept; check Entries before retrying. '+e.message,true)}
- finally{busy=false;controls.forEach(([n,disabled])=>{if(n.isConnected)n.disabled=disabled})}
+ finally{busy=false;controls.forEach(([n,disabled])=>{if(n.isConnected)n.disabled=disabled});if(A.session()===session&&S.module==='subusers'&&S.page==='post')render()}
 }
 function staffEntries14225(reports){
  const groups=A.staffGroups(S.user).filter(g=>(!S.entryMonth14237||String(g.lines[0].transaction_date).startsWith(S.entryMonth14237))&&(!S.search||JSON.stringify(g.lines).toLowerCase().includes(S.search.toLowerCase())));

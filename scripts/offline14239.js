@@ -4,8 +4,10 @@ const nativeFetch=window.fetch.bind(window),readRPC=new Set(['current_access1422
 const actor=()=>typeof liveProfile!=='undefined'?liveProfile?.id||'':'',scope=()=>String(window.OJM_SUPABASE_URL||location.origin),prefix=id=>'ojm-offline14239:'+scope()+':'+id+':';
 let reachable=navigator.onLine,syncing=false,lastRead=null,storageError='',cacheDB,dialog,shellReady=false,visibleActor='';
 const canonical=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
-function db(){return cacheDB??=new Promise((resolve,reject)=>{const r=indexedDB.open('ojm-offline14239',1);r.onupgradeneeded=()=>r.result.createObjectStore('snapshots');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
-async function stored(mode,key,value){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction('snapshots',mode),s=tx.objectStore('snapshots'),r=mode==='readonly'?s.get(key):s.put(value,key);tx.oncomplete=()=>resolve(r.result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('Device storage interrupted'))})}
+const memory=new Map();
+function db(){return cacheDB??=new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Device storage timed out')),1500),r=indexedDB.open('ojm-offline14239',1);r.onupgradeneeded=()=>r.result.createObjectStore('snapshots');r.onsuccess=()=>{clearTimeout(timer);resolve(r.result)};r.onerror=r.onblocked=()=>{clearTimeout(timer);reject(r.error||Error('Device storage blocked'))}})}
+async function stored(mode,key,value){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction('snapshots',mode),s=tx.objectStore('snapshots'),r=mode==='readonly'?s.get(key):s.put(value,key),timer=setTimeout(()=>{reject(Error('Device storage timed out'));try{tx.abort()}catch{}},1500);tx.oncomplete=()=>{clearTimeout(timer);resolve(r.result)};tx.onerror=tx.onabort=()=>{clearTimeout(timer);reject(tx.error||Error('Device storage interrupted'))}})}
+function remember(key,row){memory.delete(key);memory.set(key,row);if(memory.size>100)memory.delete(memory.keys().next().value);void stored('readwrite',key,row).catch(e=>{storageError='Offline copy unavailable: '+e.message;changed()})}
 function changed(){window.dispatchEvent(new Event('connection14239'));}
 function offline(){return navigator.onLine===false||!reachable}
 function identity(headers){try{const t=(headers.get('authorization')||'').replace(/^Bearer /i,'').split('.')[1];const p=JSON.parse(atob(t.replace(/-/g,'+').replace(/_/g,'/')));return p.sub&&p.exp*1000>Date.now()?p.sub:''}catch{return ''}}
@@ -18,14 +20,14 @@ window.fetch=async function(input,options={}){
  const body=read&&req.method==='POST'?await req.clone().text():'';
  const key=id&&!ranged&&req.method!=='HEAD'?prefix(id)+'read:'+req.method+':'+url.href+':'+body+':'+(req.headers.get('accept')||'')+':workspace:'+(req.headers.get('x-ojm-workspace')||''):'';
  if(!read&&offline())return errorResponse('Connection required. Your draft is retained; reconnect before approval, final posting or changing saved records.');
- async function cached(){if(!key)return null;try{const row=await stored('readonly',key);if(row){lastRead=row.at;changed();return new Response(row.body,{status:row.status,headers:{...row.headers,'X-OJM-Cached':row.at}})}}catch(e){storageError=e.message;changed()}return null}
+ async function cached(){if(!key)return null;try{const row=memory.get(key)||await stored('readonly',key);if(row){lastRead=row.at;changed();return new Response(row.body,{status:row.status,headers:{...row.headers,'X-OJM-Cached':row.at}})}}catch(e){storageError=e.message;changed()}return null}
  if(read&&navigator.onLine===false)return await cached()||errorResponse('This record has not been downloaded to this device. Reconnect to load it.');
  const controller=new AbortController(),abort=()=>controller.abort(req.signal.reason);if(req.signal.aborted)abort();else req.signal.addEventListener('abort',abort,{once:true});
  const timer=setTimeout(()=>controller.abort(),read?8000:15000);
  try{
   const response=await nativeFetch(new Request(req,{signal:controller.signal}));
   reachable=true;
-  if(response.ok&&read&&key){const copy=response.clone();try{const text=await copy.text();JSON.parse(text);await stored('readwrite',key,{body:text,status:response.status,headers:Object.fromEntries(response.headers),at:new Date().toISOString()})}catch(e){storageError='Offline copy unavailable: '+e.message}}
+  if(response.ok&&read&&key){const copy=response.clone();void copy.text().then(text=>{JSON.parse(text);remember(key,{body:text,status:response.status,headers:Object.fromEntries(response.headers),at:new Date().toISOString()})}).catch(e=>{storageError='Offline copy unavailable: '+e.message;changed()})}
   changed();return response;
  }catch(e){if(req.signal.aborted)throw e;reachable=false;changed();if(read){const previous=await cached();if(previous)return previous}throw e}
  finally{clearTimeout(timer);req.signal.removeEventListener('abort',abort)}
@@ -53,7 +55,7 @@ async function sync(){if(syncing)return;const id=actor();if(!id)throw Error('Sig
   if(actor()===id&&!offline()){try{await loadStaffJournalsForReview();window.funds113?.refresh();await window.PhoneApp132?.refresh?.()}catch(e){storageError='Entries may be synced; refreshing the view failed. '+e.message}}
  }finally{syncing=false;changed()}
 }
-async function snapshot(name,loader){const id=actor(),k=prefix(id)+'snapshot:'+name;if(!id)return loader();try{if(offline())throw Error('Offline');const value=await loader();if(actor()!==id)throw Error('Account changed while loading');try{await stored('readwrite',k,{value,at:new Date().toISOString()})}catch(e){storageError='Offline snapshot unavailable: '+e.message}return value}catch(e){if(actor()!==id||!offline())throw e;const row=await stored('readonly',k);if(!row)throw Error('This complete dataset has not been downloaded yet. Reconnect to load it.');lastRead=row.at;changed();return row.value}}
+async function snapshot(name,loader){const id=actor(),k=prefix(id)+'snapshot:'+name;if(!id)return loader();try{if(offline())throw Error('Offline');const value=await loader();if(actor()!==id)throw Error('Account changed while loading');remember(k,{value,at:new Date().toISOString()});return value}catch(e){if(actor()!==id||!offline())throw e;const row=memory.get(k)||await stored('readonly',k);if(!row)throw Error('This complete dataset has not been downloaded yet. Reconnect to load it.');lastRead=row.at;changed();return row.value}}
 function state(){const jobs=queue(),legacy=window.saveNotices14234?.entries?.()||[];return {online:!offline(),syncing,attention:!!storageError||legacy.length>0||jobs.some(j=>j.status==='attention'),pending:jobs.filter(j=>j.status!=='synced').length+legacy.length,lastSync:actor()?localStorage.getItem(prefix(actor())+'lastSync'):null,lastRead,storageError,jobs,legacy,shellReady}}
 function open(){dialog?.remove();const box=document.createElement('dialog');box.className='connection-dialog14239';dialog=box;document.body.append(box);renderDialog();box.showModal();box.addEventListener('close',()=>{box.remove();if(dialog===box)dialog=null})}
 function renderDialog(){if(!dialog)return;const s=state();dialog.replaceChildren();const add=(tag,text,parent=dialog)=>{const n=document.createElement(tag);n.textContent=text;parent.append(n);return n};add('h2','Connection & sync');add('p',s.online?'Online — pending entries upload only when you tap Sync now.':'Offline — work with downloaded records and save new personal entries on this device.');add('p',s.shellReady?'App files downloaded for offline reopening.':'App files are still downloading. Keep this tab open while offline.');add('p','Last database sync: '+(s.lastSync?new Date(s.lastSync).toLocaleString():'No queued entries synced yet'));if(s.lastRead)add('p','Using downloaded data from '+new Date(s.lastRead).toLocaleString()+'. Unseen records require connection.');if(s.storageError)add('p',s.storageError);add('p','Approvals, final posting, changes to saved records and period closing require connection. Device entries are excluded from database totals.');
@@ -66,8 +68,8 @@ function ready(){
  // Keep the original journal implementation unchanged; snapshot only complete loads.
  const loadJournal=window.loadJournalFromSupabase;
  if(typeof loadJournal==='function')window.loadJournalFromSupabase=async function(...args){
-  const rows=await snapshot('complete-journal',async()=>{await loadJournal.apply(this,args);return structuredClone(JournalModule.entries)});
-  JournalModule.entries=rows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();
+  let loaded=false;const rows=await snapshot('complete-journal',async()=>{await loadJournal.apply(this,args);loaded=true;return structuredClone(JournalModule.entries)});
+  if(!loaded){JournalModule.entries=rows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();}
  };
  paint();let pending=false;const schedule=()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;paint()})};new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});window.addEventListener('connection14239',()=>{paint();renderDialog();try{const f=document.getElementById('connectedPhone132');if(f?.contentDocument)paint(f.contentDocument,true)}catch{}});window.addEventListener('page113',schedule);registerShell();}
 function pendingOwner(id){return queue().some(j=>j.payload.p_owner===id&&j.status!=='synced')||!!window.saveNotices14234?.staffPending?.(id).length}
