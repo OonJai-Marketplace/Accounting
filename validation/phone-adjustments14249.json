@@ -1,0 +1,30 @@
+[
+  {
+    "name": "One General Description below first Date/Amount; Add Line repeats only line fields",
+    "passed": true
+  },
+  {
+    "name": "Atomic payload shares description and preserves both dates/memos",
+    "passed": true
+  },
+  {
+    "name": "Single/Double switches retain one shared description and individual memo",
+    "passed": true
+  },
+  {
+    "name": "Native refresh is not intercepted by phone gesture handlers",
+    "passed": true
+  },
+  {
+    "name": "Repeated picker/tab/background-refresh cycles leave navigation unlocked",
+    "passed": true
+  },
+  {
+    "name": "Refresh control reloads the browser page",
+    "passed": true
+  },
+  {
+    "name": "No browser errors during repeated navigation",
+    "passed": true
+  }
+]

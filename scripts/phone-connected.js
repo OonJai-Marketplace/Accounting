@@ -21,7 +21,7 @@ function persistPhoneDraft1427(){if(!ensurePhoneOwner1427())return;if(S.user){if
 function capturePhoneDraft1427(){
  if(draftOwner1427!==A.profile()?.id||phoneSession14225!==A.session()){ensurePhoneOwner1427();return;}if(!ensurePhoneOwner1427())return;
  const visible=n=>n&&!n.closest('main')?.classList.contains('hidden');
- if(!busy&&visible($('staffMemo')))S.staffDraft=staffData();
+ if(!busy&&visible($('staffMemo'))&&document.querySelector('#post [data-staff-single],#post [data-staff-double]'))S.staffDraft=staffData();
  if(visible($('jLines')))S.journalDraft={date:$('jDate').value,memo:$('jMemo').value,lines:[...$('jLines').children].map(n=>({account:n.querySelector('select').value,memo:n.querySelector('[data-memo]').value,debit:n.querySelector('[data-debit]').value,credit:n.querySelector('[data-credit]').value}))};
  persistPhoneDraft1427();
 }
@@ -41,7 +41,7 @@ const select=(label,id,html)=>`<div class="field"><label for="${id}">${label}</l
 function call(fn){try{const result=fn();if(result?.then)result.catch(e=>parent.showCenterStatus(e.message,true));setTimeout(()=>refresh(),250);return result}catch(e){parent.showCenterStatus(e.message,true)}}
 let workspaceOpen14238=0;
 function navigate(module,page='home',capture=true){
- workspaceOpen14238++;document.getElementById('workspaceNotice14236')?.remove();
+ workspaceOpen14238++;window.PhoneAccountPicker14227?.close(false,false);closeAccount1424();closeConnection14248();document.getElementById('workspaceNotice14236')?.remove();
  if(capture)capturePhoneDraft1427();
  const before={module:S.module,page:S.page,user:S.user};S.module=module;S.page=page;if(module==='subusers'&&!A.allowed('sub-users-workspace')&&A.teamHomeAllowed())S.user=null;
  if(module==='subusers'&&!S.user&&A.profile()?.role!=='admin'&&!A.teamHomeAllowed())S.user=A.profile().id;
@@ -96,7 +96,7 @@ function nav(){workspaceTabs14236();const me=A.profile();if(!$('menuDocuments144
  document.querySelectorAll('[data-settings]').forEach(b=>b.hidden=b.dataset.settings!=='profile'&&!A.allowed('settings-users'));
  $('menuSettings').classList.toggle('active',S.module==='settings');const p=document.querySelector('.profile');p.querySelector('b').textContent=me?.full_name||'Account';p.querySelector('small').textContent=me?.role==='admin'?'Administrator':(A.rules(me?.id)?.permission?.job_title||'Staff Member');p.querySelector('.avatar').textContent=(me?.full_name||'').split(' ').map(x=>x[0]).slice(0,2).join('');p.setAttribute('role','button');p.tabIndex=0;p.setAttribute('aria-haspopup','true');p.onclick=toggleAccount1424;p.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleAccount1424()}};}
 function closeAccount1424(){document.getElementById('phoneAccount1424')?.remove();document.querySelector('.profile')?.setAttribute('aria-expanded','false')}
-function toggleAccount1424(){if(document.getElementById('phoneAccount1424')){closeAccount1424();return}const menu=document.createElement('div');menu.id='phoneAccount1424';menu.className='phone-account1424';menu.setAttribute('aria-label','Account controls');const items=[...(A.profile()?.role==='admin'? [['Sub-users',()=>chooseWorkspace('home')]]:[]),['My profile',()=>navigate('settings','profile')],['Settings',()=>navigate('settings','home')],['Refresh',()=>call(async()=>{await A.refresh();refresh(true)})],['Sign out',()=>call(()=>A.logout())]].filter(([label])=>label==='Document Editor'?A.allowed('document-editor105'):label==='Report History'?A.allowed('sub-users-workspace'):label==='Settings'?A.profile()?.role==='admin'&&A.allowed('settings-users'):true);items.forEach(([label,fn])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>{closeAccount1424();fn()};menu.append(b)});document.querySelector('.app').append(menu);const bounds=document.querySelector('.app').getBoundingClientRect();menu.style.right=Math.max(12,innerWidth-bounds.right+12)+'px';document.querySelector('.profile').setAttribute('aria-expanded','true');menu.querySelector('button').focus({preventScroll:true})}
+function toggleAccount1424(){if(document.getElementById('phoneAccount1424')){closeAccount1424();return}const menu=document.createElement('div');menu.id='phoneAccount1424';menu.className='phone-account1424';menu.setAttribute('aria-label','Account controls');const items=[...(A.profile()?.role==='admin'? [['Sub-users',()=>chooseWorkspace('home')]]:[]),['My profile',()=>navigate('settings','profile')],['Settings',()=>navigate('settings','home')],['Refresh',()=>{capturePhoneDraft1427();parent.location.reload()}],['Sign out',()=>call(()=>A.logout())]].filter(([label])=>label==='Document Editor'?A.allowed('document-editor105'):label==='Report History'?A.allowed('sub-users-workspace'):label==='Settings'?A.profile()?.role==='admin'&&A.allowed('settings-users'):true);items.forEach(([label,fn])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>{closeAccount1424();fn()};menu.append(b)});document.querySelector('.app').append(menu);const bounds=document.querySelector('.app').getBoundingClientRect();menu.style.right=Math.max(12,innerWidth-bounds.right+12)+'px';document.querySelector('.profile').setAttribute('aria-expanded','true');menu.querySelector('button').focus({preventScroll:true})}
 document.addEventListener('click',e=>{if(!e.target.closest('.profile,#phoneAccount1424'))closeAccount1424()});document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAccount1424();document.querySelector('.profile').focus({preventScroll:true})}});
 function snapshot(){if(S.module==='subusers')return JSON.stringify([A.session(),A.workspaceUsers(),S.user?A.workspaceState(S.user):null,S.user?A.funds(S.user):null,A.reports(S.user),S.module,S.page,S.user,S.search,S.month,S.entryMonth14237]);return JSON.stringify([A.profile()?.id,A.workspaceUsers(),A.settingsUsers(),A.accounts(),A.journals(),A.reports(S.user),A.reminders(),S.user?A.funds(S.user):null,A.dashboard().state.mappings,A.dashboard().state.month,A.dashboard().state.currency,S.module,S.page,S.search,S.review,S.month])}
 function refresh(force=false){
@@ -105,7 +105,7 @@ function refresh(force=false){
  if(draftOwner1427!==A.profile().id||phoneSession14225!==A.session()){ensurePhoneOwner1427();navigate(S.module,S.page,false);return}
  const visible=document.querySelector('main.screen:not(.hidden)');
  if(!visible?.childElementCount){initializePhone1425();return}
- if(busy||(!force&&S.page==='post'&&document.querySelector('#post .staff-editor14225'))||(!force&&S.journalForm))return;
+ if(document.getElementById('phoneAccountPicker14227')||busy||(!force&&S.page==='post'&&document.querySelector('#post .staff-editor14225'))||(!force&&S.journalForm))return;
  const signature=snapshot();if(force||signature!==last){last=signature;render()}
 }
 window.phoneRefresh132=()=>refresh();window.phoneSelection14237=()=>({module:S.module,user:S.user,page:S.page});
@@ -151,17 +151,16 @@ function staffDraft14225(){
  const direction=r.directions.includes(d.direction)?d.direction:r.directions[0]||'out';
  if(!d.single)d.single=[{direction,source:d.fund||(r.fundIds.length===1?r.fundIds[0]:''),affected:d.account||(direction==='in'?r.counterpart:r.entryIds.length===1?r.entryIds[0]:''),amount:d.amount||'',memo:''}];
  d.mode||='single';d.date||=new Date().toISOString().slice(0,10);d.memo||='';d.reference||='';d.requestKey||='phone-'+crypto.randomUUID();d.editIds||=[];d.lines||=[{},{}];
- S.staffDraft=d;return d;
+ if(!d.sharedDescription14249){for(const l of d.single){if(l.description&&l.description!==d.memo)l.memo=[l.description,l.memo].filter(Boolean).join(' — ');}d.sharedDescription14249=true;}S.staffDraft=d;return d;
 }
 function staffLine14225(l,i){
  const r=A.rules(S.user),ac=A.accounts(),funds=ac.filter(a=>r.fundIds.includes(String(a.id))),categories=ac.filter(a=>(l.direction==='in'?[r.counterpart]:r.entryIds).includes(String(a.id)));
  const suffix=i?'_'+i:'',a=ac.find(a=>String(a.id)===String(l.source)),currency=a?.currency||'LAK',d=staffDraft14225();
- return '<section class="staff-single-line14225" data-staff-single="'+i+'"><div class="staff-line-heading14225"><b>Entry '+(i+1)+'</b>'+(i?'<button type="button" class="remove-staff14225" data-remove-single="'+i+'" aria-label="Remove entry '+(i+1)+'">'+trash14225+'</button>':'')+'</div>'+
- '<div class="grid phone-date-amount14247">'+field('Date','staffDate'+suffix,'date',l.date||d.date)+field('Amount ('+esc(currency)+')','staffAmount'+suffix,'number',l.amount||'')+'</div>'+
+ return '<section class="staff-single-line14225" data-staff-single="'+i+'"><div class="staff-line-heading14225"><b>Line '+(i+1)+'</b>'+(i?'<button type="button" class="remove-staff14225" data-remove-single="'+i+'" aria-label="Remove entry '+(i+1)+'">'+trash14225+'</button>':'')+'</div>'+
+ '<div class="grid phone-date-amount14247">'+field('Date','staffDate'+suffix,'date',l.date||d.date)+field('Amount ('+esc(currency)+')','staffAmount'+suffix,'number',l.amount||'')+'</div>'+(i===0?field('General Description','staffMemo','text',d.memo):'')+
  select('Source Account','staffFund'+suffix,'<option value="">Choose account</option>'+options(funds,l.source))+
  select('Category Account','staffCategory'+suffix,'<option value="">Choose account</option>'+options(categories,l.affected))+
- field('Line Memo / Reference','staffLineMemo'+suffix,'text',l.memo||l.reference||'')+
- field('General Description','staffMemo'+suffix,'text',l.description??d.memo)+'</section>';
+ field('Line Memo / Reference','staffLineMemo'+suffix,'text',l.memo||l.reference||'')+'</section>';
 }
 function staffDoubleLine14225(l,i){
  const r=A.rules(S.user),ac=A.accounts().filter(a=>[...r.fundIds,...r.entryIds,r.counterpart].includes(String(a.id)));
@@ -182,18 +181,18 @@ function staffForm(){
  return head(S.editingStaff?'Edit Entry':'Post Entry','Record a new transaction')+'<fieldset class="staff-editor14225" '+(!can||busy?'disabled':'')+'>'+'<p class="entry-id14247">Entry ID: '+esc(d.entryNo||'Assigned when saved')+'</p>'+toggle+(double?common:'')+
  (d.unmapped14232?'<p role="status">Complete journal details retained. Switch to Double Entry to review and save.</p>':'')+(double?description+'<div id="staffDoubleLines">'+d.lines.map(staffDoubleLine14225).join('')+'</div><div id="staffDoubleTotals" class="staff-summary1425"></div><div id="staffBalance14225" class="staff-balance14225" role="status" aria-live="polite"></div>':
  '<input id="staffDirection" type="hidden" value="'+esc(dir)+'"><fieldset '+(d.unmapped14232?'disabled':'')+'><div id="staffSingleLines">'+d.single.map(staffLine14225).join('')+'</div>'+
- '<button class="btn staff-add-single14225" type="button" '+action(()=>{S.staffDraft=staffData();S.staffDraft.single.push({direction:dir,source:r.fundIds.length===1?r.fundIds[0]:'',affected:dir==='in'?r.counterpart:'',amount:'',memo:'',date:S.staffDraft.date,description:''});render()})+'>'+icon('plus')+'Add Line</button><div id="staffSummary1425" class="staff-summary1425"></div></fieldset>')+
+ '<button class="btn staff-add-single14225" type="button" '+action(()=>{S.staffDraft=staffData();S.staffDraft.single.push({direction:dir,source:r.fundIds.length===1?r.fundIds[0]:'',affected:dir==='in'?r.counterpart:'',amount:'',memo:'',date:S.staffDraft.date});render()})+'>'+icon('plus')+'Add Line</button><div id="staffSummary1425" class="staff-summary1425"></div></fieldset>')+
  '<div class="actions">'+button('Clear',()=>{S.staffDraft=null;S.editingStaff=false;render()})+button('Post Entry',saveStaff,true,!can)+'</div></fieldset>';
 }
 function staffData(){
  const d=staffDraft14225(),next={...d,date:$('staffDate').value,reference:$('staffReference')?.value||d.reference||'',memo:$('staffMemo').value};
  if(d.mode==='double')next.lines=[...document.querySelectorAll('[data-staff-double]')].map(n=>{const i=n.dataset.staffDouble;return {account:$('staffAccount'+i).value,debit:$('staffDebit'+i).value,credit:$('staffCredit'+i).value,memo:$('staffDoubleMemo'+i).value}});
- else next.single=[...document.querySelectorAll('[data-staff-single]')].map(n=>{const i=Number(n.dataset.staffSingle),suffix=i?'_'+i:'';return {...d.single[i],source:$('staffFund'+suffix).value,affected:$('staffCategory'+suffix).value,amount:$('staffAmount'+suffix).value,date:$('staffDate'+suffix).value,memo:$('staffLineMemo'+suffix).value,reference:$('staffLineMemo'+suffix).value,description:$('staffMemo'+suffix).value}});
+ else next.single=[...document.querySelectorAll('[data-staff-single]')].map(n=>{const i=Number(n.dataset.staffSingle),suffix=i?'_'+i:'';return {...d.single[i],source:$('staffFund'+suffix).value,affected:$('staffCategory'+suffix).value,amount:$('staffAmount'+suffix).value,date:$('staffDate'+suffix).value,memo:$('staffLineMemo'+suffix).value,reference:$('staffLineMemo'+suffix).value,description:next.memo}});
  return next;
 }
 function toggleStaffMode14225(){
  const d=staffData(),toDouble=d.mode!=='double';if(toDouble&&new Set(d.single.map(l=>l.date||d.date)).size>1){parent.showCenterStatus('These entries have different dates. Save them in Single Entry to keep every date.',true);return;}
- if(toDouble){if(d.unmapped14232){d.lines=d.retainedLines14232;delete d.unmapped14232;}else d.lines=d.single.flatMap(l=>[{account:l.direction==='in'?l.source:l.affected,debit:l.amount||'',credit:'',memo:[l.description,l.memo].filter(Boolean).join(' — ')},{account:l.direction==='in'?l.affected:l.source,debit:'',credit:l.amount||'',memo:[l.description,l.memo].filter(Boolean).join(' — ')}]);if(!d.lines.length)d.lines=[{},{}];d.lastSingle14232=structuredClone(d.single);d.doubleSignature14232=JSON.stringify(d.lines);}
+ if(toDouble){if(d.unmapped14232){d.lines=d.retainedLines14232;delete d.unmapped14232;}else d.lines=d.single.flatMap(l=>[{account:l.direction==='in'?l.source:l.affected,debit:l.amount||'',credit:'',memo:l.memo||''},{account:l.direction==='in'?l.affected:l.source,debit:'',credit:l.amount||'',memo:l.memo||''}]);if(!d.lines.length)d.lines=[{},{}];d.lastSingle14232=structuredClone(d.single);d.doubleSignature14232=JSON.stringify(d.lines);}
  else{const rules=A.rules(S.user),pairs=[],lines=d.lines.slice();if(lines.length%2)lines.push({});let valid=true;for(let i=0;valid&&i<lines.length;i+=2){const parts=lines.slice(i,i+2),values=parts.some(l=>Number(l.debit)||Number(l.credit)),dr=parts.find(l=>Number(l.debit)>0&&!Number(l.credit))||(!values?parts[0]:null),cr=parts.find(l=>Number(l.credit)>0&&!Number(l.debit))||(!values?parts[1]:null),debit=dr||parts.find(l=>l!==cr),credit=cr||parts.find(l=>l!==dr);if(!debit||!credit||debit===credit||parts.some(l=>Number(l.debit)&&Number(l.credit))||(Number(debit.debit)&&Number(credit.credit)&&Number(debit.debit)!==Number(credit.credit))||(debit.memo&&credit.memo&&debit.memo!==credit.memo)){valid=false;break}const incoming=rules.directions.includes('in')&&(!debit.account||rules.fundIds.includes(debit.account))&&(!credit.account||rules.counterpart===credit.account),outgoing=rules.directions.includes('out')&&(!credit.account||rules.fundIds.includes(credit.account))&&(!debit.account||rules.entryIds.includes(debit.account));if(!incoming&&!outgoing){valid=false;break}const inc=incoming&&!outgoing;pairs.push({direction:inc?'in':'out',source:(inc?debit.account:credit.account)||'',affected:(inc?credit.account:debit.account)||'',amount:debit.debit||credit.credit||'',memo:debit.memo||credit.memo||''});}
  if(d.doubleSignature14232===JSON.stringify(d.lines)&&d.lastSingle14232)d.single=d.lastSingle14232;else if(valid)d.single=pairs;else{d.unmapped14232=true;d.retainedLines14232=structuredClone(d.lines);d.single=d.lines.map(l=>({source:l.debit?l.account:'',affected:l.credit?l.account:'',direction:l.debit?'in':'out',amount:l.debit||l.credit||'',memo:l.memo||''}));}}
  d.mode=toDouble?'double':'single';d.requestKey='phone-'+crypto.randomUUID();S.staffDraft=d;render();
