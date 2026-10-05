@@ -38,8 +38,10 @@ const field=(label,id,type='text',value='')=>`<div class="field"><label for="${i
 const options=(accounts,value)=>accounts.filter(a=>a.isPosting!==false).map(a=>`<option value="${esc(a.id||a.code)}" ${String(a.id||a.code)===String(value)?'selected':''}>${esc(a.code+' · '+a.name+' ('+a.currency+')')}</option>`).join('');
 const select=(label,id,html)=>`<div class="field"><label for="${id}">${label}</label><select id="${id}">${html}</select></div>`;
 function call(fn){try{const result=fn();if(result?.then)result.catch(e=>parent.showCenterStatus(e.message,true));setTimeout(()=>refresh(),250);return result}catch(e){parent.showCenterStatus(e.message,true)}}
+let workspaceOpen14238=0;
 function navigate(module,page='home',capture=true){
  if(busy)return;
+ workspaceOpen14238++;document.getElementById('workspaceNotice14236')?.remove();
  if(capture)capturePhoneDraft1427();
  const before={module:S.module,page:S.page,user:S.user};S.module=module;S.page=page;if(module==='subusers'&&!A.allowed('sub-users-workspace')&&A.teamHomeAllowed())S.user=null;
  if(module==='subusers'&&!S.user&&A.profile()?.role!=='admin'&&!A.teamHomeAllowed())S.user=A.profile().id;
@@ -61,13 +63,13 @@ window.settingsGo=p=>navigate('settings',p);window.dashGo=p=>navigate('dashboard
 window.chooseWorkspace=async id=>{
  if(busy)return;capturePhoneDraft1427();
  if(id==='home'&&!A.teamHomeAllowed())return;
- const who=A.session();busy=true;workspaceNotice14236('Opening workspace…');
+ const who=A.session(),opening=++workspaceOpen14238;workspaceNotice14236('Opening workspace… You can continue using navigation.');
  try{
   if(id!=='home'&&!A.users().some(u=>String(u.id)===String(id)))await A.ensureUser(id);
-  if(who!==A.session())return;
+  if(who!==A.session()||opening!==workspaceOpen14238)return;
   S.user=id==='home'?null:String(id);const draft=phoneDrafts1427.staff[S.user];S.staffDraft=draft?.data||null;S.editingStaff=!!draft?.editing;S.page='home';
-  busy=false;document.getElementById('workspaceNotice14236')?.remove();navigate('subusers','home',false);
- }catch(e){workspaceNotice14236('Unable to open this workspace. '+(e.message||'Please try again.'),id)}finally{busy=false}
+  document.getElementById('workspaceNotice14236')?.remove();navigate('subusers','home',false);
+ }catch(e){if(who===A.session()&&opening===workspaceOpen14238)workspaceNotice14236('Unable to open this workspace. '+(e.message||'Please try again.'),id)}
 };
 function workspaceNotice14236(message,retry){
  document.getElementById('workspaceNotice14236')?.remove();const box=document.createElement('div');box.id='workspaceNotice14236';box.className='card';box.setAttribute('role',retry?'alert':'status');box.textContent=message;
@@ -128,8 +130,15 @@ if(S.page==='documents')h+=`<div class="card"><h2>Documents</h2><p>Full document
 function totals(lines){const out={};lines.forEach(l=>{const c=l.currency_code||l.currency||'LAK';out[c]??={in:0,out:0};out[c][l.direction==='in'?'in':'out']+=Number(l.amount||0)});return Object.entries(out).map(([c,t])=>`<div class="batch-totals132"><span>Money In <b>${money(t.in,c)}</b></span><span>Money Out <b>${money(t.out,c)}</b></span></div>`).join('')}
 function fundMetrics1425(funds){return (funds||[]).reduce((a,f)=>{const c=f.currency||'LAK';a[c]??={opening:0,received:0,used:0,closing:0};for(const k of Object.keys(a[c]))a[c][k]+=Number(f[k]||0);a[c].used+=Number(f.handover||0);return a},{})}
 function fundCard1425(f){const total=Number(f.opening||0)+Number(f.received||0),percent=total>0?Math.max(0,Math.min(100,Number(f.closing||0)/total*100)):0;return `<div class="card fund-card1425"><div class="row"><span class="round gold">${icon('wallet')}</span><h2>${esc(f.name)}</h2></div><small>Remaining Funds</small><strong class="fund-amount132">${money(f.closing,f.currency)}</strong><div class="bar"><i style="width:${percent}%"></i></div><div class="row"><small>${money(f.closing,f.currency)} remaining</small><small>${money(total,f.currency)} total</small></div><div class="grid fund-detail1425"><div><small>Funds received</small><b>${money(f.received,f.currency)}</b></div><div><small>Used / handed over</small><b>${money(Number(f.used)+Number(f.handover),f.currency)}</b></div></div>${button('Request adjustment',()=>A.adjust(S.user,f.id||f.account_id),false,!A.canWriteStaff(S.user))}</div>`}
-function subusers(){if(!S.user)return '<div id="phoneTeam14227"><p role="status">Loading Sub-users Home…</p></div>';
-const user=A.users().find(u=>String(u.id)===String(S.user)),rules=A.rules(S.user),reports=A.reports(S.user),funds=A.funds(S.user);if(!user||!rules)return empty('This workspace is unavailable.');const state=A.workspaceState(S.user);if(state.error)return empty('Could not load this workspace: '+state.error)+button('Try again',()=>A.loadWorkspace(S.user,true),true);if(!state.loaded)return empty('Loading this user’s accounts and worklist…');if(S.page==='post')return staffForm();const metrics=fundMetrics1425(funds),entries=reports.flatMap(r=>(r.lines||[]).map(l=>({...l,batch:r}))).sort((a,b)=>String(b.transaction_date).localeCompare(String(a.transaction_date))),entryRows=list=>list.map(l=>row(l.memo,l.transaction_date+' · '+l.batch.status,money(l.amount,l.currency_code),()=>go('entries'),'utensils')).join('');
+function subusers(){
+ if(!S.user)return subuserContent14238();
+ const state=A.workspaceState(S.user),retry=()=>A.loadWorkspace(S.user,true);
+ if(!state.loaded)return head(({home:'Home',accounts:'Accounts',post:'Post entry',entries:'Entries',totals:'Totals'})[S.page]||'Workspace')+empty(state.error?'Could not load this workspace: '+state.error:'Loading this user’s accounts and worklist… You can switch tabs or open navigation while waiting.')+(state.error?button('Try again',retry,true):'');
+ const notice=state.error?empty('Showing previously loaded records. Refresh failed: '+state.error)+button('Try again',retry,true):state.loading?empty('Updating records… Previously loaded records remain available.') : '';
+ return notice+subuserContent14238();
+}
+function subuserContent14238(){if(!S.user)return '<div id="phoneTeam14227"><p role="status">Loading Sub-users Home…</p></div>';
+const user=A.users().find(u=>String(u.id)===String(S.user)),rules=A.rules(S.user),reports=A.reports(S.user),funds=A.funds(S.user);if(!user||!rules)return empty('This workspace is unavailable.');if(S.page==='post')return staffForm();const metrics=fundMetrics1425(funds),entries=reports.flatMap(r=>(r.lines||[]).map(l=>({...l,batch:r}))).sort((a,b)=>String(b.transaction_date).localeCompare(String(a.transaction_date))),entryRows=list=>list.map(l=>row(l.memo,l.transaction_date+' · '+l.batch.status,money(l.amount,l.currency_code),()=>go('entries'),'utensils')).join('');
 if(S.page==='home')return `<div class="home-tools14225"><button class="history-link14225" ${action(()=>A.reportHistory(S.user))}>${icon('history')} All History <span aria-hidden="true">›</span></button></div><div class="card hero funds-hero1425"><div class="row"><span class="round">${icon('wallet')}</span><b>Remaining Funds</b></div>${Object.entries(metrics).map(([c,m])=>`<strong>${money(m.closing,c)}</strong>`).join('')||'<strong>—</strong>'}<small>Across assigned accounts</small></div>`+Object.entries(metrics).map(([c,m])=>{const budget=m.opening+m.received,remaining=budget>0?Math.max(0,Math.min(100,m.closing/budget*100)):0;return `<div class="fund-summary1425"><div><small>${Math.round(remaining)}%</small><div class="bar"><i style="width:${remaining}%"></i></div><b>${money(m.closing,c)}</b><small>Remaining</small></div><div><small>${Math.round(100-remaining)}%</small><div class="bar spent1425"><i style="width:${100-remaining}%"></i></div><b>${money(m.used,c)}</b><small>Spent / handed over</small></div><div>${icon('chart')}<b>${money(budget,c)}</b><small>Available funds</small></div></div>`}).join('')+`<div class="grid quick-tiles1425">${[['Post','Record an expense','post','plus'],['Accounts','View accounts','accounts','wallet'],['Entries','See all entries','entries','review'],['Totals','View summaries','totals','chart']].map(([t,s,p,k])=>`<button class="tile" ${action(()=>go(p))}><span class="round ${p==='accounts'?'orange':p==='totals'?'gold':''}">${icon(k)}</span><b>${t}</b><small>${s}</small></button>`).join('')}</div><div class="recent1425"><div class="row"><h2>Recent Expenses</h2>${button('View all',()=>go('entries'))}</div>${entryRows(entries.slice(0,3))||'<p>No entries yet.</p>'}</div>`;
 if(S.page==='accounts'){const rows=funds||[],selected=rows.some(f=>String(f.id||f.account_id)===S.fundFilter)?S.fundFilter:'all';return head('Accounts','Manage accounts and view balances')+`<div class="tabs">${[...rows.map(f=>[String(f.id||f.account_id),f.name]),['all','All Accounts']].map(([id,name])=>`<button class="${selected===id?'active':''}" ${action(()=>{S.fundFilter=id;render()})}>${esc(name)}</button>`).join('')}</div>`+(rows.filter(f=>selected==='all'||String(f.id||f.account_id)===selected).map(fundCard1425).join('')||rules.fundIds.map(id=>empty(A.accountName(id)+' · Posted balances unavailable')).join('')||empty('No fund account assigned.'))}
 if(S.page==='entries')return staffEntries14225(reports);

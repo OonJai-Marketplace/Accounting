@@ -50,65 +50,34 @@ await frame.locator('.brand').tap();await frame.locator('#menuSubusers').tap();
 const user='00000000-0000-4000-8000-000000000002',other='00000000-0000-4000-8000-000000000003';
 const selectUser=async id=>{await frame.locator('[data-phone-user14236="'+id+'"]').tap();await frame.locator('#home .funds-hero1425').waitFor({state:'visible'});};
 await check('Populated workspaces load their own balances without desktop mounting',async()=>{await selectUser(user);assert.match(await frame.locator('#home .funds-hero1425').innerText(),/1,080/);assert.equal(await page.evaluate(()=>document.querySelector('#sub-users-workspace.active')!==null),false);});
-await check('Worklist includes older months, paginates, searches, and filters',async()=>{
- await frame.locator('[data-go=entries]').tap();assert.equal(await frame.locator('#entries .entry132').count(),30);
- await frame.getByRole('button',{name:'Show more entries (160 total)',exact:true}).tap();assert.equal(await frame.locator('#entries .entry132').count(),60);
- await frame.locator('#entries #liveSearch').fill('Worklist Ryan Santos 0 39');assert.equal(await frame.locator('#entries .entry132').count(),1);
- await frame.locator('#entries #liveSearch').fill('');
- await frame.locator('#entries #historyMonth').fill('2026-07');await frame.locator('#entries #historyMonth').dispatchEvent('change');assert.match(await frame.locator('#entries').innerText(),/2026-07-05/);
- await frame.locator('#entries #historyMonth').fill('');await frame.locator('#entries #historyMonth').dispatchEvent('change');
-});
-await check('Draft inputs survive user switching and do not leak into another user',async()=>{
- await frame.locator('[data-go=post]').tap();await frame.locator('#staffMemo').fill('Phone audit saved');await frame.locator('#staffAmount').fill('125');
- await selectUser(other);await frame.locator('[data-go=post]').tap();assert.equal(await frame.locator('#staffMemo').inputValue(),'');
- await selectUser(user);await frame.locator('[data-go=post]').tap();assert.equal(await frame.locator('#staffMemo').inputValue(),'Phone audit saved');assert.equal(await frame.locator('#staffAmount').inputValue(),'125');
-});
-await check('Single entry saves once, appears in Entries, and edits without duplicating',async()=>{
- await frame.locator('#staffDate').fill('2026-11-05');await frame.getByRole('button',{name:'Save Entry',exact:true}).tap();
- const item=frame.locator('#entries details').filter({hasText:'Phone audit saved'});await item.waitFor({state:'visible'});await item.locator('summary').tap();await item.getByRole('button',{name:'Edit',exact:true}).tap();
- await frame.locator('#staffMemo').fill('Phone audit edited');await frame.getByRole('button',{name:'Save Entry',exact:true}).tap();
- await frame.locator('#entries details').filter({hasText:'Phone audit edited'}).waitFor({state:'visible'});assert.equal(await page.evaluate(()=>__auditSaves.length),2);assert.equal(await page.evaluate(()=>__auditReports.flatMap(j=>j.lines).filter(l=>l.memo==='Phone audit edited').length),1);
-});
-await check('Submission targets the selected period and refreshes the worklist status',async()=>{
- await frame.locator('#entries #historyMonth').fill('2026-11');await frame.locator('#entries #historyMonth').dispatchEvent('change');
- await frame.getByRole('button',{name:'Submit for Review',exact:true}).tap();await page.locator('#phoneSubmitPeriod14237').waitFor({state:'visible'});
- await page.locator('.ui-overlay108').last().getByRole('button',{name:'Submit',exact:true}).tap();
- await frame.locator('#entries details').filter({hasText:'Pending'}).waitFor({state:'visible'});assert.equal(await page.evaluate(()=>__auditSubmits[0].p_journal_id),'saved-batch');
-});
-await check('Phone navigation remains responsive with 480 stored entry lines',async()=>{
- const timings=[];for(const id of [other,user]){const start=Date.now();await selectUser(id);timings.push(Date.now()-start);await frame.locator('[data-go=accounts]').tap();assert(await frame.locator('#accounts .fund-card1425').isVisible());await frame.locator('[data-go=totals]').tap();assert(await frame.locator('#totals').isVisible());}
- console.log('OPEN_TIMINGS_MS',timings);assert(timings.every(t=>t<1200),JSON.stringify(timings));
-});
-await check('Layout fits 320, 390 and 430 pixel phone widths',async()=>{for(const width of [320,390,430]){await page.setViewportSize({width,height:844});await frame.locator('[data-go=post]').tap();assert(await frame.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:path.join(root,'validation/screenshots/phone-audit-'+width+'.png')});}});
 
-await check('Double-entry switching retains values and validates the balanced pair',async()=>{
- await page.setViewportSize({width:390,height:844});await frame.locator('[data-go=post]').tap();await frame.locator('#staffMemo').fill('Balanced phone draft');await frame.locator('#staffAmount').fill('90');
- await frame.locator('#staffModeToggle').tap();assert.equal(await frame.locator('[data-staff-double]').count(),2);assert.match(await frame.locator('#staffBalance14225').innerText(),/Balanced/);
- await frame.locator('#staffModeToggle').tap();assert.equal(await frame.locator('#staffAmount').inputValue(),'90');
- await frame.getByRole('button',{name:'Clear',exact:true}).tap();
+await check('A stalled directory lookup does not trap navigation or override a later choice',async()=>{
+ await page.evaluate(()=>{const a=PhoneApp132;window.__originalUsers=a.users;window.__originalEnsure=a.ensureUser;a.users=()=>__originalUsers().filter(u=>u.id!=='00000000-0000-4000-8000-000000000003');a.ensureUser=()=>new Promise(r=>window.__directoryResolve=r);});
+ await frame.locator('[data-phone-user14236="'+other+'"]').tap();
+ await frame.locator('.brand').tap();await frame.locator('#menuDashboard').tap();
+ assert.equal(await frame.evaluate(()=>phoneSelection14237().module),'dashboard');
+ await page.evaluate(()=>{PhoneApp132.users=__originalUsers;PhoneApp132.ensureUser=__originalEnsure;__directoryResolve(true);});
+ await page.waitForTimeout(200);assert.equal(await frame.evaluate(()=>phoneSelection14237().module),'dashboard');
+ await frame.locator('.brand').tap();await frame.locator('#menuSubusers').tap();await selectUser(user);
 });
-await check('Failed fund loading shows a retry instead of an empty worklist',async()=>{
- await frame.locator('[data-go=accounts]').tap();await page.evaluate(()=>{window.__baseRpcAudit=ojmDb.rpc;let fail=true;ojmDb.rpc=async(n,p)=>{if(n==='fund_balances136'&&fail){fail=false;return {error:{message:'Audit offline connection'}}}return __baseRpcAudit(n,p);};});
- await frame.locator('.profile').tap();await frame.locator('#phoneAccount1424').getByRole('button',{name:'Refresh',exact:true}).tap();
- await frame.getByText('Showing previously loaded records. Refresh failed: Audit offline connection',{exact:true}).waitFor({state:'visible'});
- await frame.getByRole('button',{name:'Try again',exact:true}).tap();await frame.locator('#accounts .fund-card1425').waitFor({state:'visible'});
+await check('Failed refresh retains balances and worklist with an explicit stale-data notice',async()=>{
+ await page.evaluate(async()=>{const base=ojmDb.rpc;ojmDb.rpc=async(n,p)=>n==='fund_balances136'?{error:{message:'Weak connection test'}}:base(n,p);await PhoneApp132.loadWorkspace('00000000-0000-4000-8000-000000000002',true).catch(()=>{});ojmDb.rpc=base;});
+ await frame.getByText('Showing previously loaded records. Refresh failed: Weak connection test',{exact:true}).waitFor();assert(await frame.locator('#home .funds-hero1425').isVisible());
+ await frame.locator('[data-go=entries]').tap();assert.equal(await frame.locator('#entries .entry132').count(),30);
+ await frame.getByRole('button',{name:'Try again',exact:true}).tap();await page.waitForFunction(()=>!PhoneApp132.workspaceState('00000000-0000-4000-8000-000000000002').error);
 });
-await check('Reviewed report opens in the phone editor and Back returns safely',async()=>{
- await page.evaluate(()=>{const rpc=ojmDb.rpc;ojmDb.rpc=async(n,p)=>{if(n==='staff_report1434'){const journal=__auditReports.find(j=>j.id===p.p_journal);return {data:{journal,user:__fixture.profiles.find(u=>u.id===journal.owner_id),accounts:__fixture.accounts,posted:[]},error:null};}return rpc(n,p);};});
- await frame.locator('[data-go=entries]').tap();await frame.getByRole('button',{name:'Report History',exact:true}).tap();
- const dialog=page.locator('.ui-overlay108').last();await dialog.getByRole('button',{name:'Open / Print',exact:true}).first().tap();
- await page.locator('[data-mobile-doc1443=back]').waitFor({state:'visible'});
- await page.locator('#reportHistory1443').waitFor({state:'hidden'});
- await page.locator('[data-mobile-doc1443=back]').tap();await page.locator('#document-editor105').waitFor({state:'hidden'});assert(await frame.locator('#entries').isVisible());
+await check('Stalled new workspace times out; tabs remain usable; retry ignores the old response',async()=>{
+ const third='00000000-0000-4000-8000-000000000004';
+ await page.evaluate(()=>{window.__networkBase=ojmDb.rpc;ojmDb.rpc=(n,p)=>n==='fund_balances136'?new Promise(r=>window.__releaseNetworkAudit=r):__networkBase(n,p);});
+ await frame.locator('[data-phone-user14236="'+third+'"]').tap();
+ await frame.locator('[data-go=accounts]').tap();assert.equal(await frame.evaluate(()=>phoneSelection14237().page),'accounts');
+ await frame.getByRole('heading',{name:'Accounts',exact:true}).waitFor();
+ await frame.getByRole('button',{name:'Try again',exact:true}).waitFor({timeout:16000});
+ assert.match(await frame.locator('#accounts').innerText(),/connection is taking too long/);
+ await page.evaluate(()=>ojmDb.rpc=__networkBase);
+ await frame.getByRole('button',{name:'Try again',exact:true}).tap();await frame.locator('#accounts .fund-card1425').waitFor();
+ await page.evaluate(()=>__releaseNetworkAudit({data:[],error:null}));await page.waitForTimeout(100);assert.equal(await frame.locator('#accounts .fund-card1425').count(),1);
 });
-await check('Staff login opens only permitted workspaces and hides administrative navigation',async()=>{
- await page.evaluate(()=>{liveProfile=__fixture.profiles[1];livePermission={...liveProfile.user_permissions,module_actions113:{'sub-users-workspace':['view','edit'],'document-editor105':['view','edit','export']}};liveProfile.user_permissions=livePermission;DemoAccess.currentUser={...liveProfile,name:liveProfile.full_name,active:true};permissions1441.verified=true;});
- await frame.evaluate(()=>phoneRefresh132());await frame.locator('#home .funds-hero1425').waitFor({state:'visible'});
- assert.equal(await frame.locator('#phoneUserTabs14236 button').count(),1);
- await frame.locator('.brand').tap();assert.equal(await frame.locator('#menuSettings').isVisible(),false);await frame.locator('.drawer button').first().tap();
- await frame.evaluate(id=>chooseWorkspace(id),'00000000-0000-4000-8000-000000000003');
- assert.equal(await frame.locator('#phoneUserTabs14236 [aria-current=page]').getAttribute('data-phone-user14236'),'00000000-0000-4000-8000-000000000002');
-});
-await check('No uncaught application errors',()=>assert.deepEqual(errors,[]));
-fs.writeFileSync(path.join(root,'validation/phone-audit14237.json'),JSON.stringify(results,null,2));console.log('RESULT',JSON.stringify(results));await browser.close();server.close();if(results.some(x=>!x.passed))process.exitCode=1;
+await check('No uncaught errors',()=>assert.deepEqual(errors,[]));
+fs.writeFileSync(path.join(root,'validation/phone-weak-network14238.json'),JSON.stringify(results,null,2));console.log('RESULT',JSON.stringify(results));await browser.close();server.close();if(results.some(x=>!x.passed))process.exitCode=1;
 })().catch(e=>{console.error(e);server.close();process.exit(1)});

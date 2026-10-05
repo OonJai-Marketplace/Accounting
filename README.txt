@@ -1,4 +1,6 @@
-OON JAI ACCOUNTING v142.37 — FULL WEBSITE
+OON JAI ACCOUNTING v142.38 — FULL WEBSITE
+
+v142.38: keep phone navigation usable during missing-user lookups; ignore superseded navigation responses; time out workspace reads after 12 seconds; retain previously loaded records with a refresh-failure notice. No offline/sync features or connection indicators added. No database changes. Validated with 5 focused network checks and 12 populated phone regression checks using simulated responses.
 
 v142.37: repair phone workspace loading, show all worklist months with pagination, preserve drafts per user, submit the selected period, and close report history when opening the editor. Stop repeated currency/account DOM updates that slowed phones. No database update required.
 Validation: 12 populated phone checks and 11 existing UI regression checks passed with a simulated backend. Phone checks include 320/390/430 widths, restricted staff, error/retry, saving/editing, and report Back navigation. Local CPU-throttled timings are not real-device or live-backend guarantees.

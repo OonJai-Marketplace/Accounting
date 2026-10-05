@@ -42,6 +42,7 @@ async function reminderEditor14229(){const editor=document.getElementById('upcom
 // Phone reads do not depend on mounting the hidden desktop workspace.
 const phoneFunds14237=new Map(),phoneLoads14237=new Map(),phoneErrors14237=new Map();let phoneActor14237='',phoneReports14237=null,phoneReportsRequest14237=null;
 function phoneIdentity14237(){const id=api.session();if(phoneActor14237!==id){phoneActor14237=id;phoneFunds14237.clear();phoneLoads14237.clear();phoneErrors14237.clear();phoneReports14237=null;phoneReportsRequest14237=null;}return id;}
+function phoneRead14238(request){let timer;return Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('The connection is taking too long. Please try again.')),12000)})]).finally(()=>clearTimeout(timer));}
 async function loadPhoneWorkspace14237(id,force=false){
  const who=phoneIdentity14237();if(!user(id)||!allowed('sub-users-workspace'))throw Error('This workspace is not included in your access.');
  if(phoneLoads14237.has(id))return phoneLoads14237.get(id);
@@ -49,10 +50,10 @@ async function loadPhoneWorkspace14237(id,force=false){
  phoneErrors14237.delete(id);
  const task=(async()=>{try{
   if(!phoneReportsRequest14237&&(force||!phoneReports14237)){
-   const request=ojmDb.rpc('review_inbox14229').then(r=>{if(r.error)throw Error(r.error.message);if(who===api.session()){if(!Array.isArray(r.data))throw Error('Entry data could not be read.');phoneReports14237=r.data;reviewStaffJournals=r.data;}});
+   const request=phoneRead14238(ojmDb.rpc('review_inbox14229')).then(r=>{if(r.error)throw Error(r.error.message);if(who===api.session()){if(!Array.isArray(r.data))throw Error('Entry data could not be read.');phoneReports14237=r.data;reviewStaffJournals=r.data;}});
    phoneReportsRequest14237=request;request.finally(()=>{if(phoneReportsRequest14237===request)phoneReportsRequest14237=null;}).catch(()=>{});
   }
-  const [funds]=await Promise.all([ojmDb.rpc('fund_balances136',{p_owner:id,p_month:null}),phoneReportsRequest14237]);
+  const [funds]=await Promise.all([phoneRead14238(ojmDb.rpc('fund_balances136',{p_owner:id,p_month:null})),phoneReportsRequest14237]);
   if(who!==api.session()||!user(id))return;
   if(funds.error)throw Error(funds.error.message);if(!Array.isArray(funds.data))throw Error('Fund balances could not be read.');phoneFunds14237.set(id,funds.data);
  }catch(e){if(who===api.session())phoneErrors14237.set(id,e.message||'Loading failed.');throw e;}finally{if(who===api.session()){phoneLoads14237.delete(id);notify();}}})();
@@ -61,7 +62,7 @@ async function loadPhoneWorkspace14237(id,force=false){
 const api=window.PhoneApp132={
  async ensureUser(id){
   const who=api.session();
-  if(!user(id))await window.Organization14229?.loadProfiles();
+  if(!user(id))await phoneRead14238(window.Organization14229?.loadProfiles());
   if(who!==api.session())throw Error('Your session changed. Open the workspace again.');
   if(!allowed('sub-users-workspace')||!user(id))throw Error('This workspace is not included in your current access.');
   return true;
@@ -155,6 +156,6 @@ const api=window.PhoneApp132={
  refresh:async()=>{if(!profile())return;const selected=$('connectedPhone132')?.contentWindow?.phoneSelection14237?.();if(selected?.module==='subusers'){if(selected.user)await loadPhoneWorkspace14237(selected.user,true);else await window.TeamHome14227?.reload();notify();return;}await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
 };
 function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.37';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
+function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone.html?v=142.38';document.body.append(f);let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
