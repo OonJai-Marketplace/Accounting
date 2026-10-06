@@ -1,0 +1,24 @@
+const assert=require('node:assert/strict');
+const vm=require('node:vm');
+const fs=require('node:fs');
+const path=require('node:path');
+
+const source=fs.readFileSync(path.join(__dirname,'../scripts/module-dock14269.js'),'utf8');
+const values=new Map(),listeners={};
+const box=(bottom,right,height=100)=>({bottom,right,height,width:200});
+const card={getBoundingClientRect:()=>box(card.bottom,800),contains:()=>false};
+const activeModule={children:[card],querySelectorAll:()=>[card],getBoundingClientRect:()=>box(800,810,700)};
+const dock={style:{getPropertyValue:k=>values.get(k)||'',setProperty:(k,v)=>values.set(k,v),removeProperty:k=>values.delete(k)},getBoundingClientRect:()=>({height:180})};
+const document={readyState:'complete',documentElement:{dataset:{device132:'tablet'}},body:{classList:{contains:()=>false}},getElementById:()=>dock,querySelector:()=>activeModule};
+const window={addEventListener:(type,fn)=>{listeners[type]=fn},visualViewport:{height:1000,width:900,offsetTop:0,offsetLeft:0,addEventListener:()=>{}}};
+const frames=[];
+const context={document,window,innerHeight:1000,innerWidth:900,getComputedStyle:()=>({display:'block',visibility:'visible',position:'static'}),ResizeObserver:class{observe(){}unobserve(){}},MutationObserver:class{observe(){}},requestAnimationFrame:fn=>{frames.push(fn);return frames.length}};
+vm.runInNewContext(source,context);
+card.bottom=520;frames.shift()();
+assert.equal(values.get('--module-dock-bottom14269'),'492px');
+assert.equal(values.get('--module-dock-right14269'),'112px');
+card.bottom=1500;listeners.resize();frames.shift()();
+assert.equal(values.get('--module-dock-bottom14269'),'12px');
+document.documentElement.dataset.device132='phone';listeners.resize();frames.shift()();
+assert.equal(values.has('--module-dock-bottom14269'),false);
+console.log('PASS short tablet module, long page, and phone exclusion');

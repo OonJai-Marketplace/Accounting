@@ -3984,7 +3984,12 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
     else if(!openSubUserTabs.length){openSubUserTabs=[{key:'default',userId:null,permanent:true}];activeSubUserId='default'}
     tabs.innerHTML='<button type="button" class="sub-user-mobile-menu" aria-label="Open main navigation" aria-controls="appSidebar" onclick="toggleMobileNavigation()"><span></span><span></span><span></span></button>' + openSubUserTabs.map(tab=>{const user=currentUser(tab.userId),label=tab.permanent?'Home':user?subUserName(user):'New';return`<button type="button" class="sub-user-browser-tab ${tab.key===activeSubUserId?'active':''}" onclick="activateSubUserTab('${tab.key}')"><span class="v62-tab-label" data-phone-label="${escapeHtml(label.trim().split(/\s+/)[0])}">${escapeHtml(label)}</span>${tab.permanent?'':`<span class="sub-user-tab-close" onclick="closeSubUserWorkspace(event,'${tab.key}')">×</span>`}</button>`}).join('') + (!staff?'<button type="button" class="sub-user-add-tab" onclick="addSubUserTab()">＋</button>':'');
     const tab=activeSubUserTab();
-    if(tab?.permanent&&!staff){panel.innerHTML=`<div class="v49-phone-admin-home">${adminHome()}</div><div class="v49-desktop-admin-home">${desktopAdminHome()}</div>`;return}
+    if(tab?.permanent&&!staff){
+      panel.replaceChildren();
+      if(document.getElementById('sub-users-workspace')?.classList.contains('active'))
+        queueMicrotask(()=>window.TeamHome14227?.home());
+      return;
+    }
     const user=currentUser(tab?.userId);
     panel.innerHTML=user?renderUser(user):'<div class="sub-user-empty-state">Choose a sub-user from Home.</div>';
     if(getView(user?.id)==='post') requestAnimationFrame(()=>v49ValidatePost());

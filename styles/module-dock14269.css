@@ -1,0 +1,5 @@
+/* The dock follows the visible content edge on desktop and tablet. */
+html:not([data-device132="phone"]) body #workspaceTools108{
+ bottom:var(--module-dock-bottom14269,16px)!important;
+ right:var(--module-dock-right14269,14px)!important;
+}
