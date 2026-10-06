@@ -1,0 +1,52 @@
+/* Desktop/tablet only: retain the approved phone foundation. */
+@media(min-width:768px){
+html body .area-banner113>.connection14239,html body .dash-hero112>.connection14239{right:146px!important}
+.internet14256{position:absolute;right:16px;top:12px;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:7px 10px;border-radius:20px;background:#fff;color:#244535;white-space:nowrap}
+.internet14256:before{content:"";width:8px;height:8px;border-radius:50%;background:#bc3932}.internet14256[data-online=true]:before{background:#16834a}
+
+html body #sec-chart-accounts>.card-header-flex{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important}
+html body #sec-chart-accounts .coa-toolbar{display:grid!important;grid-template-columns:minmax(180px,1fr) max-content max-content!important;align-items:end!important;width:100%!important;max-width:none!important;gap:10px!important}
+html body #sec-chart-accounts .coa-search1439{width:auto!important;min-width:0!important;max-width:none!important;margin:0!important}
+html body #sec-chart-accounts .coa-toolbar input,html body #sec-chart-accounts .coa-toolbar>button{height:38px!important;min-height:38px!important;box-sizing:border-box!important;margin:0!important;white-space:nowrap!important}
+html body #demoUsersList .demo-user-row{grid-template-columns:minmax(140px,1fr) max-content 14px max-content!important;align-items:center!important;gap:12px!important}
+html body #demoUsersList .demo-user-details{grid-column:1!important;min-width:0!important;width:auto!important}
+html body #demoUsersList .demo-user-details strong,html body #demoUsersList .demo-user-details span{white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.4!important;max-width:100%!important}
+html body #demoUsersList .user-role-badge{grid-column:2!important;white-space:nowrap!important}
+html body #demoUsersList .user-status-badge{grid-column:3!important;width:10px!important;height:10px!important;min-width:10px!important;padding:0!important;border:0!important;border-radius:50%!important;background:#c43b35!important}
+html body #demoUsersList .user-status-badge[data-status14256=active]{background:#16834a!important}
+html body #demoUsersList .demo-user-row>.user-actions14253{grid-column:4!important;display:flex!important;flex-wrap:nowrap!important;gap:6px!important;margin:0!important;align-items:center!important}
+html body #demoUsersList .demo-user-row>.user-actions14253 button{flex:none!important;min-width:0!important;height:34px!important;min-height:34px!important;padding:5px 9px!important;margin:0!important;white-space:nowrap!important}
+html body #journalEntry98#journalEntry98.single-entry1430{--entry-columns14256:140px minmax(0,1fr) minmax(0,1fr) 180px 32px}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid,html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430{display:grid!important;grid-template-columns:var(--entry-columns14256)!important;gap:8px!important;align-items:end!important;padding:8px 0!important;margin-left:0!important;margin-right:0!important;width:100%!important;box-sizing:border-box!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.transaction-date-field{grid-column:1!important;width:100%!important;max-width:none!important;min-width:0!important;flex:none!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.je-field-group:has(#jeGeneralMemo){grid-column:2/4!important;min-width:0!important;width:100%!important;max-width:none!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .entry-mode1430{grid-column:4!important;min-width:0!important;width:100%!important;max-width:none!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-field-group,html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label{margin:0!important;min-width:0!important}
+html body #journalEntry98#journalEntry98.single-entry1430 input:not([type=checkbox]):not([type=radio]),html body #journalEntry98#journalEntry98.single-entry1430 select,html body #journalEntry98#journalEntry98.single-entry1430 .direction-toggle1439,html body #journalEntry98#journalEntry98.single-entry1430 #jeEntryMode1430{height:38px!important;min-height:38px!important;max-height:38px!important;width:100%!important;min-width:0!important;max-width:none!important;box-sizing:border-box!important;margin:0!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label:has([data-simple=memo]){grid-column:2/5!important;grid-row:2!important}
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .simple-row1430{grid-template-columns:140px 140px minmax(0,1fr) minmax(0,1fr) 180px 32px!important}
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid{grid-template-columns:140px 140px minmax(0,1fr) minmax(0,1fr) 180px 32px!important}
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.je-field-group:has(#jeGeneralMemo){grid-column:3/5!important}
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .entry-mode1430{grid-column:5!important}
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label:has([data-simple=memo]){grid-column:3/6!important}
+}
+@media(min-width:768px) and (max-width:1100px){
+html body #demoUsersList .demo-user-row{grid-template-columns:minmax(0,1fr) max-content 14px!important}
+html body #demoUsersList .demo-user-row>.user-actions14253{grid-column:1/-1!important;justify-content:flex-end!important}
+html body #journalEntry98#journalEntry98.single-entry1430{--entry-columns14256:130px minmax(0,1fr) minmax(0,1fr) 150px 28px}
+}
+
+@media(max-width:767px){.internet14256{display:none}}
+
+@media(min-width:768px){
+html body #journalEntry98#journalEntry98.single-entry1430>#simpleEntry1430,html body #journalEntry98#journalEntry98.single-entry1430>.je-meta-grid{margin-left:16px!important;margin-right:16px!important;width:calc(100% - 32px)!important;box-sizing:border-box!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .transaction-date-field .oj-date-shell104{width:100%!important;max-width:none!important}
+}
+@media(min-width:768px){
+html body #journalEntry98#journalEntry98.single-entry1430 .oj-date-shell104,html body #journalEntry98#journalEntry98.single-entry1430 .oj-date-button104{display:flex!important;align-items:center!important;width:100%!important;min-width:0!important;max-width:none!important;height:38px!important;min-height:38px!important;box-sizing:border-box!important;margin:0!important}
+html body #journalEntry98#journalEntry98.single-entry1430 #jeEntryMode1430{display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;padding:4px!important;font-size:10px!important;white-space:nowrap!important}
+html body #journalEntry98#journalEntry98.single-entry1430 #jeEntryMode1430 i{width:28px!important;min-width:28px!important;flex:0 0 28px!important}
+}
+
+@media(min-width:768px){html body #journalEntry98#journalEntry98.single-entry1430 #jeEntryMode1430[aria-checked=true] i:before{transform:translateX(8px)}}
+@media(min-width:768px){html body #journalEntry98#journalEntry98.single-entry1430 #jeEntryMode1430>span{flex:1;min-width:0;font-size:10px!important;line-height:1.2!important;white-space:normal!important;text-align:center}}
