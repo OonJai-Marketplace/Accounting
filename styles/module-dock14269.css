@@ -3,3 +3,21 @@ html:not([data-device132="phone"]) body #workspaceTools108{
  bottom:var(--module-dock-bottom14269,16px)!important;
  right:var(--module-dock-right14269,14px)!important;
 }
+/* Tablet actions live in the navigation drawer, leaving the content edge free. */
+html[data-device132="tablet"] body #workspaceTools108{display:none!important}
+#tabletSignOut14270{display:none}
+html[data-device132="tablet"] body #appSidebar #tabletSignOut14270{
+ grid-column:1/-1;display:flex;align-items:center;gap:10px;
+ width:100%;min-height:44px;padding:9px 12px;margin:0 0 5px;
+ border:1px solid #a7d8bd;border-radius:7px;background:#0b5a40;
+ color:#fffaf0;font:700 13px 'Plus Jakarta Sans',Arial,sans-serif;
+ text-align:left;cursor:pointer;
+}
+html[data-device132="tablet"] body #appSidebar #tabletSignOut14270:focus-visible{outline:2px solid #ffe0a0;outline-offset:2px}
+html[data-device132="tablet"] body.shell113 .workspace-scroll,
+html[data-device132="tablet"] body.workspace-full1439 .workspace-scroll{
+ padding-right:0!important;scrollbar-gutter:auto!important;
+}
+html[data-device132="tablet"] body.shell113 .tab-content{
+ padding-left:8px!important;padding-right:8px!important;max-width:none!important;
+}

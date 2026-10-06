@@ -12,5 +12,5 @@ body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub
 body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab.active::after{display:none!important}
 body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading>div:first-child{display:none!important}
 body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading{justify-content:flex-end!important;padding-top:0!important}
-html[data-device132=tablet] body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab{font-size:16px!important;min-height:44px!important;height:44px!important}
+html[data-device132=tablet] body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab{font-size:12px!important;min-height:44px!important;height:44px!important}
 @media print{.workspace-header14266{display:none!important}}

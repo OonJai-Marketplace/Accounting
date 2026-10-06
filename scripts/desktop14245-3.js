@@ -2232,7 +2232,7 @@ function renderRecurringWarnings(){
   </div>`).join(''):'<div class="empty-archive-state">No recurring warnings are currently due.</div>';
 }
 async function showRecurringWarningsOnLogin(){
-  if(!window.access113?.can('transactions-recurring'))return;try{await PrivateReminders14229.load()}catch{return}renderRecurringWarnings();
+  if(liveProfile?.role!=='admin'||!window.access113?.can('transactions-recurring'))return;try{await PrivateReminders14229.load()}catch{return}renderRecurringWarnings();
   if(!liveProfile)return;
   const owner=liveProfile.id;const show=()=>{if(liveProfile?.id!==owner)return;if(document.querySelector('.modal-backdrop.active,.submission-compare-overlay')){setTimeout(show,500);return}if(getActiveRecurringWarnings().length)openModal('modalRecurringWarnings')};setTimeout(show,250);
 }
@@ -2253,7 +2253,7 @@ function initializeV4Enhancements() {
   resetJournalLinesForm();
   refreshAllTables();
   TemplateStore.load();
-  RecurringStore.load();
+  if(liveProfile?.role==='admin')RecurringStore.load();
   renderRecurringTransactions();
   renderPendingReminders();
   // Login coordinator displays reminders after authenticated loading finishes.

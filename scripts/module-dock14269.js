@@ -20,7 +20,7 @@ function place(){
  frame=0;
  const dock=document.getElementById('workspaceTools108');
  if(!dock)return;
- if(document.documentElement.dataset.device132==='phone'||document.body.classList.contains('restaurant-active1432')||document.body.classList.contains('subuser-expanded1438')){
+ if(document.documentElement.dataset.device132!=='desktop'||document.body.classList.contains('restaurant-active1432')||document.body.classList.contains('subuser-expanded1438')){
   dock.style.removeProperty('--module-dock-bottom14269');dock.style.removeProperty('--module-dock-right14269');return;
  }
  const module=document.querySelector('.workspace-scroll .tab-content.active');
