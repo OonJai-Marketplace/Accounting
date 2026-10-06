@@ -4,22 +4,37 @@ const vm=require('node:vm');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 
-const meta={content:''},styles={},viewportListeners={};
+const meta={content:''},styles={},viewportListeners={},deviceListeners={};let now=0;
 const element={dataset:{},style:{setProperty:(key,value)=>styles[key]=value}};
 const viewport={width:1280,scale:0.6,addEventListener:(name,handler)=>viewportListeners[name]=handler};
 vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'utf8'),{
  navigator:{maxTouchPoints:5,platform:'iPad'},screen:{width:768,height:1024,orientation:{addEventListener(){}}},
  innerWidth:1280,innerHeight:1700,matchMedia:q=>({matches:q.includes('orientation:landscape')?false:true}),
- document:{documentElement:element,querySelector:()=>meta},window:{visualViewport:viewport,addEventListener(){}},requestAnimationFrame:callback=>callback(),setTimeout
+ document:{documentElement:element,querySelector:()=>meta,addEventListener:(name,handler)=>deviceListeners[name]=handler},window:{visualViewport:viewport,addEventListener(){}},requestAnimationFrame:callback=>callback(),setTimeout,Date:{now:()=>now}
 });
 assert.equal(element.dataset.device132,'tablet');
-assert.equal(styles['--tablet-workspace132'],'1280px');
-assert.match(meta.content,/width=1280, initial-scale=0\.6/);
+assert.equal(styles['--tablet-workspace132'],'1042px');
+assert.match(meta.content,new RegExp(`width=1042, initial-scale=${768/1042}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
 assert.match(meta.content,/user-scalable=yes/);
 viewport.width=1000;viewportListeners.resize();
-assert.match(meta.content,/initial-scale=0\.46875/,'split-view width should fit the same layout');
+assert.match(meta.content,new RegExp(`initial-scale=${600/1042}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'split-view width should fit the same layout');
+deviceListeners.click({target:{closest:()=>({})}});
+viewport.width=800;viewportListeners.resize();
+assert.equal(styles['--tablet-workspace132'],'1042px','switching entry mode must not rescale the tablet');
+assert.match(meta.content,new RegExp(`initial-scale=${600/1042}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+now=900;
 viewport.width=600;viewport.scale=1;viewportListeners.resize();
-assert.match(meta.content,/initial-scale=0\.46875/,'a manual pinch must not reset the fit');
+assert.match(meta.content,new RegExp(`initial-scale=${600/1042}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'a manual pinch must not reset the fit');
+
+const wideMeta={content:''},wideStyles={};
+vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'utf8'),{
+ navigator:{maxTouchPoints:5,platform:'iPad'},screen:{width:1366,height:1024,orientation:{addEventListener(){}}},
+ innerWidth:1366,innerHeight:1024,matchMedia:()=>({matches:true}),
+ document:{documentElement:{dataset:{},style:{setProperty:(key,value)=>wideStyles[key]=value}},querySelector:()=>wideMeta,addEventListener(){}},
+ window:{visualViewport:{width:1366,scale:1,addEventListener(){}},addEventListener(){}},requestAnimationFrame:callback=>callback(),setTimeout
+});
+assert.equal(wideStyles['--tablet-workspace132'],'1366px','wide landscape should fill the screen without a right gutter');
+assert.match(wideMeta.content,/width=1366, initial-scale=1/);
 
 let holder;
 const originalTabs={id:'subUserWorkspaceTabs'};

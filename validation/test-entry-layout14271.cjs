@@ -16,6 +16,8 @@ assert.match(css,/je-multi-date .*\.simple-row1430\{grid-template-columns:140px 
 assert.match(css,/label:has\(\[data-simple=memo\]\)\{grid-column:auto!important;grid-row:auto!important\}/);
 assert.match(css,/entry-mode-button14271\[data-mode=single\]/);
 assert.match(css,/\.je-meta-grid>\.entry-mode1430\{flex:0 0 150px!important;width:150px!important/);
+assert.match(css,/\.single-entry1430 \.je-meta-grid>\.transaction-date-field\{flex-basis:130px!important;width:130px!important/);
+assert.match(css,/#jeHeaderRow th\.je-date-col,[\s\S]*width:122px!important;min-width:122px!important;max-width:122px!important/);
 assert.match(css,/\.simple-head14272\{display:none\}/);
 assert.match(actions,/head\.innerHTML='<span class="simple-head-date14272">Date/);
 

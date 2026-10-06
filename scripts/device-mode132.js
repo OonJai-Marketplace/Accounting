@@ -1,10 +1,10 @@
-/* Measured v130 desktop at 1280px: sidebar 238px, workspace 1042px.
-   Tablet removes the sidebar from normal flow and zooms the unchanged workspace. */
+/* At a 1280px desktop window, the sidebar leaves a 1042px workspace.
+   Fit that workspace on tablets and expand it to fill wider screens. */
 (()=>{const touch=navigator.maxTouchPoints>1,coarse=matchMedia('(pointer:coarse)').matches,small=Math.min(screen.width||innerWidth,screen.height||innerHeight);const tablet=(coarse||touch&&/Mac|iPad/.test(navigator.platform))&&small>=600,phone=!tablet&&(small<600&&(coarse||touch)||innerWidth<600);const root=document.documentElement;root.dataset.device132=tablet?'tablet':phone?'phone':'desktop';if(!tablet)return;
-// Preserve the desktop layout, fitting its full width to the browser's available space.
-const workspaceWidth=1280;root.style.setProperty('--tablet-workspace132',workspaceWidth+'px');let fittedWidth=0,queued=false;
+// Fit the desktop workspace to the tablet's visible width.
+const workspaceWidth=1042;let fittedWidth=0,queued=false,suppressUntil=0;
 function availableWidth(){const landscape=matchMedia('(orientation:landscape)').matches,screenWidth=landscape?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height),v=window.visualViewport,visible=v?.width*v?.scale;return Number.isFinite(visible)&&visible>=500&&visible<=screenWidth+2?Math.min(screenWidth,visible):screenWidth}
-function zoom(){const width=availableWidth();if(Math.abs(width-fittedWidth)<3)return;fittedWidth=width;const scale=Math.min(1,width/workspaceWidth);root.dataset.tabletZoom132=String(scale);document.querySelector('meta[name=viewport]').content=`width=${workspaceWidth}, initial-scale=${scale}, minimum-scale=0.25, maximum-scale=5, user-scalable=yes`;}
-function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;zoom()})}
-zoom();window.addEventListener('orientationchange',()=>setTimeout(zoom,100));screen.orientation?.addEventListener('change',schedule);window.addEventListener('resize',schedule);window.visualViewport?.addEventListener('resize',schedule);
+function zoom(){const width=availableWidth();if(Math.abs(width-fittedWidth)<3)return;fittedWidth=width;const layoutWidth=Math.max(workspaceWidth,width),scale=width/layoutWidth;root.style.setProperty('--tablet-workspace132',layoutWidth+'px');root.dataset.tabletZoom132=String(scale);document.querySelector('meta[name=viewport]').content=`width=${layoutWidth}, initial-scale=${scale}, minimum-scale=0.25, maximum-scale=5, user-scalable=yes`;}
+function schedule(){if(queued||Date.now()<suppressUntil)return;queued=true;requestAnimationFrame(()=>{queued=false;zoom()})}
+zoom();document.addEventListener('click',event=>{if(event.target.closest?.('#jeEntryMode1430'))suppressUntil=Date.now()+800},true);window.addEventListener('orientationchange',()=>setTimeout(zoom,100));screen.orientation?.addEventListener('change',schedule);window.addEventListener('resize',schedule);window.visualViewport?.addEventListener('resize',schedule);
 })();

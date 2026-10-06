@@ -92,3 +92,14 @@ html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label 
 html body #journalEntry98#journalEntry98 .simple-row1430.selected-entry-row14271{background:#f4f8f0!important;box-shadow:none!important}
 html body #journalEntry98#journalEntry98 .simple-row1430 .account-choice14231:focus-within{outline:none!important;border-color:#6a9b7c!important;box-shadow:inset 0 0 0 1px #6a9b7c!important}
 html body #journalEntry98#journalEntry98 .simple-row1430 .account-choice14231 input.account-search1428:focus{outline:none!important;box-shadow:none!important}
+
+/* Both placements of the shared editor use the same date geometry. */
+html body #journalEntry98#journalEntry98 .je-meta-grid>.transaction-date-field{flex:0 0 122px!important;width:122px!important;min-width:122px!important;max-width:122px!important}
+html body #journalEntry98#journalEntry98 .transaction-date-field :is(.oj-date-shell104,.oj-date-button104){width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.transaction-date-field{flex-basis:130px!important;width:130px!important;min-width:130px!important;max-width:130px!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid,
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid{grid-template-columns:130px minmax(0,1fr) 150px!important}
+html body #journalEntry98#journalEntry98 #jeHeaderRow th.je-date-col,
+html body.je-multi-date #journalEntry98#journalEntry98 table.tx72-editor :is(#jeHeaderRow th.je-date-col,#jeLinesBody td.je-date-col){width:122px!important;min-width:122px!important;max-width:122px!important;box-sizing:border-box!important}
+html body #journalEntry98#journalEntry98 .je-date-col :is(.oj-date-shell104,.oj-date-button104){width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+html body #journalEntry98#journalEntry98 .je-date-col .oj-date-label104{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
