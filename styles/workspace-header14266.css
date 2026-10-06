@@ -1,0 +1,20 @@
+/* One workspace chooser in the shared header, instead of a second row of user tabs. */
+body.subusers-workspace-active .main-content-area>.module-header{display:flex!important;visibility:visible!important;min-height:54px!important;flex:0 0 54px!important;padding:6px 15px!important;box-sizing:border-box!important}
+body.subusers-workspace-active .module-header .header-left-tools{min-width:0;max-width:100%;gap:10px}
+body.subusers-workspace-active .module-header #mainHeaderTitle{display:none!important}
+body.subusers-workspace-active #sub-users-workspace>.sub-user-tabs-shell{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;max-height:1px!important;overflow:hidden!important;padding:0!important;margin:0!important;border:0!important;clip-path:inset(50%)!important;pointer-events:none!important}
+.workspace-header14266{display:none;position:relative;min-width:0;z-index:120}
+body.subusers-workspace-active .workspace-header14266{display:block}
+.workspace-trigger14266{display:flex;align-items:center;gap:10px;max-width:min(320px,70vw);min-height:38px;padding:6px 12px;border:1px solid #c9d7ca;border-radius:8px;background:#fffaf0;color:#174c38;font:700 14px 'Plus Jakarta Sans',Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+.workspace-trigger14266 span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-trigger14266 i{font-style:normal;flex:none}
+.workspace-menu14266{position:absolute;top:calc(100% + 5px);left:0;min-width:220px;max-width:min(400px,90vw);max-height:min(370px,60vh);overflow:auto;padding:5px;border:1px solid #c5d3be;border-radius:9px;background:#fffdf5;box-shadow:0 8px 24px #123c2b35}
+.workspace-menu14266[hidden]{display:none!important}
+.workspace-choice14266{display:flex;align-items:center;min-height:41px}
+.workspace-choice14266 button{border:0;background:transparent;color:#174c38;cursor:pointer;font:600 14px 'Plus Jakarta Sans',Arial,sans-serif;touch-action:manipulation}
+.workspace-choice14266 button:first-child{flex:1;min-width:0;text-align:left;padding:10px 12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-choice14266 button[aria-current=page]{background:#e6f5ed;border-radius:6px}
+.workspace-choice14266 .workspace-close14266{font-size:22px;padding:3px 10px}
+html[data-device132=tablet] body.subusers-workspace-active .workspace-trigger14266{font-size:18px;min-height:44px}
+html[data-device132=tablet] body.subusers-workspace-active .workspace-choice14266 button:first-child{font-size:18px;min-height:48px}
+@media print{.workspace-header14266{display:none!important}}

@@ -1,0 +1,14 @@
+/* Tablet controls remain readable at the scaled 1280px desktop workspace. */
+html[data-device132=tablet] body.shell113 #sub-users-workspace #subUserWorkspacePanel :is(input:not([type=checkbox]):not([type=radio]),textarea,select,[contenteditable="true"],[contenteditable="plaintext-only"]),
+html[data-device132=tablet] body.shell113 #transactions-module :is(input.je-input,textarea.je-input,.je-line-acc){font-size:var(--tablet-editor-font132,20px)!important;line-height:1.3!important}
+html[data-device132=tablet] :is(#sub-users-workspace,#journal) input.account-search1428[readonly]{cursor:pointer;caret-color:transparent;touch-action:manipulation}
+html[data-device132=tablet] .account-list1428{font-size:17px!important;max-width:calc(100vw - 16px);-webkit-overflow-scrolling:touch}
+html[data-device132=tablet] .account-option1428{min-height:48px;padding:11px 13px}
+html[data-device132=tablet] .account-filter-toggle14266{display:block;width:100%;min-height:42px;text-align:left;padding:8px 12px;border:0;border-bottom:1px solid #d3dfcf;background:#eef5e9;color:#14513c;font:600 16px Arial,sans-serif}
+html[data-device132=tablet] .account-filter14266{display:block;width:100%;min-height:42px;margin:5px 0;padding:8px 12px;box-sizing:border-box;font-size:18px;border:1px solid #a3bca6;border-radius:6px}
+html[data-device132=tablet] .account-filter14266[hidden]{display:none}
+@media print{html[data-device132=tablet] :is(#sub-users-workspace,#journal) :is(input,textarea,select,[contenteditable]){font-size:inherit!important}}
+/* Fit the same 1280px workspace to portrait width and remove the rotate-only guard. */
+html[data-device132=tablet] body.tablet-portrait117 #landscape117{display:none!important}
+html[data-device132=tablet] body.tablet-portrait117{overflow:auto!important}
+html[data-device132=tablet] #sub-users-workspace :is(input,textarea,select,button,[contenteditable]){touch-action:manipulation}
