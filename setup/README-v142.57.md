@@ -12,9 +12,9 @@ This reset is optional and separate from the normal update. It must never run au
 
 ## Install normal server updates
 
-Run `INSTALL-ACCOUNT-UPDATES-v142.57.sql` once in the Supabase SQL Editor. It combines the password-reset gate and read-only journal-number preview. It does not change existing passwords, balances, journal numbers, or the opening setup flag. It can be installed again safely.
+Run `INSTALL-ACCOUNT-UPDATES-v142.58.sql` once in the Supabase SQL Editor. It combines the password-reset gate and read-only journal-number preview. It does not change existing passwords, balances, journal numbers, or the opening setup flag. It can be installed again safely.
 
-If installation reports an existing PostgREST pre-request hook, stop and compose the existing hook with `password_gate14257` instead of clearing the existing hook. The installer deliberately refuses to overwrite another security hook.
+The v142.58 installer composes the existing workspace_pre_request138 hook with the password gate, checking both the original caller and the effective workspace user. It preserves the existing hook implementation and its previous-hook chain. Unknown hooks still stop installation for review. If the empty-setup reset reports retained journals, run CHECK-RETAINED-JOURNALS-v142.58.sql and inspect the result; do not bypass the reset guard.
 
 Deploy `supabase/functions/admin-password14257/index.ts` as the Edge Function **admin-password14257**, with JWT verification enabled. The function uses the standard server environment variables SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Keep the service-role key exclusively on the server. APP_ORIGIN defaults to https://oonjai-marketplace.github.io; configure the exact origin if hosting changes.
 

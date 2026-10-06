@@ -28,16 +28,43 @@ BEGIN
 END $$;
 REVOKE ALL ON FUNCTION public.password_gate14257() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.password_gate14257() TO authenticated,anon,service_role;
--- Refuse to replace an unrelated request hook. Preserve existing security checks.
-DO $$DECLARE setting text; BEGIN
+-- Compose the known workspace hook without changing its implementation or chain.
+-- Check the real caller before account switching, then the effective user after it.
+DO $$DECLARE setting text; use_workspace boolean:=false; scoped boolean:=false; BEGIN
  FOR setting IN SELECT unnest(setconfig) FROM pg_db_role_setting
  WHERE setrole=(SELECT oid FROM pg_roles WHERE rolname='authenticator')
+ AND setdatabase IN (0,(SELECT oid FROM pg_database WHERE datname=current_database()))
  LOOP
-  IF setting LIKE 'pgrst.db_pre_request=%' AND setting NOT IN ('pgrst.db_pre_request=','pgrst.db_pre_request=public.password_gate14257')
-  THEN RAISE EXCEPTION 'Existing Data API request hook must be composed with password_gate14257 before installation: %',setting; END IF;
+  IF setting LIKE 'pgrst.db_pre_request=%' THEN
+   IF setting NOT IN ('pgrst.db_pre_request=','pgrst.db_pre_request=public.password_gate14257','pgrst.db_pre_request=public.workspace_pre_request138','pgrst.db_pre_request=public.account_request_gate14258')
+   THEN RAISE EXCEPTION 'Unknown Data API hook must be reviewed before installation: %',setting; END IF;
+   use_workspace:=use_workspace OR setting IN ('pgrst.db_pre_request=public.workspace_pre_request138','pgrst.db_pre_request=public.account_request_gate14258');
+  END IF;
  END LOOP;
+ IF use_workspace THEN
+  IF to_regprocedure('public.workspace_pre_request138()') IS NULL THEN RAISE EXCEPTION 'Existing workspace security hook is missing'; END IF;
+  EXECUTE $create$CREATE OR REPLACE FUNCTION public.account_request_gate14258() RETURNS void
+   LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog AS $body$
+   BEGIN
+    PERFORM public.password_gate14257();
+    PERFORM public.workspace_pre_request138();
+    PERFORM public.password_gate14257();
+   END $body$
+  $create$;
+  REVOKE ALL ON FUNCTION public.account_request_gate14258() FROM PUBLIC;
+  GRANT EXECUTE ON FUNCTION public.account_request_gate14258() TO authenticator,authenticated,anon,service_role;
+  ALTER ROLE authenticator SET pgrst.db_pre_request='public.account_request_gate14258';
+ ELSE
+  ALTER ROLE authenticator SET pgrst.db_pre_request='public.password_gate14257';
+ END IF;
+ -- A database-specific role setting overrides the global one: compose it too.
+ SELECT EXISTS(SELECT 1 FROM pg_db_role_setting,unnest(setconfig) c
+  WHERE setrole=(SELECT oid FROM pg_roles WHERE rolname='authenticator')
+  AND setdatabase=(SELECT oid FROM pg_database WHERE datname=current_database())
+  AND c LIKE 'pgrst.db_pre_request=%') INTO scoped;
+ IF scoped THEN EXECUTE format('ALTER ROLE authenticator IN DATABASE %I SET pgrst.db_pre_request=%L',current_database(),
+  CASE WHEN use_workspace THEN 'public.account_request_gate14258' ELSE 'public.password_gate14257' END); END IF;
 END $$;
-ALTER ROLE authenticator SET pgrst.db_pre_request='public.password_gate14257';
 -- Restrictive policies also cover direct RLS-backed reads and Storage access.
 DO $$DECLARE t record; BEGIN
  FOR t IN SELECT n.nspname,c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
