@@ -1,8 +1,5 @@
-/* The dock follows the visible content edge on desktop and tablet. */
-html:not([data-device132="phone"]) body #workspaceTools108{
- bottom:var(--module-dock-bottom14269,16px)!important;
- right:var(--module-dock-right14269,14px)!important;
-}
+/* Keep desktop controls outside the workspace's reserved right gutter. */
+html[data-device132="desktop"] body #workspaceTools108{bottom:16px!important;right:14px!important}
 /* Tablet actions live in the navigation drawer, leaving the content edge free. */
 html[data-device132="tablet"] body #workspaceTools108{display:none!important}
 #tabletSignOut14270{display:none}

@@ -1,0 +1,28 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const read=name=>fs.readFileSync(path.join(__dirname,'..',name),'utf8');
+const html=read('desktop.html'),css=read('styles/entry-layout14271.css'),dock=read('styles/module-dock14269.css');
+const engine=read('scripts/desktop14245-6.js'),source=read('scripts/entry1430.js'),actions=read('scripts/entry-actions14271.js');
+
+assert.match(dock,/data-device132="desktop"\] body #workspaceTools108\{bottom:16px!important;right:14px!important\}/);
+assert.doesNotMatch(html,/src="scripts\/module-dock14269\.js/);
+assert.match(css,/data-device132="tablet"\] body #sub-users-workspace>\.team-tabs14230/);
+assert.match(css,/body\.workspace-full1439 \.workspace-scroll\{padding-right:0!important/);
+assert.match(css,/#jeLinesBody td\.action-col,/);
+assert.match(css,/#simpleRows1430 \.simple-row1430>\[data-remove1430\]/);
+assert.match(css,/td\[data-money1439\]\{width:180px!important;min-width:180px!important\}/);
+assert.match(css,/je-multi-date .*\.simple-row1430\{grid-template-columns:140px 110px .*180px minmax\(160px,1fr\)/);
+assert.match(css,/label:has\(\[data-simple=memo\]\)\{grid-column:auto!important;grid-row:auto!important\}/);
+assert.match(css,/entry-mode-button14271\[data-mode=single\]/);
+
+for(const id of ['deleteEntryRow14271','addEntryRow14271','btnPostJournal'])assert.match(html,new RegExp(`id="${id}"`));
+assert.ok(html.indexOf('id="deleteEntryRow14271"')<html.indexOf('id="addEntryRow14271"'));
+assert.ok(html.indexOf('id="addEntryRow14271"')<html.indexOf('onclick="clearJournalEntry()"'));
+assert.ok(html.indexOf('onclick="clearJournalEntry()"')<html.indexOf('id="btnPostJournal"'));
+assert.match(html,/<!-- CARD 2: ACTIVE JOURNAL -->/);
+assert.match(actions,/const anchor=list\[index\];if\(anchor&&anchor!==row\)anchor\.after\(row\)/);
+assert.match(actions,/const row=active\(\);if\(!row\|\|!allowed\(\)\)return/);
+assert.match(actions,/row\.remove\(\);if\(!body\(\)\?\.querySelector\('tr'\)\)addJournalLineRow\(\)/);
+for(const text of ['function insertAfter(index)','function deleteAt(index)','data-entry-mode-label1430'])assert.ok(engine.includes(text)&&source.includes(text));
+console.log('PASS tablet duplicate removal, equal margins, restored desktop dock, selected-row toolbar, amount width, and compact mode grids');

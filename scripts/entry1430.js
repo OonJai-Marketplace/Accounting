@@ -40,10 +40,8 @@ function add(row={}){
  '<label>Source / payment account<select class="je-select" name="sourceAccount1430" data-simple="source" aria-label="Source / payment account">'+options(row.source,'source',row.direction||'out')+'</select></label>'+
  '<label>Affected / category account<select class="je-select" name="affectedAccount1430" data-simple="affected" aria-label="Affected / category account">'+options(row.affected,'affected',row.direction||'out',row.source)+'</select></label>'+
  '<label>Amount<span class="simple-amount1444"><small data-currency1430></small><input class="je-input num" inputmode="decimal" data-simple="amount" value="'+esc(row.amount||'')+'" placeholder="0.00"></span></label>'+
- '<label>Line memo / reference<input class="je-input" data-simple="memo" value="'+esc(row.memo||'')+'" placeholder="Uses the general memo"></label>'+
- '<button type="button" class="je-btn je-btn-secondary" data-remove1430 data-permission-action1440="edit" aria-label="Remove single-entry row">×</button>';
+ '<label>Line memo / reference<input class="je-input" data-simple="memo" value="'+esc(row.memo||'')+'" placeholder="Uses the general memo"></label>';
  n.querySelector('[data-simple=direction]').value=row.direction||'out';
- n.querySelector('[data-remove1430]').onclick=()=>{n.remove();if(!$('simpleRows1430').children.length)add();sync();saveDraft();};
  $('simpleRows1430').append(n);restrictRow1438(n);directionToggle(n);return n;
 }
 function saveDraft(){$('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles:true}));}
@@ -103,6 +101,7 @@ function pairs(){
 }
 function display(){
  const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.setAttribute('aria-checked',String(!single));toggle.dataset.mode=mode;
+ toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Single Entry':'Double Entry';toggle.setAttribute('aria-label',single?'Single Entry':'Double Entry');
  $('simpleEntry1430').hidden=!single;$('jeLinesBody').closest('.table-container').hidden=single;
  $('journalEntry98').classList.toggle('single-entry1430',single);$('simpleEntry1430').querySelectorAll('input,select,button').forEach(n=>{n.disabled=!!lastSingle?.unmapped;});
  $('journalEntry98').querySelector('.je-title').textContent=single?'Post Single-Entry Transaction':'Post Double-Entry Transaction';
@@ -126,9 +125,21 @@ function setMode(next){
  saveDraft();
 }
 function refreshAccounts(){for(const n of $('simpleRows1430').querySelectorAll('select[data-simple=source],select[data-simple=affected]')){const selected=n.value,r=n.closest('.simple-row1430');n.innerHTML=options(selected,n.dataset.simple,r.querySelector('[data-simple=direction]').value,r.querySelector('[data-simple=source]').value);}if(mode==='single')sync();}
+function insertAfter(index){
+ if(mode!=='single'||lastSingle?.unmapped)return null;
+ const rows=$('simpleRows1430'),anchor=rows.children[index]||rows.lastElementChild,node=add();
+ if(anchor&&anchor!==node)anchor.after(node);
+ sync();saveDraft();return node;
+}
+function deleteAt(index){
+ if(mode!=='single'||lastSingle?.unmapped)return null;
+ const rows=$('simpleRows1430'),selected=rows.children[index];if(!selected)return null;
+ const next=selected.nextElementSibling||selected.previousElementSibling;
+ selected.remove();if(!rows.children.length)add();sync();saveDraft();return next?.isConnected?next:rows.firstElementChild;
+}
 function ready(){
  const card=$('journalEntry98');if(!card)return;
- const group=document.createElement('div');group.className='entry-mode1430 je-field-group';group.innerHTML='<span>Entry type</span><button type="button" id="jeEntryMode1430" class="entry-toggle1432" role="switch" aria-label="Double Entry" aria-checked="true" title="Switch between Single Entry and Double Entry"><span>Single Entry</span><i aria-hidden="true"></i><span>Double Entry</span></button>';
+ const group=document.createElement('div');group.className='entry-mode1430 je-field-group';group.innerHTML='<span>Entry type</span><button type="button" id="jeEntryMode1430" class="entry-toggle1432 entry-mode-button14271" role="switch" aria-label="Double Entry" aria-checked="true" title="Switch between Single Entry and Double Entry"><span data-entry-mode-label1430>Double Entry</span></button>';
  card.querySelector('.je-meta-grid').append(group);
  const panel=document.createElement('section');panel.id='simpleEntry1430';panel.hidden=true;panel.innerHTML='<div id="simpleRows1430"></div><p id="simplePreview1430" role="status"></p>';
  card.querySelector('.table-container').before(panel);add();
@@ -144,7 +155,7 @@ function ready(){
  const hydrate=window.hydrateSupabaseSession;window.hydrateSupabaseSession=async function(...args){const r=await hydrate.apply(this,args);if(liveProfile&&owner!==liveProfile.id){owner=liveProfile.id;lastSingle=null;mode='double';panel.dataset.error='';$('simpleRows1430').replaceChildren();add();display();window.drafts1427?.restore();}return r;};
  const dateMode=window.setJournalDateMode;window.setJournalDateMode=function(...args){const r=dateMode.apply(this,args);sync();return r;};
  card.hidden=false;display();
- window.entry1430={setMode,sync,read,get mode(){return mode;},get retained(){return lastSingle?.unmapped?JSON.parse(JSON.stringify(lastSingle)):null},restore(savedMode,rows,retained){lastSingle=retained||null;mode=savedMode==='single'?'single':'double';$('simpleRows1430').replaceChildren();(rows?.length?rows:[{}]).forEach(add);panel.dataset.error='';display();if(retained){restoreCanonical14232(retained.rows);sync()}else if(mode==='single')sync();}};
+ window.entry1430={setMode,sync,read,insertAfter,deleteAt,get mode(){return mode;},get retained(){return lastSingle?.unmapped?JSON.parse(JSON.stringify(lastSingle)):null},restore(savedMode,rows,retained){lastSingle=retained||null;mode=savedMode==='single'?'single':'double';$('simpleRows1430').replaceChildren();(rows?.length?rows:[{}]).forEach(add);panel.dataset.error='';display();if(retained){restoreCanonical14232(retained.rows);sync()}else if(mode==='single')sync();}};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

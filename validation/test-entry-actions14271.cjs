@@ -1,0 +1,31 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+
+const listeners={},table={children:[]},controls={deleteEntryRow14271:{disabled:false}};
+let single=false,calculated=0,changed=0;
+function row(){const r={isConnected:true,attrs:{},classList:{add(){},remove(){}},matches:q=>q==='tr'||q==='.simple-row1430',setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]},querySelector:()=>({focus(){}}),after(n){const list=table.children;list.splice(list.indexOf(n),1);list.splice(list.indexOf(this)+1,0,n)},remove(){table.children.splice(table.children.indexOf(this),1);this.isConnected=false}};Object.defineProperties(r,{nextElementSibling:{get(){return table.children[table.children.indexOf(this)+1]||null}},previousElementSibling:{get(){return table.children[table.children.indexOf(this)-1]||null}}});return r}
+table.querySelector=()=>table.children.find(n=>n.matches('tr'))||null;
+Object.defineProperty(table,'lastElementChild',{get(){return table.children.at(-1)||null}});
+const card={dataset:{},classList:{contains:()=>single},querySelectorAll:()=>table.children,addEventListener:(name,fn)=>listeners[name]=fn,contains:n=>table.children.includes(n),dispatchEvent:()=>{changed++}};
+const document={readyState:'complete',getElementById:id=>id==='journalEntry98'?card:id==='jeLinesBody'||id==='simpleRows1430'?table:controls[id]};
+const ctx={document,window:{access113:{can:()=>true},entry1430:{get retained(){return null},insertAfter(index){const n=row();table.children.splice(index+1,0,n);return n},deleteAt(index){const n=table.children[index];n.remove();return table.children[index]||table.children[index-1]||null}}},Event:class{},calculateJournalBalance:()=>{calculated++},addJournalLineRow:()=>table.children.push(row()),showCenterStatus:()=>{}};
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../scripts/entry-actions14271.js'),'utf8'),ctx);
+const first=row(),second=row(),third=row();table.children.push(first,second,third);
+listeners.click({target:{closest:selector=>selector.includes('.simple-row1430')?second:null}});
+ctx.window.entryActions14271.add();
+assert.equal(table.children.length,4);
+assert.equal(table.children[1],second);
+assert.notEqual(table.children[2],third);
+ctx.window.entryActions14271.remove();
+assert.deepEqual(table.children,[first,second,third]);
+assert.ok(calculated>=2&&changed>=2);
+single=true;
+listeners.click({target:{closest:selector=>selector.includes('.simple-row1430')?first:null}});
+ctx.window.entryActions14271.add();
+assert.equal(table.children.length,4);
+assert.equal(table.children[0],first);
+ctx.window.entryActions14271.remove();
+assert.deepEqual(table.children,[first,second,third]);
+console.log('PASS Add inserts below the selected row and Delete removes it in both entry modes');

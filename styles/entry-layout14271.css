@@ -1,0 +1,49 @@
+/* Tablet content uses the full width after the floating dock was removed. */
+html[data-device132="tablet"] body.shell113 .workspace-scroll,
+html[data-device132="tablet"] body.workspace-full1439 .workspace-scroll{padding-right:0!important;scrollbar-gutter:auto!important}
+html[data-device132="tablet"] body.shell113 .tab-content.active{width:100%!important;max-width:none!important;box-sizing:border-box!important;padding-left:8px!important;padding-right:8px!important}
+html[data-device132="tablet"] body #sub-users-workspace>.team-tabs14230,
+html[data-device132="tablet"] body #subUserWorkspacePanel .v49-desktop-user-heading>div:first-child{display:none!important}
+
+/* The shared Post Entry editor appears in Transactions and desktop sub-user journals. */
+html body #journalEntry98 table.tx72-editor #jeHeaderRow th.action-col,
+html body #journalEntry98 table.tx72-editor #jeLinesBody td.action-col,
+html body #journalEntry98 #jeHeaderRow th.action-col,
+html body #journalEntry98 #jeLinesBody td.action-col,
+html body #journalEntry98 #simpleRows1430 .simple-row1430>[data-remove1430],
+html body #journalEntry98 .je-actions-bar .move-line82{display:none!important}
+html body #journalEntry98 table.tx72-editor{width:100%!important;min-width:984px!important;table-layout:fixed!important}
+html body.je-multi-date #journalEntry98 table.tx72-editor{min-width:1000px!important}
+/* Keep money cells wide enough for 100,000,000,000 with a currency marker. */
+html body #journalEntry98 #jeHeaderRow th.num,
+html body #journalEntry98 #jeLinesBody td[data-money1439]{width:180px!important;min-width:180px!important}
+
+/* Date mode never leaves an unused column above Direction or below Memo. */
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid,
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid{grid-template-columns:160px minmax(0,1fr) 180px!important;gap:8px!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.transaction-date-field{grid-column:1!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.je-field-group:has(#jeGeneralMemo),
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.je-field-group:has(#jeGeneralMemo){grid-column:2!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.entry-mode1430,
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid>.entry-mode1430{grid-column:3!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430{grid-template-columns:110px minmax(160px,1fr) minmax(160px,1fr) 180px minmax(160px,1fr)!important;gap:8px!important}
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .simple-row1430{grid-template-columns:140px 110px minmax(150px,1fr) minmax(150px,1fr) 180px minmax(160px,1fr)!important;gap:8px!important}
+html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label:has([data-simple=memo]),
+html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label:has([data-simple=memo]){grid-column:auto!important;grid-row:auto!important}
+@media(max-width:1100px){
+ html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430,
+ html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .simple-row1430{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* The mode control follows the one-tap Money In / Money Out treatment. */
+html body #journalEntry98#journalEntry98 #jeEntryMode1430.entry-mode-button14271{width:100%!important;min-width:0!important;min-height:38px!important;height:38px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:6px 12px!important;font-size:12px!important;white-space:nowrap!important;background:#e3eedf!important;color:#135438!important;border:1px solid #a6bca0!important}
+html body #journalEntry98#journalEntry98 #jeEntryMode1430.entry-mode-button14271[data-mode=single]{background:#f4e9d8!important;color:#78411d!important;border-color:#c6aa7b!important}
+html body #journalEntry98 .selected-entry-row14271>td,
+html body #journalEntry98 .simple-row1430.selected-entry-row14271{background:#edf5e7!important;box-shadow:inset 0 0 0 2px #a3c9a9!important}
+html body #journalEntry98 .je-actions-bar{justify-content:flex-end!important}
+html body #journalEntry98 .je-actions-bar #jeBalanceIndicator{order:0;margin-right:auto!important}
+html body #journalEntry98 .je-actions-bar #deleteEntryRow14271{order:1;min-width:76px!important}
+html body #journalEntry98 .je-actions-bar #addEntryRow14271{order:2;min-width:66px!important}
+html body #journalEntry98 .je-actions-bar button[onclick="clearJournalEntry()"]{order:3}
+html body #journalEntry98 .je-actions-bar #btnPostJournal{order:4}
+@media print{#journalEntry98 .je-actions-bar{display:none!important}}
