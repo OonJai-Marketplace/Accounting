@@ -46,3 +46,11 @@ html body #journalEntry98#journalEntry98.single-entry1430 #jeEntryMode1430 i{wid
 
 @media(min-width:768px){html body #journalEntry98#journalEntry98.single-entry1430 #jeEntryMode1430[aria-checked=true] i:before{transform:translateX(8px)}}
 @media(min-width:768px){html body #journalEntry98#journalEntry98.single-entry1430 #jeEntryMode1430>span{flex:1;min-width:0;font-size:10px!important;line-height:1.2!important;white-space:normal!important;text-align:center}}
+
+/* Match the date and general description control height across entry modes. */
+html body #journalEntry98 :is(.je-meta-grid,.simple-row1430,#jeLinesBody) :is(input.je-input,select.je-select,input[type=date],input[type=text],input[type=number],select,.oj-date-button104,.direction-toggle1439),
+html body #sub-users-workspace :is(.workspace-single-meta,.workspace-single-table) :is(input.je-input,input[type=date],input[type=text],input[type=number],select,.ws-inline-control),
+html body #personalEditor1437 :is(.je-meta-grid,.simple-row1430,#jeLinesBody,.workspace-single-meta) :is(input.je-input,input[type=date],input[type=text],input[type=number],select,.oj-date-button104,.direction-toggle1439){
+  height:38px!important;min-height:38px!important;max-height:38px!important;
+  box-sizing:border-box!important;line-height:normal!important;
+}
