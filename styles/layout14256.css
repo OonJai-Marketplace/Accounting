@@ -1,8 +1,5 @@
 /* Desktop/tablet only: retain the approved phone foundation. */
 @media(min-width:768px){
-html body .area-banner113>.connection14239,html body .dash-hero112>.connection14239{right:146px!important}
-.internet14256{position:absolute;right:16px;top:12px;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:7px 10px;border-radius:20px;background:#fff;color:#244535;white-space:nowrap}
-.internet14256:before{content:"";width:8px;height:8px;border-radius:50%;background:#bc3932}.internet14256[data-online=true]:before{background:#16834a}
 
 html body #sec-chart-accounts>.card-header-flex{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important}
 html body #sec-chart-accounts .coa-toolbar{display:grid!important;grid-template-columns:minmax(180px,1fr) max-content max-content!important;align-items:end!important;width:100%!important;max-width:none!important;gap:10px!important}
@@ -36,7 +33,6 @@ html body #demoUsersList .demo-user-row>.user-actions14253{grid-column:1/-1!impo
 html body #journalEntry98#journalEntry98.single-entry1430{--entry-columns14256:130px minmax(0,1fr) minmax(0,1fr) 150px 28px}
 }
 
-@media(max-width:767px){.internet14256{display:none}}
 
 @media(min-width:768px){
 html body #journalEntry98#journalEntry98.single-entry1430>#simpleEntry1430,html body #journalEntry98#journalEntry98.single-entry1430>.je-meta-grid{margin-left:16px!important;margin-right:16px!important;width:calc(100% - 32px)!important;box-sizing:border-box!important}

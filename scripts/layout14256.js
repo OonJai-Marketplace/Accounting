@@ -27,15 +27,7 @@ function decorate(){
   const actions=row.querySelector('.user-actions14253'),reset=row.querySelector(':scope > [data-user-reset]');if(actions&&reset)actions.append(reset);
   const badge=row.querySelector('.user-status-badge');if(badge&&!badge.dataset.status14256){const status=badge.textContent.trim();badge.dataset.status14256=status;badge.textContent='';badge.title=status==='active'?'Active':'Inactive ('+status+')';badge.setAttribute('role','img');badge.setAttribute('aria-label',badge.title);}
  }
- for(const b of document.querySelectorAll('.connection14239')){
-  const s=window.offline14239?.state();if(!s)continue;
-  const connection=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';
-  let indicator=b.parentElement.querySelector('.internet14256');
-  if(!indicator){indicator=document.createElement('span');indicator.className='internet14256';indicator.setAttribute('role','status');b.after(indicator)}
-  if(indicator.textContent!==connection)indicator.textContent=connection;
-  indicator.dataset.online=String(s.online);
 
- }
 }
 let scheduled=false;
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;decorate()})}
