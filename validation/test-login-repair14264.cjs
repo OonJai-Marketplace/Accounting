@@ -5,7 +5,7 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 let checks=0;async function test(name,fn){await fn();checks++;console.log('PASS '+name)}
 function policy(response,cached){
  const saved=new Map(cached?[['ojm-session-policy1443:https://test:a',JSON.stringify(cached)]]:[]);
- const c={window:{OJM_SUPABASE_URL:'https://test'},location:{origin:'https://test'},ApplicationSettings:{system:{}},APP_SETTINGS_KEY:'settings',liveProfile:{id:'a'},localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},document:{readyState:'loading',addEventListener(){}},setTimeout,clearTimeout,ojmDb:{from:()=>({select:()=>({eq:()=>({maybeSingle:()=>typeof response==='function'?response(c):Promise.resolve(response)})})})}};
+ const c={window:{OJM_SUPABASE_URL:'https://test'},location:{origin:'https://test'},ApplicationSettings:{system:{}},APP_SETTINGS_KEY:'settings',liveProfile:{id:'a'},sessionEpoch1430:0,authId:'a',localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},document:{readyState:'loading',addEventListener(){}},setTimeout,clearTimeout,ojmDb:{auth:{getSession:async()=>({data:{session:{user:{id:c.authId}}}})},from:()=>({select:()=>({eq:()=>({maybeSingle:()=>typeof response==='function'?response(c):Promise.resolve(response)})})})}};
  vm.runInNewContext(read('scripts/session-policy1443.js'),c);return c;
 }
 function service(result,options={}){
@@ -23,13 +23,25 @@ async function handler(authUser,role='admin',pendingError=false){
 }
 (async()=>{
  const row={timeout_minutes:60,warning_minutes:1};
+ await test('deployed login coordinator reaches profile hydration on fresh login',async()=>{
+  const c=policy({data:row});c.liveProfile=null;let hydrated=false;
+  Object.assign(c,{hydration69:null,hydratedUser69:'',freshLoginRequested:true,Location69:{},startup88:null,SessionTimeoutManager:{arm(){}},loadApplicationSettings:()=>c.ApplicationSettings,loadSessionPolicy1443:c.window.loadSessionPolicy1443,readLocation69:()=>null,recentLocation69:()=>false,saveLocation69(){},showRecurringWarningsOnLogin(){},requestAnimationFrame:fn=>fn(),hydrateBefore69:async session=>{hydrated=true;c.liveProfile={id:session.user.id}}});
+  c.document.getElementById=()=>({classList:{contains:()=>hydrated}});
+  const bundle=read('scripts/desktop14245-3.js'),a=bundle.indexOf('hydrateSupabaseSession=async function(session){\n if(hydration69)'),b=bundle.indexOf('\n};',a)+3;
+  assert(a>=0&&b>a);vm.runInNewContext(bundle.slice(a,b),c);
+  await c.hydrateSupabaseSession({user:{id:'a'}});assert(hydrated);assert.equal(c.liveProfile.id,'a');assert.equal(c.ApplicationSettings.system.sessionTimeout,'60');
+ });
+ await test('fresh sign-in loads settings before profile hydration',async()=>{const c=policy({data:row});c.liveProfile=null;await c.window.loadSessionPolicy1443('a');assert.equal(c.ApplicationSettings.system.sessionTimeout,'60')});
+ await test('old profile cannot block newly authenticated identity',async()=>{const c=policy({data:row});c.liveProfile={id:'previous-account'};await c.window.loadSessionPolicy1443('a');assert.equal(c.ApplicationSettings.system.sessionTimeout,'60')});
+ await test('sign-out invalidates an in-flight session lookup',async()=>{const c=policy(ctx=>{ctx.sessionEpoch1430++;return Promise.resolve({data:row})});await assert.rejects(c.window.loadSessionPolicy1443('a'),/Account changed/);assert.equal(c.ApplicationSettings.system.sessionTimeout,undefined)});
+ await test('administrator switched workspace retains actor authentication',async()=>{const c=policy({data:row});c.window.workspaceRequest138={target:'staff',actor:'a'};c.liveProfile={id:'staff'};await c.window.loadSessionPolicy1443('staff');assert.equal(c.ApplicationSettings.system.sessionTimeout,'60')});
  await test('active account receives configured timeout',async()=>{const c=policy({data:row});await c.window.loadSessionPolicy1443('a');assert.equal(c.ApplicationSettings.system.sessionTimeout,'60')});
  await test('hidden settings explain the targeted SQL repair',async()=>{const c=policy({data:null},row);await assert.rejects(c.window.loadSessionPolicy1443('a'),/missing or hidden.*FIX-SESSION-POLICY-v142.63/);assert.equal(c.ApplicationSettings.system.sessionTimeout,undefined)});
  await test('invalid timeout is rejected',async()=>{await assert.rejects(policy({data:{...row,timeout_minutes:0}}).window.loadSessionPolicy1443('a'),/invalid/)});
  await test('cached policy works on transport failure',async()=>{const c=policy({error:{message:'Failed to fetch'}},row);await c.window.loadSessionPolicy1443('a');assert.equal(c.ApplicationSettings.system.sessionTimeout,'60')});
  await test('authorization failure cannot use cached policy',async()=>{await assert.rejects(policy({error:{code:'42501',message:'permission denied'}},row).window.loadSessionPolicy1443('a'),/permission denied/)});
  await test('pending password gate stays closed',async()=>{await assert.rejects(policy({error:{code:'PT403',message:'PASSWORD_CHANGE_REQUIRED'}},row).window.loadSessionPolicy1443('a'),/required password change/)});
- await test('account switch cannot apply another policy',async()=>{const c=policy(ctx=>{ctx.liveProfile={id:'b'};return Promise.resolve({data:row})});await assert.rejects(c.window.loadSessionPolicy1443('a'),/Account changed/);assert.equal(c.ApplicationSettings.system.sessionTimeout,undefined)});
+ await test('account switch cannot apply another policy',async()=>{const c=policy(ctx=>{ctx.liveProfile={id:'b'};ctx.authId='b';return Promise.resolve({data:row})});await assert.rejects(c.window.loadSessionPolicy1443('a'),/Account changed/);assert.equal(c.ApplicationSettings.system.sessionTimeout,undefined)});
  await test('expired token refreshes before one password request',async()=>{const s=service({data:{confirmed:true}},{expired:true});await s.invoke({action:'issue'});assert.equal(s.refresh(),1);assert.equal(s.calls.length,1);assert.equal(s.calls[0].headers.Authorization,'Bearer fresh')});
  await test('gateway JWT error identifies function configuration',async()=>{const s=service({error:{context:new Response(JSON.stringify({message:'Invalid JWT'}),{status:401})}});await assert.rejects(s.invoke({action:'issue'}),/Verify JWT/);assert.equal(s.calls.length,1)});
  await test('service error preserves actual backend explanation',async()=>{const s=service({error:{context:new Response(JSON.stringify({error:'Another reset is still in progress'}),{status:400})}});await assert.rejects(s.invoke({action:'issue'}),/Another reset/)});
