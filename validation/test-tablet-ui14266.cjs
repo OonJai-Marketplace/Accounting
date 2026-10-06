@@ -4,27 +4,29 @@ const vm=require('node:vm');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 
-const meta={content:''},styles={},viewportListeners={},deviceListeners={};let now=0;
+const meta={content:''},styles={},viewportListeners={},deviceListeners={},windowListeners={};let now=0,landscape=false;
 const element={dataset:{},style:{setProperty:(key,value)=>styles[key]=value}};
 const viewport={width:1280,scale:0.6,addEventListener:(name,handler)=>viewportListeners[name]=handler};
 vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'utf8'),{
  navigator:{maxTouchPoints:5,platform:'iPad'},screen:{width:768,height:1024,orientation:{addEventListener(){}}},
- innerWidth:1280,innerHeight:1700,matchMedia:q=>({matches:q.includes('orientation:landscape')?false:true}),
- document:{documentElement:element,querySelector:()=>meta,addEventListener:(name,handler)=>deviceListeners[name]=handler},window:{visualViewport:viewport,addEventListener(){}},requestAnimationFrame:callback=>callback(),setTimeout,Date:{now:()=>now}
+ innerWidth:1280,innerHeight:1700,matchMedia:q=>({matches:q.includes('orientation:landscape')?landscape:true}),
+ document:{documentElement:element,querySelector:()=>meta,addEventListener:(name,handler)=>deviceListeners[name]=handler},window:{visualViewport:viewport,addEventListener:(name,handler)=>windowListeners[name]=handler},requestAnimationFrame:callback=>callback(),setTimeout,Date:{now:()=>now}
 });
 assert.equal(element.dataset.device132,'tablet');
 assert.equal(styles['--tablet-workspace132'],'1280px');
 assert.match(meta.content,new RegExp(`width=1280, initial-scale=${768/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
 assert.match(meta.content,/user-scalable=yes/);
-viewport.width=1000;viewportListeners.resize();
-assert.match(meta.content,new RegExp(`initial-scale=${600/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'split-view width should fit the same layout');
-deviceListeners.click({target:{closest:()=>({})}});
-viewport.width=800;viewportListeners.resize();
+viewport.width=1000;windowListeners.resize();
+assert.match(meta.content,new RegExp(`initial-scale=${768/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'visual viewport drift must not shrink the tablet page');
+assert.equal(viewportListeners.resize,undefined,'visual viewport changes must not trigger another page fit');
+viewport.width=800;windowListeners.resize();
 assert.equal(styles['--tablet-workspace132'],'1280px','switching entry mode must not rescale the tablet');
-assert.match(meta.content,new RegExp(`initial-scale=${600/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+assert.match(meta.content,new RegExp(`initial-scale=${768/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
 now=900;
-viewport.width=600;viewport.scale=1;viewportListeners.resize();
-assert.match(meta.content,new RegExp(`initial-scale=${600/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'a manual pinch must not reset the fit');
+viewport.width=600;viewport.scale=1;windowListeners.resize();
+assert.match(meta.content,new RegExp(`initial-scale=${768/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'visual viewport zoom must not reset the fit after mode switch');
+landscape=true;windowListeners.resize();
+assert.match(meta.content,new RegExp(`initial-scale=${1024/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'real orientation changes still refit the page');
 
 const wideMeta={content:''},wideStyles={};
 vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'utf8'),{
