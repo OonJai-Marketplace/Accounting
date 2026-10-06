@@ -38,6 +38,12 @@ function remove(){
 }
 function ready(){
  const root=card();if(!root)return;
+ const simple=root.querySelector?.('#simpleEntry1430');
+ if(simple&&!simple.querySelector('.simple-head14272')){
+  const head=document.createElement('div');head.className='simple-head14272';head.setAttribute('aria-hidden','true');
+  head.innerHTML='<span class="simple-head-date14272">Date</span><span>Direction</span><span>Source / payment account</span><span>Affected / category account</span><span>Amount</span><span>Line memo / reference</span>';
+  simple.prepend(head);
+ }
  root.addEventListener('click',e=>{
   if(e.target.closest('#jeEntryMode1430,[onclick="clearJournalEntry()"]')){queueMicrotask(()=>choose(null));return}
   const row=e.target.closest('.simple-row1430,#jeLinesBody tr');if(row&&root.contains(row))choose(row);

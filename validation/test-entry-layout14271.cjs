@@ -8,13 +8,16 @@ const engine=read('scripts/desktop14245-6.js'),source=read('scripts/entry1430.js
 assert.match(dock,/data-device132="desktop"\] body #workspaceTools108\{bottom:16px!important;right:14px!important\}/);
 assert.doesNotMatch(html,/src="scripts\/module-dock14269\.js/);
 assert.match(css,/data-device132="tablet"\] body #sub-users-workspace>\.team-tabs14230/);
-assert.match(css,/body\.workspace-full1439 \.workspace-scroll\{padding-right:0!important/);
+assert.match(css,/body\.workspace-full1439 \.workspace-scroll\{width:100%!important;max-width:none!important;box-sizing:border-box!important;padding-left:0!important;padding-right:0!important/);
 assert.match(css,/#jeLinesBody td\.action-col,/);
 assert.match(css,/#simpleRows1430 \.simple-row1430>\[data-remove1430\]/);
 assert.match(css,/td\[data-money1439\]\{width:180px!important;min-width:180px!important\}/);
 assert.match(css,/je-multi-date .*\.simple-row1430\{grid-template-columns:140px 110px .*180px minmax\(160px,1fr\)/);
 assert.match(css,/label:has\(\[data-simple=memo\]\)\{grid-column:auto!important;grid-row:auto!important\}/);
 assert.match(css,/entry-mode-button14271\[data-mode=single\]/);
+assert.match(css,/\.je-meta-grid>\.entry-mode1430\{flex:0 0 150px!important;width:150px!important/);
+assert.match(css,/\.simple-head14272\{display:none\}/);
+assert.match(actions,/head\.innerHTML='<span class="simple-head-date14272">Date/);
 
 for(const id of ['deleteEntryRow14271','addEntryRow14271','btnPostJournal'])assert.match(html,new RegExp(`id="${id}"`));
 assert.ok(html.indexOf('id="deleteEntryRow14271"')<html.indexOf('id="addEntryRow14271"'));
