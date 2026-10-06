@@ -12,3 +12,7 @@ html[data-device132=tablet] .account-filter14266[hidden]{display:none}
 html[data-device132=tablet] body.tablet-portrait117 #landscape117{display:none!important}
 html[data-device132=tablet] body.tablet-portrait117{overflow:auto!important}
 html[data-device132=tablet] #sub-users-workspace :is(input,textarea,select,button,[contenteditable]){touch-action:manipulation}
+/* Floating controls have their own fixed position; use the remaining page width. */
+html[data-device132=tablet] body.shell113 .workspace-scroll,
+html[data-device132=tablet] body.workspace-full1439 .workspace-scroll{padding-right:12px!important;scrollbar-gutter:auto!important;box-sizing:border-box!important}
+html[data-device132=tablet] body.shell113 .tab-content{padding-left:12px!important;padding-right:12px!important}

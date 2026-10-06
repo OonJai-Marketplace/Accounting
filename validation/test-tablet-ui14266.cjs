@@ -4,17 +4,31 @@ const vm=require('node:vm');
 const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 
-const meta={content:''},styles={};
+const meta={content:''},styles={},viewportListeners={};
 const element={dataset:{},style:{setProperty:(key,value)=>styles[key]=value}};
+const viewport={width:1280,scale:0.6,addEventListener:(name,handler)=>viewportListeners[name]=handler};
 vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'utf8'),{
  navigator:{maxTouchPoints:5,platform:'iPad'},screen:{width:768,height:1024,orientation:{addEventListener(){}}},
  innerWidth:1280,innerHeight:1700,matchMedia:q=>({matches:q.includes('orientation:landscape')?false:true}),
- document:{documentElement:element,querySelector:()=>meta},window:{addEventListener(){}},setTimeout
+ document:{documentElement:element,querySelector:()=>meta},window:{visualViewport:viewport,addEventListener(){}},requestAnimationFrame:callback=>callback(),setTimeout
 });
 assert.equal(element.dataset.device132,'tablet');
 assert.equal(styles['--tablet-workspace132'],'1280px');
 assert.match(meta.content,/width=1280, initial-scale=0\.6/);
 assert.match(meta.content,/user-scalable=yes/);
+viewport.width=1000;viewportListeners.resize();
+assert.match(meta.content,/initial-scale=0\.46875/,'split-view width should fit the same layout');
+viewport.width=600;viewport.scale=1;viewportListeners.resize();
+assert.match(meta.content,/initial-scale=0\.46875/,'a manual pinch must not reset the fit');
+
+let holder;
+const originalTabs={id:'subUserWorkspaceTabs'};
+const header={append(node){this.child=node}};
+vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/workspace-header14266.js'),'utf8'),{
+ document:{readyState:'complete',querySelector:()=>header,getElementById:()=>originalTabs,createElement:()=>holder={append(node){this.child=node}}}
+});
+assert.equal(header.child,holder);
+assert.equal(holder.child,originalTabs,'header must move the existing tabs, not duplicate the names');
 
 const listeners={},visualListeners={},frames=[],scrolls=[];
 const vv={offsetTop:0,height:650,addEventListener:(name,handler)=>visualListeners[name]=handler};
@@ -38,4 +52,7 @@ assert(!rootElement['data-tablet-keyboard14266']);
 const source=fs.readFileSync(path.join(root,'scripts/account-picker1428.js'),'utf8').trim();
 const bundle=fs.readFileSync(path.join(root,'scripts/desktop14245-6.js'),'utf8');
 assert(bundle.includes('/* scripts/account-picker1428.js */\n'+source),'published picker bundle must match source');
-console.log('PASS tablet portrait scale, keyboard reveal and reset, picker bundle sync');
+const deviceSource=fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'utf8').trim();
+const entryBundle=fs.readFileSync(path.join(root,'scripts/desktop14245-1.js'),'utf8');
+assert(entryBundle.includes('/* scripts/device-mode132.js */\n'+deviceSource),'published device bundle must match source');
+console.log('PASS tablet fit, original header tabs, keyboard reveal and reset, bundle sync');
