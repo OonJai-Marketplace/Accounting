@@ -18,6 +18,11 @@ assert.match(css,/entry-mode-button14271\[data-mode=single\]/);
 assert.match(css,/\.je-meta-grid>\.entry-mode1430\{flex:0 0 150px!important;width:150px!important/);
 assert.match(css,/\.single-entry1430 \.je-meta-grid>\.transaction-date-field\{flex-basis:130px!important;width:130px!important/);
 assert.match(css,/#jeHeaderRow th\.je-date-col,[\s\S]*width:122px!important;min-width:122px!important;max-width:122px!important/);
+assert.match(css,/\.workspace-scroll:is\(:has\(#document-editor105\.active\),:not\(:has\(#document-editor105\.active\)\)\)\{padding-left:0!important;padding-right:0!important\}/);
+assert.match(css,/data-device132=tablet\] body #journalEntry98#journalEntry98\.single-entry1430 \.simple-row1430,[\s\S]*grid-template-columns:110px minmax\(0,1fr\) minmax\(0,1fr\) 180px minmax\(0,1fr\)!important/);
+assert.match(css,/#jeLinesBody td\{padding:2px 4px!important\}/);
+assert.match(css,/#jeLinesBody :is\(input,select,\.oj-date-button104,\.account-choice14231,\.account-input-wrap\)\{height:30px!important/);
+assert.match(css,/#jeHeaderRow th\.je-date-col,[\s\S]*width:104px!important;min-width:104px!important;max-width:104px!important/);
 assert.match(css,/\.simple-head14272\{display:none\}/);
 assert.match(actions,/head\.innerHTML='<span class="simple-head-date14272">Date/);
 

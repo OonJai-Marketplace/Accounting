@@ -1,6 +1,10 @@
 /* Tablet content uses the full width after the floating dock was removed. */
 html[data-device132="tablet"] body.shell113 .workspace-scroll,
 html[data-device132="tablet"] body.workspace-full1439 .workspace-scroll{width:100%!important;max-width:none!important;box-sizing:border-box!important;padding-left:0!important;padding-right:0!important;scrollbar-gutter:auto!important}
+/* The legacy 64px dock gutter uses :has(#document-editor105), so match its
+   specificity now that the tablet dock has been removed. */
+html[data-device132="tablet"] body.shell113 .workspace-scroll:is(:has(#document-editor105.active),:not(:has(#document-editor105.active))),
+html[data-device132="tablet"] body.workspace-full1439 .workspace-scroll:is(:has(#document-editor105.active),:not(:has(#document-editor105.active))){padding-left:0!important;padding-right:0!important}
 html[data-device132="tablet"] body.shell113 .tab-content.active,
 html[data-device132="tablet"] body.shell113 #sub-users-workspace.active{width:100%!important;max-width:none!important;box-sizing:border-box!important;padding-left:8px!important;padding-right:8px!important}
 html[data-device132="tablet"] body.shell113 .tab-content.active> :is(.je-card,.module-card,.panel113,.sub-user-workspace-panel){width:100%!important;max-width:none!important;min-width:0!important;margin-left:0!important;margin-right:0!important;box-sizing:border-box!important}
@@ -103,3 +107,21 @@ html body #journalEntry98#journalEntry98 #jeHeaderRow th.je-date-col,
 html body.je-multi-date #journalEntry98#journalEntry98 table.tx72-editor :is(#jeHeaderRow th.je-date-col,#jeLinesBody td.je-date-col){width:122px!important;min-width:122px!important;max-width:122px!important;box-sizing:border-box!important}
 html body #journalEntry98#journalEntry98 .je-date-col :is(.oj-date-shell104,.oj-date-button104){width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
 html body #journalEntry98#journalEntry98 .je-date-col .oj-date-label104{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+
+/* Fit the actual editor area on tablets without scaling up headings and tabs. */
+html[data-device132=tablet] body #journalEntry98#journalEntry98>.je-meta-grid,
+html[data-device132=tablet] body #journalEntry98#journalEntry98>#simpleEntry1430,
+html[data-device132=tablet] body #journalEntry98#journalEntry98>.table-container{width:100%!important;max-width:none!important;margin-left:0!important;margin-right:0!important;padding-left:8px!important;padding-right:8px!important;box-sizing:border-box!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #simpleRows1430{width:100%!important;min-width:0!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430,
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{grid-template-columns:110px minmax(0,1fr) minmax(0,1fr) 180px minmax(0,1fr)!important}
+html[data-device132=tablet] body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .simple-row1430,
+html[data-device132=tablet] body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{grid-template-columns:126px 110px minmax(0,1fr) minmax(0,1fr) 180px minmax(0,1fr)!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{display:grid!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label{font-size:0!important;line-height:0!important;gap:0!important}
+
+/* Compact the double-entry table further; preserve the amount columns. */
+html body #journalEntry98#journalEntry98 #jeLinesBody td{padding:2px 4px!important}
+html body #journalEntry98#journalEntry98 #jeLinesBody :is(input,select,.oj-date-button104,.account-choice14231,.account-input-wrap){height:30px!important;min-height:30px!important;max-height:30px!important;padding-top:2px!important;padding-bottom:2px!important}
+html body #journalEntry98#journalEntry98 #jeHeaderRow th.je-date-col,
+html body.je-multi-date #journalEntry98#journalEntry98 table.tx72-editor :is(#jeHeaderRow th.je-date-col,#jeLinesBody td.je-date-col){width:104px!important;min-width:104px!important;max-width:104px!important}

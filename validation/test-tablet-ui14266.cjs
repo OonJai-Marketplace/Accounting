@@ -13,18 +13,18 @@ vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'
  document:{documentElement:element,querySelector:()=>meta,addEventListener:(name,handler)=>deviceListeners[name]=handler},window:{visualViewport:viewport,addEventListener(){}},requestAnimationFrame:callback=>callback(),setTimeout,Date:{now:()=>now}
 });
 assert.equal(element.dataset.device132,'tablet');
-assert.equal(styles['--tablet-workspace132'],'1042px');
-assert.match(meta.content,new RegExp(`width=1042, initial-scale=${768/1042}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+assert.equal(styles['--tablet-workspace132'],'1280px');
+assert.match(meta.content,new RegExp(`width=1280, initial-scale=${768/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
 assert.match(meta.content,/user-scalable=yes/);
 viewport.width=1000;viewportListeners.resize();
-assert.match(meta.content,new RegExp(`initial-scale=${600/1042}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'split-view width should fit the same layout');
+assert.match(meta.content,new RegExp(`initial-scale=${600/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'split-view width should fit the same layout');
 deviceListeners.click({target:{closest:()=>({})}});
 viewport.width=800;viewportListeners.resize();
-assert.equal(styles['--tablet-workspace132'],'1042px','switching entry mode must not rescale the tablet');
-assert.match(meta.content,new RegExp(`initial-scale=${600/1042}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
+assert.equal(styles['--tablet-workspace132'],'1280px','switching entry mode must not rescale the tablet');
+assert.match(meta.content,new RegExp(`initial-scale=${600/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
 now=900;
 viewport.width=600;viewport.scale=1;viewportListeners.resize();
-assert.match(meta.content,new RegExp(`initial-scale=${600/1042}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'a manual pinch must not reset the fit');
+assert.match(meta.content,new RegExp(`initial-scale=${600/1280}`.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')),'a manual pinch must not reset the fit');
 
 const wideMeta={content:''},wideStyles={};
 vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'utf8'),{
