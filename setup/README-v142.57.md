@@ -16,12 +16,12 @@ Run `INSTALL-ACCOUNT-UPDATES-v142.58.sql` once in the Supabase SQL Editor. It co
 
 The v142.58 installer composes the existing workspace_pre_request138 hook with the password gate, checking both the original caller and the effective workspace user. It preserves the existing hook implementation and its previous-hook chain. Unknown hooks still stop installation for review. If the empty-setup reset reports retained journals, run CHECK-RETAINED-JOURNALS-v142.58.sql and inspect the result; do not bypass the reset guard.
 
-Deploy `supabase/functions/admin-password14257/index.ts` as the Edge Function **admin-password14257**, with JWT verification enabled. The function uses the standard server environment variables SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Keep the service-role key exclusively on the server. APP_ORIGIN defaults to https://oonjai-marketplace.github.io; configure the exact origin if hosting changes.
+Deploy `supabase/functions/admin-password14257/index.ts` as the Edge Function **admin-password14257**, with platform Verify JWT disabled for this function only. The handler validates every caller using `auth.getUser(token)` and enforces administrator authorization before issuing passwords. The function uses the standard server environment variables SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Keep the service-role key exclusively on the server. APP_ORIGIN defaults to https://oonjai-marketplace.github.io; configure the exact origin if hosting changes.
 
 CLI deployment, from this repository after linking the correct Supabase project:
 
 ```sh
-supabase functions deploy admin-password14257
+supabase functions deploy admin-password14257 --no-verify-jwt
 ```
 
 Before enabling temporary resets for privileged users, audit any existing Edge Functions that use service-role access (including admin-create-user). Those functions must check the caller’s pending-reset state before privileged actions: call `password_change_status14257` with the caller’s JWT and refuse when required is true. The Data API and RLS gate cannot control an unrelated service-role Edge Function. Their deployed source is not available in this repository; it has not been changed by this release.
@@ -44,3 +44,4 @@ After installation, test with a non-production staff account: issue a temporary 
 - Approved phone layout and report foundation preserved.
 
 Browser regression checks cover caret editing, live validation, retained user editors, connectivity, memo printing, area loading, server number preview, currency badges, recovery, and mandatory password-change routing. Isolated PostgreSQL tests cover permissions, reset gating, password-hash verification, installer repeatability, and the guarded one-time setup reset. No SQL or Edge Function was installed in the live Supabase project by the website release.
+

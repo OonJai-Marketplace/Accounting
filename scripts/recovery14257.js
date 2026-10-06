@@ -17,9 +17,10 @@ $('confirmPassword14257').addEventListener('input',()=>{$('confirmPassword14257'
 $('recoveryForm14257').onsubmit=async e=>{e.preventDefault();if(!ready||busy)return;const password=$('newPassword14257').value;if(!passwordPolicy14257.accepted(password))return;if(password!==$('confirmPassword14257').value){status('The passwords do not match.');return}busy=true;const b=e.target.querySelector('button');b.disabled=true;try{
  status('Saving your new password…');const r=await db.auth.updateUser({password});if(r.error)throw r.error;
  const check=await db.rpc('password_change_status14257');if(check.error&&!['PGRST202','42883'].includes(check.error.code))throw check.error;
- if(check.data?.required){const finish=await db.functions.invoke('admin-password14257',{body:{action:'complete',password}});if(finish.error)throw Error('Password changed, but workspace access is still locked. Reconnect and submit a different new password to complete the change.');}
+ if(check.data?.required){await passwordService14264(db,{action:'complete',password});}
  await db.auth.signOut({scope:'local'});ready=false;e.target.reset();e.target.hidden=true;status('Password updated. Sign in with your new password.');
  }catch(error){status(error.message||'The password could not be saved. Your form remains open.')}finally{busy=false;b.disabled=!ready;passwordPolicy14257.scan()}};
 window.addEventListener('hashchange',()=>{if(location.hash)location.reload()});
 start();
 })();
+

@@ -92,7 +92,7 @@ function renderDialog(){
  const footer=add('footer','');const close=add('button','Close',footer);close.type='button';close.onclick=()=>dialog.close();
 }
 function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and automatic sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='142.62';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null;
+const SHELL_VERSION='142.64';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null;
 async function checkShell(worker){if(!worker)return;const channel=new MessageChannel();let timer;try{const data=await new Promise((resolve,reject)=>{timer=setTimeout(()=>reject(Error('Offline files are still preparing')),1500);channel.port1.onmessage=e=>resolve(e.data);worker.postMessage({type:'ojm-shell-status'},[channel.port2])});shellReady=data.ready===true&&data.version===SHELL_VERSION;if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}catch{shellReady=false}finally{clearTimeout(timer);channel.port1.close()}}
 function registerShell(){
  if(window.startup14257&&!window.startup14257.interactive&&typeof liveProfile!=='undefined'&&liveProfile){clearTimeout(shellRetry);shellRetry=setTimeout(registerShell,3000);return}
@@ -119,4 +119,5 @@ window.offline14239={offline,state,pendingOwner,enqueue,queue,sync,open,paint,sn
 window.addEventListener('online',()=>{reachable=true;connectionError='';shellFailures=0;clearTimeout(shellRetry);registerShell();changed()});window.addEventListener('offline',()=>{reachable=false;changed()});window.addEventListener('storage',()=>{queueRevision++;changed()});window.addEventListener('save-state14234',changed);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
+
 

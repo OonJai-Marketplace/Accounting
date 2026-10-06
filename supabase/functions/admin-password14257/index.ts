@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
-// Deploy with JWT verification enabled. Authenticate and authorize again here.
+// Platform legacy JWT verification is disabled for signing-key compatibility.
+// auth.getUser(token) below verifies every caller before any action; role/RPC gates authorize issuance.
 const origin = Deno.env.get('APP_ORIGIN') || 'https://oonjai-marketplace.github.io';
 const cors = {'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Vary':'Origin'};
 const reply=(status:number,body:unknown)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
@@ -32,3 +33,4 @@ Deno.serve(async req=>{
   return reply(200,{confirmed:true});
  }catch(e){return reply(400,{error:e instanceof Error?e.message:String((e as {message?:string})?.message||'Password operation could not complete. Retry the same user; do not create another account.')})}
 });
+

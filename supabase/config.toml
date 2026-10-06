@@ -1,0 +1,4 @@
+# JWT signing keys are verified by auth.getUser(token) inside the handler.
+# This does not make password operations anonymous.
+[functions.admin-password14257]
+verify_jwt = false
