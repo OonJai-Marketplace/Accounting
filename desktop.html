@@ -3,8 +3,8 @@
 <head><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=142.57"></script>
-  <link rel="stylesheet" href="styles/desktop14245.css?v=142.47">
+  <script src="scripts/offline14239.js?v=142.62"></script>
+  <link rel="stylesheet" href="styles/desktop14245.css?v=142.62">
   <script src="scripts/desktop14245-1.js?v=142.47"></script>
 <title>Oon Jai Accounting — v142.47</title>
   <link rel="icon" type="image/png" href="assets/brand/oonjai-logo.png?v=118">
@@ -124,11 +124,8 @@
 
       <!-- 3. Accounts (Continuous Scrolling Workspace) -->
       <div class="nav-category" id="nav-module-accounts" data-module="accounts">
-        <div class="nav-header" onclick="activateCategory(this, 'sec-general-ledger')">Accounts <span class="arrow">▼</span></div>
+        <div class="nav-header" onclick="activateCategory(this, 'sec-chart-accounts')">Accounts <span class="arrow">▼</span></div>
         <div class="nav-links">
-<button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-general-ledger')">General Ledger</button>
-<button type="button" class="tab-btn" onclick="switchTab('trial-balance')">Trial Balance</button>
-<button type="button" class="tab-btn" onclick="switchTab('account-balances')">Balances</button>
 <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-chart-accounts')">Chart of Accounts</button>
 <button type="button" class="tab-btn" onclick="scrollToAccountModule('sec-sub-accounts')">Sub-accounts</button>
 
@@ -1203,7 +1200,7 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
   <script src="scripts/supabase-config.js?v=142.47"></script>
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=142.53"></script>
+  <script src="scripts/desktop14245-3.js?v=142.62"></script>
 <script src="assets/vendor/docx.js?v=142.47"></script>
 <script src="scripts/desktop14245-4.js?v=142.47"></script>
 <script src="assets/vendor/jszip.min.js?v=142.47"></script>
@@ -1224,9 +1221,11 @@
 <script src="scripts/auto-sync14256.js?v=142.56"></script>
 <script src="scripts/password-policy14257.js?v=142.57"></script>
 <script src="scripts/account-security14257.js?v=142.57"></script>
-<script src="scripts/startup14257.js?v=142.57"></script>
+<script src="scripts/startup14257.js?v=142.62"></script>
 <script src="scripts/entry-number14257.js?v=142.57"></script>
 <script src="scripts/account-currency14257.js?v=142.57"></script>
+<script src="scripts/report-templates14262.js?v=142.62"></script>
+<script src="scripts/report-routes14262.js?v=142.62"></script>
 </body>
 </html>
 

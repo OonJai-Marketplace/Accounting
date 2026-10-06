@@ -2890,8 +2890,12 @@ async function hydrateSupabaseSession(session) {
   try {
     await loadLiveProfile(session.user);checkSession();
     await loadCurrentPermissions();checkSession();
+    document.body.classList.add('startup-pending1443');
+    applyLiveRoleAccess();window.releaseLogin1443?.();
+    // Paint the permitted shell before restoring the destination and loading its data.
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));checkSession();
     if(typeof restoreStartup88==='function')restoreStartup88();
-    checkSession();applyLiveRoleAccess();window.releaseLogin1443?.();
+    checkSession();
     if(window.startupData1443)await startupData1443(checkSession);
     else {const referenceReady=loadReferenceDataFromSupabase();await Promise.all([referenceReady.then(()=>loadJournalFromSupabase()),loadBusinessSettingsFromSupabase(),loadSubmissionsFromSupabase(),loadProfilesFromSupabase(),loadLegalDocumentsFromSupabase()]);}
     checkSession();
@@ -3785,14 +3789,14 @@ assignedFundTableHtml=function(user,entries){const rules=workspaceRules(user),ac
 
 prepareReviewJournal=function(id){const journal=allReviewJournals().find(item=>item.id===id);if(!journal)return;showAppConfirm('Approve & Prepare Journal','Approve this submission and copy its balanced debit and credit lines into Post Double Entry for final checking? Nothing will be posted until you press Post Entry there.','Prepare Journal',()=>{switchTab('journal');const multi=document.getElementById('jeMultipleDates');if(multi)multi.checked=true;document.body.classList.add('je-multi-date');const body=document.getElementById('jeLinesBody');if(body)body.innerHTML='';document.getElementById('jeGeneralMemo').value=`Sub-user submission — ${getLiveUserName(journal.owner_id)} — ${String(journal.period_start).slice(0,7)}`;(journal.lines||[]).forEach(line=>{const memo=[line.memo,line.reference].filter(Boolean).join(' • '),currency=line.currency_code||'LAK',fundName=line.fund_account_name||workspaceAccountName(line.fund_account_id,'Assigned Main Account'),otherName=lineAccountName(line),debitName=line.direction==='in'?fundName:otherName,creditName=line.direction==='in'?otherName:fundName;addJournalLineRow(debitName,memo,String(line.amount),{});const debitRow=body.lastElementChild;if(debitRow?.querySelector('.je-line-date'))debitRow.querySelector('.je-line-date').value=line.transaction_date;addJournalLineRow(creditName,memo,'',{[currency]:String(line.amount)});const creditRow=body.lastElementChild;if(creditRow?.querySelector('.je-line-date'))creditRow.querySelector('.je-line-date').value=line.transaction_date});calculateJournalBalance();pendingWorkspacePostOwnerId=journal.owner_id;pendingWorkspacePostJournalId=journal.id;pendingWorkspacePostIsLocal=Boolean(journal.isWorkspace);showCenterStatus('Submission approved and copied to Post Double Entry. Check it, then press Post Entry when ready.')},false)};
 
-submitWorkspaceForReview=async function(userId){const journal=currentWorkspaceJournal(userId);if(!journal||!['draft','returned'].includes(journal.status)||!journal.lines?.length){showCenterStatus('There are no current-month entries ready to submit.',true);return}const staff=liveProfile.role!=='admin'&&!(window.access113?.can('user-entry-review'));if(staff&&userId!==liveProfile.id){showCenterStatus('You can only submit your own workspace.',true);return}showAppConfirm('Submit for Review',`Submit ${journal.lines.length} current-month entr${journal.lines.length===1?'y':'ies'}? The batch will be locked during review.`,'Submit',async()=>{const result=await ojmDb.rpc('submit_staff_journal',{p_journal_id:journal.id});if(result.error){showCenterStatus(`Submission failed: ${result.error.message}`,true);return}await loadStaffJournalsForReview();showCenterStatus('Current-month entries submitted for review.')},false)};
+submitWorkspaceForReview=async function(userId){if(pendingRowsFor(userId).length||Object.keys(workspaceRowEdits[userId]||{}).length||(typeof wsSaving!=='undefined'&&wsSaving.size)){showCenterStatus('Complete or remove unsaved rows before submitting.',true);return}const journal=currentWorkspaceJournal(userId);if(!journal||!['draft','returned'].includes(journal.status)||!journal.lines?.length)return;try{if(!await window.Reports14253.submit([journal]))return;await loadStaffJournalsForReview();showCenterStatus('Submitted for review.')}catch(e){showCenterStatus(e.message,true)}};
 
 // FOUNDATION V7 — password recovery, durable workspace tabs, and granular navigation permissions.
 const APP_PERMISSION_TREE=[
   {id:'dashboard',label:'Dashboard',children:[['dashboard','Dashboard']]},
   {id:'transactions',label:'Transactions',children:[['journal','Journal'],['transactions-all','All Transactions'],['transactions-recurring','Upcoming Transactions'],['user-entry-review','Entry Submission Review'],['period-review','Period Review & Closing'],['transactions-voided','Transaction Audit Log']]},
   {id:'sub-users',label:'Sub-Users',children:[['sub-users-workspace','User Workspace']]},
-  {id:'accounts',label:'Accounts',children:[['sec-chart-accounts','Chart of Accounts'],['sec-sub-accounts','Sub-Accounts'],['sec-general-ledger','General Ledger'],['sec-other-accounts','Other Account Sections'],['trial-balance','Trial Balance'],['account-balances','Account Balances']]},
+  {id:'accounts',label:'Accounts',children:[['sec-chart-accounts','Chart of Accounts'],['sec-sub-accounts','Sub-Accounts'],['sec-other-accounts','Other Account Sections']]},
   {id:'hr',label:'Human Resources',children:[['payroll-employees','Employees'],['hr-contracts','Contracts & Documents'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessments']]},
   {id:'payroll',label:'Payroll',children:[['payroll-overview','Payroll Overview'],['payroll-employees','Employees'],['payroll-entries','Payroll Entries'],['payroll-history','Salary History'],['payroll-deductions','Payroll Deductions']]},
   {id:'documents',label:'Documents',children:[['document-editor105','Document Editor / Print Preparation']]},
@@ -4062,8 +4066,8 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
 const legacySaveReferences14228=new Map();
 function journalEntry98Key14228(owner,payload){const fingerprint=JSON.stringify(payload),last=legacySaveReferences14228.get(owner);if(last?.fingerprint===fingerprint)return last.key;const key='web-'+crypto.randomUUID();legacySaveReferences14228.set(owner,{fingerprint,key});return key;}
 document.addEventListener('input',e=>{if(e.isTrusted){const card=e.target.closest('#journalEntry98');if(card)delete card._postingRequest14228;legacySaveReferences14228.clear()}},true);
-
 ;
+
 /* scripts/workspace-settings.js */
 /* WORKSPACE & SETTINGS — per-user controls, direct editing and clearing protocol. */
 'use strict';
@@ -5252,9 +5256,10 @@ function restoreStartup88(){
  const saved=startup88.saved,restore=startup88.restore&&!(startup88.fresh&&personal);
  if(restore&&Array.isArray(saved.openTabs)){openSubUserTabs=saved.openTabs;activeSubUserId=saved.activeSubUserId;}
  window.phoneLanding14225={id:liveProfile?.id,fresh:!!startup88.fresh};
- const target=document.documentElement.dataset.device132==='phone'?(personal?'sub-users-workspace':'sub-users-home14229'):restore&&document.getElementById(saved.view)&&canAccessAppTarget(saved.view)?saved.view:(personal?'sub-users-workspace':canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
+ const savedTarget=window.normalizeReportTarget14262?.(saved?.view)||saved?.view;
+ const target=document.documentElement.dataset.device132==='phone'?(personal?'sub-users-workspace':'sub-users-home14229'):restore&&document.getElementById(savedTarget)&&canAccessAppTarget(savedTarget)?savedTarget:(personal?'sub-users-workspace':canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
  if(personal&&!restore){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:!livePermission?.can_approve}];activeSubUserId='self';window.v49SetView?.(liveProfile.id,'home');}
- if(target?.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target||'dashboard');Location69.view=target;
+ if(target?.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target||'dashboard');Location69.view=window.normalizeReportTarget14262?.(target)||target;
  if(personal&&!restore)window.personalJournal1437?.show(String(liveProfile.id),'home');
  Location69.ready=true;
  requestAnimationFrame(()=>{if(!Location69.userNavigated&&restore&&appWorkspaceScroller())appWorkspaceScroller().scrollTop=saved.scroll||0});
@@ -5326,8 +5331,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 document.addEventListener('click',event=>{if(Location69.hydrating&&event.isTrusted&&event.target.closest('.category-tab,.tab-btn,.nav-category,.nav-subitem,.nav-item,.sub-user-browser-tab,[onclick*="switchTab"],[onclick*="scrollToAccountModule"]'))Location69.userNavigated=true},true);
 const switchBeforeLoadingGuard86=window.switchTab;
 window.switchTab=function(...args){if(Location69.hydrating&&window.event?.isTrusted&&/^(click|touchend|pointerup|keydown)$/.test(window.event.type))Location69.userNavigated=true;return switchBeforeLoadingGuard86(...args)};
-
 ;
+
 /* scripts/reports-system-v71.js */
 /* SYSTEM ACCOUNTS AND RECONCILIATION — report snapshots never post ledger entries. */
 const purposes71={regular:['Regular','An ordinary operational account.'],clearing:['Clearing','Temporarily holds amounts while related postings are matched.'],suspense:['Suspense','Holds an actual transaction while its proper classification is investigated.'],settlement:['Payment Settlement','Tracks amounts held by a payment or delivery provider before settlement.'],payroll:['Payroll Control','Tracks payroll amounts awaiting payment or remittance.'],opening:['Opening Balance Offset','Supports initial balance setup; unexplained residual balances require investigation.']};

@@ -27,7 +27,7 @@ body #document-editor105.mobile-editor1443:not(.active){display:none!important}
 
 .report-history-row1443{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #ddd}.report-history-row1443 small{display:block;font-size:12px;margin-top:4px}
 
-#startup1443{position:fixed;inset:140px 18px 20px 280px;background:#faf7ef;z-index:90000;display:grid;place-content:center;text-align:center;padding:24px;color:#164b39}#startup1443[hidden]{display:none}.startup-pending1443 .tab-content.active{visibility:hidden!important}.startup-pending1443 #connectedPhone132{visibility:hidden!important}@media(max-width:700px){#startup1443{inset:100px 10px 20px}}
+#startup1443{position:fixed;inset:140px 18px 20px 280px;background:#faf7ef;z-index:90000;display:grid;place-content:center;text-align:center;padding:24px;color:#164b39}#startup1443[hidden]{display:none}.startup-pending1443 .tab-content.active{visibility:hidden!important}html[data-device132=phone] body.startup-pending1443 #connectedPhone132{visibility:visible!important}html[data-device132=phone] #startup1443{inset:80px 10px 92px}@media(max-width:700px){#startup1443{inset:100px 10px 20px}}
 /* Override the prior 80px date rule in both desktop and tablet layouts. */
 html body #journalEntry98 .je-table #jeHeaderRow th.je-date-col,
 html body.je-multi-date #journalEntry98 table.tx72-editor .je-date-col{width:140px!important;min-width:140px!important;max-width:140px!important}

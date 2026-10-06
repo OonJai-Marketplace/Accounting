@@ -1,0 +1,70 @@
+[
+  {
+    "name": "Tax liabilities reconcile; payroll is separate; voided and draft lines excluded",
+    "passed": true
+  },
+  {
+    "name": "VAT currencies stay separate and expense lines do not count as payable",
+    "passed": true
+  },
+  {
+    "name": "Seven approved print models have no added company header",
+    "passed": true
+  },
+  {
+    "name": "Excel export keeps numeric values and complete original entry IDs",
+    "passed": true
+  },
+  {
+    "name": "Tax A4 editor pagination: tax-vat",
+    "passed": true
+  },
+  {
+    "name": "Tax A4 editor pagination: tax-social",
+    "passed": true
+  },
+  {
+    "name": "Templates open safely without creating journal entries",
+    "passed": true
+  },
+  {
+    "name": "Document template A4 preview: letter",
+    "passed": true
+  },
+  {
+    "name": "Document template A4 preview: custom",
+    "passed": true
+  },
+  {
+    "name": "Document template A4 preview: voucher",
+    "passed": true
+  },
+  {
+    "name": "Phone loading keeps the approved navigation surface visible",
+    "passed": true
+  },
+  {
+    "name": "Tax exports and document templates reject missing permissions",
+    "passed": true
+  },
+  {
+    "name": "Company ledgers only appear under Reports and legacy links migrate",
+    "passed": true
+  },
+  {
+    "name": "Reconciliation snapshots use the Reports account and period",
+    "passed": true
+  },
+  {
+    "name": "Verified navigation paints before location and slow area data",
+    "passed": true
+  },
+  {
+    "name": "Only active area datasets are required initially",
+    "passed": true
+  },
+  {
+    "name": "No browser runtime errors",
+    "passed": true
+  }
+]
