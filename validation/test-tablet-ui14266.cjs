@@ -55,4 +55,14 @@ assert(bundle.includes('/* scripts/account-picker1428.js */\n'+source),'publishe
 const deviceSource=fs.readFileSync(path.join(root,'scripts/device-mode132.js'),'utf8').trim();
 const entryBundle=fs.readFileSync(path.join(root,'scripts/desktop14245-1.js'),'utf8');
 assert(entryBundle.includes('/* scripts/device-mode132.js */\n'+deviceSource),'published device bundle must match source');
-console.log('PASS tablet fit, original header tabs, keyboard reveal and reset, bundle sync');
+const appSource=fs.readFileSync(path.join(root,'scripts/script.js'),'utf8');
+const appBundle=fs.readFileSync(path.join(root,'scripts/desktop14245-3.js'),'utf8');
+assert(appBundle.includes('/* scripts/script.js */\n'+appSource),'published workspace bundle must match source');
+const extract=name=>{const found=appSource.match(new RegExp(`function ${name}\\([^\\n]+`));assert(found,`${name} source missing`);return found[0]};
+const permissions={assigned_fund_account_ids:['fund'],destination_account_ids:Array.from({length:7},(_,i)=>`category-${i+1}`),allowed_directions:['out']};
+const userContext={liveProfile:{id:'staff',role:'submitter'},livePermission:permissions,AccountingStore:{accounts:[...permissions.destination_account_ids.map(id=>({id,isPosting:true})),{id:'unassigned',isPosting:true},{id:'parent',isPosting:false}]}};
+vm.runInNewContext([extract('accountKey'),extract('subUserPermission'),extract('workspaceRules'),extract('allowedStaffAccounts')].join('\n')+'\nthis.own=workspaceRules(liveProfile);this.allowed=allowedStaffAccounts();this.other=workspaceRules({id:"other",user_permissions:{destination_account_ids:["other-only"]}});',userContext);
+assert.deepEqual(Array.from(userContext.own.entryIds),permissions.destination_account_ids,'all seven assigned categories must reach the signed-in user');
+assert.equal(userContext.allowed.length,7,'the separate staff journal must show only assigned posting categories');
+assert.deepEqual(Array.from(userContext.other.entryIds),['other-only'],'another user must keep their own assignment');
+console.log('PASS tablet fit, original header tabs, keyboard reveal, permissions, bundle sync');

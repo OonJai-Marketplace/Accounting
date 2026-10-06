@@ -3043,7 +3043,7 @@ hydrateSupabaseSession=async function(session){await hydrateSupabaseSessionBefor
 let activeStaffJournal=null;
 let activeStaffJournalLines=[];
 let reviewStaffJournals=[];
-function allowedStaffAccounts(){const p=livePermission||{};const all=AccountingStore.accounts||[];return p.allow_any_account||liveProfile?.role==='admin'?all.filter(a=>a.active!==false&&a.is_active!==false&&a.isPosting!==false):all.filter(a=>a.isPosting!==false&&(p.allowed_account_ids||[]).includes(a.id))}
+function allowedStaffAccounts(){const p=livePermission||{},all=AccountingStore.accounts||[],permitted=new Set((p.destination_account_ids?.length?p.destination_account_ids:(p.allowed_account_ids||[])).map(String));return(p.allow_any_account||liveProfile?.role==='admin'?all:all.filter(a=>permitted.has(accountKey(a)))).filter(a=>a.active!==false&&a.is_active!==false&&a.isPosting!==false)}
 function staffJournalMonth(){return document.getElementById('staffJournalPeriod')?.value||new Date().toISOString().slice(0,7)}
 function accountOptionHtml(selected=''){return allowedStaffAccounts().map(a=>`<option value="${a.id}" ${a.id===selected?'selected':''}>${escapeHtml(a.code)} — ${escapeHtml(a.name)}</option>`).join('')}
 async function openStaffJournalPeriod(month){
@@ -3362,7 +3362,7 @@ function availableSubUsers(){
 }
 function subUserName(user){return user.full_name||user.name||user.email||'Unnamed user'}
 function subUserAccountTitle14229(user){const name=String(subUserName(user)).trim();return name+(/s$/i.test(name)?'’':'’s')+' Account'}
-function subUserPermission(user){return user.user_permissions||{}}
+function subUserPermission(user){return user&&String(user.id)===String(liveProfile?.id)?livePermission||user.user_permissions||{}:user?.user_permissions||{}}
 function filterSubUserSearch(query=''){renderSubUserSearchResults(query)}
 function renderSubUserSearchResults(query=''){
   const host=document.getElementById('subUserSearchResults');if(!host)return;
