@@ -1,0 +1,239 @@
+{
+  "version": "142.86",
+  "catalog_entries": 35,
+  "catalog_and_language_cases": 333,
+  "detailed_reconciliation_cases": 9,
+  "combined_cases": 342,
+  "failed": 0,
+  "reports": [
+    {
+      "report": "report-pl",
+      "cases": 9,
+      "min_pages": 2,
+      "max_pages": 2
+    },
+    {
+      "report": "report-bs",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "report-cf",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "report-tb",
+      "cases": 9,
+      "min_pages": 3,
+      "max_pages": 3
+    },
+    {
+      "report": "report-gl",
+      "cases": 9,
+      "min_pages": 14,
+      "max_pages": 16
+    },
+    {
+      "report": "report-activity",
+      "cases": 9,
+      "min_pages": 14,
+      "max_pages": 16
+    },
+    {
+      "report": "report-expense",
+      "cases": 9,
+      "min_pages": 2,
+      "max_pages": 2
+    },
+    {
+      "report": "journal",
+      "cases": 9,
+      "min_pages": 12,
+      "max_pages": 14
+    },
+    {
+      "report": "approved-user-report",
+      "cases": 9,
+      "min_pages": 5,
+      "max_pages": 6
+    },
+    {
+      "report": "sec-chart-accounts",
+      "cases": 9,
+      "min_pages": 3,
+      "max_pages": 4
+    },
+    {
+      "report": "sec-sub-accounts",
+      "cases": 9,
+      "min_pages": 3,
+      "max_pages": 3
+    },
+    {
+      "report": "transactions-voided",
+      "cases": 9,
+      "min_pages": 5,
+      "max_pages": 6
+    },
+    {
+      "report": "transactions-recurring",
+      "cases": 9,
+      "min_pages": 2,
+      "max_pages": 2
+    },
+    {
+      "report": "period-review",
+      "cases": 9,
+      "min_pages": 15,
+      "max_pages": 17
+    },
+    {
+      "report": "payroll-employees",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "hr-contracts",
+      "cases": 9,
+      "min_pages": 3,
+      "max_pages": 3
+    },
+    {
+      "report": "hr-assessments",
+      "cases": 9,
+      "min_pages": 3,
+      "max_pages": 3
+    },
+    {
+      "report": "hr-leave",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 2
+    },
+    {
+      "report": "hr-attendance",
+      "cases": 9,
+      "min_pages": 8,
+      "max_pages": 9
+    },
+    {
+      "report": "payroll-deductions",
+      "cases": 9,
+      "min_pages": 8,
+      "max_pages": 9
+    },
+    {
+      "report": "payroll-overview",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "payroll-history",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "report-payroll",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "report-reconciliation",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "report-subusers82",
+      "cases": 9,
+      "min_pages": 6,
+      "max_pages": 7
+    },
+    {
+      "report": "payroll-entries",
+      "cases": 9,
+      "min_pages": 12,
+      "max_pages": 13
+    },
+    {
+      "report": "salary-vouchers",
+      "cases": 9,
+      "min_pages": 24,
+      "max_pages": 25
+    },
+    {
+      "report": "report-financing82",
+      "cases": 9,
+      "min_pages": 7,
+      "max_pages": 8
+    },
+    {
+      "report": "tax-overview",
+      "cases": 9,
+      "min_pages": 3,
+      "max_pages": 4
+    },
+    {
+      "report": "tax-vat",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "tax-pit",
+      "cases": 9,
+      "min_pages": 2,
+      "max_pages": 2
+    },
+    {
+      "report": "tax-social",
+      "cases": 9,
+      "min_pages": 2,
+      "max_pages": 2
+    },
+    {
+      "report": "tax-payment",
+      "cases": 9,
+      "min_pages": 2,
+      "max_pages": 2
+    },
+    {
+      "report": "tax-sso-payment",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "tax-records",
+      "cases": 9,
+      "min_pages": 3,
+      "max_pages": 4
+    },
+    {
+      "report": "single-voucher-en",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    },
+    {
+      "report": "single-voucher-lo",
+      "cases": 9,
+      "min_pages": 1,
+      "max_pages": 1
+    }
+  ],
+  "detailed_reconciliation": {
+    "rows": 119,
+    "ledger_lines": 80,
+    "findings": 35,
+    "cases": 9
+  },
+  "scope": "Isolated Chromium fixtures; no live database mutation."
+}
