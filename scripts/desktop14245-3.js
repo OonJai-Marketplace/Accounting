@@ -758,6 +758,7 @@ function openAddAccountModal(systemOnly=false) {
 }
 
 function openEditAccountModal(code) {
+  const child=AccountingStore.accounts.find(a=>a.code===code&&a.subAccountId14285);if(child)return openEditSubAccountModal(code);
   configureAccountPurpose87(false);
   const acc = AccountingStore.accounts.find(a => a.code === code);
   if (!acc) return;
@@ -2728,6 +2729,7 @@ async function loadReferenceDataFromSupabase() {
   CurrencyStore.currencies=(currencies||[]).map(c=>({code:c.code,name:c.name,symbol:c.symbol,isBase:c.is_base}));
   AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,baseType:a.account_type,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true}));
   AccountingStore.subAccounts=(subs||[]).map(s=>({id:s.id,parentId:s.parent_account_id,parentCode:AccountingStore.accounts.find(a=>a.id===s.parent_account_id)?.code||'',currency:s.currency_code||AccountingStore.accounts.find(a=>a.id===s.parent_account_id)?.currency||'',code:s.code,name:s.name,desc:s.description||''}));
+  for(const sub of AccountingStore.subAccounts){const raw=(subs||[]).find(x=>x.id===sub.id);sub.postingAccountId14285=raw?.posting_account_id14285||null;const posting=AccountingStore.accounts.find(a=>a.id===sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
   CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
 }
 
@@ -2753,7 +2755,7 @@ CurrencyStore.edit = async function(code){const current=this.currencies.find(c=>
 CurrencyStore.remove = async function(code){if(!await ui117.confirm(`Remove currency ${code}?`))return;const{error}=await ojmDb.from('currencies').delete().eq('code',code);if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase()};
 
 handleAccountFormSubmit = async function(event){event.preventDefault();const purpose=document.getElementById('accPurpose71');if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return}const original=document.getElementById('accountOrigCode').value;const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:document.getElementById('accPurpose71').value,created_by:liveProfile.id};const existing=AccountingStore.accounts.find(a=>a.code===original);const parent=payload.currency_code==='__PARENT__';payload.is_posting=!parent;payload.currency_label=parent?'—':payload.currency_code;if(parent){payload.currency_code=existing?.currency||CurrencyStore.currencies[0]?.code;if(!payload.currency_code){showAppNotification('Currency Required','Add at least one currency in Settings before creating an account.',true);return}if(existing?.id){const used=await ojmDb.from('journal_lines').select('id').eq('account_id',existing.id).limit(1);if(used.error){showAppNotification('Account Check Failed',used.error.message,true);return}if(used.data?.length){showAppNotification('Account Has Transactions','Keep this account as a posting account. Create a separate parent account for grouping.',true);return}}}if(existing?.isTechnical)payload.account_type=existing.baseType||'EQUITY';const query=existing?ojmDb.from('accounts').update(payload).eq('id',existing.id):ojmDb.from('accounts').insert(payload);const{error}=await query;if(error){showAppNotification('Account Save Failed',String(error.message).includes('account_purpose')?'Read setup/SETUP-GUIDE-v142.20.txt for the required existing database setup.':error.message,true);return}closeModal('modalAccount');await loadReferenceDataFromSupabase()};
-promptDeleteAccount = function(code){const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{const{error}=await ojmDb.from('accounts').delete().eq('id',acc.id);if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
+promptDeleteAccount = function(code){const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{const{error}=await ojmDb.from('accounts').delete().eq('id',acc.id);if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
 handleSubAccountFormSubmit = async function(event){
   event.preventDefault();
   const form=document.getElementById('formSubAccount');
@@ -2776,6 +2778,7 @@ handleSubAccountFormSubmit = async function(event){
     if(error)throw error;
     closeModal('modalSubAccount');
     await loadReferenceDataFromSupabase();
+    const saved=AccountingStore.subAccounts.find(s=>s.code===payload.code);if(!saved?.postingAccountId14285)showAppNotification('Sub-account saved','Run setup/INSTALL-SUBACCOUNT-POSTING-v142.85.sql to make sub-accounts available in the chart and posting account picker.',true);
   }catch(error){
     const message=/currency_code/i.test(error.message||'')&&['PGRST204','42703'].includes(error.code)
       ?'Run setup/INSTALL-SUBACCOUNT-CURRENCY-v142.16.sql once in Supabase, then save again.'
@@ -4073,6 +4076,7 @@ function journalEntry98Key14228(owner,payload){const fingerprint=JSON.stringify(
 document.addEventListener('input',e=>{if(e.isTrusted){const card=e.target.closest('#journalEntry98');if(card)delete card._postingRequest14228;legacySaveReferences14228.clear()}},true);
 
 ;
+
 /* scripts/workspace-settings.js */
 /* WORKSPACE & SETTINGS — per-user controls, direct editing and clearing protocol. */
 'use strict';

@@ -19,6 +19,7 @@ function ready(){
  window.releaseLogin1443?.();await current.activate();return current.done.size>0;
  };
  const change=window.switchTab;window.switchTab=function(...args){const r=change.apply(this,args);job?.activate();return r};
+ const accountChange=window.scrollToAccountModule;window.scrollToAccountModule=function(...args){const r=accountChange.apply(this,args);job?.activate();return r};
 }
 window.startup14257={requirements};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

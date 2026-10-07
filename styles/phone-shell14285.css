@@ -1,0 +1,8 @@
+/* Parent-shell changes are restricted to the phone. */
+@media screen{
+ html[data-device132=phone] body #startup1443,
+ html[data-device132=phone] body #loginGate.busy99 #loginProgress99,
+ html[data-device132=phone].session-checking1444 body #sessionRestore1444{position:fixed!important;inset:0!important;left:0!important;top:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;box-sizing:border-box!important;border:0!important;border-radius:0!important;transform:none!important;background:rgba(242,246,240,.68)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:grid!important;place-content:center!important;justify-items:center!important;padding:24px!important;z-index:100000!important}
+ html[data-device132=phone] body #startup1443[hidden],html[data-device132=phone] body #loginProgress99[hidden]{display:none!important}
+ html[data-device132=phone] body #startup1443 p{max-width:320px;line-height:1.5}
+}

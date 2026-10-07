@@ -5505,6 +5505,13 @@ body input.account-search1428:focus{outline:2px solid #b7cfaf;outline-offset:1px
 .phone-account-picker14227 .account-types14253{gap:4px;padding:3px 0 6px}
 .phone-account-picker14227 .account-types14253 button{min-width:34px!important;width:34px!important;min-height:32px!important;padding:3px!important;font-size:16px!important}
 
+/* Keep account filters visible and currency palettes independent of account text. */
+.account-type-rail14277{flex:0 0 auto;min-height:36px;align-items:center;position:relative;z-index:1}
+.account-type-rail14277 button{flex-shrink:0;min-height:28px}
+.account-list1428:has(.account-type-rail14277){overflow:hidden}
+.account-list1428 .account-options14266{flex:1 1 auto;overflow-y:auto}
+:is(.currency-tag,.currency-symbol-badge,.currency-coded14231){-webkit-text-fill-color:currentColor!important}
+
 /* styles/fixes1429.css */
 /* Editor: compact colour icons and number arrows within the existing input border. */
 body #document-editor105.menus1426 .doc-color107{position:relative!important;width:32px!important;height:30px!important;padding:2px 4px 6px!important;display:inline-flex!important;align-items:center;justify-content:center;cursor:pointer;border-radius:4px}
