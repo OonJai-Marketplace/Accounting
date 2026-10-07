@@ -50,7 +50,8 @@ assert.equal(holder.child,originalTabs,'header must move the existing tabs, not 
 const listeners={},visualListeners={},frames=[],scrolls=[];
 const vv={offsetTop:0,height:1200,addEventListener:(name,handler)=>visualListeners[name]=handler};
 let fieldTop=900;
-const scroller={style:{paddingBottom:'17px'},scrollBy:move=>{scrolls.push(move);fieldTop-=move.top}};
+const padding={value:'17px',priority:''};
+const scroller={style:{getPropertyValue:()=>padding.value,getPropertyPriority:()=>padding.priority,setProperty:(_,value,priority='')=>{padding.value=value;padding.priority=priority}},scrollBy:move=>{scrolls.push(move);fieldTop-=move.top}};
 const field={isConnected:true,matches:selector=>selector.includes('input:not([readonly])'),closest:selector=>selector==='.workspace-scroll,.modal-body,[data-scroll-host]'?scroller:null,
  getBoundingClientRect:()=>({top:fieldTop,bottom:fieldTop+40,height:40})};
 const rootElement={dataset:{device132:'tablet'},setAttribute(name){this[name]=true},removeAttribute(name){delete this[name]},hasAttribute(name){return Boolean(this[name])}};
@@ -59,14 +60,15 @@ vm.runInNewContext(fs.readFileSync(path.join(root,'scripts/tablet-journal14266.j
  document:doc,window:{visualViewport:vv,addEventListener(){}},innerHeight:1200,
  requestAnimationFrame:callback=>{frames.push(callback);return frames.length},setTimeout:callback=>callback()
 });
-listeners.focusin({target:field});assert.equal(scroller.style.paddingBottom,'17px');
+listeners.focusin({target:field});assert.equal(padding.value,'17px');
 vv.height=650;visualListeners.resize();while(frames.length)frames.shift()();
-assert.equal(scroller.style.paddingBottom,'17px','portrait must not leave a spacer above the keyboard');
+assert.equal(padding.value,'0px','portrait must not leave a spacer above the keyboard');
+assert.equal(padding.priority,'important');
 assert(scrolls.some(move=>move.top>0),'covered input should scroll above the keyboard');
 assert(fieldTop>=24&&fieldTop+40<=vv.height-16,'the input must be fully visible, including in landscape');
 assert(rootElement['data-tablet-keyboard14266']);
 doc.activeElement=null;listeners.focusout({target:field});
-assert.equal(scroller.style.paddingBottom,'17px');
+assert.equal(padding.value,'17px');
 assert(!rootElement['data-tablet-keyboard14266']);
 
 const source=fs.readFileSync(path.join(root,'scripts/account-picker1428.js'),'utf8').trim();

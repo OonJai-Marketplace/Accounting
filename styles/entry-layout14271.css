@@ -151,35 +151,35 @@ html[data-device132=tablet] body.shell113 .banner-copy113 p{font-size:16.25px!im
 html[data-device132=tablet] body #personalWorkspace1437 .personal-tabs1437 button,
 html[data-device132=tablet] body #subUserWorkspacePanel .v49-desktop-user-actions>button{font-size:15px!important}
 html[data-device132=tablet] body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab{font-size:15px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98{--entry-control-height14272:43px}
+html[data-device132=tablet] body #journalEntry98#journalEntry98{--entry-control-height14272:36px}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-auto-id,.je-subtitle,.je-meta-grid label,.je-meta-grid .entry-mode1430>span,.je-actions-bar button,.je-actions-bar .je-status-badge){font-size:15px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeEntryMode1430.entry-mode-button14271,
 html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeEntryMode1430>span{font-size:15px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98 .je-meta-grid input:not([readonly]):not([type=checkbox]):not([type=radio]){font-size:20px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 .je-meta-grid input:not([readonly]):not([type=checkbox]):not([type=radio]){font-size:15px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{font-size:13.75px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label :is(input:not([readonly]),select:not(.account-source1428)){font-size:20px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label button.direction-toggle1439{font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label :is(input:not([readonly]),select:not(.account-source1428)){font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label button.direction-toggle1439{font-size:14px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label input.account-search1428[readonly]{font-size:15px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-date1430 .oj-date-button104,
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label :is(.currency-symbol-badge,[data-currency1430]){font-size:13.75px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input:not([readonly]),select:not(.account-source1428)){font-size:20px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input:not([readonly]),select:not(.account-source1428)){font-size:15px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody input.account-search1428[readonly]{font-size:15px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody .oj-date-button104{font-size:13.75px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input,select:not(.account-source1428),.oj-date-button104,.account-choice14231,.account-input-wrap){height:40px!important;min-height:40px!important;max-height:40px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody .oj-date-button104{font-size:14px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input,select:not(.account-source1428),.oj-date-button104,.account-choice14231,.account-input-wrap){height:36px!important;min-height:36px!important;max-height:36px!important}
 
 /* The journal's editable text, account selection, and date fields share one size. */
-html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-grid,#simpleRows1430,#jeLinesBody) :is(input:not([type=checkbox]):not([type=radio]),textarea,.account-search1428,.oj-date-button104,.direction-toggle1439){font-size:20px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-grid,#simpleRows1430,#jeLinesBody) :is(input:not([type=checkbox]):not([type=radio]),textarea,.account-search1428,.oj-date-shell104,.oj-date-button104,.direction-toggle1439,.account-choice14231,.account-input-wrap){height:43px!important;min-height:43px!important;max-height:43px!important;box-sizing:border-box!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-grid,#simpleRows1430,#jeLinesBody) :is(input:not([type=checkbox]):not([type=radio]),textarea,.account-search1428){font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-grid,#simpleRows1430,#jeLinesBody) :is(input:not([type=checkbox]):not([type=radio]),textarea,.account-search1428,.oj-date-shell104,.oj-date-button104,.direction-toggle1439,.account-choice14231,.account-input-wrap){height:36px!important;min-height:36px!important;max-height:36px!important;box-sizing:border-box!important}
 html[data-device132=tablet] body .account-list1428 :is(.account-option1428,.account-filter14266){font-size:16.25px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label :is(input.account-search1428[readonly],.oj-date-button104){font-size:20px!important}
-html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input.account-search1428[readonly],.oj-date-button104){font-size:20px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label input.account-search1428[readonly]{font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody input.account-search1428[readonly]{font-size:15px!important}
 
-/* The tablet date uses the same enlarged text as the other editor fields.
-   Reserve its measured width so the date and memo remain separate. */
-html[data-device132=tablet] body #journalEntry98#journalEntry98 .je-meta-grid>.transaction-date-field{flex:0 0 190px!important;width:190px!important;min-width:190px!important;max-width:190px!important}
+/* Keep supplementary date and direction controls smaller than the heading and tabs. */
+html[data-device132=tablet] body #journalEntry98#journalEntry98 .je-meta-grid>.transaction-date-field{flex:0 0 144px!important;width:144px!important;min-width:144px!important;max-width:144px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid,
-html[data-device132=tablet] body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid{grid-template-columns:190px minmax(0,1fr) 150px!important}
+html[data-device132=tablet] body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid{grid-template-columns:144px minmax(0,1fr) 150px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 .transaction-date-field .oj-date-button104{overflow:hidden!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 .transaction-date-field .oj-date-label104{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430,
-html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{grid-template-columns:124px minmax(0,1fr) minmax(0,1fr) 180px minmax(0,1fr)!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{grid-template-columns:110px minmax(0,1fr) minmax(0,1fr) 180px minmax(0,1fr)!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 .je-meta-grid>.transaction-date-field:has(#jeTransDate) .oj-date-button104{font-size:14px!important}

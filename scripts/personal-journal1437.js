@@ -8,7 +8,9 @@ const states=new Map(),drafts=new Map(),historyExtra=new Map();
 let card,anchor,scope='',scopeActor='',mainSnapshot=null,restoring=false,busy=false,rendering=false;
 const user=id=>availableSubUsers().find(u=>String(u.id)===String(id))||(liveProfile?.id===id?liveProfile:null);
 const key=id=>String(liveProfile?.id||'')+':'+id;
-const state=id=>{const k=key(id);if(!states.has(k))states.set(k,{tab:'home',month:wsPeriod[id]||new Date().toISOString().slice(0,7),year:String(new Date().getFullYear()),historyMonth:'',search:'',page:0});return states.get(k)};
+const tabs=['home','journal','summary','history','reports'];
+const tabKey=id=>'ojm-personal-tab1437:'+key(id);
+const state=id=>{const k=key(id);if(!states.has(k)){let tab='home';try{const saved=localStorage.getItem(tabKey(id));if(tabs.includes(saved))tab=saved}catch{}states.set(k,{tab,month:wsPeriod[id]||new Date().toISOString().slice(0,7),year:String(new Date().getFullYear()),historyMonth:'',search:'',page:0})}return states.get(k)};
 const journals=id=>(reviewStaffJournals||[]).filter(j=>String(j.owner_id)===String(id));
 function allowed(a,id=scope){const u=user(id);if(!a||!u||a.isPosting===false)return false;const r=workspaceRules(u);return [...r.fundIds,...r.entryIds,r.counterpart].includes(String(a.id));}
 function readDraft(id){
@@ -82,7 +84,7 @@ function historyHtml(id){const s=state(id),all=[...journals(id).filter(completed
 // Compare source markup, not decorated DOM: icons must survive unrelated updates.
 function paintPanel1437(panel,markup){if(!panel||panel._personalMarkup1437===markup)return;panel._personalMarkup1437=markup;panel.innerHTML=markup;window.headerIcons112?.decorate();}
 function updatePanels(id){const root=$('personalWorkspace1437');if(!root||root.dataset.owner!==id)return;paintPanel1437(root.querySelector('[data-personal-panel=home]'),homeHtml(id));paintPanel1437(root.querySelector('#personalActive1437'),activeHtml(id));paintPanel1437(root.querySelector('#personalTotals1437'),workspaceAccountSummary(rowsFor(id)));paintPanel1437(root.querySelector('[data-personal-panel=history]'),historyHtml(id));window.dropdown1434?.enhance(root);}
-function show(id,tab){const root=$('personalWorkspace1437');if(!root||root.dataset.owner!==id)return;state(id).tab=tab;
+function show(id,tab){const root=$('personalWorkspace1437');if(!root||root.dataset.owner!==id||!tabs.includes(tab))return;state(id).tab=tab;try{localStorage.setItem(tabKey(id),tab)}catch{}
  if(tab==='journal')mount(id);else detach();
  root.querySelectorAll('[data-personal-panel]').forEach(n=>n.hidden=n.dataset.personalPanel!==tab);
  root.querySelectorAll('.personal-tabs1437 [data-personal-tab]').forEach(b=>{const selected=b.dataset.personalTab===tab;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected))});

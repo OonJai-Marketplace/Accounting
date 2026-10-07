@@ -30,7 +30,12 @@ hydrateSupabaseSession=async function(session){
  if(!fresh&&saved&&!recentLocation69(saved)){await logoutDemoUser();showLoginForm('Session expired. Please sign in again.');return;}
  startup88={saved,fresh,restore:!!saved&&recentLocation69(saved)};Location69.hydrating=true;Location69.userNavigated=false;
  SessionTimeoutManager.lastActivity=!fresh&&startup88.restore?saved.lastActivity:Date.now();
- hydration69=(async()=>{try{await hydrateBefore69(session);if(!liveProfile||liveProfile.id!==session?.user?.id||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;hydratedUser69=liveProfile.id;Location69.ready=true;saveLocation69();
+ hydration69=(async()=>{try{await hydrateBefore69(session);if(!liveProfile||liveProfile.id!==session?.user?.id||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;
+  // The user directory loads after the shell. Reopen the saved workspace only
+  // when its owner is available, so the empty early render cannot send it Home.
+  const selected=startup88?.saved?.openTabs?.find(tab=>tab.key===startup88.saved.activeSubUserId);
+  if(startup88?.restore&&!Location69.userNavigated&&startup88.saved.view==='sub-users-workspace'&&selected?.userId&&canAccessAppTarget('sub-users-workspace')&&availableSubUsers().some(user=>String(user.id)===String(selected.userId)))window.openWorkspaceUser(selected.userId);
+  hydratedUser69=liveProfile.id;Location69.ready=true;saveLocation69();
  requestAnimationFrame(()=>requestAnimationFrame(()=>showRecurringWarningsOnLogin()));
  }finally{Location69.hydrating=false;startup88=null;hydration69=null;SessionTimeoutManager.arm()}})();return hydration69;
 };

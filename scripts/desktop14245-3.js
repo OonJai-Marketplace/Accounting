@@ -5278,7 +5278,12 @@ hydrateSupabaseSession=async function(session){
  if(!fresh&&saved&&!recentLocation69(saved)){await logoutDemoUser();showLoginForm('Session expired. Please sign in again.');return;}
  startup88={saved,fresh,restore:!!saved&&recentLocation69(saved)};Location69.hydrating=true;Location69.userNavigated=false;
  SessionTimeoutManager.lastActivity=!fresh&&startup88.restore?saved.lastActivity:Date.now();
- hydration69=(async()=>{try{await hydrateBefore69(session);if(!liveProfile||liveProfile.id!==session?.user?.id||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;hydratedUser69=liveProfile.id;Location69.ready=true;saveLocation69();
+ hydration69=(async()=>{try{await hydrateBefore69(session);if(!liveProfile||liveProfile.id!==session?.user?.id||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;
+  // The user directory loads after the shell. Reopen the saved workspace only
+  // when its owner is available, so the empty early render cannot send it Home.
+  const selected=startup88?.saved?.openTabs?.find(tab=>tab.key===startup88.saved.activeSubUserId);
+  if(startup88?.restore&&!Location69.userNavigated&&startup88.saved.view==='sub-users-workspace'&&selected?.userId&&canAccessAppTarget('sub-users-workspace')&&availableSubUsers().some(user=>String(user.id)===String(selected.userId)))window.openWorkspaceUser(selected.userId);
+  hydratedUser69=liveProfile.id;Location69.ready=true;saveLocation69();
  requestAnimationFrame(()=>requestAnimationFrame(()=>showRecurringWarningsOnLogin()));
  }finally{Location69.hydrating=false;startup88=null;hydration69=null;SessionTimeoutManager.arm()}})();return hydration69;
 };
@@ -5336,8 +5341,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 document.addEventListener('click',event=>{if(Location69.hydrating&&event.isTrusted&&event.target.closest('.category-tab,.tab-btn,.nav-category,.nav-subitem,.nav-item,.sub-user-browser-tab,[onclick*="switchTab"],[onclick*="scrollToAccountModule"]'))Location69.userNavigated=true},true);
 const switchBeforeLoadingGuard86=window.switchTab;
 window.switchTab=function(...args){if(Location69.hydrating&&window.event?.isTrusted&&/^(click|touchend|pointerup|keydown)$/.test(window.event.type))Location69.userNavigated=true;return switchBeforeLoadingGuard86(...args)};
-;
-
 /* scripts/reports-system-v71.js */
 /* SYSTEM ACCOUNTS AND RECONCILIATION — report snapshots never post ledger entries. */
 const purposes71={regular:['Regular','An ordinary operational account.'],clearing:['Clearing','Temporarily holds amounts while related postings are matched.'],suspense:['Suspense','Holds an actual transaction while its proper classification is investigated.'],settlement:['Payment Settlement','Tracks amounts held by a payment or delivery provider before settlement.'],payroll:['Payroll Control','Tracks payroll amounts awaiting payment or remittance.'],opening:['Opening Balance Offset','Supports initial balance setup; unexplained residual balances require investigation.']};
