@@ -17,7 +17,7 @@ function readDraft(id){
  const edits=Object.values(workspaceRowEdits[id]||{}),pending=workspacePendingRows[id]||[],old=[...edits,...pending];
  if(!old.length)return null;
  const rules=workspaceRules(user(id));
- const d={mode:'single',multiple:true,date:old[0].transaction_date,memo:old[0].memo||'',rows:[],single:old.map(r=>({date:r.transaction_date,direction:r.direction||'out',source:r.fund_account_id||rules.fundIds[0]||'',affected:r.direction==='in'?rules.counterpart:(r.selected_account_id||r.account_id||''),amount:String(r.amount||''),memo:r.memo||''})),editIds:edits.map(r=>r.id||r.key),requestKey:'pj-'+crypto.randomUUID()};
+ const d={mode:'single',multiple:true,date:old[0].transaction_date,memo:old[0].memo||'',rows:[],single:old.map(r=>({date:r.transaction_date,direction:r.direction||'out',source:r.fund_account_id||rules.fundIds[0]||'',affected:r.direction==='in'&&r.account_id===r.fund_account_id?rules.counterpart:(r.selected_account_id||r.account_id||''),amount:String(r.amount||''),memo:r.memo||''})),editIds:edits.map(r=>r.id||r.key),requestKey:'pj-'+crypto.randomUUID()};
  try{localStorage.setItem('ojm-personal-journal1437:'+k,JSON.stringify(d));drafts.set(k,d);workspacePendingRows[id]=[];workspaceRowEdits[id]={};window.drafts1427?.flush()}catch{showCenterStatus('Your earlier unfinished rows could not be migrated to the device draft. Free some storage before continuing.',true)}
  return d;
 }
@@ -104,7 +104,7 @@ function installDesktop(){if(!desktop()||!$('sub-users-workspace')?.classList.co
 }
 function findGroup(id,lineId){return groupsFor(id).find(g=>g.some(l=>l.id===lineId))}
 async function edit(id,lineId){if(!access113.can('sub-users-workspace','edit'))return;const group=findGroup(id,lineId);if(!group)return;const unfinished=scope===id?capture():readDraft(id);if(unfinished?.memo?.trim()&&!await ui117.confirm('Replace the unfinished entry with this saved entry for editing?'))return;show(id,'journal');const first=group[0];let d=validSnapshot(group);
- if(!d){const single=group.map(l=>({direction:l.direction||'out',source:l.fund_account_id,affected:l.direction==='in'?workspaceRules(user(id)).counterpart:l.account_id,amount:String(l.amount),memo:l.memo,date:l.transaction_date}));d={mode:'single',memo:first.memo,date:first.transaction_date,single,rows:[]};}
+ if(!d){const single=group.map(l=>({direction:l.direction||'out',source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?workspaceRules(user(id)).counterpart:l.account_id,amount:String(l.amount),memo:l.memo,date:l.transaction_date}));d={mode:'single',memo:first.memo,date:first.transaction_date,single,rows:[]};}
  if(d.multiple)d={...d,rows:(d.rows||[]).filter(r=>r.date===first.transaction_date),single:(d.single||[]).filter(r=>r.date===first.transaction_date)};
  restore({...d,owner:'',journal:'',local:false,editing:null,editIds:group.map(l=>l.id),requestKey:'pj-'+crypto.randomUUID()});label();remember();card.scrollIntoView({block:'start',behavior:'smooth'});
 }
@@ -114,8 +114,8 @@ function prepareItems(id){if(entry1430.retained)throw Error('Switch to Double En
  const items=[];const add=(direction,fund,account,value,date,description)=>{
   if(!rules.directions.includes(direction))throw Error(direction==='in'?'Money In is not enabled for this user.':'Money Out is not enabled for this user.');
   if(!rules.fundIds.includes(fund))throw Error('Choose one of this user’s assigned fund accounts.');
-  if(direction==='out'&&!rules.entryIds.includes(account)||direction==='in'&&account!==rules.counterpart)throw Error('Choose an account enabled in this user’s account settings.');
-  items.push({direction,fund,account:direction==='in'?fund:account,amount:value,date,memo:description||memo,reference:'',kind:direction==='in'?'collection':'payment'});
+  if(!rules.entryIds.includes(account)||fund===account)throw Error('Choose a different category account assigned to this user.');
+  items.push({direction,fund,account,amount:value,date,memo:description||memo,reference:'',kind:direction==='in'?'collection':'payment'});
  };
  if(entry1430.mode==='single'){
   for(const r of entry1430.read()){if(!r.affected&&!r.amount&&!r.memo)continue;const n=parseAppNumber(r.amount);if(!(n>0))throw Error('Enter a positive amount.');add(r.direction,r.source,r.affected,n,$('jeMultipleDates').checked?r.date:$('jeTransDate').value,r.memo||memo)}
@@ -124,10 +124,10 @@ function prepareItems(id){if(entry1430.retained)throw Error('Switch to Double En
    for(const currency of [...new Set(g.lines.map(l=>l.currency))]){
     const dr=g.lines.filter(l=>l.currency===currency&&Number(l.debit)>0).map(l=>({...l,left:Number(l.debit)}));
     const cr=g.lines.filter(l=>l.currency===currency&&Number(l.credit)>0).map(l=>({...l,left:Number(l.credit)}));
-    // Match assigned fund payments first, then permitted collection counterparts.
+    // Match assigned fund payments and receipts to their selected categories.
     for(const d of dr)for(const c of cr){if(d.left<0.00000001||c.left<0.00000001)continue;
      const outgoing=rules.fundIds.includes(c.account.id)&&rules.entryIds.includes(d.account.id)&&rules.directions.includes('out');
-     const incoming=rules.fundIds.includes(d.account.id)&&c.account.id===rules.counterpart&&rules.directions.includes('in');
+     const incoming=rules.fundIds.includes(d.account.id)&&rules.entryIds.includes(c.account.id)&&rules.directions.includes('in');
      if(!outgoing&&!incoming)continue;const value=Math.min(d.left,c.left);
      add(outgoing?'out':'in',outgoing?c.account.id:d.account.id,outgoing?d.account.id:c.account.id,value,date,[d.memo,c.memo].filter((x,i,a)=>x&&a.indexOf(x)===i).join(' · ')||memo);d.left-=value;c.left-=value;
     }

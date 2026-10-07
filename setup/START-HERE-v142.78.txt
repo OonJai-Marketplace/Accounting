@@ -1,0 +1,16 @@
+Accounting v142.78 — Money In with an assigned category account
+
+Before publishing the matching web assets, run INSTALL-MONEY-IN-v142.78.sql
+in the project's Supabase SQL editor. It requires the v142.28 security and
+v142.53 workflow functions already installed. The installer is transactional
+and stops without changes if the expected base functions are missing.
+
+In Users & Permissions, assign the receiving main account (for example,
+Cash on Hand) and at least one category account (for example, Dine-in Sales)
+to the user. A Money In entry then debits the main account and credits the
+chosen category after review and posting. Earlier collections where the
+fund and account are the same remain report-only to avoid posting them twice.
+
+Do not reapply the older security or workflow installers after v142.78
+without reapplying this installer, because those installers replace the same
+database functions.

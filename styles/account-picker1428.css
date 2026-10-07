@@ -6,3 +6,18 @@ body select.account-source1428{position:absolute!important;width:1px!important;h
 body input.account-search1428{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:#fffdf7;color:#174c3b;border:1px solid #bdcdb7;border-radius:5px;padding:8px;font:inherit}
 body input.account-search1428:focus{outline:2px solid #b7cfaf;outline-offset:1px}
 @media(max-width:650px){.account-list1428{font-family:Arial,sans-serif;font-size:14px}.account-option1428{padding:11px;min-height:42px}}
+/* Account type is a reading aid in pickers, never a change to account values. */
+.account-type-rail14277{display:flex;gap:3px;overflow-x:auto;scrollbar-width:thin;max-width:100%;padding:2px 0 4px}
+.account-type-rail14277 button{flex:0 0 30px;height:28px;border:1px solid #b8cbbb;border-radius:6px;background:#fff;color:#244d40;font-size:15px;cursor:pointer}
+.account-type-rail14277 button[aria-pressed=true]{background:#e2eedf;border-color:#2e694b;box-shadow:inset 0 0 0 1px #2e694b}
+.account-list1428:has(.account-type-rail14277){display:flex;flex-direction:column}
+.account-list1428 .account-options14266{min-height:0;overflow:auto}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=ASSET]{color:#12623d!important;-webkit-text-fill-color:#12623d}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=LIABILITY]{color:#87501c!important;-webkit-text-fill-color:#87501c}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=EQUITY]{color:#694590!important;-webkit-text-fill-color:#694590}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=REVENUE]{color:#12569b!important;-webkit-text-fill-color:#12569b}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=EXPENSE]{color:#a43136!important;-webkit-text-fill-color:#a43136}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=DRAWING]{color:#8c4d7b!important;-webkit-text-fill-color:#8c4d7b}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=SYSTEM]{color:#445560!important;-webkit-text-fill-color:#445560}
+.phone-account-picker14227 .account-types14253{gap:4px;padding:3px 0 6px}
+.phone-account-picker14227 .account-types14253 button{min-width:34px!important;width:34px!important;min-height:32px!important;padding:3px!important;font-size:16px!important}

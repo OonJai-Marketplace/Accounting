@@ -10,6 +10,9 @@ body.account-picker-open14227{overflow:hidden!important;overscroll-behavior:none
 .phone-picker-list14227 button{display:block;width:100%;min-height:52px;padding:13px 14px;border:1px solid #c4d0bc;border-radius:7px;background:#fff;color:#173e2d;font:15px/1.5 Arial;text-align:left;margin-bottom:7px;overflow-wrap:anywhere;cursor:pointer}
 .phone-picker-list14227 button[aria-selected=true]{background:#e4efdf;border:2px solid #206b46;font-weight:700;padding:12px 13px}
 .phone-picker-list14227 button[aria-selected=true]:after{content:'✓';margin-left:10px;color:#07543c}
+/* iOS keeps the viewport scale stable when focused editing text is at least 16px. */
+body :is(input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]),textarea,[contenteditable=true]){font-size:16px!important}
+body .phone-account-picker14227 :is(input,button[role=option]){font-size:16px!important}
 .phone-picker-count14227{flex:none;margin:0;padding:8px 0;font-size:12px;color:#506550}
 .phone-account-picker14227 :is(button,input):focus-visible{outline:2px solid #b75b25;outline-offset:1px}
 body input.account-search1428[readonly]{cursor:pointer;background:#fff!important;color:#163d2c!important;-webkit-text-fill-color:#163d2c;opacity:1}

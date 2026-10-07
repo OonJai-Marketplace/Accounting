@@ -6,7 +6,7 @@ const admin=()=>liveProfile?.role==='admin';
 let actorNotice14230='';
 const session=month=>state.sessions.find(s=>String(s.month).slice(0,7)===month);
 // Legacy release acknowledgements are reports, not new income postings.
-wsIsCollection=function(row){const counterpart=AccountingStore.accounts.find(a=>a.id===row.account_id);return row.direction==='in'&&String(counterpart?.type||'').toUpperCase()==='ASSET';};
+wsIsCollection=function(row){return row.entry_kind==='collection'&&String(row.account_id)===String(row.fund_account_id);};
 async function rpc(name,args={}){installRpc();const r=await state.rawRpc(name,args);if(r.error)throw Error(r.error.message);return r.data;}
 function rowMonth(args){if(args.p_entry_id)return JournalModule.entries.find(r=>r.dbEntryId===args.p_entry_id)?.date?.slice(0,7);return args.p_transaction_date?.slice(0,7);}
 function installRpc(){if(!ojmDb||state.client===ojmDb)return;state.client=ojmDb;state.rawRpc=ojmDb.rpc.bind(ojmDb);

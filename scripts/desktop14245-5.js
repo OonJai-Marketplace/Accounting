@@ -348,7 +348,7 @@ const admin=()=>liveProfile?.role==='admin';
 let actorNotice14230='';
 const session=month=>state.sessions.find(s=>String(s.month).slice(0,7)===month);
 // Legacy release acknowledgements are reports, not new income postings.
-wsIsCollection=function(row){const counterpart=AccountingStore.accounts.find(a=>a.id===row.account_id);return row.direction==='in'&&String(counterpart?.type||'').toUpperCase()==='ASSET';};
+wsIsCollection=function(row){return row.entry_kind==='collection'&&String(row.account_id)===String(row.fund_account_id);};
 async function rpc(name,args={}){installRpc();const r=await state.rawRpc(name,args);if(r.error)throw Error(r.error.message);return r.data;}
 function rowMonth(args){if(args.p_entry_id)return JournalModule.entries.find(r=>r.dbEntryId===args.p_entry_id)?.date?.slice(0,7);return args.p_transaction_date?.slice(0,7);}
 function installRpc(){if(!ojmDb||state.client===ojmDb)return;state.client=ojmDb;state.rawRpc=ojmDb.rpc.bind(ojmDb);
@@ -489,7 +489,6 @@ window.workflow136={state,reload,yearClose,finishSession,loadTodos,decorate,upda
 function ready(){const scrollBefore=window.scrollToAccountModule;if(typeof scrollBefore==='function')window.scrollToAccountModule=function(...args){const r=scrollBefore.apply(this,args);decorate();requestAnimationFrame(decorate);return r;};window.addEventListener('page113',()=>{decorate();if(liveProfile&&state.owner!==liveProfile.id)reload().catch(e=>showCenterStatus('Workflow data could not load: '+e.message,true));if(document.querySelector('.tab-content.active')?.id==='transactions-recurring')loadTodos();});const profileBefore=loadLiveProfile;loadLiveProfile=async function(...args){const r=await profileBefore(...args);state.sessions=[];state.todos=[];decorate();window.workflowReady1443=reload({skipJournal:true});window.workflowReady1443.catch(e=>{if(!/abort|account changed|session changed/i.test(e.message))showCenterStatus('Workflow data could not load: '+e.message+( /function.*does not exist|schema cache|relation.*does not exist/i.test(e.message)?' Install SQL 03 if it has not been installed.':''),true)});return r;};decorate();window.addEventListener('focus',()=>{if(liveProfile&&!window.workspaceRequest138?.busy&&document.getElementById('loginGate')?.classList.contains('is-authenticated')&&Date.now()-state.lastReload>60000)reload().catch(()=>{});});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
-
 ;
 /* scripts/combined-v138.js */
 /* Final combined corrections, including restricted administrator-assisted sub-user sessions. */

@@ -3,8 +3,8 @@
 <head><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=142.76"></script>
-  <link rel="stylesheet" href="styles/desktop14245.css?v=142.62">
+  <script src="scripts/offline14239.js?v=142.77"></script>
+  <link rel="stylesheet" href="styles/desktop14245.css?v=142.77">
   <script src="scripts/desktop14245-1.js?v=142.75"></script>
 <title>Oon Jai Accounting — v142.47</title>
   <link rel="icon" type="image/png" href="assets/brand/oonjai-logo.png?v=118">
@@ -1143,7 +1143,7 @@
           </div></div>
 
           <div class="access-trigger-row assignment-activity-row">
-          <button type="button" class="access-picker-trigger" onclick="openAccessPicker('Account Assignment','userAccountAssignmentPanel',this)"><span><strong>Account Assignment</strong><span id="userAccountAssignmentSummary" class="access-selection-summary">Select main and entry accounts</span></span><span class="access-picker-chevron">›</span></button>
+          <button type="button" class="access-picker-trigger" onclick="openAccessPicker('Account Assignment','userAccountAssignmentPanel',this)"><span><strong>Account Assignment</strong><span id="userAccountAssignmentSummary" class="access-selection-summary">Select main and category accounts</span></span><span class="access-picker-chevron">›</span></button>
           <div class="settings-field"><label for="userTransactionActivity">Transaction Activity</label><select id="userTransactionActivity" class="je-select" onchange="syncTransactionActivitySelection()"><option value="out">Money Out Only</option><option value="in">Money In Only</option><option value="both">Money In &amp; Money Out (Both)</option></select></div></div>
           <div class="settings-form-grid user-id-grid">
             <div class="settings-field"><label>Entry Prefix</label><input id="userEntryPrefix" class="je-input" maxlength="8" pattern="[A-Za-z0-9]+" value="SJR" required></div>
@@ -1155,7 +1155,7 @@
             <div class="account-assignment-layout">
               <div class="account-assignment-nav">
                 <button type="button" class="account-assignment-tab active" data-account-pane="main" onclick="showAccountAssignmentPane('main')"><strong>Main Accounts</strong><span id="userFundSelectionBullets" class="account-selection-bullets">0 selected</span></button>
-                <button type="button" class="account-assignment-tab" data-account-pane="entry" onclick="showAccountAssignmentPane('entry')"><strong>Entry / Spending Accounts</strong><span id="userEntrySelectionBullets" class="account-selection-bullets">0 selected</span></button>
+                <button type="button" class="account-assignment-tab" data-account-pane="entry" onclick="showAccountAssignmentPane('entry')"><strong>Category / Entry Accounts</strong><span id="userEntrySelectionBullets" class="account-selection-bullets">0 selected</span></button>
               </div>
               <div class="account-assignment-options">
                 <section id="accountAssignmentMainPane">
@@ -1164,8 +1164,8 @@
                   <div id="userFundAccountGrid" class="account-access-grid"></div>
                 </section>
                 <section id="accountAssignmentEntryPane" hidden>
-                  <h5 class="permission-heading">Entry / Spending Accounts</h5>
-                  <p class="permission-explanation">Accounts available when the user records money out.</p>
+                  <h5 class="permission-heading">Category / Entry Accounts</h5>
+                  <p class="permission-explanation">Assigned category accounts for Money In and Money Out.</p>
                   <div id="userAccountAccessGrid" class="account-access-grid"></div>
                 </section>
               </div>
@@ -1202,20 +1202,20 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
   <script src="scripts/supabase-config.js?v=142.47"></script>
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=142.75"></script>
+  <script src="scripts/desktop14245-3.js?v=142.78"></script>
 <script src="assets/vendor/docx.js?v=142.47"></script>
 <script src="scripts/desktop14245-4.js?v=142.47"></script>
 <script src="assets/vendor/jszip.min.js?v=142.47"></script>
-<script src="scripts/desktop14245-5.js?v=142.66"></script>
+<script src="scripts/desktop14245-5.js?v=142.78"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=142.75"></script>
+<script src="scripts/desktop14245-6.js?v=142.78"></script>
 <script src="scripts/entry-actions14271.js?v=142.75"></script>
-<script src="scripts/tablet-journal14266.js?v=142.66"></script>
+<script src="scripts/tablet-journal14266.js?v=142.78"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
 <script src="scripts/workspace-header14266.js?v=142.67"></script>
 <script src="scripts/admin-access14251.js?v=142.55"></script>
-<script src="scripts/phone-keyboard14252.js?v=142.52"></script>
+<script src="scripts/phone-keyboard14252.js?v=142.77"></script>
 <link rel="stylesheet" href="styles/workflow14253.css?v=142.53">
 <script src="scripts/account-groups14253.js?v=142.53"></script>
 <script src="scripts/field-focus14253.js?v=142.53"></script>
@@ -1224,13 +1224,14 @@
 <link rel="stylesheet" href="styles/layout14256.css?v=142.76">
 <link rel="stylesheet" href="styles/tablet-journal14266.css?v=142.75">
 <link rel="stylesheet" href="styles/workspace-header14266.css?v=142.75">
-<link rel="stylesheet" href="styles/entry-layout14271.css?v=142.76">
+<link rel="stylesheet" href="styles/entry-layout14271.css?v=142.77">
 <script src="scripts/layout14256.js?v=142.57"></script>
 <script src="scripts/audit-explanation14260.js?v=142.60"></script>
 <script src="scripts/auto-sync14256.js?v=142.56"></script>
-<script src="scripts/password-policy14257.js?v=142.57"></script>
+<link rel="stylesheet" href="styles/password-help14278.css?v=142.78">
+<script src="scripts/password-policy14257.js?v=142.78"></script>
 <script src="scripts/password-service14264.js?v=142.64"></script>
-<script src="scripts/account-security14257.js?v=142.64"></script>
+<script src="scripts/account-security14257.js?v=142.78"></script>
 <script src="scripts/startup14257.js?v=142.62"></script>
 <script src="scripts/entry-number14257.js?v=142.57"></script>
 <script src="scripts/account-currency14257.js?v=142.57"></script>

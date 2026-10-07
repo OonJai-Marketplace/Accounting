@@ -1,6 +1,6 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='142.57', CACHE='ojm-phone-shell-'+VERSION;
-const FILES=['recovery.html','scripts/recovery14257.js?v=142.57','scripts/phone-reset-gate14257.js?v=142.57','scripts/numeric-caret14257.js?v=142.57','scripts/password-policy14257.js?v=142.57','index.html','phone.html','styles/phone14242.css?v=142.47','scripts/phone-runtime14242.js?v=142.57','assets/vendor/supabase.js?v=142.41','scripts/supabase-config.js?v=142.41','scripts/staff-entry14225.js?v=142.41'];
+const VERSION='142.78', CACHE='ojm-phone-shell-'+VERSION;
+const FILES=['recovery.html','scripts/recovery14257.js?v=142.57','scripts/phone-reset-gate14257.js?v=142.57','scripts/numeric-caret14257.js?v=142.57','scripts/password-policy14257.js?v=142.57','index.html','phone.html','styles/phone14242.css?v=142.47','scripts/phone-runtime14242.js?v=142.78','assets/vendor/supabase.js?v=142.41','scripts/supabase-config.js?v=142.41','scripts/staff-entry14225.js?v=142.78'];
 const OPTIONAL=['scripts/phone-tools14242.js?v=142.57','assets/logo.png'];
 const scopeURL=new URL(self.registration.scope);
 self.addEventListener('install',event=>event.waitUntil((async()=>{

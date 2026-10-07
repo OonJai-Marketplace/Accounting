@@ -5,7 +5,7 @@ if(!viewport)return;
 const style=document.createElement('style');style.textContent='html[data-device132="phone"][data-keyboard14252] #connectedPhone132{top:var(--keyboard-top14252)!important;bottom:auto!important;height:var(--keyboard-height14252)!important}';document.head.append(style);
 let queued=0,reveal=false;const bound=new WeakSet();
 const editable=n=>n?.matches?.('textarea,input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]),[contenteditable="true"]');
-function keepVisible(doc,top,bottom){const n=doc.activeElement;if(!editable(n))return;const r=n.getBoundingClientRect();if(r.bottom>bottom||r.top<top)n.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});}
+function keepVisible(doc,top,bottom){const n=doc.activeElement;if(!editable(n))return;const row=n.closest('tr,.simple-row1430,.staff-account-row14225,.workspace-single-row')||n;const r=row.getBoundingClientRect();if(r.bottom>bottom||r.top<top){row.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'});requestAnimationFrame(()=>{const after=n.getBoundingClientRect();if(after.bottom>bottom||after.top<top)(n.closest('.workspace-scroll')||doc.scrollingElement||doc.body).scrollBy({top:after.bottom>bottom?after.bottom-bottom+12:after.top-top-12,behavior:'instant'})})}}
 function fit(){queued=0;const phone=root.dataset.device132==='phone',open=phone&&Math.abs(viewport.scale-1)<.05&&innerHeight-viewport.height>120;
  root.toggleAttribute('data-keyboard14252',open);
  if(open){root.style.setProperty('--keyboard-top14252',viewport.offsetTop+'px');root.style.setProperty('--keyboard-height14252',viewport.height+'px');}

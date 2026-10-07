@@ -21,10 +21,10 @@
     const add = (direction, fund, affected, value, description, date = data.date, reference = data.reference || '') => {
       if (!rules.directions.includes(direction)) throw Error(direction === 'in' ? 'Money In is not enabled for this user.' : 'Money Out is not enabled for this user.');
       if (!rules.fundIds.includes(fund)) throw Error('Choose an assigned fund account.');
-      if (direction === 'out' || rules.administrator ? !rules.entryIds.includes(affected) : affected !== rules.counterpart) throw Error('Choose an account enabled for this direction in Settings.');
+      if (!rules.entryIds.includes(affected)) throw Error('Choose a category account enabled in Settings.');
       if (fund === affected) throw Error('The fund and affected account must be different.');
       if (account(fund).currency !== account(affected).currency) throw Error('Currency mismatch: the fund and affected account must use the same currency.');
-      items.push({direction, fund, account: direction === 'in' ? fund : affected, amount: value, date, memo: description || memo, reference, kind: direction === 'in' ? 'collection' : 'payment'});
+      items.push({direction, fund, account: affected, amount: value, date, memo: description || memo, reference, kind: direction === 'in' ? 'collection' : 'payment'});
     };
     if (data.mode === 'double') {
       const groups = new Map();
@@ -44,7 +44,7 @@
         for (const d of g.dr) for (const c of g.cr) {
           if (d.left < epsilon || c.left < epsilon) continue;
           const outgoing = rules.fundIds.includes(c.account.id) && rules.entryIds.includes(d.account.id) && rules.directions.includes('out');
-          const incoming = rules.fundIds.includes(d.account.id) && c.account.id === rules.counterpart && rules.directions.includes('in');
+          const incoming = rules.fundIds.includes(d.account.id) && rules.entryIds.includes(c.account.id) && rules.directions.includes('in');
           if (!outgoing && !incoming) continue;
           const value = Math.min(d.left, c.left);
           add(outgoing ? 'out' : 'in', outgoing ? c.account.id : d.account.id, outgoing ? d.account.id : c.account.id, value, [...new Set([d.memo, c.memo].filter(Boolean))].join(' · ') || memo);

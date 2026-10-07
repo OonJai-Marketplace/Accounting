@@ -8,7 +8,7 @@ const label=a=>a.code+' — '+a.name;
 const amount=s=>{const raw=String(s??'').trim().replaceAll(',','');return raw?Number(raw):0;};
 function choices1438(role,direction,source){
  const rules=window.personalJournal1437?.rules;if(!rules)return accounts();
- const ids=role==='source'?rules.fundIds:(direction==='in'?[rules.counterpart]:rules.entryIds);
+ const ids=role==='source'?rules.fundIds:rules.entryIds;
  const currency=accounts().find(a=>a.id===source)?.currency;
  return accounts().filter(a=>ids.includes(a.id)&&(role==='source'||!currency||a.currency===currency));
 }
@@ -42,7 +42,7 @@ function add(row={}){
  '<label>Amount<span class="simple-amount1444"><small data-currency1430></small><input class="je-input num" inputmode="decimal" data-simple="amount" value="'+esc(row.amount||'')+'" placeholder="0.00"></span></label>'+
  '<label>Line memo / reference<input class="je-input" data-simple="memo" value="'+esc(row.memo||'')+'" placeholder="Uses the general memo"></label>';
  n.querySelector('[data-simple=direction]').value=row.direction||'out';
- $('simpleRows1430').append(n);restrictRow1438(n);directionToggle(n);return n;
+ $('simpleRows1430').append(n);restrictRow1438(n);directionToggle(n);window.dropdown1434?.enhance(n);return n;
 }
 function saveDraft(){$('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles:true}));}
 function sync(){
@@ -94,7 +94,7 @@ function pairs(){
   const da=debit.a,ca=credit.a,value=debit.dr||credit.cr,memo=debit.memo||credit.memo,date=debit.date||credit.date;
   const rules=window.personalJournal1437?.rules,previous=lastSingle?.single?.[i/2];
   let incoming=previous?.direction==='in'&&(!da||previous.source===da.id)||da?.type==='ASSET'&&ca?.type!=='ASSET';
-  if(rules){const outgoing=rules.directions.includes('out')&&(!ca||rules.fundIds.includes(ca.id))&&(!da||rules.entryIds.includes(da.id)),inc=rules.directions.includes('in')&&(!da||rules.fundIds.includes(da.id))&&(!ca||rules.counterpart===ca.id);if(!outgoing&&!inc)return null;incoming=inc&&!outgoing;}
+  if(rules){const outgoing=rules.directions.includes('out')&&(!ca||rules.fundIds.includes(ca.id))&&(!da||rules.entryIds.includes(da.id)),inc=rules.directions.includes('in')&&(!da||rules.fundIds.includes(da.id))&&(!ca||rules.entryIds.includes(ca.id));if(!outgoing&&!inc)return null;incoming=inc&&!outgoing;}
   result.push({direction:incoming?'in':'out',source:(incoming?da:ca)?.id||'',affected:(incoming?ca:da)?.id||'',amount:value?String(value):'',memo,date});
  }
  return result;
@@ -124,7 +124,7 @@ function setMode(next){
  else{lastSingle=null;sync();}
  saveDraft();
 }
-function refreshAccounts(){for(const n of $('simpleRows1430').querySelectorAll('select[data-simple=source],select[data-simple=affected]')){const selected=n.value,r=n.closest('.simple-row1430');n.innerHTML=options(selected,n.dataset.simple,r.querySelector('[data-simple=direction]').value,r.querySelector('[data-simple=source]').value);}if(mode==='single')sync();}
+function refreshAccounts(){for(const n of $('simpleRows1430').querySelectorAll('select[data-simple=source],select[data-simple=affected]')){const selected=n.value,r=n.closest('.simple-row1430');n.innerHTML=options(selected,n.dataset.simple,r.querySelector('[data-simple=direction]').value,r.querySelector('[data-simple=source]').value);}window.dropdown1434?.enhance($('simpleEntry1430'));if(mode==='single')sync();}
 function insertAfter(index){
  if(mode!=='single'||lastSingle?.unmapped)return null;
  const rows=$('simpleRows1430'),anchor=rows.children[index]||rows.lastElementChild,node=add();
@@ -145,6 +145,7 @@ function ready(){
  card.querySelector('.table-container').before(panel);add();
  $('jeEntryMode1430').onclick=()=>setMode(mode==='single'?'double':'single');
  for(const type of ['input','change'])panel.addEventListener(type,()=>{sync();saveDraft();});
+ panel.addEventListener('click',e=>{if(document.documentElement.dataset.device132!=='tablet'||e.target.closest('input,button'))return;const source=e.target.closest('label')?.querySelector('select[data-simple=source],select[data-simple=affected]');if(source&&!source.disabled){e.preventDefault();window.dropdown1434?.open(source)};});
  for(const id of ['jeTransDate','jeMultipleDates'])$(id).addEventListener('change',sync);
  const calc=window.calculateJournalBalance;window.calculateJournalBalance=function(...args){const result=calc.apply(this,args),error=mode==='single'&&panel.dataset.error;if(error){$('btnPostJournal').disabled=true;const b=$('jeBalanceIndicator');b.textContent=error;b.title=error;b.className='je-status-badge unbalanced';}return result;};
  const post=window.submitJournalEntry;window.submitJournalEntry=async function(...args){const invalid=card.querySelector('.account-search1428:invalid');if(invalid){invalid.focus();invalid.reportValidity();return;}if(mode==='single'){sync();if(panel.dataset.error){showAppNotification('Check Entry',panel.dataset.error,true);return;}}return post.apply(this,args);};

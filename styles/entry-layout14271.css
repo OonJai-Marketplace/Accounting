@@ -94,6 +94,9 @@ html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label 
 
 /* The active row uses a gentle tint; the account picker supplies a single focus cue. */
 html body #journalEntry98#journalEntry98 .simple-row1430.selected-entry-row14271{background:#f4f8f0!important;box-shadow:none!important}
+/* Selected journal rows use one background cue and retain their normal borders. */
+html body #journalEntry98#journalEntry98 #jeLinesBody tr.selected-entry-row14271>td,
+html body #journalEntry98#journalEntry98 .simple-row1430.selected-entry-row14271{background:#edf5e7!important;box-shadow:none!important}
 html body #journalEntry98#journalEntry98 .simple-row1430 .account-choice14231:focus-within{outline:none!important;border-color:#6a9b7c!important;box-shadow:inset 0 0 0 1px #6a9b7c!important}
 html body #journalEntry98#journalEntry98 .simple-row1430 .account-choice14231 input.account-search1428:focus{outline:none!important;box-shadow:none!important}
 
@@ -163,3 +166,10 @@ html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is
 html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody input.account-search1428[readonly]{font-size:15px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody .oj-date-button104{font-size:13.75px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input,select:not(.account-source1428),.oj-date-button104,.account-choice14231,.account-input-wrap){height:40px!important;min-height:40px!important;max-height:40px!important}
+
+/* The journal's editable text, account selection, and date fields share one size. */
+html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-grid,#simpleRows1430,#jeLinesBody) :is(input:not([type=checkbox]):not([type=radio]),textarea,.account-search1428,.oj-date-button104,.direction-toggle1439){font-size:20px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-grid,#simpleRows1430,#jeLinesBody) :is(input:not([type=checkbox]):not([type=radio]),textarea,.account-search1428,.oj-date-shell104,.oj-date-button104,.direction-toggle1439,.account-choice14231,.account-input-wrap){height:43px!important;min-height:43px!important;max-height:43px!important;box-sizing:border-box!important}
+html[data-device132=tablet] body .account-list1428 :is(.account-option1428,.account-filter14266){font-size:16.25px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label :is(input.account-search1428[readonly],.oj-date-button104){font-size:20px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input.account-search1428[readonly],.oj-date-button104){font-size:20px!important}
