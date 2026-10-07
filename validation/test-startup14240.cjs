@@ -1,7 +1,7 @@
 const vm=require('vm'),fs=require('fs'),assert=require('assert/strict');
 (async()=>{
 const classes=new Set(),children=new Map(),box={hidden:true,classList:{toggle(){}},querySelector(s){if(!children.has(s))children.set(s,{classList:{toggle(){}}});return children.get(s)}};
-const document={readyState:'complete',body:{classList:{toggle(n,v){v?classes.add(n):classes.delete(n)},contains:n=>classes.has(n)},append(){}},getElementById:()=>box};
+const document={documentElement:{dataset:{}},readyState:'complete',body:{classList:{toggle(n,v){v?classes.add(n):classes.delete(n)},contains:n=>classes.has(n)},append(){}},getElementById:()=>box};
 let releaseLegal;const legal=new Promise(r=>releaseLegal=r),done=async()=>{};
 const context={document,liveProfile:{id:'actor'},Location69:{view:'dashboard'},loadReferenceDataFromSupabase:done,loadJournalFromSupabase:done,loadBusinessSettingsFromSupabase:done,loadSubmissionsFromSupabase:done,loadProfilesFromSupabase:done,loadLegalDocumentsFromSupabase:()=>legal,showCenterStatus(){},setTimeout,clearTimeout};
 context.window=context;context.workflowReady1443=Promise.resolve();context.switchTab=view=>context.Location69.view=view;vm.createContext(context);vm.runInContext(fs.readFileSync(require('path').join(__dirname,'../scripts/startup1443.js'),'utf8'),context);

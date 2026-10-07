@@ -6,12 +6,14 @@ let lastDraft14237='';let draftOwner1427='',phoneSession14225='',phoneDrafts1427
 function draftKey1427(id){return 'ojm_phone_draft1427:'+String(parent.OJM_SUPABASE_URL||location.origin)+':'+id}
 function ensurePhoneOwner1427(){
  const me=A.profile(),id=me?.id,session=A.session();if(!id||!A.ready())return false;if(id===draftOwner1427&&phoneSession14225===session)return true;
- draftOwner1427=id;phoneSession14225=session;last='';lastDraft14237='';document.querySelectorAll('main.screen').forEach(n=>n.replaceChildren());
+ draftOwner1427=id;phoneSession14225=session;document.documentElement.dataset.phoneOwner14288=session;document.documentElement.dataset.phoneReady14288='false';last='';lastDraft14237='';document.querySelectorAll('main.screen').forEach(n=>n.replaceChildren());
  try{phoneDrafts1427=JSON.parse(localStorage.getItem(draftKey1427(id)))||{staff:{}}}catch{phoneDrafts1427={staff:{}}}
  phoneDrafts1427.staff||={};phoneDrafts1427.ui||={positions:{},accounts:{}};phoneDrafts1427.ui.positions||={};phoneDrafts1427.ui.accounts||={};
  Object.assign(S,{module:'subusers',page:'home',user:me.role==='admin'||(!A.allowed('sub-users-workspace')&&A.teamHomeAllowed())?null:id,search:'',staffDraft:null,journalDraft:null,editingStaff:false,editingJournal:false,journalForm:false,pendingStaff:null,accountType14253:'',ledgerAccount14248:null,ledger14248:null});
  const saved=phoneDrafts1427.location,landing=A.landing?.();if(saved?.page==='totals')saved.page='history';if(saved?.module==='settings'&&saved.page==='access')saved.page='users';
  if(saved&&!(me.role!=='admin'&&landing?.id===id&&landing.fresh)){const before={module:S.module,page:S.page,user:S.user};Object.assign(S,saved);if(!pageAllowed1441())Object.assign(S,before);}
+ // A restored draft can never select an owner outside the current access list.
+ if(S.module==='subusers'&&S.user&&!A.users().some(u=>String(u.id)===String(S.user)))S.user=A.allowed('sub-users-workspace')?id:null;
  if(S.module==='subusers'&&me.role!=='admin'&&!S.user&&!A.teamHomeAllowed())S.user=id;
  const staff=phoneDrafts1427.staff[S.user];if(staff){S.staffDraft=staff.data;S.editingStaff=staff.editing}
  if(phoneDrafts1427.journal&&A.allowed('journal')){S.journalDraft=phoneDrafts1427.journal.data;S.editingJournal=phoneDrafts1427.journal.editing}
@@ -31,7 +33,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const paths={home:'M3 11l9-8 9 8M5 10v11h14V10M10 21v-7h4v7',book:'M12 5C8 2 3 3 3 3v17s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2v17',wallet:'M3 5h17v16H3zM3 5V3h14v2M15 11h6v5h-6z',calendar:'M4 5h16v16H4zM4 9h16M8 2v6M16 2v6M8 13h3M8 17h6',review:'M5 4h14v17H5zM9 2h6v4H9zM8 12l3 3 5-6',shield:'M12 2l9 4v6c0 5-9 10-9 10S3 17 3 12V6zM8 12l3 3 5-6',people:'M8 10a4 4 0 100-8 4 4 0 000 8M2 22v-4a6 6 0 0112 0v4M17 5a4 4 0 010 8M18 16a5 5 0 014 5',chart:'M5 21V11M12 21V3M19 21V7',plus:'M12 3v18M3 12h18',file:'M5 2h9l5 5v15H5zM14 2v5h5M8 12h8M8 16h6',box:'M3 7l9-4 9 4v11l-9 4-9-4zM3 7l9 5 9-5M12 12v10',utensils:'M5 2v8h6V2M8 2v20M19 2c-4 3-4 7-4 11h4v9V2',history:'M3 11a9 9 0 119 10M3 4v7h7M12 7v6l4 2',close:'M5 10h14v11H5zM8 10V6a4 4 0 018 0v4'};
 const icon=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[k]||paths.book}"/></svg>`;
 const action=fn=>{actions.push(fn);return `data-act="${actions.length-1}"`};
-const button=(text,fn,primary=false,disabled=false)=>`<button type="button" class="btn ${primary?'primary':''}" ${action(fn)} ${disabled?'disabled':''}>${esc(text)}</button>`;
+const button=(text,fn,primary=false,disabled=false)=>`<button type="button" class="btn ${primary?'primary':''} ${/^←?\s*Back\b/.test(text)?'phone-back14288':''}" ${action(fn)} ${disabled?'disabled':''}>${esc(text)}</button>`;
 const head=(title,description='')=>`<h1>${title}</h1><p>${description}</p>`;
 const empty=text=>`<div class="card empty132">${esc(text)}</div>`;
 const row=(title,subtitle,value,fn,k='wallet')=>`<button class="list phone-list132" ${action(fn)}><span class="round ${k==='utensils'?'orange':''}">${icon(k)}</span><span class="desc"><b>${esc(title)}</b><small>${esc(subtitle)}</small></span><span class="right money">${esc(value)}</span><span>›</span></button>`;
@@ -135,11 +137,22 @@ function toggleAccount1424(){if(document.getElementById('phoneAccount1424')){clo
 document.addEventListener('click',e=>{if(!e.target.closest('.profile,#phoneAccount1424'))closeAccount1424()});document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeAccount1424();document.querySelector('.profile').focus({preventScroll:true})}});
 function snapshot(){if(S.module==='subusers')return JSON.stringify([A.session(),A.workspaceUsers(),S.user?A.workspaceState(S.user):null,S.user?A.funds(S.user):null,A.reports(S.user),S.module,S.page,S.user,S.search,S.month,S.entryMonth14237]);return JSON.stringify([A.profile()?.id,A.workspaceUsers(),A.settingsUsers(),A.accounts(),A.journals(),A.reports(S.user),A.reminders(),S.user?A.funds(S.user):null,A.dashboard().state.mappings,A.dashboard().state.month,A.dashboard().state.currency,S.module,S.page,S.search,S.review,S.month])}
 function refresh(force=false){
- if(!A.profile()){draftOwner1427='';document.querySelectorAll('main.screen').forEach(n=>n.replaceChildren());return}
- if(!A.ready()||!phoneLayoutReady14285||navigationPending14285)return;
- if(draftOwner1427!==A.profile().id||phoneSession14225!==A.session()){ensurePhoneOwner1427();navigate(S.module,S.page,false,true);return}
+ if(!A.ready()){
+  // Hide and discard any previous identity immediately, including an open picker.
+  document.documentElement.dataset.phoneReady14288='false';
+  if(!A.profile()||draftOwner1427!==A.profile().id||phoneSession14225!==A.session()){
+   workspaceOpen14238++;navigationPending14285=false;draftOwner1427='';last='';renderedLocation14250=null;
+   window.PhoneAccountPicker14227?.close(false,false);closeAccount1424();
+   document.querySelectorAll('main.screen').forEach(n=>n.replaceChildren());$('phoneUserTabs14236')?.replaceChildren();
+  }
+  return;
+ }
+ if(!phoneLayoutReady14285)return;
+ if(draftOwner1427!==A.profile().id||phoneSession14225!==A.session()){workspaceOpen14238++;navigationPending14285=false;ensurePhoneOwner1427();navigate(S.module,S.page,false,true);return}
+ if(navigationPending14285)return;
  const visible=document.querySelector('main.screen:not(.hidden)');
  if(!visible?.childElementCount){initializePhone1425();return}
+ if(document.documentElement.dataset.phoneReady14288!=='true'){if(render())phoneLoading14285(false);return}
  if(S.module==='subusers'&&S.page==='ledger')return;
  if(document.getElementById('phoneAccountPicker14227')||busy||(!force&&S.page==='post'&&document.querySelector('#post .staff-editor14225'))||(!force&&S.journalForm))return;
  const signature=snapshot();if(force||signature!==last)render()
@@ -167,7 +180,7 @@ function render(){
   root.querySelectorAll('[data-key]').forEach(n=>{if(open.includes(n.dataset.key))n.open=true});
   if(S.module==='subusers'&&A.teamHomeAllowed()&&!S.user){if(!keepTeam){parent.TeamHome14227?.mount(root.querySelector('#phoneTeam14227'),{phone:true,onUser:id=>chooseWorkspace(id),onReview:id=>{if(id)A.compare(id)},onAccess:()=>navigate('settings','users')});const team=root.querySelector('#phoneTeam14227')?._team14227;if(team&&phoneDrafts1427.ui.team)Object.assign(team.state,phoneDrafts1427.ui.team);}parent.TeamHome14227?.notify();}
   if(S.module==='subusers'&&S.page==='ledger'&&S.user){parent.AssignedLedger14281?.mount(root.querySelector('#assignedPhoneLedger14281'),S.user);const title=root.querySelector('.assigned-ledger14281 h3');if(title)title.textContent='Assigned Account Ledger';}
-  bindInputs();restorePhonePosition14285(root);last=signature;persistPhoneDraft1427();paintSaveErrors14234();renderError14250='';return true;
+  bindInputs();restorePhonePosition14285(root);last=signature;persistPhoneDraft1427();paintSaveErrors14234();renderError14250='';document.documentElement.dataset.phoneReady14288='true';return true;
  }catch(error){
   if(!committed){actions=previousActions;if(renderedLocation14250?.session===identity){const {module,page,user}=renderedLocation14250;Object.assign(S,{module,page,user});}}
   reportRenderError14250(error);
@@ -300,7 +313,7 @@ function submittedHistory14247(reports){
 }
 function staffEntries14225(reports){
  const pending=S.entryView14248==='pending',groups=A.staffGroups(S.user).filter(g=>(pending?['submitted','reviewed'].includes(g.batch.status):['draft','returned'].includes(g.batch.status))&&(!S.search||JSON.stringify(g.lines).toLowerCase().includes(S.search.toLowerCase())));
- return head('Entries')+'<div class="period-tabs14248">'+['active','pending'].map(v=>'<button type="button" class="'+((S.entryView14248||'active')===v?'active':'')+'" '+action(()=>{S.entryView14248=v;render()})+'>'+ (v==='active'?'Active':'Pending')+'</button>').join('')+'</div>'+searchBox()+deviceEntries14248()+
+ return head('Entries')+'<div class="period-tabs14248">'+['active','pending'].map(v=>'<button type="button" class="'+((S.entryView14248||'active')===v?'active':'')+'" aria-pressed="'+((S.entryView14248||'active')===v)+'" '+action(()=>{S.entryView14248=v;render()})+'>'+ (v==='active'?'Active':'Pending')+'</button>').join('')+'</div>'+searchBox()+deviceEntries14248()+
  (groups.slice(0,S.entryLimit14237||30).map(({batch,lines})=>{
   const first=lines[0],canEdit=['draft','returned'].includes(batch.status)&&A.canWriteStaff(S.user);
   return '<details class="entry132 card" data-key="line-'+esc(first.id)+'"><summary><span class="round orange">'+icon('book')+'</span><span class="desc"><b>'+esc(first.transaction_date)+'</b><small>'+lines.length+' entries · '+amounts14248(lines)+'</small></span><span class="status">'+esc(batch.status)+'</span></summary><div class="entry-detail1425">'+lines.map(l=>'<div class="list"><span class="desc"><b>'+esc(cleanAccount14248(l.account_id))+'</b><small>'+esc(l.memo)+'</small><small>'+esc(first.workspace_entry_no||first.reference||'')+'</small></span><b>'+money(l.amount,l.currency_code)+'</b></div>').join('')+(canEdit?'<div class="actions">'+button('Edit',()=>{capturePhoneDraft1427();S.staffDraft=A.staffEditorDraft(S.user,first.id);S.editingStaff=true;S.page='post';render()})+button('Delete',()=>A.voidStaffGroup(S.user,first.id),false,!A.allowed('sub-users-workspace','void'))+'</div>':'')+'</div></details>';
@@ -353,9 +366,9 @@ function phoneHome14248(reports,funds,rules){const submitted=reports.filter(r=>!
 }
 function phoneAccounts14248(funds,rules){const G=parent.AccountGroups14253,ids=[...new Set([...rules.fundIds,...rules.entryIds,rules.counterpart].filter(Boolean))].filter(id=>A.accounts().some(a=>String(a.id)===String(id)&&a.isPosting!==false)),groups=G.groups.filter(([key])=>ids.some(id=>G.type(G.find(id))===key));
 let selected=S.accountType14253||'';if(selected&&!groups.some(([key])=>key===selected))selected='';S.accountType14253=selected;
-const tabs='<div class="account-types14253" role="group" aria-label="Account categories">'+groups.map(([key,label,symbol])=>'<button type="button" aria-pressed="'+(selected===key)+'" '+action(()=>{S.accountType14253=key;render()})+'><span aria-hidden="true">'+symbol+'</span>'+label+'</button>').join('')+'</div>';
+const tabs='<div class="account-types14253" role="group" aria-label="Account categories">'+[['','All',''],...groups].map(([key,label,symbol])=>'<button type="button" aria-pressed="'+(selected===key)+'" '+action(()=>{S.accountType14253=key;render()})+'><span aria-hidden="true">'+symbol+'</span>'+label+'</button>').join('')+'</div>';
 const filtered=ids.filter(id=>(!selected||G.type(G.find(id))===selected)&&(!S.search||(cleanAccount14248(id)+' '+id).toLowerCase().includes(S.search.toLowerCase())));
-return head('Accounts')+searchBox()+tabs+(!ids.length?empty('No posting accounts are assigned to this user.'):!selected&&!S.search?empty('Choose a category to view its accounts.'):'<section class="card account-list14248">'+(filtered.map(id=>{const f=(funds||[]).find(f=>String(f.account_id||f.id)===String(id));return accountRow14248(id,f?f.currency+' '+num(f.closing):'View ledger')}).join('')||'<p>No matching accessible accounts.</p>')+'</section>');}
+return head('Accounts')+searchBox()+tabs+(!ids.length?empty('No posting accounts are assigned to this user.'):'<section class="card account-list14248">'+(filtered.map(id=>{const f=(funds||[]).find(f=>String(f.account_id||f.id)===String(id));return accountRow14248(id,f?f.currency+' '+num(f.closing):'View ledger')}).join('')||'<p>No matching accessible accounts.</p>')+'</section>');}
 
 function submissionCard14248(r){const lines=validLines14248(r);return '<details class="card submission14248" data-key="submission-'+esc(r.id)+'"><summary><span class="round">'+icon('calendar')+'</span><span class="desc"><b>'+esc(String(r.submitted_at||r.period_start||'').slice(0,10))+'</b><small>'+lines.length+' transactions · '+amounts14248(lines)+'</small></span><span class="status">'+esc(r.status==='submitted'?'Submitted':r.status)+'</span></summary>'+lines.map(l=>'<div class="list"><span class="desc"><b>'+esc(cleanAccount14248(l.account_id))+'</b><small>'+esc(l.transaction_date)+' · '+esc(l.memo)+'</small><small>'+esc(l.workspace_entry_no||l.reference||'')+'</small></span><b>'+money(l.amount,l.currency_code)+'</b></div>').join('')+'</details>';}
 function deviceEntries14248(){return (parent.offline14239?.state().jobs||[]).filter(j=>j.payload.p_owner===S.user&&j.status!=='synced').map(j=>'<section class="card"><div class="row"><b>Saved on device</b><span class="status">'+esc(j.status==='attention'?'Needs attention':'Pending sync')+'</span></div><p>'+esc(j.payload.p_items[0]?.date)+' · '+esc(j.payload.p_snapshot?.memo||'Entry')+'</p><small>'+esc(j.message||'Syncs automatically when connected')+'</small></section>').join('');}
@@ -410,13 +423,16 @@ parent.addEventListener('save-state14234',()=>{if(S.page==='entries'&&!busy)rend
 
 function initializePhone1425(){
  if(!phoneLayoutReady14285||!A.ready()||!ensurePhoneOwner1427())return false;
+ // Parent notifications and the readiness timer can arrive together. Initialize once
+ // per identity so a late startup callback cannot replace a form or close its picker.
+ if(navigationPending14285||renderedLocation14250?.session===A.session()&&document.documentElement.dataset.phoneReady14288==='true')return true;
  if(!pageAllowed1441()){
   const order=['subusers','settings'];
   const module=order.find(m=>firstModulePage(m));if(module){S.module=module;S.page=firstModulePage(module);S.user=module==='subusers'&&A.profile().role!=='admin'?A.profile().id:null}
  }
  navigate(S.module,S.page,false,true);return true;
 }
-async function startPhone14285(){if(document.readyState!=='complete')await new Promise(resolve=>window.addEventListener('load',resolve,{once:true}));await document.fonts.ready;phoneLayoutReady14285=true;if(!initializePhone1425()){const readyTimer=setInterval(()=>{if(initializePhone1425())clearInterval(readyTimer)},500)}}startPhone14285();
+async function startPhone14285(){phoneLoading14285(true,'Loading your workspace…');if(document.readyState!=='complete')await new Promise(resolve=>window.addEventListener('load',resolve,{once:true}));await document.fonts.ready;phoneLayoutReady14285=true;if(!initializePhone1425()){const readyTimer=setInterval(()=>{if(initializePhone1425())clearInterval(readyTimer)},500)}}startPhone14285();
 })();
 
 (()=>{if(parent===window)return;let last=0;for(const type of ["pointerdown","pointermove","keydown","input","wheel","touchstart"])document.addEventListener(type,()=>{if(Date.now()-last<1000)return;last=Date.now();parent.postMessage({type:"oonjai-activity1434"},location.protocol==="file:"?"*":location.origin)},{capture:true,passive:true})})();

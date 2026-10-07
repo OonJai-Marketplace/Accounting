@@ -2894,11 +2894,11 @@ async function hydrateSupabaseSession(session) {
     await loadLiveProfile(session.user);checkSession();
     await loadCurrentPermissions();checkSession();
     document.body.classList.add('startup-pending1443');
-    applyLiveRoleAccess();window.releaseLogin1443?.();
-    // Paint the permitted shell before restoring the destination and loading its data.
-    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));checkSession();
+    // Resolve the authorized destination before releasing the sign-in screen.
+    // Never paint the default dashboard or a previous account during this transition.
+    applyLiveRoleAccess();checkSession();
     if(typeof restoreStartup88==='function')restoreStartup88();
-    checkSession();
+    checkSession();window.releaseLogin1443?.();
     if(window.startupData1443)await startupData1443(checkSession);
     else {const referenceReady=loadReferenceDataFromSupabase();await Promise.all([referenceReady.then(()=>loadJournalFromSupabase()),loadBusinessSettingsFromSupabase(),loadSubmissionsFromSupabase(),loadProfilesFromSupabase(),loadLegalDocumentsFromSupabase()]);}
     checkSession();
@@ -5271,7 +5271,7 @@ function restoreStartup88(){
  if(personal&&!restore){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:!livePermission?.can_approve}];activeSubUserId='self';window.v49SetView?.(liveProfile.id,'home');}
  if(target?.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target||'dashboard');Location69.view=window.normalizeReportTarget14262?.(target)||target;
  if(personal&&!restore)window.personalJournal1437?.show(String(liveProfile.id),'home');
- Location69.ready=true;
+ Location69.ready=true;window.access113?.enforce();
  requestAnimationFrame(()=>{if(!Location69.userNavigated&&restore&&appWorkspaceScroller())appWorkspaceScroller().scrollTop=saved.scroll||0});
 }
 hydrateSupabaseSession=async function(session){

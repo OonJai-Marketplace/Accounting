@@ -18,7 +18,7 @@ function restoreStartup88(){
  if(personal&&!restore){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:!livePermission?.can_approve}];activeSubUserId='self';window.v49SetView?.(liveProfile.id,'home');}
  if(target?.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target||'dashboard');Location69.view=window.normalizeReportTarget14262?.(target)||target;
  if(personal&&!restore)window.personalJournal1437?.show(String(liveProfile.id),'home');
- Location69.ready=true;
+ Location69.ready=true;window.access113?.enforce();
  requestAnimationFrame(()=>{if(!Location69.userNavigated&&restore&&appWorkspaceScroller())appWorkspaceScroller().scrollTop=saved.scroll||0});
 }
 hydrateSupabaseSession=async function(session){

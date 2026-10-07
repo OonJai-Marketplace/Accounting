@@ -52,13 +52,13 @@ async function audit(page,name){
   const rgb=s=>(s.match(/[\d.]+/g)||[]).map(Number);
   const lum=c=>c.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
   const found=[];
-  for(const n of document.querySelectorAll('.tab-content.active *,main.screen:not(.hidden) *,dialog[open] *,.oj-date-popup104 *,.account-list1428 *,.ui-dialog108 *')){
+  for(const n of document.querySelectorAll('.tab-content.active *,main.screen:not(.hidden) *,dialog[open] *,.oj-date-popup104 *,.account-list1428 *,.ui-dialog108 *,.phone-account-picker14227 *')){
    if(![...n.childNodes].some(t=>t.nodeType===3&&t.textContent.trim())&&!n.matches('input:not([type=checkbox]):not([type=radio])'))continue;
    if(!n.checkVisibility()||n.getBoundingClientRect().width<5||n.closest('.doc-canvas105'))continue;
    const c=getComputedStyle(n);let bg=[255,255,255],p=n;
    while(p){const v=rgb(getComputedStyle(p).backgroundColor);if(v.length===3||v[3]>.95){bg=v;break}p=p.parentElement}
-   const a=lum(rgb(c.color)),b=lum(bg),ratio=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
-   if(ratio<4.5)found.push({text:(n.value||n.textContent).trim().slice(0,70),ratio:+ratio.toFixed(2),node:n.tagName+'.'+n.className,bg:p?.tagName+'.'+p?.className,fg:c.color});
+   const visibleInk=c.webkitTextFillColor||c.color;const a=lum(rgb(visibleInk)),b=lum(bg),ratio=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+   if(ratio<4.5)found.push({text:(n.value||n.textContent).trim().slice(0,70),ratio:+ratio.toFixed(2),node:n.tagName+'.'+n.className,bg:p?.tagName+'.'+p?.className,fg:visibleInk});
   }return found;
  });report.screens.push({name,failures});
 }
@@ -90,7 +90,7 @@ async function desktop(browser,base){
    if(id==='document-editor105'){
     const paper=page.frameLocator('#docFrame105').locator('.page').first();await paper.waitFor();
     assert.equal(await paper.evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 255, 255)','Document paper remains white');
-    assert.equal(await page.frameLocator('#docFrame105').locator('body').evaluate(n=>getComputedStyle(n).backgroundColor),mode==='dark'?'rgb(14, 40, 31)':'rgb(237, 242, 240)','Editor surround follows theme');
+    assert.equal(await page.frameLocator('#docFrame105').locator('body').evaluate(n=>getComputedStyle(n).backgroundColor),mode==='dark'?'rgb(14, 40, 31)':'rgb(231, 224, 209)','Editor surround follows theme');
    }
    if(shots.has(id))await shot(page,mode+'-'+id);
   }
@@ -130,6 +130,7 @@ async function devices(browser,base){
    await page.waitForFunction(mode=>OjmAppearance14287.get()===mode,mode);
    for(const name of ['home','accounts','post','entries','history']){
     await frame.evaluate(name=>go(name),name);await page.waitForTimeout(160);await audit(frame,'phone-'+width+'-'+mode+'-'+name);await shot(page,'phone-'+width+'-'+mode+'-'+name);
+    if(name==='post'){await frame.locator('#post .account-choice14231>input').first().click();await frame.locator('#phoneAccountPicker14227').waitFor();await audit(frame,'phone-'+width+'-'+mode+'-account-picker');await shot(page,'phone-'+width+'-'+mode+'-account-picker');await frame.locator('[data-picker-back]').click();}
    }
   }
   await frame.evaluate(()=>go('post'));await page.waitForTimeout(120);
@@ -145,6 +146,7 @@ async function devices(browser,base){
   await frame.locator('.profile').click();await frame.locator('#themePhone14287').waitFor({state:'visible'});const menu=frame.locator('#phoneAccount1424');
   assert.equal(await menu.locator('button').last().textContent(),'Sign out');
   assert.equal(await menu.locator('button').nth((await menu.locator('button').count())-2).getAttribute('id'),'themePhone14287');
+  const neutral=await frame.locator('#themePhone14287').evaluate(n=>({border:getComputedStyle(n).borderWidth,bg:getComputedStyle(n).backgroundColor}));assert.equal(neutral.border,'0px');assert.equal(neutral.bg,'rgba(0, 0, 0, 0)','Theme menu item is neutral like its neighbors');
   await frame.locator('#themePhone14287').click();await shot(page,'phone-'+width+'-theme-menu');
   report.checks.push('Phone '+width+': header controls fit, isolated input focus, switch above Sign out, frame synchronization');
   await context.close();
