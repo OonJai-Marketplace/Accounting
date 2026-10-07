@@ -930,7 +930,7 @@
               <div class="settings-field"><label>Date Format</label><select class="je-select" name="dateFormat"><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option></select></div>
               <div class="settings-field"><label>Number Format</label><select class="je-select" name="numberFormat"><option value="1,234.56">1,234.56</option><option value="1.234,56">1.234,56</option><option value="1 234,56">1 234,56</option></select></div>
               <div class="settings-field"><label>Inactivity Timeout (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('session-timeout')" aria-label="Explain Inactivity Timeout">*</button></label><input class="je-input" name="sessionTimeout" type="number" min="5" max="480" value="30"></div>
-              <div class="settings-field"><label>Timeout Warning (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('timeout-warning')" aria-label="Explain Timeout Warning">*</button></label><input class="je-input" name="sessionWarning" type="number" min="1" max="30" value="1"></div>
+              <input name="sessionWarning" type="hidden" value="1">
               <div class="settings-field"><label>Default Opening Page</label><select class="je-select" name="defaultLandingPage"><option value="dashboard">Dashboard</option><option value="entry-submissions">Entry Submission</option><option value="reports">Reports</option></select></div>
               <div class="settings-field"><label>Record Retention (years) <button type="button" class="setting-help" onclick="openSettingHelp('record-retention')" aria-label="Explain Record Retention">*</button></label><select class="je-select" name="retentionYears"><option value="3">3 years</option><option value="5">5 years</option><option value="7">7 years</option><option value="10">10 years</option></select></div>
               <div class="settings-field"><label>Archive Reminder</label><select class="je-select" name="archiveFrequency"><option value="quarterly">Quarterly</option><option value="semiannual">Every 6 months</option><option value="annual">Annually</option><option value="never">Never</option></select></div>
@@ -1374,5 +1374,8 @@
 <script src="scripts/audit-storage14232.js?v=142.41"></script>
 <link rel="stylesheet" href="styles/data-tools14232.css?v=142.41">
 <script src="scripts/data-tools14232.js?v=142.41"></script>
-<script src="scripts/save-notices14234.js?v=142.41"></script><script src="scripts/opening-balances14234.js?v=142.41"></script></body>
+<script src="scripts/save-notices14234.js?v=142.41"></script><script src="scripts/opening-balances14234.js?v=142.41"></script><script src="scripts/journal-description14281.js?v=142.81"></script>
+<script src="scripts/assigned-ledger14281.js?v=142.81"></script>
+<link rel="stylesheet" href="styles/settings-polish14281.css?v=142.81">
+</body>
 </html>

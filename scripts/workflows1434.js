@@ -26,8 +26,7 @@ session.arm=function(){
  syncActivity1443();this.lastArmed=Date.now();
  const remaining=Math.max(0,this.minutes()*60000-(Date.now()-this.lastActivity)),warning=Math.min(this.minutes()-1,Math.max(1,Number(ApplicationSettings.system?.sessionWarning)||1))*60000;
  this.logoutTimer=setTimeout(()=>this.check1434(),remaining);
- if(remaining>warning)this.warningTimer=setTimeout(()=>this.warn(Math.ceil(warning/60000)),remaining-warning);
- else if(remaining>0)this.warn(Math.max(1,Math.ceil(remaining/60000)));
+ this.hideWarning();
 };
 session.check1434=async function(){
  if(!liveProfile||Location69.hydrating)return;syncActivity1443();

@@ -1,7 +1,7 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '142.78', $ = id => document.getElementById(id);
+  const VERSION = '142.81', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
   const pages = ['home', 'accounts', 'post', 'entries', 'totals'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -282,7 +282,7 @@
         let data = await record(owner); if (!current(owner,epoch)) return;
         S.data=data;data=await migrateLegacy(owner,data);if(!current(owner,epoch))return;S.data=data;if(isAdmin())S.directory=data.directory||[];
         const active = Number(localStorage.getItem(activityKey(owner)) || 0), minutes = Number(data.policy?.timeout_minutes || 60);
-        if (active && Date.now()-active >= minutes*60000) { await signout(false,'Your session expired after inactivity. Sign in again to continue.');return; }
+        if (active && Date.now()-active >= minutes*60000) { await signout(false);return; }
         let location;try{location=JSON.parse(localStorage.getItem(locationKey(owner)));}catch{}
         S.page = pages.includes(location?.page||data.page) ? location?.page||data.page : 'home'; S.month = /^\d{4}-\d{2}$/.test(location?.month||data.month||'') ? location?.month||data.month : today().slice(0,7);
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}
@@ -461,7 +461,7 @@
   window.addEventListener('pagehide',saveMirror);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveMirror();else if(S.owner&&navigator.onLine)void refresh();});
   window.addEventListener('online',()=>{S.online=true;paintConnection();if(S.owner)void refresh();});window.addEventListener('offline',()=>{S.online=false;paintConnection();notice('Offline. Downloaded records and your drafts remain available.');});
   window.addEventListener('storage',e=>{if(e.key===storageKey){const session=cachedSession();if(!session?.user||session.user.id!==S.actor){saveMirror();sessionGate();void boot();}else S.session=session;}});
-  setInterval(()=>{if(!S.owner)return;const active=Number(localStorage.getItem(activityKey(S.actor))||touchAt);if(Date.now()-active>=Number(S.data.policy?.timeout_minutes||60)*60000)void signout(false,'Your session expired after inactivity. Sign in again to continue.');},15000);
+  setInterval(()=>{if(!S.owner)return;const active=Number(localStorage.getItem(activityKey(S.actor))||touchAt);if(Date.now()-active>=Number(S.data.policy?.timeout_minutes||60)*60000)void signout(false);},15000);
   let pullStart=null;document.addEventListener('touchstart',e=>{if(window.scrollY===0&&!e.target.closest('input,textarea,select,dialog'))pullStart=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{if(pullStart!==null&&e.changedTouches[0].clientY-pullStart>90&&S.page!=='post')void refresh();pullStart=null;},{passive:true});
   const icons={home:'M3 10l9-7 9 7v11h-6v-6H9v6H3z',wallet:'M3 6h18v14H3z M3 6V3h14v3 M16 12h5',plus:'M12 4v16 M4 12h16',book:'M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h5',chart:'M4 20V10 M10 20V4 M16 20v-9 M22 20H2'};for(const node of document.querySelectorAll('[data-icon]'))node.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+icons[node.dataset.icon]+'"/></svg>';
   if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='ojm-phone-ready'&&e.data.version===VERSION){S.shellReady=true;paintConnection();}});window.addEventListener('load',()=>{navigator.serviceWorker.register('phone-sw.js?v='+VERSION,{scope:'./',updateViaCache:'none'}).then(reg=>{if(reg.active)reg.active.postMessage({type:'ojm-phone-status'});}).catch(()=>notice('Offline reopening is not ready yet. Continue online and reconnect to finish downloading the phone files.',true));},{once:true});}

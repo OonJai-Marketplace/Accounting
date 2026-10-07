@@ -1,0 +1,24 @@
+// Isolated PostgreSQL tests; no live database connection.
+const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require('/tmp/oonjai-db-test/node_modules/@electric-sql/pglite');
+(async()=>{const db=new PGlite();await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT nullif(current_setting('app.actor',true),'')::uuid$$;
+CREATE FUNCTION public.accounting_workspace_allowed123() RETURNS boolean LANGUAGE sql AS $$ SELECT true $$;
+CREATE TABLE profiles(id uuid PRIMARY KEY,role text,status text);CREATE TABLE user_permissions(user_id uuid PRIMARY KEY);
+CREATE TABLE accounts(id uuid PRIMARY KEY,code text,name text,currency_code text,is_posting boolean);
+CREATE TABLE journal_entries(id uuid PRIMARY KEY,entry_no text,transaction_date date,memo text,status text,created_at timestamptz);
+CREATE TABLE journal_lines(id uuid PRIMARY KEY,journal_entry_id uuid,account_id uuid,line_date date,line_no integer,description text,debit numeric,credit numeric);
+CREATE FUNCTION public.can_workspace113(uuid) RETURNS boolean LANGUAGE sql AS $$ SELECT EXISTS(SELECT 1 FROM profiles WHERE id=auth.uid() AND role='admin' AND status='active') $$;
+CREATE FUNCTION public.admin_save_access1441(uuid,text,text,jsonb) RETURNS jsonb LANGUAGE plpgsql AS $$BEGIN INSERT INTO user_permissions(user_id) VALUES($1) ON CONFLICT DO NOTHING;RETURN jsonb_build_object('user_id',$1,'saved',true);END $$;
+`);await db.exec(fs.readFileSync('setup/INSTALL-ASSIGNED-LEDGER-v142.81.sql','utf8'));await db.exec(fs.readFileSync('setup/INSTALL-ASSIGNED-LEDGER-v142.81.sql','utf8'));
+const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0'),actor=async n=>db.exec(`SET app.actor='${id(n)}'; SET ROLE authenticated`),root=()=>db.exec("RESET ROLE;SET app.actor=''");
+await db.exec(`INSERT INTO profiles VALUES('${id(1)}','admin','active'),('${id(2)}','submitter','active'),('${id(3)}','submitter','active');INSERT INTO accounts VALUES('${id(10)}','100','Personal clearing','LAK',true),('${id(11)}','101','Other person','USD',true);
+INSERT INTO journal_entries VALUES('${id(20)}','OLD','2026-09-20','Opening','posted','2026-09-20'),('${id(21)}','MAIN-1','2026-10-02','Main company entry','posted','2026-10-02'),('${id(22)}','DRAFT','2026-10-03','Not posted','draft','2026-10-03');
+INSERT INTO journal_lines VALUES('${id(30)}','${id(20)}','${id(10)}',NULL,1,'Opening',100,0),('${id(31)}','${id(21)}','${id(10)}',NULL,1,'Line memo',0,25),('${id(32)}','${id(22)}','${id(10)}',NULL,1,'Exclude me',999,0),('${id(33)}','${id(21)}','${id(11)}',NULL,2,'Other account',25,0);`);
+await actor(1);const perm={user_id:id(2),ledger_account_ids14281:[id(10)]};await db.query('SELECT admin_save_access14281($1,$2,$3,$4)',[id(2),'Staff','submitter',perm]);await actor(2);
+const args=[id(2),id(10),'2026-10-01','2026-10-31',0],read=async a=>(await db.query('SELECT assigned_ledger14281($1,$2,$3,$4,$5) AS value',a)).rows[0].value;
+let data=await read(args);assert.equal(data.opening,100);assert.equal(data.closing,75);assert.equal(data.rows.length,1);assert.equal(data.rows[0].balance,75);assert.equal(data.rows[0].description,'Line memo');assert.equal(data.rows[0].general_description,'Main company entry');
+await assert.rejects(read([id(2),id(11),...args.slice(2)]),/not assigned/);await assert.rejects(read([id(3),...args.slice(1)]),/not accessible/);await assert.rejects(db.query('SELECT admin_save_access14281($1,$2,$3,$4)',[id(2),'Staff','submitter',perm]),/administrator/);await assert.rejects(db.exec(`INSERT INTO journal_lines(id) VALUES('${id(99)}')`),/permission denied/);
+await root();await db.exec('GRANT SELECT,UPDATE ON user_permissions TO authenticated');await actor(2);await assert.rejects(db.exec(`UPDATE user_permissions SET ledger_account_ids14281=ARRAY['${id(11)}'::uuid] WHERE user_id='${id(2)}'`),/administrator/);await root();await db.exec(`UPDATE user_permissions SET ledger_account_ids14281='{}' WHERE user_id='${id(2)}'`);await actor(2);await assert.rejects(read(args),/not assigned/);
+await root();await db.exec(`UPDATE user_permissions SET ledger_account_ids14281=ARRAY['${id(10)}'::uuid];UPDATE profiles SET status='inactive' WHERE id='${id(2)}'`);await actor(2);await assert.rejects(read(args),/not accessible/);
+await root();await db.exec('SET ROLE anon');await assert.rejects(read(args),/permission denied/);
+console.log('PASS assigned main-ledger scope, posted-only rows, opening/running balances, revoked/inactive/other-user/anonymous denials, and no write grant');await db.close();})().catch(e=>{console.error(e);process.exitCode=1});
