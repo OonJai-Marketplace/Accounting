@@ -1,16 +1,22 @@
-/* Use the original user tabs beside the header navigation, with no second row. */
-body.subusers-workspace-active .main-content-area>.module-header{display:flex!important;visibility:visible!important;min-height:54px!important;flex:0 0 54px!important;padding:6px 15px!important;box-sizing:border-box!important}
-body.subusers-workspace-active .module-header .header-left-tools{min-width:0;width:100%;max-width:100%;gap:10px}
-body.subusers-workspace-active .module-header #mainHeaderTitle{display:none!important}
-body.subusers-workspace-active #sub-users-workspace>.sub-user-tabs-shell{display:none!important}
-.workspace-header14266{display:none;min-width:0;flex:1;overflow:hidden}
-body.subusers-workspace-active .workspace-header14266{display:flex;align-items:center}
-body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs{display:flex!important;align-items:center!important;width:auto!important;max-width:100%!important;min-width:0!important;height:45px!important;overflow-x:auto!important;overflow-y:hidden!important;border:0!important;scrollbar-width:thin}
-body.subusers-workspace-active .workspace-header14266 .sub-user-mobile-menu{display:none!important}
-body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab{flex:0 0 auto!important;min-width:max-content!important;max-width:none!important;height:40px!important;min-height:40px!important;padding:9px 14px!important;border:1px solid #cbd5e1!important;border-bottom:0!important;border-radius:9px 9px 0 0!important;background:#e2e8f0!important;color:#475569!important;font:700 12px/1.2 'Plus Jakarta Sans',Arial,sans-serif!important;box-shadow:none!important;touch-action:manipulation}
-body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab.active{background:#fff!important;color:#065f46!important;border-color:#94a3b8!important;box-shadow:inset 0 3px #059669!important}
-body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab.active::after{display:none!important}
+/* One shared workspace navigation above the banner on Main Home and user workspaces. */
+@media(min-width:768px){
+html body.team-shell14227 .main-content-area>.module-header{display:flex!important;visibility:visible!important;min-height:54px!important;height:auto!important;flex:0 0 auto!important;padding:6px 15px!important;box-sizing:border-box!important}
+html body.team-shell14227 .module-header .header-left-tools{display:flex;min-width:0;width:100%;max-width:100%;gap:10px}
+html body.team-shell14227 .module-header #mainHeaderTitle{display:none!important}
+html body .module-header .team-tabs14230{display:none}
+html body.team-shell14227 .module-header .team-tabs14230{display:flex;flex:1;min-width:0;max-width:100%;margin:0;padding:0;border:0;gap:12px;overflow:hidden}
+html body .module-header .team-user-tabs14231{display:flex;flex:1;min-width:0;gap:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:2px}
+html body .module-header .team-tabs14230 button{min-height:44px;padding:8px 12px;border:0;border-bottom:3px solid transparent;border-radius:0;background:#fffcf6;color:#4a493f;font:600 13px/1.2 'Plus Jakarta Sans',Arial,sans-serif;box-shadow:none}
+html body .module-header .team-tabs14230 button[aria-current=page]{background:#f1ead8;color:#733713;border-bottom-color:#914511}
+html body .module-header .team-tabs14230 button:not([aria-current=page]):hover{background:#e7f5ef;color:#075b43}
+html body .module-header .team-tabs14230 button:focus-visible{outline:2px solid #bf8942;outline-offset:0}
+html body .module-header .team-search14231{display:flex;align-items:center;gap:6px;flex:0 1 240px;min-width:120px;max-width:28%;border:1px solid #b7cbbd;border-radius:7px;background:#fffdf6;padding:0 8px;margin:0}
+html body .module-header .team-search14231 input{min-width:0;width:100%;height:36px;border:0!important;box-shadow:none!important;background:transparent!important;font:12px 'Plus Jakarta Sans',Arial,sans-serif;padding:5px 0!important}
+html body .module-header .team-search14231 svg{flex:none}
+html body .module-header .team-search14231:focus-within{outline:2px solid #bf8942;outline-offset:0}
+html body.team-shell14227 #subUserWorkspaceTabs,html body.team-shell14227 .sub-user-tabs-shell{display:none!important}
 body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading>div:first-child{display:none!important}
 body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading{justify-content:flex-end!important;padding-top:0!important}
-html[data-device132=tablet] body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab{font-size:12px!important;min-height:44px!important;height:44px!important}
-@media print{.workspace-header14266{display:none!important}}
+html[data-device132=tablet] body .module-header .team-tabs14230 button{min-height:44px}
+}
+@media print{.module-header .team-tabs14230{display:none!important}}

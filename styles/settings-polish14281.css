@@ -9,3 +9,61 @@
 [data-settings-group=payroll] input[data-numeric88],[data-settings-group=payroll] .money-field14231{max-width:135px!important}[data-settings-group=payroll] input[name$=Allowance]{width:86px!important;max-width:86px!important;text-align:center!important}[data-settings-group=payroll] .settings-module94 .settings-field{align-items:start}#archiveExport129 .form113{margin:0!important}#archiveExport129 .data-actions14232{margin:0!important}#archiveExport129{align-items:end}#archiveExport129>.data-actions14232{grid-column:1/-1}
 .v49-desktop-workspace.ledger-view14281>header{display:none!important}.personal-active1437 td:last-child{overflow:visible!important;text-overflow:clip!important}.personal-active1437 td:last-child .je-btn{padding:5px 7px;font-size:12px}
 html body #settings-payroll [data-settings-group=payroll] input[name$="Allowance"]{width:86px!important;max-width:86px!important;min-width:0!important}html body #settings-system [name=sessionTimeout]{width:120px!important;max-width:120px!important;min-width:0!important}html body #companyLogoSettings101{display:grid!important;grid-template-columns:minmax(200px,320px) 64px auto;align-items:center;gap:8px 14px;padding-top:12px;border-top:1px solid #d7e2d3}html body #companyLogoSettings101>label,html body #companyLogoSettings101>small{grid-column:1/-1}html body #companyLogoSettings101 #logoPreview101{width:56px!important;height:56px!important;object-fit:contain;margin:0!important}html body #companyLogoSettings101 #removeLogo101{width:auto!important;justify-self:start}html body #companyLogoSettings101 #companyLogoUpload101{width:100%;min-width:0} @media(max-width:600px){html body #companyLogoSettings101{grid-template-columns:minmax(0,1fr) 56px}html body #companyLogoSettings101 #removeLogo101{grid-column:1/-1}}
+/* v142.83: period controls share the existing Ledger filter row. */
+.ledger-period14283{display:flex;gap:8px;min-width:0}.ledger-period14283>label{flex:1;min-width:0}.ledger-period14283>label[hidden]{display:none!important}.ledger-filters14281>label,.ledger-filters14281>div{min-width:0}.ledger-filters14281{grid-template-columns:minmax(180px,1.7fr) minmax(105px,.8fr) minmax(210px,1.5fr) minmax(150px,1.2fr)}
+@media(max-width:1100px){.ledger-filters14281{grid-template-columns:1fr 1fr}.ledger-filters14281>label:first-child,.ledger-filters14281>label:last-child{grid-column:auto}}
+@media(max-width:500px){.ledger-filters14281>label:first-child,.ledger-filters14281>label:last-child,.ledger-period14283{grid-column:1/-1}}
+@media(min-width:768px){
+/* Fixed action widths prevent controls from escaping the journal table. */
+html body :is(#journal,.personal-active1437) .clustered-journal-table th:last-child{width:76px!important;min-width:76px!important;white-space:nowrap!important}
+html body :is(#journal,.personal-active1437) .clustered-journal-table .transaction-review-actions{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important;width:100%;min-width:0!important}
+html body :is(#journal,.personal-active1437) .clustered-journal-table .transaction-review-actions .je-btn{width:52px!important;max-width:100%!important;min-width:0!important;min-height:28px!important;height:auto!important;padding:5px!important;font-size:11px!important;box-sizing:border-box}
+html body .personal-active1437 :is(th,td){box-sizing:border-box}
+html body .personal-active1437 th:nth-child(3){width:22%!important}html body .personal-active1437 th:nth-child(4){width:auto!important}
+html body .personal-active1437 .personal-actions14283{padding:6px!important;vertical-align:middle}
+/* Archive controls fit their content; preview and verification gates remain intact. */
+html body #settings-data14231 .panel113{padding:14px!important;margin:0 0 12px!important;min-height:0!important}
+html body #settings-data14231 .panel113>header{margin:0 0 6px!important;padding:0!important;min-height:0!important}
+html body #settings-data14231 .panel113>header h2{font-size:18px!important;margin:0!important;line-height:1.4!important}
+html body #settings-data14231 .panel113 p{margin:6px 0 10px!important;font-size:12px!important;line-height:1.5!important}
+html body #settings-data14231 [role=status]:empty{display:none!important}
+html body #settings-data14231 :is(.form113,.data-actions14232){margin:0!important;gap:8px!important}
+html body #settings-data14231 .form113>label[hidden]{display:none!important}
+html body #archiveExport129{grid-template-columns:minmax(260px,1.2fr) minmax(180px,1fr) auto;gap:12px;align-items:end}
+html body #archiveExport129>.data-actions14232{grid-column:auto}
+html body #auditFiles14233{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px 16px}
+html body #auditFiles14233 h3{font-size:14px!important;line-height:1.4!important;margin:0 0 7px!important;padding:0!important}
+html body #auditCopy14233{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,1fr);align-content:start;align-items:end;gap:8px 12px}
+html body #auditCopy14233>:is(h3,p,.data-actions14232){grid-column:1/-1}
+html body #auditCopy14233 .scope-picker14233{margin:0}
+html body #auditFiles14233 .audit-file-upload14233{padding:10px;align-self:start}
+html body #auditFiles14233 .audit-file-upload14233 label{display:flex;align-items:center;gap:8px;font-size:12px;margin:0 0 8px}
+html body #auditUpload14232{min-width:0;width:100%;max-width:100%;padding:6px!important}
+html body #operationalReset142 .reset-grid14281{gap:10px;align-items:start}
+html body #operationalReset142 .reset-card14281{padding:10px}
+html body #operationalReset142 .reset-card14281 h3{margin:0 0 7px;font-size:14px}
+html body #operationalReset142 .reset-card14281 .data-actions14232{display:flex;flex-wrap:wrap;gap:6px!important}
+html body #operationalReset142 .scope-picker14233{margin:0}
+html body #settings-data14231 :is(#archiveExport129,#auditFiles14233,#operationalReset142,#vaultUnlock113) button{min-height:34px!important;padding:7px 10px!important;font-size:12px!important;line-height:1.4!important;white-space:normal}
+html body #vaultUnlock113{display:grid;grid-template-columns:minmax(240px,360px) auto;align-items:end;justify-content:start;gap:8px 12px}
+html body #vaultUnlock113>label{margin:0;min-width:0}
+html body #vaultUnlock113>button{grid-column:2;grid-row:1;justify-self:start}
+html body #vaultUnlock113>p{grid-column:1/-1;margin:0!important}
+/* Tablet report content was previously hidden behind the desktop-only breakpoint. */
+html body .r79{min-width:0;max-width:100%}html body .r79-table{overflow-x:auto}html body .r79-filters{flex-wrap:wrap!important}html body .r79-filters>label{min-width:130px!important;flex:1 1 130px!important}html body .r79-header{flex-wrap:wrap}
+}
+@media(min-width:768px) and (max-width:1100px){
+html body #archiveExport129{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}html body #archiveExport129>.data-actions14232{grid-column:1/-1}
+html body #auditFiles14233{grid-template-columns:1fr}html body #auditCopy14233{grid-template-columns:1fr 1fr auto}html body #auditCopy14233>.data-actions14232{grid-column:3;grid-row:2}html body #auditCopy14233>h3{grid-column:1/-1}
+}
+@media(min-width:768px){
+html body #settings-data14231 #settings-backup113{gap:12px}html body #settings-data14231 #settings-backup113>.panel113{margin:0!important}
+html body #settings-data14231>.embedded-settings14231+.embedded-settings14231{margin-top:12px!important}
+html body #auditCopy14233{padding:0;border-bottom:0}
+html body #auditFiles14233>p{margin:0 0 4px!important}
+html body #auditFiles14233 .audit-file-upload14233 label{white-space:nowrap}
+html body :is(#hr-contracts,#hr-assessments) .hr-form105 .fields82{grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))!important}
+html body :is(#hr-contracts,#hr-assessments) .hr-form105 .fields82>label{min-width:0!important}
+html body :is(#hr-contracts,#hr-assessments) .data-table82{max-width:100%;overflow-x:auto}
+html body :is(#settings-system,#settings-payroll,#settings-statutory) :is(.settings-field,.settings-compact-grid)>*{min-width:0}
+}

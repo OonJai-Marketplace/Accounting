@@ -42,7 +42,7 @@ function reportModel79(kind,oldest=false){
 }
 function reportContent79(kind,oldest=false){const groups=reportModel79(kind,oldest);return groups.map(g=>`<section class="r79-group"><h4>${re79(g.currency)}</h4><div class="r79-metrics">${g.metrics.map(([label,value])=>`<div><small>${re79(label)}</small><strong class="${value<0?'r79-negative':''}">${money69(value)}</strong></div>`).join('')}</div>${reportTable79(g.headers,g.values,g.currency,oldest)}<p class="r79-note">${re79(g.note)}</p></section>`).join('')||'<p class="r79-note">No chart accounts or posted journal data are available yet.</p>'}
 function renderReports79(){
- if(!matchMedia('(min-width:1025px)').matches)return;
+ if(!matchMedia('(min-width:768px)').matches)return;
  for(const [kind,title] of Object.entries(reportNames79)){
  const panel=document.getElementById('report-'+kind);if(!panel||!panel.classList.contains('active'))continue;let host=panel.querySelector('.r79');if(!host){if(!panel.querySelector('.r79-original')){const original=document.createElement('div');original.className='r79-original';for(const child of [...panel.childNodes])if(!child.classList?.contains('area-banner113'))original.append(child);panel.append(original)}host=document.createElement('section');host.className='r79';panel.append(host)}
  const s=Reports79,select=(key,items)=>`<select onchange="reportSet79('${key}',this.value)">${items.map(([v,n])=>`<option value="${re79(v)}" ${String(s[key])===String(v)?'selected':''}>${re79(n)}</option>`).join('')}</select>`,rows=reportData79();
@@ -65,7 +65,7 @@ function printDesktopReport79(kind){
 }
 const switchBefore79=switchTab;switchTab=function(id,...args){const result=switchBefore79(id,...args);if(id?.startsWith('report-'))renderReports79();return result};
 const refreshBefore79=refreshAllTables;refreshAllTables=function(...args){const result=refreshBefore79(...args);renderReports79();return result};
-matchMedia('(min-width:1025px)').addEventListener('change',e=>{if(e.matches)renderReports79()});
+matchMedia('(min-width:768px)').addEventListener('change',e=>{if(e.matches)renderReports79()});
 document.addEventListener('DOMContentLoaded',renderReports79);
 
 const logoutBefore79=logoutDemoUser;logoutDemoUser=async function(){Reports79.notes={};Reports79.cash=[];Reports79.payroll=[];Reports79.account='';Reports79.query='';Reports79.currency='';document.querySelectorAll('.r79,.r79-print-frame').forEach(n=>n.remove());return logoutBefore79()};

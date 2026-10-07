@@ -1,11 +1,5 @@
-/* Reuse the existing user tabs in the header; their original actions and styling stay intact. */
+/* TeamHome owns the single header navigation; retain legacy tabs only as internal state. */
 (()=>{'use strict';
- function ready(){
-  const header=document.querySelector('.module-header .header-left-tools');
-  const tabs=document.getElementById('subUserWorkspaceTabs');
-  if(!header||!tabs)return;
-  const holder=document.createElement('div');holder.className='workspace-header14266';
-  holder.append(tabs);header.append(holder);
- }
+ function ready(){const tabs=document.getElementById('subUserWorkspaceTabs');if(tabs){tabs.hidden=true;tabs.setAttribute('aria-hidden','true')}}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

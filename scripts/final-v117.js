@@ -12,7 +12,7 @@ function tidy(){const active=$('.tab-content.active');if(!active)return;
  document.querySelectorAll('.modal-backdrop,.pay-overlay95,.submission-compare-overlay').forEach(root=>{const close=root.querySelector('header .close117,.modal-header .close117');if(close)root.querySelectorAll('footer button,.modal-footer button').forEach(b=>{if(/^close$/i.test(b.textContent.trim()))b.hidden=true})});
  active.querySelectorAll('button').forEach(b=>{if(b.textContent.trim()==='*')b.classList.add('asterisk117')});
  active.querySelectorAll('label').forEach(l=>{for(const n of l.childNodes)if(n.nodeType===3&&/Main Entry Number Digits/i.test(n.textContent))n.textContent=n.textContent.replace(/Main Entry Number Digits/ig,'Main Entry Number')});
- active.querySelectorAll('select').forEach(s=>{if(s.multiple||s.closest('#document-editor105')||s.closest('.attendance-table95'))return;const longest=Math.max(...[...s.options].map(o=>o.textContent.trim().length),8);const size=Math.min(31,longest+5)+'ch';if(s.style.width!==size)s.style.width=size;s.style.maxWidth='100%'});
+ active.querySelectorAll('select').forEach(s=>{if(s.multiple||s.classList.contains('account-source1428')||s.closest('#document-editor105')||s.closest('.attendance-table95'))return;const longest=Math.max(...[...s.options].map(o=>o.textContent.trim().length),8);const size=Math.min(31,longest+5)+'ch';if(s.style.width!==size)s.style.width=size;s.style.maxWidth='100%'});
  // Keep the compact workflow navigation; one canonical Recipes tab.
  const duplicate=$('#nav-module-menu [onclick*="menu-details"]');if(duplicate)duplicate.hidden=true;
  document.querySelectorAll('#categoryTabs [onclick*="menu-details"]').forEach(n=>n.hidden=true);
