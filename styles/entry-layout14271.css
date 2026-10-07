@@ -125,3 +125,41 @@ html body #journalEntry98#journalEntry98 #jeLinesBody td{padding:2px 4px!importa
 html body #journalEntry98#journalEntry98 #jeLinesBody :is(input,select,.oj-date-button104,.account-choice14231,.account-input-wrap){height:30px!important;min-height:30px!important;max-height:30px!important;padding-top:2px!important;padding-bottom:2px!important}
 html body #journalEntry98#journalEntry98 #jeHeaderRow th.je-date-col,
 html body.je-multi-date #journalEntry98#journalEntry98 table.tx72-editor :is(#jeHeaderRow th.je-date-col,#jeLinesBody td.je-date-col){width:104px!important;min-width:104px!important;max-width:104px!important}
+
+/* The account picker keeps its native select for form state. It must not
+   participate in tablet layout when the visible picker replaces it. */
+html[data-device132=tablet] body #journalEntry98 select.account-source1428{
+  display:none!important;
+  width:1px!important;
+  min-width:0!important;
+  max-width:1px!important;
+}
+
+/* Tablet typography follows the desktop hierarchy at 1.25 times its size.
+   Keep fields tall enough for the larger text in both journal modes. */
+html[data-device132=tablet] body{
+  --desktop-heading:25px;
+  --desktop-subheading:20px;
+  --desktop-body:16.25px;
+  --desktop-label:15px;
+}
+html[data-device132=tablet] body.shell113 .banner-copy113 h1{font-size:47.5px!important}
+html[data-device132=tablet] body.shell113 .banner-copy113 p{font-size:16.25px!important}
+html[data-device132=tablet] body #personalWorkspace1437 .personal-tabs1437 button,
+html[data-device132=tablet] body #subUserWorkspacePanel .v49-desktop-user-actions>button{font-size:15px!important}
+html[data-device132=tablet] body.subusers-workspace-active .workspace-header14266 #subUserWorkspaceTabs>.sub-user-browser-tab{font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98{--entry-control-height14272:43px}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-auto-id,.je-subtitle,.je-meta-grid label,.je-meta-grid .entry-mode1430>span,.je-actions-bar button,.je-actions-bar .je-status-badge){font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeEntryMode1430.entry-mode-button14271,
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeEntryMode1430>span{font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 .je-meta-grid input:not([readonly]):not([type=checkbox]):not([type=radio]){font-size:20px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{font-size:13.75px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label :is(input:not([readonly]),select:not(.account-source1428)){font-size:20px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label button.direction-toggle1439{font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label input.account-search1428[readonly]{font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-date1430 .oj-date-button104,
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label :is(.currency-symbol-badge,[data-currency1430]){font-size:13.75px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input:not([readonly]),select:not(.account-source1428)){font-size:20px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody input.account-search1428[readonly]{font-size:15px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody .oj-date-button104{font-size:13.75px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input,select:not(.account-source1428),.oj-date-button104,.account-choice14231,.account-input-wrap){height:40px!important;min-height:40px!important;max-height:40px!important}
