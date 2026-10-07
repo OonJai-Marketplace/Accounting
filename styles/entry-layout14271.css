@@ -173,3 +173,13 @@ html[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-gri
 html[data-device132=tablet] body .account-list1428 :is(.account-option1428,.account-filter14266){font-size:16.25px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label :is(input.account-search1428[readonly],.oj-date-button104){font-size:20px!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 #jeLinesBody :is(input.account-search1428[readonly],.oj-date-button104){font-size:20px!important}
+
+/* The tablet date uses the same enlarged text as the other editor fields.
+   Reserve its measured width so the date and memo remain separate. */
+html[data-device132=tablet] body #journalEntry98#journalEntry98 .je-meta-grid>.transaction-date-field{flex:0 0 190px!important;width:190px!important;min-width:190px!important;max-width:190px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid,
+html[data-device132=tablet] body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .je-meta-grid{grid-template-columns:190px minmax(0,1fr) 150px!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 .transaction-date-field .oj-date-button104{overflow:hidden!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98 .transaction-date-field .oj-date-label104{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430,
+html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{grid-template-columns:124px minmax(0,1fr) minmax(0,1fr) 180px minmax(0,1fr)!important}
