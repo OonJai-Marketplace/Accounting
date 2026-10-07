@@ -1,0 +1,132 @@
+/* Shared screen presentation. Printed documents keep their approved templates. */
+@media screen and (min-width:768px){
+ html body{--surface14284:#fff;--ink14284:#203d35;--muted14284:#52685f;--edge14284:#ccd8d1}
+ html body.shell113 .workspace-scroll{background:#f3f4ef!important}
+ html body.shell113 :is(.je-card,.panel113,.settings-section-card,.r79,.v49-card){border-color:var(--edge14284)!important;border-top-color:#24634c!important;background:#fff!important}
+ html body.shell113 :is(.je-card-header,.r79-header,.section-heading14284){display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+ html body.shell113 :is(.je-card-header,.r79-header,.section-heading14284) :is(h2,h3,h4){font-family:'Plus Jakarta Sans',Arial,sans-serif!important;font-size:16px!important;line-height:1.35!important;color:#184b39!important;margin:0!important}
+ html body.shell113 :is(.je-card-header,.r79-header){padding:10px 12px!important}
+ html body .section-intro14284{min-width:0!important;width:100%!important;flex:1 0 100%!important}
+ html body.shell113 .work82>header:has(.section-intro14284){flex-wrap:wrap!important;gap:8px!important}
+ html body .section-heading14284{margin:0 0 10px!important;min-width:0}
+ html body .section-heading14284>[data-print14282]{margin-left:auto;flex:none;background:#fff!important;border:1px solid #a7c3b3!important;color:#174b39!important;font-size:12px!important;min-height:32px!important}
+ html body.shell113 .area-banner113{height:104px!important;min-height:104px!important;padding:14px 20px!important;margin-bottom:10px!important;border-color:#b9c9bf!important}
+ html body.shell113 .area-banner113 h1{font-size:30px!important;line-height:1.15!important;margin:0 0 6px!important}
+ html body.shell113 .area-banner113 p{font-size:12px!important;color:#514536!important;margin:0!important}
+ html body.shell113 .banner-icon113{width:30px!important;height:30px!important}
+ html body #printableDocArea #journalEntry98 .je-title{font-size:16px!important;line-height:1.35!important}
+ html body.shell113 .tab-content :is(.table-container,.r79-table,.data-table82){max-width:100%!important;min-width:0!important;overflow-x:auto!important;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#829b8d #edf2ee}
+ html body.shell113 #printableDocArea .tab-content:not(#document-editor105) table th{font-family:'Plus Jakarta Sans',Arial,sans-serif!important;line-height:1.35!important;word-break:normal!important;overflow-wrap:normal!important;white-space:normal!important;vertical-align:middle}
+ html body.shell113 #printableDocArea .tab-content:not(#document-editor105) table td{line-height:1.4;vertical-align:middle}
+ html body.shell113 #printableDocArea .tab-content:not(#document-editor105) table :is(.num,[data-money1439]){font-variant-numeric:tabular-nums}
+ /* Give memo columns a minimum usable share; never squeeze monetary values. */
+ html body #printableDocArea :is(#journal,.personal-active1437,#archiveMonths67) table.clustered-journal-table{table-layout:fixed!important;width:100%!important;min-width:1100px!important}
+ html body #printableDocArea :is(#journal,.personal-active1437,#archiveMonths67) .clustered-journal-table th:nth-child(1){width:100px!important;min-width:100px!important}
+ html body #printableDocArea :is(#journal,.personal-active1437,#archiveMonths67) .clustered-journal-table th:nth-child(2){width:100px!important;min-width:100px!important}
+ html body #printableDocArea :is(#journal,.personal-active1437,#archiveMonths67) .clustered-journal-table th:nth-child(3){width:20%!important}
+ html body #printableDocArea :is(#journal,.personal-active1437,#archiveMonths67) .clustered-journal-table th:nth-child(4){width:auto!important;min-width:230px!important}
+ html body #printableDocArea :is(#journal,.personal-active1437,#archiveMonths67) .clustered-journal-table th:last-child{width:80px!important;min-width:80px!important}
+ html body #printableDocArea :is(#journal,.personal-active1437,#archiveMonths67) .clustered-journal-table td{white-space:normal!important;overflow-wrap:anywhere!important;text-overflow:clip!important}
+ html body #printableDocArea :is(#journal,.personal-active1437,#archiveMonths67) .clustered-journal-table td[data-money1439]{white-space:nowrap!important;overflow-wrap:normal!important}
+ html body #printableDocArea :is(#journal,.personal-active1437) .clustered-journal-table :is(.transaction-review-actions,.personal-actions14283){vertical-align:middle!important}
+ html body #printableDocArea :is(#journal,.personal-active1437) .clustered-journal-table .je-btn{min-height:32px!important;height:32px!important;max-height:none!important;min-width:56px!important;width:56px!important;padding:5px 6px!important;font-size:12px!important;line-height:1.3!important}
+ html body .personal-active1437 .personal-actions14283{padding:5px!important}
+ html body .general-description14281{background:#edf5ef!important;padding:7px 10px!important;color:#203d35!important}
+ html body .general-description14281 strong{color:#405f4f!important;font-size:11px!important}
+ /* Report identifiers and balances retain their complete visible values. */
+ html body.shell113 :is(#report-gl,#report-activity) .r79-table table{min-width:1180px!important;table-layout:fixed!important}
+ html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(1){width:90px!important;white-space:nowrap!important}
+ html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(2){width:100px!important;overflow-wrap:anywhere!important}
+ html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(3){width:200px!important}
+ html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(4){width:auto!important}
+ html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(n+5){width:180px!important;min-width:180px!important;white-space:nowrap!important;text-align:right!important}
+ html body.shell113 #printableDocArea .tab-content:not(#document-editor105) .r79-table td{overflow:visible!important;text-overflow:clip!important;white-space:normal!important;overflow-wrap:anywhere!important}
+ html body.shell113 #printableDocArea .tab-content:not(#document-editor105) .r79-table td :is(a,span){max-width:none!important;text-overflow:clip!important;white-space:inherit!important;overflow-wrap:inherit!important}
+ html body .assigned-ledger14281 table{min-width:1000px!important;table-layout:fixed!important}
+ html body .assigned-ledger14281 th:nth-child(1){width:100px!important}
+ html body .assigned-ledger14281 th:nth-child(2){width:100px!important}
+ html body .assigned-ledger14281 th:nth-child(3){width:auto!important}
+ html body .assigned-ledger14281 th:nth-child(n+4){width:180px!important;min-width:180px!important}
+ html body #printableDocArea #tblChartOfAccounts{table-layout:fixed!important;min-width:820px!important}
+ html body #printableDocArea #tblChartOfAccounts th:nth-child(1){width:95px!important}
+ html body #printableDocArea #tblChartOfAccounts th:nth-child(2){width:26%!important}
+ html body #printableDocArea #tblChartOfAccounts th:nth-child(3){width:95px!important}
+ html body #printableDocArea #tblChartOfAccounts th:nth-child(4){width:120px!important}
+ html body #printableDocArea #tblChartOfAccounts th:nth-child(5){width:auto!important}
+ html body #printableDocArea #tblChartOfAccounts th:last-child{width:76px!important}
+ html body #printableDocArea #tblChartOfAccounts td{white-space:normal!important;overflow-wrap:anywhere!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284{table-layout:fixed!important;min-width:830px!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284 th:nth-child(1){width:115px!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284 th:nth-child(2){width:25%!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284 th:nth-child(3){width:auto!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284 th:nth-child(4){width:180px!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284 th:nth-child(5){width:100px!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284 th:nth-child(6){width:76px!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284 td{white-space:normal!important;overflow-wrap:anywhere!important}
+ html body #printableDocArea .tab-content:not(#document-editor105) table.employee-table14284 td:nth-child(4){white-space:nowrap!important;text-align:right!important}
+ /* Shared tabs, controls and compact settings. */
+ html body :is(.personal-tabs1437,#categoryTabs,.dash-tabs112) button{min-height:38px!important;line-height:1.3!important;font-size:13px!important}
+ html body :is(.personal-tabs1437 button.active,#categoryTabs .active,.dash-tabs112 button[aria-selected=true]){background:#e7f0e9!important;color:#174b39!important;border-bottom-color:#24634c!important}
+ html body .module-header .team-tabs14230 button[aria-current=page]{background:#e7f0e9!important;color:#174b39!important;border-bottom-color:#24634c!important}
+ html body .module-header .team-tabs14230 button{min-height:38px!important}
+ html body.team-shell14227 .main-content-area>.module-header{min-height:46px!important;padding-block:3px!important}
+ html body #subUserWorkspacePanel .v49-desktop-user-heading{min-height:0!important;padding:8px 12px!important;margin:0!important}
+ html body #personalWorkspace1437>.personal-tabs1437{margin:0!important;padding:4px 0!important}
+ html body #personalWorkspace1437 :is(.personal-home1437,.personal-history1437,.personal-totals1437,.personal-active1437){padding:12px!important;margin:8px 0!important}
+ html body #personalEditor1437 #journalEntry98{margin-bottom:10px!important}
+ html body.shell113 :is(.settings-form-grid,.settings-compact-grid){gap:12px 18px!important;align-items:start!important}
+ html body.shell113 .settings-field{min-width:0;gap:5px!important;margin-bottom:0!important}
+ html body.shell113 .settings-field>label{font-size:12px!important;line-height:1.4!important;color:#29483c!important}
+ html body.shell113 #printableDocArea .settings-field [data-compact-number14284]{width:120px!important;min-width:0!important;max-width:100%!important}
+ html body.shell113 :is(.settings-module94,.reset-card14281){padding:12px!important}
+ html body #settings-data14231 .panel113{padding:12px!important;margin-bottom:10px!important}
+ html body #settings-data14231 :is(.panel113>header h2,.panel113 h3){font-family:'Plus Jakarta Sans',Arial,sans-serif!important;font-size:16px!important}
+ html body #settings-data14231 .audit-file-upload14233{background:#f2f6f2!important}
+ html body .direction-toggle1439:disabled{opacity:1!important;background:#f2eadc!important;color:#75502b!important;border-color:#c6b495!important}
+ /* The dashboard keeps its warm banner, with distinct financial surfaces. */
+ html body #dashboard .dash-content112{background:#f3f4ef!important;gap:12px!important}
+ html body #dashboard .dash-hero112{height:138px!important;min-height:138px!important;padding:18px 22px!important}
+ html body #dashboard .dash-hero112 h1{font-size:36px!important;line-height:1.15!important}
+ html body #dashboard :is(.dash-card112,.dash-metric112){background:#fff!important;border-color:#ccd8d1!important;border-top-color:#24634c!important;box-shadow:0 2px 5px #183b2b08!important}
+ html body #dashboard .dash-flow112{background:#174d3b!important;border-color:#174d3b!important;color:#fff!important}
+ html body #dashboard .dash-flow112 :is(h2,b,strong){color:#fffaf0!important}
+ html body #dashboard .dash-flow112 :is(small,p,footer,header button){color:#dceade!important}
+ html body #dashboard .dash-flow112 footer{border-top-color:#ffffff35!important}
+ html body #dashboard .dash-flow-step112{color:#fff!important}
+ html body #dashboard .dash-flow112 .dash-flow-arrow112{color:#e4c797!important}
+ html body #dashboard .dash-flow112 .header-icon112{background:#27674f!important;border-color:#7a9c88!important;color:#fffaf0!important}
+ html body #dashboard .dash-flow112 .header-icon112 svg{color:#fffaf0!important;stroke:#fffaf0!important}
+ html body #dashboard .dash-flow-medallion112{background:#f0d7ab!important;color:#5e391a!important}
+ html body #dashboard .dash-metric-copy112 strong{font-family:'Plus Jakarta Sans',Arial,sans-serif!important;font-size:23px!important;line-height:1.2!important;color:#174b39!important}
+ html body #dashboard :is(.dash-card112,.dash-metric112) :is(h2,h3){font-family:'Plus Jakarta Sans',Arial,sans-serif!important;color:#184b39!important;font-size:16px!important}
+ html body #dashboard :is(.dash-flow112,.dash-card112) header small,html body #dashboard .dash-flow112 header p,html body #dashboard .dash-flow-step112 small,html body #dashboard .dash-metric-copy112 em{font-size:11px!important;line-height:1.45!important}
+ html body #dashboard .dash-metric-copy112 em,html body #dashboard :is(.dash-card112,.dash-empty112) small{color:#52685f!important}
+ html body #dashboard .dash-empty112{background:#f0f5f1!important;color:#4d6458!important;font-size:12px!important}
+ html body #dashboard .dash-card112 header{gap:8px!important;flex-wrap:wrap!important;align-items:center!important}
+ html body #dashboard .dash-card112 header button{font-size:12px!important;color:#23543d!important}
+ html body #dashboard table th{background:#e7f0e9!important;color:#244e3b!important}
+ html body #dashboard .dash-status112{background:#f5ead5!important;color:#76450b!important}
+}
+@media screen and (min-width:768px) and (max-width:1400px){
+ html body #dashboard .dash-middle112{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)!important}
+ html body #dashboard .dash-obligations112{grid-column:1/-1}
+ html body #dashboard .dash-metric-copy112 strong{font-size:20px!important}
+}
+@media screen{
+ /* Routine feedback stays out of the center of the work area. */
+ html body #status118:is(.info,.success,.pending){left:auto!important;right:18px!important;top:auto!important;bottom:18px!important;transform:none!important;width:max-content!important;max-width:min(440px,calc(100vw - 36px))!important;padding:12px 16px!important;font-size:13px!important;box-shadow:0 4px 18px #15352920!important}
+ html[data-device132=phone] body #status118:is(.info,.success,.pending){bottom:82px!important;right:12px!important;max-width:calc(100vw - 24px)!important}
+ html body #workspaceContext14284{margin:0 12px 6px;padding:6px 10px;border-left:3px solid #739e84;background:#eef5f0;color:#375747;font:12px/1.4 'Plus Jakarta Sans',Arial,sans-serif}
+ html body #workspaceContext14284[hidden]{display:none!important}
+}
+@media screen and (min-width:768px){
+ html[data-device132=tablet] body #printableDocArea :is(#journal,.personal-active1437) .clustered-journal-table .je-btn{min-height:48px!important;min-width:66px!important;width:66px!important;font-size:13px!important}
+ html[data-device132=tablet] body #printableDocArea #journalEntry98 .je-title{font-size:18px!important}
+ html[data-device132=tablet] body #printableDocArea :is(#journal,.personal-active1437) .clustered-journal-table th:last-child{width:88px!important;min-width:88px!important}
+ html[data-device132=tablet] body #printableDocArea .tab-content:not(#document-editor105) table th{font-size:13px!important}
+ html[data-device132=tablet] body #printableDocArea .tab-content:not(#document-editor105) :is(.clustered-journal-table,.r79-table) td{font-size:14px!important;color:#203d35!important}
+ html[data-device132=tablet] body #printableDocArea .tab-content:not(#document-editor105) :is(.clustered-journal-table,.r79-table) [data-money1439]{font-size:13px!important}
+ html[data-device132=tablet] body :is(.personal-tabs1437,#categoryTabs,.dash-tabs112) button{min-height:48px!important}
+ html[data-device132=tablet] body .module-header .team-tabs14230 button{font-size:15px!important;min-height:48px!important}
+ html[data-device132=tablet] body #dashboard :is(.dash-card112,.dash-flow112) small{font-size:12px!important}
+}

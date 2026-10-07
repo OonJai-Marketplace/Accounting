@@ -39,7 +39,7 @@ const server=http.createServer(async(req,res)=>{
    const date=document.querySelector('#journalEntry98 .transaction-date-field .oj-date-button104').getBoundingClientRect();
    const memo=document.querySelector('#jeGeneralMemo').getBoundingClientRect();
    return {main:document.querySelector('.tab-content.active')?.id,tab:document.querySelector('.personal-tabs1437 button.active')?.dataset.personalTab,
-    title:font('#journalEntry98 .je-title'),user:font('#subUserWorkspaceTabs>.sub-user-browser-tab.active'),section:font('.personal-tabs1437 button.active'),dateFont:font('#journalEntry98 .transaction-date-field .oj-date-button104'),direction:font('#simpleRows1430 .direction-toggle1439'),memoFont:font('#jeGeneralMemo'),dateRight:date.right,memoLeft:memo.left};
+    title:font('#journalEntry98 .je-title'),user:font('.module-header [data-team-user14230][aria-current=page]'),section:font('.personal-tabs1437 button.active'),dateFont:font('#journalEntry98 .transaction-date-field .oj-date-button104'),direction:font('#simpleRows1430 .direction-toggle1439'),memoFont:font('#jeGeneralMemo'),dateRight:date.right,memoLeft:memo.left};
   });
   assert.equal(before.main,'sub-users-workspace');assert.equal(before.tab,'journal');
   assert(before.title>before.dateFont&&before.user>before.dateFont&&before.section>before.dateFont);

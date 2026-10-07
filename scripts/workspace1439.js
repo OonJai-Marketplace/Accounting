@@ -1,6 +1,6 @@
 /* Shared presentation rules. Account data, permissions and posting remain unchanged. */
 (()=>{'use strict';
- const moneyHeading=text=>/^(?:(?:opening|closing|total|base|foreign|adjusted|balance)\s+)*(?:debits?|credits?|dr|cr)(?:\b|\s|\()/i.test(text.trim())&& !/account|note|card|terms/i.test(text);
+ const moneyHeading=text=>/^running (?:amount|balance)$/i.test(text.trim())||/^(?:(?:opening|closing|total|base|foreign|adjusted|balance)\s+)*(?:debits?|credits?|dr|cr)(?:\b|\s|\()/i.test(text.trim())&& !/account|note|card|terms/i.test(text);
  function sizeTable(table){
   if(table.closest('#docFrame105'))return;
   const rows=[...table.rows],occupied=[],positions=new Map(),money=new Set();let columns=0;

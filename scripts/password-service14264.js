@@ -3,7 +3,7 @@
 window.passwordService14264=async function(db,body){
  let session=await db.auth.getSession();if(session.error)throw session.error;
  if(session.data?.session?.expires_at&&session.data.session.expires_at*1000<=Date.now()+60000){session=await db.auth.refreshSession();if(session.error)throw session.error;}
- const token=session.data?.session?.access_token;if(!token)throw Error('Your session has expired. Sign out and sign in again.');
+ const token=session.data?.session?.access_token;if(!token){const error=Error('Sign in to continue.');if(window.endExpiredSession14284){await window.endExpiredSession14284();error.silentSession14284=true}throw error;}
  const result=await db.functions.invoke('admin-password14257',{body,headers:{Authorization:'Bearer '+token}});
  if(result.error){
   const response=result.error.context;let detail='';try{const data=await response.clone().json();detail=data.error?.message||data.error||data.message||'';}catch{}
