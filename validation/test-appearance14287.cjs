@@ -63,6 +63,27 @@ async function audit(page,name){
  });report.screens.push({name,failures});
 }
 async function shot(page,name){await page.screenshot({path:path.join(output,name+'.png')})}
+async function phoneVisual14289(frame,name){
+ if(['accounts','entries','history'].includes(name)){
+  const search=await frame.locator('#'+name+' #liveSearch').evaluate(n=>{const p=n.parentElement,a=n.getBoundingClientRect(),b=p.getBoundingClientRect(),c=getComputedStyle(p);return{background:c.backgroundColor,border:c.borderWidth,gap:Math.abs(a.bottom-b.bottom),extraHeight:Math.abs(a.height-b.height)}});
+  assert.equal(search.background,'rgba(0, 0, 0, 0)','Search has no second painted background');assert.equal(search.border,'0px');assert(search.gap<1&&search.extraHeight<1,'Search wrapper cannot protrude below its field');
+ }
+ if(['home','history'].includes(name)){
+  assert.equal(await frame.locator('#'+name+' .month-picker14248 svg').count(),0,'Month control keeps only the native calendar affordance');
+  const month=await frame.locator('#'+name+' #phoneMonth14248').evaluate(n=>({background:getComputedStyle(n).backgroundColor,border:getComputedStyle(n).borderWidth,outer:getComputedStyle(n.parentElement).borderWidth}));
+  assert.equal(month.background,'rgba(0, 0, 0, 0)','Month input blends into its enclosing surface');assert.equal(month.border,'0px');assert.equal(month.outer,'1px');
+ }
+ if(name==='entries'){
+  const tabs=await frame.locator('#entries .period-tabs14248').evaluate(n=>{const r=n.getBoundingClientRect();return [...n.children].map(b=>({gap:r.bottom-b.getBoundingClientRect().bottom,border:getComputedStyle(b).borderBottomWidth}))});
+  assert(tabs.every(t=>Math.abs(t.gap-1)<1&&t.border==='0px'),'Segmented tabs fill their shared outline without another lower edge');
+ }
+ if(name==='post'){
+  assert.equal(await frame.locator('#post .entry-id14247').count(),1,'Post Entry displays exactly one ID');
+  assert.equal(await frame.locator('#post [data-staff-single="0"] .staff-line-heading14225>.entry-id14247').count(),1,'ID belongs to the first line heading');
+  const fit=await frame.locator('#post .staff-line-heading14225').first().evaluate(n=>{const b=n.querySelector('b').getBoundingClientRect(),id=n.querySelector('.entry-id14247').getBoundingClientRect(),r=n.getBoundingClientRect();return{idOnRight:id.left>b.right,sameRow:Math.abs(b.y+b.height/2-id.y-id.height/2)<1,inBounds:id.right<=r.right+1}});
+  assert(fit.idOnRight&&fit.sameRow&&fit.inBounds,'Entry ID fits to the right of Line 1');
+ }
+}
 async function fingerprint(page){return page.evaluate(()=>{
  const selectors=['#journalEntry98 .je-title','#jeGeneralMemo','#jeNextIdDisplay','#journalEntry98 .je-line-debit'];
  return selectors.map(s=>{const n=document.querySelector(s);if(!n)return null;const c=getComputedStyle(n);return[s,c.fontFamily,c.fontSize,c.fontWeight,c.lineHeight]});
@@ -90,7 +111,7 @@ async function desktop(browser,base){
    if(id==='document-editor105'){
     const paper=page.frameLocator('#docFrame105').locator('.page').first();await paper.waitFor();
     assert.equal(await paper.evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 255, 255)','Document paper remains white');
-    assert.equal(await page.frameLocator('#docFrame105').locator('body').evaluate(n=>getComputedStyle(n).backgroundColor),mode==='dark'?'rgb(14, 40, 31)':'rgb(231, 224, 209)','Editor surround follows theme');
+    assert.equal(await page.frameLocator('#docFrame105').locator('body').evaluate(n=>getComputedStyle(n).backgroundColor),mode==='dark'?'rgb(14, 40, 31)':'rgb(242, 238, 228)','Editor surround follows theme');
    }
    if(shots.has(id))await shot(page,mode+'-'+id);
   }
@@ -129,11 +150,18 @@ async function devices(browser,base){
    await frame.evaluate(mode=>OjmAppearance14287.set(mode),mode);
    await page.waitForFunction(mode=>OjmAppearance14287.get()===mode,mode);
    for(const name of ['home','accounts','post','entries','history']){
-    await frame.evaluate(name=>go(name),name);await page.waitForTimeout(160);await audit(frame,'phone-'+width+'-'+mode+'-'+name);await shot(page,'phone-'+width+'-'+mode+'-'+name);
+    await frame.evaluate(name=>go(name),name);await page.waitForTimeout(160);await phoneVisual14289(frame,name);await audit(frame,'phone-'+width+'-'+mode+'-'+name);await shot(page,'phone-'+width+'-'+mode+'-'+name);
     if(name==='post'){await frame.locator('#post .account-choice14231>input').first().click();await frame.locator('#phoneAccountPicker14227').waitFor();await audit(frame,'phone-'+width+'-'+mode+'-account-picker');await shot(page,'phone-'+width+'-'+mode+'-account-picker');await frame.locator('[data-picker-back]').click();}
    }
   }
   await frame.evaluate(()=>go('post'));await page.waitForTimeout(120);
+  for(const mode of ['light','dark']){
+   await frame.evaluate(mode=>OjmAppearance14287.set(mode),mode);await frame.locator('#staffModeToggle').click();
+   assert.equal(await frame.locator('#post .entry-id14247').count(),1,'Double Entry has one ID on its first line');
+   const row=await frame.locator('#post .staff-account-row14225').first().evaluate(n=>{const a=n.querySelector('.account-choice14231').getBoundingClientRect(),b=n.querySelector('.remove-staff14225').getBoundingClientRect();return{accountWidth:a.width,removeWidth:b.width,overlap:a.right>b.left}});
+   assert(row.accountWidth>=180&&row.removeWidth<=36&&!row.overlap,'Double-entry account picker keeps a usable width and compact Remove control');
+   await audit(frame,'phone-'+width+'-'+mode+'-double-entry');await shot(page,'phone-'+width+'-'+mode+'-double-entry');await frame.locator('#staffModeToggle').click();
+  }
   const fit=await frame.locator('.staff-post-header14287').evaluate(n=>{const h=n.querySelector('h1').getBoundingClientRect(),b=n.querySelector('.staff-template-tools14285').getBoundingClientRect();return{sameRow:Math.abs(h.top-b.top)<20,fit:b.right<=innerWidth&&h.right<=b.left}});
   assert.ok(fit.sameRow&&fit.fit,'Template controls fit the Post Entry header at '+width);
   await frame.locator('#staffMemo').fill('Theme focus check');await frame.locator('#staffMemo').focus();

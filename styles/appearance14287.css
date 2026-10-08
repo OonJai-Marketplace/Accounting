@@ -3,7 +3,7 @@
 @layer appearance14287 {
  @media screen {
   html[data-appearance14287]{
-   --ap-canvas:#e7e0d1;--ap-panel:#fffdf7;--ap-raised:#e9efe6;--ap-head:#315e46;--ap-on-head:#fff5df;
+   --ap-canvas:#f2eee4;--ap-panel:#fffdf7;--ap-raised:#dce6d7;--ap-head:#315e46;--ap-on-head:#fff5df;
    --ap-ink:#153b2a;--ap-muted:#3e5b4b;--ap-edge:#597661;--ap-input:#fff;
    --ap-primary:#145c40;--ap-on-primary:#fff;--ap-secondary:#315e46;--ap-on-secondary:#fff5df;
    --ap-accent:#745018;--ap-gold:#efd19a;--ap-on-gold:#342713;
@@ -118,9 +118,25 @@
   :is(.screen .period-tabs14248,.screen .account-types14253,.phone-account-picker14227 .account-types14253,.account-type-rail14277) button{background:var(--ap-panel)!important;color:var(--ap-ink)!important;border-color:var(--ap-edge)!important}
   :is(.screen .period-tabs14248,.screen .account-types14253,.phone-account-picker14227 .account-types14253,.account-type-rail14277) button[aria-pressed=true]{background:var(--ap-primary)!important;color:var(--ap-on-primary)!important;border-color:var(--ap-primary)!important}
   :is(.screen .period-tabs14248,.screen .account-types14253,.phone-account-picker14227 .account-types14253,.account-type-rail14277) button[aria-pressed=true] span{color:var(--ap-on-primary)!important}
-  .period-tabs14248{border-color:var(--ap-edge)!important}
-  .period-tabs14248 button{border-bottom:3px solid transparent!important}
-  .period-tabs14248 button[aria-pressed=true]{border-bottom-color:var(--ap-on-primary)!important}
+  .screen .period-tabs14248{background:var(--ap-panel)!important;border:1px solid var(--ap-edge)!important;box-shadow:none!important}
+  .screen .period-tabs14248 button{border:0!important;border-radius:0!important}
+  .screen .period-tabs14248 button+button{border-left:1px solid var(--ap-edge)!important}
+  /* v142.89: a single field surface and one entry ID, beside the first line. */
+  .screen .phone-search14289{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;min-height:0!important}
+  .screen .phone-search14289>input{display:block;margin:0!important;box-sizing:border-box;width:100%}
+  .screen .month-picker14248,.screen .month-picker14248:focus-within{background:var(--ap-input)!important;border-color:var(--ap-edge)!important;box-shadow:none!important}
+  .screen .month-picker14248:focus-within{border-color:var(--ap-focus)!important}
+  #phoneMonth14248{background:transparent!important;border:0!important;border-radius:0!important;outline:0!important;box-shadow:none!important;margin:0!important}
+  #post .staff-line-heading14225{gap:8px}
+  #post .staff-line-heading14225>b{flex:none}
+  #post .staff-line-heading14225>.staff-entry-id14289{flex:1;min-width:0;margin:0!important;padding:0!important;background:transparent!important;color:var(--ap-ink)!important;border:0!important;border-radius:0!important;box-shadow:none!important;text-align:right;overflow-wrap:anywhere}
+  #post .staff-double-line14225 .staff-account-row14225{grid-template-columns:minmax(0,1fr) 32px!important}
+  .screen .account-list14248 .account-row14248{border-bottom:1px solid #a4b9a7!important}
+  .screen .account-list14248 .account-row14248:last-child{border-bottom:0!important}
+  html[data-appearance14287=light] .screen .phone-stats14248>div:first-child{background:var(--ap-secondary)!important;color:var(--ap-on-secondary)!important}
+  html[data-appearance14287=light] .screen .phone-stats14248>div:first-child :is(small,strong){color:var(--ap-on-secondary)!important}
+  html[data-appearance14287=light] .screen .phone-stats14248>div:nth-child(2){background:var(--ap-gold)!important;color:var(--ap-on-gold)!important}
+  html[data-appearance14287=light] .screen .phone-stats14248>div:nth-child(2) :is(small,strong){color:var(--ap-on-gold)!important}
   .main-content-area .dash-card112>header .dash-count112{color:var(--ap-on-gold)!important}
   :is(.main-content-area,.screen) .dash-flow112>header{background:var(--ap-head)!important;color:var(--ap-on-head)!important}
   :is(.main-content-area,.screen) .dash-flow112>header :is(h1,h2,h3,h4,h5,p,span,strong,b,small){color:var(--ap-on-head)!important}

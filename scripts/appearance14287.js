@@ -18,7 +18,7 @@
   if(!frame.dataset.appearanceBound14287){frame.dataset.appearanceBound14287='1';frame.addEventListener('load',paintDocument)}
   try{const doc=frame.contentDocument;if(!doc?.head)return;let style=doc.getElementById('appearanceFrame14287');
    if(!style){style=doc.createElement('style');style.id='appearanceFrame14287';doc.head.append(style)}
-   const css='@media screen{body{background:'+(mode==='dark'?'#0e281f':'#e7e0d1')+'!important}}';
+   const css='@media screen{body{background:'+(mode==='dark'?'#0e281f':'#f2eee4')+'!important}}';
    if(style.textContent!==css)style.textContent=css;
   }catch{/* Document frames are optional; appearance never blocks editing. */}
  }
