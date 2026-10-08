@@ -11,7 +11,7 @@ function notificationKind14231(message,kind,pending){
 }
 function notificationIcon14231(kind){const paths={success:'M5 12l4 4L19 6',warning:'M12 3 2 21h20zM12 9v5M12 17v1',error:'M6 6l12 12M18 6 6 18',info:'M12 10v7M12 7v1'};return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(kind==='info'||kind==='error'?'<circle cx="12" cy="12" r="9"/>':'')+'<path d="'+paths[kind]+'"/></svg>'}
 function notify(message,error=false,pending=false,queued=false){
- const quiet=window.actionFeedback14296;if(quiet?.routine(String(message||''),error)){quiet.local(String(message||''));return}
+ const quiet=window.actionFeedback14296;if(quiet?.routine(String(message||''),error)){quiet.local(String(message||''));const pendingBox=document.getElementById('status118');if(!quiet.isBusy?.()&&pendingBox?.classList.contains('pending')){clearTimeout(timer);pendingBox.hidden=true;const next=noticeQueue1440.shift();if(next)notify(...next,true)}return}
  const text=String(message||''),workspace=/^Viewing .+ workspace as Administrator\./.test(text),inside=()=>document.getElementById('sub-users-workspace')?.classList.contains('active');if(workspace&&!inside())return;
  if(workspace){const host=$('#subUserWorkspacePanel');if(!host)return;let note=$('#workspaceContext14284');if(!note){note=document.createElement('div');note.id='workspaceContext14284';note.setAttribute('role','note');const header=host.querySelector('.v49-desktop-user-heading');if(header)header.after(note);else host.prepend(note)}if(note.textContent!==text)note.textContent=text;return}
  pending=pending||(!error&&/^(?:Loading|Checking|Fetching|Preparing|Signing in|Updating workspace)(?:\b|…)/i.test(text));
