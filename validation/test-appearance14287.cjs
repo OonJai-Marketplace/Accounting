@@ -63,6 +63,15 @@ async function audit(page,name){
  });report.screens.push({name,failures});
 }
 async function shot(page,name){await page.screenshot({path:path.join(output,name+'.png')})}
+async function auditTeamGlyph14290(page){
+ const icons=await page.locator('.team-home14227 .th-round svg').evaluateAll(ns=>{
+  const rgb=s=>(s.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+  const lum=c=>c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4}).reduce((a,v,i)=>a+v*[.2126,.7152,.0722][i],0);
+  return ns.filter(n=>n.checkVisibility()).map(n=>{const a=lum(rgb(getComputedStyle(n).color)),b=lum(rgb(getComputedStyle(n.closest('.th-round')).backgroundColor));return{ratio:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),stroke:getComputedStyle(n).stroke}});
+ });
+ assert(icons.length>=4,'Admin Home shortcut and metric icons are visible');
+ assert(icons.every(i=>i.ratio>=3&&i.stroke!=='none'),'Admin Home icon strokes contrast with their circular backgrounds: '+JSON.stringify(icons));
+}
 async function phoneVisual14289(frame,name){
  if(['accounts','entries','history'].includes(name)){
   const search=await frame.locator('#'+name+' #liveSearch').evaluate(n=>{const p=n.parentElement,a=n.getBoundingClientRect(),b=p.getBoundingClientRect(),c=getComputedStyle(p);return{background:c.backgroundColor,border:c.borderWidth,gap:Math.abs(a.bottom-b.bottom),extraHeight:Math.abs(a.height-b.height)}});
@@ -116,6 +125,7 @@ async function desktop(browser,base){
    if(shots.has(id))await shot(page,mode+'-'+id);
   }
   await page.evaluate(()=>{switchTab('sub-users-home14229');Organization14229?.loadHome?.()});await page.waitForTimeout(180);
+  await auditTeamGlyph14290(page);
   await audit(page,mode+'-subusers-home');await shot(page,mode+'-subusers-home');
   await page.locator('.module-header [data-team-user14230]').first().click();await page.waitForTimeout(180);
   await audit(page,mode+'-subuser-workspace');await shot(page,mode+'-subuser-workspace');
@@ -129,8 +139,13 @@ async function desktop(browser,base){
  assert.equal(await page.locator('#jeGeneralMemo').evaluate(n=>getComputedStyle(n).outlineWidth),'2px');
  assert.equal(await page.locator('#jeGeneralMemo').evaluate(n=>getComputedStyle(n.closest('.je-field-group')).outlineStyle),'none');
  const sidebarDark=await page.locator('#appSidebar').evaluate(n=>getComputedStyle(n).backgroundColor);
+ assert.equal(await page.locator('#themeDock14287 svg,#themeSidebar14287 svg').count(),0,'Desktop theme controls have no icon');
+ assert.equal((await page.locator('#themeDock14287').innerText()).trim(),'Light');
+ assert.equal((await page.locator('#themeSidebar14287').innerText()).trim(),'Light mode');
  await page.locator('#themeDock14287').click();
  assert.equal(await page.evaluate(()=>OjmAppearance14287.get()),'light');
+ assert.equal((await page.locator('#themeDock14287').innerText()).trim(),'Dark');
+ assert.equal((await page.locator('#themeSidebar14287').innerText()).trim(),'Dark mode');
  assert.equal(await page.locator('#appSidebar').evaluate(n=>getComputedStyle(n).backgroundColor),sidebarDark);
  await page.reload();assert.equal(await page.evaluate(()=>OjmAppearance14287.get()),'light');
  report.checks.push('Theme switch persists on reload; sidebar color preserved; print colors identical; input-only focus');
@@ -139,12 +154,23 @@ async function desktop(browser,base){
 async function devices(browser,base){
  for(const width of [1194,834]){
   const {page,context}=await makePage(browser,base,{width,height:width===834?1194:834,tablet:true,customize:manyAccounts});
+  for(const mode of ['dark','light']){
+   await page.evaluate(mode=>{OjmAppearance14287.set(mode);switchTab('sub-users-home14229');Organization14229?.loadHome?.()},mode);await page.waitForTimeout(180);
+   await auditTeamGlyph14290(page);await audit(page,'tablet-'+width+'-'+mode+'-admin-home');await shot(page,'tablet-'+width+'-'+mode+'-admin-home');
+  }
+  await page.locator('#tabletMenu118').click();await page.waitForTimeout(350);
+  assert.equal(await page.locator('#themeSidebar14287 svg').count(),0,'Tablet theme control has no icon');
+  assert.equal((await page.locator('#themeSidebar14287').innerText()).trim(),'Dark mode');
   for(const id of ['dashboard','journal','payroll-overview','settings-system']){
    await page.evaluate(id=>switchTab(id),id);await page.waitForTimeout(120);await audit(page,'tablet-'+width+'-'+id);await shot(page,'tablet-'+width+'-'+id);
   }await context.close();
  }
  for(const width of [390,320]){
   const {page,context}=await makePage(browser,base,{width,height:844,phone:true,customize:manyAccounts});await stablePhone14286(page);
+  for(const mode of ['dark','light']){
+   await page.evaluate(mode=>{OjmAppearance14287.set(mode);switchTab('sub-users-home14229');Organization14229?.loadHome?.()},mode);await page.waitForTimeout(180);
+   await auditTeamGlyph14290(page);await audit(page,'phone-'+width+'-'+mode+'-admin-home');await shot(page,'phone-'+width+'-'+mode+'-admin-home');
+  }
   const frame=phoneFrame(page);await frame.evaluate(()=>chooseWorkspace('00000000-0000-4000-8000-000000000002'));await page.waitForTimeout(220);
   for(const mode of ['dark','light']){
    await frame.evaluate(mode=>OjmAppearance14287.set(mode),mode);
@@ -172,6 +198,8 @@ async function devices(browser,base){
   await audit(frame,'phone-'+width+'-template-dialog');await shot(page,'phone-'+width+'-template-dialog');
   await frame.getByRole('button',{name:'Close templates',exact:true}).click();
   await frame.locator('.profile').click();await frame.locator('#themePhone14287').waitFor({state:'visible'});const menu=frame.locator('#phoneAccount1424');
+  assert.equal(await frame.locator('#themePhone14287 svg').count(),0,'Phone theme control has no icon');
+  assert.equal((await frame.locator('#themePhone14287').innerText()).trim(),'Light mode');
   assert.equal(await menu.locator('button').last().textContent(),'Sign out');
   assert.equal(await menu.locator('button').nth((await menu.locator('button').count())-2).getAttribute('id'),'themePhone14287');
   const neutral=await frame.locator('#themePhone14287').evaluate(n=>({border:getComputedStyle(n).borderWidth,bg:getComputedStyle(n).backgroundColor}));assert.equal(neutral.border,'0px');assert.equal(neutral.bg,'rgba(0, 0, 0, 0)','Theme menu item is neutral like its neighbors');

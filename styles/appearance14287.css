@@ -74,12 +74,19 @@
   .theme-toggle14287 span,.theme-toggle14287 svg{color:inherit!important}
   #themeSidebar14287{margin:8px 10px;width:calc(100% - 20px);flex-shrink:0}
   #themeDock14287{background:#194c38!important;color:#fffaf1!important;border-color:#194c38!important}
-  .theme-icon14287 span{display:none}
+  .theme-icon14287 span{display:block}
+  body.shell113 #workspaceTools108>#themeDock14287{display:flex!important;align-items:center!important;justify-content:center!important;padding:1px!important;font-size:10px!important;font-weight:700!important;line-height:1!important}
   #phoneAccount1424 .theme-toggle14287,#accountMenu .theme-toggle14287{display:flex!important;justify-content:flex-start!important;width:100%;color:#174333!important;background:transparent!important;border:0!important;min-height:0;padding:12px;border-radius:8px;text-align:left}
   /* Nested modules and summaries used by accounts, HR, reports and phone home. */
   :is(.main-content-area,.screen) :is(.module109,.module-card,.r79-group,.tax-toolbar102,.tax-total102,.settings-compact-note,.staff-summary1425,.phone-stats14248>div){background:var(--ap-panel)!important;color:var(--ap-ink)!important;border-color:var(--ap-edge)!important}
   :is(.main-content-area,.screen) :is(summary,.r79-group>h4,.tax-total102,.phone-stats14248>div){background:var(--ap-raised)!important;color:var(--ap-ink)!important;border-color:var(--ap-edge)!important}
   :is(.main-content-area,.screen) :is(.badge-type,.currency-dot14248,.th-avatar){background:var(--ap-head)!important;color:var(--ap-ink)!important;border-color:var(--ap-edge)!important}
+  /* Administrator Home glyphs retain a dark stroke inside their pale circles. */
+  .team-home14227 .th-round svg{color:#153b2a!important;stroke:currentColor!important}
+  .team-home14227 :is(.th-metric,.th-quick>.th-button):nth-child(2) .th-round svg{color:#7c401d!important}
+  .team-home14227 :is(.th-metric,.th-quick>.th-button):nth-child(3) .th-round svg{color:#6d4b14!important}
+  .team-home14227 .th-metric:nth-child(4) .th-round svg{color:#8b3329!important}
+  .team-home14227 .th-activity time{color:var(--ap-on-secondary)!important}
   :is(.main-content-area,.screen) .badge-type.badge-expense{background:var(--ap-danger-bg)!important;color:var(--ap-danger)!important}
   :is(.main-content-area,.screen) :is(.badge-type.badge-liability,.currency-dot14248.THB){background:var(--ap-gold)!important;color:var(--ap-on-gold)!important}
   .module-header,#categoryTabs,.dash-tabs112,.team-tabs14230{background:var(--ap-panel)!important;border-color:var(--ap-edge)!important}

@@ -9,7 +9,8 @@
    const label=mode==='dark'?'Light mode':'Dark mode';
    b.title='Switch to '+label.toLowerCase();b.setAttribute('aria-label',b.title);
    b.setAttribute('aria-pressed',String(mode==='dark'));
-   const text=b.querySelector('span');if(text&&text.textContent!==label)text.textContent=label;
+   const text=b.querySelector('span'),visible=b.id==='themeDock14287'?(mode==='dark'?'Light':'Dark'):label;
+   if(text&&text.textContent!==visible)text.textContent=visible;
   });
   paintDocument();
  }
@@ -23,8 +24,7 @@
   }catch{/* Document frames are optional; appearance never blocks editing. */}
  }
  apply(mode);
- const icon='<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>';
- function button(id,compact=false){const b=document.createElement('button');b.id=id;b.type='button';b.dataset.themeToggle14287='';b.className='theme-toggle14287 no-print'+(compact?' theme-icon14287':'');b.innerHTML=icon+'<span></span>';b.onclick=()=>apply(mode==='dark'?'light':'dark',true);return b}
+ function button(id,compact=false){const b=document.createElement('button');b.id=id;b.type='button';b.dataset.themeToggle14287='';b.className='theme-toggle14287 no-print'+(compact?' theme-icon14287':'');b.innerHTML='<span></span>';b.onclick=()=>apply(mode==='dark'?'light':'dark',true);return b}
  function mount(){
   const dock=document.getElementById('workspaceTools108');if(dock&&!document.getElementById('themeDock14287'))dock.prepend(button('themeDock14287',true));
   const profile=document.querySelector('#appSidebar #topHeaderProfile104,#appSidebar .sidebar-user-footer');
