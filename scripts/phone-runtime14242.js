@@ -1,11 +1,11 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '142.94', $ = id => document.getElementById(id);
+  const VERSION = '142.96', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const symbol = c => ({LAK:'₭', USD:'$', THB:'฿'}[c] || c || '');
+  const symbol = c => ({NA:'▦',Parent:'▦',PARENT:'▦',LAK:'₭', USD:'$', THB:'฿'}[c] || c || '');
   const money = (n, c) => symbol(c) + ' ' + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
   const action = (name, text, extra = '', primary = false) => `<button type="button" class="btn${primary ? ' primary' : ''}" data-action="${name}" ${extra}>${text}</button>`;
   const empty = text => `<p class="empty">${esc(text)}</p>`;
@@ -19,7 +19,7 @@
   const fail = (message, code = '') => Object.assign(Error(message), {code});
   const denied = e => ['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e?.code) || [401,403].includes(Number(e?.status));
   const ambiguous = e => !e?.status || Number(e.status) >= 500 || ['NETWORK_TIMEOUT','INVALID_RESPONSE'].includes(e.code);
-  let noticeTimer14246;function notice(message = '', error = false) {const box=$('notice');clearTimeout(noticeTimer14246);box.replaceChildren();box.classList.toggle('error',error);if(!message)return;const copy=document.createElement('span');copy.textContent=message;box.append(copy);const close=document.createElement('button');close.type='button';close.textContent='Close';close.setAttribute('aria-label','Close notification');close.onclick=()=>notice();box.append(close);if(!error)noticeTimer14246=setTimeout(()=>notice(),4500);}
+  let noticeTimer14246;function notice(message = '', error = false) {if(!error&&/^(?:Entry saved on this device\.|All device entries were confirmed\.|Offline\. Downloaded records|You are offline\. Your device entries)/.test(message)){paintConnection();return;}const box=$('notice');clearTimeout(noticeTimer14246);box.replaceChildren();box.classList.toggle('error',error);if(!message)return;const copy=document.createElement('span');copy.textContent=message;box.append(copy);const close=document.createElement('button');close.type='button';close.textContent='Close';close.setAttribute('aria-label','Close notification');close.onclick=()=>notice();box.append(close);if(!error)noticeTimer14246=setTimeout(()=>notice(),4500);}
   function openDB() {
     return database ??= new Promise((resolve, reject) => {
       const request = indexedDB.open('ojm-phone14242', 1), timer = setTimeout(() => reject(fail('Device storage is unavailable. Your draft has not been saved.')), 2000);

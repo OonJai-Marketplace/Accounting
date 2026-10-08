@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Routine save popups are quiet; connection notices use bullets and failures remain visible",
+    "passed": true
+  },
+  {
+    "name": "Temporary password has immediate progress, prevents duplicates, then confirms beside control",
+    "passed": true
+  },
+  {
+    "name": "Temporary password failure stays visible and controls recover; cancellation sends nothing",
+    "passed": true
+  },
+  {
+    "name": "Icon selection marks selected icon, waits for company confirmation and prevents repeat saves",
+    "passed": true
+  },
+  {
+    "name": "Shared actions show progress, coalesce repeated clicks and clear it on settlement",
+    "passed": true
+  },
+  {
+    "name": "Phone routine offline messages stay in the connection indicator",
+    "passed": true
+  },
+  {
+    "name": "Parent currency label matches ordinary badge height; account-name badges show one grouping symbol",
+    "passed": true
+  }
+]
