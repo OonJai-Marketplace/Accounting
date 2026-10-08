@@ -87,6 +87,8 @@
   .team-home14227 :is(.th-metric,.th-quick>.th-button):nth-child(3) .th-round svg{color:#6d4b14!important}
   .team-home14227 .th-metric:nth-child(4) .th-round svg{color:#8b3329!important}
   .team-home14227 .th-activity time{color:var(--ap-on-secondary)!important}
+  /* Headings belong directly on the panel surface; no lighter strip behind text. */
+  html[data-appearance14287=dark] .team-home14227 .th-panel>header{background:transparent!important}
   :is(.main-content-area,.screen) .badge-type.badge-expense{background:var(--ap-danger-bg)!important;color:var(--ap-danger)!important}
   :is(.main-content-area,.screen) :is(.badge-type.badge-liability,.currency-dot14248.THB){background:var(--ap-gold)!important;color:var(--ap-on-gold)!important}
   .module-header,#categoryTabs,.dash-tabs112,.team-tabs14230{background:var(--ap-panel)!important;border-color:var(--ap-edge)!important}

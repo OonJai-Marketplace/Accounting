@@ -113,6 +113,7 @@ async function desktop(browser,base){
  const shots=new Set(['dashboard','journal','accounts-modular-container','payroll-employees','payroll-overview','report-pl','document-editor105','tax-overview','settings-system','settings-accounting']);
  for(const mode of ['dark','light']){
   await page.evaluate(mode=>OjmAppearance14287.set(mode),mode);
+  assert.equal(await page.locator('link[href*="styles/appearance14287.css"]').evaluate(n=>n.disabled),mode==='light','Original light CSS is restored without the dark theme layer');
   for(const id of ids){
    await page.evaluate(id=>switchTab(id),id);await page.waitForTimeout(100);
    if(await page.locator('#'+id).evaluate(n=>!n.classList.contains('active')))continue;
@@ -120,12 +121,16 @@ async function desktop(browser,base){
    if(id==='document-editor105'){
     const paper=page.frameLocator('#docFrame105').locator('.page').first();await paper.waitFor();
     assert.equal(await paper.evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(255, 255, 255)','Document paper remains white');
-    assert.equal(await page.frameLocator('#docFrame105').locator('body').evaluate(n=>getComputedStyle(n).backgroundColor),mode==='dark'?'rgb(14, 40, 31)':'rgb(242, 238, 228)','Editor surround follows theme');
+    assert.equal(await page.frameLocator('#docFrame105').locator('body').evaluate(n=>getComputedStyle(n).backgroundColor),mode==='dark'?'rgb(14, 40, 31)':'rgb(229, 233, 223)','Editor surround follows the selected design');
    }
    if(shots.has(id))await shot(page,mode+'-'+id);
   }
   await page.evaluate(()=>{switchTab('sub-users-home14229');Organization14229?.loadHome?.()});await page.waitForTimeout(180);
   await auditTeamGlyph14290(page);
+  if(mode==='dark'){
+   const header=await page.locator('.team-home14227 .th-panel>header').first().evaluate(n=>({header:getComputedStyle(n).backgroundColor,panel:getComputedStyle(n.parentElement).backgroundColor}));
+   assert.equal(header.header,'rgba(0, 0, 0, 0)','Dark administrator Home headings have no highlighted strip');
+  }
   await audit(page,mode+'-subusers-home');await shot(page,mode+'-subusers-home');
   await page.locator('.module-header [data-team-user14230]').first().click();await page.waitForTimeout(180);
   await audit(page,mode+'-subuser-workspace');await shot(page,mode+'-subuser-workspace');

@@ -4,6 +4,8 @@
  let mode='dark';try{mode=localStorage.getItem(key)==='light'?'light':'dark'}catch{}
  function apply(value,persist=false){
   mode=value==='light'?'light':'dark';root.dataset.appearance14287=mode;
+  const theme=document.querySelector('link[href*="styles/appearance14287.css"]');
+  if(theme)theme.disabled=mode==='light';
   if(persist)try{localStorage.setItem(key,mode)}catch{}
   document.querySelectorAll('[data-theme-toggle14287]').forEach(b=>{
    const label=mode==='dark'?'Light mode':'Dark mode';
@@ -19,7 +21,7 @@
   if(!frame.dataset.appearanceBound14287){frame.dataset.appearanceBound14287='1';frame.addEventListener('load',paintDocument)}
   try{const doc=frame.contentDocument;if(!doc?.head)return;let style=doc.getElementById('appearanceFrame14287');
    if(!style){style=doc.createElement('style');style.id='appearanceFrame14287';doc.head.append(style)}
-   const css='@media screen{body{background:'+(mode==='dark'?'#0e281f':'#f2eee4')+'!important}}';
+   const css=mode==='dark'?'@media screen{body{background:#0e281f!important}}':'';
    if(style.textContent!==css)style.textContent=css;
   }catch{/* Document frames are optional; appearance never blocks editing. */}
  }
