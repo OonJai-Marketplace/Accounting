@@ -166,12 +166,12 @@
   }
   function sessionGate(message = '') {
     window.PhoneTools14242?.close();S.epoch++; S.actor=S.owner = ''; S.session = null; S.data = {}; S.directory=[];S.directoryLoading=false;S.directoryLoaded=false;S.selection=false;S.area='users';S.draft = null; S.loading = S.syncing = S.saving = S.submitting = false; refreshJob = monthJob = null; touchAt=0;
-    clearTimeout(draftTimer); $('workspace').replaceChildren(); $('workspace').hidden = true; $('login').hidden = false;$('recovery').hidden=true; $('bottom').hidden = true; $('accountMenu').hidden = true; $('dialog').close(); $('loginError').textContent = message; paintConnection(); notice();
+    clearTimeout(draftTimer); $('workspace').replaceChildren(); $('workspace').hidden = true; $('login').hidden = false;$('recovery').hidden=true; $('bottom').hidden = true; $('accountMenu').hidden = true; $('dialog').close(); loginMessageTarget14293().textContent = message; paintConnection(); notice();
   }
   async function revoke(error) {
     const owner = S.owner;
     if (owner) await persist(owner,{access:null}).catch(() => {});if(S.actor&&S.actor!==owner)await persist(S.actor,{access:null,directory:[]}).catch(()=>{});
-    await signout(false, 'Please sign in again. ' + (error.message || 'Current access is unavailable.'));
+    await signout(false);
   }
   async function access() {
     if (!navigator.onLine) throw fail('You are offline. Keep gathering entries and sync them when connected.');
@@ -272,7 +272,7 @@
   }
   async function openArea(area){if(!isAdmin())return;if(area==='users'){const wasUsers=S.area==='users';S.area='users';window.PhoneTools14242?.close();if(wasUsers){S.selection=false;S.page='home';}render();drawUsers();if(!S.directoryLoaded)void loadDirectory();}else await openTools(area);}
   async function enter(session) {
-    if (!validSession(session)) { sessionGate(navigator.onLine ? 'Please sign in.' : 'Reconnect to sign in. Your saved drafts remain on this device.'); return; }
+    if (!validSession(session)) { sessionGate(navigator.onLine ? '' : 'Reconnect to sign in. Your saved drafts remain on this device.'); return; }
     const owner = session.user.id;
     if (enterJob && enterOwner===owner) return enterJob;
     enterOwner=owner;
@@ -452,8 +452,8 @@
     saveDraftLater();render();
   }catch(e){notice(e.message,true);}}
   document.addEventListener('click',e=>{const owner=e.target.closest('[data-owner]'),area=e.target.closest('[data-area]');if(owner){void selectUser(owner.dataset.owner).catch(e=>notice(e.message,true));return;}if(area){void openArea(area.dataset.area).catch(e=>notice(e.message,true));return;}const page=e.target.closest('[data-page],[data-go]');if(page)return navigate(page.dataset.page||page.dataset.go);const b=e.target.closest('[data-action]');if(b&&!b.disabled){e.preventDefault();void handle(b.dataset.action,Number(b.dataset.index||0)).catch(e=>notice(e.message,true));}});
-  $('loginForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;if(!navigator.onLine){$('loginError').textContent='Reconnect to sign in. Existing drafts remain on this device.';return;}authBusy=true;const button=$('loginForm').querySelector('button');button.disabled=true;$('loginError').textContent='Signing in…';try{const result=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(result.error)throw result.error;$('loginPassword').value='';await enter(result.data.session);}catch(e){$('loginError').textContent=e.message;}finally{authBusy=false;button.disabled=false;}};
-  $('phoneRecoveryForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;const password=$('recoveryPassword').value;if(password!==$('recoveryConfirm').value){$('recoveryStatus').textContent='The passwords do not match.';return;}authBusy=true;const button=e.target.querySelector('button');button.disabled=true;$('recoveryStatus').textContent='Updating password…';try{const result=await db.auth.updateUser({password});if(result.error)throw result.error;$('recoveryPassword').value=$('recoveryConfirm').value='';recovering=false;await signout(false,'Password updated. Sign in with your new password.');}catch(e){$('recoveryStatus').textContent=e.message;}finally{authBusy=false;button.disabled=false;}};
+  $('loginForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;if(!navigator.onLine){loginMessageTarget14293().textContent='Reconnect to sign in. Existing drafts remain on this device.';return;}authBusy=true;const button=$('loginForm').querySelector('button');button.disabled=true;const spinner=document.createElement('span');spinner.id='phoneLoginProgress14293';spinner.innerHTML=window.loading1444?.markup()||'';$('loginForm').append(spinner);loginMessageTarget14293().textContent='';try{const result=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(result.error)throw result.error;$('loginPassword').value='';await enter(result.data.session);}catch(e){loginMessageTarget14293().textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
+  $('phoneRecoveryForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;const password=$('recoveryPassword').value;if(password!==$('recoveryConfirm').value){$('recoveryStatus').textContent='The passwords do not match.';return;}authBusy=true;const button=e.target.querySelector('button');button.disabled=true;$('recoveryStatus').textContent='Updating password…';try{const result=await db.auth.updateUser({password});if(result.error)throw result.error;$('recoveryPassword').value=$('recoveryConfirm').value='';recovering=false;await signout(false,'Password updated. Sign in with your new password.');}catch(e){$('recoveryStatus').textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
   $('avatar').onclick=()=>{$('accountMenu').hidden=!$('accountMenu').hidden;$('avatar').setAttribute('aria-expanded',String(!$('accountMenu').hidden));};$('connection').onclick=connectionDialog;
   document.addEventListener('click',e=>{if(!e.target.closest('#avatar,#accountMenu'))$('accountMenu').hidden=true;});
   for(const event of ['pointerdown','keydown','input','touchstart','wheel'])document.addEventListener(event,touch,{passive:true,capture:true});

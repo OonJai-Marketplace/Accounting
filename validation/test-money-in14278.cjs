@@ -35,7 +35,7 @@ for(const [name,bundle] of [['entry1430','6'],['personal-journal1437','6'],['sta
     const submit=/submitWorkspaceForReview=async function\(userId\)\{[^\n]+/;
     const preserved=packed.split('/* scripts/workspace-settings.js */\n')[1].split('\n/* scripts/')[0].match(submit)?.[0];
     assert(preserved?.includes('Reports14253.submit([journal])'),'keep the newer review submission in the bundle');
-    source=source.replace(submit,preserved);
+    assert(source.match(submit)?.[0]===preserved,'submission source and deployed bundle stay synchronized');
     assert.match(source,/p_fund_account_id:row\.fund_account_id\|\|rules\.fundIds\[0\]/);
     assert.match(source,/field==='fund'\?rules\.fundIds:rules\.entryIds/);
   }

@@ -19,6 +19,6 @@
  }
  function ready(){let pending=false;const schedule=()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;decorate()})};new MutationObserver(schedule).observe(document.querySelector('.workspace-scroll')||document.body,{subtree:true,childList:true});window.addEventListener('page113',schedule);decorate()}
  const logout=window.logoutDemoUser;window.logoutDemoUser=async function(...args){window.status118?.clear?.();try{return await logout.apply(this,args)}finally{window.status118?.clear?.();document.getElementById('workspaceContext14284')?.remove()}};
- window.endExpiredSession14284=async function(){window.status118?.clear?.();SessionTimeoutManager.hideWarning();await logoutDemoUser();window.status118?.clear?.();showLoginForm('')};
+ window.endExpiredSession14284=async function(){window.clearLoginNotice14293?.();window.status118?.clear?.();SessionTimeoutManager.hideWarning();try{await logoutDemoUser()}finally{window.status118?.clear?.();showLoginForm('');document.getElementById('loginGate')?.classList.remove('is-authenticated');window.releaseLogin1443?.();}};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

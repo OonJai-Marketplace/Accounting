@@ -2485,7 +2485,7 @@ function handleDemoLogin(event) {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
   const user = DemoAccess.users.find(item => item.active && item.email.toLowerCase() === email && item.password === password);
-  const error = document.getElementById('loginError');
+  const error = loginMessageTarget14293();
   if (!user) { if (error) error.textContent = 'The email or password is incorrect.'; return; }
   DemoAccess.currentUser = user;
   sessionStorage.setItem(DEMO_SESSION_KEY, user.id);
@@ -2636,10 +2636,10 @@ function showPasswordRecoveryForm(message='Choose a new password for this accoun
   passwordRecoveryMode=true;document.getElementById('loginGate')?.classList.remove('is-authenticated');const login=document.getElementById('loginForm'),form=document.getElementById('passwordRecoveryForm'),status=document.getElementById('recoveryPasswordStatus');if(login)login.hidden=true;if(form)form.hidden=false;if(status){status.textContent=message;status.classList.remove('recovery-success')}requestAnimationFrame(()=>document.getElementById('recoveryPassword')?.focus())
 }
 function showLoginForm(message=''){
-  passwordRecoveryMode=false;const login=document.getElementById('loginForm'),form=document.getElementById('passwordRecoveryForm'),error=document.getElementById('loginError'),password=document.getElementById('recoveryPassword'),confirmPassword=document.getElementById('recoveryPasswordConfirm');if(login)login.hidden=false;if(form)form.hidden=true;if(error)error.textContent=message;if(password)password.value='';if(confirmPassword)confirmPassword.value='';requestAnimationFrame(()=>document.getElementById('loginEmail')?.focus())
+  passwordRecoveryMode=false;const login=document.getElementById('loginForm'),form=document.getElementById('passwordRecoveryForm'),error=loginMessageTarget14293(),password=document.getElementById('recoveryPassword'),confirmPassword=document.getElementById('recoveryPasswordConfirm');if(login)login.hidden=false;if(form)form.hidden=true;if(error)error.textContent=message;if(password)password.value='';if(confirmPassword)confirmPassword.value='';requestAnimationFrame(()=>document.getElementById('loginEmail')?.focus())
 }
 async function requestPasswordReset(){
- const emailInput=document.getElementById('loginEmail'),email=emailInput?.value.trim(),error=document.getElementById('loginError');if(!email||!emailInput.checkValidity()){error.textContent='Enter a valid email address first.';emailInput.focus();return}if(!ojmDb){error.textContent='Authentication is still loading. Try again in a moment.';return}const button=document.querySelector('[onclick="requestPasswordReset()"]');if(button.disabled)return;button.disabled=true;
+ const emailInput=document.getElementById('loginEmail'),email=emailInput?.value.trim(),error=loginMessageTarget14293();if(!email||!emailInput.checkValidity()){error.textContent='Enter a valid email address first.';emailInput.focus();return}if(!ojmDb){error.textContent='Authentication is still loading. Try again in a moment.';return}const button=document.querySelector('[onclick="requestPasswordReset()"]');if(button.disabled)return;button.disabled=true;
  try{let options={};try{options.redirectTo=passwordRecoveryRedirectUrl()}catch(e){if(location.protocol!=='file:')throw e}error.textContent='Requesting password recovery…';const result=await ojmDb.auth.resetPasswordForEmail(email,options);if(result.error)throw result.error;error.textContent='If this account exists, check its recovery email. Open the recovery link on the published app, or enter the email’s recovery code below.';window.showRecoveryCode109?.(email)}catch(e){error.textContent=e.message||'Recovery could not be requested. Try again.'}finally{button.disabled=false}
 }
 async function saveRecoveredPassword(event){
@@ -2663,15 +2663,15 @@ async function cancelPasswordRecovery(){if(ojmDb)await ojmDb.auth.signOut();hist
 handleDemoLogin = async function(event) {
   event.preventDefault();
   freshLoginRequested = true;
-  const errorBox = document.getElementById('loginError');
-  if (errorBox) errorBox.textContent = 'Signing in…';
+  const errorBox = loginMessageTarget14293();
+  if (errorBox) errorBox.textContent = '';
   const { error } = await ojmDb.auth.signInWithPassword({
     email:document.getElementById('loginEmail').value.trim(), password:document.getElementById('loginPassword').value
   });
   if (error && errorBox) errorBox.textContent = error.message;
 };
 
-logoutDemoUser = async function() { const error=document.getElementById('loginError');if(error)error.textContent='';localStorage.removeItem('ojm_last_active_view_v1');freshLoginRequested=false;if (ojmDb) await ojmDb.auth.signOut(); };
+logoutDemoUser = async function() { const error=loginMessageTarget14293();if(error)error.textContent='';localStorage.removeItem('ojm_last_active_view_v1');freshLoginRequested=false;if (ojmDb) await ojmDb.auth.signOut({scope:'local'}); };
 
 async function loadLiveProfile(user) {
   const { data, error } = await ojmDb.from('profiles').select('id,email,full_name,role,status').eq('id',user.id).single();
@@ -2877,7 +2877,7 @@ async function hydrateSupabaseSession(session) {
     checkSession();
     // Session location is restored once by interface-v69.js.
     freshLoginRequested=false;
-  } catch(error) { if(epoch!==sessionEpoch1430)return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=document.getElementById('loginError');if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
+  } catch(error) { if(epoch!==sessionEpoch1430)return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
 }
 
 // One complete hydration per authenticated identity, including extension wrappers.
@@ -2895,13 +2895,13 @@ function startSessionLoad1430(session){
  job.promise=Promise.resolve().then(()=>hydrateSupabaseSession(session)).then(()=>{
   if(epoch===sessionEpoch1430&&liveProfile?.id===id&&document.getElementById('loginGate')?.classList.contains('is-authenticated'))sessionReady1430=id;
  }).catch(error=>{
-  if(epoch===sessionEpoch1430){document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=document.getElementById('loginError');if(box)box.textContent=error.message||'Unable to load your account. Please sign in again.';}
+  if(epoch===sessionEpoch1430){document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box)box.textContent=error.message||'Unable to load your account. Please sign in again.';}
  }).finally(()=>{if(sessionLoad1430===job)sessionLoad1430=null;});
  return job.promise;
 }
 
 async function initializeSupabaseApp() {
-  const errorBox=document.getElementById('loginError');
+  const errorBox=loginMessageTarget14293();
   if(!window.supabase||!window.OJM_SUPABASE_URL||!window.OJM_SUPABASE_ANON_KEY){if(errorBox)errorBox.textContent='Supabase configuration could not be loaded.';document.documentElement.classList.remove('session-checking1444');return}
   ojmDb=window.supabase.createClient(window.OJM_SUPABASE_URL,window.OJM_SUPABASE_ANON_KEY,{global:{fetch:(...args)=>window.fetch(...args)}});
   const query105=new URLSearchParams(location.search),hash105=new URLSearchParams(location.hash.slice(1));
@@ -2911,7 +2911,7 @@ async function initializeSupabaseApp() {
   ojmDb.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){showPasswordRecoveryForm();const button=document.querySelector('#passwordRecoveryForm [type=submit]');if(button)button.disabled=false;return}
     if(event==='SIGNED_IN'&&session&&!passwordRecoveryMode)setTimeout(()=>startSessionLoad1430(session),0);
-    if(event==='SIGNED_OUT'){window.invalidateRequests1430?.();resetSessionLoad1430();liveProfile=null;DemoAccess.currentUser=null;const error=document.getElementById('loginError');if(error&&!passwordRecoveryMode)error.textContent='';document.getElementById('loginGate')?.classList.remove('is-authenticated')}
+    if(event==='SIGNED_OUT'){window.invalidateRequests1430?.();resetSessionLoad1430();liveProfile=null;DemoAccess.currentUser=null;const error=loginMessageTarget14293();if(error&&!passwordRecoveryMode)error.textContent='';document.getElementById('loginGate')?.classList.remove('is-authenticated')}
   });
   // Handle custom recovery templates with token_hash as well as SDK-managed implicit/PKCE links.
   try{

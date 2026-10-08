@@ -2512,7 +2512,7 @@ function handleDemoLogin(event) {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
   const user = DemoAccess.users.find(item => item.active && item.email.toLowerCase() === email && item.password === password);
-  const error = document.getElementById('loginError');
+  const error = loginMessageTarget14293();
   if (!user) { if (error) error.textContent = 'The email or password is incorrect.'; return; }
   DemoAccess.currentUser = user;
   sessionStorage.setItem(DEMO_SESSION_KEY, user.id);
@@ -2663,10 +2663,10 @@ function showPasswordRecoveryForm(message='Choose a new password for this accoun
   passwordRecoveryMode=true;document.getElementById('loginGate')?.classList.remove('is-authenticated');const login=document.getElementById('loginForm'),form=document.getElementById('passwordRecoveryForm'),status=document.getElementById('recoveryPasswordStatus');if(login)login.hidden=true;if(form)form.hidden=false;if(status){status.textContent=message;status.classList.remove('recovery-success')}requestAnimationFrame(()=>document.getElementById('recoveryPassword')?.focus())
 }
 function showLoginForm(message=''){
-  passwordRecoveryMode=false;const login=document.getElementById('loginForm'),form=document.getElementById('passwordRecoveryForm'),error=document.getElementById('loginError'),password=document.getElementById('recoveryPassword'),confirmPassword=document.getElementById('recoveryPasswordConfirm');if(login)login.hidden=false;if(form)form.hidden=true;if(error)error.textContent=message;if(password)password.value='';if(confirmPassword)confirmPassword.value='';requestAnimationFrame(()=>document.getElementById('loginEmail')?.focus())
+  passwordRecoveryMode=false;const login=document.getElementById('loginForm'),form=document.getElementById('passwordRecoveryForm'),error=loginMessageTarget14293(),password=document.getElementById('recoveryPassword'),confirmPassword=document.getElementById('recoveryPasswordConfirm');if(login)login.hidden=false;if(form)form.hidden=true;if(error)error.textContent=message;if(password)password.value='';if(confirmPassword)confirmPassword.value='';requestAnimationFrame(()=>document.getElementById('loginEmail')?.focus())
 }
 async function requestPasswordReset(){
- const emailInput=document.getElementById('loginEmail'),email=emailInput?.value.trim(),error=document.getElementById('loginError');if(!email||!emailInput.checkValidity()){error.textContent='Enter a valid email address first.';emailInput.focus();return}if(!ojmDb){error.textContent='Authentication is still loading. Try again in a moment.';return}const button=document.querySelector('[onclick="requestPasswordReset()"]');if(button.disabled)return;button.disabled=true;
+ const emailInput=document.getElementById('loginEmail'),email=emailInput?.value.trim(),error=loginMessageTarget14293();if(!email||!emailInput.checkValidity()){error.textContent='Enter a valid email address first.';emailInput.focus();return}if(!ojmDb){error.textContent='Authentication is still loading. Try again in a moment.';return}const button=document.querySelector('[onclick="requestPasswordReset()"]');if(button.disabled)return;button.disabled=true;
  try{let options={};try{options.redirectTo=passwordRecoveryRedirectUrl()}catch(e){if(location.protocol!=='file:')throw e}error.textContent='Requesting password recovery…';const result=await ojmDb.auth.resetPasswordForEmail(email,options);if(result.error)throw result.error;error.textContent='If this account exists, check its recovery email. Open the recovery link on the published app, or enter the email’s recovery code below.';window.showRecoveryCode109?.(email)}catch(e){error.textContent=e.message||'Recovery could not be requested. Try again.'}finally{button.disabled=false}
 }
 async function saveRecoveredPassword(event){
@@ -2690,15 +2690,15 @@ async function cancelPasswordRecovery(){if(ojmDb)await ojmDb.auth.signOut();hist
 handleDemoLogin = async function(event) {
   event.preventDefault();
   freshLoginRequested = true;
-  const errorBox = document.getElementById('loginError');
-  if (errorBox) errorBox.textContent = 'Signing in…';
+  const errorBox = loginMessageTarget14293();
+  if (errorBox) errorBox.textContent = '';
   const { error } = await ojmDb.auth.signInWithPassword({
     email:document.getElementById('loginEmail').value.trim(), password:document.getElementById('loginPassword').value
   });
   if (error && errorBox) errorBox.textContent = error.message;
 };
 
-logoutDemoUser = async function() { const error=document.getElementById('loginError');if(error)error.textContent='';localStorage.removeItem('ojm_last_active_view_v1');freshLoginRequested=false;if (ojmDb) await ojmDb.auth.signOut(); };
+logoutDemoUser = async function() { const error=loginMessageTarget14293();if(error)error.textContent='';localStorage.removeItem('ojm_last_active_view_v1');freshLoginRequested=false;if (ojmDb) await ojmDb.auth.signOut({scope:'local'}); };
 
 async function loadLiveProfile(user) {
   const { data, error } = await ojmDb.from('profiles').select('id,email,full_name,role,status').eq('id',user.id).single();
@@ -2904,7 +2904,7 @@ async function hydrateSupabaseSession(session) {
     checkSession();
     // Session location is restored once by interface-v69.js.
     freshLoginRequested=false;
-  } catch(error) { if(epoch!==sessionEpoch1430)return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=document.getElementById('loginError');if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
+  } catch(error) { if(epoch!==sessionEpoch1430)return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
 }
 
 // One complete hydration per authenticated identity, including extension wrappers.
@@ -2922,13 +2922,13 @@ function startSessionLoad1430(session){
  job.promise=Promise.resolve().then(()=>hydrateSupabaseSession(session)).then(()=>{
   if(epoch===sessionEpoch1430&&liveProfile?.id===id&&document.getElementById('loginGate')?.classList.contains('is-authenticated'))sessionReady1430=id;
  }).catch(error=>{
-  if(epoch===sessionEpoch1430){document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=document.getElementById('loginError');if(box)box.textContent=error.message||'Unable to load your account. Please sign in again.';}
+  if(epoch===sessionEpoch1430){document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box)box.textContent=error.message||'Unable to load your account. Please sign in again.';}
  }).finally(()=>{if(sessionLoad1430===job)sessionLoad1430=null;});
  return job.promise;
 }
 
 async function initializeSupabaseApp() {
-  const errorBox=document.getElementById('loginError');
+  const errorBox=loginMessageTarget14293();
   if(!window.supabase||!window.OJM_SUPABASE_URL||!window.OJM_SUPABASE_ANON_KEY){if(errorBox)errorBox.textContent='Supabase configuration could not be loaded.';document.documentElement.classList.remove('session-checking1444');return}
   ojmDb=window.supabase.createClient(window.OJM_SUPABASE_URL,window.OJM_SUPABASE_ANON_KEY,{global:{fetch:(...args)=>window.fetch(...args)}});
   const query105=new URLSearchParams(location.search),hash105=new URLSearchParams(location.hash.slice(1));
@@ -2938,7 +2938,7 @@ async function initializeSupabaseApp() {
   ojmDb.auth.onAuthStateChange((event,session)=>{
     if(event==='PASSWORD_RECOVERY'){showPasswordRecoveryForm();const button=document.querySelector('#passwordRecoveryForm [type=submit]');if(button)button.disabled=false;return}
     if(event==='SIGNED_IN'&&session&&!passwordRecoveryMode)setTimeout(()=>startSessionLoad1430(session),0);
-    if(event==='SIGNED_OUT'){window.invalidateRequests1430?.();resetSessionLoad1430();liveProfile=null;DemoAccess.currentUser=null;const error=document.getElementById('loginError');if(error&&!passwordRecoveryMode)error.textContent='';document.getElementById('loginGate')?.classList.remove('is-authenticated')}
+    if(event==='SIGNED_OUT'){window.invalidateRequests1430?.();resetSessionLoad1430();liveProfile=null;DemoAccess.currentUser=null;const error=loginMessageTarget14293();if(error&&!passwordRecoveryMode)error.textContent='';document.getElementById('loginGate')?.classList.remove('is-authenticated')}
   });
   // Handle custom recovery templates with token_hash as well as SDK-managed implicit/PKCE links.
   try{
@@ -4182,7 +4182,7 @@ renderSubUserWorkspace=function(){renderWorkspaceBefore47();const tab=activeSubU
 const openWorkspaceReviewBefore47=openWorkspaceReview;
 openWorkspaceReview=function(userId,mode='review'){openWorkspaceReviewBefore47(userId);const journals=(reviewStaffJournals||[]).filter(j=>j.owner_id===userId&&j.lines?.length).sort((a,b)=>String(b.period_start).localeCompare(String(a.period_start))),cards=[...document.querySelectorAll('#workspaceReviewOverlay .workspace-review-record')];cards.forEach((card,i)=>{if(journals[i]?.status==='reviewed')card.querySelector('.btn-action-edit')?.remove();const pending=['submitted','returned'].includes(journals[i]?.status);if(mode==='review'?!pending:pending)card.remove()});const title=document.querySelector('#workspaceReviewOverlay .submission-compare-header strong');if(title)title.textContent=mode==='review'?'Submission Review':'Submission History';if(!document.querySelector('#workspaceReviewOverlay .workspace-review-record'))document.querySelector('#workspaceReviewOverlay .workspace-review-scroll').innerHTML='<div class="legal-doc-empty">No records in this view.</div>'};
 
-submitWorkspaceForReview=async function(userId){if(pendingRowsFor(userId).length||Object.keys(workspaceRowEdits[userId]||{}).length||wsSaving.size){showCenterStatus('Complete or remove unsaved rows before submitting.',true);return}const journal=currentWorkspaceJournal(userId);if(!journal||!['draft','returned'].includes(journal.status)||!journal.lines?.length)return;showAppConfirm('Submit for Review','Submit this period and lock the saved entries for review?','Submit',async()=>{const result=await ojmDb.rpc('submit_staff_journal',{p_journal_id:journal.id});if(result.error){showCenterStatus(result.error.message,true);return}await loadStaffJournalsForReview();showCenterStatus('Submitted for review.')},false)};
+submitWorkspaceForReview=async function(userId){if(pendingRowsFor(userId).length||Object.keys(workspaceRowEdits[userId]||{}).length||wsSaving.size){showCenterStatus('Complete or remove unsaved rows before submitting.',true);return}const journal=currentWorkspaceJournal(userId);if(!journal||!['draft','returned'].includes(journal.status)||!journal.lines?.length)return;try{if(await Reports14253.submit([journal])){await loadStaffJournalsForReview();showCenterStatus('Submitted for review.')}}catch(error){showCenterStatus(error.message,true)}};
 const editWorkspaceBatchBefore47=editWorkspaceReviewBatch;
 editWorkspaceReviewBatch=async function(id){const journal=(reviewStaffJournals||[]).find(j=>j.id===id);if(journal?.status==='reviewed'){showCenterStatus('This report has been reviewed. Ask the administrator to record a correction.',true);return}if(journal)wsPeriod[journal.owner_id]=String(journal.period_start).slice(0,7);return editWorkspaceBatchBefore47(id)};
 
@@ -7288,14 +7288,14 @@ window.addEventListener('DOMContentLoaded',()=>{
  document.addEventListener('scroll',()=>document.querySelectorAll('.row-menu99[open]').forEach(d=>d.open=false),true);
  const history=renderAllTransactionsTable;window.renderAllTransactionsTable=function(...args){const host=$('archiveMonths67');const open=[...(host?.querySelectorAll('details[open]')||[])].map(n=>n.querySelector('summary strong')?.textContent);const r=history.apply(this,args);$('archiveMonths67')?.querySelectorAll('details').forEach(d=>d.open=open.includes(d.querySelector('summary strong')?.textContent));return r};
  // Keep the login card visible, but never reveal the hidden recovery form.
- const login=handleDemoLogin;window.handleDemoLogin=async function(...args){if($('loginGate')?.classList.contains('busy99')){args[0]?.preventDefault();return}startLogin();try{await login.apply(this,args);if($('loginError')?.textContent&&!/Signing in|preparing your workspace/.test($('loginError').textContent))endLogin()}catch(e){endLogin();$('loginError').textContent=e.message||'Sign-in failed. Please try again.'}};
+ const login=handleDemoLogin;window.handleDemoLogin=async function(...args){if($('loginGate')?.classList.contains('busy99')){args[0]?.preventDefault();return}startLogin();try{await login.apply(this,args);if(loginMessageTarget14293()?.textContent)endLogin()}catch(e){endLogin();loginMessageTarget14293().textContent=e.message||'Sign-in failed. Please try again.'}};
  const hydrate=hydrateSupabaseSession;window.hydrateSupabaseSession=async function(...args){startLogin();try{return await hydrate.apply(this,args)}finally{endLogin()}};
  const findingForm=document.getElementById('periodFindingForm');
  if(findingForm){findingForm.dataset.autoClose99='';const before=openPeriodFindingForm;window.openPeriodFindingForm=function(...args){const out=before.apply(this,args);clearTimeout(timers.get(findingForm));timers.delete(findingForm);armCollapse(findingForm);return out};}
  installTablet();polish();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
  installPosting();
 });
-function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let p=$('loginProgress99');if(!p){p=document.createElement('div');p.id='loginProgress99';p.setAttribute('role','status');p.innerHTML=loading1444.markup()+'<span class="loading-status1444">Preparing your workspace…</span>';$('loginForm').append(p)}p.hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('button[type=submit]').disabled=true;}
+function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let p=$('loginProgress99');if(!p){p=document.createElement('div');p.id='loginProgress99';p.setAttribute('role','status');p.innerHTML=loading1444.markup();$('loginForm').append(p)}p.hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('button[type=submit]').disabled=true;}
 window.releaseLogin1443=()=>endLogin();
 function endLogin(){$('loginGate')?.classList.remove('busy99');if($('loginProgress99'))$('loginProgress99').hidden=true;$('loginForm')?.removeAttribute('aria-busy');const b=$('loginForm')?.querySelector('button[type=submit]');if(b)b.disabled=false;}
 function installTablet(){

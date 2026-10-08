@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Actual workspace Submit asks for report types and never calls legacy submission",
+    "passed": true
+  },
+  {
+    "name": "Selected report types become General Description on journal preparation",
+    "passed": true
+  },
+  {
+    "name": "Sign-in has no inline status; progress is silent and incorrect credentials show a box",
+    "passed": true
+  },
+  {
+    "name": "Session expiry clears notifications and returns directly to login",
+    "passed": true
+  },
+  {
+    "name": "Workspace menu includes accounting, public restaurant and back office",
+    "passed": true
+  },
+  {
+    "name": "Reports chooser shows only the controls for the selected period",
+    "passed": true
+  },
+  {
+    "name": "Changed flows have no uncaught browser errors",
+    "passed": true
+  }
+]

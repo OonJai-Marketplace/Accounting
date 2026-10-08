@@ -61,14 +61,14 @@ window.addEventListener('DOMContentLoaded',()=>{
  document.addEventListener('scroll',()=>document.querySelectorAll('.row-menu99[open]').forEach(d=>d.open=false),true);
  const history=renderAllTransactionsTable;window.renderAllTransactionsTable=function(...args){const host=$('archiveMonths67');const open=[...(host?.querySelectorAll('details[open]')||[])].map(n=>n.querySelector('summary strong')?.textContent);const r=history.apply(this,args);$('archiveMonths67')?.querySelectorAll('details').forEach(d=>d.open=open.includes(d.querySelector('summary strong')?.textContent));return r};
  // Keep the login card visible, but never reveal the hidden recovery form.
- const login=handleDemoLogin;window.handleDemoLogin=async function(...args){if($('loginGate')?.classList.contains('busy99')){args[0]?.preventDefault();return}startLogin();try{await login.apply(this,args);if($('loginError')?.textContent&&!/Signing in|preparing your workspace/.test($('loginError').textContent))endLogin()}catch(e){endLogin();$('loginError').textContent=e.message||'Sign-in failed. Please try again.'}};
+ const login=handleDemoLogin;window.handleDemoLogin=async function(...args){if($('loginGate')?.classList.contains('busy99')){args[0]?.preventDefault();return}startLogin();try{await login.apply(this,args);if(loginMessageTarget14293()?.textContent)endLogin()}catch(e){endLogin();loginMessageTarget14293().textContent=e.message||'Sign-in failed. Please try again.'}};
  const hydrate=hydrateSupabaseSession;window.hydrateSupabaseSession=async function(...args){startLogin();try{return await hydrate.apply(this,args)}finally{endLogin()}};
  const findingForm=document.getElementById('periodFindingForm');
  if(findingForm){findingForm.dataset.autoClose99='';const before=openPeriodFindingForm;window.openPeriodFindingForm=function(...args){const out=before.apply(this,args);clearTimeout(timers.get(findingForm));timers.delete(findingForm);armCollapse(findingForm);return out};}
  installTablet();polish();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
  installPosting();
 });
-function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let p=$('loginProgress99');if(!p){p=document.createElement('div');p.id='loginProgress99';p.setAttribute('role','status');p.innerHTML=loading1444.markup()+'<span class="loading-status1444">Preparing your workspace…</span>';$('loginForm').append(p)}p.hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('button[type=submit]').disabled=true;}
+function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let p=$('loginProgress99');if(!p){p=document.createElement('div');p.id='loginProgress99';p.setAttribute('role','status');p.innerHTML=loading1444.markup();$('loginForm').append(p)}p.hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('button[type=submit]').disabled=true;}
 window.releaseLogin1443=()=>endLogin();
 function endLogin(){$('loginGate')?.classList.remove('busy99');if($('loginProgress99'))$('loginProgress99').hidden=true;$('loginForm')?.removeAttribute('aria-busy');const b=$('loginForm')?.querySelector('button[type=submit]');if(b)b.disabled=false;}
 function installTablet(){

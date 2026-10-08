@@ -1,6 +1,6 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='142.92', CACHE='ojm-phone-shell-'+VERSION;
-const FILES=['styles/functional-corrections14292.css?v=142.92','recovery.html','scripts/recovery14257.js?v=142.57','scripts/phone-reset-gate14257.js?v=142.57','scripts/numeric-caret14257.js?v=142.57','scripts/password-policy14257.js?v=142.57','index.html','phone.html','styles/phone14242.css?v=142.47','scripts/phone-runtime14242.js?v=142.81','assets/vendor/supabase.js?v=142.41','scripts/supabase-config.js?v=142.41','scripts/staff-entry14225.js?v=142.81'];
+const VERSION='142.93', CACHE='ojm-phone-shell-'+VERSION;
+const FILES=['styles/loading1444.css?v=142.93','scripts/login-notifications14293.js?v=142.93','styles/login-notifications14293.css?v=142.93','scripts/loading1444.js?v=142.93','styles/functional-corrections14292.css?v=142.93','recovery.html','scripts/recovery14257.js?v=142.57','scripts/phone-reset-gate14257.js?v=142.57','scripts/numeric-caret14257.js?v=142.57','scripts/password-policy14257.js?v=142.57','index.html','phone.html','styles/phone14242.css?v=142.47','scripts/phone-runtime14242.js?v=142.93','assets/vendor/supabase.js?v=142.41','scripts/supabase-config.js?v=142.41','scripts/staff-entry14225.js?v=142.81'];
 const OPTIONAL=['scripts/phone-tools14242.js?v=142.57','assets/logo.png'];
 const scopeURL=new URL(self.registration.scope);
 self.addEventListener('install',event=>event.waitUntil((async()=>{

@@ -45,22 +45,31 @@ await page.evaluate(async()=>{
  };
  await Organization14229.loadHome();
 });
-await check('Desktop journal preparation summarizes details and retains references in line memos',async()=>{
- await page.setViewportSize({width:1280,height:900});await page.waitForTimeout(250);
- const summary=await page.evaluate(()=>{const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');const j={id:id(900),owner_id:id(2),period_start:'2026-08-01',status:'submitted',report_types14253:[{name:'Expense report'}],lines:[1,2,3].map(n=>({id:id(900+n),transaction_date:'2026-08-0'+n,workspace_entry_no:'RYAN-'+n,account_id:id(110),fund_account_id:id(101),direction:'out',entry_kind:'payment',currency_code:'LAK',memo:'Original detail '+n,amount:100*n}))};window.__summaryFixture=j;Reports14253.prepare(j);return {memo:document.getElementById('jeGeneralMemo').value,date:document.getElementById('jeTransDate').value,rows:[...document.querySelectorAll('#jeLinesBody tr')].map(n=>({sources:n.dataset.sourceIds14253,text:n.querySelector('.je-line-memo')?.value})),groups:collectLiveJournalGroups()};});
- assert.equal(summary.memo,'Expense report — August 2026');assert.equal(summary.date,'2026-08-31');assert.equal(summary.rows.length,2);assert(summary.rows.every(r=>JSON.parse(r.sources).length===3));assert.deepEqual(summary.groups.errors,[]);assert.deepEqual(summary.groups.differences,[]);
- const lines=Object.values(summary.groups.grouped).flatMap(g=>g.lines);assert(lines.every(l=>l.memo.includes('Report 00000000-0000-4000-8000-000000000900')));assert.equal(lines.reduce((a,l)=>a+Number(l.debit||0),0),600);
- await page.screenshot({path:path.join(root,'validation/screenshots/summary14253.png'),fullPage:false});
-});
 
-await check('Desktop posting sends the exact source links with the one summary journal',async()=>{
- await page.evaluate(()=>{const old=ojmDb.rpc;ojmDb.rpc=async(n,p)=>{if(n==='post_summary14253'){window.__summarySent=structuredClone(p);return {data:{entry_id:'00000000-0000-4000-8000-000000000990',entry_no:'OJM-000990'},error:null};}return old(n,p);};});
- await page.locator('#btnPostJournal').click();await page.waitForFunction(()=>!!window.__summarySent);const p=await page.evaluate(()=>__summarySent);assert.equal(p.p_lines.length,2);assert.equal(p.p_date,'2026-08-31');assert(p.p_lines.every(l=>l.source_ids.length===3));assert.equal(p.p_memo,'Expense report — August 2026');
+await check('Actual workspace Submit asks for report types and never calls legacy submission',async()=>{
+ await page.evaluate(()=>{const j=__auditReports.find(j=>j.status==='draft');window.__testReport14293=j;currentWorkspaceJournal=()=>j;window.__submitPromise14293=submitWorkspaceForReview(j.owner_id);});
+ await page.locator('#reportSelect14253 input').first().check();
+ await page.locator('.ui-overlay108').last().getByRole('button',{name:'Submit',exact:true}).click();
+ await page.evaluate(()=>__submitPromise14293);
+ const r=await page.evaluate(()=>({sent:__submitted14253,legacy:__auditSubmits}));assert.equal(r.sent.p_types.length,1);assert.equal(r.sent.p_journal,'audit-report-0-0');assert.equal(r.legacy.length,0);
 });
-await check('Account assignment categories and search combine without changing selections',async()=>{
- await page.evaluate(()=>{openUserAccessEditor(liveProfile.id);openAccessPicker('Account Assignment','userAccountAssignmentPanel');});
- await page.locator('#assignmentTypes14253 button').filter({hasText:'Expenses'}).click();assert.equal(await page.locator('#userFundAccountGrid label:visible').count(),1);await page.locator('#assignmentSearch14253').focus();await page.locator('#assignmentSearch14253').fill('No match');assert.equal(await page.locator('#userFundAccountGrid label:visible').count(),0);await page.locator('#assignmentSearch14253').focus();await page.locator('#assignmentSearch14253').fill('');assert.equal(await page.locator('#userFundAccountGrid label:visible').count(),1);assert.equal(await page.locator('#userFundAccountGrid input:checked').count(),4);
+await check('Selected report types become General Description on journal preparation',async()=>{
+ const memo=await page.evaluate(()=>{const j=structuredClone(__testReport14293);j.report_types14253=[{name:'Cashier Report'},{name:'Expense Report'}];Reports14253.prepare(j);return document.getElementById('jeGeneralMemo').value;});assert.equal(memo,'Cashier Report / Expense Report — July 2026');
 });
-await check('Desktop browser has no uncaught errors',async()=>assert.deepEqual(errors,[]));
-fs.writeFileSync(path.join(root,'validation/workflow-desktop14253.json'),JSON.stringify(results,null,2));await browser.close();server.close();if(results.some(r=>!r.passed))process.exitCode=1;
+await check('Sign-in has no inline status; progress is silent and incorrect credentials show a box',async()=>{
+ await page.evaluate(()=>{loginMessageTarget14293().textContent='Signing in…'});assert.equal(await page.locator('#loginError').count(),0);assert.equal(await page.locator('#loginNotification14293[open]').count(),0);
+ await page.evaluate(()=>{loginMessageTarget14293().textContent='Invalid login credentials'});assert(await page.locator('#loginNotification14293').isVisible());assert.match(await page.locator('#loginNotificationText14293').innerText(),/email or password is incorrect/);await page.locator('#loginNotification14293 button').click();
+});
+await check('Session expiry clears notifications and returns directly to login',async()=>{
+ await page.evaluate(async()=>{SessionTimeoutManager.hideWarning();await endExpiredSession14284();});assert(!await page.locator('#loginGate').evaluate(n=>n.classList.contains('is-authenticated')));assert.equal(await page.locator('#loginNotification14293[open]').count(),0);
+});
+await check('Workspace menu includes accounting, public restaurant and back office',async()=>{
+ await page.evaluate(()=>{liveProfile=__fixture.profiles[0];workspaceLinks123.menu()});const text=await page.locator('#workspaceApps1432').innerText();assert(text.includes('Oon Jai Accounting'));assert(text.includes('Public Restaurant Website'));assert(text.includes('Restaurant Back Office'));const url=await page.evaluate(()=>workspaceDestinations14234.resolve('publicRestaurant').href);assert.equal(url,'https://oonjai-marketplace.github.io/web/');
+});
+await check('Reports chooser shows only the controls for the selected period',async()=>{
+ await page.evaluate(()=>{clearLoginNotice14293();liveProfile=__fixture.profiles[0];livePermission=__fixture.profiles[0].user_permissions;documentWorkspace105.closeTools=()=>{};void ReportLibrary14285.open()});
+ const form=page.locator('#reportChooser14285');await form.waitFor();assert(await form.locator('[data-month14285]').isVisible());assert(!await form.locator('[data-year14285]').isVisible());await form.locator('[name=mode]').selectOption('quarterly');assert(await form.locator('[data-year14285]').isVisible());assert(await form.locator('[data-quarter14285]').isVisible());assert(!await form.locator('[data-month14285]').isVisible());await form.locator('[name=mode]').selectOption('yearly');assert(await form.locator('[data-year14285]').isVisible());assert(!await form.locator('[data-quarter14285]').isVisible());
+});
+await check('Changed flows have no uncaught browser errors',async()=>assert.deepEqual(errors,[]));
+fs.writeFileSync(path.join(root,'validation/focused-adjustments14293.json'),JSON.stringify(results,null,2));await browser.close();server.close();if(results.some(r=>!r.passed))process.exitCode=1;
 })().catch(e=>{console.error(e);server.close();process.exit(1)});

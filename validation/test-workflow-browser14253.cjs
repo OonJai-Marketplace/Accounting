@@ -63,8 +63,8 @@ await check('All administrator module actions are allowed without individual che
 await check('Administrator account groups and tabs remain available during Home invalidation',async()=>{
  await frame.evaluate(id=>chooseWorkspace(id),admin);await frame.waitForTimeout(300);
  await page.evaluate(()=>{const rpc=ojmDb.rpc;window.restoreRpc14251=rpc;ojmDb.rpc=(n,p)=>n==='branch_home14229'?new Promise(resolve=>window.releaseHome14251=()=>rpc(n,p).then(resolve)):rpc(n,p);Organization14229.invalidate();});
- for(const tab of ['accounts','post','entries','history','home']){await frame.locator('[data-go='+tab+']').click();assert.equal((await frame.evaluate(()=>phoneSelection14237())).page,tab);}
- await frame.locator('[data-go=accounts]').click();assert.equal(await frame.locator('#accounts .account-row14248').count(),0);await frame.locator('#accounts .account-types14253 button').filter({hasText:'Assets'}).click();assert.equal(await frame.locator('#accounts .account-row14248').count(),3);
+ for(const tab of ['accounts','post','entries','history','home']){await frame.evaluate(tab=>go(tab),tab);assert.equal((await frame.evaluate(()=>phoneSelection14237())).page,tab);}
+ await frame.evaluate(()=>go('accounts'));assert.equal(await frame.locator('#accounts .account-row14248').count(),0);await frame.locator('#accounts .account-types14253 button').filter({hasText:'Assets'}).click();assert.equal(await frame.locator('#accounts .account-row14248').count(),3);
  await page.evaluate(()=>{ojmDb.rpc=restoreRpc14251;releaseHome14251?.();});
 });
 await check('Administrator editor shows automatic access; next sub-user retains its restrictions',async()=>{
@@ -83,7 +83,7 @@ await check('Selecting Administrator saves full grants without manual checkbox s
 });
 await check('Phone Users cards show authority and position without account lists',async()=>{
  await page.locator('#modalUserAccess.active .modal-close-x').click().catch(()=>{});
- await frame.locator('.profile').click();await frame.getByRole('button',{name:'Settings',exact:true}).click();await frame.locator('#settingsNav [data-settings=users]').click();
+ await frame.evaluate(()=>settingsGo('users'));
  const cards=frame.locator('.settings-user133'),adminCard=cards.filter({hasText:'Santos Cabbigat'}),staffCard=cards.filter({hasText:'Ryan Santos'});
  assert.equal(await adminCard.locator('.badge').innerText(),'Administrator');assert.equal(await staffCard.locator('.badge').innerText(),'Sub-user');
  assert.equal(await cards.locator(':scope > small').count(),0);assert.equal(await staffCard.getByRole('button',{name:'✎ Edit',exact:true}).count(),1);
@@ -105,8 +105,8 @@ await check('User editor input stays above the keyboard without losing its value
  await page.evaluate(()=>{delete visualViewport.height;visualViewport.dispatchEvent(new Event('resize'));});await page.locator('#modalUserAccess .modal-close-x').click();
 });
 await check('Administrator Home omits its long account list; phone picker filters permitted choices',async()=>{
- await frame.evaluate(id=>chooseWorkspace(id),admin);await frame.locator('[data-go=home]').click();assert.equal(await frame.locator('#home .account-row14248').count(),0);
- await frame.locator('[data-go=post]').click();const picker=frame.locator('#post input.account-search1428').first();await picker.click();await frame.locator('#phoneAccountPicker14227').waitFor();
+ await frame.evaluate(id=>chooseWorkspace(id),admin);await frame.evaluate(()=>go('home'));assert.equal(await frame.locator('#home .account-row14248').count(),0);
+ await frame.evaluate(()=>go('post'));const picker=frame.locator('#post input.account-search1428').first();await picker.click();await frame.locator('#phoneAccountPicker14227').waitFor();
  await frame.locator('#phoneAccountPicker14227 .account-types14253 button').filter({hasText:'System'}).click();assert.equal(await frame.locator('#phoneAccountPicker14227 [role=option]').count(),0);
  await frame.locator('#phoneAccountPicker14227 .account-types14253 button').filter({hasText:'Assets'}).click();assert((await frame.locator('#phoneAccountPicker14227 [role=option]').count())>0);await frame.locator('[data-picker-back]').click();
 });
@@ -118,7 +118,7 @@ await check('Report submission permits multiple types and uses reporting month, 
 });
 await check('System classification offers an explicit underlying accounting type',async()=>{await page.evaluate(()=>openAddAccountModal(true));assert.equal(await page.locator('#accType').inputValue(),'SYSTEM');assert(await page.locator('#systemBaseField14253').isVisible());assert.equal(await page.locator('#systemBase14253 option').count(),5);await page.locator('#modalAccount .modal-close-x').click();});
 await check('Shared types management and user lifecycle controls are accessible',async()=>{
- await frame.locator('.profile').click();await frame.getByRole('button',{name:'Settings',exact:true}).click();await frame.locator('#settingsNav [data-settings=users]').click();assert(await frame.getByRole('button',{name:'Report Types',exact:true}).isVisible());assert((await frame.getByRole('button',{name:'Ⅱ Deactivate',exact:true}).count())>0);assert((await frame.getByRole('button',{name:'Delete',exact:true}).count())>0);
+ await frame.evaluate(()=>settingsGo('users'));assert(await frame.getByRole('button',{name:'Report Types',exact:true}).isVisible());assert((await frame.getByRole('button',{name:'Ⅱ Deactivate',exact:true}).count())>0);assert((await frame.getByRole('button',{name:'Delete',exact:true}).count())>0);
  await frame.getByRole('button',{name:'Report Types',exact:true}).click();await page.locator('#reportManager14253').waitFor();assert.equal(await page.locator('#reportManager14253 [data-type]').count(),2);await page.locator('.ui-overlay108').last().getByRole('button',{name:'Close',exact:true}).click();
 });
 await check('Desktop journal preparation summarizes details and retains references in line memos',async()=>{

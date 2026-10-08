@@ -63,8 +63,8 @@ await check('All administrator module actions are allowed without individual che
 await check('Administrator account groups and tabs remain available during Home invalidation',async()=>{
  await frame.evaluate(id=>chooseWorkspace(id),admin);await frame.waitForTimeout(300);
  await page.evaluate(()=>{const rpc=ojmDb.rpc;window.restoreRpc14251=rpc;ojmDb.rpc=(n,p)=>n==='branch_home14229'?new Promise(resolve=>window.releaseHome14251=()=>rpc(n,p).then(resolve)):rpc(n,p);Organization14229.invalidate();});
- for(const tab of ['accounts','post','entries','history','home']){await frame.locator('[data-go='+tab+']').click();assert.equal((await frame.evaluate(()=>phoneSelection14237())).page,tab);}
- await frame.locator('[data-go=accounts]').click();assert.equal(await frame.locator('#accounts .account-row14248').count(),8);
+ for(const tab of ['accounts','post','entries','history','home']){await frame.evaluate(tab=>go(tab),tab);assert.equal((await frame.evaluate(()=>phoneSelection14237())).page,tab);}
+ await frame.evaluate(()=>go('accounts'));assert.equal(await frame.locator('#accounts .account-row14248').count(),8);
  await page.evaluate(()=>{ojmDb.rpc=restoreRpc14251;releaseHome14251?.();});
 });
 await check('Administrator editor shows automatic access; next sub-user retains its restrictions',async()=>{
@@ -83,7 +83,7 @@ await check('Selecting Administrator saves full grants without manual checkbox s
 });
 await check('Phone Users cards show authority and position without account lists',async()=>{
  await page.locator('#modalUserAccess.active .modal-close-x').click().catch(()=>{});
- await frame.locator('.profile').click();await frame.getByRole('button',{name:'Settings',exact:true}).click();await frame.locator('#settingsNav [data-settings=users]').click();
+ await frame.evaluate(()=>settingsGo('users'));
  const cards=frame.locator('.settings-user133'),adminCard=cards.filter({hasText:'Santos Cabbigat'}),staffCard=cards.filter({hasText:'Ryan Santos'});
  assert.equal(await adminCard.locator('.badge').innerText(),'Administrator');assert.equal(await staffCard.locator('.badge').innerText(),'Sub-user');
  assert.equal(await cards.locator(':scope > small').count(),0);assert.equal(await staffCard.getByRole('button',{name:'Edit user',exact:true}).count(),1);
