@@ -66,5 +66,9 @@
   {
     "name": "Voucher register and settings fit desktop and tablet portrait/landscape",
     "passed": true
+  },
+  {
+    "name": "Company template copies never retain the saved voucher identity",
+    "passed": true
   }
 ]
