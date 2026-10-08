@@ -655,7 +655,7 @@ function initCoaCurrencyFilter() {
       opt.textContent = `${c.code} — ${c.name}`;
       modalSelect.appendChild(opt);
     });
-    modalSelect.insertAdjacentHTML('beforeend','<option value="__PARENT__">N/A — Parent account (non-posting)</option>');
+    modalSelect.insertAdjacentHTML('beforeend','<option value="__PARENT__">Parent account (non-posting)</option>');
   }
 }
 
@@ -695,7 +695,7 @@ function renderChartOfAccountsTable() {
     tr.innerHTML = `
       <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${acc.code}</td>
       <td><strong>${escapeHtml(acc.name)}</strong></td>
-      <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'N/A':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
+      <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'Parent':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${acc.type}</span></td>
       <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
       <td style="text-align: right;">
@@ -2751,7 +2751,7 @@ handleSubAccountFormSubmit = async function(event){
     if(error)throw error;
     closeModal('modalSubAccount');
     await loadReferenceDataFromSupabase();
-    const saved=AccountingStore.subAccounts.find(s=>s.code===payload.code);if(!saved?.postingAccountId14285)showAppNotification('Sub-account saved','Run setup/INSTALL-SUBACCOUNT-POSTING-v142.85.sql to make sub-accounts available in the chart and posting account picker.',true);
+    const saved=AccountingStore.subAccounts.find(s=>s.code===payload.code);if(!saved?.postingAccountId14285)showAppNotification('Sub-account saved','Run setup/INSTALL-SUBACCOUNT-POSTING-REPAIR-v142.87.sql to make sub-accounts available in the chart and posting account picker.',true);
   }catch(error){
     const message=/currency_code/i.test(error.message||'')&&['PGRST204','42703'].includes(error.code)
       ?'Run setup/INSTALL-SUBACCOUNT-CURRENCY-v142.16.sql once in Supabase, then save again.'

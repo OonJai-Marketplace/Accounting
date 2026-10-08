@@ -1,0 +1,2 @@
+/* Non-posting group labels need room for the word Parent. */
+.currency-symbol-badge.parent-account-badge{width:auto;min-width:2.5em;padding-inline:6px;white-space:nowrap}
