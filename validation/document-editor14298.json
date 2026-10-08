@@ -1,0 +1,70 @@
+[
+  {
+    "name": "File menus expose templates; Insert exposes signatories",
+    "passed": true
+  },
+  {
+    "name": "Signatories validate names and insert editable names and positions",
+    "passed": true
+  },
+  {
+    "name": "Refresh is quiet after durable draft save; warns before unpersisted edits; restores after reload",
+    "passed": true
+  },
+  {
+    "name": "Open Template creates voucher copy; Save Template creates company template without replacing document",
+    "passed": true
+  },
+  {
+    "name": "Using a saved template never updates original; Open/Delete are grouped at right",
+    "passed": true
+  },
+  {
+    "name": "Edit Template updates explicitly; ordinary Save blocks template overwrite; restored template keeps protection",
+    "passed": true
+  },
+  {
+    "name": "Template connection failure and stale version retain editable draft",
+    "passed": true
+  },
+  {
+    "name": "Tablet library groups actions and signatory form fits the viewport",
+    "passed": true
+  },
+  {
+    "name": "Dynamic headings use title capitalization while acronyms, body text and edited documents are preserved",
+    "passed": true
+  },
+  {
+    "name": "Signatory rows have no outer outline and independently align role/name/position",
+    "passed": true
+  },
+  {
+    "name": "Create Template opens draft; conditional top-right Save hides after save and returns after edit",
+    "passed": true
+  },
+  {
+    "name": "Insert Table opens docked sidebar, shifts/scales paper and closes back to original width",
+    "passed": true
+  },
+  {
+    "name": "Voucher calculates totals after row changes, preserves amount caret, flags invalid values and saves calculated total",
+    "passed": true
+  },
+  {
+    "name": "Editor voucher consumes an ID only on Save Voucher and then appears in the register",
+    "passed": true
+  },
+  {
+    "name": "Confirmed server number replaces tentative number and ordinary Save uses voucher register",
+    "passed": true
+  },
+  {
+    "name": "Blank-sheet retry keeps its request key; printing uses reserved references; linking copies entry details",
+    "passed": true
+  },
+  {
+    "name": "Voucher register and settings fit desktop and tablet portrait/landscape",
+    "passed": true
+  }
+]

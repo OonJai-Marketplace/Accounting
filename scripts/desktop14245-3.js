@@ -5423,7 +5423,7 @@ logoutDemoUser=async function(){document.getElementById('recOverlay71')?.remove(
 const media=matchMedia('(max-width:1024px)'),scope='#journal,#transactions-new,#transactions-recurring,#transactions-all,#transactions-voided,#period-review,#user-entry-review';
 const states=new Map();let queued=false,viewer=null,lastFocus=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function inScope(table){if(table.closest('.v49-totals,.final-account-totals,.v49-adjust-body'))return false;if(table.closest('#accounts-modular-container,#trial-balance,#account-balances,#modalAccount,#modalSubAccount,#recOverlay71,#tx72Viewer'))return false;if(!table.querySelector('tbody input,tbody select,tbody textarea')&&table.closest('.tab-content,.submission-compare-overlay'))return true;return !!table.closest(scope)||!!table.closest('[data-transaction-mobile72]')||(!table.closest('#recOverlay71,#tx72Viewer')&&!!table.closest('.submission-compare-overlay,#modalAdjustmentQuickView')&&!!document.querySelector(scope.split(',').map(s=>s+'.active').join(',')))}
+function inScope(table){if(table.closest('#transactions-vouchers14299,#voucherModal14299'))return false;if(table.closest('.v49-totals,.final-account-totals,.v49-adjust-body'))return false;if(table.closest('#accounts-modular-container,#trial-balance,#account-balances,#modalAccount,#modalSubAccount,#recOverlay71,#tx72Viewer'))return false;if(!table.querySelector('tbody input,tbody select,tbody textarea')&&table.closest('.tab-content,.submission-compare-overlay'))return true;return !!table.closest(scope)||!!table.closest('[data-transaction-mobile72]')||(!table.closest('#recOverlay71,#tx72Viewer')&&!!table.closest('.submission-compare-overlay,#modalAdjustmentQuickView')&&!!document.querySelector(scope.split(',').map(s=>s+'.active').join(',')))}
 window.mobileTransactionTable72=table=>!!table.closest('.v49-totals,.final-account-totals,.v49-adjust-body')||inScope(table);
 function visibleRow(row){return !row.hidden&&getComputedStyle(row).display!=='none'&&!row.closest('[hidden]')}
 function text(cell){if(!cell)return '';const copy=cell.cloneNode(true);copy.querySelectorAll('button,input,select,textarea,.tx72-label').forEach(n=>n.remove());return copy.textContent.replace(/\s+/g,' ').trim()}
@@ -7632,7 +7632,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function notices(){if(typeof liveProfile==='undefined'||!liveProfile)return[];const rows=[];if(typeof getActiveRecurringWarnings==='function')for(const item of getActiveRecurringWarnings())rows.push({type:'Upcoming transaction',title:item.memo||'Payment',detail:item.nextDate||'',target:'transactions-recurring'});
   for(const item of window.getScheduledAlerts104?.()||[])rows.push({type:'Scheduled journal · '+item.status,title:item.title,detail:item.date||'',target:'transactions-recurring'});
   if(liveProfile.role==='admin'&&typeof reviewStaffJournals!=='undefined')for(const row of reviewStaffJournals.filter(r=>r.status==='submitted'))rows.push({type:'Submission review',title:row.reference||row.seed_key||row.period_start||'Submitted entry',detail:row.period_start||'',target:'user-entry-review'});
-  rows.push(...(window.getTodoNotices136?.()||[]));
+  rows.push(...(window.getTodoNotices136?.()||[]));rows.push(...(window.vouchers14299?.notices?.()||[]));
   const badge=Number($('navUserReviewCount')?.textContent)||0,submissions=rows.filter(x=>x.type==='Submission review').length;for(let n=submissions;n<badge&&n<50;n++)rows.push({type:'Submission review',title:'Pending review',detail:'',target:'user-entry-review'});return rows}
  function updateBell(){const badge=$('headerNoticeBadge104');if(!badge)return;const count=notices().length;badge.hidden=!count;badge.textContent=count>99?'99+':String(count);$('upcomingBell101')?.setAttribute('aria-label',`${count} notifications`);const list=$('headerNoticeList104');if(list&&!$('headerNotices104')?.hidden){const opened=new Set([...list.querySelectorAll('details[open]')].map(n=>n.dataset.notice1443));list.innerHTML=notices().length?notices().map(n=>n.todoId&&window.todos1438?.noticeHTML?todos1438.noticeHTML(n):`<button type="button" data-target="${escape(n.target)}" ${n.todoId?`data-todo-target1438="${escape(n.todoId)}"`:""}><strong>${escape(n.type)}</strong><span>${escape(n.title)}</span><small>${escape(n.detail)}</small></button>`).join(''):'<p>No current notifications.</p>';list.querySelectorAll('details').forEach(n=>n.open=opened.has(n.dataset.notice1443));window.todos1438?.bindNotices(list)}}
  window.refreshNotices1443=updateBell;
@@ -7648,7 +7648,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-
 ;
 /* scripts/shortnames-v104.js */
 /* Compact employee labels in tables; the employee records keep their full names. */

@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id);
 const sections={
  Dashboard:['journal_entries','staff_journals','payroll_runs','tax_sso_records'],
- Transactions:['journal_entries','journal_lines','entry_submissions','scheduled_journal_occurrences','scheduled_journals','accounting_periods','period_findings','recurring_transactions','recurring_reminders','audit_log','record_deletions108'],
+ Transactions:['journal_entries','journal_lines','vouchers14299','voucher_versions14299','entry_submissions','scheduled_journal_occurrences','scheduled_journals','accounting_periods','period_findings','recurring_transactions','recurring_reminders','audit_log','record_deletions108'],
  Accounts:['accounts','sub_accounts','journal_entries','journal_lines','currencies'],
  'Sub-users':['staff_journals','staff_journal_lines','fund_adjustment_requests','fund_adjustment_lines','workspace_notifications','user_fund_assignments','profiles','user_permissions'],
  Payroll:['payroll_runs','payroll_lines','payroll_employees'],
@@ -17,6 +17,8 @@ const all=(name)=>pack?.tables?.[name]??pack?.auditTrail?.[name]??[];
 const money=v=>v==null?'':String(v);
 const display=v=>v==null?'—':typeof v==='object'?JSON.stringify(v):String(v);
 const name=(table,row)=>{
+ if(table==='vouchers14299')return [row.number,row.status,row.data?.journal?.entry_no].filter(Boolean).join(' · ');
+ if(table==='voucher_versions14299')return `Version ${row.version} · ${row.reason||''}`;
  if(table==='journal_entries')return [row.entry_no,row.memo].filter(Boolean).join(' · ')||'Journal entry';
  if(table==='journal_lines')return `Line ${row.line_no||''} · ${account(row.account_id)} · ${money(row.debit||row.credit)} ${row.currency_code||''}`;
  if(table==='accounts'||table==='sub_accounts')return [row.code,row.name].filter(Boolean).join(' · ');
@@ -30,7 +32,7 @@ const name=(table,row)=>{
 };
 const account=id=>all('accounts').find(x=>x.id===id)?.name||all('sub_accounts').find(x=>x.id===id)?.name||id||'Unknown account';
 const person=id=>all('profiles').find(x=>x.id===id)?.full_name||all('payroll_employees').find(x=>x.data?.userId===id)?.data?.name||id||'Unknown user';
-const dateOf=(t,r)=>r.transaction_date||r.period_start||r.occurrence_date||r.line_date||r.data?.month||r.data?.from||r.created_at?.slice(0,10)||'';
+const dateOf=(t,r)=>r.voucher_date||r.transaction_date||r.period_start||r.occurrence_date||r.line_date||r.data?.month||r.data?.from||r.created_at?.slice(0,10)||'';
 function openPack(data){window.backupValidation1441.validate(data);if(data?.format!=='oonjai-data-113'||!data.tables||typeof data.tables!=='object'||!Array.isArray(data.tables.journal_entries)||!Array.isArray(data.tables.accounts))throw Error('Choose an Oon Jai Application data archive JSON file.');pack=data;section='Dashboard';selected=null;const total=Object.values(data.tables).reduce((n,v)=>n+(Array.isArray(v)?v.length:0),0);$('status').classList.remove('error');const parentIds=new Set((data.tables.staff_journals||[]).map(r=>String(r.id)));const missing=(data.tables.staff_journal_lines||[]).filter(r=>r.staff_journal_id&&!parentIds.has(String(r.staff_journal_id))).length;$('status').textContent=`${data.from&&data.to?data.from+' through '+data.to:'All time'} · ${total} application rows across ${Object.keys(data.tables).length} tables · ${data.auditTrail?.audit_log?.length||0} audit rows. This is a read-only snapshot; nothing here connects to Supabase.${missing?' WARNING: '+missing+' sub-user lines have missing parent journals. Re-export with v128 before relying on this archive.':''}`;$('status').classList.toggle('error',!!missing);$('overview').hidden=false;$('controls').hidden=false;renderNav();render()}
 function renderNav(){const host=$('navigation');host.replaceChildren();for(const key of Object.keys(sections)){const b=document.createElement('button');b.type='button';b.textContent=key;b.className=key===section?'active':'';b.onclick=()=>{section=key;shown=50;selected=null;$('search').value='';$('detail').hidden=true;document.querySelector('.sidebar').classList.remove('open');$('view').value='';renderNav();render()};host.append(b)}}
 function card(label,value,hint){const el=document.createElement('div');el.className='stat';const small=document.createElement('small'),strong=document.createElement('strong'),sub=document.createElement('small');small.textContent=label;strong.textContent=String(value);sub.textContent=hint;el.append(small,strong,sub);return el}
@@ -44,7 +46,8 @@ function renderComputed(mode){const target=$('results');target.replaceChildren()
 function field(dl,key,val){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=key.replaceAll('_',' ');if(val&&typeof val==='object'){const pre=document.createElement('pre');pre.textContent=JSON.stringify(val,null,2);dd.append(pre)}else dd.textContent=display(val);dl.append(dt,dd)}
 function related(body,label,items,kind){if(!items.length)return;const h=document.createElement('h3');h.textContent=`${label} (${items.length})`;body.append(h);for(const r of items){const b=document.createElement('button');b.type='button';b.className='record related';b.textContent=display(name(kind,r));b.onclick=()=>detail(kind,r);body.append(b)}}
 function detail(table,row){selected={table,row};$('detailTitle').textContent=display(name(table,row));const body=$('detailBody');body.replaceChildren();const p=document.createElement('p');p.className='muted';p.textContent=`${table} · ${row.id||'record'} · All fields preserved below`;body.append(p);const dl=document.createElement('dl');for(const [k,v] of Object.entries(row))field(dl,k,v);body.append(dl);
- if(table==='journal_entries'){related(body,'Journal lines',all('journal_lines').filter(x=>x.journal_entry_id===row.id),'journal_lines');related(body,'Sub-user source lines',all('staff_journal_lines').filter(x=>x.journal_entry_id===row.id),'staff_journal_lines')}
+ if(table==='vouchers14299'){related(body,'Versions',all('voucher_versions14299').filter(x=>x.voucher_id===row.id),'voucher_versions14299');related(body,'Linked journal',all('journal_entries').filter(x=>x.id===row.journal_entry_id),'journal_entries')}
+ if(table==='journal_entries'){related(body,'Vouchers',all('vouchers14299').filter(x=>x.journal_entry_id===row.id),'vouchers14299');related(body,'Journal lines',all('journal_lines').filter(x=>x.journal_entry_id===row.id),'journal_lines');related(body,'Sub-user source lines',all('staff_journal_lines').filter(x=>x.journal_entry_id===row.id),'staff_journal_lines')}
  if(table==='staff_journals')related(body,'Sub-user entries',all('staff_journal_lines').filter(x=>x.staff_journal_id===row.id),'staff_journal_lines');
  if(table==='payroll_runs')related(body,'Payroll lines',all('payroll_lines').filter(x=>x.payroll_run_id===row.id),'payroll_lines');
  if(table==='fund_adjustment_requests')related(body,'Requested adjustments',all('fund_adjustment_lines').filter(x=>x.request_id===row.id),'fund_adjustment_lines');

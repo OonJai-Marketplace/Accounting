@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Installer runs and can be rerun without consuming IDs or altering ledger",
+    "passed": true
+  },
+  {
+    "name": "Reserved H sheets use selected date year; retries consume one ID",
+    "passed": true
+  },
+  {
+    "name": "Null/invalid requests are rejected without consuming a number",
+    "passed": true
+  },
+  {
+    "name": "Link copies journal details and memo fallback; final ID derives main Entry 42",
+    "passed": true
+  },
+  {
+    "name": "Duplicate links and relinking to another entry are rejected",
+    "passed": true
+  },
+  {
+    "name": "Settings customize prefix, classifications, meanings and year format",
+    "passed": true
+  },
+  {
+    "name": "Editor save assigns confirmed ID and replaces tentative HTML",
+    "passed": true
+  },
+  {
+    "name": "Editor amount mismatch blocks linking; large main IDs are never truncated",
+    "passed": true
+  },
+  {
+    "name": "Corrections retain both IDs, require reason and enforce optimistic version",
+    "passed": true
+  },
+  {
+    "name": "Linked corrections cannot contradict posted amount/currency",
+    "passed": true
+  },
+  {
+    "name": "Unused sheet retains reference/history, never reuses number and cannot be linked",
+    "passed": true
+  },
+  {
+    "name": "Non-admin RPC and table reads are denied",
+    "passed": true
+  },
+  {
+    "name": "Snapshot and reset include vouchers/history and preserve settings/sequences",
+    "passed": true
+  }
+]
