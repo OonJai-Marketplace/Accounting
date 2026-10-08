@@ -1,0 +1,2 @@
+/* Keep feedback centered in the visible viewport, including zoom and keyboards. */
+(()=>{'use strict';function fit(){const v=window.visualViewport,s=document.documentElement.style,x=v?.offsetLeft||0,y=v?.offsetTop||0,w=v?.width||innerWidth,h=v?.height||innerHeight;for(const [k,n]of Object.entries({left:x,top:y,width:w,height:h,x:x+w/2,y:y+h/2}))s.setProperty('--feedback-'+k+'14295',n+'px')}fit();window.addEventListener('resize',fit);window.visualViewport?.addEventListener('resize',fit);window.visualViewport?.addEventListener('scroll',fit)})();

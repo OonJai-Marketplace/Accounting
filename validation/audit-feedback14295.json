@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Company logo loads on both login forms",
+    "passed": true
+  },
+  {
+    "name": "Feedback centers on desktop, touch iPad, phone and zoomed/scrolled visual viewport",
+    "passed": true
+  },
+  {
+    "name": "Audit frame is sandboxed and editing figures makes no Supabase writes",
+    "passed": true
+  },
+  {
+    "name": "Original/working downloads, CSV and saved reload retain separate copies",
+    "passed": true
+  },
+  {
+    "name": "Original mode disables editing and payroll adjustments stay local",
+    "passed": true
+  },
+  {
+    "name": "Reset UI downloads preview only and rejects mismatched file",
+    "passed": true
+  }
+]

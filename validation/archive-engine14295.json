@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Eight-year and five-year-old archive selection retains complete balanced journals",
+    "passed": true
+  },
+  {
+    "name": "Local edit updates comparisons, undo/redo and original stays immutable",
+    "passed": true
+  },
+  {
+    "name": "Adjustment validates balanced amounts; invalid edits roll back",
+    "passed": true
+  },
+  {
+    "name": "JSON round-trip retains edited figures and immutable source",
+    "passed": true
+  }
+]

@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Installer and preview do not delete records; missing linked modules block reset",
+    "passed": true
+  },
+  {
+    "name": "Reject protected scopes, wrong actor/database and confirmation phrase",
+    "passed": true
+  },
+  {
+    "name": "Stale backup blocks reset without deleting new data",
+    "passed": true
+  },
+  {
+    "name": "Non-admin cannot preview, reset or snapshot",
+    "passed": true
+  },
+  {
+    "name": "Audit snapshot is read-only and includes available support data",
+    "passed": true
+  },
+  {
+    "name": "Custom truncate side effects block deletion",
+    "passed": true
+  },
+  {
+    "name": "Selected reset physically deletes all dates and preserves accounts/settings/users/audit/sequence",
+    "passed": true
+  }
+]
