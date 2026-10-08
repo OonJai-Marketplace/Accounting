@@ -3,6 +3,17 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const { PGlite } = require(process.env.PGLITE_MODULE || '@electric-sql/pglite');
 const sql = fs.readFileSync(path.join(__dirname, '../setup/INSTALL-SUBACCOUNT-POSTING-REPAIR-v142.87.sql'), 'utf8');
+const reportStart = sql.indexOf('\nSELECT count(*) AS total_sub_accounts,');
+assert.ok(reportStart > 0);
+const installBlock = sql.slice(0, reportStart), report = sql.slice(reportStart);
+assert.ok(!/CREATE\s+TEMP|pg_temp\.subaccount_migration_guards|ON COMMIT DROP/i.test(installBlock));
+async function install(db) {
+ await db.exec(installBlock);
+ const result = (await db.query(report)).rows[0];
+ assert.equal(result.total_sub_accounts,result.linked_sub_accounts);
+ assert.equal(Number(result.disabled_access_guards),0);
+ return result;
+}
 const id = n => '00000000-0000-4000-8000-' + String(n).padStart(12, '0');
 const admin = id(1), staff = id(2);
 const usd = ['1041','1220','1221','1222','1223','2212','2213','2410','3020','3030','3111','4111','4131','5112','5310','5314','5415','9011','9021','9033','9042'];
@@ -47,7 +58,7 @@ const snapshot = async db => ({accounts:(await db.query('SELECT * FROM accounts 
  let db = await createDb();
  const before = await snapshot(db), guards = await state(db);
  await assert.rejects(db.query(`INSERT INTO accounts(id,code) VALUES($1,'Blocked')`,[id(999)]),/Active accounting access/);
- await db.exec(sql);
+ await install(db);
  assert.deepEqual(await state(db),guards);
  const after = await snapshot(db);
  for(const a of before.accounts) assert.deepEqual(after.accounts.find(x=>x.id===a.id),a);
@@ -61,7 +72,7 @@ const snapshot = async db => ({accounts:(await db.query('SELECT * FROM accounts 
  assert.equal(after.accounts.length,before.accounts.length+3);
  assert.equal(after.accounts.find(a=>a.code==='1014').currency_code,'USD');
  assert.equal(after.accounts.find(a=>a.code==='1015').currency_code,'THB');
- await db.exec(sql);
+ await install(db);
  assert.deepEqual(await snapshot(db),after);
  assert.deepEqual(await state(db),guards);
  await assert.rejects(db.query(`INSERT INTO accounts(id,code) VALUES($1,'Blocked again')`,[id(999)]),/Active accounting access/);
@@ -91,8 +102,7 @@ const snapshot = async db => ({accounts:(await db.query('SELECT * FROM accounts 
   if(issue==='currency') await db.exec("UPDATE sub_accounts SET currency_code='THB' WHERE code='1041'");
   await db.exec("SET app.actor=''");
   const original=await snapshot(db), originalGuards=await state(db);
-  await assert.rejects(db.exec(sql),/conflicting chart identity|unreviewed/);
-  await db.exec('ROLLBACK');
+  await assert.rejects(db.exec(installBlock),/conflicting chart identity|unreviewed/);
   assert.deepEqual(await snapshot(db),original);
   assert.deepEqual(await state(db),originalGuards);
   await db.close();

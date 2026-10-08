@@ -1,28 +1,29 @@
--- Replacement for the failed v142.85 / v142.87 sub-account installers.
 -- Run this entire file in Supabase SQL Editor as the database owner.
--- Existing chart accounts are authoritative; no journal rows are updated.
--- Reconciles the 31 discrepancies reported on 2026-10-08, including 28
--- legacy LAK currency defaults, one name mismatch and three non-posting groups
--- (3020 is both a currency mismatch and a non-posting group).
--- Idempotent: already-linked sub-accounts are not rewritten.
--- SQL Editor has no app JWT. Temporarily suspend only the existing access guard
--- on accounts/sub_accounts while the backfill runs. The table locks and transaction
--- keep concurrent writes out; a failure rolls all changes (including trigger state) back.
-BEGIN;
-CREATE TEMP TABLE subaccount_migration_guards14287 ON COMMIT DROP AS
-SELECT c.relname AS table_name, t.tgname AS trigger_name, t.tgenabled AS enabled_mode
-FROM pg_catalog.pg_trigger t
-JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid
-WHERE t.tgrelid IN ('public.accounts'::regclass, 'public.sub_accounts'::regclass)
-  AND t.tgfoid='public.guard_actions113()'::regprocedure
-  AND t.tgenabled IN ('O','A');
-DO $guard$
-DECLARE g record;
+-- This replacement uses one atomic DO statement and no temporary tables.
+-- It reconciles the reviewed legacy sub-account defaults against chart identities,
+-- preserves existing chart IDs, currencies and non-posting groups, and adds missing
+-- posting accounts for new sub-accounts. Existing journal rows are not updated.
+-- Already-linked records are not rewritten.
+DO $install$
+DECLARE
+ saved_guard_states jsonb;
+ g record;
 BEGIN
- FOR g IN SELECT * FROM pg_temp.subaccount_migration_guards14287 LOOP
+ LOCK TABLE public.accounts, public.sub_accounts IN ACCESS EXCLUSIVE MODE;
+ SELECT coalesce(jsonb_agg(jsonb_build_object(
+   'table_name',c.relname,'trigger_name',t.tgname,'enabled_mode',t.tgenabled
+  )),'[]'::jsonb) INTO saved_guard_states
+ FROM pg_catalog.pg_trigger t
+ JOIN pg_catalog.pg_class c ON c.oid=t.tgrelid
+ WHERE t.tgrelid IN ('public.accounts'::regclass,'public.sub_accounts'::regclass)
+   AND t.tgfoid='public.guard_actions113()'::regprocedure
+   AND t.tgenabled IN ('O','A');
+ FOR g IN SELECT * FROM jsonb_to_recordset(saved_guard_states)
+   AS guard_state(table_name text,trigger_name text,enabled_mode text)
+ LOOP
   EXECUTE format('ALTER TABLE public.%I DISABLE TRIGGER %I',g.table_name,g.trigger_name);
  END LOOP;
-END $guard$;
+
 ALTER TABLE public.sub_accounts ADD COLUMN IF NOT EXISTS posting_account_id14285 uuid REFERENCES public.accounts(id) ON DELETE RESTRICT;
 CREATE UNIQUE INDEX IF NOT EXISTS sub_accounts_posting14285_unique ON public.sub_accounts(posting_account_id14285);
 -- Reconcile the legacy duplicate records against the existing chart identities.
@@ -129,19 +130,24 @@ REVOKE ALL ON FUNCTION public.sync_subaccount_parent14285() FROM PUBLIC,anon,aut
 DROP TRIGGER IF EXISTS sync_subaccount_parent14285 ON public.accounts;
 CREATE TRIGGER sync_subaccount_parent14285 AFTER UPDATE OF code,account_type,is_posting ON public.accounts FOR EACH ROW WHEN(OLD.is_posting IS FALSE) EXECUTE FUNCTION public.sync_subaccount_parent14285();
 COMMENT ON COLUMN public.sub_accounts.posting_account_id14285 IS 'Stable linked chart identity. Existing grouping accounts retain is_posting=false; posting permissions still use the chart account ID.';
-DO $guard$
-DECLARE g record;
-BEGIN
- FOR g IN SELECT * FROM pg_temp.subaccount_migration_guards14287 LOOP
+
+ -- Restore the same access guards before this atomic statement can commit.
+ FOR g IN SELECT * FROM jsonb_to_recordset(saved_guard_states)
+   AS guard_state(table_name text,trigger_name text,enabled_mode text)
+ LOOP
   EXECUTE format('ALTER TABLE public.%I ENABLE %s TRIGGER %I',
     g.table_name,CASE WHEN g.enabled_mode='A' THEN 'ALWAYS' ELSE '' END,g.trigger_name);
  END LOOP;
-END $guard$;
-NOTIFY pgrst,'reload schema';
-COMMIT;
+ NOTIFY pgrst,'reload schema';
+END $install$;
+
 SELECT count(*) AS total_sub_accounts,
        count(a.id) AS linked_sub_accounts,
-       count(*) FILTER (WHERE a.is_posting IS FALSE) AS parent_groups
+       count(*) FILTER (WHERE a.is_posting IS FALSE) AS parent_groups,
+       (SELECT count(*) FROM pg_catalog.pg_trigger t
+        WHERE t.tgrelid IN ('public.accounts'::regclass,'public.sub_accounts'::regclass)
+          AND t.tgfoid='public.guard_actions113()'::regprocedure
+          AND t.tgenabled='D') AS disabled_access_guards
 FROM public.sub_accounts s
 LEFT JOIN public.accounts a ON a.id=s.posting_account_id14285;
 
