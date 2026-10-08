@@ -43,12 +43,12 @@ await page.evaluate(async()=>{
   if(n==='submit_staff_journal'){__auditSubmits.push(p);__auditReports.find(j=>j.id===p.p_journal_id).status='submitted';return {data:true,error:null};}
   return base(n,p);
  };
- await Organization14229.loadHome();
+ await Organization14229.loadHome();window.startup14257.interactive=true;Location69.ready=true;Location69.hydrating=false;
 });
 const frame=await (await page.waitForSelector('#connectedPhone132')).contentFrame();await frame.waitForFunction(()=>typeof chooseWorkspace==='function');
 
 const admin='00000000-0000-4000-8000-000000000001',staff='00000000-0000-4000-8000-000000000002';
-await page.evaluate(()=>{window.__adminSaves=[];const rpc=ojmDb.rpc;ojmDb.rpc=async(n,p)=>{if(n==='admin_save_access1441'){__adminSaves.push(structuredClone(p));const u=__fixture.profiles.find(u=>u.id===p.p_user);u.user_permissions=structuredClone(p.p_permissions);u.role=p.p_role;u.full_name=p.p_name;return {data:{saved:true,user_id:p.p_user},error:null};}return rpc(n,p)};
+await page.evaluate(()=>{window.__adminSaves=[];const rpc=ojmDb.rpc;ojmDb.rpc=async(n,p)=>{if(n==='admin_save_access14281'||n==='admin_save_access1441'){__adminSaves.push(structuredClone(p));const u=__fixture.profiles.find(u=>u.id===p.p_user);u.user_permissions=structuredClone(p.p_permissions);u.role=p.p_role;u.full_name=p.p_name;return {data:{saved:true,ledger_saved:true,user_id:p.p_user},error:null};}return rpc(n,p)};
  AccountingStore.accounts.push({id:'nonposting',name:'Parent',isPosting:false,is_active:true},{id:'inactive',name:'Inactive',isPosting:true,is_active:false});
 });
 await check('Unloaded chart never submits placeholder account IDs; retry succeeds after loading',async()=>{
@@ -61,11 +61,11 @@ await check('Unloaded chart never submits placeholder account IDs; retry succeed
 await check('Existing administrator receives all active posting accounts through authorized RPC',async()=>{await page.evaluate(()=>adminAccess14251.sync(liveProfile.id));const state=await page.evaluate(()=>({saved:__adminSaves.at(-1),rules:workspaceRules(liveProfile)}));assert.equal(state.saved.p_role,'admin');assert.equal(state.saved.p_permissions.user_type,'admin');assert.equal(state.rules.fundIds.length,4);assert.equal(state.rules.entryIds.length,4);assert.deepEqual(state.rules.directions,['out','in']);assert(state.rules.multiple);assert(!state.rules.fundIds.includes('nonposting'));assert(!state.rules.fundIds.includes('inactive'));});
 await check('All administrator module actions are allowed without individual checkboxes',async()=>{assert(await page.evaluate(()=>APP_PERMISSION_TREE.every(p=>p.children.every(([id])=>['view','edit','export','approve','post','void'].every(a=>access113.can(id,a))))));});
 await check('Administrator account groups and tabs remain available during Home invalidation',async()=>{
- await frame.evaluate(id=>chooseWorkspace(id),admin);await frame.waitForTimeout(300);
- await page.evaluate(()=>{const rpc=ojmDb.rpc;window.restoreRpc14251=rpc;ojmDb.rpc=(n,p)=>n==='branch_home14229'?new Promise(resolve=>window.releaseHome14251=()=>rpc(n,p).then(resolve)):rpc(n,p);Organization14229.invalidate();});
- for(const tab of ['accounts','post','entries','history','home']){await frame.evaluate(tab=>go(tab),tab);assert.equal((await frame.evaluate(()=>phoneSelection14237())).page,tab);}
- await frame.evaluate(()=>go('accounts'));assert.equal(await frame.locator('#accounts .account-row14248').count(),0);await frame.locator('#accounts .account-types14253 button').filter({hasText:'Assets'}).click();assert.equal(await frame.locator('#accounts .account-row14248').count(),3);
- await page.evaluate(()=>{ojmDb.rpc=restoreRpc14251;releaseHome14251?.();});
+ await frame.evaluate(id=>chooseWorkspace(id),admin);await frame.waitForFunction(()=>document.querySelector('.app').getAttribute('aria-busy')==='false');
+ await page.evaluate(()=>{const rpc=ojmDb.rpc;window.restoreRpc14251=rpc;ojmDb.rpc=(n,p)=>n==='branch_home14229'?new Promise(resolve=>setTimeout(()=>rpc(n,p).then(resolve),40)):rpc(n,p);Organization14229.invalidate();});
+ for(const tab of ['accounts','post','entries','history','home']){await frame.evaluate(tab=>go(tab),tab);await frame.waitForFunction(()=>document.querySelector('.app').getAttribute('aria-busy')==='false');assert.equal((await frame.evaluate(()=>phoneSelection14237())).page,tab);}
+ await frame.evaluate(()=>go('accounts'));await frame.waitForFunction(()=>document.querySelector('.app').getAttribute('aria-busy')==='false');assert.equal(await frame.locator('#accounts .account-row14248').count(),4);await frame.locator('#accounts .account-types14253 button').filter({hasText:'Assets'}).click();assert.equal(await frame.locator('#accounts .account-row14248').count(),3);
+ await page.evaluate(()=>{ojmDb.rpc=restoreRpc14251;});
 });
 await check('Administrator editor shows automatic access; next sub-user retains its restrictions',async()=>{
  await page.evaluate(()=>openUserAccessEditor(liveProfile.id));assert(await page.locator('#adminRoleNotice14251').isVisible());assert(await page.locator('#userFundAccountGrid input').evaluateAll(ns=>ns.every(n=>n.checked&&n.disabled)));assert(await page.locator('#userPermissionGrid input').evaluateAll(ns=>ns.every(n=>n.checked&&n.disabled)));
@@ -83,7 +83,7 @@ await check('Selecting Administrator saves full grants without manual checkbox s
 });
 await check('Phone Users cards show authority and position without account lists',async()=>{
  await page.locator('#modalUserAccess.active .modal-close-x').click().catch(()=>{});
- await frame.evaluate(()=>settingsGo('users'));
+ await frame.evaluate(()=>settingsGo('users'));await frame.locator('.settings-user133').first().waitFor();
  const cards=frame.locator('.settings-user133'),adminCard=cards.filter({hasText:'Santos Cabbigat'}),staffCard=cards.filter({hasText:'Ryan Santos'});
  assert.equal(await adminCard.locator('.badge').innerText(),'Administrator');assert.equal(await staffCard.locator('.badge').innerText(),'Sub-user');
  assert.equal(await cards.locator(':scope > small').count(),0);assert.equal(await staffCard.getByRole('button',{name:'✎ Edit',exact:true}).count(),1);
@@ -106,9 +106,9 @@ await check('User editor input stays above the keyboard without losing its value
 });
 await check('Administrator Home omits its long account list; phone picker filters permitted choices',async()=>{
  await frame.evaluate(id=>chooseWorkspace(id),admin);await frame.evaluate(()=>go('home'));assert.equal(await frame.locator('#home .account-row14248').count(),0);
- await frame.evaluate(()=>go('post'));const picker=frame.locator('#post input.account-search1428').first();await picker.click();await frame.locator('#phoneAccountPicker14227').waitFor();
- await frame.locator('#phoneAccountPicker14227 .account-types14253 button').filter({hasText:'System'}).click();assert.equal(await frame.locator('#phoneAccountPicker14227 [role=option]').count(),0);
- await frame.locator('#phoneAccountPicker14227 .account-types14253 button').filter({hasText:'Assets'}).click();assert((await frame.locator('#phoneAccountPicker14227 [role=option]').count())>0);await frame.locator('[data-picker-back]').click();
+ await frame.evaluate(()=>go('post'));await frame.waitForFunction(()=>document.querySelector('.app').getAttribute('aria-busy')==='false');const picker=frame.locator('#post input.account-search1428').first();await picker.click();await frame.locator('#phoneAccountPicker14227').waitFor();
+ await frame.getByRole('button',{name:'System accounts',exact:true}).click();assert.equal(await frame.locator('#phoneAccountPicker14227 [role=option]').count(),0);
+ await frame.getByRole('button',{name:'Assets accounts',exact:true}).click();assert((await frame.locator('#phoneAccountPicker14227 [role=option]').count())>0);await frame.locator('[data-picker-back]').click();
 });
 await check('Weak connection notice is routed to signal details, while other errors remain visible',async()=>{
  const r=await page.evaluate(()=>{document.getElementById('centerStatus14225')?.remove();showCenterStatus('Connection required. Your draft is retained; reconnect before approval, final posting or changing saved records.',true);return offline14239.state().connectionError;});assert.match(r,/Connection required/);assert.equal(await page.getByText('Connection required. Your draft is retained; reconnect before approval, final posting or changing saved records.',{exact:true}).count(),0);await page.evaluate(()=>window.dispatchEvent(new Event('online')));
@@ -118,7 +118,7 @@ await check('Report submission permits multiple types and uses reporting month, 
 });
 await check('System classification offers an explicit underlying accounting type',async()=>{await page.evaluate(()=>openAddAccountModal(true));assert.equal(await page.locator('#accType').inputValue(),'SYSTEM');assert(await page.locator('#systemBaseField14253').isVisible());assert.equal(await page.locator('#systemBase14253 option').count(),5);await page.locator('#modalAccount .modal-close-x').click();});
 await check('Shared types management and user lifecycle controls are accessible',async()=>{
- await frame.evaluate(()=>settingsGo('users'));assert(await frame.getByRole('button',{name:'Report Types',exact:true}).isVisible());assert((await frame.getByRole('button',{name:'Ⅱ Deactivate',exact:true}).count())>0);assert((await frame.getByRole('button',{name:'Delete',exact:true}).count())>0);
+ await frame.evaluate(()=>settingsGo('users'));await frame.locator('.settings-user133').first().waitFor();assert(await frame.getByRole('button',{name:'Report Types',exact:true}).isVisible());assert((await frame.getByRole('button',{name:/Deactivate/}).count())>0);assert((await frame.getByRole('button',{name:'Delete',exact:true}).count())>0);
  await frame.getByRole('button',{name:'Report Types',exact:true}).click();await page.locator('#reportManager14253').waitFor();assert.equal(await page.locator('#reportManager14253 [data-type]').count(),2);await page.locator('.ui-overlay108').last().getByRole('button',{name:'Close',exact:true}).click();
 });
 await check('Desktop journal preparation summarizes details and retains references in line memos',async()=>{

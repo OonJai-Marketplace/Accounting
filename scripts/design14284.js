@@ -10,6 +10,7 @@
   root.querySelectorAll('[data-print14282]').forEach(button=>{
    if(button.closest('.section-heading14284'))return;
    const scope=document.getElementById(button.dataset.print14282);if(!scope)return;
+   if(scope.id==='sec-sub-accounts'){const header=scope.querySelector('.card-header-flex');if(header){let actions=header.querySelector('.subaccount-actions14294');if(!actions){actions=document.createElement('div');actions.className='subaccount-actions14294';header.append(actions)}const add=scope.querySelector('[onclick="openAddSubAccountModal()"]');if(add&&add.parentElement!==actions)actions.prepend(add);if(button.parentElement!==actions)actions.append(button);return}}
    const heading=[...scope.querySelectorAll('h2,h3,h4')].find(n=>!n.closest('.area-banner113,.modal-backdrop,form'));
    if(!heading)return;
    let header=heading.parentElement.matches('header,.je-card-header,.r79-header')?heading.parentElement:null;

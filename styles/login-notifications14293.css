@@ -1,2 +1,12 @@
 .login-notification14293{box-sizing:border-box;width:min(420px,calc(100vw - 32px));max-height:85dvh;overflow:auto;border:1px solid #bccbc2;border-radius:12px;padding:22px;background:#fffdf8;color:#233d33;font:14px/1.5 Arial,sans-serif;box-shadow:0 16px 50px #18372d33;z-index:100000}.login-notification14293::backdrop{background:#18372d55}.login-notification14293 h2{font-size:18px;line-height:1.3;margin:0 0 12px}.login-notification14293 p{margin:0 0 20px;white-space:pre-wrap;overflow-wrap:anywhere}.login-notification14293 form{display:flex;justify-content:flex-end}.login-notification14293 button{font:inherit;background:#07513e;color:#fff;border:0;border-radius:6px;padding:9px 20px;cursor:pointer}
 .workspace-links14293 form{display:grid;gap:14px}.workspace-links14293 label{display:grid;gap:6px;font-size:13px}.workspace-links14293 input{font:inherit;width:100%;box-sizing:border-box;padding:9px;border:1px solid #bccbc2;border-radius:6px}.workspace-links14293 [role=status]{color:#9b3b31}#phoneLoginProgress14293{display:inline-flex;margin-left:12px;vertical-align:middle}
+
+html body dialog.login-notification14293{position:fixed!important;inset:0!important;margin:auto!important;transform:none!important;float:none!important}
+
+html body #status118.pending{padding:16px;width:auto;min-width:72px;justify-content:center;background:transparent;border:0;box-shadow:none;pointer-events:none}html body #status118.pending .status-copy118,html body #status118.pending .status-close1440{display:none}html body #status118.pending .status-motion118{border:0;animation:none;width:auto;height:auto;flex:auto}html body #status118.pending::before,html body #status118.pending::after{display:none}
+
+#sec-sub-accounts .card-header-flex{flex-wrap:wrap;gap:12px}#sec-sub-accounts .subaccount-actions14294{display:flex;flex-wrap:wrap;align-items:center;gap:8px;max-width:100%}
+
+@media (orientation:portrait){html[data-device132=tablet] body #sub-users-home14229 .team-home14227 .th-button{font-size:18px!important}html[data-device132=tablet] body #sub-users-home14229 .team-home14227 small{font-size:17px!important}html[data-device132=tablet] body #sub-users-home14229 .team-home14227 b{font-size:18px!important}}
+
+@media (orientation:portrait){html[data-device132=tablet] body #sub-users-home14229 .team-home14227 :is(.th-note,.th-empty,.th-open,time){font-size:17px!important}html[data-device132=tablet] body #sub-users-home14229 .team-home14227 .th-panel>header :is(h2,h3){font-size:18px!important}}

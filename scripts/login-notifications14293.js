@@ -6,7 +6,7 @@ function show(message,error=true){
  message=String(message||'').trim();if(quiet(message))return;
  if(!document.body){document.addEventListener('DOMContentLoaded',()=>show(message,error),{once:true});return;}
  if(!dialog){dialog=document.createElement('dialog');dialog.id='loginNotification14293';dialog.className='login-notification14293';dialog.setAttribute('role','alertdialog');dialog.setAttribute('aria-labelledby','loginNotificationTitle14293');dialog.setAttribute('aria-describedby','loginNotificationText14293');dialog.innerHTML='<h2 id="loginNotificationTitle14293"></h2><p id="loginNotificationText14293"></p><form method="dialog"><button type="submit">Close</button></form>';document.body.append(dialog);}
- dialog.querySelector('h2').textContent=error?'Unable to sign in':'Account notification';
+ dialog.querySelector('h2').textContent=error?(location.pathname.endsWith('/recovery.html')?'Password setup':'Unable to sign in'):'Account notification';
  dialog.querySelector('p').textContent=/invalid login credentials/i.test(message)?'The email or password is incorrect. Please check both and try again.':message;
  if(!dialog.open)dialog.showModal();
  window.releaseLogin1443?.();
