@@ -1,5 +1,5 @@
 /* Explicit destinations for the accounting, public restaurant and back-office sites. */
-window.OJM_WORKSPACE_URLS={accounting:'https://oonjai-marketplace.github.io/Accounting/',publicRestaurant:'https://oonjai-marketplace.github.io/web/',restaurant:''};
+window.OJM_WORKSPACE_URLS={accounting:'https://oonjai-marketplace.github.io/Accounting/',publicRestaurant:'https://oonjai-marketplace.github.io/web/',restaurant:'https://oonjai-marketplace.github.io/Restaurant-Back-Office/'};
 (()=>{'use strict';const key='ojm_workspace_urls14234';
 function read(){try{return {...window.OJM_WORKSPACE_URLS,...JSON.parse(localStorage.getItem(key)||'{}')}}catch{return window.OJM_WORKSPACE_URLS}}
 function checked(value,target){if(!String(value||'').trim())throw Error('Set the published '+target+' URL in Workspace links.');if(location.protocol==='file:'&&!/^https?:\/\//i.test(value))throw Error('Set the full published '+target+' URL in Workspace links.');const url=new URL(value,location.href);if(!['https:','http:'].includes(url.protocol)||url.username||url.password)throw Error('Use a published HTTP or HTTPS website URL.');return url;}
