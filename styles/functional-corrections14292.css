@@ -1,16 +1,6 @@
-/* Functional corrections added after the original light design. The theme
-   stylesheet is disabled in light mode; these remain on both modes. */
-@layer appearance-retained14291 {
+/* Functional control corrections retain the original application colors and layout. */
+@layer functional-corrections14292 {
  @media screen {
-  .theme-toggle14287{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;min-height:36px;border:0!important;border-radius:7px;background:transparent!important;color:#fff0d3!important;cursor:pointer;font:inherit}
-  .theme-toggle14287 span{color:inherit!important}
-  #themeSidebar14287{margin:auto 10px 8px;width:calc(100% - 20px);flex-shrink:0}
-  #appSidebar:has(#themeSidebar14287) #topHeaderProfile104{margin-top:0!important}
-  #themeDock14287{background:#194c38!important;color:#fffaf1!important;border-color:#194c38!important}
-  body.shell113 #workspaceTools108>#themeDock14287{display:flex!important;align-items:center!important;justify-content:center!important;padding:1px!important;font-size:10px!important;font-weight:700!important;line-height:1!important}
-  #phoneAccount1424 .theme-toggle14287,#accountMenu .theme-toggle14287{display:flex!important;justify-content:flex-start!important;width:100%;color:#174333!important;background:transparent!important;border:0!important;min-height:0;padding:12px;border-radius:8px;text-align:left}
-  #phoneAccount1424 .theme-toggle14287:hover,#phoneAccount1424 .theme-toggle14287:focus{background:#ede9dc!important}
-
   :is(.main-content-area,.screen) :is(.field,.je-field-group,.settings-field,label,td,.money-field14231,.account-choice14231):focus-within{outline:none!important;box-shadow:none!important}
   :is(.main-content-area,.screen,dialog,.ui-dialog108,.oj-date-popup104) :is(input,textarea,select):focus{outline:2px solid #176448!important;outline-offset:1px!important;box-shadow:none!important}
   .staff-editor14225 :is(.field,.money-field14231,.account-choice14231){background:transparent!important}
@@ -48,12 +38,12 @@
   .phone-picker-check14288{display:grid!important;place-items:center;flex:0 0 18px;box-sizing:border-box;width:18px;height:18px;border:1px solid #708a74;border-radius:3px;line-height:1}
   .phone-picker-list14227 button[role=option][aria-selected=true] .phone-picker-check14288{background:#145c40!important;border-color:#145c40!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
 
-  /* Small text refinements preserve the original light surfaces and layout. */
-  html[data-appearance14287=light] .je-status-badge.unbalanced{color:#bd2020!important;-webkit-text-fill-color:#bd2020!important}
-  html[data-appearance14287=light] .dash-chevron112{color:#955421!important}
-  html[data-appearance14287=light] .staff-summary1425 strong{color:#a64a20!important}
-  html[data-appearance14287=light] .table-module85 span[style*="rgb(5, 150, 105)"],
-  html[data-appearance14287=light] .table-module85 span[style*="#059669"]{color:#087551!important}
+  /* Keep the text contrast of the currently approved light mode. */
+  .je-status-badge.unbalanced{color:#bd2020!important;-webkit-text-fill-color:#bd2020!important}
+  .dash-chevron112{color:#955421!important}
+  .staff-summary1425 strong{color:#a64a20!important}
+  .table-module85 span[style*="rgb(5, 150, 105)"],
+  .table-module85 span[style*="#059669"]{color:#087551!important}
 
   body #startup1443,body #loginGate.busy99 #loginProgress99,
   html.session-checking1444 body #sessionRestore1444,html body .phone-loading14285{
@@ -63,5 +53,4 @@
   html[data-phone-ready14288=false] .app{visibility:hidden!important;pointer-events:none!important}
   @media(max-width:360px){#post .staff-template-tools14285 .btn:first-child{font-size:0!important;width:32px!important;min-width:32px!important;padding:4px!important}#post .staff-template-tools14285 .btn:first-child::after{content:'+';font-size:18px;line-height:1}}
  }
- @media print{[data-theme-toggle14287]{display:none!important}}
 }
