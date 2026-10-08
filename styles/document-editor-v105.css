@@ -33,3 +33,5 @@ body #document-editor105 details{padding:8px!important}
 body #document-editor105 details>summary{padding:4px!important;min-height:0!important;background:transparent!important}
 body #document-editor105 .doc-toolbar105>button{align-self:end;min-height:30px!important;height:30px!important}
 body #document-editor105 .doc-options105 input:not([type=color]):not([type=file]):not([type=checkbox]),body #document-editor105 .doc-toolbar105 input:not([type=color]){width:76px!important;min-width:0!important;max-width:100%!important}
+/* Document library: keep row actions together. */
+.doc-library-row105>span:first-child{flex:1;min-width:0;overflow-wrap:anywhere}.doc-library-actions14297{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:auto}.doc-library-row105{align-items:center;flex-wrap:wrap}#signatoryRows14297{display:grid;gap:12px}#signatoryRows14297 fieldset{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:0;min-width:0}#signatoryRows14297 label{min-width:0}#signatoryRows14297 input{width:100%;box-sizing:border-box}

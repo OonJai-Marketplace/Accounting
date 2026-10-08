@@ -1,5 +1,6 @@
 /* Approved Tax/SSO print bodies and company document templates. No financial writes. */
 (()=>{'use strict';
+const heading=value=>String(value??'').replace(/(^|[\s/·–—:(\[])([a-z])/g,(_,prefix,letter)=>prefix+letter.toUpperCase());
 const green='#176249',cream='#f7f1e4',pale='#eaf1eb',brown='#914511',line='#b8c8bd';
 const esc=v=>escapeHtml(String(v??'')),num=v=>Number(v)||0,money=v=>formatAppNumber(num(v));
 const text='font-family:Arial,sans-serif;font-size:10pt;line-height:1.15;';
@@ -7,8 +8,8 @@ const views={'tax-overview':'Tax & SSO Overview','tax-vat':'VAT','tax-pit':'Pers
 const active=()=>document.querySelector('.tab-content.active')?.id;
 const month=()=>document.getElementById('taxMonth102')?.value||new Date().toISOString().slice(0,7);
 const allowed=id=>!!liveProfile&&liveProfile.role==='admin'&&access113.can(id,'view')&&access113.can(id,'export');
-function table(headers,rows,widths,numeric=[]){return `<table style="${text}width:100%;table-layout:fixed;border-collapse:collapse;margin:0 0 2mm">${widths?'<colgroup>'+widths.map(w=>`<col style="width:${w}%">`).join('')+'</colgroup>':''}<thead><tr>${headers.map(h=>`<th style="background-color:${green};color:white;text-align:left;padding:0.8mm;font-weight:bold">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map((r,k)=>'<tr>'+r.map((v,i)=>`<td style="border-bottom:0.5pt solid ${line};padding:0.6mm 0.8mm;vertical-align:top;background-color:${k%2?cream:'#ffffff'};${numeric.includes(i)?'text-align:right;':''}">${esc(v)}</td>`).join('')+'</tr>').join(''):`<tr><td colspan="${headers.length}" style="padding:1.5mm">No matching records for this period.</td></tr>`}</tbody></table>`;}
-const section=name=>`<h3 style="${text}font-weight:bold;color:${green};border-bottom:0.5pt solid #e5b85c;padding-bottom:1mm;margin:2mm 0 1mm;break-after:avoid">${esc(name)}</h3>`;
+function table(headers,rows,widths,numeric=[]){return `<table style="${text}width:100%;table-layout:fixed;border-collapse:collapse;margin:0 0 2mm">${widths?'<colgroup>'+widths.map(w=>`<col style="width:${w}%">`).join('')+'</colgroup>':''}<thead><tr>${headers.map(h=>`<th style="background-color:${green};color:white;text-align:left;padding:0.8mm;font-weight:bold">${esc(heading(h))}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map((r,k)=>'<tr>'+r.map((v,i)=>`<td style="border-bottom:0.5pt solid ${line};padding:0.6mm 0.8mm;vertical-align:top;background-color:${k%2?cream:'#ffffff'};${numeric.includes(i)?'text-align:right;':''}">${esc(v)}</td>`).join('')+'</tr>').join(''):`<tr><td colspan="${headers.length}" style="padding:1.5mm">No matching records for this period.</td></tr>`}</tbody></table>`;}
+const section=name=>`<h3 style="${text}font-weight:bold;color:${green};border-bottom:0.5pt solid #e5b85c;padding-bottom:1mm;margin:2mm 0 1mm;break-after:avoid">${esc(heading(name))}</h3>`;
 function liabilityRows(id,period){
  const start=period+'-01',groups=id==='tax-vat'?['VAT']:id==='tax-pit'?['PIT']:['tax-social','tax-sso-payment'].includes(id)?['SSO']:['VAT','PIT','SSO'],map=new Map();
  for(const l of JournalModule.entries||[]){if(l.status&&l.status!=='posted'||l.voided_at)continue;const group=taxReports102.groupOf(l);if(!groups.includes(group)||String(l.date||'').slice(0,7)>period)continue;
@@ -23,7 +24,7 @@ function liabilityRows(id,period){
 function model(id=active(),period=month()){
  if(!views[id]||!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))throw Error('Select a tax report month.');
  const payroll=(Work82.runs||[]).filter(r=>r.data?.status==='finalized'&&!r.data.isSample&&r.data.month===period).flatMap(r=>(r.data.results||[]).map(x=>({...x,employee:x.employee?.name||'Employee',reference:r.data.reference||r.id}))),journal=(JournalModule.entries||[]).filter(l=>String(l.date||'').slice(0,7)===period&&(!l.status||l.status==='posted')&&!l.voided_at).map(l=>({...l,group:taxReports102.groupOf(l)})).filter(l=>l.group),summary=liabilityRows(id,period),blocks=[];
- const add=(name,headers,rows,widths,numeric=[])=>blocks.push({name,headers,rows:rows.map(r=>r.map((v,i)=>numeric.includes(i)?num(v):v)),widths,numeric});
+ const add=(name,headers,rows,widths,numeric=[])=>blocks.push({name:heading(name),headers:headers.map(heading),rows:rows.map(r=>r.map((v,i)=>numeric.includes(i)?num(v):v)),widths,numeric});
  const groups=id==='tax-vat'?['VAT']:id==='tax-pit'?['PIT']:['tax-social','tax-sso-payment'].includes(id)?['SSO']:['VAT','PIT','SSO'];
  add('Monthly liabilities summary',['Type','Currency','Opening','Accrued','Payments / reductions','Outstanding'],summary.map(r=>[r.group,r.currency,r.opening,r.accrued,r.reductions,r.closing]),[10,9,18,21,21,21],[2,3,4,5]);
  if(groups.includes('PIT')&&!['tax-payment','tax-sso-payment','tax-vat'].includes(id))add('PIT · finalized payroll',['Employee / payroll reference','Tax basis · LAK','Employee PIT · LAK','Company PIT · LAK','Total PIT · LAK'],payroll.map(r=>[r.employee+' / '+r.reference,r.taxable,r.employeePit,r.employerPit,num(r.employeePit)+num(r.employerPit)]),[32,17,17,17,17],[1,2,3,4]);
@@ -39,7 +40,7 @@ function model(id=active(),period=month()){
 }
 function html(pack){let body='';
  for(const currency of [...new Set(pack.summary.map(r=>r.currency))]){const rows=pack.summary.filter(r=>r.currency===currency),totals=['accrued','reductions','closing'].map(k=>rows.reduce((s,r)=>s+r[k],0));if(totals.every(v=>v===0)&&rows.every(r=>r.opening===0)){body+=`<p style="${text}">${esc(currency)} = 0.</p>`;continue}
-  body+=`<table style="${text}width:100%;border-collapse:separate;margin-bottom:2mm"><tbody><tr>${['Accrued','Payments / reductions','Outstanding'].map((label,i)=>`<td style="width:33.33%;background-color:${i===2?cream:pale};padding:1.8mm;color:${i===2?brown:green}"><strong>${esc(label)} · ${esc(currency)}</strong><br><strong style="font-size:13pt">${esc(money(totals[i]))}</strong></td>`).join('')}</tr></tbody></table>`;
+  body+=`<table style="${text}width:100%;border-collapse:separate;margin-bottom:2mm"><tbody><tr>${['Accrued','Payments / reductions','Outstanding'].map((label,i)=>`<td style="width:33.33%;background-color:${i===2?cream:pale};padding:1.8mm;color:${i===2?brown:green}"><strong>${esc(heading(label))} · ${esc(currency)}</strong><br><strong style="font-size:13pt">${esc(money(totals[i]))}</strong></td>`).join('')}</tr></tbody></table>`;
  }
  for(const block of pack.blocks){const rows=block.rows.map(r=>r.map((v,i)=>block.numeric.includes(i)?money(v):v));body+=section(block.name)+table(block.headers,rows,block.widths,block.numeric)}
  body+=`<p style="${text}font-size:9pt;margin-top:1mm">Period: ${esc(pack.period)}. Outstanding = opening + accrued − payments / reductions. Figures above use posted payable-account movements; debit reductions may include adjustments. Payroll detail is shown separately and is not added to the liability totals.</p>`;
