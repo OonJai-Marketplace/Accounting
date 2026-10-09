@@ -33,5 +33,5 @@ styles/controls14305.css. Scope sizing to explicit action classes or action
 containers. NEVER apply a universal button/[role=button] size or appearance rule.
 Top tabs, sidebar navigation, profile/name cards, sub-user cards, dashboard
 summaries, calendar cells, and document tabs retain their component designs.
-Attendance squares are 22px within 26px columns; center the rendered day number,
+Attendance squares stay compact at 22px; distribute date columns across the module width (scroll only when too narrow). Center the rendered day number,
 not just its table cell. Phone navigation keeps its original icon/label layout.

@@ -140,6 +140,30 @@
     "passed": true
   },
   {
+    "name": "Future dates are gray, rollover restores status, and saved exceptions stay intact",
+    "passed": true
+  },
+  {
+    "name": "Attendance fills its desktop module and centers every date over equal compact squares",
+    "passed": true
+  },
+  {
+    "name": "Agenda begins without a spacer, retains green accents and has no month arrows or today shadow",
+    "passed": true
+  },
+  {
+    "name": "English news is sourced, pending approval and cannot silently alter schedules",
+    "passed": true
+  },
+  {
+    "name": "News approval is explicit, persists once, and changed proposals need a new decision",
+    "passed": true
+  },
+  {
+    "name": "Invalid news dates and unsafe source URLs fail validation",
+    "passed": true
+  },
+  {
     "name": "No uncaught errors",
     "passed": true
   }

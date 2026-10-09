@@ -44,9 +44,9 @@ body #payDay95 label:has([name=note]),body #payDay95 label:has([name=override]),
 body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
 @media screen{
  @layer app-controls14305{
-  body table.attendance-grid99{width:calc(132px + var(--days99)*26px)!important;min-width:calc(132px + var(--days99)*26px)!important;max-width:none!important;table-layout:fixed!important;zoom:1!important}
-  body table.attendance-grid99 tr>*:first-child{width:132px!important;min-width:132px!important;max-width:132px!important}
-  body table.attendance-grid99 thead th:not(:first-child),body table.attendance-grid99 tbody td{width:26px!important;min-width:26px!important;max-width:26px!important;text-align:center!important;padding:2px!important;vertical-align:middle!important}
+  body table.attendance-grid99{width:100%!important;min-width:calc(116px + var(--days99)*24px)!important;max-width:none!important;table-layout:fixed!important;zoom:1!important}
+  body table.attendance-grid99 tr>*:first-child{width:116px!important;min-width:116px!important;max-width:116px!important}
+  body table.attendance-grid99 thead th:not(:first-child),body table.attendance-grid99 tbody td{width:auto!important;min-width:24px!important;max-width:none!important;text-align:center!important;padding:1px!important;vertical-align:middle!important}
   body table.attendance-grid99 .attendance-cell101{width:22px!important;min-width:22px!important;max-width:22px!important;height:22px!important;min-height:22px!important;max-height:22px!important;padding:0!important;border-radius:3px!important;display:grid!important;place-items:center!important;margin:0 auto!important;border-color:var(--dot-color)!important;background:var(--dot-color)!important}
   body table.attendance-grid99 thead th:not(:first-child){height:26px!important;min-height:26px!important;line-height:22px!important}
   body table.attendance-grid99 tbody tr,body table.attendance-grid99 tbody :is(th,td){height:26px!important;min-height:26px!important;padding-block:2px!important}
@@ -61,13 +61,13 @@ body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
 .hr-agenda-head14306{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-bottom:1px solid #d2ded4;flex-wrap:wrap}
 .hr-agenda-head14306 h4{margin:0;font-size:14px}.hr-agenda-head14306 button{font-size:11px;padding-inline:8px}
 .hr-agenda14306{height:calc(var(--hr-calendar-height) - 62px);overflow-y:auto;overscroll-behavior:contain;padding-inline:10px;position:relative;scroll-behavior:auto}
-.hr-agenda14306::before,.hr-agenda14306::after{content:'';display:block;height:calc((var(--hr-calendar-height) - 200px)/2)}
-.hr-event14306{display:grid;grid-template-columns:40px minmax(0,1fr);gap:9px;padding:10px;margin:9px 0;border:1px solid #cdded1;border-left:3px solid #96b69f;border-radius:6px;background:white;font-size:12px}
-.hr-event14306.is-next{background:#edf7ee;border-color:#16815c;border-left-width:4px}.hr-event14306.is-past{color:#79877f;background:#f2f4ef}
-.hr-event14306>div>strong{display:block;line-height:1.4}.hr-event14306 small{display:block;font-size:10px;margin:4px 0;color:#6a7b70}.hr-event14306 button{margin-top:6px;font-size:11px;padding-inline:10px}
+.hr-agenda14306::before,.hr-agenda14306::after{content:none;display:none}
+.hr-event14306{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:7px;padding:8px;margin:7px 0;border:1px solid #cdded1;border-left:3px solid #008563;border-radius:6px;background:white;font-size:12px}
+.hr-event14306.is-next{background:#edf7ee;border-color:#16815c;border-left-width:4px}.hr-event14306.is-past{color:#79877f;background:#f2f4ef;border-left-color:#008563}
+.hr-event14306>div>strong{display:block;line-height:1.4}.hr-event14306 small{display:block;font-size:10px;margin:4px 0;color:#6a7b70}.hr-event14306 button{align-self:start;margin-top:0;font-size:11px;padding-inline:10px}
 .hr-event-date14306{align-self:start;text-align:center;background:#f7faf5;border:1px solid #d8e3d9;border-radius:4px;padding:4px 0}.hr-event-date14306 strong{font-size:18px}
 .hr-kind14306{display:block;font-size:11px}.hr-next14306{display:inline-block;font-size:10px;background:#cfe9d5;color:#13563b;padding:3px 5px;border-radius:4px;margin-top:5px}
-.hr-month14306{min-width:0}.hr-month-head14306{display:flex;align-items:center;gap:8px;margin-bottom:10px}.hr-month-head14306 .oj-date-shell104{width:190px!important}.hr-month-head14306>button{padding-inline:12px}
+.hr-month14306{min-width:0}.hr-month-head14306{display:flex;align-items:center;gap:8px;margin-bottom:10px}.hr-month-head14306 .oj-date-shell104{width:auto!important}.hr-month-head14306>button{padding-inline:12px}
 .hr-weekdays14306,.hr-month-grid14306{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .hr-weekdays14306{border:1px solid #d2ded4;border-bottom:0;background:#f4f6ef;text-align:center;font-size:12px;padding:10px 0}
 .hr-month-grid14306{height:calc(var(--hr-calendar-height) - 107px);grid-auto-rows:1fr;border-left:1px solid #d2ded4;border-top:1px solid #d2ded4}
@@ -79,7 +79,7 @@ body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
 .hr-cal-chip14306.holiday{background:#fff0cf;color:#745113}.hr-cal-chip14306.leave{background:#ebe3f4;color:#654382}.hr-cal-chip14306.contract{background:#d8efdf;color:#225d3a}
 .hr-calendar-key14306{display:flex;flex-wrap:wrap;gap:12px;padding-top:10px;font-size:10px;color:#667c6e}.hr-calendar-key14306 span:first-child{color:#9b7023}.hr-calendar-key14306 span:nth-child(2){color:#765494}
 .hr-empty14306{padding:12px}.hr-upcoming14306{padding:0 12px}.hr-source14306{font-size:11px}
-@media(max-width:900px){.hr-calendar-layout14306{grid-template-columns:220px minmax(0,1fr);gap:10px}.hr-calendar14306{padding:10px}.hr-event14306{grid-template-columns:32px minmax(0,1fr);padding:7px;gap:6px}.hr-date14306{padding:2px}.hr-cal-chip14306{font-size:9px;padding:3px}.hr-month-head14306{gap:5px}}
+@media(max-width:900px){.hr-calendar-layout14306{grid-template-columns:220px minmax(0,1fr);gap:10px}.hr-calendar14306{padding:10px}.hr-event14306{grid-template-columns:28px minmax(0,1fr) auto;padding:6px;gap:5px}.hr-date14306{padding:2px}.hr-cal-chip14306{font-size:9px;padding:3px}.hr-month-head14306{gap:5px}}
 @media(max-width:700px){.hr-calendar-layout14306{grid-template-columns:1fr}.hr-calendar-layout14306>aside{order:2}.hr-calendar14306>header{flex-wrap:wrap}.hr-employee-dialog14306 #employeeForm82 .fields82{grid-template-columns:repeat(2,minmax(0,1fr))!important}.hr-week14306{grid-template-columns:70px 24px 1fr 1fr 75px;font-size:10px;gap:5px}.hr-fields14306{grid-template-columns:1fr}.hr-wide14306{grid-column:auto}}
 
 @layer app-controls14305{body .hr-date14306>button:not([aria-current=date]){border-color:transparent!important}}
@@ -129,3 +129,17 @@ body.shell113 #payroll-employees details.block82>summary{border-top:0!important;
 }
 
 body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) .work82>header .actions82{display:flex!important;gap:8px!important;flex-wrap:wrap;align-items:center}
+
+/* Calendar-specific controls, never navigation or employee cards. */
+@layer app-controls14305{
+ body .hr-date14306>button{box-sizing:border-box!important;width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;min-width:28px!important;padding:0!important;border:0!important;box-shadow:none!important;border-radius:50%!important}
+ body .hr-date14306>button[aria-current=date]{background:#008563!important;color:white!important}
+ body .hr-calendar14306 :is(.actions82,.hr-month-head14306,.hr-agenda-head14306,.hr-event14306) button.je-btn,body .hr-news-dialog14309 button.je-btn{background:#e4eee6!important;color:#194c38!important;border:1px solid #abc5b2!important;box-shadow:0 1px 2px #194c381a!important;border-radius:5px!important;font-weight:600!important}
+ body .hr-calendar14306 .actions82 button.primary82,body .hr-news-dialog14309 button.primary82{background:#008563!important;color:white!important}
+ body .hr-month-head14306 .oj-date-button104{background:#fffdf8!important;border:1px solid #abc5b2!important;border-radius:5px!important;box-shadow:0 1px 2px #194c381a!important}
+}
+.hr-event14306>div:nth-child(2){min-width:0}.hr-event14306>div>strong{font-size:11px;overflow-wrap:normal}.hr-event14306 .hr-next14306{padding:1px 4px;margin-top:3px}
+.hr-news-banner14309{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;margin-bottom:12px;background:#edf4ee;border:1px solid #cfdfd2;border-radius:5px;font-size:12px}.hr-news-banner14309 small{display:block;margin-top:3px;color:#63736a}.hr-news-banner14309 button{flex-shrink:0}
+.hr-news-list14309 article{padding:12px 0;border-bottom:1px solid #d7e1d9}.hr-news-list14309 h4{margin:0 0 5px;font-size:14px}.hr-news-list14309 p{font-size:12px;line-height:1.5;margin:5px 0}.hr-news-list14309 .actions82{display:flex;gap:8px;margin-top:8px}.hr-news-list14309 small{color:#63736a}.hr-news-list14309 a{color:#006c50}.hr-news-list14309 details{margin-top:12px;font-size:12px}
+
+.hr-news-dialog14309 .hr-dialog-body14306>p{font-size:13px;line-height:1.5}

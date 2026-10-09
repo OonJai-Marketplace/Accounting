@@ -1,0 +1,467 @@
+{
+  "schema": 1,
+  "language": "en",
+  "checkedAt": "2026-10-09",
+  "items": [
+    {
+      "id": "la-2026-end-lent",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Ork Phansa · End of Buddhist Lent",
+      "location": "Laos",
+      "start": "2026-10-26",
+      "end": "2026-10-26",
+      "category": "holiday",
+      "confidence": "confirmed",
+      "summary": "The published Lao holiday entry is 26 October. Decide separately whether this should be a day off for the restaurant.",
+      "restaurantIdea": "Review staffing and consider a festival menu two weeks ahead.",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "JICA Laos · Published 2026 calendar",
+          "url": "https://www.jica.go.jp/english/overseas/laos/office/__icsFiles/afieldfile/2026/05/05/LaosOfficeHolidays2026_1.pdf",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-vientiane-boats",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Vientiane Boat Racing Festival",
+      "location": "Vientiane Capital",
+      "start": "2026-10-27",
+      "end": "2026-10-27",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "The Vientiane boat-racing observance is listed for 27 October. This is separate from the Luang Prabang race.",
+      "restaurantIdea": "Plan takeaway options and check access near the river before promoting.",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "JICA Laos · Published 2026 calendar",
+          "url": "https://www.jica.go.jp/english/overseas/laos/office/__icsFiles/afieldfile/2026/05/05/LaosOfficeHolidays2026_1.pdf",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-that-luang",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "That Luang Festival · Main observance",
+      "location": "Vientiane Capital",
+      "start": "2026-11-24",
+      "end": "2026-11-24",
+      "category": "holiday",
+      "confidence": "confirmed",
+      "summary": "The main That Luang observance is listed for 24 November. The associated fair may span additional days.",
+      "restaurantIdea": "Prepare a promotion and staffing plan two weeks before the festival.",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "JICA Laos · Published 2026 calendar",
+          "url": "https://www.jica.go.jp/english/overseas/laos/office/__icsFiles/afieldfile/2026/05/05/LaosOfficeHolidays2026_1.pdf",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-handicraft",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Lao Handicraft Festival · Traditional food and crafts",
+      "location": "Lao-ITECC, Vientiane Capital",
+      "start": "2026-10-31",
+      "end": "2026-11-08",
+      "category": "food",
+      "confidence": "confirmed",
+      "summary": "KPL reports a nine-day festival with craft exhibits and traditional foods at Lao-ITECC.",
+      "restaurantIdea": "Review opportunities for a local-food promotion or partnership; confirm participation details with the organizer.",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "KPL · Lao News Agency",
+          "url": "https://kpl.gov.la/EN/detail.aspx?id=107638",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-lights",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Lai Heua Fai · Boats of Light",
+      "location": "Luang Prabang",
+      "start": "2026-10-27",
+      "end": "2026-10-27",
+      "category": "festival",
+      "confidence": "tentative",
+      "summary": "Tourism Laos lists 27 October for this festival. Other published festival programmes may cover surrounding days.",
+      "restaurantIdea": "Consider a festival-themed menu if relevant to your customers.",
+      "uncertainty": "Confirm the main ceremony and full programme with the provincial announcement before approving.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/event/lhai-heua-fai-festival-of-the-boats-of-light-in-luang-prabang-province-2/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-children",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Children’s Day and National Tree Planting Day",
+      "location": "Nationwide",
+      "start": "2026-06-01",
+      "end": "2026-06-01",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "The official festival calendar lists this 2026 date. This local observance does not automatically mean a company day off.",
+      "restaurantIdea": "",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-khao-phansa",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Asalahaboucha and Boun Khao Phansa",
+      "location": "Nationwide",
+      "start": "2026-07-29",
+      "end": "2026-07-29",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "The official festival calendar lists this 2026 date. This local observance does not automatically mean a company day off.",
+      "restaurantIdea": "",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-padabdin",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Khao Padabdin",
+      "location": "Nationwide",
+      "start": "2026-09-11",
+      "end": "2026-09-11",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "The official festival calendar lists this 2026 date. This local observance does not automatically mean a company day off.",
+      "restaurantIdea": "",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-luang-prabang-boats",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Luang Prabang Boat Racing Festival",
+      "location": "Luang Prabang",
+      "start": "2026-09-11",
+      "end": "2026-09-11",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "The official festival calendar lists this 2026 date. This local observance does not automatically mean a company day off.",
+      "restaurantIdea": "",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-salak",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Khao Salak",
+      "location": "Nationwide",
+      "start": "2026-09-26",
+      "end": "2026-09-26",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "The official festival calendar lists this 2026 date. This local observance does not automatically mean a company day off.",
+      "restaurantIdea": "",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-phabath",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Phabath Phonesan",
+      "location": "Bolikhamxay",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-vat-phou",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Vat Phou Festival",
+      "location": "Champasak",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-sikhottabong",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Sikhottabong Stupa Festival",
+      "location": "Khammouane",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-elephant",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Elephant Festival",
+      "location": "Xayabouly",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-khao-chi",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Khao Chi / Makhaboucha",
+      "location": "Local temples across Laos",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-harvest",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Khoun Khao / Khoun Lan · Harvest festival",
+      "location": "Local communities across Laos",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-phavet",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Phavet",
+      "location": "Local temples across Laos",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-rocket",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Bang Fai · Rocket festivals",
+      "location": "Dates vary by district",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-visakhaboucha",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Boun Visakhaboucha",
+      "location": "Nationwide",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-naga",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Naga fireball observance",
+      "location": "Bolikhamxay and Pak Ngum",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-inghang",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "That Inghang Stupa Festival",
+      "location": "Savannakhet",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/welcome/buddhism-and-belief/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-hmong-new-year",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Hmong New Year celebrations",
+      "location": "Hmong communities · dates vary",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "awaiting-date",
+      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
+      "restaurantIdea": "",
+      "uncertainty": "Community dates vary; do not infer one nationwide date.",
+      "sources": [
+        {
+          "name": "Luang Prabang Tourism",
+          "url": "https://tourismluangprabang.org/all-articles/festivals/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-lao-food",
+      "revision": "2026-10-09T11:15:00Z",
+      "title": "Lao Food Festival · Next edition",
+      "location": "Vientiane Capital",
+      "start": null,
+      "end": null,
+      "category": "food",
+      "confidence": "awaiting-date",
+      "summary": "The chamber published the 2026 Lao Food Festival for 26–30 January at Chao Anouvong Park. Watch for a new announcement for the next edition; do not reuse the old dates.",
+      "restaurantIdea": "Consider participation, a special menu or an early promotion once the next dates are confirmed.",
+      "uncertainty": "",
+      "sources": [
+        {
+          "name": "Lao National Chamber of Commerce and Industry",
+          "url": "https://lncci.la/events/?lang=lo",
+          "language": "lo"
+        }
+      ]
+    }
+  ]
+}
