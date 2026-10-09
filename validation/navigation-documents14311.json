@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Badges aggregate real counts into sidebar and horizontal tabs",
+    "passed": true
+  },
+  {
+    "name": "Badge caps, permission checks and zero counts remain correct",
+    "passed": true
+  },
+  {
+    "name": "News badges count proposals and survive horizontal-tab navigation",
+    "passed": true
+  },
+  {
+    "name": "Uploaded icons retain color and selected SVG icons inherit legible text color",
+    "passed": true
+  },
+  {
+    "name": "Every document action menu entry has an icon",
+    "passed": true
+  },
+  {
+    "name": "Text PDF imports editable words; original-appearance mode keeps page image",
+    "passed": true
+  },
+  {
+    "name": "RTF, plain text and DOCX still import in Document Editor",
+    "passed": true
+  },
+  {
+    "name": "Download dialog offers formats and records only encrypted downloads",
+    "passed": true
+  },
+  {
+    "name": "Direct PDF and Word downloads produce valid files",
+    "passed": true
+  },
+  {
+    "name": "Add Contract Record saves a direct upload and opens it in the editor",
+    "passed": true
+  },
+  {
+    "name": "Desktop and tablet badge alignment fits without overflow",
+    "passed": true
+  },
+  {
+    "name": "No uncaught errors",
+    "passed": true
+  }
+]

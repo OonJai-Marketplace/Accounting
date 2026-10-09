@@ -1,0 +1,15 @@
+/* Keep badges aligned to the right without changing the approved control sizes. */
+body.shell113 #appSidebar .nav-header.has-count14311{position:relative;padding-right:48px!important}
+body.shell113 #appSidebar .nav-header>.nav-count14311{position:absolute;right:13px;top:50%;transform:translateY(-50%)}
+body.shell113 #appSidebar .nav-header.has-count14311>.arrow{visibility:hidden}
+body.shell113 :is(#appSidebar,#categoryTabs,.team-tabs14230,.personal-tabs1437) .nav-count14311{display:inline-flex!important;align-items:center;justify-content:center;flex:none;min-width:20px;height:20px;box-sizing:border-box;padding:0 5px;border-radius:999px;background:#bb202b!important;color:#fff!important;font:700 11px/1 sans-serif;vertical-align:middle;box-shadow:none;margin-left:7px;pointer-events:none}
+body.shell113 #appSidebar .nav-links .nav-count14311{margin-left:auto}
+body.shell113 :is(#appSidebar,#categoryTabs) .submission-count-badge{display:none!important}
+/* Uploaded artwork keeps its colors on a consistent light tile in every state. */
+body.shell113 #appSidebar .nav-header .nav-icon113:has(img){background:#fffaf1;border-radius:4px;box-sizing:border-box;padding:2px;flex-shrink:0}
+body.shell113 #appSidebar .nav-header .nav-icon113 img{filter:none!important;width:100%;height:100%;object-fit:contain}
+body.shell113 #appSidebar .nav-header .nav-icon113 svg{color:inherit!important}
+.doc-menu-icon1426 svg{width:18px;height:18px;display:block;flex-shrink:0}
+
+body.shell113 #appSidebar .nav-header .nav-icon113{color:inherit!important}
+.download-options14311{display:grid;gap:12px}.download-options14311>button{justify-self:end}.download-options14311 label:not(.download-check14311){display:grid;gap:5px}.download-options14311 input:not([type=checkbox]),.download-options14311 select{padding:8px;max-width:100%;box-sizing:border-box}.download-options14311 p,.download-options14311 small{font-size:12px;line-height:1.5}.download-history14311{overflow:auto;max-height:55vh}.download-history14311 table{border-collapse:collapse;width:100%}.download-history14311 th,.download-history14311 td{padding:8px;border:1px solid #b8c9be;text-align:left;font-size:12px}.download-history14311 input{color:#173c2e;background:#fffaf1;min-width:140px}.doc-download-settings14311{margin-left:auto;display:inline-flex;align-items:center;gap:5px}.doc-download-settings14311 svg{width:17px;height:17px}
