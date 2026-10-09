@@ -164,6 +164,22 @@
     "passed": true
   },
   {
+    "name": "News and Events owns Calendar while HR keeps its five employee tabs",
+    "passed": true
+  },
+  {
+    "name": "News review keeps six-month reminders and dismissals update the workspace",
+    "passed": true
+  },
+  {
+    "name": "Account handover uses official ChatGPT links and never claims an account is authenticated",
+    "passed": true
+  },
+  {
+    "name": "News and account areas fit desktop and tablet without changing navigation sizing",
+    "passed": true
+  },
+  {
     "name": "No uncaught errors",
     "passed": true
   }
