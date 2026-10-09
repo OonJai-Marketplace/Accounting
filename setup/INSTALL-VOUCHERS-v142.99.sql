@@ -91,9 +91,9 @@ BEGIN
  FOR n IN 0..p_count-1 LOOP
    INSERT INTO public.vouchers14299(request_key,batch_key,request_payload,number,year_no,ordinal,kind,status,voucher_date,data,created_by)
    VALUES(CASE WHEN n=0 THEN p_request_key ELSE gen_random_uuid() END,p_request_key,jsonb_build_object('kind',p_kind,'count',p_count,'date',p_date,'data',p_data),
-     setting.prefix||'-'||right(yr::text,setting.year_digits)||'-'||code||'-'||lpad((first_no+n)::text,setting.digits,'0'),yr,first_no+n,p_kind,
+     setting.prefix||'-'||right(yr::text,setting.year_digits)||code||'-'||lpad((first_no+n)::text,setting.digits,'0'),yr,first_no+n,p_kind,
      CASE WHEN p_kind='H' THEN 'reserved' ELSE 'issued' END,p_date,
-     (CASE WHEN p_kind='E' THEN jsonb_set(p_data,'{html}',to_jsonb(replace(p_data->>'html',coalesce(p_data->>'tentative_number',''),setting.prefix||'-'||right(yr::text,setting.year_digits)||'-'||code||'-'||lpad((first_no+n)::text,setting.digits,'0'))),true)-'tentative_number' ELSE p_data END)||jsonb_build_object('date',p_date,'id_format',jsonb_build_object('prefix',setting.prefix,'code',code,'digits',setting.digits,'year_digits',setting.year_digits,'label',CASE WHEN p_kind='H' THEN setting.handwritten_label ELSE setting.editor_label END)),
+     (CASE WHEN p_kind='E' THEN jsonb_set(p_data,'{html}',to_jsonb(replace(p_data->>'html',coalesce(p_data->>'tentative_number',''),setting.prefix||'-'||right(yr::text,setting.year_digits)||code||'-'||lpad((first_no+n)::text,setting.digits,'0'))),true)-'tentative_number' ELSE p_data END)||jsonb_build_object('date',p_date,'id_format',jsonb_build_object('prefix',setting.prefix,'code',code,'digits',setting.digits,'year_digits',setting.year_digits,'label',CASE WHEN p_kind='H' THEN setting.handwritten_label ELSE setting.editor_label END)),
      auth.uid()) RETURNING * INTO item;
    INSERT INTO public.voucher_versions14299(voucher_id,version,data,reason,changed_by) VALUES(item.id,1,item.data,'Issued',auth.uid());
    RETURN NEXT item;
@@ -139,7 +139,7 @@ BEGIN
  entry_ordinal=substring(entry.entry_no FROM '([0-9]+)$');
  IF entry_ordinal IS NULL THEN RAISE EXCEPTION 'Journal Entry ID needs a numeric suffix';END IF;
  entry_ordinal=(entry_ordinal::bigint)::text;
- linked_number=coalesce(item.data->'id_format'->>'prefix',setting.prefix)||'-'||right(extract(year FROM entry.transaction_date)::integer::text,coalesce((item.data->'id_format'->>'year_digits')::integer,setting.year_digits))||'-'||coalesce(item.data->'id_format'->>'code',CASE WHEN item.kind='H' THEN setting.handwritten_code ELSE setting.editor_code END)||'-'||lpad(entry_ordinal,greatest(coalesce((item.data->'id_format'->>'digits')::integer,setting.digits),length(entry_ordinal)),'0');
+ linked_number=coalesce(item.data->'id_format'->>'prefix',setting.prefix)||'-'||right(extract(year FROM entry.transaction_date)::integer::text,coalesce((item.data->'id_format'->>'year_digits')::integer,setting.year_digits))||coalesce(item.data->'id_format'->>'code',CASE WHEN item.kind='H' THEN setting.handwritten_code ELSE setting.editor_code END)||'-'||lpad(entry_ordinal,greatest(coalesce((item.data->'id_format'->>'digits')::integer,setting.digits),length(entry_ordinal)),'0');
  snapshot=jsonb_build_object('entry_id',entry.id,'entry_no',entry.entry_no,'date',entry.transaction_date,'memo',entry.memo,'lines',lines);
  UPDATE public.vouchers14299 SET journal_entry_id=p_entry_id,journal_number=linked_number,status='linked',data=item.data||jsonb_build_object('journal',snapshot),version=version+1,updated_at=now() WHERE id=p_id RETURNING * INTO item;
  INSERT INTO public.voucher_versions14299(voucher_id,version,data,reason,changed_by) VALUES(item.id,item.version,item.data,'Linked to journal '||entry.entry_no,auth.uid());

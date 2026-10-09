@@ -1,0 +1,24 @@
+/* Keep the personal Active Journal inside its workspace on desktop and tablets. */
+@media screen and (min-width:768px){
+ html body #printableDocArea .personal-active1437 .table-container{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+ html body #printableDocArea .personal-active1437 table.clustered-journal-table{width:100%!important;min-width:0!important;table-layout:fixed!important}
+ html body #printableDocArea .personal-active1437 .clustered-journal-table :is(th,td):nth-child(1){width:92px!important;min-width:0!important}
+ html body #printableDocArea .personal-active1437 .clustered-journal-table :is(th,td):nth-child(2){width:88px!important;min-width:0!important}
+ html body #printableDocArea .personal-active1437 .clustered-journal-table :is(th,td):nth-child(3){width:21%!important;min-width:0!important}
+ html body #printableDocArea .personal-active1437 .clustered-journal-table :is(th,td):nth-child(4){width:auto!important;min-width:0!important}
+ html body #printableDocArea .personal-active1437 .clustered-journal-table :is(th,td):nth-child(5),
+ html body #printableDocArea .personal-active1437 .clustered-journal-table :is(th,td):nth-child(6){width:10%!important;min-width:0!important}
+ html body #printableDocArea .personal-active1437 .clustered-journal-table :is(th,td):last-child{width:80px!important;min-width:80px!important}
+ /* The unused ID branch raises specificity above the older shared Journal rule. */
+ html body #printableDocArea :is(.personal-active1437,#personalActiveSpecificity14300) table.clustered-journal-table{width:100%!important;min-width:0!important;table-layout:fixed!important}
+ html body #printableDocArea :is(.personal-active1437,#personalActiveSpecificity14300) .clustered-journal-table :is(th,td):nth-child(1){width:92px!important;min-width:0!important}
+ html body #printableDocArea :is(.personal-active1437,#personalActiveSpecificity14300) .clustered-journal-table :is(th,td):nth-child(2){width:88px!important;min-width:0!important}
+ html body #printableDocArea :is(.personal-active1437,#personalActiveSpecificity14300) .clustered-journal-table :is(th,td):nth-child(3){width:21%!important;min-width:0!important}
+ html body #printableDocArea :is(.personal-active1437,#personalActiveSpecificity14300) .clustered-journal-table :is(th,td):nth-child(4){width:auto!important;min-width:0!important}
+}
+@media screen{
+ html body .report-action14300{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-height:36px!important;height:auto!important;width:auto!important;min-width:96px!important;padding:7px 12px!important;border:1px solid #9db8a9!important;border-radius:7px!important;background:#fff!important;color:#174b39!important;font:600 12px/1.35 'Plus Jakarta Sans',Arial,sans-serif!important;white-space:nowrap!important;box-shadow:none!important}
+ html body .report-action14300:hover{background:#edf5ef!important;border-color:#598873!important}
+ html body :is(.history-actions95,.module-actions71,.settings-page-heading,.je-card-header,.section-heading14284) .report-action14300{margin:0!important;flex:0 0 auto!important}
+ html body .history-actions95{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:8px!important}
+}

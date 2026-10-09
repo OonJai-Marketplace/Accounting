@@ -64,7 +64,19 @@
     "passed": true
   },
   {
-    "name": "Voucher register and settings fit desktop and tablet portrait/landscape",
+    "name": "Voucher register actions and compact Journal picker fit desktop and tablet portrait/landscape",
+    "passed": true
+  },
+  {
+    "name": "Voucher actions wait for the installed database readiness check",
+    "passed": true
+  },
+  {
+    "name": "Transaction labels, selected Voucher tab, date formats and latest-first history stay consistent",
+    "passed": true
+  },
+  {
+    "name": "Audit controls remain stable and personal Active Journal does not swipe sideways",
     "passed": true
   },
   {
