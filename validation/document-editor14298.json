@@ -60,7 +60,7 @@
     "passed": true
   },
   {
-    "name": "Blank-sheet retry keeps its request key; printing uses reserved references; linking copies entry details",
+    "name": "Blank-sheet retry keeps its request key; reserved A5 pages open in the editor with unique references",
     "passed": true
   },
   {
@@ -77,6 +77,10 @@
   },
   {
     "name": "Audit controls remain stable and personal Active Journal does not swipe sideways",
+    "passed": true
+  },
+  {
+    "name": "Dashboard period controls, dark-card hover and persistent connection indicators remain readable on iPad",
     "passed": true
   },
   {
