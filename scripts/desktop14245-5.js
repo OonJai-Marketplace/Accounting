@@ -483,7 +483,7 @@ function decorate(){installRpc();const yearButton=$('yearClose136');if(yearButto
  const panel=$('headerNotices104'),bell=$('upcomingBell101');if(panel&&bell){panel.classList.add('dock-popover136');if(!panel.hidden)positionPopover(panel,bell);if(!bell.dataset.anchored136){bell.dataset.anchored136='';const old=bell.onclick;bell.onclick=e=>{old?.(e);if(!panel.hidden)positionPopover(panel,bell);};}}
  const owner=typeof activeSubUserTab==='function'?activeSubUserTab()?.userId:null;
  $('workspaceActor136')?.remove();
- const viewing=admin()&&owner&&$('sub-users-workspace')?.classList.contains('active');
+ const viewing=admin()&&owner&&String(owner)!==String(liveProfile.id)&&$('sub-users-workspace')?.classList.contains('active');
  const noticeKey=viewing?String(liveProfile.id)+':'+String(owner):'';
  if(noticeKey!==actorNotice14230){actorNotice14230=noticeKey;if(viewing){const userName=getLiveUserName(owner),possessive=/s$/i.test(userName)?userName+'’':userName+'’s';showCenterStatus('Viewing '+possessive+' workspace as Administrator. Changes are recorded under your identity.');}}
 
@@ -498,6 +498,7 @@ window.workflow136={state,reload,yearClose,finishSession,loadTodos,decorate,upda
 function ready(){const scrollBefore=window.scrollToAccountModule;if(typeof scrollBefore==='function')window.scrollToAccountModule=function(...args){const r=scrollBefore.apply(this,args);decorate();requestAnimationFrame(decorate);return r;};window.addEventListener('page113',()=>{decorate();if(liveProfile&&state.owner!==liveProfile.id)reload().catch(e=>showCenterStatus('Workflow data could not load: '+e.message,true));if(document.querySelector('.tab-content.active')?.id==='transactions-recurring')loadTodos();});const profileBefore=loadLiveProfile;loadLiveProfile=async function(...args){const r=await profileBefore(...args);state.sessions=[];state.todos=[];decorate();window.workflowReady1443=reload({skipJournal:true});window.workflowReady1443.catch(e=>{if(!/abort|account changed|session changed/i.test(e.message))showCenterStatus('Workflow data could not load: '+e.message+( /function.*does not exist|schema cache|relation.*does not exist/i.test(e.message)?' Install SQL 03 if it has not been installed.':''),true)});return r;};decorate();window.addEventListener('focus',()=>{if(liveProfile&&!window.workspaceRequest138?.busy&&document.getElementById('loginGate')?.classList.contains('is-authenticated')&&Date.now()-state.lastReload>60000)reload().catch(()=>{});});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
+
 ;
 /* scripts/combined-v138.js */
 /* Final combined corrections, including restricted administrator-assisted sub-user sessions. */

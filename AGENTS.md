@@ -26,3 +26,8 @@ line memos, and use the general description as the ledger fallback for blank
 line memos. IDs come from the posting sequence, never visible row counts.
 Opening-balance reopening and sequence reset are explicit initial-setup actions
 only; never trigger either on deletion, voiding, or an empty filtered screen.
+
+Shared control rule: buttons and adjacent single-line inputs/selects use the
+32px Template / Post Entry height, defined by --app-control-height in
+styles/controls14305.css. Preserve this rule in new modules. Multiline text areas
+remain content-sized; hidden date inputs, checkboxes and radios retain their purpose.

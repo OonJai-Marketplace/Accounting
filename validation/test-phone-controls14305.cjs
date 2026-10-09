@@ -1,0 +1,72 @@
+const fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
+const {chromium}=require('playwright');
+const root=path.resolve(__dirname,'..'),results=[],requests=[];
+const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
+const profiles=[{id:id(1),email:'staff@example.test',full_name:'Test Staff',status:'active',role:'staff'},{id:id(2),email:'other@example.test',full_name:'Other Staff',status:'active',role:'staff'},{id:id(3),email:'admin@example.test',full_name:'Test Administrator',status:'active',role:'admin'}];
+const permissionOverrides=new Map();
+const permissions=owner=>permissionOverrides.get(owner)||({user_id:owner,modules:['sub-users'],module_actions113:{'sub-users-workspace':['view','edit','void','export'],'document-editor105':['view','export']},allowed_directions:['out','in'],assigned_fund_account_ids:[owner===id(2)?id(14):id(11)],destination_account_ids:[owner===id(2)?id(15):id(12)],money_in_counterpart_account_id:owner===id(2)?id(16):id(13),allow_multiple_funds:true});
+const accountRows=[{id:id(11),code:'1001',name:'My assigned fund – LAK',currency_code:'LAK'},{id:id(12),code:'5001',name:'Transport – LAK',currency_code:'LAK'},{id:id(13),code:'3001',name:'Owner support – LAK',currency_code:'LAK'},{id:id(14),code:'1002',name:'Other user fund – USD',currency_code:'USD'},{id:id(15),code:'5002',name:'Other user transport – USD',currency_code:'USD'},{id:id(16),code:'3002',name:'Other owner support – USD',currency_code:'USD'}].map(a=>({...a,is_active:true,is_posting:true}));
+let journals=[{id:id(21),owner_id:id(1),period_start:'2026-10-01',status:'draft',submitted_at:null,return_note:null,updated_at:'2026-10-01T00:00:00Z'},{id:id(22),owner_id:id(2),period_start:'2026-10-01',status:'draft',submitted_at:null,return_note:null,updated_at:'2026-10-01T00:00:00Z'}];
+let journalLines=[{id:id(31),staff_journal_id:id(21),transaction_date:'2026-10-01',direction:'out',fund_account_id:id(11),account_id:id(12),amount:10000,currency_code:'LAK',memo:'Existing expense',reference:'',entry_kind:'payment'},{id:id(32),staff_journal_id:id(22),transaction_date:'2026-10-01',direction:'out',fund_account_id:id(14),account_id:id(15),amount:5,currency_code:'USD',memo:'Other user private expense',reference:'',entry_kind:'payment'}];
+let documents=[],documentWrites=0,interruptDocument=false,createUserCalls=0,resetRequests=[],passwordUpdates=[],incompleteDenial=false;
+let receipts=new Map(),saveAttempts=0,submitAttempts=0,nextID=100,interruptSave=false,interruptLines=false,delayReads=false,revoked=new Set(),fixtureOrigin;
+const jwt=owner=>Buffer.from('{}').toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:owner,role:'authenticated',exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')+'.fixture';
+function actor(req){try{return JSON.parse(Buffer.from((req.headers.authorization||'').split(' ')[1].split('.')[1],'base64url')).sub;}catch{return '';}}
+function filters(rows,u){for(const [k,v]of u.searchParams){if(v.startsWith('eq.'))rows=rows.filter(r=>String(r[k])===v.slice(3));if(v.startsWith('in.(')){const ids=v.slice(4,-1).split(',');rows=rows.filter(r=>ids.includes(String(r[k])));}}return rows;}
+const server=http.createServer(async(req,res)=>{
+ const u=new URL(req.url,'http://localhost'),owner=actor(req);requests.push({path:u.pathname,search:u.search,method:req.method,owner});let body='';for await(const part of req)body+=part;const p=body?JSON.parse(body):{};
+ const send=(data,status=200)=>{res.statusCode=status;res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));};
+ if(u.pathname==='/scripts/supabase-config.js'){res.setHeader('Content-Type','text/javascript');return res.end('window.OJM_SUPABASE_URL='+JSON.stringify(fixtureOrigin)+';window.OJM_SUPABASE_ANON_KEY="fixture-anon";window.OJM_PUBLIC_APP_URL="https://oonjai-marketplace.github.io/Accounting/";');}
+ if(u.pathname==='/auth/v1/token'){const user=u.searchParams.get('grant_type')==='refresh_token'?profiles.find(x=>'refresh-'+x.id===p.refresh_token):profiles.find(x=>x.email===p.email);if(!user)return send({message:'Invalid credentials'},400);return send({access_token:jwt(user.id),refresh_token:'refresh-'+user.id,expires_in:3600,token_type:'bearer',user:{...user,aud:'authenticated'}});}
+ if(u.pathname==='/functions/v1/admin-create-user'){assert.equal(owner,id(3));createUserCalls++;const user={id:id(nextID++),email:p.email,full_name:p.full_name,status:'active',role:p.user_type==='admin'?'admin':'submitter'};profiles.push(user);return send({user_id:user.id});}
+ if(u.pathname==='/auth/v1/logout')return send({});
+ if(u.pathname==='/auth/v1/recover'){resetRequests.push({email:p.email,redirect:u.searchParams.get('redirect_to')});return send({});}
+ if(u.pathname==='/auth/v1/user'){if(req.method==='PUT')passwordUpdates.push({owner,password:p.password});return send(profiles.find(x=>x.id===owner));}
+ if(u.pathname.startsWith('/rest/v1/')){
+  const me=profiles.find(x=>x.id===owner);if(!me||revoked.has(owner)){if(incompleteDenial){res.statusCode=403;return res.end('{');}return send({code:'42501',message:'Workspace access revoked'},403);}
+  const rpc=u.pathname.split('/rpc/')[1];
+  if(rpc==='password_change_status14257')return send({required:false});
+  if(rpc==='current_access14228')return send({profile:me,permissions:permissions(owner)});
+  if(rpc==='review_directory14229'){assert.equal(owner,id(3));return send(profiles.map(u=>({...u,user_permissions:permissions(u.id)})));}
+  if(rpc==='admin_save_access1441'){assert.equal(owner,id(3));const user=profiles.find(u=>u.id===p.p_user);assert(user);user.full_name=p.p_name;user.role=p.p_role;permissionOverrides.set(p.p_user,p.p_permissions);return send({user_id:p.p_user,saved:true});}
+  if(rpc==='fund_balances136'){assert(owner===id(3)||p.p_owner===owner);const target=p.p_owner;const a=accountRows.find(x=>x.id===permissions(target).assigned_fund_account_ids[0]);return send([{account_id:a.id,name:a.name,currency:a.currency_code,opening:0,received:500000,used:0,handover:0,closing:500000,draft_in:0,draft_out:journalLines.filter(l=>journals.find(j=>j.id===l.staff_journal_id)?.owner_id===target).reduce((n,l)=>n+Number(l.amount),0)}]);}
+  if(rpc==='save_staff_editor1437'){
+   saveAttempts++;assert(owner===id(3)||p.p_owner===owner);let response;
+   if(receipts.has(p.p_key)){const saved=receipts.get(p.p_key);assert.deepEqual(saved.params,p);response={...saved.result,already_saved:true};}
+   else{const batch=journals.find(j=>j.owner_id===p.p_owner&&j.period_start.startsWith(p.p_items[0].date.slice(0,7)));if(!batch||!['draft','returned'].includes(batch.status))return send({message:'This period is locked'},400);assert.deepEqual(p.p_snapshot.components1437,p.p_items);const lineIds=[];
+    for(const item of p.p_items){const lineId=id(nextID++);lineIds.push(lineId);journalLines.push({id:lineId,staff_journal_id:batch.id,transaction_date:item.date,direction:item.direction,fund_account_id:item.fund,account_id:item.account,amount:item.amount,memo:item.memo,reference:item.reference,currency_code:accountRows.find(a=>a.id===item.fund).currency_code,editor_group1437:p.p_key+':'+item.date,editor_snapshot1437:p.p_snapshot});}
+    response={line_ids:lineIds,already_saved:false};receipts.set(p.p_key,{params:p,result:response});
+   }
+   if(interruptSave){interruptSave=false;res.setHeader('Content-Type','application/json');res.write('{"line_ids":');return res.end();}return send(response);
+  }
+  if(rpc==='submit_staff_journal'){submitAttempts++;const j=journals.find(j=>j.id===p.p_journal_id&&(owner===id(3)||j.owner_id===owner));if(!j)return send({message:'Wrong owner'},403);if(!['draft','returned'].includes(j.status))return send({message:'Already submitted'},400);j.status='submitted';j.submitted_at=new Date().toISOString();return send(null);}
+  if(rpc==='void_staff_editor1437'){assert(owner===id(3)||p.p_owner===owner);journalLines=journalLines.filter(l=>!p.p_ids.includes(l.id));return send(null);}
+  if(rpc)return send({message:'Unexpected RPC: '+rpc},400);
+  let rows;
+  if(u.pathname.endsWith('/profiles')){assert.equal(owner,id(3));rows=profiles;}
+  else if(u.pathname.endsWith('/user_permissions')){assert.equal(owner,id(3));rows=profiles.map(x=>permissions(x.id));}
+  else if(u.pathname.endsWith('/company_documents105')){assert.equal(owner,id(3));if(req.method!=='GET'){documentWrites++;let written;if(req.method==='POST'){assert(!documents.some(d=>d.id===p.id));const row={...p,updated_at:new Date().toISOString()};documents.push(row);written=[row];}else{written=filters(documents,u);for(const d of written)Object.assign(d,p,{updated_at:new Date().toISOString()});}if(interruptDocument){interruptDocument=false;res.setHeader('Content-Type','application/json');return res.end('[{');}return send(written);}rows=documents;if(u.searchParams.get('select')?.includes('title:data'))rows=rows.map(d=>({id:d.id,version:d.version,updated_at:d.updated_at,title:d.data.title}));}
+  else if(u.pathname.endsWith('/accounts')){if(!u.searchParams.has('id')){assert.equal(owner,id(3));rows=accountRows;}else{assert(u.searchParams.get('id')?.startsWith('in.('));const requested=u.searchParams.get('id').slice(4,-1).split(',');assert(owner===id(3)||requested.every(x=>[...permissions(owner).assigned_fund_account_ids,...permissions(owner).destination_account_ids,permissions(owner).money_in_counterpart_account_id].includes(x)));rows=accountRows;}}
+  else if(u.pathname.endsWith('/staff_journals')){assert(owner===id(3)||u.searchParams.get('owner_id')==='eq.'+owner);rows=journals;}
+  else if(u.pathname.endsWith('/staff_journal_lines')){const ids=u.searchParams.get('staff_journal_id').slice(4,-1).split(',');assert(owner===id(3)||ids.every(x=>journals.find(j=>j.id===x)?.owner_id===owner));rows=journalLines;if(interruptLines){res.setHeader('Content-Type','application/json');return res.end('[{"id":');}}
+  else if(u.pathname.endsWith('/session_policy1443'))rows=[{id:true,timeout_minutes:60,warning_minutes:1}];else return send({message:'Unexpected table'},400);
+  rows=filters(rows,u);const count=rows.length,offset=Number(u.searchParams.get('offset')||0),limit=Number(u.searchParams.get('limit')||200);rows=[...rows].sort((a,b)=>String(a.id).localeCompare(String(b.id))).slice(offset,offset+limit);res.setHeader('Content-Range',rows.length?`${offset}-${offset+rows.length-1}/${count}`:`*/${count}`);
+  if(delayReads&&u.pathname.endsWith('/staff_journal_lines'))return setTimeout(()=>send(rows),12000);return send(rows);
+ }
+ const pathname=decodeURIComponent(u.pathname),file=path.resolve(root,'.'+pathname);if(!file.startsWith(root+path.sep))return res.end();try{const data=fs.readFileSync(file);res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html');res.end(data);}catch{res.statusCode=404;res.end('Missing');}
+});
+async function check(name,fn){try{await fn();results.push({name,passed:true});console.log('PASS',name);}catch(e){results.push({name,passed:false,error:e.message});console.log('FAIL',name,e.message);throw e;}}
+async function signIn(page,email){await page.locator('#loginEmail').fill(email);await page.locator('#loginPassword').fill('fixture-only');await page.locator('#loginForm button[type=submit]').click();await page.waitForFunction(()=>PhoneWorkspace14242.ready());await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('up to date'));}
+async function ownState(page,owner){return page.evaluate(async({owner,scope})=>{const connection=await new Promise(r=>{const req=indexedDB.open('ojm-phone14242',1);req.onsuccess=()=>r(req.result);});return new Promise(r=>{const req=connection.transaction('accounts').objectStore('accounts').get(scope+':phone14242:'+owner);req.onsuccess=()=>r(req.result);});},{owner,scope:fixtureOrigin});}
+async function fillSingle(page,memo,amount){await page.locator('[data-page=post]').click();await page.locator('[data-field=memo]:not([data-index])').fill(memo);await page.locator('select[data-field=source]').selectOption(id(11));await page.locator('select[data-field=affected]').selectOption(id(12));await page.locator('[data-field=amount]').fill(String(amount));}
+(async()=>{
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));fixtureOrigin='http://127.0.0.1:'+server.address().port;
+ const browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_EXECUTABLE?{executablePath:process.env.CHROMIUM_EXECUTABLE}:{}),args:['--no-sandbox']}),context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,timezoneId:'Asia/Vientiane'}),page=await context.newPage();page.setDefaultTimeout(15000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ try{
+
+  await page.goto(fixtureOrigin+'/phone.html?staff=1');await page.locator('#loginEmail').fill(profiles[0].email);await page.locator('#loginPassword').fill('fixture-only');await page.locator('#loginForm button[type=submit]').click();await page.waitForFunction(()=>PhoneWorkspace14242.ready());
+  for(const width of [390,360]){await page.setViewportSize({width,height:844});for(const tab of ['home','accounts','post','entries','history']){await check('Phone '+tab+' at '+width+' has aligned controls without overflow',async()=>{await page.locator('[data-page='+tab+']').click();await page.waitForTimeout(150);const wrong=await page.locator('button,input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select:not([multiple])').evaluateAll(ns=>ns.filter(n=>n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden'&&getComputedStyle(n).opacity!=='0').filter(n=>Math.abs(n.getBoundingClientRect().height-32)>.5).map(n=>({id:n.id,height:n.getBoundingClientRect().height})));assert.deepEqual(wrong,[]);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));});}await page.locator('[data-page=post]').click();await page.screenshot({path:'/tmp/phone14305-'+width+'.png'});}
+  await check('Phone release files cache and reopen offline',async()=>{await page.waitForFunction(()=>PhoneWorkspace14242.offlineReady());await context.setOffline(true);await page.reload();await page.waitForFunction(()=>PhoneWorkspace14242.ready());assert.equal(await page.locator('link[href*=controls14305]').count(),1);});
+  assert.deepEqual(errors,[]);fs.writeFileSync(path.join(root,'validation/phone-controls14305.json'),JSON.stringify(results,null,2));
+ }finally{await browser.close();server.close();}
+})().catch(e=>{console.error(e);server.close();process.exitCode=1});

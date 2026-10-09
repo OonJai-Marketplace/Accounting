@@ -7600,7 +7600,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function schedule(){if(!queued){queued=true;requestAnimationFrame(scan)}}
  function chosen(input){const value=input.value,mode=modes(input);if(mode==='year')return new Date(Number(value)||today().getFullYear(),0,1);if(/^\d{4}-\d{2}/.test(value)){const [year,month,day]=value.split('-').map(Number);return new Date(year,month-1,day||1)}return today()}
  function allowed(input,value){const mode=modes(input),lower=input.min,upper=input.max;if(mode==='year'){const n=Number(value);return (!lower||n>=Number(lower))&&(!upper||n<=Number(upper))}return (!lower||value>=lower)&&(!upper||value<=upper)}
- function close(focus=false){if(!active)return;const {input,panel}=active;panel.remove();input.closest('.oj-date-shell104')?.querySelector('button')?.setAttribute('aria-expanded','false');active=null;if(focus)input.closest('.oj-date-shell104')?.querySelector('button')?.focus()}
+ function close(focus=false){if(!active)return;const {input,panel}=active;panel.remove();input.closest('.oj-date-shell104')?.querySelector('button')?.setAttribute('aria-expanded','false');active=null;if(focus)input.closest('.oj-date-shell104')?.querySelector('button')?.focus({preventScroll:true})}
  function choose(value){if(!active||value!==''&&!allowed(active.input,value))return;const input=active.input;input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));close(true)}
  function draw(){if(!active)return;const {input,panel}=active,mode=modes(input),year=shown.getFullYear(),month=shown.getMonth();panel.replaceChildren();
   const head=document.createElement('div');head.className='oj-date-head104';const prev=document.createElement('button'),title=document.createElement('strong'),next=document.createElement('button');prev.type=next.type='button';prev.textContent='‹';next.textContent='›';prev.setAttribute('aria-label',mode==='date'?'Previous month':'Previous year');next.setAttribute('aria-label',mode==='date'?'Next month':'Next year');title.textContent=mode==='date'?`${monthName(month,true)} ${year}`:mode==='month'?String(year):`${year-5}–${year+6}`;head.append(prev,title,next);panel.append(head);prev.onclick=()=>{shown=new Date(year-(mode==='year'?12:mode==='month'?1:0),month-(mode==='date'?1:0),1);draw()};next.onclick=()=>{shown=new Date(year+(mode==='year'?12:mode==='month'?1:0),month+(mode==='date'?1:0),1);draw()};
@@ -7613,7 +7613,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const footer=document.createElement('div');footer.className='oj-date-footer104';const now=document.createElement('button');now.type='button';now.textContent=mode==='year'?'This year':mode==='month'?'This month':'Today';const date=today(),value=mode==='year'?String(date.getFullYear()):mode==='month'?`${date.getFullYear()}-${pad(date.getMonth()+1)}`:iso(date);now.disabled=!allowed(input,value);now.onclick=()=>choose(value);footer.append(now);if(!input.required){const clear=document.createElement('button');clear.type='button';clear.textContent='Clear';clear.onclick=()=>choose('');footer.append(clear)}panel.append(footer);
   panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();close(true)}if(e.key==='PageUp'||e.key==='PageDown'){e.preventDefault();(e.key==='PageUp'?prev:next).click()}};
  }
- function open(input){if(input.disabled)return;close();shown=chosen(input);const panel=document.createElement('div');panel.className='oj-date-popup104';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Select '+modes(input));const button=input.closest('.oj-date-shell104')?.querySelector('button');document.body.append(panel);active={input,panel};const rect=button.getBoundingClientRect();panel.style.left=Math.max(8,Math.min(rect.left,innerWidth-290))+'px';panel.style.top=Math.max(8,Math.min(rect.bottom+4,innerHeight-320))+'px';button.setAttribute('aria-expanded','true');draw();panel.querySelector('button[data-value]:not(:disabled)')?.focus()}
+ function open(input){
+  if(input.disabled)return;close();shown=chosen(input);
+  const panel=document.createElement('div');panel.className='oj-date-popup104';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Select '+modes(input));
+  const button=input.closest('.oj-date-shell104')?.querySelector('button');if(!button)return;
+  // Measure complete contents before revealing; focus must not scroll the page.
+  panel.style.visibility='hidden';document.body.append(panel);active={input,panel};draw();
+  const rect=button.getBoundingClientRect(),bounds=panel.getBoundingClientRect();
+  panel.style.left=Math.max(8,Math.min(rect.left,innerWidth-bounds.width-8))+'px';
+  panel.style.top=Math.max(8,Math.min(rect.bottom+4,innerHeight-bounds.height-8))+'px';
+  panel.style.visibility='visible';button.setAttribute('aria-expanded','true');panel.querySelector('button[data-value]:not(:disabled)')?.focus({preventScroll:true});
+ }
  document.addEventListener('pointerdown',e=>{if(active&&!e.target.closest('.oj-date-popup104')&&!e.target.closest('.oj-date-shell104'))close()},true);
  document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();close(true)}});
  const ready=()=>{scan();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

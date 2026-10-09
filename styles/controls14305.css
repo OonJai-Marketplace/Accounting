@@ -1,0 +1,34 @@
+/* Application rule: match the approved Template / Post Entry control height.
+   A named important layer overrides historical per-module important sizes. */
+:root{--app-control-height:32px;--app-control-gap:8px}
+@layer app-controls14305{
+ button,input:is([type="button"],[type="submit"],[type="reset"]),[role="button"],a.je-btn,
+ input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.oj-date-original104),select:not([multiple]):not(.account-source1428){
+  box-sizing:border-box!important;height:var(--app-control-height)!important;min-height:var(--app-control-height)!important;max-height:var(--app-control-height)!important;padding-top:0!important;padding-bottom:0!important;
+ }
+ button,input:is([type="button"],[type="submit"],[type="reset"]),a.je-btn{
+  border-width:1px!important;border-style:solid!important;border-color:#abc3b4!important;cursor:pointer!important;
+ }
+ .tx72-preview table button{height:calc(var(--app-control-height) / var(--tx72-scale,1))!important;min-height:calc(var(--app-control-height) / var(--tx72-scale,1))!important;max-height:calc(var(--app-control-height) / var(--tx72-scale,1))!important}
+ button:disabled{cursor:default!important;opacity:.55!important}
+ button:focus-visible,a.je-btn:focus-visible{outline:2px solid #008563!important;outline-offset:2px!important}
+ #auditMonths98,#auditMonths98 *{animation:none!important;transition:none!important}
+ #auditMonths98 .audit-month98>.table-container{width:100%!important;margin:0!important;transform:none!important}
+ .oj-date-popup104{transition:none!important;animation:none!important;transform:none!important}
+ #period-review .period-close-controls14304 .period-review-picker{width:auto!important;min-width:0!important;margin:0!important;padding:0!important;gap:0!important}
+ #period-review .period-review-picker .oj-date-shell104{width:auto!important;margin:0!important}
+ #period-review .period-close-controls14304,#period-review .page-header-actions14301{gap:var(--app-control-gap)!important}
+ #period-review .period-close-controls14304>*,#period-review .page-header-actions14301>*{margin:0!important}
+ #workspaceTools108>button{width:var(--app-control-height)!important;min-width:var(--app-control-height)!important;padding:5px!important}
+}
+button{background-color:#edf4ee;border-radius:5px;transition:background-color .12s,border-color .12s,box-shadow .12s}
+button:hover:not(:disabled){box-shadow:inset 0 0 0 1px #57826a}
+.current-users-actions14305{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:var(--app-control-gap);margin-left:auto}
+body .current-users-actions14305 button{background:#e4eee6!important;color:#194c38!important;font-weight:700!important;padding-inline:12px!important;white-space:nowrap;box-shadow:0 1px 2px #194c381a}
+body .current-users-actions14305 button:hover{background:#d4e6d9!important}
+body .current-users-actions14305 button[aria-pressed="true"]{background:#194c38!important;color:#fff!important}
+body .settings-section-header:has(.current-users-actions14305){display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+/* The phone navigation keeps its destinations and uses a compact icon/label row. */
+body .bottom button{flex-direction:row;align-items:center;justify-content:center;gap:4px}
+body .bottom button>span{width:16px;height:16px;flex:none}
+body .bottom button>span svg{width:16px;height:16px}

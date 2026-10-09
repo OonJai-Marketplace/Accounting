@@ -132,7 +132,7 @@ function decorate(){installRpc();const yearButton=$('yearClose136');if(yearButto
  const panel=$('headerNotices104'),bell=$('upcomingBell101');if(panel&&bell){panel.classList.add('dock-popover136');if(!panel.hidden)positionPopover(panel,bell);if(!bell.dataset.anchored136){bell.dataset.anchored136='';const old=bell.onclick;bell.onclick=e=>{old?.(e);if(!panel.hidden)positionPopover(panel,bell);};}}
  const owner=typeof activeSubUserTab==='function'?activeSubUserTab()?.userId:null;
  $('workspaceActor136')?.remove();
- const viewing=admin()&&owner&&$('sub-users-workspace')?.classList.contains('active');
+ const viewing=admin()&&owner&&String(owner)!==String(liveProfile.id)&&$('sub-users-workspace')?.classList.contains('active');
  const noticeKey=viewing?String(liveProfile.id)+':'+String(owner):'';
  if(noticeKey!==actorNotice14230){actorNotice14230=noticeKey;if(viewing){const userName=getLiveUserName(owner),possessive=/s$/i.test(userName)?userName+'’':userName+'’s';showCenterStatus('Viewing '+possessive+' workspace as Administrator. Changes are recorded under your identity.');}}
 

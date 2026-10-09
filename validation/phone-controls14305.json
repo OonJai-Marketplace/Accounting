@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Phone home at 390 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone accounts at 390 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone post at 390 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone entries at 390 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone history at 390 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone home at 360 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone accounts at 360 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone post at 360 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone entries at 360 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone history at 360 has aligned controls without overflow",
+    "passed": true
+  },
+  {
+    "name": "Phone release files cache and reopen offline",
+    "passed": true
+  }
+]

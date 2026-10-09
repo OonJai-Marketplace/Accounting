@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Idle Home, Review, Period Closing and Audit Logs remain stable",
+    "passed": true
+  },
+  {
+    "name": "Administrator opens their own workspace from Home and stays selected",
+    "passed": true
+  },
+  {
+    "name": "Period general description uses the same merged header as Active Journal",
+    "passed": true
+  },
+  {
+    "name": "Own-account report preview opens without changing the selected owner",
+    "passed": true
+  },
+  {
+    "name": "Own workspace is quiet; another user still shows the administrator notice",
+    "passed": true
+  },
+  {
+    "name": "Current Users has two visible header actions and working inactive toggle",
+    "passed": true
+  },
+  {
+    "name": "Visible controls share the 32px rule across desktop and tablet modules",
+    "passed": true
+  },
+  {
+    "name": "Period toolbar has equal 8px gaps at desktop and tablet widths",
+    "passed": true
+  },
+  {
+    "name": "Audit October expansion remains anchored without lateral motion",
+    "passed": true
+  },
+  {
+    "name": "Month calendar is stationary and selects October 2026",
+    "passed": true
+  },
+  {
+    "name": "No uncaught errors",
+    "passed": true
+  }
+]
