@@ -68,6 +68,18 @@
     "passed": true
   },
   {
+    "name": "Voucher actions wait for the installed database readiness check",
+    "passed": true
+  },
+  {
+    "name": "Transaction labels, selected Voucher tab, date formats and latest-first history stay consistent",
+    "passed": true
+  },
+  {
+    "name": "Audit controls remain stable and personal Active Journal does not swipe sideways",
+    "passed": true
+  },
+  {
     "name": "Company template copies never retain the saved voucher identity",
     "passed": true
   }

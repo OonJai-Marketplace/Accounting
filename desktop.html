@@ -3,7 +3,7 @@
 <head><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=142.99.2"></script>
+  <script src="scripts/offline14239.js?v=143.00"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=142.99">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=142.99.2">
   <script src="scripts/desktop14245-1.js?v=142.81"></script>
@@ -109,11 +109,11 @@
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('journal')">Journal</button>
 
-          <button type="button" class="tab-btn" onclick="switchTab('transactions-recurring')">Upcoming Transactions</button>
-          <button type="button" class="tab-btn" onclick="switchTab('user-entry-review')">Entry Submission Review <span class="submission-count-badge" id="navUserReviewCount">0</span></button>
-          <button type="button" class="tab-btn" onclick="switchTab('period-review')">Period Review & Closing</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-recurring')">Upcoming</button>
+          <button type="button" class="tab-btn" onclick="switchTab('user-entry-review')">Submission Review <span class="submission-count-badge" id="navUserReviewCount">0</span></button>
+          <button type="button" class="tab-btn" onclick="switchTab('period-review')">Period Closing</button>
           <button type="button" class="tab-btn" onclick="switchTab('transactions-all')">Transaction History</button>
-          <button type="button" class="tab-btn" onclick="switchTab('transactions-voided')">Transaction Audit Log</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-voided')">Audit Logs</button>
         </div>
       </div>
 
@@ -407,7 +407,7 @@
 <div class="je-card">
   <div class="je-card-header">
     <div>
-      <h3 class="je-title">Transaction Audit Log</h3>
+      <h3 class="je-title">Audit Logs</h3>
       <p class="je-subtitle">Chronological log of edits, voids, reviews, and adjustments.</p>
     </div>
   </div>
@@ -431,7 +431,7 @@
   <div class="period-review-shell">
   <div class="period-review-toolbar">
     <div>
-      <h3 class="je-title">Period Review & Closing</h3>
+      <h3 class="je-title">Period Closing</h3>
       <p class="je-subtitle">Review a month, record findings, and post traceable adjustments.</p>
     </div>
     <div class="period-review-picker">
@@ -762,7 +762,7 @@
         </div>
 
         <div id="user-entry-review" data-module="transactions" class="tab-content">
-          <div class="settings-page-heading"><div><h3>Entry Submission Review</h3><p>Review sub-user submissions and fund adjustments before anything reaches the official ledger.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="toggleSubmissionHistory()">History</button></div>
+          <div class="settings-page-heading"><div><h3>Submission Review</h3><p>Review sub-user submissions and fund adjustments before anything reaches the official ledger.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="toggleSubmissionHistory()">History</button></div>
           <div id="userEntryReviewSummary" class="user-review-summary"></div>
           <div id="userEntryReviewCards" class="submission-review-cards"></div>
           <section id="userEntryHistoryPanel" class="settings-section-card submission-history-panel" hidden><div class="settings-section-header"><div><h4>Submission History</h4><p>Posted, returned, and adjusted batches remain available for comparison and audit.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="toggleSubmissionHistory(false)">Close History</button></div><div id="userEntryHistoryCards" class="submission-review-cards"></div></section>
@@ -806,7 +806,7 @@
 
   <div class="je-card">
     <div class="je-card-header">
-      <div><h3 class="je-title">Upcoming Transactions</h3><p class="je-subtitle">One-time and recurring obligations, newest records first.</p></div>
+      <div><h3 class="je-title">Upcoming</h3><p class="je-subtitle">One-time and recurring obligations, newest records first.</p></div>
     </div>
     <div class="table-container">
       <table class="clustered-journal-table" id="tblRecurringTransactions">
@@ -927,7 +927,7 @@
           <div class="settings-page-heading"><div><h3>System <button type="button" class="setting-help" onclick="openSettingHelp('system-settings')" aria-label="Explain System Settings">*</button></h3></div></div>
           <form class="settings-section-card app-settings-form" data-settings-group="system">
             <div class="settings-compact-grid cols-3">
-              <div class="settings-field"><label>Date Format</label><select class="je-select" name="dateFormat"><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option></select></div>
+              <div class="settings-field"><label>Date Format</label><select class="je-select" name="dateFormat"><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD MMM YYYY">DD MMM YYYY (09 Oct 2026)</option><option value="MMM DD, YYYY">MMM DD, YYYY (Oct 09, 2026)</option><option value="DD MMMM YYYY">DD MMMM YYYY (09 October 2026)</option><option value="MMMM DD, YYYY">MMMM DD, YYYY (October 09, 2026)</option><option value="DD MMM YY">DD MMM YY (09 Oct 26)</option><option value="MMM DD, YY">MMM DD, YY (Oct 09, 26)</option></select></div>
               <div class="settings-field"><label>Number Format</label><select class="je-select" name="numberFormat"><option value="1,234.56">1,234.56</option><option value="1.234,56">1.234,56</option><option value="1 234,56">1 234,56</option></select></div>
               <div class="settings-field"><label>Inactivity Timeout (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('session-timeout')" aria-label="Explain Inactivity Timeout">*</button></label><input class="je-input" name="sessionTimeout" type="number" min="5" max="480" value="30"></div>
               <input name="sessionWarning" type="hidden" value="1">
@@ -1204,7 +1204,7 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
   <script src="scripts/supabase-config.js?v=142.47"></script>
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=142.99"></script>
+  <script src="scripts/desktop14245-3.js?v=143.00"></script>
 <script src="assets/vendor/docx.js?v=142.47"></script>
 <script src="assets/vendor/document14285/cfb.min.js?v=142.86"></script>
 <script src="assets/vendor/document14285/marked.umd.js?v=142.86"></script>
@@ -1213,7 +1213,7 @@
 <script src="scripts/desktop14245-5.js?v=142.99"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=142.99"></script>
+<script src="scripts/desktop14245-6.js?v=143.00"></script>
 <script src="scripts/entry-actions14271.js?v=142.75"></script>
 <script src="scripts/tablet-journal14266.js?v=142.80"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
@@ -1254,7 +1254,9 @@
 <link rel="stylesheet" href="styles/feedback-viewport14295.css?v=142.96">
 <script src="scripts/action-feedback14296.js?v=142.96.1"></script>
 <script src="scripts/heading-case14297.js?v=142.97"></script>
-<script src="scripts/vouchers14299.js?v=142.99.2"></script>
+<script src="scripts/vouchers14299.js?v=143.00"></script>
+<link rel="stylesheet" href="styles/transaction-consistency14300.css?v=143.00">
+<script src="scripts/transaction-consistency14300.js?v=143.00"></script>
 </body>
 </html>
 
