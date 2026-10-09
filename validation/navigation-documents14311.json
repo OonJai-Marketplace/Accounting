@@ -72,7 +72,7 @@
     "passed": true
   },
   {
-    "name": "Email has full detail and WhatsApp has a group-ready summary with private breakdown link",
+    "name": "Email previews full detail and WhatsApp copies a categorized summary with private link",
     "passed": true
   },
   {

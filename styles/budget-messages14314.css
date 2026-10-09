@@ -1,0 +1,12 @@
+body .budget-dialog14313:has([data-email-preview14314]){width:min(760px,calc(100vw - 32px))!important}
+body .budget-dialog14313 [data-email-preview14314]{display:block;width:100%;height:390px;border:1px solid #c7d6ce;border-radius:6px;background:white;margin:12px 0;box-sizing:border-box}
+body .budget-dialog14313 [data-to14314]{display:block;width:100%;box-sizing:border-box;margin-top:5px}
+body .budget-gmail14314{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+body .budget-gmail14314 p{flex:1 1 220px;margin:0;overflow-wrap:anywhere}
+body .budget-gmail14314 button,body .budget-dialog14313 [data-send14314],body .budget-dialog14313 [data-copy14314],body .budget-dialog14313 [data-gmail-connect14314],body .budget-dialog14313 [data-gmail-disconnect14314]{min-height:32px;box-sizing:border-box}
+body .budget-dialog14313 [data-send14314]{background:#145c4a;color:white;border:1px solid #145c4a;border-radius:5px;padding:5px 14px}
+body .budget-dialog14313 button:disabled{opacity:.6;cursor:default}
+body .budget-dialog14313 [role=status]{line-height:1.5;overflow-wrap:anywhere}
+body .budget-dialog14313 details{border:1px solid #c7d6ce;border-radius:6px;padding:10px}
+body .budget-dialog14313 details label{display:block;margin-top:10px}
+@media(max-width:600px){body .budget-dialog14313 [data-email-preview14314]{height:330px}}

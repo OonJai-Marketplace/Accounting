@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Email groups every item with currency-separated subtotals and escaped rich text",
+    "passed": true
+  },
+  {
+    "name": "WhatsApp preview is category grouped, item listed and copyable without Gmail",
+    "passed": true
+  },
+  {
+    "name": "Settings show verified Gmail separately from accounting login and save multi-recipient defaults",
+    "passed": true
+  },
+  {
+    "name": "Email preview shows the full formatted email and cannot send before Google authorization",
+    "passed": true
+  },
+  {
+    "name": "Google permission denial leaves sender disconnected and sends nothing",
+    "passed": true
+  },
+  {
+    "name": "Google popup cancellation recovers without a false connection",
+    "passed": true
+  },
+  {
+    "name": "Connected sender can differ from accounting login; requests only send and identity scopes",
+    "passed": true
+  },
+  {
+    "name": "Invalid recipients block sending and remain editable",
+    "passed": true
+  },
+  {
+    "name": "Direct Gmail API sends both UTF-8 versions once with verified sender and multiple recipients",
+    "passed": true
+  },
+  {
+    "name": "Expired Gmail response disconnects and never automatically retries",
+    "passed": true
+  },
+  {
+    "name": "Uncertain Gmail failure prevents duplicate retries from the same preview",
+    "passed": true
+  },
+  {
+    "name": "Different accounting administrator cannot reuse the connected sender",
+    "passed": true
+  },
+  {
+    "name": "Sign-out invalidates an in-flight Google connection callback",
+    "passed": true
+  },
+  {
+    "name": "Missing Google setup stays blocked and shows a concrete setup instruction",
+    "passed": true
+  },
+  {
+    "name": "Email and copy previews fit the tablet viewport",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors",
+    "passed": true
+  }
+]
