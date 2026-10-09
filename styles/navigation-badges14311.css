@@ -13,3 +13,29 @@ body.shell113 #appSidebar .nav-header .nav-icon113 svg{color:inherit!important}
 
 body.shell113 #appSidebar .nav-header .nav-icon113{color:inherit!important}
 .download-options14311{display:grid;gap:12px}.download-options14311>button{justify-self:end}.download-options14311 label:not(.download-check14311){display:grid;gap:5px}.download-options14311 input:not([type=checkbox]),.download-options14311 select{padding:8px;max-width:100%;box-sizing:border-box}.download-options14311 p,.download-options14311 small{font-size:12px;line-height:1.5}.download-history14311{overflow:auto;max-height:55vh}.download-history14311 table{border-collapse:collapse;width:100%}.download-history14311 th,.download-history14311 td{padding:8px;border:1px solid #b8c9be;text-align:left;font-size:12px}.download-history14311 input{color:#173c2e;background:#fffaf1;min-width:140px}.doc-download-settings14311{margin-left:auto;display:inline-flex;align-items:center;gap:5px}.doc-download-settings14311 svg{width:17px;height:17px}
+
+/* Match custom navigation icons to the standard icon treatment. */
+body.shell113 #appSidebar .nav-header .nav-icon113.nav-custom-icon14313{padding:0!important;border-radius:0!important;background:currentColor!important;mask-image:var(--nav-image14313);-webkit-mask-image:var(--nav-image14313);mask-size:contain;-webkit-mask-size:contain;mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;mask-position:center;-webkit-mask-position:center}
+body.shell113 #appSidebar .nav-header .nav-icon113.nav-custom-icon14313 img{visibility:hidden!important}
+body .ui-dialog108.document-download14313{width:min(440px,calc(100vw - 32px))!important}
+body .ui-dialog108.recovery-dialog14313{width:min(820px,calc(100vw - 32px))!important;height:min(760px,90vh);max-height:90vh}
+body .recovery-dialog14313>.ui-body108{overflow:auto;min-height:0;flex:1}
+body .recovery-dialog14313 #recoveryContents14313{min-width:0}
+body .recovery-dialog14313 .recovery-entries113{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+body .recovery-dialog14313 .recovery-entries113 fieldset{min-width:0;margin:0;padding:10px}
+body .recovery-dialog14313 .recovery-contact114 input{width:100%;max-width:100%}
+body .recovery-dialog14313 .recovery-passwords14313{margin-top:20px;border-top:1px solid #b8c9be;padding-top:12px}
+body .recovery-dialog14313 .download-history14311{max-height:350px;overflow:auto}
+body .recovery-dialog14313 .download-history14311 td:first-child{overflow-wrap:anywhere;min-width:130px}
+body .recovery-dialog14313 .download-history14311 input{width:170px}
+body .recovery-launch14313{display:flex;align-items:center;gap:16px;padding:14px 0}
+body .recovery-launch14313 p{margin:0;font-size:12px}
+body #settings-system [data-settings-group=system] .settings-compact-grid{grid-template-columns:minmax(150px,220px) minmax(140px,170px) minmax(180px,240px)!important;justify-content:start;gap:12px 18px}
+body #settings-system [data-settings-group=system] select{width:100%!important;max-width:100%}
+@media(max-width:640px){body .recovery-dialog14313 .recovery-entries113{grid-template-columns:1fr}body #settings-system [data-settings-group=system] .settings-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}body .recovery-launch14313{flex-wrap:wrap}}
+body .budget-dialog14313{width:min(620px,calc(100vw - 32px))!important}
+body .budget-dialog14313 form{display:grid;gap:12px}
+body .budget-dialog14313 textarea{width:100%;box-sizing:border-box}
+body .budget-template-list14313>div{display:flex;align-items:center;gap:14px;border-bottom:1px solid #cbd5ce;padding:12px 0}
+body .budget-template-list14313 strong{flex:1}
+body #transactions-budget14313 .budget-settings14313{margin-left:8px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center}

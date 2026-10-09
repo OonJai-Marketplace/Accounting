@@ -19,6 +19,7 @@ function errorResponse(message,code='OFFLINE14239'){return new Response(JSON.str
 window.fetch=async function(input,options={}){
  const req=new Request(input,options),url=new URL(req.url);
  if(!window.OJM_SUPABASE_URL||url.origin!==new URL(window.OJM_SUPABASE_URL).origin||!url.pathname.startsWith('/rest/v1/'))return nativeFetch(input,options);
+ if(url.pathname==='/rest/v1/document_download_passwords14312')return nativeFetch(input,options);
  const rpc=url.pathname.split('/rpc/')[1],read=req.method==='GET'||req.method==='HEAD'||readRPC.has(rpc),id=identity(req.headers);
  const ranged=req.headers.has('range')||url.searchParams.has('offset')||url.searchParams.has('limit');
  const body=read&&req.method==='POST'?await req.clone().text():'';
@@ -92,7 +93,7 @@ function renderDialog(){
  const footer=add('footer','');const close=add('button','Close',footer);close.type='button';close.onclick=()=>dialog.close();
 }
 function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and automatic sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='143.12';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null;
+const SHELL_VERSION='143.13';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null;
 async function checkShell(worker){if(!worker)return;const channel=new MessageChannel();let timer;try{const data=await new Promise((resolve,reject)=>{timer=setTimeout(()=>reject(Error('Offline files are still preparing')),1500);channel.port1.onmessage=e=>resolve(e.data);worker.postMessage({type:'ojm-shell-status'},[channel.port2])});shellReady=data.ready===true&&data.version===SHELL_VERSION;if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}catch{shellReady=false}finally{clearTimeout(timer);channel.port1.close()}}
 function registerShell(){
  if(window.startup14257&&!window.startup14257.interactive&&typeof liveProfile!=='undefined'&&liveProfile){clearTimeout(shellRetry);shellRetry=setTimeout(registerShell,3000);return}

@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Phone signs in and prepares offline workspace without session-policy requests",
+    "passed": true
+  },
+  {
+    "name": "An old inactivity timestamp does not block offline reopening",
+    "passed": true
+  },
+  {
+    "name": "Phone stays signed in past the former inactivity check",
+    "passed": true
+  }
+]

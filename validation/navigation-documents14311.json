@@ -12,7 +12,7 @@
     "passed": true
   },
   {
-    "name": "Uploaded icons retain color and selected SVG icons inherit legible text color",
+    "name": "Custom navigation icons match current text color without a light tile",
     "passed": true
   },
   {
@@ -41,6 +41,46 @@
   },
   {
     "name": "Desktop and tablet badge alignment fits without overflow",
+    "passed": true
+  },
+  {
+    "name": "System options are compact and removed switches are absent",
+    "passed": true
+  },
+  {
+    "name": "Desktop inactivity cannot log out or reject an old saved workspace",
+    "passed": true
+  },
+  {
+    "name": "System preferences save without the retired session-policy table",
+    "passed": true
+  },
+  {
+    "name": "Recovery closes and conceals passwords before reopening",
+    "passed": true
+  },
+  {
+    "name": "Budget editor is in Transactions and Reports remains read-only",
+    "passed": true
+  },
+  {
+    "name": "Budget settings save categories, currency and messaging recipients",
+    "passed": true
+  },
+  {
+    "name": "Budget templates reuse items without receipts or allocations",
+    "passed": true
+  },
+  {
+    "name": "Email has full detail and WhatsApp has a group-ready summary with private breakdown link",
+    "passed": true
+  },
+  {
+    "name": "Saved report exports exclude unsaved request edits",
+    "passed": true
+  },
+  {
+    "name": "Saved breakdown links open read-only after authorized sign-in",
     "passed": true
   },
   {

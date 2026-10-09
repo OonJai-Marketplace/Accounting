@@ -2,19 +2,20 @@
 const Location69={hydrating:false,ready:false,view:'dashboard',lastWrite:0,userNavigated:false};
 function locationKey69(id=liveProfile?.id){return `ojm_location_69_${id||'local'}`}
 function readLocation69(id){try{return JSON.parse(localStorage.getItem(locationKey69(id))||'null')}catch{return null}}
-function sessionDuration88(){return Math.max(5,Math.min(480,Number(ApplicationSettings.system?.sessionTimeout)||30))*60000}
+
 function saveLocation69(){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:document.getElementById('accounts-modular-container')?.classList.contains('active')?(document.getElementById('accounts-modular-container').dataset.accountView14231||Location69.view):Location69.view,scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
-function recentLocation69(record,now=Date.now()){return !!record&&now-record.lastActivity>=0&&now-record.lastActivity<sessionDuration88()}
+function recentLocation69(record){return !!record}
 const hydrateBefore69=hydrateSupabaseSession;
 let hydration69=null,hydratedUser69='',startup88=null;
 function restoreStartup88(){
  if(!startup88||Location69.userNavigated)return;
  const personal=liveProfile?.role!=='admin'&&canAccessAppTarget('sub-users-workspace');
- const saved=startup88.saved,restore=startup88.restore&&!(startup88.fresh&&personal);
+ const saved=startup88.saved,restore=startup88.restore&&!startup88.fresh;
+ const preferred=({reports:'report-pl','entry-submissions':'user-entry-review'})[ApplicationSettings.system.defaultLandingPage]||ApplicationSettings.system.defaultLandingPage||'dashboard';
  if(restore&&Array.isArray(saved.openTabs)){openSubUserTabs=saved.openTabs;activeSubUserId=saved.activeSubUserId;}
  window.phoneLanding14225={id:liveProfile?.id,fresh:!!startup88.fresh};
  const savedTarget=window.normalizeReportTarget14262?.(saved?.view)||saved?.view;
- const target=document.documentElement.dataset.device132==='phone'?(personal?'sub-users-workspace':'sub-users-home14229'):restore&&document.getElementById(savedTarget)&&canAccessAppTarget(savedTarget)?savedTarget:(personal?'sub-users-workspace':canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
+ const target=document.documentElement.dataset.device132==='phone'?(personal?'sub-users-workspace':'sub-users-home14229'):restore&&document.getElementById(savedTarget)&&canAccessAppTarget(savedTarget)?savedTarget:(personal?'sub-users-workspace':canAccessAppTarget(preferred)&&document.getElementById(preferred)?preferred:canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
  if(personal&&!restore){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:!livePermission?.can_approve}];activeSubUserId='self';window.v49SetView?.(liveProfile.id,'home');}
  if(target?.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target||'dashboard');Location69.view=window.normalizeReportTarget14262?.(target)||target;
  if(personal&&!restore)window.personalJournal1437?.show(String(liveProfile.id),'home');
@@ -25,9 +26,7 @@ hydrateSupabaseSession=async function(session){
  if(hydration69)return hydration69;
  if(hydratedUser69===session?.user?.id&&document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;
  ApplicationSettings=loadApplicationSettings();
- if(window.loadSessionPolicy1443)await loadSessionPolicy1443(session?.user?.id);
  const saved=readLocation69(session?.user?.id),fresh=freshLoginRequested;
- if(!fresh&&saved&&!recentLocation69(saved)){await logoutDemoUser();showLoginForm('');return;}
  startup88={saved,fresh,restore:!!saved&&recentLocation69(saved)};Location69.hydrating=true;Location69.userNavigated=false;
  SessionTimeoutManager.lastActivity=!fresh&&startup88.restore?saved.lastActivity:Date.now();
  hydration69=(async()=>{try{await hydrateBefore69(session);if(!liveProfile||liveProfile.id!==session?.user?.id||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;
@@ -41,9 +40,7 @@ hydrateSupabaseSession=async function(session){
 };
 const logoutBefore69=logoutDemoUser;
 logoutDemoUser=async function(){const id=liveProfile?.id;hydratedUser69='';Location69.ready=false;Location69.hydrating=false;startup88=null;clearTimeout(SessionTimeoutManager.logoutTimer);clearTimeout(SessionTimeoutManager.warningTimer);if(id)localStorage.removeItem(locationKey69(id));return logoutBefore69()};
-SessionTimeoutManager.arm=function(){clearTimeout(this.logoutTimer);clearTimeout(this.warningTimer);if(!liveProfile)return;const remaining=sessionDuration88()-(Date.now()-this.lastActivity);if(remaining<=0){this.logout();return}const warning=Math.min(Number(ApplicationSettings.system?.sessionWarning)||1,sessionDuration88()/60000-1);this.warningTimer=setTimeout(()=>this.warn(warning),Math.max(0,remaining-warning*60000));this.logoutTimer=setTimeout(()=>this.logout(),remaining)};
-SessionTimeoutManager.reset=function(){if(Date.now()-this.lastActivity>=sessionDuration88()){this.logout();return}this.lastActivity=Date.now();this.hideWarning();saveLocation69();this.arm()};
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&liveProfile)SessionTimeoutManager.arm()});
+
 function snapshotJournal69(){return {rows:[...document.querySelectorAll('#jeLinesBody tr')].map(r=>({account:r.querySelector('.je-line-acc')?.value||'',memo:r.querySelector('.je-line-memo')?.value||'',dr:r.querySelector('.je-line-dr')?.value||'',date:r.querySelector('.je-line-date')?.value||'',credits:Object.fromEntries([...r.querySelectorAll('.je-line-cr')].map(n=>[n.dataset.currency,n.value]))})),owner:pendingWorkspacePostOwnerId,journal:pendingWorkspacePostJournalId,local:pendingWorkspacePostIsLocal};}
 function restoreJournal69(s){const body=document.getElementById('jeLinesBody');if(!body||!s.rows.length)return;body.innerHTML='';s.rows.forEach(r=>{addJournalLineRow(r.account,r.memo,r.dr,r.credits);const date=body.lastElementChild.querySelector('.je-line-date');if(date)date.value=r.date});pendingWorkspacePostOwnerId=s.owner;pendingWorkspacePostJournalId=s.journal;pendingWorkspacePostIsLocal=s.local;calculateJournalBalance()}
 function applyCurrencyOrder69(){const order=ApplicationSettings.accounting.currencyOrder||[];CurrencyStore.currencies.sort((a,b)=>(order.includes(a.code)?order.indexOf(a.code):999)-(order.includes(b.code)?order.indexOf(b.code):999))}

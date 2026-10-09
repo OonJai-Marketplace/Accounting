@@ -988,51 +988,8 @@ window.printPreferences1434={
  async load(){const id=liveProfile?.id;if(!id)return null;let local;try{local=JSON.parse(localStorage.getItem('ojm-print-defaults1434:'+id)||'null')}catch{}try{const r=await ojmDb.from('user_print_preferences1434').select('data').eq('owner_id',id).maybeSingle();if(liveProfile?.id!==id)return null;if(!r.error&&r.data?.data){localStorage.setItem('ojm-print-defaults1434:'+id,JSON.stringify(r.data.data));return r.data.data}}catch{}return local},
  async save(data){const id=liveProfile?.id;if(!id)throw Error('Sign in before saving defaults.');const r=await ojmDb.from('user_print_preferences1434').upsert({owner_id:id,data,updated_at:new Date().toISOString()},{onConflict:'owner_id'});if(r.error)throw Error('Defaults could not be saved: '+r.error.message+'. Install setup/INSTALL-WORKFLOWS-v142.14.sql if needed.');if(liveProfile?.id===id)localStorage.setItem('ojm-print-defaults1434:'+id,JSON.stringify(data))}
 };
-// Measure the actual time since interaction; activity within an editor iframe counts.
-const session=SessionTimeoutManager;
-// Persist interaction separately from navigation so iframe activity survives mobile suspension.
-let activityWrite1443=0;
-function persistActivity1443(force=false){
- if(!liveProfile||(!force&&Date.now()-activityWrite1443<1000))return;
- activityWrite1443=Date.now();
- try{const key=locationKey69(),saved=readLocation69()||{};localStorage.setItem(key,JSON.stringify({...saved,lastActivity:session.lastActivity}));}catch{}
-}
-function syncActivity1443(){const saved=readLocation69();const value=Number(saved?.lastActivity);if(value>session.lastActivity&&value<=Date.now())session.lastActivity=value;}
-session.reset=function(){
- if(!liveProfile||Location69.hydrating)return;
- syncActivity1443();
- if(Date.now()-this.lastActivity>=this.minutes()*60000){this.check1434();return;}
- this.lastActivity=Date.now();this.hideWarning();persistActivity1443();if(Date.now()-this.lastArmed>1000)this.arm();
-};
-session.arm=function(){
- clearTimeout(this.logoutTimer);clearTimeout(this.warningTimer);if(!liveProfile||Location69.hydrating)return;
- syncActivity1443();this.lastArmed=Date.now();
- const remaining=Math.max(0,this.minutes()*60000-(Date.now()-this.lastActivity)),warning=Math.min(this.minutes()-1,Math.max(1,Number(ApplicationSettings.system?.sessionWarning)||1))*60000;
- this.logoutTimer=setTimeout(()=>this.check1434(),remaining);
- this.hideWarning();
-};
-session.check1434=async function(){
- if(!liveProfile||Location69.hydrating)return;syncActivity1443();
- if(Date.now()-this.lastActivity>=this.minutes()*60000){
-  if(this.policyCheck1443)return this.policyCheck1443;const actor=liveProfile.id;
-  this.policyCheck1443=(async()=>{try{await window.loadSessionPolicy1443?.(actor)}catch{}if(liveProfile?.id!==actor)return;syncActivity1443();if(Date.now()-this.lastActivity>=this.minutes()*60000)return this.logout();this.arm()})();
-  try{return await this.policyCheck1443}finally{this.policyCheck1443=null}
- }this.arm();
-};
-window.startSessionTimeoutManager=()=>{session.hideWarning();session.arm()};
-const logout=session.logout.bind(session);session.logout=async function(){
- if(Location69.hydrating)return;syncActivity1443();
- if(Date.now()-this.lastActivity<this.minutes()*60000){this.arm();return}
- if(this.expiring1443)return;this.expiring1443=true;
- try{try{await window.documentWorkspace105?.flush()}catch{}return await logout()}finally{this.expiring1443=false}
-};
-window.addEventListener('pagehide',()=>persistActivity1443(true));
-document.addEventListener('visibilitychange',()=>{if(document.hidden)persistActivity1443(true);else session.check1434()});
-window.addEventListener('storage',event=>{if(event.key===locationKey69()||event.key===APP_SETTINGS_KEY){if(event.key===APP_SETTINGS_KEY)ApplicationSettings=loadApplicationSettings();session.check1434()}});
-const boundDocs=new WeakSet();function bindActivity(doc){if(!doc||boundDocs.has(doc))return;boundDocs.add(doc);for(const type of ['pointerdown','pointermove','keydown','input','wheel','scroll','touchstart'])doc.addEventListener(type,()=>{if(liveProfile)session.reset()},{capture:true,passive:true})}
-window.bindSessionActivity1434=bindActivity;bindActivity(document);
-function frames(){for(const frame of document.querySelectorAll('iframe')){try{bindActivity(frame.contentDocument)}catch{}if(!frame.dataset.activity1434){frame.dataset.activity1434='1';frame.addEventListener('load',()=>{try{bindActivity(frame.contentDocument)}catch{}})}}}
-window.addEventListener('message',event=>{const recognized=[...document.querySelectorAll('iframe')].some(f=>event.source===f.contentWindow);if(recognized&&event.data?.type==='oonjai-activity1434')session.reset()});
+// Inactivity logout removed. Manual sign-out and authentication revocation remain in the auth flow.
+window.bindSessionActivity1434=()=>{};
 window.deleteAuditMonth1434=async function(month){if(liveProfile?.role!=='admin')return showCenterStatus('Administrator access required.',true);try{const local=(JournalModule.voidedEntries||[]).filter(r=>String(r.timestamp||'').slice(0,7)===month),preview=await ojmDb.rpc('audit_month1434',{p_month:month+'-01'});if(preview.error)throw Error(preview.error.message+'. Install setup/INSTALL-WORKFLOWS-v142.14.sql if needed.');const snapshot=preview.data||{},count=(snapshot.audit_ids?.length||0)+(snapshot.deletion_ids?.length||0)+local.length;if(!count)return showCenterStatus('No audit logs remain for this month.');if(!await ui108.confirm('Delete audit logs',`Permanently delete ${count} audit log records for ${month}? This removes audit history only; the underlying transactions and employee records stay in place.`))return;const r=await ojmDb.rpc('audit_month1434',{p_month:month+'-01',p_confirm:true,p_audit_ids:snapshot.audit_ids||[],p_deletion_ids:snapshot.deletion_ids||[]});if(r.error)throw r.error;JournalModule.voidedEntries=(JournalModule.voidedEntries||[]).filter(x=>!local.includes(x));if(typeof PeriodReview!=='undefined'){PeriodReview.findings=(PeriodReview.findings||[]).map(f=>local.some(x=>x===f.auditRecord||x.id&&x.id===f.auditRecord?.id)?{...f,auditRecord:null}:f);PeriodReview.save?.()}await loadTransactionAudit();renderVoidedTransactionsTable();showCenterStatus('Audit logs deleted.')}catch(e){showCenterStatus('Audit logs were not deleted: '+e.message,true)}};
 window.deleteAuditRecord1434=async function(item){
  if(liveProfile?.role!=='admin')return showCenterStatus('Administrator access required.',true);
@@ -1059,8 +1016,8 @@ window.deleteAuditRecord1434=async function(item){
  }catch(e){showCenterStatus('Audit record was not deleted: '+e.message,true)}
 };
 function auditRows1434(){if(liveProfile?.role!=='admin')return;for(const table of document.querySelectorAll('#auditMonths98 .audit-table98')){const header=table.tHead?.rows[0];if(header&&!header.querySelector('[data-audit-action1434]')){const th=document.createElement('th');th.dataset.auditAction1434='1';th.textContent='Action';header.append(th)}for(const row of table.querySelectorAll('.audit-summary-row')){if(row.querySelector('[data-delete-record1434]'))continue;let item;try{item=JSON.parse(row.dataset.auditSearch)}catch{continue}const td=document.createElement('td'),button=document.createElement('button');td.className='audit-action1434 no-print';button.type='button';button.className='je-btn je-btn-danger';button.dataset.deleteRecord1434=item.id;button.textContent='Delete';button.setAttribute('aria-label','Delete audit log for '+auditRecordId(item));button.onclick=e=>{e.preventDefault();e.stopPropagation();deleteAuditRecord1434(item)};td.append(button);row.append(td);if(row.nextElementSibling?.classList.contains('audit-detail-row'))row.nextElementSibling.firstElementChild.colSpan=header.cells.length}}}
-function polish(){frames();auditRows1434();document.querySelectorAll('#auditMonths98 .audit-month98').forEach(card=>{const summary=card.querySelector(':scope>summary');if(!summary)return;summary.querySelectorAll('.audit-stat99').forEach(n=>{if(!Number(n.querySelector('b')?.textContent))n.remove()});if(liveProfile?.role==='admin'&&!summary.querySelector('[data-delete-audit1434]')&&/^\d{4}-\d{2}$/.test(card.dataset.month98||'')){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-danger no-print';b.dataset.deleteAudit1434=card.dataset.month98;b.textContent='Delete entire month';b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteAuditMonth1434(b.dataset.deleteAudit1434)};summary.append(b)}});document.querySelectorAll('th').forEach(n=>{if(n.children.length)return;const text=n.textContent,next=text.replace(/\bDR\b/g,'Debit').replace(/\bCR\b/g,'Credit');if(text!==next)n.textContent=next});}
-function ready(){const nav=document.getElementById('nav-module-documents');if(nav)nav.dataset.module='documents';const panel=document.getElementById('document-editor105');if(panel)panel.dataset.module='documents';applyGranularPermissionAccess();let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;polish()})}).observe(document.body,{childList:true,subtree:true});polish();session.arm()}
+function polish(){auditRows1434();document.querySelectorAll('#auditMonths98 .audit-month98').forEach(card=>{const summary=card.querySelector(':scope>summary');if(!summary)return;summary.querySelectorAll('.audit-stat99').forEach(n=>{if(!Number(n.querySelector('b')?.textContent))n.remove()});if(liveProfile?.role==='admin'&&!summary.querySelector('[data-delete-audit1434]')&&/^\d{4}-\d{2}$/.test(card.dataset.month98||'')){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-danger no-print';b.dataset.deleteAudit1434=card.dataset.month98;b.textContent='Delete entire month';b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteAuditMonth1434(b.dataset.deleteAudit1434)};summary.append(b)}});document.querySelectorAll('th').forEach(n=>{if(n.children.length)return;const text=n.textContent,next=text.replace(/\bDR\b/g,'Debit').replace(/\bCR\b/g,'Credit');if(text!==next)n.textContent=next});}
+function ready(){const nav=document.getElementById('nav-module-documents');if(nav)nav.dataset.module='documents';const panel=document.getElementById('document-editor105');if(panel)panel.dataset.module='documents';applyGranularPermissionAccess();let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;polish()})}).observe(document.body,{childList:true,subtree:true});polish()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
 
@@ -1692,37 +1649,8 @@ function ready(){const change=window.switchTab;window.switchTab=function(...args
 
 ;
 /* scripts/session-policy1443.js */
-/* Shared inactivity policy. Activity remains per signed-in account and browser. */
-(()=>{'use strict';
-const key=id=>'ojm-session-policy1443:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+id;
-function apply(row,id){ApplicationSettings.system={...ApplicationSettings.system,sessionTimeout:String(row.timeout_minutes),sessionWarning:String(row.warning_minutes)};try{localStorage.setItem(APP_SETTINGS_KEY,JSON.stringify(ApplicationSettings));localStorage.setItem(key(id),JSON.stringify(row))}catch{}if(typeof setSettingsFormValues==='function')setSettingsFormValues('system');}
-function valid(row){return row&&Number.isInteger(row.timeout_minutes)&&row.timeout_minutes>=5&&row.timeout_minutes<=480&&Number.isInteger(row.warning_minutes)&&row.warning_minutes>=1&&row.warning_minutes<=30;}
-function transient(e){return e?.message==='Connection timed out'||e?.code==='PGRST000'||e?.code==='PGRST001'||e?.code==='PGRST002'||e?.code==='PGRST003'||/failed to fetch|networkerror|network request failed|fetch failed/i.test(e?.message||'');}
-window.loadSessionPolicy1443=async function(id){
- let timer;const db=ojmDb,epoch=typeof sessionEpoch1430==='undefined'?null:sessionEpoch1430,workspace=window.workspaceRequest138?.target||null;
- const authOwner=workspace===id?(window.workspaceRequest138?.actor||id):id;
- const unchanged=()=>{if(ojmDb!==db||(typeof sessionEpoch1430!=='undefined'&&epoch!==sessionEpoch1430)||(window.workspaceRequest138?.target||null)!==workspace)throw Error('Account changed while loading session settings.');};
- const current=async()=>{unchanged();const result=await db.auth.getSession();unchanged();if(result.error)throw result.error;if(!authOwner||result.data?.session?.user?.id!==authOwner)throw Error('Account changed while loading session settings.');};
- try{
-  await current();
-  const response=await Promise.race([db.from('session_policy1443').select('timeout_minutes,warning_minutes').eq('id',true).maybeSingle(),new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('Connection timed out')),10000))]);
-  await current();if(response.error)throw response.error;
-  if(!response.data)throw Error('The shared session-settings record is missing or hidden by its read permission. Administrator: run setup/FIX-SESSION-POLICY-v142.63.sql once, then sign in again.');
-  if(!valid(response.data))throw Error('The shared session settings are invalid. Ask an administrator to check the saved timeout and warning values.');
-  apply(response.data,id);return response.data;
- }catch(e){
-  await current();let cached;try{cached=JSON.parse(localStorage.getItem(key(id))||'null')}catch{}
-  if(transient(e)&&valid(cached)){apply(cached,id);return cached}
-  if(e.code==='PT403'&&/PASSWORD_CHANGE_REQUIRED/.test(e.message||''))throw Error('Choose a different new password to complete the required password change before signing in.');
-  if(e.code==='PGRST116')throw Error('The session-settings query returned more than one record. Ask an administrator to check the session_policy1443 table.');
-  if(['42P01','PGRST205'].includes(e.code))throw Error('The shared session-settings table is not installed. Administrator: run setup/FIX-SESSION-POLICY-v142.63.sql once.');
-  throw Error(e.message||'Session settings could not load. Reconnect and sign in again.');
- }finally{clearTimeout(timer)}
-};
-async function persist(values){if(liveProfile?.role!=='admin')throw Error('Administrator access required');const timeout=Number(values.sessionTimeout),warning=Number(values.sessionWarning);if(!Number.isInteger(timeout)||timeout<5||timeout>480||!Number.isInteger(warning)||warning<1||warning>30)throw Error('Use a timeout of 5–480 minutes and warning of 1–30 minutes');const actor=liveProfile.id,db=ojmDb;if(!db)throw Error('Reconnect before saving session settings');const row={id:true,timeout_minutes:timeout,warning_minutes:warning,updated_at:new Date().toISOString()};const result=await db.from('session_policy1443').upsert(row).select('timeout_minutes,warning_minutes');if(result.error)throw result.error;if(liveProfile?.id!==actor)throw Error('Account changed while saving');if(!result.data?.length)throw Error('Session settings save was not confirmed');ApplicationSettings.system={...ApplicationSettings.system,...values};apply(result.data[0],actor);return true}
-function ready(){const save=saveSettingsGroup,reset=resetSettingsGroup;window.saveSettingsGroup=async function(event){if(event.currentTarget?.dataset.settingsGroup!=='system')return save(event);event.preventDefault();const form=event.currentTarget,values=collectSettingsForm(form),button=form.querySelector('[type=submit]');if(button?.disabled)return;if(button)button.disabled=true;try{await persist(values);return save({preventDefault(){},currentTarget:form})}catch(e){showCenterStatus('Session settings were not confirmed: '+e.message,true)}finally{if(button)button.disabled=false}};document.querySelectorAll('[data-settings-group=system]').forEach(f=>f.onsubmit=window.saveSettingsGroup);window.resetSettingsGroup=async function(group){if(group!=='system')return reset(group);try{await persist(APP_SETTINGS_DEFAULTS.system);return reset(group)}catch(e){showCenterStatus('Session settings were not reset: '+e.message,true)}};}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
-})();
+/* Inactivity policy retired in v143.13. Kept as a compatibility hook for older callers. */
+window.loadSessionPolicy1443=async()=>null;
 
 
 ;

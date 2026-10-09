@@ -3,7 +3,7 @@
 <head><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=143.12"></script>
+  <script src="scripts/offline14239.js?v=143.13"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=142.99">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=142.99.2">
   <script src="scripts/desktop14245-1.js?v=142.81"></script>
@@ -111,6 +111,7 @@
           <button type="button" class="tab-btn" onclick="switchTab('journal')">Journal</button>
 
           <button type="button" class="tab-btn" onclick="switchTab('transactions-recurring')">Upcoming</button>
+          <button type="button" class="tab-btn" onclick="switchTab('transactions-budget14313')">Budget Requests</button>
           <button type="button" class="tab-btn" onclick="switchTab('user-entry-review')">Submission Review <span class="submission-count-badge" id="navUserReviewCount">0</span></button>
           <button type="button" class="tab-btn" onclick="switchTab('period-review')">Period Closing</button>
           <button type="button" class="tab-btn" onclick="switchTab('transactions-all')">Transaction History</button>
@@ -170,7 +171,7 @@
           <button type="button" class="tab-btn" onclick="switchTab('report-activity')">Account Activity</button>
           <button type="button" class="tab-btn" onclick="switchTab('report-expense')">Expense Report</button>
           <button type="button" class="tab-btn only-desktop82" onclick="switchTab('report-subusers82')">Sub-user Reports</button>
-          <button type="button" class="tab-btn only-desktop82" onclick="switchTab('report-financing82')">Financing & Budgets</button>
+          <button type="button" class="tab-btn only-desktop82" onclick="switchTab('report-financing82')">Budget & Financing Reports</button>
           <button type="button" class="tab-btn" onclick="switchTab('report-payroll')">Payroll Report</button>
 <button type="button" class="tab-btn" onclick="switchTab('report-reconciliation');renderReconciliationList71()">Reconciliation Reports</button>
         </div>
@@ -926,18 +927,15 @@
     </form>
   </div>
 </div>
+        <div id="transactions-budget14313" data-module="transactions" class="tab-content"></div>
         <div id="settings-system" data-module="settings" class="tab-content">
           <div class="settings-page-heading"><div><h3>System <button type="button" class="setting-help" onclick="openSettingHelp('system-settings')" aria-label="Explain System Settings">*</button></h3></div></div>
           <form class="settings-section-card app-settings-form" data-settings-group="system">
             <div class="settings-compact-grid cols-3">
               <div class="settings-field"><label>Date Format</label><select class="je-select" name="dateFormat"><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD MMM YYYY">DD MMM YYYY (09 Oct 2026)</option><option value="MMM DD, YYYY">MMM DD, YYYY (Oct 09, 2026)</option><option value="DD MMMM YYYY">DD MMMM YYYY (09 October 2026)</option><option value="MMMM DD, YYYY">MMMM DD, YYYY (October 09, 2026)</option><option value="DD MMM YY">DD MMM YY (09 Oct 26)</option><option value="MMM DD, YY">MMM DD, YY (Oct 09, 26)</option></select></div>
               <div class="settings-field"><label>Number Format</label><select class="je-select" name="numberFormat"><option value="1,234.56">1,234.56</option><option value="1.234,56">1.234,56</option><option value="1 234,56">1 234,56</option></select></div>
-              <div class="settings-field"><label>Inactivity Timeout (minutes) <button type="button" class="setting-help" onclick="openSettingHelp('session-timeout')" aria-label="Explain Inactivity Timeout">*</button></label><input class="je-input" name="sessionTimeout" type="number" min="5" max="480" value="30"></div>
-              <input name="sessionWarning" type="hidden" value="1">
-              <div class="settings-field"><label>Default Opening Page</label><select class="je-select" name="defaultLandingPage"><option value="dashboard">Dashboard</option><option value="entry-submissions">Entry Submission</option><option value="reports">Reports</option></select></div>
-              <div class="settings-field"><label>Record Retention (years) <button type="button" class="setting-help" onclick="openSettingHelp('record-retention')" aria-label="Explain Record Retention">*</button></label><select class="je-select" name="retentionYears"><option value="3">3 years</option><option value="5">5 years</option><option value="7">7 years</option><option value="10">10 years</option></select></div>
+              <div class="settings-field"><label>Default Opening Page</label><select class="je-select" name="defaultLandingPage"><option value="dashboard">Dashboard</option><option value="user-entry-review">Submission Review</option><option value="report-pl">Reports</option></select></div>
               <div class="settings-field"><label>Archive Reminder</label><select class="je-select" name="archiveFrequency"><option value="quarterly">Quarterly</option><option value="semiannual">Every 6 months</option><option value="annual">Annually</option><option value="never">Never</option></select></div>
-              <label class="settings-toggle compact-toggle"><input type="checkbox" name="confirmHighRisk" checked><span><strong>Confirm High-risk Actions</strong><small>Keep a second warning for destructive actions.</small></span></label>
             </div>
             <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('system')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save System Settings</button></div>
           </form>
@@ -1207,16 +1205,16 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
   <script src="scripts/supabase-config.js?v=142.47"></script>
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.11"></script>
+  <script src="scripts/desktop14245-3.js?v=143.13"></script>
 <script src="assets/vendor/docx.js?v=142.47"></script>
 <script src="assets/vendor/document14285/cfb.min.js?v=142.86"></script>
 <script src="assets/vendor/document14285/marked.umd.js?v=142.86"></script>
-<script src="scripts/desktop14245-4.js?v=143.11"></script>
+<script src="scripts/desktop14245-4.js?v=143.13"></script>
 <script src="assets/vendor/jszip.min.js?v=142.47"></script>
-<script src="scripts/desktop14245-5.js?v=143.06"></script>
+<script src="scripts/desktop14245-5.js?v=143.13"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.08"></script>
+<script src="scripts/desktop14245-6.js?v=143.13"></script>
 <script src="scripts/entry-actions14271.js?v=142.75"></script>
 <script src="scripts/tablet-journal14266.js?v=142.80"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
@@ -1270,9 +1268,10 @@
 
 <script src="scripts/local-events14310.js?v=143.10"></script>
 <link rel="stylesheet" href="styles/local-events14310.css?v=143.10">
-<script src="scripts/document-downloads14311.js?v=143.12"></script>
+<script src="scripts/document-downloads14311.js?v=143.13"></script>
 <script src="scripts/navigation-badges14311.js?v=143.11"></script>
-<link rel="stylesheet" href="styles/navigation-badges14311.css?v=143.11">
+<link rel="stylesheet" href="styles/navigation-badges14311.css?v=143.13">
+<script src="scripts/budget14313.js?v=143.13"></script>
 </body>
 </html>
 

@@ -177,7 +177,7 @@ const APP_SETTINGS_DEFAULTS = Object.freeze({
   payroll: { payFrequency:'monthly', payCurrency:'LAK', payCurrencyLAK:true, payCurrencyUSD:true, payCurrencyTHB:true, weeklyHours:'40', workDaysMonth:'26', hoursPerDay:'8', payrollCutoff:'25', paymentDay:'30', overtimeRate:'1.5', lateGraceMinutes:'5', employeeSsoRate:'5.5', employerSsoRate:'6', pitSharing:'equal' },
   tax: { pit1From:'0', pit1To:'2500000', pit1Rate:'0', pit2From:'2500000', pit2To:'5000000', pit2Rate:'5', pit3From:'5000000', pit3To:'15000000', pit3Rate:'10', pit4From:'15000000', pit4To:'25000000', pit4Rate:'15', pit5From:'25000000', pit5To:'65000000', pit5Rate:'20', pit6From:'65000000', pit6To:'', pit6Rate:'25', ssoEmployeeRate:'5.5', ssoEmployerRate:'6', ssoMaxBase:'', vatRate:'10', filingPeriod:'monthly', pitDeadline:'20', ssoDeadline:'20', vatDeadline:'20', vatAccount:'VAT Payable', pitAccount:'PIT Payable', ssoAccount:'SSO Payable', pitReminderDays:'5', ssoReminderDays:'5', vatReminderDays:'5' },
   printing: { paperSize:'A4', orientation:'portrait', marginSize:'normal', headerPlacement:'first', footerPlacement:'last', pageNumberFormat:'page-total', fileNamePattern:'report-date', showBusinessName:true, showPageNumbers:true },
-  system: { dateFormat:'DD/MM/YYYY', numberFormat:'1,234.56', sessionTimeout:'30', sessionWarning:'1', defaultLandingPage:'dashboard', retentionYears:'5', archiveFrequency:'annual', confirmHighRisk:true }
+  system: { dateFormat:'DD/MM/YYYY', numberFormat:'1,234.56', defaultLandingPage:'dashboard', archiveFrequency:'annual' }
 });
 
 function cloneDefaultSettings() {
@@ -1937,7 +1937,7 @@ const PRINT_SECTIONS = {
     ['journal','Journal Transaction History'],
     
     ['transactions-all','All Transactions — Historical Archive'],
-    ['transactions-recurring','Upcoming Transactions'],
+    ['transactions-recurring','Upcoming Transactions'],['transactions-budget14313','Budget Requests'],
     ['transactions-voided','Transaction Audit Log']
   ],
   Accounts: [
@@ -3113,7 +3113,7 @@ const SETTING_HELP = {
   'tax-settings': {title:'Statutory Settings', body:'<p>Maintain editable PIT salary brackets, SSO contribution settings, VAT defaults, and separate filing reminders. Confirm all rates, thresholds, ceilings, and due dates against current Lao requirements before payroll or filing.</p>'},
   'printing-settings': {title:'Printing Settings', body:'<p>Control paper size, margins, branding placement, page numbers, and downloaded file names. Header and footer images are visual only; they do not change accounting data.</p>'},
   'backup-export': {title:'Backup and Export', body:'<p>Download a backup before major changes. A settings backup preserves browser-held configuration; transaction exports are for checking or keeping a separate copy. Restoring a backup replaces the matching saved settings in this browser.</p>'},
-  'system-settings': {title:'System Settings', body:'<p>Choose display formats, inactivity protection, the preferred opening page, and record-policy reminders. Retention and archive choices are reminders only: the application will never delete records automatically.</p>'},
+  'system-settings': {title:'System Settings', body:'<p>Choose date and number formats, the preferred opening page, and an archive reminder. Records are never deleted automatically.</p>'},
   'session-timeout': {title:'Inactivity Timeout', body:'<p>The system automatically signs out a user after the selected number of minutes without activity. Clicking, typing, scrolling, or navigating resets the timer.</p>'},
   'timeout-warning': {title:'Timeout Warning', body:'<p>Choose how many minutes before automatic sign-out the user should receive a warning so they can remain signed in.</p>'},
   'record-retention': {title:'Record Retention', body:'<p>This is a policy reminder only. Accounting records are never deleted automatically by this setting.</p>'}
@@ -3397,15 +3397,12 @@ async function sendSubUserPasswordReset(id){
   showCenterStatus(error?error.message:`Password-reset link sent to ${user.email}.`,Boolean(error));
 }
 
-const SessionTimeoutManager={logoutTimer:null,warningTimer:null,lastActivity:Date.now(),lastArmed:0,events:['pointerdown','pointermove','keydown','scroll','wheel','touchstart'],minutes(){return Math.max(5,Math.min(480,Number(ApplicationSettings.system?.sessionTimeout)||30))},reset(){this.lastActivity=Date.now();this.hideWarning();if(Date.now()-this.lastArmed>1000)this.arm()},arm(){clearTimeout(this.logoutTimer);clearTimeout(this.warningTimer);if(!liveProfile)return;this.lastArmed=Date.now();const minutes=this.minutes(),warningMinutes=Math.max(1,Math.min(30,Number(ApplicationSettings.system?.sessionWarning)||1)),duration=minutes*60000,warningAt=Math.max(1000,duration-Math.min(warningMinutes,minutes-1)*60000);this.warningTimer=setTimeout(()=>this.warn(warningMinutes),warningAt);this.logoutTimer=setTimeout(()=>this.logout(),duration)},warn(){this.hideWarning()},hideWarning(){const box=document.getElementById('sessionTimeoutWarning');if(box)box.hidden=true},async logout(){if(!liveProfile)return;if(Date.now()-this.lastActivity<this.minutes()*60000){this.arm();return}this.hideWarning();await logoutDemoUser()}};
-function startSessionTimeoutManager(){SessionTimeoutManager.arm()}
+const SessionTimeoutManager={logoutTimer:null,warningTimer:null,lastActivity:Date.now(),reset(){this.lastActivity=Date.now()},arm(){},check1434(){},hideWarning(){document.getElementById('sessionTimeoutWarning')?.remove()}};
+function startSessionTimeoutManager(){}
 
 function initializeFoundationControls(){
   const form=document.getElementById('businessSettingsForm');form?.addEventListener('input',reconcileBusinessDirtyState);
   setBusinessSettingsBaseline();
-  SessionTimeoutManager.events.forEach(name=>document.addEventListener(name,()=>{if(liveProfile)SessionTimeoutManager.reset()},{passive:true}));
-  window.addEventListener('focus',()=>{if(liveProfile)SessionTimeoutManager.check1434?.()});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&liveProfile)SessionTimeoutManager.check1434?.()});
   document.addEventListener('click',event=>{if(!event.target.closest('.sub-user-search-wrap')){const results=document.getElementById('subUserSearchResults');if(results)results.hidden=true}});
   const active=document.querySelector('.tab-content.active')?.id||'dashboard';updateSettingsBrowser(active);updateGlobalExportTools(active);
 }
@@ -3770,7 +3767,7 @@ submitWorkspaceForReview=async function(userId){if(pendingRowsFor(userId).length
 // FOUNDATION V7 — password recovery, durable workspace tabs, and granular navigation permissions.
 const APP_PERMISSION_TREE=[
   {id:'dashboard',label:'Dashboard',children:[['dashboard','Dashboard']]},
-  {id:'transactions',label:'Transactions',children:[['journal','Journal'],['transactions-all','All Transactions'],['transactions-recurring','Upcoming Transactions'],['user-entry-review','Entry Submission Review'],['period-review','Period Review & Closing'],['transactions-voided','Transaction Audit Log']]},
+  {id:'transactions',label:'Transactions',children:[['journal','Journal'],['transactions-all','All Transactions'],['transactions-recurring','Upcoming Transactions'],['transactions-budget14313','Budget Requests'],['user-entry-review','Entry Submission Review'],['period-review','Period Review & Closing'],['transactions-voided','Transaction Audit Log']]},
   {id:'sub-users',label:'Sub-Users',children:[['sub-users-workspace','User Workspace']]},
   {id:'accounts',label:'Accounts',children:[['sec-chart-accounts','Chart of Accounts'],['sec-sub-accounts','Sub-Accounts'],['sec-other-accounts','Other Account Sections']]},
   {id:'hr',label:'Human Resources',children:[['payroll-employees','Employee'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessment'],['hr-contracts','Contract Documents'],['hr-calendar','Calendar']]},
