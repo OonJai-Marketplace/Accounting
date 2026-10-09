@@ -81,6 +81,49 @@ body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
 @media(max-width:700px){.hr-calendar-layout14306{grid-template-columns:1fr}.hr-calendar-layout14306>aside{order:2}.hr-calendar14306>header{flex-wrap:wrap}.hr-employee-dialog14306 #employeeForm82 .fields82{grid-template-columns:repeat(2,minmax(0,1fr))!important}.hr-week14306{grid-template-columns:70px 24px 1fr 1fr 75px;font-size:10px;gap:5px}.hr-fields14306{grid-template-columns:1fr}.hr-wide14306{grid-column:auto}}
 
 @layer app-controls14305{body .hr-date14306>button:not([aria-current=date]){border-color:transparent!important}}
-body.shell113 :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) .module109,body.shell113 #hr-calendar .hr-calendar14306{border-top-color:#008563!important;box-shadow:none!important}
+body.shell113 :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) :is(.module109,.inner-module109),body.shell113 #hr-calendar .hr-calendar14306{border-top-color:#008563!important;box-shadow:none!important}
 
 body #hrEmployeeDialog14306 #employeeForm82 .form-actions82{gap:8px}
+
+.hr-history14306 small{display:block;margin-top:5px;color:#63736a;font-size:11px}
+.hr-history14306 p{white-space:pre-wrap;overflow-wrap:anywhere}
+
+body.shell113 #payroll-employees details.block82>summary{border-top:0!important;box-shadow:none!important}
+
+.hr-document14306>span,.hr-upcoming14306 article>div{min-width:0;overflow-wrap:anywhere}
+.hr-document14306>button,.hr-upcoming14306 article>button{flex-shrink:0}
+.hr-dialog14306 label[hidden]{display:none!important}
+.hr-employee-dialog14306 .check82:has([name=active]){flex-wrap:wrap}
+.hr-employee-dialog14306 .check82:has([name=active]) small{flex-basis:100%;font-size:11px;font-weight:400;line-height:1.4;color:#56695e}
+.hr-review-note14307{padding:10px;border-left:3px solid #947424;background:#fff5d9;line-height:1.5}
+@media (max-width:850px){
+ body #hrEmployeeDialog14306 #employeeForm82 .fields82{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body #hrEmployeeDialog14306 #employeeForm82 label:has([name=photoFile]){grid-column:1/-1}
+}
+
+/* HR tables remain readable on tablets; scroll within their table instead of
+   shrinking into the legacy transaction preview. */
+@media screen{
+ @layer app-controls14305{
+ body :is(#payroll-employees,#hr-leave,#hr-assessments,#hr-contracts) .data-table82{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+ body :is(#payroll-employees,#hr-leave,#hr-assessments,#hr-contracts) table{font-size:12px!important;zoom:1!important;width:100%!important;min-width:640px!important;table-layout:auto!important}
+ body :is(#payroll-employees,#hr-leave,#hr-assessments,#hr-contracts) table :is(th,td){font-size:12px!important;line-height:1.4!important;padding:8px 10px!important;white-space:normal!important;overflow-wrap:anywhere}
+ body :is(#payroll-employees,#hr-leave,#hr-assessments,#hr-contracts) table small{display:block;font-size:11px;line-height:1.35;margin-top:4px}
+ body #hr-leave .data-table82:has(th:nth-child(7)) table{min-width:740px!important}
+ body #hr-contracts table{min-width:720px!important}
+ body #hr-assessments table{min-width:900px!important}
+ body #hr-assessments :is(th,td):first-child{min-width:170px!important}
+ body #hr-assessments :is(th,td):nth-child(2){min-width:110px!important}
+ body #hr-assessments :is(th,td):nth-child(3){min-width:90px!important}
+ body #hr-assessments :is(th,td):nth-child(4),body #hr-assessments :is(th,td):nth-child(5){min-width:180px!important}
+ body #hr-contracts :is(th,td):first-child{min-width:170px}
+ body #hr-contracts :is(th,td):nth-child(2){min-width:150px}
+ body #hr-contracts :is(th,td):nth-child(4){min-width:155px}
+}
+}
+@media(max-width:1100px){
+ body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) .work82>header{flex-wrap:wrap;align-items:flex-start}
+ body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) .work82>header .actions82{flex-wrap:wrap;gap:8px}
+}
+
+body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) .work82>header .actions82{display:flex!important;gap:8px!important;flex-wrap:wrap;align-items:center}

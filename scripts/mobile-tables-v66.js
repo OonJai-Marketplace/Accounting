@@ -30,6 +30,7 @@ function history(){
 }
 function sync(state){const {box,x,y}=state;const sw=box.scrollWidth,sh=box.scrollHeight,cw=box.clientWidth,ch=box.clientHeight;x.hidden=sw<=cw+1;y.hidden=sh<=ch+1;x.style.width=`${Math.max(12,cw/sw*100)}%`;x.style.left=`${sw>cw?(box.scrollLeft/(sw-cw))*(100-Math.max(12,cw/sw*100)):0}%`;y.style.height=`${Math.max(12,ch/sh*100)}%`;y.style.top=`${sh>ch?(box.scrollTop/(sh-ch))*(100-Math.max(12,ch/sh*100)):0}%`;}
 function enhanceTable(table){
+ if(table.closest('#payroll-employees,#hr-attendance,#hr-leave,#hr-assessments,#hr-contracts,#hr-calendar'))return;
  if(window.mobileTransactionTable72?.(table))return;
  if(states.has(table)||table.closest('.v66-table-shell')||table.closest('.v49-adjust-body'))return;
  const shell=document.createElement('div'),box=document.createElement('div'),x=document.createElement('i'),y=document.createElement('i');shell.className='v66-table-shell';box.className='v66-table-viewport';box.tabIndex=0;box.setAttribute('role','region');box.setAttribute('aria-label','Scrollable table. Pinch to zoom.');x.className='v66-scroll-x';y.className='v66-scroll-y';x.setAttribute('aria-hidden','true');y.setAttribute('aria-hidden','true');

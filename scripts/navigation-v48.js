@@ -37,7 +37,7 @@
       'transactions-new':'New Entry','transactions-all':'Transaction History','transactions-recurring':'Upcoming',
       'user-entry-review':'Submission Review','period-review':'Period Closing','transactions-voided':'Audit Log',
       'sec-chart-accounts':'Accounts','sec-general-ledger':'General Ledger','account-balances':'Balances',
-      'payroll-employees':'Employees','payroll-entries':'Entries','payroll-deductions':'Deductions','payroll-history':'History',
+      'payroll-employees':'Employee','payroll-entries':'Entries','payroll-deductions':'Deductions','payroll-history':'History',
       'tax-overview':'Overview','tax-pit':'PIT','tax-social':'SSO','tax-payment':'Tax Payments','tax-sso-payment':'SSO Payment','tax-records':'Tax Records',
       'inv-overview':'Overview','inv-adj':'Adjustments','inv-val':'Valuation',
       'menu-ingredients':'Ingredients','menu-recipe':'Recipes','menu-categories':'Categories','menu-costing':'Costing','menu-avail':'Availability',

@@ -1,0 +1,146 @@
+[
+  {
+    "name": "HR tabs follow the requested order and Employee has no leave clutter",
+    "passed": true
+  },
+  {
+    "name": "Employee edit is a compact modal without the sample checkbox",
+    "passed": true
+  },
+  {
+    "name": "Calendar matches Design B, circles today and centers the next agenda event",
+    "passed": true
+  },
+  {
+    "name": "A saved company holiday updates attendance rules and Upcoming Events",
+    "passed": true
+  },
+  {
+    "name": "Leave tab calculates working days and projects pending and approved leave",
+    "passed": true
+  },
+  {
+    "name": "Attendance defaults green, preserves exceptions and uses uniform centered squares",
+    "passed": true
+  },
+  {
+    "name": "Finalized attendance does not change when calendar settings change",
+    "passed": true
+  },
+  {
+    "name": "Contract outcome requires a reason and termination archives the employee",
+    "passed": true
+  },
+  {
+    "name": "Private signed contract upload is linked to the employee",
+    "passed": true
+  },
+  {
+    "name": "HR records and signed files are included in complete archives",
+    "passed": true
+  },
+  {
+    "name": "Stale calendar edits are rejected without replacing the saved event",
+    "passed": true
+  },
+  {
+    "name": "Calendar fits desktop and tablet without page overflow",
+    "passed": true
+  },
+  {
+    "name": "Employee archive reasons and retained history are accessible",
+    "passed": true
+  },
+  {
+    "name": "Contract outcomes retain the old term, vacation date and renewal history",
+    "passed": true
+  },
+  {
+    "name": "Supporting uploads open with their contract and clear document classifications",
+    "passed": true
+  },
+  {
+    "name": "Contract draft saves to its employee and reopens through the document list",
+    "passed": true
+  },
+  {
+    "name": "Employment Contract starter can be edited and saved as a Company Template",
+    "passed": true
+  },
+  {
+    "name": "Contract notifications and Upcoming Events link directly to the correct contract",
+    "passed": true
+  },
+  {
+    "name": "Working schedules save half-days and legend leave consumes half a day",
+    "passed": true
+  },
+  {
+    "name": "Informational occasions leave attendance unchanged and saved exceptions survive schedule edits",
+    "passed": true
+  },
+  {
+    "name": "An open stale event form cannot overwrite a refreshed event",
+    "passed": true
+  },
+  {
+    "name": "An open stale working schedule cannot overwrite refreshed settings",
+    "passed": true
+  },
+  {
+    "name": "Attendance aligns every date in 28, 29, 30 and 31-day months",
+    "passed": true
+  },
+  {
+    "name": "Employee table has a single green edge and no stray Print button",
+    "passed": true
+  },
+  {
+    "name": "Finalized half-day leave balances stay fractional; older saved rows keep their original count",
+    "passed": true
+  },
+  {
+    "name": "Employee status cannot bypass the archive reason form",
+    "passed": true
+  },
+  {
+    "name": "A renewed contract cannot be renewed or terminated again through the old record",
+    "passed": true
+  },
+  {
+    "name": "Outcome form shows only relevant fields and rejects future-effective status changes",
+    "passed": true
+  },
+  {
+    "name": "Contract and Assessment employee selectors work independently after switching tabs",
+    "passed": true
+  },
+  {
+    "name": "A contract opened from a reminder keeps its employee selected when returning to Contracts",
+    "passed": true
+  },
+  {
+    "name": "Signed uploads remain accessible if the editable-document list fails",
+    "passed": true
+  },
+  {
+    "name": "Pending leave approval recalculates changed working days and validates the recalculated allowance",
+    "passed": true
+  },
+  {
+    "name": "Finalized payroll and archived employees reject new leave requests",
+    "passed": true
+  },
+  {
+    "name": "Repeated Save submits create one operation and keep the dialog open until it finishes",
+    "passed": true
+  },
+  {
+    "name": "All HR tabs and dialogs fit desktop, tablet portrait and short tablet landscape",
+    "passed": true
+  },
+  {
+    "name": "No uncaught errors",
+    "passed": true
+  }
+]
