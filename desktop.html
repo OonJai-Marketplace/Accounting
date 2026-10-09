@@ -3,7 +3,7 @@
 <head><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=143.05"></script>
+  <script src="scripts/offline14239.js?v=143.06"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=142.99">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=142.99.2">
   <script src="scripts/desktop14245-1.js?v=142.81"></script>
@@ -137,11 +137,12 @@
       <div class="nav-category" id="nav-module-hr" data-module="hr">
         <div class="nav-header" onclick="activateCategory(this, 'payroll-employees')">Human Resources <span class="arrow">▼</span></div>
         <div class="nav-links">
-          <button type="button" class="tab-btn" onclick="switchTab('payroll-employees')">Employees</button>
-          <button type="button" class="tab-btn" onclick="switchTab('hr-contracts')">Contracts &amp; Documents</button>
+          <button type="button" class="tab-btn" onclick="switchTab('payroll-employees')">Employee</button>
           <button type="button" class="tab-btn" onclick="switchTab('hr-attendance')">Attendance</button>
           <button type="button" class="tab-btn" onclick="switchTab('hr-leave')">Leave</button>
-          <button type="button" class="tab-btn" onclick="switchTab('hr-assessments')">Assessments</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-assessments')">Assessment</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-contracts')">Contract Documents</button>
+          <button type="button" class="tab-btn" onclick="switchTab('hr-calendar')">Calendar</button>
         </div>
       </div>
 
@@ -828,6 +829,7 @@
 <div id="hr-attendance" data-module="hr" class="tab-content"></div>
 <div id="hr-leave" data-module="hr" class="tab-content"></div>
 <div id="hr-assessments" data-module="hr" class="tab-content"></div>
+<div id="hr-calendar" data-module="hr" class="tab-content"></div>
         <div id="payroll-history" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Salary History.</div></div>
         <div id="payroll-deductions" data-module="payroll" class="tab-content"><div class="placeholder-warning">No data available for Payroll Deductions.</div></div>
         <div id="report-pl" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Profit and Loss.</div></div>
@@ -1204,16 +1206,16 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
   <script src="scripts/supabase-config.js?v=142.47"></script>
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.05"></script>
+  <script src="scripts/desktop14245-3.js?v=143.06"></script>
 <script src="assets/vendor/docx.js?v=142.47"></script>
 <script src="assets/vendor/document14285/cfb.min.js?v=142.86"></script>
 <script src="assets/vendor/document14285/marked.umd.js?v=142.86"></script>
-<script src="scripts/desktop14245-4.js?v=143.04"></script>
+<script src="scripts/desktop14245-4.js?v=143.06"></script>
 <script src="assets/vendor/jszip.min.js?v=142.47"></script>
-<script src="scripts/desktop14245-5.js?v=143.05"></script>
+<script src="scripts/desktop14245-5.js?v=143.06"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.04"></script>
+<script src="scripts/desktop14245-6.js?v=143.06"></script>
 <script src="scripts/entry-actions14271.js?v=142.75"></script>
 <script src="scripts/tablet-journal14266.js?v=142.80"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
@@ -1241,7 +1243,7 @@
 <script src="scripts/account-currency14257.js?v=142.96"></script>
 <script src="scripts/report-templates14262.js?v=142.97"></script>
 <script src="scripts/report-routes14262.js?v=142.62"></script>
-<script src="scripts/report-formats14282.js?v=143.04"></script>
+<script src="scripts/report-formats14282.js?v=143.06"></script>
 <script src="scripts/journal-description14281.js?v=143.04"></script>
 <script src="scripts/assigned-ledger14281.js?v=142.83"></script>
 <link rel="stylesheet" href="styles/settings-polish14281.css?v=142.83">
@@ -1260,6 +1262,10 @@
 <link rel="stylesheet" href="styles/layout-voucher-polish14301.css?v=143.04">
 <script src="scripts/layout-voucher-polish14301.js?v=143.04"></script>
 <link rel="stylesheet" href="styles/controls14305.css?v=143.05">
+<script src="scripts/hr-calendar-model14306.js?v=143.06"></script>
+<script src="scripts/hr-calendar14306.js?v=143.06"></script>
+<script src="scripts/hr-workspace14306.js?v=143.06"></script>
+<link rel="stylesheet" href="styles/hr-workspace14306.css?v=143.06">
 </body>
 </html>
 

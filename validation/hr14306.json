@@ -1,0 +1,54 @@
+[
+  {
+    "name": "HR tabs follow the requested order and Employee has no leave clutter",
+    "passed": true
+  },
+  {
+    "name": "Employee edit is a compact modal without the sample checkbox",
+    "passed": true
+  },
+  {
+    "name": "Calendar matches Design B, circles today and centers the next agenda event",
+    "passed": true
+  },
+  {
+    "name": "A saved company holiday updates attendance rules and Upcoming Events",
+    "passed": true
+  },
+  {
+    "name": "Leave tab calculates working days and projects pending and approved leave",
+    "passed": true
+  },
+  {
+    "name": "Attendance defaults green, preserves exceptions and uses uniform centered squares",
+    "passed": true
+  },
+  {
+    "name": "Finalized attendance does not change when calendar settings change",
+    "passed": true
+  },
+  {
+    "name": "Contract outcome requires a reason and termination archives the employee",
+    "passed": true
+  },
+  {
+    "name": "Private signed contract upload is linked to the employee",
+    "passed": true
+  },
+  {
+    "name": "HR records and signed files are included in complete archives",
+    "passed": true
+  },
+  {
+    "name": "Stale calendar edits are rejected without replacing the saved event",
+    "passed": true
+  },
+  {
+    "name": "Calendar fits desktop and tablet without page overflow",
+    "passed": true
+  },
+  {
+    "name": "No uncaught errors",
+    "passed": true
+  }
+]

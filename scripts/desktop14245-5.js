@@ -619,10 +619,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function ready(){
     const trigger=document.querySelector('#user-entry-review .settings-page-heading button');trigger?.setAttribute('aria-controls','userEntryHistoryPanel');trigger?.setAttribute('aria-expanded','false');
     // HR already has its renderer and records; register its existing navigation.
-    if(!APP_PERMISSION_TREE.some(item=>item.id==='hr'))APP_PERMISSION_TREE.push({id:'hr',label:'HR',children:[['payroll-employees','Employees'],['hr-contracts','Contracts & Documents'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessments']]});
+    if(!APP_PERMISSION_TREE.some(item=>item.id==='hr'))APP_PERMISSION_TREE.push({id:'hr',label:'HR',children:[['payroll-employees','Employee'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessment'],['hr-contracts','Contract Documents'],['hr-calendar','Calendar']]});
     window.applyPermissionAccess?.();renderUserEntryReview();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
+
 
 ;

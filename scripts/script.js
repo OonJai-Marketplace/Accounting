@@ -3773,7 +3773,7 @@ const APP_PERMISSION_TREE=[
   {id:'transactions',label:'Transactions',children:[['journal','Journal'],['transactions-all','All Transactions'],['transactions-recurring','Upcoming Transactions'],['user-entry-review','Entry Submission Review'],['period-review','Period Review & Closing'],['transactions-voided','Transaction Audit Log']]},
   {id:'sub-users',label:'Sub-Users',children:[['sub-users-workspace','User Workspace']]},
   {id:'accounts',label:'Accounts',children:[['sec-chart-accounts','Chart of Accounts'],['sec-sub-accounts','Sub-Accounts'],['sec-other-accounts','Other Account Sections']]},
-  {id:'hr',label:'Human Resources',children:[['payroll-employees','Employees'],['hr-contracts','Contracts & Documents'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessments']]},
+  {id:'hr',label:'Human Resources',children:[['payroll-employees','Employee'],['hr-attendance','Attendance'],['hr-leave','Leave'],['hr-assessments','Assessment'],['hr-contracts','Contract Documents'],['hr-calendar','Calendar']]},
   {id:'payroll',label:'Payroll',children:[['payroll-overview','Payroll Overview'],['payroll-employees','Employees'],['payroll-entries','Payroll Entries'],['payroll-history','Salary History'],['payroll-deductions','Payroll Deductions']]},
   {id:'documents',label:'Documents',children:[['document-editor105','Document Editor / Print Preparation']]},
   {id:'reports',label:'Reports',children:[['report-pl','Profit and Loss'],['report-bs','Balance Sheet'],['report-cf','Cash Flow'],['report-tb','Trial Balance'],['report-gl','General Ledger'],['report-activity','Account Activity'],['report-expense','Expense Report'],['report-payroll','Payroll Report'],['report-reconciliation','Reconciliation Reports']]},

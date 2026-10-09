@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict'),M=require('../scripts/hr-calendar-model14306.js');
+const config=M.scheduleDefaults({nonWorkDays99:[0,6]});
+assert.equal(M.holidays(2026).length,9);assert(M.holidays(2026).some(e=>e.start==='2026-03-09'));assert(!M.holidays(2027).some(e=>e.start==='2027-03-09'));
+assert.equal(M.addMonths('2026-03-31',-1),'2026-02-28');assert.equal(M.addMonths('2028-03-31',-1),'2028-02-29');assert(!M.valid('2026-02-29'));
+assert.equal(M.dayInfo('2026-04-14','a',config).fraction,0);assert.equal(M.dayInfo('2026-10-10','a',config).fraction,0);assert.equal(M.dayInfo('2026-10-09','a',config).fraction,1);
+const event={id:'company-holiday',data:{title:'Company holiday',start:'2026-10-15',end:'2026-10-15',type:'holiday',effect:'off',status:'scheduled',reminderMonths:2,reminderDays:0}};
+assert.equal(M.leaveDays('2026-10-12','2026-10-16','a',config,[event]),4);
+const half={id:'half',data:{title:'Half-day',start:'2026-10-14',end:'2026-10-14',type:'workday',effect:'half',status:'scheduled',employeeIds:['a'],workStart:'08:00',workEnd:'12:00',reminderMonths:0,reminderDays:7}};
+assert.equal(M.leaveDays('2026-10-12','2026-10-16','a',config,[event,half]),3.5);assert.equal(M.leaveDays('2026-10-12','2026-10-16','b',config,[event,half]),4);
+assert.equal(M.reminderDate(event.data),'2026-08-15');assert.equal(M.upcoming([{...event.data,id:event.id}],'2026-10-09').length,1);assert.equal(M.upcoming([{...event.data,status:'completed'}],'2026-10-09').length,0);
+const snapshot=M.clone(config);config.schedules.push({from:'2026-10-09',days:Array.from({length:7},(_,day)=>({day,work:false,fraction:0}))});assert.equal(M.dayInfo('2026-10-09','a',snapshot).fraction,1);assert.equal(M.dayInfo('2026-10-09','a',config).fraction,0);assert.equal(M.dayInfo('2026-10-08','a',config).fraction,1);
+assert.throws(()=>M.validateEvent({...event.data,end:'2026-10-14'}));assert.throws(()=>M.validateEvent({...half.data,workEnd:'07:00'}));
+console.log('PASS public holidays, working-day fractions, scoped events, reminders and schedule snapshots');

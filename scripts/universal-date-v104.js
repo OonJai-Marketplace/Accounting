@@ -35,7 +35,7 @@
   const panel=document.createElement('div');panel.className='oj-date-popup104';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Select '+modes(input));
   const button=input.closest('.oj-date-shell104')?.querySelector('button');if(!button)return;
   // Measure complete contents before revealing; focus must not scroll the page.
-  panel.style.visibility='hidden';document.body.append(panel);active={input,panel};draw();
+  panel.style.visibility='hidden';(input.closest('dialog[open]')||document.body).append(panel);active={input,panel};draw();
   const rect=button.getBoundingClientRect(),bounds=panel.getBoundingClientRect();
   panel.style.left=Math.max(8,Math.min(rect.left,innerWidth-bounds.width-8))+'px';
   panel.style.top=Math.max(8,Math.min(rect.bottom+4,innerHeight-bounds.height-8))+'px';

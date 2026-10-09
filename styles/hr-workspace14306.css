@@ -1,0 +1,86 @@
+/* HR foundation: compact forms, one green table edge and Design B calendar. */
+body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) .work82>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) :is(.data-table82,.block82,table){border-top-color:#008563!important;box-shadow:none!important}
+body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) :is(thead,thead tr,thead th){border-top-color:#008563!important;box-shadow:none!important}
+body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance)>[data-print14282]{display:none!important}
+.hr-row-actions14306,.hr-calendar14306 .actions82{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.hr-row-actions14306 button{padding-inline:10px;white-space:nowrap}
+.hr-employee-select14306{display:flex;align-items:center;gap:8px;margin:10px 0;max-width:400px}
+.hr-employee-select14306 select{min-width:210px}
+.hr-dialog14306{position:fixed;inset:0;margin:auto!important;width:min(640px,calc(100vw - 32px));max-height:88dvh;padding:0;border:1px solid #a9c3b3;border-top:4px solid #008563;border-radius:9px;color:#183e2e;background:#fffdf8;box-shadow:0 18px 50px #102c2940;overflow:auto}
+.hr-dialog14306::backdrop{background:#16362b66}
+.hr-dialog14306 header,.hr-dialog14306 footer{display:flex;align-items:center;gap:8px;padding:12px 16px;background:#f5f8f1}
+.hr-dialog14306 header{border-bottom:1px solid #d1dfd5;justify-content:space-between}
+.hr-dialog14306 header h3{font-size:16px;margin:0}
+.hr-dialog14306 footer{justify-content:flex-end;border-top:1px solid #d1dfd5;position:sticky;bottom:0}
+.hr-dialog-body14306{padding:14px 16px}
+.hr-dialog14306 [role=alert]{color:#a02724;font-size:12px;margin:8px 0 0}
+.hr-dialog14306 label{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;min-width:0}
+.hr-dialog14306 :is(input:not([type=checkbox]),select,textarea){width:100%;min-width:0;box-sizing:border-box;border:1px solid #b4cbbb;border-radius:5px;padding:6px 8px;font:12px Arial,sans-serif;color:#173e2d;background:white}
+.hr-dialog14306 select[multiple]{height:auto;min-height:90px}
+.hr-dialog14306 .check82{display:flex;flex-direction:row;align-items:center;gap:6px}
+.hr-fields14306{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
+.hr-wide14306{grid-column:1/-1}
+.hr-week14306{display:grid;grid-template-columns:90px 36px 1fr 1fr 90px;gap:8px;align-items:center;margin:14px 0;font-size:12px}
+.hr-week14306 input[type=checkbox]{justify-self:center}
+.hr-detail14306{display:grid;grid-template-columns:110px 1fr;gap:8px;font-size:13px}
+.hr-detail14306 dt{font-weight:700}.hr-detail14306 dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.hr-document14306,.hr-upcoming14306 article{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #d7e1d9}
+.hr-document14306 small,.hr-upcoming14306 small{display:block;color:#63736a;font-size:11px;margin-top:4px}
+.hr-history14306{padding:10px 0;border-bottom:1px solid #d7e1d9}
+.hr-employee-dialog14306{width:min(830px,calc(100vw - 32px))}
+.hr-employee-body14306{padding:10px 16px}
+body #hrEmployeeDialog14306 #employeeForm82{max-width:none!important;margin:0!important}
+body #hrEmployeeDialog14306 #employeeForm82 .fields82{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px 12px!important}
+body #hrEmployeeDialog14306 #employeeForm82 :is(fieldset,.employee-category97){padding:10px!important;margin:0 0 10px!important;min-width:0}
+body #hrEmployeeDialog14306 #employeeForm82 :is(input,select){max-width:100%!important;min-width:0!important}
+body #hrEmployeeDialog14306 #employeeForm82 .form-actions82{display:flex;justify-content:flex-end;position:sticky;bottom:-10px;background:#fffdf8;padding:12px 0;margin:0;border-top:1px solid #ccdcd0;z-index:2}
+body #hrEmployeeDialog14306 #employeeForm82 label:has([name=code]){max-width:170px}
+body #hrEmployeeDialog14306 #employeeForm82 label:has([name=address]),body #hrEmployeeDialog14306 #employeeForm82 label:has([name=emergencyContact]){grid-column:span 2}
+/* Attendance day editing keeps advanced deduction fields behind the existing toggle. */
+body #payDay95 .pay-dialog95{width:min(510px,calc(100vw - 28px))!important;max-height:86dvh!important;overflow:auto}
+body #payDay95 .fields82{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px 12px!important}
+body #payDay95 label:has([name=note]),body #payDay95 label:has([name=override]),body #payDay95 label:has([name=reason]){grid-column:1/-1}
+body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
+@media screen{
+ @layer app-controls14305{
+  body table.attendance-grid99{width:calc(132px + var(--days99)*36px)!important;min-width:calc(132px + var(--days99)*36px)!important;max-width:none!important;table-layout:fixed!important;zoom:1!important}
+  body table.attendance-grid99 tr>*:first-child{width:132px!important;min-width:132px!important;max-width:132px!important}
+  body table.attendance-grid99 thead th:not(:first-child),body table.attendance-grid99 tbody td{width:36px!important;min-width:36px!important;max-width:36px!important;text-align:center!important;padding:2px!important;vertical-align:middle!important}
+  body table.attendance-grid99 .attendance-cell101{width:32px!important;min-width:32px!important;height:32px!important;padding:0!important;border-radius:4px!important;display:grid!important;place-items:center!important;margin:0 auto!important;border-color:var(--dot-color)!important;background:var(--dot-color)!important}
+  body table.attendance-grid99 .attendance-dot99{display:none!important}
+ }
+}
+.hr-calendar14306{--hr-calendar-height:clamp(470px,calc(100dvh - 240px),760px);padding:14px;background:#fffdf8;border:1px solid #c1d3c6;border-top:3px solid #008563;border-radius:8px;color:#183e2e}
+.hr-calendar14306>header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.hr-calendar14306 h3{margin:0;font-size:21px}.hr-calendar14306 header p{font-size:12px;color:#617569;margin:5px 0 0}
+.hr-calendar-layout14306{display:grid;grid-template-columns:minmax(235px,29%) minmax(0,1fr);gap:16px}
+.hr-calendar-layout14306>aside{min-width:0;background:#f7f8f2;border:1px solid #d2ded4;border-radius:6px;overflow:hidden}
+.hr-agenda-head14306{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px;border-bottom:1px solid #d2ded4;flex-wrap:wrap}
+.hr-agenda-head14306 h4{margin:0;font-size:14px}.hr-agenda-head14306 button{font-size:11px;padding-inline:8px}
+.hr-agenda14306{height:calc(var(--hr-calendar-height) - 62px);overflow-y:auto;overscroll-behavior:contain;padding-inline:10px;position:relative;scroll-behavior:auto}
+.hr-agenda14306::before,.hr-agenda14306::after{content:'';display:block;height:calc((var(--hr-calendar-height) - 200px)/2)}
+.hr-event14306{display:grid;grid-template-columns:40px minmax(0,1fr);gap:9px;padding:10px;margin:9px 0;border:1px solid #cdded1;border-left:3px solid #96b69f;border-radius:6px;background:white;font-size:12px}
+.hr-event14306.is-next{background:#edf7ee;border-color:#16815c;border-left-width:4px}.hr-event14306.is-past{color:#79877f;background:#f2f4ef}
+.hr-event14306>div>strong{display:block;line-height:1.4}.hr-event14306 small{display:block;font-size:10px;margin:4px 0;color:#6a7b70}.hr-event14306 button{margin-top:6px;font-size:11px;padding-inline:10px}
+.hr-event-date14306{align-self:start;text-align:center;background:#f7faf5;border:1px solid #d8e3d9;border-radius:4px;padding:4px 0}.hr-event-date14306 strong{font-size:18px}
+.hr-kind14306{display:block;font-size:11px}.hr-next14306{display:inline-block;font-size:10px;background:#cfe9d5;color:#13563b;padding:3px 5px;border-radius:4px;margin-top:5px}
+.hr-month14306{min-width:0}.hr-month-head14306{display:flex;align-items:center;gap:8px;margin-bottom:10px}.hr-month-head14306 .oj-date-shell104{width:190px!important}.hr-month-head14306>button{padding-inline:12px}
+.hr-weekdays14306,.hr-month-grid14306{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.hr-weekdays14306{border:1px solid #d2ded4;border-bottom:0;background:#f4f6ef;text-align:center;font-size:12px;padding:10px 0}
+.hr-month-grid14306{height:calc(var(--hr-calendar-height) - 107px);grid-auto-rows:1fr;border-left:1px solid #d2ded4;border-top:1px solid #d2ded4}
+.hr-date14306{min-width:0;min-height:0;overflow:hidden;padding:5px;border-right:1px solid #d2ded4;border-bottom:1px solid #d2ded4;background:#fff}
+.hr-date14306.off-day{background:#f5f5f0}.hr-date14306.other-month{opacity:.45}
+.hr-date14306>button{width:32px;padding:0;border-color:transparent!important;background:transparent;color:#203f2f;box-shadow:none;border-radius:50%}
+.hr-date14306>button[aria-current=date]{background:#008563;color:white;font-weight:700;border-color:#008563!important}
+.hr-cal-chip14306{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:4px;margin:3px 0;font-size:10px;border-radius:3px;background:#e6eff7;color:#244c70}
+.hr-cal-chip14306.holiday{background:#fff0cf;color:#745113}.hr-cal-chip14306.leave{background:#ebe3f4;color:#654382}.hr-cal-chip14306.contract{background:#d8efdf;color:#225d3a}
+.hr-calendar-key14306{display:flex;flex-wrap:wrap;gap:12px;padding-top:10px;font-size:10px;color:#667c6e}.hr-calendar-key14306 span:first-child{color:#9b7023}.hr-calendar-key14306 span:nth-child(2){color:#765494}
+.hr-empty14306{padding:12px}.hr-upcoming14306{padding:0 12px}.hr-source14306{font-size:11px}
+@media(max-width:900px){.hr-calendar-layout14306{grid-template-columns:220px minmax(0,1fr);gap:10px}.hr-calendar14306{padding:10px}.hr-event14306{grid-template-columns:32px minmax(0,1fr);padding:7px;gap:6px}.hr-date14306{padding:2px}.hr-cal-chip14306{font-size:9px;padding:3px}.hr-month-head14306{gap:5px}}
+@media(max-width:700px){.hr-calendar-layout14306{grid-template-columns:1fr}.hr-calendar-layout14306>aside{order:2}.hr-calendar14306>header{flex-wrap:wrap}.hr-employee-dialog14306 #employeeForm82 .fields82{grid-template-columns:repeat(2,minmax(0,1fr))!important}.hr-week14306{grid-template-columns:70px 24px 1fr 1fr 75px;font-size:10px;gap:5px}.hr-fields14306{grid-template-columns:1fr}.hr-wide14306{grid-column:auto}}
+
+@layer app-controls14305{body .hr-date14306>button:not([aria-current=date]){border-color:transparent!important}}
+body.shell113 :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) .module109,body.shell113 #hr-calendar .hr-calendar14306{border-top-color:#008563!important;box-shadow:none!important}
+
+body #hrEmployeeDialog14306 #employeeForm82 .form-actions82{gap:8px}
