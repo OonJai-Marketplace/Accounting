@@ -1,5 +1,7 @@
 # Navigation and Document Editor v143.11
 
+The browser-local password history described below is superseded by v143.12. See `DOWNLOAD-PASSWORDS-v143.12.md` and install its SQL migration for database-backed recovery.
+
 News and Events and its shared calendar were already delivered in v143.10. This update adds actionable red counts to the desktop sidebar and horizontal tabs, including Transactions, Sub-Users, HR leave, and News and Events. Zero counts disappear, values above 99 display 99+, and permissions filter the counts. Uploaded navigation images retain their colors; selected SVG icons inherit the readable navigation text color.
 
 Document Editor menus now consistently show icons. PDF import offers editable extracted text or original page appearance. Scanned pages remain images and require OCR elsewhere for editable words. Text conversion can change complex layouts and omit illustrations; original appearance preserves those as images. Existing Word, RTF, ODT, plain-text, HTML, Markdown, and other document importers remain available. Spreadsheet editing was not added.
