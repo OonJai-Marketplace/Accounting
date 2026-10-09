@@ -21,7 +21,7 @@ function syncTab(){
  const active=document.querySelector('.tab-content.active');if(!active)return;
  const buttons=[...document.querySelectorAll('#appSidebar .tab-btn')];
  const button=buttons.find(b=>b.dataset.tabTarget===active.id||(b.getAttribute('onclick')||'').includes("'"+active.id+"'"));
- if(button){buttons.forEach(b=>b.classList.toggle('active',b===button));const title=document.getElementById('mainHeaderTitle');if(title)title.textContent=button.textContent.trim()}
+ if(button){buttons.forEach(b=>b.classList.toggle('active',b===button));const title=document.getElementById('mainHeaderTitle');if(title&&title.textContent!==button.textContent.trim())title.textContent=button.textContent.trim()}
 }
 function historyDetails(root){
  if(root.matches('.personal-history-list1437'))return [...root.querySelectorAll(':scope>div>details')];
@@ -41,7 +41,7 @@ function standardizeReportActions(){
 function standardizeVisibleDates(){
  for(const cell of document.querySelectorAll('#voucherRows14299 tr>td:nth-child(3),.th-activity time')){
   const raw=(cell.dataset.rawDate14300||cell.textContent||'').trim();if(!/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(raw))continue;
-  cell.dataset.rawDate14300=raw;cell.textContent=formatAppDate(raw);
+  cell.dataset.rawDate14300=raw;const formatted=formatAppDate(raw);if(cell.textContent!==formatted)cell.textContent=formatted;
  }
 }
 function hidePrivateDraftActivity(){for(const row of document.querySelectorAll('.th-activity'))if(/saved a draft/i.test(row.textContent||''))row.remove()}

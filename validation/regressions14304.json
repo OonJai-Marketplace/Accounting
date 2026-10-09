@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Idle Home, Review, Period Closing and Audit Logs remain stable",
+    "passed": true
+  },
+  {
+    "name": "Administrator opens their own workspace from Home and stays selected",
+    "passed": true
+  },
+  {
+    "name": "Period general description uses the same merged header as Active Journal",
+    "passed": true
+  },
+  {
+    "name": "Own-account report preview opens without changing the selected owner",
+    "passed": true
+  },
+  {
+    "name": "No uncaught errors",
+    "passed": true
+  }
+]

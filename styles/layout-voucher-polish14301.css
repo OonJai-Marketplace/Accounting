@@ -86,3 +86,9 @@ body.shell113 #workspaceTools108 #connectionFloat14301{background:#fffdf7!import
  body.shell113 #document-editor105 .doc-title105:has(.voucher-mode14303) .doc-name107{grid-column:1/-1;grid-row:2;width:100%!important;min-width:0!important}
  body.shell113 #document-editor105 .doc-title105:has(.voucher-mode14303) .doc-status105{grid-column:1/-1;grid-row:3}
 }
+
+body.shell113 #document-editor105 .doc-quick1426 [data-doc-action="voucher-save14299"]{margin-left:auto!important;flex:0 0 auto!important;order:99!important;width:auto!important;min-width:108px!important;padding:6px 12px!important;white-space:nowrap!important;background:#008563!important;color:white!important}
+body.shell113 #period-review .period-close-controls14304{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+body.shell113 #period-review .period-close-controls14304 .period-review-picker{min-width:150px!important;width:auto!important}
+body.shell113 #workspaceTools108 #connectionFloat14301{background:#194c38!important;border-color:#194c38!important;border-radius:8px!important;box-shadow:0 4px 16px #102d2230!important}
+body.shell113 #workspaceTools108 #connectionFloat14301 svg{stroke:#7ee2a5!important}
