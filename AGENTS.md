@@ -27,7 +27,11 @@ line memos. IDs come from the posting sequence, never visible row counts.
 Opening-balance reopening and sequence reset are explicit initial-setup actions
 only; never trigger either on deletion, voiding, or an empty filtered screen.
 
-Shared control rule: buttons and adjacent single-line inputs/selects use the
-32px Template / Post Entry height, defined by --app-control-height in
-styles/controls14305.css. Preserve this rule in new modules. Multiline text areas
-remain content-sized; hidden date inputs, checkboxes and radios retain their purpose.
+Action control rule: Save, Open, Templates, Print, Add, Edit, Delete and similar
+small action buttons use the 32px Template / Post Entry height in
+styles/controls14305.css. Scope sizing to explicit action classes or action
+containers. NEVER apply a universal button/[role=button] size or appearance rule.
+Top tabs, sidebar navigation, profile/name cards, sub-user cards, dashboard
+summaries, calendar cells, and document tabs retain their component designs.
+Attendance squares are 22px within 26px columns; center the rendered day number,
+not just its table cell. Phone navigation keeps its original icon/label layout.

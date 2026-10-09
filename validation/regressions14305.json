@@ -24,7 +24,7 @@
     "passed": true
   },
   {
-    "name": "Visible controls share the 32px rule across desktop and tablet modules",
+    "name": "Small action buttons are 32px without restyling tabs, profiles or summary cards",
     "passed": true
   },
   {

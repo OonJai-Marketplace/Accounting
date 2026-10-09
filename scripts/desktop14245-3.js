@@ -5919,7 +5919,7 @@ const renderBefore83=renderWork82;renderWork82=function(){renderBefore83();if(!d
 function previewRun83(id){const s=PayrollSamples83.runs.find(r=>r.id===id);if(!s)return;Work82.runRecord=null;Work82.run={...structuredClone(s.data),previewOnly83:true};switchTab('payroll-entries')}
 const saveRunBefore83=saveRun82;saveRun82=function(finalize=false){if(Work82.run?.previewOnly83)return showCenterStatus('Install the repair and sample SQL to save these examples.',true);if(finalize&&Work82.run?.isSample)return showCenterStatus('A sample cannot be finalized as actual payroll. Create a real payroll run after reviewing your employee records.',true);return saveRunBefore83(finalize)};
 // Sample flags remain internal; employee forms do not expose a sample toggle.
-function alignTableHeaders83(root=document){root.querySelectorAll('table thead th,table thead td').forEach(n=>{if(n.closest('#document-editor105'))return;n.style.setProperty('text-align','left','important');n.style.setProperty('font-weight','700','important')})}
+function alignTableHeaders83(root=document){root.querySelectorAll('table thead th,table thead td').forEach(n=>{if(n.closest('#document-editor105'))return;n.style.setProperty('text-align',n.matches('table.attendance-grid99 thead th:not(:first-child)')?'center':'left','important');n.style.setProperty('font-weight','700','important')})}
 function alignAllHeaders83(){alignTableHeaders83()}
 let headerPending83=false;function scheduleHeaders83(){if(headerPending83)return;headerPending83=true;requestAnimationFrame(()=>{headerPending83=false;alignAllHeaders83()})}
 document.addEventListener('DOMContentLoaded',()=>{alignAllHeaders83();new MutationObserver(scheduleHeaders83).observe(document.body,{childList:true,subtree:true});renderWork82()});
