@@ -1,0 +1,55 @@
+const fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
+const results=[];async function check(name,fn){try{await fn();results.push({name,passed:true});console.log('PASS',name)}catch(e){results.push({name,passed:false,error:e.message});console.log('FAIL',name,e.message)}}
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const binary={args:['--no-sandbox','--disable-dev-shm-usage'],executablePath:async()=>'/tmp/chromium'};
+const root=process.argv[2]||path.resolve(__dirname,'..');fs.mkdirSync(path.join(root,'validation/screenshots'),{recursive:true});
+const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png'};
+const server=http.createServer((req,res)=>{const p=path.join(root,decodeURIComponent(req.url.split('?')[0]));try{res.setHeader('Content-Type',mime[path.extname(p)]||'application/octet-stream');res.end(fs.readFileSync(p));}catch{res.statusCode=404;res.end();}});
+(async()=>{if(fs.existsSync('/tmp/chromium')&&!fs.statSync('/tmp/chromium').size)fs.unlinkSync('/tmp/chromium');await new Promise(r=>server.listen(0,'127.0.0.1',r));
+const base='http://127.0.0.1:'+server.address().port;const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||await binary.executablePath(),args:binary.args.filter(a=>!a.includes("disable-web-security"))});
+const context=await browser.newContext({viewport:{width:1280,height:900},isMobile:false,hasTouch:false});const page=await context.newPage();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log('PAGEERROR',e.stack||e.message)});
+await page.addInitScript(()=>{
+ const uid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
+ const profiles=[{id:uid(1),email:'admin@example.invalid',full_name:'Santos Cabbigat',role:'admin',status:'active',user_permissions:{modules:[]}},...['Ryan Santos','Jade Plata','Gee Ann'].map((name,i)=>({id:uid(i+2),email:'staff'+i+'@example.invalid',full_name:name,role:'submitter',status:'active',user_permissions:{manager_id:uid(1),job_title:'Employee',department14229:'Operations',assigned_fund_account_ids:[uid(101+i)],destination_account_ids:[uid(110)],allowed_directions:['out'],module_actions113:{'sub-users-workspace':['view','edit'],'user-entry-review':['view','approve']}}}))];
+ const accounts=['LAK','USD','THB'].map((c,i)=>({id:uid(101+i),code:String(101+i),name:'Cash on Hand',currency_code:c,currency:c,type:'ASSET',account_type:'ASSET',is_posting:true,isPosting:true,active:true}));accounts.push({id:uid(110),code:'5100',name:'Supplies',currency_code:'LAK',currency:'LAK',type:'EXPENSE',account_type:'EXPENSE',is_posting:true,isPosting:true,active:true});
+ const balances=Object.fromEntries(profiles.slice(1).map((u,i)=>[u.id,[{id:accounts[i].id,account_id:accounts[i].id,name:accounts[i].name,currency:accounts[i].currency,opening:1000,received:100,used:20,handover:0,closing:1080}]]));
+ const permissions=profiles.map(u=>({user_id:u.id,...u.user_permissions}));accounts.forEach(a=>a.is_active=true);const tables={report_types14253:[{id:uid(700),name:'Cashier report',active:true},{id:uid(701),name:'Expense report',active:true}],business_settings:[{id:true,legal_name:"Fixture Business",display_name:"Fixture Business"}],profiles,accounts,user_permissions:permissions,session_policy1443:[{id:true,timeout_minutes:60,warning_minutes:1}],currencies:[{code:'LAK',symbol:'₭',is_active:true,is_base:true},{code:'USD',symbol:'$',is_active:true},{code:'THB',symbol:'฿',is_active:true}]};
+ function query(table){let filters=[];let single=false;let update=null;const q=new Proxy({}, {get(_,k){if(k==='then')return (resolve,reject)=>{const rows=(tables[table]||[]).filter(r=>filters.every(([k,v])=>r[k]===v));if(update){window.__writes.push({table,filters,update});rows.forEach(r=>{Object.assign(r,update);if(table==='user_permissions')Object.assign(profiles.find(u=>u.id===r.user_id).user_permissions,update)})}return Promise.resolve({data:single?rows[0]||null:rows,error:null}).then(resolve,reject)};return (...args)=>{if(k==='eq')filters.push(args);if(k==='single'||k==='maybeSingle')single=true;if(k==='update')update=args[0];if(k==='insert'){const row={id:crypto.randomUUID(),version:1,updated_at:new Date().toISOString(),...args[0]};(tables[table]||= []).push(row);filters.push(['id',row.id]);window.__writes.push({table,insert:row});}return q;}}});return q;}
+ window.__pack14232={format:'oonjai-data-113',from:'2026-01-01',to:'2026-12-31',tables:{accounts,sub_accounts:[],currencies:tables.currencies,profiles,user_permissions:permissions,journal_entries:[{id:uid(201),entry_no:'TEST-1',transaction_date:'2026-01-05',memo:'Audit source',status:'posted'}],journal_lines:[{id:uid(301),journal_entry_id:uid(201),account_id:uid(110),currency_code:'LAK',debit:100,credit:0},{id:uid(302),journal_entry_id:uid(201),account_id:uid(101),currency_code:'LAK',debit:0,credit:100}],payroll_runs:[{id:uid(401),period_start:'2026-01-01',data:{results:[{employeeId:uid(501),name:'Audit Employee',net:1000}]}}],payroll_employees:[{id:uid(501),data:{name:'Audit Employee',salary:1000}}]},auditTrail:{audit_log:[]},storage:[]};const rpc=async(name,p={})=>{window.__calls.push(name);let data=[];if(name==='admin_save_access1441')data={saved:true,user_id:p.p_user};if(name==='workflow_capabilities14253')data={version:14253};if(name==='submit_report14253'){window.__submitted14253=structuredClone(p);data=null;}if(name==='audit_snapshot14232')data=window.__pack14232;if(name==='backup_export113')data=window.__pack14232;if(name==='accounting_archive_preview127')data={rows:{},categories:{},total:0};if(name==='accounting_archive_audit126')data={audit_log:[]};if(name==='scoped_reset_backup14232')data={format:'oonjai-reset-14232',scopes:p.p_scopes,tables:{audit_log:[{id:1}]}};if(name==='scoped_reset14232')data={counts:{audit_log:1},total:1,requiredTables:[],preserved:'All unselected areas'};if(name==='branch_home14229')data={users:profiles.map(u=>({id:u.id,full_name:u.full_name,email:u.email,can_open:true,user_permissions:{assigned_fund_account_ids:u.user_permissions.assigned_fund_account_ids||[]}})),balances,reports:[]};if(name==='review_directory14229')data=profiles;if(name==='current_access14228')data={profile:profiles[0],permissions:profiles[0].user_permissions};if(name==='fund_balances136')data=balances[p.p_owner]||[];if(name==='reminder_load14229')data={revision:0,items:[]};if(name==='employee_photo113')data=null;if(name==='get_session_policy1443')data={timeout_minutes:60,warning_minutes:1};return {data:JSON.parse(JSON.stringify(data)),error:null};};
+ window.__writes=[];window.__calls=[];window.__fixture={profiles,accounts,balances,tables};window.__db14231={rpc,from:query,auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>{},signInWithPassword:async()=>{await new Promise(r=>window.__releaseLoginFixture14232=r);return {data:{},error:{message:'Test sign-in rejected'}};},signOut:async()=>({error:null})},storage:{from:()=>({})},functions:{invoke:async()=>({data:{},error:null})}};
+});
+await page.route('**/*',route=>{const url=route.request().url();if(url.includes('assets/vendor/supabase.js')||url.includes('supabase-js'))return route.fulfill({contentType:'text/javascript',body:'window.supabase={createClient:()=>window.__db14231};'});if(url.startsWith(base))return route.continue();return route.abort();});
+await page.goto(base+'/index.html',{waitUntil:'load'});await page.waitForTimeout(500);
+
+await page.evaluate(()=>{liveProfile=__fixture.profiles[0];livePermission=__fixture.profiles[0].user_permissions;liveProfiles=__fixture.profiles;ojmDb=__db14231;window.ojmDb=ojmDb;DemoAccess.currentUser={...liveProfile,name:liveProfile.full_name,active:true};AccountingStore.accounts=__fixture.accounts;CurrencyStore.currencies=[{code:'LAK',symbol:'₭'},{code:'USD',symbol:'$'},{code:'THB',symbol:'฿'}];document.getElementById('loginGate').classList.add('is-authenticated');document.documentElement.classList.remove('session-checking1444');window.permissions1441.verified=true;});
+
+
+
+
+page.setDefaultTimeout(10000);
+
+await page.evaluate(async()=>{await openDocumentEditor105();});
+const frame=()=>page.frameLocator('#document-editor105 iframe');
+
+await check('Idle voucher controls do not create a continuous DOM refresh loop',async()=>{
+ await page.waitForTimeout(200);
+ const count=await page.evaluate(()=>new Promise(resolve=>{let count=0;const n=document.getElementById('voucherBlank14299');const observer=new MutationObserver(records=>count+=records.length);observer.observe(n,{childList:true});setTimeout(()=>{observer.disconnect();resolve(count)},300)}));assert.equal(count,0);
+});
+await check('Handwritten voucher shortcut only prints while the editor is active',async()=>{
+ await page.evaluate(async()=>{await openDocumentEditor105({title:'Reserved voucher test',html:'<p>Reserved voucher</p>',voucher14299:{kind:'H',batchIds:['one'],id:'reserved-batch'}});window.__shortcutPrints=0;document.querySelector('#docFrame105').contentWindow.print=()=>window.__shortcutPrints++});
+ await page.keyboard.press('Control+p');assert.equal(await page.evaluate(()=>__shortcutPrints),1);
+ await page.evaluate(()=>switchTab('dashboard'));await page.keyboard.press('Control+p');assert.equal(await page.evaluate(()=>__shortcutPrints),1);
+});
+await check('Ten blank vouchers produce ten A5 PDF pages with ten distinct IDs',async()=>{
+ await page.evaluate(()=>{__fixture.tables.voucher_settings14299=[{id:1,prefix:'OJM',handwritten_code:'H',editor_code:'E',digits:4}];__fixture.tables.vouchers14299=[];const old=ojmDb.rpc;ojmDb.rpc=async(name,p)=>name==='voucher_issue14299'?{data:Array.from({length:p.p_count},(_,i)=>({id:'sheet-'+i,number:'OJM-26H-'+String(i+1).padStart(4,'0'),kind:'H',voucher_date:p.p_date,data:p.p_data})),error:null}:old(name,p);switchTab('transactions-vouchers14299')});
+ await page.locator('#voucherBatch14299').fill('10');await page.locator('#voucherBlank14299').click();
+ const choose=page.locator('.ui-overlay108').filter({has:page.locator('#docTarget1432')});await choose.waitFor();await choose.getByRole('button',{name:'Add new tab',exact:true}).click();await page.waitForFunction(()=>documentWorkspace105.voucher?.batchIds?.length===10);
+ await page.waitForTimeout(300);
+ assert.equal(await frame().locator('.page').count(),10);
+ const ids=await frame().locator('[data-voucher-number14299]').allTextContents();assert.equal(new Set(ids).size,10);
+ const content=await page.locator('#docFrame105').evaluate(n=>n.contentDocument.documentElement.outerHTML);
+ const print=await context.newPage();await print.setContent(content);await print.pdf({path:'/tmp/vouchers14302.pdf',preferCSSPageSize:true,printBackground:true});await print.close();
+ await page.screenshot({path:path.join(root,'validation/screenshots/audit14302-vouchers.png')});
+});
+fs.writeFileSync(path.join(root,'validation/last-push14302.json'),JSON.stringify(results,null,2));await browser.close();server.close();if(results.some(r=>!r.passed))process.exitCode=1;
+})().catch(e=>{console.error(e);server.close();process.exit(1)});

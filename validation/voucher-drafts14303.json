@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Cancel opening and opening ten handwritten drafts allocate no IDs",
+    "passed": true
+  },
+  {
+    "name": "Cancel print confirmation keeps the batch unrecorded",
+    "passed": true
+  },
+  {
+    "name": "Save allocates ten unique IDs once; print and download do not allocate again",
+    "passed": true
+  },
+  {
+    "name": "Editor voucher save is right aligned; canceled download consumes no number",
+    "passed": true
+  },
+  {
+    "name": "Table inspector is narrow, full height, with requested two-row controls",
+    "passed": true
+  },
+  {
+    "name": "Payment voucher starter removed and connection icon first in square dock",
+    "passed": true
+  },
+  {
+    "name": "Audit and period headers each retain only the rightmost print control",
+    "passed": true
+  },
+  {
+    "name": "Retry after a lost reservation response reuses the same IDs and payload",
+    "passed": true
+  },
+  {
+    "name": "All table panels fit desktop and iPad without horizontal clipping",
+    "passed": true
+  },
+  {
+    "name": "Row action menu opens beside its button without an animated reposition",
+    "passed": true
+  }
+]

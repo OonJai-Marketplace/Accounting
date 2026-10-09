@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Idle voucher controls do not create a continuous DOM refresh loop",
+    "passed": true
+  },
+  {
+    "name": "Handwritten voucher shortcut only prints while the editor is active",
+    "passed": true
+  },
+  {
+    "name": "Ten blank vouchers produce ten A5 PDF pages with ten distinct IDs",
+    "passed": true
+  }
+]

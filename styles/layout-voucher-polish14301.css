@@ -45,3 +45,44 @@ body.shell113 #dashboard .dash-flow112 .dash-flow-step112:hover,body.shell113 #d
 body.shell113 #dashboard .dash-flow112 .dash-flow-step112:hover :is(b,strong,small),body.shell113 #dashboard .dash-flow112 .dash-flow-step112:focus-visible :is(b,strong,small){color:#fff!important}
 body.shell113 :is(.nav-header,.nav-links button)[style*="background"]:hover{filter:none!important}
 @media(max-width:767px){body.shell113 #connectionFloat14301{display:none!important}}
+
+@media screen and (min-width:768px){
+ body.shell113 .team-home14227 .th-quick .th-button :is(b,small){white-space:normal;overflow-wrap:anywhere}
+}
+
+/* Compact full-height table inspector and aligned workspace status control. */
+@media screen and (min-width:768px){
+ body.shell113 #document-editor105.table-open14298 .doc-canvas105{align-items:stretch!important;gap:8px!important}
+ body.shell113 #document-editor105 .doc-table-sidebar14298{flex:0 0 252px!important;width:252px!important;align-self:stretch!important;max-height:none!important;height:auto!important;padding:10px!important;overflow:auto!important}
+ body.shell113 #document-editor105.table-open14298 #docFrame105{width:calc(100% - 260px)!important}
+ body.shell113 #document-editor105 .doc-table-tabs14301{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ body.shell113 #document-editor105 .doc-table-tabs14301 button{grid-column:span 2;min-height:34px;white-space:normal}
+ body.shell113 #document-editor105 .doc-table-tabs14301 button:nth-child(n+4){grid-column:span 3}
+ body.shell113 #document-editor105 .doc-table-controls1424>fieldset{flex-wrap:wrap!important;align-items:stretch!important}
+ body.shell113 #document-editor105 .doc-table-controls1424>fieldset label{flex:1 1 95px!important;min-width:0!important}
+ body.shell113 #document-editor105 .doc-table-controls1424>fieldset :is(input,select){max-width:100%!important;box-sizing:border-box}
+ body.shell113 #document-editor105 .doc-structure-add14301{grid-template-columns:1fr 1fr!important}
+ body.shell113 #document-editor105 .doc-structure-add14301 label{grid-column:1/-1}
+ body.shell113 #document-editor105 .doc-title105 [data-doc-action="voucher-save14299"]{margin-left:auto!important;flex:0 0 auto!important;order:99;white-space:nowrap}
+ body.shell113 #workspaceTools108 #connectionFloat14301{position:static!important;inset:auto!important;width:36px!important;height:36px!important;border-radius:6px!important;margin:0!important;padding:7px!important;box-shadow:none!important;color:#16894d}
+ body.shell113 #workspaceTools108 #connectionFloat14301 svg{width:20px;height:20px}
+ body.shell113 #workspaceTools108 #connectionFloat14301[data-state="limited"],body.shell113 #workspaceTools108 #connectionFloat14301[data-state="syncing"]{color:#c57505}
+ body.shell113 #workspaceTools108 #connectionFloat14301[data-state="offline"],body.shell113 #workspaceTools108 #connectionFloat14301[data-state="attention"]{color:#dc2626}
+}
+body .row-menu-panel99{transition:none!important;animation:none!important}
+
+body #document-editor105 .voucher-mode14303{font-size:11px;color:#176049;white-space:nowrap;padding:5px 7px;background:#edf5ef;border:1px solid #bed1c3;border-radius:4px}
+
+body.shell113 #workspaceTools108 #connectionFloat14301 svg{stroke:#16894d!important}
+body.shell113 #workspaceTools108 #connectionFloat14301[data-state="limited"] svg,body.shell113 #workspaceTools108 #connectionFloat14301[data-state="syncing"] svg{stroke:#ef8614!important}
+body.shell113 #workspaceTools108 #connectionFloat14301[data-state="offline"] svg,body.shell113 #workspaceTools108 #connectionFloat14301[data-state="attention"] svg{stroke:#dc2626!important}
+
+body.shell113 #workspaceTools108 #connectionFloat14301{background:#fffdf7!important;border:1px solid #b8c8bb!important}
+
+@media screen and (min-width:768px) and (max-width:1024px){
+ body.shell113 #document-editor105 .doc-title105:has(.voucher-mode14303){display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:5px 8px!important}
+ body.shell113 #document-editor105 .doc-title105 .voucher-mode14303{grid-column:1;grid-row:1;justify-self:start}
+ body.shell113 #document-editor105 .doc-title105 [data-doc-action="voucher-save14299"]{grid-column:2;grid-row:1}
+ body.shell113 #document-editor105 .doc-title105:has(.voucher-mode14303) .doc-name107{grid-column:1/-1;grid-row:2;width:100%!important;min-width:0!important}
+ body.shell113 #document-editor105 .doc-title105:has(.voucher-mode14303) .doc-status105{grid-column:1/-1;grid-row:3}
+}

@@ -14,8 +14,8 @@ const LAYOUT_ASSETS14256=['scripts/offline14239.js','styles/layout14256.css','sc
 const FIX_ASSETS14255=['scripts/admin-access14251.js'];
 const REPORT_ASSETS14254=['scripts/reports14254.js'];
 const RELEASE_ASSETS14299=["scripts/vouchers14299.js", "scripts/transaction-consistency14300.js", "styles/transaction-consistency14300.css", "scripts/layout-voucher-polish14301.js", "styles/layout-voucher-polish14301.css", "scripts/desktop14245-2.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "styles/desktop14245.css", "styles/voucher-layout14299.css", "scripts/offline14239.js", "scripts/backup-validation1441.js", "scripts/audit-workspace14232.js"];
-const releaseVersion14299=asset=>['scripts/vouchers14299.js','scripts/transaction-consistency14300.js','styles/transaction-consistency14300.css','scripts/layout-voucher-polish14301.js','styles/layout-voucher-polish14301.css','scripts/desktop14245-3.js','scripts/desktop14245-4.js','scripts/desktop14245-6.js','scripts/offline14239.js'].includes(asset)?'143.01':'142.99';
-const VERSION='143.01',STATIC_VERSION='142.47',CACHE='ojm-accounting-shell-'+STATIC_VERSION;
+const releaseVersion14299=asset=>['scripts/vouchers14299.js','scripts/transaction-consistency14300.js','styles/transaction-consistency14300.css','scripts/layout-voucher-polish14301.js','styles/layout-voucher-polish14301.css','scripts/desktop14245-3.js','scripts/desktop14245-4.js','scripts/desktop14245-6.js','scripts/offline14239.js'].includes(asset)?'143.03':'142.99';
+const VERSION='143.03',STATIC_VERSION='142.47',CACHE='ojm-accounting-shell-'+STATIC_VERSION;
 const PHONE_ASSETS14253=['scripts/workflow14253.js','scripts/account-groups14253.js','scripts/field-focus14253.js','styles/workflow14253.css','scripts/offline14239.js','scripts/desktop14245-3.js','scripts/phone-connected.js','scripts/phone-account-picker14227.js'];
 const PHONE_ASSETS14252=['scripts/phone-keyboard14252.js','scripts/admin-access14251.js','scripts/phone-connected.js'];
 const PHONE_ASSETS14251=['scripts/admin-access14251.js','scripts/phone-connected.js','scripts/desktop14245-6.js'];
