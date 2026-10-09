@@ -1,0 +1,25 @@
+/* Focused voucher register and Journal field sizing. */
+.voucher-pick14299{
+  flex:0 0 190px!important;
+  width:190px!important;
+  min-width:190px!important;
+  max-width:190px!important;
+}
+.voucher-pick14299 .je-select{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+#transactions-vouchers14299 .voucher-actions14299,
+#transactions-vouchers14299 .actions-column99{
+  width:84px!important;
+  min-width:84px!important;
+  max-width:84px!important;
+  box-sizing:border-box;
+  white-space:nowrap!important;
+  text-align:center!important;
+  padding-inline:8px!important;
+}
+#transactions-vouchers14299 .row-menu99>summary{
+  margin-inline:auto;
+}
