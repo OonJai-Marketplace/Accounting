@@ -1,0 +1,21 @@
+#settings-maintenance14324 .maintenance-grid14324{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+#settings-maintenance14324 .maintenance-card14324{min-width:0;padding:20px;border:1px solid #dce2dc;border-radius:10px;background:#fff}
+#settings-maintenance14324 .maintenance-card14324 h3{margin:0 0 10px;color:#174c3b;font-size:17px}
+#settings-maintenance14324 .maintenance-card14324 p{line-height:1.5}
+.maintenance-actions14324{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.maintenance-actions14324 button,.maintenance-actions14324 .maintenance-download14324{height:32px;min-height:32px;padding:0 12px;display:inline-flex;align-items:center;border:1px solid #cbd9cf;border-radius:5px;background:#176249;color:#fff;font:inherit;font-size:12px;text-decoration:none;cursor:pointer}
+.maintenance-actions14324 button:disabled{opacity:.5;cursor:wait}
+.maintenance-table14324{overflow:auto;max-width:100%;margin:12px 0}
+.maintenance-table14324 table{width:100%;border-collapse:collapse;font-size:12px}
+.maintenance-table14324 th,.maintenance-table14324 td{padding:8px;text-align:left;vertical-align:top;border-bottom:1px solid #e5e9e5;overflow-wrap:anywhere}
+.maintenance-table14324 th{background:#edf2ee;color:#244737}
+.maintenance-result14324{margin:16px 0;padding:16px;background:#f8faf8;border:1px solid #dce2dc;border-radius:8px;overflow-wrap:anywhere}
+.maintenance-result14324 pre{max-height:300px;overflow:auto;white-space:pre-wrap;font-size:12px}
+.maintenance-block14324{color:#a12323}.maintenance-warning14324{color:#85520a}
+.maintenance-review14324{max-height:66vh;overflow:auto;padding:4px}
+.maintenance-review14324 fieldset{border:1px solid #dce2dc;border-radius:6px;margin:12px 0;padding:12px}
+.maintenance-review14324 label{display:block;margin:8px 0}
+.maintenance-review14324 input[type=text],.maintenance-review14324 input[type=number]{width:100%;box-sizing:border-box;padding:8px;border:1px solid #bdcbbf;border-radius:4px}
+.maintenance-review14324 input[type=checkbox]{width:auto;margin-right:7px}
+#settings-maintenance14324 input,#settings-maintenance14324 select{max-width:100%;padding:7px;border:1px solid #bdcbbf;border-radius:4px}
+@media(max-width:1000px){#settings-maintenance14324 .maintenance-grid14324{grid-template-columns:1fr}}

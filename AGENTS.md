@@ -35,3 +35,9 @@ Top tabs, sidebar navigation, profile/name cards, sub-user cards, dashboard
 summaries, calendar cells, and document tabs retain their component designs.
 Attendance squares stay compact at 22px; distribute date columns across the module width (scroll only when too narrow). Center the rendered day number,
 not just its table cell. Phone navigation keeps its original icon/label layout.
+
+Recovery comparison baseline (user instruction, 2026-10-10): v143.16 commit
+14d724e15c057bbd4e63324754f89959ea48a784, before the v143.17 action colors.
+Use it to compare stability and layout while preserving later approved features.
+Desktop remains native 100% with existing responsive styles; do not restore
+automatic whole-document zoom or rewrite all stylesheet media queries.

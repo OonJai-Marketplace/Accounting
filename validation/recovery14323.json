@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Native desktop size remains 100% at narrow, standard and wide widths",
+    "passed": true
+  },
+  {
+    "name": "Mandatory controls keep identity, focus and colors through a slow refresh",
+    "passed": true
+  },
+  {
+    "name": "Mandatory printing uses the active month and ignores hidden loading messages",
+    "passed": true
+  },
+  {
+    "name": "Payroll retains its existing report controls without a duplicate Print Report above the banner",
+    "passed": true
+  },
+  {
+    "name": "Saved Journal entries keep visible Edit and authorized Void actions after rebuilding",
+    "passed": true
+  },
+  {
+    "name": "OS-safe mnemonic navigation opens Transactions and preserves editor shortcuts",
+    "passed": true
+  },
+  {
+    "name": "Fullscreen keeps clickable module icons, logo, account control and restores the sidebar",
+    "passed": true
+  },
+  {
+    "name": "Action colors appear before the next paint and do not decorate navigation",
+    "passed": true
+  },
+  {
+    "name": "Desktop and tablet navigation visits keep top tabs aligned and have no page overflow",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors",
+    "passed": true
+  }
+]

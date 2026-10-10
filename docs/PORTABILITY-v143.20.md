@@ -15,7 +15,7 @@ The Supabase connection remains a deployment choice, outside handover saves. Poi
 
 The original schema and backend routines have now been recovered and consolidated. **The complete clean installer is `setup/fresh/001-Install-Empty-Database.sql`.** No source-database export or historical repair sequence is needed for a new installation.
 
-Follow `setup/fresh/START-HERE.md`, then run numbered files 001, 002 and 003. File 001 includes all current backend definitions, initial reference/settings rows, private bucket policies, Data API request gate and owner-only maintenance tools. File 002 explicitly bootstraps the first confirmed Auth administrator. File 003 checks frontend RPC coverage and access protections.
+Follow `setup/fresh/START-HERE.md`, then run numbered files 001, 002, 003 and 004. File 001 includes all current backend definitions, initial reference/settings rows, private bucket policies, Data API request gate and owner-only maintenance tools. File 002 explicitly bootstraps the first confirmed Auth administrator. File 003 checks frontend RPC coverage and access protections.
 
 The portable ZIP uses an empty deployment configuration for your new Supabase project and GitHub repository. Copy all its frontend folders into the new repository and configure the public values using setup.html. Complete the hosted Auth, Edge, email and upload checks after connecting the new account. Local PostgreSQL verification does not exercise those hosted transports.
 
@@ -62,3 +62,5 @@ The current source repository also contains the older frontend and Edge regressi
 The bundled clean installer includes the required Storage bucket rows/policies, singleton state and composed Data API request hook. An optional generic pg_dump schema-only export does not include those platform/configuration rows by itself. Auth users, Storage file bytes, Edge deployment/secrets, SMTP and service-account ownership remain external installation steps.
 
 The SQL maintenance templates are separated into add, edit, read, backup and delete folders. See `setup/maintenance/START-HERE.md`; they are owner-only and do not loosen browser permissions.
+
+For v143.24, file 004 adds the new read-only audit/maintenance endpoints and required closing gate. Existing v143.22 databases instead run `setup/INSTALL-MAINTENANCE-v143.24.sql`. GitHub publication does not execute database migrations.

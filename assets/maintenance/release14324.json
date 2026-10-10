@@ -1,0 +1,1300 @@
+{
+  "release": "143.24",
+  "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
+  "files": [
+    {
+      "path": "desktop-sw14242.js",
+      "sha256": "83a474bddad3cabf21d2b00d8d5780c2c3553c537254385a5bb34a5e8dd3f9d4",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "desktop.html",
+      "sha256": "ddbf27a3fc5e3c9f367e76e898a035b0d78bd6bd0bd3b68629f342ff4dce234b",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/account-currency14257.js",
+      "sha256": "e97d294fe93b9aac28ac7f5339782970242ede31929f06ea3078ae016fed7e55",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/account-groups14253.js",
+      "sha256": "451d64996859a9a49a19f6e27603ff7d4932a3cd3a7b812403aeecac8a543466",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/account-security14257.js",
+      "sha256": "d9ea3cad8ed9ac022865d2907d4e927fc8973759ce20397ad243ab9a18433b68",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/action-feedback14296.js",
+      "sha256": "b3ffce4684710479107273908102e94b6cffa2873b8f4253ff59076d5b00a312",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/admin-access14251.js",
+      "sha256": "dfcb5dbacb899b346da9681d871f5695b15da7e31d6894d309b15b8a130b32d4",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/assigned-ledger14281.js",
+      "sha256": "1c792ae315ac6491b91c398f1b4b6fc21fdedf85d6bacad0fb4ad06f2a5bdc05",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/audit-explanation14260.js",
+      "sha256": "dfa9623f802a88dd6d94db28a7856d1918094a81c8328816e43a00801b1781ec",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/auto-sync14256.js",
+      "sha256": "70209678c23c9b1390d4cb72577c83bafea9c0d723b0cd234191393a5fc6039c",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/budget-gmail14314.js",
+      "sha256": "2a658fdd52e2c56fb425d76b1b71fbf87c487083e3edc6a0b0d2d3ddccb83c27",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/budget-messages14314.js",
+      "sha256": "7973e7e9526b742b1eeaaa58928eec325d1dc3e0f71021bcd1660734b34a2fe4",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/budget-workflow14316.js",
+      "sha256": "8583b778d47390c7b6f1aa6ff472cc60b4decd490daa271dad6b8bf011f93dda",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/budget14313.js",
+      "sha256": "2e44716a3ebd6a6db90fc4e76ee46b5a046547eb0190b39923ba5310b4ea3195",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/company-accounts14319.js",
+      "sha256": "1ce759c94a75ce2cc902f7bc3c3c131f81cc962b41e1cbde370cef553849d069",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/controls14317.js",
+      "sha256": "41452eacab26660fe8e539b4d5087820f858393c4d5cebcbb29bc8061813eb74",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/design14284.js",
+      "sha256": "ef3c058d5dc261620ae1b8e772cea1bd6a460c981db82701feb31999397c2fb4",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/desktop-scale14320.js",
+      "sha256": "cc61a448d8d79505971eb444908176667c1a3c20481b4d4cbdc681612debcdd8",
+      "effect": "Scaling may affect responsive layout and pointer coordinates."
+    },
+    {
+      "path": "scripts/desktop14245-1.js",
+      "sha256": "b760fa395c72430a4cfbc5ef9b33d7a3671cf11a0a6b6527fcb48c59fd8d432e",
+      "effect": "The component may differ from the tested release; reload and investigate this file.",
+      "segments": [
+        {
+          "source": "scripts/device-mode132.js",
+          "sha256": "17d713e22acdd81194cfeb0848293d42d49bc6bcfa066fe8d63e61c628f26e39"
+        },
+        {
+          "source": "scripts/loading1444.js",
+          "sha256": "69365c2f5ec35c15d6052061451bc883892b5fe154f7dab053972a79d675b4d9"
+        }
+      ]
+    },
+    {
+      "path": "scripts/desktop14245-2.js",
+      "sha256": "104b27060fefea5a3f69b5e2366bb1350c47d60cf68f328084875a1705770811",
+      "effect": "The component may differ from the tested release; reload and investigate this file.",
+      "segments": [
+        {
+          "source": "scripts/backup-validation1441.js",
+          "sha256": "6b982ed312b96b5d0c77d1f7ecfc446527b99afbc5b646022fcbd40bc01cc8ba"
+        },
+        {
+          "source": "scripts/cell-navigation14233.js",
+          "sha256": "927886e41a35fcfb848c21c0a56797b2364ec1098bdb2bba7b4a2282bbf71a81"
+        }
+      ]
+    },
+    {
+      "path": "scripts/desktop14245-3.js",
+      "sha256": "5fe93fe9bc5c5555c3f5542907b86584b72f1b3e2109de8b17a0cdc1ae87ce1c",
+      "effect": "The component may differ from the tested release; reload and investigate this file.",
+      "segments": [
+        {
+          "source": "scripts/workspace-request-v138.js",
+          "sha256": "3134344735b39c101f044ce145a1e3fb254d156f12ace42bb02c6e62cdb335ef"
+        },
+        {
+          "source": "scripts/script.js",
+          "sha256": "8be57a7ba34fa69d63a6beed4072efe0f126eabdc22721c7dd9be802f6a431ae"
+        },
+        {
+          "source": "scripts/workspace-settings.js",
+          "sha256": "07c0a9a6275bdaa8e169b861b5c0f8372a87bc9e2709d8faba57af4e9663bba5"
+        },
+        {
+          "source": "scripts/navigation-v48.js",
+          "sha256": "5b4088cbb052448b0580782c701cab477fd4a262860de66571972371fb611c2d"
+        },
+        {
+          "source": "scripts/subusers-final-v53.js",
+          "sha256": "b389ff6819db3982fd08d1fe59e03e813879acff808c398a2d6a3a1bb1fe2373"
+        },
+        {
+          "source": "scripts/subusers-final-v54.js",
+          "sha256": "90c46408814fe79ab41361040b8da124e595cf1e89bcbeda84f6d5151455868b"
+        },
+        {
+          "source": "scripts/subusers-final-v55.js",
+          "sha256": "fa8a4245f4cb46113cc48932cd3f070804c6f486038e30834fdab334e2dbab61"
+        },
+        {
+          "source": "scripts/subusers-final-v56.js",
+          "sha256": "cf6ac6b79fb7fa7b6e1603533fbb95476622d7b5567710c646c7df8947f66379"
+        },
+        {
+          "source": "scripts/design-system-v58.js",
+          "sha256": "82b6367234749cec2bcd270f01dd3ee83bdf0bb0b40ab84ed98e5a70a994d2f4"
+        },
+        {
+          "source": "scripts/mobile-tables-v66.js",
+          "sha256": "407018a6d5e5acd47e81d1d2b3cff7e33dda9889353629ec774b15b84814cfe1"
+        },
+        {
+          "source": "scripts/transactions-v67.js",
+          "sha256": "410d0c696c22b8dd8a79610dc104a938c2ba14914e0f51526c94603d910bbb3a"
+        },
+        {
+          "source": "scripts/accounts-v69.js",
+          "sha256": "36e6e434f184ea787e671b837a6ec5f125b84164673b231654419d835925d64f"
+        },
+        {
+          "source": "scripts/review-v69.js",
+          "sha256": "795eacddbfaf32363d300bed1cfcc58cdeb77a542b318d615cd4aa3a364f5878"
+        },
+        {
+          "source": "scripts/interface-v69.js",
+          "sha256": "9227450837385d16bd95fcf3ff49139f05d9eb5e67e7faf01b6cb0c7a0a8f5e7"
+        },
+        {
+          "source": "scripts/reports-system-v71.js",
+          "sha256": "4ff8ccd8834cd67097a106436c9e7928d51513b40992627b5e581de3f389782f"
+        },
+        {
+          "source": "scripts/transactions-mobile-v72.js",
+          "sha256": "6e9d992f6d9c17da4716de5a35a01738f438e8d65e335b0d549c69804aaad6da"
+        },
+        {
+          "source": "scripts/mobile-polish-v73.js",
+          "sha256": "262fea89d260c12101383044ac443337a7fb11a41686ed43789291c225c21617"
+        },
+        {
+          "source": "scripts/mobile-refinements-v74.js",
+          "sha256": "b0f2a509d43b30e73078ff005ae787f3b706e766f933e27764b50d99a4efd75e"
+        },
+        {
+          "source": "scripts/review-mobile-v78.js",
+          "sha256": "b68f7b7a1fd00fda0e5bbfce8fa6f98980a65000ba0be8310b6848011e736c4f"
+        },
+        {
+          "source": "scripts/reports-desktop-v79.js",
+          "sha256": "0c3aa7b36e99a5aae9228dc7da099aa7b81955f487f9fce0cc21e5250aa539ad"
+        },
+        {
+          "source": "scripts/desktop-corrections-v80.js",
+          "sha256": "038157ea5163c8fcb2ef6f131ab5385be4fffc797ab9032d77790e01f111be01"
+        },
+        {
+          "source": "scripts/desktop-refinements-v81.js",
+          "sha256": "e1e42a0eb2844590855a369e24f327d17e46591bff34dc286f1e548034419965"
+        },
+        {
+          "source": "scripts/desktop-layout-v82.js",
+          "sha256": "69a633c666ba13832533f5d22c298e9be38b83a31510c3d5b1f4e5bdf2aa18e7"
+        },
+        {
+          "source": "scripts/payroll-engine-v82.js",
+          "sha256": "a48b0afdb0b15593b84813926d904d0d06e7dc1a0b83a9ddb3966fe0f55422f9"
+        },
+        {
+          "source": "scripts/payroll-reports-v82.js",
+          "sha256": "3b918165f0cd00dc57936c73bd02970a2d9ea2feacfc41428c7eca765f373110"
+        },
+        {
+          "source": "scripts/payroll-samples-v83.js",
+          "sha256": "8206e39d2babc8264e3c64c16ded4c58616f1b8a37e2f4fb8c412e0894d10836"
+        },
+        {
+          "source": "scripts/payroll-fixes-v83.js",
+          "sha256": "985e73b727db0be7957435b43eb3353a7dfea8516c447ead3a60c3dc861e08e7"
+        },
+        {
+          "source": "scripts/desktop-polish-v84.js",
+          "sha256": "c32786be9e61ef76cc049e2b01587ac9bcf714f50799aa69ec0ae4bd590147b7"
+        },
+        {
+          "source": "scripts/layout-fixes-v85.js",
+          "sha256": "7c37cd30927e527a9a600b3b4713fd4f862a8d0407b465e29adde88f3c689c41"
+        },
+        {
+          "source": "scripts/layout-consistency-v87.js",
+          "sha256": "baba33071e921d3ba1dd71ebf4acd992edaa78ec3f0ef772fbd1ef29d86f2d77"
+        },
+        {
+          "source": "scripts/session-inputs-v88.js",
+          "sha256": "96b69dd0ec5e7ae4133bafd34cf4fb67494dc8ed46f0018e9df6d491bb6892d6"
+        },
+        {
+          "source": "scripts/prefixes-badges-v89.js",
+          "sha256": "915e28436606d6ee555a4009772ffce1c99dbcf8ebd2bf8dea45269b5be1e26a"
+        },
+        {
+          "source": "scripts/scheduled-journals-v91.js",
+          "sha256": "98756a96a414619ee33084c3e86b020656b7fc1815d8db4608af05230842c914"
+        },
+        {
+          "source": "scripts/refinements-v93.js",
+          "sha256": "17779302e2e27fa5ca9003a804c46c1e9ec03e7aa0585971a57e0b5143343090"
+        },
+        {
+          "source": "scripts/settings-payroll-v94.js",
+          "sha256": "9f65d71a2979676aed1d9ca69dcfffaeb7d237141726e0c8f3695cb53fcd2b58"
+        },
+        {
+          "source": "scripts/payroll-groups-v96.js",
+          "sha256": "8d1b1fb171d48c3bef890988c61e568c7031ddf8e3d3212fdadefcc699d419d8"
+        },
+        {
+          "source": "scripts/payroll-polish-v97.js",
+          "sha256": "80bdf59c52f5f2dc3f75e8f1f8cfcb7e63c0573304f03560fe3fb03a453e8232"
+        },
+        {
+          "source": "scripts/transactions-v98.js",
+          "sha256": "b0c79b7d9337120ff1b4d6369a1b86547f90a78ea8f382565231eb50044388d3"
+        },
+        {
+          "source": "scripts/payroll-v99.js",
+          "sha256": "f0769189203a33daea3b01cc26340a0092bc7e42e2b8614a80bcaea98271aabe"
+        },
+        {
+          "source": "scripts/workspace-v99.js",
+          "sha256": "503d4e60a48bb0d529c53d43b0ef6eccedade4bdf000d6ce0200bda0ec448dc5"
+        },
+        {
+          "source": "scripts/hr-v99.js",
+          "sha256": "1ab076dc4f0726b2bc090ee62454792c13c4ffbd2fe20adbe9fe3f466ca3a053"
+        },
+        {
+          "source": "scripts/theme-v100.js",
+          "sha256": "c7ec325a01da374b05f0c6ddfc8dd5f0974ac8faa6d7987511ddadf9d004e6c3"
+        },
+        {
+          "source": "scripts/polish-v101.js",
+          "sha256": "b897b8a4347422705596595efbcfb871be3c17c9be9f1d96557ceced85c1e1cf"
+        },
+        {
+          "source": "scripts/tax-reports-v102.js",
+          "sha256": "df3f9205bfef355529c0d1e45b342e952f60c211383969c9a0c680255273b7f3"
+        },
+        {
+          "source": "scripts/journal-actions-v102.js",
+          "sha256": "213a50210c6ba97aa9023ec0d7a1374bffb2a47c0aaa90d79ffbea247da1bb69"
+        },
+        {
+          "source": "scripts/universal-date-v104.js",
+          "sha256": "2cec049c3835c62ac60bf32f7528ba2e433a46347814718133fae8811465207c"
+        },
+        {
+          "source": "scripts/header-profile-v104.js",
+          "sha256": "95ec9b4043dd96a3457928fa24da967406738fd63a8ecf76f16cce05fa1ea0db"
+        },
+        {
+          "source": "scripts/shortnames-v104.js",
+          "sha256": "fc98aa92d01e4e3d551fe07f2649eaf252c23fd80240f2bbeb255fbb6d1021e0"
+        },
+        {
+          "source": "scripts/refinements-v105.js",
+          "sha256": "72fd7afaf20c6b1830e866d4a1f57b783452b7e26a0f7dcbcda5b12eb753fe8c"
+        }
+      ]
+    },
+    {
+      "path": "scripts/desktop14245-4.js",
+      "sha256": "26517f962151003997830c9c56704e54ea3934d985a9a25bb93d24645f0bd5fa",
+      "effect": "The component may differ from the tested release; reload and investigate this file.",
+      "segments": [
+        {
+          "source": "scripts/document-export-v108.js",
+          "sha256": "69366e57e96eb2df9eb15796d5b580b9d4f003330582330a07b9b3c581765ee6"
+        },
+        {
+          "source": "scripts/document-import-v1422.js",
+          "sha256": "afacf21aaab0a9319a250a7253904764270c9d26130d7b6d4e204c04d6e96046"
+        },
+        {
+          "source": "scripts/document-editor-v105.js",
+          "sha256": "452fc2ce8341581ae485e65e176aac495060e16add3ce254b7abfc4345f15c6a"
+        },
+        {
+          "source": "scripts/shared-v108.js",
+          "sha256": "4a90ecd20cb1d2ebfa83eaeb045be48d59ea0a654137f7eb09f5928905226e74"
+        },
+        {
+          "source": "scripts/refinements-v109.js",
+          "sha256": "38e3ad0b514b19b5b7b28b266e09a84faaaaaa550be415a014f55f1e85a0812b"
+        },
+        {
+          "source": "scripts/visual-consistency-v110.js",
+          "sha256": "3eff8e33f7ada19f9c3cb0eb95dcdc80df84b80bbd2b75044247fa42e78fb9de"
+        },
+        {
+          "source": "scripts/dashboard-warm-v112.js",
+          "sha256": "e792b3adfd9f1a19a0adcc7f79badd081d7e356f86f5cbd80c725f48da8ecf75"
+        },
+        {
+          "source": "scripts/header-icons-v112.js",
+          "sha256": "42521b2c4a02d0ae160c959819e3293d4b0bb72a7cb36cbd953bdab1a3f410a5"
+        },
+        {
+          "source": "scripts/keyboard-picking-v112.js",
+          "sha256": "282dbfb4e9f2943e4c726c4e60ff69efcf646daaf51ccbb881b677cc175b7d32"
+        },
+        {
+          "source": "scripts/shell-v113.js",
+          "sha256": "a4e18f3922ba6c9d929aeaf8d512be008e46a436ae0eca49f57dfb25b22f7215"
+        },
+        {
+          "source": "scripts/access-v113.js",
+          "sha256": "faf3e1d94dc7ba7208f8f44051053311d6202f232772a7121e8a4555fc0f472d"
+        }
+      ]
+    },
+    {
+      "path": "scripts/desktop14245-5.js",
+      "sha256": "cfa7045a01085f3e6837a237e4902a69c546e920376f7cf48c104f6c1bdf08c9",
+      "effect": "The component may differ from the tested release; reload and investigate this file.",
+      "segments": [
+        {
+          "source": "scripts/archive-xlsx-v129.js",
+          "sha256": "46b94a4bddf8fffb94a7654a52c9d836e96786f6c92231bb92554bfd3abd41ff"
+        },
+        {
+          "source": "scripts/recovery-v113.js",
+          "sha256": "4e5ab58a90f8744bb81b02e3f4e141d320c95f013aacfd24dc7a68f9e89150f7"
+        },
+        {
+          "source": "scripts/funds-v113.js",
+          "sha256": "fbd478a1c87bd698dbbd16484bceec2c02c15fcde216c171e3032cd475051e01"
+        },
+        {
+          "source": "scripts/final-v117.js",
+          "sha256": "40229dc824d1f3bcb24ab2f7d020b1eb572ec9e01d36c3ec513ba38c3787961f"
+        },
+        {
+          "source": "scripts/reports-v117.js",
+          "sha256": "499d4d6e75718690e511f5f87503d2a9d4dcf9e8e1a5369753a6fd3a3faa6681"
+        },
+        {
+          "source": "scripts/workspace-v117.js",
+          "sha256": "a9d6bc4925fca2648211ebcb88f7eb41c81972d71885f0883fbc0d94e1491836"
+        },
+        {
+          "source": "scripts/final-v118.js",
+          "sha256": "ee75419c112e1a6f3eb2528bd58962553bbc1155f187d6b413e30f49ec42ada8"
+        },
+        {
+          "source": "scripts/reports-v118.js",
+          "sha256": "4a8ede6985693cea72b4e3e8c8d308ae453c4623bcd4a0e93fab72a79a43f0b3"
+        },
+        {
+          "source": "scripts/accounting-pos-cleanup.js",
+          "sha256": "8ae221c67e017728b3d233fd7b360f9c7e79e829e2cda9886d22488af94bfc13"
+        },
+        {
+          "source": "scripts/workflows-v136.js",
+          "sha256": "321e4ca3910bfa5d557c78327054aac62515868a326adce70f5db57939f89827"
+        },
+        {
+          "source": "scripts/combined-v138.js",
+          "sha256": "a576b7fb2ce83ac05bbd060ad4f5ef349a634d0548f5b73ca2d62819d8c5a8d7"
+        },
+        {
+          "source": "scripts/submission-review-v139.js",
+          "sha256": "379385cac1fc522d67eb1e98bd2f6695731f47abc601950e1b06666f9ded9a26"
+        }
+      ]
+    },
+    {
+      "path": "scripts/desktop14245-6.js",
+      "sha256": "fa15bab9957abf41ee5f6390f7be5f9d43a6ec16bdf20534d8736f1f979b22c5",
+      "effect": "The component may differ from the tested release; reload and investigate this file.",
+      "segments": [
+        {
+          "source": "scripts/carry-forward-v142.js",
+          "sha256": "134a344f806284d5c90ec5a1517cabfbd8dcac337f894f0bf9a49a047dd32970"
+        },
+        {
+          "source": "scripts/recovery-reset-fix-v142.js",
+          "sha256": "feb18d2b517beca0b681039d0d056488413db41ce131518e5390e80986afc8d0"
+        },
+        {
+          "source": "scripts/post-entry-diagnostics-v142.js",
+          "sha256": "003b8eb405885da45f86e284328882a15b99bc669563a0024410091042a102af"
+        },
+        {
+          "source": "scripts/focused-v1422.js",
+          "sha256": "120145311818caa97ea766a42f1809201f5c429545f29632db4b0ec0408e5e36"
+        },
+        {
+          "source": "scripts/staff-entry14225.js",
+          "sha256": "92c85e5a29d0a6bfc4a2d038fe9b986b698a61a0ce668b3b16899f7cdae90fd3"
+        },
+        {
+          "source": "scripts/phone-bridge132.js",
+          "sha256": "5f089eb6375be6de427e3b80921cf52a7819f9887d9ae2fd0b519fa4176ac208"
+        },
+        {
+          "source": "scripts/settings-phone133.js",
+          "sha256": "662d12e9414500facf32f748423a90a133572bb179538ca8a0d2c6fc1b28c4d9"
+        },
+        {
+          "source": "scripts/voucher-signatories1433.js",
+          "sha256": "48fb76f0a09b506416854abf1ef0a1df944a160030606fc9554fc54d3c2463d6"
+        },
+        {
+          "source": "scripts/payroll-print1424.js",
+          "sha256": "16b80674d5e5efd0b33e83bb80be237f2badde207ae6bb9d7720ac3efab89eba"
+        },
+        {
+          "source": "scripts/print-preview1426.js",
+          "sha256": "84aebef29a0e7f45d6ce7c99fd0901e0cbed2e25a9905adc231442d1f169f920"
+        },
+        {
+          "source": "scripts/drafts1427.js",
+          "sha256": "8574e7227fd04bb71f02126d584237e5424858ea5dc557fc9721a7d61a9b4550"
+        },
+        {
+          "source": "scripts/focused1427.js",
+          "sha256": "f4b4d9bfaee3d57cd67300f6ba157cef4ba0fcb2083a667d38839a62ea1d7539"
+        },
+        {
+          "source": "scripts/account-picker1428.js",
+          "sha256": "e830328cd2d30c7543bb3861adf86e569f809cf1487bad4b4b9757c4c90332ba"
+        },
+        {
+          "source": "scripts/payroll-template1431.js",
+          "sha256": "a1fbd66ae01d693add72a2219b4576e262bb65c487a46ccd72cc6710c3b5c430"
+        },
+        {
+          "source": "scripts/payroll-journal1429.js",
+          "sha256": "349fd8297038bde1af246d925bec69c471f54647e097f0b929a972942b002241"
+        },
+        {
+          "source": "scripts/entry1430.js",
+          "sha256": "f148cf172e8b7093121405326fc2f3245b1dc8985ef04e6a692f3fe646f5012b"
+        },
+        {
+          "source": "scripts/workspace-config123.js",
+          "sha256": "1e41ea6729041b6ab8f5f5235c03b912cb722f0c3ede0ff2a73ff97a94206992"
+        },
+        {
+          "source": "scripts/workspace-links123.js",
+          "sha256": "cb2a88ee109716984599d9c701dae4a20aad148e95e6e74e26e70702f9d03c03"
+        },
+        {
+          "source": "scripts/workflows1434.js",
+          "sha256": "769003d4ccd3176b272ca89e0e90464d75a269394ced3a956864210099234540"
+        },
+        {
+          "source": "scripts/saved-reports1434.js",
+          "sha256": "3d6e26485a53568f0aa8cd6fee3a2fe7cac259c3cc86ec6c4a06450868834da9"
+        },
+        {
+          "source": "scripts/personal-journal1437.js",
+          "sha256": "9b4509131f116030d790d70a0c2685ba7de4c668184f74b2b3923f786999cd6f"
+        },
+        {
+          "source": "scripts/todos1438.js",
+          "sha256": "aa1971a5ca303d0aa5026864e627c182a2c91a020ad217e02368b9220752a337"
+        },
+        {
+          "source": "scripts/workspace1439.js",
+          "sha256": "38a3f5e9603a7b59cd2219503b2be9eccb56cdd520e15c9a1e88e5eda5b28699"
+        },
+        {
+          "source": "scripts/dialogs1440.js",
+          "sha256": "e25ef120ea6164428f41515a7146c3feb7f165005d0c7f40b035bf90af2e21de"
+        },
+        {
+          "source": "scripts/journal-batch1440.js",
+          "sha256": "54cd85a9f870ca33c3408578fe4f036a5e3a71454eca104d8c4e64f069ff2963"
+        },
+        {
+          "source": "scripts/permissions1441.js",
+          "sha256": "039b2c6e24ed937fc91a7a2db2b56c0f87e4dd94ee94adcfcc6750918c9c1873"
+        },
+        {
+          "source": "scripts/mobile-document1443.js",
+          "sha256": "f50435db8592a1ca22eb461fed982c62eae40e736fcf5f50044ede25bd37a0ad"
+        },
+        {
+          "source": "scripts/report-history1443.js",
+          "sha256": "3a0c24e3f1fd8acff1cf5de458c106e469a445c4ec8d0ad175678c8ac77ea8bd"
+        },
+        {
+          "source": "scripts/startup1443.js",
+          "sha256": "3957427ca4ef1b0f2cf4da7bf1c2e5cf2cf61244c5ba6060cd9284ec57b0f8c5"
+        },
+        {
+          "source": "scripts/session-policy1443.js",
+          "sha256": "c46dae5f08630124ca070c85679bd1ca3536474858ecfd33191629476cbc8e91"
+        },
+        {
+          "source": "scripts/organization14229.js",
+          "sha256": "ece565a61004e6b2ced79418276d5e0272c035e65229afd1d3e9b6a667c4e058"
+        },
+        {
+          "source": "scripts/private-reminders14229.js",
+          "sha256": "2ffa335e5a1e25452dff71d7d8bad222497806de7fe4139de8b0fc985bd49a54"
+        },
+        {
+          "source": "scripts/team-home14227.js",
+          "sha256": "3fc44ed8dd944c87617fe48d843f1105ad58450e53951ad45fd22c7c1624c19f"
+        },
+        {
+          "source": "scripts/corrections14231.js",
+          "sha256": "3e45e6b3f38cf2ba20b45e32d334e68016d01c3d3d2ef8d9a66a920a9bcd2a04"
+        },
+        {
+          "source": "scripts/currency-colors14231.js",
+          "sha256": "a1978e290ef55de694fa2c8340d654ae432b9a3871db39ac042c56b160db940e"
+        },
+        {
+          "source": "scripts/financial-numbers14231.js",
+          "sha256": "1428c2bd0bdbd2d99bbbf484e7f52d52888ed740add52070da636dc0e951b78f"
+        },
+        {
+          "source": "scripts/archive-scopes14232.js",
+          "sha256": "60e85f8568b8738ab7d68f9e8e55b5efaf5d35308ad6358bc0ae8ea836a6f72c"
+        },
+        {
+          "source": "scripts/audit-engine14232.js",
+          "sha256": "96c50a195356517c5d4337e6b5dc0669412385ae287b4a45b0de16a91de9fd65"
+        },
+        {
+          "source": "scripts/audit-storage14232.js",
+          "sha256": "f67ab8819037ee2f195e6ee23e94afd1a14b6c5ecdea620dd453b98a08c189ea"
+        },
+        {
+          "source": "scripts/data-tools14232.js",
+          "sha256": "135345d33160e227e3a9b37595a0bb199108eb0414011bd3645c6b4857c5d020"
+        },
+        {
+          "source": "scripts/save-notices14234.js",
+          "sha256": "2021a9f62c58a7b29ef5a57a7048db5aedbfb06ffc5074a150e1b8bac45de2a4"
+        },
+        {
+          "source": "scripts/opening-balances14234.js",
+          "sha256": "7b798fdc518b3fce8e010f081c23f46021205b0a7f2edf741677399bbc08b517"
+        }
+      ]
+    },
+    {
+      "path": "scripts/document-downloads14311.js",
+      "sha256": "7d4116d7ac5396399297f4b606205a3ea8bc23a982717de9f1507113bcaa7211",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/entry-actions14271.js",
+      "sha256": "db1c28f32ae982f8f713bfa5dae6f4838956aef93159311e8c462f0b60952a21",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/entry-number14257.js",
+      "sha256": "4dc86729fe228e1909812345be323adb0fd731fb0e7019aa3d40636541834fef",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/feedback-viewport14295.js",
+      "sha256": "1cdda2efcad8216ea37b3bb04700bd950e5828b3bafde50fbf2ed3fd70815775",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/field-focus14253.js",
+      "sha256": "2217dfe13837308f502d953eb0a58011468164ea113c57d169f36d51bb4d1081",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/heading-case14297.js",
+      "sha256": "f28fde66262f661b978d1ead95529287e44579e053983d7bd9a47bed09db50e2",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/hr-calendar-model14306.js",
+      "sha256": "95fc96027a4468c2301631164cfd181abdb24b8d00e1a2ed019d45108e1869f9",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/hr-calendar-news14309.js",
+      "sha256": "3a02b9c2654b818be0b9c2791d7ffb5e0c2d4d7529bbcdb057e70fd97b7ca1ba",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/hr-calendar14306.js",
+      "sha256": "4c656ff346bf7548f2eca22b206b5780e4e85a06bd41720bca0a7155cd4ce248",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/hr-workspace14306.js",
+      "sha256": "7094334341e4bcf9fd06a9fad24ef388f8340d3b17e737bff70241e02da93bac",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/installation14320.js",
+      "sha256": "55ca25da2532d8be53322fe927f6fb4169533dd9c79e98d350001f5d90891410",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/journal-description14281.js",
+      "sha256": "064e803beabf8993234da7ab56366aaa85e3b7fc6e2ffb73a34ecb722b3cce94",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/layout-voucher-polish14301.js",
+      "sha256": "9c0d993b0e107427c1ba3bd5d0c28b3ec1260363fa00d4ef2ae39b03b2a74311",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/layout14256.js",
+      "sha256": "5056de9d5180d5abb06aa44b3776a31f77e7152b2155a52e5663334a506a0e2c",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/local-events14310.js",
+      "sha256": "e3fb6b151ed558cb49ca49d66bfe88cc74c90ee2225bb186e7afdd889626ea71",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/login-notifications14293.js",
+      "sha256": "755c1a58b05d0b6f41bf543270a9a481635b7b8210c71de6dfd2cca9f8faecf1",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/maintenance-engine14324.js",
+      "sha256": "125f8c84d2117659114e3e05e34a35002740e5964d67dad79d9981a4ac14af49",
+      "effect": "Independent calculations or record tracing may differ."
+    },
+    {
+      "path": "scripts/maintenance14324.js",
+      "sha256": "c16980d75ff21995ab5c42f45cf17e44439a536ff59a4a2bcd2486813b464a3d",
+      "effect": "Maintenance review, investigator and exports may not run correctly."
+    },
+    {
+      "path": "scripts/navigation-badges14311.js",
+      "sha256": "5a8cdec7d33fca833efae259e89f6ac08e75b996cfaefd965af35581a8f342d6",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/navigation-workflow14316.js",
+      "sha256": "d43456d648c17c0aed7a7fcd7433675a9eaa0190f83ca1644a56a1b80522481d",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/numeric-caret14257.js",
+      "sha256": "ec27220c06599f407449bfacd09bc9a3b0f24591583ad9ded3b7c61922c63210",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/offline14239.js",
+      "sha256": "be6fedc91511829dcac3b928ac22b3ec176bcda1f0ad4330855549353f332623",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/password-policy14257.js",
+      "sha256": "4b54b7ce0ce887e2b19e8cf15ab791849407d5bf8ce966a614db8cc66f806dbc",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/password-service14264.js",
+      "sha256": "e419e382977a5c72644b896f972f9581013640dd967333373b0c5a68927345e9",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/period-closing14317.js",
+      "sha256": "76b58466e8e4a91a5a6adac79359fdcd9b2a3bc0f4bc15422a7c230dec2debd5",
+      "effect": "Required pre-closing review may be missing or outdated."
+    },
+    {
+      "path": "scripts/phone-keyboard14252.js",
+      "sha256": "f1e0014bfeada4ac824243920e3164304aab0d0545648632fe9c8ec03cb7e16a",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/report-formats14282.js",
+      "sha256": "26e61a5da4446449628213a2f41dd3f66a113d931d3a72e5d2b197af40651208",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/report-library14285.js",
+      "sha256": "fd850006c8eede19170e7f6092854aadf745c80b83780eb00b3521c6ea666908",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/report-routes14262.js",
+      "sha256": "b5dd765db7c04d409e84d96a57fcfeff5adc8336de37a6132f3559c54cece8a3",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/report-templates14262.js",
+      "sha256": "620326c241d92c807047f47b75b59d4670ce4d7f34b9b9d36a33347a884aa24a",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/reports14254.js",
+      "sha256": "aba27fd84563a51b29a51a343d6793b033b4902364b494bd4ea8fa5a68e04f77",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/search-autofill14285.js",
+      "sha256": "0b73fc3226de4583ae03e833eab2b6614cff56309058d67b508c05ca6789fd1d",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/startup14257.js",
+      "sha256": "bb575ca1497c49f9b15c5c2af5cae54afbb4e74d1869b410591f121d545d38ed",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/supabase-config.js",
+      "sha256": "a4ce83f7f27eb7f07782787952e32ad432561b0e8b5e08573e3b924ea7fead43",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/system-diagnostics14324.js",
+      "sha256": "095b5e5cc059da21d84b4dd64e9b9f1ec323aede42cd671ace61d36632a4fefc",
+      "effect": "Diagnostic coverage or findings may differ."
+    },
+    {
+      "path": "scripts/tablet-journal14266.js",
+      "sha256": "49c0c7075baf3eb1d78ff110d8eeccf37b3043365798dd7f01afeb21d2c89f02",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/transaction-consistency14300.js",
+      "sha256": "dc6f897f0b123f5a36d61dad28f6382f7dc16356c2667f54fa4e0bd2c9277eb5",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/vouchers14299.js",
+      "sha256": "68bd4230ad2ac52d53d5faacfc5dc0992ddf02394d71f39546bd8c0ec6aa14f6",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/workflow14253.js",
+      "sha256": "4bebfeb28df5f6da23365e37192a36c865dc293b1beebad920defca5469d4826",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/workspace-header14266.js",
+      "sha256": "56b91561358009027f99a72ec5c986031b90002090946b3139750583c778ad5f",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "setup/INSTALL-MAINTENANCE-v143.24.sql",
+      "sha256": "7eb0c7e8d69c3d09d8a7acf6455c66dddda1d6efc77651c53d5754cfc80e754b",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/account-parent14287.css",
+      "sha256": "e54bdd57643d53cb54200d2c51dd1490284712ae81bff4ed84ca8f54f241e06c",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/budget-messages14314.css",
+      "sha256": "e4d7019661d859f94a98ea95aa901e43b564bd6f039d1a1597daec474356dde7",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/controls14305.css",
+      "sha256": "e3a785334700a15263aba3672bb8452e24ccd0fbb117b27dcf79fe93cc33f118",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/controls14317.css",
+      "sha256": "b63f5ddd23f506c8b7f2ec6ae48eb0a521f3c725cfa6d8348984599e7524fc73",
+      "effect": "Approved action colors, journal actions or fullscreen rail may differ."
+    },
+    {
+      "path": "styles/design14284.css",
+      "sha256": "d58cd4f57d4e3ba810ebca0b382bfb201fcf7626b87e49e13347fbdb888a1eec",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/desktop-scale14320.css",
+      "sha256": "1f4333c1c4aa70994f9bd7790f29ee8dfb60951a224e2e53157bb61f6af34540",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/desktop14245.css",
+      "sha256": "7b0d1ef7abc66589532471186a4d7d5b204a446c0fcad1b399670f837f4e40db",
+      "effect": "The component may differ from the tested release; reload and investigate this file.",
+      "segments": [
+        {
+          "source": "styles/offline14239.css",
+          "sha256": "9c00eccb629836606165c3005ca5f8c7315078d291efcdcc109c3b6e1a4ab823"
+        },
+        {
+          "source": "styles/loading1444.css",
+          "sha256": "09592c7e756af095373879f9c370862d0393df4e89fe8f5eae50093b2d6f62c3"
+        },
+        {
+          "source": "styles/styles.css",
+          "sha256": "9d6f8d905c2fc70f97c4b299494f3fd4ce9cd3c969a1eb4240516423abdc2a7d"
+        },
+        {
+          "source": "styles/subusers-final-v53.css",
+          "sha256": "8e35c26ff98ca453366a098321f4ff5170106f88ed954c508e86ce2d091a1443"
+        },
+        {
+          "source": "styles/subusers-final-v55.css",
+          "sha256": "dac93a73020914bd88e75d58e45776eccb1f3534e23f4ae983fdded124570ec2"
+        },
+        {
+          "source": "styles/subusers-final-v56.css",
+          "sha256": "e44c6e3065552d78ef1d3782b11b1d83f69913e2592b7eb08f5bbbb193d7414b"
+        },
+        {
+          "source": "styles/design-system-v58.css",
+          "sha256": "79100d043aaccda0580720520b55764042dcf9342dc99d9b47da1d296e11a92f"
+        },
+        {
+          "source": "styles/subusers-mobile-v61.css",
+          "sha256": "b56d8562a94c380693b904ca27cc178fcc5f2c71a052e7cffe5b5525bee9a62c"
+        },
+        {
+          "source": "styles/mobile-tables-v66.css",
+          "sha256": "ffc6dc190541acc03c09d4f0d51433d82e379132c11e7fcf1bbe2f00f797d4b1"
+        },
+        {
+          "source": "styles/transactions-v67.css",
+          "sha256": "12a3ec81447411dcf0bd6331d6d5edb2d3e11016704ec17c3cecfa26929f25ac"
+        },
+        {
+          "source": "styles/accounts-review-v69.css",
+          "sha256": "8850a336438c7bd58fc8b373624582eb4eeff996c0f6e893fd8fcebcb5dcc2cc"
+        },
+        {
+          "source": "styles/desktop-v71.css",
+          "sha256": "04fb5b28d804a9fff8154b2ce3afc2f3f7603f17dd6e5f01cfdc39f7b53130b8"
+        },
+        {
+          "source": "styles/transactions-mobile-v72.css",
+          "sha256": "87ef6f62234122c9852f2d07ac421b31e3034c31838405942a8901bf86c3d716"
+        },
+        {
+          "source": "styles/mobile-polish-v73.css",
+          "sha256": "7980629242702b50aa7fa3dec8b610c14585899393733eca2defb5f4422a353b"
+        },
+        {
+          "source": "styles/mobile-refinements-v74.css",
+          "sha256": "d4ebf4a99985050b7b81df1793b694ed8f4b0807f2d1d8b20628b7dfa6d8832b"
+        },
+        {
+          "source": "styles/subusers-polish-v75.css",
+          "sha256": "a057326d8018b9fd447e2bcef189b56148d1ccc7d5b7acd9c9f30ee22eb12cdb"
+        },
+        {
+          "source": "styles/review-mobile-v78.css",
+          "sha256": "951b3311a4e2e322c8d81bef50f1f75de610883137c296727968c39bd387b499"
+        },
+        {
+          "source": "styles/reports-desktop-v79.css",
+          "sha256": "d03e9fa2a1d6735ffd45cd8b4a5fcbd60e7be0de8d0ccb3cff3c43a2f88962c9"
+        },
+        {
+          "source": "styles/desktop-corrections-v80.css",
+          "sha256": "f61708bbff6fc8be9747177765521147d8366527fcefed6c14b70004f7fe4f30"
+        },
+        {
+          "source": "styles/desktop-refinements-v81.css",
+          "sha256": "098b7fc3514309af68b78db8948d869b547f2b14fad90e2f17b4cfbb4a5a9ec9"
+        },
+        {
+          "source": "styles/desktop-layout-v82.css",
+          "sha256": "c4b0e729c8967efb60f1962083f9849714b4e1569a481fd40e017fc35f791a37"
+        },
+        {
+          "source": "styles/payroll-reports-v82.css",
+          "sha256": "1b694be19e92ff1d719a7513466a914c6c322637faae3d6b09f6234337f7f5c2"
+        },
+        {
+          "source": "styles/table-alignment-v83.css",
+          "sha256": "0a55162508c0b67a2035a45b9c6e41e65a4986763360d85451457620dfa16234"
+        },
+        {
+          "source": "styles/desktop-polish-v84.css",
+          "sha256": "2459430d0a98f1b1d546e864ec5cdbbb4bc93d90298df126883362d69ed96890"
+        },
+        {
+          "source": "styles/layout-fixes-v85.css",
+          "sha256": "573afd6f6a698f694b72770defa11a7b70222ec2666d1b7263455ba80b92c096"
+        },
+        {
+          "source": "styles/layout-consistency-v87.css",
+          "sha256": "59acb11da185d679dbf57a70cf5e31c1342c83da44b9c736153c4bc30da6ce18"
+        },
+        {
+          "source": "styles/fixes14234.css",
+          "sha256": "13c3623d875870d7b784e459f07f84a8ff7cbac877d346229068a0299b72612e"
+        },
+        {
+          "source": "styles/session-inputs-v88.css",
+          "sha256": "3016de01d0254efc2985e90bc7fff3983aa48c57c459b7a75aed7fbb4a758ec6"
+        },
+        {
+          "source": "styles/prefixes-badges-v89.css",
+          "sha256": "e9f53ff89317f289d9ec09be6db598bfc569d20f7c40ba36d2eb56b4d4b113e5"
+        },
+        {
+          "source": "styles/scheduled-journals-v91.css",
+          "sha256": "4c926a7f65ad056d1e2c7fead5b1d2522c2661ae05d689a00dbfe34338271621"
+        },
+        {
+          "source": "styles/refinements-v93.css",
+          "sha256": "6eca9ba41c3ff69c26aa2da606cd8171649af9e7d695d8e9196f28e9e35a57b5"
+        },
+        {
+          "source": "styles/settings-payroll-v94.css",
+          "sha256": "5ee1c897110bfef5347b68705e3b86470954a109c0064d4b932bd9d7207d3346"
+        },
+        {
+          "source": "styles/payroll-groups-v95.css",
+          "sha256": "2dcb13a69f57adcceb60b3e4e326dbeb6160efb51b15f229926ffc2d50683fa5"
+        },
+        {
+          "source": "styles/payroll-polish-v97.css",
+          "sha256": "9de722efad7b2df3538114f57cdee2c50c941e31576b5f1dfede7cf034b6e32a"
+        },
+        {
+          "source": "styles/transactions-v98.css",
+          "sha256": "2ca3db0c704fe6a593def78c876d1a3d21d03b512ec6c554601c79672491302d"
+        },
+        {
+          "source": "styles/workspace-v99.css",
+          "sha256": "a1d2e29e6825efa52b9ba96acf9488b2e6fa0b1c74e6ee6cb62e64b60fd8e65c"
+        },
+        {
+          "source": "styles/theme-v100.css",
+          "sha256": "7ea25dc2e3cd72b7e61ab5421a3ee480e3e6ad2c063be3c648ce13049da69602"
+        },
+        {
+          "source": "styles/polish-v101.css",
+          "sha256": "de90e2f92a8adf93eb772ef07601604e27304984c6d7cc7b8993281b58c95b0b"
+        },
+        {
+          "source": "styles/reports-tax-v102.css",
+          "sha256": "a471bdfae55d728eb9fab9a95752ffb233b49914d5f39a5f7428a08dfe312bcc"
+        },
+        {
+          "source": "styles/universal-date-v104.css",
+          "sha256": "0c4966a33c31a808b259cb65ee3f00391693ead673f9316828b651a7a29e1e44"
+        },
+        {
+          "source": "styles/header-profile-v104.css",
+          "sha256": "1a807caf408d8163cab02f3306b43b6e01dcc79c061d61efd38b6b5b4a49c697"
+        },
+        {
+          "source": "styles/refinements-v105.css",
+          "sha256": "b0c0c204b7e50e2a190995b93cba3366b06502c580ca87688b805f3612c6cda2"
+        },
+        {
+          "source": "styles/document-editor-v105.css",
+          "sha256": "22fbbf0ef6944b911234e642feae9162a06719ce9adbd36a1473723544457d69"
+        },
+        {
+          "source": "styles/refinements-v106.css",
+          "sha256": "d1c9473bdeffbd3879bc04817567081425063eb5235b146d7ec4cd36de804d6b"
+        },
+        {
+          "source": "styles/editor-tables-v107.css",
+          "sha256": "0b20dd6d8e801366c3505e462717de19ca9af1f01739bf47618499ccd0d388bd"
+        },
+        {
+          "source": "styles/shared-v108.css",
+          "sha256": "66bbe7708a6f33eef3f0ddd4e144f9c70f2453e0771fe97f866d746934a02577"
+        },
+        {
+          "source": "styles/refinements-v109.css",
+          "sha256": "0ca41c0d5a6caee8f0d2df1675d65dfb647aabfe23553cb14af5ff197540b376"
+        },
+        {
+          "source": "styles/editor-fixes-v110.css",
+          "sha256": "85ffee9faff2c0c4845f4c6c9729feaaef1939d01df5fdc331c3408256e4dc7c"
+        },
+        {
+          "source": "styles/dashboard-warm-v112.css",
+          "sha256": "76ba992e4144e334ed65f357647c88826987e3c950dea1969fd79d767a322054"
+        },
+        {
+          "source": "styles/polish-v113.css",
+          "sha256": "a9c5d63fc90127f7b5c32e878d593a219a9cf418f328c77627d9e8b82e2213ba"
+        },
+        {
+          "source": "styles/final-v117.css",
+          "sha256": "23658f1a0e2f5ab83cfe81e7821e8891821df67e7674aa0dbc109bb7b351c7cb"
+        },
+        {
+          "source": "styles/final-v118.css",
+          "sha256": "2ce422219d77b4603281a2613bbcb6f7f89d6f2e42897538ea5e8137ebb861cd"
+        },
+        {
+          "source": "styles/workflows-v136.css",
+          "sha256": "736d4aa6b933ada32c38495108dfa990d77c642cfec0e7a0f3c2044d4e8912a8"
+        },
+        {
+          "source": "styles/combined-v138.css",
+          "sha256": "18b819422842603ac27eb0b6620af4859745489d0e04023778d847763c036297"
+        },
+        {
+          "source": "styles/submission-review-v139.css",
+          "sha256": "b7dbee1a55ecb11363a9d528d64f5a227121f8ec53df6ade899762236a51e7db"
+        },
+        {
+          "source": "styles/carry-forward-v142.css",
+          "sha256": "ce21d47bbb7271d515f1e6d8dab793182d3f6a32b97768e86c6ed0f98fb0ced9"
+        },
+        {
+          "source": "styles/recovery-reset-fix-v142.css",
+          "sha256": "1c36a90078d6ef1427be2bc03e631e789c1c19aa62c6e64633e05362fac8d921"
+        },
+        {
+          "source": "styles/focused-v1422.css",
+          "sha256": "a5c2e77d527f7b456c7ac8518a45192240bfa311595816ed9f0dbc60dee44c1f"
+        },
+        {
+          "source": "styles/device-mode132.css",
+          "sha256": "5fcf0e76c17c958c0a1d37150c3111669ca27ae4ca167b5cb19d7dd7c2a47ea7"
+        },
+        {
+          "source": "styles/editor-print1424.css",
+          "sha256": "299f412ba79076f1375294b9e5a3660474363901cdf5a77b33b1aec4c6e9810b"
+        },
+        {
+          "source": "styles/editor-menus1426.css",
+          "sha256": "369580db859a391ea25ef312e5a8faffe2e76ec9cbdeab3009e4142bd07d9436"
+        },
+        {
+          "source": "styles/focused1427.css",
+          "sha256": "1b36842d5f6ea59096afc19960667b89ab3b3a8ce8ccd9e1f576dc3c23b8e246"
+        },
+        {
+          "source": "styles/account-picker1428.css",
+          "sha256": "79e6c80d565385254a24f633531065ee1a97d78071a3969f6381f1e9c8b6befd"
+        },
+        {
+          "source": "styles/fixes1429.css",
+          "sha256": "fb40c0ff31d667ff9f7b2196e14720276eacbead2a76a9ca2d42cf7cd350c6fa"
+        },
+        {
+          "source": "styles/payroll-template1431.css",
+          "sha256": "92d031ce87121be98585543ecc5822dac87ec3147a7552404404ef6cc8e6ad66"
+        },
+        {
+          "source": "styles/entry1430.css",
+          "sha256": "a454dabc96e4d3c214659f9edc2384f744460e3dbfaac5fe54be07c2c0f10bdb"
+        },
+        {
+          "source": "styles/workspaces1432.css",
+          "sha256": "1cc58fc88d95c68f6514b41002bf3298f527c765b77d7f58407483fdc35b3965"
+        },
+        {
+          "source": "styles/voucher-accounts1433.css",
+          "sha256": "44b9aeb5e90ea5025ad23931d163d7cb4c28960186d17d264a0efdc44d646008"
+        },
+        {
+          "source": "styles/workflows1434.css",
+          "sha256": "ce9c155699b03ca86cc0c85e317317dc050eda0ea1f985dc51601bbeefb1e24c"
+        },
+        {
+          "source": "styles/personal-journal1437.css",
+          "sha256": "625fc57d993916266f50e78267ad0606e7e8436a080cf4b5c392b43085e76fca"
+        },
+        {
+          "source": "styles/desktop-tasks1438.css",
+          "sha256": "7e7fbf953aa40dcfb9a5e05a6bc4112131bf6c24d9b5c4a43c9d8f8632704b60"
+        },
+        {
+          "source": "styles/workspace1439.css",
+          "sha256": "9b90cfe682d9a53a172e5440c55ad78ac96f00c5bae43fd3c4201406c22043e9"
+        },
+        {
+          "source": "styles/finalization1440.css",
+          "sha256": "74049ddee548fac9df375bff1c1d22534a033ae69256b8e984cbcf327aab54b9"
+        },
+        {
+          "source": "styles/polish1443.css",
+          "sha256": "82efa57dd7995ebd384da43f3dde5ccdb4051de12cbbdf0f2e9f00aaf8a98604"
+        },
+        {
+          "source": "styles/polish1444.css",
+          "sha256": "69865e3bbdfee474bbc8094192c2aaaa14fed31d65e3dc14441a07ccfe18cfd2"
+        },
+        {
+          "source": "styles/subusers-header14226.css",
+          "sha256": "53c1e51b367c0a7e9174360a875ecd64e75bcbcf5ea0d2ed4baf67ebddb2e19a"
+        },
+        {
+          "source": "styles/team-home14227.css",
+          "sha256": "1c2ce4b3bcbc28321977db7acfe86b93ea3f121db1a37627b27677f27dedcb5e"
+        },
+        {
+          "source": "styles/corrections14231.css",
+          "sha256": "ca05f28192b72cd19404d3cfa1403f7d504bdb298018e06ccfda2b4c86e614e1"
+        },
+        {
+          "source": "styles/data-tools14232.css",
+          "sha256": "c5903819e9b9b1c531b12bdcb3c0a5bc899b6d446618a8cc7df42a6960a4c208"
+        }
+      ]
+    },
+    {
+      "path": "styles/entry-layout14271.css",
+      "sha256": "74e13a8733c53a1aeb337a2c0bae6173cff2dee4d161be36131f088bed04f281",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/feedback-viewport14295.css",
+      "sha256": "255a326f226922cf93efec3d08edc74564f65d395389e539b3c3f7743e69c96f",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/functional-corrections14292.css",
+      "sha256": "c71d0c242a4939adc7b6b6807625a85b73c50ae0cc3a78ba2126a978ce180d6a",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/hr-workspace14306.css",
+      "sha256": "931dff213adb826cc2fb538fdb86f056d1f1d01746f8b170fa1afc7bdd9e0a53",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/installation14320.css",
+      "sha256": "484588a23711d2ebb25dec0d9677213c219c97fde255ec3cd60aefeb674705b5",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/layout-voucher-polish14301.css",
+      "sha256": "4b9545ff22b738b093498650077713355e624d6e712589d4d6b98211021f3078",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/layout14256.css",
+      "sha256": "fd67f8f4441f1ab3c580d3565aed8df411611ed4c141ab92b2491575a22cc382",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/local-events14310.css",
+      "sha256": "ac81a763a5bd7c3073277740338e33283971d1a96fae914e9cba3fb635c87586",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/login-notifications14293.css",
+      "sha256": "3ab79a6f352bccf74b60da45f15a31216cb36b3250124901b2c3c789c672e7a6",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/maintenance14324.css",
+      "sha256": "33bc58248e1c97435875023c990c5435ee7c019b0928a2ae9d3fcc8aa1399b63",
+      "effect": "Maintenance controls or tables may be clipped or misaligned."
+    },
+    {
+      "path": "styles/module-dock14269.css",
+      "sha256": "34b609d207c67c440b7c4213d45556c7a8713f39743b6f8c94eaca90d6e69781",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/navigation-badges14311.css",
+      "sha256": "913e28b77d18d86710c0b8e516b1d136e9291622a72bc945c3970c33610a3e29",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/password-help14278.css",
+      "sha256": "40a5b4f5d668da8ad5923ad1d3066eaf8c23d5ff43c350f793821b9c67bad780",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/phone-shell14285.css",
+      "sha256": "db2a924d28db741859e3e649518f4446837297957445b77d83c0aa4970d703f9",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/report-library14285.css",
+      "sha256": "dde3c942512133cc87d687271d2b3c777e6a09b2b8531c3407e49f568007505c",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/settings-polish14281.css",
+      "sha256": "0ff91abf25716f86a64c515c467435f360c18638f37e8a8df6e108d4edc1d197",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/tablet-journal14266.css",
+      "sha256": "d34ebf7661335674c963ddfa54dbf5c25fe29686140383adbb5461c7da0bf035",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/transaction-consistency14300.css",
+      "sha256": "50d82697214e9790a559036a30a49f246b63e34b89fd722e772dc5e1a28f16f7",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/voucher-layout14299.css",
+      "sha256": "e596624d8e6947b678ece0f0b53a57111cf97414f862b88167e04ec1d60413c8",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/workflow14253.css",
+      "sha256": "1e3e3648232e277f57d1db5091edabeb38599748c9a692b6da513e63c320c298",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/workflow14316.css",
+      "sha256": "047917d1e2b0737af687036fddb022f5929fbac43563a0c0f54ec4edcba88caa",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "styles/workspace-header14266.css",
+      "sha256": "12a515f5ed9f56d6d7351dc2225d9c8e3487df23dfda0c634e8b40f0fd511fa8",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    }
+  ],
+  "approvedRules": [
+    {
+      "rule": "Native 100% desktop; no global zoom/media rewriting",
+      "validation": "validation/test-recovery14323.cjs"
+    },
+    {
+      "rule": "Preserve phone v142.53 navigation and layout",
+      "validation": "validation/test-phone-tools14317.cjs"
+    },
+    {
+      "rule": "Administrator workspace and period descriptions remain stable",
+      "validation": "validation/test-regressions14304.cjs"
+    },
+    {
+      "rule": "Unbalanced trial blocks closing; exceptions require individual acknowledgment",
+      "validation": "validation/test-maintenance-db14324.cjs"
+    },
+    {
+      "rule": "Maintenance tools stay in one admin-only area",
+      "validation": "validation/test-maintenance14324.cjs"
+    }
+  ]
+}
