@@ -18,7 +18,7 @@ async function openBalances(){
 }
 function decorate(){
  const card=$('journalEntry98'),date=card?.querySelector('.transaction-date-field'),meta=card?.querySelector('.je-meta-grid');
- const singleDesktop=matchMedia('(min-width:768px)').matches&&card?.classList.contains('single-entry1430');
+ const singleDesktop=matchMedia('(min-width:641px)').matches;
  if(singleDesktop&&date&&meta&&date.parentElement!==meta){dateHome=date.parentElement;meta.prepend(date)}
  else if(!singleDesktop&&dateHome?.isConnected&&date&&date.parentElement===meta){dateHome.append(date);dateHome=null}
 

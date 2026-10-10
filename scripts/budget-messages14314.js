@@ -19,16 +19,16 @@ function texts(d,link){
  return {subject,detail,summary,html};
 }
 async function prepare(channel,{guard,load,config,dialog}){
- const actor=guard(),d=buildFinance82();if(!d)return;
+ const actor=guard(),saved=await window.budgetWorkflow14316.requireSaved(),d=saved.data;if(!d)return;
  if(!d.lines.length||d.lines.some(l=>!Number.isFinite(Number(l.amount))||Number(l.amount)<=0))throw Error('Each budget item needs a positive amount.');
  await load(true);guard(actor);const c=config();
  const recipients=channel==='email'?budgetGmail14314.recipients(c.emails):[];
- const r=await saveWork82('reports',{...d,sharedSnapshot14313:true,sharedChannel14313:channel,title:d.purpose||'Budget request'});guard(actor);
+ const r=saved;guard(actor);
  const url=new URL('desktop.html',location.href);url.search='';url.searchParams.set('budget',r.id);url.hash='';
- const text=texts(d,url.href);
+ const text=texts(d,url.href);if(d.document14316){text.html=d.document14316.html;const body=document.createElement('div');body.innerHTML=text.html;text.detail=body.innerText||body.textContent; text.subject=d.document14316.title||text.subject;}
  if(channel!=='email'){
   const {root}=dialog('WhatsApp / Messenger summary','<p>Copy this summary and paste it into '+esc(c.groupName||'your group chat')+'.</p><textarea data-summary14314 readonly rows="16">'+esc(text.summary)+'</textarea><button type="button" data-copy14314>Copy message</button><p role="status">Ready to copy. No message has been sent.</p>',[{label:'Close',value:false}]);
-  root.querySelector('[data-copy14314]').onclick=async()=>{try{guard(actor);await navigator.clipboard.writeText(text.summary);root.querySelector('[role=status]').textContent='Copied. Paste it into WhatsApp or Messenger.'}catch(e){root.querySelector('textarea').select();root.querySelector('[role=status]').textContent='Select and copy the message above.'}};
+  root.querySelector('[data-copy14314]').onclick=async()=>{try{guard(actor);await window.budgetWorkflow14316.requireSaved();await navigator.clipboard.writeText(text.summary);root.querySelector('[role=status]').textContent='Copied. Paste it into WhatsApp or Messenger.'}catch(e){root.querySelector('textarea').select();root.querySelector('[role=status]').textContent='Select and copy the message above.'}};
   return;
  }
  const {root}=dialog('Send budget request by Gmail','<div class="budget-gmail14314"><p>From: <strong data-sender14314>Not connected</strong></p><button type="button" data-connect14314>Connect Gmail</button><button type="button" data-disconnect14314 hidden>Disconnect</button></div><label>To · separate addresses with commas<input data-to14314 value="'+esc(recipients.join(', '))+'" autocomplete="off"></label><p><strong>Subject:</strong> '+esc(text.subject)+'</p><iframe data-email-preview14314 title="Full budget email preview" sandbox=""></iframe><button type="button" data-send14314>Send Email</button><p role="status">Review the email, then send it directly from this website.</p>',[{label:'Close',value:false}]);
@@ -42,7 +42,7 @@ async function prepare(channel,{guard,load,config,dialog}){
  disconnect.onclick=()=>{guard(actor);budgetGmail14314.disconnect();refresh();status.textContent='Gmail disconnected from this page.'};
  send.onclick=async()=>{
   if(busy||done||unknown)return;
-  try{guard(actor);const from=budgetGmail14314.status(c.gmailClientId).email,addresses=budgetGmail14314.recipients(to.value);busy=true;refresh();status.textContent='Sending…';
+  try{guard(actor);await window.budgetWorkflow14316.requireSaved();const from=budgetGmail14314.status(c.gmailClientId).email,addresses=budgetGmail14314.recipients(to.value);busy=true;refresh();status.textContent='Sending…';
    const result=await budgetGmail14314.send(c.gmailClientId,{from,to:addresses.join(','),...text,messageId:crypto.randomUUID()});done=true;guard(actor);status.textContent='Sent from '+result.email+' to '+addresses.join(', ')+'.';send.textContent='Sent';
   }catch(e){unknown=!!e.uncertain;status.textContent=e.message}
   finally{busy=false;if(root.isConnected)refresh()}

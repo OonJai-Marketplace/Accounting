@@ -1,0 +1,18 @@
+/* Desktop/tablet workflows; the approved phone layout remains unchanged. */
+@media(min-width:641px){
+body #settings-system [data-settings-group=system] .settings-compact-grid{grid-template-columns:1.1fr 1fr 1.25fr 1fr!important;gap:12px!important}
+html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid,html body #personalEditor1437 #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid{display:grid!important;grid-template-columns:130px minmax(140px,1fr) minmax(125px,.65fr) 172px!important;gap:10px!important;align-items:end!important}
+html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid>.je-field-group,html body #personalEditor1437 #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid>.je-field-group{min-width:0!important;width:auto!important;max-width:none!important;flex:initial!important;grid-row:1!important;grid-column:auto!important;order:0!important}
+html body #journalEntry98#journalEntry98#journalEntry98 .entry-mode1430 button{width:100%!important;min-width:0!important}
+html body #journalEntry98#journalEntry98#journalEntry98 .voucher-pick14299 select{width:100%!important;min-width:0!important}
+body .budget-header14316{display:grid!important;grid-template-columns:130px minmax(120px,1fr) minmax(150px,1.2fr) minmax(150px,1.2fr)!important;gap:12px!important}
+body .budget-header14316>label{min-width:0!important}body .budget-header14316 input{width:100%;min-width:0;box-sizing:border-box}
+.workflow-switch14316{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.workflow-switch14316 button,.fund-tools14316 button,#fundAllocation14316 form button,#fundAllocation14316 table button,#budgetHistory14316 button,#transactions-budget14313 .work82 button,.budget-dialog14313 .budget-template-list14313 button,.budget-dialog14313 [data-allocation-template14316],.budget-editor-actions14316 button{height:32px;min-height:32px;box-sizing:border-box;background:#145c4a!important;border:1px solid #145c4a!important;color:#fff!important;border-radius:5px;padding:4px 12px;cursor:pointer;font-size:12px;white-space:nowrap}
+.workflow-switch14316 button[aria-pressed=true]{background:#8b5e14!important;border-color:#8b5e14!important}
+.workflow-switch14316 button:focus-visible,.fund-tools14316 button:focus-visible,.budget-editor-actions14316 button:focus-visible{outline:3px solid #dbab37;outline-offset:2px}
+.fund-tools14316{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.fund-tools14316 h3{flex:1 1 200px}
+.budget-editor-actions14316{display:flex;gap:6px;margin-left:auto}.doc-quick1426:has(.budget-editor-actions14316){flex-wrap:wrap}
+#fundAllocation14316 .finance-controls117{display:flex;gap:10px;align-items:end;flex-wrap:wrap}#fundAllocation14316 .finance-controls117 label{flex:1 1 140px;min-width:120px}
+#navigationHint14316{position:fixed;z-index:100100;bottom:22px;left:50%;transform:translateX(-50%);max-width:85vw;box-sizing:border-box;background:#173c2e;color:#fff;padding:14px 18px;border-radius:8px;box-shadow:0 4px 20px #0004;font-size:13px;line-height:1.6}
+}

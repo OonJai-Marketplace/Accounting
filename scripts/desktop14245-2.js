@@ -8,12 +8,13 @@ function validate(pack){
  for(const [name,rows] of Object.entries(pack.auditTrail||{}))if(!Array.isArray(rows))throw Error('Invalid audit records in '+name+'.');
  const references=[['journal_lines','journal_entry_id','journal_entries'],['journal_lines','account_id','accounts'],['staff_journal_lines','staff_journal_id','staff_journals'],['vouchers14299','journal_entry_id','journal_entries'],['voucher_versions14299','voucher_id','vouchers14299'],['vouchers14299','journal_entry_id','journal_entries'],['voucher_versions14299','voucher_id','vouchers14299']];
  for(const [source,key,parent] of references){const ids=new Set((pack.tables[parent]||[]).map(r=>String(r.id)));if((pack.tables[source]||[]).some(r=>r[key]!=null&&!ids.has(String(r[key]))))throw Error('Backup contains '+source+' with missing '+parent+'. Prepare a complete backup before relying on its totals.');}
+ const reportIds=new Set((pack.tables.operational_reports||[]).map(r=>String(r.id)));if((pack.tables.operational_reports||[]).some(r=>r.data?.requestId14316&&!reportIds.has(String(r.data.requestId14316))))throw Error('Backup contains an allocation with a missing budget request. Prepare a complete archive family.');
  for(const r of pack.tables.journal_lines)for(const k of ['debit','credit'])if(r[k]!=null&&(r[k]===''||!Number.isFinite(Number(r[k]))))throw Error('Backup contains an invalid journal amount.');
  return pack;
 }
 window.backupValidation1441={validate};
 })();
-;
+
 /* scripts/cell-navigation14233.js */
 /* Spreadsheet navigation commits existing cell editors; posting stays explicit. */
 (()=>{'use strict';

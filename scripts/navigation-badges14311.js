@@ -4,7 +4,7 @@ let queued=false;
 const allowed=id=>!!document.getElementById(id)&&!!window.access113?.can(id);
 function counts(){const tabs={};if(typeof liveProfile==='undefined'||!liveProfile||liveProfile.status!=='active')return tabs;
  const add=(id,n=1)=>{if(allowed(id)&&n>0)tabs[id]=(tabs[id]||0)+n};
- for(const n of window.getNotices14311?.()||[]){let count=Number(n.count)||1;if(n.target==='local-events')count=window.hrCalendarNews14309?.pending().filter(p=>p.start).length||0;if(n.target==='transactions-vouchers14299')count=window.vouchers14299?.state?.rows?.filter(r=>!r.journal_entry_id&&r.status!=='void').length||Number(n.title.match(/^\d+/)?.[0])||1;add(n.target,count)}
+ for(const n of window.getNotices14311?.()||[]){let count=Number(n.count)||1;if(n.target==='local-events')count=window.hrCalendarNews14309?.pending().filter(p=>p.start).length||0;if(n.target==='transactions-vouchers14299')count=window.vouchers14299?.state?.rows?.filter(r=>r.kind==='E'&&!r.journal_entry_id&&r.status!=='void').length??0;add(n.target,count)}
  if(liveProfile.role==='admin'){
   const findings=typeof PeriodReview!=='undefined'?PeriodReview.findings.filter(r=>!['corrected','closed'].includes(r.status)):[];
   const w=window.workflow136?.state;add('period-review',findings.length+(w?.owner===liveProfile.id?w.reviews.filter(r=>r.status==='open').length+w.sessions.length:0));

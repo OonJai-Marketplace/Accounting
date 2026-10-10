@@ -1,0 +1,82 @@
+[
+  {
+    "name": "All main and horizontal navigation initials are unique",
+    "passed": true
+  },
+  {
+    "name": "Transactions sequence matches the entire requested workflow",
+    "passed": true
+  },
+  {
+    "name": "Request preparation has four header fields and only preparation actions",
+    "passed": true
+  },
+  {
+    "name": "Editor blocks sharing until an explicit budget save",
+    "passed": true
+  },
+  {
+    "name": "Edited budget amounts synchronize document, structured items and WhatsApp",
+    "passed": true
+  },
+  {
+    "name": "Email uses the exact saved edited document without auto-saving another snapshot",
+    "passed": true
+  },
+  {
+    "name": "Fund Allocation saves partial funding separately from the original request",
+    "passed": true
+  },
+  {
+    "name": "Missing lifecycle installation keeps the funding draft without another write",
+    "passed": true
+  },
+  {
+    "name": "Allocation edits update the existing movement in place",
+    "passed": true
+  },
+  {
+    "name": "Allocation templates exclude actual receipts, references and conversions",
+    "passed": true
+  },
+  {
+    "name": "Finalized allocations are visible in centralized history without an edit action",
+    "passed": true
+  },
+  {
+    "name": "Archive date selection includes the complete linked budget family and document",
+    "passed": true
+  },
+  {
+    "name": "Deleting a request clears its linked history and blocks stale editor sharing",
+    "passed": true
+  },
+  {
+    "name": "Reset invalidates stale budget links and preserves reusable templates",
+    "passed": true
+  },
+  {
+    "name": "System settings fields remain one row on desktop and tablet and show save feedback",
+    "passed": true
+  },
+  {
+    "name": "Journal metadata keeps Voucher ID before Entry Type without wrapping",
+    "passed": true
+  },
+  {
+    "name": "Personal journals reuse the stable metadata row",
+    "passed": true
+  },
+  {
+    "name": "Reserved handwritten vouchers never contribute to pending notifications",
+    "passed": true
+  },
+  {
+    "name": "Two-step shortcuts navigate with visible unique choices and Escape cancellation",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors",
+    "passed": true
+  }
+]
