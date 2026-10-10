@@ -1,7 +1,7 @@
 /* scripts/device-mode132.js */
 /* Keep the desktop-sized canvas on tablets and fit it to the screen.
    Widen the canvas only when the physical screen is larger. */
-(()=>{const touch=navigator.maxTouchPoints>1,coarse=matchMedia('(pointer:coarse)').matches,small=Math.min(screen.width||innerWidth,screen.height||innerHeight);const tablet=(coarse||touch&&/Mac|iPad/.test(navigator.platform))&&small>=600,phone=!tablet&&(small<600&&(coarse||touch)||innerWidth<600);const root=document.documentElement;root.dataset.device132=tablet?'tablet':phone?'phone':'desktop';if(!tablet)return;
+(()=>{const touch=navigator.maxTouchPoints>1,coarse=matchMedia('(pointer:coarse)').matches,small=Math.min(screen.width||innerWidth,screen.height||innerHeight);const tablet=(coarse||touch&&/Mac|iPad/.test(navigator.platform))&&small>=600,phone=!tablet&&(small<600&&(coarse||touch));const root=document.documentElement;root.dataset.device132=tablet?'tablet':phone?'phone':'desktop';if(!tablet)return;
 // Fit the desktop canvas to the tablet's oriented screen width.
 const workspaceWidth=1280;let fittedWidth=0,queued=false;
 // visualViewport changes when Safari/Chrome adjusts its visual zoom during a

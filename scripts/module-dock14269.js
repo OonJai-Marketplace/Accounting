@@ -26,19 +26,19 @@ function place(){
  const module=document.querySelector('.workspace-scroll .tab-content.active');
  if(module!==observed){if(observed)resize?.unobserve(observed);observed=module;if(observed)resize?.observe(observed);}
  if(!module||!visible(module))return;
- const rect=edge(module),vv=window.visualViewport;
- const viewportBottom=vv?vv.offsetTop+vv.height:innerHeight;
- const viewportRight=vv?vv.offsetLeft+vv.width:innerWidth;
- const height=dock.getBoundingClientRect().height||48;
- const bottom=Math.max(12,Math.min(innerHeight-height-48,innerHeight-Math.min(rect.bottom-12,viewportBottom-12)));
- const right=Math.max(12,Math.min(innerWidth-48,innerWidth-Math.min(rect.right-12,viewportRight-12)));
+ const physical=edge(module),scale=window.desktopScale14320?.scale||1,rect={bottom:physical.bottom/scale,right:physical.right/scale},vv=scale===1?window.visualViewport:null,layoutWidth=innerWidth/scale,layoutHeight=innerHeight/scale;
+ const viewportBottom=vv?vv.offsetTop+vv.height:layoutHeight;
+ const viewportRight=vv?vv.offsetLeft+vv.width:layoutWidth;
+ const height=dock.getBoundingClientRect().height/scale||48;
+ const bottom=Math.max(12,Math.min(layoutHeight-height-48,layoutHeight-Math.min(rect.bottom-12,viewportBottom-12)));
+ const right=Math.max(12,Math.min(layoutWidth-48,layoutWidth-Math.min(rect.right-12,viewportRight-12)));
  const b=`${Math.round(bottom)}px`,r=`${Math.round(right)}px`;
  if(dock.style.getPropertyValue('--module-dock-bottom14269')!==b)dock.style.setProperty('--module-dock-bottom14269',b);
  if(dock.style.getPropertyValue('--module-dock-right14269')!==r)dock.style.setProperty('--module-dock-right14269',r);
 }
 function schedule(){if(!frame)frame=requestAnimationFrame(place)}
 function ready(){
- schedule();window.addEventListener('page113',schedule);window.addEventListener('resize',schedule);
+ schedule();window.addEventListener('page113',schedule);window.addEventListener('resize',schedule);window.addEventListener('desktopscale14320',schedule);
  window.addEventListener('scroll',schedule,true);
  window.visualViewport?.addEventListener('resize',schedule);
  window.visualViewport?.addEventListener('scroll',schedule);

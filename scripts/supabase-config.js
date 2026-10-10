@@ -1,6 +1,8 @@
-// Browser-safe Supabase connection. Never place a service_role key here.
-window.OJM_SUPABASE_URL = 'https://nhjsesfhapnjtwlxvirm.supabase.co';
-// Set to the publicly reachable HTTPS app URL if users request resets from a preview.
-// The same URL with ?password-recovery=1 must be allowed in Supabase Auth URL Configuration.
-window.OJM_PUBLIC_APP_URL = '';
-window.OJM_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oanNlc2ZoYXBuanR3bHh2aXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2MjUwNTUsImV4cCI6MjEwNTIwMTA1NX0.TVr46PrBacEweD1yts3WR5NOyZnpKFLZdEuSGJKfyO0';
+// Compatibility names used by the desktop, phone and password-recovery clients.
+(()=>{'use strict';const c=window.OJM_DEPLOYMENT||{};
+window.OJM_SUPABASE_URL=c.supabase?.url||'';
+window.OJM_SUPABASE_ANON_KEY=c.supabase?.publishableKey||'';
+window.OJM_PUBLIC_APP_URL=c.site?.url||'';
+window.OJM_WORKSPACE_URLS={accounting:c.workspaces?.accounting||new URL('./',location.href).href,publicRestaurant:c.workspaces?.publicRestaurant||'',restaurant:c.workspaces?.restaurant||''};
+window.deployment14320={config:c,site:()=>c.site?.url||new URL('./',location.href).href,repository:()=>c.site?.repository||'',branch:()=>c.site?.branch||'main',ready:()=>!!(window.OJM_SUPABASE_URL&&window.OJM_SUPABASE_ANON_KEY)};
+})();

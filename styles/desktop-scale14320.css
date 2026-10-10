@@ -1,0 +1,6 @@
+@media screen {
+ html[data-device132=desktop][data-desktop-scale14320]{zoom:var(--desktop-scale14320);width:var(--desktop-width14320);height:var(--desktop-height14320)}
+ html[data-device132=desktop][data-desktop-scale14320] body{width:100%;min-width:0}
+ html[data-device132=desktop] #sec-chart-accounts .table-module109:has(#tblChartOfAccounts){overflow-x:auto}
+}
+@media print {html[data-device132=desktop][data-desktop-scale14320]{zoom:1!important;width:auto!important;height:auto!important}}

@@ -36,9 +36,9 @@
   const button=input.closest('.oj-date-shell104')?.querySelector('button');if(!button)return;
   // Measure complete contents before revealing; focus must not scroll the page.
   panel.style.visibility='hidden';(input.closest('dialog[open]')||document.body).append(panel);active={input,panel};draw();
-  const rect=button.getBoundingClientRect(),bounds=panel.getBoundingClientRect();
-  panel.style.left=Math.max(8,Math.min(rect.left,innerWidth-bounds.width-8))+'px';
-  panel.style.top=Math.max(8,Math.min(rect.bottom+4,innerHeight-bounds.height-8))+'px';
+  const rect=(window.desktopScale14320?.rect(button)||button.getBoundingClientRect()),bounds=(window.desktopScale14320?.rect(panel)||panel.getBoundingClientRect());
+  panel.style.left=Math.max(8,Math.min(rect.left,(window.desktopScale14320?.width||innerWidth)-bounds.width-8))+'px';
+  panel.style.top=Math.max(8,Math.min(rect.bottom+4,(window.desktopScale14320?.height||innerHeight)-bounds.height-8))+'px';
   panel.style.visibility='visible';button.setAttribute('aria-expanded','true');panel.querySelector('button[data-value]:not(:disabled)')?.focus({preventScroll:true});
  }
  document.addEventListener('pointerdown',e=>{if(active&&!e.target.closest('.oj-date-popup104')&&!e.target.closest('.oj-date-shell104'))close()},true);

@@ -167,3 +167,7 @@ network concurrency and real printer output still require your test-project chec
 Current-data audit copies include stored database records. External Storage files
 are not automatically fetched in that path; an uploaded complete archive JSON
 retains any file attachments that were included when it was prepared.
+
+Portability v143.20: public connection settings are in deployment-config.js.
+See docs/PORTABILITY-v143.20.md for first installation, backend export and handover.
+The complete original server schema must be exported and verified before a fresh-database ZIP is ready.

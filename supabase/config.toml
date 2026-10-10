@@ -2,3 +2,9 @@
 # This does not make password operations anonymous.
 [functions.admin-password14257]
 verify_jwt = false
+
+# All three handlers verify the Auth token and enforce server-side authorization.
+[functions.admin-create-user]
+verify_jwt = false
+[functions.recovery-vault113]
+verify_jwt = false

@@ -1,13 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 // Platform legacy JWT verification is disabled for signing-key compatibility.
 // auth.getUser(token) below verifies every caller before any action; role/RPC gates authorize issuance.
-const origin = Deno.env.get('APP_ORIGIN') || 'https://oonjai-marketplace.github.io';
-const cors = {'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Vary':'Origin'};
-const reply=(status:number,body:unknown)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
+import {cors} from '../_shared/security14320.ts';
 const strong=(v:unknown):v is string=>typeof v==='string'&&[...v].length>=12&&v.length<=128&&v===v.trim()&&/\p{Lu}/u.test(v)&&/\p{Ll}/u.test(v)&&/\p{N}/u.test(v)&&/[^\p{L}\p{N}\s]/u.test(v);
 Deno.serve(async req=>{
- if(req.headers.get('origin')&&req.headers.get('origin')!==origin)return reply(403,{error:'Origin not allowed'});
- if(req.method==='OPTIONS')return new Response(null,{headers:{...cors,'Access-Control-Allow-Methods':'POST, OPTIONS'}});
+ let headers:Record<string,string>;try{headers=cors(req)}catch{return new Response(JSON.stringify({error:'Origin not allowed'}),{status:403,headers:{'Content-Type':'application/json'}})}
+ const reply=(status:number,body:unknown)=>new Response(JSON.stringify(body),{status,headers:{...headers,'Content-Type':'application/json','Cache-Control':'no-store'}});
+ if(req.method==='OPTIONS')return new Response(null,{headers:{...headers,'Access-Control-Allow-Methods':'POST, OPTIONS'}});
  if(req.method!=='POST')return reply(405,{error:'POST required'});
  const token=req.headers.get('authorization')?.replace(/^Bearer\s+/i,'');if(!token)return reply(401,{error:'Sign in first'});
  const admin=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
