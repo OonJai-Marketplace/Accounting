@@ -1,0 +1,273 @@
+{
+  "description": "Canonical installer assembled from original schema metadata, original backend routine sources, and current repository updates. Original business rows and private source extracts are excluded. Final DDL was exported from an isolated empty reconstruction, then restored and tested independently.",
+  "sources": [
+    {
+      "name": "supabase-schema.sql",
+      "sha256": "c30699309e31c86ef4ae6e421e9718914dd59e3b632480a893e7957f14133b1e"
+    },
+    {
+      "name": "supabase-period-review.sql",
+      "sha256": "54d7f6aa1ff301bf3238c7486860cbe28c17bffa1b02640c522202d2d7213d49"
+    },
+    {
+      "name": "supabase-user-permissions.sql",
+      "sha256": "b5b8c45ce1065d412b8dc2e7db03919aaffdb047fca56669ebc8893928ea1a16"
+    },
+    {
+      "name": "05-staff-journals.sql",
+      "sha256": "a1fb2a1416211368db04cbb204107cba8328bd9f7b453baab77f788dba5471f9"
+    },
+    {
+      "name": "06-transaction-review-audit.sql",
+      "sha256": "82239c3ab8394cf9e514ec7f8360ee6b37876839612faa83fcdb1dd98acc9f58"
+    },
+    {
+      "name": "07-open-period-edit.sql",
+      "sha256": "ef046e399daa65a3459d9749d253d29f1cad9f7c4eb33a8c964a657694f8f392"
+    },
+    {
+      "name": "08-install-sub-user-workspace.sql",
+      "sha256": "38852b327033ed09a4f23762e6b5649a53b4a85c7af2306fb4fa9aac2e2dd949"
+    },
+    {
+      "name": "09-fix-atomic-journal-and-user-workspace.sql",
+      "sha256": "6dd750dc49af5d997d00c6374dfc8c59e4d538739cc06e49dc2544983d5a1f63"
+    },
+    {
+      "name": "10-sub-user-entry-ids.sql",
+      "sha256": "3b53632ee9fd34f3668ec8462c70906aeab01f26e3fdec4dbee57db1f4add0e8"
+    },
+    {
+      "name": "11-single-entry-permission-rules.sql",
+      "sha256": "41737b919bf899d5b46453ee03085579df3ec53c9be3e6509a362cbe477d3a6b"
+    },
+    {
+      "name": "12-sub-user-prefix-and-workspace-polish.sql",
+      "sha256": "c2567ca39916ed653684e16700b11c5998d9e7096e2c6a5eaf78b36f9661b687"
+    },
+    {
+      "name": "13-individual-workspace-and-clearing.sql",
+      "sha256": "93641aeea38c5c750483383149330c91417049f7b7762a99ef1acee4062c4757"
+    },
+    {
+      "name": "14-sub-user-workbench-integration.sql",
+      "sha256": "14f620af6479c8ff6499729d87df841bf1f1e7486ab0d651fc0d03b7b26d952f"
+    },
+    {
+      "name": "16-final-workbench-numbering-and-state.sql",
+      "sha256": "3986d88a8f5f702f15fd63319e5bb7692dbf8ed8ad9435a789afccf2e9b51137"
+    },
+    {
+      "name": "82-payroll-reports.sql",
+      "sha256": "67bd6eb66a693d1d77c1311d9be796afbd5c2ec89b89e966fb84b7e75cda3490"
+    },
+    {
+      "name": "83-payroll-repair-and-samples.sql",
+      "sha256": "7df7d2ad94a2934c52242eaa7319706aaafdcb668721c115b6f69879d78878b1"
+    },
+    {
+      "name": "89-prefix-registry.sql",
+      "sha256": "dde4291574dd8522141e825faa7a2f3dc62c365dc9be69aaa3b921cbf4590732"
+    },
+    {
+      "name": "91-scheduled-journals.sql",
+      "sha256": "fb06337c70da217323f738fd68a291a028242b25b47c601f3cded5920ffef576"
+    },
+    {
+      "name": "92-schedule-corrections.sql",
+      "sha256": "dcef1d7f1ce74ab27b82bfa3b84863bcda48600d893ad4c0f9f4b04b5da27af3"
+    },
+    {
+      "name": "93-cancel-scheduled-posting.sql",
+      "sha256": "21afe22e0264153997637bb8d732509810200df2bafe8c694b4cbb6cc0bcdfad"
+    },
+    {
+      "name": "106-install.sql",
+      "sha256": "b9448a9458c3c473ef74643469a245f88542bfc71161ab962c725621dfae02a6"
+    },
+    {
+      "name": "108-record-actions.sql",
+      "sha256": "dcae0272076b0ffb21154700eb59fe3df6018f3a0cc765de72eb94cd28ac4a33"
+    },
+    {
+      "name": "113-access-presentation.sql",
+      "sha256": "67b76beaf6da27ae6e1ee21167afa92b8e86e891edcf3477467520b62ab9e943"
+    },
+    {
+      "name": "114-fund-summary.sql",
+      "sha256": "a20ef6de37a3efc27bafab0a01762ca2e3afe8a4a7b3c377a7b398a3e18adeaa"
+    },
+    {
+      "name": "115-backup.sql",
+      "sha256": "40543648e3c9fd35870e8344f0aa84b887aab618e97017a94b5d8dac975baa60"
+    },
+    {
+      "name": "116-recovery-vault.sql",
+      "sha256": "024ead2303bf128a630130b5dc046df5e8a601a776aa6a37b6962204d1ada617"
+    },
+    {
+      "name": "Oon-Jai-Archive-Preview-v127.sql",
+      "sha256": "3a679122af660b8ff3f0bdc85df1284e21e01cd63ceb2357dcade86fbe7cd52c"
+    },
+    {
+      "name": "Oon-Jai-Archive-Preview-v128.sql",
+      "sha256": "c6f4a4bb479ea1c6250e884d642d97b24e9b06f32a9abfcee69d3339f8fd76ed"
+    },
+    {
+      "name": "INSTALL-IN-SUPABASE-SQL-EDITOR.sql",
+      "sha256": "c572c0d9e6a8cbdee24e0e65db01934ad883f99c2a7ddfb92de0cfc0c4c44c49"
+    },
+    {
+      "name": "Oon-Jai-Install-Combined-Update-v138.sql",
+      "sha256": "d68f2925a2a704ee7dba130a6340686d3d7316fd49e51f81b22fad60167b519d"
+    },
+    {
+      "name": "FIX-SUBMISSION-REVIEW-v139.sql",
+      "sha256": "1ad7cd964e9990d9343eed9dcd7f80e1c7afa0f4830538be40c59c6c3e440b71"
+    },
+    {
+      "name": "INSTALL-SWITCH-ACCOUNT-v141.sql",
+      "sha256": "497484a7ba5ba4dfc6154b68cf42e6c78355363bf4777986f7c765dad311395b"
+    },
+    {
+      "name": "INSTALL-RESET-OPERATIONAL-DATA-v142.sql",
+      "sha256": "6c8de59861dfa1560368340cffe9164a1befe4259ef2c5cfd989e2884caddaa1"
+    },
+    {
+      "name": "INSTALL-RECOVERY-VAULT-v142.sql",
+      "sha256": "55b12c86cc61136699e48168b14efe95fb79cae721b2c5d20a26133f354db180"
+    },
+    {
+      "name": "security-assessment.json",
+      "sha256": "0df841fa47ca21f78560a1cc796679c405c36fca29bcde22697ef6d6a66f805f"
+    },
+    {
+      "name": "security-followup.json",
+      "sha256": "c7f1c7843c1c13b8ab7638b86bf55f54fa8bf669025e49e8d2bddd1ab9182b75"
+    },
+    {
+      "name": "Approval worker from v142.23",
+      "sha256": "6fe8d3c5020cc62e23925580854d59aaa024047b75a8ba7cdd214e734b08c50c"
+    },
+    {
+      "name": "08-workspace-separation123.sql",
+      "sha256": "a8a152700ddb850e94ec97620126dc06825bd3d15b9a8bae43e6d0c861a3cd26"
+    },
+    {
+      "name": "INSTALL-v142.18.sql",
+      "sha256": "9a7b69b2a0f896edb6b710764d8dd84978d532d2d87fc7872cbc7859f39e5704"
+    },
+    {
+      "name": "INSTALL-DESKTOP-JOURNAL-v142.17.sql",
+      "sha256": "fc6f7040619c2f912ad9e71d03ddaf29f0704d543045fd56ba38a91c9f8ae5e2"
+    },
+    {
+      "name": "INSTALL-SUBACCOUNT-CURRENCY-v142.16.sql",
+      "sha256": "706e1a579ddf2c9a277df95f5bcf829981f04b2291a8fb14d4afb4324ec7696d"
+    },
+    {
+      "name": "INSTALL-WORKFLOWS-v142.14.sql",
+      "sha256": "4e3c577d1740e4449dd00c31b9df3fffcd5feca3c5db30182833208fd0f12beb"
+    },
+    {
+      "name": "INSTALL-PERMISSIONS-v142.21.sql",
+      "sha256": "d5088f37fb2b5e48647b71de51e839e2daee330ddf256300ac9011ddf3b68899"
+    },
+    {
+      "name": "INSTALL-FINALIZATION-v142.23.sql",
+      "sha256": "77e406c51bdf4935b415afe36e0954d1a274def54f5190c9dec13b8743e83356"
+    },
+    {
+      "name": "INSTALL-SECURITY-v142.28.sql",
+      "sha256": "7eae95e2ef1eb7fd64f805759789788c4b69e5a79cd0a4155383cbd16c9575dd"
+    },
+    {
+      "name": "INSTALL-ORGANIZATION-v142.29.sql",
+      "sha256": "9ce7df24b89f247ad929916ccc2fe3c3153cb51641fa54b9831492e2e446893f"
+    },
+    {
+      "name": "INSTALL-DATA-TOOLS-v142.32.sql",
+      "sha256": "5d030b5f84b8a3430bc3fb947547568efb830619c6ffc4f762cf0d6aaf50fe9f"
+    },
+    {
+      "name": "INSTALL-OPENING-BALANCES-v142.34.sql",
+      "sha256": "bd2b2f309b9d55388072db717e2c92fd53297768c1a471e0b71a690b91b76a88"
+    },
+    {
+      "name": "INSTALL-WORKFLOW-v142.53.sql",
+      "sha256": "f68da1c3e6a35278ca3963ebd9dfbbe880c199e9a0272799d693d459c6a705e6"
+    },
+    {
+      "name": "INSTALL-REPORT-SNAPSHOTS-v142.54.sql",
+      "sha256": "0a588e4563fe5a6782f09fd44ee2299d64066386bb942cdb02d93523f3e3e12f"
+    },
+    {
+      "name": "FIX-JOB-TITLE-v142.55.sql",
+      "sha256": "d0ba35d5553f9cc8e2b2b6b5704b027036f8fc4860a09ec48ba1ddaf8f226ed1"
+    },
+    {
+      "name": "INSTALL-PASSWORD-RESET-v142.57.sql",
+      "sha256": "8b26bab80722aca9fd4a7522d9a718e9c1d098a6c327f7f033927c70358e8a19"
+    },
+    {
+      "name": "INSTALL-ENTRY-NUMBERS-v142.57.sql",
+      "sha256": "a596b13d1020a50c27bf82611898e7c37cba70ef62761bfb201e5bb655991c28"
+    },
+    {
+      "name": "INSTALL-ACCOUNT-UPDATES-v142.58.sql",
+      "sha256": "dd78dfaaa5cf8c116f7b67cff1da5102271bb7826b706e772a7339a60964b88b"
+    },
+    {
+      "name": "FIX-SESSION-POLICY-v142.63.sql",
+      "sha256": "d0a61fb62e44e19c31ade23b7d17f82c6786da8548ec42828267c960d14c2fa0"
+    },
+    {
+      "name": "INSTALL-MONEY-IN-v142.78.sql",
+      "sha256": "5ff37e84dc6ef21c12621b9e752bcd7e15970e8cec405f0b410e695a693ed4b9"
+    },
+    {
+      "name": "INSTALL-ASSIGNED-LEDGER-v142.81.sql",
+      "sha256": "e4db71b71f28fbcca1eae0d69c94cf8a30b0dd1dab5d769439ae10e26d6ccb66"
+    },
+    {
+      "name": "INSTALL-SUBACCOUNT-POSTING-v142.87.sql",
+      "sha256": "f39979825df17dfebb69930ab49b112d7b3db2cb47b1627add3720f6164f1135"
+    },
+    {
+      "name": "INSTALL-VOUCHERS-v142.99.sql",
+      "sha256": "bbf53a3c53f60a98aba52cf202d8b2b8edfa90b64b05c48113b596c20ddf0b79"
+    },
+    {
+      "name": "INSTALL-HR-CALENDAR-v143.06.sql",
+      "sha256": "5afbdc091700b11e200a65aaaf0e6ea279994a36e8aaa30e4ade5bdd263aaef0"
+    },
+    {
+      "name": "INSTALL-HR-DOCUMENT-FORMATS-v143.11.sql",
+      "sha256": "6eb53cda361db9eaf1fb95cdc665c3eee7d117c2ec8ec144b928c5d92cb0bf6b"
+    },
+    {
+      "name": "INSTALL-DOWNLOAD-PASSWORDS-v143.12.sql",
+      "sha256": "8d7ccef47ed53f3967c7bffd8119aa5a9701433b1a1e272fde383c69a66cd378"
+    },
+    {
+      "name": "INSTALL-BUDGET-TEMPLATES-v143.13.sql",
+      "sha256": "a628531a78b810e6325c1869b03af1403717c983fc8be410f565e151775d36a4"
+    },
+    {
+      "name": "INSTALL-BUDGET-LIFECYCLE-v143.16.sql",
+      "sha256": "9ce62378e04f3d4e32e9d64037e02b3c3db01c3f728ae8b07a5b74e6049e1a9e"
+    },
+    {
+      "name": "INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql",
+      "sha256": "9fe6b26b4218410ff571a4b9917c1906aa15301e7d19156fd4ff4fc4784c2644"
+    },
+    {
+      "name": "INSTALL-PORTABILITY-v143.20.sql",
+      "sha256": "a52811e734932d2c9512c18cd724e948289807f3eba680375219edc3b6617f07"
+    },
+    {
+      "name": "INSTALL-EDGE-SERVICES-v143.20.sql",
+      "sha256": "40178a23b927ef36d55be6a6440be405a6073fc780d999d51c9db700c7b87f81"
+    }
+  ]
+}

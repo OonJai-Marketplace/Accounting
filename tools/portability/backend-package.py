@@ -11,6 +11,7 @@ def run(args,env):
 def contracts():
     source='\n'.join(p.read_text() for p in (ROOT/'scripts').glob('*.js') if not p.name.startswith('desktop14245-'))
     calls=set(re.findall(r"(?:\.rpc|\brpc|\bread)\(['\"]([a-zA-Z0-9_]+)['\"]",source))
+    calls.discard('standalone') # Browser-local audit storage namespace, not a backend RPC.
     calls.discard('recipe_view113') # Restaurant feature explicitly belongs to the separate app.
     return sorted(calls)
 
@@ -19,7 +20,7 @@ def validate(sql):
     missing=sorted(set(contracts())-names)
     if missing: raise RuntimeError('Schema is missing client functions: '+', '.join(missing))
     for table in ['profiles','user_permissions','business_settings','accounts','journal_entries','journal_lines','staff_journals','staff_journal_lines','payroll_employees','payroll_runs','operational_reports']:
-        if not re.search(r'(?i)CREATE TABLE(?: IF NOT EXISTS)? public\.'+table+r'\b',sql): raise RuntimeError('Schema is missing '+table)
+        if not re.search(r'(?i)CREATE TABLE(?: IF NOT EXISTS)? (?:\"?public\"?\.)\"?'+table+r'\"?\b',sql): raise RuntimeError('Schema is missing '+table)
     if not re.search(r'(?i)ENABLE ROW LEVEL SECURITY',sql) or not re.search(r'(?i)GRANT ',sql): raise RuntimeError('Security policies and grants must be included')
     if re.search(r'(?im)^COPY |^INSERT INTO ',sql): raise RuntimeError('A fresh installer must contain schema only, without source records')
 
@@ -38,8 +39,28 @@ def export(output):
     (output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     print('Verified schema package created. Restore it into a disposable Supabase project and run the acceptance checklist before distribution.')
 
+def install_clean(directory):
+    manifest=json.loads((directory/'manifest.json').read_text())
+    for name,digest in manifest['files'].items():
+        if hashlib.sha256((directory/name).read_bytes()).hexdigest()!=digest: raise RuntimeError('Package integrity check failed: '+name)
+    sql=(directory/'001-Install-Empty-Database.sql').read_text()
+    validate_clean(sql)
+    env=dict(os.environ)
+    if not all(env.get(k) for k in ['PGHOST','PGDATABASE','PGUSER','PGPASSWORD']): raise RuntimeError('Set the new project connection privately using PG environment variables')
+    run(['psql','-X','--set=ON_ERROR_STOP=1','-f',str(directory/'001-Install-Empty-Database.sql')],env)
+    print('Complete backend installed. Create/confirm the first Auth user, then edit and run 002-Create-First-Administrator.sql.')
+
+def validate_clean(sql):
+    names=set(re.findall(r'(?i)CREATE(?: OR REPLACE)? FUNCTION (?:public\.)?([a-z0-9_]+)\s*\(',sql))
+    missing=sorted(set(contracts())-names)
+    if missing: raise RuntimeError('Schema is missing client functions: '+', '.join(missing))
+    for table in ['profiles','user_permissions','business_settings','accounts','journal_entries','journal_lines','staff_journals','staff_journal_lines','payroll_employees','payroll_runs','operational_reports']:
+        if not re.search(r'(?i)CREATE TABLE(?: IF NOT EXISTS)? \"?public\"?\.\"?'+table+r'\"?\s*\(',sql): raise RuntimeError('Schema is missing '+table)
+    if not all(x in sql for x in ['Fresh installation requires empty','ENABLE ROW LEVEL SECURITY','REVOKE ALL','storage.buckets','CREATE TRIGGER','pgrst.db_pre_request','maintenance_backups14322']): raise RuntimeError('Clean installation structure or security is incomplete')
+
 def install(directory):
     manifest=json.loads((directory/'manifest.json').read_text())
+    if manifest.get('format')=='accounting-clean-backend14322': return install_clean(directory)
     if manifest.get('format')!='accounting-schema-package14320': raise RuntimeError('Unsupported package')
     files=manifest.get('files',{})
     if set(files)!={'001-foundation.sql','002-INSTALL-PORTABILITY-v143.20.sql','003-INSTALL-EDGE-SERVICES-v143.20.sql'}: raise RuntimeError('Invalid migration order')
@@ -65,7 +86,10 @@ def main():
     try:
         if args.action=='export': export(args.path)
         elif args.action=='install': install(args.path)
-        else: validate(args.path.read_text());print('Schema contracts validated')
+        else:
+            sql=args.path.read_text()
+            (validate_clean if 'complete clean backend' in sql else validate)(sql)
+            print('Schema contracts validated')
     except (RuntimeError,OSError,ValueError) as error: print(str(error),file=sys.stderr);return 1
     return 0
 if __name__=='__main__': sys.exit(main())

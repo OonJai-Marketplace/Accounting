@@ -43,7 +43,7 @@ BEGIN
  -- Whitelist fields before even the retry/audit payload is persisted.
  p_company=jsonb_build_object('name',p_company->>'name','email',p_company->>'email');
  p_accounts=jsonb_build_object('emailSender',p_accounts->>'emailSender','emails',p_accounts->>'emails','trialEmailTo',p_accounts->>'trialEmailTo','chatgptAccountEmail',p_accounts->>'chatgptAccountEmail','gmailClientId',p_accounts->>'gmailClientId');
- p_deployment=jsonb_build_object('siteUrl',p_deployment->>'siteUrl,'repository',p_deployment->>'repository','branch',p_deployment->>'branch','accounting',p_deployment->>'accounting','publicRestaurant',p_deployment->>'publicRestaurant','restaurant',p_deployment->>'restaurant');
+ p_deployment=jsonb_build_object('siteUrl',p_deployment->>'siteUrl','repository',p_deployment->>'repository','branch',p_deployment->>'branch','accounting',p_deployment->>'accounting','publicRestaurant',p_deployment->>'publicRestaurant','restaurant',p_deployment->>'restaurant');
  p_checks=jsonb_build_object('github',p_checks->'github','supabase',p_checks->'supabase','recovery',p_checks->'recovery','login',p_checks->'login','gmail',p_checks->'gmail','chatgpt',p_checks->'chatgpt');
  payload=jsonb_build_object('version',p_expected_version,'budgetVersion',p_expected_budget_version,'mode',p_mode,'company',p_company,'accounts',p_accounts,'deployment',p_deployment,'incoming',p_incoming,'checks',p_checks);
  PERFORM pg_advisory_xact_lock(hashtextextended(p_request_key::text,0));

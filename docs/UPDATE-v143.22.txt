@@ -1,0 +1,24 @@
+Oon Jai Accounting — backend portability and maintenance, v143.22
+
+Complete fresh backend: setup/fresh/001-Install-Empty-Database.sql.
+Explicit first Auth administrator: 002-Create-First-Administrator.sql.
+Read-only contract/access verification: 003-Verify-Installation.sql.
+Separate clearly named SQL maintenance templates: setup/maintenance/.
+
+Fixed a missing quote in the company installation/handover function.
+The fresh reconstruction preserves the original approval worker separately
+from its current organization/reviewer wrapper; temporary approval is tested.
+Explicit service-role profile read supports administrator verification in Edge handlers.
+Fresh SQL excludes PostgreSQL 17-only MAINTAIN privilege grants for PostgreSQL 15+ compatibility.
+
+No live database records were changed. The existing site's additive upgrade is
+setup/INSTALL-BACKEND-AND-MAINTENANCE-v143.22.sql; do not run the fresh installer there.
+
+Date deletion requires a matching exported backup, preview, and explicit saved-backup confirmation.
+Protected financial links, finalizations, groups and carry-forward dependencies refuse deletion.
+Trigger states, numbering, receipts and audit metadata are retained. Stored temporary backup
+payloads are cleared after successful deletion; save the external JSON first.
+
+Local PostgreSQL validation exercises the delivered clean installer and temporary records.
+Hosted Auth/email, Edge gateway and Storage HTTP checks must be completed on the new account.
+The full installation/handover/maintenance protocol is a separate deliverable.

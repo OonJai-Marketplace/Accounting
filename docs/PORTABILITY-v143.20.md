@@ -4,40 +4,26 @@ The current release supports GitHub hosting and Supabase. Change public deployme
 
 ## Existing website
 
-1. Run `setup/INSTALL-PORTABILITY-v143.20.sql` on the existing verified database. It adds setup/handover metadata and does not change transactions or user roles. Existing companies are marked initialized, even when their transaction history is empty.
+1. On the existing v143.21 database, run `setup/INSTALL-BACKEND-AND-MAINTENANCE-v143.22.sql`. It fixes the setup routine and adds owner-only maintenance tools while preserving records and roles. Earlier historical upgrades remain a separate existing-site process; the clean installer is only for a new project.
 2. Open **Settings → System → Installation & Handover**. Company & Deployment edits shared company, email, workspace and repository defaults. Handover selects an existing active administrator and requires service verification. The incoming administrator must first be created in Users & Permissions.
 3. Changing these details does not transfer service ownership. Invite the incoming owner in GitHub and Supabase, verify their login, configure Auth recovery URLs and function origins, authorize Gmail, then create/test their ChatGPT task and pause the previous task. Keep the outgoing administrator until access is verified; role removal is a separate explicit action in Users & Permissions.
 4. Download Configuration and replace the repository's `deployment-config.js` when publishing under a different URL or repository. Browser-local workspace overrides are cleared when shared installation settings load. Refresh other open devices after changing shared settings.
 
 The Supabase connection remains a deployment choice, outside handover saves. Pointing the website at another database does not transfer bookkeeping records, Auth users, or storage files.
 
-## Fresh independent installation — foundation prerequisite
+## Fresh independent installation
 
-**The original complete server schema is not in repository history. The SQL folder contains incremental updates. A verified server schema export is required before this release can be distributed as a complete fresh database package.** Do not run every historical SQL file, guess missing functions, or include one-time cleanup/sample installers in normal installation.
+The original schema and backend routines have now been recovered and consolidated. **The complete clean installer is `setup/fresh/001-Install-Empty-Database.sql`.** No source-database export or historical repair sequence is needed for a new installation.
 
-The provided export tool assembles a schema-only package from the established, working database. It preserves security policies, grants, functions and triggers; it excludes company records and Auth users. It validates client function coverage and creates a checksum manifest. PostgreSQL client utilities (`pg_dump`, `psql`) must match or exceed the server major version.
+Follow `setup/fresh/START-HERE.md`, then run numbered files 001, 002 and 003. File 001 includes all current backend definitions, initial reference/settings rows, private bucket policies, Data API request gate and owner-only maintenance tools. File 002 explicitly bootstraps the first confirmed Auth administrator. File 003 checks frontend RPC coverage and access protections.
 
-Set connection values privately in your local terminal using `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` and `PGSSLMODE=require`. Use the database owner connection shown in your Supabase project. Do not paste credentials into ChatGPT, commit them, or pass them in command arguments.
+The portable ZIP uses an empty deployment configuration for your new Supabase project and GitHub repository. Copy all its frontend folders into the new repository and configure the public values using setup.html. Complete the hosted Auth, Edge, email and upload checks after connecting the new account. Local PostgreSQL verification does not exercise those hosted transports.
 
-```bash
-python tools/portability/backend-package.py export /safe/path/fresh-backend
-```
-
-Create a new Supabase project. Change the private PG environment variables to the **new empty target**, then run:
-
-```bash
-python tools/portability/backend-package.py install /safe/path/fresh-backend
-```
-
-The installer checks checksums, refuses a target with existing public tables and restores in one transaction. This package still requires a disposable-project restore and full acceptance test before final distribution. Schema validation alone does not prove financial behavior.
-
-Create and confirm the first administrator in the new project's Auth dashboard, then edit/run `setup/portable/BOOTSTRAP-ADMIN.sql` with that user's UUID. On first sign-in, the website detects the persisted uninitialized installation and prompts for company details. A missing service, offline read or empty transaction list never triggers new-install setup.
-
-Copy `deployment-config.example.js` to `deployment-config.js`, enter the **new** Supabase URL/public key and GitHub repository/website links, then publish through GitHub Pages. Add the website and recovery page URLs to Supabase Auth's allowed redirect URLs. Open the website, sign in and complete setup.
+`tools/portability/backend-package.py validate setup/fresh/001-Install-Empty-Database.sql` checks the packaged contracts. Its `install setup/fresh` command verifies the checksums and executes file 001 through your private PG environment connection. The SQL Editor route requires no local PostgreSQL tools. The older export command remains an advanced schema-export utility; it is unnecessary for this new package.
 
 ## Edge services
 
-The package now includes source for `admin-create-user`, `recovery-vault113` and `admin-password14257`. The two new implementations require `setup/INSTALL-EDGE-SERVICES-v143.20.sql` and the existing complete foundation, including `private.password_reset14257` and `admin_save_access14281`.
+The package now includes source for `admin-create-user`, `recovery-vault113` and `admin-password14257`. The fresh installer includes their tables, service-only routines, `private.password_reset14257` and `admin_save_access14281`. Existing sites retain their separate forward-update route.
 
 Deploy the new source to a staging project first. **Do not overwrite an established recovery service until its original encrypted data/export format has been backed up and its matching implementation/key has been obtained.** The bundled replacement uses AES-256-GCM and its own versioned storage; it cannot read unknown historical encryption formats. Keep original emergency recovery instructions until staging restore and unlock are verified.
 
@@ -55,26 +41,24 @@ supabase functions deploy admin-password14257
 
 JWT gateway verification is disabled in `supabase/config.toml` because each handler verifies the token itself. Administrator operations also check current server roles. Recovery unlock requires the administrator's current password, limits attempts, issues an expiring actor-bound ticket, and never stores plaintext recovery details.
 
-## Required acceptance test before the final ZIP
+## Verification and remaining hosted checks
 
-- Fresh disposable project: restore the actual exported foundation, bootstrap the admin, complete first setup, refresh, then confirm setup does not recur.
-- Different GitHub owner/repository path: desktop, phone, recovery, offline reload and shared workspace links.
-- Temporary accounts: create a user, retry a lost response, change temporary password, grant/revoke permissions, then remove test users using supported workflows.
-- Temporary records: balanced/rejected journals, submissions/review/finalization, payroll/attendance/leave, budgets/templates/deletion, vouchers, reports, archive/export/reset. Verify security using an unauthorized account as well as an administrator.
-- Incoming-owner login, Gmail delivery, recovery email, recovery vault save/export/restore, ChatGPT task and GitHub publication.
-- Physical phone/tablet keyboard, print dialogs and multiple simultaneous users.
+The new clean package is tested against an independently empty local PostgreSQL engine with pgcrypto. The test executes the delivered SQL, validates every routine body, bootstraps a temporary Auth profile, completes company setup, posts balanced/rejected journals, tests idempotent saves, payroll/budget guards, staff submission/final approval, archives, permissions and backed-up deletion. Results are recorded in `validation/fresh-backend14322-results.json`.
+
+After installing under your new accounts, check real Auth recovery/email, the three deployed Edge functions, vault save/unlock, Storage uploads and a different GitHub Pages repository path. Gmail authorization, ChatGPT scheduled tasks, physical-device keyboard/print behavior and concurrent hosted users are outside the local database test.
 
 The desktop canvas scales down on narrow desktop windows and up on larger windows, capped at 150%; extra-wide displays use the remaining room. Phone/tablet layouts keep their established behavior. Print retains its original page dimensions.
 
-## Running the included local checks
+## Running the fresh-package local check
 
-Install Playwright plus a Chromium binary and PGlite in a local development environment. The suites use temporary fixtures; they do not connect to the production database. Set `CHROMIUM_PATH` (and `CHROMIUM_EXECUTABLE` for the existing phone-control suite) to your browser binary, and `PGLITE_MODULE` to your PGlite module when it is outside standard module resolution. The Edge handler tests require Node 24's TypeScript stripping support.
+The ZIP includes the actual fresh-install PostgreSQL test and its Auth/Storage platform fixture. It does not connect to production. Use Node 24 and install `@electric-sql/pglite`, then run:
 
 ```bash
-node validation/test-portability-browser14320.cjs
-node validation/test-portability-db14320.cjs
-node validation/test-edge-services14320.cjs
-python validation/test-backend-package14320.py
+node validation/test-fresh-backend14322.cjs
 ```
 
-A schema-only export of `public` and `private` does **not** export Supabase platform settings, Auth accounts, Storage buckets/files or policies on `storage.objects`. It also excludes table rows used as runtime singleton state. Recreate the required private buckets and their access policies, Data API pre-request hook configuration, and schema-required singleton defaults in the new staging project before running acceptance tests. Obtain these definitions from the verified source project; do not loosen upload policies or seed company records to bypass missing setup. This is another reason the export tool alone is not a certified complete backend installer.
+The current source repository also contains the older frontend and Edge regression suites; their local fixtures are development tools, not installation scripts. The ZIP contains the latest fresh-backend result in both validation and docs.
+
+The bundled clean installer includes the required Storage bucket rows/policies, singleton state and composed Data API request hook. An optional generic pg_dump schema-only export does not include those platform/configuration rows by itself. Auth users, Storage file bytes, Edge deployment/secrets, SMTP and service-account ownership remain external installation steps.
+
+The SQL maintenance templates are separated into add, edit, read, backup and delete folders. See `setup/maintenance/START-HERE.md`; they are owner-only and do not loosen browser permissions.

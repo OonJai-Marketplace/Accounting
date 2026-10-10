@@ -1,3 +1,7 @@
+NEW INDEPENDENT INSTALLATION: start at setup/fresh/START-HERE.md.
+SQL MAINTENANCE: start at setup/maintenance/START-HERE.md.
+Existing site update: setup/INSTALL-BACKEND-AND-MAINTENANCE-v143.22.sql.
+
 OON JAI ACCOUNTING v142.42 — INDEPENDENT PHONE WORKSPACE
 
 Phones open phone.html directly. Sign-in and the five workspace tabs load without
@@ -170,4 +174,4 @@ retains any file attachments that were included when it was prepared.
 
 Portability v143.20: public connection settings are in deployment-config.js.
 See docs/PORTABILITY-v143.20.md for first installation, backend export and handover.
-The complete original server schema must be exported and verified before a fresh-database ZIP is ready.
+The complete clean backend is now included in setup/fresh; no source export or old repair sequence is required.
