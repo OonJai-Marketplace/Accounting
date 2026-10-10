@@ -68,22 +68,22 @@ await check('Delayed settings hydration preserves typed category and selected cu
 });
 await check('Action colors stay in approved warm families with readable white text',()=>{
  const css=source('styles/controls14317.css');const tones=[...css.matchAll(/\[data-action-tone14317=(\w+)\]\{--action-bg14317:(#[\da-f]{6});--action-edge14317:(#[\da-f]{6});--action-hover14317:(#[\da-f]{6})\}/g)];
- assert.equal(tones.length,7);const approved=new Set(['#008563','#074532','#914511','#9a6b20','#8b5e14','#8a3524','#52645d']);
+ assert.equal(tones.length,7);const approved=new Set(['#008563','#074532','#914511','#9a6b20','#8b5e14','#8a3524','#176249']);
  const luminance=h=>{const v=h.slice(1).match(/../g).map(x=>parseInt(x,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return v[0]*.2126+v[1]*.7152+v[2]*.0722};
  for(const [_,name,bg,edge,hover] of tones){assert(approved.has(bg),name);assert.equal(edge,bg);for(const h of [bg,hover])assert(1.05/(luminance(h)+.05)>=4.5,name+' '+h)}
  assert.match(css,/@media screen and \(min-width:641px\)/);
 });
 await check('Small desktop receives action colors while phone and navigation remain scoped',()=>{
  const buttons=['Templates','Add Template','New Report','Print / PDF','Settings'].map(text=>({textContent:text,title:'',dataset:{},getAttribute:()=>null,matches:()=>false,closest:()=>null}));
- const ctx={innerWidth:600,document:{readyState:'complete',documentElement:{dataset:{device132:'desktop'}},body:{},querySelectorAll:()=>buttons},MutationObserver:class{observe(){}},requestAnimationFrame:fn=>fn(),addEventListener(){}};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(source('scripts/controls14317.js'),ctx);
+ const ctx={innerWidth:820,document:{readyState:'complete',documentElement:{dataset:{device132:'desktop'}},body:{},querySelectorAll:()=>buttons},MutationObserver:class{observe(){}},requestAnimationFrame:fn=>fn(),addEventListener(){}};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(source('scripts/controls14317.js'),ctx);
  assert.deepEqual(buttons.map(b=>b.dataset.actionTone14317),['template','template','add','output','neutral']);
- buttons.forEach(b=>delete b.dataset.actionTone14317);ctx.document.documentElement.dataset.device132='phone';ctx.actionControls14317.decorate();assert(buttons.every(b=>!b.dataset.actionTone14317));
+ buttons.forEach(b=>delete b.dataset.actionTone14317);ctx.document.documentElement.dataset.device132='phone';ctx.innerWidth=390;ctx.actionControls14317.decorate();assert(buttons.every(b=>!b.dataset.actionTone14317));
  ctx.innerWidth=1280;buttons[0].matches=()=>true;ctx.actionControls14317.decorate();assert(!buttons[0].dataset.actionTone14317);
 });
 await check('Corrected desktop assets use matching offline release versions',()=>{
  const ctx={addEventListener(){}};ctx.self=ctx;ctx.importScripts=()=>vm.runInContext(source('offline-assets14239.js'),ctx);vm.createContext(ctx);vm.runInContext(source('desktop-sw14242.js'),ctx);
  const html=source('desktop.html');for(const file of ['scripts/controls14317.js','styles/controls14317.css','scripts/budget14313.js','scripts/budget-workflow14316.js','scripts/desktop14245-6.js','scripts/offline14239.js']){
- assert(html.includes(file+'?v=143.21'),file);assert.equal(vm.runInContext(`releaseVersion14299('${file}')`,ctx),'143.21');
+ const version=['scripts/controls14317.js','styles/controls14317.css','scripts/offline14239.js','scripts/desktop14245-6.js'].includes(file)?'143.23':'143.21';assert(html.includes(file+'?v='+version),file);assert.equal(vm.runInContext(`releaseVersion14299('${file}')`,ctx),version);
  }assert.equal(vm.runInContext("releaseVersion14299('scripts/account-picker1428.js')",ctx),'143.21');assert.equal(vm.runInContext("releaseVersion14299('scripts/installation14320.js')",ctx),'143.20');assert.equal(vm.runInContext("releaseVersion14299('scripts/phone-runtime14242.js')",ctx),'143.17');
 });
 console.log(`${checks} checks passed`);

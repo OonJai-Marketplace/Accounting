@@ -1,0 +1,11 @@
+{
+  "javascriptFiles": 193,
+  "parseFailures": [],
+  "bundleSegments": 118,
+  "bundleMismatches": [],
+  "offlineInstall": {
+    "assetsDownloaded": 131,
+    "changedAssetVersionsMatched": 10,
+    "missing": []
+  }
+}

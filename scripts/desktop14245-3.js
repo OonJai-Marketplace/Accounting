@@ -7549,11 +7549,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       content=card('Finalized payroll snapshots',table(['Month','Reference','Finalized','Employees','PIT · LAK','SSO · LAK'],paidRuns().map(record=>[record.data.month,record.data.reference,record.data.finalizedAt?.slice(0,10)||'—',record.data.results?.length||0,number(total(record.data.results||[],'pit')),number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.employeeSso||0)+Number(r.employerSso||0),0))])))+
         card('Posted tax and SSO journal lines',journalTable(journal));
     }
-    host.innerHTML=`<div class="tax-report102"><div class="tax-toolbar102"><label for="taxMonth102">Month <input id="taxMonth102" type="month" value="${escape(state.month)}"></label><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div>${state.error?`<p class="tax-error102">${escape(state.error)}</p>`:''}${state.loading?'<p class="tax-note102">Loading saved records…</p>':''}${content}</div>`;
-    host.querySelector('#taxMonth102').onchange=event=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)){state.month=event.target.value;render()}};
-    host.querySelector('#taxRefresh102').onclick=()=>refresh(true);
-    host.querySelector('#taxCsv102').onclick=downloadCsv;
-    host.querySelector('#taxPrint102').onclick=()=>window.print();
+    let report=host.querySelector(':scope>.tax-report102');
+    if(!report){for(const child of [...host.children])if(!child.classList.contains('area-banner113'))child.remove();report=document.createElement('div');report.className='tax-report102';report.innerHTML=`<div class="tax-toolbar102"><label for="taxMonth102">Month <input id="taxMonth102" type="month" value="${escape(state.month)}"></label><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div><p class="tax-error102" hidden role="status"></p><p class="tax-note102" hidden role="status">Loading saved records…</p><div class="tax-content102"></div>`;host.append(report);
+      report.querySelector('#taxMonth102').onchange=event=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)){state.month=event.target.value;render()}};
+      report.querySelector('#taxRefresh102').onclick=()=>refresh(true);
+      report.querySelector('#taxCsv102').onclick=downloadCsv;
+      report.querySelector('#taxPrint102').onclick=()=>window.print();
+    }
+    const body=report.querySelector('.tax-content102');if(body._content102!==content){body._content102=content;body.innerHTML=content}
+    const error=report.querySelector('.tax-error102');error.hidden=!state.error;if(error.textContent!==state.error)error.textContent=state.error;
+    report.querySelector('.tax-note102').hidden=!state.loading;
+    report.querySelector('#taxRefresh102').disabled=state.loading;
+    const month=report.querySelector('#taxMonth102');if(month.value!==state.month)month.value=state.month;
+
   }
   function downloadCsv(){if(!state.exports.some(block=>block.rows.length))return window.showCenterStatus?.('No current table rows to export.',true);const lines=state.exports.flatMap((block,index)=>[...(index?[[]]:[]),block.headers,...block.rows]);const csv=lines.map(row=>row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff',csv],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=id()+'-'+state.month+'.csv';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
   async function refresh(force){if(state.loading)return;state.loading=true;state.error='';render();try{if(typeof ojmDb!=='undefined'&&ojmDb){await window.loadWork82?.(Boolean(force));if(typeof Work82!=='undefined'&&Work82.error)state.error=Work82.error;if(force)await window.loadJournalFromSupabase?.()}}catch(error){state.error='Some records could not be loaded: '+(error.message||error)}finally{state.loading=false;render()}}
@@ -7564,6 +7572,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 ;
+
 /* scripts/journal-actions-v102.js */
 /* Compact journal actions and currency labels. Monetary input values stay numeric. */
 (function(){
