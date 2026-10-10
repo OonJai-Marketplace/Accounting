@@ -1,0 +1,45 @@
+{
+  "release": "143.18",
+  "verifiedAt": "2026-10-10T02:54:03.077483+00:00",
+  "project": "Accounting",
+  "projectRef": "nhjsesfhapnjtwlxvirm",
+  "installed": [
+    "setup/INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql",
+    "setup/INSTALL-HR-DOCUMENT-FORMATS-v143.11.sql"
+  ],
+  "verified": [
+    {
+      "check": "All six closing functions installed",
+      "passed": true
+    },
+    {
+      "check": "Period closing trigger enabled",
+      "passed": true
+    },
+    {
+      "check": "Later-month posting date gate active",
+      "passed": true
+    },
+    {
+      "check": "Closing function access protected",
+      "passed": true
+    },
+    {
+      "check": "HR, password recovery and budget table row-level security enabled",
+      "passed": true
+    },
+    {
+      "check": "HR bucket private with document formats supported",
+      "passed": true
+    },
+    {
+      "check": "Budget parent integrity, guard trigger and audit backup configuration present",
+      "passed": true
+    }
+  ],
+  "remaining": {
+    "gmail": "OAuth client and recipients missing; Google Cloud Console unavailable in this browser; authorization and delivery not tested",
+    "chatgptAccountSwitching": "Native OpenAI registration and backend integration not configured"
+  },
+  "limits": "Metadata/security verification only. No real accounting period was closed; no financial records were posted, reset or deleted; no real email sent."
+}

@@ -10,9 +10,9 @@ This update finishes the remaining action-color, Settings-header and News-list c
 
 ## Closing activation
 
-The closing acknowledgment/deferred-posting behavior was implemented in v143.17. Run [INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql](../setup/INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql) in the existing Supabase project after its stated prerequisites. The SQL is non-destructive and rerunnable. A website push does not install it. This release does not close a real period or post, reset or delete any financial records.
+The closing acknowledgment/deferred-posting behavior was implemented in v143.17. [INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql](../setup/INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql) was installed in the existing Accounting production project on 10 October 2026. Live verification confirmed all six functions, the enabled period guard, the later-month posting gate and protected function access. The SQL is non-destructive and rerunnable. A website push alone does not install it. No real period was closed and no financial records were posted, reset or deleted during activation.
 
-Earlier HR/calendar, document formats, download-password recovery, budget templates and budget lifecycle installers remain subject to a live installation check. No missing production migration should be assumed solely from local test results.
+The earlier HR/calendar, download-password recovery and budget tables were already installed. Their row-level security is enabled. Budget parent integrity, its guard trigger and inclusion of budget configuration in audit backups were confirmed. The missing HR document-format update was installed; the attachment bucket remains private and now supports all required document formats under the existing access policies.
 
 ## ChatGPT account handover
 
@@ -24,10 +24,12 @@ Official references checked on 10 October 2026:
 - https://developers.openai.com/siwc/token-sharing-open-source
 - https://learn.chatgpt.com/docs/automations
 
-Gmail direct-send code remains available through the configured Google account. Real OAuth setup/authorization and actual delivery require live account access; no real email is sent by this release.
+Gmail direct-send code is available, but the live company settings have no Google OAuth client ID or recipient list. Google Cloud Console returned "Site Unavailable" in this browser, so its client registration could not be completed here. Gmail needs a company-owned Web OAuth client and recipients configured, followed by Google authorization and a delivery check. No real email was sent.
 
 ## Validation
 
 The focused completion checks exercise backup colors, Settings header geometry, navigation/phone exclusions, flat news ordering, visible review decisions, dismissal without calendar changes, explicit approval, changed revisions, desktop/tablet widths and cache-version alignment. The existing release checks verify save/retry correctness, shortcuts, closing acknowledgments and original source dates. Browser transports use isolated fixtures; these are not production database or physical-device certification.
 
 Validation on this release: 11 focused browser checks, 12 release regression checks and 10 isolated PostgreSQL closing checks passed. A sweep of 50 active desktop modules at 1440px, 1024px and 820px found no page overflow or short shared card headers. Three legacy Settings aliases were excluded from the active-module count because they route to their actual Settings sections.
+
+The subsequent production setup check passed seven metadata/security checks. It verified installation and protection of the database features, without executing a real closing, posting, deletion or email send. See [live activation results](../validation/live-activation14318.json) for the checked scope and remaining external configuration.
