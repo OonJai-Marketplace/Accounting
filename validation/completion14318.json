@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Backup and archive action controls use the semantic output colors",
+    "passed": true
+  },
+  {
+    "name": "Settings card headers share the 56px minimum and retain 3px edges",
+    "passed": true
+  },
+  {
+    "name": "Phone and navigation controls retain their approved appearance",
+    "passed": true
+  },
+  {
+    "name": "All News has one list with upcoming, undated and past items in the requested order",
+    "passed": true
+  },
+  {
+    "name": "Reviewed news remains visible and unconfirmed dates cannot be approved",
+    "passed": true
+  },
+  {
+    "name": "Dismiss marks news in the same list without deleting it or changing attendance",
+    "passed": true
+  },
+  {
+    "name": "Calendar review opens the same flat list and preserves explicit approval",
+    "passed": true
+  },
+  {
+    "name": "A changed news revision requires a new review while all items remain visible",
+    "passed": true
+  },
+  {
+    "name": "News layouts fit desktop and tablet without filters",
+    "passed": true
+  },
+  {
+    "name": "Changed desktop assets share release versions while phone runtime keeps its own cache version",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors",
+    "passed": true
+  }
+]

@@ -1,0 +1,157 @@
+{
+  "release": "143.18",
+  "scope": "Isolated fixtures; no production database or email delivery verification",
+  "completion": [
+    {
+      "name": "Backup and archive action controls use the semantic output colors",
+      "passed": true
+    },
+    {
+      "name": "Settings card headers share the 56px minimum and retain 3px edges",
+      "passed": true
+    },
+    {
+      "name": "Phone and navigation controls retain their approved appearance",
+      "passed": true
+    },
+    {
+      "name": "All News has one list with upcoming, undated and past items in the requested order",
+      "passed": true
+    },
+    {
+      "name": "Reviewed news remains visible and unconfirmed dates cannot be approved",
+      "passed": true
+    },
+    {
+      "name": "Dismiss marks news in the same list without deleting it or changing attendance",
+      "passed": true
+    },
+    {
+      "name": "Calendar review opens the same flat list and preserves explicit approval",
+      "passed": true
+    },
+    {
+      "name": "A changed news revision requires a new review while all items remain visible",
+      "passed": true
+    },
+    {
+      "name": "News layouts fit desktop and tablet without filters",
+      "passed": true
+    },
+    {
+      "name": "Changed desktop assets share release versions while phone runtime keeps its own cache version",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "passed": true
+    }
+  ],
+  "regression": [
+    {
+      "name": "Editing during the first save retains the saved ID and leaves newer edits dirty",
+      "passed": true
+    },
+    {
+      "name": "A lost reply after insertion retries the same durable ID",
+      "passed": true
+    },
+    {
+      "name": "Editable budget dates validate month lengths and leap years",
+      "passed": true
+    },
+    {
+      "name": "Rapid allocation attempts cannot release the active save lock",
+      "passed": true
+    },
+    {
+      "name": "Finalization form rows and module headers fit desktop and tablet widths",
+      "passed": true
+    },
+    {
+      "name": "Action colors distinguish save, add, templates, delete and reset",
+      "passed": true
+    },
+    {
+      "name": "Payroll and Reports navigation chords never trigger printing",
+      "passed": true
+    },
+    {
+      "name": "Editor uses E then File F Open O and unique Insert Table commands",
+      "passed": true
+    },
+    {
+      "name": "The same editor chords work from the editable iframe without print leakage",
+      "passed": true
+    },
+    {
+      "name": "Closing warns, requires acknowledgment, allows override and can be cancelled",
+      "passed": true
+    },
+    {
+      "name": "Deferred preparation chooses the next open month and keeps original dates",
+      "passed": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "passed": true
+    }
+  ],
+  "closingDatabase": [
+    {
+      "name": "Closing preflight lists exact dated unposted reports",
+      "passed": true
+    },
+    {
+      "name": "Direct closing and unacknowledged overrides are rejected",
+      "passed": true
+    },
+    {
+      "name": "Changed pending data requires a new acknowledgment",
+      "passed": true
+    },
+    {
+      "name": "Acknowledged close and lock retain unaccepted reports and record the audit",
+      "passed": true
+    },
+    {
+      "name": "Deferred summaries post into the next open period with original dates and IDs",
+      "passed": true
+    },
+    {
+      "name": "Closed target periods and backdating remain blocked",
+      "passed": true
+    },
+    {
+      "name": "Open source months keep their original posting month",
+      "passed": true
+    },
+    {
+      "name": "Correction-session close uses the same acknowledgment and retains pending reports",
+      "passed": true
+    },
+    {
+      "name": "Year closing retains the installed fingerprint check and all month acknowledgments",
+      "passed": true
+    },
+    {
+      "name": "Sub-users cannot acknowledge or close accounting periods",
+      "passed": true
+    }
+  ],
+  "moduleSweep": {
+    "activeModules": 50,
+    "widths": [
+      1440,
+      1024,
+      820
+    ],
+    "pageOverflow": 0,
+    "shortSharedCardHeaders": 0,
+    "excludedAliases": [
+      "settings-appearance113",
+      "settings-backup113",
+      "settings-recovery113"
+    ]
+  }
+}

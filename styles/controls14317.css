@@ -14,7 +14,8 @@
  html body [data-action-tone14317]:focus-visible{outline:3px solid #e0b64c!important;outline-offset:2px}
  html body [data-action-tone14317]:disabled{opacity:.46!important;cursor:not-allowed!important}
  html body.shell113 :is(.je-card,.panel113,.settings-section-card,.r79,.v49-card,.block82){border-top:var(--module-edge14317) solid #24634c!important}
- html body.shell113 :is(.je-card-header,.r79-header,.settings-section-header,.block82>header){min-height:var(--module-head14317)!important;height:auto!important;box-sizing:border-box!important;padding:10px 12px!important;display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
+ html body.shell113 :is(.je-card-header,.r79-header,.settings-section-header,.block82>header,.panel113>header,.v49-card>header){min-height:var(--module-head14317)!important;height:auto!important;box-sizing:border-box!important;padding:10px 12px!important;display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
+ html body.shell113 :is(.panel113,.v49-card)>header :is(h2,h3){margin:0!important;line-height:1.4}
  html body.shell113 .area-banner113{box-sizing:border-box!important;height:104px!important;min-height:104px!important;border-top:var(--module-edge14317) solid #24634c!important}
  html body #user-entry-review .workflow-switch14316{margin:12px 0 16px;gap:8px}
  html body #user-entry-review .settings-page-heading{margin:0 0 12px;padding:12px 14px;border:1px solid #ccd8d1;border-top:var(--module-edge14317) solid #24634c;border-radius:7px;background:#fff}
