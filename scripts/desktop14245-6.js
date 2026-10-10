@@ -1104,7 +1104,7 @@ function detach(){if(!scope)return;remember();const sameActor=scopeActor===liveP
 function mount(id){const host=$('personalEditor1437');if(!host)return;if(scope===id){if(card.parentElement!==host)host.append(card);return}
  detach();mainSnapshot=capture();scope=id;scopeActor=liveProfile?.id||'';card.dataset.personalOwner1437=id;host.append(card);restore(readDraft(id));card.hidden=false;card.querySelectorAll('input,select,textarea').forEach(n=>{if(!access113.can('sub-users-workspace','edit')&&!n.disabled){n.dataset.personalDisabled1437='1';n.disabled=true}});label();}
 function label(){if(!card)return;const button=$('btnPostJournal'),sub=card.querySelector('.je-subtitle');
- if(scope){button.textContent=card._editIds1437?.length?'Save Changes':'Post Entry';sub.textContent='Save to this personal journal, then submit for review.';$('jeNextIdDisplay').textContent='Entry ID: '+localWorkspaceEntryPreview(user(scope));}
+ if(scope){button.textContent=card._editIds1437?.length?'Save Changes':'Post Entry';sub.textContent='Save to this personal journal, then submit for review.';$('jeNextIdDisplay').textContent=localWorkspaceEntryPreview(user(scope));}
  else{sub.textContent='Currency follows the selected account.';button.textContent=JournalModule.editingEntryId?'Update Entry':'Post Entry';updateNextEntryIdDisplay()}
 }
 function rowsFor(id){const s=state(id);return journals(id).filter(j=>editable(j)&&(!s.month||String(j.period_start).startsWith(s.month))).flatMap(j=>(j.lines||[]).filter(l=>!l.voided_at&&l.status!=='voided').map(l=>({...l,batch_status:j.status})));}

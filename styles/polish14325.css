@@ -1,0 +1,64 @@
+/* Approved desktop adjustments. Screen-only: phone and printed reports are unchanged. */
+@layer action-finalization14317 {
+@media screen and (min-width:641px) {
+ html body [data-action-tone14317] {transition:none!important;animation:none!important}
+ html[data-device132=desktop] body:is(.shell113,.workspace-full1439) #workspaceTools108{right:4px!important;bottom:4px!important;gap:5px!important;padding:3px!important}
+ html[data-device132=desktop] body:is(.shell113,.workspace-full1439) #workspaceTools108>button{width:38px!important;height:38px!important;min-height:38px!important;padding:8px!important;box-sizing:border-box!important}
+ html[data-device132=desktop] body:is(.shell113,.workspace-full1439) .workspace-scroll{padding-right:calc(54px - var(--workspace-scrollbar14325,0px))!important;padding-bottom:12px!important;padding-left:0!important}
+ html[data-device132=desktop] body .workspace-scroll>.tab-content{padding-right:0!important}
+ html[data-device132=desktop] body.workspace-full1439 #appSidebar .sidebar-brand{align-items:center!important;justify-content:center!important;width:100%!important;box-sizing:border-box!important;padding:0!important}
+ html[data-device132=desktop] body.workspace-full1439 #appSidebar .logo-tile113{width:32px!important;min-width:32px!important;max-width:32px!important;height:32px!important;min-height:32px!important;max-height:32px!important;flex:0 0 32px!important;display:grid!important;place-items:center!important;box-sizing:border-box!important;padding:2px!important}
+ html[data-device132=desktop] body.workspace-full1439 #appSidebar .logo-tile113 img{position:static!important;width:26px!important;height:26px!important;min-width:0!important;min-height:0!important;max-width:26px!important;max-height:26px!important;margin:0!important;object-fit:contain!important;flex:0 0 26px!important}
+ /* The same fixed header grid in both entry modes, including the personal editor. */
+ html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid{display:grid!important;grid-template-columns:144px minmax(120px,1fr) 156px max-content!important;align-items:end!important;gap:8px!important;padding:8px 0!important;margin:0 16px!important;width:calc(100% - 32px)!important;box-sizing:border-box!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid>.je-field-group{grid-row:1!important;min-width:0!important;max-width:none!important;width:auto!important;flex:none!important;margin:0!important;align-self:end!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 .transaction-date-field{grid-column:1!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 .je-field-group:has(#jeGeneralMemo){grid-column:2!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 .voucher-pick14299{grid-column:3!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 .entry-mode1430{grid-column:4!important;min-width:0!important;width:max-content!important}
+ html body #journalEntry98 .entry-mode1430>span{display:none!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 #jeEntryMode1430{width:110px!important;min-width:110px!important;padding:4px 10px!important;background:#176249!important;border:1px solid #176249!important;color:#fff!important;white-space:nowrap!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 #jeEntryMode1430[data-mode=double]{background:#008563!important;border-color:#008563!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid :is(#jeGeneralMemo,.je-select,.oj-date-button104,#jeEntryMode1430){height:36px!important;min-height:36px!important;max-height:36px!important;box-sizing:border-box!important}
+ html body #journalEntry98 .direction-toggle1439{background:#176249!important;border-color:#176249!important;color:#fff!important}
+ html body #journalEntry98 .direction-toggle1439[data-direction=in]{background:#008563!important;border-color:#008563!important}
+ html body #journalEntry98#journalEntry98 #jeEntryMode1430 span{color:inherit!important}
+ html body #workspaceTools108 #upcomingBell101{background:#176249!important;border-color:#176249!important;color:#fff!important}
+ html body #workspaceTools108 #signOut110{background:#b4232f!important;border-color:#b4232f!important;color:#fff!important}
+ /* Boundaries belong to fields and sections, not document contents or attendance cells. */
+ html body.shell113 .tab-content :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),select,textarea):not(#docFrame105 *){border-color:#788d80!important}
+ html body.shell113 .tab-content :is(.je-card,.panel113,.settings-section-card,.block82,.th-panel,.maintenance-result14324,.local-events-panel14310,.local-events-list14310 article,.local-events-account14310>section,.local-events-filter14310){border-color:#91a296!important}
+ html body.shell113 .tab-content :is(fieldset,.je-card-header,.settings-section-header,.th-panel>header,.block82>header){border-color:#91a296!important}
+ html body.shell113 .tab-content :is(.data-table82,.table-container,.maintenance-table14324) :is(th,td){border-bottom-color:#aab7ae!important}
+ html body.shell113 .tab-content :is(hr,.section-divider){border-color:#788d80!important;border-top-width:2px!important}
+ html body .team-home14227 .th-money-grid{gap:14px!important}
+ html body .team-home14227 .th-money-grid>div{padding:10px 12px!important;border:1px solid #91a296!important;border-radius:6px;min-width:0;box-sizing:border-box}
+ html body .team-home14227 :is(.th-money-grid strong,.th-fund strong) {white-space:nowrap;font-variant-numeric:tabular-nums}
+ html body .team-home14227 .financial-display14231{display:flex!important;justify-content:flex-end!important;gap:5px!important}
+ html body .team-home14227 .financial-display14231>*{flex:0 0 auto!important;float:none!important;margin:0!important}
+ html body #user-entry-review .settings-page-heading,html body #userEntryHistoryPanel>.settings-section-header{box-sizing:border-box!important;min-height:70px!important;margin:0 0 12px!important;padding:12px 14px!important;align-items:center!important;border:1px solid #91a296!important;border-top:3px solid #24634c!important;border-radius:7px!important}
+ html body #userEntryHistoryPanel{padding:0!important;border:0!important;background:transparent!important;margin:12px 0!important;width:100%!important;max-width:none!important;box-sizing:border-box!important}
+ html body #userEntryHistoryPanel>.settings-section-header{background:#fff!important}
+ html body #userEntryHistoryPanel .settings-section-header :is(h3,h4){font-size:16px!important;margin:0 0 4px!important;color:#184b39!important}
+ html body #userEntryHistoryPanel .settings-section-header p{font-size:12px!important;margin:0!important;color:#52685f!important}
+ html body .workflow-switch14316 button[aria-pressed=true]{background:#008563!important;border-color:#008563!important}
+ @media(max-width:1000px){html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid{grid-template-columns:144px minmax(120px,1fr)!important}html body #journalEntry98#journalEntry98#journalEntry98 .voucher-pick14299{grid-column:1!important;grid-row:2!important}html body #journalEntry98#journalEntry98#journalEntry98 .entry-mode1430{grid-column:2!important;grid-row:2!important;justify-self:end!important}}
+}
+}
+@media screen and (min-width:641px){
+ body:has(.maintenance-modal14324){overflow:hidden!important}
+ body:has(.maintenance-modal14324) .workspace-scroll{overflow:hidden!important}
+ .maintenance-modal14324.ui-overlay108{position:fixed!important;inset:0!important;z-index:15000!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;overscroll-behavior:contain;padding:16px!important;box-sizing:border-box}
+ .maintenance-modal14324 .ui-dialog108{display:flex!important;flex-direction:column!important;max-height:calc(100dvh - 32px)!important;max-width:1100px!important;width:100%!important;min-height:0!important;overflow:hidden!important;border:2px solid #647d6e!important}
+ .maintenance-modal14324 .ui-dialog108>header,.maintenance-modal14324 .ui-dialog108>footer{flex:none!important;background:#edf3ef;border-color:#788d80!important}
+ .maintenance-modal14324 .ui-body108{min-height:0;overflow:auto!important;overscroll-behavior:contain;max-height:none!important}
+ .maintenance-modal14324 .maintenance-review14324{max-height:none!important;overflow:visible!important}
+ .maintenance-modal14324 fieldset{border:1px solid #788d80;padding:12px;margin:10px 0;border-radius:6px}
+ .maintenance-modal14324 label{display:block;margin:8px 0}
+ .maintenance-modal14324 input:not([type=checkbox]),.maintenance-modal14324 select{padding:7px;border:1px solid #788d80;border-radius:4px;max-width:100%;box-sizing:border-box}
+ #transactions-closing14325 .maintenance-card14324{padding:20px;border:1px solid #788d80;border-top:3px solid #24634c;border-radius:8px;background:#fff}
+ #transactions-closing14325 .maintenance-result14324:empty{display:none}
+ #settings-maintenance14324 .maintenance-card14324{border-color:#788d80;border-top:3px solid #24634c}
+ #settings-maintenance14324 .maintenance-result14324:empty{display:none}
+ .maintenance-modal14324 .maintenance-table14324 :is(td,th){border-bottom-color:#aab7ae}
+}

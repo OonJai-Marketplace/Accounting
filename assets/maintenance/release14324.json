@@ -1,15 +1,15 @@
 {
-  "release": "143.24",
+  "release": "143.25",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
       "path": "desktop-sw14242.js",
-      "sha256": "83a474bddad3cabf21d2b00d8d5780c2c3553c537254385a5bb34a5e8dd3f9d4",
+      "sha256": "5a4114100f584c7ea9192a59b120baaa3909ea28b116f058bc1361ac4425f856",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "ddbf27a3fc5e3c9f367e76e898a035b0d78bd6bd0bd3b68629f342ff4dce234b",
+      "sha256": "9c9b42d2c143a551c64a1108aee4c88b51815c23b7e4dc69cbfa7ed979510554",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -79,7 +79,7 @@
     },
     {
       "path": "scripts/controls14317.js",
-      "sha256": "41452eacab26660fe8e539b4d5087820f858393c4d5cebcbb29bc8061813eb74",
+      "sha256": "402588a0164284767f8549a2c4d139995de52a70b750ae7e45265cd20fced1ba",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -327,7 +327,7 @@
     },
     {
       "path": "scripts/desktop14245-4.js",
-      "sha256": "26517f962151003997830c9c56704e54ea3934d985a9a25bb93d24645f0bd5fa",
+      "sha256": "d0ffbc305d3d4e718b2e26899a702b7b26f8aa565177ac2ef7bcca95809847a8",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -368,11 +368,11 @@
         },
         {
           "source": "scripts/shell-v113.js",
-          "sha256": "a4e18f3922ba6c9d929aeaf8d512be008e46a436ae0eca49f57dfb25b22f7215"
+          "sha256": "4ad47ad27e781129282c22e33ad8067caad252ced3790afce9f177f34395a6f8"
         },
         {
           "source": "scripts/access-v113.js",
-          "sha256": "faf3e1d94dc7ba7208f8f44051053311d6202f232772a7121e8a4555fc0f472d"
+          "sha256": "3a27de3ee42dec45492df2ba7b01ff7a60a36fbac08b3120d955c751eecf433b"
         }
       ]
     },
@@ -433,7 +433,7 @@
     },
     {
       "path": "scripts/desktop14245-6.js",
-      "sha256": "fa15bab9957abf41ee5f6390f7be5f9d43a6ec16bdf20534d8736f1f979b22c5",
+      "sha256": "845a98d83860e75f42e1c8cd882500e20f45a3b8dcfe7aa46c1c05287043d260",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -518,7 +518,7 @@
         },
         {
           "source": "scripts/personal-journal1437.js",
-          "sha256": "9b4509131f116030d790d70a0c2685ba7de4c668184f74b2b3923f786999cd6f"
+          "sha256": "e221d1b6407a262ce5e1b6a57e9e1443b87093da4a083360ee0007e4eea6eb42"
         },
         {
           "source": "scripts/todos1438.js",
@@ -618,7 +618,7 @@
     },
     {
       "path": "scripts/entry-number14257.js",
-      "sha256": "4dc86729fe228e1909812345be323adb0fd731fb0e7019aa3d40636541834fef",
+      "sha256": "d5cf9a55b792c4b443fbd559702a3d937c6c08a89ed01826a0dec50ee7882607",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -692,8 +692,13 @@
       "effect": "Independent calculations or record tracing may differ."
     },
     {
+      "path": "scripts/maintenance-selection14325.js",
+      "sha256": "e74029d730b15741098cedac8a8173ed6854f74dadc2e837788c88f438b61c7a",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
       "path": "scripts/maintenance14324.js",
-      "sha256": "c16980d75ff21995ab5c42f45cf17e44439a536ff59a4a2bcd2486813b464a3d",
+      "sha256": "d718c981c9880b91125f2440825a050225b0bd86988cfbe7052065bdb7886758",
       "effect": "Maintenance review, investigator and exports may not run correctly."
     },
     {
@@ -703,7 +708,7 @@
     },
     {
       "path": "scripts/navigation-workflow14316.js",
-      "sha256": "d43456d648c17c0aed7a7fcd7433675a9eaa0190f83ca1644a56a1b80522481d",
+      "sha256": "43c4c609baf0d4be5221f105a9552b7e9483c0d2f355da6abaa9bbb272537cf2",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -713,7 +718,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "be6fedc91511829dcac3b928ac22b3ec176bcda1f0ad4330855549353f332623",
+      "sha256": "ae864f868b1d70474bbffe86fbd24f9dfe801f94eaaa3c0a987742550c54d80c",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -734,6 +739,11 @@
     {
       "path": "scripts/phone-keyboard14252.js",
       "sha256": "f1e0014bfeada4ac824243920e3164304aab0d0545648632fe9c8ec03cb7e16a",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/polish14325.js",
+      "sha256": "98d59b86519d0ff1280d0ad1e610a0f86c682a98b963633ba0f9e6cdb4561f75",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -828,7 +838,7 @@
     },
     {
       "path": "styles/controls14317.css",
-      "sha256": "b63f5ddd23f506c8b7f2ec6ae48eb0a521f3c725cfa6d8348984599e7524fc73",
+      "sha256": "d0bd3d7df82857fa8bf8475b15e9f96a930c59ab708a139657446b15c880ed26",
       "effect": "Approved action colors, journal actions or fullscreen rail may differ."
     },
     {
@@ -1235,6 +1245,11 @@
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
+      "path": "styles/polish14325.css",
+      "sha256": "382042456d45e9deae112d578cae16c371ba15fd73b058ce4b2248bdd89fa9bf",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
       "path": "styles/report-library14285.css",
       "sha256": "dde3c942512133cc87d687271d2b3c777e6a09b2b8531c3407e49f568007505c",
       "effect": "The component may differ from the tested release; reload and investigate this file."
@@ -1293,8 +1308,8 @@
       "validation": "validation/test-maintenance-db14324.cjs"
     },
     {
-      "rule": "Maintenance tools stay in one admin-only area",
-      "validation": "validation/test-maintenance14324.cjs"
+      "rule": "Maintenance tools and Bookkeeping closing checks remain admin-only",
+      "validation": "validation/test-polish14325.cjs"
     }
   ]
 }

@@ -25,11 +25,11 @@ for path in sorted(paths):
    body=text[m.end():matches[i+1].start() if i+1<len(matches) else len(text)]
    item['segments'].append({'source':m.group(1),'sha256':hashbytes(body.encode())})
  files.append(item)
-manifest={'release':'143.24','comparisonBaseline':'v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784','files':files,'approvedRules':[
+manifest={'release':'143.25','comparisonBaseline':'v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784','files':files,'approvedRules':[
  {'rule':'Native 100% desktop; no global zoom/media rewriting','validation':'validation/test-recovery14323.cjs'},
  {'rule':'Preserve phone v142.53 navigation and layout','validation':'validation/test-phone-tools14317.cjs'},
  {'rule':'Administrator workspace and period descriptions remain stable','validation':'validation/test-regressions14304.cjs'},
  {'rule':'Unbalanced trial blocks closing; exceptions require individual acknowledgment','validation':'validation/test-maintenance-db14324.cjs'},
- {'rule':'Maintenance tools stay in one admin-only area','validation':'validation/test-maintenance14324.cjs'}]}
+ {'rule':'Maintenance tools and Bookkeeping closing checks remain admin-only','validation':'validation/test-polish14325.cjs'}]}
 (root/'assets/maintenance/release14324.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print(f'Recorded {len(files)} files and source-segment attribution.')

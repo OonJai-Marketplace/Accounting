@@ -41,3 +41,7 @@ Recovery comparison baseline (user instruction, 2026-10-10): v143.16 commit
 Use it to compare stability and layout while preserving later approved features.
 Desktop remains native 100% with existing responsive styles; do not restore
 automatic whole-document zoom or rewrite all stylesheet media queries.
+
+Publishing workflow (user instruction, 2026-10-10): after completing approved edits,
+commit and push them, then verify the deployment. Do not stop at local changes or
+ask again unless the user explicitly puts publication on hold.

@@ -1,6 +1,6 @@
-# Maintenance & Audit — v143.24
+# Maintenance & Audit — v143.25
 
-Open **Settings → Maintenance & Audit** as an active accounting administrator.
+Open **Settings → Maintenance & Audit** as an active accounting administrator for investigation, exports and code diagnostics. Open **Bookkeeping → Closing & Data Checks** for month-end checks and reconciliation. The existing v143.24 SQL update is still required; this UI adjustment adds no new migration.
 
 The release retains the v143.23 stability repairs compared with v143.16
 (`14d724e15c057bbd4e63324754f89959ea48a784`), before colored action buttons.
@@ -20,7 +20,7 @@ No service-role key belongs in the browser or this repository.
 
 ## Closing & Data Checks
 
-**Test All Data** checks the current saved ledger through the chosen month-end:
+**Test Data** opens a month and check-category selector. Results open in a fixed dialog with internal scrolling. The complete dated closing flags remain visible underneath the controls in Bookkeeping even when only selected checks are displayed. A selective report never authorizes closing. Checks cover the current saved ledger through the chosen month-end:
 
 - Journal debits and credits, separately by currency; cumulative trial balance.
 - Duplicate/missing Entry IDs, missing parents/accounts, invalid amounts,
@@ -39,6 +39,8 @@ cash/bank accounts. Suggestions use account names and codes; add any other cash 
 bank accounts and confirm list completeness. Enter statement/cash-count balances at
 the selected month-end, with debit positive and credit negative. Zero is an actual
 amount; blank is not zero. Variances need an explicit checkbox and explanation.
+
+**Review & Close Month** is the guided shortcut in Bookkeeping. It runs the complete required review, then asks for explicit **Confirm & Close Month** before submitting. It does not bypass missing records, unbalanced trials or unresolved findings.
 
 Month close, month lock, correction-session completion and year close all use the
 same review. Year close uses the December cumulative review. Reopened-book cash
@@ -63,12 +65,18 @@ Deleted records can only be traced when their retained audit records still exist
 
 ## Independent comparison
 
-**Export Maintenance Data** downloads one ZIP containing:
+**Export Maintenance Data** opens a selection window. Choose journal, payroll,
+sub-user records, vouchers, chart references or audit records, and choose selected
+month or all dates. You may instead select **Complete raw snapshot**, which always
+includes all datasets and all dates. Related detail rows follow their parent records;
+chart and employee references are retained without date filtering when needed.
 
-- Complete all-time raw tables as CSV and `raw-snapshot.json` with exact source data.
-- Selected-month comparison CSV: cumulative posted account balances, plus saved
-  payroll results per run and employee. Draft payroll is labeled in Description.
-- Saved payroll result details, current closing checks and import instructions.
+Choose **ZIP** for selected source tables as CSV and JSON, a selection manifest,
+comparison CSV and import instructions. Choose **Comparison CSV** to download
+account balances and/or payroll figures directly without a ZIP. Comparison figures
+always use the chosen comparison month: balances are cumulative through month-end,
+and payroll results cover that month. Raw exports and comparisons preserve currency
+separation and identify each payroll run separately. Draft results remain labeled.
 
 Raw CSV text starting like a spreadsheet formula is escaped; use JSON when exact
 original text fidelity matters. No exchange-rate conversions are applied.
@@ -87,7 +95,7 @@ statutory payroll formulas. No company records are preloaded in the blank templa
 
 **Run System Diagnostics** is a separate read-only module:
 
-- SHA-256 comparison of release files against the recorded, tested v143.24 release.
+- SHA-256 comparison of release files against the recorded, tested v143.25 release.
 - Bundle segment attribution to original source filenames when a bundle differs.
 - Required module initialization and independent cents/void/cutoff arithmetic tests.
 - Native desktop scale, current maintenance action height and workspace overflow.
@@ -112,7 +120,11 @@ release if stale or mixed files are reported.
 - `scripts/system-diagnostics14324.js`: file and runtime checks.
 - `styles/maintenance14324.css`: scoped layout and controls.
 - `setup/INSTALL-MAINTENANCE-v143.24.sql`: server checks, atomic close and audit trail.
-- `validation/test-maintenance14324.cjs`: isolated browser workflows and layout.
+- `validation/test-polish14325.cjs`: isolated browser workflows and layout.
+- `scripts/maintenance-selection14325.js`: pure export filtering.
+- `styles/polish14325.css`: fixed dialogs, desktop spacing, borders and fund amounts.
+- `validation/test-recovery14325.cjs`: shared module and layout regressions.
+- `validation/test-release-assets14325.cjs`: offline release asset versions.
 - `validation/test-maintenance-db14324.cjs`: actual installer and SQL on isolated
   PostgreSQL, including bypass attempts, stale review, exceptions, corrections,
   access controls and year-end carry-forward.
