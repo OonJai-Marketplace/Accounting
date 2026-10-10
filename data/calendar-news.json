@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-09",
+  "checkedAt": "2026-10-10",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -205,16 +205,16 @@
     },
     {
       "id": "watch-phabath",
-      "revision": "2026-10-09T11:15:00Z",
+      "revision": "2026-10-10T00:48:45Z",
       "title": "Boun Phabath Phonesan",
-      "location": "Bolikhamxay",
+      "location": "Phonesan stupa, Thaphabath district, Bolikhamxay Province, Laos",
       "start": null,
       "end": null,
       "category": "festival",
       "confidence": "awaiting-date",
-      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
-      "restaurantIdea": "",
-      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "summary": "Provisional 2027 planning heads-up: Tourism Laos places this annual festival in January. That season is about three months away from October 2026; exact dates remain unconfirmed.",
+      "restaurantIdea": "Suggestion: Begin flexible menu and partnership planning in October–November 2026; wait for local confirmation before advertising dated offers.",
+      "uncertainty": "Seasonal guidance only, not a year-specific 2027 announcement. Local or lunar dates may differ; no calendar dates assigned.",
       "sources": [
         {
           "name": "Tourism Laos · Ministry of Culture and Tourism",
@@ -225,16 +225,16 @@
     },
     {
       "id": "watch-vat-phou",
-      "revision": "2026-10-09T11:15:00Z",
+      "revision": "2026-10-10T00:48:45Z",
       "title": "Vat Phou Festival",
-      "location": "Champasak",
+      "location": "Vat Phou temple grounds, Champasak Province, Laos",
       "start": null,
       "end": null,
       "category": "festival",
       "confidence": "awaiting-date",
-      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
-      "restaurantIdea": "",
-      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "summary": "Provisional 2027 planning heads-up: Tourism Laos places this annual festival in February. That season is about four months away from October 2026; exact dates remain unconfirmed.",
+      "restaurantIdea": "Suggestion: Begin flexible menu and partnership planning in October–December 2026; wait for local confirmation before advertising dated offers.",
+      "uncertainty": "Seasonal guidance only, not a year-specific 2027 announcement. Local or lunar dates may differ; no calendar dates assigned.",
       "sources": [
         {
           "name": "Tourism Laos · Ministry of Culture and Tourism",
@@ -265,16 +265,16 @@
     },
     {
       "id": "watch-elephant",
-      "revision": "2026-10-09T11:15:00Z",
+      "revision": "2026-10-10T00:48:45Z",
       "title": "Elephant Festival",
-      "location": "Xayabouly",
+      "location": "Xayabouly Province, Laos; next venue not announced",
       "start": null,
       "end": null,
       "category": "festival",
       "confidence": "awaiting-date",
-      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
-      "restaurantIdea": "",
-      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "summary": "Provisional 2027 planning heads-up: Tourism Laos places this annual festival in February. That season is about four months away from October 2026; exact dates remain unconfirmed.",
+      "restaurantIdea": "Suggestion: Begin flexible menu and partnership planning in October–December 2026; wait for local confirmation before advertising dated offers.",
+      "uncertainty": "Seasonal guidance only, not a year-specific 2027 announcement. Local or lunar dates may differ; no calendar dates assigned.",
       "sources": [
         {
           "name": "Tourism Laos · Ministry of Culture and Tourism",
@@ -345,16 +345,16 @@
     },
     {
       "id": "watch-rocket",
-      "revision": "2026-10-09T11:15:00Z",
+      "revision": "2026-10-10T00:48:45Z",
       "title": "Boun Bang Fai · Rocket festivals",
-      "location": "Dates vary by district",
+      "location": "Local communities across Laos; districts and venues vary",
       "start": null,
       "end": null,
       "category": "festival",
       "confidence": "awaiting-date",
-      "summary": "Listed in the official Lao festival calendar. The exact dates for the next occurrence need a local announcement.",
-      "restaurantIdea": "",
-      "uncertainty": "Annual or lunar observance. No date has been assigned; wait for a year-specific local notice.",
+      "summary": "Provisional 2027 planning heads-up: Tourism Laos places this annual festival in May. That season is about seven months away from October 2026; exact dates remain unconfirmed.",
+      "restaurantIdea": "Suggestion: Begin flexible menu and partnership planning in November 2026; wait for local confirmation before advertising dated offers.",
+      "uncertainty": "Seasonal guidance only, not a year-specific 2027 announcement. Local or lunar dates may differ; no calendar dates assigned.",
       "sources": [
         {
           "name": "Tourism Laos · Ministry of Culture and Tourism",
@@ -460,6 +460,151 @@
           "name": "Lao National Chamber of Commerce and Industry",
           "url": "https://lncci.la/events/?lang=lo",
           "language": "lo"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-made-in-laos-vientiane",
+      "revision": "2026-10-10T00:48:45Z",
+      "title": "Made in Laos 2026 exhibition",
+      "location": "Lao-ITECC, Vientiane Capital, Laos",
+      "start": "2026-10-03",
+      "end": "2026-10-11",
+      "category": "food",
+      "confidence": "confirmed",
+      "summary": "KPL’s Lao report announces a domestic-products exhibition including food and drink businesses. On 10 October it is already underway and scheduled to finish tomorrow; shorter notice.",
+      "uncertainty": "The dates and location are explicit in the Lao announcement. Opening hours and current exhibitor availability were not verified.",
+      "restaurantIdea": "Suggestion: If locally relevant, check opening hours today and use the remaining weekend for supplier contacts or product research; a new large promotion is probably too late.",
+      "sources": [
+        {
+          "name": "KPL · Lao-language announcement, 4 September 2026",
+          "url": "https://kpl.gov.la/detail.aspx?id=106236",
+          "language": "lo"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-pakse-ork-phansa-boats",
+      "revision": "2026-10-10T00:48:45Z",
+      "title": "Pakse End-of-Lent Festival and International Boat Race",
+      "location": "Pakse city, Champasak Province, Laos; individual venues not specified",
+      "start": "2026-10-26",
+      "end": "2026-10-27",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "KPL reports a two-day programme of ceremonies, boat racing and markets featuring local foods. As of 10 October: 16 days until the opening; shorter than six months’ notice.",
+      "uncertainty": "The announcement does not identify precise race, market or stall locations; confirm those locally before planning participation.",
+      "restaurantIdea": "Suggestion: Begin menu, takeaway and staffing planning now if your customers are in Pakse; check participation and access arrangements this week.",
+      "sources": [
+        {
+          "name": "KPL · Announcement, 24 September 2026",
+          "url": "https://kpl.gov.la/en/detail.aspx?id=107692",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-vientiane-international-marathon",
+      "revision": "2026-10-10T00:48:45Z",
+      "title": "Vientiane International Marathon",
+      "location": "Vientiane Capital, Laos; start/finish venue and route awaiting verification",
+      "start": "2026-12-06",
+      "end": "2026-12-06",
+      "category": "community",
+      "confidence": "confirmed",
+      "summary": "Organizer Events for Good Laos lists the marathon for 6 December 2026. As of 10 October: 57 days ahead; shorter than six months’ notice.",
+      "uncertainty": "The reviewed page confirms the date and city but does not provide a verified start/finish venue or road-closure plan.",
+      "restaurantIdea": "Suggestion: Explore runner-friendly breakfast or takeaway offers now; aim to prepare menus and staffing by early November, subject to the route and opening-time information.",
+      "sources": [
+        {
+          "name": "Events for Good Laos · Organizer event page",
+          "url": "https://www.efglaos.com/event/vientiane-international-marathon",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2027-vientiane-international-half-marathon",
+      "revision": "2026-10-10T00:48:45Z",
+      "title": "Vientiane International Half Marathon 2027",
+      "location": "Vientiane Capital, Laos; 2027 venue and route not yet verified",
+      "start": "2027-03-07",
+      "end": "2027-03-07",
+      "category": "community",
+      "confidence": "tentative",
+      "summary": "AIMS lists 7 March 2027 for its member race. As of 10 October: 148 days ahead; shorter than six months’ notice.",
+      "uncertainty": "The organizer’s accessible page still describes the 8 March 2026 edition. That is an older occurrence, not a competing 2027 date. Seek the organizer’s 2027 programme before committing.",
+      "restaurantIdea": "Suggestion: Begin partnership and budget planning now; develop a breakfast or post-run menu by January and confirm the 2027 route before promoting.",
+      "sources": [
+        {
+          "name": "AIMS · Forthcoming race calendar",
+          "url": "https://aims-worldrunning.org/races/10440.html",
+          "language": "en"
+        },
+        {
+          "name": "Events for Good Laos · Previous 2026 edition",
+          "url": "https://www.efglaos.com/events/vientiane-international-half-marathon",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-vegan-tour-vientiane",
+      "revision": "2026-10-10T00:48:45Z",
+      "title": "Laos Vegan Tour · 2026 departure",
+      "location": "Starts and ends in Vientiane Capital, Laos; multiple destinations; dining venues unnamed",
+      "start": "2026-11-22",
+      "end": "2026-12-05",
+      "category": "vegan",
+      "confidence": "confirmed",
+      "summary": "Vegan Travel Asia lists this small-group departure. As of 10 October 2026: 43 days ahead; shorter notice.",
+      "uncertainty": "Commercial tour, not a public festival. Published capacity is 16; attendance and supplier opportunities are unverified.",
+      "restaurantIdea": "Suggestion: Enquire about group dining this month before allocating stock or staff.",
+      "sources": [
+        {
+          "name": "Vegan Travel Asia by VegVoyages · Organizer schedule",
+          "url": "https://vegantravelasia.com/tour/laos-14-day-vegan-tour/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2027-vegan-tour-vientiane",
+      "revision": "2026-10-10T00:48:45Z",
+      "title": "Laos Vegan Tour · 2027 departure",
+      "location": "Starts and ends in Vientiane Capital, Laos; multiple destinations; dining venues unnamed",
+      "start": "2027-10-31",
+      "end": "2027-11-13",
+      "category": "vegan",
+      "confidence": "confirmed",
+      "summary": "Vegan Travel Asia lists this small-group departure. As of 10 October 2026: 386 days ahead; more than six months’ notice.",
+      "uncertainty": "Commercial tour, not a public festival. Published capacity is 16; attendance and supplier opportunities are unverified.",
+      "restaurantIdea": "Suggestion: Assess a group-dining proposal now and revisit it by April 2027; seek organizer agreement before preparing promotions.",
+      "sources": [
+        {
+          "name": "Vegan Travel Asia by VegVoyages · Organizer schedule",
+          "url": "https://vegantravelasia.com/tour/laos-14-day-vegan-tour/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2027-laos-china-tourism-champasak",
+      "revision": "2026-10-10T00:48:45Z",
+      "title": "Visit Laos–China Year 2027 · Proposed food and cultural programme",
+      "location": "Champasak Province, Laos; host cities and venues not announced",
+      "start": null,
+      "end": null,
+      "category": "food",
+      "confidence": "awaiting-date",
+      "summary": "Vientiane Times reports a draft tourism programme including food and cultural activities for 2027. Time remaining cannot be calculated because event dates are unannounced.",
+      "uncertainty": "Proposed programme only; no confirmed festival dates, venues or participation terms. Activities in China are outside this Lao proposal.",
+      "restaurantIdea": "Suggestion: Start a flexible 2027 promotion budget now, allowing six months of preparation where dates permit; monitor provincial and chamber notices before booking or scheduling.",
+      "sources": [
+        {
+          "name": "Vientiane Times · Planning report, 6 August 2026",
+          "url": "https://www.vientianetimes.org.la/freefreenews/freecontent_149_Champasak_y26.php",
+          "language": "en"
         }
       ]
     }
