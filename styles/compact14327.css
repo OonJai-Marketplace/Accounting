@@ -2,6 +2,8 @@
    Declared first in desktop.html so these explicit !important rules have stable priority. */
 @layer compact14327 {
  @media screen and (min-width:641px) {
+  /* Retired dock shortcut; fullscreen remains the workspace expansion control. */
+  body #auditMode101 {display:none!important;}
   /* Layout changes are one update, without independent child animations. */
   body.workspace-switch14327 :is(#appSidebar,#appSidebar *,.main-content-area,.workspace-scroll,.workspace-scroll *,#workspaceTools108,#workspaceTools108 *) {
    transition:none!important;animation:none!important;scroll-behavior:auto!important;
