@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Company ChatGPT default is editable and preserves email and budget settings",
+    "passed": true
+  },
+  {
+    "name": "Saved company account survives switching administrators and reopening",
+    "passed": true
+  },
+  {
+    "name": "Concurrent settings changes cannot be overwritten from an old account form",
+    "passed": true
+  },
+  {
+    "name": "Sender, regular recipients and trial recipient are separately saved shared settings",
+    "passed": true
+  },
+  {
+    "name": "Template editing changes sample rows without altering the current draft",
+    "passed": true
+  },
+  {
+    "name": "Trial preview uses the saved template, test recipient and full budget layout without saving a report",
+    "passed": true
+  },
+  {
+    "name": "A different Google identity cannot impersonate the saved sender",
+    "passed": true
+  },
+  {
+    "name": "Authorized sample send targets only the trial recipient and does not create financial records",
+    "passed": true
+  },
+  {
+    "name": "Changing the saved sender invalidates the previous Gmail connection",
+    "passed": true
+  },
+  {
+    "name": "Missing OAuth setup blocks real sending while keeping all saved identities editable",
+    "passed": true
+  },
+  {
+    "name": "Sub-users cannot load or edit shared account settings",
+    "passed": true
+  },
+  {
+    "name": "Account and email settings fit desktop and tablet widths",
+    "passed": true
+  },
+  {
+    "name": "New settings assets are cached at v143.19 and phone remains aligned",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors",
+    "passed": true
+  }
+]

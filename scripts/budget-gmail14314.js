@@ -5,7 +5,7 @@ let session=null,loading=null,generation=0,sending=false;
 const actor=()=>liveProfile?.role==='admin'&&window.access113?.can('transactions-budget14313')?liveProfile.id:'';
 function clear(){session=null;generation++}
 function ensure(owner){if(!owner||actor()!==owner)throw Error('Administrator access changed. Reopen Budget Request.');}
-function status(clientId){if(session&&(session.owner!==actor()||session.clientId!==clientId||session.expires<=Date.now()))clear();return {connected:!!session,email:session?.email||''};}
+function status(clientId,preferredEmail=''){if(session&&(session.owner!==actor()||session.clientId!==clientId||session.expires<=Date.now()||preferredEmail&&session.email.toLowerCase()!==preferredEmail.toLowerCase()))clear();return {connected:!!session,email:session?.email||''};}
 function validClientId(value){return /^\d+-[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/.test(String(value||'').trim())}
 function load(){
  if(window.google?.accounts?.oauth2)return Promise.resolve();
@@ -19,10 +19,11 @@ function load(){
  }).catch(e=>{loading=null;throw e});return loading;
 }
 // Invoke from the Connect Gmail click itself so Google's account chooser is allowed.
-function connect(clientId){
+function connect(clientId,preferredEmail=''){
  const owner=actor();ensure(owner);clientId=String(clientId||'').trim();
  if(!validClientId(clientId))return Promise.reject(Error('Complete Gmail setup in Budget Request Settings first.'));
  if(!window.google?.accounts?.oauth2){load().catch(()=>{});return Promise.reject(Error('Google is loading. Click Connect Gmail again in a moment.'));}
+ preferredEmail=String(preferredEmail||'').trim().toLowerCase();if(preferredEmail&&recipients(preferredEmail).length!==1)return Promise.reject(Error('Save one sender email address first.'));
  clear();const epoch=generation;
  return new Promise((resolve,reject)=>{
   let settled=false;const finish=(err,result)=>{if(settled)return;settled=true;clearTimeout(timer);err?reject(err):resolve(result)};
@@ -39,6 +40,7 @@ function connect(clientId){
      const identity=await r.json();ensure(owner);
      if(settled||epoch!==generation)throw Error('Gmail connection changed. Please reconnect.');
      if(!identity.email||identity.email_verified!==true)throw Error('Connect a verified Google email account.');
+     if(preferredEmail&&identity.email.toLowerCase()!==preferredEmail)throw Error('Choose the saved sender '+preferredEmail+' in Google, or change Sender email in Settings first.');
      session={owner,clientId,email:identity.email,token:response.access_token,expires:Date.now()+Math.max(0,Number(response.expires_in||3600)-60)*1000};
      finish(null,{email:session.email});
     }catch(e){finish(e)}

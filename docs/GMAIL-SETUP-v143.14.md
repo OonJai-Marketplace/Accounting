@@ -33,3 +33,9 @@ Budget Requests now sends the full email directly through Gmail. WhatsApp and Me
 ## Release validation
 
 The automated browser tests use a simulated Google permission window and Gmail API; no real emails are sent. Real sending requires the client ID, authorized website origin, consent configuration, and the account owner's Google authorization above.
+
+## Editable company defaults and test templates (v143.19)
+
+Budget Request Settings stores the sender email, regular recipients and a separate test recipient for the company. Save changes before connecting Google. Choose the saved sender account in Google; the website verifies that its email matches the default. Changing the sender or OAuth client disconnects the previous session.
+
+Choose a template under Test email template, then Send Test Email to review a SAMPLE email addressed to the test recipient. This does not post financial records or change the working budget draft. Edit the sample under Templates → Edit Template. Account & Handover separately stores the intended default ChatGPT email; it does not authenticate or transfer tasks.
