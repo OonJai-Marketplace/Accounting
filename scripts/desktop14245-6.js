@@ -1244,7 +1244,7 @@ if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',re
  const config=t=>({type:t.sequential?'sequential':'regular',repeat:'monthly',intervalHours:2,reminderEvery:0,windowStart:'08:00',windowEnd:'18:00',...(t.todo_config1438||{})});
  const localDate=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
  const localInput=value=>{if(!value)return '';const d=new Date(value);return Number.isNaN(+d)?'':localDate(d)+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
- const format=value=>value?new Date(value).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'';
+ const format=value=>value?formatAppDate(value,true):'';
  const progress=t=>{const total=(t.steps||[]).length,done=(t.steps||[]).filter(s=>s.done).length;return {total,done,percent:total?Math.round(done/total*100):0,next:(t.steps||[]).find(s=>!s.done)?.text||''}};
  function nextOccurrence(value,c,now=new Date()){
   const original=new Date(value);if(Number.isNaN(+original))throw Error('Choose the first due date and time.');

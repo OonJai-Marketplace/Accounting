@@ -153,7 +153,7 @@ function saveBusinessSettings(event) {
   const status = document.getElementById('businessSettingsStatus');
   if (badge) { badge.textContent = 'Saved'; badge.classList.add('is-saved'); }
   if (status) {
-    status.textContent = `Saved ${new Date().toLocaleString()}. The profile is ready for connected modules.`;
+    status.textContent = `Saved ${formatAppDate(new Date().toISOString(),true)}. The profile is ready for connected modules.`;
     status.classList.add('is-save-confirmation');
   }
 }
@@ -400,7 +400,7 @@ async function renderLegalDocuments() {
   host.innerHTML = docs.length ? docs.sort((a,b) => b.id-a.id).map(doc => `
     <div class="legal-doc-row">
       <div class="legal-doc-icon">${/pdf/i.test(doc.type) ? 'PDF' : 'FILE'}</div>
-      <div class="legal-doc-meta"><strong>${escapeHtml(doc.name)}</strong><span>${formatLegalDocSize(doc.size)} • Uploaded ${new Date(doc.uploadedAt).toLocaleString()}</span></div>
+      <div class="legal-doc-meta"><strong>${escapeHtml(doc.name)}</strong><span>${formatLegalDocSize(doc.size)} • Uploaded ${formatAppDate(doc.uploadedAt,true)}</span></div>
       <div class="legal-doc-actions"><button type="button" class="je-btn je-btn-secondary" onclick="downloadLegalDocument(${doc.id})">Download</button><button type="button" class="btn-action-delete" onclick="deleteLegalDocument(${doc.id})" title="Delete document">✕</button></div>
     </div>`).join('') : '<div class="legal-doc-empty">No legal documents uploaded yet.</div>';
 }
@@ -2778,7 +2778,7 @@ saveBusinessSettings = async function(event) {
   const payload={id:true,legal_name:v.legalName,display_name:v.companyName,enterprise_no:v.enterpriseNo,tax_id:v.taxId,business_license:v.businessLicense,industry:v.industry,phone:v.phone,email:v.email,website:v.website,address_line:v.address1,city:v.city,postal_code:v.postalCode,country:v.country,timezone:v.timezone,updated_by:liveProfile.id,updated_at:new Date().toISOString()};
   const {error}=await ojmDb.from('business_settings').upsert(payload); if(error){showAppNotification('Save Failed',error.message,true);return false}
   BusinessSettings.current=v;AccountingStore.companyName=v.companyName;renderBusinessIdentity(v,true);syncEntrySequence();updateNextEntryIdDisplay();
-  const status=document.getElementById('businessSettingsStatus');if(status){status.textContent=`Saved ${new Date().toLocaleString()} to Supabase.`;status.classList.add('is-save-confirmation')}
+  const status=document.getElementById('businessSettingsStatus');if(status){status.textContent=`Saved ${formatAppDate(new Date().toISOString(),true)} to Supabase.`;status.classList.add('is-save-confirmation')}
   return true;
 };
 
@@ -2855,7 +2855,7 @@ renderDemoUsers = function(){const host=document.getElementById('demoUsersList')
 addDemoUser = function(event){event.preventDefault();showAppNotification('Secure User Creation','Create or invite the user in Supabase Authentication. A protected Edge Function will later bring this action into the app without exposing an administrator secret.',false)};
 
 async function loadLegalDocumentsFromSupabase(){if(liveProfile?.role!=='admin')return;const{data,error}=await ojmDb.from('legal_documents').select('*').order('uploaded_at',{ascending:false});if(!error){liveLegalDocuments=data||[];renderLegalDocuments()}}
-renderLegalDocuments = async function(){const host=document.getElementById('legalDocumentsList');if(!host)return;host.innerHTML=liveLegalDocuments.length?liveLegalDocuments.map(d=>`<div class="legal-doc-row"><div class="legal-doc-icon">${/pdf/i.test(d.mime_type||'')?'PDF':'FILE'}</div><div class="legal-doc-meta"><strong>${escapeHtml(d.file_name)}</strong><span>${formatLegalDocSize(Number(d.size_bytes||0))} • ${new Date(d.uploaded_at).toLocaleString()}</span></div><div class="legal-doc-actions"><button type="button" class="je-btn je-btn-secondary" onclick="downloadLegalDocument('${d.id}')">Download</button><button type="button" class="btn-action-delete" onclick="deleteLegalDocument('${d.id}')">✕</button></div></div>`).join(''):'<div class="legal-doc-empty">No legal documents uploaded yet.</div>'};
+renderLegalDocuments = async function(){const host=document.getElementById('legalDocumentsList');if(!host)return;host.innerHTML=liveLegalDocuments.length?liveLegalDocuments.map(d=>`<div class="legal-doc-row"><div class="legal-doc-icon">${/pdf/i.test(d.mime_type||'')?'PDF':'FILE'}</div><div class="legal-doc-meta"><strong>${escapeHtml(d.file_name)}</strong><span>${formatLegalDocSize(Number(d.size_bytes||0))} • ${formatAppDate(d.uploaded_at,true)}</span></div><div class="legal-doc-actions"><button type="button" class="je-btn je-btn-secondary" onclick="downloadLegalDocument('${d.id}')">Download</button><button type="button" class="btn-action-delete" onclick="deleteLegalDocument('${d.id}')">✕</button></div></div>`).join(''):'<div class="legal-doc-empty">No legal documents uploaded yet.</div>'};
 uploadLegalDocuments = async function(event){for(const file of [...event.target.files]){if(file.size>10485760){showAppNotification('File Too Large',`${file.name} exceeds 10 MB.`,true);continue}const path=`${liveProfile.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const{error:uploadError}=await ojmDb.storage.from('legal-documents').upload(path,file);if(uploadError){showAppNotification('Upload Failed',uploadError.message,true);continue}await ojmDb.from('legal_documents').insert({file_name:file.name,storage_path:path,mime_type:file.type,size_bytes:file.size,uploaded_by:liveProfile.id})}event.target.value='';await loadLegalDocumentsFromSupabase()};
 downloadLegalDocument = async function(id){const doc=liveLegalDocuments.find(d=>d.id===id);if(!doc)return;const{data,error}=await ojmDb.storage.from('legal-documents').createSignedUrl(doc.storage_path,60);if(error){showAppNotification('Download Failed',error.message,true);return}window.open(data.signedUrl,'_blank')};
 deleteLegalDocument = async function(id){if(!await ui117.confirm('Delete this legal document permanently?'))return;const doc=liveLegalDocuments.find(d=>d.id===id);if(!doc)return;await ojmDb.storage.from('legal-documents').remove([doc.storage_path]);const{error}=await ojmDb.from('legal_documents').delete().eq('id',id);if(error){showAppNotification('Delete Failed',error.message,true);return}await loadLegalDocumentsFromSupabase()};
@@ -3130,7 +3130,7 @@ async function loadMySubmittedStaffJournals(){
   if(!host||!liveProfile||!ojmDb)return;
   const {data,error}=await ojmDb.from('staff_journals').select('period_start,status,submitted_at,reviewed_at,return_note').eq('owner_id',liveProfile.id).neq('status','draft').order('period_start',{ascending:false});
   if(error){host.innerHTML='<div class="legal-doc-empty">Submitted journal history will appear after the staff workflow SQL is installed.</div>';return}
-  host.innerHTML=(data||[]).length?(data||[]).map(j=>`<div class="staff-history-row"><div><strong>${escapeHtml(j.period_start.slice(0,7))}</strong><span>${j.submitted_at?`Submitted ${new Date(j.submitted_at).toLocaleString()}`:'Prepared for review'}${j.return_note?` • Return note: ${escapeHtml(j.return_note)}`:''}</span></div><span class="submission-status ${j.status}">${escapeHtml(j.status.toUpperCase())}</span></div>`).join(''):'<div class="legal-doc-empty">No submitted journals yet.</div>';
+  host.innerHTML=(data||[]).length?(data||[]).map(j=>`<div class="staff-history-row"><div><strong>${escapeHtml(j.period_start.slice(0,7))}</strong><span>${j.submitted_at?`Submitted ${formatAppDate(j.submitted_at,true)}`:'Prepared for review'}${j.return_note?` • Return note: ${escapeHtml(j.return_note)}`:''}</span></div><span class="submission-status ${j.status}">${escapeHtml(j.status.toUpperCase())}</span></div>`).join(''):'<div class="legal-doc-empty">No submitted journals yet.</div>';
 }
 const openStaffJournalPeriodWithHistory=openStaffJournalPeriod;
 openStaffJournalPeriod=async function(month){await openStaffJournalPeriodWithHistory(month);await loadMySubmittedStaffJournals()};

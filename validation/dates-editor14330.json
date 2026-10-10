@@ -1,0 +1,37 @@
+{
+  "passed": 8,
+  "results": [
+    {
+      "name": "News ranges, source-check dates and review dialogs honor all nine System formats",
+      "passed": true
+    },
+    {
+      "name": "Calendar agenda and accessible day labels use the saved format; month badges remain month names",
+      "passed": true
+    },
+    {
+      "name": "Shared date picker follows all System formats without changing the ISO input value",
+      "passed": true
+    },
+    {
+      "name": "HR contract ranges, review dates, leave ranges and history use System formatting",
+      "passed": true
+    },
+    {
+      "name": "Saving System Settings applies on reopening News without changing the feed",
+      "passed": true
+    },
+    {
+      "name": "Editor toolbar restores minus/plus zoom, removes quick Fit, and scales only the view",
+      "passed": true
+    },
+    {
+      "name": "Zoom clamps safely and percentage follows the selected document tab",
+      "passed": true
+    },
+    {
+      "name": "Ordinary DIV text displays as Normal while heading and quotation styles remain accurate",
+      "passed": true
+    }
+  ]
+}

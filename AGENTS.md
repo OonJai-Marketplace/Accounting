@@ -50,3 +50,8 @@ automatic whole-document zoom or rewrite all stylesheet media queries.
 Publishing workflow (user instruction, 2026-10-10): after completing approved edits,
 commit and push them, then verify the deployment. Do not stop at local changes or
 ask again unless the user explicitly puts publication on hold.
+
+Date presentation: visible full dates and date-picker labels use formatAppDate
+and the saved System dateFormat. Keep ISO values for storage, sorting, native
+input values, data exports and identifiers. Calendar month/day tiles and
+month-only period labels remain calendar components, not full date strings.

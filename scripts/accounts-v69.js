@@ -82,7 +82,7 @@ function trialThrough87(){
  return Accounts69.from<=today&&Accounts69.to>today?today:Accounts69.to;
 }
 function trialRangeLabel87(){
- const format=value=>new Date(value+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+ const format=value=>formatAppDate(value);
  return `${format(Accounts69.from)} – ${format(trialThrough87())}`;
 }
 function trialHtml69(rows){

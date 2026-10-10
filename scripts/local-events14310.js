@@ -5,7 +5,7 @@ const ids=['local-events','local-events-account'];
 const admin=()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin'&&liveProfile.status==='active';
 const external=(href,label)=>'<a class="je-btn je-btn-secondary" href="'+href+'" target="_blank" rel="noopener noreferrer">'+label+'</a>';
 function panel(id){const root=document.getElementById(id);if(!root?.classList.contains('active'))return null;let host=root.querySelector('.local-events-panel14310');if(!host){host=document.createElement('section');host.className='local-events-panel14310';root.append(host)}return host}
-function status(){return N.state.error||(N.state.feed?'Sources checked '+N.state.feed.checkedAt:'News has not loaded yet.')}
+function status(){return N.state.error||(N.state.feed?'Sources checked '+formatAppDate(N.state.feed.checkedAt):'News has not loaded yet.')}
 function render(){const active=document.querySelector('.tab-content.active')?.id;if(!ids.includes(active))return;const host=panel(active);if(!host)return;if(!admin()){host.replaceChildren();return}if(active==='local-events-account')return account(host);
  if(!C.state.ready){host.innerHTML='<header><h3>News and Events</h3></header><p>'+esc(C.state.error||'Loading company calendar and review history…')+'</p><button type="button" class="je-btn je-btn-secondary" data-events-retry>Retry</button>';host.querySelector('[data-events-retry]').onclick=()=>void C.load(true).then(()=>N.refresh(true)).then(render);return}
  const rows=N.ordered(),decisions=N.decisions();
