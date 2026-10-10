@@ -13,4 +13,6 @@ Approved desktop adjustments:
 
 Empty external comparison cells remain “not compared”; zero is a valid independent amount. Re-export after adding records or changing the month. Cash/bank reconciliation, classification and source-document review remain necessary even when totals balance.
 
+System Diagnostics reads the version from the validated release manifest, including the new Excel module, instead of reporting later releases as unsupported.
+
 No database migration, live financial writes, phone redesign or portable ZIP changes are part of this release.

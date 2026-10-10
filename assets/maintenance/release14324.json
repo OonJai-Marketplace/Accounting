@@ -9,12 +9,12 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "df48f271da6255fdab77dbbdbd69ff1eea1cf090c95d5abe25fb508fe9a9219c",
+      "sha256": "8b20d038ade134c78279a27cbe4419a45264b0a2a25e2dd38cc7063feb947edc",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "eaca2cd79fd68bd1592672c9528d1350e1bd4b8faad0b591f52bfc3c248816c3",
+      "sha256": "3cdcc87ed2f2eb9c2bc2a8608193d37a9531335e16eb4061c0554a9195938de6",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -798,7 +798,7 @@
     },
     {
       "path": "scripts/system-diagnostics14324.js",
-      "sha256": "095b5e5cc059da21d84b4dd64e9b9f1ec323aede42cd671ace61d36632a4fefc",
+      "sha256": "60189d5aa912073ee4b853724862fbdd19ca7d82b4b22938821631b3f0207133",
       "effect": "Diagnostic coverage or findings may differ."
     },
     {
