@@ -85,17 +85,22 @@
     },
     {
       "id": "la-2026-lights",
-      "revision": "2026-10-09T11:15:00Z",
+      "revision": "2026-10-10T00:55:08Z",
       "title": "Lai Heua Fai · Boats of Light",
-      "location": "Luang Prabang",
-      "start": "2026-10-27",
-      "end": "2026-10-27",
+      "location": "Luang Prabang city, Luang Prabang Province, Laos; temples and That Chomsy Stupa; fire-boat competition venue not specified",
+      "start": "2026-10-24",
+      "end": "2026-10-26",
       "category": "festival",
-      "confidence": "tentative",
-      "summary": "Tourism Laos lists 27 October for this festival. Other published festival programmes may cover surrounding days.",
-      "restaurantIdea": "Consider a festival-themed menu if relevant to your customers.",
-      "uncertainty": "Confirm the main ceremony and full programme with the provincial announcement before approving.",
+      "confidence": "conflicting",
+      "summary": "KPL reports a 24–26 October 2026 programme following a city preparations meeting. Activities include temple illuminations, performances and a fire-boat competition. As of 10 October: 14 days until the reported opening; shorter than six months’ notice.",
+      "restaurantIdea": "Suggestion: Check the city or provincial programme this week before advertising dates. If relevant to your customers, prepare a flexible evening takeaway menu and staffing plan now.",
+      "uncertainty": "Tourism Laos still lists Lai Heua Fai on 27 October 2026. The proposal uses KPL’s 24–26 October programme as the better-supported local planning window, but the sources disagree. The competition’s exact date, time and venue require confirmation; this is not a verified rescheduling notice.",
       "sources": [
+        {
+          "name": "KPL · City preparations report, 1 October 2026",
+          "url": "https://kpl.gov.la/EN/detail.aspx?id=107839",
+          "language": "en"
+        },
         {
           "name": "Tourism Laos · Ministry of Culture and Tourism",
           "url": "https://www.tourismlaos.org/event/lhai-heua-fai-festival-of-the-boats-of-light-in-luang-prabang-province-2/",
