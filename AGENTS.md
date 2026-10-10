@@ -30,7 +30,12 @@ only; never trigger either on deletion, voiding, or an empty filtered screen.
 Action control rule: Save, Open, Templates, Print, Add, Edit, Delete and similar
 small action buttons use the 32px Template / Post Entry height in
 styles/controls14305.css. Scope sizing to explicit action classes or action
-containers. NEVER apply a universal button/[role=button] size or appearance rule.
+containers. Exception approved 2026-10-10: Active Journal Edit and Void stay
+vertically stacked (Edit above Void), 24px each with a 3px gap, including the
+shared sub-user journal. This is the only exception to the small-action height.
+Post Transaction table cells use borderless, transparent editing fields; do not
+add nested textbox borders or backgrounds inside the cell boundaries.
+NEVER apply a universal button/[role=button] size or appearance rule.
 Top tabs, sidebar navigation, profile/name cards, sub-user cards, dashboard
 summaries, calendar cells, and document tabs retain their component designs.
 Attendance squares stay compact at 22px; distribute date columns across the module width (scroll only when too narrow). Center the rendered day number,

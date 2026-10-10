@@ -2,7 +2,7 @@
   "passed": 12,
   "results": [
     {
-      "name": "Journal fields, pickers and line inputs share 32px height in both entry modes",
+      "name": "Journal fields share 32px height and table inputs have no nested textbox borders",
       "passed": true
     },
     {
@@ -14,7 +14,7 @@
       "passed": true
     },
     {
-      "name": "Journal actions retain 32px height side by side and currency badges are 20px",
+      "name": "Journal actions stack Edit above Void at 24px and currency badges stay 20px",
       "passed": true
     },
     {
