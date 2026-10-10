@@ -3249,7 +3249,7 @@ changePeriodStatus=async function(nextStatus){
   try {
     if(!ojmDb)throw new Error('The database connection is unavailable. Sign in again and retry.');
     showPeriodToast('Updating period…');
-    const {error}=await ojmDb.rpc('set_accounting_period_status',{p_month:`${month}-01`,p_status:nextStatus});
+    const {error}=await window.periodClosing14317.setStatus(month,nextStatus);
     if(error)throw error;
     changePeriodStatusLocal(nextStatus,month);
     showPeriodToast(`Period ${nextStatus==='open'?'reopened':nextStatus}.`);

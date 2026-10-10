@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Staff phone online login loads assigned data and caches the shell",
+    "passed": true
+  },
+  {
+    "name": "Offline entry saves an immutable amount and owner on device",
+    "passed": true
+  },
+  {
+    "name": "Offline reload retains the pending entry",
+    "passed": true
+  },
+  {
+    "name": "Lost save response keeps an uncertain entry; retry does not duplicate",
+    "passed": true
+  },
+  {
+    "name": "Online double-entry saves matching debit and credit once",
+    "passed": true
+  },
+  {
+    "name": "Phone report tools open online",
+    "passed": true
+  },
+  {
+    "name": "Downloaded phone report tools reopen after an offline reload",
+    "passed": true
+  },
+  {
+    "name": "Downloaded admin Settings also reopen after an offline reload",
+    "passed": true
+  }
+]

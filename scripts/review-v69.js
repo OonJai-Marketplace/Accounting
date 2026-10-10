@@ -61,7 +61,7 @@ async function postCompared69(id){
   await loadStaffJournalsForReview();const fresh=allReviewJournals().find(x=>x.id===id);if(!fresh||journalFingerprint69(fresh)!==oldFingerprint){approvedComparisons69.delete(id);showCenterStatus('The submission changed on the server. Compare and approve it again.',true);return}
   const eligible=eligibleSource69(fresh);
   if(!eligible.length){const r=await ojmDb.rpc('review_collection_report',{p_journal_id:id});if(r.error)throw r.error;await loadStaffJournalsForReview();document.getElementById('submissionComparisonOverlay')?.remove();showCenterStatus('Report reviewed; no duplicate journal entries were posted.');return}
-  if(eligible.some(l=>PeriodReview.status(String(l.transaction_date).slice(0,7))!=='open')){showCenterStatus('A source date belongs to a closed period. Reopen it before posting.',true);return}
+  await loadAccountingPeriodStatuses();
   prepareComparedForm69(fresh);await submitJournalEntry();if(!pendingWorkspacePostJournalId){approvedComparisons69.delete(id);document.getElementById('submissionComparisonOverlay')?.remove()}
  }catch(e){showCenterStatus(e.message||'Posting failed.',true)}finally{comparePosting69=false;if(button)button.disabled=false}
 }

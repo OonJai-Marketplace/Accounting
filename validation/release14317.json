@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Editing during the first save retains the saved ID and leaves newer edits dirty",
+    "passed": true
+  },
+  {
+    "name": "A lost reply after insertion retries the same durable ID",
+    "passed": true
+  },
+  {
+    "name": "Editable budget dates validate month lengths and leap years",
+    "passed": true
+  },
+  {
+    "name": "Rapid allocation attempts cannot release the active save lock",
+    "passed": true
+  },
+  {
+    "name": "Finalization form rows and module headers fit desktop and tablet widths",
+    "passed": true
+  },
+  {
+    "name": "Action colors distinguish save, add, templates, delete and reset",
+    "passed": true
+  },
+  {
+    "name": "Payroll and Reports navigation chords never trigger printing",
+    "passed": true
+  },
+  {
+    "name": "Editor uses E then File F Open O and unique Insert Table commands",
+    "passed": true
+  },
+  {
+    "name": "The same editor chords work from the editable iframe without print leakage",
+    "passed": true
+  },
+  {
+    "name": "Closing warns, requires acknowledgment, allows override and can be cancelled",
+    "passed": true
+  },
+  {
+    "name": "Deferred preparation chooses the next open month and keeps original dates",
+    "passed": true
+  },
+  {
+    "name": "No uncaught browser errors",
+    "passed": true
+  }
+]

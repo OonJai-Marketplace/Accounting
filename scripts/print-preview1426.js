@@ -11,5 +11,5 @@ window.print=async function(){
  return openDocumentEditor105({title,category:'Reports',printPreview:true,source:source.id,html,settings});
 };
 window.openPrintDialog=function(){const active=document.querySelector('.tab-content.active')?.id||'';if(active.startsWith('settings-')||active==='user-entry-review'){showCenterStatus('Printing is not available in this module.',true);return}return window.print()};
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='p'&&!document.getElementById('document-editor105')?.classList.contains('active')){e.preventDefault();window.print()}});
+document.addEventListener('keydown',e=>{if(!e.defaultPrevented&&!e.altKey&&!e.shiftKey&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='p'&&!document.getElementById('document-editor105')?.classList.contains('active')){e.preventDefault();window.print()}});
 })();

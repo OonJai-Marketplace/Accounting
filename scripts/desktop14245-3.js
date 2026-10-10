@@ -3276,7 +3276,7 @@ changePeriodStatus=async function(nextStatus){
   try {
     if(!ojmDb)throw new Error('The database connection is unavailable. Sign in again and retry.');
     showPeriodToast('Updating period…');
-    const {error}=await ojmDb.rpc('set_accounting_period_status',{p_month:`${month}-01`,p_status:nextStatus});
+    const {error}=await window.periodClosing14317.setStatus(month,nextStatus);
     if(error)throw error;
     changePeriodStatusLocal(nextStatus,month);
     showPeriodToast(`Period ${nextStatus==='open'?'reopened':nextStatus}.`);
@@ -4071,8 +4071,6 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
 const legacySaveReferences14228=new Map();
 function journalEntry98Key14228(owner,payload){const fingerprint=JSON.stringify(payload),last=legacySaveReferences14228.get(owner);if(last?.fingerprint===fingerprint)return last.key;const key='web-'+crypto.randomUUID();legacySaveReferences14228.set(owner,{fingerprint,key});return key;}
 document.addEventListener('input',e=>{if(e.isTrusted){const card=e.target.closest('#journalEntry98');if(card)delete card._postingRequest14228;legacySaveReferences14228.clear()}},true);
-
-
 ;
 
 /* scripts/workspace-settings.js */
@@ -5229,7 +5227,7 @@ async function postCompared69(id){
   await loadStaffJournalsForReview();const fresh=allReviewJournals().find(x=>x.id===id);if(!fresh||journalFingerprint69(fresh)!==oldFingerprint){approvedComparisons69.delete(id);showCenterStatus('The submission changed on the server. Compare and approve it again.',true);return}
   const eligible=eligibleSource69(fresh);
   if(!eligible.length){const r=await ojmDb.rpc('review_collection_report',{p_journal_id:id});if(r.error)throw r.error;await loadStaffJournalsForReview();document.getElementById('submissionComparisonOverlay')?.remove();showCenterStatus('Report reviewed; no duplicate journal entries were posted.');return}
-  if(eligible.some(l=>PeriodReview.status(String(l.transaction_date).slice(0,7))!=='open')){showCenterStatus('A source date belongs to a closed period. Reopen it before posting.',true);return}
+  await loadAccountingPeriodStatuses();
   prepareComparedForm69(fresh);await submitJournalEntry();if(!pendingWorkspacePostJournalId){approvedComparisons69.delete(id);document.getElementById('submissionComparisonOverlay')?.remove()}
  }catch(e){showCenterStatus(e.message||'Posting failed.',true)}finally{comparePosting69=false;if(button)button.disabled=false}
 }
@@ -5247,8 +5245,8 @@ v49ApproveAdjustment=async function(id){
 // Do not turn absent amounts into deliberate zero corrections.
 const adjustmentSubmitBefore69=v49SubmitAdjustment;v49SubmitAdjustment=function(...args){if(['received','used','handover'].some(k=>!document.getElementById('v49Adj-'+k)?.value.trim())){showCenterStatus('Enter every new actual amount, including zero where appropriate.',true);return}return adjustmentSubmitBefore69(...args)};
 const archiveRenderBefore69=renderAllTransactionsTable;renderAllTransactionsTable=function(...args){const previous=document.querySelector('.archive-year');archiveRenderBefore69(...args);if(previous&&!document.getElementById('archiveMonths67')?.contains(previous))previous.remove();if(typeof polish69==='function')polish69()};
-
 ;
+
 /* scripts/interface-v69.js */
 /* INTERFACE 69 — session continuity, header controls, currencies and compact tables. */
 const Location69={hydrating:false,ready:false,view:'dashboard',lastWrite:0,userNavigated:false};
@@ -5419,7 +5417,7 @@ logoutDemoUser=async function(){document.getElementById('recOverlay71')?.remove(
 const media=matchMedia('(max-width:1024px)'),scope='#journal,#transactions-new,#transactions-recurring,#transactions-all,#transactions-voided,#period-review,#user-entry-review';
 const states=new Map();let queued=false,viewer=null,lastFocus=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function inScope(table){if(table.closest('#payroll-employees,#hr-attendance,#hr-leave,#hr-assessments,#hr-contracts,#hr-calendar'))return false;if(table.matches('.attendance-grid99'))return false;if(table.closest('#transactions-vouchers14299,#voucherModal14299'))return false;if(table.closest('.v49-totals,.final-account-totals,.v49-adjust-body'))return false;if(table.closest('#accounts-modular-container,#trial-balance,#account-balances,#modalAccount,#modalSubAccount,#recOverlay71,#tx72Viewer'))return false;if(!table.querySelector('tbody input,tbody select,tbody textarea')&&table.closest('.tab-content,.submission-compare-overlay'))return true;return !!table.closest(scope)||!!table.closest('[data-transaction-mobile72]')||(!table.closest('#recOverlay71,#tx72Viewer')&&!!table.closest('.submission-compare-overlay,#modalAdjustmentQuickView')&&!!document.querySelector(scope.split(',').map(s=>s+'.active').join(',')))}
+function inScope(table){if(table.closest('#fundAllocation14316'))return false;if(table.closest('#payroll-employees,#hr-attendance,#hr-leave,#hr-assessments,#hr-contracts,#hr-calendar'))return false;if(table.matches('.attendance-grid99'))return false;if(table.closest('#transactions-vouchers14299,#voucherModal14299'))return false;if(table.closest('.v49-totals,.final-account-totals,.v49-adjust-body'))return false;if(table.closest('#accounts-modular-container,#trial-balance,#account-balances,#modalAccount,#modalSubAccount,#recOverlay71,#tx72Viewer'))return false;if(!table.querySelector('tbody input,tbody select,tbody textarea')&&table.closest('.tab-content,.submission-compare-overlay'))return true;return !!table.closest(scope)||!!table.closest('[data-transaction-mobile72]')||(!table.closest('#recOverlay71,#tx72Viewer')&&!!table.closest('.submission-compare-overlay,#modalAdjustmentQuickView')&&!!document.querySelector(scope.split(',').map(s=>s+'.active').join(',')))}
 window.mobileTransactionTable72=table=>!!table.closest('.v49-totals,.final-account-totals,.v49-adjust-body')||inScope(table);
 function visibleRow(row){return !row.hidden&&getComputedStyle(row).display!=='none'&&!row.closest('[hidden]')}
 function text(cell){if(!cell)return '';const copy=cell.cloneNode(true);copy.querySelectorAll('button,input,select,textarea,.tx72-label').forEach(n=>n.remove());return copy.textContent.replace(/\s+/g,' ').trim()}
@@ -5454,9 +5452,8 @@ document.addEventListener('keydown',e=>{if(!viewer)return;if(e.key==='Escape'){e
 media.addEventListener('change',()=>{if(!media.matches){close();states.forEach((s,t)=>{s.resize.disconnect();if(s.originalStyle===null)t.removeAttribute('style');else t.setAttribute('style',s.originalStyle);s.box.replaceWith(t);s.hint.remove();t.classList.remove('tx72-table')});states.clear();document.querySelectorAll('.tx72-editor').forEach(t=>t.classList.remove('tx72-editor'));document.querySelectorAll('.tx72-scope').forEach(n=>n.classList.remove('tx72-scope'))}schedule()});window.addEventListener('resize',schedule);document.addEventListener('change',schedule);document.addEventListener('input',schedule);document.addEventListener('toggle',schedule,true);
 const start=()=>{new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#tx72Viewer')))return;schedule()}).observe(document.body,{childList:true,subtree:true});schedule()};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
-
-
 ;
+
 /* scripts/mobile-polish-v73.js */
 /* Mobile field-first presentation; original form controls remain authoritative. */
 function fields73(record,recordIndex){

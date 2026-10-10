@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Closing preflight lists exact dated unposted reports",
+    "passed": true
+  },
+  {
+    "name": "Direct closing and unacknowledged overrides are rejected",
+    "passed": true
+  },
+  {
+    "name": "Changed pending data requires a new acknowledgment",
+    "passed": true
+  },
+  {
+    "name": "Acknowledged close and lock retain unaccepted reports and record the audit",
+    "passed": true
+  },
+  {
+    "name": "Deferred summaries post into the next open period with original dates and IDs",
+    "passed": true
+  },
+  {
+    "name": "Closed target periods and backdating remain blocked",
+    "passed": true
+  },
+  {
+    "name": "Open source months keep their original posting month",
+    "passed": true
+  },
+  {
+    "name": "Correction-session close uses the same acknowledgment and retains pending reports",
+    "passed": true
+  },
+  {
+    "name": "Year closing retains the installed fingerprint check and all month acknowledgments",
+    "passed": true
+  },
+  {
+    "name": "Sub-users cannot acknowledge or close accounting periods",
+    "passed": true
+  }
+]
