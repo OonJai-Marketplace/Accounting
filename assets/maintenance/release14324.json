@@ -1,15 +1,20 @@
 {
-  "release": "143.25",
+  "release": "143.26",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
+      "path": "assets/maintenance/report-template14326.xlsx",
+      "sha256": "89f877ca7d4bb8c355499daa16f7b6df111903a7957a2c6691803d84344ae503",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
       "path": "desktop-sw14242.js",
-      "sha256": "5a4114100f584c7ea9192a59b120baaa3909ea28b116f058bc1361ac4425f856",
+      "sha256": "df48f271da6255fdab77dbbdbd69ff1eea1cf090c95d5abe25fb508fe9a9219c",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "9c9b42d2c143a551c64a1108aee4c88b51815c23b7e4dc69cbfa7ed979510554",
+      "sha256": "eaca2cd79fd68bd1592672c9528d1350e1bd4b8faad0b591f52bfc3c248816c3",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -688,8 +693,13 @@
     },
     {
       "path": "scripts/maintenance-engine14324.js",
-      "sha256": "125f8c84d2117659114e3e05e34a35002740e5964d67dad79d9981a4ac14af49",
+      "sha256": "d7fe05fecaa33e2da52a8e726c57775c9302f6572f4896545fe2371e5cf0b56a",
       "effect": "Independent calculations or record tracing may differ."
+    },
+    {
+      "path": "scripts/maintenance-reports14326.js",
+      "sha256": "15a7cdad682020a93d79b067bc8e3f311656ec468e61334d896f53c424f8d30e",
+      "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "scripts/maintenance-selection14325.js",
@@ -698,7 +708,7 @@
     },
     {
       "path": "scripts/maintenance14324.js",
-      "sha256": "d718c981c9880b91125f2440825a050225b0bd86988cfbe7052065bdb7886758",
+      "sha256": "078d56a059e809c6f482d39377be8aa04667751d57bb7908b4b9c2ca45b3c92e",
       "effect": "Maintenance review, investigator and exports may not run correctly."
     },
     {
@@ -708,7 +718,7 @@
     },
     {
       "path": "scripts/navigation-workflow14316.js",
-      "sha256": "43c4c609baf0d4be5221f105a9552b7e9483c0d2f355da6abaa9bbb272537cf2",
+      "sha256": "2a2dc44e41a7daf29ea8c2a2b4a7cced7914530f73d86126710019cfa45e9a6f",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -718,7 +728,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "ae864f868b1d70474bbffe86fbd24f9dfe801f94eaaa3c0a987742550c54d80c",
+      "sha256": "e8a2d83302243061084c85ea6f27b37bc58a704d0e879545fd1f380086751559",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1246,7 +1256,7 @@
     },
     {
       "path": "styles/polish14325.css",
-      "sha256": "382042456d45e9deae112d578cae16c371ba15fd73b058ce4b2248bdd89fa9bf",
+      "sha256": "2a0e24d71f2d642bac026512f3280b5308f2f825d7e58420c9c56d819421a2b3",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {

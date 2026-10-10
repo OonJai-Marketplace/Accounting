@@ -1,6 +1,6 @@
-# Maintenance & Audit — v143.25
+# Maintenance & Audit — v143.26
 
-Open **Settings → Maintenance & Audit** as an active accounting administrator for investigation, exports and code diagnostics. Open **Bookkeeping → Closing & Data Checks** for month-end checks and reconciliation. The existing v143.24 SQL update is still required; this UI adjustment adds no new migration.
+Open **Settings → Maintenance & Audit** as an active accounting administrator for investigation, exports and code diagnostics. Open **Bookkeeping → Data Check** for month-end checks and reconciliation. The existing v143.24 SQL update is still required; this UI adjustment adds no new migration.
 
 The release retains the v143.23 stability repairs compared with v143.16
 (`14d724e15c057bbd4e63324754f89959ea48a784`), before colored action buttons.
@@ -81,21 +81,19 @@ separation and identify each payroll run separately. Draft results remain labele
 Raw CSV text starting like a spreadsheet formula is escaped; use JSON when exact
 original text fidelity matters. No exchange-rate conversions are applied.
 
-Download **Excel Comparison Template** in the same area. Paste the comparison CSV's
-six columns without its header into App Data, and your independently obtained
-records into External Data. IDs, month and currency must match exactly. Amounts must
-be numeric. Use the same status and period basis in both sources. The workbook
-flags missing keys in either direction, duplicates, invalid amounts and differences.
-It supports 1,000 input rows per source; split larger comparisons into matching key
-groups. Clear old input rows between uses and retain the calculated columns.
-The workbook compares supplied amounts independently; it does not recalculate
-statutory payroll formulas. No company records are preloaded in the blank template.
+Choose **Excel Comparison Workbook** or select Excel in **Export Maintenance Data**. Choose the month and ledger/payroll datasets. The download is already populated from the checked snapshot, with General Ledger, Trial Balance, Payroll and their source data. ZIP also contains the selected workbook.
+
+The General Ledger uses Excel running balances. Trial Balance uses Excel opening, period and closing calculations by account and currency. Payroll follows the printed breakdown, mandatory deductions, final payment and attendance summaries, with its colored attendance grid on a separate sheet.
+
+In **Comparison**, enter independently prepared figures in the yellow External amount cells beside the matching stable ID and currency. Excel shows differences against both the saved system figures and your independent amounts. A blank is not compared; zero is a real amount. Re-export after adding records or changing the reporting month so all rows and ranges are rebuilt.
+
+Payroll formulas recalculate gross, taxable, net and payment from saved components. Attendance deductions, PIT and SSO remain source inputs; review these separately against your independent payroll. A balanced trial alone cannot prove correct classification, complete documentation or actual cash/bank balances.
 
 ## System Diagnostics
 
 **Run System Diagnostics** is a separate read-only module:
 
-- SHA-256 comparison of release files against the recorded, tested v143.25 release.
+- SHA-256 comparison of release files against the recorded, tested v143.26 release.
 - Bundle segment attribution to original source filenames when a bundle differs.
 - Required module initialization and independent cents/void/cutoff arithmetic tests.
 - Native desktop scale, current maintenance action height and workspace overflow.

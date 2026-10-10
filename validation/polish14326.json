@@ -1,0 +1,138 @@
+[
+  {
+    "name": "Closing flags are in Bookkeeping; investigator, exports and diagnostics remain in Maintenance",
+    "passed": true
+  },
+  {
+    "name": "Independent engine separates currencies, voids, cutoff and one-cent errors",
+    "passed": true
+  },
+  {
+    "name": "Investigator retains every source row for a summarized journal line",
+    "passed": true
+  },
+  {
+    "name": "Correction preview uses the final staged amounts without mutating its source",
+    "passed": true
+  },
+  {
+    "name": "Investigator follows entry lines and account links without unrelated entries",
+    "passed": true
+  },
+  {
+    "name": "Month closing requires actual amounts, each acknowledgment, a reason and coverage",
+    "passed": true
+  },
+  {
+    "name": "Unbalanced trial blocks closing and cannot be overridden",
+    "passed": true
+  },
+  {
+    "name": "Missing server migration fails closed with a specific installation message",
+    "passed": true
+  },
+  {
+    "name": "Closing cancellation performs no write",
+    "passed": true
+  },
+  {
+    "name": "Cash variance acknowledgment does not unlock unresolved open items",
+    "passed": true
+  },
+  {
+    "name": "Selected export contains journal / payroll records and keyed comparison data",
+    "passed": true
+  },
+  {
+    "name": "Foreign payroll CSV uses contract-currency payment, never LAK net with a foreign label",
+    "passed": true
+  },
+  {
+    "name": "CSV escapes formula-like text while preserving numeric amounts",
+    "passed": true
+  },
+  {
+    "name": "Maintenance layout fits desktop and tablet without document overflow",
+    "passed": true
+  },
+  {
+    "name": "System Diagnostics names a changed file and its effect",
+    "passed": true
+  },
+  {
+    "name": "Export filtering excludes unselected datasets and retains parent-linked lines",
+    "passed": true
+  },
+  {
+    "name": "Month picker remains usable above the export dialog",
+    "passed": true
+  },
+  {
+    "name": "Comparison CSV can be downloaded without a ZIP",
+    "passed": true
+  },
+  {
+    "name": "Excel template explains the independent comparison before download",
+    "passed": true
+  },
+  {
+    "name": "Bookkeeping shortcut preserves the internal transactions module",
+    "passed": true
+  },
+  {
+    "name": "Review popup stays on screen and background cannot scroll",
+    "passed": true
+  },
+  {
+    "name": "Entry header remains still when toggling single / double mode",
+    "passed": true
+  },
+  {
+    "name": "Fullscreen preserves floating button sizes and centers the smaller logo",
+    "passed": true
+  },
+  {
+    "name": "Action colors are stable immediately after rows are rendered",
+    "passed": true
+  },
+  {
+    "name": "Currency symbols stay immediately beside their own amounts",
+    "passed": true
+  },
+  {
+    "name": "Working area ends just before the floating dock without overlap",
+    "passed": true
+  },
+  {
+    "name": "Closing shortcut submits only after full review and explicit confirmation",
+    "passed": true
+  },
+  {
+    "name": "Selective check results do not remove the full closing flag list",
+    "passed": true
+  },
+  {
+    "name": "Personal journal uses the same stationary entry header",
+    "passed": true
+  },
+  {
+    "name": "Submitted Entries and Submission History share the same horizontal edges",
+    "passed": true
+  },
+  {
+    "name": "HR action cells have one unclipped menu and retain all four actions",
+    "passed": true
+  },
+  {
+    "name": "Entry mode is at the top right and tabs begin Journal, Finalization, Data Check",
+    "passed": true
+  },
+  {
+    "name": "Workbook exports populated GL, TB, matching payroll sections and editable comparison formulas",
+    "passed": true
+  },
+  {
+    "name": "Switching to a staff account clears sensitive data and denies all maintenance RPCs",
+    "passed": true
+  }
+]

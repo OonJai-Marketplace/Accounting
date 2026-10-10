@@ -1,0 +1,22 @@
+{
+  "browserChecks": 34,
+  "offlineAssets": 145,
+  "releaseAssetVersions": 26,
+  "workbookChecks": {
+    "engines": [
+      "Artifact Tool",
+      "LibreOffice Calc"
+    ],
+    "formulaErrors": 0,
+    "calculatedAccountBalance": 400,
+    "calculatedPayrollGross": 1005,
+    "calculatedPayrollNet": 929.72,
+    "calculatedPayrollPayment": 924.72,
+    "externalZeroDiffersFromBlank": true,
+    "contractInputChangeRecalculatesPayment": true,
+    "printPaper": "A4 portrait",
+    "renderedSheets": 8,
+    "payrollSourceBoundary": "Saved attendance, PIT and SSO components; not an independent statutory calculation"
+  },
+  "liveDatabaseWrites": 0
+}

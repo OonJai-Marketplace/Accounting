@@ -10,7 +10,7 @@
  html[data-device132=desktop] body.workspace-full1439 #appSidebar .logo-tile113{width:32px!important;min-width:32px!important;max-width:32px!important;height:32px!important;min-height:32px!important;max-height:32px!important;flex:0 0 32px!important;display:grid!important;place-items:center!important;box-sizing:border-box!important;padding:2px!important}
  html[data-device132=desktop] body.workspace-full1439 #appSidebar .logo-tile113 img{position:static!important;width:26px!important;height:26px!important;min-width:0!important;min-height:0!important;max-width:26px!important;max-height:26px!important;margin:0!important;object-fit:contain!important;flex:0 0 26px!important}
  /* The same fixed header grid in both entry modes, including the personal editor. */
- html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid{display:grid!important;grid-template-columns:144px minmax(120px,1fr) 156px max-content!important;align-items:end!important;gap:8px!important;padding:8px 0!important;margin:0 16px!important;width:calc(100% - 32px)!important;box-sizing:border-box!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid{display:grid!important;grid-template-columns:144px minmax(120px,1fr) 156px!important;align-items:end!important;gap:8px!important;padding:8px 0!important;margin:0 16px!important;width:calc(100% - 32px)!important;box-sizing:border-box!important}
  html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid>.je-field-group{grid-row:1!important;min-width:0!important;max-width:none!important;width:auto!important;flex:none!important;margin:0!important;align-self:end!important}
  html body #journalEntry98#journalEntry98#journalEntry98 .transaction-date-field{grid-column:1!important}
  html body #journalEntry98#journalEntry98#journalEntry98 .je-field-group:has(#jeGeneralMemo){grid-column:2!important}
@@ -61,4 +61,14 @@
  #settings-maintenance14324 .maintenance-card14324{border-color:#788d80;border-top:3px solid #24634c}
  #settings-maintenance14324 .maintenance-result14324:empty{display:none}
  .maintenance-modal14324 .maintenance-table14324 :is(td,th){border-bottom-color:#aab7ae}
+}
+
+@media screen and (min-width:641px){
+html body #journalEntry98 .je-header-actions{display:flex!important;align-items:center!important;flex-wrap:wrap!important}
+html body #journalEntry98 .je-header-actions .entry-mode1430{margin:0!important;align-self:center!important;flex:0 0 auto!important}
+html body #journalEntry98 .je-header-actions #jeEntryMode1430{height:32px!important;min-height:32px!important;max-height:32px!important}
+html body #payroll-employees td.actions-column99{overflow:visible!important;text-overflow:clip!important;white-space:normal!important}
+html body #payroll-employees .row-menu99{width:auto!important;max-width:100%!important}
+html body #payroll-employees .row-menu99>summary{overflow:visible!important;text-overflow:clip!important;box-sizing:border-box!important;padding:4px 8px!important;width:38px!important;text-align:center!important}
+html body #payroll-employees .row-menu-panel99 .hr-row-actions14306{display:flex;flex-direction:column;align-items:stretch}
 }
