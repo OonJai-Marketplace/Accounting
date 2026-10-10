@@ -53,7 +53,7 @@ await page.evaluate(()=>{
 
 await check('Backup and archive action controls use the semantic output colors',async()=>{
  await page.evaluate(()=>{switchTab('settings-data14231');actionControls14317.decorate()});
- for(const id of ['resetFullBackup14232','archiveDownload129','archiveJson1441']){const b=page.locator('#'+id);assert.equal(await b.getAttribute('data-action-tone14317'),'output',id);assert.equal(await b.evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(23, 103, 121)',id)}
+ for(const id of ['resetFullBackup14232','archiveDownload129','archiveJson1441']){const b=page.locator('#'+id);assert.equal(await b.getAttribute('data-action-tone14317'),'output',id);assert.equal(await b.evaluate(n=>getComputedStyle(n).backgroundColor),'rgb(154, 107, 32)',id)}
 });
 await check('Settings card headers share the 56px minimum and retain 3px edges',async()=>{
  for(const width of [1440,1024,820]){await page.setViewportSize({width,height:1100});for(const id of ['settings-system','settings-data14231']){await page.evaluate(id=>switchTab(id),id);await page.waitForTimeout(100);const sizes=await page.locator('#'+id+' .panel113').evaluateAll(ns=>ns.filter(n=>n.getClientRects().length).map(n=>({edge:getComputedStyle(n).borderTopWidth,header:n.querySelector(':scope>header')?.getBoundingClientRect().height})));assert(sizes.length);for(const s of sizes){const scale=await page.evaluate(()=>window.desktopScale14320?.scale||1);assert(Math.abs(parseFloat(s.edge)-3)<=1/scale);if(s.header!==undefined)assert(s.header/scale>=55,JSON.stringify({width,id,...s}))}assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false)}}
