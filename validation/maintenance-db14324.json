@@ -1,0 +1,25 @@
+{
+  "checks": 19,
+  "passed": true,
+  "tests": [
+    "Complete installer restores empty database in one transaction",
+    "Packaged verification SQL passes on a clean installation",
+    "All routine bodies compile with validation enabled",
+    "Refuses reinstall into populated application schemas",
+    "No users, accounts or bookkeeping demo rows installed",
+    "First Auth account starts without administrator privilege",
+    "Actual first-install function initializes company and persists its state",
+    "Setup retry is idempotent; placeholders and stale setup are rejected",
+    "Maintenance migration is repeatable",
+    "Actual installed preflight balances currencies and includes full sources",
+    "Old closing entry points cannot bypass the required review",
+    "Missing actual balances and cash coverage cannot be acknowledged away",
+    "Cash variance requires a reason and deliberate acknowledgment",
+    "Equal-value description changes invalidate the reviewed fingerprint",
+    "Trial imbalance and invalid currencies are blocking errors",
+    "Individual draft payroll acknowledgment is required and preserved",
+    "Reopened book commit resolves its month through period_id",
+    "Non-admin callers cannot inspect payroll or closing data",
+    "Year-end retains its existing checks and closes income without duplicate opening entries"
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Maintenance presents all four tools in one administrator area",
+    "passed": true
+  },
+  {
+    "name": "Independent engine separates currencies, voids, cutoff and one-cent errors",
+    "passed": true
+  },
+  {
+    "name": "Investigator retains every source row for a summarized journal line",
+    "passed": true
+  },
+  {
+    "name": "Correction preview uses the final staged amounts without mutating its source",
+    "passed": true
+  },
+  {
+    "name": "Investigator follows entry lines and account links without unrelated entries",
+    "passed": true
+  },
+  {
+    "name": "Month closing requires actual amounts, each acknowledgment, a reason and coverage",
+    "passed": true
+  },
+  {
+    "name": "Unbalanced trial blocks closing and cannot be overridden",
+    "passed": true
+  },
+  {
+    "name": "Missing server migration fails closed with a specific installation message",
+    "passed": true
+  },
+  {
+    "name": "Closing cancellation performs no write",
+    "passed": true
+  },
+  {
+    "name": "Cash variance acknowledgment does not unlock unresolved open items",
+    "passed": true
+  },
+  {
+    "name": "Export contains complete raw source tables and keyed comparison data",
+    "passed": true
+  },
+  {
+    "name": "CSV escapes formula-like text while preserving numeric amounts",
+    "passed": true
+  },
+  {
+    "name": "Maintenance layout fits desktop and tablet without document overflow",
+    "passed": true
+  },
+  {
+    "name": "System Diagnostics names a changed file and its effect",
+    "passed": true
+  },
+  {
+    "name": "Switching to a staff account clears sensitive data and denies all maintenance RPCs",
+    "passed": true
+  }
+]
