@@ -25,7 +25,7 @@ for path in sorted(paths):
    body=text[m.end():matches[i+1].start() if i+1<len(matches) else len(text)]
    item['segments'].append({'source':m.group(1),'sha256':hashbytes(body.encode())})
  files.append(item)
-manifest={'release':'143.26','comparisonBaseline':'v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784','files':files,'approvedRules':[
+manifest={'release':'143.27','comparisonBaseline':'v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784','files':files,'approvedRules':[
  {'rule':'Native 100% desktop; no global zoom/media rewriting','validation':'validation/test-recovery14323.cjs'},
  {'rule':'Preserve phone v142.53 navigation and layout','validation':'validation/test-phone-tools14317.cjs'},
  {'rule':'Administrator workspace and period descriptions remain stable','validation':'validation/test-regressions14304.cjs'},

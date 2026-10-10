@@ -1,0 +1,53 @@
+{
+  "passed": 12,
+  "results": [
+    {
+      "name": "Journal fields, pickers and line inputs share 32px height in both entry modes",
+      "passed": true
+    },
+    {
+      "name": "100 double entries are shorter; general and line descriptions remain present",
+      "passed": true
+    },
+    {
+      "name": "Long descriptions expand naturally without clipped text",
+      "passed": true
+    },
+    {
+      "name": "Journal actions retain 32px height side by side and currency badges are 20px",
+      "passed": true
+    },
+    {
+      "name": "Fullscreen applies rail, workspace and pressed state before native request settles",
+      "passed": true
+    },
+    {
+      "name": "Real fullscreen enters/exits together, with fixed dock sizes and no lingering animations",
+      "passed": true
+    },
+    {
+      "name": "Blocked fullscreen request still leaves a usable workspace and clears switching state",
+      "passed": true
+    },
+    {
+      "name": "General tables use compact vertical padding across journal, HR, payroll and maintenance",
+      "passed": true
+    },
+    {
+      "name": "Picker and text height stays consistent at desktop and tablet widths",
+      "passed": true
+    },
+    {
+      "name": "Date picker opens and numeric focus preserves existing value",
+      "passed": true
+    },
+    {
+      "name": "Date, memo and voucher controls align in the shared administrator and sub-user editor",
+      "passed": true
+    },
+    {
+      "name": "Screen compact rules do not alter print or phone-width styling",
+      "passed": true
+    }
+  ]
+}

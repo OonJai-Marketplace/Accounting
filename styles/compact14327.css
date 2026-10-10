@@ -1,0 +1,33 @@
+/* Compact desktop/tablet data controls and lists. Phone and print stay unchanged.
+   Declared first in desktop.html so these explicit !important rules have stable priority. */
+@layer compact14327 {
+ @media screen and (min-width:641px) {
+  /* Layout changes are one update, without independent child animations. */
+  body.workspace-switch14327 :is(#appSidebar,#appSidebar *,.main-content-area,.workspace-scroll,.workspace-scroll *,#workspaceTools108,#workspaceTools108 *) {
+   transition:none!important;animation:none!important;scroll-behavior:auto!important;
+  }
+  /* Match the approved 32px action height; retain multiline editors and native tiny controls. */
+  body :is(.tab-content,.ui-dialog108,.ui-dialog117,.hr-dialog14306,.modal-content,.maintenance-modal14324) :is(
+   input:not([type]),input[type=text],input[type=search],input[type=number],input[type=email],input[type=password],input[type=tel],input[type=url],input[type=date],input[type=month],input[type=time],input[type=datetime-local],
+   select:not([multiple]):not([size]),select[size="1"],.oj-date-button104,.access-picker-trigger,.direction-toggle1439,.cash-picker14230 summary
+  ):not(.oj-date-original104,.account-source1428):not(:where(#docFrame105 *, .tx72-preview *)) {
+   box-sizing:border-box!important;height:32px!important;min-height:32px!important;max-height:32px!important;padding-top:0!important;padding-bottom:0!important;line-height:1.25!important;
+  }
+  body :is(.tab-content,.ui-dialog108,.ui-dialog117,.hr-dialog14306,.modal-content,.maintenance-modal14324) .oj-date-shell104 {
+   height:32px!important;min-height:32px!important;padding-block:0!important;box-sizing:border-box!important;vertical-align:middle!important;
+  }
+  /* Hidden originals must not become layout-sized controls through older ID rules. */
+  body :is(.oj-date-original104,select.account-source1428) {height:1px!important;min-height:0!important;max-height:1px!important;padding:0!important;border:0!important;box-sizing:border-box!important;}
+  body :is(.tab-content,.ui-dialog108,.ui-dialog117,.hr-dialog14306,.modal-content,.maintenance-modal14324) table:not(:where(#docFrame105 *, .tx72-preview *, .attendance-grid99, .attendance-table99, .attendance-calendar102, .attendance-table95)) :is(th,td) {
+   height:auto!important;min-height:0!important;padding-top:2px!important;padding-bottom:2px!important;line-height:1.25!important;
+  }
+  body :is(.tab-content,.ui-dialog108,.ui-dialog117,.hr-dialog14306,.modal-content,.maintenance-modal14324) table:not(:where(#docFrame105 *, .tx72-preview *, .attendance-grid99, .attendance-table99, .attendance-calendar102, .attendance-table95)) tr {
+   height:auto!important;min-height:0!important;
+  }
+  body .tab-content table .currency-symbol-badge {width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important;flex:0 0 20px!important;font-size:11px!important;line-height:1!important;border-radius:4px!important;box-sizing:border-box!important;vertical-align:middle!important;}
+  body .tab-content table .transaction-account-display {gap:5px!important;min-height:0!important;}
+  body :is(#journal,.personal-active1437) .clustered-journal-table .transaction-review-actions {flex-direction:row!important;flex-wrap:nowrap!important;gap:4px!important;justify-content:center!important;}
+  body :is(#journal,.personal-active1437) .clustered-journal-table .transaction-review-actions .je-btn {width:40px!important;min-width:0!important;flex:0 0 40px!important;padding-inline:2px!important;}
+  body .personal-active1437 .clustered-journal-table :is(th:last-child,.personal-actions14283) {width:92px!important;min-width:92px!important;}
+ }
+}
