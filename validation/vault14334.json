@@ -1,0 +1,78 @@
+[
+  {
+    "name": "desktop / admin signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "desktop / admin reopens a downloaded signed-in workspace without internet after token expiry",
+    "passed": true
+  },
+  {
+    "name": "raw device storage contains ciphertext and rejects record tampering",
+    "passed": true
+  },
+  {
+    "name": "24 hours without activity locks cached data and allows password sign-in offline",
+    "passed": true
+  },
+  {
+    "name": "explicit logout preserves encrypted pending work and supports offline sign-in",
+    "passed": true
+  },
+  {
+    "name": "reconnect automatically uploads encrypted queued work once",
+    "passed": true
+  },
+  {
+    "name": "another account in a second tab cannot change this session or read its device draft",
+    "passed": true
+  },
+  {
+    "name": "sign-out locks another active tab for the same account",
+    "passed": true
+  },
+  {
+    "name": "server revocation blocks subsequent offline unlock without deleting encrypted work",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "desktop / staff reopens a downloaded signed-in workspace without internet after token expiry",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "tablet / admin reopens a downloaded signed-in workspace without internet after token expiry",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "tablet / staff reopens a downloaded signed-in workspace without internet after token expiry",
+    "passed": true
+  },
+  {
+    "name": "phone / admin signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "phone / admin reopens a downloaded signed-in workspace without internet after token expiry",
+    "passed": true
+  },
+  {
+    "name": "phone / staff signs in and prepares complete offline files with the real SDK",
+    "passed": true
+  },
+  {
+    "name": "phone / staff reopens a downloaded signed-in workspace without internet after token expiry",
+    "passed": true
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "name": "standalone admin online setup and encrypted offline sign-in",
+    "passed": true
+  },
+  {
+    "name": "standalone staff online setup and encrypted offline sign-in",
+    "passed": true
+  }
+]

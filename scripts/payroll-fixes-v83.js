@@ -5,7 +5,7 @@ loadWork82=async function(force=false){
  if(Work82.loaded&&Work82.owner===liveProfile.id&&!force)return;
  const owner=liveProfile.id;Work82.loading=true;Work82.owner=owner;const failures=[];
  const results=await Promise.all(Object.entries(tables82).map(async([key,table])=>{
-  try{const pages=[];for(let offset=0;;offset+=500){let query=ojmDb.from(table).select('*').order('updated_at',{ascending:false}).order('id');/* Payroll history also supplies leave entitlements spanning calendar years; retain it until a verified server carry summary is available. */const page=await query.range(offset,offset+499);if(page.error)throw page.error;pages.push(...(page.data||[]));if((page.data||[]).length<500)break}const r={data:pages};
+  try{if(key==='runs'&&window.payrollWindow14334){const rows=await payrollWindow14334.read(Work82.queryFrom14333,Work82.queryTo14333);if(rows!==null)return[key,rows]}const pages=[];for(let offset=0;;offset+=500){let query=ojmDb.from(table).select('*').order('updated_at',{ascending:false}).order('id');/* Payroll history also supplies leave entitlements spanning calendar years; retain it until a verified server carry summary is available. */const page=await query.range(offset,offset+499);if(page.error)throw page.error;pages.push(...(page.data||[]));if((page.data||[]).length<500)break}const r={data:pages};
    const rows=r.data||[],valid=rows.filter(x=>x.data&&typeof x.data==='object'&&(key!=='runs'||Array.isArray(x.data.rows)));
    if(key==='runs')Work82.legacyRuns83=rows.length-valid.length;
    return [key,valid];

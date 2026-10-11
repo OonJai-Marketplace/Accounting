@@ -2885,7 +2885,7 @@ async function hydrateSupabaseSession(session) {
 let sessionLoad1430=null, sessionReady1430='', sessionEpoch1430=0;
 function resetSessionLoad1430(){sessionEpoch1430++;sessionReady1430='';}
 function startSessionLoad1430(session){
- const id=session?.user?.id;if(!id||passwordRecoveryMode)return Promise.resolve();
+ const id=session?.user?.id;if(window.deviceVault14334?.pending)return Promise.resolve();if(!id||passwordRecoveryMode)return Promise.resolve();
  if(sessionLoad1430){
   if(sessionLoad1430.id===id)return sessionLoad1430.promise;
   return sessionLoad1430.promise.then(()=>startSessionLoad1430(session));
@@ -2902,10 +2902,14 @@ function startSessionLoad1430(session){
 }
 
 async function initializeSupabaseApp() {
+  // Let all authentication, storage and startup hooks install before session hydration.
+  await new Promise(resolve=>setTimeout(resolve,0));
   const errorBox=loginMessageTarget14293();
   if(!window.supabase||!window.OJM_SUPABASE_URL||!window.OJM_SUPABASE_ANON_KEY){if(errorBox)errorBox.textContent='Supabase configuration could not be loaded.';document.documentElement.classList.remove('session-checking1444');return}
   ojmDb=window.supabase.createClient(window.OJM_SUPABASE_URL,window.OJM_SUPABASE_ANON_KEY,{global:{fetch:(...args)=>window.fetch(...args)}});
   window.sessionCache14333?.attach(ojmDb);
+  await window.deviceVault14334?.attach(ojmDb);
+  if(window.deviceVault14334?.consumeFresh())freshLoginRequested=true;
   const query105=new URLSearchParams(location.search),hash105=new URLSearchParams(location.hash.slice(1));
   const recoveryHint=query105.has('password-recovery')||query105.get('type')==='recovery'||hash105.get('type')==='recovery'||query105.has('error_description')||hash105.has('error_description');passwordRecoveryMode=recoveryHint;
   const recoveryError105=query105.get('error_description')||hash105.get('error_description');

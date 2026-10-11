@@ -4,12 +4,12 @@
 <style>@layer workspace14331, compact14327;</style>
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
-  <script src="deployment-config.js?v=143.20"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=143.33"></script>
+  <script src="deployment-config.js?v=143.20"></script><script src="scripts/supabase-config.js?v=143.20"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.34"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <script src="scripts/offline14239.js?v=143.34"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=142.99">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=142.99.2">
   <script src="scripts/desktop14245-1.js?v=143.20"></script>
-<title>Oon Jai Accounting — v143.33</title>
+<title>Oon Jai Accounting — v143.34</title>
 <link rel="stylesheet" href="styles/functional-corrections14292.css?v=142.93">
   <link rel="icon" type="image/png" href="assets/brand/oonjai-logo.png?v=118">
   <!-- Chart.js for dashboard graphs -->
@@ -1205,18 +1205,18 @@
 
   <!-- Supabase browser client and project configuration -->
   <script src="assets/vendor/supabase.js?v=142.47"></script>
-  <script src="scripts/supabase-config.js?v=143.20"></script>
+
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.33"></script>
+  <script src="scripts/desktop14245-3.js?v=143.34"></script>
 <script src="assets/vendor/docx.js?v=142.47"></script>
 <script src="assets/vendor/document14285/cfb.min.js?v=142.86"></script>
 <script src="assets/vendor/document14285/marked.umd.js?v=142.86"></script>
-<script src="scripts/desktop14245-4.js?v=143.33"></script>
+<script src="scripts/desktop14245-4.js?v=143.34"></script>
 <script src="assets/vendor/jszip.min.js?v=142.47"></script>
 <script src="scripts/desktop14245-5.js?v=143.31"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.33"></script>
+<script src="scripts/desktop14245-6.js?v=143.34"></script>
 <script src="scripts/entry-actions14271.js?v=142.75"></script>
 <script src="scripts/tablet-journal14266.js?v=142.80"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
@@ -1238,8 +1238,8 @@
 <link rel="stylesheet" href="styles/password-help14278.css?v=142.94">
 <script src="scripts/password-policy14257.js?v=142.94"></script>
 <script src="scripts/password-service14264.js?v=142.84"></script>
-<script src="scripts/account-security14257.js?v=142.96"></script>
-<script src="scripts/startup14257.js?v=143.33"></script>
+<script src="scripts/account-security14257.js?v=143.34"></script>
+<script src="scripts/startup14257.js?v=143.34"></script>
 <script src="scripts/entry-number14257.js?v=143.33"></script>
 <script src="scripts/account-currency14257.js?v=142.96"></script>
 <script src="scripts/report-templates14262.js?v=143.23"></script>
@@ -1266,7 +1266,7 @@
 <script src="scripts/hr-calendar-model14306.js?v=143.09"></script>
 <script src="scripts/hr-calendar14306.js?v=143.33"></script>
 <script src="scripts/hr-calendar-news14309.js?v=143.30"></script>
-<script src="scripts/hr-workspace14306.js?v=143.33"></script>
+<script src="scripts/hr-workspace14306.js?v=143.34"></script>
 
 <script src="scripts/company-accounts14319.js?v=143.20"></script>
 <script src="scripts/local-events14310.js?v=143.30"></script>
@@ -1295,7 +1295,8 @@
 <script src="scripts/workspace14331.js?v=143.31"></script>
 <script src="scripts/session-cache14333.js?v=143.33"></script>
 <script src="scripts/year-window14333.js?v=143.33"></script>
-<script src="scripts/local-first14333.js?v=143.33"></script>
+<script src="scripts/payroll-window14334.js?v=143.34"></script>
+<script src="scripts/local-first14333.js?v=143.34"></script>
 </body>
 </html>
 

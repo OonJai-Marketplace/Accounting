@@ -1,0 +1,20 @@
+const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require(process.env.PGLITE_MODULE||'/tmp/ojm-crypto-build/node_modules/@electric-sql/pglite/dist/index.cjs');
+(async()=>{const db=new PGlite();await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT nullif(current_setting('app.actor',true),'')::uuid$$;
+CREATE TABLE payroll_runs(id uuid PRIMARY KEY,owner_id uuid,period_start date,period_end date,status text,version int,updated_at timestamptz,data jsonb);
+CREATE TABLE accounts(id uuid PRIMARY KEY,name text,code text);
+CREATE TABLE journal_entries(id uuid PRIMARY KEY,entry_no text,transaction_date date,memo text,status text,created_at timestamptz,updated_at timestamptz,source text);
+CREATE TABLE journal_lines(id uuid PRIMARY KEY,journal_entry_id uuid,account_id uuid,currency_code text,line_no int,line_date date,description text,debit numeric,credit numeric);
+ALTER TABLE payroll_runs ENABLE ROW LEVEL SECURITY;CREATE POLICY own_payroll ON payroll_runs USING(owner_id=auth.uid());
+GRANT USAGE ON SCHEMA public,auth TO authenticated;GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated;`);
+for(const file of ['setup/INSTALL-OFFLINE-YEAR-WINDOW-v143.33.sql','setup/INSTALL-PAYROLL-YEAR-WINDOW-v143.34.sql']){await db.exec(fs.readFileSync(file,'utf8'));await db.exec(fs.readFileSync(file,'utf8'));}
+const uid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0'),employee=uid(20);
+for(const [n,year,actor] of [[1,2025,10],[2,2026,10],[3,2027,10],[4,2024,11]]){const data={month:year+'-05',status:'finalized',rows:[{employeeId:employee}],results:[{employeeId:employee,attendance95:[{date:year+'-05-02',leaveType:'vacation',scheduleFraction:0.5},{date:year+'-05-03',leaveType:'vacation',linked:true},{date:year+'-05-04',leaveType:'sick'}]}]};await db.query('INSERT INTO payroll_runs VALUES($1,$2,$3,$4,$5,1,now(),$6)',[uid(n),uid(actor),year+'-05-01',year+'-05-31','finalized',data]);}
+await db.exec(`SET ROLE authenticated;SELECT set_config('app.actor','${uid(10)}',false);`);
+const read=async(from,to,offset=0)=>(await db.query('SELECT payroll_window14334($1,$2,$3) value',[from,to,offset])).rows[0].value;
+let r=await read('2026-01-01','2026-12-31');assert.deepEqual(r.rows.map(r=>r.id),[uid(2)]);assert.equal(r.carry.length,4);assert.equal(r.carry.filter(r=>r.type==='vacation').reduce((n,r)=>n+Number(r.days),0),1);assert.equal(r.index.length,3);assert(!JSON.stringify(r).includes(uid(4)));console.log('PASS payroll year limits, exact leave fractions, linked-leave exclusion, historic finalized index and RLS');
+let expanded=await read('2025-01-01','2026-12-31');assert.equal(expanded.rows.length,2);assert.equal(expanded.carry.length,2);assert.equal(expanded.carry[0].runId,uid(3));console.log('PASS expanding years moves historical details out of carry without duplication');
+await assert.rejects(read('2026-12-31','2026-01-01'));await assert.rejects(read('2026-01-01','2026-12-31',-1));console.log('PASS malformed periods and offsets rejected');
+await db.exec(`RESET ROLE;INSERT INTO accounts VALUES('${uid(50)}','Cash','100');INSERT INTO journal_entries VALUES('${uid(60)}','J1','2025-12-31','Opening','posted',now(),now(),'manual'),('${uid(61)}','J2','2026-01-01','Current','posted',now(),now(),'manual');INSERT INTO journal_lines VALUES('${uid(70)}','${uid(60)}','${uid(50)}','LAK',1,null,'',100,0),('${uid(71)}','${uid(61)}','${uid(50)}','LAK',1,null,'',25,0);SET ROLE authenticated;`);
+const j=(await db.query("SELECT journal_window14333('2026-01-01','2026-12-31',0) value")).rows[0].value;assert.equal(j.rows.length,1);assert.equal(j.opening[0].balance,100);assert.equal(Number(j.rows[0].debit)+Number(j.opening[0].balance),125);assert.equal(j.rows[0].memo,'Current');console.log('PASS journal opening balances, current-year detail and description fallback');
+await db.exec("SELECT set_config('app.actor','',false)");await assert.rejects(read('2026-01-01','2026-12-31'),/Sign in/);console.log('PASS unauthenticated calls rejected');await db.close();})().catch(e=>{console.error(e);process.exitCode=1});

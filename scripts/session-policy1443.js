@@ -1,3 +1,3 @@
-/* Inactivity policy retired in v143.13. Kept as a compatibility hook for older callers. */
-window.loadSessionPolicy1443=async()=>null;
-
+/* The adjustable database timeout is retired. device-vault14334 enforces the fixed
+   24-hour inactivity deadline before access, on return, and while a tab is open. */
+window.loadSessionPolicy1443=async()=>({timeout_minutes:1440,fixed:true});

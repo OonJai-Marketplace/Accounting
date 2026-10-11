@@ -1,7 +1,7 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.33', $ = id => document.getElementById(id);
+  const VERSION = '143.34', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -35,7 +35,7 @@
       const tx = connection.transaction('accounts', update ? 'readwrite' : 'readonly'), store = tx.objectStore('accounts'), request = store.get(recordKey);
       let result, timer = setTimeout(() => { try { tx.abort(); } catch {} reject(fail('Device storage did not finish. Your draft is kept.')); }, 3000);
       request.onsuccess = () => {
-        try { result = request.result || {}; if (update) { result = update(result); store.put(result, recordKey); } }
+        try { result = (window.deviceVault14334?deviceVault14334.unpack(request.result,'ojm-phone14242:'+recordKey):request.result) || {}; if (update) { result = update(result); store.put(window.deviceVault14334?deviceVault14334.pack(result,'ojm-phone14242:'+recordKey):result, recordKey); } }
         catch (e) { try { tx.abort(); } catch {} reject(e); }
       };
       tx.oncomplete = () => { clearTimeout(timer); resolve(result); };
@@ -170,6 +170,7 @@
     clearTimeout(draftTimer); $('workspace').replaceChildren(); $('workspace').hidden = true; $('login').hidden = false;$('recovery').hidden=true; $('bottom').hidden = true; $('accountMenu').hidden = true; $('dialog').close(); loginMessageTarget14293().textContent = message; paintConnection(); notice();
   }
   async function revoke(error) {
+    window.deviceVault14334?.revoke();
     const owner = S.owner;
     if (owner) await persist(owner,{access:null}).catch(() => {});if(S.actor&&S.actor!==owner)await persist(S.actor,{access:null,directory:[]}).catch(()=>{});
     await signout(false);
@@ -296,6 +297,7 @@
     if (!window.supabase || !scope || !window.OJM_SUPABASE_ANON_KEY) { sessionGate('Sign-in files could not load. Reconnect and reload this page.');return; }
     if (!db) {
       db=window.supabase.createClient(scope,window.OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:recovering},global:{fetch:boundedFetch}});
+      await window.deviceVault14334?.attach(db);
       db.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT' && !authBusy)sessionGate();if(event==='TOKEN_REFRESHED'&&session?.user.id===S.actor)S.session=session;});
     }
     if(recovering){try{const result=await db.auth.getSession();if(result.error)throw result.error;if(!validSession(result.data.session))throw fail('This recovery link is unavailable or expired. Request another reset link.');sessionGate();$('login').hidden=true;$('recovery').hidden=false;const url=new URL(location.href);url.searchParams.delete('password-recovery');url.hash='';history.replaceState(null,'',url.href);return;}catch(e){recovering=false;sessionGate(e.message);return;}}
@@ -448,7 +450,7 @@
     saveDraftLater();render();
   }catch(e){notice(e.message,true);}}
   document.addEventListener('click',e=>{const owner=e.target.closest('[data-owner]'),area=e.target.closest('[data-area]');if(owner){void selectUser(owner.dataset.owner).catch(e=>notice(e.message,true));return;}if(area){void openArea(area.dataset.area).catch(e=>notice(e.message,true));return;}const page=e.target.closest('[data-page],[data-go]');if(page)return navigate(page.dataset.page||page.dataset.go);const b=e.target.closest('[data-action]');if(b&&!b.disabled){e.preventDefault();void handle(b.dataset.action,Number(b.dataset.index||0)).catch(e=>notice(e.message,true));}});
-  $('loginForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;if(!navigator.onLine){loginMessageTarget14293().textContent='Reconnect to sign in. Existing drafts remain on this device.';return;}authBusy=true;const button=$('loginForm').querySelector('button');button.disabled=true;const spinner=document.createElement('span');spinner.id='phoneLoginProgress14293';spinner.innerHTML=window.loading1444?.markup()||'';$('loginForm').append(spinner);loginMessageTarget14293().textContent='';try{const result=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(result.error)throw result.error;$('loginPassword').value='';await enter(result.data.session);}catch(e){loginMessageTarget14293().textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
+  $('loginForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;authBusy=true;const button=$('loginForm').querySelector('button');button.disabled=true;const spinner=document.createElement('span');spinner.id='phoneLoginProgress14293';spinner.innerHTML=window.loading1444?.markup()||'';$('loginForm').append(spinner);loginMessageTarget14293().textContent='';try{const result=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(result.error)throw result.error;$('loginPassword').value='';if(!window.deviceVault14334)await enter(result.data.session);}catch(e){loginMessageTarget14293().textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
   $('phoneRecoveryForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;const password=$('recoveryPassword').value;if(password!==$('recoveryConfirm').value){$('recoveryStatus').textContent='The passwords do not match.';return;}authBusy=true;const button=e.target.querySelector('button');button.disabled=true;$('recoveryStatus').textContent='Updating password…';try{const result=await db.auth.updateUser({password});if(result.error)throw result.error;$('recoveryPassword').value=$('recoveryConfirm').value='';recovering=false;await signout(false,'Password updated. Sign in with your new password.');}catch(e){$('recoveryStatus').textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
   $('avatar').onclick=()=>{$('accountMenu').hidden=!$('accountMenu').hidden;$('avatar').setAttribute('aria-expanded',String(!$('accountMenu').hidden));};$('connection').onclick=connectionDialog;
   document.addEventListener('click',e=>{if(!e.target.closest('#avatar,#accountMenu'))$('accountMenu').hidden=true;});

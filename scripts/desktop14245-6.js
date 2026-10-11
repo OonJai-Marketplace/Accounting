@@ -1528,7 +1528,7 @@ function ready(){
   }catch(e){if(!current())return;
    const previouslyVerified=window.permissions1441.verified;
    const denied=['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e.code)||[401,403].includes(Number(e.status));
-   if(denied){window.permissions1441.verified=false;reconnect(false);document.getElementById('loginGate')?.classList.remove('is-authenticated');await logoutDemoUser();showLoginForm('');}
+   if(denied){window.deviceVault14334?.revoke();window.permissions1441.verified=false;reconnect(false);document.getElementById('loginGate')?.classList.remove('is-authenticated');await logoutDemoUser();showLoginForm('');}
    else if(previouslyVerified){window.permissions1441.stale=true;reconnect(false);clearTimeout(retryTimer);window.offline14239?.connectionIssue?.(e.message||'Access refresh interrupted');retryTimer=setTimeout(verify,15000);}
    else{window.permissions1441.verified=false;reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));clearTimeout(retryTimer);retryTimer=setTimeout(verify,5000);}
   }finally{verification=null}})();return verification;
@@ -1647,9 +1647,9 @@ function ready(){const change=window.switchTab;window.switchTab=function(...args
 
 ;
 /* scripts/session-policy1443.js */
-/* Inactivity policy retired in v143.13. Kept as a compatibility hook for older callers. */
-window.loadSessionPolicy1443=async()=>null;
-
+/* The adjustable database timeout is retired. device-vault14334 enforces the fixed
+   24-hour inactivity deadline before access, on return, and while a tab is open. */
+window.loadSessionPolicy1443=async()=>({timeout_minutes:1440,fixed:true});
 
 ;
 /* scripts/organization14229.js */
@@ -1909,8 +1909,8 @@ window.auditEngine14232={clone,key,rows,create,edit,apply,adjustment,balances,di
 /* scripts/audit-storage14232.js */
 /* One audit working file per local workspace. No main-app storage is read. */
 (()=>{'use strict';let db;async function open(){if(!db)db=new Promise((resolve,reject)=>{const r=indexedDB.open('oonjai-audit-only14232',1);r.onupgradeneeded=()=>r.result.createObjectStore('working_files',{keyPath:'id'});r.onerror=()=>reject(Error('Local audit storage is unavailable. Download your working copy before leaving.'));r.onsuccess=()=>resolve(r.result)});return db}
-async function read(id='standalone'){const d=await open();return new Promise((resolve,reject)=>{const r=d.transaction('working_files','readonly').objectStore('working_files').get(id);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error)})}
-async function save(id,value,expected){const d=await open();return new Promise((resolve,reject)=>{const tx=d.transaction('working_files','readwrite'),s=tx.objectStore('working_files');let revision;tx.oncomplete=()=>resolve(revision);tx.onabort=()=>reject(Error('This local audit was changed in another tab. Download your copy and reopen it.'));tx.onerror=()=>reject(tx.error);const get=s.get(id);get.onsuccess=()=>{const old=get.result;if((old?.revision||0)!==expected){tx.abort();return}revision=expected+1;s.put({id,revision,value})}})}
+async function read(id='standalone'){const d=await open();return new Promise((resolve,reject)=>{const r=d.transaction('working_files','readonly').objectStore('working_files').get(id);r.onsuccess=()=>{try{resolve(window.deviceVault14334?deviceVault14334.unpack(r.result,'oonjai-audit-only14232:'+id)||null:r.result||null)}catch(e){reject(e)}};r.onerror=()=>reject(r.error)})}
+async function save(id,value,expected){const d=await open();return new Promise((resolve,reject)=>{const tx=d.transaction('working_files','readwrite'),s=tx.objectStore('working_files');let revision;tx.oncomplete=()=>resolve(revision);tx.onabort=()=>reject(Error('This local audit was changed in another tab. Download your copy and reopen it.'));tx.onerror=()=>reject(tx.error);const get=s.get(id);get.onsuccess=()=>{const old=window.deviceVault14334?deviceVault14334.unpack(get.result,'oonjai-audit-only14232:'+id):get.result;if((old?.revision||0)!==expected){tx.abort();return}revision=expected+1;s.put(window.deviceVault14334?{...deviceVault14334.pack({id,revision,value},'oonjai-audit-only14232:'+id),id}:{id,revision,value})}})}
 window.auditStorage14232={read,save};})();
 
 ;
