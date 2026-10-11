@@ -34,7 +34,7 @@
 
   function compactTabLabel(target, fallback) {
     const labels = {
-      'transactions-new':'New Entry','transactions-all':'Transaction History','transactions-recurring':'Upcoming',
+      'transactions-new':'New Entry','transactions-all':'Transaction History','transactions-recurring':'Recurring Transaction',
       'user-entry-review':'Submission Review','period-review':'Period Closing','transactions-voided':'Audit Log',
       'sec-chart-accounts':'Accounts','sec-general-ledger':'General Ledger','account-balances':'Balances',
       'payroll-employees':'Employee','payroll-entries':'Entries','payroll-deductions':'Deductions','payroll-history':'History',
@@ -55,6 +55,8 @@
     const shell = document.getElementById('categoryTabShell');
     const host = document.getElementById('categoryTabs');
     if (!shell || !host) return;
+    if(window.settingsGroups14332?.render(target))return;
+    delete host.dataset.settingsRender14335;
     const category = categoryForTarget(target);
     const buttons = visibleCategoryButtons(category);
     const shouldShow = Boolean(category && category.dataset.module !== 'dashboard' && buttons.length);

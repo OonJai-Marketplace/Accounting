@@ -1,0 +1,42 @@
+[
+  {
+    "name": "four Settings groups are visible and reach every current page on desktop and tablet",
+    "passed": true
+  },
+  {
+    "name": "Settings keyboard group and section shortcuts have distinct destinations",
+    "passed": true
+  },
+  {
+    "name": "Recurring Transaction contains four editable/deletable starter lists without templates or archive",
+    "passed": true
+  },
+  {
+    "name": "assessment heading icon and contents survive repeated unchanged sync events",
+    "passed": true
+  },
+  {
+    "name": "failed offline copy names its area, opens matching details, and clears only after recovery",
+    "passed": true
+  },
+  {
+    "name": "unreadable durable queue remains flagged and its exact error appears in the dialog",
+    "passed": true
+  },
+  {
+    "name": "optional Word Markdown and ZIP libraries stay unloaded during ordinary navigation",
+    "passed": true
+  },
+  {
+    "name": "prepared optional modules load on first use while offline",
+    "passed": true
+  },
+  {
+    "name": "document editor preserves its encrypted draft through an offline reload",
+    "passed": true
+  },
+  {
+    "name": "no browser errors during the checks",
+    "passed": true
+  }
+]

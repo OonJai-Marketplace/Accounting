@@ -14,7 +14,7 @@ function ready(){window.startupData1443=async function(check){const actor=livePr
  setTimeout(background,fresh?0:1000);
  current.revalidate=()=>prepare(true);return current.done.size>0;
  };
- const change=window.switchTab;window.switchTab=function(...args){const r=change.apply(this,args);void job?.activate();return r};const accountChange=window.scrollToAccountModule;window.scrollToAccountModule=function(...args){const r=accountChange.apply(this,args);void job?.activate();return r};
+ const change=window.switchTab;window.switchTab=function(...args){const r=change.apply(this,args);void job?.activate?.();return r};const accountChange=window.scrollToAccountModule;window.scrollToAccountModule=function(...args){const r=accountChange.apply(this,args);void job?.activate?.();return r};
  window.addEventListener('online',()=>{job?.revalidate?.().catch(e=>window.localFirst14333?.setNotice('Refresh is waiting: '+e.message))});
 }
 window.startup14257={requirements};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
