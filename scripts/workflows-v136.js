@@ -50,7 +50,7 @@ changePeriodStatus=async function(status){const month=PeriodReview.selectedMonth
   if(PeriodReview.status(month)==='locked'){showCenterStatus('Locked books are final. Add an audit review; corrections belong in an open period.',true);return false;}
   if(!admin()){showCenterStatus('Administrator access is required.',true);return false;}
   const reason=(await ui117.prompt('Reason for reopening this closed book:'))?.trim();if(!reason)return false;
-  try{const book=await rpc('begin_book_session136',{p_month:month+'-01',p_reason:reason});state.sessions=state.sessions.filter(x=>x.id!==book.id).concat(book);await loadJournalFromSupabase();switchTab('journal');decorate();return true;}catch(e){showCenterStatus(e.message,true);return false;}
+  const end=window.actionFeedback14296?.begin(document.activeElement,'Reopening book…');try{const book=await rpc('begin_book_session136',{p_month:month+'-01',p_reason:reason});state.sessions=state.sessions.filter(x=>x.id!==book.id).concat(book);await loadJournalFromSupabase();switchTab('journal');decorate();return true;}catch(e){showCenterStatus(e.message,true);return false;}finally{end?.()}
  }
  if(s&&status==='closed')return finishSession(month,false);
  if(s&&status==='locked'){showCenterStatus('Finish or cancel the correction session before locking.',true);return false;}
@@ -58,7 +58,7 @@ changePeriodStatus=async function(status){const month=PeriodReview.selectedMonth
 };
 async function finishSession(month,cancel){const s=session(month);if(!s)return;
  const ok=await ui117.confirm(cancel?'Discard every staged change and restore the original closed book?':'Commit all staged changes and close this book?');if(!ok)return false;
- try{if(!await window.periodClosing14317.finishSession(s.id,month,cancel))return false;state.sessions=state.sessions.filter(x=>x.id!==s.id);clearJournalEntry();await loadJournalFromSupabase();switchTab('period-review');selectReviewPeriod(month);decorate();showCenterStatus(cancel?'Reopening cancelled. Original transactions are unchanged.':'Changes committed. Book closed.');return true;}catch(e){showCenterStatus(e.message,true);return false;}
+ const end=window.actionFeedback14296?.begin(document.activeElement,cancel?'Cancelling reopening…':'Finishing book…');try{if(!await window.periodClosing14317.finishSession(s.id,month,cancel))return false;state.sessions=state.sessions.filter(x=>x.id!==s.id);clearJournalEntry();await loadJournalFromSupabase();switchTab('period-review');selectReviewPeriod(month);decorate();showCenterStatus(cancel?'Reopening cancelled. Original transactions are unchanged.':'Changes committed. Book closed.');return true;}catch(e){showCenterStatus(e.message,true);return false;}finally{end?.()}
 }
 const finishBefore=finishEditing69;finishEditing69=function(month){if(session(month))return finishSession(month,false);return finishBefore(month);};
 const clearBefore136=clearJournalEntry;clearJournalEntry=function(...args){state.adjustmentReview=null;return clearBefore136(...args);};
@@ -69,6 +69,7 @@ const reopenedBefore=renderReopened67;renderReopened67=function(){const official
   if(s){const p=card.querySelector('header p');if(p)p.textContent='Correction session · '+(s.operations||[]).length+' staged change(s). Official ledger stays unchanged until Finish Editing & Close.';
    if(!card.querySelector('[data-cancel-book136]')){const b=document.createElement('button');b.className='je-btn je-btn-secondary';b.dataset.cancelBook136='';b.textContent='Cancel Reopening';b.onclick=()=>finishSession(month,true);card.querySelector('header').append(b);}
   }
+ const header=card.querySelector('header');if(header){let actions=header.querySelector('.reopen-actions14343');if(!actions){actions=document.createElement('div');actions.className='reopen-actions14343';header.append(actions)}for(const button of [...header.children].filter(n=>n.tagName==='BUTTON'))actions.append(button);}
  });const host=$('reopenedBooks');if(host)host.hidden=!host.children.length;
 };
 const editBefore=loadEntryForEdit;loadEntryForEdit=async function(id){const r=JournalModule.entries.find(x=>x.id===id);if(!r)return;

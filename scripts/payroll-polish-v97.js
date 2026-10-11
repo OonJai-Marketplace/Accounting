@@ -213,7 +213,7 @@
     if(!window.PrivateReminders14229?.ready())return [];
     const today = localDate();
     return (typeof RecurringStore !== 'undefined' ? RecurringStore.items : [])
-      .filter(item => !item.paused && (!item.preparedUntil || item.preparedUntil <= today) && ['OVERDUE', 'DUE SOON'].includes(window.recurringStatus(item)))
+      .filter(item => !item.paused && (item.reminders||[]).length>0 && (!item.preparedUntil || item.preparedUntil <= today) && ['OVERDUE', 'DUE SOON'].includes(window.recurringStatus(item)))
       .sort((a, b) => {
         const aStatus = window.recurringStatus(a), bStatus = window.recurringStatus(b);
         if (aStatus !== bStatus) return aStatus === 'OVERDUE' ? -1 : 1;

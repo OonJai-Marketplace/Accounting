@@ -2155,19 +2155,18 @@ function addPendingReminder(){
 }
 function renderPendingReminders(){
   const host=document.getElementById('pendingReminderList');if(!host)return;
-  host.innerHTML=RecurringStore.pendingReminders.map((r,i)=>`<span class="reminder-chip">${r.count} ${r.unit} before <button type="button" onclick="RecurringStore.pendingReminders.splice(${i},1);renderPendingReminders()">×</button></span>`).join('');
+  host.innerHTML=RecurringStore.pendingReminders.map((r,i)=>`<span class="reminder-chip">${r.count} ${r.count===1?r.unit.replace(/s$/,''):r.unit} before <button type="button" aria-label="Remove reminder" onclick="RecurringStore.pendingReminders.splice(${i},1);renderPendingReminders()">×</button></span>`).join('');
 }
 async function saveRecurringTransaction(){
   const memo=document.getElementById('recurringMemo').value.trim();
   const nextDate=document.getElementById('recurringNextDate').value;
   if(!memo||!nextDate){showAppNotification('Missing Recurring Details','Description / Memo and Next Due Date are required.',true);return}
-  if(!RecurringStore.pendingReminders.length){showAppNotification('Reminder Required','Add at least one warning schedule.',true);return}
   const saved=await PrivateReminders14229.mutate(()=>RecurringStore.items.push({
     id:'rec-'+crypto.randomUUID(),createdAt:new Date().toISOString(),type:document.getElementById('recurringType')?.value||'recurring',memo,frequency:document.getElementById('recurringType')?.value==='one-time'?'One-Time':document.getElementById('recurringFrequency').value,nextDate,
     amount:parseAppNumber(document.getElementById('recurringAmount').value||0),currency:document.getElementById('recurringCurrency').value,
     reference:document.getElementById('recurringReference').value.trim(),reminders:RecurringStore.pendingReminders.map(x=>({...x})),paused:false
   }), 'add:'+JSON.stringify([memo,nextDate,document.getElementById('recurringType')?.value,document.getElementById('recurringFrequency').value,document.getElementById('recurringAmount').value,document.getElementById('recurringCurrency').value,document.getElementById('recurringReference').value,RecurringStore.pendingReminders]));
-  if(!saved)return false; resetRecurringForm(); renderRecurringTransactions(); showAppNotification('Upcoming Transaction Saved','The transaction and its warning schedule have been saved.',false);return true;
+  if(!saved)return false; resetRecurringForm(); renderRecurringTransactions(); showAppNotification('Upcoming Transaction Saved','The upcoming transaction has been saved.',false);return true;
 }
 function reminderThresholdDate(item){
   const due=new Date(item.nextDate+'T00:00:00');
@@ -2189,7 +2188,7 @@ function recurringStatus(item){
   if(today>=reminderThresholdDate(item))return 'DUE SOON';
   return 'UPCOMING';
 }
-function reminderText(item){return (item.reminders||[]).map(r=>`${r.count} ${r.unit}`).join(' + ')||'—'}
+function reminderText(item){return (item.reminders||[]).map(r=>`${r.count} ${r.unit}`).join(' + ')||'No reminder'}
 function renderRecurringTransactions(){
   const body=document.getElementById('tblRecurringTransactionsBody');if(!body)return;
   const items=orderedRecords78(window.PrivateReminders14229?.ready()?RecurringStore.items:[]);
@@ -2218,7 +2217,7 @@ async function removeRecurring(id){const item=RecurringStore.items.find(x=>x.id=
 
 function getActiveRecurringWarnings(){
   if(!window.PrivateReminders14229?.ready())return [];
-  return RecurringStore.items.filter(x=>!x.paused && ['OVERDUE','DUE SOON'].includes(recurringStatus(x))).sort((a,b)=>{
+  return RecurringStore.items.filter(x=>!x.paused && (x.reminders||[]).length>0 && ['OVERDUE','DUE SOON'].includes(recurringStatus(x))).sort((a,b)=>{
     const sa=recurringStatus(a),sb=recurringStatus(b); if(sa!==sb)return sa==='OVERDUE'?-1:1; return a.nextDate.localeCompare(b.nextDate);
   });
 }
@@ -4997,7 +4996,13 @@ renderAllTransactionsTable=function(){
  const card=document.querySelector('#transactions-all > .je-card,#journalHistory14316 > .je-card');if(!card)return;
  let host=document.getElementById('archiveMonths67');if(!host){card.querySelector('.table-container')?.remove();host=document.createElement('div');host.id='archiveMonths67';card.append(host)}
  const rows=JournalModule.entries.filter(journalIsHistory14342),month=historyMonth14341.choose('journal',rows.map(r=>String(r.date).slice(0,7))),group=rows.filter(r=>String(r.date).startsWith(month));
- host.innerHTML=`<section class="archive-month"><header class="history-header14342"><div><h3>${escapeHtml(monthLabel(month))}</h3><p>${new Set(group.map(r=>r.id)).size} transactions · ${escapeHtml(monthTotals67(group))}</p></div><div class="archive-month-actions">${historyMonth14341.control('journal',month)}<button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')">Export Month</button></div></header><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section>`;
+ const currencies=[...new Set(group.map(r=>r.currency))];
+ const total=side=>currencies.map(c=>escapeHtml(c)+' '+escapeHtml(formatAppNumber(group.filter(r=>r.currency===c).reduce((sum,r)=>sum+Number(r[side]||0),0)))).join('<br>')||'—';
+ const status=PeriodReview.periods[month]?.status||(group.length?'closed':'No records');
+ host.innerHTML=`<section class="archive-month period-review-shell"><header class="history-header14342 period-review-toolbar"><h3 class="je-title">${escapeHtml(monthLabel(month))}</h3><div class="archive-month-actions">${historyMonth14341.control('journal',month)}<button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')">Export Month</button></div></header><div class="period-summary-grid history-summary14343"><div class="period-summary-card"><span>Status</span><strong>${escapeHtml(status.toUpperCase())}</strong></div><div class="period-summary-card"><span>Journal Entries</span><strong>${new Set(group.map(r=>r.id)).size}</strong></div><div class="period-summary-card"><span>Total Debits</span><strong>${total('debit')}</strong></div><div class="period-summary-card"><span>Total Credits</span><strong>${total('credit')}</strong></div></div><section class="je-card history-table14343"><div class="je-card-header"><h3 class="je-title">Transaction History</h3></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section></section>`;
+ card.classList.add('history-shell14343');
+ const oldHeader=card.querySelector(':scope>.je-card-header');if(oldHeader){oldHeader.querySelector('.je-subtitle')?.remove();oldHeader.querySelector('h3')?.remove();oldHeader.classList.add('history-search14343');}
+
  setTransactionTableHeaders('archiveHead0',false);renderTransactionReviewTable(document.getElementById('archiveBody0'),group,'none');
  historyMonth14341.bind(host,'journal',renderAllTransactionsTable);
 };
@@ -5656,12 +5661,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 const desktop80=matchMedia('(min-width:768px)');
 let historyQuery80='';
 function historyFilter80(){
- const q=historyQuery80.trim().toLowerCase();document.querySelectorAll('#archiveMonths67 .archive-month').forEach(month=>{const hay=month.textContent.toLowerCase();month.hidden=Boolean(q&&!hay.includes(q));});
+ const q=historyQuery80.trim().toLowerCase();document.querySelectorAll('#archiveMonths67 .archive-month').forEach(month=>{const hay=month.textContent.toLowerCase();month.hidden=false;const table=month.querySelector('.table-container');if(table)table.hidden=Boolean(q&&!hay.includes(q));let empty=month.querySelector('.history-empty14343');if(!empty){empty=document.createElement('p');empty.className='history-empty14343';empty.textContent='No matching history records.';month.append(empty)}empty.hidden=!q||hay.includes(q);});
 }
 function polishDesktop80(){
  const desktop=desktop80.matches;
  document.querySelectorAll('.final-record-count').forEach(n=>{const label=n.querySelector('small'),count=n.querySelector('b');if(!label||!count)return;if(desktop){if(!label.dataset.original80)label.dataset.original80=label.textContent;const adjustment=/change/i.test(label.dataset.original80);const text=Number(count.textContent)===1?(adjustment?'change':'entry'):(adjustment?'changes':'entries');if(label.textContent!==text)label.textContent=text}else if(label.dataset.original80){label.textContent=label.dataset.original80;delete label.dataset.original80}});
- const header=document.querySelector('#transactions-all .je-card-header');if(desktop&&header){let controls=header.querySelector('.history-controls80');if(!controls){controls=document.createElement('div');controls.className='history-controls80';const label=document.createElement('label');label.innerHTML='Search History <input type="search" class="je-input" placeholder="Description, date, ID or account" aria-label="Search transaction history">';label.querySelector('input').value=historyQuery80;label.querySelector('input').oninput=e=>{historyQuery80=e.target.value;historyFilter80()};controls.append(label);header.append(controls)}document.querySelectorAll('.archive-year').forEach((year,i)=>{if(i===0&&year.parentElement!==controls)controls.append(year);else if(i>0)year.remove()});historyFilter80()}
+ const header=document.querySelector('#transactions-all .history-table14343>.je-card-header,#transactions-all .je-card-header:not(.history-search14343)');if(desktop&&header){let controls=header.querySelector('.history-controls80');if(!controls){controls=document.createElement('div');controls.className='history-controls80';const label=document.createElement('label');label.innerHTML='Search History <input type="search" class="je-input" placeholder="Description, date, ID or account" aria-label="Search transaction history">';label.querySelector('input').value=historyQuery80;label.querySelector('input').oninput=e=>{historyQuery80=e.target.value;historyFilter80()};controls.append(label);header.append(controls)}document.querySelectorAll('.archive-year').forEach((year,i)=>{if(i===0&&year.parentElement!==controls)controls.append(year);else if(i>0)year.remove()});historyFilter80()}
  if(!desktop){const controls=header?.querySelector('.history-controls80');if(controls){const year=controls.querySelector('.archive-year');if(year)header.append(year);controls.remove()}document.querySelectorAll('#archiveMonths67 .archive-month[hidden]').forEach(n=>n.hidden=false)}
  if(desktop){const n=document.getElementById('reminderUnit');if(n){const width=((n.selectedOptions[0]?.textContent.length||12)+5)+'ch';if(n.style.width!==width)n.style.width=width}}
  document.querySelectorAll('.ledger-summary71').forEach(summary=>{if(summary.classList.contains('aligned85')||summary.querySelector('.ledger-side80'))return;const stats=summary.querySelectorAll('.ledger-stat71'),closing=stats[stats.length-1]?.querySelector('strong');if(!closing)return;const text=closing.textContent,side=text.match(/\b(DR|CR)\b/)?.[1]||'—';const extra=document.createElement('span');extra.className='ledger-stat71 ledger-side80';extra.innerHTML='<small>Balance side</small><strong>'+side+'</strong>';stats[0].after(extra);closing.className='ledger-closing-original80';const amount=document.createElement('strong');amount.className='ledger-side80';amount.textContent=text.replace(/\s+(DR|CR)$/,'');closing.after(amount)});
@@ -6617,7 +6622,7 @@ mountSettings();
     if(!window.PrivateReminders14229?.ready())return [];
     const today = localDate();
     return (typeof RecurringStore !== 'undefined' ? RecurringStore.items : [])
-      .filter(item => !item.paused && (!item.preparedUntil || item.preparedUntil <= today) && ['OVERDUE', 'DUE SOON'].includes(window.recurringStatus(item)))
+      .filter(item => !item.paused && (item.reminders||[]).length>0 && (!item.preparedUntil || item.preparedUntil <= today) && ['OVERDUE', 'DUE SOON'].includes(window.recurringStatus(item)))
       .sort((a, b) => {
         const aStatus = window.recurringStatus(a), bStatus = window.recurringStatus(b);
         if (aStatus !== bStatus) return aStatus === 'OVERDUE' ? -1 : 1;

@@ -2128,19 +2128,18 @@ function addPendingReminder(){
 }
 function renderPendingReminders(){
   const host=document.getElementById('pendingReminderList');if(!host)return;
-  host.innerHTML=RecurringStore.pendingReminders.map((r,i)=>`<span class="reminder-chip">${r.count} ${r.unit} before <button type="button" onclick="RecurringStore.pendingReminders.splice(${i},1);renderPendingReminders()">×</button></span>`).join('');
+  host.innerHTML=RecurringStore.pendingReminders.map((r,i)=>`<span class="reminder-chip">${r.count} ${r.count===1?r.unit.replace(/s$/,''):r.unit} before <button type="button" aria-label="Remove reminder" onclick="RecurringStore.pendingReminders.splice(${i},1);renderPendingReminders()">×</button></span>`).join('');
 }
 async function saveRecurringTransaction(){
   const memo=document.getElementById('recurringMemo').value.trim();
   const nextDate=document.getElementById('recurringNextDate').value;
   if(!memo||!nextDate){showAppNotification('Missing Recurring Details','Description / Memo and Next Due Date are required.',true);return}
-  if(!RecurringStore.pendingReminders.length){showAppNotification('Reminder Required','Add at least one warning schedule.',true);return}
   const saved=await PrivateReminders14229.mutate(()=>RecurringStore.items.push({
     id:'rec-'+crypto.randomUUID(),createdAt:new Date().toISOString(),type:document.getElementById('recurringType')?.value||'recurring',memo,frequency:document.getElementById('recurringType')?.value==='one-time'?'One-Time':document.getElementById('recurringFrequency').value,nextDate,
     amount:parseAppNumber(document.getElementById('recurringAmount').value||0),currency:document.getElementById('recurringCurrency').value,
     reference:document.getElementById('recurringReference').value.trim(),reminders:RecurringStore.pendingReminders.map(x=>({...x})),paused:false
   }), 'add:'+JSON.stringify([memo,nextDate,document.getElementById('recurringType')?.value,document.getElementById('recurringFrequency').value,document.getElementById('recurringAmount').value,document.getElementById('recurringCurrency').value,document.getElementById('recurringReference').value,RecurringStore.pendingReminders]));
-  if(!saved)return false; resetRecurringForm(); renderRecurringTransactions(); showAppNotification('Upcoming Transaction Saved','The transaction and its warning schedule have been saved.',false);return true;
+  if(!saved)return false; resetRecurringForm(); renderRecurringTransactions(); showAppNotification('Upcoming Transaction Saved','The upcoming transaction has been saved.',false);return true;
 }
 function reminderThresholdDate(item){
   const due=new Date(item.nextDate+'T00:00:00');
@@ -2162,7 +2161,7 @@ function recurringStatus(item){
   if(today>=reminderThresholdDate(item))return 'DUE SOON';
   return 'UPCOMING';
 }
-function reminderText(item){return (item.reminders||[]).map(r=>`${r.count} ${r.unit}`).join(' + ')||'—'}
+function reminderText(item){return (item.reminders||[]).map(r=>`${r.count} ${r.unit}`).join(' + ')||'No reminder'}
 function renderRecurringTransactions(){
   const body=document.getElementById('tblRecurringTransactionsBody');if(!body)return;
   const items=orderedRecords78(window.PrivateReminders14229?.ready()?RecurringStore.items:[]);
@@ -2191,7 +2190,7 @@ async function removeRecurring(id){const item=RecurringStore.items.find(x=>x.id=
 
 function getActiveRecurringWarnings(){
   if(!window.PrivateReminders14229?.ready())return [];
-  return RecurringStore.items.filter(x=>!x.paused && ['OVERDUE','DUE SOON'].includes(recurringStatus(x))).sort((a,b)=>{
+  return RecurringStore.items.filter(x=>!x.paused && (x.reminders||[]).length>0 && ['OVERDUE','DUE SOON'].includes(recurringStatus(x))).sort((a,b)=>{
     const sa=recurringStatus(a),sb=recurringStatus(b); if(sa!==sb)return sa==='OVERDUE'?-1:1; return a.nextDate.localeCompare(b.nextDate);
   });
 }
