@@ -60,10 +60,10 @@ await check('History has four summary cards with separate currencies and preserv
  assert.equal(await page.locator('.history-table14343 input[type=search]').count(),1);
  const boxes=await page.evaluate(()=>{const h=document.querySelector('#archiveMonths67 h3').getBoundingClientRect(),a=document.querySelector('#archiveMonths67 .archive-month-actions').getBoundingClientRect();return {h:h.y,a:a.y,hb:h.bottom,ab:a.bottom}});assert(boxes.h<boxes.ab&&boxes.a<boxes.hb);
 });
-await check('Navigation subtabs precede section banners',async()=>{
+await check('Navigation subtabs follow section banners',async()=>{
  for(const id of ['transactions-all','user-entry-review','transactions-recurring']){
   await page.evaluate(id=>switchTab(id),id);await page.waitForTimeout(250);
-  const order=await page.evaluate(id=>{const p=document.getElementById(id),banner=p.querySelector(':scope>.area-banner113'),bar=p.querySelector(':scope>.workflow-switch14316,:scope>.workspace-tabs14337');return !!(bar.compareDocumentPosition(banner)&Node.DOCUMENT_POSITION_FOLLOWING)},id);assert(order,id);
+  const order=await page.evaluate(id=>{const p=document.getElementById(id),banner=p.querySelector(':scope>.area-banner113'),bar=p.querySelector(':scope>.workflow-switch14316,:scope>.workspace-tabs14337');return !!(banner.compareDocumentPosition(bar)&Node.DOCUMENT_POSITION_FOLLOWING)},id);assert(order,id);
  }
 });
 await check('Connection popup footer, quiet empty queue and native outside dismissal',async()=>{

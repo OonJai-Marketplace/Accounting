@@ -1,4 +1,4 @@
-/* Two adjacent navigation rows, then section banner, summary and content. */
+/* Shared workspace components; banner-first sticky navigation rules follow below. */
 @media(min-width:641px){
  .tab-content>.workflow-switch14316,.tab-content>.workspace-tabs14337,.tab-content>.team-tabs14230,.tab-content>.personal-tabs1437{margin:0 0 10px!important}
  .history-shell14343{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
@@ -44,3 +44,21 @@ html body dialog.connection-dialog14239{width:min(540px,calc(100vw - 28px))!impo
 #transactions-recurring .reminder-row .je-btn{width:auto!important;min-width:130px}
 #transactions-recurring .reminder-chip{border-radius:6px!important;padding:5px 8px!important;gap:8px}
 #transactions-recurring .reminder-chip button{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;min-width:32px;padding:0!important;border:1px solid #c8d2ca;border-radius:6px!important;background:#fffdf7;color:#9b2929;font-size:17px}
+
+/* Banner scrolls naturally; each navigation row sticks beneath the preceding row. */
+@media screen and (min-width:641px){
+ html body.scroll-navigation14344 .sticky-tabs14344{position:sticky!important;top:var(--tab-top14344,0px)!important;z-index:95!important;margin:0!important;box-sizing:border-box!important;background:#fffcf6!important;flex-shrink:0;}
+ html body.scroll-navigation14344 .tab-content{overflow:visible!important}
+ html body.scroll-navigation14344 .tab-content>.area-banner113{position:relative!important;top:auto!important;margin-bottom:10px!important}
+ html body.scroll-navigation14344 .workspace-scroll{scroll-padding-top:calc(var(--navigation-height14344,0px) + 12px)}
+ html body.scroll-navigation14344 .tab-content>.module-header{display:none!important}
+ html body.scroll-navigation14344.team-shell14227 .tab-content>.module-header{display:flex!important;visibility:visible!important;min-height:46px!important;height:auto!important;padding:3px 12px!important;border-bottom:1px solid #d9cbb6!important}
+ html body.scroll-navigation14344 :is(.workflow-switch14316,.workspace-tabs14337,.personal-tabs1437).sticky-tabs14344{padding:6px 8px!important;gap:6px!important;border-bottom:1px solid #d9cbb6!important;border-radius:0!important}
+ html body.scroll-navigation14344 #dashboard .dash-shell112{overflow:visible!important}
+ html body.scroll-navigation14344 #dashboard .dash-hero112{margin-bottom:0!important}
+ html body.scroll-navigation14344:is(.workspace-full1439,.browser-full14344) :is(.area-banner113,.dash-hero112){display:none!important}
+}
+@media print{.sticky-tabs14344{display:none!important}}
+@media screen and (min-width:641px){
+ html body.scroll-navigation14344 #sub-users-workspace{overflow:visible!important}
+}

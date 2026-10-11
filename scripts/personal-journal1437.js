@@ -89,7 +89,7 @@ function show(id,tab){const root=$('personalWorkspace1437');if(!root||root.datas
  root.closest('.v49-desktop-workspace')?.classList.toggle('ledger-view14281',tab==='ledger');
  if(tab==='journal')mount(id);else detach();
  root.querySelectorAll('[data-personal-panel]').forEach(n=>n.hidden=n.dataset.personalPanel!==tab);
- root.querySelectorAll('.personal-tabs1437 [data-personal-tab]').forEach(b=>{const selected=b.dataset.personalTab===tab;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected))});
+ document.querySelectorAll('#personalWorkspace1437 .personal-tabs1437 [data-personal-tab],#sub-users-workspace>.personal-tabs1437 [data-personal-tab]').forEach(b=>{const selected=b.dataset.personalTab===tab;b.classList.toggle('active',selected);b.setAttribute('aria-selected',String(selected))});
  if(tab==='ledger')window.AssignedLedger14281?.mount(root.querySelector('[data-personal-panel=ledger]'),id);
  if(tab==='reports')window.reportHistory1443?.render(id,root.querySelector('[data-personal-panel=reports]'));
  if(tab==='history')window.workspaceRecords1437.getAdjustments(id).then(rows=>{historyExtra.set(id,rows);if($('personalWorkspace1437')?.dataset.owner===id)paintPanel1437(root.querySelector('[data-personal-panel=history]'),historyHtml(id))}).catch(e=>showCenterStatus('History could not load: '+e.message,true));
