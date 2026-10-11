@@ -38,6 +38,7 @@ page.setDefaultTimeout(10000);
 
 
 
+await page.waitForTimeout(2500);
 await page.evaluate(async()=>{
  const rows=[];for(let m=1;m<=10;m++){const month='2026-'+String(m).padStart(2,'0');__fixture.tables.accounting_periods||=[];__fixture.tables.accounting_periods.push({period_month:month+'-01',status:m<10?'closed':'open'});for(let i=1;i<=10;i++){const id='FIX-'+m+'-'+i,date=month+'-'+String(i).padStart(2,'0');for(const [a,debit,credit] of [[__fixture.accounts[0],100,0],[__fixture.accounts[3],0,100]])rows.push({id,date,dbEntryId:id,accountId:a.id,account:a.name,currency:'LAK',debit,credit,archived:false,generalMemo:'Fixture trial'});}}
  window.__journalFixture=rows;await loadJournalFromSupabase({cacheFirst:false});
