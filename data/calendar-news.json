@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-10",
+  "checkedAt": "2026-10-11",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -610,6 +610,31 @@
           "name": "Vientiane Times · Planning report, 6 August 2026",
           "url": "https://www.vientianetimes.org.la/freefreenews/freecontent_149_Champasak_y26.php",
           "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-france-laos-festival",
+      "revision": "2026-10-11T00:50:00Z",
+      "title": "France–Laos Festival 2026",
+      "location": "Luang Prabang city, Luang Prabang Province (3–21 November); Vientiane Capital (10–21 November), Laos; multiple venues",
+      "start": "2026-11-03",
+      "end": "2026-11-21",
+      "category": "community",
+      "confidence": "tentative",
+      "summary": "The Institut français du Laos programme announces a 19-day cultural festival linking Luang Prabang and Vientiane, with music, dance, cinema, visual arts, literature, digital arts and one gastronomy listing. As of 11 October: 23 days until the Luang Prabang opening; shorter than six months’ notice.",
+      "restaurantIdea": "Suggestion: Review the city-specific programme now and prepare a flexible evening promotion or organizer partnership by late October, after confirming the exact venue, time and participation conditions for any targeted session.",
+      "uncertainty": "The city date ranges are consistent across the event site. However, the English landing page and French detailed programme disagree on the 3 November opening venue and time in Luang Prabang. The programme site identifies Institut français du Laos as organizer, but an equivalent 2026 announcement was not found on the institute’s primary if-laos.org domain during this check. Confirm individual session details before advertising.",
+      "sources": [
+        {
+          "name": "Institut français du Laos · Festival 2026 overview",
+          "url": "https://algilthegreat.github.io/en",
+          "language": "en"
+        },
+        {
+          "name": "Institut français du Laos · Detailed programme",
+          "url": "https://algilthegreat.github.io/fr/programme",
+          "language": "other"
         }
       ]
     }
