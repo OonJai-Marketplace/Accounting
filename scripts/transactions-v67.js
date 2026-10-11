@@ -1,3 +1,4 @@
+function journalIsHistory14342(row){const period=PeriodReview.periods[String(row.date).slice(0,7)];return period?period.status!=='open':!!row.archived;}
 /* TRANSACTIONS 67: active books, archived months and correction context. */
 function setJournalDateMode(multiple) {
   document.getElementById('jeMultipleDates').checked=multiple;
@@ -42,15 +43,15 @@ function renderReopened67(){
 }
 renderJournalHistoryTable=function(records=JournalModule.entries){
   setTransactionTableHeaders('thJournalHistoryRow',true);
-  renderTransactionReviewTable(document.getElementById('tblJournalHistoryBody'),records.filter(r=>!r.archived&&!isReopened67(String(r.date).slice(0,7))),'edit');renderReopened67();
+  renderTransactionReviewTable(document.getElementById('tblJournalHistoryBody'),records.filter(r=>!journalIsHistory14342(r)&&!isReopened67(String(r.date).slice(0,7))),'edit');renderReopened67();
 };
 renderNewTransactionsTable=function(){renderReopened67()};
 function archiveFindings67(month){return PeriodReview.findings.filter(f=>f.month===month).map(f=>`<div class="archive-finding"><strong>${escapeHtml(f.number)}</strong> — ${escapeHtml(f.description)}<br><small>${escapeHtml(f.createdByName||f.createdBy||'Reviewer not recorded')} · ${escapeHtml(f.createdAt||'')} · ${escapeHtml(f.status)}${f.adjustmentEntryId?' · Adjustment '+escapeHtml(f.adjustmentEntryId):''}</small></div>`).join('')}
 renderAllTransactionsTable=function(){
  const card=document.querySelector('#transactions-all > .je-card,#journalHistory14316 > .je-card');if(!card)return;
  let host=document.getElementById('archiveMonths67');if(!host){card.querySelector('.table-container')?.remove();host=document.createElement('div');host.id='archiveMonths67';card.append(host)}
- const rows=JournalModule.entries.filter(r=>r.archived),month=historyMonth14341.choose('journal',rows.map(r=>String(r.date).slice(0,7))),group=rows.filter(r=>String(r.date).startsWith(month));
- host.innerHTML=historyMonth14341.control('journal',month)+`<section class="archive-month"><header><h3>${escapeHtml(monthLabel(month))}</h3><p>${new Set(group.map(r=>r.id)).size} transactions · ${escapeHtml(monthTotals67(group))}</p></header><div class="archive-month-actions"><button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')">Export Month</button></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section>`;
+ const rows=JournalModule.entries.filter(journalIsHistory14342),month=historyMonth14341.choose('journal',rows.map(r=>String(r.date).slice(0,7))),group=rows.filter(r=>String(r.date).startsWith(month));
+ host.innerHTML=`<section class="archive-month"><header class="history-header14342"><div><h3>${escapeHtml(monthLabel(month))}</h3><p>${new Set(group.map(r=>r.id)).size} transactions · ${escapeHtml(monthTotals67(group))}</p></div><div class="archive-month-actions">${historyMonth14341.control('journal',month)}<button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')">Export Month</button></div></header><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section>`;
  setTransactionTableHeaders('archiveHead0',false);renderTransactionReviewTable(document.getElementById('archiveBody0'),group,'none');
  historyMonth14341.bind(host,'journal',renderAllTransactionsTable);
 };
@@ -71,6 +72,7 @@ changePeriodStatus=async function(next){
     PeriodReview.save();refreshAllTables();switchTab('journal');renderReopened67();
     document.getElementById(`reopened-${m}`)?.scrollIntoView({behavior:'smooth',block:'start'});
   }else{renderReopened67();renderAllTransactionsTable()}
+  return true;
 };
 async function closeMonthFromAccounts(targetMonth){
   const month=targetMonth||document.getElementById('closeMonth67')?.value;if(!month)return;

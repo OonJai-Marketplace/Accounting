@@ -3234,7 +3234,7 @@ const switchTabBeforeTransactionAudit=switchTab;
 switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided')loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
 
 async function loadAccountingPeriodStatuses(){
-  if(!ojmDb||!liveProfile)return;const {data,error}=await ojmDb.from('accounting_periods').select('period_month,status,updated_at,updated_by');if(error)return;
+  if(!ojmDb||!liveProfile)return;const actor=liveProfile.id;const {data,error}=await ojmDb.from('accounting_periods').select('period_month,status,updated_at,updated_by');if(error)throw Error(error.message);if(liveProfile?.id!==actor)throw Error('Sign-in changed while loading period statuses.');PeriodReview.periods={};
   (data||[]).forEach(item=>{const key=String(item.period_month).slice(0,7);PeriodReview.periods[key]={...(PeriodReview.periods[key]||{}),status:item.status,updatedAt:item.updated_at,updatedBy:item.updated_by};});
   JournalModule.entries.forEach(row=>{const state=PeriodReview.status(String(row.date).slice(0,7));row.archived=state!=='open';});
   refreshAllTables();
@@ -3265,7 +3265,7 @@ changePeriodStatus=async function(nextStatus){
   }catch(error){
     const detail=/fetch|network|load failed/i.test(error.message||'')?'Could not confirm the period update with the server. Your current journal remains available. Check your connection, reload the period status, and retry.':error.message||'Please retry.';
     showAppNotification('Period Update Failed',detail,true);return false;
-  }finally{periodUpdatePending98=false;controls.forEach((n,i)=>n.disabled=disabled[i])}
+  }finally{periodUpdatePending98=false;controls.forEach((n,i)=>n.disabled=disabled[i]);renderPeriodReview()}
 };
 
 // TRANSACTION SCROLL MEMORY — remember subsection positions only while the user

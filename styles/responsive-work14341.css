@@ -6,3 +6,18 @@
 #historyRecords95 section.pay-group95>header{display:flex;gap:12px;padding:12px;background:#edf6f0;border-top:3px solid #07855c}
 
 #appSidebar #syncStatus14341{margin-top:auto}#appSidebar #syncStatus14341+#topHeaderProfile104{margin-top:0!important}
+
+/* v143.42: History controls share the module header; carry-forward is secondary. */
+.history-header14342{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.history-header14342>div:first-child{min-width:0}
+.history-header14342 h3,.history-header14342 h4{margin:0}
+.history-header14342 .history-month14341{margin:0 0 0 auto;padding:0;justify-content:flex-end;flex-shrink:0}
+.history-header14342 .actions82,.history-header14342 .archive-month-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-left:auto;padding:0}
+.archive-month>.history-header14342{padding:12px}
+#carryForward142{margin:12px 0 0;padding:10px 12px}
+#carryForward142 h3{font-size:14px}
+#carryForward142 details{margin-top:6px}
+#carryForward142 summary{padding:8px 10px}
+#carryForward142 summary span{display:inline;margin-left:12px;margin-top:0}
+#carryForward142>p{margin:6px 0 0;font-size:12px}
+.history-month14341{justify-content:flex-end}

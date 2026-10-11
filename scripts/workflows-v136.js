@@ -40,7 +40,7 @@ function stagedBookRows(){let rows=JournalModule.entries.map(r=>({...r}));
 const loadPeriodsBefore=loadAccountingPeriodStatuses;
 loadAccountingPeriodStatuses=async function(){
  // Database state replaces cached old books; stale reset-era reopen flags disappear.
- const saved=PeriodReview.periods;PeriodReview.periods={};await loadPeriodsBefore();
+ const saved=PeriodReview.periods;await loadPeriodsBefore();
  for(const [m,p] of Object.entries(PeriodReview.periods))if(saved[m]?.reopenedAt&&p.status==='open'&&periodEntries(m).length)Object.assign(p,{reopenedAt:saved[m].reopenedAt,reopenReason:saved[m].reopenReason,reopenedByName:saved[m].reopenedByName});
  previewSessions();refreshAllTables();
 };

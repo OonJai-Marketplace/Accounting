@@ -16,7 +16,7 @@ function ready(){
  window.renderJournalHistoryTable=function(records=JournalModule.entries){
   if(!active('journal'))return;lastRecords=records;
   const query=document.getElementById('jeSearchInput')?.value||'';if(query!==lastQuery){page=0;lastQuery=query;}
-  let rows=records.filter(r=>!r.archived&&!isReopened67(String(r.date).slice(0,7)));const groups=new Map(),term=query.trim().toLowerCase();if(term){const matches=new Set(rows.filter(r=>[r.id,r.account,r.memo,r.generalMemo].some(v=>String(v||'').toLowerCase().includes(term))).map(r=>String(r.id)));rows=rows.filter(r=>matches.has(String(r.id)));}
+  let rows=records.filter(r=>!journalIsHistory14342(r)&&!isReopened67(String(r.date).slice(0,7)));const groups=new Map(),term=query.trim().toLowerCase();if(term){const matches=new Set(rows.filter(r=>[r.id,r.account,r.memo,r.generalMemo].some(v=>String(v||'').toLowerCase().includes(term))).map(r=>String(r.id)));rows=rows.filter(r=>matches.has(String(r.id)));}
   rows.forEach(r=>{if(!groups.has(String(r.id)))groups.set(String(r.id),r)});
   const ids=[...groups.keys()].sort((a,b)=>String(groups.get(b).date).localeCompare(String(groups.get(a).date))||b.localeCompare(a)),pages=Math.max(1,Math.ceil(ids.length/50));page=Math.min(page,pages-1);
   const visible=new Set(ids.slice(page*50,(page+1)*50));journal.call(this,rows.filter(r=>visible.has(String(r.id))));

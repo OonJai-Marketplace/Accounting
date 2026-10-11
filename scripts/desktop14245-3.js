@@ -3261,7 +3261,7 @@ const switchTabBeforeTransactionAudit=switchTab;
 switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided')loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
 
 async function loadAccountingPeriodStatuses(){
-  if(!ojmDb||!liveProfile)return;const {data,error}=await ojmDb.from('accounting_periods').select('period_month,status,updated_at,updated_by');if(error)return;
+  if(!ojmDb||!liveProfile)return;const actor=liveProfile.id;const {data,error}=await ojmDb.from('accounting_periods').select('period_month,status,updated_at,updated_by');if(error)throw Error(error.message);if(liveProfile?.id!==actor)throw Error('Sign-in changed while loading period statuses.');PeriodReview.periods={};
   (data||[]).forEach(item=>{const key=String(item.period_month).slice(0,7);PeriodReview.periods[key]={...(PeriodReview.periods[key]||{}),status:item.status,updatedAt:item.updated_at,updatedBy:item.updated_by};});
   JournalModule.entries.forEach(row=>{const state=PeriodReview.status(String(row.date).slice(0,7));row.archived=state!=='open';});
   refreshAllTables();
@@ -3292,7 +3292,7 @@ changePeriodStatus=async function(nextStatus){
   }catch(error){
     const detail=/fetch|network|load failed/i.test(error.message||'')?'Could not confirm the period update with the server. Your current journal remains available. Check your connection, reload the period status, and retry.':error.message||'Please retry.';
     showAppNotification('Period Update Failed',detail,true);return false;
-  }finally{periodUpdatePending98=false;controls.forEach((n,i)=>n.disabled=disabled[i])}
+  }finally{periodUpdatePending98=false;controls.forEach((n,i)=>n.disabled=disabled[i]);renderPeriodReview()}
 };
 
 // TRANSACTION SCROLL MEMORY — remember subsection positions only while the user
@@ -4077,6 +4077,7 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
 const legacySaveReferences14228=new Map();
 function journalEntry98Key14228(owner,payload){const fingerprint=JSON.stringify(payload),last=legacySaveReferences14228.get(owner);if(last?.fingerprint===fingerprint)return last.key;const key='web-'+crypto.randomUUID();legacySaveReferences14228.set(owner,{fingerprint,key});return key;}
 document.addEventListener('input',e=>{if(e.isTrusted){const card=e.target.closest('#journalEntry98');if(card)delete card._postingRequest14228;legacySaveReferences14228.clear()}},true);
+
 ;
 /* scripts/workspace-settings.js */
 /* WORKSPACE & SETTINGS — per-user controls, direct editing and clearing protocol. */
@@ -4943,6 +4944,7 @@ window.addEventListener('resize',schedule);const start=()=>{new MutationObserver
 
 ;
 /* scripts/transactions-v67.js */
+function journalIsHistory14342(row){const period=PeriodReview.periods[String(row.date).slice(0,7)];return period?period.status!=='open':!!row.archived;}
 /* TRANSACTIONS 67: active books, archived months and correction context. */
 function setJournalDateMode(multiple) {
   document.getElementById('jeMultipleDates').checked=multiple;
@@ -4987,15 +4989,15 @@ function renderReopened67(){
 }
 renderJournalHistoryTable=function(records=JournalModule.entries){
   setTransactionTableHeaders('thJournalHistoryRow',true);
-  renderTransactionReviewTable(document.getElementById('tblJournalHistoryBody'),records.filter(r=>!r.archived&&!isReopened67(String(r.date).slice(0,7))),'edit');renderReopened67();
+  renderTransactionReviewTable(document.getElementById('tblJournalHistoryBody'),records.filter(r=>!journalIsHistory14342(r)&&!isReopened67(String(r.date).slice(0,7))),'edit');renderReopened67();
 };
 renderNewTransactionsTable=function(){renderReopened67()};
 function archiveFindings67(month){return PeriodReview.findings.filter(f=>f.month===month).map(f=>`<div class="archive-finding"><strong>${escapeHtml(f.number)}</strong> — ${escapeHtml(f.description)}<br><small>${escapeHtml(f.createdByName||f.createdBy||'Reviewer not recorded')} · ${escapeHtml(f.createdAt||'')} · ${escapeHtml(f.status)}${f.adjustmentEntryId?' · Adjustment '+escapeHtml(f.adjustmentEntryId):''}</small></div>`).join('')}
 renderAllTransactionsTable=function(){
  const card=document.querySelector('#transactions-all > .je-card,#journalHistory14316 > .je-card');if(!card)return;
  let host=document.getElementById('archiveMonths67');if(!host){card.querySelector('.table-container')?.remove();host=document.createElement('div');host.id='archiveMonths67';card.append(host)}
- const rows=JournalModule.entries.filter(r=>r.archived),month=historyMonth14341.choose('journal',rows.map(r=>String(r.date).slice(0,7))),group=rows.filter(r=>String(r.date).startsWith(month));
- host.innerHTML=historyMonth14341.control('journal',month)+`<section class="archive-month"><header><h3>${escapeHtml(monthLabel(month))}</h3><p>${new Set(group.map(r=>r.id)).size} transactions · ${escapeHtml(monthTotals67(group))}</p></header><div class="archive-month-actions"><button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')">Export Month</button></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section>`;
+ const rows=JournalModule.entries.filter(journalIsHistory14342),month=historyMonth14341.choose('journal',rows.map(r=>String(r.date).slice(0,7))),group=rows.filter(r=>String(r.date).startsWith(month));
+ host.innerHTML=`<section class="archive-month"><header class="history-header14342"><div><h3>${escapeHtml(monthLabel(month))}</h3><p>${new Set(group.map(r=>r.id)).size} transactions · ${escapeHtml(monthTotals67(group))}</p></div><div class="archive-month-actions">${historyMonth14341.control('journal',month)}<button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')">Export Month</button></div></header><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section>`;
  setTransactionTableHeaders('archiveHead0',false);renderTransactionReviewTable(document.getElementById('archiveBody0'),group,'none');
  historyMonth14341.bind(host,'journal',renderAllTransactionsTable);
 };
@@ -5016,6 +5018,7 @@ changePeriodStatus=async function(next){
     PeriodReview.save();refreshAllTables();switchTab('journal');renderReopened67();
     document.getElementById(`reopened-${m}`)?.scrollIntoView({behavior:'smooth',block:'start'});
   }else{renderReopened67();renderAllTransactionsTable()}
+  return true;
 };
 async function closeMonthFromAccounts(targetMonth){
   const month=targetMonth||document.getElementById('closeMonth67')?.value;if(!month)return;
@@ -5044,6 +5047,7 @@ function exportArchiveMonth67(month){
   const csv=[columns,...rows.map(r=>[r.id,r.date,r.account,r.currency,r.memo,r.debit,r.credit])].map(row=>row.map(value=>'"'+String(value??'').replaceAll('"','""')+'"').join(',')).join('\r\n');
   const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`journal-${month}.csv`;(window.exportCenter14337?exportCenter14337.fromLink(a):a.click());setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
+
 ;
 /* scripts/accounts-v69.js */
 /* ACCOUNTS 69 — One posted-journal source for ledger, trial balance and balances. */

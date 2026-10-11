@@ -415,7 +415,7 @@ function stagedBookRows(){let rows=JournalModule.entries.map(r=>({...r}));
 const loadPeriodsBefore=loadAccountingPeriodStatuses;
 loadAccountingPeriodStatuses=async function(){
  // Database state replaces cached old books; stale reset-era reopen flags disappear.
- const saved=PeriodReview.periods;PeriodReview.periods={};await loadPeriodsBefore();
+ const saved=PeriodReview.periods;await loadPeriodsBefore();
  for(const [m,p] of Object.entries(PeriodReview.periods))if(saved[m]?.reopenedAt&&p.status==='open'&&periodEntries(m).length)Object.assign(p,{reopenedAt:saved[m].reopenedAt,reopenReason:saved[m].reopenReason,reopenedByName:saved[m].reopenedByName});
  previewSessions();refreshAllTables();
 };
@@ -522,6 +522,7 @@ window.workflow136={state,reload,yearClose,finishSession,loadTodos,decorate,upda
 function ready(){const scrollBefore=window.scrollToAccountModule;if(typeof scrollBefore==='function')window.scrollToAccountModule=function(...args){const r=scrollBefore.apply(this,args);decorate();requestAnimationFrame(decorate);return r;};window.addEventListener('page113',()=>{decorate();if(liveProfile&&state.owner!==liveProfile.id)reload().catch(e=>showCenterStatus('Workflow data could not load: '+e.message,true));if(document.querySelector('.tab-content.active')?.id==='transactions-recurring')loadTodos();});const profileBefore=loadLiveProfile;loadLiveProfile=async function(...args){const r=await profileBefore(...args);state.sessions=[];state.todos=[];decorate();window.workflowReady1443=reload({skipJournal:true});window.workflowReady1443.catch(e=>{if(!/abort|account changed|session changed/i.test(e.message))showCenterStatus('Workflow data could not load: '+e.message+( /function.*does not exist|schema cache|relation.*does not exist/i.test(e.message)?' Install SQL 03 if it has not been installed.':''),true)});return r;};decorate();window.addEventListener('focus',()=>{if(liveProfile&&!window.workspaceRequest138?.busy&&document.getElementById('loginGate')?.classList.contains('is-authenticated')&&Date.now()-state.lastReload>60000)reload().catch(()=>{});});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
+
 ;
 /* scripts/combined-v138.js */
 /* Final combined corrections, including restricted administrator-assisted sub-user sessions. */
