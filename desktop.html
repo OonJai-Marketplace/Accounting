@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>@layer compact14327;</style>
+<style>@layer workspace14331, compact14327;</style>
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.20"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=143.30"></script>
+  <script src="scripts/offline14239.js?v=143.31"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=142.99">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=142.99.2">
   <script src="scripts/desktop14245-1.js?v=143.20"></script>
-<title>Oon Jai Accounting — v143.21</title>
+<title>Oon Jai Accounting — v143.31</title>
 <link rel="stylesheet" href="styles/functional-corrections14292.css?v=142.93">
   <link rel="icon" type="image/png" href="assets/brand/oonjai-logo.png?v=118">
   <!-- Chart.js for dashboard graphs -->
@@ -49,6 +49,8 @@
 <script src="scripts/login-notifications14293.js?v=142.94"></script><link rel="stylesheet" href="styles/login-notifications14293.css?v=142.94"><link rel="stylesheet" href="styles/account-parent14287.css?v=142.96"><script src="scripts/feedback-viewport14295.js?v=143.20"></script><link rel="stylesheet" href="styles/hr-workspace14306.css?v=143.09">
   <link rel="stylesheet" href="styles/budget-messages14314.css?v=143.20">
 <link rel="stylesheet" href="styles/desktop-scale14320.css?v=143.20"><script src="scripts/desktop-scale14320.js?v=143.23"></script><link rel="stylesheet" href="styles/compact14327.css?v=143.29">
+<script src="scripts/summary-period14331.js?v=143.31"></script>
+<link rel="stylesheet" href="styles/workspace14331.css?v=143.31">
 </head>
 <body>
 
@@ -165,19 +167,19 @@
 
       <!-- 5. Reports -->
       <div class="nav-category" id="nav-module-reports" data-module="reports">
-        <div class="nav-header" onclick="activateCategory(this, 'report-pl')">Report <span class="arrow">▼</span></div>
+        <div class="nav-header" onclick="activateCategory(this, 'report-gl')">Report <span class="arrow">▼</span></div>
         <div class="nav-links">
+          <button type="button" class="tab-btn" onclick="switchTab('report-gl')">General Ledger</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-tb')">Trial Balance</button>
           <button type="button" class="tab-btn" onclick="switchTab('report-pl')">Profit and Loss</button>
           <button type="button" class="tab-btn" onclick="switchTab('report-bs')">Balance Sheet</button>
           <button type="button" class="tab-btn" onclick="switchTab('report-cf')">Cash Flow</button>
-          <button type="button" class="tab-btn" onclick="switchTab('report-tb')">Trial Balance</button>
-          <button type="button" class="tab-btn" onclick="switchTab('report-gl')">General Ledger</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-reconciliation');renderReconciliationList71()">Reconciliation Reports</button>
           <button type="button" class="tab-btn" onclick="switchTab('report-activity')">Account Activity</button>
           <button type="button" class="tab-btn" onclick="switchTab('report-expense')">Expense Report</button>
+          <button type="button" class="tab-btn" onclick="switchTab('report-payroll')">Payroll Report</button>
           <button type="button" class="tab-btn only-desktop82" onclick="switchTab('report-subusers82')">Sub-user Reports</button>
           <button type="button" class="tab-btn only-desktop82" onclick="switchTab('report-financing82')">Budget & Financing Reports</button>
-          <button type="button" class="tab-btn" onclick="switchTab('report-payroll')">Payroll Report</button>
-<button type="button" class="tab-btn" onclick="switchTab('report-reconciliation');renderReconciliationList71()">Reconciliation Reports</button>
         </div>
       </div>
 
@@ -1209,16 +1211,16 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
   <script src="scripts/supabase-config.js?v=143.20"></script>
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.30"></script>
+  <script src="scripts/desktop14245-3.js?v=143.31"></script>
 <script src="assets/vendor/docx.js?v=142.47"></script>
 <script src="assets/vendor/document14285/cfb.min.js?v=142.86"></script>
 <script src="assets/vendor/document14285/marked.umd.js?v=142.86"></script>
-<script src="scripts/desktop14245-4.js?v=143.30"></script>
+<script src="scripts/desktop14245-4.js?v=143.31"></script>
 <script src="assets/vendor/jszip.min.js?v=142.47"></script>
-<script src="scripts/desktop14245-5.js?v=143.30"></script>
+<script src="scripts/desktop14245-5.js?v=143.31"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.30"></script>
+<script src="scripts/desktop14245-6.js?v=143.31"></script>
 <script src="scripts/entry-actions14271.js?v=142.75"></script>
 <script src="scripts/tablet-journal14266.js?v=142.80"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
@@ -1245,21 +1247,21 @@
 <script src="scripts/entry-number14257.js?v=143.25"></script>
 <script src="scripts/account-currency14257.js?v=142.96"></script>
 <script src="scripts/report-templates14262.js?v=143.23"></script>
-<script src="scripts/report-routes14262.js?v=142.62"></script>
-<script src="scripts/report-formats14282.js?v=143.23"></script>
+<script src="scripts/report-routes14262.js?v=143.31"></script>
+<script src="scripts/report-formats14282.js?v=143.31"></script>
 <script src="scripts/journal-description14281.js?v=143.04"></script>
-<script src="scripts/assigned-ledger14281.js?v=142.83"></script>
+<script src="scripts/assigned-ledger14281.js?v=143.31"></script>
 <link rel="stylesheet" href="styles/settings-polish14281.css?v=142.83">
 <link rel="stylesheet" href="styles/design14284.css?v=142.84">
 <script src="scripts/design14284.js?v=142.94"></script>
 <link rel="stylesheet" href="styles/phone-shell14285.css?v=142.86">
 <script src="scripts/search-autofill14285.js?v=142.86"></script>
-<script src="scripts/report-library14285.js?v=142.93"></script>
+<script src="scripts/report-library14285.js?v=143.31"></script>
 <link rel="stylesheet" href="styles/report-library14285.css?v=142.86">
 <link rel="stylesheet" href="styles/feedback-viewport14295.css?v=142.96">
 <script src="scripts/action-feedback14296.js?v=143.20"></script>
 <script src="scripts/heading-case14297.js?v=142.97"></script>
-<script src="scripts/vouchers14299.js?v=143.30"></script>
+<script src="scripts/vouchers14299.js?v=143.31"></script>
 <link rel="stylesheet" href="styles/transaction-consistency14300.css?v=143.04">
 <script src="scripts/transaction-consistency14300.js?v=143.04"></script>
 <link rel="stylesheet" href="styles/layout-voucher-polish14301.css?v=143.04">
@@ -1291,6 +1293,8 @@
 <script src="scripts/maintenance-reports14326.js?v=143.26"></script>
 <script src="scripts/maintenance14324.js?v=143.30"></script>
 <link rel="stylesheet" href="styles/polish14325.css?v=143.26"><script src="scripts/polish14325.js?v=143.25"></script>
+<script src="scripts/period-filters14331.js?v=143.31"></script>
+<script src="scripts/workspace14331.js?v=143.31"></script>
 </body>
 </html>
 

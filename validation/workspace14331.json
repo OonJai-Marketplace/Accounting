@@ -1,0 +1,73 @@
+{
+  "passed": 17,
+  "results": [
+    {
+      "name": "Payroll working sections stay open across clicks and rerenders; calculations stay unchanged",
+      "passed": true
+    },
+    {
+      "name": "Editable payroll rows select cleanly without changing the input amount",
+      "passed": true
+    },
+    {
+      "name": "Voucher IDs is a separate settings block after Accounting, outside Currency Manager",
+      "passed": true
+    },
+    {
+      "name": "HR employee selectors align in Performance and Contracts",
+      "passed": true
+    },
+    {
+      "name": "Reports open in working order with a single thin horizontal scrollbar",
+      "passed": true
+    },
+    {
+      "name": "The shared calendar switches its grid with controls below it",
+      "passed": true
+    },
+    {
+      "name": "Nonconsecutive report months include January and March, excluding February; sources stay unchanged",
+      "passed": true
+    },
+    {
+      "name": "CSV and printable report keep the same selected months",
+      "passed": true
+    },
+    {
+      "name": "Balance Sheet uses exactly the selected period-end columns",
+      "passed": true
+    },
+    {
+      "name": "Quarter and All months return complete totals; Custom range remains usable",
+      "passed": true
+    },
+    {
+      "name": "Sub-user Post Transaction and Active Journal edges match; top action buttons align",
+      "passed": true
+    },
+    {
+      "name": "Summary quarters fetch each month and preserve separate balances; Clear and All months work",
+      "passed": true
+    },
+    {
+      "name": "Report chooser uses the same period calendar and exact selected-month filtering",
+      "passed": true
+    },
+    {
+      "name": "Document export excludes records in skipped months and restores report state",
+      "passed": true
+    },
+    {
+      "name": "Read-only ledger uses the shared calendar, preserves permissions and loads selected months only",
+      "passed": true
+    },
+    {
+      "name": "Grouped journal selection highlights the complete entry without inner cell outlines",
+      "passed": true
+    },
+    {
+      "name": "Transaction and payroll-run dates retain single-date behavior",
+      "passed": true
+    }
+  ]
+}

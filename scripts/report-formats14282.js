@@ -27,8 +27,8 @@ function format(html){const root=document.createElement('div');root.innerHTML=ht
  root.querySelectorAll('h1,h2,h3,h4,h5').forEach(h=>{h.style.cssText=h.tagName==='H1'?'font-family:Arial;font-size:15pt;font-weight:bold;color:#176249;margin:0 0 1.5mm':'font-family:Arial;font-size:10pt;font-weight:bold;color:white;background-color:#176249;padding:1mm 1.5mm;margin:2mm 0 1mm;break-after:avoid';});
  root.querySelectorAll('p').forEach(p=>p.style.cssText='font-family:Arial;font-size:10pt;line-height:1.15;margin:1mm 0 2mm;white-space:pre-wrap');
  return root.innerHTML;}
-function financial(kind){const groups=reportModel79(kind,true);let html=title(reportNames79[kind],Reports79.from+' — '+Reports79.to),omitted=[];
- for(const g of groups){const start=['gl','activity'].includes(kind)?4:['cf','payroll'].includes(kind)?1:2;const hasAmounts=g.values.some(r=>r.slice(start).some(v=>Number(String(v).replace(/,/g,'').replace(/\s*(?:DR|CR)$/,''))));if(!hasAmounts&&!g.metrics.some(([,v])=>Number(v))){omitted.push(g.currency);continue}html+=head(g.currency);
+function financial(kind){const groups=reportModel79(kind,true);let html=title(reportNames79[kind],Reports79.selectedMonths14331?.length?Reports79.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):Reports79.allMonths14331?'All months':Reports79.from+' — '+Reports79.to),omitted=[];
+ for(const g of groups){const start=['gl','activity'].includes(kind)?4:['cf','payroll'].includes(kind)?1:2;const hasAmounts=g.values.some(r=>r.slice(start).some(v=>Number(String(v).replace(/,/g,'').replace(/\s*(?:DR|CR)$/,''))));if(!hasAmounts&&!g.metrics.some(([,v])=>Number(v))){omitted.push(g.currency);continue}html+=head(g.currency+(g.periodLabel?' · '+g.periodLabel:''));
  if(kind==='pl'||kind==='expense'){
  for(const type of kind==='expense'?['EXPENSE']:['REVENUE','EXPENSE']){const rows=g.values.filter(r=>String(r[0]).toUpperCase()===type).map(r=>[r[1],r[4]]);html+=head(type==='REVENUE'?'Income':'Expenses')+table(['Account / Description','Amount'],rows.length?rows:[['No activity','—']],[72,28],[1]);}
  }else if(kind==='tb'){

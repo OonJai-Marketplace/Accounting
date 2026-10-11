@@ -194,7 +194,7 @@
     } else if (id === 'payroll-deductions') {
       details.filter(item => item.dataset.group95 !== 'attendance' && !item.dataset.group95.endsWith('-attendance') && !item.dataset.group95.endsWith('-internal')).forEach(item => item.remove());
       const internal = details.find(item => item.dataset.group95.endsWith('-internal'));
-      const title = internal?.querySelector('summary strong');
+      const title = internal?.querySelector('summary strong, .pay-heading14331 strong');
       if (title) title.textContent = 'Internal Deduction Summary';
       if (internal) internal.open = true;
     }
