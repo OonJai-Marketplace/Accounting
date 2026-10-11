@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Original compact tabs and working sections at 1440",
+    "passed": true
+  },
+  {
+    "name": "Original compact tabs and working sections at 1024",
+    "passed": true
+  },
+  {
+    "name": "Original compact tabs and working sections at 820",
+    "passed": true
+  },
+  {
+    "name": "gl Account control and column fit at 1440",
+    "passed": true
+  },
+  {
+    "name": "gl Account control and column fit at 1024",
+    "passed": true
+  },
+  {
+    "name": "gl Account control and column fit at 820",
+    "passed": true
+  },
+  {
+    "name": "activity Account control and column fit at 1440",
+    "passed": true
+  },
+  {
+    "name": "activity Account control and column fit at 1024",
+    "passed": true
+  },
+  {
+    "name": "activity Account control and column fit at 820",
+    "passed": true
+  },
+  {
+    "name": "Reconciliation Print is top right with Import and Ledger, and Reconcile has rounded corners",
+    "passed": true
+  },
+  {
+    "name": "One ledger calculation per report render with fresh data on the next render",
+    "passed": true
+  },
+  {
+    "name": "No browser errors",
+    "passed": true
+  }
+]

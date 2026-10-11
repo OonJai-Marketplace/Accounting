@@ -25,11 +25,15 @@ function accountForLine69(line){
 }
 function accountKey69(a,currency){return `${a.id||a.code||a.name}|${currency||a.currency||''}`}
 function accountData69(through=Accounts69.to){
+ // Build each lookup once for this calculation; preserve first-match resolution.
+ const byId=new Map(),byCode=new Map(),byName=new Map();
+ for(const a of AccountingStore.accounts||[]){if(!byId.has(String(a.id)))byId.set(String(a.id),a);if(!byCode.has(String(a.code)))byCode.set(String(a.code),a);let currencies=byName.get(a.name);if(!currencies)byName.set(a.name,currencies=new Map());if(!currencies.has(a.currency))currencies.set(a.currency,a)}
+ const resolve=line=>(line.accountId&&byId.get(String(line.accountId)))||(line.accountCode&&byCode.get(String(line.accountCode)))||byName.get(line.account)?.get(line.currency)||null;
  const map=new Map();
  (AccountingStore.accounts||[]).forEach(a=>map.set(accountKey69(a),{account:a,key:accountKey69(a),currency:a.currency,opening:0,debit:0,credit:0,closing:0,lines:[]}));
  JournalModule.entries.forEach((line,index)=>{
   if(line.status&&line.status!=='posted')return;
-  const a=accountForLine69(line)||{name:line.account,code:line.accountCode||'Unmapped',currency:line.currency,type:'Unmapped'};
+  const a=resolve(line)||{name:line.account,code:line.accountCode||'Unmapped',currency:line.currency,type:'Unmapped'};
   const key=accountKey69(a,line.currency);if(!map.has(key))map.set(key,{account:a,key,currency:line.currency,opening:0,debit:0,credit:0,closing:0,lines:[]});
   const r=map.get(key),date=String(line.date||'').slice(0,10),dr=cents69(line.debit),cr=cents69(line.credit);
   if(!date||date>through)return;

@@ -1,5 +1,5 @@
 {
-  "release": "143.35",
+  "release": "143.36",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -34,12 +34,12 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "e0ab36682712114d461196b58994d0b067c9dd346d100fbab7999c9ec18e281f",
+      "sha256": "d51c058c520e3273061c550c20c32bc116b349e16393be7506524d773895742d",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "ca94307789dec38fcae33ff58685edd61192f753bb5d53beb0dc6bca67949b8e",
+      "sha256": "21151b8c41ba49d39645624f2d06330bfed8cb669348485904b94e127f7434e3",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -129,7 +129,7 @@
     },
     {
       "path": "scripts/design14284.js",
-      "sha256": "ef3c058d5dc261620ae1b8e772cea1bd6a460c981db82701feb31999397c2fb4",
+      "sha256": "06f97f940e6033434782eba80a4e2855981a7c821a89d1cdc6c8a5f858beaf15",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -169,7 +169,7 @@
     },
     {
       "path": "scripts/desktop14245-3.js",
-      "sha256": "a850eeaea2c0e457bf4f92f76cd1ec3d43168d3149bec539ba2e11b9409a989e",
+      "sha256": "bfa7a8c948feb3c48cb00a43dcb0a46fd68b0aea8293ac719f7fd21cd8f76c89",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -218,7 +218,7 @@
         },
         {
           "source": "scripts/accounts-v69.js",
-          "sha256": "a18be00eb17281e2a58c512c59662a3500a6b992c61001b5cecfcadace5b5c66"
+          "sha256": "9c3dc635aaa31c32c2a23a85756c7ff5925f00aeccb8d43b0d7b79bdf04f8f5e"
         },
         {
           "source": "scripts/review-v69.js",
@@ -250,7 +250,7 @@
         },
         {
           "source": "scripts/reports-desktop-v79.js",
-          "sha256": "b31e2145e44893fcaec338459b361c90fcfcf7bd9b8b425a52dccfff8b1ab317"
+          "sha256": "a7ead6a82c69d7a01dbd888745aeb726c435664d3391d4ffdd7b757def91ce3f"
         },
         {
           "source": "scripts/desktop-corrections-v80.js",
@@ -423,7 +423,7 @@
     },
     {
       "path": "scripts/desktop14245-5.js",
-      "sha256": "1b7019e598be02f8dd048e984277127fa340855e111e8c5d29f7b565af95fd04",
+      "sha256": "83e40dd76fa24506fe98b8fce6c04fc047e64453a4fbd8ce6397bb477136038d",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -444,7 +444,7 @@
         },
         {
           "source": "scripts/reports-v117.js",
-          "sha256": "499d4d6e75718690e511f5f87503d2a9d4dcf9e8e1a5369753a6fd3a3faa6681"
+          "sha256": "7d5bba755b1f51df23a29e9991a5083689f64008dbd5943b30f0094905579a5b"
         },
         {
           "source": "scripts/workspace-v117.js",
@@ -788,7 +788,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "db0e3abe581190abc23c5089800aa22ff4bdc809187f76907e5412909db0204a",
+      "sha256": "fdf06d618850d5f2a88c5e011f16b8c637cbc6340382016f742f27901dcd396c",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -843,7 +843,7 @@
     },
     {
       "path": "scripts/report-formats14282.js",
-      "sha256": "300458fa5b7dfb3f51b9402d6ceedfc2fe5e673293300066c99dc6259f34a22d",
+      "sha256": "7f14038bdcdca852a1f65c20345989d9b489ea7dfca8b032f018a8aa22ecd76a",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1451,7 +1451,7 @@
     },
     {
       "path": "styles/workspace14331.css",
-      "sha256": "1c149bb1fcdb28355caee03edf975f91a61507961f5957a4f6e1c8aa29b0c01d",
+      "sha256": "4f4a352c841fbd65077438441eaea997e6ff404333b88986e3ce43fe885deb51",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     }
   ],

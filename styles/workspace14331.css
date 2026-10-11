@@ -23,8 +23,6 @@
   body #subUserWorkspacePanel .v49-desktop-user-actions{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-start!important;align-items:center!important;gap:8px!important;width:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:8px 0!important;box-sizing:border-box!important}
   body #subUserWorkspacePanel .v49-desktop-user-actions>button{position:static!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;height:32px!important;min-height:32px!important;max-height:32px!important;margin:0!important;padding:0 12px!important;line-height:1.2!important;white-space:nowrap!important;box-sizing:border-box!important;font-size:12px!important}
   body #subUserWorkspacePanel .v49-desktop-user-actions>.workspace-expand1438{margin-left:auto!important}
-  body #personalWorkspace1437 .personal-tabs1437{display:flex;flex-wrap:nowrap;overflow-x:auto;align-items:stretch;gap:0;padding-inline:0;scrollbar-width:thin}
-  body #personalWorkspace1437 .personal-tabs1437 button{flex:1 0 auto;margin:0;white-space:nowrap}
  }
 }
 .summary-period14331{width:300px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;box-sizing:border-box;z-index:100020}
@@ -50,3 +48,52 @@ body .summary-period14331 button{font:600 12px/1.2 'Plus Jakarta Sans',Arial,san
 body .summary-period14331 button:hover{background:#edf8f3}
 body .summary-period14331 button:focus-visible{outline:2px solid #b78b42;outline-offset:1px}
 body .summary-period14331 .period-modes14331 button{font-size:11px!important}
+
+/* v143.36: retain the original compact personal workspace components on tablets. */
+@media screen and (min-width:641px) and (max-width:1024px){
+ #personalWorkspace1437 [hidden]{display:none!important}
+ #personalWorkspace1437{min-width:0}
+ .personal-tabs1437{display:flex;gap:6px;border-bottom:1px solid #aebfaf;margin:0 0 16px;padding:0 12px}
+ .personal-tabs1437 button{border:0;border-bottom:3px solid transparent;padding:12px 20px;background:transparent;font:inherit;font-weight:600;color:#365248;cursor:pointer}
+ .personal-tabs1437 button.active{border-bottom-color:#126246;color:#074b36;background:#edf2e7}
+ #personalWorkspace1437 :is(.personal-home1437,.personal-history1437,.personal-totals1437,.personal-active1437){padding:16px;border:1px solid #c9d3c0;border-radius:8px;background:#fffdf7;margin:12px 0;min-width:0}
+ #personalWorkspace1437 :is(header,footer){display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0 12px}
+ #personalWorkspace1437 h3{margin:0 0 10px;color:#174d3a}
+ .personal-metrics1437,.personal-shortcuts1437{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:14px 0 22px}
+ .personal-metrics1437 article{padding:18px;background:#edf2e7;border-radius:8px;border:1px solid #d1dabe}
+ .personal-metrics1437 strong{display:block;font-size:26px;color:#174d3a;margin:8px 0}
+ .personal-metrics1437 progress{width:100%;accent-color:#1c7351;height:8px}
+ .personal-shortcuts1437 button{padding:18px;text-align:left;background:#f6efd9;border:1px solid #d4c293;border-radius:8px;cursor:pointer;color:#284d3b}
+ .personal-shortcuts1437 :is(b,span){display:block}.personal-shortcuts1437 b{font-size:17px;margin-bottom:6px}
+ .personal-recent1437{display:flex;justify-content:space-between;gap:15px;border-top:1px solid #dce2d7;padding:12px 0}
+ #personalWorkspace1437 small{display:block;color:#67756a;font-size:11px;margin-top:3px}
+ .personal-history-filters1437{display:grid;grid-template-columns:150px 190px minmax(0,1fr);gap:12px;margin-bottom:18px}
+ .personal-history-filters1437 label{display:flex;flex-direction:column;gap:6px}
+ .personal-history-filters1437 :is(input,select){width:100%;box-sizing:border-box;border:1px solid #bbcab4;padding:8px;border-radius:4px;min-width:0;background:#fffdf7}
+ .personal-history-list1437 details:not([open])>.final-record-content{display:none!important}
+ .personal-history-list1437>div{margin:10px 0}.personal-history-list1437 .final-record-card{width:100%;max-width:none;margin:0}
+ #personalFunds1437 .fund-summary113{margin:12px 0!important;width:100%!important}
+}
+
+@media screen and (min-width:641px){
+ body #personalWorkspace1437 .personal-tabs1437{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+ body #personalWorkspace1437 .personal-tabs1437 button{flex:0 0 auto;white-space:nowrap}
+ body :is(.personal-tabs1437,.team-tabs14230,#categoryTabs),body :is(.personal-tabs1437,.team-tabs14230,#categoryTabs) button{caret-color:transparent;user-select:none;cursor:default}
+ body :is(.personal-tabs1437,.team-tabs14230,#categoryTabs) button,body :is(.personal-tabs1437,.team-tabs14230,#categoryTabs) button *{cursor:pointer;caret-color:transparent;user-select:none}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-filters>label.filter-account81{flex:2 1 320px!important;min-width:320px!important;max-width:none!important}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-filters>label.filter-search81{flex:1 1 200px!important;min-width:200px!important}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-filters>label.filter-currency81{min-width:180px!important}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-table table{min-width:1320px!important;table-layout:auto!important}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(3){width:340px!important;min-width:340px!important;white-space:nowrap!important;overflow-wrap:normal!important}
+}
+
+@media screen and (min-width:641px){
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-table td:nth-child(3) :is(button,span){white-space:nowrap!important;overflow-wrap:normal!important}
+ html body.shell113 #reconciliationList71>.je-card-header{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap;gap:12px;min-height:0!important;height:auto!important;flex:0 0 auto!important}
+ #reconciliationList71>.je-card-header>.module-actions71{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-left:auto}
+ #recCreate117>button[type=submit]{border-radius:5px!important}
+}
+
+@media screen and (min-width:641px){
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(1){width:105px!important;min-width:105px!important;white-space:nowrap!important}
+}

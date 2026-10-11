@@ -10,10 +10,11 @@
   root.querySelectorAll('[data-print14282]').forEach(button=>{
    if(button.closest('.section-heading14284'))return;
    const scope=document.getElementById(button.dataset.print14282);if(!scope)return;
+   if(scope.id==='report-reconciliation'){const actions=scope.querySelector('#reconciliationList71>.je-card-header>.module-actions71');if(actions&&button.parentElement!==actions)actions.prepend(button);return}
    if(scope.id==='sec-sub-accounts'){const header=scope.querySelector('.card-header-flex');if(header){let actions=header.querySelector('.subaccount-actions14294');if(!actions){actions=document.createElement('div');actions.className='subaccount-actions14294';header.append(actions)}const add=scope.querySelector('[onclick="openAddSubAccountModal()"]');if(add&&add.parentElement!==actions)actions.prepend(add);if(button.parentElement!==actions)actions.append(button);return}}
    const heading=[...scope.querySelectorAll('h2,h3,h4')].find(n=>!n.closest('.area-banner113,.modal-backdrop,form'));
    if(!heading)return;
-   let header=heading.parentElement.matches('header,.je-card-header,.r79-header')?heading.parentElement:null;
+   let header=heading.parentElement.matches('header,.je-card-header,.r79-header,.section-heading14284')?heading.parentElement:null;
    if(!header){const intro=heading.parentElement;header=document.createElement('div');heading.before(header);header.append(heading);if(intro.parentElement?.matches('header,.card-header-flex'))intro.classList.add('section-intro14284')}
    header.classList.add('section-heading14284');header.append(button);
   });
