@@ -19,6 +19,10 @@ const server=http.createServer((req,res)=>{
  assert.equal(await page.evaluate(()=>offline14239.offline()),true);
  const refreshed=await page.evaluate(()=>offline14239.freshReads(()=>offline14239.snapshot('test-year',readRows)));
  assert.equal(refreshed.count,101);assert.equal(await page.evaluate(()=>offline14239.offline()),false);
+ await page.evaluate(()=>offline14239.connectionIssue('Earlier slow request'));
+ const newlyRequested=await page.evaluate(()=>offline14239.snapshot('previously-unseen-period',readRows));
+ assert.equal(newlyRequested.count,101,'A new period must reconnect after an earlier transport failure');
+ assert.equal(await page.evaluate(()=>offline14239.offline()),false);
  await context.setOffline(true);assert.equal(await page.evaluate(async()=> (await offline14239.snapshot('test-year',readRows)).count),101);
  await context.setOffline(false);delay=0;denied=true;
  assert.match(await page.evaluate(async()=>{try{await offline14239.freshReads(()=>offline14239.snapshot('test-year',readRows));return 'unexpected'}catch(e){return e.message}}),/Read denied 403/);denied=false;
