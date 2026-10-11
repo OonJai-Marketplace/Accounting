@@ -34,7 +34,7 @@
 
   function compactTabLabel(target, fallback) {
     const labels = {
-      'transactions-new':'New Entry','transactions-all':'Transaction History','transactions-recurring':'Recurring Transaction',
+      'transactions-new':'New Entry','transactions-all':'Transaction History','transactions-recurring':'Upcoming',
       'user-entry-review':'Submission Review','period-review':'Period Closing','transactions-voided':'Audit Log',
       'sec-chart-accounts':'Accounts','sec-general-ledger':'General Ledger','account-balances':'Balances',
       'payroll-employees':'Employee','payroll-entries':'Entries','payroll-deductions':'Deductions','payroll-history':'History',

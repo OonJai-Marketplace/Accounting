@@ -40,7 +40,7 @@
    const blob=new Blob([JSON.stringify(pack)],{type:'application/json'});hash=await digest(blob);preview=await rpc('operational_data_reset142',{p_pack:pack,p_apply:false,p_confirmation:null});
    if(preview.mode!=='preview')throw Error('The reset preview did not complete.');
    byId('operationalCounts142').textContent=JSON.stringify({recordsToClear:preview.total,tables:preview.counts,preserved:preview.preserved,nextGeneratedNumber:1,backupBytes:blob.size,sha256:hash},null,2);
-   panel.hidden=false;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`oonjai-before-operational-reset-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);setStatus(out,'Backup download started. Select the downloaded file to verify it. Nothing has been deleted.');
+   panel.hidden=false;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`oonjai-before-operational-reset-${new Date().toISOString().slice(0,10)}.json`;(window.exportCenter14337?exportCenter14337.fromLink(a):a.click());setTimeout(()=>URL.revokeObjectURL(url),30000);setStatus(out,'Backup download started. Select the downloaded file to verify it. Nothing has been deleted.');
   }catch(error){pack=null;preview=null;panel.hidden=true;setStatus(out,'Reset preparation failed: '+error.message,true)}finally{prepare.disabled=false}};
   apply.onclick=async()=>{if(apply.disabled||!pack||!verified||!preview)return;apply.disabled=true;try{
    setStatus(out,'Verifying administrator password…');await verifyAdminPassword(password.value);password.value='';

@@ -307,7 +307,7 @@ function downloadJsonFile(data, filename) {
   const link = document.createElement('a');
   link.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}));
   link.download = filename;
-  link.click();
+  (window.exportCenter14337?exportCenter14337.fromLink(link):link.click());
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 }
 
@@ -410,7 +410,7 @@ async function downloadLegalDocument(id) {
   });
   if (!doc) return;
   const url = URL.createObjectURL(doc.blob);
-  const link = document.createElement('a'); link.href = url; link.download = doc.name; link.click();
+  const link = document.createElement('a'); link.href = url; link.download = doc.name; (window.exportCenter14337?exportCenter14337.fromLink(link):link.click());
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 async function deleteLegalDocument(id) {
@@ -1609,8 +1609,8 @@ function exportJournalCSV() {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = `journal_transactions_${new Date().toISOString().split('T')[0]}.csv`;
-  link.click();
-  if(typeof showCenterStatus==='function')showCenterStatus('CSV export downloaded successfully.');
+  (window.exportCenter14337?exportCenter14337.fromLink(link):link.click());
+  if(typeof showCenterStatus==='function')showCenterStatus('CSV export prepared for the Document Editor.');
 }
 // ==============================================================================
 // APPLICATION BOOTSTRAPPER

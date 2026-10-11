@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Upcoming uses four compact panels and exact names",
+    "passed": true
+  },
+  {
+    "name": "Unscheduled and future to-dos do not notify",
+    "passed": true
+  },
+  {
+    "name": "To-do layout and cancel popup",
+    "passed": true
+  },
+  {
+    "name": "Settings compact main tabs and Accounting sections",
+    "passed": true
+  },
+  {
+    "name": "Reconciliation work belongs to Finalization and reports contain no editing",
+    "passed": true
+  },
+  {
+    "name": "Reconciliation returns from editor without losing the working report",
+    "passed": true
+  },
+  {
+    "name": "Payroll order preserves original row editing indices",
+    "passed": true
+  },
+  {
+    "name": "Raw export opens editor before any download",
+    "passed": true
+  },
+  {
+    "name": "Payroll metadata order, currency labels and single output button",
+    "passed": true
+  },
+  {
+    "name": "Sub-user hover has no scrollbar line and divider meets tab edge",
+    "passed": true
+  },
+  {
+    "name": "Tablet landscape icon rail and portrait hamburger",
+    "passed": true
+  },
+  {
+    "name": "Encrypted source download round-trip and password reuse",
+    "passed": true
+  },
+  {
+    "name": "No browser errors",
+    "passed": true
+  }
+]

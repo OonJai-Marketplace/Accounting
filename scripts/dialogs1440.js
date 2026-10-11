@@ -3,10 +3,9 @@
 const visible=n=>n?.isConnected&&!!n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden'&&!n.closest('[hidden]');
 function controls(root){return [...root.querySelectorAll('button,input,select,textarea,a[href],[tabindex]')].filter(n=>visible(n)&&!n.disabled&&n.tabIndex>=0&&!n.matches('.account-source1428,input[type=hidden]'));}
 function detach(root){const item=entries.get(root);if(!item)return;entries.delete(root);item.abort.abort();if(visible(item.prior))item.prior.focus({preventScroll:true});}
-function requestClose(root){const item=entries.get(root);if(!item)return;
+async function requestClose(root){const item=entries.get(root);if(!item||item.confirming)return;
  if(item.dirty?.()){
-  let prompt=root.querySelector('.discard-confirm1440');if(!prompt){prompt=document.createElement('section');prompt.className='discard-confirm1440';prompt.setAttribute('role','alert');prompt.innerHTML='<p>Discard your unsaved changes?</p><button type="button" data-keep1440>Keep editing</button><button type="button" data-discard1440>Discard changes</button>';item.dialog.append(prompt);prompt.querySelector('[data-keep1440]').onclick=()=>{prompt.remove();item.focus()};prompt.querySelector('[data-discard1440]').onclick=()=>{item.close();detach(root)};}
-  prompt.querySelector('[data-keep1440]').focus();return;
+  item.confirming=true;try{const discard=await ui108.modal('Unsaved changes','<p>Discard your unsaved changes?</p>',[{label:'Keep Editing',value:false,primary:true},{label:'Discard Changes',value:true}]);if(!entries.has(root))return;if(!discard){item.focus();return;}}finally{item.confirming=false;}
  }
  item.close();detach(root);
 }

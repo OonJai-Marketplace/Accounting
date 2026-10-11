@@ -3,7 +3,7 @@ const source=fs.readFileSync(path.join(__dirname,'../scripts/document-downloads1
 const rows=[],results=[];let failure=null,beforeInsert=null;
 function device(actor='alice'){
  const local=new Map();let clicks=0,root;
- const c={Blob,crypto:require('crypto').webcrypto,setTimeout:(fn)=>{fn()},setInterval,clearInterval,console,URL:{createObjectURL:()=>'',revokeObjectURL:()=>{}},liveProfile:{id:actor},escapeHtml:s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;')};
+ const c={formatAppDate:v=>v,Blob,crypto:require('crypto').webcrypto,setTimeout:(fn)=>{fn()},setInterval,clearInterval,console,URL:{createObjectURL:()=>'',revokeObjectURL:()=>{}},liveProfile:{id:actor},escapeHtml:s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;')};
  c.window=c;c.recovery113={isUnlocked:()=>true};c.access113={can:()=>true};c.localStorage={getItem:k=>local.get(k)||null,setItem:(k,v)=>local.set(k,v),removeItem:k=>local.delete(k)};
  c.zip={configure(){},BlobWriter:class{},BlobReader:class{},ZipWriter:class{async add(){}async close(){return new Blob(['encrypted fixture'])}}};
  c.document={createElement:()=>({click(){clicks++}}),querySelector:()=>root};
