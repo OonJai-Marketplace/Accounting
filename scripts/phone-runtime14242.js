@@ -1,7 +1,7 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.17', $ = id => document.getElementById(id);
+  const VERSION = '143.33', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -118,7 +118,8 @@
   const currency = id => accounts().find(a => a.id === id)?.currency || funds().find(a => a.account_id === id)?.currency || '';
   function cleanName(id) { const n = name(id), c = currency(id); return c ? n.replace(new RegExp('\\s*(?:[–-]\\s*)?\\(?\\b' + c.replace(/[^A-Z]/g,'') + '\\b\\)?\\s*$','i'), '') : n; }
   const accountTitle = id => `<span class="currency">${esc(symbol(currency(id)))}</span>${esc(cleanName(id))}`;
-  const balance = f => Number(f.closing || 0) + Number(f.draft_in || 0) - Number(f.draft_out || 0);
+  const deviceDelta14333=id=>queue().filter(q=>!Object.values(S.data.months||{}).some(m=>(m.lines||[]).some(l=>String(l.editor_group1437||'').startsWith(q.key+':')))).flatMap(q=>q.params.p_items||[]).filter(l=>l.fund===id).reduce((n,l)=>n+(l.direction==='in'?1:-1)*Number(l.amount||0),0);
+  const balance = f => Number(f.closing || 0) + Number(f.draft_in || 0) - Number(f.draft_out || 0)+deviceDelta14333(f.account_id);
   function blankDraft() { const r = rules(); return {mode:'single', date:today(), memo:'', reference:'', requestKey:'phone-' + crypto.randomUUID(), editIds:[], single:[{direction:r.directions[0] || 'out', source:r.fundIds.length === 1 ? r.fundIds[0] : '', affected:'', amount:'', memo:''}], lines:[{account:'',debit:'',credit:'',memo:''},{account:'',debit:'',credit:'',memo:''}]}; }
   function normalizeDraft(value){const d={...blankDraft(),...value};d.single=Array.isArray(d.single)&&d.single.length?d.single:blankDraft().single;d.lines=Array.isArray(d.lines)&&d.lines.length?d.lines:blankDraft().lines;return d;}
   const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
@@ -205,7 +206,7 @@
       try {
         await access();
         if(isAdmin()){paintConnection();drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();if(!S.directoryLoaded&&!S.directoryLoading)void loadDirectory(false);}
-        const ids = accountIds();
+        const confirmedKeys=new Set(queue().filter(q=>q.status==='confirmed').map(q=>q.key));const ids = accountIds();
         const [rawAccounts, ownFunds, ownHeaders] = await Promise.all([
           ids.length ? paged('accounts', {id:'in.(' + ids.join(',') + ')'}, 'id,code,name,currency_code,is_posting,is_active') : [],
           rpc('fund_balances136',{p_owner:owner,p_month:null}),
@@ -218,7 +219,7 @@
         const months = {...S.data.months, [month]:loadedMonth};
         for(const pendingMonth of new Set(ownHeaders.filter(j=>['draft','returned'].includes(j.status)).map(j=>String(j.period_start).slice(0,7)))){if(pendingMonth!==month)months[pendingMonth]=await getMonth(pendingMonth,ownHeaders);if(!current(owner,epoch))return;}
         const patch = {accounts:rawAccounts.map(a => ({...a,currency:a.currency_code,isPosting:a.is_posting!==false,isActive:a.is_active!==false})),funds:ownFunds,headers:ownHeaders,months,savedAt:Date.now()};
-        const stored = await record(owner, old => ({...old,...patch, months:{...old.months,...months}, pendingSubmit:old.pendingSubmit && ['submitted','approved','posted'].includes(ownHeaders.find(j => j.id === old.pendingSubmit.id)?.status) ? null : old.pendingSubmit}));
+        const stored = await record(owner, old => ({...old,...patch,queue:(old.queue||[]).filter(q=>!confirmedKeys.has(q.key)), months:{...old.months,...months}, pendingSubmit:old.pendingSubmit && ['submitted','approved','posted'].includes(ownHeaders.find(j => j.id === old.pendingSubmit.id)?.status) ? null : old.pendingSubmit}));
         if (!current(owner, epoch)) return;
         S.data = stored; S.error = ''; S.online = true;
         // Routine refresh is silent; connection and queue state remain visible.
@@ -270,7 +271,9 @@
   }
   async function openArea(area){if(!isAdmin())return;if(area==='users'){const wasUsers=S.area==='users';S.area='users';window.PhoneTools14242?.close();if(wasUsers){S.selection=false;S.page='home';}render();drawUsers();if(!S.directoryLoaded)void loadDirectory();}else await openTools(area);}
   async function enter(session) {
-    if (!validSession(session)) { sessionGate(navigator.onLine ? '' : 'Reconnect to sign in. Your saved drafts remain on this device.'); return; }
+    const retained=session?.user?.id&&session?.refresh_token?await record(session.user.id).catch(()=>null):null;
+    const locallyVerified=retained?.access?.profile?.id===session?.user?.id&&retained?.access?.profile?.status==='active';
+    if (!validSession(session)&&!locallyVerified) { sessionGate(navigator.onLine ? '' : 'Reconnect to sign in. Your saved drafts remain on this device.'); return; }
     const owner = session.user.id;
     if (enterJob && enterOwner===owner) return enterJob;
     enterOwner=owner;
@@ -297,7 +300,7 @@
     }
     if(recovering){try{const result=await db.auth.getSession();if(result.error)throw result.error;if(!validSession(result.data.session))throw fail('This recovery link is unavailable or expired. Request another reset link.');sessionGate();$('login').hidden=true;$('recovery').hidden=false;const url=new URL(location.href);url.searchParams.delete('password-recovery');url.hash='';history.replaceState(null,'',url.href);return;}catch(e){recovering=false;sessionGate(e.message);return;}}
     const stored=cachedSession();
-    if(validSession(stored))return enter(stored);
+    if(stored?.user?.id&&stored?.refresh_token)return enter(stored);
     try { const result=await db.auth.getSession();if(result.error)throw result.error;return enter(result.data.session); }
     catch(e){sessionGate(navigator.onLine?'Sign in again. '+e.message:'Reconnect to sign in. Your drafts remain on this device.');}
   }
@@ -317,7 +320,7 @@
   function commonActions(){return `<div class="actions no-print">${action('submit',S.submitting?'Submitting…':'Submit',S.submitting?'disabled':'',true)}${canPrint()?action('print','Print report'):''}${action('refresh',S.loading?'Updating…':'Refresh',S.loading?'disabled':'')}</div>`;}
   const visualIcon = type => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+({wallet:'M3 6h18v14H3z M3 6V3h14v3 M16 12h5',plus:'M12 4v16 M4 12h16',book:'M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h5',chart:'M4 20V10 M10 20V4 M16 20v-9 M22 20H2'}[type]||'M3 10l9-7 9 7v11h-6v-6H9v6H3z')+'"/></svg>';
   const progress = (remaining,total) => total>0?Math.max(0,Math.min(100,remaining/total*100)):0;
-  function fundCards(){return funds().map(f=>{const total=Number(f.opening||0)+Number(f.received||0),remaining=balance(f);return `<section class="card fund-card1425"><div class="row"><span class="round gold">${visualIcon('wallet')}</span><h2>${accountTitle(f.account_id)}</h2></div><small>Remaining Funds</small><strong class="fund-amount132 ${remaining<0?'negative':''}">${money(remaining,f.currency)}</strong><div class="bar"><i style="width:${progress(remaining,total)}%"></i></div><div class="row"><small>${money(remaining,f.currency)} remaining</small><small>${money(total,f.currency)} total</small></div><div class="grid fund-detail1425"><div><small>Funds received</small><b>${money(f.received,f.currency)}</b></div><div><small>Used / handed over</small><b>${money(Number(f.used||0)+Number(f.handover||0),f.currency)}</b></div></div><p class="muted">Available balance includes saved entries awaiting review. ${queue().length?'Device entries awaiting sync are not included.':''}</p></section>`;}).join('')||empty(S.data.savedAt?'No fund accounts are assigned to you.':'Your assigned funds have not downloaded yet.');}
+  function fundCards(){return funds().map(f=>{const total=Number(f.opening||0)+Number(f.received||0),remaining=balance(f);return `<section class="card fund-card1425"><div class="row"><span class="round gold">${visualIcon('wallet')}</span><h2>${accountTitle(f.account_id)}</h2></div><small>Remaining Funds</small><strong class="fund-amount132 ${remaining<0?'negative':''}">${money(remaining,f.currency)}</strong><div class="bar"><i style="width:${progress(remaining,total)}%"></i></div><div class="row"><small>${money(remaining,f.currency)} remaining</small><small>${money(total,f.currency)} total</small></div><div class="grid fund-detail1425"><div><small>Funds received</small><b>${money(f.received,f.currency)}</b></div><div><small>Used / handed over</small><b>${money(Number(f.used||0)+Number(f.handover||0),f.currency)}</b></div></div><p class="muted">Available balance includes saved entries awaiting review. ${queue().length?'Includes device entries awaiting sync.':''}</p></section>`;}).join('')||empty(S.data.savedAt?'No fund accounts are assigned to you.':'Your assigned funds have not downloaded yet.');}
   function home(){
     if(isAdmin()&&!S.selection)return `<div class="team-home14227"><header class="th-head"><h2>Sub-users</h2></header><section class="th-panel"><header><h3>User workspaces</h3></header>${S.directory.map(u=>`<button type="button" class="user-row th-button th-user" data-owner="${esc(u.id)}"><span class="th-avatar">${esc((u.full_name||u.email||'U').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span><span class="th-user-copy"><strong>${esc(u.full_name||u.email)}</strong><small>${esc(u.user_permissions?.job_title||u.status||'')}</small></span><span class="th-open">Open ›</span></button>`).join('')||empty(S.directoryLoading?'Loading sub-users…':'The sub-user list has not downloaded yet.')}</section>${action('directory-refresh','Refresh sub-users')}</div>`;
     const metrics={};for(const f of funds()){const m=metrics[f.currency]||={remaining:0,total:0,used:0};m.remaining+=balance(f);m.total+=Number(f.opening||0)+Number(f.received||0);m.used+=Number(f.used||0)+Number(f.handover||0);}
@@ -374,14 +377,14 @@
       try{
         await access();if(!permission('sub-users-workspace','edit'))throw fail('Posting is no longer enabled for this account.');
         const stored=await record(owner);if(!current(owner,epoch))return;S.data.queue=stored.queue||[];
-        for(const q of queue()){
+        for(const q of queue().filter(q=>q.status!=='confirmed')){
           if(!current(owner,epoch))return;
           try{
             if(q.params.p_owner!==owner||q.owner!==owner)throw fail('This entry belongs to a different account.');
             if(q.legacy){for(const date of new Set(q.params.p_items.map(l=>l.date))){const draft=payloadDraft({...q.params,p_items:q.params.p_items.filter(l=>l.date===date)});StaffEntry14225.prepare(draft,accounts(),rules());}}else StaffEntry14225.prepare(q.draft,accounts(),rules());
             const response=await rpc('save_staff_editor1437',q.params);
             if(!Array.isArray(response?.line_ids)||response.line_ids.length!==q.params.p_items.length||response.line_ids.some(id=>!id)||new Set(response.line_ids).size!==response.line_ids.length)throw fail('The complete save was not confirmed. Retry with the same reference.','INVALID_RESPONSE');
-            const next=await updateQueue(owner,q.key,{},true);clearLegacy(q);if(current(owner,epoch))S.data.queue=next.queue;
+            const next=await updateQueue(owner,q.key,{status:'confirmed',receipt:response},false);clearLegacy(q);if(current(owner,epoch))S.data.queue=next.queue;
           }catch(e){if(!current(owner,epoch))return;const next=await updateQueue(owner,q.key,{status:ambiguous(e)?'uncertain':'blocked',message:e.message});if(current(owner,epoch))S.data.queue=next.queue;throw e;}
         }
         if(current(owner,epoch)){S.online=true;notice('All device entries were confirmed.');await refresh();}

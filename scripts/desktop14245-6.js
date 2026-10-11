@@ -352,7 +352,7 @@ const api=window.PhoneApp132={
  rules:id=>{const u=user(id);return u?workspaceRules(u):null},
  journals:()=>allowed('journal')||allowed('transactions-all')?JournalModule.entries||[]:[],
  reports:id=>{if(id&&(!allowed('sub-users-workspace')||!user(id)))return [];phoneIdentity14237();return (reviewStaffJournals||[]).filter(j=>id?String(j.owner_id)===String(id):allowed('user-entry-review'))},
- funds:id=>{phoneIdentity14237();return user(id)?phoneFunds14237.get(id):undefined;},
+ funds:id=>{phoneIdentity14237();return user(id)?(window.localFirst14333?.staffFunds(id,phoneFunds14237.get(id))||phoneFunds14237.get(id)):undefined;},
  openUser:selectUser,
  navigate:(target)=>{if(phone()&&!['sub-users-workspace','sub-users-home14229','settings-users','document-editor105'].includes(target))return false;if(!allowed(target))return false;if(target.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target);return true},
  saveStaff:async(id,data)=>run('sub-users-workspace','edit',async()=>{window.phoneResetStaff132?.();selectUser(id,'post');put('v49Date',data.date);put('v49Direction',data.direction);v49DirectionChanged(id);put('v49Fund',data.fund);v49FundChanged();put('v49Account',data.direction==='in'?data.fund:data.account);put('v49Amount',data.amount);put('v49Description',[data.memo,data.reference].filter(Boolean).join(' — '));v49ValidatePost();return v49SavePost(id)}),
@@ -411,7 +411,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 ;
-
 /* scripts/settings-phone133.js */
 /* Reflow the original permission inputs. Their values, events and save logic stay native. */
 (()=>{

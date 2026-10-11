@@ -2783,6 +2783,7 @@ saveBusinessSettings = async function(event) {
 };
 
 async function loadJournalFromSupabase() {
+  const windowRows=await window.yearWindow14333?.read();if(windowRows){JournalModule.entries=windowRows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();return;}
   const entries=[];
   for(let offset=0;;offset+=500){
     const {data,error}=await ojmDb.from('journal_entries').select('id,entry_no,created_at,transaction_date,memo,status,source,journal_lines(line_no,description,currency_code,debit,credit,line_date,accounts(id,name,code))').eq('status','posted').order('transaction_date',{ascending:false}).order('id').range(offset,offset+499);
@@ -2865,7 +2866,7 @@ async function hydrateSupabaseSession(session) {
   const checkSession=()=>{if(epoch!==sessionEpoch1430)throw new Error('Session changed while loading.');};
   try {
     await loadLiveProfile(session.user);checkSession();
-    await loadCurrentPermissions();checkSession();
+    await loadCurrentPermissions();checkSession();window.sessionCache14333?.remember();
     document.body.classList.add('startup-pending1443');
     // Resolve the authorized destination before releasing the sign-in screen.
     // Never paint the default dashboard or a previous account during this transition.
@@ -2904,6 +2905,7 @@ async function initializeSupabaseApp() {
   const errorBox=loginMessageTarget14293();
   if(!window.supabase||!window.OJM_SUPABASE_URL||!window.OJM_SUPABASE_ANON_KEY){if(errorBox)errorBox.textContent='Supabase configuration could not be loaded.';document.documentElement.classList.remove('session-checking1444');return}
   ojmDb=window.supabase.createClient(window.OJM_SUPABASE_URL,window.OJM_SUPABASE_ANON_KEY,{global:{fetch:(...args)=>window.fetch(...args)}});
+  window.sessionCache14333?.attach(ojmDb);
   const query105=new URLSearchParams(location.search),hash105=new URLSearchParams(location.hash.slice(1));
   const recoveryHint=query105.has('password-recovery')||query105.get('type')==='recovery'||hash105.get('type')==='recovery'||query105.has('error_description')||hash105.has('error_description');passwordRecoveryMode=recoveryHint;
   const recoveryError105=query105.get('error_description')||hash105.get('error_description');

@@ -5,7 +5,7 @@ loadWork82=async function(force=false){
  if(Work82.loaded&&Work82.owner===liveProfile.id&&!force)return;
  const owner=liveProfile.id;Work82.loading=true;Work82.owner=owner;const failures=[];
  const results=await Promise.all(Object.entries(tables82).map(async([key,table])=>{
-  try{const pages=[];for(let offset=0;;offset+=500){const page=await ojmDb.from(table).select('*').order('updated_at',{ascending:false}).order('id').range(offset,offset+499);if(page.error)throw page.error;pages.push(...(page.data||[]));if((page.data||[]).length<500)break}const r={data:pages};
+  try{const pages=[];for(let offset=0;;offset+=500){let query=ojmDb.from(table).select('*').order('updated_at',{ascending:false}).order('id');/* Payroll history also supplies leave entitlements spanning calendar years; retain it until a verified server carry summary is available. */const page=await query.range(offset,offset+499);if(page.error)throw page.error;pages.push(...(page.data||[]));if((page.data||[]).length<500)break}const r={data:pages};
    const rows=r.data||[],valid=rows.filter(x=>x.data&&typeof x.data==='object'&&(key!=='runs'||Array.isArray(x.data.rows)));
    if(key==='runs')Work82.legacyRuns83=rows.length-valid.length;
    return [key,valid];
@@ -14,7 +14,7 @@ loadWork82=async function(force=false){
  if(liveProfile?.id!==owner){Work82.loading=false;return}
  results.forEach(([key,data])=>{if(data)Work82[key]=data});Work82.error=failures.join(' · ');Work82.loaded=!failures.length;Work82.loading=false;renderWork82();
 };
-storageNotice82=function(){return Work82.error?`<div class="notice82 warn82"><strong>Payroll storage needs repair.</strong><p>${esc82(Work82.error)}</p><p>The original payroll table needs additional columns. Run the complete version 83 SQL in the existing Supabase project's SQL Editor, check its result, then click Reload Records. This preserves existing payroll records and adds the requested examples.</p><a href="${repairUrl83}" download>Download payroll repair + two sample months</a>${action82('Reload Records','loadWork82(true)')}</div>`:Work82.loading?'<p class="notice82">Loading saved payroll records…</p>':''};
+storageNotice82=function(){return Work82.error?`<div class="notice82 warn82"><strong>Payroll data needs attention.</strong><p>${esc82(Work82.error)}</p><p>Your device work is retained. Reconnect and use Reload Records; if the error names a missing database table or column, review the setup guide.</p><a href="${repairUrl83}" download>Download payroll repair + two sample months</a>${action82('Reload Records','loadWork82(true)')}</div>`:Work82.loading?'<p class="notice82">Loading saved payroll records…</p>':''};
 const renderBefore83=renderWork82;renderWork82=function(){renderBefore83();if(!desktop80.matches||!admin82())return;const id=document.querySelector('.tab-content.active')?.id;if(!['payroll-overview','payroll-history','report-payroll','payroll-employees','payroll-entries'].includes(id))return;const host=document.querySelector('#'+id+' .work82');if(!host)return;
  if(['payroll-overview','payroll-history','report-payroll'].includes(id)){
   const missing=PayrollSamples83.runs.filter(s=>!Work82.runs.some(r=>r.data.reference===s.data.reference));
