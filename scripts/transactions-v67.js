@@ -47,15 +47,14 @@ renderJournalHistoryTable=function(records=JournalModule.entries){
 renderNewTransactionsTable=function(){renderReopened67()};
 function archiveFindings67(month){return PeriodReview.findings.filter(f=>f.month===month).map(f=>`<div class="archive-finding"><strong>${escapeHtml(f.number)}</strong> — ${escapeHtml(f.description)}<br><small>${escapeHtml(f.createdByName||f.createdBy||'Reviewer not recorded')} · ${escapeHtml(f.createdAt||'')} · ${escapeHtml(f.status)}${f.adjustmentEntryId?' · Adjustment '+escapeHtml(f.adjustmentEntryId):''}</small></div>`).join('')}
 renderAllTransactionsTable=function(){
-  const card=document.querySelector('#transactions-all > .je-card');if(!card)return;
-  let host=document.getElementById('archiveMonths67');if(!host){card.querySelector('.table-container')?.remove();host=document.createElement('div');host.id='archiveMonths67';card.append(host)}
-  const rows=JournalModule.entries.filter(r=>r.archived),months=[...new Set(rows.map(r=>String(r.date).slice(0,7)))].sort().reverse(),years=[...new Set(months.map(m=>m.slice(0,4)))];
-  const selected=document.getElementById('archiveYear67')?.value||'';
-  host.innerHTML='<label class="archive-year">Year <select id="archiveYear67" onchange="renderAllTransactionsTable()"><option value="">All years</option>'+years.map(y=>`<option ${selected===y?'selected':''}>${y}</option>`).join('')+'</select></label>';
-  const visible=months.filter(m=>!selected||m.startsWith(selected));
-  host.insertAdjacentHTML('beforeend',visible.map((m,i)=>{const group=rows.filter(r=>r.date.startsWith(m));return `<details class="archive-month"><summary><strong>${escapeHtml(monthLabel(m))} — ${PeriodReview.status(m)==='review'?'Under Review':'Closed'}</strong><span>${new Set(group.map(r=>r.id)).size} transactions · ${escapeHtml(monthTotals67(group))}</span><small>Updated: ${escapeHtml(PeriodReview.periods[m]?.updatedAt||group[0]?.archivedAt||'Not recorded')}</small></summary><div class="archive-month-actions"><button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${m}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${m}')">Export Month</button></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead${i}"></tr></thead><tbody id="archiveBody${i}"></tbody></table></div>${archiveFindings67(m)}</details>`}).join('')||'<p>No archived months.</p>');
-  visible.forEach((m,i)=>{const body=document.getElementById(`archiveBody${i}`),section=body.closest('details');let rendered=false;section.addEventListener('toggle',()=>{if(!section.open||rendered)return;setTransactionTableHeaders(`archiveHead${i}`,false);renderTransactionReviewTable(body,rows.filter(r=>r.date.startsWith(m)),'none');rendered=true;});});
+ const card=document.querySelector('#transactions-all > .je-card,#journalHistory14316 > .je-card');if(!card)return;
+ let host=document.getElementById('archiveMonths67');if(!host){card.querySelector('.table-container')?.remove();host=document.createElement('div');host.id='archiveMonths67';card.append(host)}
+ const rows=JournalModule.entries.filter(r=>r.archived),month=historyMonth14341.choose('journal',rows.map(r=>String(r.date).slice(0,7))),group=rows.filter(r=>String(r.date).startsWith(month));
+ host.innerHTML=historyMonth14341.control('journal',month)+`<section class="archive-month"><header><h3>${escapeHtml(monthLabel(month))}</h3><p>${new Set(group.map(r=>r.id)).size} transactions · ${escapeHtml(monthTotals67(group))}</p></header><div class="archive-month-actions"><button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')">Export Month</button></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section>`;
+ setTransactionTableHeaders('archiveHead0',false);renderTransactionReviewTable(document.getElementById('archiveBody0'),group,'none');
+ historyMonth14341.bind(host,'journal',renderAllTransactionsTable);
 };
+
 const statusBefore67=changePeriodStatus;
 changePeriodStatus=async function(next){
   const m=PeriodReview.selectedMonth;let reason='';

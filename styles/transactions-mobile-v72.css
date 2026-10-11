@@ -21,9 +21,7 @@
  .tx72-preview{width:100%;max-width:100%;overflow:hidden;position:relative;border-top:1px solid #b4d9ca;touch-action:pan-y}
  .tx72-open{display:block;width:100%;text-align:left;border:0;background:#ecfdf5;color:#065f46;padding:9px 10px;font-size:12px;font-weight:700;min-height:36px}
  .tx72-table{margin:0!important;border-collapse:collapse!important;table-layout:auto!important;min-width:600px!important;transform-origin:top left}
- .tx72-table :is(th,td){font-size:12px!important;line-height:1.35!important;padding:6px!important;max-width:260px!important;white-space:normal!important;overflow-wrap:anywhere!important}
- .tx72-table tbody tr:hover>td,.tx72-table .tx72-selected>td{background:#bbf7d0!important;color:#064e3b!important}
- .tx72-table tbody tr:is(.attention,.period-linked-finding):hover>td,.tx72-table .tx72-selected-alert>td{background:#fecaca!important;color:#991b1b!important}
+ .tx72-table :is(th,td){font-size:12px!important;line-height:1.35!important;padding:6px!important;max-width:260px!important;white-space:normal!important;overflow-wrap:anywhere!important}.tx72-table .tx72-selected>td{background:#bbf7d0!important;color:#064e3b!important}.tx72-table .tx72-selected-alert>td{background:#fecaca!important;color:#991b1b!important}
  .tx72-scope table.tx72-editor{display:block!important;min-width:0!important;width:100%!important;table-layout:auto!important}
  .tx72-editor thead{display:none!important}.tx72-editor tbody{display:grid!important;gap:10px!important;padding:8px!important}
  .tx72-editor tbody tr{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;border:1px solid #059669!important;border-top:4px solid #059669!important;border-radius:8px;padding:9px!important;background:#fff}
@@ -60,7 +58,6 @@
  .tx72-scope .je-meta-grid{display:grid!important;grid-template-columns:1fr!important;gap:9px!important;padding:10px!important;margin:0!important}
  .tx72-full-description{position:sticky;bottom:60px;background:#f0fdf4;border-top:1px solid #059669;display:none}
  .tx72-full-description.has-description{display:block}.tx72-full-description textarea{height:80px;min-height:60px;max-height:120px}
- .tx72-scope table.tx72-table tr:has(.negative-amount):hover>td{background:#fecaca!important;color:#991b1b!important}
 }
 @media(max-width:1024px){
  #journal.tx72-scope table.tx72-editor tbody td :is(input,select,textarea){border:1px solid #a4bfb1!important;border-radius:6px!important;background:#fff!important;padding:8px!important;min-height:38px!important}

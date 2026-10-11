@@ -7,13 +7,14 @@ async function run(){
  clearTimeout(timer);timer=null;const id=actor(),api=window.offline14239;
  if(id!==owner){owner=id;delay=5000}
  if(!id||!api||navigator.onLine===false){schedule(15000);return}
- const s=api.state();if(busy||s.syncing){schedule(5000);return}
+ if(window.idleSync14341&&!idleSync14341.allowed()){schedule(idleSync14341.remaining()+10);return}const s=api.state();if(busy||s.syncing){schedule(5000);return}
  if(!s.pending){delay=5000;schedule(15000);return}
  busy=true;
- try{await api.sync();if(actor()===id)delay=api.state().pending?Math.min(delay*2,300000):5000}
+ try{await api.sync({automatic:true});if(actor()===id)delay=api.state().pending?Math.min(delay*2,300000):5000}
  catch{delay=Math.min(delay*2,300000)}
  finally{busy=false;schedule(delay)}
 }
+window.addEventListener('idle-sync14341',()=>schedule(0));
 window.addEventListener('online',()=>{delay=5000;schedule(250)});
 window.addEventListener('connection14239',()=>{if(!busy)schedule(delay)});
 window.addEventListener('storage',()=>{if(!busy)schedule(1000)});

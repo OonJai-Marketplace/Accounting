@@ -38,11 +38,11 @@ const server=http.createServer((req,res)=>{
  window.switchTab=()=>{};window.scrollToAccountModule=()=>{};window.releaseLogin1443=()=>{};
  });
  await page.addScriptTag({url:'/scripts/startup14257.js'});await page.evaluate(()=>startupData1443(()=>{}));
- await page.waitForFunction(()=>window.calls.includes('payroll-true')&&!startup14257.preparing);
- assert.equal(await page.evaluate(()=>loadedJournal.count),101);assert.equal(await page.evaluate(()=>loadedPayroll),9);assert.match(await page.evaluate(()=>notice),/profile refresh failed/);assert.equal(await page.evaluate(()=>startup14257.prepared),false);
- const before=await page.evaluate(()=>calls.filter(x=>x==='journal-server').length);
+ assert.equal(await page.evaluate(()=>loadedJournal.count),101);assert.equal(await page.evaluate(()=>loadedPayroll),9);assert.match(await page.locator('#startup1443 p').textContent(),/profile refresh failed/);assert.equal(await page.evaluate(()=>startup14257.prepared),false);
+await page.evaluate(()=>{loadProfilesFromSupabase=async()=>calls.push('profiles-ok');document.querySelector('#startup1443 button').click()});await page.waitForFunction(()=>startup14257.prepared===true);
+const before=await page.evaluate(()=>calls.filter(x=>x==='journal-server').length);
  await page.evaluate(()=>{loadProfilesFromSupabase=async()=>calls.push('profiles-ok');dispatchEvent(new Event('online'));dispatchEvent(new Event('online'))});
- await page.waitForFunction(()=>startup14257.prepared===true);assert.equal(await page.evaluate(()=>calls.filter(x=>x==='journal-server').length),before+1);assert.equal(await page.evaluate(()=>notice),'');
+ await page.waitForFunction(n=>calls.filter(x=>x==='journal-server').length===n+1&&!startup14257.preparing,before);assert.equal(await page.evaluate(()=>calls.filter(x=>x==='journal-server').length),before+1);assert.equal(await page.evaluate(()=>notice),'');
  console.log(JSON.stringify({slowServerRevalidated:true,unreachableRecovery:true,offlineSnapshotRetained:true,permissionDenialNotMasked:true,independentLoadsContinue:true,reconnectDeduplicated:true}));
  }finally{await browser.close();server.close()}
 })().catch(e=>{console.error(e);server.close();process.exitCode=1});

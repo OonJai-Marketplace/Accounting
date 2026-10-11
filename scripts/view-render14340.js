@@ -4,8 +4,9 @@ const active=id=>document.getElementById(id)?.classList.contains('active');
 function ready(){
  let loading=0,refreshPending=false;const refresh=window.refreshAllTables,load=window.loadJournalFromSupabase;
  window.refreshAllTables=function(...args){if(loading){refreshPending=true;return;}return refresh.apply(this,args)};
- window.loadJournalFromSupabase=async function(...args){loading++;try{return await load.apply(this,args)}finally{loading--;if(!loading&&refreshPending){refreshPending=false;window.refreshAllTables()}}};
+ window.loadJournalFromSupabase=async function(...args){loading++;try{return await load.apply(this,args)}finally{loading--;if(!loading&&refreshPending&&(!args[0]?.automatic||!window.idleSync14341||idleSync14341.allowed())){refreshPending=false;window.refreshAllTables()}}};
 
+ window.addEventListener('idle-sync14341',()=>{if(!loading&&refreshPending){refreshPending=false;window.refreshAllTables()}});
  for(const [name,views] of Object.entries({renderJournalHistoryTable:['journal'],renderNewTransactionsTable:['journal'],renderReopened67:['journal'],renderAllTransactionsTable:['transactions-all'],renderAccounts69:['accounts-modular-container','trial-balance','account-balances']})){
   const render=window[name];if(typeof render!=='function')continue;
   window[name]=function(...args){if(!views.some(active))return;return render.apply(this,args)};

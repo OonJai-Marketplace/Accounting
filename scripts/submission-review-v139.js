@@ -15,10 +15,10 @@
     originalRender();
     const host=document.getElementById(containers[0]),history=document.getElementById(containers[1]);if(!host||!history)return;
     const rows=legacyState==='ready'?(DemoAccess.submissions||[]):[];
-    const waiting=rows.filter(pending),completed=rows.filter(row=>!pending(row)&&row.status!=='draft');
+    const waiting=rows.filter(pending),completed=rows.filter(row=>!pending(row)&&row.status!=='draft'&&String(row.date).slice(0,7)===history.querySelector('[data-history-month14341]')?.value);
     if(waiting.length){host.querySelector('.period-empty')?.remove();host.insertAdjacentHTML('beforeend',waiting.map(legacyCard).join(''))}
     if(completed.length){history.querySelector('.period-empty')?.remove();history.insertAdjacentHTML('beforeend',completed.map(legacyCard).join(''))}
-    const count=host.querySelectorAll('.final-record-card').length;
+    historyMonth14341.expand(history);const count=host.querySelectorAll('.final-record-card').length;
     const summary=document.getElementById('userEntryReviewSummary'),badge=document.getElementById('navUserReviewCount');
     if(summary)summary.textContent=legacyState==='error'?'Review queue could not be fully loaded':legacyState==='loading'?'Checking submitted entries…':count?`${count} item${count===1?'':'s'} waiting`:'No submissions awaiting approval';
     if(badge){badge.textContent=count;badge.hidden=!count}

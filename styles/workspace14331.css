@@ -12,7 +12,6 @@
   @supports selector(::-webkit-scrollbar){body #categoryTabShell #categoryTabs{scrollbar-width:auto!important}}
   body .tab-content:not(#document-editor105) table tbody tr:is(.table-selected107,.entry-selected-line,.entry-selected-owner,.audit-selected101,.audit-row-selected)>:is(td,th),
   body #journalEntry98 #jeLinesBody tr.selected-entry-row14271>td{background:#dff3e9!important;box-shadow:none!important;outline:0!important}
-  body .tab-content:not(#document-editor105) table:not(.attendance-grid99,.attendance-table99,.attendance-table95) tbody tr:not(.entry-selected-line,.table-selected107,.audit-row-selected,.audit-selected101):hover>td{background-color:#edf8f3!important}
   body :is(#hr-assessments,#hr-contracts) .hr-employee-select14306{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;width:100%!important;max-width:360px!important;margin:0!important;min-width:0!important;font-size:12px;font-weight:600}
   body :is(#hr-assessments,#hr-contracts) .hr-employee-select14306>select{width:100%!important;min-width:0!important;box-sizing:border-box!important}
   body #hr-contracts .work82>.hr-employee-select14306,body #hr-assessments .work82>.hr-picker105{margin:12px!important;padding:0!important;width:calc(100% - 24px)!important;max-width:360px!important;box-sizing:border-box!important}
