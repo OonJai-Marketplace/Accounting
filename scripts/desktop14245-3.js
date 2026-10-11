@@ -7501,7 +7501,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (function(){
   'use strict';
   const views={
-    'tax-overview':'Tax Overview','tax-vat':'VAT','tax-pit':'Personal Income Tax',
+    'tax-overview':'Monthly Statutory','tax-vat':'VAT','tax-pit':'Personal Income Tax',
     'tax-social':'Social Security','tax-payment':'Tax and Social Payment',
     'tax-sso-payment':'SSO Payment','tax-records':'Tax and SSO Records'
   };
@@ -7530,8 +7530,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     state.exports=[];
     const payroll=payrollRows(),journal=journalRows();let content='';
     if(active==='tax-overview'){
-      content=card('Monthly totals from finalized payroll',`<div class="tax-metrics102">${totals(payroll,'employeePit')}${totals(payroll,'employerPit')}${totals(payroll,'employeeSso')}${totals(payroll,'employerSso')}</div>`+table(['Payroll reference','Employee','PIT employee · LAK','PIT employer · LAK','SSO employee · LAK','SSO employer · LAK'],payroll.map(r=>[r.reference,r.employee,number(r.employeePit),number(r.employerPit),number(r.employeeSso),number(r.employerSso)])))+
-        card('VAT journal account activity',journalTable(journal.filter(r=>r.group==='VAT')));
+      content=card('Monthly statutory summary',`<p>One monthly working report from finalized payroll and posted journal activity. Review source records before filing.</p><div class="tax-metrics102">${totals(payroll,'employeePit')}${totals(payroll,'employerPit')}${totals(payroll,'employeeSso')}${totals(payroll,'employerSso')}</div>`+table(['Payroll reference','Employee','PIT employee · LAK','PIT employer · LAK','SSO employee · LAK','SSO employer · LAK'],payroll.map(r=>[r.reference,r.employee,number(r.employeePit),number(r.employerPit),number(r.employeeSso),number(r.employerSso)])))+
+        card('VAT · posted journal activity',journalTable(journal.filter(r=>r.group==='VAT')))+
+        card('Income tax · posted journal activity',journalTable(journal.filter(r=>r.group==='PIT')))+
+        card('Social security · posted journal activity',journalTable(journal.filter(r=>r.group==='SSO')));
     }else if(active==='tax-vat'){
       content=card('VAT · posted journal activity',journalTable(journal.filter(r=>r.group==='VAT')));
     }else if(active==='tax-pit'||active==='tax-social'){
@@ -7650,8 +7652,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   for(const item of window.getScheduledAlerts104?.()||[])rows.push({type:'Scheduled journal · '+item.status,title:item.title,detail:item.date||'',target:'transactions-recurring'});
   if(liveProfile.role==='admin'&&typeof reviewStaffJournals!=='undefined')for(const row of reviewStaffJournals.filter(r=>r.status==='submitted'))rows.push({type:'Submission review',title:row.reference||row.seed_key||row.period_start||'Submitted entry',detail:row.period_start||'',target:'user-entry-review'});
   rows.push(...(window.getTodoNotices136?.()||[]));rows.push(...(window.vouchers14299?.notices?.()||[]));rows.push(...(window.hrCalendar14306?.notices?.()||[]));
+  rows.push(...(window.syncAssessment14332?.notices?.()||[]));
   const badge=Number($('navUserReviewCount')?.textContent)||0,submissions=rows.filter(x=>x.type==='Submission review').length;for(let n=submissions;n<badge&&n<50;n++)rows.push({type:'Submission review',title:'Pending review',detail:'',target:'user-entry-review'});return rows}
- function updateBell(){window.navigationBadges14311?.render();const badge=$('headerNoticeBadge104');if(!badge)return;const count=notices().length;badge.hidden=!count;badge.textContent=count>99?'99+':String(count);$('upcomingBell101')?.setAttribute('aria-label',`${count} notifications`);const list=$('headerNoticeList104');if(list&&!$('headerNotices104')?.hidden){const opened=new Set([...list.querySelectorAll('details[open]')].map(n=>n.dataset.notice1443));list.innerHTML=notices().length?notices().map(n=>n.todoId&&window.todos1438?.noticeHTML?todos1438.noticeHTML(n):`<button type="button" data-target="${escape(n.target)}" ${n.hrEventId?`data-hr-event14306="${escape(n.hrEventId)}"`:''} ${n.todoId?`data-todo-target1438="${escape(n.todoId)}"`:""}><strong>${escape(n.type)}</strong><span>${escape(n.title)}</span><small>${escape(n.detail)}</small></button>`).join(''):'<p>No current notifications.</p>';list.querySelectorAll('details').forEach(n=>n.open=opened.has(n.dataset.notice1443));window.todos1438?.bindNotices(list)}}
+ function updateBell(){window.navigationBadges14311?.render();const badge=$('headerNoticeBadge104');if(!badge)return;const rows=notices(),count=rows.length,critical=rows.some(n=>n.critical);badge.hidden=!count;badge.textContent=count>99?'99+':String(count);badge.classList.toggle('critical14332',critical);$('upcomingBell101')?.classList.toggle('critical14332',critical);$('upcomingBell101')?.setAttribute('aria-label',`${count} notifications${critical?', sync needs attention':''}`);const list=$('headerNoticeList104');if(list&&!$('headerNotices104')?.hidden){const opened=new Set([...list.querySelectorAll('details[open]')].map(n=>n.dataset.notice1443));list.innerHTML=rows.length?rows.map(n=>n.todoId&&window.todos1438?.noticeHTML?todos1438.noticeHTML(n):`<button type="button" data-target="${escape(n.target)}" ${n.critical?'class="critical14332"':''} ${n.hrEventId?`data-hr-event14306="${escape(n.hrEventId)}"`:''} ${n.todoId?`data-todo-target1438="${escape(n.todoId)}"`:""}><strong>${escape(n.type)}</strong><span>${escape(n.title)}</span><small>${escape(n.detail)}</small></button>`).join(''):'<p>No current notifications.</p>';list.querySelectorAll('details').forEach(n=>n.open=opened.has(n.dataset.notice1443));window.todos1438?.bindNotices(list)}}
  window.getNotices14311=notices;
  window.refreshNotices1443=updateBell;
  function install(){const header=document.getElementById('transactionsHeading98'),menu=document.querySelector('.sidebar-user-footer'),toolbar=$('topTools101');if(!header||!menu||!toolbar)return;const trigger=$('headerAccountTrigger'),avatar=$('headerAccountInitials'),copy=menu.querySelector('.sidebar-user-copy');menu.id='topHeaderProfile104';menu.classList.add('top-header-profile104');trigger.replaceChildren(avatar,copy);trigger.setAttribute('aria-label','Open account menu');menu.querySelector('.header-account-identity')?.remove();menu.querySelectorAll('#global-csv-btn,#global-print-btn,.module-export-divider').forEach(node=>node.remove());header.append(toolbar,menu);
@@ -7660,6 +7663,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   document.addEventListener('click',e=>{if(!e.target.closest('#headerNotices104,#upcomingBell101')){panel.hidden=true;bell.setAttribute('aria-expanded','false')}},true);
   updateHeaderProfile104();updateBell();setInterval(()=>{if(typeof liveProfile!=='undefined'&&liveProfile){updateHeaderProfile104();updateBell()}},15000);
   const reviewBadge=$('navUserReviewCount');if(reviewBadge)new MutationObserver(updateBell).observe(reviewBadge,{childList:true,characterData:true,subtree:true});
+  window.addEventListener('connection14239',updateBell);
+  window.addEventListener('sync-assessment14332',updateBell);
   const load=window.loadWork82;if(typeof load==='function')window.loadWork82=async function(...args){const result=await load.apply(this,args);updateHeaderProfile104();return result};
   const signed=window.hydrateSupabaseSession;if(typeof signed==='function')window.hydrateSupabaseSession=async function(...args){const result=await signed.apply(this,args);updateHeaderProfile104();updateBell();if(typeof liveProfile!=='undefined'&&liveProfile?.role==='admin'){window.loadWork82?.().then(updateHeaderProfile104);window.loadSchedules91?.().then(updateBell)}return result};
   const warnings=window.renderRecurringWarnings;if(typeof warnings==='function')window.renderRecurringWarnings=function(...args){const result=warnings.apply(this,args);updateBell();return result};

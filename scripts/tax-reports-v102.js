@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   const views={
-    'tax-overview':'Tax Overview','tax-vat':'VAT','tax-pit':'Personal Income Tax',
+    'tax-overview':'Monthly Statutory','tax-vat':'VAT','tax-pit':'Personal Income Tax',
     'tax-social':'Social Security','tax-payment':'Tax and Social Payment',
     'tax-sso-payment':'SSO Payment','tax-records':'Tax and SSO Records'
   };
@@ -31,8 +31,10 @@
     state.exports=[];
     const payroll=payrollRows(),journal=journalRows();let content='';
     if(active==='tax-overview'){
-      content=card('Monthly totals from finalized payroll',`<div class="tax-metrics102">${totals(payroll,'employeePit')}${totals(payroll,'employerPit')}${totals(payroll,'employeeSso')}${totals(payroll,'employerSso')}</div>`+table(['Payroll reference','Employee','PIT employee · LAK','PIT employer · LAK','SSO employee · LAK','SSO employer · LAK'],payroll.map(r=>[r.reference,r.employee,number(r.employeePit),number(r.employerPit),number(r.employeeSso),number(r.employerSso)])))+
-        card('VAT journal account activity',journalTable(journal.filter(r=>r.group==='VAT')));
+      content=card('Monthly statutory summary',`<p>One monthly working report from finalized payroll and posted journal activity. Review source records before filing.</p><div class="tax-metrics102">${totals(payroll,'employeePit')}${totals(payroll,'employerPit')}${totals(payroll,'employeeSso')}${totals(payroll,'employerSso')}</div>`+table(['Payroll reference','Employee','PIT employee · LAK','PIT employer · LAK','SSO employee · LAK','SSO employer · LAK'],payroll.map(r=>[r.reference,r.employee,number(r.employeePit),number(r.employerPit),number(r.employeeSso),number(r.employerSso)])))+
+        card('VAT · posted journal activity',journalTable(journal.filter(r=>r.group==='VAT')))+
+        card('Income tax · posted journal activity',journalTable(journal.filter(r=>r.group==='PIT')))+
+        card('Social security · posted journal activity',journalTable(journal.filter(r=>r.group==='SSO')));
     }else if(active==='tax-vat'){
       content=card('VAT · posted journal activity',journalTable(journal.filter(r=>r.group==='VAT')));
     }else if(active==='tax-pit'||active==='tax-social'){
