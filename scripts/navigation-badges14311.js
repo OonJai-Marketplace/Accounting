@@ -20,8 +20,8 @@ function render(){const tabs=counts(),modules={};for(const [id,n]of Object.entri
  document.querySelectorAll('#categoryTabs .category-tab,#appSidebar .nav-links .tab-btn').forEach(b=>{let id=target(b);if(b.closest('#nav-module-sub-users'))id=liveProfile?.role==='admin'?'sub-users-home14229':'sub-users-workspace';badge(b,id==='sub-users-home14229'?0:tabs[id]||0)});
  const reports=typeof reviewStaffJournals==='undefined'?[]:reviewStaffJournals;const needs=(id,status)=>reports.filter(r=>String(r.owner_id)===String(id)&&r.status===status).length;
  document.querySelectorAll('[data-team-user14230]').forEach(b=>badge(b,allowed('sub-users-workspace')&&liveProfile?.role!=='admin'?needs(b.dataset.teamUser14230,'returned'):0));
- document.querySelectorAll('[onclick*=openWorkspaceReview]').forEach(b=>{const m=b.getAttribute('onclick').match(/openWorkspaceReview\(['"]([^'"]+)/);if(m&&!b.getAttribute('onclick').includes("'history'"))badge(b,needs(m[1],'returned')+needs(m[1],'submitted'))});
- const personal=document.getElementById('personalWorkspace1437');if(personal){badge(personal.querySelector('[data-personal-tab=journal]'),allowed('sub-users-workspace')?needs(personal.dataset.owner,'returned'):0);badge(personal.querySelector('[data-personal-tab=home]'),0)}
+ document.querySelectorAll('[onclick*=openWorkspaceReview]').forEach(b=>{const m=b.getAttribute('onclick').match(/openWorkspaceReview\(['"]([^'"]+)/);if(m&&!b.getAttribute('onclick').includes("'history'"))badge(b,reports.filter(r=>String(r.owner_id)===String(m[1])&&r.status==='returned'&&r.id!==window.personalJournal1437?.correctionFor(m[1])).length)});
+ const personal=document.getElementById('personalWorkspace1437');if(personal){badge(personal.querySelector('[data-personal-tab=journal]'),0);badge(personal.querySelector('[data-personal-tab=home]'),0)}
 
 }
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render()})}

@@ -62,7 +62,7 @@ async function postCompared69(id){
   const eligible=eligibleSource69(fresh);
   if(!eligible.length){const r=await ojmDb.rpc('review_collection_report',{p_journal_id:id});if(r.error)throw r.error;await loadStaffJournalsForReview();document.getElementById('submissionComparisonOverlay')?.remove();showCenterStatus('Report reviewed; no duplicate journal entries were posted.');return}
   await loadAccountingPeriodStatuses();
-  prepareComparedForm69(fresh);await submitJournalEntry();if(!pendingWorkspacePostJournalId){approvedComparisons69.delete(id);document.getElementById('submissionComparisonOverlay')?.remove()}
+  if(!await prepareComparedForm69(fresh))return;showJournalEntry98(true);return;if(!pendingWorkspacePostJournalId){approvedComparisons69.delete(id);document.getElementById('submissionComparisonOverlay')?.remove()}
  }catch(e){showCenterStatus(e.message||'Posting failed.',true)}finally{comparePosting69=false;if(button)button.disabled=false}
 }
 function adjustmentDetails69(item,applied=false,live={}){

@@ -70,7 +70,7 @@ function navigation(){
 function workspaceActions(){
  const panel=document.getElementById('subUserWorkspacePanel'),bar=panel?.querySelector('.v49-desktop-user-actions')||document.querySelector('#sub-users-workspace>.area-banner113>.v49-desktop-user-actions');if(!panel||!bar)return;const header=panel.querySelector('.v49-desktop-user-heading');if(header&&innerWidth>640){if(bar.parentElement!==header){header.querySelector(':scope>.v49-desktop-user-actions')?.remove();header.append(bar);}}
  let back=bar.querySelector('.team-back14227');
- if(admin()){if(!back){back=document.createElement('button');back.type='button';back.className='je-btn je-btn-secondary team-back14227';back.textContent='Sub-users Home';back.onclick=home;}if(back.parentElement!==bar)bar.prepend(back);}else back?.remove();
+ if(admin()&&innerWidth<=640){if(!back){back=document.createElement('button');back.type='button';back.className='je-btn je-btn-secondary team-back14227';back.textContent='Sub-users Home';back.onclick=home;}if(back.parentElement!==bar)bar.prepend(back);}else back?.remove();
  const submit=bar.querySelector('[onclick*="submitWorkspaceForReview"]');if(submit&&submit.textContent!=='Submit'){submit.textContent='Submit';submit.setAttribute('aria-label','Submit for Review');submit.title='Submit for Review';}
  const print=bar.querySelector('[data-print-history1434]');if(print&&print.textContent!=='Print Report')print.textContent='Print Report';
 }
