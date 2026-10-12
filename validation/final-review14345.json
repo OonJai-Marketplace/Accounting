@@ -1,0 +1,21 @@
+{
+  "release": "143.45",
+  "browserChecks": [
+    "premature month close/lock blocked",
+    "technical accounts included in full trial balance",
+    "single lock save without redundant warning",
+    "unbalanced preflight blocks locking",
+    "report types and all actual balances required",
+    "saved reconciliation rendered with escaped text",
+    "large amounts contained at 1280, 820 and 768 widths",
+    "independent phone submission and history reconciliation"
+  ],
+  "databaseChecks": [
+    "October reopened; 11 entries retained",
+    "current month closure rejected",
+    "legacy submission bypass rejected",
+    "atomic reconciled submission verified using rolled-back fixture",
+    "unbalanced saved ledger closure rejected using rolled-back fixture"
+  ],
+  "securityReview": "New RPCs require active authorized workspace access; anon execute revoked; new confirmation column guarded against direct changes. Signed-in SECURITY DEFINER advisories are intentional for these scoped RPCs."
+}

@@ -3,7 +3,7 @@ from pathlib import Path
 import hashlib, json, re
 root=Path(__file__).resolve().parents[1]
 html=(root/'desktop.html').read_text()
-paths={'setup/INSTALL-EDITABLE-TODOS-v143.35.sql','scripts/document-import-v1422.js','scripts/document-export-v108.js','assets/vendor/docx.js','assets/vendor/jszip.min.js','assets/vendor/document14285/cfb.min.js','assets/vendor/document14285/marked.umd.js','assets/vendor/noble-gcm14334.js','recovery.html','scripts/recovery14257.js','setup/INSTALL-PAYROLL-YEAR-WINDOW-v143.34.sql','phone.html','phone-sw.js','scripts/phone-runtime14242.js','setup/INSTALL-OFFLINE-YEAR-WINDOW-v143.33.sql','desktop.html','desktop-sw14242.js','setup/INSTALL-MAINTENANCE-v143.24.sql','assets/maintenance/report-template14326.xlsx'}
+paths={'setup/INSTALL-FINAL-REVIEW-v143.45.sql','setup/INSTALL-EDITABLE-TODOS-v143.35.sql','scripts/document-import-v1422.js','scripts/document-export-v108.js','assets/vendor/docx.js','assets/vendor/jszip.min.js','assets/vendor/document14285/cfb.min.js','assets/vendor/document14285/marked.umd.js','assets/vendor/noble-gcm14334.js','recovery.html','scripts/recovery14257.js','setup/INSTALL-PAYROLL-YEAR-WINDOW-v143.34.sql','phone.html','phone-sw.js','scripts/phone-runtime14242.js','setup/INSTALL-OFFLINE-YEAR-WINDOW-v143.33.sql','desktop.html','desktop-sw14242.js','setup/INSTALL-MAINTENANCE-v143.24.sql','assets/maintenance/report-template14326.xlsx'}
 paths.update(re.findall(r'(?:src|href)="((?:scripts|styles)/[^"?]+)',html))
 effects={
  'scripts/maintenance14324.js':'Maintenance review, investigator and exports may not run correctly.',
@@ -25,7 +25,7 @@ for path in sorted(paths):
    body=text[m.end():matches[i+1].start() if i+1<len(matches) else len(text)]
    item['segments'].append({'source':m.group(1),'sha256':hashbytes(body.encode())})
  files.append(item)
-manifest={'release':'143.44','comparisonBaseline':'v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784','files':files,'approvedRules':[
+manifest={'release':'143.45','comparisonBaseline':'v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784','files':files,'approvedRules':[
  {'rule':'Native 100% desktop; no global zoom/media rewriting','validation':'validation/test-recovery14323.cjs'},
  {'rule':'Preserve phone v142.53 navigation and layout','validation':'validation/test-phone-tools14317.cjs'},
  {'rule':'Administrator workspace and period descriptions remain stable','validation':'validation/test-regressions14304.cjs'},

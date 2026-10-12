@@ -23,7 +23,7 @@ function layout(){
   if(hero&&tabs){place(shell,tabs,hero);next.push(tabs)}
  }else{
   if(banner&&panel.firstElementChild!==banner)panel.prepend(banner);
-  for(const node of [sharedHeader,sharedTabs,document.getElementById('settingsSections14335'),document.querySelector('.sub-user-tabs-shell'),...panel.querySelectorAll(rowSelector)]){
+  for(const node of [sharedHeader,sharedTabs,document.getElementById('settingsSections14335'),panel.id==='sub-users-workspace'?document.querySelector('.sub-user-tabs-shell'):null,...panel.querySelectorAll(rowSelector)]){
    if(!node)continue;anchor=place(panel,node,anchor);next.push(node);
   }
  }

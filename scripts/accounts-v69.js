@@ -42,7 +42,7 @@ function accountData69(through=Accounts69.to){
  });
  return [...map.values()].map(r=>{r.closing=r.opening+r.debit-r.credit;r.lines.sort((a,b)=>a.date.localeCompare(b.date)||String(a.id).localeCompare(String(b.id))||a.originalIndex-b.originalIndex);return r}).sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
 }
-function reportRows69(through=Accounts69.to){return accountData69(through).filter(r=>(!r.account.isTechnical||Accounts69.account===r.key)&&(!Accounts69.currency||r.currency===Accounts69.currency)&&(!Accounts69.account||r.key===Accounts69.account))}
+function reportRows69(through=Accounts69.to,includeTechnical=false){return accountData69(through).filter(r=>(includeTechnical||!r.account.isTechnical||Accounts69.account===r.key)&&(!Accounts69.currency||r.currency===Accounts69.currency)&&(!Accounts69.account||r.key===Accounts69.account))}
 function balanceText69(value){return `${money69(Math.abs(value))}${value>0?' DR':value<0?' CR':''}`}
 function reportControls69(kind){
  const rows=accountData69(),codes=[...new Set([...(CurrencyStore.currencies||[]).map(c=>c.code),...rows.map(r=>r.currency)])];
@@ -100,7 +100,7 @@ function renderAccounts69(){
  if(!ledger)return;
  ledger.innerHTML=`<div class="je-card-header ledger-header71 main-heading87"><div><h3>General Ledger</h3><p>Review posted entries and the Trial Balance before closing the selected month.</p></div><div class="ledger-actions71"><div class="module-actions71"><button class="je-btn je-btn-secondary" onclick="exportAccounts69('ledger')">Export CSV</button><button class="je-btn je-btn-secondary" onclick="createReconciliation71()">Create Reconciliation Report</button><button class="je-btn je-btn-emerald" ${Accounts69.mode!=='monthly'?'disabled title="Select Monthly to close one month"':''} onclick="closeSelectedMonth71()">Close &amp; Archive Month</button></div><span>${Accounts69.mode==='monthly'?monthLabel(Accounts69.month):'Select Monthly to close one month.'}</span></div></div>`+reportControls69('ledger')+ledgerHtml69(rows)+`<input type="hidden" id="closeMonth67" value="${Accounts69.month}">`;
 
- const trialRows=reportRows69(trialThrough87());
+ const trialRows=reportRows69(trialThrough87(),true);
  trial.innerHTML=header69('Trial Balance','Opening balances + period activity = closing balances. Each currency balances independently; equal totals do not rule out missing or misclassified entries.','trial')+reportControls69('trial')+(Accounts69.account?'<p class="report-note69">Single-account view: debit and credit totals are not expected to balance. Select All accounts for the full Trial Balance.</p>':'')+currencySummary69(trialRows)+trialHtml69(trialRows);
  balances.innerHTML=header69('Account Balances','A snapshot of each account at the selected end date. Click an account to inspect its individual ledger.','balances')+reportControls69('balances')+balancesHtml69(rows);
  renderOtherAccounts69(rows);
@@ -112,7 +112,7 @@ function showJournalSource69(encoded){
 }
 function renderOtherAccounts69(){if(typeof renderSystemAccounts71==='function')renderSystemAccounts71()}
 function exportAccounts69(kind){
- const through=kind==='trial'?trialThrough87():Accounts69.to,rows=reportRows69(through);let header=['Code','Account','Currency','Opening DR less CR','Period Debit','Period Credit','Closing DR','Closing CR'];let values=rows.map(r=>[r.account.code,r.account.name,r.currency,r.opening/100,r.debit/100,r.credit/100,Math.max(r.closing,0)/100,Math.max(-r.closing,0)/100]);
+ const through=kind==='trial'?trialThrough87():Accounts69.to,rows=reportRows69(through,kind==='trial');let header=['Code','Account','Currency','Opening DR less CR','Period Debit','Period Credit','Closing DR','Closing CR'];let values=rows.map(r=>[r.account.code,r.account.name,r.currency,r.opening/100,r.debit/100,r.credit/100,Math.max(r.closing,0)/100,Math.max(-r.closing,0)/100]);
  if(kind==='ledger'){header=['Code','Account','Currency','Date','Entry ID','Description','Debit','Credit','Running DR less CR'];values=rows.flatMap(r=>{let running=r.opening;return [[r.account.code,r.account.name,r.currency,Accounts69.from,'','Opening',0,0,r.opening/100],...r.lines.map(l=>{running+=l.dr-l.cr;return [r.account.code,r.account.name,r.currency,l.date,l.id,l.memo,l.dr/100,l.cr/100,running/100]})]})}
  const csv=[header,...values].map(row=>row.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`${kind}-${through}.csv`;(window.exportCenter14337?exportCenter14337.fromLink(a):a.click());setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
