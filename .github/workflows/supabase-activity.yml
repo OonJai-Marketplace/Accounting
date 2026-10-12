@@ -1,0 +1,22 @@
+name: Supabase activity check
+
+on:
+  schedule:
+    # Three database requests per day, away from the top of the hour.
+    - cron: "17 2,10,18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check isolated database response
+        run: |
+          curl --fail --silent --show-error --retry 2 --retry-delay 5 --max-time 20 \
+            --header 'Cache-Control: no-cache' \
+            --output /dev/null \
+            'https://nhjsesfhapnjtwlxvirm.supabase.co/functions/v1/keepalive-ping'
