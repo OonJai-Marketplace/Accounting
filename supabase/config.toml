@@ -9,6 +9,3 @@ verify_jwt = false
 [functions.recovery-vault113]
 verify_jwt = false
 
-# Public constant-only probe. It uses the function's anonymous database grant.
-[functions.keepalive-ping]
-verify_jwt = false
