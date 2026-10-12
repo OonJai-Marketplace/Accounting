@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-11",
+  "checkedAt": "2026-10-12",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -45,17 +45,22 @@
     },
     {
       "id": "la-2026-that-luang",
-      "revision": "2026-10-09T11:15:00Z",
-      "title": "That Luang Festival · Main observance",
-      "location": "Vientiane Capital",
-      "start": "2026-11-24",
+      "revision": "2026-10-12T01:30:00Z",
+      "title": "That Luang Festival and Trade Fair · 2026",
+      "location": "Vat Simeuang, Pha That Luang and surrounding festival and trade-fair areas, Vientiane Capital, Laos",
+      "start": "2026-11-21",
       "end": "2026-11-24",
-      "category": "holiday",
+      "category": "festival",
       "confidence": "confirmed",
-      "summary": "The main That Luang observance is listed for 24 November. The associated fair may span additional days.",
-      "restaurantIdea": "Prepare a promotion and staffing plan two weeks before the festival.",
-      "uncertainty": "",
+      "summary": "Tourism Laos lists the 2026 festival and trade fair from 21–24 November. The programme description includes the wax-castle procession from Vat Simeuang to Pha That Luang, mass almsgiving, traditional activities, trade fairs, concerts and fun fairs. The main That Luang observance remains 24 November. As of 12 October: 40 days until opening; shorter than six months’ notice.",
+      "restaurantIdea": "Suggestion: If serving Vientiane customers, begin promotion, staffing and supplier planning now; confirm road closures, stall opportunities and operating hours by late October before advertising.",
+      "uncertainty": "The official date range and principal religious venues are confirmed. A detailed 2026 timetable, trade-fair stall map, road-closure plan and public opening hours were not found during this check.",
       "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/event/that-luang-festival-and-trade-fair-in-vientiane-capital-2/",
+          "language": "en"
+        },
         {
           "name": "JICA Laos · Published 2026 calendar",
           "url": "https://www.jica.go.jp/english/overseas/laos/office/__icsFiles/afieldfile/2026/05/05/LaosOfficeHolidays2026_1.pdf",
@@ -635,6 +640,46 @@
           "name": "Institut français du Laos · Detailed programme",
           "url": "https://algilthegreat.github.io/fr/programme",
           "language": "other"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-lao-digital-week-vientiane",
+      "revision": "2026-10-12T01:30:00Z",
+      "title": "Lao Digital Week 2026",
+      "location": "Lao-ITECC Exhibition Center, Vientiane Capital, Laos",
+      "start": "2026-10-21",
+      "end": "2026-10-25",
+      "category": "community",
+      "confidence": "confirmed",
+      "summary": "KPL announces a five-day national digital exhibition and forum under the theme of accelerating digital government transformation, building a digital workforce and driving innovation toward the AI era. As of 12 October: 9 days until opening; shorter than six months’ notice.",
+      "restaurantIdea": "Suggestion: If serving Vientiane customers or exhibitors, check access and public hours immediately, then consider quick lunch, pre-order or group-delivery offers before the event opens.",
+      "uncertainty": "The dates and Lao-ITECC venue are confirmed. Public opening hours, admission rules, exhibitor attendance and food-vendor arrangements were not verified; restaurant demand is not guaranteed.",
+      "sources": [
+        {
+          "name": "KPL · Lao News Agency, 17 August 2026",
+          "url": "https://kpl.gov.la/En/detail.aspx?id=105807",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-naga-fireball-bolikhamxay",
+      "revision": "2026-10-12T01:30:00Z",
+      "title": "Naga Fireball Observance · Bolikhamxay",
+      "location": "Bolikhamxay Province, Laos; exact district, riverbank and viewing venue not specified in the reviewed listing",
+      "start": "2026-10-26",
+      "end": "2026-10-26",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "Tourism Laos lists the Naga fireball observance in Bolikhamxay Province for 26 October 2026, the final night of Buddhist Lent. As of 12 October: 14 days until the observance; shorter than six months’ notice.",
+      "restaurantIdea": "Suggestion: If operating in or serving travellers to Bolikhamxay, confirm the exact viewing district and access arrangements this week before planning takeaway, staffing or travel-related promotions.",
+      "uncertainty": "The official listing confirms the date and province but does not identify the exact district or public viewing area. Do not assume Pak Ngum or any particular riverbank without a local announcement.",
+      "sources": [
+        {
+          "name": "Tourism Laos · Ministry of Culture and Tourism",
+          "url": "https://www.tourismlaos.org/event/naga-rocket-in-bolikhamxay-province-3/",
+          "language": "en"
         }
       ]
     }
