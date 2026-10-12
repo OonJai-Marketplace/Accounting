@@ -52,13 +52,26 @@ html body dialog.connection-dialog14239{width:min(540px,calc(100vw - 28px))!impo
  html body.scroll-navigation14344 .tab-content>.area-banner113{position:relative!important;top:auto!important;margin-bottom:10px!important}
  html body.scroll-navigation14344 .workspace-scroll{scroll-padding-top:calc(var(--navigation-height14344,0px) + 12px)}
  html body.scroll-navigation14344 .tab-content>.module-header{display:none!important}
- html body.scroll-navigation14344.team-shell14227 .tab-content>.module-header{display:flex!important;visibility:visible!important;min-height:46px!important;height:auto!important;padding:3px 12px!important;border-bottom:1px solid #d9cbb6!important}
+ html body.scroll-navigation14344.team-shell14227 .tab-content>.module-header{display:none!important}
  html body.scroll-navigation14344 :is(.workflow-switch14316,.workspace-tabs14337,.personal-tabs1437).sticky-tabs14344{padding:6px 8px!important;gap:6px!important;border-bottom:1px solid #d9cbb6!important;border-radius:0!important}
  html body.scroll-navigation14344 #dashboard .dash-shell112{overflow:visible!important}
  html body.scroll-navigation14344 #dashboard .dash-hero112{margin-bottom:0!important}
- html body.scroll-navigation14344:is(.workspace-full1439,.browser-full14344) :is(.area-banner113,.dash-hero112){display:none!important}
+ html body.scroll-navigation14344 .tab-content:not(#dashboard)>.area-banner113{display:none!important}
 }
 @media print{.sticky-tabs14344{display:none!important}}
 @media screen and (min-width:641px){
  html body.scroll-navigation14344 #sub-users-workspace{overflow:visible!important}
 }
+
+@media screen and (min-width:641px){
+ html body.scroll-navigation14344 .tab-content:not(#dashboard)>.area-banner113,
+ html body.scroll-navigation14344 .tab-content:not(#dashboard)>.module-header{display:none!important}
+ html body.scroll-navigation14344 .tab-content>.team-tabs14230{display:flex!important;width:100%;padding:4px 12px!important;border-bottom:1px solid #d9cbb6!important}
+ html body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading>div:first-child{display:block!important}
+ html body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:8px!important}
+ html body #subUserWorkspacePanel .v49-desktop-user-heading>.v49-desktop-user-actions{justify-content:flex-end!important;margin-left:auto!important;width:auto!important;flex:1 1 auto!important}
+}
+
+@layer workspace14331 { @media screen and (min-width:641px) { html body #subUserWorkspacePanel .v49-desktop-user-actions{justify-content:flex-end!important;} } }
+
+@media screen and (min-width:641px){html body.scroll-navigation14344 .workspace-scroll:has(>.tab-content.active:not(#dashboard)){padding-top:0!important}}

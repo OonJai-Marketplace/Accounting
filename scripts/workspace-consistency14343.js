@@ -1,7 +1,7 @@
 /* Shared workspace order and dismissal use each component's existing lifecycle. */
 (()=>{'use strict';
 const visible=n=>n?.isConnected&&n.getClientRects().length&&!n.closest('[hidden]')&&getComputedStyle(n).visibility!=='hidden';
-const rowSelector=':scope>.workflow-switch14316,:scope>.workspace-tabs14337,:scope>.personal-tabs1437';
+const rowSelector=':scope>.team-tabs14230,:scope>.workflow-switch14316,:scope>.workspace-tabs14337,:scope>.personal-tabs1437';
 let sharedHeader,sharedTabs,scrollArea,mainArea,rows=[],observed=new Set();
 const sizes=new ResizeObserver(()=>measure());
 function measure(){let top=0;for(const row of rows){if(row.style.getPropertyValue('--tab-top14344')!==top+'px')row.style.setProperty('--tab-top14344',top+'px');if(visible(row))top+=row.getBoundingClientRect().height}if(scrollArea&&scrollArea.style.getPropertyValue('--navigation-height14344')!==top+'px')scrollArea.style.setProperty('--navigation-height14344',top+'px')}
@@ -14,7 +14,7 @@ function layout(){
  const personal=panel.querySelector('#personalWorkspace1437'),personalTabs=personal?.querySelector('.personal-tabs1437');
  for(const old of panel.querySelectorAll(':scope>.personal-tabs1437'))if(old._personalHost14344!==personal)old.remove();
  if(personalTabs){personalTabs._personalHost14344=personal;personalTabs.addEventListener('click',e=>{const b=e.target.closest('[data-personal-tab]');if(b)window.personalJournal1437?.show(personal.dataset.owner,b.dataset.personalTab)});panel.append(personalTabs)}
- const banner=panel.querySelector(':scope>.area-banner113');let anchor=banner,next=[];
+ const banner=panel.querySelector(':scope>.area-banner113');let anchor=null,next=[];
  if(panel.id==='dashboard'){
   // Dashboard rebuilds its own HTML, so keep the shared controls outside that host.
   for(const node of [sharedHeader,sharedTabs])if(node&&node.parentElement!==mainArea)mainArea.insertBefore(node,scrollArea);
@@ -22,7 +22,7 @@ function layout(){
   if(shell&&hero&&shell.firstElementChild!==hero)shell.prepend(hero);
   if(hero&&tabs){place(shell,tabs,hero);next.push(tabs)}
  }else{
-  if(banner&&panel.firstElementChild!==banner)panel.prepend(banner);
+  // Page titles and decorative banners are omitted; navigation is the first row.
   for(const node of [sharedHeader,sharedTabs,panel.dataset.module==='settings'?document.getElementById('settingsSections14335'):null,panel.id==='sub-users-workspace'?document.querySelector('.sub-user-tabs-shell'):null,...panel.querySelectorAll(rowSelector)]){
    if(!node)continue;anchor=place(panel,node,anchor);next.push(node);
   }

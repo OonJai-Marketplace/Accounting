@@ -54,13 +54,13 @@ function shortName(u){const parts=name(u).trim().split(/\s+/);return parts.lengt
 function navigation(){
  const page=document.querySelector('#sub-users-home14229.active,#sub-users-workspace.active');if(!page)return;
  const all=new Map();for(const u of [...users(),...availableSubUsers()])if(Organization14229.mayOpen(String(u.id)))all.set(String(u.id),u);
- const header=document.querySelector('.module-header .header-left-tools');if(!header)return;
+ const header=page;if(!header)return;
  let nav=header.querySelector('.team-tabs14230');
  if(!nav){nav=document.createElement('nav');nav.className='team-tabs14230';nav.setAttribute('aria-label','Sub-user workspaces');
  nav.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-team-home14230'))home();else if(b.dataset.teamUser14230)openUser(b.dataset.teamUser14230)});
  nav.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key)||e.target.tagName!=='BUTTON')return;const buttons=[...nav.querySelectorAll('button')],i=buttons.indexOf(e.target);let next=e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowRight'?1:-1)+buttons.length)%buttons.length;e.preventDefault();buttons[next]?.focus()});
  nav.innerHTML='<div class="team-user-tabs14231"></div>';nav.addEventListener('input',e=>{if(!e.target.matches('[data-team-nav-query14231]'))return;const m=document.getElementById('branchHome14229')?._team14227;if(m){m.state.query=e.target.value;paint(m)}});header.append(nav);}
- page.querySelectorAll(':scope>.team-tabs14230').forEach(old=>old.remove());
+ page.querySelectorAll(':scope>.team-tabs14230').forEach(old=>{if(old!==nav)old.remove()});
  const selected=page.id==='sub-users-workspace'?String(activeSubUserTab()?.userId||''):'';
  const html=(admin()?`<button type="button" data-team-home14230 ${!selected?'aria-current="page"':''}>${icon('home')}<span>Home</span></button>`:'')+Organization14229.orderUsers([...all.values()]).map(u=>{const id=String(u.id);return `<button type="button" data-team-user14230="${esc(id)}" title="${esc(name(u))}" aria-label="Open ${esc(name(u))} workspace" ${id===selected?'aria-current="page"':''}>${esc(shortName(u))}</button>`}).join('');
  if(nav._markup14230!==html){const left=nav.scrollLeft,strip=nav.querySelector('.team-user-tabs14231'),stripLeft=strip.scrollLeft;const focus=nav.contains(document.activeElement)?document.activeElement.dataset.teamUser14230||'home':null;nav._markup14230=html;strip.innerHTML=html;nav.scrollLeft=left;strip.scrollLeft=stripLeft;if(focus){const next=[...nav.querySelectorAll('button')].find(b=>focus==='home'?b.hasAttribute('data-team-home14230'):b.dataset.teamUser14230===focus);next?.focus({preventScroll:true})}}
@@ -68,7 +68,7 @@ function navigation(){
  if(page.id==='sub-users-home14229'){let search=nav.querySelector('.th-search');if(!search){search=document.createElement('label');search.className='th-search team-search14231';search.innerHTML=icon('search')+'<input type="search" data-team-nav-query14231 placeholder="Search users, IDs, or descriptions" aria-label="Search users, IDs, or descriptions">';nav.append(search)}const input=search.querySelector('input'),m=document.getElementById('branchHome14229')?._team14227;if(document.activeElement!==input)input.value=m?.state.query||'';}
 }
 function workspaceActions(){
- const panel=document.getElementById('subUserWorkspacePanel'),bar=panel?.querySelector('.v49-desktop-user-actions')||document.querySelector('#sub-users-workspace>.area-banner113>.v49-desktop-user-actions');if(!panel||!bar)return;const header=document.querySelector('#sub-users-workspace>.area-banner113');if(header&&innerWidth>1024){if(bar.parentElement!==header){header.querySelector(':scope>.v49-desktop-user-actions')?.remove();header.append(bar);}}
+ const panel=document.getElementById('subUserWorkspacePanel'),bar=panel?.querySelector('.v49-desktop-user-actions')||document.querySelector('#sub-users-workspace>.area-banner113>.v49-desktop-user-actions');if(!panel||!bar)return;const header=panel.querySelector('.v49-desktop-user-heading');if(header&&innerWidth>640){if(bar.parentElement!==header){header.querySelector(':scope>.v49-desktop-user-actions')?.remove();header.append(bar);}}
  let back=bar.querySelector('.team-back14227');
  if(admin()){if(!back){back=document.createElement('button');back.type='button';back.className='je-btn je-btn-secondary team-back14227';back.textContent='Sub-users Home';back.onclick=home;}if(back.parentElement!==bar)bar.prepend(back);}else back?.remove();
  const submit=bar.querySelector('[onclick*="submitWorkspaceForReview"]');if(submit&&submit.textContent!=='Submit'){submit.textContent='Submit';submit.setAttribute('aria-label','Submit for Review');submit.title='Submit for Review';}
