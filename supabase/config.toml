@@ -9,3 +9,6 @@ verify_jwt = false
 [functions.recovery-vault113]
 verify_jwt = false
 
+# Public probe returns only a constant and calls the anonymous grant.
+[functions.keepalive-ping]
+verify_jwt = false
