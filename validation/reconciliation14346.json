@@ -1,0 +1,17 @@
+{
+  "release": "143.46",
+  "passed": [
+    "premature closing blocked before confirmation/progress/RPC",
+    "valid lock remains single save",
+    "full trial includes technical accounts",
+    "multi-select report dropdown",
+    "conditional reconciliation explanations with no reference input",
+    "received and printable reports show actual remaining funds",
+    "bank and period reconciliation fields conditional",
+    "sidebar profile at viewport bottom",
+    "phone submission and History reconciliation",
+    "offline changed asset versions matched",
+    "SQL assigned asset main funds only",
+    "SQL atomic submission without reference; tests rolled back"
+  ]
+}
