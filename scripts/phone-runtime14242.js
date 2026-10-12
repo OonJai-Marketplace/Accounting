@@ -1,7 +1,7 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.46', $ = id => document.getElementById(id);
+  const VERSION = '143.47', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -162,7 +162,7 @@
     document.querySelector('.brand small').textContent='Marketplace';
     for(const b of $('adminNav').querySelectorAll('[data-area]'))b.classList.toggle('active',b.dataset.area===S.area);
     $('accountMenu').querySelector('[data-action=print]').hidden = !canPrint();
-    for (const b of $('bottom').querySelectorAll('[data-page]')) { b.classList.toggle('active', b.dataset.page === S.page); b.setAttribute('aria-current', b.dataset.page === S.page ? 'page' : 'false'); }
+    for (const b of $('bottom').querySelectorAll('[data-page]')) {let badge=b.querySelector('.returned-badge14347');const count=b.dataset.page==='entries'?headers().filter(j=>j.status==='returned').length:0;if(count){if(!badge){badge=document.createElement('span');badge.className='returned-badge14347';b.append(badge)}badge.textContent=String(count);badge.setAttribute('aria-label',count+' submissions returned for correction');}else badge?.remove(); b.classList.toggle('active', b.dataset.page === S.page); b.setAttribute('aria-current', b.dataset.page === S.page ? 'page' : 'false'); }
     for(const b of $('workspace').querySelectorAll('[data-action=refresh]')){b.disabled=S.loading;b.textContent=S.loading?'Updating…':'Refresh';}
   }
   function sessionGate(message = '') {
@@ -316,7 +316,7 @@
     const batches=new Map(visible.map(j=>[j.id,j])),groups=new Map();
     const rows=S.page==='entries'?Object.values(S.data.months||{}).flatMap(m=>m.lines||[]):lines();
     for(const l of rows.filter(l=>batches.has(l.staff_journal_id)&&!l.voided_at&&l.status!=='voided')){const groupKey=l.staff_journal_id+':'+(l.editor_group1437||l.id);if(!groups.has(groupKey))groups.set(groupKey,{batch:batches.get(l.staff_journal_id),lines:[]});groups.get(groupKey).lines.push(l);}
-    return [...groups.values()].sort((a,b)=>String(b.lines[0].transaction_date).localeCompare(String(a.lines[0].transaction_date)));
+    return [...groups.values()].sort((a,b)=>Number(b.batch.status==='returned')-Number(a.batch.status==='returned')||String(b.lines[0].transaction_date).localeCompare(String(a.lines[0].transaction_date)));
   }
   function monthControl(){return `<label class="no-print">Period<input id="month" type="month" value="${esc(S.month)}"></label>`;}
   function commonActions(){return `<div class="actions no-print">${action('submit',S.submitting?'Submitting…':'Submit',S.submitting?'disabled':'',true)}${canPrint()?action('print','Print report'):''}${action('refresh',S.loading?'Updating…':'Refresh',S.loading?'disabled':'')}</div>`;}
@@ -363,6 +363,7 @@
     for(const input of $('postForm')?.querySelectorAll('input,select,textarea,button')||[])input.disabled=true;
     try{
       const draft=structuredClone(S.draft),prepared=StaffEntry14225.prepare(draft,accounts(),rules());
+      prepared.snapshot.correction_journal14347=draft.correction_journal14347||null;
       const item={owner,key:draft.requestKey,draft,params:{p_owner:owner,p_key:draft.requestKey,p_items:prepared.items,p_snapshot:prepared.snapshot,p_edit_ids:draft.editIds||[]},status:'pending',createdAt:Date.now()};
       clearTimeout(draftTimer);saveMirror();
       const stored=await record(owner,old=>{const all=old.queue||[];const previous=all.find(q=>q.key===item.key);if(previous&&JSON.stringify(previous.params)!==JSON.stringify(item.params))throw fail('This save reference is already in use. Sync the pending entry before making another change.');return {...old,queue:previous?all:[...all,item],draft:null};});
@@ -429,7 +430,7 @@
     const actual=g.lines.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo}));
     if(saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(l=>l.date===first.transaction_date))){d={...blankDraft(),mode:saved.mode,date:first.transaction_date,memo:saved.memo,reference:saved.reference||'',single:structuredClone(saved.single||[]),lines:(saved.rows||[]).map(l=>({account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};}
     else d={...blankDraft(),date:first.transaction_date,memo:first.memo,reference:first.reference||'',single:g.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?r.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
-    d.editIds=g.lines.map(l=>l.id);S.draft=d;saveDraftLater();navigate('post');
+    d.correction_journal14347=g.batch.status==='returned'?g.batch.id:null;d.editIds=g.lines.map(l=>l.id);S.draft=d;saveDraftLater();navigate('post');
   }
   async function voidEntry(index){const g=groupEntries()[index];if(!g||!permission('sub-users-workspace','void')||!['draft','returned'].includes(g.batch.status))return;
     if(!navigator.onLine||queue().length){notice('Sync pending entries and reconnect before voiding.',true);return;}

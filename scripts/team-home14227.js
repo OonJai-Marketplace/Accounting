@@ -68,8 +68,8 @@ function navigation(){
  if(page.id==='sub-users-home14229'){let search=nav.querySelector('.th-search');if(!search){search=document.createElement('label');search.className='th-search team-search14231';search.innerHTML=icon('search')+'<input type="search" data-team-nav-query14231 placeholder="Search users, IDs, or descriptions" aria-label="Search users, IDs, or descriptions">';nav.append(search)}const input=search.querySelector('input'),m=document.getElementById('branchHome14229')?._team14227;if(document.activeElement!==input)input.value=m?.state.query||'';}
 }
 function workspaceActions(){
- const panel=document.getElementById('subUserWorkspacePanel'),bar=panel?.querySelector('.v49-desktop-user-actions');if(!panel||!bar)return;
- let back=panel.querySelector('.team-back14227');
+ const panel=document.getElementById('subUserWorkspacePanel'),bar=panel?.querySelector('.v49-desktop-user-actions')||document.querySelector('#sub-users-workspace>.area-banner113>.v49-desktop-user-actions');if(!panel||!bar)return;const header=document.querySelector('#sub-users-workspace>.area-banner113');if(header&&innerWidth>1024){if(bar.parentElement!==header){header.querySelector(':scope>.v49-desktop-user-actions')?.remove();header.append(bar);}}
+ let back=bar.querySelector('.team-back14227');
  if(admin()){if(!back){back=document.createElement('button');back.type='button';back.className='je-btn je-btn-secondary team-back14227';back.textContent='Sub-users Home';back.onclick=home;}if(back.parentElement!==bar)bar.prepend(back);}else back?.remove();
  const submit=bar.querySelector('[onclick*="submitWorkspaceForReview"]');if(submit&&submit.textContent!=='Submit'){submit.textContent='Submit';submit.setAttribute('aria-label','Submit for Review');submit.title='Submit for Review';}
  const print=bar.querySelector('[data-print-history1434]');if(print&&print.textContent!=='Print Report')print.textContent='Print Report';

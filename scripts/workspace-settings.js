@@ -41,7 +41,7 @@ localWorkspaceEntryPreview=function(user){const p=subUserPermission(user),prefix
 // Editable cells retain local state on validation or connection failure.
 const wsSaving=new Map();
 const wsPeriod={};
-currentWorkspaceJournal=function(userId){const month=wsPeriod[userId]||new Date().toISOString().slice(0,7);return (reviewStaffJournals||[]).find(j=>j.owner_id===userId&&String(j.period_start).slice(0,7)===month)};
+currentWorkspaceJournal=function(userId){const month=wsPeriod[userId]||new Date().toISOString().slice(0,7);return (reviewStaffJournals||[]).filter(j=>j.owner_id===userId&&String(j.period_start).slice(0,7)===month&&['draft','returned'].includes(j.status)).sort((a,b)=>Number(b.status==='draft')-Number(a.status==='draft'))[0]};
 const workspaceEditableRowsBefore78=workspaceEditableRows;
 workspaceEditableRows=function(user){return workspaceEditableRowsBefore78(user).map(row=>{if(!row.isNew&&row.direction==='in'&&!workspaceRowEdits[user.id]?.[row.id])row.selected_account_id=row.account_id;return row})};
 function wsKind(row){return row.entry_kind|| (row.direction==='in'?'legacy_receipt':'payment')}

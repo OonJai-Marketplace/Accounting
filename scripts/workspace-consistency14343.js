@@ -9,7 +9,7 @@ function place(panel,node,anchor){if(!node)return anchor;if(anchor){if(anchor.ne
 function layout(){
  if(innerWidth<=640||document.documentElement.dataset.device132==='phone')return;
  scrollArea=document.querySelector('.workspace-scroll');mainArea=document.querySelector('.main-content-area');
- const panel=document.querySelector('.tab-content.active');if(!panel||!scrollArea)return;
+ const panel=document.querySelector('.tab-content.active');if(!panel||!scrollArea)return;const settings=document.getElementById('settingsSections14335');if(settings&&panel.dataset.module!=='settings'&&panel.contains(settings))document.getElementById('settings-system')?.prepend(settings);
  sharedHeader||=document.querySelector('.module-header');sharedTabs||=document.getElementById('categoryTabShell');
  const personal=panel.querySelector('#personalWorkspace1437'),personalTabs=personal?.querySelector('.personal-tabs1437');
  for(const old of panel.querySelectorAll(':scope>.personal-tabs1437'))if(old._personalHost14344!==personal)old.remove();
@@ -23,7 +23,7 @@ function layout(){
   if(hero&&tabs){place(shell,tabs,hero);next.push(tabs)}
  }else{
   if(banner&&panel.firstElementChild!==banner)panel.prepend(banner);
-  for(const node of [sharedHeader,sharedTabs,document.getElementById('settingsSections14335'),panel.id==='sub-users-workspace'?document.querySelector('.sub-user-tabs-shell'):null,...panel.querySelectorAll(rowSelector)]){
+  for(const node of [sharedHeader,sharedTabs,panel.dataset.module==='settings'?document.getElementById('settingsSections14335'):null,panel.id==='sub-users-workspace'?document.querySelector('.sub-user-tabs-shell'):null,...panel.querySelectorAll(rowSelector)]){
    if(!node)continue;anchor=place(panel,node,anchor);next.push(node);
   }
  }

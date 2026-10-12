@@ -47,6 +47,7 @@ loadAccountingPeriodStatuses=async function(){
 const changeBefore=changePeriodStatus;
 changePeriodStatus=async function(status){const month=PeriodReview.selectedMonth,s=session(month);
  if(status==='open'){
+  if(PeriodReview.status(month)==='open'){showCenterStatus('This period is already open.');return false;}
   if(PeriodReview.status(month)==='locked'){showCenterStatus('Locked books are final. Add an audit review; corrections belong in an open period.',true);return false;}
   if(!admin()){showCenterStatus('Administrator access is required.',true);return false;}
   const reason=(await ui117.prompt('Reason for reopening this closed book:'))?.trim();if(!reason)return false;
