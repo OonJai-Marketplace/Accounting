@@ -1,0 +1,248 @@
+{
+  "baseline": "57f55cbf6d66b23888cf74d783b766b1a92228b3",
+  "productionChanges": false,
+  "acceptance": "incomplete: rendering delays and existing phone resume test remain",
+  "environment": "Local synthetic database; 137 accounts, 1000 journal lines, 10 employees; real sidebar clicks; 4x CPU slowdown",
+  "navigation": {
+    "before": {
+      "online": {
+        "samples": 7,
+        "visibleMedianMs": 926.1,
+        "responsiveMedianMs": 1294.4,
+        "visibleMaxMs": 2536.9,
+        "responsiveMaxMs": 3804.5,
+        "restRequests": 1
+      },
+      "offline": {
+        "samples": 7,
+        "visibleMedianMs": 933.1,
+        "responsiveMedianMs": 1262.1,
+        "visibleMaxMs": 1643.4,
+        "responsiveMaxMs": 2680.7,
+        "restRequests": 0
+      }
+    },
+    "afterInitial": {
+      "online": {
+        "samples": 7,
+        "visibleMedianMs": 741.5,
+        "responsiveMedianMs": 1000.3,
+        "visibleMaxMs": 2245.4,
+        "responsiveMaxMs": 3593.9,
+        "restRequests": 1
+      },
+      "offline": {
+        "samples": 7,
+        "visibleMedianMs": 703.1,
+        "responsiveMedianMs": 1110.8,
+        "visibleMaxMs": 1462.1,
+        "responsiveMaxMs": 2227.6,
+        "restRequests": 0
+      }
+    },
+    "afterFinal": {
+      "online": {
+        "samples": 7,
+        "visibleMedianMs": 841,
+        "responsiveMedianMs": 1328.5,
+        "visibleMaxMs": 2205.6,
+        "responsiveMaxMs": 3200.5,
+        "restRequests": 0
+      },
+      "offline": {
+        "samples": 7,
+        "visibleMedianMs": 757.5,
+        "responsiveMedianMs": 1099.4,
+        "visibleMaxMs": 1463.3,
+        "responsiveMaxMs": 1977.2,
+        "restRequests": 0
+      }
+    }
+  },
+  "checks": [
+    {
+      "test": "test-journal-refresh-order.cjs",
+      "exit": 0,
+      "seconds": 5.2,
+      "output": "PASS concurrent journal refresh order, offline snapshot consistency, failed-read recovery and account isolation\n"
+    },
+    {
+      "test": "test-report-workflow14349.cjs",
+      "exit": 0,
+      "seconds": 10.9,
+      "output": "PASS Single-entry returned report opens editable journal above an existing draft without filter failure\nPASS Review badge and returned record retained; correction opens directly on tablet too\nPASS Open period cannot reopen, prompt or create a correction session\nPASS Finalization does not acquire settings or sub-user blank strips\nPASS Workspace actions are right aligned and recent amounts stay on one line\nPASS Page banners and titles absent; navigation stays at top; named account stays visible\nPASS Correction Cancel returns to Review; active journal has all months and Finish reuses submission\nPASS Posting choices keep dates, detailed counterpart lines and source IDs in one RPC\nPASS Reconciliation and explanation inputs are marked as non-credential fields\nAll return workflow checks passed\n"
+    },
+    {
+      "test": "test-phase0-preload.cjs",
+      "exit": 0,
+      "seconds": 0.1,
+      "output": ""
+    },
+    {
+      "test": "test-prepared-workspaces.cjs",
+      "exit": 0,
+      "seconds": 26.4,
+      "output": "PASS prepared legal/schedules/audit/review/home: trusted navigation makes no redundant REST requests online/offline; one-time checklist setup retained\nPASS explicit Sync refreshes prepared data; next navigation reuses it\nPASS populated audit snapshot survives offline reload\n"
+    },
+    {
+      "test": "test-sync-coordinator.cjs",
+      "exit": 0,
+      "seconds": 12.4,
+      "output": "PASS one session for concurrent manual requests and cross-tab Web Lock exclusion; persistent explicit acknowledgment across reload; no outside/Escape dismissal; offline summary; decimal byte units; exact 2-minute idle; no repeated idle jobs\n"
+    },
+    {
+      "test": "test-idle-queue14341.cjs",
+      "exit": 0,
+      "seconds": 0.7,
+      "output": "{\"idle\":{\"first\":[\"synced\",\"pending\",\"pending\"],\"second\":[\"synced\",\"synced\",\"pending\"],\"manual\":[\"synced\",\"synced\",\"synced\"],\"removed\":true,\"kept\":true,\"queue\":3},\"durableSave\":true,\"restart\":true,\"actorIsolation\":true,\"lostReplyExactlyOnce\":true,\"retirement\":{\"staleRetained\":true,\"freshRetired\":true},\"recovery\":{\"count\":2,\"remaining\":[\"tab-b\"],\"changedRejected\":true},\"conflict\":{\"status\":\"conflict\",\"server\":\"OTHER DEVICE\"},\"quota\":{\"rejected\":true,\"unchanged\":true},\"journal\":{\"amount\":150,\"after\":150,\"lines\":2},\"auth\":{\"resumed\":\"actor-a\",\"requests\":0,\"allowed\":false}}\n"
+    },
+    {
+      "test": "test-vault14334.cjs",
+      "exit": 1,
+      "seconds": 142.7,
+      "output": "/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nPASS desktop / admin reopens a downloaded signed-in workspace without internet after token expiry\nPASS raw device storage contains ciphertext and rejects record tampering\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/rpc/admin_save_access1441\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nPASS 24 hours without activity locks cached data and allows password sign-in offline\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/accounting_id_settings?select=*&id=eq.true\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/rpc/admin_save_access1441\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nPASS explicit logout preserves encrypted pending work and supports offline sign-in\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/rpc/admin_save_access1441\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/rpc/admin_save_access1441\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/rpc/current_access14228\nFAIL reconnect automatically uploads encrypted queued work once page.waitForFunction: Timeout 25000ms exceeded.\nPASS another account in a second tab cannot change this session or read its device draft\nPASS sign-out locks another active tab for the same account\nPASS server revocation blocks subsequent offline unlock without deleting encrypted work\nPASS desktop / staff signs in and prepares complete offline files with the real SDK\nPASS desktop / staff reopens a downloaded signed-in workspace without internet after token expiry\nPASS tablet / admin signs in and prepares complete offline files with the real SDK\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nPASS tablet / admin reopens a downloaded signed-in workspace without internet after token expiry\nPASS tablet / staff signs in and prepares complete offline files with the real SDK\nPASS tablet / staff reopens a downloaded signed-in workspace without internet after token expiry\nPASS phone / admin signs in and prepares complete offline files with the real SDK\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nBLOCKED14333 http://127.0.0.1:35749/rest/v1/backup_audit113?select=created_at&kind=eq.operational_reset142&order=created_at.desc&limit=1\nPASS phone / admin reopens a downloaded signed-in workspace without internet after token expiry\nPASS phone / staff signs in and prepares complete offline files with the real SDK\nPASS phone / staff reopens a downloaded signed-in workspace without internet after token expiry\n"
+    },
+    {
+      "test": "test-hr-calendar-model14306.cjs",
+      "exit": 0,
+      "seconds": 0.1,
+      "output": "PASS public holidays, working-day fractions, scoped events, reminders and schedule snapshots\n"
+    },
+    {
+      "test": "test-year14341.cjs",
+      "exit": 0,
+      "seconds": 0.1,
+      "output": "PASS unchanged journal revision, deletion refresh, exact requested year and return to working year\n"
+    },
+    {
+      "test": "test-report-assets14349.cjs",
+      "exit": 0,
+      "seconds": 0.1,
+      "output": "{\"downloaded\":227,\"changedAssets\":18,\"missing\":[],\"versions\":\"matched\"}\n"
+    },
+    {
+      "test": "test-phase0-session-browser.cjs",
+      "exit": 1,
+      "seconds": 8.8,
+      "output": "PASS desktop real browser clock, trusted activity, sleep restoration and offline expiry with reauthentication gate\npage.evaluate: Execution context was destroyed, most likely because of a navigation\n    at /workspace/scratch/53e94d2cd58c/Accounting/validation/test-phase0-session-browser.cjs:13:27 {\n  log: [],\n  name: 'Error'\n}\n"
+    },
+    {
+      "test": "test-all-workspaces.cjs",
+      "exit": 0,
+      "seconds": 20.2,
+      "output": "PASS 57 permitted workspace targets online and offline; no navigation writes or uncaught errors\n"
+    }
+  ],
+  "additionalChecks": [
+    {
+      "test": "test-phase0-navigation-preservation.cjs",
+      "exit": 0,
+      "scope": "unsaved draft preservation, reload recovery, employee updates, staff access"
+    },
+    {
+      "test": "test-phase0-structure.py",
+      "exit": 0,
+      "scope": "351 generated assets; 575 source sections; original baseline retained with explicit corrections and one retired builder snapshot"
+    },
+    {
+      "test": "test-report-workflow14349.cjs (extended rerun)",
+      "exit": 0,
+      "scope": "Confirmed server post stays successful when display refresh fails"
+    },
+    {
+      "test": "test-phase0-session-browser.cjs against unchanged 57f55cb",
+      "exit": 1,
+      "scope": "Same phone execution-context failure as current tree; desktop clock/expiry passes"
+    },
+    {
+      "test": "test-vault14334.cjs REOPEN_DEVICE=desktop after correcting obsolete immediate-sync expectation",
+      "exit": 0,
+      "checks": [
+        {
+          "name": "desktop / admin signs in and prepares complete offline files with the real SDK",
+          "passed": true
+        },
+        {
+          "name": "desktop / admin reopens a downloaded signed-in workspace without internet after token expiry",
+          "passed": true
+        },
+        {
+          "name": "raw device storage contains ciphertext and rejects record tampering",
+          "passed": true
+        },
+        {
+          "name": "24 hours without activity locks cached data and allows password sign-in offline",
+          "passed": true
+        },
+        {
+          "name": "explicit logout preserves encrypted pending work and supports offline sign-in",
+          "passed": true
+        },
+        {
+          "name": "reconnect retains encrypted work until explicit Sync and uploads once",
+          "passed": true
+        },
+        {
+          "name": "another account in a second tab cannot change this session or read its device draft",
+          "passed": true
+        },
+        {
+          "name": "sign-out locks another active tab for the same account",
+          "passed": true
+        },
+        {
+          "name": "server revocation blocks subsequent offline unlock without deleting encrypted work",
+          "passed": true
+        },
+        {
+          "name": "desktop / staff signs in and prepares complete offline files with the real SDK",
+          "passed": true
+        },
+        {
+          "name": "desktop / staff reopens a downloaded signed-in workspace without internet after token expiry",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "cleanup": {
+    "deletedFiles": [
+      "docs/history/PATCH-INSTRUCTIONS-v142.25.txt",
+      "docs/history/PATCH-INSTRUCTIONS-v142.26.txt",
+      "docs/history/PATCH-INSTRUCTIONS-v142.27.txt",
+      "docs/history/START-HERE-v142.10.txt",
+      "docs/history/START-HERE-v142.11.txt",
+      "docs/history/START-HERE-v142.12.txt",
+      "docs/history/START-HERE-v142.13.txt",
+      "docs/history/START-HERE-v142.14.txt",
+      "docs/history/START-HERE-v142.15.txt",
+      "docs/history/START-HERE-v142.16.txt",
+      "docs/history/START-HERE-v142.17.txt",
+      "docs/history/START-HERE-v142.18.txt",
+      "docs/history/START-HERE-v142.19.txt",
+      "docs/history/START-HERE-v142.9.txt",
+      "tools/build-desktop-assets14245.py",
+      "tools/desktop-source14245.html",
+      "tools/offline-source14245.json"
+    ],
+    "note": "No runtime compatibility modules or database files removed; retained through git history"
+  },
+  "workspaceSweep": {
+    "targetCount": 57,
+    "cases": 114,
+    "errors": [],
+    "requests": [
+      "GET /rest/v1/accounting_id_settings?select=*&id=eq.true",
+      "GET /rest/v1/voucher_settings14299?select=*&id=eq.1",
+      "GET /rest/v1/year_closings136?select=year%2Cclosed_at%2Cbalances%2Cclosing_entries&order=year.desc",
+      "POST /rest/v1/rpc/installation_status14320",
+      "POST /rest/v1/rpc/prepare_todo_starters14335",
+      "GET /rest/v1/budget_templates14313?select=*&order=updated_at.desc",
+      "GET /rest/v1/budget_settings14313?select=*&id=eq.true",
+      "GET /rest/v1/workspace_todos136?select=*&owner_id=eq.00000000-0000-4000-8000-000000000001&order=due_date.asc.nullslast",
+      "GET /rest/v1/budget_settings14313?select=*&id=eq.true",
+      "GET /rest/v1/budget_settings14313?select=*&id=eq.true"
+    ],
+    "limitation": "Checks prohibit financial posting; first-visit checklist preparation and auxiliary reads remain."
+  }
+}

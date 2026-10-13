@@ -118,7 +118,7 @@ function renderDialog(){
  const footer=add('footer','');const close=add('button','Close',footer);close.type='button';close.onclick=()=>dialog.close();const status=add('span','',footer);status.dataset.syncStatus14343='';status.setAttribute('role','status');status.setAttribute('aria-live','polite');const sync=add('button','Sync now',footer);sync.type='button';sync.dataset.syncNow14343='';sync.onclick=()=>window.idleSync14341?.syncNow();window.idleSync14341?.paint();dialog.scrollTop=scroll;
 }
 function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and automatic sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='143.51';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null;
+const SHELL_VERSION='143.52';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null;
 async function checkShell(worker){if(!worker)return;const channel=new MessageChannel();let timer;try{const data=await new Promise((resolve,reject)=>{timer=setTimeout(()=>reject(Error('Offline files are still preparing')),1500);channel.port1.onmessage=e=>resolve(e.data);worker.postMessage({type:'ojm-shell-status'},[channel.port2])});shellReady=data.ready===true&&data.version===SHELL_VERSION;if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}catch{shellReady=false}finally{clearTimeout(timer);channel.port1.close()}}
 function registerShell(){
  if(window.startup14257&&!window.startup14257.interactive&&!window.startup14257.preparing&&typeof liveProfile!=='undefined'&&liveProfile){clearTimeout(shellRetry);shellRetry=setTimeout(registerShell,3000);return}
@@ -134,10 +134,16 @@ function registerShell(){
 if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='ojm-shell-ready'&&e.data.version===SHELL_VERSION){shellReady=true;shellFailures=0;changed()}});
 function ready(){
  // Keep the original journal implementation unchanged; snapshot only complete loads.
- const loadJournal=window.loadJournalFromSupabase;
- if(typeof loadJournal==='function')window.loadJournalFromSupabase=async function(...args){
-  let loaded=false;const rows=await snapshot('complete-journal:'+(window.yearWindow14333?.state().from||'all')+':'+(window.yearWindow14333?.state().to||'all'),async()=>{await loadJournal.apply(this,args);await window.localFirst14333?.confirmJournalReceipts();loaded=true;refreshAllTables();return {entries:structuredClone(JournalModule.entries.filter(r=>!r.local14333)),...window.yearWindow14333?.state()}},{...(args[0]||{}),cacheFirst:offline(),prepareCached:rows=>window.yearWindow14333?.restore(rows)});
+ const loadJournal=window.loadJournalFromSupabase;let journalTail=Promise.resolve();
+ if(typeof loadJournal==='function')window.loadJournalFromSupabase=function(...args){
+  const owner=actor(),workspace=window.workspaceRequest138?.target||'',self=this;
+  const run=async()=>{
+   if(actor()!==owner||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.');
+  let loaded=false;const rows=await snapshot('complete-journal:'+(window.yearWindow14333?.state().from||'all')+':'+(window.yearWindow14333?.state().to||'all'),async()=>{await loadJournal.apply(self,args);if(actor()!==owner||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.');await window.localFirst14333?.confirmJournalReceipts();loaded=true;refreshAllTables();return {entries:structuredClone(JournalModule.entries.filter(r=>!r.local14333)),...window.yearWindow14333?.state()}},{...(args[0]||{}),cacheFirst:offline(),prepareCached:rows=>window.yearWindow14333?.restore(rows)});
+  if(actor()!==owner||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.');
   if(!loaded){window.yearWindow14333?.restore(rows);JournalModule.entries=Array.isArray(rows)?rows:rows.entries;await loadAccountingPeriodStatuses();syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();}
+  };
+  const next=journalTail.then(run,run);journalTail=next.catch(()=>{});return next;
  };
  paint();let pending=false;const schedule=()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;paint()})};window.addEventListener('connection14239',()=>{paint();renderDialog();try{const f=document.getElementById('connectedPhone132');if(f?.contentDocument)paint(f.contentDocument,true)}catch{}});window.addEventListener('page113',schedule);registerShell();}
 function pendingOwner(id){return queue().some(j=>j.payload.p_owner===id&&j.status!=='synced')||!!window.saveNotices14234?.staffPending?.(id).length}

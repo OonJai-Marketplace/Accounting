@@ -556,8 +556,8 @@ function closeNavigationAfterSelection() {
 
 function switchTab(tabId) {
   if (!document.getElementById(tabId)) tabId = 'dashboard';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn.active').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content.active').forEach(c => c.classList.remove('active'));
 
   const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
   if (btn) {
@@ -578,8 +578,8 @@ function switchTab(tabId) {
 
 function scrollToAccountModule(moduleId) {
   localStorage.setItem('ojm_last_active_view_v1', moduleId);
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn.active').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content.active').forEach(c => c.classList.remove('active'));
 
   const accContainer = document.getElementById('accounts-modular-container');
   if (accContainer) accContainer.classList.add('active');
@@ -592,7 +592,7 @@ function scrollToAccountModule(moduleId) {
 
   const moduleTarget = document.getElementById(moduleId);
   if (moduleTarget) {
-    const scroller=appWorkspaceScroller(); if(scroller)scroller.scrollTop=0;
+    requestAnimationFrame(()=>{if(accContainer?.classList.contains('active')){const scroller=appWorkspaceScroller();if(scroller)scroller.scrollTop=0;}});
   }
   closeNavigationAfterSelection();
 }
@@ -2782,7 +2782,9 @@ saveBusinessSettings = async function(event) {
 };
 
 async function loadJournalFromSupabase() {
-  const windowRows=await window.yearWindow14333?.read();if(windowRows){JournalModule.entries=windowRows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();return;}
+  const actor=liveProfile?.id,workspace=window.workspaceRequest138?.target||'';
+  const check=()=>{if(liveProfile?.id!==actor||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.')};
+  const windowRows=await window.yearWindow14333?.read();if(windowRows){check();JournalModule.entries=windowRows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();return;}
   const entries=[];
   for(let offset=0;;offset+=500){
     const {data,error}=await ojmDb.from('journal_entries').select('id,entry_no,created_at,transaction_date,memo,status,source,journal_lines(line_no,description,currency_code,debit,credit,line_date,accounts(id,name,code))').eq('status','posted').order('transaction_date',{ascending:false}).order('id').range(offset,offset+499);
@@ -2790,7 +2792,7 @@ async function loadJournalFromSupabase() {
     (data||[]).forEach(entry=>(entry.journal_lines||[]).filter(Boolean).sort((a,b)=>a.line_no-b.line_no).forEach(line=>entries.push({created_at:entry.created_at,source:entry.source,scheduleId:String(entry.source||'').startsWith('scheduled:')?String(entry.source).slice(10):null,dbEntryId:entry.id,id:entry.entry_no||entry.id,date:line.line_date||entry.transaction_date,account:line.accounts?.name||'Unknown Account',accountId:line.accounts?.id,accountCode:line.accounts?.code,currency:line.currency_code,memo:line.description||entry.memo||'',generalMemo:entry.memo||'',debit:Number(line.debit),credit:Number(line.credit),editReason:'',archived:false})));
     if(!data||data.length<500)break;
   }
-  JournalModule.entries=entries;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();
+  check();JournalModule.entries=entries;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();
 }
 
 function collectLiveJournalGroups() {
