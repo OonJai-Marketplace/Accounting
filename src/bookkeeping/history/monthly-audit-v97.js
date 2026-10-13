@@ -81,10 +81,10 @@
     }).join('') : '<tr><td colspan="6" class="period-empty">No void, correction, or period-review audit records yet.</td></tr>';
   };
 
-  window.loadTransactionAudit = async function () {
+  window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
-    const pageSize = 500, rows = [];
-    try {
+    const read = async () => {
+      const pageSize = 500, rows = [];
       for (let offset = 0; ; offset += pageSize) {
         const { data, error } = await ojmDb.from('audit_log')
           .select('id,record_id,action,reason,old_data,new_data,actor_id,created_at')
@@ -94,10 +94,15 @@
         rows.push(...(data || []));
         if (!data || data.length < pageSize) break;
       }
+      return rows;
+    };
+    try {
+      const rows = window.localFirst14333 ? await localFirst14333.snapshot('audit-transactions', read, {force}) : await read();
       LiveTransactionAudit = rows;
       window.renderVoidedTransactionsTable();
     } catch (error) {
       window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
+      throw error;
     }
   };
 

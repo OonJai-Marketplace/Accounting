@@ -2854,7 +2854,7 @@ async function loadProfilesFromSupabase() { if(liveProfile?.role!=='admin')retur
 renderDemoUsers = function(){const host=document.getElementById('demoUsersList');if(!host)return;host.innerHTML=liveProfiles.map(u=>`<div class="demo-user-row"><div class="demo-user-avatar">${escapeHtml((u.full_name||u.email).slice(0,2).toUpperCase())}</div><div class="demo-user-details"><strong>${escapeHtml(u.full_name||'Unnamed User')}</strong><span>${escapeHtml(u.email)}</span></div><span class="user-role-badge ${u.role}">${u.role==='admin'?'Administrator':'Staff Submitter'}</span><span class="user-status-badge ${u.status}">${u.status}</span><span class="je-subtitle">Managed through Supabase Auth</span></div>`).join('')};
 addDemoUser = function(event){event.preventDefault();showAppNotification('Secure User Creation','Create or invite the user in Supabase Authentication. A protected Edge Function will later bring this action into the app without exposing an administrator secret.',false)};
 
-async function loadLegalDocumentsFromSupabase(){if(liveProfile?.role!=='admin')return;const{data,error}=await ojmDb.from('legal_documents').select('*').order('uploaded_at',{ascending:false});if(!error){liveLegalDocuments=data||[];renderLegalDocuments()}}
+async function loadLegalDocumentsFromSupabase(){if(liveProfile?.role!=='admin')return;const{data,error}=await ojmDb.from('legal_documents').select('*').order('uploaded_at',{ascending:false});if(error)throw error;if(!error){liveLegalDocuments=data||[];renderLegalDocuments()}}
 renderLegalDocuments = async function(){const host=document.getElementById('legalDocumentsList');if(!host)return;host.innerHTML=liveLegalDocuments.length?liveLegalDocuments.map(d=>`<div class="legal-doc-row"><div class="legal-doc-icon">${/pdf/i.test(d.mime_type||'')?'PDF':'FILE'}</div><div class="legal-doc-meta"><strong>${escapeHtml(d.file_name)}</strong><span>${formatLegalDocSize(Number(d.size_bytes||0))} • ${formatAppDate(d.uploaded_at,true)}</span></div><div class="legal-doc-actions"><button type="button" class="je-btn je-btn-secondary" onclick="downloadLegalDocument('${d.id}')">Download</button><button type="button" class="btn-action-delete" onclick="deleteLegalDocument('${d.id}')">✕</button></div></div>`).join(''):'<div class="legal-doc-empty">No legal documents uploaded yet.</div>'};
 uploadLegalDocuments = async function(event){for(const file of [...event.target.files]){if(file.size>10485760){showAppNotification('File Too Large',`${file.name} exceeds 10 MB.`,true);continue}const path=`${liveProfile.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const{error:uploadError}=await ojmDb.storage.from('legal-documents').upload(path,file);if(uploadError){showAppNotification('Upload Failed',uploadError.message,true);continue}await ojmDb.from('legal_documents').insert({file_name:file.name,storage_path:path,mime_type:file.type,size_bytes:file.size,uploaded_by:liveProfile.id})}event.target.value='';await loadLegalDocumentsFromSupabase()};
 downloadLegalDocument = async function(id){const doc=liveLegalDocuments.find(d=>d.id===id);if(!doc)return;const{data,error}=await ojmDb.storage.from('legal-documents').createSignedUrl(doc.storage_path,60);if(error){showAppNotification('Download Failed',error.message,true);return}window.open(data.signedUrl,'_blank')};
@@ -3104,9 +3104,9 @@ saveUserAccess=async function(event){
   const originalUpsert=ojmDb.from;let captured=null;ojmDb.from=function(table){const api=originalUpsert.call(ojmDb,table);if(table==='user_permissions'){const original=api.upsert.bind(api);api.upsert=(payload,...rest)=>original({...payload,...extra},...rest)}return api};try{await saveUserAccessBeforeStaffConfig(event)}finally{ojmDb.from=originalUpsert}
 };
 const hydrateBeforeStaffJournal=hydrateSupabaseSession;
-hydrateSupabaseSession=async function(session){await hydrateBeforeStaffJournal(session);if(liveProfile&&document.getElementById('loginGate')?.classList.contains('is-authenticated')){const month=new Date().toISOString().slice(0,7);const picker=document.getElementById('staffJournalPeriod');if(picker)picker.value=month;await Promise.all([...(liveProfile.role==='admin'?[]:[openStaffJournalPeriod(month)]),loadStaffJournalsForReview()]);freshLoginRequested=false}};
+hydrateSupabaseSession=async function(session){await hydrateBeforeStaffJournal(session);if(liveProfile&&document.getElementById('loginGate')?.classList.contains('is-authenticated')){const month=new Date().toISOString().slice(0,7);const picker=document.getElementById('staffJournalPeriod');if(picker)picker.value=month;await Promise.all([...(liveProfile.role==='admin'?[]:[openStaffJournalPeriod(month)]),...(window.startup14257?.isPrepared('review')?[]:[loadStaffJournalsForReview()])]);freshLoginRequested=false}};
 const switchTabBeforeStaffJournal=switchTab;
-switchTab=function(tabId){switchTabBeforeStaffJournal(tabId);if(tabId==='entry-submissions')openStaffJournalPeriod(staffJournalMonth());if(tabId==='user-entry-review')loadStaffJournalsForReview()};
+switchTab=function(tabId){switchTabBeforeStaffJournal(tabId);if(tabId==='entry-submissions')openStaffJournalPeriod(staffJournalMonth());if(tabId==='user-entry-review'&&!window.startup14257)loadStaffJournalsForReview()};
 
 // SETTINGS HELP — red asterisks explain only settings that need accounting or system context.
 const SETTING_HELP = {
@@ -3210,7 +3210,7 @@ async function confirmVoidTransaction(){const reason=document.getElementById('vo
 let LiveTransactionAudit=[];
 async function loadTransactionAudit(){
   if(!ojmDb||!liveProfile)return;const {data,error}=await ojmDb.from('audit_log').select('id,record_id,action,reason,old_data,new_data,actor_id,created_at').in('table_name',['journal_entries','accounting_periods','period_findings','scheduled_journals']).order('created_at',{ascending:false}).limit(250);
-  if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
+  if(error)throw error;if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
 }
 renderVoidedTransactionsTable=function(){
   const header=document.getElementById('thVoidedTransRow'),body=document.getElementById('voidedTransactionsBody');if(!body)return;
@@ -3230,7 +3230,7 @@ function openAdjustedDetails(entryId){const local=(JournalModule.voidedEntries||
 const loadJournalFromSupabaseBeforeAudit=loadJournalFromSupabase;
 loadJournalFromSupabase=async function(){await loadJournalFromSupabaseBeforeAudit();if(document.querySelector('.tab-content.active')?.id==='transactions-voided')await loadTransactionAudit();};
 const switchTabBeforeTransactionAudit=switchTab;
-switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided')loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
+switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided'&&!window.startup14257)loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
 
 async function loadAccountingPeriodStatuses(){
   if(!ojmDb||!liveProfile)return;const actor=liveProfile.id;const {data,error}=await ojmDb.from('accounting_periods').select('period_month,status,updated_at,updated_by');if(error)throw Error(error.message);if(liveProfile?.id!==actor)throw Error('Sign-in changed while loading period statuses.');PeriodReview.periods={};

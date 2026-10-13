@@ -38,7 +38,7 @@
     if(ojmDb&&liveProfile&&(liveProfile.role==='admin'||livePermission?.can_approve))await loadSubmissionsFromSupabase();
   };
   const changeTab=window.switchTab;
-  window.switchTab=function(id,...args){const result=changeTab.call(this,id,...args);if(id==='user-entry-review'&&!busy){busy=true;loadStaffJournalsForReview().catch(error=>{legacyState='error';legacyError=error.message;renderUserEntryReview()}).finally(()=>busy=false)}return result};
+  window.switchTab=function(id,...args){const result=changeTab.call(this,id,...args);if(id==='user-entry-review'&&!window.startup14257&&!busy){busy=true;loadStaffJournalsForReview().catch(error=>{legacyState='error';legacyError=error.message;renderUserEntryReview()}).finally(()=>busy=false)}return result};
   document.addEventListener('click',async event=>{
     const action=event.target.closest?.('[data-review-entry139]');if(!action)return;
     event.preventDefault();if(action.disabled)return;action.disabled=true;
