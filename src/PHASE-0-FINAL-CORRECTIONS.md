@@ -2,6 +2,8 @@
 
 Scope: `phase-0-modularization`, starting at `7685d59`. No merge, production deployment, live database writes, schema changes, or accounting/report redesign.
 
+Follow-up: [real desktop navigation investigation](PHASE-0-REAL-NAVIGATION.md) verifies production-versus-development versions, measures trusted sidebar clicks and separate responsiveness, and supplies a temporary laptop diagnostic. The measurements below are the earlier small-fixture `switchTab()` benchmark, not production-device timings.
+
 ## Login preparation verified
 
 The active coordinator is `src/core/startup/startup14257.js`. It preserves the sequential numbered preparation and session/identity checks. A normal administrator has these six stages:
