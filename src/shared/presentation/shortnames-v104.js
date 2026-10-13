@@ -3,8 +3,8 @@
  'use strict';
  let queued=false;
  function shorten(name){const words=String(name||'').trim().split(/\s+/).filter(Boolean);return words.length>1?`${words[0][0]}. ${words[words.length-1]}`:name}
- function update(){queued=false;if(typeof Work82==='undefined')return;const names=Work82.employees.map(row=>row.data?.name).filter(Boolean).sort((a,b)=>b.length-a.length);if(!names.length)return;
-  for(const cell of document.querySelectorAll('.tab-content table td,.tab-content table th')){
+ function update(all=false){queued=false;if(typeof Work82==='undefined')return;const names=Work82.employees.map(row=>row.data?.name).filter(Boolean).sort((a,b)=>b.length-a.length);if(!names.length)return;
+  for(const cell of document.querySelectorAll(all?'.tab-content table td,.tab-content table th':'.tab-content.active table td,.tab-content.active table th')){
    if(cell.closest('#headerNotices104,#document-editor105'))continue;
    const walker=document.createTreeWalker(cell,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode())){
     if(node.parentElement?.closest('button,input,select,textarea,option,script,style'))continue;
@@ -14,7 +14,7 @@
    }
   }
  }
- function schedule(){if(!queued){queued=true;requestAnimationFrame(update)}}
- const install=()=>{document.addEventListener('click',schedule,true);new MutationObserver(schedule).observe(document.querySelector('.workspace-scroll')||document.body,{subtree:true,childList:true});schedule()};
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(()=>update())}}
+ const install=()=>{window.addEventListener('page113',schedule);window.addEventListener('beforeprint',()=>update(true));new MutationObserver(records=>{if(records.some(r=>r.type==='attributes'?r.target.matches?.('.tab-content.active'):r.target.parentElement?.closest('.tab-content.active')||r.target.matches?.('.tab-content.active')))schedule()}).observe(document.querySelector('.workspace-scroll')||document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});schedule()};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })()

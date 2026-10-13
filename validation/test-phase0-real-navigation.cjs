@@ -54,8 +54,9 @@ function profileSummary(profile) {
     for (const offline of [false,true]) {
       await context.setOffline(offline);
       for (let repeat=0; repeat<repeats; repeat++) for (const [module,target] of [
-        ['settings','settings-business'],['transactions','journal'],['sub-users','sub-users-home14229'],['hr','payroll-employees'],['payroll','payroll-overview']
+        ['settings','settings-business'],['transactions','journal'],['sub-users','sub-users-home14229'],['accounts','accounts-modular-container'],['hr','payroll-employees'],['payroll','payroll-overview'],['dashboard','dashboard']
       ]) {
+        console.log('MEASURE',offline?'offline':'online',repeat,module);
         const before = Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(x=>[x.name,x.value]));
         const requestStart = f.requests.length, count = await page.evaluate(()=>ojmNavDiag.count);
         await page.locator('#nav-module-'+module+' .nav-header').click();

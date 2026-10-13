@@ -5271,7 +5271,7 @@ const Location69={hydrating:false,ready:false,view:'dashboard',lastWrite:0,userN
 function locationKey69(id=liveProfile?.id){return `ojm_location_69_${id||'local'}`}
 function readLocation69(id){try{return JSON.parse(localStorage.getItem(locationKey69(id))||'null')}catch{return null}}
 
-function saveLocation69(){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:document.getElementById('accounts-modular-container')?.classList.contains('active')?(document.getElementById('accounts-modular-container').dataset.accountView14231||Location69.view):Location69.view,scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
+function saveLocation69(scroll){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:document.getElementById('accounts-modular-container')?.classList.contains('active')?(document.getElementById('accounts-modular-container').dataset.accountView14231||Location69.view):Location69.view,scroll:typeof scroll==='number'?scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
 function recentLocation69(record){return !!record}
 const hydrateBefore69=hydrateSupabaseSession;
 let hydration69=null,hydratedUser69='',startup88=null;
@@ -5315,8 +5315,8 @@ function applyCurrencyOrder69(){const order=ApplicationSettings.accounting.curre
 const renderCurrencyBefore69=CurrencyStore.render;
 CurrencyStore.render=function(){applyCurrencyOrder69();renderCurrencyBefore69.call(this);const host=document.getElementById('currencyTableBody');if(!host)return;[...host.rows].forEach((row,i)=>{row.draggable=true;row.dataset.currency=this.currencies[i].code;const handle=document.createElement('span');handle.className='currency-handle69';handle.textContent='⠿ ';handle.title='Drag to reorder';row.cells[0].prepend(handle);row.ondragstart=e=>e.dataTransfer.setData('text/plain',row.dataset.currency);row.ondragover=e=>e.preventDefault();row.ondrop=e=>{e.preventDefault();moveCurrency69(e.dataTransfer.getData('text/plain'),i)}})};
 function moveCurrency69(code,index){const list=CurrencyStore.currencies,from=list.findIndex(c=>c.code===code);if(from<0||index<0||index>=list.length)return;const snapshot=snapshotJournal69();list.splice(index,0,list.splice(from,1)[0]);ApplicationSettings.accounting.currencyOrder=list.map(c=>c.code);localStorage.setItem(APP_SETTINGS_KEY,JSON.stringify(ApplicationSettings));CurrencyStore.render();setupJournalColumns();restoreJournal69(snapshot);sizeCurrencyTables69();const active=document.querySelector('.tab-content.active')?.id;if(active==='transactions-all')renderAllTransactionsTable();else if(active==='transactions-new')renderNewTransactionsTable();else if(active==='transactions-voided')renderVoidedTransactionsTable()}
-function sizeCurrencyTables69(){
- document.querySelectorAll('table').forEach(table=>{
+function sizeCurrencyTables69(all=false){
+ document.querySelectorAll(all?'table':'.tab-content.active table').forEach(table=>{
  if(table.querySelector('#jeHeaderRow'))return; // Journal-entry widths are fixed by the v97 desktop specification.
  const row=table.tHead?.rows[0];if(!row)return;
  [...row.cells].forEach((th,i)=>{const m=th.textContent.trim().match(/^(?:CR|DR)[\s-]+([A-Z]{3})$/);if(!m)return;const code=m[1],values=[...table.querySelectorAll('tbody tr')].map(tr=>tr.cells.length===row.cells.length?(tr.cells[i]?.textContent||tr.cells[i]?.querySelector('input')?.value||'').trim():'');const length=Math.max(code==='LAK'?16:12,...values.map(v=>v.length));const width=Math.min(240,Math.max(180,length*8+24));th.style.setProperty('width',width+'px','important');th.style.setProperty('min-width',width+'px','important');th.dataset.currency=code;});
@@ -5346,12 +5346,12 @@ function filterAudit69(){const q=(document.getElementById('auditSearch69')?.valu
 const toggleAuditBefore69=toggleAuditDetails;toggleAuditDetails=function(id,row){document.querySelectorAll('.audit-detail-row').forEach(detail=>{if(detail.id!==id){detail.hidden=true;detail.previousElementSibling?.setAttribute('aria-expanded','false');const icon=detail.previousElementSibling?.querySelector('.audit-expand-cell');if(icon)icon.textContent='▶'}});toggleAuditBefore69(id,row)};
 document.addEventListener('toggle',e=>{const detail=e.target;if(detail.tagName!=='DETAILS'||!detail.open)return;detail.parentElement.querySelectorAll(':scope > details[open]').forEach(other=>{if(other!==detail)other.open=false})},true);
 document.addEventListener('DOMContentLoaded',()=>{
- const previousSwitch=window.switchTab;window.switchTab=function(target){saveLocation69();const result=previousSwitch(target);if(document.getElementById(target)?.classList.contains('active')){Location69.view=target;saveLocation69()}polish69();return result};
+ const previousSwitch=window.switchTab;window.switchTab=function(target){saveLocation69();const result=previousSwitch(target);if(document.getElementById(target)?.classList.contains('active')){Location69.view=target;saveLocation69(0)}polish69();return result};
  const previousAccount=window.scrollToAccountModule;window.scrollToAccountModule=function(target){saveLocation69();const result=previousAccount(target);if(document.getElementById(target)&&!document.getElementById(target).hidden){Location69.view=target;requestAnimationFrame(()=>{const scroller=appWorkspaceScroller();if(scroller)scroller.scrollTop=0;saveLocation69()})}return result};
  setupHeaders69();CurrencyStore.render();polish69();
  let scheduled=false;new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;polish69()})}).observe(document.body,{childList:true,subtree:true});
  for(const name of ['pointerdown','keydown','scroll'])document.addEventListener(name,()=>{if(Date.now()-Location69.lastWrite<1000)return;Location69.lastWrite=Date.now();saveLocation69()},true);
- document.addEventListener('change',polish69);window.addEventListener('pagehide',saveLocation69);
+ document.addEventListener('change',polish69);window.addEventListener('pagehide',saveLocation69);window.addEventListener('beforeprint',()=>sizeCurrencyTables69(true));
 });
 
 // A navigation choice made while sign-in data is loading wins over the saved route.
@@ -5879,7 +5879,7 @@ function renderSettingsAudit82(){mount82('settings-integration82','Settings Inte
 function linkSsoFields82(){if(!desktop80.matches)return;const form=document.querySelector('[data-settings-group="payroll"]');if(!form)return;for(const [field,key]of [['employeeSsoRate','ssoEmployeeRate'],['employerSsoRate','ssoEmployerRate']]){const n=form.elements.namedItem(field);if(n){n.value=ApplicationSettings.tax[key];n.readOnly=true;n.title='Maintained in Statutory Settings'}}if(!document.getElementById('ssoSource82')){const p=document.createElement('p');p.id='ssoSource82';p.className='notice82 only-desktop82';p.textContent='SSO rates are maintained in Statutory Settings. Payroll uses those rates and the statutory contribution ceiling.';form.prepend(p)}}
 const saveSettingsBefore82=saveSettingsGroup;saveSettingsGroup=function(event){const form=event.currentTarget,group=form.dataset.settingsGroup;if(desktop80.matches&&['tax','payroll'].includes(group)){try{const draft=structuredClone(ApplicationSettings);draft[group]={...draft[group],...collectSettingsForm(form)};payrollConfig82(draft)}catch(e){event.preventDefault();return showAppNotification('Review Settings',e.message,true)}}const result=saveSettingsBefore82(event);linkSsoFields82();if(Work82.run?.status==='draft'){Work82.run.reviewed=false;const review=document.querySelector('#runMeta82 [name=reviewed]');if(review)review.checked=false;updateRun82()}return result};
 const printBefore82=printDesktopReport79;printDesktopReport79=function(kind){if(!desktop80.matches)return printBefore82(kind);print82(reportNames79[kind],`<p>Posted journal · ${esc82(Reports79.from)} – ${esc82(Reports79.to)}</p>`+reportContent79(kind,true)+(Reports79.notes[kind]?'<h3>Notes / findings</h3><p>'+esc82(Reports79.notes[kind])+'</p>':''),Reports79.from+' to '+Reports79.to)};
-const switchWorkBefore82=switchTab;switchTab=function(id,...args){if(Work82.run?.status==='draft'&&document.querySelector('#payroll-entries.active,#payroll-deductions.active'))updateRun82();const result=switchWorkBefore82(id,...args);if(desktop80.matches){renderWork82();if(['payroll-overview','payroll-employees','payroll-entries','payroll-deductions','payroll-history','report-subusers82','report-financing82','transactions-budget14313','report-payroll'].includes(id))loadWork82();if(id==='settings-payroll')linkSsoFields82()}return result};
+const switchWorkBefore82=switchTab;switchTab=function(id,...args){if(Work82.run?.status==='draft'&&document.querySelector('#payroll-entries.active,#payroll-deductions.active'))updateRun82();const result=switchWorkBefore82(id,...args);if(desktop80.matches){if(/^(payroll-|hr-)/.test(id)||['report-subusers82','report-financing82','transactions-budget14313','report-payroll','settings-payroll','settings-integration82'].includes(id))renderWork82();if(['payroll-overview','payroll-employees','payroll-entries','payroll-deductions','payroll-history','report-subusers82','report-financing82','transactions-budget14313','report-payroll'].includes(id))loadWork82();if(id==='settings-payroll')linkSsoFields82()}return result};
 const logoutWorkBefore82=logoutDemoUser;logoutDemoUser=async function(){Object.assign(Work82,{owner:null,loaded:false,loading:false,error:'',employees:[],leaves:[],runs:[],reports:[],run:null,runRecord:null,employee:null,report:null,reportRecord:null,busy:false});Object.assign(SubReport82,{user:'',fund:'',days:[],reference:'',notes:'',opening:0,reviewer:''});Object.assign(Finance82,{lines:[],movements:[],reference:'',notes:'',recipient:'',purpose:'',reviewer:''});document.querySelectorAll('.desktop82,.print-frame82').forEach(n=>n.remove());return logoutWorkBefore82()};
 function responsiveWork82(){document.querySelectorAll('.nav-links .only-desktop82').forEach(n=>n.hidden=!desktop80.matches);if(desktop80.matches){linkSsoFields82();renderWork82()}else{const f=document.querySelector('[data-settings-group="payroll"]');for(const key of ['employeeSsoRate','employerSsoRate'])if(f?.elements[key]){f.elements[key].readOnly=false;f.elements[key].value=ApplicationSettings.payroll[key]}}}
 for(const [parent,id,label]of [['reports','report-subusers82','Sub-user Reports'],['reports','report-financing82','Budget & Financing Reports']]){const p=APP_PERMISSION_TREE.find(p=>p.id===parent);if(p&&!p.children.some(c=>c[0]===id))p.children.push([id,label])}
@@ -7692,8 +7692,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  'use strict';
  let queued=false;
  function shorten(name){const words=String(name||'').trim().split(/\s+/).filter(Boolean);return words.length>1?`${words[0][0]}. ${words[words.length-1]}`:name}
- function update(){queued=false;if(typeof Work82==='undefined')return;const names=Work82.employees.map(row=>row.data?.name).filter(Boolean).sort((a,b)=>b.length-a.length);if(!names.length)return;
-  for(const cell of document.querySelectorAll('.tab-content table td,.tab-content table th')){
+ function update(all=false){queued=false;if(typeof Work82==='undefined')return;const names=Work82.employees.map(row=>row.data?.name).filter(Boolean).sort((a,b)=>b.length-a.length);if(!names.length)return;
+  for(const cell of document.querySelectorAll(all?'.tab-content table td,.tab-content table th':'.tab-content.active table td,.tab-content.active table th')){
    if(cell.closest('#headerNotices104,#document-editor105'))continue;
    const walker=document.createTreeWalker(cell,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode())){
     if(node.parentElement?.closest('button,input,select,textarea,option,script,style'))continue;
@@ -7703,8 +7703,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    }
   }
  }
- function schedule(){if(!queued){queued=true;requestAnimationFrame(update)}}
- const install=()=>{document.addEventListener('click',schedule,true);new MutationObserver(schedule).observe(document.querySelector('.workspace-scroll')||document.body,{subtree:true,childList:true});schedule()};
+ function schedule(){if(!queued){queued=true;requestAnimationFrame(()=>update())}}
+ const install=()=>{window.addEventListener('page113',schedule);window.addEventListener('beforeprint',()=>update(true));new MutationObserver(records=>{if(records.some(r=>r.type==='attributes'?r.target.matches?.('.tab-content.active'):r.target.parentElement?.closest('.tab-content.active')||r.target.matches?.('.tab-content.active')))schedule()}).observe(document.querySelector('.workspace-scroll')||document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});schedule()};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 

@@ -3,7 +3,7 @@ const Location69={hydrating:false,ready:false,view:'dashboard',lastWrite:0,userN
 function locationKey69(id=liveProfile?.id){return `ojm_location_69_${id||'local'}`}
 function readLocation69(id){try{return JSON.parse(localStorage.getItem(locationKey69(id))||'null')}catch{return null}}
 
-function saveLocation69(){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:document.getElementById('accounts-modular-container')?.classList.contains('active')?(document.getElementById('accounts-modular-container').dataset.accountView14231||Location69.view):Location69.view,scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
+function saveLocation69(scroll){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:document.getElementById('accounts-modular-container')?.classList.contains('active')?(document.getElementById('accounts-modular-container').dataset.accountView14231||Location69.view):Location69.view,scroll:typeof scroll==='number'?scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
 function recentLocation69(record){return !!record}
 const hydrateBefore69=hydrateSupabaseSession;
 let hydration69=null,hydratedUser69='',startup88=null;
@@ -47,8 +47,8 @@ function applyCurrencyOrder69(){const order=ApplicationSettings.accounting.curre
 const renderCurrencyBefore69=CurrencyStore.render;
 CurrencyStore.render=function(){applyCurrencyOrder69();renderCurrencyBefore69.call(this);const host=document.getElementById('currencyTableBody');if(!host)return;[...host.rows].forEach((row,i)=>{row.draggable=true;row.dataset.currency=this.currencies[i].code;const handle=document.createElement('span');handle.className='currency-handle69';handle.textContent='⠿ ';handle.title='Drag to reorder';row.cells[0].prepend(handle);row.ondragstart=e=>e.dataTransfer.setData('text/plain',row.dataset.currency);row.ondragover=e=>e.preventDefault();row.ondrop=e=>{e.preventDefault();moveCurrency69(e.dataTransfer.getData('text/plain'),i)}})};
 function moveCurrency69(code,index){const list=CurrencyStore.currencies,from=list.findIndex(c=>c.code===code);if(from<0||index<0||index>=list.length)return;const snapshot=snapshotJournal69();list.splice(index,0,list.splice(from,1)[0]);ApplicationSettings.accounting.currencyOrder=list.map(c=>c.code);localStorage.setItem(APP_SETTINGS_KEY,JSON.stringify(ApplicationSettings));CurrencyStore.render();setupJournalColumns();restoreJournal69(snapshot);sizeCurrencyTables69();const active=document.querySelector('.tab-content.active')?.id;if(active==='transactions-all')renderAllTransactionsTable();else if(active==='transactions-new')renderNewTransactionsTable();else if(active==='transactions-voided')renderVoidedTransactionsTable()}
-function sizeCurrencyTables69(){
- document.querySelectorAll('table').forEach(table=>{
+function sizeCurrencyTables69(all=false){
+ document.querySelectorAll(all?'table':'.tab-content.active table').forEach(table=>{
  if(table.querySelector('#jeHeaderRow'))return; // Journal-entry widths are fixed by the v97 desktop specification.
  const row=table.tHead?.rows[0];if(!row)return;
  [...row.cells].forEach((th,i)=>{const m=th.textContent.trim().match(/^(?:CR|DR)[\s-]+([A-Z]{3})$/);if(!m)return;const code=m[1],values=[...table.querySelectorAll('tbody tr')].map(tr=>tr.cells.length===row.cells.length?(tr.cells[i]?.textContent||tr.cells[i]?.querySelector('input')?.value||'').trim():'');const length=Math.max(code==='LAK'?16:12,...values.map(v=>v.length));const width=Math.min(240,Math.max(180,length*8+24));th.style.setProperty('width',width+'px','important');th.style.setProperty('min-width',width+'px','important');th.dataset.currency=code;});
@@ -78,12 +78,12 @@ function filterAudit69(){const q=(document.getElementById('auditSearch69')?.valu
 const toggleAuditBefore69=toggleAuditDetails;toggleAuditDetails=function(id,row){document.querySelectorAll('.audit-detail-row').forEach(detail=>{if(detail.id!==id){detail.hidden=true;detail.previousElementSibling?.setAttribute('aria-expanded','false');const icon=detail.previousElementSibling?.querySelector('.audit-expand-cell');if(icon)icon.textContent='▶'}});toggleAuditBefore69(id,row)};
 document.addEventListener('toggle',e=>{const detail=e.target;if(detail.tagName!=='DETAILS'||!detail.open)return;detail.parentElement.querySelectorAll(':scope > details[open]').forEach(other=>{if(other!==detail)other.open=false})},true);
 document.addEventListener('DOMContentLoaded',()=>{
- const previousSwitch=window.switchTab;window.switchTab=function(target){saveLocation69();const result=previousSwitch(target);if(document.getElementById(target)?.classList.contains('active')){Location69.view=target;saveLocation69()}polish69();return result};
+ const previousSwitch=window.switchTab;window.switchTab=function(target){saveLocation69();const result=previousSwitch(target);if(document.getElementById(target)?.classList.contains('active')){Location69.view=target;saveLocation69(0)}polish69();return result};
  const previousAccount=window.scrollToAccountModule;window.scrollToAccountModule=function(target){saveLocation69();const result=previousAccount(target);if(document.getElementById(target)&&!document.getElementById(target).hidden){Location69.view=target;requestAnimationFrame(()=>{const scroller=appWorkspaceScroller();if(scroller)scroller.scrollTop=0;saveLocation69()})}return result};
  setupHeaders69();CurrencyStore.render();polish69();
  let scheduled=false;new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;polish69()})}).observe(document.body,{childList:true,subtree:true});
  for(const name of ['pointerdown','keydown','scroll'])document.addEventListener(name,()=>{if(Date.now()-Location69.lastWrite<1000)return;Location69.lastWrite=Date.now();saveLocation69()},true);
- document.addEventListener('change',polish69);window.addEventListener('pagehide',saveLocation69);
+ document.addEventListener('change',polish69);window.addEventListener('pagehide',saveLocation69);window.addEventListener('beforeprint',()=>sizeCurrencyTables69(true));
 });
 
 // A navigation choice made while sign-in data is loading wins over the saved route.
