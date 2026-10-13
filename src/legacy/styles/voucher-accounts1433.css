@@ -1,0 +1,18 @@
+.voucher-sign-dialog1433 .ui-dialog108{max-width:900px!important;width:94vw!important}#voucherSignatories1433>label{display:flex;align-items:center;gap:10px;font-weight:600}#voucherSignatories1433 select,#voucherSignatories1433 input{border:1px solid #a6b89f;background:#fffdf5;border-radius:4px;min-width:0;padding:8px;font:inherit;color:#254a39}.voucher-sign-list1433 fieldset{border:1px solid #b9cbb1;border-radius:6px;padding:12px;margin:15px 0}.voucher-sign-list1433 legend{font-weight:700;padding:0 6px}.voucher-sign-list1433 p{font-size:12px;margin:2px 0 10px}.voucher-sign-fields1433{display:grid;grid-template-columns:1fr 1.4fr 1.4fr;gap:12px}.voucher-sign-fields1433 label{display:flex;flex-direction:column;gap:5px}.voucher-sign-fields1433 [hidden]{display:none!important}#voucherSignatories1433 [role=alert]{color:#993d27;white-space:pre-line}@media(max-width:650px){.voucher-sign-fields1433{grid-template-columns:1fr}}
+/* Match the main Chart of Accounts: fitted columns and complete wrapped text. */
+#sec-sub-accounts{min-width:0;max-width:100%}
+#tblSubAccounts{width:100%!important;min-width:0!important;table-layout:fixed!important}
+#tblSubAccounts th,#tblSubAccounts td{white-space:normal!important;overflow-wrap:anywhere;min-width:0!important}
+#tblSubAccounts th:nth-child(1){width:24%!important}
+#tblSubAccounts th:nth-child(2){width:11%!important}
+#tblSubAccounts th:nth-child(3){width:22%!important}
+#tblSubAccounts th:nth-child(4){width:36%!important}
+#tblSubAccounts th:nth-child(5){width:7%!important}
+#tblSubAccounts td:nth-child(4){line-height:1.45;text-align:left!important}
+body.shell113 #accounts-modular-container #tblSubAccounts td:not(:last-child),
+body.shell113 #accounts-modular-container #tblSubAccounts td:not(:last-child) *{
+white-space:normal!important;overflow:visible!important;text-overflow:clip!important;
+height:auto!important;max-height:none!important;-webkit-line-clamp:unset!important;
+overflow-wrap:anywhere!important;line-height:1.45!important}
+body.shell113 #accounts-modular-container #tblSubAccounts tr{height:auto!important;max-height:none!important}
+body #tblSubAccounts .account-actions87,body #tblSubAccounts .account-actions87>div{flex-wrap:wrap!important}

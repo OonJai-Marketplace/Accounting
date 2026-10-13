@@ -1,0 +1,52 @@
+/* Light navigation, emerald selection, readable identity, compact HR forms. */
+body #appSidebar,body .sidebar{background:#f9f5eb!important;border-color:#c8d8c7!important}
+body #appSidebar .sidebar-brand{background:#f9f5eb!important;border-bottom:1px solid #cfdbcb}
+body .sidebar-brand h2{font-size:19px!important;line-height:1.25!important;color:#174f3d!important}
+body #appSidebar .nav-header,body #appSidebar .tab-btn{color:#234a39!important;background:transparent!important}
+body #appSidebar .nav-icon100{color:#006e50!important}
+body #appSidebar .nav-category.active-category>.nav-header{background:#007e5b!important;color:white!important;border-radius:6px;box-shadow:inset 3px 0 #c5a15a!important}
+body #appSidebar .nav-category.active-category>.nav-header .nav-icon100{color:white!important}
+body #appSidebar .tab-btn.active{background:#daecde!important;color:#064c35!important}
+body #appSidebar .nav-header:hover{background:#e3eddf!important;color:#164936!important}
+body .module-header{display:none!important}
+body #transactionsHeading98{display:flex!important;align-items:center;gap:10px;position:relative;z-index:1100;padding:8px 0 12px!important;min-height:64px}
+body #transactionsHeading98 h1{margin:0 auto 0 0!important;font-size:25px!important}
+body #transactionsHeading98 #headerAccountTrigger{min-height:52px!important;max-width:300px!important;padding:4px 9px!important;gap:10px!important}
+body #transactionsHeading98 .sidebar-user-avatar{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;font-size:15px}
+body #transactionsHeading98 .sidebar-user-copy strong{font-size:14px!important;max-width:205px}
+body #transactionsHeading98 .sidebar-user-copy span{font-size:11px!important}
+body .profile-caret104,body #dateDisplay82{display:none!important}
+body #journal .oj-date-shell104{min-width:160px!important}
+body #period-review .period-review-picker>.oj-date-shell104{width:190px}
+.balance-value105{display:inline-grid;grid-template-columns:27px minmax(105px,1fr);gap:7px;align-items:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+.balance-value105>span:last-child{text-align:right}
+.balance-badge105{font-size:10px;font-weight:800;text-align:center;border-radius:3px;padding:2px 3px;background:#edf0ec;color:#45574c}
+.balance-badge105.dr{background:#dbeee2;color:#075333}.balance-badge105.cr{background:#fff0d5;color:#834608}
+body .hr-picker105{display:block!important;max-width:420px;padding:10px 12px!important}
+body #hrEmployee99{width:100%!important;min-width:220px!important;min-height:34px!important;font-size:13px!important}
+body .hr-form105{margin:8px 12px!important;padding:12px!important;border:1px solid #c7d8c7;border-top:4px solid #008563;border-radius:6px;background:#fffcf6}
+body .hr-form105 .fields82{display:grid!important;grid-template-columns:minmax(230px,1.5fr) repeat(2,minmax(140px,1fr)) minmax(180px,1.3fr) minmax(120px,.7fr)!important;gap:10px!important;align-items:end}
+body .hr-form105 label{min-width:0!important;display:flex!important;flex-direction:column!important;gap:5px}
+body .hr-form105 label.hr-paragraph105{grid-column:1/-1!important}
+body .hr-form105 textarea{width:100%!important;min-height:115px!important;resize:vertical;line-height:1.5!important}
+body .hr-form105 input,body .hr-form105 select{width:100%!important;box-sizing:border-box}
+body .hr-form105 footer{display:flex;justify-content:flex-end;gap:8px;padding-top:12px}
+body #hr-assessments .data-table82 table{table-layout:fixed!important;width:100%!important;min-width:0!important}
+body #hr-assessments .data-table82 :is(th,td){white-space:normal!important;overflow-wrap:anywhere}
+body .hr-criteria99{white-space:pre-wrap;word-break:break-word;margin:0;font:inherit}
+body :is(.attendance-summary99,.attendance-grid99) tbody th{background:#fffcf6!important;color:#21382d!important}
+body .attendance-grid99 thead th:not(:first-child),body .attendance-grid99 tbody td{text-align:center!important}
+body .attendance-grid99 .attendance-cell101{display:grid!important;place-items:center!important;width:100%!important;height:100%!important;min-height:24px!important}
+body .attendance-grid99 .attendance-dot99{margin:0!important}
+.profile-list105{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:8px;margin:10px 12px}
+.profile-card105{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #c8dacb;border-radius:6px;background:#fffcf6;color:#164936;text-align:left;cursor:pointer}
+.profile-card105 img{width:54px;height:54px;border-radius:7px;object-fit:cover;background:#f3eee2}.profile-card105 span{display:flex;flex-direction:column;gap:4px}.profile-card105 small{color:#52675b}
+.profile-dialog105{width:min(640px,94vw)!important}.profile-dialog105 .profile-photo105{display:block;width:140px;height:140px;object-fit:contain;margin:14px auto;border-radius:10px;background:#f7f3e9}
+.profile-dialog105 dl{display:grid;grid-template-columns:130px 1fr;gap:9px;margin:16px}.profile-dialog105 dd{margin:0;overflow-wrap:anywhere}.profile-dialog105 dt{font-weight:700}.profile-dialog105 footer{padding:12px;display:flex;gap:8px;justify-content:flex-end}
+.auth-settings105{padding:12px;margin-top:12px}.auth-settings105 label{display:flex;flex-direction:column;gap:6px}.auth-settings105 input{width:100%;padding:8px}.auth-settings105 button{margin-top:8px}.auth-settings105 code{overflow-wrap:anywhere}
+.im-menu-photo105{width:56px;height:42px;object-fit:cover;border-radius:4px}.im-photo105{max-width:160px;max-height:110px;object-fit:contain}.im-demo105{padding:9px 12px;background:#fff3d8;color:#755218}.im-sample105{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+@media(max-width:1150px){body .hr-form105 .fields82{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:700px){body #transactionsHeading98 h1{font-size:19px!important}body .hr-form105 .fields82{grid-template-columns:1fr!important}body #transactionsHeading98 .sidebar-user-copy{display:none!important}body #transactionsHeading98 #headerAccountTrigger{min-width:52px!important}}
+@media print{body #transactionsHeading98{display:none!important}}
+body #hr-assessments .work82>.data-table82,body #hr-contracts .work82>.data-table82{margin:10px 12px!important;width:calc(100% - 24px)!important;max-width:calc(100% - 24px)!important}
+body #transactionsHeading98 #mobileMenuToggle{flex:none;color:#174f3d;background:#fffcf6;border:1px solid #bfd3c2}

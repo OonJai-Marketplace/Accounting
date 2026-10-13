@@ -1,0 +1,13 @@
+/* Keep Home actions together, independent of older absolute-position rules. */
+body #subUserWorkspacePanel .v49-desktop-home-title{display:grid!important;grid-template-columns:minmax(180px,1fr) minmax(280px,400px) max-content;align-items:center!important;gap:12px!important;padding:10px 12px!important;text-align:left!important}
+body #subUserWorkspacePanel .v49-desktop-home-title .subuser-title93{grid-column:1;grid-row:1;min-width:0;width:auto!important;min-height:0!important;padding:0!important;border:0!important}
+body #subUserWorkspacePanel .v49-desktop-home-title>.sub-user-search-wrap{grid-column:2;grid-row:1;position:relative!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0;margin:0!important;padding:0!important}
+body #subUserWorkspacePanel .v49-desktop-home-title>.all-history1444{grid-column:3;grid-row:1;justify-self:end;margin:0!important;white-space:nowrap;min-height:36px}
+body #sub-users-workspace #subUserTabSearch{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:38px!important;margin:0!important;padding:8px 12px 8px 38px!important;text-align:left!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;font-size:12px!important;line-height:20px!important}
+body #sub-users-workspace #subUserTabSearch::placeholder{text-align:left!important}
+body #subUserWorkspacePanel .v49-desktop-home-title .v49-search-icon{position:absolute!important;left:12px!important;top:19px!important;transform:translateY(-50%)!important;width:18px!important;height:18px!important;font-size:20px!important;line-height:18px!important;pointer-events:none}
+body #sub-users-workspace .sub-user-search-result{display:flex!important;align-items:center;gap:12px;min-width:0}
+body #sub-users-workspace .sub-user-search-result>div{flex:1;min-width:0;overflow-wrap:break-word;word-break:normal}
+body #sub-users-workspace .sub-user-search-result>span:last-child{flex:none;white-space:nowrap!important}
+@media(max-width:1100px){body #subUserWorkspacePanel .v49-desktop-home-title{grid-template-columns:minmax(150px,1fr) minmax(250px,1.5fr) max-content;gap:8px!important}body #subUserWorkspacePanel .v49-desktop-home-title .subuser-title93 p{font-size:11px!important}}
+@media(max-width:767px){body #subUserWorkspacePanel .v49-desktop-home-title{grid-template-columns:minmax(0,1fr) max-content}body #subUserWorkspacePanel .v49-desktop-home-title .subuser-title93{grid-column:1/-1}body #subUserWorkspacePanel .v49-desktop-home-title>.sub-user-search-wrap{grid-column:1;grid-row:2}body #subUserWorkspacePanel .v49-desktop-home-title>.all-history1444{grid-column:2;grid-row:2}}

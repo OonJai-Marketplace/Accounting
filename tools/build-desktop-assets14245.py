@@ -2,6 +2,8 @@
 from pathlib import Path
 import re,json
 ROOT=Path(__file__).resolve().parent.parent
+if (ROOT/'src/manifest.json').exists():
+    raise SystemExit('Legacy builder retired: run python tools/build-modules.py. The old HTML snapshot would discard later approved fixes.')
 html=(ROOT/'tools/desktop-source14245.html').read_text()
 css=re.compile(r'<link\s+rel="stylesheet"\s+href="(styles/[^"?]+)(?:\?[^"]*)?"\s*>')
 styles=css.findall(html)

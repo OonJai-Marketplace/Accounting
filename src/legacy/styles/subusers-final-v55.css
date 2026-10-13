@@ -1,0 +1,135 @@
+/* V55 final parity layer: approved desktop and phone workbench refinements. */
+
+/* The category shell duplicated the horizontal user tabs. */
+body.subusers-workspace-active #categoryTabShell{display:none!important}
+body.subusers-workspace-active .workspace-scroll{height:100vh!important}
+
+/* Match the clean white transaction-tab treatment. */
+body.subusers-workspace-active .sub-user-tabs-shell{background:#f8fafc!important}
+body.subusers-workspace-active .sub-user-browser-tab{
+  border-color:#b8c9c2!important;background:#fff!important;color:#405b51!important;
+  box-shadow:none!important
+}
+body.subusers-workspace-active .sub-user-browser-tab.active{
+  z-index:2!important;border-color:#78a995!important;background:#fff!important;color:#065f46!important;
+  box-shadow:inset 0 3px #059669!important
+}
+body.subusers-workspace-active .sub-user-browser-tab .sub-user-tab-close{
+  background:#fff!important;box-shadow:0 0 0 3px #fff!important
+}
+
+/* Desktop home search remains one coherent, working control. */
+.v49-desktop-home-title .sub-user-search-wrap{
+  position:relative!important;display:block!important;width:min(680px,100%)!important;
+  margin:14px auto 0!important
+}
+.v49-desktop-home-title .sub-user-search-wrap>.je-input{
+  display:block!important;width:100%!important;min-width:0!important;margin:0!important;
+  padding:11px 14px 11px 42px!important
+}
+.v49-desktop-home-title .v49-search-icon{
+  position:absolute!important;z-index:3!important;left:15px!important;top:21px!important;
+  transform:translateY(-50%)!important;line-height:1!important;pointer-events:none
+}
+.v49-desktop-home-title .sub-user-search-results{top:calc(100% + 5px)!important;width:100%!important}
+
+/* Compact rectangular desktop metrics. */
+.v49-desktop-stats{width:min(1024px,100%)!important;gap:10px!important}
+.v49-desktop-stats>div{
+  min-height:132px!important;padding:14px 10px!important;gap:7px!important;align-content:center!important
+}
+.v49-desktop-stats i{
+  width:58px!important;height:58px!important;border-radius:13px!important;font-size:38px!important
+}
+.v49-desktop-stats i svg{width:40px!important;height:40px!important}
+.v49-desktop-stats strong{gap:6px!important;font-size:21px!important;line-height:1.1!important}
+.v49-desktop-stats strong span{font-size:11px!important}
+
+/* Two-line account identity and a compact, exactly aligned action block. */
+.v49-desktop-user-heading{
+  display:flex!important;align-items:stretch!important;min-height:82px!important;padding:12px 0!important
+}
+.v49-desktop-user-heading>div:first-child{
+  display:grid!important;min-height:58px!important;align-content:center!important
+}
+.v49-desktop-user-heading h2{margin:0!important}
+.v49-desktop-user-heading p{margin:5px 0 0!important}
+.v49-desktop-user-actions{
+  display:grid!important;width:270px!important;min-width:270px!important;min-height:58px!important;
+  grid-template-columns:1fr 1fr!important;grid-template-rows:27px 27px!important;gap:4px 7px!important;
+  align-self:center!important;margin:0!important
+}
+.v49-desktop-user-actions button{
+  display:flex!important;min-width:0!important;min-height:0!important;height:27px!important;
+  align-items:center!important;justify-content:center!important;padding:3px 8px!important;text-align:center!important
+}
+.v49-desktop-user-actions button:last-child{grid-column:1/-1!important;width:100%!important}
+
+/* Keep the generated ID in the desktop table and rebalance its columns. */
+.v49-desktop-post-tools>span{display:none!important}
+.v49-desktop-entry-scroll table{width:100%!important;min-width:1050px!important;table-layout:fixed!important}
+.v49-desktop-entry-scroll th:nth-child(1){width:11%!important}
+.v49-desktop-entry-scroll th:nth-child(2){width:10%!important}
+.v49-desktop-entry-scroll th:nth-child(3){width:10%!important}
+.v49-desktop-entry-scroll th:nth-child(4){width:15%!important}
+.v49-desktop-entry-scroll th:nth-child(5){width:15%!important}
+.v49-desktop-entry-scroll th:nth-child(6){width:27%!important}
+.v49-desktop-entry-scroll th:nth-child(7){width:8%!important}
+.v49-desktop-entry-scroll th:nth-child(8){width:4%!important}
+
+/* Status is communicated by type color only on the Home overview. */
+.v49-desktop-home-table em,.v49-user-overview em{
+  padding:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important
+}
+.v49-desktop-home-table em.bad,.v49-user-overview em.bad{color:#b42318!important}
+.v49-desktop-home-table em.review{color:#a16207!important}
+.v49-desktop-home-table em.good,.v49-user-overview em.good{color:#047857!important}
+
+/* All workbench dialogs are centered on desktop, including protocol and adjustment notices. */
+#v49AdjustmentOverlay,#v49NoticeOverlay,#v49ProtocolOverlay,#v49ReviewOverlay,
+.workspace-void-overlay{
+  display:grid!important;place-items:center!important;align-items:center!important;justify-items:center!important;
+  overflow:auto!important;padding:18px!important
+}
+#v49AdjustmentOverlay>.v49-adjust-dialog,#v49NoticeOverlay>.v49-review-dialog,
+#v49ProtocolOverlay>.v49-review-dialog,#v49ReviewOverlay>.v49-review-dialog{
+  width:min(920px,calc(100vw - 36px))!important;height:auto!important;
+  max-height:calc(100dvh - 36px)!important;margin:auto!important
+}
+
+/* Universal emerald adjustment-table headers and restrained audit note. */
+.v49-adjust-dialog table thead th,.v49-adjustment-review table thead th{
+  background:#07835e!important;color:#fff!important;text-align:center!important
+}
+.v49-adjustment-review>p{
+  margin:9px 12px 12px!important;color:#42564f!important;font-size:11px!important;
+  line-height:1.45!important;font-weight:400!important
+}
+
+/* Centered themed replacement for the browser void prompt. */
+.workspace-void-dialog{
+  display:flex;width:min(520px,calc(100vw - 32px));max-height:calc(100dvh - 32px);margin:auto;
+  flex-direction:column;overflow:hidden;border:1px solid #a9c7bb;border-top:5px solid #059669;
+  border-radius:14px;background:#fff;box-shadow:0 24px 65px rgba(2,44,34,.28)
+}
+.workspace-void-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:16px 18px;border-bottom:1px solid #dce6e1}
+.workspace-void-dialog>header span{color:#047857;font-size:10px;font-weight:850;letter-spacing:.08em}
+.workspace-void-dialog h2{margin:4px 0 2px;color:#064e3b;font-size:20px}
+.workspace-void-dialog p{margin:0;color:#64748b;font-size:12px}
+.workspace-void-dialog>header button{display:grid;width:34px;height:34px;flex:0 0 auto;place-items:center;border:0;border-radius:9px;background:#eef3f1;color:#42564f;font-size:21px}
+.workspace-void-dialog>label{display:grid;gap:6px;padding:16px 18px;color:#31584c;font-size:12px;font-weight:800}
+.workspace-void-dialog textarea{width:100%;resize:vertical;padding:10px;border:1px solid #9fbfb2;border-radius:8px;font:inherit;font-weight:400;outline:none}
+.workspace-void-dialog textarea:focus{border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.13)}
+.workspace-void-dialog small{color:#b42318}
+.workspace-void-dialog>footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid #dce6e1;background:#fbfdfc}
+
+@media(max-width:767px){
+  body.subusers-workspace-active .workspace-scroll{height:calc(100vh - var(--module-header-height,56px))!important}
+  .v49-post-tools b{font-size:10px!important;white-space:nowrap}
+  #v49AdjustmentOverlay,#v49NoticeOverlay,#v49ProtocolOverlay,#v49ReviewOverlay{padding:0!important}
+  #v49AdjustmentOverlay>.v49-adjust-dialog,#v49NoticeOverlay>.v49-review-dialog,
+  #v49ProtocolOverlay>.v49-review-dialog,#v49ReviewOverlay>.v49-review-dialog{
+    width:100vw!important;height:100dvh!important;max-height:none!important;border-radius:0!important
+  }
+  .workspace-void-overlay{padding:12px!important}
+}

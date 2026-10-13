@@ -1,0 +1,2184 @@
+{
+  "format": 1,
+  "baseline_commit": "71e7a8e28bba8b438d07cd30d6e8eb6d44cc8fad",
+  "outputs": {
+    "scripts/device-mode132.js": [
+      {
+        "source": "src/legacy/scripts/device-mode132.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/loading1444.js": [
+      {
+        "source": "src/legacy/scripts/loading1444.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-1.js": [
+      {
+        "source": "src/legacy/scripts/device-mode132.js",
+        "prefix": "/* scripts/device-mode132.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/loading1444.js",
+        "prefix": "/* scripts/loading1444.js */\n",
+        "suffix": ";\n\n;\n"
+      }
+    ],
+    "scripts/backup-validation1441.js": [
+      {
+        "source": "src/legacy/scripts/backup-validation1441.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/cell-navigation14233.js": [
+      {
+        "source": "src/legacy/scripts/cell-navigation14233.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-2.js": [
+      {
+        "source": "src/legacy/scripts/backup-validation1441.js",
+        "prefix": "/* scripts/backup-validation1441.js */\n",
+        "suffix": ";\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/cell-navigation14233.js",
+        "prefix": "/* scripts/cell-navigation14233.js */\n",
+        "suffix": ";\n\n;\n"
+      }
+    ],
+    "scripts/workspace-request-v138.js": [
+      {
+        "source": "src/legacy/scripts/workspace-request-v138.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/script.js": [
+      {
+        "source": "src/legacy/scripts/script.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/navigation-v48.js": [
+      {
+        "source": "src/legacy/scripts/navigation-v48.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/subusers-final-v53.js": [
+      {
+        "source": "src/legacy/scripts/subusers-final-v53.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/subusers-final-v54.js": [
+      {
+        "source": "src/legacy/scripts/subusers-final-v54.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/subusers-final-v55.js": [
+      {
+        "source": "src/legacy/scripts/subusers-final-v55.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/subusers-final-v56.js": [
+      {
+        "source": "src/legacy/scripts/subusers-final-v56.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/design-system-v58.js": [
+      {
+        "source": "src/legacy/scripts/design-system-v58.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/mobile-tables-v66.js": [
+      {
+        "source": "src/legacy/scripts/mobile-tables-v66.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/transactions-v67.js": [
+      {
+        "source": "src/legacy/scripts/transactions-v67.js",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/accounts-v69.js": [
+      {
+        "source": "src/legacy/scripts/accounts-v69.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/review-v69.js": [
+      {
+        "source": "src/legacy/scripts/review-v69.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/interface-v69.js": [
+      {
+        "source": "src/legacy/scripts/interface-v69.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/reports-system-v71.js": [
+      {
+        "source": "src/legacy/scripts/reports-system-v71.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/transactions-mobile-v72.js": [
+      {
+        "source": "src/legacy/scripts/transactions-mobile-v72.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/mobile-polish-v73.js": [
+      {
+        "source": "src/legacy/scripts/mobile-polish-v73.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/mobile-refinements-v74.js": [
+      {
+        "source": "src/legacy/scripts/mobile-refinements-v74.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/review-mobile-v78.js": [
+      {
+        "source": "src/legacy/scripts/review-mobile-v78.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/reports-desktop-v79.js": [
+      {
+        "source": "src/legacy/scripts/reports-desktop-v79.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop-corrections-v80.js": [
+      {
+        "source": "src/legacy/scripts/desktop-corrections-v80.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop-refinements-v81.js": [
+      {
+        "source": "src/legacy/scripts/desktop-refinements-v81.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop-layout-v82.js": [
+      {
+        "source": "src/legacy/scripts/desktop-layout-v82.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-engine-v82.js": [
+      {
+        "source": "src/legacy/scripts/payroll-engine-v82.js",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/payroll-reports-v82.js": [
+      {
+        "source": "src/legacy/scripts/payroll-reports-v82.js",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/payroll-samples-v83.js": [
+      {
+        "source": "src/legacy/scripts/payroll-samples-v83.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-fixes-v83.js": [
+      {
+        "source": "src/legacy/scripts/payroll-fixes-v83.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop-polish-v84.js": [
+      {
+        "source": "src/legacy/scripts/desktop-polish-v84.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/layout-fixes-v85.js": [
+      {
+        "source": "src/legacy/scripts/layout-fixes-v85.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/layout-consistency-v87.js": [
+      {
+        "source": "src/legacy/scripts/layout-consistency-v87.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/session-inputs-v88.js": [
+      {
+        "source": "src/legacy/scripts/session-inputs-v88.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/prefixes-badges-v89.js": [
+      {
+        "source": "src/legacy/scripts/prefixes-badges-v89.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/scheduled-journals-v91.js": [
+      {
+        "source": "src/legacy/scripts/scheduled-journals-v91.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/refinements-v93.js": [
+      {
+        "source": "src/legacy/scripts/refinements-v93.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/settings-payroll-v94.js": [
+      {
+        "source": "src/legacy/scripts/settings-payroll-v94.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-groups-v96.js": [
+      {
+        "source": "src/legacy/scripts/payroll-groups-v96.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-polish-v97.js": [
+      {
+        "source": "src/legacy/scripts/payroll-polish-v97.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/transactions-v98.js": [
+      {
+        "source": "src/legacy/scripts/transactions-v98.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-v99.js": [
+      {
+        "source": "src/legacy/scripts/payroll-v99.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace-v99.js": [
+      {
+        "source": "src/legacy/scripts/workspace-v99.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/hr-v99.js": [
+      {
+        "source": "src/legacy/scripts/hr-v99.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/theme-v100.js": [
+      {
+        "source": "src/legacy/scripts/theme-v100.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/polish-v101.js": [
+      {
+        "source": "src/legacy/scripts/polish-v101.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/tax-reports-v102.js": [
+      {
+        "source": "src/legacy/scripts/tax-reports-v102.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/journal-actions-v102.js": [
+      {
+        "source": "src/legacy/scripts/journal-actions-v102.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/universal-date-v104.js": [
+      {
+        "source": "src/legacy/scripts/universal-date-v104.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/header-profile-v104.js": [
+      {
+        "source": "src/legacy/scripts/header-profile-v104.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/shortnames-v104.js": [
+      {
+        "source": "src/legacy/scripts/shortnames-v104.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/refinements-v105.js": [
+      {
+        "source": "src/legacy/scripts/refinements-v105.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-3.js": [
+      {
+        "source": "src/legacy/scripts/workspace-request-v138.js",
+        "prefix": "/* scripts/workspace-request-v138.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/script.js",
+        "prefix": "/* scripts/script.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/workspace-settings.js",
+        "prefix": "/* scripts/workspace-settings.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/navigation-v48.js",
+        "prefix": "/* scripts/navigation-v48.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/subusers-final-v53.js",
+        "prefix": "/* scripts/subusers-final-v53.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/subusers-final-v54.js",
+        "prefix": "/* scripts/subusers-final-v54.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/subusers-final-v55.js",
+        "prefix": "/* scripts/subusers-final-v55.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/subusers-final-v56.js",
+        "prefix": "/* scripts/subusers-final-v56.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/design-system-v58.js",
+        "prefix": "/* scripts/design-system-v58.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/mobile-tables-v66.js",
+        "prefix": "/* scripts/mobile-tables-v66.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/transactions-v67.js",
+        "prefix": "/* scripts/transactions-v67.js */\n",
+        "suffix": "\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/accounts-v69.js",
+        "prefix": "/* scripts/accounts-v69.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/review-v69.js",
+        "prefix": "/* scripts/review-v69.js */\n",
+        "suffix": ";\n;\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/interface-v69.js",
+        "prefix": "/* scripts/interface-v69.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/reports-system-v71.js",
+        "prefix": "/* scripts/reports-system-v71.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/transactions-mobile-v72.js",
+        "prefix": "/* scripts/transactions-mobile-v72.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/mobile-polish-v73.js",
+        "prefix": "/* scripts/mobile-polish-v73.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/mobile-refinements-v74.js",
+        "prefix": "/* scripts/mobile-refinements-v74.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/review-mobile-v78.js",
+        "prefix": "/* scripts/review-mobile-v78.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/reports-desktop-v79.js",
+        "prefix": "/* scripts/reports-desktop-v79.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/desktop-corrections-v80.js",
+        "prefix": "/* scripts/desktop-corrections-v80.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/desktop-refinements-v81.js",
+        "prefix": "/* scripts/desktop-refinements-v81.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/desktop-layout-v82.js",
+        "prefix": "/* scripts/desktop-layout-v82.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-engine-v82.js",
+        "prefix": "/* scripts/payroll-engine-v82.js */\n",
+        "suffix": "\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-reports-v82.js",
+        "prefix": "/* scripts/payroll-reports-v82.js */\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-samples-v83.js",
+        "prefix": "/* scripts/payroll-samples-v83.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-fixes-v83.js",
+        "prefix": "/* scripts/payroll-fixes-v83.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/desktop-polish-v84.js",
+        "prefix": "/* scripts/desktop-polish-v84.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/layout-fixes-v85.js",
+        "prefix": "/* scripts/layout-fixes-v85.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/layout-consistency-v87.js",
+        "prefix": "/* scripts/layout-consistency-v87.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/session-inputs-v88.js",
+        "prefix": "/* scripts/session-inputs-v88.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/prefixes-badges-v89.js",
+        "prefix": "/* scripts/prefixes-badges-v89.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/scheduled-journals-v91.js",
+        "prefix": "/* scripts/scheduled-journals-v91.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/refinements-v93.js",
+        "prefix": "/* scripts/refinements-v93.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/settings-payroll-v94.js",
+        "prefix": "/* scripts/settings-payroll-v94.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-groups-v96.js",
+        "prefix": "/* scripts/payroll-groups-v96.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-polish-v97.js",
+        "prefix": "/* scripts/payroll-polish-v97.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/transactions-v98.js",
+        "prefix": "/* scripts/transactions-v98.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-v99.js",
+        "prefix": "/* scripts/payroll-v99.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/workspace-v99.js",
+        "prefix": "/* scripts/workspace-v99.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/hr-v99.js",
+        "prefix": "/* scripts/hr-v99.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/theme-v100.js",
+        "prefix": "/* scripts/theme-v100.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/polish-v101.js",
+        "prefix": "/* scripts/polish-v101.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/tax-reports-v102.js",
+        "prefix": "/* scripts/tax-reports-v102.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/journal-actions-v102.js",
+        "prefix": "/* scripts/journal-actions-v102.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/universal-date-v104.js",
+        "prefix": "/* scripts/universal-date-v104.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/header-profile-v104.js",
+        "prefix": "/* scripts/header-profile-v104.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/shortnames-v104.js",
+        "prefix": "/* scripts/shortnames-v104.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/refinements-v105.js",
+        "prefix": "/* scripts/refinements-v105.js */\n",
+        "suffix": ";\n\n\n;\n"
+      }
+    ],
+    "scripts/document-editor-v105.js": [
+      {
+        "source": "src/legacy/scripts/document-editor-v105.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/shared-v108.js": [
+      {
+        "source": "src/legacy/scripts/shared-v108.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/refinements-v109.js": [
+      {
+        "source": "src/legacy/scripts/refinements-v109.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/visual-consistency-v110.js": [
+      {
+        "source": "src/legacy/scripts/visual-consistency-v110.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/dashboard-warm-v112.js": [
+      {
+        "source": "src/legacy/scripts/dashboard-warm-v112.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/header-icons-v112.js": [
+      {
+        "source": "src/legacy/scripts/header-icons-v112.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/keyboard-picking-v112.js": [
+      {
+        "source": "src/legacy/scripts/keyboard-picking-v112.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/shell-v113.js": [
+      {
+        "source": "src/legacy/scripts/shell-v113.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/access-v113.js": [
+      {
+        "source": "src/legacy/scripts/access-v113.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-4.js": [
+      {
+        "source": "src/legacy/scripts/document-export-v108.js",
+        "prefix": "/* scripts/document-export-v108.js */\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/document-import-v1422.js",
+        "prefix": "/* scripts/document-import-v1422.js */\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/document-editor-v105.js",
+        "prefix": "/* scripts/document-editor-v105.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/shared-v108.js",
+        "prefix": "/* scripts/shared-v108.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/refinements-v109.js",
+        "prefix": "/* scripts/refinements-v109.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/visual-consistency-v110.js",
+        "prefix": "/* scripts/visual-consistency-v110.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/dashboard-warm-v112.js",
+        "prefix": "/* scripts/dashboard-warm-v112.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/header-icons-v112.js",
+        "prefix": "/* scripts/header-icons-v112.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/keyboard-picking-v112.js",
+        "prefix": "/* scripts/keyboard-picking-v112.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/shell-v113.js",
+        "prefix": "/* scripts/shell-v113.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/access-v113.js",
+        "prefix": "/* scripts/access-v113.js */\n",
+        "suffix": ";\n\n;\n"
+      }
+    ],
+    "scripts/archive-xlsx-v129.js": [
+      {
+        "source": "src/legacy/scripts/archive-xlsx-v129.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/recovery-v113.js": [
+      {
+        "source": "src/legacy/scripts/recovery-v113.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/funds-v113.js": [
+      {
+        "source": "src/legacy/scripts/funds-v113.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/final-v117.js": [
+      {
+        "source": "src/legacy/scripts/final-v117.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/reports-v117.js": [
+      {
+        "source": "src/legacy/scripts/reports-v117.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace-v117.js": [
+      {
+        "source": "src/legacy/scripts/workspace-v117.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/final-v118.js": [
+      {
+        "source": "src/legacy/scripts/final-v118.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/reports-v118.js": [
+      {
+        "source": "src/legacy/scripts/reports-v118.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/accounting-pos-cleanup.js": [
+      {
+        "source": "src/legacy/scripts/accounting-pos-cleanup.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workflows-v136.js": [
+      {
+        "source": "src/legacy/scripts/workflows-v136.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/combined-v138.js": [
+      {
+        "source": "src/legacy/scripts/combined-v138.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/submission-review-v139.js": [
+      {
+        "source": "src/legacy/scripts/submission-review-v139.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-5.js": [
+      {
+        "source": "src/legacy/scripts/archive-xlsx-v129.js",
+        "prefix": "/* scripts/archive-xlsx-v129.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/recovery-v113.js",
+        "prefix": "/* scripts/recovery-v113.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/funds-v113.js",
+        "prefix": "/* scripts/funds-v113.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/final-v117.js",
+        "prefix": "/* scripts/final-v117.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/reports-v117.js",
+        "prefix": "/* scripts/reports-v117.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/workspace-v117.js",
+        "prefix": "/* scripts/workspace-v117.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/final-v118.js",
+        "prefix": "/* scripts/final-v118.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/reports-v118.js",
+        "prefix": "/* scripts/reports-v118.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/accounting-pos-cleanup.js",
+        "prefix": "/* scripts/accounting-pos-cleanup.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/workflows-v136.js",
+        "prefix": "/* scripts/workflows-v136.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/combined-v138.js",
+        "prefix": "/* scripts/combined-v138.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/submission-review-v139.js",
+        "prefix": "/* scripts/submission-review-v139.js */\n",
+        "suffix": ";\n\n\n;\n"
+      }
+    ],
+    "scripts/carry-forward-v142.js": [
+      {
+        "source": "src/legacy/scripts/carry-forward-v142.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/recovery-reset-fix-v142.js": [
+      {
+        "source": "src/legacy/scripts/recovery-reset-fix-v142.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/post-entry-diagnostics-v142.js": [
+      {
+        "source": "src/legacy/scripts/post-entry-diagnostics-v142.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/focused-v1422.js": [
+      {
+        "source": "src/legacy/scripts/focused-v1422.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/staff-entry14225.js": [
+      {
+        "source": "src/legacy/scripts/staff-entry14225.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/phone-bridge132.js": [
+      {
+        "source": "src/legacy/scripts/phone-bridge132.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/settings-phone133.js": [
+      {
+        "source": "src/legacy/scripts/settings-phone133.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/voucher-signatories1433.js": [
+      {
+        "source": "src/legacy/scripts/voucher-signatories1433.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-print1424.js": [
+      {
+        "source": "src/legacy/scripts/payroll-print1424.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/print-preview1426.js": [
+      {
+        "source": "src/legacy/scripts/print-preview1426.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/drafts1427.js": [
+      {
+        "source": "src/legacy/scripts/drafts1427.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/focused1427.js": [
+      {
+        "source": "src/legacy/scripts/focused1427.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/account-picker1428.js": [
+      {
+        "source": "src/legacy/scripts/account-picker1428.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-template1431.js": [
+      {
+        "source": "src/legacy/scripts/payroll-template1431.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-journal1429.js": [
+      {
+        "source": "src/legacy/scripts/payroll-journal1429.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/entry1430.js": [
+      {
+        "source": "src/legacy/scripts/entry1430.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace-config123.js": [
+      {
+        "source": "src/legacy/scripts/workspace-config123.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace-links123.js": [
+      {
+        "source": "src/legacy/scripts/workspace-links123.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workflows1434.js": [
+      {
+        "source": "src/legacy/scripts/workflows1434.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/saved-reports1434.js": [
+      {
+        "source": "src/legacy/scripts/saved-reports1434.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/personal-journal1437.js": [
+      {
+        "source": "src/legacy/scripts/personal-journal1437.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/todos1438.js": [
+      {
+        "source": "src/legacy/scripts/todos1438.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace1439.js": [
+      {
+        "source": "src/legacy/scripts/workspace1439.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/dialogs1440.js": [
+      {
+        "source": "src/legacy/scripts/dialogs1440.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/journal-batch1440.js": [
+      {
+        "source": "src/legacy/scripts/journal-batch1440.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/permissions1441.js": [
+      {
+        "source": "src/legacy/scripts/permissions1441.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/mobile-document1443.js": [
+      {
+        "source": "src/legacy/scripts/mobile-document1443.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/report-history1443.js": [
+      {
+        "source": "src/legacy/scripts/report-history1443.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/startup1443.js": [
+      {
+        "source": "src/legacy/scripts/startup1443.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/session-policy1443.js": [
+      {
+        "source": "src/legacy/scripts/session-policy1443.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/organization14229.js": [
+      {
+        "source": "src/legacy/scripts/organization14229.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/private-reminders14229.js": [
+      {
+        "source": "src/legacy/scripts/private-reminders14229.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/team-home14227.js": [
+      {
+        "source": "src/legacy/scripts/team-home14227.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/corrections14231.js": [
+      {
+        "source": "src/legacy/scripts/corrections14231.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/currency-colors14231.js": [
+      {
+        "source": "src/legacy/scripts/currency-colors14231.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/financial-numbers14231.js": [
+      {
+        "source": "src/legacy/scripts/financial-numbers14231.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/archive-scopes14232.js": [
+      {
+        "source": "src/legacy/scripts/archive-scopes14232.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/audit-engine14232.js": [
+      {
+        "source": "src/legacy/scripts/audit-engine14232.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/audit-storage14232.js": [
+      {
+        "source": "src/legacy/scripts/audit-storage14232.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/data-tools14232.js": [
+      {
+        "source": "src/legacy/scripts/data-tools14232.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/save-notices14234.js": [
+      {
+        "source": "src/legacy/scripts/save-notices14234.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/opening-balances14234.js": [
+      {
+        "source": "src/legacy/scripts/opening-balances14234.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-6.js": [
+      {
+        "source": "src/legacy/scripts/carry-forward-v142.js",
+        "prefix": "/* scripts/carry-forward-v142.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/recovery-reset-fix-v142.js",
+        "prefix": "/* scripts/recovery-reset-fix-v142.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/post-entry-diagnostics-v142.js",
+        "prefix": "/* scripts/post-entry-diagnostics-v142.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/focused-v1422.js",
+        "prefix": "/* scripts/focused-v1422.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/staff-entry14225.js",
+        "prefix": "/* scripts/staff-entry14225.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/phone-bridge132.js",
+        "prefix": "/* scripts/phone-bridge132.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/settings-phone133.js",
+        "prefix": "/* scripts/settings-phone133.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/voucher-signatories1433.js",
+        "prefix": "/* scripts/voucher-signatories1433.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-print1424.js",
+        "prefix": "/* scripts/payroll-print1424.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/print-preview1426.js",
+        "prefix": "/* scripts/print-preview1426.js */\n",
+        "suffix": ";\n;\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/drafts1427.js",
+        "prefix": "/* scripts/drafts1427.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/focused1427.js",
+        "prefix": "/* scripts/focused1427.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/account-picker1428.js",
+        "prefix": "/* scripts/account-picker1428.js */\n",
+        "suffix": ";\n;\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-template1431.js",
+        "prefix": "/* scripts/payroll-template1431.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/payroll-journal1429.js",
+        "prefix": "/* scripts/payroll-journal1429.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/entry1430.js",
+        "prefix": "/* scripts/entry1430.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/workspace-config123.js",
+        "prefix": "/* scripts/workspace-config123.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/workspace-links123.js",
+        "prefix": "/* scripts/workspace-links123.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/workflows1434.js",
+        "prefix": "/* scripts/workflows1434.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/saved-reports1434.js",
+        "prefix": "/* scripts/saved-reports1434.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/personal-journal1437.js",
+        "prefix": "/* scripts/personal-journal1437.js */\n",
+        "suffix": ";\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/todos1438.js",
+        "prefix": "/* scripts/todos1438.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/workspace1439.js",
+        "prefix": "/* scripts/workspace1439.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/dialogs1440.js",
+        "prefix": "/* scripts/dialogs1440.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/journal-batch1440.js",
+        "prefix": "/* scripts/journal-batch1440.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/permissions1441.js",
+        "prefix": "/* scripts/permissions1441.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/mobile-document1443.js",
+        "prefix": "/* scripts/mobile-document1443.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/report-history1443.js",
+        "prefix": "/* scripts/report-history1443.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/startup1443.js",
+        "prefix": "/* scripts/startup1443.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/session-policy1443.js",
+        "prefix": "/* scripts/session-policy1443.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/organization14229.js",
+        "prefix": "/* scripts/organization14229.js */\n",
+        "suffix": ";\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/private-reminders14229.js",
+        "prefix": "/* scripts/private-reminders14229.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/team-home14227.js",
+        "prefix": "/* scripts/team-home14227.js */\n",
+        "suffix": ";\n\n;\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/corrections14231.js",
+        "prefix": "/* scripts/corrections14231.js */\n",
+        "suffix": ";\n\n;\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/currency-colors14231.js",
+        "prefix": "/* scripts/currency-colors14231.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/financial-numbers14231.js",
+        "prefix": "/* scripts/financial-numbers14231.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/archive-scopes14232.js",
+        "prefix": "/* scripts/archive-scopes14232.js */\n",
+        "suffix": ";\n\n"
+      },
+      {
+        "source": "src/legacy/scripts/audit-engine14232.js",
+        "prefix": "/* scripts/audit-engine14232.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/audit-storage14232.js",
+        "prefix": "/* scripts/audit-storage14232.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/data-tools14232.js",
+        "prefix": "/* scripts/data-tools14232.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/save-notices14234.js",
+        "prefix": "/* scripts/save-notices14234.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/legacy/scripts/opening-balances14234.js",
+        "prefix": "/* scripts/opening-balances14234.js */\n",
+        "suffix": ";\n\n;\n"
+      }
+    ],
+    "styles/offline14239.css": [
+      {
+        "source": "src/legacy/styles/offline14239.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/loading1444.css": [
+      {
+        "source": "src/legacy/styles/loading1444.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/styles.css": [
+      {
+        "source": "src/legacy/styles/styles.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-final-v53.css": [
+      {
+        "source": "src/legacy/styles/subusers-final-v53.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-final-v55.css": [
+      {
+        "source": "src/legacy/styles/subusers-final-v55.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-final-v56.css": [
+      {
+        "source": "src/legacy/styles/subusers-final-v56.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/design-system-v58.css": [
+      {
+        "source": "src/legacy/styles/design-system-v58.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-mobile-v61.css": [
+      {
+        "source": "src/legacy/styles/subusers-mobile-v61.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/mobile-tables-v66.css": [
+      {
+        "source": "src/legacy/styles/mobile-tables-v66.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/transactions-v67.css": [
+      {
+        "source": "src/legacy/styles/transactions-v67.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/accounts-review-v69.css": [
+      {
+        "source": "src/legacy/styles/accounts-review-v69.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-v71.css": [
+      {
+        "source": "src/legacy/styles/desktop-v71.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/transactions-mobile-v72.css": [
+      {
+        "source": "src/legacy/styles/transactions-mobile-v72.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/mobile-polish-v73.css": [
+      {
+        "source": "src/legacy/styles/mobile-polish-v73.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/mobile-refinements-v74.css": [
+      {
+        "source": "src/legacy/styles/mobile-refinements-v74.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-polish-v75.css": [
+      {
+        "source": "src/legacy/styles/subusers-polish-v75.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/review-mobile-v78.css": [
+      {
+        "source": "src/legacy/styles/review-mobile-v78.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/reports-desktop-v79.css": [
+      {
+        "source": "src/legacy/styles/reports-desktop-v79.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-corrections-v80.css": [
+      {
+        "source": "src/legacy/styles/desktop-corrections-v80.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-refinements-v81.css": [
+      {
+        "source": "src/legacy/styles/desktop-refinements-v81.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-layout-v82.css": [
+      {
+        "source": "src/legacy/styles/desktop-layout-v82.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/payroll-reports-v82.css": [
+      {
+        "source": "src/legacy/styles/payroll-reports-v82.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/table-alignment-v83.css": [
+      {
+        "source": "src/legacy/styles/table-alignment-v83.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-polish-v84.css": [
+      {
+        "source": "src/legacy/styles/desktop-polish-v84.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/layout-fixes-v85.css": [
+      {
+        "source": "src/legacy/styles/layout-fixes-v85.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/layout-consistency-v87.css": [
+      {
+        "source": "src/legacy/styles/layout-consistency-v87.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/fixes14234.css": [
+      {
+        "source": "src/legacy/styles/fixes14234.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/session-inputs-v88.css": [
+      {
+        "source": "src/legacy/styles/session-inputs-v88.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/prefixes-badges-v89.css": [
+      {
+        "source": "src/legacy/styles/prefixes-badges-v89.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/scheduled-journals-v91.css": [
+      {
+        "source": "src/legacy/styles/scheduled-journals-v91.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/refinements-v93.css": [
+      {
+        "source": "src/legacy/styles/refinements-v93.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/settings-payroll-v94.css": [
+      {
+        "source": "src/legacy/styles/settings-payroll-v94.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/payroll-groups-v95.css": [
+      {
+        "source": "src/legacy/styles/payroll-groups-v95.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/payroll-polish-v97.css": [
+      {
+        "source": "src/legacy/styles/payroll-polish-v97.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/transactions-v98.css": [
+      {
+        "source": "src/legacy/styles/transactions-v98.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workspace-v99.css": [
+      {
+        "source": "src/legacy/styles/workspace-v99.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/theme-v100.css": [
+      {
+        "source": "src/legacy/styles/theme-v100.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/polish-v101.css": [
+      {
+        "source": "src/legacy/styles/polish-v101.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/reports-tax-v102.css": [
+      {
+        "source": "src/legacy/styles/reports-tax-v102.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/universal-date-v104.css": [
+      {
+        "source": "src/legacy/styles/universal-date-v104.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/header-profile-v104.css": [
+      {
+        "source": "src/legacy/styles/header-profile-v104.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/refinements-v105.css": [
+      {
+        "source": "src/legacy/styles/refinements-v105.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/refinements-v106.css": [
+      {
+        "source": "src/legacy/styles/refinements-v106.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/editor-tables-v107.css": [
+      {
+        "source": "src/legacy/styles/editor-tables-v107.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/shared-v108.css": [
+      {
+        "source": "src/legacy/styles/shared-v108.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/refinements-v109.css": [
+      {
+        "source": "src/legacy/styles/refinements-v109.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/editor-fixes-v110.css": [
+      {
+        "source": "src/legacy/styles/editor-fixes-v110.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/dashboard-warm-v112.css": [
+      {
+        "source": "src/legacy/styles/dashboard-warm-v112.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/polish-v113.css": [
+      {
+        "source": "src/legacy/styles/polish-v113.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/final-v117.css": [
+      {
+        "source": "src/legacy/styles/final-v117.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/final-v118.css": [
+      {
+        "source": "src/legacy/styles/final-v118.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workflows-v136.css": [
+      {
+        "source": "src/legacy/styles/workflows-v136.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/combined-v138.css": [
+      {
+        "source": "src/legacy/styles/combined-v138.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/submission-review-v139.css": [
+      {
+        "source": "src/legacy/styles/submission-review-v139.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/carry-forward-v142.css": [
+      {
+        "source": "src/legacy/styles/carry-forward-v142.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/recovery-reset-fix-v142.css": [
+      {
+        "source": "src/legacy/styles/recovery-reset-fix-v142.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/focused-v1422.css": [
+      {
+        "source": "src/legacy/styles/focused-v1422.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/device-mode132.css": [
+      {
+        "source": "src/legacy/styles/device-mode132.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/editor-print1424.css": [
+      {
+        "source": "src/legacy/styles/editor-print1424.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/editor-menus1426.css": [
+      {
+        "source": "src/legacy/styles/editor-menus1426.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/focused1427.css": [
+      {
+        "source": "src/legacy/styles/focused1427.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/account-picker1428.css": [
+      {
+        "source": "src/legacy/styles/account-picker1428.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/fixes1429.css": [
+      {
+        "source": "src/legacy/styles/fixes1429.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/payroll-template1431.css": [
+      {
+        "source": "src/legacy/styles/payroll-template1431.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/entry1430.css": [
+      {
+        "source": "src/legacy/styles/entry1430.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workspaces1432.css": [
+      {
+        "source": "src/legacy/styles/workspaces1432.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/voucher-accounts1433.css": [
+      {
+        "source": "src/legacy/styles/voucher-accounts1433.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workflows1434.css": [
+      {
+        "source": "src/legacy/styles/workflows1434.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/personal-journal1437.css": [
+      {
+        "source": "src/legacy/styles/personal-journal1437.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-tasks1438.css": [
+      {
+        "source": "src/legacy/styles/desktop-tasks1438.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workspace1439.css": [
+      {
+        "source": "src/legacy/styles/workspace1439.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/finalization1440.css": [
+      {
+        "source": "src/legacy/styles/finalization1440.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/polish1443.css": [
+      {
+        "source": "src/legacy/styles/polish1443.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/polish1444.css": [
+      {
+        "source": "src/legacy/styles/polish1444.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-header14226.css": [
+      {
+        "source": "src/legacy/styles/subusers-header14226.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/team-home14227.css": [
+      {
+        "source": "src/legacy/styles/team-home14227.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/corrections14231.css": [
+      {
+        "source": "src/legacy/styles/corrections14231.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop14245.css": [
+      {
+        "source": "src/legacy/styles/offline14239.css",
+        "prefix": "/* styles/offline14239.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/loading1444.css",
+        "prefix": "/* styles/loading1444.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/styles.css",
+        "prefix": "/* styles/styles.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/subusers-final-v53.css",
+        "prefix": "/* styles/subusers-final-v53.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/subusers-final-v55.css",
+        "prefix": "/* styles/subusers-final-v55.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/subusers-final-v56.css",
+        "prefix": "/* styles/subusers-final-v56.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/design-system-v58.css",
+        "prefix": "/* styles/design-system-v58.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/subusers-mobile-v61.css",
+        "prefix": "/* styles/subusers-mobile-v61.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/mobile-tables-v66.css",
+        "prefix": "/* styles/mobile-tables-v66.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/transactions-v67.css",
+        "prefix": "/* styles/transactions-v67.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/accounts-review-v69.css",
+        "prefix": "/* styles/accounts-review-v69.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/desktop-v71.css",
+        "prefix": "/* styles/desktop-v71.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/transactions-mobile-v72.css",
+        "prefix": "/* styles/transactions-mobile-v72.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/mobile-polish-v73.css",
+        "prefix": "/* styles/mobile-polish-v73.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/mobile-refinements-v74.css",
+        "prefix": "/* styles/mobile-refinements-v74.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/subusers-polish-v75.css",
+        "prefix": "/* styles/subusers-polish-v75.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/review-mobile-v78.css",
+        "prefix": "/* styles/review-mobile-v78.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/reports-desktop-v79.css",
+        "prefix": "/* styles/reports-desktop-v79.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/desktop-corrections-v80.css",
+        "prefix": "/* styles/desktop-corrections-v80.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/desktop-refinements-v81.css",
+        "prefix": "/* styles/desktop-refinements-v81.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/desktop-layout-v82.css",
+        "prefix": "/* styles/desktop-layout-v82.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/payroll-reports-v82.css",
+        "prefix": "/* styles/payroll-reports-v82.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/table-alignment-v83.css",
+        "prefix": "/* styles/table-alignment-v83.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/desktop-polish-v84.css",
+        "prefix": "/* styles/desktop-polish-v84.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/layout-fixes-v85.css",
+        "prefix": "/* styles/layout-fixes-v85.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/layout-consistency-v87.css",
+        "prefix": "/* styles/layout-consistency-v87.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/fixes14234.css",
+        "prefix": "/* styles/fixes14234.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/session-inputs-v88.css",
+        "prefix": "/* styles/session-inputs-v88.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/prefixes-badges-v89.css",
+        "prefix": "/* styles/prefixes-badges-v89.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/scheduled-journals-v91.css",
+        "prefix": "/* styles/scheduled-journals-v91.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/refinements-v93.css",
+        "prefix": "/* styles/refinements-v93.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/settings-payroll-v94.css",
+        "prefix": "/* styles/settings-payroll-v94.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/payroll-groups-v95.css",
+        "prefix": "/* styles/payroll-groups-v95.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/payroll-polish-v97.css",
+        "prefix": "/* styles/payroll-polish-v97.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/transactions-v98.css",
+        "prefix": "/* styles/transactions-v98.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/workspace-v99.css",
+        "prefix": "/* styles/workspace-v99.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/theme-v100.css",
+        "prefix": "/* styles/theme-v100.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/polish-v101.css",
+        "prefix": "/* styles/polish-v101.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/reports-tax-v102.css",
+        "prefix": "/* styles/reports-tax-v102.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/universal-date-v104.css",
+        "prefix": "/* styles/universal-date-v104.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/header-profile-v104.css",
+        "prefix": "/* styles/header-profile-v104.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/refinements-v105.css",
+        "prefix": "/* styles/refinements-v105.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/document-editor-v105.css",
+        "prefix": "/* styles/document-editor-v105.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/refinements-v106.css",
+        "prefix": "/* styles/refinements-v106.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/editor-tables-v107.css",
+        "prefix": "/* styles/editor-tables-v107.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/shared-v108.css",
+        "prefix": "/* styles/shared-v108.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/refinements-v109.css",
+        "prefix": "/* styles/refinements-v109.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/editor-fixes-v110.css",
+        "prefix": "/* styles/editor-fixes-v110.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/dashboard-warm-v112.css",
+        "prefix": "/* styles/dashboard-warm-v112.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/polish-v113.css",
+        "prefix": "/* styles/polish-v113.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/final-v117.css",
+        "prefix": "/* styles/final-v117.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/final-v118.css",
+        "prefix": "/* styles/final-v118.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/workflows-v136.css",
+        "prefix": "/* styles/workflows-v136.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/combined-v138.css",
+        "prefix": "/* styles/combined-v138.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/submission-review-v139.css",
+        "prefix": "/* styles/submission-review-v139.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/carry-forward-v142.css",
+        "prefix": "/* styles/carry-forward-v142.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/recovery-reset-fix-v142.css",
+        "prefix": "/* styles/recovery-reset-fix-v142.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/focused-v1422.css",
+        "prefix": "/* styles/focused-v1422.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/device-mode132.css",
+        "prefix": "/* styles/device-mode132.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/editor-print1424.css",
+        "prefix": "/* styles/editor-print1424.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/editor-menus1426.css",
+        "prefix": "/* styles/editor-menus1426.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/focused1427.css",
+        "prefix": "/* styles/focused1427.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/account-picker1428.css",
+        "prefix": "/* styles/account-picker1428.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/fixes1429.css",
+        "prefix": "/* styles/fixes1429.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/payroll-template1431.css",
+        "prefix": "/* styles/payroll-template1431.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/entry1430.css",
+        "prefix": "/* styles/entry1430.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/workspaces1432.css",
+        "prefix": "/* styles/workspaces1432.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/voucher-accounts1433.css",
+        "prefix": "/* styles/voucher-accounts1433.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/workflows1434.css",
+        "prefix": "/* styles/workflows1434.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/personal-journal1437.css",
+        "prefix": "/* styles/personal-journal1437.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/desktop-tasks1438.css",
+        "prefix": "/* styles/desktop-tasks1438.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/workspace1439.css",
+        "prefix": "/* styles/workspace1439.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/finalization1440.css",
+        "prefix": "/* styles/finalization1440.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/polish1443.css",
+        "prefix": "/* styles/polish1443.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/polish1444.css",
+        "prefix": "/* styles/polish1444.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/subusers-header14226.css",
+        "prefix": "/* styles/subusers-header14226.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/team-home14227.css",
+        "prefix": "/* styles/team-home14227.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/corrections14231.css",
+        "prefix": "/* styles/corrections14231.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/legacy/styles/data-tools14232.css",
+        "prefix": "/* styles/data-tools14232.css */\n",
+        "suffix": "\n"
+      }
+    ]
+  },
+  "variants": [
+    {
+      "bundle": "scripts/desktop14245-3.js",
+      "standalone": "scripts/workspace-settings.js",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    },
+    {
+      "bundle": "scripts/desktop14245-4.js",
+      "standalone": "scripts/document-export-v108.js",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    },
+    {
+      "bundle": "scripts/desktop14245-4.js",
+      "standalone": "scripts/document-import-v1422.js",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    },
+    {
+      "bundle": "styles/desktop14245.css",
+      "standalone": "styles/document-editor-v105.css",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    },
+    {
+      "bundle": "styles/desktop14245.css",
+      "standalone": "styles/data-tools14232.css",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    }
+  ]
+}

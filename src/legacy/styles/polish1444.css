@@ -1,0 +1,35 @@
+/* Only requested profile, search and shared journal surfaces. */
+body .profile-dialog105{overflow:hidden;border-radius:16px!important}
+body .profile-dialog105 header.profile-heading1444{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:16px;margin:0!important;padding:32px 52px 24px!important;background:#edf3e9!important;border-bottom:1px solid #d5dfcf;color:#174c3b!important;text-align:center;border-radius:16px 16px 0 0}
+body .profile-dialog105 .profile-heading1444>button{position:absolute;top:12px;right:12px;width:32px;height:32px;margin:0;color:#174c3b;background:transparent;border:0;border-radius:8px}
+body .profile-dialog105 .profile-heading1444>h3{margin:0!important;padding:0!important;color:#174c3b!important;font-size:22px;line-height:1.35;overflow-wrap:anywhere;max-width:100%;background:transparent!important}
+body .profile-dialog105 .profile-photo105{width:112px;height:112px;object-fit:contain;margin:0!important;padding:8px;border:1px solid #d5dfcf;background:#fffdf7;border-radius:18px;box-sizing:border-box}
+.profile-initials1444{display:grid;place-items:center;width:100px;height:100px;border-radius:50%;background:#dce9d5;color:#174c3b;font-size:32px;font-weight:600}
+body .profile-dialog105 dl{margin:24px;column-gap:20px;row-gap:14px;font-size:14px;line-height:1.5}body .profile-dialog105 dt{color:#52665a}body .profile-dialog105 dd{min-width:0;color:#183e2e}body .profile-dialog105 footer{padding:16px 24px}
+body .account-list1428,body.shell113 .universal-search108>div,body .sub-user-search-results{background:#fffdf7!important;color:#174c3b!important;border:1px solid #c9d7c2!important;border-radius:12px!important;padding:6px!important;box-shadow:0 10px 28px #123c2b24!important;font:13px/1.5 'Plus Jakarta Sans',Arial,sans-serif;box-sizing:border-box;overscroll-behavior:contain}
+body .account-option1428,body.shell113 #appSidebar .universal-search108>div button,body .sub-user-search-result{padding:10px 12px!important;border:0!important;border-radius:7px!important;background:transparent!important;color:#174c3b!important;font:inherit!important;line-height:1.5!important;text-align:left;overflow-wrap:anywhere;white-space:normal}
+body .account-option1428:hover,body .account-option1428[aria-selected=true],body.shell113 #appSidebar .universal-search108>div button:hover,body.shell113 #appSidebar .universal-search108>div button:focus-visible,body .sub-user-search-result:hover,body .sub-user-search-result:focus-visible{background:#e7efdf!important;color:#104a35!important;outline:0}
+body .universal-search108>div button :is(small,span){display:block}body .universal-search108>div button small{font-size:10px;font-weight:600;color:#587060;margin-bottom:3px;letter-spacing:.04em;text-transform:uppercase}
+body .account-empty1428,body .universal-search108>div>p,body .sub-user-search-results :is(.period-empty,.sub-user-empty-state,p),body .personal-history-list1437>.period-empty,body #switchWorkspace136>div>p{margin:0!important;padding:18px 14px!important;color:#56695d!important;font:13px/1.6 'Plus Jakarta Sans',Arial,sans-serif!important;text-align:center;background:transparent!important;overflow-wrap:anywhere}
+body input[type=search]:focus-visible{outline:2px solid #8bb79b;outline-offset:2px}
+body #journalEntry98 .simple-amount1444{position:relative;display:block;width:100%;min-width:0}
+body #journalEntry98 .simple-amount1444>[data-currency1430]{position:absolute;left:10px;top:50%;transform:translateY(-50%);margin:0!important;font:600 11px/1 Arial,sans-serif;color:#536c5e;pointer-events:none}
+body #journalEntry98 .simple-amount1444>[data-simple=amount]{width:100%;box-sizing:border-box;padding-left:42px!important}
+body #journalEntry98 .je-actions-bar{display:flex!important;justify-content:flex-end!important;align-items:center;gap:8px;flex-wrap:wrap}
+body #journalEntry98 .je-actions-bar .entry-actions1444{margin:0!important;flex:none!important}body #journalEntry98 .je-actions-right{margin:0!important;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+body :is(.v49-desktop-home-title,.v49-home-title){display:flex!important;flex-wrap:wrap;align-items:center;gap:12px}
+body :is(.v49-desktop-home-title,.v49-home-title)>:is(h2,p){flex-basis:100%;margin:0!important}
+body :is(.v49-desktop-home-title,.v49-home-title)>.sub-user-search-wrap{flex:1 1 250px!important;width:auto!important;margin:0!important;min-width:0}
+body .all-history1444{flex:none;margin:0!important}
+@media(max-width:600px){body .profile-dialog105 dl{grid-template-columns:100px minmax(0,1fr);margin:20px;gap:12px}body .profile-dialog105 header.profile-heading1444{padding:28px 40px 20px!important}body .profile-dialog105 .profile-heading1444>h3{font-size:20px}body .account-option1428{min-height:44px}}
+/* The shared editor must look the same after moving to a personal workspace. */
+body #journalEntry98 .je-actions-bar>div,body #journalEntry98 .je-actions-right{display:contents!important}
+body #journalEntry98 .je-actions-bar #jeBalanceIndicator{order:0}
+body #journalEntry98 .je-actions-bar button[onclick="addJournalLineRow()"]{display:inline-flex!important;order:2}
+body #journalEntry98 .je-actions-bar button[onclick="clearJournalEntry()"]{order:5}
+body #journalEntry98 .je-actions-bar #btnPostJournal{order:6}
+body #journalEntry98 #jeLinesBody .je-btn-del::before,body #journalEntry98 #jeLinesBody .je-btn-del::after{content:none!important;display:none!important}
+body #journalEntry98 #jeLinesBody .je-btn-del{display:inline-flex!important;align-items:center;justify-content:center;line-height:1!important;white-space:nowrap!important;min-width:64px!important;height:30px!important;padding:5px 8px!important}
+@media print{body #journalEntry98 .je-actions-bar{display:none!important}}
+body #journalEntry98 #jeLinesBody .action-col{overflow:visible!important;text-overflow:clip!important}
+body #journalEntry98 #jeLinesBody .row-menu99>summary{max-width:100%;box-sizing:border-box;text-overflow:clip}
