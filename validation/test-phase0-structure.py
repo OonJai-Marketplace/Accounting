@@ -12,6 +12,11 @@ changed = [name for name, digest in baseline['runtime_sha256'].items()
 assert not changed, f'Phase 0 changed runtime bytes: {changed}'
 manifest = json.loads((ROOT / 'src/manifest.json').read_text())
 sources = {part['source'] for parts in manifest['outputs'].values() for part in parts}
+runtime_products = {str(p.relative_to(ROOT)) for folder in ('scripts', 'styles')
+                    for p in (ROOT / folder).iterdir() if p.suffix in ('.js', '.css')}
+assert set(manifest['outputs']) == runtime_products, 'Application assets missing canonical source ownership'
+assert not any('/legacy/' in name for name in sources), 'Unclassified source ownership'
+assert all(parts for parts in manifest['outputs'].values()), 'Empty generated asset definition'
 for name in sources:
     assert (ROOT / name).is_file(), name
 assert not [str(p.relative_to(ROOT)) for p in (ROOT / 'src').rglob('*')
@@ -23,4 +28,4 @@ for name in ('index.html', 'desktop.html', 'phone.html', 'phone-accounting.html'
         if path and not re.match(r'(?:[a-z]+:|//|/|\{)', path, re.I):
             assert (ROOT / path).exists(), (name, path)
 subprocess.run(['python', str(ROOT / 'tools/build-modules.py'), '--check'], check=True)
-print(f'PASS: {len(baseline["runtime_sha256"])} unchanged runtime assets; {len(sources)} wired source modules; local HTML references')
+print(f'PASS: {len(baseline["runtime_sha256"])} unchanged runtime assets; {len(sources)} wired source modules; full script/style ownership; local HTML references')

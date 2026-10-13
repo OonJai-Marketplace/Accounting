@@ -56,3 +56,24 @@ regression or a reason to change login behavior during this restructuring.
   responsibility. Every application script/style has canonical source ownership.
   The source lookup tool maps function text to source and generated line ranges.
   Gate: 452 unchanged runtime files; 574 sections; 351 generated assets.
+
+- **0.12:** Final verification passed: all 452 baseline runtime files are
+  byte-identical; 574 source sections rebuild all 351 script/style assets with
+  zero changed outputs. All generated JavaScript parses, all local HTML asset
+  references resolve, and every application script/style has a canonical source.
+  The original desktop report/correction workflow, durable offline queue,
+  account isolation, lost-response deduplication, HR calendar, idle-sync clock
+  and cache-asset tests pass. See `validation/phase0-results.json`.
+
+## Remaining limitations
+
+- The baseline standalone phone offline sign-in test remains unverified after
+  its original admin/staff setup timeouts. Byte identity protects against new
+  runtime changes; it does not establish that existing phone behavior is correct.
+- The baseline 24-hour policy and all existing activity hooks are unchanged.
+  Page-restore/visibility activity handling noted during baseline review is a
+  separate future debugging topic, not silently corrected in Phase 0.
+- Globals, closures and ordered overrides are retained intentionally. Source
+  separation is complete; runtime dependency isolation would be a later change.
+- HTML shells, service-worker/cache paths, deployment settings, SQL, production
+  data and approved UI/report layouts were not changed. No deployment was made.

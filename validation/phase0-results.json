@@ -1,0 +1,29 @@
+{
+  "baseline_commit": "71e7a8e28bba8b438d07cd30d6e8eb6d44cc8fad",
+  "runtime_files_unchanged": 452,
+  "source_sections": 574,
+  "generated_assets": 351,
+  "checks": {
+    "byte_identity_and_local_references": "passed",
+    "complete_script_style_source_ownership": "passed",
+    "generated_javascript_syntax": "passed",
+    "clean_rebuild": "passed",
+    "source_lookup": "passed",
+    "desktop_report_workflow14349": "passed",
+    "durable_idle_queue14341": "passed",
+    "hr_calendar_model14306": "passed",
+    "idle_clock14343": "passed",
+    "report_assets14349": {
+      "status": "passed",
+      "downloaded": 223,
+      "missing": 0,
+      "versions": "matched"
+    }
+  },
+  "limitations": [
+    "Phone offline sign-in was not verified: baseline test timed out during both administrator and staff setup before restructuring.",
+    "This is ordered source separation with existing globals and closures preserved, not isolated ES modules.",
+    "No production or live Supabase mutation was used for validation.",
+    "Existing authentication activity hooks, including page restore/visibility behavior identified at baseline, are unchanged."
+  ]
+}
