@@ -334,13 +334,22 @@
     ],
     "scripts/transactions-v67.js": [
       {
-        "source": "src/legacy/scripts/transactions-v67.js",
+        "source": "src/bookkeeping/journal/transactions-v67/date-mode-and-edit.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transactions-v67/reopen-and-close.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transactions-v67/registration.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v67/archive-export.js",
         "suffix": "\n"
       }
     ],
     "scripts/accounts-v69.js": [
       {
-        "source": "src/legacy/scripts/accounts-v69.js",
+        "source": "src/accounts/chart/accounts-v69.js",
         "suffix": ";\n"
       }
     ],
@@ -364,7 +373,7 @@
     ],
     "scripts/transactions-mobile-v72.js": [
       {
-        "source": "src/legacy/scripts/transactions-mobile-v72.js",
+        "source": "src/bookkeeping/journal/transactions-mobile-v72.js",
         "suffix": ";\n"
       }
     ],
@@ -466,7 +475,7 @@
     ],
     "scripts/scheduled-journals-v91.js": [
       {
-        "source": "src/legacy/scripts/scheduled-journals-v91.js",
+        "source": "src/bookkeeping/recurring/scheduled-journals-v91.js",
         "suffix": ";\n"
       }
     ],
@@ -496,7 +505,22 @@
     ],
     "scripts/transactions-v98.js": [
       {
-        "source": "src/legacy/scripts/transactions-v98.js",
+        "source": "src/bookkeeping/journal/transactions-v98/scope-open.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/entry-and-balance.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v98/audit-view.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/csv-import.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v98/csv-export.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/install-and-scope-close.js",
         "suffix": ";\n"
       }
     ],
@@ -508,7 +532,7 @@
     ],
     "scripts/workspace-v99.js": [
       {
-        "source": "src/legacy/scripts/workspace-v99.js",
+        "source": "src/bridges/bookkeeping-startup/workspace-v99.js",
         "suffix": ";\n"
       }
     ],
@@ -538,7 +562,7 @@
     ],
     "scripts/journal-actions-v102.js": [
       {
-        "source": "src/legacy/scripts/journal-actions-v102.js",
+        "source": "src/bookkeeping/journal/journal-actions-v102.js",
         "suffix": ";\n"
       }
     ],
@@ -846,12 +870,21 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/transactions-v67.js",
-        "prefix": "/* scripts/transactions-v67.js */\n",
+        "source": "src/bookkeeping/journal/transactions-v67/date-mode-and-edit.js",
+        "prefix": "/* scripts/transactions-v67.js */\n"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transactions-v67/reopen-and-close.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transactions-v67/registration.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v67/archive-export.js",
         "suffix": "\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/accounts-v69.js",
+        "source": "src/accounts/chart/accounts-v69.js",
         "prefix": "/* scripts/accounts-v69.js */\n",
         "suffix": ";\n;\n"
       },
@@ -871,7 +904,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/transactions-mobile-v72.js",
+        "source": "src/bookkeeping/journal/transactions-mobile-v72.js",
         "prefix": "/* scripts/transactions-mobile-v72.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -956,7 +989,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/scheduled-journals-v91.js",
+        "source": "src/bookkeeping/recurring/scheduled-journals-v91.js",
         "prefix": "/* scripts/scheduled-journals-v91.js */\n",
         "suffix": ";\n;\n"
       },
@@ -981,8 +1014,23 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/transactions-v98.js",
-        "prefix": "/* scripts/transactions-v98.js */\n",
+        "source": "src/bookkeeping/journal/transactions-v98/scope-open.js",
+        "prefix": "/* scripts/transactions-v98.js */\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/entry-and-balance.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v98/audit-view.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/csv-import.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v98/csv-export.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/install-and-scope-close.js",
         "suffix": ";\n;\n"
       },
       {
@@ -991,7 +1039,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/workspace-v99.js",
+        "source": "src/bridges/bookkeeping-startup/workspace-v99.js",
         "prefix": "/* scripts/workspace-v99.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1016,7 +1064,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/journal-actions-v102.js",
+        "source": "src/bookkeeping/journal/journal-actions-v102.js",
         "prefix": "/* scripts/journal-actions-v102.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1288,7 +1336,7 @@
     ],
     "scripts/carry-forward-v142.js": [
       {
-        "source": "src/legacy/scripts/carry-forward-v142.js",
+        "source": "src/bookkeeping/finalization/carry-forward-v142.js",
         "suffix": ";\n"
       }
     ],
@@ -1300,7 +1348,7 @@
     ],
     "scripts/post-entry-diagnostics-v142.js": [
       {
-        "source": "src/legacy/scripts/post-entry-diagnostics-v142.js",
+        "source": "src/bookkeeping/journal/post-entry-diagnostics-v142.js",
         "suffix": ";\n"
       }
     ],
@@ -1378,7 +1426,7 @@
     ],
     "scripts/entry1430.js": [
       {
-        "source": "src/legacy/scripts/entry1430.js",
+        "source": "src/bookkeeping/journal/entry1430.js",
         "suffix": ";\n"
       }
     ],
@@ -1414,7 +1462,7 @@
     ],
     "scripts/todos1438.js": [
       {
-        "source": "src/legacy/scripts/todos1438.js",
+        "source": "src/bookkeeping/recurring/todos1438.js",
         "suffix": ";\n"
       }
     ],
@@ -1432,7 +1480,7 @@
     ],
     "scripts/journal-batch1440.js": [
       {
-        "source": "src/legacy/scripts/journal-batch1440.js",
+        "source": "src/bookkeeping/journal/journal-batch1440.js",
         "suffix": ";\n"
       }
     ],
@@ -1474,7 +1522,7 @@
     ],
     "scripts/private-reminders14229.js": [
       {
-        "source": "src/legacy/scripts/private-reminders14229.js",
+        "source": "src/bookkeeping/recurring/private-reminders14229.js",
         "suffix": ";\n"
       }
     ],
@@ -1534,13 +1582,13 @@
     ],
     "scripts/opening-balances14234.js": [
       {
-        "source": "src/legacy/scripts/opening-balances14234.js",
+        "source": "src/accounts/opening-balances/opening-balances14234.js",
         "suffix": ";\n"
       }
     ],
     "scripts/desktop14245-6.js": [
       {
-        "source": "src/legacy/scripts/carry-forward-v142.js",
+        "source": "src/bookkeeping/finalization/carry-forward-v142.js",
         "prefix": "/* scripts/carry-forward-v142.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1550,7 +1598,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/post-entry-diagnostics-v142.js",
+        "source": "src/bookkeeping/journal/post-entry-diagnostics-v142.js",
         "prefix": "/* scripts/post-entry-diagnostics-v142.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1615,7 +1663,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/entry1430.js",
+        "source": "src/bookkeeping/journal/entry1430.js",
         "prefix": "/* scripts/entry1430.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1645,7 +1693,7 @@
         "suffix": ";\n\n"
       },
       {
-        "source": "src/legacy/scripts/todos1438.js",
+        "source": "src/bookkeeping/recurring/todos1438.js",
         "prefix": "/* scripts/todos1438.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1660,7 +1708,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/journal-batch1440.js",
+        "source": "src/bookkeeping/journal/journal-batch1440.js",
         "prefix": "/* scripts/journal-batch1440.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1695,7 +1743,7 @@
         "suffix": ";\n\n"
       },
       {
-        "source": "src/legacy/scripts/private-reminders14229.js",
+        "source": "src/bookkeeping/recurring/private-reminders14229.js",
         "prefix": "/* scripts/private-reminders14229.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1745,7 +1793,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/opening-balances14234.js",
+        "source": "src/accounts/opening-balances/opening-balances14234.js",
         "prefix": "/* scripts/opening-balances14234.js */\n",
         "suffix": ";\n\n;\n"
       }
@@ -1806,13 +1854,13 @@
     ],
     "styles/transactions-v67.css": [
       {
-        "source": "src/legacy/styles/transactions-v67.css",
+        "source": "src/bookkeeping/journal/transactions-v67.css",
         "suffix": "\n"
       }
     ],
     "styles/accounts-review-v69.css": [
       {
-        "source": "src/legacy/styles/accounts-review-v69.css",
+        "source": "src/accounts/chart/accounts-review-v69.css",
         "suffix": "\n"
       }
     ],
@@ -1824,7 +1872,7 @@
     ],
     "styles/transactions-mobile-v72.css": [
       {
-        "source": "src/legacy/styles/transactions-mobile-v72.css",
+        "source": "src/bookkeeping/journal/transactions-mobile-v72.css",
         "suffix": "\n"
       }
     ],
@@ -1926,7 +1974,7 @@
     ],
     "styles/scheduled-journals-v91.css": [
       {
-        "source": "src/legacy/styles/scheduled-journals-v91.css",
+        "source": "src/bookkeeping/recurring/scheduled-journals-v91.css",
         "suffix": "\n"
       }
     ],
@@ -1956,13 +2004,13 @@
     ],
     "styles/transactions-v98.css": [
       {
-        "source": "src/legacy/styles/transactions-v98.css",
+        "source": "src/bookkeeping/journal/transactions-v98.css",
         "suffix": "\n"
       }
     ],
     "styles/workspace-v99.css": [
       {
-        "source": "src/legacy/styles/workspace-v99.css",
+        "source": "src/bridges/bookkeeping-startup/workspace-v99.css",
         "suffix": "\n"
       }
     ],
@@ -2076,7 +2124,7 @@
     ],
     "styles/carry-forward-v142.css": [
       {
-        "source": "src/legacy/styles/carry-forward-v142.css",
+        "source": "src/bookkeeping/finalization/carry-forward-v142.css",
         "suffix": "\n"
       }
     ],
@@ -2136,7 +2184,7 @@
     ],
     "styles/entry1430.css": [
       {
-        "source": "src/legacy/styles/entry1430.css",
+        "source": "src/bookkeeping/journal/entry1430.css",
         "suffix": "\n"
       }
     ],
@@ -2178,7 +2226,7 @@
     ],
     "styles/finalization1440.css": [
       {
-        "source": "src/legacy/styles/finalization1440.css",
+        "source": "src/bookkeeping/finalization/finalization1440.css",
         "suffix": "\n"
       }
     ],
@@ -2259,12 +2307,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/transactions-v67.css",
+        "source": "src/bookkeeping/journal/transactions-v67.css",
         "prefix": "/* styles/transactions-v67.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/accounts-review-v69.css",
+        "source": "src/accounts/chart/accounts-review-v69.css",
         "prefix": "/* styles/accounts-review-v69.css */\n",
         "suffix": "\n\n"
       },
@@ -2274,7 +2322,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/transactions-mobile-v72.css",
+        "source": "src/bookkeeping/journal/transactions-mobile-v72.css",
         "prefix": "/* styles/transactions-mobile-v72.css */\n",
         "suffix": "\n\n"
       },
@@ -2359,7 +2407,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/scheduled-journals-v91.css",
+        "source": "src/bookkeeping/recurring/scheduled-journals-v91.css",
         "prefix": "/* styles/scheduled-journals-v91.css */\n",
         "suffix": "\n\n"
       },
@@ -2384,12 +2432,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/transactions-v98.css",
+        "source": "src/bookkeeping/journal/transactions-v98.css",
         "prefix": "/* styles/transactions-v98.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/workspace-v99.css",
+        "source": "src/bridges/bookkeeping-startup/workspace-v99.css",
         "prefix": "/* styles/workspace-v99.css */\n",
         "suffix": "\n\n"
       },
@@ -2489,7 +2537,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/carry-forward-v142.css",
+        "source": "src/bookkeeping/finalization/carry-forward-v142.css",
         "prefix": "/* styles/carry-forward-v142.css */\n",
         "suffix": "\n\n"
       },
@@ -2539,7 +2587,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/entry1430.css",
+        "source": "src/bookkeeping/journal/entry1430.css",
         "prefix": "/* styles/entry1430.css */\n",
         "suffix": "\n\n"
       },
@@ -2574,7 +2622,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/finalization1440.css",
+        "source": "src/bookkeeping/finalization/finalization1440.css",
         "prefix": "/* styles/finalization1440.css */\n",
         "suffix": "\n\n"
       },
@@ -2882,6 +2930,81 @@
     "styles/responsive-work14341.css": [
       {
         "source": "src/shared/presentation/responsive-work14341.css"
+      }
+    ],
+    "scripts/account-currency14257.js": [
+      {
+        "source": "src/accounts/chart/account-currency14257.js"
+      }
+    ],
+    "scripts/account-groups14253.js": [
+      {
+        "source": "src/accounts/chart/account-groups14253.js"
+      }
+    ],
+    "scripts/closing-eligibility14346.js": [
+      {
+        "source": "src/bookkeeping/finalization/closing-eligibility14346.js"
+      }
+    ],
+    "scripts/entry-actions14271.js": [
+      {
+        "source": "src/bookkeeping/journal/entry-actions14271.js"
+      }
+    ],
+    "scripts/entry-number14257.js": [
+      {
+        "source": "src/bookkeeping/journal/entry-number14257.js"
+      }
+    ],
+    "scripts/history-month14341.js": [
+      {
+        "source": "src/bookkeeping/history/history-month14341.js"
+      }
+    ],
+    "scripts/journal-description14281.js": [
+      {
+        "source": "src/bookkeeping/journal/journal-description14281.js"
+      }
+    ],
+    "scripts/period-closing14317.js": [
+      {
+        "source": "src/bookkeeping/finalization/period-closing14317.js"
+      }
+    ],
+    "scripts/tablet-journal14266.js": [
+      {
+        "source": "src/bookkeeping/journal/tablet-journal14266.js"
+      }
+    ],
+    "scripts/transaction-consistency14300.js": [
+      {
+        "source": "src/bookkeeping/journal/transaction-consistency14300.js"
+      }
+    ],
+    "styles/account-parent14287.css": [
+      {
+        "source": "src/accounts/chart/account-parent14287.css"
+      }
+    ],
+    "styles/entry-layout14271.css": [
+      {
+        "source": "src/bookkeeping/journal/entry-layout14271.css"
+      }
+    ],
+    "styles/final-review14345.css": [
+      {
+        "source": "src/bookkeeping/finalization/final-review14345.css"
+      }
+    ],
+    "styles/tablet-journal14266.css": [
+      {
+        "source": "src/bookkeeping/journal/tablet-journal14266.css"
+      }
+    ],
+    "styles/transaction-consistency14300.css": [
+      {
+        "source": "src/bookkeeping/journal/transaction-consistency14300.css"
       }
     ]
   },

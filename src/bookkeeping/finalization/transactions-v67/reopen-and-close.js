@@ -1,35 +1,3 @@
-function journalIsHistory14342(row){const period=PeriodReview.periods[String(row.date).slice(0,7)];return period?period.status!=='open':!!row.archived;}
-/* TRANSACTIONS 67: active books, archived months and correction context. */
-function setJournalDateMode(multiple) {
-  document.getElementById('jeMultipleDates').checked=multiple;
-  document.getElementById('jeSingleDate').checked=!multiple;
-  toggleMultipleDates();
-}
-function journalContext67(text='') {
-  let banner=document.getElementById('journalContext67');
-  if(!banner){banner=document.createElement('div');banner.id='journalContext67';banner.setAttribute('role','status');document.querySelector('#journal .je-card-header').after(banner)}
-  banner.textContent=text;banner.hidden=!text;
-  document.getElementById('jeGeneralMemo').classList.toggle('adjustment-description',!!text);
-}
-function clearJournalEntry() {
-  JournalModule.editingEntryId=null;JournalModule.pendingLines=null;PeriodReview.pendingAdjustment=null;
-  pendingWorkspacePostOwnerId=null;pendingWorkspacePostJournalId=null;pendingWorkspacePostIsLocal=false;
-  document.getElementById('jeGeneralMemo').value='';
-  document.getElementById('txtEditReason').value='';
-  document.getElementById('btnPostJournal').textContent='Post Entry';
-  setTransactionDateToToday(true);setJournalDateMode(false);resetJournalLinesForm();
-  updateNextEntryIdDisplay();journalContext67();
-}
-const editBefore67=loadEntryForEdit;
-loadEntryForEdit=function(id){
-  const lines=JournalModule.entries.filter(r=>r.id===id);
-  if(!lines.length||lines.some(r=>r.archived)){return editBefore67(id)}
-  clearJournalEntry();editBefore67(id);
-  const inputs=document.querySelectorAll('#jeLinesBody .je-line-acc');inputs.forEach(updateJournalAccountBadge);
-  const month=String(lines[0].date).slice(0,7);
-  journalContext67(`Editing ${id}${PeriodReview.periods[month]?.reopenedAt?' · Reopened Book — '+monthLabel(month):''}`);
-  calculateJournalBalance();
-};
 function isReopened67(month){return PeriodReview.status(month)==='open'&&!!PeriodReview.periods[month]?.reopenedAt}
 function monthTotals67(rows){
   const totals={};rows.forEach(r=>{const t=totals[r.currency]||(totals[r.currency]={dr:0,cr:0});t.dr+=Number(r.debit||0);t.cr+=Number(r.credit||0)});
@@ -95,15 +63,3 @@ startFindingAdjustment=function(id){
   journalContext67(`Adjustment for ${f.number} · ${monthLabel(f.month)} — ${f.description}. Choose a posting date in an open period.`);
   document.querySelector('#journal .je-card').scrollIntoView({behavior:'smooth',block:'start'});
 };
-const finalBefore67=finalizePostSuccess;
-finalizePostSuccess=function(...args){const entry=JournalModule.entries.find(r=>r.id===JournalModule.editingEntryId),month=entry?.date?.slice(0,7);finalBefore67(...args);journalContext67();renderReopened67();if(month&&isReopened67(month))document.getElementById(`reopened-${month}`)?.scrollIntoView({behavior:'smooth',block:'start'})};
-const reviewBefore67=renderPeriodReview;
-renderPeriodReview=function(){reviewBefore67();const findings=PeriodReview.findings.filter(f=>f.month===PeriodReview.selectedMonth);document.querySelectorAll('#periodFindingsList .period-finding-main').forEach((node,i)=>{const f=findings[i];if(!f)return;const note=document.createElement('small');note.textContent=`${f.createdByName||f.createdBy||'Reviewer not recorded'} · ${f.createdAt||''}`;node.append(note)})};
-const switchBefore67=switchTab;
-switchTab=function(id){return switchBefore67(id==='transactions-new'?'journal':id)};
-document.addEventListener('DOMContentLoaded',()=>{document.getElementById('closeMonth67').value=getCurrentMonthPrefix();renderReopened67()});
-function exportArchiveMonth67(month){
-  const rows=periodEntries(month),columns=['Entry ID','Date','Account','Currency','Memo','Debit','Credit'];
-  const csv=[columns,...rows.map(r=>[r.id,r.date,r.account,r.currency,r.memo,r.debit,r.credit])].map(row=>row.map(value=>'"'+String(value??'').replaceAll('"','""')+'"').join(',')).join('\r\n');
-  const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`journal-${month}.csv`;(window.exportCenter14337?exportCenter14337.fromLink(a):a.click());setTimeout(()=>URL.revokeObjectURL(url),1000);
-}

@@ -19,3 +19,8 @@ Do not load individual sections as independent scripts or change their order.
 The earlier baseline phone offline sign-in test timed out for both administrator
 and staff setup. That is an unresolved baseline test result, not a verified
 regression or a reason to change login behavior during this restructuring.
+
+- **0.4:** Bookkeeping journal, history, finalization, recurring entries and
+  account controllers own their extensions. Mixed transaction overrides now have
+  distinct journal/audit/import/export sections. Gate: 452 unchanged runtime
+  files; 351 source sections; 269 checked generated assets.
