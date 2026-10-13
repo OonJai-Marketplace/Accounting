@@ -33,3 +33,7 @@ regression or a reason to change login behavior during this restructuring.
 - **0.6:** Sub-users–Bookkeeping submission, reconciliation, consolidation and
   journal preparation have explicit bridge ownership. Gate: 452 unchanged
   runtime files; 425 sections; 297 generated assets checked.
+
+- **0.7:** HR employee, contract, attachment, leave and calendar sources
+  separated; attendance save remains the existing payroll bridge.
+  Gate: 452 unchanged runtime files; 438 sections; 304 generated assets.

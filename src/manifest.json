@@ -565,7 +565,7 @@
     ],
     "scripts/hr-v99.js": [
       {
-        "source": "src/legacy/scripts/hr-v99.js",
+        "source": "src/hr/employees/hr-v99.js",
         "suffix": ";\n"
       }
     ],
@@ -1098,7 +1098,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/hr-v99.js",
+        "source": "src/hr/employees/hr-v99.js",
         "prefix": "/* scripts/hr-v99.js */\n",
         "suffix": ";\n;\n"
       },
@@ -3310,6 +3310,59 @@
     "styles/workflow14316.css": [
       {
         "source": "src/bridges/subusers-bookkeeping/workflow14316.css"
+      }
+    ],
+    "scripts/hr-calendar-model14306.js": [
+      {
+        "source": "src/hr/calendar/hr-calendar-model14306.js"
+      }
+    ],
+    "scripts/hr-calendar-news14309.js": [
+      {
+        "source": "src/hr/calendar/hr-calendar-news14309.js"
+      }
+    ],
+    "scripts/hr-calendar14306.js": [
+      {
+        "source": "src/hr/calendar/hr-calendar14306.js"
+      }
+    ],
+    "scripts/hr-workspace14306.js": [
+      {
+        "source": "src/hr/employees/workspace/scope-and-helpers.js"
+      },
+      {
+        "source": "src/hr/documents/attachments14311.js"
+      },
+      {
+        "source": "src/hr/employees/workspace/employee-directory.js"
+      },
+      {
+        "source": "src/hr/contracts/contract-workflow14306.js"
+      },
+      {
+        "source": "src/hr/leave/approval14306.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/save-attendance14306.js"
+      },
+      {
+        "source": "src/hr/employees/workspace/install-and-scope-close.js"
+      }
+    ],
+    "scripts/local-events14310.js": [
+      {
+        "source": "src/hr/calendar/local-events14310.js"
+      }
+    ],
+    "styles/hr-workspace14306.css": [
+      {
+        "source": "src/hr/employees/hr-workspace14306.css"
+      }
+    ],
+    "styles/local-events14310.css": [
+      {
+        "source": "src/hr/calendar/local-events14310.css"
       }
     ]
   },

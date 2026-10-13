@@ -1,0 +1,6 @@
+/* Employee, leave and contract workflows; existing version-protected records are retained. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id),esc=v=>escapeHtml(String(v??'')),M=HRCalendarModel14306;
+const admin=()=>liveProfile?.role==='admin'&&liveProfile.status==='active';let selected='',leaveOpen=false;
+const bucket='hr-documents14306';
+const fileTypes14311={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',odt:'application/vnd.oasis.opendocument.text',rtf:'application/rtf',txt:'text/plain',text:'text/plain',md:'text/markdown',markdown:'text/markdown',csv:'text/csv',tsv:'text/tab-separated-values',xls:'application/vnd.ms-excel',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',xlsm:'application/vnd.ms-excel.sheet.macroEnabled.12',xlsb:'application/vnd.ms-excel.sheet.binary.macroEnabled.12',ods:'application/vnd.oasis.opendocument.spreadsheet',html:'text/html',htm:'text/html',xml:'application/xml',fodt:'application/xml',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',odp:'application/vnd.oasis.opendocument.presentation',epub:'application/epub+zip',json:'application/json',pages:'application/octet-stream',numbers:'application/octet-stream'};
