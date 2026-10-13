@@ -21,8 +21,8 @@ module.exports=async function createFixture(){
  const base='http://127.0.0.1:'+server.address().port;
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/tmp/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
  return {base,browser,requests,get fixture(){return fixture},async open(device='desktop',role='admin',clock=false){
-  const phone=device==='phone';
-  const context=await browser.newContext({viewport:{width:phone?390:1440,height:900},isMobile:phone,hasTouch:phone});
+  const phone=device==='phone',tablet=!phone&&process.env.PHASE0_DEVICE==='tablet';
+  const context=await browser.newContext({viewport:{width:phone?390:1440,height:900},isMobile:phone,hasTouch:phone,...(tablet?{viewport:{width:1024,height:768},screen:{width:1024,height:768},isMobile:true,hasTouch:true}:{})});
   const page=await context.newPage();page.setDefaultTimeout(25000);if(clock)await page.clock.install({time:Date.now()});
   await page.addInitScript(()=>{window.__rawLocal=window.localStorage;window.__rawSession=window.sessionStorage;});
   await seed(page);await page.goto(base+(phone?'/phone.html?staff=1':'/desktop.html'));

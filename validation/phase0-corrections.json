@@ -1,14 +1,14 @@
 {
   "baseline_commit": "7685d59",
-  "authorization": "2026-10-13 Phase 0 final corrections and verified desktop navigation bottleneck fixes; branch only.",
+  "authorization": "2026-10-13 final corrections, navigation investigation, and expanded website investigation; verified branch-only picker optimization.",
   "reason": "Keep the original extraction baseline. Only these reviewed runtime files may differ; source build, asset references and all other byte hashes remain enforced.",
   "runtime_sha256": {
     "recovery.html": "cc3b5bf101e41ae9ec27a33e8a1f083f6ea9a17432c88d4b561b35c3b5aa60b2",
     "phone-sw.js": "b9110a2c28285cbc63b9ec941080966337ca11ba7aaed7b54148dd49d9d0122e",
-    "phone-accounting.html": "929aeb18e94bd87c3fb594a32f0c1c66f3d5036836078857756b64bcf68420b7",
-    "desktop-sw14242.js": "c73ef02fe9007279a31e5eb92bd8954684862d9dab212f3bfc6c224ec0efb50a",
+    "phone-accounting.html": "24d8dcb91553b13fe886ae0443edf803e86ca64ba85271cc26c47c9b9e36322f",
+    "desktop-sw14242.js": "87886fe35d354474c1f3b91131828cafb7d42c664da2a242d6ea774961fa8c49",
     "phone.html": "873cb3f56523c9400f69af6399f1a2dc3ec8b8a7529226a7a587a36277efa356",
-    "desktop.html": "1610ea6184138ffc0c1278ab4a60be9bc07d9fd7c3ef7fe92d9d804ac8f4eef2",
+    "desktop.html": "e44635fab92c2911e2a6a4dd84d5d034a66988f64461092cefefdbc21cdec142",
     "scripts/phone-runtime14242.js": "fa34f626e3800759c58947749ec58f008ef9f15fd3a6303dd1166977c505aed3",
     "scripts/device-vault14334.js": "44c773378f15cb3fdc95191bb8d5d8cc5a98d9c9996f06a467dfac9a88ba2484",
     "scripts/script.js": "f837a0a74b44b9c3f2812d712db19bc73f4d6ec0898b48bbd0db971fed6499f3",
@@ -16,7 +16,7 @@
     "scripts/corrections14231.js": "cfc13e3fafee63a78ce940fc5f774944b3e15521ba51e9342548c041311f2952",
     "scripts/payroll-polish-v97.js": "3f488ee0a79cec7a873e01cce884501181fd936072e177ba993991adb8b29f9f",
     "scripts/startup14257.js": "d7a362793a446baa857e3b460572680d4530006d6b39561cd9f024e54a86e2c1",
-    "scripts/desktop14245-6.js": "84e635c2c9c1b5423b8cd6dd45ddf1659ccdebeff1149424bc05bf204d9608a1",
+    "scripts/desktop14245-6.js": "0dcce15926f87b87260602226dab3b894c5f9edd11500c0a8c6b6ca004f6642b",
     "scripts/offline14239.js": "66036a28270bdd71d36dcb7ae67b4af6e9aa9582fc4efe67d929987b6df7d996",
     "scripts/desktop14245-3.js": "d0d765a0eb324b5b4442493fcba0bf033e9d038e43ba6657cbe9b6ac21d5fdfd",
     "scripts/desktop14245-4.js": "a9bb9dfb7761a38b1dd2333da40d00083a427f9b4e6d14909afec6a2dc828f57",
@@ -27,6 +27,7 @@
     "scripts/payroll-reports-v82.js": "18dd3f3ed34be77ea85cc25686e5aad237d8e176bb762ac2df11ac9a5c6cd47f",
     "scripts/shell-v113.js": "556782f2b05160ee8069aa019e90d661835efba6fd986e9ebd7bb4418a8b7951",
     "scripts/shortnames-v104.js": "d1708bddc13b599a4497aab58279d68ea48b2368a660b214c543999067cc1d41",
-    "scripts/workspace-consistency14343.js": "c58e2c0eec2a79e4a2e4a74faf8b147075f610937efa96db103f04d31a34c729"
+    "scripts/workspace-consistency14343.js": "c58e2c0eec2a79e4a2e4a74faf8b147075f610937efa96db103f04d31a34c729",
+    "scripts/account-picker1428.js": "6c702faa327f91e152976a4487231ff90f088d635ca4e377ad414136d1bf3427"
   }
 }

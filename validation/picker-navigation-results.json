@@ -1,0 +1,946 @@
+{
+  "baseline_commit": "17f3573c3e07c72a94f2d444013ff606c2c82f1e",
+  "scope": "Local synthetic server, real bundled SDK, trusted sidebar clicks. No production data. Desktop 1440x900, 4x artificial CPU slowdown; two repetitions of seven modules online and offline. This is not a physical Chromebook/iPad benchmark.",
+  "fixture": "137 accounts, 1000 journal lines, 10 employees",
+  "picker_probe": {
+    "same_two_values_twenty_selects_before": 60,
+    "same_two_values_twenty_selects_after": 2,
+    "observer_callback_before_ms": 1140.3,
+    "observer_callback_after_ms": 642.6,
+    "observer_callback_count_each": 26,
+    "observer_scope": "Five-navigation diagnostic runs; callback instrumentation adds overhead, separate from performance benchmark."
+  },
+  "runs": {
+    "before": {
+      "environment": {
+        "url": "http://127.0.0.1:43477/desktop.html",
+        "capturedAt": "2026-10-13T08:19:16.710Z",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.0 Safari/537.36",
+        "viewport": [
+          1440,
+          900
+        ],
+        "devicePixelRatio": 1,
+        "visibility": "visible",
+        "serviceWorker": "/desktop-sw14242.js",
+        "configuredBranch": "main",
+        "scriptMarkers": [
+          "scripts/device-vault14334.js?v=143.50",
+          "scripts/startup14257.js?v=143.50",
+          "scripts/local-first14333.js?v=143.50"
+        ],
+        "runtimeFeatures": {
+          "preparedStageProbe": true,
+          "payrollMemoryGuard": false
+        },
+        "revisionHint": "development correction asset markers (not commit proof)",
+        "domNodes": 8906,
+        "supportedPerformanceEntries": [
+          "element",
+          "event",
+          "first-input",
+          "largest-contentful-paint",
+          "layout-shift",
+          "long-animation-frame",
+          "longtask",
+          "mark",
+          "measure",
+          "navigation",
+          "paint",
+          "resource",
+          "visibility-state"
+        ]
+      },
+      "passed": [
+        "login preparation and memory verified",
+        "real sidebar route targets online/offline",
+        "separate visible/responsive proxies",
+        "diagnostic privacy checks",
+        "instrumentation removal",
+        "navigation after removal"
+      ],
+      "errors": [],
+      "measurements": [
+        {
+          "module": "settings",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 885.1,
+          "clickToResponsiveMs": 1374.6,
+          "inputDelayToCaptureMs": 16.5,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 56,
+            "RecalcStyleDuration": 235.3,
+            "ScriptDuration": 1003.9,
+            "TaskDuration": 1490.2
+          }
+        },
+        {
+          "module": "transactions",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 2027.9,
+          "clickToResponsiveMs": 2397,
+          "inputDelayToCaptureMs": 13.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 167.7,
+            "RecalcStyleDuration": 812.7,
+            "ScriptDuration": 1237.8,
+            "TaskDuration": 2420
+          }
+        },
+        {
+          "module": "sub-users",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 943.3,
+          "clickToResponsiveMs": 1913.2,
+          "inputDelayToCaptureMs": 16.6,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 61.9,
+            "RecalcStyleDuration": 371.1,
+            "ScriptDuration": 1344,
+            "TaskDuration": 1929.9
+          }
+        },
+        {
+          "module": "accounts",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 1919.2,
+          "clickToResponsiveMs": 3228.7,
+          "inputDelayToCaptureMs": 12.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 243.1,
+            "RecalcStyleDuration": 1187.5,
+            "ScriptDuration": 1465.9,
+            "TaskDuration": 3258.2
+          }
+        },
+        {
+          "module": "hr",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 815.2,
+          "clickToResponsiveMs": 1140.1,
+          "inputDelayToCaptureMs": 28.9,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 29.7,
+            "RecalcStyleDuration": 194.4,
+            "ScriptDuration": 836.6,
+            "TaskDuration": 1189.1
+          }
+        },
+        {
+          "module": "payroll",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 716,
+          "clickToResponsiveMs": 1348.5,
+          "inputDelayToCaptureMs": 14.5,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 6.8,
+            "RecalcStyleDuration": 174.6,
+            "ScriptDuration": 1116.2,
+            "TaskDuration": 1392.5
+          }
+        },
+        {
+          "module": "dashboard",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 794.5,
+          "clickToResponsiveMs": 1262.7,
+          "inputDelayToCaptureMs": 11.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 20.9,
+            "RecalcStyleDuration": 234.5,
+            "ScriptDuration": 945.1,
+            "TaskDuration": 1299.2
+          }
+        },
+        {
+          "module": "settings",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 676.1,
+          "clickToResponsiveMs": 1128,
+          "inputDelayToCaptureMs": 12.5,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 6.4,
+            "RecalcStyleDuration": 221.6,
+            "ScriptDuration": 855.9,
+            "TaskDuration": 1162.8
+          }
+        },
+        {
+          "module": "transactions",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 1583.2,
+          "clickToResponsiveMs": 1925.3,
+          "inputDelayToCaptureMs": 14.3,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 93.2,
+            "RecalcStyleDuration": 640,
+            "ScriptDuration": 1048.8,
+            "TaskDuration": 1963.2
+          }
+        },
+        {
+          "module": "sub-users",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 734.6,
+          "clickToResponsiveMs": 1179.1,
+          "inputDelayToCaptureMs": 17.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 9.9,
+            "RecalcStyleDuration": 219.9,
+            "ScriptDuration": 886.2,
+            "TaskDuration": 1212.6
+          }
+        },
+        {
+          "module": "accounts",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 1400.5,
+          "clickToResponsiveMs": 2327.7,
+          "inputDelayToCaptureMs": 13.9,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 109.9,
+            "RecalcStyleDuration": 869.4,
+            "ScriptDuration": 1096.2,
+            "TaskDuration": 2337.9
+          }
+        },
+        {
+          "module": "hr",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 916.4,
+          "clickToResponsiveMs": 1244,
+          "inputDelayToCaptureMs": 35.9,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 18.8,
+            "RecalcStyleDuration": 222.3,
+            "ScriptDuration": 928.5,
+            "TaskDuration": 1276.4
+          }
+        },
+        {
+          "module": "payroll",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 946.3,
+          "clickToResponsiveMs": 1342.8,
+          "inputDelayToCaptureMs": 13.4,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 6.2,
+            "RecalcStyleDuration": 173.4,
+            "ScriptDuration": 1095.8,
+            "TaskDuration": 1378
+          }
+        },
+        {
+          "module": "dashboard",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 936.6,
+          "clickToResponsiveMs": 3163.8,
+          "inputDelayToCaptureMs": 12.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 42.2,
+            "RecalcStyleDuration": 424.5,
+            "ScriptDuration": 2395.2,
+            "TaskDuration": 3187.2
+          }
+        },
+        {
+          "module": "settings",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 828.9,
+          "clickToResponsiveMs": 1927.9,
+          "inputDelayToCaptureMs": 17.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 6.8,
+            "RecalcStyleDuration": 358.5,
+            "ScriptDuration": 1893.5,
+            "TaskDuration": 2602.3
+          }
+        },
+        {
+          "module": "transactions",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 1280.4,
+          "clickToResponsiveMs": 1584.8,
+          "inputDelayToCaptureMs": 13.5,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 54.2,
+            "RecalcStyleDuration": 468.8,
+            "ScriptDuration": 954.1,
+            "TaskDuration": 1635.6
+          }
+        },
+        {
+          "module": "sub-users",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 858.6,
+          "clickToResponsiveMs": 1462.8,
+          "inputDelayToCaptureMs": 20.4,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 41.8,
+            "RecalcStyleDuration": 255.4,
+            "ScriptDuration": 1082.1,
+            "TaskDuration": 1489.6
+          }
+        },
+        {
+          "module": "accounts",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 1458.5,
+          "clickToResponsiveMs": 2671.3,
+          "inputDelayToCaptureMs": 7.6,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 100.5,
+            "RecalcStyleDuration": 934.6,
+            "ScriptDuration": 1407.4,
+            "TaskDuration": 2701.7
+          }
+        },
+        {
+          "module": "hr",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 926.9,
+          "clickToResponsiveMs": 1312.7,
+          "inputDelayToCaptureMs": 23.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 28.7,
+            "RecalcStyleDuration": 229.7,
+            "ScriptDuration": 962.1,
+            "TaskDuration": 1347
+          }
+        },
+        {
+          "module": "payroll",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 689.8,
+          "clickToResponsiveMs": 949.5,
+          "inputDelayToCaptureMs": 12.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 5.3,
+            "RecalcStyleDuration": 137.4,
+            "ScriptDuration": 768.9,
+            "TaskDuration": 988.5
+          }
+        },
+        {
+          "module": "dashboard",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 686,
+          "clickToResponsiveMs": 1313.9,
+          "inputDelayToCaptureMs": 11.4,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 51.9,
+            "RecalcStyleDuration": 207.2,
+            "ScriptDuration": 975,
+            "TaskDuration": 1351.6
+          }
+        },
+        {
+          "module": "settings",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 637.2,
+          "clickToResponsiveMs": 1129.3,
+          "inputDelayToCaptureMs": 10.6,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 7.2,
+            "RecalcStyleDuration": 189.2,
+            "ScriptDuration": 858.9,
+            "TaskDuration": 1142.2
+          }
+        },
+        {
+          "module": "transactions",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 1422.6,
+          "clickToResponsiveMs": 1798.2,
+          "inputDelayToCaptureMs": 10.6,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 66.8,
+            "RecalcStyleDuration": 581.2,
+            "ScriptDuration": 1014.7,
+            "TaskDuration": 1810.8
+          }
+        },
+        {
+          "module": "sub-users",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 889.3,
+          "clickToResponsiveMs": 1464.6,
+          "inputDelayToCaptureMs": 26.2,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 7.9,
+            "RecalcStyleDuration": 270.5,
+            "ScriptDuration": 1097.8,
+            "TaskDuration": 1491.5
+          }
+        },
+        {
+          "module": "accounts",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 1541.4,
+          "clickToResponsiveMs": 2412.8,
+          "inputDelayToCaptureMs": 12.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 105.8,
+            "RecalcStyleDuration": 966,
+            "ScriptDuration": 1125,
+            "TaskDuration": 2454.1
+          }
+        },
+        {
+          "module": "hr",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 776.3,
+          "clickToResponsiveMs": 1098.3,
+          "inputDelayToCaptureMs": 24.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 15.6,
+            "RecalcStyleDuration": 224.8,
+            "ScriptDuration": 798.3,
+            "TaskDuration": 1139.4
+          }
+        },
+        {
+          "module": "payroll",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 674.1,
+          "clickToResponsiveMs": 996.4,
+          "inputDelayToCaptureMs": 12.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 5.3,
+            "RecalcStyleDuration": 144.7,
+            "ScriptDuration": 796.9,
+            "TaskDuration": 1026.1
+          }
+        },
+        {
+          "module": "dashboard",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 861.8,
+          "clickToResponsiveMs": 1268.2,
+          "inputDelayToCaptureMs": 11.4,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 29,
+            "RecalcStyleDuration": 295.3,
+            "ScriptDuration": 922.1,
+            "TaskDuration": 1510.5
+          }
+        }
+      ],
+      "summary": {
+        "online": {
+          "clickToVisibleMs": 916.4,
+          "clickToResponsiveMs": 1348.5
+        },
+        "offline": {
+          "clickToVisibleMs": 858.6,
+          "clickToResponsiveMs": 1313.9
+        }
+      }
+    },
+    "after": {
+      "environment": {
+        "url": "http://127.0.0.1:40173/desktop.html",
+        "capturedAt": "2026-10-13T08:20:47.461Z",
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.0 Safari/537.36",
+        "viewport": [
+          1440,
+          900
+        ],
+        "devicePixelRatio": 1,
+        "visibility": "visible",
+        "serviceWorker": "/desktop-sw14242.js",
+        "configuredBranch": "main",
+        "scriptMarkers": [
+          "scripts/device-vault14334.js?v=143.50",
+          "scripts/startup14257.js?v=143.50",
+          "scripts/local-first14333.js?v=143.50"
+        ],
+        "runtimeFeatures": {
+          "preparedStageProbe": true,
+          "payrollMemoryGuard": false
+        },
+        "revisionHint": "development correction asset markers (not commit proof)",
+        "domNodes": 8906,
+        "supportedPerformanceEntries": [
+          "element",
+          "event",
+          "first-input",
+          "largest-contentful-paint",
+          "layout-shift",
+          "long-animation-frame",
+          "longtask",
+          "mark",
+          "measure",
+          "navigation",
+          "paint",
+          "resource",
+          "visibility-state"
+        ]
+      },
+      "passed": [
+        "login preparation and memory verified",
+        "real sidebar route targets online/offline",
+        "separate visible/responsive proxies",
+        "diagnostic privacy checks",
+        "instrumentation removal",
+        "navigation after removal"
+      ],
+      "errors": [],
+      "measurements": [
+        {
+          "module": "settings",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 870.3,
+          "clickToResponsiveMs": 1191.5,
+          "inputDelayToCaptureMs": 25.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 52.5,
+            "RecalcStyleDuration": 230.7,
+            "ScriptDuration": 832.9,
+            "TaskDuration": 1307.1
+          }
+        },
+        {
+          "module": "transactions",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 1864.6,
+          "clickToResponsiveMs": 2128.4,
+          "inputDelayToCaptureMs": 14.3,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 152,
+            "RecalcStyleDuration": 785.5,
+            "ScriptDuration": 1080.9,
+            "TaskDuration": 2163.2
+          }
+        },
+        {
+          "module": "sub-users",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 850.9,
+          "clickToResponsiveMs": 1747.1,
+          "inputDelayToCaptureMs": 17.6,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 64.5,
+            "RecalcStyleDuration": 348.4,
+            "ScriptDuration": 1190.9,
+            "TaskDuration": 1762.4
+          }
+        },
+        {
+          "module": "accounts",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 1842.2,
+          "clickToResponsiveMs": 2933.6,
+          "inputDelayToCaptureMs": 12.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 248.9,
+            "RecalcStyleDuration": 1102.8,
+            "ScriptDuration": 1271.1,
+            "TaskDuration": 2969
+          }
+        },
+        {
+          "module": "hr",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 857.7,
+          "clickToResponsiveMs": 1158.6,
+          "inputDelayToCaptureMs": 25.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 32.2,
+            "RecalcStyleDuration": 216.1,
+            "ScriptDuration": 853.9,
+            "TaskDuration": 1209.8
+          }
+        },
+        {
+          "module": "payroll",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 639.1,
+          "clickToResponsiveMs": 899.8,
+          "inputDelayToCaptureMs": 13.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 5.1,
+            "RecalcStyleDuration": 134.8,
+            "ScriptDuration": 721.9,
+            "TaskDuration": 942.4
+          }
+        },
+        {
+          "module": "dashboard",
+          "offline": false,
+          "repeat": 0,
+          "clickToVisibleMs": 815.8,
+          "clickToResponsiveMs": 1418.7,
+          "inputDelayToCaptureMs": 19.2,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 21.9,
+            "RecalcStyleDuration": 254.5,
+            "ScriptDuration": 1055.4,
+            "TaskDuration": 1453.2
+          }
+        },
+        {
+          "module": "settings",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 695.8,
+          "clickToResponsiveMs": 1042.4,
+          "inputDelayToCaptureMs": 17.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 6.8,
+            "RecalcStyleDuration": 211.4,
+            "ScriptDuration": 768.7,
+            "TaskDuration": 1072.9
+          }
+        },
+        {
+          "module": "transactions",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 1531.7,
+          "clickToResponsiveMs": 1849.1,
+          "inputDelayToCaptureMs": 15.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 84.2,
+            "RecalcStyleDuration": 562.1,
+            "ScriptDuration": 1034.6,
+            "TaskDuration": 1879.1
+          }
+        },
+        {
+          "module": "sub-users",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 696.9,
+          "clickToResponsiveMs": 1145.1,
+          "inputDelayToCaptureMs": 17,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 9,
+            "RecalcStyleDuration": 230.8,
+            "ScriptDuration": 835.9,
+            "TaskDuration": 1175.1
+          }
+        },
+        {
+          "module": "accounts",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 1427,
+          "clickToResponsiveMs": 2298.2,
+          "inputDelayToCaptureMs": 10.9,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 97.9,
+            "RecalcStyleDuration": 857.5,
+            "ScriptDuration": 1074.2,
+            "TaskDuration": 2308.5
+          }
+        },
+        {
+          "module": "hr",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 741.3,
+          "clickToResponsiveMs": 1045.4,
+          "inputDelayToCaptureMs": 15.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 18.2,
+            "RecalcStyleDuration": 214.7,
+            "ScriptDuration": 765.2,
+            "TaskDuration": 1082.2
+          }
+        },
+        {
+          "module": "payroll",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 685.6,
+          "clickToResponsiveMs": 1004.6,
+          "inputDelayToCaptureMs": 13,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 5.3,
+            "RecalcStyleDuration": 147.2,
+            "ScriptDuration": 810.9,
+            "TaskDuration": 1036.6
+          }
+        },
+        {
+          "module": "dashboard",
+          "offline": false,
+          "repeat": 1,
+          "clickToVisibleMs": 1000.7,
+          "clickToResponsiveMs": 1427,
+          "inputDelayToCaptureMs": 16.3,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 25,
+            "RecalcStyleDuration": 295,
+            "ScriptDuration": 1024.8,
+            "TaskDuration": 1461.8
+          }
+        },
+        {
+          "module": "settings",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 687.4,
+          "clickToResponsiveMs": 1609.3,
+          "inputDelayToCaptureMs": 11.9,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 13,
+            "RecalcStyleDuration": 315,
+            "ScriptDuration": 1889.7,
+            "TaskDuration": 2379.4
+          }
+        },
+        {
+          "module": "transactions",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 1592.5,
+          "clickToResponsiveMs": 1921.1,
+          "inputDelayToCaptureMs": 14.3,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 121.4,
+            "RecalcStyleDuration": 552.4,
+            "ScriptDuration": 1076.5,
+            "TaskDuration": 2019
+          }
+        },
+        {
+          "module": "sub-users",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 777.5,
+          "clickToResponsiveMs": 1615.8,
+          "inputDelayToCaptureMs": 15.6,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 8.6,
+            "RecalcStyleDuration": 282.9,
+            "ScriptDuration": 1241.3,
+            "TaskDuration": 1646.4
+          }
+        },
+        {
+          "module": "accounts",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 1496.6,
+          "clickToResponsiveMs": 2609.9,
+          "inputDelayToCaptureMs": 14.5,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 82.7,
+            "RecalcStyleDuration": 990.7,
+            "ScriptDuration": 1322.4,
+            "TaskDuration": 2649.7
+          }
+        },
+        {
+          "module": "hr",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 747.9,
+          "clickToResponsiveMs": 1041.9,
+          "inputDelayToCaptureMs": 24.3,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 16.1,
+            "RecalcStyleDuration": 212.3,
+            "ScriptDuration": 746.8,
+            "TaskDuration": 1071.4
+          }
+        },
+        {
+          "module": "payroll",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 672.5,
+          "clickToResponsiveMs": 903.8,
+          "inputDelayToCaptureMs": 12.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 3.9,
+            "RecalcStyleDuration": 145.6,
+            "ScriptDuration": 715.7,
+            "TaskDuration": 932.7
+          }
+        },
+        {
+          "module": "dashboard",
+          "offline": true,
+          "repeat": 0,
+          "clickToVisibleMs": 851.1,
+          "clickToResponsiveMs": 1184.5,
+          "inputDelayToCaptureMs": 13.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 27.6,
+            "RecalcStyleDuration": 224.8,
+            "ScriptDuration": 869.9,
+            "TaskDuration": 1220.6
+          }
+        },
+        {
+          "module": "settings",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 722.5,
+          "clickToResponsiveMs": 1067,
+          "inputDelayToCaptureMs": 14.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 5.8,
+            "RecalcStyleDuration": 221.4,
+            "ScriptDuration": 781.1,
+            "TaskDuration": 1092
+          }
+        },
+        {
+          "module": "transactions",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 1545.2,
+          "clickToResponsiveMs": 2312,
+          "inputDelayToCaptureMs": 14.8,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 73.5,
+            "RecalcStyleDuration": 705.8,
+            "ScriptDuration": 1343.4,
+            "TaskDuration": 2321.5
+          }
+        },
+        {
+          "module": "sub-users",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 698.2,
+          "clickToResponsiveMs": 1112.4,
+          "inputDelayToCaptureMs": 17.5,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 6.3,
+            "RecalcStyleDuration": 218,
+            "ScriptDuration": 818.2,
+            "TaskDuration": 1132.8
+          }
+        },
+        {
+          "module": "accounts",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 1367.1,
+          "clickToResponsiveMs": 2096.4,
+          "inputDelayToCaptureMs": 12.1,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 103,
+            "RecalcStyleDuration": 828.8,
+            "ScriptDuration": 898.4,
+            "TaskDuration": 2113.8
+          }
+        },
+        {
+          "module": "hr",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 951,
+          "clickToResponsiveMs": 1207.8,
+          "inputDelayToCaptureMs": 23.6,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 16.1,
+            "RecalcStyleDuration": 260.8,
+            "ScriptDuration": 876.6,
+            "TaskDuration": 1238.5
+          }
+        },
+        {
+          "module": "payroll",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 667.1,
+          "clickToResponsiveMs": 931.4,
+          "inputDelayToCaptureMs": 11.6,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 4.1,
+            "RecalcStyleDuration": 139.2,
+            "ScriptDuration": 741.8,
+            "TaskDuration": 958.6
+          }
+        },
+        {
+          "module": "dashboard",
+          "offline": true,
+          "repeat": 1,
+          "clickToVisibleMs": 877.2,
+          "clickToResponsiveMs": 1247.8,
+          "inputDelayToCaptureMs": 11,
+          "observationWindowMetricsMs": {
+            "LayoutDuration": 23.8,
+            "RecalcStyleDuration": 254.6,
+            "ScriptDuration": 936.2,
+            "TaskDuration": 1318.4
+          }
+        }
+      ],
+      "summary": {
+        "online": {
+          "clickToVisibleMs": 850.9,
+          "clickToResponsiveMs": 1191.5
+        },
+        "offline": {
+          "clickToVisibleMs": 777.5,
+          "clickToResponsiveMs": 1207.8
+        }
+      }
+    }
+  },
+  "tablet": {
+    "scope": "Chromium tablet configuration: 1024x768 touch/mobile screen, app selects 1280px layout, no CPU slowdown; 42 trusted clicks per revision. Baseline retained from the preceding investigation. Not physical iPad.",
+    "before": {
+      "online": {
+        "clickToVisibleMs": 170.9,
+        "clickToResponsiveMs": 248.4
+      },
+      "offline": {
+        "clickToVisibleMs": 163.9,
+        "clickToResponsiveMs": 262.8
+      }
+    },
+    "after": {
+      "online": {
+        "clickToVisibleMs": 171.1,
+        "clickToResponsiveMs": 234.6
+      },
+      "offline": {
+        "clickToVisibleMs": 170.5,
+        "clickToResponsiveMs": 233.2
+      }
+    }
+  }
+}
