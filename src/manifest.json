@@ -1690,13 +1690,13 @@
     ],
     "scripts/payroll-template1431.js": [
       {
-        "source": "src/legacy/scripts/payroll-template1431.js",
+        "source": "src/bridges/payroll-bookkeeping/payroll-template1431.js",
         "suffix": ";\n"
       }
     ],
     "scripts/payroll-journal1429.js": [
       {
-        "source": "src/legacy/scripts/payroll-journal1429.js",
+        "source": "src/bridges/payroll-bookkeeping/payroll-journal1429.js",
         "suffix": ";\n"
       }
     ],
@@ -1929,12 +1929,12 @@
         "suffix": ";\n;\n\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-template1431.js",
+        "source": "src/bridges/payroll-bookkeeping/payroll-template1431.js",
         "prefix": "/* scripts/payroll-template1431.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-journal1429.js",
+        "source": "src/bridges/payroll-bookkeeping/payroll-journal1429.js",
         "prefix": "/* scripts/payroll-journal1429.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -2454,7 +2454,7 @@
     ],
     "styles/payroll-template1431.css": [
       {
-        "source": "src/legacy/styles/payroll-template1431.css",
+        "source": "src/bridges/payroll-bookkeeping/payroll-template1431.css",
         "suffix": "\n"
       }
     ],
@@ -2858,7 +2858,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/payroll-template1431.css",
+        "source": "src/bridges/payroll-bookkeeping/payroll-template1431.css",
         "prefix": "/* styles/payroll-template1431.css */\n",
         "suffix": "\n\n"
       },

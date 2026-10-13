@@ -46,3 +46,7 @@ regression or a reason to change login behavior during this restructuring.
 - **0.9:** HR–Payroll roster, leave usage, attendance and snapshot inputs are
   separated from payroll results, tables and history. Gate: 452 unchanged
   runtime files; 475 sections; 304 generated assets.
+
+- **0.10:** Payroll journal templates and posting handoff have explicit bridge
+  ownership. Gate: 452 unchanged runtime files; 475 source sections;
+  304 generated assets.
