@@ -104,6 +104,36 @@ await check('Posting choices keep dates, detailed counterpart lines and source I
  await page.evaluate(async()=>{const original=ojmDb.rpc;ojmDb.rpc=async(n,p)=>{if(n==='post_report14349'){window.__postedReport=structuredClone(p);return {error:{message:'Fixture stops before writing'}}}return original(n,p)};await submitJournalEntry();ojmDb.rpc=original;});
  const p=await page.evaluate(()=>__postedReport);assert.equal(p.p_mode,'detailed');assert.equal(p.p_journal,'report-test');assert.equal(p.p_lines.length,6);assert.equal(new Set(p.p_lines.map(l=>l.line_date)).size,2);assert(p.p_lines.every(l=>l.source_ids.length===1&&l.description.includes('Sub-user Entry ID:')));
 });
+await check('Confirmed report posting stays successful when its display refresh fails',async()=>{
+ const result=await page.evaluate(async()=>{const rpc=ojmDb.rpc,load=loadJournalFromSupabase,status=showCenterStatus;const messages=[];let posts=0;ojmDb.rpc=async(n,p)=>n==='post_report14349'?(posts++,{data:{entry_id:'confirmed-report',entry_no:'TEST-POSTED'},error:null}):rpc(n,p);loadJournalFromSupabase=async()=>{throw Error('Fixture display refresh failure')};showCenterStatus=m=>messages.push(m);try{await submitJournalEntry();return {messages,posts,pending:pendingWorkspacePostJournalId}}finally{ojmDb.rpc=rpc;loadJournalFromSupabase=load;showCenterStatus=status}});
+ assert.equal(result.posts,1);assert.equal(result.pending,'');assert(result.messages.some(x=>x.includes('Report posted as TEST-POSTED')&&x.includes('do not post the report again')));
+});
+await check('A fulfilled stale journal refresh warns after a confirmed post; a fresh read restores it without reposting',async()=>{
+ await page.evaluate(()=>{window.__prep=prepareComparedForm69(__postingReport)});
+ await page.getByRole('button',{name:'Full transaction detail',exact:true}).click();await page.evaluate(()=>__prep);
+ const result=await page.evaluate(async()=>{
+  const rpc=ojmDb.rpc,load=loadJournalFromSupabase,status=showCenterStatus,entries=JournalModule.entries,fixture=window.__journalFixture,periods=__fixture.tables.accounting_periods;
+  const receipt={entry_id:'00000000-0000-4000-8000-000000000902',entry_no:'TEST-POSTED-STALE'},messages=[];
+  let posts=0;
+  ojmDb.rpc=async(n,p)=>n==='post_report14349'?(posts++,{data:receipt,error:null}):rpc(n,p);
+  // A matching display number must not pass verification when the database UUID differs.
+  loadJournalFromSupabase=async()=>{JournalModule.entries=[{id:receipt.entry_no,dbEntryId:'different-entry',date:'2026-10-05',debit:60,credit:0},{id:receipt.entry_no,dbEntryId:'different-entry',date:'2026-10-05',debit:0,credit:60}]};
+  showCenterStatus=(message,isError)=>messages.push({message,isError:!!isError});
+  try{
+   await submitJournalEntry();const pending=pendingWorkspacePostJournalId;
+   const staleVisible=JournalModule.entries.some(row=>row.dbEntryId===receipt.entry_id);
+   window.__journalFixture=[{account:__fixture.accounts[3].name,accountId:__fixture.accounts[3].id,accountCode:__fixture.accounts[3].code,debit:60,credit:0},{account:__fixture.accounts[0].name,accountId:__fixture.accounts[0].id,accountCode:__fixture.accounts[0].code,debit:0,credit:60}].map(row=>({...row,id:receipt.entry_no,dbEntryId:receipt.entry_id,date:'2026-10-05',currency:'LAK',memo:'Confirmed report',generalMemo:'Confirmed report',archived:false}));
+   __fixture.tables.accounting_periods=[{period_month:'2026-10-01',status:'open'}];
+   loadJournalFromSupabase=load;switchTab('journal');document.getElementById('jeSearchInput').value='';
+   const before=__calls.filter(n=>n==='journal_window14333').length;await loadJournalFromSupabase();
+   const visibleRows=[...document.querySelectorAll('#tblJournalHistoryBody tr[data-entry-id]:not(.journal-description14281)')].filter(row=>row.dataset.entryId===receipt.entry_no&&row.getClientRects().length);
+   return {messages,posts,freshReads:__calls.filter(n=>n==='journal_window14333').length-before,pending,staleVisible,confirmedLines:JournalModule.entries.filter(row=>row.dbEntryId===receipt.entry_id).length,visibleLines:visibleRows.length};
+  }finally{ojmDb.rpc=rpc;loadJournalFromSupabase=load;showCenterStatus=status;JournalModule.entries=entries;window.__journalFixture=fixture;__fixture.tables.accounting_periods=periods;}
+ });
+ assert.equal(result.posts,1);assert(result.freshReads>0);assert.equal(result.pending,'');assert.equal(result.staleVisible,false);assert.equal(result.confirmedLines,2);assert.equal(result.visibleLines,2);
+ assert(result.messages.some(x=>x.isError&&x.message.includes('Report posted as TEST-POSTED-STALE')&&x.message.includes('not in the downloaded journal yet')&&x.message.includes('do not post the report again')));
+ assert(!result.messages.some(x=>x.message.includes('Original report and entry references retained')));
+});
 await check('Reconciliation and explanation inputs are marked as non-credential fields',async()=>{
  const fields=await page.evaluate(()=>submissionReconciliation14345.fields({asOf:'2026-10-12',responsible:'Test',funds:[{account_id:'test',code:'100',name:'Cash',currency:'LAK',posted:0,unposted:0}]}));assert(fields.includes('data-lpignore="true"'));assert(fields.includes('name="fund-balance-test"'));
  await page.evaluate(()=>{window.__promptResult=ui117.prompt('Reason for returning submission')});assert.equal(await page.locator('#prompt117').evaluate(n=>n.tagName),'TEXTAREA');assert.equal(await page.locator('#prompt117').getAttribute('autocomplete'),'off');await page.locator('.ui-overlay108:last-child [data-dismiss]').click();

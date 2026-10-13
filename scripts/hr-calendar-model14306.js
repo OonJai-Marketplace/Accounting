@@ -3,7 +3,8 @@
  const dayMs=86400000,clone=x=>JSON.parse(JSON.stringify(x)),pad=x=>String(x).padStart(2,'0');
  const iso=d=>d.toISOString().slice(0,10),date=s=>new Date(s+'T00:00:00Z');
  const valid=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'')&&!Number.isNaN(+date(s))&&iso(date(s))===s;
- const today=()=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());return ['year','month','day'].map(k=>p.find(x=>x.type===k).value).join('-')};
+ const todayFormatter=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'});
+ const today=()=>{const p=todayFormatter.formatToParts(new Date());return ['year','month','day'].map(k=>p.find(x=>x.type===k).value).join('-')};
  const addDays=(s,n)=>iso(new Date(+date(s)+n*dayMs));
  function addMonths(s,n){const d=date(s),day=d.getUTCDate();d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+n);const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();d.setUTCDate(Math.min(day,last));return iso(d)}
  const source='https://www.asean.or.jp/en/learn-about-asean-japan/public-holidays-laopdr/';

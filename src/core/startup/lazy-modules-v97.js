@@ -3,6 +3,12 @@
     if (typeof previous !== 'function' || previous.__lazyLoading97) return;
     const wrapped = function (id, ...args) {
       const result = previous.call(this, id, ...args);
+      // The startup coordinator owns these datasets, including failed-stage retries.
+      // Explicit period selection remains an intentional read.
+      if (window.startup14257) {
+        if (id === 'entry-submissions') window.openStaffJournalPeriod?.(window.staffJournalMonth?.());
+        return result;
+      }
       if (['payroll-overview','payroll-employees','payroll-entries','payroll-deductions','payroll-history','report-payroll'].includes(id) && typeof window.loadWork82 === 'function') window.loadWork82();
       if (id === 'transactions-recurring') window.loadSchedules91?.();
       if (id === 'transactions-voided') window.loadTransactionAudit?.();

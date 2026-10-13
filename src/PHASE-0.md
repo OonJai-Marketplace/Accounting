@@ -78,3 +78,7 @@ staff offline password sign-in is now exercised. Source ordering, shared globals
 and closures remain; this is not a migration to isolated ES modules. Tests use local
 fixtures, not production data. Actual user-device latency remains unmeasured.
 No production deployment, SQL/schema change, or accounting/report redesign was made.
+
+## Version 1 reliability and repository cleanup
+
+See [the 13 October review](../docs/VERSION-1-REVIEW-2026-10-13.md) for the reproduced journal refresh race, targeted navigation corrections, obsolete-file removals, regression coverage, and remaining performance limits. Phase 0 is not marked complete.

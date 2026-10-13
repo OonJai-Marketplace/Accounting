@@ -6,15 +6,18 @@
   document.addEventListener('click',e=>{if(!e.target.closest('#avatar,#accountMenu'))$('accountMenu').hidden=true;});
   for(const event of ['pointerdown','keydown','input','touchstart','wheel'])document.addEventListener(event,touch,{passive:true,capture:true});
   document.addEventListener('keydown',e=>{if(S.page!=='post'||!e.target.closest('#postForm'))return;const inputs=[...$('postForm').querySelectorAll('input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')],i=inputs.indexOf(e.target);if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();saveDraftLater();inputs[i+1]?.focus();}});
-  window.addEventListener('pagehide',saveMirror);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveMirror();else if(S.owner&&navigator.onLine)void refresh();});
-  window.addEventListener('online',()=>{S.online=true;paintConnection();if(S.owner)void refresh();});window.addEventListener('offline',()=>{S.online=false;paintConnection();notice('Offline. Downloaded records and your drafts remain available.');});
+  window.addEventListener('pagehide',saveMirror);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveMirror();else phoneSyncActivity14351();});
+  window.addEventListener('online',()=>{S.online=true;paintConnection();phoneSyncActivity14351();});window.addEventListener('offline',()=>{S.online=false;paintConnection();notice('Offline. Downloaded records and your drafts remain available.');});
   window.addEventListener('storage',e=>{if(e.key===storageKey){const session=cachedSession();if(!session?.user||session.user.id!==S.actor){saveMirror();sessionGate();void boot();}else S.session=session;}});
   let pullStart=null;document.addEventListener('touchstart',e=>{if(window.scrollY===0&&!e.target.closest('input,textarea,select,dialog'))pullStart=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{if(pullStart!==null&&e.changedTouches[0].clientY-pullStart>90&&S.page!=='post')void refresh();pullStart=null;},{passive:true});
   const icons={home:'M3 10l9-7 9 7v11h-6v-6H9v6H3z',wallet:'M3 6h18v14H3z M3 6V3h14v3 M16 12h5',plus:'M12 4v16 M4 12h16',book:'M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h5',chart:'M4 20V10 M10 20V4 M16 20v-9 M22 20H2'};for(const node of document.querySelectorAll('[data-icon]'))node.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+icons[node.dataset.icon]+'"/></svg>';
   if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='ojm-phone-ready'&&e.data.version===VERSION){S.shellReady=true;paintConnection();}});window.addEventListener('load',()=>{navigator.serviceWorker.register('phone-sw.js?v='+VERSION,{scope:'./',updateViaCache:'none'}).then(reg=>{if(reg.active)reg.active.postMessage({type:'ojm-phone-status'});}).catch(()=>notice('Offline reopening is not ready yet. Continue online and reconnect to finish downloading the phone files.',true));},{once:true});}
   window.PhoneWorkspace14242={version:VERSION,ready:()=>!!S.owner&&permission('sub-users-workspace'),offlineReady:()=>S.shellReady,refresh,navigate};
-  let automaticRetryAt14257=0,automaticDelay14257=3000;
-  setInterval(async()=>{if(!S.owner||!navigator.onLine||S.syncing||S.saving||S.loading||authBusy||!queue().length||Date.now()<automaticRetryAt14257)return;const owner=S.owner,epoch=S.epoch;automaticRetryAt14257=Date.now()+60000;try{await sync();}catch{}if(!current(owner,epoch))return;automaticDelay14257=queue().length?Math.min(60000,automaticDelay14257*2):3000;automaticRetryAt14257=Date.now()+automaticDelay14257;},3000);
-  window.addEventListener('online',()=>{automaticRetryAt14257=0;automaticDelay14257=3000;});
+  // This standalone runtime has one timer; it is not loaded alongside the desktop coordinator.
+  let phoneSyncLast14351=Date.now(),phoneSyncTimer14351;
+  const phoneSyncIdle14351=()=>Date.now()-phoneSyncLast14351>=120000;
+  function phoneSyncActivity14351(){phoneSyncLast14351=Date.now();clearTimeout(phoneSyncTimer14351);phoneSyncTimer14351=setTimeout(async()=>{if(!phoneSyncIdle14351()||!S.owner||!navigator.onLine||S.syncing||S.saving||S.loading||authBusy)return;if(queue().some(q=>q.status!=='confirmed'))await sync({automatic:true});else await refresh();},120000);}
+  for(const type of ['pointerdown','pointermove','keydown','input','touchstart','wheel','scroll'])document.addEventListener(type,phoneSyncActivity14351,{passive:true,capture:true});
+  window.addEventListener('focus',phoneSyncActivity14351);phoneSyncActivity14351();
   void boot();
 })();

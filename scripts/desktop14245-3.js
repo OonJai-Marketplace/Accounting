@@ -583,8 +583,8 @@ function closeNavigationAfterSelection() {
 
 function switchTab(tabId) {
   if (!document.getElementById(tabId)) tabId = 'dashboard';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn.active').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content.active').forEach(c => c.classList.remove('active'));
 
   const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
   if (btn) {
@@ -605,8 +605,8 @@ function switchTab(tabId) {
 
 function scrollToAccountModule(moduleId) {
   localStorage.setItem('ojm_last_active_view_v1', moduleId);
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn.active').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content.active').forEach(c => c.classList.remove('active'));
 
   const accContainer = document.getElementById('accounts-modular-container');
   if (accContainer) accContainer.classList.add('active');
@@ -619,7 +619,7 @@ function scrollToAccountModule(moduleId) {
 
   const moduleTarget = document.getElementById(moduleId);
   if (moduleTarget) {
-    const scroller=appWorkspaceScroller(); if(scroller)scroller.scrollTop=0;
+    requestAnimationFrame(()=>{if(accContainer?.classList.contains('active')){const scroller=appWorkspaceScroller();if(scroller)scroller.scrollTop=0;}});
   }
   closeNavigationAfterSelection();
 }
@@ -2809,7 +2809,9 @@ saveBusinessSettings = async function(event) {
 };
 
 async function loadJournalFromSupabase() {
-  const windowRows=await window.yearWindow14333?.read();if(windowRows){JournalModule.entries=windowRows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();return;}
+  const actor=liveProfile?.id,workspace=window.workspaceRequest138?.target||'';
+  const check=()=>{if(liveProfile?.id!==actor||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.')};
+  const windowRows=await window.yearWindow14333?.read();if(windowRows){check();JournalModule.entries=windowRows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();return;}
   const entries=[];
   for(let offset=0;;offset+=500){
     const {data,error}=await ojmDb.from('journal_entries').select('id,entry_no,created_at,transaction_date,memo,status,source,journal_lines(line_no,description,currency_code,debit,credit,line_date,accounts(id,name,code))').eq('status','posted').order('transaction_date',{ascending:false}).order('id').range(offset,offset+499);
@@ -2817,7 +2819,7 @@ async function loadJournalFromSupabase() {
     (data||[]).forEach(entry=>(entry.journal_lines||[]).filter(Boolean).sort((a,b)=>a.line_no-b.line_no).forEach(line=>entries.push({created_at:entry.created_at,source:entry.source,scheduleId:String(entry.source||'').startsWith('scheduled:')?String(entry.source).slice(10):null,dbEntryId:entry.id,id:entry.entry_no||entry.id,date:line.line_date||entry.transaction_date,account:line.accounts?.name||'Unknown Account',accountId:line.accounts?.id,accountCode:line.accounts?.code,currency:line.currency_code,memo:line.description||entry.memo||'',generalMemo:entry.memo||'',debit:Number(line.debit),credit:Number(line.credit),editReason:'',archived:false})));
     if(!data||data.length<500)break;
   }
-  JournalModule.entries=entries;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();
+  check();JournalModule.entries=entries;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();
 }
 
 function collectLiveJournalGroups() {
@@ -2881,7 +2883,7 @@ async function loadProfilesFromSupabase() { if(liveProfile?.role!=='admin')retur
 renderDemoUsers = function(){const host=document.getElementById('demoUsersList');if(!host)return;host.innerHTML=liveProfiles.map(u=>`<div class="demo-user-row"><div class="demo-user-avatar">${escapeHtml((u.full_name||u.email).slice(0,2).toUpperCase())}</div><div class="demo-user-details"><strong>${escapeHtml(u.full_name||'Unnamed User')}</strong><span>${escapeHtml(u.email)}</span></div><span class="user-role-badge ${u.role}">${u.role==='admin'?'Administrator':'Staff Submitter'}</span><span class="user-status-badge ${u.status}">${u.status}</span><span class="je-subtitle">Managed through Supabase Auth</span></div>`).join('')};
 addDemoUser = function(event){event.preventDefault();showAppNotification('Secure User Creation','Create or invite the user in Supabase Authentication. A protected Edge Function will later bring this action into the app without exposing an administrator secret.',false)};
 
-async function loadLegalDocumentsFromSupabase(){if(liveProfile?.role!=='admin')return;const{data,error}=await ojmDb.from('legal_documents').select('*').order('uploaded_at',{ascending:false});if(!error){liveLegalDocuments=data||[];renderLegalDocuments()}}
+async function loadLegalDocumentsFromSupabase(){if(liveProfile?.role!=='admin')return;const{data,error}=await ojmDb.from('legal_documents').select('*').order('uploaded_at',{ascending:false});if(error)throw error;if(!error){liveLegalDocuments=data||[];renderLegalDocuments()}}
 renderLegalDocuments = async function(){const host=document.getElementById('legalDocumentsList');if(!host)return;host.innerHTML=liveLegalDocuments.length?liveLegalDocuments.map(d=>`<div class="legal-doc-row"><div class="legal-doc-icon">${/pdf/i.test(d.mime_type||'')?'PDF':'FILE'}</div><div class="legal-doc-meta"><strong>${escapeHtml(d.file_name)}</strong><span>${formatLegalDocSize(Number(d.size_bytes||0))} • ${formatAppDate(d.uploaded_at,true)}</span></div><div class="legal-doc-actions"><button type="button" class="je-btn je-btn-secondary" onclick="downloadLegalDocument('${d.id}')">Download</button><button type="button" class="btn-action-delete" onclick="deleteLegalDocument('${d.id}')">✕</button></div></div>`).join(''):'<div class="legal-doc-empty">No legal documents uploaded yet.</div>'};
 uploadLegalDocuments = async function(event){for(const file of [...event.target.files]){if(file.size>10485760){showAppNotification('File Too Large',`${file.name} exceeds 10 MB.`,true);continue}const path=`${liveProfile.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const{error:uploadError}=await ojmDb.storage.from('legal-documents').upload(path,file);if(uploadError){showAppNotification('Upload Failed',uploadError.message,true);continue}await ojmDb.from('legal_documents').insert({file_name:file.name,storage_path:path,mime_type:file.type,size_bytes:file.size,uploaded_by:liveProfile.id})}event.target.value='';await loadLegalDocumentsFromSupabase()};
 downloadLegalDocument = async function(id){const doc=liveLegalDocuments.find(d=>d.id===id);if(!doc)return;const{data,error}=await ojmDb.storage.from('legal-documents').createSignedUrl(doc.storage_path,60);if(error){showAppNotification('Download Failed',error.message,true);return}window.open(data.signedUrl,'_blank')};
@@ -3131,9 +3133,9 @@ saveUserAccess=async function(event){
   const originalUpsert=ojmDb.from;let captured=null;ojmDb.from=function(table){const api=originalUpsert.call(ojmDb,table);if(table==='user_permissions'){const original=api.upsert.bind(api);api.upsert=(payload,...rest)=>original({...payload,...extra},...rest)}return api};try{await saveUserAccessBeforeStaffConfig(event)}finally{ojmDb.from=originalUpsert}
 };
 const hydrateBeforeStaffJournal=hydrateSupabaseSession;
-hydrateSupabaseSession=async function(session){await hydrateBeforeStaffJournal(session);if(liveProfile&&document.getElementById('loginGate')?.classList.contains('is-authenticated')){const month=new Date().toISOString().slice(0,7);const picker=document.getElementById('staffJournalPeriod');if(picker)picker.value=month;await Promise.all([...(liveProfile.role==='admin'?[]:[openStaffJournalPeriod(month)]),loadStaffJournalsForReview()]);freshLoginRequested=false}};
+hydrateSupabaseSession=async function(session){await hydrateBeforeStaffJournal(session);if(liveProfile&&document.getElementById('loginGate')?.classList.contains('is-authenticated')){const month=new Date().toISOString().slice(0,7);const picker=document.getElementById('staffJournalPeriod');if(picker)picker.value=month;await Promise.all([...(liveProfile.role==='admin'?[]:[openStaffJournalPeriod(month)]),...(window.startup14257?.isPrepared('review')?[]:[loadStaffJournalsForReview()])]);freshLoginRequested=false}};
 const switchTabBeforeStaffJournal=switchTab;
-switchTab=function(tabId){switchTabBeforeStaffJournal(tabId);if(tabId==='entry-submissions')openStaffJournalPeriod(staffJournalMonth());if(tabId==='user-entry-review')loadStaffJournalsForReview()};
+switchTab=function(tabId){switchTabBeforeStaffJournal(tabId);if(tabId==='entry-submissions')openStaffJournalPeriod(staffJournalMonth());if(tabId==='user-entry-review'&&!window.startup14257)loadStaffJournalsForReview()};
 
 // SETTINGS HELP — red asterisks explain only settings that need accounting or system context.
 const SETTING_HELP = {
@@ -3237,7 +3239,7 @@ async function confirmVoidTransaction(){const reason=document.getElementById('vo
 let LiveTransactionAudit=[];
 async function loadTransactionAudit(){
   if(!ojmDb||!liveProfile)return;const {data,error}=await ojmDb.from('audit_log').select('id,record_id,action,reason,old_data,new_data,actor_id,created_at').in('table_name',['journal_entries','accounting_periods','period_findings','scheduled_journals']).order('created_at',{ascending:false}).limit(250);
-  if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
+  if(error)throw error;if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
 }
 renderVoidedTransactionsTable=function(){
   const header=document.getElementById('thVoidedTransRow'),body=document.getElementById('voidedTransactionsBody');if(!body)return;
@@ -3257,7 +3259,7 @@ function openAdjustedDetails(entryId){const local=(JournalModule.voidedEntries||
 const loadJournalFromSupabaseBeforeAudit=loadJournalFromSupabase;
 loadJournalFromSupabase=async function(){await loadJournalFromSupabaseBeforeAudit();if(document.querySelector('.tab-content.active')?.id==='transactions-voided')await loadTransactionAudit();};
 const switchTabBeforeTransactionAudit=switchTab;
-switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided')loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
+switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided'&&!window.startup14257)loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
 
 async function loadAccountingPeriodStatuses(){
   if(!ojmDb||!liveProfile)return;const actor=liveProfile.id;const {data,error}=await ojmDb.from('accounting_periods').select('period_month,status,updated_at,updated_by');if(error)throw Error(error.message);if(liveProfile?.id!==actor)throw Error('Sign-in changed while loading period statuses.');PeriodReview.periods={};
@@ -5757,7 +5759,7 @@ function section82(title,body,actions=''){return `<section class="block82"><head
 function mount82(id,title,subtitle,body,actions=''){const panel=document.getElementById(id);if(!panel)return;let host=panel.querySelector(':scope>.desktop82');if(!host){const old=document.createElement('div');old.className='legacy82';while(panel.firstChild)old.append(panel.firstChild);panel.append(old);host=document.createElement('div');host.className='desktop82';panel.append(host)}host.innerHTML=`<section class="work82"><header><div><h3>${esc82(title)}</h3><p>${esc82(subtitle)}</p></div><div class="actions82">${actions}</div></header>${body}</section>`}
 function storageNotice82(){return Work82.error?`<div class="notice82 warn82">${esc82(Work82.error)} Your current draft stays on screen. Saving requires the payroll/report storage setup. <a href="setup/SETUP-GUIDE-v142.20.txt" download>Download setup guide</a></div>`:Work82.loading?'<p class="notice82">Loading saved records…</p>':''}
 async function loadWork82(force=false){if(!admin82()||!ojmDb)return;if(Work82.loading)return;if(Work82.loaded&&Work82.owner===liveProfile.id&&!force)return;const owner=liveProfile.id;Work82.loading=true;Work82.owner=owner;try{const results=await Promise.all(Object.entries(tables82).map(async([key,table])=>{const r=await ojmDb.from(table).select('*').order('updated_at',{ascending:false});if(r.error)throw r.error;return[key,r.data||[]]}));if(liveProfile?.id!==owner)return;results.forEach(([key,data])=>Work82[key]=data);Work82.loaded=true;Work82.error=''}catch(e){if(liveProfile?.id===owner)Work82.error='Payroll/report records could not be loaded. '+(e.message||'Storage unavailable.')}finally{Work82.loading=false;if(liveProfile?.id===owner)renderWork82()}}
-async function saveWork82(kind,data,record=null){if(!admin82())throw Error('An administrator must save these records.');if(!ojmDb)throw Error('Sign in to save this record.');const owner=liveProfile.id;const table=tables82[kind];if(!table)throw Error('Invalid record type');const payload={data,version:record?record.version+1:1};if(kind==='runs'){const [y,m]=data.month.split('-').map(Number);payload.period_start=data.month+'-01';payload.period_end=date71(y,m,new Date(y,m,0).getDate());payload.status=data.status;}if(window.localFirst14333)return localFirst14333.saveWork(kind,data,record,payload);let req=record?ojmDb.from(table).update(payload).eq('id',record.id).eq('version',record.version):ojmDb.from(table).insert(payload);const result=await req.select('*');if(result.error)throw result.error;if(!result.data?.length)throw Error('This record changed in another session. Reload before editing.');if(liveProfile?.id!==owner)throw Error('The signed-in user changed. Reload to view saved records.');const saved=result.data[0];Work82[kind]=[saved,...Work82[kind].filter(r=>r.id!==saved.id)];return saved}
+async function saveWork82(kind,data,record=null){if(!admin82())throw Error('An administrator must save these records.');if(!ojmDb)throw Error('Sign in to save this record.');const owner=liveProfile.id;const table=tables82[kind];if(!table)throw Error('Invalid record type');const payload={data,version:record?record.version+1:1};if(kind==='runs'){const [y,m]=data.month.split('-').map(Number);payload.period_start=data.month+'-01';payload.period_end=date71(y,m,new Date(y,m,0).getDate());payload.status=data.status;}if(window.localFirst14333){const finalizing=kind==='runs'&&data.status==='finalized';if(finalizing&&window.offline14239?.offline())throw Error('Payroll finalization requires server confirmation. The draft is retained; reconnect before finalizing.');const saved=await localFirst14333.saveWork(kind,data,record,payload);if(!finalizing)return saved;await window.idleSync14341?.syncNow();const confirmed=localFirst14333.state().jobs.find(j=>j.row.id===saved.id&&j.row.version===saved.version&&j.status==='synced');if(!confirmed?.receipt)throw Error('Payroll finalization is not server-confirmed. The recovery request is retained in Data Checking; resolve it before treating this payroll as finalized.');return confirmed.receipt;}let req=record?ojmDb.from(table).update(payload).eq('id',record.id).eq('version',record.version):ojmDb.from(table).insert(payload);const result=await req.select('*');if(result.error)throw result.error;if(!result.data?.length)throw Error('This record changed in another session. Reload before editing.');if(liveProfile?.id!==owner)throw Error('The signed-in user changed. Reload to view saved records.');const saved=result.data[0];Work82[kind]=[saved,...Work82[kind].filter(r=>r.id!==saved.id)];return saved}
 async function runAction82(fn){if(Work82.busy)return;Work82.busy=true;try{await fn()}catch(e){showAppNotification('Could not complete',e.message||String(e),true)}finally{Work82.busy=false}}
 function currencies82(){const p=ApplicationSettings.payroll;return (CurrencyStore.currencies||[]).filter(c=>c.is_active!==false&&c.active!==false&&p['payCurrency'+c.code]!==false).map(c=>c.code)}
 function employeeForm82(record){const d=record?.data||{active:true,currency:ApplicationSettings.payroll.payCurrency,sso:false,pit:true,pitShare:50,vacation:15,sick:0,personal:0,bereavement:0};return `<form id="employeeForm82" onsubmit="event.preventDefault();saveEmployee82()"><div class="fields82">${field82('Employee code','code',d.code||'','text','required maxlength="40"')}${field82('Full name','name',d.name||'','text','required')}${field82('Profile email (optional)','profileEmail',d.profileEmail||'','email')}<label class="employee-photo-field104">Employee photo (PNG, JPG or WebP)<input type="file" name="photoFile" accept="image/png,image/jpeg,image/webp"></label>${d.photoData?`<div class="employee-photo-preview104"><img src="${esc82(d.photoData)}" alt="${esc82(d.name||'Employee')}"><label><input type="checkbox" name="photoRemove"> Remove photo</label></div>`:''}${select82('Linked sub-user (optional)','userId',d.userId||'',[['','No login link'],...availableSubUsers().map(u=>[u.id,subUserName(u)])])}${field82('Position','position',d.position||'')}${field82('Phone','phone',d.phone||'','tel')}${field82('Address','address',d.address||'')}${field82('Emergency contact','emergencyContact',d.emergencyContact||'')}${select82('Contract currency','currency',d.currency,currencies82().map(c=>[c,c]))}${field82('Monthly contract salary','salary',d.salary||'','number','min="0" step="0.01" required')}${field82('Contract renewal / entitlement start','renewal',d.renewal||today82(),'date','required')}${field82('Vacation allowance (days)','vacation',d.vacation,'number','min="0" step="0.125"')}${field82('Sick allowance (days)','sick',d.sick,'number','min="0" step="0.125"')}${field82('Personal allowance (days)','personal',d.personal,'number','min="0" step="0.125"')}${field82('Bereavement allowance (days)','bereavement',d.bereavement,'number','min="0" step="0.125"')}${field82('Employee PIT share (custom mode, %)','pitShare',d.pitShare,'number','min="0" max="100" step="0.01"')}${check82('Active employee','active',d.active)}${check82('SSO applies','sso',d.sso)}${check82('PIT applies','pit',d.pit)}</div><div class="form-actions82">${action82('Cancel',"Work82.employee=null;renderWork82()") }<button class="primary82" type="submit">Save Employee</button></div></form>`}
@@ -6132,7 +6134,7 @@ function recoveryPanel1442(){
  host().prepend(panel);
 }
 function render(){const h=host();if(!h)return;h.hidden=!admin();if(h.hidden)return;const open=[...h.querySelectorAll('details[open]')].map(n=>n.dataset.scheduleId);h.innerHTML=`<div class="je-card-header"><div><h3>Scheduled Journal Entries</h3><p>Prepared double entries with posting status and review history.</p></div><button type="button" class="je-btn je-btn-emerald" onclick="openScheduledEditor91()">Create Scheduled Entry</button></div><div class="schedule-list91">${State.loading?'<p>Loading schedules…</p>':State.error?`<p class="schedule-error91">${esc(State.error)} <a href="setup/SETUP-GUIDE-v142.20.txt" download>Download setup guide</a></p>`:State.rows.length?State.rows.map(card).join(''):'<p>No scheduled journal entries yet. Create one to prepare a double entry.</p>'}</div>`;open.forEach(id=>{const d=[...h.querySelectorAll('details')].find(x=>x.dataset.scheduleId===id);if(d)d.open=true});recoveryPanel1442()}
-window.loadSchedules91=async function(force=false){if(!admin()||!ojmDb)return;if(State.loading)return new Promise(resolve=>{const timer=setInterval(()=>{if(!State.loading){clearInterval(timer);resolve()}},50)});if(State.loaded&&State.owner===liveProfile.id&&!force)return;State.loading=true;State.owner=liveProfile.id;render();try{const [s,o]=await Promise.all([ojmDb.from('scheduled_journals').select('*').order('created_at',{ascending:false}),ojmDb.from('scheduled_journal_occurrences').select('*,journal_entries(entry_no,transaction_date,status)').order('posted_at',{ascending:false})]);if(s.error||o.error)throw s.error||o.error;if(State.owner!==liveProfile?.id)return;State.rows=s.data||[];State.occurrences=o.data||[];State.loaded=true;State.error=''}catch(e){State.error='Schedules could not be loaded: '+e.message}finally{State.loading=false;render()}};
+window.loadSchedules91=async function(force=false){if(!admin()||!ojmDb)return;if(State.loading)return new Promise(resolve=>{const timer=setInterval(()=>{if(!State.loading){clearInterval(timer);resolve(!State.error)}},50)});if(State.loaded&&State.owner===liveProfile.id&&!force)return;State.loading=true;State.owner=liveProfile.id;render();try{const [s,o]=await Promise.all([ojmDb.from('scheduled_journals').select('*').order('created_at',{ascending:false}),ojmDb.from('scheduled_journal_occurrences').select('*,journal_entries(entry_no,transaction_date,status)').order('posted_at',{ascending:false})]);if(s.error||o.error)throw s.error||o.error;if(State.owner!==liveProfile?.id)return;State.rows=s.data||[];State.occurrences=o.data||[];State.loaded=true;State.error=''}catch(e){State.error='Schedules could not be loaded: '+e.message}finally{State.loading=false;render()}return !State.error};
 function optionHtml(selected='',currency=''){return AccountingStore.accounts.filter(a=>!currency||a.currency===currency).map(a=>`<option value="${esc(a.id)}" ${String(selected)===String(a.id)?'selected':''}>${esc(a.code+' — '+a.name+' ('+a.currency+')')}</option>`).join('')}
 function stepDate(start,freq,rule,index){const d=new Date(start+'T12:00:00');if(freq==='weekly'){d.setDate(d.getDate()+7*index)}else{const day=d.getDate(),months=freq==='quarterly'?3:freq==='yearly'?12:1;d.setDate(1);d.setMonth(d.getMonth()+months*index);const end=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(rule==='last_day'?end:Math.min(day,end))}return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function form(){return document.getElementById('scheduledForm91')}
@@ -6880,10 +6882,10 @@ mountSettings();
     }).join('') : '<tr><td colspan="6" class="period-empty">No void, correction, or period-review audit records yet.</td></tr>';
   };
 
-  window.loadTransactionAudit = async function () {
+  window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
-    const pageSize = 500, rows = [];
-    try {
+    const read = async () => {
+      const pageSize = 500, rows = [];
       for (let offset = 0; ; offset += pageSize) {
         const { data, error } = await ojmDb.from('audit_log')
           .select('id,record_id,action,reason,old_data,new_data,actor_id,created_at')
@@ -6893,10 +6895,15 @@ mountSettings();
         rows.push(...(data || []));
         if (!data || data.length < pageSize) break;
       }
+      return rows;
+    };
+    try {
+      const rows = window.localFirst14333 ? await localFirst14333.snapshot('audit-transactions', read, {force}) : await read();
       LiveTransactionAudit = rows;
       window.renderVoidedTransactionsTable();
     } catch (error) {
       window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
+      throw error;
     }
   };
 
@@ -6907,6 +6914,12 @@ mountSettings();
     if (typeof previous !== 'function' || previous.__lazyLoading97) return;
     const wrapped = function (id, ...args) {
       const result = previous.call(this, id, ...args);
+      // The startup coordinator owns these datasets, including failed-stage retries.
+      // Explicit period selection remains an intentional read.
+      if (window.startup14257) {
+        if (id === 'entry-submissions') window.openStaffJournalPeriod?.(window.staffJournalMonth?.());
+        return result;
+      }
       if (['payroll-overview','payroll-employees','payroll-entries','payroll-deductions','payroll-history','report-payroll'].includes(id) && typeof window.loadWork82 === 'function') window.loadWork82();
       if (id === 'transactions-recurring') window.loadSchedules91?.();
       if (id === 'transactions-voided') window.loadTransactionAudit?.();
@@ -7349,7 +7362,7 @@ function installPosting(){
  const state=getMultiDateJournalState(),collected=collectLiveJournalGroups();if(state.errors.length||collected.errors.length||collected.differences.length)return legacy();
  const groups=Object.entries(collected.grouped).filter(([,g])=>g.lines.length);if(!groups.length||window.journalBatch1440?.hasPending())return legacy();
  const [date,group]=groups[0];if(window.offline14239?.offline()&&window.workflow136?.state.sessions.some(s=>groups.some(([d])=>String(s.month).slice(0,7)===d.slice(0,7)))){showCenterStatus('A reopened book requires connection. Your draft is retained.',true);return;}if(groups.some(([d,g])=>g.lines.length<2||g.lines.some(l=>!l.account?.id)||PeriodReview.status(d.slice(0,7))!=='open'))return legacy();
- const saved=snapshot(),id=restoredKey14228||crypto.randomUUID(),owner=liveProfile.id,job={id,snapshot:saved,status:'saving'};jobs.set(id,job);
+ const saved=snapshot(),id=restoredKey14228||crypto.randomUUID(),owner=liveProfile.id,job={id,snapshot:saved,status:'saving',created:new Date().toISOString()};jobs.set(id,job);
  // Persist the complete request before clearing; device projections share this reference.
  const payload={p_request_key:id,p_transaction_date:date,p_memo:saved.memo.trim(),p_lines:group.lines.map(l=>({account_id:l.account.id,description:l.memo,currency_code:l.currency,debit:Number(l.debit||0),credit:Number(l.credit||0)})),p_prefix:String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'OJM').trim(),p_digits:Math.max(3,Math.min(9,Number(ApplicationSettings.accounting?.journalDigits)||6))};
  if(groups.length>1){const entries=groups.map(([d,g])=>({p_transaction_date:d,p_memo:payload.p_memo,p_lines:g.lines.map(l=>({account_id:l.account.id,description:l.memo,currency_code:l.currency,debit:Number(l.debit||0),credit:Number(l.credit||0)})),p_prefix:payload.p_prefix,p_digits:payload.p_digits}));for(const k of Object.keys(payload))if(k!=='p_request_key')delete payload[k];payload.p_entries=entries;}job.payload=payload;restoredKey14228=null;
@@ -7667,17 +7680,18 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   rows.push(...(window.getTodoNotices136?.()||[]));rows.push(...(window.vouchers14299?.notices?.()||[]));rows.push(...(window.hrCalendar14306?.notices?.()||[]));
   rows.push(...(window.syncAssessment14332?.notices?.()||[]));
   const badge=Number($('navUserReviewCount')?.textContent)||0,submissions=rows.filter(x=>x.type==='Submission review').length;for(let n=submissions;n<badge&&n<50;n++)rows.push({type:'Submission review',title:'Pending review',detail:'',target:'user-entry-review'});return rows}
- function updateBell(){window.navigationBadges14311?.render();const badge=$('headerNoticeBadge104');if(!badge)return;const rows=notices(),count=rows.length,critical=rows.some(n=>n.critical);badge.hidden=!count;badge.textContent=count>99?'99+':String(count);badge.classList.toggle('critical14332',critical);$('upcomingBell101')?.classList.toggle('critical14332',critical);$('upcomingBell101')?.setAttribute('aria-label',`${count} notifications${critical?', sync needs attention':''}`);const list=$('headerNoticeList104');if(list&&!$('headerNotices104')?.hidden){const opened=new Set([...list.querySelectorAll('details[open]')].map(n=>n.dataset.notice1443));list.innerHTML=rows.length?rows.map(n=>n.todoId&&window.todos1438?.noticeHTML?todos1438.noticeHTML(n):`<button type="button" data-target="${escape(n.target)}" ${n.critical?'class="critical14332"':''} ${n.hrEventId?`data-hr-event14306="${escape(n.hrEventId)}"`:''} ${n.todoId?`data-todo-target1438="${escape(n.todoId)}"`:""}><strong>${escape(n.type)}</strong><span>${escape(n.title)}</span><small>${escape(n.detail)}</small></button>`).join(''):'<p>No current notifications.</p>';list.querySelectorAll('details').forEach(n=>n.open=opened.has(n.dataset.notice1443));window.todos1438?.bindNotices(list)}}
+ function updateBell(){window.navigationBadges14311?.render();const badge=$('headerNoticeBadge104');if(!badge)return;const rows=notices(),count=rows.length,critical=rows.some(n=>n.critical);badge.hidden=!count;badge.textContent=count>99?'99+':String(count);badge.classList.toggle('critical14332',critical);$('upcomingBell101')?.classList.toggle('critical14332',critical);$('upcomingBell101')?.setAttribute('aria-label',`${count} notifications${critical?', sync needs attention':''}`);const list=$('headerNoticeList104');if(list&&!$('headerNotices104')?.hidden){const opened=new Set([...list.querySelectorAll('details[open]')].map(n=>n.dataset.notice1443));list.innerHTML=rows.length?rows.map(n=>n.todoId&&window.todos1438?.noticeHTML?todos1438.noticeHTML(n):`<button type="button" data-target="${escape(n.target)}" ${n.critical?'class="critical14332"':''} ${n.syncId?`data-sync-finding="${escape(n.syncId)}" data-sync-period="${escape(n.syncPeriod)}"`:''} ${n.hrEventId?`data-hr-event14306="${escape(n.hrEventId)}"`:''} ${n.todoId?`data-todo-target1438="${escape(n.todoId)}"`:""}><strong>${escape(n.type)}</strong><span>${escape(n.title)}</span><small>${escape(n.detail)}</small></button>`).join(''):'<p>No current notifications.</p>';list.querySelectorAll('details').forEach(n=>n.open=opened.has(n.dataset.notice1443));window.todos1438?.bindNotices(list)}}
  window.getNotices14311=notices;
  window.refreshNotices1443=updateBell;
  function install(){const header=document.getElementById('transactionsHeading98'),menu=document.querySelector('.sidebar-user-footer'),toolbar=$('topTools101');if(!header||!menu||!toolbar)return;const trigger=$('headerAccountTrigger'),avatar=$('headerAccountInitials'),copy=menu.querySelector('.sidebar-user-copy');menu.id='topHeaderProfile104';menu.classList.add('top-header-profile104');trigger.replaceChildren(avatar,copy);trigger.setAttribute('aria-label','Open account menu');menu.querySelector('.header-account-identity')?.remove();menu.querySelectorAll('#global-csv-btn,#global-print-btn,.module-export-divider').forEach(node=>node.remove());header.append(toolbar,menu);
   const bell=$('upcomingBell101');bell.innerHTML+='<span id="headerNoticeBadge104" hidden></span>';bell.onclick=()=>{const panel=$('headerNotices104');panel.hidden=!panel.hidden;bell.setAttribute('aria-expanded',String(!panel.hidden));updateBell()};bell.setAttribute('aria-expanded','false');
-  const panel=document.createElement('section');panel.id='headerNotices104';panel.className='header-notices104';panel.hidden=true;panel.innerHTML='<header><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></header><div id="headerNoticeList104"></div>';header.append(panel);panel.querySelector('header button').onclick=()=>{panel.hidden=true;bell.setAttribute('aria-expanded','false')};panel.addEventListener('click',e=>{const target=e.target.closest('[data-target]')?.dataset.target;if(target){panel.hidden=true;bell.setAttribute('aria-expanded','false');switchTab(target);const eventId=e.target.closest('[data-hr-event14306]')?.dataset.hrEvent14306;if(eventId)window.hrCalendar14306?.open(eventId)}});
+  const panel=document.createElement('section');panel.id='headerNotices104';panel.className='header-notices104';panel.hidden=true;panel.innerHTML='<header><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></header><div id="headerNoticeList104"></div>';header.append(panel);panel.querySelector('header button').onclick=()=>{panel.hidden=true;bell.setAttribute('aria-expanded','false')};panel.addEventListener('click',e=>{const target=e.target.closest('[data-target]')?.dataset.target;if(target){panel.hidden=true;bell.setAttribute('aria-expanded','false');switchTab(target);const sync=e.target.closest('[data-sync-finding]');if(sync)window.syncAssessment14332?.focus(sync.dataset.syncFinding,sync.dataset.syncPeriod);const eventId=e.target.closest('[data-hr-event14306]')?.dataset.hrEvent14306;if(eventId)window.hrCalendar14306?.open(eventId)}});
   document.addEventListener('click',e=>{if(!e.target.closest('#headerNotices104,#upcomingBell101')){panel.hidden=true;bell.setAttribute('aria-expanded','false')}},true);
-  updateHeaderProfile104();updateBell();setInterval(()=>{if(typeof liveProfile!=='undefined'&&liveProfile){updateHeaderProfile104();updateBell()}},15000);
+  updateHeaderProfile104();updateBell();window.addEventListener('idle-sync14341',()=>{if(typeof liveProfile!=='undefined'&&liveProfile){updateHeaderProfile104();updateBell()}});
   const reviewBadge=$('navUserReviewCount');if(reviewBadge)new MutationObserver(updateBell).observe(reviewBadge,{childList:true,characterData:true,subtree:true});
   window.addEventListener('connection14239',updateBell);
   window.addEventListener('sync-assessment14332',updateBell);
+  window.addEventListener('save-state14234',updateBell);
   const load=window.loadWork82;if(typeof load==='function')window.loadWork82=async function(...args){const result=await load.apply(this,args);updateHeaderProfile104();return result};
   const signed=window.hydrateSupabaseSession;if(typeof signed==='function')window.hydrateSupabaseSession=async function(...args){const result=await signed.apply(this,args);updateHeaderProfile104();updateBell();if(typeof liveProfile!=='undefined'&&liveProfile?.role==='admin'){window.loadWork82?.().then(updateHeaderProfile104);window.loadSchedules91?.().then(updateBell)}return result};
   const warnings=window.renderRecurringWarnings;if(typeof warnings==='function')window.renderRecurringWarnings=function(...args){const result=warnings.apply(this,args);updateBell();return result};

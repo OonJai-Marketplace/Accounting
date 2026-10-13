@@ -1,0 +1,9 @@
+/* Navigation smoke test, synthetic account only. Does not post or change records. */
+const assert=require('node:assert/strict'),fs=require('node:fs'),create=require('./phase0-browser-fixture.cjs');
+(async()=>{const f=await create(),results=[];try{const {page,context,login}=await f.open(),errors=[];page.on('pageerror',e=>errors.push(e.message));await login();await page.waitForFunction(()=>offline14239.state().shellReady);
+ const targets=await page.evaluate(()=>[...new Set(APP_PERMISSION_TREE.flatMap(x=>x.children.map(y=>y[0])))].filter(id=>access113.can(id)&&document.getElementById(id)&&!['pos118','menu-details'].includes(id)));
+ const start=f.requests.length;
+ for(const offline of [false,true]){await context.setOffline(offline);for(const id of targets){const result=await page.evaluate(async id=>{try{id.startsWith('sec-')?scrollToAccountModule(id):switchTab(id);await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const active=document.querySelector('.tab-content.active');return {id,active:active?.id,content:!!active?.textContent.trim()}}catch(e){return {id,error:e.message}}},id);results.push({offline,...result});assert(!result.error,JSON.stringify(result));assert(result.content,JSON.stringify(result));}}
+ assert(!f.requests.slice(start).some(x=>/^POST .*\/rpc\/(post_|save_|finalize|approve_|delete_)/.test(x)),'navigation must not post financial records');
+ fs.writeFileSync(process.env.WORKSPACE_RESULTS||'/tmp/accounting-workspace-results.json',JSON.stringify({targets,results,errors,requests:f.requests.slice(start)},null,2));assert.deepEqual(errors,[]);console.log('PASS',targets.length,'permitted workspace targets online and offline; no financial posting writes or uncaught errors');
+}finally{await f.close()}})().catch(e=>{console.error(e);process.exitCode=1});

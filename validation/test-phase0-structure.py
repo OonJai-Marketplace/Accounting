@@ -11,8 +11,11 @@ correction_file = ROOT / 'validation/phase0-corrections.json'
 corrections = (json.loads(correction_file.read_text())['runtime_sha256']
                if correction_file.exists() else {})
 assert set(corrections) <= set(baseline['runtime_sha256']), 'Unknown correction asset'
+retired = set(json.loads(correction_file.read_text()).get('retired_assets', {})) if correction_file.exists() else set()
+assert retired <= {'tools/desktop-source14245.html'}, 'Unapproved retired asset'
+assert all(not (ROOT / name).exists() for name in retired), 'Retired builder snapshot returned'
 changed = [name for name, digest in baseline['runtime_sha256'].items()
-           if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != corrections.get(name, digest)]
+           if name not in retired and hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != corrections.get(name, digest)]
 assert not changed, f'Runtime bytes differ from extraction/approved corrections: {changed}'
 manifest = json.loads((ROOT / 'src/manifest.json').read_text())
 sources = {part['source'] for parts in manifest['outputs'].values() for part in parts}
@@ -32,4 +35,4 @@ for name in ('index.html', 'desktop.html', 'phone.html', 'phone-accounting.html'
         if path and not re.match(r'(?:[a-z]+:|//|/|\{)', path, re.I):
             assert (ROOT / path).exists(), (name, path)
 subprocess.run(['python', str(ROOT / 'tools/build-modules.py'), '--check'], check=True)
-print(f'PASS: {len(baseline["runtime_sha256"])-len(corrections)} unchanged runtime assets; {len(corrections)} explicitly recorded corrections; {len(sources)} wired source modules; full script/style ownership; local HTML references')
+print(f'PASS: {len(baseline["runtime_sha256"])-len(corrections)-len(retired)} unchanged runtime assets; {len(corrections)} explicitly recorded corrections; {len(sources)} wired source modules; full script/style ownership; local HTML references')

@@ -3951,6 +3951,10 @@
     ],
     "scripts/sync-assessment14332.js": [
       {
+        "source": "src/maintenance/backup/sync-recovery14351.js",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/maintenance/diagnostics/sync-assessment14332.js"
       }
     ],

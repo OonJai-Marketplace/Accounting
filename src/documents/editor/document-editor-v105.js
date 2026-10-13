@@ -342,5 +342,5 @@ function enhance(){document.querySelectorAll(scope).forEach(root=>root.querySele
  for(const [direction,symbol] of [[1,'▴'],[-1,'▾']]){const button=document.createElement('button');button.type='button';button.textContent=symbol;button.title=button.ariaLabel=(direction>0?'Increase ':'Decrease ')+label;button.dataset.step1428=direction;button.onmousedown=e=>e.preventDefault();button.onclick=()=>{if(input.disabled||input.readOnly)return;try{direction>0?input.stepUp():input.stepDown()}catch{return}input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));};controls.append(button)}
 }));}
 window.enhanceEditorNumbers1428=enhance;
-let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;enhance()})}).observe(document.documentElement,{childList:true,subtree:true});enhance();
+let queued=false;new MutationObserver(records=>{if(queued||!records.some(r=>r.target.closest?.(scope)||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches(scope)||n.querySelector(scope)))))return;queued=true;queueMicrotask(()=>{queued=false;enhance()})}).observe(document.documentElement,{childList:true,subtree:true});enhance();
 })()

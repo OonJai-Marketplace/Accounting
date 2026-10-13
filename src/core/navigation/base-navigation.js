@@ -40,8 +40,8 @@ function closeNavigationAfterSelection() {
 
 function switchTab(tabId) {
   if (!document.getElementById(tabId)) tabId = 'dashboard';
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn.active').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content.active').forEach(c => c.classList.remove('active'));
 
   const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
   if (btn) {
@@ -62,8 +62,8 @@ function switchTab(tabId) {
 
 function scrollToAccountModule(moduleId) {
   localStorage.setItem('ojm_last_active_view_v1', moduleId);
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab-btn.active').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content.active').forEach(c => c.classList.remove('active'));
 
   const accContainer = document.getElementById('accounts-modular-container');
   if (accContainer) accContainer.classList.add('active');
@@ -76,7 +76,7 @@ function scrollToAccountModule(moduleId) {
 
   const moduleTarget = document.getElementById(moduleId);
   if (moduleTarget) {
-    const scroller=appWorkspaceScroller(); if(scroller)scroller.scrollTop=0;
+    requestAnimationFrame(()=>{if(accContainer?.classList.contains('active')){const scroller=appWorkspaceScroller();if(scroller)scroller.scrollTop=0;}});
   }
   closeNavigationAfterSelection();
 }

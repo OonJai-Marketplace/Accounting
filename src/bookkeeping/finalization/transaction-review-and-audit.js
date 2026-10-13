@@ -24,7 +24,7 @@ async function confirmVoidTransaction(){const reason=document.getElementById('vo
 let LiveTransactionAudit=[];
 async function loadTransactionAudit(){
   if(!ojmDb||!liveProfile)return;const {data,error}=await ojmDb.from('audit_log').select('id,record_id,action,reason,old_data,new_data,actor_id,created_at').in('table_name',['journal_entries','accounting_periods','period_findings','scheduled_journals']).order('created_at',{ascending:false}).limit(250);
-  if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
+  if(error)throw error;if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
 }
 renderVoidedTransactionsTable=function(){
   const header=document.getElementById('thVoidedTransRow'),body=document.getElementById('voidedTransactionsBody');if(!body)return;
@@ -44,7 +44,7 @@ function openAdjustedDetails(entryId){const local=(JournalModule.voidedEntries||
 const loadJournalFromSupabaseBeforeAudit=loadJournalFromSupabase;
 loadJournalFromSupabase=async function(){await loadJournalFromSupabaseBeforeAudit();if(document.querySelector('.tab-content.active')?.id==='transactions-voided')await loadTransactionAudit();};
 const switchTabBeforeTransactionAudit=switchTab;
-switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided')loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
+switchTab=function(tabId){switchTabBeforeTransactionAudit(tabId);if(tabId==='transactions-voided'&&!window.startup14257)loadTransactionAudit();if(tabId==='transactions-all')renderAllTransactionsTable();if(tabId==='transactions-new')renderNewTransactionsTable();};
 
 async function loadAccountingPeriodStatuses(){
   if(!ojmDb||!liveProfile)return;const actor=liveProfile.id;const {data,error}=await ojmDb.from('accounting_periods').select('period_month,status,updated_at,updated_by');if(error)throw Error(error.message);if(liveProfile?.id!==actor)throw Error('Sign-in changed while loading period statuses.');PeriodReview.periods={};

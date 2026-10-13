@@ -468,10 +468,10 @@
     }).join('') : '<tr><td colspan="6" class="period-empty">No void, correction, or period-review audit records yet.</td></tr>';
   };
 
-  window.loadTransactionAudit = async function () {
+  window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
-    const pageSize = 500, rows = [];
-    try {
+    const read = async () => {
+      const pageSize = 500, rows = [];
       for (let offset = 0; ; offset += pageSize) {
         const { data, error } = await ojmDb.from('audit_log')
           .select('id,record_id,action,reason,old_data,new_data,actor_id,created_at')
@@ -481,10 +481,15 @@
         rows.push(...(data || []));
         if (!data || data.length < pageSize) break;
       }
+      return rows;
+    };
+    try {
+      const rows = window.localFirst14333 ? await localFirst14333.snapshot('audit-transactions', read, {force}) : await read();
       LiveTransactionAudit = rows;
       window.renderVoidedTransactionsTable();
     } catch (error) {
       window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
+      throw error;
     }
   };
 
@@ -495,6 +500,12 @@
     if (typeof previous !== 'function' || previous.__lazyLoading97) return;
     const wrapped = function (id, ...args) {
       const result = previous.call(this, id, ...args);
+      // The startup coordinator owns these datasets, including failed-stage retries.
+      // Explicit period selection remains an intentional read.
+      if (window.startup14257) {
+        if (id === 'entry-submissions') window.openStaffJournalPeriod?.(window.staffJournalMonth?.());
+        return result;
+      }
       if (['payroll-overview','payroll-employees','payroll-entries','payroll-deductions','payroll-history','report-payroll'].includes(id) && typeof window.loadWork82 === 'function') window.loadWork82();
       if (id === 'transactions-recurring') window.loadSchedules91?.();
       if (id === 'transactions-voided') window.loadTransactionAudit?.();
