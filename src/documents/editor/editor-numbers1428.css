@@ -1,0 +1,15 @@
+.doc-stepper1428{display:inline-flex!important;align-items:stretch;vertical-align:middle;max-width:100%;gap:0!important;flex-wrap:nowrap!important}
+.doc-stepper1428>input{appearance:textfield;-moz-appearance:textfield;min-width:0!important;border-radius:5px 0 0 5px!important}
+.doc-stepper1428>input::-webkit-inner-spin-button,.doc-stepper1428>input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.doc-step-buttons1428{display:flex!important;flex-direction:column;flex:0 0 22px;gap:0!important;align-self:stretch}
+.doc-step-buttons1428>button{display:flex!important;align-items:center;justify-content:center;width:22px!important;min-width:22px!important;min-height:0!important;height:auto!important;flex:1;padding:0!important;margin:0!important;line-height:1!important;font-size:13px!important;background:#edf3e9!important;color:#174c3b!important;border:1px solid #c3cfba!important;border-radius:0!important;box-shadow:none!important}
+.doc-step-buttons1428>button:hover{background:#d9e8d5!important}.doc-step-buttons1428>button:focus-visible{outline:2px solid #167257;outline-offset:1px}
+.doc-step-buttons1428>button:first-child{border-radius:0 5px 0 0!important}.doc-step-buttons1428>button:last-child{border-radius:0 0 5px 0!important}
+
+body #document-editor105.menus1426 .doc-stepper1428,body .ui-overlay108 .doc-stepper1428{height:28px!important;max-height:28px!important}
+body #document-editor105.menus1426 .doc-stepper1428>input,body .ui-overlay108 .doc-stepper1428>input{height:28px!important;min-height:28px!important}
+body #document-editor105.menus1426 .doc-stepper1428 .doc-step-buttons1428>button,body .ui-overlay108 .doc-stepper1428 .doc-step-buttons1428>button{height:14px!important;min-height:14px!important;max-height:14px!important;min-width:22px!important;padding:0!important}
+
+body #document-editor105.menus1426 .doc-value110 .doc-stepper1428,body .ui-overlay108 .doc-value110 .doc-stepper1428{flex:0 1 88px!important;min-width:70px!important;width:88px!important}
+body #document-editor105.menus1426 .doc-value110 .doc-stepper1428>input,body .ui-overlay108 .doc-value110 .doc-stepper1428>input{flex:1 1 0!important;width:calc(100% - 22px)!important;max-width:calc(100% - 22px)!important;min-width:0!important}
+body #document-editor105.menus1426 .doc-value110>span:not(.doc-stepper1428),body .ui-overlay108 .doc-value110>span:not(.doc-stepper1428){position:static!important;pointer-events:none;flex:0 0 auto!important}

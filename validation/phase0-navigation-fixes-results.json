@@ -1,0 +1,1345 @@
+{
+  "baselineCommit": "c2ff32ab549dfc4c27958418c3c39af5fe45c9da",
+  "comparison": "Same local fixture/browser, real Playwright clicks, two seven-module rounds per network mode, 4x CPU slowdown. Nearest-rank percentiles. 56 final before/after switches. No production data or credentials.",
+  "laptop": {
+    "sha256": "952e3a61eb19d4f282871a86386726b14958f97460b80834a90b87da219ed9ca",
+    "domNodes": 20802,
+    "onlineVisibleMedianMs": 2250.6,
+    "offlineVisibleMedianMs": 2411.3,
+    "onlineVisibleCount": 13,
+    "offlineVisibleCount": 5,
+    "incompleteOfflineCount": 3,
+    "responsiveCompletedOnlineCount": 3,
+    "responsiveCompletedOfflineCount": 0,
+    "note": "Raw user diagnostic is not committed. Anonymous laptop script entries contain no source positions; exact operation attribution is corroborated with local CPU profiling and canonical source mapping."
+  },
+  "before": {
+    "fixture": "137 accounts, 1000 journal lines, 10 employees",
+    "cpuSlowdown": 4,
+    "repeats": 2,
+    "scope": "Local synthetic server; real sidebar clicks; no production account. Metrics include the observation tail and overlap; do not sum function spans.",
+    "environment": {
+      "url": "http://127.0.0.1:36107/desktop.html",
+      "capturedAt": "2026-10-13T07:07:26.862Z",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.0 Safari/537.36",
+      "viewport": [
+        1440,
+        900
+      ],
+      "devicePixelRatio": 1,
+      "visibility": "visible",
+      "serviceWorker": "/desktop-sw14242.js",
+      "configuredBranch": "main",
+      "scriptMarkers": [
+        "scripts/device-vault14334.js?v=143.50",
+        "scripts/startup14257.js?v=143.50",
+        "scripts/local-first14333.js?v=143.50"
+      ],
+      "runtimeFeatures": {
+        "preparedStageProbe": true,
+        "payrollMemoryGuard": false
+      },
+      "revisionHint": "development correction asset markers (not commit proof)",
+      "domNodes": 8906,
+      "supportedPerformanceEntries": [
+        "element",
+        "event",
+        "first-input",
+        "largest-contentful-paint",
+        "layout-shift",
+        "long-animation-frame",
+        "longtask",
+        "mark",
+        "measure",
+        "navigation",
+        "paint",
+        "resource",
+        "visibility-state"
+      ]
+    },
+    "profile": [
+      {
+        "functionSource": "update:/scripts/desktop14245-3.js:7695",
+        "sampledMs": 2952
+      },
+      {
+        "functionSource": "snapshotModels:/scripts/desktop14245-6.js:524",
+        "sampledMs": 2745
+      },
+      {
+        "functionSource": "visible:/scripts/workspace-consistency14343.js:3",
+        "sampledMs": 1975
+      },
+      {
+        "functionSource": "sync:/scripts/navigation-workflow14316.js:12",
+        "sampledMs": 1704
+      },
+      {
+        "functionSource": "(anonymous):/scripts/desktop14245-3.js:1687",
+        "sampledMs": 1583
+      },
+      {
+        "functionSource": "(anonymous):/scripts/desktop14245-6.js:1824",
+        "sampledMs": 1467
+      },
+      {
+        "functionSource": "tidy:/scripts/desktop14245-5.js:150",
+        "sampledMs": 1312
+      },
+      {
+        "functionSource": "saveLocation69:/scripts/desktop14245-3.js:5274",
+        "sampledMs": 1281
+      },
+      {
+        "functionSource": "scrollToAccountModule:/scripts/desktop14245-3.js:606",
+        "sampledMs": 1269
+      },
+      {
+        "functionSource": "enhance:/scripts/desktop14245-4.js:341",
+        "sampledMs": 1242
+      },
+      {
+        "functionSource": "orange:/scripts/desktop14245-6.js:1820",
+        "sampledMs": 1201
+      },
+      {
+        "functionSource": "allowed:/scripts/desktop14245-6.js:516",
+        "sampledMs": 1132
+      },
+      {
+        "functionSource": "paint:/scripts/account-currency14257.js:6",
+        "sampledMs": 1105
+      },
+      {
+        "functionSource": "polish69:/scripts/desktop14245-3.js:5330",
+        "sampledMs": 1057
+      },
+      {
+        "functionSource": "today:/scripts/hr-calendar-model14306.js:6",
+        "sampledMs": 1049
+      },
+      {
+        "functionSource": "polishWorkbench:/scripts/desktop14245-3.js:4588",
+        "sampledMs": 1019
+      },
+      {
+        "functionSource": "decorate:/scripts/controls14317.js:7",
+        "sampledMs": 969
+      },
+      {
+        "functionSource": "polish87:/scripts/desktop14245-3.js:6003",
+        "sampledMs": 952
+      },
+      {
+        "functionSource": "context:/scripts/desktop14245-6.js:517",
+        "sampledMs": 857
+      },
+      {
+        "functionSource": "(anonymous):/scripts/desktop14245-4.js:577",
+        "sampledMs": 833
+      },
+      {
+        "functionSource": "render:/scripts/navigation-badges14311.js:18",
+        "sampledMs": 765
+      },
+      {
+        "functionSource": "polish:/scripts/desktop14245-3.js:4722",
+        "sampledMs": 761
+      },
+      {
+        "functionSource": "enhance:/scripts/desktop14245-6.js:597",
+        "sampledMs": 732
+      },
+      {
+        "functionSource": "displays:/scripts/desktop14245-6.js:1857",
+        "sampledMs": 703
+      },
+      {
+        "functionSource": "sync:/scripts/desktop14245-3.js:5510",
+        "sampledMs": 686
+      }
+    ],
+    "errors": [],
+    "passed": [
+      "login preparation and memory verified",
+      "real sidebar route targets online/offline",
+      "separate visible/responsive proxies",
+      "diagnostic privacy checks",
+      "instrumentation removal",
+      "navigation after removal"
+    ],
+    "metrics": {
+      "online": {
+        "count": 14,
+        "clickToVisibleMs0.5": 1303.7,
+        "clickToVisibleMs0.95": 2575.1,
+        "clickToResponsiveMs0.5": 2343.1,
+        "clickToResponsiveMs0.95": 4702.4
+      },
+      "offline": {
+        "count": 14,
+        "clickToVisibleMs0.5": 1169.9,
+        "clickToVisibleMs0.95": 2226.4,
+        "clickToResponsiveMs0.5": 2183.1,
+        "clickToResponsiveMs0.95": 3260.5
+      }
+    },
+    "measurements": [
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "settings",
+        "inputDelayToCaptureMs": 19.2,
+        "target": "settings-business",
+        "clickToVisibleMs": 936.6,
+        "clickToResponsiveMs": 1543.1,
+        "active": "settings-business",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 56.5,
+          "RecalcStyleDuration": 316.9,
+          "ScriptDuration": 1083.3,
+          "TaskDuration": 1625.8
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "transactions",
+        "inputDelayToCaptureMs": 13.6,
+        "target": "journal",
+        "clickToVisibleMs": 2575.1,
+        "clickToResponsiveMs": 3076.8,
+        "active": "journal",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 233.5,
+          "RecalcStyleDuration": 1117.9,
+          "ScriptDuration": 1509,
+          "TaskDuration": 3152.5
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "sub-users",
+        "inputDelayToCaptureMs": 21.1,
+        "target": "sub-users-home14229",
+        "clickToVisibleMs": 1257.9,
+        "clickToResponsiveMs": 2593.1,
+        "active": "sub-users-home14229",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 56.7,
+          "RecalcStyleDuration": 512.1,
+          "ScriptDuration": 1863.7,
+          "TaskDuration": 2613.7
+        },
+        "requests": [
+          "POST /rest/v1/rpc/branch_home14229"
+        ]
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "accounts",
+        "inputDelayToCaptureMs": 14.9,
+        "clickToVisibleMs": 1975,
+        "clickToResponsiveMs": 3127.4,
+        "active": "accounts-modular-container",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 199.4,
+          "RecalcStyleDuration": 1149,
+          "ScriptDuration": 1475.4,
+          "TaskDuration": 3137.2
+        },
+        "requests": [
+          "POST /rest/v1/rpc/opening_status14234"
+        ]
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "hr",
+        "inputDelayToCaptureMs": 33.5,
+        "target": "payroll-employees",
+        "clickToVisibleMs": 1345.1,
+        "clickToResponsiveMs": 2391.7,
+        "active": "payroll-employees",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 51.3,
+          "RecalcStyleDuration": 447.3,
+          "ScriptDuration": 1804.9,
+          "TaskDuration": 2437.1
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "payroll",
+        "inputDelayToCaptureMs": 18.5,
+        "target": "payroll-overview",
+        "clickToVisibleMs": 792.9,
+        "clickToResponsiveMs": 1129.3,
+        "active": "payroll-overview",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 7.4,
+          "RecalcStyleDuration": 209.5,
+          "ScriptDuration": 875.9,
+          "TaskDuration": 1167.2
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "dashboard",
+        "inputDelayToCaptureMs": 14,
+        "target": "dashboard",
+        "clickToVisibleMs": 899.8,
+        "clickToResponsiveMs": 1413,
+        "active": "dashboard",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 21,
+          "RecalcStyleDuration": 267.2,
+          "ScriptDuration": 1057.5,
+          "TaskDuration": 1440
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "settings",
+        "inputDelayToCaptureMs": 16,
+        "target": "settings-business",
+        "clickToVisibleMs": 1224.8,
+        "clickToResponsiveMs": 1920.1,
+        "active": "settings-business",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 16.1,
+          "RecalcStyleDuration": 396.5,
+          "ScriptDuration": 1438.6,
+          "TaskDuration": 1954.1
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "transactions",
+        "inputDelayToCaptureMs": 13.3,
+        "target": "journal",
+        "clickToVisibleMs": 1920.7,
+        "clickToResponsiveMs": 2504.7,
+        "active": "journal",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 112.3,
+          "RecalcStyleDuration": 703.1,
+          "ScriptDuration": 1474.6,
+          "TaskDuration": 2656.2
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "sub-users",
+        "inputDelayToCaptureMs": 24.1,
+        "target": "sub-users-home14229",
+        "clickToVisibleMs": 1201.7,
+        "clickToResponsiveMs": 2024,
+        "active": "sub-users-home14229",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 9.6,
+          "RecalcStyleDuration": 386.9,
+          "ScriptDuration": 1536.5,
+          "TaskDuration": 2060
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "accounts",
+        "inputDelayToCaptureMs": 16.4,
+        "clickToVisibleMs": 1744.6,
+        "clickToResponsiveMs": 4702.4,
+        "active": "accounts-modular-container",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 96.6,
+          "RecalcStyleDuration": 1135.4,
+          "ScriptDuration": 2907,
+          "TaskDuration": 4779.7
+        },
+        "requests": [
+          "POST /rest/v1/rpc/opening_status14234",
+          "POST /rest/v1/rpc/current_access14228",
+          "POST /rest/v1/rpc/branch_home14229",
+          "POST /rest/v1/rpc/review_directory14229",
+          "POST /rest/v1/rpc/review_inbox14229"
+        ]
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "hr",
+        "inputDelayToCaptureMs": 30,
+        "target": "payroll-employees",
+        "clickToVisibleMs": 1303.7,
+        "clickToResponsiveMs": 2343.1,
+        "active": "payroll-employees",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 64,
+          "RecalcStyleDuration": 417.2,
+          "ScriptDuration": 1746.3,
+          "TaskDuration": 2378.2
+        },
+        "requests": [
+          "POST /rest/v1/rpc/preview_journal_number14257"
+        ]
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "payroll",
+        "inputDelayToCaptureMs": 30.3,
+        "target": "payroll-overview",
+        "clickToVisibleMs": 1341.9,
+        "clickToResponsiveMs": 1859.8,
+        "active": "payroll-overview",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 19,
+          "RecalcStyleDuration": 330.8,
+          "ScriptDuration": 1447.6,
+          "TaskDuration": 1958.9
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "dashboard",
+        "inputDelayToCaptureMs": 11.6,
+        "target": "dashboard",
+        "clickToVisibleMs": 1303.7,
+        "clickToResponsiveMs": 3114.6,
+        "active": "dashboard",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 96.6,
+          "RecalcStyleDuration": 574.9,
+          "ScriptDuration": 2296.6,
+          "TaskDuration": 3203.2
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "settings",
+        "inputDelayToCaptureMs": 12.4,
+        "target": "settings-business",
+        "clickToVisibleMs": 1083.9,
+        "clickToResponsiveMs": 1698.7,
+        "active": "settings-business",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 40.5,
+          "RecalcStyleDuration": 377.6,
+          "ScriptDuration": 1789.6,
+          "TaskDuration": 2339.1
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "transactions",
+        "inputDelayToCaptureMs": 13.1,
+        "target": "journal",
+        "clickToVisibleMs": 2226.4,
+        "clickToResponsiveMs": 3260.5,
+        "active": "journal",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 165.6,
+          "RecalcStyleDuration": 825.5,
+          "ScriptDuration": 2029.3,
+          "TaskDuration": 3289.6
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "sub-users",
+        "inputDelayToCaptureMs": 21.5,
+        "target": "sub-users-home14229",
+        "clickToVisibleMs": 1190.9,
+        "clickToResponsiveMs": 1906.8,
+        "active": "sub-users-home14229",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 34.8,
+          "RecalcStyleDuration": 394.3,
+          "ScriptDuration": 1382.7,
+          "TaskDuration": 1983.7
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "accounts",
+        "inputDelayToCaptureMs": 16.5,
+        "clickToVisibleMs": 1462.5,
+        "clickToResponsiveMs": 3074.3,
+        "active": "accounts-modular-container",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 92,
+          "RecalcStyleDuration": 901.7,
+          "ScriptDuration": 1794.5,
+          "TaskDuration": 3161.8
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "hr",
+        "inputDelayToCaptureMs": 44.4,
+        "target": "payroll-employees",
+        "clickToVisibleMs": 1264.2,
+        "clickToResponsiveMs": 1775.6,
+        "active": "payroll-employees",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 66.1,
+          "RecalcStyleDuration": 395.1,
+          "ScriptDuration": 1222.6,
+          "TaskDuration": 1812.4
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "payroll",
+        "inputDelayToCaptureMs": 15.9,
+        "target": "payroll-overview",
+        "clickToVisibleMs": 1164.8,
+        "clickToResponsiveMs": 1756.4,
+        "active": "payroll-overview",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 16.2,
+          "RecalcStyleDuration": 277.1,
+          "ScriptDuration": 1386.9,
+          "TaskDuration": 1791.5
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "dashboard",
+        "inputDelayToCaptureMs": 15.2,
+        "target": "dashboard",
+        "clickToVisibleMs": 1464.3,
+        "clickToResponsiveMs": 2183.1,
+        "active": "dashboard",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 80.8,
+          "RecalcStyleDuration": 415.1,
+          "ScriptDuration": 1584,
+          "TaskDuration": 2297.9
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "settings",
+        "inputDelayToCaptureMs": 19.8,
+        "target": "settings-business",
+        "clickToVisibleMs": 1143.6,
+        "clickToResponsiveMs": 2881.7,
+        "active": "settings-business",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 36,
+          "RecalcStyleDuration": 416.8,
+          "ScriptDuration": 2259.7,
+          "TaskDuration": 2934.5
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "transactions",
+        "inputDelayToCaptureMs": 13,
+        "target": "journal",
+        "clickToVisibleMs": 2049.7,
+        "clickToResponsiveMs": 2646.9,
+        "active": "journal",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 150.4,
+          "RecalcStyleDuration": 752.1,
+          "ScriptDuration": 1578.1,
+          "TaskDuration": 2696.7
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "sub-users",
+        "inputDelayToCaptureMs": 29.6,
+        "target": "sub-users-home14229",
+        "clickToVisibleMs": 1452.6,
+        "clickToResponsiveMs": 2697.8,
+        "active": "sub-users-home14229",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 42.4,
+          "RecalcStyleDuration": 537.2,
+          "ScriptDuration": 2000.4,
+          "TaskDuration": 2735.4
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "accounts",
+        "inputDelayToCaptureMs": 13.3,
+        "clickToVisibleMs": 1169.9,
+        "clickToResponsiveMs": 2396.2,
+        "active": "accounts-modular-container",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 80.5,
+          "RecalcStyleDuration": 748,
+          "ScriptDuration": 1348.5,
+          "TaskDuration": 2427.2
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "hr",
+        "inputDelayToCaptureMs": 40.7,
+        "target": "payroll-employees",
+        "clickToVisibleMs": 1062,
+        "clickToResponsiveMs": 1478.1,
+        "active": "payroll-employees",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 43.8,
+          "RecalcStyleDuration": 320.9,
+          "ScriptDuration": 1015.6,
+          "TaskDuration": 1492.2
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "payroll",
+        "inputDelayToCaptureMs": 14.5,
+        "target": "payroll-overview",
+        "clickToVisibleMs": 851.5,
+        "clickToResponsiveMs": 1229.1,
+        "active": "payroll-overview",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 8.3,
+          "RecalcStyleDuration": 207.9,
+          "ScriptDuration": 965.3,
+          "TaskDuration": 1252.3
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "dashboard",
+        "inputDelayToCaptureMs": 11.1,
+        "target": "dashboard",
+        "clickToVisibleMs": 920.7,
+        "clickToResponsiveMs": 2948,
+        "active": "dashboard",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 32.3,
+          "RecalcStyleDuration": 470.7,
+          "ScriptDuration": 2306.6,
+          "TaskDuration": 2978.5
+        },
+        "requests": []
+      }
+    ]
+  },
+  "after": {
+    "fixture": "137 accounts, 1000 journal lines, 10 employees",
+    "cpuSlowdown": 4,
+    "repeats": 2,
+    "scope": "Local synthetic server; real sidebar clicks; no production account. Metrics include the observation tail and overlap; do not sum function spans.",
+    "environment": {
+      "url": "http://127.0.0.1:45189/desktop.html",
+      "capturedAt": "2026-10-13T07:14:39.540Z",
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/143.0.7499.0 Safari/537.36",
+      "viewport": [
+        1440,
+        900
+      ],
+      "devicePixelRatio": 1,
+      "visibility": "visible",
+      "serviceWorker": "/desktop-sw14242.js",
+      "configuredBranch": "main",
+      "scriptMarkers": [
+        "scripts/device-vault14334.js?v=143.50",
+        "scripts/startup14257.js?v=143.50",
+        "scripts/local-first14333.js?v=143.50"
+      ],
+      "runtimeFeatures": {
+        "preparedStageProbe": true,
+        "payrollMemoryGuard": false
+      },
+      "revisionHint": "development correction asset markers (not commit proof)",
+      "domNodes": 8906,
+      "supportedPerformanceEntries": [
+        "element",
+        "event",
+        "first-input",
+        "largest-contentful-paint",
+        "layout-shift",
+        "long-animation-frame",
+        "longtask",
+        "mark",
+        "measure",
+        "navigation",
+        "paint",
+        "resource",
+        "visibility-state"
+      ]
+    },
+    "profile": [
+      {
+        "functionSource": "sync:/scripts/navigation-workflow14316.js:12",
+        "sampledMs": 2107
+      },
+      {
+        "functionSource": "(anonymous):/scripts/desktop14245-3.js:1687",
+        "sampledMs": 1632
+      },
+      {
+        "functionSource": "(anonymous):/scripts/desktop14245-4.js:556",
+        "sampledMs": 1259
+      },
+      {
+        "functionSource": "scrollToAccountModule:/scripts/desktop14245-3.js:606",
+        "sampledMs": 1110
+      },
+      {
+        "functionSource": "orange:/scripts/desktop14245-6.js:1824",
+        "sampledMs": 1107
+      },
+      {
+        "functionSource": "tidy:/scripts/desktop14245-5.js:150",
+        "sampledMs": 1093
+      },
+      {
+        "functionSource": "hasModuleBorder:/scripts/desktop14245-6.js:1823",
+        "sampledMs": 947
+      },
+      {
+        "functionSource": "enhance:/scripts/desktop14245-4.js:341",
+        "sampledMs": 881
+      },
+      {
+        "functionSource": "decorate:/scripts/controls14317.js:7",
+        "sampledMs": 870
+      },
+      {
+        "functionSource": "paint:/scripts/account-currency14257.js:6",
+        "sampledMs": 852
+      },
+      {
+        "functionSource": "polish87:/scripts/desktop14245-3.js:6003",
+        "sampledMs": 812
+      },
+      {
+        "functionSource": "polish69:/scripts/desktop14245-3.js:5330",
+        "sampledMs": 779
+      },
+      {
+        "functionSource": "polishWorkbench:/scripts/desktop14245-3.js:4588",
+        "sampledMs": 742
+      },
+      {
+        "functionSource": "today:/scripts/hr-calendar-model14306.js:6",
+        "sampledMs": 733
+      },
+      {
+        "functionSource": "(anonymous):/scripts/desktop14245-4.js:577",
+        "sampledMs": 709
+      },
+      {
+        "functionSource": "enhance:/scripts/desktop14245-6.js:599",
+        "sampledMs": 666
+      },
+      {
+        "functionSource": "sync:/scripts/desktop14245-3.js:5510",
+        "sampledMs": 649
+      },
+      {
+        "functionSource": "displays:/scripts/desktop14245-6.js:1861",
+        "sampledMs": 590
+      },
+      {
+        "functionSource": "polish:/scripts/desktop14245-3.js:4722",
+        "sampledMs": 583
+      },
+      {
+        "functionSource": "update:/scripts/desktop14245-3.js:7695",
+        "sampledMs": 542
+      },
+      {
+        "functionSource": "standardizeReportActions:/scripts/transaction-consistency14300.js:35",
+        "sampledMs": 523
+      },
+      {
+        "functionSource": "render:/scripts/navigation-badges14311.js:18",
+        "sampledMs": 467
+      },
+      {
+        "functionSource": "restoreFields:/scripts/desktop14245-6.js:534",
+        "sampledMs": 448
+      },
+      {
+        "functionSource": "(anonymous):/scripts/desktop14245-3.js:5549",
+        "sampledMs": 444
+      },
+      {
+        "functionSource": "getSelectedAccountInfo:/scripts/desktop14245-3.js:1671",
+        "sampledMs": 440
+      }
+    ],
+    "errors": [],
+    "passed": [
+      "login preparation and memory verified",
+      "real sidebar route targets online/offline",
+      "separate visible/responsive proxies",
+      "diagnostic privacy checks",
+      "instrumentation removal",
+      "navigation after removal"
+    ],
+    "metrics": {
+      "online": {
+        "count": 14,
+        "clickToVisibleMs0.5": 837.7,
+        "clickToVisibleMs0.95": 2218.6,
+        "clickToResponsiveMs0.5": 1346.1,
+        "clickToResponsiveMs0.95": 3478
+      },
+      "offline": {
+        "count": 14,
+        "clickToVisibleMs0.5": 857.4,
+        "clickToVisibleMs0.95": 1741.3,
+        "clickToResponsiveMs0.5": 1461.7,
+        "clickToResponsiveMs0.95": 4188.2
+      }
+    },
+    "measurements": [
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "settings",
+        "inputDelayToCaptureMs": 4.5,
+        "target": "settings-business",
+        "clickToVisibleMs": 790,
+        "clickToResponsiveMs": 1207,
+        "active": "settings-business",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 75.5,
+          "RecalcStyleDuration": 197.8,
+          "ScriptDuration": 859.8,
+          "TaskDuration": 1279.6
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "transactions",
+        "inputDelayToCaptureMs": 17.6,
+        "target": "journal",
+        "clickToVisibleMs": 1868,
+        "clickToResponsiveMs": 2262.6,
+        "active": "journal",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 144.4,
+          "RecalcStyleDuration": 772.4,
+          "ScriptDuration": 1182.7,
+          "TaskDuration": 2277.4
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "sub-users",
+        "inputDelayToCaptureMs": 22,
+        "target": "sub-users-home14229",
+        "clickToVisibleMs": 803.7,
+        "clickToResponsiveMs": 1994.5,
+        "active": "sub-users-home14229",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 68.3,
+          "RecalcStyleDuration": 365.7,
+          "ScriptDuration": 1389.2,
+          "TaskDuration": 2007.8
+        },
+        "requests": [
+          "POST /rest/v1/rpc/branch_home14229"
+        ]
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "accounts",
+        "inputDelayToCaptureMs": 15.4,
+        "clickToVisibleMs": 2218.6,
+        "clickToResponsiveMs": 3478,
+        "active": "accounts-modular-container",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 257,
+          "RecalcStyleDuration": 1312.4,
+          "ScriptDuration": 1559.6,
+          "TaskDuration": 3551.9
+        },
+        "requests": [
+          "POST /rest/v1/rpc/opening_status14234"
+        ]
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "hr",
+        "inputDelayToCaptureMs": 27.2,
+        "target": "payroll-employees",
+        "clickToVisibleMs": 940.2,
+        "clickToResponsiveMs": 1359.2,
+        "active": "payroll-employees",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 33.1,
+          "RecalcStyleDuration": 246.4,
+          "ScriptDuration": 997.8,
+          "TaskDuration": 1391
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "payroll",
+        "inputDelayToCaptureMs": 13.7,
+        "target": "payroll-overview",
+        "clickToVisibleMs": 843.6,
+        "clickToResponsiveMs": 1161.6,
+        "active": "payroll-overview",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 5.9,
+          "RecalcStyleDuration": 192,
+          "ScriptDuration": 1277.4,
+          "TaskDuration": 1597.5
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 0,
+        "module": "dashboard",
+        "inputDelayToCaptureMs": 14.5,
+        "target": "dashboard",
+        "clickToVisibleMs": 837.7,
+        "clickToResponsiveMs": 1227.9,
+        "active": "dashboard",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 20.8,
+          "RecalcStyleDuration": 229.7,
+          "ScriptDuration": 900.6,
+          "TaskDuration": 1267
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "settings",
+        "inputDelayToCaptureMs": 13.8,
+        "target": "settings-business",
+        "clickToVisibleMs": 837.3,
+        "clickToResponsiveMs": 1346.1,
+        "active": "settings-business",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 10.1,
+          "RecalcStyleDuration": 215.2,
+          "ScriptDuration": 1050.7,
+          "TaskDuration": 1372
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "transactions",
+        "inputDelayToCaptureMs": 22.6,
+        "target": "journal",
+        "clickToVisibleMs": 1714.9,
+        "clickToResponsiveMs": 2107.3,
+        "active": "journal",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 90.6,
+          "RecalcStyleDuration": 673.2,
+          "ScriptDuration": 1199.3,
+          "TaskDuration": 2160.6
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "sub-users",
+        "inputDelayToCaptureMs": 17.7,
+        "target": "sub-users-home14229",
+        "clickToVisibleMs": 762.7,
+        "clickToResponsiveMs": 1247,
+        "active": "sub-users-home14229",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 9,
+          "RecalcStyleDuration": 230.6,
+          "ScriptDuration": 942.9,
+          "TaskDuration": 1282
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "accounts",
+        "inputDelayToCaptureMs": 14.3,
+        "clickToVisibleMs": 1546.3,
+        "clickToResponsiveMs": 2512.3,
+        "active": "accounts-modular-container",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 131.4,
+          "RecalcStyleDuration": 957.5,
+          "ScriptDuration": 1166.8,
+          "TaskDuration": 2536.2
+        },
+        "requests": [
+          "POST /rest/v1/rpc/opening_status14234"
+        ]
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "hr",
+        "inputDelayToCaptureMs": 22.6,
+        "target": "payroll-employees",
+        "clickToVisibleMs": 908.5,
+        "clickToResponsiveMs": 1345.3,
+        "active": "payroll-employees",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 15.8,
+          "RecalcStyleDuration": 255.2,
+          "ScriptDuration": 998,
+          "TaskDuration": 1380.1
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "payroll",
+        "inputDelayToCaptureMs": 16.2,
+        "target": "payroll-overview",
+        "clickToVisibleMs": 818.7,
+        "clickToResponsiveMs": 1307.8,
+        "active": "payroll-overview",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 5,
+          "RecalcStyleDuration": 156,
+          "ScriptDuration": 1080.6,
+          "TaskDuration": 1336.4
+        },
+        "requests": []
+      },
+      {
+        "offline": false,
+        "repeat": 1,
+        "module": "dashboard",
+        "inputDelayToCaptureMs": 14.3,
+        "target": "dashboard",
+        "clickToVisibleMs": 806.3,
+        "clickToResponsiveMs": 2015,
+        "active": "dashboard",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 40.3,
+          "RecalcStyleDuration": 506.2,
+          "ScriptDuration": 2465.2,
+          "TaskDuration": 3403.5
+        },
+        "requests": [
+          "POST /rest/v1/rpc/current_access14228",
+          "POST /rest/v1/rpc/branch_home14229",
+          "POST /rest/v1/rpc/review_directory14229",
+          "POST /rest/v1/rpc/review_inbox14229"
+        ]
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "settings",
+        "inputDelayToCaptureMs": 14.4,
+        "target": "settings-business",
+        "clickToVisibleMs": 715.9,
+        "clickToResponsiveMs": 1629.8,
+        "active": "settings-business",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 9.4,
+          "RecalcStyleDuration": 291.3,
+          "ScriptDuration": 1630.5,
+          "TaskDuration": 2246
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "transactions",
+        "inputDelayToCaptureMs": 13.2,
+        "target": "journal",
+        "clickToVisibleMs": 1715.2,
+        "clickToResponsiveMs": 2165,
+        "active": "journal",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 86.5,
+          "RecalcStyleDuration": 607,
+          "ScriptDuration": 1308.1,
+          "TaskDuration": 2205.2
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "sub-users",
+        "inputDelayToCaptureMs": 15.7,
+        "target": "sub-users-home14229",
+        "clickToVisibleMs": 857.4,
+        "clickToResponsiveMs": 1461.7,
+        "active": "sub-users-home14229",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 38.2,
+          "RecalcStyleDuration": 246.5,
+          "ScriptDuration": 1098.8,
+          "TaskDuration": 1491.8
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "accounts",
+        "inputDelayToCaptureMs": 12.9,
+        "clickToVisibleMs": 1411.8,
+        "clickToResponsiveMs": 2613.4,
+        "active": "accounts-modular-container",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 98.7,
+          "RecalcStyleDuration": 913.2,
+          "ScriptDuration": 1373.8,
+          "TaskDuration": 2642.3
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "hr",
+        "inputDelayToCaptureMs": 21.6,
+        "target": "payroll-employees",
+        "clickToVisibleMs": 764.7,
+        "clickToResponsiveMs": 1075.7,
+        "active": "payroll-employees",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 25.3,
+          "RecalcStyleDuration": 200.4,
+          "ScriptDuration": 794.1,
+          "TaskDuration": 1113
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "payroll",
+        "inputDelayToCaptureMs": 17.1,
+        "target": "payroll-overview",
+        "clickToVisibleMs": 730.3,
+        "clickToResponsiveMs": 1472.8,
+        "active": "payroll-overview",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 5.9,
+          "RecalcStyleDuration": 181.7,
+          "ScriptDuration": 1216.6,
+          "TaskDuration": 1514
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 0,
+        "module": "dashboard",
+        "inputDelayToCaptureMs": 12.6,
+        "target": "dashboard",
+        "clickToVisibleMs": 895.1,
+        "clickToResponsiveMs": 1313.6,
+        "active": "dashboard",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 60.6,
+          "RecalcStyleDuration": 250.1,
+          "ScriptDuration": 929.2,
+          "TaskDuration": 1345.8
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "settings",
+        "inputDelayToCaptureMs": 11.9,
+        "target": "settings-business",
+        "clickToVisibleMs": 647.6,
+        "clickToResponsiveMs": 1111.7,
+        "active": "settings-business",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 6,
+          "RecalcStyleDuration": 198,
+          "ScriptDuration": 830.1,
+          "TaskDuration": 1130.2
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "transactions",
+        "inputDelayToCaptureMs": 15.2,
+        "target": "journal",
+        "clickToVisibleMs": 1741.3,
+        "clickToResponsiveMs": 2129.6,
+        "active": "journal",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 89.3,
+          "RecalcStyleDuration": 664.9,
+          "ScriptDuration": 1232,
+          "TaskDuration": 2151.5
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "sub-users",
+        "inputDelayToCaptureMs": 27.3,
+        "target": "sub-users-home14229",
+        "clickToVisibleMs": 900.2,
+        "clickToResponsiveMs": 1362,
+        "active": "sub-users-home14229",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 9.6,
+          "RecalcStyleDuration": 266.1,
+          "ScriptDuration": 1009,
+          "TaskDuration": 1394.1
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "accounts",
+        "inputDelayToCaptureMs": 10.7,
+        "clickToVisibleMs": 1190.6,
+        "clickToResponsiveMs": 2081,
+        "active": "accounts-modular-container",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 87.1,
+          "RecalcStyleDuration": 781.3,
+          "ScriptDuration": 1033.2,
+          "TaskDuration": 2096.5
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "hr",
+        "inputDelayToCaptureMs": 30.4,
+        "target": "payroll-employees",
+        "clickToVisibleMs": 863.3,
+        "clickToResponsiveMs": 1209.2,
+        "active": "payroll-employees",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 16.7,
+          "RecalcStyleDuration": 242.4,
+          "ScriptDuration": 873.8,
+          "TaskDuration": 1264.2
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "payroll",
+        "inputDelayToCaptureMs": 13.1,
+        "target": "payroll-overview",
+        "clickToVisibleMs": 778.2,
+        "clickToResponsiveMs": 1112.6,
+        "active": "payroll-overview",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 5.3,
+          "RecalcStyleDuration": 162.5,
+          "ScriptDuration": 892.5,
+          "TaskDuration": 1144.1
+        },
+        "requests": []
+      },
+      {
+        "offline": true,
+        "repeat": 1,
+        "module": "dashboard",
+        "inputDelayToCaptureMs": 12.1,
+        "target": "dashboard",
+        "clickToVisibleMs": 796.1,
+        "clickToResponsiveMs": 4188.2,
+        "active": "dashboard",
+        "observationWindowMetricsMs": {
+          "LayoutDuration": 39.9,
+          "RecalcStyleDuration": 550.3,
+          "ScriptDuration": 3285.1,
+          "TaskDuration": 4322.9
+        },
+        "requests": []
+      }
+    ]
+  },
+  "regressions": {
+    "phase0": "PASS structure/build, preload, inactivity, real-browser navigation, session browser and diagnostic tests",
+    "preservation": "PASS journal/settings navigation drafts; replaced-field recovery; journal/payroll/sub-user recovery after reload; financial records unchanged; fresh employee data; visible/hidden names; table header styling; staff permission boundary",
+    "reportWorkflow14349": "PASS all nine scenarios including detailed report posting in one RPC",
+    "offlinePosting14333": "PASS one durable job, two dates, four balanced lines, total 225, no page errors",
+    "hrCalendarModel14306": "PASS existing calculations",
+    "reportAssets14349": "PASS all 224 downloads and expected asset versions",
+    "legacyNavigationDocuments14311": "FAIL unchanged on both c2ff32a and candidate: old fixture lacks auth.updateUser; badge assertion expects 4 and receives 3. Not a new regression."
+  },
+  "limits": [
+    "No post-fix laptop measurement; this branch has not been deployed.",
+    "Offline maximum responsive proxy is 4188.2 ms vs baseline 3260.5 ms; a scheduled permission/directory refresh overlaps the last Dashboard sample. No server request succeeded offline. Median improvement does not guarantee every switch is fast.",
+    "Print templates, calculation engines, SDK/session/preload and synchronization implementations are unchanged. Production posting and synchronization conflicts were not exercised against Supabase."
+  ]
+}

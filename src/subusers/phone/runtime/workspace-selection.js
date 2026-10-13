@@ -1,0 +1,28 @@
+  function drawUsers(){
+    const host=$('userTabs');if(!isAdmin()){host.replaceChildren();host.hidden=true;return;}
+    host.innerHTML=S.directory.map(u=>{const words=(u.full_name||u.email||'User').trim().split(/\s+/),label=words.length>1?words.slice(0,-1).map(w=>w[0]+'.').join(' ')+' '+words.at(-1):words[0];return `<button type="button" data-owner="${esc(u.id)}" class="${S.selection&&S.owner===u.id?'active':''}" title="${esc(u.full_name||u.email)}">${esc(label)}</button>`;}).join('');host.hidden=S.area!=='users';
+  }
+  async function loadDirectory(verify=true){
+    if(!isAdmin()||S.directoryLoading)return;const actor=S.actor;S.directoryLoading=true;
+    try{if(verify)await access();if(!isAdmin())throw fail('Administrator access required.','ACCESS_REVOKED');const users=await rpc('review_directory14229');if(S.actor!==actor||!isAdmin())return;
+      if(!Array.isArray(users)||users.some(u=>!u.id)||new Set(users.map(u=>u.id)).size!==users.length)throw fail('The complete sub-user list was not received.','INVALID_RESPONSE');
+      S.directory=users;S.directoryLoaded=true;await persist(actor,{directory:users});drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();
+    }catch(e){if(S.actor===actor){if(denied(e))await revoke(e);else if(e.code!=='ACCOUNT_CHANGED'){notice('Downloaded sub-users are kept. '+e.message,true);if(S.area==='users'&&!S.selection)render();}}}
+    finally{if(S.actor===actor)S.directoryLoading=false;}
+  }
+  async function selectUser(owner){
+    if(!isAdmin())throw fail('Administrator access required.');const user=S.directory.find(u=>u.id===owner);if(!user)throw fail('Refresh the sub-user list first.');if(S.saving||S.syncing||S.submitting){notice('Let the current save finish before switching users.',true);return;}
+    saveMirror();clearTimeout(draftTimer);window.PhoneTools14242?.close();const accessValue=S.data.access;S.epoch++;const epoch=S.epoch;S.owner=owner;S.area='users';S.selection=true;S.loading=false;refreshJob=monthJob=null;S.data={access:accessValue,target:owner===S.actor?null:{profile:user,permissions:user.user_permissions||{}}};S.draft=null;S.page='home';notice();render();drawUsers();
+    try{let data=await record(owner);if(!current(owner,epoch))return;S.data={...data,access:accessValue,target:owner===S.actor?null:(data.target||{profile:user,permissions:user.user_permissions||{}})};data=await migrateLegacy(owner,S.data);if(!current(owner,epoch))return;S.data=data;
+      let mirrored;try{mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner)));}catch{}S.draft=normalizeDraft(mirrored||data.draft||{});if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();S.page=data.page==='totals'?'history':pages.includes(data.page)?data.page:'home';S.month=/^\d{4}-(0[1-9]|1[0-2])$/.test(data.month||'')?data.month:today().slice(0,7);touch();render();drawUsers();void refresh();
+    }catch(e){if(current(owner,epoch))notice(e.message,true);}
+  }
+  let toolsJob;
+  async function openTools(area,report){
+    if(area==='settings'&&!isAdmin()||area==='documents'&&!permission('document-editor105'))return;
+    saveMirror();S.area=area;paintConnection();if(!window.PhoneTools14242){$('workspace').innerHTML=action('tool-back','Back')+empty('Opening '+(area==='settings'?'sub-user settings':'document editor')+'…');toolsJob ||= new Promise((resolve,reject)=>{const script=document.createElement('script'),stop=()=>{clearTimeout(timer);toolsJob=null;script.remove();if('caches'in window)void caches.open('ojm-phone-shell-'+VERSION).then(c=>c.delete(script.src)).catch(()=>{});reject(fail('This area has not downloaded yet. Reconnect and retry.'));},timer=setTimeout(stop,10000);script.src='scripts/phone-tools14242.js?v='+VERSION;script.onload=()=>{if(window.PhoneTools14242){clearTimeout(timer);resolve();}else stop();};script.onerror=stop;document.head.append(script);});await toolsJob;}
+    if(!S.owner||S.area!==area)return;
+    const api={state:()=>({actor:S.actor,owner:S.owner,admin:isAdmin(),profile:S.data.access?.profile,target:S.data.target?.profile,directory:S.directory,online:navigator.onLine}),esc,money,notice,permission,access,rpc,http,paged,refreshUsers:()=>loadDirectory(),selectUser,back:()=>{S.area='users';window.PhoneTools14242?.close();render();drawUsers();},saveDevice:(patch)=>persist(S.actor,patch),device:()=>record(S.actor),confirm:confirmDialog,revoke,denied,ambiguous,request:boundedFetch,session:()=>S.session,scope,anon:window.OJM_SUPABASE_ANON_KEY,resetPassword:async email=>{await access();if(!isAdmin())throw fail('Administrator access required.');const configured=String(window.OJM_PUBLIC_APP_URL||'').trim(),url=new URL('phone.html',configured||location.href);if(url.protocol!=='https:'||/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(url.hostname))throw fail('Open the published HTTPS website to request a password reset.');url.search='?password-recovery=1';url.hash='';const result=await db.auth.resetPasswordForEmail(email,{redirectTo:url.href});if(result.error)throw result.error;}};
+    await window.PhoneTools14242.open(area,api,report);
+  }
+  async function openArea(area){if(!isAdmin())return;if(area==='users'){const wasUsers=S.area==='users';S.area='users';window.PhoneTools14242?.close();if(wasUsers){S.selection=false;S.page='home';}render();drawUsers();if(!S.directoryLoaded)void loadDirectory();}else await openTools(area);}

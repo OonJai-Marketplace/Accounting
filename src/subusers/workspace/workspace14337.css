@@ -1,0 +1,68 @@
+@layer corrections14337;
+@layer corrections14337 {
+ .rec-overlay71{z-index:14000!important}
+[data-output-original14337]{display:none!important}
+/* Component-scoped corrections; phone navigation is unchanged. */
+@media screen and (min-width:641px){
+ body #categoryTabs:has([data-settings-group14332]){display:flex!important;justify-content:flex-start!important;flex-wrap:nowrap!important}
+ body #categoryTabs [data-settings-group14332]{flex:0 0 auto!important;width:auto!important;padding-inline:16px!important}
+ .workspace-tabs14337{display:flex;gap:4px;margin:0!important;padding:0 8px!important;border-bottom:1px solid #aebfaf;overflow-x:auto;scrollbar-width:none}
+ .workspace-tabs14337 button{flex:0 0 auto;border:0;border-bottom:3px solid transparent;background:transparent;padding:9px 14px;font-family:inherit;font-size:12px;font-weight:600;line-height:1.3;color:#365248;cursor:pointer;margin:0}
+ .workspace-tabs14337 button.active{border-bottom-color:#126246;background:#edf2e7;color:#074b36}
+ #transactions-recurring[data-upcoming14337=recurring]>[data-upcoming-panel14337]:not([data-upcoming-panel14337=recurring]),
+ #transactions-recurring[data-upcoming14337=scheduled]>[data-upcoming-panel14337]:not([data-upcoming-panel14337=scheduled]),
+ #transactions-recurring[data-upcoming14337=todos]>[data-upcoming-panel14337]:not([data-upcoming-panel14337=todos]),
+ #transactions-recurring[data-upcoming14337=calendar]>[data-upcoming-panel14337]:not([data-upcoming-panel14337=calendar]){display:none!important}
+ html body #todos136 details.todo136{padding:0!important;margin:5px 0!important;min-height:0!important;border-radius:5px!important}
+ html body #todos136 details.todo136>summary{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:6px 10px!important;min-height:0!important;height:auto!important;line-height:1.3!important}
+ html body #todos136 details.todo136>summary :is(strong,span){margin:0!important;padding:0!important;font-size:12px!important;line-height:1.3!important}
+ html body #todos136 details.todo136>ol{padding:0 14px 0 42px!important;margin:8px 0!important}
+ html body #todos136 details.todo136>ol li{padding:3px 0 3px 3px!important}
+ #todos136 details.todo136>:not(summary,ol){margin-inline:12px!important}
+ #todoEditor1438 [data-add-step1443]{display:block!important;width:max-content!important;margin:8px 0 8px auto!important}
+ html body #personalWorkspace1437 .personal-tabs1437{align-items:stretch!important;gap:4px!important;padding-block:0!important;border-bottom:1px solid #aebfaf!important;scrollbar-width:none!important;overflow-y:hidden!important;background-image:none!important;box-shadow:none!important}
+ html body #personalWorkspace1437 .personal-tabs1437::-webkit-scrollbar{display:none!important}
+ html body #personalWorkspace1437 .personal-tabs1437::before,html body #personalWorkspace1437 .personal-tabs1437::after{content:none!important;display:none!important}
+ html body #personalWorkspace1437 .personal-tabs1437 button{margin-block:0!important;align-self:stretch!important;border-radius:0!important;border-top:0!important;border-inline:0!important;border-bottom:3px solid transparent!important;box-shadow:none!important;outline-offset:-2px}
+ html body #personalWorkspace1437 .personal-tabs1437 button.active{border-bottom-color:#126246!important}
+ html body #runMeta95>.payroll-meta14337{display:grid!important;grid-template-columns:repeat(5,minmax(120px,1fr))!important;gap:10px!important;align-items:end}
+ html body #runMeta95>.payroll-meta14337>label:has([name=notes]){grid-column:1/-1!important}
+ html body #subUserWorkspacePanel .v49-desktop-user-actions{padding-bottom:0!important;margin-bottom:0!important;border-bottom:1px solid #aebfaf!important;align-items:flex-end!important;overflow-y:hidden!important;caret-color:transparent!important;user-select:none!important;box-shadow:none!important}
+ html body #subUserWorkspacePanel .v49-desktop-user-actions::before,html body #subUserWorkspacePanel .v49-desktop-user-actions::after{content:none!important;display:none!important}
+ html body #subUserWorkspacePanel .v49-desktop-user-actions>button{margin-bottom:0!important;border-radius:5px 5px 0 0!important;caret-color:transparent!important;cursor:pointer!important;box-shadow:none!important}
+ #reconciliationWork14337[hidden],#settings-accounting [hidden]{display:none!important}
+ #reconciliationWork14337 .rec-controls117{display:flex;flex-wrap:wrap;align-items:end;gap:10px}
+ #reconciliationWork14337 .rec-controls117 label{display:flex;flex-direction:column;gap:5px}
+ #report-reconciliation>[data-print14282],#report-reconciliation>.doc-source-action105{display:none!important}
+}
+@media screen and (max-width:900px) and (min-width:641px){html body #runMeta95>.payroll-meta14337{grid-template-columns:repeat(3,minmax(120px,1fr))!important}}
+@media screen{
+ html.tablet-portrait14337 body .main-content-area{margin-left:0!important;width:100%!important;max-width:100%!important}
+ html.tablet-portrait14337 body #appSidebar{position:fixed!important;inset:0 auto 0 0!important;width:260px!important;max-width:85vw!important;height:100dvh!important;z-index:1500!important;transform:translateX(-105%)!important;display:flex!important}
+ html.tablet-portrait14337 body #appSidebar.mobile-open{transform:translateX(0)!important}
+ html.tablet-portrait14337 body #mobileMenuToggle{display:flex!important;visibility:visible!important;position:static!important;flex:0 0 40px!important;width:40px!important;height:40px!important;margin:2px 6px!important;align-self:center!important;flex-direction:column!important;justify-content:center!important;gap:4px!important;padding:10px!important;background:#edf2e7!important;border:1px solid #aebfaf!important;border-radius:5px!important}html.tablet-portrait14337 body #mobileMenuToggle span{display:block!important;width:18px!important;height:2px!important;background:#17543e!important}
+ html.tablet-landscape14337 body #mobileMenuToggle,html:is(.tablet-landscape14337,.tablet-portrait14337) body #tabletMenu118{display:none!important}
+}
+
+@media screen{
+ html.tablet-landscape14337 body #appSidebar{display:flex!important;position:fixed!important;inset:0 auto 0 0!important;width:56px!important;min-width:56px!important;max-width:56px!important;height:100dvh!important;padding:6px!important;box-sizing:border-box!important;overflow-y:auto!important;overflow-x:hidden!important;transform:none!important;gap:3px!important;z-index:650!important;background:#074532!important}
+ html.tablet-landscape14337 body .main-content-area{margin-left:56px!important;width:calc(100% - 56px)!important;max-width:calc(100% - 56px)!important;min-width:0!important}
+ html.tablet-landscape14337 body .workspace-scroll{padding:0 12px 46px!important}
+ html.tablet-landscape14337 body #appSidebar :is(.sidebar-brand h2,.universal-search108,.nav-links,.arrow,.nav-icon100,.sidebar-user-copy,.user-photo113){display:none!important}
+ html.tablet-landscape14337 body #appSidebar .sidebar-brand{padding:0 0 6px!important;margin:0!important;min-height:44px!important;height:44px!important;max-height:44px!important;display:flex!important;justify-content:center!important}
+ html.tablet-landscape14337 body #appSidebar .logo-tile113{width:38px!important;min-width:38px!important;max-width:38px!important;height:38px!important;min-height:38px!important;max-height:38px!important;padding:3px!important;margin:0!important}
+ html.tablet-landscape14337 body #appSidebar .logo-tile113 img{width:100%!important;height:100%!important;object-fit:contain!important}
+ html.tablet-landscape14337 body #appSidebar .nav-category{margin:0!important;padding:0!important;border:0!important;flex-shrink:0!important}
+ html.tablet-landscape14337 body #appSidebar .nav-header{display:flex!important;position:relative!important;justify-content:center!important;align-items:center!important;width:40px!important;height:36px!important;min-height:36px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;font-size:0!important;gap:0!important;border:1px solid #ffffff38!important;border-radius:6px!important;background:#12654d!important;color:#fff!important}
+ html.tablet-landscape14337 body #appSidebar .nav-header[aria-current=page]{background:#914511!important;border-color:#e5b85c!important}
+ html.tablet-landscape14337 body #appSidebar .nav-header:focus-visible{outline:2px solid #e5b85c!important;outline-offset:-2px!important}
+ html.tablet-landscape14337 body #appSidebar .nav-icon113{display:inline-flex!important;position:static!important;width:22px!important;height:22px!important;flex:0 0 22px!important;margin:0!important}
+ html.tablet-landscape14337 body #appSidebar .nav-count14311{position:absolute!important;right:-1px!important;top:-2px!important;min-width:12px!important;height:12px!important;font-size:8px!important;padding:0 2px!important}
+ html.tablet-landscape14337 body #appSidebar #topHeaderProfile104{display:block!important;margin-top:auto!important;width:40px!important;padding:5px 0 0!important;border:0!important}
+ html.tablet-landscape14337 body #appSidebar #headerAccountTrigger{width:40px!important;height:38px!important;min-height:38px!important;padding:2px!important;justify-content:center!important;gap:0!important;box-sizing:border-box!important}
+ html.tablet-landscape14337 body #appSidebar #headerAccountInitials{display:flex!important;width:30px!important;height:30px!important;flex:0 0 30px!important;margin:0!important}
+ html.tablet-landscape14337 body #workspaceTools108{gap:3px!important;padding:3px!important;right:6px!important;bottom:6px!important}
+ html.tablet-landscape14337 body #workspaceTools108>button{width:32px!important;height:32px!important;min-height:32px!important;padding:5px!important}
+}
+
+}

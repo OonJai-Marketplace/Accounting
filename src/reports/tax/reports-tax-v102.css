@@ -1,0 +1,133 @@
+/* Reports navigation and Tax & SSO surfaces, matching the ivory and emerald theme. */
+body #categoryTabShell:has(.category-tab[data-target^="report-"]) #categoryTabs {
+  scrollbar-width:thin!important;
+  scrollbar-color:#087457 #f0f4ea!important;
+}
+body #categoryTabShell:has(.category-tab[data-target^="report-"]) #categoryTabs::-webkit-scrollbar {
+  height:5px!important;
+}
+body #categoryTabShell:has(.category-tab[data-target^="report-"]) #categoryTabs::-webkit-scrollbar-track {
+  background:#f0f4ea!important;
+}
+body #categoryTabShell:has(.category-tab[data-target^="report-"]) #categoryTabs::-webkit-scrollbar-thumb {
+  background:#087457!important;
+  border:0!important;
+  border-radius:5px!important;
+}
+body #categoryTabShell:has(.category-tab[data-target^="report-"]) #categoryTabs .category-tab.active::after {
+  left:50%!important;
+  right:auto!important;
+  bottom:1px!important;
+  width:30px!important;
+  height:2px!important;
+  transform:translateX(-50%);
+  background:#006a4c!important;
+}
+body [data-module="tax-sso"] .tax-card102 {
+  border:1px solid #cbdcd0!important;
+  border-top:4px solid #008563!important;
+  border-radius:9px!important;
+  background:#fffcf6!important;
+  padding:0!important;
+  box-shadow:0 2px 10px rgba(22,66,47,.045)!important;
+}
+body [data-module="tax-sso"] .tax-card102 .je-card-header {
+  margin:0!important;
+  padding:12px 16px!important;
+  border-bottom:1px solid #dce5d9!important;
+}
+body [data-module="tax-sso"] .tax-card102 h3 {
+  margin:0!important;
+  color:#164936!important;
+}
+body [data-module="tax-sso"] .tax-card102 .placeholder-warning {
+  margin:12px 16px 16px!important;
+}
+body .tax-report102{display:grid;gap:8px;min-width:0}
+body .tax-toolbar102{display:flex;align-items:end;flex-wrap:wrap;gap:8px;padding:9px 12px;border:1px solid #cbdcd0;border-radius:8px;background:#fffcf6}
+body .tax-toolbar102 label{display:grid;gap:3px;color:#164936;font-size:11px;font-weight:700}
+body .tax-toolbar102 input{min-width:150px;padding:6px 8px;font:inherit;color:#21382d}
+body .tax-card102 .tax-card-body102{padding:11px 14px 14px}
+body .tax-note102{padding:9px 12px;border-left:3px solid #008563;border-radius:4px;background:#eaf3e8;color:#264737;font-size:11px;line-height:1.5}
+body .tax-error102{padding:9px 12px;border:1px solid #b42318;border-radius:5px;background:#fff2f0;color:#9b2319}
+body .tax-metrics102{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+body .tax-total102{display:grid;gap:3px;min-width:160px;padding:8px 11px;border:1px solid #cbdcd0;border-radius:6px;background:#f5faf3}
+body .tax-total102 span{font-size:11px;color:#3b5947}
+body .tax-total102 strong{font-size:15px;color:#075b43}
+body .tax-table-scroll102{max-width:100%;max-height:55vh;overflow:auto;scrollbar-width:thin;scrollbar-color:#008563 #f0f4ea}
+body .tax-table-scroll102 table{width:100%;border-collapse:collapse;font-size:11px}
+body .tax-table-scroll102 th,body .tax-table-scroll102 td{padding:6px 8px;border:1px solid #d5dfd5;white-space:nowrap}
+body .tax-table-scroll102 td:nth-last-child(2),body .tax-table-scroll102 td:nth-last-child(3){font-variant-numeric:tabular-nums}
+@media print{body .tax-toolbar102{display:none!important}body .tax-table-scroll102{max-height:none;overflow:visible}body .tax-note102{border-color:#888}}
+/* HR attendance and assessments use the same emerald module and compact table language. */
+body #hr-attendance .work82>header{background:#e8f2e9!important;border-bottom:1px solid #b9d4c2!important}
+body #hr-attendance .work82{border-top-color:#008563!important}
+body #hr-attendance .attendance-calendar102,body #hr-attendance .attendance-summary99{margin:8px 12px!important;border-top:4px solid #008563!important;background:#fffcf6!important}
+body #hr-attendance .attendance-calendar102>header,body #hr-attendance .attendance-summary99>header{padding:7px 10px!important;background:#e8f2e9!important;color:#164936!important}
+body #hr-attendance .attendance-toolbar99{padding:8px 10px!important}
+body #hr-attendance .attendance-summary99 .data-table82{max-width:100%;overflow:auto}
+body #hr-attendance .attendance-summary99>small{display:block;padding:6px 10px}
+body #hr-attendance .attendance-grid99 tbody th{background:#fffcf6!important;color:#21382d!important}
+body #hr-attendance .attendance-grid99 tbody tr:nth-child(even) th{background:#f2f6ef!important}
+body #hr-attendance .attendance-grid99 thead th:first-child{background:#008563!important;color:#fff!important}
+body #hr-contracts .hr-picker102,body #hr-assessments .hr-picker102{max-width:400px}
+body #hr-contracts .hr-picker102 label,body #hr-assessments .hr-picker102 label{min-width:0!important}
+body #hr-assessments .data-table82{width:100%;max-width:100%;overflow-x:auto}
+body #hr-assessments .data-table82 table{width:100%;min-width:0!important;table-layout:fixed!important}
+body #hr-assessments .data-table82 th,body #hr-assessments .data-table82 td{padding:6px!important;overflow-wrap:anywhere!important;white-space:normal!important;vertical-align:top}
+body #hr-assessments .data-table82 th:nth-child(1){width:15%}body #hr-assessments .data-table82 th:nth-child(2){width:13%}
+body #hr-assessments .data-table82 th:nth-child(3){width:9%}body #hr-assessments .data-table82 th:nth-child(4){width:23%}
+body #hr-assessments .data-table82 th:nth-child(5){width:24%}body #hr-assessments .data-table82 th:nth-child(6){width:16%}
+body #hr-assessments .hr-criteria99{max-width:100%;overflow-wrap:anywhere;white-space:pre-wrap}
+body #hr-assessments .data-table82 td:last-child button{min-height:26px;margin:2px;padding:3px 5px;font-size:11px}
+body .sidebar-brand{padding-top:2mm!important}
+body #companyLogo101{align-self:center!important;object-position:center!important;margin-inline:auto!important}
+body #payroll-overview .overview-month97{display:flex;align-items:center;width:max-content;max-width:100%;gap:8px;padding:7px 12px!important}
+body #payroll-overview .overview-month97>span{font-weight:650;color:#164936}
+body #payroll-overview #overviewMonthButton102{min-width:180px;min-height:33px;padding:6px 28px 6px 10px;border:1px solid #bacdbf;border-radius:5px;background:#fffcf6;color:#164936;text-align:left;cursor:pointer}
+body #payroll-overview #overviewMonthButton102::after{content:'▾';float:right;margin-right:-17px;color:#008563}
+body #payroll-overview #overviewMonthButton102:focus-visible{outline:2px solid #008563;outline-offset:2px}
+body .payroll-month-popup102{position:fixed;z-index:1000;width:260px;padding:9px;border:1px solid #b9d2c0;border-top:4px solid #008563;border-radius:8px;background:#fffcf6;box-shadow:0 10px 28px rgba(9,56,37,.2)}
+body .payroll-month-head102{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;color:#164936}
+body .payroll-month-head102 button{width:30px;height:30px;border:1px solid #b9d2c0;border-radius:5px;background:#f5faf3;color:#075b43;font-size:19px;cursor:pointer}
+body .payroll-month-grid102{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+body .payroll-month-grid102 button{min-height:34px;border:1px solid #cbdcd0;border-radius:5px;background:#fffcf6;color:#164936;cursor:pointer}
+body .payroll-month-grid102 button:hover,body .payroll-month-grid102 button:focus-visible{border-color:#008563;background:#e1f2e5;outline:none}
+body .payroll-month-grid102 button[aria-current="date"]{border-color:#008563;background:#008563;color:white}
+body #hr-attendance .work82 td,body #hr-assessments .work82 td,body #hr-contracts .work82 td,body #payroll-overview .work82 td,body #payroll-entries .work82 td,body #payroll-deductions .work82 td{padding-block:5px!important;line-height:1.3}
+
+/* Journal action buttons. */
+/* Keep the approved gap and top border from v101. */
+body #jeLinesBody .journal-panel102{width:168px!important;max-height:none!important;padding:7px!important;overflow:visible!important}
+body #jeLinesBody .journal-panel102>.je-btn-del,
+body #jeLinesBody .journal-panel102 .journal-add102{
+ display:block!important;width:100%!important;height:32px!important;min-height:32px!important;margin:0 0 5px!important;padding:5px 9px!important;border:1px solid #b6cebf!important;border-radius:5px!important;background:#fffdf8!important;color:#154731!important;font-family:inherit!important;font-size:12px!important;font-weight:600!important;line-height:1.2!important;text-align:center!important;box-shadow:none!important;cursor:pointer!important;
+}
+body #jeLinesBody .journal-panel102>.journal-delete102{border-color:#d76868!important;color:#b32727!important;background:#fff8f7!important}
+body #jeLinesBody .journal-panel102>.journal-delete102:is(:hover,:focus-visible){background:#fce8e8!important;border-color:#b32727!important}
+body #jeLinesBody .journal-panel102 .journal-add102:is(:hover,:focus-visible){background:#eaf4eb!important;border-color:#729d80!important}
+body #jeLinesBody .journal-panel102 .journal-tools102{display:block!important}
+body #jeLinesBody .journal-panel102 .journal-arrows102{display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important}
+body #jeLinesBody .journal-panel102 .journal-arrows102 .journal-arrow102{width:100%!important;height:30px!important;margin:0!important;padding:1px!important;border:1px solid #b6cebf!important;border-radius:5px!important;background:#fffdf8!important;color:#154731!important;font-size:18px!important;font-weight:650!important;text-align:center!important;line-height:1!important}
+body #jeLinesBody .journal-panel102 .journal-arrows102 .journal-arrow102:is(:hover,:focus-visible){background:#eaf4eb!important;border-color:#729d80!important}
+body .audit-flat101{width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden!important;overflow-y:auto!important;scrollbar-gutter:stable}
+body .audit-flat101>table{width:100%!important;min-width:0!important;max-width:100%!important;table-layout:fixed!important}
+body .audit-flat101 :is(th,td){box-sizing:border-box;min-width:0!important;max-width:none!important;white-space:normal!important;overflow-wrap:anywhere!important;vertical-align:top!important}
+body .audit-flat101 :is(.num,.amount-column99){width:auto!important;min-width:0!important;max-width:none!important;white-space:normal!important}
+body .audit-flat101.audit-compact102 th:first-child{width:17%}
+body .audit-flat101.audit-compact102 th:nth-child(2){width:17%}
+body .audit-flat101.audit-compact102 td.audit-fields102>div{display:grid;grid-template-columns:minmax(90px,28%) minmax(0,1fr);gap:6px;padding:3px 0;border-bottom:1px solid #e1ede2}
+body .audit-flat101.audit-compact102 td.audit-fields102>div:last-child{border:0}
+body .audit-flat101 .audit-change101{width:70px!important;min-width:0!important;max-width:70px!important}
+body #jeLinesBody .journal-money102{display:flex;align-items:center;gap:3px;width:100%;min-width:0;box-sizing:border-box}
+body #jeLinesBody .journal-currency102{flex:none;min-width:14px;text-align:center;color:#005d44;font:600 11px ui-monospace,monospace}
+body #jeLinesBody .journal-money102[data-currency="USD"] .journal-currency102{color:#1553a8}
+body #jeLinesBody .journal-money102 input{flex:1!important;min-width:0!important;width:100%!important;box-sizing:border-box!important;text-align:right!important}
+@media(min-width:768px){
+ body #journalEntry98 .je-table:has(#jeHeaderRow){table-layout:auto!important;min-width:1000px!important}
+ body #journal #jeHeaderRow th.num,body #journal #jeLinesBody td:has(.journal-money102){width:3.75cm!important;min-width:3.75cm!important;max-width:3.75cm!important;box-sizing:border-box!important}
+ body #journal #jeHeaderRow th.je-account-col{width:auto!important;min-width:190px!important}
+ body #journal #jeHeaderRow th.je-memo-col{width:auto!important;min-width:200px!important}
+ body #journal #jeHeaderRow th.action-col{width:1.7cm!important;min-width:1.7cm!important}
+ body #journal .clustered-journal-table :is(th.num,td.num),body #transactions-all :is(th.num,td.num),body #period-review :is(th.num,td.num){width:3.75cm!important;min-width:3.75cm!important;max-width:3.75cm!important}
+}

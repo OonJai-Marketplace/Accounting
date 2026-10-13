@@ -1,0 +1,73 @@
+/* ============================================================================== */
+/* CSS 7: A4 COST-EFFECTIVE PRINT LAYOUT (HIDES ACTIONS & COMPRESSES TABLE)       */
+/* ============================================================================== */
+@media print {
+  @page { size: A4 portrait; margin: 10mm; }
+  body, table, td, th { font-size: 10px !important; line-height: 1.2 !important; color: #000 !important; }
+  .no-print, .action-col, .je-toolbar-buttons, .je-actions-bar, .je-filter-toolbar, .btn-print, #global-csv-btn { display: none !important; }
+  .je-card { border: none !important; box-shadow: none !important; margin: 0 0 10px 0 !important; padding: 0 !important; }
+  table { width: 100%; border-collapse: collapse; border: 1px solid #000; }
+  td, th { border: 1px solid #000 !important; padding: 4px !important; }
+  .general-master-header th { background-color: #f0f0f0 !important; color: #000 !important; }
+  .account-curr-pill, .badge-void-old, .badge-void-new { border: 1px solid #ccc !important; }
+}
+/* ==============================================================================
+   TRANSACTION HEADER CLARITY — consistent visible headers for transaction tables
+   ============================================================================== */
+.je-table thead th,
+.clustered-journal-table thead th {
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+
+/* ==============================================================================
+   CSS V4: COMPACT JOURNAL, MONTHLY ARCHIVE CLUSTERS & MULTI-PAGE PRINT
+   ============================================================================== */
+#tblJournalHistory th, #tblJournalHistory td,
+#tblNewTransactions th, #tblNewTransactions td,
+#tblAllTransactions th, #tblAllTransactions td,
+#tblVoidedTransactions th, #tblVoidedTransactions td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  line-height: 1.2;
+}
+.je-table th, .je-table td { padding-top: 7px; padding-bottom: 7px; }
+.je-status-badge { max-width: 520px; white-space: normal; text-align: right; }
+.monthly-unarchived-cluster { border: 1px solid var(--border-color, #d8dee6); border-radius: 8px; margin: 0 0 14px; overflow: hidden; background: #fff; }
+.monthly-unarchived-cluster.overdue-month-cluster { border-color: #ef4444; }
+.monthly-cluster-header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 12px; background:#f8fafc; border-bottom:1px solid #e2e8f0; }
+.monthly-cluster-header h4 { margin:0 0 4px; font-size:14px; }
+.archive-status { display:inline-block; font-size:10px; font-weight:800; letter-spacing:.04em; padding:2px 7px; border-radius:999px; }
+.archive-status.current { background:#ecfdf5; color:#065f46; }
+.archive-status.overdue { background:#fef2f2; color:#b91c1c; }
+.empty-archive-state { padding:24px; text-align:center; color:#64748b; border:1px dashed #cbd5e1; border-radius:8px; }
+.print-settings-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:14px; }
+.print-setting-card { border:1px solid #e2e8f0; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:9px; }
+.print-image-preview { min-height:70px; display:flex; align-items:center; justify-content:center; border:1px dashed #cbd5e1; padding:8px; color:#64748b; font-size:12px; }
+.print-image-preview img { max-width:100%; max-height:90px; object-fit:contain; }
+.print-date-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.print-check { display:block; margin:9px 0; font-size:13px; }
+.print-only { display:none; }
+.print-brand-image img { width:100%; max-height:24mm; object-fit:contain; }
+
+@media print {
+  @page { size: A4 portrait; margin: 7mm; }
+  html, body { height:auto !important; overflow:visible !important; }
+  .app-layout, .main-content-area, .workspace-scroll, #printableDocArea, .tab-content.active,
+  .table-container, .panel, .je-card { height:auto !important; max-height:none !important; overflow:visible !important; }
+  .print-only { display:block !important; }
+  .print-brand-image { margin:0 0 3mm 0; }
+  .print-footer-image { margin:3mm 0 0 0; }
+  table { page-break-inside:auto !important; break-inside:auto !important; }
+  thead { display:table-header-group !important; }
+  tfoot { display:table-footer-group !important; }
+  tr { page-break-inside:avoid !important; break-inside:avoid !important; page-break-after:auto !important; }
+  th, td { padding:2px 3px !important; line-height:1.05 !important; font-size:8.5px !important; }
+  .clustered-journal-table th, .clustered-journal-table td { padding:2px 3px !important; }
+  .je-card, .panel { page-break-inside:auto !important; break-inside:auto !important; }
+  .monthly-unarchived-cluster { page-break-inside:auto !important; break-inside:auto !important; border:0 !important; }
+  .monthly-cluster-header { padding:3px 0 !important; }
+}
+@media (max-width: 700px) { .print-settings-grid, .print-date-grid { grid-template-columns:1fr; } }
+

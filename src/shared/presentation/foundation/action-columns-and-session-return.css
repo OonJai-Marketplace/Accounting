@@ -1,0 +1,82 @@
+/* ============================================================================== */
+/* CSS V27: NARROW ACTION COLUMNS, DENSE FINDINGS & SESSION-RETURN POLISH         */
+/* ============================================================================== */
+#tblJournalHistory,
+#newTransactionsGroupedContainer .clustered-journal-table,
+.period-review-table { table-layout:fixed; }
+#tblJournalHistory .action-col,
+#newTransactionsGroupedContainer .action-col,
+.period-review-table .action-col { width:74px !important; min-width:74px !important; max-width:74px !important; padding-left:4px !important; padding-right:4px !important; box-sizing:border-box; text-align:center !important; }
+#tblJournalHistory th:first-child,
+#newTransactionsGroupedContainer th:first-child,
+.period-review-table th:first-child { width:92px; }
+#tblJournalHistory th:nth-child(2),
+#newTransactionsGroupedContainer th:nth-child(2),
+.period-review-table th:nth-child(2) { width:150px; }
+#tblJournalHistory th.num,
+#newTransactionsGroupedContainer th.num,
+.period-review-table th.num { width:96px; }
+.transaction-review-actions { width:100%; min-width:0 !important; max-width:100%; box-sizing:border-box; flex-direction:column; gap:3px; overflow:hidden; }
+.transaction-review-actions .je-btn { width:100%; min-width:0 !important; max-width:100%; box-sizing:border-box; padding:3px 2px; font-size:9.5px; line-height:1.15; }
+.period-finding-row { padding:3px 6px; min-height:32px; }
+.period-finding-main { min-width:0; flex:1; }
+.period-finding-heading { display:flex; align-items:center; flex-wrap:wrap; gap:4px 6px; line-height:1.1; }
+.period-finding-number { font-size:12px; line-height:1.1; }
+.period-finding-heading small { margin-left:2px; font-size:9.5px; color:#64748b; }
+.finding-classification { color:#475569; text-transform:capitalize; font-weight:700; }
+.period-finding-row p { margin:2px 0 0; font-size:10.5px; line-height:1.15; }
+.period-finding-actions { gap:4px; }
+.period-finding-actions .je-btn { min-height:24px; padding:2px 6px; }
+
+/* Upcoming Transactions keeps Paid, Pause/Resume and X on one compact line. */
+#tblRecurringTransactions { table-layout:fixed; }
+#tblRecurringTransactions .upcoming-action-col { width:126px !important; min-width:126px !important; max-width:126px !important; padding-left:4px !important; padding-right:4px !important; box-sizing:border-box; text-align:center !important; }
+#tblRecurringTransactions .recurring-inline-actions { width:100%; min-width:0 !important; max-width:100%; box-sizing:border-box; gap:3px; overflow:hidden; }
+#tblRecurringTransactions .recurring-inline-actions .je-btn { min-width:0 !important; min-height:24px; padding:3px 5px; font-size:9.5px; line-height:1.1; }
+#tblRecurringTransactions .recurring-inline-actions .recurring-remove-x { width:24px; min-width:24px !important; height:24px; font-size:13px !important; }
+#tblRecurringTransactions th:first-child { width:92px; }
+#tblRecurringTransactions th:nth-child(2) { width:96px; }
+#tblRecurringTransactions th:nth-child(4) { width:100px; }
+#tblRecurringTransactions th:nth-child(5) { width:150px; }
+#tblRecurringTransactions th:nth-child(6) { width:78px; }
+.account-editor-dialog .modal-body { padding:20px; }
+.account-editor-dialog .settings-field { margin-bottom:14px; }
+.account-editor-dialog textarea.je-input { min-height:88px; resize:vertical; }
+.parent-account-label { color:#334155; font-size:12px; }
+input[type="file"], .print-setting-card input[type="file"] { width:100%; min-height:40px; box-sizing:border-box; padding:7px 9px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; color:#334155; font:inherit; }
+input[type="file"]::file-selector-button { margin-right:10px; padding:7px 10px; border:0; border-radius:6px; background:#e2e8f0; color:#334155; font-weight:700; cursor:pointer; }
+
+@media (max-width: 767px) {
+  .settings-page-heading { align-items:flex-start; }
+  .settings-section-card { padding:14px; border-radius:10px; }
+  .settings-form-grid, .settings-toggle-grid { grid-template-columns:1fr; }
+  .settings-field.span-2 { grid-column:span 1; }
+  .settings-action-bar { flex-direction:column; align-items:stretch; }
+  .settings-action-bar > div { flex-direction:column-reverse; }
+  .settings-action-bar .je-btn { width:100%; justify-content:center; min-height:42px; }
+  .coa-toolbar, .coa-filter-box, .universal-filter-select { width:100%; }
+  .coa-toolbar > .btn { width:100%; justify-content:center; min-height:42px; }
+  .legal-docs-header, .legal-doc-row { align-items:stretch; flex-direction:column; }
+  .legal-upload-button { justify-content:center; }
+  .legal-doc-actions { width:100%; }
+  .legal-doc-actions .je-btn { flex:1; justify-content:center; }
+  .settings-form-actions, .settings-button-grid { flex-direction:column; }
+  .settings-form-actions .je-btn, .settings-button-grid .je-btn { width:100%; justify-content:center; }
+  .period-review-toolbar, .period-finding-row, .period-closing-bar { align-items:stretch; flex-direction:column; }
+  .period-review-picker { width:100%; }
+  #periodFindingsList.is-empty { position:static; margin-top:-8px; }
+  .period-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .period-finding-actions, .period-closing-bar > div { flex-direction:column; width:100%; }
+  .period-finding-actions .je-btn, .period-closing-bar .je-btn { width:100%; justify-content:center; }
+  .permission-grid, .permission-special-grid { grid-template-columns:1fr; }
+  .account-access-grid { grid-template-columns:1fr; }
+  .user-review-filters { flex-direction:column; }
+  .user-review-filters .settings-field { width:100%; }
+  .staff-journal-topbar, .staff-journal-actions { align-items:stretch; flex-direction:column; }
+  .staff-journal-topbar .settings-field { width:100%; }
+  .staff-journal-actions > div { flex-direction:column; }
+  .staff-journal-actions .je-btn { width:100%; justify-content:center; }
+  .staff-journal-summary { grid-template-columns:1fr; }
+  .transaction-date-field{width:100%;max-width:230px!important}
+}
+

@@ -13,9 +13,12 @@ Sub-user reports have account/liquidation summaries, no journal summary or check
 Payroll has no separate currency-summary or paid-leave-payment section.
 Do not change calculation rules or historic financial data to fit a print design.
 
-Sources are packed into desktop14245-*.js. Preserve later deployed extensions
-when updating a bundle; do not run the older full builder blindly. Keep changed
-source modules and their deployed bundle segments synchronized.
+Canonical extracted sources are under src/ and mapped by src/manifest.json.
+Edit those modules, then run python tools/build-modules.py and its --check mode.
+Do not edit generated desktop bundles or compatibility files directly. The old
+full builder is retired because its HTML snapshot discards later extensions.
+Phase 0 preserves runtime bytes; run python validation/test-phase0-structure.py.
+Keep changed source modules and their generated assets committed together.
 
 Numeric editing: clicking inside an existing amount must preserve the value and
 place the caret. Never select all or clear amounts on focus. Keep calculations

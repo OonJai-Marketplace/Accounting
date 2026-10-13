@@ -1,0 +1,19 @@
+/* V36 — compact, user-facing Settings forms only */
+.tab-content[data-module="settings"] .settings-compact-block { margin-top:10px; padding:14px; border:1px solid #d8e2df; border-radius:10px; background:#fff; }
+.tab-content[data-module="settings"] .settings-mini-header { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin:0 0 10px; }
+.tab-content[data-module="settings"] .settings-mini-header h4 { margin:0; color:#143d32; font-size:14px; }
+.tab-content[data-module="settings"] .settings-mini-header p { margin:2px 0 0; color:#64748b; font-size:11px; }
+.tab-content[data-module="settings"] .currency-manager-heading { margin:16px 0 8px; }
+.tab-content[data-module="settings"] .settings-compact-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 12px; min-width:0; }
+.tab-content[data-module="settings"] .settings-compact-grid.cols-3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.tab-content[data-module="settings"] .settings-compact-grid > * { min-width:0; }
+.tab-content[data-module="settings"] .settings-compact-grid .settings-field { margin:0; }
+.tab-content[data-module="settings"] .settings-compact-grid label { margin-bottom:4px; font-size:11px; }
+.tab-content[data-module="settings"] .settings-compact-grid .je-input,.tab-content[data-module="settings"] .settings-compact-grid .je-select { min-height:34px; height:34px; padding-top:5px; padding-bottom:5px; }
+.tab-content[data-module="settings"] .compact-toggle { min-height:34px; margin:0; padding:6px 9px; align-self:end; }
+.tab-content[data-module="settings"] .compact-toggle small { display:block; margin-top:1px; color:#64748b; font-size:9.5px; font-weight:400; line-height:1.15; }
+.tab-content[data-module="settings"] .compact-actions { margin-top:12px; padding-top:10px; }
+.tab-content[data-module="settings"] .settings-field-help { margin-top:3px; font-size:9.5px; line-height:1.2; }
+@media(max-width:900px){.tab-content[data-module="settings"] .settings-compact-grid.cols-3{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:600px){.tab-content[data-module="settings"] .settings-compact-grid,.tab-content[data-module="settings"] .settings-compact-grid.cols-3{grid-template-columns:1fr;}}
+

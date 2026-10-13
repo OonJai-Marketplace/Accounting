@@ -1,0 +1,70 @@
+/* Foundation V8 — compact, stable Settings and workspace controls. */
+#settings-business.active form#businessSettingsForm{position:relative;padding-bottom:66px}
+#businessSettingsForm .settings-action-bar{
+  position:fixed!important;
+  z-index:800;
+  left:294px;
+  right:24px;
+  bottom:0!important;
+  margin:10px 0 0!important;
+  padding:10px 12px!important;
+  border:1px solid #b8cbc4!important;
+  border-radius:10px 10px 0 0!important;
+  background:rgba(255,255,255,.98);
+  box-shadow:0 -7px 18px rgba(15,23,42,.13);
+  backdrop-filter:blur(8px)
+}
+#businessSettingsForm .settings-action-bar>div:last-child{display:flex;justify-content:flex-end;gap:8px}
+.compliance-reminder-block{padding:10px!important}
+.compliance-reminder-grid{gap:7px 10px!important}
+#settings-system .settings-section-card{padding:12px;margin-bottom:10px}
+#settings-system .settings-page-heading{margin-bottom:8px}
+#settings-system .settings-form-actions{margin-top:10px;padding-top:10px}
+.user-access-dialog{width:min(960px,94vw);max-height:92dvh}
+.user-access-dialog .modal-body{padding:12px 16px}
+.user-access-dialog .modal-footer{position:sticky;z-index:4;bottom:0;padding:10px 16px;box-shadow:0 -5px 14px rgba(15,23,42,.08)}
+.user-identity-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px 10px!important}
+.user-identity-grid .settings-field{margin:0}
+.account-assignment-layout{display:block;min-height:0;max-height:54dvh;overflow:auto}
+.account-assignment-nav{position:sticky;z-index:3;top:0;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px;border:0;border-bottom:1px solid #d7e2de;background:#f4f8f6}
+.account-assignment-tab{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;padding:9px 11px}
+.account-selection-bullets{flex:0 0 auto;font-weight:700;white-space:nowrap}
+.account-assignment-options{padding:10px}
+.account-assignment-options .account-access-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.account-assignment-options .permission-option span{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
+.account-rule-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:end}
+.transaction-activity-field{margin:0!important}
+.sub-user-browser-tab>span:first-child{mask-image:none!important;-webkit-mask-image:none!important;padding-right:0;text-overflow:ellipsis}
+.sub-user-browser-tab:not(:has(.sub-user-tab-close)){padding-right:12px!important}
+.sub-user-browser-tab:has(.sub-user-tab-close)>span:first-child{padding-right:12px;mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 8px),transparent 100%)!important;-webkit-mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 8px),transparent 100%)!important}
+.workspace-single-table{table-layout:fixed;min-width:900px}
+.workspace-single-table th:first-child{width:118px}.workspace-single-table th:nth-child(2){width:105px}.workspace-single-table th:last-child{width:78px}.workspace-single-table th.num{width:115px}
+.workspace-row-actions{gap:5px;align-items:center}
+.workspace-row-actions button{width:30px;height:30px;display:grid;place-items:center;padding:0}
+@media(max-width:760px){
+  .user-identity-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .account-assignment-options .account-access-grid{grid-template-columns:1fr}
+  .account-rule-grid{grid-template-columns:1fr!important}
+  #businessSettingsForm .settings-action-bar{left:8px;right:8px;margin:0!important;padding:9px!important}
+}
+@media(min-width:761px) and (max-width:1024px){#businessSettingsForm .settings-action-bar{left:238px;right:18px}}
+@media(max-width:520px){.user-identity-grid{grid-template-columns:1fr!important}.compliance-reminder-grid{grid-template-columns:1fr!important}}
+
+/* SETTINGS / WORKSPACE 47 — compact controls and directly editable rows. */
+.user-access-dialog{width:min(800px,94vw);max-width:800px}
+.access-picker-dialog{width:min(700px,94vw);max-width:700px;height:auto;max-height:85dvh}
+.access-picker-dialog>.modal-header,.access-picker-dialog>.modal-footer{flex-shrink:0}
+.assignment-activity-row>.access-picker-trigger{margin-top:0}
+.workspace-single-table th.ws-action{font-size:9px;white-space:normal}
+.statutory-bracket-table th:first-child{width:78px!important}
+.sub-user-browser-tab:has(.sub-user-tab-close)>span:first-child{mask-image:none!important;-webkit-mask-image:none!important}
+.sub-user-browser-tab.is-truncated>span:first-child{mask-image:linear-gradient(to right,#000 calc(100% - 8px),transparent)!important;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 8px),transparent)!important}
+#workspaceProtocol{display:flex;align-items:center;justify-content:center}
+.workspace-review-record[open]>summary{position:sticky;top:0;z-index:3}
+*{scrollbar-width:auto;scrollbar-color:#5d8273 #e6eeea}
+*::-webkit-scrollbar{width:11px;height:11px}*::-webkit-scrollbar-track{background:#e6eeea}*::-webkit-scrollbar-thumb{background:#5d8273;border:2px solid #e6eeea;border-radius:8px}
+select:not([multiple]){appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23064e3b' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px!important}
+.assignment-activity-row{align-items:stretch;margin-top:8px}.assignment-activity-row>.settings-field{margin:0;display:flex;flex-direction:column;justify-content:center;padding:8px 10px;border:1px solid #cbd5e1;border-radius:8px}
+.user-id-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;margin:8px 0}
+#modalUserAccess .modal-dialog{display:flex;flex-direction:column}#userAccessForm{overflow:hidden}#userAccessForm>.modal-body{overflow-y:scroll;scrollbar-gutter:stable}#userAccessForm>.modal-footer{flex:none}
+

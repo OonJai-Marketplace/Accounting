@@ -1,0 +1,57 @@
+/* ============================================================================== */
+/* CSS 5: VOIDED AUDIT BADGES & CENTERED THEMED MODAL                             */
+/* ============================================================================== */
+.cluster-explanation-row td {
+  background-color: #f8fafc;
+  font-size: 12px;
+  color: #334155;
+  padding: 8px 14px;
+  border-top: 1px dashed #cbd5e1;
+  border-bottom: 2px solid #94a3b8;
+}
+
+.badge-void-old {
+  display: inline-block;
+  font-size: 10px; /* Smaller badge */
+  font-weight: 700;
+  padding: 2px 4px; /* Smaller badge */
+  border-radius: 4px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  margin-right: 4px;
+}
+
+.badge-void-new {
+  display: inline-block;
+  font-size: 10px; /* Smaller badge */
+  font-weight: 700;
+  padding: 2px 4px; /* Smaller badge */
+  border-radius: 4px;
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  margin-right: 4px;
+}
+
+.modal-dialog.modal-center {
+  margin: auto;
+  border-radius: 12px;
+  border: 2px solid #059669;
+  box-shadow: 0 12px 30px rgba(6, 46, 34, 0.25);
+}
+
+/* Centered Theme Popup Notifications */
+.custom-alert-overlay {
+  position: fixed; inset: 0; background: rgba(6,46,34,0.5); 
+  display: flex; align-items: center; justify-content: center; z-index: 10000;
+}
+.custom-alert-box {
+  background: #fff; padding: 24px; border-radius: 12px; border: 2px solid #059669; 
+  text-align: center; width: 360px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+.custom-alert-btn {
+  margin-top: 16px; background: #059669; color: #fff; border: none; 
+  padding: 8px 24px; border-radius: 6px; cursor: pointer; font-weight: 600;
+}
+

@@ -19,5 +19,5 @@ function ready(){window.startupData1443=async function(check){clearTimeout(retry
  window.addEventListener('online',()=>{if(job)job.refreshNeeded=true;job?.revalidate?.().catch(e=>window.localFirst14333?.setNotice('Refresh is waiting: '+e.message))});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-(job?.refreshedAt||0)>60000)void job?.revalidate?.()});
 }
-window.startup14257={requirements,needsRefresh:()=>!!job?.refreshNeeded};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+window.startup14257={requirements,isPrepared:name=>!!job&&job.actor===liveProfile?.id&&job.done.has(name),needsRefresh:()=>!!job?.refreshNeeded};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

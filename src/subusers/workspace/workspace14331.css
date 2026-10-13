@@ -1,0 +1,98 @@
+/* Requested working-screen fixes. The approved phone and printed report layouts stay separate. */
+@layer workspace14331 {
+ @media screen and (min-width:641px) {
+  body .pay-open14331>.pay-heading14331{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap;gap:8px;padding:12px!important;min-height:44px;box-sizing:border-box;background:#edf6f0;color:#155c43;border-bottom:1px solid #9bbdaf;cursor:default}
+  body .pay-open14331>.pay-heading14331 strong{font-size:14px}body .pay-open14331>.pay-heading14331 span{font-size:12px}
+  body .pay-open14331>.pay-group-body95{display:block!important}
+  body #categoryTabShell{padding-bottom:0!important}
+  body #categoryTabShell #categoryTabs{overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:thin!important;scrollbar-color:#9bb5a8 transparent!important}
+  body #categoryTabShell #categoryTabs::-webkit-scrollbar{display:block!important;height:3px!important;width:3px!important}
+  body #categoryTabShell #categoryTabs::-webkit-scrollbar-track{background:transparent!important;border:0!important}
+  body #categoryTabShell #categoryTabs::-webkit-scrollbar-thumb{background:#9bb5a8!important;border:0!important;border-radius:3px!important}
+  @supports selector(::-webkit-scrollbar){body #categoryTabShell #categoryTabs{scrollbar-width:auto!important}}
+  body .tab-content:not(#document-editor105) table tbody tr:is(.table-selected107,.entry-selected-line,.entry-selected-owner,.audit-selected101,.audit-row-selected)>:is(td,th),
+  body #journalEntry98 #jeLinesBody tr.selected-entry-row14271>td{background:#dff3e9!important;box-shadow:none!important;outline:0!important}
+  body :is(#hr-assessments,#hr-contracts) .hr-employee-select14306{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;width:100%!important;max-width:360px!important;margin:0!important;min-width:0!important;font-size:12px;font-weight:600}
+  body :is(#hr-assessments,#hr-contracts) .hr-employee-select14306>select{width:100%!important;min-width:0!important;box-sizing:border-box!important}
+  body #hr-contracts .work82>.hr-employee-select14306,body #hr-assessments .work82>.hr-picker105{margin:12px!important;padding:0!important;width:calc(100% - 24px)!important;max-width:360px!important;box-sizing:border-box!important}
+  body #personalWorkspace1437,body #personalWorkspace1437 [data-personal-panel=journal],body #personalEditor1437,body #personalActive1437{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;display:block}
+  body #personalWorkspace1437 [hidden]{display:none!important}
+  body #personalWorkspace1437 :is(#journalEntry98,.personal-active1437){width:100%!important;max-width:none!important;min-width:0!important;margin:12px 0!important;box-sizing:border-box!important;align-self:stretch!important}
+  body #subUserWorkspacePanel .v49-desktop-workspace>main{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;padding-inline:0!important}
+  body #subUserWorkspacePanel .v49-desktop-user-actions{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-start!important;align-items:center!important;gap:8px!important;width:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:8px 0!important;box-sizing:border-box!important}
+  body #subUserWorkspacePanel .v49-desktop-user-actions>button{position:static!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;height:32px!important;min-height:32px!important;max-height:32px!important;margin:0!important;padding:0 12px!important;line-height:1.2!important;white-space:nowrap!important;box-sizing:border-box!important;font-size:12px!important}
+  body #subUserWorkspacePanel .v49-desktop-user-actions>.workspace-expand1438{margin-left:auto!important}
+ }
+}
+.summary-period14331{width:300px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;box-sizing:border-box;z-index:100020}
+.summary-period14331 .oj-date-grid104.quarter{grid-template-columns:repeat(2,minmax(0,1fr))}
+.summary-period14331 .quarter button{height:58px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.summary-period14331 .quarter small{font-size:11px}
+.summary-period14331 button[aria-pressed=true]{background:#dff3e9!important;color:#075b43!important;border-color:#68a78b!important}
+.summary-period14331 .period-modes14331{display:flex;gap:4px;border-top:1px solid #c8d6cb;margin-top:8px;padding-top:8px}
+.summary-period14331 .period-modes14331 button{flex:1;min-width:0;padding:5px 3px!important;font-size:11px!important}
+.summary-period14331 .oj-date-footer104{display:flex;gap:6px;justify-content:space-between}
+.summary-period14331 .oj-date-footer104 button{flex:1;padding-inline:4px!important;white-space:nowrap}
+.summary-period14331 footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;font-size:11px}
+.summary-period14331 [data-apply]{background:#176249!important;color:white!important;padding-inline:18px!important}
+.summary-period14331 .period-range14331{display:grid;gap:8px}.summary-period14331 .period-range14331 label,.fund-period14331{display:flex;flex-direction:column;gap:6px}
+.fund-period14331{flex:0 0 200px;max-width:100%;font-size:12px}.fund-period14331 button{min-width:175px}
+@media print{.summary-period14331{display:none!important}}
+
+@media screen and (min-width:641px){body .r79-filters:has(.shared-period14331){display:flex!important;flex-wrap:wrap!important;gap:12px!important;align-items:flex-end!important}body .r79-filters .shared-period14331{min-width:200px!important;flex:0 1 250px!important}body .r79-filters .shared-period14331>button{width:100%!important;min-width:0!important}body .r79-filters>label{min-width:130px;flex:1 1 160px}body .r79-filters>.filter-search81{flex:2 1 220px}}
+/* Reuse the same calendar button appearance outside the single-date input wrapper. */
+body :is(.shared-period14331,.fund-period14331)>button{display:flex!important;align-items:center;gap:8px;text-align:left;background:#fffdf8!important;color:#174d3a!important;border:1px solid #b4cbbb!important;border-radius:4px!important;padding:0 10px!important;font:600 12px/1.25 'Plus Jakarta Sans',Arial,sans-serif!important;cursor:pointer;height:32px;box-sizing:border-box}
+body .summary-period14331{width:320px!important;font:12px/1.4 'Plus Jakarta Sans',Arial,sans-serif}
+body .summary-period14331 button{font:600 12px/1.2 'Plus Jakarta Sans',Arial,sans-serif;border:1px solid #bfd4c5;border-radius:5px;background:#fffdf8;color:#17553f;cursor:pointer;min-height:30px;padding:5px 7px}
+body .summary-period14331 button:hover{background:#edf8f3}
+body .summary-period14331 button:focus-visible{outline:2px solid #b78b42;outline-offset:1px}
+body .summary-period14331 .period-modes14331 button{font-size:11px!important}
+
+/* v143.36: retain the original compact personal workspace components on tablets. */
+@media screen and (min-width:641px) and (max-width:1024px){
+ #personalWorkspace1437 [hidden]{display:none!important}
+ #personalWorkspace1437{min-width:0}
+ .personal-tabs1437{display:flex;gap:6px;border-bottom:1px solid #aebfaf;margin:0 0 16px;padding:0 12px}
+ .personal-tabs1437 button{border:0;border-bottom:3px solid transparent;padding:12px 20px;background:transparent;font:inherit;font-weight:600;color:#365248;cursor:pointer}
+ .personal-tabs1437 button.active{border-bottom-color:#126246;color:#074b36;background:#edf2e7}
+ #personalWorkspace1437 :is(.personal-home1437,.personal-history1437,.personal-totals1437,.personal-active1437){padding:16px;border:1px solid #c9d3c0;border-radius:8px;background:#fffdf7;margin:12px 0;min-width:0}
+ #personalWorkspace1437 :is(header,footer){display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0 12px}
+ #personalWorkspace1437 h3{margin:0 0 10px;color:#174d3a}
+ .personal-metrics1437,.personal-shortcuts1437{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:14px 0 22px}
+ .personal-metrics1437 article{padding:18px;background:#edf2e7;border-radius:8px;border:1px solid #d1dabe}
+ .personal-metrics1437 strong{display:block;font-size:26px;color:#174d3a;margin:8px 0}
+ .personal-metrics1437 progress{width:100%;accent-color:#1c7351;height:8px}
+ .personal-shortcuts1437 button{padding:18px;text-align:left;background:#f6efd9;border:1px solid #d4c293;border-radius:8px;cursor:pointer;color:#284d3b}
+ .personal-shortcuts1437 :is(b,span){display:block}.personal-shortcuts1437 b{font-size:17px;margin-bottom:6px}
+ .personal-recent1437{display:flex;justify-content:space-between;gap:15px;border-top:1px solid #dce2d7;padding:12px 0}
+ #personalWorkspace1437 small{display:block;color:#67756a;font-size:11px;margin-top:3px}
+ .personal-history-filters1437{display:grid;grid-template-columns:150px 190px minmax(0,1fr);gap:12px;margin-bottom:18px}
+ .personal-history-filters1437 label{display:flex;flex-direction:column;gap:6px}
+ .personal-history-filters1437 :is(input,select){width:100%;box-sizing:border-box;border:1px solid #bbcab4;padding:8px;border-radius:4px;min-width:0;background:#fffdf7}
+ .personal-history-list1437 details:not([open])>.final-record-content{display:none!important}
+ .personal-history-list1437>div{margin:10px 0}.personal-history-list1437 .final-record-card{width:100%;max-width:none;margin:0}
+ #personalFunds1437 .fund-summary113{margin:12px 0!important;width:100%!important}
+}
+
+@media screen and (min-width:641px){
+ body #personalWorkspace1437 .personal-tabs1437{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+ body #personalWorkspace1437 .personal-tabs1437 button{flex:0 0 auto;white-space:nowrap}
+ body :is(.personal-tabs1437,.team-tabs14230,#categoryTabs),body :is(.personal-tabs1437,.team-tabs14230,#categoryTabs) button{caret-color:transparent;user-select:none;cursor:default}
+ body :is(.personal-tabs1437,.team-tabs14230,#categoryTabs) button,body :is(.personal-tabs1437,.team-tabs14230,#categoryTabs) button *{cursor:pointer;caret-color:transparent;user-select:none}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-filters>label.filter-account81{flex:2 1 320px!important;min-width:320px!important;max-width:none!important}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-filters>label.filter-search81{flex:1 1 200px!important;min-width:200px!important}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-filters>label.filter-currency81{min-width:180px!important}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-table table{min-width:1320px!important;table-layout:auto!important}
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(3){width:340px!important;min-width:340px!important;white-space:nowrap!important;overflow-wrap:normal!important}
+}
+
+@media screen and (min-width:641px){
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-table td:nth-child(3) :is(button,span){white-space:nowrap!important;overflow-wrap:normal!important}
+ html body.shell113 #reconciliationList71>.je-card-header{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap;gap:12px;min-height:0!important;height:auto!important;flex:0 0 auto!important}
+ #reconciliationList71>.je-card-header>.module-actions71{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-left:auto}
+ #recCreate117>button[type=submit]{border-radius:5px!important}
+}
+
+@media screen and (min-width:641px){
+ html body.shell113 #printableDocArea :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(1){width:105px!important;min-width:105px!important;white-space:nowrap!important}
+}

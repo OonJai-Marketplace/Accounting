@@ -1,0 +1,17 @@
+/* Requested phone navigation and full-screen loading presentation. */
+html body #phoneUserTabs14236{order:0!important;border-top:1px solid #d6e2d9;min-height:46px!important}
+html body .top{order:-1!important}
+html body .phone-account1424{top:58px!important;max-width:calc(100vw - 24px);width:220px}
+html body .phone-account1424 button{font-size:14px;line-height:1.4;min-height:44px}
+html body .account-types14253{scroll-behavior:auto;overflow-anchor:none;overscroll-behavior-x:contain;scrollbar-width:thin}
+html body .phone-loading14285{position:fixed;inset:0;z-index:10000;display:grid;place-content:center;justify-items:center;gap:12px;padding:24px;box-sizing:border-box;background:rgba(242,246,240,.68);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#174b39;text-align:center}
+html body .phone-loading14285[hidden],html body .loading-orbit14285[hidden]{display:none!important}
+.phone-loading14285 p{font:14px/1.5 Arial,sans-serif;max-width:300px;margin:0}.phone-loading14285 .btn{width:auto;min-width:120px}
+.loading-orbit14285{position:relative;display:block;width:66px;height:66px;animation:phone-loading-turn14285 2.2s linear infinite}
+.loading-orbit14285>i{position:absolute;left:31px;top:31px;width:4px;height:4px;transform:rotate(calc(var(--i)*60deg)) translateY(-26px)}
+.loading-orbit14285>i>b{display:block;width:8px;height:8px;border-radius:50%;background:#008563;animation:phone-loading-pulse14285 1.1s ease-in-out infinite alternate;animation-delay:calc(var(--i)*-.18s)}
+@keyframes phone-loading-turn14285{to{transform:rotate(360deg)}}@keyframes phone-loading-pulse14285{from{transform:scale(.65)}to{transform:scale(1.5)}}
+@media(prefers-reduced-motion:reduce){.loading-orbit14285,.loading-orbit14285>i>b{animation:none!important}}
+
+.staff-template-tools14285{display:flex;gap:8px;margin:10px 0}.staff-template-tools14285 .btn{flex:1;min-height:38px}
+.phone-template14285{color:#23384a;max-height:85dvh;overflow-y:auto}.phone-template14285::backdrop{background:#18372d55;backdrop-filter:blur(5px)}.phone-template14285 h2{font-size:18px}.phone-template14285 input{box-sizing:border-box;width:100%;padding:10px;margin:8px 0;border:1px solid #bdcdb7;border-radius:6px}.phone-template14285 p,.phone-template14285 small{font-size:12px;line-height:1.5}.phone-template-list14285 section{padding:12px 0;border-top:1px solid #dce4e8}.phone-template-list14285 strong,.phone-template-list14285 small{display:block;margin-bottom:6px}

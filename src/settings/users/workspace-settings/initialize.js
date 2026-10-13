@@ -1,0 +1,23 @@
+function initializeWorkspaceSettings47(){
+  const tabs=document.getElementById('subUserWorkspaceTabs');if(tabs){const fade=()=>tabs.querySelectorAll('.sub-user-browser-tab').forEach(tab=>{const label=tab.firstElementChild;tab.classList.toggle('is-truncated',label.scrollWidth>label.clientWidth+1)});new MutationObserver(fade).observe(tabs,{childList:true});new ResizeObserver(fade).observe(tabs)}
+  document.getElementById('userAccessName').addEventListener('blur',()=>{const initials=document.getElementById('userEntryInitials');if(!initials.value)initials.value=workspaceUserInitials({full_name:document.getElementById('userAccessName').value})});
+  const form=document.querySelector('[data-settings-group="tax"]'),blocks=form?[...form.querySelectorAll('.statutory-block')]:[];
+  if(blocks.length===4){const grid=document.createElement('div');grid.className='statutory-paired-grid';form.insertBefore(grid,blocks[0]);[blocks[0],blocks[2],blocks[1],blocks[3]].forEach(b=>grid.appendChild(b))}
+  document.querySelectorAll('.statutory-bracket-table input').forEach(input=>{input.type='hidden';const cell=input.closest('td'),editor=document.createElement('span');editor.className='pit-cell-editor';editor.contentEditable='plaintext-only';editor.tabIndex=0;editor.textContent=input.value===''?'':wsNumber(input.value);editor.setAttribute('role','textbox');editor.addEventListener('focus',()=>editor.textContent=input.value.replace('.',['1.234,56','1 234,56'].includes(ApplicationSettings.system?.numberFormat)?',':'.'));editor.addEventListener('blur',()=>{const n=wsParse(editor.textContent);if(editor.textContent.trim()===''&&input.name==='pit6To'){input.value='';return}if(!Number.isFinite(n)||n<0){editor.textContent=wsNumber(input.value);showCenterStatus('Enter a valid non-negative number.',true);return}input.value=String(n);editor.textContent=wsNumber(n);input.dispatchEvent(new Event('change',{bubbles:true}))});cell.appendChild(editor)});
+  document.addEventListener('click',event=>{const target=event.target;if(target.classList.contains('modal-backdrop')){if(target.id==='modalAccessPicker')closeAccessPicker();else closeModal(target.id)}else if(target.classList.contains('submission-compare-overlay')||target.classList.contains('workspace-cell-overlay'))target.remove()});
+  document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;const overlays=[...document.querySelectorAll('.submission-compare-overlay,.workspace-cell-overlay')];overlays.at(-1)?.remove()});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initializeWorkspaceSettings47);else initializeWorkspaceSettings47();
+
+// Use the same exclusion in the preview and in the actual posting request.
+prepareReviewJournal=function(id){
+  const journal=allReviewJournals().find(j=>j.id===id);if(!journal||journal.status!=='submitted')return;
+  const lines=(journal.lines||[]).filter(l=>!wsIsCollection(l)&&!l.journal_entry_id);
+  if(!lines.length){showAppConfirm('Review Collection Report','Confirm this report without another journal posting? Collections remain report-only; linked handovers are already recorded.','Mark Reviewed',async()=>{const result=await ojmDb.rpc('review_collection_report',{p_journal_id:id});if(result.error){showCenterStatus(result.error.message,true);return}await loadStaffJournalsForReview();showCenterStatus('Collection report reviewed. No revenue was posted.')},false);return}
+  showAppConfirm('Approve & Prepare Journal','Copy eligible entries, including categorized Money In, into the journal for final checking? Earlier same-account collections remain report-only. The submission stays in review until every entry posts successfully.','Prepare Journal',()=>{
+    switchTab('journal');JournalModule.editingEntryId=null;document.getElementById('jeMultipleDates').checked=true;document.body.classList.add('je-multi-date');const body=document.getElementById('jeLinesBody');body.innerHTML='';document.getElementById('jeGeneralMemo').value=`Sub-user submission — ${getLiveUserName(journal.owner_id)} — ${String(journal.period_start).slice(0,7)}`;
+    doubleEntryLines({lines}).forEach(line=>{addJournalLineRow(line.displayAccount,[line.memo,line.reference].filter(Boolean).join(' • '),line.side==='debit'?String(line.amount):'',line.side==='credit'?{[line.currency_code||'LAK']:String(line.amount)}:{});const row=body.lastElementChild;if(row?.querySelector('.je-line-date'))row.querySelector('.je-line-date').value=line.transaction_date});
+    calculateJournalBalance();pendingWorkspacePostOwnerId=journal.owner_id;pendingWorkspacePostJournalId=id;pendingWorkspacePostIsLocal=false;showCenterStatus('Prepared for checking. Nothing has been posted yet.');
+  },false)
+};
+approveReviewJournal=prepareReviewJournal;

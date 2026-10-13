@@ -1,0 +1,8 @@
+.installation-dialog14320 .ui-dialog108{width:min(900px,94vw);max-width:94vw;max-height:90dvh;overflow:auto}
+.installation-grid14320{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.installation-grid14320 label{display:grid;gap:5px;min-width:0}
+.installation-grid14320 input,.installation-grid14320 select{width:100%;box-sizing:border-box}
+.installation-check14320{display:flex;gap:8px;align-items:start;margin:10px 0}
+.installation-check14320 input{width:auto;flex:none}
+.installation-dialog14320 [role=alert]{color:#a32e2e}
+@media(max-width:600px){.installation-grid14320{grid-template-columns:1fr}}

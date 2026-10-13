@@ -1,0 +1,29 @@
+/* ============================================================================== */
+/* CSS V25: UNIVERSAL HEADERS, LIGHT AUDIT SELECTION & STICKY PERIOD CONTROLS     */
+/* ============================================================================== */
+table thead th,table thead .general-master-header th,.je-table thead th,.clustered-journal-table thead th {
+  background:#062e22 !important;color:#fff !important;border-color:#31594d !important;
+}
+.clustered-journal-table tbody tr.entry-hover-line > td,
+.clustered-journal-table tbody tr.entry-hover-owner > td.entry-shared-cell { background:#edf8f3 !important; }
+.clustered-journal-table tbody tr.entry-selected-line > td,
+.clustered-journal-table tbody tr.entry-selected-owner > td.entry-shared-cell { background:#dff3e9 !important; box-shadow:inset 0 1px #7dc6a5,inset 0 -1px #7dc6a5; }
+.clustered-journal-table tbody tr.cluster-row-end > td { border-bottom:3px solid #64748b !important; }
+.clustered-journal-table tbody tr.cluster-row-start > td.entry-shared-cell { border-bottom:3px solid #64748b !important; }
+.clustered-journal-table .action-col { width:1%; min-width:0; white-space:nowrap; padding-left:5px !important; padding-right:5px !important; }
+.transaction-review-actions .je-btn { min-width:48px; min-height:28px; padding:4px 7px; font-size:10.5px; }
+.period-selector-controls { display:grid; grid-template-columns:32px minmax(118px,1fr) 78px 32px; align-items:center; gap:4px; }
+.period-selector-controls .je-input,.period-selector-controls .je-select { min-height:32px; height:32px; padding:4px 6px; }
+.period-year-step { width:32px; height:32px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; color:#064e3b; font-size:20px; line-height:1; cursor:pointer; }
+.period-year-step:hover { background:#ecfdf5; }
+#period-review { padding-bottom:62px; }
+
+/* Exact Accounting Core brand color for every table header. */
+table thead th,table thead .general-master-header th,.je-table thead th,.clustered-journal-table thead th,.audit-compare-table th { background:#041f17 !important; color:#fff !important; border-color:#31594d !important; }
+#period-review .period-closing-bar { position:sticky; bottom:0; z-index:30; margin-top:8px; box-shadow:0 -7px 18px rgba(15,23,42,.1); }
+.period-status-toast { position:fixed; left:50%; top:50%; z-index:100000; transform:translate(-50%,-50%) scale(.96); min-width:240px; max-width:min(520px,calc(100vw - 32px)); padding:13px 18px; border:1px solid #6ee7b7; border-left:5px solid #059669; border-radius:8px; background:#fff; color:#065f46; box-shadow:0 18px 45px rgba(15,23,42,.25); font-size:13px; font-weight:750; text-align:center; opacity:0; pointer-events:none; transition:opacity .18s,transform .18s; }
+.period-status-toast.is-visible { opacity:1; transform:translate(-50%,-50%) scale(1); }
+.period-status-toast.is-error { border-color:#fecaca; border-left-color:#dc2626; color:#991b1b; }
+.upcoming-form-actions { display:flex; align-items:center; gap:7px; }
+@media(max-width:700px){.period-selector-controls{grid-template-columns:32px 1fr 72px 32px}.period-review-picker{min-width:100%}}
+

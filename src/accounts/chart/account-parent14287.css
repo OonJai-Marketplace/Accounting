@@ -1,0 +1,3 @@
+/* Parent is a full label in the currency column and a compact grouping symbol beside names. */
+.currency-symbol-badge.parent-account-badge{padding-inline:0;white-space:nowrap}
+#coaTableBody .currency-tag{display:inline-flex;align-items:center;justify-content:center;height:22px;box-sizing:border-box;white-space:nowrap}

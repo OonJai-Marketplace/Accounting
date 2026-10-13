@@ -1,0 +1,22 @@
+/* One shared workspace navigation above the banner on Main Home and user workspaces. */
+@media(min-width:768px){
+html body.team-shell14227 .main-content-area>.module-header{display:flex!important;visibility:visible!important;min-height:54px!important;height:auto!important;flex:0 0 auto!important;padding:6px 15px!important;box-sizing:border-box!important}
+html body.team-shell14227 .module-header .header-left-tools{display:flex;min-width:0;width:100%;max-width:100%;gap:10px}
+html body.team-shell14227 .module-header #mainHeaderTitle{display:none!important}
+html body .team-tabs14230{display:none}
+html body.team-shell14227 .team-tabs14230{display:flex;flex:1;min-width:0;max-width:100%;margin:0;padding:0;border:0;gap:12px;overflow:hidden}
+html body .team-user-tabs14231{display:flex;flex:1;min-width:0;gap:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;padding:2px}
+html body .team-tabs14230 button{min-height:44px;padding:8px 12px;border:0;border-bottom:3px solid transparent;border-radius:0;background:#fffcf6;color:#4a493f;font:600 13px/1.2 'Plus Jakarta Sans',Arial,sans-serif;box-shadow:none}
+html body .team-tabs14230 button[aria-current=page]{background:#f1ead8;color:#733713;border-bottom-color:#914511}
+html body .team-tabs14230 button:not([aria-current=page]):hover{background:#e7f5ef;color:#075b43}
+html body .team-tabs14230 button:focus-visible{outline:2px solid #bf8942;outline-offset:0}
+html body .team-search14231{display:flex;align-items:center;gap:6px;flex:0 1 240px;min-width:120px;max-width:28%;border:1px solid #b7cbbd;border-radius:7px;background:#fffdf6;padding:0 8px;margin:0}
+html body .team-search14231 input{min-width:0;width:100%;height:36px;border:0!important;box-shadow:none!important;background:transparent!important;font:12px 'Plus Jakarta Sans',Arial,sans-serif;padding:5px 0!important}
+html body .team-search14231 svg{flex:none}
+html body .team-search14231:focus-within{outline:2px solid #bf8942;outline-offset:0}
+html body.team-shell14227 #subUserWorkspaceTabs,html body.team-shell14227 .sub-user-tabs-shell{display:none!important}
+body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading>div:first-child{display:block!important}
+body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading{justify-content:flex-end!important;padding-top:0!important}
+html[data-device132=tablet] body .team-tabs14230 button{min-height:44px}
+}
+@media print{.team-tabs14230{display:none!important}}

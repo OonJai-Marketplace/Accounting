@@ -3,8 +3,9 @@
 const visible=n=>n?.isConnected&&n.getClientRects().length&&!n.closest('[hidden]')&&getComputedStyle(n).visibility!=='hidden';
 const rowSelector=':scope>.team-tabs14230,:scope>.workflow-switch14316,:scope>.workspace-tabs14337,:scope>.personal-tabs1437';
 let sharedHeader,sharedTabs,scrollArea,mainArea,rows=[],observed=new Set();
-const sizes=new ResizeObserver(()=>measure());
-function measure(){let top=0;for(const row of rows){if(row.style.getPropertyValue('--tab-top14344')!==top+'px')row.style.setProperty('--tab-top14344',top+'px');if(visible(row))top+=row.getBoundingClientRect().height}if(scrollArea&&scrollArea.style.getPropertyValue('--navigation-height14344')!==top+'px')scrollArea.style.setProperty('--navigation-height14344',top+'px')}
+const rowHeights=new WeakMap();const sizes=new ResizeObserver(entries=>{for(const entry of entries)rowHeights.set(entry.target,entry.borderBoxSize?.[0]?.blockSize??entry.target.getBoundingClientRect().height);measure()});
+function measure(){let top=0;const positions=rows.map(row=>{const offset=top;if(!row.hidden&&!row.closest('[hidden]'))top+=rowHeights.get(row)??row.getBoundingClientRect().height;return [row,offset+'px']});for(const [row,value] of positions)if(row.style.getPropertyValue('--tab-top14344')!==value)row.style.setProperty('--tab-top14344',value);if(scrollArea&&scrollArea.style.getPropertyValue('--navigation-height14344')!==top+'px')scrollArea.style.setProperty('--navigation-height14344',top+'px')}
+
 function place(panel,node,anchor){if(!node)return anchor;if(anchor){if(anchor.nextElementSibling!==node)anchor.after(node)}else if(panel.firstElementChild!==node)panel.prepend(node);return node}
 function layout(){
  if(innerWidth<=640||document.documentElement.dataset.device132==='phone')return;

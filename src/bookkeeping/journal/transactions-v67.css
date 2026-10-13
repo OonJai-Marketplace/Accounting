@@ -1,0 +1,37 @@
+/* STYLE 67: consistent emerald modules and full-width transaction tables. */
+:root{--module-emerald:#059669}
+body .je-card,body .module-card,body .settings-section-card,body .workspace-main-card,body .workspace-entry-card,body .workspace-journal-entry-card,body .submission-review-card,body .workspace-review-record{border-color:var(--module-emerald)!important;border-top:5px solid var(--module-emerald)!important}
+#periodFindingForm{border:1px solid var(--module-emerald);border-top:6px solid var(--module-emerald);padding:18px;background:#f0fdf4;border-radius:8px;margin:12px 0}
+#journal .je-card,#transactions-all .je-card,#transactions-recurring .je-card,#period-review .je-card,#user-entry-review .je-card,#transactions-voided .je-card{padding-left:0!important;padding-right:0!important;overflow:hidden}
+:is(#journal,#transactions-all,#transactions-recurring,#period-review,#user-entry-review,#transactions-voided) .je-card>:not(.table-container):not(.archive-month):not(#archiveMonths67){margin-left:16px;margin-right:16px}
+:is(#journal,#transactions-all,#transactions-recurring,#period-review,#user-entry-review,#transactions-voided) .table-container{width:100%!important;max-width:100%!important;margin-left:0!important;margin-right:0!important;padding:0!important;border-radius:0!important;overflow-x:auto}
+:is(#journal,#transactions-all,#transactions-recurring,#period-review,#user-entry-review,#transactions-voided) table{width:100%;border-collapse:collapse}
+body #reopenedBooks .reopened-book{border:1px solid #dc2626!important;border-top:6px solid #dc2626!important;background:#fff7f7}
+.reopened-book .je-card-header{background:#fee2e2;color:#991b1b;padding:12px;margin:0!important}.reopened-book h3{margin:0}.reopened-book p{font-size:12px}
+#journalContext67{padding:12px;background:#fee2e2;border-left:5px solid #dc2626;color:#991b1b;margin-bottom:12px;font-weight:600}
+#journalContext67[hidden],#reopenedBooks[hidden]{display:none!important}
+#jeGeneralMemo.adjustment-description{color:#b91c1c!important;background:#fff1f2;border-color:#dc2626}
+#journal .transaction-date-field{min-width:290px}.je-label-row{display:flex;justify-content:space-between;gap:22px}.multi-date-toggle{white-space:nowrap}
+.archive-month{border:1px solid var(--module-emerald);border-top:5px solid var(--module-emerald);margin:14px 0;border-radius:6px;overflow:hidden}.archive-month summary{cursor:pointer;padding:14px;background:#ecfdf5}.archive-month summary span{display:block;margin-top:7px;font-size:12px}.archive-month-actions,.archive-finding,.archive-year{padding:12px;display:block}.archive-finding{background:#f8fafc;border-top:1px solid #cbd5e1;font-size:13px}.closing-control{padding:16px!important}.closing-control input{margin-right:12px}.review-guidance p{line-height:1.6}
+body .v49-card,body .v49-desktop-accounts,body .v49-desktop-post,body .v49-totals,body .v49-desktop-user-heading{border-color:var(--module-emerald)!important;border-top-color:var(--module-emerald)!important}
+:is(#journal,#transactions-all,#transactions-recurring,#period-review,#user-entry-review,#transactions-voided) :is(.settings-section-card,.submission-review-card,.module-card){padding-left:0!important;padding-right:0!important}
+@media print{.archive-month{break-inside:auto}.archive-month> :not(summary){display:block!important}.archive-month-actions,.archive-year{display:none!important}}
+
+/* STYLE 68: readable desktop Upcoming Transactions columns and actions. */
+@media (min-width:768px){
+  #tblRecurringTransactions{table-layout:fixed;min-width:1120px}
+  #tblRecurringTransactions th:first-child{width:112px!important}
+  #tblRecurringTransactions th:nth-child(2){width:112px!important}
+  #tblRecurringTransactions th:nth-child(3){width:auto!important}
+  #tblRecurringTransactions th:nth-child(4){width:180px!important}
+  #tblRecurringTransactions th:nth-child(5){width:176px!important}
+  #tblRecurringTransactions th:nth-child(6){width:112px!important}
+  #tblRecurringTransactions .upcoming-action-col{width:210px!important;min-width:210px!important;max-width:none!important;padding:10px!important}
+  #tblRecurringTransactions :is(th,td){box-sizing:border-box;vertical-align:middle;padding:10px 12px!important}
+  #tblRecurringTransactions td:nth-child(3),#tblRecurringTransactions td:nth-child(5){white-space:normal;overflow-wrap:anywhere}
+  #tblRecurringTransactions td:nth-child(4),#tblRecurringTransactions td:nth-child(6){white-space:nowrap}
+  #tblRecurringTransactions .recurring-inline-actions{display:flex;align-items:center;justify-content:center;gap:6px;overflow:visible;width:100%}
+  #tblRecurringTransactions .recurring-inline-actions .je-btn{flex:0 0 auto;height:36px!important;min-height:36px!important;padding:7px 10px!important;font-size:12px!important;line-height:1!important}
+  #tblRecurringTransactions .recurring-inline-actions .recurring-remove-x{width:32px!important;min-width:32px!important;max-width:32px!important;height:32px!important;min-height:32px!important;padding:0!important;font-size:0!important}
+  #tblRecurringTransactions .recurring-remove-x::before{font-size:15px!important}
+}

@@ -1,0 +1,66 @@
+/* ============================================================================== */
+/* CSS 4: GENERAL MASTER TABLE & ENTRY CLUSTERS (NO BOLD TEXT)                    */
+/* ============================================================================== */
+.general-master-header th {
+  background-color: #062e22 !important;
+  color: #ffffff !important;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 12px 14px;
+  border-bottom: 2px solid #041f17;
+  white-space: nowrap;
+  border: 1px solid #cbd5e1 !important; /* Full grid */
+}
+
+.clustered-journal-table th, 
+.clustered-journal-table td {
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #cbd5e1;
+  font-weight: 400 !important; /* Ensuring no bold letter in data recorded */
+  border: 1px solid #cbd5e1 !important; /* Full grid */
+}
+
+.cluster-row-start {
+  border-top: 2px solid #94a3b8;
+  background-color: #ffffff;
+}
+
+.cluster-row-cont {
+  background-color: #ffffff;
+  border-top: 1px dashed #f1f5f9;
+}
+
+.cluster-row-start:hover, .cluster-row-cont:hover {
+  background-color: #f8fafc;
+}
+
+/* Normal weight for account names */
+.account-clean-name {
+  font-weight: 400 !important; /* No bold */
+  color: #0f172a;
+}
+
+.account-curr-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+.currency-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+

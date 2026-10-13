@@ -1,0 +1,4105 @@
+{
+  "format": 1,
+  "baseline_commit": "71e7a8e28bba8b438d07cd30d6e8eb6d44cc8fad",
+  "outputs": {
+    "scripts/device-mode132.js": [
+      {
+        "source": "src/core/startup/device-mode132.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/loading1444.js": [
+      {
+        "source": "src/core/startup/loading1444.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-1.js": [
+      {
+        "source": "src/core/startup/device-mode132.js",
+        "prefix": "/* scripts/device-mode132.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/startup/loading1444.js",
+        "prefix": "/* scripts/loading1444.js */\n",
+        "suffix": ";\n\n;\n"
+      }
+    ],
+    "scripts/backup-validation1441.js": [
+      {
+        "source": "src/maintenance/backup/backup-validation1441.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/cell-navigation14233.js": [
+      {
+        "source": "src/shared/ui/cell-navigation14233.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-2.js": [
+      {
+        "source": "src/maintenance/backup/backup-validation1441.js",
+        "prefix": "/* scripts/backup-validation1441.js */\n",
+        "suffix": ";\n\n"
+      },
+      {
+        "source": "src/shared/ui/cell-navigation14233.js",
+        "prefix": "/* scripts/cell-navigation14233.js */\n",
+        "suffix": ";\n\n;\n"
+      }
+    ],
+    "scripts/workspace-request-v138.js": [
+      {
+        "source": "src/subusers/workspace/workspace-request-v138.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/script.js": [
+      {
+        "source": "src/shared/state/accounting-store.js"
+      },
+      {
+        "source": "src/settings/business/business-profile.js"
+      },
+      {
+        "source": "src/settings/application/settings-store.js"
+      },
+      {
+        "source": "src/shared/formatting/numbers.js"
+      },
+      {
+        "source": "src/settings/application/settings-forms.js"
+      },
+      {
+        "source": "src/maintenance/backup/browser-backup.js"
+      },
+      {
+        "source": "src/settings/legal/documents-local.js"
+      },
+      {
+        "source": "src/accounts/currencies/currency-store.js"
+      },
+      {
+        "source": "src/core/navigation/base-navigation.js"
+      },
+      {
+        "source": "src/shared/ui/table-search-and-modals.js"
+      },
+      {
+        "source": "src/accounts/chart/chart-controller.js"
+      },
+      {
+        "source": "src/accounts/sub-accounts/sub-account-controller.js"
+      },
+      {
+        "source": "src/dashboard/summary-chart.js"
+      },
+      {
+        "source": "src/shared/ui/notifications-and-print-state.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-store.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-sequence.js"
+      },
+      {
+        "source": "src/shared/formatting/dates.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/column-display.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-form.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/edit-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/submit-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transaction-rows.js"
+      },
+      {
+        "source": "src/bookkeeping/history/voided-and-export.js"
+      },
+      {
+        "source": "src/core/startup/accounting-bootstrap.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/currency-balancing.js"
+      },
+      {
+        "source": "src/bookkeeping/history/monthly-archive.js"
+      },
+      {
+        "source": "src/reports/printing/configured-print.js"
+      },
+      {
+        "source": "src/reports/printing/section-context.js"
+      },
+      {
+        "source": "src/bookkeeping/templates/transaction-templates.js"
+      },
+      {
+        "source": "src/bookkeeping/recurring/obligations.js"
+      },
+      {
+        "source": "src/core/startup/accounting-enhancements.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/multiple-dates-and-currency-badges.js"
+      },
+      {
+        "source": "src/shared/ui/confirmation-dialog.js"
+      },
+      {
+        "source": "src/bookkeeping/history/archive-confirmation.js"
+      },
+      {
+        "source": "src/core/startup/journal-enhancements.js"
+      },
+      {
+        "source": "src/core/auth/demo-access-compatibility.js"
+      },
+      {
+        "source": "src/subusers/submissions/demo-submissions-compatibility.js"
+      },
+      {
+        "source": "src/core/auth/live-session-and-recovery.js"
+      },
+      {
+        "source": "src/accounts/data/reference-data.js"
+      },
+      {
+        "source": "src/settings/business/business-data.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-data-and-posting.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/submission-approval.js"
+      },
+      {
+        "source": "src/settings/users/profile-data.js"
+      },
+      {
+        "source": "src/settings/legal/documents-data.js"
+      },
+      {
+        "source": "src/core/startup/authenticated-session-loading.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/period-review.js"
+      },
+      {
+        "source": "src/core/permissions/user-access-and-review.js"
+      },
+      {
+        "source": "src/subusers/entries/staff-journal.js"
+      },
+      {
+        "source": "src/subusers/review/staff-journal-review.js"
+      },
+      {
+        "source": "src/core/permissions/account-access.js"
+      },
+      {
+        "source": "src/settings/application/settings-help.js"
+      },
+      {
+        "source": "src/subusers/history/submitted-journals.js"
+      },
+      {
+        "source": "src/core/navigation/dashboard-and-calendar.js"
+      },
+      {
+        "source": "src/subusers/entries/multi-currency-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transaction-review-and-audit.js"
+      },
+      {
+        "source": "src/core/navigation/transaction-scroll-memory.js"
+      },
+      {
+        "source": "src/bookkeeping/history/audit-row-selection.js"
+      },
+      {
+        "source": "src/settings/application/settings-navigation.js"
+      },
+      {
+        "source": "src/subusers/workspace/user-tabs.js"
+      },
+      {
+        "source": "src/core/auth/session-timeout.js"
+      },
+      {
+        "source": "src/core/navigation/header-and-workspace-controls.js"
+      },
+      {
+        "source": "src/subusers/review/expandable-review.js"
+      },
+      {
+        "source": "src/subusers/accounts/assigned-funds.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-entry.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/journal-preparation.js"
+      },
+      {
+        "source": "src/subusers/history/submission-comparison.js"
+      },
+      {
+        "source": "src/core/permissions/workspace-access-pickers.js"
+      },
+      {
+        "source": "src/subusers/entries/secure-workspace-entry.js"
+      },
+      {
+        "source": "src/subusers/review/reopen-and-review.js"
+      },
+      {
+        "source": "src/settings/accounting/shared-id-settings.js"
+      },
+      {
+        "source": "src/subusers/entries/numbered-entry-form.js"
+      },
+      {
+        "source": "src/subusers/review/batch-correction.js"
+      },
+      {
+        "source": "src/core/permissions/account-assignment.js"
+      },
+      {
+        "source": "src/subusers/entries/inline-entry-editor.js"
+      },
+      {
+        "source": "src/core/permissions/navigation-permissions.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/scope-and-state.js"
+      },
+      {
+        "source": "src/subusers/accounts/responsive/fund-activity.js"
+      },
+      {
+        "source": "src/subusers/accounts/responsive/account-totals.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/home.js"
+      },
+      {
+        "source": "src/subusers/entries/responsive/post-form.js"
+      },
+      {
+        "source": "src/subusers/history/responsive/record-cards.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/navigation-and-desktop.js"
+      },
+      {
+        "source": "src/subusers/entries/responsive/entry-actions.js"
+      },
+      {
+        "source": "src/subusers/review/responsive/review-and-adjustments.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/registration-and-scope-close.js"
+      },
+      {
+        "source": "src/shared/data/idempotent-entry-references.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/navigation-v48.js": [
+      {
+        "source": "src/core/navigation/navigation-v48.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/subusers-final-v53.js": [
+      {
+        "source": "src/subusers/entries/subusers-final-v53.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/subusers-final-v54.js": [
+      {
+        "source": "src/subusers/entries/subusers-final-v54.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/subusers-final-v55.js": [
+      {
+        "source": "src/subusers/entries/subusers-final-v55.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/subusers-final-v56.js": [
+      {
+        "source": "src/subusers/entries/subusers-final-v56.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/design-system-v58.js": [
+      {
+        "source": "src/shared/presentation/design-system-v58.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/mobile-tables-v66.js": [
+      {
+        "source": "src/shared/presentation/mobile-tables-v66.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/transactions-v67.js": [
+      {
+        "source": "src/bookkeeping/journal/transactions-v67/date-mode-and-edit.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transactions-v67/reopen-and-close.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transactions-v67/registration.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v67/archive-export.js",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/accounts-v69.js": [
+      {
+        "source": "src/accounts/chart/accounts-v69.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/review-v69.js": [
+      {
+        "source": "src/subusers/review/review-v69.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/interface-v69.js": [
+      {
+        "source": "src/core/navigation/interface-v69.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/reports-system-v71.js": [
+      {
+        "source": "src/reports/financial/reports-system-v71.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/transactions-mobile-v72.js": [
+      {
+        "source": "src/bookkeeping/journal/transactions-mobile-v72.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/mobile-polish-v73.js": [
+      {
+        "source": "src/shared/presentation/mobile-polish-v73.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/mobile-refinements-v74.js": [
+      {
+        "source": "src/shared/presentation/mobile-refinements-v74.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/review-mobile-v78.js": [
+      {
+        "source": "src/subusers/review/review-mobile-v78.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/reports-desktop-v79.js": [
+      {
+        "source": "src/reports/financial/reports-desktop-v79.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop-corrections-v80.js": [
+      {
+        "source": "src/shared/presentation/desktop-corrections-v80.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop-refinements-v81.js": [
+      {
+        "source": "src/shared/presentation/desktop-refinements-v81.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop-layout-v82.js": [
+      {
+        "source": "src/shared/presentation/desktop-layout-v82.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-engine-v82.js": [
+      {
+        "source": "src/payroll/engine/payroll-engine-v82.js",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/payroll-reports-v82.js": [
+      {
+        "source": "src/shared/state/workforce-store-v82.js"
+      },
+      {
+        "source": "src/shared/ui/workforce-forms-v82.js"
+      },
+      {
+        "source": "src/shared/data/workforce-storage-v82.js"
+      },
+      {
+        "source": "src/hr/employees/employee-forms-v82.js"
+      },
+      {
+        "source": "src/hr/leave/leave-forms-v82.js"
+      },
+      {
+        "source": "src/payroll/workspace/run-editor-v82.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/workspace-render-v82.js"
+      },
+      {
+        "source": "src/reports/subusers/operational-report-v82.js"
+      },
+      {
+        "source": "src/budget/requests/finance-report-v82.js"
+      },
+      {
+        "source": "src/reports/printing/print-document-v82.js"
+      },
+      {
+        "source": "src/payroll/reports/vouchers-v82.js"
+      },
+      {
+        "source": "src/hr/leave/print-leave-v82.js"
+      },
+      {
+        "source": "src/reports/financial/report-actions-v82.js"
+      },
+      {
+        "source": "src/payroll/workspace/schedule-v82.js"
+      },
+      {
+        "source": "src/settings/payroll/integration-audit-v82.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/registration-v82.js"
+      },
+      {
+        "source": "src/budget/requests/currency-conversions-v82.js"
+      },
+      {
+        "source": "src/payroll/reports/attendance-v82.js",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/payroll-samples-v83.js": [
+      {
+        "source": "src/payroll/workspace/payroll-samples-v83.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-fixes-v83.js": [
+      {
+        "source": "src/payroll/workspace/payroll-fixes-v83.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop-polish-v84.js": [
+      {
+        "source": "src/shared/presentation/desktop-polish-v84.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/layout-fixes-v85.js": [
+      {
+        "source": "src/shared/presentation/layout-fixes-v85.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/layout-consistency-v87.js": [
+      {
+        "source": "src/shared/presentation/layout-consistency-v87.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/session-inputs-v88.js": [
+      {
+        "source": "src/core/auth/session-inputs-v88.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/prefixes-badges-v89.js": [
+      {
+        "source": "src/shared/formatting/prefixes-badges-v89.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/scheduled-journals-v91.js": [
+      {
+        "source": "src/bookkeeping/recurring/scheduled-journals-v91.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/refinements-v93.js": [
+      {
+        "source": "src/shared/presentation/refinements-v93.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/settings-payroll-v94.js": [
+      {
+        "source": "src/settings/payroll/settings-payroll-v94.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-groups-v96.js": [
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/scope-and-state.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/legend-and-marks.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/approved-leave-and-days.js"
+      },
+      {
+        "source": "src/payroll/engine/results-v96.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/tables-and-attendance.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/drafts-and-finalization.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/leave-usage.js"
+      },
+      {
+        "source": "src/hr/employees/directory-v96.js"
+      },
+      {
+        "source": "src/payroll/reports/history-v96.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/install-and-scope-close.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-polish-v97.js": [
+      {
+        "source": "src/payroll/workspace/polish-v97/scope-and-state.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/roster-v97.js"
+      },
+      {
+        "source": "src/hr/employees/form-presentation-v97.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/breakdown-and-overview.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/tab-layout.js"
+      },
+      {
+        "source": "src/hr/leave/print-application-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/recurring/preparation-and-warnings-v97.js"
+      },
+      {
+        "source": "src/shared/ui/universal-search-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/column-widths-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/history/monthly-audit-v97.js"
+      },
+      {
+        "source": "src/core/startup/lazy-modules-v97.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/install-and-scope-close.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/transactions-v98.js": [
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/scope-open.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/entry-and-balance.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v98/audit-view.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/csv-import.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v98/csv-export.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/install-and-scope-close.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-v99.js": [
+      {
+        "source": "src/payroll/workspace/payroll-v99.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace-v99.js": [
+      {
+        "source": "src/bridges/bookkeeping-startup/workspace-v99.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/hr-v99.js": [
+      {
+        "source": "src/hr/employees/hr-v99.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/theme-v100.js": [
+      {
+        "source": "src/shared/presentation/theme-v100.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/polish-v101.js": [
+      {
+        "source": "src/shared/presentation/polish-v101.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/tax-reports-v102.js": [
+      {
+        "source": "src/reports/tax/tax-reports-v102.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/journal-actions-v102.js": [
+      {
+        "source": "src/bookkeeping/journal/journal-actions-v102.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/universal-date-v104.js": [
+      {
+        "source": "src/shared/formatting/universal-date-v104.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/header-profile-v104.js": [
+      {
+        "source": "src/shared/presentation/header-profile-v104.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/shortnames-v104.js": [
+      {
+        "source": "src/shared/presentation/shortnames-v104.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/refinements-v105.js": [
+      {
+        "source": "src/shared/presentation/refinements-v105.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-3.js": [
+      {
+        "source": "src/subusers/workspace/workspace-request-v138.js",
+        "prefix": "/* scripts/workspace-request-v138.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/state/accounting-store.js",
+        "prefix": "/* scripts/script.js */\n"
+      },
+      {
+        "source": "src/settings/business/business-profile.js"
+      },
+      {
+        "source": "src/settings/application/settings-store.js"
+      },
+      {
+        "source": "src/shared/formatting/numbers.js"
+      },
+      {
+        "source": "src/settings/application/settings-forms.js"
+      },
+      {
+        "source": "src/maintenance/backup/browser-backup.js"
+      },
+      {
+        "source": "src/settings/legal/documents-local.js"
+      },
+      {
+        "source": "src/accounts/currencies/currency-store.js"
+      },
+      {
+        "source": "src/core/navigation/base-navigation.js"
+      },
+      {
+        "source": "src/shared/ui/table-search-and-modals.js"
+      },
+      {
+        "source": "src/accounts/chart/chart-controller.js"
+      },
+      {
+        "source": "src/accounts/sub-accounts/sub-account-controller.js"
+      },
+      {
+        "source": "src/dashboard/summary-chart.js"
+      },
+      {
+        "source": "src/shared/ui/notifications-and-print-state.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-store.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-sequence.js"
+      },
+      {
+        "source": "src/shared/formatting/dates.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/column-display.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-form.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/edit-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/submit-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transaction-rows.js"
+      },
+      {
+        "source": "src/bookkeeping/history/voided-and-export.js"
+      },
+      {
+        "source": "src/core/startup/accounting-bootstrap.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/currency-balancing.js"
+      },
+      {
+        "source": "src/bookkeeping/history/monthly-archive.js"
+      },
+      {
+        "source": "src/reports/printing/configured-print.js"
+      },
+      {
+        "source": "src/reports/printing/section-context.js"
+      },
+      {
+        "source": "src/bookkeeping/templates/transaction-templates.js"
+      },
+      {
+        "source": "src/bookkeeping/recurring/obligations.js"
+      },
+      {
+        "source": "src/core/startup/accounting-enhancements.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/multiple-dates-and-currency-badges.js"
+      },
+      {
+        "source": "src/shared/ui/confirmation-dialog.js"
+      },
+      {
+        "source": "src/bookkeeping/history/archive-confirmation.js"
+      },
+      {
+        "source": "src/core/startup/journal-enhancements.js"
+      },
+      {
+        "source": "src/core/auth/demo-access-compatibility.js"
+      },
+      {
+        "source": "src/subusers/submissions/demo-submissions-compatibility.js"
+      },
+      {
+        "source": "src/core/auth/live-session-and-recovery.js"
+      },
+      {
+        "source": "src/accounts/data/reference-data.js"
+      },
+      {
+        "source": "src/settings/business/business-data.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-data-and-posting.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/submission-approval.js"
+      },
+      {
+        "source": "src/settings/users/profile-data.js"
+      },
+      {
+        "source": "src/settings/legal/documents-data.js"
+      },
+      {
+        "source": "src/core/startup/authenticated-session-loading.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/period-review.js"
+      },
+      {
+        "source": "src/core/permissions/user-access-and-review.js"
+      },
+      {
+        "source": "src/subusers/entries/staff-journal.js"
+      },
+      {
+        "source": "src/subusers/review/staff-journal-review.js"
+      },
+      {
+        "source": "src/core/permissions/account-access.js"
+      },
+      {
+        "source": "src/settings/application/settings-help.js"
+      },
+      {
+        "source": "src/subusers/history/submitted-journals.js"
+      },
+      {
+        "source": "src/core/navigation/dashboard-and-calendar.js"
+      },
+      {
+        "source": "src/subusers/entries/multi-currency-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transaction-review-and-audit.js"
+      },
+      {
+        "source": "src/core/navigation/transaction-scroll-memory.js"
+      },
+      {
+        "source": "src/bookkeeping/history/audit-row-selection.js"
+      },
+      {
+        "source": "src/settings/application/settings-navigation.js"
+      },
+      {
+        "source": "src/subusers/workspace/user-tabs.js"
+      },
+      {
+        "source": "src/core/auth/session-timeout.js"
+      },
+      {
+        "source": "src/core/navigation/header-and-workspace-controls.js"
+      },
+      {
+        "source": "src/subusers/review/expandable-review.js"
+      },
+      {
+        "source": "src/subusers/accounts/assigned-funds.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-entry.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/journal-preparation.js"
+      },
+      {
+        "source": "src/subusers/history/submission-comparison.js"
+      },
+      {
+        "source": "src/core/permissions/workspace-access-pickers.js"
+      },
+      {
+        "source": "src/subusers/entries/secure-workspace-entry.js"
+      },
+      {
+        "source": "src/subusers/review/reopen-and-review.js"
+      },
+      {
+        "source": "src/settings/accounting/shared-id-settings.js"
+      },
+      {
+        "source": "src/subusers/entries/numbered-entry-form.js"
+      },
+      {
+        "source": "src/subusers/review/batch-correction.js"
+      },
+      {
+        "source": "src/core/permissions/account-assignment.js"
+      },
+      {
+        "source": "src/subusers/entries/inline-entry-editor.js"
+      },
+      {
+        "source": "src/core/permissions/navigation-permissions.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/scope-and-state.js"
+      },
+      {
+        "source": "src/subusers/accounts/responsive/fund-activity.js"
+      },
+      {
+        "source": "src/subusers/accounts/responsive/account-totals.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/home.js"
+      },
+      {
+        "source": "src/subusers/entries/responsive/post-form.js"
+      },
+      {
+        "source": "src/subusers/history/responsive/record-cards.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/navigation-and-desktop.js"
+      },
+      {
+        "source": "src/subusers/entries/responsive/entry-actions.js"
+      },
+      {
+        "source": "src/subusers/review/responsive/review-and-adjustments.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/registration-and-scope-close.js"
+      },
+      {
+        "source": "src/shared/data/idempotent-entry-references.js",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/account-assignment.js",
+        "prefix": "/* scripts/workspace-settings.js */\n"
+      },
+      {
+        "source": "src/subusers/entries/workspace-settings/state-and-inline-edit.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-settings/persist-entry.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/double-entry-conversion.js"
+      },
+      {
+        "source": "src/subusers/accounts/workspace-settings/account-summary.js"
+      },
+      {
+        "source": "src/subusers/review/workspace-settings/review-hooks.js"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/initialize.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/posting.js"
+      },
+      {
+        "source": "src/subusers/review/workspace-settings/review-card.js"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/saved-settings.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/handover.js",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/navigation/navigation-v48.js",
+        "prefix": "/* scripts/navigation-v48.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/subusers/entries/subusers-final-v53.js",
+        "prefix": "/* scripts/subusers-final-v53.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/entries/subusers-final-v54.js",
+        "prefix": "/* scripts/subusers-final-v54.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/entries/subusers-final-v55.js",
+        "prefix": "/* scripts/subusers-final-v55.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/entries/subusers-final-v56.js",
+        "prefix": "/* scripts/subusers-final-v56.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/design-system-v58.js",
+        "prefix": "/* scripts/design-system-v58.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/mobile-tables-v66.js",
+        "prefix": "/* scripts/mobile-tables-v66.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v67/date-mode-and-edit.js",
+        "prefix": "/* scripts/transactions-v67.js */\n"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transactions-v67/reopen-and-close.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transactions-v67/registration.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v67/archive-export.js",
+        "suffix": "\n\n;\n"
+      },
+      {
+        "source": "src/accounts/chart/accounts-v69.js",
+        "prefix": "/* scripts/accounts-v69.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/subusers/review/review-v69.js",
+        "prefix": "/* scripts/review-v69.js */\n",
+        "suffix": ";\n;\n\n"
+      },
+      {
+        "source": "src/core/navigation/interface-v69.js",
+        "prefix": "/* scripts/interface-v69.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/financial/reports-system-v71.js",
+        "prefix": "/* scripts/reports-system-v71.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-mobile-v72.js",
+        "prefix": "/* scripts/transactions-mobile-v72.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/mobile-polish-v73.js",
+        "prefix": "/* scripts/mobile-polish-v73.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/mobile-refinements-v74.js",
+        "prefix": "/* scripts/mobile-refinements-v74.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/review/review-mobile-v78.js",
+        "prefix": "/* scripts/review-mobile-v78.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/financial/reports-desktop-v79.js",
+        "prefix": "/* scripts/reports-desktop-v79.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-corrections-v80.js",
+        "prefix": "/* scripts/desktop-corrections-v80.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-refinements-v81.js",
+        "prefix": "/* scripts/desktop-refinements-v81.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-layout-v82.js",
+        "prefix": "/* scripts/desktop-layout-v82.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/payroll/engine/payroll-engine-v82.js",
+        "prefix": "/* scripts/payroll-engine-v82.js */\n",
+        "suffix": "\n\n;\n"
+      },
+      {
+        "source": "src/shared/state/workforce-store-v82.js",
+        "prefix": "/* scripts/payroll-reports-v82.js */\n"
+      },
+      {
+        "source": "src/shared/ui/workforce-forms-v82.js"
+      },
+      {
+        "source": "src/shared/data/workforce-storage-v82.js"
+      },
+      {
+        "source": "src/hr/employees/employee-forms-v82.js"
+      },
+      {
+        "source": "src/hr/leave/leave-forms-v82.js"
+      },
+      {
+        "source": "src/payroll/workspace/run-editor-v82.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/workspace-render-v82.js"
+      },
+      {
+        "source": "src/reports/subusers/operational-report-v82.js"
+      },
+      {
+        "source": "src/budget/requests/finance-report-v82.js"
+      },
+      {
+        "source": "src/reports/printing/print-document-v82.js"
+      },
+      {
+        "source": "src/payroll/reports/vouchers-v82.js"
+      },
+      {
+        "source": "src/hr/leave/print-leave-v82.js"
+      },
+      {
+        "source": "src/reports/financial/report-actions-v82.js"
+      },
+      {
+        "source": "src/payroll/workspace/schedule-v82.js"
+      },
+      {
+        "source": "src/settings/payroll/integration-audit-v82.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/registration-v82.js"
+      },
+      {
+        "source": "src/budget/requests/currency-conversions-v82.js"
+      },
+      {
+        "source": "src/payroll/reports/attendance-v82.js",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/payroll/workspace/payroll-samples-v83.js",
+        "prefix": "/* scripts/payroll-samples-v83.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/payroll/workspace/payroll-fixes-v83.js",
+        "prefix": "/* scripts/payroll-fixes-v83.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-polish-v84.js",
+        "prefix": "/* scripts/desktop-polish-v84.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/layout-fixes-v85.js",
+        "prefix": "/* scripts/layout-fixes-v85.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/layout-consistency-v87.js",
+        "prefix": "/* scripts/layout-consistency-v87.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/auth/session-inputs-v88.js",
+        "prefix": "/* scripts/session-inputs-v88.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/formatting/prefixes-badges-v89.js",
+        "prefix": "/* scripts/prefixes-badges-v89.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/recurring/scheduled-journals-v91.js",
+        "prefix": "/* scripts/scheduled-journals-v91.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/refinements-v93.js",
+        "prefix": "/* scripts/refinements-v93.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/settings/payroll/settings-payroll-v94.js",
+        "prefix": "/* scripts/settings-payroll-v94.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/scope-and-state.js",
+        "prefix": "/* scripts/payroll-groups-v96.js */\n"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/legend-and-marks.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/approved-leave-and-days.js"
+      },
+      {
+        "source": "src/payroll/engine/results-v96.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/tables-and-attendance.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/drafts-and-finalization.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/leave-usage.js"
+      },
+      {
+        "source": "src/hr/employees/directory-v96.js"
+      },
+      {
+        "source": "src/payroll/reports/history-v96.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/install-and-scope-close.js",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/scope-and-state.js",
+        "prefix": "/* scripts/payroll-polish-v97.js */\n"
+      },
+      {
+        "source": "src/bridges/hr-payroll/roster-v97.js"
+      },
+      {
+        "source": "src/hr/employees/form-presentation-v97.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/breakdown-and-overview.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/tab-layout.js"
+      },
+      {
+        "source": "src/hr/leave/print-application-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/recurring/preparation-and-warnings-v97.js"
+      },
+      {
+        "source": "src/shared/ui/universal-search-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/column-widths-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/history/monthly-audit-v97.js"
+      },
+      {
+        "source": "src/core/startup/lazy-modules-v97.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/install-and-scope-close.js",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/scope-open.js",
+        "prefix": "/* scripts/transactions-v98.js */\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/entry-and-balance.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v98/audit-view.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/csv-import.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transactions-v98/csv-export.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98/install-and-scope-close.js",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/payroll/workspace/payroll-v99.js",
+        "prefix": "/* scripts/payroll-v99.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/bridges/bookkeeping-startup/workspace-v99.js",
+        "prefix": "/* scripts/workspace-v99.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/hr/employees/hr-v99.js",
+        "prefix": "/* scripts/hr-v99.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/theme-v100.js",
+        "prefix": "/* scripts/theme-v100.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/polish-v101.js",
+        "prefix": "/* scripts/polish-v101.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/tax/tax-reports-v102.js",
+        "prefix": "/* scripts/tax-reports-v102.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-actions-v102.js",
+        "prefix": "/* scripts/journal-actions-v102.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/formatting/universal-date-v104.js",
+        "prefix": "/* scripts/universal-date-v104.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/header-profile-v104.js",
+        "prefix": "/* scripts/header-profile-v104.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/shortnames-v104.js",
+        "prefix": "/* scripts/shortnames-v104.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/refinements-v105.js",
+        "prefix": "/* scripts/refinements-v105.js */\n",
+        "suffix": ";\n\n\n;\n"
+      }
+    ],
+    "scripts/document-editor-v105.js": [
+      {
+        "source": "src/documents/editor/document-editor-v105.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/shared-v108.js": [
+      {
+        "source": "src/shared/presentation/shared-v108.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/refinements-v109.js": [
+      {
+        "source": "src/shared/presentation/refinements-v109.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/visual-consistency-v110.js": [
+      {
+        "source": "src/shared/presentation/visual-consistency-v110.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/dashboard-warm-v112.js": [
+      {
+        "source": "src/dashboard/dashboard-warm-v112.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/header-icons-v112.js": [
+      {
+        "source": "src/shared/presentation/header-icons-v112.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/keyboard-picking-v112.js": [
+      {
+        "source": "src/shared/ui/keyboard-picking-v112.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/shell-v113.js": [
+      {
+        "source": "src/core/navigation/shell-v113.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/access-v113.js": [
+      {
+        "source": "src/core/auth/access-v113.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-4.js": [
+      {
+        "source": "src/documents/import-export/document-export-v108.js",
+        "prefix": "/* scripts/document-export-v108.js */\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/documents/import-export/document-import-v1422.js",
+        "prefix": "/* scripts/document-import-v1422.js */\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/documents/editor/document-editor-v105.js",
+        "prefix": "/* scripts/document-editor-v105.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/shared-v108.js",
+        "prefix": "/* scripts/shared-v108.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/refinements-v109.js",
+        "prefix": "/* scripts/refinements-v109.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/visual-consistency-v110.js",
+        "prefix": "/* scripts/visual-consistency-v110.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/dashboard/dashboard-warm-v112.js",
+        "prefix": "/* scripts/dashboard-warm-v112.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/header-icons-v112.js",
+        "prefix": "/* scripts/header-icons-v112.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/ui/keyboard-picking-v112.js",
+        "prefix": "/* scripts/keyboard-picking-v112.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/navigation/shell-v113.js",
+        "prefix": "/* scripts/shell-v113.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/auth/access-v113.js",
+        "prefix": "/* scripts/access-v113.js */\n",
+        "suffix": ";\n\n;\n"
+      }
+    ],
+    "scripts/archive-xlsx-v129.js": [
+      {
+        "source": "src/maintenance/archive/archive-xlsx-v129.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/recovery-v113.js": [
+      {
+        "source": "src/core/auth/recovery-v113.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/funds-v113.js": [
+      {
+        "source": "src/subusers/accounts/funds-v113.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/final-v117.js": [
+      {
+        "source": "src/shared/presentation/final-v117.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/reports-v117.js": [
+      {
+        "source": "src/reports/financial/reports-v117.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace-v117.js": [
+      {
+        "source": "src/subusers/workspace/workspace-v117.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/final-v118.js": [
+      {
+        "source": "src/shared/presentation/final-v118.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/reports-v118.js": [
+      {
+        "source": "src/reports/financial/reports-v118.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/accounting-pos-cleanup.js": [
+      {
+        "source": "src/core/compatibility/accounting-pos-cleanup.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workflows-v136.js": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/workflows-v136.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/combined-v138.js": [
+      {
+        "source": "src/subusers/workspace/combined-v138.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/submission-review-v139.js": [
+      {
+        "source": "src/subusers/review/submission-review-v139.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-5.js": [
+      {
+        "source": "src/maintenance/archive/archive-xlsx-v129.js",
+        "prefix": "/* scripts/archive-xlsx-v129.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/core/auth/recovery-v113.js",
+        "prefix": "/* scripts/recovery-v113.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/subusers/accounts/funds-v113.js",
+        "prefix": "/* scripts/funds-v113.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/final-v117.js",
+        "prefix": "/* scripts/final-v117.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/financial/reports-v117.js",
+        "prefix": "/* scripts/reports-v117.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/subusers/workspace/workspace-v117.js",
+        "prefix": "/* scripts/workspace-v117.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/final-v118.js",
+        "prefix": "/* scripts/final-v118.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/financial/reports-v118.js",
+        "prefix": "/* scripts/reports-v118.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/compatibility/accounting-pos-cleanup.js",
+        "prefix": "/* scripts/accounting-pos-cleanup.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workflows-v136.js",
+        "prefix": "/* scripts/workflows-v136.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/workspace/combined-v138.js",
+        "prefix": "/* scripts/combined-v138.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/review/submission-review-v139.js",
+        "prefix": "/* scripts/submission-review-v139.js */\n",
+        "suffix": ";\n\n\n;\n"
+      }
+    ],
+    "scripts/carry-forward-v142.js": [
+      {
+        "source": "src/bookkeeping/finalization/carry-forward-v142.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/recovery-reset-fix-v142.js": [
+      {
+        "source": "src/core/auth/recovery-reset-fix-v142.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/post-entry-diagnostics-v142.js": [
+      {
+        "source": "src/bookkeeping/journal/post-entry-diagnostics-v142.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/focused-v1422.js": [
+      {
+        "source": "src/shared/presentation/focused-v1422.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/staff-entry14225.js": [
+      {
+        "source": "src/subusers/entries/staff-entry14225.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/phone-bridge132.js": [
+      {
+        "source": "src/core/navigation/phone-bridge132.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/settings-phone133.js": [
+      {
+        "source": "src/settings/application/settings-phone133.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/voucher-signatories1433.js": [
+      {
+        "source": "src/reports/vouchers/voucher-signatories1433.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-print1424.js": [
+      {
+        "source": "src/payroll/reports/payroll-print1424.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/print-preview1426.js": [
+      {
+        "source": "src/reports/printing/print-preview1426.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/drafts1427.js": [
+      {
+        "source": "src/subusers/entries/drafts1427.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/focused1427.js": [
+      {
+        "source": "src/shared/presentation/focused1427.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/account-picker1428.js": [
+      {
+        "source": "src/shared/ui/account-picker1428.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-template1431.js": [
+      {
+        "source": "src/bridges/payroll-bookkeeping/payroll-template1431.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/payroll-journal1429.js": [
+      {
+        "source": "src/bridges/payroll-bookkeeping/payroll-journal1429.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/entry1430.js": [
+      {
+        "source": "src/bookkeeping/journal/entry1430.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace-config123.js": [
+      {
+        "source": "src/subusers/workspace/workspace-config123.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace-links123.js": [
+      {
+        "source": "src/subusers/workspace/workspace-links123.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workflows1434.js": [
+      {
+        "source": "src/core/auth/workflows1434.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/saved-reports1434.js": [
+      {
+        "source": "src/reports/history/saved-reports1434.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/personal-journal1437.js": [
+      {
+        "source": "src/subusers/entries/personal-journal1437.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/todos1438.js": [
+      {
+        "source": "src/bookkeeping/recurring/todos1438.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/workspace1439.js": [
+      {
+        "source": "src/subusers/workspace/workspace1439.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/dialogs1440.js": [
+      {
+        "source": "src/shared/ui/dialogs1440.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/journal-batch1440.js": [
+      {
+        "source": "src/bookkeeping/journal/journal-batch1440.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/permissions1441.js": [
+      {
+        "source": "src/core/permissions/permissions1441.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/mobile-document1443.js": [
+      {
+        "source": "src/shared/presentation/mobile-document1443.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/report-history1443.js": [
+      {
+        "source": "src/reports/history/report-history1443.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/startup1443.js": [
+      {
+        "source": "src/core/startup/startup1443.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/session-policy1443.js": [
+      {
+        "source": "src/core/auth/session-policy1443.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/organization14229.js": [
+      {
+        "source": "src/subusers/workspace/organization14229.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/private-reminders14229.js": [
+      {
+        "source": "src/bookkeeping/recurring/private-reminders14229.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/team-home14227.js": [
+      {
+        "source": "src/subusers/workspace/team-home14227.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/corrections14231.js": [
+      {
+        "source": "src/shared/presentation/corrections14231.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/currency-colors14231.js": [
+      {
+        "source": "src/shared/formatting/currency-colors14231.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/financial-numbers14231.js": [
+      {
+        "source": "src/shared/formatting/financial-numbers14231.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/archive-scopes14232.js": [
+      {
+        "source": "src/maintenance/archive/archive-scopes14232.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/audit-engine14232.js": [
+      {
+        "source": "src/maintenance/audit/audit-engine14232.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/audit-storage14232.js": [
+      {
+        "source": "src/maintenance/audit/audit-storage14232.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/data-tools14232.js": [
+      {
+        "source": "src/maintenance/backup/data-tools14232.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/save-notices14234.js": [
+      {
+        "source": "src/shared/ui/save-notices14234.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/opening-balances14234.js": [
+      {
+        "source": "src/accounts/opening-balances/opening-balances14234.js",
+        "suffix": ";\n"
+      }
+    ],
+    "scripts/desktop14245-6.js": [
+      {
+        "source": "src/bookkeeping/finalization/carry-forward-v142.js",
+        "prefix": "/* scripts/carry-forward-v142.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/auth/recovery-reset-fix-v142.js",
+        "prefix": "/* scripts/recovery-reset-fix-v142.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/post-entry-diagnostics-v142.js",
+        "prefix": "/* scripts/post-entry-diagnostics-v142.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/focused-v1422.js",
+        "prefix": "/* scripts/focused-v1422.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/entries/staff-entry14225.js",
+        "prefix": "/* scripts/staff-entry14225.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/core/navigation/phone-bridge132.js",
+        "prefix": "/* scripts/phone-bridge132.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/settings/application/settings-phone133.js",
+        "prefix": "/* scripts/settings-phone133.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/reports/vouchers/voucher-signatories1433.js",
+        "prefix": "/* scripts/voucher-signatories1433.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/payroll/reports/payroll-print1424.js",
+        "prefix": "/* scripts/payroll-print1424.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/printing/print-preview1426.js",
+        "prefix": "/* scripts/print-preview1426.js */\n",
+        "suffix": ";\n;\n\n"
+      },
+      {
+        "source": "src/subusers/entries/drafts1427.js",
+        "prefix": "/* scripts/drafts1427.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/focused1427.js",
+        "prefix": "/* scripts/focused1427.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/ui/account-picker1428.js",
+        "prefix": "/* scripts/account-picker1428.js */\n",
+        "suffix": ";\n;\n\n"
+      },
+      {
+        "source": "src/bridges/payroll-bookkeeping/payroll-template1431.js",
+        "prefix": "/* scripts/payroll-template1431.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/bridges/payroll-bookkeeping/payroll-journal1429.js",
+        "prefix": "/* scripts/payroll-journal1429.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry1430.js",
+        "prefix": "/* scripts/entry1430.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/subusers/workspace/workspace-config123.js",
+        "prefix": "/* scripts/workspace-config123.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/workspace/workspace-links123.js",
+        "prefix": "/* scripts/workspace-links123.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/auth/workflows1434.js",
+        "prefix": "/* scripts/workflows1434.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/history/saved-reports1434.js",
+        "prefix": "/* scripts/saved-reports1434.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/subusers/entries/personal-journal1437.js",
+        "prefix": "/* scripts/personal-journal1437.js */\n",
+        "suffix": ";\n\n"
+      },
+      {
+        "source": "src/bookkeeping/recurring/todos1438.js",
+        "prefix": "/* scripts/todos1438.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/subusers/workspace/workspace1439.js",
+        "prefix": "/* scripts/workspace1439.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/ui/dialogs1440.js",
+        "prefix": "/* scripts/dialogs1440.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-batch1440.js",
+        "prefix": "/* scripts/journal-batch1440.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/core/permissions/permissions1441.js",
+        "prefix": "/* scripts/permissions1441.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/presentation/mobile-document1443.js",
+        "prefix": "/* scripts/mobile-document1443.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/history/report-history1443.js",
+        "prefix": "/* scripts/report-history1443.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/startup/startup1443.js",
+        "prefix": "/* scripts/startup1443.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/core/auth/session-policy1443.js",
+        "prefix": "/* scripts/session-policy1443.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/workspace/organization14229.js",
+        "prefix": "/* scripts/organization14229.js */\n",
+        "suffix": ";\n\n"
+      },
+      {
+        "source": "src/bookkeeping/recurring/private-reminders14229.js",
+        "prefix": "/* scripts/private-reminders14229.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/workspace/team-home14227.js",
+        "prefix": "/* scripts/team-home14227.js */\n",
+        "suffix": ";\n\n;\n\n"
+      },
+      {
+        "source": "src/shared/presentation/corrections14231.js",
+        "prefix": "/* scripts/corrections14231.js */\n",
+        "suffix": ";\n\n;\n\n"
+      },
+      {
+        "source": "src/shared/formatting/currency-colors14231.js",
+        "prefix": "/* scripts/currency-colors14231.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/shared/formatting/financial-numbers14231.js",
+        "prefix": "/* scripts/financial-numbers14231.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/maintenance/archive/archive-scopes14232.js",
+        "prefix": "/* scripts/archive-scopes14232.js */\n",
+        "suffix": ";\n\n"
+      },
+      {
+        "source": "src/maintenance/audit/audit-engine14232.js",
+        "prefix": "/* scripts/audit-engine14232.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/maintenance/audit/audit-storage14232.js",
+        "prefix": "/* scripts/audit-storage14232.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/maintenance/backup/data-tools14232.js",
+        "prefix": "/* scripts/data-tools14232.js */\n",
+        "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/shared/ui/save-notices14234.js",
+        "prefix": "/* scripts/save-notices14234.js */\n",
+        "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/accounts/opening-balances/opening-balances14234.js",
+        "prefix": "/* scripts/opening-balances14234.js */\n",
+        "suffix": ";\n\n;\n"
+      }
+    ],
+    "styles/offline14239.css": [
+      {
+        "source": "src/core/sync/offline14239.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/loading1444.css": [
+      {
+        "source": "src/core/startup/loading1444.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/styles.css": [
+      {
+        "source": "src/shared/presentation/foundation/theme-tokens.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/sidebar-layout.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/cards-and-tables.css"
+      },
+      {
+        "source": "src/shared/ui/foundation/modals.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/cards.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/form-controls.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/cell-inputs.css"
+      },
+      {
+        "source": "src/bookkeeping/history/foundation/entry-clusters.css"
+      },
+      {
+        "source": "src/bookkeeping/history/foundation/audit-badges.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/actions.css"
+      },
+      {
+        "source": "src/reports/printing/foundation/print-layout.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-workspace-tabs.css"
+      },
+      {
+        "source": "src/bookkeeping/recurring/foundation/templates-and-reminders.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/multiple-dates.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/responsive-shell.css"
+      },
+      {
+        "source": "src/core/auth/foundation/login-and-users.css"
+      },
+      {
+        "source": "src/settings/business/foundation/profile-form.css"
+      },
+      {
+        "source": "src/subusers/entries/foundation/staff-journal.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/compact-tables.css"
+      },
+      {
+        "source": "src/bookkeeping/finalization/foundation/period-workflow.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-and-review.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/headers-and-periods.css"
+      },
+      {
+        "source": "src/bookkeeping/finalization/foundation/review-and-audit.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/action-columns-and-session-return.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/sticky-tabs.css"
+      },
+      {
+        "source": "src/settings/application/foundation/forms.css"
+      },
+      {
+        "source": "src/subusers/workspace/foundation/funds-and-layout.css"
+      },
+      {
+        "source": "src/core/permissions/foundation/account-selectors.css"
+      },
+      {
+        "source": "src/core/auth/foundation/recovery-and-permissions.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-workspace-controls.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/category-navigation.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/content-accents.css"
+      },
+      {
+        "source": "src/subusers/workspace/foundation/integration.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-final-v53.css": [
+      {
+        "source": "src/subusers/entries/subusers-final-v53.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-final-v55.css": [
+      {
+        "source": "src/subusers/entries/subusers-final-v55.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-final-v56.css": [
+      {
+        "source": "src/subusers/entries/subusers-final-v56.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/design-system-v58.css": [
+      {
+        "source": "src/shared/presentation/design-system-v58.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-mobile-v61.css": [
+      {
+        "source": "src/subusers/workspace/subusers-mobile-v61.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/mobile-tables-v66.css": [
+      {
+        "source": "src/shared/presentation/mobile-tables-v66.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/transactions-v67.css": [
+      {
+        "source": "src/bookkeeping/journal/transactions-v67.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/accounts-review-v69.css": [
+      {
+        "source": "src/accounts/chart/accounts-review-v69.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-v71.css": [
+      {
+        "source": "src/shared/presentation/desktop-v71.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/transactions-mobile-v72.css": [
+      {
+        "source": "src/bookkeeping/journal/transactions-mobile-v72.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/mobile-polish-v73.css": [
+      {
+        "source": "src/shared/presentation/mobile-polish-v73.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/mobile-refinements-v74.css": [
+      {
+        "source": "src/shared/presentation/mobile-refinements-v74.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-polish-v75.css": [
+      {
+        "source": "src/subusers/workspace/subusers-polish-v75.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/review-mobile-v78.css": [
+      {
+        "source": "src/subusers/review/review-mobile-v78.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/reports-desktop-v79.css": [
+      {
+        "source": "src/reports/financial/reports-desktop-v79.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-corrections-v80.css": [
+      {
+        "source": "src/shared/presentation/desktop-corrections-v80.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-refinements-v81.css": [
+      {
+        "source": "src/shared/presentation/desktop-refinements-v81.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-layout-v82.css": [
+      {
+        "source": "src/shared/presentation/desktop-layout-v82.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/payroll-reports-v82.css": [
+      {
+        "source": "src/payroll/reports/payroll-reports-v82.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/table-alignment-v83.css": [
+      {
+        "source": "src/shared/presentation/table-alignment-v83.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-polish-v84.css": [
+      {
+        "source": "src/shared/presentation/desktop-polish-v84.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/layout-fixes-v85.css": [
+      {
+        "source": "src/shared/presentation/layout-fixes-v85.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/layout-consistency-v87.css": [
+      {
+        "source": "src/shared/presentation/layout-consistency-v87.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/fixes14234.css": [
+      {
+        "source": "src/shared/presentation/fixes14234.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/session-inputs-v88.css": [
+      {
+        "source": "src/core/auth/session-inputs-v88.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/prefixes-badges-v89.css": [
+      {
+        "source": "src/shared/formatting/prefixes-badges-v89.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/scheduled-journals-v91.css": [
+      {
+        "source": "src/bookkeeping/recurring/scheduled-journals-v91.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/refinements-v93.css": [
+      {
+        "source": "src/shared/presentation/refinements-v93.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/settings-payroll-v94.css": [
+      {
+        "source": "src/settings/payroll/settings-payroll-v94.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/payroll-groups-v95.css": [
+      {
+        "source": "src/bridges/hr-payroll/payroll-groups-v95.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/payroll-polish-v97.css": [
+      {
+        "source": "src/payroll/workspace/payroll-polish-v97.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/transactions-v98.css": [
+      {
+        "source": "src/bookkeeping/journal/transactions-v98.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workspace-v99.css": [
+      {
+        "source": "src/bridges/bookkeeping-startup/workspace-v99.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/theme-v100.css": [
+      {
+        "source": "src/shared/presentation/theme-v100.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/polish-v101.css": [
+      {
+        "source": "src/shared/presentation/polish-v101.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/reports-tax-v102.css": [
+      {
+        "source": "src/reports/tax/reports-tax-v102.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/universal-date-v104.css": [
+      {
+        "source": "src/shared/formatting/universal-date-v104.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/header-profile-v104.css": [
+      {
+        "source": "src/shared/presentation/header-profile-v104.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/refinements-v105.css": [
+      {
+        "source": "src/shared/presentation/refinements-v105.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/refinements-v106.css": [
+      {
+        "source": "src/shared/presentation/refinements-v106.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/editor-tables-v107.css": [
+      {
+        "source": "src/documents/editor/editor-tables-v107.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/shared-v108.css": [
+      {
+        "source": "src/shared/presentation/shared-v108.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/refinements-v109.css": [
+      {
+        "source": "src/shared/presentation/refinements-v109.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/editor-fixes-v110.css": [
+      {
+        "source": "src/documents/editor/editor-fixes-v110.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/dashboard-warm-v112.css": [
+      {
+        "source": "src/dashboard/dashboard-warm-v112.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/polish-v113.css": [
+      {
+        "source": "src/shared/presentation/polish-v113.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/final-v117.css": [
+      {
+        "source": "src/shared/presentation/final-v117.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/final-v118.css": [
+      {
+        "source": "src/shared/presentation/final-v118.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workflows-v136.css": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/workflows-v136.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/combined-v138.css": [
+      {
+        "source": "src/subusers/workspace/combined-v138.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/submission-review-v139.css": [
+      {
+        "source": "src/subusers/review/submission-review-v139.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/carry-forward-v142.css": [
+      {
+        "source": "src/bookkeeping/finalization/carry-forward-v142.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/recovery-reset-fix-v142.css": [
+      {
+        "source": "src/core/auth/recovery-reset-fix-v142.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/focused-v1422.css": [
+      {
+        "source": "src/shared/presentation/focused-v1422.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/device-mode132.css": [
+      {
+        "source": "src/core/startup/device-mode132.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/editor-print1424.css": [
+      {
+        "source": "src/documents/editor/editor-print1424.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/editor-menus1426.css": [
+      {
+        "source": "src/documents/editor/editor-menus1426.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/focused1427.css": [
+      {
+        "source": "src/shared/presentation/focused1427.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/account-picker1428.css": [
+      {
+        "source": "src/shared/ui/account-picker1428.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/fixes1429.css": [
+      {
+        "source": "src/shared/presentation/fixes1429.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/payroll-template1431.css": [
+      {
+        "source": "src/bridges/payroll-bookkeeping/payroll-template1431.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/entry1430.css": [
+      {
+        "source": "src/bookkeeping/journal/entry1430.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workspaces1432.css": [
+      {
+        "source": "src/subusers/workspace/workspaces1432.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/voucher-accounts1433.css": [
+      {
+        "source": "src/reports/vouchers/voucher-accounts1433.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workflows1434.css": [
+      {
+        "source": "src/core/auth/workflows1434.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/personal-journal1437.css": [
+      {
+        "source": "src/subusers/entries/personal-journal1437.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop-tasks1438.css": [
+      {
+        "source": "src/shared/presentation/desktop-tasks1438.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/workspace1439.css": [
+      {
+        "source": "src/subusers/workspace/workspace1439.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/finalization1440.css": [
+      {
+        "source": "src/bookkeeping/finalization/finalization1440.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/polish1443.css": [
+      {
+        "source": "src/shared/presentation/polish1443.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/polish1444.css": [
+      {
+        "source": "src/shared/presentation/polish1444.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/subusers-header14226.css": [
+      {
+        "source": "src/subusers/workspace/subusers-header14226.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/team-home14227.css": [
+      {
+        "source": "src/subusers/workspace/team-home14227.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/corrections14231.css": [
+      {
+        "source": "src/shared/presentation/corrections14231.css",
+        "suffix": "\n"
+      }
+    ],
+    "styles/desktop14245.css": [
+      {
+        "source": "src/core/sync/offline14239.css",
+        "prefix": "/* styles/offline14239.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/core/startup/loading1444.css",
+        "prefix": "/* styles/loading1444.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/foundation/theme-tokens.css",
+        "prefix": "/* styles/styles.css */\n"
+      },
+      {
+        "source": "src/core/navigation/foundation/sidebar-layout.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/cards-and-tables.css"
+      },
+      {
+        "source": "src/shared/ui/foundation/modals.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/cards.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/form-controls.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/cell-inputs.css"
+      },
+      {
+        "source": "src/bookkeeping/history/foundation/entry-clusters.css"
+      },
+      {
+        "source": "src/bookkeeping/history/foundation/audit-badges.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/actions.css"
+      },
+      {
+        "source": "src/reports/printing/foundation/print-layout.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-workspace-tabs.css"
+      },
+      {
+        "source": "src/bookkeeping/recurring/foundation/templates-and-reminders.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/multiple-dates.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/responsive-shell.css"
+      },
+      {
+        "source": "src/core/auth/foundation/login-and-users.css"
+      },
+      {
+        "source": "src/settings/business/foundation/profile-form.css"
+      },
+      {
+        "source": "src/subusers/entries/foundation/staff-journal.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/compact-tables.css"
+      },
+      {
+        "source": "src/bookkeeping/finalization/foundation/period-workflow.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-and-review.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/headers-and-periods.css"
+      },
+      {
+        "source": "src/bookkeeping/finalization/foundation/review-and-audit.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/action-columns-and-session-return.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/sticky-tabs.css"
+      },
+      {
+        "source": "src/settings/application/foundation/forms.css"
+      },
+      {
+        "source": "src/subusers/workspace/foundation/funds-and-layout.css"
+      },
+      {
+        "source": "src/core/permissions/foundation/account-selectors.css"
+      },
+      {
+        "source": "src/core/auth/foundation/recovery-and-permissions.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-workspace-controls.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/category-navigation.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/content-accents.css"
+      },
+      {
+        "source": "src/subusers/workspace/foundation/integration.css",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/entries/subusers-final-v53.css",
+        "prefix": "/* styles/subusers-final-v53.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/entries/subusers-final-v55.css",
+        "prefix": "/* styles/subusers-final-v55.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/entries/subusers-final-v56.css",
+        "prefix": "/* styles/subusers-final-v56.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/design-system-v58.css",
+        "prefix": "/* styles/design-system-v58.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/workspace/subusers-mobile-v61.css",
+        "prefix": "/* styles/subusers-mobile-v61.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/mobile-tables-v66.css",
+        "prefix": "/* styles/mobile-tables-v66.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v67.css",
+        "prefix": "/* styles/transactions-v67.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/accounts/chart/accounts-review-v69.css",
+        "prefix": "/* styles/accounts-review-v69.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-v71.css",
+        "prefix": "/* styles/desktop-v71.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-mobile-v72.css",
+        "prefix": "/* styles/transactions-mobile-v72.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/mobile-polish-v73.css",
+        "prefix": "/* styles/mobile-polish-v73.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/mobile-refinements-v74.css",
+        "prefix": "/* styles/mobile-refinements-v74.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/workspace/subusers-polish-v75.css",
+        "prefix": "/* styles/subusers-polish-v75.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/review/review-mobile-v78.css",
+        "prefix": "/* styles/review-mobile-v78.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/reports/financial/reports-desktop-v79.css",
+        "prefix": "/* styles/reports-desktop-v79.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-corrections-v80.css",
+        "prefix": "/* styles/desktop-corrections-v80.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-refinements-v81.css",
+        "prefix": "/* styles/desktop-refinements-v81.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-layout-v82.css",
+        "prefix": "/* styles/desktop-layout-v82.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/payroll/reports/payroll-reports-v82.css",
+        "prefix": "/* styles/payroll-reports-v82.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/table-alignment-v83.css",
+        "prefix": "/* styles/table-alignment-v83.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-polish-v84.css",
+        "prefix": "/* styles/desktop-polish-v84.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/layout-fixes-v85.css",
+        "prefix": "/* styles/layout-fixes-v85.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/layout-consistency-v87.css",
+        "prefix": "/* styles/layout-consistency-v87.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/fixes14234.css",
+        "prefix": "/* styles/fixes14234.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/core/auth/session-inputs-v88.css",
+        "prefix": "/* styles/session-inputs-v88.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/formatting/prefixes-badges-v89.css",
+        "prefix": "/* styles/prefixes-badges-v89.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bookkeeping/recurring/scheduled-journals-v91.css",
+        "prefix": "/* styles/scheduled-journals-v91.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/refinements-v93.css",
+        "prefix": "/* styles/refinements-v93.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/settings/payroll/settings-payroll-v94.css",
+        "prefix": "/* styles/settings-payroll-v94.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bridges/hr-payroll/payroll-groups-v95.css",
+        "prefix": "/* styles/payroll-groups-v95.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/payroll/workspace/payroll-polish-v97.css",
+        "prefix": "/* styles/payroll-polish-v97.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/transactions-v98.css",
+        "prefix": "/* styles/transactions-v98.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bridges/bookkeeping-startup/workspace-v99.css",
+        "prefix": "/* styles/workspace-v99.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/theme-v100.css",
+        "prefix": "/* styles/theme-v100.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/polish-v101.css",
+        "prefix": "/* styles/polish-v101.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/reports/tax/reports-tax-v102.css",
+        "prefix": "/* styles/reports-tax-v102.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/formatting/universal-date-v104.css",
+        "prefix": "/* styles/universal-date-v104.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/header-profile-v104.css",
+        "prefix": "/* styles/header-profile-v104.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/refinements-v105.css",
+        "prefix": "/* styles/refinements-v105.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/documents/editor/document-editor-v105.css",
+        "prefix": "/* styles/document-editor-v105.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/refinements-v106.css",
+        "prefix": "/* styles/refinements-v106.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/documents/editor/editor-tables-v107.css",
+        "prefix": "/* styles/editor-tables-v107.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/shared-v108.css",
+        "prefix": "/* styles/shared-v108.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/refinements-v109.css",
+        "prefix": "/* styles/refinements-v109.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/documents/editor/editor-fixes-v110.css",
+        "prefix": "/* styles/editor-fixes-v110.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/dashboard/dashboard-warm-v112.css",
+        "prefix": "/* styles/dashboard-warm-v112.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/polish-v113.css",
+        "prefix": "/* styles/polish-v113.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/final-v117.css",
+        "prefix": "/* styles/final-v117.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/final-v118.css",
+        "prefix": "/* styles/final-v118.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workflows-v136.css",
+        "prefix": "/* styles/workflows-v136.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/workspace/combined-v138.css",
+        "prefix": "/* styles/combined-v138.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/review/submission-review-v139.css",
+        "prefix": "/* styles/submission-review-v139.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bookkeeping/finalization/carry-forward-v142.css",
+        "prefix": "/* styles/carry-forward-v142.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/core/auth/recovery-reset-fix-v142.css",
+        "prefix": "/* styles/recovery-reset-fix-v142.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/focused-v1422.css",
+        "prefix": "/* styles/focused-v1422.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/core/startup/device-mode132.css",
+        "prefix": "/* styles/device-mode132.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/documents/editor/editor-print1424.css",
+        "prefix": "/* styles/editor-print1424.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/documents/editor/editor-menus1426.css",
+        "prefix": "/* styles/editor-menus1426.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/focused1427.css",
+        "prefix": "/* styles/focused1427.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/ui/account-picker1428.css",
+        "prefix": "/* styles/account-picker1428.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/fixes1429.css",
+        "prefix": "/* styles/fixes1429.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bridges/payroll-bookkeeping/payroll-template1431.css",
+        "prefix": "/* styles/payroll-template1431.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry1430.css",
+        "prefix": "/* styles/entry1430.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/workspace/workspaces1432.css",
+        "prefix": "/* styles/workspaces1432.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/reports/vouchers/voucher-accounts1433.css",
+        "prefix": "/* styles/voucher-accounts1433.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/core/auth/workflows1434.css",
+        "prefix": "/* styles/workflows1434.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/entries/personal-journal1437.css",
+        "prefix": "/* styles/personal-journal1437.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/desktop-tasks1438.css",
+        "prefix": "/* styles/desktop-tasks1438.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/workspace/workspace1439.css",
+        "prefix": "/* styles/workspace1439.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/bookkeeping/finalization/finalization1440.css",
+        "prefix": "/* styles/finalization1440.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/polish1443.css",
+        "prefix": "/* styles/polish1443.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/polish1444.css",
+        "prefix": "/* styles/polish1444.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/workspace/subusers-header14226.css",
+        "prefix": "/* styles/subusers-header14226.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/subusers/workspace/team-home14227.css",
+        "prefix": "/* styles/team-home14227.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/shared/presentation/corrections14231.css",
+        "prefix": "/* styles/corrections14231.css */\n",
+        "suffix": "\n\n"
+      },
+      {
+        "source": "src/maintenance/backup/data-tools14232.css",
+        "prefix": "/* styles/data-tools14232.css */\n",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/account-security14257.js": [
+      {
+        "source": "src/core/auth/account-security14257.js"
+      }
+    ],
+    "scripts/action-feedback14296.js": [
+      {
+        "source": "src/shared/ui/action-feedback14296.js"
+      }
+    ],
+    "scripts/admin-access14251.js": [
+      {
+        "source": "src/core/auth/admin-access14251.js"
+      }
+    ],
+    "scripts/auto-sync14256.js": [
+      {
+        "source": "src/core/sync/auto-sync14256.js"
+      }
+    ],
+    "scripts/controls14317.js": [
+      {
+        "source": "src/shared/ui/controls14317.js"
+      }
+    ],
+    "scripts/design14284.js": [
+      {
+        "source": "src/shared/presentation/design14284.js"
+      }
+    ],
+    "scripts/desktop-layout1438.js": [
+      {
+        "source": "src/shared/presentation/desktop-layout1438.js"
+      }
+    ],
+    "scripts/desktop-scale14320.js": [
+      {
+        "source": "src/core/navigation/desktop-scale14320.js"
+      }
+    ],
+    "scripts/device-vault14334.js": [
+      {
+        "source": "src/core/auth/device-vault14334.js"
+      }
+    ],
+    "scripts/feedback-viewport14295.js": [
+      {
+        "source": "src/shared/ui/feedback-viewport14295.js"
+      }
+    ],
+    "scripts/field-focus14253.js": [
+      {
+        "source": "src/shared/ui/field-focus14253.js"
+      }
+    ],
+    "scripts/heading-case14297.js": [
+      {
+        "source": "src/shared/formatting/heading-case14297.js"
+      }
+    ],
+    "scripts/idle-sync14341.js": [
+      {
+        "source": "src/core/sync/idle-sync14341.js"
+      }
+    ],
+    "scripts/layout-voucher-polish14301.js": [
+      {
+        "source": "src/shared/presentation/layout-voucher-polish14301.js"
+      }
+    ],
+    "scripts/layout14256.js": [
+      {
+        "source": "src/shared/presentation/layout14256.js"
+      }
+    ],
+    "scripts/local-first14333.js": [
+      {
+        "source": "src/core/sync/local-first14333.js"
+      }
+    ],
+    "scripts/login-notifications14293.js": [
+      {
+        "source": "src/core/auth/login-notifications14293.js"
+      }
+    ],
+    "scripts/module-dock14269.js": [
+      {
+        "source": "src/core/navigation/module-dock14269.js"
+      }
+    ],
+    "scripts/navigation-badges14311.js": [
+      {
+        "source": "src/core/navigation/navigation-badges14311.js"
+      }
+    ],
+    "scripts/navigation-workflow14316.js": [
+      {
+        "source": "src/core/navigation/navigation-workflow14316.js"
+      }
+    ],
+    "scripts/numeric-caret14257.js": [
+      {
+        "source": "src/shared/formatting/numeric-caret14257.js"
+      }
+    ],
+    "scripts/offline14239.js": [
+      {
+        "source": "src/core/sync/offline14239.js"
+      }
+    ],
+    "scripts/optional-tools14335.js": [
+      {
+        "source": "src/core/startup/optional-tools14335.js"
+      }
+    ],
+    "scripts/password-policy14257.js": [
+      {
+        "source": "src/core/auth/password-policy14257.js"
+      }
+    ],
+    "scripts/password-service14264.js": [
+      {
+        "source": "src/core/auth/password-service14264.js"
+      }
+    ],
+    "scripts/payroll-window14334.js": [
+      {
+        "source": "src/core/sync/payroll-window14334.js"
+      }
+    ],
+    "scripts/phone-data14248.js": [
+      {
+        "source": "src/core/startup/phone-data14248.js"
+      }
+    ],
+    "scripts/phone-keyboard14252.js": [
+      {
+        "source": "src/core/navigation/phone-keyboard14252.js"
+      }
+    ],
+    "scripts/phone-pull-refresh1423.js": [
+      {
+        "source": "src/core/navigation/phone-pull-refresh1423.js"
+      }
+    ],
+    "scripts/phone-reset-gate14257.js": [
+      {
+        "source": "src/core/auth/phone-reset-gate14257.js"
+      }
+    ],
+    "scripts/polish14325.js": [
+      {
+        "source": "src/shared/presentation/polish14325.js"
+      }
+    ],
+    "scripts/recovery14257.js": [
+      {
+        "source": "src/core/auth/recovery14257.js"
+      }
+    ],
+    "scripts/search-autofill14285.js": [
+      {
+        "source": "src/shared/ui/search-autofill14285.js"
+      }
+    ],
+    "scripts/session-cache14333.js": [
+      {
+        "source": "src/core/auth/session-cache14333.js"
+      }
+    ],
+    "scripts/startup14257.js": [
+      {
+        "source": "src/core/startup/startup14257.js"
+      }
+    ],
+    "scripts/view-render14340.js": [
+      {
+        "source": "src/core/rendering/view-render14340.js"
+      }
+    ],
+    "scripts/year-window14333.js": [
+      {
+        "source": "src/core/sync/year-window14333.js"
+      }
+    ],
+    "styles/compact14327.css": [
+      {
+        "source": "src/shared/presentation/compact14327.css"
+      }
+    ],
+    "styles/controls14305.css": [
+      {
+        "source": "src/shared/ui/controls14305.css"
+      }
+    ],
+    "styles/controls14317.css": [
+      {
+        "source": "src/shared/ui/controls14317.css"
+      }
+    ],
+    "styles/design14284.css": [
+      {
+        "source": "src/shared/presentation/design14284.css"
+      }
+    ],
+    "styles/desktop-scale14320.css": [
+      {
+        "source": "src/core/navigation/desktop-scale14320.css"
+      }
+    ],
+    "styles/feedback-viewport14295.css": [
+      {
+        "source": "src/shared/ui/feedback-viewport14295.css"
+      }
+    ],
+    "styles/functional-corrections14292.css": [
+      {
+        "source": "src/shared/presentation/functional-corrections14292.css"
+      }
+    ],
+    "styles/layout-voucher-polish14301.css": [
+      {
+        "source": "src/shared/presentation/layout-voucher-polish14301.css"
+      }
+    ],
+    "styles/layout14256.css": [
+      {
+        "source": "src/shared/presentation/layout14256.css"
+      }
+    ],
+    "styles/login-notifications14293.css": [
+      {
+        "source": "src/core/auth/login-notifications14293.css"
+      }
+    ],
+    "styles/module-dock14269.css": [
+      {
+        "source": "src/core/navigation/module-dock14269.css"
+      }
+    ],
+    "styles/navigation-badges14311.css": [
+      {
+        "source": "src/core/navigation/navigation-badges14311.css"
+      }
+    ],
+    "styles/password-help14278.css": [
+      {
+        "source": "src/core/auth/password-help14278.css"
+      }
+    ],
+    "styles/phone-navigation14285.css": [
+      {
+        "source": "src/core/navigation/phone-navigation14285.css"
+      }
+    ],
+    "styles/phone-pull-refresh1423.css": [
+      {
+        "source": "src/core/navigation/phone-pull-refresh1423.css"
+      }
+    ],
+    "styles/phone-shell14285.css": [
+      {
+        "source": "src/core/navigation/phone-shell14285.css"
+      }
+    ],
+    "styles/polish14325.css": [
+      {
+        "source": "src/shared/presentation/polish14325.css"
+      }
+    ],
+    "styles/responsive-work14341.css": [
+      {
+        "source": "src/shared/presentation/responsive-work14341.css"
+      }
+    ],
+    "scripts/account-currency14257.js": [
+      {
+        "source": "src/accounts/chart/account-currency14257.js"
+      }
+    ],
+    "scripts/account-groups14253.js": [
+      {
+        "source": "src/accounts/chart/account-groups14253.js"
+      }
+    ],
+    "scripts/closing-eligibility14346.js": [
+      {
+        "source": "src/bookkeeping/finalization/closing-eligibility14346.js"
+      }
+    ],
+    "scripts/entry-actions14271.js": [
+      {
+        "source": "src/bookkeeping/journal/entry-actions14271.js"
+      }
+    ],
+    "scripts/entry-number14257.js": [
+      {
+        "source": "src/bookkeeping/journal/entry-number14257.js"
+      }
+    ],
+    "scripts/history-month14341.js": [
+      {
+        "source": "src/bookkeeping/history/history-month14341.js"
+      }
+    ],
+    "scripts/journal-description14281.js": [
+      {
+        "source": "src/bookkeeping/journal/journal-description14281.js"
+      }
+    ],
+    "scripts/period-closing14317.js": [
+      {
+        "source": "src/bookkeeping/finalization/period-closing14317.js"
+      }
+    ],
+    "scripts/tablet-journal14266.js": [
+      {
+        "source": "src/bookkeeping/journal/tablet-journal14266.js"
+      }
+    ],
+    "scripts/transaction-consistency14300.js": [
+      {
+        "source": "src/bookkeeping/journal/transaction-consistency14300.js"
+      }
+    ],
+    "styles/account-parent14287.css": [
+      {
+        "source": "src/accounts/chart/account-parent14287.css"
+      }
+    ],
+    "styles/entry-layout14271.css": [
+      {
+        "source": "src/bookkeeping/journal/entry-layout14271.css"
+      }
+    ],
+    "styles/final-review14345.css": [
+      {
+        "source": "src/bookkeeping/finalization/final-review14345.css"
+      }
+    ],
+    "styles/tablet-journal14266.css": [
+      {
+        "source": "src/bookkeeping/journal/tablet-journal14266.css"
+      }
+    ],
+    "styles/transaction-consistency14300.css": [
+      {
+        "source": "src/bookkeeping/journal/transaction-consistency14300.css"
+      }
+    ],
+    "scripts/assigned-ledger14281.js": [
+      {
+        "source": "src/subusers/accounts/assigned-ledger14281.js"
+      }
+    ],
+    "scripts/phone-account-picker14227.js": [
+      {
+        "source": "src/subusers/workspace/phone-account-picker14227.js"
+      }
+    ],
+    "scripts/phone-connected.js": [
+      {
+        "source": "src/subusers/phone/connected/scope-and-draft.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/navigation.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/render-and-settings.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/home-and-accounts.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/entry-fields.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/templates.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/entry-form-and-save.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/history.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/bookkeeping-compatibility.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/entry-validation.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/account-ledger.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/connection-and-sync.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/startup-and-scope-close.js"
+      }
+    ],
+    "scripts/phone-runtime14242.js": [
+      {
+        "source": "src/subusers/phone/runtime/scope-and-state.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/storage-and-transport.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/permissions-and-accounts.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/draft-persistence.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/session-and-access.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/data-loading.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/workspace-selection.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/authentication.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/history-groups.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/home-and-accounts.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/entry-form.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/history-and-render.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/navigation-and-dialogs.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/save-entry.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/durable-sync.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/submission-and-reconciliation.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/correction-and-void.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/report-printing.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/actions.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/registration-and-scope-close.js"
+      }
+    ],
+    "scripts/phone-tools14242.js": [
+      {
+        "source": "src/subusers/phone/phone-tools14242.js"
+      }
+    ],
+    "scripts/workspace-consistency14343.js": [
+      {
+        "source": "src/subusers/workspace/workspace-consistency14343.js"
+      }
+    ],
+    "scripts/workspace-header14266.js": [
+      {
+        "source": "src/subusers/workspace/workspace-header14266.js"
+      }
+    ],
+    "scripts/workspace14331.js": [
+      {
+        "source": "src/subusers/workspace/workspace14331.js"
+      }
+    ],
+    "scripts/workspace14337.js": [
+      {
+        "source": "src/subusers/workspace/workspace14337.js"
+      }
+    ],
+    "styles/phone-account-picker14227.css": [
+      {
+        "source": "src/subusers/workspace/phone-account-picker14227.css"
+      }
+    ],
+    "styles/phone-accounting14246.css": [
+      {
+        "source": "src/subusers/phone/phone-accounting14246.css"
+      }
+    ],
+    "styles/phone-approved14225.css": [
+      {
+        "source": "src/subusers/phone/phone-approved14225.css"
+      }
+    ],
+    "styles/phone-approved14247.css": [
+      {
+        "source": "src/subusers/phone/phone-approved14247.css"
+      }
+    ],
+    "styles/phone-connected.css": [
+      {
+        "source": "src/subusers/phone/connected/phone-connected.css"
+      }
+    ],
+    "styles/phone-design14248.css": [
+      {
+        "source": "src/subusers/phone/phone-design14248.css"
+      }
+    ],
+    "styles/phone-design14284.css": [
+      {
+        "source": "src/subusers/phone/phone-design14284.css"
+      }
+    ],
+    "styles/phone-finalization1440.css": [
+      {
+        "source": "src/subusers/phone/phone-finalization1440.css"
+      }
+    ],
+    "styles/phone-polish14281.css": [
+      {
+        "source": "src/subusers/phone/phone-polish14281.css"
+      }
+    ],
+    "styles/phone14242.css": [
+      {
+        "source": "src/subusers/phone/phone14242.css"
+      }
+    ],
+    "styles/workspace-consistency14343.css": [
+      {
+        "source": "src/subusers/workspace/workspace-consistency14343.css"
+      }
+    ],
+    "styles/workspace-header14266.css": [
+      {
+        "source": "src/subusers/workspace/workspace-header14266.css"
+      }
+    ],
+    "styles/workspace14331.css": [
+      {
+        "source": "src/subusers/workspace/workspace14331.css"
+      }
+    ],
+    "styles/workspace14337.css": [
+      {
+        "source": "src/subusers/workspace/workspace14337.css"
+      }
+    ],
+    "scripts/budget-workflow14316.js": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/budget-workflow14316.js"
+      }
+    ],
+    "scripts/reconciliation14345.js": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/reconciliation14345.js"
+      }
+    ],
+    "scripts/workflow14253.js": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/scope-and-helpers.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/submit.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/load.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/consolidation.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/prepare-journal.js"
+      },
+      {
+        "source": "src/settings/users/report-workflow-lifecycle.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/install-and-scope-close.js"
+      }
+    ],
+    "styles/workflow14253.css": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/workflow14253.css"
+      }
+    ],
+    "styles/workflow14316.css": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/workflow14316.css"
+      }
+    ],
+    "scripts/hr-calendar-model14306.js": [
+      {
+        "source": "src/hr/calendar/hr-calendar-model14306.js"
+      }
+    ],
+    "scripts/hr-calendar-news14309.js": [
+      {
+        "source": "src/hr/calendar/hr-calendar-news14309.js"
+      }
+    ],
+    "scripts/hr-calendar14306.js": [
+      {
+        "source": "src/hr/calendar/hr-calendar14306.js"
+      }
+    ],
+    "scripts/hr-workspace14306.js": [
+      {
+        "source": "src/hr/employees/workspace/scope-and-helpers.js"
+      },
+      {
+        "source": "src/hr/documents/attachments14311.js"
+      },
+      {
+        "source": "src/hr/employees/workspace/employee-directory.js"
+      },
+      {
+        "source": "src/hr/contracts/contract-workflow14306.js"
+      },
+      {
+        "source": "src/hr/leave/approval14306.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/save-attendance14306.js"
+      },
+      {
+        "source": "src/hr/employees/workspace/install-and-scope-close.js"
+      }
+    ],
+    "scripts/local-events14310.js": [
+      {
+        "source": "src/hr/calendar/local-events14310.js"
+      }
+    ],
+    "styles/hr-workspace14306.css": [
+      {
+        "source": "src/hr/employees/hr-workspace14306.css"
+      }
+    ],
+    "styles/local-events14310.css": [
+      {
+        "source": "src/hr/calendar/local-events14310.css"
+      }
+    ],
+    "scripts/archive-v128.js": [
+      {
+        "source": "src/maintenance/archive/archive-v128.js"
+      }
+    ],
+    "scripts/audit-explanation14260.js": [
+      {
+        "source": "src/maintenance/audit/audit-explanation14260.js"
+      }
+    ],
+    "scripts/audit-workspace14232.js": [
+      {
+        "source": "src/maintenance/audit/audit-workspace14232.js"
+      }
+    ],
+    "scripts/budget-gmail14314.js": [
+      {
+        "source": "src/budget/requests/budget-gmail14314.js"
+      }
+    ],
+    "scripts/budget-messages14314.js": [
+      {
+        "source": "src/budget/requests/budget-messages14314.js"
+      }
+    ],
+    "scripts/budget14313.js": [
+      {
+        "source": "src/budget/requests/budget14313.js"
+      }
+    ],
+    "scripts/company-accounts14319.js": [
+      {
+        "source": "src/settings/application/company-accounts14319.js"
+      }
+    ],
+    "scripts/document-downloads14311.js": [
+      {
+        "source": "src/documents/import-export/document-downloads14311.js"
+      }
+    ],
+    "scripts/document-export-v108.js": [
+      {
+        "source": "src/documents/import-export/document-export-v108-standalone.js"
+      }
+    ],
+    "scripts/document-import-v1422.js": [
+      {
+        "source": "src/documents/import-export/document-import-v1422-standalone.js"
+      }
+    ],
+    "scripts/editor-numbers1428.js": [
+      {
+        "source": "src/documents/editor/editor-numbers1428.js"
+      }
+    ],
+    "scripts/editor-tables-v107.js": [
+      {
+        "source": "src/documents/editor/editor-tables-v107.js"
+      }
+    ],
+    "scripts/export-center14337.js": [
+      {
+        "source": "src/documents/import-export/export-center14337.js"
+      }
+    ],
+    "scripts/installation14320.js": [
+      {
+        "source": "src/settings/installation/installation14320.js"
+      }
+    ],
+    "scripts/maintenance-engine14324.js": [
+      {
+        "source": "src/maintenance/workspace/maintenance-engine14324.js"
+      }
+    ],
+    "scripts/maintenance-reports14326.js": [
+      {
+        "source": "src/maintenance/reports/maintenance-reports14326.js"
+      }
+    ],
+    "scripts/maintenance-selection14325.js": [
+      {
+        "source": "src/maintenance/workspace/maintenance-selection14325.js"
+      }
+    ],
+    "scripts/maintenance14324.js": [
+      {
+        "source": "src/maintenance/workspace/maintenance14324.js"
+      }
+    ],
+    "scripts/period-filters14331.js": [
+      {
+        "source": "src/reports/financial/period-filters14331.js"
+      }
+    ],
+    "scripts/report-formats14282.js": [
+      {
+        "source": "src/reports/financial/report-formats14282.js"
+      }
+    ],
+    "scripts/report-library14285.js": [
+      {
+        "source": "src/reports/history/report-library14285.js"
+      }
+    ],
+    "scripts/report-routes14262.js": [
+      {
+        "source": "src/reports/financial/report-routes14262.js"
+      }
+    ],
+    "scripts/report-templates14262.js": [
+      {
+        "source": "src/reports/financial/report-templates14262.js"
+      }
+    ],
+    "scripts/reports14254.js": [
+      {
+        "source": "src/reports/financial/reports14254.js"
+      }
+    ],
+    "scripts/settings-groups14332.js": [
+      {
+        "source": "src/settings/application/settings-groups14332.js"
+      }
+    ],
+    "scripts/setup14320.js": [
+      {
+        "source": "src/settings/installation/setup14320.js"
+      }
+    ],
+    "scripts/summary-period14331.js": [
+      {
+        "source": "src/reports/financial/summary-period14331.js"
+      }
+    ],
+    "scripts/supabase-config.js": [
+      {
+        "source": "src/settings/installation/supabase-config.js"
+      }
+    ],
+    "scripts/sync-assessment14332.js": [
+      {
+        "source": "src/maintenance/diagnostics/sync-assessment14332.js"
+      }
+    ],
+    "scripts/system-diagnostics14324.js": [
+      {
+        "source": "src/maintenance/diagnostics/system-diagnostics14324.js"
+      }
+    ],
+    "scripts/vouchers14299.js": [
+      {
+        "source": "src/reports/vouchers/vouchers14299.js"
+      }
+    ],
+    "scripts/workspace-settings.js": [
+      {
+        "source": "src/settings/users/workspace-settings/account-assignment-standalone.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-settings/state-and-inline-edit-standalone.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-settings/persist-entry-standalone.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/double-entry-conversion-standalone.js"
+      },
+      {
+        "source": "src/subusers/accounts/workspace-settings/account-summary-standalone.js"
+      },
+      {
+        "source": "src/subusers/review/workspace-settings/review-hooks-standalone.js"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/initialize-standalone.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/posting-standalone.js"
+      },
+      {
+        "source": "src/subusers/review/workspace-settings/review-card-standalone.js"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/saved-settings-standalone.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/handover-standalone.js"
+      }
+    ],
+    "styles/archive-v128.css": [
+      {
+        "source": "src/maintenance/archive/archive-v128.css"
+      }
+    ],
+    "styles/audit-workspace14232.css": [
+      {
+        "source": "src/maintenance/audit/audit-workspace14232.css"
+      }
+    ],
+    "styles/budget-messages14314.css": [
+      {
+        "source": "src/budget/requests/budget-messages14314.css"
+      }
+    ],
+    "styles/data-tools14232.css": [
+      {
+        "source": "src/maintenance/backup/data-tools14232-standalone.css"
+      }
+    ],
+    "styles/document-editor-v105.css": [
+      {
+        "source": "src/documents/editor/document-editor-v105-standalone.css"
+      }
+    ],
+    "styles/editor-numbers1428.css": [
+      {
+        "source": "src/documents/editor/editor-numbers1428.css"
+      }
+    ],
+    "styles/installation14320.css": [
+      {
+        "source": "src/settings/installation/installation14320.css"
+      }
+    ],
+    "styles/maintenance14324.css": [
+      {
+        "source": "src/maintenance/workspace/maintenance14324.css"
+      }
+    ],
+    "styles/report-library14285.css": [
+      {
+        "source": "src/reports/history/report-library14285.css"
+      }
+    ],
+    "styles/settings-groups14332.css": [
+      {
+        "source": "src/settings/application/settings-groups14332.css"
+      }
+    ],
+    "styles/settings-polish14281.css": [
+      {
+        "source": "src/settings/application/settings-polish14281.css"
+      }
+    ],
+    "styles/setup14320.css": [
+      {
+        "source": "src/settings/installation/setup14320.css"
+      }
+    ],
+    "styles/statutory14332.css": [
+      {
+        "source": "src/reports/tax/statutory14332.css"
+      }
+    ],
+    "styles/sync-assessment14332.css": [
+      {
+        "source": "src/maintenance/diagnostics/sync-assessment14332.css"
+      }
+    ],
+    "styles/voucher-layout14299.css": [
+      {
+        "source": "src/reports/vouchers/voucher-layout14299.css"
+      }
+    ]
+  },
+  "variants": [
+    {
+      "bundle": "scripts/desktop14245-3.js",
+      "standalone": "scripts/workspace-settings.js",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    },
+    {
+      "bundle": "scripts/desktop14245-4.js",
+      "standalone": "scripts/document-export-v108.js",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    },
+    {
+      "bundle": "scripts/desktop14245-4.js",
+      "standalone": "scripts/document-import-v1422.js",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    },
+    {
+      "bundle": "styles/desktop14245.css",
+      "standalone": "styles/document-editor-v105.css",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    },
+    {
+      "bundle": "styles/desktop14245.css",
+      "standalone": "styles/data-tools14232.css",
+      "reason": "Deployed bundled body differs from standalone; retained separately."
+    }
+  ]
+}

@@ -1,0 +1,206 @@
+{
+  "branch": "phase-0-modularization",
+  "baseline_commit": "7685d59",
+  "scope": "Local fixtures with bundled Supabase SDK, Playwright Chromium, VM clock tests and PGlite; no live database writes or production deployment.",
+  "navigation": {
+    "method": "Eight routes, three repeats per mode; switchTab through two animation frames. Timing varies with browser/host scheduling.",
+    "before": {
+      "online": {
+        "switches": 24,
+        "median_paint_ms": 134.5,
+        "p95_paint_ms": 171.6,
+        "median_synchronous_ms": 35.1,
+        "indexeddb_reads": 20,
+        "http_requests": 7,
+        "prepared_without_wait_screen": true
+      },
+      "offline": {
+        "switches": 24,
+        "median_paint_ms": 124.9,
+        "p95_paint_ms": 158.3,
+        "median_synchronous_ms": 29.3,
+        "indexeddb_reads": 18,
+        "http_requests": 0,
+        "prepared_without_wait_screen": true
+      }
+    },
+    "after": {
+      "online": {
+        "switches": 24,
+        "median_paint_ms": 105.9,
+        "p95_paint_ms": 152.4,
+        "median_synchronous_ms": 34.5,
+        "indexeddb_reads": 2,
+        "http_requests": 4,
+        "prepared_without_wait_screen": true
+      },
+      "offline": {
+        "switches": 24,
+        "median_paint_ms": 101.4,
+        "p95_paint_ms": 156.6,
+        "median_synchronous_ms": 32.1,
+        "indexeddb_reads": 0,
+        "http_requests": 0,
+        "prepared_without_wait_screen": true
+      }
+    }
+  },
+  "focused_browser_checks": [
+    {
+      "name": "desktop real SDK login and initial data preparation",
+      "passed": true
+    },
+    {
+      "name": "desktop module navigation online and offline after preload",
+      "passed": true
+    },
+    {
+      "name": "repeat payroll reads reuse prepared memory",
+      "passed": true
+    },
+    {
+      "name": "desktop online logout: no success notice, opaque loading surface, locked private data, SDK request when online",
+      "passed": true
+    },
+    {
+      "name": "desktop offline logout: no success notice, opaque loading surface, locked private data, SDK request when online",
+      "passed": true
+    },
+    {
+      "name": "desktop password reauthentication offline retains encrypted draft",
+      "passed": true
+    },
+    {
+      "name": "phone online logout: no success notice, opaque loading surface, locked private data, SDK request when online",
+      "passed": true
+    },
+    {
+      "name": "phone offline logout: no success notice, opaque loading surface, locked private data, SDK request when online",
+      "passed": true
+    },
+    {
+      "name": "phone password reauthentication offline retains encrypted draft",
+      "passed": true
+    }
+  ],
+  "focused_clock_browser_checks": [
+    "desktop real browser clock, trusted activity, sleep restoration and offline expiry with reauthentication gate",
+    "phone real browser clock, trusted activity, sleep restoration and offline expiry with reauthentication gate",
+    "server sign-out failure retains a genuine error notice and locks local access"
+  ],
+  "inactivity": {
+    "duration_ms": 86400000,
+    "duration_minutes": 1440,
+    "simulated_clock": true,
+    "verified": [
+      "exact online/offline deadline",
+      "trusted keyboard/pointer/touch/wheel activity resets deadline",
+      "synthetic events and background writes do not reset deadline",
+      "Supabase SDK token refresh does not reset deadline",
+      "startup, visibility and pageshow check saved deadline",
+      "sleep/tab restoration requires reauthentication after expiry",
+      "offline password reauthentication retains encrypted work"
+    ]
+  },
+  "regression_suites": {
+    "tools/build-modules.py --check": "passed",
+    "validation/test-phase0-structure.py": "passed",
+    "validation/test-phase0-preload.cjs": "passed",
+    "validation/test-phase0-inactivity.cjs": "passed",
+    "validation/test-phase0-browser.cjs": "passed",
+    "validation/test-phase0-session-browser.cjs": "passed",
+    "validation/test-vault14334.cjs": "passed",
+    "validation/test-vault-phone14334.cjs": "passed",
+    "validation/test-local-first14333.cjs": "passed",
+    "validation/test-idle-queue14341.cjs": "passed",
+    "validation/test-idle-clock14343.cjs": "passed",
+    "validation/test-hr-calendar-model14306.cjs": "passed",
+    "validation/test-report-assets14349.cjs": "passed",
+    "validation/test-report-workflow14349.cjs": "passed",
+    "validation/test-year-windows14334.cjs": "passed"
+  },
+  "limitations": [
+    "Reported one-second production navigation delay was not reproduced with the small local dataset.",
+    "Physical devices and live production Supabase sign-out were not tested; desktop/phone browser fixtures use the actual bundled SDK.",
+    "No merge into main or production deployment."
+  ],
+  "vault_browser_checks": [
+    {
+      "name": "desktop / admin signs in and prepares complete offline files with the real SDK",
+      "passed": true
+    },
+    {
+      "name": "desktop / admin reopens a downloaded signed-in workspace without internet after token expiry",
+      "passed": true
+    },
+    {
+      "name": "raw device storage contains ciphertext and rejects record tampering",
+      "passed": true
+    },
+    {
+      "name": "24 hours without activity locks cached data and allows password sign-in offline",
+      "passed": true
+    },
+    {
+      "name": "explicit logout preserves encrypted pending work and supports offline sign-in",
+      "passed": true
+    },
+    {
+      "name": "reconnect automatically uploads encrypted queued work once",
+      "passed": true
+    },
+    {
+      "name": "another account in a second tab cannot change this session or read its device draft",
+      "passed": true
+    },
+    {
+      "name": "sign-out locks another active tab for the same account",
+      "passed": true
+    },
+    {
+      "name": "server revocation blocks subsequent offline unlock without deleting encrypted work",
+      "passed": true
+    },
+    {
+      "name": "desktop / staff signs in and prepares complete offline files with the real SDK",
+      "passed": true
+    },
+    {
+      "name": "desktop / staff reopens a downloaded signed-in workspace without internet after token expiry",
+      "passed": true
+    },
+    {
+      "name": "tablet / admin signs in and prepares complete offline files with the real SDK",
+      "passed": true
+    },
+    {
+      "name": "tablet / admin reopens a downloaded signed-in workspace without internet after token expiry",
+      "passed": true
+    },
+    {
+      "name": "tablet / staff signs in and prepares complete offline files with the real SDK",
+      "passed": true
+    },
+    {
+      "name": "tablet / staff reopens a downloaded signed-in workspace without internet after token expiry",
+      "passed": true
+    },
+    {
+      "name": "phone / admin signs in and prepares complete offline files with the real SDK",
+      "passed": true
+    },
+    {
+      "name": "phone / admin reopens a downloaded signed-in workspace without internet after token expiry",
+      "passed": true
+    },
+    {
+      "name": "phone / staff signs in and prepares complete offline files with the real SDK",
+      "passed": true
+    },
+    {
+      "name": "phone / staff reopens a downloaded signed-in workspace without internet after token expiry",
+      "passed": true
+    }
+  ],
+  "regression_scope": "Relevant existing authentication, cache, synchronization, calendar, year-window, permissions, report, and asset suites plus focused corrections. Not every historical release-specific test was executed."
+}

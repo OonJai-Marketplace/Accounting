@@ -1,0 +1,42 @@
+/* ============================================================================== */
+/* CSS V11: DEMO LOGIN, USERS & ENTRY SUBMISSION APPROVAL                         */
+/* ============================================================================== */
+.login-gate{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(145deg,#041f17,#064e3b)}
+.login-gate.is-authenticated{display:none}
+.login-card{width:min(430px,100%);padding:28px;border-radius:16px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:13px}
+.login-brand-mark{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#059669;color:#fff;font-size:19px;font-weight:800}
+.login-card h1{color:#064e3b;font-size:23px}.login-card>p{color:#64748b;font-size:13px}
+.login-card label{display:flex;flex-direction:column;gap:5px;color:#334155;font-size:12px;font-weight:700}
+.login-card input{width:100%;min-height:43px;padding:9px 12px;border:1px solid #cbd5e1;border-radius:7px;font:inherit}
+.login-card input:focus{outline:0;border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.12)}
+.demo-security-note{padding:10px;border:1px solid #fde68a;border-radius:7px;background:#fffbeb;color:#92400e;font-size:11.5px}
+.login-error{min-height:18px;color:#b91c1c;font-size:12px;font-weight:700}.login-submit{min-height:43px;justify-content:center}
+.demo-login-list{display:flex;flex-direction:column;gap:3px;padding-top:10px;border-top:1px solid #e2e8f0;color:#64748b;font-size:10.5px}
+.current-user-chip{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 9px;border:1px solid #a7f3d0;border-radius:999px;background:#ecfdf5;color:#065f46;font-size:10.5px;font-weight:700}
+.submission-count-badge{min-width:22px;height:22px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:#dc2626;color:#fff;font-size:10px}
+.submission-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}.submission-form-grid .span-2{grid-column:span 2}
+.submission-submit-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px;padding-top:12px;border-top:1px solid #e2e8f0}
+#submissionFormStatus{color:#065f46;font-size:11.5px;font-weight:700}
+.submission-review-actions{display:flex;gap:6px;flex-wrap:wrap}.submission-review-actions .je-btn{padding:6px 8px;font-size:10.5px}
+.submission-status{display:inline-flex;padding:3px 7px;border-radius:999px;font-size:9.5px;font-weight:800}.submission-status.pending{background:#fffbeb;color:#92400e}.submission-status.approved{background:#ecfdf5;color:#065f46}.submission-status.rejected{background:#fef2f2;color:#b91c1c}
+.submission-reason{max-width:180px;margin-top:3px;color:#b91c1c;font-size:10px}.submission-empty{text-align:center!important;padding:24px!important;color:#64748b!important}
+.user-form-action{display:flex;justify-content:flex-end}.demo-users-list{display:flex;flex-direction:column;gap:8px}
+.demo-user-row{display:grid;grid-template-columns:38px minmax(180px,1fr) auto auto auto;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px}
+.demo-user-avatar{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:#ecfdf5;color:#065f46;font-size:11px;font-weight:800}
+.demo-user-details{min-width:0;display:flex;flex-direction:column}.demo-user-details strong{font-size:12.5px}.demo-user-details span{overflow:hidden;text-overflow:ellipsis;color:#64748b;font-size:10.5px}
+.user-role-badge,.user-status-badge{padding:3px 7px;border-radius:999px;font-size:9.5px;font-weight:750}.user-role-badge.admin{background:#ede9fe;color:#5b21b6}.user-role-badge.submitter{background:#eff6ff;color:#1d4ed8}.user-status-badge.active{background:#ecfdf5;color:#065f46}.user-status-badge.inactive{background:#f1f5f9;color:#64748b}
+body[data-user-role="submitter"] .header-right-tools .fiscal-badge,body[data-user-role="submitter"] #global-csv-btn,body[data-user-role="submitter"] .header-right-tools .btn-print:not(:first-of-type){display:none}
+
+@media(max-width:767px){
+  .login-card{padding:20px}.current-user-chip{display:none}.submission-form-grid{grid-template-columns:1fr}.submission-form-grid .span-2{grid-column:span 1}.submission-submit-row{align-items:stretch;flex-direction:column}.submission-submit-row .je-btn{justify-content:center}
+  .demo-user-row{grid-template-columns:38px 1fr}.demo-user-row>.user-role-badge,.demo-user-row>.user-status-badge,.demo-user-row>button{grid-column:2}.user-form-action{justify-content:stretch}.user-form-action .je-btn{width:100%;justify-content:center}
+}
+.v49-fund-buttons{display:flex;align-items:center;gap:6px;margin-top:8px}.v49-fund-buttons .notice{border-color:#4b93d1;background:#eef7ff;color:#1763a6}.v49-adjustment-record{border-color:#cf746d;border-top-color:#b42318}.v49-adjustment-record>summary{background:#fff5f4}
+@media(min-width:768px){.workspace-single-table tbody tr:has(.workspace-cell-button.is-empty){background:#ffd6d2!important;box-shadow:inset 5px 0 #c8251a}.workspace-single-table tbody tr:has(.workspace-cell-button.is-empty) .workspace-cell-button.is-empty{color:#a61b13;font-weight:800}}
+
+@media (max-width: 390px) {
+  .workspace-scroll { padding: 9px; }
+  .module-card, .panel, .je-card { padding: 11px; }
+  .header-right-tools .btn { padding-left: 7px; padding-right: 7px; }
+}
+

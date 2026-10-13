@@ -10,8 +10,10 @@
     Object.defineProperty(window, "sessionStorage", {
       value: window.parent.sessionStorage,
     });
-    for (const e of ["pointerdown", "keydown", "touchstart"])
-      window.addEventListener(e, () => window.deviceVault14334.touch(), {
+    for (const e of ["pointerdown", "keydown", "touchstart", "wheel"])
+      window.addEventListener(e, (event) => {
+        if (event.isTrusted) window.deviceVault14334.touch();
+      }, {
         passive: true,
         capture: true,
       });
@@ -43,7 +45,7 @@
     pending = false,
     offline = false,
     locked = false,
-    lastTouch = 0,
+    signingOut = false,
     client = null;
   const ephemeral = [new Map(), new Map()],
     isLegacy = (k) =>
@@ -125,16 +127,18 @@
       s.generation !== rawLocal.getItem(P + actor + ":generation")
     );
   }
-  function touch(force = false) {
+  function checkDeadline() {
+    if (secret && !locked && expired())
+      void lock("One day without activity. Sign in again to continue.");
+  }
+  function touch() {
     if (!secret || locked) return;
     if (expired()) {
       void lock("One day without activity. Sign in again to continue.");
       return;
     }
-    if (document.hidden && !force) return;
+    if (document.hidden) return;
     const now = Date.now();
-    if (!force && now - lastTouch < 15000) return;
-    lastTouch = now;
     const s = session();
     s.at = now;
     rawSession.setItem(P + "session", JSON.stringify(s));
@@ -153,7 +157,6 @@
       P + "session",
       JSON.stringify({ actor: id, key: b64(key), at: now, generation }),
     );
-    lastTouch = now;
     ephemeral.forEach((m) => m.clear());
   }
   try {
@@ -163,8 +166,10 @@
       if (!expired()) {
         secret = un64(s.key);
         if (secret.length !== 32) throw Error("Invalid key");
-        touch(true);
-      } else rawSession.removeItem(P + "session");
+      } else {
+        rawSession.removeItem(P + "session");
+        rawSession.setItem(P + "notice", "One day without activity. Sign in again to continue.");
+      }
     }
   } catch {
     secret = null;
@@ -486,14 +491,31 @@
       Number(e?.status) >= 500
     );
   }
+  function lockScreen() {
+    if (!document.body || document.getElementById("deviceLock14334")) return;
+    window.status118?.clear?.();
+    document.querySelectorAll("dialog[open]").forEach(dialog => dialog.close());
+    // Cover and disable the workspace before awaiting the SDK. Keep a complete
+    // painted surface until the login document replaces it, including offline.
+    for (const node of document.body.children) node.inert = true;
+    const screen = document.createElement("section");
+    screen.id = "deviceLock14334";
+    screen.setAttribute("role", "status");
+    screen.setAttribute("aria-label", "Returning to sign in");
+    screen.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#fffaf1;color:#174c38;";
+    screen.innerHTML = window.loading1444?.markup() || "";
+    document.body.append(screen);
+  }
   async function lock(
-    message = "Signed out. Sign in to unlock your saved work.",
+    message = "",
     broadcast = true,
   ) {
     if (locked) return;
+    lockScreen();
     locked = true;
     const id = actor;
     rawSession.removeItem(P + "session");
+    if (message) rawSession.setItem(P + "notice", message);
     if (broadcast && id)
       rawLocal.setItem(P + id + ":generation", crypto.randomUUID());
     secret?.fill(0);
@@ -502,12 +524,11 @@
     try {
       window.invalidateRequests1430?.();
     } catch {}
-    if (document.body) {
-      document.body.replaceChildren();
-      const p = document.createElement("p");
-      p.textContent = message;
-      document.body.append(p);
-    }
+    // Drop protected DOM without dropping the opaque loading surface. This also
+    // prevents late callbacks or Back restoration from treating the old gate as
+    // authenticated while the login document is on its way.
+    const screen = document.getElementById("deviceLock14334");
+    if (screen) document.body.replaceChildren(screen);
     location.reload();
   }
   async function attach(authClient) {
@@ -621,8 +642,24 @@
         if (!navigating) pending = false;
       }
     };
-    auth.signOut = async () => {
-      await lock();
+    auth.signOut = async (options = { scope: "local" }) => {
+      if (signingOut) return { error: null };
+      signingOut = true;
+      lockScreen();
+      pending = true;
+      let message = "";
+      try {
+        // Offline logout locks the password-wrapped copy; there is no server
+        // connection to revoke. Online logout must still call the real SDK.
+        if (navigator.onLine !== false && !offline && !window.sessionCache14333?.localMode) {
+          const result = await signout(options);
+          if (result?.error) throw result.error;
+        }
+      } catch (error) {
+        message = "Server sign-out could not be confirmed. This device is locked. Sign in again when connected. " + (error.message || "");
+      } finally {
+        await lock(message);
+      }
       return { error: null };
     };
     const update = auth.updateUser.bind(auth);
@@ -692,16 +729,20 @@
       return DAY;
     },
   };
-  for (const e of ["pointerdown", "keydown", "touchstart"])
-    window.addEventListener(e, () => touch(), { passive: true, capture: true });
-  window.addEventListener("pageshow", () => touch(true));
+  for (const e of ["pointerdown", "keydown", "touchstart", "wheel"])
+    window.addEventListener(e, (event) => { if (event.isTrusted) touch(); }, { passive: true, capture: true });
+  window.addEventListener("pageshow", checkDeadline);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) touch(true);
+    if (!document.hidden) checkDeadline();
   });
-  setInterval(() => {
-    if (secret && expired())
-      void lock("One day without activity. Sign in again to continue.");
-  }, 10000);
+  setInterval(checkDeadline, 10000);
+  const showLockReason = () => {
+    const message = rawSession.getItem(P + "notice");
+    rawSession.removeItem(P + "notice");
+    if (message) window.loginNotice14293?.(message, true);
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showLockReason, { once: true });
+  else showLockReason();
   window.addEventListener("storage", (e) => {
     if (!actor) return;
     if (e.key === P + actor + ":generation") {
@@ -716,6 +757,8 @@
   });
   window.addEventListener("online", async () => {
     if (!secret || !client || pending) return;
+    checkDeadline();
+    if (!secret || locked) return;
     try {
       const r = await client.auth.refreshSession();
       if (r.error) throw r.error;

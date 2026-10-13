@@ -1,0 +1,25 @@
+/* Editor: compact colour icons and number arrows within the existing input border. */
+body #document-editor105.menus1426 .doc-color107{position:relative!important;width:32px!important;height:30px!important;padding:2px 4px 6px!important;display:inline-flex!important;align-items:center;justify-content:center;cursor:pointer;border-radius:4px}
+body #document-editor105.menus1426 .doc-color107:hover{background:#dce6d7}
+body #document-editor105.menus1426 .doc-color107 input[type=color]{position:absolute!important;inset:0!important;opacity:0!important;width:100%!important;height:100%!important;max-width:none!important;cursor:pointer}
+.color-symbol1429{font:600 20px Arial!important;color:#273d32}.color-bar1429{position:absolute;bottom:2px;left:6px;right:6px;height:4px;border-radius:1px}.highlight-symbol1429{width:20px!important;height:20px!important;color:#273d32}
+body #document-editor105.menus1426 .doc-stepper1428,body .ui-overlay108 .doc-stepper1428{position:relative!important;display:inline-block!important;width:74px!important;max-width:100%!important;flex:0 1 74px!important}
+body #document-editor105.menus1426 .doc-stepper1428>input,body .ui-overlay108 .doc-stepper1428>input,body #document-editor105.menus1426 .doc-value110 .doc-stepper1428>input,body .ui-overlay108 .doc-value110 .doc-stepper1428>input{width:100%!important;max-width:100%!important;border-radius:4px!important;padding-right:19px!important;box-sizing:border-box!important}
+body #document-editor105.menus1426 .doc-stepper1428 .doc-step-buttons1428,body .ui-overlay108 .doc-stepper1428 .doc-step-buttons1428{position:absolute!important;right:2px!important;top:2px!important;bottom:2px!important;width:15px!important;display:flex!important}
+body #document-editor105.menus1426 .doc-stepper1428 .doc-step-buttons1428>button,body .ui-overlay108 .doc-stepper1428 .doc-step-buttons1428>button{width:15px!important;min-width:15px!important;min-height:0!important;height:12px!important;max-height:12px!important;border:0!important;border-radius:2px!important;background:transparent!important;padding:0!important}
+body #document-editor105.menus1426 .doc-stepper1428 .doc-step-buttons1428>button:hover,body .ui-overlay108 .doc-stepper1428 .doc-step-buttons1428>button:hover{background:#dae6d4!important}
+/* Stable entry columns; selection length never determines table widths. */
+body #journal #journalEntry98 .je-table{table-layout:fixed!important;width:100%!important}
+body #journal #journalEntry98 .je-table th:has(+th):not(.num):not(.je-date-col):first-of-type{min-width:0!important}
+body #journal #journalEntry98 .je-table th[data-column1429=account]{width:32%!important;min-width:0!important;max-width:none!important}
+body #journal #journalEntry98 .je-table th[data-column1429=memo]{width:auto!important;min-width:0!important}
+body #journal #journalEntry98 .account-input-wrap{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+body #journal #journalEntry98 .je-line-acc{width:0!important;min-width:0!important;max-width:100%!important;flex:1 1 0!important;text-overflow:ellipsis}
+body #journal #journalEntry98 .transaction-date-field{width:290px!important;max-width:290px!important;min-width:0!important;flex:0 0 290px!important}
+body #journal #journalEntry98 .transaction-date-field .je-label-row,body #journal #journalEntry98 #dateDisplay82{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+body #journal #journalEntry98 .transaction-date-field .je-label-row{justify-content:space-between!important;gap:6px!important}
+.pay-template1429{max-width:950px;width:min(950px,90vw)}.pay-template1429 table{width:100%;table-layout:fixed}.pay-template1429 th,.pay-template1429 td{padding:5px;text-align:left;vertical-align:top}.pay-template1429 select,.pay-template1429 input{max-width:100%;width:100%;min-width:0}.pay-template1429 .template-tools1429{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.pay-template1429 .template-error1429{color:#982f25;min-height:1.5em}.payroll-links1429{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:8px 0}.payroll-links1429 small{color:#496c59}.payroll-post-banner1429{padding:10px;border:1px solid #c8d5bd;background:#edf4e8;margin:8px 0}
+body #document-editor105.menus1426 .doc-quick1426 .doc-stepper1428>input[data-style],body #document-editor105.menus1426 .doc-menu1426 .doc-stepper1428>input,body .ui-overlay108 .doc-page-dialog1427 .doc-stepper1428>input{width:100%!important;max-width:100%!important;padding-right:19px!important;border-radius:4px!important}
+body #document-editor105.menus1426 .doc-quick1426 .doc-color107 .color-symbol1429,body #document-editor105.menus1426 .doc-quick1426 .doc-color107 .color-bar1429{display:block!important}
+body #journal #journalEntry98 .transaction-date-field #jeTransDate{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+body #journal #journalEntry98 .transaction-date-field .oj-date-shell104,body #journal #journalEntry98 .transaction-date-field .oj-date-button104{width:100%!important;max-width:100%!important;box-sizing:border-box!important;flex:1 1 auto!important}

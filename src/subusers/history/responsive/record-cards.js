@@ -1,0 +1,10 @@
+  function recordCard(user, journal) {
+    const lines = journal.lines || [];
+    return `<details class="v49-record"><summary><span><strong>${escapeHtml(journal.seed_key || `SUB-${String(journal.id).slice(0,8).toUpperCase()}`)}</strong><small>${escapeHtml(monthLabel(journal.period_start))} · ${escapeHtml(String(journal.status).replaceAll('_',' '))}</small></span><b>${lines.length} entr${lines.length===1?'y':'ies'}</b></summary><div class="v49-record-body"><div class="v49-table-scroll"><table><thead><tr><th>Entry ID</th><th>Date</th><th>Account</th><th>Description</th><th>Amount</th></tr></thead><tbody>${lines.map(line => `<tr><td>${escapeHtml(line.workspace_entry_no||'—')}</td><td>${escapeHtml(formatAppDate(line.transaction_date))}</td><td>${escapeHtml(lineAccountName(line))}</td><td>${escapeHtml(line.memo)}</td><td>${number(line.amount)}</td></tr>`).join('')}</tbody></table></div>${totalsTable(user, lines)}</div></details>`;
+  }
+  function recordsView(user) {
+    const history = journalRows(user.id).filter(row => ['posted','reviewed','approved','approved_applied'].includes(row.status)).sort((a,b) => String(b.updated_at||b.period_start).localeCompare(String(a.updated_at||a.period_start)));
+    const count = journalRows(user.id).filter(row => row.status==='submitted').length;
+    const adjustments=adjustmentRequests.filter(row=>row.owner_id===user.id&&!['submitted','returned'].includes(row.status)).sort((a,b)=>String(b.updated_at||b.submitted_at).localeCompare(String(a.updated_at||a.submitted_at)));
+    return `<section class="v49-card v49-records"><header><div><h3>History</h3><p>Approved and posted records, newest first.</p></div><button class="je-btn je-btn-secondary" onclick="v49OpenReview('${user.id}')">Review <b class="red">+${count}</b></button></header><div class="v49-record-list">${adjustments.map(adjustmentRecordCard).join('')}${history.map(row => recordCard(user,row)).join('') || (!adjustments.length?'<div class="period-empty">No history yet.</div>':'')}</div></section>`;
+  }

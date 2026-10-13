@@ -1,0 +1,56 @@
+/* Preserve the desktop table system; compact specific controls only. */
+#archiveMonths67 .archive-month>summary{height:auto!important;min-height:78px!important;max-height:none!important;overflow:visible!important;align-items:center!important;grid-template-columns:minmax(220px,1fr) minmax(205px,.65fr) minmax(205px,.65fr)!important;padding:10px 12px!important}
+#archiveMonths67 .archive-month>summary span,#archiveMonths67 .archive-month>summary b{height:auto!important;max-height:none!important;overflow:visible!important;line-height:1.45!important;white-space:normal!important}
+#subUserWorkspacePanel :is(th,td).action-col,#subUserWorkspacePanel th:last-child:has(+ :last-child){min-width:76px!important}
+#subUserWorkspacePanel th.action-col,#subUserWorkspacePanel th[data-action136]{width:76px!important;min-width:76px!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important}
+#subUserWorkspacePanel .fund-summary113{margin-top:18px!important;margin-bottom:16px!important;padding:14px!important}
+#subUserWorkspacePanel .fund-summary113 .table-container{margin:10px 0!important}
+.workspace-actor136{margin:8px 0 14px;padding:8px 12px;background:#f3e5c4;border-left:3px solid #b2782d;color:#4d391e;font-size:12px}
+body.shell113 #appSidebar .nav-category.current-module136>.nav-header,body.shell113 #appSidebar .nav-category.current-module136>.nav-header:hover,body.shell113 #appSidebar .nav-header.nav-selected109,body.shell113 #appSidebar .nav-header.nav-selected109:hover{background:#f1dfad!important;color:#70431c!important;box-shadow:inset 4px 0 #bc8d36!important}
+body.shell113 #appSidebar .module-btn.active:hover,body.shell113 #appSidebar .nav-module-btn.active:hover,body.shell113 #appSidebar [aria-current=page]:hover{background:#f1dfad!important;color:#70431c!important;box-shadow:inset 4px 0 #bc8d36!important}
+body.shell113 #appSidebar .module-btn:not(.active):hover,body.shell113 #appSidebar .nav-module-btn:not(.active):hover{background:#285440!important;color:#fff8e8!important}
+.dock-popover136{z-index:12000!important;width:min(340px,calc(100vw - 90px))!important;background:#fffaf0!important;border:1px solid #cbb783!important;border-radius:12px!important;box-shadow:0 12px 36px #102d2a33!important;padding:12px!important;overflow:auto!important}
+.dock-popover136 header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.dock-popover136 input{width:100%;margin-bottom:8px}
+.dock-popover136 button{display:block;text-align:left;width:100%;padding:9px;border:0;border-bottom:1px solid #e6e0d2;background:transparent;color:#174c38;cursor:pointer}
+.dock-popover136 header button{width:auto}.dock-popover136 button:hover{background:#f1e4c7}
+.dock-popover136[hidden]{display:none!important}
+#yearClose136{margin-left:auto}
+.year-warning136{padding:16px;border-left:5px solid #b42318;background:#fff0ec;color:#842417;margin:12px 0}
+#yearEnd136 .source-dialog69{max-width:900px;width:90vw;max-height:88vh;overflow:auto}
+#yearEnd136 label,#todos136+form label{display:block;margin:10px 0}
+#yearEnd136 footer,.source-dialog69 form footer,.source-dialog69>footer{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+#auditReviews136 article{padding:10px 0;border-bottom:1px solid #d4dfd4}
+.todo136{border-bottom:1px solid #d4dfd4;padding:12px 0}.todo136 summary{display:flex;gap:16px;justify-content:space-between;cursor:pointer}.todo136 li{padding:6px 0}.todo136 label{display:flex;gap:8px;align-items:center}
+.source-dialog69 label{display:block;margin:10px 0}.source-dialog69 input:not([type=checkbox]),.source-dialog69 textarea{display:block;width:100%;padding:8px;border:1px solid #b6c7b8;border-radius:5px}
+.source-dialog69 input[type=checkbox]{width:auto}
+.doc-options105:has(.doc-page-group111){display:grid!important;grid-template-columns:repeat(5,max-content)!important;gap:16px!important;align-items:start!important;justify-content:start!important;padding:14px!important}
+.doc-page-group111{min-width:0!important;width:fit-content!important;padding:8px 10px!important;align-self:start!important}
+.doc-page-group111 label{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:6px 0!important;font-size:12px!important}
+.doc-page-group111 input[type=number]{width:72px!important;min-width:72px!important;max-width:72px!important}
+.doc-page-group111 select{width:108px!important;max-width:108px!important}
+.quotation-library136{margin-top:14px}.quotation-library136 .quote-slots136{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.quotation-library136 textarea{width:100%;min-height:64px}.quotation-library136 label{display:block;font-size:12px}
+body.shell113 .area-banner113 blockquote::before,body.shell113 .dash-quote113::before,body.shell113 .banner-preview113 blockquote::before{clip-path:none!important;background:#e9cc96ed!important;inset:-16px -26px!important;mask:url('../assets/brush-stroke136.svg') center/100% 100% no-repeat;-webkit-mask:url('../assets/brush-stroke136.svg') center/100% 100% no-repeat}
+@media(max-width:1100px){.doc-options105:has(.doc-page-group111){grid-template-columns:repeat(3,max-content)!important}#archiveMonths67 .archive-month>summary{grid-template-columns:minmax(160px,1fr) minmax(170px,.8fr) minmax(170px,.8fr)!important}}
+@media(max-width:600px){.doc-options105:has(.doc-page-group111){grid-template-columns:repeat(2,minmax(0,1fr))!important}.doc-page-group111 label{flex-wrap:wrap!important}.quotation-library136 .quote-slots136{grid-template-columns:1fr}#archiveMonths67 .archive-month>summary{grid-template-columns:1fr 1fr!important}.archive-identity85{grid-column:1/-1}}
+
+body.shell113 #appSidebar .nav-category.is-active>.nav-header,body.shell113 #appSidebar .nav-category.is-active>.nav-header:hover,body.shell113 #appSidebar .nav-header.active,body.shell113 #appSidebar .nav-header.active:hover{background:#f1dfad!important;color:#70431c!important;box-shadow:inset 4px 0 #bc8d36!important}
+body.shell113 #appSidebar .nav-header:not(.active):hover{background:#285440!important;color:#fff8e8!important}
+#subUserWorkspacePanel .workspace-single-entry-card th:last-child{width:76px!important;min-width:76px!important;white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
+
+/* v137: one selected sidebar section and paired Page Setup fields. */
+body.shell113 #appSidebar .nav-category.current-module136>.nav-header,
+body.shell113 #appSidebar .nav-category.current-module136>.nav-header:hover{background:#f1dfad!important;color:#70431c!important;box-shadow:inset 4px 0 #bc8d36!important}
+.period-review-toolbar{flex-wrap:wrap}
+#yearClose136{display:inline-flex;white-space:nowrap;flex-shrink:0}
+#yearClose136[hidden]{display:none!important}
+.doc-options105:has(.doc-page-group111){grid-template-columns:1.2fr 1fr 1fr 1fr .75fr!important;gap:8px!important;width:100%!important}
+.doc-page-group111{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px 8px!important;width:auto!important}
+.doc-page-group111 label{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important;margin:0!important;font-size:11px!important;min-width:0!important}
+.doc-page-group111 input[type=number]{width:60px!important;min-width:60px!important;max-width:60px!important;flex:none!important}
+.doc-page-group111 select{width:100%!important;max-width:110px!important;min-width:0!important}
+.doc-page-group111[data-page-group137=header] label:first-of-type,
+.doc-page-group111[data-page-group137=footer] label:first-of-type{grid-column:1/-1;flex-direction:row!important;align-items:center!important}
+.doc-page-group111[data-page-group137=options]{grid-template-columns:1fr!important}
+.doc-page-group111[data-page-group137=options] label{flex-direction:row!important;align-items:center!important}
+@media(max-width:1100px){.doc-options105:has(.doc-page-group111){grid-template-columns:repeat(2,minmax(0,1fr))!important}}
