@@ -42,3 +42,7 @@ regression or a reason to change login behavior during this restructuring.
   sources now route HR, shared storage, operational reports, financing, journal
   history and lazy loading to their owners. Gate: 452 unchanged runtime files;
   466 sections; 304 generated assets.
+
+- **0.9:** HR–Payroll roster, leave usage, attendance and snapshot inputs are
+  separated from payroll results, tables and history. Gate: 452 unchanged
+  runtime files; 475 sections; 304 generated assets.

@@ -571,7 +571,34 @@
     ],
     "scripts/payroll-groups-v96.js": [
       {
-        "source": "src/legacy/scripts/payroll-groups-v96.js",
+        "source": "src/bridges/hr-payroll/attendance-v96/scope-and-state.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/legend-and-marks.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/approved-leave-and-days.js"
+      },
+      {
+        "source": "src/payroll/engine/results-v96.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/tables-and-attendance.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/drafts-and-finalization.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/leave-usage.js"
+      },
+      {
+        "source": "src/hr/employees/directory-v96.js"
+      },
+      {
+        "source": "src/payroll/reports/history-v96.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/install-and-scope-close.js",
         "suffix": ";\n"
       }
     ],
@@ -1193,8 +1220,35 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-groups-v96.js",
-        "prefix": "/* scripts/payroll-groups-v96.js */\n",
+        "source": "src/bridges/hr-payroll/attendance-v96/scope-and-state.js",
+        "prefix": "/* scripts/payroll-groups-v96.js */\n"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/legend-and-marks.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/approved-leave-and-days.js"
+      },
+      {
+        "source": "src/payroll/engine/results-v96.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/tables-and-attendance.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/drafts-and-finalization.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/leave-usage.js"
+      },
+      {
+        "source": "src/hr/employees/directory-v96.js"
+      },
+      {
+        "source": "src/payroll/reports/history-v96.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/attendance-v96/install-and-scope-close.js",
         "suffix": ";\n;\n"
       },
       {
@@ -2214,7 +2268,7 @@
     ],
     "styles/payroll-groups-v95.css": [
       {
-        "source": "src/legacy/styles/payroll-groups-v95.css",
+        "source": "src/bridges/hr-payroll/payroll-groups-v95.css",
         "suffix": "\n"
       }
     ],
@@ -2644,7 +2698,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/payroll-groups-v95.css",
+        "source": "src/bridges/hr-payroll/payroll-groups-v95.css",
         "prefix": "/* styles/payroll-groups-v95.css */\n",
         "suffix": "\n\n"
       },
