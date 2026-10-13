@@ -1,0 +1,16 @@
+/* Approved phone workspace, isolated from desktop presentation. */
+[hidden]{display:none!important}
+.top{padding:10px 14px!important;min-height:52px!important}.top .profile>div:not(.avatar),.top .profile>span{display:none!important}.top .brand img{display:none!important}
+#workspaceTabs{display:none!important}.screen{padding-top:12px!important}
+.card,.staff-single-line14225,.staff-double-line14225{border-top:3px solid #b66b35!important;border-radius:14px;background:#fffdf7;box-shadow:0 3px 10px #174c3610}
+.staff-single-line14225{padding:14px;margin:14px 0}.staff-single-line14225 .field{margin:9px 0}.staff-line-heading14225{display:flex;justify-content:space-between;align-items:center;color:#07513e}
+.phone-date-amount14247{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)!important;gap:10px!important}
+.field input,.field select{min-width:0;width:100%;box-sizing:border-box}input[id^=staffAmount],input[id^=staffDebit],input[id^=staffCredit]{font-variant-numeric:tabular-nums;letter-spacing:0;min-width:0}
+.entry-id14247{font-size:11px;overflow-wrap:anywhere;color:#476454;margin:4px 0 12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{flex:1;min-height:42px}
+#phoneUserTabs14236{padding:5px 10px!important;min-height:32px!important}#phoneUserTabs14236 button{font-size:11px!important;padding:6px 9px!important}
+.report-card132>summary{display:flex;flex-wrap:wrap;gap:8px}.report-card132>summary small{width:100%}.report-card132 .card{border-top-width:1px!important;margin:10px 0;padding:12px}.status{white-space:normal}
+.drawer button[hidden]{display:none!important}nav.bottom{background:#07513e!important}nav.bottom button{min-width:0!important;color:#ecf5eb!important}nav.bottom button.active{background:#b66b35!important;color:white!important}nav.bottom small{font-size:10px!important}
+
+.staff-editor14225,.staff-editor14225>fieldset{border:0!important;padding:0!important;margin:0;min-width:0}.staff-single-line14225 .money-field14231{min-width:0;max-width:100%;width:100%}.staff-single-line14225 .money-field14231 input{padding:3px 1px!important;min-height:25px}.staff-summary1425 strong{font-size:clamp(12px,4vw,17px)!important;overflow-wrap:anywhere}.staff-single-line14225 input[type=date]{font-size:12px!important}.staff-controls14225 .direction-toggle14225.out{background:#b66b35!important;color:#fff!important}
+.card.funds-hero1425{background:#07513e!important;color:#fff!important}.funds-hero1425:before,.funds-hero1425:after{display:none!important}.funds-hero1425 small,.funds-hero1425 b,.funds-hero1425 strong{color:#fff!important}
+.staff-editor14225 .money-field14231{display:grid!important;grid-template-columns:16px minmax(0,1fr)!important;align-items:center!important;gap:3px!important;padding:0!important}.staff-editor14225 .money-field14231 .money-symbol14231{position:static!important;width:16px!important;min-width:0!important;padding:0!important;font-size:12px!important}.staff-editor14225 .money-field14231 input{width:100%!important;padding-left:0!important;padding-right:0!important}

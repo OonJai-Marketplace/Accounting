@@ -1,0 +1,31 @@
+function connectionState14248(){const s=parent.offline14239?.state()||{},network=parent.navigator.connection,weak=parent.navigator.onLine!==false&&(!s.online||network?.saveData||['slow-2g','2g'].includes(network?.effectiveType)||network?.rtt>1200);return {...s,color:parent.navigator.onLine===false?'red':weak?'orange':'green',label:parent.navigator.onLine===false?'Offline':weak?'Weak connection':'Online'};}
+function paintConnection14248(){const s=connectionState14248(),dot=document.getElementById('signal14248');if(dot){dot.dataset.state=s.color;dot.title=s.label;dot.setAttribute('aria-label',s.label);}const popup=document.getElementById('connectionPopover14248');if(popup){popup.querySelector('[data-connection-title]').textContent=s.label;popup.querySelector('[data-connection-copy]').textContent=s.syncing||syncRunning14248?'Syncing…':s.pending?s.pending+' changes waiting to sync':'All changes synced';popup.querySelector('[data-connection-update]').textContent=s.lastSync?'Last sync: '+new Date(s.lastSync).toLocaleString():'Changes sync automatically when connected';popup.querySelector('[data-connection-error]').textContent=s.storageError||s.jobs?.find(j=>j.status==='attention')?.message||'';}scheduleSync14248();}
+function closeConnection14248(){document.getElementById('connectionPopover14248')?.remove();document.querySelector('.brand')?.setAttribute('aria-expanded','false');}
+function toggleConnection14248(){if(document.getElementById('connectionPopover14248'))return closeConnection14248();const p=document.createElement('div');p.id='connectionPopover14248';p.className='connection-popover14248';p.setAttribute('role','dialog');p.setAttribute('aria-label','Connection and automatic sync');p.innerHTML='<button type="button" aria-label="Close connection details">×</button><b data-connection-title></b><p data-connection-copy></p><small data-connection-update></small><p data-connection-error></p>';document.querySelector('.top').append(p);p.querySelector('button').onclick=closeConnection14248;document.querySelector('.brand').setAttribute('aria-expanded','true');paintConnection14248();}
+function scheduleSync14248(){if(syncTimer14248||syncRunning14248||!A.ready()||!S.user||!parent.navigator.onLine||!A.canWriteStaff(S.user))return;const jobs=(parent.offline14239?.state().jobs||[]).filter(j=>j.payload.p_owner===S.user&&j.status!=='synced'&&!j.payload.p_edit_ids?.length&&!j.phoneBlocked14248);if(!jobs.length)return;syncTimer14248=setTimeout(async()=>{syncTimer14248=null;if(!A.ready()||!parent.navigator.onLine)return;syncRunning14248=true;try{const api=await dataAPI14248();await api.sync(S.user);syncBackoff14248=5000;}catch{syncBackoff14248=Math.min(syncBackoff14248*2,60000);}finally{syncRunning14248=false;paintConnection14248();refresh();}},syncBackoff14248);}
+document.addEventListener('click',e=>{if(!e.target.closest('.brand,#connectionPopover14248'))closeConnection14248();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeConnection14248();});parent.addEventListener('connection14239',paintConnection14248);parent.addEventListener('online',paintConnection14248);parent.addEventListener('offline',paintConnection14248);setInterval(paintConnection14248,10000);
+window.addEventListener('pagehide',()=>{clearTimeout(syncTimer14248);parent.removeEventListener('connection14239',paintConnection14248);parent.removeEventListener('online',paintConnection14248);parent.removeEventListener('offline',paintConnection14248);});
+document.querySelector('#workspaceTabs > .menu-button')?.remove();
+const brand14227=document.querySelector('.brand');brand14227.setAttribute('role','button');brand14227.tabIndex=0;brand14227.setAttribute('aria-label','Connection and automatic sync');brand14227.setAttribute('aria-expanded','false');brand14227.onclick=toggleConnection14248;queueMicrotask(paintConnection14248);brand14227.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleConnection14248()}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('drawerBackdrop').classList.contains('open')){e.preventDefault();toggleDrawer(false)}});
+
+document.addEventListener('input',e=>{
+ if(!e.target.closest('#post')||busy)return;
+ if($('staffMemo')){S.staffDraft=staffData();S.staffDraft.requestKey='phone-'+crypto.randomUUID();persistPhoneDraft1427();updateStaffSummary1425()}
+});
+document.addEventListener('change',e=>{
+ if(!e.target.closest('#post')||busy||!$('staffMemo'))return;
+ S.staffDraft=staffData();S.staffDraft.requestKey='phone-'+crypto.randomUUID();persistPhoneDraft1427();
+ if(e.target.matches('select'))render();else updateStaffSummary1425();
+});
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-remove-single],[data-remove-double]');if(!b||busy||b.disabled)return;
+ S.staffDraft=staffData();const single=b.dataset.removeSingle!==undefined,key=single?'single':'lines',index=Number(single?b.dataset.removeSingle:b.dataset.removeDouble);
+ if(S.staffDraft.unmapped14232)return;if(S.staffDraft[key].length<=(single?1:2)){parent.showCenterStatus(single?'Keep at least one entry line.':'Keep at least two journal lines.',true);return}
+ S.staffDraft[key].splice(index,1);S.staffDraft.requestKey='phone-'+crypto.randomUUID();render();
+});
+
+parent.addEventListener('staff-retried14234',e=>{if(e.detail.actor!==A.profile()?.id)return;const d=e.detail;if(S.staffDraft?.requestKey===d.key){S.staffDraft=null;S.editingStaff=false;delete phoneDrafts1427.staff[d.owner];persistPhoneDraft1427();A.loadWorkspace(d.owner,true).catch(()=>{});render()}});
+function paintSaveErrors14234(){const n=document.querySelector('nav.bottom [data-go=entries]');if(!n)return;const failed=!!parent.saveNotices14234?.staffPending(S.user).length;n.setAttribute('aria-label',failed?'Entries — save needs attention':'Entries');let dot=n.querySelector('[data-save-mark14234]');if(failed&&!dot){dot=document.createElement('i');dot.dataset.saveMark14234='';dot.style.cssText='display:inline-block;width:8px;height:8px;border-radius:50%;background:#b91c1c;margin-left:3px';n.append(dot)}else if(!failed)dot?.remove()}
+parent.addEventListener('save-state14234',()=>{if(S.page==='entries'&&!busy)render();paintSaveErrors14234()});
+

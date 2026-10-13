@@ -52,7 +52,7 @@
     ],
     "scripts/workspace-request-v138.js": [
       {
-        "source": "src/legacy/scripts/workspace-request-v138.js",
+        "source": "src/subusers/workspace/workspace-request-v138.js",
         "suffix": ";\n"
       }
     ],
@@ -283,7 +283,34 @@
         "source": "src/core/permissions/navigation-permissions.js"
       },
       {
-        "source": "src/subusers/workspace/responsive-workspace.js"
+        "source": "src/subusers/workspace/responsive/scope-and-state.js"
+      },
+      {
+        "source": "src/subusers/accounts/responsive/fund-activity.js"
+      },
+      {
+        "source": "src/subusers/accounts/responsive/account-totals.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/home.js"
+      },
+      {
+        "source": "src/subusers/entries/responsive/post-form.js"
+      },
+      {
+        "source": "src/subusers/history/responsive/record-cards.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/navigation-and-desktop.js"
+      },
+      {
+        "source": "src/subusers/entries/responsive/entry-actions.js"
+      },
+      {
+        "source": "src/subusers/review/responsive/review-and-adjustments.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/registration-and-scope-close.js"
       },
       {
         "source": "src/shared/data/idempotent-entry-references.js",
@@ -298,25 +325,25 @@
     ],
     "scripts/subusers-final-v53.js": [
       {
-        "source": "src/legacy/scripts/subusers-final-v53.js",
+        "source": "src/subusers/entries/subusers-final-v53.js",
         "suffix": ";\n"
       }
     ],
     "scripts/subusers-final-v54.js": [
       {
-        "source": "src/legacy/scripts/subusers-final-v54.js",
+        "source": "src/subusers/entries/subusers-final-v54.js",
         "suffix": ";\n"
       }
     ],
     "scripts/subusers-final-v55.js": [
       {
-        "source": "src/legacy/scripts/subusers-final-v55.js",
+        "source": "src/subusers/entries/subusers-final-v55.js",
         "suffix": ";\n"
       }
     ],
     "scripts/subusers-final-v56.js": [
       {
-        "source": "src/legacy/scripts/subusers-final-v56.js",
+        "source": "src/subusers/entries/subusers-final-v56.js",
         "suffix": ";\n"
       }
     ],
@@ -355,7 +382,7 @@
     ],
     "scripts/review-v69.js": [
       {
-        "source": "src/legacy/scripts/review-v69.js",
+        "source": "src/subusers/review/review-v69.js",
         "suffix": ";\n"
       }
     ],
@@ -391,7 +418,7 @@
     ],
     "scripts/review-mobile-v78.js": [
       {
-        "source": "src/legacy/scripts/review-mobile-v78.js",
+        "source": "src/subusers/review/review-mobile-v78.js",
         "suffix": ";\n"
       }
     ],
@@ -592,7 +619,7 @@
     ],
     "scripts/desktop14245-3.js": [
       {
-        "source": "src/legacy/scripts/workspace-request-v138.js",
+        "source": "src/subusers/workspace/workspace-request-v138.js",
         "prefix": "/* scripts/workspace-request-v138.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -823,7 +850,34 @@
         "source": "src/core/permissions/navigation-permissions.js"
       },
       {
-        "source": "src/subusers/workspace/responsive-workspace.js"
+        "source": "src/subusers/workspace/responsive/scope-and-state.js"
+      },
+      {
+        "source": "src/subusers/accounts/responsive/fund-activity.js"
+      },
+      {
+        "source": "src/subusers/accounts/responsive/account-totals.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/home.js"
+      },
+      {
+        "source": "src/subusers/entries/responsive/post-form.js"
+      },
+      {
+        "source": "src/subusers/history/responsive/record-cards.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/navigation-and-desktop.js"
+      },
+      {
+        "source": "src/subusers/entries/responsive/entry-actions.js"
+      },
+      {
+        "source": "src/subusers/review/responsive/review-and-adjustments.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive/registration-and-scope-close.js"
       },
       {
         "source": "src/shared/data/idempotent-entry-references.js",
@@ -840,22 +894,22 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/subusers-final-v53.js",
+        "source": "src/subusers/entries/subusers-final-v53.js",
         "prefix": "/* scripts/subusers-final-v53.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/subusers-final-v54.js",
+        "source": "src/subusers/entries/subusers-final-v54.js",
         "prefix": "/* scripts/subusers-final-v54.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/subusers-final-v55.js",
+        "source": "src/subusers/entries/subusers-final-v55.js",
         "prefix": "/* scripts/subusers-final-v55.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/subusers-final-v56.js",
+        "source": "src/subusers/entries/subusers-final-v56.js",
         "prefix": "/* scripts/subusers-final-v56.js */\n",
         "suffix": ";\n;\n"
       },
@@ -889,7 +943,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/review-v69.js",
+        "source": "src/subusers/review/review-v69.js",
         "prefix": "/* scripts/review-v69.js */\n",
         "suffix": ";\n;\n\n"
       },
@@ -919,7 +973,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/review-mobile-v78.js",
+        "source": "src/subusers/review/review-mobile-v78.js",
         "prefix": "/* scripts/review-mobile-v78.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1214,7 +1268,7 @@
     ],
     "scripts/funds-v113.js": [
       {
-        "source": "src/legacy/scripts/funds-v113.js",
+        "source": "src/subusers/accounts/funds-v113.js",
         "suffix": ";\n"
       }
     ],
@@ -1232,7 +1286,7 @@
     ],
     "scripts/workspace-v117.js": [
       {
-        "source": "src/legacy/scripts/workspace-v117.js",
+        "source": "src/subusers/workspace/workspace-v117.js",
         "suffix": ";\n"
       }
     ],
@@ -1262,13 +1316,13 @@
     ],
     "scripts/combined-v138.js": [
       {
-        "source": "src/legacy/scripts/combined-v138.js",
+        "source": "src/subusers/workspace/combined-v138.js",
         "suffix": ";\n"
       }
     ],
     "scripts/submission-review-v139.js": [
       {
-        "source": "src/legacy/scripts/submission-review-v139.js",
+        "source": "src/subusers/review/submission-review-v139.js",
         "suffix": ";\n"
       }
     ],
@@ -1284,7 +1338,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/funds-v113.js",
+        "source": "src/subusers/accounts/funds-v113.js",
         "prefix": "/* scripts/funds-v113.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1299,7 +1353,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/workspace-v117.js",
+        "source": "src/subusers/workspace/workspace-v117.js",
         "prefix": "/* scripts/workspace-v117.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1324,12 +1378,12 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/combined-v138.js",
+        "source": "src/subusers/workspace/combined-v138.js",
         "prefix": "/* scripts/combined-v138.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/submission-review-v139.js",
+        "source": "src/subusers/review/submission-review-v139.js",
         "prefix": "/* scripts/submission-review-v139.js */\n",
         "suffix": ";\n\n\n;\n"
       }
@@ -1360,7 +1414,7 @@
     ],
     "scripts/staff-entry14225.js": [
       {
-        "source": "src/legacy/scripts/staff-entry14225.js",
+        "source": "src/subusers/entries/staff-entry14225.js",
         "suffix": ";\n"
       }
     ],
@@ -1396,7 +1450,7 @@
     ],
     "scripts/drafts1427.js": [
       {
-        "source": "src/legacy/scripts/drafts1427.js",
+        "source": "src/subusers/entries/drafts1427.js",
         "suffix": ";\n"
       }
     ],
@@ -1432,13 +1486,13 @@
     ],
     "scripts/workspace-config123.js": [
       {
-        "source": "src/legacy/scripts/workspace-config123.js",
+        "source": "src/subusers/workspace/workspace-config123.js",
         "suffix": ";\n"
       }
     ],
     "scripts/workspace-links123.js": [
       {
-        "source": "src/legacy/scripts/workspace-links123.js",
+        "source": "src/subusers/workspace/workspace-links123.js",
         "suffix": ";\n"
       }
     ],
@@ -1456,7 +1510,7 @@
     ],
     "scripts/personal-journal1437.js": [
       {
-        "source": "src/legacy/scripts/personal-journal1437.js",
+        "source": "src/subusers/entries/personal-journal1437.js",
         "suffix": ";\n"
       }
     ],
@@ -1468,7 +1522,7 @@
     ],
     "scripts/workspace1439.js": [
       {
-        "source": "src/legacy/scripts/workspace1439.js",
+        "source": "src/subusers/workspace/workspace1439.js",
         "suffix": ";\n"
       }
     ],
@@ -1516,7 +1570,7 @@
     ],
     "scripts/organization14229.js": [
       {
-        "source": "src/legacy/scripts/organization14229.js",
+        "source": "src/subusers/workspace/organization14229.js",
         "suffix": ";\n"
       }
     ],
@@ -1528,7 +1582,7 @@
     ],
     "scripts/team-home14227.js": [
       {
-        "source": "src/legacy/scripts/team-home14227.js",
+        "source": "src/subusers/workspace/team-home14227.js",
         "suffix": ";\n"
       }
     ],
@@ -1608,7 +1662,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/staff-entry14225.js",
+        "source": "src/subusers/entries/staff-entry14225.js",
         "prefix": "/* scripts/staff-entry14225.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1638,7 +1692,7 @@
         "suffix": ";\n;\n\n"
       },
       {
-        "source": "src/legacy/scripts/drafts1427.js",
+        "source": "src/subusers/entries/drafts1427.js",
         "prefix": "/* scripts/drafts1427.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1668,12 +1722,12 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/workspace-config123.js",
+        "source": "src/subusers/workspace/workspace-config123.js",
         "prefix": "/* scripts/workspace-config123.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/workspace-links123.js",
+        "source": "src/subusers/workspace/workspace-links123.js",
         "prefix": "/* scripts/workspace-links123.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1688,7 +1742,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/personal-journal1437.js",
+        "source": "src/subusers/entries/personal-journal1437.js",
         "prefix": "/* scripts/personal-journal1437.js */\n",
         "suffix": ";\n\n"
       },
@@ -1698,7 +1752,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/workspace1439.js",
+        "source": "src/subusers/workspace/workspace1439.js",
         "prefix": "/* scripts/workspace1439.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1738,7 +1792,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/organization14229.js",
+        "source": "src/subusers/workspace/organization14229.js",
         "prefix": "/* scripts/organization14229.js */\n",
         "suffix": ";\n\n"
       },
@@ -1748,7 +1802,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/team-home14227.js",
+        "source": "src/subusers/workspace/team-home14227.js",
         "prefix": "/* scripts/team-home14227.js */\n",
         "suffix": ";\n\n;\n\n"
       },
@@ -1818,19 +1872,19 @@
     ],
     "styles/subusers-final-v53.css": [
       {
-        "source": "src/legacy/styles/subusers-final-v53.css",
+        "source": "src/subusers/entries/subusers-final-v53.css",
         "suffix": "\n"
       }
     ],
     "styles/subusers-final-v55.css": [
       {
-        "source": "src/legacy/styles/subusers-final-v55.css",
+        "source": "src/subusers/entries/subusers-final-v55.css",
         "suffix": "\n"
       }
     ],
     "styles/subusers-final-v56.css": [
       {
-        "source": "src/legacy/styles/subusers-final-v56.css",
+        "source": "src/subusers/entries/subusers-final-v56.css",
         "suffix": "\n"
       }
     ],
@@ -1842,7 +1896,7 @@
     ],
     "styles/subusers-mobile-v61.css": [
       {
-        "source": "src/legacy/styles/subusers-mobile-v61.css",
+        "source": "src/subusers/workspace/subusers-mobile-v61.css",
         "suffix": "\n"
       }
     ],
@@ -1890,13 +1944,13 @@
     ],
     "styles/subusers-polish-v75.css": [
       {
-        "source": "src/legacy/styles/subusers-polish-v75.css",
+        "source": "src/subusers/workspace/subusers-polish-v75.css",
         "suffix": "\n"
       }
     ],
     "styles/review-mobile-v78.css": [
       {
-        "source": "src/legacy/styles/review-mobile-v78.css",
+        "source": "src/subusers/review/review-mobile-v78.css",
         "suffix": "\n"
       }
     ],
@@ -2112,13 +2166,13 @@
     ],
     "styles/combined-v138.css": [
       {
-        "source": "src/legacy/styles/combined-v138.css",
+        "source": "src/subusers/workspace/combined-v138.css",
         "suffix": "\n"
       }
     ],
     "styles/submission-review-v139.css": [
       {
-        "source": "src/legacy/styles/submission-review-v139.css",
+        "source": "src/subusers/review/submission-review-v139.css",
         "suffix": "\n"
       }
     ],
@@ -2190,7 +2244,7 @@
     ],
     "styles/workspaces1432.css": [
       {
-        "source": "src/legacy/styles/workspaces1432.css",
+        "source": "src/subusers/workspace/workspaces1432.css",
         "suffix": "\n"
       }
     ],
@@ -2208,7 +2262,7 @@
     ],
     "styles/personal-journal1437.css": [
       {
-        "source": "src/legacy/styles/personal-journal1437.css",
+        "source": "src/subusers/entries/personal-journal1437.css",
         "suffix": "\n"
       }
     ],
@@ -2220,7 +2274,7 @@
     ],
     "styles/workspace1439.css": [
       {
-        "source": "src/legacy/styles/workspace1439.css",
+        "source": "src/subusers/workspace/workspace1439.css",
         "suffix": "\n"
       }
     ],
@@ -2244,13 +2298,13 @@
     ],
     "styles/subusers-header14226.css": [
       {
-        "source": "src/legacy/styles/subusers-header14226.css",
+        "source": "src/subusers/workspace/subusers-header14226.css",
         "suffix": "\n"
       }
     ],
     "styles/team-home14227.css": [
       {
-        "source": "src/legacy/styles/team-home14227.css",
+        "source": "src/subusers/workspace/team-home14227.css",
         "suffix": "\n"
       }
     ],
@@ -2277,17 +2331,17 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/subusers-final-v53.css",
+        "source": "src/subusers/entries/subusers-final-v53.css",
         "prefix": "/* styles/subusers-final-v53.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/subusers-final-v55.css",
+        "source": "src/subusers/entries/subusers-final-v55.css",
         "prefix": "/* styles/subusers-final-v55.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/subusers-final-v56.css",
+        "source": "src/subusers/entries/subusers-final-v56.css",
         "prefix": "/* styles/subusers-final-v56.css */\n",
         "suffix": "\n\n"
       },
@@ -2297,7 +2351,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/subusers-mobile-v61.css",
+        "source": "src/subusers/workspace/subusers-mobile-v61.css",
         "prefix": "/* styles/subusers-mobile-v61.css */\n",
         "suffix": "\n\n"
       },
@@ -2337,12 +2391,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/subusers-polish-v75.css",
+        "source": "src/subusers/workspace/subusers-polish-v75.css",
         "prefix": "/* styles/subusers-polish-v75.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/review-mobile-v78.css",
+        "source": "src/subusers/review/review-mobile-v78.css",
         "prefix": "/* styles/review-mobile-v78.css */\n",
         "suffix": "\n\n"
       },
@@ -2527,12 +2581,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/combined-v138.css",
+        "source": "src/subusers/workspace/combined-v138.css",
         "prefix": "/* styles/combined-v138.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/submission-review-v139.css",
+        "source": "src/subusers/review/submission-review-v139.css",
         "prefix": "/* styles/submission-review-v139.css */\n",
         "suffix": "\n\n"
       },
@@ -2592,7 +2646,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/workspaces1432.css",
+        "source": "src/subusers/workspace/workspaces1432.css",
         "prefix": "/* styles/workspaces1432.css */\n",
         "suffix": "\n\n"
       },
@@ -2607,7 +2661,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/personal-journal1437.css",
+        "source": "src/subusers/entries/personal-journal1437.css",
         "prefix": "/* styles/personal-journal1437.css */\n",
         "suffix": "\n\n"
       },
@@ -2617,7 +2671,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/workspace1439.css",
+        "source": "src/subusers/workspace/workspace1439.css",
         "prefix": "/* styles/workspace1439.css */\n",
         "suffix": "\n\n"
       },
@@ -2637,12 +2691,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/subusers-header14226.css",
+        "source": "src/subusers/workspace/subusers-header14226.css",
         "prefix": "/* styles/subusers-header14226.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/team-home14227.css",
+        "source": "src/subusers/workspace/team-home14227.css",
         "prefix": "/* styles/team-home14227.css */\n",
         "suffix": "\n\n"
       },
@@ -3005,6 +3059,214 @@
     "styles/transaction-consistency14300.css": [
       {
         "source": "src/bookkeeping/journal/transaction-consistency14300.css"
+      }
+    ],
+    "scripts/assigned-ledger14281.js": [
+      {
+        "source": "src/subusers/accounts/assigned-ledger14281.js"
+      }
+    ],
+    "scripts/phone-account-picker14227.js": [
+      {
+        "source": "src/subusers/workspace/phone-account-picker14227.js"
+      }
+    ],
+    "scripts/phone-connected.js": [
+      {
+        "source": "src/subusers/phone/connected/scope-and-draft.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/navigation.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/render-and-settings.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/home-and-accounts.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/entry-fields.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/templates.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/entry-form-and-save.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/history.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/bookkeeping-compatibility.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/entry-validation.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/account-ledger.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/connection-and-sync.js"
+      },
+      {
+        "source": "src/subusers/phone/connected/startup-and-scope-close.js"
+      }
+    ],
+    "scripts/phone-runtime14242.js": [
+      {
+        "source": "src/subusers/phone/runtime/scope-and-state.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/storage-and-transport.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/permissions-and-accounts.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/draft-persistence.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/session-and-access.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/data-loading.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/workspace-selection.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/authentication.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/history-groups.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/home-and-accounts.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/entry-form.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/history-and-render.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/navigation-and-dialogs.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/save-entry.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/durable-sync.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/submission-and-reconciliation.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/correction-and-void.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/report-printing.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/actions.js"
+      },
+      {
+        "source": "src/subusers/phone/runtime/registration-and-scope-close.js"
+      }
+    ],
+    "scripts/phone-tools14242.js": [
+      {
+        "source": "src/subusers/phone/phone-tools14242.js"
+      }
+    ],
+    "scripts/workspace-consistency14343.js": [
+      {
+        "source": "src/subusers/workspace/workspace-consistency14343.js"
+      }
+    ],
+    "scripts/workspace-header14266.js": [
+      {
+        "source": "src/subusers/workspace/workspace-header14266.js"
+      }
+    ],
+    "scripts/workspace14331.js": [
+      {
+        "source": "src/subusers/workspace/workspace14331.js"
+      }
+    ],
+    "scripts/workspace14337.js": [
+      {
+        "source": "src/subusers/workspace/workspace14337.js"
+      }
+    ],
+    "styles/phone-account-picker14227.css": [
+      {
+        "source": "src/subusers/workspace/phone-account-picker14227.css"
+      }
+    ],
+    "styles/phone-accounting14246.css": [
+      {
+        "source": "src/subusers/phone/phone-accounting14246.css"
+      }
+    ],
+    "styles/phone-approved14225.css": [
+      {
+        "source": "src/subusers/phone/phone-approved14225.css"
+      }
+    ],
+    "styles/phone-approved14247.css": [
+      {
+        "source": "src/subusers/phone/phone-approved14247.css"
+      }
+    ],
+    "styles/phone-connected.css": [
+      {
+        "source": "src/subusers/phone/connected/phone-connected.css"
+      }
+    ],
+    "styles/phone-design14248.css": [
+      {
+        "source": "src/subusers/phone/phone-design14248.css"
+      }
+    ],
+    "styles/phone-design14284.css": [
+      {
+        "source": "src/subusers/phone/phone-design14284.css"
+      }
+    ],
+    "styles/phone-finalization1440.css": [
+      {
+        "source": "src/subusers/phone/phone-finalization1440.css"
+      }
+    ],
+    "styles/phone-polish14281.css": [
+      {
+        "source": "src/subusers/phone/phone-polish14281.css"
+      }
+    ],
+    "styles/phone14242.css": [
+      {
+        "source": "src/subusers/phone/phone14242.css"
+      }
+    ],
+    "styles/workspace-consistency14343.css": [
+      {
+        "source": "src/subusers/workspace/workspace-consistency14343.css"
+      }
+    ],
+    "styles/workspace-header14266.css": [
+      {
+        "source": "src/subusers/workspace/workspace-header14266.css"
+      }
+    ],
+    "styles/workspace14331.css": [
+      {
+        "source": "src/subusers/workspace/workspace14331.css"
+      }
+    ],
+    "styles/workspace14337.css": [
+      {
+        "source": "src/subusers/workspace/workspace14337.css"
       }
     ]
   },

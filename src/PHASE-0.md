@@ -24,3 +24,8 @@ regression or a reason to change login behavior during this restructuring.
   account controllers own their extensions. Mixed transaction overrides now have
   distinct journal/audit/import/export sections. Gate: 452 unchanged runtime
   files; 351 source sections; 269 checked generated assets.
+
+- **0.5:** Sub-user entries, review, history, assigned funds and both phone
+  clients have named source sections; phone rendering, auth, storage and sync
+  preserve their original closures. Gate: 452 unchanged runtime files;
+  414 sections; 292 generated assets checked.
