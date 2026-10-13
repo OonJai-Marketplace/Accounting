@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-12",
+  "checkedAt": "2026-10-13",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -679,6 +679,26 @@
         {
           "name": "Tourism Laos · Ministry of Culture and Tourism",
           "url": "https://www.tourismlaos.org/event/naga-rocket-in-bolikhamxay-province-3/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-chomcheng-boat-racing-vientiane",
+      "revision": "2026-10-13T01:09:10Z",
+      "title": "Chomcheng Boat Racing Festival and Trade Fair 2026",
+      "location": "Vientiane Capital, Laos; Sisattanak District organizers; exact riverbank racecourse and trade-fair grounds not specified",
+      "start": "2026-10-14",
+      "end": "2026-10-18",
+      "category": "festival",
+      "confidence": "confirmed",
+      "summary": "KPL reports that the five-day Chomcheng Boat Racing Festival will include more than 500 trade-fair stalls selling ODOP products, handicrafts, textiles, food, beverages and other local goods. As of 13 October: 1 day until opening; very short notice.",
+      "restaurantIdea": "Suggestion: If serving Vientiane customers, immediately confirm the fair location and operating hours, then consider a limited takeaway, beverage or supplier-contact plan that does not require heavy advance spending.",
+      "uncertainty": "The dates and Vientiane location are confirmed. The article identifies Sisattanak District trade officials but does not give the exact racecourse, fairground, opening hours, road closures, stall availability or verified attendance forecast.",
+      "sources": [
+        {
+          "name": "KPL · Lao News Agency, 12 October 2026",
+          "url": "https://kpl.gov.la/EN/detail.aspx?id=109039",
           "language": "en"
         }
       ]
