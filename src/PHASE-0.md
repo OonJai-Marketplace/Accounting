@@ -29,3 +29,7 @@ regression or a reason to change login behavior during this restructuring.
   clients have named source sections; phone rendering, auth, storage and sync
   preserve their original closures. Gate: 452 unchanged runtime files;
   414 sections; 292 generated assets checked.
+
+- **0.6:** Sub-users–Bookkeeping submission, reconciliation, consolidation and
+  journal preparation have explicit bridge ownership. Gate: 452 unchanged
+  runtime files; 425 sections; 297 generated assets checked.

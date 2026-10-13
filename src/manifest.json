@@ -1310,7 +1310,7 @@
     ],
     "scripts/workflows-v136.js": [
       {
-        "source": "src/legacy/scripts/workflows-v136.js",
+        "source": "src/bridges/subusers-bookkeeping/workflows-v136.js",
         "suffix": ";\n"
       }
     ],
@@ -1373,7 +1373,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/workflows-v136.js",
+        "source": "src/bridges/subusers-bookkeeping/workflows-v136.js",
         "prefix": "/* scripts/workflows-v136.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -2160,7 +2160,7 @@
     ],
     "styles/workflows-v136.css": [
       {
-        "source": "src/legacy/styles/workflows-v136.css",
+        "source": "src/bridges/subusers-bookkeeping/workflows-v136.css",
         "suffix": "\n"
       }
     ],
@@ -2576,7 +2576,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/workflows-v136.css",
+        "source": "src/bridges/subusers-bookkeeping/workflows-v136.css",
         "prefix": "/* styles/workflows-v136.css */\n",
         "suffix": "\n\n"
       },
@@ -3267,6 +3267,49 @@
     "styles/workspace14337.css": [
       {
         "source": "src/subusers/workspace/workspace14337.css"
+      }
+    ],
+    "scripts/budget-workflow14316.js": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/budget-workflow14316.js"
+      }
+    ],
+    "scripts/reconciliation14345.js": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/reconciliation14345.js"
+      }
+    ],
+    "scripts/workflow14253.js": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/scope-and-helpers.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/submit.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/load.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/consolidation.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/prepare-journal.js"
+      },
+      {
+        "source": "src/settings/users/report-workflow-lifecycle.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/report-workflow/install-and-scope-close.js"
+      }
+    ],
+    "styles/workflow14253.css": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/workflow14253.css"
+      }
+    ],
+    "styles/workflow14316.css": [
+      {
+        "source": "src/bridges/subusers-bookkeeping/workflow14316.css"
       }
     ]
   },
