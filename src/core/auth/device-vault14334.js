@@ -766,7 +766,7 @@
       rawSession.setItem(P + "offline", "0");
       window.dispatchEvent(new Event("session-online14333"));
       window.autoSync14256?.run();
-      window.localFirst14333?.sync();
+      window.idleSync14341?.request?.();
     } catch (e) {
       if (!transport(e)) {
         revoke();

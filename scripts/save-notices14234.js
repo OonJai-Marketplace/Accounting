@@ -2,8 +2,9 @@
 (()=>{'use strict';
 const actor=()=>liveProfile?.id||'',prefix=()=> 'ojm_staff_save14228:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+actor()+':';
 const esc=v=>escapeHtml(String(v??''));const flights=new Map();let panel=null;
-function staffPending(owner){if(!actor())return [];const out=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key.startsWith(prefix()))continue;try{const p=JSON.parse(localStorage.getItem(key));if(p&&(!owner||p.p_owner===owner))out.push({key,payload:p,message:localStorage.getItem(key+':error')||'Saving was interrupted. Retry the same entry.'})}catch{}}return out.filter(x=>x.payload.p_key)}
-function changed(){paint();window.dispatchEvent(new Event('save-state14234'))}
+let pendingCache;
+function staffPending(owner){if(!actor())return [];if(pendingCache?.actor===actor())return pendingCache.rows.filter(x=>!owner||x.payload.p_owner===owner);const out=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key.startsWith(prefix()))continue;try{const p=JSON.parse(localStorage.getItem(key));if(p)out.push({key,payload:p,message:localStorage.getItem(key+':error')||'Saving was interrupted. Retry the same entry.'})}catch{}}const rows=out.filter(x=>x.payload.p_key);pendingCache={actor:actor(),rows};return rows.filter(x=>!owner||x.payload.p_owner===owner)}
+function changed(){pendingCache=null;paint();window.dispatchEvent(new Event('save-state14234'))}
 async function saveStaff(payload){const who=actor();if(!who||!access113.can('sub-users-workspace','edit'))throw Error('Sign in with entry editing access to retry.'); const key=prefix()+payload.p_owner;
  let prior=JSON.parse(localStorage.getItem(key)||sessionStorage.getItem(key)||'null');if(prior&&JSON.stringify(prior)!==JSON.stringify(payload))throw Error('An earlier entry is still pending. Open Entries and retry that saved request first. Your current draft is retained.');
 const queued=window.offline14239?.queue().find(j=>j.payload.p_key===payload.p_key);
@@ -18,16 +19,16 @@ async function retryStaff(job){const who=actor();const r=await saveStaff(job.pay
  await loadStaffJournalsForReview();window.funds113?.refresh();changed();
 }
 function entries(){if(!actor())return [];const list=staffPending().map(j=>({id:j.payload.p_key,title:'Personal entry · '+(j.payload.p_items?.[0]?.date||''),message:j.message,retry:()=>retryStaff(j)}));
- for(const j of window.pendingPosts99?.values()||[])if(['failed','uncertain'].includes(j.status)||(j.status==='saved'&&j.message))list.push({id:j.id,title:j.snapshot.date+' · '+j.snapshot.memo,message:j.message||'Saving needs confirmation.',retry:()=>mainRetry14234(j.id)});
+ for(const j of window.pendingPosts99?.values()||[])if(['failed','uncertain'].includes(j.status)||(j.status==='saved'&&j.message))list.push({id:j.id,title:(j.snapshot?.date||'')+' · '+(j.snapshot?.memo||'Journal entry'),message:j.message||'Saving needs confirmation.',retry:()=>mainRetry14234(j.id)});
  const b=window.journalBatch1440?.getJob();if(b&&!b.completed&&(b.refreshError||b.dates.some(d=>['failed','uncertain'].includes(d.status))))list.push({id:b.id,title:'Journal batch',message:b.refreshError||b.dates.map(d=>d.date+': '+(d.message||d.status)).join(' · '),retry:()=>journalBatch1440.retry()});return list;
 }
-function paint(){const count=entries().length,bell=document.getElementById('upcomingBell101');if(bell){bell.classList.toggle('save-error14234',count>0);bell.dataset.saveErrors14234=String(count);bell.setAttribute('aria-label',count?'Notifications — '+count+' saves need attention':'Notifications')}if(panel)renderPanel()}
+function paint(){const count=entries().length,bell=document.getElementById('upcomingBell101');if(bell&&!window.syncAssessment14332){bell.classList.toggle('save-error14234',count>0);bell.dataset.saveErrors14234=String(count);bell.setAttribute('aria-label',count?'Notifications — '+count+' saves need attention':'Notifications')}if(panel)renderPanel()}
 function renderPanel(){const list=entries();panel.innerHTML='<header><h2>Save notifications</h2><button type="button" data-close14234 aria-label="Close">×</button></header>'+(list.map((j,i)=>'<article><strong>'+esc(j.title)+'</strong><small>Reference: '+esc(j.id)+'</small><p>'+esc(j.message)+'</p><button type="button" data-retry14234="'+i+'">Retry Save</button><p role="status"></p></article>').join('')||'<p>No save errors.</p>')+'<button type="button" data-reminders14234>Other notifications</button>';
  panel.querySelector('[data-close14234]').onclick=()=>{panel.parentNode.remove();panel=null};panel.querySelector('[data-reminders14234]').onclick=()=>{panel.parentNode.remove();panel=null;switchTab('transactions-recurring')};panel.querySelectorAll('[data-retry14234]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await list[Number(b.dataset.retry14234)].retry();paint()}catch(e){if(b.isConnected)b.nextElementSibling.textContent=e.message}finally{b.disabled=false}})}
 function open(){if(panel){renderPanel();return}const back=document.createElement('div');back.className='save-overlay14234';panel=document.createElement('section');panel.className='save-panel14234';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Save notifications');back.append(panel);document.body.append(back);renderPanel();panel.querySelector('button').focus();back.addEventListener('keydown',e=>{if(e.key==='Escape'){back.remove();panel=null}})}
 window.saveNotices14234={saveStaff,staffPending,entries,open,paint};
 // The shared notification bell lists save failures alongside other alerts.
-window.addEventListener('save-state14234',paint);window.addEventListener('page113',paint);
+window.addEventListener('save-state14234',()=>{pendingCache=null;paint()});window.addEventListener('storage',()=>{pendingCache=null;});window.addEventListener('page113',paint);
 // Preserve pending requests created by earlier versions of this same session.
 function migrate(){for(let i=0;i<sessionStorage.length;i++){const k=sessionStorage.key(i);if(/^(ojm_staff_save14228:|ojm_pending_posts99_|ojm_journal_batch1440:)/.test(k)&&!localStorage.getItem(k))localStorage.setItem(k,sessionStorage.getItem(k))}paint()}
 try{migrate()}catch(e){showCenterStatus('Device save recovery storage is unavailable: '+e.message,true)}

@@ -12,3 +12,5 @@
 .sync-finding14332>div{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .sync-finding14332 button{border:1px solid currentColor;border-radius:5px;padding:5px 9px;background:#fff;color:inherit;cursor:pointer}
 @media print{.sync-finding14332 button{display:none}}
+
+.sync-progress14351{position:fixed;inset:auto 16px 16px auto;margin:0;width:min(440px,calc(100vw - 32px));max-height:70vh;overflow:auto;border:1px solid #94a3b8;border-radius:8px;background:#fff;color:#172a22;padding:16px;z-index:3000;box-shadow:0 8px 32px #0003;font:14px/1.45 system-ui}.sync-progress14351 h3{margin:0 0 8px}.sync-progress14351 progress{width:100%}.sync-progress14351 pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}.sync-progress14351 footer{display:flex;gap:8px;flex-wrap:wrap}.sync-progress14351 footer button{height:32px;padding:0 10px;cursor:pointer}@media print{.sync-progress14351{display:none!important}}

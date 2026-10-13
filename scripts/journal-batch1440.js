@@ -54,7 +54,7 @@ async function post(groups){
  if(window.workflow136?.state.sessions.some(s=>data.some(p=>p.p_transaction_date.slice(0,7)===String(s.month).slice(0,7)))){showCenterStatus('Post one date at a time in a book correction session.',true);return;}
  busy=true;
  try{
-  if(!job)job={id:crypto.randomUUID(),owner:id,payloads:data,dates:data.map(p=>({date:p.p_transaction_date,status:'pending'}))};
+  if(!job)job={id:crypto.randomUUID(),owner:id,created:new Date().toISOString(),payloads:data,dates:data.map(p=>({date:p.p_transaction_date,status:'pending'}))};
   job.protocol14228=true;
   if(job.completed){showCenterStatus('This batch is already confirmed saved. Start a new draft for another posting.');return;}
   // Every retry sends the identical batch and reference. The server returns the original receipt.

@@ -1,7 +1,7 @@
 /* Retain historical leave usage while downloading detailed payroll by requested year. */
 (() => {
   "use strict";
-  let missing = false;
+  let missing = false, checkpoint = null;
   async function read(from, to) {
     if (missing) {
       Work82.leaveCarry14334 = [];
@@ -42,6 +42,7 @@
         throw Error("The payroll window is incomplete.");
       if (offset === 0) {
         revision = r.data.revision;
+        if(checkpoint?.actor===id&&checkpoint.from===from&&checkpoint.to===to&&checkpoint.revision===revision){Work82.leaveCarry14334=r.data.carry;Work82.payrollIndex14334=r.data.index;return structuredClone(checkpoint.rows);}
         carry = r.data.carry;
         history = r.data.index;
       } else if (revision !== r.data.revision)
@@ -55,6 +56,7 @@
       rows.push(...r.data.rows);
       if (r.data.rows.length < 200) break;
     }
+    checkpoint={actor:id,from,to,revision,rows:structuredClone(rows)};
     Work82.leaveCarry14334 = carry;
     Work82.payrollIndex14334 = history;
     return rows;
@@ -86,6 +88,8 @@
   };
   window.payrollWindow14334 = {
     read,
+    checkpoint:()=>checkpoint&&{actor:checkpoint.actor,from:checkpoint.from,to:checkpoint.to,revision:checkpoint.revision},
+    restore(value){const c=value?.payrollRevision14351;if(c?.actor===liveProfile?.id&&Array.isArray(value.runs))checkpoint={...c,rows:structuredClone(value.runs)};},
     used,
     ensure,
     hasEmployee(id) {
@@ -102,7 +106,7 @@
       );
     },
     reset() {
-      missing = false;
+      missing = false;checkpoint=null;
       Work82.leaveCarry14334 = [];
     },
   };
