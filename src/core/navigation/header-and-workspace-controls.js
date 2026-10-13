@@ -4,8 +4,8 @@ switchTab=function(tabId){return switchTabBeforeFoundationV2(tabId)};
 function userInitials(name='OJ'){return String(name).trim().split(/\s+/).map(part=>part[0]).slice(0,2).join('').toUpperCase()||'OJ'}
 function toggleHeaderAccountMenu(){const menu=document.getElementById('headerAccountDropdown'),trigger=document.getElementById('headerAccountTrigger');if(!menu)return;menu.hidden=!menu.hidden;trigger?.setAttribute('aria-expanded',String(!menu.hidden))}
 function closeHeaderAccountMenu(){const menu=document.getElementById('headerAccountDropdown'),trigger=document.getElementById('headerAccountTrigger');if(menu)menu.hidden=true;trigger?.setAttribute('aria-expanded','false')}
-function confirmSignOut(){closeHeaderAccountMenu();showAppConfirm('Sign Out','End the current secure session?','Sign Out',async()=>{await logoutDemoUser();showCenterStatus('Signed out successfully.')},false)}
-function switchAccount(){closeHeaderAccountMenu();showAppConfirm('Switch Account','The current account will be signed out. The next user must enter their own email and password.','Continue',async()=>{await logoutDemoUser();const email=document.getElementById('loginEmail');if(email){email.value='';email.focus()}showCenterStatus('Enter the other account credentials.')},false)}
+function confirmSignOut(){closeHeaderAccountMenu();showAppConfirm('Sign Out','End the current secure session?','Sign Out',async()=>{await logoutDemoUser()},false)}
+function switchAccount(){closeHeaderAccountMenu();showAppConfirm('Switch Account','The current account will be signed out. The next user must enter their own email and password.','Continue',async()=>{await logoutDemoUser();const email=document.getElementById('loginEmail');if(email){email.value='';email.focus()}},false)}
 document.addEventListener('click',event=>{if(!event.target.closest('.header-account-menu'))closeHeaderAccountMenu()});
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeHeaderAccountMenu()});
 

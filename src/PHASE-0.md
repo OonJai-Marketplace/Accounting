@@ -65,15 +65,16 @@ regression or a reason to change login behavior during this restructuring.
   account isolation, lost-response deduplication, HR calendar, idle-sync clock
   and cache-asset tests pass. See `validation/phase0-results.json`.
 
-## Remaining limitations
+## Final corrections after source extraction
 
-- The baseline standalone phone offline sign-in test remains unverified after
-  its original admin/staff setup timeouts. Byte identity protects against new
-  runtime changes; it does not establish that existing phone behavior is correct.
-- The baseline 24-hour policy and all existing activity hooks are unchanged.
-  Page-restore/visibility activity handling noted during baseline review is a
-  separate future debugging topic, not silently corrected in Phase 0.
-- Globals, closures and ordered overrides are retained intentionally. Source
-  separation is complete; runtime dependency isolation would be a later change.
-- HTML shells, service-worker/cache paths, deployment settings, SQL, production
-  data and approved UI/report layouts were not changed. No deployment was made.
+The user separately authorized targeted runtime corrections on 2026-10-13.
+[PHASE-0-FINAL-CORRECTIONS.md](PHASE-0-FINAL-CORRECTIONS.md) records the preload
+verification, navigation measurements, logout and inactivity fixes, and test scope.
+The original byte-identical extraction evidence above remains historical evidence;
+`validation/phase0-corrections.json` records the specifically authorized differences.
+
+The independent phone offline readiness mismatch is corrected and administrator/
+staff offline password sign-in is now exercised. Source ordering, shared globals
+and closures remain; this is not a migration to isolated ES modules. Tests use local
+fixtures, not production data. Actual user-device latency remains unmeasured.
+No production deployment, SQL/schema change, or accounting/report redesign was made.

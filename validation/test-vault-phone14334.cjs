@@ -3,6 +3,7 @@ const root=path.resolve(__dirname,'..'),results=[];let fixture;const payload=tok
 const server=http.createServer(async(req,res)=>{
  const u=new URL(req.url,'http://localhost');let body='';for await(const x of req)body+=x;
  const send=(data,status=200)=>{res.statusCode=status;res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data))};
+ if(u.pathname==='/auth/v1/logout'){res.statusCode=204;return res.end()}
  if(u.pathname==='/auth/v1/token'){const user=fixture.profiles.find(p=>p.email===JSON.parse(body).email)||fixture.profiles[0];return send({access_token:jwt(user.id),refresh_token:'fixture-refresh',token_type:'bearer',expires_in:3600,user:{id:user.id,aud:'authenticated',email:user.email}})}
  if(u.pathname==='/auth/v1/user'){const id=payload((req.headers.authorization||'').replace(/^Bearer /,'')).sub;return send(fixture.profiles.find(x=>x.id===id))}
  if(u.pathname.startsWith('/rest/v1/')){

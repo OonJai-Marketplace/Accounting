@@ -1,5 +1,5 @@
 async function loadBusinessSettingsFromSupabase() {
-  const {data,error}=await ojmDb.from('business_settings').select('*').eq('id',true).single(); if(error)return;
+  const {data,error}=await ojmDb.from('business_settings').select('*').eq('id',true).single(); if(error)throw error;
   const value={legalName:data.legal_name||'',companyName:data.display_name||'',enterpriseNo:data.enterprise_no||'',taxId:data.tax_id||'',businessLicense:data.business_license||'',industry:data.industry||'',phone:data.phone||'',email:data.email||'',website:data.website||'',address1:data.address_line||'',city:data.city||'',postalCode:data.postal_code||'',country:data.country||'Laos',timezone:data.timezone||'Asia/Vientiane'};
   BusinessSettings.current=value; AccountingStore.companyName=value.companyName;
   Object.entries(BUSINESS_FIELD_MAP).forEach(([key,id])=>{const field=document.getElementById(id);if(field)field.value=value[key]||''});

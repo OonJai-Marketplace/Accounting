@@ -1,0 +1,23 @@
+{
+  "baseline_commit": "7685d59",
+  "authorization": "2026-10-13 Phase 0 final corrections: preload/navigation, logout, fixed 24-hour inactivity; branch only.",
+  "reason": "Keep the original extraction baseline. Only these reviewed runtime files may differ; source build, asset references and all other byte hashes remain enforced.",
+  "runtime_sha256": {
+    "recovery.html": "cc3b5bf101e41ae9ec27a33e8a1f083f6ea9a17432c88d4b561b35c3b5aa60b2",
+    "phone-sw.js": "b9110a2c28285cbc63b9ec941080966337ca11ba7aaed7b54148dd49d9d0122e",
+    "phone-accounting.html": "929aeb18e94bd87c3fb594a32f0c1c66f3d5036836078857756b64bcf68420b7",
+    "desktop-sw14242.js": "84f581c0d440aa49732b18157939c90e9459d75d57569c3722c799b4d4d77cd4",
+    "phone.html": "873cb3f56523c9400f69af6399f1a2dc3ec8b8a7529226a7a587a36277efa356",
+    "desktop.html": "c13f566477db06dbc99725175363b4b59536192b2f9527b922ae080d8154292a",
+    "scripts/phone-runtime14242.js": "fa34f626e3800759c58947749ec58f008ef9f15fd3a6303dd1166977c505aed3",
+    "scripts/device-vault14334.js": "44c773378f15cb3fdc95191bb8d5d8cc5a98d9c9996f06a467dfac9a88ba2484",
+    "scripts/script.js": "f837a0a74b44b9c3f2812d712db19bc73f4d6ec0898b48bbd0db971fed6499f3",
+    "scripts/local-first14333.js": "b4f628ce30f5068308816a2f5746163e133cabfd18bae9a65e2a6fa604bc2149",
+    "scripts/corrections14231.js": "bf4ddb30237f18fa74203b17f8332097896dc4c48b690ea67dbaad64c273ebdc",
+    "scripts/payroll-polish-v97.js": "3f488ee0a79cec7a873e01cce884501181fd936072e177ba993991adb8b29f9f",
+    "scripts/startup14257.js": "d7a362793a446baa857e3b460572680d4530006d6b39561cd9f024e54a86e2c1",
+    "scripts/desktop14245-6.js": "22e351e2ff27d233b2bcb76ea4ec7474a443035b636d3da37a56840ce9491a10",
+    "scripts/offline14239.js": "66036a28270bdd71d36dcb7ae67b4af6e9aa9582fc4efe67d929987b6df7d996",
+    "scripts/desktop14245-3.js": "9b90bcf6ada722cc22e0509a5e704e322cb522ac944f9a546346919317ba67dd"
+  }
+}

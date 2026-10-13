@@ -8,7 +8,7 @@
       if (id === 'transactions-voided') window.loadTransactionAudit?.();
       if (id === 'user-entry-review') { window.loadSubmissionsFromSupabase?.(); window.loadStaffJournalsForReview?.(); }
       if (id === 'entry-submissions') window.openStaffJournalPeriod?.(window.staffJournalMonth?.());
-      if (id === 'users-permissions' || id === 'settings-users') window.loadProfilesFromSupabase?.();
+      if ((id === 'users-permissions' || id === 'settings-users') && !window.startup14257?.isPrepared('profiles')) window.loadProfilesFromSupabase?.();
       if (id === 'settings-legal') window.loadLegalDocumentsFromSupabase?.();
       // Journal data is already loaded at sign-in; changing tabs does not reload it.
       return result;

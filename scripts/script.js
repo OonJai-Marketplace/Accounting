@@ -2761,7 +2761,7 @@ handleSubAccountFormSubmit = async function(event){
 promptDeleteSubAccount = function(code){const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{const{error}=await ojmDb.from('sub_accounts').delete().eq('id',sub.id);if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
 
 async function loadBusinessSettingsFromSupabase() {
-  const {data,error}=await ojmDb.from('business_settings').select('*').eq('id',true).single(); if(error)return;
+  const {data,error}=await ojmDb.from('business_settings').select('*').eq('id',true).single(); if(error)throw error;
   const value={legalName:data.legal_name||'',companyName:data.display_name||'',enterpriseNo:data.enterprise_no||'',taxId:data.tax_id||'',businessLicense:data.business_license||'',industry:data.industry||'',phone:data.phone||'',email:data.email||'',website:data.website||'',address1:data.address_line||'',city:data.city||'',postalCode:data.postal_code||'',country:data.country||'Laos',timezone:data.timezone||'Asia/Vientiane'};
   BusinessSettings.current=value; AccountingStore.companyName=value.companyName;
   Object.entries(BUSINESS_FIELD_MAP).forEach(([key,id])=>{const field=document.getElementById(id);if(field)field.value=value[key]||''});
@@ -2850,7 +2850,7 @@ reviewEntrySubmission = async function(id,decision) {
   await Promise.all([loadSubmissionsFromSupabase(),loadJournalFromSupabase()]);
 };
 
-async function loadProfilesFromSupabase() { if(liveProfile?.role!=='admin')return;const{data,error}=await ojmDb.from('profiles').select('*').order('created_at');if(!error){liveProfiles=data||[];renderDemoUsers()}}
+async function loadProfilesFromSupabase() { if(liveProfile?.role!=='admin')return;const{data,error}=await ojmDb.from('profiles').select('*').order('created_at');if(error)throw error;liveProfiles=data||[];renderDemoUsers()}
 renderDemoUsers = function(){const host=document.getElementById('demoUsersList');if(!host)return;host.innerHTML=liveProfiles.map(u=>`<div class="demo-user-row"><div class="demo-user-avatar">${escapeHtml((u.full_name||u.email).slice(0,2).toUpperCase())}</div><div class="demo-user-details"><strong>${escapeHtml(u.full_name||'Unnamed User')}</strong><span>${escapeHtml(u.email)}</span></div><span class="user-role-badge ${u.role}">${u.role==='admin'?'Administrator':'Staff Submitter'}</span><span class="user-status-badge ${u.status}">${u.status}</span><span class="je-subtitle">Managed through Supabase Auth</span></div>`).join('')};
 addDemoUser = function(event){event.preventDefault();showAppNotification('Secure User Creation','Create or invite the user in Supabase Authentication. A protected Edge Function will later bring this action into the app without exposing an administrator secret.',false)};
 
@@ -3423,8 +3423,8 @@ switchTab=function(tabId){return switchTabBeforeFoundationV2(tabId)};
 function userInitials(name='OJ'){return String(name).trim().split(/\s+/).map(part=>part[0]).slice(0,2).join('').toUpperCase()||'OJ'}
 function toggleHeaderAccountMenu(){const menu=document.getElementById('headerAccountDropdown'),trigger=document.getElementById('headerAccountTrigger');if(!menu)return;menu.hidden=!menu.hidden;trigger?.setAttribute('aria-expanded',String(!menu.hidden))}
 function closeHeaderAccountMenu(){const menu=document.getElementById('headerAccountDropdown'),trigger=document.getElementById('headerAccountTrigger');if(menu)menu.hidden=true;trigger?.setAttribute('aria-expanded','false')}
-function confirmSignOut(){closeHeaderAccountMenu();showAppConfirm('Sign Out','End the current secure session?','Sign Out',async()=>{await logoutDemoUser();showCenterStatus('Signed out successfully.')},false)}
-function switchAccount(){closeHeaderAccountMenu();showAppConfirm('Switch Account','The current account will be signed out. The next user must enter their own email and password.','Continue',async()=>{await logoutDemoUser();const email=document.getElementById('loginEmail');if(email){email.value='';email.focus()}showCenterStatus('Enter the other account credentials.')},false)}
+function confirmSignOut(){closeHeaderAccountMenu();showAppConfirm('Sign Out','End the current secure session?','Sign Out',async()=>{await logoutDemoUser()},false)}
+function switchAccount(){closeHeaderAccountMenu();showAppConfirm('Switch Account','The current account will be signed out. The next user must enter their own email and password.','Continue',async()=>{await logoutDemoUser();const email=document.getElementById('loginEmail');if(email){email.value='';email.focus()}},false)}
 document.addEventListener('click',event=>{if(!event.target.closest('.header-account-menu'))closeHeaderAccountMenu()});
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeHeaderAccountMenu()});
 

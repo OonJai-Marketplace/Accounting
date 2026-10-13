@@ -1,4 +1,4 @@
-"""Structural regression gate: byte identity, local references and source build."""
+"""Structural gate: extraction identity plus explicitly approved final corrections."""
 from pathlib import Path
 import hashlib
 import json
@@ -7,9 +7,13 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parent.parent
 baseline = json.loads((ROOT / 'validation/phase0-baseline.json').read_text())
+correction_file = ROOT / 'validation/phase0-corrections.json'
+corrections = (json.loads(correction_file.read_text())['runtime_sha256']
+               if correction_file.exists() else {})
+assert set(corrections) <= set(baseline['runtime_sha256']), 'Unknown correction asset'
 changed = [name for name, digest in baseline['runtime_sha256'].items()
-           if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != digest]
-assert not changed, f'Phase 0 changed runtime bytes: {changed}'
+           if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != corrections.get(name, digest)]
+assert not changed, f'Runtime bytes differ from extraction/approved corrections: {changed}'
 manifest = json.loads((ROOT / 'src/manifest.json').read_text())
 sources = {part['source'] for parts in manifest['outputs'].values() for part in parts}
 runtime_products = {str(p.relative_to(ROOT)) for folder in ('scripts', 'styles')
@@ -28,4 +32,4 @@ for name in ('index.html', 'desktop.html', 'phone.html', 'phone-accounting.html'
         if path and not re.match(r'(?:[a-z]+:|//|/|\{)', path, re.I):
             assert (ROOT / path).exists(), (name, path)
 subprocess.run(['python', str(ROOT / 'tools/build-modules.py'), '--check'], check=True)
-print(f'PASS: {len(baseline["runtime_sha256"])} unchanged runtime assets; {len(sources)} wired source modules; full script/style ownership; local HTML references')
+print(f'PASS: {len(baseline["runtime_sha256"])-len(corrections)} unchanged runtime assets; {len(corrections)} explicitly recorded corrections; {len(sources)} wired source modules; full script/style ownership; local HTML references')
