@@ -448,25 +448,76 @@
     ],
     "scripts/payroll-engine-v82.js": [
       {
-        "source": "src/legacy/scripts/payroll-engine-v82.js",
+        "source": "src/payroll/engine/payroll-engine-v82.js",
         "suffix": "\n"
       }
     ],
     "scripts/payroll-reports-v82.js": [
       {
-        "source": "src/legacy/scripts/payroll-reports-v82.js",
+        "source": "src/shared/state/workforce-store-v82.js"
+      },
+      {
+        "source": "src/shared/ui/workforce-forms-v82.js"
+      },
+      {
+        "source": "src/shared/data/workforce-storage-v82.js"
+      },
+      {
+        "source": "src/hr/employees/employee-forms-v82.js"
+      },
+      {
+        "source": "src/hr/leave/leave-forms-v82.js"
+      },
+      {
+        "source": "src/payroll/workspace/run-editor-v82.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/workspace-render-v82.js"
+      },
+      {
+        "source": "src/reports/subusers/operational-report-v82.js"
+      },
+      {
+        "source": "src/budget/requests/finance-report-v82.js"
+      },
+      {
+        "source": "src/reports/printing/print-document-v82.js"
+      },
+      {
+        "source": "src/payroll/reports/vouchers-v82.js"
+      },
+      {
+        "source": "src/hr/leave/print-leave-v82.js"
+      },
+      {
+        "source": "src/reports/financial/report-actions-v82.js"
+      },
+      {
+        "source": "src/payroll/workspace/schedule-v82.js"
+      },
+      {
+        "source": "src/settings/payroll/integration-audit-v82.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/registration-v82.js"
+      },
+      {
+        "source": "src/budget/requests/currency-conversions-v82.js"
+      },
+      {
+        "source": "src/payroll/reports/attendance-v82.js",
         "suffix": "\n"
       }
     ],
     "scripts/payroll-samples-v83.js": [
       {
-        "source": "src/legacy/scripts/payroll-samples-v83.js",
+        "source": "src/payroll/workspace/payroll-samples-v83.js",
         "suffix": ";\n"
       }
     ],
     "scripts/payroll-fixes-v83.js": [
       {
-        "source": "src/legacy/scripts/payroll-fixes-v83.js",
+        "source": "src/payroll/workspace/payroll-fixes-v83.js",
         "suffix": ";\n"
       }
     ],
@@ -526,7 +577,40 @@
     ],
     "scripts/payroll-polish-v97.js": [
       {
-        "source": "src/legacy/scripts/payroll-polish-v97.js",
+        "source": "src/payroll/workspace/polish-v97/scope-and-state.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/roster-v97.js"
+      },
+      {
+        "source": "src/hr/employees/form-presentation-v97.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/breakdown-and-overview.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/tab-layout.js"
+      },
+      {
+        "source": "src/hr/leave/print-application-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/recurring/preparation-and-warnings-v97.js"
+      },
+      {
+        "source": "src/shared/ui/universal-search-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/column-widths-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/history/monthly-audit-v97.js"
+      },
+      {
+        "source": "src/core/startup/lazy-modules-v97.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/install-and-scope-close.js",
         "suffix": ";\n"
       }
     ],
@@ -553,7 +637,7 @@
     ],
     "scripts/payroll-v99.js": [
       {
-        "source": "src/legacy/scripts/payroll-v99.js",
+        "source": "src/payroll/workspace/payroll-v99.js",
         "suffix": ";\n"
       }
     ],
@@ -998,22 +1082,73 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-engine-v82.js",
+        "source": "src/payroll/engine/payroll-engine-v82.js",
         "prefix": "/* scripts/payroll-engine-v82.js */\n",
         "suffix": "\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-reports-v82.js",
-        "prefix": "/* scripts/payroll-reports-v82.js */\n",
+        "source": "src/shared/state/workforce-store-v82.js",
+        "prefix": "/* scripts/payroll-reports-v82.js */\n"
+      },
+      {
+        "source": "src/shared/ui/workforce-forms-v82.js"
+      },
+      {
+        "source": "src/shared/data/workforce-storage-v82.js"
+      },
+      {
+        "source": "src/hr/employees/employee-forms-v82.js"
+      },
+      {
+        "source": "src/hr/leave/leave-forms-v82.js"
+      },
+      {
+        "source": "src/payroll/workspace/run-editor-v82.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/workspace-render-v82.js"
+      },
+      {
+        "source": "src/reports/subusers/operational-report-v82.js"
+      },
+      {
+        "source": "src/budget/requests/finance-report-v82.js"
+      },
+      {
+        "source": "src/reports/printing/print-document-v82.js"
+      },
+      {
+        "source": "src/payroll/reports/vouchers-v82.js"
+      },
+      {
+        "source": "src/hr/leave/print-leave-v82.js"
+      },
+      {
+        "source": "src/reports/financial/report-actions-v82.js"
+      },
+      {
+        "source": "src/payroll/workspace/schedule-v82.js"
+      },
+      {
+        "source": "src/settings/payroll/integration-audit-v82.js"
+      },
+      {
+        "source": "src/bridges/hr-payroll/registration-v82.js"
+      },
+      {
+        "source": "src/budget/requests/currency-conversions-v82.js"
+      },
+      {
+        "source": "src/payroll/reports/attendance-v82.js",
         "suffix": "\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-samples-v83.js",
+        "source": "src/payroll/workspace/payroll-samples-v83.js",
         "prefix": "/* scripts/payroll-samples-v83.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-fixes-v83.js",
+        "source": "src/payroll/workspace/payroll-fixes-v83.js",
         "prefix": "/* scripts/payroll-fixes-v83.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1063,8 +1198,41 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-polish-v97.js",
-        "prefix": "/* scripts/payroll-polish-v97.js */\n",
+        "source": "src/payroll/workspace/polish-v97/scope-and-state.js",
+        "prefix": "/* scripts/payroll-polish-v97.js */\n"
+      },
+      {
+        "source": "src/bridges/hr-payroll/roster-v97.js"
+      },
+      {
+        "source": "src/hr/employees/form-presentation-v97.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/breakdown-and-overview.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/tab-layout.js"
+      },
+      {
+        "source": "src/hr/leave/print-application-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/recurring/preparation-and-warnings-v97.js"
+      },
+      {
+        "source": "src/shared/ui/universal-search-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/column-widths-v97.js"
+      },
+      {
+        "source": "src/bookkeeping/history/monthly-audit-v97.js"
+      },
+      {
+        "source": "src/core/startup/lazy-modules-v97.js"
+      },
+      {
+        "source": "src/payroll/workspace/polish-v97/install-and-scope-close.js",
         "suffix": ";\n\n;\n"
       },
       {
@@ -1088,7 +1256,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-v99.js",
+        "source": "src/payroll/workspace/payroll-v99.js",
         "prefix": "/* scripts/payroll-v99.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1438,7 +1606,7 @@
     ],
     "scripts/payroll-print1424.js": [
       {
-        "source": "src/legacy/scripts/payroll-print1424.js",
+        "source": "src/payroll/reports/payroll-print1424.js",
         "suffix": ";\n"
       }
     ],
@@ -1682,7 +1850,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/payroll-print1424.js",
+        "source": "src/payroll/reports/payroll-print1424.js",
         "prefix": "/* scripts/payroll-print1424.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1980,7 +2148,7 @@
     ],
     "styles/payroll-reports-v82.css": [
       {
-        "source": "src/legacy/styles/payroll-reports-v82.css",
+        "source": "src/payroll/reports/payroll-reports-v82.css",
         "suffix": "\n"
       }
     ],
@@ -2052,7 +2220,7 @@
     ],
     "styles/payroll-polish-v97.css": [
       {
-        "source": "src/legacy/styles/payroll-polish-v97.css",
+        "source": "src/payroll/workspace/payroll-polish-v97.css",
         "suffix": "\n"
       }
     ],
@@ -2421,7 +2589,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/payroll-reports-v82.css",
+        "source": "src/payroll/reports/payroll-reports-v82.css",
         "prefix": "/* styles/payroll-reports-v82.css */\n",
         "suffix": "\n\n"
       },
@@ -2481,7 +2649,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/payroll-polish-v97.css",
+        "source": "src/payroll/workspace/payroll-polish-v97.css",
         "prefix": "/* styles/payroll-polish-v97.css */\n",
         "suffix": "\n\n"
       },

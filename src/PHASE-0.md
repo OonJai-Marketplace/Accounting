@@ -37,3 +37,8 @@ regression or a reason to change login behavior during this restructuring.
 - **0.7:** HR employee, contract, attachment, leave and calendar sources
   separated; attendance save remains the existing payroll bridge.
   Gate: 452 unchanged runtime files; 438 sections; 304 generated assets.
+
+- **0.8:** Payroll calculations, workspace and reports separated. Mixed v82/v97
+  sources now route HR, shared storage, operational reports, financing, journal
+  history and lazy loading to their owners. Gate: 452 unchanged runtime files;
+  466 sections; 304 generated assets.

@@ -1,0 +1,13 @@
+const esc82=v=>escapeHtml(String(v??''));
+const today82=()=>date71(new Date().getFullYear(),new Date().getMonth()+1,new Date().getDate());
+const money82=v=>formatAppNumber(Number(v||0));
+const admin82=()=>Boolean(liveProfile?.role==='admin');
+let action82=(label,fn,primary=false)=>`<button type="button" class="${primary?'primary82':''}" onclick="${fn}">${label}</button>`;
+function field82(label,name,value='',type='text',extra=''){return `<label>${esc82(label)}<input name="${esc82(name)}" type="${type}" value="${esc82(value)}" ${extra}></label>`}
+function select82(label,name,value,items){return `<label>${esc82(label)}<select name="${esc82(name)}">${items.map(([v,t])=>`<option value="${esc82(v)}" ${String(value)===String(v)?'selected':''}>${esc82(t)}</option>`).join('')}</select></label>`}
+function check82(label,name,value){return `<label class="check82"><input type="checkbox" name="${name}" ${value?'checked':''}>${esc82(label)}</label>`}
+function form82(id){const f=document.getElementById(id);if(!f?.reportValidity())return null;const data=Object.fromEntries(new FormData(f));f.querySelectorAll('input[type=checkbox]').forEach(n=>data[n.name]=n.checked);return data}
+function table82(headers,rows){return `<div class="data-table82"><table><thead><tr>${headers.map(h=>`<th>${esc82(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr>${r.map(c=>`<td${/^-?[\d,. \u202f]+$/.test(String(c))?' class="amount82"':''}>${c}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}" class="empty82">No records yet.</td></tr>`}</tbody></table></div>`}
+function section82(title,body,actions=''){return `<section class="block82"><header><h4>${esc82(title)}</h4><div class="actions82">${actions}</div></header>${body}</section>`}
+function mount82(id,title,subtitle,body,actions=''){const panel=document.getElementById(id);if(!panel)return;let host=panel.querySelector(':scope>.desktop82');if(!host){const old=document.createElement('div');old.className='legacy82';while(panel.firstChild)old.append(panel.firstChild);panel.append(old);host=document.createElement('div');host.className='desktop82';panel.append(host)}host.innerHTML=`<section class="work82"><header><div><h3>${esc82(title)}</h3><p>${esc82(subtitle)}</p></div><div class="actions82">${actions}</div></header>${body}</section>`}
+function storageNotice82(){return Work82.error?`<div class="notice82 warn82">${esc82(Work82.error)} Your current draft stays on screen. Saving requires the payroll/report storage setup. <a href="setup/SETUP-GUIDE-v142.20.txt" download>Download setup guide</a></div>`:Work82.loading?'<p class="notice82">Loading saved records…</p>':''}
