@@ -4,24 +4,24 @@
   "outputs": {
     "scripts/device-mode132.js": [
       {
-        "source": "src/legacy/scripts/device-mode132.js",
+        "source": "src/core/startup/device-mode132.js",
         "suffix": ";\n"
       }
     ],
     "scripts/loading1444.js": [
       {
-        "source": "src/legacy/scripts/loading1444.js",
+        "source": "src/core/startup/loading1444.js",
         "suffix": ";\n"
       }
     ],
     "scripts/desktop14245-1.js": [
       {
-        "source": "src/legacy/scripts/device-mode132.js",
+        "source": "src/core/startup/device-mode132.js",
         "prefix": "/* scripts/device-mode132.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/loading1444.js",
+        "source": "src/core/startup/loading1444.js",
         "prefix": "/* scripts/loading1444.js */\n",
         "suffix": ";\n\n;\n"
       }
@@ -34,7 +34,7 @@
     ],
     "scripts/cell-navigation14233.js": [
       {
-        "source": "src/legacy/scripts/cell-navigation14233.js",
+        "source": "src/shared/ui/cell-navigation14233.js",
         "suffix": ";\n"
       }
     ],
@@ -45,7 +45,7 @@
         "suffix": ";\n\n"
       },
       {
-        "source": "src/legacy/scripts/cell-navigation14233.js",
+        "source": "src/shared/ui/cell-navigation14233.js",
         "prefix": "/* scripts/cell-navigation14233.js */\n",
         "suffix": ";\n\n;\n"
       }
@@ -58,13 +58,241 @@
     ],
     "scripts/script.js": [
       {
-        "source": "src/legacy/scripts/script.js",
+        "source": "src/shared/state/accounting-store.js"
+      },
+      {
+        "source": "src/settings/business/business-profile.js"
+      },
+      {
+        "source": "src/settings/application/settings-store.js"
+      },
+      {
+        "source": "src/shared/formatting/numbers.js"
+      },
+      {
+        "source": "src/settings/application/settings-forms.js"
+      },
+      {
+        "source": "src/maintenance/backup/browser-backup.js"
+      },
+      {
+        "source": "src/settings/legal/documents-local.js"
+      },
+      {
+        "source": "src/accounts/currencies/currency-store.js"
+      },
+      {
+        "source": "src/core/navigation/base-navigation.js"
+      },
+      {
+        "source": "src/shared/ui/table-search-and-modals.js"
+      },
+      {
+        "source": "src/accounts/chart/chart-controller.js"
+      },
+      {
+        "source": "src/accounts/sub-accounts/sub-account-controller.js"
+      },
+      {
+        "source": "src/dashboard/summary-chart.js"
+      },
+      {
+        "source": "src/shared/ui/notifications-and-print-state.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-store.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-sequence.js"
+      },
+      {
+        "source": "src/shared/formatting/dates.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/column-display.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-form.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/edit-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/submit-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transaction-rows.js"
+      },
+      {
+        "source": "src/bookkeeping/history/voided-and-export.js"
+      },
+      {
+        "source": "src/core/startup/accounting-bootstrap.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/currency-balancing.js"
+      },
+      {
+        "source": "src/bookkeeping/history/monthly-archive.js"
+      },
+      {
+        "source": "src/reports/printing/configured-print.js"
+      },
+      {
+        "source": "src/reports/printing/section-context.js"
+      },
+      {
+        "source": "src/bookkeeping/templates/transaction-templates.js"
+      },
+      {
+        "source": "src/bookkeeping/recurring/obligations.js"
+      },
+      {
+        "source": "src/core/startup/accounting-enhancements.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/multiple-dates-and-currency-badges.js"
+      },
+      {
+        "source": "src/shared/ui/confirmation-dialog.js"
+      },
+      {
+        "source": "src/bookkeeping/history/archive-confirmation.js"
+      },
+      {
+        "source": "src/core/startup/journal-enhancements.js"
+      },
+      {
+        "source": "src/core/auth/demo-access-compatibility.js"
+      },
+      {
+        "source": "src/subusers/submissions/demo-submissions-compatibility.js"
+      },
+      {
+        "source": "src/core/auth/live-session-and-recovery.js"
+      },
+      {
+        "source": "src/accounts/data/reference-data.js"
+      },
+      {
+        "source": "src/settings/business/business-data.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-data-and-posting.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/submission-approval.js"
+      },
+      {
+        "source": "src/settings/users/profile-data.js"
+      },
+      {
+        "source": "src/settings/legal/documents-data.js"
+      },
+      {
+        "source": "src/core/startup/authenticated-session-loading.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/period-review.js"
+      },
+      {
+        "source": "src/core/permissions/user-access-and-review.js"
+      },
+      {
+        "source": "src/subusers/entries/staff-journal.js"
+      },
+      {
+        "source": "src/subusers/review/staff-journal-review.js"
+      },
+      {
+        "source": "src/core/permissions/account-access.js"
+      },
+      {
+        "source": "src/settings/application/settings-help.js"
+      },
+      {
+        "source": "src/subusers/history/submitted-journals.js"
+      },
+      {
+        "source": "src/core/navigation/dashboard-and-calendar.js"
+      },
+      {
+        "source": "src/subusers/entries/multi-currency-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transaction-review-and-audit.js"
+      },
+      {
+        "source": "src/core/navigation/transaction-scroll-memory.js"
+      },
+      {
+        "source": "src/bookkeeping/history/audit-row-selection.js"
+      },
+      {
+        "source": "src/settings/application/settings-navigation.js"
+      },
+      {
+        "source": "src/subusers/workspace/user-tabs.js"
+      },
+      {
+        "source": "src/core/auth/session-timeout.js"
+      },
+      {
+        "source": "src/core/navigation/header-and-workspace-controls.js"
+      },
+      {
+        "source": "src/subusers/review/expandable-review.js"
+      },
+      {
+        "source": "src/subusers/accounts/assigned-funds.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-entry.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/journal-preparation.js"
+      },
+      {
+        "source": "src/subusers/history/submission-comparison.js"
+      },
+      {
+        "source": "src/core/permissions/workspace-access-pickers.js"
+      },
+      {
+        "source": "src/subusers/entries/secure-workspace-entry.js"
+      },
+      {
+        "source": "src/subusers/review/reopen-and-review.js"
+      },
+      {
+        "source": "src/settings/accounting/shared-id-settings.js"
+      },
+      {
+        "source": "src/subusers/entries/numbered-entry-form.js"
+      },
+      {
+        "source": "src/subusers/review/batch-correction.js"
+      },
+      {
+        "source": "src/core/permissions/account-assignment.js"
+      },
+      {
+        "source": "src/subusers/entries/inline-entry-editor.js"
+      },
+      {
+        "source": "src/core/permissions/navigation-permissions.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive-workspace.js"
+      },
+      {
+        "source": "src/shared/data/idempotent-entry-references.js",
         "suffix": ";\n"
       }
     ],
     "scripts/navigation-v48.js": [
       {
-        "source": "src/legacy/scripts/navigation-v48.js",
+        "source": "src/core/navigation/navigation-v48.js",
         "suffix": ";\n"
       }
     ],
@@ -94,13 +322,13 @@
     ],
     "scripts/design-system-v58.js": [
       {
-        "source": "src/legacy/scripts/design-system-v58.js",
+        "source": "src/shared/presentation/design-system-v58.js",
         "suffix": ";\n"
       }
     ],
     "scripts/mobile-tables-v66.js": [
       {
-        "source": "src/legacy/scripts/mobile-tables-v66.js",
+        "source": "src/shared/presentation/mobile-tables-v66.js",
         "suffix": ";\n"
       }
     ],
@@ -124,7 +352,7 @@
     ],
     "scripts/interface-v69.js": [
       {
-        "source": "src/legacy/scripts/interface-v69.js",
+        "source": "src/core/navigation/interface-v69.js",
         "suffix": ";\n"
       }
     ],
@@ -142,13 +370,13 @@
     ],
     "scripts/mobile-polish-v73.js": [
       {
-        "source": "src/legacy/scripts/mobile-polish-v73.js",
+        "source": "src/shared/presentation/mobile-polish-v73.js",
         "suffix": ";\n"
       }
     ],
     "scripts/mobile-refinements-v74.js": [
       {
-        "source": "src/legacy/scripts/mobile-refinements-v74.js",
+        "source": "src/shared/presentation/mobile-refinements-v74.js",
         "suffix": ";\n"
       }
     ],
@@ -166,19 +394,19 @@
     ],
     "scripts/desktop-corrections-v80.js": [
       {
-        "source": "src/legacy/scripts/desktop-corrections-v80.js",
+        "source": "src/shared/presentation/desktop-corrections-v80.js",
         "suffix": ";\n"
       }
     ],
     "scripts/desktop-refinements-v81.js": [
       {
-        "source": "src/legacy/scripts/desktop-refinements-v81.js",
+        "source": "src/shared/presentation/desktop-refinements-v81.js",
         "suffix": ";\n"
       }
     ],
     "scripts/desktop-layout-v82.js": [
       {
-        "source": "src/legacy/scripts/desktop-layout-v82.js",
+        "source": "src/shared/presentation/desktop-layout-v82.js",
         "suffix": ";\n"
       }
     ],
@@ -208,31 +436,31 @@
     ],
     "scripts/desktop-polish-v84.js": [
       {
-        "source": "src/legacy/scripts/desktop-polish-v84.js",
+        "source": "src/shared/presentation/desktop-polish-v84.js",
         "suffix": ";\n"
       }
     ],
     "scripts/layout-fixes-v85.js": [
       {
-        "source": "src/legacy/scripts/layout-fixes-v85.js",
+        "source": "src/shared/presentation/layout-fixes-v85.js",
         "suffix": ";\n"
       }
     ],
     "scripts/layout-consistency-v87.js": [
       {
-        "source": "src/legacy/scripts/layout-consistency-v87.js",
+        "source": "src/shared/presentation/layout-consistency-v87.js",
         "suffix": ";\n"
       }
     ],
     "scripts/session-inputs-v88.js": [
       {
-        "source": "src/legacy/scripts/session-inputs-v88.js",
+        "source": "src/core/auth/session-inputs-v88.js",
         "suffix": ";\n"
       }
     ],
     "scripts/prefixes-badges-v89.js": [
       {
-        "source": "src/legacy/scripts/prefixes-badges-v89.js",
+        "source": "src/shared/formatting/prefixes-badges-v89.js",
         "suffix": ";\n"
       }
     ],
@@ -244,7 +472,7 @@
     ],
     "scripts/refinements-v93.js": [
       {
-        "source": "src/legacy/scripts/refinements-v93.js",
+        "source": "src/shared/presentation/refinements-v93.js",
         "suffix": ";\n"
       }
     ],
@@ -292,13 +520,13 @@
     ],
     "scripts/theme-v100.js": [
       {
-        "source": "src/legacy/scripts/theme-v100.js",
+        "source": "src/shared/presentation/theme-v100.js",
         "suffix": ";\n"
       }
     ],
     "scripts/polish-v101.js": [
       {
-        "source": "src/legacy/scripts/polish-v101.js",
+        "source": "src/shared/presentation/polish-v101.js",
         "suffix": ";\n"
       }
     ],
@@ -316,25 +544,25 @@
     ],
     "scripts/universal-date-v104.js": [
       {
-        "source": "src/legacy/scripts/universal-date-v104.js",
+        "source": "src/shared/formatting/universal-date-v104.js",
         "suffix": ";\n"
       }
     ],
     "scripts/header-profile-v104.js": [
       {
-        "source": "src/legacy/scripts/header-profile-v104.js",
+        "source": "src/shared/presentation/header-profile-v104.js",
         "suffix": ";\n"
       }
     ],
     "scripts/shortnames-v104.js": [
       {
-        "source": "src/legacy/scripts/shortnames-v104.js",
+        "source": "src/shared/presentation/shortnames-v104.js",
         "suffix": ";\n"
       }
     ],
     "scripts/refinements-v105.js": [
       {
-        "source": "src/legacy/scripts/refinements-v105.js",
+        "source": "src/shared/presentation/refinements-v105.js",
         "suffix": ";\n"
       }
     ],
@@ -345,8 +573,236 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/script.js",
-        "prefix": "/* scripts/script.js */\n",
+        "source": "src/shared/state/accounting-store.js",
+        "prefix": "/* scripts/script.js */\n"
+      },
+      {
+        "source": "src/settings/business/business-profile.js"
+      },
+      {
+        "source": "src/settings/application/settings-store.js"
+      },
+      {
+        "source": "src/shared/formatting/numbers.js"
+      },
+      {
+        "source": "src/settings/application/settings-forms.js"
+      },
+      {
+        "source": "src/maintenance/backup/browser-backup.js"
+      },
+      {
+        "source": "src/settings/legal/documents-local.js"
+      },
+      {
+        "source": "src/accounts/currencies/currency-store.js"
+      },
+      {
+        "source": "src/core/navigation/base-navigation.js"
+      },
+      {
+        "source": "src/shared/ui/table-search-and-modals.js"
+      },
+      {
+        "source": "src/accounts/chart/chart-controller.js"
+      },
+      {
+        "source": "src/accounts/sub-accounts/sub-account-controller.js"
+      },
+      {
+        "source": "src/dashboard/summary-chart.js"
+      },
+      {
+        "source": "src/shared/ui/notifications-and-print-state.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-store.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-sequence.js"
+      },
+      {
+        "source": "src/shared/formatting/dates.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/column-display.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-form.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/edit-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/submit-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/history/transaction-rows.js"
+      },
+      {
+        "source": "src/bookkeeping/history/voided-and-export.js"
+      },
+      {
+        "source": "src/core/startup/accounting-bootstrap.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/currency-balancing.js"
+      },
+      {
+        "source": "src/bookkeeping/history/monthly-archive.js"
+      },
+      {
+        "source": "src/reports/printing/configured-print.js"
+      },
+      {
+        "source": "src/reports/printing/section-context.js"
+      },
+      {
+        "source": "src/bookkeeping/templates/transaction-templates.js"
+      },
+      {
+        "source": "src/bookkeeping/recurring/obligations.js"
+      },
+      {
+        "source": "src/core/startup/accounting-enhancements.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/multiple-dates-and-currency-badges.js"
+      },
+      {
+        "source": "src/shared/ui/confirmation-dialog.js"
+      },
+      {
+        "source": "src/bookkeeping/history/archive-confirmation.js"
+      },
+      {
+        "source": "src/core/startup/journal-enhancements.js"
+      },
+      {
+        "source": "src/core/auth/demo-access-compatibility.js"
+      },
+      {
+        "source": "src/subusers/submissions/demo-submissions-compatibility.js"
+      },
+      {
+        "source": "src/core/auth/live-session-and-recovery.js"
+      },
+      {
+        "source": "src/accounts/data/reference-data.js"
+      },
+      {
+        "source": "src/settings/business/business-data.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/journal-data-and-posting.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/submission-approval.js"
+      },
+      {
+        "source": "src/settings/users/profile-data.js"
+      },
+      {
+        "source": "src/settings/legal/documents-data.js"
+      },
+      {
+        "source": "src/core/startup/authenticated-session-loading.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/period-review.js"
+      },
+      {
+        "source": "src/core/permissions/user-access-and-review.js"
+      },
+      {
+        "source": "src/subusers/entries/staff-journal.js"
+      },
+      {
+        "source": "src/subusers/review/staff-journal-review.js"
+      },
+      {
+        "source": "src/core/permissions/account-access.js"
+      },
+      {
+        "source": "src/settings/application/settings-help.js"
+      },
+      {
+        "source": "src/subusers/history/submitted-journals.js"
+      },
+      {
+        "source": "src/core/navigation/dashboard-and-calendar.js"
+      },
+      {
+        "source": "src/subusers/entries/multi-currency-entry.js"
+      },
+      {
+        "source": "src/bookkeeping/finalization/transaction-review-and-audit.js"
+      },
+      {
+        "source": "src/core/navigation/transaction-scroll-memory.js"
+      },
+      {
+        "source": "src/bookkeeping/history/audit-row-selection.js"
+      },
+      {
+        "source": "src/settings/application/settings-navigation.js"
+      },
+      {
+        "source": "src/subusers/workspace/user-tabs.js"
+      },
+      {
+        "source": "src/core/auth/session-timeout.js"
+      },
+      {
+        "source": "src/core/navigation/header-and-workspace-controls.js"
+      },
+      {
+        "source": "src/subusers/review/expandable-review.js"
+      },
+      {
+        "source": "src/subusers/accounts/assigned-funds.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-entry.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/journal-preparation.js"
+      },
+      {
+        "source": "src/subusers/history/submission-comparison.js"
+      },
+      {
+        "source": "src/core/permissions/workspace-access-pickers.js"
+      },
+      {
+        "source": "src/subusers/entries/secure-workspace-entry.js"
+      },
+      {
+        "source": "src/subusers/review/reopen-and-review.js"
+      },
+      {
+        "source": "src/settings/accounting/shared-id-settings.js"
+      },
+      {
+        "source": "src/subusers/entries/numbered-entry-form.js"
+      },
+      {
+        "source": "src/subusers/review/batch-correction.js"
+      },
+      {
+        "source": "src/core/permissions/account-assignment.js"
+      },
+      {
+        "source": "src/subusers/entries/inline-entry-editor.js"
+      },
+      {
+        "source": "src/core/permissions/navigation-permissions.js"
+      },
+      {
+        "source": "src/subusers/workspace/responsive-workspace.js"
+      },
+      {
+        "source": "src/shared/data/idempotent-entry-references.js",
         "suffix": ";\n\n;\n"
       },
       {
@@ -355,7 +811,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/navigation-v48.js",
+        "source": "src/core/navigation/navigation-v48.js",
         "prefix": "/* scripts/navigation-v48.js */\n",
         "suffix": ";\n;\n"
       },
@@ -380,12 +836,12 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/design-system-v58.js",
+        "source": "src/shared/presentation/design-system-v58.js",
         "prefix": "/* scripts/design-system-v58.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/mobile-tables-v66.js",
+        "source": "src/shared/presentation/mobile-tables-v66.js",
         "prefix": "/* scripts/mobile-tables-v66.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -405,7 +861,7 @@
         "suffix": ";\n;\n\n"
       },
       {
-        "source": "src/legacy/scripts/interface-v69.js",
+        "source": "src/core/navigation/interface-v69.js",
         "prefix": "/* scripts/interface-v69.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -420,12 +876,12 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/mobile-polish-v73.js",
+        "source": "src/shared/presentation/mobile-polish-v73.js",
         "prefix": "/* scripts/mobile-polish-v73.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/mobile-refinements-v74.js",
+        "source": "src/shared/presentation/mobile-refinements-v74.js",
         "prefix": "/* scripts/mobile-refinements-v74.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -440,17 +896,17 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/desktop-corrections-v80.js",
+        "source": "src/shared/presentation/desktop-corrections-v80.js",
         "prefix": "/* scripts/desktop-corrections-v80.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/desktop-refinements-v81.js",
+        "source": "src/shared/presentation/desktop-refinements-v81.js",
         "prefix": "/* scripts/desktop-refinements-v81.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/desktop-layout-v82.js",
+        "source": "src/shared/presentation/desktop-layout-v82.js",
         "prefix": "/* scripts/desktop-layout-v82.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -475,27 +931,27 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/desktop-polish-v84.js",
+        "source": "src/shared/presentation/desktop-polish-v84.js",
         "prefix": "/* scripts/desktop-polish-v84.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/layout-fixes-v85.js",
+        "source": "src/shared/presentation/layout-fixes-v85.js",
         "prefix": "/* scripts/layout-fixes-v85.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/layout-consistency-v87.js",
+        "source": "src/shared/presentation/layout-consistency-v87.js",
         "prefix": "/* scripts/layout-consistency-v87.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/session-inputs-v88.js",
+        "source": "src/core/auth/session-inputs-v88.js",
         "prefix": "/* scripts/session-inputs-v88.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/prefixes-badges-v89.js",
+        "source": "src/shared/formatting/prefixes-badges-v89.js",
         "prefix": "/* scripts/prefixes-badges-v89.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -505,7 +961,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/refinements-v93.js",
+        "source": "src/shared/presentation/refinements-v93.js",
         "prefix": "/* scripts/refinements-v93.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -545,12 +1001,12 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/theme-v100.js",
+        "source": "src/shared/presentation/theme-v100.js",
         "prefix": "/* scripts/theme-v100.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/polish-v101.js",
+        "source": "src/shared/presentation/polish-v101.js",
         "prefix": "/* scripts/polish-v101.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -565,22 +1021,22 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/universal-date-v104.js",
+        "source": "src/shared/formatting/universal-date-v104.js",
         "prefix": "/* scripts/universal-date-v104.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/header-profile-v104.js",
+        "source": "src/shared/presentation/header-profile-v104.js",
         "prefix": "/* scripts/header-profile-v104.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/shortnames-v104.js",
+        "source": "src/shared/presentation/shortnames-v104.js",
         "prefix": "/* scripts/shortnames-v104.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/refinements-v105.js",
+        "source": "src/shared/presentation/refinements-v105.js",
         "prefix": "/* scripts/refinements-v105.js */\n",
         "suffix": ";\n\n\n;\n"
       }
@@ -593,19 +1049,19 @@
     ],
     "scripts/shared-v108.js": [
       {
-        "source": "src/legacy/scripts/shared-v108.js",
+        "source": "src/shared/presentation/shared-v108.js",
         "suffix": ";\n"
       }
     ],
     "scripts/refinements-v109.js": [
       {
-        "source": "src/legacy/scripts/refinements-v109.js",
+        "source": "src/shared/presentation/refinements-v109.js",
         "suffix": ";\n"
       }
     ],
     "scripts/visual-consistency-v110.js": [
       {
-        "source": "src/legacy/scripts/visual-consistency-v110.js",
+        "source": "src/shared/presentation/visual-consistency-v110.js",
         "suffix": ";\n"
       }
     ],
@@ -617,25 +1073,25 @@
     ],
     "scripts/header-icons-v112.js": [
       {
-        "source": "src/legacy/scripts/header-icons-v112.js",
+        "source": "src/shared/presentation/header-icons-v112.js",
         "suffix": ";\n"
       }
     ],
     "scripts/keyboard-picking-v112.js": [
       {
-        "source": "src/legacy/scripts/keyboard-picking-v112.js",
+        "source": "src/shared/ui/keyboard-picking-v112.js",
         "suffix": ";\n"
       }
     ],
     "scripts/shell-v113.js": [
       {
-        "source": "src/legacy/scripts/shell-v113.js",
+        "source": "src/core/navigation/shell-v113.js",
         "suffix": ";\n"
       }
     ],
     "scripts/access-v113.js": [
       {
-        "source": "src/legacy/scripts/access-v113.js",
+        "source": "src/core/auth/access-v113.js",
         "suffix": ";\n"
       }
     ],
@@ -656,17 +1112,17 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/shared-v108.js",
+        "source": "src/shared/presentation/shared-v108.js",
         "prefix": "/* scripts/shared-v108.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/refinements-v109.js",
+        "source": "src/shared/presentation/refinements-v109.js",
         "prefix": "/* scripts/refinements-v109.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/visual-consistency-v110.js",
+        "source": "src/shared/presentation/visual-consistency-v110.js",
         "prefix": "/* scripts/visual-consistency-v110.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -676,22 +1132,22 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/header-icons-v112.js",
+        "source": "src/shared/presentation/header-icons-v112.js",
         "prefix": "/* scripts/header-icons-v112.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/keyboard-picking-v112.js",
+        "source": "src/shared/ui/keyboard-picking-v112.js",
         "prefix": "/* scripts/keyboard-picking-v112.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/shell-v113.js",
+        "source": "src/core/navigation/shell-v113.js",
         "prefix": "/* scripts/shell-v113.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/access-v113.js",
+        "source": "src/core/auth/access-v113.js",
         "prefix": "/* scripts/access-v113.js */\n",
         "suffix": ";\n\n;\n"
       }
@@ -704,7 +1160,7 @@
     ],
     "scripts/recovery-v113.js": [
       {
-        "source": "src/legacy/scripts/recovery-v113.js",
+        "source": "src/core/auth/recovery-v113.js",
         "suffix": ";\n"
       }
     ],
@@ -716,7 +1172,7 @@
     ],
     "scripts/final-v117.js": [
       {
-        "source": "src/legacy/scripts/final-v117.js",
+        "source": "src/shared/presentation/final-v117.js",
         "suffix": ";\n"
       }
     ],
@@ -734,7 +1190,7 @@
     ],
     "scripts/final-v118.js": [
       {
-        "source": "src/legacy/scripts/final-v118.js",
+        "source": "src/shared/presentation/final-v118.js",
         "suffix": ";\n"
       }
     ],
@@ -746,7 +1202,7 @@
     ],
     "scripts/accounting-pos-cleanup.js": [
       {
-        "source": "src/legacy/scripts/accounting-pos-cleanup.js",
+        "source": "src/core/compatibility/accounting-pos-cleanup.js",
         "suffix": ";\n"
       }
     ],
@@ -775,7 +1231,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/recovery-v113.js",
+        "source": "src/core/auth/recovery-v113.js",
         "prefix": "/* scripts/recovery-v113.js */\n",
         "suffix": ";\n;\n"
       },
@@ -785,7 +1241,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/final-v117.js",
+        "source": "src/shared/presentation/final-v117.js",
         "prefix": "/* scripts/final-v117.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -800,7 +1256,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/final-v118.js",
+        "source": "src/shared/presentation/final-v118.js",
         "prefix": "/* scripts/final-v118.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -810,7 +1266,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/accounting-pos-cleanup.js",
+        "source": "src/core/compatibility/accounting-pos-cleanup.js",
         "prefix": "/* scripts/accounting-pos-cleanup.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -838,7 +1294,7 @@
     ],
     "scripts/recovery-reset-fix-v142.js": [
       {
-        "source": "src/legacy/scripts/recovery-reset-fix-v142.js",
+        "source": "src/core/auth/recovery-reset-fix-v142.js",
         "suffix": ";\n"
       }
     ],
@@ -850,7 +1306,7 @@
     ],
     "scripts/focused-v1422.js": [
       {
-        "source": "src/legacy/scripts/focused-v1422.js",
+        "source": "src/shared/presentation/focused-v1422.js",
         "suffix": ";\n"
       }
     ],
@@ -862,7 +1318,7 @@
     ],
     "scripts/phone-bridge132.js": [
       {
-        "source": "src/legacy/scripts/phone-bridge132.js",
+        "source": "src/core/navigation/phone-bridge132.js",
         "suffix": ";\n"
       }
     ],
@@ -898,13 +1354,13 @@
     ],
     "scripts/focused1427.js": [
       {
-        "source": "src/legacy/scripts/focused1427.js",
+        "source": "src/shared/presentation/focused1427.js",
         "suffix": ";\n"
       }
     ],
     "scripts/account-picker1428.js": [
       {
-        "source": "src/legacy/scripts/account-picker1428.js",
+        "source": "src/shared/ui/account-picker1428.js",
         "suffix": ";\n"
       }
     ],
@@ -940,7 +1396,7 @@
     ],
     "scripts/workflows1434.js": [
       {
-        "source": "src/legacy/scripts/workflows1434.js",
+        "source": "src/core/auth/workflows1434.js",
         "suffix": ";\n"
       }
     ],
@@ -970,7 +1426,7 @@
     ],
     "scripts/dialogs1440.js": [
       {
-        "source": "src/legacy/scripts/dialogs1440.js",
+        "source": "src/shared/ui/dialogs1440.js",
         "suffix": ";\n"
       }
     ],
@@ -982,13 +1438,13 @@
     ],
     "scripts/permissions1441.js": [
       {
-        "source": "src/legacy/scripts/permissions1441.js",
+        "source": "src/core/permissions/permissions1441.js",
         "suffix": ";\n"
       }
     ],
     "scripts/mobile-document1443.js": [
       {
-        "source": "src/legacy/scripts/mobile-document1443.js",
+        "source": "src/shared/presentation/mobile-document1443.js",
         "suffix": ";\n"
       }
     ],
@@ -1000,13 +1456,13 @@
     ],
     "scripts/startup1443.js": [
       {
-        "source": "src/legacy/scripts/startup1443.js",
+        "source": "src/core/startup/startup1443.js",
         "suffix": ";\n"
       }
     ],
     "scripts/session-policy1443.js": [
       {
-        "source": "src/legacy/scripts/session-policy1443.js",
+        "source": "src/core/auth/session-policy1443.js",
         "suffix": ";\n"
       }
     ],
@@ -1030,19 +1486,19 @@
     ],
     "scripts/corrections14231.js": [
       {
-        "source": "src/legacy/scripts/corrections14231.js",
+        "source": "src/shared/presentation/corrections14231.js",
         "suffix": ";\n"
       }
     ],
     "scripts/currency-colors14231.js": [
       {
-        "source": "src/legacy/scripts/currency-colors14231.js",
+        "source": "src/shared/formatting/currency-colors14231.js",
         "suffix": ";\n"
       }
     ],
     "scripts/financial-numbers14231.js": [
       {
-        "source": "src/legacy/scripts/financial-numbers14231.js",
+        "source": "src/shared/formatting/financial-numbers14231.js",
         "suffix": ";\n"
       }
     ],
@@ -1072,7 +1528,7 @@
     ],
     "scripts/save-notices14234.js": [
       {
-        "source": "src/legacy/scripts/save-notices14234.js",
+        "source": "src/shared/ui/save-notices14234.js",
         "suffix": ";\n"
       }
     ],
@@ -1089,7 +1545,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/recovery-reset-fix-v142.js",
+        "source": "src/core/auth/recovery-reset-fix-v142.js",
         "prefix": "/* scripts/recovery-reset-fix-v142.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1099,7 +1555,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/focused-v1422.js",
+        "source": "src/shared/presentation/focused-v1422.js",
         "prefix": "/* scripts/focused-v1422.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1109,7 +1565,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/phone-bridge132.js",
+        "source": "src/core/navigation/phone-bridge132.js",
         "prefix": "/* scripts/phone-bridge132.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1139,12 +1595,12 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/focused1427.js",
+        "source": "src/shared/presentation/focused1427.js",
         "prefix": "/* scripts/focused1427.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/account-picker1428.js",
+        "source": "src/shared/ui/account-picker1428.js",
         "prefix": "/* scripts/account-picker1428.js */\n",
         "suffix": ";\n;\n\n"
       },
@@ -1174,7 +1630,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/workflows1434.js",
+        "source": "src/core/auth/workflows1434.js",
         "prefix": "/* scripts/workflows1434.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1199,7 +1655,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/dialogs1440.js",
+        "source": "src/shared/ui/dialogs1440.js",
         "prefix": "/* scripts/dialogs1440.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1209,12 +1665,12 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/permissions1441.js",
+        "source": "src/core/permissions/permissions1441.js",
         "prefix": "/* scripts/permissions1441.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/mobile-document1443.js",
+        "source": "src/shared/presentation/mobile-document1443.js",
         "prefix": "/* scripts/mobile-document1443.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1224,12 +1680,12 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/startup1443.js",
+        "source": "src/core/startup/startup1443.js",
         "prefix": "/* scripts/startup1443.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/session-policy1443.js",
+        "source": "src/core/auth/session-policy1443.js",
         "prefix": "/* scripts/session-policy1443.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1249,17 +1705,17 @@
         "suffix": ";\n\n;\n\n"
       },
       {
-        "source": "src/legacy/scripts/corrections14231.js",
+        "source": "src/shared/presentation/corrections14231.js",
         "prefix": "/* scripts/corrections14231.js */\n",
         "suffix": ";\n\n;\n\n"
       },
       {
-        "source": "src/legacy/scripts/currency-colors14231.js",
+        "source": "src/shared/formatting/currency-colors14231.js",
         "prefix": "/* scripts/currency-colors14231.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/financial-numbers14231.js",
+        "source": "src/shared/formatting/financial-numbers14231.js",
         "prefix": "/* scripts/financial-numbers14231.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1284,7 +1740,7 @@
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/save-notices14234.js",
+        "source": "src/shared/ui/save-notices14234.js",
         "prefix": "/* scripts/save-notices14234.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1296,19 +1752,19 @@
     ],
     "styles/offline14239.css": [
       {
-        "source": "src/legacy/styles/offline14239.css",
+        "source": "src/core/sync/offline14239.css",
         "suffix": "\n"
       }
     ],
     "styles/loading1444.css": [
       {
-        "source": "src/legacy/styles/loading1444.css",
+        "source": "src/core/startup/loading1444.css",
         "suffix": "\n"
       }
     ],
     "styles/styles.css": [
       {
-        "source": "src/legacy/styles/styles.css",
+        "source": "src/shared/presentation/foundation.css",
         "suffix": "\n"
       }
     ],
@@ -1332,7 +1788,7 @@
     ],
     "styles/design-system-v58.css": [
       {
-        "source": "src/legacy/styles/design-system-v58.css",
+        "source": "src/shared/presentation/design-system-v58.css",
         "suffix": "\n"
       }
     ],
@@ -1344,7 +1800,7 @@
     ],
     "styles/mobile-tables-v66.css": [
       {
-        "source": "src/legacy/styles/mobile-tables-v66.css",
+        "source": "src/shared/presentation/mobile-tables-v66.css",
         "suffix": "\n"
       }
     ],
@@ -1362,7 +1818,7 @@
     ],
     "styles/desktop-v71.css": [
       {
-        "source": "src/legacy/styles/desktop-v71.css",
+        "source": "src/shared/presentation/desktop-v71.css",
         "suffix": "\n"
       }
     ],
@@ -1374,13 +1830,13 @@
     ],
     "styles/mobile-polish-v73.css": [
       {
-        "source": "src/legacy/styles/mobile-polish-v73.css",
+        "source": "src/shared/presentation/mobile-polish-v73.css",
         "suffix": "\n"
       }
     ],
     "styles/mobile-refinements-v74.css": [
       {
-        "source": "src/legacy/styles/mobile-refinements-v74.css",
+        "source": "src/shared/presentation/mobile-refinements-v74.css",
         "suffix": "\n"
       }
     ],
@@ -1404,19 +1860,19 @@
     ],
     "styles/desktop-corrections-v80.css": [
       {
-        "source": "src/legacy/styles/desktop-corrections-v80.css",
+        "source": "src/shared/presentation/desktop-corrections-v80.css",
         "suffix": "\n"
       }
     ],
     "styles/desktop-refinements-v81.css": [
       {
-        "source": "src/legacy/styles/desktop-refinements-v81.css",
+        "source": "src/shared/presentation/desktop-refinements-v81.css",
         "suffix": "\n"
       }
     ],
     "styles/desktop-layout-v82.css": [
       {
-        "source": "src/legacy/styles/desktop-layout-v82.css",
+        "source": "src/shared/presentation/desktop-layout-v82.css",
         "suffix": "\n"
       }
     ],
@@ -1428,43 +1884,43 @@
     ],
     "styles/table-alignment-v83.css": [
       {
-        "source": "src/legacy/styles/table-alignment-v83.css",
+        "source": "src/shared/presentation/table-alignment-v83.css",
         "suffix": "\n"
       }
     ],
     "styles/desktop-polish-v84.css": [
       {
-        "source": "src/legacy/styles/desktop-polish-v84.css",
+        "source": "src/shared/presentation/desktop-polish-v84.css",
         "suffix": "\n"
       }
     ],
     "styles/layout-fixes-v85.css": [
       {
-        "source": "src/legacy/styles/layout-fixes-v85.css",
+        "source": "src/shared/presentation/layout-fixes-v85.css",
         "suffix": "\n"
       }
     ],
     "styles/layout-consistency-v87.css": [
       {
-        "source": "src/legacy/styles/layout-consistency-v87.css",
+        "source": "src/shared/presentation/layout-consistency-v87.css",
         "suffix": "\n"
       }
     ],
     "styles/fixes14234.css": [
       {
-        "source": "src/legacy/styles/fixes14234.css",
+        "source": "src/shared/presentation/fixes14234.css",
         "suffix": "\n"
       }
     ],
     "styles/session-inputs-v88.css": [
       {
-        "source": "src/legacy/styles/session-inputs-v88.css",
+        "source": "src/core/auth/session-inputs-v88.css",
         "suffix": "\n"
       }
     ],
     "styles/prefixes-badges-v89.css": [
       {
-        "source": "src/legacy/styles/prefixes-badges-v89.css",
+        "source": "src/shared/formatting/prefixes-badges-v89.css",
         "suffix": "\n"
       }
     ],
@@ -1476,7 +1932,7 @@
     ],
     "styles/refinements-v93.css": [
       {
-        "source": "src/legacy/styles/refinements-v93.css",
+        "source": "src/shared/presentation/refinements-v93.css",
         "suffix": "\n"
       }
     ],
@@ -1512,13 +1968,13 @@
     ],
     "styles/theme-v100.css": [
       {
-        "source": "src/legacy/styles/theme-v100.css",
+        "source": "src/shared/presentation/theme-v100.css",
         "suffix": "\n"
       }
     ],
     "styles/polish-v101.css": [
       {
-        "source": "src/legacy/styles/polish-v101.css",
+        "source": "src/shared/presentation/polish-v101.css",
         "suffix": "\n"
       }
     ],
@@ -1530,25 +1986,25 @@
     ],
     "styles/universal-date-v104.css": [
       {
-        "source": "src/legacy/styles/universal-date-v104.css",
+        "source": "src/shared/formatting/universal-date-v104.css",
         "suffix": "\n"
       }
     ],
     "styles/header-profile-v104.css": [
       {
-        "source": "src/legacy/styles/header-profile-v104.css",
+        "source": "src/shared/presentation/header-profile-v104.css",
         "suffix": "\n"
       }
     ],
     "styles/refinements-v105.css": [
       {
-        "source": "src/legacy/styles/refinements-v105.css",
+        "source": "src/shared/presentation/refinements-v105.css",
         "suffix": "\n"
       }
     ],
     "styles/refinements-v106.css": [
       {
-        "source": "src/legacy/styles/refinements-v106.css",
+        "source": "src/shared/presentation/refinements-v106.css",
         "suffix": "\n"
       }
     ],
@@ -1560,13 +2016,13 @@
     ],
     "styles/shared-v108.css": [
       {
-        "source": "src/legacy/styles/shared-v108.css",
+        "source": "src/shared/presentation/shared-v108.css",
         "suffix": "\n"
       }
     ],
     "styles/refinements-v109.css": [
       {
-        "source": "src/legacy/styles/refinements-v109.css",
+        "source": "src/shared/presentation/refinements-v109.css",
         "suffix": "\n"
       }
     ],
@@ -1584,19 +2040,19 @@
     ],
     "styles/polish-v113.css": [
       {
-        "source": "src/legacy/styles/polish-v113.css",
+        "source": "src/shared/presentation/polish-v113.css",
         "suffix": "\n"
       }
     ],
     "styles/final-v117.css": [
       {
-        "source": "src/legacy/styles/final-v117.css",
+        "source": "src/shared/presentation/final-v117.css",
         "suffix": "\n"
       }
     ],
     "styles/final-v118.css": [
       {
-        "source": "src/legacy/styles/final-v118.css",
+        "source": "src/shared/presentation/final-v118.css",
         "suffix": "\n"
       }
     ],
@@ -1626,19 +2082,19 @@
     ],
     "styles/recovery-reset-fix-v142.css": [
       {
-        "source": "src/legacy/styles/recovery-reset-fix-v142.css",
+        "source": "src/core/auth/recovery-reset-fix-v142.css",
         "suffix": "\n"
       }
     ],
     "styles/focused-v1422.css": [
       {
-        "source": "src/legacy/styles/focused-v1422.css",
+        "source": "src/shared/presentation/focused-v1422.css",
         "suffix": "\n"
       }
     ],
     "styles/device-mode132.css": [
       {
-        "source": "src/legacy/styles/device-mode132.css",
+        "source": "src/core/startup/device-mode132.css",
         "suffix": "\n"
       }
     ],
@@ -1656,19 +2112,19 @@
     ],
     "styles/focused1427.css": [
       {
-        "source": "src/legacy/styles/focused1427.css",
+        "source": "src/shared/presentation/focused1427.css",
         "suffix": "\n"
       }
     ],
     "styles/account-picker1428.css": [
       {
-        "source": "src/legacy/styles/account-picker1428.css",
+        "source": "src/shared/ui/account-picker1428.css",
         "suffix": "\n"
       }
     ],
     "styles/fixes1429.css": [
       {
-        "source": "src/legacy/styles/fixes1429.css",
+        "source": "src/shared/presentation/fixes1429.css",
         "suffix": "\n"
       }
     ],
@@ -1698,7 +2154,7 @@
     ],
     "styles/workflows1434.css": [
       {
-        "source": "src/legacy/styles/workflows1434.css",
+        "source": "src/core/auth/workflows1434.css",
         "suffix": "\n"
       }
     ],
@@ -1710,7 +2166,7 @@
     ],
     "styles/desktop-tasks1438.css": [
       {
-        "source": "src/legacy/styles/desktop-tasks1438.css",
+        "source": "src/shared/presentation/desktop-tasks1438.css",
         "suffix": "\n"
       }
     ],
@@ -1728,13 +2184,13 @@
     ],
     "styles/polish1443.css": [
       {
-        "source": "src/legacy/styles/polish1443.css",
+        "source": "src/shared/presentation/polish1443.css",
         "suffix": "\n"
       }
     ],
     "styles/polish1444.css": [
       {
-        "source": "src/legacy/styles/polish1444.css",
+        "source": "src/shared/presentation/polish1444.css",
         "suffix": "\n"
       }
     ],
@@ -1752,23 +2208,23 @@
     ],
     "styles/corrections14231.css": [
       {
-        "source": "src/legacy/styles/corrections14231.css",
+        "source": "src/shared/presentation/corrections14231.css",
         "suffix": "\n"
       }
     ],
     "styles/desktop14245.css": [
       {
-        "source": "src/legacy/styles/offline14239.css",
+        "source": "src/core/sync/offline14239.css",
         "prefix": "/* styles/offline14239.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/loading1444.css",
+        "source": "src/core/startup/loading1444.css",
         "prefix": "/* styles/loading1444.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/styles.css",
+        "source": "src/shared/presentation/foundation.css",
         "prefix": "/* styles/styles.css */\n",
         "suffix": "\n\n"
       },
@@ -1788,7 +2244,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/design-system-v58.css",
+        "source": "src/shared/presentation/design-system-v58.css",
         "prefix": "/* styles/design-system-v58.css */\n",
         "suffix": "\n\n"
       },
@@ -1798,7 +2254,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/mobile-tables-v66.css",
+        "source": "src/shared/presentation/mobile-tables-v66.css",
         "prefix": "/* styles/mobile-tables-v66.css */\n",
         "suffix": "\n\n"
       },
@@ -1813,7 +2269,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/desktop-v71.css",
+        "source": "src/shared/presentation/desktop-v71.css",
         "prefix": "/* styles/desktop-v71.css */\n",
         "suffix": "\n\n"
       },
@@ -1823,12 +2279,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/mobile-polish-v73.css",
+        "source": "src/shared/presentation/mobile-polish-v73.css",
         "prefix": "/* styles/mobile-polish-v73.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/mobile-refinements-v74.css",
+        "source": "src/shared/presentation/mobile-refinements-v74.css",
         "prefix": "/* styles/mobile-refinements-v74.css */\n",
         "suffix": "\n\n"
       },
@@ -1848,17 +2304,17 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/desktop-corrections-v80.css",
+        "source": "src/shared/presentation/desktop-corrections-v80.css",
         "prefix": "/* styles/desktop-corrections-v80.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/desktop-refinements-v81.css",
+        "source": "src/shared/presentation/desktop-refinements-v81.css",
         "prefix": "/* styles/desktop-refinements-v81.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/desktop-layout-v82.css",
+        "source": "src/shared/presentation/desktop-layout-v82.css",
         "prefix": "/* styles/desktop-layout-v82.css */\n",
         "suffix": "\n\n"
       },
@@ -1868,37 +2324,37 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/table-alignment-v83.css",
+        "source": "src/shared/presentation/table-alignment-v83.css",
         "prefix": "/* styles/table-alignment-v83.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/desktop-polish-v84.css",
+        "source": "src/shared/presentation/desktop-polish-v84.css",
         "prefix": "/* styles/desktop-polish-v84.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/layout-fixes-v85.css",
+        "source": "src/shared/presentation/layout-fixes-v85.css",
         "prefix": "/* styles/layout-fixes-v85.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/layout-consistency-v87.css",
+        "source": "src/shared/presentation/layout-consistency-v87.css",
         "prefix": "/* styles/layout-consistency-v87.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/fixes14234.css",
+        "source": "src/shared/presentation/fixes14234.css",
         "prefix": "/* styles/fixes14234.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/session-inputs-v88.css",
+        "source": "src/core/auth/session-inputs-v88.css",
         "prefix": "/* styles/session-inputs-v88.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/prefixes-badges-v89.css",
+        "source": "src/shared/formatting/prefixes-badges-v89.css",
         "prefix": "/* styles/prefixes-badges-v89.css */\n",
         "suffix": "\n\n"
       },
@@ -1908,7 +2364,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/refinements-v93.css",
+        "source": "src/shared/presentation/refinements-v93.css",
         "prefix": "/* styles/refinements-v93.css */\n",
         "suffix": "\n\n"
       },
@@ -1938,12 +2394,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/theme-v100.css",
+        "source": "src/shared/presentation/theme-v100.css",
         "prefix": "/* styles/theme-v100.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/polish-v101.css",
+        "source": "src/shared/presentation/polish-v101.css",
         "prefix": "/* styles/polish-v101.css */\n",
         "suffix": "\n\n"
       },
@@ -1953,17 +2409,17 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/universal-date-v104.css",
+        "source": "src/shared/formatting/universal-date-v104.css",
         "prefix": "/* styles/universal-date-v104.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/header-profile-v104.css",
+        "source": "src/shared/presentation/header-profile-v104.css",
         "prefix": "/* styles/header-profile-v104.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/refinements-v105.css",
+        "source": "src/shared/presentation/refinements-v105.css",
         "prefix": "/* styles/refinements-v105.css */\n",
         "suffix": "\n\n"
       },
@@ -1973,7 +2429,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/refinements-v106.css",
+        "source": "src/shared/presentation/refinements-v106.css",
         "prefix": "/* styles/refinements-v106.css */\n",
         "suffix": "\n\n"
       },
@@ -1983,12 +2439,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/shared-v108.css",
+        "source": "src/shared/presentation/shared-v108.css",
         "prefix": "/* styles/shared-v108.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/refinements-v109.css",
+        "source": "src/shared/presentation/refinements-v109.css",
         "prefix": "/* styles/refinements-v109.css */\n",
         "suffix": "\n\n"
       },
@@ -2003,17 +2459,17 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/polish-v113.css",
+        "source": "src/shared/presentation/polish-v113.css",
         "prefix": "/* styles/polish-v113.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/final-v117.css",
+        "source": "src/shared/presentation/final-v117.css",
         "prefix": "/* styles/final-v117.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/final-v118.css",
+        "source": "src/shared/presentation/final-v118.css",
         "prefix": "/* styles/final-v118.css */\n",
         "suffix": "\n\n"
       },
@@ -2038,17 +2494,17 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/recovery-reset-fix-v142.css",
+        "source": "src/core/auth/recovery-reset-fix-v142.css",
         "prefix": "/* styles/recovery-reset-fix-v142.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/focused-v1422.css",
+        "source": "src/shared/presentation/focused-v1422.css",
         "prefix": "/* styles/focused-v1422.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/device-mode132.css",
+        "source": "src/core/startup/device-mode132.css",
         "prefix": "/* styles/device-mode132.css */\n",
         "suffix": "\n\n"
       },
@@ -2063,17 +2519,17 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/focused1427.css",
+        "source": "src/shared/presentation/focused1427.css",
         "prefix": "/* styles/focused1427.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/account-picker1428.css",
+        "source": "src/shared/ui/account-picker1428.css",
         "prefix": "/* styles/account-picker1428.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/fixes1429.css",
+        "source": "src/shared/presentation/fixes1429.css",
         "prefix": "/* styles/fixes1429.css */\n",
         "suffix": "\n\n"
       },
@@ -2098,7 +2554,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/workflows1434.css",
+        "source": "src/core/auth/workflows1434.css",
         "prefix": "/* styles/workflows1434.css */\n",
         "suffix": "\n\n"
       },
@@ -2108,7 +2564,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/desktop-tasks1438.css",
+        "source": "src/shared/presentation/desktop-tasks1438.css",
         "prefix": "/* styles/desktop-tasks1438.css */\n",
         "suffix": "\n\n"
       },
@@ -2123,12 +2579,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/polish1443.css",
+        "source": "src/shared/presentation/polish1443.css",
         "prefix": "/* styles/polish1443.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/polish1444.css",
+        "source": "src/shared/presentation/polish1444.css",
         "prefix": "/* styles/polish1444.css */\n",
         "suffix": "\n\n"
       },
@@ -2143,7 +2599,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/corrections14231.css",
+        "source": "src/shared/presentation/corrections14231.css",
         "prefix": "/* styles/corrections14231.css */\n",
         "suffix": "\n\n"
       },
@@ -2151,6 +2607,281 @@
         "source": "src/legacy/styles/data-tools14232.css",
         "prefix": "/* styles/data-tools14232.css */\n",
         "suffix": "\n"
+      }
+    ],
+    "scripts/account-security14257.js": [
+      {
+        "source": "src/core/auth/account-security14257.js"
+      }
+    ],
+    "scripts/action-feedback14296.js": [
+      {
+        "source": "src/shared/ui/action-feedback14296.js"
+      }
+    ],
+    "scripts/admin-access14251.js": [
+      {
+        "source": "src/core/auth/admin-access14251.js"
+      }
+    ],
+    "scripts/auto-sync14256.js": [
+      {
+        "source": "src/core/sync/auto-sync14256.js"
+      }
+    ],
+    "scripts/controls14317.js": [
+      {
+        "source": "src/shared/ui/controls14317.js"
+      }
+    ],
+    "scripts/design14284.js": [
+      {
+        "source": "src/shared/presentation/design14284.js"
+      }
+    ],
+    "scripts/desktop-layout1438.js": [
+      {
+        "source": "src/shared/presentation/desktop-layout1438.js"
+      }
+    ],
+    "scripts/desktop-scale14320.js": [
+      {
+        "source": "src/core/navigation/desktop-scale14320.js"
+      }
+    ],
+    "scripts/device-vault14334.js": [
+      {
+        "source": "src/core/auth/device-vault14334.js"
+      }
+    ],
+    "scripts/feedback-viewport14295.js": [
+      {
+        "source": "src/shared/ui/feedback-viewport14295.js"
+      }
+    ],
+    "scripts/field-focus14253.js": [
+      {
+        "source": "src/shared/ui/field-focus14253.js"
+      }
+    ],
+    "scripts/heading-case14297.js": [
+      {
+        "source": "src/shared/formatting/heading-case14297.js"
+      }
+    ],
+    "scripts/idle-sync14341.js": [
+      {
+        "source": "src/core/sync/idle-sync14341.js"
+      }
+    ],
+    "scripts/layout-voucher-polish14301.js": [
+      {
+        "source": "src/shared/presentation/layout-voucher-polish14301.js"
+      }
+    ],
+    "scripts/layout14256.js": [
+      {
+        "source": "src/shared/presentation/layout14256.js"
+      }
+    ],
+    "scripts/local-first14333.js": [
+      {
+        "source": "src/core/sync/local-first14333.js"
+      }
+    ],
+    "scripts/login-notifications14293.js": [
+      {
+        "source": "src/core/auth/login-notifications14293.js"
+      }
+    ],
+    "scripts/module-dock14269.js": [
+      {
+        "source": "src/core/navigation/module-dock14269.js"
+      }
+    ],
+    "scripts/navigation-badges14311.js": [
+      {
+        "source": "src/core/navigation/navigation-badges14311.js"
+      }
+    ],
+    "scripts/navigation-workflow14316.js": [
+      {
+        "source": "src/core/navigation/navigation-workflow14316.js"
+      }
+    ],
+    "scripts/numeric-caret14257.js": [
+      {
+        "source": "src/shared/formatting/numeric-caret14257.js"
+      }
+    ],
+    "scripts/offline14239.js": [
+      {
+        "source": "src/core/sync/offline14239.js"
+      }
+    ],
+    "scripts/optional-tools14335.js": [
+      {
+        "source": "src/core/startup/optional-tools14335.js"
+      }
+    ],
+    "scripts/password-policy14257.js": [
+      {
+        "source": "src/core/auth/password-policy14257.js"
+      }
+    ],
+    "scripts/password-service14264.js": [
+      {
+        "source": "src/core/auth/password-service14264.js"
+      }
+    ],
+    "scripts/payroll-window14334.js": [
+      {
+        "source": "src/core/sync/payroll-window14334.js"
+      }
+    ],
+    "scripts/phone-data14248.js": [
+      {
+        "source": "src/core/startup/phone-data14248.js"
+      }
+    ],
+    "scripts/phone-keyboard14252.js": [
+      {
+        "source": "src/core/navigation/phone-keyboard14252.js"
+      }
+    ],
+    "scripts/phone-pull-refresh1423.js": [
+      {
+        "source": "src/core/navigation/phone-pull-refresh1423.js"
+      }
+    ],
+    "scripts/phone-reset-gate14257.js": [
+      {
+        "source": "src/core/auth/phone-reset-gate14257.js"
+      }
+    ],
+    "scripts/polish14325.js": [
+      {
+        "source": "src/shared/presentation/polish14325.js"
+      }
+    ],
+    "scripts/recovery14257.js": [
+      {
+        "source": "src/core/auth/recovery14257.js"
+      }
+    ],
+    "scripts/search-autofill14285.js": [
+      {
+        "source": "src/shared/ui/search-autofill14285.js"
+      }
+    ],
+    "scripts/session-cache14333.js": [
+      {
+        "source": "src/core/auth/session-cache14333.js"
+      }
+    ],
+    "scripts/startup14257.js": [
+      {
+        "source": "src/core/startup/startup14257.js"
+      }
+    ],
+    "scripts/view-render14340.js": [
+      {
+        "source": "src/core/rendering/view-render14340.js"
+      }
+    ],
+    "scripts/year-window14333.js": [
+      {
+        "source": "src/core/sync/year-window14333.js"
+      }
+    ],
+    "styles/compact14327.css": [
+      {
+        "source": "src/shared/presentation/compact14327.css"
+      }
+    ],
+    "styles/controls14305.css": [
+      {
+        "source": "src/shared/ui/controls14305.css"
+      }
+    ],
+    "styles/controls14317.css": [
+      {
+        "source": "src/shared/ui/controls14317.css"
+      }
+    ],
+    "styles/design14284.css": [
+      {
+        "source": "src/shared/presentation/design14284.css"
+      }
+    ],
+    "styles/desktop-scale14320.css": [
+      {
+        "source": "src/core/navigation/desktop-scale14320.css"
+      }
+    ],
+    "styles/feedback-viewport14295.css": [
+      {
+        "source": "src/shared/ui/feedback-viewport14295.css"
+      }
+    ],
+    "styles/functional-corrections14292.css": [
+      {
+        "source": "src/shared/presentation/functional-corrections14292.css"
+      }
+    ],
+    "styles/layout-voucher-polish14301.css": [
+      {
+        "source": "src/shared/presentation/layout-voucher-polish14301.css"
+      }
+    ],
+    "styles/layout14256.css": [
+      {
+        "source": "src/shared/presentation/layout14256.css"
+      }
+    ],
+    "styles/login-notifications14293.css": [
+      {
+        "source": "src/core/auth/login-notifications14293.css"
+      }
+    ],
+    "styles/module-dock14269.css": [
+      {
+        "source": "src/core/navigation/module-dock14269.css"
+      }
+    ],
+    "styles/navigation-badges14311.css": [
+      {
+        "source": "src/core/navigation/navigation-badges14311.css"
+      }
+    ],
+    "styles/password-help14278.css": [
+      {
+        "source": "src/core/auth/password-help14278.css"
+      }
+    ],
+    "styles/phone-navigation14285.css": [
+      {
+        "source": "src/core/navigation/phone-navigation14285.css"
+      }
+    ],
+    "styles/phone-pull-refresh1423.css": [
+      {
+        "source": "src/core/navigation/phone-pull-refresh1423.css"
+      }
+    ],
+    "styles/phone-shell14285.css": [
+      {
+        "source": "src/core/navigation/phone-shell14285.css"
+      }
+    ],
+    "styles/polish14325.css": [
+      {
+        "source": "src/shared/presentation/polish14325.css"
+      }
+    ],
+    "styles/responsive-work14341.css": [
+      {
+        "source": "src/shared/presentation/responsive-work14341.css"
       }
     ]
   },

@@ -1,0 +1,94 @@
+/* Desktop and tablet only. The approved phone workspace remains unchanged. */
+@media screen and (min-width:768px){
+ body[data-area113="documents"] #categoryTabShell{display:none!important}
+ body.shell113 #dashboard .dash-hero-controls112{position:absolute!important;right:18px!important;left:auto!important;top:18px!important;width:max-content!important;max-width:calc(50% - 24px)!important;margin:0!important;justify-content:flex-end!important;align-self:flex-start!important}
+ body.shell113 #dashboard .dash-hero112{align-items:flex-start!important}
+ body.shell113 .page-header-actions14301{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+ body.shell113 #transactions-voided .je-card-header,body.shell113 #period-review .period-review-toolbar{display:flex!important;align-items:flex-start!important;gap:12px!important}
+ body.shell113 #transactions-voided .inline-control69{margin:0!important;display:flex;align-items:center;gap:6px}
+ body.shell113 #transactions-voided .inline-control69 input{width:min(280px,28vw)!important}
+ body.shell113 #period-review .period-review-picker{margin:0!important}
+ body.shell113 #period-review .period-review-picker>label{display:none!important}
+ body.shell113 #period-review .page-header-actions14301 .report-action14300{order:99}
+ body.shell113 #auditMonths98 .audit-month98{border-top:3px solid #008563!important;animation:none!important;transition:none!important}
+ body.shell113 #auditMonths98 :is(summary,tr,td,th){animation:none!important;transition:none!important}
+ body.shell113 #auditMonths98 .audit-month98>summary{background:#fffdf8!important;border-top:0!important}
+ body.shell113 #periodTransactionsBody .period-general14301{display:grid;gap:2px;margin:-2px -2px 5px;padding:5px 6px;border-left:3px solid #218363;background:#eef7f0;color:#244d3b;font-size:11px}
+ body.shell113 #periodTransactionsBody .period-general14301 strong{font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+ body.shell113 #document-editor105 .doc-title105>h2{display:none!important}
+ body.shell113 #document-editor105 .doc-title105{justify-content:flex-end!important}
+ body.shell113 #document-editor105 .doc-status105{text-align:left!important}
+ body.shell113 #document-editor105 .doc-actions105 [data-doc-action="voucher-save14299"]{margin-left:auto!important;order:99!important}
+ body.shell113 #document-editor105 .doc-table-tabs14301{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;margin:0 0 10px}
+ body.shell113 #document-editor105 .doc-table-tabs14301 button{min-height:32px;padding:5px 6px;border:1px solid #b9cbbd;border-radius:5px;background:#f2f5ee;color:#244d3b;font-size:11px;font-weight:700}
+ body.shell113 #document-editor105 .doc-table-tabs14301 button[aria-selected="true"]{background:#176049;color:#fff;border-color:#176049}
+ body.shell113 #document-editor105 .doc-table-controls1424{display:block!important}
+ body.shell113 #document-editor105 .doc-table-controls1424>fieldset{display:flex!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;align-items:flex-end!important;gap:7px!important;padding:8px!important}
+ body.shell113 #document-editor105 .doc-table-controls1424>fieldset[hidden]{display:none!important}
+ body.shell113 #document-editor105 .doc-structure-add14301{display:grid;grid-template-columns:74px 1fr 1fr;align-items:end;gap:6px;width:100%}
+ body.shell113 #document-editor105 .doc-structure-add14301 label{display:grid;gap:3px;font-size:10px}
+ body.shell113 #document-editor105 .doc-structure-add14301 input{width:100%!important;min-height:30px!important}
+ body.shell113 #document-editor105 .doc-table-sidebar14298{flex-basis:340px;width:340px;padding:10px!important}
+ body.shell113 #document-editor105.table-open14298 #docFrame105{width:calc(100% - 352px)!important}
+ body.shell113 .connection-logo14301{display:none;position:absolute;right:1px;bottom:1px;width:12px;height:12px;border:2px solid #fff;border-radius:50%;background:#16894d;z-index:3}
+ body.shell113 .logo-tile113{position:relative!important}
+}
+@media screen and (min-width:768px) and (max-width:1180px){body.shell113 .connection-logo14301{display:block}}
+body.shell113 .connection-logo14301[data-state="limited"],body.shell113 .connection-logo14301[data-state="syncing"]{background:#ef8614}
+body.shell113 .connection-logo14301[data-state="offline"],body.shell113 .connection-logo14301[data-state="attention"]{background:#dc2626}
+body.shell113 .area-banner113>.connection14239,body.shell113 .dash-hero112>.connection14239{display:none!important}
+body.shell113 #connectionFloat14301{position:fixed;right:18px;bottom:18px;z-index:1200;display:grid;place-items:center;width:38px;height:38px;border:1px solid #a8bcae;border-radius:50%;background:#fffdf7;box-shadow:0 4px 16px #102d2230;cursor:pointer}
+body.shell113 #connectionFloat14301 span{display:block;width:13px;height:13px;border-radius:50%;background:#16894d}
+body.shell113 #connectionFloat14301[data-state="limited"] span,body.shell113 #connectionFloat14301[data-state="syncing"] span{background:#ef8614}
+body.shell113 #connectionFloat14301[data-state="offline"] span,body.shell113 #connectionFloat14301[data-state="attention"] span{background:#dc2626}
+body.shell113 #dashboard .dash-flow112 .dash-flow-step112:hover,body.shell113 #dashboard .dash-flow112 .dash-flow-step112:focus-visible{background:#2b6651!important;color:#fff!important;outline:1px solid #8eb9a5!important}
+body.shell113 #dashboard .dash-flow112 .dash-flow-step112:hover :is(b,strong,small),body.shell113 #dashboard .dash-flow112 .dash-flow-step112:focus-visible :is(b,strong,small){color:#fff!important}
+body.shell113 :is(.nav-header,.nav-links button)[style*="background"]:hover{filter:none!important}
+@media(max-width:767px){body.shell113 #connectionFloat14301{display:none!important}}
+
+@media screen and (min-width:768px){
+ body.shell113 .team-home14227 .th-quick .th-button :is(b,small){white-space:normal;overflow-wrap:anywhere}
+}
+
+/* Compact full-height table inspector and aligned workspace status control. */
+@media screen and (min-width:768px){
+ body.shell113 #document-editor105.table-open14298 .doc-canvas105{align-items:stretch!important;gap:8px!important}
+ body.shell113 #document-editor105 .doc-table-sidebar14298{flex:0 0 252px!important;width:252px!important;align-self:stretch!important;max-height:none!important;height:auto!important;padding:10px!important;overflow:auto!important}
+ body.shell113 #document-editor105.table-open14298 #docFrame105{width:calc(100% - 260px)!important}
+ body.shell113 #document-editor105 .doc-table-tabs14301{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ body.shell113 #document-editor105 .doc-table-tabs14301 button{grid-column:span 2;min-height:34px;white-space:normal}
+ body.shell113 #document-editor105 .doc-table-tabs14301 button:nth-child(n+4){grid-column:span 3}
+ body.shell113 #document-editor105 .doc-table-controls1424>fieldset{flex-wrap:wrap!important;align-items:stretch!important}
+ body.shell113 #document-editor105 .doc-table-controls1424>fieldset label{flex:1 1 95px!important;min-width:0!important}
+ body.shell113 #document-editor105 .doc-table-controls1424>fieldset :is(input,select){max-width:100%!important;box-sizing:border-box}
+ body.shell113 #document-editor105 .doc-structure-add14301{grid-template-columns:1fr 1fr!important}
+ body.shell113 #document-editor105 .doc-structure-add14301 label{grid-column:1/-1}
+ body.shell113 #document-editor105 .doc-title105 [data-doc-action="voucher-save14299"]{margin-left:auto!important;flex:0 0 auto!important;order:99;white-space:nowrap}
+ body.shell113 #workspaceTools108 #connectionFloat14301{position:static!important;inset:auto!important;width:36px!important;height:36px!important;border-radius:6px!important;margin:0!important;padding:7px!important;box-shadow:none!important;color:#16894d}
+ body.shell113 #workspaceTools108 #connectionFloat14301 svg{width:20px;height:20px}
+ body.shell113 #workspaceTools108 #connectionFloat14301[data-state="limited"],body.shell113 #workspaceTools108 #connectionFloat14301[data-state="syncing"]{color:#c57505}
+ body.shell113 #workspaceTools108 #connectionFloat14301[data-state="offline"],body.shell113 #workspaceTools108 #connectionFloat14301[data-state="attention"]{color:#dc2626}
+}
+body .row-menu-panel99{transition:none!important;animation:none!important}
+
+body #document-editor105 .voucher-mode14303{font-size:11px;color:#176049;white-space:nowrap;padding:5px 7px;background:#edf5ef;border:1px solid #bed1c3;border-radius:4px}
+
+body.shell113 #workspaceTools108 #connectionFloat14301 svg{stroke:#16894d!important}
+body.shell113 #workspaceTools108 #connectionFloat14301[data-state="limited"] svg,body.shell113 #workspaceTools108 #connectionFloat14301[data-state="syncing"] svg{stroke:#ef8614!important}
+body.shell113 #workspaceTools108 #connectionFloat14301[data-state="offline"] svg,body.shell113 #workspaceTools108 #connectionFloat14301[data-state="attention"] svg{stroke:#dc2626!important}
+
+body.shell113 #workspaceTools108 #connectionFloat14301{background:#fffdf7!important;border:1px solid #b8c8bb!important}
+
+@media screen and (min-width:768px) and (max-width:1024px){
+ body.shell113 #document-editor105 .doc-title105:has(.voucher-mode14303){display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:5px 8px!important}
+ body.shell113 #document-editor105 .doc-title105 .voucher-mode14303{grid-column:1;grid-row:1;justify-self:start}
+ body.shell113 #document-editor105 .doc-title105 [data-doc-action="voucher-save14299"]{grid-column:2;grid-row:1}
+ body.shell113 #document-editor105 .doc-title105:has(.voucher-mode14303) .doc-name107{grid-column:1/-1;grid-row:2;width:100%!important;min-width:0!important}
+ body.shell113 #document-editor105 .doc-title105:has(.voucher-mode14303) .doc-status105{grid-column:1/-1;grid-row:3}
+}
+
+body.shell113 #document-editor105 .doc-quick1426 [data-doc-action="voucher-save14299"]{margin-left:auto!important;flex:0 0 auto!important;order:99!important;width:auto!important;min-width:108px!important;padding:6px 12px!important;white-space:nowrap!important;background:#008563!important;color:white!important}
+body.shell113 #period-review .period-close-controls14304{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+body.shell113 #period-review .period-close-controls14304 .period-review-picker{min-width:150px!important;width:auto!important}
+body.shell113 #workspaceTools108 #connectionFloat14301{background:#194c38!important;border-color:#194c38!important;border-radius:8px!important;box-shadow:0 4px 16px #102d2230!important}
+body.shell113 #workspaceTools108 #connectionFloat14301 svg{stroke:#7ee2a5!important}
