@@ -1,0 +1,46 @@
+/* ============================================================================== */
+/* CSS V22: APP-WIDE COMPACT TABLES, AUDIT DETAILS & UNIVERSAL DANGER MODAL       */
+/* ============================================================================== */
+table th { padding:6px 8px !important; line-height:1.2; }
+table td { padding:3px 6px !important; line-height:1.25; vertical-align:middle; }
+table .je-input, table .je-select { min-height:30px !important; padding:4px 6px !important; }
+.clustered-journal-table { width:100%; border-collapse:collapse; font-size:12px; }
+.clustered-journal-table th { padding:6px 7px !important; }
+.clustered-journal-table td { padding:3px 6px !important; }
+.cluster-row-start td { border-top:3px solid #64748b !important; }
+.cluster-row-cont td { border-top:1px solid #eef2f7 !important; }
+.cluster-row-end td { border-bottom:3px solid #64748b !important; }
+.entry-id-stack { display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
+.adjusted-entry-badge { display:inline-flex; align-items:center; padding:2px 6px; border:1px solid #ef4444; border-radius:999px; background:#fef2f2; color:#b91c1c; font:800 9px/1.2 inherit; letter-spacing:.04em; text-transform:uppercase; }
+.transaction-review-actions,.recurring-inline-actions { display:flex; align-items:center; justify-content:center; gap:4px; flex-wrap:nowrap; white-space:nowrap; }
+.recurring-inline-actions .je-btn { min-height:27px; padding:4px 7px; font-size:10.5px; }
+.recurring-remove-x { width:27px; min-width:27px; padding:3px !important; border-radius:5px; font-size:15px !important; line-height:1; }
+.recurring-form-grid { grid-template-columns:repeat(4,minmax(0,1fr)) !important; gap:8px 10px !important; }
+.recurring-form-grid .je-input,.recurring-form-grid .je-select { min-height:34px; }
+.reminder-row { gap:6px; }
+.reminder-row input { width:58px; }
+.reminder-row select,.reminder-row .je-btn { width:126px !important; height:34px !important; min-height:34px !important; padding:5px 7px !important; font-size:11px !important; }
+.period-review-table .cluster-row-start td { border-top:3px solid #475569 !important; }
+.period-review-table .cluster-row-end td { border-bottom:3px solid #475569 !important; }
+.period-review-table .cluster-row-cont td { border-top:1px solid #e5e7eb !important; }
+.audit-summary-row { cursor:pointer; }
+.audit-summary-row:hover td { background:#f8fafc; }
+.audit-expand-cell { width:26px; text-align:center; color:#475569; font-size:12px; }
+.audit-detail-row td { padding:0 !important; background:#f8fafc; border-bottom:2px solid #94a3b8 !important; }
+.audit-detail-panel { padding:10px 12px; }
+.audit-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.audit-detail-card { min-width:0; padding:9px; border:1px solid #cbd5e1; border-radius:7px; background:#fff; }
+.audit-detail-card h5 { margin:0 0 7px; color:#334155; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+.audit-detail-list { display:grid; grid-template-columns:minmax(95px,.45fr) 1fr; gap:4px 8px; font-size:11px; }
+.audit-detail-list dt { color:#64748b; font-weight:700; }
+.audit-detail-list dd { margin:0; color:#0f172a; overflow-wrap:anywhere; }
+.audit-empty-detail { color:#64748b; font-size:11px; }
+.universal-danger-dialog { border:1px solid #fecaca !important; border-top:4px solid #dc2626 !important; border-radius:12px !important; overflow:hidden; box-shadow:0 18px 45px rgba(15,23,42,.22) !important; }
+.universal-danger-header { background:#fff !important; border-bottom:1px solid #fecaca !important; }
+.universal-danger-header h4 { margin:0; color:#991b1b; font-size:16px; }
+.universal-danger-header p { margin:3px 0 0; color:#64748b; font-size:11px; }
+.danger-modal-note { margin-bottom:12px; padding:10px; border:1px solid #fecaca; border-radius:7px; background:#fef2f2; color:#991b1b; font-size:11.5px; }
+.danger-modal-error { min-height:18px; margin-top:7px; color:#b91c1c; font-size:11px; font-weight:700; }
+@media(max-width:900px){.recurring-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.audit-detail-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.recurring-form-grid{grid-template-columns:1fr!important}.reminder-row{width:100%;flex-wrap:wrap}.reminder-row select,.reminder-row .je-btn{width:126px!important}}
+

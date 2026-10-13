@@ -1,0 +1,53 @@
+/* ============================================================================== */
+/* CSS 1: THEME DESIGN TOKENS & EYE-FRIENDLY PALETTE (BACKBONE)                   */
+/* Calm slate typography, emerald brand accents, and high-contrast clean borders. */
+/* ============================================================================== */
+:root {
+  --sidebar-bg:         #062e22; /* Deep forest emerald */
+  --sidebar-border:     #08382a;
+  --sidebar-active:     #059669;
+  --sidebar-text:       #cbd5e1;
+  --sidebar-muted:      #94a3b8;
+
+  --bg-workspace:       #f8fafc; /* Clean light gray workspace */
+  --surface-white:      #ffffff;
+  --text-main:          #0f172a; /* Deep slate font */
+  --text-muted:         #475569;
+  --text-light:         #94a3b8;
+  --border-subtle:      #e2e8f0;
+  --border-strong:      #cbd5e1;
+  --border-focus:       #059669;
+
+  --primary:            #059669;
+  --primary-hover:      #047857;
+  --danger:             #dc2626;
+  --danger-light:       #fee2e2;
+
+  --badge-asset-bg:     #ecfdf5;
+  --badge-asset-txt:    #065f46;
+  --badge-liab-bg:      #fffbeb;
+  --badge-liab-txt:     #92400e;
+  --badge-eq-bg:        #f5f3ff;
+  --badge-eq-txt:       #5b21b6;
+  --badge-rev-bg:       #f0fdfa;
+  --badge-rev-txt:      #115e59;
+  --badge-exp-bg:       #fef2f2;
+  --badge-exp-txt:      #991b1b;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-workspace);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+

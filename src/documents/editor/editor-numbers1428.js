@@ -1,0 +1,18 @@
+/* Numeric controls stay local to the document editor and its dialogs. */
+(function(){'use strict';if(window.enhanceEditorNumbers1428)return;
+const style=document.createElement('style');style.id='editor-numbers1428';style.textContent=".doc-stepper1428{display:inline-flex!important;align-items:stretch;vertical-align:middle;max-width:100%;gap:0!important;flex-wrap:nowrap!important}\n.doc-stepper1428>input{appearance:textfield;-moz-appearance:textfield;min-width:0!important;border-radius:5px 0 0 5px!important}\n.doc-stepper1428>input::-webkit-inner-spin-button,.doc-stepper1428>input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}\n.doc-step-buttons1428{display:flex!important;flex-direction:column;flex:0 0 22px;gap:0!important;align-self:stretch}\n.doc-step-buttons1428>button{display:flex!important;align-items:center;justify-content:center;width:22px!important;min-width:22px!important;min-height:0!important;height:auto!important;flex:1;padding:0!important;margin:0!important;line-height:1!important;font-size:13px!important;background:#edf3e9!important;color:#174c3b!important;border:1px solid #c3cfba!important;border-radius:0!important;box-shadow:none!important}\n.doc-step-buttons1428>button:hover{background:#d9e8d5!important}.doc-step-buttons1428>button:focus-visible{outline:2px solid #167257;outline-offset:1px}\n.doc-step-buttons1428>button:first-child{border-radius:0 5px 0 0!important}.doc-step-buttons1428>button:last-child{border-radius:0 0 5px 0!important}\n\nbody #document-editor105.menus1426 .doc-stepper1428,body .ui-overlay108 .doc-stepper1428{height:28px!important;max-height:28px!important}\nbody #document-editor105.menus1426 .doc-stepper1428>input,body .ui-overlay108 .doc-stepper1428>input{height:28px!important;min-height:28px!important}\nbody #document-editor105.menus1426 .doc-stepper1428 .doc-step-buttons1428>button,body .ui-overlay108 .doc-stepper1428 .doc-step-buttons1428>button{height:14px!important;min-height:14px!important;max-height:14px!important;min-width:22px!important;padding:0!important}\n";document.head.append(style);
+
+const scope='#document-editor105,.page-setup1427,.doc-images-dialog112';
+function enhance(){document.querySelectorAll(scope).forEach(root=>root.querySelectorAll('input[type=number],input[data-numeric88]').forEach(input=>{
+ if(input.closest('.doc-stepper1428'))return;
+ const value=input.value;
+ if(input.dataset.numeric88){delete input.value;delete input.valueAsNumber;delete input.dataset.numeric88;delete input.dataset.precision88;}
+ input.type='number';input.value=value;
+ const wrap=document.createElement('span');wrap.className='doc-stepper1428';input.before(wrap);wrap.append(input);
+ const controls=document.createElement('span');controls.className='doc-step-buttons1428';wrap.append(controls);
+ const label=input.getAttribute('aria-label')||input.closest('label')?.textContent.trim()||input.id||'value';
+ for(const [direction,symbol] of [[1,'▴'],[-1,'▾']]){const button=document.createElement('button');button.type='button';button.textContent=symbol;button.title=button.ariaLabel=(direction>0?'Increase ':'Decrease ')+label;button.dataset.step1428=direction;button.onmousedown=e=>e.preventDefault();button.onclick=()=>{if(input.disabled||input.readOnly)return;try{direction>0?input.stepUp():input.stepDown()}catch{return}input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));};controls.append(button)}
+}));}
+window.enhanceEditorNumbers1428=enhance;
+let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;enhance()})}).observe(document.documentElement,{childList:true,subtree:true});enhance();
+})();

@@ -1,0 +1,20 @@
+/* ============================================================================== */
+/* CSS V8: SETTINGS — BUSINESS INFORMATION                                        */
+/* ============================================================================== */
+.settings-page-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+.settings-page-heading h3 { color:#064e3b; font-size:18px; }
+.settings-page-heading p, .settings-section-header p { color:var(--text-muted); font-size:12.5px; margin-top:3px; }
+.settings-saved-badge { flex:0 0 auto; padding:5px 10px; border:1px solid #fbbf24; border-radius:999px; background:#fffbeb; color:#92400e; font-size:11px; font-weight:700; }
+.settings-saved-badge.is-saved { border-color:#a7f3d0; background:#ecfdf5; color:#065f46; }
+.settings-section-card { background:#fff; border:2px solid #cbd5e1; border-radius:14px; padding:20px; margin-bottom:16px; box-shadow:0 3px 8px rgba(0,0,0,.04); }
+.settings-section-header { margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid #e2e8f0; }
+.settings-section-header h4 { color:#064e3b; font-size:15px; }
+.setting-help { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; margin-left:4px; padding:0; border:0; border-radius:50%; background:transparent; color:#dc2626; font:800 18px/1 Arial,sans-serif; cursor:pointer; vertical-align:middle; }
+.setting-help:hover, .setting-help:focus-visible { background:#fef2f2; outline:2px solid #fecaca; outline-offset:2px; }
+.pos-subheading { margin-top:22px; }
+.setting-help-dialog { width:min(560px,calc(100vw - 28px)); }
+.setting-help-content { color:#334155; font-size:14px; line-height:1.65; }
+.setting-help-content p { margin:0 0 12px; }
+.setting-help-content p:last-child { margin-bottom:0; }
+.setting-help-content strong { color:#064e3b; }
+

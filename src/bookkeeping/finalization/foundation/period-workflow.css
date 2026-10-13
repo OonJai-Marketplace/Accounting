@@ -1,0 +1,43 @@
+/* ============================================================================== */
+/* CSS V23: OPEN/CLOSED WORKFLOW, DENSE REVIEWS & AUDIT TRACKING                  */
+/* ============================================================================== */
+.workspace-scroll { padding:8px 10px !important; }
+.tab-content.active { margin:0 !important; }
+.je-card,.module-card,.panel { margin-top:6px; margin-bottom:8px; }
+.recurring-form-grid { gap:6px 8px !important; }
+.recurring-form-grid .je-field-group label,.reminder-builder .je-subtitle { font-size:10.5px; }
+.reminder-builder { margin-top:8px !important; padding:8px !important; gap:7px !important; }
+.reminder-row input { width:48px !important; height:32px !important; min-height:32px !important; padding:4px 5px !important; font-size:11px !important; }
+.reminder-row select,.reminder-row .je-btn { width:118px !important; height:32px !important; min-height:32px !important; }
+.recurring-remove-x { display:inline-flex !important; align-items:center !important; justify-content:center !important; padding:0 !important; line-height:1 !important; }
+.adjusted-entry-badge { border-radius:4px; }
+.period-review-unavailable { margin:6px 0; padding:9px 11px; border:1px solid #fbbf24; border-left:4px solid #d97706; border-radius:6px; background:#fffbeb; color:#92400e; font-size:11.5px; }
+#period-review.period-review-open .period-summary-grid,
+#period-review.period-review-open .period-review-shell > .je-card,
+#period-review.period-review-open .period-review-shell > .period-closing-bar { display:none !important; }
+.period-review-toolbar { margin-bottom:8px; }
+.period-summary-grid { gap:6px; margin-bottom:8px; }
+.period-summary-card { padding:8px 10px; border-radius:7px; }
+.period-summary-card span { margin-bottom:2px; font-size:10px; }
+.period-summary-card strong { font-size:14px; }
+.period-finding-form { margin-bottom:7px; padding:8px; }
+.period-findings-list { gap:4px; }
+.period-finding-row { gap:8px; padding:7px 8px; border-radius:6px; }
+.period-finding-heading { margin-bottom:1px; }
+.period-finding-row p { margin:1px 0; font-size:11.5px; }
+.period-finding-row small { font-size:10px; }
+.period-closing-bar { padding:8px 10px; border-radius:7px; }
+.audit-detail-panel { padding:6px 8px; }
+.audit-compare-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:10.5px; }
+.audit-compare-table th { padding:4px 6px !important; background:#e2e8f0; color:#334155; text-align:left; }
+.audit-compare-table td { padding:3px 6px !important; border:1px solid #dbe3ec; overflow-wrap:anywhere; }
+.audit-compare-table .audit-field { width:110px; color:#475569; font-weight:700; }
+.audit-original-changed { color:#b91c1c !important; font-weight:750; background:#fff1f2; }
+.audit-removed-mark { display:inline-block; margin-left:5px; padding:1px 4px; border-radius:3px; background:#fee2e2; color:#991b1b; font-size:8px; font-weight:800; text-transform:uppercase; }
+.clustered-journal-table tbody tr[data-entry-id] { cursor:pointer; }
+.clustered-journal-table tbody tr.entry-hover-line > td { background:#e8f5ef !important; }
+.clustered-journal-table tbody tr.entry-hover-owner > td.entry-shared-cell { background:#e8f5ef !important; }
+.clustered-journal-table tbody tr.entry-selected-line > td { background:#ccebdd !important; box-shadow:inset 0 1px #059669,inset 0 -1px #059669; }
+.clustered-journal-table tbody tr.entry-selected-owner > td.entry-shared-cell { background:#b9e2d1 !important; box-shadow:inset 0 1px #047857,inset 0 -1px #047857; }
+@media(max-width:767px){.workspace-scroll{padding:6px!important}}
+

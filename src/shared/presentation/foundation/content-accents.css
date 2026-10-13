@@ -1,0 +1,55 @@
+/* Accent only actual content cards and dialogs, never page/tab containers. */
+.module-card,
+.je-card,
+.settings-section-card,
+.system-printing-panel,
+.modal-dialog { border-top: 3px solid #10b981; }
+
+@media (min-width: 768px) {
+  .module-header { display: none !important; }
+  .sidebar .nav-links { display: none !important; }
+  .sidebar .nav-header .arrow { display: none; }
+  .category-tab-shell:not([hidden]) { display: block; }
+  .workspace-scroll { padding-top: 8px !important; }
+}
+
+@media (max-width: 767px) {
+  .module-header { display: flex !important; min-height: 54px; }
+  .category-tab-shell { display: none !important; }
+  .sidebar .nav-links { display: none; }
+  .sidebar .nav-category.open .nav-links { display: flex; }
+  .sidebar .nav-header .arrow { display: inline; }
+  .sidebar-user-footer { margin-top: 12px; }
+  .sidebar-user-footer .header-account-dropdown {
+    position: fixed;
+    left: 10px;
+    right: auto;
+    top: auto;
+    bottom: 68px;
+    width: min(270px, calc(100vw - 20px));
+  }
+  .content-page-heading h2 { font-size: 16px; }
+  .payroll-currency-options { flex-wrap: wrap; }
+}
+#userAccountAssignmentPanel{display:flex;flex-direction:column;max-height:65dvh;min-height:0}#userAccountAssignmentPanel[hidden]{display:none}
+.multiple-fund-rule{display:flex;width:100%;flex:none;margin:0 0 8px;padding:12px}.multiple-fund-rule small{display:block;line-height:1.4}
+#userAccountAssignmentPanel .account-assignment-layout{display:flex;flex-direction:column;overflow:hidden;min-height:0;max-height:none}
+#userAccountAssignmentPanel .account-assignment-nav{flex:none;position:relative;top:auto}
+#userAccountAssignmentPanel .account-assignment-options{overflow-y:scroll;min-height:0;scrollbar-gutter:stable}
+#userAccountAssignmentPanel .account-rule-grid{display:none}
+.statutory-paired-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:10px;align-items:start}
+.statutory-paired-grid .statutory-block{margin:0;min-width:0}.statutory-paired-grid .settings-compact-grid.cols-3{grid-template-columns:repeat(2,minmax(0,1fr))}.statutory-paired-grid .compliance-reminder-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.statutory-bracket-table{min-width:0!important;width:100%;table-layout:fixed}.statutory-bracket-table th:first-child{width:65px}.statutory-bracket-table th,.statutory-bracket-table td{padding:6px 5px;font-size:11px}.pit-cell-editor{display:block;min-height:27px;padding:4px 0;outline:none;text-align:right}.pit-cell-editor:focus{background:#e8f7ef;box-shadow:inset 0 -2px #059669}
+#journal>.je-card:first-child{min-height:0!important;max-height:calc(100dvh - 104px)}#journal>.je-card:first-child>.table-container{flex:0 1 auto;min-height:0!important;overflow-y:auto}#journal>.je-card:first-child>.je-card-header,#journal>.je-card:first-child>.je-meta-grid{flex-shrink:0}
+.je-auto-id,.workspace-single-entry-card .je-auto-id{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:8px 10px;font-family:inherit;font-size:12px;font-weight:700;line-height:1.2;color:#047857;background:#ecfdf5;border:1px solid #a7d9c0;border-radius:7px;white-space:nowrap}
+.je-header-actions .je-btn,.ws-header-tools .je-btn{font-family:inherit;font-size:12px;min-height:36px}.transaction-date-field .je-label-row{justify-content:flex-start;gap:12px}.multi-date-toggle{display:inline-flex;align-items:center;gap:5px;margin:0}.multi-date-toggle input{margin:0}
+#sub-users-workspace .sub-user-tabs-shell{top:-8px!important;margin-top:-8px!important;padding-top:0!important;margin-bottom:12px!important}
+.ws-account-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.ws-account-heading h2{font-size:20px;color:#064e3b}.ws-account-heading span{font-size:12px;color:#64748b}
+.ws-review-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:260px}.ws-review-actions>.je-btn{justify-content:center}.ws-review-actions>.je-btn:last-child{grid-column:1/-1}.ws-review-count{display:inline-grid!important;place-items:center;background:#dc2626!important;color:#fff!important;border-radius:50%;min-width:20px;height:20px;font-size:11px!important}
+.ws-fund-cards{display:grid;gap:8px}.ws-fund-card{display:grid;grid-template-columns:1.3fr repeat(3,1fr) 1.3fr;border:1px solid #b8cec4;border-radius:9px;overflow:hidden;background:#f9fcfa}.ws-fund-card>div{padding:10px;border-right:1px solid #dbe7e1;min-width:0}.ws-fund-card span,.ws-fund-card small{display:block;font-size:10px;color:#64748b}.ws-fund-card strong{display:block;font-size:13px;overflow-wrap:anywhere}.ws-fund-card .ws-available{background:#e7f5ed;border:0;color:#065f46}.ws-header-tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.workspace-single-table{min-width:800px!important}.workspace-single-table th,.workspace-single-table td{padding:7px 8px;position:relative;font-size:11px}.workspace-single-table .ws-edit-cell{cursor:text;outline:none}.ws-edit-cell:focus{background:#e7f5ed;box-shadow:inset 0 0 0 1px #059669}.ws-inline-control{width:100%;height:29px;border:0!important;border-radius:0!important;box-shadow:none!important;background-color:transparent;font:inherit;padding:0;outline:0}.ws-cell-arrow{float:right;color:#628777}.workspace-single-table .ws-action{width:45px!important;text-align:center;padding:4px}.ws-draft-state{display:block;color:#956400;font-size:9px}.workspace-single-table td[contenteditable]{white-space:pre-wrap}.ws-summary{margin-top:12px;overflow:auto}.ws-summary h4{font-size:13px;color:#065f46;margin-bottom:6px}.ws-summary p{font-size:11px;margin:8px 0}.ws-total{font-weight:700;background:#e7f5ed}
+.ws-protocol{width:min(760px,96vw);max-height:90dvh;display:flex;flex-direction:column;background:#fff;border:1px solid #80a993;border-radius:12px;overflow:hidden}.ws-protocol .modal-body{overflow-y:scroll;padding:16px 22px}.ws-protocol h4{color:#065f46;margin:8px 0}.ws-protocol ul{padding-left:20px;margin:8px 0 16px}.ws-protocol li{font-size:13px;line-height:1.6;margin-bottom:6px}
+@media(max-width:1000px){.statutory-paired-grid{grid-template-columns:1fr}.ws-fund-card{grid-template-columns:repeat(2,minmax(0,1fr))}.ws-fund-card>div:first-child{grid-column:1/-1}.ws-account-heading{align-items:flex-start}.ws-review-actions{min-width:220px}}
+@media(max-width:600px){.ws-account-heading{flex-direction:column}.ws-review-actions{width:100%;min-width:0}.workspace-single-entry-card .je-card-header{flex-direction:column}.ws-header-tools{width:100%;justify-content:flex-start}.ws-header-tools>.je-btn:last-child{margin-left:auto}.assignment-activity-row{grid-template-columns:1fr}.user-id-grid{grid-template-columns:1fr!important}.account-assignment-tab{flex-direction:column;align-items:flex-start}.statutory-paired-grid .compliance-reminder-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media print{#sub-users-workspace .no-print,#sub-users-workspace .ws-cell-arrow,#sub-users-workspace .sub-user-tabs-shell{display:none!important}#sub-users-workspace .table-container{max-height:none!important;overflow:visible!important}#sub-users-workspace table{min-width:0!important;width:100%!important}#sub-users-workspace .workspace-single-entry-card{display:block!important;break-inside:auto}#sub-users-workspace thead{display:table-header-group;position:static}#sub-users-workspace td{font-size:9px}#sub-users-workspace .ws-inline-control{appearance:none;background:none;padding:0!important}}
+

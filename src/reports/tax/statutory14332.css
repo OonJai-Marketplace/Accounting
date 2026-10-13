@@ -1,0 +1,15 @@
+/* A single compact monthly VAT, PIT and SSO report. */
+#tax-overview .tax-content102{display:grid;gap:7px}
+#tax-overview .tax-card102{margin:0!important}
+#tax-overview .tax-card102 .je-card-header{padding:7px 10px!important}
+#tax-overview .tax-card102 .tax-card-body102{padding:7px 10px!important}
+#tax-overview .tax-card102 .tax-total102{min-width:130px;padding:5px 8px}
+#tax-overview .tax-card102 :is(th,td){padding:4px 5px;white-space:normal;overflow-wrap:anywhere}
+@media print{
+ #tax-overview .tax-report102{display:block!important}
+ #tax-overview .tax-card102{margin:0 0 4mm!important;box-shadow:none!important;break-inside:auto}
+ #tax-overview .tax-card102 .tax-card-body102{padding:4px 6px!important}
+ #tax-overview .tax-card102 .je-card-header{padding:4px 6px!important}
+ #tax-overview .tax-card102 :is(th,td){padding:2px 3px!important;font-size:9px;white-space:normal!important}
+ #tax-overview .tax-card102 tr{break-inside:avoid}
+}

@@ -1,0 +1,14 @@
+/* Critical sync exceptions use the existing numbered notification bell. */
+#upcomingBell101.critical14332{color:#b91c1c!important;border-color:#dc2626!important;background:#fff1f2!important}
+#headerNoticeBadge104.critical14332{background:#b91c1c!important;color:#fff!important;box-shadow:0 0 0 3px #fee2e2!important}
+#headerNoticeList104>button.critical14332{background:#fff1f2!important;border-left:4px solid #dc2626!important}
+#headerNoticeList104>button.critical14332 strong{color:#991b1b!important}
+.sync-assessment14332{padding:12px;margin:12px 0;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
+.sync-assessment14332>h3{margin:0 0 5px;color:#174836}
+.sync-finding14332{padding:10px;margin:8px 0;border:1px solid #f59e0b;border-left:5px solid #f59e0b;border-radius:6px;background:#fffbeb}
+.sync-finding14332.error14332,.sync-finding14332.late14332{border-color:#dc2626;border-left-width:6px;background:#fff1f2;color:#7f1d1d}
+.sync-finding14332 strong,.sync-finding14332 span,.sync-finding14332 small{display:block}
+.sync-finding14332 small{overflow-wrap:anywhere}
+.sync-finding14332>div{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sync-finding14332 button{border:1px solid currentColor;border-radius:5px;padding:5px 9px;background:#fff;color:inherit;cursor:pointer}
+@media print{.sync-finding14332 button{display:none}}

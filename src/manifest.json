@@ -28,7 +28,7 @@
     ],
     "scripts/backup-validation1441.js": [
       {
-        "source": "src/legacy/scripts/backup-validation1441.js",
+        "source": "src/maintenance/backup/backup-validation1441.js",
         "suffix": ";\n"
       }
     ],
@@ -40,7 +40,7 @@
     ],
     "scripts/desktop14245-2.js": [
       {
-        "source": "src/legacy/scripts/backup-validation1441.js",
+        "source": "src/maintenance/backup/backup-validation1441.js",
         "prefix": "/* scripts/backup-validation1441.js */\n",
         "suffix": ";\n\n"
       },
@@ -394,7 +394,7 @@
     ],
     "scripts/reports-system-v71.js": [
       {
-        "source": "src/legacy/scripts/reports-system-v71.js",
+        "source": "src/reports/financial/reports-system-v71.js",
         "suffix": ";\n"
       }
     ],
@@ -424,7 +424,7 @@
     ],
     "scripts/reports-desktop-v79.js": [
       {
-        "source": "src/legacy/scripts/reports-desktop-v79.js",
+        "source": "src/reports/financial/reports-desktop-v79.js",
         "suffix": ";\n"
       }
     ],
@@ -565,7 +565,7 @@
     ],
     "scripts/settings-payroll-v94.js": [
       {
-        "source": "src/legacy/scripts/settings-payroll-v94.js",
+        "source": "src/settings/payroll/settings-payroll-v94.js",
         "suffix": ";\n"
       }
     ],
@@ -694,7 +694,7 @@
     ],
     "scripts/tax-reports-v102.js": [
       {
-        "source": "src/legacy/scripts/tax-reports-v102.js",
+        "source": "src/reports/tax/tax-reports-v102.js",
         "suffix": ";\n"
       }
     ],
@@ -995,8 +995,38 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/workspace-settings.js",
-        "prefix": "/* scripts/workspace-settings.js */\n",
+        "source": "src/settings/users/workspace-settings/account-assignment.js",
+        "prefix": "/* scripts/workspace-settings.js */\n"
+      },
+      {
+        "source": "src/subusers/entries/workspace-settings/state-and-inline-edit.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-settings/persist-entry.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/double-entry-conversion.js"
+      },
+      {
+        "source": "src/subusers/accounts/workspace-settings/account-summary.js"
+      },
+      {
+        "source": "src/subusers/review/workspace-settings/review-hooks.js"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/initialize.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/posting.js"
+      },
+      {
+        "source": "src/subusers/review/workspace-settings/review-card.js"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/saved-settings.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/handover.js",
         "suffix": ";\n\n;\n"
       },
       {
@@ -1064,7 +1094,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/reports-system-v71.js",
+        "source": "src/reports/financial/reports-system-v71.js",
         "prefix": "/* scripts/reports-system-v71.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1089,7 +1119,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/reports-desktop-v79.js",
+        "source": "src/reports/financial/reports-desktop-v79.js",
         "prefix": "/* scripts/reports-desktop-v79.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1215,7 +1245,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/settings-payroll-v94.js",
+        "source": "src/settings/payroll/settings-payroll-v94.js",
         "prefix": "/* scripts/settings-payroll-v94.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1335,7 +1365,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/tax-reports-v102.js",
+        "source": "src/reports/tax/tax-reports-v102.js",
         "prefix": "/* scripts/tax-reports-v102.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1367,7 +1397,7 @@
     ],
     "scripts/document-editor-v105.js": [
       {
-        "source": "src/legacy/scripts/document-editor-v105.js",
+        "source": "src/documents/editor/document-editor-v105.js",
         "suffix": ";\n"
       }
     ],
@@ -1391,7 +1421,7 @@
     ],
     "scripts/dashboard-warm-v112.js": [
       {
-        "source": "src/legacy/scripts/dashboard-warm-v112.js",
+        "source": "src/dashboard/dashboard-warm-v112.js",
         "suffix": ";\n"
       }
     ],
@@ -1421,17 +1451,17 @@
     ],
     "scripts/desktop14245-4.js": [
       {
-        "source": "src/legacy/scripts/document-export-v108.js",
+        "source": "src/documents/import-export/document-export-v108.js",
         "prefix": "/* scripts/document-export-v108.js */\n",
         "suffix": "\n;\n"
       },
       {
-        "source": "src/legacy/scripts/document-import-v1422.js",
+        "source": "src/documents/import-export/document-import-v1422.js",
         "prefix": "/* scripts/document-import-v1422.js */\n",
         "suffix": "\n;\n"
       },
       {
-        "source": "src/legacy/scripts/document-editor-v105.js",
+        "source": "src/documents/editor/document-editor-v105.js",
         "prefix": "/* scripts/document-editor-v105.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1451,7 +1481,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/dashboard-warm-v112.js",
+        "source": "src/dashboard/dashboard-warm-v112.js",
         "prefix": "/* scripts/dashboard-warm-v112.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1478,7 +1508,7 @@
     ],
     "scripts/archive-xlsx-v129.js": [
       {
-        "source": "src/legacy/scripts/archive-xlsx-v129.js",
+        "source": "src/maintenance/archive/archive-xlsx-v129.js",
         "suffix": ";\n"
       }
     ],
@@ -1502,7 +1532,7 @@
     ],
     "scripts/reports-v117.js": [
       {
-        "source": "src/legacy/scripts/reports-v117.js",
+        "source": "src/reports/financial/reports-v117.js",
         "suffix": ";\n"
       }
     ],
@@ -1520,7 +1550,7 @@
     ],
     "scripts/reports-v118.js": [
       {
-        "source": "src/legacy/scripts/reports-v118.js",
+        "source": "src/reports/financial/reports-v118.js",
         "suffix": ";\n"
       }
     ],
@@ -1550,7 +1580,7 @@
     ],
     "scripts/desktop14245-5.js": [
       {
-        "source": "src/legacy/scripts/archive-xlsx-v129.js",
+        "source": "src/maintenance/archive/archive-xlsx-v129.js",
         "prefix": "/* scripts/archive-xlsx-v129.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1570,7 +1600,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/reports-v117.js",
+        "source": "src/reports/financial/reports-v117.js",
         "prefix": "/* scripts/reports-v117.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1585,7 +1615,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/reports-v118.js",
+        "source": "src/reports/financial/reports-v118.js",
         "prefix": "/* scripts/reports-v118.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1648,13 +1678,13 @@
     ],
     "scripts/settings-phone133.js": [
       {
-        "source": "src/legacy/scripts/settings-phone133.js",
+        "source": "src/settings/application/settings-phone133.js",
         "suffix": ";\n"
       }
     ],
     "scripts/voucher-signatories1433.js": [
       {
-        "source": "src/legacy/scripts/voucher-signatories1433.js",
+        "source": "src/reports/vouchers/voucher-signatories1433.js",
         "suffix": ";\n"
       }
     ],
@@ -1666,7 +1696,7 @@
     ],
     "scripts/print-preview1426.js": [
       {
-        "source": "src/legacy/scripts/print-preview1426.js",
+        "source": "src/reports/printing/print-preview1426.js",
         "suffix": ";\n"
       }
     ],
@@ -1726,7 +1756,7 @@
     ],
     "scripts/saved-reports1434.js": [
       {
-        "source": "src/legacy/scripts/saved-reports1434.js",
+        "source": "src/reports/history/saved-reports1434.js",
         "suffix": ";\n"
       }
     ],
@@ -1774,7 +1804,7 @@
     ],
     "scripts/report-history1443.js": [
       {
-        "source": "src/legacy/scripts/report-history1443.js",
+        "source": "src/reports/history/report-history1443.js",
         "suffix": ";\n"
       }
     ],
@@ -1828,25 +1858,25 @@
     ],
     "scripts/archive-scopes14232.js": [
       {
-        "source": "src/legacy/scripts/archive-scopes14232.js",
+        "source": "src/maintenance/archive/archive-scopes14232.js",
         "suffix": ";\n"
       }
     ],
     "scripts/audit-engine14232.js": [
       {
-        "source": "src/legacy/scripts/audit-engine14232.js",
+        "source": "src/maintenance/audit/audit-engine14232.js",
         "suffix": ";\n"
       }
     ],
     "scripts/audit-storage14232.js": [
       {
-        "source": "src/legacy/scripts/audit-storage14232.js",
+        "source": "src/maintenance/audit/audit-storage14232.js",
         "suffix": ";\n"
       }
     ],
     "scripts/data-tools14232.js": [
       {
-        "source": "src/legacy/scripts/data-tools14232.js",
+        "source": "src/maintenance/backup/data-tools14232.js",
         "suffix": ";\n"
       }
     ],
@@ -1894,12 +1924,12 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/settings-phone133.js",
+        "source": "src/settings/application/settings-phone133.js",
         "prefix": "/* scripts/settings-phone133.js */\n",
         "suffix": ";\n;\n"
       },
       {
-        "source": "src/legacy/scripts/voucher-signatories1433.js",
+        "source": "src/reports/vouchers/voucher-signatories1433.js",
         "prefix": "/* scripts/voucher-signatories1433.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -1909,7 +1939,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/print-preview1426.js",
+        "source": "src/reports/printing/print-preview1426.js",
         "prefix": "/* scripts/print-preview1426.js */\n",
         "suffix": ";\n;\n\n"
       },
@@ -1959,7 +1989,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/saved-reports1434.js",
+        "source": "src/reports/history/saved-reports1434.js",
         "prefix": "/* scripts/saved-reports1434.js */\n",
         "suffix": ";\n;\n"
       },
@@ -1999,7 +2029,7 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/report-history1443.js",
+        "source": "src/reports/history/report-history1443.js",
         "prefix": "/* scripts/report-history1443.js */\n",
         "suffix": ";\n\n;\n"
       },
@@ -2044,22 +2074,22 @@
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/archive-scopes14232.js",
+        "source": "src/maintenance/archive/archive-scopes14232.js",
         "prefix": "/* scripts/archive-scopes14232.js */\n",
         "suffix": ";\n\n"
       },
       {
-        "source": "src/legacy/scripts/audit-engine14232.js",
+        "source": "src/maintenance/audit/audit-engine14232.js",
         "prefix": "/* scripts/audit-engine14232.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/audit-storage14232.js",
+        "source": "src/maintenance/audit/audit-storage14232.js",
         "prefix": "/* scripts/audit-storage14232.js */\n",
         "suffix": ";\n\n;\n"
       },
       {
-        "source": "src/legacy/scripts/data-tools14232.js",
+        "source": "src/maintenance/backup/data-tools14232.js",
         "prefix": "/* scripts/data-tools14232.js */\n",
         "suffix": ";\n;\n"
       },
@@ -2088,7 +2118,103 @@
     ],
     "styles/styles.css": [
       {
-        "source": "src/shared/presentation/foundation.css",
+        "source": "src/shared/presentation/foundation/theme-tokens.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/sidebar-layout.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/cards-and-tables.css"
+      },
+      {
+        "source": "src/shared/ui/foundation/modals.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/cards.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/form-controls.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/cell-inputs.css"
+      },
+      {
+        "source": "src/bookkeeping/history/foundation/entry-clusters.css"
+      },
+      {
+        "source": "src/bookkeeping/history/foundation/audit-badges.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/actions.css"
+      },
+      {
+        "source": "src/reports/printing/foundation/print-layout.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-workspace-tabs.css"
+      },
+      {
+        "source": "src/bookkeeping/recurring/foundation/templates-and-reminders.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/multiple-dates.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/responsive-shell.css"
+      },
+      {
+        "source": "src/core/auth/foundation/login-and-users.css"
+      },
+      {
+        "source": "src/settings/business/foundation/profile-form.css"
+      },
+      {
+        "source": "src/subusers/entries/foundation/staff-journal.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/compact-tables.css"
+      },
+      {
+        "source": "src/bookkeeping/finalization/foundation/period-workflow.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-and-review.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/headers-and-periods.css"
+      },
+      {
+        "source": "src/bookkeeping/finalization/foundation/review-and-audit.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/action-columns-and-session-return.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/sticky-tabs.css"
+      },
+      {
+        "source": "src/settings/application/foundation/forms.css"
+      },
+      {
+        "source": "src/subusers/workspace/foundation/funds-and-layout.css"
+      },
+      {
+        "source": "src/core/permissions/foundation/account-selectors.css"
+      },
+      {
+        "source": "src/core/auth/foundation/recovery-and-permissions.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-workspace-controls.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/category-navigation.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/content-accents.css"
+      },
+      {
+        "source": "src/subusers/workspace/foundation/integration.css",
         "suffix": "\n"
       }
     ],
@@ -2178,7 +2304,7 @@
     ],
     "styles/reports-desktop-v79.css": [
       {
-        "source": "src/legacy/styles/reports-desktop-v79.css",
+        "source": "src/reports/financial/reports-desktop-v79.css",
         "suffix": "\n"
       }
     ],
@@ -2262,7 +2388,7 @@
     ],
     "styles/settings-payroll-v94.css": [
       {
-        "source": "src/legacy/styles/settings-payroll-v94.css",
+        "source": "src/settings/payroll/settings-payroll-v94.css",
         "suffix": "\n"
       }
     ],
@@ -2304,7 +2430,7 @@
     ],
     "styles/reports-tax-v102.css": [
       {
-        "source": "src/legacy/styles/reports-tax-v102.css",
+        "source": "src/reports/tax/reports-tax-v102.css",
         "suffix": "\n"
       }
     ],
@@ -2334,7 +2460,7 @@
     ],
     "styles/editor-tables-v107.css": [
       {
-        "source": "src/legacy/styles/editor-tables-v107.css",
+        "source": "src/documents/editor/editor-tables-v107.css",
         "suffix": "\n"
       }
     ],
@@ -2352,13 +2478,13 @@
     ],
     "styles/editor-fixes-v110.css": [
       {
-        "source": "src/legacy/styles/editor-fixes-v110.css",
+        "source": "src/documents/editor/editor-fixes-v110.css",
         "suffix": "\n"
       }
     ],
     "styles/dashboard-warm-v112.css": [
       {
-        "source": "src/legacy/styles/dashboard-warm-v112.css",
+        "source": "src/dashboard/dashboard-warm-v112.css",
         "suffix": "\n"
       }
     ],
@@ -2424,13 +2550,13 @@
     ],
     "styles/editor-print1424.css": [
       {
-        "source": "src/legacy/styles/editor-print1424.css",
+        "source": "src/documents/editor/editor-print1424.css",
         "suffix": "\n"
       }
     ],
     "styles/editor-menus1426.css": [
       {
-        "source": "src/legacy/styles/editor-menus1426.css",
+        "source": "src/documents/editor/editor-menus1426.css",
         "suffix": "\n"
       }
     ],
@@ -2472,7 +2598,7 @@
     ],
     "styles/voucher-accounts1433.css": [
       {
-        "source": "src/legacy/styles/voucher-accounts1433.css",
+        "source": "src/reports/vouchers/voucher-accounts1433.css",
         "suffix": "\n"
       }
     ],
@@ -2548,8 +2674,104 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/shared/presentation/foundation.css",
-        "prefix": "/* styles/styles.css */\n",
+        "source": "src/shared/presentation/foundation/theme-tokens.css",
+        "prefix": "/* styles/styles.css */\n"
+      },
+      {
+        "source": "src/core/navigation/foundation/sidebar-layout.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/cards-and-tables.css"
+      },
+      {
+        "source": "src/shared/ui/foundation/modals.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/cards.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/form-controls.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/cell-inputs.css"
+      },
+      {
+        "source": "src/bookkeeping/history/foundation/entry-clusters.css"
+      },
+      {
+        "source": "src/bookkeeping/history/foundation/audit-badges.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/actions.css"
+      },
+      {
+        "source": "src/reports/printing/foundation/print-layout.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-workspace-tabs.css"
+      },
+      {
+        "source": "src/bookkeeping/recurring/foundation/templates-and-reminders.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/foundation/multiple-dates.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/responsive-shell.css"
+      },
+      {
+        "source": "src/core/auth/foundation/login-and-users.css"
+      },
+      {
+        "source": "src/settings/business/foundation/profile-form.css"
+      },
+      {
+        "source": "src/subusers/entries/foundation/staff-journal.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/compact-tables.css"
+      },
+      {
+        "source": "src/bookkeeping/finalization/foundation/period-workflow.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-and-review.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/headers-and-periods.css"
+      },
+      {
+        "source": "src/bookkeeping/finalization/foundation/review-and-audit.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/action-columns-and-session-return.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/sticky-tabs.css"
+      },
+      {
+        "source": "src/settings/application/foundation/forms.css"
+      },
+      {
+        "source": "src/subusers/workspace/foundation/funds-and-layout.css"
+      },
+      {
+        "source": "src/core/permissions/foundation/account-selectors.css"
+      },
+      {
+        "source": "src/core/auth/foundation/recovery-and-permissions.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/settings-workspace-controls.css"
+      },
+      {
+        "source": "src/core/navigation/foundation/category-navigation.css"
+      },
+      {
+        "source": "src/shared/presentation/foundation/content-accents.css"
+      },
+      {
+        "source": "src/subusers/workspace/foundation/integration.css",
         "suffix": "\n\n"
       },
       {
@@ -2623,7 +2845,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/reports-desktop-v79.css",
+        "source": "src/reports/financial/reports-desktop-v79.css",
         "prefix": "/* styles/reports-desktop-v79.css */\n",
         "suffix": "\n\n"
       },
@@ -2693,7 +2915,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/settings-payroll-v94.css",
+        "source": "src/settings/payroll/settings-payroll-v94.css",
         "prefix": "/* styles/settings-payroll-v94.css */\n",
         "suffix": "\n\n"
       },
@@ -2728,7 +2950,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/reports-tax-v102.css",
+        "source": "src/reports/tax/reports-tax-v102.css",
         "prefix": "/* styles/reports-tax-v102.css */\n",
         "suffix": "\n\n"
       },
@@ -2748,7 +2970,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/document-editor-v105.css",
+        "source": "src/documents/editor/document-editor-v105.css",
         "prefix": "/* styles/document-editor-v105.css */\n",
         "suffix": "\n\n"
       },
@@ -2758,7 +2980,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/editor-tables-v107.css",
+        "source": "src/documents/editor/editor-tables-v107.css",
         "prefix": "/* styles/editor-tables-v107.css */\n",
         "suffix": "\n\n"
       },
@@ -2773,12 +2995,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/editor-fixes-v110.css",
+        "source": "src/documents/editor/editor-fixes-v110.css",
         "prefix": "/* styles/editor-fixes-v110.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/dashboard-warm-v112.css",
+        "source": "src/dashboard/dashboard-warm-v112.css",
         "prefix": "/* styles/dashboard-warm-v112.css */\n",
         "suffix": "\n\n"
       },
@@ -2833,12 +3055,12 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/editor-print1424.css",
+        "source": "src/documents/editor/editor-print1424.css",
         "prefix": "/* styles/editor-print1424.css */\n",
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/editor-menus1426.css",
+        "source": "src/documents/editor/editor-menus1426.css",
         "prefix": "/* styles/editor-menus1426.css */\n",
         "suffix": "\n\n"
       },
@@ -2873,7 +3095,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/voucher-accounts1433.css",
+        "source": "src/reports/vouchers/voucher-accounts1433.css",
         "prefix": "/* styles/voucher-accounts1433.css */\n",
         "suffix": "\n\n"
       },
@@ -2928,7 +3150,7 @@
         "suffix": "\n\n"
       },
       {
-        "source": "src/legacy/styles/data-tools14232.css",
+        "source": "src/maintenance/backup/data-tools14232.css",
         "prefix": "/* styles/data-tools14232.css */\n",
         "suffix": "\n"
       }
@@ -3585,6 +3807,271 @@
     "styles/local-events14310.css": [
       {
         "source": "src/hr/calendar/local-events14310.css"
+      }
+    ],
+    "scripts/archive-v128.js": [
+      {
+        "source": "src/maintenance/archive/archive-v128.js"
+      }
+    ],
+    "scripts/audit-explanation14260.js": [
+      {
+        "source": "src/maintenance/audit/audit-explanation14260.js"
+      }
+    ],
+    "scripts/audit-workspace14232.js": [
+      {
+        "source": "src/maintenance/audit/audit-workspace14232.js"
+      }
+    ],
+    "scripts/budget-gmail14314.js": [
+      {
+        "source": "src/budget/requests/budget-gmail14314.js"
+      }
+    ],
+    "scripts/budget-messages14314.js": [
+      {
+        "source": "src/budget/requests/budget-messages14314.js"
+      }
+    ],
+    "scripts/budget14313.js": [
+      {
+        "source": "src/budget/requests/budget14313.js"
+      }
+    ],
+    "scripts/company-accounts14319.js": [
+      {
+        "source": "src/settings/application/company-accounts14319.js"
+      }
+    ],
+    "scripts/document-downloads14311.js": [
+      {
+        "source": "src/documents/import-export/document-downloads14311.js"
+      }
+    ],
+    "scripts/document-export-v108.js": [
+      {
+        "source": "src/documents/import-export/document-export-v108-standalone.js"
+      }
+    ],
+    "scripts/document-import-v1422.js": [
+      {
+        "source": "src/documents/import-export/document-import-v1422-standalone.js"
+      }
+    ],
+    "scripts/editor-numbers1428.js": [
+      {
+        "source": "src/documents/editor/editor-numbers1428.js"
+      }
+    ],
+    "scripts/editor-tables-v107.js": [
+      {
+        "source": "src/documents/editor/editor-tables-v107.js"
+      }
+    ],
+    "scripts/export-center14337.js": [
+      {
+        "source": "src/documents/import-export/export-center14337.js"
+      }
+    ],
+    "scripts/installation14320.js": [
+      {
+        "source": "src/settings/installation/installation14320.js"
+      }
+    ],
+    "scripts/maintenance-engine14324.js": [
+      {
+        "source": "src/maintenance/workspace/maintenance-engine14324.js"
+      }
+    ],
+    "scripts/maintenance-reports14326.js": [
+      {
+        "source": "src/maintenance/reports/maintenance-reports14326.js"
+      }
+    ],
+    "scripts/maintenance-selection14325.js": [
+      {
+        "source": "src/maintenance/workspace/maintenance-selection14325.js"
+      }
+    ],
+    "scripts/maintenance14324.js": [
+      {
+        "source": "src/maintenance/workspace/maintenance14324.js"
+      }
+    ],
+    "scripts/period-filters14331.js": [
+      {
+        "source": "src/reports/financial/period-filters14331.js"
+      }
+    ],
+    "scripts/report-formats14282.js": [
+      {
+        "source": "src/reports/financial/report-formats14282.js"
+      }
+    ],
+    "scripts/report-library14285.js": [
+      {
+        "source": "src/reports/history/report-library14285.js"
+      }
+    ],
+    "scripts/report-routes14262.js": [
+      {
+        "source": "src/reports/financial/report-routes14262.js"
+      }
+    ],
+    "scripts/report-templates14262.js": [
+      {
+        "source": "src/reports/financial/report-templates14262.js"
+      }
+    ],
+    "scripts/reports14254.js": [
+      {
+        "source": "src/reports/financial/reports14254.js"
+      }
+    ],
+    "scripts/settings-groups14332.js": [
+      {
+        "source": "src/settings/application/settings-groups14332.js"
+      }
+    ],
+    "scripts/setup14320.js": [
+      {
+        "source": "src/settings/installation/setup14320.js"
+      }
+    ],
+    "scripts/summary-period14331.js": [
+      {
+        "source": "src/reports/financial/summary-period14331.js"
+      }
+    ],
+    "scripts/supabase-config.js": [
+      {
+        "source": "src/settings/installation/supabase-config.js"
+      }
+    ],
+    "scripts/sync-assessment14332.js": [
+      {
+        "source": "src/maintenance/diagnostics/sync-assessment14332.js"
+      }
+    ],
+    "scripts/system-diagnostics14324.js": [
+      {
+        "source": "src/maintenance/diagnostics/system-diagnostics14324.js"
+      }
+    ],
+    "scripts/vouchers14299.js": [
+      {
+        "source": "src/reports/vouchers/vouchers14299.js"
+      }
+    ],
+    "scripts/workspace-settings.js": [
+      {
+        "source": "src/settings/users/workspace-settings/account-assignment-standalone.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-settings/state-and-inline-edit-standalone.js"
+      },
+      {
+        "source": "src/subusers/entries/workspace-settings/persist-entry-standalone.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/double-entry-conversion-standalone.js"
+      },
+      {
+        "source": "src/subusers/accounts/workspace-settings/account-summary-standalone.js"
+      },
+      {
+        "source": "src/subusers/review/workspace-settings/review-hooks-standalone.js"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/initialize-standalone.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/posting-standalone.js"
+      },
+      {
+        "source": "src/subusers/review/workspace-settings/review-card-standalone.js"
+      },
+      {
+        "source": "src/settings/users/workspace-settings/saved-settings-standalone.js"
+      },
+      {
+        "source": "src/bridges/subusers-bookkeeping/workspace-settings/handover-standalone.js"
+      }
+    ],
+    "styles/archive-v128.css": [
+      {
+        "source": "src/maintenance/archive/archive-v128.css"
+      }
+    ],
+    "styles/audit-workspace14232.css": [
+      {
+        "source": "src/maintenance/audit/audit-workspace14232.css"
+      }
+    ],
+    "styles/budget-messages14314.css": [
+      {
+        "source": "src/budget/requests/budget-messages14314.css"
+      }
+    ],
+    "styles/data-tools14232.css": [
+      {
+        "source": "src/maintenance/backup/data-tools14232-standalone.css"
+      }
+    ],
+    "styles/document-editor-v105.css": [
+      {
+        "source": "src/documents/editor/document-editor-v105-standalone.css"
+      }
+    ],
+    "styles/editor-numbers1428.css": [
+      {
+        "source": "src/documents/editor/editor-numbers1428.css"
+      }
+    ],
+    "styles/installation14320.css": [
+      {
+        "source": "src/settings/installation/installation14320.css"
+      }
+    ],
+    "styles/maintenance14324.css": [
+      {
+        "source": "src/maintenance/workspace/maintenance14324.css"
+      }
+    ],
+    "styles/report-library14285.css": [
+      {
+        "source": "src/reports/history/report-library14285.css"
+      }
+    ],
+    "styles/settings-groups14332.css": [
+      {
+        "source": "src/settings/application/settings-groups14332.css"
+      }
+    ],
+    "styles/settings-polish14281.css": [
+      {
+        "source": "src/settings/application/settings-polish14281.css"
+      }
+    ],
+    "styles/setup14320.css": [
+      {
+        "source": "src/settings/installation/setup14320.css"
+      }
+    ],
+    "styles/statutory14332.css": [
+      {
+        "source": "src/reports/tax/statutory14332.css"
+      }
+    ],
+    "styles/sync-assessment14332.css": [
+      {
+        "source": "src/maintenance/diagnostics/sync-assessment14332.css"
+      }
+    ],
+    "styles/voucher-layout14299.css": [
+      {
+        "source": "src/reports/vouchers/voucher-layout14299.css"
       }
     ]
   },

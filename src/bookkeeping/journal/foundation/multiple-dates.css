@@ -1,0 +1,31 @@
+/* ============================================================================== */
+/* CSS V6: UNIFIED TRANSACTION UI, MULTI-DATE & CURRENCY BADGES                   */
+/* ============================================================================== */
+.je-label-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.transaction-date-field{width:210px;max-width:210px}
+.transaction-date-field .je-label-row{flex-direction:row!important;align-items:center!important;white-space:nowrap;gap:12px}
+.transaction-date-field .je-input{width:100%}
+.multi-date-toggle{display:inline-flex!important;align-items:center;gap:5px;font-size:11px!important;font-weight:600!important;color:#475569!important;white-space:nowrap;cursor:pointer}
+.multi-date-toggle input{accent-color:#059669}
+.je-date-col{display:none}
+body.je-multi-date .je-date-col{display:table-cell}
+.je-line-date{min-width:132px;width:100%;box-sizing:border-box;background:#fff;border:1px solid #cbd5e1;border-radius:6px;padding:7px 9px;font-size:12px;color:#0f172a;cursor:pointer}
+.account-input-wrap{display:flex;align-items:center;gap:7px}
+.currency-symbol-badge{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #94a3b8;border-radius:6px;background:#f8fafc;color:#064e3b;font-weight:800;font-size:13px}
+.account-input-wrap .je-line-acc{min-width:0;flex:1}
+.transaction-account-display{display:flex;align-items:center;gap:8px;min-width:170px}
+.recurring-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px 16px!important;margin-top:4px}
+.recurring-form-grid .je-input,.recurring-form-grid .je-select,.print-options-dialog .je-input,.print-options-dialog .je-select{width:100%;box-sizing:border-box;min-height:36px}
+.reminder-builder{background:#fff!important;border:1px solid #e2e8f0!important;border-radius:8px!important;padding:12px!important}
+.reminder-row input,.reminder-row select{min-height:34px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;padding:6px 9px;font:inherit;color:#0f172a}
+.reminder-row select{width:142px;box-sizing:border-box}
+.reminder-row .je-btn{min-height:34px;box-sizing:border-box;white-space:nowrap}
+.print-warning-dialog,.recurring-warning-dialog{border:1px solid #fecaca!important;border-top:4px solid #dc2626!important;border-radius:12px!important;overflow:hidden;box-shadow:0 18px 45px rgba(15,23,42,.22)!important}
+.print-warning-header,.recurring-warning-header{background:#fff!important;border-bottom:1px solid #e2e8f0!important;padding-bottom:12px!important}
+.print-warning-header h4,.recurring-warning-header h4{font-family:inherit!important;font-size:16px!important;color:#991b1b!important}
+.print-context-box{background:transparent!important;border:0!important;padding:0!important;margin-bottom:12px!important}
+.custom-alert-overlay{display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(15,23,42,.35)!important;position:fixed!important;inset:0!important;z-index:99999!important}
+.custom-alert-box{width:min(420px,calc(100vw - 32px))!important;background:#fff!important;border:1px solid #e2e8f0!important;border-top:4px solid currentColor!important;border-radius:12px!important;padding:20px!important;box-shadow:0 18px 45px rgba(15,23,42,.22)!important;text-align:left!important}
+.custom-alert-btn{border:0!important;border-radius:6px!important;padding:8px 14px!important;color:#fff!important;font-weight:700!important;float:right}
+@media(max-width:700px){.recurring-form-grid{grid-template-columns:1fr!important}.je-label-row{align-items:flex-start;flex-direction:column;gap:4px}}
+

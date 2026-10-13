@@ -50,3 +50,9 @@ regression or a reason to change login behavior during this restructuring.
 - **0.10:** Payroll journal templates and posting handoff have explicit bridge
   ownership. Gate: 452 unchanged runtime files; 475 source sections;
   304 generated assets.
+
+- **0.11:** Reports, Settings, Maintenance, documents, budgets and dashboard
+  sources organized. Mixed workspace/settings and base styles are split by
+  responsibility. Every application script/style has canonical source ownership.
+  The source lookup tool maps function text to source and generated line ranges.
+  Gate: 452 unchanged runtime files; 574 sections; 351 generated assets.

@@ -1,0 +1,129 @@
+/* ========================================================================== */
+/* VERSION 48 — RESPONSIVE CATEGORY NAVIGATION                                */
+/* ========================================================================== */
+.category-tab-shell {
+  flex: none;
+  min-width: 0;
+  padding: 7px 10px 0;
+  background: #f8fafc;
+  border-bottom: 1px solid #cbd5e1;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, .05);
+  z-index: 46;
+}
+.category-tab-shell[hidden] { display: none !important; }
+.category-tabs {
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.category-tab {
+  flex: 1 1 0;
+  min-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 9px 15px 10px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 9px 9px 0 0;
+  background: transparent;
+  color: #52636d;
+  font: 700 11.5px/1.2 'Plus Jakarta Sans', sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.category-tab:hover { background: #e7f5ef; color: #075b43; }
+.category-tab.active {
+  position: relative;
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #075b43;
+}
+.category-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 3px;
+  background: #10b981;
+  border-radius: 3px 3px 0 0;
+}
+.sidebar-user-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 11px 12px;
+  background: #041f17;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+}
+.sidebar-user-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+.sidebar-user-footer #headerAccountInitials {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 10px;
+}
+.sidebar-user-copy { min-width: 0; }
+.sidebar-user-copy strong,
+.sidebar-user-copy span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-user-copy strong { color: #ffffff; font-size: 11px; }
+.sidebar-user-copy span { margin-top: 2px; color: #9dd7c4; font-size: 9.5px; text-transform: capitalize; }
+.sidebar-user-footer .header-account-trigger {
+  width: 32px;
+  height: 32px;
+  border-color: rgba(255, 255, 255, .18);
+  color: #ffffff;
+  background: rgba(255, 255, 255, .08);
+  letter-spacing: 1px;
+}
+.sidebar-user-footer .header-account-menu { position: relative; }
+.sidebar-user-footer .header-account-dropdown {
+  position: absolute;
+  right: 0;
+  top: auto;
+  bottom: calc(100% + 9px);
+  width: 238px;
+  z-index: 90;
+}
+.nav-category.active-category > .nav-header { color: #ffffff; background: rgba(16, 185, 129, .18); }
+.content-page-heading { margin: 3px 0 9px; }
+.content-page-heading h2 { margin: 0; color: #143d32; font-size: 18px; }
+#settingsTabShell { display: none !important; }
+.system-printing-panel { margin-top: 10px !important; }
+.payroll-currency-field {
+  min-width: 0;
+  margin: 0;
+  padding: 5px 9px 7px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+}
+.payroll-currency-field legend { padding: 0 4px; color: #475569; font-size: 10px; font-weight: 700; }
+.payroll-currency-options { display: flex; align-items: center; gap: 12px; min-height: 22px; }
+.payroll-currency-options label { display: inline-flex; align-items: center; gap: 4px; margin: 0 !important; }
+
