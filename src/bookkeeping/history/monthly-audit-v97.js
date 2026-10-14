@@ -4,8 +4,8 @@
       const pageSize = 500, rows = [];
       for (let offset = 0; ; offset += pageSize) {
         const { data, error } = await ojmDb.from('audit_log')
-          .select('id,record_id,action,reason,old_data,new_data,actor_id,created_at')
-          .in('table_name', ['journal_entries','accounting_periods','period_findings','scheduled_journals'])
+          .select('id,table_name,record_id,action,reason,old_data,new_data,actor_id,created_at')
+          .in('table_name', ['journal_entries','accounting_periods','period_findings','scheduled_journals','maintenance'])
           .order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
         if (error) throw error;
         rows.push(...(data || []));

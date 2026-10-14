@@ -69,13 +69,9 @@ function polish69(){
  sizeCurrencyTables69();editHighlight69();
 }
 function setupHeaders69(){
- const audit=document.querySelector('#transactions-voided .je-card-header');if(audit&&!document.getElementById('auditSearch69')){const label=document.createElement('label');label.className='inline-control69';label.innerHTML='Search Audit Logs <input class="je-input" id="auditSearch69" type="search" placeholder="Description, date, ID or reason" oninput="filterAudit69()">';audit.append(label)}
  const period=document.getElementById('periodReviewMonthSelect');const controls=period?.closest('.period-selector')||period?.parentElement?.parentElement;if(controls)controls.classList.add('inline-period69');
  const currency=document.getElementById('currencyTableBody')?.closest('.table-container');if(currency&&!document.getElementById('currencyHelp69')){const note=document.createElement('p');note.id='currencyHelp69';note.className='settings-compact-note';note.textContent='Drag currencies using the six-dot handles. The first currency appears nearest Debit. This display order is saved in this browser.';currency.before(note)}
 }
-const auditBefore69=renderVoidedTransactionsTable;renderVoidedTransactionsTable=function(...args){auditBefore69(...args);filterAudit69()};
-function filterAudit69(){const q=(document.getElementById('auditSearch69')?.value||'').trim().toLowerCase();document.querySelectorAll('.audit-summary-row').forEach(row=>{const detail=row.nextElementSibling;row.hidden=!!q&&!`${row.textContent} ${detail?.textContent} ${row.dataset.auditSearch||''}`.toLowerCase().includes(q);if(row.hidden&&detail){detail.hidden=true;row.setAttribute('aria-expanded','false');const icon=row.querySelector('.audit-expand-cell');if(icon)icon.textContent='▶'}})}
-const toggleAuditBefore69=toggleAuditDetails;toggleAuditDetails=function(id,row){document.querySelectorAll('.audit-detail-row').forEach(detail=>{if(detail.id!==id){detail.hidden=true;detail.previousElementSibling?.setAttribute('aria-expanded','false');const icon=detail.previousElementSibling?.querySelector('.audit-expand-cell');if(icon)icon.textContent='▶'}});toggleAuditBefore69(id,row)};
 document.addEventListener('toggle',e=>{const detail=e.target;if(detail.tagName!=='DETAILS'||!detail.open)return;detail.parentElement.querySelectorAll(':scope > details[open]').forEach(other=>{if(other!==detail)other.open=false})},true);
 document.addEventListener('DOMContentLoaded',()=>{
  const previousSwitch=window.switchTab;window.switchTab=function(target){saveLocation69();const result=previousSwitch(target);if(document.getElementById(target)?.classList.contains('active')){Location69.view=target;saveLocation69(0)}polish69();return result};
@@ -89,4 +85,5 @@ document.addEventListener('DOMContentLoaded',()=>{
 // A navigation choice made while sign-in data is loading wins over the saved route.
 document.addEventListener('click',event=>{if(Location69.hydrating&&event.isTrusted&&event.target.closest('.category-tab,.tab-btn,.nav-category,.nav-subitem,.nav-item,.sub-user-browser-tab,[onclick*="switchTab"],[onclick*="scrollToAccountModule"]'))Location69.userNavigated=true},true);
 const switchBeforeLoadingGuard86=window.switchTab;
-window.switchTab=function(...args){if(Location69.hydrating&&window.event?.isTrusted&&/^(click|touchend|pointerup|keydown)$/.test(window.event.type))Location69.userNavigated=true;return switchBeforeLoadingGuard86(...args)};
+window.switchTab=function(...args){if(Location69.hydrating&&window.event?.isTrusted&&/^(click|touchend|pointerup|keydown)$/.test(window.event.type))Location69.userNavigated=true;return switchBeforeLoadingGuard86(...args)}
+;

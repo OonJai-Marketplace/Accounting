@@ -3241,20 +3241,10 @@ async function loadTransactionAudit(){
   if(!ojmDb||!liveProfile)return;const {data,error}=await ojmDb.from('audit_log').select('id,record_id,action,reason,old_data,new_data,actor_id,created_at').in('table_name',['journal_entries','accounting_periods','period_findings','scheduled_journals']).order('created_at',{ascending:false}).limit(250);
   if(error)throw error;if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
 }
-renderVoidedTransactionsTable=function(){
-  const header=document.getElementById('thVoidedTransRow'),body=document.getElementById('voidedTransactionsBody');if(!body)return;
-  if(header)header.innerHTML='<th class="audit-expand-cell"></th><th>Date & Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th>';
-  const live=LiveTransactionAudit.filter(item=>['VOID','UPDATE','MODIFY','MARK_UNDER_REVIEW','APPROVE_AND_POST','PERIOD_STATUS','DELETE_SCHEDULE','UPDATE_SCHEDULE','CREATE_SCHEDULE','SCHEDULE_POST_ADVANCE','AUTO_POST'].includes(item.action)||/DELETE|REMOVE|PURGE/.test(String(item.action).toUpperCase()));
-  const local=(JournalModule.voidedEntries||[]).map((item,index)=>({id:item.id||`local-${index}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp,actor_id:null}));
-  const audits=[...live,...local].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-  body.innerHTML=audits.length?audits.map((item,index)=>{const key=`audit-detail-${index}`,record=auditRecordId(item);return`<tr class="audit-summary-row" data-audit-search="${escapeHtml(JSON.stringify(item))}" onclick="selectAuditLogRow(this);toggleAuditDetails('${key}',this)" aria-expanded="false"><td class="audit-expand-cell">▶</td><td>${formatAppDate(item.created_at,true)}</td><td style="font-family:monospace">${escapeHtml(record)}</td><td><span class="submission-status ${item.action==='VOID'?'returned':'posted'}">${escapeHtml(String(item.action||'CHANGE').replaceAll('_',' '))}</span></td><td>${escapeHtml(item.reason||item.new_data?.status||'—')}</td><td>${escapeHtml(getLiveUserName(item.actor_id)||'System')}</td></tr><tr id="${key}" class="audit-detail-row" hidden><td colspan="6"><div class="audit-detail-panel">${auditComparisonHtml(item.old_data,item.new_data,item.action)}</div></td></tr>`}).join(''):'<tr><td colspan="6" class="period-empty">No void, correction, or period-review audit records yet.</td></tr>';
-};
-function selectAuditLogRow(row){document.querySelectorAll('#tblVoidedTransactions .audit-row-selected').forEach(node=>node.classList.remove('audit-row-selected'));row?.classList.add('audit-row-selected')}
 function auditRecordId(item){const safe=item||{},old=(Array.isArray(safe.old_data)?safe.old_data[0]:safe.old_data)||{},next=(Array.isArray(safe.new_data)?safe.new_data[0]:safe.new_data)||{};return old.schedule_no||next.schedule_no||old.entry_no||old.id||next.entry_no||next.id||safe.record_id||safe.id||'Audit record'}
 function auditLines(data){if(Array.isArray(data))return data.filter(row=>row&&typeof row==='object');if(Array.isArray(data?.lines)){const header={...data};delete header.lines;return data.lines.filter(row=>row&&typeof row==='object').map(line=>({...header,...line}))}if(data&&typeof data==='object'&&Object.keys(data).length)return[data];return[]}
 function auditField(row,key){const aliases={date:['date','transaction_date','line_date'],entry:['entry_no','id'],account:['account','account_name'],memo:['memo','description','reference'],debit:['debit'],credit:['credit'],currency:['currency','currency_code'],status:['status','correction_status']};for(const name of aliases[key])if(row?.[name]!==undefined&&row?.[name]!==null&&row?.[name]!=='')return row[name];return''}
 function auditComparisonHtml(oldData,newData,action){const oldLines=auditLines(oldData),newLines=auditLines(newData),fields=[['date','Date'],['entry','Entry ID'],['account','Account'],['memo','Memo / Reference'],['debit','Debit'],['credit','Credit'],['currency','Currency'],['status','Status']],count=Math.max(oldLines.length,newLines.length,1),rows=[];for(let i=0;i<count;i++){for(const[field,label]of fields){const before=auditField(oldLines[i],field),after=auditField(newLines[i],field);if(before===''&&after==='')continue;const changed=String(before)!==String(after),removed=before!==''&&after==='',beforeText=field==='date'&&before?formatAppDate(before):before,afterText=field==='date'&&after?formatAppDate(after):after;rows.push(`<tr><td class="audit-field">${count>1?`Line ${i+1} — `:''}${label}</td><td class="${changed?'audit-original-changed':''}">${escapeHtml(String(beforeText||'—'))}${removed?'<span class="audit-removed-mark">Removed</span>':''}</td><td>${escapeHtml(String(afterText||'—'))}</td></tr>`)}}if(!rows.length)return'<div class="audit-empty-detail">No journal-field changes were recorded for this audit action.</div>';return`<table class="audit-compare-table"><thead><tr><th>Journal field</th><th>Original / Removed</th><th>Revised / Result</th></tr></thead><tbody>${rows.join('')}</tbody></table>`}
-function toggleAuditDetails(id,row){const detail=document.getElementById(id);if(!detail)return;const opening=detail.hidden;detail.hidden=!opening;row.setAttribute('aria-expanded',String(opening));const icon=row.querySelector('.audit-expand-cell');if(icon)icon.textContent=opening?'▼':'▶'}
 function openAdjustedDetails(entryId){const local=(JournalModule.voidedEntries||[]).map((item,index)=>({id:item.id||`local-${index}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp,actor_id:null})),audits=[...LiveTransactionAudit,...local],item=audits.find(record=>auditRecordId(record)===entryId||auditLines(record.old_data).some(row=>row.id===entryId||row.entry_no===entryId)||auditLines(record.new_data).some(row=>row.id===entryId||row.entry_no===entryId));let modal=document.getElementById('modalAdjustmentQuickView');if(!modal){modal=document.createElement('div');modal.id='modalAdjustmentQuickView';modal.className='modal-backdrop';modal.innerHTML='<div class="modal-dialog modal-center adjustment-quick-dialog"><div class="modal-header"><h4>Adjustment Details</h4><button type="button" class="modal-close-x" onclick="closeModal(\'modalAdjustmentQuickView\')">&times;</button></div><div class="modal-body" id="adjustmentQuickViewBody"></div><div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeModal(\'modalAdjustmentQuickView\')">Close</button></div></div>';document.body.appendChild(modal)}const body=document.getElementById('adjustmentQuickViewBody');body.innerHTML=item?`<div class="je-subtitle" style="margin-bottom:7px"><strong>${escapeHtml(String(item.action||'ADJUSTMENT').replaceAll('_',' '))}</strong> • ${escapeHtml(item.reason||'No reason recorded')}</div>${auditComparisonHtml(item.old_data,item.new_data,item.action)}`:'<div class="empty-archive-state">No linked audit details are available for this adjusted entry.</div>';openModal('modalAdjustmentQuickView')}
 const loadJournalFromSupabaseBeforeAudit=loadJournalFromSupabase;
 loadJournalFromSupabase=async function(){await loadJournalFromSupabaseBeforeAudit();if(document.querySelector('.tab-content.active')?.id==='transactions-voided')await loadTransactionAudit();};
@@ -5346,13 +5336,9 @@ function polish69(){
  sizeCurrencyTables69();editHighlight69();
 }
 function setupHeaders69(){
- const audit=document.querySelector('#transactions-voided .je-card-header');if(audit&&!document.getElementById('auditSearch69')){const label=document.createElement('label');label.className='inline-control69';label.innerHTML='Search Audit Logs <input class="je-input" id="auditSearch69" type="search" placeholder="Description, date, ID or reason" oninput="filterAudit69()">';audit.append(label)}
  const period=document.getElementById('periodReviewMonthSelect');const controls=period?.closest('.period-selector')||period?.parentElement?.parentElement;if(controls)controls.classList.add('inline-period69');
  const currency=document.getElementById('currencyTableBody')?.closest('.table-container');if(currency&&!document.getElementById('currencyHelp69')){const note=document.createElement('p');note.id='currencyHelp69';note.className='settings-compact-note';note.textContent='Drag currencies using the six-dot handles. The first currency appears nearest Debit. This display order is saved in this browser.';currency.before(note)}
 }
-const auditBefore69=renderVoidedTransactionsTable;renderVoidedTransactionsTable=function(...args){auditBefore69(...args);filterAudit69()};
-function filterAudit69(){const q=(document.getElementById('auditSearch69')?.value||'').trim().toLowerCase();document.querySelectorAll('.audit-summary-row').forEach(row=>{const detail=row.nextElementSibling;row.hidden=!!q&&!`${row.textContent} ${detail?.textContent} ${row.dataset.auditSearch||''}`.toLowerCase().includes(q);if(row.hidden&&detail){detail.hidden=true;row.setAttribute('aria-expanded','false');const icon=row.querySelector('.audit-expand-cell');if(icon)icon.textContent='▶'}})}
-const toggleAuditBefore69=toggleAuditDetails;toggleAuditDetails=function(id,row){document.querySelectorAll('.audit-detail-row').forEach(detail=>{if(detail.id!==id){detail.hidden=true;detail.previousElementSibling?.setAttribute('aria-expanded','false');const icon=detail.previousElementSibling?.querySelector('.audit-expand-cell');if(icon)icon.textContent='▶'}});toggleAuditBefore69(id,row)};
 document.addEventListener('toggle',e=>{const detail=e.target;if(detail.tagName!=='DETAILS'||!detail.open)return;detail.parentElement.querySelectorAll(':scope > details[open]').forEach(other=>{if(other!==detail)other.open=false})},true);
 document.addEventListener('DOMContentLoaded',()=>{
  const previousSwitch=window.switchTab;window.switchTab=function(target){saveLocation69();const result=previousSwitch(target);if(document.getElementById(target)?.classList.contains('active')){Location69.view=target;saveLocation69(0)}polish69();return result};
@@ -5366,7 +5352,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 // A navigation choice made while sign-in data is loading wins over the saved route.
 document.addEventListener('click',event=>{if(Location69.hydrating&&event.isTrusted&&event.target.closest('.category-tab,.tab-btn,.nav-category,.nav-subitem,.nav-item,.sub-user-browser-tab,[onclick*="switchTab"],[onclick*="scrollToAccountModule"]'))Location69.userNavigated=true},true);
 const switchBeforeLoadingGuard86=window.switchTab;
-window.switchTab=function(...args){if(Location69.hydrating&&window.event?.isTrusted&&/^(click|touchend|pointerup|keydown)$/.test(window.event.type))Location69.userNavigated=true;return switchBeforeLoadingGuard86(...args)};
+window.switchTab=function(...args){if(Location69.hydrating&&window.event?.isTrusted&&/^(click|touchend|pointerup|keydown)$/.test(window.event.type))Location69.userNavigated=true;return switchBeforeLoadingGuard86(...args)}
+;
 
 ;
 /* scripts/reports-system-v71.js */
@@ -6811,8 +6798,8 @@ mountSettings();
       const pageSize = 500, rows = [];
       for (let offset = 0; ; offset += pageSize) {
         const { data, error } = await ojmDb.from('audit_log')
-          .select('id,record_id,action,reason,old_data,new_data,actor_id,created_at')
-          .in('table_name', ['journal_entries','accounting_periods','period_findings','scheduled_journals'])
+          .select('id,table_name,record_id,action,reason,old_data,new_data,actor_id,created_at')
+          .in('table_name', ['journal_entries','accounting_periods','period_findings','scheduled_journals','maintenance'])
           .order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
         if (error) throw error;
         rows.push(...(data || []));
@@ -6939,7 +6926,6 @@ mountSettings();
   'use strict';
   const esc = value => escapeHtml(String(value ?? ''));
   const byId = id => document.getElementById(id);
-  const severity = action => /DELETE|REMOVE|PURGE|CANCEL/.test(action) ? 'destructive' : /VOID/.test(action) ? 'void' : /UPDATE|MODIFY|EDIT|ADJUST/.test(action) ? 'edit' : 'info';
 
   window.showJournalEntry98 = function (show = true, scroll = true) {
     const form = byId('journalEntry98');
@@ -6998,38 +6984,60 @@ mountSettings();
     if (post) post.disabled = invalid;
   };
 
-  window.selectAuditLogRow = function(row) {
-    document.querySelectorAll('#auditMonths98 .audit-row-selected').forEach(n=>n.classList.remove('audit-row-selected'));
-    row?.classList.add('audit-row-selected');
-  };
-  window.filterAudit69 = function () { renderVoidedTransactionsTable(); };
+  // Important changes only. Routine events remain in the stored audit trail.
+  let auditFilter14361='all',auditOwner14361='';
+  const auditAction14361=item=>String(item.action||'CHANGE').toUpperCase();
+  function auditKind14361(item){
+    const action=auditAction14361(item),after=item.new_data||{};
+    if(['POST','AUTO_POST','SCHEDULE_POST_ADVANCE','CREATE_SCHEDULE','MAINTENANCE_CLOSE','SUBMIT','REVIEW','REVIEW_FORWARD','APPROVE','APPROVE_AND_POST','LINK','MAINTENANCE_EDIT'].includes(action))return null;
+    if(action==='PERIOD_STATUS')return String(after.status||'').toLowerCase()==='open'?{group:'periods',tier:'red',label:'Period reopened'}:null;
+    if(/PERIOD.*(?:CLOSE|LOCK)|CLOSE.*PERIOD/.test(action))return null;
+    if(/REOPEN/.test(action))return {group:'periods',tier:'red',label:'Period / report reopened'};
+    if(action==='DELETE_SCHEDULE')return {group:'schedules',tier:'orange',label:'Schedule deleted'};
+    if(action==='UPDATE_SCHEDULE')return {group:'schedules',tier:'yellow',label:'Schedule changed'};
+    if(/VOID/.test(action))return {group:'voids',tier:'red',label:'Voided'};
+    if(/DELETE|REMOVE|PURGE|CANCEL/.test(action))return {group:'deletions',tier:'red',label:action.replaceAll('_',' ')};
+    if(action==='MARK_UNDER_REVIEW')return {group:'reviews',tier:'yellow',label:'Marked for review'};
+    if(action==='UPDATE'&&(item.table_name==='accounting_periods'||/acknowledged unposted submissions/i.test(item.reason||'')))return {group:'periods',tier:'yellow',label:'Unposted submissions acknowledged'};
+    if(/UPDATE|MODIFY|EDIT|ADJUST/.test(action))return {group:'corrections',tier:'orange',label:'Correction / adjustment'};
+    // Unknown actions stay visible for review instead of silently losing evidence.
+    return {group:'reviews',tier:'yellow',label:action.replaceAll('_',' ')};
+  }
+  const auditGroups14361=[['all','All important events'],['voids','Voided'],['corrections','Corrections'],['periods','Period changes'],['schedules','Schedule changes'],['deletions','Deletions / cancellations'],['reviews','Review required']];
+  function auditValues14361(value,path='',out=new Map()){
+    if(value!==null&&typeof value==='object'&&Object.keys(value).length){for(const [key,child] of Object.entries(value))auditValues14361(child,path?(Array.isArray(value)?`${path} [${Number(key)+1}]`:`${path} / ${key.replaceAll('_',' ')}`):key.replaceAll('_',' '),out)}
+    else out.set(path||'Value',value);
+    return out;
+  }
+  function auditValue14361(value){
+    if(value===undefined)return 'Not recorded';if(value===null)return 'None';if(typeof value==='boolean')return value?'Yes':'No';if(typeof value==='object')return Array.isArray(value)?'Empty list':'Empty object';
+    const text=String(value);if(/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(text))return formatAppDate(text,text.includes('T'));return esc(text===''?'Empty text':text);
+  }
+  function openAudit14361(item,trigger){
+    byId('auditDetails14361')?.close();byId('auditDetails14361')?.remove();
+    const dialog=document.createElement('dialog');dialog.id='auditDetails14361';dialog.setAttribute('aria-labelledby','auditTitle14361');
+    const kind=auditKind14361(item),old=auditValues14361(item.old_data??{}),next=auditValues14361(item.new_data??{});
+    const fields=[...new Set([...old.keys(),...next.keys()])].filter(key=>key!=='Value'||old.get(key)&&Object.keys(old.get(key)).length||next.get(key)&&Object.keys(next.get(key)).length);
+    const metadata=[['Record',auditRecordId(item)],['Action',auditAction14361(item)],['Reason / note',item.reason||'No reason recorded'],['Recorded by',getLiveUserName(item.actor_id)||(item.actor_id?'Unknown user':'System / not recorded')],['Actor ID',item.actor_id||'Not recorded'],['Date and time',item.created_at],['Source',item.table_name||item.auditSource1434||'Local adjustment'],['Audit ID',item.id]];
+    if(item.effective_user_id)metadata.push(['Acting for',getLiveUserName(item.effective_user_id)||item.effective_user_id],['Effective user ID',item.effective_user_id]);
+    const comparison=fields.length?`<div class="audit-details-scroll14361"><table><thead><tr><th>Saved field</th><th>Before</th><th>After / result</th></tr></thead><tbody>${fields.map(key=>`<tr class="${JSON.stringify(old.get(key))!==JSON.stringify(next.get(key))?'audit-changed14361':''}"><th scope="row">${esc(key)}</th><td>${auditValue14361(old.get(key))}</td><td>${auditValue14361(next.get(key))}</td></tr>`).join('')}</tbody></table></div>`:'<p class="audit-missing14361">This event has no saved before/after details. Its recorded information is shown above; historical details cannot be reconstructed from this audit record.</p>';
+    dialog.innerHTML=`<header><h3 id="auditTitle14361">${esc(kind?.label||'Audit details')} — ${esc(auditRecordId(item))}</h3><button type="button" class="je-btn je-btn-secondary" data-audit-close14361>Close</button></header><div class="audit-details-body14361"><table class="audit-metadata14361"><tbody>${metadata.map(([key,value])=>`<tr><th scope="row">${esc(key)}</th><td>${auditValue14361(value)}</td></tr>`).join('')}</tbody></table><h4>Saved details</h4>${comparison}</div>`;
+    document.body.append(dialog);dialog.addEventListener('close',()=>{dialog.remove();if(trigger?.isConnected)trigger.focus()},{once:true});dialog.querySelector('[data-audit-close14361]').onclick=()=>dialog.close();
+    let outside=false;const isOutside=e=>{const r=dialog.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom};dialog.addEventListener('pointerdown',e=>{outside=e.target===dialog&&isOutside(e)});dialog.addEventListener('click',e=>{if(outside&&e.target===dialog&&isOutside(e))dialog.close();outside=false});dialog.showModal();
+  }
+  window.auditDetails14361={open:openAudit14361,kind:auditKind14361};
   window.renderVoidedTransactionsTable = function () {
-    const original = byId('tblVoidedTransactions');
-    if (!original) return;
-    original.closest('.table-container').hidden = true;
-    let host = byId('auditMonths98');
-    if (!host) { host = document.createElement('div'); host.id='auditMonths98'; original.closest('.table-container').after(host); }
-    const query = (byId('auditSearch69')?.value || '').trim().toLowerCase();
-    const local = (JournalModule.voidedEntries || []).map((item,i) => ({id:`local-${i}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp}));
-    const records = [...(LiveTransactionAudit || []),...local].sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
-    const selected=historyMonth14341.choose('audit',records.map(r=>String(r.created_at||'').slice(0,7)));
-    const groups = new Map([[selected,[]]]);
-    records.forEach(item => {
-      if (query && !`${JSON.stringify(item)} ${getLiveUserName(item.actor_id)||''}`.toLowerCase().includes(query)) return;
-      const month = /^\d{4}-\d{2}/.exec(item.created_at||'')?.[0] || 'unknown';
-      if(month===selected)groups.get(month).push(item);
-    });
-    const search=byId('auditSearch69');if(search&&host.contains(search))host.before(search);
-    host.innerHTML = historyMonth14341.control('audit',selected)+[...groups].map(([month,items],groupIndex) => {
-      const counts = new Map();
-      items.forEach(item=>{const action=String(item.action||'CHANGE').toUpperCase();counts.set(action,(counts.get(action)||0)+1)});
-      const badges = [...counts].map(([action,count])=>`<div class="period-summary-card"><span>${esc(action.replaceAll('_',' '))}</span><strong>${count}</strong></div>`).join('');
-      const rows = items.map((item,index)=> {
-        const action=String(item.action||'CHANGE').toUpperCase(),key=`audit98-${groupIndex}-${index}`;
-        return `<tr class="audit-summary-row" tabindex="0" data-audit-severity="${severity(action)}" data-audit-search="${esc(JSON.stringify(item))}" aria-expanded="false" onclick="selectAuditLogRow(this);toggleAuditDetails('${key}',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><td class="audit-expand-cell">▶</td><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td><span class="audit-count98 ${severity(action)}">${esc(action.replaceAll('_',' '))}</span></td><td>${esc(item.reason||item.new_data?.status||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr><tr id="${key}" class="audit-detail-row" hidden><td colspan="6"><div class="audit-detail-panel">${auditComparisonHtml(item.old_data,item.new_data,item.action)}</div></td></tr>`;
-      }).join('');
-      return `<div class="period-summary-grid history-summary14360"><div class="period-summary-card"><span>Audit Records</span><strong>${items.length}</strong></div>${badges}</div><section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th aria-label="Expand record"></th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="period-empty">No audit records in this month.</td></tr>'}</tbody></table></div></section>`;
-    }).join('') || '<p class="period-empty">No audit records match this view.</p>';
+    const original=byId('tblVoidedTransactions');if(!original)return;original.closest('.table-container').hidden=true;
+    let host=byId('auditMonths98');if(!host){host=document.createElement('div');host.id='auditMonths98';original.closest('.table-container').after(host)}host.dataset.historySearch='off';
+    const owner=typeof liveProfile==='undefined'?'':liveProfile?.id;if(auditOwner14361!==owner){auditOwner14361=owner;auditFilter14361='all'}
+    const local=(JournalModule.voidedEntries||[]).map((item,i)=>({id:`local-${i}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp}));
+    const records=[...(LiveTransactionAudit||[]),...local].filter(auditKind14361).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
+    const selected=historyMonth14341.choose('audit',records.map(r=>String(r.created_at||'').slice(0,7))),month=records.filter(item=>String(item.created_at||'').slice(0,7)===selected),shown=month.filter(item=>auditFilter14361==='all'||auditKind14361(item).group===auditFilter14361);
+    const cards=auditGroups14361.map(([key,label])=>`<button type="button" class="period-summary-card" data-audit-filter14361="${key}" aria-pressed="${auditFilter14361===key}"><span>${label}</span><strong>${key==='all'?month.length:month.filter(item=>auditKind14361(item).group===key).length}</strong></button>`).join('');
+    const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify(item))}" data-audit-severity="${kind.tier}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td><button type="button" class="je-btn je-btn-secondary" aria-label="View details for ${esc(auditRecordId(item))}">View</button></td><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td><span class="audit-count98 ${kind.tier}">${esc(kind.label)}</span></td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
+    host.innerHTML=historyMonth14341.control('audit',selected)+`<div class="period-summary-grid audit-filters14361">${cards}</div><section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Details</th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="period-empty">No important audit events match this month and category.</td></tr>'}</tbody></table></div></section>`;
+    host.querySelectorAll('[data-audit-filter14361]').forEach(button=>{button.onclick=()=>{auditFilter14361=button.dataset.auditFilter14361;renderVoidedTransactionsTable();host.querySelector(`[data-audit-filter14361="${auditFilter14361}"]`)?.focus()}});
+    host.querySelectorAll('[data-audit-open14361]').forEach(row=>{row.onclick=e=>{if(e.target.closest('[data-delete-record1434]'))return;openAudit14361(shown[Number(row.dataset.auditOpen14361)],row)};row.onkeydown=e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();row.click()}}});
     historyMonth14341.bind(host,'audit',renderVoidedTransactionsTable,'local');
   };
 
