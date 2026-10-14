@@ -4082,6 +4082,16 @@
       {
         "source": "src/core/rendering/prepared-workspace14364.js"
       }
+    ],
+    "scripts/navigation-experiment14366.js": [
+      {
+        "source": "src/core/navigation/navigation-experiment14366.js"
+      }
+    ],
+    "styles/navigation-experiment14366.css": [
+      {
+        "source": "src/core/navigation/navigation-experiment14366.css"
+      }
     ]
   },
   "variants": [
