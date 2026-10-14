@@ -1,6 +1,6 @@
 {
   "base_commit": "e314c40",
-  "scope": "All first-party canonical sources reviewed; generated equivalents verified. Third-party dependencies are integration/version/license/advisory reviewed, NOT manually line-reviewed. Structured/binary artifacts validated by format. Ledger itself is self-describing and cannot contain its own stable hash.",
+  "scope": "First-party canonical sources reviewed; generated equivalents verified. Third-party implementation review is recorded per file, including partial ranges. Seven vendor bundles still require full manual review; automated validation does not close those reviews.",
   "reviewed": {
     "src/bookkeeping/journal/entry-number14257.js": {
       "sha256": "7e4c90d7b0ce37472893919502f270622f5b96b60be946b3e2c1e050ef929d72",
@@ -293,14 +293,14 @@
       "note": "Full coordinator-owned data path and compatibility fallback; intentional period read preserved."
     },
     "src/core/startup/optional-tools14335.js": {
-      "sha256": "426f9641d10245c03dac698d3ec51e33a6fb881a9be20100f32ee41b40899918",
+      "sha256": "b7a77ac8351478ed3fd59febbc7a546c9fda1470f89152f7bfef1359a70e1de6",
       "ranges": [
         [
           1,
           11
         ]
       ],
-      "note": "Full import/export deferred loader and dedup/retry review; verified global exports exist in standalone scripts. No observed defect. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression."
+      "note": "Full import/export deferred loader and dedup/retry review; verified global exports exist in standalone scripts. No observed defect. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified."
     },
     "src/core/startup/device-mode132.js": {
       "sha256": "34154b1a7dbce4d7d3b555456df4e6d02c0077dc4f42da5603c688b4931adfe5",
@@ -3893,14 +3893,14 @@
       "note": "Full source read. Payroll header observer now scans changed panels and writes styles only when needed; pagination guards actor/client. Word export builds each cell once instead of recursively twice. Legacy review IDs escaped; summary and approval functions superseded by later workspace bridge. Styles retained."
     },
     "src/documents/import-export/document-export-v108-standalone.js": {
-      "sha256": "777167d72a1e101997c7ddf78242d049d5b15b099c83d1e02aefa5ef4a48fc2e",
+      "sha256": "0139c5f14d242d83d6e7c73388c9bad2577e65c53b6082134b5c2b26ff2c6396",
       "ranges": [
         [
           1,
-          10
+          15
         ]
       ],
-      "note": "Full source read. Payroll header observer now scans changed panels and writes styles only when needed; pagination guards actor/client. Word export builds each cell once instead of recursively twice. Legacy review IDs escaped; summary and approval functions superseded by later workspace bridge. Styles retained."
+      "note": "Full source read. Payroll header observer now scans changed panels and writes styles only when needed; pagination guards actor/client. Word export builds each cell once instead of recursively twice. Legacy review IDs escaped; summary and approval functions superseded by later workspace bridge. Styles retained. v143.72: reviewed image-export/release-reference diff; browser export regression verified."
     },
     "src/payroll/workspace/payroll-fixes-v83.js": {
       "sha256": "c292d3ded809ce650612580f5c02f56fab221b0edc72f6e85ed601d516f59753",
@@ -5653,14 +5653,14 @@
       "note": "Full 781-line review: password wrapping, storage adapters, legacy migration, auth and inactivity. Guard password rewrap against actor/key changes, prevent concurrent sign-in, close migration databases on failure and check migration actor. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "src/core/sync/offline14239.js": {
-      "sha256": "38755581b23516d3309149a5f7226f0ec16818ba57190c94d7ca664898780f25",
+      "sha256": "7e6b19b0504fa08975c2f7398b05ba4b53d30306b63db2f874140df3121cd6c9",
       "ranges": [
         [
           1,
           157
         ]
       ],
-      "note": "Full review: encrypted snapshots, request fallback, device queue, sync and shell status. Cache hits/restores verify actor/client/workspace, reuse one cache read, partition queue cache by database, retain original job on session change, format displayed dates. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression."
+      "note": "Full review: encrypted snapshots, request fallback, device queue, sync and shell status. Cache hits/restores verify actor/client/workspace, reuse one cache read, partition queue cache by database, retain original job on session change, format displayed dates. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified."
     },
     "src/subusers/entries/subusers-final-v56.js": {
       "sha256": "46734e315a911ffe2729a646e01becf8b3546779c3c7fed91baae13433df3dc1",
@@ -6063,14 +6063,14 @@
       "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution."
     },
     "index.html": {
-      "sha256": "8716ea84e50be237a09c188655dda91bb24e5b77291a4114d9b4df081521f47d",
+      "sha256": "32c77f0965bb28f3984c9ffa157369b43119515691d1248451bd3a66a9687969",
       "ranges": [
         [
           1,
           7
         ]
       ],
-      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression."
+      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified."
     },
     "recovery.html": {
       "sha256": "eb97c5ddde4c4cd8725d4183da6f82e8b5f07d658d67d1658bcaefa86f877ddd",
@@ -6153,14 +6153,14 @@
       "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution."
     },
     "desktop-sw14242.js": {
-      "sha256": "27bfb5854f8e94c5549633225ed50e6245092767c2e09169c492b55fbdce71b0",
+      "sha256": "6e2db03170081e128d8bf3e1a857ff28a625325e0c944a6a5c3a36e9a2096e23",
       "ranges": [
         [
           1,
           330
         ]
       ],
-      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression."
+      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified."
     },
     "validation/test-shell-isolation14370.cjs": {
       "sha256": "1d336751cac29873192a86bbfd5b9b03426690b475bbda7f6b3498889cdd08cc",
@@ -6193,14 +6193,14 @@
       "note": "Reviewed schema, metadata, preserved variants and every source/output reference via structured traversal; all 578 source references reviewed; prefixes are source comments and suffixes only newline/semicolon. Generated identity checked by canonical builder. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "desktop.html": {
-      "sha256": "f071a0f91e4a62ef4def6e7ec3594aad6c69cfde4f40139f2ae8efa7e4a8098c",
+      "sha256": "41a0d6043d74c67cd5ace7a3485e22ef0f52936b6398be18abf5c6e0cde4f138",
       "ranges": [
         [
           1,
           1323
         ]
       ],
-      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression."
+      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified."
     },
     "phone-accounting.html": {
       "sha256": "d5c3ac6cc9204e0bd717db4688feccf34785d102d79cf891e6338f9da088b1ad",
@@ -10411,6 +10411,46 @@
         ]
       ],
       "note": "Read complete bundled implementation: byte readers/writers, compound FAT/DIFAT/directory traversal, archive compression/CRC paths, MIME conversion and exports. Malformed directory parent cycles lack safe termination and can grow strings; other chain/decompression loops lack input bounds. Application legacy DOC parsing is now isolated in a terminable worker; upstream bytes unchanged. Actual corrupt input, controlled stuck parser, valid input, retry, cleanup and offline library loading tested. Unused upstream parser/writer interfaces are not certified safe."
+    },
+    "assets/vendor/document14285/marked.umd.js": {
+      "sha256": "f424dcb508fdf93e0137a970cfce8f3207ea2e3f37eca5f7556a52875683632a",
+      "ranges": [
+        [
+          1,
+          82
+        ]
+      ],
+      "note": "Complete bundled implementation read: block/inline regex grammars, nested links, reference normalization, consuming lexer guards, token traversal, renderers, hooks and sync/async error propagation. Raw HTML/URLs are intentionally not sanitized by Marked; application passes output through safeHTML in the document editor, which removes executable elements, event attributes and disallowed URL schemes. No vendor patch made. Deep or enormous input remains subject to browser CPU/memory limits."
+    },
+    "assets/vendor/jszip.min.js": {
+      "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e",
+      "ranges": [
+        [
+          1,
+          13
+        ]
+      ],
+      "note": "Complete bundled implementation read, including all 54 bundled modules: archive readers/writers, path normalization and null-prototype file map, Unicode metadata, CRC/length checks, streaming and Promise adapters, bundled pako deflate/inflate and Huffman tables. ZIP64 parsing uses 32-bit arithmetic; extensible-field loop does not decrement remaining length but reader bounds ultimately reject. General archive decompression has no application resource budget; this is a remaining import-hardening finding, not a certificate for arbitrary archives. No vendor patch made."
+    },
+    "assets/vendor/docx.js": {
+      "sha256": "ecef72931c98461fc327aa6e95867820aced5db4c3d971ac5ad38ccda21dd360",
+      "ranges": [
+        [
+          1,
+          23075
+        ]
+      ],
+      "note": "Complete 23075-line bundled implementation reviewed: Buffer/streams, SAX/xml-js, OOXML builders, hash algorithms, JSZip/pako, serializers, Compiler/Packer and patch APIs. Reproduced duplicate default drawing IDs and missing WebP content type in app exports; fixed caller with per-export IDs and PNG normalization. Browser regression test-word-images14372.cjs passes. External XML/recursive patch APIs have input-validation limitations but are not used by the application. No vendor bytes changed."
+    },
+    "validation/test-word-images14372.cjs": {
+      "sha256": "c6d89229f7c9cb757c15a1d648b34af1b8e904677bdaa70adfe3879e83d2270d",
+      "ranges": [
+        [
+          1,
+          2
+        ]
+      ],
+      "note": "Browser regression for repeated image exports: unique IDs, valid XML, WebP normalization and Thai text."
     }
   },
   "retired": {
@@ -12482,14 +12522,14 @@
       ]
     },
     "scripts/offline14239.js": {
-      "sha256": "38755581b23516d3309149a5f7226f0ec16818ba57190c94d7ca664898780f25",
+      "sha256": "7e6b19b0504fa08975c2f7398b05ba4b53d30306b63db2f874140df3121cd6c9",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/sync/offline14239.js"
       ]
     },
     "scripts/optional-tools14335.js": {
-      "sha256": "426f9641d10245c03dac698d3ec51e33a6fb881a9be20100f32ee41b40899918",
+      "sha256": "b7a77ac8351478ed3fd59febbc7a546c9fda1470f89152f7bfef1359a70e1de6",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/startup/optional-tools14335.js"
@@ -13169,7 +13209,7 @@
       ]
     },
     "scripts/document-export-v108.js": {
-      "sha256": "777167d72a1e101997c7ddf78242d049d5b15b099c83d1e02aefa5ef4a48fc2e",
+      "sha256": "0139c5f14d242d83d6e7c73388c9bad2577e65c53b6082134b5c2b26ff2c6396",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/documents/import-export/document-export-v108-standalone.js"
@@ -13510,7 +13550,7 @@
       "method": "Parsed JSON recursively, OOXML XML/CRC/macros/external relationships, or decoded image with contact-sheet inspection. Historical evidence is not current acceptance; failure flags retained."
     },
     "assets/maintenance/release14324.json": {
-      "sha256": "77fd6195cbfd56b9e57e61a1aae520e410d438f7e59f81bfbcc77ec37caa10c2",
+      "sha256": "9de3f274dbbd27a2a070369045f87a9563776d79e434051bb332be5e7cadc84d",
       "method": "Parsed complete JSON. Release/correction hashes verified against current reviewed files; database evidence contains read-only aggregate visibility fingerprints."
     },
     "assets/maintenance/report-template14326.xlsx": {
@@ -13805,7 +13845,7 @@
       "method": "Parsed JSON recursively, OOXML XML/CRC/macros/external relationships, or decoded image with contact-sheet inspection. Historical evidence is not current acceptance; failure flags retained."
     },
     "validation/phase0-corrections.json": {
-      "sha256": "10c0724078b2cc6ef22d45d350299e5a2be941641f9c887b2ea04e044e74bc74",
+      "sha256": "4cd7d49839663807146c0b206ad039fbec625ee91270f977faf8023f694107df",
       "method": "Parsed complete JSON. Release/correction hashes verified against current reviewed files; database evidence contains read-only aggregate visibility fingerprints."
     },
     "validation/phase0-navigation-fixes-results.json": {
@@ -14389,12 +14429,12 @@
     "assets/vendor/docx.js": {
       "sha256": "ecef72931c98461fc327aa6e95867820aced5db4c3d971ac5ad38ccda21dd360",
       "bytes": 857630,
-      "method": "Dependency boundary, version/header, usage, licensing and integration review. NOT a manual line-by-line review of the bundled upstream implementation."
+      "method": "Complete 23075-line bundled implementation reviewed: Buffer/streams, SAX/xml-js, OOXML builders, hash algorithms, JSZip/pako, serializers, Compiler/Packer and patch APIs. Reproduced duplicate default drawing IDs and missing WebP content type in app exports; fixed caller with per-export IDs and PNG normalization. Browser regression test-word-images14372.cjs passes. External XML/recursive patch APIs have input-validation limitations but are not used by the application. No vendor bytes changed."
     },
     "assets/vendor/jszip.min.js": {
       "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e",
       "bytes": 97630,
-      "method": "Dependency boundary, version/header, usage, licensing and integration review. NOT a manual line-by-line review of the bundled upstream implementation."
+      "method": "Complete bundled implementation read, including all 54 bundled modules: archive readers/writers, path normalization and null-prototype file map, Unicode metadata, CRC/length checks, streaming and Promise adapters, bundled pako deflate/inflate and Huffman tables. ZIP64 parsing uses 32-bit arithmetic; extensible-field loop does not decrement remaining length but reader bounds ultimately reject. General archive decompression has no application resource budget; this is a remaining import-hardening finding, not a certificate for arbitrary archives. No vendor patch made."
     },
     "assets/vendor/noble-gcm14334.js": {
       "sha256": "510911ff189238a2086dc0c38af34e54a143cbd9b4c9ff8ad54982c318881987",
@@ -14424,7 +14464,7 @@
     "assets/vendor/document14285/marked.umd.js": {
       "sha256": "f424dcb508fdf93e0137a970cfce8f3207ea2e3f37eca5f7556a52875683632a",
       "bytes": 47225,
-      "method": "Dependency boundary, version/header, usage, licensing and integration review. NOT a manual line-by-line review of the bundled upstream implementation."
+      "method": "Complete bundled implementation read: block/inline regex grammars, nested links, reference normalization, consuming lexer guards, token traversal, renderers, hooks and sync/async error propagation. Raw HTML/URLs are intentionally not sanitized by Marked; application passes output through safeHTML in the document editor, which removes executable elements, event attributes and disallowed URL schemes. No vendor patch made. Deep or enormous input remains subject to browser CPU/memory limits."
     },
     "assets/vendor/document14285/cfb.min.js": {
       "sha256": "c843298014fa8e5b8b5449ebca1bd510091da37a1f04c37555e644f5a4406e35",
