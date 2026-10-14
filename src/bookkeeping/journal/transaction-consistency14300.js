@@ -1,13 +1,15 @@
 /* Transaction navigation, configured date presentation and audit stability. */
 (()=>{'use strict';
 const pad=n=>String(n).padStart(2,'0');
+const monthFormats={short:new Intl.DateTimeFormat('en',{month:'short'}),long:new Intl.DateTimeFormat('en',{month:'long'})};
 window.formatAppDate=function(value,withTime=false){
  if(!value)return '—';
  const raw=String(value),date=new Date(raw.length===10?raw+'T00:00:00':raw);
  if(Number.isNaN(date.getTime()))return raw;
  const y=String(date.getFullYear()),yy=y.slice(-2),m=pad(date.getMonth()+1),d=pad(date.getDate());
- const short=date.toLocaleString('en',{month:'short'}),long=date.toLocaleString('en',{month:'long'});
  const format=ApplicationSettings.system?.dateFormat||'DD/MM/YYYY';
+ const short=format.includes('MMM')&&!format.includes('MMMM')?monthFormats.short.format(date):'';
+ const long=format.includes('MMMM')?monthFormats.long.format(date):'';
  const values={
   'DD/MM/YYYY':`${d}/${m}/${y}`,'MM/DD/YYYY':`${m}/${d}/${y}`,'YYYY-MM-DD':`${y}-${m}-${d}`,
   'DD MMM YYYY':`${d} ${short} ${y}`,'MMM DD, YYYY':`${short} ${d}, ${y}`,
