@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-13",
+  "checkedAt": "2026-10-14",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -699,6 +699,51 @@
         {
           "name": "KPL · Lao News Agency, 12 October 2026",
           "url": "https://kpl.gov.la/EN/detail.aspx?id=109039",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2027-traders-fair-vientiane",
+      "revision": "2026-10-14T00:46:41Z",
+      "title": "Traders Fair Laos 2027",
+      "location": "Crowne Plaza Vientiane, Vientiane city, Vientiane Capital, Laos",
+      "start": "2027-05-29",
+      "end": "2027-05-29",
+      "category": "community",
+      "confidence": "confirmed",
+      "summary": "The Traders Fair organizer announces a financial-industry exhibition and seminars at Crowne Plaza Vientiane on 29 May 2027, with public sessions listed for 10:00–18:00. As of 14 October 2026: 227 days ahead, allowing more than six months of planning.",
+      "uncertainty": "This is a commercial financial-industry event, not a food fair or an endorsement of trading products. Attendance figures are organizer projections, not verified bookings. Speaker slots remain unfilled on the reviewed programme; the 18:30 dinner is private. External catering or restaurant partnership availability is unconfirmed.",
+      "restaurantIdea": "Suggestion: If serving Vientiane visitors, assess low-cost meal or group-order partnership options now and revisit by November 2026, while more than 180 days remain. Confirm hotel catering restrictions and demand before spending; prepare any agreed offer by April 2027.",
+      "sources": [
+        {
+          "name": "Traders Fair · Official Laos 2027 event page",
+          "url": "https://tradersfair.com/laos27",
+          "language": "en"
+        },
+        {
+          "name": "iEvents · Organizer identity and portfolio",
+          "url": "https://ievents.pro/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-korea-lifestyle-clozer-vientiane",
+      "revision": "2026-10-14T00:46:41Z",
+      "title": "CLOZER performance at Korea Lifestyle Festival 2026",
+      "location": "Parkson shopping mall, Vientiane city, Vientiane Capital, Laos; exact stage or floor not specified",
+      "start": "2026-10-23",
+      "end": "2026-10-23",
+      "category": "community",
+      "confidence": "confirmed",
+      "summary": "Vientiane Times announces that Lao band CLOZER will perform at Korea Lifestyle Festival 2026 at Parkson shopping mall on 23 October. This proposal covers the announced performance date only. As of 14 October: 9 days ahead; shorter than six months’ notice.",
+      "uncertainty": "The accessible 14 October newspaper preview gives the performance date and mall but not the time, stage, admission rules or full festival date range. The full article is subscription-only and was not reviewed. Do not treat this one-day proposal as the entire festival schedule.",
+      "restaurantIdea": "Suggestion: If serving Vientiane customers, confirm performance time, access and promotion permissions this week, then consider a small pre-show takeaway or meal offer without assuming attendance or increasing stock substantially.",
+      "sources": [
+        {
+          "name": "Vientiane Times · Public Art & Culture preview, 14 October 2026",
+          "url": "https://www.vientianetimes.org.la/",
           "language": "en"
         }
       ]
