@@ -57,7 +57,7 @@ function setSubmissionDateToday() { const input = document.getElementById('submi
 const switchTabV11 = switchTab;
 switchTab = function(tabId) {
   switchTabV11(tabId);
-  if (tabId === 'entry-submissions') {
+  if (tabId === 'entry-submissions' && document.getElementById(tabId)?.classList.contains('active')) {
     const title = document.getElementById('mainHeaderTitle'); if (title) title.textContent = 'Entry Submissions';
     renderEntrySubmissions();
   }

@@ -29,7 +29,7 @@ function ready(){
   archiveRevision=revision;archiveRecords=rows;archiveMonth=month;return archive.apply(this,args);
  };
  window.filterJournalHistory=()=>window.renderJournalHistoryTable();
- window.preparedViews14340={build(){preparing=true;try{window.renderJournalHistoryTable?.();window.renderAllTransactionsTable?.();window.renderNewTransactionsTable?.();window.renderVoidedTransactionsTable?.();window.renderAccounts69?.()}finally{preparing=false}},invalidate(){revision++}};
+ window.preparedViews14340={revision:()=>revision,withPreparation(fn){const prior=preparing;preparing=true;try{return fn()}finally{preparing=prior}},build(){preparing=true;try{window.renderJournalHistoryTable?.();window.renderAllTransactionsTable?.();window.renderNewTransactionsTable?.();window.renderVoidedTransactionsTable?.();window.renderAccounts69?.()}finally{preparing=false}},invalidate(){revision++}};
  window.addEventListener('page113',()=>{if(active('accounts-modular-container')||active('trial-balance')||active('account-balances'))window.renderAccounts69?.()});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

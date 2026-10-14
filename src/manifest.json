@@ -4077,6 +4077,11 @@
       {
         "source": "src/reports/vouchers/voucher-layout14299.css"
       }
+    ],
+    "scripts/prepared-workspace14364.js": [
+      {
+        "source": "src/core/rendering/prepared-workspace14364.js"
+      }
     ]
   },
   "variants": [

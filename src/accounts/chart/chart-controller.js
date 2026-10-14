@@ -89,7 +89,7 @@ function renderChartOfAccountsTable() {
 
 function configureAccountPurpose87(systemOnly=false){
  const select=document.getElementById('accPurpose71');
- select.innerHTML=(systemOnly?'<option value="" disabled selected>Select account purpose</option>':'<option value="regular">Regular</option>')+'<option value="clearing">Clearing</option><option value="suspense">Suspense</option><option value="settlement">Payment Settlement</option><option value="payroll">Payroll Control</option><option value="opening">Opening Balance Offset</option>';
+ select.innerHTML=(systemOnly?'<option value="" disabled selected>Select account purpose</option>':'<option value="regular">Regular</option>')+'<option value="mapping">Mapping</option><option value="clearing">Clearing</option><option value="suspense">Suspense</option><option value="settlement">Payment Settlement</option><option value="payroll">Payroll Control</option><option value="opening">Opening Balance Offset</option>';
  select.dataset.systemOnly=String(systemOnly);
 }
 function openAddAccountModal(systemOnly=false) {

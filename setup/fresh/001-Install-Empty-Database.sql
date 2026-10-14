@@ -6506,7 +6506,7 @@ ALTER TABLE "public"."accounting_periods" ADD CONSTRAINT "accounting_periods_per
 
 ALTER TABLE "public"."accounts" ADD CONSTRAINT "accounts_account_type_check" CHECK ((account_type = ANY (ARRAY['ASSET'::text, 'LIABILITY'::text, 'EQUITY'::text, 'REVENUE'::text, 'EXPENSE'::text])));
 
-ALTER TABLE "public"."accounts" ADD CONSTRAINT "accounts_purpose_allowed" CHECK ((account_purpose = ANY (ARRAY['regular'::text, 'clearing'::text, 'suspense'::text, 'settlement'::text, 'payroll'::text, 'opening'::text])));
+ALTER TABLE "public"."accounts" ADD CONSTRAINT "accounts_purpose_allowed" CHECK ((account_purpose = ANY (ARRAY['regular'::text, 'mapping'::text, 'clearing'::text, 'suspense'::text, 'settlement'::text, 'payroll'::text, 'opening'::text])));
 
 ALTER TABLE "public"."accounts" ADD CONSTRAINT "accounts_pkey" PRIMARY KEY (id);
 

@@ -1,10 +1,10 @@
 const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
 (async()=>{const f=await create();try{
  const {page,login}=await f.open();const errors=[];page.on('pageerror',e=>errors.push(e.message));f.fixture.journal=Array.from({length:130},(_,i)=>({id:'INIT-'+Math.floor(i/2),dbEntryId:'db-'+Math.floor(i/2),date:'2026-10-14',account:'Cash',currency:'LAK',debit:i%2?0:100,credit:i%2?100:0,memo:'Prepared'}));await login();const prebuilt=await page.locator('#tblJournalHistoryBody tr').count();assert.equal(prebuilt,50,'login builds a bounded journal table before it is opened');
- const result=await page.evaluate(()=>{
+ const result=await page.evaluate(async()=>{
   const first=AccountingStore.accounts[0],account=first?.name||'Cash',currency=first?.currency_code||'LAK';
   JournalModule.entries=Array.from({length:65},(_,i)=>Array.from({length:i===24?5:2},(_,line)=>({id:'TX-'+String(i).padStart(3,'0'),dbEntryId:'db-'+i,date:'2026-10-14',account,currency,memo:'Line '+line,debit:line===0?100:0,credit:line===1?100:0,archived:false}))).flat();
-  window.preparedViews14340.build();
+  await window.preparedViews14340.build();
   const before=document.querySelector('#tblJournalHistoryBody tr');const archiveBefore=document.getElementById('archiveMonths67')?.firstElementChild;
   switchTab('journal');const after=document.querySelector('#tblJournalHistoryBody tr');switchTab('transactions-all');const archiveReused=archiveBefore===document.getElementById('archiveMonths67')?.firstElementChild;switchTab('journal');
   const body=document.getElementById('tblJournalHistoryBody'),firstIds=[...new Set([...body.rows].map(r=>r.dataset.entryId))],firstCount=body.rows.length;

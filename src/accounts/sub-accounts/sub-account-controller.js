@@ -9,10 +9,10 @@ function syncSubAccountParentDropdown() {
   if (!select) return;
   select.innerHTML = '';
   select.add(new Option('Choose parent account…',''));
-  AccountingStore.accounts.filter(acc=>acc.isPosting===false&&!acc.isTechnical).sort((a,b)=>a.code.localeCompare(b.code,undefined,{numeric:true})).forEach(acc => {
+  AccountingStore.accounts.filter(acc=>acc.isPosting===false).sort((a,b)=>a.code.localeCompare(b.code,undefined,{numeric:true})).forEach(acc => {
     const opt = document.createElement('option');
     opt.value = acc.code;
-    opt.textContent = `${acc.code} — ${acc.name}`;
+    opt.textContent = `${acc.code} — ${acc.name}${window.AccountGroups14253?.type(acc)==='SYSTEM'?' · System':''}`;
     select.appendChild(opt);
   });
 }

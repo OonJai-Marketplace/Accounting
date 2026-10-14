@@ -67,7 +67,7 @@
   function downloadCsv(){if(!state.exports.some(block=>block.rows.length))return window.showCenterStatus?.('No current table rows to export.',true);const lines=state.exports.flatMap((block,index)=>[...(index?[[]]:[]),block.headers,...block.rows]);const csv=lines.map(row=>row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff',csv],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=id()+'-'+state.month+'.csv';(window.exportCenter14337?exportCenter14337.fromLink(link):link.click());setTimeout(()=>URL.revokeObjectURL(url),1000)}
   async function refresh(force){if(state.loading)return;state.loading=true;state.error='';render();try{if(typeof ojmDb!=='undefined'&&ojmDb){await window.loadWork82?.(Boolean(force));if(typeof Work82!=='undefined'&&Work82.error)state.error=Work82.error;if(force)await window.loadJournalFromSupabase?.()}}catch(error){state.error='Some records could not be loaded: '+(error.message||error)}finally{state.loading=false;render()}}
   const previous=window.switchTab;
-  window.switchTab=function(target,...args){const result=previous.call(this,target,...args);if(views[target]){render();refresh(false)}return result};
+  window.switchTab=function(target,...args){const result=previous.call(this,target,...args);if(views[target]&&!window.workspaceViews14364?.reuseView(target)){render();if(!window.startup14257?.isPrepared('payroll'))refresh(false)}return result};
   window.taxReports102={render,refresh,groupOf,payrollRows,journalRows};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{if(views[id()])refresh(false)},{once:true});else if(views[id()])refresh(false);
 })()
