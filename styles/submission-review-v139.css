@@ -76,7 +76,7 @@ html body #transactions-all #userEntryHistoryCards .submission-recon14345{margin
 html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3{font-size:15px;text-transform:none;margin:0 0 4px}
 html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3::before,
 html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3::after{content:none!important;display:none!important}
-html body #transactions-all #userEntryHistoryCards .submission-recon14345 :is(i,svg,.icon{display:none!important}
+html body #transactions-all #userEntryHistoryCards .submission-recon14345 :is(i,svg,.icon){display:none!important}
 html body #transactions-all #userEntryHistoryCards .recon-scroll14345{border:1px solid #d8e5df;border-radius:5px;overflow:auto}
 }
 /* Match the reference's inset tables and readable rows inside one history panel. */

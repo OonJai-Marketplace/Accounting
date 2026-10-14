@@ -1,6 +1,7 @@
 /* Navigation owns icon identity. Banners reuse its icon; section icons are retired. */
 (()=>{'use strict';
 function decorate(){
+ document.querySelectorAll('#appSidebar .nav-category').forEach(nav=>{const head=nav.querySelector('.nav-header');if(!head)return;let mark=head.querySelector('.nav-icon113');if(!mark){mark=document.createElement('span');mark.className='nav-icon113';head.prepend(mark)}const icon=window.shell113?.svg(nav.dataset.module||nav.id.replace('nav-module-',''))||'';if(mark.innerHTML!==icon)mark.innerHTML=icon;head.querySelectorAll('.nav-icon100').forEach(n=>n.remove())});
  const panel=document.querySelector('.tab-content.active');if(!panel)return;
  const module=window.shell113?.area(panel)||panel.dataset.module;
  const icon=window.shell113?.svg(module)||'';

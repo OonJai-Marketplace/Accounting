@@ -1642,7 +1642,7 @@ table thead th,table thead .general-master-header th,.je-table thead th,.cluster
 
 /* Exact Accounting Core brand color for every table header. */
 table thead th,table thead .general-master-header th,.je-table thead th,.clustered-journal-table thead th,.audit-compare-table th { background:#041f17 !important; color:#fff !important; border-color:#31594d !important; }
-#period-review .period-closing-bar { position:sticky; bottom:0; z-index:30; margin-top:8px; box-shadow:0 -7px 18px rgba(15,23,42,.1); }
+#period-review .period-closing-bar { position:relative; margin-top:8px; }
 .period-status-toast { position:fixed; left:50%; top:50%; z-index:100000; transform:translate(-50%,-50%) scale(.96); min-width:240px; max-width:min(520px,calc(100vw - 32px)); padding:13px 18px; border:1px solid #6ee7b7; border-left:5px solid #059669; border-radius:8px; background:#fff; color:#065f46; box-shadow:0 18px 45px rgba(15,23,42,.25); font-size:13px; font-weight:750; text-align:center; opacity:0; pointer-events:none; transition:opacity .18s,transform .18s; }
 .period-status-toast.is-visible { opacity:1; transform:translate(-50%,-50%) scale(1); }
 .period-status-toast.is-error { border-color:#fecaca; border-left-color:#dc2626; color:#991b1b; }
@@ -5297,7 +5297,7 @@ html body #transactions-all #userEntryHistoryCards .submission-recon14345{margin
 html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3{font-size:15px;text-transform:none;margin:0 0 4px}
 html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3::before,
 html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3::after{content:none!important;display:none!important}
-html body #transactions-all #userEntryHistoryCards .submission-recon14345 :is(i,svg,.icon{display:none!important}
+html body #transactions-all #userEntryHistoryCards .submission-recon14345 :is(i,svg,.icon){display:none!important}
 html body #transactions-all #userEntryHistoryCards .recon-scroll14345{border:1px solid #d8e5df;border-radius:5px;overflow:auto}
 }
 /* Match the reference's inset tables and readable rows inside one history panel. */

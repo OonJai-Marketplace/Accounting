@@ -113,3 +113,31 @@ html body.scroll-navigation14344 #categoryTabs .category-tab{height:36px!importa
 html body.scroll-navigation14344 #categoryTabShell+.area-banner113{margin-top:4px!important}
 html body #journal :is(.je-card,.table-module109,.orange-module14231){border-top-color:#24634c!important}
 }
+
+/* Stable module edges and a fully visible audit action column. */
+@media screen and (min-width:641px){
+html body #journal>#journalEntry98{margin:12px 0!important;width:100%!important;max-width:100%!important}
+html body #auditMonths98 .audit-table98{table-layout:fixed!important;min-width:920px!important;width:100%!important}
+html body #auditMonths98 .audit-table98 :is(th,td){box-sizing:border-box!important;max-width:none!important}
+html body #auditMonths98 .audit-table98 th:first-child{width:32px!important;min-width:32px!important}
+html body #auditMonths98 .audit-table98 th:nth-child(2){width:175px!important}
+html body #auditMonths98 .audit-table98 th:nth-child(3){width:150px!important}
+html body #auditMonths98 .audit-table98 th:nth-child(4){width:190px!important}
+html body #auditMonths98 .audit-table98 th:nth-child(5){width:auto!important}
+html body #auditMonths98 .audit-table98 th:nth-child(6){width:145px!important}
+html body #auditMonths98 .audit-table98 :is(th,td).audit-action1434,html body #auditMonths98 .audit-table98 [data-audit-action1434]{width:96px!important;min-width:96px!important;padding:6px!important}
+html body #auditMonths98 .audit-action1434 button{width:auto!important;min-width:64px!important;height:32px!important}
+html body #auditMonths98 .table-container{overflow-x:auto!important}
+html body #auditMonths98 .audit-expand-cell{padding:8px!important;text-align:center!important}
+html body .history-summary14360{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:12px 0!important;background:transparent!important}
+html body #sub-users-workspace>.personal-tabs1437.section-menu-source14355{display:none!important}
+html body #subUserWorkspacePanel .v49-desktop-user-header{height:auto!important;overflow:visible!important}
+html body #subUserWorkspacePanel .v49-desktop-user-actions{padding:8px 0!important}
+html body #personalWorkspace1437 .personal-history1437{padding:0!important;overflow:hidden}
+html body #personalWorkspace1437 .personal-history1437 .period-summary-grid{margin:12px!important}
+html body #personalWorkspace1437 .personal-history1437>footer{padding:12px!important;justify-content:flex-end}
+html body #periodTransactionsBody td[rowspan]:first-child{white-space:nowrap!important;min-width:105px!important}
+html body #period-review .period-review-table th:first-child{width:110px!important}
+}
+
+.team-tabs14230 button[aria-haspopup=menu]::after{content:"▾";margin-left:6px;font-size:10px}

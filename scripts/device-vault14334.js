@@ -10,7 +10,7 @@
     Object.defineProperty(window, "sessionStorage", {
       value: window.parent.sessionStorage,
     });
-    for (const e of ["pointerdown", "keydown", "touchstart", "wheel"])
+    for (const e of ["pointerdown", "pointermove", "keydown", "touchstart", "wheel", "input", "change", "scroll"])
       window.addEventListener(e, (event) => {
         if (event.isTrusted) window.deviceVault14334.touch();
       }, {
@@ -107,6 +107,7 @@
       return null;
     }
   }
+  let lastActivityAt14360=0,lastActivityWrite14360=0;
   function activity() {
     try {
       return Number(rawLocal.getItem(P + actor + ":activity") || 0);
@@ -117,7 +118,7 @@
   function expired() {
     const s = session(),
       now = Date.now(),
-      at = Math.max(s?.at || 0, activity());
+      at = Math.max(s?.at || 0, activity(),lastActivityAt14360);
     return (
       !s ||
       s.actor !== actor ||
@@ -140,12 +141,13 @@
     if (document.hidden) return;
     const now = Date.now();
     const s = session();
-    s.at = now;
-    rawSession.setItem(P + "session", JSON.stringify(s));
-    rawLocal.setItem(P + actor + ":activity", String(now));
+    lastActivityAt14360=now;
+    if(now-lastActivityWrite14360<5000)return;
+    lastActivityWrite14360=now;s.at=now;
+    try{rawSession.setItem(P + "session", JSON.stringify(s));rawLocal.setItem(P + actor + ":activity", String(now))}catch{}
   }
   function activate(id, key) {
-    actor = id;
+    actor = id;lastActivityAt14360=Date.now();lastActivityWrite14360=0;
     secret = key;
     locked = false;
     const now = Date.now(),
@@ -729,7 +731,7 @@
       return DAY;
     },
   };
-  for (const e of ["pointerdown", "keydown", "touchstart", "wheel"])
+  for (const e of ["pointerdown", "pointermove", "keydown", "touchstart", "wheel", "input", "change", "scroll"])
     window.addEventListener(e, (event) => { if (event.isTrusted) touch(); }, { passive: true, capture: true });
   window.addEventListener("pageshow", checkDeadline);
   document.addEventListener("visibilitychange", () => {

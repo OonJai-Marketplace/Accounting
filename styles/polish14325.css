@@ -17,7 +17,7 @@
  html body #journalEntry98#journalEntry98#journalEntry98 .voucher-pick14299{grid-column:3!important}
  html body #journalEntry98#journalEntry98#journalEntry98 .entry-mode1430{grid-column:4!important;min-width:0!important;width:max-content!important}
  html body #journalEntry98 .entry-mode1430>span{display:none!important}
- html body #journalEntry98#journalEntry98#journalEntry98 #jeEntryMode1430{width:110px!important;min-width:110px!important;padding:4px 10px!important;background:#176249!important;border:1px solid #176249!important;color:#fff!important;white-space:nowrap!important}
+ html body #journalEntry98#journalEntry98#journalEntry98 #jeEntryMode1430{width:110px!important;min-width:110px!important;height:32px!important;min-height:32px!important;max-height:32px!important;border-radius:6px!important;font-size:12px!important;font-weight:600!important;line-height:1.2!important;padding:4px 10px!important;background:#176249!important;border:1px solid #176249!important;color:#fff!important;white-space:nowrap!important}
  html body #journalEntry98#journalEntry98#journalEntry98 #jeEntryMode1430[data-mode=double]{background:#008563!important;border-color:#008563!important}
  html body #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid :is(#jeGeneralMemo,.je-select,.oj-date-button104,#jeEntryMode1430){height:36px!important;min-height:36px!important;max-height:36px!important;box-sizing:border-box!important}
  html body #journalEntry98 .direction-toggle1439{background:#176249!important;border-color:#176249!important;color:#fff!important}

@@ -11,7 +11,7 @@ body.shell113 #appSidebar .nav-header .nav-icon113 img{filter:none!important;wid
 body.shell113 #appSidebar .nav-header .nav-icon113 svg{color:inherit!important}
 .doc-menu-icon1426 svg{width:18px;height:18px;display:block;flex-shrink:0}
 
-body.shell113 #appSidebar .nav-header .nav-icon113{color:inherit!important}
+body.shell113 #appSidebar .nav-header :is(.nav-icon113,.nav-icon100){color:inherit!important}
 .download-options14311{display:grid;gap:12px}.download-options14311>button{justify-self:end}.download-options14311 label:not(.download-check14311){display:grid;gap:5px}.download-options14311 input:not([type=checkbox]),.download-options14311 select{padding:8px;max-width:100%;box-sizing:border-box}.download-options14311 p,.download-options14311 small{font-size:12px;line-height:1.5}.download-history14311{overflow:auto;max-height:55vh}.download-history14311 table{border-collapse:collapse;width:100%}.download-history14311 th,.download-history14311 td{padding:8px;border:1px solid #b8c9be;text-align:left;font-size:12px}.download-history14311 input{color:#173c2e;background:#fffaf1;min-width:140px}.doc-download-settings14311{margin-left:auto;display:inline-flex;align-items:center;gap:5px}.doc-download-settings14311 svg{width:17px;height:17px}
 
 /* Match custom navigation icons to the standard icon treatment. */
