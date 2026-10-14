@@ -5331,6 +5331,13 @@ html body #transactions-all #userEntryHistoryCards .submission-recon14345 td:nth
 html body #transactions-all #userEntryHistoryCards .final-overall td{font-weight:700!important}
 }
 
+@media screen and (min-width:641px){
+html body #transactions-all #userEntryHistoryCards :is(.final-record-card,.history-source14356,.final-account-totals,.submission-recon14345,.final-scroll-table,.recon-scroll14345){border:1px solid #bed3c7!important;box-shadow:none!important}
+html body #transactions-all #userEntryHistoryCards :is(.final-scroll-table,.table-module109,.recon-scroll14345){max-width:100%!important;scrollbar-gutter:auto!important}
+html body #transactions-all #userEntryHistoryCards :is(th,td){border:1px solid #d6e2db!important}
+html body #transactions-all #userEntryHistoryCards .final-section-title{border-bottom:1px solid #bed3c7!important}
+}
+
 
 /* styles/carry-forward-v142.css */
 #carryForward142{margin:14px 0 22px;padding:16px;border:1px solid var(--border-color,#c9d5ca);border-radius:12px;background:var(--card-bg,#faf8f0)}

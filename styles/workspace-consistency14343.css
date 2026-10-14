@@ -105,3 +105,11 @@ html body dialog.connection-dialog14239{width:min(540px,calc(100vw - 28px))!impo
  html body td.app-empty14355{height:118px;vertical-align:middle}
  html body .submission-empty14355{gap:5px}
 }
+
+@media screen and (min-width:641px){
+html body.scroll-navigation14344 #categoryTabShell{margin:0!important;padding:0!important;height:37px!important;min-height:37px!important;max-height:37px!important}
+html body.scroll-navigation14344 #categoryTabs{height:36px!important;min-height:36px!important;max-height:36px!important;margin:0!important;padding:0!important}
+html body.scroll-navigation14344 #categoryTabs .category-tab{height:36px!important;min-height:36px!important;padding:0 12px!important}
+html body.scroll-navigation14344 #categoryTabShell+.area-banner113{margin-top:4px!important}
+html body #journal :is(.je-card,.table-module109,.orange-module14231){border-top-color:#24634c!important}
+}

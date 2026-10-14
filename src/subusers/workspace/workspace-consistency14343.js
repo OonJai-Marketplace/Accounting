@@ -24,10 +24,9 @@ function layout(){
   if(shell&&hero&&shell.firstElementChild!==hero)shell.prepend(hero);
   if(hero&&tabs){place(shell,tabs,hero);next.push(tabs)}
  }else{
-  // The shared banner leads the page; main navigation follows it.
-  anchor=place(panel,banner,null);
+  // Main tabs lead the page, followed directly by the shared banner.
   for(const node of [sharedHeader,sharedTabs,panel.dataset.module==='settings'?document.getElementById('settingsSections14335'):null,panel.id==='sub-users-workspace'?document.querySelector('.sub-user-tabs-shell'):null,...panel.querySelectorAll(rowSelector)]){
-   if(!node)continue;anchor=place(panel,node,anchor);next.push(node);
+   if(!node)continue;anchor=place(panel,node,anchor);next.push(node);if(node===sharedTabs)anchor=place(panel,banner,anchor);
   }
  }
  for(const row of rows)if(!next.includes(row)){row.classList.remove('sticky-tabs14344');row.style.removeProperty('--tab-top14344')}
