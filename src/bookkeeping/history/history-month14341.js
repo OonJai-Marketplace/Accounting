@@ -5,16 +5,24 @@ function control(key,month){return '<label class="history-month14341 no-print"><
 const searches=new Map();
 function position(host,input){
  const label=input.closest('.history-month14341');if(!label)return;
- let header=host.querySelector('.history-header14342');
- if(!header){header=document.createElement('header');header.className='history-header14342';host.prepend(header)}
- let title=header.querySelector('[data-history-title14359]')||header.querySelector('h3');
- if(!title){title=document.createElement('h3');title.dataset.historyTitle14359='';header.prepend(title)}
- title.textContent=new Date(input.value+'-01T12:00:00Z').toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'});
- let actions=header.querySelector('.archive-month-actions,.actions82');if(!actions){actions=document.createElement('div');actions.className='archive-month-actions';header.append(actions)}
- if(!actions.contains(label))actions.append(label);
+ const key=input.dataset.historyMonth14341;
+ const titles={journal:'Journal History',submitted:'Submission History',budget:'Budget Request History',audit:'Audit Logs',reports:'Report History',payroll:'Payroll History'};
+ const container=host.closest('.settings-section-card,.je-card,.work82');
+ let header=container?.querySelector(':scope>.settings-section-header,:scope>.je-card-header')||host.querySelector(':scope>.work82>header,:scope>header:has(h2)');
+ if(!header?.querySelector('h2,h3,h4'))header=host.querySelector('.history-header14342');
+ if(!header){header=document.createElement('header');host.prepend(header)}header.classList.add('history-header14342');
+ let title=header.querySelector('h2,h3,h4');if(!title){title=host.querySelector(':scope>h3')||document.createElement('h3');header.prepend(title)}
+ if(titles[key])title.textContent=titles[key];else if(!title.textContent||/^\w+ \d{4}$/.test(title.textContent))title.textContent=key.startsWith('employee-history:')?'Submission History':'History';
+ for(const old of header.querySelectorAll('[data-history-month14341]'))if(old!==input&&old.dataset.historyMonth14341===key)old.closest('.history-month14341')?.remove();
+ const inner=host.querySelector('.history-header14342');if(inner&&inner!==header){for(const button of inner.querySelectorAll('button'))if(!button.closest('.history-month14341'))header.append(button);inner.remove()}
+ let actions=header.querySelector('.archive-month-actions,.actions82,.page-header-actions14301');if(!actions){actions=document.createElement('div');actions.className='archive-month-actions';header.append(actions)}actions.classList.add('archive-month-actions');
+ if(!actions.contains(label))actions.prepend(label);
+ for(const button of header.querySelectorAll(':scope>button,.page-header-actions14301>button'))if(!actions.contains(button))actions.append(button);
+ // The budget table repeats the module title; one heading is sufficient.
+ if(key==='budget')host.querySelector('.block82>header')?.remove();
  if(host.dataset.historySearch==='off')return;
- const existing=host.querySelector('input[type=search]')||host.closest('.je-card,.work82')?.querySelector('input[type=search],#historySearch80');if(existing&&!actions.contains(existing)){const oldLabel=existing.closest('label');actions.prepend(existing);if(oldLabel&&!oldLabel.querySelector('input,select,button'))oldLabel.remove()}if(existing){existing.classList.add('history-search14359');existing.placeholder='Search this month';existing.setAttribute('aria-label','Search selected month')}
- if(!host.querySelector('input[type=search]')&&!host.closest('.work82')?.querySelector('input[type=search]')){
+ const existing=header.querySelector('input[type=search]')||host.querySelector('input[type=search]')||host.closest('.je-card,.work82')?.querySelector('input[type=search],#historySearch80');if(existing&&!actions.contains(existing)){const oldLabel=existing.closest('label');actions.prepend(existing);if(oldLabel&&!oldLabel.querySelector('input,select,button'))oldLabel.remove()}if(existing){existing.classList.add('history-search14359');existing.placeholder='Search this month';existing.setAttribute('aria-label','Search selected month')}
+ if(!header.querySelector('input[type=search]')){
   const search=document.createElement('input');search.type='search';search.className='je-input history-search14359';search.placeholder='Search this month';search.setAttribute('aria-label','Search selected month');search.value=searches.get(input.dataset.historyMonth14341)||'';actions.prepend(search);
   const filter=()=>{searches.set(input.dataset.historyMonth14341,search.value);const q=search.value.trim().toLowerCase();host.querySelectorAll('.final-record-card,.report-history-row1443,.pay-group95,tbody>tr:not(.audit-detail-row)').forEach(row=>{row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)})};search.oninput=filter;filter();
  }

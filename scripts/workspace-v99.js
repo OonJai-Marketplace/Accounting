@@ -66,7 +66,7 @@ function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let
 window.releaseLogin1443=()=>endLogin();
 function endLogin(){$('loginGate')?.classList.remove('busy99');if($('loginProgress99'))$('loginProgress99').hidden=true;$('loginForm')?.removeAttribute('aria-busy');const b=$('loginForm')?.querySelector('button[type=submit]');if(b)b.disabled=false;}
 function installTablet(){
- const tablet=()=>/iPad/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&navigator.maxTouchPoints>1)||(/Android/.test(navigator.userAgent)&&!/Mobile/.test(navigator.userAgent))||(navigator.maxTouchPoints>0&&Math.min(screen.width||innerWidth,screen.height||innerHeight)>=600&&innerWidth>=600);
+ const tablet=()=>document.documentElement.dataset.device132==='tablet';
  const overlay=document.createElement('div');overlay.id='rotateTablet99';overlay.innerHTML='<div><strong>Please rotate your tablet</strong><p>Use landscape orientation for the accounting workspace. Your work is preserved.</p></div>';document.body.append(overlay);
  const toggle=document.createElement('button');toggle.id='tabletMenu99';toggle.type='button';toggle.textContent='☰';toggle.setAttribute('aria-label','Open navigation');toggle.setAttribute('aria-expanded','false');$('categoryTabShell')?.before(toggle);
  const scrim=document.createElement('button');scrim.id='tabletScrim99';scrim.setAttribute('aria-label','Close navigation');document.body.append(scrim);

@@ -25,24 +25,24 @@
  html body .tax-report102>.tax-toolbar102{display:flex;align-items:end;gap:8px;flex-wrap:wrap;min-height:54px;box-sizing:border-box}
  html body .tax-report102>.tax-toolbar102 label{margin-right:auto}
  /* Fullscreen keeps the existing permission-filtered navigation usable. */
- html[data-device132=desktop] body.workspace-full1439 #appSidebar{display:flex!important;position:fixed!important;inset:0 auto 0 0!important;width:56px!important;min-width:56px!important;max-width:56px!important;height:100dvh!important;padding:6px!important;box-sizing:border-box!important;overflow-y:auto!important;overflow-x:hidden!important;transform:none!important;gap:3px!important;z-index:650!important;background:#074532!important}
- html[data-device132=desktop] body.workspace-full1439 .main-content-area{margin-left:56px!important;width:calc(100% - 56px)!important;max-width:calc(100% - 56px)!important;min-width:0!important}
- html[data-device132=desktop] body.workspace-full1439 .workspace-scroll{padding:0 12px 46px!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar :is(.sidebar-brand h2,.universal-search108,.nav-links,.arrow,.nav-icon100,.sidebar-user-copy,.user-photo113){display:none!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .sidebar-brand{padding:0 0 6px!important;margin:0!important;min-height:44px!important;height:44px!important;max-height:44px!important;display:flex!important;justify-content:center!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .logo-tile113{width:38px!important;min-width:38px!important;max-width:38px!important;height:38px!important;min-height:38px!important;max-height:38px!important;padding:3px!important;margin:0!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .logo-tile113 img{width:100%!important;height:100%!important;object-fit:contain!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .nav-category{margin:0!important;padding:0!important;border:0!important;flex-shrink:0!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .nav-header{display:flex!important;position:relative!important;justify-content:center!important;align-items:center!important;width:40px!important;height:36px!important;min-height:36px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;font-size:0!important;gap:0!important;border:1px solid #ffffff38!important;border-radius:6px!important;background:#12654d!important;color:#fff!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .nav-header[aria-current=page]{background:#914511!important;border-color:#e5b85c!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .nav-header:focus-visible{outline:2px solid #e5b85c!important;outline-offset:-2px!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .nav-icon113{display:inline-flex!important;position:static!important;width:22px!important;height:22px!important;flex:0 0 22px!important;margin:0!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar .nav-count14311{position:absolute!important;right:-1px!important;top:-2px!important;min-width:12px!important;height:12px!important;font-size:8px!important;padding:0 2px!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar #topHeaderProfile104{display:block!important;margin-top:auto!important;width:40px!important;padding:5px 0 0!important;border:0!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar #headerAccountTrigger{width:40px!important;height:38px!important;min-height:38px!important;padding:2px!important;justify-content:center!important;gap:0!important;box-sizing:border-box!important}
- html[data-device132=desktop] body.workspace-full1439 #appSidebar #headerAccountInitials{display:flex!important;width:30px!important;height:30px!important;flex:0 0 30px!important;margin:0!important}
- html[data-device132=desktop] body.workspace-full1439 #workspaceTools108{gap:3px!important;padding:3px!important;right:6px!important;bottom:6px!important}
- html[data-device132=desktop] body.workspace-full1439 #workspaceTools108>button{width:32px!important;height:32px!important;min-height:32px!important;padding:5px!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar{display:flex!important;position:fixed!important;inset:0 auto 0 0!important;width:56px!important;min-width:56px!important;max-width:56px!important;height:100dvh!important;padding:6px!important;box-sizing:border-box!important;overflow-y:auto!important;overflow-x:hidden!important;transform:none!important;gap:3px!important;z-index:650!important;background:#074532!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) .main-content-area{margin-left:56px!important;width:calc(100% - 56px)!important;max-width:calc(100% - 56px)!important;min-width:0!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) .workspace-scroll{padding:0 12px 46px!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar :is(.sidebar-brand h2,.universal-search108,.nav-links,.arrow,.nav-icon100,.sidebar-user-copy,.user-photo113){display:none!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .sidebar-brand{padding:0 0 6px!important;margin:0!important;min-height:44px!important;height:44px!important;max-height:44px!important;display:flex!important;justify-content:center!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .logo-tile113{width:38px!important;min-width:38px!important;max-width:38px!important;height:38px!important;min-height:38px!important;max-height:38px!important;padding:3px!important;margin:0!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .logo-tile113 img{width:100%!important;height:100%!important;object-fit:contain!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .nav-category{margin:0!important;padding:0!important;border:0!important;flex-shrink:0!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .nav-header{display:flex!important;position:relative!important;justify-content:center!important;align-items:center!important;width:40px!important;height:36px!important;min-height:36px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;font-size:0!important;gap:0!important;border:1px solid #ffffff38!important;border-radius:6px!important;background:#12654d!important;color:#fff!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .nav-header[aria-current=page]{background:#914511!important;border-color:#e5b85c!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .nav-header:focus-visible{outline:2px solid #e5b85c!important;outline-offset:-2px!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .nav-icon113{display:inline-flex!important;position:static!important;width:22px!important;height:22px!important;flex:0 0 22px!important;margin:0!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar .nav-count14311{position:absolute!important;right:-1px!important;top:-2px!important;min-width:12px!important;height:12px!important;font-size:8px!important;padding:0 2px!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar #topHeaderProfile104{display:block!important;margin-top:auto!important;width:40px!important;padding:5px 0 0!important;border:0!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar #headerAccountTrigger{width:40px!important;height:38px!important;min-height:38px!important;padding:2px!important;justify-content:center!important;gap:0!important;box-sizing:border-box!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar #headerAccountInitials{display:flex!important;width:30px!important;height:30px!important;flex:0 0 30px!important;margin:0!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #workspaceTools108{gap:3px!important;padding:3px!important;right:6px!important;bottom:6px!important}
+ html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #workspaceTools108>button{width:32px!important;height:32px!important;min-height:32px!important;padding:5px!important}
  html body #user-entry-review .workflow-switch14316{margin:12px 0 16px;gap:8px}
  html body #user-entry-review .settings-page-heading{margin:0 0 12px;padding:12px 14px;border:1px solid #ccd8d1;border-top:var(--module-edge14317) solid #24634c;border-radius:7px;background:#fff}
  html body #user-entry-review .settings-page-heading h3{margin:0 0 4px;font-size:16px;color:#184b39}
@@ -74,3 +74,5 @@
 }
 
 }
+
+@layer action-finalization14317{@media screen{html[data-device132=desktop] body.compact-laptop14362 :is(.mobile-menu-toggle,#tabletMenu118){display:none!important}}}

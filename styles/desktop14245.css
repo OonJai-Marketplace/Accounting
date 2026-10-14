@@ -5353,6 +5353,7 @@ html body #transactions-all #userEntryHistoryCards :is(.final-scroll-table,.tabl
 html body #transactions-all #userEntryHistoryCards :is(th,td){border:1px solid #d6e2db!important}
 html body #transactions-all #userEntryHistoryCards .final-section-title{border-bottom:1px solid #bed3c7!important}
 }
+html body #transactions-all #userEntryHistoryCards .final-record-card{border-top:3px solid #24634c!important;margin-block:14px!important}
 
 
 /* styles/carry-forward-v142.css */

@@ -25,6 +25,7 @@ async function summary(){
  }catch(e){node.textContent='Reconciliation summaries could not load: '+e.message}
 }
 function tabletHeader(){
+
  const main=document.querySelector('.main-content-area'),menu=$('mobileMenuToggle');if(!main||!menu)return;
  let header=$('tabletHeader14353');if(!header){header=document.createElement('header');header.id='tabletHeader14353';header.className='no-print';header.innerHTML='<div class="tablet-navigation14353"><nav aria-label="Main workspaces"></nav></div>';main.prepend(header);header.querySelector('nav').onclick=e=>{const button=e.target.closest('[data-tablet-target]');if(button)$(button.dataset.tabletTarget)?.querySelector('.nav-header')?.click();};}
  const bar=header.querySelector('.tablet-navigation14353');if(menu.parentElement!==bar)bar.prepend(menu);
@@ -34,7 +35,7 @@ function tabletHeader(){
  const nav=header.querySelector('nav'),signature=categories.map(n=>n.id+':'+(n===current)+':'+label(n.querySelector('.nav-header'))).join('|');
  if(nav.dataset.signature!==signature){nav.dataset.signature=signature;nav.replaceChildren(...categories.map(category=>{const source=category.querySelector('.nav-header'),button=document.createElement('button'),name=label(source);button.type='button';button.dataset.tabletTarget=category.id;button.title=name;button.setAttribute('aria-label',name);if(category===current)button.setAttribute('aria-current','page');const icon=source.querySelector('.nav-icon113');if(icon)button.append(icon.cloneNode(true));else button.textContent=name;return button;}));}
 }
-function tablet(){const root=document.documentElement;const isTablet=root.dataset.device132==='tablet'||navigator.maxTouchPoints>1&&Math.min(screen.width,screen.height)>=600;if(!isTablet||root.dataset.device132==='phone')return;root.classList.toggle('tablet-landscape14337',matchMedia('(orientation:landscape)').matches);root.classList.toggle('tablet-portrait14337',!matchMedia('(orientation:landscape)').matches);document.body.classList.remove('sidebar-open','nav-drawer-open');$('appSidebar')?.classList.remove('mobile-open');$('mobileMenuToggle')?.setAttribute('aria-expanded','false');tabletHeader();requestAnimationFrame(tabletHeader);}
+function tablet(){const root=document.documentElement;const isTablet=root.dataset.device132==='tablet';if(!isTablet||root.dataset.device132==='phone')return;root.classList.toggle('tablet-landscape14337',matchMedia('(orientation:landscape)').matches);root.classList.toggle('tablet-portrait14337',!matchMedia('(orientation:landscape)').matches);document.body.classList.remove('sidebar-open','nav-drawer-open');$('appSidebar')?.classList.remove('mobile-open');$('mobileMenuToggle')?.setAttribute('aria-expanded','false');tabletHeader();requestAnimationFrame(tabletHeader);}
 function ready(){
  mountReconciliation();upcomingTabs();tablet();
  const render=window.renderReconciliationList71;window.renderReconciliationList71=async function(...args){mountReconciliation();await render.apply(this,args);const title=$('reconciliationList71')?.querySelector('h3');if(title)title.textContent='Reconciliation';if($('report-reconciliation')?.classList.contains('active'))await summary()};
