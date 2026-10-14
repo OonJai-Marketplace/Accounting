@@ -1,0 +1,30 @@
+const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
+(async()=>{const f=await create();try{
+ const {page,login}=await f.open();const errors=[];page.on('pageerror',e=>errors.push(e.message));f.fixture.journal=Array.from({length:130},(_,i)=>({id:'INIT-'+Math.floor(i/2),dbEntryId:'db-'+Math.floor(i/2),date:'2026-10-14',account:'Cash',currency:'LAK',debit:i%2?0:100,credit:i%2?100:0,memo:'Prepared'}));await login();const prebuilt=await page.locator('#tblJournalHistoryBody tr').count();assert.equal(prebuilt,50,'login builds a bounded journal table before it is opened');
+ const result=await page.evaluate(()=>{
+  const first=AccountingStore.accounts[0],account=first?.name||'Cash',currency=first?.currency_code||'LAK';
+  JournalModule.entries=Array.from({length:65},(_,i)=>Array.from({length:i===24?5:2},(_,line)=>({id:'TX-'+String(i).padStart(3,'0'),dbEntryId:'db-'+i,date:'2026-10-14',account,currency,memo:'Line '+line,debit:line===0?100:0,credit:line===1?100:0,archived:false}))).flat();
+  window.preparedViews14340.build();
+  const before=document.querySelector('#tblJournalHistoryBody tr');const archiveBefore=document.getElementById('archiveMonths67')?.firstElementChild;
+  switchTab('journal');const after=document.querySelector('#tblJournalHistoryBody tr');switchTab('transactions-all');const archiveReused=archiveBefore===document.getElementById('archiveMonths67')?.firstElementChild;switchTab('journal');
+  const body=document.getElementById('tblJournalHistoryBody'),firstIds=[...new Set([...body.rows].map(r=>r.dataset.entryId))],firstCount=body.rows.length;
+  const label=body.closest('.table-container').previousElementSibling.textContent;
+  const next=body.closest('.table-container').previousElementSibling.querySelector('button:last-child');next.click();
+  const secondIds=new Set([...body.rows].map(r=>r.dataset.entryId)),secondCount=body.rows.length;
+  window.pendingPosts99.set('test-request',{id:'test-request',status:'uncertain',created:new Date().toISOString(),payload:{p_transaction_date:'2026-10-14',p_memo:'Local pending',p_lines:[{account_id:first.id,currency_code:currency,debit:100,credit:0,description:'Debit'},{account_id:first.id,currency_code:currency,debit:0,credit:100,description:'Credit'}]}});
+  localFirst14333.projectJournal();refreshAllTables();
+  const pending=[...document.querySelectorAll('#tblJournalHistoryBody tr')].filter(r=>r.textContent.includes('Pending confirmation'));
+  window.pendingPosts99.get('test-request').receipt=[{entry_id:'server-123',entry_no:'GC-001'}];localFirst14333.projectJournal();refreshAllTables();
+  const receiptRows=[...document.querySelectorAll('#tblJournalHistoryBody tr')].filter(r=>r.textContent.includes('Pending confirmation'));
+  const receiptId=JournalModule.entries.find(r=>r.requestKey==='test-request')?.id;
+  window.pendingPosts99.delete('test-request');localFirst14333.projectJournal();refreshAllTables();
+  return {archiveReused,reused:before===after,firstCount,secondCount,firstIds,secondIds:[...secondIds],label,pending:pending.length,receiptId,receiptActions:receiptRows.map(r=>r.querySelector('.transaction-review-actions')?.textContent||''),pendingActions:pending.map(r=>r.querySelector('.transaction-review-actions')?.textContent||''),pageCount:document.querySelectorAll('#tblJournalHistoryBody tr').length};
+ });
+ assert(result.reused,'prepared journal DOM should be reused on navigation');
+ assert(result.firstCount>=50&&result.firstCount<=55,result.firstCount);
+ assert(result.secondCount>0&&result.secondCount<=55,result.secondCount);
+ assert(!result.firstIds.some(id=>result.secondIds.includes(id)),'entry crossed page boundary');
+ assert.match(result.label,/Page 1 of/);assert(result.pending>0,'pending entry visible');
+ assert.equal(result.receiptId,'GC-001');assert(result.receiptActions.every(s=>!s.includes('Edit')&&!s.includes('Void')));assert(result.pendingActions.every(s=>!s.includes('Edit')&&!s.includes('Void')),'pending entry must not offer confirmed actions');
+ assert(!errors.length,errors.join('\n'));console.log('PASS prepared navigation, complete-entry paging, pending posting state');
+ }finally{await f.close()}})().catch(e=>{console.error(e);process.exit(1)});

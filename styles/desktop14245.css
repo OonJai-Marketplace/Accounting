@@ -4093,6 +4093,10 @@ html body dialog#auditDetails14361{position:fixed;inset:0;width:min(1050px,calc(
 #auditMonths98 .audit-filters14361 button.period-summary-card{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:4px!important;height:auto!important;min-height:56px!important}
 #assistedAudit138 [data-assisted-detail14361]{cursor:pointer}
 #assistedAudit138 [data-assisted-detail14361]:focus-visible{outline:2px solid #8b4b19;outline-offset:-2px}
+.transaction-pages14340{align-items:center;padding:8px 12px;gap:8px}
+.transaction-pages14340[hidden]{display:none}
+.transaction-pages14340 span{font-size:12px;color:#475569;white-space:nowrap}
+.pending-entry14340{font-size:12px;color:#64748b}
 
 /* styles/workspace-v99.css */
 /* Flat, compact desktop/tablet refinements. */
