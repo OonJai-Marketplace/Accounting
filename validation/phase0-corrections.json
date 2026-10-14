@@ -1,14 +1,14 @@
 {
   "baseline_commit": "7685d59",
-  "authorization": "2026-10-13 user-authorized branch-only Phase 0 synchronization, cache, recovery and performance corrections; no production deployment, data changes or migrations.",
-  "reason": "Keep the original extraction baseline. Only these reviewed runtime files may differ; source build, asset references and all other byte hashes remain enforced.",
+  "authorization": "2026-10-14 user-authorized Version 1 UI change and live publication: move Submission History to History and restore the shared banner.",
+  "reason": "Preserve the original extraction baseline while recording the approved runtime changes, including the History layout and banner visibility.",
   "runtime_sha256": {
     "recovery.html": "4c90119e8ba874be723fa68b674fb7ca88554b885b245be281bbb0ddb591ab8e",
     "phone-sw.js": "19ca0d999b2c3b14127c587064f7fcf030d89a2a57a11e01b11a89af481400f6",
     "phone-accounting.html": "7400b0e6d59046613d43a6cfa5ce60807d968f140f578070cfa4f9010a40fb2d",
     "desktop-sw14242.js": "0a967fe5a6c20236ac79a0c9524703ca989b3f144be21c973fc4a4e3f9771f19",
     "phone.html": "403fc2f983c7a45462124558cf97eb13d13d9e3a7dc6de8092e6dffe5f14e3f1",
-    "desktop.html": "c5e8f2db25b9006607e09858369c096fb7f71ce7804009a52e705055c90710e1",
+    "desktop.html": "6551f3f2c9cf46324afa44c7bf670ca060f4f308b85716195f736a4c1f1113e5",
     "scripts/phone-runtime14242.js": "a0aff1f95242bd85f47cba8ad02c1891c9d33bbd8943c68246db7d38db7f255a",
     "scripts/device-vault14334.js": "76e65798dc657063150356af7aeb7a44dd3dcbbe1166b4c125d43e73cd6a41d7",
     "scripts/script.js": "a14013912fa72607e7b09891cd567a50085a4b36ef67dae6496545a495ad8ca7",
@@ -18,7 +18,7 @@
     "scripts/startup14257.js": "0a2977287d9b034ca206e513b1a466592c394b1d496988990f4839cd25ff1c2f",
     "scripts/desktop14245-6.js": "d76063f5dc8a81ba150b46df8339e8eef02d9d08768755c66319e563b6015230",
     "scripts/offline14239.js": "78282b5e42d80078471d2b33acc631e3e4e4ba1be5fb187c10961d541ab26bc6",
-    "scripts/desktop14245-3.js": "2c7a07f2e8525db1948ee2925004dcfe16058a14f487b7e7f4e48ac3278ba79a",
+    "scripts/desktop14245-3.js": "78b965e8a7a4064645edccb1fed716fd8b29f5e0689653c91ced7e792a5d5401",
     "scripts/desktop14245-4.js": "2c0453d45e4a4ce44116039f6a4e0b9bcb8e8b5539c603f928c237cc7b7969eb",
     "scripts/drafts1427.js": "362f277680b185982e565fe359011b751f1f9a0ac0bc9fffbb15e315bc054b17",
     "scripts/interface-v69.js": "5fabae6f6e1ed45a9a4be03bff5e43ba7bba742a875e08a0d0834c11557fa06f",
@@ -52,7 +52,11 @@
     "scripts/hr-calendar-model14306.js": "8f179ffa6963002472bb075d75385df545a94a862ae5431ee8376812acb77914",
     "scripts/workflow14253.js": "33c9bcb02235d0a95fc59e33e24544a4e64b53811bc5c25f79b8fe0f5ec783b2",
     "scripts/workspace14337.js": "f7c40add8fb8c15efc2015459b3cb9e576e2f32e198c270c787b3cfa1fbd3180",
-    "styles/workspace14337.css": "cb371ff7823d820fa82c60dd77ca7db1edf058c707d02aaeb1204b186a710911"
+    "styles/workspace14337.css": "cb371ff7823d820fa82c60dd77ca7db1edf058c707d02aaeb1204b186a710911",
+    "styles/desktop14245.css": "80812aef06098f67cc14d2d24c104992f3c1e2ac10885ebe1050334f77ee1246",
+    "styles/workspace-consistency14343.css": "04c2c3be086e2377f2f5f249da1c20cb741dc69988aa4626485142d841d42db9",
+    "styles/submission-review-v139.css": "a24517dc70511cefd9abe987f5933e34cb3ff046741a4377838bd73223f98adc",
+    "scripts/subusers-final-v53.js": "104f00ff13babae90b7835618254af428e3e9f4e22c2ea2148df77f02a2984e0"
   },
   "retired_assets": {
     "tools/desktop-source14245.html": "User-authorized obsolete-code cleanup, 2026-10-13. Input to retired full-desktop builder only; not loaded by any app entry point, manifest or service worker."

@@ -6,7 +6,7 @@
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.20"></script><script src="scripts/supabase-config.js?v=143.20"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.51-sync1"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <script src="scripts/offline14239.js?v=143.52-review2"></script>
-  <link rel="stylesheet" href="styles/desktop14245.css?v=143.41">
+  <link rel="stylesheet" href="styles/desktop14245.css?v=143.54-history">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=142.99.2">
   <script src="scripts/desktop14245-1.js?v=143.20"></script>
 <title>Oon Jai Accounting — v143.49</title>
@@ -383,6 +383,10 @@
 <!-- TAB 2: NEW TRANSACTIONS (CURRENT MONTH ONLY)                                 -->
 <!-- ---------------------------------------------------------------------------- -->
 <div id="transactions-all" class="tab-content">
+<section id="userEntryHistoryPanel" class="settings-section-card submission-history-panel" hidden>
+  <div class="settings-section-header"><div><h4>Submission History</h4><p>Posted, returned, and adjusted batches remain available for comparison and audit.</p></div></div>
+  <div id="userEntryHistoryCards" class="submission-review-cards"></div>
+</section>
 <div class="je-card">
   <div class="je-card-header">
     <div>
@@ -770,7 +774,6 @@
           <div class="settings-page-heading"><div><h3>Submission Review</h3><p>Review sub-user submissions and fund adjustments before anything reaches the official ledger.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="toggleSubmissionHistory()">History</button></div>
           <div id="userEntryReviewSummary" class="user-review-summary"></div>
           <div id="userEntryReviewCards" class="submission-review-cards"></div>
-          <section id="userEntryHistoryPanel" class="settings-section-card submission-history-panel" hidden><div class="settings-section-header"><div><h4>Submission History</h4><p>Posted, returned, and adjusted batches remain available for comparison and audit.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="toggleSubmissionHistory(false)">Close History</button></div><div id="userEntryHistoryCards" class="submission-review-cards"></div></section>
         </div>
 
         <div id="dashboard" data-module="dashboard" class="tab-content active"><div class="dash-loading112">Loading dashboard…</div></div>
@@ -1211,7 +1214,7 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
 
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.52-review2"></script>
+  <script src="scripts/desktop14245-3.js?v=143.54-history"></script>
 <script src="scripts/optional-tools14335.js?v=143.35"></script>
 
 
@@ -1310,7 +1313,7 @@
 <script src="scripts/idle-sync14341.js?v=143.53"></script>
 <link rel="stylesheet" href="styles/responsive-work14341.css?v=143.42">
 <script src="scripts/workspace-consistency14343.js?v=143.50-nav1"></script>
-<link rel="stylesheet" href="styles/workspace-consistency14343.css?v=143.49">
+<link rel="stylesheet" href="styles/workspace-consistency14343.css?v=143.54-history">
 <script src="scripts/closing-eligibility14346.js?v=143.47"></script>
 </body>
 </html>

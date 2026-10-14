@@ -56,7 +56,6 @@ html body dialog.connection-dialog14239{width:min(540px,calc(100vw - 28px))!impo
  html body.scroll-navigation14344 :is(.workflow-switch14316,.workspace-tabs14337,.personal-tabs1437).sticky-tabs14344{padding:6px 8px!important;gap:6px!important;border-bottom:1px solid #d9cbb6!important;border-radius:0!important}
  html body.scroll-navigation14344 #dashboard .dash-shell112{overflow:visible!important}
  html body.scroll-navigation14344 #dashboard .dash-hero112{margin-bottom:0!important}
- html body.scroll-navigation14344 .tab-content:not(#dashboard)>.area-banner113{display:none!important}
 }
 @media print{.sticky-tabs14344{display:none!important}}
 @media screen and (min-width:641px){
@@ -64,7 +63,6 @@ html body dialog.connection-dialog14239{width:min(540px,calc(100vw - 28px))!impo
 }
 
 @media screen and (min-width:641px){
- html body.scroll-navigation14344 .tab-content:not(#dashboard)>.area-banner113,
  html body.scroll-navigation14344 .tab-content:not(#dashboard)>.module-header{display:none!important}
  html body.scroll-navigation14344 .tab-content>.team-tabs14230{display:flex!important;width:100%;padding:4px 12px!important;border-bottom:1px solid #d9cbb6!important}
  html body.subusers-workspace-active #subUserWorkspacePanel .v49-desktop-user-heading>div:first-child{display:block!important}
