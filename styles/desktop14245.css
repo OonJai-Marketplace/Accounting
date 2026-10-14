@@ -5248,15 +5248,15 @@ body.shell113 #appSidebar .nav-category.current-module136>.nav-header:hover{back
 #transactions-all #userEntryHistoryPanel>.settings-section-header{margin-bottom:16px!important;border:0!important}
 #transactions-all #userEntryHistoryCards{display:grid;gap:12px!important;padding:0!important}
 #transactions-all #userEntryHistoryCards>.final-record-card{border:1px solid #b8d4c9;border-top:1px solid #b8d4c9;border-radius:8px;background:#fff}
-#transactions-all #userEntryHistoryCards>.final-record-card>summary{grid-template-columns:minmax(0,1fr) 74px auto 20px;gap:12px;align-items:center;background:#f0faf6;padding:12px 16px}
-#transactions-all #userEntryHistoryCards>.final-record-card>summary strong{font-size:14px;color:#064c38}
-#transactions-all #userEntryHistoryCards>.final-record-card>summary small{font-size:12px;color:#405b51}
+#transactions-all #userEntryHistoryCards>.final-record-card>:is(summary,header){grid-template-columns:minmax(0,1fr) 74px auto 20px;gap:12px;align-items:center;background:#f0faf6;padding:12px 16px}
+#transactions-all #userEntryHistoryCards>.final-record-card>:is(summary,header) strong{font-size:14px;color:#064c38}
+#transactions-all #userEntryHistoryCards>.final-record-card>:is(summary,header) small{font-size:12px;color:#405b51}
 #transactions-all #userEntryHistoryCards .history-record-meta139{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-width:0}
 #transactions-all #userEntryHistoryCards .history-record-meta139>strong{padding-right:12px;border-right:1px solid #c3d7ce;white-space:nowrap}
 #transactions-all #userEntryHistoryCards .history-record-status139{display:inline-flex;align-items:center;border:1px solid #b3dec8;border-radius:16px;background:#e9f8ef;color:#075d42!important;padding:4px 10px;text-transform:capitalize}
 #transactions-all #userEntryHistoryCards .final-record-count{display:flex;align-items:center;gap:4px;white-space:nowrap}
 #transactions-all #userEntryHistoryCards .final-record-count small{font-size:11px}
-#transactions-all #userEntryHistoryCards>.final-record-card>summary .compare-shortcut{min-height:32px}
+#transactions-all #userEntryHistoryCards>.final-record-card>:is(summary,header) .compare-shortcut{min-height:32px}
 #transactions-all #userEntryHistoryCards .final-record-content{padding:14px 16px 12px;min-width:0}
 #transactions-all #userEntryHistoryCards .final-section-title{padding:8px 0;background:transparent;color:#174f3d;font-size:12px}
 #transactions-all #userEntryHistoryCards .final-account-totals{margin-top:16px;padding-top:10px;border-top:1px solid #bad6cb}
@@ -5271,7 +5271,7 @@ body.shell113 #appSidebar .nav-category.current-module136>.nav-header:hover{back
 #transactions-all #userEntryHistoryCards .recon-scroll14345 table{min-width:700px}
 #transactions-all #userEntryHistoryCards .recon-scroll14345 th{background:#07835e;color:#fff;text-transform:uppercase;font-size:11px}
 #transactions-all #userEntryHistoryCards .recon-scroll14345 td:nth-child(n+2):nth-child(-n+4){text-align:right}
-@media(max-width:767px){#transactions-all #userEntryHistoryPanel{padding:10px!important}#transactions-all #userEntryHistoryCards .final-record-content{padding:8px}#transactions-all #userEntryHistoryCards>.final-record-card>summary{grid-template-columns:minmax(0,1fr) 44px auto 14px;gap:5px;padding:10px}#transactions-all #userEntryHistoryCards>.final-record-card>summary small{font-size:9px}}
+@media(max-width:767px){#transactions-all #userEntryHistoryPanel{padding:10px!important}#transactions-all #userEntryHistoryCards .final-record-content{padding:8px}#transactions-all #userEntryHistoryCards>.final-record-card>:is(summary,header){grid-template-columns:minmax(0,1fr) 44px auto 14px;gap:5px;padding:10px}#transactions-all #userEntryHistoryCards>.final-record-card>:is(summary,header) small{font-size:9px}}
 #user-entry-review .final-record-card>summary{grid-template-columns:minmax(0,1fr) 72px auto 20px}
 #user-entry-review .final-record-card>summary:not(:has(button)){grid-template-columns:minmax(0,1fr) 72px 20px}
 #user-entry-review .final-record-content{padding:12px;min-width:0}
@@ -5286,6 +5286,36 @@ body.shell113 #appSidebar .nav-category.current-module136>.nav-header:hover{back
   #user-entry-review .final-record-card>summary:not(:has(button)){grid-template-columns:minmax(0,1fr) 42px 14px}
   #user-entry-review .final-record-content{padding:8px}
 }
+@media screen and (min-width:641px){
+html body #transactions-all #userEntryHistoryCards>.final-record-card>header>i{display:none}
+html body #transactions-all #userEntryHistoryCards :is(.final-section-title,.table-module109){border-top:0!important;box-shadow:none!important}
+html body #transactions-all #userEntryHistoryCards .table-module109{border:0!important;margin:0!important;padding:0!important}
+html body #transactions-all #userEntryHistoryCards .final-account-totals{border-top:1px solid #beddd1!important}
+html body #transactions-all #userEntryHistoryCards :is(.final-account-totals,.submission-recon14345) td:not(:first-child){text-align:right}
+html body #transactions-all #userEntryHistoryCards .submission-recon14345 td:last-child{text-align:left}
+}
+/* Reference submission history: three connected sections, plain inline count. */
+@media screen and (min-width:641px){
+html body #transactions-all #userEntryHistoryCards>.final-record-card>:is(summary,header){display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center;gap:12px;background:#fff;border-bottom:1px solid #c5ddd3;padding:12px 16px!important}
+html body #transactions-all #userEntryHistoryCards .history-entry-count14356{display:inline!important;border:0!important;outline:0;background:none!important;box-shadow:none!important;padding:0!important;white-space:nowrap;color:#405b51;font-weight:600}
+html body #transactions-all #userEntryHistoryCards .history-record-meta139{gap:8px 12px}
+html body #transactions-all #userEntryHistoryCards .history-source14356,
+html body #transactions-all #userEntryHistoryCards .final-account-totals{border:1px solid #beddd1;border-radius:6px;overflow:hidden;margin:0 0 10px;padding:0;background:#fff}
+html body #transactions-all #userEntryHistoryCards .final-section-title{margin:0!important;padding:10px 14px!important;background:#e7f6f0!important;border-bottom:1px solid #beddd1;color:#124f3d;font-size:12px;font-weight:700;text-transform:uppercase}
+html body #transactions-all #userEntryHistoryCards .final-scroll-shell{margin:0;padding:10px 12px}
+html body #transactions-all #userEntryHistoryCards .final-scroll-table{border:1px solid #d8e5df;border-radius:5px;overflow:auto}
+html body #transactions-all #userEntryHistoryCards table{width:100%;border-collapse:collapse}
+html body #transactions-all #userEntryHistoryCards th{background:#007c5c!important;color:#fff!important;font-weight:700;text-transform:uppercase;padding:8px 12px!important;border-right:1px solid #ffffff24}
+html body #transactions-all #userEntryHistoryCards td{background:#fffdf8;padding:7px 12px!important;border:1px solid #dce7e1}
+html body #transactions-all #userEntryHistoryCards .final-overall td{background:#e7f6f0!important;color:#07553e;font-weight:700}
+html body #transactions-all #userEntryHistoryCards .submission-recon14345{margin:12px 0 0!important;padding:14px!important;border:1px solid #beddd1!important;border-radius:6px;background:#fff}
+html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3{font-size:15px;text-transform:none;margin:0 0 4px}
+html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3::before,
+html body #transactions-all #userEntryHistoryCards .submission-recon14345 h3::after{content:none!important;display:none!important}
+html body #transactions-all #userEntryHistoryCards .submission-recon14345 :is(i,svg,.icon,.header-icon112){display:none!important}
+html body #transactions-all #userEntryHistoryCards .recon-scroll14345{border:1px solid #d8e5df;border-radius:5px;overflow:auto}
+}
+
 
 /* styles/carry-forward-v142.css */
 #carryForward142{margin:14px 0 22px;padding:16px;border:1px solid var(--border-color,#c9d5ca);border-radius:12px;background:var(--card-bg,#faf8f0)}
