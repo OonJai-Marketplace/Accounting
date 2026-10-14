@@ -23,7 +23,7 @@
     if(summary)summary.textContent=legacyState==='error'?'Review queue could not be fully loaded':legacyState==='loading'?'Checking submitted entries…':count?`${count} item${count===1?'':'s'} waiting`:'No submissions awaiting approval';
     if(badge){badge.textContent=count;badge.hidden=!count}
     host.classList.toggle('review-empty139',!count);
-    if(!count){host.querySelector('.period-empty')?.remove()}
+    if(!count){host.querySelector('.period-empty')?.remove();if(legacyState==='ready')host.innerHTML='<div class="submission-empty14355 app-empty14355" role="status"><strong>No submissions awaiting approval</strong><p>Completed submissions are available in History.</p></div>';if(summary&&legacyState==='ready')summary.textContent=''}
     if(legacyState==='error')host.insertAdjacentHTML('beforeend',`<p class="review-load-error139" role="alert">Could not check single-entry submissions: ${esc(legacyError)}. Reload the review queue before closing the year.</p>`);
     for(const id of containers){document.getElementById(id)?.querySelectorAll('[data-record-key]').forEach(card=>{if(opened.has(card.dataset.recordKey))card.open=true})}
   };
