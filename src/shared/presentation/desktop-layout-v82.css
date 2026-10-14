@@ -2,7 +2,7 @@
 @media(min-width:1025px){
 #journal .add-row81{display:none!important}#journal .je-actions-bar button[onclick="addJournalLineRow()"]{display:inline-flex!important;order:2}#journal .je-actions-bar button[onclick="clearJournalEntry()"]{order:5}#btnPostJournal{order:6}
 #journal .move-line82{display:inline-flex!important;order:3;align-items:center;justify-content:center;width:34px;height:32px;padding:0!important}.move-line82:disabled{opacity:.4}
-#jeLinesBody tr.selected82{outline:2px solid #059669;outline-offset:-2px}#jeLinesBody tr.selected82 td{background-color:#ecfdf5}
+
 #journal .transaction-date-field{width:max-content!important;max-width:none!important;flex:0 0 auto!important;position:relative}
 #journal .transaction-date-field .je-label-row{width:max-content!important}
 #journal .transaction-date-field #jeTransDate{position:absolute!important;opacity:0;pointer-events:none;width:1px!important;height:1px!important;bottom:0}

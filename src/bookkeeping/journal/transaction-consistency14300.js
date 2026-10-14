@@ -51,14 +51,9 @@ function schedule(){if(!queued){queued=true;requestAnimationFrame(polish)}}
 const switchBefore=window.switchTab;
 window.switchTab=function(...args){const result=switchBefore.apply(this,args);syncTab();return result};
 window.polishAudit14300=function(){
- const root=document.getElementById('auditMonths98');if(!root)return;
- for(const card of root.querySelectorAll('.audit-month98')){
-  const summary=card.querySelector(':scope>summary');if(!summary)continue;
-  if(!card.dataset.aligned99){const title=summary.querySelector('.audit-month-title98'),counts={edit:0,void:0,destructive:0,info:0};summary.querySelectorAll('.audit-count98').forEach(n=>{const key=Object.keys(counts).find(k=>n.classList.contains(k));if(key)counts[key]+=Number(n.querySelector('b')?.textContent||0)});if(title){summary.replaceChildren(title);for(const [key,label] of [['edit','Updated'],['void','Voided'],['destructive','Deleted'],['info','Other actions']]){if(!counts[key])continue;const span=document.createElement('span');span.className='audit-stat99 '+key;span.innerHTML='<small>'+label+'</small><b>'+counts[key]+'</b>';summary.append(span)}}card.dataset.aligned99='true'}
-  if(typeof window.deleteAuditMonth1434==='function'&&liveProfile?.role==='admin'&&!summary.querySelector('[data-delete-audit1434]')&&/^\d{4}-\d{2}$/.test(card.dataset.month98||'')){
-   const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-danger no-print';b.dataset.deleteAudit1434=card.dataset.month98;b.textContent='Delete entire month';b.onclick=e=>{e.preventDefault();e.stopPropagation();deleteAuditMonth1434(b.dataset.deleteAudit1434)};summary.append(b);
-  }
- }
+ const root=document.getElementById('auditMonths98'),actions=root?.querySelector('.archive-month-actions'),month=root?.querySelector('[data-history-month14341="audit"]')?.value;
+ if(!actions||!/^\d{4}-\d{2}$/.test(month||'')||liveProfile?.role!=='admin'||typeof window.deleteAuditMonth1434!=='function'||actions.querySelector('[data-delete-audit1434]'))return;
+ const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-danger no-print';b.dataset.deleteAudit1434=month;b.textContent='Delete entire month';b.onclick=()=>deleteAuditMonth1434(month);actions.append(b);
 };
 const auditBefore=window.renderVoidedTransactionsTable;
 if(typeof auditBefore==='function')window.renderVoidedTransactionsTable=function(...args){const result=auditBefore.apply(this,args);window.polishAudit14300();return result};

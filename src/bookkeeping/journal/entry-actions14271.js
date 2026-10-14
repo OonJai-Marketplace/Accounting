@@ -7,9 +7,7 @@ const body=()=>document.getElementById(single()?'simpleRows1430':'jeLinesBody');
 const rows=()=>[...body()?.children||[]].filter(n=>n.matches(single()?'.simple-row1430':'tr'));
 const allowed=()=>{const root=card(),target=root?.dataset.personalOwner1437?'sub-users-workspace':'journal';return !window.access113||window.access113.can(target,'edit')||window.access113.can(target,'post')};
 function choose(row){
- const root=card();root?.querySelectorAll('.selected-entry-row14271').forEach(n=>{n.classList.remove('selected-entry-row14271');n.removeAttribute('aria-selected')});
  selected=row&&rows().includes(row)?row:null;
- if(selected){selected.classList.add('selected-entry-row14271');selected.setAttribute('aria-selected','true')}
  const remove=document.getElementById('deleteEntryRow14271');if(remove)remove.disabled=!selected||!allowed();
 }
 function active(){return selected&&rows().includes(selected)?selected:null}

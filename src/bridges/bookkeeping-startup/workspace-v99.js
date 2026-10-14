@@ -22,12 +22,6 @@ function polish(){
  }menu(cell);
  });
  document.querySelectorAll('#jeHeaderRow .add-row81,#lineUp82,#lineDown82').forEach(n=>n.hidden=true);
- document.querySelectorAll('#auditMonths98 .audit-month98').forEach(card=>{
- if(card.dataset.aligned99)return;card.dataset.aligned99='true';const summary=card.querySelector('summary'),title=summary.querySelector('.audit-month-title98');if(!title)return;
- const counts={edit:0,void:0,destructive:0,info:0};summary.querySelectorAll('.audit-count98').forEach(n=>{const key=Object.keys(counts).find(k=>n.classList.contains(k));if(key)counts[key]+=Number(n.querySelector('b')?.textContent||0)});
- summary.replaceChildren(title);for(const [key,label] of [['edit','Updated'],['void','Voided'],['destructive','Deleted'],['info','Other actions']]){if(!counts[key])continue;const span=document.createElement('span');span.className='audit-stat99 '+key;span.innerHTML='<small>'+label+'</small><b>'+counts[key]+'</b>';summary.append(span)}
- card.style.setProperty('--archive-grid85','minmax(190px,1fr) repeat(4,minmax(80px,12%))');
- });
  document.querySelectorAll('[data-auto-close99]').forEach(armCollapse);
  updateHeading();
 }

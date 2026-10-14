@@ -1,6 +1,4 @@
-/* Hidden administrator customization: artwork does not advertise interaction. */
-body .header-icon112,body .header-icon112:is(:hover,:active,:focus,:focus-visible,:disabled){cursor:default!important;outline:none!important;box-shadow:none!important;filter:none!important;transform:none!important;opacity:1!important;transition:none!important}
-body .header-icon112:is(:hover,:active,:focus,:disabled){background:color-mix(in srgb,var(--header-icon-color112,#18533f) 12%,#fffaf1)!important;border-color:color-mix(in srgb,var(--header-icon-color112,#18533f) 32%,#f9f0df)!important;color:var(--header-icon-color112,#18533f)!important}
+:active,:focus,:focus-visible,:disabled){cursor:default!important;outline:none!important;box-shadow:none!important;filter:none!important;transform:none!important;opacity:1!important;transition:none!important}:active,:focus,:disabled){background:color-mix(in srgb,var(--header-icon-color112,#18533f) 12%,#fffaf1)!important;border-color:color-mix(in srgb,var(--header-icon-color112,#18533f) 32%,#f9f0df)!important;color:var(--header-icon-color112,#18533f)!important}
 /* Persistent notices must be readable, scrollable and dismissible. */
 #status118{pointer-events:auto;box-sizing:border-box;max-height:75dvh;overflow:auto}
 #status118 .status-copy118{min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}

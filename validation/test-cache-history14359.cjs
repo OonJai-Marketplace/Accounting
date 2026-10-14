@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
+(async()=>{const f=await create();try{
+ const {page,login}=await f.open(),errors=[];page.on('pageerror',e=>errors.push(e.message));await login();
+ for(const width of [1440,1024]){
+  await page.setViewportSize({width,height:900});await page.evaluate(()=>switchTab('journal'));
+  const toggle=page.locator('#jeEntryMode1430');assert.equal(await toggle.innerText(),'Single Entry');await toggle.click();assert.equal(await toggle.innerText(),'Double Entry');assert(await page.locator('#journalEntry98').evaluate(n=>n.classList.contains('single-entry1430')));await toggle.click();
+  await page.locator('#jeLinesBody tr').first().click({position:{x:5,y:5}});assert.equal(await page.locator('#jeLinesBody .selected82,#jeLinesBody .table-selected107,#jeLinesBody .selected-entry-row14271').count(),0);assert.equal(await page.locator('#deleteEntryRow14271').isDisabled(),false);
+  assert.equal(await page.locator('.header-icon112,#headerIconPicker112').count(),0);
+  await page.evaluate(()=>{LiveTransactionAudit=[{id:'oct',created_at:'2026-10-01',action:'UPDATE',reason:'October audit'},{id:'sep',created_at:'2026-09-01',action:'UPDATE',reason:'September audit'}];switchTab('transactions-voided');renderVoidedTransactionsTable()});
+  const month=page.locator('[data-history-month14341="audit"]');await month.fill('2026-09');await month.dispatchEvent('change');await page.waitForTimeout(100);assert.match(await page.locator('#auditMonths98').innerText(),/September audit/);assert.doesNotMatch(await page.locator('#auditMonths98').innerText(),/October audit/);assert.equal(await page.locator('#auditMonths98 details.audit-month98').count(),0);
+  await page.locator('#categoryTabs [data-target="transactions-all"]').click();await page.getByRole('menuitemradio',{name:'Submitted Entries',exact:true}).click();assert.equal(await page.locator('[data-history-month14341="submitted"]').count(),1);
+  await page.screenshot({path:'/tmp/history14359-'+width+'.png'});
+ }
+ const start=f.requests.length;await page.reload();await page.waitForFunction(()=>window.startup14257?.prepared);const warm=f.requests.slice(start);assert(!warm.some(x=>/journal_window14333|payroll_window14334|staff_journal_lines/.test(x)));assert(!errors.length,errors.join('\n'));console.log('PASS desktop/tablet mode, removed highlighting, monthly filtering and cache restore',warm.length,'requests');
+ const phone=await f.open('phone','staff');phone.page.on('pageerror',e=>errors.push(e.message));await phone.login();await phone.page.locator('[data-page="post"]').first().click();const mode=phone.page.locator('[data-action="mode"]');assert.match(await mode.innerText(),/Double entry/);await mode.click();assert.match(await mode.innerText(),/Single entry/);await phone.page.locator('[data-page="history"]').first().click();assert.equal(await phone.page.locator('#month').count(),1);assert.equal(await phone.page.locator('#historySearch14359').count(),1);await phone.page.screenshot({path:'/tmp/phone-history14359.png'});
+ const n=f.requests.length;await phone.page.reload();await phone.page.waitForFunction(()=>window.PhoneWorkspace14242?.ready());assert(!f.requests.slice(n).some(x=>/staff_journal_lines|fund_balances136/.test(x)));assert(!errors.length,errors.join('\n'));console.log('PASS phone mode, monthly history, search, and cache restore');
+}finally{await f.close()}})().catch(e=>{console.error(e);process.exit(1)});

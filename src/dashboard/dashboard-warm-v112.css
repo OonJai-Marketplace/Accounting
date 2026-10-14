@@ -155,28 +155,8 @@ body .doc-images-dialog112 .doc-image-fields112 input{width:100%;min-width:0;fon
 body .doc-images-dialog112 .doc-image-card112>small{font-size:10px;color:#887563}
 body #document-editor105 .doc-actions105 input[type=file][hidden],body #document-editor105 #docDesign108[hidden]{display:none!important}
 @media(max-width:700px){body .doc-images-dialog112 .doc-image-settings109{grid-template-columns:1fr}}
-/* One header control for page titles, with a stable warm palette. */
-body .header-icon112{display:inline-grid;place-items:center;vertical-align:middle;flex:0 0 auto;width:34px;height:34px;margin:0 10px 1px 0;padding:6px!important;border:1px solid color-mix(in srgb,var(--header-icon-color112,#18533f) 32%,#f9f0df)!important;border-radius:9px!important;background:color-mix(in srgb,var(--header-icon-color112,#18533f) 12%,#fffaf1)!important;color:var(--header-icon-color112,#18533f)!important;cursor:pointer;box-shadow:none!important}
-body .header-icon112 svg,body .header-icon112 img{width:21px;height:21px;object-fit:contain}
-body .header-icon112:hover,body .header-icon112:focus-visible{outline:2px solid #d5a750;outline-offset:2px}
-body .dash-hero112 .header-icon112{width:44px;height:44px;vertical-align:4px}
-body .dash-hero112 .header-icon112 svg{width:29px;height:29px}
+/* One header control for page titles{display:inline-grid;place-items:center;vertical-align:middle;flex:0 0 auto;width:34px;height:34px;margin:0 10px 1px 0;padding:6px!important;border:1px solid color-mix(in srgb,var(--header-icon-color112,#18533f) 32%,#f9f0df)!important;border-radius:9px!important;background:color-mix(in srgb,var(--header-icon-color112,#18533f) 12%,#fffaf1)!important;color:var(--header-icon-color112,#18533f)!important;cursor:pointer;box-shadow:none!important}
 body .ui-dialog108 .header-icon-help112{line-height:1.55;color:#594938}
-body .ui-dialog108 .header-defaults112,body .ui-dialog108 .header-palette112{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0 16px}
-body .ui-dialog108 .header-defaults112 button{display:grid;place-items:center;min-width:90px;gap:3px;padding:9px;border:1px solid #d9c9a8;border-radius:9px;background:#fff9ed;color:#21523c;text-transform:capitalize;cursor:pointer}
-body .ui-dialog108 .header-defaults112 svg{width:26px;height:26px}
-body .ui-dialog108 .header-search112{display:flex;gap:8px}
-body .ui-dialog108 .header-search112 input{flex:1;min-width:0}
-body .ui-dialog108 .header-results112{display:grid;grid-template-columns:repeat(auto-fill,minmax(75px,1fr));max-height:180px;overflow:auto;gap:6px;padding:8px 0}
-body .ui-dialog108 .header-results112 button{min-width:0;padding:6px;border:1px solid #e4d6bb;border-radius:6px;background:#fffaf1;cursor:pointer;overflow:hidden}
-body .ui-dialog108 .header-results112 img{width:25px;height:25px;display:block;margin:auto}
-body .ui-dialog108 .header-results112 small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px}
-body .ui-dialog108 .header-upload112{position:relative;display:inline-flex;align-items:center;min-height:34px;padding:6px 12px;border-radius:7px;border:1px solid #bbab88;background:#f8edda;color:#22513e;cursor:pointer;font-weight:600}
-body .ui-dialog108 .header-upload112 input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-body .ui-dialog108 .header-palette112 button{display:flex;align-items:center;gap:5px;border:1px solid #d5c5a8;border-radius:20px;background:#fff9ef;padding:6px 9px;color:#42372b;text-transform:capitalize;cursor:pointer}
-body .ui-dialog108 .header-palette112 button[aria-pressed=true]{outline:2px solid #bd8640;outline-offset:2px}
-body .ui-dialog108 .header-palette112 i{width:17px;height:17px;border-radius:50%;background:var(--swatch112)}
-body .ui-dialog108 .header-status112{min-height:1.3em;color:#745527}
 /* Inventory editing remains inside the active workspace and above its tables. */
 body .tab-content.active .im-edit-overlay112{position:fixed;inset:0;z-index:1450;display:grid;place-items:center;padding:18px;background:#201b13a3;overflow:auto}
 body .tab-content.active .im-edit-overlay112>.im-card104{width:min(820px,100%);max-height:calc(100dvh - 36px);overflow:auto;margin:0;border:1px solid #d5be91;border-top:5px solid #ba8742;border-radius:13px;box-shadow:0 22px 70px #19150e60;background:#fffcf6}

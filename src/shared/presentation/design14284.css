@@ -94,8 +94,6 @@
  html body #dashboard .dash-flow112 footer{border-top-color:#ffffff35!important}
  html body #dashboard .dash-flow-step112{color:#fff!important}
  html body #dashboard .dash-flow112 .dash-flow-arrow112{color:#e4c797!important}
- html body #dashboard .dash-flow112 .header-icon112{background:#27674f!important;border-color:#7a9c88!important;color:#fffaf0!important}
- html body #dashboard .dash-flow112 .header-icon112 svg{color:#fffaf0!important;stroke:#fffaf0!important}
  html body #dashboard .dash-flow-medallion112{background:#f0d7ab!important;color:#5e391a!important}
  html body #dashboard .dash-metric-copy112 strong{font-family:'Plus Jakarta Sans',Arial,sans-serif!important;font-size:23px!important;line-height:1.2!important;color:#174b39!important}
  html body #dashboard :is(.dash-card112,.dash-metric112) :is(h2,h3){font-family:'Plus Jakarta Sans',Arial,sans-serif!important;color:#184b39!important;font-size:16px!important}

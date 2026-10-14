@@ -1,5 +1,5 @@
 let selectedLine82=null;
-function selectLine82(row){selectedLine82=row;document.querySelectorAll('#jeLinesBody tr').forEach(r=>r.classList.toggle('selected82',r===row));syncMove82()}
+function selectLine82(row){selectedLine82=row;syncMove82()}
 function syncMove82(){if(!selectedLine82?.isConnected)selectedLine82=null;const rows=[...document.querySelectorAll('#jeLinesBody tr')],i=rows.indexOf(selectedLine82);document.getElementById('lineUp82')?.toggleAttribute('disabled',i<=0);document.getElementById('lineDown82')?.toggleAttribute('disabled',i<0||i===rows.length-1)}
 function moveLine82(direction){if(!selectedLine82?.isConnected)return;const neighbor=direction<0?selectedLine82.previousElementSibling:selectedLine82.nextElementSibling;if(!neighbor)return;if(direction<0)neighbor.before(selectedLine82);else neighbor.after(selectedLine82);syncMove82();selectedLine82.scrollIntoView({block:'nearest'})}
 function dateLabel82(){const n=document.getElementById('jeTransDate');if(!n)return;const [y,m,d]=n.value.split('-').map(Number);return n.value?new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Select date'}

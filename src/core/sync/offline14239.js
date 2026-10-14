@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const nativeFetch=window.fetch.bind(window),readRPC=new Set(['workflow_capabilities14253','current_access14228','accounting_workspace_allowed123','is_admin','branch_home14229','review_directory14229','review_inbox14229','fund_balances136','team_funds113','staff_report1434','report_history14229','approved_report1443','book_sessions_list136','reminder_load14229','opening_status14234','workspace_context138','workspace_live_activity_v49','audit_month1434','employee_photo113','journal_window14333','payroll_window14334','journal_receipt14228','password_change_status14257','preview_journal_number14257','installation_status14320']);
 const actor=()=>typeof liveProfile!=='undefined'?liveProfile?.id||'':'',scope=()=>String(window.OJM_SUPABASE_URL||location.origin),prefix=id=>'ojm-offline14239:'+scope()+':'+id+':';
-let reachable=navigator.onLine,syncing=false,lastRead=null,storageError='',cacheDB,dialog,shellReady=false,visibleActor='',connectionError='',notificationPending=false,queueRevision=0,cacheRevision14333=0,lastNotification='',freshReadDepth14338=0;
+let reachable=navigator.onLine,syncing=false,lastRead=null,storageError='',cacheDB,dialog,shellReady=false,visibleActor='',connectionError='',notificationPending=false,queueRevision=0,cacheRevision14333=0,lastNotification='',freshReadDepth14338=0,cacheReadDepth14359=0;
 const canonical=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
 const memory=new Map();
 const storageFailures14335=new Map();let checkingStorage14335=false,storageCheck14335='';
@@ -25,6 +25,7 @@ async function readCopy(key){if(!key)return null;try{if(memory.has(key))return m
 function fromCopy(row){cacheRevision14333++;lastRead=row.at;changed();return new Response(row.body,{status:row.status,headers:{...row.headers,'X-OJM-Cached':row.at}})}
 function offline(){return navigator.onLine===false||!reachable||(window.sessionCache14333?.localMode===true||window.deviceVault14334?.offline===true)}
 async function freshReads(loader){freshReadDepth14338++;try{return await loader()}finally{freshReadDepth14338--}}
+async function cachedReads(loader){cacheReadDepth14359++;try{return await loader()}finally{cacheReadDepth14359--}}
 function canRefresh14338(){return navigator.onLine!==false&&!window.sessionCache14333?.localMode&&!window.deviceVault14334?.offline}
 function request(promise){let timer;return Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>{const error=Object.assign(Error('The complete response was not confirmed. Your draft is kept; retry with the same reference.'),{code:'NETWORK_TIMEOUT14241'});connectionIssue(error.message);reject(error)},20000))]).finally(()=>clearTimeout(timer))}
 function identity(headers){try{const t=(headers.get('authorization')||'').replace(/^Bearer /i,'').split('.')[1];const p=JSON.parse(atob(t.replace(/-/g,'+').replace(/_/g,'/')));return p.sub&&(p.exp*1000>Date.now()||window.sessionCache14333?.allowed(p.sub))?p.sub:''}catch{return ''}}
@@ -41,6 +42,7 @@ window.fetch=async function(input,options={}){
  const key=id&&!ranged&&req.method!=='HEAD'&&rpc!=='journal_receipt14228'&&!window.localFirst14333?.syncing?prefix(id)+'read:'+req.method+':'+url.href+':'+body+':'+(req.headers.get('accept')||'')+':workspace:'+(req.headers.get('x-ojm-workspace')||''):'';
  if(!read&&offline())return errorResponse('Connection required. Your draft is retained; reconnect before approval, final posting or changing saved records.');
  const previous=read&&key?readCopy(key):Promise.resolve(null);
+ if(read&&cacheReadDepth14359&&!freshReadDepth14338&&!['current_access14228','is_admin','password_change_status14257','accounting_workspace_allowed123'].includes(rpc)&&!url.pathname.endsWith('/user_permissions')&&!url.pathname.endsWith('/profiles')){const row=await previous;if(row)return fromCopy(row);}
  if(read&&(navigator.onLine===false||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)){const row=await previous;return row?fromCopy(row):errorResponse('This record has not been downloaded to this device. Reconnect to load it.')}
  const controller=new AbortController(),abort=()=>controller.abort(req.signal.reason);if(req.signal.aborted)abort();else req.signal.addEventListener('abort',abort,{once:true});
  const timer=setTimeout(()=>controller.abort(Error('Connection timed out before the complete response arrived')),read?8000:15000);
@@ -139,7 +141,7 @@ function ready(){
   const owner=actor(),workspace=window.workspaceRequest138?.target||'',self=this;
   const run=async()=>{
    if(actor()!==owner||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.');
-  let loaded=false;const rows=await snapshot('complete-journal:'+(window.yearWindow14333?.state().from||'all')+':'+(window.yearWindow14333?.state().to||'all'),async()=>{await loadJournal.apply(self,args);if(actor()!==owner||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.');await window.localFirst14333?.confirmJournalReceipts();loaded=true;refreshAllTables();return {entries:structuredClone(JournalModule.entries.filter(r=>!r.local14333)),...window.yearWindow14333?.state()}},{...(args[0]||{}),cacheFirst:offline(),prepareCached:rows=>window.yearWindow14333?.restore(rows)});
+  let loaded=false;const rows=await snapshot('complete-journal:'+(window.yearWindow14333?.state().from||'all')+':'+(window.yearWindow14333?.state().to||'all'),async()=>{await loadJournal.apply(self,args);if(actor()!==owner||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.');await window.localFirst14333?.confirmJournalReceipts();loaded=true;refreshAllTables();return {entries:structuredClone(JournalModule.entries.filter(r=>!r.local14333)),...window.yearWindow14333?.state()}},{...(args[0]||{}),cacheFirst:!!args[0]?.cacheFirst||offline(),prepareCached:rows=>window.yearWindow14333?.restore(rows)});
   if(actor()!==owner||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.');
   if(!loaded){window.yearWindow14333?.restore(rows);JournalModule.entries=Array.isArray(rows)?rows:rows.entries;await loadAccountingPeriodStatuses();syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();}
   };
@@ -147,7 +149,7 @@ function ready(){
  };
  paint();let pending=false;const schedule=()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;paint()})};window.addEventListener('connection14239',()=>{paint();renderDialog();try{const f=document.getElementById('connectedPhone132');if(f?.contentDocument)paint(f.contentDocument,true)}catch{}});window.addEventListener('page113',schedule);registerShell();}
 function pendingOwner(id){return queue().some(j=>j.payload.p_owner===id&&j.status!=='synced')||!!window.saveNotices14234?.staffPending?.(id).length}
-window.offline14239={pruneYears:pruneYears14341,get cacheRevision(){return cacheRevision14333},freshReads,offline,state,checkStorage:checkStorage14335,pendingOwner,enqueue,queue,persist,sync:(options={})=>!options.coordinated&&window.idleSync14341?.run?idleSync14341.run(!!options.automatic):sync(options),open,paint,snapshot,canonical,changed,connectionIssue,request};
+window.offline14239={pruneYears:pruneYears14341,get cacheRevision(){return cacheRevision14333},cachedReads,freshReads,offline,state,checkStorage:checkStorage14335,pendingOwner,enqueue,queue,persist,sync:(options={})=>!options.coordinated&&window.idleSync14341?.run?idleSync14341.run(!!options.automatic):sync(options),open,paint,snapshot,canonical,changed,connectionIssue,request};
 window.addEventListener('session-online14333',()=>{reachable=true;connectionError='';changed()});
 window.addEventListener('online',()=>{reachable=true;connectionError='';shellFailures=0;clearTimeout(shellRetry);registerShell();changed()});window.addEventListener('offline',()=>{reachable=false;changed()});window.addEventListener('storage',()=>{queueRevision++;changed()});window.addEventListener('save-state14234',changed);window.addEventListener('local-work14333',()=>{changed();renderDialog()});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();

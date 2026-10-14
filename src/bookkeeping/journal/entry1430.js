@@ -100,8 +100,8 @@ function pairs(){
  return result;
 }
 function display(){
- const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.setAttribute('aria-checked',String(!single));toggle.dataset.mode=mode;
- toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Single Entry':'Double Entry';toggle.setAttribute('aria-label',single?'Single Entry':'Double Entry');
+ const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.dataset.mode=mode;
+ toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Double Entry':'Single Entry';toggle.setAttribute('aria-label',single?'Double Entry':'Single Entry');
  $('simpleEntry1430').hidden=!single;$('jeLinesBody').closest('.table-container').hidden=single;
  $('journalEntry98').classList.toggle('single-entry1430',single);$('simpleEntry1430').querySelectorAll('input,select,button').forEach(n=>{n.disabled=!!lastSingle?.unmapped;});
  $('journalEntry98').querySelector('.je-title').textContent=single?'Post Single-Entry Transaction':'Post Double-Entry Transaction';
@@ -139,7 +139,7 @@ function deleteAt(index){
 }
 function ready(){
  const card=$('journalEntry98');if(!card)return;
- const group=document.createElement('div');group.className='entry-mode1430 je-field-group';group.innerHTML='<span>Entry type</span><button type="button" id="jeEntryMode1430" class="entry-toggle1432 entry-mode-button14271" role="switch" aria-label="Double Entry" aria-checked="true" title="Switch between Single Entry and Double Entry"><span data-entry-mode-label1430>Double Entry</span></button>';
+ const group=document.createElement('div');group.className='entry-mode1430 je-field-group';group.innerHTML='<span>Entry type</span><button type="button" id="jeEntryMode1430" class="entry-toggle1432 entry-mode-button14271" aria-label="Single Entry" title="Switch between Single Entry and Double Entry"><span data-entry-mode-label1430>Single Entry</span></button>';
  card.querySelector('.je-meta-grid').append(group);
  const panel=document.createElement('section');panel.id='simpleEntry1430';panel.hidden=true;panel.innerHTML='<div id="simpleRows1430"></div><p id="simplePreview1430" role="status"></p>';
  card.querySelector('.table-container').before(panel);add();

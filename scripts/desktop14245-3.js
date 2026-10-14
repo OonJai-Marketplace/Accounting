@@ -4508,8 +4508,8 @@ window.staffSave14228=async function(payload){return window.saveNotices14234.sav
   }
   function pendingItems(){return [...fundAdjustments.filter(r=>r.status==='submitted'),...(reviewStaffJournals||[]).filter(j=>j.status==='submitted'&&j.lines?.length)].sort((a,b)=>String(b.submitted_at||b.updated_at||'').localeCompare(String(a.submitted_at||a.updated_at||'')))}
   function historyItems(userId=''){return [...fundAdjustments.filter(r=>r.status!=='submitted'&&(!userId||String(r.owner_id)===String(userId))),...(reviewStaffJournals||[]).filter(j=>j.status!=='submitted'&&j.status!=='draft'&&(!userId||String(j.owner_id)===String(userId)))].sort((a,b)=>String(b.updated_at||b.submitted_at||b.period_start||'').localeCompare(String(a.updated_at||a.submitted_at||a.period_start||'')))}
-  function renderReview(){const host=document.getElementById('userEntryReviewCards');if(!host)return;const waiting=pendingItems();host.innerHTML=waiting.map(item=>recordCard(item,true)).join('')||'<div class="period-empty">Nothing is waiting for review.</div>';const history=document.getElementById('userEntryHistoryCards');if(history)history.innerHTML=historyItems().map(item=>recordCard(item,false,true)).join('')||'<div class="period-empty">No completed submission history yet.</div>';const summary=document.getElementById('userEntryReviewSummary');if(summary)summary.textContent=`${waiting.length} item${waiting.length===1?'':'s'} waiting`;const badge=document.getElementById('navUserReviewCount');if(badge)badge.textContent=waiting.length;requestAnimationFrame(syncIndicators)}
-  function openReview(userId,mode='review'){const u=owner(userId),items=mode==='review'?pendingItems().filter(x=>String(x.owner_id)===String(userId)):historyItems(userId);document.getElementById('finalRecordsOverlay')?.remove();const overlay=document.createElement('div');overlay.id='finalRecordsOverlay';overlay.className='submission-compare-overlay final-records-overlay';overlay.innerHTML=`<section class="final-records-dialog"><header><div><span>${mode==='review'?'SUBMISSIONS':'EMPLOYEE HISTORY'}</span><h2>${mode==='review'?'Review':'History'}</h2><p>${escapeHtml(subUserName(u))} · ${mode==='review'?'under-review and returned records.':'approved and posted records, newest first.'}</p></div><button onclick="document.getElementById('finalRecordsOverlay').remove()">×</button></header><div class="final-record-search"><input type="search" placeholder="Search period, reference, or status" oninput="finalFilterRecords(this.value)"></div><div id="finalRecordList" class="final-record-list">${items.map(item=>recordCard(item,mode==='review')).join('')||'<div class="period-empty">No matching records.</div>'}</div><footer><button class="je-btn je-btn-secondary" onclick="document.getElementById('finalRecordsOverlay').remove()">Close</button></footer></section>`;document.body.appendChild(overlay);requestAnimationFrame(syncIndicators)}
+  function renderReview(){const host=document.getElementById('userEntryReviewCards');if(!host)return;const waiting=pendingItems();host.innerHTML=waiting.map(item=>recordCard(item,true)).join('')||'<div class="period-empty">Nothing is waiting for review.</div>';const history=document.getElementById('userEntryHistoryCards');if(history){const items=historyItems(),date=r=>String(r.period_start||r.date||r.submitted_at||r.updated_at||'').slice(0,7),month=historyMonth14341.choose('submitted',[...items,...(DemoAccess.submissions||[])].map(date)),selected=items.filter(r=>date(r)===month);history.innerHTML=historyMonth14341.control('submitted',month)+'<p class="history-summary14359">'+selected.length+' submitted reports · '+selected.reduce((n,r)=>n+(r.lines?.length||0),0)+' entries</p>'+(selected.map(item=>recordCard(item,false,true)).join('')||'<div class="period-empty">No completed submissions in this month.</div>');historyMonth14341.bind(history,'submitted',window.renderUserEntryReview,'local');}const summary=document.getElementById('userEntryReviewSummary');if(summary)summary.textContent=`${waiting.length} item${waiting.length===1?'':'s'} waiting`;const badge=document.getElementById('navUserReviewCount');if(badge)badge.textContent=waiting.length;requestAnimationFrame(syncIndicators)}
+  function openReview(userId,mode='review'){const u=owner(userId),items=mode==='review'?pendingItems().filter(x=>String(x.owner_id)===String(userId)):historyItems(userId);document.getElementById('finalRecordsOverlay')?.remove();const overlay=document.createElement('div');overlay.id='finalRecordsOverlay';overlay.className='submission-compare-overlay final-records-overlay';overlay.innerHTML=`<section class="final-records-dialog"><header><div><span>${mode==='review'?'SUBMISSIONS':'EMPLOYEE HISTORY'}</span><h2>${mode==='review'?'Review':'History'}</h2><p>${escapeHtml(subUserName(u))} · ${mode==='review'?'under-review and returned records.':'approved and posted records, newest first.'}</p></div><button onclick="document.getElementById('finalRecordsOverlay').remove()">×</button></header><div class="final-record-search"><input type="search" placeholder="Search period, reference, or status" oninput="finalFilterRecords(this.value)"></div><div id="finalRecordList" class="final-record-list">${items.map(item=>recordCard(item,mode==='review')).join('')||'<div class="period-empty">No matching records.</div>'}</div><footer><button class="je-btn je-btn-secondary" onclick="document.getElementById('finalRecordsOverlay').remove()">Close</button></footer></section>`;document.body.appendChild(overlay);if(mode==='history'){const list=overlay.querySelector('#finalRecordList'),key='employee-history:'+userId,render=()=>{const month=historyMonth14341.choose(key,items.map(r=>String(r.period_start||r.date||r.submitted_at||r.updated_at||'').slice(0,7))),rows=items.filter(r=>String(r.period_start||r.date||r.submitted_at||r.updated_at||'').startsWith(month));list.innerHTML=historyMonth14341.control(key,month)+'<p class="history-summary14359">'+rows.length+' submitted reports</p>'+(rows.map(item=>recordCard(item,false)).join('')||'<div class="period-empty">No completed submissions in this month.</div>');const search=overlay.querySelector('.final-record-search input');if(search)list.prepend(search);historyMonth14341.bind(list,key,render,'local');};render()}requestAnimationFrame(syncIndicators)}
   function syncIndicators(){document.querySelectorAll('.final-scroll-shell').forEach(shell=>{const box=shell.querySelector('.final-scroll-table'),x=shell.querySelector('.final-scroll-x'),y=shell.querySelector('.final-scroll-y');if(!box)return;const sx=Math.max(0,box.scrollWidth-box.clientWidth),sy=Math.max(0,box.scrollHeight-box.clientHeight);if(x){x.hidden=!sx;x.style.width=sx?'25%':'0';x.style.left=sx?`${(box.scrollLeft/sx)*75}%`:'0'}if(y){y.hidden=!sy;y.style.height=sy?'25%':'0';y.style.top=sy?`${(box.scrollTop/sy)*75}%`:'0'}})}
   window.finalFilterRecords=value=>{const q=value.trim().toLowerCase();document.querySelectorAll('#finalRecordList>.final-record-card').forEach(card=>card.hidden=Boolean(q&&!card.textContent.toLowerCase().includes(q)))};
   window.v49OpenReview=openReview;
@@ -5706,7 +5706,7 @@ document.addEventListener('DOMContentLoaded',polishDesktop81);document.addEventL
 ;
 /* scripts/desktop-layout-v82.js */
 let selectedLine82=null;
-function selectLine82(row){selectedLine82=row;document.querySelectorAll('#jeLinesBody tr').forEach(r=>r.classList.toggle('selected82',r===row));syncMove82()}
+function selectLine82(row){selectedLine82=row;syncMove82()}
 function syncMove82(){if(!selectedLine82?.isConnected)selectedLine82=null;const rows=[...document.querySelectorAll('#jeLinesBody tr')],i=rows.indexOf(selectedLine82);document.getElementById('lineUp82')?.toggleAttribute('disabled',i<=0);document.getElementById('lineDown82')?.toggleAttribute('disabled',i<0||i===rows.length-1)}
 function moveLine82(direction){if(!selectedLine82?.isConnected)return;const neighbor=direction<0?selectedLine82.previousElementSibling:selectedLine82.nextElementSibling;if(!neighbor)return;if(direction<0)neighbor.before(selectedLine82);else neighbor.after(selectedLine82);syncMove82();selectedLine82.scrollIntoView({block:'nearest'})}
 function dateLabel82(){const n=document.getElementById('jeTransDate');if(!n)return;const [y,m,d]=n.value.split('-').map(Number);return n.value?new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Select date'}
@@ -6806,89 +6806,6 @@ mountSettings();
     body.querySelectorAll('.action-col').forEach(cell => { cell.style.setProperty('width', '1.7cm', 'important'); cell.style.setProperty('text-align', 'right', 'important'); });
   }
 
-  function toggleAuditMonth97(month, button) {
-    const open = button.getAttribute('aria-expanded') !== 'true';
-    button.setAttribute('aria-expanded', String(open));
-    document.querySelectorAll(`[data-audit-month97="${CSS.escape(month)}"]`).forEach(row => { row.hidden = !open; });
-    button.querySelector('.audit-month-caret97').textContent = open ? '▼' : '▶';
-  }
-  window.toggleAuditMonth97 = toggleAuditMonth97;
-
-  function toggleTransactionMonth97(month, button) {
-    const open = button.getAttribute('aria-expanded') !== 'true';
-    button.setAttribute('aria-expanded', String(open));
-    document.querySelectorAll(`[data-history-month97="${CSS.escape(month)}"]`).forEach(row => { row.hidden = !open; });
-    button.querySelector('.history-month-caret97').textContent = open ? '▼' : '▶';
-  }
-  window.toggleTransactionMonth97 = toggleTransactionMonth97;
-
-  // Keep the existing year/archive filtering, but present the resulting rows
-  // in collapsible month groups as the user requested for Transaction History.
-  if (typeof window.renderAllTransactionsTable === 'function') {
-    const renderAllBefore97 = window.renderAllTransactionsTable;
-    window.renderAllTransactionsTable = function (...args) {
-      const body = document.getElementById('allTransactionsBody');
-      if (!body) return renderAllBefore97.apply(this, args);
-      renderAllBefore97.apply(this, args);
-      const transactions = new Map();
-      [...body.rows].forEach(row => {
-        const id = row.dataset.entryId || `row-${transactions.size}`;
-        if (!transactions.has(id)) transactions.set(id, []);
-        transactions.get(id).push(row);
-      });
-      const months = new Map();
-      transactions.forEach(rows => {
-        const raw = rows[0]?.dataset.createdAt || '';
-        const parsed = new Date(raw);
-        const month = Number.isNaN(parsed.getTime()) ? 'unknown' : `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}`;
-        if (!months.has(month)) months.set(month, []);
-        months.get(month).push(...rows);
-      });
-      const header = document.getElementById('thAllTransRow');
-      const colspan = Math.max(1, header?.cells.length || 1);
-      const ordered = [...months.entries()].sort(([a], [b]) => b.localeCompare(a));
-      const newest = ordered[0]?.[0];
-      const fragments = [];
-      ordered.forEach(([month, rows]) => {
-        const open = month === newest;
-        const label = month === 'unknown' ? 'Date unavailable' : new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-        const heading = document.createElement('tr');
-        heading.className = 'transaction-month-heading97';
-        const cell = document.createElement('td'); cell.colSpan = colspan;
-        cell.innerHTML = `<button type="button" aria-expanded="${open}" onclick="toggleTransactionMonth97('${escape(month)}',this)"><span class="history-month-caret97">${open ? '▼' : '▶'}</span><strong>${escape(label)}</strong><span>${new Set(rows.map(row => row.dataset.entryId)).size} transactions</span></button>`;
-        heading.append(cell); fragments.push(heading);
-        rows.forEach(row => { row.dataset.historyMonth97 = month; row.hidden = !open; fragments.push(row); });
-      });
-      body.replaceChildren(...fragments);
-    };
-  }
-
-  const auditActions97 = new Set(['VOID','UPDATE','MODIFY','MARK_UNDER_REVIEW','APPROVE_AND_POST','PERIOD_STATUS','DELETE_SCHEDULE','UPDATE_SCHEDULE','CREATE_SCHEDULE','SCHEDULE_POST_ADVANCE','AUTO_POST']);
-  window.renderVoidedTransactionsTable = function () {
-    const header = document.getElementById('thVoidedTransRow'), body = document.getElementById('voidedTransactionsBody');
-    if (!body) return;
-    if (header) header.innerHTML = '<th></th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th>';
-    const live = (LiveTransactionAudit || []).filter(item => auditActions97.has(item.action) || /DELETE|REMOVE|PURGE/.test(String(item.action).toUpperCase()));
-    const local = (JournalModule.voidedEntries || []).map((item, index) => ({ id: item.id || `local-${index}`, record_id: item.id, action: 'ADJUSTMENT', reason: item.explanation, old_data: item.oldData, new_data: item.newData, created_at: item.timestamp, actor_id: null }));
-    const audits = [...live, ...local].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-    const months = new Map();
-    audits.forEach(item => {
-      const date = new Date(item.created_at || '');
-      const key = Number.isNaN(date.getTime()) ? 'unknown' : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      if (!months.has(key)) months.set(key, []);
-      months.get(key).push(item);
-    });
-    const detailColspan = 6;
-    body.innerHTML = months.size ? [...months.entries()].map(([month, rows]) => {
-      const safe = escape(month), label = month === 'unknown' ? 'Date unavailable' : new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-      const detailRows = rows.map((item, index) => {
-        const key = `audit-detail97-${month.replace(/\D/g, '')}-${index}`, record = auditRecordId(item);
-        return `<tr class="audit-summary-row" data-audit-month97="${safe}" data-audit-search="${escape(JSON.stringify(item))}" onclick="selectAuditLogRow(this);toggleAuditDetails('${key}',this)" aria-expanded="false"><td>↳</td><td>${window.formatAppDate(item.created_at, true)}</td><td style="font-family:monospace">${escape(record)}</td><td><span class="submission-status ${item.action === 'VOID' ? 'returned' : 'posted'}">${escape(String(item.action || 'CHANGE').replaceAll('_', ' '))}</span></td><td>${escape(item.reason || item.new_data?.status || '—')}</td><td>${escape(window.getLiveUserName(item.actor_id) || 'System')}</td></tr><tr id="${key}" class="audit-detail-row" data-audit-month97="${safe}" hidden><td colspan="${detailColspan}"><div class="audit-detail-panel">${window.auditComparisonHtml(item.old_data, item.new_data, item.action)}</div></td></tr>`;
-      }).join('');
-      return `<tr class="audit-month-heading97"><td colspan="${detailColspan}"><button type="button" aria-expanded="false" onclick="toggleAuditMonth97('${safe}',this)"><span class="audit-month-caret97">▶</span><strong>${escape(label)}</strong><span>${rows.length} record${rows.length === 1 ? '' : 's'}</span></button></td></tr>${detailRows}`;
-    }).join('') : '<tr><td colspan="6" class="period-empty">No void, correction, or period-review audit records yet.</td></tr>';
-  };
-
   window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
     const read = async () => {
@@ -7023,7 +6940,6 @@ mountSettings();
   'use strict';
   const esc = value => escapeHtml(String(value ?? ''));
   const byId = id => document.getElementById(id);
-  const auditOpen = new Set();
   const severity = action => /DELETE|REMOVE|PURGE|CANCEL/.test(action) ? 'destructive' : /VOID/.test(action) ? 'void' : /UPDATE|MODIFY|EDIT|ADJUST/.test(action) ? 'edit' : 'info';
 
   window.showJournalEntry98 = function (show = true, scroll = true) {
@@ -7097,14 +7013,14 @@ mountSettings();
     const query = (byId('auditSearch69')?.value || '').trim().toLowerCase();
     const local = (JournalModule.voidedEntries || []).map((item,i) => ({id:`local-${i}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp}));
     const records = [...(LiveTransactionAudit || []),...local].sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
-    const groups = new Map();
+    const selected=historyMonth14341.choose('audit',records.map(r=>String(r.created_at||'').slice(0,7)));
+    const groups = new Map([[selected,[]]]);
     records.forEach(item => {
       if (query && !`${JSON.stringify(item)} ${getLiveUserName(item.actor_id)||''}`.toLowerCase().includes(query)) return;
       const month = /^\d{4}-\d{2}/.exec(item.created_at||'')?.[0] || 'unknown';
-      if (!groups.has(month)) groups.set(month,[]);
-      groups.get(month).push(item);
+      if(month===selected)groups.get(month).push(item);
     });
-    host.innerHTML = [...groups].map(([month,items],groupIndex) => {
+    host.innerHTML = historyMonth14341.control('audit',selected)+[...groups].map(([month,items],groupIndex) => {
       const counts = new Map();
       items.forEach(item=>{const action=String(item.action||'CHANGE').toUpperCase();counts.set(action,(counts.get(action)||0)+1)});
       const badges = [...counts].map(([action,count])=>`<span class="audit-count98 ${severity(action)}">${esc(action.replaceAll('_',' '))} <b>${count}</b></span>`).join('');
@@ -7112,12 +7028,9 @@ mountSettings();
         const action=String(item.action||'CHANGE').toUpperCase(),key=`audit98-${groupIndex}-${index}`;
         return `<tr class="audit-summary-row" tabindex="0" data-audit-severity="${severity(action)}" data-audit-search="${esc(JSON.stringify(item))}" aria-expanded="false" onclick="selectAuditLogRow(this);toggleAuditDetails('${key}',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><td class="audit-expand-cell">▶</td><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td><span class="audit-count98 ${severity(action)}">${esc(action.replaceAll('_',' '))}</span></td><td>${esc(item.reason||item.new_data?.status||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr><tr id="${key}" class="audit-detail-row" hidden><td colspan="6"><div class="audit-detail-panel">${auditComparisonHtml(item.old_data,item.new_data,item.action)}</div></td></tr>`;
       }).join('');
-      return `<details class="archive-month archive-aligned85 audit-month98" data-month98="${esc(month)}" ${query||auditOpen.has(month)?'open':''}><summary><span class="audit-month-title98"><strong>${esc(month==='unknown'?'Date unavailable':monthLabel(month))}</strong><small>${items.length} audit records</small></span><span class="audit-counts98">${badges}</span></summary><div class="table-container"><table class="audit-table98"><thead><tr><th aria-label="Expand record"></th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
+      return `<section class="archive-month archive-aligned85 audit-month98"><div class="history-summary14359"><strong>${items.length} audit records</strong><span class="audit-counts98">${badges}</span></div><div class="table-container"><table class="audit-table98"><thead><tr><th aria-label="Expand record"></th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="period-empty">No audit records in this month.</td></tr>'}</tbody></table></div></section>`;
     }).join('') || '<p class="period-empty">No audit records match this view.</p>';
-    host.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',()=>{
-      if (query || !d.isConnected) return;
-      if(d.open)auditOpen.add(d.dataset.month98);else auditOpen.delete(d.dataset.month98);
-    }));
+    historyMonth14341.bind(host,'audit',renderVoidedTransactionsTable,'local');
   };
 
   // CSV is imported as an editable draft only; the existing Post Entry validation still applies.
@@ -7281,12 +7194,6 @@ function polish(){
  }menu(cell);
  });
  document.querySelectorAll('#jeHeaderRow .add-row81,#lineUp82,#lineDown82').forEach(n=>n.hidden=true);
- document.querySelectorAll('#auditMonths98 .audit-month98').forEach(card=>{
- if(card.dataset.aligned99)return;card.dataset.aligned99='true';const summary=card.querySelector('summary'),title=summary.querySelector('.audit-month-title98');if(!title)return;
- const counts={edit:0,void:0,destructive:0,info:0};summary.querySelectorAll('.audit-count98').forEach(n=>{const key=Object.keys(counts).find(k=>n.classList.contains(k));if(key)counts[key]+=Number(n.querySelector('b')?.textContent||0)});
- summary.replaceChildren(title);for(const [key,label] of [['edit','Updated'],['void','Voided'],['destructive','Deleted'],['info','Other actions']]){if(!counts[key])continue;const span=document.createElement('span');span.className='audit-stat99 '+key;span.innerHTML='<small>'+label+'</small><b>'+counts[key]+'</b>';summary.append(span)}
- card.style.setProperty('--archive-grid85','minmax(190px,1fr) repeat(4,minmax(80px,12%))');
- });
  document.querySelectorAll('[data-auto-close99]').forEach(armCollapse);
  updateHeading();
 }

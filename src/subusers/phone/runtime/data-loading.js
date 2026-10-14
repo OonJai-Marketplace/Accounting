@@ -1,8 +1,9 @@
+  const monthRevision14359=(month,list)=>JSON.stringify(list.filter(j=>String(j.period_start).slice(0,7)===month));
   async function getMonth(month, batchHeaders = headers()) {
     const ids = batchHeaders.filter(j => String(j.period_start).slice(0,7) === month && j.owner_id === S.owner).map(j => j.id);
     const result = ids.length ? await paged('staff_journal_lines', {staff_journal_id:'in.(' + ids.join(',') + ')'}) : [];
     if (result.some(l => !ids.includes(l.staff_journal_id) || !l.transaction_date || !Number.isFinite(Number(l.amount)))) throw fail('This period returned incomplete records.', 'INVALID_RESPONSE');
-    return {lines:result, savedAt:Date.now(), batchIds:ids};
+    return {lines:result, savedAt:Date.now(), batchIds:ids,revision14359:monthRevision14359(month,batchHeaders)};
   }
   async function refresh() {
     if (!S.owner) return;
@@ -20,10 +21,8 @@
         ]);
         if (!current(owner, epoch)) return;
         if (!Array.isArray(ownFunds) || ownFunds.some(f => !rules().fundIds.includes(f.account_id)) || ownHeaders.some(j => j.owner_id !== owner)) throw fail('The workspace response was incomplete.', 'INVALID_RESPONSE');
-        const loadedMonth = await getMonth(month, ownHeaders);
-        if (!current(owner, epoch)) return;
-        const months = {...S.data.months, [month]:loadedMonth};
-        for(const pendingMonth of new Set(ownHeaders.filter(j=>['draft','returned'].includes(j.status)).map(j=>String(j.period_start).slice(0,7)))){if(pendingMonth!==month)months[pendingMonth]=await getMonth(pendingMonth,ownHeaders);if(!current(owner,epoch))return;}
+        const months={...S.data.months},year=today().slice(0,4),needed=new Set([month,...Array.from({length:12},(_,i)=>year+'-'+String(i+1).padStart(2,'0')),...ownHeaders.filter(j=>['draft','returned'].includes(j.status)).map(j=>String(j.period_start).slice(0,7))]);
+        for(const m of needed){if(ownHeaders.some(j=>String(j.period_start).slice(0,7)===m&&['draft','returned'].includes(j.status))||months[m]?.revision14359!==monthRevision14359(m,ownHeaders))months[m]=await getMonth(m,ownHeaders);if(!current(owner,epoch))return;}
         const patch = {accounts:rawAccounts.map(a => ({...a,currency:a.currency_code,isPosting:a.is_posting!==false,isActive:a.is_active!==false})),funds:ownFunds,headers:ownHeaders,months,savedAt:Date.now()};
         const stored = await record(owner, old => ({...old,...patch,queue:(old.queue||[]).filter(q=>!confirmedKeys.has(q.key)), months:{...old.months,...months}, pendingSubmit:old.pendingSubmit && ['submitted','approved','posted'].includes(ownHeaders.find(j => j.id === old.pendingSubmit.id)?.status) ? null : old.pendingSubmit}));
         if (!current(owner, epoch)) return;
@@ -40,7 +39,7 @@
     return refreshJob;
   }
   async function loadMonth() {
-    if (!S.owner || !permission('sub-users-workspace') || !navigator.onLine) return;
+    if (!S.owner || !permission('sub-users-workspace') || !navigator.onLine || S.data.months?.[S.month]) return;
     const owner = S.owner, epoch = S.epoch, month = S.month;
     const task = (async () => {
       try { await access(); const result = await getMonth(month); const stored = await record(owner, old => ({...old, months:{...old.months,[month]:result}})); if (current(owner,epoch)) { S.data.months=stored.months; S.online=true; S.error=''; if(S.month===month)render(); } }

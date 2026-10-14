@@ -21,3 +21,11 @@
 #carryForward142 summary span{display:inline;margin-left:12px;margin-top:0}
 #carryForward142>p{margin:6px 0 0;font-size:12px}
 .history-month14341{justify-content:flex-end}
+
+@media screen{
+.history-header14342{align-items:center;padding:10px 12px!important;border-bottom:1px solid #bed3c7;background:#fffdf7;gap:10px}
+.history-header14342 h3{font-size:15px;color:#174b38}
+.history-header14342 .history-search14359{width:220px;max-width:100%;min-height:32px}
+.history-summary14359{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:10px 12px;margin:0;background:#edf5ef;color:#36594a;font-size:12px}
+@media(max-width:640px){.history-header14342{align-items:flex-start}.history-header14342 .archive-month-actions{width:100%;justify-content:space-between}.history-header14342 .history-search14359{flex:1;min-width:120px;width:120px}}
+}

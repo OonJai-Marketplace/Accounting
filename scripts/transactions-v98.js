@@ -3,7 +3,6 @@
   'use strict';
   const esc = value => escapeHtml(String(value ?? ''));
   const byId = id => document.getElementById(id);
-  const auditOpen = new Set();
   const severity = action => /DELETE|REMOVE|PURGE|CANCEL/.test(action) ? 'destructive' : /VOID/.test(action) ? 'void' : /UPDATE|MODIFY|EDIT|ADJUST/.test(action) ? 'edit' : 'info';
 
   window.showJournalEntry98 = function (show = true, scroll = true) {
@@ -77,14 +76,14 @@
     const query = (byId('auditSearch69')?.value || '').trim().toLowerCase();
     const local = (JournalModule.voidedEntries || []).map((item,i) => ({id:`local-${i}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp}));
     const records = [...(LiveTransactionAudit || []),...local].sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
-    const groups = new Map();
+    const selected=historyMonth14341.choose('audit',records.map(r=>String(r.created_at||'').slice(0,7)));
+    const groups = new Map([[selected,[]]]);
     records.forEach(item => {
       if (query && !`${JSON.stringify(item)} ${getLiveUserName(item.actor_id)||''}`.toLowerCase().includes(query)) return;
       const month = /^\d{4}-\d{2}/.exec(item.created_at||'')?.[0] || 'unknown';
-      if (!groups.has(month)) groups.set(month,[]);
-      groups.get(month).push(item);
+      if(month===selected)groups.get(month).push(item);
     });
-    host.innerHTML = [...groups].map(([month,items],groupIndex) => {
+    host.innerHTML = historyMonth14341.control('audit',selected)+[...groups].map(([month,items],groupIndex) => {
       const counts = new Map();
       items.forEach(item=>{const action=String(item.action||'CHANGE').toUpperCase();counts.set(action,(counts.get(action)||0)+1)});
       const badges = [...counts].map(([action,count])=>`<span class="audit-count98 ${severity(action)}">${esc(action.replaceAll('_',' '))} <b>${count}</b></span>`).join('');
@@ -92,12 +91,9 @@
         const action=String(item.action||'CHANGE').toUpperCase(),key=`audit98-${groupIndex}-${index}`;
         return `<tr class="audit-summary-row" tabindex="0" data-audit-severity="${severity(action)}" data-audit-search="${esc(JSON.stringify(item))}" aria-expanded="false" onclick="selectAuditLogRow(this);toggleAuditDetails('${key}',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"><td class="audit-expand-cell">▶</td><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td><span class="audit-count98 ${severity(action)}">${esc(action.replaceAll('_',' '))}</span></td><td>${esc(item.reason||item.new_data?.status||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr><tr id="${key}" class="audit-detail-row" hidden><td colspan="6"><div class="audit-detail-panel">${auditComparisonHtml(item.old_data,item.new_data,item.action)}</div></td></tr>`;
       }).join('');
-      return `<details class="archive-month archive-aligned85 audit-month98" data-month98="${esc(month)}" ${query||auditOpen.has(month)?'open':''}><summary><span class="audit-month-title98"><strong>${esc(month==='unknown'?'Date unavailable':monthLabel(month))}</strong><small>${items.length} audit records</small></span><span class="audit-counts98">${badges}</span></summary><div class="table-container"><table class="audit-table98"><thead><tr><th aria-label="Expand record"></th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
+      return `<section class="archive-month archive-aligned85 audit-month98"><div class="history-summary14359"><strong>${items.length} audit records</strong><span class="audit-counts98">${badges}</span></div><div class="table-container"><table class="audit-table98"><thead><tr><th aria-label="Expand record"></th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="period-empty">No audit records in this month.</td></tr>'}</tbody></table></div></section>`;
     }).join('') || '<p class="period-empty">No audit records match this view.</p>';
-    host.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',()=>{
-      if (query || !d.isConnected) return;
-      if(d.open)auditOpen.add(d.dataset.month98);else auditOpen.delete(d.dataset.month98);
-    }));
+    historyMonth14341.bind(host,'audit',renderVoidedTransactionsTable,'local');
   };
 
   // CSV is imported as an editable draft only; the existing Post Entry validation still applies.

@@ -48,8 +48,6 @@ html body.je-multi-date #journalEntry98#journalEntry98.single-entry1430 .simple-
 /* The mode control follows the one-tap Money In / Money Out treatment. */
 html body #journalEntry98#journalEntry98 #jeEntryMode1430.entry-mode-button14271{width:100%!important;min-width:0!important;min-height:38px!important;height:38px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:6px 12px!important;font-size:12px!important;white-space:nowrap!important;background:#e3eedf!important;color:#135438!important;border:1px solid #a6bca0!important}
 html body #journalEntry98#journalEntry98 #jeEntryMode1430.entry-mode-button14271[data-mode=single]{background:#f4e9d8!important;color:#78411d!important;border-color:#c6aa7b!important}
-html body #journalEntry98 .selected-entry-row14271>td,
-html body #journalEntry98 .simple-row1430.selected-entry-row14271{background:#edf5e7!important;box-shadow:inset 0 0 0 2px #a3c9a9!important}
 html body #journalEntry98 .je-actions-bar{justify-content:flex-end!important}
 html body #journalEntry98 .je-actions-bar #jeBalanceIndicator{order:0;margin-right:auto!important}
 html body #journalEntry98 .je-actions-bar #deleteEntryRow14271{order:1;min-width:76px!important}
@@ -91,12 +89,6 @@ html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label 
  html body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{display:none!important}
  html body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430>label{font-size:12px!important;line-height:normal!important;gap:4px!important}
 }
-
-/* The active row uses a gentle tint; the account picker supplies a single focus cue. */
-html body #journalEntry98#journalEntry98 .simple-row1430.selected-entry-row14271{background:#f4f8f0!important;box-shadow:none!important}
-/* Selected journal rows use one background cue and retain their normal borders. */
-html body #journalEntry98#journalEntry98 #jeLinesBody tr.selected-entry-row14271>td,
-html body #journalEntry98#journalEntry98 .simple-row1430.selected-entry-row14271{background:#edf5e7!important;box-shadow:none!important}
 html body #journalEntry98#journalEntry98 .simple-row1430 .account-choice14231:focus-within{outline:none!important;border-color:#6a9b7c!important;box-shadow:inset 0 0 0 1px #6a9b7c!important}
 html body #journalEntry98#journalEntry98 .simple-row1430 .account-choice14231 input.account-search1428:focus{outline:none!important;box-shadow:none!important}
 
