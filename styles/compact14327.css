@@ -20,10 +20,10 @@
   }
   /* Hidden originals must not become layout-sized controls through older ID rules. */
   body :is(.oj-date-original104,select.account-source1428) {height:1px!important;min-height:0!important;max-height:1px!important;padding:0!important;border:0!important;box-sizing:border-box!important;}
-  body :is(.tab-content,.ui-dialog108,.ui-dialog117,.hr-dialog14306,.modal-content,.maintenance-modal14324) table:not(:where(#docFrame105 *, .tx72-preview *, .attendance-grid99, .attendance-table99, .attendance-calendar102, .attendance-table95)) :is(th,td) {
+  body :is(.tab-content,.ui-dialog108,.ui-dialog117,.hr-dialog14306,.modal-content,.maintenance-modal14324) table:not(:where(#userEntryHistoryCards *, #docFrame105 *, .tx72-preview *, .attendance-grid99, .attendance-table99, .attendance-calendar102, .attendance-table95)) :is(th,td) {
    height:auto!important;min-height:0!important;padding-top:2px!important;padding-bottom:2px!important;line-height:1.25!important;
   }
-  body :is(.tab-content,.ui-dialog108,.ui-dialog117,.hr-dialog14306,.modal-content,.maintenance-modal14324) table:not(:where(#docFrame105 *, .tx72-preview *, .attendance-grid99, .attendance-table99, .attendance-calendar102, .attendance-table95)) tr {
+  body :is(.tab-content,.ui-dialog108,.ui-dialog117,.hr-dialog14306,.modal-content,.maintenance-modal14324) table:not(:where(#userEntryHistoryCards *, #docFrame105 *, .tx72-preview *, .attendance-grid99, .attendance-table99, .attendance-calendar102, .attendance-table95)) tr {
    height:auto!important;min-height:0!important;
   }
   body .tab-content table .currency-symbol-badge {width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important;flex:0 0 20px!important;font-size:11px!important;line-height:1!important;border-radius:4px!important;box-sizing:border-box!important;vertical-align:middle!important;}

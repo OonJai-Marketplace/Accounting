@@ -37,8 +37,8 @@
  html body .team-home14227 .financial-display14231{display:flex!important;justify-content:flex-end!important;gap:5px!important}
  html body .team-home14227 .financial-display14231>*{flex:0 0 auto!important;float:none!important;margin:0!important}
  html body #user-entry-review .settings-page-heading,html body #userEntryHistoryPanel>.settings-section-header{box-sizing:border-box!important;min-height:70px!important;margin:0 0 12px!important;padding:12px 14px!important;align-items:center!important;border:1px solid #91a296!important;border-top:3px solid #24634c!important;border-radius:7px!important}
- html body #userEntryHistoryPanel{padding:0!important;border:0!important;background:transparent!important;margin:12px 0!important;width:100%!important;max-width:none!important;box-sizing:border-box!important}
- html body #userEntryHistoryPanel>.settings-section-header{background:#fff!important}
+ html body #userEntryHistoryPanel{padding:16px!important;border:1px solid #91a296!important;border-top:3px solid #24634c!important;border-radius:8px!important;background:#fff!important;margin:12px 0!important;width:100%!important;max-width:none!important;box-sizing:border-box!important}
+ html body #userEntryHistoryPanel>.settings-section-header{background:transparent!important;border:0!important;border-radius:0!important;padding:0 0 14px!important;margin:0 0 14px!important;min-height:0!important}
  html body #userEntryHistoryPanel .settings-section-header :is(h3,h4){font-size:16px!important;margin:0 0 4px!important;color:#184b39!important}
  html body #userEntryHistoryPanel .settings-section-header p{font-size:12px!important;margin:0!important;color:#52685f!important}
  html body .workflow-switch14316 button[aria-pressed=true]{background:#008563!important;border-color:#008563!important}
