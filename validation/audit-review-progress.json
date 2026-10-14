@@ -4873,7 +4873,7 @@
       "note": "Read every line. HR save captures form/editor identity before queued action, owner/client guards preserve new editor; deletion returns save promise and guards confirmation; full dates formatted. Download options recheck access after password preference lookup, escape format labels and treat optional preference quota failure separately from confirmed password storage/delivery."
     },
     "src/documents/import-export/document-downloads14311.js": {
-      "sha256": "d55c8bc4d5f758d76d0c81b9cb88e05c3c7ed4092b24ff65103502349d9c9775",
+      "sha256": "9c677a1a21aeadc3b2170895112ebc8cdbeff8d4ca12da669f2daf538789b406",
       "ranges": [
         [
           1,
@@ -5653,7 +5653,7 @@
       "note": "Full 781-line review: password wrapping, storage adapters, legacy migration, auth and inactivity. Guard password rewrap against actor/key changes, prevent concurrent sign-in, close migration databases on failure and check migration actor. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "src/core/sync/offline14239.js": {
-      "sha256": "eae0942390fb72093552a7c910275c781d994dc608c1ecf352df6ce18b53854a",
+      "sha256": "ca5c60bd466a847b965578ec637687ae681930150d25be25497548aeba97a2dd",
       "ranges": [
         [
           1,
@@ -6193,7 +6193,7 @@
       "note": "Reviewed schema, metadata, preserved variants and every source/output reference via structured traversal; all 578 source references reviewed; prefixes are source comments and suffixes only newline/semicolon. Generated identity checked by canonical builder. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "desktop.html": {
-      "sha256": "543d7d716c2cae7e1fe87b5744657aede0086df3cf9d78cb98cd9c4f39382d4e",
+      "sha256": "9e8bfd104929d41366e15ab03fe43f530363ef8f3230bbe534637938bede0af2",
       "ranges": [
         [
           1,
@@ -10501,6 +10501,16 @@
         ]
       ],
       "note": "Read complete regression test and executed in real Chromium; see AUDIT-110-v14373.md."
+    },
+    "validation/test-pdf-images14374.cjs": {
+      "sha256": "4850e6a8466ab160ba4577aca9f46df9b5a6d69558712b782dda81bec1c6bcad",
+      "ranges": [
+        [
+          1,
+          7
+        ]
+      ],
+      "note": "Construct two valid PNGs with identical jsPDF hash; reproduce cached-page substitution then verify application exports two image objects and two pages."
     }
   },
   "retired": {
@@ -12572,7 +12582,7 @@
       ]
     },
     "scripts/offline14239.js": {
-      "sha256": "eae0942390fb72093552a7c910275c781d994dc608c1ecf352df6ce18b53854a",
+      "sha256": "ca5c60bd466a847b965578ec637687ae681930150d25be25497548aeba97a2dd",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/sync/offline14239.js"
@@ -13252,7 +13262,7 @@
       ]
     },
     "scripts/document-downloads14311.js": {
-      "sha256": "d55c8bc4d5f758d76d0c81b9cb88e05c3c7ed4092b24ff65103502349d9c9775",
+      "sha256": "9c677a1a21aeadc3b2170895112ebc8cdbeff8d4ca12da669f2daf538789b406",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/documents/import-export/document-downloads14311.js"
@@ -13600,7 +13610,7 @@
       "method": "Parsed JSON recursively, OOXML XML/CRC/macros/external relationships, or decoded image with contact-sheet inspection. Historical evidence is not current acceptance; failure flags retained."
     },
     "assets/maintenance/release14324.json": {
-      "sha256": "72d0fbe92d510fcaf44851522d25930f1373981ab0f4e2720033580c7a197630",
+      "sha256": "aee65a7107edd48b680ea68ff9a9c00308ab4c4cc71dcc4ae5ec31956ec36e03",
       "method": "Parsed complete JSON. Release/correction hashes verified against current reviewed files; database evidence contains read-only aggregate visibility fingerprints."
     },
     "assets/maintenance/report-template14326.xlsx": {
@@ -13895,7 +13905,7 @@
       "method": "Parsed JSON recursively, OOXML XML/CRC/macros/external relationships, or decoded image with contact-sheet inspection. Historical evidence is not current acceptance; failure flags retained."
     },
     "validation/phase0-corrections.json": {
-      "sha256": "7f3fc7235f829ba7ecbd75080c69a30072850c2e28ed629d4d9e5ba7db68ce13",
+      "sha256": "89650249db1cd46421e88b9658a7ac0b70224e1f57d2a39917ef56de19512e5e",
       "method": "Parsed complete JSON. Release/correction hashes verified against current reviewed files; database evidence contains read-only aggregate visibility fingerprints."
     },
     "validation/phase0-navigation-fixes-results.json": {
@@ -14499,7 +14509,7 @@
     "assets/vendor/chart.js": {
       "sha256": "48444a82d4edcb5bec0f1965faacdde18d9c17db3063d042abada2f705c9f54a",
       "bytes": 208522,
-      "method": "Dependency boundary, version/header, usage, licensing and integration review. NOT a manual line-by-line review of the bundled upstream implementation."
+      "method": "Complete minified implementation read in contiguous character ranges 0\u2013208522: helpers/resolvers, animation, interactions, layout/platform, dataset controllers, scales/ticks, elements, decimation, filler, legend/title/tooltip, registration. Current canonical application and entrypoints contain no chart.js, new Chart or window.Chart use. Upstream edge cases include ordinary-object option/cache key collisions, custom time adapter progress assumptions, invalid numeric tick configuration, and tooltip animation target assuming both x/y animations. No application-path repair or vendor modification warranted."
     },
     "assets/vendor/document14285/zip-full.min.js": {
       "sha256": "10dcef7159de1be9399f8889edd73c17ca841560b33a61dccae4808af462446c",
@@ -14564,6 +14574,18 @@
     },
     "validation/edge-live14370.json": {
       "method": "Production metadata reviewed and retained in the private audit evidence archive; excluded from public Git history."
+    }
+  },
+  "partial_review": {
+    "assets/vendor/document14285/jspdf.umd.min.js": {
+      "sha256": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54",
+      "character_ranges": [
+        [
+          0,
+          153000
+        ]
+      ],
+      "note": "Not complete. Read licensing, MD5/RC4, PDF core serialization/output, AcroForm, addImage, annotations, Arabic, table and beginning context2d. Confirmed default image hash collision substitution; fixed application via unique page aliases. Optional APIs show permission check typo F.perm, global AcroForm scale/context2d state, unchecked table headers. Application only packs rendered PNG pages."
     }
   }
 }

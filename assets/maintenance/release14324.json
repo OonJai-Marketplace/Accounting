@@ -1,5 +1,5 @@
 {
-  "release": "143.73",
+  "release": "143.74",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -44,7 +44,7 @@
     },
     {
       "path": "desktop.html",
-      "sha256": "543d7d716c2cae7e1fe87b5744657aede0086df3cf9d78cb98cd9c4f39382d4e",
+      "sha256": "9e8bfd104929d41366e15ab03fe43f530363ef8f3230bbe534637938bede0af2",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -813,7 +813,7 @@
     },
     {
       "path": "scripts/document-downloads14311.js",
-      "sha256": "d55c8bc4d5f758d76d0c81b9cb88e05c3c7ed4092b24ff65103502349d9c9775",
+      "sha256": "9c677a1a21aeadc3b2170895112ebc8cdbeff8d4ca12da669f2daf538789b406",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1098,7 +1098,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "eae0942390fb72093552a7c910275c781d994dc608c1ecf352df6ce18b53854a",
+      "sha256": "ca5c60bd466a847b965578ec637687ae681930150d25be25497548aeba97a2dd",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
