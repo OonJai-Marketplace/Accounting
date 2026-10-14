@@ -14,7 +14,7 @@ async function openBalances(){
   let job;try{job=JSON.parse(localStorage.getItem('ojm_opening14234:'+String(OJM_SUPABASE_URL)+':'+who)||'null')}catch{}
   if(r.data.available||(job&&job.generation===r.data.generation)){await window.openingBalances14234.open();return;}
   showCenterStatus('Opening balance setup is closed. It is available only before the first journal entry and before any period closing or carry-forward. Installing the SQL does not reopen an existing ledger.',true);
- }catch(e){showCenterStatus('Unable to check opening balances: '+e.message,true)}finally{openingBusy=false;decorate()}
+ }catch(e){if(!admin()||liveProfile.id!==who)return;showCenterStatus('Unable to check opening balances: '+e.message,true)}finally{openingBusy=false;decorate()}
 }
 function decorate(){
  const card=$('journalEntry98'),date=card?.querySelector('.transaction-date-field'),meta=card?.querySelector('.je-meta-grid');
@@ -31,7 +31,7 @@ function decorate(){
 }
 let scheduled=false;
 function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;decorate()})}
-function ready(){decorate();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});window.addEventListener('connection14239',schedule);window.addEventListener('page113',schedule);window.addEventListener('resize',schedule)}
+function ready(){decorate();new MutationObserver(records=>{const selector='#journalEntry98,#demoUsersList,#openingBalances14234';if(records.some(r=>r.target.closest?.(selector)||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches(selector)||n.querySelector(selector)))))schedule()}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});window.addEventListener('connection14239',schedule);window.addEventListener('page113',schedule);window.addEventListener('resize',schedule)}
 window.layout14256={decorate,openBalances};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

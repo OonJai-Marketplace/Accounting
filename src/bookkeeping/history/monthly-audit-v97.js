@@ -1,9 +1,11 @@
   window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
+    const owner=liveProfile.id,db=ojmDb;
     const read = async () => {
       const pageSize = 500, rows = [];
       for (let offset = 0; ; offset += pageSize) {
-        const { data, error } = await ojmDb.from('audit_log')
+        if(liveProfile?.id!==owner||ojmDb!==db)throw Error('Account changed while loading audit history.');
+        const { data, error } = await db.from('audit_log')
           .select('id,table_name,record_id,action,reason,old_data,new_data,actor_id,created_at')
           .in('table_name', ['journal_entries','accounting_periods','period_findings','scheduled_journals','maintenance'])
           .order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
@@ -15,10 +17,11 @@
     };
     try {
       const rows = window.localFirst14333 ? await localFirst14333.snapshot('audit-transactions', read, {force}) : await read();
+      if(liveProfile?.id!==owner||ojmDb!==db)return;
       LiveTransactionAudit = rows;
       window.renderVoidedTransactionsTable();
     } catch (error) {
-      window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
+      if(liveProfile?.id===owner&&ojmDb===db)window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
       throw error;
     }
   };

@@ -54,5 +54,8 @@ document.addEventListener('click',event=>{
  const table=event.target.closest('[data-doc-action="table109"]');if(table)setTimeout(()=>{const sidebar=$('#docTableSidebar14298');if(sidebar)selectTablePanel(sidebar,0)},0);
 },true);
 window.addEventListener('connection14239',schedule);window.addEventListener('online',schedule);window.addEventListener('offline',schedule);
-document.addEventListener('DOMContentLoaded',()=>{polish();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true})},{once:true});
+document.addEventListener('DOMContentLoaded',()=>{polish();new MutationObserver(records=>{
+ const selector='#voucherBlank14299,#transactions-voided,#period-review,#document-editor105,.connection14239,#workspaceTools108,.logo-tile113';
+ if(records.some(r=>r.target.closest?.(selector)||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches(selector)||n.querySelector(selector)))))schedule();
+}).observe(document.body,{childList:true,subtree:true})},{once:true});
 })();

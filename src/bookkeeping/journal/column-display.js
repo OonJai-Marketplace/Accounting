@@ -10,15 +10,14 @@ function updateNextEntryIdDisplay() {
 function getCleanAccountDisplay(accountStr, explicitCurrency = null) {
   if (!accountStr) return { name: "Unassigned Account", currency: "" };
 
-  let cleanName = accountStr;
+  const value=String(accountStr).trim();
+  let cleanName = value;
   let detectedCurrency = explicitCurrency || "";
-
-  const matched = AccountingStore.accounts.find(a => 
-    a.code === accountStr || 
-    a.name.toLowerCase() === accountStr.toLowerCase() ||
-    accountStr.includes(a.name) ||
-    accountStr.startsWith(a.code)
-  );
+  const accounts=AccountingStore.accounts;
+  const nameOnly=value.replace(/\s*\([A-Z]{3}\)$/, '').trim().toLowerCase();
+  const matched=accounts.find(a=>String(a.code)===value||String(a.name).toLowerCase()===value.toLowerCase())
+    || accounts.find(a=>String(a.name).toLowerCase()===nameOnly)
+    || accounts.find(a=>{const code=String(a.code||'');return code&&value.startsWith(code)&&/^[\s—–-]/.test(value.slice(code.length))});
 
   if (matched) {
     cleanName = matched.name;

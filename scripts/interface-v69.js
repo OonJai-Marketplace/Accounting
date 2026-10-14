@@ -47,8 +47,8 @@ function applyCurrencyOrder69(){const order=ApplicationSettings.accounting.curre
 const renderCurrencyBefore69=CurrencyStore.render;
 CurrencyStore.render=function(){applyCurrencyOrder69();renderCurrencyBefore69.call(this);const host=document.getElementById('currencyTableBody');if(!host)return;[...host.rows].forEach((row,i)=>{row.draggable=true;row.dataset.currency=this.currencies[i].code;const handle=document.createElement('span');handle.className='currency-handle69';handle.textContent='⠿ ';handle.title='Drag to reorder';row.cells[0].prepend(handle);row.ondragstart=e=>e.dataTransfer.setData('text/plain',row.dataset.currency);row.ondragover=e=>e.preventDefault();row.ondrop=e=>{e.preventDefault();moveCurrency69(e.dataTransfer.getData('text/plain'),i)}})};
 function moveCurrency69(code,index){const list=CurrencyStore.currencies,from=list.findIndex(c=>c.code===code);if(from<0||index<0||index>=list.length)return;const snapshot=snapshotJournal69();list.splice(index,0,list.splice(from,1)[0]);ApplicationSettings.accounting.currencyOrder=list.map(c=>c.code);localStorage.setItem(APP_SETTINGS_KEY,JSON.stringify(ApplicationSettings));CurrencyStore.render();setupJournalColumns();restoreJournal69(snapshot);sizeCurrencyTables69();const active=document.querySelector('.tab-content.active')?.id;if(active==='transactions-all')renderAllTransactionsTable();else if(active==='transactions-new')renderNewTransactionsTable();else if(active==='transactions-voided')renderVoidedTransactionsTable()}
-function sizeCurrencyTables69(all=false){
- document.querySelectorAll(all?'table':'.tab-content.active table').forEach(table=>{
+function sizeCurrencyTables69(all=false,root=document){
+ [...(root.matches?.('table')?[root]:[]),...root.querySelectorAll(all?'table':root===document?'.tab-content.active table':'table')].forEach(table=>{
  if(table.querySelector('#jeHeaderRow'))return; // Journal-entry widths are fixed by the v97 desktop specification.
  const row=table.tHead?.rows[0];if(!row)return;
  [...row.cells].forEach((th,i)=>{const m=th.textContent.trim().match(/^(?:CR|DR)[\s-]+([A-Z]{3})$/);if(!m)return;const code=m[1],values=[...table.querySelectorAll('tbody tr')].map(tr=>tr.cells.length===row.cells.length?(tr.cells[i]?.textContent||tr.cells[i]?.querySelector('input')?.value||'').trim():'');const length=Math.max(code==='LAK'?16:12,...values.map(v=>v.length));const width=Math.min(240,Math.max(180,length*8+24));th.style.setProperty('width',width+'px','important');th.style.setProperty('min-width',width+'px','important');th.dataset.currency=code;});
@@ -59,14 +59,15 @@ const editHighlightBefore69=loadEntryForEdit;loadEntryForEdit=function(...args){
 const clearHighlightBefore69=clearJournalEntry;clearJournalEntry=function(...args){clearHighlightBefore69(...args);editHighlight69()};
 const finalHighlightBefore69=finalizePostSuccess;finalizePostSuccess=function(...args){finalHighlightBefore69(...args);editHighlight69()};
 function inlineControl69(node,header){if(node&&header&&!header.contains(node)){node.classList.add('inline-control69');header.append(node)}}
-function polish69(){
+function polish69(root=document){
+ const within=selector=>[...(root.matches?.(selector)?[root]:[]),...root.querySelectorAll(selector)];
  const search=document.getElementById('jeSearchInput'),card=search?.closest('.je-card');inlineControl69(search?.closest('.je-field-group'),card?.querySelector('.je-card-header'));card?.querySelector('.je-filter-toolbar')?.remove();
  const year=document.querySelector('.archive-year');inlineControl69(year,document.querySelector('#transactions-all .je-card-header'));year?.querySelector('select')?.classList.add('je-select');
- document.querySelectorAll('#reminderUnit, #recurringReminderRows select, .recurring-reminder-row select, .reminder-row select').forEach(n=>{n.style.width=`${Math.max(12,(n.selectedOptions[0]?.textContent.length||10)+4)}ch`});
- document.querySelectorAll('.v49-adjust-body input[id^="v49Adj-"]').forEach(n=>{n.classList.add('adjustment-input69');n.placeholder='Enter corrected amount';n.setAttribute('aria-label','New actual amount');});
- document.querySelectorAll('.v56-balance-formula>strong').forEach(n=>{if(!n.dataset.labeled){n.textContent='Tracked balance: '+n.textContent.replace(/^=\s*/,'');n.dataset.labeled='1'}});
+ within('#reminderUnit, #recurringReminderRows select, .recurring-reminder-row select, .reminder-row select').forEach(n=>{n.style.width=`${Math.max(12,(n.selectedOptions[0]?.textContent.length||10)+4)}ch`});
+ within('.v49-adjust-body input[id^="v49Adj-"]').forEach(n=>{n.classList.add('adjustment-input69');n.placeholder='Enter corrected amount';n.setAttribute('aria-label','New actual amount');});
+ within('.v56-balance-formula>strong').forEach(n=>{if(!n.dataset.labeled){n.textContent='Tracked balance: '+n.textContent.replace(/^=\s*/,'');n.dataset.labeled='1'}});
  // Table alignment belongs to each view; do not overwrite attendance or numeric columns.
- sizeCurrencyTables69();editHighlight69();
+ sizeCurrencyTables69(false,root);editHighlight69();
 }
 function setupHeaders69(){
  const period=document.getElementById('periodReviewMonthSelect');const controls=period?.closest('.period-selector')||period?.parentElement?.parentElement;if(controls)controls.classList.add('inline-period69');
@@ -77,9 +78,9 @@ document.addEventListener('DOMContentLoaded',()=>{
  const previousSwitch=window.switchTab;window.switchTab=function(target){saveLocation69();const result=previousSwitch(target);if(document.getElementById(target)?.classList.contains('active')){Location69.view=target;saveLocation69(0)}polish69();return result};
  const previousAccount=window.scrollToAccountModule;window.scrollToAccountModule=function(target){saveLocation69();const result=previousAccount(target);if(document.getElementById(target)&&!document.getElementById(target).hidden){Location69.view=target;requestAnimationFrame(()=>{const scroller=appWorkspaceScroller();if(scroller)scroller.scrollTop=0;saveLocation69()})}return result};
  setupHeaders69();CurrencyStore.render();polish69();
- let scheduled=false;new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;polish69()})}).observe(document.body,{childList:true,subtree:true});
+ let scheduled=false;const pending=new Set();new MutationObserver(records=>{for(const r of records){const target=r.target.nodeType===1?r.target:r.target.parentElement;if(!target)continue;const context=target.closest('table,#reminderUnit,#recurringReminderRows select,.recurring-reminder-row select,.reminder-row select,.v56-balance-formula>strong');if(context)pending.add(context);for(const node of r.addedNodes)if(node.nodeType===1)pending.add(node)}if(scheduled||!pending.size)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;const roots=new Set(pending);pending.clear();for(const root of roots){let parent=root.parentElement;while(parent&&!roots.has(parent))parent=parent.parentElement;if(root.isConnected&&!parent)polish69(root)}})}).observe(document.body,{childList:true,subtree:true});
  for(const name of ['pointerdown','keydown','scroll'])document.addEventListener(name,()=>{if(Date.now()-Location69.lastWrite<1000)return;Location69.lastWrite=Date.now();saveLocation69()},true);
- document.addEventListener('change',polish69);window.addEventListener('pagehide',saveLocation69);window.addEventListener('beforeprint',()=>sizeCurrencyTables69(true));
+ document.addEventListener('change',()=>polish69());window.addEventListener('pagehide',saveLocation69);window.addEventListener('beforeprint',()=>sizeCurrencyTables69(true));
 });
 
 // A navigation choice made while sign-in data is loading wins over the saved route.

@@ -18,7 +18,7 @@ function back(){
 
 function frameReady(frame){if(!mobile()||!frame?.contentDocument)return;const doc=frame.contentDocument;let style=doc.getElementById('reflowStyle1443');if(!style){style=doc.createElement('style');style.id='reflowStyle1443';style.textContent='@media screen{html.doc-reflow1443 body{padding:0!important}html.doc-reflow1443 #body105{zoom:1!important}html.doc-reflow1443 .page{width:100%!important;height:auto!important;min-height:0!important;margin:0!important;box-shadow:none!important;overflow:visible!important}html.doc-reflow1443 .page-content{position:relative!important;inset:auto!important;padding:16px!important;overflow:visible!important;font-size:18px!important;line-height:1.65!important}html.doc-reflow1443 .page-content p,html.doc-reflow1443 .page-content span,html.doc-reflow1443 .page-content div{font-size:inherit!important;max-width:100%!important}html.doc-reflow1443 .page-header,html.doc-reflow1443 .page-footer{display:none!important}html.doc-reflow1443 table{max-width:100%!important}html.doc-reflow1443 img{max-width:100%!important;height:auto!important}}';doc.head.append(style)}
  doc.documentElement.classList.toggle('doc-reflow1443',reflow);
- if(!reflow&&fit)documentWorkspace105.setZoom((frame.clientWidth-20)/(doc.querySelector('.page')?.offsetWidth||794));
+ if(!reflow&&fit&&frame.clientWidth>20)documentWorkspace105.setZoom((frame.clientWidth-20)/(doc.querySelector('.page')?.offsetWidth||794));
  if(!doc.documentElement.dataset.mobileZoom1443){doc.documentElement.dataset.mobileZoom1443='1';let start=0,zoom=1;doc.addEventListener('touchstart',e=>{if(e.touches.length===2&&!reflow){start=Math.hypot(e.touches[1].clientX-e.touches[0].clientX,e.touches[1].clientY-e.touches[0].clientY);zoom=documentWorkspace105.zoom}},{passive:true});doc.addEventListener('touchmove',e=>{if(e.touches.length!==2||!start||reflow)return;e.preventDefault();fit=false;documentWorkspace105.setZoom(zoom*Math.hypot(e.touches[1].clientX-e.touches[0].clientX,e.touches[1].clientY-e.touches[0].clientY)/start)},{passive:false});doc.addEventListener('touchend',()=>start=0,{passive:true});}
  document.querySelector('[data-mobile-doc1443=fit]')?.setAttribute('aria-pressed',String(reflow));
 }
@@ -28,10 +28,10 @@ function install(host){if(!mobile()||host.querySelector('.mobile-doc-top1443'))r
  // Reuse the editor's bound controls so size, font and palettes retain the selection.
  const quick=host.querySelector('.doc-quick1426');
  for(const selector of ['[data-format=fontName]','[data-style=fontSize]','[data-doc-action=bold]','[data-doc-action=italic]','[data-doc-action=underline]','[data-format=foreColor]','[data-format=hiliteColor]','[data-format=formatBlock]']){
-  const control=quick.querySelector(selector);if(control)format.append(control.closest('label')||control);
+  const control=quick?.querySelector(selector);if(control)format.append(control.closest('label')||control);
  }
  const size= format.querySelector('[data-style=fontSize]');
- for(const [label,text,delta] of [['Decrease font size','A−',-1],['Increase font size','A+',1]]){const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);b.onmousedown=e=>e.preventDefault();b.onclick=()=>{size.value=Math.max(6,Math.min(96,(Number(size.value)||11)+delta));size.dispatchEvent(new Event('change',{bubbles:true}));};format.append(b);}
+ for(const [label,text,delta] of [['Decrease font size','A−',-1],['Increase font size','A+',1]]){const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-label',label);b.onmousedown=e=>e.preventDefault();b.disabled=!size;b.onclick=()=>{if(!size)return;size.value=Math.max(6,Math.min(96,(Number(size.value)||11)+delta));size.dispatchEvent(new Event('change',{bubbles:true}));};format.append(b);}
  const formatButton=bottom.querySelector('[data-mobile-doc1443=format]');formatButton.setAttribute('aria-controls',format.id);formatButton.setAttribute('aria-expanded','false');
  const setFormat=open=>{format.hidden=!open;formatButton.setAttribute('aria-expanded',String(open));};
  host.closeFormatting1443=()=>setFormat(false);

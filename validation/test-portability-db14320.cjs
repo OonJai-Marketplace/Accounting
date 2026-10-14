@@ -1,5 +1,5 @@
 // Temporary PostgreSQL only; no production network, users or bookkeeping data.
-const fs=require('fs'),assert=require('node:assert/strict');const {PGlite}=require(process.env.PGLITE_MODULE||'/tmp/sql14316/node_modules/@electric-sql/pglite/dist/index.cjs');
+const fs=require('fs'),assert=require('node:assert/strict');const {PGlite}=require(process.env.PGLITE_MODULE||'@electric-sql/pglite');
 (async()=>{const db=new PGlite(),uid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');let count=0;async function check(name,f){await f();count++;console.log('PASS',name)}
 await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role;CREATE SCHEMA auth;CREATE SCHEMA private;
 CREATE TABLE auth.users(id uuid PRIMARY KEY,email text,raw_app_meta_data jsonb DEFAULT '{}',encrypted_password text,email_confirmed_at timestamptz);

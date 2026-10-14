@@ -1,6 +1,6 @@
 {
   "format": "accounting-clean-backend14322",
-  "release": "143.24",
+  "release": "143.70",
   "installationOrder": [
     "001-Install-Empty-Database.sql",
     "002-Create-First-Administrator.sql",
@@ -12,9 +12,9 @@
   "includesReferenceAndRuntimeDefaults": true,
   "minimumPostgreSQL": 15,
   "files": {
-    "001-Install-Empty-Database.sql": "e36895c920d1d66fa685b2b550ba6e48f522fd5e90f9c59c3b6aaf43ecb60e55",
+    "001-Install-Empty-Database.sql": "77c70a6eac05c9ace9eafb9e03c27f5e90a79aa566c96dc7d177232fb73585e4",
     "002-Create-First-Administrator.sql": "93ba650d7a993d803b90645a6b1cf461ae96bb6c7ffacc236110bcb0587b8c50",
-    "003-Verify-Installation.sql": "7ef34e5a070ca921f7e872fe82380507aca9522a4cb77332ad204db18bbda8dc",
+    "003-Verify-Installation.sql": "78987b01819d4b67703348a607e9facf81e662f024556fd7214f259517305b35",
     "004-Install-Maintenance-Audit.sql": "7eb0c7e8d69c3d09d8a7acf6455c66dddda1d6efc77651c53d5754cfc80e754b"
   }
 }

@@ -14,8 +14,8 @@
   const isAdmin=()=>S.data.access?.profile?.id===S.actor&&S.data.access.profile.status==='active'&&S.data.access.profile.role==='admin';
   const targetName=()=>S.owner===S.actor?S.data.access?.profile?.full_name:S.data.target?.profile?.full_name;
   const accountIds = () => [...new Set([...rules().fundIds, ...rules().entryIds, rules().counterpart].filter(Boolean))];
-  const accounts = () => (S.data.accounts || []).filter(a => accountIds().includes(a.id));
-  const funds = () => (S.data.funds || []).filter(f => rules().fundIds.includes(f.account_id));
+  const accounts = () => {const ids=new Set(accountIds());return (S.data.accounts || []).filter(a => ids.has(a.id));};
+  const funds = () => {const ids=new Set(rules().fundIds);return (S.data.funds || []).filter(f => ids.has(f.account_id));};
   const headers = () => (S.data.headers || []).filter(j => j.owner_id === S.owner);
   const monthHeaders = () => headers().filter(j => String(j.period_start).slice(0,7) === S.month);
   const lines = () => {

@@ -1,15 +1,15 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.68', CACHE='ojm-phone-shell-'+VERSION;
-const FILES=['assets/vendor/noble-gcm14334.js?v=143.34','scripts/device-vault14334.js?v=143.60','styles/controls14305.css?v=143.08','scripts/action-feedback14296.js?v=143.46','scripts/feedback-viewport14295.js?v=143.20','styles/feedback-viewport14295.css?v=143.59','assets/brand/oonjai-logo.png','styles/password-help14278.css?v=142.94','styles/loading1444.css?v=142.94','scripts/login-notifications14293.js?v=142.94','styles/login-notifications14293.css?v=142.94','scripts/loading1444.js?v=142.94','styles/functional-corrections14292.css?v=142.94','recovery.html','scripts/recovery14257.js?v=143.34','scripts/phone-reset-gate14257.js?v=142.57','scripts/numeric-caret14257.js?v=142.57','scripts/password-policy14257.js?v=143.67','index.html','phone.html','styles/phone14242.css?v=143.59','scripts/reconciliation14345.js?v=143.49','styles/final-review14345.css?v=143.47','scripts/phone-runtime14242.js?v=143.68','assets/vendor/supabase.js?v=142.41','scripts/supabase-config.js?v=143.20','deployment-config.js?v=143.20','scripts/staff-entry14225.js?v=142.81'];
-const OPTIONAL=['scripts/phone-tools14242.js?v=143.43','assets/logo.png'];
+const VERSION='143.70', CACHE='ojm-phone-shell-'+VERSION;
+const FILES=['assets/vendor/noble-gcm14334.js?v=143.34','scripts/device-vault14334.js?v=143.70','styles/controls14305.css?v=143.08','scripts/action-feedback14296.js?v=143.70','scripts/feedback-viewport14295.js?v=143.20','styles/feedback-viewport14295.css?v=143.59','assets/brand/oonjai-logo.png','styles/password-help14278.css?v=142.94','styles/loading1444.css?v=142.94','scripts/login-notifications14293.js?v=142.94','styles/login-notifications14293.css?v=142.94','scripts/loading1444.js?v=142.94','styles/functional-corrections14292.css?v=142.94','recovery.html','scripts/recovery14257.js?v=143.70','scripts/phone-reset-gate14257.js?v=142.57','scripts/numeric-caret14257.js?v=142.57','scripts/password-policy14257.js?v=143.67','index.html','phone.html','styles/phone14242.css?v=143.59','scripts/reconciliation14345.js?v=143.49','styles/final-review14345.css?v=143.47','scripts/phone-runtime14242.js?v=143.70','assets/vendor/supabase.js?v=142.41','scripts/supabase-config.js?v=143.20','deployment-config.js?v=143.20','scripts/staff-entry14225.js?v=143.70'];
+const OPTIONAL=['scripts/phone-tools14242.js?v=143.70','assets/logo.png'];
 const scopeURL=new URL(self.registration.scope);
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);
  try{
-  for(let i=0;i<FILES.length;i+=2)await Promise.all(FILES.slice(i,i+2).map(async file=>{
+  for(let i=0;i<FILES.length;i+=2){const results=await Promise.allSettled(FILES.slice(i,i+2).map(async file=>{
    const u=new URL(file,scopeURL),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
    try{const response=await fetch(u.href,{cache:/\.html$/.test(file)?'reload':'force-cache',signal:controller.signal});if(!response.ok)throw Error('Phone file did not finish downloading');const body=await response.arrayBuffer();await cache.put(u.href,new Response(body,{status:response.status,headers:response.headers}));}finally{clearTimeout(timer)}
-  }));await self.skipWaiting();
+  }));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;}await self.skipWaiting();
  }catch(e){await caches.delete(CACHE);throw e}
 })()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const client of await self.clients.matchAll())client.postMessage({type:'ojm-phone-ready',version:VERSION});})()));

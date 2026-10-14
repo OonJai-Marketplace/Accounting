@@ -1,27 +1,29 @@
 /* Retain historical leave usage while downloading detailed payroll by requested year. */
 (() => {
   "use strict";
-  let missing = false, checkpoint = null;
+  let missing = false, checkpoint = null, generation14370 = 0;
   async function read(from, to) {
-    if (missing) {
+    if (missing === ojmDb) {
       Work82.leaveCarry14334 = [];
       Work82.payrollIndex14334 = [];
       return null;
     }
-    const id = liveProfile.id,
+    const id = liveProfile.id, client = ojmDb, generation = generation14370,
       rows = [];
     let revision,
       carry = [],
       history = [];
     for (let offset = 0; ; offset += 200) {
-      const r = await ojmDb.rpc("payroll_window14334", {
+      const r = await client.rpc("payroll_window14334", {
         p_from: from,
         p_to: to,
         p_offset: offset,
       });
+      if (liveProfile?.id !== id || ojmDb !== client || generation !== generation14370)
+        throw Error("Account changed while payroll was loading.");
       if (r.error) {
         if (["PGRST202", "42883"].includes(r.error.code)) {
-          missing = true;
+          missing = client;
           Work82.leaveCarry14334 = [];
           Work82.payrollIndex14334 = [];
           window.localFirst14333?.setNotice(
@@ -42,7 +44,7 @@
         throw Error("The payroll window is incomplete.");
       if (offset === 0) {
         revision = r.data.revision;
-        if(checkpoint?.actor===id&&checkpoint.from===from&&checkpoint.to===to&&checkpoint.revision===revision){Work82.leaveCarry14334=r.data.carry;Work82.payrollIndex14334=r.data.index;return structuredClone(checkpoint.rows);}
+        if(checkpoint?.actor===id&&checkpoint.client===client&&checkpoint.from===from&&checkpoint.to===to&&checkpoint.revision===revision){Work82.leaveCarry14334=r.data.carry;Work82.payrollIndex14334=r.data.index;return structuredClone(checkpoint.rows);}
         carry = r.data.carry;
         history = r.data.index;
       } else if (revision !== r.data.revision)
@@ -56,7 +58,7 @@
       rows.push(...r.data.rows);
       if (r.data.rows.length < 200) break;
     }
-    checkpoint={actor:id,from,to,revision,rows:structuredClone(rows)};
+    checkpoint={actor:id,client,from,to,revision,rows:structuredClone(rows)};
     Work82.leaveCarry14334 = carry;
     Work82.payrollIndex14334 = history;
     return rows;
@@ -89,7 +91,7 @@
   window.payrollWindow14334 = {
     read,
     checkpoint:()=>checkpoint&&{actor:checkpoint.actor,from:checkpoint.from,to:checkpoint.to,revision:checkpoint.revision},
-    restore(value){const c=value?.payrollRevision14351;if(c?.actor===liveProfile?.id&&Array.isArray(value.runs))checkpoint={...c,rows:structuredClone(value.runs)};},
+    restore(value){const c=value?.payrollRevision14351;if(c?.actor===liveProfile?.id&&Array.isArray(value.runs))checkpoint={...c,client:ojmDb,rows:structuredClone(value.runs)};},
     used,
     ensure,
     hasEmployee(id) {
@@ -106,7 +108,7 @@
       );
     },
     reset() {
-      missing = false;checkpoint=null;
+      generation14370++;missing = false;checkpoint=null;
       Work82.leaveCarry14334 = [];
     },
   };

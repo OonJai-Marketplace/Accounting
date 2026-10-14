@@ -5,7 +5,8 @@ function appNumberLocale() {
   return style === '1.234,56' ? 'de-DE' : style === '1 234,56' ? 'fr-FR' : 'en-US';
 }
 function appDecimalPlaces() {
-  return Math.max(0, Math.min(6, Number(ApplicationSettings.accounting?.decimalPlaces ?? 2)));
+  const places=Number(ApplicationSettings.accounting?.decimalPlaces ?? 2);
+  return Number.isFinite(places)?Math.max(0,Math.min(6,Math.trunc(places))):2;
 }
 function formatAppNumber(value) {
   const places = appDecimalPlaces();

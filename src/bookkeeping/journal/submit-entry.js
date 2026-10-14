@@ -70,7 +70,11 @@ async function confirmEntryOverride() {
     return;
   }
 
+  const owner=liveProfile?.id,db=ojmDb;
   const targetId = JournalModule.editingEntryId;
+  const pending=JournalModule.pendingLines;
+  if(!targetId||!Array.isArray(pending)||!pending.length)return;
+  const current=()=>liveProfile?.id===owner&&ojmDb===db&&JournalModule.editingEntryId===targetId&&JournalModule.pendingLines===pending;
   const oldLines = JournalModule.entries.filter(t => t.id === targetId);
   if (oldLines.some(line => line.archived)) {
     showAppNotification('Archived Period', 'This transaction is archived and cannot be directly overwritten.', true);
@@ -87,16 +91,18 @@ async function confirmEntryOverride() {
       debit: Number(line.debit || 0),
       credit: Number(line.credit || 0)
     }));
-    const { error } = await ojmDb.rpc('revise_open_journal_entry', {
+    const { error } = await db.rpc('revise_open_journal_entry', {
       p_entry_id: dbEntryId,
       p_reason: reason,
       p_transaction_date: payload[0]?.line_date,
       p_memo: document.getElementById('jeGeneralMemo').value.trim(),
       p_lines: payload
     });
+    if (!current()) return;
     if (error) { showAppNotification('Update Failed', error.code==='PGRST202' ? 'The journal revision function is missing or outdated. Read setup/SETUP-GUIDE-v142.20.txt for the required existing database setup. Your original entry has not been changed.' : error.message, true); return; }
     closeModal('modalEditReason');
     await loadJournalFromSupabase();
+    if (!current()) return;
     showAppNotification('Update Successful', `Entry ${targetId} was revised and the original values were retained in the audit trail.`, false);
     finalizePostSuccess();
     return;

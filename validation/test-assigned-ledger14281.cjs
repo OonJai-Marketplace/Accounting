@@ -1,5 +1,5 @@
 // Isolated PostgreSQL tests; no live database connection.
-const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require('/tmp/oonjai-db-test/node_modules/@electric-sql/pglite');
+const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require(process.env.PGLITE_MODULE||'@electric-sql/pglite');
 (async()=>{const db=new PGlite();await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT nullif(current_setting('app.actor',true),'')::uuid$$;
 CREATE FUNCTION public.accounting_workspace_allowed123() RETURNS boolean LANGUAGE sql AS $$ SELECT true $$;

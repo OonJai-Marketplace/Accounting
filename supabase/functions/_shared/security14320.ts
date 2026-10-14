@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 export { createClient };
 export function cors(req:Request){
- const origins=(Deno.env.get('APP_ORIGINS')||Deno.env.get('APP_ORIGIN')||'').split(',').map(v=>v.trim()).filter(Boolean),origin=req.headers.get('origin');
+ const origins=(Deno.env.get('APP_ORIGINS')||Deno.env.get('APP_ORIGIN')||'').split(',').map(v=>v.trim().replace(/\/$/, '')).filter(Boolean),origin=req.headers.get('origin');
  if(origin&&!origins.includes(origin))throw Error('Origin not allowed');
  return {'Access-Control-Allow-Origin':origin||origins[0]||'null','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS','Vary':'Origin'};
 }
@@ -15,6 +15,7 @@ export async function administrator(req:Request){
  const user=result.data.user,profile=await admin.from('profiles').select('role,status').eq('id',user.id).single();
  if(profile.error||profile.data?.role!=='admin'||profile.data?.status!=='active')throw Error('Active administrator required');
  const client=createClient(url,anon,{global:{headers:{Authorization:'Bearer '+token}},auth:{persistSession:false,autoRefreshToken:false}});
+ const reset=await client.rpc('password_change_status14257');if(reset.error||reset.data?.required!==false)throw Error('Complete your required password change first');
  const allowed=await client.rpc('accounting_workspace_allowed123');if(allowed.error||allowed.data!==true)throw Error('Accounting administrator required');
  return {admin,client,user,url,anon};
 }

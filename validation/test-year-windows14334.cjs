@@ -1,4 +1,4 @@
-const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require(process.env.PGLITE_MODULE||'/tmp/ojm-crypto-build/node_modules/@electric-sql/pglite/dist/index.cjs');
+const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require(process.env.PGLITE_MODULE||'@electric-sql/pglite');
 (async()=>{const db=new PGlite();await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT nullif(current_setting('app.actor',true),'')::uuid$$;
 CREATE TABLE payroll_runs(id uuid PRIMARY KEY,owner_id uuid,period_start date,period_end date,status text,version int,updated_at timestamptz,data jsonb);

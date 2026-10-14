@@ -53,13 +53,13 @@ function profileSummary(profile) {
     await cdp.send('Profiler.enable'); await cdp.send('Profiler.start');
     for (const offline of [false,true]) {
       await context.setOffline(offline);
-      for (let repeat=0; repeat<repeats; repeat++) for (const [module,target] of [
-        ['settings','settings-business'],['transactions','journal'],['sub-users','sub-users-home14229'],['accounts','accounts-modular-container'],['hr','payroll-employees'],['payroll','payroll-overview'],['dashboard','dashboard']
+      for (let repeat=0; repeat<repeats; repeat++) for (const [module,target,selector] of [
+        ['settings','settings-business'],['transactions','journal'],['sub-users','sub-users-home14229'],['accounts','accounts-modular-container'],['hr','payroll-employees'],['payroll','payroll-overview'],['dashboard','dashboard'],['comparison-journal','journal','#nav-experiment-Journal .nav-header'],['comparison-blank','navigation-blank14366','#nav-experiment-Blank .nav-header']
       ]) {
         console.log('MEASURE',offline?'offline':'online',repeat,module);
         const before = Object.fromEntries((await cdp.send('Performance.getMetrics')).metrics.map(x=>[x.name,x.value]));
         const requestStart = f.requests.length, count = await page.evaluate(()=>ojmNavDiag.count);
-        await page.locator('#nav-module-'+module+' .nav-header').click();
+        await page.locator(selector||'#nav-module-'+module+' .nav-header').click();
         await page.waitForFunction(count => ojmNavDiag.count>count&&!!ojmNavDiag.latest?.finished,count,{timeout:20000});
         // Bounded observation tail captures later observer work separately from ready time.
         await page.waitForTimeout(200);

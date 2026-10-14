@@ -12,8 +12,9 @@
     if (!head) return;
     head.innerHTML = headers.map(title => `<th>${escape(title)}</th>`).join('');
     const results = new Map(resultRows(run).map(row => [row.employeeId, row]));
+    const ordered=run.rows.slice().sort(window.payroll95.order);
     [...table.querySelectorAll('tbody tr')].forEach((tr, index) => {
-      const row = run.rows[index];
+      const row = ordered[index];
       const x = row && results.get(row.employeeId);
       if (!row) return;
       if (!x) { tr.innerHTML='<td>'+escape(row.employee.name)+'</td><td>'+money(row.employee.salary,row.employee.currency)+'</td>'+Array.from({length:5},()=>'<td>—</td>').join(''); return; }
@@ -32,7 +33,7 @@
       ];
       tr.replaceChildren(...values.map((value, column) => {
         const td = document.createElement('td');
-        if (column === 0) td.append(value);
+        if (column === 0) return value;
         else { td.className = 'amount82 currency-cell97'; td.textContent = value; }
         return td;
       }));
@@ -60,7 +61,7 @@
     const leaveRows = leaves.map(record => {
       const d = record.data;
       const employee = Work82.employees.find(item => item.id === d.employeeId)?.data?.name || 'Former employee';
-      return `<tr><td>${escape(employee)}</td><td>${escape(d.from || '')} – ${escape(d.to || '')}</td><td>${escape(d.type || '')}</td><td>${amount(d.days)}</td><td>${escape(d.paid === 'yes' ? 'Paid' : 'Unpaid')}</td><td>${escape(d.status || '')}</td><td>${escape(d.reference || '')}</td></tr>`;
+      return `<tr><td>${escape(employee)}</td><td>${escape(formatAppDate(d.from || ''))} – ${escape(formatAppDate(d.to || ''))}</td><td>${escape(d.type || '')}</td><td>${amount(d.days)}</td><td>${escape(d.paid === 'yes' ? 'Paid' : 'Unpaid')}</td><td>${escape(d.status || '')}</td><td>${escape(d.reference || '')}</td></tr>`;
     }).join('');
     host.innerHTML = `<header><div><h3>Payroll Overview</h3><p>Saved payroll and leave records for the selected month.</p></div><div class="actions82"><button class="je-btn je-btn-secondary" type="button" onclick="loadWork82(true)">Reload Records</button><button class="je-btn je-btn-emerald" type="button" onclick="openPayroll99()">Open Payroll</button></div></header>${Work82.error ? `<p class="notice82 warn82">${escape(Work82.error)}</p>` : ''}<section class="block82"><header><h4>Payroll period</h4></header><div class="overview-month97"><label for="overviewPayrollMonth97">Month</label><input type="month" id="overviewPayrollMonth97" value="${escape(month)}"></div>${payroll}</section><section class="block82"><header><h4>Leave this month</h4><span>${leaves.length} records</span></header><div class="data-table82"><table><thead><tr><th>Employee</th><th>Dates</th><th>Leave type</th><th>Days</th><th>Pay treatment</th><th>Status</th><th>Reference</th></tr></thead><tbody>${leaveRows || '<tr><td colspan="7" class="empty82">No leave records for this month.</td></tr>'}</tbody></table></div></section>`;
     host.querySelector('#overviewPayrollMonth97')?.addEventListener('change', event => {

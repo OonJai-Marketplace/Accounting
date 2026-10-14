@@ -4,7 +4,7 @@
     const owner=S.owner,epoch=S.epoch;S.syncing=true;paintConnection();
     const run=async()=>{
       try{
-        await access();if(!permission('sub-users-workspace','edit'))throw fail('Posting is no longer enabled for this account.');
+        if(!current(owner,epoch))return;await access();if(!current(owner,epoch))return;if(!permission('sub-users-workspace','edit'))throw fail('Posting is no longer enabled for this account.');
         const stored=await record(owner);if(!current(owner,epoch))return;S.data.queue=stored.queue||[];
         for(const q of queue().filter(q=>q.status!=='confirmed')){
           if(!current(owner,epoch)||automatic&&!phoneSyncIdle14351())return;

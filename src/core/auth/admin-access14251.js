@@ -15,17 +15,17 @@ const pending=new Map();let lastError='';
 function effective(user,base={}){if(!isAdmin(user))return base;const all=ids();return {...base,job_title:base.job_title??user.user_permissions?.job_title??'',user_id:user.id,user_type:'admin',modules:modules(),module_actions113:matrix(),can_approve:true,can_post_directly:true,can_void:true,can_export:true,can_manage_data:true,allow_any_account:true,assigned_fund_account_ids:all,allowed_account_ids:all,destination_account_ids:all,allowed_directions:['out','in'],allow_multiple_funds:true};}
 function complete(p){const all=ids();return all.length&&['can_approve','can_post_directly','can_void','can_export','can_manage_data'].every(k=>p[k]===true)&&['assigned_fund_account_ids','destination_account_ids'].every(k=>all.every(id=>(p[k]||[]).includes(id)))&&p.allow_multiple_funds===true&&['in','out'].every(d=>(p.allowed_directions||[]).includes(d));}
 async function sync(owner){
- const actor=liveProfile,session=window.PhoneApp132?.session();if(!isAdmin(actor)||!validId(owner)||!chartReady()||owner!==actor.id||navigator.onLine===false||window.permissions1441?.verified===false||!ojmDb)return;
+ const actor=liveProfile,session=window.PhoneApp132?.session(),db=ojmDb;const current=()=>liveProfile?.id===actor?.id&&isAdmin(liveProfile)&&ojmDb===db&&window.PhoneApp132?.session()===session;if(!isAdmin(actor)||!validId(owner)||!chartReady()||owner!==actor.id||navigator.onLine===false||window.permissions1441?.verified===false||!ojmDb)return;
  const user=owner===actor.id?actor:(liveProfiles||[]).find(u=>u.id===owner);if(!isAdmin(user)||!ids().length)return;
  const base=owner===actor.id?livePermission||{}:user.user_permissions||{};if(complete(base))return;if(pending.has(owner))return pending.get(owner);
- const task=(async()=>{let title=base.job_title??user.user_permissions?.job_title;if(title==null){const saved=await ojmDb.from('user_permissions').select('job_title').eq('user_id',owner).maybeSingle();if(saved.error)throw Error(saved.error.message);title=saved.data?.job_title??'';}const p=effective(user,{...base,job_title:title,fund_allocations:base.fund_allocations||[],entry_prefix:base.entry_prefix||'SJR',entry_initials:base.entry_initials||workspaceUserInitials(user),entry_digits:base.entry_digits||4});
-  const request=ojmDb.rpc('admin_save_access1441',{p_user:owner,p_name:user.full_name,p_role:'admin',p_permissions:p});
+ const task=Promise.resolve().then(async()=>{if(!current())return;let title=base.job_title??user.user_permissions?.job_title;if(title==null){const saved=await db.from('user_permissions').select('job_title').eq('user_id',owner).maybeSingle();if(!current())return;if(saved.error)throw Error(saved.error.message);title=saved.data?.job_title??'';}const p=effective(user,{...base,job_title:title,fund_allocations:base.fund_allocations||[],entry_prefix:base.entry_prefix||'SJR',entry_initials:base.entry_initials||workspaceUserInitials(user),entry_digits:base.entry_digits||4});
+  if(!current())return;const request=db.rpc('admin_save_access1441',{p_user:owner,p_name:user.full_name,p_role:'admin',p_permissions:p});
   let timer;const result=await Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Administrator account access could not finish syncing. Please reconnect and retry.')),12000)})]).finally(()=>clearTimeout(timer));
-  if(result.error)throw Error(result.error.message);if(result.data?.user_id!==owner||result.data?.saved!==true)throw Error('Administrator account access was not confirmed by the server.');
-  if(liveProfile?.id!==actor.id||!isAdmin(liveProfile)||window.PhoneApp132?.session()!==session)return;
+  if(!current())return;if(result.error)throw Error(result.error.message);if(result.data?.user_id!==owner||result.data?.saved!==true)throw Error('Administrator account access was not confirmed by the server.');
+  if(!current())return;
   if(owner===actor.id)livePermission={...p};const stored=liveProfiles.find(u=>u.id===owner);if(stored)stored.user_permissions={...p};
   lastError='';window.PhoneApp132?.loadWorkspace(owner,true).catch(()=>{});
- })().finally(()=>pending.delete(owner));pending.set(owner,task);return task;
+ }).finally(()=>{if(pending.get(owner)===task)pending.delete(owner)});pending.set(owner,task);return task;
 }
 const remembered=new WeakMap();
 function editorPolicy(){
@@ -43,8 +43,8 @@ function ready(){
  const summary=window.updateUserAccessSummaries;window.updateUserAccessSummaries=function(...args){summary(...args);editorPolicy();};
  document.getElementById('userAccessType')?.addEventListener('change',editorPolicy);
  const save=window.saveUserAccess;window.saveUserAccess=async function(...args){if(editorAdmin()&&!chartReady()){args[0]?.preventDefault();showCenterStatus('Accounts are still loading. Please try saving again when they finish.',true);return;}editorPolicy();const result=await save.apply(this,args);if(!document.getElementById('modalUserAccess')?.classList.contains('active'))await permissions1441.verify();return result;};
- const staff=window.staffSave14228;window.staffSave14228=async function(payload){await sync(payload.p_owner);return staff(payload);};
- const pulse=()=>{if(document.hidden||document.getElementById('modalUserAccess')?.classList.contains('active')||!isAdmin(liveProfile)||!livePermission||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;sync(liveProfile.id).catch(e=>{if(lastError!==e.message){lastError=e.message;showCenterStatus(e.message,true);}});};
+ const staff=window.staffSave14228;window.staffSave14228=async function(payload){const actor=liveProfile?.id,session=window.PhoneApp132?.session(),db=ojmDb;await sync(payload.p_owner);if(liveProfile?.id!==actor||window.PhoneApp132?.session()!==session||ojmDb!==db)throw Error('Account changed. Reopen the entry before saving.');return staff(payload);};
+ const pulse=()=>{if(document.hidden||document.getElementById('modalUserAccess')?.classList.contains('active')||!isAdmin(liveProfile)||!livePermission||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;const actor=liveProfile.id;sync(actor).catch(e=>{if(liveProfile?.id!==actor)return;if(lastError!==e.message){lastError=e.message;showCenterStatus(e.message,true);}});};
  window.adminAccess14251={effective,sync,editorPolicy};setInterval(pulse,15000);window.addEventListener('focus',pulse);window.addEventListener('online',pulse);setTimeout(pulse,1000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

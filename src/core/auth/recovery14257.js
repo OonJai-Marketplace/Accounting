@@ -1,7 +1,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),params=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.slice(1));let db,ready=false,busy=false;
 const status=text=>{text=String(text||'');const progress=/^(?:Verifying|Saving)/.test(text);$('status').innerHTML=progress?(window.loading1444?.markup()||''):'';if(text&&!progress)window.loginNotice14293(text,!/^Password updated/.test(text))};
-async function boundedFetch(input,init={}){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{return await fetch(input,{...init,signal:controller.signal})}finally{clearTimeout(timer)}}
+async function boundedFetch(input,init={}){const controller=new AbortController(),signal=init.signal||input?.signal,abort=()=>controller.abort(signal?.reason),timer=setTimeout(()=>controller.abort(),15000);if(signal?.aborted)abort();else signal?.addEventListener('abort',abort,{once:true});try{return await fetch(input,{...init,signal:controller.signal})}finally{clearTimeout(timer);signal?.removeEventListener('abort',abort)}}
 async function start(){try{
  const problem=params.get('error_description')||hash.get('error_description');if(problem)throw Error(problem+'. Request a new recovery email.');
  if(!window.supabase)throw Error('The secure password service could not load. Reconnect and reload this page.');
@@ -14,7 +14,7 @@ async function start(){try{
  if(params.has('required')){const r=await db.rpc('password_change_status14257');if(r.error)throw r.error;if(!r.data?.required){location.replace('index.html');return}}
  ready=true;$('recoveryForm14257').querySelector('fieldset').disabled=false;passwordPolicy14257.scan();status('');
  }catch(e){status(e.message||'Verification could not finish. Reconnect and reload.')}}
-$('confirmPassword14257').addEventListener('input',()=>{$('confirmPassword14257').setCustomValidity($('confirmPassword14257').value!==$('newPassword14257').value?'The passwords do not match.':'')});
+for(const id of ['confirmPassword14257','newPassword14257'])$(id).addEventListener('input',()=>{$('confirmPassword14257').setCustomValidity($('confirmPassword14257').value!==$('newPassword14257').value?'The passwords do not match.':'')});
 $('recoveryForm14257').onsubmit=async e=>{e.preventDefault();if(!ready||busy)return;const password=$('newPassword14257').value;if(!passwordPolicy14257.accepted(password))return;if(password!==$('confirmPassword14257').value){status('The passwords do not match.');return}busy=true;const b=e.target.querySelector('button');b.disabled=true;try{
  status('Saving your new password…');const r=await db.auth.updateUser({password});if(r.error)throw r.error;await window.deviceVault14334?.rewrap(r.data.user.email,password);
  const check=await db.rpc('password_change_status14257');if(check.error&&!['PGRST202','42883'].includes(check.error.code))throw check.error;

@@ -36,7 +36,7 @@
     const select = document.createElement('select');
     select.name = 'payrollAccountId';
     select.innerHTML = '<option value="">Select the employee payroll account</option>' + rows
-      .filter(account => !currency || account.currency === currency)
+      .filter(account => (account.id===selected||account.isPosting!==false&&account.isActive!==false)&&(!currency || account.currency === currency))
       .map(account => `<option value="${escape(account.id)}">${escape(`${account.code || ''} — ${account.name} (${account.currency})`)}</option>`).join('');
     select.value = selected;
     const label = document.createElement('label');
@@ -99,7 +99,6 @@
     const titleLabel = byName('code');
     if (titleLabel) {
       const wrapper = titleLabel.parentElement;
-      const keep = new Set(original);
       [...wrapper.children].forEach(node => { if (node.matches('label')) node.remove(); });
       wrapper.remove();
     }
@@ -128,8 +127,9 @@
     if (!head) return;
     head.innerHTML = headers.map(title => `<th>${escape(title)}</th>`).join('');
     const results = new Map(resultRows(run).map(row => [row.employeeId, row]));
+    const ordered=run.rows.slice().sort(window.payroll95.order);
     [...table.querySelectorAll('tbody tr')].forEach((tr, index) => {
-      const row = run.rows[index];
+      const row = ordered[index];
       const x = row && results.get(row.employeeId);
       if (!row) return;
       if (!x) { tr.innerHTML='<td>'+escape(row.employee.name)+'</td><td>'+money(row.employee.salary,row.employee.currency)+'</td>'+Array.from({length:5},()=>'<td>—</td>').join(''); return; }
@@ -148,7 +148,7 @@
       ];
       tr.replaceChildren(...values.map((value, column) => {
         const td = document.createElement('td');
-        if (column === 0) td.append(value);
+        if (column === 0) return value;
         else { td.className = 'amount82 currency-cell97'; td.textContent = value; }
         return td;
       }));
@@ -176,7 +176,7 @@
     const leaveRows = leaves.map(record => {
       const d = record.data;
       const employee = Work82.employees.find(item => item.id === d.employeeId)?.data?.name || 'Former employee';
-      return `<tr><td>${escape(employee)}</td><td>${escape(d.from || '')} – ${escape(d.to || '')}</td><td>${escape(d.type || '')}</td><td>${amount(d.days)}</td><td>${escape(d.paid === 'yes' ? 'Paid' : 'Unpaid')}</td><td>${escape(d.status || '')}</td><td>${escape(d.reference || '')}</td></tr>`;
+      return `<tr><td>${escape(employee)}</td><td>${escape(formatAppDate(d.from || ''))} – ${escape(formatAppDate(d.to || ''))}</td><td>${escape(d.type || '')}</td><td>${amount(d.days)}</td><td>${escape(d.paid === 'yes' ? 'Paid' : 'Unpaid')}</td><td>${escape(d.status || '')}</td><td>${escape(d.reference || '')}</td></tr>`;
     }).join('');
     host.innerHTML = `<header><div><h3>Payroll Overview</h3><p>Saved payroll and leave records for the selected month.</p></div><div class="actions82"><button class="je-btn je-btn-secondary" type="button" onclick="loadWork82(true)">Reload Records</button><button class="je-btn je-btn-emerald" type="button" onclick="openPayroll99()">Open Payroll</button></div></header>${Work82.error ? `<p class="notice82 warn82">${escape(Work82.error)}</p>` : ''}<section class="block82"><header><h4>Payroll period</h4></header><div class="overview-month97"><label for="overviewPayrollMonth97">Month</label><input type="month" id="overviewPayrollMonth97" value="${escape(month)}"></div>${payroll}</section><section class="block82"><header><h4>Leave this month</h4><span>${leaves.length} records</span></header><div class="data-table82"><table><thead><tr><th>Employee</th><th>Dates</th><th>Leave type</th><th>Days</th><th>Pay treatment</th><th>Status</th><th>Reference</th></tr></thead><tbody>${leaveRows || '<tr><td colspan="7" class="empty82">No leave records for this month.</td></tr>'}</tbody></table></div></section>`;
     host.querySelector('#overviewPayrollMonth97')?.addEventListener('change', event => {
@@ -204,7 +204,7 @@
     const record = (Work82.leaves || []).find(item => item.id === id);
     const data = record?.data || {};
     const employee = Work82.employees.find(item => item.id === data.employeeId)?.data || {};
-    const content = `<h2>Leave Application</h2><p>Application reference: ${escape(data.reference || '________________')}</p><table><tbody><tr><th>Employee</th><td>${escape(employee.name || '')}</td><th>Position</th><td>${escape(employee.position || '')}</td></tr><tr><th>Leave type</th><td>${escape(data.type || '')}</td><th>Paid / unpaid</th><td>${escape(data.paid === 'yes' ? 'Paid' : 'Unpaid')}</td></tr><tr><th>From</th><td>${escape(data.from || '')}</td><th>Through</th><td>${escape(data.to || '')}</td></tr><tr><th>Working days</th><td>${escape(data.days || '')}</td><th>Payroll month</th><td>${escape(data.month || '')}</td></tr></tbody></table><h3>Reason</h3><p class="leave-reason97">${escape(data.notes || '')}</p><div class="leave-signatures97"><div>Employee signature / date</div><div>Supervisor approval / date</div><div>Payroll review / date</div></div>`;
+    const content = `<h2>Leave Application</h2><p>Application reference: ${escape(data.reference || '________________')}</p><table><tbody><tr><th>Employee</th><td>${escape(employee.name || '')}</td><th>Position</th><td>${escape(employee.position || '')}</td></tr><tr><th>Leave type</th><td>${escape(data.type || '')}</td><th>Paid / unpaid</th><td>${escape(data.paid === 'yes' ? 'Paid' : 'Unpaid')}</td></tr><tr><th>From</th><td>${escape(data.from ? formatAppDate(data.from) : '')}</td><th>Through</th><td>${escape(data.to ? formatAppDate(data.to) : '')}</td></tr><tr><th>Working days</th><td>${escape(data.days || '')}</td><th>Payroll month</th><td>${escape(data.month || '')}</td></tr></tbody></table><h3>Reason</h3><p class="leave-reason97">${escape(data.notes || '')}</p><div class="leave-signatures97"><div>Employee signature / date</div><div>Supervisor approval / date</div><div>Payroll review / date</div></div>`;
     if (typeof window.print82 === 'function') window.print82('Leave Application', content, data.month || currentMonth());
     else window.print();
   }
@@ -255,20 +255,12 @@
       window.showAppNotification?.('Choose a later date', 'Set the final warning for a future date.', true);
       return;
     }
+    const actor=liveProfile?.id;
     const saved=await PrivateReminders14229.mutate(()=>{const item=RecurringStore.items.find(record=>record.id===id);if(!item)throw Error("Reminder changed. Reload first.");item.preparedUntil=date},'prepare:'+id+':'+date);
-    if(!saved)return;
+    if(!saved||liveProfile?.id!==actor)return;
     window.renderRecurringWarnings();
     window.showAppNotification?.('Preparation recorded', `The next warning is set for ${window.formatAppDate(date)}.`, false);
   };
-
-  if (typeof window.markRecurringPaid === 'function') {
-    const markPaid = window.markRecurringPaid;
-    window.markRecurringPaid = function (id) {
-      const item = RecurringStore.items.find(record => record.id === id);
-      if (item) delete item.preparedUntil;
-      return markPaid.call(this, id);
-    };
-  }
 
   window.renderRecurringWarnings = function () {
     const host = document.getElementById('recurringWarningList');
@@ -278,10 +270,10 @@
       const status = window.recurringStatus(item);
       return `<article class="recurring-warning-item ${status === 'OVERDUE' ? 'overdue' : ''}" data-preparation-card97="${escape(item.id)}">
         <div class="recurring-warning-item-heading97"><h5>${status === 'OVERDUE' ? 'OVERDUE' : item.preparedUntil ? 'FINAL WARNING' : 'DUE SOON'} — ${escape(item.memo)}</h5>
-          <div class="recurring-warning-actions97"><button type="button" class="je-btn je-btn-secondary" onclick="openPreparationDate97('${escape(item.id)}')">Preparation Done</button><button type="button" class="je-btn je-btn-emerald" onclick="markRecurringPaid('${escape(item.id)}')">Mark reminder paid</button></div></div>
+          <div class="recurring-warning-actions97"><button type="button" class="je-btn je-btn-secondary" onclick="openPreparationDate97(${escape(JSON.stringify(item.id))})">Preparation Done</button><button type="button" class="je-btn je-btn-emerald" onclick="markRecurringPaid(${escape(JSON.stringify(item.id))})">Mark reminder paid</button></div></div>
         <div>Due: <strong>${escape(window.formatAppDate(item.nextDate))}</strong> · ${escape(window.formatAppNumber(item.amount))} ${escape(item.currency)}</div>
         <div class="je-subtitle">Reminder schedule: ${escape(window.reminderText(item))}${item.preparedUntil ? ` · Prepared; final warning on ${escape(window.formatAppDate(item.preparedUntil))}` : ''}</div>
-        <div class="preparation-date-form97" data-preparation-form97 hidden><label>Final warning date<input type="date" min="${escape(localDate())}" value="${escape(defaultFinalReminderDate(item))}"></label><button type="button" class="je-btn je-btn-emerald" onclick="savePreparationDone97('${escape(item.id)}',this)">Save Preparation</button></div>
+        <div class="preparation-date-form97" data-preparation-form97 hidden><label>Final warning date<input type="date" min="${escape(localDate())}" value="${escape(defaultFinalReminderDate(item))}"></label><button type="button" class="je-btn je-btn-emerald" onclick="savePreparationDone97(${escape(JSON.stringify(item.id))},this)">Save Preparation</button></div>
       </article>`;
     }).join('') : '<div class="empty-archive-state">No recurring warnings are currently due.</div>';
   };
@@ -387,10 +379,12 @@
 
   window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
+    const owner=liveProfile.id,db=ojmDb;
     const read = async () => {
       const pageSize = 500, rows = [];
       for (let offset = 0; ; offset += pageSize) {
-        const { data, error } = await ojmDb.from('audit_log')
+        if(liveProfile?.id!==owner||ojmDb!==db)throw Error('Account changed while loading audit history.');
+        const { data, error } = await db.from('audit_log')
           .select('id,table_name,record_id,action,reason,old_data,new_data,actor_id,created_at')
           .in('table_name', ['journal_entries','accounting_periods','period_findings','scheduled_journals','maintenance'])
           .order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
@@ -402,10 +396,11 @@
     };
     try {
       const rows = window.localFirst14333 ? await localFirst14333.snapshot('audit-transactions', read, {force}) : await read();
+      if(liveProfile?.id!==owner||ojmDb!==db)return;
       LiveTransactionAudit = rows;
       window.renderVoidedTransactionsTable();
     } catch (error) {
-      window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
+      if(liveProfile?.id===owner&&ojmDb===db)window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
       throw error;
     }
   };
@@ -445,24 +440,6 @@
     const journalHeader = document.getElementById('jeHeaderRow');
     if (journalHeader) new MutationObserver(syncJournalColumnWidths).observe(journalHeader, { childList: true, subtree: true });
     document.addEventListener('input', event => { if (event.target?.matches('#jeLinesBody input')) syncJournalColumnWidths(); });
-    // Editing a displayed zero should start with a blank replacement field;
-    // leaving it blank restores zero, without affecting nonzero values.
-    document.addEventListener('focusin', event => {
-      const input = event.target;
-      if (!(input instanceof HTMLInputElement) || !input.dataset.numeric88) return;
-      if (input.value !== '' && Number(input.value) === 0) {
-        input.dataset.zeroSelect97 = 'true';
-        input.select();
-      }
-    });
-    document.addEventListener('focusout', event => {
-      const input = event.target;
-      if (!(input instanceof HTMLInputElement) || !input.dataset.numeric88) return;
-      if (input.dataset.zeroSelect97) {
-        delete input.dataset.zeroSelect97;
-        if (input.value === '') input.value = '0';
-      }
-    });
     window.renderRecurringWarnings?.();
     const priorRender = window.renderWork82;
     if (typeof priorRender === 'function') {
@@ -500,12 +477,15 @@
     const originalSave = window.saveWork82;
     if (typeof originalSave === 'function') {
       window.saveWork82 = async function (kind, data, record) {
-        const saved = await originalSave.call(this, kind, data, record);
+        const owner=liveProfile?.id;const saved = await originalSave.call(this, kind, data, record);
+        if(liveProfile?.id!==owner)return saved;
         if (kind === 'employees') syncDraftRoster();
         return saved;
       };
     }
+    const loadOwner=liveProfile?.id;
     if (typeof window.loadWork82 === 'function') window.loadWork82().then(() => {
+      if(liveProfile?.id!==loadOwner)return;
       syncDraftRoster();
       window.renderWork82();
     });

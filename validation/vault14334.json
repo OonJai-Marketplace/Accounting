@@ -20,7 +20,7 @@
     "passed": true
   },
   {
-    "name": "reconnect automatically uploads encrypted queued work once",
+    "name": "reconnect retains encrypted work until explicit Sync and uploads once",
     "passed": true
   },
   {
@@ -41,38 +41,6 @@
   },
   {
     "name": "desktop / staff reopens a downloaded signed-in workspace without internet after token expiry",
-    "passed": true
-  },
-  {
-    "name": "tablet / admin signs in and prepares complete offline files with the real SDK",
-    "passed": true
-  },
-  {
-    "name": "tablet / admin reopens a downloaded signed-in workspace without internet after token expiry",
-    "passed": true
-  },
-  {
-    "name": "tablet / staff signs in and prepares complete offline files with the real SDK",
-    "passed": true
-  },
-  {
-    "name": "tablet / staff reopens a downloaded signed-in workspace without internet after token expiry",
-    "passed": true
-  },
-  {
-    "name": "phone / admin signs in and prepares complete offline files with the real SDK",
-    "passed": true
-  },
-  {
-    "name": "phone / admin reopens a downloaded signed-in workspace without internet after token expiry",
-    "passed": true
-  },
-  {
-    "name": "phone / staff signs in and prepares complete offline files with the real SDK",
-    "passed": true
-  },
-  {
-    "name": "phone / staff reopens a downloaded signed-in workspace without internet after token expiry",
     "passed": true
   }
 ]

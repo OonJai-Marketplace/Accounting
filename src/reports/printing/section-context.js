@@ -13,9 +13,8 @@ const PRINT_SECTIONS = {
   Accounts: [
     ['sec-chart-accounts','Chart of Accounts'],
     ['sec-sub-accounts','Sub-Accounts'],
-    ['sec-ledger','Ledger'],
-    ['trial-balance','Trial Balance'],
-    ['account-balances','Account Balances']
+    ['report-gl','General Ledger'],
+    ['report-tb','Trial Balance'],
   ],
   Payroll: [
     ['payroll-overview','Payroll Overview'],['payroll-employees','Employees'],['payroll-entries','Payroll Entries'],
@@ -60,18 +59,15 @@ openPrintDialog = function() {
   if (typeof openModal === 'function') openModal('modalPrintOptions');
 };
 
-let printOriginalActiveIds = [];
 function prepareSelectedPrintSection() {
   const selected = document.getElementById('printSubcategory')?.value;
   if (!selected) return;
-  printOriginalActiveIds = Array.from(document.querySelectorAll('.tab-content.active')).map(x => x.id);
   document.querySelectorAll('.tab-content').forEach(x => x.classList.remove('print-selected-section'));
   const target = document.getElementById(selected);
   if (target) target.classList.add('print-selected-section');
 }
 function clearSelectedPrintSection() {
   document.querySelectorAll('.print-selected-section').forEach(x => x.classList.remove('print-selected-section'));
-  printOriginalActiveIds = [];
 }
 
 const originalExecuteConfiguredPrintV5 = executeConfiguredPrint;

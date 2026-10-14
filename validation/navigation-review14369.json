@@ -1,0 +1,358 @@
+{
+  "scope": "Local synthetic fixture, 137 accounts / 1000 journal lines. Double-animation-frame proxy; not field INP.",
+  "baseline_commit": "69772050039daa0184e3cf37963e6be9af54ccef",
+  "before": {
+    "rows": [
+      {
+        "active": "navigation-blank14366",
+        "clickToPaintProxy": 718.2000000029802,
+        "cpuMs": 2199.141
+      },
+      {
+        "active": "journal",
+        "clickToPaintProxy": 613.7999999970198,
+        "cpuMs": 673.762
+      },
+      {
+        "active": "accounts-modular-container",
+        "clickToPaintProxy": 1410.8999999985099,
+        "cpuMs": 1437.0260000000003
+      },
+      {
+        "active": "settings-business",
+        "clickToPaintProxy": 629.5999999940395,
+        "cpuMs": 633.3830000000003
+      },
+      {
+        "active": "dashboard",
+        "clickToPaintProxy": 596.7000000029802,
+        "cpuMs": 594.5580000000001
+      },
+      {
+        "active": "navigation-blank14366",
+        "clickToPaintProxy": 529.7000000029802,
+        "cpuMs": 533.9840000000003
+      },
+      {
+        "active": "journal",
+        "clickToPaintProxy": 647.3999999985099,
+        "cpuMs": 661.975
+      },
+      {
+        "active": "accounts-modular-container",
+        "clickToPaintProxy": 580.5999999940395,
+        "cpuMs": 590.1589999999999
+      },
+      {
+        "active": "settings-business",
+        "clickToPaintProxy": 530.7999999970198,
+        "cpuMs": 527.369000000001
+      },
+      {
+        "active": "dashboard",
+        "clickToPaintProxy": 548,
+        "cpuMs": 548.5120000000005
+      }
+    ],
+    "errors": [],
+    "hotspots": [
+      [
+        "visible workspace-consistency14343.js?v=143.67:3",
+        502.4779999999999
+      ],
+      [
+        "polish69 desktop14245-3.js?v=143.67:5350",
+        360.878
+      ],
+      [
+        "orange desktop14245-6.js?v=143.67:1851",
+        282.99299999999994
+      ],
+      [
+        "displays desktop14245-6.js?v=143.67:1890",
+        277.49100000000027
+      ],
+      [
+        "initializeHistories transaction-consistency14300.js?v=143.67:33",
+        255.94500000000005
+      ],
+      [
+        "all layout-voucher-polish14301.js?v=143.61:5",
+        246.03500000000008
+      ],
+      [
+        "polishWorkbench desktop14245-3.js?v=143.67:4608",
+        224.10500000000008
+      ],
+      [
+        "polish desktop14245-3.js?v=143.67:7221",
+        217.128
+      ],
+      [
+        "enhance search-autofill14285.js?v=142.86:3",
+        215.14400000000006
+      ],
+      [
+        "scan desktop14245-3.js?v=143.67:7594",
+        213.30800000000016
+      ],
+      [
+        "restoreFields desktop14245-6.js?v=143.67:534",
+        205.438
+      ],
+      [
+        "polish desktop14245-5.js?v=143.67:341",
+        203.90500000000003
+      ],
+      [
+        "alignTableHeaders83 desktop14245-3.js?v=143.67:5956",
+        185.88399999999996
+      ],
+      [
+        "polish85 desktop14245-3.js?v=143.67:6007",
+        174.874
+      ],
+      [
+        "polish desktop14245-3.js?v=143.67:4742",
+        172.08299999999994
+      ],
+      [
+        "sync desktop14245-3.js?v=143.67:5527",
+        166.79200000000006
+      ],
+      [
+        " desktop14245-5.js?v=143.67:483",
+        164.87099999999995
+      ],
+      [
+        "render navigation-badges14311.js?v=143.49:18",
+        162.96200000000002
+      ],
+      [
+        "hasModuleBorder desktop14245-6.js?v=143.67:1845",
+        131.033
+      ],
+      [
+        "standardizeVisibleDates transaction-consistency14300.js?v=143.67:43",
+        130.70299999999995
+      ],
+      [
+        "tagJournalColumns desktop14245-3.js?v=143.67:4780",
+        125.69599999999993
+      ],
+      [
+        "mainTab14355 workspace-consistency14343.js?v=143.67:55",
+        116.44899999999994
+      ],
+      [
+        "scan desktop14245-3.js?v=143.67:6087",
+        101.49399999999999
+      ],
+      [
+        " desktop14245-4.js?v=143.64:563",
+        99.51199999999999
+      ],
+      [
+        "polishDesktop80 desktop14245-3.js?v=143.67:5696",
+        91.08799999999998
+      ],
+      [
+        "all desktop14245-5.js?v=143.67:150",
+        85.015
+      ],
+      [
+        "decorate desktop14245-6.js?v=143.67:1639",
+        81.082
+      ],
+      [
+        "badgePolish desktop14245-3.js?v=143.67:6126",
+        75.62999999999998
+      ],
+      [
+        "polishDesktop81 desktop14245-3.js?v=143.67:5713",
+        71.39700000000002
+      ],
+      [
+        "reviewPanel desktop14245-5.js?v=143.67:473",
+        66.564
+      ]
+    ]
+  },
+  "after": {
+    "rows": [
+      {
+        "active": "navigation-blank14366",
+        "clickToPaintProxy": 600.2000000029802,
+        "cpuMs": 1773.046
+      },
+      {
+        "active": "journal",
+        "clickToPaintProxy": 531.3999999985099,
+        "cpuMs": 537.4279999999998
+      },
+      {
+        "active": "accounts-modular-container",
+        "clickToPaintProxy": 1180.8999999985099,
+        "cpuMs": 1217.5610000000004
+      },
+      {
+        "active": "settings-business",
+        "clickToPaintProxy": 531.0999999940395,
+        "cpuMs": 605.2750000000002
+      },
+      {
+        "active": "dashboard",
+        "clickToPaintProxy": 514.1999999955297,
+        "cpuMs": 519.2070000000007
+      },
+      {
+        "active": "navigation-blank14366",
+        "clickToPaintProxy": 480.69999999552965,
+        "cpuMs": 519.4430000000008
+      },
+      {
+        "active": "journal",
+        "clickToPaintProxy": 549,
+        "cpuMs": 615.9200000000001
+      },
+      {
+        "active": "accounts-modular-container",
+        "clickToPaintProxy": 564.7000000029802,
+        "cpuMs": 575.0130000000003
+      },
+      {
+        "active": "settings-business",
+        "clickToPaintProxy": 517.8999999985099,
+        "cpuMs": 550.6819999999992
+      },
+      {
+        "active": "dashboard",
+        "clickToPaintProxy": 529.6000000014901,
+        "cpuMs": 546.9679999999996
+      }
+    ],
+    "errors": [],
+    "hotspots": [
+      [
+        "visible workspace-consistency14343.js?v=143.69:3",
+        454.4239999999998
+      ],
+      [
+        "orange desktop14245-6.js?v=143.69:1851",
+        331.28300000000013
+      ],
+      [
+        "polish desktop14245-3.js?v=143.69:4746",
+        220.63899999999984
+      ],
+      [
+        "sync desktop14245-3.js?v=143.69:5532",
+        211.12900000000002
+      ],
+      [
+        "restoreFields desktop14245-6.js?v=143.69:534",
+        208.65400000000014
+      ],
+      [
+        "tagJournalColumns desktop14245-3.js?v=143.69:4784",
+        204.66799999999992
+      ],
+      [
+        "all layout-voucher-polish14301.js?v=143.69:5",
+        197.71599999999984
+      ],
+      [
+        "polish desktop14245-5.js?v=143.67:341",
+        188.60299999999998
+      ],
+      [
+        "alignTableHeaders83 desktop14245-3.js?v=143.69:5961",
+        186.39499999999992
+      ],
+      [
+        "polish85 desktop14245-3.js?v=143.69:6012",
+        185.5929999999999
+      ],
+      [
+        "polish desktop14245-3.js?v=143.69:7226",
+        174.91199999999998
+      ],
+      [
+        "render navigation-badges14311.js?v=143.49:18",
+        152.91899999999993
+      ],
+      [
+        "scan desktop14245-3.js?v=143.69:7599",
+        151.3379999999999
+      ],
+      [
+        "scan desktop14245-3.js?v=143.69:6092",
+        140.99699999999999
+      ],
+      [
+        " desktop14245-5.js?v=143.67:483",
+        133.8489999999999
+      ],
+      [
+        "hasModuleBorder desktop14245-6.js?v=143.69:1845",
+        121.25999999999995
+      ],
+      [
+        "mainTab14355 workspace-consistency14343.js?v=143.69:55",
+        120.18299999999996
+      ],
+      [
+        " desktop14245-4.js?v=143.64:563",
+        114.175
+      ],
+      [
+        "polishDesktop80 desktop14245-3.js?v=143.69:5701",
+        106.48799999999997
+      ],
+      [
+        "within desktop14245-3.js?v=143.69:5355",
+        101.06
+      ],
+      [
+        "decorate desktop14245-6.js?v=143.69:1639",
+        86.944
+      ],
+      [
+        "polish69 desktop14245-3.js?v=143.69:5354",
+        84.94699999999993
+      ],
+      [
+        "badgePolish desktop14245-3.js?v=143.69:6131",
+        75.878
+      ],
+      [
+        "getSelectedAccountInfo desktop14245-3.js?v=143.69:1671",
+        73.77899999999998
+      ],
+      [
+        "polishDesktop81 desktop14245-3.js?v=143.69:5718",
+        68.08899999999998
+      ],
+      [
+        "polish84 desktop14245-3.js?v=143.69:5982",
+        68.015
+      ],
+      [
+        "all desktop14245-5.js?v=143.67:150",
+        67.33700000000002
+      ],
+      [
+        "menu desktop14245-3.js?v=143.69:7249",
+        56.434
+      ],
+      [
+        "reviewPanel desktop14245-5.js?v=143.67:473",
+        55.21999999999999
+      ],
+      [
+        "sync desktop14245-3.js?v=143.69:5568",
+        49.56800000000001
+      ]
+    ]
+  }
+}

@@ -12,7 +12,25 @@ function updateStaffSummary1425(){
   $('staffSummary1425').innerHTML=Object.entries(sums).map(([id,t])=>{const f=funds.find(f=>String(f.id||f.account_id)===id);return '<div><small>'+(t.amount>0?'Money In':'Money Out')+(Object.keys(sums).length>1?' · '+esc(t.name):'')+'</small><strong>'+money(Math.abs(t.amount),t.currency)+'</strong></div><div><small>After entry</small><strong>'+(f?money(Number(f.closing)+t.amount,t.currency):'—')+'</strong></div>'}).join('')||'<div><small>Money Out</small><strong>—</strong></div><div><small>After entry</small><strong>—</strong></div>';
  }
 }
-function fitAmounts14247(){document.querySelectorAll('[data-staff-single],[data-staff-double]').forEach(row=>{const a=A.accounts().find(a=>String(a.id)===row.querySelector('select')?.value);row.querySelectorAll('[id^=staffAmount],[id^=staffDebit],[id^=staffCredit]').forEach(n=>n.dataset.currency=a?.currency||'LAK')});requestAnimationFrame(()=>document.querySelectorAll('[id^=staffAmount],[id^=staffDebit],[id^=staffCredit]').forEach(n=>{n.inputMode='decimal';const style=getComputedStyle(n),visible=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').get.call(n),space=n.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-4;const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');let size=16;ctx.font=style.fontWeight+' '+size+'px '+style.fontFamily;const width=ctx.measureText(visible).width;if(width>space)size=Math.max(8,16*space/width);n.style.setProperty('font-size',size+'px','important');n.style.setProperty('text-overflow','clip','important');}));}
+let amountFitFrame14247=0,amountFitContext14247;
+function fitAmounts14247(event){
+ if(event&&event.type!=='resize'&&!event.target?.closest?.('[data-staff-single],[data-staff-double]'))return;
+ if(amountFitFrame14247)return;
+ amountFitFrame14247=requestAnimationFrame(()=>{
+  amountFitFrame14247=0;
+  const rows=document.querySelectorAll('[data-staff-single],[data-staff-double]');if(!rows.length)return;
+  const accounts=new Map(A.accounts().map(a=>[String(a.id),a]));
+  const ctx=amountFitContext14247||(amountFitContext14247=document.createElement('canvas').getContext('2d'));if(!ctx)return;
+  rows.forEach(row=>{const a=accounts.get(row.querySelector('select')?.value);row.querySelectorAll('[id^=staffAmount],[id^=staffDebit],[id^=staffCredit]').forEach(n=>{
+   n.dataset.currency=a?.currency||'LAK';n.inputMode='decimal';
+   const style=getComputedStyle(n),visible=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').get.call(n),space=n.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)-4;
+   if(space<=0)return;
+   ctx.font=style.fontWeight+' 16px '+style.fontFamily;const width=ctx.measureText(visible).width,size=width>space?Math.max(8,16*space/width):16;
+   if(n.style.fontSize!==size+'px')n.style.setProperty('font-size',size+'px','important');
+   if(n.style.textOverflow!=='clip')n.style.setProperty('text-overflow','clip','important');
+  })});
+ });
+}
 window.addEventListener('resize',fitAmounts14247);document.addEventListener('input',fitAmounts14247);document.addEventListener('change',fitAmounts14247);
 function bindInputs(){bindPhone14248();fitAmounts14247();const root=document.querySelector('main.screen:not(.hidden)');const $=id=>root?.id===id?root:root?.querySelector('[id="'+id+'"]');if($('staffMemo')&&!$('post').classList.contains('hidden')){updateStaffSummary1425();$('post').querySelectorAll('input[type=number]').forEach(n=>{n.min='0';n.step='any';n.inputMode='decimal'})}if($('liveSearch'))$('liveSearch').oninput=e=>{const pos=e.target.selectionStart;S.search=e.target.value;render();$('liveSearch').focus();$('liveSearch').setSelectionRange?.(pos,pos)};['dashMonth','dashCurrency'].forEach(id=>{if($(id))$(id).onchange=()=>call(()=>A.dashboardPeriod($('dashMonth').value,$('dashCurrency').value))});[['reportMode','mode'],['reportMonth','month'],['reportFrom','from'],['reportTo','to'],['reportYear','year'],['reportQuarter','quarter'],['reportCurrency','currency']].forEach(([id,key])=>{if($(id))$(id).onchange=e=>call(()=>A.reportPeriod(key,e.target.value))});if($('historyMonth'))$('historyMonth').onchange=e=>{if(S.module==='subusers'){S.entryMonth14237=e.target.value;S.entryLimit14237=30;}else S.month=e.target.value;render()};if($('totalsMonth'))$('totalsMonth').onchange=e=>{S.month=e.target.value;render()};if($('closingPeriod'))$('closingPeriod').onchange=e=>call(()=>A.closingMonth(e.target.value));}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&!b.disabled){e.preventDefault();call(actions[Number(b.dataset.act)])}const remove=e.target.closest('.remove-line132');if(remove)remove.closest('.journal-line132').remove()});

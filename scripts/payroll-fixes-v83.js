@@ -3,15 +3,15 @@ const repairUrl83='setup/SETUP-GUIDE-v142.20.txt';
 loadWork82=async function(force=false){
  if(!admin82()||!ojmDb||Work82.loading)return;
  if(Work82.loaded&&Work82.owner===liveProfile.id&&!force)return;
- const owner=liveProfile.id;Work82.loading=true;Work82.owner=owner;const failures=[];
+ const owner=liveProfile.id,db=ojmDb;const current=()=>liveProfile?.id===owner&&ojmDb===db;Work82.loading=true;Work82.owner=owner;const failures=[];
  const results=await Promise.all(Object.entries(tables82).map(async([key,table])=>{
-  try{if(key==='runs'&&window.payrollWindow14334){const rows=await payrollWindow14334.read(Work82.queryFrom14333,Work82.queryTo14333);if(rows!==null)return[key,rows]}const pages=[];for(let offset=0;;offset+=500){let query=ojmDb.from(table).select('*').order('updated_at',{ascending:false}).order('id');/* Payroll history also supplies leave entitlements spanning calendar years; retain it until a verified server carry summary is available. */const page=await query.range(offset,offset+499);if(page.error)throw page.error;pages.push(...(page.data||[]));if((page.data||[]).length<500)break}const r={data:pages};
+  try{if(key==='runs'&&window.payrollWindow14334){const rows=await payrollWindow14334.read(Work82.queryFrom14333,Work82.queryTo14333);if(!current())return[key,null];if(rows!==null)return[key,rows]}const pages=[];for(let offset=0;;offset+=500){if(!current())return[key,null];let query=db.from(table).select('*').order('updated_at',{ascending:false}).order('id');/* Payroll history also supplies leave entitlements spanning calendar years; retain it until a verified server carry summary is available. */const page=await query.range(offset,offset+499);if(!current())return[key,null];if(page.error)throw page.error;pages.push(...(page.data||[]));if((page.data||[]).length<500)break}const r={data:pages};
    const rows=r.data||[],valid=rows.filter(x=>x.data&&typeof x.data==='object'&&(key!=='runs'||Array.isArray(x.data.rows)));
    if(key==='runs')Work82.legacyRuns83=rows.length-valid.length;
    return [key,valid];
   }catch(e){failures.push(table+': '+(e.message||'Could not load'));return [key,null]}
  }));
- if(liveProfile?.id!==owner){Work82.loading=false;return}
+ if(!current()){if(Work82.owner===owner)Work82.loading=false;return}
  results.forEach(([key,data])=>{if(data)Work82[key]=data});Work82.error=failures.join(' · ');Work82.loaded=!failures.length;Work82.loading=false;renderWork82();
 };
 storageNotice82=function(){return Work82.error?`<div class="notice82 warn82"><strong>Payroll data needs attention.</strong><p>${esc82(Work82.error)}</p><p>Your device work is retained. Reconnect and use Reload Records; if the error names a missing database table or column, review the setup guide.</p><a href="${repairUrl83}" download>Download payroll repair + two sample months</a>${action82('Reload Records','loadWork82(true)')}</div>`:Work82.loading?'<p class="notice82">Loading saved payroll records…</p>':''};
@@ -27,8 +27,9 @@ const renderBefore83=renderWork82;renderWork82=function(){renderBefore83();if(!d
 function previewRun83(id){const s=PayrollSamples83.runs.find(r=>r.id===id);if(!s)return;Work82.runRecord=null;Work82.run={...structuredClone(s.data),previewOnly83:true};switchTab('payroll-entries')}
 const saveRunBefore83=saveRun82;saveRun82=function(finalize=false){if(Work82.run?.previewOnly83)return showCenterStatus('Install the repair and sample SQL to save these examples.',true);if(finalize&&Work82.run?.isSample)return showCenterStatus('A sample cannot be finalized as actual payroll. Create a real payroll run after reviewing your employee records.',true);return saveRunBefore83(finalize)};
 // Sample flags remain internal; employee forms do not expose a sample toggle.
-function alignTableHeaders83(root=document){root.querySelectorAll('table thead th,table thead td').forEach(n=>{if(n.closest('#document-editor105'))return;n.style.setProperty('text-align',n.matches('table.attendance-grid99 thead th:not(:first-child)')?'center':'left','important');n.style.setProperty('font-weight','700','important')})}
+function alignTableHeaders83(root=document){desktopNodes80(root,'table thead th,table thead td').forEach(n=>{if(n.closest('#document-editor105'))return;const align=n.matches('table.attendance-grid99 thead th:not(:first-child)')?'center':'left';if(n.style.textAlign!==align||n.style.getPropertyPriority('text-align')!=='important')n.style.setProperty('text-align',align,'important');if(n.style.fontWeight!=='700'||n.style.getPropertyPriority('font-weight')!=='important')n.style.setProperty('font-weight','700','important')})}
 function alignAllHeaders83(){alignTableHeaders83()}
-let headerPending83=false;function scheduleHeaders83(){if(headerPending83)return;headerPending83=true;requestAnimationFrame(()=>{headerPending83=false;alignAllHeaders83()})}
+let headerPending83=false;const headerRoots83=new Set();function scheduleHeaders83(records){for(const root of desktopMutationRoots80(records))headerRoots83.add(root);if(headerPending83||!headerRoots83.size)return;headerPending83=true;requestAnimationFrame(()=>{headerPending83=false;const roots=[...headerRoots83];headerRoots83.clear();for(const root of roots)if(root.isConnected)alignTableHeaders83(root)})}
 document.addEventListener('DOMContentLoaded',()=>{alignAllHeaders83();new MutationObserver(scheduleHeaders83).observe(document.body,{childList:true,subtree:true});renderWork82()});
-window.addEventListener('beforeprint',alignAllHeaders83);
+window.addEventListener('beforeprint',alignAllHeaders83)
+;

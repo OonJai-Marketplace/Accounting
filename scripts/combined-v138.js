@@ -1,6 +1,6 @@
 /* Final combined corrections, including restricted administrator-assisted sub-user sessions. */
 (function(){'use strict';
-const $=id=>document.getElementById(id),ctx=window.workspaceRequest138;let saved=null,switching=false;
+const $=id=>document.getElementById(id),ctx=window.workspaceRequest138;let saved=null,switching=false,contextEpoch=0;
 const esc=v=>shell113.esc(v);
 function badge(){let node=$('restrictedWorkspace138');if(!ctx.target){node?.remove();return;}if(!node){node=document.createElement('aside');node.id='restrictedWorkspace138';node.setAttribute('role','status');document.querySelector('.workspace-scroll').before(node);}
  const text='Using '+(liveProfile?.full_name||'sub-user')+'’s account · their configured limits apply · Administrator: '+(saved?.profile.full_name||'');
@@ -19,23 +19,26 @@ async function enter(id){
  if(switching)return;const actor=saved?.profile||liveProfile;if(actor?.role!=='admin')return;
  const user=(saved?.users||liveProfiles).find(u=>u.id===id&&u.role!=='admin'&&u.status==='active');if(!user)return reportSwitchError('Choose an active sub-user.');
  const previousTarget=ctx.target,previousActor=ctx.actor;let activated=false;
+ const epoch=++contextEpoch,db=ojmDb,initialActor=liveProfile?.id;
+ const current=()=>epoch===contextEpoch&&db===ojmDb&&liveProfile?.id===(activated?id:initialActor);
+ const check=()=>{if(!current())throw Error('The account changed during switching.');};
  switching=true;ctx.busy=true;transition(user.full_name||user.email);
  try{
   if(workflow136.state.sessions.some(s=>s.status==='editing')||document.querySelector('.inline-cell117:focus'))throw Error('Finish or cancel your current editing session before switching accounts.');
   const candidate=saved||{profile:structuredClone(liveProfile),permission:structuredClone(livePermission||{modules:[]}),users:structuredClone(liveProfiles),demo:structuredClone(DemoAccess.currentUser)};
   ctx.target=id;ctx.actor=actor.id;
-  const verified=await ojmDb.rpc('workspace_context138');
+  const verified=await db.rpc('workspace_context138');check();
   if(verified.error||verified.data?.effective_user!==id||verified.data?.actor!==actor.id)throw Error('Account switching could not be verified. Read setup/SETUP-GUIDE-v142.20.txt before trying again. '+(verified.error?.message||''));
-  const profileResult=await ojmDb.from('profiles').select('id,email,full_name,role,status').eq('id',id).single();
+  const profileResult=await db.from('profiles').select('id,email,full_name,role,status').eq('id',id).single();check();
   if(profileResult.error||profileResult.data?.id!==id||profileResult.data.status!=='active'||profileResult.data.role==='admin')throw Error(profileResult.error?.message||'This sub-user is no longer active.');
-  const permissionResult=await ojmDb.from('user_permissions').select('*').eq('user_id',id).maybeSingle();
+  const permissionResult=await db.from('user_permissions').select('*').eq('user_id',id).maybeSingle();check();
   if(permissionResult.error)throw Error('Could not load the selected account’s Settings: '+permissionResult.error.message);
   const permission={modules:[],can_approve:false,can_post_directly:false,can_void:false,can_export:false,...(permissionResult.data||{})};
   saved=candidate;clean();activated=true;liveProfile=profileResult.data;livePermission=permission;
   DemoAccess.currentUser={id,email:liveProfile.email,name:liveProfile.full_name,role:liveProfile.role,active:true};
   liveProfiles=[{...liveProfile,user_permissions:livePermission}];
   openSubUserTabs=[{key:'user-'+id,userId:id,permanent:false}];activeSubUserId='user-'+id;
-  apply();await loadReferenceDataFromSupabase();await loadJournalFromSupabase();await loadStaffJournalsForReview();
+  apply();await loadReferenceDataFromSupabase();check();await loadJournalFromSupabase();check();await loadStaffJournalsForReview();check();
   openSubUserTabs=[{key:'user-'+id,userId:id,permanent:false}];activeSubUserId='user-'+id;
   apply();const target=canAccessAppTarget('sub-users-workspace')?'sub-users-workspace':firstPermittedAppTarget();
   if(!target){showCenterStatus('No modules are enabled for this account. Return to Administrator to update Settings.',true);}
@@ -43,19 +46,26 @@ async function enter(id){
   if(target==='sub-users-workspace')renderSubUserWorkspace();badge();
   if(target)showCenterStatus('You are now using '+liveProfile.full_name+'’s account.');
  }catch(error){
+  if(!current())return;
   if(activated){try{await restore()}catch(restoreError){reportSwitchError('Administrator view restored, but data could not reload: '+restoreError.message)}}
   else{ctx.target=previousTarget;ctx.actor=previousActor}
   reportSwitchError(error.message);
- }finally{switching=false;ctx.busy=false;transition(null)}
+ }finally{if(epoch===contextEpoch){switching=false;ctx.busy=false;transition(null)}}
 }
-async function restore(){if(!saved){ctx.target=null;ctx.actor=null;return;}const original=saved;ctx.target=null;ctx.actor=null;saved=null;clean();liveProfile=original.profile;livePermission=original.permission;liveProfiles=original.users;DemoAccess.currentUser=original.demo;apply();await loadReferenceDataFromSupabase();await loadJournalFromSupabase();await loadStaffJournalsForReview();switchTab('sub-users-workspace');renderSubUserWorkspace();badge();}
+async function restore(){
+ const epoch=++contextEpoch,db=ojmDb;switching=true;ctx.busy=true;
+ try{if(!saved){ctx.target=null;ctx.actor=null;return;}const original=saved;ctx.target=null;ctx.actor=null;saved=null;clean();liveProfile=original.profile;livePermission=original.permission;liveProfiles=original.users;DemoAccess.currentUser=original.demo;apply();
+ const current=()=>epoch===contextEpoch&&db===ojmDb&&liveProfile?.id===original.profile.id;
+ await loadReferenceDataFromSupabase();if(!current())return;await loadJournalFromSupabase();if(!current())return;await loadStaffJournalsForReview();if(!current())return;switchTab('sub-users-workspace');renderSubUserWorkspace();badge();
+ }finally{if(epoch===contextEpoch){switching=false;ctx.busy=false;transition(null)}}
+}
 function menu(){if(liveProfile?.role!=='admin'&&!saved)return switchAccount();let panel=$('switchWorkspace136');if(panel){panel.remove();return;}panel=document.createElement('section');panel.id='switchWorkspace136';panel.className='dock-popover136';panel.innerHTML='<header><strong>Switch Account</strong><button aria-label="Close">×</button></header><input type="search" placeholder="Search sub-users" aria-label="Search sub-users">'+(saved?'<button data-return138>Return to Administrator</button>':'')+'<div></div>';document.body.append(panel);
  const box=(window.desktopScale14320?.rect($('switchAccount110'))||$('switchAccount110').getBoundingClientRect());panel.style.position='fixed';panel.style.right=Math.max(12,(window.desktopScale14320?.width||innerWidth)-box.left+10)+'px';panel.style.bottom=Math.max(12,(window.desktopScale14320?.height||innerHeight)-box.bottom)+'px';panel.style.maxHeight='70vh';panel.querySelector('header button').onclick=()=>panel.remove();panel.querySelector('[data-return138]')?.addEventListener('click',restore);
  if(saved){panel.querySelector('input').hidden=true;panel.querySelector('div').textContent='Return to Administrator to choose another account.';return;}
  const users=liveProfiles.filter(u=>u.role!=='admin'&&u.status==='active');const draw=()=>{const q=panel.querySelector('input').value.toLowerCase();panel.querySelector('div').innerHTML=users.filter(u=>(u.full_name+' '+u.email).toLowerCase().includes(q)).map(u=>'<button data-select138="'+esc(u.id)+'">'+esc(u.full_name||u.email)+'</button>').join('')||'<p>No active sub-users.</p>';panel.querySelectorAll('[data-select138]').forEach(b=>b.onclick=()=>enter(b.dataset.select138));};panel.querySelector('input').oninput=draw;draw();panel.querySelector('input').focus();}
-async function assistedAudit(preparing=false,force=true){const host=$('transactions-voided');if(!host||liveProfile?.role!=='admin'||!preparing&&document.querySelector('.tab-content.active')?.id!==host.id)return;let panel=$('assistedAudit138');if(!panel){panel=document.createElement('section');panel.id='assistedAudit138';panel.className='je-card';host.append(panel);}const actor=liveProfile.id;const read=async()=>{const r=await ojmDb.from('workspace_actor_audit138').select('*').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;return r.data||[]};let result;try{result={data:window.localFirst14333?await localFirst14333.snapshot('audit-assisted',read,{force}):await read()}}catch(error){result={error}};if(liveProfile?.id!==actor||!panel.isConnected)return;if(preparing&&result.error)throw result.error;const name=id=>liveProfiles.find(u=>u.id===id)?.full_name||id;const records=(result.data||[]).map(r=>({...r,record_id:r.row_id,action:r.operation,old_data:r.before_data,new_data:r.after_data,reason:'Administrator acting for '+name(r.effective_user_id)})).filter(r=>window.auditDetails14361?.kind(r));panel.innerHTML='<h3>Administrator-assisted account activity</h3>'+ (result.error?'<p>Install the v138 SQL update to see assisted-account audit records.</p>':'<div class="table-container"><table><thead><tr><th>Date</th><th>Administrator</th><th>Acting for</th><th>Action</th><th>Record</th></tr></thead><tbody>'+(records.map((r,index)=>'<tr tabindex="0" aria-haspopup="dialog" data-assisted-detail14361="'+index+'"><td>'+esc(formatAppDate(r.created_at,true))+'</td><td>'+esc(name(r.actor_id))+'</td><td>'+esc(name(r.effective_user_id))+'</td><td>'+esc(r.operation)+'</td><td>'+esc([r.table_name,r.row_id].filter(Boolean).join(' · '))+'</td></tr>').join('')||'<tr><td colspan="5">No assisted-account activity yet.</td></tr>')+'</tbody></table></div>');panel.querySelectorAll('[data-assisted-detail14361]').forEach(row=>{row.onclick=()=>window.auditDetails14361.open(records[Number(row.dataset.assistedDetail14361)],row);row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();row.click()}}});}
+async function assistedAudit(preparing=false,force=true){const host=$('transactions-voided');if(!host||liveProfile?.role!=='admin'||!preparing&&document.querySelector('.tab-content.active')?.id!==host.id)return;let panel=$('assistedAudit138');if(!panel){panel=document.createElement('section');panel.id='assistedAudit138';panel.className='je-card';host.append(panel);}const actor=liveProfile.id,db=ojmDb;const read=async()=>{const r=await db.from('workspace_actor_audit138').select('*').order('created_at',{ascending:false}).limit(100);if(r.error)throw r.error;return r.data||[]};let result;try{result={data:window.localFirst14333?await localFirst14333.snapshot('audit-assisted',read,{force}):await read()}}catch(error){result={error}};if(liveProfile?.id!==actor||ojmDb!==db||!panel.isConnected)return;if(preparing&&result.error)throw result.error;const name=id=>liveProfiles.find(u=>u.id===id)?.full_name||id;const records=(result.data||[]).map(r=>({...r,record_id:r.row_id,action:r.operation,old_data:r.before_data,new_data:r.after_data,reason:'Administrator acting for '+name(r.effective_user_id)})).filter(r=>window.auditDetails14361?.kind(r));panel.innerHTML='<h3>Administrator-assisted account activity</h3>'+ (result.error?'<p>Install the v138 SQL update to see assisted-account audit records.</p>':'<div class="table-container"><table><thead><tr><th>Date</th><th>Administrator</th><th>Acting for</th><th>Action</th><th>Record</th></tr></thead><tbody>'+(records.map((r,index)=>'<tr tabindex="0" aria-haspopup="dialog" data-assisted-detail14361="'+index+'"><td>'+esc(formatAppDate(r.created_at,true))+'</td><td>'+esc(name(r.actor_id))+'</td><td>'+esc(name(r.effective_user_id))+'</td><td>'+esc(r.operation)+'</td><td>'+esc([r.table_name,r.row_id].filter(Boolean).join(' · '))+'</td></tr>').join('')||'<tr><td colspan="5">No assisted-account activity yet.</td></tr>')+'</tbody></table></div>');panel.querySelectorAll('[data-assisted-detail14361]').forEach(row=>{row.onclick=()=>window.auditDetails14361.open(records[Number(row.dataset.assistedDetail14361)],row);row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();row.click()}}});}
 function ready(){window.addEventListener('page113',()=>{badge();if(!window.startup14257?.isPrepared('audit'))assistedAudit();});const before=loadLiveProfile;loadLiveProfile=async function(user){if(ctx.target)user={...user,id:ctx.target};return before(user);};
- const oldLogout=logoutDemoUser;logoutDemoUser=async function(...args){ctx.target=null;ctx.actor=null;saved=null;badge();return oldLogout(...args);};
+ const oldLogout=logoutDemoUser;logoutDemoUser=async function(...args){contextEpoch++;switching=false;ctx.busy=false;transition(null);ctx.target=null;ctx.actor=null;saved=null;badge();return oldLogout(...args);};
  document.addEventListener('click',e=>{if(ctx.target&&e.target.closest('[onclick*="logoutDemoUser"],[onclick*="switchAccount"]')){e.preventDefault();e.stopImmediatePropagation();menu();}},true);
  workflow136.decorate();}
 window.workspace138={menu,enter,restore,badge,prepareAudit:force=>assistedAudit(true,force),get active(){return !!ctx.target;}};

@@ -1,7 +1,7 @@
 /* Full category-grouped email and a copyable WhatsApp / Messenger summary. */
 (()=>{'use strict';
 const esc=v=>escapeHtml(String(v??''));
-const fmt=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(n));
+const fmt=n=>formatAppNumber(Number(n));
 function texts(d,link){
  const groups=new Map(),totals=new Map();
  for(const l of d.lines||[]){const category=l.category||'Other';if(!groups.has(category))groups.set(category,{lines:[],totals:new Map()});const g=groups.get(category),amount=Number(l.amount);g.lines.push(l);g.totals.set(l.currency,(g.totals.get(l.currency)||0)+amount);totals.set(l.currency,(totals.get(l.currency)||0)+amount);}
@@ -23,15 +23,15 @@ async function prepare(channel,{guard,load,config,dialog}){
  if(!d.lines.length||d.lines.some(l=>!Number.isFinite(Number(l.amount))||Number(l.amount)<=0))throw Error('Each budget item needs a positive amount.');
  await load(true);guard(actor);const c=config();
  const recipients=channel==='email'?budgetGmail14314.recipients(c.emails):[];
- const r=saved;guard(actor);
+ const r=saved,savedFingerprint=JSON.stringify(d);guard(actor);
  const url=new URL('desktop.html',location.href);url.search='';url.searchParams.set('budget',r.id);url.hash='';
  const text=texts(d,url.href);if(d.document14316){text.html=d.document14316.html;const body=document.createElement('div');body.innerHTML=text.html;text.detail=body.innerText||body.textContent; text.subject=d.document14316.title||text.subject;}
  if(channel!=='email'){
   const {root}=dialog('WhatsApp / Messenger summary','<p>Copy this summary and paste it into '+esc(c.groupName||'your group chat')+'.</p><textarea data-summary14314 readonly rows="16">'+esc(text.summary)+'</textarea><button type="button" data-copy14314>Copy message</button><p role="status">Ready to copy. No message has been sent.</p>',[{label:'Close',value:false}]);
-  root.querySelector('[data-copy14314]').onclick=async()=>{try{guard(actor);await window.budgetWorkflow14316.requireSaved();await navigator.clipboard.writeText(text.summary);root.querySelector('[role=status]').textContent='Copied. Paste it into WhatsApp or Messenger.'}catch(e){root.querySelector('textarea').select();root.querySelector('[role=status]').textContent='Select and copy the message above.'}};
+  root.querySelector('[data-copy14314]').onclick=async()=>{try{guard(actor);await window.budgetWorkflow14316.requireSaved();guard(actor);if(!root.isConnected)return;await navigator.clipboard.writeText(text.summary);root.querySelector('[role=status]').textContent='Copied. Paste it into WhatsApp or Messenger.'}catch(e){try{guard(actor)}catch{return;}if(!root.isConnected)return;root.querySelector('textarea').select();root.querySelector('[role=status]').textContent='Select and copy the message above.'}};
   return;
  }
- return emailPreview(text,c,recipients,{actor,guard,dialog,beforeSend:()=>window.budgetWorkflow14316.requireSaved(),title:'Send budget request by Gmail'});
+ return emailPreview(text,c,recipients,{actor,guard,dialog,beforeSend:async()=>{const latest=await window.budgetWorkflow14316.requireSaved();if(latest.id!==r.id||JSON.stringify(latest.data)!==savedFingerprint)throw Error('The saved budget changed. Reopen the email preview before sending.');},title:'Send budget request by Gmail'});
 }
 async function trial({guard,load,config,dialog,templates}){
  const actor=guard();await load(true);guard(actor);const c=config(),row=templates().find(t=>t.id===c.trialTemplateId14319);if(!row)throw Error('Choose a sample template in Budget Request Settings first.');const recipients=budgetGmail14314.recipients(c.trialEmailTo),d={...structuredClone(row.data),date:today82(),preparedBy:liveProfile.full_name||'Administrator'};if(!d.lines?.length||d.lines.some(l=>!Number.isFinite(Number(l.amount))||Number(l.amount)<=0))throw Error('Each sample template item needs a positive amount.');const text=texts(d,'');const closing='Please let us know once the request is approved or the funds are arranged.';text.detail=text.detail.replace(closing,'This is a test email. Please confirm receipt.');text.html=text.html.replace(closing,'This is a test email. Please confirm receipt.');text.subject='SAMPLE — '+text.subject;text.detail='TEST EMAIL — Sample template data only. No funds are requested.\n\n'+text.detail;text.html=text.html.replace('<h1 style=', '<p style="padding:12px;background:#fff1ce;font-weight:bold">TEST EMAIL — Sample template data only. No funds are requested.</p><h1 style=');return emailPreview(text,c,recipients,{actor,guard,dialog,beforeSend:async()=>{},title:'Send sample template test email'});
@@ -48,7 +48,7 @@ function emailPreview(text,c,recipients,{actor,guard,dialog,beforeSend,title}){
  disconnect.onclick=()=>{guard(actor);budgetGmail14314.disconnect();refresh();status.textContent='Gmail disconnected from this page.'};
  send.onclick=async()=>{
   if(busy||done||unknown)return;
-  try{guard(actor);await beforeSend();const from=budgetGmail14314.status(c.gmailClientId,c.emailSender).email,addresses=budgetGmail14314.recipients(to.value);busy=true;refresh();status.textContent='Sending…';
+  busy=true;refresh();try{guard(actor);await beforeSend();guard(actor);if(!root.isConnected)return;const from=budgetGmail14314.status(c.gmailClientId,c.emailSender).email,addresses=budgetGmail14314.recipients(to.value);busy=true;refresh();status.textContent='Sending…';
    const result=await budgetGmail14314.send(c.gmailClientId,{from,to:addresses.join(','),...text,messageId:crypto.randomUUID()});done=true;guard(actor);status.textContent='Sent from '+result.email+' to '+addresses.join(', ')+'.';send.textContent='Sent';
   }catch(e){unknown=!!e.uncertain;status.textContent=e.message}
   finally{busy=false;if(root.isConnected)refresh()}

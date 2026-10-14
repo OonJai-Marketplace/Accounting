@@ -1,169 +1,330 @@
-/* Static app files only. Financial records and authentication stay in account-scoped storage. */
-importScripts('offline-assets14239.js');
-const PARENT_ASSETS14287=['scripts/desktop14245-3.js','scripts/account-currency14257.js','styles/account-parent14287.css'];
-const ENTRY_ASSETS14271=['scripts/login-notifications14293.js','styles/login-notifications14293.css','scripts/design14284.js','scripts/loading1444.js','styles/functional-corrections14292.css','phone.html','scripts/startup14257.js','scripts/report-library14285.js','scripts/search-autofill14285.js','styles/report-library14285.css','scripts/desktop14245-4.js','assets/vendor/document14285/pdf.worker.min.mjs','assets/vendor/document14285/cfb.min.js','assets/vendor/document14285/marked.umd.js','assets/vendor/document14285/pdf.min.mjs','styles/phone-shell14285.css','styles/phone-navigation14285.css','styles/design14284.css','scripts/design14284.js','styles/phone-design14284.css','scripts/password-service14264.js','scripts/reports14254.js','scripts/workspace-header14266.js','scripts/report-formats14282.js','scripts/assigned-ledger14281.js','scripts/journal-description14281.js','styles/settings-polish14281.css','styles/phone-polish14281.css','scripts/workflow14253.js','styles/password-help14278.css','scripts/password-policy14257.js','scripts/account-security14257.js','scripts/desktop14245-5.js','scripts/phone-connected.js','styles/desktop14245.css','scripts/tablet-journal14266.js','scripts/phone-keyboard14252.js','scripts/phone-account-picker14227.js','scripts/account-picker1428.js','styles/account-picker1428.css','styles/phone-account-picker14227.css','scripts/desktop14245-1.js','scripts/entry-actions14271.js','styles/entry-layout14271.css','styles/module-dock14269.css','styles/layout14256.css','styles/tablet-journal14266.css','scripts/desktop14245-6.js','scripts/desktop14245-3.js','scripts/offline14239.js','styles/workspace-header14266.css'];
-const FIT_ASSETS14267=['scripts/desktop14245-1.js','scripts/offline14239.js','scripts/workspace-header14266.js','styles/tablet-journal14266.css','styles/workspace-header14266.css'];
-const TABLET_ASSETS14266=['scripts/desktop14245-5.js','scripts/desktop14245-6.js','scripts/offline14239.js','scripts/tablet-journal14266.js','scripts/workspace-header14266.js','styles/tablet-journal14266.css','styles/workspace-header14266.css'];
-const LOGIN_ASSETS14265=['scripts/desktop14245-6.js','scripts/offline14239.js'];
-const AUTH_ASSETS14264=['scripts/password-service14264.js','scripts/account-security14257.js','scripts/recovery14257.js','recovery.html'];
-const REPORT_ASSETS14262=['styles/desktop14245.css','scripts/report-templates14262.js','scripts/report-routes14262.js','scripts/desktop14245-3.js','scripts/startup14257.js','scripts/offline14239.js'];
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...PARENT_ASSETS14287,'desktop.html','scripts/reports14254.js',...REPORT_ASSETS14262,...AUTH_ASSETS14264,...LOGIN_ASSETS14265,...TABLET_ASSETS14266,...FIT_ASSETS14267,...ENTRY_ASSETS14271])];
-const HEIGHT_ASSETS14260=['styles/layout14256.css','scripts/audit-explanation14260.js'];
-const UPDATE_ASSETS14257=["scripts/phone-reset-gate14257.js","scripts/account-currency14257.js","recovery.html", "scripts/password-policy14257.js", "scripts/recovery14257.js", "scripts/account-security14257.js", "scripts/startup14257.js", "scripts/numeric-caret14257.js", "scripts/entry-number14257.js", "scripts/offline14239.js", "scripts/layout14256.js", "styles/layout14256.css", "scripts/reports14254.js"];
-const LAYOUT_ASSETS14256=['scripts/offline14239.js','styles/layout14256.css','scripts/layout14256.js','scripts/auto-sync14256.js'];
-const FIX_ASSETS14255=['scripts/admin-access14251.js'];
-const REPORT_ASSETS14254=['scripts/reports14254.js'];
-const RELEASE_ASSETS14299=["docs/UPDATE-v143.21.md", "scripts/hr-calendar-news14309.js", "styles/local-events14310.css", "docs/UPDATE-v143.18.md", "scripts/company-accounts14319.js", "docs/UPDATE-v143.19.md", "scripts/offline14239.js", "scripts/desktop14245-2.js", "styles/budget-messages14314.css", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/workflow14253.js", "scripts/layout14256.js", "scripts/action-feedback14296.js", "scripts/vouchers14299.js", "scripts/local-events14310.js", "scripts/navigation-badges14311.js", "scripts/budget-gmail14314.js", "scripts/budget-messages14314.js", "scripts/budget14313.js", "styles/workflow14316.css", "scripts/budget-workflow14316.js", "scripts/navigation-workflow14316.js", "styles/controls14317.css", "scripts/controls14317.js", "scripts/period-closing14317.js", "scripts/phone-runtime14242.js"];
-const CURRENT_RELEASE_EXTRAS14317=["scripts/controls14317.js", "styles/controls14317.css", "scripts/period-closing14317.js", "setup/INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql", "docs/UPDATE-v143.17.md"];
-const LEGACY_RELEASE_ASSETS14299=["scripts/budget-workflow14316.js", "scripts/navigation-workflow14316.js", "styles/workflow14316.css", "setup/INSTALL-BUDGET-LIFECYCLE-v143.16.sql", "docs/WORKFLOW-v143.16.md", "scripts/budget14313.js", "scripts/budget-messages14314.js", "scripts/action-feedback14296.js", "scripts/vouchers14299.js", "scripts/navigation-badges14311.js", "scripts/local-events14310.js", "scripts/layout14256.js", "scripts/desktop14245-2.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/offline14239.js", "scripts/archive-v128.js", "scripts/audit-workspace14232.js", "scripts/backup-validation1441.js","scripts/budget-gmail14314.js", "scripts/budget-messages14314.js", "styles/budget-messages14314.css", "docs/GMAIL-SETUP-v143.14.md",'scripts/budget14313.js','setup/INSTALL-BUDGET-TEMPLATES-v143.13.sql','setup/INSTALL-DOWNLOAD-PASSWORDS-v143.12.sql','scripts/document-downloads14311.js','assets/vendor/document14285/zip-full.min.js','assets/vendor/document14285/html2canvas.min.js','assets/vendor/document14285/jspdf.umd.min.js','scripts/navigation-badges14311.js','styles/navigation-badges14311.css','setup/INSTALL-HR-DOCUMENT-FORMATS-v143.11.sql','scripts/local-events14310.js','styles/local-events14310.css','docs/LOCAL-EVENTS-SETUP.txt','scripts/hr-calendar-news14309.js','scripts/account-picker1428.js','scripts/hr-calendar-model14306.js', 'scripts/hr-calendar14306.js', 'scripts/hr-workspace14306.js', 'styles/hr-workspace14306.css', 'setup/INSTALL-HR-CALENDAR-v143.06.sql','styles/controls14305.css','scripts/workflow14253.js','scripts/phone-runtime14242.js',"scripts/report-formats14282.js", "scripts/journal-description14281.js", "scripts/vouchers14299.js", "scripts/transaction-consistency14300.js", "styles/transaction-consistency14300.css", "scripts/layout-voucher-polish14301.js", "styles/layout-voucher-polish14301.css", "scripts/desktop14245-2.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "styles/desktop14245.css", "styles/voucher-layout14299.css", "scripts/offline14239.js", "scripts/backup-validation1441.js", "scripts/audit-workspace14232.js"];
-const PORTABLE_ASSETS14320=["scripts/hr-calendar14306.js","scripts/desktop14245-1.js","deployment-config.js", "scripts/supabase-config.js", "scripts/desktop-scale14320.js", "styles/desktop-scale14320.css", "scripts/installation14320.js", "styles/installation14320.css", "scripts/feedback-viewport14295.js", "scripts/module-dock14269.js", "scripts/desktop14245-2.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/local-events14310.js", "scripts/offline14239.js"];
-RELEASE_ASSETS14299.push(...PORTABLE_ASSETS14320,...CURRENT_RELEASE_EXTRAS14317,...LEGACY_RELEASE_ASSETS14299);
-const PALETTE_ASSETS14321=["scripts/account-picker1428.js", "scripts/desktop14245-6.js", "scripts/controls14317.js", "styles/controls14317.css", "scripts/budget14313.js", "scripts/budget-workflow14316.js", "scripts/offline14239.js", "docs/UPDATE-v143.21.md"];
-const RECOVERY_ASSETS14323=["scripts/desktop14245-6.js","scripts/controls14317.js", "styles/controls14317.css", "scripts/desktop-scale14320.js", "scripts/report-templates14262.js", "scripts/report-formats14282.js", "scripts/navigation-workflow14316.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/offline14239.js"];
-RELEASE_ASSETS14299.push(...RECOVERY_ASSETS14323);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...RECOVERY_ASSETS14323])];
-const MAINTENANCE_ASSETS14324=["scripts/offline14239.js", "scripts/desktop14245-4.js", "scripts/period-closing14317.js", "scripts/maintenance-engine14324.js", "scripts/maintenance14324.js", "scripts/system-diagnostics14324.js", "styles/maintenance14324.css", "assets/maintenance/release14324.json", "assets/maintenance/Oon-Jai-Maintenance-Comparison.xlsx", "setup/INSTALL-MAINTENANCE-v143.24.sql", "docs/MAINTENANCE-v143.24.md"];
-RELEASE_ASSETS14299.push(...MAINTENANCE_ASSETS14324);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...MAINTENANCE_ASSETS14324])];
-const POLISH_ASSETS14325=["docs/MAINTENANCE-v143.24.md","scripts/polish14325.js","scripts/desktop14245-4.js", "scripts/desktop14245-6.js", "scripts/navigation-workflow14316.js", "styles/controls14317.css", "scripts/controls14317.js", "scripts/entry-number14257.js", "scripts/maintenance14324.js", "scripts/offline14239.js", "styles/polish14325.css", "scripts/maintenance-selection14325.js", "assets/maintenance/release14324.json"];
-RELEASE_ASSETS14299.push(...POLISH_ASSETS14325);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...POLISH_ASSETS14325])];
-const REPORT_COMPARISON_ASSETS14326=["scripts/system-diagnostics14324.js","scripts/maintenance-engine14324.js","scripts/navigation-workflow14316.js", "scripts/maintenance14324.js", "scripts/maintenance-reports14326.js", "styles/polish14325.css", "scripts/offline14239.js", "assets/maintenance/release14324.json", "assets/maintenance/report-template14326.xlsx", "docs/UPDATE-v143.26.md", "docs/MAINTENANCE-v143.24.md"];
-RELEASE_ASSETS14299.push(...REPORT_COMPARISON_ASSETS14326);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...REPORT_COMPARISON_ASSETS14326])];
-const COMPACT_ASSETS14327=["styles/compact14327.css","scripts/desktop14245-4.js","scripts/offline14239.js","assets/maintenance/release14324.json","docs/UPDATE-v143.27.md"];
-RELEASE_ASSETS14299.push(...COMPACT_ASSETS14327);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...COMPACT_ASSETS14327])];
-const JOURNAL_ACTIONS14328=["styles/compact14327.css","scripts/offline14239.js","assets/maintenance/release14324.json","docs/UPDATE-v143.28.md"];
-RELEASE_ASSETS14299.push(...JOURNAL_ACTIONS14328);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...JOURNAL_ACTIONS14328])];
-const DOCK_ASSETS14329=["styles/compact14327.css","scripts/offline14239.js","assets/maintenance/release14324.json","docs/UPDATE-v143.29.md"];
-RELEASE_ASSETS14299.push(...DOCK_ASSETS14329);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...DOCK_ASSETS14329])];
-const DATE_EDITOR_ASSETS14330=["scripts/budget14313.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/document-downloads14311.js", "scripts/hr-calendar-news14309.js", "scripts/hr-calendar14306.js", "scripts/hr-workspace14306.js", "scripts/local-events14310.js", "scripts/maintenance14324.js", "scripts/offline14239.js", "scripts/vouchers14299.js", "assets/maintenance/release14324.json", "docs/UPDATE-v143.30.md"];
-RELEASE_ASSETS14299.push(...DATE_EDITOR_ASSETS14330);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...DATE_EDITOR_ASSETS14330])];
-const WORKSPACE_ASSETS14331=["scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/assigned-ledger14281.js", "scripts/report-formats14282.js", "scripts/report-library14285.js", "scripts/report-routes14262.js", "scripts/vouchers14299.js", "scripts/offline14239.js", "scripts/summary-period14331.js", "scripts/period-filters14331.js", "scripts/workspace14331.js", "styles/workspace14331.css", "assets/maintenance/release14324.json", "docs/UPDATE-v143.31.md"];
-RELEASE_ASSETS14299.push(...WORKSPACE_ASSETS14331);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...WORKSPACE_ASSETS14331])];
-const SYNC_ASSETS14332=['scripts/navigation-workflow14316.js','scripts/desktop14245-3.js','scripts/desktop14245-6.js','scripts/maintenance14324.js','scripts/offline14239.js','scripts/sync-assessment14332.js','styles/sync-assessment14332.css','scripts/settings-groups14332.js','styles/settings-groups14332.css','styles/statutory14332.css'];
-RELEASE_ASSETS14299.push(...SYNC_ASSETS14332);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...SYNC_ASSETS14332])];
-const LOCAL_ASSETS14333=["scripts/entry-number14257.js","scripts/hr-calendar14306.js", "scripts/hr-workspace14306.js", "scripts/phone-runtime14242.js","scripts/offline14239.js", "scripts/local-first14333.js", "scripts/session-cache14333.js", "scripts/year-window14333.js", "scripts/startup14257.js", "scripts/sync-assessment14332.js", "scripts/period-filters14331.js", "scripts/report-library14285.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-6.js"];
-RELEASE_ASSETS14299.push(...LOCAL_ASSETS14333);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...LOCAL_ASSETS14333])];
-const VAULT_ASSETS14334=["docs/UPDATE-v143.34.md","setup/INSTALL-PAYROLL-YEAR-WINDOW-v143.34.sql","assets/vendor/noble-gcm14334.LICENSE.txt","scripts/startup14257.js","scripts/desktop14245-6.js","scripts/hr-workspace14306.js","scripts/recovery14257.js","scripts/payroll-window14334.js","scripts/account-security14257.js","assets/vendor/noble-gcm14334.js", "scripts/device-vault14334.js", "scripts/offline14239.js", "scripts/local-first14333.js", "scripts/phone-runtime14242.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/phone-connected.js"];
-RELEASE_ASSETS14299.push(...VAULT_ASSETS14334);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...VAULT_ASSETS14334])];
-const FIX_ASSETS14335=["scripts/desktop14245-6.js","setup/INSTALL-EDITABLE-TODOS-v143.35.sql","scripts/startup14257.js","scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/offline14239.js", "scripts/local-first14333.js", "scripts/navigation-workflow14316.js", "scripts/settings-groups14332.js", "styles/settings-groups14332.css", "scripts/sync-assessment14332.js", "scripts/optional-tools14335.js", "scripts/document-import-v1422.js", "scripts/document-export-v108.js", "scripts/report-templates14262.js", "scripts/maintenance14324.js", "scripts/maintenance-reports14326.js", "docs/UPDATE-v143.35.md"];
-RELEASE_ASSETS14299.push(...FIX_ASSETS14335);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...FIX_ASSETS14335])];
-const DESIGN_ASSETS14336=['scripts/design14284.js','scripts/desktop14245-3.js','scripts/desktop14245-5.js','scripts/report-formats14282.js','styles/workspace14331.css','scripts/offline14239.js','docs/UPDATE-v143.36.md'];
-RELEASE_ASSETS14299.push(...DESIGN_ASSETS14336);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...DESIGN_ASSETS14336])];
-const WORKFLOW_ASSETS14337=["scripts/budget-workflow14316.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/document-downloads14311.js", "scripts/hr-workspace14306.js", "scripts/installation14320.js", "scripts/maintenance14324.js", "scripts/navigation-workflow14316.js", "scripts/report-templates14262.js", "scripts/settings-groups14332.js", "scripts/sync-assessment14332.js", "styles/settings-groups14332.css", "scripts/export-center14337.js", "scripts/workspace14337.js", "styles/workspace14337.css", "scripts/offline14239.js", "docs/UPDATE-v143.37.md", "assets/maintenance/release14324.json"];
-RELEASE_ASSETS14299.push(...WORKFLOW_ASSETS14337);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...WORKFLOW_ASSETS14337])];
-const REFRESH_ASSETS14338=['scripts/summary-period14331.js','scripts/startup14257.js','scripts/offline14239.js','docs/UPDATE-v143.38.md','assets/maintenance/release14324.json'];
-RELEASE_ASSETS14299.push(...REFRESH_ASSETS14338);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...REFRESH_ASSETS14338])];
-const LOADING_ASSETS14339=['scripts/offline14239.js','scripts/desktop14245-6.js','scripts/period-filters14331.js','docs/UPDATE-v143.39.md','assets/maintenance/release14324.json'];
-RELEASE_ASSETS14299.push(...LOADING_ASSETS14339);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...LOADING_ASSETS14339])];
-const SCALE_ASSETS14340=['scripts/view-render14340.js', 'scripts/desktop14245-3.js', 'scripts/journal-description14281.js', 'scripts/local-first14333.js', 'scripts/sync-assessment14332.js', 'scripts/offline14239.js', 'docs/UPDATE-v143.40.md', 'assets/maintenance/release14324.json'];
-RELEASE_ASSETS14299.push(...SCALE_ASSETS14340);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...SCALE_ASSETS14340])];
-const RESPONSIVE_ASSETS14341=["assets/maintenance/release14324.json", "docs/UPDATE-v143.41.md", "scripts/auto-sync14256.js", "scripts/budget-workflow14316.js", "scripts/desktop14245-3.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/field-focus14253.js", "scripts/history-month14341.js", "scripts/idle-sync14341.js", "scripts/local-first14333.js", "scripts/offline14239.js", "scripts/reports14254.js", "scripts/startup14257.js", "scripts/view-render14340.js", "scripts/year-window14333.js", "styles/desktop14245.css", "styles/responsive-work14341.css", "styles/workspace14331.css"];
-RELEASE_ASSETS14299.push(...RESPONSIVE_ASSETS14341);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...RESPONSIVE_ASSETS14341])];
-const CLOSING_ASSETS14342=["scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/history-month14341.js", "scripts/maintenance14324.js", "scripts/offline14239.js", "scripts/view-render14340.js", "styles/responsive-work14341.css", "assets/maintenance/release14324.json", "docs/UPDATE-v143.42.md"];
-RELEASE_ASSETS14299.push(...CLOSING_ASSETS14342);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...CLOSING_ASSETS14342])];
-const WORKSPACE_ASSETS14343=["scripts/phone-tools14242.js","styles/feedback-viewport14295.css","scripts/action-feedback14296.js", "scripts/desktop-corrections-v80.js", "scripts/desktop14245-3.js", "scripts/desktop14245-5.js", "scripts/history-month14341.js", "scripts/idle-sync14341.js", "scripts/local-first14333.js", "scripts/offline14239.js", "scripts/payroll-polish-v97.js", "scripts/period-filters14331.js", "scripts/phone-runtime14242.js", "scripts/report-formats14282.js", "scripts/script.js", "scripts/startup14257.js", "scripts/transactions-v67.js", "scripts/workflows-v136.js", "scripts/workspace14337.js", "scripts/workspace-consistency14343.js", "styles/workspace-consistency14343.css", "docs/UPDATE-v143.43.md", "assets/maintenance/release14324.json", "phone.html", "phone-sw.js"];
-RELEASE_ASSETS14299.push(...WORKSPACE_ASSETS14343);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...WORKSPACE_ASSETS14343])];
-const NAVIGATION_ASSETS14344=["scripts/workspace-consistency14343.js", "styles/workspace-consistency14343.css", "scripts/workspace14337.js", "scripts/personal-journal1437.js", "scripts/desktop14245-6.js", "scripts/offline14239.js", "assets/maintenance/release14324.json", "docs/UPDATE-v143.44.md"];
-RELEASE_ASSETS14299.push(...NAVIGATION_ASSETS14344);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...NAVIGATION_ASSETS14344])];
-const FINAL_REVIEW_ASSETS14345=["assets/maintenance/release14324.json","scripts/workspace-consistency14343.js","scripts/desktop14245-3.js", "scripts/workflow14253.js", "scripts/maintenance14324.js", "scripts/navigation-badges14311.js", "scripts/reconciliation14345.js", "styles/final-review14345.css", "scripts/offline14239.js", "scripts/phone-runtime14242.js", "phone.html", "phone-sw.js", "docs/UPDATE-v143.45.md"];
-RELEASE_ASSETS14299.push(...FINAL_REVIEW_ASSETS14345);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...FINAL_REVIEW_ASSETS14345])];
-const RECONCILIATION_ASSETS14346=["scripts/reports14254.js","scripts/closing-eligibility14346.js", "scripts/reconciliation14345.js", "scripts/workflow14253.js", "scripts/phone-runtime14242.js", "scripts/action-feedback14296.js", "scripts/maintenance14324.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "styles/final-review14345.css", "scripts/offline14239.js", "phone.html", "phone-sw.js", "assets/maintenance/release14324.json", "docs/UPDATE-v143.46.md"];
-const RETURN_ASSETS14347=["scripts/access-v113.js", "scripts/budget-workflow14316.js", "scripts/closing-eligibility14346.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/navigation-badges14311.js", "scripts/organization14229.js", "scripts/personal-journal1437.js", "scripts/phone-runtime14242.js", "scripts/review-mobile-v78.js", "scripts/subusers-final-v56.js", "scripts/team-home14227.js", "scripts/workflows-v136.js", "scripts/workspace-consistency14343.js", "scripts/workspace-settings.js", "styles/final-review14345.css", "scripts/offline14239.js", "phone.html", "phone-sw.js", "assets/maintenance/release14324.json", "docs/UPDATE-v143.47.md", "setup/INSTALL-RETURNED-SUBMISSIONS-v143.47.sql"];
-RELEASE_ASSETS14299.push(...RETURN_ASSETS14347,...RECONCILIATION_ASSETS14346);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...RETURN_ASSETS14347,...RECONCILIATION_ASSETS14346])];
-const NAV_RETURN_ASSETS14348=["scripts/desktop14245-6.js", "scripts/personal-journal1437.js", "scripts/phone-runtime14242.js", "scripts/report-history1443.js", "scripts/team-home14227.js", "scripts/workspace-consistency14343.js", "styles/workspace-consistency14343.css", "styles/workspace-header14266.css", "scripts/offline14239.js", "assets/maintenance/release14324.json", "phone.html", "phone-sw.js", "docs/UPDATE-v143.48.md"];
-RELEASE_ASSETS14299.push(...NAV_RETURN_ASSETS14348);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...NAV_RETURN_ASSETS14348])];
-const REPORT_POST_ASSETS14349=["scripts/desktop14245-3.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/final-v117.js", "scripts/navigation-badges14311.js", "scripts/personal-journal1437.js", "scripts/reconciliation14345.js", "scripts/report-history1443.js", "scripts/review-v69.js", "scripts/team-home14227.js", "scripts/workflow14253.js", "styles/workspace-consistency14343.css", "scripts/offline14239.js", "assets/maintenance/release14324.json", "docs/UPDATE-v143.49.md", "setup/INSTALL-REPORT-POSTING-v143.49.sql", "phone.html", "phone-sw.js"];
-RELEASE_ASSETS14299.push(...REPORT_POST_ASSETS14349);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...REPORT_POST_ASSETS14349])];
-const PHASE0_ASSETS14350=["scripts/device-vault14334.js", "scripts/script.js", "scripts/desktop14245-3.js", "scripts/desktop14245-6.js", "scripts/payroll-polish-v97.js", "scripts/corrections14231.js", "scripts/startup14257.js", "scripts/local-first14333.js", "scripts/offline14239.js", "scripts/phone-runtime14242.js"];
-RELEASE_ASSETS14299.push(...PHASE0_ASSETS14350);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...PHASE0_ASSETS14350])];
-const NAV_PERF_ASSETS14350=["scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-6.js", "scripts/navigation-workflow14316.js", "scripts/workspace-consistency14343.js"];
-RELEASE_ASSETS14299.push(...NAV_PERF_ASSETS14350);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...NAV_PERF_ASSETS14350])];
-const REVIEW_ASSETS14352=["scripts/controls14317.js", "scripts/corrections14231.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-6.js", "scripts/document-editor-v105.js", "scripts/editor-numbers1428.js", "scripts/hr-calendar-model14306.js", "scripts/offline14239.js", "scripts/opening-balances14234.js", "scripts/script.js", "scripts/startup14257.js", "scripts/workflow14253.js"];
-RELEASE_ASSETS14299.push(...REVIEW_ASSETS14352);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...REVIEW_ASSETS14352])];
-const TABLET_SYNC_ASSETS14353=["scripts/idle-sync14341.js", "scripts/sync-assessment14332.js", "styles/sync-assessment14332.css", "scripts/workspace14337.js", "styles/workspace14337.css"];
-const PREPARED_ASSETS14364=["scripts/budget-workflow14316.js", "scripts/dashboard-warm-v112.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/hr-calendar14306.js", "scripts/local-events14310.js", "scripts/local-first14333.js", "scripts/payroll-groups-v96.js", "scripts/payroll-reports-v82.js", "scripts/reports-system-v71.js", "scripts/reports-v118.js", "scripts/scheduled-journals-v91.js", "scripts/script.js", "scripts/settings-payroll-v94.js", "scripts/startup14257.js", "scripts/tax-reports-v102.js", "scripts/team-home14227.js", "scripts/view-render14340.js", "scripts/vouchers14299.js", "scripts/workflow14253.js", "scripts/prepared-workspace14364.js"];
-RELEASE_ASSETS14299.push(...PREPARED_ASSETS14364);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...PREPARED_ASSETS14364])];
-const RETAINED_PRESENTATION14365=['scripts/desktop14245-3.js','scripts/desktop14245-6.js','scripts/transaction-consistency14300.js','scripts/corrections14231.js','scripts/universal-date-v104.js'];
-RELEASE_ASSETS14299.push(...RETAINED_PRESENTATION14365);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...RETAINED_PRESENTATION14365])];
-const NAVIGATION_EXPERIMENT14366=['scripts/navigation-experiment14366.js','styles/navigation-experiment14366.css'];
-RELEASE_ASSETS14299.push(...NAVIGATION_EXPERIMENT14366);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...NAVIGATION_EXPERIMENT14366])];
-const SCOPED_PRESENTATION14367=["scripts/account-currency14257.js", "scripts/account-picker1428.js", "scripts/desktop14245-3.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/final-v117.js", "scripts/layout-consistency-v87.js", "scripts/password-policy14257.js", "scripts/review-mobile-v78.js", "scripts/transaction-consistency14300.js", "scripts/workspace-consistency14343.js"];
-RELEASE_ASSETS14299.push(...SCOPED_PRESENTATION14367);
-OJM_OFFLINE_ASSETS=[...new Set([...OJM_OFFLINE_ASSETS,...SCOPED_PRESENTATION14367])];
-const PHONE_CACHE14368=['scripts/phone-runtime14242.js'];
-RELEASE_ASSETS14299.push(...PHONE_CACHE14368);
-const releaseVersion14299=asset=>PHONE_CACHE14368.includes(asset)?'143.68':SCOPED_PRESENTATION14367.includes(asset)?'143.67':NAVIGATION_EXPERIMENT14366.includes(asset)?'143.66':RETAINED_PRESENTATION14365.includes(asset)?'143.65':PREPARED_ASSETS14364.includes(asset)?'143.64':TABLET_SYNC_ASSETS14353.includes(asset)?'143.53':REVIEW_ASSETS14352.includes(asset)?'143.52-review2':["scripts/payroll-reports-v82.js", "scripts/workspace-v99.js", "scripts/header-profile-v104.js", "scripts/desktop14245-3.js", "scripts/journal-batch1440.js", "scripts/save-notices14234.js", "scripts/desktop14245-6.js", "scripts/auto-sync14256.js", "scripts/device-vault14334.js", "scripts/idle-sync14341.js", "scripts/local-first14333.js", "scripts/offline14239.js", "scripts/payroll-window14334.js", "scripts/startup14257.js", "scripts/assigned-ledger14281.js", "scripts/phone-runtime14242.js", "scripts/sync-assessment14332.js", "styles/sync-assessment14332.css"].includes(asset)?'143.51-sync1':["scripts/assigned-ledger14281.js", "scripts/combined-v138.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/idle-sync14341.js", "scripts/navigation-workflow14316.js", "scripts/payroll-polish-v97.js", "scripts/scheduled-journals-v91.js", "scripts/script.js", "scripts/shared-v108.js", "scripts/startup14257.js", "scripts/submission-review-v139.js", "scripts/team-home14227.js", "scripts/workflows-v136.js"].includes(asset)?'143.50-preload2':['scripts/desktop14245-6.js','scripts/account-picker1428.js'].includes(asset)?'143.50-picker1':NAV_PERF_ASSETS14350.includes(asset)?'143.50-nav1':PHASE0_ASSETS14350.includes(asset)?'143.50':REPORT_POST_ASSETS14349.includes(asset)?'143.49':NAV_RETURN_ASSETS14348.includes(asset)?'143.48':RETURN_ASSETS14347.includes(asset)?'143.47':RECONCILIATION_ASSETS14346.includes(asset)?'143.46':FINAL_REVIEW_ASSETS14345.includes(asset)?'143.45':NAVIGATION_ASSETS14344.includes(asset)?'143.44':WORKSPACE_ASSETS14343.includes(asset)?'143.43':CLOSING_ASSETS14342.includes(asset)?'143.42':RESPONSIVE_ASSETS14341.includes(asset)?'143.41':SCALE_ASSETS14340.includes(asset)?'143.40':LOADING_ASSETS14339.includes(asset)?'143.39':REFRESH_ASSETS14338.includes(asset)?'143.38':WORKFLOW_ASSETS14337.includes(asset)?'143.37':DESIGN_ASSETS14336.includes(asset)?'143.36':FIX_ASSETS14335.includes(asset)?'143.35':VAULT_ASSETS14334.includes(asset)?'143.34':LOCAL_ASSETS14333.includes(asset)?'143.33':SYNC_ASSETS14332.includes(asset)?'143.32':WORKSPACE_ASSETS14331.includes(asset)?'143.31':DATE_EDITOR_ASSETS14330.includes(asset)?'143.30':DOCK_ASSETS14329.includes(asset)?'143.29':JOURNAL_ACTIONS14328.includes(asset)?'143.28':COMPACT_ASSETS14327.includes(asset)?'143.27':REPORT_COMPARISON_ASSETS14326.includes(asset)?'143.26':POLISH_ASSETS14325.includes(asset)?'143.25':MAINTENANCE_ASSETS14324.includes(asset)?'143.24':RECOVERY_ASSETS14323.includes(asset)?'143.23':PALETTE_ASSETS14321.includes(asset)?'143.21':PORTABLE_ASSETS14320.includes(asset)?'143.20':asset==='scripts/phone-runtime14242.js'?'143.17':["scripts/hr-calendar-news14309.js", "styles/local-events14310.css", "docs/UPDATE-v143.18.md", "scripts/company-accounts14319.js", "docs/UPDATE-v143.19.md", "scripts/offline14239.js", "scripts/desktop14245-2.js", "styles/budget-messages14314.css", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/workflow14253.js", "scripts/layout14256.js", "scripts/action-feedback14296.js", "scripts/vouchers14299.js", "scripts/local-events14310.js", "scripts/navigation-badges14311.js", "scripts/budget-gmail14314.js", "scripts/budget-messages14314.js", "scripts/budget14313.js", "styles/workflow14316.css", "scripts/budget-workflow14316.js", "scripts/navigation-workflow14316.js", "styles/controls14317.css", "scripts/controls14317.js", "scripts/period-closing14317.js", "scripts/phone-runtime14242.js"].includes(asset)?'143.20':["scripts/controls14317.js", "styles/controls14317.css", "scripts/period-closing14317.js", "setup/INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql", "docs/UPDATE-v143.17.md"].includes(asset)?'143.17':["scripts/budget-workflow14316.js", "scripts/navigation-workflow14316.js", "styles/workflow14316.css", "setup/INSTALL-BUDGET-LIFECYCLE-v143.16.sql", "docs/WORKFLOW-v143.16.md", "scripts/budget14313.js", "scripts/budget-messages14314.js", "scripts/action-feedback14296.js", "scripts/vouchers14299.js", "scripts/navigation-badges14311.js", "scripts/local-events14310.js", "scripts/layout14256.js", "scripts/desktop14245-2.js", "scripts/desktop14245-3.js", "scripts/desktop14245-4.js", "scripts/desktop14245-5.js", "scripts/desktop14245-6.js", "scripts/offline14239.js", "scripts/archive-v128.js", "scripts/audit-workspace14232.js", "scripts/backup-validation1441.js"].includes(asset)?'143.17':["scripts/budget-gmail14314.js", "scripts/budget-messages14314.js", "styles/budget-messages14314.css", "docs/GMAIL-SETUP-v143.14.md", "scripts/budget14313.js", "scripts/desktop14245-5.js", "scripts/offline14239.js"].includes(asset)?'143.14':['scripts/budget14313.js','setup/INSTALL-BUDGET-TEMPLATES-v143.13.sql'].includes(asset)?'143.13':['scripts/desktop14245-3.js', 'scripts/desktop14245-4.js', 'scripts/desktop14245-5.js', 'scripts/desktop14245-6.js', 'scripts/document-downloads14311.js', 'scripts/offline14239.js', 'scripts/phone-runtime14242.js', 'styles/navigation-badges14311.css'].includes(asset)?'143.13':['scripts/document-downloads14311.js','scripts/offline14239.js','setup/INSTALL-DOWNLOAD-PASSWORDS-v143.12.sql'].includes(asset)?'143.12':['scripts/document-downloads14311.js','scripts/navigation-badges14311.js','styles/navigation-badges14311.css','setup/INSTALL-HR-DOCUMENT-FORMATS-v143.11.sql','scripts/desktop14245-3.js','scripts/desktop14245-4.js','scripts/hr-workspace14306.js','scripts/offline14239.js'].includes(asset)?'143.11':['scripts/local-events14310.js','styles/local-events14310.css','docs/LOCAL-EVENTS-SETUP.txt','scripts/hr-calendar14306.js','scripts/hr-calendar-news14309.js','scripts/desktop14245-4.js','scripts/offline14239.js'].includes(asset)?'143.10':['scripts/hr-calendar-news14309.js','scripts/hr-calendar-model14306.js','scripts/hr-calendar14306.js','styles/hr-workspace14306.css','scripts/desktop14245-3.js','scripts/offline14239.js'].includes(asset)?'143.09':['styles/controls14305.css', 'styles/hr-workspace14306.css', 'scripts/desktop14245-3.js', 'scripts/desktop14245-6.js', 'scripts/offline14239.js', 'scripts/phone-runtime14242.js'].includes(asset)?'143.08':['scripts/desktop14245-6.js','scripts/desktop14245-4.js','scripts/desktop14245-3.js','scripts/hr-calendar14306.js','scripts/hr-workspace14306.js','scripts/offline14239.js','styles/hr-workspace14306.css'].includes(asset)?'143.07':['scripts/account-picker1428.js','scripts/offline14239.js', 'scripts/desktop14245-3.js', 'scripts/desktop14245-4.js', 'scripts/desktop14245-5.js', 'scripts/desktop14245-6.js', 'scripts/report-formats14282.js', 'scripts/phone-runtime14242.js', 'scripts/hr-calendar-model14306.js', 'scripts/hr-calendar14306.js', 'scripts/hr-workspace14306.js', 'styles/hr-workspace14306.css', 'setup/INSTALL-HR-CALENDAR-v143.06.sql'].includes(asset)?'143.06':['styles/controls14305.css', 'scripts/workflow14253.js', 'scripts/phone-runtime14242.js', 'scripts/vouchers14299.js', 'scripts/desktop14245-3.js', 'scripts/desktop14245-5.js', 'scripts/offline14239.js'].includes(asset)?'143.05':['scripts/report-formats14282.js','scripts/journal-description14281.js','scripts/vouchers14299.js','scripts/transaction-consistency14300.js','styles/transaction-consistency14300.css','scripts/layout-voucher-polish14301.js','styles/layout-voucher-polish14301.css','scripts/desktop14245-3.js','scripts/desktop14245-4.js','scripts/desktop14245-6.js','scripts/offline14239.js'].includes(asset)?'143.04':'142.99';
-const VERSION='143.52',STATIC_VERSION='142.47',CACHE='ojm-accounting-shell-'+STATIC_VERSION;
-const PHONE_ASSETS14253=['scripts/workflow14253.js','scripts/account-groups14253.js','scripts/field-focus14253.js','styles/workflow14253.css','scripts/offline14239.js','scripts/desktop14245-3.js','scripts/phone-connected.js','scripts/phone-account-picker14227.js'];
-const PHONE_ASSETS14252=['scripts/phone-keyboard14252.js','scripts/admin-access14251.js','scripts/phone-connected.js'];
-const PHONE_ASSETS14251=['scripts/admin-access14251.js','scripts/phone-connected.js','scripts/desktop14245-6.js'];
-const PHONE_ASSETS14250=['scripts/phone-connected.js','scripts/desktop14245-6.js','styles/phone-design14248.css'];
-const PHONE_ASSETS14249=['scripts/phone-connected.js','scripts/phone-account-picker14227.js'];
-const PHONE_ASSETS14248=['scripts/phone-connected.js','scripts/phone-data14248.js','styles/phone-design14248.css'];
+/* Static application files only. Each release has an isolated cache.
+   Never overwrite old version caches: open tabs may still require those bytes. */
+const VERSION='143.70',CACHE='ojm-desktop-shell-'+VERSION;
+const FILES=[
+ "docs/UPDATE-v143.21.md",
+ "scripts/hr-calendar14306.js?v=143.70",
+ "scripts/desktop14245-1.js?v=143.62",
+ "deployment-config.js?v=143.20",
+ "scripts/supabase-config.js?v=143.20",
+ "scripts/desktop-scale14320.js?v=143.23",
+ "styles/desktop-scale14320.css?v=143.20",
+ "scripts/installation14320.js?v=143.70",
+ "styles/installation14320.css?v=143.20",
+ "scripts/feedback-viewport14295.js?v=143.20",
+ "scripts/module-dock14269.js?v=143.20",
+ "scripts/desktop14245-2.js?v=143.70",
+ "scripts/desktop14245-3.js?v=143.70",
+ "scripts/desktop14245-4.js?v=143.70",
+ "scripts/desktop14245-5.js?v=143.70",
+ "scripts/desktop14245-6.js?v=143.70",
+ "scripts/local-events14310.js?v=143.70",
+ "scripts/offline14239.js?v=143.70",
+ "docs/UPDATE-v143.18.md",
+ "docs/UPDATE-v143.19.md",
+ "scripts/company-accounts14319.js?v=143.20",
+ "scripts/hr-calendar-news14309.js?v=143.30",
+ "styles/local-events14310.css?v=143.20",
+ "scripts/controls14317.js?v=143.52-review2",
+ "styles/controls14317.css?v=143.62",
+ "scripts/period-closing14317.js?v=143.70",
+ "setup/INSTALL-DEFERRED-SUBMISSIONS-v143.17.sql",
+ "docs/UPDATE-v143.17.md",
+ "scripts/reconciliation14345.js?v=143.49",
+ "styles/final-review14345.css?v=143.47",
+ "scripts/closing-eligibility14346.js?v=143.47",
+ "scripts/budget-workflow14316.js?v=143.70",
+ "scripts/navigation-workflow14316.js?v=143.50-preload2",
+ "styles/workflow14316.css?v=143.20",
+ "setup/INSTALL-BUDGET-LIFECYCLE-v143.16.sql",
+ "docs/WORKFLOW-v143.16.md",
+ "scripts/budget14313.js?v=143.70",
+ "scripts/budget-messages14314.js?v=143.70",
+ "scripts/action-feedback14296.js?v=143.70",
+ "scripts/vouchers14299.js?v=143.70",
+ "scripts/navigation-badges14311.js?v=143.49",
+ "scripts/layout14256.js?v=143.70",
+ "scripts/archive-v128.js?v=143.70",
+ "scripts/audit-workspace14232.js?v=143.70",
+ "scripts/backup-validation1441.js?v=143.70",
+ "scripts/budget-gmail14314.js?v=143.70",
+ "styles/budget-messages14314.css?v=143.20",
+ "docs/GMAIL-SETUP-v143.14.md",
+ "scripts/login-notifications14293.js?v=142.94",
+ "styles/login-notifications14293.css?v=142.94",
+ "scripts/report-library14285.js?v=143.70",
+ "scripts/search-autofill14285.js?v=143.69",
+ "styles/report-library14285.css?v=142.86",
+ "assets/vendor/document14285/pdf.worker.min.mjs",
+ "assets/vendor/document14285/cfb.min.js?v=142.94",
+ "assets/vendor/document14285/marked.umd.js?v=142.94",
+ "assets/vendor/document14285/pdf.min.mjs",
+ "styles/phone-shell14285.css?v=142.86",
+ "styles/phone-navigation14285.css?v=142.94",
+ "scripts/password-service14264.js?v=142.84",
+ "styles/design14284.css?v=143.59",
+ "scripts/design14284.js?v=143.70",
+ "styles/phone-design14284.css?v=142.94",
+ "scripts/report-formats14282.js?v=143.70",
+ "scripts/entry-actions14271.js?v=143.59",
+ "styles/entry-layout14271.css?v=143.59",
+ "styles/module-dock14269.css?v=142.75",
+ "scripts/audit-explanation14260.js?v=142.60",
+ "scripts/phone-reset-gate14257.js?v=142.57",
+ "scripts/account-currency14257.js?v=143.70",
+ "recovery.html",
+ "scripts/password-policy14257.js?v=143.67",
+ "scripts/recovery14257.js?v=143.70",
+ "scripts/account-security14257.js?v=143.70",
+ "scripts/startup14257.js?v=143.64",
+ "scripts/numeric-caret14257.js?v=142.57",
+ "scripts/entry-number14257.js?v=143.69",
+ "styles/layout14256.css?v=142.76",
+ "scripts/auto-sync14256.js?v=143.51-sync1",
+ "scripts/workflow14253.js?v=143.70",
+ "scripts/account-groups14253.js?v=142.53",
+ "scripts/field-focus14253.js?v=143.41",
+ "styles/workflow14253.css?v=142.53",
+ "scripts/phone-keyboard14252.js?v=142.77",
+ "scripts/admin-access14251.js?v=143.70",
+ "index.html",
+ "phone.html",
+ "scripts/editor-numbers1428.js?v=143.52-review2",
+ "scripts/phone-pull-refresh1423.js?v=142.47",
+ "scripts/phone-account-picker14227.js?v=142.94",
+ "scripts/desktop-layout1438.js?v=143.70",
+ "scripts/phone-connected.js?v=143.70",
+ "styles/editor-numbers1428.css?v=142.47",
+ "styles/phone-pull-refresh1423.css?v=142.47",
+ "styles/phone-approved14225.css?v=142.47",
+ "styles/audit-workspace14232.css?v=142.47",
+ "styles/archive-v128.css?v=142.47",
+ "styles/phone-finalization1440.css?v=142.47",
+ "styles/phone-account-picker14227.css?v=142.94",
+ "styles/phone-connected.css?v=142.47",
+ "assets/payroll-voucher-footer1424.png",
+ "assets/logo.png",
+ "assets/payroll-voucher-header1424.png",
+ "assets/brush-stroke136.svg",
+ "assets/vendor/jszip.min.js?v=142.47",
+ "assets/vendor/supabase.js?v=142.47",
+ "assets/vendor/docx.js?v=142.47",
+ "assets/brand/oonjai-logo.png",
+ "styles/phone-approved14247.css?v=142.47",
+ "phone-accounting.html",
+ "styles/phone-accounting14246.css?v=142.47",
+ "assets/banners/transactions.webp",
+ "styles/password-help14278.css?v=142.94",
+ "styles/desktop14245.css?v=143.70",
+ "scripts/tablet-journal14266.js?v=142.80",
+ "scripts/workspace-header14266.js?v=142.83",
+ "styles/tablet-journal14266.css?v=142.75",
+ "styles/workspace-header14266.css?v=143.48",
+ "scripts/phone-data14248.js?v=142.48",
+ "styles/phone-design14248.css?v=142.50",
+ "scripts/reports14254.js?v=143.70",
+ "styles/account-parent14287.css?v=142.96",
+ "desktop.html",
+ "scripts/report-templates14262.js?v=143.70",
+ "scripts/report-routes14262.js?v=143.70",
+ "scripts/loading1444.js?v=142.93",
+ "styles/functional-corrections14292.css?v=142.94",
+ "scripts/assigned-ledger14281.js?v=143.70",
+ "scripts/journal-description14281.js?v=143.40",
+ "styles/settings-polish14281.css?v=142.83",
+ "styles/phone-polish14281.css?v=142.94",
+ "scripts/account-picker1428.js?v=143.70",
+ "styles/account-picker1428.css?v=142.94",
+ "scripts/maintenance-engine14324.js?v=143.70",
+ "scripts/maintenance14324.js?v=143.70",
+ "scripts/system-diagnostics14324.js?v=143.26",
+ "styles/maintenance14324.css?v=143.24",
+ "assets/maintenance/release14324.json",
+ "assets/maintenance/Oon-Jai-Maintenance-Comparison.xlsx",
+ "setup/INSTALL-MAINTENANCE-v143.24.sql",
+ "docs/MAINTENANCE-v143.24.md",
+ "scripts/polish14325.js?v=143.25",
+ "styles/polish14325.css?v=143.60",
+ "scripts/maintenance-selection14325.js?v=143.25",
+ "scripts/maintenance-reports14326.js?v=143.70",
+ "assets/maintenance/report-template14326.xlsx",
+ "docs/UPDATE-v143.26.md",
+ "styles/compact14327.css?v=143.58-polish",
+ "docs/UPDATE-v143.27.md",
+ "docs/UPDATE-v143.28.md",
+ "docs/UPDATE-v143.29.md",
+ "scripts/document-downloads14311.js?v=143.70",
+ "scripts/hr-workspace14306.js?v=143.70",
+ "docs/UPDATE-v143.30.md",
+ "scripts/summary-period14331.js?v=143.70",
+ "scripts/period-filters14331.js?v=143.70",
+ "scripts/workspace14331.js?v=143.31",
+ "styles/workspace14331.css?v=143.59",
+ "docs/UPDATE-v143.31.md",
+ "scripts/sync-assessment14332.js?v=143.70",
+ "styles/sync-assessment14332.css?v=143.53",
+ "scripts/settings-groups14332.js?v=143.37",
+ "styles/settings-groups14332.css?v=143.37",
+ "styles/statutory14332.css?v=143.32",
+ "scripts/phone-runtime14242.js?v=143.70",
+ "scripts/local-first14333.js?v=143.70",
+ "scripts/session-cache14333.js?v=143.33",
+ "scripts/year-window14333.js?v=143.70",
+ "docs/UPDATE-v143.34.md",
+ "setup/INSTALL-PAYROLL-YEAR-WINDOW-v143.34.sql",
+ "assets/vendor/noble-gcm14334.LICENSE.txt",
+ "scripts/payroll-window14334.js?v=143.70",
+ "assets/vendor/noble-gcm14334.js?v=143.34",
+ "scripts/device-vault14334.js?v=143.70",
+ "setup/INSTALL-EDITABLE-TODOS-v143.35.sql",
+ "scripts/optional-tools14335.js?v=143.70",
+ "scripts/document-import-v1422.js?v=143.70",
+ "scripts/document-export-v108.js?v=143.70",
+ "docs/UPDATE-v143.35.md",
+ "docs/UPDATE-v143.36.md",
+ "scripts/export-center14337.js?v=143.70",
+ "scripts/workspace14337.js?v=143.70",
+ "styles/workspace14337.css?v=143.62",
+ "docs/UPDATE-v143.37.md",
+ "docs/UPDATE-v143.38.md",
+ "docs/UPDATE-v143.39.md",
+ "scripts/view-render14340.js?v=143.64",
+ "docs/UPDATE-v143.40.md",
+ "docs/UPDATE-v143.41.md",
+ "scripts/history-month14341.js?v=143.70",
+ "scripts/idle-sync14341.js?v=143.53",
+ "styles/responsive-work14341.css?v=143.62",
+ "docs/UPDATE-v143.42.md",
+ "scripts/phone-tools14242.js?v=143.70",
+ "styles/feedback-viewport14295.css?v=142.95",
+ "scripts/desktop-corrections-v80.js?v=143.70",
+ "scripts/payroll-polish-v97.js?v=143.70",
+ "scripts/script.js?v=143.70",
+ "scripts/transactions-v67.js?v=143.70",
+ "scripts/workflows-v136.js?v=143.70",
+ "scripts/workspace-consistency14343.js?v=143.69",
+ "styles/workspace-consistency14343.css?v=143.61",
+ "docs/UPDATE-v143.43.md",
+ "phone-sw.js?v=143.49",
+ "scripts/personal-journal1437.js?v=143.70",
+ "docs/UPDATE-v143.44.md",
+ "docs/UPDATE-v143.45.md",
+ "scripts/access-v113.js?v=143.70",
+ "scripts/organization14229.js?v=143.70",
+ "scripts/review-mobile-v78.js?v=143.70",
+ "scripts/subusers-final-v56.js?v=143.70",
+ "scripts/team-home14227.js?v=143.70",
+ "scripts/workspace-settings.js?v=143.70",
+ "docs/UPDATE-v143.47.md",
+ "setup/INSTALL-RETURNED-SUBMISSIONS-v143.47.sql",
+ "docs/UPDATE-v143.46.md",
+ "scripts/report-history1443.js?v=143.70",
+ "docs/UPDATE-v143.48.md",
+ "scripts/final-v117.js?v=143.70",
+ "scripts/review-v69.js?v=143.70",
+ "docs/UPDATE-v143.49.md",
+ "setup/INSTALL-REPORT-POSTING-v143.49.sql",
+ "scripts/corrections14231.js?v=143.65",
+ "scripts/document-editor-v105.js?v=143.70",
+ "scripts/hr-calendar-model14306.js?v=143.70",
+ "scripts/opening-balances14234.js?v=143.70",
+ "scripts/dashboard-warm-v112.js?v=143.70",
+ "scripts/payroll-groups-v96.js?v=143.70",
+ "scripts/payroll-reports-v82.js?v=143.70",
+ "scripts/reports-system-v71.js?v=143.70",
+ "scripts/reports-v118.js?v=143.70",
+ "scripts/scheduled-journals-v91.js?v=143.70",
+ "scripts/settings-payroll-v94.js?v=143.70",
+ "scripts/tax-reports-v102.js?v=143.70",
+ "scripts/prepared-workspace14364.js?v=143.70",
+ "scripts/transaction-consistency14300.js?v=143.69",
+ "scripts/universal-date-v104.js?v=143.70",
+ "scripts/navigation-experiment14366.js?v=143.66",
+ "styles/navigation-experiment14366.css?v=143.66",
+ "scripts/layout-consistency-v87.js?v=143.67",
+ "scripts/financial-numbers14231.js?v=143.69",
+ "scripts/interface-v69.js?v=143.69",
+ "scripts/layout-voucher-polish14301.js?v=143.69",
+ "scripts/subusers-final-v55.js?v=143.69",
+ "styles/voucher-layout14299.css?v=142.99.2",
+ "styles/hr-workspace14306.css?v=143.09",
+ "scripts/heading-case14297.js?v=142.97",
+ "styles/transaction-consistency14300.css?v=143.04",
+ "styles/layout-voucher-polish14301.css?v=143.04",
+ "styles/controls14305.css?v=143.08",
+ "styles/navigation-badges14311.css?v=143.60",
+ "styles/phone14242.css?v=143.59",
+ "styles/loading1444.css?v=142.93",
+ "scripts/staff-entry14225.js?v=143.70",
+ "styles/functional-corrections14292.css?v=142.93",
+ "assets/brand/oonjai-logo.png?v=118",
+ "styles/feedback-viewport14295.css?v=143.59",
+ "styles/loading1444.css?v=142.94",
+ "scripts/loading1444.js?v=142.94",
+ "assets/vendor/supabase.js?v=142.41",
+ "styles/archive-v128.css?v=142.34",
+ "styles/audit-workspace14232.css?v=142.34",
+ "scripts/audit-engine14232.js?v=143.70",
+ "scripts/audit-storage14232.js?v=143.70",
+ "scripts/cell-navigation14233.js?v=143.70",
+ "scripts/feedback-viewport14295.js?v=142.95",
+ "archive.html",
+ "styles/setup14320.css?v=143.20",
+ "scripts/setup14320.js?v=143.20",
+ "setup.html"
+];
+
+const scopeURL=new URL(self.registration.scope);
+const paths=new Map(FILES.map(file=>[file.split('?')[0],file]));
+async function completeResponse(response){
+ if(!response.ok||response.type==='opaque')throw Error('Offline file did not finish downloading');
+ const bytes=await response.arrayBuffer();
+ return new Response(bytes,{status:response.status,statusText:response.statusText,headers:response.headers});
+}
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE);
  try{
-  // Keep the old entry point until both new HTML pages and their worker loader exist.
-  const critical=['desktop.html','scripts/offline14239.js','index.html'];
-  const complete=await Promise.all(critical.map(async asset=>{const url=new URL(asset,self.registration.scope);if(asset.endsWith('.js'))url.searchParams.set('v',RELEASE_ASSETS14299.includes(asset)?releaseVersion14299(asset):PARENT_ASSETS14287.includes(asset)?'142.94.1':ENTRY_ASSETS14271.includes(asset)?'142.94':FIT_ASSETS14267.includes(asset)?'142.67':TABLET_ASSETS14266.includes(asset)?'142.66':LOGIN_ASSETS14265.includes(asset)?'142.65':AUTH_ASSETS14264.includes(asset)?'142.64':REPORT_ASSETS14262.includes(asset)?'142.62':HEIGHT_ASSETS14260.includes(asset)?'142.60':UPDATE_ASSETS14257.includes(asset)?'142.57':LAYOUT_ASSETS14256.includes(asset)?'142.56':VERSION);const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);try{const response=await fetch(url,{cache:'reload',signal:controller.signal});if(!response.ok)throw Error('Offline entry point did not finish');const body=await response.arrayBuffer();return {asset,response:new Response(body,{status:response.status,headers:response.headers})};}finally{clearTimeout(timer)}}));
-  for(const item of complete){if(RELEASE_ASSETS14299.includes(item.asset))await(await caches.open('ojm-accounting-shell-'+releaseVersion14299(item.asset))).put(item.asset,item.response.clone());await cache.put(item.asset,item.response.clone());if(ENTRY_ASSETS14271.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.94')).put(item.asset,item.response.clone());if(FIT_ASSETS14267.includes(item.asset)&&!ENTRY_ASSETS14271.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.67')).put(item.asset,item.response.clone());if(TABLET_ASSETS14266.includes(item.asset)&&!FIT_ASSETS14267.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.66')).put(item.asset,item.response.clone());if(LOGIN_ASSETS14265.includes(item.asset)&&!TABLET_ASSETS14266.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.65')).put(item.asset,item.response.clone());if(AUTH_ASSETS14264.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.64')).put(item.asset,item.response.clone());if(REPORT_ASSETS14262.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.62')).put(item.asset,item.response.clone());if(HEIGHT_ASSETS14260.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.60')).put(item.asset,item.response.clone());if(UPDATE_ASSETS14257.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.57')).put(item.asset,item.response.clone());if(LAYOUT_ASSETS14256.includes(item.asset))await(await caches.open('ojm-accounting-shell-142.56')).put(item.asset,item.response);}
-  // Reuse the versioned files already loaded by the browser; keep downloads small.
-  for(let i=0;i<OJM_OFFLINE_ASSETS.length;i+=2)await Promise.all(OJM_OFFLINE_ASSETS.slice(i,i+2).map(async asset=>{
-   if(critical.includes(asset))return;
-   const url=new URL(asset,self.registration.scope);if(/\.(js|css)$/.test(asset)||NAVIGATION_ASSETS14344.includes(asset)||WORKSPACE_ASSETS14343.includes(asset)||MAINTENANCE_ASSETS14324.includes(asset)||REPORT_COMPARISON_ASSETS14326.includes(asset)||COMPACT_ASSETS14327.includes(asset)||JOURNAL_ACTIONS14328.includes(asset)||DOCK_ASSETS14329.includes(asset)||DATE_EDITOR_ASSETS14330.includes(asset)||WORKSPACE_ASSETS14331.includes(asset))url.searchParams.set('v',RELEASE_ASSETS14299.includes(asset)?releaseVersion14299(asset):PARENT_ASSETS14287.includes(asset)?'142.94.1':ENTRY_ASSETS14271.includes(asset)?'142.94':FIT_ASSETS14267.includes(asset)?'142.67':TABLET_ASSETS14266.includes(asset)?'142.66':LOGIN_ASSETS14265.includes(asset)?'142.65':AUTH_ASSETS14264.includes(asset)?'142.64':REPORT_ASSETS14262.includes(asset)?'142.62':HEIGHT_ASSETS14260.includes(asset)?'142.60':UPDATE_ASSETS14257.includes(asset)?'142.57':LAYOUT_ASSETS14256.includes(asset)?'142.56':FIX_ASSETS14255.includes(asset)?'142.55':REPORT_ASSETS14254.includes(asset)?'142.54':PHONE_ASSETS14253.includes(asset)?'142.53':PHONE_ASSETS14252.includes(asset)?'142.52':PHONE_ASSETS14251.includes(asset)?'142.51':PHONE_ASSETS14250.includes(asset)?'142.50':PHONE_ASSETS14249.includes(asset)?'142.49':PHONE_ASSETS14248.includes(asset)?'142.48':STATIC_VERSION);
-   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
-   try{if(await cache.match(asset)&&!RELEASE_ASSETS14299.includes(asset)&&!PARENT_ASSETS14287.includes(asset)&&asset!=='phone-accounting.html'&&!PHONE_ASSETS14248.includes(asset)&&!PHONE_ASSETS14249.includes(asset)&&!PHONE_ASSETS14250.includes(asset)&&!PHONE_ASSETS14251.includes(asset)&&!PHONE_ASSETS14252.includes(asset)&&!PHONE_ASSETS14253.includes(asset)&&!REPORT_ASSETS14254.includes(asset)&&!LAYOUT_ASSETS14256.includes(asset)&&!FIX_ASSETS14255.includes(asset)&&!UPDATE_ASSETS14257.includes(asset)&&!REPORT_ASSETS14262.includes(asset)&&!AUTH_ASSETS14264.includes(asset)&&!LOGIN_ASSETS14265.includes(asset)&&!TABLET_ASSETS14266.includes(asset)&&!FIT_ASSETS14267.includes(asset)&&!ENTRY_ASSETS14271.includes(asset))return;const response=await fetch(url,{cache:'force-cache',signal:controller.signal});if(!response.ok)throw Error('Offline file could not download: '+asset);await cache.put(asset,response.clone());if(RELEASE_ASSETS14299.includes(asset))await(await caches.open('ojm-accounting-shell-'+releaseVersion14299(asset))).put(asset,response.clone());if(PARENT_ASSETS14287.includes(asset))await(await caches.open('ojm-accounting-shell-142.94.1')).put(asset,response.clone());if(ENTRY_ASSETS14271.includes(asset))await(await caches.open('ojm-accounting-shell-142.94')).put(asset,response.clone());if(FIT_ASSETS14267.includes(asset)&&!ENTRY_ASSETS14271.includes(asset))await(await caches.open('ojm-accounting-shell-142.67')).put(asset,response.clone());if(TABLET_ASSETS14266.includes(asset)&&!FIT_ASSETS14267.includes(asset))await(await caches.open('ojm-accounting-shell-142.66')).put(asset,response.clone());if(LOGIN_ASSETS14265.includes(asset)&&!TABLET_ASSETS14266.includes(asset))await(await caches.open('ojm-accounting-shell-142.65')).put(asset,response.clone());if(AUTH_ASSETS14264.includes(asset))await(await caches.open('ojm-accounting-shell-142.64')).put(asset,response.clone());if(REPORT_ASSETS14262.includes(asset))await(await caches.open('ojm-accounting-shell-142.62')).put(asset,response.clone());if(HEIGHT_ASSETS14260.includes(asset))await(await caches.open('ojm-accounting-shell-142.60')).put(asset,response.clone());if(UPDATE_ASSETS14257.includes(asset))await(await caches.open('ojm-accounting-shell-142.57')).put(asset,response.clone());if(LAYOUT_ASSETS14256.includes(asset))await(await caches.open('ojm-accounting-shell-142.56')).put(asset,response.clone());if(FIX_ASSETS14255.includes(asset))await(await caches.open('ojm-accounting-shell-142.55')).put(asset,response.clone());if(REPORT_ASSETS14254.includes(asset))await(await caches.open('ojm-accounting-shell-142.54')).put(asset,response.clone());if(PHONE_ASSETS14253.includes(asset))await(await caches.open('ojm-accounting-shell-142.53')).put(asset,response.clone());if(PHONE_ASSETS14252.includes(asset))await(await caches.open('ojm-accounting-shell-142.52')).put(asset,response.clone());if(PHONE_ASSETS14251.includes(asset))await(await caches.open('ojm-accounting-shell-142.51')).put(asset,response.clone());if(PHONE_ASSETS14250.includes(asset))await(await caches.open('ojm-accounting-shell-142.50')).put(asset,response.clone());if(PHONE_ASSETS14249.includes(asset))await(await caches.open('ojm-accounting-shell-142.49')).put(asset,response.clone());if(PHONE_ASSETS14248.includes(asset))await(await caches.open('ojm-accounting-shell-142.48')).put(asset,response)}finally{clearTimeout(timer)}
-  }));
-  await self.skipWaiting();
- }catch(e){throw e}
-})()));
-self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const client of await self.clients.matchAll())client.postMessage({type:'ojm-shell-ready',version:VERSION})})()));
-self.addEventListener('message',event=>{if(event.data?.type==='ojm-shell-status')event.ports[0]?.postMessage({version:VERSION,ready:true})});
-self.addEventListener('fetch',event=>{
- const r=event.request,u=new URL(r.url),scope=new URL(self.registration.scope);if(r.method!=='GET'||u.origin!==scope.origin||!u.pathname.startsWith(scope.pathname))return;
- const relative=u.pathname.slice(scope.pathname.length)||'index.html';if(!OJM_OFFLINE_ASSETS.includes(relative))return;
- const requested=/\.(js|css)$/.test(relative)?u.searchParams.get('v'):null;
- event.respondWith((async()=>{
-  // An open tab can finish using its previous release while the new one activates.
-  const name=requested&&requested!==STATIC_VERSION&&!(relative==='scripts/offline14239.js'&&requested===VERSION)?'ojm-accounting-shell-'+requested:CACHE;
-  const saved=await(await caches.open(name)).match(relative);
-  if(r.mode==='navigate'){
-   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),3500);
-   try{const response=await fetch(r,{signal:controller.signal});if(response.ok){const body=await response.arrayBuffer();const complete=new Response(body,{status:response.status,statusText:response.statusText,headers:response.headers});if(relative==='phone-accounting.html')await(await caches.open(CACHE)).put(relative,complete.clone());return complete}}catch{}finally{clearTimeout(timer)}
+  for(let offset=0;offset<FILES.length;offset+=2){
+   // Wait for both writes before removing a failed installation cache.
+   const batch=await Promise.allSettled(FILES.slice(offset,offset+2).map(async file=>{
+    const url=new URL(file,scopeURL),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+    try{const response=await fetch(url.href,{cache:file.endsWith('.html')?'reload':'force-cache',signal:controller.signal});await cache.put(url.href,await completeResponse(response));}finally{clearTimeout(timer)}
+   }));
+   const failed=batch.find(result=>result.status==='rejected');if(failed)throw failed.reason;
   }
-  if(saved)return saved;const response=await fetch(r);if(response.ok&&[...RELEASE_ASSETS14299,...PARENT_ASSETS14287,...ENTRY_ASSETS14271,...FIT_ASSETS14267,...TABLET_ASSETS14266,...LOGIN_ASSETS14265,...AUTH_ASSETS14264,...REPORT_ASSETS14262,...PHONE_ASSETS14248,...PHONE_ASSETS14249,...PHONE_ASSETS14250,...PHONE_ASSETS14251,...PHONE_ASSETS14252,...PHONE_ASSETS14253,...REPORT_ASSETS14254,...FIX_ASSETS14255,...LAYOUT_ASSETS14256,...UPDATE_ASSETS14257,...HEIGHT_ASSETS14260].includes(relative)){const bytes=await response.arrayBuffer(),complete=new Response(bytes,{status:response.status,headers:response.headers});await(await caches.open(name)).put(relative,complete.clone());return complete;}return response;
+  await self.skipWaiting();
+ }catch(error){await caches.delete(CACHE);throw error;}
+})()));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{
+ await self.clients.claim();
+ for(const client of await self.clients.matchAll())client.postMessage({type:'ojm-shell-ready',version:VERSION});
+})()));
+self.addEventListener('message',event=>{if(event.data?.type==='ojm-shell-status')event.ports[0]?.postMessage({version:VERSION,ready:true});});
+self.addEventListener('fetch',event=>{
+ const request=event.request,url=new URL(request.url);
+ if(request.method!=='GET'||url.origin!==scopeURL.origin||!url.pathname.startsWith(scopeURL.pathname))return;
+ const path=url.pathname.slice(scopeURL.pathname.length)||'index.html',file=paths.get(path);if(!file)return;
+ const versioned=/\.(js|css)$/.test(path),requestedFile=path+(url.searchParams.has('v')?'?v='+url.searchParams.get('v'):'');
+ const canonical=new URL(versioned&&FILES.includes(requestedFile)?requestedFile:file,scopeURL);
+ event.respondWith((async()=>{
+  const cache=await caches.open(CACHE);
+  if(versioned&&url.searchParams.get('v')!==canonical.searchParams.get('v')){
+   // Earlier releases used path-only keys in per-version accounting caches.
+   // Read those caches without rewriting them or creating empty legacy caches.
+   const requested=url.searchParams.get('v');
+   if(requested){
+    const names=await caches.keys(),legacy='ojm-accounting-shell-'+requested;
+    for(const name of names.filter(name=>name===legacy||name.startsWith('ojm-desktop-shell-')&&name!==CACHE)){
+     const prior=await(await caches.open(name)).match(name===legacy?new URL(path,scopeURL).href:url.href);if(prior)return prior;
+    }
+   }
+   return fetch(request);
+  }
+  const saved=await cache.match(canonical.href);
+  // A navigation uses its complete cached release immediately. Updates install
+  // separately; ordinary tab changes never depend on this network path.
+  if(saved)return saved;
+  const response=await completeResponse(await fetch(request));
+  await cache.put(canonical.href,response.clone());return response;
  })());
 });
-
-
-

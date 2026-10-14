@@ -1,7 +1,7 @@
 /* User-approved journal layout. Values come from payroll, never from the example amounts. */
 (()=>{'use strict';
 const round=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
-const eligible=()=>AccountingStore.accounts.filter(a=>a.id&&a.isPosting!==false&&a.currency&&a.currency!=='NA'&&a.displayCurrency!=='—');
+const eligible=()=>AccountingStore.accounts.filter(a=>a.id&&a.active!==false&&a.is_active!==false&&a.isPosting!==false&&a.is_posting!==false&&a.currency&&a.currency!=='NA'&&a.displayCurrency!=='—');
 const norm=s=>String(s||'').toLowerCase().replace(/[–—-]/g,' ').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
 const fields={contractLak:'Contracted salary',gross:'Gross salary',taxable:'Adjusted salary for PIT',employeePit:'Employee PIT share',employerPit:'Company PIT share',pit:'Total PIT (employee + company)',employeeSso:'Employee SSO',employerSso:'Company SSO',totalSso:'Total SSO',net:'Net salary before recoveries',adjusted:'Final net payment',cashAdvance:'Salary advance recovery',loanRecovery:'Loan / MOU recovery',reimbursement:'Reimbursement',internal:'Internal deductions',allowance:'Allowance',overtime:'Overtime',rounding:'Currency rounding difference'};
 function exact(code,currency,names=[]){const list=eligible().filter(a=>a.currency===currency);return list.find(a=>String(a.code)===code&&(!names.length||names.some(n=>norm(a.name)===norm(n))))?.id||((()=>{const matched=list.filter(a=>names.some(n=>norm(a.name)===norm(n)));return matched.length===1?matched[0].id:''})());}
@@ -59,19 +59,21 @@ function evaluate(run,template){
  if(!results?.length)throw Error('This payroll has no calculated employees.');
  if(!template?.lines?.length)throw Error('Add at least two payroll template lines.');
  const lines=[],issues=[],rules=template.lines;
+ const employees=new Map((run.rows||[]).map(row=>[row.employeeId,row.employee])),accounts=new Map(eligible().map(a=>[a.id,a]));
  const report=m=>{if(!issues.includes(m))issues.push(m);};
  const accountFor=(r,x)=>{
-  const e=run.rows.find(row=>row.employeeId===x.employeeId)?.employee||x.employee||{};
+  const e=employees.get(x.employeeId)||x.employee||{};
   const id=r.account==='$employee'?(Object.hasOwn(template.employeeAccounts||{},x.employeeId)?template.employeeAccounts[x.employeeId]:e.payrollAccountId):r.account;
-  const a=eligible().find(a=>a.id===id),currency=r.account==='$employee'?x.currency:r.expectedCurrency||a?.currency||x.currency;
+  const a=accounts.get(id),currency=r.account==='$employee'?x.currency:r.expectedCurrency||a?.currency||x.currency;
   if(!a)report('Choose '+currency+' account: '+(r.account==='$employee'?e.name||x.employeeId:r.memo||fields[r.basis]));
   else if(r.account==='$employee'&&a.currency!==x.currency)report((e.name||'Employee')+' clearing account must use '+x.currency+'.');
   else if(r.expectedCurrency&&a.currency!==r.expectedCurrency)report((r.memo||fields[r.basis])+' requires '+r.expectedCurrency+'.');
   return a||{id:'',code:'',name:'Choose account · '+(r.account==='$employee'?e.name||x.employeeId:r.memo||fields[r.basis]),currency};
  };
  function push(r,a,value,x,ruleIndex){
+  if(!Number.isFinite(value)||!Number.isFinite(round(value))){report('Payroll amount exceeds the supported range.');return;}
   if(!value)return;
-  const e=run.rows.find(row=>row.employeeId===x.employeeId)?.employee||x.employee||{};
+  const e=employees.get(x.employeeId)||x.employee||{};
   lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex});
  }
  rules.forEach((r,ruleIndex)=>{
@@ -100,7 +102,7 @@ function evaluate(run,template){
  const rounded=new Set();
  rules.forEach((r,ruleIndex)=>{
   if(r.basis!=='rounding')return;
-  const chosen=selected(results,r.employees),c=r.expectedCurrency||eligible().find(a=>a.id===r.account)?.currency||r.employees;
+  const chosen=selected(results,r.employees),c=r.expectedCurrency||accounts.get(r.account)?.currency||r.employees;
   if(rounded.has(c)){report('Use only one rounding line per currency.');return;}rounded.add(c);
   const gap=round(lines.filter(l=>l.account.currency===c).reduce((n,l)=>n+(l.side==='DR'?l.amount:-l.amount),0));
   if(!gap)return;
@@ -112,8 +114,8 @@ function evaluate(run,template){
  });
  // Keep rule order, including the small foreign rounding row beside the bridge.
  lines.sort((a,b)=>a.ruleIndex-b.ruleIndex);
- const balances={};for(const l of lines){const b=balances[l.account.currency]||={debit:0,credit:0};b[l.side==='DR'?'debit':'credit']=round(b[l.side==='DR'?'debit':'credit']+l.amount);}
- for(const b of Object.values(balances))b.difference=round(b.debit-b.credit);
+ const balances=Object.create(null);for(const l of lines){const b=balances[l.account.currency]||={debit:0,credit:0};b[l.side==='DR'?'debit':'credit']=round(b[l.side==='DR'?'debit':'credit']+l.amount);}
+ for(const b of Object.values(balances)){b.difference=round(b.debit-b.credit);if(!Number.isFinite(b.debit)||!Number.isFinite(b.credit)||!Number.isFinite(b.difference))report('Payroll totals exceed the supported range.');}
  return {lines,issues,balances};
 }
 function buildLines(run,t){const e=evaluate(run,t);if(e.issues.length)throw Error(e.issues.join('\n'));if(e.lines.length<2)throw Error('The template needs at least two non-zero posting lines.');return e.lines;}

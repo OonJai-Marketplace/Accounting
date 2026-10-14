@@ -7,6 +7,6 @@
   let b=header.querySelector('.workspace-expand1438');if(!b){b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary workspace-expand1438';header.append(b);b.onclick=()=>{expanded=!expanded;paint();document.querySelector('.v49-desktop-user-heading')?.scrollIntoView({block:'start',behavior:'smooth'})};}
   const text=expanded?'↙ Restore banner':'↗ Expand dashboard';if(b.textContent!==text)b.textContent=text;b.setAttribute('aria-pressed',String(expanded));b.title=expanded?'Show the upper banner':'Hide the upper banner and use this account heading';
  }
- function ready(){let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;paint()})}).observe(document.getElementById('subUserWorkspacePanel'),{childList:true,subtree:true});window.addEventListener('page113',paint);window.addEventListener('resize',paint);paint();}
+ function ready(){let queued=false;const panel=document.getElementById('subUserWorkspacePanel');if(panel)new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;paint()})}).observe(panel,{childList:true,subtree:true});window.addEventListener('page113',paint);window.addEventListener('resize',paint);paint();}
  if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

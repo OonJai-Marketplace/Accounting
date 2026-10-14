@@ -1,4 +1,4 @@
-"""Inventory every tracked file and trace canonical sources to shipped assets.
+"""Inventory every tracked and non-ignored untracked file and trace canonical sources to shipped assets.
 
 This is evidence for a repository review, not a claim of semantic correctness or
 proof that an unreferenced file is safe to delete. Dynamic globals/lazy loaders
@@ -20,10 +20,13 @@ PATTERNS = {
     'document_query': r'\bdocument\.querySelectorAll\s*\(',
     'layout_read': r'\b(?:getComputedStyle|getBoundingClientRect|getClientRects)\s*\(',
     'dynamic_code': r'\beval\s*\(|new\s+Function\s*\(',
+    'database_call': r'\.(?:rpc|from)\s*\(',
+    'cache_access': r'indexedDB|localStorage|sessionStorage|caches\.',
+    'title_or_heading': r'<title\b|<h[1-6]\b|\bdocument\.title|^#{1,6}\s',
 }
 
 def audit():
-    files = sorted(set(subprocess.check_output(['git', 'ls-files', '-z'], cwd=ROOT).decode().split('\0')) - {''})
+    files = sorted(set(subprocess.check_output(['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z'], cwd=ROOT).decode().split('\0')) - {''})
     outputs = json.loads((ROOT/'src/manifest.json').read_text())['outputs']
     sources = collections.defaultdict(list)
     for output, parts in outputs.items():
@@ -66,7 +69,7 @@ def audit():
             category = 'asset or other'
         counts[category] += 1
         sites = {}
-        if name.startswith('src/') and name.endswith('.js'):
+        if text is not None:
             for kind, expression in PATTERNS.items():
                 lines = [i for i, line in enumerate(text.splitlines(), 1) if re.search(expression, line)]
                 if lines:
@@ -76,14 +79,14 @@ def audit():
                      'sha256': hashlib.sha256(data).hexdigest(),
                      'outputs': sources.get(name, []),
                      'direct_html_consumers': sorted(consumers.get(name, set()) | set().union(*(consumers.get(out, set()) for out in sources.get(name, [])))),
-                     'review_sites': sites})
+                     'review_sites': sites, 'coverage': 'static line scan; semantic review not certified'})
     duplicate_loads = {}
     for name, assets in entrypoints.items():
         loaded = collections.Counter(part['source'] for asset in assets for part in outputs.get(asset.split('?')[0], []))
         repeats = {source: count for source, count in loaded.items() if count > 1}
         if repeats:
             duplicate_loads[name] = repeats
-    return {'scope': 'All git-tracked files; static line scan and manifest/HTML load mapping. Not a semantic certification.',
+    return {'scope': 'All tracked and non-ignored untracked files; static line scan and manifest/HTML load mapping. Not a semantic certification.',
             'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT).decode().strip(),
             'files': len(rows), 'categories': dict(counts), 'canonical_sources': len(sources),
             'generated_outputs': len(outputs), 'entrypoints': entrypoints,

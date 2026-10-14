@@ -45,7 +45,7 @@
     else if (empty) { label = 'No amounts entered'; description = 'Enter a debit and a credit.'; }
     else if (difference) {
       label = `Difference: ${difference.currency} ${formatAppNumber(Math.abs(difference.debit-difference.credit))}`;
-      description = state.differences.map(d => `${d.date} · ${d.currency}: ${formatAppNumber(Math.abs(d.debit-d.credit))}`).join('\n');
+      description = state.differences.map(d => `${formatAppDate(d.date)} · ${d.currency}: ${formatAppNumber(Math.abs(d.debit-d.credit))}`).join('\n');
     }
     const invalid = empty || !!difference || !!state.errors.length;
     if (badge.textContent !== label) badge.textContent = label;

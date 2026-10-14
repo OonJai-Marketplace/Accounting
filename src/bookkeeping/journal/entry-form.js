@@ -34,7 +34,7 @@ function addJournalLineRow(accountVal = '', memoVal = '', drVal = '', crMap = {}
     const val = crMap[c.code] || '';
     crInputs += `
       <td>
-        <input type="text" class="num je-line-cr" data-currency="${c.code}" placeholder="0.00" value="${val}"
+        <input type="text" class="num je-line-cr" data-currency="${escapeHtml(c.code)}" placeholder="0.00" value="${escapeHtml(val)}"
           onfocus="unformatNumber(this)" onblur="formatNumber(this)" oninput="calculateJournalBalance()" />
       </td>
     `;
@@ -44,13 +44,13 @@ function addJournalLineRow(accountVal = '', memoVal = '', drVal = '', crMap = {}
   // Account first, then Memo
   tr.innerHTML = `
     <td>
-      <input type="text" class="je-line-acc" placeholder="Search account..." list="coaList" value="${accountVal}" />
+      <input type="text" class="je-line-acc" placeholder="Search account..." list="coaList" value="${escapeHtml(accountVal)}" />
     </td>
     <td>
       <input type="text" class="je-line-memo" placeholder="Line note / reference..." value="${escapeHtml(String(memoVal))}" />
     </td>
     <td>
-      <input type="text" class="num je-line-dr" placeholder="0.00" value="${drVal}"
+      <input type="text" class="num je-line-dr" placeholder="0.00" value="${escapeHtml(drVal)}"
         onfocus="unformatNumber(this)" onblur="formatNumber(this)" oninput="calculateJournalBalance()" />
     </td>
     ${crInputs}

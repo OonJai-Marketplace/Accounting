@@ -13,7 +13,7 @@ window.fetch=function(input,options={}){
   return response;
  });
  if(context.target&&base&&url.origin===base.origin){
-  if(url.pathname==='/auth/v1/token'&&url.searchParams.get('grant_type')==='refresh_token'||url.pathname==='/auth/v1/logout'||url.pathname==='/auth/v1/user'&&(options.method||'GET').toUpperCase()==='GET')return nativeFetch(input,options);
+  if(url.pathname==='/auth/v1/token'&&url.searchParams.get('grant_type')==='refresh_token'||url.pathname==='/auth/v1/logout'||url.pathname==='/auth/v1/user'&&(options.method||(input instanceof Request?input.method:'GET')).toUpperCase()==='GET')return nativeFetch(input,options);
   if(!url.pathname.startsWith('/rest/v1/'))return Promise.resolve(new Response(JSON.stringify({message:'Return to your administrator account before using account authentication or file storage.'}),{status:403,headers:{'Content-Type':'application/json'}}));
   const headers=new Headers(input instanceof Request?input.headers:options.headers);if(options.headers)new Headers(options.headers).forEach((v,k)=>headers.set(k,v));headers.set('x-ojm-workspace',context.target);
   return send(input,{...options,headers});

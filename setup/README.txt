@@ -1,12 +1,12 @@
-EXISTING v143.22/143.23 SITE: run INSTALL-MAINTENANCE-v143.24.sql for the new maintenance hub and mandatory closing review.
+SETUP GUIDE
 
-FRESH PROJECT: use only setup/fresh numbered files 001, 002, 003 and 004.
-Read fresh/START-HERE.md. Do not run every SQL file in this folder.
+FRESH PROJECT: follow fresh/START-HERE.md. Run numbered files 001, 002 and 003.
+Maintenance is included in the current file 001; file 004 supports older installations.
+Never run the fresh installer against an existing company's database.
 
-MAINTENANCE: separate add/edit/read/backup/delete templates are in maintenance/.
-Read maintenance/START-HERE.md.
+EXISTING PROJECT: apply only the reviewed forward migrations missing from that
+installation. Historical INSTALL files are not a batch to run indiscriminately.
+A website push does not install database migrations or deploy Edge functions.
 
-EXISTING v143.21 SITE: INSTALL-BACKEND-AND-MAINTENANCE-v143.22.sql is the forward update.
-Historical files below remain repository history/reference.
-
-Setup
+MAINTENANCE: read maintenance/START-HERE.md before using the separate inspection,
+backup, edit or deletion templates. Validation fixtures are not production setup.

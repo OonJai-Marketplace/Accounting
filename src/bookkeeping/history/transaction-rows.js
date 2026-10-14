@@ -26,19 +26,21 @@ function renderTransactionRowsToTbody(tbody, records, showAction = false) {
     return isPrintMode ? cmp : -cmp;
   });
 
-  const clusters = {};
+  const clusters = new Map();
+  const fragment = document.createDocumentFragment();
   displayRecords.forEach(r => {
-    if (!clusters[r.id]) clusters[r.id] = [];
-    clusters[r.id].push(r);
+    const id = String(r.id);
+    if (!clusters.has(id)) clusters.set(id, []);
+    clusters.get(id).push(r);
   });
 
-  Object.keys(clusters).forEach(entryId => {
-    const lines = clusters[entryId];
+  clusters.forEach((lines, entryId) => {
     const totalLines = lines.length;
     const firstLine = lines[0];
 
     lines.forEach((line, idx) => {
       const tr = document.createElement('tr');
+      tr.dataset.date = line.date || '';
       const isStart = idx === 0;
       tr.className = isStart ? 'cluster-row-start' : 'cluster-row-cont';
 
@@ -56,10 +58,10 @@ function renderTransactionRowsToTbody(tbody, records, showAction = false) {
 
       // Layout: Date | Entry ID | Account | Memo | DR | CRs | Action
       tr.innerHTML = `
-        ${isStart ? `<td rowspan="${totalLines}" style="vertical-align: top; color: #1e293b;">${firstLine.date}</td>` : ''}
-        ${isStart ? `<td rowspan="${totalLines}" style="vertical-align: top; font-family: monospace; color: #065f46;">${entryId}</td>` : ''}
+        ${isStart ? `<td rowspan="${totalLines}" style="vertical-align: top; color: #1e293b;">${escapeHtml(formatAppDate(firstLine.date))}</td>` : ''}
+        ${isStart ? `<td rowspan="${totalLines}" style="vertical-align: top; font-family: monospace; color: #065f46;">${escapeHtml(entryId)}</td>` : ''}
         
-        <td><div class="transaction-account-display"><span class="currency-symbol-badge" data-currency-code="${escapeHtml(cleanAcc.currency || '')}" title="${escapeHtml(cleanAcc.currency || '')}">${currencySymbolV6(cleanAcc.currency)}</span><span class="account-clean-name">${escapeHtml(cleanAcc.name)}</span></div></td>
+        <td><div class="transaction-account-display"><span class="currency-symbol-badge" data-currency-code="${escapeHtml(cleanAcc.currency || '')}" title="${escapeHtml(cleanAcc.currency || '')}">${escapeHtml(currencySymbolV6(cleanAcc.currency))}</span><span class="account-clean-name">${escapeHtml(cleanAcc.name)}</span></div></td>
 
         <td style="color: var(--text-muted);">${escapeHtml(line.memo)}</td>
         
@@ -72,12 +74,12 @@ function renderTransactionRowsToTbody(tbody, records, showAction = false) {
         ${showAction && isStart ? `
           <td rowspan="${totalLines}" class="action-col no-print" style="vertical-align: middle; width: 40px;">
             <div style="display: flex; flex-direction: column; gap: 6px; align-items: center;">
-              <button type="button" class="btn-action-edit" style="width: 24px; height: 24px;" onclick="loadEntryForEdit('${entryId}')" title="Edit Entry">✏️</button>
-              <button type="button" class="btn-action-delete" style="width: 24px; height: 24px;" onclick="deleteTransactionCluster('${entryId}')" title="Delete Cluster">✕</button>
+              <button type="button" class="btn-action-edit" style="width: 24px; height: 24px;" onclick="loadEntryForEdit(${escapeHtml(JSON.stringify(entryId))})" title="Edit Entry">✏️</button>
+              <button type="button" class="btn-action-delete" style="width: 24px; height: 24px;" onclick="deleteTransactionCluster(${escapeHtml(JSON.stringify(entryId))})" title="Delete Cluster">✕</button>
             </div>
           </td>` : ''}
       `;
-      tbody.appendChild(tr);
+      fragment.appendChild(tr);
     });
 
     if (firstLine.editReason) {
@@ -88,9 +90,11 @@ function renderTransactionRowsToTbody(tbody, records, showAction = false) {
           <strong style="color: #064e3b; font-weight: 600;">Modification Note:</strong> ${escapeHtml(firstLine.editReason)}
         </td>
       `;
-      tbody.appendChild(expTr);
+      expTr.dataset.date = firstLine.date || '';
+      fragment.appendChild(expTr);
     }
   });
+  tbody.appendChild(fragment);
 }
 
 function renderJournalHistoryTable(records = JournalModule.entries) {
@@ -99,8 +103,10 @@ function renderJournalHistoryTable(records = JournalModule.entries) {
 }
 
 async function deleteTransactionCluster(id) {
-  if (await ui117.confirm(`Are you sure you want to delete transaction cluster ${id}?`)) {
-    JournalModule.entries = JournalModule.entries.filter(t => t.id !== id);
+  const actor = typeof liveProfile === 'undefined' ? '' : liveProfile?.id;
+  if (await ui117.confirm(`Are you sure you want to delete transaction cluster ${escapeHtml(id)}?`)) {
+    if (actor !== (typeof liveProfile === 'undefined' ? '' : liveProfile?.id)) return;
+    JournalModule.entries = JournalModule.entries.filter(t => String(t.id) !== String(id));
     refreshAllTables();
   }
 }
@@ -108,9 +114,9 @@ async function deleteTransactionCluster(id) {
 function filterJournalHistory() {
   const query = (document.getElementById('jeSearchInput')?.value || '').toLowerCase().trim();
   const filtered = JournalModule.entries.filter(entry => {
-    return entry.account.toLowerCase().includes(query) ||
-           entry.memo.toLowerCase().includes(query) ||
-           entry.id.toLowerCase().includes(query);
+    return String(entry.account ?? '').toLowerCase().includes(query) ||
+           String(entry.memo ?? '').toLowerCase().includes(query) ||
+           String(entry.id ?? '').toLowerCase().includes(query);
   });
   renderJournalHistoryTable(filtered);
 }

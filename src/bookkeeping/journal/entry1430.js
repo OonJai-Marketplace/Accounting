@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id);let mode='double',building=false,owner='',lastSingle=null;
 const esc=v=>escapeHtml(String(v??''));
-const accounts=()=>AccountingStore.accounts.filter(a=>a.id&&a.isPosting!==false&&a.currency&&a.currency!=='NA'&&a.displayCurrency!=='—'&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)));
+const accounts=()=>AccountingStore.accounts.filter(a=>a.id&&a.isPosting!==false&&a.is_posting!==false&&a.active!==false&&a.is_active!==false&&a.currency&&a.currency!=='NA'&&a.displayCurrency!=='—'&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)));
 const account=id=>accounts().find(a=>a.id===id);
 const label=a=>a.code+' — '+a.name;
 const amount=s=>{const raw=String(s??'').trim().replaceAll(',','');return raw?Number(raw):0;};
@@ -48,9 +48,9 @@ function saveDraft(){$('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles
 function sync(){
  if(mode!=='single'||building)return;if(lastSingle?.unmapped){$('simpleEntry1430').dataset.error='These complete lines are retained in Double Entry. Switch back to review or post.';return;}building=true;
  for(const n of $('simpleRows1430').children){restrictRow1438(n);directionToggle(n);}
- const errors=[],rows=read(),body=$('jeLinesBody');body.replaceChildren();
+ const errors=[],rows=read(),body=$('jeLinesBody'),byId=new Map(accounts().map(a=>[a.id,a]));try{body.replaceChildren();
  rows.forEach((row,i)=>{
-  const source=account(row.source),affected=account(row.affected),value=amount(row.amount),used=(window.personalJournal1437?.active?'':row.source)||row.affected||row.amount||row.memo;
+  const source=byId.get(row.source),affected=byId.get(row.affected),value=amount(row.amount),used=(window.personalJournal1437?.active?'':row.source)||row.affected||row.amount||row.memo;
   $('simpleRows1430').children[i].querySelector('[data-currency1430]').textContent=currencySymbolV6(source?.currency||affected?.currency||'');
   if(!used)return;
   if(!source||!affected)errors.push('Row '+(i+1)+': choose both accounts.');
@@ -71,7 +71,7 @@ function sync(){
   }
  });
  if(!body.children.length){addJournalLineRow();addJournalLineRow();}
- building=false;
+ }finally{building=false;}
  $('simpleEntry1430').dataset.error=errors[0]||'';
  window.calculateJournalBalance();
  const preview=$('simplePreview1430'),lines=[...body.rows].filter(r=>r.querySelector('.je-line-acc')?.value);
@@ -86,7 +86,9 @@ function pairs(){
  if(rows.length%2){const blank=document.createElement('tr');blank.innerHTML='<td><input class="je-line-acc"><input class="je-line-dr"><input class="je-line-cr"><input class="je-line-memo"><input class="je-line-date"></td>';rows.push(blank)}
  const result=[];
  for(let i=0;i<rows.length;i+=2){
+  if(rows.slice(i,i+2).some(r=>[...r.querySelectorAll('.je-line-cr')].slice(1).some(n=>amount(n.value)!==0)))return null;
   const parts=rows.slice(i,i+2).map(r=>({a:getSelectedAccountInfo(r.querySelector('.je-line-acc')?.value),dr:amount(r.querySelector('.je-line-dr')?.value),cr:amount(r.querySelector('.je-line-cr')?.value),memo:r.querySelector('.je-line-memo')?.value||'',date:r.querySelector('.je-line-date')?.value||$('jeTransDate').value}));
+  if(parts.some(r=>!Number.isFinite(r.dr)||!Number.isFinite(r.cr)||r.dr<0||r.cr<0))return null;
   const hasValues=parts.some(r=>r.dr||r.cr);
   const d=parts.find(r=>r.dr>0&&!r.cr)||(!hasValues?parts[0]:null),c=parts.find(r=>r.cr>0&&!r.dr)||(!hasValues?parts[1]:null);
   const debit=d||parts.find(r=>r!==c),credit=c||parts.find(r=>r!==d);
@@ -152,7 +154,7 @@ function ready(){
  card.addEventListener('click',e=>{if(mode==='single'&&e.target.closest('[onclick="addJournalLineRow()"]')){e.preventDefault();e.stopImmediatePropagation();if(lastSingle?.unmapped){showCenterStatus('Switch to Double Entry to edit the retained journal lines.',true);return;}add();sync();saveDraft();}},true);
  const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){lastSingle=null;const result=reset.apply(this,args);$('simpleRows1430').replaceChildren();add();panel.dataset.error='';if(mode==='single')sync();display();return result;};
  const addLine=window.addJournalLineRow;window.addJournalLineRow=function(...args){if(mode==='single'&&!building&&args[0]){mode='double';display();}return addLine.apply(this,args);};
- const refs=window.loadReferenceDataFromSupabase;window.loadReferenceDataFromSupabase=async function(...args){const r=await refs.apply(this,args);refreshAccounts();return r;};
+ const refs=window.loadReferenceDataFromSupabase;window.loadReferenceDataFromSupabase=async function(...args){const who=liveProfile?.id,client=ojmDb,r=await refs.apply(this,args);if(liveProfile?.id===who&&ojmDb===client)refreshAccounts();return r;};
  const hydrate=window.hydrateSupabaseSession;window.hydrateSupabaseSession=async function(...args){const r=await hydrate.apply(this,args);if(liveProfile&&owner!==liveProfile.id){owner=liveProfile.id;lastSingle=null;mode='double';panel.dataset.error='';$('simpleRows1430').replaceChildren();add();display();window.drafts1427?.restore();}return r;};
  const dateMode=window.setJournalDateMode;window.setJournalDateMode=function(...args){const r=dateMode.apply(this,args);sync();return r;};
  card.hidden=false;display();

@@ -15,8 +15,8 @@ function cloneDefaultSettings() {
 function loadApplicationSettings() {
   const defaults = cloneDefaultSettings();
   try {
-    const saved = JSON.parse(localStorage.getItem(APP_SETTINGS_KEY) || '{}');
-    Object.keys(defaults).forEach(group => Object.assign(defaults[group], saved[group] || {}));
+    const saved = JSON.parse(localStorage.getItem(APP_SETTINGS_KEY) || '{}',(key,value)=>['__proto__','constructor','prototype'].includes(key)?undefined:value);
+    Object.keys(defaults).forEach(group => Object.assign(defaults[group], saved?.[group]&&typeof saved[group]==='object'&&!Array.isArray(saved[group])?saved[group]:{}));
   } catch (_) {}
   return defaults;
 }

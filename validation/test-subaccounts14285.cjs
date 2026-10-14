@@ -1,4 +1,4 @@
-const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require('/tmp/oonjai-db-test/node_modules/@electric-sql/pglite');
+const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require(process.env.PGLITE_MODULE||'@electric-sql/pglite');
 const id=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
 (async()=>{const db=new PGlite();await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT nullif(current_setting('app.actor',true),'')::uuid$$;
 CREATE TABLE profiles(id uuid PRIMARY KEY,role text,status text);CREATE TABLE currencies(code text PRIMARY KEY,is_active boolean);CREATE TABLE accounts(id uuid PRIMARY KEY,code text UNIQUE,name text,currency_code text REFERENCES currencies,account_type text,description text,account_purpose text,is_posting boolean,is_active boolean,parent_code text,created_by uuid REFERENCES profiles);

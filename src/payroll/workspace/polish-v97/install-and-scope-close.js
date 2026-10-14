@@ -6,24 +6,6 @@
     const journalHeader = document.getElementById('jeHeaderRow');
     if (journalHeader) new MutationObserver(syncJournalColumnWidths).observe(journalHeader, { childList: true, subtree: true });
     document.addEventListener('input', event => { if (event.target?.matches('#jeLinesBody input')) syncJournalColumnWidths(); });
-    // Editing a displayed zero should start with a blank replacement field;
-    // leaving it blank restores zero, without affecting nonzero values.
-    document.addEventListener('focusin', event => {
-      const input = event.target;
-      if (!(input instanceof HTMLInputElement) || !input.dataset.numeric88) return;
-      if (input.value !== '' && Number(input.value) === 0) {
-        input.dataset.zeroSelect97 = 'true';
-        input.select();
-      }
-    });
-    document.addEventListener('focusout', event => {
-      const input = event.target;
-      if (!(input instanceof HTMLInputElement) || !input.dataset.numeric88) return;
-      if (input.dataset.zeroSelect97) {
-        delete input.dataset.zeroSelect97;
-        if (input.value === '') input.value = '0';
-      }
-    });
     window.renderRecurringWarnings?.();
     const priorRender = window.renderWork82;
     if (typeof priorRender === 'function') {
@@ -61,12 +43,15 @@
     const originalSave = window.saveWork82;
     if (typeof originalSave === 'function') {
       window.saveWork82 = async function (kind, data, record) {
-        const saved = await originalSave.call(this, kind, data, record);
+        const owner=liveProfile?.id;const saved = await originalSave.call(this, kind, data, record);
+        if(liveProfile?.id!==owner)return saved;
         if (kind === 'employees') syncDraftRoster();
         return saved;
       };
     }
+    const loadOwner=liveProfile?.id;
     if (typeof window.loadWork82 === 'function') window.loadWork82().then(() => {
+      if(liveProfile?.id!==loadOwner)return;
       syncDraftRoster();
       window.renderWork82();
     });

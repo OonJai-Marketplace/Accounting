@@ -155,8 +155,6 @@ body .doc-images-dialog112 .doc-image-fields112 input{width:100%;min-width:0;fon
 body .doc-images-dialog112 .doc-image-card112>small{font-size:10px;color:#887563}
 body #document-editor105 .doc-actions105 input[type=file][hidden],body #document-editor105 #docDesign108[hidden]{display:none!important}
 @media(max-width:700px){body .doc-images-dialog112 .doc-image-settings109{grid-template-columns:1fr}}
-/* One header control for page titles{display:inline-grid;place-items:center;vertical-align:middle;flex:0 0 auto;width:34px;height:34px;margin:0 10px 1px 0;padding:6px!important;border:1px solid color-mix(in srgb,var(--header-icon-color112,#18533f) 32%,#f9f0df)!important;border-radius:9px!important;background:color-mix(in srgb,var(--header-icon-color112,#18533f) 12%,#fffaf1)!important;color:var(--header-icon-color112,#18533f)!important;cursor:pointer;box-shadow:none!important}
-body .ui-dialog108 .header-icon-help112{line-height:1.55;color:#594938}
 /* Inventory editing remains inside the active workspace and above its tables. */
 body .tab-content.active .im-edit-overlay112{position:fixed;inset:0;z-index:1450;display:grid;place-items:center;padding:18px;background:#201b13a3;overflow:auto}
 body .tab-content.active .im-edit-overlay112>.im-card104{width:min(820px,100%);max-height:calc(100dvh - 36px);overflow:auto;margin:0;border:1px solid #d5be91;border-top:5px solid #ba8742;border-radius:13px;box-shadow:0 22px 70px #19150e60;background:#fffcf6}

@@ -1,5 +1,9 @@
+  let enterAttempt=0;
   async function enter(session) {
+    if(enterJob&&enterOwner===session?.user?.id)return enterJob;
+    const attempt=++enterAttempt,startingEpoch=S.epoch;
     const retained=session?.user?.id&&session?.refresh_token?await record(session.user.id).catch(()=>null):null;
+    if(attempt!==enterAttempt||S.epoch!==startingEpoch)return;
     const locallyVerified=retained?.access?.profile?.id===session?.user?.id&&retained?.access?.profile?.status==='active';
     if (!validSession(session)&&!locallyVerified) { sessionGate(navigator.onLine ? '' : 'Reconnect to sign in. Your saved drafts remain on this device.'); return; }
     const owner = session.user.id;
@@ -16,7 +20,7 @@
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
         touch();$('login').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
-        if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(denied(e))void revoke(e)});phoneSyncActivity14351();}
+        if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(current(owner,epoch)&&denied(e))void revoke(e)});phoneSyncActivity14351();}
       } catch(e) { if(current(owner,epoch)){notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('login').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;
   }
@@ -34,7 +38,9 @@
     catch(e){sessionGate(navigator.onLine?'Sign in again. '+e.message:'Reconnect to sign in. Your drafts remain on this device.');}
   }
   async function signout(ask=true,message='') {
+    const owner=S.owner,epoch=S.epoch;
     if(ask&&!await confirmDialog('Sign out?','Your saved drafts and pending entries will remain private to this account on this device.','Sign out'))return;
+    if(!current(owner,epoch))return;
     saveMirror();authBusy=true;sessionGate(message);
     try{await db?.auth.signOut({scope:'local'});}catch{}finally{localStorage.removeItem(storageKey);authBusy=false;}
   }

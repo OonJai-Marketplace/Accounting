@@ -9,7 +9,7 @@ function payrollConfig82(settings=ApplicationSettings){
 }
 function pit82(taxable,config){return round82(config.brackets.reduce((sum,b)=>sum+Math.max(0,Math.min(taxable,b.to??Infinity)-b.from)*b.rate/100,0))}
 function calcPay82(employee,input,config,rate,unpaidLeave=0){
- const n=(v,label)=>{const x=Number(v||0);if(!Number.isFinite(x)||x<0)throw Error(label+' must be a non-negative number.');return x};
+ const n=(v,label)=>{const x=Number(v??0);if(!Number.isFinite(x)||x<0)throw Error(label+' must be a non-negative number.');return x};
  if(!Number.isFinite(rate)||rate<=0)throw Error('Enter a positive LAK exchange rate for '+employee.currency+'.');
  const contract=n(employee.salary,'Contract salary'),contractLak=round82(contract*rate),daily=contractLak/config.workDays,hourly=daily/config.hours;
  const attendance=input.attendance||[];const seen=new Set();for(const a of attendance){if(!a.date||seen.has(a.date))throw Error('Attendance dates must be unique within each employee.');seen.add(a.date)}
@@ -19,5 +19,6 @@ function calcPay82(employee,input,config,rate,unpaidLeave=0){
  if(config.sharing==='custom'&&employee.pit!==false&&(employee.pitShare==null||String(employee.pitShare).trim()===''))throw Error('Enter the custom employee PIT percentage for '+employee.name+'.');
  const share=config.sharing==='equal'?50:config.sharing==='employer'?0:config.sharing==='employee'?100:n(employee.pitShare,'Employee PIT share');if(share>100)throw Error('Employee PIT share cannot exceed 100%.');
  const employeePit=round82(pit*share/100),employerPit=round82(pit-employeePit),net=round82(gross-employeeSso-employeePit),cashAdvance=n(input.advance,'Advance recovery'),loanRecovery=n(input.loanRecovery,'Loan repayment'),advance=cashAdvance+loanRecovery,reimbursement=n(input.reimbursement,'Reimbursement'),adjusted=round82(net+reimbursement-advance);if(adjusted<0)throw Error('Advance recovery exceeds available net pay for '+employee.name+'.');
+ if(![contractLak,daily,hourly,minutes,late,absence,penalty,overtime,gross,employeeSso,employerSso,taxable,pit,net,adjusted,adjusted/rate].every(Number.isFinite))throw Error('Payroll amounts exceed the supported numeric range for '+employee.name+'.');
  return {lateCount,latePenalty,manualPenalty,reportedMissed,unreportedMissed,cashAdvance,loanRecovery,contract,contractLak,rate,daily,hourly,minutes,late,unpaidDays,absence,penalty,other,overtime,allowance,gross,ssoBase,employeeSso,employerSso,taxable,pit,employeePit,employerPit,net,advance,reimbursement,adjusted,paidAmount:round82(adjusted/rate),currency:employee.currency};
 }

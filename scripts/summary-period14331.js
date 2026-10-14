@@ -20,8 +20,9 @@ function open(button,values,onChange,options={}){
  if(active?.button===button)return close(true);close();let selected=new Set(clean(values)),year=Number(([...selected][0]||current()).slice(0,4)),mode=options.mode||'monthly';
  if(!['monthly','quarterly','yearly','custom'].includes(mode))mode='monthly';
  const panel=document.createElement('div');panel.className='oj-date-popup104 summary-period14331';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Select reporting period');panel.tabIndex=-1;active={button,panel};button.setAttribute('aria-expanded','true');document.body.append(panel);
- let from=options.from||([...selected][0]||current())+'-01',to=options.to||end([...selected].at(-1)||current());
- const apply=(list,kind=mode)=>{const months=clean(list),meta={mode:kind,year,from:kind==='custom'?from:months.length?months[0]+'-01':'',to:kind==='custom'?to:months.length?end(months.at(-1)):''};if(kind==='custom'&&(!/^\d{4}-\d{2}-\d{2}$/.test(from)||!/^\d{4}-\d{2}-\d{2}$/.test(to)||from>to)){panel.querySelector('[role=status]').textContent='Choose a valid start and end date.';return}close(true);onChange(months,meta)};
+ const validDate=value=>/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(value)&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;
+ let from=validDate(options.from)?options.from:([...selected][0]||current())+'-01',to=validDate(options.to)?options.to:end([...selected].at(-1)||current());
+ const apply=(list,kind=mode)=>{const months=clean(list),meta={mode:kind,year,from:kind==='custom'?from:months.length?months[0]+'-01':'',to:kind==='custom'?to:months.length?end(months.at(-1)):''};if(kind==='custom'&&(!validDate(from)||!validDate(to)||from>to)){panel.querySelector('[role=status]').textContent='Choose a valid start and end date.';return}close(true);onChange(months,meta)};
  function draw(){
  const heading=mode==='yearly'?(year-5)+'–'+(year+6):year;
  let grid='';if(mode==='monthly')grid='<div class="oj-date-grid104 month">'+yearMonths(year).map((value,i)=>'<button type="button" data-month="'+value+'" aria-pressed="'+selected.has(value)+'">'+new Date(year,i,1).toLocaleDateString('en',{month:'short'})+'</button>').join('')+'</div>';

@@ -4,7 +4,6 @@
   }
   function activity(user, fundId) {
     const lines = journalRows(user.id).filter(journal=>['draft','returned','submitted'].includes(journal.status)).flatMap(journal => journal.lines || []).filter(line => !line.journal_entry_id && !wsIsCollection(line) && String(line.fund_account_id) === String(fundId));
-    const adjustments = adjustmentRequests.filter(row => row.owner_id === user.id && row.fund_account_id === fundId && row.status === 'approved_applied').flatMap(row => row.lines || []);
     const posted=(window.funds113?.confirmed?.get(user.id)||[]).find(r=>String(r.account_id||r.id)===String(fundId));
     const base = {received:Number(posted?.received||0), used:Number(posted?.used||0), handover:Number(posted?.handover||0)};
     lines.forEach(line => {

@@ -9,8 +9,8 @@ def run(args,env):
     return result.stdout
 
 def contracts():
-    source='\n'.join(p.read_text() for p in (ROOT/'scripts').glob('*.js') if not p.name.startswith('desktop14245-'))
-    calls=set(re.findall(r"(?:\.rpc|\brpc|\bread)\(['\"]([a-zA-Z0-9_]+)['\"]",source))
+    source='\n'.join(p.read_text() for p in (ROOT/'src').rglob('*.js'))
+    calls=set(re.findall(r"(?:\.rpc|\brpc|\bread|\bcall)\(['\"]([a-zA-Z0-9_]+)['\"]",source))
     calls.discard('standalone') # Browser-local audit storage namespace, not a backend RPC.
     calls.discard('recipe_view113') # Restaurant feature explicitly belongs to the separate app.
     return sorted(calls)
@@ -41,6 +41,8 @@ def export(output):
 
 def install_clean(directory):
     manifest=json.loads((directory/'manifest.json').read_text())
+    expected={'001-Install-Empty-Database.sql','002-Create-First-Administrator.sql','003-Verify-Installation.sql','004-Install-Maintenance-Audit.sql'}
+    if set(manifest.get('files',{}))!=expected: raise RuntimeError('Invalid clean installation manifest; every numbered installer needs a checksum')
     for name,digest in manifest['files'].items():
         if hashlib.sha256((directory/name).read_bytes()).hexdigest()!=digest: raise RuntimeError('Package integrity check failed: '+name)
     sql=(directory/'001-Install-Empty-Database.sql').read_text()
@@ -48,7 +50,7 @@ def install_clean(directory):
     env=dict(os.environ)
     if not all(env.get(k) for k in ['PGHOST','PGDATABASE','PGUSER','PGPASSWORD']): raise RuntimeError('Set the new project connection privately using PG environment variables')
     run(['psql','-X','--set=ON_ERROR_STOP=1','-f',str(directory/'001-Install-Empty-Database.sql')],env)
-    print('Complete backend installed. Create/confirm the first Auth user, then edit and run 002-Create-First-Administrator.sql.')
+    print('Foundation installed. Follow START-HERE.md: create/confirm the first Auth user, edit and run 002-Create-First-Administrator.sql, then run 003-Verify-Installation.sql.')
 
 def validate_clean(sql):
     names=set(re.findall(r'(?i)CREATE(?: OR REPLACE)? FUNCTION (?:public\.)?([a-z0-9_]+)\s*\(',sql))

@@ -1,7 +1,7 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.68', $ = id => document.getElementById(id);
+  const VERSION = '143.70', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -22,10 +22,13 @@
   let noticeTimer14246;function notice(message = '', error = false) {if(!error&&/^(?:Entry saved on this device\.|All device entries were confirmed\.|Offline\. Downloaded records|You are offline\. Your device entries)/.test(message)){paintConnection();return;}const box=$('notice');clearTimeout(noticeTimer14246);box.replaceChildren();box.classList.toggle('error',error);if(!message)return;const copy=document.createElement('span');copy.textContent=message;box.append(copy);const close=document.createElement('button');close.type='button';close.textContent='Close';close.setAttribute('aria-label','Close notification');close.onclick=()=>notice();box.append(close);if(!error)noticeTimer14246=setTimeout(()=>notice(),4500);}
   function openDB() {
     return database ??= new Promise((resolve, reject) => {
-      const request = indexedDB.open('ojm-phone14242', 1), timer = setTimeout(() => reject(fail('Device storage is unavailable. Your draft has not been saved.')), 2000);
-      request.onupgradeneeded = () => request.result.createObjectStore('accounts');
-      request.onsuccess = () => { clearTimeout(timer); resolve(request.result); };
-      request.onerror = request.onblocked = () => { clearTimeout(timer); reject(request.error || fail('Device storage is unavailable.')); };
+      let finished=false;
+      const request=indexedDB.open('ojm-phone14242',1);
+      const stop=error=>{if(finished)return;finished=true;clearTimeout(timer);reject(error)};
+      const timer=setTimeout(()=>stop(fail('Device storage is unavailable. Your draft has not been saved.')),2000);
+      request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('accounts'))request.result.createObjectStore('accounts')};
+      request.onsuccess=()=>{if(finished){request.result.close();return}finished=true;clearTimeout(timer);const connection=request.result;connection.onversionchange=()=>{connection.close();database=null};resolve(connection)};
+      request.onerror=request.onblocked=()=>stop(request.error||fail('Device storage is unavailable.'));
     }).catch(e=>{database=null;throw e;});
   }
   async function record(owner, update) {
@@ -65,16 +68,18 @@
     const response = await boundedFetch(url.href, {method:options.method || (body === undefined ? 'GET' : 'POST'), headers, ...(body === undefined ? {} : {body:JSON.stringify(body)})});
     if (!current(owner, epoch)) throw fail('Your account changed while this request was loading.', 'ACCOUNT_CHANGED');
     if([401,403].includes(response.status))throw Object.assign(fail('The server denied access. Sign in again.',response.status===403?'42501':'PGRST301'),{status:response.status});
-    const text = await response.text();let data=null;try{data=text?JSON.parse(text):null;}catch{throw fail('The complete response was not received. Previously downloaded records are kept.','INVALID_RESPONSE');}
+    const text = await response.text();if(!current(owner,epoch))throw fail('Your account changed while this request was loading.','ACCOUNT_CHANGED');let data=null;try{data=text?JSON.parse(text):null;}catch{throw fail('The complete response was not received. Previously downloaded records are kept.','INVALID_RESPONSE');}
     if (!response.ok) throw Object.assign(fail(data?.message || 'This request could not complete.', data?.code), {status:response.status});
     const count = response.headers.get('content-range')?.split('/')[1];
     return {data, count:count && count !== '*' ? Number(count) : null};
   }
   const rpc = async (name, body = {}) => (await http('rpc/' + name, {}, body)).data;
   async function paged(table, query, select = '*') {
-    const rows = [], ids = new Set(); let expected = null;
+    const rows = [], ids = new Set(),owner=S.owner,epoch=S.epoch; let expected = null;
     for (let offset = 0; offset < 200000; offset += 200) {
+      if(!current(owner,epoch))throw fail('Your account changed while downloading.','ACCOUNT_CHANGED');
       const result = await http(table, {...query, select, order:'id.asc', limit:'200', offset:String(offset)});
+      if(!current(owner,epoch))throw fail('Your account changed while downloading.','ACCOUNT_CHANGED');
       if (!Array.isArray(result.data) || result.data.length > 200) throw fail('Records were incomplete. Refresh to try again.', 'INVALID_RESPONSE');
       if (result.count !== null) {
         if (!Number.isInteger(result.count) || result.count < 0 || expected !== null && expected !== result.count) throw fail('Records changed while downloading. Refresh to try again.', 'INVALID_RESPONSE');
@@ -105,8 +110,8 @@
   const isAdmin=()=>S.data.access?.profile?.id===S.actor&&S.data.access.profile.status==='active'&&S.data.access.profile.role==='admin';
   const targetName=()=>S.owner===S.actor?S.data.access?.profile?.full_name:S.data.target?.profile?.full_name;
   const accountIds = () => [...new Set([...rules().fundIds, ...rules().entryIds, rules().counterpart].filter(Boolean))];
-  const accounts = () => (S.data.accounts || []).filter(a => accountIds().includes(a.id));
-  const funds = () => (S.data.funds || []).filter(f => rules().fundIds.includes(f.account_id));
+  const accounts = () => {const ids=new Set(accountIds());return (S.data.accounts || []).filter(a => ids.has(a.id));};
+  const funds = () => {const ids=new Set(rules().fundIds);return (S.data.funds || []).filter(f => ids.has(f.account_id));};
   const headers = () => (S.data.headers || []).filter(j => j.owner_id === S.owner);
   const monthHeaders = () => headers().filter(j => String(j.period_start).slice(0,7) === S.month);
   const lines = () => {
@@ -145,7 +150,7 @@
   const draftFilled = () => !!S.draft && (!!S.draft.memo || !!S.draft.reference || !!S.draft.editIds?.length || (S.draft.mode === 'double' ? S.draft.lines.some(l => l.account || l.debit || l.credit || l.memo) : S.draft.single.some(l => l.amount || l.memo || l.affected && l.direction !== 'in')));
   function saveMirror() { if (!S.owner || !S.draft) return; try { localStorage.setItem(mirrorKey(S.owner), JSON.stringify(S.draft)); } catch { notice('This browser could not keep the draft. Keep this page open until you can save it.', true); } }
   function rememberLocation(){if(!S.owner)return;try{localStorage.setItem(locationKey(S.owner),JSON.stringify({page:S.page,month:S.month}));}catch{}}
-  function saveDraftLater() { saveMirror(); clearTimeout(draftTimer); const owner = S.owner, draft = structuredClone(S.draft); draftTimer = setTimeout(() => persist(owner,{draft}).catch(e => notice(e.message,true)), 150); }
+  function saveDraftLater() { saveMirror(); clearTimeout(draftTimer); const owner = S.owner, epoch=S.epoch,draft = structuredClone(S.draft); draftTimer = setTimeout(() => {if(current(owner,epoch))persist(owner,{draft}).catch(e => {if(current(owner,epoch))notice(e.message,true)})}, 150); }
   function touch() {
     if (!S.owner || Date.now() - touchAt < 1000) return;
     touchAt = Date.now(); try { localStorage.setItem(activityKey(S.actor), String(touchAt)); } catch {}
@@ -166,13 +171,13 @@
     for(const b of $('workspace').querySelectorAll('[data-action=refresh]')){b.disabled=S.loading;b.textContent=S.loading?'Updating…':'Refresh';}
   }
   function sessionGate(message = '') {
-    window.PhoneTools14242?.close();S.epoch++; S.actor=S.owner = ''; S.session = null; S.data = {}; S.directory=[];S.directoryLoading=false;S.directoryLoaded=false;S.selection=false;S.area='users';S.draft = null; S.loading = S.syncing = S.saving = S.submitting = false; refreshJob = monthJob = null; touchAt=0;
+    window.PhoneTools14242?.close();S.epoch++; S.actor=S.owner = ''; S.session = null; S.data = {}; S.directory=[];S.directoryLoading=false;S.directoryLoaded=false;S.selection=false;S.area='users';S.draft = null; S.loading = S.syncing = S.saving = S.submitting = false; refreshJob = monthJob = enterJob = null;enterOwner=''; touchAt=0;
     clearTimeout(draftTimer); $('workspace').replaceChildren(); $('workspace').hidden = true; $('login').hidden = false;$('recovery').hidden=true; $('bottom').hidden = true; $('accountMenu').hidden = true; $('dialog').close(); loginMessageTarget14293().textContent = message; paintConnection(); notice();
   }
   async function revoke(error) {
     window.deviceVault14334?.revoke();
-    const owner = S.owner;
-    if (owner) await persist(owner,{access:null}).catch(() => {});if(S.actor&&S.actor!==owner)await persist(S.actor,{access:null,directory:[]}).catch(()=>{});
+    const owner = S.owner,actor=S.actor,epoch=S.epoch;
+    if (owner) await persist(owner,{access:null}).catch(() => {});if(!current(owner,epoch))return;if(actor&&actor!==owner)await persist(actor,{access:null,directory:[]}).catch(()=>{});if(!current(owner,epoch))return;
     await signout(false);
   }
   async function access() {
@@ -190,14 +195,15 @@
     S.data.access = value;
     if(owner!==S.actor&&!isAdmin())throw fail('Administrator access is required to open another user.','ACCESS_REVOKED');
     if (!permission('sub-users-workspace')) throw fail('Your account does not have a phone workspace. Ask the administrator to assign Sub-users Workspace access.', 'ACCESS_REVOKED');
-    await persist(owner,{access:value});if(owner!==S.actor){await persist(S.actor,{access:value});const [profiles,permissions]=await Promise.all([http('profiles',{id:'eq.'+owner,select:'id,full_name,email,role,status'}),http('user_permissions',{user_id:'eq.'+owner})]);if(!current(owner,epoch))throw fail('The selected workspace changed.','ACCOUNT_CHANGED');if(profiles.data?.length!==1||profiles.data[0].id!==owner||permissions.data?.length!==1||permissions.data[0].user_id!==owner)throw fail('This sub-user is unavailable. Refresh the user list.','INVALID_RESPONSE');S.data.target={profile:profiles.data[0],permissions:permissions.data[0]};await persist(owner,{target:S.data.target});}
-    S.online = true; return value;
+    await persist(owner,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');if(owner!==S.actor){await persist(S.actor,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');const [profiles,permissions]=await Promise.all([http('profiles',{id:'eq.'+owner,select:'id,full_name,email,role,status'}),http('user_permissions',{user_id:'eq.'+owner})]);if(!current(owner,epoch))throw fail('The selected workspace changed.','ACCOUNT_CHANGED');if(profiles.data?.length!==1||profiles.data[0].id!==owner||permissions.data?.length!==1||permissions.data[0].user_id!==owner)throw fail('This sub-user is unavailable. Refresh the user list.','INVALID_RESPONSE');S.data.target={profile:profiles.data[0],permissions:permissions.data[0]};await persist(owner,{target:S.data.target});}
+    if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');S.online = true; return value;
   }
   const monthRevision14359=(month,list)=>JSON.stringify(list.filter(j=>String(j.period_start).slice(0,7)===month));
   async function getMonth(month, batchHeaders = headers()) {
     const ids = batchHeaders.filter(j => String(j.period_start).slice(0,7) === month && j.owner_id === S.owner).map(j => j.id);
     const result = ids.length ? await paged('staff_journal_lines', {staff_journal_id:'in.(' + ids.join(',') + ')'}) : [];
-    if (result.some(l => !ids.includes(l.staff_journal_id) || !l.transaction_date || !Number.isFinite(Number(l.amount)))) throw fail('This period returned incomplete records.', 'INVALID_RESPONSE');
+    const allowed=new Set(ids);
+    if (result.some(l => !allowed.has(l.staff_journal_id) || !l.transaction_date || !Number.isFinite(Number(l.amount)))) throw fail('This period returned incomplete records.', 'INVALID_RESPONSE');
     return {lines:result, savedAt:Date.now(), batchIds:ids,revision14359:monthRevision14359(month,batchHeaders)};
   }
   async function refresh() {
@@ -206,7 +212,7 @@
     const owner = S.owner, epoch = S.epoch, month = S.month; S.loading = true; paintConnection();
     refreshJob = (async () => {
       try {
-        await access();
+        await access();if(!current(owner,epoch))return;
         if(isAdmin()){paintConnection();drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();if(!S.directoryLoaded&&!S.directoryLoading)void loadDirectory(false);}
         const confirmedKeys=new Set(queue().filter(q=>q.status==='confirmed').map(q=>q.key));const ids = accountIds();
         const [rawAccounts, ownFunds, ownHeaders] = await Promise.all([
@@ -237,9 +243,9 @@
     if (!S.owner || !permission('sub-users-workspace') || !navigator.onLine || S.data.months?.[S.month]) return;
     const owner = S.owner, epoch = S.epoch, month = S.month;
     const task = (async () => {
-      try { await access(); const result = await getMonth(month); const stored = await record(owner, old => ({...old, months:{...old.months,[month]:result}})); if (current(owner,epoch)) { S.data.months=stored.months; S.online=true; S.error=''; if(S.month===month)render(); } }
+      try { await access();if(!current(owner,epoch))return;const result = await getMonth(month);if(!current(owner,epoch))return;const stored = await record(owner, old => ({...old, months:{...old.months,[month]:result}})); if (current(owner,epoch)) { S.data.months=stored.months; S.online=true; S.error=''; if(S.month===month)render(); } }
       catch (e) { if (!current(owner,epoch)) return; if (denied(e)) await revoke(e); else { S.online=false; S.error=e.message; notice('Downloaded records are kept. '+e.message,true); if(S.month===month)render(); } }
-      finally { if(monthJob===task)monthJob=null;paintConnection(); }
+      finally { if(monthJob===task)monthJob=null;if(current(owner,epoch))paintConnection(); }
     })(); monthJob=task;return task;
   }
   function drawUsers(){
@@ -248,9 +254,9 @@
   }
   async function loadDirectory(verify=true){
     if(!isAdmin()||S.directoryLoading)return;const actor=S.actor;S.directoryLoading=true;
-    try{if(verify)await access();if(!isAdmin())throw fail('Administrator access required.','ACCESS_REVOKED');const users=await rpc('review_directory14229');if(S.actor!==actor||!isAdmin())return;
+    try{if(verify)await access();if(S.actor!==actor)return;if(!isAdmin())throw fail('Administrator access required.','ACCESS_REVOKED');const users=await rpc('review_directory14229');if(S.actor!==actor||!isAdmin())return;
       if(!Array.isArray(users)||users.some(u=>!u.id)||new Set(users.map(u=>u.id)).size!==users.length)throw fail('The complete sub-user list was not received.','INVALID_RESPONSE');
-      S.directory=users;S.directoryLoaded=true;await persist(actor,{directory:users});drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();
+      S.directory=users;S.directoryLoaded=true;await persist(actor,{directory:users});if(S.actor!==actor)return;drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();
     }catch(e){if(S.actor===actor){if(denied(e))await revoke(e);else if(e.code!=='ACCOUNT_CHANGED'){notice('Downloaded sub-users are kept. '+e.message,true);if(S.area==='users'&&!S.selection)render();}}}
     finally{if(S.actor===actor)S.directoryLoading=false;}
   }
@@ -264,14 +270,18 @@
   let toolsJob;
   async function openTools(area,report){
     if(area==='settings'&&!isAdmin()||area==='documents'&&!permission('document-editor105'))return;
-    saveMirror();S.area=area;paintConnection();if(!window.PhoneTools14242){$('workspace').innerHTML=action('tool-back','Back')+empty('Opening '+(area==='settings'?'sub-user settings':'document editor')+'…');toolsJob ||= new Promise((resolve,reject)=>{const script=document.createElement('script'),stop=()=>{clearTimeout(timer);toolsJob=null;script.remove();if('caches'in window)void caches.open('ojm-phone-shell-'+VERSION).then(c=>c.delete(script.src)).catch(()=>{});reject(fail('This area has not downloaded yet. Reconnect and retry.'));},timer=setTimeout(stop,10000);script.src='scripts/phone-tools14242.js?v='+VERSION;script.onload=()=>{if(window.PhoneTools14242){clearTimeout(timer);resolve();}else stop();};script.onerror=stop;document.head.append(script);});await toolsJob;}
-    if(!S.owner||S.area!==area)return;
-    const api={state:()=>({actor:S.actor,owner:S.owner,admin:isAdmin(),profile:S.data.access?.profile,target:S.data.target?.profile,directory:S.directory,online:navigator.onLine}),esc,money,notice,permission,access,rpc,http,paged,refreshUsers:()=>loadDirectory(),selectUser,back:()=>{S.area='users';window.PhoneTools14242?.close();render();drawUsers();},saveDevice:(patch)=>persist(S.actor,patch),device:()=>record(S.actor),confirm:confirmDialog,revoke,denied,ambiguous,request:boundedFetch,session:()=>S.session,scope,anon:window.OJM_SUPABASE_ANON_KEY,resetPassword:async email=>{await access();if(!isAdmin())throw fail('Administrator access required.');const configured=String(window.OJM_PUBLIC_APP_URL||'').trim(),url=new URL('phone.html',configured||location.href);if(url.protocol!=='https:'||/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(url.hostname))throw fail('Open the published HTTPS website to request a password reset.');url.search='?password-recovery=1';url.hash='';const result=await db.auth.resetPasswordForEmail(email,{redirectTo:url.href});if(result.error)throw result.error;}};
+    const owner=S.owner,epoch=S.epoch,actor=S.actor;saveMirror();S.area=area;paintConnection();if(!window.PhoneTools14242){$('workspace').innerHTML=action('tool-back','Back')+empty('Opening '+(area==='settings'?'sub-user settings':'document editor')+'…');toolsJob ||= new Promise((resolve,reject)=>{const script=document.createElement('script'),stop=()=>{clearTimeout(timer);toolsJob=null;script.remove();if('caches'in window)void caches.open('ojm-phone-shell-'+VERSION).then(c=>c.delete(script.src)).catch(()=>{});reject(fail('This area has not downloaded yet. Reconnect and retry.'));},timer=setTimeout(stop,10000);script.src='scripts/phone-tools14242.js?v='+VERSION;script.onload=()=>{if(window.PhoneTools14242){clearTimeout(timer);resolve();}else stop();};script.onerror=stop;document.head.append(script);});await toolsJob;}
+    if(!current(owner,epoch)||S.actor!==actor||S.area!==area)return;
+    const api={state:()=>({actor:S.actor,owner:S.owner,admin:isAdmin(),profile:S.data.access?.profile,target:S.data.target?.profile,directory:S.directory,online:navigator.onLine}),esc,money,notice,permission,access,rpc,http,paged,refreshUsers:()=>loadDirectory(),selectUser,back:()=>{S.area='users';window.PhoneTools14242?.close();render();drawUsers();},saveDevice:(patch)=>persist(S.actor,patch),device:()=>record(S.actor),confirm:confirmDialog,revoke,denied,ambiguous,request:boundedFetch,session:()=>S.session,scope,anon:window.OJM_SUPABASE_ANON_KEY,resetPassword:async email=>{if(!current(owner,epoch)||S.actor!==actor)throw fail('Account changed.','ACCOUNT_CHANGED');await access();if(!current(owner,epoch)||S.actor!==actor)throw fail('Account changed.','ACCOUNT_CHANGED');if(!isAdmin())throw fail('Administrator access required.');const configured=String(window.OJM_PUBLIC_APP_URL||'').trim(),url=new URL('phone.html',configured||location.href);if(url.protocol!=='https:'||/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(url.hostname))throw fail('Open the published HTTPS website to request a password reset.');url.search='?password-recovery=1';url.hash='';const result=await db.auth.resetPasswordForEmail(email,{redirectTo:url.href});if(result.error)throw result.error;}};
     await window.PhoneTools14242.open(area,api,report);
   }
   async function openArea(area){if(!isAdmin())return;if(area==='users'){const wasUsers=S.area==='users';S.area='users';window.PhoneTools14242?.close();if(wasUsers){S.selection=false;S.page='home';}render();drawUsers();if(!S.directoryLoaded)void loadDirectory();}else await openTools(area);}
+  let enterAttempt=0;
   async function enter(session) {
+    if(enterJob&&enterOwner===session?.user?.id)return enterJob;
+    const attempt=++enterAttempt,startingEpoch=S.epoch;
     const retained=session?.user?.id&&session?.refresh_token?await record(session.user.id).catch(()=>null):null;
+    if(attempt!==enterAttempt||S.epoch!==startingEpoch)return;
     const locallyVerified=retained?.access?.profile?.id===session?.user?.id&&retained?.access?.profile?.status==='active';
     if (!validSession(session)&&!locallyVerified) { sessionGate(navigator.onLine ? '' : 'Reconnect to sign in. Your saved drafts remain on this device.'); return; }
     const owner = session.user.id;
@@ -288,7 +298,7 @@
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
         touch();$('login').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
-        if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(denied(e))void revoke(e)});phoneSyncActivity14351();}
+        if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(current(owner,epoch)&&denied(e))void revoke(e)});phoneSyncActivity14351();}
       } catch(e) { if(current(owner,epoch)){notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('login').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;
   }
@@ -306,7 +316,9 @@
     catch(e){sessionGate(navigator.onLine?'Sign in again. '+e.message:'Reconnect to sign in. Your drafts remain on this device.');}
   }
   async function signout(ask=true,message='') {
+    const owner=S.owner,epoch=S.epoch;
     if(ask&&!await confirmDialog('Sign out?','Your saved drafts and pending entries will remain private to this account on this device.','Sign out'))return;
+    if(!current(owner,epoch))return;
     saveMirror();authBusy=true;sessionGate(message);
     try{await db?.auth.signOut({scope:'local'});}catch{}finally{localStorage.removeItem(storageKey);authBusy=false;}
   }
@@ -359,8 +371,19 @@
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
   function captureDraft(e){const n=e.target;if(!n.dataset.field||S.saving)return;const field=n.dataset.field;if(n.dataset.index!==undefined)S.draft[S.draft.mode==='double'?'lines':'single'][Number(n.dataset.index)][field]=n.value;else S.draft[field]=n.value;saveDraftLater();updateValidation();}
   function updateValidation(){if(!$('entryValidation')||!S.draft)return;try{const {items}=StaffEntry14225.prepare(S.draft,accounts(),rules());const sums=new Map();for(const l of items){const c=currency(l.fund);sums.set(c,(sums.get(c)||0)+l.amount);}$('entryValidation').textContent=items.length+' complete '+(items.length===1?'entry':'entries')+' · '+[...sums].map(([c,n])=>money(n,c)).join(' · '); }catch(e){$('entryValidation').textContent=e.message;}}
-  function confirmDialog(title,text,label='Continue',input=false){return new Promise(resolve=>{const dialog=$('dialog');dialog.close();$('dialogBody').innerHTML='<h2>'+esc(title)+'</h2><p>'+esc(text)+'</p>'+(input?'<label>Reason<textarea id="dialogReason" required></textarea></label>':'');$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes">'+esc(label)+'</button>';dialog.onclose=()=>resolve(dialog.returnValue==='yes'?(input?$('dialogReason').value.trim():true):false);dialog.returnValue='cancel';dialog.showModal();});}
-  function chooseReportTypes14294(types,month){return new Promise(resolve=>{const dialog=$('dialog');dialog.close();$('dialogBody').innerHTML='<h2>Submit for review</h2><p>'+esc(month)+'</p>'+submissionReconciliation14345.types(types,'phoneReportTypes14346')+'';$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes" disabled>Submit</button>';const submit=$('dialogButtons').querySelector('[value=yes]');submissionReconciliation14345.bindTypes($('dialogBody'));$('dialogBody').onchange=()=>{submit.disabled=!$('dialogBody').querySelector('input:checked')};dialog.onclose=()=>{const chosen=[...$('dialogBody').querySelectorAll('input:checked')].map(n=>n.value);$('dialogBody').onchange=null;resolve(dialog.returnValue==='yes'&&chosen.length?chosen:false)};dialog.returnValue='cancel';dialog.showModal()});}
+  let pendingDialog14370=null;
+  function phoneDialog14370(draw,read){
+    if(pendingDialog14370)pendingDialog14370(false);
+    const dialog=$('dialog');dialog.onclose=null;dialog.close();$('dialogBody').onchange=null;
+    return new Promise(resolve=>{
+      const finish=value=>{if(pendingDialog14370!==finish)return;pendingDialog14370=null;dialog.onclose=null;$('dialogBody').onchange=null;resolve(value)};
+      pendingDialog14370=finish;
+      try{draw();dialog.returnValue='cancel';dialog.onclose=()=>{if(!dialog.open)finish(dialog.returnValue==='yes'?read():false)};dialog.showModal();}
+      catch(error){pendingDialog14370=null;dialog.onclose=null;$('dialogBody').onchange=null;throw error;}
+    });
+  }
+  function confirmDialog(title,text,label='Continue',input=false){return phoneDialog14370(()=>{$('dialogBody').innerHTML='<h2>'+esc(title)+'</h2><p>'+esc(text)+'</p>'+(input?'<label>Reason<textarea id="dialogReason" required></textarea></label>':'');$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes">'+esc(label)+'</button>';},()=>input?$('dialogReason').value.trim():true);}
+  function chooseReportTypes14294(types,month){return phoneDialog14370(()=>{$('dialogBody').innerHTML='<h2>Submit for review</h2><p>'+esc(month)+'</p>'+submissionReconciliation14345.types(types,'phoneReportTypes14346');$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes" disabled>Submit</button>';const submit=$('dialogButtons').querySelector('[value=yes]');submissionReconciliation14345.bindTypes($('dialogBody'));$('dialogBody').onchange=()=>{submit.disabled=!$('dialogBody').querySelector('input:checked')};},()=>{const chosen=[...$('dialogBody').querySelectorAll('input:checked')].map(n=>n.value);return chosen.length?chosen:false});}
   async function saveEntry(){
     if(S.saving||!permission('sub-users-workspace','edit'))return;
     const owner=S.owner,epoch=S.epoch;S.saving=true;
@@ -382,7 +405,7 @@
     const owner=S.owner,epoch=S.epoch;S.syncing=true;paintConnection();
     const run=async()=>{
       try{
-        await access();if(!permission('sub-users-workspace','edit'))throw fail('Posting is no longer enabled for this account.');
+        if(!current(owner,epoch))return;await access();if(!current(owner,epoch))return;if(!permission('sub-users-workspace','edit'))throw fail('Posting is no longer enabled for this account.');
         const stored=await record(owner);if(!current(owner,epoch))return;S.data.queue=stored.queue||[];
         for(const q of queue().filter(q=>q.status!=='confirmed')){
           if(!current(owner,epoch)||automatic&&!phoneSyncIdle14351())return;
@@ -400,8 +423,8 @@
     try{if(navigator.locks)await navigator.locks.request('ojm-phone-sync:'+key(owner),{ifAvailable:true},lock=>lock?run():notice('Another tab is syncing this account.'));else await run();}
     finally{if(current(owner,epoch)){S.syncing=false;paintConnection();if(S.page!=='post')render();}}
   }
-  async function chooseReconciliation14345(batch){const c=await rpc('submission_context14345',{p_journal:batch.id});return new Promise(resolve=>{const dialog=$('dialog');dialog.close();$('dialogBody').innerHTML='<h2>Confirm remaining funds</h2>'+submissionReconciliation14345.fields(c);$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes" disabled>Submit</button>';submissionReconciliation14345.bind($('dialogBody'),$('dialogButtons').querySelector('[value=yes]'));dialog.onclose=()=>{if(dialog.returnValue!=='yes'){resolve(false);return;}try{resolve({context:c,actuals:submissionReconciliation14345.answers($('dialogBody'))})}catch(e){notice(e.message,true);resolve(false)}};dialog.returnValue='cancel';dialog.showModal()})}
-  async function submit(){if(S.submitting)return;S.submitting=true;render(S.page!=='post');try{return await submitPeriod();}finally{S.submitting=false;render(S.page!=='post');}}
+  async function chooseReconciliation14345(batch){const owner=S.owner,epoch=S.epoch;const c=await rpc('submission_context14345',{p_journal:batch.id});if(!current(owner,epoch))return false;return new Promise(resolve=>{const dialog=$('dialog');dialog.close();$('dialogBody').innerHTML='<h2>Confirm remaining funds</h2>'+submissionReconciliation14345.fields(c);$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes" disabled>Submit</button>';submissionReconciliation14345.bind($('dialogBody'),$('dialogButtons').querySelector('[value=yes]'));dialog.onclose=()=>{if(dialog.returnValue!=='yes'){resolve(false);return;}try{resolve({context:c,actuals:submissionReconciliation14345.answers($('dialogBody'))})}catch(e){notice(e.message,true);resolve(false)}};dialog.returnValue='cancel';dialog.showModal()})}
+  async function submit(){if(S.submitting)return;const owner=S.owner,epoch=S.epoch;S.submitting=true;render(S.page!=='post');try{return await submitPeriod();}finally{if(current(owner,epoch)){S.submitting=false;render(S.page!=='post');}}}
   async function submitPeriod(){
     if(!permission('sub-users-workspace','edit')){notice('Submission is not enabled for this account.',true);return;}
     if(queue().length||S.syncing||S.saving||draftFilled()){notice('Save or clear your current draft, then sync all device entries before submitting.',true);return;}
@@ -410,25 +433,27 @@
     const candidates=monthHeaders().filter(j=>editable14348(j)&&lines().some(l=>l.staff_journal_id===j.id));
     if(!candidates.length){notice('There are no saved entries ready to submit in this period.');return;}
     const available=(await http('report_types14253',{select:'id,name,active',active:'eq.true',order:'name.asc'})).data||[];
+    if(!current(owner,epoch)||S.month!==month)return;
     if(!available.length){notice('Ask the administrator to add an active report type.',true);return;}
     const chosen=await chooseReportTypes14294(available,month);if(!chosen)return;
     if(!current(owner,epoch)||S.month!==month||draftFilled())return;
-    const alreadyPending=await record(owner);if((alreadyPending.queue||[]).length){notice('Another tab has pending entries. Sync them before submitting.',true);return;}
+    const alreadyPending=await record(owner);if(!current(owner,epoch))return;if((alreadyPending.queue||[]).length){notice('Another tab has pending entries. Sync them before submitting.',true);return;}
     try{
-      await access();
+      await access();if(!current(owner,epoch)||S.month!==month)return;
       for(const batch of candidates){
         const review=await chooseReconciliation14345(batch);if(!review||!current(owner,epoch))return;
-        S.data=await persist(owner,{pendingSubmit:{id:batch.id,month,createdAt:Date.now()}});
-        const result=await rpc('submit_reconciled14345',{p_journal:batch.id,p_types:chosen,p_as_of:review.context.asOf,p_fingerprint:review.context.fingerprint,p_actuals:review.actuals});if(result?.status!=='submitted')throw Error('Submission was not confirmed.');
+        const pending=await persist(owner,{pendingSubmit:{id:batch.id,month,createdAt:Date.now()}});if(!current(owner,epoch))return;S.data=pending;
+        const result=await rpc('submit_reconciled14345',{p_journal:batch.id,p_types:chosen,p_as_of:review.context.asOf,p_fingerprint:review.context.fingerprint,p_actuals:review.actuals});if(!current(owner,epoch))return;if(result?.status!=='submitted')throw Error('Submission was not confirmed.');
         reopened14348.delete(correctionKey14348(batch));notice('Submitted for review.');
         const stored=await record(owner,old=>({...old,headers:(old.headers||[]).map(j=>j.id===batch.id?{...j,...result}:j),pendingSubmit:null}));if(!current(owner,epoch))return;S.data=stored;
       }
       notice('Submitted for review.');render();void refresh();
-    }catch(e){if(!current(owner,epoch))return;if(denied(e))await revoke(e);else{if(!ambiguous(e))S.data=await persist(owner,{pendingSubmit:null});notice('Submission was not confirmed. Refresh to check its status before retrying. '+e.message,true);render();}}
+    }catch(e){if(!current(owner,epoch))return;if(denied(e))await revoke(e);else{if(!ambiguous(e)){const stored=await persist(owner,{pendingSubmit:null});if(!current(owner,epoch))return;S.data=stored}notice('Submission was not confirmed. Refresh to check its status before retrying. '+e.message,true);render();}}
   }
-  async function edit(index){const g=groupEntries()[index];if(!g||!permission('sub-users-workspace','edit')||!editable14348(g.batch))return;
+  async function edit(index){const owner=S.owner,epoch=S.epoch;const g=groupEntries()[index];if(!g||!permission('sub-users-workspace','edit')||!editable14348(g.batch))return;
     if(queue().some(q=>q.params.p_edit_ids.some(id=>g.lines.some(l=>l.id===id)))){notice('Sync the pending change to this entry first.',true);return;}
     if(draftFilled()&&!await confirmDialog('Replace the current draft?','Save the current draft first if you need to keep it.','Replace'))return;
+    if(!current(owner,epoch))return;
     const first=g.lines[0],saved=first.editor_snapshot1437,r=rules();let d;
     const normalize=rows=>rows.map(l=>JSON.stringify([l.date,l.direction,l.fund,l.account,Number(l.amount),l.memo])).sort().join('|');
     const actual=g.lines.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo}));
@@ -439,7 +464,7 @@
   async function voidEntry(index){const g=groupEntries()[index];if(!g||!permission('sub-users-workspace','void')||!editable14348(g.batch))return;
     if(!navigator.onLine||queue().length){notice('Sync pending entries and reconnect before voiding.',true);return;}
     const owner=S.owner,epoch=S.epoch,reason=await confirmDialog('Void this entry?','All lines in this entry will be voided together.','Void',true);if(!reason||!current(owner,epoch))return;
-    try{await access();await rpc('void_staff_editor1437',{p_owner:owner,p_ids:g.lines.map(l=>l.id),p_reason:reason});notice('Entry voided.');await refresh();}catch(e){if(current(owner,epoch)){if(denied(e))await revoke(e);else notice('The result needs confirmation. Refresh before retrying. '+e.message,true);}}
+    try{await access();if(!current(owner,epoch))return;await rpc('void_staff_editor1437',{p_owner:owner,p_ids:g.lines.map(l=>l.id),p_reason:reason});if(!current(owner,epoch))return;notice('Entry voided.');await refresh();}catch(e){if(current(owner,epoch)){if(denied(e))await revoke(e);else notice('The result needs confirmation. Refresh before retrying. '+e.message,true);}}
   }
   function canPrint(){return permission('sub-users-workspace')&&(permission('document-editor105','export')||permission('sub-users-workspace','export'));}
   async function printReport(){if(!canPrint()){notice('Printing is not enabled for this account.',true);return;}if(queue().length||draftFilled()||!S.data.months?.[S.month]){notice('Finish your draft and sync pending entries before printing a complete report.',true);return;}
@@ -447,24 +472,24 @@
     if(permission('document-editor105'))await openTools('documents',{title,html,category:'Sub-users',savedReport1434:true,sourceJournal1434:monthHeaders().length===1?monthHeaders()[0].id:undefined});else{const previous=S.page,oldLimit=S.limit;S.page='history';S.limit=Infinity;S.printing14294=true;render();try{window.print()}finally{S.printing14294=false;S.page=previous;S.limit=oldLimit;render()}}
   }
   function connectionDialog(){const dialog=$('dialog');dialog.close();dialog.classList.add('phone-connection14246');$('dialogBody').innerHTML='<h2>Connection & sync</h2><p>Saved entries sync automatically. Unfinished form edits stay on this device until saved.</p><section class="sync-section14246"><h3>Connection</h3><p>'+esc(navigator.onLine?(S.online?'Online':'Limited connection'):'Offline')+'</p></section><section class="sync-section14246"><h3>Website files</h3><p>'+esc(S.shellReady?'Downloaded for reopening without connection.':'Still preparing for offline reopening.')+'</p></section><section class="sync-section14246"><h3>Device entries · '+queue().length+'</h3>'+(queue().map(q=>'<article class="sync-entry14246"><strong>'+esc(q.draft.date+' · '+q.draft.memo)+'</strong><p>'+esc(q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Waiting to sync')+'</p>'+(q.message?'<p>'+esc(q.message)+'</p>':'')+'<small>Reference: '+esc(q.key)+'</small></article>').join('')||'<p>No device entries waiting to sync.</p>')+'</section>';$('dialogButtons').innerHTML='<button class="btn" value="close">Close</button>';dialog.onclose=()=>dialog.classList.remove('phone-connection14246');dialog.showModal();}
-  async function handle(name,index){try{
-    if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return boot();if(name==='directory-refresh')return loadDirectory();if(name==='signout')return signout();if(name==='refresh')return refresh();if(name==='sync')return sync();if(name==='submit')return submit();if(name==='print')return printReport();if(name==='edit')return edit(index);if(name==='void')return voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
+  async function handle(name,index){const owner=S.owner,epoch=S.epoch;try{
+    if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh')return await refresh();if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='mode')S.draft.mode=S.draft.mode==='single'?'double':'single';
     if(name==='direction'){const direction=S.draft.single[0]?.direction==='in'?'out':'in';if(!rules().directions.includes(direction))return;for(const l of S.draft.single){l.direction=direction;if(!rules().entryIds.includes(l.affected))l.affected='';}}
     if(name==='add-line')S.draft[S.draft.mode==='double'?'lines':'single'].push(S.draft.mode==='double'?{account:'',debit:'',credit:'',memo:''}:{direction:S.draft.single[0]?.direction||rules().directions[0],source:'',affected:'',amount:'',memo:''});
     if(name==='remove-line'){const rows=S.draft[S.draft.mode==='double'?'lines':'single'];if(rows.length<=(S.draft.mode==='double'?2:1)){notice('Keep at least '+(S.draft.mode==='double'?'two journal lines.':'one entry line.'),true);return;}rows.splice(index,1);}
-    if(name==='clear-draft'){if(draftFilled()&&!await confirmDialog('Clear the draft?','This only clears the unfinished form. Saved and pending entries are kept.','Clear'))return;S.draft=blankDraft();}
+    if(name==='clear-draft'){if(draftFilled()&&!await confirmDialog('Clear the draft?','This only clears the unfinished form. Saved and pending entries are kept.','Clear'))return;if(!current(owner,epoch))return;S.draft=blankDraft();}
     saveDraftLater();render();
-  }catch(e){notice(e.message,true);}}
+  }catch(e){if(current(owner,epoch))notice(e.message,true);}}
   document.addEventListener('click',e=>{const owner=e.target.closest('[data-owner]'),area=e.target.closest('[data-area]');if(owner){void selectUser(owner.dataset.owner).catch(e=>notice(e.message,true));return;}if(area){void openArea(area.dataset.area).catch(e=>notice(e.message,true));return;}const page=e.target.closest('[data-page],[data-go]');if(page)return navigate(page.dataset.page||page.dataset.go);const b=e.target.closest('[data-action]');if(b&&!b.disabled){e.preventDefault();void handle(b.dataset.action,Number(b.dataset.index||0)).catch(e=>notice(e.message,true));}});
   $('loginForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;authBusy=true;const button=$('loginForm').querySelector('button');button.disabled=true;const spinner=document.createElement('span');spinner.id='phoneLoginProgress14293';spinner.innerHTML=window.loading1444?.markup()||'';$('loginForm').append(spinner);loginMessageTarget14293().textContent='';try{const result=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(result.error)throw result.error;$('loginPassword').value='';if(!window.deviceVault14334)await enter(result.data.session);}catch(e){loginMessageTarget14293().textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
-  $('phoneRecoveryForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;const password=$('recoveryPassword').value;if(password!==$('recoveryConfirm').value){$('recoveryStatus').textContent='The passwords do not match.';return;}authBusy=true;const button=e.target.querySelector('button');button.disabled=true;$('recoveryStatus').textContent='Updating password…';try{const result=await db.auth.updateUser({password});if(result.error)throw result.error;$('recoveryPassword').value=$('recoveryConfirm').value='';recovering=false;await signout(false,'Password updated. Sign in with your new password.');}catch(e){$('recoveryStatus').textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
+  $('phoneRecoveryForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;const recoveryActor=S.session?.user?.id,password=$('recoveryPassword').value;if(password!==$('recoveryConfirm').value){$('recoveryStatus').textContent='The passwords do not match.';return;}authBusy=true;const button=e.target.querySelector('button');button.disabled=true;$('recoveryStatus').textContent='Updating password…';try{const result=await db.auth.updateUser({password});if(S.session?.user?.id!==recoveryActor)return;if(result.error)throw result.error;$('recoveryPassword').value=$('recoveryConfirm').value='';recovering=false;await signout(false,'Password updated. Sign in with your new password.');}catch(e){$('recoveryStatus').textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
   $('dialog').addEventListener('click',e=>{const dialog=$('dialog');if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close('cancel');});
   $('avatar').onclick=()=>{$('accountMenu').hidden=!$('accountMenu').hidden;$('avatar').setAttribute('aria-expanded',String(!$('accountMenu').hidden));};$('connection').onclick=connectionDialog;
   document.addEventListener('click',e=>{if(!e.target.closest('#avatar,#accountMenu'))$('accountMenu').hidden=true;});
   for(const event of ['pointerdown','keydown','input','touchstart','wheel'])document.addEventListener(event,touch,{passive:true,capture:true});
-  document.addEventListener('keydown',e=>{if(S.page!=='post'||!e.target.closest('#postForm'))return;const inputs=[...$('postForm').querySelectorAll('input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')],i=inputs.indexOf(e.target);if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();saveDraftLater();inputs[i+1]?.focus();}});
+  document.addEventListener('keydown',e=>{if(e.isComposing||S.page!=='post'||!e.target.closest('#postForm'))return;const inputs=[...$('postForm').querySelectorAll('input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')],i=inputs.indexOf(e.target);if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();saveDraftLater();inputs[i+1]?.focus();}});
   window.addEventListener('pagehide',saveMirror);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveMirror();else phoneSyncActivity14351();});
   window.addEventListener('online',()=>{S.online=true;paintConnection();phoneSyncActivity14351();});window.addEventListener('offline',()=>{S.online=false;paintConnection();notice('Offline. Downloaded records and your drafts remain available.');});
   window.addEventListener('storage',e=>{if(e.key===storageKey){const session=cachedSession();if(!session?.user||session.user.id!==S.actor){saveMirror();sessionGate();void boot();}else S.session=session;}});

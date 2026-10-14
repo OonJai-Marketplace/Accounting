@@ -78,6 +78,6 @@ await check('All table panels fit desktop and iPad without horizontal clipping',
 await check('Row action menu opens beside its button without an animated reposition',async()=>{
  await page.setViewportSize({width:1280,height:900});await page.evaluate(()=>switchTab('transactions-vouchers14299'));const menu=page.locator('#voucherRows14299 summary[aria-label="Row actions"]').first();await menu.click();const panel=page.locator('#voucherRows14299 .row-menu-panel99').first();const before=await panel.boundingBox();await page.waitForTimeout(100);const after=await panel.boundingBox();assert.deepEqual(after,before);assert.equal(await panel.evaluate(n=>getComputedStyle(n).transitionDuration),'0s');assert(before.x>=0&&before.x+before.width<=1280);await page.screenshot({path:'/tmp/menu14303.png'});
 });
-console.log('ERRORS',errors);
+await check('No uncaught browser errors',async()=>assert.deepEqual(errors,[]));
 fs.writeFileSync(path.join(root,'validation/voucher-drafts14303.json'),JSON.stringify(results,null,2));await browser.close();server.close();if(results.some(r=>!r.passed))process.exitCode=1;
 })().catch(e=>{console.error(e);server.close();process.exit(1)});

@@ -32,13 +32,13 @@ loadEntryForEdit=function(id){
 };
 function isReopened67(month){return PeriodReview.status(month)==='open'&&!!PeriodReview.periods[month]?.reopenedAt}
 function monthTotals67(rows){
-  const totals={};rows.forEach(r=>{const t=totals[r.currency]||(totals[r.currency]={dr:0,cr:0});t.dr+=Number(r.debit||0);t.cr+=Number(r.credit||0)});
+  const totals=Object.create(null);rows.forEach(r=>{const t=totals[r.currency]||(totals[r.currency]={dr:0,cr:0});t.dr+=Number(r.debit||0);t.cr+=Number(r.credit||0)});
   return Object.entries(totals).map(([c,t])=>`${c}: Debit ${formatAppNumber(t.dr)} · Credit ${formatAppNumber(t.cr)}`).join(' | ');
 }
 function renderReopened67(){
   const host=document.getElementById('reopenedBooks');if(!host)return;
   const months=Object.keys(PeriodReview.periods).filter(isReopened67).sort().reverse();host.hidden=!months.length;
-  host.innerHTML=months.map((m,i)=>{const p=PeriodReview.periods[m];return `<section class="je-card reopened-book" id="reopened-${m}"><header class="je-card-header"><div><h3>Reopened Book — ${escapeHtml(monthLabel(m))}</h3><p>${escapeHtml(p.reopenReason||'Reopened for correction')} · ${escapeHtml(p.reopenedByName||p.updatedBy||'Recorded user')} · ${escapeHtml(p.reopenedAt)}</p><p>Review and edit this book separately. Close it again from Accounts when finished.</p></div></header><div class="table-container"><table class="clustered-journal-table"><thead><tr id="reopenHead${i}"></tr></thead><tbody id="reopenBody${i}"></tbody></table></div></section>`}).join('');
+  host.innerHTML=months.map((m,i)=>{const p=PeriodReview.periods[m];return `<section class="je-card reopened-book" id="reopened-${m}"><header class="je-card-header"><div><h3>Reopened Book — ${escapeHtml(monthLabel(m))}</h3><p>${escapeHtml(p.reopenReason||'Reopened for correction')} · ${escapeHtml(p.reopenedByName||p.updatedBy||'Recorded user')} · ${escapeHtml(formatAppDate(p.reopenedAt,true))}</p><p>Review and edit this book separately. Close it again from Accounts when finished.</p></div></header><div class="table-container"><table class="clustered-journal-table"><thead><tr id="reopenHead${i}"></tr></thead><tbody id="reopenBody${i}"></tbody></table></div></section>`}).join('');
   months.forEach((m,i)=>{setTransactionTableHeaders(`reopenHead${i}`,true);renderTransactionReviewTable(document.getElementById(`reopenBody${i}`),periodEntries(m),'edit')});
 }
 renderJournalHistoryTable=function(records=JournalModule.entries){
@@ -46,7 +46,7 @@ renderJournalHistoryTable=function(records=JournalModule.entries){
   renderTransactionReviewTable(document.getElementById('tblJournalHistoryBody'),records.filter(r=>!journalIsHistory14342(r)&&!isReopened67(String(r.date).slice(0,7))),'edit');renderReopened67();
 };
 renderNewTransactionsTable=function(){renderReopened67()};
-function archiveFindings67(month){return PeriodReview.findings.filter(f=>f.month===month).map(f=>`<div class="archive-finding"><strong>${escapeHtml(f.number)}</strong> — ${escapeHtml(f.description)}<br><small>${escapeHtml(f.createdByName||f.createdBy||'Reviewer not recorded')} · ${escapeHtml(f.createdAt||'')} · ${escapeHtml(f.status)}${f.adjustmentEntryId?' · Adjustment '+escapeHtml(f.adjustmentEntryId):''}</small></div>`).join('')}
+function archiveFindings67(month){return PeriodReview.findings.filter(f=>f.month===month).map(f=>`<div class="archive-finding"><strong>${escapeHtml(f.number)}</strong> — ${escapeHtml(f.description)}<br><small>${escapeHtml(f.createdByName||f.createdBy||'Reviewer not recorded')} · ${escapeHtml(formatAppDate(f.createdAt||'',true))} · ${escapeHtml(f.status)}${f.adjustmentEntryId?' · Adjustment '+escapeHtml(f.adjustmentEntryId):''}</small></div>`).join('')}
 renderAllTransactionsTable=function(){
  const card=document.querySelector('#transactions-all > .je-card,#journalHistory14316 > .je-card');if(!card)return;
  let host=document.getElementById('archiveMonths67');if(!host){card.querySelector('.table-container')?.remove();host=document.createElement('div');host.id='archiveMonths67';card.append(host)}
@@ -64,13 +64,14 @@ renderAllTransactionsTable=function(){
 
 const statusBefore67=changePeriodStatus;
 changePeriodStatus=async function(next){
-  const m=PeriodReview.selectedMonth;let reason='';
+  const m=PeriodReview.selectedMonth,actor=liveProfile?.id;const current=()=>liveProfile?.id===actor&&PeriodReview.selectedMonth===m;let reason='';
   if(next==='open'){
     if(PeriodReview.status(m)==='open')return;
     if(liveProfile&&liveProfile.role!=='admin'){showAppNotification('Administrator Required','An administrator must reopen this book.',true);return}
-    reason=(await ui117.prompt('Reason for reopening this book:'))?.trim();if(!reason)return;
+    reason=(await ui117.prompt('Reason for reopening this book:'))?.trim();if(!reason||!current())return;
   }
   const saved=await statusBefore67(next);
+  if(!current())return false;
   if(saved===false)return false;
   if(PeriodReview.status(m)!==next)return;
   if(next==='open'){
@@ -81,11 +82,11 @@ changePeriodStatus=async function(next){
   return true;
 };
 async function closeMonthFromAccounts(targetMonth){
-  const month=targetMonth||document.getElementById('closeMonth67')?.value;if(!month)return;
+  const actor=liveProfile?.id;const month=targetMonth||document.getElementById('closeMonth67')?.value;if(!month)return;
   const rows=periodEntries(month);if(!rows.length){showAppNotification('No Entries','There are no posted entries in this month.',true);return}
   const currencies=[...new Set(rows.map(r=>r.currency))];
   if(currencies.some(c=>Math.abs(rows.filter(r=>r.currency===c).reduce((n,r)=>n+Number(r.debit)-Number(r.credit),0))>0.005)){showAppNotification('Unbalanced Month','Resolve the currency balances before closing.',true);return}
-  showAppConfirm('Close & Archive Month',`Close ${monthLabel(month)} after reviewing the General Ledger and Trial Balance?`,'Close Month',async()=>{PeriodReview.selectedMonth=month;await changePeriodStatus('closed');refreshAllTables()});
+  showAppConfirm('Close & Archive Month',`Close ${monthLabel(month)} after reviewing the General Ledger and Trial Balance?`,'Close Month',async()=>{if(liveProfile?.id!==actor)return;PeriodReview.selectedMonth=month;await changePeriodStatus('closed');refreshAllTables()});
 }
 archiveTransactionMonth=function(month){document.getElementById('closeMonth67').value=month;scrollToAccountModule('sec-general-ledger')};
 startFindingAdjustment=function(id){
@@ -98,7 +99,7 @@ startFindingAdjustment=function(id){
 const finalBefore67=finalizePostSuccess;
 finalizePostSuccess=function(...args){const entry=JournalModule.entries.find(r=>r.id===JournalModule.editingEntryId),month=entry?.date?.slice(0,7);finalBefore67(...args);journalContext67();renderReopened67();if(month&&isReopened67(month))document.getElementById(`reopened-${month}`)?.scrollIntoView({behavior:'smooth',block:'start'})};
 const reviewBefore67=renderPeriodReview;
-renderPeriodReview=function(){reviewBefore67();const findings=PeriodReview.findings.filter(f=>f.month===PeriodReview.selectedMonth);document.querySelectorAll('#periodFindingsList .period-finding-main').forEach((node,i)=>{const f=findings[i];if(!f)return;const note=document.createElement('small');note.textContent=`${f.createdByName||f.createdBy||'Reviewer not recorded'} · ${f.createdAt||''}`;node.append(note)})};
+renderPeriodReview=function(){reviewBefore67();const findings=PeriodReview.findings.filter(f=>f.month===PeriodReview.selectedMonth);document.querySelectorAll('#periodFindingsList .period-finding-main').forEach((node,i)=>{const f=findings[i];if(!f)return;const note=document.createElement('small');note.textContent=`${f.createdByName||f.createdBy||'Reviewer not recorded'} · ${f.createdAt?formatAppDate(f.createdAt,true):''}`;node.append(note)})};
 const switchBefore67=switchTab;
 switchTab=function(id){return switchBefore67(id==='transactions-new'?'journal':id)};
 document.addEventListener('DOMContentLoaded',()=>{document.getElementById('closeMonth67').value=getCurrentMonthPrefix();renderReopened67()});

@@ -1,23 +1,28 @@
 [
   {
     "name": "Cancel opening and opening ten handwritten drafts allocate no IDs",
-    "passed": true
+    "passed": false,
+    "error": "page.waitForFunction: Timeout 10000ms exceeded."
   },
   {
     "name": "Cancel print confirmation keeps the batch unrecorded",
-    "passed": true
+    "passed": false,
+    "error": "The input did not match the regular expression /Record 10 vouchers/. Input:\n\n'Before Printing\\n×\\nInclude signatories\\nCancel\\nPrint'\n"
   },
   {
     "name": "Save allocates ten unique IDs once; print and download do not allocate again",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-doc-action=\"voucher-save14299\"]')\u001b[22m\n"
   },
   {
     "name": "Editor voucher save is right aligned; canceled download consumes no number",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#voucherCreate14299')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" id=\"voucherCreate14299\" data-action-tone14317=\"add\" class=\"je-btn je-btn-emerald\">Create Editor Voucher</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"ui-overlay108 print-options1424\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"ui-overlay108 print-options1424\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    18 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"ui-overlay108 print-options1424\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n"
   },
   {
     "name": "Table inspector is narrow, full height, with requested two-row controls",
-    "passed": true
+    "passed": false,
+    "error": "Cannot read properties of null (reading 'width')"
   },
   {
     "name": "Payment voucher starter removed and connection icon first in square dock",
@@ -29,14 +34,17 @@
   },
   {
     "name": "Retry after a lost reservation response reuses the same IDs and payload",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#voucherBlank14299')\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" aria-busy=\"true\" id=\"voucherBlank14299\" class=\"je-btn je-btn-secondary\" data-action-tone14317=\"neutral\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    18 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and stable\u001b[22m\n"
   },
   {
     "name": "All table panels fit desktop and iPad without horizontal clipping",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-table-panel14301=\"0\"]')\u001b[22m\n\u001b[2m    - locator resolved to <button role=\"tab\" tabindex=\"0\" type=\"button\" aria-selected=\"true\" data-table-panel14301=\"0\">Insert</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
   },
   {
     "name": "Row action menu opens beside its button without an animated reposition",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#voucherRows14299 summary[aria-label=\"Row actions\"]').first()\u001b[22m\n"
   }
 ]

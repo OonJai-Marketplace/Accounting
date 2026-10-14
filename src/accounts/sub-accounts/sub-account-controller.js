@@ -22,28 +22,30 @@ function renderSubAccountsTable() {
   if (!tbody) return;
   tbody.innerHTML = '';
 
+  const fragment=document.createDocumentFragment(),parents=new Map(AccountingStore.accounts.map(a=>[a.code,a]));
   AccountingStore.subAccounts.forEach(sub => {
-    const parent = AccountingStore.accounts.find(a => a.code === sub.parentCode);
+    const parent = parents.get(sub.parentCode);
     const parentLabel = parent ? `${parent.code} — ${parent.name}` : sub.parentCode;
     const currency = sub.currency || parent?.currency || '';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><span class="parent-account-label">${escapeHtml(parentLabel)}</span></td>
-      <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${sub.code}</td>
+      <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${escapeHtml(sub.code)}</td>
       <td><span class="currency-symbol-badge" data-currency-code="${escapeHtml(currency)}" title="${escapeHtml(currency)}">${escapeHtml(currencySymbolV6(currency))}</span> <strong>${escapeHtml(sub.name)}</strong></td>
       <td style="color: var(--text-muted);">${escapeHtml(sub.desc || '—')}</td>
       <td style="text-align: right;">
         <div style="display: inline-flex; gap: 6px;">
-          <button type="button" class="btn-action-edit" title="Edit Sub-Account" onclick="openEditSubAccountModal('${sub.code}')">✏️</button>
-          <button type="button" class="btn-action-delete" title="Delete Sub-Account" onclick="promptDeleteSubAccount('${sub.code}')">
+          <button type="button" class="btn-action-edit" title="Edit Sub-Account" onclick="openEditSubAccountModal(${escapeHtml(JSON.stringify(sub.code))})">✏️</button>
+          <button type="button" class="btn-action-delete" title="Delete Sub-Account" onclick="promptDeleteSubAccount(${escapeHtml(JSON.stringify(sub.code))})">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
       </td>
     `;
-    tbody.appendChild(tr);
+    fragment.appendChild(tr);
   });
+  tbody.appendChild(fragment);
 }
 
 function syncSubAccountCurrencyDropdown(selected = '') {

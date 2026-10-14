@@ -14,13 +14,15 @@
   input.showPicker=()=>open(input);input.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();open(input)},true);
   input.addEventListener('change',()=>update(input));input.addEventListener('input',()=>update(input));button.addEventListener('click',()=>active?.input===input?close():open(input));update(input)}
  // Keep the pictogram intact when updating the visible value.
- function update(input){const button=input.closest('.oj-date-shell104')?.querySelector('.oj-date-button104');if(button){const label=button.querySelector('.oj-date-label104'),signature=JSON.stringify([input.value,input.type,input.disabled,typeof ApplicationSettings==='undefined'?'':ApplicationSettings.system?.dateFormat]);const old=displayed.get(input);if(old?.signature===signature&&old.button===button&&old.label===label&&label?.textContent===old.value)return;const value=display(input);displayed.set(input,{signature,button,label,value});if(label.textContent!==value)label.textContent=value;button.disabled=input.disabled;button.setAttribute('aria-label',`${modes(input)} picker: ${value}`)}}
- function scan(){queued=false;document.querySelectorAll('input[type="date"],input[type="month"],input[type="number"][id*="Year"],input[type="number"][id*="year"],input[type="number"][name="year"]').forEach(input=>{enhance(input);update(input)})}
- function schedule(){if(!queued){queued=true;requestAnimationFrame(scan)}}
+ function update(input){const button=input.closest('.oj-date-shell104')?.querySelector('.oj-date-button104');if(button){const label=button.querySelector('.oj-date-label104'),signature=JSON.stringify([input.value,input.type,input.disabled,input.readOnly,input.matches(':disabled'),typeof ApplicationSettings==='undefined'?'':ApplicationSettings.system?.dateFormat]);const old=displayed.get(input);if(old?.signature===signature&&old.button===button&&old.label===label&&label?.textContent===old.value)return;const value=display(input);displayed.set(input,{signature,button,label,value});if(label.textContent!==value)label.textContent=value;button.disabled=input.matches(':disabled')||input.readOnly;button.setAttribute('aria-label',`${modes(input)} picker: ${value}`)}}
+ const selector='input[type="date"],input[type="month"],input[type="number"][id*="Year"],input[type="number"][id*="year"],input[type="number"][name="year"]';
+ const dirty=new Set();
+ function scan(root=document){if(root.matches?.(selector)){enhance(root);update(root)}root.querySelectorAll?.(selector).forEach(input=>{enhance(input);update(input)})}
+ function schedule(records){for(const record of records){if(record.type==='attributes')dirty.add(record.target);else for(const node of record.addedNodes)if(node.nodeType===1)dirty.add(node)}if(active&&!active.input.isConnected)close();if(!queued&&dirty.size){queued=true;requestAnimationFrame(()=>{queued=false;const roots=[...dirty];dirty.clear();for(const root of roots)if(root.isConnected)scan(root)})}}
  function chosen(input){const value=input.value,mode=modes(input);if(mode==='year')return new Date(Number(value)||today().getFullYear(),0,1);if(/^\d{4}-\d{2}/.test(value)){const [year,month,day]=value.split('-').map(Number);return new Date(year,month-1,day||1)}return today()}
  function allowed(input,value){const mode=modes(input),lower=input.min,upper=input.max;if(mode==='year'){const n=Number(value);return (!lower||n>=Number(lower))&&(!upper||n<=Number(upper))}return (!lower||value>=lower)&&(!upper||value<=upper)}
  function close(focus=false){if(!active)return;const {input,panel}=active;panel.remove();input.closest('.oj-date-shell104')?.querySelector('button')?.setAttribute('aria-expanded','false');active=null;if(focus)input.closest('.oj-date-shell104')?.querySelector('button')?.focus({preventScroll:true})}
- function choose(value){if(!active||value!==''&&!allowed(active.input,value))return;const input=active.input;input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));close(true)}
+ function choose(value){if(!active||!active.input.isConnected||active.input.matches(':disabled')||active.input.readOnly||value!==''&&!allowed(active.input,value))return;const input=active.input;input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));close(true)}
  function draw(){if(!active)return;const {input,panel}=active,mode=modes(input),year=shown.getFullYear(),month=shown.getMonth();panel.replaceChildren();
   const head=document.createElement('div');head.className='oj-date-head104';const prev=document.createElement('button'),title=document.createElement('strong'),next=document.createElement('button');prev.type=next.type='button';prev.textContent='‹';next.textContent='›';prev.setAttribute('aria-label',mode==='date'?'Previous month':'Previous year');next.setAttribute('aria-label',mode==='date'?'Next month':'Next year');title.textContent=mode==='date'?`${monthName(month,true)} ${year}`:mode==='month'?String(year):`${year-5}–${year+6}`;head.append(prev,title,next);panel.append(head);prev.onclick=()=>{shown=new Date(year-(mode==='year'?12:mode==='month'?1:0),month-(mode==='date'?1:0),1);draw()};next.onclick=()=>{shown=new Date(year+(mode==='year'?12:mode==='month'?1:0),month+(mode==='date'?1:0),1);draw()};
   const grid=document.createElement('div');grid.className='oj-date-grid104 '+mode;panel.append(grid);
@@ -33,7 +35,7 @@
   panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();close(true)}if(e.key==='PageUp'||e.key==='PageDown'){e.preventDefault();(e.key==='PageUp'?prev:next).click()}};
  }
  function open(input){
-  if(input.disabled)return;close();shown=chosen(input);
+  if(input.matches(':disabled')||input.readOnly)return;close();shown=chosen(input);
   const panel=document.createElement('div');panel.className='oj-date-popup104';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Select '+modes(input));
   const button=input.closest('.oj-date-shell104')?.querySelector('button');if(!button)return;
   // Measure complete contents before revealing; focus must not scroll the page.
@@ -45,5 +47,5 @@
  }
  document.addEventListener('pointerdown',e=>{if(active&&!e.target.closest('.oj-date-popup104')&&!e.target.closest('.oj-date-shell104'))close()},true);
  document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();close(true)}});
- const ready=()=>{scan();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+ const ready=()=>{scan();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','readonly','value','type','min','max']});window.addEventListener('page113',()=>{close();const root=document.querySelector('.tab-content.active');if(root)scan(root)})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })()

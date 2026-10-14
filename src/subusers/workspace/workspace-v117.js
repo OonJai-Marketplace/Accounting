@@ -69,6 +69,7 @@ function update(n){
 }
 async function commit(u,k){
  if(window.access113&&!access113.can('sub-users-workspace','edit'))return;
+ const actor=liveProfile?.id,db=ojmDb,current=()=>liveProfile?.id===actor&&ojmDb===db;
  const token=rowToken(u,k);if(!dirty.has(token)||inFlight.has(token))return;
  const user=findUser(u),row=workspaceRowByKey(u,k);if(!user||!row)return;
  const rules=workspaceRules(user),account=row.selected_account_id||(row.direction==='in'?row.fund_account_id:row.account_id);
@@ -76,9 +77,9 @@ async function commit(u,k){
  if(!(row.direction==='in'?rules.fundIds:rules.entryIds).includes(account))return;
  row.selected_account_id=account;inFlight.add(token);saving++;
  const tr=document.querySelector(selector(u,k))?.closest('tr');if(tr){tr.dataset.saving117='1';tr.querySelectorAll('input,select').forEach(n=>n.disabled=true);tr.querySelectorAll('[contenteditable]').forEach(n=>n.contentEditable='false')}
- try{await persistWorkspaceSingleRow(user,row,rules);if(row.isNew?!pendingRowsFor(u).some(r=>r.key===k):!workspaceRowEdits[u]?.[row.id])dirty.delete(token)}
- catch(error){showCenterStatus('Entry save failed: '+error.message,true)}
- finally{inFlight.delete(token);saving--;if(tr?.isConnected){delete tr.dataset.saving117;tr.querySelectorAll('input,select').forEach(n=>n.disabled=false);tr.querySelectorAll('[role=textbox]').forEach(n=>n.contentEditable='plaintext-only')}if(!document.activeElement?.matches('.inline-cell117,.account-search1428'))renderSubUserWorkspace()}
+ try{await persistWorkspaceSingleRow(user,row,rules);if(!current())return;if(row.isNew?!pendingRowsFor(u).some(r=>r.key===k):!workspaceRowEdits[u]?.[row.id])dirty.delete(token)}
+ catch(error){if(current())showCenterStatus('Entry save failed: '+error.message,true)}
+ finally{inFlight.delete(token);saving--;if(current()&&tr?.isConnected){delete tr.dataset.saving117;tr.querySelectorAll('input,select').forEach(n=>n.disabled=false);tr.querySelectorAll('[role=textbox]').forEach(n=>n.contentEditable='plaintext-only')}if(current()&&!document.activeElement?.matches('.inline-cell117,.account-search1428'))renderSubUserWorkspace()}
 }
 document.addEventListener('input',e=>{if(e.target.matches('.inline-cell117:not(select)'))update(e.target)});
 document.addEventListener('change',e=>{if(e.target.matches('select.inline-cell117'))update(e.target)});

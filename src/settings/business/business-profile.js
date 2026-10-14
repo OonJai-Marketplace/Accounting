@@ -25,8 +25,9 @@ const BusinessSettings = {
     return this.current;
   },
   save(value) {
-    this.current = { ...BUSINESS_SETTINGS_DEFAULTS, ...value };
-    localStorage.setItem(BUSINESS_SETTINGS_KEY, JSON.stringify(this.current));
+    const next = { ...BUSINESS_SETTINGS_DEFAULTS, ...this.current, ...value };
+    localStorage.setItem(BUSINESS_SETTINGS_KEY, JSON.stringify(next));
+    this.current = next;
     AccountingStore.companyName = this.current.companyName;
   }
 };
@@ -72,7 +73,8 @@ function reloadBusinessSettings() {
     if (field) field.type === 'checkbox' ? field.checked = Boolean(value[key]) : field.value = value[key] || '';
   });
   renderBusinessIdentity(value, true);
-  const stored = Boolean(localStorage.getItem(BUSINESS_SETTINGS_KEY));
+  let stored = false;
+  try { stored = Boolean(localStorage.getItem(BUSINESS_SETTINGS_KEY)); } catch (_) {}
   const badge = document.getElementById('businessSavedBadge');
   const status = document.getElementById('businessSettingsStatus');
   if (badge) { badge.textContent = stored ? 'Saved' : 'Using defaults'; badge.classList.toggle('is-saved', stored); }
@@ -84,7 +86,7 @@ function saveBusinessSettings(event) {
   const form = document.getElementById('businessSettingsForm');
   if (!form?.checkValidity()) { form?.reportValidity(); return; }
   const value = collectBusinessSettings();
-  BusinessSettings.save(value);
+  try { BusinessSettings.save(value); } catch (error) { showAppNotification('Save Failed', error.message, true); return; }
   renderBusinessIdentity(value, true);
   if(typeof syncEntrySequence==='function')syncEntrySequence();updateNextEntryIdDisplay();
   const badge = document.getElementById('businessSavedBadge');
@@ -99,7 +101,9 @@ function saveBusinessSettings(event) {
 function initializeBusinessSettings() {
   reloadBusinessSettings();
   const form = document.getElementById('businessSettingsForm');
-  form?.addEventListener('input', () => {
+  if (!form || form.dataset.businessBound) return;
+  form.dataset.businessBound = '1';
+  form.addEventListener('input', () => {
     renderBusinessIdentity(collectBusinessSettings(), false);
     const badge = document.getElementById('businessSavedBadge');
     const status = document.getElementById('businessSettingsStatus');

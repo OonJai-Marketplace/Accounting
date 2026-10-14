@@ -11,11 +11,13 @@ function openLegalDocumentsDb() {
 }
 function legalDocTransaction(mode, action) {
   return openLegalDocumentsDb().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction(LEGAL_DOC_STORE, mode);
-    const store = tx.objectStore(LEGAL_DOC_STORE);
-    action(store, resolve, reject);
-    tx.onerror = () => reject(tx.error);
-    tx.oncomplete = () => db.close();
+    let tx,value;
+    try{
+      tx=db.transaction(LEGAL_DOC_STORE,mode);
+      tx.oncomplete=()=>{db.close();resolve(value)};
+      tx.onerror=tx.onabort=()=>{db.close();reject(tx.error||new Error('Document storage transaction failed.'))};
+      action(tx.objectStore(LEGAL_DOC_STORE),result=>{value=result},error=>{try{tx.abort()}catch{}db.close();reject(error)});
+    }catch(error){try{tx?.abort()}catch{}db.close();reject(error)}
   }));
 }
 function formatLegalDocSize(bytes) {

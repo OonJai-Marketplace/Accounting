@@ -1,6 +1,12 @@
--- Roll back all fixtures. A temporary sequence prevents consuming real Entry IDs.
+-- Isolated fixture only. Roll back records and use a private journal sequence.
 BEGIN;
-CREATE TEMP SEQUENCE test_report_sequence START 900000;
+DO $guard$
+BEGIN
+ IF to_regclass('pg_temp.audit_fixture14370') IS NULL THEN
+  RAISE EXCEPTION 'Run through the isolated validation/test-fresh-backend14322.cjs harness only';
+ END IF;
+END $guard$;
+CREATE TEMP SEQUENCE test_report_sequence START 1000000;
 DO $test$
 DECLARE def text;actor uuid;who uuid;fund uuid;category uuid;line uuid;j uuid;expected jsonb;posted jsonb;again jsonb;mode text;rows jsonb;bad jsonb;context jsonb;types uuid[];actuals jsonb;
 BEGIN
@@ -36,6 +42,7 @@ BEGIN
  BEGIN PERFORM post_report14349(j,'1902-01-05','Test',bad,'TEST',6,mode);RAISE EXCEPTION 'TEST accepted changed amount';EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE 'TEST %' THEN RAISE;END IF;END;
  posted=post_report14349(j,'1902-01-05','Test',rows,'TEST',6,mode);
  again=post_report14349(j,'1902-01-05','Test',rows,'TEST',6,mode);
+ IF posted->>'entry_no' NOT LIKE 'TEST-100000_' THEN RAISE EXCEPTION 'Long report journal number was truncated';END IF;
  IF posted<>again THEN RAISE EXCEPTION 'Idempotence failed';END IF;
  IF (SELECT count(DISTINCT journal_entry_id) FROM staff_journal_lines WHERE staff_journal_id=j)<>1 THEN RAISE EXCEPTION 'More than one entry';END IF;
  IF (SELECT count(DISTINCT line_date) FROM journal_lines WHERE journal_entry_id=(posted->>'entry_id')::uuid)<>2 THEN RAISE EXCEPTION 'Dates lost';END IF;

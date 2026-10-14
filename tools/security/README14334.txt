@@ -9,4 +9,5 @@ Password derivation uses native Web Crypto PBKDF2-SHA-256.
 No home-grown cipher or password hash is used.
 
 Do not use the older full desktop builder for this release.
-sync-segments14334.py synchronizes only explicitly changed packed source segments.
+Edit canonical src/ modules, then run python tools/build-modules.py.
+sync-segments14334.py is a compatibility entry point for that manifest builder.

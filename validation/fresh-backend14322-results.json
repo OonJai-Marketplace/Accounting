@@ -1,8 +1,9 @@
 {
   "engine": "PGlite PostgreSQL with pgcrypto",
   "productionWrites": false,
-  "checks": 27,
+  "checks": 32,
   "passed": [
+    "Standalone mutation fixtures refuse a database outside the isolated harness",
     "Complete installer restores empty database in one transaction",
     "Packaged verification SQL passes on a clean installation",
     "All routine bodies compile with validation enabled",
@@ -14,6 +15,7 @@
     "Balanced manual posting and original numbering work",
     "Posting retries do not duplicate a journal",
     "Unbalanced, currency-mismatch and nonfinite postings are rejected atomically",
+    "Long journal sequence IDs remain intact and direct nonfinite writes are rejected",
     "Payroll employee and run guards synchronize period and version",
     "Budget request and allocation links reject parent edits and missing requests",
     "SQL addition and editing templates execute only their intended operation",
@@ -26,9 +28,12 @@
     "Linked records block removal even when a foreign key cascades",
     "Anonymous and staff cannot execute owner maintenance tools or read backups",
     "Real staff permission save and assigned transaction creation work",
+    "Current report posting preserves dates, amounts and idempotency in both modes",
+    "Returned reports remain isolated from regular drafts",
     "Auth submission identity is generated automatically",
     "Archive/export and scoped reset preview include actual temporary rows",
     "Archive, review, fund, opening and year-closing reads use the complete schema",
+    "Independent fresh databases receive distinct instance identifiers",
     "Backed-up deletion keeps triggers, sequences, receipts and audit evidence"
   ]
 }

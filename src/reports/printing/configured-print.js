@@ -6,13 +6,17 @@ const PrintSettings = {
 
 function handlePrintImageUpload(event, type) {
   const file = event.target.files?.[0];
-  if (!file) return;
+  if (!file||!['header','footer'].includes(type)) return;
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>8*1024*1024){showAppNotification('Image Not Saved','Choose a PNG, JPG or WebP image under 8 MB.',true);return}
+  const owner=liveProfile?.id;
   const reader = new FileReader();
   reader.onload = () => {
+    if(liveProfile?.id!==owner)return;
+    try{localStorage.setItem(type === 'header' ? 'ojm_print_header' : 'ojm_print_footer', reader.result)}catch(error){showAppNotification('Image Not Saved',error.message,true);return}
     PrintSettings[type + 'Image'] = reader.result;
-    localStorage.setItem(type === 'header' ? 'ojm_print_header' : 'ojm_print_footer', reader.result);
     renderPrintSettingPreviews();
   };
+  reader.onerror=()=>showAppNotification('Image Not Saved','The image could not be read.',true);
   reader.readAsDataURL(file);
 }
 function clearPrintImage(type) {
@@ -23,8 +27,8 @@ function clearPrintImage(type) {
 function renderPrintSettingPreviews() {
   const h = document.getElementById('printHeaderPreview');
   const f = document.getElementById('printFooterPreview');
-  if (h) h.innerHTML = PrintSettings.headerImage ? `<img src="${PrintSettings.headerImage}" alt="Print header preview">` : 'No header image selected.';
-  if (f) f.innerHTML = PrintSettings.footerImage ? `<img src="${PrintSettings.footerImage}" alt="Print footer preview">` : 'No footer image selected.';
+  if (h) h.innerHTML = PrintSettings.headerImage ? `<img src="${escapeHtml(PrintSettings.headerImage)}" alt="Print header preview">` : 'No header image selected.';
+  if (f) f.innerHTML = PrintSettings.footerImage ? `<img src="${escapeHtml(PrintSettings.footerImage)}" alt="Print footer preview">` : 'No footer image selected.';
 }
 function openPrintDialog() {
   syncPrintDatePreset();
@@ -42,7 +46,7 @@ function syncPrintDatePreset() {
   if (preset === 'month') { start = new Date(now.getFullYear(), now.getMonth(), 1); end = new Date(now.getFullYear(), now.getMonth()+1, 0); }
   if (preset === 'quarter') { const q=Math.floor(now.getMonth()/3)*3; start=new Date(now.getFullYear(),q,1); end=new Date(now.getFullYear(),q+3,0); }
   if (preset === 'year') { start=new Date(now.getFullYear(),0,1); end=new Date(now.getFullYear(),11,31); }
-  from.value=local(start); to.value=local(end);
+  if(start&&end){from.value=local(start); to.value=local(end);}
 }
 let printTemporarilyHiddenRows = [];
 function applyPrintDateFilter() {
@@ -52,7 +56,7 @@ function applyPrintDateFilter() {
   const to = document.getElementById('printDateTo')?.value || '';
   if (!from && !to) return;
   document.querySelectorAll('.tab-content.active tbody tr').forEach(row => {
-    const first = row.cells?.[0]?.textContent?.trim() || '';
+    const first = row.dataset.date || row.cells?.[0]?.textContent?.trim() || '';
     if (!/^\d{4}-\d{2}-\d{2}$/.test(first)) return;
     if ((from && first < from) || (to && first > to)) {
       printTemporarilyHiddenRows.push({ row, display: row.style.display });
@@ -69,8 +73,8 @@ function executeConfiguredPrint() {
   const useFooter = document.getElementById('printUseFooter')?.checked;
   const h = document.getElementById('printHeaderOutput');
   const f = document.getElementById('printFooterOutput');
-  if (h) h.innerHTML = useHeader && PrintSettings.headerImage ? `<img src="${PrintSettings.headerImage}" alt="">` : '';
-  if (f) f.innerHTML = useFooter && PrintSettings.footerImage ? `<img src="${PrintSettings.footerImage}" alt="">` : '';
+  if (h) h.innerHTML = useHeader && PrintSettings.headerImage ? `<img src="${escapeHtml(PrintSettings.headerImage)}" alt="">` : '';
+  if (f) f.innerHTML = useFooter && PrintSettings.footerImage ? `<img src="${escapeHtml(PrintSettings.footerImage)}" alt="">` : '';
   applyPrintDateFilter();
   document.body.classList.add('configured-print');
   if (typeof closeModal === 'function') closeModal('modalPrintOptions');

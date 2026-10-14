@@ -1,4 +1,4 @@
-function call(fn){try{const result=fn();if(result?.then)result.catch(e=>parent.showCenterStatus(e.message,true));setTimeout(()=>refresh(),250);return result}catch(e){parent.showCenterStatus(e.message,true)}}
+function call(fn){const who=A.session();try{const result=fn();if(result?.then)result.then(()=>{if(A.session()===who)refresh()},e=>{if(A.session()===who)parent.showCenterStatus(e.message,true)});else refresh();return result}catch(e){if(A.session()===who)parent.showCenterStatus(e.message,true)}}
 let workspaceOpen14238=0,navigationPending14285=false,phoneLayoutReady14285=false;
 const positionKey14285=()=>[S.module,S.user||'home',S.page].join(':');
 function samePhoneLocation14285(){return renderedLocation14250?.session===A.session()&&renderedLocation14250.module===S.module&&renderedLocation14250.page===S.page&&String(renderedLocation14250.user)===String(S.user)}
@@ -33,10 +33,10 @@ async function navigate(module,page='home',capture=true,restore=false){
  if(!restore){S.search='';S.ledgerAccount14248=null;}S.entryLimit14237=30;last='';
  persistPhoneDraft1427();navigationPending14285=true;
  const target=module==='subusers'&&!S.user?'sub-users-home14229':module==='settings'?'settings-users':'sub-users-workspace';
- const needsLoad=module==='subusers'&&(!S.user||!A.workspaceState(S.user).loaded);
+ const needsLoad=module==='subusers'&&(S.user?!A.workspaceState(S.user).loaded:!A.homeLoaded());
  if(needsLoad)phoneLoading14285(true);
  try{
-  if(module==='subusers'){if(S.user)await A.loadWorkspace(S.user);else if(A.teamHomeAllowed())await A.loadHome();}
+  if(needsLoad){if(S.user)await A.loadWorkspace(S.user);else if(A.teamHomeAllowed())await A.loadHome();}
   if(who!==A.session()||opening!==workspaceOpen14238)return false;
   navigationPending14285=false;phoneLoading14285(false);
   if(!render())return false;

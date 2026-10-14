@@ -44,20 +44,12 @@
       window.showAppNotification?.('Choose a later date', 'Set the final warning for a future date.', true);
       return;
     }
+    const actor=liveProfile?.id;
     const saved=await PrivateReminders14229.mutate(()=>{const item=RecurringStore.items.find(record=>record.id===id);if(!item)throw Error("Reminder changed. Reload first.");item.preparedUntil=date},'prepare:'+id+':'+date);
-    if(!saved)return;
+    if(!saved||liveProfile?.id!==actor)return;
     window.renderRecurringWarnings();
     window.showAppNotification?.('Preparation recorded', `The next warning is set for ${window.formatAppDate(date)}.`, false);
   };
-
-  if (typeof window.markRecurringPaid === 'function') {
-    const markPaid = window.markRecurringPaid;
-    window.markRecurringPaid = function (id) {
-      const item = RecurringStore.items.find(record => record.id === id);
-      if (item) delete item.preparedUntil;
-      return markPaid.call(this, id);
-    };
-  }
 
   window.renderRecurringWarnings = function () {
     const host = document.getElementById('recurringWarningList');
@@ -67,10 +59,10 @@
       const status = window.recurringStatus(item);
       return `<article class="recurring-warning-item ${status === 'OVERDUE' ? 'overdue' : ''}" data-preparation-card97="${escape(item.id)}">
         <div class="recurring-warning-item-heading97"><h5>${status === 'OVERDUE' ? 'OVERDUE' : item.preparedUntil ? 'FINAL WARNING' : 'DUE SOON'} — ${escape(item.memo)}</h5>
-          <div class="recurring-warning-actions97"><button type="button" class="je-btn je-btn-secondary" onclick="openPreparationDate97('${escape(item.id)}')">Preparation Done</button><button type="button" class="je-btn je-btn-emerald" onclick="markRecurringPaid('${escape(item.id)}')">Mark reminder paid</button></div></div>
+          <div class="recurring-warning-actions97"><button type="button" class="je-btn je-btn-secondary" onclick="openPreparationDate97(${escape(JSON.stringify(item.id))})">Preparation Done</button><button type="button" class="je-btn je-btn-emerald" onclick="markRecurringPaid(${escape(JSON.stringify(item.id))})">Mark reminder paid</button></div></div>
         <div>Due: <strong>${escape(window.formatAppDate(item.nextDate))}</strong> · ${escape(window.formatAppNumber(item.amount))} ${escape(item.currency)}</div>
         <div class="je-subtitle">Reminder schedule: ${escape(window.reminderText(item))}${item.preparedUntil ? ` · Prepared; final warning on ${escape(window.formatAppDate(item.preparedUntil))}` : ''}</div>
-        <div class="preparation-date-form97" data-preparation-form97 hidden><label>Final warning date<input type="date" min="${escape(localDate())}" value="${escape(defaultFinalReminderDate(item))}"></label><button type="button" class="je-btn je-btn-emerald" onclick="savePreparationDone97('${escape(item.id)}',this)">Save Preparation</button></div>
+        <div class="preparation-date-form97" data-preparation-form97 hidden><label>Final warning date<input type="date" min="${escape(localDate())}" value="${escape(defaultFinalReminderDate(item))}"></label><button type="button" class="je-btn je-btn-emerald" onclick="savePreparationDone97(${escape(JSON.stringify(item.id))},this)">Save Preparation</button></div>
       </article>`;
     }).join('') : '<div class="empty-archive-state">No recurring warnings are currently due.</div>';
   };

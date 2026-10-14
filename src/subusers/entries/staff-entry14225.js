@@ -4,7 +4,7 @@
   const epsilon = 0.00000001;
   const number = value => {
     const n = Number(String(value ?? '').replaceAll(',', ''));
-    if (!Number.isFinite(n) || n < 0 || Math.abs(n * 100 - Math.round(n * 100)) > 0.000001) throw Error('Enter a valid, non-negative amount.');
+    if (!Number.isFinite(n) || !Number.isSafeInteger(Math.round(n * 100)) || n < 0 || Math.abs(n * 100 - Math.round(n * 100)) > 0.000001) throw Error('Enter a valid, non-negative amount.');
     return n;
   };
   function prepare(data, accounts, rules) {
@@ -14,7 +14,7 @@
     const permitted = new Set([...rules.fundIds, ...rules.entryIds, rules.counterpart].map(String));
     const account = id => {
       const a = accounts.find(a => String(a.id || a.code) === String(id));
-      if (!a || a.isPosting === false || a.isActive === false || a.is_active === false || !permitted.has(String(a.id))) throw Error('Choose an account assigned to this user in Settings.');
+      if (!a || a.isPosting === false || a.is_posting === false || a.active === false || a.isActive === false || a.is_active === false || a.currency === 'NA' || !permitted.has(String(a.id))) throw Error('Choose an account assigned to this user in Settings.');
       return a;
     };
     const items = [], rows = [], single = [];

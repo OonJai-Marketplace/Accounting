@@ -1,4 +1,12 @@
--- Run inside a rollback transaction after the v143.47 installer.
+-- Isolated fixture only; the file always rolls back its synthetic records.
+BEGIN;
+DO $guard$
+BEGIN
+ IF to_regclass('pg_temp.audit_fixture14370') IS NULL THEN
+  RAISE EXCEPTION 'Run through the isolated validation/test-fresh-backend14322.cjs harness only';
+ END IF;
+END $guard$;
+
 DO $test$
 DECLARE who uuid; actor uuid; fund uuid; category uuid; ret uuid; draft uuid; line uuid; added uuid; result jsonb; items jsonb; context jsonb; types uuid[]; actuals jsonb;
 BEGIN
@@ -32,3 +40,5 @@ BEGIN
  IF (SELECT count(*) FROM staff_journals WHERE owner_id=who AND period_start='1901-01-01')<>3 THEN RAISE EXCEPTION 'Repeated submissions unavailable';END IF;
 END $test$;
 SELECT 'PASS: returned correction and draft isolated; two reconciled submissions and another draft in the same month' AS verification;
+
+ROLLBACK;

@@ -6,7 +6,7 @@
 body .team-tabs14230{overflow:visible;gap:14px;margin-bottom:8px}
 .team-user-tabs14231{display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:thin;padding:3px 0}
 body .team-tabs14230 .team-search14231{display:flex;align-items:center;gap:8px;flex:0 0 290px;margin:0 0 0 auto;height:38px;box-sizing:border-box;padding:0 10px;border:1px solid #b7cbbd;border-radius:7px;background:#fffdf6}
-body .team-tabs14230 .team-search14231 input{width:100%;min-width:0;height:36px;padding:0!important;border:0!important;border-radius:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;font:12px inherit;font-size:12px}
+body .team-tabs14230 .team-search14231 input{width:100%;min-width:0;height:36px;padding:0!important;border:0!important;border-radius:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;font:inherit;font-size:12px}
 .team-search14231:focus-within{outline:2px solid #b45309;outline-offset:2px}
 .team-search14231 svg{flex:0 0 17px}
 .th-home-tools14230:empty{display:none!important}

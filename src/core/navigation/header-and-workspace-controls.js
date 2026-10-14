@@ -1,6 +1,4 @@
 // FOUNDATION V2 — final header, user-tab and expandable review behavior.
-const switchTabBeforeFoundationV2=switchTab;
-switchTab=function(tabId){return switchTabBeforeFoundationV2(tabId)};
 function userInitials(name='OJ'){return String(name).trim().split(/\s+/).map(part=>part[0]).slice(0,2).join('').toUpperCase()||'OJ'}
 function toggleHeaderAccountMenu(){const menu=document.getElementById('headerAccountDropdown'),trigger=document.getElementById('headerAccountTrigger');if(!menu)return;menu.hidden=!menu.hidden;trigger?.setAttribute('aria-expanded',String(!menu.hidden))}
 function closeHeaderAccountMenu(){const menu=document.getElementById('headerAccountDropdown'),trigger=document.getElementById('headerAccountTrigger');if(menu)menu.hidden=true;trigger?.setAttribute('aria-expanded','false')}

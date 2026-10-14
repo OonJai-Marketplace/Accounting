@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+function run(code,c){c.window=c;vm.createContext(c);vm.runInContext(code,c);return c}
+(async()=>{
+ const phone=fs.readFileSync('src/subusers/phone/connected/scope-and-draft.js','utf8').split('const esc=')[0]+'window.test={ensurePhoneOwner1427,get state(){return S},get drafts(){return phoneDrafts1427}};})();';
+ let session='first',stored={staff:{a:{data:[]},other:{data:{memo:'allowed shape'}}},ui:[],journal:{data:[]},location:[]};
+ const api={profile:()=>({id:'a',role:'employee'}),session:()=>session,ready:()=>true,allowed:()=>true,users:()=>[{id:'a'}]};
+ const c=run(phone,{parent:{PhoneApp132:api,OJM_SUPABASE_URL:'https://db.example'},location:{origin:'https://app.example'},document:{documentElement:{dataset:{}},body:{},querySelectorAll:()=>[],addEventListener(){}},addEventListener(){},localStorage:{getItem:()=>JSON.stringify(stored)}});
+ assert(c.test.ensurePhoneOwner1427());assert.equal(c.test.state.staffDraft,null);assert.equal(c.test.state.journalDraft,null);assert.equal(c.test.drafts.location,undefined);assert.equal(c.test.drafts.staff.a,undefined);assert.equal(Array.isArray(c.test.drafts.ui.positions),false);
+ session='second';stored={staff:{a:{data:{memo:'kept'},editing:true}},journal:{data:{memo:'journal kept'},editing:true}};assert(c.test.ensurePhoneOwner1427());assert.equal(c.test.state.staffDraft.memo,'kept');assert.equal(c.test.state.journalDraft.memo,'journal kept');
+ console.log('PASS phone draft recovery rejects malformed nested data and preserves valid drafts');
+ const lines=fs.readFileSync('src/bridges/subusers-bookkeeping/budget-workflow14316.js','utf8').split('\n');
+ const functionCode=name=>lines.find(l=>l.startsWith('async function '+name+'(')||l.startsWith('function '+name+'('));
+ let pages=0,confirm,dialog,errors=[];const button={dataset:{allocationTemplate14316:'501'}};
+ const root={querySelectorAll:()=>[button],resolve108(){}};
+ const templates=Array.from({length:502},(_,i)=>({id:String(i),data:{kind:'allocation14316',name:'Template '+i,allocations:[{account:'cash',currency:'USD',outflow:1,item:null}]}}));
+ const b=run(functionCode('allocationTemplates'),{guard:()=> 'a',context:()=>()=>{},allocation:{},allocationRequest14370:1,capture(){},clone:structuredClone,Finance82:{lines:[],movements:[]},esc:String,num:Number,budgetDialog:(title,html)=>{dialog=html;return {root}},ui117:{confirm:()=>new Promise(r=>confirm=r)},renderAllocation(){},showCenterStatus:e=>errors.push(e),ojmDb:{from:()=>{let start,end;const q={select:()=>q,order:()=>q,range:(a,z)=>{start=a;end=z;return q},then:(yes,no)=>{pages++;return Promise.resolve({data:templates.slice(start,end+1)}).then(yes,no)}};return q}}});
+ await b.allocationTemplates(false);assert.equal(pages,2);assert.match(dialog,/Template 501/);let pending=button.onclick();b.Finance82.notes='typed during confirmation';confirm(true);await pending;assert.equal(b.Finance82.movements.length,0);assert.match(errors.pop(),/allocation changed/);pending=button.onclick();confirm(true);await pending;assert.equal(b.Finance82.movements.length,1);assert.equal(b.Finance82.movements[0].reference,'');
+ console.log('PASS allocation templates read all pages and preserve edits made during confirmation');
+ const controls=[{disabled:false}],saved={id:'allocation',data:{purpose:'Saved allocation',movements:[],lines:[]}};let release;
+ const s=run(functionCode('saveAllocation'),{context:()=>()=>{},allocationRecord:null,allocationRequest14370:1,finalTab:'funds',busy:false,form82:()=>true,capture(){},clone:structuredClone,Finance82:{purpose:'Original allocation',lines:[],movements:[],requestId14316:'request',requestVersion14316:1},validateAllocation(){},ensureLifecycle:async()=>{},live:async()=>{},liveProfile:{id:'a',full_name:'Admin'},document:{getElementById:()=>({querySelectorAll:()=>controls}),querySelector:()=>null},saveWork82:()=>new Promise(r=>release=r),showCenterStatus(){},renderAllocation:()=>{throw Error('Must not redraw an inactive allocation')}});
+ const saving=s.saveAllocation(false);for(let i=0;i<10&&!release;i++)await Promise.resolve();assert.ok(release);s.Finance82={purpose:'New request draft'};release(saved);await saving;assert.equal(s.Finance82.purpose,'New request draft');assert.equal(s.allocation.purpose,'Saved allocation');assert.equal(controls[0].disabled,false);
+ console.log('PASS allocation completion retains the newly opened request and stores the saved allocation separately');
+ const v=run(functionCode('validateAllocation'),{validDate14317:()=>true,CurrencyStore:{currencies:[{code:'USD'}]},num:Number,financeTotals117:()=>({USD:{received:Infinity}})});assert.throws(()=>v.validateAllocation({date:'2026-10-01',lines:[],movements:[{account:'cash',reference:'test',currency:'USD',inflow:1,outflow:0}],conversions:[]},false),/supported amount range/);
+ console.log('PASS overflowing allocation totals cannot be saved');
+})().catch(e=>{console.error(e);process.exitCode=1});

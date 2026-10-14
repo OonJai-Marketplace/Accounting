@@ -56,7 +56,6 @@ function switchTab(tabId) {
   if (tabId === 'journal' && typeof renderJournalHistoryTable === 'function') renderJournalHistoryTable();
   if (tabId === 'transactions-new' && typeof renderNewTransactionsTable === 'function') renderNewTransactionsTable();
   if (tabId === 'transactions-all' && typeof renderAllTransactionsTable === 'function') renderAllTransactionsTable();
-  if (tabId === 'dashboard') initSummaryChart();
   closeNavigationAfterSelection();
 }
 

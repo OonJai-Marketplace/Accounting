@@ -38,12 +38,12 @@ async function saveStaff(){
  try{
   const result=await A.saveStaffEditor(owner,data);
   if(result?.saved||result?.queued){
-   if(result.queued)parent.showCenterStatus('Saved on this device. It will sync automatically when connected.');
    if(A.profile()?.id!==actor||A.session()!==session)return;
+   if(result.queued)parent.showCenterStatus('Saved on this device. It will sync automatically when connected.');
    delete phoneDrafts1427.staff[owner];
    // A failed refresh after a confirmed save must not leave a resubmittable draft.
-   if(S.user===owner){S.staffDraft=null;S.editingStaff=false;S.month=data.date.slice(0,7);}persistPhoneDraft1427();busy=false;if(workspaceOpen14238===navigation)navigate('subusers','entries',false);
+   if(S.user===owner&&S.staffDraft===data){S.staffDraft=null;S.editingStaff=false;S.month=data.date.slice(0,7);}persistPhoneDraft1427();busy=false;if(S.user===owner&&workspaceOpen14238===navigation)navigate('subusers','entries',false);
   }
- }catch(e){parent.showCenterStatus('Saving was not confirmed. Your draft is kept; check Entries before retrying. '+e.message,true)}
+ }catch(e){if(A.profile()?.id!==actor||A.session()!==session)return;parent.showCenterStatus('Saving was not confirmed. Your draft is kept; check Entries before retrying. '+e.message,true)}
  finally{busy=false;controls.forEach(([n,disabled])=>{if(n.isConnected)n.disabled=disabled});if(A.session()===session&&S.module==='subusers'&&S.page==='post')render()}
 }

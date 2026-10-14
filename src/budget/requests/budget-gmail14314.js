@@ -41,7 +41,8 @@ function connect(clientId,preferredEmail=''){
      if(settled||epoch!==generation)throw Error('Gmail connection changed. Please reconnect.');
      if(!identity.email||identity.email_verified!==true)throw Error('Connect a verified Google email account.');
      if(preferredEmail&&identity.email.toLowerCase()!==preferredEmail)throw Error('Choose the saved sender '+preferredEmail+' in Google, or change Sender email in Settings first.');
-     session={owner,clientId,email:identity.email,token:response.access_token,expires:Date.now()+Math.max(0,Number(response.expires_in||3600)-60)*1000};
+     const lifetime=Number(response.expires_in??3600);if(!Number.isFinite(lifetime)||lifetime<=60)throw Error('Google authorization expired. Please reconnect.');
+     session={owner,clientId,email:identity.email,token:response.access_token,expires:Date.now()+(lifetime-60)*1000};
      finish(null,{email:session.email});
     }catch(e){finish(e)}
    }});
@@ -63,6 +64,7 @@ function subjectHeader(value){
 }
 function rawMessage({from,to,subject,detail,html,messageId}){
  const checked=recipients(to);if(!/^[^\s<>\r\n@]+@[^\s<>\r\n@]+$/.test(from))throw Error('Reconnect Gmail to verify the sender.');
+ if(!/^[a-zA-Z0-9._-]{1,200}$/.test(String(messageId||'')))throw Error('Reopen the email preview to generate a valid message identifier.');
  const boundary='oonjai-'+crypto.randomUUID();
  const part=(type,text)=>['--'+boundary,'Content-Type: '+type+'; charset=UTF-8','Content-Transfer-Encoding: base64','',base64(text).match(/.{1,76}/g)?.join('\r\n')||''].join('\r\n');
  const mime=['From: '+from,'To: '+checked.join(',\r\n '),'Subject: '+subjectHeader(subject),'Date: '+new Date().toUTCString(),'Message-ID: <'+messageId+'@oonjai-budget.invalid>','MIME-Version: 1.0','Content-Type: multipart/alternative; boundary="'+boundary+'"','',part('text/plain',detail),part('text/html',html),'--'+boundary+'--',''].join('\r\n');
@@ -73,10 +75,10 @@ async function send(clientId,message){
  if(!status(clientId).connected)throw Error('Connect Gmail before sending.');
  if(navigator.onLine===false)throw Error('Sending email needs an internet connection.');
  if(message.from!==session.email)throw Error('The Gmail sender changed. Review the message again.');
- const raw=rawMessage(message),token=session.token;sending=true;
+ const raw=rawMessage(message),token=session.token,connected=session;sending=true;
  try{
   const r=await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({raw}),cache:'no-store',signal:AbortSignal.timeout(30000)});
-  if(!r.ok){if(r.status===401)clear();const e=Error(r.status===401?'Gmail authorization expired. Reconnect Gmail before sending.':r.status===403?'Google refused sending. Check Gmail API setup and sending permission.':r.status===429?'Gmail sending limit reached. Try again later.':'Gmail did not confirm sending. Check Gmail Sent before trying again.');e.uncertain=r.status>=500;throw e;}
+  if(!r.ok){if(r.status===401&&session===connected)clear();const e=Error(r.status===401?'Gmail authorization expired. Reconnect Gmail before sending.':r.status===403?'Google refused sending. Check Gmail API setup and sending permission.':r.status===429?'Gmail sending limit reached. Try again later.':'Gmail did not confirm sending. Check Gmail Sent before trying again.');e.uncertain=r.status>=500;throw e;}
   const result=await r.json();if(!result.id){const e=Error('Gmail did not confirm sending. Check Gmail Sent before trying again.');e.uncertain=true;throw e;}
   return {id:result.id,email:message.from};
  }catch(e){if(e.uncertain!==undefined)throw e;const unknown=Error('Sending could not be confirmed. Check Gmail Sent before trying again to avoid sending twice.');unknown.uncertain=true;throw unknown}

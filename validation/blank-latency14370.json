@@ -1,0 +1,116 @@
+{
+  "cpuSlowdown": 4,
+  "scope": "Local empty-accounting fixture; real trusted sidebar clicks; two animation frames estimate paint opportunity",
+  "measurements": [
+    {
+      "offline": false,
+      "repeat": 0,
+      "inputDelayMs": 9.600000008940697,
+      "handlerMs": 68.79999999701977,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 224,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": false,
+      "repeat": 1,
+      "inputDelayMs": 10.200000002980232,
+      "handlerMs": 80.40000000596046,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 237.40000000596046,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": false,
+      "repeat": 2,
+      "inputDelayMs": 11.5,
+      "handlerMs": 70.5,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 205.59999999403954,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": false,
+      "repeat": 3,
+      "inputDelayMs": 11.400000005960464,
+      "handlerMs": 81.19999998807907,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 235.69999998807907,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": false,
+      "repeat": 4,
+      "inputDelayMs": 10.299999997019768,
+      "handlerMs": 64.90000000596046,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 227.40000000596046,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": true,
+      "repeat": 0,
+      "inputDelayMs": 12.699999988079071,
+      "handlerMs": 70.30000001192093,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 239.5,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": true,
+      "repeat": 1,
+      "inputDelayMs": 7.800000011920929,
+      "handlerMs": 59.29999999701977,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 193.69999998807907,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": true,
+      "repeat": 2,
+      "inputDelayMs": 13.5,
+      "handlerMs": 71.09999999403954,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 218.8999999910593,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": true,
+      "repeat": 3,
+      "inputDelayMs": 11,
+      "handlerMs": 63.20000000298023,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 214.5,
+      "finished": true,
+      "requests": []
+    },
+    {
+      "offline": true,
+      "repeat": 4,
+      "inputDelayMs": 10.099999994039536,
+      "handlerMs": 62.70000000298023,
+      "active": "navigation-blank14366",
+      "pending": false,
+      "paintOpportunityMs": 212.09999999403954,
+      "finished": true,
+      "requests": []
+    }
+  ]
+}

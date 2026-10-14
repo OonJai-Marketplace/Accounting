@@ -30,8 +30,9 @@ function historyDetails(root){
  if(root.id==='archiveMonths67')return [...root.querySelectorAll(':scope>details.archive-year')];
  return [...root.querySelectorAll(':scope>details')];
 }
-function initializeHistories(){
- const roots=document.querySelectorAll('#auditMonths98,#archiveMonths67,#historyRecords95,#userEntryHistoryCards,#finalRecordList,.workspace-review-scroll,.personal-history-list1437,.staff-submitted-history');
+const historySelector='#auditMonths98,#archiveMonths67,#historyRecords95,#userEntryHistoryCards,#finalRecordList,.workspace-review-scroll,.personal-history-list1437,.staff-submitted-history';
+function initializeHistories(root=document){
+ const roots=[...(root.matches?.(historySelector)?[root]:[]),...root.querySelectorAll(historySelector)];
  for(const root of roots){let details=historyDetails(root),fresh=details.filter(d=>!d.dataset.latestDefault14300);if(!fresh.length)continue;if(details.length>1&&details.every(d=>/\b20\d{2}(?:-\d{2}(?:-\d{2})?)?\b/.test(d.textContent))){details.sort((a,b)=>(b.textContent.match(/\b20\d{2}(?:-\d{2}(?:-\d{2})?)?\b/)?.[0]||'').localeCompare(a.textContent.match(/\b20\d{2}(?:-\d{2}(?:-\d{2})?)?\b/)?.[0]||''));details.forEach(d=>root.append(d))}details.forEach((d,index)=>{d.open=index===0;d.dataset.latestDefault14300='1'});if(root.id==='archiveMonths67'){const months=details[0]?.querySelectorAll(':scope>div>details.archive-month,:scope>details.archive-month')||[];months.forEach((d,index)=>{d.open=index===0;d.dataset.latestDefault14300='1'})}}
 }
 function standardizeReportActions(root=document){
@@ -40,16 +41,17 @@ function standardizeReportActions(root=document){
   if(/^(?:print|preview|review|open\s*\/\s*print|print\s*\/\s*pdf|review\s*&\s*print)\b/i.test(label))button.classList.add('report-action14300');
  }
 }
-function standardizeVisibleDates(){
- for(const cell of document.querySelectorAll('#voucherRows14299 tr>td:nth-child(3),.th-activity time')){
+function standardizeVisibleDates(root=document){
+ const selector='#voucherRows14299 tr>td:nth-child(3),.th-activity time';
+ for(const cell of [...(root.matches?.(selector)?[root]:[]),...root.querySelectorAll(selector)]){
   const raw=(cell.dataset.rawDate14300||cell.textContent||'').trim();if(!/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(raw))continue;
   cell.dataset.rawDate14300=raw;const formatted=formatAppDate(raw);if(cell.textContent!==formatted)cell.textContent=formatted;
  }
 }
-function hidePrivateDraftActivity(){for(const row of document.querySelectorAll('.th-activity'))if(/saved a draft/i.test(row.textContent||''))row.remove()}
-let queued=false;
-function polish(){queued=false;hidePrivateDraftActivity();initializeHistories();standardizeVisibleDates();syncTab()}
-function schedule(){if(!queued){queued=true;requestAnimationFrame(polish)}}
+function hidePrivateDraftActivity(root=document){for(const row of [...(root.matches?.('.th-activity')?[root]:[]),...root.querySelectorAll('.th-activity')])if(/saved a draft/i.test(row.textContent||''))row.remove()}
+let queued=false,lastDateFormat=ApplicationSettings.system?.dateFormat;const pending=new Set();
+function polish(root=document){hidePrivateDraftActivity(root);initializeHistories(root);standardizeVisibleDates(root)}
+function schedule(root){pending.add(root);if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;const roots=new Set(pending);pending.clear();for(const node of roots){let parent=node.parentElement;while(parent&&!roots.has(parent))parent=parent.parentElement;if(node.isConnected&&!parent)polish(node)}})}}
 const switchBefore=window.switchTab;
 window.switchTab=function(...args){const result=switchBefore.apply(this,args);syncTab();return result};
 window.polishAudit14300=function(){
@@ -59,5 +61,5 @@ window.polishAudit14300=function(){
 };
 const auditBefore=window.renderVoidedTransactionsTable;
 if(typeof auditBefore==='function')window.renderVoidedTransactionsTable=function(...args){const result=auditBefore.apply(this,args);window.polishAudit14300();return result};
-document.addEventListener('DOMContentLoaded',()=>{polish();standardizeReportActions();new MutationObserver(records=>{const roots=new Set();for(const r of records){const button=r.target.closest?.('button,[role=button]');if(button)roots.add(button);for(const n of r.addedNodes)if(n.nodeType===1)roots.add(n)}for(const root of roots){let parent=root.parentNode;while(parent&&!roots.has(parent))parent=parent.parentNode;if(root.isConnected&&!parent)standardizeReportActions(root)};schedule()}).observe(document.body,{childList:true,subtree:true})},{once:true});
+document.addEventListener('DOMContentLoaded',()=>{polish();syncTab();standardizeReportActions();new MutationObserver(records=>{if(lastDateFormat!==ApplicationSettings.system?.dateFormat){lastDateFormat=ApplicationSettings.system?.dateFormat;standardizeVisibleDates()}const roots=new Set();for(const r of records){const context=r.target.closest?.(historySelector+',#voucherRows14299,.th-activity');if(context)schedule(context);const button=r.target.closest?.('button,[role=button]');if(button)roots.add(button);for(const n of r.addedNodes)if(n.nodeType===1)roots.add(n)}for(const root of roots){let parent=root.parentNode;while(parent&&!roots.has(parent))parent=parent.parentNode;if(root.isConnected&&!parent){standardizeReportActions(root);if(root.matches(historySelector+',#voucherRows14299,.th-activity')||root.querySelector(historySelector+',#voucherRows14299,.th-activity'))schedule(root)}}}).observe(document.body,{childList:true,subtree:true})},{once:true});
 })();

@@ -11,7 +11,7 @@ Later approved features remain in place. The phone layout is unchanged.
 For an existing database, run `setup/INSTALL-MAINTENANCE-v143.24.sql` once in
 the company's Supabase SQL editor. It requires the existing v143.22 schema.
 It adds inspection functions and a closing trigger. It does not reset records.
-For a new database, follow `setup/fresh/manifest.json`, including step 004.
+For a new database, follow `setup/fresh/START-HERE.md`. Maintenance is included in the current file 001; file 004 supports older packages.
 
 Publishing the repository does **not** execute SQL in Supabase. Until this
 update is installed, the new tools identify the missing update and closing
@@ -93,7 +93,7 @@ Payroll formulas recalculate gross, taxable, net and payment from saved componen
 
 **Run System Diagnostics** is a separate read-only module:
 
-- SHA-256 comparison of release files against the recorded, tested v143.26 release.
+- SHA-256 comparison of release files against the version recorded in the shipped release manifest.
 - Bundle segment attribution to original source filenames when a bundle differs.
 - Required module initialization and independent cents/void/cutoff arithmetic tests.
 - Native desktop scale, current maintenance action height and workspace overflow.

@@ -30,7 +30,7 @@ function updateSettingsBrowser(tabId){
 }
 
 const switchTabBeforeFoundationControls=switchTab;
-switchTab=function(tabId){switchTabBeforeFoundationControls(tabId);updateSettingsBrowser(tabId);updateGlobalExportTools(tabId);if(tabId==='sub-users-workspace'){renderSubUserSearchResults('');renderSubUserWorkspace()}};
+switchTab=function(tabId,...args){const result=switchTabBeforeFoundationControls.call(this,tabId,...args),active=document.querySelector('.tab-content.active')?.id||'';updateSettingsBrowser(active);updateGlobalExportTools(active);if(active==='sub-users-workspace'){renderSubUserSearchResults('');renderSubUserWorkspace()}return result};
 const scrollToAccountBeforeFoundationControls=scrollToAccountModule;
 scrollToAccountModule=function(moduleId){const result=scrollToAccountBeforeFoundationControls(moduleId);updateSettingsBrowser('');updateGlobalExportTools(moduleId);return result};
 
@@ -52,12 +52,15 @@ reloadBusinessSettings=function(notifyUser=false){
   if(notifyUser)showCenterStatus('Unsaved changes were undone.');
 };
 const loadBusinessSettingsBeforeFoundation=loadBusinessSettingsFromSupabase;
-loadBusinessSettingsFromSupabase=async function(){await loadBusinessSettingsBeforeFoundation();setBusinessSettingsBaseline()};
+loadBusinessSettingsFromSupabase=async function(){const owner=liveProfile?.id;await loadBusinessSettingsBeforeFoundation();if(liveProfile?.id===owner)setBusinessSettingsBaseline()};
 const saveBusinessSettingsBeforeFoundation=saveBusinessSettings;
 saveBusinessSettings=async function(event){
-  const saved=await saveBusinessSettingsBeforeFoundation(event);
+  const owner=liveProfile?.id;const snapshot=businessSettingsSnapshot();const saved=await saveBusinessSettingsBeforeFoundation(event);
+  if(liveProfile?.id!==owner)return false;
   if(saved===false)return;
   const form=document.getElementById('businessSettingsForm');if(!form?.checkValidity())return;
+  businessSettingsBaseline=snapshot;reconcileBusinessDirtyState();
+  if(businessSettingsSnapshot()!==snapshot)return true;
   setBusinessSettingsBaseline();
   const status=document.getElementById('businessSettingsStatus');if(status){status.textContent='All business information changes are saved.';status.classList.remove('is-save-confirmation')}
   showCenterStatus('Business information saved.');

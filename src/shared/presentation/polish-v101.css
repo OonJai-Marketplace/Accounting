@@ -3,7 +3,7 @@ body :is(.je-card,.module-card,.settings-section-card,.system-printing-panel,.wo
 body :is(details.archive-month,details.audit-month98,details.pay-group95,details.ledger-account69,details.ledger-account71,details.ledger-aligned85,details.archive-aligned85,details.workspace-review-record,details.submission-review-record){margin:0 0 4px!important}
 body :is(#ledger69,#archiveMonths67,#auditMonths98) {row-gap:0!important;gap:0!important}
 body .row-menu-panel99{width:166px!important;max-height:188px!important;padding:5px!important}
-body .row-menu-panel99 button{border:1px solid transparent!important;border-radius:4px!important;background:transparent!important;padding:6px 7px!important;line-height:1.2!important;font-size:12px!important;font-weight:600!important;line-height:1.2!important;cursor:pointer}
+body .row-menu-panel99 button{border:1px solid transparent!important;border-radius:4px!important;background:transparent!important;padding:6px 7px!important;line-height:1.2!important;font-size:12px!important;font-weight:600!important;cursor:pointer}
 body .row-menu-panel99 button:hover,body .row-menu-panel99 button:focus-visible{background:#e7f2ea!important;border-color:#abcdb9!important}
 body #jeLinesBody .row-menu-panel99 button{height:30px!important}
 body #jeLinesBody .row-menu-panel99 button[title^="Move"]{font-size:16px!important;line-height:1!important}

@@ -3,7 +3,7 @@ import {administrator,cors,json,reply,strong} from '../_shared/security14320.ts'
 Deno.serve(async req=>{let headers:Record<string,string>={};try{
  headers=cors(req);if(req.method==='OPTIONS')return new Response(null,{headers});if(req.method!=='POST')return reply(405,{error:'POST required'},headers);
  const {admin,user}=await administrator(req),body=await json(req);
- const email=String(body.email||'').trim().toLowerCase(),name=String(body.full_name||'').trim(),role=body.user_type==='admin'?'admin':'submitter';
+ const email=String(body.email||'').trim().toLowerCase(),name=String(body.full_name||'').trim();
  if(!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(email)||email.length>254||!name||name.length>160||!strong(body.password))return reply(400,{error:'Enter a name, valid email and a password meeting all requirements.'},headers);
  if(body.user_type&&!['admin','submitter','cashier','staff','user','sub_user','manager'].includes(body.user_type))return reply(400,{error:'Choose a supported account type'},headers);
  const reserved=await admin.rpc('reserve_account14320',{p_actor:user.id,p_email:email,p_name:name});if(reserved.error)throw reserved.error;

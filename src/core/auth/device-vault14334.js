@@ -181,10 +181,22 @@
     if (!secret) return [...ephemeral[kind].keys()];
     const prefix = physical(kind, "");
     return Array.from({ length: raw.length }, (_, i) => raw.key(i))
-      .filter((k) => k.startsWith(prefix))
+      .filter((k) => k?.startsWith(prefix))
       .map((k) => k.slice(prefix.length));
   }
   function adapter(raw, kind) {
+    // Reuse one key snapshot during a synchronous enumeration, then discard it.
+    // Storage mutations and account/key changes invalidate it immediately.
+    let snapshot = null;
+    const keys = () => {
+      const size = secret ? raw.length : ephemeral[kind].size;
+      if (!snapshot || snapshot.actor !== actor || snapshot.secret !== secret || snapshot.size !== size) {
+        const names = logicalKeys(raw, kind);
+        const current = snapshot = {actor, secret, size, names, set: new Set(names)};
+        queueMicrotask(() => { if (snapshot === current) snapshot = null; });
+      }
+      return snapshot;
+    };
     const methods = {
       getItem(key) {
         key = String(key);
@@ -196,6 +208,7 @@
         return openWith(secret, JSON.parse(v), name);
       },
       setItem(key, value) {
+        snapshot = null;
         key = String(key);
         value = String(value);
         if (!secret) {
@@ -207,6 +220,7 @@
         raw.setItem(name, JSON.stringify(sealWith(secret, value, name)));
       },
       removeItem(key) {
+        snapshot = null;
         key = String(key);
         if (!secret) {
           ephemeral[kind].delete(key);
@@ -216,17 +230,17 @@
         raw.removeItem(physical(kind, key));
       },
       clear() {
-        for (const k of logicalKeys(raw, kind)) methods.removeItem(k);
+        for (const k of keys().names) methods.removeItem(k);
       },
       key(i) {
-        return logicalKeys(raw, kind)[i] ?? null;
+        return keys().names[i] ?? null;
       },
     };
     return new Proxy(
       {},
       {
         get(_, k) {
-          if (k === "length") return logicalKeys(raw, kind).length;
+          if (k === "length") return keys().names.length;
           if (k === Symbol.toStringTag) return "Storage";
           return methods[k] || methods.getItem(k);
         },
@@ -239,10 +253,10 @@
           return true;
         },
         ownKeys() {
-          return logicalKeys(raw, kind);
+          return keys().names;
         },
         getOwnPropertyDescriptor(_, k) {
-          return logicalKeys(raw, kind).includes(k)
+          return keys().set.has(k)
             ? {
                 enumerable: true,
                 configurable: true,
@@ -333,6 +347,9 @@
     !/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(k) ||
     k.includes(actor);
   async function migrate(role) {
+    const migrationActor = actor;
+    const checkActor = () => { if (!secret || locked || actor !== migrationActor) throw Error("Account changed before device migration completed."); };
+    checkActor();
     for (const [kind, raw, target] of [
       [0, rawLocal, localStorage],
       [1, rawSession, sessionStorage],
@@ -374,17 +391,19 @@
         r.onsuccess = () => resolve(r.result);
         r.onerror = () => reject(r.error);
       });
+      if (!secret || locked || actor !== migrationActor) { d.close(); checkActor(); }
       if (!d.objectStoreNames.contains(store)) {
         d.close();
         continue;
       }
-      await new Promise((resolve, reject) => {
+      try { await new Promise((resolve, reject) => {
         const tx = d.transaction(store, "readwrite"),
           r = tx.objectStore(store).openCursor();
         r.onsuccess = () => {
           const c = r.result;
           if (!c) return;
           try {
+            checkActor();
             if (
               (String(c.key).includes(actor) || c.value?.owner === actor) &&
               c.value?.vault14334 !== 1
@@ -403,8 +422,7 @@
         tx.oncomplete = resolve;
         tx.onabort = tx.onerror = () =>
           reject(tx.error || Error("Could not protect existing device data."));
-      });
-      d.close();
+      }); } finally { d.close(); }
     }
   }
   async function provision(email, password, id, role) {
@@ -461,16 +479,18 @@
   }
   async function rewrap(email, password) {
     if (!secret) return;
-    const m = await metadata(email);
-    if (!m || m.actor !== actor) return;
-    m.salt = b64(random(16));
-    m.wrapped = sealWith(
-      await passwordKey(password, m.salt),
-      b64(secret),
-      scope + ":wrap:" + actor,
-    );
-    m.revoked = false;
-    rawLocal.setItem(await metaKey(email), JSON.stringify(m));
+    const id = actor, original = secret, key = secret.slice();
+    try {
+      const recordKey = await metaKey(email), m = JSON.parse(rawLocal.getItem(recordKey) || "null");
+      if (!m || m.actor !== id) return;
+      const salt = b64(random(16)), wrappingKey = await passwordKey(password, salt);
+      if (actor !== id || secret !== original || locked) throw Error("Account changed before offline password protection was updated. Sign in again.");
+      m.salt = salt;
+      m.wrapped = sealWith(wrappingKey, b64(key), scope + ":wrap:" + id);
+      wrappingKey.fill(0);
+      m.revoked = false;
+      rawLocal.setItem(recordKey, JSON.stringify(m));
+    } finally { key.fill(0); }
   }
   function revoke() {
     for (const k of Object.keys(rawLocal)) {
@@ -554,6 +574,7 @@
       return get();
     };
     auth.signInWithPassword = async (credentials) => {
+      if (pending) return { data: { session: null, user: null }, error: { message: "Sign-in is already in progress." } };
       pending = true;
       let verified = false,
         navigating = false;

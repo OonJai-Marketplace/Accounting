@@ -1,6 +1,6 @@
 // Execute the production SQL against temporary PostgreSQL only. No live connection.
 const fs=require('fs'),assert=require('assert/strict');
-const {PGlite}=require(process.env.PGLITE_MODULE||'/tmp/oonjai-review-tools/node_modules/@electric-sql/pglite/dist/index.cjs');
+const {PGlite}=require(process.env.PGLITE_MODULE||'@electric-sql/pglite');
 (async()=>{const db=new PGlite(),checks=[];const check=async(name,f)=>{await f();checks.push({name,passed:true});console.log('PASS',name)};
 await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE SCHEMA auth;
 CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT nullif(current_setting('app.actor',true),'')::uuid$$;

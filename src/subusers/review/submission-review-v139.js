@@ -29,16 +29,17 @@
   };
   const loadLegacy=window.loadSubmissionsFromSupabase;
   window.loadSubmissionsFromSupabase=async function(...args){
-    try{const result=await loadLegacy.apply(this,args);legacyState='ready';legacyError='';renderUserEntryReview();return result}
-    catch(error){legacyState='error';legacyError=error.message;renderUserEntryReview();throw error}
+    const actor=liveProfile?.id,db=ojmDb;
+    try{const result=await loadLegacy.apply(this,args);if(liveProfile?.id!==actor||ojmDb!==db)return result;legacyState='ready';legacyError='';renderUserEntryReview();return result}
+    catch(error){if(liveProfile?.id===actor&&ojmDb===db){legacyState='error';legacyError=error.message;renderUserEntryReview()}throw error}
   };
   const loadReview=window.loadStaffJournalsForReview;
   window.loadStaffJournalsForReview=async function(...args){
-    await loadReview.apply(this,args);
+    const actor=liveProfile?.id,db=ojmDb;await loadReview.apply(this,args);if(liveProfile?.id!==actor||ojmDb!==db)return;
     if(ojmDb&&liveProfile&&(liveProfile.role==='admin'||livePermission?.can_approve))await loadSubmissionsFromSupabase();
   };
   const changeTab=window.switchTab;
-  window.switchTab=function(id,...args){const result=changeTab.call(this,id,...args);if(id==='user-entry-review'&&!window.startup14257&&!busy){busy=true;loadStaffJournalsForReview().catch(error=>{legacyState='error';legacyError=error.message;renderUserEntryReview()}).finally(()=>busy=false)}return result};
+  window.switchTab=function(id,...args){const result=changeTab.call(this,id,...args);if(id==='user-entry-review'&&!window.startup14257&&!busy){busy=true;const actor=liveProfile?.id;loadStaffJournalsForReview().catch(error=>{if(liveProfile?.id!==actor)return;legacyState='error';legacyError=error.message;renderUserEntryReview()}).finally(()=>busy=false)}return result};
   document.addEventListener('click',async event=>{
     const action=event.target.closest?.('[data-review-entry139]');if(!action)return;
     event.preventDefault();if(action.disabled)return;action.disabled=true;

@@ -5,9 +5,11 @@ function monthLabel(monthKey) {
 }
 
 async function archiveTransactionMonth(monthKey) {
+  const owner=liveProfile?.id;
   const ids = new Set(JournalModule.entries.filter(e => monthKeyFromDate(e.date) === monthKey && !e.archived).map(e => e.id));
   if (!ids.size) return;
   if (!await ui117.confirm(`Archive all unarchived transactions for ${monthLabel(monthKey)}? This closes that monthly batch and moves it to All Transactions.`)) return;
+  if(liveProfile?.id!==owner)return;
   const stamp = new Date().toISOString();
   JournalModule.entries.forEach(e => {
     if (ids.has(e.id)) { e.archived = true; e.archivedAt = stamp; }

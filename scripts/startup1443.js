@@ -14,5 +14,5 @@ window.startupData1443=async function(checkSession){
  const slow=setTimeout(()=>{if(currentJob===job&&document.body.classList.contains('startup-pending1443'))pending(true,'The connection is taking longer than usual. Your data is still loading…')},12000);
  try{return await loadAll()}finally{clearTimeout(slow)}
 };
-function ready(){const change=window.switchTab;window.switchTab=function(...args){const result=change.apply(this,args);currentJob?.activate?.();return result}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+function ready(){if(window.startup14257)return;const change=window.switchTab;window.switchTab=function(...args){const result=change.apply(this,args);currentJob?.activate?.();return result}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

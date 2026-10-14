@@ -7556,11 +7556,11 @@ INSERT INTO public.currencies("code","name","symbol","is_base","is_active","crea
 
 INSERT INTO public.currencies("code","name","symbol","is_base","is_active","created_at") SELECT "code","name","symbol","is_base","is_active","created_at" FROM jsonb_populate_record(NULL::public.currencies,'{"code":"THB","name":"Thai Baht","symbol":"฿","is_base":false,"is_active":true,"created_at":"2026-10-10T01:28:21.81-06:00"}'::jsonb);
 
-INSERT INTO public.data_tools_state14232("id","instance") SELECT "id","instance" FROM jsonb_populate_record(NULL::public.data_tools_state14232,'{"id":1,"instance":"0c6d376e-1428-4dcf-8838-10b4e8c0eba8"}'::jsonb);
+INSERT INTO public.data_tools_state14232("id","instance") SELECT "id",gen_random_uuid() FROM jsonb_populate_record(NULL::public.data_tools_state14232,'{"id":1,"instance":"0c6d376e-1428-4dcf-8838-10b4e8c0eba8"}'::jsonb);
 
-INSERT INTO public.installation14320("id","checks","version","instance","deployment","updated_at","updated_by","initialized","incoming_admin") SELECT "id","checks","version","instance","deployment","updated_at","updated_by","initialized","incoming_admin" FROM jsonb_populate_record(NULL::public.installation14320,'{"id":true,"checks":{},"version":1,"instance":"ab51ca35-a548-4498-a4a7-ddf10c9213f6","deployment":{},"updated_at":"2026-10-10T01:28:22.15-06:00","updated_by":null,"initialized":false,"incoming_admin":null}'::jsonb);
+INSERT INTO public.installation14320("id","checks","version","instance","deployment","updated_at","updated_by","initialized","incoming_admin") SELECT "id","checks","version",gen_random_uuid(),"deployment","updated_at","updated_by","initialized","incoming_admin" FROM jsonb_populate_record(NULL::public.installation14320,'{"id":true,"checks":{},"version":1,"instance":"ab51ca35-a548-4498-a4a7-ddf10c9213f6","deployment":{},"updated_at":"2026-10-10T01:28:22.15-06:00","updated_by":null,"initialized":false,"incoming_admin":null}'::jsonb);
 
-INSERT INTO public.opening_state14234("id","closed","result","payload","generation","request_key") SELECT "id","closed","result","payload","generation","request_key" FROM jsonb_populate_record(NULL::public.opening_state14234,'{"id":true,"closed":false,"result":null,"payload":null,"generation":"0224283f-4b5a-4152-8dff-50f92e8a4a87","request_key":null}'::jsonb);
+INSERT INTO public.opening_state14234("id","closed","result","payload","generation","request_key") SELECT "id","closed","result","payload",gen_random_uuid(),"request_key" FROM jsonb_populate_record(NULL::public.opening_state14234,'{"id":true,"closed":false,"result":null,"payload":null,"generation":"0224283f-4b5a-4152-8dff-50f92e8a4a87","request_key":null}'::jsonb);
 
 INSERT INTO public.print_settings("id","page_size","updated_at","updated_by","footer_path","header_path","orientation") SELECT "id","page_size","updated_at","updated_by","footer_path","header_path","orientation" FROM jsonb_populate_record(NULL::public.print_settings,'{"id":true,"page_size":"A4","updated_at":"2026-10-10T01:28:21.79-06:00","updated_by":null,"footer_path":null,"header_path":null,"orientation":"portrait"}'::jsonb);
 
@@ -10371,8 +10371,6 @@ CREATE TRIGGER workspace_actor_log138 AFTER INSERT OR DELETE OR UPDATE ON public
 -- HOOKS
 ALTER ROLE authenticator SET pgrst.db_pre_request='public.account_request_gate14258';
 
-ALTER ROLE authenticator SET pgrst.db_pre_request='public.account_request_gate14258';
-
 SET LOCAL check_function_bodies=on;
 NOTIFY pgrst,'reload config';
 NOTIFY pgrst,'reload schema';
@@ -10568,4 +10566,891 @@ END $function$
 
 -- Edge handlers verify the caller profile using the backend role.
 GRANT SELECT ON public.profiles TO service_role;
+-- Current backend additions assembled by refresh-fresh14370.py
+-- Source: setup/INSTALL-MAINTENANCE-v143.24.sql
+-- Read-only inspection and atomic closing review. No financial records are reset.
+-- Install after v143.22 (also required after a fresh v143.22 database installation).
+
+CREATE OR REPLACE FUNCTION public.maintenance_preflight14324(p_month date) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE last_day date; issues jsonb; balances jsonb; trial jsonb; pending jsonb; fingerprint text;
+BEGIN
+ IF auth.uid() IS NULL OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=auth.uid() AND role='admin' AND status='active') OR NOT public.accounting_workspace_allowed123() THEN RAISE EXCEPTION 'Active accounting administrator required';END IF;
+ IF p_month IS NULL OR p_month<>date_trunc('month',p_month)::date THEN RAISE EXCEPTION 'Choose a valid accounting month';END IF;
+ last_day=(p_month+interval '1 month')::date;
+ SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY x.code,x.currency),'[]') INTO balances FROM (
+  SELECT a.id,a.code,a.name,a.account_type,a.account_purpose,a.currency_code currency,
+   coalesce(sum(l.debit) FILTER(WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<last_day),0) debit,
+   coalesce(sum(l.credit) FILTER(WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<last_day),0) credit,
+   coalesce(sum(l.debit-l.credit) FILTER(WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<last_day),0) balance,
+   (a.account_type='ASSET' AND (a.name~*'(cash|bank|petty)' OR a.code~'^10[01]')) cash_candidate
+  FROM public.accounts a LEFT JOIN public.journal_lines l ON l.account_id=a.id LEFT JOIN public.journal_entries e ON e.id=l.journal_entry_id
+  WHERE a.is_posting GROUP BY a.id
+ ) x;
+ SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY x.currency),'[]') INTO trial FROM (
+  SELECT l.currency_code currency,sum(l.debit) debit,sum(l.credit) credit,sum(l.debit-l.credit) difference
+  FROM public.journal_lines l JOIN public.journal_entries e ON e.id=l.journal_entry_id
+  WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<last_day GROUP BY l.currency_code
+ ) x;
+ SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY x.severity,x.id),'[]') INTO issues FROM (
+  SELECT 'block'::text severity,'entry:'||e.id id,'Unbalanced journal' title,e.entry_no||' / '||l.currency_code||': difference '||sum(l.debit-l.credit)::text detail
+  FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<last_day GROUP BY e.id,l.currency_code HAVING abs(sum(l.debit-l.credit))>0.005
+  UNION ALL SELECT 'block','trial:'||(x->>'currency'),'Trial balance does not balance',x::text FROM jsonb_array_elements(trial) x WHERE abs((x->>'difference')::numeric)>0.005
+  UNION ALL SELECT 'block','empty:'||e.id,'Posted entry has fewer than two lines',e.entry_no FROM public.journal_entries e WHERE e.status::text='posted' AND e.transaction_date<last_day AND (SELECT count(*) FROM public.journal_lines l WHERE l.journal_entry_id=e.id)<2
+  UNION ALL SELECT 'block','number:'||entry_no,'Duplicate Entry ID',entry_no FROM public.journal_entries GROUP BY entry_no HAVING count(*)>1
+  UNION ALL SELECT 'block','missing-id:'||id,'Missing Entry ID',id::text FROM public.journal_entries WHERE btrim(coalesce(entry_no,''))=''
+  UNION ALL SELECT 'block','line:'||l.id,'Invalid journal line',l.id::text||': missing parent/account, currency mismatch, invalid amount or non-posting account' FROM public.journal_lines l LEFT JOIN public.journal_entries e ON e.id=l.journal_entry_id LEFT JOIN public.accounts a ON a.id=l.account_id WHERE e.id IS NULL OR a.id IS NULL OR (e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<last_day AND (l.currency_code<>a.currency_code OR NOT a.is_posting OR l.debit<0 OR l.credit<0 OR (l.debit>0 AND l.credit>0) OR (l.debit=0 AND l.credit=0) OR l.debit::text IN('NaN','Infinity','-Infinity') OR l.credit::text IN('NaN','Infinity','-Infinity')))
+  UNION ALL SELECT 'block','line-date:'||l.id,'Journal line is in a different posting month',e.entry_no||' / '||l.id FROM public.journal_lines l JOIN public.journal_entries e ON e.id=l.journal_entry_id WHERE e.status::text='posted' AND e.transaction_date<last_day AND date_trunc('month',coalesce(l.line_date,e.transaction_date))<>date_trunc('month',e.transaction_date)
+  UNION ALL SELECT 'block','finding:'||f.id,'Unresolved period finding',f.description FROM public.period_findings f JOIN public.accounting_periods p ON p.id=f.accounting_period_id WHERE p.period_month<=p_month AND f.status NOT IN('closed','corrected')
+  UNION ALL SELECT 'block','review:'||f.id,'Unresolved audit review',f.description FROM public.audit_reviews136 f JOIN public.accounting_periods p ON p.id=f.period_id WHERE p.period_month<=p_month AND f.status='open'
+  UNION ALL SELECT 'warning','draft:'||e.id,'Unposted journal',e.entry_no||' ('||e.status::text||') is excluded from the ledger' FROM public.journal_entries e WHERE e.transaction_date<last_day AND e.status::text NOT IN('posted','void','voided','cancelled')
+  UNION ALL SELECT 'warning','submission:'||id,'Unposted entry submission','Submission '||submission_no||' dated '||transaction_date||' is excluded from the ledger' FROM public.entry_submissions WHERE transaction_date<last_day AND status::text IN('pending','submitted') AND journal_entry_id IS NULL
+  UNION ALL SELECT 'warning','payroll:'||id,'Draft payroll','Payroll '||id||' for '||period_start||' has not been finalized' FROM public.payroll_runs WHERE period_start<last_day AND status='draft'
+  UNION ALL SELECT 'warning','memo:'||id,'Missing entry description',entry_no FROM public.journal_entries WHERE status::text='posted' AND transaction_date<last_day AND btrim(coalesce(memo,''))=''
+  UNION ALL SELECT 'warning','clearing:'||(x->>'id'),'Uncleared control account',(x->>'code')||' '||(x->>'name')||': '||(x->>'balance')||' '||(x->>'currency') FROM jsonb_array_elements(balances) x WHERE x->>'account_purpose' IN('clearing','suspense','settlement') AND abs((x->>'balance')::numeric)>0.005
+  UNION ALL SELECT 'warning','report:'||j.id,'Deferred staff report',coalesce(u.full_name,u.email,'Former user')||' / '||j.id||': '||count(*)||' unposted line(s) through the selected month' FROM public.staff_journals j JOIN public.staff_journal_lines l ON l.staff_journal_id=j.id LEFT JOIN public.profiles u ON u.id=j.owner_id WHERE l.transaction_date<last_day AND l.journal_entry_id IS NULL AND j.status IN('draft','returned','submitted') GROUP BY j.id,u.full_name,u.email
+ ) x;
+ pending=public.period_pending14317(p_month);
+ -- Include source rows, not just aggregate balances: equal-value edits invalidate review.
+ SELECT md5(jsonb_build_object('month',p_month,'issues',issues,'balances',balances,'pending',pending,
+  'entries',(SELECT coalesce(jsonb_agg(to_jsonb(e) ORDER BY e.id),'[]') FROM public.journal_entries e WHERE e.transaction_date<last_day),
+  'lines',(SELECT coalesce(jsonb_agg(to_jsonb(l) ORDER BY l.id),'[]') FROM public.journal_lines l JOIN public.journal_entries e ON e.id=l.journal_entry_id WHERE e.transaction_date<last_day),
+  'staff',(SELECT coalesce(jsonb_agg(to_jsonb(l) ORDER BY l.id),'[]') FROM public.staff_journal_lines l WHERE l.transaction_date<last_day),
+  'payroll',(SELECT coalesce(jsonb_agg(to_jsonb(r) ORDER BY r.id),'[]') FROM public.payroll_runs r WHERE r.period_start<last_day),
+  'sessions',(SELECT coalesce(jsonb_agg(to_jsonb(s) ORDER BY s.id),'[]') FROM public.book_sessions136 s JOIN public.accounting_periods p ON p.id=s.period_id WHERE p.period_month<=p_month AND s.status='editing'))::text) INTO fingerprint;
+ RETURN jsonb_build_object('version',14324,'month',p_month,'checkedAt',statement_timestamp(),'issues',issues,'balances',balances,'trial',trial,'pending',pending,'fingerprint',fingerprint);
+END $$;
+
+CREATE OR REPLACE FUNCTION public.maintenance_snapshot14324() RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE pack jsonb; name text; items jsonb;
+BEGIN
+ pack=public.audit_snapshot14232(); -- Existing active-admin and workspace checks.
+ FOREACH name IN ARRAY ARRAY['journal_sources14253','vouchers14299','voucher_versions14299','payroll_settings','hr_calendar_events14306'] LOOP
+  IF to_regclass(format('public.%I',name)) IS NOT NULL THEN
+   EXECUTE format('SELECT coalesce(jsonb_agg(to_jsonb(r) ORDER BY to_jsonb(r)::text),''[]''::jsonb) FROM public.%I r',name) INTO items;
+   pack=jsonb_set(pack,ARRAY['tables',name],items);
+  END IF;
+ END LOOP;
+ RETURN pack||jsonb_build_object('maintenanceVersion',14324,'copiedAt14324',statement_timestamp());
+END $$;
+
+CREATE OR REPLACE FUNCTION public.guard_maintenance14324() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE checkup jsonb; approval jsonb;
+BEGIN
+ IF NEW.status IN('closed','locked') AND (TG_OP='INSERT' OR NEW.status IS DISTINCT FROM OLD.status) THEN
+  approval=coalesce(nullif(current_setting('app.maintenance14324',true),'')::jsonb,'{}');
+  IF approval->>'actor' IS DISTINCT FROM auth.uid()::text OR NOT (approval->'months' ? to_char(NEW.period_month,'YYYY-MM')) THEN RAISE EXCEPTION 'Run Maintenance & Audit closing checks before closing or locking';END IF;
+  checkup=public.maintenance_preflight14324(NEW.period_month);
+  IF EXISTS(SELECT 1 FROM jsonb_array_elements(checkup->'issues') AS item(value) WHERE item.value->>'severity'='block') THEN RAISE EXCEPTION 'Closing blocked: %',checkup->'issues';END IF;
+ END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS guard_maintenance14324 ON public.accounting_periods;
+CREATE TRIGGER guard_maintenance14324 BEFORE INSERT OR UPDATE OF status ON public.accounting_periods FOR EACH ROW EXECUTE FUNCTION public.guard_maintenance14324();
+
+CREATE OR REPLACE FUNCTION public.maintenance_finish14324(p_month date,p_kind text,p_fingerprint text,p_review jsonb,p_status text DEFAULT 'closed',p_session uuid DEFAULT NULL,p_year integer DEFAULT NULL,p_confirmation text DEFAULT NULL,p_year_fingerprint text DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE checkup jsonb; x jsonb; answer jsonb; actual numeric; months jsonb; acks jsonb='{}'; d date; m integer; result jsonb; book_month date;
+BEGIN
+ IF p_kind NOT IN('period','session','year') THEN RAISE EXCEPTION 'Invalid closing action';END IF;
+ IF p_kind='year' AND (p_year IS NULL OR p_month IS DISTINCT FROM make_date(p_year,12,1)) THEN RAISE EXCEPTION 'Choose the December year-end review';END IF;
+ -- Stable source and acknowledgments through commit; no write can slip between review and close.
+ LOCK TABLE public.accounting_periods,public.accounts,public.journal_entries,public.journal_lines,public.staff_journals,public.staff_journal_lines,public.payroll_runs,public.entry_submissions,public.period_findings,public.audit_reviews136,public.book_sessions136 IN SHARE ROW EXCLUSIVE MODE;
+ checkup=public.maintenance_preflight14324(p_month);
+ IF p_fingerprint IS DISTINCT FROM checkup->>'fingerprint' THEN RAISE EXCEPTION 'Records changed. Run the closing checks and review again.';END IF;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(checkup->'issues') AS item(value) WHERE item.value->>'severity'='block') THEN RAISE EXCEPTION 'Closing is blocked by integrity errors';END IF;
+ IF p_review->>'coverageConfirmed' IS DISTINCT FROM 'true' THEN RAISE EXCEPTION 'Confirm that every cash and bank account is included in reconciliation';END IF;
+ FOR x IN SELECT value FROM jsonb_array_elements(checkup->'issues') WHERE value->>'severity'='warning' LOOP
+  answer=p_review->'acknowledgments'->(x->>'id');
+  IF answer->>'acknowledged' IS DISTINCT FROM 'true' OR length(btrim(coalesce(answer->>'reason','')))<3 THEN RAISE EXCEPTION 'Acknowledge and explain: %',x->>'title';END IF;
+ END LOOP;
+ FOR x IN SELECT value FROM jsonb_array_elements(checkup->'balances') WHERE (value->>'cash_candidate')::boolean OR p_review->'reconciliations' ? (value->>'id') LOOP
+  answer=p_review->'reconciliations'->(x->>'id');
+  IF answer->>'actual' IS NULL OR answer->>'actual' !~ '^-?[0-9]+(\.[0-9]{1,2})?$' THEN RAISE EXCEPTION 'Enter a numeric actual balance for %',x->>'name';END IF;
+  actual=(answer->>'actual')::numeric;
+  IF p_kind<>'session' AND abs(actual-(x->>'balance')::numeric)>0.005 AND (answer->>'acknowledged' IS DISTINCT FROM 'true' OR length(btrim(coalesce(answer->>'reason','')))<3) THEN RAISE EXCEPTION 'Explain and acknowledge the balance difference for %',x->>'name';END IF;
+ END LOOP;
+ months=jsonb_build_array(to_char(p_month,'YYYY-MM'));
+ IF p_kind='year' THEN
+  months='[]';FOR m IN 1..12 LOOP
+   d=make_date(p_year,m,1);months=months||jsonb_build_array(to_char(d,'YYYY-MM'));x=public.period_pending14317(d);
+   acks=acks||jsonb_build_object(to_char(d,'YYYY-MM'),jsonb_build_object('revision',x->>'revision','acknowledged',true));
+  END LOOP;
+ END IF;
+ PERFORM set_config('app.maintenance14324',jsonb_build_object('actor',auth.uid(),'months',months)::text,true);
+ IF p_kind='period' THEN
+  result=public.set_period_status14317(p_month,p_status,checkup->'pending'->>'revision',true);
+ ELSIF p_kind='session' THEN
+  SELECT p.period_month INTO book_month FROM public.book_sessions136 s JOIN public.accounting_periods p ON p.id=s.period_id WHERE s.id=p_session AND s.owner_id=auth.uid() AND s.status='editing';
+  IF book_month IS DISTINCT FROM p_month THEN RAISE EXCEPTION 'Correction session month changed or session is unavailable';END IF;
+  PERFORM public.ack_period14317(p_month,checkup->'pending'->>'revision',true);
+  result=public.finish_book_session136(p_session,false);
+  -- Reconcile against the committed correction, not the old pre-correction book.
+  FOR x IN SELECT value FROM jsonb_array_elements(public.maintenance_preflight14324(p_month)->'balances') WHERE (value->>'cash_candidate')::boolean OR p_review->'reconciliations' ? (value->>'id') LOOP
+   answer=p_review->'reconciliations'->(x->>'id');
+   IF answer->>'expectedBalance' IS NULL OR (answer->>'expectedBalance')::numeric IS DISTINCT FROM (x->>'balance')::numeric THEN RAISE EXCEPTION 'Projected correction balances differ. Review the staged changes again.';END IF;
+   IF abs((answer->>'actual')::numeric-(x->>'balance')::numeric)>0.005 AND (answer->>'acknowledged' IS DISTINCT FROM 'true' OR length(btrim(coalesce(answer->>'reason','')))<3) THEN RAISE EXCEPTION 'Explain and acknowledge the corrected balance difference for %',x->>'name';END IF;
+  END LOOP;
+ ELSE result=public.close_year14317(p_year,p_confirmation,p_year_fingerprint,acks);
+ END IF;
+ INSERT INTO public.audit_log(table_name,record_id,action,new_data,reason,actor_id) VALUES('accounting_periods',to_char(p_month,'YYYY-MM'),'MAINTENANCE_CLOSE',jsonb_build_object('kind',p_kind,'check',checkup,'review',p_review),'Closing checks and individual reconciliation acknowledgments',auth.uid());
+ RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION public.guard_maintenance14324() FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.maintenance_preflight14324(date),public.maintenance_snapshot14324(),public.maintenance_finish14324(date,text,text,jsonb,text,uuid,integer,text,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.maintenance_preflight14324(date),public.maintenance_snapshot14324(),public.maintenance_finish14324(date,text,text,jsonb,text,uuid,integer,text,text) TO authenticated;
+NOTIFY pgrst,'reload schema';
+
+-- Source: setup/INSTALL-OFFLINE-YEAR-WINDOW-v143.33.sql
+-- Read-only year window. Run once in the existing project's SQL Editor.
+-- No financial records, permissions, or historic entries are changed.
+
+CREATE OR REPLACE FUNCTION public.journal_window14333(p_from date,p_to date,p_offset integer DEFAULT 0)
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path=public,pg_temp AS $$
+DECLARE result jsonb; opening jsonb:='[]'; revision text;
+BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Sign in required' USING ERRCODE='42501'; END IF;
+ IF p_from IS NULL OR p_to IS NULL OR p_from>p_to OR p_offset<0 THEN RAISE EXCEPTION 'Invalid journal period'; END IF;
+ SELECT coalesce(jsonb_agg(row_to_json(r)),'[]') INTO result FROM (
+ SELECT e.created_at,e.source,e.id AS "dbEntryId",coalesce(e.entry_no,e.id::text) AS id,
+ coalesce(l.line_date,e.transaction_date) AS date,a.name AS account,a.id AS "accountId",a.code AS "accountCode",
+ l.currency_code AS currency,coalesce(nullif(l.description,''),e.memo,'') AS memo,e.memo AS "generalMemo",
+ l.debit,l.credit,false AS archived
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id
+ LEFT JOIN public.accounts a ON a.id=l.account_id
+ WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date) BETWEEN p_from AND p_to
+ ORDER BY coalesce(l.line_date,e.transaction_date) DESC,e.id,l.line_no LIMIT 500 OFFSET p_offset
+ ) r;
+ IF p_offset=0 THEN
+ SELECT coalesce(jsonb_agg(row_to_json(b)),'[]') INTO opening FROM (
+ SELECT l.account_id AS "accountId",l.currency_code AS currency,sum(l.debit-l.credit) AS balance
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id
+ WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date)<p_from
+ GROUP BY l.account_id,l.currency_code HAVING sum(l.debit-l.credit)<>0
+ ) b;
+ END IF;
+ SELECT md5(coalesce(sum(hashtextextended(concat_ws('|',e.id,e.entry_no,e.transaction_date,e.memo,e.status,e.updated_at,l.id,l.account_id,l.currency_code,l.debit,l.credit,l.line_date,l.description),0)::numeric)::text,'0')) INTO revision
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date)<=p_to;
+ RETURN jsonb_build_object('rows',result,'opening',opening,'revision',revision);
+END $$;
+REVOKE ALL ON FUNCTION public.journal_window14333(date,date,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.journal_window14333(date,date,integer) TO authenticated;
+
+-- Source: setup/INSTALL-PAYROLL-YEAR-WINDOW-v143.34.sql
+-- Read-only payroll windows plus compact historic leave usage.
+-- Uses the caller's existing RLS permissions; changes no payroll or journal rows.
+
+CREATE OR REPLACE FUNCTION public.payroll_window14334(p_from date,p_to date,p_offset integer DEFAULT 0)
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path=public,pg_temp AS $$
+DECLARE records jsonb; carry jsonb:='[]'; revision text; history_index jsonb:='[]';
+BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Sign in required' USING ERRCODE='42501'; END IF;
+ IF p_from IS NULL OR p_to IS NULL OR p_from>p_to OR p_offset IS NULL OR p_offset<0 THEN RAISE EXCEPTION 'Invalid payroll period'; END IF;
+ SELECT coalesce(jsonb_agg(to_jsonb(r)),'[]') INTO records FROM (
+  SELECT * FROM public.payroll_runs
+  WHERE jsonb_typeof(data->'rows')='array' AND coalesce(data->>'month',to_char(period_start,'YYYY-MM')) BETWEEN to_char(p_from,'YYYY-MM') AND to_char(p_to,'YYYY-MM')
+  ORDER BY period_start DESC,id LIMIT 200 OFFSET p_offset
+ ) r;
+ IF p_offset=0 THEN
+  -- Dates are retained because each employee has a different entitlement renewal date.
+  SELECT coalesce(jsonb_agg(to_jsonb(x)),'[]') INTO carry FROM (
+   SELECT r.id AS "runId",result->>'employeeId' AS "employeeId",r.data->>'month' AS month,
+    day->>'date' AS date,day->>'leaveType' AS type,
+    sum(coalesce((day->>'scheduleFraction')::numeric,1)) AS days
+   FROM public.payroll_runs r
+   CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(r.data->'results')='array' THEN r.data->'results' ELSE '[]'::jsonb END) result
+   CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(result->'attendance95')='array' THEN result->'attendance95' ELSE '[]'::jsonb END) day
+   WHERE r.data->>'status'='finalized'
+    AND NOT(coalesce(r.data->>'month',to_char(r.period_start,'YYYY-MM')) BETWEEN to_char(p_from,'YYYY-MM') AND to_char(p_to,'YYYY-MM'))
+    AND coalesce(day->>'linked','false') IN ('false','0','')
+    AND day->>'leaveType' IS NOT NULL
+   GROUP BY r.id,result->>'employeeId',r.data->>'month',day->>'date',day->>'leaveType'
+  ) x;
+ END IF;
+ SELECT coalesce(jsonb_agg(jsonb_build_object('id',id,'month',data->>'month','status',data->>'status','employees',(SELECT coalesce(jsonb_agg(e->>'employeeId'),'[]') FROM jsonb_array_elements(CASE WHEN jsonb_typeof(data->'rows')='array' THEN data->'rows' ELSE '[]'::jsonb END) e))),'[]') INTO history_index FROM public.payroll_runs;
+ SELECT md5(coalesce(sum(hashtextextended(concat_ws('|',id,version,updated_at,data::text),0)::numeric)::text,'0')) INTO revision FROM public.payroll_runs;
+ RETURN jsonb_build_object('rows',records,'carry',carry,'index',CASE WHEN p_offset=0 THEN history_index ELSE '[]'::jsonb END,'revision',revision);
+END $$;
+REVOKE ALL ON FUNCTION public.payroll_window14334(date,date,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.payroll_window14334(date,date,integer) TO authenticated;
+
+-- Source: setup/INSTALL-EDITABLE-TODOS-v143.35.sql
+-- Personal to-dos only: editable completed steps, Delete instead of Archive,
+-- and four starter checklists created once per account when the list is opened.
+-- Installation does not delete or modify any existing tasks or accounting records.
+
+CREATE OR REPLACE FUNCTION public.protect_todo1443()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE i int; before_step jsonb; after_step jsonb; next_steps jsonb; reset_cycle boolean; all_done boolean; blocked boolean=false;
+BEGIN
+ IF NOT EXISTS(SELECT 1 FROM profiles WHERE id=auth.uid() AND status='active') THEN RAISE EXCEPTION 'Active sign-in required'; END IF;
+ IF TG_OP='DELETE' THEN
+  IF OLD.owner_id IS DISTINCT FROM auth.uid() THEN RAISE EXCEPTION 'Private checklist access required'; END IF;
+  DELETE FROM public.todo_completions1443 WHERE todo_id=OLD.id AND owner_id=OLD.owner_id;
+  RETURN OLD;
+ END IF;
+ IF NEW.owner_id<>auth.uid() OR (TG_OP='UPDATE' AND NEW.owner_id<>OLD.owner_id) THEN RAISE EXCEPTION 'Private checklist access required'; END IF;
+ IF TG_OP='INSERT' THEN RETURN NEW; END IF;
+ IF OLD.is_template1438 THEN RETURN NEW; END IF;
+ IF NEW.is_template1438 AND (EXISTS(SELECT 1 FROM jsonb_array_elements(OLD.steps) x WHERE x->>'done'='true') OR EXISTS(SELECT 1 FROM todo_completions1443 WHERE todo_id=OLD.id)) THEN RAISE EXCEPTION 'Copy a completed checklist to create a template'; END IF;
+ reset_cycle=coalesce((NEW.todo_config1438->>'completedCycles')::int,0)=coalesce((OLD.todo_config1438->>'completedCycles')::int,0)+1;
+ IF coalesce((NEW.todo_config1438->>'completedCycles')::int,0)<>coalesce((OLD.todo_config1438->>'completedCycles')::int,0) AND NOT reset_cycle THEN RAISE EXCEPTION 'Completed cycle count cannot be changed'; END IF;
+ next_steps=CASE WHEN reset_cycle THEN NEW.todo_config1438->'lastCompletedSteps' ELSE NEW.steps END;
+ IF reset_cycle AND (OLD.todo_config1438->>'type'<>'recurring' OR jsonb_array_length(NEW.steps)<>jsonb_array_length(OLD.steps) OR (NEW.todo_config1438->>'dueAt')::timestamptz<=(OLD.todo_config1438->>'dueAt')::timestamptz) THEN RAISE EXCEPTION 'Invalid recurring checklist reset'; END IF;
+ IF next_steps IS NULL OR jsonb_typeof(next_steps)<>'array' THEN RAISE EXCEPTION 'Invalid checklist'; END IF;
+
+ FOR i IN 0..jsonb_array_length(next_steps)-1 LOOP
+  after_step=next_steps->i;
+  IF NEW.sequential AND blocked AND after_step->>'done'='true' THEN RAISE EXCEPTION 'Complete checklist steps in order'; END IF;
+  IF coalesce(after_step->>'done','false')<>'true' THEN blocked=true; END IF;
+ END LOOP;
+ all_done=jsonb_array_length(next_steps)>0 AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(next_steps) x WHERE x->>'done' IS DISTINCT FROM 'true');
+ IF reset_cycle THEN
+  IF NOT all_done OR EXISTS(SELECT 1 FROM jsonb_array_elements(NEW.steps) WITH ORDINALITY AS x(step,n) WHERE step->>'done' IS DISTINCT FROM 'false' OR (step-'done') IS DISTINCT FROM ((next_steps->(n::int-1))-'done')) THEN RAISE EXCEPTION 'Only a fully completed cycle can restart'; END IF;
+ END IF;
+ IF all_done AND (reset_cycle OR EXISTS(SELECT 1 FROM jsonb_array_elements(OLD.steps) x WHERE x->>'done' IS DISTINCT FROM 'true')) THEN INSERT INTO todo_completions1443(todo_id,owner_id,title,steps) VALUES(OLD.id,OLD.owner_id,NEW.title,next_steps); END IF;
+ RETURN NEW;
+END $function$
+;
+REVOKE ALL ON FUNCTION public.protect_todo1443() FROM PUBLIC,anon,authenticated;
+CREATE TABLE IF NOT EXISTS public.todo_starter_installs14335 (
+ owner_id uuid PRIMARY KEY REFERENCES public.profiles(id), installed_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.todo_starter_installs14335 ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.todo_starter_installs14335 FROM PUBLIC,anon,authenticated;
+GRANT SELECT,INSERT ON public.todo_starter_installs14335 TO authenticated;
+DROP POLICY IF EXISTS own_starters14335 ON public.todo_starter_installs14335;
+CREATE POLICY own_starters14335 ON public.todo_starter_installs14335 TO authenticated
+ USING(owner_id=auth.uid()) WITH CHECK(owner_id=auth.uid() AND public.active_account14228() AND NOT public.password_change_required14257() AND public.accounting_workspace_allowed123() AND public.can_action113('transactions-recurring','edit'));
+CREATE OR REPLACE FUNCTION public.prepare_todo_starters14335()
+RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path=public,pg_temp AS $$
+DECLARE owner uuid:=auth.uid(); inserted uuid; starter jsonb; step_rows jsonb; added integer:=0;
+BEGIN
+ IF owner IS NULL OR NOT public.active_account14228() OR public.password_change_required14257() OR NOT public.accounting_workspace_allowed123() OR NOT public.can_action113('transactions-recurring','edit') THEN
+  RAISE EXCEPTION 'Active checklist editing access required' USING ERRCODE='42501';
+ END IF;
+ INSERT INTO public.todo_starter_installs14335(owner_id) VALUES(owner) ON CONFLICT DO NOTHING RETURNING owner_id INTO inserted;
+ IF inserted IS NULL THEN RETURN jsonb_build_object('added',0); END IF;
+ FOR starter IN SELECT value FROM jsonb_array_elements($starters$[{"title": "Journal / Period Closing", "aliases": ["Journal / period closing"], "steps": ["Review journal dates, accounts, descriptions and supporting documents.", "Resolve submitted and returned entries.", "Check debit and credit balances for each currency.", "Reconcile cash and bank accounts.", "Review payroll, statutory payments and outstanding payables.", "Run Data Check and resolve findings.", "Review and save period reports.", "Close the period only after approval."]}, {"title": "Payable Processing", "aliases": [], "steps": ["Gather invoices and supporting documents.", "Check the payee, amount, currency and due date.", "Confirm the expense or payable account and check for duplicate invoices.", "Obtain payment approval.", "Prepare the payment voucher and verify the receiver.", "Record the authorized payment.", "Reconcile the payable balance and retain payment evidence."]}, {"title": "Bank & Cash Reconciliation", "aliases": ["Bank / cash reconciliation"], "steps": ["Choose the period and bank or cash account.", "Collect statements, receipts and cash counts.", "Match journal entries to supporting records.", "Identify outstanding payments, deposits and missing entries.", "Investigate differences and record approved corrections.", "Confirm the reconciled closing balance.", "Save the reviewed reconciliation report."]}, {"title": "PIT & SSO Preparation", "aliases": ["PIT / SSO preparation"], "steps": ["Choose the filing period and review company settings and deadlines.", "Review approved payroll and employee information.", "Reconcile PIT and SSO expense, bridge and payable accounts.", "Verify employee and employer shares against approved payroll.", "Prepare filing schedules and supporting documents.", "Obtain filing and payment approval.", "Record the authorized payment and retain submission receipts."]}]$starters$::jsonb) LOOP
+  IF NOT EXISTS(SELECT 1 FROM public.workspace_todos136 t WHERE t.owner_id=owner AND NOT t.is_template1438 AND (lower(trim(t.title))=lower(starter->>'title') OR lower(trim(t.title)) IN (SELECT lower(value) FROM jsonb_array_elements_text(starter->'aliases')))) THEN
+   SELECT jsonb_agg(jsonb_build_object('text',value,'done',false) ORDER BY ordinality) INTO step_rows FROM jsonb_array_elements_text(starter->'steps') WITH ORDINALITY;
+   INSERT INTO public.workspace_todos136(owner_id,title,steps,sequential,is_template1438,todo_config1438)
+   VALUES(owner,starter->>'title',step_rows,true,false,jsonb_build_object('type','sequential','starter14335',true));
+   added:=added+1;
+  END IF;
+ END LOOP;
+ RETURN jsonb_build_object('added',added);
+END $$;
+REVOKE ALL ON FUNCTION public.prepare_todo_starters14335() FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.prepare_todo_starters14335() TO authenticated;
+NOTIFY pgrst,'reload schema';
+
+-- Source: setup/INSTALL-FINAL-REVIEW-v143.45.sql
+-- Closing and department fund confirmations. Preserves all existing entries.
+
+ALTER TABLE public.staff_journals ADD COLUMN IF NOT EXISTS reconciliation14345 jsonb;
+
+CREATE OR REPLACE FUNCTION public.guard_period_end14345() RETURNS trigger
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE difference record;
+BEGIN
+ IF NEW.status IN ('closed','locked') AND (TG_OP='INSERT' OR NEW.status IS DISTINCT FROM OLD.status) THEN
+  IF (NEW.period_month+interval '1 month')::date > (statement_timestamp() AT TIME ZONE 'Asia/Vientiane')::date THEN
+   RAISE EXCEPTION 'This month has not ended. Finish, Close and Lock are available from %.',(NEW.period_month+interval '1 month')::date;
+  END IF;
+  FOR difference IN SELECT l.currency_code,sum(l.debit-l.credit) amount FROM public.journal_lines l JOIN public.journal_entries e ON e.id=l.journal_entry_id
+   WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<(NEW.period_month+interval '1 month')::date GROUP BY l.currency_code HAVING abs(sum(l.debit-l.credit))>0.005 LOOP
+   RAISE EXCEPTION 'Trial balance does not balance: % difference %',difference.currency_code,difference.amount;
+  END LOOP;
+ END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS a_period_end14345 ON public.accounting_periods;
+CREATE TRIGGER a_period_end14345 BEFORE INSERT OR UPDATE OF status ON public.accounting_periods FOR EACH ROW EXECUTE FUNCTION public.guard_period_end14345();
+REVOKE ALL ON FUNCTION public.guard_period_end14345() FROM PUBLIC;
+
+CREATE OR REPLACE FUNCTION public.submission_context14345(p_journal uuid,p_as_of date DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE j public.staff_journals; day date; today date=(statement_timestamp() AT TIME ZONE 'Asia/Vientiane')::date; funds jsonb; fingerprint text;
+BEGIN
+ SELECT * INTO j FROM public.staff_journals WHERE id=p_journal;
+ IF auth.uid() IS NULL OR NOT FOUND OR NOT public.can_workspace113(j.owner_id) OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=auth.uid() AND status='active')
+  OR NOT public.can_action113(CASE WHEN j.owner_id=auth.uid() THEN 'sub-users-workspace' ELSE 'user-entry-review' END,'edit') THEN RAISE EXCEPTION 'Workspace submission access required';END IF;
+ IF j.status NOT IN ('draft','returned') THEN RAISE EXCEPTION 'This report is no longer available for submission';END IF;
+ day=coalesce(p_as_of,least(today,j.period_end));
+ IF day<j.period_start OR day>j.period_end OR day>today OR EXISTS(SELECT 1 FROM public.staff_journal_lines WHERE staff_journal_id=j.id AND transaction_date>day) THEN RAISE EXCEPTION 'Choose a reconciliation date covering every report entry, within the reporting period and no later than today';END IF;
+ SELECT coalesce(jsonb_agg(to_jsonb(f) ORDER BY f.code),'[]') INTO funds FROM (
+  SELECT a.id account_id,a.code,a.name,a.currency_code currency,a.account_type,
+   coalesce((SELECT sum(l.debit-l.credit) FROM public.journal_lines l JOIN public.journal_entries e ON e.id=l.journal_entry_id WHERE l.account_id=a.id AND e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<=day),0) posted,
+   coalesce((SELECT sum(CASE WHEN s.direction='out' THEN -s.amount ELSE s.amount END) FROM public.staff_journal_lines s JOIN public.staff_journals h ON h.id=s.staff_journal_id JOIN public.accounts counterpart ON counterpart.id=s.account_id WHERE h.owner_id=j.owner_id AND h.status IN ('draft','returned','submitted') AND s.journal_entry_id IS NULL AND s.fund_account_id=a.id AND s.transaction_date<=day AND (s.direction='out' OR counterpart.account_type<>'ASSET')),0) unposted
+  FROM public.accounts a JOIN public.user_permissions up ON up.user_id=j.owner_id AND a.id::text IN (SELECT jsonb_array_elements_text(coalesce(to_jsonb(up)->'assigned_fund_account_ids','[]')))
+  WHERE a.is_posting AND a.account_type='ASSET'
+ ) f;
+ -- Fingerprint includes source details, so equal-amount edits also invalidate review.
+ SELECT md5(jsonb_build_object('journal',to_jsonb(j)-'reconciliation14345','date',day,'funds',funds,
+  'lines',(SELECT coalesce(jsonb_agg(to_jsonb(s) ORDER BY s.id),'[]') FROM public.staff_journal_lines s JOIN public.staff_journals h ON h.id=s.staff_journal_id WHERE h.owner_id=j.owner_id AND s.transaction_date<=day AND (h.status IN ('draft','returned','submitted') OR h.id=j.id)))::text) INTO fingerprint;
+ RETURN jsonb_build_object('journal',j.id,'owner',j.owner_id,'asOf',day,'fingerprint',fingerprint,'funds',funds,'responsible',(SELECT full_name FROM public.profiles WHERE id=j.owner_id));
+END $$;
+REVOKE ALL ON FUNCTION public.submission_context14345(uuid,date) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.submission_context14345(uuid,date) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.guard_submission14345() RETURNS trigger
+LANGUAGE plpgsql SECURITY INVOKER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE approval jsonb=coalesce(nullif(current_setting('app.submission14345',true),'')::jsonb,'{}');
+BEGIN
+ IF ((TG_OP='INSERT' AND (NEW.reconciliation14345 IS NOT NULL OR NEW.status='submitted')) OR (TG_OP='UPDATE' AND (NEW.reconciliation14345 IS DISTINCT FROM OLD.reconciliation14345 OR (NEW.status='submitted' AND OLD.status IS DISTINCT FROM NEW.status))))
+  AND (approval->>'actor' IS DISTINCT FROM auth.uid()::text OR approval->>'journal' IS DISTINCT FROM NEW.id::text) THEN
+  RAISE EXCEPTION 'Select report types and confirm remaining funds before submitting';
+ END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS submission_confirmation14345 ON public.staff_journals;
+CREATE TRIGGER submission_confirmation14345 BEFORE INSERT OR UPDATE ON public.staff_journals FOR EACH ROW EXECUTE FUNCTION public.guard_submission14345();
+REVOKE ALL ON FUNCTION public.guard_submission14345() FROM PUBLIC;
+
+CREATE OR REPLACE FUNCTION public.submit_reconciled14345(p_journal uuid,p_types uuid[],p_as_of date,p_fingerprint text,p_actuals jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE context jsonb; f jsonb; a jsonb; actual numeric; expected numeric; checks jsonb='[]'; j public.staff_journals;
+BEGIN
+ -- One transaction saves the report labels, checked balances and submitted state.
+ LOCK TABLE public.staff_journals,public.staff_journal_lines,public.journal_entries,public.journal_lines,public.accounts,public.user_permissions IN SHARE ROW EXCLUSIVE MODE;
+ context=public.submission_context14345(p_journal,p_as_of);
+ IF context->>'fingerprint' IS DISTINCT FROM p_fingerprint THEN RAISE EXCEPTION 'Records changed. Review the remaining balances again before submitting';END IF;
+ IF jsonb_typeof(p_actuals) IS DISTINCT FROM 'array' OR jsonb_array_length(p_actuals)<>jsonb_array_length(context->'funds') THEN RAISE EXCEPTION 'Confirm every assigned fund';END IF;
+ FOR f IN SELECT value FROM jsonb_array_elements(context->'funds') LOOP
+  IF (SELECT count(*) FROM jsonb_array_elements(p_actuals) x WHERE x->>'account_id'=f->>'account_id')<>1 THEN RAISE EXCEPTION 'Confirm each assigned fund exactly once';END IF;
+  SELECT value INTO a FROM jsonb_array_elements(p_actuals) WHERE value->>'account_id'=f->>'account_id';
+  IF coalesce(a->>'actual','') !~ '^-?[0-9]+([.][0-9]{1,2})?$' OR length(a->>'actual')>18 THEN RAISE EXCEPTION 'Enter a valid actual remaining balance for %',f->>'name';END IF;
+  actual=(a->>'actual')::numeric;expected=(f->>'posted')::numeric+(f->>'unposted')::numeric;
+  IF abs(actual-expected)>0.005 AND length(btrim(coalesce(a->>'reason','')))<3 THEN RAISE EXCEPTION 'Explain the difference for %',f->>'name';END IF;
+  IF length(coalesce(a->>'reason',''))>2000 THEN RAISE EXCEPTION 'Reconciliation note is too long';END IF;
+  checks=checks||jsonb_build_array(f||jsonb_build_object('recorded',expected,'actual',actual,'difference',actual-expected,'reason',btrim(coalesce(a->>'reason',''))));
+ END LOOP;
+ PERFORM set_config('app.submission14345',jsonb_build_object('actor',auth.uid(),'journal',p_journal)::text,true);
+ UPDATE public.staff_journals SET reconciliation14345=jsonb_build_object('asOf',p_as_of,'funds',checks,'responsible',context->>'responsible','confirmedBy',auth.uid(),'confirmedAt',statement_timestamp()) WHERE id=p_journal;
+ PERFORM public.submit_report14253(p_journal,p_types);
+ SELECT * INTO j FROM public.staff_journals WHERE id=p_journal;
+ RETURN jsonb_build_object('id',j.id,'status',j.status,'submitted_at',j.submitted_at,'report_types14253',j.report_types14253,'reconciliation14345',j.reconciliation14345);
+END $$;
+REVOKE ALL ON FUNCTION public.submit_reconciled14345(uuid,uuid[],date,text,jsonb) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.submit_reconciled14345(uuid,uuid[],date,text,jsonb) TO authenticated;
+NOTIFY pgrst,'reload schema';
+
+-- Source: setup/INSTALL-RECONCILIATION-REFINEMENTS-v143.46.sql
+
+CREATE OR REPLACE FUNCTION public.submission_context14345(p_journal uuid,p_as_of date DEFAULT NULL) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE j public.staff_journals; day date; today date=(statement_timestamp() AT TIME ZONE 'Asia/Vientiane')::date; funds jsonb; fingerprint text;
+BEGIN
+ SELECT * INTO j FROM public.staff_journals WHERE id=p_journal;
+ IF auth.uid() IS NULL OR NOT FOUND OR NOT public.can_workspace113(j.owner_id) OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=auth.uid() AND status='active')
+  OR NOT public.can_action113(CASE WHEN j.owner_id=auth.uid() THEN 'sub-users-workspace' ELSE 'user-entry-review' END,'edit') THEN RAISE EXCEPTION 'Workspace submission access required';END IF;
+ IF j.status NOT IN ('draft','returned') THEN RAISE EXCEPTION 'This report is no longer available for submission';END IF;
+ day=coalesce(p_as_of,least(today,j.period_end));
+ IF day<j.period_start OR day>j.period_end OR day>today OR EXISTS(SELECT 1 FROM public.staff_journal_lines WHERE staff_journal_id=j.id AND transaction_date>day) THEN RAISE EXCEPTION 'Choose a reconciliation date covering every report entry, within the reporting period and no later than today';END IF;
+ SELECT coalesce(jsonb_agg(to_jsonb(f) ORDER BY f.code),'[]') INTO funds FROM (
+  SELECT a.id account_id,a.code,a.name,a.currency_code currency,a.account_type,
+   coalesce((SELECT sum(l.debit-l.credit) FROM public.journal_lines l JOIN public.journal_entries e ON e.id=l.journal_entry_id WHERE l.account_id=a.id AND e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<=day),0) posted,
+   coalesce((SELECT sum(CASE WHEN s.direction='out' THEN -s.amount ELSE s.amount END) FROM public.staff_journal_lines s JOIN public.staff_journals h ON h.id=s.staff_journal_id JOIN public.accounts counterpart ON counterpart.id=s.account_id WHERE h.owner_id=j.owner_id AND h.status IN ('draft','returned','submitted') AND s.journal_entry_id IS NULL AND s.fund_account_id=a.id AND s.transaction_date<=day AND (s.direction='out' OR counterpart.account_type<>'ASSET')),0) unposted
+  FROM public.accounts a JOIN public.user_permissions up ON up.user_id=j.owner_id AND a.id::text IN (SELECT jsonb_array_elements_text(coalesce(to_jsonb(up)->'assigned_fund_account_ids','[]')))
+  WHERE a.is_posting AND a.account_type='ASSET'
+ ) f;
+ -- Fingerprint includes source details, so equal-amount edits also invalidate review.
+ SELECT md5(jsonb_build_object('journal',to_jsonb(j)-'reconciliation14345','date',day,'funds',funds,
+  'lines',(SELECT coalesce(jsonb_agg(to_jsonb(s) ORDER BY s.id),'[]') FROM public.staff_journal_lines s JOIN public.staff_journals h ON h.id=s.staff_journal_id WHERE h.owner_id=j.owner_id AND s.transaction_date<=day AND (h.status IN ('draft','returned','submitted') OR h.id=j.id)))::text) INTO fingerprint;
+ RETURN jsonb_build_object('journal',j.id,'owner',j.owner_id,'asOf',day,'fingerprint',fingerprint,'funds',funds,'responsible',(SELECT full_name FROM public.profiles WHERE id=j.owner_id));
+END $$;
+CREATE OR REPLACE FUNCTION public.submit_reconciled14345(p_journal uuid,p_types uuid[],p_as_of date,p_fingerprint text,p_actuals jsonb) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public,pg_temp AS $$
+DECLARE context jsonb; f jsonb; a jsonb; actual numeric; expected numeric; checks jsonb='[]'; j public.staff_journals;
+BEGIN
+ -- One transaction saves the report labels, checked balances and submitted state.
+ LOCK TABLE public.staff_journals,public.staff_journal_lines,public.journal_entries,public.journal_lines,public.accounts,public.user_permissions IN SHARE ROW EXCLUSIVE MODE;
+ context=public.submission_context14345(p_journal,p_as_of);
+ IF context->>'fingerprint' IS DISTINCT FROM p_fingerprint THEN RAISE EXCEPTION 'Records changed. Review the remaining balances again before submitting';END IF;
+ IF jsonb_typeof(p_actuals) IS DISTINCT FROM 'array' OR jsonb_array_length(p_actuals)<>jsonb_array_length(context->'funds') THEN RAISE EXCEPTION 'Confirm every assigned fund';END IF;
+ FOR f IN SELECT value FROM jsonb_array_elements(context->'funds') LOOP
+  IF (SELECT count(*) FROM jsonb_array_elements(p_actuals) x WHERE x->>'account_id'=f->>'account_id')<>1 THEN RAISE EXCEPTION 'Confirm each assigned fund exactly once';END IF;
+  SELECT value INTO a FROM jsonb_array_elements(p_actuals) WHERE value->>'account_id'=f->>'account_id';
+  IF coalesce(a->>'actual','') !~ '^-?[0-9]+([.][0-9]{1,2})?$' OR length(a->>'actual')>18 THEN RAISE EXCEPTION 'Enter a valid actual remaining balance for %',f->>'name';END IF;
+  actual=(a->>'actual')::numeric;expected=(f->>'posted')::numeric+(f->>'unposted')::numeric;
+  IF abs(actual-expected)>0.005 AND length(btrim(coalesce(a->>'reason','')))<3 THEN RAISE EXCEPTION 'Explain the difference for %',f->>'name';END IF;
+  IF length(coalesce(a->>'reason',''))>2000 THEN RAISE EXCEPTION 'Reconciliation note is too long';END IF;
+  checks=checks||jsonb_build_array(f||jsonb_build_object('recorded',expected,'actual',actual,'difference',actual-expected,'reason',btrim(coalesce(a->>'reason',''))));
+ END LOOP;
+ PERFORM set_config('app.submission14345',jsonb_build_object('actor',auth.uid(),'journal',p_journal)::text,true);
+ UPDATE public.staff_journals SET reconciliation14345=jsonb_build_object('asOf',p_as_of,'funds',checks,'responsible',context->>'responsible','confirmedBy',auth.uid(),'confirmedAt',statement_timestamp()) WHERE id=p_journal;
+ PERFORM public.submit_report14253(p_journal,p_types);
+ SELECT * INTO j FROM public.staff_journals WHERE id=p_journal;
+ RETURN jsonb_build_object('id',j.id,'status',j.status,'submitted_at',j.submitted_at,'report_types14253',j.report_types14253,'reconciliation14345',j.reconciliation14345);
+END $$;
+NOTIFY pgrst,'reload schema';
+
+-- Source: setup/INSTALL-RETURNED-SUBMISSIONS-v143.47.sql
+-- v143.47: independent submission batches and explicit returned-book corrections.
+
+ALTER TABLE public.staff_journals DROP CONSTRAINT IF EXISTS staff_journals_owner_id_period_start_key;
+CREATE UNIQUE INDEX IF NOT EXISTS staff_journals_one_draft14347 ON public.staff_journals(owner_id,period_start) WHERE status='draft';
+CREATE OR REPLACE FUNCTION public.save_staff_workspace_entry_v3(p_owner_id uuid, p_line_id uuid, p_client_key text, p_transaction_date date, p_direction text, p_fund_account_id uuid, p_account_id uuid, p_memo text, p_reference text, p_amount numeric, p_entry_kind text)
+ RETURNS TABLE(line_id uuid, workspace_entry_no text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare permission public.user_permissions; journal_row public.staff_journals; existing_line public.staff_journal_lines;
+ month_start date; number_next bigint; number_prefix text; number_text text; sequence_line integer; new_id uuid; fund_currency text;
+begin
+ if p_owner_id IS NULL OR NOT public.can_workspace113(p_owner_id) OR NOT public.can_action113(CASE WHEN p_owner_id=auth.uid() THEN 'sub-users-workspace' ELSE 'user-entry-review' END,'edit') then raise exception 'Current workspace edit access required';end if;
+ if p_transaction_date is null or p_amount is null or p_amount::text IN ('NaN','Infinity','-Infinity') OR p_amount<>round(p_amount,2) or p_amount<=0 or nullif(trim(p_memo),'') is null then raise exception 'Date, description and positive amount are required'; end if;
+ if p_direction is null or p_direction not in ('in','out') or p_entry_kind is null or p_entry_kind not in ('collection','payment','handover') then raise exception 'Invalid activity'; end if;
+ if (p_entry_kind='collection')<>(p_direction='in') then raise exception 'Collection must use Money In; payments and handovers must use Money Out'; end if;
+ select * into permission from public.user_permissions where user_id=p_owner_id;
+ if not found then raise exception 'User permissions not configured'; end if;
+ if not coalesce(p_direction=any(permission.allowed_directions),false) then raise exception 'This direction is not allowed'; end if;
+ if p_fund_account_id is null or not coalesce(p_fund_account_id=any(permission.assigned_fund_account_ids),false) then raise exception 'Main account not assigned'; end if;
+ if not permission.allow_multiple_funds and cardinality(permission.assigned_fund_account_ids)>1 then raise exception 'Multiple funds must be enabled'; end if;
+ if p_account_id is null then raise exception 'Account is required'; end if;
+ if p_direction='in' and p_account_id<>p_fund_account_id and not coalesce(p_account_id=any(permission.destination_account_ids) or p_account_id=any(permission.allowed_account_ids),false) then raise exception 'Money In category not assigned'; end if;
+ if p_direction='out' and not coalesce(p_account_id=any(permission.destination_account_ids) or p_account_id=any(permission.allowed_account_ids),false) then raise exception 'Entry account not assigned'; end if;
+ if p_direction='out' and p_account_id=p_fund_account_id then raise exception 'The receiving/spending account must differ from the fund'; end if;
+ select currency_code into fund_currency from public.accounts where id=p_fund_account_id;
+ if fund_currency is null then raise exception 'Main account currency missing'; end if;
+ if (select currency_code from public.accounts where id=p_account_id) is distinct from fund_currency then raise exception 'Main and entry accounts must use the same currency'; end if;
+ month_start:=date_trunc('month',p_transaction_date)::date;
+ -- Serialize creation/saving for one owner. Client key prevents duplicate retries.
+ perform pg_advisory_xact_lock(hashtext('workspace:'||p_owner_id::text));
+ if p_line_id IS NULL AND (p_client_key IS NULL OR length(p_client_key) NOT BETWEEN 10 AND 200) THEN RAISE EXCEPTION 'Stable save reference required';END IF;
+ if p_line_id is null and p_client_key is not null then
+   select line.* into existing_line from public.staff_journal_lines line join public.staff_journals journal on journal.id=line.staff_journal_id where line.client_key=p_client_key and journal.owner_id=p_owner_id;
+   if found then
+    IF (existing_line.transaction_date,existing_line.direction,existing_line.fund_account_id,existing_line.account_id,existing_line.memo,existing_line.reference,existing_line.amount,existing_line.entry_kind)
+      IS DISTINCT FROM (p_transaction_date,p_direction,p_fund_account_id,p_account_id,trim(p_memo),coalesce(p_reference,''),p_amount,p_entry_kind)
+      THEN RAISE EXCEPTION 'Save reference already used for different data';END IF;
+    return query select existing_line.id,existing_line.workspace_entry_no;return;end if;
+ end if;
+ -- v143.47: each submission has its own journal; returned books never replace a draft.
+ if p_line_id is not null then
+  select j.* into journal_row from public.staff_journals j join public.staff_journal_lines l on l.staff_journal_id=j.id
+  where l.id=p_line_id and j.owner_id=p_owner_id and j.period_start=month_start and j.status in ('draft','returned') for update of j;
+ elsif nullif(current_setting('app.correction_journal14347',true),'') is not null then
+  select * into journal_row from public.staff_journals where id=nullif(current_setting('app.correction_journal14347',true),'')::uuid
+   and owner_id=p_owner_id and period_start=month_start and status='returned' for update;
+ else
+  insert into public.staff_journals(owner_id,period_start,period_end,status) values(p_owner_id,month_start,(month_start+interval '1 month - 1 day')::date,'draft')
+   on conflict(owner_id,period_start) where status='draft' do nothing;
+  select * into journal_row from public.staff_journals where owner_id=p_owner_id and period_start=month_start and status='draft' for update;
+ end if;
+ if journal_row.id is null then raise exception 'This entry or returned submission is no longer editable in the selected month';end if;
+ if p_line_id is not null then
+   select * into existing_line from public.staff_journal_lines where id=p_line_id and staff_journal_id=journal_row.id for update;
+   if not found or existing_line.journal_entry_id is not null then raise exception 'Entry unavailable or already posted'; end if;
+   insert into public.audit_log(table_name,record_id,action,old_data,new_data,reason,actor_id)
+   values('staff_journal_lines',p_line_id::text,'EDIT',to_jsonb(existing_line),jsonb_build_object('transaction_date',p_transaction_date,'direction',p_direction,'fund_account_id',p_fund_account_id,'account_id',p_account_id,'memo',p_memo,'reference',p_reference,'amount',p_amount,'entry_kind',p_entry_kind),coalesce(journal_row.return_note,'Workspace draft edited'),auth.uid());
+   update public.staff_journal_lines set transaction_date=p_transaction_date,direction=p_direction,fund_account_id=p_fund_account_id,account_id=p_account_id,memo=trim(p_memo),reference=coalesce(p_reference,''),amount=p_amount,currency_code=fund_currency,entry_kind=p_entry_kind where id=p_line_id;
+   return query select p_line_id,existing_line.workspace_entry_no;return;
+ end if;
+ perform pg_advisory_xact_lock(hashtext('workspace-entry-number'));
+ number_text:=public.preview_staff_workspace_entry_no(p_owner_id);
+ number_next:=substring(number_text from '[0-9]+$')::bigint;
+ insert into public.staff_entry_sequences(user_id,last_number) values(p_owner_id,number_next) on conflict(user_id) do update set last_number=greatest(public.staff_entry_sequences.last_number,excluded.last_number),updated_at=now();
+ select coalesce(max(line_no),0)+1 into sequence_line from public.staff_journal_lines where staff_journal_id=journal_row.id;
+ insert into public.staff_journal_lines(staff_journal_id,line_no,transaction_date,direction,fund_account_id,account_id,memo,reference,amount,currency_code,workspace_entry_no,entry_kind,client_key)
+ values(journal_row.id,sequence_line,p_transaction_date,p_direction,p_fund_account_id,p_account_id,trim(p_memo),coalesce(p_reference,''),p_amount,fund_currency,number_text,p_entry_kind,p_client_key) returning id into new_id;
+ return query select new_id,number_text;
+end $function$
+;
+CREATE OR REPLACE FUNCTION public.save_staff_editor1437(p_owner uuid, p_key text, p_items jsonb, p_snapshot jsonb, p_edit_ids uuid[] DEFAULT ARRAY[]::uuid[])
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE receipt public.operation_receipts14228;request_payload jsonb;item jsonb; saved record; line_id uuid; position integer:=0; ids uuid[]:=ARRAY[]::uuid[];
+ old_id uuid; existing_ids uuid[]; snapshot jsonb; n integer; actor uuid:=auth.uid();
+BEGIN
+ IF actor IS NULL OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=actor AND status='active') THEN RAISE EXCEPTION 'Active login required';END IF;
+ IF p_owner IS NULL OR NOT public.can_workspace113(p_owner) OR NOT public.can_action113(CASE WHEN actor=p_owner THEN 'sub-users-workspace' ELSE 'user-entry-review' END,'edit') THEN RAISE EXCEPTION 'Current workspace edit access required';END IF;
+ IF p_key IS NULL OR length(p_key)<10 OR length(p_key)>160 THEN RAISE EXCEPTION 'Invalid save reference';END IF;
+ IF jsonb_typeof(p_items) IS DISTINCT FROM 'array' OR jsonb_array_length(p_items)<1 OR jsonb_array_length(p_items)>500 THEN RAISE EXCEPTION 'Provide 1 to 500 complete entries';END IF;
+ IF jsonb_typeof(p_snapshot) IS DISTINCT FROM 'object' OR p_snapshot->'components1437' IS DISTINCT FROM p_items THEN RAISE EXCEPTION 'Editor snapshot must match the supplied entries';END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended(p_owner::text||':desktop-editor',0));
+ request_payload:=jsonb_build_object('owner',p_owner,'items',p_items,'snapshot',p_snapshot,'edit_ids',coalesce(p_edit_ids,ARRAY[]::uuid[]));
+ SELECT * INTO receipt FROM operation_receipts14228 WHERE actor_id=actor AND request_key=p_key;
+ IF FOUND THEN
+  IF receipt.operation<>'staff-editor' OR receipt.payload IS DISTINCT FROM request_payload THEN RAISE EXCEPTION 'Save reference already used for different data';END IF;
+  RETURN receipt.result||jsonb_build_object('already_saved',true);
+ END IF;
+ SELECT array_agg(l.id),min(l.editor_snapshot1437::text)::jsonb INTO existing_ids,snapshot
+ FROM public.staff_journal_lines l JOIN public.staff_journals j ON j.id=l.staff_journal_id
+ WHERE j.owner_id=p_owner AND left(l.editor_group1437,length(p_key)+1)=p_key||':';
+ IF cardinality(existing_ids)>0 THEN
+  IF snapshot IS DISTINCT FROM p_snapshot THEN RAISE EXCEPTION 'Save reference already used; refresh before retrying';END IF;
+  RETURN jsonb_build_object('line_ids',existing_ids,'already_saved',true);
+ END IF;
+ IF cardinality(p_edit_ids)>0 THEN
+  SELECT count(*) INTO n FROM public.staff_journal_lines l JOIN public.staff_journals j ON j.id=l.staff_journal_id
+  WHERE l.id=ANY(p_edit_ids) AND j.owner_id=p_owner AND j.status IN ('draft','returned') AND l.journal_entry_id IS NULL;
+  IF n<>cardinality(p_edit_ids) THEN RAISE EXCEPTION 'Only editable entries in this personal journal can be changed';END IF;
+ END IF;
+ -- Explicit target applies only to new lines; v3 rechecks owner, period and returned status.
+ PERFORM set_config('app.correction_journal14347',coalesce(p_snapshot->>'correction_journal14347',''),true);
+ FOR item IN SELECT value FROM jsonb_array_elements(p_items) LOOP
+  position:=position+1;old_id:=p_edit_ids[position];
+  SELECT * INTO saved FROM public.save_staff_workspace_entry_v3(
+   p_owner_id=>p_owner,p_line_id=>old_id,p_client_key=>p_key||':'||position,
+   p_transaction_date=>(item->>'date')::date,p_direction=>item->>'direction',
+   p_fund_account_id=>(item->>'fund')::uuid,p_account_id=>(item->>'account')::uuid,
+   p_memo=>item->>'memo',p_reference=>coalesce(item->>'reference',''),
+   p_amount=>(item->>'amount')::numeric,p_entry_kind=>item->>'kind');
+  line_id:=saved.line_id;
+  IF line_id IS NULL THEN RAISE EXCEPTION 'Entry save returned no record';END IF;
+  UPDATE public.staff_journal_lines l SET editor_group1437=p_key||':'||(item->>'date'),editor_snapshot1437=p_snapshot
+  FROM public.staff_journals j WHERE l.id=line_id AND j.id=l.staff_journal_id AND j.owner_id=p_owner;
+  GET DIAGNOSTICS n=ROW_COUNT;
+  IF n<>1 THEN RAISE EXCEPTION 'Saved entry owner did not match';END IF;
+  ids:=array_append(ids,line_id);
+ END LOOP;
+ FOREACH old_id IN ARRAY coalesce(p_edit_ids,ARRAY[]::uuid[]) LOOP
+  IF NOT old_id=ANY(ids) THEN PERFORM public.void_staff_workspace_entry(p_line_id=>old_id,p_reason=>'Replaced while editing the personal journal transaction');END IF;
+ END LOOP;
+ PERFORM set_config('app.correction_journal14347','',true);
+ INSERT INTO operation_receipts14228(actor_id,request_key,operation,payload,result) VALUES(actor,p_key,'staff-editor',request_payload,jsonb_build_object('line_ids',ids,'already_saved',false));
+ RETURN jsonb_build_object('line_ids',ids,'already_saved',false);
+END $function$
+;
+REVOKE ALL ON FUNCTION public.save_staff_workspace_entry_v3(uuid,uuid,text,date,text,uuid,uuid,text,text,numeric,text) FROM PUBLIC,anon;
+REVOKE ALL ON FUNCTION public.save_staff_editor1437(uuid,text,jsonb,jsonb,uuid[]) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.save_staff_workspace_entry_v3(uuid,uuid,text,date,text,uuid,uuid,text,text,numeric,text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.save_staff_editor1437(uuid,text,jsonb,jsonb,uuid[]) TO authenticated;
+
+-- Source: setup/INSTALL-REPORT-POSTING-v143.49.sql
+-- One approved report, one journal ID, original dates. No historic rows rewritten.
+
+CREATE OR REPLACE FUNCTION public.post_report_worker14349(p_transaction_date date, p_memo text, p_lines jsonb, p_prefix text DEFAULT 'OJM'::text, p_digits integer DEFAULT 6)
+ RETURNS TABLE(entry_id uuid, entry_no text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  v_entry_id uuid;
+  v_entry_no text;
+  v_prefix text;
+  v_digits integer;
+  v_line jsonb;
+  v_line_no integer := 0;
+  v_attempt integer := 0;
+  v_debit numeric(20,2);
+  v_credit numeric(20,2);
+begin
+  if not public.has_user_permission('post') then
+    raise exception 'Direct journal posting permission required';
+  end if;
+  if p_transaction_date is null or nullif(trim(p_memo),'') is null then
+    raise exception 'Transaction date and memo are required';
+  end if;
+  if p_lines is null or jsonb_typeof(p_lines)<>'array' or jsonb_array_length(p_lines)<2 then
+    raise exception 'At least two journal lines are required';
+  end if;
+
+  PERFORM public.validate_journal14228(p_transaction_date,p_memo,(SELECT jsonb_agg(x-'line_date') FROM jsonb_array_elements(p_lines) x));
+  v_prefix := upper(regexp_replace(coalesce(nullif(trim(p_prefix),''),'OJM'),'[^A-Za-z0-9]','','g'));
+  PERFORM public.validate_journal14228(p_transaction_date,p_memo,(SELECT jsonb_agg(x-'line_date') FROM jsonb_array_elements(p_lines) x));
+  v_prefix := left(coalesce(nullif(v_prefix,''),'OJM'),8);
+  v_digits := greatest(3,least(9,coalesce(p_digits,6)));
+
+  -- Sequence allocation and collision retry also skip headers left by older,
+  -- non-atomic posting attempts.
+  loop
+    v_attempt := v_attempt + 1;
+    if v_attempt>1000 then raise exception 'Unable to allocate a unique journal number'; end if;
+    v_entry_no := v_prefix||'-'||lpad(nextval('public.journal_entry_number_seq')::text,v_digits,'0');
+    begin
+      insert into public.journal_entries(entry_no,transaction_date,memo,status,source,posted_by,posted_at)
+      values(v_entry_no,p_transaction_date,trim(p_memo),'posted','manual',auth.uid(),now())
+      returning id into v_entry_id;
+      exit;
+    exception when unique_violation then
+      null;
+    end;
+  end loop;
+
+  for v_line in select value from jsonb_array_elements(p_lines) loop
+    v_line_no := v_line_no + 1;
+    if nullif(v_line->>'account_id','') is null then
+      raise exception 'Line % has no account ID',v_line_no;
+    end if;
+    v_debit := coalesce((v_line->>'debit')::numeric,0);
+    v_credit := coalesce((v_line->>'credit')::numeric,0);
+    if not ((v_debit>0 and v_credit=0) or (v_credit>0 and v_debit=0)) then
+      raise exception 'Line % must contain either a debit or a credit',v_line_no;
+    end if;
+    insert into public.journal_lines(
+      journal_entry_id,line_no,account_id,description,currency_code,debit,credit,line_date
+    ) values(
+      v_entry_id,v_line_no,(v_line->>'account_id')::uuid,
+      coalesce(v_line->>'description',p_memo),v_line->>'currency_code',
+      v_debit,v_credit,(v_line->>'line_date')::date
+    );
+  end loop;
+
+  insert into public.audit_log(table_name,record_id,action,new_data,reason,actor_id)
+  values('journal_entries',v_entry_id::text,'POST',jsonb_build_object('entry_no',v_entry_no,'line_count',v_line_no),'Atomic manual journal posting',auth.uid());
+
+  return query select v_entry_id,v_entry_no;
+end $function$
+
+;
+REVOKE ALL ON FUNCTION public.post_report_worker14349(date,text,jsonb,text,integer) FROM PUBLIC,anon,authenticated;
+CREATE OR REPLACE FUNCTION public.post_report14349(p_journal uuid, p_date date, p_memo text, p_lines jsonb, p_prefix text, p_digits integer, p_mode text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE j staff_journals;snapshot jsonb;expected jsonb;actual jsonb;posted record;item jsonb;src record;line_id uuid;summary_line_no integer:=0;owner_name text;receipt operation_receipts14228;payload jsonb;answer jsonb;
+BEGIN
+ IF auth.uid() IS NULL OR p_mode NOT IN ('consolidated','detailed') OR p_mode IS NULL THEN RAISE EXCEPTION 'Authenticated user and posting mode required';END IF;
+ IF NOT public.has_user_permission('approve') OR NOT public.has_user_permission('post') OR NOT public.can_action113('user-entry-review','post') OR NOT public.can_action113('journal','post') THEN RAISE EXCEPTION 'Review and journal posting permissions required';END IF;
+ SELECT * INTO j FROM staff_journals WHERE id=p_journal FOR UPDATE;
+ IF NOT FOUND OR NOT public.can_workspace113(j.owner_id) THEN RAISE EXCEPTION 'Workspace access denied';END IF;
+ PERFORM public.assert_final_review14229(p_journal);
+ payload=jsonb_build_object('date',p_date,'memo',p_memo,'lines',p_lines,'prefix',p_prefix,'digits',p_digits,'mode',p_mode);
+ SELECT * INTO receipt FROM operation_receipts14228 WHERE actor_id=auth.uid() AND request_key='summary:'||p_journal::text;
+ IF FOUND THEN IF receipt.payload IS DISTINCT FROM payload THEN RAISE EXCEPTION 'Report already posted with different data';END IF;RETURN receipt.result;END IF;
+ IF j.status<>'submitted' THEN RAISE EXCEPTION 'Report is not awaiting posting';END IF;
+ SELECT a.snapshot INTO snapshot FROM approved_reports1443 a WHERE a.journal_id=p_journal;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Approve the exact detailed report before summary posting';END IF;
+ IF p_date IS NULL OR date_trunc('month',p_date)<>date_trunc('month',j.period_start) THEN RAISE EXCEPTION 'Keep original reporting dates';END IF;
+ PERFORM 1 FROM staff_journal_lines WHERE staff_journal_id=p_journal FOR UPDATE;
+ -- Compare immutable reviewed content, ignoring only links filled by previous postings.
+ IF (SELECT jsonb_agg(to_jsonb(l)-'journal_entry_id' ORDER BY l.id) FROM staff_journal_lines l WHERE staff_journal_id=p_journal)
+ IS DISTINCT FROM (SELECT jsonb_agg(x-'journal_entry_id' ORDER BY x->>'id') FROM jsonb_array_elements(snapshot->'journal'->'lines') x) THEN RAISE EXCEPTION 'Source changed after approval';END IF;
+ IF jsonb_typeof(p_lines) IS DISTINCT FROM 'array' OR jsonb_array_length(p_lines)<2 THEN RAISE EXCEPTION 'No balanced summary supplied';END IF;
+ -- Derive the exact allowed lines. Only fund sides may be consolidated.
+ WITH sides AS (
+ SELECT l.id,l.transaction_date,l.currency_code,l.amount,l.account_id,CASE WHEN l.direction='in' THEN 'credit' ELSE 'debit' END side,l.id::text bucket FROM staff_journal_lines l WHERE l.staff_journal_id=p_journal AND NOT (l.entry_kind='collection' AND l.account_id=l.fund_account_id) AND l.journal_entry_id IS NULL
+ UNION ALL SELECT l.id,l.transaction_date,l.currency_code,l.amount,l.fund_account_id,CASE WHEN l.direction='in' THEN 'debit' ELSE 'credit' END,CASE WHEN p_mode='consolidated' THEN 'fund' ELSE l.id::text END FROM staff_journal_lines l WHERE l.staff_journal_id=p_journal AND NOT (l.entry_kind='collection' AND l.account_id=l.fund_account_id) AND l.journal_entry_id IS NULL
+ ), grouped AS (SELECT transaction_date,account_id,currency_code,side,bucket,sum(amount) amount,jsonb_agg(id::text ORDER BY id::text) ids FROM sides GROUP BY transaction_date,account_id,currency_code,side,bucket), objects AS (
+ SELECT jsonb_build_object('date',transaction_date,'account',account_id,'currency',currency_code,'side',side,'amount',amount,'ids',ids) obj FROM grouped)
+ SELECT jsonb_agg(obj ORDER BY obj::text) INTO expected FROM objects;
+ WITH objects AS (SELECT jsonb_build_object('date',(x->>'line_date')::date,'account',(x->>'account_id')::uuid,'currency',x->>'currency_code','side',CASE WHEN (x->>'debit')::numeric>0 THEN 'debit' ELSE 'credit' END,'amount',greatest((x->>'debit')::numeric,(x->>'credit')::numeric),'ids',(SELECT jsonb_agg(v ORDER BY v) FROM jsonb_array_elements_text(x->'source_ids') v)) obj FROM jsonb_array_elements(p_lines) x)
+ SELECT jsonb_agg(obj ORDER BY obj::text) INTO actual FROM objects;
+ IF expected IS NULL OR expected IS DISTINCT FROM actual THEN RAISE EXCEPTION 'Dates, accounts, amounts or references do not match the approved report';END IF;
+ -- Validate and lock every original date before allocating one entry number.
+ FOR src IN SELECT (x->>'line_date')::date d,jsonb_agg(x) lines FROM jsonb_array_elements(p_lines) x GROUP BY (x->>'line_date')::date ORDER BY (x->>'line_date')::date LOOP
+ PERFORM public.validate_journal14228(src.d,p_memo,src.lines);
+ END LOOP;
+ SELECT * INTO posted FROM public.post_report_worker14349(p_date,p_memo,p_lines,p_prefix,p_digits);
+ owner_name=coalesce(snapshot->'user'->>'full_name',(SELECT full_name FROM profiles WHERE id=j.owner_id),'Former user');
+ FOR item IN SELECT value FROM jsonb_array_elements(p_lines) LOOP
+ summary_line_no=summary_line_no+1;SELECT l.id INTO STRICT line_id FROM journal_lines l WHERE l.journal_entry_id=posted.entry_id AND l.line_no=summary_line_no;
+ FOR src IN SELECT l.* FROM staff_journal_lines l WHERE l.id IN(SELECT value::uuid FROM jsonb_array_elements_text(item->'source_ids')) LOOP
+ INSERT INTO journal_sources14253 VALUES(line_id,src.id,p_journal,src.workspace_entry_no,j.owner_id,owner_name,src.transaction_date,src.memo,src.reference,src.amount);
+ END LOOP;END LOOP;
+ UPDATE staff_journal_lines SET journal_entry_id=posted.entry_id WHERE staff_journal_id=p_journal AND NOT (entry_kind='collection' AND account_id=fund_account_id) AND journal_entry_id IS NULL;
+ UPDATE staff_journals SET status='posted',reviewed_by=auth.uid(),reviewed_at=now(),updated_at=now() WHERE id=p_journal;
+ answer=jsonb_build_object('entry_id',posted.entry_id,'entry_no',posted.entry_no,'report_id',p_journal);
+ INSERT INTO operation_receipts14228(actor_id,request_key,operation,payload,result) VALUES(auth.uid(),'summary:'||p_journal::text,'workspace-summary',payload,answer);
+ INSERT INTO audit_log(table_name,record_id,action,new_data,reason,actor_id) VALUES('staff_journals',p_journal::text,'POST',answer,'Approved report posted with original dates: '||p_mode,auth.uid());
+ RETURN answer;
+END $function$
+
+;
+REVOKE ALL ON FUNCTION public.post_report14349(uuid,date,text,jsonb,text,integer,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.post_report14349(uuid,date,text,jsonb,text,integer,text) TO authenticated;
+CREATE OR REPLACE FUNCTION public.check_ledger_entry14228(p_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE e public.journal_entries;
+BEGIN
+ SELECT * INTO e FROM journal_entries WHERE id=p_id;
+ IF NOT FOUND OR e.status::text<>'posted' THEN RETURN;END IF;
+ IF (SELECT count(*) FROM journal_lines WHERE journal_entry_id=p_id)<2 THEN RAISE EXCEPTION 'A posted journal requires at least two lines';END IF;
+ IF EXISTS(SELECT 1 FROM journal_lines l JOIN accounts a ON a.id=l.account_id WHERE l.journal_entry_id=p_id AND
+   (l.currency_code IS DISTINCT FROM a.currency_code OR NOT a.is_posting OR NOT a.is_active
+    OR (coalesce(l.line_date,e.transaction_date)<>e.transaction_date AND NOT (date_trunc('month',l.line_date)=date_trunc('month',e.transaction_date) AND EXISTS(SELECT 1 FROM journal_sources14253 s WHERE s.journal_line_id=l.id AND s.source_date=l.line_date))))) THEN RAISE EXCEPTION 'Journal account, currency or date mismatch';END IF;
+ IF EXISTS(SELECT 1 FROM journal_lines WHERE journal_entry_id=p_id GROUP BY currency_code,coalesce(line_date,e.transaction_date) HAVING sum(debit)<>sum(credit))
+  THEN RAISE EXCEPTION 'Every currency must balance';END IF;
+END $function$
+
+;
+
+-- Source: setup/INSTALL-ACCOUNT-MAPPING-v143.64.sql
+-- Add a purpose label only. Existing classifications, balances and posting connections are unchanged.
+
+ALTER TABLE public.accounts DROP CONSTRAINT accounts_purpose_allowed;
+ALTER TABLE public.accounts ADD CONSTRAINT accounts_purpose_allowed
+ CHECK (account_purpose IN ('regular','mapping','clearing','suspense','settlement','payroll','opening'));
+
+-- Source: setup/INSTALL-POSTING-CLEANUP-v143.70.sql
+-- Preserve posting checks, permissions, and sequence continuity.
+-- Remove duplicate validation and pad numbers without truncating longer IDs.
+-- Historical ledger rows and the sequence value are not modified.
+
+SET LOCAL lock_timeout = '3s';
+DO $migration$
+DECLARE signature text; source text; old_text text; new_text text; validation text;
+BEGIN
+ FOREACH signature IN ARRAY ARRAY[
+  'public.post_manual_worker14228(date,text,jsonb,text,integer)',
+  'public.post_report_worker14349(date,text,jsonb,text,integer)'
+ ] LOOP
+  source:=pg_get_functiondef(signature::regprocedure);
+  old_text:='lpad(nextval(''public.journal_entry_number_seq'')::text,v_digits,''0'')';
+  new_text:='(SELECT lpad(n.value,greatest(v_digits,length(n.value)),''0'') FROM (SELECT nextval(''public.journal_entry_number_seq'')::text AS value) n)';
+  IF position(old_text in source)=0 THEN RAISE EXCEPTION 'Posting number allocator changed or already patched: %',signature; END IF;
+  source:=replace(source,old_text,new_text);
+  validation:=CASE WHEN signature LIKE '%post_manual_worker%' THEN 'PERFORM public.validate_journal14228(p_transaction_date,p_memo,p_lines);'
+   ELSE 'PERFORM public.validate_journal14228(p_transaction_date,p_memo,(SELECT jsonb_agg(x-''line_date'') FROM jsonb_array_elements(p_lines) x));' END;
+  IF (length(source)-length(replace(source,validation,'')))/length(validation)<>2 THEN
+   RAISE EXCEPTION 'Expected exactly two identical validation calls: %',signature;
+  END IF;
+  -- Keep the first validation before prefix processing, remove only the second.
+  source:=overlay(source placing '' from strpos(source,validation)+length(validation)+strpos(substr(source,strpos(source,validation)+length(validation)),validation)-1 for length(validation));
+  EXECUTE source;
+ END LOOP;
+ signature:='public.approve_entry_submission(uuid)';source:=pg_get_functiondef(signature::regprocedure);
+ old_text:='lpad(nextval(''public.journal_entry_number_seq'')::text,6,''0'')';
+ new_text:='(SELECT lpad(n.value,greatest(6,length(n.value)),''0'') FROM (SELECT nextval(''public.journal_entry_number_seq'')::text AS value) n)';
+ IF position(old_text in source)=0 THEN RAISE EXCEPTION 'Submission allocator changed or already patched'; END IF;
+ EXECUTE replace(source,old_text,new_text);
+ signature:='public.preview_journal_number14257(text,integer)';source:=pg_get_functiondef(signature::regprocedure);
+ old_text:='lpad(next_number::text,digits,''0'')';new_text:='lpad(next_number::text,greatest(digits,length(next_number::text)),''0'')';
+ IF position(old_text in source)=0 THEN RAISE EXCEPTION 'Journal number preview changed or already patched'; END IF;
+ EXECUTE replace(source,old_text,new_text);
+ signature:='public.post_review_adjustment136(uuid,jsonb)';source:=pg_get_functiondef(signature::regprocedure);
+ old_text:='SELECT array_agg(id) INTO old_ids FROM journal_entries;';
+ IF position(old_text in source)=0 THEN RAISE EXCEPTION 'Review adjustment implementation changed or already patched'; END IF;
+ source:=replace(source,'old_ids uuid[];','');
+ source:=replace(source,old_text,'');
+ old_text:='PERFORM public.post_manual_worker14228(';
+ IF position(old_text in source)=0 THEN RAISE EXCEPTION 'Review posting call changed'; END IF;
+ source:=replace(source,old_text,'SELECT posted.entry_id INTO entry FROM public.post_manual_worker14228(');
+ old_text:='p_digits=>(p_payload->>''p_digits'')::integer);';
+ IF position(old_text in source)=0 THEN RAISE EXCEPTION 'Review posting arguments changed'; END IF;
+ source:=replace(source,old_text,'p_digits=>(p_payload->>''p_digits'')::integer) AS posted;');
+ old_text:='SELECT id INTO entry FROM journal_entries WHERE NOT(id=ANY(coalesce(old_ids,''{}''::uuid[]))) AND posted_by=actor LIMIT 1;';
+ IF position(old_text in source)=0 THEN RAISE EXCEPTION 'Review receipt lookup changed'; END IF;
+ source:=replace(source,old_text,'');
+ -- Preserve transaction locks and authorization; remove only the full-table receipt search.
+ EXECUTE source;
+ signature:='public.close_year136(integer,text,text)';source:=pg_get_functiondef(signature::regprocedure);
+ old_text:='SELECT coalesce(max(nullif(substring(entry_no FROM ''([0-9]+)$''),'''')::integer),0)+1 INTO numbering FROM journal_entries WHERE entry_no LIKE prefix||''-%'';';
+ IF position(old_text in source)=0 OR position('numbering integer;' in source)=0 THEN RAISE EXCEPTION 'Year-close number allocator changed'; END IF;
+ source:=replace(source,'numbering integer;','numbering bigint;number_attempts integer;');
+ new_text:='number_attempts:=0;
+  LOOP
+   number_attempts:=number_attempts+1;
+   IF number_attempts>1000 THEN RAISE EXCEPTION ''Unable to allocate a unique journal number''; END IF;
+   numbering:=nextval(''public.journal_entry_number_seq'');
+   EXIT WHEN NOT EXISTS(SELECT 1 FROM journal_entries WHERE entry_no=prefix||''-''||lpad(numbering::text,greatest(digits,length(numbering::text)),''0''));
+  END LOOP;';
+ source:=replace(source,old_text,new_text);
+ old_text:='lpad(numbering::text,digits,''0'')';
+ IF position(old_text in source)=0 THEN RAISE EXCEPTION 'Year-close number formatting changed'; END IF;
+ EXECUTE replace(source,old_text,'lpad(numbering::text,greatest(digits,length(numbering::text)),''0'')');
+END $migration$;
+-- Ordinary positive-amount checks alone accept PostgreSQL numeric NaN.
+-- Validate existing records without updating them; abort the entire migration on failure.
+ALTER TABLE public.journal_lines ADD CONSTRAINT journal_lines_finite14370
+ CHECK (debit::text NOT IN ('NaN','Infinity','-Infinity') AND credit::text NOT IN ('NaN','Infinity','-Infinity')) NOT VALID;
+ALTER TABLE public.staff_journal_lines ADD CONSTRAINT staff_journal_lines_finite14370
+ CHECK (amount::text NOT IN ('NaN','Infinity','-Infinity')) NOT VALID;
+ALTER TABLE public.journal_lines VALIDATE CONSTRAINT journal_lines_finite14370;
+ALTER TABLE public.staff_journal_lines VALIDATE CONSTRAINT staff_journal_lines_finite14370;
+NOTIFY pgrst,'reload schema';
+
+-- Source: setup/INSTALL-RLS-STATEMENT-CACHE-v143.70.sql
+-- Statement-cache only the reviewed, row-independent permission calls.
+-- Exact policy preconditions prevent rewriting an unknown access rule.
+-- No business records, grants, roles, or correlated row predicates change.
+
+SET LOCAL lock_timeout = '3s';
+SET LOCAL search_path = pg_catalog, public;
+-- Keep the verified policy definitions stable until all replacements commit.
+LOCK TABLE public.accounts,public.journal_entries,public.journal_lines IN SHARE ROW EXCLUSIVE MODE;
+DO $migration$
+DECLARE expected record; actual record; signature text; helper oid;
+BEGIN
+ FOREACH signature IN ARRAY ARRAY['public.active_account14228()','public.password_change_required14257()',
+  'public.accounting_workspace_allowed123()','public.is_admin()','public.has_user_permission(text)','public.can_action113(text,text)'] LOOP
+  helper:=to_regprocedure(signature);
+  IF helper IS NULL OR NOT EXISTS(SELECT 1 FROM pg_proc WHERE oid=helper AND provolatile='s') THEN
+   RAISE EXCEPTION 'Missing or changed stable permission helper: %',signature;
+  END IF;
+ END LOOP;
+ FOR expected IN SELECT * FROM (VALUES
+  ('accounts','active_account14228','RESTRICTIVE','{authenticated}','ALL','active_account14228()','active_account14228()'),
+  ('accounts','admin_all_accounts','PERMISSIVE','{authenticated}','ALL','is_admin()','is_admin()'),
+  ('accounts','current_accounts14228','RESTRICTIVE','{authenticated}','SELECT','(is_admin() OR can_action113(''sec-chart-accounts''::text, ''view''::text) OR can_action113(''journal''::text, ''view''::text) OR (EXISTS ( SELECT 1
+   FROM user_permissions u
+  WHERE (can_workspace113(u.user_id) AND ((accounts.id = ANY (u.assigned_fund_account_ids)) OR (accounts.id = ANY (u.allowed_account_ids)) OR (accounts.id = ANY (u.destination_account_ids)) OR (accounts.id = u.money_in_counterpart_account_id))))))',NULL),
+  ('accounts','password_gate14257','RESTRICTIVE','{authenticated}','ALL','(NOT password_change_required14257())','(NOT password_change_required14257())'),
+  ('accounts','reference_accounts_read','PERMISSIVE','{authenticated}','SELECT','true',NULL),
+  ('accounts','workspace_accounting123','RESTRICTIVE','{authenticated}','ALL','accounting_workspace_allowed123()','accounting_workspace_allowed123()'),
+  ('journal_entries','active_account14228','RESTRICTIVE','{authenticated}','ALL','active_account14228()','active_account14228()'),
+  ('journal_entries','admin_all_journal_entries','PERMISSIVE','{authenticated}','ALL','is_admin()','is_admin()'),
+  ('journal_entries','current_ledger14228','RESTRICTIVE','{authenticated}','SELECT','(can_action113(''journal''::text, ''view''::text) OR (EXISTS ( SELECT 1
+   FROM (staff_journal_lines l
+     JOIN staff_journals j ON ((j.id = l.staff_journal_id)))
+  WHERE ((l.journal_entry_id = journal_entries.id) AND can_workspace113(j.owner_id)))))',NULL),
+  ('journal_entries','journal_entries_permitted_insert','PERMISSIVE','{authenticated}','INSERT',NULL,'(has_user_permission(''post''::text) AND (posted_by = auth.uid()))'),
+  ('journal_entries','journal_entries_permitted_select','PERMISSIVE','{authenticated}','SELECT','(has_user_permission(''post''::text) OR has_user_permission(''approve''::text))',NULL),
+  ('journal_entries','password_gate14257','RESTRICTIVE','{authenticated}','ALL','(NOT password_change_required14257())','(NOT password_change_required14257())'),
+  ('journal_entries','workspace_accounting123','RESTRICTIVE','{authenticated}','ALL','accounting_workspace_allowed123()','accounting_workspace_allowed123()'),
+  ('journal_lines','active_account14228','RESTRICTIVE','{authenticated}','ALL','active_account14228()','active_account14228()'),
+  ('journal_lines','admin_all_journal_lines','PERMISSIVE','{authenticated}','ALL','is_admin()','is_admin()'),
+  ('journal_lines','current_ledger14228','RESTRICTIVE','{authenticated}','SELECT','(EXISTS ( SELECT 1
+   FROM journal_entries e
+  WHERE (e.id = journal_lines.journal_entry_id)))',NULL),
+  ('journal_lines','journal_lines_permitted_insert','PERMISSIVE','{authenticated}','INSERT',NULL,'(has_user_permission(''post''::text) AND (EXISTS ( SELECT 1
+   FROM journal_entries e
+  WHERE ((e.id = journal_lines.journal_entry_id) AND (e.posted_by = auth.uid())))))'),
+  ('journal_lines','journal_lines_permitted_select','PERMISSIVE','{authenticated}','SELECT','(has_user_permission(''post''::text) OR has_user_permission(''approve''::text))',NULL),
+  ('journal_lines','password_gate14257','RESTRICTIVE','{authenticated}','ALL','(NOT password_change_required14257())','(NOT password_change_required14257())'),
+  ('journal_lines','workspace_accounting123','RESTRICTIVE','{authenticated}','ALL','accounting_workspace_allowed123()','accounting_workspace_allowed123()')
+ ) AS reviewed(tab,policy,mode,role_names,command,qual,check_expr) LOOP
+  SELECT * INTO actual FROM pg_policies WHERE schemaname='public' AND tablename=expected.tab AND policyname=expected.policy;
+  IF NOT FOUND OR actual.permissive IS DISTINCT FROM expected.mode OR actual.roles::text IS DISTINCT FROM expected.role_names
+   OR actual.cmd IS DISTINCT FROM expected.command OR actual.qual IS DISTINCT FROM expected.qual OR actual.with_check IS DISTINCT FROM expected.check_expr THEN
+   RAISE EXCEPTION 'Policy changed or migration already applied; review %.% before proceeding',expected.tab,expected.policy;
+  END IF;
+ END LOOP;
+END $migration$;
+ALTER POLICY "active_account14228" ON public."accounts" USING ((SELECT public.active_account14228())) WITH CHECK ((SELECT public.active_account14228()));
+ALTER POLICY "admin_all_accounts" ON public."accounts" USING ((SELECT public.is_admin())) WITH CHECK ((SELECT public.is_admin()));
+ALTER POLICY "current_accounts14228" ON public."accounts" USING (((SELECT public.is_admin()) OR (SELECT public.can_action113('sec-chart-accounts'::text, 'view'::text)) OR (SELECT public.can_action113('journal'::text, 'view'::text)) OR (EXISTS ( SELECT 1
+   FROM user_permissions u
+  WHERE (can_workspace113(u.user_id) AND ((accounts.id = ANY (u.assigned_fund_account_ids)) OR (accounts.id = ANY (u.allowed_account_ids)) OR (accounts.id = ANY (u.destination_account_ids)) OR (accounts.id = u.money_in_counterpart_account_id)))))));
+ALTER POLICY "password_gate14257" ON public."accounts" USING ((NOT (SELECT public.password_change_required14257()))) WITH CHECK ((NOT (SELECT public.password_change_required14257())));
+ALTER POLICY "workspace_accounting123" ON public."accounts" USING ((SELECT public.accounting_workspace_allowed123())) WITH CHECK ((SELECT public.accounting_workspace_allowed123()));
+ALTER POLICY "active_account14228" ON public."journal_entries" USING ((SELECT public.active_account14228())) WITH CHECK ((SELECT public.active_account14228()));
+ALTER POLICY "admin_all_journal_entries" ON public."journal_entries" USING ((SELECT public.is_admin())) WITH CHECK ((SELECT public.is_admin()));
+ALTER POLICY "current_ledger14228" ON public."journal_entries" USING (((SELECT public.can_action113('journal'::text, 'view'::text)) OR (EXISTS ( SELECT 1
+   FROM (staff_journal_lines l
+     JOIN staff_journals j ON ((j.id = l.staff_journal_id)))
+  WHERE ((l.journal_entry_id = journal_entries.id) AND can_workspace113(j.owner_id))))));
+ALTER POLICY "journal_entries_permitted_insert" ON public."journal_entries" WITH CHECK (((SELECT public.has_user_permission('post'::text)) AND (posted_by = auth.uid())));
+ALTER POLICY "journal_entries_permitted_select" ON public."journal_entries" USING (((SELECT public.has_user_permission('post'::text)) OR (SELECT public.has_user_permission('approve'::text))));
+ALTER POLICY "password_gate14257" ON public."journal_entries" USING ((NOT (SELECT public.password_change_required14257()))) WITH CHECK ((NOT (SELECT public.password_change_required14257())));
+ALTER POLICY "workspace_accounting123" ON public."journal_entries" USING ((SELECT public.accounting_workspace_allowed123())) WITH CHECK ((SELECT public.accounting_workspace_allowed123()));
+ALTER POLICY "active_account14228" ON public."journal_lines" USING ((SELECT public.active_account14228())) WITH CHECK ((SELECT public.active_account14228()));
+ALTER POLICY "admin_all_journal_lines" ON public."journal_lines" USING ((SELECT public.is_admin())) WITH CHECK ((SELECT public.is_admin()));
+ALTER POLICY "journal_lines_permitted_insert" ON public."journal_lines" WITH CHECK (((SELECT public.has_user_permission('post'::text)) AND (EXISTS ( SELECT 1
+   FROM journal_entries e
+  WHERE ((e.id = journal_lines.journal_entry_id) AND (e.posted_by = auth.uid()))))));
+ALTER POLICY "journal_lines_permitted_select" ON public."journal_lines" USING (((SELECT public.has_user_permission('post'::text)) OR (SELECT public.has_user_permission('approve'::text))));
+ALTER POLICY "password_gate14257" ON public."journal_lines" USING ((NOT (SELECT public.password_change_required14257()))) WITH CHECK ((NOT (SELECT public.password_change_required14257())));
+ALTER POLICY "workspace_accounting123" ON public."journal_lines" USING ((SELECT public.accounting_workspace_allowed123())) WITH CHECK ((SELECT public.accounting_workspace_allowed123()));
+
 COMMIT;

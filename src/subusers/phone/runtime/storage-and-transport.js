@@ -1,9 +1,12 @@
   function openDB() {
     return database ??= new Promise((resolve, reject) => {
-      const request = indexedDB.open('ojm-phone14242', 1), timer = setTimeout(() => reject(fail('Device storage is unavailable. Your draft has not been saved.')), 2000);
-      request.onupgradeneeded = () => request.result.createObjectStore('accounts');
-      request.onsuccess = () => { clearTimeout(timer); resolve(request.result); };
-      request.onerror = request.onblocked = () => { clearTimeout(timer); reject(request.error || fail('Device storage is unavailable.')); };
+      let finished=false;
+      const request=indexedDB.open('ojm-phone14242',1);
+      const stop=error=>{if(finished)return;finished=true;clearTimeout(timer);reject(error)};
+      const timer=setTimeout(()=>stop(fail('Device storage is unavailable. Your draft has not been saved.')),2000);
+      request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('accounts'))request.result.createObjectStore('accounts')};
+      request.onsuccess=()=>{if(finished){request.result.close();return}finished=true;clearTimeout(timer);const connection=request.result;connection.onversionchange=()=>{connection.close();database=null};resolve(connection)};
+      request.onerror=request.onblocked=()=>stop(request.error||fail('Device storage is unavailable.'));
     }).catch(e=>{database=null;throw e;});
   }
   async function record(owner, update) {
@@ -43,16 +46,18 @@
     const response = await boundedFetch(url.href, {method:options.method || (body === undefined ? 'GET' : 'POST'), headers, ...(body === undefined ? {} : {body:JSON.stringify(body)})});
     if (!current(owner, epoch)) throw fail('Your account changed while this request was loading.', 'ACCOUNT_CHANGED');
     if([401,403].includes(response.status))throw Object.assign(fail('The server denied access. Sign in again.',response.status===403?'42501':'PGRST301'),{status:response.status});
-    const text = await response.text();let data=null;try{data=text?JSON.parse(text):null;}catch{throw fail('The complete response was not received. Previously downloaded records are kept.','INVALID_RESPONSE');}
+    const text = await response.text();if(!current(owner,epoch))throw fail('Your account changed while this request was loading.','ACCOUNT_CHANGED');let data=null;try{data=text?JSON.parse(text):null;}catch{throw fail('The complete response was not received. Previously downloaded records are kept.','INVALID_RESPONSE');}
     if (!response.ok) throw Object.assign(fail(data?.message || 'This request could not complete.', data?.code), {status:response.status});
     const count = response.headers.get('content-range')?.split('/')[1];
     return {data, count:count && count !== '*' ? Number(count) : null};
   }
   const rpc = async (name, body = {}) => (await http('rpc/' + name, {}, body)).data;
   async function paged(table, query, select = '*') {
-    const rows = [], ids = new Set(); let expected = null;
+    const rows = [], ids = new Set(),owner=S.owner,epoch=S.epoch; let expected = null;
     for (let offset = 0; offset < 200000; offset += 200) {
+      if(!current(owner,epoch))throw fail('Your account changed while downloading.','ACCOUNT_CHANGED');
       const result = await http(table, {...query, select, order:'id.asc', limit:'200', offset:String(offset)});
+      if(!current(owner,epoch))throw fail('Your account changed while downloading.','ACCOUNT_CHANGED');
       if (!Array.isArray(result.data) || result.data.length > 200) throw fail('Records were incomplete. Refresh to try again.', 'INVALID_RESPONSE');
       if (result.count !== null) {
         if (!Number.isInteger(result.count) || result.count < 0 || expected !== null && expected !== result.count) throw fail('Records changed while downloading. Refresh to try again.', 'INVALID_RESPONSE');

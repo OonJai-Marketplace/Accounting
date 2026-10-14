@@ -5,7 +5,7 @@
     const select = document.createElement('select');
     select.name = 'payrollAccountId';
     select.innerHTML = '<option value="">Select the employee payroll account</option>' + rows
-      .filter(account => !currency || account.currency === currency)
+      .filter(account => (account.id===selected||account.isPosting!==false&&account.isActive!==false)&&(!currency || account.currency === currency))
       .map(account => `<option value="${escape(account.id)}">${escape(`${account.code || ''} — ${account.name} (${account.currency})`)}</option>`).join('');
     select.value = selected;
     const label = document.createElement('label');
@@ -68,7 +68,6 @@
     const titleLabel = byName('code');
     if (titleLabel) {
       const wrapper = titleLabel.parentElement;
-      const keep = new Set(original);
       [...wrapper.children].forEach(node => { if (node.matches('label')) node.remove(); });
       wrapper.remove();
     }

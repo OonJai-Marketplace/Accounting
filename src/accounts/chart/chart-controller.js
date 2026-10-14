@@ -17,7 +17,7 @@ function initCoaCurrencyFilter() {
       opt.textContent = `${c.code} (${c.name})`;
       filterSelect.appendChild(opt);
     });
-    filterSelect.value = currentVal || 'ALL';
+    filterSelect.value = [...filterSelect.options].some(o=>o.value===currentVal)?currentVal:'ALL';
   }
 
   if (modalSelect) {
@@ -36,7 +36,7 @@ function syncCoaDatalist() {
   const dl = document.getElementById('coaList');
   if (!dl) return;
   dl.innerHTML = '';
-  AccountingStore.accounts.filter(acc=>acc.isPosting!==false).forEach(acc => {
+  AccountingStore.accounts.filter(acc=>acc.isPosting!==false&&acc.is_posting!==false&&acc.active!==false&&acc.is_active!==false&&acc.currency!=='NA').forEach(acc => {
     const opt = document.createElement('option');
     opt.value = `${acc.name} (${acc.currency})`;
     opt.textContent = `${acc.code} — ${acc.type}`;
@@ -59,30 +59,32 @@ function renderChartOfAccountsTable() {
 
   if (visibleAccounts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No accounts match your search.</td></tr>`;
-    return;
+    syncSubAccountParentDropdown();syncCoaDatalist();return;
   }
 
+  const fragment=document.createDocumentFragment();
   visibleAccounts.forEach(acc => {
-    const badgeClass = `badge-${acc.type.toLowerCase()}`;
+    const badgeClass = `badge-${String(acc.type||'').toLowerCase().replace(/[^a-z-]/g,'')}`;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${acc.code}</td>
+      <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${escapeHtml(acc.code)}</td>
       <td><strong>${escapeHtml(acc.name)}</strong></td>
       <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'Parent':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
-      <td><span class="badge-type ${badgeClass}">${acc.type}</span></td>
+      <td><span class="badge-type ${badgeClass}">${escapeHtml(acc.type)}</span></td>
       <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
       <td style="text-align: right;">
         <div style="display: inline-flex; gap: 6px;">
-          <button type="button" class="btn-action-edit" title="Edit Account" onclick="openEditAccountModal('${acc.code}')">✏️</button>
-          <button type="button" class="btn-action-delete" title="Delete Account" onclick="promptDeleteAccount('${acc.code}')">
+          <button type="button" class="btn-action-edit" title="Edit Account" onclick="openEditAccountModal(${escapeHtml(JSON.stringify(acc.code))})">✏️</button>
+          <button type="button" class="btn-action-delete" title="Delete Account" onclick="promptDeleteAccount(${escapeHtml(JSON.stringify(acc.code))})">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
       </td>
     `;
-    tbody.appendChild(tr);
+    fragment.appendChild(tr);
   });
 
+  tbody.appendChild(fragment);
   syncSubAccountParentDropdown();
   syncCoaDatalist();
 }

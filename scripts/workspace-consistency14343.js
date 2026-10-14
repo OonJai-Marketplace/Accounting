@@ -45,7 +45,7 @@ function decorateEmptyStates14355(panel){
   if(node.parentElement.closest('.app-empty14355')||node.closest('[contenteditable="true"],#document-editor105,.doc-preview,.print-only')||node.querySelector('input,select,textarea,table'))continue;
   const text=node.textContent.trim();
   const empty=/^(no\b|nothing\b|there (?:are|is) no\b)/i.test(text)&&text.length<350&&!/\b(error|failed|unable|loading|checking|permission|denied|unavailable)\b|could not|not (?:yet )?loaded/i.test(text);
-  node.classList.toggle('app-empty14355',empty);
+  if(node.classList.contains('app-empty14355')!==empty)node.classList.toggle('app-empty14355',empty);
  }
 }
 // Secondary workspace choices use a menu anchored to their main horizontal tab.
@@ -69,7 +69,7 @@ function showSectionMenu14355(trigger,panel){
 function syncSectionMenus(panel){
  if(innerWidth<=640||document.documentElement.dataset.device132==='phone'){closeSectionMenu14355();return}
  const trigger=mainTab14355(),canAnchor=trigger&&visible(trigger);
- for(const row of panel.querySelectorAll(sectionRows14355))row.classList.toggle('section-menu-source14355',!!canAnchor);
+ for(const row of panel.querySelectorAll(sectionRows14355))if(row.classList.contains('section-menu-source14355')!==!!canAnchor)row.classList.toggle('section-menu-source14355',!!canAnchor);
  const choices=canAnchor?sectionChoices14355(panel):[];
  if(trigger&&choices.length){trigger.setAttribute('aria-haspopup','menu');trigger.setAttribute('aria-controls','sectionMenu14355');if(!trigger.hasAttribute('aria-expanded'))trigger.setAttribute('aria-expanded','false')}
  if(pendingSection14355&&tabKey14355(trigger)===pendingSection14355&&choices.length){pendingSection14355='';showSectionMenu14355(trigger,panel)}
@@ -106,6 +106,6 @@ function reminders(unit){
  fields.hidden=unit==='none';if(unit==='none'){RecurringStore.pendingReminders=[];renderPendingReminders()}else{document.getElementById('reminderUnit').value=unit;document.getElementById('reminderCountLabel14343').textContent=unit[0].toUpperCase()+unit.slice(1)+' before';document.getElementById('reminderCount').focus()}
 }
 function ready(){layout();document.querySelectorAll('[data-reminder-unit14343]').forEach(b=>b.onclick=()=>reminders(b.dataset.reminderUnit14343));const reset=window.resetRecurringForm;window.resetRecurringForm=function(...args){const result=reset.apply(this,args);reminders('none');return result};new MutationObserver(records=>{if(records.some(r=>{const panel=r.target.closest?.('.tab-content');return !panel||panel.classList.contains('active')}))schedule()}).observe(document.querySelector('.workspace-scroll')||document.body,{childList:true,subtree:true});window.addEventListener('page113',schedule);window.addEventListener('resize',schedule);document.addEventListener('fullscreenchange',()=>{document.body.classList.toggle('browser-full14344',!!document.fullscreenElement);schedule()});new MutationObserver(records=>{if(records.some(r=>r.oldValue!==document.body.className))schedule()}).observe(document.body,{attributes:true,attributeFilter:['class'],attributeOldValue:true})}
-const switch14362=window.switchTab;window.switchTab=function(...args){const result=switch14362.apply(this,args);layout();return result};
+const switch14362=window.switchTab;window.switchTab=function(...args){const result=switch14362.apply(this,args);schedule();return result};
 window.workspaceConsistency14343={layout,dismiss};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

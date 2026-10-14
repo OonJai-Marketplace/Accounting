@@ -4,6 +4,7 @@
 
   const mobileQuery = window.matchMedia('(max-width: 767px)');
   let activeTarget = '';
+  const categoryState = new WeakMap();
 
   function buttonTarget(button) {
     const source = button?.getAttribute('onclick') || '';
@@ -61,14 +62,34 @@
     const buttons = visibleCategoryButtons(category);
     const shouldShow = Boolean(category && category.dataset.module !== 'dashboard' && buttons.length);
     shell.hidden = !shouldShow;
-    const markup = shouldShow ? buttons.map(button => {
-      const destination = buttonTarget(button);
-      const label = compactTabLabel(destination, button.childNodes[0].textContent.trim());
-      return `<button type="button" class="category-tab ${destination === target ? 'active' : ''}" data-target="${destination}" role="tab" aria-selected="${destination === target}">${label}</button>`;
-    }).join('') : '';
-    if(host.innerHTML===markup)return;
-    host.innerHTML=markup;
-    host.querySelectorAll('.category-tab').forEach(tab => tab.addEventListener('click', () => sourceButton(tab.dataset.target)?.click()));
+    const items = shouldShow ? buttons.map(button => ({
+      destination: buttonTarget(button),
+      label: compactTabLabel(buttonTarget(button), button.childNodes[0]?.textContent.trim() || '')
+    })) : [];
+    const signature = JSON.stringify(items);
+    const previous = categoryState.get(host);
+    const children = [...host.children];
+    const intact = children.length === items.length && children.every((node, index) =>
+      node.matches('button.category-tab') && node.dataset.target === items[index].destination);
+    if (!previous || previous.signature !== signature || !intact) {
+      host.replaceChildren(...items.map(({destination, label}) => {
+        const tab = document.createElement('button');
+        tab.type = 'button';
+        tab.className = 'category-tab';
+        tab.dataset.target = destination;
+        tab.setAttribute('role', 'tab');
+        tab.textContent = label;
+        tab.addEventListener('click', () => sourceButton(destination)?.click());
+        return tab;
+      }));
+    }
+    for (const tab of host.children) {
+      const selected = tab.dataset.target === target;
+      if (tab.classList.contains('active') !== selected) tab.classList.toggle('active', selected);
+      if (tab.getAttribute('aria-selected') !== String(selected)) tab.setAttribute('aria-selected', String(selected));
+    }
+    categoryState.set(host, {signature, target});
+    if (previous?.signature === signature && previous.target === target && intact) return;
     requestAnimationFrame(() => {const tab=host.querySelector('.category-tab.active');if(!tab)return;const left=tab.offsetLeft,right=left+tab.offsetWidth;if(left<host.scrollLeft)host.scrollLeft=left;else if(right>host.scrollLeft+host.clientWidth)host.scrollLeft=right-host.clientWidth;});
   }
 

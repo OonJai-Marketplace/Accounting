@@ -1,5 +1,5 @@
 // Isolated PostgreSQL (PGlite) fixture; never connects to the live database.
-const fs=require('fs'),assert=require('assert/strict');const {PGlite}=require(process.env.PGLITE_MODULE||'/tmp/oonjai-db-test/node_modules/@electric-sql/pglite');
+const fs=require('fs'),assert=require('assert/strict');const {PGlite}=require(process.env.PGLITE_MODULE||'@electric-sql/pglite');
 const uid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
 (async()=>{const db=new PGlite();await db.exec(`
 CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;

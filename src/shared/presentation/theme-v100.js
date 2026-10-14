@@ -26,7 +26,8 @@
   function install(){
     syncIcons();
     let queued=false;
-    new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;syncIcons()})}).observe(document.body,{subtree:true,childList:true});
+    const sidebar=document.querySelector('.sidebar');if(!sidebar)return;
+    new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;syncIcons()})}).observe(sidebar,{subtree:true,childList:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })()

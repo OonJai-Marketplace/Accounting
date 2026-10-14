@@ -9,23 +9,28 @@
   },
   {
     "name": "Refresh is quiet after durable draft save; warns before unpersisted edits; restores after reload",
-    "passed": true
+    "passed": false,
+    "error": "page.evaluate: Error: Sign in to unlock the saved data on this device.\n    at requireKey (http://127.0.0.1:39335/scripts/device-vault14334.js?v=143.60:79:13)\n    at Object.pack (http://127.0.0.1:39335/scripts/device-vault14334.js?v=143.60:86:5)\n    at http://127.0.0.1:39335/scripts/desktop14245-4.js?v=143.64:77:699\n    at new Promise (<anonymous>)\n    at Object.localWrite [as flush] (http://127.0.0.1:39335/scripts/desktop14245-4.js?v=143.64:77:546)\n    at async <anonymous>:337:30"
   },
   {
     "name": "Open Template creates voucher copy; Save Template creates company template without replacing document",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.doc-library-row105').filter({ hasText: 'Payment voucher' }).getByRole('button', { name: 'Open', exact: true })\u001b[22m\n"
   },
   {
     "name": "Using a saved template never updates original; Open/Delete are grouped at right",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.doc-library-row105').filter({ hasText: 'Sample voucher' }).getByRole('button', { name: 'Open', exact: true })\u001b[22m\n"
   },
   {
     "name": "Edit Template updates explicitly; ordinary Save blocks template overwrite; restored template keeps protection",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.doc-library-row105').filter({ hasText: 'Sample voucher' }).getByRole('button', { name: 'Edit', exact: true })\u001b[22m\n"
   },
   {
     "name": "Template connection failure and stale version retain editable draft",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ui-overlay108').last().getByRole('button', { name: 'Update template', exact: true })\u001b[22m\n"
   },
   {
     "name": "Tablet library groups actions and signatory form fits the viewport",
@@ -37,54 +42,67 @@
   },
   {
     "name": "Signatory rows have no outer outline and independently align role/name/position",
-    "passed": true
+    "passed": false,
+    "error": "Expected values to be strictly equal:\n\n'left' !== 'right'\n"
   },
   {
     "name": "Create Template opens draft; conditional top-right Save hides after save and returns after edit",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Error: strict mode violation: locator('#createTemplate14298') resolved to 4 elements:\n    1) <button type=\"button\" id=\"createTemplate14298\">Create Template</button> aka getByRole('button', { name: 'Create Template' }).first()\n    2) <button type=\"button\" id=\"createTemplate14298\">Create Template</button> aka getByRole('button', { name: 'Create Template' }).nth(1)\n    3) <button type=\"button\" id=\"createTemplate14298\">Create Template</button> aka getByRole('button', { name: 'Create Template' }).nth(2)\n    4) <button type=\"button\" id=\"createTemplate14298\">Create Template</button> aka getByRole('button', { name: 'Create Template' }).nth(3)\n\nCall log:\n\u001b[2m  - waiting for locator('#createTemplate14298')\u001b[22m\n"
   },
   {
     "name": "Insert Table opens docked sidebar, shifts/scales paper and closes back to original width",
-    "passed": true
+    "passed": false,
+    "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    'Insert',\n-   'Structure',\n    'Size',\n    'Borders',\n+   'Structure',\n    'Selected Cell'\n  ]\n"
   },
   {
     "name": "Voucher calculates totals after row changes, preserves amount caret, flags invalid values and saves calculated total",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.doc-library-row105').filter({ hasText: 'Payment voucher' }).getByRole('button', { name: 'Open', exact: true })\u001b[22m\n"
   },
   {
     "name": "Editor voucher consumes an ID only on Save Voucher and then appears in the register",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#voucherCreate14299')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" id=\"voucherCreate14299\" data-action-tone14317=\"add\" class=\"je-btn je-btn-emerald\">Create Editor Voucher</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"doc-template-tools14298\">…</div> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"doc-template-tools14298\">…</div> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"doc-template-tools14298\">…</div> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
   },
   {
     "name": "Confirmed server number replaces tentative number and ordinary Save uses voucher register",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#voucherCreate14299')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" id=\"voucherCreate14299\" data-action-tone14317=\"add\" class=\"je-btn je-btn-emerald\">Create Editor Voucher</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"doc-template-tools14298\">…</div> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"doc-template-tools14298\">…</div> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"doc-template-tools14298\">…</div> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
   },
   {
     "name": "Blank-sheet retry keeps its request key; reserved A5 pages open in the editor with unique references",
-    "passed": true
+    "passed": false,
+    "error": "locator.fill: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#voucherBatch14299')\u001b[22m\n"
   },
   {
     "name": "Voucher register actions and compact Journal picker fit desktop and tablet portrait/landscape",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#voucherRows14299 summary[aria-label=\"Row actions\"]').first()\u001b[22m\n"
   },
   {
     "name": "Voucher actions wait for the installed database readiness check",
-    "passed": true
+    "passed": false,
+    "error": "locator.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#voucherCreate14299')\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" id=\"voucherCreate14299\" data-action-tone14317=\"add\" class=\"je-btn je-btn-emerald\">Create Editor Voucher</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <header>…</header> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <header>…</header> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    19 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <header>…</header> from <div class=\"ui-overlay108\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
   },
   {
     "name": "Transaction labels, selected Voucher tab, date formats and latest-first history stay consistent",
-    "passed": true
+    "passed": false,
+    "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n  [\n    'Journal',\n+   'Finalization 0',\n+   'Data Check2',\n-   'Upcoming',\n-   'Submission Review 0',\n    'Period Closing',\n+   'Upcoming ',\n+   'Budget Requests',\n+   'Vouchers',\n+   'History ',\n-   'Transaction History',\n    'Audit Logs',\n-   'Vouchers'\n  ]\n"
   },
   {
     "name": "Audit controls remain stable and personal Active Journal does not swipe sideways",
-    "passed": true
+    "passed": false,
+    "error": "page.evaluate: Error: Sign in to unlock the saved data on this device.\n    at requireKey (http://127.0.0.1:39335/scripts/device-vault14334.js?v=143.60:79:13)\n    at Object.unpack (http://127.0.0.1:39335/scripts/device-vault14334.js?v=143.60:95:5)\n    at r.onsuccess (http://127.0.0.1:39335/scripts/local-first14333.js?v=143.64:11:413)"
   },
   {
     "name": "Dashboard period controls, dark-card hover and persistent connection indicators remain readable on iPad",
-    "passed": true
+    "passed": false,
+    "error": "locator.hover: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#dashboard .dash-flow-step112').first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-map112=\"revenue\" class=\"dash-flow-step112\">…</button>\u001b[22m\n\u001b[2m  - attempting hover action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div role=\"alert\" class=\"error\" id=\"status118\" aria-live=\"assertive\" data-kind14231=\"error\" aria-label=\"Notification\" data-persistent1440=\"true\" data-workspace14232=\"false\" data-message14296=\"Workflow data could not load: The journal window is incomplete.\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    - waiting for element to be visible and stable\u001b[22m\n\u001b[2m    - element is visible and stable\u001b[22m\n\u001b[2m    - scrolling into view if needed\u001b[22m\n\u001b[2m    - done scrolling\u001b[22m\n\u001b[2m    - <div role=\"alert\" class=\"error\" id=\"status118\" aria-live=\"assertive\" data-kind14231=\"error\" aria-label=\"Notification\" data-persistent1440=\"true\" data-workspace14232=\"false\" data-message14296=\"Workflow data could not load: The journal window is incomplete.\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying hover action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m      - waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"ui-overlay108\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m  4 × retrying hover action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div role=\"alert\" class=\"error\" id=\"status118\" aria-live=\"assertive\" data-kind14231=\"error\" aria-label=\"Notification\" data-persistent1440=\"true\" data-workspace14232=\"false\" data-message14296=\"Workflow data could not load: The journal window is incomplete.\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div role=\"alert\" class=\"error\" id=\"status118\" aria-live=\"assertive\" data-kind14231=\"error\" aria-label=\"Notification\" data-persistent1440=\"true\" data-workspace14232=\"false\" data-message14296=\"Workflow data could not load: The journal window is incomplete.\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"ui-overlay108\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying hover action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"ui-overlay108\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m  2 × retrying hover action\u001b[22m\n\u001b[2m      - waiting 500ms\u001b[22m\n\u001b[2m      - waiting for element to be visible and stable\u001b[22m\n\u001b[2m      - element is visible and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div role=\"alert\" class=\"error\" id=\"status118\" aria-live=\"assertive\" data-kind14231=\"error\" aria-label=\"Notification\" data-persistent1440=\"true\" data-workspace14232=\"false\" data-message14296=\"Workflow data could not load: The journal window is incomplete.\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m  - retrying hover action\u001b[22m\n\u001b[2m    - waiting 500ms\u001b[22m\n"
   },
   {
     "name": "Company template copies never retain the saved voucher identity",
-    "passed": true
+    "passed": false,
+    "error": "locator.fill: Error: strict mode violation: locator('#templateName14297') resolved to 2 elements:\n    1) <input maxlength=\"180\" id=\"templateName14297\" value=\"Untitled document\"/> aka getByRole('textbox', { name: 'Template name' }).first()\n    2) <input maxlength=\"180\" id=\"templateName14297\" value=\"Untitled document\"/> aka getByRole('textbox', { name: 'Template name' }).nth(1)\n\nCall log:\n\u001b[2m  - waiting for locator('#templateName14297')\u001b[22m\n"
   }
 ]

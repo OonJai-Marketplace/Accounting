@@ -94,9 +94,6 @@
         "source": "src/accounts/sub-accounts/sub-account-controller.js"
       },
       {
-        "source": "src/dashboard/summary-chart.js"
-      },
-      {
         "source": "src/shared/ui/notifications-and-print-state.js"
       },
       {
@@ -770,9 +767,6 @@
       },
       {
         "source": "src/accounts/sub-accounts/sub-account-controller.js"
-      },
-      {
-        "source": "src/dashboard/summary-chart.js"
       },
       {
         "source": "src/shared/ui/notifications-and-print-state.js"

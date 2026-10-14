@@ -1,4 +1,4 @@
-const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require('/tmp/ojm-crypto-build/node_modules/@electric-sql/pglite/dist/index.cjs');
+const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require(process.env.PGLITE_MODULE||'@electric-sql/pglite');
 (async()=>{const db=new PGlite(),a='00000000-0000-4000-8000-000000000001',b='00000000-0000-4000-8000-000000000002';await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE SCHEMA auth;CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$SELECT nullif(current_setting('app.actor',true),'')::uuid$$;CREATE TABLE profiles(id uuid PRIMARY KEY,status text);INSERT INTO profiles VALUES('${a}','active'),('${b}','active');
 CREATE FUNCTION active_account14228() RETURNS boolean LANGUAGE sql AS $$SELECT EXISTS(SELECT 1 FROM profiles WHERE id=auth.uid() AND status='active')$$;
 CREATE FUNCTION password_change_required14257() RETURNS boolean LANGUAGE sql AS $$SELECT false$$;

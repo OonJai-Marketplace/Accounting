@@ -22,7 +22,7 @@ syncCoaDatalist = function() {
   const dl = document.getElementById('coaList');
   if (!dl) return;
   dl.innerHTML = '';
-  AccountingStore.accounts.filter(acc=>acc.isPosting!==false).forEach(acc => {
+  AccountingStore.accounts.filter(acc=>acc.isPosting!==false&&acc.is_posting!==false&&acc.active!==false&&acc.is_active!==false).forEach(acc => {
     const opt = document.createElement('option');
     /* Include the account code in the selected value so identically named
        accounts in different currencies cannot resolve to the wrong badge. */
@@ -51,8 +51,7 @@ addJournalLineRow = function(accountVal = '', memoVal = '', drVal = '', crMap = 
   const tbody = document.getElementById('jeLinesBody');
   if (!tbody) return;
   const mainDate = document.getElementById('jeTransDate')?.value || '';
-  const currencies = CurrencyStore.currencies || [];
-  const account = getSelectedAccountInfo(accountVal);
+    const account = getSelectedAccountInfo(accountVal);
   const cleanAccount = account
     ? `${account.code} — ${accountDisplayName1439(account)}`
     : String(accountVal || '').replace(/\s*\([A-Z]{3}\)$/, '').trim();
@@ -61,10 +60,10 @@ addJournalLineRow = function(accountVal = '', memoVal = '', drVal = '', crMap = 
   const crInputs = `<td><input type="text" class="num je-line-cr" data-currency="${escapeHtml(creditCurrency)}" placeholder="0.00" value="${escapeHtml(String(creditValue))}" onfocus="unformatNumber(this)" onblur="formatNumber(this)" oninput="calculateJournalBalance()" /></td>`;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td class="je-date-col"><input type="date" class="je-line-date" value="${mainDate}" onclick="if(this.showPicker) this.showPicker();" onchange="calculateJournalBalance()"></td>
-    <td><div class="account-input-wrap"><span class="currency-symbol-badge" data-currency-code="${account?.currency || ''}" title="${account?.currency || 'Select an account'}">${account ? currencySymbolV6(account.currency) : '¤'}</span><input type="text" class="je-line-acc" placeholder="Search account..." list="coaList" value="${escapeHtml(cleanAccount)}" oninput="updateJournalAccountBadge(this);calculateJournalBalance()" onchange="updateJournalAccountBadge(this);calculateJournalBalance()" /></div></td>
+    <td class="je-date-col"><input type="date" class="je-line-date" value="${escapeHtml(mainDate)}" onclick="if(this.showPicker) this.showPicker();" onchange="calculateJournalBalance()"></td>
+    <td><div class="account-input-wrap"><span class="currency-symbol-badge" data-currency-code="${escapeHtml(account?.currency || '')}" title="${escapeHtml(account?.currency || 'Select an account')}">${account ? escapeHtml(currencySymbolV6(account.currency)) : '¤'}</span><input type="text" class="je-line-acc" placeholder="Search account..." list="coaList" value="${escapeHtml(cleanAccount)}" oninput="updateJournalAccountBadge(this);calculateJournalBalance()" onchange="updateJournalAccountBadge(this);calculateJournalBalance()" /></div></td>
     <td><input type="text" class="je-line-memo" placeholder="Line note / reference..." value="${escapeHtml(String(memoVal))}" /></td>
-    <td><input type="text" class="num je-line-dr" placeholder="0.00" value="${drVal}" onfocus="unformatNumber(this)" onblur="formatNumber(this)" oninput="calculateJournalBalance()" /></td>
+    <td><input type="text" class="num je-line-dr" placeholder="0.00" value="${escapeHtml(String(drVal))}" onfocus="unformatNumber(this)" onblur="formatNumber(this)" oninput="calculateJournalBalance()" /></td>
     ${crInputs}
     <td class="action-col no-print" style="text-align:center"><button type="button" class="je-btn-del" style="width:22px;height:22px;font-size:11px" data-permission-action1440="edit" onclick="removeJournalLineRow(this)">✕</button></td>`;
   tbody.appendChild(tr);
@@ -105,21 +104,23 @@ document.addEventListener('change', event => {
 });
 
 function getMultiDateJournalState() {
-  const grouped = {};
+  const grouped = Object.create(null);
   const errors = [];
   document.querySelectorAll('#jeLinesBody tr').forEach((row, index) => {
     const date = (document.getElementById('jeMultipleDates')?.checked ? row.querySelector('.je-line-date')?.value : '') || document.getElementById('jeTransDate')?.value || '';
     const raw = row.querySelector('.je-line-acc')?.value.trim() || '';
     const account = getSelectedAccountInfo(raw);
     const debit = parseCleanNumber(row.querySelector('.je-line-dr')?.value || '');
-    const credits = [...row.querySelectorAll('.je-line-cr')].map(i => ({currency:i.dataset.currency,value:parseCleanNumber(i.value)})).filter(x => x.value > 0);
+    const credits = [...row.querySelectorAll('.je-line-cr')].map(i => ({currency:i.dataset.currency,value:parseCleanNumber(i.value)}));
+    if(!Number.isFinite(debit)||debit<0||credits.some(c=>!Number.isFinite(c.value)||c.value<0)){errors.push(`Row ${index + 1}: enter finite, non-negative amounts.`);return;}
+    for(let i=credits.length-1;i>=0;i--)if(credits[i].value===0)credits.splice(i,1);
     if (!raw && !debit && !credits.length) return;
     if (!date) { errors.push(`Row ${index + 1}: choose a transaction date.`); return; }
-    if (!account) { errors.push(`Row ${index + 1}: select a valid Chart of Accounts account.`); return; }
+    if (!account||account.isPosting===false||account.is_posting===false||account.active===false||account.is_active===false) { errors.push(`Row ${index + 1}: select a valid Chart of Accounts account.`); return; }
     if (debit > 0 && credits.length) errors.push(`Row ${index + 1}: use either Debit or Credit, not both.`);
     if (credits.length > 1) errors.push(`Row ${index + 1}: only one credit currency may be used.`);
     credits.forEach(c => { if (c.currency !== account.currency) errors.push(`Row ${index + 1}: ${account.name} must use CR-${account.currency}.`); });
-    grouped[date] ||= { totals:{}, lines:[] };
+    grouped[date] ||= { totals:Object.create(null), lines:[] };
     grouped[date].totals[account.currency] ||= {debit:0,credit:0};
     const memo = row.querySelector('.je-line-memo')?.value.trim() || document.getElementById('jeGeneralMemo')?.value.trim() || '';
     if (debit > 0) {
@@ -136,6 +137,7 @@ function getMultiDateJournalState() {
   Object.entries(grouped).forEach(([date,g]) => {
     if (g.lines.length < 2) errors.push(`${date}: at least two posting lines are required.`);
     Object.entries(g.totals).forEach(([currency,t]) => {
+      if(!Number.isFinite(t.debit)||!Number.isFinite(t.credit))errors.push(`${date}: totals exceed the supported range.`);
       if (Math.abs(t.debit - t.credit) >= .001) differences.push({date,currency,...t});
     });
   });
@@ -156,7 +158,7 @@ calculateJournalBalance = function() {
     badge.className='je-status-badge balanced'; badge.textContent='Ready — each date balances separately'; if(postBtn)postBtn.disabled=false; return;
   }
   if (state.differences.length) {
-    const d=state.differences[0]; badge.className='je-status-badge unbalanced'; badge.textContent=`${d.date} ${currencySymbolV6(d.currency)} ${d.currency}: DR ${formatCompactAmount(d.debit)} / CR ${formatCompactAmount(d.credit)}`; if(postBtn)postBtn.disabled=true; return;
+    const d=state.differences[0]; badge.className='je-status-badge unbalanced'; badge.textContent=`${formatAppDate(d.date)} ${currencySymbolV6(d.currency)} ${d.currency}: DR ${formatCompactAmount(d.debit)} / CR ${formatCompactAmount(d.credit)}`; if(postBtn)postBtn.disabled=true; return;
   }
   badge.className='je-status-badge balanced'; badge.textContent=`Balanced — ${Object.keys(state.grouped).length} date${Object.keys(state.grouped).length===1?'':'s'}`; if(postBtn)postBtn.disabled=false;
 };
@@ -171,7 +173,7 @@ submitJournalEntry = function() {
   if(!generalMemo){showAppNotification('Missing Data','Please provide the General Description / Memo before posting.',true);return;}
   const state=getMultiDateJournalState();
   if(state.errors.length){showAppNotification('Check Journal Entry',state.errors.join(' '),true);return;}
-  if(state.differences.length){const d=state.differences[0];showAppNotification('Unbalanced Batch',`${d.date} does not balance in ${d.currency}. Debit ${formatCompactAmount(d.debit)} vs Credit ${formatCompactAmount(d.credit)}. Each date and currency must balance independently.`,true);return;}
+  if(state.differences.length){const d=state.differences[0];showAppNotification('Unbalanced Batch',`${formatAppDate(d.date)} does not balance in ${d.currency}. Debit ${formatCompactAmount(d.debit)} vs Credit ${formatCompactAmount(d.credit)}. Each date and currency must balance independently.`,true);return;}
   const groups=Object.entries(state.grouped);
   if(!groups.length){showAppNotification('Incomplete','Enter at least one balanced transaction.',true);return;}
   const postedIds=[];

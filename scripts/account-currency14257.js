@@ -1,6 +1,6 @@
 /* Display-only: resolve badges from the canonical posting account by identity. */
 (()=>{'use strict';
-function resolve(sub,accounts){return accounts.find(a=>sub.accountId&&a.id===sub.accountId||sub.account_id&&a.id===sub.account_id||a.code===sub.code)}
+function resolve(sub,accounts){const id=sub.accountId||sub.account_id;return (id?accounts.find(a=>a.id===id):null)||accounts.find(a=>a.code===sub.code)}
 const parentCode=code=>/^(?:NA|N\/A|PARENT|__PARENT__)$/i.test(String(code||''));const symbol=window.currencySymbolV6;window.currencySymbolV6=function(code){return parentCode(code)?'▦':symbol(code)};
 function badge(n,account,fullLabel=false){const parent=account?.isPosting===false||account?.is_posting===false||parentCode(account?.currency)||parentCode(account?.currency_code);const code=parent?'NA':account?.currency||account?.currency_code;if(!code)return;n.classList.toggle('parent-account-badge',parent);if(n.dataset.currencyCode!==code)n.dataset.currencyCode=code;const title=parent?'Parent account':code;if(n.title!==title)n.title=title;const mark=parent?(fullLabel?'Parent':'▦'):currencySymbolV6(code);if(n.textContent!==mark)n.textContent=mark;if(n.getAttribute('aria-label')!==title)n.setAttribute('aria-label',title);}
 function paint(scope=document){const all=selector=>[...(scope.matches?.(selector)?[scope]:[]),...scope.querySelectorAll(selector)];if(typeof AccountingStore==='undefined')return;const accounts=AccountingStore.accounts||[];

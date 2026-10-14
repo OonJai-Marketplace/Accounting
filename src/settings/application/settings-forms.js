@@ -17,7 +17,7 @@ function setSettingsFormValues(group) {
 function collectSettingsForm(form) {
   const result = {};
   [...form.elements].forEach(field => {
-    if (!field.name) return;
+    if (!field.name || field.type === 'radio' && !field.checked) return;
     result[field.name] = field.type === 'checkbox' ? field.checked : field.value;
   });
   return result;
@@ -27,18 +27,22 @@ function saveSettingsGroup(event) {
   event.preventDefault();
   const form = event.currentTarget;
   const group = form.dataset.settingsGroup;
-  ApplicationSettings[group] = collectSettingsForm(form);
-  localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(ApplicationSettings));
+  const next={...ApplicationSettings,[group]:{...ApplicationSettings[group],...collectSettingsForm(form)}};
+  try{localStorage.setItem(APP_SETTINGS_KEY,JSON.stringify(next))}catch(error){showAppNotification('Settings Not Saved',error.message,true);return false}
+  ApplicationSettings=next;
   const badge = document.querySelector(`[data-settings-badge="${group}"]`);
   if (badge) { badge.textContent = 'Saved'; badge.classList.add('is-saved'); }
   showAppNotification('Settings Saved', `${group[0].toUpperCase()}${group.slice(1)} settings were saved.`, false);
   if(group==='system'){refreshAllTables();startSessionTimeoutManager();}
   if(group==='accounting'){syncEntrySequence();updateNextEntryIdDisplay();updateAccountingIdPreviews();saveAccountingIdSettingsToDatabase();}
+  return true;
 }
 
 function resetSettingsGroup(group) {
-  ApplicationSettings[group] = JSON.parse(JSON.stringify(APP_SETTINGS_DEFAULTS[group]));
-  localStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(ApplicationSettings));
+  if(!Object.hasOwn(APP_SETTINGS_DEFAULTS,group))return;
+  const next={...ApplicationSettings,[group]:JSON.parse(JSON.stringify(APP_SETTINGS_DEFAULTS[group]))};
+  try{localStorage.setItem(APP_SETTINGS_KEY,JSON.stringify(next))}catch(error){showAppNotification('Settings Not Reset',error.message,true);return}
+  ApplicationSettings=next;
   setSettingsFormValues(group);
   const badge = document.querySelector(`[data-settings-badge="${group}"]`);
   if (badge) { badge.textContent = 'Default'; badge.classList.add('is-saved'); }

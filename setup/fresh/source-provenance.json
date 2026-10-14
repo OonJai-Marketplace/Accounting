@@ -269,5 +269,52 @@
       "name": "INSTALL-EDGE-SERVICES-v143.20.sql",
       "sha256": "40178a23b927ef36d55be6a6440be405a6073fc780d999d51c9db700c7b87f81"
     }
+  ],
+  "currentUpdateRelease": "143.70",
+  "currentUpdates": [
+    {
+      "name": "INSTALL-MAINTENANCE-v143.24.sql",
+      "sha256": "7eb0c7e8d69c3d09d8a7acf6455c66dddda1d6efc77651c53d5754cfc80e754b"
+    },
+    {
+      "name": "INSTALL-OFFLINE-YEAR-WINDOW-v143.33.sql",
+      "sha256": "5ae601f676f8e9508417bfd9d0a2cb9faf073d7237763622f586a609f640f9c3"
+    },
+    {
+      "name": "INSTALL-PAYROLL-YEAR-WINDOW-v143.34.sql",
+      "sha256": "920c4644a4422e091859bfee375e3c277b91701a9203b9ae0e2d7f8697d163ad"
+    },
+    {
+      "name": "INSTALL-EDITABLE-TODOS-v143.35.sql",
+      "sha256": "54ca412900279a30e386bf41577bee7013340929a0088dbe0a7393bbec6485d5"
+    },
+    {
+      "name": "INSTALL-FINAL-REVIEW-v143.45.sql",
+      "sha256": "9e9ff0ddc33049529d1cf4d579a69d7bed243bd36f7bb0de150ee2dd0e0a38c8"
+    },
+    {
+      "name": "INSTALL-RECONCILIATION-REFINEMENTS-v143.46.sql",
+      "sha256": "1c003320e47d6dfbdd965bf0f8feed739be8e97d444bdf57aa3aff37eead31f1"
+    },
+    {
+      "name": "INSTALL-RETURNED-SUBMISSIONS-v143.47.sql",
+      "sha256": "8e528599514c8e67fd660d86cc95a26586ab3795c5a7e71a8342516509837e21"
+    },
+    {
+      "name": "INSTALL-REPORT-POSTING-v143.49.sql",
+      "sha256": "02c8a2366f3762b2a487d8dba66590facca8169a0f60651a163d2e8d00ab3a6a"
+    },
+    {
+      "name": "INSTALL-ACCOUNT-MAPPING-v143.64.sql",
+      "sha256": "eefd63f4a2c254983f4b5dbccf656ec9c7353fbe0a1b3c7d114074b0beaaa00f"
+    },
+    {
+      "name": "INSTALL-POSTING-CLEANUP-v143.70.sql",
+      "sha256": "d39a153cbbd9230333c5da0ead77fdf3f48bea88cdf66ad376a5a37608223a51"
+    },
+    {
+      "name": "INSTALL-RLS-STATEMENT-CACHE-v143.70.sql",
+      "sha256": "8a4d88bb75baf83b8b48d07cee58591e957d8e4d5fab74a9a79f9e9741904e2b"
+    }
   ]
 }

@@ -2,7 +2,8 @@
   async function getMonth(month, batchHeaders = headers()) {
     const ids = batchHeaders.filter(j => String(j.period_start).slice(0,7) === month && j.owner_id === S.owner).map(j => j.id);
     const result = ids.length ? await paged('staff_journal_lines', {staff_journal_id:'in.(' + ids.join(',') + ')'}) : [];
-    if (result.some(l => !ids.includes(l.staff_journal_id) || !l.transaction_date || !Number.isFinite(Number(l.amount)))) throw fail('This period returned incomplete records.', 'INVALID_RESPONSE');
+    const allowed=new Set(ids);
+    if (result.some(l => !allowed.has(l.staff_journal_id) || !l.transaction_date || !Number.isFinite(Number(l.amount)))) throw fail('This period returned incomplete records.', 'INVALID_RESPONSE');
     return {lines:result, savedAt:Date.now(), batchIds:ids,revision14359:monthRevision14359(month,batchHeaders)};
   }
   async function refresh() {
@@ -11,7 +12,7 @@
     const owner = S.owner, epoch = S.epoch, month = S.month; S.loading = true; paintConnection();
     refreshJob = (async () => {
       try {
-        await access();
+        await access();if(!current(owner,epoch))return;
         if(isAdmin()){paintConnection();drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();if(!S.directoryLoaded&&!S.directoryLoading)void loadDirectory(false);}
         const confirmedKeys=new Set(queue().filter(q=>q.status==='confirmed').map(q=>q.key));const ids = accountIds();
         const [rawAccounts, ownFunds, ownHeaders] = await Promise.all([
@@ -42,8 +43,8 @@
     if (!S.owner || !permission('sub-users-workspace') || !navigator.onLine || S.data.months?.[S.month]) return;
     const owner = S.owner, epoch = S.epoch, month = S.month;
     const task = (async () => {
-      try { await access(); const result = await getMonth(month); const stored = await record(owner, old => ({...old, months:{...old.months,[month]:result}})); if (current(owner,epoch)) { S.data.months=stored.months; S.online=true; S.error=''; if(S.month===month)render(); } }
+      try { await access();if(!current(owner,epoch))return;const result = await getMonth(month);if(!current(owner,epoch))return;const stored = await record(owner, old => ({...old, months:{...old.months,[month]:result}})); if (current(owner,epoch)) { S.data.months=stored.months; S.online=true; S.error=''; if(S.month===month)render(); } }
       catch (e) { if (!current(owner,epoch)) return; if (denied(e)) await revoke(e); else { S.online=false; S.error=e.message; notice('Downloaded records are kept. '+e.message,true); if(S.month===month)render(); } }
-      finally { if(monthJob===task)monthJob=null;paintConnection(); }
+      finally { if(monthJob===task)monthJob=null;if(current(owner,epoch))paintConnection(); }
     })(); monthJob=task;return task;
   }

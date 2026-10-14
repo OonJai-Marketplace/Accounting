@@ -12,15 +12,12 @@
     return text.match(/\b[A-Z]{3}\b/)?.[0]||'OTHER';
   }
   function applyCurrencyColor(node){
-    node.classList.remove('currency-lak','currency-usd','currency-thb','currency-eur','currency-other','currency-custom');
-    const code=currencyCodeFrom(node),known=['LAK','USD','THB','EUR'];
-    if(known.includes(code)){node.classList.add(`currency-${code.toLowerCase()}`);return}
-    if(code==='OTHER'){node.classList.add('currency-other');return}
+    const code=currencyCodeFrom(node),known=['LAK','USD','THB','EUR'],desired=known.includes(code)?`currency-${code.toLowerCase()}`:code==='OTHER'?'currency-other':'currency-custom';
+    for(const name of ['currency-lak','currency-usd','currency-thb','currency-eur','currency-other','currency-custom'])if(name!==desired&&node.classList.contains(name))node.classList.remove(name);
+    if(!node.classList.contains(desired))node.classList.add(desired);
+    if(desired!=='currency-custom')return;
     const hue=[...code].reduce((sum,ch)=>sum+ch.charCodeAt(0),0)*47%360;
-    node.classList.add('currency-custom');
-    node.style.setProperty('--currency-custom-border',`hsl(${hue} 48% 68%)`);
-    node.style.setProperty('--currency-custom-bg',`hsl(${hue} 55% 95%)`);
-    node.style.setProperty('--currency-custom-text',`hsl(${hue} 62% 30%)`);
+    for(const [name,value] of [['--currency-custom-border',`hsl(${hue} 48% 68%)`],['--currency-custom-bg',`hsl(${hue} 55% 95%)`],['--currency-custom-text',`hsl(${hue} 62% 30%)`]])if(node.style.getPropertyValue(name)!==value)node.style.setProperty(name,value);
   }
   function syncCurrencyColors(root=document){
     root.querySelectorAll?.('.currency-symbol-badge,.currency-tag,[data-currency-code]').forEach(applyCurrencyColor);
@@ -61,9 +58,8 @@
     if(input.type==='number')input.type='text';
     input.inputMode='decimal';input.dataset.liveAccountingFormat='true';
   }
-  function prepareFinancialInputs(root=document){root.querySelectorAll?.(financialSelector).forEach(prepareFinancialInput)}
+  function prepareFinancialInputs(root=document){if(root.matches?.(financialSelector))prepareFinancialInput(root);root.querySelectorAll?.(financialSelector).forEach(prepareFinancialInput)}
 
-  const originalFormatter=window.formatAppNumberEditing;
   window.formatAppNumberEditing=function(input){
     if(!input)return;
     prepareFinancialInput(input);
@@ -82,8 +78,8 @@
     const grouped=whole.replace(/\B(?=(\d{3})+(?!\d))/g,group);
     const formatted=(negative?'-':'')+grouped+(cleaned.includes(decimal)&&places?decimal+fraction:'');
     input.value=formatted;
-    let seen=0,next=formatted.length;
-    for(let i=0;i<formatted.length;i++){
+    let seen=0,next=meaningfulBefore===0?0:formatted.length;
+    for(let i=0;meaningfulBefore>0&&i<formatted.length;i++){
       if(/\d/.test(formatted[i])||formatted[i]===decimal||formatted[i]==='-')seen++;
       if(seen>=meaningfulBefore){next=i+1;break}
     }
@@ -103,9 +99,9 @@
   /* Leaving Sub-users through Accounts must remove its shell-only state. */
   if(typeof window.scrollToAccountModule==='function'){
     const beforeAccounts=window.scrollToAccountModule;
-    window.scrollToAccountModule=function(moduleId){
+    window.scrollToAccountModule=function(moduleId,...args){
       document.body.classList.remove('subusers-workspace-active');
-      const result=beforeAccounts(moduleId);
+      const result=beforeAccounts.call(this,moduleId,...args);
       document.body.classList.remove('subusers-workspace-active');
       requestAnimationFrame(()=>{
         const shell=document.getElementById('categoryTabShell');
@@ -116,10 +112,10 @@
   }
   if(typeof window.switchTab==='function'){
     const beforeSwitch=window.switchTab;
-    window.switchTab=function(tabId){
+    window.switchTab=function(tabId,...args){
       if(tabId!=='sub-users-workspace')document.body.classList.remove('subusers-workspace-active');
-      const result=beforeSwitch(tabId);
-      document.body.classList.toggle('subusers-workspace-active',tabId==='sub-users-workspace');
+      const result=beforeSwitch.call(this,tabId,...args);
+      document.body.classList.toggle('subusers-workspace-active',!!document.getElementById('sub-users-workspace')?.classList.contains('active'));
       return result;
     };
   }

@@ -31,6 +31,7 @@ const CurrencyStore = {
     this.render();
     if (typeof setupJournalColumns === 'function') setupJournalColumns();
     initCoaCurrencyFilter();
+    return true;
   },
 
   async edit(code) {
@@ -66,17 +67,19 @@ const CurrencyStore = {
     this.currencies.forEach(c => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td><strong style="font-family: monospace; color: #064e3b;">${c.code}</strong></td>
+        <td><strong style="font-family: monospace; color: #064e3b;">${escapeHtml(c.code)}</strong></td>
         <td>${escapeHtml(c.name)}</td>
         <td><span class="currency-tag" data-currency-code="${escapeHtml(c.code)}" title="${escapeHtml(c.code)}">${escapeHtml(c.symbol)}</span></td>
         <td>
           ${c.isBase ? '<span style="color: #059669; font-weight: 700; font-size: 11.5px;">★ Base Currency</span>' : '<span style="color: #64748b; font-size: 11.5px;">Operating</span>'}
         </td>
         <td style="text-align: right;">
-          <button type="button" class="btn-icon-edit" style="margin-right: 4px;" onclick="CurrencyStore.edit('${c.code}')" title="Edit Currency">✏️</button>
-          ${!c.isBase ? `<button type="button" class="btn-action-delete" style="width:24px;height:24px;" onclick="CurrencyStore.remove('${c.code}')" title="Remove Currency">✕</button>` : ''}
+          <button type="button" class="btn-icon-edit" style="margin-right: 4px;" title="Edit Currency">✏️</button>
+          ${!c.isBase ? `<button type="button" class="btn-action-delete" style="width:24px;height:24px;" title="Remove Currency">✕</button>` : ''}
         </td>
       `;
+      tr.querySelector('.btn-icon-edit').onclick=()=>this.edit(c.code);
+      const remove=tr.querySelector('.btn-action-delete');if(remove)remove.onclick=()=>this.remove(c.code);
       tbody.appendChild(tr);
     });
   }

@@ -3,7 +3,7 @@
 const allowed=(target,verb='view')=>!!window.access113?.can(target,verb);
 function run(target,verb,fn){if(!allowed(target,verb)){showCenterStatus('This action is not included in your permissions.',true);return false}return fn()}
 function profile(){return typeof liveProfile==='undefined'?null:liveProfile}
-function users(){const me=profile();if(!me)return [];const list=availableSubUsers();
+function users(){const me=profile();if(!me)return [];const list=[...availableSubUsers()];
  // Keep authorized administrator self-access independent of the refreshing Home cache.
  if((me.role==='admin'&&allowed('sub-users-workspace')||window.Organization14229?.homeUsers().some(u=>String(u.id)===String(me.id)))&&!list.some(u=>String(u.id)===String(me.id)))list.push({...me,user_permissions:livePermission||{}});
  return list.filter(u=>window.Organization14229?Organization14229.mayOpen(u.id):u.id===me.id||me.role==='admin');
@@ -40,23 +40,23 @@ function staffEditorDraft(id,lineId){
 }
 async function reminderEditor14229(){const editor=document.getElementById('upcomingEditor92');if(!editor)throw Error('Reminder form is unavailable. Refresh and try again.');const marker=document.createComment('restore reminder form');editor.before(marker);const done=ui108.modal('Add reminder','<div data-reminder-editor14229></div>',[{label:'Cancel',value:false}],true),overlay=document.querySelector('.ui-overlay108:last-child');overlay.querySelector('[data-reminder-editor14229]').append(editor);editor.hidden=false;editor.dataset.edited='true';const observer=new MutationObserver(()=>{if(editor.hidden)overlay.resolve108(false)});observer.observe(editor,{attributes:true,attributeFilter:['hidden']});try{document.getElementById('recurringMemo')?.focus();await done;}finally{observer.disconnect();if(marker.parentNode){marker.before(editor);marker.remove()}editor.hidden=true;}}
 // Phone reads do not depend on mounting the hidden desktop workspace.
-const phoneFunds14237=new Map(),phoneLoads14237=new Map(),phoneErrors14237=new Map();let phoneActor14237='',phoneReports14237=null,phoneReportsRequest14237=null;
-function phoneIdentity14237(){const id=api.session();if(phoneActor14237!==id){phoneActor14237=id;phoneFunds14237.clear();phoneLoads14237.clear();phoneErrors14237.clear();phoneReports14237=null;phoneReportsRequest14237=null;}return id;}
+const phoneFunds14237=new Map(),phoneLoads14237=new Map(),phoneErrors14237=new Map();let phoneClient14237=null;let phoneActor14237='',phoneReports14237=null,phoneReportsRequest14237=null;
+function phoneIdentity14237(){const id=api.session();if(phoneActor14237!==id||phoneClient14237!==ojmDb){phoneActor14237=id;phoneClient14237=ojmDb;phoneFunds14237.clear();phoneLoads14237.clear();phoneErrors14237.clear();phoneReports14237=null;phoneReportsRequest14237=null;}return id;}
 function phoneRead14238(request){let timer;return Promise.race([request,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('The connection is taking too long. Please try again.')),12000)})]).finally(()=>clearTimeout(timer));}
 async function loadPhoneWorkspace14237(id,force=false){
- const who=phoneIdentity14237();if(!user(id)||!allowed('sub-users-workspace'))throw Error('This workspace is not included in your access.');
+ const who=phoneIdentity14237(),client=ojmDb;if(!user(id)||!allowed('sub-users-workspace'))throw Error('This workspace is not included in your access.');
  if(phoneLoads14237.has(id))return phoneLoads14237.get(id);
  if(!force&&phoneFunds14237.has(id)&&phoneReports14237)return;
  phoneErrors14237.delete(id);
  const task=(async()=>{try{
   if(!phoneReportsRequest14237&&(force||!phoneReports14237)){
-   const request=phoneRead14238(ojmDb.rpc('review_inbox14229')).then(r=>{if(r.error)throw Error(r.error.message);if(who===api.session()){if(!Array.isArray(r.data))throw Error('Entry data could not be read.');phoneReports14237=r.data;reviewStaffJournals=r.data;}});
+   const request=phoneRead14238(client.rpc('review_inbox14229')).then(r=>{if(r.error)throw Error(r.error.message);if(who===api.session()&&ojmDb===client){if(!Array.isArray(r.data))throw Error('Entry data could not be read.');phoneReports14237=r.data;reviewStaffJournals=r.data;}});
    phoneReportsRequest14237=request;request.finally(()=>{if(phoneReportsRequest14237===request)phoneReportsRequest14237=null;}).catch(()=>{});
   }
-  const [funds]=await Promise.all([phoneRead14238(ojmDb.rpc('fund_balances136',{p_owner:id,p_month:null})),phoneReportsRequest14237]);
-  if(who!==api.session()||!user(id))return;
+  const [funds]=await Promise.all([phoneRead14238(client.rpc('fund_balances136',{p_owner:id,p_month:null})),phoneReportsRequest14237]);
+  if(who!==api.session()||ojmDb!==client||!user(id))return;
   if(funds.error)throw Error(funds.error.message);if(!Array.isArray(funds.data))throw Error('Fund balances could not be read.');phoneFunds14237.set(id,funds.data);
- }catch(e){if(who===api.session())phoneErrors14237.set(id,e.message||'Loading failed.');throw e;}finally{if(who===api.session()){phoneLoads14237.delete(id);notify();}}})();
+ }catch(e){if(who===api.session()&&ojmDb===client)phoneErrors14237.set(id,e.message||'Loading failed.');throw e;}finally{if(who===api.session()&&ojmDb===client){phoneLoads14237.delete(id);notify();}}})();
  phoneLoads14237.set(id,task);return task;
 }
 const api=window.PhoneApp132={
@@ -68,7 +68,8 @@ const api=window.PhoneApp132={
   return true;
  },
  loadWorkspace:loadPhoneWorkspace14237,
- loadHome:async()=>{await Promise.all([window.TeamHome14227?.reload(),phoneRead14238(window.Organization14229?.loadHome())]);},
+ loadHome:()=>phoneRead14238(window.TeamHome14227?.ensureLoaded()||window.Organization14229?.loadHome()),
+ homeLoaded:()=>window.TeamHome14227?.isLoaded()===true,
  workspaceState(id){phoneIdentity14237();return {loading:phoneLoads14237.has(id),error:phoneErrors14237.get(id)||'',loaded:phoneFunds14237.has(id)&&phoneReports14237!==null};},
  profile,users,workspaceUsers,allowed,documents:()=>run('document-editor105','view',()=>openDocumentEditor105()),reportHistory:id=>reportHistory1443.open(id),
  landing:()=>window.phoneLanding14225,
@@ -82,19 +83,19 @@ const api=window.PhoneApp132={
  validateStaff:(id,data)=>{if(!user(id)||!allowed('sub-users-workspace'))throw Error('This workspace is not accessible.');return StaffEntry14225.prepare(data,api.accounts(),api.rules(id))},
  saveStaffEditor:async(id,data)=>{
   if(!canWriteStaff(id))throw Error('Editing is not enabled for this workspace.');
-  const actor=profile().id,{items,snapshot}=api.validateStaff(id,data);
+  const actor=profile().id,session=api.session(),client=ojmDb,{items,snapshot}=api.validateStaff(id,data);
   const result=await window.staffSave14228({p_owner:id,p_key:data.requestKey,p_items:items,p_snapshot:snapshot,p_edit_ids:data.editIds||[]});
   if(result.error)throw Error(result.error.message+(result.error.code==='PGRST202'?' Run setup/INSTALL-DESKTOP-JOURNAL-v142.17.sql once.':''));
   if(result.queued)return {queued:true,actor};
-  if(profile()?.id===actor)void loadPhoneWorkspace14237(id,true).catch(()=>{if(profile()?.id===actor)showCenterStatus('Entry saved. Refresh Entries to load the updated records.',true)});
+  if(api.session()===session&&ojmDb===client)void loadPhoneWorkspace14237(id,true).catch(()=>{if(api.session()===session&&ojmDb===client)showCenterStatus('Entry saved. Refresh Entries to load the updated records.',true)});
   return {saved:true,actor};
  },
  voidStaffGroup:async(id,lineId)=>{
   if(!canWriteStaff(id)||!allowed('sub-users-workspace','void'))throw Error('Voiding is not enabled for this workspace.');
   const group=staffGroups(id).find(g=>g.lines.some(l=>l.id===lineId));if(!group||!['draft','returned'].includes(group.batch.status))throw Error('This entry is no longer editable.');
-  const reason=await ui117.prompt('Reason for voiding this personal journal entry:');if(!reason?.trim())return;
-  const result=await ojmDb.rpc('void_staff_editor1437',{p_owner:id,p_ids:group.lines.map(l=>l.id),p_reason:reason.trim()});
-  if(result.error)throw Error(result.error.message);await loadPhoneWorkspace14237(id,true);
+  const session=api.session(),client=ojmDb;const reason=await ui117.prompt('Reason for voiding this personal journal entry:');if(!reason?.trim())return;if(session!==api.session()||ojmDb!==client||!canWriteStaff(id))throw Error('Your access changed. Open the workspace again.');
+  const result=await client.rpc('void_staff_editor1437',{p_owner:id,p_ids:group.lines.map(l=>l.id),p_reason:reason.trim()});
+  if(result.error)throw Error(result.error.message);if(session===api.session()&&ojmDb===client)await loadPhoneWorkspace14237(id,true);
  },
  settingsUsers:()=>allowed('settings-users')?liveProfiles||[]:[],
  editUser:(id='',section)=>run('settings-users','edit',()=>{switchTab('settings-users');openUserAccessEditor(id);window.compactUserSettings133?.();if(section)openAccessPicker(section==='accounts'?'Account Assignment':'Module Access',section==='accounts'?'userAccountAssignmentPanel':'userModuleAccessPanel');}),
@@ -117,12 +118,12 @@ const api=window.PhoneApp132={
   if(!canWriteStaff(id))throw Error('Submitting is not enabled for this workspace.');
   const batches=api.reports(id).filter(j=>['draft','returned'].includes(j.status)&&j.lines?.length&&(!month||String(j.period_start).startsWith(month)));
   if(!batches.length)throw Error('No saved entries are ready to submit for this selection.');
-  const who=api.session();const content='<p>Submit this period and lock its saved entries for review?</p><label>Period<select id="phoneSubmitPeriod14237">'+batches.map(j=>'<option value="'+escapeHtml(j.id)+'">'+escapeHtml(String(j.period_start).slice(0,7))+' · '+j.lines.length+' entries</option>').join('')+'</select></label>';
+  const who=api.session(),client=ojmDb;const content='<p>Submit this period and lock its saved entries for review?</p><label>Period<select id="phoneSubmitPeriod14237">'+batches.map(j=>'<option value="'+escapeHtml(j.id)+'">'+escapeHtml(String(j.period_start).slice(0,7))+' · '+j.lines.length+' entries</option>').join('')+'</select></label>';
   const answer=ui108.modal('Submit for Review',content,[{label:'Cancel',value:false},{label:'Submit',value:true,primary:true}]);
   const select=document.getElementById('phoneSubmitPeriod14237');let selected=select.value;select.onchange=()=>selected=select.value;
-  if(!await answer)return;if(who!==api.session()||!canWriteStaff(id))throw Error('Your access changed. Open the workspace again.');
+  if(!await answer)return;if(who!==api.session()||ojmDb!==client||!canWriteStaff(id))throw Error('Your access changed. Open the workspace again.');
   if(!api.reports(id).some(j=>j.id===selected&&['draft','returned'].includes(j.status)))throw Error('This period is no longer ready to submit.');
-  const result=await ojmDb.rpc('submit_staff_journal',{p_journal_id:selected});if(result.error)throw Error(result.error.message);await loadPhoneWorkspace14237(id,true);
+  const result=await client.rpc('submit_staff_journal',{p_journal_id:selected});if(result.error)throw Error(result.error.message);if(who===api.session()&&ojmDb===client)await loadPhoneWorkspace14237(id,true);
  },
  staffHistory:(id,mode)=>{selectUser(id,'entries');openWorkspaceReview(id,mode)},
  adjust:(id,fund)=>run('sub-users-workspace','edit',()=>{selectUser(id,'accounts');v49OpenAdjustment(id,fund)}),

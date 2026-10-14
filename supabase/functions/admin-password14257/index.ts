@@ -1,8 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 // Platform legacy JWT verification is disabled for signing-key compatibility.
 // auth.getUser(token) below verifies every caller before any action; role/RPC gates authorize issuance.
-import {cors} from '../_shared/security14320.ts';
-const strong=(v:unknown):v is string=>typeof v==='string'&&[...v].length>=12&&v.length<=128&&v===v.trim()&&/\p{Lu}/u.test(v)&&/\p{Ll}/u.test(v)&&/\p{N}/u.test(v)&&/[^\p{L}\p{N}\s]/u.test(v);
+import {cors,json,strong} from '../_shared/security14320.ts';
 Deno.serve(async req=>{
  let headers:Record<string,string>;try{headers=cors(req)}catch{return new Response(JSON.stringify({error:'Origin not allowed'}),{status:403,headers:{'Content-Type':'application/json'}})}
  const reply=(status:number,body:unknown)=>new Response(JSON.stringify(body),{status,headers:{...headers,'Content-Type':'application/json','Cache-Control':'no-store'}});
@@ -13,7 +12,7 @@ Deno.serve(async req=>{
  const auth=await admin.auth.getUser(token);if(auth.error||!auth.data.user)return reply(401,{error:'Session is invalid or expired'});
  const actor=auth.data.user.id;
  try{
-  const body=await req.json();
+  const body=await json(req);
   if(body.action==='complete'){
    if(!strong(body.password))return reply(400,{error:'The new password must meet all password requirements.'});
    const result=await admin.rpc('password_reset_service14257',{p_action:'complete',p_user:actor,p_password:body.password});if(result.error)throw result.error;

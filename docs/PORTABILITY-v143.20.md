@@ -15,7 +15,7 @@ The Supabase connection remains a deployment choice, outside handover saves. Poi
 
 The original schema and backend routines have now been recovered and consolidated. **The complete clean installer is `setup/fresh/001-Install-Empty-Database.sql`.** No source-database export or historical repair sequence is needed for a new installation.
 
-Follow `setup/fresh/START-HERE.md`, then run numbered files 001, 002, 003 and 004. File 001 includes all current backend definitions, initial reference/settings rows, private bucket policies, Data API request gate and owner-only maintenance tools. File 002 explicitly bootstraps the first confirmed Auth administrator. File 003 checks frontend RPC coverage and access protections.
+Follow `setup/fresh/START-HERE.md`, then run numbered files 001, 002 and 003. Maintenance is already included in the current file 001; file 004 is retained for older installations. File 001 includes all current backend definitions, initial reference/settings rows, private bucket policies, Data API request gate and owner-only maintenance tools. File 002 explicitly bootstraps the first confirmed Auth administrator. File 003 checks frontend RPC coverage and access protections.
 
 The portable ZIP uses an empty deployment configuration for your new Supabase project and GitHub repository. Copy all its frontend folders into the new repository and configure the public values using setup.html. Complete the hosted Auth, Edge, email and upload checks after connecting the new account. Local PostgreSQL verification does not exercise those hosted transports.
 
@@ -23,9 +23,9 @@ The portable ZIP uses an empty deployment configuration for your new Supabase pr
 
 ## Edge services
 
-The package now includes source for `admin-create-user`, `recovery-vault113` and `admin-password14257`. The fresh installer includes their tables, service-only routines, `private.password_reset14257` and `admin_save_access14281`. Existing sites retain their separate forward-update route.
+The package now includes source for `admin-create-user`, `recovery-vault113` and `admin-password14257`. The fresh installer includes their tables, service-only routines, `private.password_reset14257` and `admin_save_access14281`. Existing sites retain their separate forward-update route. Before deploying these handlers, verify INSTALL-EDGE-SERVICES-v143.20.sql is installed: the shared rate limit, provisioning receipts and modern ticket tables are required even when the original vault ciphertext is retained.
 
-Deploy the new source to a staging project first. **Do not overwrite an established recovery service until its original encrypted data/export format has been backed up and its matching implementation/key has been obtained.** The bundled replacement uses AES-256-GCM and its own versioned storage; it cannot read unknown historical encryption formats. Keep original emergency recovery instructions until staging restore and unlock are verified.
+Deploy the new source to a staging project first. **Do not overwrite an established recovery service until its original encrypted data/export format has been backed up and its matching implementation/key has been obtained.** The handler now preserves the verified deployed v113 format (oonjai-recovery-113 AES-GCM additional data, recovery_vault113 table and oonjai-encrypted-vault-113 exports) when that vault exists. New installations use the v143.20 format. Both formats keep their existing encryption key; no automatic data conversion occurs. Two populated formats stop for resolution. Unknown historical formats still require their matching implementation. Keep original emergency recovery instructions until restore and unlock are verified.
 
 Server secrets:
 
@@ -47,7 +47,7 @@ The new clean package is tested against an independently empty local PostgreSQL 
 
 After installing under your new accounts, check real Auth recovery/email, the three deployed Edge functions, vault save/unlock, Storage uploads and a different GitHub Pages repository path. Gmail authorization, ChatGPT scheduled tasks, physical-device keyboard/print behavior and concurrent hosted users are outside the local database test.
 
-The desktop canvas scales down on narrow desktop windows and up on larger windows, capped at 150%; extra-wide displays use the remaining room. Phone/tablet layouts keep their established behavior. Print retains its original page dimensions.
+Desktop uses native 100% sizing and its responsive styles. The former automatic whole-document scaling was retired in v143.23. Phone layouts and print page dimensions retain their approved foundations.
 
 ## Running the fresh-package local check
 
@@ -63,4 +63,4 @@ The bundled clean installer includes the required Storage bucket rows/policies, 
 
 The SQL maintenance templates are separated into add, edit, read, backup and delete folders. See `setup/maintenance/START-HERE.md`; they are owner-only and do not loosen browser permissions.
 
-For v143.24, file 004 adds the new read-only audit/maintenance endpoints and required closing gate. Existing v143.22 databases instead run `setup/INSTALL-MAINTENANCE-v143.24.sql`. GitHub publication does not execute database migrations.
+For older packages before maintenance was included in file 001, file 004 adds the read-only audit/maintenance endpoints and required closing gate. Existing v143.22 databases instead run `setup/INSTALL-MAINTENANCE-v143.24.sql`. GitHub publication does not execute database migrations.
