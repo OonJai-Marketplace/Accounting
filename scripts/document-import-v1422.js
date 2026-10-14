@@ -6,7 +6,48 @@ const xml=s=>{const d=new DOMParser().parseFromString(s,'application/xml');if(d.
 const children=(n,name)=>Array.from(n.children||[]).filter(x=>x.localName===name);
 const all=(n,name)=>Array.from(n.getElementsByTagNameNS('*',name));
 const val=(n,name)=>n?.getAttributeNS('http://schemas.openxmlformats.org/wordprocessingml/2006/main',name)||n?.getAttribute('w:'+name)||'';
-async function openZip(file){await window.optionalTools14335?.load('zip');if(!window.JSZip)throw Error('The document import library is unavailable. Reload the website.');const zip=await JSZip.loadAsync(await file.arrayBuffer());return zip;}
+// Bound declared and actual ZIP expansion; parsing runs in a disposable worker.
+async function unzip14373(bytes){
+ const maxEntry=16*1024*1024,maxTotal=64*1024*1024;
+ const zip=await JSZip.loadAsync(bytes),entries=Object.entries(zip.files);
+ if(entries.length>4096)throw Error('This archive contains too many files (maximum 4096).');
+ let declared=0,total=0;const output=[];
+ for(const [,entry] of entries){if(entry.dir)continue;const size=entry._data?.uncompressedSize;if(!Number.isSafeInteger(size)||size<0||size>maxEntry||(declared+=size)>maxTotal)throw Error('This archive exceeds the document import size limit (16 MB per file, 64 MB total).');}
+ for(const [name,entry] of entries){
+  if(entry.dir)continue;
+  const data=await new Promise((resolve,reject)=>{
+   const chunks=[];let size=0,failed=false;const stream=entry.internalStream('uint8array');
+   stream.on('data',chunk=>{if(failed)return;size+=chunk.length;total+=chunk.length;if(size>maxEntry||total>maxTotal){failed=true;stream.pause();reject(Error('This archive expands beyond the document import size limit.'));return;}chunks.push(chunk);});
+   stream.on('error',reject);stream.on('end',()=>{if(failed)return;const result=new Uint8Array(size);let at=0;for(const chunk of chunks){result.set(chunk,at);at+=chunk.length;}resolve(result);});stream.resume();
+  });output.push([name,data]);
+ }return output;
+}
+async function openZip(file,bytes){
+ if(file.size>32*1024*1024)throw Error('This archive is too large to import (maximum 32 MB).');
+ bytes||=new Uint8Array(await file.arrayBuffer());
+ const entries=await new Promise((resolve,reject)=>{
+  let worker,url,timer,settled=false;
+  const finish=(error,result)=>{if(settled)return;settled=true;clearTimeout(timer);worker?.terminate();if(url)URL.revokeObjectURL(url);error?reject(error):resolve(result);};
+  try{
+   const library=new URL('assets/vendor/jszip.min.js?v=142.47',location.href).href;
+   const source=`${unzip14373.toString()}\nself.onmessage=async event=>{try{importScripts(${JSON.stringify(library)});const entries=await unzip14373(event.data);self.postMessage({entries},entries.map(([,data])=>data.buffer));}catch(error){self.postMessage({error:String(error?.message||'The archive could not be read.')});}};`;
+   url=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));worker=new Worker(url);
+   worker.onmessage=event=>{const result=event.data;Array.isArray(result?.entries)?finish(null,result.entries):finish(Error(result?.error||'The archive could not be read.'));};
+   worker.onerror=event=>{event.preventDefault();finish(Error('The archive importer could not start. Reconnect and retry.'));};
+   worker.onmessageerror=()=>finish(Error('The archive could not be read.'));
+   timer=setTimeout(()=>finish(Error('This archive took too long to read. Export a smaller document and retry.')),10000);
+   worker.postMessage(bytes,[bytes.buffer]);
+  }catch(error){finish(error);}
+ });
+ const files=Object.create(null);
+ for(const [name,data] of entries)files[name]={async:async type=>{
+  if(type==='uint8array')return data;
+  if(type==='string')return new TextDecoder().decode(data);
+  if(type==='base64'){let binary='';for(let at=0;at<data.length;at+=16384)binary+=String.fromCharCode(...data.subarray(at,at+16384));return btoa(binary);}
+  throw Error('Unsupported document content type.');
+ }};
+ return {files,file:name=>files[name]||null};
+}
 async function word(file,loadedZip){const zip=loadedZip||await openZip(file),part=zip.file('word/document.xml');if(!part)throw Error('This is not a valid DOCX document.');const d=xml(await part.async('string')),images=Object.create(null);const rel=zip.file('word/_rels/document.xml.rels');if(rel)for(const r of Array.from(xml(await rel.async('string')).documentElement.children)){if(r.getAttribute('TargetMode')==='External')continue;const target=r.getAttribute('Target')||'';if(!/^media\/[\w .-]+\.(png|jpe?g|webp)$/i.test(target))continue;const entry=zip.file('word/'+target);if(entry){const ext=target.split('.').pop().toLowerCase();images[r.getAttribute('Id')]=`data:image/${ext==='jpg'?'jpeg':ext};base64,${await entry.async('base64')}`;}}
  function inline(n){if(n.localName==='t')return esc(n.textContent);if(n.localName==='tab')return '&nbsp;&nbsp;&nbsp;&nbsp;';if(n.localName==='br'||n.localName==='cr')return '<br>';if(n.localName==='drawing'){const blip=all(n,'blip')[0],id=blip?.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','embed');return images[id]?`<img src="${images[id]}" style="max-width:100%">`:'';}if(n.localName==='rPr'||n.localName==='pPr')return '';let result=Array.from(n.children||[]).map(inline).join('');if(n.localName==='r'){const pr=children(n,'rPr')[0];if(pr){for(const [key,tag] of [['b','strong'],['i','em'],['u','u'],['strike','s']]){const prop=children(pr,key)[0];if(prop&&!['0','false','none'].includes(val(prop,'val')))result=`<${tag}>${result}</${tag}>`;}const styles=[];const color=val(children(pr,'color')[0],'val'),size=Number(val(children(pr,'sz')[0],'val'));if(/^[0-9a-f]{6}$/i.test(color))styles.push('color:#'+color);if(size>=12&&size<=144)styles.push('font-size:'+size/2+'pt');if(styles.length)result=`<span style="${styles.join(';')}">${result}</span>`;}}return result;}
  function block(n){if(n.localName==='p'){const pr=children(n,'pPr')[0],style=val(pr&&children(pr,'pStyle')[0],'val'),heading=/^Heading([1-6])$/i.exec(style),tag=heading?'h'+heading[1]:'p';const align=val(pr&&children(pr,'jc')[0],'val');let body=inline(n);if(pr&&children(pr,'numPr').length)body='• '+body;return `<${tag}${['left','center','right','both'].includes(align)?` style="text-align:${align==='both'?'justify':align}"`:''}>${body||'<br>'}</${tag}>`;}if(n.localName==='tbl')return '<table style="border-collapse:collapse;width:100%"><tbody>'+children(n,'tr').map(tr=>'<tr>'+children(tr,'tc').map(tc=>'<td style="border:1px solid #999;padding:5px">'+Array.from(tc.children).map(block).join('')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';return Array.from(n.children||[]).map(block).join('');}
@@ -67,12 +108,13 @@ self.onmessage=event=>{try{importScripts(${JSON.stringify(library)});self.postMe
   }catch(error){finish(error);}
  });
 }
-async function archiveDocument(file){const zip=await openZip(file);if(zip.file('word/document.xml'))return {html:await word(file,zip),note:'Word text, tables and images imported. Review complex formatting.'};if(zip.file('content.xml'))return {html:await odt(file,zip),note:'OpenDocument text and tables imported. Review formatting.'};if(zip.file('ppt/presentation.xml')){let html='';const slides=Object.keys(zip.files).filter(p=>/^ppt\/slides\/slide\d+\.xml$/.test(p)).sort((a,b)=>Number(a.match(/slide(\d+)/)[1])-Number(b.match(/slide(\d+)/)[1]));for(const [i,path] of slides.entries()){const d=xml(await zip.file(path).async('string'));html+='<h2>Slide '+(i+1)+'</h2>'+all(d,'p').map(p=>'<p>'+all(p,'t').map(t=>esc(t.textContent)).join(' ')+'</p>').join('');}return {html,note:'Presentation text imported. Review slide layout and images in the original file.'};}
+async function archiveDocument(file,bytes){const zip=await openZip(file,bytes);if(zip.file('word/document.xml'))return {html:await word(file,zip),note:'Word text, tables and images imported. Review complex formatting.'};if(zip.file('content.xml'))return {html:await odt(file,zip),note:'OpenDocument text and tables imported. Review formatting.'};if(zip.file('ppt/presentation.xml')){let html='';const slides=Object.keys(zip.files).filter(p=>/^ppt\/slides\/slide\d+\.xml$/.test(p)).sort((a,b)=>Number(a.match(/slide(\d+)/)[1])-Number(b.match(/slide(\d+)/)[1]));for(const [i,path] of slides.entries()){const d=xml(await zip.file(path).async('string'));html+='<h2>Slide '+(i+1)+'</h2>'+all(d,'p').map(p=>'<p>'+all(p,'t').map(t=>esc(t.textContent)).join(' ')+'</p>').join('');}return {html,note:'Presentation text imported. Review slide layout and images in the original file.'};}
 if(zip.file('xl/workbook.xml')){const stringsPart=zip.file('xl/sharedStrings.xml'),strings=stringsPart?all(xml(await stringsPart.async('string')),'si').map(n=>all(n,'t').map(t=>t.textContent).join('')):[],sheets=Object.keys(zip.files).filter(p=>/^xl\/worksheets\/sheet\d+\.xml$/.test(p)).sort((a,b)=>Number(a.match(/sheet(\d+)/)[1])-Number(b.match(/sheet(\d+)/)[1]));let html='';for(const [i,path]of sheets.entries()){const d=xml(await zip.file(path).async('string'));html+='<h2>Sheet '+(i+1)+'</h2><table style="width:100%;border-collapse:collapse"><tbody>'+all(d,'row').map(row=>'<tr>'+(()=>{let column=0;return children(row,'c').map(c=>{const letters=(c.getAttribute('r')||'').match(/^[A-Z]+/i)?.[0];let index=letters?[...letters.toUpperCase()].reduce((n,ch)=>n*26+ch.charCodeAt(0)-64,0):column+1;if(index>16384||index<=column)throw Error('Invalid worksheet cell position.');const gaps='<td></td>'.repeat(index-column-1);column=index;const raw=all(c,'v')[0]?.textContent||all(c,'t').map(t=>t.textContent).join(''),value=c.getAttribute('t')==='s'?strings[Number(raw)]||'':raw;return gaps+'<td style="border:1px solid #999;padding:4px">'+esc(value)+'</td>'}).join('')})()+'</tr>').join('')+'</tbody></table>';}return {html,note:'Workbook cell values imported as document tables. Review dates and cell formatting in the original file.'};}
 const preview=zip.file('QuickLook/Preview.pdf')||zip.file('preview.pdf');if(preview)return {html:await pdfDocument(await preview.async('uint8array'),'layout'),note:'Document preview imported as printable pages.'};const container=zip.file('META-INF/container.xml');if(container){const metadata=xml(await container.async('string')),root=all(metadata,'rootfile')[0]?.getAttribute('full-path'),opf=zip.file(root||'');if(opf){const d=xml(await opf.async('string')),base=root.slice(0,root.lastIndexOf('/')+1),items=new Map(all(d,'item').map(n=>[n.getAttribute('id'),n.getAttribute('href')]));let html='';for(const ref of all(d,'itemref')){const href=items.get(ref.getAttribute('idref')),part=href&&zip.file(base+href);if(part)html+=new DOMParser().parseFromString(await part.async('string'),'text/html').body.innerHTML;}return {html,note:'EPUB chapters imported. Review layout.'}}}throw Error('This archive does not contain a readable document or PDF preview.');}
 window.importDocument1422=async function(file,options={}){
+ if(file.size>32*1024*1024&&await file.slice(0,2).text()==='PK')throw Error('This archive is too large to import (maximum 32 MB).');
  const bytes=new Uint8Array(await file.arrayBuffer()),ext=file.name.split('.').pop().toLowerCase();let html='',note='';
- if(bytes[0]===0x50&&bytes[1]===0x4b){const data=await archiveDocument(file);html=data.html;note=data.note;}
+ if(bytes[0]===0x50&&bytes[1]===0x4b){const data=await archiveDocument(file,bytes);html=data.html;note=data.note;}
  else if(new TextDecoder().decode(bytes.subarray(0,1024)).includes('%PDF-')){html=await pdfDocument(bytes,options.pdfMode||'text');note=options.pdfMode==='layout'?'PDF original appearance retained as page images; image text is not editable.':'PDF text imported for editing. Layout, tables and illustrations may differ; use Original appearance to retain them. Scanned pages remain images and need text recognition.';}
  else if(bytes[0]===0xd0&&bytes[1]===0xcf){html=await binaryWordAsync14371(bytes);note='Legacy Word text imported. Review formatting.';}
  else if(/^image\/(?:png|jpeg|webp)$/.test(file.type)){const src=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)});html='<p><img src="'+src+'" style="max-width:100%"></p>';note='Image document imported.';}

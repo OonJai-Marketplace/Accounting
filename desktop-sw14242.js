@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.72',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.73',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "docs/UPDATE-v143.21.md",
  "scripts/hr-calendar14306.js?v=143.70",
@@ -19,7 +19,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.70",
  "scripts/desktop14245-6.js?v=143.70",
  "scripts/local-events14310.js?v=143.70",
- "scripts/offline14239.js?v=143.72",
+ "scripts/offline14239.js?v=143.73",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -153,7 +153,7 @@ const FILES=[
  "docs/UPDATE-v143.27.md",
  "docs/UPDATE-v143.28.md",
  "docs/UPDATE-v143.29.md",
- "scripts/document-downloads14311.js?v=143.70",
+ "scripts/document-downloads14311.js?v=143.73",
  "scripts/hr-workspace14306.js?v=143.70",
  "docs/UPDATE-v143.30.md",
  "scripts/summary-period14331.js?v=143.70",
@@ -177,8 +177,8 @@ const FILES=[
  "assets/vendor/noble-gcm14334.js?v=143.34",
  "scripts/device-vault14334.js?v=143.70",
  "setup/INSTALL-EDITABLE-TODOS-v143.35.sql",
- "scripts/optional-tools14335.js?v=143.72",
- "scripts/document-import-v1422.js?v=143.71",
+ "scripts/optional-tools14335.js?v=143.73",
+ "scripts/document-import-v1422.js?v=143.73",
  "scripts/document-export-v108.js?v=143.72",
  "docs/UPDATE-v143.35.md",
  "docs/UPDATE-v143.36.md",

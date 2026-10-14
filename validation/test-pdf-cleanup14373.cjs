@@ -1,0 +1,7 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),{chromium}=require('playwright');
+(async()=>{const browser=await chromium.launch({executablePath:'/tmp/chromium',args:['--no-sandbox']});try{
+ const page=await browser.newPage();await page.setContent('<style>.page{width:300px;height:400px;background:white;color:oklch(50% .1 40)}</style><div class="page"><p>PDF retry ภาษาไทย</p></div>');
+ for(const name of ['assets/vendor/document14285/html2canvas.min.js','assets/vendor/document14285/jspdf.umd.min.js','src/documents/import-export/document-downloads14311.js'])await page.addScriptTag({content:fs.readFileSync(name,'utf8')});
+ const result=await page.evaluate(async()=>{let error;try{await documentDownloads14311.pdf(document);}catch(e){error=e.message;}const afterError=document.querySelectorAll('.html2canvas-container').length;document.querySelector('.page').style.color='rgb(0,0,0)';const blob=await documentDownloads14311.pdf(document);return {error,afterError,afterRetry:document.querySelectorAll('.html2canvas-container').length,prefix:(await blob.text()).slice(0,5),size:blob.size};});
+ assert.match(result.error,/unsupported color function/);assert.equal(result.afterError,0);assert.equal(result.afterRetry,0);assert.equal(result.prefix,'%PDF-');assert.ok(result.size>1000);console.log('PASS real renderer failure releases cloned iframe; retry produces a PDF and leaves no hidden frames');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1});
