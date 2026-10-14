@@ -74,3 +74,13 @@ The profile still attributes substantial work to workspace layout visibility che
 The 77 database scripts and every business save/approval/recovery path have not received a new exhaustive semantic audit in this release. Local synthetic routing checks cannot establish correctness of every production data path. No production database migration or data mutation was performed.
 
 No feature is currently justified for removal solely to make navigation faster. The verified excess is repeated presentation work; removing accounting capabilities would not directly address it.
+
+## Cache follow-up — v143.68
+
+The release wiring audit found an older standalone-phone mismatch: its runtime
+expected worker version 143.59 while the deployed worker announced 143.60.
+The ready-message handler requires equality, so an installed cache could fail to
+be recognized as ready. Runtime, worker and runtime asset URL now agree on 143.68.
+The desktop observer cleanup remains v143.67. This changes cache readiness,
+not phone layout or accounting records. A regression validates the real phone
+worker readiness handshake and agreement between HTML and precached asset URLs.
