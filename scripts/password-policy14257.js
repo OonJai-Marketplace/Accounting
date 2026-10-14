@@ -14,11 +14,11 @@ function update(n){
  n.setCustomValidity(required&&!valid?'Use a password that meets all the requirements shown below.':'');
  const form=n.form;if(form)for(const b of form.querySelectorAll('[type=submit]')){if([...form.querySelectorAll(fields)].some(f=>!f.disabled&&!/confirm/i.test(f.id+' '+f.name)&&(f.required||f.value.length>0)&&!accepted(f.value))){if(!b.disabled)b.dataset.passwordDisabled14257='1';b.disabled=true}else if(b.dataset.passwordDisabled14257){b.disabled=false;delete b.dataset.passwordDisabled14257}}
 }
-function scan(){document.querySelectorAll(fields).forEach(update)}
+function scan(root=document){if(root.matches?.(fields))update(root);root.querySelectorAll(fields).forEach(update)}
 document.addEventListener('input',e=>{if(e.target.matches?.(fields))update(e.target)});
 document.addEventListener('focusin',e=>{if(e.target.matches?.(fields))update(e.target)});
 document.addEventListener('focusout',e=>{if(e.target.matches?.(fields)){const help=e.target.parentElement.querySelector('[data-password-help14257]');if(help)help.hidden=true}});
 document.addEventListener('submit',e=>{for(const n of e.target.querySelectorAll(fields)){update(n);if(!n.checkValidity()){e.preventDefault();e.stopImmediatePropagation();n.reportValidity();return}}},true);
 let queued=false;function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;scan()})}
-new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});window.passwordPolicy14257={accepted,scan,update,rules};schedule();
+new MutationObserver(records=>{const roots=new Set();for(const r of records)for(const n of r.addedNodes)if(n.nodeType===1)roots.add(n.closest('form')||n);for(const root of roots){let parent=root.parentNode;while(parent&&!roots.has(parent))parent=parent.parentNode;if(root.isConnected&&!parent)scan(root)}}).observe(document.documentElement,{childList:true,subtree:true});window.passwordPolicy14257={accepted,scan,update,rules};schedule();
 })();

@@ -1,0 +1,358 @@
+{
+  "scope": "Sequential local synthetic comparisons, 137 accounts and 1000 journal lines. Ten trusted sidebar clicks, with CPU sampling enabled. Not the affected laptop and not a field INP measurement.",
+  "baseline_commit": "a91f3bf84d614e6eab6180f2fa6fbc195d438d48",
+  "baseline": {
+    "rows": [
+      {
+        "active": "navigation-blank14366",
+        "clickToPaintProxy": 1020.6000000014901,
+        "cpuMs": 3561.0269999999996
+      },
+      {
+        "active": "journal",
+        "clickToPaintProxy": 780.2999999970198,
+        "cpuMs": 803.4069999999999
+      },
+      {
+        "active": "accounts-modular-container",
+        "clickToPaintProxy": 1687.5,
+        "cpuMs": 1719.963
+      },
+      {
+        "active": "settings-business",
+        "clickToPaintProxy": 1000.8999999985099,
+        "cpuMs": 1241.447
+      },
+      {
+        "active": "dashboard",
+        "clickToPaintProxy": 1624.6000000014901,
+        "cpuMs": 2107.4470000000006
+      },
+      {
+        "active": "navigation-blank14366",
+        "clickToPaintProxy": 785.2000000029802,
+        "cpuMs": 1035.6450000000007
+      },
+      {
+        "active": "journal",
+        "clickToPaintProxy": 830.6000000014901,
+        "cpuMs": 878.6940000000012
+      },
+      {
+        "active": "accounts-modular-container",
+        "clickToPaintProxy": 1303.8000000044703,
+        "cpuMs": 1335.7910000000004
+      },
+      {
+        "active": "settings-business",
+        "clickToPaintProxy": 846.2000000029802,
+        "cpuMs": 870.5669999999994
+      },
+      {
+        "active": "dashboard",
+        "clickToPaintProxy": 797,
+        "cpuMs": 835.8409999999985
+      }
+    ],
+    "errors": [],
+    "hotspots": [
+      [
+        "visible workspace-consistency14343.js?v=143.62:3",
+        812.5949999999998
+      ],
+      [
+        "tidy desktop14245-5.js?v=143.64:150",
+        621.6370000000001
+      ],
+      [
+        "polish87 desktop14245-3.js?v=143.65:6019",
+        551.3100000000003
+      ],
+      [
+        "paint account-currency14257.js?v=142.96:6",
+        458.42799999999994
+      ],
+      [
+        "polish69 desktop14245-3.js?v=143.65:5350",
+        446.8949999999999
+      ],
+      [
+        " desktop14245-3.js?v=143.65:5570",
+        426.0500000000003
+      ],
+      [
+        " desktop14245-3.js?v=143.65:5566",
+        359.86900000000037
+      ],
+      [
+        "displays desktop14245-6.js?v=143.65:1874",
+        357.71999999999997
+      ],
+      [
+        "initializeHistories transaction-consistency14300.js?v=143.65:33",
+        325.1009999999999
+      ],
+      [
+        "orange desktop14245-6.js?v=143.65:1835",
+        318.18399999999997
+      ],
+      [
+        "standardizeReportActions transaction-consistency14300.js?v=143.65:37",
+        310.0520000000003
+      ],
+      [
+        "all layout-voucher-polish14301.js?v=143.61:5",
+        306.5460000000001
+      ],
+      [
+        "scan password-policy14257.js?v=142.94:17",
+        289.7520000000002
+      ],
+      [
+        "polishWorkbench desktop14245-3.js?v=143.65:4608",
+        265.5690000000001
+      ],
+      [
+        "alignTableHeaders83 desktop14245-3.js?v=143.65:5946",
+        245.4259999999999
+      ],
+      [
+        "enhance search-autofill14285.js?v=142.86:3",
+        241.65899999999993
+      ],
+      [
+        "polish85 desktop14245-3.js?v=143.65:5997",
+        234.82600000000002
+      ],
+      [
+        "restoreFields desktop14245-6.js?v=143.65:534",
+        233.2979999999998
+      ],
+      [
+        "polish desktop14245-5.js?v=143.64:339",
+        228.0960000000001
+      ],
+      [
+        "polish desktop14245-3.js?v=143.65:7210",
+        219.4659999999999
+      ],
+      [
+        " desktop14245-3.js?v=143.65:1687",
+        211.96
+      ],
+      [
+        "polish desktop14245-3.js?v=143.65:4742",
+        207.554
+      ],
+      [
+        "sync desktop14245-3.js?v=143.65:5527",
+        205.41600000000003
+      ],
+      [
+        "scan desktop14245-3.js?v=143.65:7583",
+        188.24900000000002
+      ],
+      [
+        "sync desktop14245-3.js?v=143.65:5563",
+        187.93599999999995
+      ],
+      [
+        "render navigation-badges14311.js?v=143.49:18",
+        176.10699999999994
+      ],
+      [
+        "enhanceControls desktop14245-6.js?v=143.65:605",
+        171.15899999999988
+      ],
+      [
+        "polishDesktop80 desktop14245-3.js?v=143.65:5686",
+        160.19400000000005
+      ],
+      [
+        "tagJournalColumns desktop14245-3.js?v=143.65:4780",
+        157.03800000000007
+      ],
+      [
+        "mainTab14355 workspace-consistency14343.js?v=143.62:55",
+        156.75499999999997
+      ]
+    ]
+  },
+  "corrected": {
+    "rows": [
+      {
+        "active": "navigation-blank14366",
+        "clickToPaintProxy": 780.6000000014901,
+        "cpuMs": 2415.023
+      },
+      {
+        "active": "journal",
+        "clickToPaintProxy": 662.6000000014901,
+        "cpuMs": 693.4860000000001
+      },
+      {
+        "active": "accounts-modular-container",
+        "clickToPaintProxy": 1362.4000000059605,
+        "cpuMs": 1394.6390000000001
+      },
+      {
+        "active": "settings-business",
+        "clickToPaintProxy": 713.7000000029802,
+        "cpuMs": 727.2730000000003
+      },
+      {
+        "active": "dashboard",
+        "clickToPaintProxy": 596.8000000044703,
+        "cpuMs": 608.2219999999996
+      },
+      {
+        "active": "navigation-blank14366",
+        "clickToPaintProxy": 563.7999999970198,
+        "cpuMs": 580.2160000000001
+      },
+      {
+        "active": "journal",
+        "clickToPaintProxy": 646.7000000029802,
+        "cpuMs": 652.7399999999997
+      },
+      {
+        "active": "accounts-modular-container",
+        "clickToPaintProxy": 630.7000000029802,
+        "cpuMs": 647.7119999999994
+      },
+      {
+        "active": "settings-business",
+        "clickToPaintProxy": 596.4000000059605,
+        "cpuMs": 599.597000000001
+      },
+      {
+        "active": "dashboard",
+        "clickToPaintProxy": 546.7999999970198,
+        "cpuMs": 705.6109999999993
+      }
+    ],
+    "errors": [],
+    "hotspots": [
+      [
+        "visible workspace-consistency14343.js?v=143.62:3",
+        554.2679999999998
+      ],
+      [
+        "polish69 desktop14245-3.js?v=143.65:5350",
+        406.7270000000001
+      ],
+      [
+        "orange desktop14245-6.js?v=143.65:1851",
+        313.2180000000002
+      ],
+      [
+        "displays desktop14245-6.js?v=143.65:1890",
+        301.6289999999999
+      ],
+      [
+        "initializeHistories transaction-consistency14300.js?v=143.65:33",
+        276.067
+      ],
+      [
+        "all layout-voucher-polish14301.js?v=143.61:5",
+        270.83099999999996
+      ],
+      [
+        "polishWorkbench desktop14245-3.js?v=143.65:4608",
+        247.25900000000013
+      ],
+      [
+        "enhance search-autofill14285.js?v=142.86:3",
+        241.74600000000007
+      ],
+      [
+        "restoreFields desktop14245-6.js?v=143.65:534",
+        219.4480000000001
+      ],
+      [
+        "polish desktop14245-5.js?v=143.64:341",
+        213.98600000000005
+      ],
+      [
+        "polish desktop14245-3.js?v=143.65:7221",
+        197.02499999999992
+      ],
+      [
+        "alignTableHeaders83 desktop14245-3.js?v=143.65:5956",
+        192.42699999999996
+      ],
+      [
+        "polish85 desktop14245-3.js?v=143.65:6007",
+        190.65899999999993
+      ],
+      [
+        "render navigation-badges14311.js?v=143.49:18",
+        186.75600000000003
+      ],
+      [
+        "polish desktop14245-3.js?v=143.65:4742",
+        172.34300000000005
+      ],
+      [
+        "sync desktop14245-3.js?v=143.65:5527",
+        171.22199999999992
+      ],
+      [
+        "scan desktop14245-3.js?v=143.65:7594",
+        151.72799999999992
+      ],
+      [
+        "tagJournalColumns desktop14245-3.js?v=143.65:4780",
+        143.95699999999988
+      ],
+      [
+        "hasModuleBorder desktop14245-6.js?v=143.65:1845",
+        136.37099999999992
+      ],
+      [
+        " desktop14245-5.js?v=143.64:483",
+        134.76899999999998
+      ],
+      [
+        "mainTab14355 workspace-consistency14343.js?v=143.62:55",
+        134.4279999999999
+      ],
+      [
+        "standardizeVisibleDates transaction-consistency14300.js?v=143.65:43",
+        132.73699999999988
+      ],
+      [
+        "scan desktop14245-3.js?v=143.65:6087",
+        123.86899999999996
+      ],
+      [
+        "polishDesktop80 desktop14245-3.js?v=143.65:5696",
+        109.13299999999994
+      ],
+      [
+        " desktop14245-4.js?v=143.64:563",
+        100.23199999999996
+      ],
+      [
+        "decorate desktop14245-6.js?v=143.65:1639",
+        86.34100000000001
+      ],
+      [
+        "badgePolish desktop14245-3.js?v=143.65:6126",
+        79.82799999999996
+      ],
+      [
+        "polishDesktop81 desktop14245-3.js?v=143.65:5713",
+        73.613
+      ],
+      [
+        "reviewPanel desktop14245-5.js?v=143.64:473",
+        72.90399999999998
+      ],
+      [
+        "all desktop14245-5.js?v=143.64:150",
+        72.74
+      ]
+    ]
+  }
+}

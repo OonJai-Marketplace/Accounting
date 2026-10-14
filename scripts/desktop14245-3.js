@@ -5560,10 +5560,19 @@ function orderedRecords78(records,oldest=false){return [...records].sort((a,b)=>
   [...select.options].forEach(option=>{const button=document.createElement('button');button.type='button';button.setAttribute('role','option');button.setAttribute('aria-selected',String(option.selected));button.textContent=option.textContent;button.disabled=option.disabled||option.parentElement.disabled;button.onclick=()=>{if(!select.isConnected)return closeChoice();select.value=option.value;select.dispatchEvent(new Event('input',{bubbles:true}));select.dispatchEvent(new Event('change',{bubbles:true}));closeChoice();sync()};list.append(button)});
   sheet.append(header,list);dialog.append(sheet);dialog.onclick=e=>{if(e.target===dialog)closeChoice()};document.body.append(dialog);(list.querySelector('[aria-selected=true]:not(:disabled)')||close).focus();
  }
- function sync(){pending=false;document.querySelectorAll(selectors).forEach(select=>{let button=select.nextElementSibling?.classList.contains('choice78-trigger')?select.nextElementSibling:null;if(!media.matches){select.classList.remove('choice78-native');button?.remove();return}select.classList.add('choice78-native');if(!button){button=document.createElement('button');button.type='button';button.className='choice78-trigger';button.setAttribute('aria-haspopup','listbox');button.onclick=()=>openChoice(select,button);select.after(button)}const value=select.selectedOptions[0]?.textContent||'Select';if(button.textContent!==value){const span=document.createElement('span');span.textContent=value;button.replaceChildren(span)}button.disabled=select.disabled;button.setAttribute('aria-label',(select.closest('label')?.querySelector('span')?.textContent||'Selection')+': '+value)});if(!printing)orderTables(false)}
+ function sync(){pending=false;document.querySelectorAll(selectors).forEach(select=>{let button=select.nextElementSibling?.classList.contains('choice78-trigger')?select.nextElementSibling:null;if(!media.matches){select.classList.remove('choice78-native');button?.remove();return}select.classList.add('choice78-native');if(!button){button=document.createElement('button');button.type='button';button.className='choice78-trigger';button.setAttribute('aria-haspopup','listbox');button.onclick=()=>openChoice(select,button);select.after(button)}const value=select.selectedOptions[0]?.textContent||'Select';if(button.textContent!==value){const span=document.createElement('span');span.textContent=value;button.replaceChildren(span)}button.disabled=select.disabled;button.setAttribute('aria-label',(select.closest('label')?.querySelector('span')?.textContent||'Selection')+': '+value)});if(!printing){const tables=[...dirtyTables];dirtyTables.clear();orderTables(false,tables)}}
  function dateKey(text){const s=String(text).trim();if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);const m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);if(!m)return '';const us=(ApplicationSettings.system?.dateFormat||'').startsWith('MM');return m[3]+'-'+(us?m[1]:m[2]).padStart(2,'0')+'-'+(us?m[2]:m[1]).padStart(2,'0')}
- const originals=new Map();
- function orderTables(oldest){document.querySelectorAll('table').forEach(table=>{
+ // Sorting is a data-change operation. Unrelated navigation/banner mutations
+ // must not repeatedly read and sort every retained (including hidden) table.
+ const originals=new Map(),dirtyTables=new Set();
+ function collectTables(node){
+  const element=node.nodeType===1?node:node.parentElement;
+  if(!element)return;
+  const table=element.closest('table');if(table)dirtyTables.add(table);
+  element.querySelectorAll('table').forEach(t=>dirtyTables.add(t));
+ }
+ function orderTables(oldest,tables=document.querySelectorAll('table')){tables.forEach(table=>{
+  if(!table.isConnected)return;
   if(table.closest('.personal-active1437'))return;
   if(table.querySelector('tbody input,tbody select,tbody textarea')||table.closest('#submissionComparisonOverlay,#tx72Viewer,#tx74Comparison,.v49-totals,.final-account-totals'))return;
   const headers=[...table.querySelectorAll('thead tr:last-child th')].map(n=>n.textContent.trim());const dateIndex=headers.findIndex(t=>/^(date|transaction date|created|submitted|recorded|timestamp)$/i.test(t));if(dateIndex<0)return;
@@ -5572,8 +5581,9 @@ function orderedRecords78(records,oldest=false){return [...records].sort((a,b)=>
  function schedule(){if(!pending){pending=true;requestAnimationFrame(sync)}}
  document.addEventListener('change',schedule);media.addEventListener('change',()=>{closeChoice();schedule()});document.addEventListener('keydown',e=>{const dialog=document.getElementById('choice78');if(!dialog)return;if(e.key==='Escape'){e.preventDefault();closeChoice()}if(e.key==='Tab'){const buttons=[...dialog.querySelectorAll('button:not(:disabled)')],first=buttons[0],last=buttons.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
  window.addEventListener('beforeprint',()=>{printing=true;orderTables(true)});window.addEventListener('afterprint',()=>{originals.forEach((rows,body)=>{if(body.isConnected)body.append(...rows.filter(r=>r.isConnected))});originals.clear();printing=false;schedule()});
- const start=()=>{schedule();new MutationObserver(changes=>{if(changes.every(c=>c.target.closest?.('#choice78')))return;schedule()}).observe(document.body,{childList:true,subtree:true})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
-})();
+ const start=()=>{collectTables(document.body);schedule();new MutationObserver(changes=>{let choices=false;for(const c of changes){const target=c.target.nodeType===1?c.target:c.target.parentElement;if(target?.closest('#choice78'))continue;const table=target?.closest('table');if(table)dirtyTables.add(table);if(target?.closest(selectors))choices=true;for(const node of c.addedNodes){if(node.nodeType!==1)continue;collectTables(node);if(node.matches(selectors)||node.querySelector(selectors))choices=true;}}if(dirtyTables.size||choices)schedule()}).observe(document.body,{childList:true,subtree:true,characterData:true})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})()
+;
 
 ;
 /* scripts/reports-desktop-v79.js */
@@ -6016,31 +6026,32 @@ document.addEventListener('toggle',e=>{if(e.target.matches?.('.archive-month')){
 ;
 /* scripts/layout-consistency-v87.js */
 /* Shared desktop module geometry, without changing mobile journal layout. */
-function polish87(){
+function polish87(scope=document){
+ const all=selector=>[...(scope.matches?.(selector)?[scope]:[]),...scope.querySelectorAll(selector)];
  const accountRoots=['sec-general-ledger','sec-chart-accounts','sec-sub-accounts','sec-other-accounts','trial-balance','account-balances'];
  accountRoots.forEach(id=>{
-  const root=document.getElementById(id);if(!root)return;
+  const root=document.getElementById(id);if(!root||scope!==document&&!scope.contains(root)&&!root.contains(scope))return;
   const main=root.matches('.module-card')?root:root.querySelector('.je-card,.module-card');
   main?.classList.add('main-module87');
   root.querySelector('.je-card-header,.card-header-flex')?.classList.add('main-heading87');
  });
- document.querySelectorAll('[data-module="transactions"] .je-card-header,#user-entry-review>.settings-page-heading,.period-review-toolbar').forEach(n=>n.classList.add('main-heading87'));
- document.querySelectorAll('#sec-chart-accounts>.table-container,#sec-sub-accounts>.table-container,#otherAccounts69>.table-container').forEach(n=>n.classList.add('account-table-module87'));
- document.querySelectorAll('#tblChartOfAccounts,#tblSubAccounts,#otherAccounts69 table').forEach(table=>{
-  table.querySelectorAll('tbody tr').forEach(row=>{
+ all('[data-module="transactions"] .je-card-header,#user-entry-review>.settings-page-heading,.period-review-toolbar').forEach(n=>n.classList.add('main-heading87'));
+ all('#sec-chart-accounts>.table-container,#sec-sub-accounts>.table-container,#otherAccounts69>.table-container').forEach(n=>n.classList.add('account-table-module87'));
+ all('#tblChartOfAccounts tbody tr,#tblSubAccounts tbody tr,#otherAccounts69 table tbody tr').forEach(row=>{
    const cell=row.lastElementChild;if(!cell||cell.colSpan>1||!cell.querySelector('button'))return;
    cell.classList.add('account-action87');
    if(!cell.querySelector(':scope>.account-actions87')){
     const actions=document.createElement('div');actions.className='account-actions87';
     actions.append(...cell.childNodes);cell.append(actions);
    }
-  });
  });
- document.querySelectorAll('button.purpose-help71,button.v56-balance-alert').forEach(n=>n.classList.add('round-help87'));
+ all('button.purpose-help71,button.v56-balance-alert').forEach(n=>n.classList.add('round-help87'));
 }
-let polishPending87=false;
-new MutationObserver(()=>{if(polishPending87)return;polishPending87=true;requestAnimationFrame(()=>{polishPending87=false;polish87()})}).observe(document.body,{childList:true,subtree:true});
-polish87();
+// New content receives geometry once; unrelated mutations leave retained rows alone.
+let polishPending87=false;const polishRoots87=new Set();
+new MutationObserver(records=>{for(const r of records)for(const n of r.addedNodes)if(n.nodeType===1)polishRoots87.add(n.closest('#tblChartOfAccounts tbody tr,#tblSubAccounts tbody tr,#otherAccounts69 table tbody tr')||n);if(polishPending87||!polishRoots87.size)return;polishPending87=true;requestAnimationFrame(()=>{polishPending87=false;const roots=[...polishRoots87].filter(n=>n.isConnected),pendingRoots=new Set(roots);polishRoots87.clear();for(const root of roots){let parent=root.parentNode;while(parent&&!pendingRoots.has(parent))parent=parent.parentNode;if(!parent)polish87(root)}})}).observe(document.body,{childList:true,subtree:true});
+polish87()
+;
 
 ;
 /* scripts/session-inputs-v88.js */
