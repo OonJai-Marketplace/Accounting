@@ -4084,7 +4084,13 @@ html body dialog#auditDetails14361{position:fixed;inset:0;width:min(1050px,calc(
 #auditDetails14361 :is(th,td){border:1px solid #c4d1c8;padding:8px 10px;text-align:left;vertical-align:top;overflow-wrap:anywhere;white-space:pre-wrap}
 #auditDetails14361 th{background:#eef3eb;font-weight:600}
 #auditDetails14361 .audit-metadata14361 th{width:24%}
-#auditDetails14361 .audit-changed14361 td{background:#fff7e6}
+#auditDetails14361 .audit-changed14361>td{background:#ffcc80;color:#532900;font-weight:650}
+#auditDetails14361 .audit-changed14361>th{background:#ffdfad;border-left:5px solid #b45309}
+#auditDetails14361 .audit-removed14382>td{background:#ffc9c9;color:#7f1d1d}
+#auditDetails14361 .audit-removed14382>th{background:#ffe0e0;border-left-color:#b91c1c}
+#auditDetails14361 .audit-change-label14382{display:block;font-size:11px;text-transform:uppercase;margin-top:4px;color:#8a3b00}
+#auditDetails14361 .audit-removed14382 .audit-change-label14382{color:#991b1b}
+#auditDetails14361 .audit-legend14382{padding:10px 12px;background:#fff3df;border:1px solid #d78b28}
 #auditDetails14361 .audit-details-scroll14361{overflow-x:auto}
 #auditDetails14361 h4{margin:18px 0 8px}
 #auditDetails14361 .audit-missing14361{padding:12px;background:#fff7df;border:1px solid #c8b776;border-radius:6px}
@@ -4097,6 +4103,8 @@ html body dialog#auditDetails14361{position:fixed;inset:0;width:min(1050px,calc(
 .transaction-pages14340[hidden]{display:none}
 .transaction-pages14340 span{font-size:12px;color:#475569;white-space:nowrap}
 .pending-entry14340{font-size:12px;color:#64748b}
+#auditDetails14361 .audit-details-scroll14361 tr[hidden]{display:none!important}
+#auditDetails14361 [data-audit-all14382]{margin-left:12px}
 
 /* styles/workspace-v99.css */
 /* Flat, compact desktop/tablet refinements. */

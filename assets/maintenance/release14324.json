@@ -1,5 +1,5 @@
 {
-  "release": "143.81",
+  "release": "143.82",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -39,12 +39,12 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "ce98d1a81c7592e7a03c8a33aad5a3a780c2d6121937ed5ae43cb029aadac7a2",
+      "sha256": "03db2fe0c4573d8305f8b24709296370545329a418a35f7402052e7a2a80ce62",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "f014622d252937adbfc3cdd97d804520c647c72e85927964a392faa08a47c980",
+      "sha256": "454c8571efa58232c9a3cdadbbc185e1808f04d8c9936161d68c12a92e01c611",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -314,7 +314,7 @@
     },
     {
       "path": "scripts/desktop14245-3.js",
-      "sha256": "07e39cf8a524869642ad27f5b6d64811ab52dbfe13ffb9eb52ccc62e6d38d821",
+      "sha256": "7824d48b69ab77b154835457caf8182a53f47c22a8ea0c8dc8310fc5b90e48fa",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -323,7 +323,7 @@
         },
         {
           "source": "scripts/script.js",
-          "sha256": "45f82624652b7e13f7f88bfcfe075e28ac395138c5b35cba2a10b960f595924c"
+          "sha256": "f1c87176c660a5eca3a6c13d02547b47a1144893e554e0afd02081a6a2a4cc8c"
         },
         {
           "source": "scripts/workspace-settings.js",
@@ -467,7 +467,7 @@
         },
         {
           "source": "scripts/transactions-v98.js",
-          "sha256": "1fe66a0ceeaf11712883dc7ec83b5d1a64b429da2667e5764dff5c5166c61cd6"
+          "sha256": "3083c90c600a30db0b6ab0853204dab8ab6eef80958c6a8a59f7e104d3c6f0b2"
         },
         {
           "source": "scripts/payroll-v99.js",
@@ -1053,7 +1053,7 @@
     },
     {
       "path": "scripts/maintenance14324.js",
-      "sha256": "379f2567a110aa27bcdea3313523bfd8f885ae6bcdbf5762b4bc42ebffa9f897",
+      "sha256": "3012e7c578ef7a4d4b5313febbbdec68ed56a1d6f669db737752ac1564977293",
       "effect": "Maintenance review, investigator and exports may not run correctly."
     },
     {
@@ -1103,7 +1103,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "7e0d8703ebbd59f569af3643c549cd9f5456a084688bd3e679bab7c3ee2c8f9f",
+      "sha256": "8ef95dd518dd8fa4b3b0a3a7ea38016dbcce2a5bcfa81f38db3af9f07a68578c",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1398,7 +1398,7 @@
     },
     {
       "path": "scripts/script.js",
-      "sha256": "e339f55092d485e2ec23bc04f191c48dff306cae113e3aca8fe3f93be8ef0f79",
+      "sha256": "53a04b1e960dddf4776f374442ef647e3cf0345c8e17d03fca837b8c4fc9058e",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1558,7 +1558,7 @@
     },
     {
       "path": "scripts/transactions-v98.js",
-      "sha256": "c6c0c9c1592da0f494918bc36d733d54fb0ec009d4c0aa73f462700d893dea5d",
+      "sha256": "0bd52cb5714a91c7deb9b2a8f984f58ecd137a9d9221d4640065c0c3060c358d",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1823,7 +1823,7 @@
     },
     {
       "path": "styles/desktop14245.css",
-      "sha256": "535e41a69b93b3e06c1e59800bc9229c6fc533462e4483f30808e4da84f4af6b",
+      "sha256": "fbd22dbdebd2cd132cda44e5370d9b6a5f99c3b85f672646ed99eaa50908f122",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -1964,7 +1964,7 @@
         },
         {
           "source": "styles/transactions-v98.css",
-          "sha256": "e3224a92fb1c9a921e1c647d453fb84252157d2ed0ba9e950a7cc683a1200de0"
+          "sha256": "068cbcd7de6b6eaa80484512ce9813755b629b6d7f7b5e0da00bb8496428c356"
         },
         {
           "source": "styles/workspace-v99.css",
@@ -2626,7 +2626,7 @@
     },
     {
       "path": "styles/transactions-v98.css",
-      "sha256": "3a1e0b662bbc800e781601a3a878cc09174511ac3a9f48815a1a1154ab94de5b",
+      "sha256": "64467e498939add42caa0c502b616d92d58f37f26a4a5a097047435b56b02e03",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
