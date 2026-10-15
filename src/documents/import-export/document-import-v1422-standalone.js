@@ -58,12 +58,25 @@ let pdfLibrary;
 async function pdfDocument(bytes,mode='text'){
  pdfLibrary||=import(new URL('assets/vendor/document14285/pdf.min.mjs',location.href).href).catch(error=>{pdfLibrary=null;throw error});
  const pdfjs=await pdfLibrary;pdfjs.GlobalWorkerOptions.workerSrc=new URL('assets/vendor/document14285/pdf.worker.min.mjs',location.href).href;
- const task=pdfjs.getDocument({data:bytes,useWasm:false,useSystemFonts:true,isEvalSupported:false});
- task.onPassword=async(update,reason)=>{const password=await window.ui117?.prompt(reason===2?'Incorrect password. Enter the PDF password:':'Enter the PDF password:','');if(password==null){await task.destroy();return}update(password)};
- const pdf=await task.promise;let html='';try{for(let i=1;i<=pdf.numPages;i++){
-  const page=await pdf.getPage(i),base=page.getViewport({scale:1});
+ // Own the native worker: malformed PDF parsers must never fall back to the UI thread.
+ const nativeWorker=new Worker(pdfjs.GlobalWorkerOptions.workerSrc,{type:'module'});
+ let worker,task,timer,aborted=false,closed=false,rejectAbort;
+ const abortPromise=new Promise((_,reject)=>{rejectAbort=reject});abortPromise.catch(()=>{});
+ const abort=error=>{if(closed||aborted)return;aborted=true;clearTimeout(timer);nativeWorker.terminate();rejectAbort(error)};
+ const arm=()=>{clearTimeout(timer);if(!aborted&&!closed)timer=setTimeout(()=>abort(Error('This PDF took too long to read. Export a smaller PDF and retry.')),30000)};
+ const wait=promise=>{arm();return Promise.race([promise,abortPromise]).finally(()=>clearTimeout(timer))};
+ nativeWorker.addEventListener('error',event=>{event.preventDefault();abort(Error('The PDF importer could not start or stopped unexpectedly. Reload and retry.'))});
+ nativeWorker.addEventListener('messageerror',()=>abort(Error('The PDF worker returned unreadable content.')));
+ // PDF.js reports failed asynchronous image decoding as null rather than rejecting render().
+ nativeWorker.addEventListener('message',({data})=>{const d=data?.data;if(data?.stream&&data.reason){abort(Error(data.reason.message||'The PDF could not be read completely.'));return}if((data?.action==='obj'&&d?.[2]==='Image'&&d[3]===null)||(data?.action==='commonobj'&&d?.[1]==='Image'&&d[2]===null))abort(Error('An image in this PDF could not be decoded. Re-export the PDF and retry.'))});
+ let html='';try{
+ worker=new pdfjs.PDFWorker({port:nativeWorker});
+ task=pdfjs.getDocument({data:bytes,worker,useWasm:false,useSystemFonts:true,isEvalSupported:false,stopAtErrors:true,maxImageSize:16777216});
+ task.onPassword=async(update,reason)=>{clearTimeout(timer);try{const password=await window.ui117?.prompt(reason===2?'Incorrect password. Enter the PDF password:':'Enter the PDF password:','');if(!closed&&!aborted){arm();update(password==null?Error('PDF import cancelled.'):password)}}catch(error){if(!closed&&!aborted){arm();update(error instanceof Error?error:Error('The PDF password prompt failed.'))}}};
+ const pdf=await wait(task.promise);for(let i=1;i<=pdf.numPages;i++){
+  const page=await wait(pdf.getPage(i)),base=page.getViewport({scale:1});
   html+=i>1?'<div data-page-break="true"></div>':'';
-  const content=mode==='text'?await page.getTextContent():null,items=content?.items.filter(t=>typeof t.str==='string'&&t.str.trim())||[];
+  const content=mode==='text'?await wait(page.getTextContent()):null,items=content?.items.filter(t=>typeof t.str==='string'&&t.str.trim())||[];
   if(items.length){
    const lines=[];let line=null;
    for(const item of items){const x=item.transform[4],y=item.transform[5],size=Math.max(6,Math.min(48,Math.hypot(item.transform[2],item.transform[3])||item.height||10));
@@ -73,10 +86,15 @@ async function pdfDocument(bytes,mode='text'){
    }
    html+=lines.map(l=>'<p style="margin:0 0 4pt;line-height:1.25">'+l.parts.join(' ')+'</p>').join('');
   }else{
-   const viewport=page.getViewport({scale:Math.min(2,1600/Math.max(base.width,base.height))}),canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;const w=Math.min(185,260*base.width/base.height),h=w*base.height/base.width;
-   html+=`<p style="margin:0"><img src="${canvas.toDataURL('image/png')}" alt="PDF page ${i}${mode==='text'?' — scanned page; text recognition required':''}" style="width:${w}mm;height:${h}mm;max-width:100%"></p>`;canvas.width=canvas.height=0;
+   const viewport=page.getViewport({scale:Math.min(2,1600/Math.max(base.width,base.height))}),canvas=document.createElement('canvas');
+   try{canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);await wait(page.render({canvasContext:canvas.getContext('2d'),viewport}).promise);const w=Math.min(185,260*base.width/base.height),h=w*base.height/base.width;
+    html+=`<p style="margin:0"><img src="${canvas.toDataURL('image/png')}" alt="PDF page ${i}${mode==='text'?' — scanned page; text recognition required':''}" style="width:${w}mm;height:${h}mm;max-width:100%"></p>`;
+   }finally{canvas.width=canvas.height=0}
   }page.cleanup();
- }}finally{await task.destroy()}return html;
+ }}finally{
+  clearTimeout(timer);
+  try{if(task){const cleanup=task.destroy();if(aborted)cleanup.catch(()=>{});else await wait(cleanup)}}finally{closed=true;clearTimeout(timer);worker?.destroy();nativeWorker.terminate()}
+ }return html;
 }
 
 function decodeText(bytes){if(bytes[0]===255&&bytes[1]===254)return new TextDecoder('utf-16le').decode(bytes.subarray(2));if(bytes[0]===254&&bytes[1]===255)return new TextDecoder('utf-16be').decode(bytes.subarray(2));return new TextDecoder().decode(bytes);}

@@ -1,6 +1,6 @@
 {
   "base_commit": "e314c40",
-  "scope": "First-party canonical sources reviewed; generated equivalents verified. Third-party implementation review is recorded per file, including partial ranges. Five vendor bundles still require full manual review; automated validation does not close those reviews.",
+  "scope": "Completed requested 110-file group: 98 first-party files and 12 vendor implementations. Canonical sources (577) and generated equivalents (354) recorded separately. See docs/AUDIT-110-v14375.md for coverage, fixes, tests and limitations.",
   "reviewed": {
     "src/bookkeeping/journal/entry-number14257.js": {
       "sha256": "7e4c90d7b0ce37472893919502f270622f5b96b60be946b3e2c1e050ef929d72",
@@ -293,14 +293,14 @@
       "note": "Full coordinator-owned data path and compatibility fallback; intentional period read preserved."
     },
     "src/core/startup/optional-tools14335.js": {
-      "sha256": "aaa18dd91dfd8db02f5432b480155d2b5104e21050c7f3e6cd554c24697a8d1f",
+      "sha256": "e3d540531884543e3a0f61f8cce3733460b3adf293e719bb2c914ae112349cac",
       "ranges": [
         [
           1,
           11
         ]
       ],
-      "note": "Full import/export deferred loader and dedup/retry review; verified global exports exist in standalone scripts. No observed defect. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified."
+      "note": "Full import/export deferred loader and dedup/retry review; verified global exports exist in standalone scripts. No observed defect. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes."
     },
     "src/core/startup/device-mode132.js": {
       "sha256": "34154b1a7dbce4d7d3b555456df4e6d02c0077dc4f42da5603c688b4931adfe5",
@@ -5363,14 +5363,14 @@
       "note": "Full review; loaded workspace navigation renders immediately; refresh follows action completion instead of 250ms timer."
     },
     "src/documents/import-export/document-import-v1422-standalone.js": {
-      "sha256": "0c45b0e6442a1c182a5b1465a478e24361de6ca061d5ca833e3a1bbbb483fc6a",
+      "sha256": "711beedd9438fc41cb12bd2df5780a5c982a1887bd974db4dd355a4f5de8d9f6",
       "ranges": [
         [
           1,
-          125
+          143
         ]
       ],
-      "note": "Full review completed prior continuation; reuse archive, preserve XLSX gaps, retry failed PDF library load. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified."
+      "note": "Full review completed prior continuation; reuse archive, preserve XLSX gaps, retry failed PDF library load. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes."
     },
     "src/maintenance/archive/archive-v128.js": {
       "sha256": "ad6a7bf636de51670b36d8bda404ea285a695342f76b75a0e9ada5d3aa56f4cf",
@@ -5653,14 +5653,14 @@
       "note": "Full 781-line review: password wrapping, storage adapters, legacy migration, auth and inactivity. Guard password rewrap against actor/key changes, prevent concurrent sign-in, close migration databases on failure and check migration actor. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "src/core/sync/offline14239.js": {
-      "sha256": "ca5c60bd466a847b965578ec637687ae681930150d25be25497548aeba97a2dd",
+      "sha256": "3fc3101d6d7973633236444faee3f804f3f21f4f122976e1ac197ea9b4cd9ec9",
       "ranges": [
         [
           1,
           157
         ]
       ],
-      "note": "Full review: encrypted snapshots, request fallback, device queue, sync and shell status. Cache hits/restores verify actor/client/workspace, reuse one cache read, partition queue cache by database, retain original job on session change, format displayed dates. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified."
+      "note": "Full review: encrypted snapshots, request fallback, device queue, sync and shell status. Cache hits/restores verify actor/client/workspace, reuse one cache read, partition queue cache by database, retain original job on session change, format displayed dates. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes."
     },
     "src/subusers/entries/subusers-final-v56.js": {
       "sha256": "46734e315a911ffe2729a646e01becf8b3546779c3c7fed91baae13433df3dc1",
@@ -6153,14 +6153,14 @@
       "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution."
     },
     "desktop-sw14242.js": {
-      "sha256": "d8084ea91616785bcc1ca643c8f6cd3d4bf85308bc84912dc6b4fe10a2fcee5d",
+      "sha256": "d4d20aad9e8663771021c4ffd273fdb9da1ddf531f2afe2b35915ef4e2cdf7bc",
       "ranges": [
         [
           1,
           330
         ]
       ],
-      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified."
+      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes."
     },
     "validation/test-shell-isolation14370.cjs": {
       "sha256": "1d336751cac29873192a86bbfd5b9b03426690b475bbda7f6b3498889cdd08cc",
@@ -6193,14 +6193,14 @@
       "note": "Reviewed schema, metadata, preserved variants and every source/output reference via structured traversal; all 578 source references reviewed; prefixes are source comments and suffixes only newline/semicolon. Generated identity checked by canonical builder. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "desktop.html": {
-      "sha256": "9e8bfd104929d41366e15ab03fe43f530363ef8f3230bbe534637938bede0af2",
+      "sha256": "6622fcd169c41df8c390cbf2869fdbe0a5c3ffe2a2fef81d4a3c52d1ab9ec472",
       "ranges": [
         [
           1,
           1323
         ]
       ],
-      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified."
+      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes."
     },
     "phone-accounting.html": {
       "sha256": "d5c3ac6cc9204e0bd717db4688feccf34785d102d79cf891e6338f9da088b1ad",
@@ -10460,7 +10460,7 @@
           1
         ]
       ],
-      "note": "Complete minified source read in contiguous character ranges 0\u2013135550, including embedded worker implementation: deflate/inflate, CRC, SHA1/HMAC/PBKDF2/AES, ZipCrypto, streams, readers/writers, ZIP64 metadata, worker pool and exports. App uses BlobReader/BlobWriter with AES-256 and workers disabled. Browser AES download vectors independently authenticated/decrypted with Node/OpenSSL and inflated with zlib. Math.random fallback exists when secure RNG absent; current browser app has crypto. Reader has no decompressed resource cap and signature checking is optional; app uses this library only for writing. Configurable compression levels 3\u20134 set bit 0 in header (encryption flag); application uses default compression. No vendor byte changes."
+      "note": "Complete minified source read in contiguous character ranges 0–135550, including embedded worker implementation: deflate/inflate, CRC, SHA1/HMAC/PBKDF2/AES, ZipCrypto, streams, readers/writers, ZIP64 metadata, worker pool and exports. App uses BlobReader/BlobWriter with AES-256 and workers disabled. Browser AES download vectors independently authenticated/decrypted with Node/OpenSSL and inflated with zlib. Math.random fallback exists when secure RNG absent; current browser app has crypto. Reader has no decompressed resource cap and signature checking is optional; app uses this library only for writing. Configurable compression levels 3–4 set bit 0 in header (encryption flag); application uses default compression. No vendor byte changes."
     },
     "assets/vendor/document14285/html2canvas.min.js": {
       "sha256": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
@@ -10470,7 +10470,7 @@
           20
         ]
       ],
-      "note": "Complete minified implementation read in contiguous character ranges 0\u2013197782: bundled Unicode line/grapheme tries, CSS tokenizer/parser, color/gradient/layout handling, counters, DOM cloning, image cache/proxy, stacking contexts and canvas/foreignObject renderers. Unsupported modern color functions can reject; error paths after cloning do not destroy the hidden iframe. Reproduced and fixed caller cleanup in document-downloads14311.js; test-pdf-cleanup14373.cjs verifies actual failure then successful retry. Other upstream limitations: intermediate gradient stops omit preceding offset, text-transform expansion may mismatch source Range offsets, counter/cache maps use ordinary objects; no vendor modification."
+      "note": "Complete minified implementation read in contiguous character ranges 0–197782: bundled Unicode line/grapheme tries, CSS tokenizer/parser, color/gradient/layout handling, counters, DOM cloning, image cache/proxy, stacking contexts and canvas/foreignObject renderers. Unsupported modern color functions can reject; error paths after cloning do not destroy the hidden iframe. Reproduced and fixed caller cleanup in document-downloads14311.js; test-pdf-cleanup14373.cjs verifies actual failure then successful retry. Other upstream limitations: intermediate gradient stops omit preceding offset, text-transform expansion may mismatch source Range offsets, counter/cache maps use ordinary objects; no vendor modification."
     },
     "validation/test-encrypted-download14372.cjs": {
       "sha256": "ded9092f454c7df8253259940788e99a4af877652036661267073c7ac962c0c9",
@@ -12582,14 +12582,14 @@
       ]
     },
     "scripts/offline14239.js": {
-      "sha256": "ca5c60bd466a847b965578ec637687ae681930150d25be25497548aeba97a2dd",
+      "sha256": "3fc3101d6d7973633236444faee3f804f3f21f4f122976e1ac197ea9b4cd9ec9",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/sync/offline14239.js"
       ]
     },
     "scripts/optional-tools14335.js": {
-      "sha256": "aaa18dd91dfd8db02f5432b480155d2b5104e21050c7f3e6cd554c24697a8d1f",
+      "sha256": "e3d540531884543e3a0f61f8cce3733460b3adf293e719bb2c914ae112349cac",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/startup/optional-tools14335.js"
@@ -13276,7 +13276,7 @@
       ]
     },
     "scripts/document-import-v1422.js": {
-      "sha256": "0c45b0e6442a1c182a5b1465a478e24361de6ca061d5ca833e3a1bbbb483fc6a",
+      "sha256": "711beedd9438fc41cb12bd2df5780a5c982a1887bd974db4dd355a4f5de8d9f6",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/documents/import-export/document-import-v1422-standalone.js"
@@ -13610,7 +13610,7 @@
       "method": "Parsed JSON recursively, OOXML XML/CRC/macros/external relationships, or decoded image with contact-sheet inspection. Historical evidence is not current acceptance; failure flags retained."
     },
     "assets/maintenance/release14324.json": {
-      "sha256": "aee65a7107edd48b680ea68ff9a9c00308ab4c4cc71dcc4ae5ec31956ec36e03",
+      "sha256": "775da7f8991b6b58f7bbe920193b3b045cb857c527d7d28d5cd109636ade0804",
       "method": "Parsed complete JSON. Release/correction hashes verified against current reviewed files; database evidence contains read-only aggregate visibility fingerprints."
     },
     "assets/maintenance/report-template14326.xlsx": {
@@ -13905,7 +13905,7 @@
       "method": "Parsed JSON recursively, OOXML XML/CRC/macros/external relationships, or decoded image with contact-sheet inspection. Historical evidence is not current acceptance; failure flags retained."
     },
     "validation/phase0-corrections.json": {
-      "sha256": "89650249db1cd46421e88b9658a7ac0b70224e1f57d2a39917ef56de19512e5e",
+      "sha256": "236795e53e048ccdd979428171d67186404776b94dda9bcb960defdc433e23f1",
       "method": "Parsed complete JSON. Release/correction hashes verified against current reviewed files; database evidence contains read-only aggregate visibility fingerprints."
     },
     "validation/phase0-navigation-fixes-results.json": {
@@ -14504,22 +14504,22 @@
     "assets/vendor/supabase.js": {
       "sha256": "59d39487c3589843b410322d8a3d562ce022aba1e5ccb16898ef3fb2a0da2ecd",
       "bytes": 217945,
-      "method": "Dependency boundary, version/header, usage, licensing and integration review. NOT a manual line-by-line review of the bundled upstream implementation."
+      "method": "Complete contiguous character review 0–217939, all 11 lines. PostgREST request cloning/retries/status/errors/filters; realtime framing/presence/transports/reconnect; storage paths/download/upload; auth JWT, PKCE, session persistence/refresh/sign-out/notifications/MFA/passkeys; client integration. Application callsites checked: no realtime channel subscriptions or admin pagination; in() values are fixed identifiers/UUIDs, upload is Blob without raw Unicode metadata. Optional limitations: realtime numeric coercion, reconnect listener accumulation, admin pagination one-digit link parsing, raw-body Unicode metadata btoa, PKCE no-crypto fallback; no confirmed new app-path repair."
     },
     "assets/vendor/chart.js": {
       "sha256": "48444a82d4edcb5bec0f1965faacdde18d9c17db3063d042abada2f705c9f54a",
       "bytes": 208522,
-      "method": "Complete minified implementation read in contiguous character ranges 0\u2013208522: helpers/resolvers, animation, interactions, layout/platform, dataset controllers, scales/ticks, elements, decimation, filler, legend/title/tooltip, registration. Current canonical application and entrypoints contain no chart.js, new Chart or window.Chart use. Upstream edge cases include ordinary-object option/cache key collisions, custom time adapter progress assumptions, invalid numeric tick configuration, and tooltip animation target assuming both x/y animations. No application-path repair or vendor modification warranted."
+      "method": "Complete minified implementation read in contiguous character ranges 0–208522: helpers/resolvers, animation, interactions, layout/platform, dataset controllers, scales/ticks, elements, decimation, filler, legend/title/tooltip, registration. Current canonical application and entrypoints contain no chart.js, new Chart or window.Chart use. Upstream edge cases include ordinary-object option/cache key collisions, custom time adapter progress assumptions, invalid numeric tick configuration, and tooltip animation target assuming both x/y animations. No application-path repair or vendor modification warranted."
     },
     "assets/vendor/document14285/zip-full.min.js": {
       "sha256": "10dcef7159de1be9399f8889edd73c17ca841560b33a61dccae4808af462446c",
       "bytes": 135801,
-      "method": "Complete minified source read in contiguous character ranges 0\u2013135550, including embedded worker implementation: deflate/inflate, CRC, SHA1/HMAC/PBKDF2/AES, ZipCrypto, streams, readers/writers, ZIP64 metadata, worker pool and exports. App uses BlobReader/BlobWriter with AES-256 and workers disabled. Browser AES download vectors independently authenticated/decrypted with Node/OpenSSL and inflated with zlib. Math.random fallback exists when secure RNG absent; current browser app has crypto. Reader has no decompressed resource cap and signature checking is optional; app uses this library only for writing. Configurable compression levels 3\u20134 set bit 0 in header (encryption flag); application uses default compression. No vendor byte changes."
+      "method": "Complete minified source read in contiguous character ranges 0–135550, including embedded worker implementation: deflate/inflate, CRC, SHA1/HMAC/PBKDF2/AES, ZipCrypto, streams, readers/writers, ZIP64 metadata, worker pool and exports. App uses BlobReader/BlobWriter with AES-256 and workers disabled. Browser AES download vectors independently authenticated/decrypted with Node/OpenSSL and inflated with zlib. Math.random fallback exists when secure RNG absent; current browser app has crypto. Reader has no decompressed resource cap and signature checking is optional; app uses this library only for writing. Configurable compression levels 3–4 set bit 0 in header (encryption flag); application uses default compression. No vendor byte changes."
     },
     "assets/vendor/document14285/pdf.worker.min.mjs": {
       "sha256": "145d2dd3ab0c86151011dba95acfa2d5336e2accd59388ea43dbee0efddaaec6",
       "bytes": 1321307,
-      "method": "Dependency boundary, version/header, usage, licensing and integration review. NOT a manual line-by-line review of the bundled upstream implementation."
+      "method": "Complete executable-source review through EOF (1,321,098 Unicode characters / 27 lines). Static Brotli dictionary literals structurally scanned and decoder tested with 20 independent native fixtures; 4,529 glyph entries checked (4,201 Adobe matches); all 16,344 entries in 24 numeric font tables validated. Reviewed streams/parser/decompression, fonts, CMaps, graphics, functions, text, XFA, annotations, crypto, xref, document/editor and worker messaging. Non-advancing mesh/CFF/PostScript cases contained by native-worker deadline; real PostScript fixture tested. Silent failed image/operator stream paths rejected by caller. All ten PDF import failure/recovery scenarios pass. Optional XFA/editor defects and partial AES-block buffering noted; those APIs/chunk patterns are not used by the importer. See final audit report."
     },
     "assets/vendor/document14285/marked.umd.js": {
       "sha256": "f424dcb508fdf93e0137a970cfce8f3207ea2e3f37eca5f7556a52875683632a",
@@ -14534,17 +14534,17 @@
     "assets/vendor/document14285/html2canvas.min.js": {
       "sha256": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
       "bytes": 198689,
-      "method": "Complete minified implementation read in contiguous character ranges 0\u2013197782: bundled Unicode line/grapheme tries, CSS tokenizer/parser, color/gradient/layout handling, counters, DOM cloning, image cache/proxy, stacking contexts and canvas/foreignObject renderers. Unsupported modern color functions can reject; error paths after cloning do not destroy the hidden iframe. Reproduced and fixed caller cleanup in document-downloads14311.js; test-pdf-cleanup14373.cjs verifies actual failure then successful retry. Other upstream limitations: intermediate gradient stops omit preceding offset, text-transform expansion may mismatch source Range offsets, counter/cache maps use ordinary objects; no vendor modification."
+      "method": "Complete minified implementation read in contiguous character ranges 0–197782: bundled Unicode line/grapheme tries, CSS tokenizer/parser, color/gradient/layout handling, counters, DOM cloning, image cache/proxy, stacking contexts and canvas/foreignObject renderers. Unsupported modern color functions can reject; error paths after cloning do not destroy the hidden iframe. Reproduced and fixed caller cleanup in document-downloads14311.js; test-pdf-cleanup14373.cjs verifies actual failure then successful retry. Other upstream limitations: intermediate gradient stops omit preceding offset, text-transform expansion may mismatch source Range offsets, counter/cache maps use ordinary objects; no vendor modification."
     },
     "assets/vendor/document14285/jspdf.umd.min.js": {
       "sha256": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54",
       "bytes": 420165,
-      "method": "Dependency boundary, version/header, usage, licensing and integration review. NOT a manual line-by-line review of the bundled upstream implementation."
+      "method": "Complete contiguous character review 0–420088 (all 373 lines). PDF core, fonts/TTF/subsetting, bidi tables, forms, image decoders, compression, metadata and output examined. Application uses canvas-generated PNGs with per-page aliases; real image-hash collision regression fixed and tested in v143.74. Optional BMP low-bit/padding, TTF cyclic composite recursion, bidi isolates and legacy encryption limitations are outside the application raster export path; no vendor replacement performed."
     },
     "assets/vendor/document14285/pdf.min.mjs": {
       "sha256": "bccc24ea711db8e44503629519904a5292d73b9daaa214bbe7cdcc282b0f4259",
       "bytes": 523774,
-      "method": "Dependency boundary, version/header, usage, licensing and integration review. NOT a manual line-by-line review of the bundled upstream implementation."
+      "method": "Complete contiguous source review through EOF, including polyfills, worker transport, canvas rendering, fonts, network, text/annotation layers, drawing/editors and signature extraction. App uses local-byte text extraction and canvas rendering only, not scripting/XFA/editor APIs. Confirmed caller loading-task rejection and async password-prompt cleanup gaps to repair and regression-test. Optional editor issues (radio string-value inversion, unchecked signature allocation metadata, async stamp rejection handling) do not affect app import path. Loading-task and async prompt cleanup repaired in v143.75; ten real-worker failure/recovery regressions pass."
     }
   },
   "private_evidence": {
@@ -14576,16 +14576,5 @@
       "method": "Production metadata reviewed and retained in the private audit evidence archive; excluded from public Git history."
     }
   },
-  "partial_review": {
-    "assets/vendor/document14285/jspdf.umd.min.js": {
-      "sha256": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54",
-      "character_ranges": [
-        [
-          0,
-          153000
-        ]
-      ],
-      "note": "Not complete. Read licensing, MD5/RC4, PDF core serialization/output, AcroForm, addImage, annotations, Arabic, table and beginning context2d. Confirmed default image hash collision substitution; fixed application via unique page aliases. Optional APIs show permission check typo F.perm, global AcroForm scale/context2d state, unchecked table headers. Application only packs rendered PNG pages."
-    }
-  }
+  "partial_review": {}
 }
