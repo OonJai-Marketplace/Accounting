@@ -32,6 +32,7 @@ function layout(){
  }
  if(panel.id==='sub-users-home14229'||panel.id==='sub-users-workspace'){const users=panel.querySelector(':scope>.team-tabs14230');sharedTabs.hidden=true;if(users){place(panel,users,null);place(panel,banner,users)}next=next.filter(n=>n!==sharedTabs)}
  for(const row of rows)if(!next.includes(row)){row.classList.remove('sticky-tabs14344');row.style.removeProperty('--tab-top14344')}
+ window.groupedNavigation14378?.render(panel.id);
  syncSectionMenus(panel);
  rows=next.filter(row=>!row.classList.contains('section-menu-source14355'));for(const row of rows){if(!row.classList.contains('sticky-tabs14344'))row.classList.add('sticky-tabs14344');if(!observed.has(row)){sizes.observe(row);observed.add(row)}}
  for(const row of observed)if(!row.isConnected){sizes.unobserve(row);observed.delete(row)}
@@ -54,7 +55,7 @@ const sectionRows14355=':scope>.workflow-switch14316,:scope>.workspace-tabs14337
 let sectionMenu14355=null,sectionTrigger14355=null,pendingSection14355='';
 const tabKey14355=b=>b?.dataset.teamUser14230||b?.dataset.target||b?.dataset.settingsGroup14332||b?.getAttribute('onclick')||'';
 const mainTab14355=()=>document.querySelector('.tab-content.active .team-tabs14230 [aria-current="page"][data-team-user14230]')||document.querySelector('#categoryTabs .category-tab.active,#categoryTabs [aria-selected="true"]');
-function sectionRowsFor14355(panel){return [...panel.querySelectorAll(sectionRows14355)].filter(row=>!row.hidden)}
+function sectionRowsFor14355(panel){if(window.groupedNavigation14378?.owns(panel))return [];return [...panel.querySelectorAll(sectionRows14355)].filter(row=>!row.hidden)}
 function sectionChoices14355(panel){return sectionRowsFor14355(panel).flatMap(row=>[...row.querySelectorAll('button')]).filter(b=>!b.hidden&&!b.closest('[hidden]')&&getComputedStyle(b).display!=='none')}
 function closeSectionMenu14355(focus=false){const trigger=sectionTrigger14355;sectionMenu14355?.remove();sectionMenu14355=null;sectionTrigger14355=null;trigger?.setAttribute('aria-expanded','false');if(focus&&trigger?.isConnected)trigger.focus()}
 function showSectionMenu14355(trigger,panel){

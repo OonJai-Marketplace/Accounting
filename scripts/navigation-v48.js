@@ -56,6 +56,7 @@
     const shell = document.getElementById('categoryTabShell');
     const host = document.getElementById('categoryTabs');
     if (!shell || !host) return;
+    if(window.groupedNavigation14378?.render(target))return;
     if(window.settingsGroups14332?.render(target))return;
     delete host.dataset.settingsRender14335;
     const category = categoryForTarget(target);

@@ -8,3 +8,19 @@
 
 #settingsSections14335{flex:none;margin:0;background:var(--bg-workspace,#f5f9f5)}
 #settingsSections14335[hidden]{display:none!important}
+
+@media(min-width:641px){
+.grouped-nav14378>.nav-links{display:none!important}
+.grouped-nav14378>.grouped-children14378{display:none;padding:4px 8px 8px 24px}
+.grouped-nav14378.groups-open14378>.grouped-children14378{display:grid;gap:3px}
+.grouped-children14378>button{display:flex;align-items:center;gap:10px;text-align:left;border:0;border-radius:6px;padding:9px 10px;background:transparent;color:inherit;font:inherit;font-size:13px;cursor:pointer}
+.grouped-children14378>button.active{background:rgba(16,185,129,.2);color:#fff}
+.grouped-children14378>button:hover{background:rgba(16,185,129,.12)}
+.grouped-children14378>button>span:first-child{width:16px;text-align:center}
+.grouped-source14378{display:none!important}
+}
+
+@media(min-width:641px){
+.grouped-nav14378>.nav-header::after{content:'▸';margin-left:auto;font-size:12px}
+.grouped-nav14378.groups-open14378>.nav-header::after{content:'▾'}
+}
