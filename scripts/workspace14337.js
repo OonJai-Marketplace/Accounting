@@ -27,7 +27,7 @@ async function summary(){
 function tabletHeader(){
 
  const main=document.querySelector('.main-content-area'),menu=$('mobileMenuToggle');if(!main||!menu)return;
- let header=$('tabletHeader14353');if(!header){header=document.createElement('header');header.id='tabletHeader14353';header.className='no-print';header.innerHTML='<div class="tablet-navigation14353"><nav aria-label="Main workspaces"></nav></div>';main.prepend(header);header.querySelector('nav').onclick=e=>{const button=e.target.closest('[data-tablet-target]');if(button)$(button.dataset.tabletTarget)?.querySelector('.nav-header')?.click();};}
+ let header=$('tabletHeader14353');if(!header){header=document.createElement('header');header.id='tabletHeader14353';header.className='no-print';header.innerHTML='<div class="tablet-navigation14353"><nav aria-label="Main workspaces"></nav></div>';main.prepend(header);header.querySelector('nav').onclick=e=>{const button=e.target.closest('[data-tablet-target]');if(button){const module=button.dataset.tabletTarget.replace('nav-module-','');if(['transactions','settings'].includes(module)&&window.groupedNavigation14378)groupedNavigation14378.openMenu(module,button);else $(button.dataset.tabletTarget)?.querySelector('.nav-header')?.click();}};}
  const bar=header.querySelector('.tablet-navigation14353');if(menu.parentElement!==bar)bar.prepend(menu);
  const categories=[...document.querySelectorAll('#appSidebar .nav-category')].filter(n=>!n.hidden&&getComputedStyle(n).display!=='none');
  const label=node=>{const copy=node.cloneNode(true);copy.querySelectorAll('.nav-icon113,.nav-icon100,.arrow,.nav-count14311').forEach(n=>n.remove());return copy.textContent.trim();};

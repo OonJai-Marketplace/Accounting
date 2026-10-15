@@ -8,7 +8,7 @@
   // Some report generators use a TD header rather than a THEAD.
   if(!money.size&&rows[0])for(const cell of rows[0].cells){if(moneyHeading(cell.textContent)){const [start,span]=positions.get(cell);for(let c=start;c<start+span;c++)money.add(c);}}
   // Totals and nested/multi-row headings retain their merged cells.
-  for(const [cell,[start,span]] of positions){const enabled=span===1&&money.has(start);if(cell.hasAttribute('data-money1439')!==enabled){if(enabled)cell.setAttribute('data-money1439','');else cell.removeAttribute('data-money1439');}if(enabled){for(const [key,value] of [['width','180px'],['min-width','180px'],['max-width','none']])if(cell.style.getPropertyValue(key)!==value)cell.style.setProperty(key,value,'important');}}
+  for(const [cell,[start,span]] of positions){const enabled=span===1&&money.has(start);if(cell.hasAttribute('data-money1439')!==enabled){if(enabled)cell.setAttribute('data-money1439','');else cell.removeAttribute('data-money1439');}if(enabled){for(const [key,value] of [['width',table.classList.contains('journal-no-actions14388')?'120px':'180px'],['min-width',table.classList.contains('journal-no-actions14388')?'120px':'180px'],['max-width','none']])if(cell.style.getPropertyValue(key)!==value)cell.style.setProperty(key,value,'important');}}
   if(money.size){table.classList.add('money-table1439');table.style.setProperty('--money-min1439',(money.size*180+(columns-money.size)*90)+'px');}
  }
  function collect(root,tables){if(root.nodeType===1){const parent=root.closest('table');if(parent)tables.add(parent);}root.querySelectorAll?.('table').forEach(t=>tables.add(t));}

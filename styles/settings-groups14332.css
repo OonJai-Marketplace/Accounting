@@ -24,3 +24,20 @@
 .grouped-nav14378>.nav-header::after{content:'▸';margin-left:auto;font-size:12px}
 .grouped-nav14378.groups-open14378>.nav-header::after{content:'▾'}
 }
+
+/* Compact rails use a labelled section menu; full drawers retain readable children. */
+@layer corrections14337 {@media screen and (min-width:641px){
+html.tablet-landscape14337 body #appSidebar:not(.mobile-open) .grouped-children14378,
+html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar:not(.mobile-open) .grouped-children14378{display:none!important}
+html.tablet-landscape14337 body #appSidebar:not(.mobile-open) .grouped-nav14378>.nav-header::after,
+html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar:not(.mobile-open) .grouped-nav14378>.nav-header::after{display:none!important}
+html[data-device132=tablet] body #appSidebar.mobile-open .grouped-children14378{padding:4px 0 4px 12px!important}
+html[data-device132=tablet] body #appSidebar.mobile-open .grouped-children14378>button{min-height:44px!important;width:100%!important;gap:10px!important;font-size:14px!important}
+html[data-device132=tablet] body #appSidebar.mobile-open .grouped-nav14378>.nav-links{display:none!important}
+}}
+.group-menu14388{position:fixed;z-index:17000;display:flex;flex-direction:column;gap:3px;min-width:210px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;padding:8px;border:1px solid #91ad9b;border-radius:8px;background:var(--bg-card,#fffaf2);color:var(--text-main,#173c2d);box-shadow:0 8px 26px #0003;box-sizing:border-box}
+.group-menu14388>strong{padding:7px 10px;font-size:13px}
+.group-menu14388>button{display:flex;align-items:center;gap:12px;min-height:44px;padding:8px 12px;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;font-size:14px;text-align:left;cursor:pointer}
+.group-menu14388>button>span:first-child{width:20px;text-align:center}
+.group-menu14388>button:is(:hover,:focus-visible){background:#e8eee2;color:#17543e;outline:2px solid #b68b43;outline-offset:-2px}
+@media print{.group-menu14388{display:none!important}}
