@@ -2026,7 +2026,7 @@ function renderTemplateManager(){
   const templates=[...(window.JournalFX14383?.templates()||[]),...TemplateStore.templates];
   host.innerHTML = templates.length ? templates.map(t=>`
     <div class="template-item">
-      <div><strong>${escapeHtml(t.name)}</strong><div class="je-subtitle">${t.builtin?'Enter currency, amount and rates to prepare balanced lines':t.lines.length+' saved lines • amounts always load as zero'}</div></div>
+      <div><strong>${escapeHtml(t.name)}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">
         <button class="je-btn je-btn-emerald" onclick="applyTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Use</button>
         ${t.builtin?'':`<button class="je-btn je-btn-secondary" onclick="editTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Edit</button>
@@ -2035,15 +2035,23 @@ function renderTemplateManager(){
     </div>`).join('') : '<div class="empty-archive-state">No templates saved.</div>';
 }
 function applyTransactionTemplate(id){
-  if(String(id).startsWith('fx14383-'))return window.JournalFX14383.openTemplate(id.endsWith('income')?'income':'expense');
-  const t=TemplateStore.templates.find(x=>x.id===id); if(!t)return;
+  const t=[...(window.JournalFX14383?.templates()||[]),...TemplateStore.templates].find(x=>x.id===id); if(!t)return;
+  let lines=t.lines;
+  if(t.builtin){
+    lines=t.lines.map(line=>{const a=AccountingStore.accounts.find(a=>a.code===line.code&&a.currency===line.currency&&a.isPosting!==false&&a.active!==false);return {...line,account:a?a.code+' — '+a.name:'',resolved:a}});
+    const missing=lines.filter(l=>!l.resolved);
+    if(missing.length){showAppNotification('Template Accounts Missing','Check these posting accounts: '+missing.map(l=>l.code+' ('+l.currency+')').join(', '),true);return;}
+    if(window.personalJournal1437?.active&&lines.some(l=>!personalJournal1437.allowed(l.resolved))){showAppNotification('Template Accounts Not Assigned','This template includes accounts outside this user’s assignments. Use the main journal or update the user’s allowed accounts.',true);return;}
+  }
   resetJournalLinesForm();window.JournalFX14383?.restore({});
+  if(t.builtin)window.entry1430?.restore('double',[]);
   const body=document.getElementById('jeLinesBody'); body.innerHTML='';
   document.getElementById('jeGeneralMemo').value=t.generalMemo || '';
-  t.lines.forEach(line=>addJournalLineRow(line.account,line.memo,'',{}));
+  lines.forEach(line=>addJournalLineRow(line.account,line.memo,'',{}));
   while(body.querySelectorAll('tr').length<2)addJournalLineRow();
   setTransactionDateToToday(true); updateNextEntryIdDisplay(); calculateJournalBalance();
   closeModal('modalTemplateManager');
+  window.JournalFX14383?.restore({});showJournalEntry98();window.dispatchEvent(new Event('save-state14234'));
 }
 function editTransactionTemplate(id){
   const t=TemplateStore.templates.find(x=>x.id===id); if(!t)return;

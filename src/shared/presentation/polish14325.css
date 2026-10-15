@@ -80,3 +80,11 @@ html body #payroll-employees .row-menu-panel99 .hr-row-actions14306{display:flex
  html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-fx14383>.journal-rates14383{grid-column:3!important;grid-row:1!important}
  html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-fx14383>.voucher-pick14299{grid-column:4!important;grid-row:1!important}
 }}
+
+/* Pager controls share one bottom-right alignment in both journal workspaces. */
+@layer action-finalization14317 {@media screen and (min-width:641px){
+ html body :is(.table-pages14383,.transaction-pages14340),html body #personalWorkspace1437 .personal-history1437>footer.table-pages14383{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:10px!important;padding:8px 12px!important;margin:10px 0!important;width:100%!important;box-sizing:border-box!important;clear:both}
+ html body :is(.table-pages14383,.transaction-pages14340)>button{margin:0!important;flex:0 0 auto!important;white-space:nowrap!important}
+ html body :is(.table-pages14383,.transaction-pages14340)>span{font-size:12px!important;white-space:nowrap!important;color:#475569!important}
+ html body :is(.table-pages14383,.transaction-pages14340)[hidden]{display:none!important}
+}}
