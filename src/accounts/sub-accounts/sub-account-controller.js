@@ -70,6 +70,7 @@ function openAddSubAccountModal() {
   document.getElementById('subAccountOrigCode').value = '';
   document.getElementById('formSubAccount').reset();
   syncSubAccountCurrencyDropdown();
+  showSubAccountType14380();
   openModal('modalSubAccount');
   document.getElementById('subCode').focus();
 }
@@ -85,6 +86,7 @@ function openEditSubAccountModal(code) {
   document.getElementById('subName').value = sub.name;
   document.getElementById('subDesc').value = sub.desc || '';
   syncSubAccountCurrencyDropdown(sub.currency || AccountingStore.accounts.find(a => a.code === sub.parentCode)?.currency || '');
+  showSubAccountType14380();
   openModal('modalSubAccount');
 }
 
@@ -134,3 +136,10 @@ function promptDeleteSubAccount(code) {
     renderSubAccountsTable();
   };
 }
+
+function showSubAccountType14380(){
+ const select=document.getElementById('subParentCode');if(!select)return;
+ let box=document.getElementById('subInheritedType14380');if(!box){box=document.createElement('div');box.className='settings-field';box.innerHTML='<label for="subInheritedType14380">Account type — inherited from parent</label><input id="subInheritedType14380" class="je-input" readonly>';select.closest('.settings-field,.form-group,.je-field-group').after(box);box=box.querySelector('input');}
+ const parent=AccountingStore.accounts.find(a=>a.code===select.value);box.value=parent?(window.AccountGroups14253?.type(parent)||parent.type):'Choose a parent account';
+}
+document.addEventListener('change',e=>{if(e.target.id==='subParentCode')showSubAccountType14380()});

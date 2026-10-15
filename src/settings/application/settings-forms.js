@@ -33,7 +33,7 @@ function saveSettingsGroup(event) {
   const badge = document.querySelector(`[data-settings-badge="${group}"]`);
   if (badge) { badge.textContent = 'Saved'; badge.classList.add('is-saved'); }
   showAppNotification('Settings Saved', `${group[0].toUpperCase()}${group.slice(1)} settings were saved.`, false);
-  if(group==='system'){refreshAllTables();startSessionTimeoutManager();}
+  if(group==='system'){window.fontSize14380?.apply();refreshAllTables();startSessionTimeoutManager();}
   if(group==='accounting'){syncEntrySequence();updateNextEntryIdDisplay();updateAccountingIdPreviews();saveAccountingIdSettingsToDatabase();}
   return true;
 }
@@ -46,7 +46,7 @@ function resetSettingsGroup(group) {
   setSettingsFormValues(group);
   const badge = document.querySelector(`[data-settings-badge="${group}"]`);
   if (badge) { badge.textContent = 'Default'; badge.classList.add('is-saved'); }
-  if(group==='system'){refreshAllTables();startSessionTimeoutManager();}
+  if(group==='system'){window.fontSize14380?.apply();refreshAllTables();startSessionTimeoutManager();}
   showAppNotification('Settings Reset', `${group[0].toUpperCase()}${group.slice(1)} settings were restored to defaults.`, false);
 }
 

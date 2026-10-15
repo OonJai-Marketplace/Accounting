@@ -1,7 +1,10 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.79',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.80',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
+ "scripts/editor-protection14380.js?v=143.80",
+ "scripts/font-size14380.js?v=143.80",
+ "styles/font-size14380.css?v=143.80",
  "docs/UPDATE-v143.21.md",
  "scripts/hr-calendar14306.js?v=143.70",
  "scripts/desktop14245-1.js?v=143.62",
@@ -14,12 +17,12 @@ const FILES=[
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.70",
- "scripts/desktop14245-3.js?v=143.78",
+ "scripts/desktop14245-3.js?v=143.80",
  "scripts/desktop14245-4.js?v=143.78",
  "scripts/desktop14245-5.js?v=143.70",
  "scripts/desktop14245-6.js?v=143.78",
  "scripts/local-events14310.js?v=143.70",
- "scripts/offline14239.js?v=143.79",
+ "scripts/offline14239.js?v=143.80",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -199,7 +202,7 @@ const FILES=[
  "styles/feedback-viewport14295.css?v=142.95",
  "scripts/desktop-corrections-v80.js?v=143.70",
  "scripts/payroll-polish-v97.js?v=143.70",
- "scripts/script.js?v=143.78",
+ "scripts/script.js?v=143.80",
  "scripts/transactions-v67.js?v=143.70",
  "scripts/workflows-v136.js?v=143.70",
  "scripts/workspace-consistency14343.js?v=143.78",

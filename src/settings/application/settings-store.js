@@ -5,7 +5,7 @@ const APP_SETTINGS_DEFAULTS = Object.freeze({
   payroll: { payFrequency:'monthly', payCurrency:'LAK', payCurrencyLAK:true, payCurrencyUSD:true, payCurrencyTHB:true, weeklyHours:'40', workDaysMonth:'26', hoursPerDay:'8', payrollCutoff:'25', paymentDay:'30', overtimeRate:'1.5', lateGraceMinutes:'5', employeeSsoRate:'5.5', employerSsoRate:'6', pitSharing:'equal' },
   tax: { pit1From:'0', pit1To:'2500000', pit1Rate:'0', pit2From:'2500000', pit2To:'5000000', pit2Rate:'5', pit3From:'5000000', pit3To:'15000000', pit3Rate:'10', pit4From:'15000000', pit4To:'25000000', pit4Rate:'15', pit5From:'25000000', pit5To:'65000000', pit5Rate:'20', pit6From:'65000000', pit6To:'', pit6Rate:'25', ssoEmployeeRate:'5.5', ssoEmployerRate:'6', ssoMaxBase:'', vatRate:'10', filingPeriod:'monthly', pitDeadline:'20', ssoDeadline:'20', vatDeadline:'20', vatAccount:'VAT Payable', pitAccount:'PIT Payable', ssoAccount:'SSO Payable', pitReminderDays:'5', ssoReminderDays:'5', vatReminderDays:'5' },
   printing: { paperSize:'A4', orientation:'portrait', marginSize:'normal', headerPlacement:'first', footerPlacement:'last', pageNumberFormat:'page-total', fileNamePattern:'report-date', showBusinessName:true, showPageNumbers:true },
-  system: { dateFormat:'DD/MM/YYYY', numberFormat:'1,234.56', defaultLandingPage:'dashboard', archiveFrequency:'annual' }
+  system: { fontSize:'small', dateFormat:'DD/MM/YYYY', numberFormat:'1,234.56', defaultLandingPage:'dashboard', archiveFrequency:'annual' }
 });
 
 function cloneDefaultSettings() {

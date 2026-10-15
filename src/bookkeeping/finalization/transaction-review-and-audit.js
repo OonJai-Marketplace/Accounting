@@ -4,18 +4,19 @@ function canVoidTransactions(){return liveProfile?.role==='admin'||Boolean(liveP
 function isAdjustedTransaction(lines){return (lines||[]).some(row=>row.adjusted===true||/^\s*adjustment\b/i.test(String(row.memo||'')));}
 // Bound the DOM by line count, but never divide a double-entry transaction across pages.
 function transactionPage14340(tbody,groups,ids){
-  const pages=[[]];let lines=0;
-  ids.forEach(id=>{const count=groups[id].length;if(lines&&lines+count>50){pages.push([]);lines=0}pages[pages.length-1].push(id);lines+=count});
+  const limit=tbody.id==='tblJournalHistoryBody'?100:50;const pages=[[]];let lines=0;
+  ids.forEach(id=>{const count=groups[id].length;if(lines&&lines+count>limit){pages.push([]);lines=0}pages[pages.length-1].push(id);lines+=count});
   const table=tbody.closest('table'),container=table?.closest('.table-container');
   if(!container)return ids;
-  let bar=container.previousElementSibling;
-  if(!bar?.classList.contains('transaction-pages14340')){bar=document.createElement('div');bar.className='transaction-pages14340 module-actions71 no-print';container.before(bar)}
+  const header=tbody.id==='tblJournalHistoryBody'?container.closest('.je-card')?.querySelector('.je-card-header'):null;
+  let bar=header?.querySelector('.transaction-pages14340')||container.previousElementSibling;
+  if(!bar?.classList.contains('transaction-pages14340')){bar=document.createElement('div');bar.className='transaction-pages14340 module-actions71 no-print';(header?header.append(bar):container.before(bar))}
   if(typeof isPrintMode!=='undefined'&&isPrintMode){bar.hidden=true;return ids}
   const max=pages.length,selected=Math.min(Number(tbody.dataset.page14340)||0,max-1);tbody.dataset.page14340=String(selected);
   bar.hidden=max===1;bar.replaceChildren();if(max===1)return pages[0];
   const previous=document.createElement('button'),next=document.createElement('button'),label=document.createElement('span');
   previous.type=next.type='button';previous.className=next.className='je-btn je-btn-secondary';previous.textContent='Previous';next.textContent='Next';previous.disabled=selected===0;next.disabled=selected===max-1;
-  label.textContent=`Page ${selected+1} of ${max} · ${pages[selected].reduce((total,id)=>total+groups[id].length,0)} lines`;
+  label.textContent=tbody.id==='tblJournalHistoryBody'?`${selected+1} of ${max}`:`Page ${selected+1} of ${max} · ${pages[selected].reduce((total,id)=>total+groups[id].length,0)} lines`;
   const go=step=>{tbody.dataset.page14340=String(selected+step);renderTransactionReviewTable(tbody,Object.values(groups).flat(),'page14340:'+tbody.dataset.action14340)};
   previous.onclick=()=>go(-1);next.onclick=()=>go(1);bar.append(previous,label,next);
   return pages[selected];

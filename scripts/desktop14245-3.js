@@ -149,7 +149,7 @@ const APP_SETTINGS_DEFAULTS = Object.freeze({
   payroll: { payFrequency:'monthly', payCurrency:'LAK', payCurrencyLAK:true, payCurrencyUSD:true, payCurrencyTHB:true, weeklyHours:'40', workDaysMonth:'26', hoursPerDay:'8', payrollCutoff:'25', paymentDay:'30', overtimeRate:'1.5', lateGraceMinutes:'5', employeeSsoRate:'5.5', employerSsoRate:'6', pitSharing:'equal' },
   tax: { pit1From:'0', pit1To:'2500000', pit1Rate:'0', pit2From:'2500000', pit2To:'5000000', pit2Rate:'5', pit3From:'5000000', pit3To:'15000000', pit3Rate:'10', pit4From:'15000000', pit4To:'25000000', pit4Rate:'15', pit5From:'25000000', pit5To:'65000000', pit5Rate:'20', pit6From:'65000000', pit6To:'', pit6Rate:'25', ssoEmployeeRate:'5.5', ssoEmployerRate:'6', ssoMaxBase:'', vatRate:'10', filingPeriod:'monthly', pitDeadline:'20', ssoDeadline:'20', vatDeadline:'20', vatAccount:'VAT Payable', pitAccount:'PIT Payable', ssoAccount:'SSO Payable', pitReminderDays:'5', ssoReminderDays:'5', vatReminderDays:'5' },
   printing: { paperSize:'A4', orientation:'portrait', marginSize:'normal', headerPlacement:'first', footerPlacement:'last', pageNumberFormat:'page-total', fileNamePattern:'report-date', showBusinessName:true, showPageNumbers:true },
-  system: { dateFormat:'DD/MM/YYYY', numberFormat:'1,234.56', defaultLandingPage:'dashboard', archiveFrequency:'annual' }
+  system: { fontSize:'small', dateFormat:'DD/MM/YYYY', numberFormat:'1,234.56', defaultLandingPage:'dashboard', archiveFrequency:'annual' }
 });
 
 function cloneDefaultSettings() {
@@ -244,7 +244,7 @@ function saveSettingsGroup(event) {
   const badge = document.querySelector(`[data-settings-badge="${group}"]`);
   if (badge) { badge.textContent = 'Saved'; badge.classList.add('is-saved'); }
   showAppNotification('Settings Saved', `${group[0].toUpperCase()}${group.slice(1)} settings were saved.`, false);
-  if(group==='system'){refreshAllTables();startSessionTimeoutManager();}
+  if(group==='system'){window.fontSize14380?.apply();refreshAllTables();startSessionTimeoutManager();}
   if(group==='accounting'){syncEntrySequence();updateNextEntryIdDisplay();updateAccountingIdPreviews();saveAccountingIdSettingsToDatabase();}
   return true;
 }
@@ -257,7 +257,7 @@ function resetSettingsGroup(group) {
   setSettingsFormValues(group);
   const badge = document.querySelector(`[data-settings-badge="${group}"]`);
   if (badge) { badge.textContent = 'Default'; badge.classList.add('is-saved'); }
-  if(group==='system'){refreshAllTables();startSessionTimeoutManager();}
+  if(group==='system'){window.fontSize14380?.apply();refreshAllTables();startSessionTimeoutManager();}
   showAppNotification('Settings Reset', `${group[0].toUpperCase()}${group.slice(1)} settings were restored to defaults.`, false);
 }
 
@@ -863,6 +863,7 @@ function openAddSubAccountModal() {
   document.getElementById('subAccountOrigCode').value = '';
   document.getElementById('formSubAccount').reset();
   syncSubAccountCurrencyDropdown();
+  showSubAccountType14380();
   openModal('modalSubAccount');
   document.getElementById('subCode').focus();
 }
@@ -878,6 +879,7 @@ function openEditSubAccountModal(code) {
   document.getElementById('subName').value = sub.name;
   document.getElementById('subDesc').value = sub.desc || '';
   syncSubAccountCurrencyDropdown(sub.currency || AccountingStore.accounts.find(a => a.code === sub.parentCode)?.currency || '');
+  showSubAccountType14380();
   openModal('modalSubAccount');
 }
 
@@ -927,6 +929,13 @@ function promptDeleteSubAccount(code) {
     renderSubAccountsTable();
   };
 }
+
+function showSubAccountType14380(){
+ const select=document.getElementById('subParentCode');if(!select)return;
+ let box=document.getElementById('subInheritedType14380');if(!box){box=document.createElement('div');box.className='settings-field';box.innerHTML='<label for="subInheritedType14380">Account type — inherited from parent</label><input id="subInheritedType14380" class="je-input" readonly>';select.closest('.settings-field,.form-group,.je-field-group').after(box);box=box.querySelector('input');}
+ const parent=AccountingStore.accounts.find(a=>a.code===select.value);box.value=parent?(window.AccountGroups14253?.type(parent)||parent.type):'Choose a parent account';
+}
+document.addEventListener('change',e=>{if(e.target.id==='subParentCode')showSubAccountType14380()});
 // ==============================================================================
 
 
@@ -3155,18 +3164,19 @@ function canVoidTransactions(){return liveProfile?.role==='admin'||Boolean(liveP
 function isAdjustedTransaction(lines){return (lines||[]).some(row=>row.adjusted===true||/^\s*adjustment\b/i.test(String(row.memo||'')));}
 // Bound the DOM by line count, but never divide a double-entry transaction across pages.
 function transactionPage14340(tbody,groups,ids){
-  const pages=[[]];let lines=0;
-  ids.forEach(id=>{const count=groups[id].length;if(lines&&lines+count>50){pages.push([]);lines=0}pages[pages.length-1].push(id);lines+=count});
+  const limit=tbody.id==='tblJournalHistoryBody'?100:50;const pages=[[]];let lines=0;
+  ids.forEach(id=>{const count=groups[id].length;if(lines&&lines+count>limit){pages.push([]);lines=0}pages[pages.length-1].push(id);lines+=count});
   const table=tbody.closest('table'),container=table?.closest('.table-container');
   if(!container)return ids;
-  let bar=container.previousElementSibling;
-  if(!bar?.classList.contains('transaction-pages14340')){bar=document.createElement('div');bar.className='transaction-pages14340 module-actions71 no-print';container.before(bar)}
+  const header=tbody.id==='tblJournalHistoryBody'?container.closest('.je-card')?.querySelector('.je-card-header'):null;
+  let bar=header?.querySelector('.transaction-pages14340')||container.previousElementSibling;
+  if(!bar?.classList.contains('transaction-pages14340')){bar=document.createElement('div');bar.className='transaction-pages14340 module-actions71 no-print';(header?header.append(bar):container.before(bar))}
   if(typeof isPrintMode!=='undefined'&&isPrintMode){bar.hidden=true;return ids}
   const max=pages.length,selected=Math.min(Number(tbody.dataset.page14340)||0,max-1);tbody.dataset.page14340=String(selected);
   bar.hidden=max===1;bar.replaceChildren();if(max===1)return pages[0];
   const previous=document.createElement('button'),next=document.createElement('button'),label=document.createElement('span');
   previous.type=next.type='button';previous.className=next.className='je-btn je-btn-secondary';previous.textContent='Previous';next.textContent='Next';previous.disabled=selected===0;next.disabled=selected===max-1;
-  label.textContent=`Page ${selected+1} of ${max} · ${pages[selected].reduce((total,id)=>total+groups[id].length,0)} lines`;
+  label.textContent=tbody.id==='tblJournalHistoryBody'?`${selected+1} of ${max}`:`Page ${selected+1} of ${max} · ${pages[selected].reduce((total,id)=>total+groups[id].length,0)} lines`;
   const go=step=>{tbody.dataset.page14340=String(selected+step);renderTransactionReviewTable(tbody,Object.values(groups).flat(),'page14340:'+tbody.dataset.action14340)};
   previous.onclick=()=>go(-1);next.onclick=()=>go(1);bar.append(previous,label,next);
   return pages[selected];

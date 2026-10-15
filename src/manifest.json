@@ -4076,6 +4076,24 @@
       {
         "source": "src/core/rendering/prepared-workspace14364.js"
       }
+    ],
+    "scripts/font-size14380.js": [
+      {
+        "source": "src/settings/application/font-size14380.js",
+        "suffix": "\n"
+      }
+    ],
+    "styles/font-size14380.css": [
+      {
+        "source": "src/settings/application/font-size14380.css",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/editor-protection14380.js": [
+      {
+        "source": "src/shared/ui/editor-protection14380.js",
+        "suffix": "\n"
+      }
     ]
   },
   "variants": [

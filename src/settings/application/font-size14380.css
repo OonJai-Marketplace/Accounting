@@ -1,0 +1,4 @@
+html{font-size:calc(16px * var(--app-font-scale14380,1))}
+@media print{html{--app-font-scale14380:1!important}}
+#journal .je-card-header .transaction-pages14340{margin-left:auto;flex:0 0 auto;justify-content:flex-end;padding:0;align-self:flex-start}
+#journal .je-card-header:has(.transaction-pages14340){display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
