@@ -23,7 +23,7 @@ function valid(id){return owner===actor()&&ownerClient===client()&&prepared.has(
 function holdPayroll(except=''){for(const id of ['payroll-entries','payroll-deductions']){if(id===except)continue;const node=document.querySelector('#'+id+' .desktop82');if(node){node.remove();shelves.set(id,node)}}}
 function restore(id){if(owner!==actor()||ownerClient!==client()){shelves.clear();return}if(!['payroll-entries','payroll-deductions'].includes(id))return;holdPayroll(id);const node=shelves.get(id);if(node&&!document.querySelector('#'+id+' .desktop82')){document.getElementById(id)?.append(node);shelves.delete(id)}}
 function invalidate(group,prepare=true){if(group)versions[group]=(versions[group]||0)+1;else prepared.clear();if(prepare)schedule();}
-function schedule(){if(queued||building||!window.startup14257?.prepared||!actor())return;queued=true;setTimeout(()=>{queued=false;if(!building)void build(false).catch(e=>window.localFirst14333?.setNotice('Screen preparation needs retry: '+e.message))},0)}
+function schedule(){if(window.idleSync14341&&!idleSync14341.allowed())return;if(queued||building||!window.startup14257?.prepared||!actor())return;queued=true;setTimeout(()=>{queued=false;if(!building)void build(false).catch(e=>window.localFirst14333?.setNotice('Screen preparation needs retry: '+e.message))},0)}
 function renderer(id){
  if(id==='dashboard')return ()=>window.dashboardWarm112?.render();
  if(id==='entry-submissions')return ()=>window.renderEntrySubmissions?.();
@@ -52,10 +52,10 @@ function renderer(id){
 async function build(initial=true){if(pendingBuild)return pendingBuild;const who=actor(),db=client();if(!who)return;if(owner!==who||ownerClient!==db){prepared.clear();shelves.clear();owner=who;ownerClient=db}
  pendingBuild=Promise.resolve().then(async()=>{building=true;const reportKind=typeof Reports79==='undefined'?null:Reports79.kind;
  try{
-  if(initial&&liveProfile?.role==='admin'&&allowed('local-events'))await window.localEvents14364?.load();
+  if(initial&&current()==='local-events'&&liveProfile?.role==='admin'&&allowed('local-events'))await window.localEvents14364?.load();
   if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');
   if(initial&&allowed('report-bs'))window.prepareReportDefaults14364?.();
-  const targets=[...document.querySelectorAll('.tab-content[id]')].map(n=>n.id).filter(allowed);
+  const targets=(initial?[current()]:[...document.querySelectorAll('.tab-content[id]')].map(n=>n.id)).filter(allowed).filter(id=>!window.startup14257?.requirements||startup14257.requirements(id).every(name=>startup14257.isPrepared(name)));
   for(const id of targets){if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');if(!initial&&(id===current()||valid(id)))continue;
    preparingTarget=id;const node=document.getElementById(id),prior=[...document.querySelectorAll('.tab-content.active')];prior.forEach(n=>n.classList.remove('active'));node.classList.add('active');restore(id);
    let result;try{rendering=true;const fn=renderer(id);result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(()=>fn?.()):fn?.();}
@@ -66,7 +66,7 @@ async function build(initial=true){if(pendingBuild)return pendingBuild;const who
  }finally{if(reportKind!==null)Reports79.kind=reportKind;building=false;pendingBuild=null;preparingTarget='';restore(current());window.shell113?.sync();}
  });return pendingBuild;
 }
-async function finish(){window.startup14257.preparing=true;try{await build(true);window.startup14257.prepared=true;window.startup14257.interactive=true;document.body.classList.remove('startup-pending1443');const box=document.getElementById('startup1443');if(box)box.hidden=true;window.idleSync14341?.preparation('')}finally{window.startup14257.preparing=false}}
+async function finish(){window.startup14257.preparing=true;try{await build(true);window.startup14257.prepared=true;window.startup14257.interactive=true;document.body.classList.remove('startup-pending1443');const box=document.getElementById('startup1443');if(box)box.hidden=true;window.idleSync14341?.preparation('')}finally{window.startup14257.preparing=false}const who=actor();setTimeout(()=>{if(actor()===who&&window.idleSync14341?.pending().length)void idleSync14341.run(false).catch(e=>window.localFirst14333?.setNotice('Saved work is waiting to sync: '+e.message));},0)}
 function ready(){
  const original=window.preparedViews14340;original.build=()=>build(true);
  const hydrate=window.hydrateSupabaseSession;window.hydrateSupabaseSession=async function(session,...args){const result=await hydrate.call(this,session,...args);if(actor()===session?.user?.id&&window.startup14257?.dataReady)await finish();return result};
@@ -77,6 +77,7 @@ function ready(){
  for(const [name,group]of Object.entries({loadJournalFromSupabase:'journal',loadReferenceDataFromSupabase:'reference',loadWork82:'payroll',loadStaffJournalsForReview:'review',loadSubmissionsFromSupabase:'review',loadBusinessSettingsFromSupabase:'settings',loadTransactionAudit:'journal'})){const fn=window[name];if(typeof fn!=='function')continue;window[name]=async function(...args){const before=signature(group==='payroll'?'payroll-overview':group==='reference'?'chart-of-accounts':group==='review'?'user-entry-review':'journal');const result=await fn.apply(this,args);const after=signature(group==='payroll'?'payroll-overview':group==='reference'?'chart-of-accounts':group==='review'?'user-entry-review':'journal');if(!equal(before,after))invalidate(group);return result};}
  document.addEventListener('input',e=>{if(!e.isTrusted)return;const id=e.target.closest('.tab-content')?.id;if(!id)return;if(['payroll-entries','payroll-deductions','hr-attendance'].includes(id))versions.payroll++;},true);
  document.addEventListener('change',e=>{if(!e.isTrusted)return;const id=e.target.closest('.tab-content')?.id;if(id?.startsWith('settings-'))invalidate('settings',false);else if(id)prepared.delete(id);},true);
+ window.addEventListener('idle-sync14341',schedule);
  window.addEventListener('pagehide',()=>{prepared.clear();shelves.clear()});
 }
 window.workspaceViews14364={build,finish,invalidate,restore,retainPayroll:holdPayroll,reuseView:id=>navigation>0&&!building&&valid(id),get rendering(){return rendering},get preparing(){return building},get navigating(){return navigation>0},state:()=>({owner,preparingTarget,differences:Object.fromEntries([...prepared].filter(([id,s])=>!valid(id)).map(([id,s])=>[id,signature(id).map((v,i)=>v!==s[i]?i:null).filter(v=>v!==null)])),prepared:[...prepared.keys()],stale:[...prepared.keys()].filter(id=>!valid(id)),shelved:[...shelves.keys()]})};

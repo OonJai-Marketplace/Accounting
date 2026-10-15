@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.78',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.79',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "docs/UPDATE-v143.21.md",
  "scripts/hr-calendar14306.js?v=143.70",
@@ -19,7 +19,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.70",
  "scripts/desktop14245-6.js?v=143.78",
  "scripts/local-events14310.js?v=143.70",
- "scripts/offline14239.js?v=143.78",
+ "scripts/offline14239.js?v=143.79",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -76,7 +76,7 @@ const FILES=[
  "scripts/password-policy14257.js?v=143.67",
  "scripts/recovery14257.js?v=143.70",
  "scripts/account-security14257.js?v=143.70",
- "scripts/startup14257.js?v=143.64",
+ "scripts/startup14257.js?v=143.79",
  "scripts/numeric-caret14257.js?v=142.57",
  "scripts/entry-number14257.js?v=143.69",
  "styles/layout14256.css?v=142.76",
@@ -164,7 +164,7 @@ const FILES=[
  "scripts/sync-assessment14332.js?v=143.70",
  "styles/sync-assessment14332.css?v=143.53",
  "scripts/settings-groups14332.js?v=143.78",
- "styles/settings-groups14332.css?v=143.78",
+ "styles/settings-groups14332.css?v=143.79",
  "styles/statutory14332.css?v=143.32",
  "scripts/phone-runtime14242.js?v=143.70",
  "scripts/local-first14333.js?v=143.78",
@@ -236,7 +236,7 @@ const FILES=[
  "scripts/scheduled-journals-v91.js?v=143.70",
  "scripts/settings-payroll-v94.js?v=143.70",
  "scripts/tax-reports-v102.js?v=143.70",
- "scripts/prepared-workspace14364.js?v=143.78",
+ "scripts/prepared-workspace14364.js?v=143.79",
  "scripts/transaction-consistency14300.js?v=143.69",
  "scripts/universal-date-v104.js?v=143.70",
  "scripts/layout-consistency-v87.js?v=143.67",
@@ -286,7 +286,7 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
    // Wait for both writes before removing a failed installation cache.
    const batch=await Promise.allSettled(FILES.slice(offset,offset+2).map(async file=>{
     const url=new URL(file,scopeURL),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
-    try{const response=await fetch(url.href,{cache:file.endsWith('.html')?'reload':'force-cache',signal:controller.signal});await cache.put(url.href,await completeResponse(response));}finally{clearTimeout(timer)}
+    try{const saved=url.searchParams.has('v')?await caches.match(url.href):null;const response=saved||await fetch(url.href,{cache:file.endsWith('.html')?'reload':'force-cache',signal:controller.signal});await cache.put(url.href,await completeResponse(response));}finally{clearTimeout(timer)}
    }));
    const failed=batch.find(result=>result.status==='rejected');if(failed)throw failed.reason;
   }
