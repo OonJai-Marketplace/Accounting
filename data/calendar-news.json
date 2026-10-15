@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-14",
+  "checkedAt": "2026-10-15",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -744,6 +744,31 @@
         {
           "name": "Vientiane Times · Public Art & Culture preview, 14 October 2026",
           "url": "https://www.vientianetimes.org.la/",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "watch-lan-xang-vientiane",
+      "revision": "2026-10-15T01:22:27Z",
+      "title": "Lan Xang International Folklore Festival · Dates need verification",
+      "location": "Vientiane city, Vientiane Capital, Laos; proposed programme mentions the Traditional Lao Silk Residence and Mekong riverbank; exact public venues unverified",
+      "start": null,
+      "end": null,
+      "category": "festival",
+      "confidence": "conflicting",
+      "summary": "EAFF publishes a 21–28 February 2027 cultural-exchange programme with music, dance and performances in Vientiane. WAFF still lists the same-named festival for 21–28 November 2026. Provisional planning heads-up only: as of 15 October 2026, those candidate openings are 129 and 37 days away respectively, both shorter than six months’ notice. No calendar dates are assigned.",
+      "uncertainty": "EAFF’s current event heading says 21–28 February 2027, while its itinerary ends with departure on 27 February. WAFF lists 21–28 November 2026 and links to the EAFF festival listing. It is unclear whether the listings represent separate editions or an unannounced date change. No local authority or venue confirmation was found. Do not advertise either window as confirmed. This is a folklore event, not the Sayaboury Elephant Festival.",
+      "restaurantIdea": "Suggestion: If serving Vientiane visitors, keep a flexible group-meal or cultural-evening idea now and seek organizer confirmation before late October because the earlier listing is only 37 days away. If February 2027 is confirmed, prepare any agreed offer by January; avoid stock, staffing or advertising commitments until dates and public access are verified.",
+      "sources": [
+        {
+          "name": "EAFF · Published festival programme",
+          "url": "https://eaff.eu/en/festivals/1652-5749-international-folklore-festival-land-of-million-elephants-lan-xang",
+          "language": "en"
+        },
+        {
+          "name": "WAFF · Festival listing with November 2026 dates",
+          "url": "https://www.waff.org/page/festivals",
           "language": "en"
         }
       ]
