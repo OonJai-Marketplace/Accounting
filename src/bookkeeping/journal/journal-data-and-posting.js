@@ -1,7 +1,8 @@
 async function loadJournalFromSupabase() {
   const actor=liveProfile?.id,db=ojmDb,workspace=window.workspaceRequest138?.target||'';
   const check=()=>{if(liveProfile?.id!==actor||ojmDb!==db||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Workspace changed while loading the journal.')};
-  const windowRows=await window.yearWindow14333?.read();if(windowRows){check();JournalModule.entries=windowRows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();return;}
+  const cacheRevision=window.offline14239?.cacheRevision;
+  const windowRows=await window.yearWindow14333?.read();if(windowRows){check();if(!window.offline14239?.offline()&&cacheRevision===window.offline14239?.cacheRevision)await window.journalDurable14385?.reconcile(windowRows);check();JournalModule.confirmedSnapshot14385=structuredClone(windowRows);JournalModule.entries=windowRows;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();return;}
   const entries=[];
   for(let offset=0;;offset+=500){
     check();const {data,error}=await db.from('journal_entries').select('id,entry_no,created_at,transaction_date,memo,status,source,journal_lines(fx_rate_lak,book_rate_lak,base_debit,base_credit,line_no,description,currency_code,debit,credit,line_date,accounts(id,name,code))').eq('status','posted').order('transaction_date',{ascending:false}).order('id').range(offset,offset+499);
@@ -9,7 +10,7 @@ async function loadJournalFromSupabase() {
     (data||[]).forEach(entry=>(entry.journal_lines||[]).filter(Boolean).sort((a,b)=>a.line_no-b.line_no).forEach(line=>entries.push({created_at:entry.created_at,source:entry.source,scheduleId:String(entry.source||'').startsWith('scheduled:')?String(entry.source).slice(10):null,dbEntryId:entry.id,id:entry.entry_no||entry.id,date:line.line_date||entry.transaction_date,account:line.accounts?.name||'Unknown Account',accountId:line.accounts?.id,accountCode:line.accounts?.code,currency:line.currency_code,memo:line.description||entry.memo||'',generalMemo:entry.memo||'',debit:Number(line.debit),credit:Number(line.credit),fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,base_debit:line.base_debit,base_credit:line.base_credit,editReason:'',archived:false})));
     if(!data||data.length<500)break;
   }
-  check();JournalModule.entries=entries;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();
+  check();if(!window.offline14239?.offline()&&cacheRevision===window.offline14239?.cacheRevision)await window.journalDurable14385?.reconcile(entries);check();JournalModule.confirmedSnapshot14385=structuredClone(entries);JournalModule.entries=entries;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();
 }
 
 function collectLiveJournalGroups() {

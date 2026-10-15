@@ -3247,6 +3247,10 @@
     "scripts/local-first14333.js": [
       {
         "source": "src/core/sync/local-first14333.js"
+      },
+      {
+        "source": "src/bookkeeping/journal/durable-journal14385.js",
+        "prefix": "\n;\n"
       }
     ],
     "scripts/login-notifications14293.js": [

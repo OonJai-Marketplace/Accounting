@@ -1,6 +1,7 @@
 SETUP GUIDE
 
-FRESH PROJECT: follow fresh/START-HERE.md. Run numbered files 001, 002 and 003.
+FRESH PROJECT: follow fresh/START-HERE.md. Run numbered files 001, 002 and 003, including the two v143.85 forward
+migrations specified in START-HERE before verification.
 Maintenance is included in the current file 001; file 004 supports older installations.
 Never run the fresh installer against an existing company's database.
 
