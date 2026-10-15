@@ -88,3 +88,31 @@ html body #payroll-employees .row-menu-panel99 .hr-row-actions14306{display:flex
  html body :is(.table-pages14383,.transaction-pages14340)>span{font-size:12px!important;white-space:nowrap!important;color:#475569!important}
  html body :is(.table-pages14383,.transaction-pages14340)[hidden]{display:none!important}
 }}
+
+/* Phase 3: explicit calculator controls in the existing desktop/tablet editor. */
+@layer action-finalization14317 {@media screen and (min-width:641px){
+html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-calculator14387{display:grid!important;grid-template-columns:144px minmax(100px,1fr) 170px 156px!important;align-items:end!important;gap:10px!important}
+html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-calculator14387>.je-field-group:has(#jeGeneralMemo){grid-column:2 / 5!important;grid-row:1!important}
+html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-calculator14387>.journal-rates14383{grid-column:1 / 3!important;grid-row:2!important;justify-content:flex-end}
+html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-calculator14387>.journal-type14387{grid-column:3!important;grid-row:2!important;display:flex;flex-direction:column;gap:5px;font-size:11px}
+html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-calculator14387>.voucher-pick14299{grid-column:4!important;grid-row:2!important}
+}}
+#journalEntry98 .rate-col14387{width:135px;min-width:120px;white-space:nowrap}
+#journalEntry98 input.je-rate14387{width:85px!important;min-width:0!important;border:0!important;background:transparent!important;font-size:12px;text-align:right;padding:4px}
+#journalEntry98 .rate-unit14387{font-size:11px}
+#journalEntry98 .calc-mode14387{display:block;text-align:center;font-size:10px;color:var(--text-muted)}
+#journalCalculation14387{padding:10px 12px;border-top:1px solid var(--border-color,#cad7ce);font-size:12px}
+#journalCalculation14387[hidden]{display:none!important}
+#journalCalculation14387 summary{cursor:pointer;margin-top:6px}
+#journalCalculation14387 .calc-status14387{color:var(--text-main,#254b39)}
+#journalCalculation14387.calc-error14387 .calc-status14387{color:#a33c10}
+#journalCalculation14387 .calc-details14387 select{max-width:210px}
+.journal-entry-menu14387{position:fixed;z-index:16000;min-width:170px;padding:8px;display:flex;flex-direction:column;gap:5px;background:var(--bg-card,#fffaf0);color:var(--text-main,#173e2f);border:1px solid #9ab3a4;border-radius:8px;box-shadow:0 6px 24px #0003}
+.journal-entry-menu14387>strong{padding:4px 6px;font-size:12px}
+.journal-entry-menu14387>button{height:32px!important;min-height:32px!important;text-align:left}
+html body .transaction-review-actions>.entry-menu-trigger14387{width:32px!important;height:32px!important;min-height:32px!important;font-size:20px!important}
+@media print{.journal-entry-menu14387,#journalCalculation14387,.journal-type14387{display:none!important}}
+
+#journalCalculation14387 .table-container{overflow-x:auto!important}
+#journalCalculation14387 table{min-width:680px!important;width:100%!important;table-layout:auto!important}
+#journalCalculation14387 td{white-space:normal!important}

@@ -9,7 +9,7 @@ for(const row of [...body.querySelectorAll('tr[data-line-index="0"]')]){const fi
  for(const line of (linesById.get(row.dataset.entryId)||[]))line.dataset.lineIndex=String(Number(line.dataset.lineIndex)+1);
  row.classList.remove('cluster-row-start');row.classList.add('cluster-row-cont');
  for(const c of shared)c.rowSpan+=1;
- header.append(shared[0],shared[1]);const cell=document.createElement('td');cell.colSpan=4;cell.className='general-description14281';const label=document.createElement('strong');label.textContent='General description';cell.append(label,document.createTextNode(' '+memo));header.append(cell);if(shared[2])header.append(shared[2]);row.before(header);
+ header.append(shared[0],shared[1]);const cell=document.createElement('td');cell.colSpan=5;cell.className='general-description14281';const label=document.createElement('strong');label.textContent='General description';cell.append(label,document.createTextNode(' '+memo));header.append(cell);if(shared[2])header.append(shared[2]);row.before(header);
 }}
 const base=window.renderTransactionReviewTable;window.renderTransactionReviewTable=function(body,records,...args){const result=base.call(this,body,records,...args);addDescription(body,records);return result};
 const period=window.renderPeriodReview;window.renderPeriodReview=function(...args){const result=period.apply(this,args);addDescription(document.getElementById('periodTransactionsBody'),periodEntries());return result};

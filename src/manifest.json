@@ -1794,6 +1794,16 @@
         "suffix": "\n;\n"
       },
       {
+        "source": "src/bookkeeping/journal/calculator14387.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-menu14387.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
+      },
+      {
         "source": "src/shared/ui/table-pagination14383.js",
         "prefix": "\n",
         "suffix": "\n;\n"
@@ -2034,6 +2044,16 @@
       },
       {
         "source": "src/accounts/chart/foreign-funds14386.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/calculator14387.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/entry-menu14387.js",
         "prefix": "\n",
         "suffix": "\n;\n"
       },
