@@ -1782,6 +1782,16 @@
       {
         "source": "src/bookkeeping/journal/journal-batch1440.js",
         "suffix": ";\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/foreign-currency14383.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/shared/ui/table-pagination14383.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
       }
     ],
     "scripts/permissions1441.js": [
@@ -2011,6 +2021,16 @@
         "source": "src/bookkeeping/journal/journal-batch1440.js",
         "prefix": "/* scripts/journal-batch1440.js */\n",
         "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/foreign-currency14383.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/shared/ui/table-pagination14383.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
       },
       {
         "source": "src/core/permissions/permissions1441.js",

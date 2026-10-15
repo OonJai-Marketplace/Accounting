@@ -34,7 +34,7 @@ function restore(d){restoring=true;try{
  restoreJournal69(d?.rows?.length?d:{rows:[{},{}],owner:'',journal:'',local:false});
  JournalModule.editingEntryId=d?.editing||null;JournalModule.pendingLines=d?.pendingLines||[];
  card._editIds1437=d?.editIds||[];card._requestKey1437=d?.requestKey||'pj-'+crypto.randomUUID();
- entry1430.restore(d?.mode||'single',d?.single||[],d?.retained14232);calculateJournalBalance();
+ entry1430.restore(d?.mode||'single',d?.single||[],d?.retained14232);window.JournalFX14383?.restore(d?.fxRates||{});calculateJournalBalance();
  window.dropdown1434?.enhance(card);
 }finally{restoring=false;if(busy)card.querySelectorAll('input,select,textarea,button').forEach(n=>{if(!n.disabled){n.dataset.pendingSaveDisabled1437='1';n.disabled=true}})}}
 function detach(){if(!scope)return;remember();const sameActor=scopeActor===liveProfile?.id&&scopeClient===ojmDb;scope='';scopeActor='';scopeClient=null;card.removeAttribute('data-personal-owner1437');anchor.after(card);card.querySelectorAll('[data-personal-disabled1437]').forEach(n=>{n.disabled=false;delete n.dataset.personalDisabled1437});restore(sameActor?mainSnapshot:null);mainSnapshot=null;label();}
@@ -50,8 +50,8 @@ function amount(v){return formatAppNumber(Number(v)||0)}
 function validSnapshot(group){
  const d=group[0]?.editor_snapshot1437;if(!Array.isArray(d?.components1437))return null;
  const dates=new Set(group.map(l=>l.transaction_date));
- const normalize=rows=>rows.map(r=>JSON.stringify([r.date,r.direction,r.fund,r.account,Number(r.amount),r.memo,r.reference||'',r.kind||''])).sort().join('|');
- const actual=group.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo,reference:l.reference,kind:l.entry_kind}));
+ const normalize=rows=>rows.map(r=>JSON.stringify([r.date,r.direction,r.fund,r.account,Number(r.amount),r.memo,r.reference||'',r.kind||'',r.fx_rate_lak||null])).sort().join('|');
+ const actual=group.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo,reference:l.reference,kind:l.entry_kind,fx_rate_lak:l.fx_rate_lak}));
  return normalize(actual)===normalize(d.components1437.filter(r=>dates.has(r.date)))?d:null;
 }
 function journalDisplay(group){
@@ -79,8 +79,8 @@ function historyCard(j){
 function historyHtml(id){const s=state(id),all=[...journals(id).filter(completed),...(historyExtra.get(key(id))?.client===ojmDb?historyExtra.get(key(id)).rows:[]).filter(j=>!['submitted','returned','draft'].includes(j.status))];
  const date=j=>String(j.period_start||j.submitted_at||j.created_at||'');const years=[...new Set([String(new Date().getFullYear()),...all.map(j=>date(j).slice(0,4))])].filter(Boolean).sort().reverse();
  if(!s.historyPeriodPicked14341)s.historyPeriod14341=historyMonth14341.choose('personal:'+id,all.map(j=>date(j).slice(0,7)));const filtered=all.filter(j=>date(j).startsWith(s.historyPeriod14341)&&(!s.search||JSON.stringify(j).toLowerCase().includes(s.search.toLowerCase()))).sort((a,b)=>date(b).localeCompare(date(a)));
- s.page=Math.max(0,Math.min(s.page,Math.ceil(filtered.length/12)-1));const visible=filtered.slice(s.page*12,s.page*12+12);
- return `<section class="personal-history1437"><header class="history-header14342"><h3>Submission History</h3><div class="archive-month-actions"><input type="search" class="je-input history-search14359" data-history-search aria-label="Search selected month" placeholder="Search this month" value="${esc(s.search)}"><label class="history-month14341"><input type="month" aria-label="History month" data-history-period14341 value="${esc(s.historyPeriod14341)}"></label></div></header><div class="period-summary-grid history-summary14359"><div class="period-summary-card"><span>Completed Reports</span><strong>${filtered.length}</strong></div></div><div class="personal-history-list1437">${visible.map(j=>`<div data-history-record="${esc(j.id)}">${historyCard(j)}${!Object.hasOwn(j,'request_no')&&access113.can('document-editor105','export')?`<button class="je-btn je-btn-secondary" data-print-personal="${esc(j.id)}">Print report</button>`:''}</div>`).join('')||'<p class="period-empty">No completed records match these filters.</p>'}</div><footer ${filtered.length>12?'':'hidden'}><button class="je-btn je-btn-secondary" data-history-page="-1" ${s.page?'':'disabled'}>Previous</button><span>Page ${s.page+1} of ${Math.max(1,Math.ceil(filtered.length/12))}</span><button class="je-btn je-btn-secondary" data-history-page="1" ${(s.page+1)*12<filtered.length?'':'disabled'}>Next</button></footer></section>`;
+ s.page=Math.max(0,Math.min(s.page,Math.ceil(filtered.length/100)-1));const visible=filtered.slice(s.page*100,s.page*100+100);
+ return `<section class="personal-history1437"><header class="history-header14342"><h3>Submission History</h3><div class="archive-month-actions"><input type="search" class="je-input history-search14359" data-history-search aria-label="Search selected month" placeholder="Search this month" value="${esc(s.search)}"><label class="history-month14341"><input type="month" aria-label="History month" data-history-period14341 value="${esc(s.historyPeriod14341)}"></label></div></header><div class="period-summary-grid history-summary14359"><div class="period-summary-card"><span>Completed Reports</span><strong>${filtered.length}</strong></div></div><div class="personal-history-list1437">${visible.map(j=>`<div data-history-record="${esc(j.id)}">${historyCard(j)}${!Object.hasOwn(j,'request_no')&&access113.can('document-editor105','export')?`<button class="je-btn je-btn-secondary" data-print-personal="${esc(j.id)}">Print report</button>`:''}</div>`).join('')||'<p class="period-empty">No completed records match these filters.</p>'}</div><footer><button class="je-btn je-btn-secondary" data-history-page="-1" ${s.page?'':'disabled'}>Previous</button><span>${s.page+1} of ${Math.max(1,Math.ceil(filtered.length/100))}</span><button class="je-btn je-btn-secondary" data-history-page="1" ${(s.page+1)*100<filtered.length?'':'disabled'}>Next</button></footer></section>`;
 }
 // Compare source markup, not decorated DOM: icons must survive unrelated updates.
 function paintPanel1437(panel,markup){if(!panel||panel._personalMarkup1437===markup)return;panel._personalMarkup1437=markup;panel.innerHTML=markup;if(panel.matches('[data-personal-panel=history]'))historyMonth14341.expand(panel);window.headerIcons112?.decorate();}
@@ -110,7 +110,7 @@ function installDesktop(){if(!desktop()||!$('sub-users-workspace')?.classList.co
 }
 function findGroup(id,lineId){return groupsFor(id).find(g=>g.some(l=>l.id===lineId))}
 async function edit(id,lineId){const actor=liveProfile?.id,client=ojmDb;if(!access113.can('sub-users-workspace','edit'))return;const group=findGroup(id,lineId);if(!group)return;const unfinished=scope===id?capture():readDraft(id);if(unfinished?.memo?.trim()&&!await ui117.confirm('Replace the unfinished entry with this saved entry for editing?'))return;if(actor!==liveProfile?.id||client!==ojmDb||!access113.can('sub-users-workspace','edit'))return;show(id,'journal');const first=group[0];let d=validSnapshot(group);
- if(!d){const single=group.map(l=>({direction:l.direction||'out',source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?workspaceRules(user(id)).counterpart:l.account_id,amount:String(l.amount),memo:l.memo,date:l.transaction_date}));d={mode:'single',memo:first.memo,date:first.transaction_date,single,rows:[]};}
+ if(!d){const single=group.map(l=>({direction:l.direction||'out',source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?workspaceRules(user(id)).counterpart:l.account_id,amount:String(l.amount),memo:l.memo,date:l.transaction_date}));d={mode:'single',memo:first.memo,date:first.transaction_date,single,rows:[],fxRates:Object.fromEntries(group.filter(l=>l.fx_rate_lak).map(l=>[l.currency_code,l.fx_rate_lak]))};}
  if(d.multiple)d={...d,rows:(d.rows||[]).filter(r=>r.date===first.transaction_date),single:(d.single||[]).filter(r=>r.date===first.transaction_date)};
  restore({...d,owner:'',journal:'',local:false,editing:null,editIds:group.map(l=>l.id),requestKey:'pj-'+crypto.randomUUID()});label();remember();card.scrollIntoView({block:'start',behavior:'smooth'});
 }
@@ -121,7 +121,7 @@ function prepareItems(id){if(entry1430.retained)throw Error('Switch to Double En
   if(!rules.directions.includes(direction))throw Error(direction==='in'?'Money In is not enabled for this user.':'Money Out is not enabled for this user.');
   if(!rules.fundIds.includes(fund))throw Error('Choose one of this user’s assigned fund accounts.');
   if(!rules.entryIds.includes(account)||fund===account)throw Error('Choose a different category account assigned to this user.');
-  items.push({direction,fund,account,amount:value,date,memo:description||memo,reference:'',kind:direction==='in'?'collection':'payment'});
+  items.push({direction,fund,account,fx_rate_lak:window.JournalFX14383?.rate(AccountingStore.accounts.find(a=>a.id===fund)?.currency),amount:value,date,memo:description||memo,reference:'',kind:direction==='in'?'collection':'payment'});
  };
  if(entry1430.mode==='single'){
   for(const r of entry1430.read()){if(!r.affected&&!r.amount&&!r.memo)continue;const n=parseAppNumber(r.amount);if(!Number.isFinite(n)||!(n>0))throw Error('Enter a positive amount.');add(r.direction,r.source,r.affected,n,$('jeMultipleDates').checked?r.date:$('jeTransDate').value,r.memo||memo)}

@@ -52,19 +52,21 @@ function confirmSaveTemplate() {
 function openTemplateManager(){ renderTemplateManager(); openModal('modalTemplateManager'); }
 function renderTemplateManager(){
   const host=document.getElementById('templateManagerList'); if(!host)return;
-  host.innerHTML = TemplateStore.templates.length ? TemplateStore.templates.map(t=>`
+  const templates=[...(window.JournalFX14383?.templates()||[]),...TemplateStore.templates];
+  host.innerHTML = templates.length ? templates.map(t=>`
     <div class="template-item">
-      <div><strong>${escapeHtml(t.name)}</strong><div class="je-subtitle">${t.lines.length} saved line${t.lines.length===1?'':'s'} • amounts always load as zero</div></div>
+      <div><strong>${escapeHtml(t.name)}</strong><div class="je-subtitle">${t.builtin?'Enter currency, amount and rates to prepare balanced lines':t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">
         <button class="je-btn je-btn-emerald" onclick="applyTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Use</button>
-        <button class="je-btn je-btn-secondary" onclick="editTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Edit</button>
-        <button class="je-btn je-btn-danger" onclick="deleteTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Remove</button>
+        ${t.builtin?'':`<button class="je-btn je-btn-secondary" onclick="editTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Edit</button>
+        <button class="je-btn je-btn-danger" onclick="deleteTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Remove</button>`}
       </div>
     </div>`).join('') : '<div class="empty-archive-state">No templates saved.</div>';
 }
 function applyTransactionTemplate(id){
+  if(String(id).startsWith('fx14383-'))return window.JournalFX14383.openTemplate(id.endsWith('income')?'income':'expense');
   const t=TemplateStore.templates.find(x=>x.id===id); if(!t)return;
-  resetJournalLinesForm();
+  resetJournalLinesForm();window.JournalFX14383?.restore({});
   const body=document.getElementById('jeLinesBody'); body.innerHTML='';
   document.getElementById('jeGeneralMemo').value=t.generalMemo || '';
   t.lines.forEach(line=>addJournalLineRow(line.account,line.memo,'',{}));

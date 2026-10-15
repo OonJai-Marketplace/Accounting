@@ -89,7 +89,8 @@ async function confirmEntryOverride() {
       description: line.memo,
       currency_code: line.currency,
       debit: Number(line.debit || 0),
-      credit: Number(line.credit || 0)
+      credit: Number(line.credit || 0),
+      fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak
     }));
     const { error } = await db.rpc('revise_open_journal_entry', {
       p_entry_id: dbEntryId,
@@ -126,6 +127,7 @@ async function confirmEntryOverride() {
 }
 
 function finalizePostSuccess() {
+  window.JournalFX14383?.restore({});
   JournalModule.editingEntryId = null;
   JournalModule.pendingLines = null;
   updateNextEntryIdDisplay();

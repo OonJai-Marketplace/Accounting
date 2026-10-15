@@ -35,8 +35,11 @@ function loadEntryForEdit(entryId) {
     if (line.credit > 0) crMap[line.currency] = formatAppNumber(line.credit);
 
     addJournalLineRow(accStr, line.memo, drStr, crMap);
+    tbody.lastElementChild.dataset.bookRate14383=line.book_rate_lak||'';
+    tbody.lastElementChild.dataset.fxRate14383=line.fx_rate_lak||'';
   });
 
+  window.JournalFX14383?.restore(Object.fromEntries(lines.map(l=>[l.currency,l.fx_rate_lak])));
   calculateJournalBalance();
 }
 

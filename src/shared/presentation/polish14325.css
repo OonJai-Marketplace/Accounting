@@ -72,3 +72,11 @@ html body #payroll-employees .row-menu99{width:auto!important;max-width:100%!imp
 html body #payroll-employees .row-menu99>summary{overflow:visible!important;text-overflow:clip!important;box-sizing:border-box!important;padding:4px 8px!important;width:38px!important;text-align:center!important}
 html body #payroll-employees .row-menu-panel99 .hr-row-actions14306{display:flex;flex-direction:column;align-items:stretch}
 }
+
+/* Explicit FX columns in the existing journal layout layer. */
+@layer action-finalization14317 {@media screen and (min-width:641px){
+ html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-fx14383{display:grid!important;grid-template-columns:144px minmax(100px,1fr) max-content 156px!important;align-items:end!important}
+ html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-fx14383>.je-field-group:has(#jeGeneralMemo){grid-column:2!important;grid-row:1!important}
+ html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-fx14383>.journal-rates14383{grid-column:3!important;grid-row:1!important}
+ html body :is(#journal,#personalEditor1437) #journalEntry98#journalEntry98#journalEntry98 .je-meta-grid.has-fx14383>.voucher-pick14299{grid-column:4!important;grid-row:1!important}
+}}

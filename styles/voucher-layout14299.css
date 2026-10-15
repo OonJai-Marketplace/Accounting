@@ -23,3 +23,15 @@
 #transactions-vouchers14299 .row-menu99>summary{
   margin-inline:auto;
 }
+/* Compact journal FX rates share the description / voucher row. */
+@media(min-width:641px){
+ .journal-rates14383{display:flex;gap:8px;align-items:end}
+ .journal-rates14383 label{display:flex;flex-direction:column;gap:5px;font-size:11px;white-space:nowrap}
+ .journal-rates14383 input{width:100px!important;min-width:0!important;height:36px;box-sizing:border-box}
+}
+.journal-rates14383[hidden]{display:none!important}
+@media(max-width:640px){.journal-rates14383{display:none!important}}
+#fxTemplate14383{display:grid;gap:12px}#fxTemplate14383 label{display:grid;gap:4px}#fxTemplate14383 input,#fxTemplate14383 select{padding:8px;width:100%;box-sizing:border-box}
+.table-pages14383,.transaction-pages14340{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin:10px 0;clear:both}
+@media print{.table-pages14383,.transaction-pages14340{display:none!important}tr[data-page-hidden14383]{display:table-row!important}}
+@media screen{tr[data-page-hidden14383]{display:none!important}}

@@ -9,7 +9,7 @@ const allowed=id=>!!liveProfile&&access113.can(id,'view')&&access113.can(id,'exp
 function permission(id){if(!allowed(id))throw Error('View and Export / Print permission are required for this report.');if(document.getElementById('startup1443')?.hidden===false)throw Error('Wait for this area to finish loading before printing.');}
 function signatures(){return printSignatures1424({enabled:true,prepared:liveProfile?.full_name||liveProfile?.email||'',receiver:'',approver:''});}
 // Flatten layout containers so the editor can paginate tables row by row.
-function format(html){const root=document.createElement('div');root.innerHTML=html;
+function format(html){const root=document.createElement('div');root.innerHTML=html;root.querySelectorAll('table').forEach(t=>window.tablePagination14383?.restoreSpans(t));root.querySelectorAll('[data-page-hidden14383]').forEach(n=>n.removeAttribute('data-page-hidden14383'));root.querySelectorAll('.table-pages14383,.transaction-pages14340').forEach(n=>n.remove());
  root.querySelectorAll('script,style,form,.no-print,.doc-source-action105,.row-menu99,.row-menu-panel99').forEach(n=>n.remove());
  root.querySelectorAll('input,textarea,select').forEach(n=>n.replaceWith(document.createTextNode(n.tagName==='SELECT'?n.selectedOptions[0]?.textContent||'':n.value||'')));
  root.querySelectorAll('button').forEach(n=>n.replaceWith(document.createTextNode(n.textContent)));
@@ -28,7 +28,7 @@ function format(html){const root=document.createElement('div');root.innerHTML=ht
  root.querySelectorAll('p').forEach(p=>p.style.cssText='font-family:Arial;font-size:10pt;line-height:1.15;margin:1mm 0 2mm;white-space:pre-wrap');
  return root.innerHTML;}
 function financial(kind){const groups=reportModel79(kind,true);let html=title(reportNames79[kind],Reports79.selectedMonths14331?.length?Reports79.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):Reports79.allMonths14331?'All months':formatAppDate(Reports79.from)+' — '+formatAppDate(Reports79.to)),omitted=[];
- for(const g of groups){const start=['gl','activity'].includes(kind)?4:['cf','payroll'].includes(kind)?1:2;const hasAmounts=g.values.some(r=>r.slice(start).some(v=>parseAppNumber(String(v).replace(/\s*(?:DR|CR)$/,''))));if(!hasAmounts&&!g.metrics.some(([,v])=>Number(v))){omitted.push(g.currency);continue}html+=head(g.currency+(g.periodLabel?' · '+g.periodLabel:''));
+ for(const g of groups){if(Reports79.basis==='LAK'){html+=head(g.currency+(g.periodLabel?' · '+g.periodLabel:''))+table(g.headers,g.values);if(g.metrics.length)html+=table(['Total / result','LAK'],g.metrics.map(([k,v])=>[k,money69(v)]),[72,28],[1]);html+=`<p>${esc(g.note)}</p>`;continue;}const start=['gl','activity'].includes(kind)?4:['cf','payroll'].includes(kind)?1:2;const hasAmounts=g.values.some(r=>r.slice(start).some(v=>parseAppNumber(String(v).replace(/\s*(?:DR|CR)$/,''))));if(!hasAmounts&&!g.metrics.some(([,v])=>Number(v))){omitted.push(g.currency);continue}html+=head(g.currency+(g.periodLabel?' · '+g.periodLabel:''));
  if(kind==='pl'||kind==='expense'){
  for(const type of kind==='expense'?['EXPENSE']:['REVENUE','EXPENSE']){const rows=g.values.filter(r=>String(r[0]).toUpperCase()===type).map(r=>[r[1],r[4]]);html+=head(type==='REVENUE'?'Income':'Expenses')+table(['Account / Description','Amount'],rows.length?rows:[['No activity','—']],[72,28],[1]);}
  }else if(kind==='tb'){
