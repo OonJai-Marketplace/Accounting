@@ -1,6 +1,6 @@
 {
   "base_commit": "e314c40",
-  "scope": "Completed requested 110-file group: 98 first-party files and 12 vendor implementations. Canonical sources (577) and generated equivalents (354) recorded separately. See docs/AUDIT-110-v14375.md for coverage, fixes, tests and limitations.",
+  "scope": "Completed 110-file review retained. v143.76 edits reviewed and regression-tested; current canonical sources 575 and generated outputs 352 after removal of the two temporary navigation modules. See docs/UPDATE-v143.76.md.",
   "reviewed": {
     "src/bookkeeping/journal/entry-number14257.js": {
       "sha256": "7e4c90d7b0ce37472893919502f270622f5b96b60be946b3e2c1e050ef929d72",
@@ -38,16 +38,6 @@
         [
           1,
           89
-        ]
-      ],
-      "note": "Navigation/performance review from preceding turn; see REPOSITORY-REVIEW-v143.69.md."
-    },
-    "src/core/navigation/navigation-experiment14366.js": {
-      "sha256": "4c46fc0e4a5cda2490e4e6583ab0712b10b3c9f7ba6cf9de85c8b67b0093c68d",
-      "ranges": [
-        [
-          1,
-          24
         ]
       ],
       "note": "Navigation/performance review from preceding turn; see REPOSITORY-REVIEW-v143.69.md."
@@ -153,14 +143,14 @@
       "note": "Navigation/performance review from preceding turn; see REPOSITORY-REVIEW-v143.69.md."
     },
     "src/subusers/workspace/workspace-consistency14343.js": {
-      "sha256": "9520594907ead8e6fc8fda7ccf8fb492c744fc374bd813a2a6ce1a123be2c2ea",
+      "sha256": "00652a6f9f1dacdca0cb482b4f45a60791a89bbf007002437ef9aa7237e4e27a",
       "ranges": [
         [
           1,
-          111
+          112
         ]
       ],
-      "note": "Complete semantic read; checked UI lifecycle, asynchronous ownership, financial validation, formatting and active-screen scans; applied relevant fixes. Banner CSS unchanged from baseline, older test assertion needs version reconciliation."
+      "note": "Complete semantic read; checked UI lifecycle, asynchronous ownership, financial validation, formatting and active-screen scans; applied relevant fixes. Banner CSS unchanged from baseline, older test assertion needs version reconciliation. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "src/core/navigation/navigation-v48.js": {
       "sha256": "8641570dec72316ebea7837fb07bdbb0131c613ae0854e12154bc05c8197b02a",
@@ -233,14 +223,14 @@
       "note": "Full invalidation revisions, journal/history signatures and render gates reviewed. Preserve revision checks and preparation bypass."
     },
     "src/core/rendering/prepared-workspace14364.js": {
-      "sha256": "fb824e382668f7853c37eec8f45f30ed9d92a33b00c2a8f99a93e5dc6d82ce33",
+      "sha256": "7e29bc310e75d11cf46f51109877dc6a868708a0e99065480c03d89b4cb238cf",
       "ranges": [
         [
           1,
           84
         ]
       ],
-      "note": "Read in audit continuation. Historical release notes retained as history; current setup guidance clarified. Runtime fixes and tests recorded in AUDIT-CONTINUATION.md."
+      "note": "Read in audit continuation. Historical release notes retained as history; current setup guidance clarified. Runtime fixes and tests recorded in AUDIT-CONTINUATION.md. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "src/settings/application/settings-groups14332.js": {
       "sha256": "e42b287511641e75fc8c48c88217d052162cb4db10c3adfd31c415582b7ee70b",
@@ -698,16 +688,6 @@
         [
           1,
           3
-        ]
-      ],
-      "note": "Read complete source including labels, conditions and effects. No independent confirmed defect; preserve mapped standalone/bundle compatibility and current appearance."
-    },
-    "src/core/navigation/navigation-experiment14366.css": {
-      "sha256": "9399275dc73cf0e09a341a1a79385938b6503817ea1bc007b3b06510306a9a48",
-      "ranges": [
-        [
-          1,
-          5
         ]
       ],
       "note": "Read complete source including labels, conditions and effects. No independent confirmed defect; preserve mapped standalone/bundle compatibility and current appearance."
@@ -1353,14 +1333,14 @@
       "note": "Read every line and title, scoped rules and effects. Retained current behavior; no independent confirmed defect. Extracted fragments still require whole-module integration review."
     },
     "src/core/sync/local-first14333.js": {
-      "sha256": "296808546134a91f03fc4a6799a4e0f09a085a653cdca954ac40b586b0ee2321",
+      "sha256": "fb0d6295bebb1d8d0d54c47467b691689c7f32fee835d84470a3ea697a4e4054",
       "ranges": [
         [
           1,
           73
         ]
       ],
-      "note": "Read complete IndexedDB, outbox, sync, snapshots, projections, cache retirement and lifecycle. Fixed actor races at initialization/storage boundaries, before sync writes, cached fallback, delayed renders and storage events. Extended regression tests pass."
+      "note": "Read complete IndexedDB, outbox, sync, snapshots, projections, cache retirement and lifecycle. Fixed actor races at initialization/storage boundaries, before sync writes, cached fallback, delayed renders and storage events. Extended regression tests pass. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "src/shared/data/workforce-storage-v82.js": {
       "sha256": "0f2c3cc3c0943ddcd039df9ee4c919a827aeab1b2be59997f61db0dcedfdbe2b",
@@ -5343,14 +5323,14 @@
       "note": "Full review; cached Home loading; database-isolated reads; guarded post-confirmation mutations; copy directory before adding self."
     },
     "src/subusers/workspace/team-home14227.js": {
-      "sha256": "519a8d1c587ee829371eef2e6a9132fd08aa58b82e9c3055af300b9ba254f2ef",
+      "sha256": "929105a680d1bef700bb715d46d969899813eec507d2aff4c508cf2d8ed78f64",
       "ranges": [
         [
           1,
           98
         ]
       ],
-      "note": "Full review; shared pending load, cached load entry point, database identity, no report search serialization for empty query, configured dates."
+      "note": "Full review; shared pending load, cached load entry point, database identity, no report search serialization for empty query, configured dates. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "src/subusers/phone/connected/navigation.js": {
       "sha256": "57e25c12bba2529bab935f77b5fc7d8377ea18a3252163570cf73505d77d13ea",
@@ -5423,14 +5403,14 @@
       "note": "Full review; preserve extra credit columns in double entry; reject negative/nonfinite mode conversion, active account choices, indexed sync lookup and reset building on error."
     },
     "src/bookkeeping/finalization/transaction-review-and-audit.js": {
-      "sha256": "79379b727c1d33ac62979f72849fcb7f68056bb11c6d23cfe893b2b47272ea75",
+      "sha256": "18a32e3e4aa5c4937022426a21d1f193d30332707dbe0b899b5783f4598f33fa",
       "ranges": [
         [
           1,
-          96
+          120
         ]
       ],
-      "note": "Full review; guarded review/void/period transitions and audit reads, duplicate void protection, safe grouped IDs and handlers, preserve audit zero values."
+      "note": "Full review; guarded review/void/period transitions and audit reads, duplicate void protection, safe grouped IDs and handlers, preserve audit zero values. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "src/maintenance/backup/sync-recovery14351.js": {
       "sha256": "299674a786ec591d8db23ffff9d138b2e6bc3ecac126372edf1d276bc91d0a9a",
@@ -5473,14 +5453,14 @@
       "note": "Full review; original owner/client guards for journal post/retry; full credit snapshot preservation; reset restored reference on account change; awaited exports and persisted row moves."
     },
     "src/core/navigation/shell-v113.js": {
-      "sha256": "7a683fcf2b403420de8beefba8e0c084013168336f7ccfc8b4ec7e69da8460bc",
+      "sha256": "03f86de43c711d866e105a46dedd96cad704496b5024991b45c7bb19e7cd493d",
       "ranges": [
         [
           1,
           41
         ]
       ],
-      "note": "Full review; owner/client scoped presentation loads, stale response/save protection, handled photo failure, bitmap owner guard, stable logo style updates."
+      "note": "Full review; owner/client scoped presentation loads, stale response/save protection, handled photo failure, bitmap owner guard, stable logo style updates. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "src/core/auth/recovery-v113.js": {
       "sha256": "1529524a962c16a87830ba5174c5798f4f68e4f836c1bbec8da29c129cee3c0b",
@@ -5653,14 +5633,14 @@
       "note": "Full 781-line review: password wrapping, storage adapters, legacy migration, auth and inactivity. Guard password rewrap against actor/key changes, prevent concurrent sign-in, close migration databases on failure and check migration actor. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "src/core/sync/offline14239.js": {
-      "sha256": "3fc3101d6d7973633236444faee3f804f3f21f4f122976e1ac197ea9b4cd9ec9",
+      "sha256": "8fa516b75c546574c72dd969386165b62b4c13ca2bea93a7bdedc0fa32136aa4",
       "ranges": [
         [
           1,
           157
         ]
       ],
-      "note": "Full review: encrypted snapshots, request fallback, device queue, sync and shell status. Cache hits/restores verify actor/client/workspace, reuse one cache read, partition queue cache by database, retain original job on session change, format displayed dates. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes."
+      "note": "Full review: encrypted snapshots, request fallback, device queue, sync and shell status. Cache hits/restores verify actor/client/workspace, reuse one cache read, partition queue cache by database, retain original job on session change, format displayed dates. Subsequent authored changes/diffs reviewed in continuation; see AUDIT-CONTINUATION.md and focused regressions. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "src/subusers/entries/subusers-final-v56.js": {
       "sha256": "46734e315a911ffe2729a646e01becf8b3546779c3c7fed91baae13433df3dc1",
@@ -6153,14 +6133,14 @@
       "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution."
     },
     "desktop-sw14242.js": {
-      "sha256": "d4d20aad9e8663771021c4ffd273fdb9da1ddf531f2afe2b35915ef4e2cdf7bc",
+      "sha256": "7b18250b1b785213df162c9b9c89ee67a049cbf52230ffca581ef9ae3285667c",
       "ranges": [
         [
           1,
-          330
+          328
         ]
       ],
-      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes."
+      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "validation/test-shell-isolation14370.cjs": {
       "sha256": "1d336751cac29873192a86bbfd5b9b03426690b475bbda7f6b3498889cdd08cc",
@@ -6183,24 +6163,24 @@
       "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution."
     },
     "src/manifest.json": {
-      "sha256": "001572c36e699e479d516730a8450ee45c9820adc0f61ba41e7969cf320031e4",
+      "sha256": "a8878ce55c3a5cf8dde560c9944ae8e671467f2069979c1367d8a5a848b64921",
       "ranges": [
         [
           1,
-          4118
+          4108
         ]
       ],
-      "note": "Reviewed schema, metadata, preserved variants and every source/output reference via structured traversal; all 578 source references reviewed; prefixes are source comments and suffixes only newline/semicolon. Generated identity checked by canonical builder. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
+      "note": "Reviewed schema, metadata, preserved variants and every source/output reference via structured traversal; all 578 source references reviewed; prefixes are source comments and suffixes only newline/semicolon. Generated identity checked by canonical builder. Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "desktop.html": {
-      "sha256": "6622fcd169c41df8c390cbf2869fdbe0a5c3ffe2a2fef81d4a3c52d1ab9ec472",
+      "sha256": "f6bfcd09489bea08853cc4388622351d921c705a88ba245c8919004256a67502",
       "ranges": [
         [
           1,
-          1323
+          1321
         ]
       ],
-      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes."
+      "note": "Read full text or all changed lines with exact unchanged blocks mapped to hash-current reviewed test. Historical fixture assertions retained; not a claim of current test execution. v143.71: reviewed worker isolation or release-reference diff; validated generated identity and legacy Word browser regression. v143.72: reviewed image-export/release-reference diff; browser export regression verified. v143.73 reviewed bounded ZIP worker/PDF cleanup or release-reference diff; browser regressions verified. v143.75 changed source/entrypoint reviewed: bounded PDF worker lifecycle and cache-version alignment; focused browser regression passes. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "phone-accounting.html": {
       "sha256": "d5c3ac6cc9204e0bd717db4688feccf34785d102d79cf891e6338f9da088b1ad",
@@ -7193,14 +7173,14 @@
       "note": " Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "validation/test-phase0-real-navigation.cjs": {
-      "sha256": "487a317362b74991c50a2dc5cfa8cc7f79392ae05654cc0af806bc01c9eb0616",
+      "sha256": "e7ca73dc809ed67037b07ba860b74ab8354c805e09547b888c0e6a88451c38e3",
       "ranges": [
         [
           1,
           96
         ]
       ],
-      "note": " Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
+      "note": " Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "validation/phase0-browser-fixture.cjs": {
       "sha256": "3bffb3d5aa8b2394eac223e8f03c2ddf818f5e371fa8ecc3b43db29cc21a9ca5",
@@ -7213,14 +7193,14 @@
       "note": " Continuation: read or reviewed authored diff against previously read source. Current fixes and verification are recorded in docs/AUDIT-CONTINUATION.md. Fresh installer additions are assembled from reviewed SQL, restored in isolated PostgreSQL and function-body checked."
     },
     "validation/test-phase0-structure.py": {
-      "sha256": "8ffb04a1038152d20b46eb1920624fa37c488b6f14eca0b9986887f5375fd880",
+      "sha256": "70151649432741f8ff648df80e1c6231e5fc14a4187ef5f2839c7acf9ee6b984",
       "ranges": [
         [
           1,
           38
         ]
       ],
-      "note": "Full text or every novel line reviewed with exact shared blocks mapped to previously reviewed fixtures. Historical version assertions retained. SQL fixtures guarded and independently rolled back; isolated fresh backend 32 checks pass."
+      "note": "Full text or every novel line reviewed with exact shared blocks mapped to previously reviewed fixtures. Historical version assertions retained. SQL fixtures guarded and independently rolled back; isolated fresh backend 32 checks pass. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "assets/vendor/README.txt": {
       "sha256": "b14204cc55fbd5729af83e316b595156cd86633f8e2c24713b529fe54c4d9fc3",
@@ -7251,16 +7231,6 @@
         ]
       ],
       "note": "Complete source/content read and authored changes reviewed. Database tests are isolated PGlite fixtures; historical tests are not certified current gates. Calendar feed structure/titles reviewed without refreshing event facts or checkedAt. See continuation for regression evidence."
-    },
-    "validation/test-blank-latency14370.cjs": {
-      "sha256": "ef32adb5758cc6bc3148cd0b9a00db1bb5d1d5d10247aba8210302c412788052",
-      "ranges": [
-        [
-          1,
-          17
-        ]
-      ],
-      "note": "Continuation line-level review: hidden-panel status scan, starter retry/client lifecycle, phone dialog promises, voucher-history regression, timing measurement and inventory logic. See docs/AUDIT-CONTINUATION.md."
     },
     "validation/test-phase0-navigation-preservation.cjs": {
       "sha256": "ce8affe2829d9206f149e6aa6452fe8a923aaa74d55c3b69cbabeef16b615c3f",
@@ -8373,14 +8343,14 @@
       "note": "Full source reviewed in continuation. Browser fixtures use synthetic data and intercept external traffic. Historical version assertions remain historical; review does not claim these tests passed against current release."
     },
     "validation/profile-navigation14367.cjs": {
-      "sha256": "505411896a808faa01eacbe65b74aca9173b364958345b53b6f2875b43d6b6f2",
+      "sha256": "75de95e121fa3c71ccb8fd6d4afba8e37c64307c35fc3b53d28ea1ca9b486833",
       "ranges": [
         [
           1,
           6
         ]
       ],
-      "note": "Full source reviewed in continuation. Browser fixtures use synthetic data and intercept external traffic. Historical version assertions remain historical; review does not claim these tests passed against current release."
+      "note": "Full source reviewed in continuation. Browser fixtures use synthetic data and intercept external traffic. Historical version assertions remain historical; review does not claim these tests passed against current release. v143.76 in-place fix/removal reviewed; navigation and delayed journal/audit regression suite passes."
     },
     "validation/test-admin-access14251.cjs": {
       "sha256": "cc2a5c33a47caa9cbe7f63b10ef61097f3867f40abc10ebbb95ffec859cdda0e",
@@ -8791,16 +8761,6 @@
         ]
       ],
       "note": "Full source reviewed, including differences between independent-phone test versions. Removed obsolete host-specific dependency/output paths where present. Historical release assertions retained; review does not imply current passing execution."
-    },
-    "validation/test-navigation-experiment14366.cjs": {
-      "sha256": "18b97da38418170b1ed49e24079caf4662405b5f09139917ef7ef037c8916043",
-      "ranges": [
-        [
-          1,
-          2
-        ]
-      ],
-      "note": "Full test source review recorded in preceding continuation checkpoint; reconciled here. Review is separate from execution results."
     },
     "validation/test-all-navigation14367.cjs": {
       "sha256": "521cb11a348516788c7da65e38940b4d760b750b81f7cc172e65cc592774cf17",
@@ -10516,6 +10476,30 @@
   "retired": {
     "src/dashboard/summary-chart.js": {
       "reason": "Read completely; obsolete hardcoded sample revenue controller. No canvas exists. Removed controller and its sole caller; Chart.js excluded from current startup and offline assets."
+    },
+    "src/core/navigation/navigation-experiment14366.js": {
+      "sha256": "4c46fc0e4a5cda2490e4e6583ab0712b10b3c9f7ba6cf9de85c8b67b0093c68d",
+      "reason": "v143.76 user-requested removal of temporary navigation experiments and their superseded tests."
+    },
+    "src/core/navigation/navigation-experiment14366.css": {
+      "sha256": "9399275dc73cf0e09a341a1a79385938b6503817ea1bc007b3b06510306a9a48",
+      "reason": "v143.76 user-requested removal of temporary navigation experiments and their superseded tests."
+    },
+    "validation/test-blank-latency14370.cjs": {
+      "sha256": "ef32adb5758cc6bc3148cd0b9a00db1bb5d1d5d10247aba8210302c412788052",
+      "reason": "v143.76 user-requested removal of temporary navigation experiments and their superseded tests."
+    },
+    "validation/test-navigation-experiment14366.cjs": {
+      "sha256": "18b97da38418170b1ed49e24079caf4662405b5f09139917ef7ef037c8916043",
+      "reason": "v143.76 user-requested removal of temporary navigation experiments and their superseded tests."
+    },
+    "scripts/navigation-experiment14366.js": {
+      "sha256": "4c46fc0e4a5cda2490e4e6583ab0712b10b3c9f7ba6cf9de85c8b67b0093c68d",
+      "reason": "v143.76 user-requested removal of temporary navigation experiments and their superseded tests."
+    },
+    "styles/navigation-experiment14366.css": {
+      "sha256": "9399275dc73cf0e09a341a1a79385938b6503817ea1bc007b3b06510306a9a48",
+      "reason": "v143.76 user-requested removal of temporary navigation experiments and their superseded tests."
     }
   },
   "generated": {
@@ -10571,7 +10555,7 @@
       ]
     },
     "scripts/script.js": {
-      "sha256": "c769b04be72a1c8f33e8056579210053b07f89515e262fc9261a9ecbcfe85342",
+      "sha256": "a91ab6747813ea30725600bd53f47f25aff0048123791577a84a346e342c04e7",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/shared/state/accounting-store.js",
@@ -11029,7 +11013,7 @@
       ]
     },
     "scripts/desktop14245-3.js": {
-      "sha256": "c1b3a37fbd083767a5097b2467844c208bd8aef48c518269b59ae245ffdb320d",
+      "sha256": "d0dbdf56ef22a150e1788b2f7c93fff9127e1db38b6a28174cc00534ce1a986e",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/subusers/workspace/workspace-request-v138.js",
@@ -11272,7 +11256,7 @@
       ]
     },
     "scripts/shell-v113.js": {
-      "sha256": "0e34a5ef38cd2b080fa840605fbd08560144b891dbd9a0c72bb4bb8e4c56faef",
+      "sha256": "4fc2e4ce59348fd27a064f963748bcfa5e77d9423ed89681672dbb58da7a4fa9",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/navigation/shell-v113.js"
@@ -11286,7 +11270,7 @@
       ]
     },
     "scripts/desktop14245-4.js": {
-      "sha256": "1fcb435cacc3cdb6b1ac00cba9cb7ec14233afc0405cc497ec4443c8b22dfefd",
+      "sha256": "dae84dd23ba154907dbcd6474d0e0b7f28520595abd6865bfac8ea73bfaa1ef5",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/documents/import-export/document-export-v108.js",
@@ -11629,7 +11613,7 @@
       ]
     },
     "scripts/team-home14227.js": {
-      "sha256": "dff1b64e074975cd8304a531c15f3bbad916903d5928bc3c0b222a2228abe875",
+      "sha256": "48893c5b417999b91630fc989b549f2ef46bb896785e104d31952f6c77730d4b",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/subusers/workspace/team-home14227.js"
@@ -11699,7 +11683,7 @@
       ]
     },
     "scripts/desktop14245-6.js": {
-      "sha256": "56f9d1040ade4c82133b428d0e11f15f79a352d0ce8facebe3dd2953c7a41e32",
+      "sha256": "46ad20c8a613a32dc56afe403a903e7211976ff54026fe69af0dd9a1a6c79d1f",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/bookkeeping/finalization/carry-forward-v142.js",
@@ -12540,7 +12524,7 @@
       ]
     },
     "scripts/local-first14333.js": {
-      "sha256": "296808546134a91f03fc4a6799a4e0f09a085a653cdca954ac40b586b0ee2321",
+      "sha256": "fb0d6295bebb1d8d0d54c47467b691689c7f32fee835d84470a3ea697a4e4054",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/sync/local-first14333.js"
@@ -12582,7 +12566,7 @@
       ]
     },
     "scripts/offline14239.js": {
-      "sha256": "3fc3101d6d7973633236444faee3f804f3f21f4f122976e1ac197ea9b4cd9ec9",
+      "sha256": "8fa516b75c546574c72dd969386165b62b4c13ca2bea93a7bdedc0fa32136aa4",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/sync/offline14239.js"
@@ -12991,7 +12975,7 @@
       ]
     },
     "scripts/workspace-consistency14343.js": {
-      "sha256": "9520594907ead8e6fc8fda7ccf8fb492c744fc374bd813a2a6ce1a123be2c2ea",
+      "sha256": "00652a6f9f1dacdca0cb482b4f45a60791a89bbf007002437ef9aa7237e4e27a",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/subusers/workspace/workspace-consistency14343.js"
@@ -13553,24 +13537,10 @@
       ]
     },
     "scripts/prepared-workspace14364.js": {
-      "sha256": "fb824e382668f7853c37eec8f45f30ed9d92a33b00c2a8f99a93e5dc6d82ce33",
+      "sha256": "7e29bc310e75d11cf46f51109877dc6a868708a0e99065480c03d89b4cb238cf",
       "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
       "sources": [
         "src/core/rendering/prepared-workspace14364.js"
-      ]
-    },
-    "scripts/navigation-experiment14366.js": {
-      "sha256": "4c46fc0e4a5cda2490e4e6583ab0712b10b3c9f7ba6cf9de85c8b67b0093c68d",
-      "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
-      "sources": [
-        "src/core/navigation/navigation-experiment14366.js"
-      ]
-    },
-    "styles/navigation-experiment14366.css": {
-      "sha256": "9399275dc73cf0e09a341a1a79385938b6503817ea1bc007b3b06510306a9a48",
-      "method": "tools/build-modules.py --check; byte identity to mapped canonical sources, not separate manual code review",
-      "sources": [
-        "src/core/navigation/navigation-experiment14366.css"
       ]
     }
   },
@@ -13610,7 +13580,7 @@
       "method": "Parsed JSON recursively, OOXML XML/CRC/macros/external relationships, or decoded image with contact-sheet inspection. Historical evidence is not current acceptance; failure flags retained."
     },
     "assets/maintenance/release14324.json": {
-      "sha256": "775da7f8991b6b58f7bbe920193b3b045cb857c527d7d28d5cd109636ade0804",
+      "sha256": "ca31551b579eff8c3f133818db4d7a98e4149d33e56dfe6bb0a8d1e4e3d46501",
       "method": "Parsed complete JSON. Release/correction hashes verified against current reviewed files; database evidence contains read-only aggregate visibility fingerprints."
     },
     "assets/maintenance/report-template14326.xlsx": {
@@ -13905,7 +13875,7 @@
       "method": "Parsed JSON recursively, OOXML XML/CRC/macros/external relationships, or decoded image with contact-sheet inspection. Historical evidence is not current acceptance; failure flags retained."
     },
     "validation/phase0-corrections.json": {
-      "sha256": "236795e53e048ccdd979428171d67186404776b94dda9bcb960defdc433e23f1",
+      "sha256": "84f2ea9878db2e5a62dd6ba7a4af5f5e9e6464691a213d380ee14e8fde5060c9",
       "method": "Parsed complete JSON. Release/correction hashes verified against current reviewed files; database evidence contains read-only aggregate visibility fingerprints."
     },
     "validation/phase0-navigation-fixes-results.json": {

@@ -1,7 +1,7 @@
 /* Keep rendered workspaces for this authenticated session. Data and form changes invalidate only their dependants. */
 (()=>{'use strict';
 const prepared=new Map(),shelves=new Map(),versions={journal:0,payroll:0,reference:0,review:0,settings:0};
-let preparingTarget='',owner='',ownerClient=null,navigation=0,building=false,pendingBuild=null,queued=false;
+let preparingTarget='',owner='',ownerClient=null,navigation=0,rendering=false,building=false,pendingBuild=null,queued=false;
 const current=()=>document.querySelector('.tab-content.active')?.id||'';
 const client=()=>typeof ojmDb==='undefined'?null:ojmDb;
 const actor=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
@@ -58,8 +58,8 @@ async function build(initial=true){if(pendingBuild)return pendingBuild;const who
   const targets=[...document.querySelectorAll('.tab-content[id]')].map(n=>n.id).filter(allowed);
   for(const id of targets){if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');if(!initial&&(id===current()||valid(id)))continue;
    preparingTarget=id;const node=document.getElementById(id),prior=[...document.querySelectorAll('.tab-content.active')];prior.forEach(n=>n.classList.remove('active'));node.classList.add('active');restore(id);
-   let result;try{const fn=renderer(id);result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(()=>fn?.()):fn?.();}
-   finally{node.classList.remove('active');prior.forEach(n=>n.classList.add('active'));holdPayroll(current());}
+   let result;try{rendering=true;const fn=renderer(id);result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(()=>fn?.()):fn?.();}
+   finally{rendering=false;node.classList.remove('active');prior.forEach(n=>n.classList.add('active'));holdPayroll(current());}
    if(result?.then)await result;if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');prepared.set(id,signature(id));
    await new Promise(resolve=>setTimeout(resolve,0));if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');
   }
@@ -79,6 +79,6 @@ function ready(){
  document.addEventListener('change',e=>{if(!e.isTrusted)return;const id=e.target.closest('.tab-content')?.id;if(id?.startsWith('settings-'))invalidate('settings',false);else if(id)prepared.delete(id);},true);
  window.addEventListener('pagehide',()=>{prepared.clear();shelves.clear()});
 }
-window.workspaceViews14364={build,finish,invalidate,restore,retainPayroll:holdPayroll,reuseView:id=>navigation>0&&!building&&valid(id),get preparing(){return building},get navigating(){return navigation>0},state:()=>({owner,preparingTarget,differences:Object.fromEntries([...prepared].filter(([id,s])=>!valid(id)).map(([id,s])=>[id,signature(id).map((v,i)=>v!==s[i]?i:null).filter(v=>v!==null)])),prepared:[...prepared.keys()],stale:[...prepared.keys()].filter(id=>!valid(id)),shelved:[...shelves.keys()]})};
+window.workspaceViews14364={build,finish,invalidate,restore,retainPayroll:holdPayroll,reuseView:id=>navigation>0&&!building&&valid(id),get rendering(){return rendering},get preparing(){return building},get navigating(){return navigation>0},state:()=>({owner,preparingTarget,differences:Object.fromEntries([...prepared].filter(([id,s])=>!valid(id)).map(([id,s])=>[id,signature(id).map((v,i)=>v!==s[i]?i:null).filter(v=>v!==null)])),prepared:[...prepared.keys()],stale:[...prepared.keys()].filter(id=>!valid(id)),shelved:[...shelves.keys()]})};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

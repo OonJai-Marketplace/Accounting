@@ -12,8 +12,8 @@ corrections = (json.loads(correction_file.read_text())['runtime_sha256']
                if correction_file.exists() else {})
 assert set(corrections) <= set(baseline['runtime_sha256']), 'Unknown correction asset'
 retired = set(json.loads(correction_file.read_text()).get('retired_assets', {})) if correction_file.exists() else set()
-assert retired <= {'tools/desktop-source14245.html'}, 'Unapproved retired asset'
-assert all(not (ROOT / name).exists() for name in retired), 'Retired builder snapshot returned'
+assert retired <= {'tools/desktop-source14245.html','scripts/navigation-experiment14366.js','styles/navigation-experiment14366.css'}, 'Unapproved retired asset'
+assert all(not (ROOT / name).exists() for name in retired), 'Retired asset returned'
 changed = [name for name, digest in baseline['runtime_sha256'].items()
            if name not in retired and hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != corrections.get(name, digest)]
 assert not changed, f'Runtime bytes differ from extraction/approved corrections: {changed}'

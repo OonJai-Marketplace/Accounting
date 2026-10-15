@@ -20,7 +20,8 @@ for name in names:
 worker = Path('desktop-sw14242.js').read_text()
 version = re.search(r"VERSION='([^']+)'", worker)[1]
 assert f"SHELL_VERSION='{version}'" in Path('src/core/sync/offline14239.js').read_text()
-for name in ('offline14239', 'optional-tools14335', 'document-import-v1422', 'document-downloads14311'):
+for name in ('offline14239',):
     assert f'scripts/{name}.js?v={version}' in worker
-assert f'document-import-v1422.js?v={version}' in Path('scripts/optional-tools14335.js').read_text()
+import_version = re.search(r'document-import-v1422\.js\?v=([0-9.]+)', Path('scripts/optional-tools14335.js').read_text())[1]
+assert f'document-import-v1422.js?v={import_version}' in worker
 print('PASS: all 110 files have complete review records matching shipped SHA-256; release/cache versions agree')

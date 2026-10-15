@@ -8,6 +8,7 @@ function measure(){let top=0;const positions=rows.map(row=>{const offset=top;if(
 
 function place(panel,node,anchor){if(!node)return anchor;if(anchor){if(anchor.nextElementSibling!==node)anchor.after(node)}else if(panel.firstElementChild!==node)panel.prepend(node);return node}
 function layout(){
+ if(window.workspaceViews14364?.rendering)return;
  decorateEmptyStates14355(document.querySelector('.tab-content.active'));
  if(innerWidth<=640||document.documentElement.dataset.device132==='phone')return;
  scrollArea=document.querySelector('.workspace-scroll');mainArea=document.querySelector('.main-content-area');
@@ -105,7 +106,7 @@ function reminders(unit){
  document.querySelectorAll('[data-reminder-unit14343]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.reminderUnit14343===unit)));
  fields.hidden=unit==='none';if(unit==='none'){RecurringStore.pendingReminders=[];renderPendingReminders()}else{document.getElementById('reminderUnit').value=unit;document.getElementById('reminderCountLabel14343').textContent=unit[0].toUpperCase()+unit.slice(1)+' before';document.getElementById('reminderCount').focus()}
 }
-function ready(){layout();document.querySelectorAll('[data-reminder-unit14343]').forEach(b=>b.onclick=()=>reminders(b.dataset.reminderUnit14343));const reset=window.resetRecurringForm;window.resetRecurringForm=function(...args){const result=reset.apply(this,args);reminders('none');return result};new MutationObserver(records=>{if(records.some(r=>{const panel=r.target.closest?.('.tab-content');return !panel||panel.classList.contains('active')}))schedule()}).observe(document.querySelector('.workspace-scroll')||document.body,{childList:true,subtree:true});window.addEventListener('page113',schedule);window.addEventListener('resize',schedule);document.addEventListener('fullscreenchange',()=>{document.body.classList.toggle('browser-full14344',!!document.fullscreenElement);schedule()});new MutationObserver(records=>{if(records.some(r=>r.oldValue!==document.body.className))schedule()}).observe(document.body,{attributes:true,attributeFilter:['class'],attributeOldValue:true})}
-const switch14362=window.switchTab;window.switchTab=function(...args){const result=switch14362.apply(this,args);schedule();return result};
+function ready(){layout();document.querySelectorAll('[data-reminder-unit14343]').forEach(b=>b.onclick=()=>reminders(b.dataset.reminderUnit14343));const reset=window.resetRecurringForm;window.resetRecurringForm=function(...args){const result=reset.apply(this,args);reminders('none');return result};new MutationObserver(records=>{if(records.some(r=>{const panel=r.target.closest?.('.tab-content');return !panel||panel.classList.contains('active')}))schedule()}).observe(document.querySelector('.workspace-scroll')||document.body,{childList:true,subtree:true});window.addEventListener('page113',layout);window.addEventListener('resize',schedule);document.addEventListener('fullscreenchange',()=>{document.body.classList.toggle('browser-full14344',!!document.fullscreenElement);schedule()});new MutationObserver(records=>{if(records.some(r=>r.oldValue!==document.body.className))schedule()}).observe(document.body,{attributes:true,attributeFilter:['class'],attributeOldValue:true})}
+const switch14362=window.switchTab;window.switchTab=function(...args){const result=switch14362.apply(this,args);layout();return result};
 window.workspaceConsistency14343={layout,dismiss};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

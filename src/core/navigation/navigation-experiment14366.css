@@ -1,5 +1,0 @@
-/* Temporary comparison links; leave the approved phone navigation unchanged. */
-body[data-navigation-experiment14366="Journal"] #categoryTabShell,
-body[data-navigation-experiment14366="Blank"] #categoryTabShell,
-#navigation-blank14366 > * { display:none !important; }
-@media(max-width:767px){#nav-experiment-Journal,#nav-experiment-Blank{display:none!important;}}

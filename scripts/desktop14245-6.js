@@ -1859,12 +1859,12 @@ function workspaceActions(){
 }
 function desktop(){
  const main=document.getElementById('sub-users-home14229')?.classList.contains('active'),active=document.getElementById('sub-users-workspace')?.classList.contains('active');
- if(document.body.classList.contains('team-shell14227')!==!!(active||main))document.body.classList.toggle('team-shell14227',!!(active||main));
- if(document.body.classList.contains('team-main14227')!==!!main)document.body.classList.toggle('team-main14227',!!main);
+ if(!window.workspaceViews14364?.rendering&&document.body.classList.contains('team-shell14227')!==!!(active||main))document.body.classList.toggle('team-shell14227',!!(active||main));
+ if(!window.workspaceViews14364?.rendering&&document.body.classList.contains('team-main14227')!==!!main)document.body.classList.toggle('team-main14227',!!main);
  const root=document.getElementById('branchHome14229');
  if(main&&root){if(!admin()){if(root.childNodes.length)root.replaceChildren();return}mount(root,{onUser:openUser,onReview:id=>{switchTab('user-entry-review');if(id)openSubmissionComparison(id)},onAccess:()=>switchTab('settings-users')});navigation();return;}
  if(!active)return;
- const tab=activeSubUserTab();if(!tab?.userId&&admin()){home();return}
+ const tab=activeSubUserTab();if(!tab?.userId&&admin()){if(!window.workspaceViews14364?.rendering)home();return}
  workspaceActions();navigation();
 }
 
