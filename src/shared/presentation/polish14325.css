@@ -108,7 +108,7 @@ html body #printableDocArea table.journal-no-actions14388 th:nth-child(4){width:
 html body #printableDocArea table.journal-no-actions14388 th.rate-col14387{width:100px!important}
 html body #printableDocArea table.journal-no-actions14388 th.num,html body #printableDocArea .personal-active1437 table.journal-no-actions14388 th:nth-last-child(-n+2){width:120px!important}
 html body #printableDocArea table.journal-no-actions14388 td{width:auto!important;min-width:0!important;max-width:none!important}
-html body #printableDocArea table.journal-no-actions14388 .entry-menu-trigger14387{display:inline-block!important;width:auto!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:32px!important;padding:3px 0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#065f46!important;font:inherit!important;text-align:left!important;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;overflow-wrap:anywhere!important}
+html body #printableDocArea table.journal-no-actions14388 .entry-menu-trigger14387{display:inline-block!important;width:auto!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:32px!important;padding:3px 0!important;border:0!important;border-radius:0!important;background:transparent!important;color:inherit!important;font:inherit!important;text-align:left!important;text-decoration:none!important;cursor:default;overflow-wrap:anywhere!important}
 html body #printableDocArea table.journal-no-actions14388 .entry-menu-trigger14387 small{display:block;font-size:10px}
 html body #printableDocArea table.journal-no-actions14388 .entry-menu-trigger14387:focus-visible{outline:2px solid #b68b43!important;outline-offset:2px}
 }}
@@ -138,10 +138,10 @@ html body #journalEntry98#journalEntry98#journalEntry98 #jeOptionsMenu14389 :is(
 html body #journalEntry98#journalEntry98#journalEntry98 #jeOptionsMenu14389 button:disabled {opacity:.5;cursor:default}
 html body #printableDocArea .clustered-journal-table tbody tr[data-entry-id]>td:is(.num,.rate-col14387) {font-family:'Plus Jakarta Sans',Arial,sans-serif!important;font-size:inherit!important;font-weight:400!important;font-variant-numeric:tabular-nums!important;text-align:right!important}
 html body #printableDocArea .clustered-journal-table th.rate-col14387 {text-align:right!important}
-html body #printableDocArea .clustered-journal-table tbody tr.entry-selected-line>td:not([rowspan]) {background:#ccebdd!important;box-shadow:inset 0 1px #059669,inset 0 -1px #059669!important}
+html body #printableDocArea .clustered-journal-table tbody tr.entry-selected-line>td:not([rowspan]) {background:#ccebdd!important;box-shadow:none!important}
 html body #printableDocArea .clustered-journal-table tbody tr:is(.entry-selected-line,.entry-hover-line)>td[rowspan] {background:inherit!important;box-shadow:none!important}
 }}
 .entry-options14389 {position:fixed;z-index:16000;min-width:190px;padding:6px;background:var(--bg-card,#fffaf0);color:var(--text-main,#173e2f);border:1px solid #9ab3a4;border-radius:8px;box-shadow:0 6px 24px #0003}
 .entry-options14389[hidden] {display:none!important}
-#journalEntry98 :is(.account-search1428,.je-line-acc) {touch-action:manipulation}
+#journalEntry98 :is(.account-search1428,.je-line-acc),.journal-no-actions14388 tr[data-entry-id] {touch-action:manipulation}
 @media print {.entry-options14389{display:none!important}}

@@ -112,6 +112,8 @@ window.carryForward142={load,render};
 /* Version 142 focused repair: visible, exact Post Double Entry diagnostics. */
 (function(){'use strict';
  const byId=id=>document.getElementById(id);
+ let touched=false;
+ function started(){return touched||!!JournalModule.editingEntryId||!!byId('jeGeneralMemo')?.value.trim()||!!byId('jeVoucher14299')?.value||[...document.querySelectorAll('#jeLinesBody .je-line-acc,#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr,#jeLinesBody .je-line-memo')].some(n=>n.value.trim())}
  const number=(value,input)=>{const clean=String(value??'').trim();if(!clean)return 0;const n=input?.dataset.numeric88||input?.type==='number'?Number(clean):parseAppNumber(clean);return Number.isFinite(n)?n:NaN};
  const money=value=>typeof formatAppNumber==='function'?formatAppNumber(value):Number(value).toLocaleString(undefined,{maximumFractionDigits:2});
  function diagnose(){
@@ -135,15 +137,22 @@ window.carryForward142={load,render};
   for(const message of state.errors||[])if(!problems.includes(message))problems.push(message);
   const differences=(state.differences||[]).map(d=>{const gap=Math.abs(Number(d.debit)-Number(d.credit)),side=Number(d.debit)>Number(d.credit)?'Credit':'Debit';return `${formatAppDate(d.date)} · ${d.currency}: add ${side} ${money(gap)} (DR ${money(d.debit)} / CR ${money(d.credit)}).`;});
   if(!used)return {valid:false,label:'Enter debit and credit',details:'Start with at least two posting lines: one Debit and one Credit.'};
-  if(problems.length)return {valid:false,label:problems[0],details:[...problems,...differences].join('\n')};
-  if(differences.length){const d=state.differences[0],gap=Math.abs(Number(d.debit)-Number(d.credit)),side=Number(d.debit)>Number(d.credit)?'CR':'DR';return {valid:false,label:`Add ${side} ${d.currency} ${money(gap)}`,details:differences.join('\n')};}
+  const gaps=(state.differences||[]).map(d=>`${Object.keys(state.grouped||{}).length>1?formatAppDate(d.date)+' · ':''}Add ${Number(d.debit)>Number(d.credit)?'CR':'DR'} ${d.currency} ${money(Math.abs(Number(d.debit)-Number(d.credit)))}`);
+  if(problems.length||gaps.length)return {valid:false,label:[...(problems.length?[problems[0]]:[]),...gaps].join(' · '),details:[...problems,...differences].join('\n')};
   const dates=Object.keys(state.grouped||{}).length;return {valid:true,label:'✓ Balanced',details:`Ready to post. Debit equals Credit${dates>1?` for all ${dates} dates`:''} in every currency.`};
  }
  function install(){
   if(!byId('jeBalanceIndicator')||window.postEntryDiagnostics142Installed)return;window.postEntryDiagnostics142Installed=true;
   const original=window.calculateJournalBalance;
-  window.calculateJournalBalance=function(){try{original?.apply(this,arguments)}catch(_){}const result=diagnose();const currencies=[...new Set([...document.querySelectorAll('#jeLinesBody .je-line-acc')].map(n=>getSelectedAccountInfo(n.value)?.currency).filter(Boolean))];if(currencies.length>1){const reminder=currencies.length+' currencies: '+currencies.join(', ');result.label=reminder+' · '+result.label;result.details=reminder+'. Check that Debit and Credit balance separately for each currency.\n'+result.details}const badge=byId('jeBalanceIndicator'),post=byId('btnPostJournal');if(!badge)return;badge.hidden=false;badge.textContent=result.label;badge.title=result.details;badge.setAttribute('aria-label',`${result.label}. ${result.details}`);badge.className='je-status-badge '+(result.valid?'balanced':'unbalanced');if(post)post.disabled=!result.valid;window.JournalCalculation14391?.refresh();};
-  const memo=byId('jeGeneralMemo');memo?.addEventListener('input',()=>window.calculateJournalBalance());
+  window.calculateJournalBalance=function(){
+   try{original?.apply(this,arguments)}catch(_){}
+   const result=diagnose(),badge=byId('jeBalanceIndicator'),post=byId('btnPostJournal');if(!badge)return;
+   badge.hidden=!started();badge.textContent=result.label;badge.title=result.details;badge.setAttribute('aria-label',`${result.label}. ${result.details}`);badge.className='je-status-badge '+(result.valid?'balanced':'unbalanced');if(post)post.disabled=!result.valid;
+   window.JournalCalculation14391?.refresh();
+  };
+  const changed=event=>{if(event.target.closest('#journalEntry98,#journalRates14383')){touched=true;window.calculateJournalBalance()}};
+  document.addEventListener('input',changed);document.addEventListener('change',changed);
+  const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){touched=false;const result=reset.apply(this,args);touched=false;window.calculateJournalBalance();return result};
   window.calculateJournalBalance();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
@@ -1642,7 +1651,7 @@ window.ForeignFunds14386={form,select,hierarchy,descendants,average,lineRateText
 const $=id=>document.getElementById(id),esc=v=>escapeHtml(String(v??''));
 const amountSelector='#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr';
 const selected=new Set();
-let selecting=false,selectedRate='',queued=false,drag=null,host,results,signature='',noticeTimer,badgeHome;
+let selectedRate='',queued=false,drag=null,host,results,signature='',noticeTimer;
 const round=n=>Math.round((n+Number.EPSILON)*100)/100;
 const number=v=>{const text=String(v??'').trim();return text?parseAppNumber(text):0};
 const money=n=>formatAppNumber(n),rateText=n=>new Intl.NumberFormat(appNumberLocale(),{maximumFractionDigits:8}).format(n);
@@ -1657,7 +1666,6 @@ function summarize(cells,rates,chosenCurrency=''){
  const foreign=Object.keys(totals).filter(c=>c!=='LAK');
  if(foreign.length>1)errors.push('Select one foreign currency at a time. USD and THB amounts cannot share one conversion.');
  const currency=foreign[0]||chosenCurrency;
- if(chosenCurrency&&foreign.length&&chosenCurrency!==currency)errors.push('The selected '+chosenCurrency+' rate does not match the '+currency+' amounts.');
  const rate=Number(rates[currency]),reverse=!foreign.length&&Object.hasOwn(totals,'LAK');
  if(!currency&&!errors.length)errors.push('Select a foreign amount or a matching exchange rate.');
  else if(!(Number.isFinite(rate)&&rate>0)&&!errors.length)errors.push('Enter a positive LAK per '+currency+' rate above.');
@@ -1680,20 +1688,37 @@ function holding(a,date){
  return {quantity,value,rate:value/quantity};
 }
 function rates(){return Object.fromEntries(Object.keys(JournalFX14383.capture()).map(c=>[c,JournalFX14383.rate(c)]))}
+function differenceHtml(value,lak){
+ const difference=round(value-lak),sign=difference>0?'+':difference<0?'−':'',label=difference>0?'remaining':difference<0?'over':'matched';
+ return '<span class="calc-line14391 calc-difference14391" data-difference="'+difference+'">Selected LAK: '+esc(money(lak))+' · Difference: <strong>'+sign+esc(money(Math.abs(difference)))+' LAK</strong> ('+label+')'+copyButton(difference,'signed difference')+'</span>';
+}
+function currencyGroup(currency,html){return '<section class="calc-currency14392" data-calculation-currency="'+esc(currency)+'">'+html+'</section>'}
 function selectionHtml(cells){
- const s=summarize(cells,rates(),selectedRate),lines=[];
- if(s.errors.length){lines.push('<span class="calc-warning14391">'+s.errors.map(esc).join(' ')+'</span>');return lines.join('')}
- if(s.value!==undefined){
-  lines.push('<span class="calc-line14391"><b>Selected total</b> · '+esc(money(s.source))+' '+esc(s.reverse?'LAK':s.currency)+(s.reverse?' ÷ ':' × ')+esc(rateText(s.rate))+' LAK/'+esc(s.currency)+' = '+resultValue(s.value,s.reverse?s.currency:'LAK','converted total')+'</span>');
-  if(s.difference!==undefined){const sign=s.difference>0?'+':s.difference<0?'−':'',label=s.difference>0?'remaining':s.difference<0?'over':'matched';lines.push('<span class="calc-line14391 calc-difference14391" data-difference="'+s.difference+'">Selected LAK: '+esc(money(s.totals.LAK))+' · Difference: <strong>'+sign+esc(money(Math.abs(s.difference)))+' LAK</strong> ('+label+')'+copyButton(s.difference,'signed difference')+'</span>')}
-  for(const c of cells.filter(c=>c.currency!=='LAK'))lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+' · '+esc(c.side)+' '+esc(money(c.amount))+' '+esc(c.currency)+' × '+esc(rateText(s.rate))+' = '+resultValue(round(c.amount*s.rate),'LAK',c.account+' equivalent')+'</span>');
+ const foreign=[...new Set(cells.map(c=>c.currency).filter(c=>c&&c!=='LAK'))],groups=foreign.length?foreign:[selectedRate||'LAK'],columns=[],availableRates=rates();
+ let total=0,complete=true;
+ for(const currency of groups){
+  const group=foreign.length?cells.filter(c=>c.currency===currency):cells;
+  const s=summarize(group,availableRates,selectedRate),lines=[];
+  if(s.errors.length){complete=false;lines.push('<span class="calc-warning14391">'+s.errors.map(esc).join(' ')+'</span>')}
+  else if(s.value!==undefined){
+   total+=s.value;
+   lines.push('<span class="calc-line14391"><b>Selected '+esc(s.reverse?'LAK':s.currency)+' total</b> · '+esc(money(s.source))+' '+esc(s.reverse?'LAK':s.currency)+(s.reverse?' ÷ ':' × ')+esc(rateText(s.rate))+' LAK/'+esc(s.currency)+' = '+resultValue(s.value,s.reverse?s.currency:'LAK','converted total')+'</span>');
+   for(const c of group.filter(c=>c.currency!=='LAK'))lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+' · '+esc(c.side)+' '+esc(money(c.amount))+' '+esc(c.currency)+' × '+esc(rateText(s.rate))+' = '+resultValue(round(c.amount*s.rate),'LAK',c.account+' equivalent')+'</span>');
+  }else complete=false;
+  columns.push(currencyGroup(currency,lines.join('')));
  }
- return lines.join('');
+ const unknown=cells.some(c=>!c.currency);
+ if(unknown){complete=false;columns.push('<span class="calc-warning14391">Choose an account for every selected amount.</span>')}
+ const lak=cells.filter(c=>c.currency==='LAK'),validLak=lak.every(c=>Number.isFinite(c.amount)&&c.amount>=0);
+ if(!validLak)columns.push('<span class="calc-warning14391">Selected LAK amounts must be valid non-negative numbers.</span>');
+ if(complete&&validLak&&foreign.length&&lak.length)columns.push('<div class="calc-comparison14392">'+(foreign.length>1?'<span class="calc-line14391">Combined LAK equivalent: '+resultValue(round(total),'LAK','combined equivalent')+'</span>':'')+differenceHtml(round(total),lak.reduce((sum,c)=>sum+c.amount,0))+'</div>');
+ return columns.join('');
 }
 function automaticHtml(){
- const lines=[],cache=new Map();
+ const groups=new Map(),cache=new Map();
  for(const input of document.querySelectorAll(amountSelector)){
   const c=read(input);if(!c.a?.trackForeignFunds||['LAK','NA'].includes(c.currency)||!c.amount||!Number.isFinite(c.amount))continue;
+  if(!groups.has(c.currency))groups.set(c.currency,[]);const lines=groups.get(c.currency);
   const prefix=esc(c.account)+' · '+esc(c.side)+' '+esc(money(c.amount))+' '+esc(c.currency),rate=JournalFX14383.lineRate(c.row,c.currency);
   if(rate>0)lines.push('<span class="calc-line14391">'+prefix+' × '+esc(rateText(rate))+' = '+resultValue(round(c.amount*rate),'LAK',c.account+' transaction equivalent')+' <small>transaction rate</small></span>');
   else lines.push('<span class="calc-line14391">'+prefix+' · Enter LAK per '+esc(c.currency)+' above.</span>');
@@ -1703,7 +1728,7 @@ function automaticHtml(){
   if(h.error)lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+': '+esc(h.error)+'</span>');
   else lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+' · '+esc(money(c.amount))+' '+esc(c.currency)+' × average '+esc(rateText(h.rate))+' = '+resultValue(round(c.amount*h.rate),'LAK',c.account+' value at average')+' <small>before entry'+(navigator.onLine?'':' · saved offline data')+'</small></span>');
  }
- return lines.join('');
+ return [...groups].map(([currency,lines])=>currencyGroup(currency,lines.join(''))).join('');
 }
 function decorate(){
  for(const input of document.querySelectorAll(amountSelector)){
@@ -1718,8 +1743,7 @@ function decorate(){
 }
 function visible(){const card=$('journalEntry98');return !!card?.getClientRects().length&&document.documentElement.dataset.device132!=='phone'&&!window.personalJournal1437?.active&&!$('loginGate')?.matches(':not(.is-authenticated)')}
 function layout(){
- if(!host)return;const show=visible();host.hidden=!show;document.body.classList.toggle('has-calculation14391',show);
- const badge=$('jeBalanceIndicator'),destination=show?$('calcJournalStatus14391'):badgeHome;if(badge&&destination&&badge.parentElement!==destination)destination.append(badge);
+ if(!host)return;const show=visible()&&!!signature;host.hidden=!show;document.body.classList.toggle('has-calculation14391',show);
  const main=document.querySelector('.main-content-area');if(!main)return;
  if(!main.dataset.calcPadding14391){main.dataset.calcPadding14391='1';main.style.setProperty('--calc-original-padding14391',getComputedStyle(main).paddingBottom)}
  if(show){const left=Math.max(0,main.getBoundingClientRect().left);host.style.left=left+'px';document.documentElement.style.setProperty('--calculation-height14391',Math.ceil(host.getBoundingClientRect().height)+'px')}
@@ -1728,19 +1752,16 @@ function layout(){
 function render(){
  queued=false;if(!host)return;
  for(const n of selected)if(!n.isConnected||!n.matches(amountSelector))selected.delete(n);
- if(window.entry1430?.mode==='single'){selected.clear();selecting=false;selectedRate=''}
+ if(window.entry1430?.mode==='single'){selected.clear();selectedRate=''}
  decorate();
- $('calcSelect14391').setAttribute('aria-pressed',String(selecting));$('calcSelect14391').disabled=window.entry1430?.mode==='single';
- $('jeLinesBody')?.classList.toggle('calc-selecting14391',selecting);
- $('calcClear14391').hidden=!selected.size&&!selectedRate;
- $('calcCount14391').textContent=selected.size?selected.size+' selected':'';
- for(const input of document.querySelectorAll('[data-fx-rate14383]'))input.classList.toggle('calc-rate-selected14391',selectedRate===input.dataset.fxRate14383);
+ const foreignSelected=[...selected].some(n=>read(n).currency!=='LAK');
+ for(const input of document.querySelectorAll('[data-fx-rate14383]'))input.classList.toggle('calc-rate-selected14391',!foreignSelected&&selectedRate===input.dataset.fxRate14383);
  const html=selected.size?selectionHtml([...selected].map(read)):automaticHtml();
  if(html!==signature){results.innerHTML=html;signature=html}
  results.hidden=!html;layout();
 }
 function refresh(){if(!queued){queued=true;requestAnimationFrame(render)}}
-function clear(){selected.clear();selectedRate='';selecting=false;refresh()}
+function clear(){selected.clear();selectedRate='';drag=null;refresh()}
 function toggle(input){if(selected.has(input))selected.delete(input);else selected.add(input);refresh()}
 async function copy(value,button){
  value=Number(value).toLocaleString(appNumberLocale(),{useGrouping:false,maximumFractionDigits:8});
@@ -1754,11 +1775,9 @@ async function copy(value,button){
 }
 function ready(){
  if(!$('jeLinesBody'))return;
- host=document.createElement('section');host.id='journalCalculation14391';host.className='no-print';host.hidden=true;host.setAttribute('aria-label','Journal status and calculation');
- host.innerHTML='<div class="calc-toolbar14391"><div id="calcJournalStatus14391"></div><div class="calc-tools14391"><span id="calcCount14391"></span><button type="button" id="calcSelect14391" aria-pressed="false" title="Select amount cells, drag a range, or Ctrl-click separate amounts">Select amounts</button><button type="button" id="calcClear14391" hidden>Clear</button><span id="calcCopyStatus14391" role="status"></span></div></div><div id="calcResults14391" aria-live="polite" aria-atomic="true"></div>';
+ host=document.createElement('section');host.id='journalCalculation14391';host.className='no-print';host.hidden=true;host.setAttribute('aria-label','Selected amount calculations');
+ host.innerHTML='<div id="calcResults14391" aria-live="polite" aria-atomic="true"></div><span id="calcCopyStatus14391" role="status"></span>';
  document.body.append(host);results=$('calcResults14391');
- const badge=$('jeBalanceIndicator');if(badge){badgeHome=badge.parentElement;$('calcJournalStatus14391').append(badge)}
- $('calcSelect14391').onclick=()=>{selecting=!selecting;refresh()};$('calcClear14391').onclick=clear;
  host.addEventListener('click',e=>{const b=e.target.closest('[data-copy-number]');if(b)void copy(b.dataset.copyNumber,b)});
  const card=$('journalEntry98'),body=$('jeLinesBody');
  card.addEventListener('input',refresh);card.addEventListener('change',refresh);
@@ -1767,16 +1786,20 @@ function ready(){
  document.addEventListener('focusin',chooseRate,true);document.addEventListener('click',chooseRate,true);
  document.addEventListener('input',e=>{if(e.target.matches('[data-fx-rate14383]'))refresh()},true);
  body.addEventListener('click',e=>{const pick=e.target.closest('.calc-pick14391');if(pick){e.preventDefault();e.stopPropagation();toggle(pick._amount14391)}},true);
- body.addEventListener('pointerdown',e=>{
-  if(e.button!==0||e.target.closest('.calc-pick14391'))return;
-  const input=e.target.closest('td')?.querySelector('.je-line-dr,.je-line-cr');if(!input||!(selecting||e.ctrlKey||e.metaKey))return;
-  e.preventDefault();e.stopPropagation();
-  const inputs=[...body.querySelectorAll('.je-line-dr,.je-line-cr')],start=inputs.indexOf(input),add=!selected.has(input),base=new Set(selected);
-  if(!(e.ctrlKey||e.metaKey)){base.clear();selected.clear()}
-  if(add)selected.add(input);else selected.delete(input);drag={inputs,start,base,add};refresh();
+ document.addEventListener('pointerdown',e=>{
+  if(e.button!==0||!visible())return;
+  if(host.contains(e.target)||e.target.closest('[data-fx-rate14383],#journalRates14383,.calc-pick14391'))return;
+  const input=e.target.closest('#jeLinesBody td')?.querySelector('.je-line-dr,.je-line-cr');
+  if(!input){clear();return}
+  const multi=e.ctrlKey||e.metaKey,inputs=[...body.querySelectorAll('.je-line-dr,.je-line-cr')],start=inputs.indexOf(input),base=multi?new Set(selected):new Set(),add=multi?!selected.has(input):true;
+  if(multi){e.preventDefault();if(add)selected.add(input);else selected.delete(input)}
+  else if(!selected.has(input)){selected.clear();selected.add(input);selectedRate=''}
+  if(e.pointerType!=='touch')drag={inputs,start,base,add};
+  refresh();
  },true);
- document.addEventListener('pointermove',e=>{if(!drag)return;const input=document.elementFromPoint(e.clientX,e.clientY)?.closest('td')?.querySelector('.je-line-dr,.je-line-cr'),end=drag.inputs.indexOf(input);if(end<0)return;selected.clear();for(const n of drag.base)selected.add(n);const r1=Math.floor(drag.start/2),r2=Math.floor(end/2),c1=drag.start%2,c2=end%2;for(let r=Math.min(r1,r2);r<=Math.max(r1,r2);r++)for(let c=Math.min(c1,c2);c<=Math.max(c1,c2);c++){const n=drag.inputs[r*2+c];if(drag.add)selected.add(n);else selected.delete(n)}refresh()});
+ document.addEventListener('pointermove',e=>{if(!drag)return;const input=document.elementFromPoint(e.clientX,e.clientY)?.closest('#jeLinesBody td')?.querySelector('.je-line-dr,.je-line-cr'),end=drag.inputs.indexOf(input);if(end<0||end===drag.start&&!drag.moved)return;drag.moved=true;e.preventDefault();window.getSelection()?.removeAllRanges();selected.clear();for(const n of drag.base)selected.add(n);const r1=Math.floor(drag.start/2),r2=Math.floor(end/2),c1=drag.start%2,c2=end%2;for(let r=Math.min(r1,r2);r<=Math.max(r1,r2);r++)for(let c=Math.min(c1,c2);c<=Math.max(c1,c2);c++){const n=drag.inputs[r*2+c];if(drag.add)selected.add(n);else selected.delete(n)}refresh()});
  document.addEventListener('pointerup',()=>{drag=null});document.addEventListener('pointercancel',()=>{drag=null});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')clear()});
  new MutationObserver(records=>{if(records.some(r=>[...r.addedNodes,...r.removedNodes].some(n=>n.nodeName==='TR'||n.nodeName==='INPUT')))refresh()}).observe(body,{childList:true,subtree:true});
  const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){clear();return reset.apply(this,args)};
  const editor=window.loadEntryForEdit;window.loadEntryForEdit=function(...args){clear();return editor.apply(this,args)};
@@ -1797,9 +1820,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (()=>{'use strict';
 let menu=null,anchor=null;const actions=new WeakMap();
 function close(focus=false){menu?.remove();menu=null;if(focus&&anchor?.isConnected)anchor.focus();anchor=null}
-function open(row,event){const body=row.closest('tbody'),id=row.dataset.entryId,entry=actions.get(body)?.get(id);if(!entry)return;close();anchor=[...body.querySelectorAll('[data-entry-menu14387]')].find(b=>b.dataset.entryMenu14387===id)||row;menu=document.createElement('div');menu.className='journal-entry-menu14387';menu.setAttribute('role','menu');menu.setAttribute('aria-label','Journal '+id+' actions');const label=document.createElement('strong');label.textContent=id;menu.append(label);for(const button of entry){button.setAttribute('role','menuitem');menu.append(button)}document.body.append(menu);const box=anchor.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(event?event.clientX+6:box.left,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(event?event.clientY+6:box.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button:not(:disabled)')?.focus()}
-function decorate(body,records=[],personal=false){if(!body)return;const map=new Map();body.closest('table')?.classList.add('journal-no-actions14388');for(const row of body.querySelectorAll('tr[data-entry-id]')){const id=row.dataset.entryId;row.tabIndex=0;row.setAttribute('aria-label','Journal '+id+'; Enter for actions');if(map.has(id))continue;const host=row.querySelector('.transaction-review-actions');if(!host)continue;const buttons=[...host.querySelectorAll('button')];if(personal){const root=body.closest('#personalWorkspace1437');for(const button of buttons)button.onclick=()=>{const event=new MouseEvent('click',{bubbles:true});const proxy=button.cloneNode(true);proxy.hidden=true;root.append(proxy);proxy.dispatchEvent(event);proxy.remove();};}else{const view=document.createElement('button');view.type='button';view.className='je-btn je-btn-secondary';view.textContent='View entry';view.onclick=()=>showJournalSource69(encodeURIComponent(id));buttons.unshift(view);}const label=host.parentElement.querySelector(':scope>span');const trigger=document.createElement('button');trigger.type='button';trigger.className='entry-menu-trigger14387';trigger.dataset.entryMenu14387=id;trigger.setAttribute('aria-label','Actions for '+(label?.textContent||id));trigger.setAttribute('aria-haspopup','menu');trigger.title='View entry actions';if(label)trigger.append(...label.childNodes);else trigger.textContent=id;label?.replaceWith(trigger);host.remove();map.set(id,buttons)}actions.set(body,map)}
-function ready(){const render=window.renderTransactionReviewTable;window.renderTransactionReviewTable=function(body,records,...args){close();const result=render.call(this,body,records,...args);decorate(body,records);return result};document.addEventListener('click',e=>{const trigger=e.target.closest('[data-entry-menu14387]');if(trigger){e.stopPropagation();open(trigger.closest('tr'));return}if(menu?.contains(e.target)){if(e.target.closest('button'))close();return}if(menu)close()});document.addEventListener('dblclick',e=>{if(e.target.closest('button,input,select,a'))return;const row=e.target.closest('tr[data-entry-id]');if(row&&actions.has(row.closest('tbody')))open(row,e)});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menu){e.preventDefault();close(true);return}if(menu&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){const buttons=[...menu.querySelectorAll('button:not(:disabled)')],i=buttons.indexOf(document.activeElement);e.preventDefault();buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();return}if(e.key==='Enter'&&e.target.matches('tr[data-entry-id]')){e.preventDefault();open(e.target)}});window.addEventListener('page113',()=>close());window.addEventListener('resize',()=>close());}
+function open(row,event){const body=row.closest('tbody'),id=row.dataset.entryId,entry=actions.get(body)?.get(id);if(!entry)return;close();anchor=row;menu=document.createElement('div');menu.className='journal-entry-menu14387';menu.setAttribute('role','menu');menu.setAttribute('aria-label','Journal '+id+' actions');const label=document.createElement('strong');label.textContent=id;menu.append(label);for(const button of entry){button.setAttribute('role','menuitem');menu.append(button)}document.body.append(menu);const box=anchor.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(event?event.clientX+6:box.left,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(event?event.clientY+6:box.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button:not(:disabled)')?.focus()}
+function decorate(body,records=[],personal=false){if(!body)return;const map=new Map();body.closest('table')?.classList.add('journal-no-actions14388');for(const row of body.querySelectorAll('tr[data-entry-id]')){const id=row.dataset.entryId;row.tabIndex=0;row.setAttribute('aria-label','Journal '+id+'; Enter for actions');if(map.has(id))continue;const host=row.querySelector('.transaction-review-actions');if(!host)continue;const buttons=[...host.querySelectorAll('button')];if(personal){const root=body.closest('#personalWorkspace1437');for(const button of buttons)button.onclick=()=>{const event=new MouseEvent('click',{bubbles:true});const proxy=button.cloneNode(true);proxy.hidden=true;root.append(proxy);proxy.dispatchEvent(event);proxy.remove();};}else if(document.documentElement.dataset.device132==='tablet'){const view=document.createElement('button');view.type='button';view.className='je-btn je-btn-secondary';view.textContent='View entry';view.onclick=()=>showJournalSource69(encodeURIComponent(id));buttons.unshift(view);}const label=host.parentElement.querySelector(':scope>span');const trigger=document.createElement('span');trigger.className='entry-menu-trigger14387';trigger.dataset.entryMenu14387=id;trigger.setAttribute('aria-label','Actions for '+(label?.textContent||id));trigger.setAttribute('aria-haspopup','menu');trigger.title='Double-click this row for entry actions';if(label)trigger.append(...label.childNodes);else trigger.textContent=id;label?.replaceWith(trigger);host.remove();map.set(id,buttons)}actions.set(body,map)}
+function ready(){const render=window.renderTransactionReviewTable;window.renderTransactionReviewTable=function(body,records,...args){close();const result=render.call(this,body,records,...args);decorate(body,records);return result};document.addEventListener('click',e=>{if(menu?.contains(e.target)){if(e.target.closest('button'))close();return}if(menu)close()});document.addEventListener('dblclick',e=>{if(e.target.closest('button,input,select,a'))return;const row=e.target.closest('tr[data-entry-id]');if(row&&actions.has(row.closest('tbody')))open(row,e)});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menu){e.preventDefault();close(true);return}if(menu&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){const buttons=[...menu.querySelectorAll('button:not(:disabled)')],i=buttons.indexOf(document.activeElement);e.preventDefault();buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();return}if(e.key==='Enter'&&e.target.matches('tr[data-entry-id]')){e.preventDefault();open(e.target)}});window.addEventListener('page113',()=>close());window.addEventListener('resize',()=>close());}
 window.JournalEntryMenu14387={close,decorate};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 

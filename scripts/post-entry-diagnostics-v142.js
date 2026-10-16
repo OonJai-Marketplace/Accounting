@@ -1,6 +1,8 @@
 /* Version 142 focused repair: visible, exact Post Double Entry diagnostics. */
 (function(){'use strict';
  const byId=id=>document.getElementById(id);
+ let touched=false;
+ function started(){return touched||!!JournalModule.editingEntryId||!!byId('jeGeneralMemo')?.value.trim()||!!byId('jeVoucher14299')?.value||[...document.querySelectorAll('#jeLinesBody .je-line-acc,#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr,#jeLinesBody .je-line-memo')].some(n=>n.value.trim())}
  const number=(value,input)=>{const clean=String(value??'').trim();if(!clean)return 0;const n=input?.dataset.numeric88||input?.type==='number'?Number(clean):parseAppNumber(clean);return Number.isFinite(n)?n:NaN};
  const money=value=>typeof formatAppNumber==='function'?formatAppNumber(value):Number(value).toLocaleString(undefined,{maximumFractionDigits:2});
  function diagnose(){
@@ -24,15 +26,22 @@
   for(const message of state.errors||[])if(!problems.includes(message))problems.push(message);
   const differences=(state.differences||[]).map(d=>{const gap=Math.abs(Number(d.debit)-Number(d.credit)),side=Number(d.debit)>Number(d.credit)?'Credit':'Debit';return `${formatAppDate(d.date)} · ${d.currency}: add ${side} ${money(gap)} (DR ${money(d.debit)} / CR ${money(d.credit)}).`;});
   if(!used)return {valid:false,label:'Enter debit and credit',details:'Start with at least two posting lines: one Debit and one Credit.'};
-  if(problems.length)return {valid:false,label:problems[0],details:[...problems,...differences].join('\n')};
-  if(differences.length){const d=state.differences[0],gap=Math.abs(Number(d.debit)-Number(d.credit)),side=Number(d.debit)>Number(d.credit)?'CR':'DR';return {valid:false,label:`Add ${side} ${d.currency} ${money(gap)}`,details:differences.join('\n')};}
+  const gaps=(state.differences||[]).map(d=>`${Object.keys(state.grouped||{}).length>1?formatAppDate(d.date)+' · ':''}Add ${Number(d.debit)>Number(d.credit)?'CR':'DR'} ${d.currency} ${money(Math.abs(Number(d.debit)-Number(d.credit)))}`);
+  if(problems.length||gaps.length)return {valid:false,label:[...(problems.length?[problems[0]]:[]),...gaps].join(' · '),details:[...problems,...differences].join('\n')};
   const dates=Object.keys(state.grouped||{}).length;return {valid:true,label:'✓ Balanced',details:`Ready to post. Debit equals Credit${dates>1?` for all ${dates} dates`:''} in every currency.`};
  }
  function install(){
   if(!byId('jeBalanceIndicator')||window.postEntryDiagnostics142Installed)return;window.postEntryDiagnostics142Installed=true;
   const original=window.calculateJournalBalance;
-  window.calculateJournalBalance=function(){try{original?.apply(this,arguments)}catch(_){}const result=diagnose();const currencies=[...new Set([...document.querySelectorAll('#jeLinesBody .je-line-acc')].map(n=>getSelectedAccountInfo(n.value)?.currency).filter(Boolean))];if(currencies.length>1){const reminder=currencies.length+' currencies: '+currencies.join(', ');result.label=reminder+' · '+result.label;result.details=reminder+'. Check that Debit and Credit balance separately for each currency.\n'+result.details}const badge=byId('jeBalanceIndicator'),post=byId('btnPostJournal');if(!badge)return;badge.hidden=false;badge.textContent=result.label;badge.title=result.details;badge.setAttribute('aria-label',`${result.label}. ${result.details}`);badge.className='je-status-badge '+(result.valid?'balanced':'unbalanced');if(post)post.disabled=!result.valid;window.JournalCalculation14391?.refresh();};
-  const memo=byId('jeGeneralMemo');memo?.addEventListener('input',()=>window.calculateJournalBalance());
+  window.calculateJournalBalance=function(){
+   try{original?.apply(this,arguments)}catch(_){}
+   const result=diagnose(),badge=byId('jeBalanceIndicator'),post=byId('btnPostJournal');if(!badge)return;
+   badge.hidden=!started();badge.textContent=result.label;badge.title=result.details;badge.setAttribute('aria-label',`${result.label}. ${result.details}`);badge.className='je-status-badge '+(result.valid?'balanced':'unbalanced');if(post)post.disabled=!result.valid;
+   window.JournalCalculation14391?.refresh();
+  };
+  const changed=event=>{if(event.target.closest('#journalEntry98,#journalRates14383')){touched=true;window.calculateJournalBalance()}};
+  document.addEventListener('input',changed);document.addEventListener('change',changed);
+  const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){touched=false;const result=reset.apply(this,args);touched=false;window.calculateJournalBalance();return result};
   window.calculateJournalBalance();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
