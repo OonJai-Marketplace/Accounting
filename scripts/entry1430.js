@@ -103,7 +103,7 @@ function pairs(){
 }
 function display(){
  const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.dataset.mode=mode;
- toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Double Entry':'Single Entry';toggle.setAttribute('aria-label',single?'Double Entry':'Single Entry');
+ toggle.setAttribute('aria-checked',String(single));$('jeDoubleEntry14389').setAttribute('aria-checked',String(!single));$('jeOptions14389').title='Entry options · '+(single?'Single Entry':'Double Entry');
  $('simpleEntry1430').hidden=!single;$('jeLinesBody').closest('.table-container').hidden=single;
  $('journalEntry98').classList.toggle('single-entry1430',single);$('simpleEntry1430').querySelectorAll('input,select,button').forEach(n=>{n.disabled=!!lastSingle?.unmapped;});
  $('journalEntry98').querySelector('.je-title').textContent=single?'Post Single-Entry Transaction':'Post Double-Entry Transaction';
@@ -141,11 +141,21 @@ function deleteAt(index){
 }
 function ready(){
  const card=$('journalEntry98');if(!card)return;
- const group=document.createElement('div');group.className='entry-mode1430 je-field-group';group.innerHTML='<span>Entry type</span><button type="button" id="jeEntryMode1430" class="entry-toggle1432 entry-mode-button14271" aria-label="Single Entry" title="Switch between Single Entry and Double Entry"><span data-entry-mode-label1430>Single Entry</span></button>';
+ const group=document.createElement('div');group.className='entry-mode1430 je-field-group';group.innerHTML='<button type="button" id="jeOptions14389" class="je-btn je-btn-secondary" aria-label="Entry options" aria-haspopup="menu" aria-expanded="false" aria-controls="jeOptionsMenu14389">☰ <span>Entry options</span></button><div id="jeOptionsMenu14389" class="entry-options14389" role="menu" aria-label="Entry options" hidden><button type="button" id="jeEntryMode1430" role="menuitemradio" aria-checked="false"><span data-entry-mode-label1430>Single Entry</span></button><button type="button" id="jeDoubleEntry14389" role="menuitemradio" aria-checked="true">Double Entry</button></div>';
  card.querySelector('.je-meta-grid').append(group);
  const panel=document.createElement('section');panel.id='simpleEntry1430';panel.hidden=true;panel.innerHTML='<div id="simpleRows1430"></div><p id="simplePreview1430" role="status"></p>';
  card.querySelector('.table-container').before(panel);add();
- $('jeEntryMode1430').onclick=()=>setMode(mode==='single'?'double':'single');
+ $('jeEntryMode1430').onclick=()=>setMode('single');
+ $('jeDoubleEntry14389').onclick=()=>setMode('double');
+ const options=$('jeOptions14389'),menu=$('jeOptionsMenu14389');
+ for(const button of card.querySelectorAll('.je-header-actions>button[onclick]')){button.setAttribute('role','menuitem');menu.append(button);}
+ const closeOptions=(focus=false)=>{menu.hidden=true;options.setAttribute('aria-expanded','false');if(focus)options.focus()};
+ const openOptions=()=>{menu.hidden=false;options.setAttribute('aria-expanded','true');const box=options.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(box.right-menu.offsetWidth,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(box.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button:not(:disabled)')?.focus()};
+ options.onclick=()=>menu.hidden?openOptions():closeOptions();
+ menu.addEventListener('click',e=>{if(e.target.closest('button'))closeOptions()});
+ document.addEventListener('click',e=>{if(!menu.hidden&&!group.contains(e.target))closeOptions()});
+ document.addEventListener('keydown',e=>{if(menu.hidden)return;if(e.key==='Escape'){e.preventDefault();closeOptions(true)}else if(e.key==='Tab')closeOptions();else if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();const items=[...menu.querySelectorAll('button:not(:disabled)')],i=items.indexOf(document.activeElement);items[e.key==='Home'?0:e.key==='End'?items.length-1:(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus()}});
+ window.addEventListener('resize',()=>closeOptions());window.addEventListener('page113',()=>closeOptions());
  for(const type of ['input','change'])panel.addEventListener(type,()=>{sync();saveDraft();});
  panel.addEventListener('click',e=>{if(document.documentElement.dataset.device132!=='tablet'||e.target.closest('input,button'))return;const source=e.target.closest('label')?.querySelector('select[data-simple=source],select[data-simple=affected]');if(source&&!source.disabled){e.preventDefault();window.dropdown1434?.open(source)};});
  for(const id of ['jeTransDate','jeMultipleDates'])$(id).addEventListener('change',sync);
