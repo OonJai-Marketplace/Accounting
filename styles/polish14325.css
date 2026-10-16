@@ -108,7 +108,7 @@ html body #printableDocArea table.journal-no-actions14388 th:nth-child(4){width:
 html body #printableDocArea table.journal-no-actions14388 th.rate-col14387{width:100px!important}
 html body #printableDocArea table.journal-no-actions14388 th.num,html body #printableDocArea .personal-active1437 table.journal-no-actions14388 th:nth-last-child(-n+2){width:120px!important}
 html body #printableDocArea table.journal-no-actions14388 td{width:auto!important;min-width:0!important;max-width:none!important}
-html body #printableDocArea table.journal-no-actions14388 .entry-menu-trigger14387{display:inline-block!important;width:auto!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:32px!important;padding:3px 0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#065f46!important;font:inherit!important;text-align:left!important;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer;overflow-wrap:anywhere!important}
+html body #printableDocArea table.journal-no-actions14388 .entry-menu-trigger14387{display:inline-block!important;width:auto!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:32px!important;padding:3px 0!important;border:0!important;border-radius:0!important;background:transparent!important;color:inherit!important;font:inherit!important;text-align:left!important;text-decoration:none!important;cursor:default;overflow-wrap:anywhere!important}
 html body #printableDocArea table.journal-no-actions14388 .entry-menu-trigger14387 small{display:block;font-size:10px}
 html body #printableDocArea table.journal-no-actions14388 .entry-menu-trigger14387:focus-visible{outline:2px solid #b68b43!important;outline-offset:2px}
 }}
@@ -138,41 +138,38 @@ html body #journalEntry98#journalEntry98#journalEntry98 #jeOptionsMenu14389 :is(
 html body #journalEntry98#journalEntry98#journalEntry98 #jeOptionsMenu14389 button:disabled {opacity:.5;cursor:default}
 html body #printableDocArea .clustered-journal-table tbody tr[data-entry-id]>td:is(.num,.rate-col14387) {font-family:'Plus Jakarta Sans',Arial,sans-serif!important;font-size:inherit!important;font-weight:400!important;font-variant-numeric:tabular-nums!important;text-align:right!important}
 html body #printableDocArea .clustered-journal-table th.rate-col14387 {text-align:right!important}
-html body #printableDocArea .clustered-journal-table tbody tr.entry-selected-line>td:not([rowspan]) {background:#ccebdd!important;box-shadow:inset 0 1px #059669,inset 0 -1px #059669!important}
-html body #printableDocArea .clustered-journal-table tbody tr:is(.entry-selected-line,.entry-hover-line)>td[rowspan] {background:inherit!important;box-shadow:none!important}
+html body #printableDocArea .clustered-journal-table tbody tr.entry-selected-line>td:not([rowspan]) {background:#ccebdd!important;box-shadow:none!important}
+html body #printableDocArea .clustered-journal-table tbody tr>td[rowspan] {background:#fffcf6!important;box-shadow:none!important}
+html body #printableDocArea .clustered-journal-table tbody tr.alt-transaction100>td[rowspan] {background:#e7efe6!important}
 }}
 .entry-options14389 {position:fixed;z-index:16000;min-width:190px;padding:6px;background:var(--bg-card,#fffaf0);color:var(--text-main,#173e2f);border:1px solid #9ab3a4;border-radius:8px;box-shadow:0 6px 24px #0003}
 .entry-options14389[hidden] {display:none!important}
-#journalEntry98 :is(.account-search1428,.je-line-acc) {touch-action:manipulation}
+#journalEntry98 :is(.account-search1428,.je-line-acc),.journal-no-actions14388 tr[data-entry-id] {touch-action:manipulation}
 @media print {.entry-options14389{display:none!important}}
 
-/* One compact notification surface; selected cells remain ordinary editable amounts. */
-#journalCalculation14391{position:fixed;bottom:0;right:0;z-index:950;box-sizing:border-box;padding:5px 12px calc(5px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--border-color,#a8bfaf);background:var(--bg-card,#fffaf0);color:var(--text-main,#183f30);box-shadow:0 -2px 7px #163c2510;font-size:12px;line-height:1.45;max-height:116px;overflow-y:auto}
+/* Compact currency calculations; posting diagnostics stay beside the entry actions. */
+#journalCalculation14391{position:fixed;bottom:0;right:0;z-index:950;box-sizing:border-box;padding:2px 12px calc(2px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--border-color,#a8bfaf);background:var(--bg-card,#fffaf0);color:var(--text-main,#183f30);box-shadow:0 -2px 7px #163c2510;font-size:12px;line-height:1.2;max-height:104px;overflow-y:auto}
 #journalCalculation14391[hidden]{display:none!important}
-.calc-toolbar14391{display:flex;gap:12px;align-items:center;justify-content:space-between;min-height:32px}
-#calcJournalStatus14391{flex:1;min-width:0}
-.calc-tools14391{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-#calcResults14391{display:flex;flex-direction:column;gap:2px;padding-top:3px}
+#calcResults14391{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;row-gap:0;padding:0}
+.calc-currency14392{min-width:0;display:flex;flex-direction:column;gap:0}
+.calc-currency14392:only-child{grid-column:1/-1}
+.calc-comparison14392{grid-column:1/-1;display:flex;flex-wrap:wrap;column-gap:16px}
+#calcCopyStatus14391:empty{display:none}
+#calcCopyStatus14391{font-size:11px;color:var(--text-muted,#526958)}
 .calc-line14391{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-variant-numeric:tabular-nums;user-select:text}
 .calc-line14391 small,.calc-muted14391{color:var(--text-muted,#526958)}
 .calc-warning14391{color:#a13d12}
 .calc-copy14391{display:inline-grid;place-items:center;vertical-align:middle;flex:0 0 32px;width:32px;height:32px;min-height:32px;padding:3px;border:0;border-radius:4px;background:transparent;color:inherit;cursor:pointer}
 .calc-copy14391:hover{background:#dbeade}
 .calc-copy14391 svg{width:16px;height:16px}
-.calc-tools14391>button{height:32px;padding:3px 8px;border:1px solid #a6bdac;border-radius:4px;background:transparent;color:inherit;font:inherit;cursor:pointer}
-.calc-tools14391>button[aria-pressed=true]{background:#dbeade}
-.calc-tools14391>[hidden]{display:none!important}
-#calcCopyStatus14391:empty,#calcCount14391:empty{display:none}
 @layer corrections14337 {
- html body #journalCalculation14391 #jeBalanceIndicator{display:block!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;font:inherit!important;text-align:left!important;white-space:normal!important}
- html body #journalCalculation14391 #jeBalanceIndicator.balanced{color:#176242!important}
- html body #journalCalculation14391 #jeBalanceIndicator.unbalanced{color:#9b3b19!important}
+ html body #journalEntry98#journalEntry98 #jeBalanceIndicator{display:block!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;font-size:12px!important;font-weight:400!important;line-height:1.3!important;text-align:left!important;white-space:normal!important;color:#a12c25!important}
+ html body #journalEntry98#journalEntry98 #jeBalanceIndicator[hidden]{display:none!important}
  html body #journal #journalEntry98 #jeLinesBody .calc-amount-cell14391{position:relative!important;padding-left:24px!important}
  html body #journalEntry98 #jeLinesBody .calc-pick14391{position:absolute!important;left:5px!important;top:50%!important;transform:translateY(-50%);width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;max-height:14px!important;padding:0!important;border:1px solid #7f9b88!important;border-radius:3px!important;background:transparent!important;color:transparent!important;font:11px Arial!important;line-height:12px!important;cursor:pointer!important}
  html body #journalEntry98 #jeLinesBody .calc-pick14391[aria-pressed=true]{background:#176b4b!important;color:white!important}
  html body #journalEntry98 #jeLinesBody .calc-selected14391{background:#dceddf!important;box-shadow:inset 0 0 0 1px #548968!important}
  html body #journalEntry98 #jeLinesBody .calc-selected14391 :is(.je-line-dr,.je-line-cr){background:transparent!important}
- html body #journalEntry98 #jeLinesBody.calc-selecting14391 :is(.je-line-dr,.je-line-cr){cursor:cell;touch-action:none}
  html body #journalEntry98 .calc-rate-selected14391{box-shadow:inset 0 -2px #548968!important}
  html body #personalEditor1437 #journalEntry98 #jeLinesBody .calc-pick14391{display:none!important}
  html body.has-calculation14391 .main-content-area{padding-bottom:calc(var(--calc-original-padding14391,24px) + var(--calculation-height14391,40px) + 12px)!important}
@@ -180,6 +177,6 @@ html body #printableDocArea .clustered-journal-table tbody tr:is(.entry-selected
  html body.has-calculation14391 :is(#printableDocArea,.main-content-area){scroll-padding-bottom:calc(var(--calculation-height14391,40px) + 16px)}
  html body.has-calculation14391 #workspaceTools108,html body.has-calculation14391 #connectionFloat14301{bottom:calc(var(--calculation-height14391,40px) + 16px)!important}
 }
-@media(max-width:800px){#journalCalculation14391{padding-inline:8px;font-size:11px}.calc-toolbar14391{gap:6px}.calc-tools14391{gap:5px}.calc-tools14391>button{padding-inline:5px}}
+@media(max-width:800px){#journalCalculation14391{padding-inline:8px;font-size:11px}#calcResults14391{column-gap:10px}}
 @layer corrections14337 {@media screen and (min-width:641px){html[data-device132=tablet] body #journalEntry98 .journal-rates14383 input{width:92px!important}}}
 @media print{#journalCalculation14391,.calc-pick14391{display:none!important}body.has-calculation14391 .main-content-area{padding-bottom:0!important}}

@@ -139,7 +139,8 @@ html body #journalEntry98#journalEntry98#journalEntry98 #jeOptionsMenu14389 butt
 html body #printableDocArea .clustered-journal-table tbody tr[data-entry-id]>td:is(.num,.rate-col14387) {font-family:'Plus Jakarta Sans',Arial,sans-serif!important;font-size:inherit!important;font-weight:400!important;font-variant-numeric:tabular-nums!important;text-align:right!important}
 html body #printableDocArea .clustered-journal-table th.rate-col14387 {text-align:right!important}
 html body #printableDocArea .clustered-journal-table tbody tr.entry-selected-line>td:not([rowspan]) {background:#ccebdd!important;box-shadow:none!important}
-html body #printableDocArea .clustered-journal-table tbody tr:is(.entry-selected-line,.entry-hover-line)>td[rowspan] {background:inherit!important;box-shadow:none!important}
+html body #printableDocArea .clustered-journal-table tbody tr>td[rowspan] {background:#fffcf6!important;box-shadow:none!important}
+html body #printableDocArea .clustered-journal-table tbody tr.alt-transaction100>td[rowspan] {background:#e7efe6!important}
 }}
 .entry-options14389 {position:fixed;z-index:16000;min-width:190px;padding:6px;background:var(--bg-card,#fffaf0);color:var(--text-main,#173e2f);border:1px solid #9ab3a4;border-radius:8px;box-shadow:0 6px 24px #0003}
 .entry-options14389[hidden] {display:none!important}

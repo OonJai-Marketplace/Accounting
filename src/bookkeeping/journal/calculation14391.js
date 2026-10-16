@@ -26,19 +26,6 @@ function summarize(cells,rates,chosenCurrency=''){
  return result;
 }
 function read(input){const row=input.closest('tr'),a=getSelectedAccountInfo(row?.querySelector('.je-line-acc')?.value);return {input,row,a,account:a?.name||'Choose account',currency:a?.currency,amount:input.dataset.numeric88?Number(input.value):number(input.value),side:input.matches('.je-line-dr')?'DR':'CR',date:($('jeMultipleDates')?.checked?row.querySelector('.je-line-date')?.value:'')||$('jeTransDate')?.value};}
-function holding(a,date){
- const state=window.yearWindow14333?.state();
- if(!date||state?.from&&date<state.from)throw Error('Load this journal year to see its average.');
- const editing=JournalModule.entries.find(l=>l.id===JournalModule.editingEntryId);
- const earlier=l=>!editing||l.date<editing.date||l.date===editing.date&&(String(l.created_at||'')<String(editing.created_at||'')||l.created_at===editing.created_at&&String(l.id).localeCompare(String(editing.id),undefined,{numeric:true})<0);
- const rows=JournalModule.entries.filter(l=>String(l.accountId)===String(a.id)&&l.date<=date&&l.id!==JournalModule.editingEntryId&&earlier(l)&&!l.voided_at&&(!l.status||l.status==='posted'));
- if(rows.some(l=>l.pendingSync||l.local14333))throw Error('Average unavailable while earlier fund entries await sync.');
- let quantity=0,value=0;
- for(const b of state?.opening||[])if(String(b.accountId)===String(a.id)){if(b.base_balance==null)throw Error('Opening LAK valuation is missing.');quantity+=Number(b.balance);value+=Number(b.base_balance)}
- for(const l of rows){const d=JournalFX14383.base(l,'debit'),c=JournalFX14383.base(l,'credit');if(d==null||c==null)throw Error('Average unavailable: an earlier rate is missing.');quantity+=Number(l.debit)-Number(l.credit);value+=d-c}
- if(!(quantity>0&&value>0))throw Error('Average unavailable: no positive valued balance.');
- return {quantity,value,rate:value/quantity};
-}
 function rates(){return Object.fromEntries(Object.keys(JournalFX14383.capture()).map(c=>[c,JournalFX14383.rate(c)]))}
 function differenceHtml(value,lak){
  const difference=round(value-lak),sign=difference>0?'+':difference<0?'−':'',label=difference>0?'remaining':difference<0?'over':'matched';
@@ -66,22 +53,6 @@ function selectionHtml(cells){
  if(complete&&validLak&&foreign.length&&lak.length)columns.push('<div class="calc-comparison14392">'+(foreign.length>1?'<span class="calc-line14391">Combined LAK equivalent: '+resultValue(round(total),'LAK','combined equivalent')+'</span>':'')+differenceHtml(round(total),lak.reduce((sum,c)=>sum+c.amount,0))+'</div>');
  return columns.join('');
 }
-function automaticHtml(){
- const groups=new Map(),cache=new Map();
- for(const input of document.querySelectorAll(amountSelector)){
-  const c=read(input);if(!c.a?.trackForeignFunds||['LAK','NA'].includes(c.currency)||!c.amount||!Number.isFinite(c.amount))continue;
-  if(!groups.has(c.currency))groups.set(c.currency,[]);const lines=groups.get(c.currency);
-  const prefix=esc(c.account)+' · '+esc(c.side)+' '+esc(money(c.amount))+' '+esc(c.currency),rate=JournalFX14383.lineRate(c.row,c.currency);
-  if(rate>0)lines.push('<span class="calc-line14391">'+prefix+' × '+esc(rateText(rate))+' = '+resultValue(round(c.amount*rate),'LAK',c.account+' transaction equivalent')+' <small>transaction rate</small></span>');
-  else lines.push('<span class="calc-line14391">'+prefix+' · Enter LAK per '+esc(c.currency)+' above.</span>');
-  const key=c.a.id+'|'+c.date;
-  if(!cache.has(key)){try{cache.set(key,holding(c.a,c.date))}catch(e){cache.set(key,{error:e.message})}}
-  const h=cache.get(key);
-  if(h.error)lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+': '+esc(h.error)+'</span>');
-  else lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+' · '+esc(money(c.amount))+' '+esc(c.currency)+' × average '+esc(rateText(h.rate))+' = '+resultValue(round(c.amount*h.rate),'LAK',c.account+' value at average')+' <small>before entry'+(navigator.onLine?'':' · saved offline data')+'</small></span>');
- }
- return [...groups].map(([currency,lines])=>currencyGroup(currency,lines.join(''))).join('');
-}
 function decorate(){
  for(const input of document.querySelectorAll(amountSelector)){
   const cell=input.closest('td');if(!cell)continue;
@@ -89,13 +60,14 @@ function decorate(){
   let pick=cell.querySelector('.calc-pick14391');
   if(!pick){pick=document.createElement('button');pick.type='button';pick.className='calc-pick14391';pick.textContent='✓';cell.append(pick)}
   pick._amount14391=input;
-  const checked=selected.has(input),r=read(input);
-  pick.setAttribute('aria-pressed',String(checked));pick.setAttribute('aria-label','Select '+r.account+' '+r.side+' amount for calculation');pick.title=pick.getAttribute('aria-label');cell.classList.toggle('calc-selected14391',checked);
+  const checked=selected.has(input),side=input.matches('.je-line-dr')?'Debit':'Credit';
+  pick.setAttribute('aria-pressed',String(checked));pick.setAttribute('aria-label','Select '+side+' amount for calculation');pick.title=pick.getAttribute('aria-label');cell.classList.toggle('calc-selected14391',checked);
  }
 }
 function visible(){const card=$('journalEntry98');return !!card?.getClientRects().length&&document.documentElement.dataset.device132!=='phone'&&!window.personalJournal1437?.active&&!$('loginGate')?.matches(':not(.is-authenticated)')}
 function layout(){
- if(!host)return;const show=visible()&&!!signature;host.hidden=!show;document.body.classList.toggle('has-calculation14391',show);
+ if(!host)return;const show=!!selected.size&&!!signature&&visible();host.hidden=!show;document.body.classList.toggle('has-calculation14391',show);
+ if(!show){document.documentElement.style.setProperty('--calculation-height14391','0px');return}
  const main=document.querySelector('.main-content-area');if(!main)return;
  if(!main.dataset.calcPadding14391){main.dataset.calcPadding14391='1';main.style.setProperty('--calc-original-padding14391',getComputedStyle(main).paddingBottom)}
  if(show){const left=Math.max(0,main.getBoundingClientRect().left);host.style.left=left+'px';document.documentElement.style.setProperty('--calculation-height14391',Math.ceil(host.getBoundingClientRect().height)+'px')}
@@ -104,16 +76,17 @@ function layout(){
 function render(){
  queued=false;if(!host)return;
  for(const n of selected)if(!n.isConnected||!n.matches(amountSelector))selected.delete(n);
- if(window.entry1430?.mode==='single'){selected.clear();selectedRate=''}
+ if(!visible()||window.entry1430?.mode==='single'){clear();return}
  decorate();
  const foreignSelected=[...selected].some(n=>read(n).currency!=='LAK');
  for(const input of document.querySelectorAll('[data-fx-rate14383]'))input.classList.toggle('calc-rate-selected14391',!foreignSelected&&selectedRate===input.dataset.fxRate14383);
- const html=selected.size?selectionHtml([...selected].map(read)):automaticHtml();
+ const html=selected.size?selectionHtml([...selected].map(read)):'';
  if(html!==signature){results.innerHTML=html;signature=html}
  results.hidden=!html;layout();
 }
 function refresh(){if(!queued){queued=true;requestAnimationFrame(render)}}
-function clear(){selected.clear();selectedRate='';drag=null;refresh()}
+function clear(){for(const input of selected){input.closest('td')?.classList.remove('calc-selected14391');input.closest('td')?.querySelector('.calc-pick14391')?.setAttribute('aria-pressed','false')}selected.clear();selectedRate='';drag=null;signature='';if(results)results.replaceChildren();document.querySelectorAll('.calc-rate-selected14391').forEach(n=>n.classList.remove('calc-rate-selected14391'));clearTimeout(noticeTimer);if($('calcCopyStatus14391'))$('calcCopyStatus14391').textContent='';layout()}
+function changed(){if(selected.size&&visible())refresh()}
 function toggle(input){if(selected.has(input))selected.delete(input);else selected.add(input);refresh()}
 async function copy(value,button){
  value=Number(value).toLocaleString(appNumberLocale(),{useGrouping:false,maximumFractionDigits:8});
@@ -132,17 +105,17 @@ function ready(){
  document.body.append(host);results=$('calcResults14391');
  host.addEventListener('click',e=>{const b=e.target.closest('[data-copy-number]');if(b)void copy(b.dataset.copyNumber,b)});
  const card=$('journalEntry98'),body=$('jeLinesBody');
- card.addEventListener('input',refresh);card.addEventListener('change',refresh);
+ card.addEventListener('input',changed);card.addEventListener('change',changed);
  // Rate controls can be moved into the journal header by the responsive layout.
- const chooseRate=e=>{if(e.target.matches('[data-fx-rate14383]')){selectedRate=e.target.dataset.fxRate14383;refresh()}};
+ const chooseRate=e=>{if(selected.size&&visible()&&e.target.matches('[data-fx-rate14383]')){selectedRate=e.target.dataset.fxRate14383;refresh()}};
  document.addEventListener('focusin',chooseRate,true);document.addEventListener('click',chooseRate,true);
- document.addEventListener('input',e=>{if(e.target.matches('[data-fx-rate14383]'))refresh()},true);
+ document.addEventListener('input',e=>{if(e.target.matches('[data-fx-rate14383]'))changed()},true);
  body.addEventListener('click',e=>{const pick=e.target.closest('.calc-pick14391');if(pick){e.preventDefault();e.stopPropagation();toggle(pick._amount14391)}},true);
  document.addEventListener('pointerdown',e=>{
-  if(e.button!==0||!visible())return;
+  if(e.button!==0||!selected.size&&!e.target.closest('#jeLinesBody')||!visible())return;
   if(host.contains(e.target)||e.target.closest('[data-fx-rate14383],#journalRates14383,.calc-pick14391'))return;
   const input=e.target.closest('#jeLinesBody td')?.querySelector('.je-line-dr,.je-line-cr');
-  if(!input){clear();return}
+  if(!input){if(selected.size)clear();return}
   const multi=e.ctrlKey||e.metaKey,inputs=[...body.querySelectorAll('.je-line-dr,.je-line-cr')],start=inputs.indexOf(input),base=multi?new Set(selected):new Set(),add=multi?!selected.has(input):true;
   if(multi){e.preventDefault();if(add)selected.add(input);else selected.delete(input)}
   else if(!selected.has(input)){selected.clear();selected.add(input);selectedRate=''}
@@ -151,17 +124,16 @@ function ready(){
  },true);
  document.addEventListener('pointermove',e=>{if(!drag)return;const input=document.elementFromPoint(e.clientX,e.clientY)?.closest('#jeLinesBody td')?.querySelector('.je-line-dr,.je-line-cr'),end=drag.inputs.indexOf(input);if(end<0||end===drag.start&&!drag.moved)return;drag.moved=true;e.preventDefault();window.getSelection()?.removeAllRanges();selected.clear();for(const n of drag.base)selected.add(n);const r1=Math.floor(drag.start/2),r2=Math.floor(end/2),c1=drag.start%2,c2=end%2;for(let r=Math.min(r1,r2);r<=Math.max(r1,r2);r++)for(let c=Math.min(c1,c2);c<=Math.max(c1,c2);c++){const n=drag.inputs[r*2+c];if(drag.add)selected.add(n);else selected.delete(n)}refresh()});
  document.addEventListener('pointerup',()=>{drag=null});document.addEventListener('pointercancel',()=>{drag=null});
- document.addEventListener('keydown',e=>{if(e.key==='Escape')clear()});
- new MutationObserver(records=>{if(records.some(r=>[...r.addedNodes,...r.removedNodes].some(n=>n.nodeName==='TR'||n.nodeName==='INPUT')))refresh()}).observe(body,{childList:true,subtree:true});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&selected.size)clear()});
+ new MutationObserver(records=>{if(visible()&&records.some(r=>[...r.addedNodes,...r.removedNodes].some(n=>n.nodeName==='TR'||n.nodeName==='INPUT')))refresh()}).observe(body,{childList:true,subtree:true});
  const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){clear();return reset.apply(this,args)};
  const editor=window.loadEntryForEdit;window.loadEntryForEdit=function(...args){clear();return editor.apply(this,args)};
- window.addEventListener('page113',refresh);window.addEventListener('local-work14333',refresh);window.addEventListener('resize',layout);window.addEventListener('online',refresh);window.addEventListener('offline',refresh);
+ window.addEventListener('page113',()=>{if(visible())refresh();else if(selected.size)clear()});window.addEventListener('resize',layout);
  window.visualViewport?.addEventListener('resize',layout);
  new ResizeObserver(layout).observe(host);new ResizeObserver(layout).observe(document.querySelector('.main-content-area'));
- new MutationObserver(refresh).observe(card,{attributes:true,attributeFilter:['hidden','class']});
- new MutationObserver(refresh).observe(document.body,{attributes:true,attributeFilter:['class']});
+ new MutationObserver(()=>{if(selected.size&&!visible())clear()}).observe(card,{attributes:true,attributeFilter:['hidden','class']});
  refresh();
 }
-window.JournalCalculation14391={summarize,holding,refresh,clear,get selected(){return [...selected].map(read)}};
+window.JournalCalculation14391={summarize,refresh:changed,clear,get selected(){return [...selected].map(read)}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
