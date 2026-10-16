@@ -72,7 +72,7 @@ function renderChartOfAccountsTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${escapeHtml(acc.code)}</td>
-      <td><strong>${escapeHtml(acc.name)}</strong></td>
+      <td><strong class="${acc.isTechnical||acc.type==='SYSTEM'?'system-account-name14399':''}">${escapeHtml(acc.name)}${acc.isTechnical||acc.type==='SYSTEM'?' <small class="system-account-badge14399">SYSTEM</small>':''}</strong></td>
       <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'Parent':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${escapeHtml(acc.type)}</span></td>
       <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>

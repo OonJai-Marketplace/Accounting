@@ -151,6 +151,19 @@ html body #printableDocArea .clustered-journal-table tbody tr.alt-transaction100
 #journalEntry98 :is(.account-search1428,.je-line-acc),.journal-no-actions14388 tr[data-entry-id] {touch-action:manipulation}
 @media print {.entry-options14389{display:none!important}}
 
+/* Requested system account distinction is confined to account labels. */
+html body .system-account-name14399,html body .account-option1428[data-account-type14277=SYSTEM],html body input[data-account-type14277=SYSTEM]{color:#9a3e08!important;background:#fff0dc!important}
+.system-account-name14399{padding:2px 4px;border-radius:3px}
+.system-account-badge14399{display:inline-block;flex:none;font-size:9px!important;font-weight:700!important;line-height:1.4!important;padding:1px 3px;border-radius:3px;color:#923b08;background:#ffe1b6;vertical-align:middle}
+/* Keep the original Post Transaction grid, without selected/focused cell fills. */
+html body #journalEntry98#journalEntry98 #jeLinesBody tr,html body #journalEntry98#journalEntry98 #jeLinesBody td{background:transparent!important;box-shadow:none!important;outline:none!important;border-width:1px!important}
+html body #journalEntry98#journalEntry98 #jeLinesBody :is(input,select,textarea,.account-choice14231,.account-input-wrap):focus{background:transparent!important;border:0!important;box-shadow:none!important;outline:none!important}
+html body #journalEntry98#journalEntry98 #jeLinesBody input[data-account-type14277=SYSTEM]{color:#9a3e08!important;background:#fff0dc!important}
+#templateFields14399{display:grid;gap:10px;margin-top:12px}#templateFields14399 label{display:grid;gap:5px}#templateFields14399 textarea{width:100%;box-sizing:border-box;min-height:55px}
+.template-row14399{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;margin-bottom:12px}.template-row14399 input{width:100%;box-sizing:border-box}.template-row14399 button{justify-self:end}
+
+html body #journalEntry98#journalEntry98{border-width:1px!important}
+
 /* Compact currency calculations; posting diagnostics stay at the far left of the entry actions row. */
 #journalCalculation14391{position:fixed;bottom:0;right:0;z-index:950;box-sizing:border-box;padding:3px 12px calc(3px + env(safe-area-inset-bottom,0px));border-top:3px solid #367b62;background:#e3efe6;color:var(--text-main,#183f30);box-shadow:0 -3px 10px #163c2530;font-size:12px;line-height:1.2;min-height:calc(46px + env(safe-area-inset-bottom,0px));height:auto;max-height:40dvh;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin}
 #journalCalculation14391[hidden]{display:none!important}

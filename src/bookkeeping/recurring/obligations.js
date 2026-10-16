@@ -43,7 +43,7 @@ function reminderThresholdDate(item){
     const d=new Date(due);
     if(r.unit==='days')d.setDate(d.getDate()-r.count);
     if(r.unit==='weeks')d.setDate(d.getDate()-(r.count*7));
-    if(r.unit==='months')d.setMonth(d.getMonth()-r.count);
+    if(r.unit==='months'){const day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()-r.count);d.setDate(Math.min(day,new Date(d.getFullYear(),d.getMonth()+1,0).getDate()));}
     if(d<earliest)earliest=d;
   });
   return earliest;
@@ -73,7 +73,7 @@ function renderRecurringTransactions(){
 function advanceRecurringDate(item){
   const d=new Date(item.nextDate+'T12:00:00Z');if(!Number.isFinite(d.getTime()))throw Error('The reminder due date is invalid.');
   if(item.frequency==='Weekly')d.setUTCDate(d.getUTCDate()+7);
-  else{const day=d.getUTCDate(),months=item.frequency==='Quarterly'?3:item.frequency==='Yearly'?12:1;d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+months);const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();d.setUTCDate(Math.min(day,last));}
+  else{const day=Number.isInteger(item.anchorDay)&&item.anchorDay>=1&&item.anchorDay<=31?item.anchorDay:d.getUTCDate();item.anchorDay=day;const months=item.frequency==='Quarterly'?3:item.frequency==='Yearly'?12:1;d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+months);const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();d.setUTCDate(Math.min(day,last));}
   item.nextDate=d.toISOString().slice(0,10);
 }
 async function markRecurringPaid(id){const actor=liveProfile?.id;const item=RecurringStore.items.find(x=>x.id===id);if(!item)return;const saved=await PrivateReminders14229.mutate(()=>{const current=RecurringStore.items.find(x=>x.id===id);if(!current)throw Error('Reminder changed. Reload first.');current.lastPaidDate=new Date().toISOString().slice(0,10);delete current.preparedUntil;if(current.type==='one-time'||current.frequency==='One-Time')RecurringStore.items=RecurringStore.items.filter(x=>x.id!==id);else advanceRecurringDate(current)},'paid:'+id);if(saved&&liveProfile?.id===actor)showAppNotification('Marked Paid',`${item.memo} was marked paid. No journal payment was posted.`,false);return saved;}

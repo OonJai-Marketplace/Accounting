@@ -1,0 +1,37 @@
+begin;
+select set_config('request.jwt.claims','{"sub":"95db28ba-7a60-4e88-b2c3-aa932a7ca7ce","role":"authenticated"}',true);
+do $$
+declare receipt operation_receipts14228; target journal_entries; original jsonb; revised jsonb; a jsonb; b jsonb; n integer; rejected boolean; sid uuid;
+begin
+ select * into receipt from operation_receipts14228 where request_key='trial14399-journal-samples-001' and actor_id=auth.uid();
+ select count(*) into n from journal_entries;
+ a:=post_journal_batch14228(receipt.request_key,receipt.payload);
+ if a is distinct from receipt.result or (select count(*) from journal_entries)<>n then raise exception 'Duplicate retry failed'; end if;
+ rejected:=false;
+ begin perform post_journal_batch14228(receipt.request_key,jsonb_set(receipt.payload,'{0,p_memo}','"different"')); exception when others then if sqlerrm like '%different data%' then rejected:=true;else raise;end if; end;
+ if not rejected then raise exception 'Changed retry accepted';end if;
+ select * into target from journal_entries where memo='TRIAL 14399 — Cash sales';
+ select journal_shape14385(target.transaction_date,target.memo,jsonb_agg(to_jsonb(l) order by line_no)) into original from journal_lines l where journal_entry_id=target.id;
+ rejected:=false;
+ begin perform validate_journal14228('2026-09-15','Closed-period test',original->'lines');exception when others then if sqlerrm ilike '%period%' or sqlerrm ilike '%closed%' then rejected:=true;else raise;end if;end;
+ if not rejected then raise exception 'Closed period allowed posting';end if;
+ rejected:=false;
+ begin perform validate_journal14228('2026-10-16','Unbalanced test',jsonb_set(original->'lines','{0,debit}','300001'));exception when others then if sqlerrm ilike '%balanc%' then rejected:=true;else raise;end if;end;
+ if not rejected then raise exception 'Unbalanced posting accepted';end if;
+ revised:=jsonb_set(original,'{memo}','"TRIAL 14399 — corrected during rollback verification"');
+ a:=change_journal14385('trial14399-rollback-edit',target.id,'revise','Trial debugging',original,revised);
+ b:=change_journal14385('trial14399-rollback-edit',target.id,'revise','Trial debugging',original,revised);
+ if a is distinct from b then raise exception 'Edit retry failed';end if;
+ rejected:=false;
+ begin perform change_journal14385('trial14399-rollback-stale',target.id,'revise','Stale test',original,revised);exception when serialization_failure then rejected:=true;end;
+ if not rejected then raise exception 'Stale edit accepted';end if;
+ a:=change_journal14385('trial14399-rollback-void',target.id,'void','Trial debugging',revised,null);
+ b:=change_journal14385('trial14399-rollback-void',target.id,'void','Trial debugging',revised,null);
+ if a is distinct from b or (select status from journal_entries where id=target.id)<>'voided' then raise exception 'Void retry failed';end if;
+ select id into sid from scheduled_journals where title='TRIAL — Weekly ingredients';
+ select count(*) into n from scheduled_journal_occurrences where schedule_id=sid;
+ begin perform post_scheduled_one92(sid,'2026-10-16',false);exception when others then if sqlerrm not ilike '%changed%' and sqlerrm not ilike '%already%' and sqlerrm not ilike '%due%' then raise;end if;end;
+ if (select count(*) from scheduled_journal_occurrences where schedule_id=sid)<>n then raise exception 'Duplicate schedule occurrence';end if;
+end $$;
+rollback;
+select 'PASS posting retry, changed-payload rejection, closed period, unbalanced posting, edit retry, stale edit rejection, void retry, schedule duplicate prevention; debug edits rolled back' result;
