@@ -42,7 +42,8 @@ function selectionHtml(cells){
   else if(s.value!==undefined){
    total+=s.value;
    lines.push('<span class="calc-line14391"><b>Selected '+esc(s.reverse?'LAK':s.currency)+' total</b> · '+esc(money(s.source))+' '+esc(s.reverse?'LAK':s.currency)+(s.reverse?' ÷ ':' × ')+esc(rateText(s.rate))+' LAK/'+esc(s.currency)+' = '+resultValue(s.value,s.reverse?s.currency:'LAK','converted total')+'</span>');
-   for(const c of group.filter(c=>c.currency!=='LAK'))lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+' · '+esc(c.side)+' '+esc(money(c.amount))+' '+esc(c.currency)+' × '+esc(rateText(s.rate))+' = '+resultValue(round(c.amount*s.rate),'LAK',c.account+' equivalent')+'</span>');
+   const accounts=[];for(const c of group.filter(c=>c.currency!=='LAK'))accounts.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+' · '+esc(c.side)+' '+esc(money(c.amount))+' '+esc(c.currency)+' × '+esc(rateText(s.rate))+' = '+resultValue(round(c.amount*s.rate),'LAK',c.account+' equivalent')+'</span>');
+   lines.push('<div class="calc-accounts14394">'+accounts.join('<span class="calc-separator14394"> · </span>')+'</div>');
   }else complete=false;
   columns.push(currencyGroup(currency,lines.join('')));
  }
@@ -112,13 +113,12 @@ function ready(){
  document.addEventListener('input',e=>{if(e.target.matches('[data-fx-rate14383]'))changed()},true);
  body.addEventListener('click',e=>{const pick=e.target.closest('.calc-pick14391');if(pick){e.preventDefault();e.stopPropagation();toggle(pick._amount14391)}},true);
  document.addEventListener('pointerdown',e=>{
-  if(e.button!==0||!selected.size&&!e.target.closest('#jeLinesBody')||!visible())return;
+  if(e.button!==0||!(e.ctrlKey||e.metaKey)||!e.target.closest('#jeLinesBody')||!visible())return;
   if(host.contains(e.target)||e.target.closest('[data-fx-rate14383],#journalRates14383,.calc-pick14391'))return;
   const input=e.target.closest('#jeLinesBody td')?.querySelector('.je-line-dr,.je-line-cr');
-  if(!input){if(selected.size)clear();return}
-  const multi=e.ctrlKey||e.metaKey,inputs=[...body.querySelectorAll('.je-line-dr,.je-line-cr')],start=inputs.indexOf(input),base=multi?new Set(selected):new Set(),add=multi?!selected.has(input):true;
-  if(multi){e.preventDefault();if(add)selected.add(input);else selected.delete(input)}
-  else if(!selected.has(input)){selected.clear();selected.add(input);selectedRate=''}
+  if(!input)return;
+  const inputs=[...body.querySelectorAll('.je-line-dr,.je-line-cr')],start=inputs.indexOf(input),base=new Set(selected),add=!selected.has(input);
+  e.preventDefault();if(add)selected.add(input);else selected.delete(input);
   if(e.pointerType!=='touch')drag={inputs,start,base,add};
   refresh();
  },true);

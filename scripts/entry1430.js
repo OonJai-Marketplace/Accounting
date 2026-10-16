@@ -103,7 +103,7 @@ function pairs(){
 }
 function display(){
  const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.dataset.mode=mode;
- toggle.setAttribute('aria-checked',String(single));$('jeDoubleEntry14389').setAttribute('aria-checked',String(!single));$('jeOptions14389').title='Entry options · '+(single?'Single Entry':'Double Entry');
+ toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Double Entry':'Single Entry';$('jeOptions14389').title='Entry options · '+(single?'Single Entry':'Double Entry');
  $('simpleEntry1430').hidden=!single;$('jeLinesBody').closest('.table-container').hidden=single;
  $('journalEntry98').classList.toggle('single-entry1430',single);$('simpleEntry1430').querySelectorAll('input,select,button').forEach(n=>{n.disabled=!!lastSingle?.unmapped;});
  $('journalEntry98').querySelector('.je-title').textContent=single?'Post Single-Entry Transaction':'Post Double-Entry Transaction';
@@ -141,12 +141,11 @@ function deleteAt(index){
 }
 function ready(){
  const card=$('journalEntry98');if(!card)return;
- const group=document.createElement('div');group.className='entry-mode1430 je-field-group';group.innerHTML='<button type="button" id="jeOptions14389" class="je-btn je-btn-secondary" aria-label="Entry options" aria-haspopup="menu" aria-expanded="false" aria-controls="jeOptionsMenu14389">☰ <span>Entry options</span></button><div id="jeOptionsMenu14389" class="entry-options14389" role="menu" aria-label="Entry options" hidden><button type="button" id="jeEntryMode1430" role="menuitemradio" aria-checked="false"><span data-entry-mode-label1430>Single Entry</span></button><button type="button" id="jeDoubleEntry14389" role="menuitemradio" aria-checked="true">Double Entry</button></div>';
+ const group=document.createElement('div');group.className='entry-mode1430 je-field-group';group.innerHTML='<button type="button" id="jeOptions14389" class="je-btn je-btn-secondary" aria-label="Entry options" aria-haspopup="menu" aria-expanded="false" aria-controls="jeOptionsMenu14389">☰ <span>Entry options</span></button><div id="jeOptionsMenu14389" class="entry-options14389" role="menu" aria-label="Entry options" hidden><button type="button" id="jeEntryMode1430" role="menuitem"><span data-entry-mode-label1430>Single Entry</span></button></div>';
  card.querySelector('.je-meta-grid').append(group);
  const panel=document.createElement('section');panel.id='simpleEntry1430';panel.hidden=true;panel.innerHTML='<div id="simpleRows1430"></div><p id="simplePreview1430" role="status"></p>';
  card.querySelector('.table-container').before(panel);add();
- $('jeEntryMode1430').onclick=()=>setMode('single');
- $('jeDoubleEntry14389').onclick=()=>setMode('double');
+ $('jeEntryMode1430').onclick=()=>setMode(mode==='single'?'double':'single');
  const options=$('jeOptions14389'),menu=$('jeOptionsMenu14389');
  for(const button of card.querySelectorAll('.je-header-actions>button[onclick]')){button.setAttribute('role','menuitem');menu.append(button);}
  const closeOptions=(focus=false)=>{menu.hidden=true;options.setAttribute('aria-expanded','false');if(focus)options.focus()};
