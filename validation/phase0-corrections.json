@@ -6,9 +6,9 @@
     "recovery.html": "eb97c5ddde4c4cd8725d4183da6f82e8b5f07d658d67d1658bcaefa86f877ddd",
     "phone-sw.js": "d063a7260ec568422a43a8f43e82a848a10d64069fa3a1e440aa76ea6e631383",
     "phone-accounting.html": "05cadf746736862daf206c30a38d6643d042188788e81c028a9b12e18f658b8e",
-    "desktop-sw14242.js": "0fc8783d53da8c0111d54f353a4ee7d40b2ba49bffe925682a4752aad28b69e4",
+    "desktop-sw14242.js": "f50e01602e6e2639c6c4e16782c8801c80e750aedecb677bcc56c6699c22701e",
     "phone.html": "843ada7412b3310903e8db6f083ea18ac8d2eb84063f0982e69fba570f589e2c",
-    "desktop.html": "0971d8ded20540a8650fe4e26c6f756bd09b142229e9ad256bc916a8d3a91675",
+    "desktop.html": "f1f27c018f3d5d2182cccb5c2454754d9fcc6a4e376bf54db9cb041f4af8611a",
     "scripts/phone-runtime14242.js": "c5108e202a361e644a4c97986f4d9f4a4942a2d3051d8aaac0ec5663954b1158",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "30540358dc7426836da3dd3e5026d57829aef40581084fa8a9887b958b926631",
@@ -17,8 +17,8 @@
     "scripts/payroll-polish-v97.js": "17654b07c3ca2a9d7504e4b6aa3325f5df91e460cc34ff157e60f2e56e00a87e",
     "scripts/startup14257.js": "641f6acec70d71e66fb45c7078104ccba79f0b3eab9e77a9c2a105601db150bc",
     "scripts/desktop14245-6.js": "615b50cef193d84499ccf29f2dbfbbdd6f3f8c474765c60776702aa806229bfc",
-    "scripts/offline14239.js": "cb39aac8a98a5805d3f20d5ded4c1da2f4860d08ac51cbbb780866a1f3fe90fd",
-    "scripts/desktop14245-3.js": "dfa9db77f1429904bebd460bb8dbce41c3c0ae3a6d9f567e7adcbec8b2e8746d",
+    "scripts/offline14239.js": "dfed96b0ae6a50bae044fff06baf3d0a4ac1fa1ae1bd8bbd04aa2663d8d7e7cf",
+    "scripts/desktop14245-3.js": "41613d7ae895a73c7ef68c6274fe80911ed402e81301ce84e75be65e1f14921c",
     "scripts/desktop14245-4.js": "0f60270e9aa896c33a2c3827cf65c34476aac30f7be5c2102c3dd42764b6f8b5",
     "scripts/drafts1427.js": "8bfa93561e244a5b9972052116db69c33bf9d1706a745b836bdccccfce0f89e6",
     "scripts/interface-v69.js": "e3cbf3e31cbabb7fb6c3735c5b590cb57074f036c6be28976f6e69dd1cf40864",
@@ -39,7 +39,7 @@
     "scripts/shared-v108.js": "8f481c51760a1b3233455c2e1a773ff599734e548e0fbc8bcd586cbec17b54da",
     "scripts/workflows-v136.js": "e7c3d69b04861acf748e91a1404d697ca8f4d1d2b89b0f5e56f7dc5a9c40efbe",
     "scripts/auto-sync14256.js": "f7286879f37b1c271ee64b48d41e14b122e5e35a9a692d750e02ab0dfec0c453",
-    "scripts/header-profile-v104.js": "4d29dac562e51bc0436f9f4010a83a489f7b94299a1fd7da78a20881f36f6d65",
+    "scripts/header-profile-v104.js": "0f333769b492e711b360ca2c8595785c18a2936bda08311a51ccb055ae419332",
     "scripts/journal-batch1440.js": "d85378b3642b2b4d7a180fe8a0f6958dcced204ffa749f14e8494e2366ec5e72",
     "scripts/payroll-window14334.js": "aab53a45d45eab67936d5f19ed33ac80efd03822dd72c5739f3f11724b19eacc",
     "scripts/save-notices14234.js": "fe03b2ffb2489aaf53de5ae2cff266dcc93976a9138f0d92da01f3281fc934aa",
@@ -121,7 +121,7 @@
     "scripts/session-inputs-v88.js": "a93339f4547f59cc2b5e3cb8380b94fa659b43edfeb5140ecde2bcfe9c17667f",
     "scripts/startup1443.js": "fa6b40668048314f490c18bdd46e39477903bf35021a27af771c7fd07a59c342",
     "offline-assets14239.js": "e173de6fc3199d14808ba4a878b6a5736ee0602847a8b69f232a08fb5d5e26cb",
-    "index.html": "c7284f97c256383590825a639bcd5bde2c20d2cf721aaf4ad4484af44bd144fd",
+    "index.html": "7b8deb5345d08442997aed29fbce4bafee94526baceb4429648a5fd1b1e988b7",
     "archive.html": "c8575c43b9c867954d197ad95281b954c341796295fca5923c6db69a618beca3",
     "styles/polish-v101.css": "d43af6b1dbcbd59f02670116d74907a2c89bacd5e748f97ba4a0ec535c673dc3",
     "scripts/maintenance-engine14324.js": "3e10dfd4c82726fcfff0c2908f1d584710be3e3181a20e8cf9320f384a07f37c",
@@ -225,5 +225,6 @@
     "scripts/navigation-experiment14366.js": "User requested removal of temporary Journal/Blank navigation experiments, 2026-10-15; canonical source, output, HTML and offline references removed.",
     "styles/navigation-experiment14366.css": "User requested removal of temporary Journal/Blank navigation experiments, 2026-10-15; canonical source, output, HTML and offline references removed."
   },
-  "audit_continuation_reason": "v143.76 user-requested cleanup and navigation/journal fixes; existing sources edited, temporary comparison files retired, desktop/tablet browser regressions verified."
+  "audit_continuation_reason": "v143.76 user-requested cleanup and navigation/journal fixes; existing sources edited, temporary comparison files retired, desktop/tablet browser regressions verified.",
+  "update14397": "User requested in-app update detection and a notification bell download action after repeated refreshes stayed on the old version. Canonical sources, generated assets, version metadata and cache entry points updated together."
 }

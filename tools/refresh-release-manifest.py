@@ -47,9 +47,14 @@ if __name__ == '__main__':
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
     data = build()
+    version_path = ROOT / 'release-version.json'
+    version_data = (json.dumps({'version': json.loads(data)['release']})+'\n').encode()
     if args.check:
+        if not version_path.exists() or version_path.read_bytes() != version_data:
+            raise SystemExit('Published update version is stale; refresh-release-manifest.py')
         if TARGET.read_bytes() != data:
             raise SystemExit('Diagnostics manifest is stale; rebuild modules then refresh-release-manifest.py')
     else:
         TARGET.write_bytes(data)
+        version_path.write_bytes(version_data)
     print('Diagnostics manifest matches '+str(len(json.loads(data)['files']))+' shipped assets')

@@ -1,6 +1,6 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-const VERSION='143.96',status=document.getElementById('updateStatus'),retry=document.getElementById('updateRetry'),progress=document.getElementById('updateProgress');
+let VERSION='143.97';const status=document.getElementById('updateStatus'),retry=document.getElementById('updateRetry'),progress=document.getElementById('updateProgress');
 let attempt=0,finished=false,timer,registration;
 function fail(message){clearTimeout(timer);status.textContent=message;retry.hidden=false;progress.removeAttribute('value')}
 async function verify(worker,token){
@@ -18,6 +18,8 @@ async function start(){
  if(navigator.onLine===false){fail('Reconnect to the internet, then tap Retry update.');return}
  timer=setTimeout(()=>{if(token===attempt&&!finished)fail('The download is taking longer than expected. Your saved entries are unchanged. Keep this page open or retry when the connection improves.')},180000);
  try{
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
+  try{const response=await fetch('release-version.json?check='+Date.now(),{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('Unable to check the published version');const release=await response.json();if(!/^\d+\.\d+$/.test(release.version))throw Error('Invalid published version');if(release.version.localeCompare(VERSION,undefined,{numeric:true})>0)VERSION=release.version;}finally{clearTimeout(timeout)}
   registration=await navigator.serviceWorker.register('desktop-sw14242.js?v='+VERSION,{scope:'./',updateViaCache:'none'});
   if(token!==attempt)return;
   const watch=()=>{const worker=registration.installing;if(!worker)return;worker.addEventListener('statechange',()=>{if(token!==attempt)return;if(worker.state==='activated')verify(registration.active,token);else if(worker.state==='redundant'&&!finished)fail('Some website files could not download. Check your connection and tap Retry update. Your saved entries are unchanged.')})};
