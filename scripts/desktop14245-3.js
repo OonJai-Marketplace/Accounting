@@ -660,6 +660,10 @@ function renderChartOfAccountsTable() {
   if (!tbody) return;
 
   const filterCurr = document.getElementById('filterCoaCurrency')?.value || 'ALL';
+  const table=tbody.closest('table');
+  table.dataset.preservePage14397='true';
+  const filterKey=JSON.stringify([filterCurr,document.getElementById('searchCoa1439')?.value||'']);
+  if(table.dataset.filterKey14397!==filterKey){window.tablePagination14383?.reset(table);table.dataset.filterKey14397=filterKey}
   tbody.innerHTML = '';
 
   const terms=(document.getElementById('searchCoa1439')?.value||'').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -670,7 +674,7 @@ function renderChartOfAccountsTable() {
 
   if (visibleAccounts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No accounts match your search.</td></tr>`;
-    syncSubAccountParentDropdown();syncCoaDatalist();return;
+    window.tablePagination14383?.refresh(table);syncSubAccountParentDropdown();syncCoaDatalist();return;
   }
 
   const fragment=document.createDocumentFragment();
@@ -696,6 +700,8 @@ function renderChartOfAccountsTable() {
   });
 
   tbody.appendChild(fragment);
+  // Apply the retained page before the browser paints rebuilt rows.
+  window.tablePagination14383?.refresh(table);
   syncSubAccountParentDropdown();
   syncCoaDatalist();
 }
@@ -2017,12 +2023,27 @@ let pendingTemplateLines = null;
 let editingTemplateId = null;
 let pendingTemplateOwner = null;
 
+// Old local templates stored display text. Resolve known restructuring aliases
+// only against the expected account/currency; new templates keep stable identities.
+const templateAliases14397 = [["3021","Owner Financial Support – Remaining","USD","9311","Owner Financial Support — Remaining — USD Mapping"],["3022","Owner Financial Support – Used","USD","9321","Owner Financial Support — Used — USD Mapping"],["3030","Owner Support Contribution – Airfare","USD","9331","Owner Support Contribution — Airfare — USD Mapping"],["3111","Retained Earnings – USD","USD","9341","Retained Earnings — USD Mapping"],["3112","Retained Earnings – THB","THB","9342","Retained Earnings — THB Mapping"],["4111","Donations & External Support – USD","USD","9111","Donations & External Support — USD Mapping"],["4112","Donations & External Support – THB","THB","9112","Donations & External Support — THB Mapping"],["4131","Other Income – USD","USD","9131","Other Income — USD Mapping"],["4132","Other Income – THB","THB","9132","Other Income — THB Mapping"],["5112","Kitchen Supplies – USD","USD","9211","Kitchen Supplies — USD Mapping"],["5310","Salaries – USD","USD","9231","Salaries — USD Mapping"],["5314","Employee Benefits","USD","9233","Employee Benefits — USD Mapping"],["5415","Bank Fees – USD","USD","9241","Bank Fees — USD Mapping"],["9031","Income – THB (System)","THB","9101","Sales – Dine-in — THB Mapping"],["9032","Expense – THB (System)","THB","9201","Food Cost / Cost of Goods Sold — THB Mapping"],["9033","Income – USD (System)","USD","9102","Sales – Dine-in — USD Mapping"],["9034","Expense – USD (System)","USD","9202","Food Cost / Cost of Goods Sold — USD Mapping"],["9035","Income Mapping - LAK (System)","LAK","9190","Revenue Mapping — LAK (System)"],["9036","Expense Mapping – LAK (System)","LAK","9290","Expense Mapping — LAK (System)"]];
+function resolveTemplateAccount14397(line){
+  const accounts=AccountingStore.accounts.filter(a=>a.active!==false&&a.isPosting!==false);
+  if(line.accountId)return accounts.find(a=>a.id===line.accountId&&(!line.currency||a.currency===line.currency));
+  const text=String(line.account||'').trim();if(!text)return null;
+  const alias=templateAliases14397.find(([code,name,currency])=>[code+' — '+name,name+' ('+currency+')'].includes(text));
+  if(alias){
+    const [code,name,currency,newCode,newName]=alias;
+    return accounts.find(a=>a.code===code&&a.name===name&&a.currency===currency)||accounts.find(a=>a.code===newCode&&a.name===newName&&a.currency===currency&&a.isTechnical);
+  }
+  return getSelectedAccountInfo(text);
+}
 function captureTemplateStructure() {
   const lines = [];
   document.querySelectorAll('#jeLinesBody tr').forEach(row => {
     const account = row.querySelector('.je-line-acc')?.value?.trim() || '';
     const memo = row.querySelector('.je-line-memo')?.value?.trim() || '';
-    if (account || memo) lines.push({account, memo});
+    const resolved=getSelectedAccountInfo(account);
+    if (account || memo) lines.push({account, memo, ...(resolved?.id?{accountId:resolved.id,currency:resolved.currency}:{})});
   });
   return { generalMemo: document.getElementById('jeGeneralMemo')?.value?.trim() || '', lines };
 }
@@ -2075,6 +2096,12 @@ function applyTransactionTemplate(id){
     const missing=lines.filter(l=>!l.resolved);
     if(missing.length){showAppNotification('Template Accounts Missing','Check these posting accounts: '+missing.map(l=>l.code+' ('+l.currency+')').join(', '),true);return;}
     if(window.personalJournal1437?.active&&lines.some(l=>!personalJournal1437.allowed(l.resolved))){showAppNotification('Template Accounts Not Assigned','This template includes accounts outside this user’s assignments. Use the main journal or update the user’s allowed accounts.',true);return;}
+  }
+  if(!t.builtin){
+    lines=t.lines.map(line=>{const a=resolveTemplateAccount14397(line);return {...line,account:a?a.code+' — '+a.name:line.account,resolved:a}});
+    const missing=lines.filter(l=>l.account&&!l.resolved);
+    if(missing.length){showAppNotification('Template Accounts Missing','Update these saved template accounts: '+missing.map(l=>l.account).join(', '),true);return;}
+    if(window.personalJournal1437?.active&&lines.some(l=>l.resolved&&!personalJournal1437.allowed(l.resolved))){showAppNotification('Template Accounts Not Assigned','This template includes accounts outside this user’s assignments.',true);return;}
   }
   resetJournalLinesForm();window.JournalFX14383?.restore({});
   if(t.builtin)window.entry1430?.restore('double',[]);

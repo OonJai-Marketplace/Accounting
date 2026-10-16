@@ -49,6 +49,10 @@ function renderChartOfAccountsTable() {
   if (!tbody) return;
 
   const filterCurr = document.getElementById('filterCoaCurrency')?.value || 'ALL';
+  const table=tbody.closest('table');
+  table.dataset.preservePage14397='true';
+  const filterKey=JSON.stringify([filterCurr,document.getElementById('searchCoa1439')?.value||'']);
+  if(table.dataset.filterKey14397!==filterKey){window.tablePagination14383?.reset(table);table.dataset.filterKey14397=filterKey}
   tbody.innerHTML = '';
 
   const terms=(document.getElementById('searchCoa1439')?.value||'').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -59,7 +63,7 @@ function renderChartOfAccountsTable() {
 
   if (visibleAccounts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No accounts match your search.</td></tr>`;
-    syncSubAccountParentDropdown();syncCoaDatalist();return;
+    window.tablePagination14383?.refresh(table);syncSubAccountParentDropdown();syncCoaDatalist();return;
   }
 
   const fragment=document.createDocumentFragment();
@@ -85,6 +89,8 @@ function renderChartOfAccountsTable() {
   });
 
   tbody.appendChild(fragment);
+  // Apply the retained page before the browser paints rebuilt rows.
+  window.tablePagination14383?.refresh(table);
   syncSubAccountParentDropdown();
   syncCoaDatalist();
 }

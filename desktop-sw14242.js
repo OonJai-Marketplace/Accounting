@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.97',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.98',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/editor-protection14380.js?v=143.80",
  "scripts/font-size14380.js?v=143.80",
@@ -17,12 +17,12 @@ const FILES=[
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.70",
- "scripts/desktop14245-3.js?v=143.97",
+ "scripts/desktop14245-3.js?v=143.98",
  "scripts/desktop14245-4.js?v=143.93",
  "scripts/desktop14245-5.js?v=143.83",
- "scripts/desktop14245-6.js?v=143.94",
+ "scripts/desktop14245-6.js?v=143.98",
  "scripts/local-events14310.js?v=143.95",
- "scripts/offline14239.js?v=143.97",
+ "scripts/offline14239.js?v=143.98",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -147,7 +147,7 @@ const FILES=[
  "setup/INSTALL-MAINTENANCE-v143.24.sql",
  "docs/MAINTENANCE-v143.24.md",
  "scripts/polish14325.js?v=143.25",
- "styles/polish14325.css?v=143.96",
+ "styles/polish14325.css?v=143.98",
  "scripts/maintenance-selection14325.js?v=143.25",
  "scripts/maintenance-reports14326.js?v=143.70",
  "assets/maintenance/report-template14326.xlsx",
@@ -202,7 +202,7 @@ const FILES=[
  "styles/feedback-viewport14295.css?v=142.95",
  "scripts/desktop-corrections-v80.js?v=143.70",
  "scripts/payroll-polish-v97.js?v=143.70",
- "scripts/script.js?v=143.89",
+ "scripts/script.js?v=143.98",
  "scripts/transactions-v67.js?v=143.70",
  "scripts/workflows-v136.js?v=143.70",
  "scripts/workspace-consistency14343.js?v=143.78",

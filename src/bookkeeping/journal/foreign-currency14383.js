@@ -18,23 +18,23 @@ function base(line,side){const c=line.currency||line.currency_code;if(c==='LAK')
 function carrying(accountId,date){const ws=window.yearWindow14333?.state();let qty=0,value=0,missing=false;for(const b of ws?.opening||[])if(String(b.accountId)===String(accountId)){qty+=Number(b.balance);if(b.base_balance==null&&b.currency!=='LAK')missing=true;else value+=Number(b.currency==='LAK'?b.balance:b.base_balance)}for(const l of JournalModule.entries){if(String(l.accountId)!==String(accountId)||l.date>date||l.id===JournalModule.editingEntryId||l.pendingSync||l.local14333||l.voided_at||(l.status&&l.status!=='posted'))continue;qty+=Number(l.debit)-Number(l.credit);const d=base(l,'debit'),c=base(l,'credit');if(d===null||c===null)missing=true;else value+=d-c}return !missing&&qty>0&&value>0?{quantity:qty,value:round(value),rate:value/qty}:null}
 // Built-ins use the same editable, zero-amount journal structure as saved templates.
 function templates(){
- const row=(code,currency,memo)=>({code,currency,memo});
+ const row=(code,currency,memo,legacy)=>({code:accounts().some(a=>a.code===code)?code:legacy||code,currency,memo});
  return [
  {id:'fx14383-income',builtin:true,name:'1. Foreign Currency Income Mapping',generalMemo:'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:[
  row('1016','LAK','Total cash received in LAK'),
  row('4010','LAK','Total dine-in sales in LAK, including foreign-currency receipts'),
- row('9035','LAK','LAK equivalent of THB and USD sales received'),
+ row('9190','LAK','LAK equivalent of THB and USD sales received','9035'),
  row('1017','THB','Actual Thai baht cash received'),
- row('9031','THB','System offset for Thai baht income'),
+ row('9101','THB','System offset for dine-in sales in THB','9031'),
  row('1018','USD','Actual US dollar cash received'),
- row('9033','USD','System offset for US dollar income')]},
+ row('9102','USD','System offset for dine-in sales in USD','9033')]},
  {id:'fx14383-expense',builtin:true,name:'2. Foreign Currency Expense Mapping',generalMemo:'Record expenses paid in foreign currencies, with LAK mapping and exchange gain or loss.',lines:[
- row('9032','THB','System offset for Thai baht expense'),
+ row('9201','THB','System offset for cost of goods in THB','9032'),
  row('1017','THB','Actual Thai baht cash paid'),
  row('5010','LAK','Cost of goods purchased at the transaction-date LAK value'),
- row('9036','LAK','Recorded LAK value of foreign currency spent'),
+ row('9290','LAK','Recorded LAK value of foreign currency spent','9036'),
  row('5419','LAK','Realized exchange difference: debit loss or credit gain'),
- row('9034','USD','System offset for US dollar expense'),
+ row('9202','USD','System offset for cost of goods in USD','9034'),
  row('1018','USD','Actual US dollar cash paid')]}
  ];
 }

@@ -100,23 +100,23 @@ function base(line,side){const c=line.currency||line.currency_code;if(c==='LAK')
 function carrying(accountId,date){const ws=window.yearWindow14333?.state();let qty=0,value=0,missing=false;for(const b of ws?.opening||[])if(String(b.accountId)===String(accountId)){qty+=Number(b.balance);if(b.base_balance==null&&b.currency!=='LAK')missing=true;else value+=Number(b.currency==='LAK'?b.balance:b.base_balance)}for(const l of JournalModule.entries){if(String(l.accountId)!==String(accountId)||l.date>date||l.id===JournalModule.editingEntryId||l.pendingSync||l.local14333||l.voided_at||(l.status&&l.status!=='posted'))continue;qty+=Number(l.debit)-Number(l.credit);const d=base(l,'debit'),c=base(l,'credit');if(d===null||c===null)missing=true;else value+=d-c}return !missing&&qty>0&&value>0?{quantity:qty,value:round(value),rate:value/qty}:null}
 // Built-ins use the same editable, zero-amount journal structure as saved templates.
 function templates(){
- const row=(code,currency,memo)=>({code,currency,memo});
+ const row=(code,currency,memo,legacy)=>({code:accounts().some(a=>a.code===code)?code:legacy||code,currency,memo});
  return [
  {id:'fx14383-income',builtin:true,name:'1. Foreign Currency Income Mapping',generalMemo:'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:[
  row('1016','LAK','Total cash received in LAK'),
  row('4010','LAK','Total dine-in sales in LAK, including foreign-currency receipts'),
- row('9035','LAK','LAK equivalent of THB and USD sales received'),
+ row('9190','LAK','LAK equivalent of THB and USD sales received','9035'),
  row('1017','THB','Actual Thai baht cash received'),
- row('9031','THB','System offset for Thai baht income'),
+ row('9101','THB','System offset for dine-in sales in THB','9031'),
  row('1018','USD','Actual US dollar cash received'),
- row('9033','USD','System offset for US dollar income')]},
+ row('9102','USD','System offset for dine-in sales in USD','9033')]},
  {id:'fx14383-expense',builtin:true,name:'2. Foreign Currency Expense Mapping',generalMemo:'Record expenses paid in foreign currencies, with LAK mapping and exchange gain or loss.',lines:[
- row('9032','THB','System offset for Thai baht expense'),
+ row('9201','THB','System offset for cost of goods in THB','9032'),
  row('1017','THB','Actual Thai baht cash paid'),
  row('5010','LAK','Cost of goods purchased at the transaction-date LAK value'),
- row('9036','LAK','Recorded LAK value of foreign currency spent'),
+ row('9290','LAK','Recorded LAK value of foreign currency spent','9036'),
  row('5419','LAK','Realized exchange difference: debit loss or credit gain'),
- row('9034','USD','System offset for US dollar expense'),
+ row('9202','USD','System offset for cost of goods in USD','9034'),
  row('1018','USD','Actual US dollar cash paid')]}
  ];
 }
@@ -337,13 +337,16 @@ function prepareSpans(table,rows){restoreSpans(table);const positions=new Map(),
  for(const p of spans){const boundary=(Math.floor(p.row/100)+1)*100;if(p.end<=boundary)continue;p.cell.dataset.pageSpan14383=String(p.cell.rowSpan);p.cell.rowSpan=boundary-p.row;for(let start=boundary;start<p.end;start+=100){const copy=p.cell.cloneNode(true);copy.removeAttribute('data-page-span14383');copy.dataset.pageCell14383='1';copy.removeAttribute('id');copy.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));copy.rowSpan=Math.min(100,p.end-start);const row=rows[start],next=[...row.cells].find(c=>positions.get(c)>p.column);positions.set(copy,p.column);row.insertBefore(copy,next||null)}}
 }
 function install(table){if(table.dataset.ownPager14383||table.closest('#document-editor105,[contenteditable=true],#journalEntry98,.phone-app132,form,.r79-original'))return;const bodies=[...table.tBodies];if(!bodies.length)return;let s=states.get(table);const rows=bodies.flatMap(b=>[...b.rows]);
- if(!s){const bar=document.createElement('div');bar.className='table-pages14383 no-print';const prev=document.createElement('button'),label=document.createElement('span'),next=document.createElement('button');prev.type=next.type='button';prev.className=next.className='je-btn je-btn-secondary';prev.textContent='Previous';next.textContent='Next';bar.append(prev,label,next);s={page:0,bar,prev,label,next,rows:[]};states.set(table,s);tables.add(table);prev.onclick=()=>{s.page--;paint(s)};next.onclick=()=>{s.page++;paint(s)}}
- if(rows.length!==s.rows.length||rows.some((r,i)=>r!==s.rows[i])){s.page=0;prepareSpans(table,rows)}s.rows=rows;const container=table.closest('.table-container,.r79-table,.data-table82')||table;if(container.nextElementSibling!==s.bar)container.after(s.bar);paint(s)}
+ if(!s){const bar=document.createElement('div');bar.className='table-pages14383 no-print';const prev=document.createElement('button'),label=document.createElement('span'),next=document.createElement('button');prev.type=next.type='button';prev.className=next.className='je-btn je-btn-secondary';prev.textContent='Previous';next.textContent='Next';bar.append(prev,label,next);s={page:0,table,bar,prev,label,next,rows:[]};states.set(table,s);tables.add(table);prev.onclick=()=>turn(s,-1);next.onclick=()=>turn(s,1)}
+ if(rows.length!==s.rows.length||rows.some((r,i)=>r!==s.rows[i])){if(!table.dataset.preservePage14397)s.page=0;prepareSpans(table,rows)}s.rows=rows;const container=table.closest('.table-container,.r79-table,.data-table82')||table;if(container.nextElementSibling!==s.bar)container.after(s.bar);paint(s)}
+function turn(s,delta){s.page+=delta;paint(s);s.table.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'})}
+function reset(table){const s=states.get(table);if(s)s.page=0}
+function refresh(table){install(table)}
 function paint(s){const count=Math.max(1,Math.ceil(s.rows.length/100));s.page=Math.max(0,Math.min(s.page,count-1));for(const [i,row] of s.rows.entries()){const hide=Math.floor(i/100)!==s.page;if(row.hasAttribute('data-page-hidden14383')!==hide)row.toggleAttribute('data-page-hidden14383',hide)}const value=`${s.page+1} of ${count}`;if(s.label.textContent!==value)s.label.textContent=value;s.prev.disabled=s.page===0;s.next.disabled=s.page===count-1}
 function scan(){queued=false;for(const table of tables)if(!table.isConnected){states.get(table)?.bar.remove();tables.delete(table)}document.querySelectorAll('.tab-content.active table,.modal-overlay.active table,.ui-dialog108 table').forEach(install)}
 function schedule(){if(!queued){queued=true;requestAnimationFrame(scan)}}
 function ready(){new MutationObserver(rs=>{if(rs.some(r=>!r.target.closest?.('.table-pages14383,.transaction-pages14340')&&(r.target.closest?.('table')||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches('table')||n.querySelector('table'))))))schedule()}).observe(document.body,{childList:true,subtree:true});window.addEventListener('page113',schedule);window.addEventListener('beforeprint',()=>tables.forEach(restoreSpans));window.addEventListener('afterprint',()=>tables.forEach(t=>prepareSpans(t,states.get(t).rows)));scan()}
-window.tablePagination14383={scan,restoreSpans};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+window.tablePagination14383={scan,restoreSpans,reset,refresh};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 
 ;
