@@ -16,6 +16,12 @@ await check('Standalone mutation fixtures refuse a database outside the isolated
 await db.exec('CREATE TEMP TABLE audit_fixture14370 (isolated boolean);');
 await db.exec(file('validation/platform14322.sql'));
 await check('Complete installer restores empty database in one transaction',()=>db.exec(file('setup/fresh/001-Install-Empty-Database.sql')));
+await check('Current FX, durable changes and tracking contracts exist in fresh installations',async()=>{
+ const columns=(await db.query("SELECT table_name,column_name FROM information_schema.columns WHERE table_schema='public'")).rows;
+ for(const [table,names] of Object.entries({journal_lines:['fx_rate_lak','book_rate_lak','base_debit','base_credit'],staff_journal_lines:['fx_rate_lak'],accounts:['track_foreign_funds'],sub_accounts:['track_foreign_funds']}))for(const name of names)assert(columns.some(c=>c.table_name===table&&c.column_name===name),table+'.'+name);
+ for(const signature of ['change_journal14385(text,uuid,text,text,jsonb,jsonb)','journal_change_receipt14385(text)','journal_shape14385(date,text,jsonb)','account_history_label14381(uuid[])'])assert((await one('SELECT to_regprocedure($1)::text name',['public.'+signature])).name,signature);
+ assert(!columns.some(c=>c.table_name==='journal_lines'&&c.column_name==='calculation14387'));
+});
 await check('Packaged verification SQL passes on a clean installation',()=>db.exec(file('setup/fresh/003-Verify-Installation.sql')));
 await check('All routine bodies compile with validation enabled',async()=>{await db.exec('SET check_function_bodies=on;');for(const r of (await db.query("SELECT pg_get_functiondef(p.oid) AS definition FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname IN ('public','private') AND p.prokind='f'")).rows)await db.exec(r.definition);});
 await check('Refuses reinstall into populated application schemas',async()=>{await assert.rejects(db.exec(file('setup/fresh/001-Install-Empty-Database.sql')),/requires empty/);await db.exec('ROLLBACK;');assert.equal((await one('SELECT count(*)::int n FROM currencies')).n,3);});
@@ -33,6 +39,24 @@ const post=(date,key,ls=lines(100))=>rpc('SELECT * FROM post_manual_journal14228
 let journal;
 await check('Balanced manual posting and original numbering work',async()=>{journal=(await post('2026-09-04','test-fresh14322-journal-1'))[0];assert(journal.entry_no.startsWith('JRN'));assert.equal((await one('SELECT count(*)::int n FROM journal_lines WHERE journal_entry_id=$1',[journal.entry_id])).n,2);});
 await check('Posting retries do not duplicate a journal',async()=>{assert.deepEqual((await post('2026-09-04','test-fresh14322-journal-1'))[0],journal);assert.equal((await one('SELECT count(*)::int n FROM journal_entries')).n,1);});
+await check('Fresh FX edits, conflicts, retry receipts and voids preserve rates and amounts',async()=>{
+ await db.exec('BEGIN;SET LOCAL ROLE authenticated;');
+ try{
+  await db.query("INSERT INTO accounts(id,code,name,account_type,currency_code) VALUES($1,'TEST-THB-A','Fixture cash THB','ASSET','THB'),($2,'TEST-THB-B','Fixture expense THB','EXPENSE','THB')",[uid(71),uid(72)]);
+  const ls=[{account_id:uid(71),currency_code:'THB',debit:10,credit:0,fx_rate_lak:650,book_rate_lak:640},{account_id:uid(72),currency_code:'THB',debit:0,credit:10,fx_rate_lak:650}];
+  const entry=await one('SELECT * FROM post_manual_journal14228($1,$2,$3,$4,$5,$6)',['2026-09-04','FX fixture',ls,'TEST',4,'fresh-fx-post']);
+  const shape=async()=> (await one('SELECT journal_shape14385(e.transaction_date,e.memo,jsonb_agg(to_jsonb(l) ORDER BY l.line_no)) shape FROM journal_entries e JOIN journal_lines l ON l.journal_entry_id=e.id WHERE e.id=$1 GROUP BY e.id',[entry.entry_id])).shape;
+  const before=await shape(),after=structuredClone(before);after.memo='FX corrected';after.lines.forEach(l=>l.fx_rate_lak=675);after.lines[0].book_rate_lak=660;
+  const args=['fresh-fx-edit',entry.entry_id,'revise','Fixture correction',before,after],sql='SELECT change_journal14385($1,$2,$3,$4,$5,$6) r';
+  const saved=(await one(sql,args)).r;assert.deepEqual((await one(sql,args)).r,saved);assert.deepEqual(await shape(),after);
+  assert.deepEqual((await one('SELECT journal_change_receipt14385($1) r',[args[0]])).r.result,saved);
+  const values=(await db.query('SELECT fx_rate_lak::float8 rate,book_rate_lak::float8 carrying,base_debit::float8 debit,base_credit::float8 credit FROM journal_lines WHERE journal_entry_id=$1 ORDER BY line_no',[entry.entry_id])).rows;
+  assert.deepEqual(values,[{rate:675,carrying:660,debit:6600,credit:0},{rate:675,carrying:null,debit:0,credit:6750}]);
+  await db.exec('SAVEPOINT stale');await assert.rejects(one(sql,['fresh-stale',entry.entry_id,'revise','Stale fixture',before,after]),/changed/i);await db.exec('ROLLBACK TO stale');
+  const voidArgs=['fresh-fx-void',entry.entry_id,'void','Fixture void',after,null],voided=(await one(sql,voidArgs)).r;assert.deepEqual((await one(sql,voidArgs)).r,voided);
+  assert.equal((await one('SELECT status::text status FROM journal_entries WHERE id=$1',[entry.entry_id])).status,'voided');
+ }finally{await db.exec('ROLLBACK;')}
+});
 await check('Unbalanced, currency-mismatch and nonfinite postings are rejected atomically',async()=>{for(const ls of [[{...lines(100)[0],debit:101},lines(100)[1]],[lines(100)[0],{...lines(100)[1],currency_code:'USD'}],[{...lines(100)[0],debit:'NaN'},lines(100)[1]]])await assert.rejects(post('2026-09-05','invalid-journal-'+JSON.stringify(ls).length,ls));assert.equal((await one('SELECT count(*)::int n FROM journal_entries')).n,1);});
 await check('Long journal sequence IDs remain intact and direct nonfinite writes are rejected',async()=>{
  await db.exec('BEGIN;CREATE TEMP SEQUENCE number_boundary14370 START 1000000;');

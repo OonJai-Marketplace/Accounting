@@ -11453,4 +11453,747 @@ ALTER POLICY "journal_lines_permitted_select" ON public."journal_lines" USING ((
 ALTER POLICY "password_gate14257" ON public."journal_lines" USING ((NOT (SELECT public.password_change_required14257()))) WITH CHECK ((NOT (SELECT public.password_change_required14257())));
 ALTER POLICY "workspace_accounting123" ON public."journal_lines" USING ((SELECT public.accounting_workspace_allowed123())) WITH CHECK ((SELECT public.accounting_workspace_allowed123()));
 
+-- Source: setup/INSTALL-SUBACCOUNT-INHERITANCE-v143.80.sql
+-- Preserve stable posting IDs and financial history. Inherit System status and purpose as well as financial type.
+
+CREATE OR REPLACE FUNCTION public.sync_subaccount_posting14285() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE p public.accounts%ROWTYPE; a public.accounts%ROWTYPE; child uuid; posted boolean;
+BEGIN
+ IF auth.uid() IS NULL OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=auth.uid() AND role='admin' AND status='active') THEN
+  RAISE EXCEPTION 'An active administrator is required to change sub-accounts' USING ERRCODE='42501';
+ END IF;
+ IF TG_OP='DELETE' THEN
+  IF OLD.posting_account_id14285 IS NOT NULL THEN
+   IF EXISTS(SELECT 1 FROM public.journal_lines WHERE account_id=OLD.posting_account_id14285) THEN RAISE EXCEPTION 'This sub-account has journal history. Deactivate it instead.'; END IF;
+   IF EXISTS(SELECT 1 FROM public.sub_accounts WHERE parent_account_id=OLD.posting_account_id14285)
+      OR EXISTS(SELECT 1 FROM public.accounts WHERE parent_code=OLD.code AND id<>OLD.posting_account_id14285) THEN
+    RAISE EXCEPTION 'This grouping account has child accounts. Keep the group or deactivate it instead.';
+   END IF;
+   DELETE FROM public.accounts WHERE id=OLD.posting_account_id14285;
+  END IF;
+  RETURN OLD;
+ END IF;
+ SELECT * INTO p FROM public.accounts WHERE id=NEW.parent_account_id FOR SHARE;
+ IF p.id IS NULL OR p.is_posting IS DISTINCT FROM false OR p.is_active IS FALSE THEN RAISE EXCEPTION 'Choose an active non-posting parent grouping account.'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.currencies WHERE code=NEW.currency_code AND is_active) THEN RAISE EXCEPTION 'Choose an active currency.'; END IF;
+ IF TG_OP='UPDATE' AND NEW.posting_account_id14285 IS DISTINCT FROM OLD.posting_account_id14285 THEN RAISE EXCEPTION 'The posting account link cannot be changed.'; END IF;
+ child:=CASE WHEN TG_OP='UPDATE' THEN OLD.posting_account_id14285 ELSE NULL END;
+ IF child IS NULL THEN
+  IF EXISTS(SELECT 1 FROM public.accounts WHERE code=NEW.code) THEN RAISE EXCEPTION 'This code already belongs to a chart account. Choose a unique sub-account code.'; END IF;
+  child:=gen_random_uuid();
+  INSERT INTO public.accounts(id,code,name,currency_code,account_type,description,account_purpose,is_technical,is_posting,is_active,parent_code,created_by)
+  VALUES(child,NEW.code,NEW.name,NEW.currency_code,p.account_type,NEW.description,p.account_purpose,(p.is_technical OR p.account_purpose<>'regular'),true,NEW.is_active,p.code,auth.uid());
+ ELSE
+  SELECT * INTO a FROM public.accounts WHERE id=child FOR UPDATE;
+  IF a.id IS NULL THEN RAISE EXCEPTION 'The linked posting account is missing.'; END IF;
+  posted:=EXISTS(SELECT 1 FROM public.journal_lines WHERE account_id=child);
+  IF posted AND (a.currency_code IS DISTINCT FROM NEW.currency_code OR a.account_type IS DISTINCT FROM p.account_type OR a.is_technical IS DISTINCT FROM (p.is_technical OR p.account_purpose<>'regular') OR a.account_purpose IS DISTINCT FROM p.account_purpose) THEN RAISE EXCEPTION 'Keep the currency and classification of a sub-account with journal history. Create a new sub-account for a different currency or type.'; END IF;
+  UPDATE public.accounts SET code=NEW.code,name=NEW.name,currency_code=NEW.currency_code,account_type=p.account_type,account_purpose=p.account_purpose,is_technical=(p.is_technical OR p.account_purpose<>'regular'),description=NEW.description,parent_code=p.code,is_active=NEW.is_active WHERE id=child;
+ END IF;
+ NEW.posting_account_id14285:=child;
+ RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION public.sync_subaccount_posting14285() FROM PUBLIC,anon,authenticated;
+DROP TRIGGER IF EXISTS sync_subaccount_write14285 ON public.sub_accounts;
+CREATE TRIGGER sync_subaccount_write14285 BEFORE INSERT OR UPDATE ON public.sub_accounts FOR EACH ROW EXECUTE FUNCTION public.sync_subaccount_posting14285();
+DROP TRIGGER IF EXISTS sync_subaccount_delete14285 ON public.sub_accounts;
+CREATE TRIGGER sync_subaccount_delete14285 AFTER DELETE ON public.sub_accounts FOR EACH ROW EXECUTE FUNCTION public.sync_subaccount_posting14285();
+CREATE OR REPLACE FUNCTION public.sync_subaccount_parent14285() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+BEGIN
+ IF auth.uid() IS NULL OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=auth.uid() AND role='admin' AND status='active') THEN RAISE EXCEPTION 'An active administrator is required to change parent accounts' USING ERRCODE='42501'; END IF;
+ IF EXISTS(SELECT 1 FROM public.sub_accounts WHERE parent_account_id=NEW.id) THEN
+  IF NEW.is_posting IS DISTINCT FROM false THEN RAISE EXCEPTION 'A grouping account with sub-accounts must remain non-posting.'; END IF;
+  IF (OLD.account_type IS DISTINCT FROM NEW.account_type OR OLD.account_purpose IS DISTINCT FROM NEW.account_purpose OR OLD.is_technical IS DISTINCT FROM NEW.is_technical) AND EXISTS(SELECT 1 FROM public.journal_lines l JOIN public.sub_accounts s ON s.posting_account_id14285=l.account_id WHERE s.parent_account_id=NEW.id) THEN RAISE EXCEPTION 'Sub-accounts have journal history. Keep their parent classification.'; END IF;
+  UPDATE public.accounts a SET parent_code=NEW.code,account_type=NEW.account_type,account_purpose=NEW.account_purpose,is_technical=(NEW.is_technical OR NEW.account_purpose<>'regular') FROM public.sub_accounts s WHERE s.parent_account_id=NEW.id AND a.id=s.posting_account_id14285;
+ END IF;
+ RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION public.sync_subaccount_parent14285() FROM PUBLIC,anon,authenticated;
+DROP TRIGGER IF EXISTS sync_subaccount_parent14285 ON public.accounts;
+CREATE TRIGGER sync_subaccount_parent14285 AFTER UPDATE OF code,account_type,account_purpose,is_technical,is_posting ON public.accounts FOR EACH ROW WHEN(OLD.is_posting IS FALSE) EXECUTE FUNCTION public.sync_subaccount_parent14285();
+
+
+-- Source: setup/INSTALL-ACCOUNT-HISTORY-DETAILS-v143.81.sql
+-- Preserve stable posting IDs and financial history. Inherit System status and purpose as well as financial type.
+
+-- Show the exact history that protects an account. No journal values are changed.
+CREATE OR REPLACE FUNCTION public.account_history_label14381(account_ids uuid[]) RETURNS text
+LANGUAGE sql STABLE SECURITY INVOKER SET search_path=pg_catalog,public,pg_temp AS $$
+ WITH entries AS (
+  SELECT DISTINCT e.id,e.entry_no,e.transaction_date,e.status::text AS status
+  FROM public.journal_lines l JOIN public.journal_entries e ON e.id=l.journal_entry_id
+  WHERE l.account_id=ANY(account_ids)
+ ), sample AS (SELECT * FROM entries ORDER BY transaction_date,entry_no,id LIMIT 20)
+ SELECT 'Linked journal entries ('||(SELECT count(*) FROM entries)||' total): '||
+ coalesce(string_agg(coalesce(entry_no,id::text)||' ['||to_char(transaction_date,'DD Mon YYYY')||', '||status||']','; ' ORDER BY transaction_date,entry_no,id),'none')||
+ CASE WHEN (SELECT count(*) FROM entries)>20 THEN '. Showing the first 20; use General Ledger with All months for the remaining posted entries.' ELSE '.' END
+ FROM sample;
+$$;
+REVOKE ALL ON FUNCTION public.account_history_label14381(uuid[]) FROM PUBLIC,anon,authenticated;
+
+CREATE OR REPLACE FUNCTION public.sync_subaccount_posting14285() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE p public.accounts%ROWTYPE; a public.accounts%ROWTYPE; child uuid; posted boolean;
+BEGIN
+ IF auth.uid() IS NULL OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=auth.uid() AND role='admin' AND status='active') THEN
+  RAISE EXCEPTION 'An active administrator is required to change sub-accounts' USING ERRCODE='42501';
+ END IF;
+ IF TG_OP='DELETE' THEN
+  IF OLD.posting_account_id14285 IS NOT NULL THEN
+   IF EXISTS(SELECT 1 FROM public.journal_lines WHERE account_id=OLD.posting_account_id14285) THEN RAISE EXCEPTION 'Cannot delete sub-account % because it has journal history. % Deactivate it instead.',OLD.code,public.account_history_label14381(ARRAY[OLD.posting_account_id14285]); END IF;
+   IF EXISTS(SELECT 1 FROM public.sub_accounts WHERE parent_account_id=OLD.posting_account_id14285)
+      OR EXISTS(SELECT 1 FROM public.accounts WHERE parent_code=OLD.code AND id<>OLD.posting_account_id14285) THEN
+    RAISE EXCEPTION 'This grouping account has child accounts. Keep the group or deactivate it instead.';
+   END IF;
+   DELETE FROM public.accounts WHERE id=OLD.posting_account_id14285;
+  END IF;
+  RETURN OLD;
+ END IF;
+ SELECT * INTO p FROM public.accounts WHERE id=NEW.parent_account_id FOR SHARE;
+ IF p.id IS NULL OR p.is_posting IS DISTINCT FROM false OR p.is_active IS FALSE THEN RAISE EXCEPTION 'Choose an active non-posting parent grouping account.'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.currencies WHERE code=NEW.currency_code AND is_active) THEN RAISE EXCEPTION 'Choose an active currency.'; END IF;
+ IF TG_OP='UPDATE' AND NEW.posting_account_id14285 IS DISTINCT FROM OLD.posting_account_id14285 THEN RAISE EXCEPTION 'The posting account link cannot be changed.'; END IF;
+ child:=CASE WHEN TG_OP='UPDATE' THEN OLD.posting_account_id14285 ELSE NULL END;
+ IF child IS NULL THEN
+  IF EXISTS(SELECT 1 FROM public.accounts WHERE code=NEW.code) THEN RAISE EXCEPTION 'This code already belongs to a chart account. Choose a unique sub-account code.'; END IF;
+  child:=gen_random_uuid();
+  INSERT INTO public.accounts(id,code,name,currency_code,account_type,description,account_purpose,is_technical,is_posting,is_active,parent_code,created_by)
+  VALUES(child,NEW.code,NEW.name,NEW.currency_code,p.account_type,NEW.description,p.account_purpose,(p.is_technical OR p.account_purpose<>'regular'),true,NEW.is_active,p.code,auth.uid());
+ ELSE
+  SELECT * INTO a FROM public.accounts WHERE id=child FOR UPDATE;
+  IF a.id IS NULL THEN RAISE EXCEPTION 'The linked posting account is missing.'; END IF;
+  posted:=EXISTS(SELECT 1 FROM public.journal_lines WHERE account_id=child);
+  IF posted AND (a.currency_code IS DISTINCT FROM NEW.currency_code OR a.account_type IS DISTINCT FROM p.account_type OR a.is_technical IS DISTINCT FROM (p.is_technical OR p.account_purpose<>'regular') OR a.account_purpose IS DISTINCT FROM p.account_purpose) THEN RAISE EXCEPTION 'Cannot change the currency or classification of sub-account % — % because it has journal history. % Review these entries before deciding how to correct the account.',a.code,a.name,public.account_history_label14381(ARRAY[child]); END IF;
+  UPDATE public.accounts SET code=NEW.code,name=NEW.name,currency_code=NEW.currency_code,account_type=p.account_type,account_purpose=p.account_purpose,is_technical=(p.is_technical OR p.account_purpose<>'regular'),description=NEW.description,parent_code=p.code,is_active=NEW.is_active WHERE id=child;
+ END IF;
+ NEW.posting_account_id14285:=child;
+ RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION public.sync_subaccount_posting14285() FROM PUBLIC,anon,authenticated;
+DROP TRIGGER IF EXISTS sync_subaccount_write14285 ON public.sub_accounts;
+CREATE TRIGGER sync_subaccount_write14285 BEFORE INSERT OR UPDATE ON public.sub_accounts FOR EACH ROW EXECUTE FUNCTION public.sync_subaccount_posting14285();
+DROP TRIGGER IF EXISTS sync_subaccount_delete14285 ON public.sub_accounts;
+CREATE TRIGGER sync_subaccount_delete14285 AFTER DELETE ON public.sub_accounts FOR EACH ROW EXECUTE FUNCTION public.sync_subaccount_posting14285();
+CREATE OR REPLACE FUNCTION public.sync_subaccount_parent14285() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+BEGIN
+ IF auth.uid() IS NULL OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=auth.uid() AND role='admin' AND status='active') THEN RAISE EXCEPTION 'An active administrator is required to change parent accounts' USING ERRCODE='42501'; END IF;
+ IF EXISTS(SELECT 1 FROM public.sub_accounts WHERE parent_account_id=NEW.id) THEN
+  IF NEW.is_posting IS DISTINCT FROM false THEN RAISE EXCEPTION 'A grouping account with sub-accounts must remain non-posting.'; END IF;
+  IF (OLD.account_type IS DISTINCT FROM NEW.account_type OR OLD.account_purpose IS DISTINCT FROM NEW.account_purpose OR OLD.is_technical IS DISTINCT FROM NEW.is_technical) AND EXISTS(SELECT 1 FROM public.journal_lines l JOIN public.sub_accounts s ON s.posting_account_id14285=l.account_id WHERE s.parent_account_id=NEW.id) THEN RAISE EXCEPTION 'Cannot change parent % classification because its sub-accounts have journal history. %',NEW.code,public.account_history_label14381(ARRAY(SELECT posting_account_id14285 FROM public.sub_accounts WHERE parent_account_id=NEW.id)); END IF;
+  UPDATE public.accounts a SET parent_code=NEW.code,account_type=NEW.account_type,account_purpose=NEW.account_purpose,is_technical=(NEW.is_technical OR NEW.account_purpose<>'regular') FROM public.sub_accounts s WHERE s.parent_account_id=NEW.id AND a.id=s.posting_account_id14285;
+ END IF;
+ RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION public.sync_subaccount_parent14285() FROM PUBLIC,anon,authenticated;
+DROP TRIGGER IF EXISTS sync_subaccount_parent14285 ON public.accounts;
+CREATE TRIGGER sync_subaccount_parent14285 AFTER UPDATE OF code,account_type,account_purpose,is_technical,is_posting ON public.accounts FOR EACH ROW WHEN(OLD.is_posting IS FALSE) EXECUTE FUNCTION public.sync_subaccount_parent14285();
+
+
+-- Source: setup/INSTALL-FOREIGN-FUND-TRACKING-v143.86.sql
+-- Additive Phase 2 settings. Existing accounts and historical amounts are unchanged.
+
+ALTER TABLE public.accounts ADD COLUMN IF NOT EXISTS track_foreign_funds boolean NOT NULL DEFAULT false;
+ALTER TABLE public.sub_accounts ADD COLUMN IF NOT EXISTS track_foreign_funds boolean NOT NULL DEFAULT false;
+ALTER TABLE public.accounts ADD CONSTRAINT accounts_foreign_funds14386 CHECK (NOT track_foreign_funds OR (is_posting AND currency_code <> 'LAK' AND account_type='ASSET' AND NOT is_technical AND account_purpose='regular'));
+-- Extend the existing authorized, atomic sub-account synchronization.
+DO $migration$
+DECLARE definition text;
+BEGIN
+ definition:=pg_get_functiondef('public.sync_subaccount_posting14285()'::regprocedure);
+ IF position('track_foreign_funds' in definition)=0 THEN
+  IF position('parent_code,created_by)' in definition)=0 OR position('is_active=NEW.is_active WHERE id=child' in definition)=0 THEN RAISE EXCEPTION 'Unexpected sub-account function; review before installing'; END IF;
+  definition:=replace(definition,'parent_code,created_by)','parent_code,created_by,track_foreign_funds)');
+  definition:=replace(definition,'p.code,auth.uid());','p.code,auth.uid(),NEW.track_foreign_funds);');
+  definition:=replace(definition,'is_active=NEW.is_active WHERE id=child','is_active=NEW.is_active,track_foreign_funds=NEW.track_foreign_funds WHERE id=child');
+  EXECUTE definition;
+ END IF;
+END $migration$;
+NOTIFY pgrst,'reload schema';
+
+-- Source: setup/INSTALL-FOREIGN-CURRENCY-v143.83.sql
+-- Explicit rates and immutable original/base amounts; existing rates are never guessed.
+ALTER TABLE public.journal_lines ADD COLUMN IF NOT EXISTS fx_rate_lak numeric(24,10), ADD COLUMN IF NOT EXISTS book_rate_lak numeric(24,10);
+ALTER TABLE public.journal_lines ADD COLUMN IF NOT EXISTS base_debit numeric GENERATED ALWAYS AS (CASE WHEN currency_code='LAK' THEN debit ELSE round(debit*coalesce(book_rate_lak,fx_rate_lak),2) END) STORED, ADD COLUMN IF NOT EXISTS base_credit numeric GENERATED ALWAYS AS (CASE WHEN currency_code='LAK' THEN credit ELSE round(credit*coalesce(book_rate_lak,fx_rate_lak),2) END) STORED;
+ALTER TABLE public.journal_lines ADD CONSTRAINT journal_fx_positive14383 CHECK ((fx_rate_lak IS NULL OR fx_rate_lak>0 AND fx_rate_lak<1000000000000) AND (book_rate_lak IS NULL OR book_rate_lak>0 AND book_rate_lak<1000000000000));
+ALTER TABLE public.staff_journal_lines ADD COLUMN IF NOT EXISTS fx_rate_lak numeric(24,10);
+ALTER TABLE public.staff_journal_lines ADD CONSTRAINT staff_fx_positive14383 CHECK (fx_rate_lak IS NULL OR fx_rate_lak>0 AND fx_rate_lak<1000000000000);
+
+
+CREATE OR REPLACE FUNCTION public.post_manual_worker14228(p_transaction_date date, p_memo text, p_lines jsonb, p_prefix text DEFAULT 'OJM'::text, p_digits integer DEFAULT 6)
+ RETURNS TABLE(entry_id uuid, entry_no text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  v_entry_id uuid;
+  v_entry_no text;
+  v_prefix text;
+  v_digits integer;
+  v_line jsonb;
+  v_line_no integer := 0;
+  v_attempt integer := 0;
+  v_debit numeric(20,2);
+  v_credit numeric(20,2);
+begin
+  if not public.has_user_permission('post') then
+    raise exception 'Direct journal posting permission required';
+  end if;
+  if p_transaction_date is null or nullif(trim(p_memo),'') is null then
+    raise exception 'Transaction date and memo are required';
+  end if;
+  if p_lines is null or jsonb_typeof(p_lines)<>'array' or jsonb_array_length(p_lines)<2 then
+    raise exception 'At least two journal lines are required';
+  end if;
+
+  PERFORM public.validate_journal14228(p_transaction_date,p_memo,p_lines);
+  v_prefix := upper(regexp_replace(coalesce(nullif(trim(p_prefix),''),'OJM'),'[^A-Za-z0-9]','','g'));
+
+  v_prefix := left(coalesce(nullif(v_prefix,''),'OJM'),8);
+  v_digits := greatest(3,least(9,coalesce(p_digits,6)));
+
+  -- Sequence allocation and collision retry also skip headers left by older,
+  -- non-atomic posting attempts.
+  loop
+    v_attempt := v_attempt + 1;
+    if v_attempt>1000 then raise exception 'Unable to allocate a unique journal number'; end if;
+    v_entry_no := v_prefix||'-'||(SELECT lpad(n.value,greatest(v_digits,length(n.value)),'0') FROM (SELECT nextval('public.journal_entry_number_seq')::text AS value) n);
+    begin
+      insert into public.journal_entries(entry_no,transaction_date,memo,status,source,posted_by,posted_at)
+      values(v_entry_no,p_transaction_date,trim(p_memo),'posted','manual',auth.uid(),now())
+      returning id into v_entry_id;
+      exit;
+    exception when unique_violation then
+      null;
+    end;
+  end loop;
+
+  for v_line in select value from jsonb_array_elements(p_lines) loop
+    v_line_no := v_line_no + 1;
+    if nullif(v_line->>'account_id','') is null then
+      raise exception 'Line % has no account ID',v_line_no;
+    end if;
+    v_debit := coalesce((v_line->>'debit')::numeric,0);
+    v_credit := coalesce((v_line->>'credit')::numeric,0);
+    if not ((v_debit>0 and v_credit=0) or (v_credit>0 and v_debit=0)) then
+      raise exception 'Line % must contain either a debit or a credit',v_line_no;
+    end if;
+    insert into public.journal_lines(
+      journal_entry_id,line_no,account_id,description,currency_code,debit,credit,line_date,fx_rate_lak,book_rate_lak
+    ) values(
+      v_entry_id,v_line_no,(v_line->>'account_id')::uuid,
+      coalesce(v_line->>'description',p_memo),v_line->>'currency_code',
+      v_debit,v_credit,p_transaction_date,nullif(v_line->>'fx_rate_lak','')::numeric,nullif(v_line->>'book_rate_lak','')::numeric
+    );
+  end loop;
+
+  insert into public.audit_log(table_name,record_id,action,new_data,reason,actor_id)
+  values('journal_entries',v_entry_id::text,'POST',jsonb_build_object('entry_no',v_entry_no,'line_count',v_line_no),'Atomic manual journal posting',auth.uid());
+
+  return query select v_entry_id,v_entry_no;
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION public.post_report_worker14349(p_transaction_date date, p_memo text, p_lines jsonb, p_prefix text DEFAULT 'OJM'::text, p_digits integer DEFAULT 6)
+ RETURNS TABLE(entry_id uuid, entry_no text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+declare
+  v_entry_id uuid;
+  v_entry_no text;
+  v_prefix text;
+  v_digits integer;
+  v_line jsonb;
+  v_line_no integer := 0;
+  v_attempt integer := 0;
+  v_debit numeric(20,2);
+  v_credit numeric(20,2);
+begin
+  if not public.has_user_permission('post') then
+    raise exception 'Direct journal posting permission required';
+  end if;
+  if p_transaction_date is null or nullif(trim(p_memo),'') is null then
+    raise exception 'Transaction date and memo are required';
+  end if;
+  if p_lines is null or jsonb_typeof(p_lines)<>'array' or jsonb_array_length(p_lines)<2 then
+    raise exception 'At least two journal lines are required';
+  end if;
+
+  PERFORM public.validate_journal14228(p_transaction_date,p_memo,(SELECT jsonb_agg(x-'line_date') FROM jsonb_array_elements(p_lines) x));
+  v_prefix := upper(regexp_replace(coalesce(nullif(trim(p_prefix),''),'OJM'),'[^A-Za-z0-9]','','g'));
+
+  v_prefix := left(coalesce(nullif(v_prefix,''),'OJM'),8);
+  v_digits := greatest(3,least(9,coalesce(p_digits,6)));
+
+  -- Sequence allocation and collision retry also skip headers left by older,
+  -- non-atomic posting attempts.
+  loop
+    v_attempt := v_attempt + 1;
+    if v_attempt>1000 then raise exception 'Unable to allocate a unique journal number'; end if;
+    v_entry_no := v_prefix||'-'||(SELECT lpad(n.value,greatest(v_digits,length(n.value)),'0') FROM (SELECT nextval('public.journal_entry_number_seq')::text AS value) n);
+    begin
+      insert into public.journal_entries(entry_no,transaction_date,memo,status,source,posted_by,posted_at)
+      values(v_entry_no,p_transaction_date,trim(p_memo),'posted','manual',auth.uid(),now())
+      returning id into v_entry_id;
+      exit;
+    exception when unique_violation then
+      null;
+    end;
+  end loop;
+
+  for v_line in select value from jsonb_array_elements(p_lines) loop
+    v_line_no := v_line_no + 1;
+    if nullif(v_line->>'account_id','') is null then
+      raise exception 'Line % has no account ID',v_line_no;
+    end if;
+    v_debit := coalesce((v_line->>'debit')::numeric,0);
+    v_credit := coalesce((v_line->>'credit')::numeric,0);
+    if not ((v_debit>0 and v_credit=0) or (v_credit>0 and v_debit=0)) then
+      raise exception 'Line % must contain either a debit or a credit',v_line_no;
+    end if;
+    insert into public.journal_lines(
+      journal_entry_id,line_no,account_id,description,currency_code,debit,credit,line_date,fx_rate_lak,book_rate_lak
+    ) values(
+      v_entry_id,v_line_no,(v_line->>'account_id')::uuid,
+      coalesce(v_line->>'description',p_memo),v_line->>'currency_code',
+      v_debit,v_credit,(v_line->>'line_date')::date,nullif(v_line->>'fx_rate_lak','')::numeric,nullif(v_line->>'book_rate_lak','')::numeric
+    );
+  end loop;
+
+  insert into public.audit_log(table_name,record_id,action,new_data,reason,actor_id)
+  values('journal_entries',v_entry_id::text,'POST',jsonb_build_object('entry_no',v_entry_no,'line_count',v_line_no),'Atomic manual journal posting',auth.uid());
+
+  return query select v_entry_id,v_entry_no;
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION public.revise_open_journal_entry(p_entry_id uuid, p_reason text, p_transaction_date date, p_memo text, p_lines jsonb)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+ v_entry public.journal_entries; v_old jsonb; v_new jsonb; v_line jsonb;
+ v_month date; v_status text; v_n integer:=0; v_dr numeric; v_cr numeric;
+begin
+ if auth.uid() is null or not public.has_user_permission('post') then
+  raise exception 'Direct journal posting permission required';
+ end if;
+ if nullif(trim(p_reason),'') is null then raise exception 'A modification reason is required'; end if;
+ if p_transaction_date is null or nullif(trim(p_memo),'') is null then raise exception 'Date and description are required'; end if;
+ if p_lines is null or jsonb_typeof(p_lines)<>'array' then raise exception 'Journal lines must be an array'; end if;
+ if jsonb_array_length(p_lines)<2 then raise exception 'At least two journal lines are required'; end if;
+ select * into v_entry from public.journal_entries where id=p_entry_id for update;
+ if not found or v_entry.status<>'posted' then raise exception 'Posted journal entry not found'; end if;
+ -- Lock all affected periods in stable order. A closed/locked period is never bypassed.
+ for v_month in
+  select distinct month_key from (
+   select date_trunc('month',v_entry.transaction_date)::date as month_key
+   union select date_trunc('month',coalesce(line_date,v_entry.transaction_date))::date from public.journal_lines where journal_entry_id=p_entry_id
+   union select date_trunc('month',p_transaction_date)::date
+  ) m order by month_key
+ loop
+  insert into public.accounting_periods(period_month,status,updated_by)
+   values(v_month,'open',auth.uid()) on conflict(period_month) do nothing;
+  select status into v_status from public.accounting_periods where period_month=v_month for update;
+  if v_status<>'open' then raise exception 'Period % must be reopened before editing',v_month; end if;
+ end loop;
+ for v_line in select value from jsonb_array_elements(p_lines) loop
+  v_n:=v_n+1;
+  v_dr:=coalesce((v_line->>'debit')::numeric,0); v_cr:=coalesce((v_line->>'credit')::numeric,0);
+  if not ((v_dr>0 and v_cr=0) or (v_cr>0 and v_dr=0)) then raise exception 'Line % requires either debit or credit',v_n; end if;
+  if v_dr<>round(v_dr,2) or v_cr<>round(v_cr,2) then raise exception 'Line % supports at most two decimal places',v_n; end if;
+  if coalesce(nullif(v_line->>'line_date','')::date,p_transaction_date)<>p_transaction_date then raise exception 'Edited entry must have one transaction date'; end if;
+  if not exists(select 1 from public.accounts a where a.id=(v_line->>'account_id')::uuid and a.is_active and a.currency_code=v_line->>'currency_code') then raise exception 'Line % has an invalid account or currency',v_n; end if;
+ end loop;
+ if exists(select 1 from jsonb_array_elements(p_lines) l group by l->>'currency_code'
+  having sum(coalesce((l->>'debit')::numeric,0))<>sum(coalesce((l->>'credit')::numeric,0))) then raise exception 'Every currency must balance'; end if;
+ select to_jsonb(v_entry)||jsonb_build_object('lines',coalesce(jsonb_agg(to_jsonb(l)||jsonb_build_object('account_name',a.name) order by l.line_no),'[]'::jsonb))
+  into v_old from public.journal_lines l join public.accounts a on a.id=l.account_id where l.journal_entry_id=p_entry_id;
+ -- Atomic replacement of lines: the journal header and its ID remain unchanged.
+ delete from public.journal_lines where journal_entry_id=p_entry_id;
+ v_n:=0;
+ for v_line in select value from jsonb_array_elements(p_lines) loop
+  v_n:=v_n+1;
+  insert into public.journal_lines(journal_entry_id,line_no,account_id,line_date,description,currency_code,debit,credit,fx_rate_lak,book_rate_lak)
+   values(p_entry_id,v_n,(v_line->>'account_id')::uuid,p_transaction_date,coalesce(v_line->>'description',p_memo),v_line->>'currency_code',coalesce((v_line->>'debit')::numeric,0),coalesce((v_line->>'credit')::numeric,0),nullif(v_line->>'fx_rate_lak','')::numeric,nullif(v_line->>'book_rate_lak','')::numeric);
+ end loop;
+ update public.journal_entries set transaction_date=p_transaction_date,memo=trim(p_memo),updated_at=now(),
+  accounting_period_id=(select id from public.accounting_periods where period_month=date_trunc('month',p_transaction_date)::date)
+  where id=p_entry_id;
+ select to_jsonb(e)||jsonb_build_object('lines',(select coalesce(jsonb_agg(to_jsonb(l)||jsonb_build_object('account_name',a.name) order by l.line_no),'[]'::jsonb) from public.journal_lines l join public.accounts a on a.id=l.account_id where l.journal_entry_id=p_entry_id))
+  into v_new from public.journal_entries e where e.id=p_entry_id;
+ insert into public.audit_log(table_name,record_id,action,old_data,new_data,reason,actor_id)
+  values('journal_entries',p_entry_id::text,'UPDATE',v_old,v_new,trim(p_reason),auth.uid());
+end $function$
+;
+
+CREATE OR REPLACE FUNCTION public.save_staff_editor1437(p_owner uuid, p_key text, p_items jsonb, p_snapshot jsonb, p_edit_ids uuid[] DEFAULT ARRAY[]::uuid[])
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE receipt public.operation_receipts14228;request_payload jsonb;item jsonb; saved record; line_id uuid; position integer:=0; ids uuid[]:=ARRAY[]::uuid[];
+ old_id uuid; existing_ids uuid[]; snapshot jsonb; n integer; actor uuid:=auth.uid();
+BEGIN
+ IF actor IS NULL OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE id=actor AND status='active') THEN RAISE EXCEPTION 'Active login required';END IF;
+ IF p_owner IS NULL OR NOT public.can_workspace113(p_owner) OR NOT public.can_action113(CASE WHEN actor=p_owner THEN 'sub-users-workspace' ELSE 'user-entry-review' END,'edit') THEN RAISE EXCEPTION 'Current workspace edit access required';END IF;
+ IF p_key IS NULL OR length(p_key)<10 OR length(p_key)>160 THEN RAISE EXCEPTION 'Invalid save reference';END IF;
+ IF jsonb_typeof(p_items) IS DISTINCT FROM 'array' OR jsonb_array_length(p_items)<1 OR jsonb_array_length(p_items)>500 THEN RAISE EXCEPTION 'Provide 1 to 500 complete entries';END IF;
+ IF jsonb_typeof(p_snapshot) IS DISTINCT FROM 'object' OR p_snapshot->'components1437' IS DISTINCT FROM p_items THEN RAISE EXCEPTION 'Editor snapshot must match the supplied entries';END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended(p_owner::text||':desktop-editor',0));
+ request_payload:=jsonb_build_object('owner',p_owner,'items',p_items,'snapshot',p_snapshot,'edit_ids',coalesce(p_edit_ids,ARRAY[]::uuid[]));
+ SELECT * INTO receipt FROM operation_receipts14228 WHERE actor_id=actor AND request_key=p_key;
+ IF FOUND THEN
+  IF receipt.operation<>'staff-editor' OR receipt.payload IS DISTINCT FROM request_payload THEN RAISE EXCEPTION 'Save reference already used for different data';END IF;
+  RETURN receipt.result||jsonb_build_object('already_saved',true);
+ END IF;
+ SELECT array_agg(l.id),min(l.editor_snapshot1437::text)::jsonb INTO existing_ids,snapshot
+ FROM public.staff_journal_lines l JOIN public.staff_journals j ON j.id=l.staff_journal_id
+ WHERE j.owner_id=p_owner AND left(l.editor_group1437,length(p_key)+1)=p_key||':';
+ IF cardinality(existing_ids)>0 THEN
+  IF snapshot IS DISTINCT FROM p_snapshot THEN RAISE EXCEPTION 'Save reference already used; refresh before retrying';END IF;
+  RETURN jsonb_build_object('line_ids',existing_ids,'already_saved',true);
+ END IF;
+ IF cardinality(p_edit_ids)>0 THEN
+  SELECT count(*) INTO n FROM public.staff_journal_lines l JOIN public.staff_journals j ON j.id=l.staff_journal_id
+  WHERE l.id=ANY(p_edit_ids) AND j.owner_id=p_owner AND j.status IN ('draft','returned') AND l.journal_entry_id IS NULL;
+  IF n<>cardinality(p_edit_ids) THEN RAISE EXCEPTION 'Only editable entries in this personal journal can be changed';END IF;
+ END IF;
+ -- Explicit target applies only to new lines; v3 rechecks owner, period and returned status.
+ PERFORM set_config('app.correction_journal14347',coalesce(p_snapshot->>'correction_journal14347',''),true);
+ FOR item IN SELECT value FROM jsonb_array_elements(p_items) LOOP
+  position:=position+1;old_id:=p_edit_ids[position];
+  SELECT * INTO saved FROM public.save_staff_workspace_entry_v3(
+   p_owner_id=>p_owner,p_line_id=>old_id,p_client_key=>p_key||':'||position,
+   p_transaction_date=>(item->>'date')::date,p_direction=>item->>'direction',
+   p_fund_account_id=>(item->>'fund')::uuid,p_account_id=>(item->>'account')::uuid,
+   p_memo=>item->>'memo',p_reference=>coalesce(item->>'reference',''),
+   p_amount=>(item->>'amount')::numeric,p_entry_kind=>item->>'kind');
+  line_id:=saved.line_id;
+  IF line_id IS NULL THEN RAISE EXCEPTION 'Entry save returned no record';END IF;
+  UPDATE public.staff_journal_lines l SET editor_group1437=p_key||':'||(item->>'date'),editor_snapshot1437=p_snapshot,fx_rate_lak=nullif(item->>'fx_rate_lak','')::numeric
+  FROM public.staff_journals j WHERE l.id=line_id AND j.id=l.staff_journal_id AND j.owner_id=p_owner;
+  GET DIAGNOSTICS n=ROW_COUNT;
+  IF n<>1 THEN RAISE EXCEPTION 'Saved entry owner did not match';END IF;
+  ids:=array_append(ids,line_id);
+ END LOOP;
+ FOREACH old_id IN ARRAY coalesce(p_edit_ids,ARRAY[]::uuid[]) LOOP
+  IF NOT old_id=ANY(ids) THEN PERFORM public.void_staff_workspace_entry(p_line_id=>old_id,p_reason=>'Replaced while editing the personal journal transaction');END IF;
+ END LOOP;
+ PERFORM set_config('app.correction_journal14347','',true);
+ INSERT INTO operation_receipts14228(actor_id,request_key,operation,payload,result) VALUES(actor,p_key,'staff-editor',request_payload,jsonb_build_object('line_ids',ids,'already_saved',false));
+ RETURN jsonb_build_object('line_ids',ids,'already_saved',false);
+END $function$
+;
+
+CREATE OR REPLACE FUNCTION public.post_report14349(p_journal uuid, p_date date, p_memo text, p_lines jsonb, p_prefix text, p_digits integer, p_mode text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE j staff_journals;snapshot jsonb;expected jsonb;actual jsonb;posted record;item jsonb;src record;line_id uuid;summary_line_no integer:=0;owner_name text;receipt operation_receipts14228;payload jsonb;answer jsonb;
+BEGIN
+ IF auth.uid() IS NULL OR p_mode NOT IN ('consolidated','detailed') OR p_mode IS NULL THEN RAISE EXCEPTION 'Authenticated user and posting mode required';END IF;
+ IF NOT public.has_user_permission('approve') OR NOT public.has_user_permission('post') OR NOT public.can_action113('user-entry-review','post') OR NOT public.can_action113('journal','post') THEN RAISE EXCEPTION 'Review and journal posting permissions required';END IF;
+ SELECT * INTO j FROM staff_journals WHERE id=p_journal FOR UPDATE;
+ IF NOT FOUND OR NOT public.can_workspace113(j.owner_id) THEN RAISE EXCEPTION 'Workspace access denied';END IF;
+ PERFORM public.assert_final_review14229(p_journal);
+ payload=jsonb_build_object('date',p_date,'memo',p_memo,'lines',p_lines,'prefix',p_prefix,'digits',p_digits,'mode',p_mode);
+ SELECT * INTO receipt FROM operation_receipts14228 WHERE actor_id=auth.uid() AND request_key='summary:'||p_journal::text;
+ IF FOUND THEN IF receipt.payload IS DISTINCT FROM payload THEN RAISE EXCEPTION 'Report already posted with different data';END IF;RETURN receipt.result;END IF;
+ IF j.status<>'submitted' THEN RAISE EXCEPTION 'Report is not awaiting posting';END IF;
+ SELECT a.snapshot INTO snapshot FROM approved_reports1443 a WHERE a.journal_id=p_journal;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Approve the exact detailed report before summary posting';END IF;
+ IF p_date IS NULL OR date_trunc('month',p_date)<>date_trunc('month',j.period_start) THEN RAISE EXCEPTION 'Keep original reporting dates';END IF;
+ PERFORM 1 FROM staff_journal_lines WHERE staff_journal_id=p_journal FOR UPDATE;
+ -- Compare immutable reviewed content, ignoring only links filled by previous postings.
+ IF (SELECT jsonb_agg(jsonb_strip_nulls(to_jsonb(l)-'journal_entry_id') ORDER BY l.id) FROM staff_journal_lines l WHERE staff_journal_id=p_journal)
+ IS DISTINCT FROM (SELECT jsonb_agg(jsonb_strip_nulls(x-'journal_entry_id') ORDER BY x->>'id') FROM jsonb_array_elements(snapshot->'journal'->'lines') x) THEN RAISE EXCEPTION 'Source changed after approval';END IF;
+ IF jsonb_typeof(p_lines) IS DISTINCT FROM 'array' OR jsonb_array_length(p_lines)<2 THEN RAISE EXCEPTION 'No balanced summary supplied';END IF;
+ -- Derive the exact allowed lines. Only fund sides may be consolidated.
+ WITH sides AS (
+ SELECT l.id,l.transaction_date,l.currency_code,l.fx_rate_lak,l.amount,l.account_id,CASE WHEN l.direction='in' THEN 'credit' ELSE 'debit' END side,l.id::text bucket FROM staff_journal_lines l WHERE l.staff_journal_id=p_journal AND NOT (l.entry_kind='collection' AND l.account_id=l.fund_account_id) AND l.journal_entry_id IS NULL
+ UNION ALL SELECT l.id,l.transaction_date,l.currency_code,l.fx_rate_lak,l.amount,l.fund_account_id,CASE WHEN l.direction='in' THEN 'debit' ELSE 'credit' END,CASE WHEN p_mode='consolidated' THEN 'fund' ELSE l.id::text END FROM staff_journal_lines l WHERE l.staff_journal_id=p_journal AND NOT (l.entry_kind='collection' AND l.account_id=l.fund_account_id) AND l.journal_entry_id IS NULL
+ ), grouped AS (SELECT transaction_date,account_id,currency_code,fx_rate_lak,side,bucket,sum(amount) amount,jsonb_agg(id::text ORDER BY id::text) ids FROM sides GROUP BY transaction_date,account_id,currency_code,fx_rate_lak,side,bucket), objects AS (
+ SELECT jsonb_build_object('date',transaction_date,'account',account_id,'currency',currency_code,'side',side,'amount',amount,'ids',ids) obj FROM grouped)
+ SELECT jsonb_agg(obj ORDER BY obj::text) INTO expected FROM objects;
+ WITH objects AS (SELECT jsonb_build_object('date',(x->>'line_date')::date,'account',(x->>'account_id')::uuid,'currency',x->>'currency_code','side',CASE WHEN (x->>'debit')::numeric>0 THEN 'debit' ELSE 'credit' END,'amount',greatest((x->>'debit')::numeric,(x->>'credit')::numeric),'ids',(SELECT jsonb_agg(v ORDER BY v) FROM jsonb_array_elements_text(x->'source_ids') v)) obj FROM jsonb_array_elements(p_lines) x)
+ SELECT jsonb_agg(obj ORDER BY obj::text) INTO actual FROM objects;
+ IF expected IS NULL OR expected IS DISTINCT FROM actual THEN RAISE EXCEPTION 'Dates, accounts, amounts or references do not match the approved report';END IF;
+ -- Preserve reviewed rates. A reviewer may supply rates absent from older source records.
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(p_lines) x CROSS JOIN LATERAL jsonb_array_elements_text(x->'source_ids') sid JOIN staff_journal_lines l ON l.id=sid.value::uuid WHERE l.currency_code<>'LAK' AND l.fx_rate_lak IS NOT NULL AND l.fx_rate_lak IS DISTINCT FROM nullif(x->>'fx_rate_lak','')::numeric) THEN RAISE EXCEPTION 'Exchange rates do not match the approved report';END IF;
+ -- Validate and lock every original date before allocating one entry number.
+ FOR src IN SELECT (x->>'line_date')::date d,jsonb_agg(x) lines FROM jsonb_array_elements(p_lines) x GROUP BY (x->>'line_date')::date ORDER BY (x->>'line_date')::date LOOP
+ PERFORM public.validate_journal14228(src.d,p_memo,src.lines);
+ END LOOP;
+ SELECT * INTO posted FROM public.post_report_worker14349(p_date,p_memo,p_lines,p_prefix,p_digits);
+ owner_name=coalesce(snapshot->'user'->>'full_name',(SELECT full_name FROM profiles WHERE id=j.owner_id),'Former user');
+ FOR item IN SELECT value FROM jsonb_array_elements(p_lines) LOOP
+ summary_line_no=summary_line_no+1;SELECT l.id INTO STRICT line_id FROM journal_lines l WHERE l.journal_entry_id=posted.entry_id AND l.line_no=summary_line_no;
+ FOR src IN SELECT l.* FROM staff_journal_lines l WHERE l.id IN(SELECT value::uuid FROM jsonb_array_elements_text(item->'source_ids')) LOOP
+ INSERT INTO journal_sources14253 VALUES(line_id,src.id,p_journal,src.workspace_entry_no,j.owner_id,owner_name,src.transaction_date,src.memo,src.reference,src.amount);
+ END LOOP;END LOOP;
+ UPDATE staff_journal_lines SET journal_entry_id=posted.entry_id WHERE staff_journal_id=p_journal AND NOT (entry_kind='collection' AND account_id=fund_account_id) AND journal_entry_id IS NULL;
+ UPDATE staff_journals SET status='posted',reviewed_by=auth.uid(),reviewed_at=now(),updated_at=now() WHERE id=p_journal;
+ answer=jsonb_build_object('entry_id',posted.entry_id,'entry_no',posted.entry_no,'report_id',p_journal);
+ INSERT INTO operation_receipts14228(actor_id,request_key,operation,payload,result) VALUES(auth.uid(),'summary:'||p_journal::text,'workspace-summary',payload,answer);
+ INSERT INTO audit_log(table_name,record_id,action,new_data,reason,actor_id) VALUES('staff_journals',p_journal::text,'POST',answer,'Approved report posted with original dates: '||p_mode,auth.uid());
+ RETURN answer;
+END $function$
+;
+
+CREATE OR REPLACE FUNCTION public.journal_window14333(p_from date, p_to date, p_offset integer DEFAULT 0)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE result jsonb; opening jsonb:='[]'; revision text;
+BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Sign in required' USING ERRCODE='42501'; END IF;
+ IF p_from IS NULL OR p_to IS NULL OR p_from>p_to OR p_offset<0 THEN RAISE EXCEPTION 'Invalid journal period'; END IF;
+ SELECT coalesce(jsonb_agg(row_to_json(r)),'[]') INTO result FROM (
+ SELECT e.created_at,e.source,e.id AS "dbEntryId",coalesce(e.entry_no,e.id::text) AS id,
+ coalesce(l.line_date,e.transaction_date) AS date,a.name AS account,a.id AS "accountId",a.code AS "accountCode",
+ l.currency_code AS currency,coalesce(nullif(l.description,''),e.memo,'') AS memo,e.memo AS "generalMemo",
+ l.debit,l.credit,l.fx_rate_lak,l.book_rate_lak,l.base_debit,l.base_credit,false AS archived
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id
+ LEFT JOIN public.accounts a ON a.id=l.account_id
+ WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date) BETWEEN p_from AND p_to
+ ORDER BY coalesce(l.line_date,e.transaction_date) DESC,e.id,l.line_no LIMIT 500 OFFSET p_offset
+ ) r;
+ IF p_offset=0 THEN
+ SELECT coalesce(jsonb_agg(row_to_json(b)),'[]') INTO opening FROM (
+ SELECT l.account_id AS "accountId",l.currency_code AS currency,sum(l.debit-l.credit) AS balance,CASE WHEN bool_or(l.base_debit IS NULL OR l.base_credit IS NULL) THEN NULL ELSE sum(l.base_debit-l.base_credit) END AS base_balance
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id
+ WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date)<p_from
+ GROUP BY l.account_id,l.currency_code HAVING sum(l.debit-l.credit)<>0 OR sum(l.base_debit-l.base_credit)<>0 OR bool_or(l.base_debit IS NULL OR l.base_credit IS NULL)
+ ) b;
+ END IF;
+ SELECT md5(coalesce(sum(hashtextextended(concat_ws('|',e.id,e.entry_no,e.transaction_date,e.memo,e.status,e.updated_at,l.id,l.account_id,l.currency_code,l.debit,l.credit,l.line_date,l.description,l.fx_rate_lak,l.book_rate_lak),0)::numeric)::text,'0')) INTO revision
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date)<=p_to;
+ RETURN jsonb_build_object('rows',result,'opening',opening,'revision',revision);
+END $function$
+;
+
+NOTIFY pgrst, 'reload schema';
+-- Source: setup/COMPATIBILITY-FX-v143.83.sql
+-- Preserve approved legacy source records when adding exchange-rate data.
+CREATE OR REPLACE FUNCTION public.post_report14349(p_journal uuid, p_date date, p_memo text, p_lines jsonb, p_prefix text, p_digits integer, p_mode text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE j staff_journals;snapshot jsonb;expected jsonb;actual jsonb;posted record;item jsonb;src record;line_id uuid;summary_line_no integer:=0;owner_name text;receipt operation_receipts14228;payload jsonb;answer jsonb;
+BEGIN
+ IF auth.uid() IS NULL OR p_mode NOT IN ('consolidated','detailed') OR p_mode IS NULL THEN RAISE EXCEPTION 'Authenticated user and posting mode required';END IF;
+ IF NOT public.has_user_permission('approve') OR NOT public.has_user_permission('post') OR NOT public.can_action113('user-entry-review','post') OR NOT public.can_action113('journal','post') THEN RAISE EXCEPTION 'Review and journal posting permissions required';END IF;
+ SELECT * INTO j FROM staff_journals WHERE id=p_journal FOR UPDATE;
+ IF NOT FOUND OR NOT public.can_workspace113(j.owner_id) THEN RAISE EXCEPTION 'Workspace access denied';END IF;
+ PERFORM public.assert_final_review14229(p_journal);
+ payload=jsonb_build_object('date',p_date,'memo',p_memo,'lines',p_lines,'prefix',p_prefix,'digits',p_digits,'mode',p_mode);
+ SELECT * INTO receipt FROM operation_receipts14228 WHERE actor_id=auth.uid() AND request_key='summary:'||p_journal::text;
+ IF FOUND THEN IF receipt.payload IS DISTINCT FROM payload THEN RAISE EXCEPTION 'Report already posted with different data';END IF;RETURN receipt.result;END IF;
+ IF j.status<>'submitted' THEN RAISE EXCEPTION 'Report is not awaiting posting';END IF;
+ SELECT a.snapshot INTO snapshot FROM approved_reports1443 a WHERE a.journal_id=p_journal;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Approve the exact detailed report before summary posting';END IF;
+ IF p_date IS NULL OR date_trunc('month',p_date)<>date_trunc('month',j.period_start) THEN RAISE EXCEPTION 'Keep original reporting dates';END IF;
+ PERFORM 1 FROM staff_journal_lines WHERE staff_journal_id=p_journal FOR UPDATE;
+ -- Compare immutable reviewed content, ignoring only links filled by previous postings.
+ IF (SELECT jsonb_agg(jsonb_strip_nulls(to_jsonb(l)-'journal_entry_id') ORDER BY l.id) FROM staff_journal_lines l WHERE staff_journal_id=p_journal)
+ IS DISTINCT FROM (SELECT jsonb_agg(jsonb_strip_nulls(x-'journal_entry_id') ORDER BY x->>'id') FROM jsonb_array_elements(snapshot->'journal'->'lines') x) THEN RAISE EXCEPTION 'Source changed after approval';END IF;
+ IF jsonb_typeof(p_lines) IS DISTINCT FROM 'array' OR jsonb_array_length(p_lines)<2 THEN RAISE EXCEPTION 'No balanced summary supplied';END IF;
+ -- Derive the exact allowed lines. Only fund sides may be consolidated.
+ WITH sides AS (
+ SELECT l.id,l.transaction_date,l.currency_code,l.fx_rate_lak,l.amount,l.account_id,CASE WHEN l.direction='in' THEN 'credit' ELSE 'debit' END side,l.id::text bucket FROM staff_journal_lines l WHERE l.staff_journal_id=p_journal AND NOT (l.entry_kind='collection' AND l.account_id=l.fund_account_id) AND l.journal_entry_id IS NULL
+ UNION ALL SELECT l.id,l.transaction_date,l.currency_code,l.fx_rate_lak,l.amount,l.fund_account_id,CASE WHEN l.direction='in' THEN 'debit' ELSE 'credit' END,CASE WHEN p_mode='consolidated' THEN 'fund' ELSE l.id::text END FROM staff_journal_lines l WHERE l.staff_journal_id=p_journal AND NOT (l.entry_kind='collection' AND l.account_id=l.fund_account_id) AND l.journal_entry_id IS NULL
+ ), grouped AS (SELECT transaction_date,account_id,currency_code,fx_rate_lak,side,bucket,sum(amount) amount,jsonb_agg(id::text ORDER BY id::text) ids FROM sides GROUP BY transaction_date,account_id,currency_code,fx_rate_lak,side,bucket), objects AS (
+ SELECT jsonb_build_object('date',transaction_date,'account',account_id,'currency',currency_code,'side',side,'amount',amount,'ids',ids) obj FROM grouped)
+ SELECT jsonb_agg(obj ORDER BY obj::text) INTO expected FROM objects;
+ WITH objects AS (SELECT jsonb_build_object('date',(x->>'line_date')::date,'account',(x->>'account_id')::uuid,'currency',x->>'currency_code','side',CASE WHEN (x->>'debit')::numeric>0 THEN 'debit' ELSE 'credit' END,'amount',greatest((x->>'debit')::numeric,(x->>'credit')::numeric),'ids',(SELECT jsonb_agg(v ORDER BY v) FROM jsonb_array_elements_text(x->'source_ids') v)) obj FROM jsonb_array_elements(p_lines) x)
+ SELECT jsonb_agg(obj ORDER BY obj::text) INTO actual FROM objects;
+ IF expected IS NULL OR expected IS DISTINCT FROM actual THEN RAISE EXCEPTION 'Dates, accounts, amounts or references do not match the approved report';END IF;
+ -- Preserve reviewed rates. A reviewer may supply rates absent from older source records.
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(p_lines) x CROSS JOIN LATERAL jsonb_array_elements_text(x->'source_ids') sid JOIN staff_journal_lines l ON l.id=sid.value::uuid WHERE l.currency_code<>'LAK' AND l.fx_rate_lak IS NOT NULL AND l.fx_rate_lak IS DISTINCT FROM nullif(x->>'fx_rate_lak','')::numeric) THEN RAISE EXCEPTION 'Exchange rates do not match the approved report';END IF;
+ -- Validate and lock every original date before allocating one entry number.
+ FOR src IN SELECT (x->>'line_date')::date d,jsonb_agg(x) lines FROM jsonb_array_elements(p_lines) x GROUP BY (x->>'line_date')::date ORDER BY (x->>'line_date')::date LOOP
+ PERFORM public.validate_journal14228(src.d,p_memo,src.lines);
+ END LOOP;
+ SELECT * INTO posted FROM public.post_report_worker14349(p_date,p_memo,p_lines,p_prefix,p_digits);
+ owner_name=coalesce(snapshot->'user'->>'full_name',(SELECT full_name FROM profiles WHERE id=j.owner_id),'Former user');
+ FOR item IN SELECT value FROM jsonb_array_elements(p_lines) LOOP
+ summary_line_no=summary_line_no+1;SELECT l.id INTO STRICT line_id FROM journal_lines l WHERE l.journal_entry_id=posted.entry_id AND l.line_no=summary_line_no;
+ FOR src IN SELECT l.* FROM staff_journal_lines l WHERE l.id IN(SELECT value::uuid FROM jsonb_array_elements_text(item->'source_ids')) LOOP
+ INSERT INTO journal_sources14253 VALUES(line_id,src.id,p_journal,src.workspace_entry_no,j.owner_id,owner_name,src.transaction_date,src.memo,src.reference,src.amount);
+ END LOOP;END LOOP;
+ UPDATE staff_journal_lines SET journal_entry_id=posted.entry_id WHERE staff_journal_id=p_journal AND NOT (entry_kind='collection' AND account_id=fund_account_id) AND journal_entry_id IS NULL;
+ UPDATE staff_journals SET status='posted',reviewed_by=auth.uid(),reviewed_at=now(),updated_at=now() WHERE id=p_journal;
+ answer=jsonb_build_object('entry_id',posted.entry_id,'entry_no',posted.entry_no,'report_id',p_journal);
+ INSERT INTO operation_receipts14228(actor_id,request_key,operation,payload,result) VALUES(auth.uid(),'summary:'||p_journal::text,'workspace-summary',payload,answer);
+ INSERT INTO audit_log(table_name,record_id,action,new_data,reason,actor_id) VALUES('staff_journals',p_journal::text,'POST',answer,'Approved report posted with original dates: '||p_mode,auth.uid());
+ RETURN answer;
+END $function$
+;
+
+
+-- Source: supabase/migrations/20261015121608_journal_durable_changes14385.sql
+-- Additive Phase 1 migration. No historic journals or rates are rewritten.
+CREATE OR REPLACE FUNCTION public.journal_shape14385(p_date date,p_memo text,p_lines jsonb)
+RETURNS jsonb LANGUAGE sql IMMUTABLE SET search_path=public,pg_temp AS $$
+ SELECT jsonb_build_object('date',p_date,'memo',trim(coalesce(p_memo,'')),'lines',coalesce(jsonb_agg(jsonb_build_object(
+ 'account_id',l->>'account_id','description',coalesce(nullif(l->>'description',''),trim(p_memo)),
+ 'currency_code',l->>'currency_code','debit',coalesce((l->>'debit')::numeric,0),'credit',coalesce((l->>'credit')::numeric,0),
+ 'fx_rate_lak',CASE WHEN l->>'currency_code'='LAK' THEN 1 ELSE nullif(l->>'fx_rate_lak','')::numeric END,
+ 'book_rate_lak',nullif(l->>'book_rate_lak','')::numeric) ORDER BY n),'[]'::jsonb))
+ FROM jsonb_array_elements(p_lines) WITH ORDINALITY AS items(l,n);
+$$;
+REVOKE ALL ON FUNCTION public.journal_shape14385(date,text,jsonb) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.journal_shape14385(date,text,jsonb) TO authenticated;
+
+CREATE OR REPLACE FUNCTION public.change_journal14385(p_request_key text,p_entry_id uuid,p_kind text,p_reason text,p_expected jsonb,p_value jsonb DEFAULT NULL)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE actor uuid:=auth.uid(); prior public.operation_receipts14228; entry public.journal_entries;
+ payload jsonb; result jsonb; actual jsonb; expected jsonb; value jsonb; month_key date; period_status text;
+BEGIN
+ IF actor IS NULL OR NOT public.can_action113('journal','post') OR (p_kind='void' AND NOT public.is_admin()) THEN
+  RAISE EXCEPTION 'Current journal permission required' USING ERRCODE='42501';
+ END IF;
+ IF p_kind NOT IN ('revise','void') OR p_kind IS NULL THEN RAISE EXCEPTION 'Invalid journal operation';END IF;
+ IF p_request_key IS NULL OR length(p_request_key) NOT BETWEEN 10 AND 200 THEN RAISE EXCEPTION 'Stable change reference required';END IF;
+ IF nullif(trim(p_reason),'') IS NULL THEN RAISE EXCEPTION 'A change reason is required';END IF;
+ payload:=jsonb_build_object('entry_id',p_entry_id,'kind',p_kind,'reason',p_reason,'expected',p_expected,'value',p_value);
+ PERFORM pg_advisory_xact_lock(hashtextextended(actor::text||':'||p_request_key,0));
+ SELECT * INTO prior FROM public.operation_receipts14228 WHERE actor_id=actor AND request_key=p_request_key;
+ IF FOUND THEN
+  IF prior.operation<>'journal-change14385' OR prior.payload IS DISTINCT FROM payload THEN RAISE EXCEPTION 'Change reference already used for different data';END IF;
+  RETURN prior.result;
+ END IF;
+ SELECT * INTO entry FROM public.journal_entries WHERE id=p_entry_id FOR UPDATE;
+ IF NOT FOUND OR entry.status<>'posted' THEN RAISE EXCEPTION 'Entry changed or was voided. Review the retained device change.' USING ERRCODE='40001';END IF;
+ SELECT public.journal_shape14385(entry.transaction_date,entry.memo,jsonb_agg(to_jsonb(l) ORDER BY l.line_no)) INTO actual
+ FROM public.journal_lines l WHERE l.journal_entry_id=p_entry_id;
+ IF p_expected IS NULL OR jsonb_typeof(p_expected->'lines') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'Original entry content is required';END IF;
+ expected:=public.journal_shape14385((p_expected->>'date')::date,p_expected->>'memo',p_expected->'lines');
+ IF actual IS DISTINCT FROM expected THEN RAISE EXCEPTION 'Entry changed in another session. Review both versions before saving.' USING ERRCODE='40001';END IF;
+ -- Hold all original and destination period locks in a consistent order.
+ FOR month_key IN SELECT DISTINCT m FROM (
+  SELECT date_trunc('month',entry.transaction_date)::date m
+  UNION SELECT date_trunc('month',coalesce(line_date,entry.transaction_date))::date FROM public.journal_lines WHERE journal_entry_id=p_entry_id
+  UNION SELECT date_trunc('month',(p_value->>'date')::date)::date WHERE p_kind='revise'
+ ) months WHERE m IS NOT NULL ORDER BY m LOOP
+  INSERT INTO public.accounting_periods(period_month,status,updated_by) VALUES(month_key,'open',actor) ON CONFLICT(period_month) DO NOTHING;
+  SELECT status INTO period_status FROM public.accounting_periods WHERE period_month=month_key FOR UPDATE;
+  IF period_status<>'open' THEN RAISE EXCEPTION 'Period % must be open before synchronization',month_key;END IF;
+ END LOOP;
+ IF p_kind='revise' THEN
+  IF p_value IS NULL OR jsonb_typeof(p_value->'lines') IS DISTINCT FROM 'array' THEN RAISE EXCEPTION 'Revised journal content required';END IF;
+  value:=public.journal_shape14385((p_value->>'date')::date,p_value->>'memo',p_value->'lines');
+  PERFORM public.validate_journal14228((value->>'date')::date,value->>'memo',value->'lines');
+  PERFORM public.revise_open_journal_entry(p_entry_id,p_reason,(value->>'date')::date,value->>'memo',value->'lines');
+ ELSE
+  PERFORM public.void_journal_entry(p_entry_id,p_reason);
+ END IF;
+ result:=jsonb_build_object('entry_id',p_entry_id,'entry_no',entry.entry_no,'request_key',p_request_key,'kind',p_kind);
+ INSERT INTO public.operation_receipts14228(actor_id,request_key,operation,payload,result) VALUES(actor,p_request_key,'journal-change14385',payload,result);
+ RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION public.change_journal14385(text,uuid,text,text,jsonb,jsonb) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.change_journal14385(text,uuid,text,text,jsonb,jsonb) TO authenticated;
+NOTIFY pgrst,'reload schema';
+
+-- Source: supabase/migrations/20261015122604_journal_recovery_receipts14385.sql
+CREATE OR REPLACE FUNCTION public.journal_change_receipt14385(p_request_key text)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
+DECLARE r public.operation_receipts14228;
+BEGIN
+ IF auth.uid() IS NULL OR NOT public.can_action113('journal','post') THEN RAISE EXCEPTION 'Current journal permission required' USING ERRCODE='42501';END IF;
+ SELECT * INTO r FROM public.operation_receipts14228 WHERE actor_id=auth.uid() AND request_key=p_request_key AND operation='journal-change14385';
+ IF NOT FOUND THEN RETURN NULL;END IF;
+ RETURN jsonb_build_object('payload',r.payload,'result',r.result);
+END $$;
+REVOKE ALL ON FUNCTION public.journal_change_receipt14385(text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.journal_change_receipt14385(text) TO authenticated;
+NOTIFY pgrst,'reload schema';
+
+-- Source: supabase/migrations/20261016103522_mapping_carry_forward14397.sql
+-- Mapping balances are carried as System, never closed as operating profit.
+CREATE OR REPLACE FUNCTION public.year_preflight136(p_year integer)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE actor uuid:=public.require_admin136(); start_date date:=make_date(p_year,1,1);end_date date:=make_date(p_year+1,1,1);b jsonb;issues jsonb:='[]';warnings jsonb:='[]';n integer;BEGIN
+ IF p_year NOT BETWEEN 1900 AND 2198 THEN RAISE EXCEPTION 'Invalid year';END IF;
+ SELECT count(*) INTO n FROM journal_entries WHERE transaction_date>=start_date AND transaction_date<end_date AND status::text='posted';IF n=0 THEN issues:=issues||jsonb_build_array('No posted transactions in this year');END IF;
+ IF EXISTS(SELECT 1 FROM year_closings136 WHERE year=p_year) THEN RETURN jsonb_build_object('year',p_year,'completed',true,'record',(SELECT to_jsonb(y) FROM year_closings136 y WHERE year=p_year));END IF;
+ IF EXISTS(SELECT 1 FROM journal_entries e LEFT JOIN accounting_periods p ON p.period_month=date_trunc('month',e.transaction_date)::date WHERE e.transaction_date>=start_date AND e.transaction_date<end_date AND e.status::text='posted' AND p.status IS DISTINCT FROM 'locked') THEN issues:=issues||jsonb_build_array('Lock every month containing posted transactions');END IF;
+ IF EXISTS(SELECT 1 FROM accounting_periods WHERE period_month>=start_date AND period_month<end_date AND status NOT IN ('closed','locked')) THEN issues:=issues||jsonb_build_array('Close or lock all existing period records in this year');END IF;
+ IF EXISTS(SELECT 1 FROM book_sessions136 s JOIN accounting_periods p ON p.id=s.period_id WHERE s.status='editing' AND p.period_month>=start_date AND p.period_month<end_date) THEN issues:=issues||jsonb_build_array('Finish or cancel reopened books');END IF;
+ IF EXISTS(SELECT 1 FROM entry_submissions WHERE transaction_date>=start_date AND transaction_date<end_date AND status::text IN ('pending','submitted')) OR EXISTS(SELECT 1 FROM staff_journals WHERE period_start>=start_date AND period_start<end_date AND status='submitted') THEN issues:=issues||jsonb_build_array('Resolve submitted entries awaiting approval');END IF;
+ IF EXISTS(SELECT 1 FROM audit_reviews136 r JOIN accounting_periods p ON p.id=r.period_id WHERE p.period_month>=start_date AND p.period_month<end_date AND r.status='open') OR EXISTS(SELECT 1 FROM period_findings f JOIN accounting_periods p ON p.id=f.accounting_period_id WHERE p.period_month>=start_date AND p.period_month<end_date AND f.status NOT IN ('closed','corrected')) THEN issues:=issues||jsonb_build_array('Resolve outstanding review findings');END IF;
+ IF EXISTS(SELECT 1 FROM journal_lines l JOIN journal_entries e ON e.id=l.journal_entry_id WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<end_date GROUP BY e.id,l.currency_code HAVING abs(sum(l.debit-l.credit))>0.005) THEN issues:=issues||jsonb_build_array('A posted transaction is unbalanced by currency');END IF;
+ IF EXISTS(SELECT 1 FROM staff_journals WHERE period_start>=start_date AND period_start<end_date AND status IN ('draft','returned')) THEN warnings:=warnings||jsonb_build_array('Unsubmitted employee drafts are excluded from the ledger and carry-forward');END IF;
+ IF EXISTS(SELECT 1 FROM payroll_runs WHERE period_start>=start_date AND period_start<end_date AND status='draft') THEN warnings:=warnings||jsonb_build_array('Draft payroll is excluded; confirm all actual payroll was posted');END IF;
+ SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY code,currency),'[]') INTO b FROM (SELECT a.id account_id,a.code,a.name,CASE WHEN a.is_technical OR a.account_purpose<>'regular' THEN 'SYSTEM' ELSE a.account_type END type,l.currency_code currency,sum(l.debit-l.credit) balance,CASE WHEN bool_and(l.currency_code='LAK' OR (l.base_debit IS NOT NULL AND l.base_credit IS NOT NULL)) THEN sum(CASE WHEN l.currency_code='LAK' THEN l.debit-l.credit ELSE l.base_debit-l.base_credit END) END base_balance FROM journal_lines l JOIN journal_entries e ON e.id=l.journal_entry_id JOIN accounts a ON a.id=l.account_id WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<end_date GROUP BY a.id,a.code,a.name,a.account_type,l.currency_code HAVING sum(l.debit-l.credit)<>0) x;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(b) x WHERE upper(x->>'type') IN ('REVENUE','INCOME','EXPENSE') AND NOT EXISTS(SELECT 1 FROM accounts a WHERE a.account_type='EQUITY' AND a.parent_code='3100' AND a.is_active AND a.is_posting AND a.currency_code=x->>'currency')) THEN issues:=issues||jsonb_build_array('An active retained-earnings account is missing for a currency');END IF;
+ RETURN jsonb_build_object('year',p_year,'nextYear',p_year+1,'transactions',n,'blockers',issues,'warnings',warnings,'balances',b,'fingerprint',md5(b::text));END $function$;
+
+CREATE OR REPLACE FUNCTION public.close_year136(p_year integer, p_confirmation text, p_fingerprint text)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE actor uuid:=public.require_admin136();checkup jsonb;cur text;r record;retained uuid;net numeric;entry uuid;ids jsonb:='[]';seq integer;prefix text;digits integer;numbering bigint;number_attempts integer;anchor uuid;result jsonb;BEGIN
+ IF p_confirmation IS DISTINCT FROM 'CLOSE YEAR '||p_year THEN RAISE EXCEPTION 'Confirmation must be CLOSE YEAR %',p_year;END IF;
+ PERFORM pg_advisory_xact_lock(136,p_year);LOCK TABLE accounting_periods,journal_entries,journal_lines,staff_journals,entry_submissions IN SHARE ROW EXCLUSIVE MODE;
+ checkup:=public.year_preflight136(p_year);IF coalesce((checkup->>'completed')::boolean,false) THEN RETURN checkup;END IF;
+ IF jsonb_array_length(checkup->'blockers')>0 THEN RAISE EXCEPTION 'Year-end checks failed: %',checkup->'blockers';END IF;
+ IF p_fingerprint IS DISTINCT FROM checkup->>'fingerprint' THEN RAISE EXCEPTION 'Balances changed; run the year-end checks again';END IF;
+ SELECT id INTO anchor FROM journal_entries WHERE extract(year FROM transaction_date)=p_year AND status::text='posted' ORDER BY transaction_date LIMIT 1;
+ SELECT journal_prefix,journal_digits INTO prefix,digits FROM accounting_id_settings WHERE id=true;prefix:=coalesce(nullif(prefix,''),'JRN');digits:=greatest(3,least(9,coalesce(digits,6)));
+ INSERT INTO accounting_operations136 VALUES(pg_backend_pid(),txid_current(),actor);
+ -- Authorised system closing only. Locked user records stay immutable.
+ UPDATE accounting_periods SET status='open' WHERE period_month=make_date(p_year,12,1);
+ INSERT INTO accounting_periods(period_month,status,updated_by) VALUES(make_date(p_year,12,1),'open',actor) ON CONFLICT(period_month) DO NOTHING;
+ FOR cur IN SELECT DISTINCT value->>'currency' FROM jsonb_array_elements(checkup->'balances') WHERE upper(value->>'type') IN ('REVENUE','INCOME','EXPENSE') LOOP
+  SELECT id INTO retained FROM accounts WHERE parent_code='3100' AND account_type='EQUITY' AND currency_code=cur AND is_posting AND is_active ORDER BY code LIMIT 1;
+  number_attempts:=0;
+  LOOP
+   number_attempts:=number_attempts+1;
+   IF number_attempts>1000 THEN RAISE EXCEPTION 'Unable to allocate a unique journal number'; END IF;
+   numbering:=nextval('public.journal_entry_number_seq');
+   EXIT WHEN NOT EXISTS(SELECT 1 FROM journal_entries WHERE entry_no=prefix||'-'||lpad(numbering::text,greatest(digits,length(numbering::text)),'0'));
+  END LOOP;
+  INSERT INTO journal_entries(entry_no,transaction_date,memo,reference,status,source,posted_by,posted_at,accounting_period_id)
+  VALUES(prefix||'-'||lpad(numbering::text,greatest(digits,length(numbering::text)),'0'),make_date(p_year,12,31),'Year-end closing '||p_year||' · '||cur,'YEAR-CLOSE-'||p_year||'-'||cur,'posted','system',actor,now(),(SELECT id FROM accounting_periods WHERE period_month=make_date(p_year,12,1))) RETURNING id INTO entry;
+  seq:=0;net:=0;
+  FOR r IN SELECT value FROM jsonb_array_elements(checkup->'balances') WHERE value->>'currency'=cur AND upper(value->>'type') IN ('REVENUE','INCOME','EXPENSE') LOOP
+   seq:=seq+1;net:=net+(r.value->>'balance')::numeric;
+   INSERT INTO journal_lines(journal_entry_id,line_no,account_id,currency_code,debit,credit,line_date,description) VALUES(entry,seq,(r.value->>'account_id')::uuid,cur,greatest(0,-(r.value->>'balance')::numeric),greatest(0,(r.value->>'balance')::numeric),make_date(p_year,12,31),'Close income/expense balance');
+  END LOOP;
+  IF net<>0 THEN INSERT INTO journal_lines(journal_entry_id,line_no,account_id,currency_code,debit,credit,line_date,description) VALUES(entry,seq+1,retained,cur,greatest(net,0),greatest(-net,0),make_date(p_year,12,31),'Transfer annual result to retained earnings');END IF;
+  ids:=ids||jsonb_build_array(entry);
+ END LOOP;
+ -- Empty months are finalized too, preventing later backdated entries into the completed year.
+ INSERT INTO accounting_periods(period_month,status,closed_at,locked_at,updated_by) SELECT make_date(p_year,m,1),'locked',now(),now(),actor FROM generate_series(1,12) m ON CONFLICT(period_month) DO UPDATE SET status='locked',locked_at=now(),updated_by=actor,updated_at=now();
+ SELECT coalesce(jsonb_agg(to_jsonb(x) ORDER BY code,currency),'[]') INTO result FROM (SELECT a.id account_id,a.code,a.name,CASE WHEN a.is_technical OR a.account_purpose<>'regular' THEN 'SYSTEM' ELSE a.account_type END type,l.currency_code currency,sum(l.debit-l.credit) balance,CASE WHEN bool_and(l.currency_code='LAK' OR (l.base_debit IS NOT NULL AND l.base_credit IS NOT NULL)) THEN sum(CASE WHEN l.currency_code='LAK' THEN l.debit-l.credit ELSE l.base_debit-l.base_credit END) END base_balance FROM journal_lines l JOIN journal_entries e ON e.id=l.journal_entry_id JOIN accounts a ON a.id=l.account_id WHERE e.status::text='posted' AND coalesce(l.line_date,e.transaction_date)<make_date(p_year+1,1,1) GROUP BY a.id,a.code,a.name,a.account_type,l.currency_code HAVING sum(l.debit-l.credit)<>0) x;
+ IF EXISTS(SELECT 1 FROM jsonb_array_elements(result) x WHERE upper(x->>'type') IN ('REVENUE','INCOME','EXPENSE')) THEN RAISE EXCEPTION 'Income or expense balance did not close';END IF;
+ INSERT INTO year_closings136(year,actor,balances,closing_entries,anchor_entry) VALUES(p_year,actor,result,ids,anchor);
+ INSERT INTO accounting_periods(period_month,status,updated_by) VALUES(make_date(p_year+1,1,1),'open',actor) ON CONFLICT(period_month) DO NOTHING;
+ DELETE FROM accounting_operations136 WHERE backend=pg_backend_pid() AND transaction_id=txid_current();
+ RETURN jsonb_build_object('completed',true,'year',p_year,'nextYear',p_year+1,'balances',result,'closingEntries',ids);
+END $function$;
+
 COMMIT;

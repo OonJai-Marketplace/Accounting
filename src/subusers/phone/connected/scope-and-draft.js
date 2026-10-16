@@ -1,7 +1,7 @@
 /* Approved phone presentation, backed by the parent application's single runtime. */
 (()=>{'use strict';
 const A=parent.PhoneApp132,$=id=>document.getElementById(id);if(!A){document.body.textContent='Open Oon Jai from the main website.';return}
-const S={module:'subusers',page:'home',user:null,search:'',month:A.previewMonth||new Date().toISOString().slice(0,7),review:'submitted',journalForm:false,editingStaff:false,editingJournal:false};let actions=[],last='',busy=false;
+const S={module:'subusers',page:'home',user:null,search:'',month:A.previewMonth||appLocalDate().slice(0,7),review:'submitted',journalForm:false,editingStaff:false,editingJournal:false};let actions=[],last='',busy=false;
 let lastDraft14237='';let draftOwner1427='',phoneSession14225='',phoneDrafts1427={staff:{}};
 function draftKey1427(id){return 'ojm_phone_draft1427:'+String(parent.OJM_SUPABASE_URL||location.origin)+':'+id}
 function ensurePhoneOwner1427(){

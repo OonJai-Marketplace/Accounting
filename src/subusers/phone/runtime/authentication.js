@@ -5,7 +5,9 @@
     const retained=session?.user?.id&&session?.refresh_token?await record(session.user.id).catch(()=>null):null;
     if(attempt!==enterAttempt||S.epoch!==startingEpoch)return;
     const locallyVerified=retained?.access?.profile?.id===session?.user?.id&&retained?.access?.profile?.status==='active';
-    if (!validSession(session)&&!locallyVerified) { sessionGate(navigator.onLine ? '' : 'Reconnect to sign in. Your saved drafts remain on this device.'); return; }
+    // A locked device has no session until its saved password unlocks the vault.
+    // Do not block that valid offline sign-in with an unsolicited error dialog.
+    if (!validSession(session)&&!locallyVerified) { sessionGate(session?.user?.id&&!navigator.onLine ? 'Reconnect to verify this session. Your saved drafts remain on this device.' : ''); return; }
     const owner = session.user.id;
     if (enterJob && enterOwner===owner) return enterJob;
     enterOwner=owner;

@@ -1,5 +1,5 @@
   function workspaceHeader(user) {
-    return `<header class="v49-user-header"><div><h2>${escapeHtml(subUserAccountTitle14229(user))}</h2><p>Sub-user Account / ${escapeHtml(monthLabel(new Date().toISOString().slice(0,7)))}</p></div></header>`;
+    return `<header class="v49-user-header"><div><h2>${escapeHtml(subUserAccountTitle14229(user))}</h2><p>Sub-user Account / ${escapeHtml(monthLabel(appLocalDate().slice(0,7)))}</p></div></header>`;
   }
   function dashboard(user) {
     const totals = new Map();

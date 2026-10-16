@@ -19,6 +19,19 @@ UPDATES = [
     'INSTALL-ACCOUNT-MAPPING-v143.64.sql',
     'INSTALL-POSTING-CLEANUP-v143.70.sql',
     'INSTALL-RLS-STATEMENT-CACHE-v143.70.sql',
+    'INSTALL-SUBACCOUNT-INHERITANCE-v143.80.sql',
+    'INSTALL-ACCOUNT-HISTORY-DETAILS-v143.81.sql',
+    'INSTALL-FOREIGN-FUND-TRACKING-v143.86.sql',
+]
+# These additions already contain the current function bodies without the removed
+# role calculator. The company-specific account reorganization and guarded
+# removal of that old calculator must never be replayed by a fresh installer.
+CURRENT_ADDITIONS = [
+    'setup/INSTALL-FOREIGN-CURRENCY-v143.83.sql',
+    'setup/COMPATIBILITY-FX-v143.83.sql',
+    'supabase/migrations/20261015121608_journal_durable_changes14385.sql',
+    'supabase/migrations/20261015122604_journal_recovery_receipts14385.sql',
+    'supabase/migrations/20261016103522_mapping_carry_forward14397.sql',
 ]
 
 def refresh():
@@ -33,6 +46,11 @@ def refresh():
         if len(re.findall(r'^BEGIN;\s*$', text, re.M)) != 1 or len(re.findall(r'^COMMIT;\s*$', text, re.M)) != 1:
             raise RuntimeError('Expected one outer transaction in ' + name)
         parts.append('-- Source: setup/' + name + '\n' + re.sub(r'^(?:BEGIN|COMMIT);\s*$', '', text, flags=re.M))
+    for name in CURRENT_ADDITIONS:
+        text = (ROOT / name).read_text()
+        if re.search(r'^(?:BEGIN|COMMIT|ROLLBACK);\s*$', text, re.M):
+            raise RuntimeError('Unexpected outer transaction in ' + name)
+        parts.append('-- Source: ' + name + '\n' + re.sub(r'[ \t]+$', '', text, flags=re.M))
     sql = foundation + MARKER + '\n'.join(parts) + '\nCOMMIT;\n'
     spec = importlib.util.spec_from_file_location('backend', ROOT/'tools/portability/backend-package.py')
     backend = importlib.util.module_from_spec(spec)
@@ -48,12 +66,14 @@ def refresh():
     verify_path.write_text(verification)
     provenance_path = directory/'source-provenance.json'
     provenance = json.loads(provenance_path.read_text())
-    provenance['currentUpdateRelease'] = '143.70'
+    version = re.search(r"const SHELL_VERSION='([0-9]+\.[0-9]+)'", (ROOT/'src/core/sync/offline14239.js').read_text())[1]
+    provenance['currentUpdateRelease'] = version
     provenance['currentUpdates'] = [{'name': name, 'sha256': hashlib.sha256((ROOT/'setup'/name).read_bytes()).hexdigest()} for name in UPDATES]
+    provenance['currentUpdates'].extend({'name': name, 'sha256': hashlib.sha256((ROOT/name).read_bytes()).hexdigest()} for name in CURRENT_ADDITIONS)
     provenance_path.write_text(json.dumps(provenance, indent=2)+'\n')
     manifest_path = directory/'manifest.json'
     manifest = json.loads(manifest_path.read_text())
-    manifest['release'] = '143.70'
+    manifest['release'] = version
     manifest['files'] = {name: hashlib.sha256((directory/name).read_bytes()).hexdigest() for name in manifest['installationOrder']}
     manifest_path.write_text(json.dumps(manifest, indent=2)+'\n')
     print('Fresh installer contracts and checksums updated. Run isolated database acceptance before release.')

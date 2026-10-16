@@ -57,9 +57,13 @@ handleDemoLogin = async function(event) {
 
 logoutDemoUser = async function() { const error=loginMessageTarget14293();if(error)error.textContent='';localStorage.removeItem('ojm_last_active_view_v1');freshLoginRequested=false;if (ojmDb) await ojmDb.auth.signOut({scope:'local'}); };
 
+let profileRequest143100=0;
 async function loadLiveProfile(user) {
-  const { data, error } = await ojmDb.from('profiles').select('id,email,full_name,role,status').eq('id',user.id).single();
+  const db=ojmDb,epoch=sessionEpoch1430,request=++profileRequest143100;
+  const { data, error } = await db.from('profiles').select('id,email,full_name,role,status').eq('id',user.id).single();
+  if(db!==ojmDb||epoch!==sessionEpoch1430||request!==profileRequest143100)throw Object.assign(new Error('Session changed while loading the profile.'),{code:'STALE_PROFILE143100'});
   if (error) throw new Error(`Profile unavailable: ${error.message}. Run the supplied SQL before signing in.`);
+  if (!data || data.id!==user.id) throw new Error('The signed-in profile could not be verified.');
   if (data.status !== 'active') throw new Error('This user account is inactive.');
   liveProfile = data;
   DemoAccess.currentUser = {id:data.id,email:data.email,name:data.full_name || data.email,role:data.role,active:true};

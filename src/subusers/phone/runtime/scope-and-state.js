@@ -1,8 +1,8 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.70', $ = id => document.getElementById(id);
-  const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
+  const VERSION = '143.100', $ = id => document.getElementById(id);
+  const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const symbol = c => ({NA:'▦',Parent:'▦',PARENT:'▦',LAK:'₭', USD:'$', THB:'฿'}[c] || c || '');

@@ -2,7 +2,7 @@ function staffDraft14225(){
  const r=A.rules(S.user),d=S.staffDraft||{},ac=A.accounts();
  const direction=r.directions.includes(d.direction)?d.direction:r.directions[0]||'out';
  if(!d.single)d.single=[{direction,source:d.fund||(r.fundIds.length===1?r.fundIds[0]:''),affected:d.account||(r.entryIds.length===1?r.entryIds[0]:''),amount:d.amount||'',memo:''}];
- d.mode||='single';if(!d.templateBlankDate14285)d.date||=new Date().toISOString().slice(0,10);d.memo||='';d.reference||='';d.requestKey||='phone-'+crypto.randomUUID();d.editIds||=[];d.lines||=[{},{}];
+ d.mode||='single';if(!d.templateBlankDate14285)d.date||=appLocalDate();d.memo||='';d.reference||='';d.requestKey||='phone-'+crypto.randomUUID();d.editIds||=[];d.lines||=[{},{}];
  if(!d.sharedDescription14249){for(const l of d.single){if(l.description&&l.description!==d.memo)l.memo=[l.description,l.memo].filter(Boolean).join(' — ');}d.sharedDescription14249=true;}S.staffDraft=d;return d;
 }
 function staffEntryId14289(d){return '<span class="entry-id14247 staff-entry-id14289">Entry ID: '+esc(d.entryNo||'Assigned when saved')+'</span>';}

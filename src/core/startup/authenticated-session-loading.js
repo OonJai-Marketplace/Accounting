@@ -1,6 +1,6 @@
 async function hydrateSupabaseSession(session) {
-  const epoch=sessionEpoch1430;
-  const checkSession=()=>{if(epoch!==sessionEpoch1430)throw new Error('Session changed while loading.');};
+  const epoch=sessionEpoch1430,client=ojmDb;
+  const checkSession=()=>{if(epoch!==sessionEpoch1430||client!==ojmDb)throw new Error('Session changed while loading.');};
   try {
     await loadLiveProfile(session.user);checkSession();
     await loadCurrentPermissions();checkSession();window.sessionCache14333?.remember();
@@ -15,7 +15,7 @@ async function hydrateSupabaseSession(session) {
     checkSession();
     // Session location is restored once by interface-v69.js.
     freshLoginRequested=false;
-  } catch(error) { if(epoch!==sessionEpoch1430)return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
+  } catch(error) { if(epoch!==sessionEpoch1430||client!==ojmDb||error.code==='STALE_PROFILE143100')return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
 }
 
 // One complete hydration per authenticated identity, including extension wrappers.

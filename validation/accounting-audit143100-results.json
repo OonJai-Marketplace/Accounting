@@ -1,0 +1,217 @@
+{
+  "release": "143.100",
+  "completedAt": "2026-10-16T15:54:11.913180+00:00",
+  "environment": "Synthetic local browser and isolated PostgreSQL fixtures",
+  "results": [
+    {
+      "suite": "app-integrity143100",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "civil-date143100",
+      "exitCode": 0,
+      "seconds": 4.6
+    },
+    {
+      "suite": "workforce-reports143100",
+      "exitCode": 0,
+      "seconds": 5.9
+    },
+    {
+      "suite": "confirmation143100",
+      "exitCode": 0,
+      "seconds": 4.6
+    },
+    {
+      "suite": "all-workspaces",
+      "exitCode": 0,
+      "seconds": 16.1
+    },
+    {
+      "suite": "phase0-browser",
+      "exitCode": 0,
+      "seconds": 22.5
+    },
+    {
+      "suite": "phase0-navigation-preservation",
+      "exitCode": 0,
+      "seconds": 11.2
+    },
+    {
+      "suite": "phase0-preload",
+      "exitCode": 0,
+      "seconds": 0.2
+    },
+    {
+      "suite": "phase0-inactivity",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "phone-cache14368",
+      "exitCode": 0,
+      "seconds": 1.0
+    },
+    {
+      "suite": "phone-idle-sync",
+      "exitCode": 0,
+      "seconds": 1.6
+    },
+    {
+      "suite": "audit-owner-guards14370",
+      "exitCode": 0,
+      "seconds": 0.2
+    },
+    {
+      "suite": "audit-drafts14370",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "sync-coordinator",
+      "exitCode": 0,
+      "seconds": 10.7
+    },
+    {
+      "suite": "sync-cache",
+      "exitCode": 0,
+      "seconds": 7.4
+    },
+    {
+      "suite": "sync-mixed-recovery",
+      "exitCode": 0,
+      "seconds": 6.1
+    },
+    {
+      "suite": "sync-recovery",
+      "exitCode": 0,
+      "seconds": 8.5
+    },
+    {
+      "suite": "hr-calendar-model14306",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "journal-durable14385",
+      "exitCode": 0,
+      "seconds": 11.2
+    },
+    {
+      "suite": "foreign-currency14383",
+      "exitCode": 0,
+      "seconds": 4.2
+    },
+    {
+      "suite": "foreign-funds14386",
+      "exitCode": 0,
+      "seconds": 3.3
+    },
+    {
+      "suite": "account-ledger14381",
+      "exitCode": 0,
+      "seconds": 2.8
+    },
+    {
+      "suite": "assigned-ledger14281",
+      "exitCode": 0,
+      "seconds": 2.1
+    },
+    {
+      "suite": "subaccounts14287-repair",
+      "exitCode": 0,
+      "seconds": 7.8
+    },
+    {
+      "suite": "chart14397",
+      "exitCode": 0,
+      "seconds": 4.6
+    },
+    {
+      "suite": "mapping-close14397",
+      "exitCode": 0,
+      "seconds": 1.9
+    },
+    {
+      "suite": "bookkeeping14399",
+      "exitCode": 0,
+      "seconds": 3.9
+    },
+    {
+      "suite": "return-current14399",
+      "exitCode": 0,
+      "seconds": 4.9
+    },
+    {
+      "suite": "year-windows14334",
+      "exitCode": 0,
+      "seconds": 2.0
+    },
+    {
+      "suite": "budget-lifecycle14316",
+      "exitCode": 0,
+      "seconds": 2.0
+    },
+    {
+      "suite": "fresh-backend14322",
+      "exitCode": 0,
+      "seconds": 6.6
+    },
+    {
+      "suite": "audit-reconciliation14382",
+      "exitCode": 0,
+      "seconds": 4.5
+    },
+    {
+      "suite": "news-local14396",
+      "exitCode": 0,
+      "seconds": 4.3
+    },
+    {
+      "suite": "audit-ui14370",
+      "exitCode": 0,
+      "seconds": 0.7
+    },
+    {
+      "suite": "document-table14370",
+      "exitCode": 0,
+      "seconds": 0.6
+    },
+    {
+      "suite": "archive-limits14373",
+      "exitCode": 0,
+      "seconds": 11.8
+    },
+    {
+      "suite": "encrypted-download14372",
+      "exitCode": 0,
+      "seconds": 5.7
+    },
+    {
+      "suite": "edge-services14320",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "pdf-export14370",
+      "exitCode": 0,
+      "seconds": 1.9
+    },
+    {
+      "suite": "word-images14372",
+      "exitCode": 0,
+      "seconds": 0.9
+    },
+    {
+      "suite": "update143100",
+      "exitCode": 0,
+      "seconds": 5.8
+    },
+    {
+      "suite": "phase0-session-browser",
+      "exitCode": 0,
+      "seconds": 12.0
+    }
+  ]
+}

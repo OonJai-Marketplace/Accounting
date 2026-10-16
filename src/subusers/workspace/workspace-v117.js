@@ -63,7 +63,7 @@ function update(n){
  }else if(f==='fund'){
   if(value&&!rules.fundIds.includes(value))return;row.fund_account_id=value;
   if(row.direction==='in'){row.selected_account_id=value;n.closest('tr').querySelector('[data-inline-field117=account]').value=value}
- }else if(f==='transaction_date'){const period=wsPeriod[u]||new Date().toISOString().slice(0,7);if(value.slice(0,7)!==period){n.value=row.transaction_date;showCenterStatus('Use a date inside the current workspace period.',true);return}row.transaction_date=value}else row[f]=value;
+ }else if(f==='transaction_date'){const period=wsPeriod[u]||appLocalDate().slice(0,7);if(value.slice(0,7)!==period){n.value=row.transaction_date;showCenterStatus('Use a date inside the current workspace period.',true);return}row.transaction_date=value}else row[f]=value;
  if(!row.isNew){workspaceRowEdits[u]??={};workspaceRowEdits[u][row.id]=row}
  dirty.add(rowToken(u,k));
 }

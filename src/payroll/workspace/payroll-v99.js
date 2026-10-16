@@ -16,7 +16,7 @@ window.syncPayrollRoster99=function(){
 let payrollOpenEpoch99=0;
 window.openPayroll99=async function(){
  const actor=liveProfile?.id,db=ojmDb,epoch=++payrollOpenEpoch99,current=()=>actor===liveProfile?.id&&db===ojmDb&&epoch===payrollOpenEpoch99;await loadWork82();if(!current()||Work82.error)return;
- const month=document.getElementById('overviewPayrollMonth97')?.value||new Date().toISOString().slice(0,7);
+ const month=document.getElementById('overviewPayrollMonth97')?.value||appLocalDate().slice(0,7);
  await window.yearWindow14333?.ensure(month+'-01',month+'-01');if(!current())return;await loadWork82();if(!current()||Work82.error)return;payroll95.selectMonth(month);syncPayrollRoster99();switchTab('payroll-entries');renderWork82();
 };
 function calendar(run){const [y,m]=run.month.split('-').map(Number);return Array.from({length:new Date(y,m,0).getDate()},(_,i)=>({day:i+1,date:run.month+'-'+String(i+1).padStart(2,'0'),weekday:new Date(y,m-1,i+1).getDay()}))}

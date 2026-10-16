@@ -4,7 +4,7 @@ let activeStaffJournalLines=[];
 let reviewStaffJournals=[];
 let staffJournalLoadSerial14370=0;
 function allowedStaffAccounts(){const p=livePermission||{},all=AccountingStore.accounts||[],permitted=new Set((p.destination_account_ids?.length?p.destination_account_ids:(p.allowed_account_ids||[])).map(String));return(p.allow_any_account||liveProfile?.role==='admin'?all:all.filter(a=>permitted.has(accountKey(a)))).filter(a=>a.active!==false&&a.is_active!==false&&a.isPosting!==false&&a.is_posting!==false&&a.currency!=='NA')}
-function staffJournalMonth(){return document.getElementById('staffJournalPeriod')?.value||new Date().toISOString().slice(0,7)}
+function staffJournalMonth(){return document.getElementById('staffJournalPeriod')?.value||appLocalDate().slice(0,7)}
 function accountOptionHtml(selected=''){return allowedStaffAccounts().map(a=>`<option value="${escapeHtml(a.id)}" ${a.id===selected?'selected':''}>${escapeHtml(a.code)} — ${escapeHtml(a.name)}</option>`).join('')}
 async function openStaffJournalPeriod(month){
   if(!liveProfile||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return;

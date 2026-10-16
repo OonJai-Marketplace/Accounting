@@ -1,8 +1,15 @@
+/* Calendar defaults use the device's local civil day, matching native date inputs.
+   ISO timestamps remain UTC for storage, audit events and synchronization. */
+function appLocalDate(date=new Date()) {
+  const pad=value=>String(value).padStart(2,'0');
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.70', $ = id => document.getElementById(id);
-  const scope = String(window.OJM_SUPABASE_URL || ''), today = () => new Date().toLocaleDateString('en-CA');
+  const VERSION = '143.100', $ = id => document.getElementById(id);
+  const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const symbol = c => ({NA:'▦',Parent:'▦',PARENT:'▦',LAK:'₭', USD:'$', THB:'฿'}[c] || c || '');
@@ -283,7 +290,9 @@
     const retained=session?.user?.id&&session?.refresh_token?await record(session.user.id).catch(()=>null):null;
     if(attempt!==enterAttempt||S.epoch!==startingEpoch)return;
     const locallyVerified=retained?.access?.profile?.id===session?.user?.id&&retained?.access?.profile?.status==='active';
-    if (!validSession(session)&&!locallyVerified) { sessionGate(navigator.onLine ? '' : 'Reconnect to sign in. Your saved drafts remain on this device.'); return; }
+    // A locked device has no session until its saved password unlocks the vault.
+    // Do not block that valid offline sign-in with an unsolicited error dialog.
+    if (!validSession(session)&&!locallyVerified) { sessionGate(session?.user?.id&&!navigator.onLine ? 'Reconnect to verify this session. Your saved drafts remain on this device.' : ''); return; }
     const owner = session.user.id;
     if (enterJob && enterOwner===owner) return enterJob;
     enterOwner=owner;

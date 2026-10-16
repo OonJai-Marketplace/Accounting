@@ -58,6 +58,10 @@
     ],
     "scripts/script.js": [
       {
+        "source": "src/shared/formatting/civil-date.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/shared/state/accounting-store.js"
       },
       {
@@ -726,6 +730,10 @@
       }
     ],
     "scripts/desktop14245-3.js": [
+      {
+        "source": "src/shared/formatting/civil-date.js",
+        "suffix": "\n"
+      },
       {
         "source": "src/subusers/workspace/workspace-request-v138.js",
         "prefix": "/* scripts/workspace-request-v138.js */\n",
@@ -3570,6 +3578,10 @@
     ],
     "scripts/phone-connected.js": [
       {
+        "source": "src/shared/formatting/civil-date.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/subusers/phone/connected/scope-and-draft.js"
       },
       {
@@ -3610,6 +3622,10 @@
       }
     ],
     "scripts/phone-runtime14242.js": [
+      {
+        "source": "src/shared/formatting/civil-date.js",
+        "suffix": "\n"
+      },
       {
         "source": "src/subusers/phone/runtime/scope-and-state.js"
       },

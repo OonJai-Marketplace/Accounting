@@ -1,6 +1,6 @@
 /* Submission writes and approvals are provided by the Supabase bridge. */
 var saveEntrySubmission, reviewEntrySubmission;
-function getDemoUserName(id) { return DemoAccess.users.find(user => user.id === id)?.name || 'Unknown User'; }
+function getDemoUserName(id) { const user=liveProfiles.find(user=>user.id===id)||(liveProfile?.id===id?liveProfile:null);return user?.full_name||user?.email||'Unknown User'; }
 function renderEntrySubmissions() {
   const host = document.getElementById('entrySubmissionsBody'); if (!host || !DemoAccess.currentUser) return;
   const rows = DemoAccess.currentUser.role === 'admin' ? DemoAccess.submissions : DemoAccess.submissions.filter(item => item.submittedBy === DemoAccess.currentUser.id);
@@ -17,7 +17,7 @@ function updateSubmissionCount() {
   const count = DemoAccess.submissions.filter(item => item.status === 'pending').length;
   const badge = document.getElementById('navSubmissionCount'); if (badge) badge.textContent = count;
 }
-function setSubmissionDateToday() { const input = document.getElementById('submissionDate'); if (input && !input.value) input.value = new Date().toISOString().slice(0,10); }
+function setSubmissionDateToday() { const input = document.getElementById('submissionDate'); if (input && !input.value) input.value = appLocalDate(); }
 const switchTabV11 = switchTab;
 switchTab = function(tabId,...args) {
   const result=switchTabV11.call(this,tabId,...args);

@@ -1,13 +1,12 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 function source(name,c){c.window=c;vm.createContext(c);vm.runInContext(fs.readFileSync(name,'utf8'),c);return c}
 (async()=>{
- let release,reads=0,calls=0;const c=source('src/core/auth/access-v113.js',{liveProfile:{id:'first',role:'admin',status:'active'},livePermission:null,canAccessAppTarget:()=>true,document:{addEventListener(){},querySelector(){reads++;return null}},ojmDb:{rpc:()=>{calls++;return new Promise(r=>release=r)}},shell113:{esc:String}});
- const work=c.access113.loadRecipe();c.liveProfile={id:'second',role:'admin',status:'active'};release({data:[{name:'first account recipe'}]});await work;assert.equal(reads,0);const next=c.access113.loadRecipe();assert.equal(calls,2);release({data:[]});await next;assert.equal(reads,1);
+ assert(!fs.readFileSync('src/core/auth/access-v113.js','utf8').includes('recipe_view113'),'retired recipe endpoint must not ship');
  let finish;const host={innerHTML:'current account'},q={};for(const name of ['select','eq','neq','order'])q[name]=()=>q;q.then=(a,b)=>new Promise(r=>finish=r).then(a,b);
  const h=source('src/subusers/history/submitted-journals.js',{liveProfile:{id:'first'},ojmDb:{from:()=>q},document:{getElementById:()=>host},openStaffJournalPeriod:async()=>{},escapeHtml:String,formatAppDate:String});
  const request=h.loadMySubmittedStaffJournals();await Promise.resolve();h.liveProfile={id:'second'};finish({data:[{period_start:'2026-10-01',status:'submitted'}]});await request;assert.equal(host.innerHTML,'current account');
  const u=source('src/shared/ui/table-search-and-modals.js',{});assert.equal(u.escapeHtml(0),'0');assert.equal(u.escapeHtml(false),'false');assert.equal(u.escapeHtml(null),'');assert.equal(u.escapeHtml('<"&>'),'&lt;&quot;&amp;&gt;');
- console.log('PASS stale recipe/history responses discarded; new account can reload; zero and false remain visible');
+ console.log('PASS retired recipe endpoint absent; stale history discarded; zero and false remain visible');
 })().catch(e=>{console.error(e);process.exitCode=1});
 (async()=>{
  const c=source('src/core/rendering/prepared-workspace14364.js',{liveProfile:{id:'a'},document:{readyState:'loading',querySelector:()=>null,querySelectorAll:()=>[],getElementById:()=>null},addEventListener(){},setTimeout});

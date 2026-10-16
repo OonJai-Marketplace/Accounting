@@ -6,7 +6,7 @@
     'tax-social':'Social Security','tax-payment':'Tax and Social Payment',
     'tax-sso-payment':'SSO Payment','tax-records':'Tax and SSO Records'
   };
-  let refreshRequest14370=0;const state={month:new Date().toISOString().slice(0,7),loading:false,error:'',exports:[]};
+  let refreshRequest14370=0;const state={month:appLocalDate().slice(0,7),loading:false,error:'',exports:[]};
   const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const number=value=>formatAppNumber(Number(value||0));
   const paidRuns=()=>((typeof Work82!=='undefined'&&Work82.runs)||[]).filter(record=>record.data?.status==='finalized'&&!record.data?.isSample&&record.data?.month===state.month);

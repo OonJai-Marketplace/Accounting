@@ -1143,7 +1143,7 @@ let memoryClient=null;
 const key=id=>{if(memoryClient!==ojmDb){states.clear();drafts.clear();historyExtra.clear();memoryClient=ojmDb}return String(liveProfile?.id||'')+':'+id;};
 const tabs=['home','review','journal','summary','history','reports','ledger'];
 const tabKey=id=>'ojm-personal-tab1437:'+key(id);
-const state=id=>{const k=key(id);if(!states.has(k)){let tab='home';try{const saved=localStorage.getItem(tabKey(id));if(tabs.includes(saved))tab=saved}catch{}states.set(k,{tab,month:wsPeriod[id]||new Date().toISOString().slice(0,7),year:String(new Date().getFullYear()),historyMonth:'',search:'',page:0})}return states.get(k)};
+const state=id=>{const k=key(id);if(!states.has(k)){let tab='home';try{const saved=localStorage.getItem(tabKey(id));if(tabs.includes(saved))tab=saved}catch{}states.set(k,{tab,month:wsPeriod[id]||appLocalDate().slice(0,7),year:String(new Date().getFullYear()),historyMonth:'',search:'',page:0})}return states.get(k)};
 const journals=id=>(reviewStaffJournals||[]).filter(j=>String(j.owner_id)===String(id));
 function allowed(a,id=scope){const u=user(id);if(!a||!u||a.isPosting===false||a.active===false||a.is_active===false)return false;const r=workspaceRules(u);return [...r.fundIds,...r.entryIds,r.counterpart].includes(String(a.id));}
 function readDraft(id){
@@ -1159,7 +1159,7 @@ function readDraft(id){
 function remember(){if(!scope||restoring||scopeActor!==liveProfile?.id||scopeClient!==ojmDb)return;const d=capture(),draftKey=scopeActor+':'+scope;drafts.set(draftKey,d);try{localStorage.setItem('ojm-personal-journal1437:'+draftKey,JSON.stringify(d))}catch{showCenterStatus('The device draft could not be stored. Save your entry before leaving.',true)}}
 function capture(){return {...snapshotJournal69(),memo:$('jeGeneralMemo').value,date:$('jeTransDate').value,multiple:$('jeMultipleDates').checked,mode:entry1430.mode,single:entry1430.read(),retained14232:entry1430.retained,editing:JournalModule.editingEntryId,pendingLines:JournalModule.pendingLines,editIds:card._editIds1437||[],requestKey:card._requestKey1437||'pj-'+crypto.randomUUID()}}
 function restore(d){restoring=true;try{
- const today=new Date().toISOString().slice(0,10);
+ const today=appLocalDate();
  entry1430.restore('double',[]);$('jeLinesBody').replaceChildren();
  $('jeGeneralMemo').value=d?.memo||'';$('jeTransDate').value=d?.date||today;$('jeMultipleDates').checked=!!d?.multiple;
  document.body.classList.toggle('je-multi-date',!!d?.multiple);
@@ -1852,10 +1852,11 @@ function ready(){
  const logoutBefore=window.logoutDemoUser;window.logoutDemoUser=function(...args){clearTimeout(retryTimer);reconnect(false);return logoutBefore.apply(this,args)};
 
  async function verify(){
-  const id=typeof liveProfile==='undefined'?null:liveProfile?.id,epoch=typeof sessionEpoch1430==='undefined'?0:sessionEpoch1430;if(!id||!ojmDb||window.workspaceRequest138?.busy){if(!id)reconnect(false);return;}const current=()=>liveProfile?.id===id&&(typeof sessionEpoch1430==='undefined'||epoch===sessionEpoch1430);
-  if(verification)return verification;
-  verification=(async()=>{try{
-   let timeout;const r=await Promise.race([ojmDb.rpc('current_access14228'),new Promise((_,reject)=>timeout=setTimeout(()=>reject(Error('Connection timed out.')),12000))]).finally(()=>clearTimeout(timeout));if(r.error)throw Object.assign(new Error(r.error.message),r.error,{status:r.status||r.error.status});
+  const id=typeof liveProfile==='undefined'?null:liveProfile?.id,epoch=typeof sessionEpoch1430==='undefined'?0:sessionEpoch1430,client=ojmDb;if(!id||!client||window.workspaceRequest138?.busy){if(!id)reconnect(false);return;}const current=()=>liveProfile?.id===id&&ojmDb===client&&(typeof sessionEpoch1430==='undefined'||epoch===sessionEpoch1430);
+  if(verification?.current())return verification.promise;
+  const job={current,promise:null};verification=job;
+  job.promise=(async()=>{try{
+   let timeout;const r=await Promise.race([client.rpc('current_access14228'),new Promise((_,reject)=>timeout=setTimeout(()=>reject(Error('Connection timed out.')),12000))]).finally(()=>clearTimeout(timeout));if(r.error)throw Object.assign(new Error(r.error.message),r.error,{status:r.status||r.error.status});
    if(!current())return;
    if(r.data?.profile?.id!==id||r.data.profile.status!=='active')throw Object.assign(Error('This account is inactive or no longer permitted.'),{code:'ACCESS_REVOKED'});
    const changed14229=JSON.stringify([liveProfile,livePermission])!==JSON.stringify([r.data.profile,r.data.permissions]);liveProfile=r.data.profile;livePermission=r.data.permissions;if(changed14229){window.Organization14229?.invalidate();window.PrivateReminders14229?.invalidate();}
@@ -1863,6 +1864,7 @@ function ready(){
    window.permissions1441.verified=true;window.permissions1441.stale=false;clearTimeout(retryTimer);reconnect(false);
    refresh();
    await window.Organization14229?.revalidate();
+   if(!current())return;
    if(!can('document-editor105','view')||!can('document-editor105','export')){
     document.getElementById('reportHistory1443')?.replaceChildren();
     // A loaded saved report must be cleared when its current source/module access is removed.
@@ -1876,14 +1878,15 @@ function ready(){
    if(denied){window.deviceVault14334?.revoke();window.permissions1441.verified=false;reconnect(false);document.getElementById('loginGate')?.classList.remove('is-authenticated');await logoutDemoUser();showLoginForm('');}
    else if(previouslyVerified){window.permissions1441.stale=true;reconnect(false);clearTimeout(retryTimer);window.offline14239?.connectionIssue?.(e.message||'Access refresh interrupted');retryTimer=setTimeout(verify,15000);}
    else{window.permissions1441.verified=false;reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));clearTimeout(retryTimer);retryTimer=setTimeout(verify,5000);}
-  }finally{verification=null}})();return verification;
+  }finally{if(verification===job)verification=null}})();return job.promise;
  }
  window.permissions1441={refresh,verify,verified:true,reconnecting:false,stale:false};refresh();
  window.addEventListener('online',verify);window.addEventListener('focus',verify);document.addEventListener('visibilitychange',()=>{if(!document.hidden)verify()});
  setInterval(()=>{if(!document.hidden)verify()},30000);verify();
 }
 document.addEventListener('DOMContentLoaded',ready,{once:true});
-})();
+})()
+;
 
 ;
 /* scripts/mobile-document1443.js */
@@ -2392,7 +2395,7 @@ async function open(){const owner=liveProfile?.id,db=ojmDb;await check();if(!own
  if(job&&job.generation!==status.generation){localStorage.removeItem(key());job=null}if(!status.available&&!job)return;
  overlay=document.createElement('div');overlay.className='save-overlay14234';const box=document.createElement('form');box.className='save-panel14234';box.style.width='min(960px,100%)';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-label','Opening Balances');
  const accounts=AccountingStore.accounts.filter(a=>a.isPosting!==false&&a.active!==false&&a.currency!=='NA');
- box.innerHTML='<header><h2>Opening Balances</h2><button type="button" data-close>×</button></header><p>Enter your starting balances. Debit and credit totals must match within each currency. Finalizing closes this setup.</p><label>Opening date <input name="date" type="date" required value="'+new Date().toISOString().slice(0,10)+'"></label><div class="opening-scroll14234"><table class="opening-table14234"><thead><tr><th>Account</th><th>Debit</th><th>Credit</th></tr></thead><tbody>'+accounts.map(a=>'<tr data-account="'+esc(a.id)+'"><td>'+esc(currencySymbolV6(a.currency)+' '+a.code+' — '+a.name)+'</td><td><input aria-label="Debit '+esc(a.name)+'" inputmode="decimal" data-dr></td><td><input aria-label="Credit '+esc(a.name)+'" inputmode="decimal" data-cr></td></tr>').join('')+'</tbody></table></div><p role="status"></p><button type="submit">Finalize Opening Balances</button>';
+ box.innerHTML='<header><h2>Opening Balances</h2><button type="button" data-close>×</button></header><p>Enter your starting balances. Debit and credit totals must match within each currency. Finalizing closes this setup.</p><label>Opening date <input name="date" type="date" required value="'+appLocalDate()+'"></label><div class="opening-scroll14234"><table class="opening-table14234"><thead><tr><th>Account</th><th>Debit</th><th>Credit</th></tr></thead><tbody>'+accounts.map(a=>'<tr data-account="'+esc(a.id)+'"><td>'+esc(currencySymbolV6(a.currency)+' '+a.code+' — '+a.name)+'</td><td><input aria-label="Debit '+esc(a.name)+'" inputmode="decimal" data-dr></td><td><input aria-label="Credit '+esc(a.name)+'" inputmode="decimal" data-cr></td></tr>').join('')+'</tbody></table></div><p role="status"></p><button type="submit">Finalize Opening Balances</button>';
  const panel=overlay;panel.append(box);document.body.append(panel);box.querySelector('[data-close]').onclick=()=>{panel.remove();if(overlay===panel)overlay=null};
  if(job){box.elements.date.value=job.entries[0].p_transaction_date;for(const l of job.entries[0].p_lines){const row=box.querySelector('[data-account="'+CSS.escape(l.account_id)+'"]');if(row){row.querySelector('[data-dr]').value=l.debit||'';row.querySelector('[data-cr]').value=l.credit||''}}box.querySelectorAll('input').forEach(n=>n.disabled=true);box.querySelector('[type=submit]').textContent='Retry Opening Balances'}
  box.onsubmit=async e=>{e.preventDefault();const btn=box.querySelector('[type=submit]'),message=box.querySelector('[role=status]');if(btn.disabled||liveProfile?.id!==owner||ojmDb!==db)return;btn.disabled=true;const who=liveProfile?.id,storageKey=key();try{if(!job){const lines=[];const sums=Object.create(null);for(const row of box.querySelectorAll('[data-account]')){const a=accounts.find(a=>a.id===row.dataset.account),debit=parseAppNumber(row.querySelector('[data-dr]').value||0),credit=parseAppNumber(row.querySelector('[data-cr]').value||0);if(!Number.isFinite(debit)||!Number.isFinite(credit)||debit<0||credit<0||(debit&&credit))throw Error('Use one nonnegative debit or credit per account.');if(!debit&&!credit)continue;sums[a.currency]=(sums[a.currency]||0)+Math.round(debit*100)-Math.round(credit*100);lines.push({account_id:a.id,description:'Opening Balances',currency_code:a.currency,debit,credit})}if(lines.length<2||Object.values(sums).some(n=>n!==0))throw Error('Balance debits and credits in each currency before finalizing.');job={generation:status.generation,id:'opening-'+crypto.randomUUID(),entries:[{p_transaction_date:box.elements.date.value,p_memo:'Opening Balances',p_lines:lines,p_prefix:ApplicationSettings.accounting?.journalPrefix||'OJM',p_digits:Number(ApplicationSettings.accounting?.journalDigits)||6}]}}

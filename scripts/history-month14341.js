@@ -1,6 +1,6 @@
 /* One visible month; records remain intact for calculations, exports and review. */
 (()=>{'use strict';let owner='',selected={};const valid=m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m||'');
-function choose(key,months){const id=typeof liveProfile==='undefined'?'':liveProfile?.id;if(owner!==id){owner=id;selected={};searches.clear()}if(selected[key])return selected[key];const now=typeof today82==='function'?today82().slice(0,7):new Date().toISOString().slice(0,7),all=months.filter(valid).sort();return all.includes(now)?now:all.at(-1)||now}
+function choose(key,months){const id=typeof liveProfile==='undefined'?'':liveProfile?.id;if(owner!==id){owner=id;selected={};searches.clear()}if(selected[key])return selected[key];const now=typeof today82==='function'?today82().slice(0,7):appLocalDate().slice(0,7),all=months.filter(valid).sort();return all.includes(now)?now:all.at(-1)||now}
 function control(key,month){return '<label class="history-month14341 no-print"><input type="month" data-history-month14341="'+key+'" aria-label="History month" value="'+month+'"></label>'}
 const searches=new Map(),loads=new Map();
 const actor=()=>typeof liveProfile==='undefined'?'':liveProfile?.id;

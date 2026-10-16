@@ -12,7 +12,8 @@ def contracts():
     source='\n'.join(p.read_text() for p in (ROOT/'src').rglob('*.js'))
     calls=set(re.findall(r"(?:\.rpc|\brpc|\bread|\bcall)\(['\"]([a-zA-Z0-9_]+)['\"]",source))
     calls.discard('standalone') # Browser-local audit storage namespace, not a backend RPC.
-    calls.discard('recipe_view113') # Restaurant feature explicitly belongs to the separate app.
+    # These use dynamic RPC dispatch, so literal-call scanning cannot find them.
+    calls.update(['change_journal14385','journal_change_receipt14385'])
     return sorted(calls)
 
 def validate(sql):

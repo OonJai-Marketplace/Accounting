@@ -11,7 +11,7 @@ let memoryClient=null;
 const key=id=>{if(memoryClient!==ojmDb){states.clear();drafts.clear();historyExtra.clear();memoryClient=ojmDb}return String(liveProfile?.id||'')+':'+id;};
 const tabs=['home','review','journal','summary','history','reports','ledger'];
 const tabKey=id=>'ojm-personal-tab1437:'+key(id);
-const state=id=>{const k=key(id);if(!states.has(k)){let tab='home';try{const saved=localStorage.getItem(tabKey(id));if(tabs.includes(saved))tab=saved}catch{}states.set(k,{tab,month:wsPeriod[id]||new Date().toISOString().slice(0,7),year:String(new Date().getFullYear()),historyMonth:'',search:'',page:0})}return states.get(k)};
+const state=id=>{const k=key(id);if(!states.has(k)){let tab='home';try{const saved=localStorage.getItem(tabKey(id));if(tabs.includes(saved))tab=saved}catch{}states.set(k,{tab,month:wsPeriod[id]||appLocalDate().slice(0,7),year:String(new Date().getFullYear()),historyMonth:'',search:'',page:0})}return states.get(k)};
 const journals=id=>(reviewStaffJournals||[]).filter(j=>String(j.owner_id)===String(id));
 function allowed(a,id=scope){const u=user(id);if(!a||!u||a.isPosting===false||a.active===false||a.is_active===false)return false;const r=workspaceRules(u);return [...r.fundIds,...r.entryIds,r.counterpart].includes(String(a.id));}
 function readDraft(id){
@@ -27,7 +27,7 @@ function readDraft(id){
 function remember(){if(!scope||restoring||scopeActor!==liveProfile?.id||scopeClient!==ojmDb)return;const d=capture(),draftKey=scopeActor+':'+scope;drafts.set(draftKey,d);try{localStorage.setItem('ojm-personal-journal1437:'+draftKey,JSON.stringify(d))}catch{showCenterStatus('The device draft could not be stored. Save your entry before leaving.',true)}}
 function capture(){return {...snapshotJournal69(),memo:$('jeGeneralMemo').value,date:$('jeTransDate').value,multiple:$('jeMultipleDates').checked,mode:entry1430.mode,single:entry1430.read(),retained14232:entry1430.retained,editing:JournalModule.editingEntryId,pendingLines:JournalModule.pendingLines,editIds:card._editIds1437||[],requestKey:card._requestKey1437||'pj-'+crypto.randomUUID()}}
 function restore(d){restoring=true;try{
- const today=new Date().toISOString().slice(0,10);
+ const today=appLocalDate();
  entry1430.restore('double',[]);$('jeLinesBody').replaceChildren();
  $('jeGeneralMemo').value=d?.memo||'';$('jeTransDate').value=d?.date||today;$('jeMultipleDates').checked=!!d?.multiple;
  document.body.classList.toggle('je-multi-date',!!d?.multiple);

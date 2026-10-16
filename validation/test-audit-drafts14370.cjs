@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-function run(code,c){c.window=c;vm.createContext(c);vm.runInContext(code,c);return c}
+function run(code,c){c.window=c;vm.createContext(c);vm.runInContext(fs.readFileSync('src/shared/formatting/civil-date.js','utf8'),c);vm.runInContext(code,c);return c}
 (async()=>{
  const phone=fs.readFileSync('src/subusers/phone/connected/scope-and-draft.js','utf8').split('const esc=')[0]+'window.test={ensurePhoneOwner1427,get state(){return S},get drafts(){return phoneDrafts1427}};})();';
  let session='first',stored={staff:{a:{data:[]},other:{data:{memo:'allowed shape'}}},ui:[],journal:{data:[]},location:[]};

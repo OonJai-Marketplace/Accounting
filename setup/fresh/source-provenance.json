@@ -270,7 +270,7 @@
       "sha256": "40178a23b927ef36d55be6a6440be405a6073fc780d999d51c9db700c7b87f81"
     }
   ],
-  "currentUpdateRelease": "143.70",
+  "currentUpdateRelease": "143.100",
   "currentUpdates": [
     {
       "name": "INSTALL-MAINTENANCE-v143.24.sql",
@@ -315,6 +315,38 @@
     {
       "name": "INSTALL-RLS-STATEMENT-CACHE-v143.70.sql",
       "sha256": "8a4d88bb75baf83b8b48d07cee58591e957d8e4d5fab74a9a79f9e9741904e2b"
+    },
+    {
+      "name": "INSTALL-SUBACCOUNT-INHERITANCE-v143.80.sql",
+      "sha256": "a84b3e4e9fb210787977add15cf2ca00dc432e8a99db4006069e454eced4cb02"
+    },
+    {
+      "name": "INSTALL-ACCOUNT-HISTORY-DETAILS-v143.81.sql",
+      "sha256": "a44bfc6121fbb7b9604403aab4c7ac9a767e6fdcdaef650124fb449899463e81"
+    },
+    {
+      "name": "INSTALL-FOREIGN-FUND-TRACKING-v143.86.sql",
+      "sha256": "a2f28cc9d154b4c454b996eb6a42cbb5d76940dcbf2992cae859b6d37d72cb79"
+    },
+    {
+      "name": "setup/INSTALL-FOREIGN-CURRENCY-v143.83.sql",
+      "sha256": "a332ee107266e912a96422c6a3e09570d21ac1f500a071e3915d3a5a07b7b48c"
+    },
+    {
+      "name": "setup/COMPATIBILITY-FX-v143.83.sql",
+      "sha256": "0279c6e6dc88eba0aa44127f6b105eef8f94d4abd8bda43809e179ee87991f44"
+    },
+    {
+      "name": "supabase/migrations/20261015121608_journal_durable_changes14385.sql",
+      "sha256": "956d9d62201a37893e250f11c3749afd580841a6c2ed9a6917dfe8ba31e4d017"
+    },
+    {
+      "name": "supabase/migrations/20261015122604_journal_recovery_receipts14385.sql",
+      "sha256": "c22c0852069b29403719f17b93f67a49f232e1e49122b8890a0537f1886bdcef"
+    },
+    {
+      "name": "supabase/migrations/20261016103522_mapping_carry_forward14397.sql",
+      "sha256": "768f6591de3c95a3a11991a4db82fccb1c80f798ee4e038ea7223e5de17adb52"
     }
   ]
 }

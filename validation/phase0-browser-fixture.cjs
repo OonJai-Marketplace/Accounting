@@ -22,8 +22,8 @@ module.exports=async function createFixture(){
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/tmp/chromium',args:['--no-sandbox','--disable-dev-shm-usage']});
  return {base,browser,requests,get fixture(){return fixture},async open(device='desktop',role='admin',clock=false){
   const phone=device==='phone',tablet=!phone&&process.env.PHASE0_DEVICE==='tablet';
-  const context=await browser.newContext({viewport:{width:phone?390:1440,height:900},isMobile:phone,hasTouch:phone,...(tablet?{viewport:{width:1024,height:768},screen:{width:1024,height:768},userAgent:'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1',isMobile:true,hasTouch:true}:{})});
-  const page=await context.newPage();page.setDefaultTimeout(25000);if(clock)await page.clock.install({time:Date.now()});
+  const context=await browser.newContext({...(process.env.FIXTURE_TIMEZONE?{timezoneId:process.env.FIXTURE_TIMEZONE}:{}),viewport:{width:phone?390:1440,height:900},isMobile:phone,hasTouch:phone,...(tablet?{viewport:{width:1024,height:768},screen:{width:1024,height:768},userAgent:'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1',isMobile:true,hasTouch:true}:{})});
+  const page=await context.newPage();page.setDefaultTimeout(25000);if(clock)await page.clock.install({time:Date.now()});if(process.env.FIXTURE_TIME)await page.clock.setFixedTime(new Date(process.env.FIXTURE_TIME));
   await page.addInitScript(()=>{window.__rawLocal=window.localStorage;window.__rawSession=window.sessionStorage;});
   if(process.env.SYNC_ISOLATION==='suspended')await page.addInitScript(()=>{
     window.__syncSuspended={timers:0,observers:0};
