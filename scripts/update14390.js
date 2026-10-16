@@ -1,6 +1,6 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-const VERSION='143.95',status=document.getElementById('updateStatus'),retry=document.getElementById('updateRetry'),progress=document.getElementById('updateProgress');
+const VERSION='143.96',status=document.getElementById('updateStatus'),retry=document.getElementById('updateRetry'),progress=document.getElementById('updateProgress');
 let attempt=0,finished=false,timer,registration;
 function fail(message){clearTimeout(timer);status.textContent=message;retry.hidden=false;progress.removeAttribute('value')}
 async function verify(worker,token){

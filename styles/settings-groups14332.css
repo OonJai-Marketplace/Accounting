@@ -41,3 +41,11 @@ html[data-device132=tablet] body #appSidebar.mobile-open .grouped-nav14378>.nav-
 .group-menu14388>button>span:first-child{width:20px;text-align:center}
 .group-menu14388>button:is(:hover,:focus-visible){background:#e8eee2;color:#17543e;outline:2px solid #b68b43;outline-offset:-2px}
 @media print{.group-menu14388{display:none!important}}
+
+/* Keep the account footer stationary while expanded navigation scrolls. */
+@layer corrections14337 {@media screen and (min-width:641px){
+ html body #appSidebar#appSidebar{overflow:hidden!important}
+ html body #appSidebar#appSidebar>#sidebarNavigation14396{display:block!important;flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;width:100%;scrollbar-width:thin}
+ html body #appSidebar#appSidebar>.sidebar-brand{flex-shrink:0!important}
+ html body #appSidebar#appSidebar>#topHeaderProfile104{flex:0 0 auto!important;margin-top:0!important}
+}}
