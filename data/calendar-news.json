@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-15",
+  "checkedAt": "2026-10-16",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -25,17 +25,22 @@
     },
     {
       "id": "la-2026-vientiane-boats",
-      "revision": "2026-10-09T11:15:00Z",
-      "title": "Vientiane Boat Racing Festival",
-      "location": "Vientiane Capital",
-      "start": "2026-10-27",
+      "revision": "2026-10-16T01:17:16Z",
+      "title": "Vientiane End-of-Lent and Boat Racing Festival · 2026",
+      "location": "Vat Chan riverfront, Chanthabouly District, Vientiane Capital, Laos",
+      "start": "2026-10-25",
       "end": "2026-10-27",
       "category": "festival",
       "confidence": "confirmed",
-      "summary": "The Vientiane boat-racing observance is listed for 27 October. This is separate from the Luang Prabang race.",
-      "restaurantIdea": "Plan takeaway options and check access near the river before promoting.",
-      "uncertainty": "",
+      "summary": "KPL's 15 October announcement confirms a 25–27 October festival programme with boat races, religious ceremonies, cultural performances and local-product promotion. Illuminated-boat and candlelight activities are scheduled for the evening of 26 October. This expands the earlier single-day listing to the broader programme.",
+      "restaurantIdea": "Suggestion: Shorter notice—9 days until the programme opens as of 16 October 2026. If serving Vientiane visitors, check riverfront access, takeaway capacity and staffing now; prepare any promotion before 23 October. Demand is not guaranteed.",
+      "uncertainty": "The 25–27 October range describes the wider programme, not a verified postponement of the previously listed 27 October boat-racing observance. Exact race times, vendor access and traffic restrictions are not confirmed here. Separate Chomcheng and provincial races must not be merged with this occurrence.",
       "sources": [
+        {
+          "name": "KPL · Organising committee announcement, 15 October 2026",
+          "url": "https://kpl.gov.la/EN/detail.aspx?id=109155",
+          "language": "en"
+        },
         {
           "name": "JICA Laos · Published 2026 calendar",
           "url": "https://www.jica.go.jp/english/overseas/laos/office/__icsFiles/afieldfile/2026/05/05/LaosOfficeHolidays2026_1.pdf",
@@ -769,6 +774,46 @@
         {
           "name": "WAFF · Festival listing with November 2026 dates",
           "url": "https://www.waff.org/page/festivals",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-world-food-day-vientiane",
+      "revision": "2026-10-16T01:17:16Z",
+      "title": "World Food Day celebration in Laos · 2026",
+      "location": "ASEAN Park near Patuxay Monument, Vientiane Capital, Laos",
+      "start": "2026-11-06",
+      "end": "2026-11-07",
+      "category": "food",
+      "confidence": "confirmed",
+      "summary": "KPL reports a local World Food Day celebration on 6–7 November, organised by the Ministry of Agriculture and Environment with partners. Plans include a food-security seminar, a youth sustainable-food-systems forum and agricultural exhibitions. These are the local event dates; the international observance remains 16 October.",
+      "restaurantIdea": "Suggestion: Shorter notice—21 days until opening as of 16 October 2026. Review possible sustainable-food or local-produce promotion now, and verify public access or partnership opportunities before the end of October. This is not a confirmed food-vending fair or vegan event.",
+      "uncertainty": "Public opening hours, admission, exhibitor participation and restaurant/vendor eligibility have not been verified. Do not confuse this November celebration with the separate 17–24 October poverty-eradication week.",
+      "sources": [
+        {
+          "name": "KPL · Ministry press conference report, 15 October 2026",
+          "url": "https://kpl.gov.la/EN/detail.aspx?id=109153",
+          "language": "en"
+        }
+      ]
+    },
+    {
+      "id": "la-2026-lao-art-week",
+      "revision": "2026-10-16T01:17:16Z",
+      "title": "Lao Art Week · 2026",
+      "location": "Vientiane Capital (opening at Lao National Museum); Luang Prabang, Champasak and Savannakhet provinces, Laos. Other cities and venues are not specified in the report.",
+      "start": "2026-10-09",
+      "end": "2026-10-25",
+      "category": "community",
+      "confidence": "confirmed",
+      "summary": "Vientiane Times reports a 9–25 October arts festival with 32 programmes across four Lao locations. Activities include exhibitions, performances, workshops and cultural discussions. The opening took place at the Lao National Museum in Vientiane on 9 October.",
+      "restaurantIdea": "Suggestion: Shorter notice—already underway, with 9 days until the closing date as of 16 October 2026. Check remaining local sessions immediately before considering an artist collaboration or visitor takeaway offer. Do not assume programmes are near the restaurant.",
+      "uncertainty": "The dated report is by the Vientiane Times Advertorial Desk. Programme-specific cities, venues, dates, hours and admission beyond the Vientiane opening are not verified here; not every location necessarily operates throughout the whole festival window.",
+      "sources": [
+        {
+          "name": "Vientiane Times · Advertorial Desk, 16 October 2026",
+          "url": "https://www.vientianetimes.org.la/freefreenews/freecontent_200_LaoArt_y26.php",
           "language": "en"
         }
       ]
