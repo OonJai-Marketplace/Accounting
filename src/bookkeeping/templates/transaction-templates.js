@@ -20,7 +20,7 @@ function captureTemplateStructure() {
     const memo = row.querySelector('.je-line-memo')?.value?.trim() || '';
     if (account || memo) lines.push({account, memo});
   });
-  return { transactionType:window.JournalCalculator14387?.type||'Normal', generalMemo: document.getElementById('jeGeneralMemo')?.value?.trim() || '', lines };
+  return { generalMemo: document.getElementById('jeGeneralMemo')?.value?.trim() || '', lines };
 }
 function createTemplateFromCurrent() {
   const structure = captureTemplateStructure();
@@ -78,7 +78,7 @@ function applyTransactionTemplate(id){
   document.getElementById('jeGeneralMemo').value=t.generalMemo || '';
   lines.forEach(line=>addJournalLineRow(line.account,line.memo,'',{}));
   while(body.querySelectorAll('tr').length<2)addJournalLineRow();
-  window.JournalCalculator14387?.setKind(t.transactionType||'Normal');
+
   setTransactionDateToToday(true); updateNextEntryIdDisplay(); calculateJournalBalance();
   closeModal('modalTemplateManager');
   window.JournalFX14383?.restore({});showJournalEntry98();window.dispatchEvent(new Event('save-state14234'));

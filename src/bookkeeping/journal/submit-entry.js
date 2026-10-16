@@ -90,7 +90,7 @@ async function confirmEntryOverride() {
       currency_code: line.currency,
       debit: Number(line.debit || 0),
       credit: Number(line.credit || 0),
-      fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,...(line.calculation14387?{calculation14387:line.calculation14387}:{})
+      fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak
     }));
     const { error } = await db.rpc('revise_open_journal_entry', {
       p_entry_id: dbEntryId,

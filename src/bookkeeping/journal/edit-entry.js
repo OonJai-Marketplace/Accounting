@@ -35,12 +35,12 @@ function loadEntryForEdit(entryId) {
     if (line.credit > 0) crMap[line.currency] = formatAppNumber(line.credit);
 
     addJournalLineRow(accStr, line.memo, drStr, crMap);
-    window.JournalCalculator14387?.setMeta(tbody.lastElementChild,line.calculation14387);
+
     tbody.lastElementChild.dataset.bookRate14383=line.book_rate_lak||'';
     tbody.lastElementChild.dataset.fxRate14383=line.fx_rate_lak||'';
   });
 
-  window.JournalCalculator14387?.restore(lines[0]?.calculation14387?.type||'Normal');
+
   window.JournalFX14383?.restore(Object.fromEntries(lines.map(l=>[l.currency,l.fx_rate_lak])));
   calculateJournalBalance();
 }

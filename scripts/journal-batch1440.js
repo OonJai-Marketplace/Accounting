@@ -13,7 +13,7 @@ function load(id=owner()){
 function persist(job){localStorage.setItem(key(job.owner),JSON.stringify(job));cache.set(job.owner,job);}
 function payloads(groups){
  const memo=document.getElementById('jeGeneralMemo').value.trim(),prefix=String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'OJM').trim(),digits=Math.max(3,Math.min(9,Number(ApplicationSettings.accounting?.journalDigits)||6));
- return groups.map(([date,g])=>({p_transaction_date:date,p_memo:memo,p_lines:g.lines.map(l=>({account_id:l.account?.id||null,description:l.memo,currency_code:l.currency,debit:Number(l.debit||0),credit:Number(l.credit||0),fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak,...(l.calculation14387?{calculation14387:l.calculation14387}:{})})),p_prefix:prefix,p_digits:digits})).sort((a,b)=>a.p_transaction_date.localeCompare(b.p_transaction_date));
+ return groups.map(([date,g])=>({p_transaction_date:date,p_memo:memo,p_lines:g.lines.map(l=>({account_id:l.account?.id||null,description:l.memo,currency_code:l.currency,debit:Number(l.debit||0),credit:Number(l.credit||0),fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak})),p_prefix:prefix,p_digits:digits})).sort((a,b)=>a.p_transaction_date.localeCompare(b.p_transaction_date));
 }
 function download(job){const url=URL.createObjectURL(new Blob([JSON.stringify(job,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='journal-batch-'+job.id+'.json';Promise.resolve(window.exportCenter14337?exportCenter14337.fromLink(a):a.click()).finally(()=>setTimeout(()=>URL.revokeObjectURL(url),60000)).catch(()=>{});}
 async function restore(job){
@@ -21,8 +21,8 @@ async function restore(job){
  const populated=memo.value.trim()||[...document.querySelectorAll('#jeLinesBody .je-line-acc,#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr')].some(n=>n.value.trim()&&!/^0(?:\.00)?$/.test(n.value));
  if(populated&&!await ui117.confirm('Replace the current editor with this saved batch draft? Confirmed dates will still be skipped on retry.'))return;
  if(owner()!==job.owner||busy)return;window.entry1430?.setMode?.('double');memo.value=job.payloads[0].p_memo;document.getElementById('jeTransDate').value=job.payloads[0].p_transaction_date;setJournalDateMode(true);document.getElementById('jeLinesBody').replaceChildren();
- for(const payload of job.payloads)for(const line of payload.p_lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);addJournalLineRow(a?a.code+' — '+a.name:'',line.description,line.debit?String(line.debit):'',{[line.currency_code]:line.credit?String(line.credit):''});const row=document.querySelector('#jeLinesBody tr:last-child');row.querySelector('.je-line-date').value=payload.p_transaction_date;row.dataset.fxRate14383=line.fx_rate_lak||'';row.dataset.bookRate14383=line.book_rate_lak||'';window.JournalCalculator14387?.setMeta(row,line.calculation14387);}
- window.JournalCalculator14387?.restore(job.payloads.flatMap(p=>p.p_lines).find(l=>l.calculation14387)?.calculation14387.type||'Normal');window.JournalFX14383?.restore(Object.fromEntries(job.payloads.flatMap(p=>p.p_lines).map(l=>[l.currency_code,l.fx_rate_lak])));calculateJournalBalance();showJournalEntry98();showCenterStatus('Batch draft restored. Post Entry retries failed dates and skips confirmed dates.');
+ for(const payload of job.payloads)for(const line of payload.p_lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);addJournalLineRow(a?a.code+' — '+a.name:'',line.description,line.debit?String(line.debit):'',{[line.currency_code]:line.credit?String(line.credit):''});const row=document.querySelector('#jeLinesBody tr:last-child');row.querySelector('.je-line-date').value=payload.p_transaction_date;row.dataset.fxRate14383=line.fx_rate_lak||'';row.dataset.bookRate14383=line.book_rate_lak||'';}
+ window.JournalFX14383?.restore(Object.fromEntries(job.payloads.flatMap(p=>p.p_lines).map(l=>[l.currency_code,l.fx_rate_lak])));calculateJournalBalance();showJournalEntry98();showCenterStatus('Batch draft restored. Post Entry retries failed dates and skips confirmed dates.');
 }
 function draw(){
  window.dispatchEvent(new Event('save-state14234'));let host=document.getElementById('journalBatch1440');const job=load();if(!job||job.completed){host?.remove();return;}
@@ -93,7 +93,7 @@ function capture(){for(const n of document.querySelectorAll('input[data-fx-rate1
 function rate(c){if(c==='LAK')return 1;const n=parse(capture()[c]);return positive(n)?n:null}
 function lineRate(row,c){return c==='LAK'?1:positive(row?.dataset.fxRate14383)?Number(row.dataset.fxRate14383):rate(c)}
 function restore(value={}){rates={...value};const host=$('journalRates14383');if(host)host.replaceChildren();draw()}
-function draw(){queued=false;const grid=document.querySelector('#journalEntry98 .je-meta-grid');if(!grid)return;let host=$('journalRates14383');if(!host){host=document.createElement('div');host.id='journalRates14383';host.className='journal-rates14383';const voucher=grid.querySelector('.voucher-pick14299');if(voucher)voucher.before(host);else grid.append(host)}const cs=currencies();host.hidden=!cs.length;grid.classList.toggle('has-fx14383',!!cs.length);for(const n of [...host.children])if(!cs.includes(n.dataset.currency))n.remove();for(const c of cs){if(host.querySelector(`[data-currency="${c}"]`))continue;const label=document.createElement('label');label.dataset.currency=c;label.textContent=`LAK / 1 ${c}`;const input=document.createElement('input');input.type='text';input.inputMode='decimal';input.className='je-input';input.dataset.fxRate14383=c;input.setAttribute('aria-label',`LAK per 1 ${c}`);input.placeholder='Rate';input.value=rates[c]??'';input.autocomplete='off';input.addEventListener('input',()=>{rates[c]=input.value;input.setCustomValidity('');document.querySelectorAll('#jeLinesBody tr').forEach(tr=>{if(getSelectedAccountInfo(tr.querySelector('.je-line-acc')?.value)?.currency===c&&window.JournalCalculator14387?.meta(tr)?.rateMode!=='manual')delete tr.dataset.fxRate14383})});input.addEventListener('blur',()=>{const n=parse(input.value);if(positive(n)){input.value=new Intl.NumberFormat('en-US',{maximumFractionDigits:8}).format(n);rates[c]=input.value}else input.setCustomValidity('Enter a positive exchange rate.')});label.append(input);host.append(label)}}
+function draw(){queued=false;const grid=document.querySelector('#journalEntry98 .je-meta-grid');if(!grid)return;let host=$('journalRates14383');if(!host){host=document.createElement('div');host.id='journalRates14383';host.className='journal-rates14383';const voucher=grid.querySelector('.voucher-pick14299');if(voucher)voucher.before(host);else grid.append(host)}const cs=currencies();host.hidden=!cs.length;grid.classList.toggle('has-fx14383',!!cs.length);for(const n of [...host.children])if(!cs.includes(n.dataset.currency))n.remove();for(const c of cs){if(host.querySelector(`[data-currency="${c}"]`))continue;const label=document.createElement('label');label.dataset.currency=c;label.textContent=`LAK / 1 ${c}`;const input=document.createElement('input');input.type='text';input.inputMode='decimal';input.className='je-input';input.dataset.fxRate14383=c;input.setAttribute('aria-label',`LAK per 1 ${c}`);input.placeholder='Rate';input.value=typeof rates[c]==='number'?new Intl.NumberFormat(appNumberLocale(),{useGrouping:false,maximumFractionDigits:8}).format(rates[c]):rates[c]??'';input.autocomplete='off';input.addEventListener('input',()=>{rates[c]=input.value;input.setCustomValidity('');document.querySelectorAll('#jeLinesBody tr').forEach(tr=>{if(getSelectedAccountInfo(tr.querySelector('.je-line-acc')?.value)?.currency===c)delete tr.dataset.fxRate14383})});input.addEventListener('blur',()=>{const n=parse(input.value);if(positive(n)){input.value=new Intl.NumberFormat(appNumberLocale(),{maximumFractionDigits:8}).format(n);rates[c]=input.value}else input.setCustomValidity('Enter a positive exchange rate.')});label.append(input);host.append(label)}}
 function schedule(){if(!queued){queued=true;requestAnimationFrame(draw)}}
 function attach(state){capture();const rows=[...document.querySelectorAll('#jeLinesBody tr')].filter(r=>getSelectedAccountInfo(r.querySelector('.je-line-acc')?.value)&&(parse(r.querySelector('.je-line-dr')?.value)>0||parse(r.querySelector('.je-line-cr')?.value)>0));let i=0;for(const [date,g] of Object.entries(state.grouped))for(const l of g.lines){const row=rows.find(r=>!r._fxUsed14383&&getSelectedAccountInfo(r.querySelector('.je-line-acc')?.value)?.id===l.account?.id&&(!r.querySelector('.je-line-date')?.value||r.querySelector('.je-line-date').value===date||!$('jeMultipleDates')?.checked))||rows[i];if(row)row._fxUsed14383=true;i++;l.fx_rate_lak=lineRate(row,l.currency);l.book_rate_lak=positive(row?.dataset.bookRate14383)?Number(row.dataset.bookRate14383):null;if(l.currency!=='LAK'&&!positive(l.fx_rate_lak))state.errors.push(`Enter LAK per 1 ${l.currency} before posting.`)}rows.forEach(r=>delete r._fxUsed14383);return state}
 function base(line,side){const c=line.currency||line.currency_code;if(c==='LAK')return round(Number(line[side]||0));const stored=line['base_'+side];if(stored!==null&&stored!==undefined&&Number.isFinite(Number(stored)))return Number(stored);if(!Number(line[side]||0))return 0;const r=line.book_rate_lak||line.fx_rate_lak;return positive(r)?round(Number(line[side]||0)*Number(r)):null}
@@ -121,8 +121,9 @@ function templates(){
  ];
 }
 function openTemplate(kind){return applyTransactionTemplate('fx14383-'+kind)}
-function ready(){const collect=window.collectLiveJournalGroups;window.collectLiveJournalGroups=function(...args){return attach(collect.apply(this,args))};const clear=window.clearJournalEntry;window.clearJournalEntry=function(...args){const out=clear.apply(this,args);restore({});return out};const card=$('journalEntry98');if(card){card.addEventListener('change',schedule);card.addEventListener('input',e=>{if(!e.target.matches('[data-fx-rate14383]'))schedule()});new MutationObserver(schedule).observe($('jeLinesBody'),{childList:true,subtree:true})}draw();window.addEventListener('page113',schedule)}
-window.JournalFX14383={capture,restore,rate,lineRate,base,carrying,templates,openTemplate,round,positive};
+function ready(){const collect=window.collectLiveJournalGroups;window.collectLiveJournalGroups=function(...args){return attach(collect.apply(this,args))};const clear=window.clearJournalEntry;window.clearJournalEntry=function(...args){const out=clear.apply(this,args);restore({});return out};const card=$('journalEntry98');if(card){card.addEventListener('change',schedule);card.addEventListener('input',e=>{if(e.target.matches('.je-line-acc')){const row=e.target.closest('tr');if(row){delete row.dataset.fxRate14383;delete row.dataset.bookRate14383}}if(!e.target.matches('[data-fx-rate14383]'))schedule()});new MutationObserver(schedule).observe($('jeLinesBody'),{childList:true,subtree:true})}draw();window.addEventListener('page113',schedule)}
+function compact(rate,c){return c!=='LAK'&&rate>0?new Intl.NumberFormat(appNumberLocale(),{maximumFractionDigits:8}).format(rate)+' '+currencySymbolV6('LAK')+'/'+currencySymbolV6(c):'—'}
+window.JournalFX14383={compact,capture,restore,rate,lineRate,base,carrying,templates,openTemplate,round,positive};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 
@@ -174,77 +175,157 @@ window.ForeignFunds14386={form,select,hierarchy,descendants,average,lineRateText
 
 ;
 
-/* Explicit transaction calculations; saved amounts/rates are never silently revalued. */
+/* Selection-based journal arithmetic. Display only: never assigns roles or writes amounts. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id),esc=v=>escapeHtml(String(v??'')),round=n=>Math.round((n+Number.EPSILON)*100)/100;
-const kinds=['Normal','Income','Expense','Transfer','Currency Exchange'];
-const roles={input:'Input / unchanged',received:'Fund received',paid:'Fund paid',offset:'Foreign system offset',mapping:'LAK system mapping',income:'Income recognized',expense:'Expense recognized',fx:'Exchange gain / loss'};
-let kind='Normal',busy=false,queued=false,problems=[],details=[],hold=false,frozen=false;
-const num=v=>parseAppNumber(String(v??''))||0;
-const tracked=a=>a?.trackForeignFunds===true;
-const derived=(role,type)=>['offset','mapping','income','expense','fx'].includes(role)&&type!=='Transfer'||role==='received'&&['Transfer','Currency Exchange'].includes(type);
-function meta(row){try{return JSON.parse(row.dataset.calculation14387||'null')}catch{return null}}
-function setMeta(row,value){if(value)row.dataset.calculation14387=JSON.stringify(value);else delete row.dataset.calculation14387}
-function infer(a,dr,cr,type){if(!a||type==='Normal')return 'input';if(a.currency==='LAK'&&String(a.code)==='5419')return 'fx';if(a.isTechnical||a.type==='SYSTEM')return a.currency==='LAK'?'mapping':'offset';if((a.baseType||a.type)==='ASSET'){if(cr)return 'paid';if(dr)return 'received';return type==='Expense'?'paid':type==='Income'?'received':'input'}if(a.currency==='LAK'&&(a.baseType||a.type)==='REVENUE')return 'income';if(a.currency==='LAK'&&(a.baseType||a.type)==='EXPENSE')return 'expense';return 'input'}
-function read(){return [...$('jeLinesBody')?.rows||[]].map((row,index)=>{const a=getSelectedAccountInfo(row.querySelector('.je-line-acc')?.value),dr=num(row.querySelector('.je-line-dr')?.value),cr=num(row.querySelector('.je-line-cr')?.value),m=meta(row)||{};return {row,index,a,dr,cr,date:($('jeMultipleDates')?.checked?row.querySelector('.je-line-date')?.value:'')||$('jeTransDate')?.value,role:m.role||infer(a,dr,cr,kind),mode:m.mode||'auto',rateMode:m.rateMode||'auto',fx:JournalFX14383.lineRate(row,a?.currency),book:Number(row.dataset.bookRate14383)||null,invalidRate:row.dataset.invalidRate14387==='1'}})}
+const $=id=>document.getElementById(id),esc=v=>escapeHtml(String(v??''));
+const amountSelector='#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr';
+const selected=new Set();
+let selecting=false,selectedRate='',queued=false,drag=null,host,results,signature='',noticeTimer,badgeHome;
+const round=n=>Math.round((n+Number.EPSILON)*100)/100;
+const number=v=>{const text=String(v??'').trim();return text?parseAppNumber(text):0};
+const money=n=>formatAppNumber(n),rateText=n=>new Intl.NumberFormat(appNumberLocale(),{maximumFractionDigits:8}).format(n);
+const copyIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></svg>';
+function copyButton(value,label){return '<button type="button" class="calc-copy14391" data-copy-number="'+esc(String(value))+'" aria-label="Copy '+esc(label)+'" title="Copy '+esc(label)+'">'+copyIcon+'</button>'}
+function resultValue(value,currency,label){return '<strong>'+esc(money(value))+' '+esc(currency)+'</strong>'+copyButton(value,label)}
+// Same-currency amounts are magnitudes; selected LAK cells are the comparison total.
+function summarize(cells,rates,chosenCurrency=''){
+ const totals={},errors=[];
+ for(const c of cells){if(!c.currency||c.currency==='NA'){errors.push('Choose an account for every selected amount.');continue}if(!Number.isFinite(c.amount)||c.amount<0){errors.push('Selected amounts must be valid non-negative numbers.');continue}totals[c.currency]=(totals[c.currency]||0)+c.amount;}
+ for(const c of Object.keys(totals))totals[c]=round(totals[c]);
+ const foreign=Object.keys(totals).filter(c=>c!=='LAK');
+ if(foreign.length>1)errors.push('Select one foreign currency at a time. USD and THB amounts cannot share one conversion.');
+ const currency=foreign[0]||chosenCurrency;
+ if(chosenCurrency&&foreign.length&&chosenCurrency!==currency)errors.push('The selected '+chosenCurrency+' rate does not match the '+currency+' amounts.');
+ const rate=Number(rates[currency]),reverse=!foreign.length&&Object.hasOwn(totals,'LAK');
+ if(!currency&&!errors.length)errors.push('Select a foreign amount or a matching exchange rate.');
+ else if(!(Number.isFinite(rate)&&rate>0)&&!errors.length)errors.push('Enter a positive LAK per '+currency+' rate above.');
+ const result={totals,currency,rate,reverse,errors:[...new Set(errors)],hasLak:Object.hasOwn(totals,'LAK')};
+ if(!errors.length&&cells.length){result.source=reverse?totals.LAK:totals[currency];result.value=round(reverse?result.source/rate:result.source*rate);if(!Number.isFinite(result.value)){result.errors.push('The selected amounts are too large to calculate.');delete result.value}else if(!reverse&&result.hasLak)result.difference=round(result.value-totals.LAK);}
+ return result;
+}
+function read(input){const row=input.closest('tr'),a=getSelectedAccountInfo(row?.querySelector('.je-line-acc')?.value);return {input,row,a,account:a?.name||'Choose account',currency:a?.currency,amount:input.dataset.numeric88?Number(input.value):number(input.value),side:input.matches('.je-line-dr')?'DR':'CR',date:($('jeMultipleDates')?.checked?row.querySelector('.je-line-date')?.value:'')||$('jeTransDate')?.value};}
 function holding(a,date){
- const windowState=window.yearWindow14333?.state();if(windowState?.from&&date<windowState.from)throw Error('Load the journal year for '+date+' before calculating carrying values.');
- const editing=JournalModule.entries.find(l=>l.id===JournalModule.editingEntryId),earlier=l=>!editing||l.date<editing.date||l.date===editing.date&&(String(l.created_at||'')<String(editing.created_at||'')||l.created_at===editing.created_at&&String(l.id).localeCompare(String(editing.id),undefined,{numeric:true})<0);
+ const state=window.yearWindow14333?.state();
+ if(!date||state?.from&&date<state.from)throw Error('Load this journal year to see its average.');
+ const editing=JournalModule.entries.find(l=>l.id===JournalModule.editingEntryId);
+ const earlier=l=>!editing||l.date<editing.date||l.date===editing.date&&(String(l.created_at||'')<String(editing.created_at||'')||l.created_at===editing.created_at&&String(l.id).localeCompare(String(editing.id),undefined,{numeric:true})<0);
  const rows=JournalModule.entries.filter(l=>String(l.accountId)===String(a.id)&&l.date<=date&&l.id!==JournalModule.editingEntryId&&earlier(l)&&!l.voided_at&&(!l.status||l.status==='posted'));
- if(rows.some(l=>l.pendingSync||l.local14333))throw Error(a.name+': synchronize earlier pending fund entries before calculating.');
- let quantity=0,value=0;const refs=[];for(const b of windowState?.opening||[])if(String(b.accountId)===String(a.id)){quantity+=Number(b.balance);if(b.base_balance==null&&b.currency!=='LAK')throw Error(a.name+': opening LAK valuation is missing.');value+=Number(b.currency==='LAK'?b.balance:b.base_balance);refs.push('Opening balance');}
- for(const l of rows){const d=JournalFX14383.base(l,'debit'),c=JournalFX14383.base(l,'credit');if(d==null||c==null)throw Error(a.name+': rate missing in '+l.id);quantity+=Number(l.debit)-Number(l.credit);value+=d-c;refs.push(l.id)}
- return {quantity:round(quantity),value:round(value),refs:[...new Set(refs)]};
+ if(rows.some(l=>l.pendingSync||l.local14333))throw Error('Average unavailable while earlier fund entries await sync.');
+ let quantity=0,value=0;
+ for(const b of state?.opening||[])if(String(b.accountId)===String(a.id)){if(b.base_balance==null)throw Error('Opening LAK valuation is missing.');quantity+=Number(b.balance);value+=Number(b.base_balance)}
+ for(const l of rows){const d=JournalFX14383.base(l,'debit'),c=JournalFX14383.base(l,'credit');if(d==null||c==null)throw Error('Average unavailable: an earlier rate is missing.');quantity+=Number(l.debit)-Number(l.credit);value+=d-c}
+ if(!(quantity>0&&value>0))throw Error('Average unavailable: no positive valued balance.');
+ return {quantity,value,rate:value/quantity};
 }
-// Pure arithmetic planner used by the UI and regression tests. Amounts are original units.
-function plan(type,source,getHolding){
- const rows=source.map(r=>({...r})),errors=[],notes=[],deltas=new Map();if(type==='Normal')return {rows,errors,notes};
- const groups=new Map();for(const r of rows.filter(r=>r.a)){if(!groups.has(r.date))groups.set(r.date,[]);groups.get(r.date).push(r)}
- const error=m=>{if(!errors.includes(m))errors.push(m)};
- const set=(r,dr,cr)=>{r.suggested={dr:round(dr),cr:round(cr)};r.calculated=true;if(r.mode!=='manual'){r.dr=r.suggested.dr;r.cr=r.suggested.cr}};
- const one=(g,role,c,required=true)=>{const found=g.filter(r=>r.role===role&&(!c||r.a.currency===c));if(found.length!==1){if(required)error('Choose exactly one '+roles[role]+(c?' in '+c:'')+' for '+g[0].date+'. Use Calculation details to assign roles.');return null}return found[0]};
- const tx=r=>r.a.currency==='LAK'?1:r.fx>0?r.fx:(error(r.a.name+': enter a positive transaction rate.'),null);
- const book=r=>{if(r.a.currency==='LAK')return 1;if(!tracked(r.a)){error(r.a.name+': enable Track foreign-currency funds in Accounts.');return null}try{const h=getHolding(r.a,r.date),delta=deltas.get(r.a.id)||{quantity:0,value:0};const qty=round(h.quantity+delta.quantity),value=round(h.value+delta.value),amount=r.cr;if(qty<=0||value<=0||amount>qty+.000001){error(r.a.name+': insufficient or unvalued funds for '+r.date+'.');return null}const rate=r.rateMode==='manual'&&r.book>0?r.book:value/qty;notes.push({date:r.date,account:r.a.name,quantity:qty,value,rate,amount,lak:round(amount*rate),refs:h.refs||[]});return rate}catch(e){error(e.message);return null}};
- const applyRate=(r,f,b=null)=>{if(f!=null)r.fx=f;if(r.rateMode!=='manual')r.book=b;else if(b==null)r.book=null};
- const foreignOffsets=(g,funds,side)=>{const currencies=[...new Set(funds.map(r=>r.a.currency).filter(c=>c!=='LAK'))];for(const c of currencies){const fs=funds.filter(r=>r.a.currency===c),r=one(g,'offset',c);if(!r)continue;const amount=round(fs.reduce((n,r)=>n+(side==='received'?r.dr:r.cr),0)),value=round(fs.reduce((n,r)=>n+(side==='received'?r.dr:r.cr)*(r.book||r.fx||0),0));set(r,side==='paid'?amount:0,side==='received'?amount:0);applyRate(r,amount?value/amount:tx(fs[0]),side==='paid'&&amount?value/amount:null)}};
- for(const [date,g] of [...groups].sort(([a],[b])=>String(a).localeCompare(String(b)))){
-  const startErrors=errors.length;for(const r of g){if(['offset','mapping','income','expense','fx'].includes(r.role)&&type!=='Transfer')set(r,0,0);if(['Transfer','Currency Exchange'].includes(type)&&r.role==='received'&&r.mode!=='manual')set(r,0,0);}
-  if(type==='Income'){
-   const received=g.filter(r=>r.role==='received'&&r.dr>0);let total=0,foreign=0;for(const r of received){const rate=tx(r);if(rate==null)continue;applyRate(r,rate);const value=round(r.dr*rate);total+=value;if(r.a.currency!=='LAK')foreign+=value;}
-   if(received.length){const income=one(g,'income','LAK');if(income)set(income,0,total);if(foreign){const map=one(g,'mapping','LAK');if(map)set(map,foreign,0)}foreignOffsets(g,received,'received');}
-  }else if(type==='Expense'){
-   const paid=g.filter(r=>r.role==='paid'&&r.cr>0);let cost=0,foreignBook=0,totalBook=0;for(const r of paid){const rate=tx(r),carrying=book(r);if(rate==null||carrying==null)continue;applyRate(r,rate,carrying);cost+=round(r.cr*rate);totalBook+=round(r.cr*(r.book||carrying));if(r.a.currency!=='LAK')foreignBook+=round(r.cr*(r.book||carrying));}
-   if(paid.length){const expense=one(g,'expense','LAK');if(expense)set(expense,cost,0);if(paid.some(r=>r.a.currency!=='LAK')){const map=one(g,'mapping','LAK');if(map)set(map,0,foreignBook)}const difference=round(cost-totalBook),fx=one(g,'fx','LAK',difference!==0);if(fx)set(fx,Math.max(-difference,0),Math.max(difference,0));foreignOffsets(g,paid,'paid');}
-  }else if(type==='Transfer'){
-   const from=one(g,'paid'),to=one(g,'received');if(from&&to){if(from.a.id===to.a.id||from.a.currency!==to.a.currency)error('Transfer needs two different fund accounts in the same currency.');else if(from.cr>0){const rate=book(from);if(rate!=null){set(to,from.cr,0);applyRate(from,rate,rate);applyRate(to,rate,rate);if(Math.abs(to.dr-from.cr)>.001||(to.book||to.fx)!==(from.book||from.fx))error('Transfer amounts and carrying rates must match.');}}}
-   if(g.some(r=>!['paid','received'].includes(r.role)&&(r.dr||r.cr)))error('Transfer uses fund accounts only. Remove mapping and gain/loss amounts.');
-  }else if(type==='Currency Exchange'){
-   const from=one(g,'paid'),to=one(g,'received');if(from&&to&&from.cr>0){if(from.a.id===to.a.id||from.a.currency===to.a.currency)error('Currency Exchange needs two different currencies.');else{const rateOut=tx(from),rateIn=tx(to),carry=book(from);if(rateOut&&rateIn&&carry){set(to,from.cr*rateOut/rateIn,0);applyRate(from,rateOut,carry);applyRate(to,rateIn);const given=round(from.cr*(from.book||carry)),received=round(to.dr*rateIn);foreignOffsets(g,[from],'paid');foreignOffsets(g,[to],'received');const map=one(g,'mapping','LAK'),mapping=round((to.a.currency==='LAK'?0:received)-(from.a.currency==='LAK'?0:given));if(map)set(map,Math.max(mapping,0),Math.max(-mapping,0));const difference=round(received-given),fx=one(g,'fx','LAK',difference!==0);if(fx)set(fx,Math.max(-difference,0),Math.max(difference,0));notes.push({date,account:'Currency exchange',amount:from.cr,rate:rateOut/rateIn,lak:received,refs:['Expected receipt '+round(from.cr*rateOut/rateIn)+' '+to.a.currency,'Recorded source LAK '+given,'Exchange difference '+difference]});}}}
-  }
-  if(errors.length===startErrors)for(const r of g.filter(r=>['paid','received'].includes(r.role))){const d=deltas.get(r.a.id)||{quantity:0,value:0};d.quantity=round(d.quantity+r.dr-r.cr);d.value=round(d.value+round((r.dr-r.cr)*(r.book||r.fx||1)));deltas.set(r.a.id,d)}
+function rates(){return Object.fromEntries(Object.keys(JournalFX14383.capture()).map(c=>[c,JournalFX14383.rate(c)]))}
+function selectionHtml(cells){
+ const s=summarize(cells,rates(),selectedRate),lines=[];
+ if(s.errors.length){lines.push('<span class="calc-warning14391">'+s.errors.map(esc).join(' ')+'</span>');return lines.join('')}
+ if(s.value!==undefined){
+  lines.push('<span class="calc-line14391"><b>Selected total</b> · '+esc(money(s.source))+' '+esc(s.reverse?'LAK':s.currency)+(s.reverse?' ÷ ':' × ')+esc(rateText(s.rate))+' LAK/'+esc(s.currency)+' = '+resultValue(s.value,s.reverse?s.currency:'LAK','converted total')+'</span>');
+  if(s.difference!==undefined){const sign=s.difference>0?'+':s.difference<0?'−':'',label=s.difference>0?'remaining':s.difference<0?'over':'matched';lines.push('<span class="calc-line14391 calc-difference14391" data-difference="'+s.difference+'">Selected LAK: '+esc(money(s.totals.LAK))+' · Difference: <strong>'+sign+esc(money(Math.abs(s.difference)))+' LAK</strong> ('+label+')'+copyButton(s.difference,'signed difference')+'</span>')}
+  for(const c of cells.filter(c=>c.currency!=='LAK'))lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+' · '+esc(c.side)+' '+esc(money(c.amount))+' '+esc(c.currency)+' × '+esc(rateText(s.rate))+' = '+resultValue(round(c.amount*s.rate),'LAK',c.account+' equivalent')+'</span>');
  }
- return {rows,errors,notes};
+ return lines.join('');
 }
-function compact(rate,c){return c!=='LAK'&&rate>0?new Intl.NumberFormat('en-US',{maximumFractionDigits:8}).format(rate)+' '+currencySymbolV6('LAK')+'/'+currencySymbolV6(c):'—'}
-function ensure(){const grid=$('journalEntry98')?.querySelector('.je-meta-grid');if(!grid)return;grid.classList.add('has-calculator14387');let field=$('journalType14387');if(!field){const label=document.createElement('label');label.className='journal-type14387';label.innerHTML='Transaction Type<select id="journalType14387" data-plain14285 class="je-select">'+kinds.map(k=>'<option>'+esc(k)+'</option>').join('')+'</select>';grid.append(label);field=$('journalType14387');field.onchange=()=>setKind(field.value,true)}field.value=kind;field.disabled=!!window.personalJournal1437?.active;field.title=field.disabled?'Automatic calculations are available in the main journal.':'';const entryToggle=$('jeEntryMode1430');if(entryToggle){entryToggle.disabled=kind!=='Normal';entryToggle.title=kind!=='Normal'?'Select Normal to use Single Entry. Automatic calculations use Double Entry.':'Switch between Single Entry and Double Entry'}
- let host=$('journalCalculation14387');if(!host){host=document.createElement('section');host.id='journalCalculation14387';host.innerHTML='<div class="calc-status14387" role="status"></div><details><summary>Calculation details</summary><div class="calc-details14387"></div></details>';const table=$('jeLinesBody')?.closest('.table-container');if(table)table.after(host);else $('journalEntry98').append(host)}host.hidden=false;host.classList.toggle('calc-normal14389',kind==='Normal');const badge=$('jeBalanceIndicator');if(badge&&badge.parentElement!==host)host.prepend(badge);
-
+function automaticHtml(){
+ const lines=[],cache=new Map();
+ for(const input of document.querySelectorAll(amountSelector)){
+  const c=read(input);if(!c.a?.trackForeignFunds||['LAK','NA'].includes(c.currency)||!c.amount||!Number.isFinite(c.amount))continue;
+  const prefix=esc(c.account)+' · '+esc(c.side)+' '+esc(money(c.amount))+' '+esc(c.currency),rate=JournalFX14383.lineRate(c.row,c.currency);
+  if(rate>0)lines.push('<span class="calc-line14391">'+prefix+' × '+esc(rateText(rate))+' = '+resultValue(round(c.amount*rate),'LAK',c.account+' transaction equivalent')+' <small>transaction rate</small></span>');
+  else lines.push('<span class="calc-line14391">'+prefix+' · Enter LAK per '+esc(c.currency)+' above.</span>');
+  const key=c.a.id+'|'+c.date;
+  if(!cache.has(key)){try{cache.set(key,holding(c.a,c.date))}catch(e){cache.set(key,{error:e.message})}}
+  const h=cache.get(key);
+  if(h.error)lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+': '+esc(h.error)+'</span>');
+  else lines.push('<span class="calc-line14391 calc-muted14391">'+esc(c.account)+' · '+esc(money(c.amount))+' '+esc(c.currency)+' × average '+esc(rateText(h.rate))+' = '+resultValue(round(c.amount*h.rate),'LAK',c.account+' value at average')+' <small>before entry'+(navigator.onLine?'':' · saved offline data')+'</small></span>');
+ }
+ return lines.join('');
 }
-function render(result){const host=$('journalCalculation14387');if(!host)return;host.querySelector('.calc-status14387').textContent=result.errors[0]||'Auto calculations are shown below. Edit any calculated amount or rate to keep a manual override.';host.classList.toggle('calc-error14387',!!result.errors.length);const detail=host.querySelector('.calc-details14387');const signature=JSON.stringify([kind,result.rows.map(r=>[r.a?.id,r.role,r.mode,r.rateMode,r.suggested]),result.notes]);if(detail.dataset.signature===signature)return;detail.dataset.signature=signature;
- detail.innerHTML='<p>Roles apply only to the current entry. Enter actual amounts on fund rows. Each date balances separately.</p><div class="table-container"><table><thead><tr><th>Account</th><th>Calculation role</th><th>Mode / suggested amounts</th><th>Action</th></tr></thead><tbody>'+result.rows.filter(r=>r.a).map(r=>'<tr><td>'+esc(r.a.name)+'</td><td><select data-plain14285 data-calc-role="'+r.index+'">'+Object.entries(roles).map(([v,t])=>'<option value="'+v+'" '+(r.role===v?'selected':'')+'>'+esc(t)+'</option>').join('')+'</select></td><td>'+esc(r.mode==='manual'||r.rateMode==='manual'?'Manual':'Auto / input')+(r.suggested?' · '+formatAppNumber(r.suggested.dr)+' / '+formatAppNumber(r.suggested.cr):'')+'</td><td><button type="button" class="je-btn je-btn-secondary" data-calc-restore="'+r.index+'">Restore Auto</button></td></tr>').join('')+'</tbody></table></div>'+result.notes.map(n=>'<p><strong>'+esc(n.account)+'</strong> · '+esc(formatAppDate(n.date))+(n.quantity!=null?' · '+formatAppNumber(n.value)+' LAK ÷ '+formatAppNumber(n.quantity)+' = '+esc(n.rate):'')+' · '+formatAppNumber(n.amount)+' × '+esc(n.rate)+' = '+formatAppNumber(n.lak)+' LAK<br><small>Supporting records: '+esc(n.refs.join(', ')||'None')+'</small></p>').join('');
+function decorate(){
+ for(const input of document.querySelectorAll(amountSelector)){
+  const cell=input.closest('td');if(!cell)continue;
+  cell.classList.add('calc-amount-cell14391');
+  let pick=cell.querySelector('.calc-pick14391');
+  if(!pick){pick=document.createElement('button');pick.type='button';pick.className='calc-pick14391';pick.textContent='✓';cell.append(pick)}
+  pick._amount14391=input;
+  const checked=selected.has(input),r=read(input);
+  pick.setAttribute('aria-pressed',String(checked));pick.setAttribute('aria-label','Select '+r.account+' '+r.side+' amount for calculation');pick.title=pick.getAttribute('aria-label');cell.classList.toggle('calc-selected14391',checked);
+ }
 }
-function recalculate(){if(busy||hold)return;busy=true;try{ensure();if(window.personalJournal1437?.active&&kind!=='Normal'){kind='Normal';ensure()}const result=plan(kind,read(),holding);for(const r of result.rows)if(r.invalidRate)result.errors.push((r.a?.name||'Line '+(r.index+1))+': enter a positive rate or choose Restore Auto.');problems=frozen?[]:result.errors;details=result.notes;for(const r of result.rows){if(kind!=='Normal')setMeta(r.row,{type:kind,role:r.role,mode:r.mode,rateMode:r.rateMode});if(result.errors.length||frozen)continue;if(r.calculated){r.row.dataset.autoAmount14387='1';if(r.mode!=='manual'){r.row.querySelector('.je-line-dr').value=r.dr?formatAppNumber(r.dr):'';r.row.querySelector('.je-line-cr').value=r.cr?formatAppNumber(r.cr):''}}if(kind!=='Normal'){r.row.dataset.fxRate14383=r.fx||'';r.row.dataset.bookRate14383=r.book||''}}render(result);if(frozen)$('journalCalculation14387').querySelector('.calc-status14387').textContent='Saved amounts and rates retained. Change an amount/rate or choose Restore Auto to recalculate.';ensure();}finally{busy=false}}
-function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;recalculate();window.calculateJournalBalance?.()})}
-function setKind(value,changed=false){frozen=false;kind=kinds.includes(value)?value:'Normal';if(kind!=='Normal')window.entry1430?.setMode('double');if(changed)for(const row of $('jeLinesBody')?.rows||[]){setMeta(row,null);delete row.dataset.autoAmount14387;delete row.dataset.invalidRate14387;delete row.dataset.bookRate14383;delete row.dataset.fxRate14383}ensure();schedule()}
-function restore(value){frozen=true;kind=kinds.includes(value)?value:'Normal';if(kind!=='Normal')window.entry1430?.setMode('double');ensure();}
-function attach(state){state.errors.push(...problems);for(const [date,g] of Object.entries(state.grouped)){const matches=read().filter(r=>r.date===date&&(r.dr>0||r.cr>0));g.lines.forEach((line,i)=>{const m=meta(matches[i]?.row||{dataset:{}});if(m)line.calculation14387=m})}return state}
-function ready(){ensure();const collect=window.collectLiveJournalGroups;window.collectLiveJournalGroups=function(...args){recalculate();return attach(collect.apply(this,args))};const clear=window.clearJournalEntry;window.clearJournalEntry=function(...args){hold=true;try{kind='Normal';frozen=false;return clear.apply(this,args)}finally{hold=false;ensure();schedule()}};
- const card=$('journalEntry98');card?.addEventListener('input',e=>{if(busy)return;if(e.target.matches('.je-line-acc,.je-line-dr,.je-line-cr,[data-fx-rate14383]'))frozen=false;const row=e.target.closest('#jeLinesBody tr');if(row){const m=meta(row)||{type:kind,role:infer(getSelectedAccountInfo(row.querySelector('.je-line-acc')?.value),num(row.querySelector('.je-line-dr')?.value),num(row.querySelector('.je-line-cr')?.value),kind),mode:'auto',rateMode:'auto'};if(e.target.matches('.je-line-acc')){setMeta(row,null);delete row.dataset.bookRate14383;delete row.dataset.fxRate14383;delete row.dataset.autoAmount14387}else if(e.target.matches('.je-line-dr,.je-line-cr')&&(row.dataset.autoAmount14387||derived(m.role,kind))){m.mode='manual';setMeta(row,m)}}if(e.target.matches('[data-fx-rate14383]'))for(const r of read())if(r.a?.currency===e.target.dataset.fxRate14383&&r.rateMode==='manual')r.row.dataset.fxRate14383=r.fx||'';if(e.target.matches('.je-line-acc,.je-line-dr,.je-line-cr,[data-fx-rate14383]'))schedule()});
- card?.addEventListener('change',e=>{if(e.target.matches('[data-calc-role]')){frozen=false;const r=read()[Number(e.target.dataset.calcRole)];setMeta(r.row,{type:kind,role:e.target.value,mode:'auto',rateMode:r.rateMode});schedule()}else if(e.target.matches('#jeTransDate,.je-line-date,#jeMultipleDates')){frozen=false;schedule()}});
- card?.addEventListener('click',e=>{const button=e.target.closest('[data-calc-restore]');if(!button)return;frozen=false;const r=read()[Number(button.dataset.calcRestore)];setMeta(r.row,{type:kind,role:r.role,mode:'auto',rateMode:'auto'});delete r.row.dataset.bookRate14383;delete r.row.dataset.fxRate14383;delete r.row.dataset.invalidRate14387;schedule()});
- new MutationObserver(schedule).observe($('jeLinesBody'),{childList:true});window.addEventListener('page113',schedule);
+function visible(){const card=$('journalEntry98');return !!card?.getClientRects().length&&document.documentElement.dataset.device132!=='phone'&&!window.personalJournal1437?.active&&!$('loginGate')?.matches(':not(.is-authenticated)')}
+function layout(){
+ if(!host)return;const show=visible();host.hidden=!show;document.body.classList.toggle('has-calculation14391',show);
+ const badge=$('jeBalanceIndicator'),destination=show?$('calcJournalStatus14391'):badgeHome;if(badge&&destination&&badge.parentElement!==destination)destination.append(badge);
+ const main=document.querySelector('.main-content-area');if(!main)return;
+ if(!main.dataset.calcPadding14391){main.dataset.calcPadding14391='1';main.style.setProperty('--calc-original-padding14391',getComputedStyle(main).paddingBottom)}
+ if(show){const left=Math.max(0,main.getBoundingClientRect().left);host.style.left=left+'px';document.documentElement.style.setProperty('--calculation-height14391',Math.ceil(host.getBoundingClientRect().height)+'px')}
+ else document.documentElement.style.setProperty('--calculation-height14391','0px');
 }
-window.JournalCalculator14387={plan,read,holding,recalculate,setKind,restore,meta,setMeta,compact,get type(){return kind},get errors(){return [...problems]},get details(){return details}};
+function render(){
+ queued=false;if(!host)return;
+ for(const n of selected)if(!n.isConnected||!n.matches(amountSelector))selected.delete(n);
+ if(window.entry1430?.mode==='single'){selected.clear();selecting=false;selectedRate=''}
+ decorate();
+ $('calcSelect14391').setAttribute('aria-pressed',String(selecting));$('calcSelect14391').disabled=window.entry1430?.mode==='single';
+ $('jeLinesBody')?.classList.toggle('calc-selecting14391',selecting);
+ $('calcClear14391').hidden=!selected.size&&!selectedRate;
+ $('calcCount14391').textContent=selected.size?selected.size+' selected':'';
+ for(const input of document.querySelectorAll('[data-fx-rate14383]'))input.classList.toggle('calc-rate-selected14391',selectedRate===input.dataset.fxRate14383);
+ const html=selected.size?selectionHtml([...selected].map(read)):automaticHtml();
+ if(html!==signature){results.innerHTML=html;signature=html}
+ results.hidden=!html;layout();
+}
+function refresh(){if(!queued){queued=true;requestAnimationFrame(render)}}
+function clear(){selected.clear();selectedRate='';selecting=false;refresh()}
+function toggle(input){if(selected.has(input))selected.delete(input);else selected.add(input);refresh()}
+async function copy(value,button){
+ value=Number(value).toLocaleString(appNumberLocale(),{useGrouping:false,maximumFractionDigits:8});
+ const active=document.activeElement,start=active?.selectionStart,end=active?.selectionEnd;
+ try{
+  if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(value);
+  else{const field=document.createElement('textarea');field.value=value;field.style.cssText='position:fixed;left:-10000px;top:0';document.body.append(field);field.select();const ok=document.execCommand('copy');field.remove();active?.focus?.({preventScroll:true});if(start!=null)active.setSelectionRange?.(start,end);if(!ok)throw Error('copy unavailable')}
+  $('calcCopyStatus14391').textContent='Copied';button.title='Copied';
+ }catch{$('calcCopyStatus14391').textContent='Copy unavailable. Select the displayed result and copy manually.'}
+ clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{$('calcCopyStatus14391').textContent=''},3500);
+}
+function ready(){
+ if(!$('jeLinesBody'))return;
+ host=document.createElement('section');host.id='journalCalculation14391';host.className='no-print';host.hidden=true;host.setAttribute('aria-label','Journal status and calculation');
+ host.innerHTML='<div class="calc-toolbar14391"><div id="calcJournalStatus14391"></div><div class="calc-tools14391"><span id="calcCount14391"></span><button type="button" id="calcSelect14391" aria-pressed="false" title="Select amount cells, drag a range, or Ctrl-click separate amounts">Select amounts</button><button type="button" id="calcClear14391" hidden>Clear</button><span id="calcCopyStatus14391" role="status"></span></div></div><div id="calcResults14391" aria-live="polite" aria-atomic="true"></div>';
+ document.body.append(host);results=$('calcResults14391');
+ const badge=$('jeBalanceIndicator');if(badge){badgeHome=badge.parentElement;$('calcJournalStatus14391').append(badge)}
+ $('calcSelect14391').onclick=()=>{selecting=!selecting;refresh()};$('calcClear14391').onclick=clear;
+ host.addEventListener('click',e=>{const b=e.target.closest('[data-copy-number]');if(b)void copy(b.dataset.copyNumber,b)});
+ const card=$('journalEntry98'),body=$('jeLinesBody');
+ card.addEventListener('input',refresh);card.addEventListener('change',refresh);
+ // Rate controls can be moved into the journal header by the responsive layout.
+ const chooseRate=e=>{if(e.target.matches('[data-fx-rate14383]')){selectedRate=e.target.dataset.fxRate14383;refresh()}};
+ document.addEventListener('focusin',chooseRate,true);document.addEventListener('click',chooseRate,true);
+ document.addEventListener('input',e=>{if(e.target.matches('[data-fx-rate14383]'))refresh()},true);
+ body.addEventListener('click',e=>{const pick=e.target.closest('.calc-pick14391');if(pick){e.preventDefault();e.stopPropagation();toggle(pick._amount14391)}},true);
+ body.addEventListener('pointerdown',e=>{
+  if(e.button!==0||e.target.closest('.calc-pick14391'))return;
+  const input=e.target.closest('td')?.querySelector('.je-line-dr,.je-line-cr');if(!input||!(selecting||e.ctrlKey||e.metaKey))return;
+  e.preventDefault();e.stopPropagation();
+  const inputs=[...body.querySelectorAll('.je-line-dr,.je-line-cr')],start=inputs.indexOf(input),add=!selected.has(input),base=new Set(selected);
+  if(!(e.ctrlKey||e.metaKey)){base.clear();selected.clear()}
+  if(add)selected.add(input);else selected.delete(input);drag={inputs,start,base,add};refresh();
+ },true);
+ document.addEventListener('pointermove',e=>{if(!drag)return;const input=document.elementFromPoint(e.clientX,e.clientY)?.closest('td')?.querySelector('.je-line-dr,.je-line-cr'),end=drag.inputs.indexOf(input);if(end<0)return;selected.clear();for(const n of drag.base)selected.add(n);const r1=Math.floor(drag.start/2),r2=Math.floor(end/2),c1=drag.start%2,c2=end%2;for(let r=Math.min(r1,r2);r<=Math.max(r1,r2);r++)for(let c=Math.min(c1,c2);c<=Math.max(c1,c2);c++){const n=drag.inputs[r*2+c];if(drag.add)selected.add(n);else selected.delete(n)}refresh()});
+ document.addEventListener('pointerup',()=>{drag=null});document.addEventListener('pointercancel',()=>{drag=null});
+ new MutationObserver(records=>{if(records.some(r=>[...r.addedNodes,...r.removedNodes].some(n=>n.nodeName==='TR'||n.nodeName==='INPUT')))refresh()}).observe(body,{childList:true,subtree:true});
+ const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){clear();return reset.apply(this,args)};
+ const editor=window.loadEntryForEdit;window.loadEntryForEdit=function(...args){clear();return editor.apply(this,args)};
+ window.addEventListener('page113',refresh);window.addEventListener('local-work14333',refresh);window.addEventListener('resize',layout);window.addEventListener('online',refresh);window.addEventListener('offline',refresh);
+ window.visualViewport?.addEventListener('resize',layout);
+ new ResizeObserver(layout).observe(host);new ResizeObserver(layout).observe(document.querySelector('.main-content-area'));
+ new MutationObserver(refresh).observe(card,{attributes:true,attributeFilter:['hidden','class']});
+ new MutationObserver(refresh).observe(document.body,{attributes:true,attributeFilter:['class']});
+ refresh();
+}
+window.JournalCalculation14391={summarize,holding,refresh,clear,get selected(){return [...selected].map(read)}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 

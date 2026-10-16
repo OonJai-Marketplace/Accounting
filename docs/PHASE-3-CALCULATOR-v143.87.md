@@ -1,5 +1,7 @@
 # Phase 3 — inline transaction calculator (v143.87)
 
+**Retired in v143.91.** The role-based editor, table, metadata column, and standalone installer were removed at the user’s request. This document records the earlier design only. See UPDATE-v143.91.md for the replacement.
+
 Authorized 2026-10-15 for Accounting Version 1. Continues Phases 1 and 2.
 
 ## User behavior

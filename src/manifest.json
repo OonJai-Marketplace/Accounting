@@ -1794,7 +1794,7 @@
         "suffix": "\n;\n"
       },
       {
-        "source": "src/bookkeeping/journal/calculator14387.js",
+        "source": "src/bookkeeping/journal/calculation14391.js",
         "prefix": "\n",
         "suffix": "\n;\n"
       },
@@ -2048,7 +2048,7 @@
         "suffix": "\n;\n"
       },
       {
-        "source": "src/bookkeeping/journal/calculator14387.js",
+        "source": "src/bookkeeping/journal/calculation14391.js",
         "prefix": "\n",
         "suffix": "\n;\n"
       },
@@ -3471,6 +3471,11 @@
     "styles/polish14325.css": [
       {
         "source": "src/shared/presentation/polish14325.css"
+      },
+      {
+        "source": "src/bookkeeping/journal/calculation14391.css",
+        "prefix": "\n",
+        "suffix": ""
       }
     ],
     "styles/responsive-work14341.css": [

@@ -1,7 +1,68 @@
--- Phase 3 additive metadata. Historic entries and permissions are preserved.
+-- Retire the role-based calculator. Amounts, dates, rates, RLS, and receipt tables are retained.
 BEGIN;
-ALTER TABLE public.journal_lines ADD COLUMN IF NOT EXISTS calculation14387 jsonb;
-ALTER TABLE public.journal_lines ADD CONSTRAINT calculation14387_valid CHECK (calculation14387 IS NULL OR coalesce((jsonb_typeof(calculation14387)='object' AND calculation14387 ?& ARRAY['type','role','mode','rateMode'] AND calculation14387->>'role' IN ('input','received','paid','offset','mapping','income','expense','fx') AND octet_length(calculation14387::text)<2048 AND calculation14387->>'type' IN ('Normal','Income','Expense','Transfer','Currency Exchange') AND calculation14387->>'mode' IN ('auto','manual') AND calculation14387->>'rateMode' IN ('auto','manual')),false));
+SET LOCAL lock_timeout='5s';
+-- Stop concurrent postings only for this short schema transaction.
+LOCK TABLE public.journal_lines IN ACCESS EXCLUSIVE MODE;
+DO $guard$
+BEGIN
+ IF (SELECT md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='journal_window14333') IS DISTINCT FROM '36eb06420448894847b0ce21f608f047' THEN RAISE EXCEPTION 'Function journal_window14333 changed since inspection; refresh cleanup first.'; END IF;
+ IF (SELECT md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='journal_shape14385') IS DISTINCT FROM '1e98608cad3fce6d32ae585ae3898a98' THEN RAISE EXCEPTION 'Function journal_shape14385 changed since inspection; refresh cleanup first.'; END IF;
+ IF (SELECT md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='post_manual_worker14228') IS DISTINCT FROM '7f7bedd8b1587d1a7c563c3ff2b44a5f' THEN RAISE EXCEPTION 'Function post_manual_worker14228 changed since inspection; refresh cleanup first.'; END IF;
+ IF (SELECT md5(pg_get_functiondef(p.oid)) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='revise_open_journal_entry') IS DISTINCT FROM 'bf0255178a70d95bacb2787441345e82' THEN RAISE EXCEPTION 'Function revise_open_journal_entry changed since inspection; refresh cleanup first.'; END IF;
+ IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='journal_lines' AND column_name='calculation14387') THEN
+  IF EXISTS (SELECT 1 FROM public.journal_lines WHERE calculation14387 IS NOT NULL) THEN
+   RAISE EXCEPTION 'Calculator metadata appeared since inspection; review before cleanup.';
+  END IF;
+ END IF;
+END $guard$;
+CREATE OR REPLACE FUNCTION public.journal_window14333(p_from date, p_to date, p_offset integer DEFAULT 0)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE result jsonb; opening jsonb:='[]'; revision text;
+BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Sign in required' USING ERRCODE='42501'; END IF;
+ IF p_from IS NULL OR p_to IS NULL OR p_from>p_to OR p_offset<0 THEN RAISE EXCEPTION 'Invalid journal period'; END IF;
+ SELECT coalesce(jsonb_agg(row_to_json(r)),'[]') INTO result FROM (
+ SELECT e.created_at,e.source,e.id AS "dbEntryId",coalesce(e.entry_no,e.id::text) AS id,
+ coalesce(l.line_date,e.transaction_date) AS date,a.name AS account,a.id AS "accountId",a.code AS "accountCode",
+ l.currency_code AS currency,coalesce(nullif(l.description,''),e.memo,'') AS memo,e.memo AS "generalMemo",
+ l.debit,l.credit,l.fx_rate_lak,l.book_rate_lak,l.base_debit,l.base_credit,false AS archived
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id
+ LEFT JOIN public.accounts a ON a.id=l.account_id
+ WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date) BETWEEN p_from AND p_to
+ ORDER BY coalesce(l.line_date,e.transaction_date) DESC,e.id,l.line_no LIMIT 500 OFFSET p_offset
+ ) r;
+ IF p_offset=0 THEN
+ SELECT coalesce(jsonb_agg(row_to_json(b)),'[]') INTO opening FROM (
+ SELECT l.account_id AS "accountId",l.currency_code AS currency,sum(l.debit-l.credit) AS balance,CASE WHEN bool_or(l.base_debit IS NULL OR l.base_credit IS NULL) THEN NULL ELSE sum(l.base_debit-l.base_credit) END AS base_balance
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id
+ WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date)<p_from
+ GROUP BY l.account_id,l.currency_code HAVING sum(l.debit-l.credit)<>0 OR sum(l.base_debit-l.base_credit)<>0 OR bool_or(l.base_debit IS NULL OR l.base_credit IS NULL)
+ ) b;
+ END IF;
+ SELECT md5(coalesce(sum(hashtextextended(concat_ws('|',e.id,e.entry_no,e.transaction_date,e.memo,e.status,e.updated_at,l.id,l.account_id,l.currency_code,l.debit,l.credit,l.line_date,l.description,l.fx_rate_lak,l.book_rate_lak),0)::numeric)::text,'0')) INTO revision
+ FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date)<=p_to;
+ RETURN jsonb_build_object('rows',result,'opening',opening,'revision',revision);
+END $function$;
+
+
+CREATE OR REPLACE FUNCTION public.journal_shape14385(p_date date, p_memo text, p_lines jsonb)
+ RETURNS jsonb
+ LANGUAGE sql
+ IMMUTABLE
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+ SELECT jsonb_build_object('date',p_date,'memo',trim(coalesce(p_memo,'')),'lines',coalesce(jsonb_agg(jsonb_build_object(
+ 'account_id',l->>'account_id','description',coalesce(nullif(l->>'description',''),trim(p_memo)),
+ 'currency_code',l->>'currency_code','debit',coalesce((l->>'debit')::numeric,0),'credit',coalesce((l->>'credit')::numeric,0),
+ 'fx_rate_lak',CASE WHEN l->>'currency_code'='LAK' THEN 1 ELSE nullif(l->>'fx_rate_lak','')::numeric END,
+ 'book_rate_lak',nullif(l->>'book_rate_lak','')::numeric) ORDER BY n),'[]'::jsonb))
+ FROM jsonb_array_elements(p_lines) WITH ORDINALITY AS items(l,n);
+$function$;
+
 
 CREATE OR REPLACE FUNCTION public.post_manual_worker14228(p_transaction_date date, p_memo text, p_lines jsonb, p_prefix text DEFAULT 'OJM'::text, p_digits integer DEFAULT 6)
  RETURNS TABLE(entry_id uuid, entry_no text)
@@ -32,7 +93,7 @@ begin
 
   PERFORM public.validate_journal14228(p_transaction_date,p_memo,p_lines);
   v_prefix := upper(regexp_replace(coalesce(nullif(trim(p_prefix),''),'OJM'),'[^A-Za-z0-9]','','g'));
-  
+
   v_prefix := left(coalesce(nullif(v_prefix,''),'OJM'),8);
   v_digits := greatest(3,least(9,coalesce(p_digits,6)));
 
@@ -63,11 +124,11 @@ begin
       raise exception 'Line % must contain either a debit or a credit',v_line_no;
     end if;
     insert into public.journal_lines(
-      journal_entry_id,line_no,account_id,description,currency_code,debit,credit,line_date,fx_rate_lak,book_rate_lak,calculation14387
+      journal_entry_id,line_no,account_id,description,currency_code,debit,credit,line_date,fx_rate_lak,book_rate_lak
     ) values(
       v_entry_id,v_line_no,(v_line->>'account_id')::uuid,
       coalesce(v_line->>'description',p_memo),v_line->>'currency_code',
-      v_debit,v_credit,p_transaction_date,nullif(v_line->>'fx_rate_lak','')::numeric,nullif(v_line->>'book_rate_lak','')::numeric,v_line->'calculation14387'
+      v_debit,v_credit,p_transaction_date,nullif(v_line->>'fx_rate_lak','')::numeric,nullif(v_line->>'book_rate_lak','')::numeric
     );
   end loop;
 
@@ -76,6 +137,7 @@ begin
 
   return query select v_entry_id,v_entry_no;
 end $function$;
+
 
 CREATE OR REPLACE FUNCTION public.revise_open_journal_entry(p_entry_id uuid, p_reason text, p_transaction_date date, p_memo text, p_lines jsonb)
  RETURNS void
@@ -126,8 +188,8 @@ begin
  v_n:=0;
  for v_line in select value from jsonb_array_elements(p_lines) loop
   v_n:=v_n+1;
-  insert into public.journal_lines(journal_entry_id,line_no,account_id,line_date,description,currency_code,debit,credit,fx_rate_lak,book_rate_lak,calculation14387)
-   values(p_entry_id,v_n,(v_line->>'account_id')::uuid,p_transaction_date,coalesce(v_line->>'description',p_memo),v_line->>'currency_code',coalesce((v_line->>'debit')::numeric,0),coalesce((v_line->>'credit')::numeric,0),nullif(v_line->>'fx_rate_lak','')::numeric,nullif(v_line->>'book_rate_lak','')::numeric,v_line->'calculation14387');
+  insert into public.journal_lines(journal_entry_id,line_no,account_id,line_date,description,currency_code,debit,credit,fx_rate_lak,book_rate_lak)
+   values(p_entry_id,v_n,(v_line->>'account_id')::uuid,p_transaction_date,coalesce(v_line->>'description',p_memo),v_line->>'currency_code',coalesce((v_line->>'debit')::numeric,0),coalesce((v_line->>'credit')::numeric,0),nullif(v_line->>'fx_rate_lak','')::numeric,nullif(v_line->>'book_rate_lak','')::numeric);
  end loop;
  update public.journal_entries set transaction_date=p_transaction_date,memo=trim(p_memo),updated_at=now(),
   accounting_period_id=(select id from public.accounting_periods where period_month=date_trunc('month',p_transaction_date)::date)
@@ -138,52 +200,6 @@ begin
   values('journal_entries',p_entry_id::text,'UPDATE',v_old,v_new,trim(p_reason),auth.uid());
 end $function$;
 
-CREATE OR REPLACE FUNCTION public.journal_shape14385(p_date date, p_memo text, p_lines jsonb)
- RETURNS jsonb
- LANGUAGE sql
- IMMUTABLE
- SET search_path TO 'public', 'pg_temp'
-AS $function$
- SELECT jsonb_build_object('date',p_date,'memo',trim(coalesce(p_memo,'')),'lines',coalesce(jsonb_agg(jsonb_build_object(
- 'account_id',l->>'account_id','description',coalesce(nullif(l->>'description',''),trim(p_memo)),
- 'currency_code',l->>'currency_code','debit',coalesce((l->>'debit')::numeric,0),'credit',coalesce((l->>'credit')::numeric,0),
- 'fx_rate_lak',CASE WHEN l->>'currency_code'='LAK' THEN 1 ELSE nullif(l->>'fx_rate_lak','')::numeric END,
- 'book_rate_lak',nullif(l->>'book_rate_lak','')::numeric) || CASE WHEN l->'calculation14387' IS NULL OR l->'calculation14387'='null'::jsonb THEN '{}'::jsonb ELSE jsonb_build_object('calculation14387',l->'calculation14387') END ORDER BY n),'[]'::jsonb))
- FROM jsonb_array_elements(p_lines) WITH ORDINALITY AS items(l,n);
-$function$;
-
-CREATE OR REPLACE FUNCTION public.journal_window14333(p_from date, p_to date, p_offset integer DEFAULT 0)
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-DECLARE result jsonb; opening jsonb:='[]'; revision text;
-BEGIN
- IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Sign in required' USING ERRCODE='42501'; END IF;
- IF p_from IS NULL OR p_to IS NULL OR p_from>p_to OR p_offset<0 THEN RAISE EXCEPTION 'Invalid journal period'; END IF;
- SELECT coalesce(jsonb_agg(row_to_json(r)),'[]') INTO result FROM (
- SELECT e.created_at,e.source,e.id AS "dbEntryId",coalesce(e.entry_no,e.id::text) AS id,
- coalesce(l.line_date,e.transaction_date) AS date,a.name AS account,a.id AS "accountId",a.code AS "accountCode",
- l.currency_code AS currency,coalesce(nullif(l.description,''),e.memo,'') AS memo,e.memo AS "generalMemo",
- l.calculation14387,l.debit,l.credit,l.fx_rate_lak,l.book_rate_lak,l.base_debit,l.base_credit,false AS archived
- FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id
- LEFT JOIN public.accounts a ON a.id=l.account_id
- WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date) BETWEEN p_from AND p_to
- ORDER BY coalesce(l.line_date,e.transaction_date) DESC,e.id,l.line_no LIMIT 500 OFFSET p_offset
- ) r;
- IF p_offset=0 THEN
- SELECT coalesce(jsonb_agg(row_to_json(b)),'[]') INTO opening FROM (
- SELECT l.account_id AS "accountId",l.currency_code AS currency,sum(l.debit-l.credit) AS balance,CASE WHEN bool_or(l.base_debit IS NULL OR l.base_credit IS NULL) THEN NULL ELSE sum(l.base_debit-l.base_credit) END AS base_balance
- FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id
- WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date)<p_from
- GROUP BY l.account_id,l.currency_code HAVING sum(l.debit-l.credit)<>0 OR sum(l.base_debit-l.base_credit)<>0 OR bool_or(l.base_debit IS NULL OR l.base_credit IS NULL)
- ) b;
- END IF;
- SELECT md5(coalesce(sum(hashtextextended(concat_ws('|',e.id,e.entry_no,e.transaction_date,e.memo,e.status,e.updated_at,l.id,l.account_id,l.currency_code,l.debit,l.credit,l.line_date,l.description,l.fx_rate_lak,l.book_rate_lak,l.calculation14387::text),0)::numeric)::text,'0')) INTO revision
- FROM public.journal_entries e JOIN public.journal_lines l ON l.journal_entry_id=e.id WHERE e.status='posted' AND coalesce(l.line_date,e.transaction_date)<=p_to;
- RETURN jsonb_build_object('rows',result,'opening',opening,'revision',revision);
-END $function$;
-
+ALTER TABLE public.journal_lines DROP COLUMN IF EXISTS calculation14387;
 NOTIFY pgrst,'reload schema';
 COMMIT;
