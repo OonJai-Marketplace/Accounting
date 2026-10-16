@@ -4148,6 +4148,12 @@
         "source": "src/shared/ui/editor-protection14380.js",
         "suffix": "\n"
       }
+    ],
+    "scripts/update14390.js": [
+      {
+        "source": "src/core/sync/update14390.js",
+        "suffix": "\n"
+      }
     ]
   },
   "variants": [

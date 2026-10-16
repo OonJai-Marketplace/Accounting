@@ -609,6 +609,7 @@ function bind(input,source){if(bound.has(input))return;bound.add(input);if(windo
 const editing=()=>{if(source!==input){input.dataset.pickerDraft1444='true';source.selectedIndex=-1;input.setCustomValidity(input.value.trim()?'Choose a matching option from the list.':'')}};
 const clearChoice=()=>{if(tablet||source.disabled||source.readOnly)return;input.value='';editing();input.dispatchEvent(new Event('input',{bubbles:true}));selectedBadge14231(input,source);open(input,source,true)};
 let touchStart=null,lastTap=null,lastClear=0;
+input.addEventListener('blur',()=>{touchStart=lastTap=null});
 input.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'&&!tablet&&e.isPrimary)touchStart={x:e.clientX,y:e.clientY};});
 input.addEventListener('pointercancel',()=>{touchStart=lastTap=null});
 input.addEventListener('pointerup',e=>{if(e.pointerType!=='touch'||!touchStart)return;const start=touchStart;touchStart=null;if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>12){lastTap=null;return}const now=performance.now();if(lastTap&&now-lastTap.time<350&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<24){e.preventDefault();clearChoice();lastClear=now;lastTap=null}else lastTap={time:now,x:e.clientX,y:e.clientY};});

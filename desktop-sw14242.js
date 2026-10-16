@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.89',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.90',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/editor-protection14380.js?v=143.80",
  "scripts/font-size14380.js?v=143.80",
@@ -20,9 +20,9 @@ const FILES=[
  "scripts/desktop14245-3.js?v=143.89",
  "scripts/desktop14245-4.js?v=143.87",
  "scripts/desktop14245-5.js?v=143.83",
- "scripts/desktop14245-6.js?v=143.89",
+ "scripts/desktop14245-6.js?v=143.90",
  "scripts/local-events14310.js?v=143.70",
- "scripts/offline14239.js?v=143.89",
+ "scripts/offline14239.js?v=143.90",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -136,7 +136,7 @@ const FILES=[
  "scripts/journal-description14281.js?v=143.88",
  "styles/settings-polish14281.css?v=142.83",
  "styles/phone-polish14281.css?v=142.94",
- "scripts/account-picker1428.js?v=143.89",
+ "scripts/account-picker1428.js?v=143.90",
  "styles/account-picker1428.css?v=142.94",
  "scripts/maintenance-engine14324.js?v=143.70",
  "scripts/maintenance14324.js?v=143.82",
@@ -292,6 +292,7 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
     try{const saved=url.searchParams.has('v')?await caches.match(url.href):null;const response=saved||await fetch(url.href,{cache:file.endsWith('.html')?'reload':'force-cache',signal:controller.signal});await cache.put(url.href,await completeResponse(response));}finally{clearTimeout(timer)}
    }));
    const failed=batch.find(result=>result.status==='rejected');if(failed)throw failed.reason;
+   for(const client of await self.clients.matchAll({includeUncontrolled:true}))if(new URL(client.url).pathname===new URL('update.html',scopeURL).pathname)client.postMessage({type:'ojm-shell-progress',version:VERSION,completed:Math.min(offset+2,FILES.length),total:FILES.length});
   }
   await self.skipWaiting();
  }catch(error){await caches.delete(CACHE);throw error;}
