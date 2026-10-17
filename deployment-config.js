@@ -11,9 +11,7 @@ window.OJM_DEPLOYMENT = {
     "branch": "main"
   },
   "workspaces": {
-    "accounting": "https://oonjai-marketplace.github.io/Accounting/",
-    "publicRestaurant": "https://oonjai-marketplace.github.io/web/",
-    "restaurant": "https://oonjai-marketplace.github.io/Restaurant-Back-Office/"
+    "accounting": "https://oonjai-marketplace.github.io/Accounting/"
   },
   "desktop": {
     "canvasWidth": 1280,

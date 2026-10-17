@@ -1,0 +1,36 @@
+const fs=require('fs'),assert=require('node:assert/strict'),{PGlite}=require('@electric-sql/pglite');
+(async()=>{const db=new PGlite();const admin='11111111-1111-4111-8111-111111111111',staff='22222222-2222-4222-8222-222222222222',account='33333333-3333-4333-8333-333333333333';let checks=0;
+async function check(name,f){await f();checks++;console.log('PASS '+name)}
+async function rejected(sql,regex){await assert.rejects(()=>db.query(sql),regex)}
+await db.exec(`create schema auth;create function auth.uid() returns uuid language sql as $$select coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub',nullif(current_setting('test.uid',true),''))::uuid$$;
+create table profiles(id uuid primary key,full_name text,email text,role text,status text);create table user_permissions(user_id uuid primary key,job_title text,department14229 text,manager_id uuid,assigned_fund_account_ids uuid[],module_actions113 jsonb,can_approve boolean);
+create table accounts(id uuid primary key,name text,currency_code text);create table journal_entries(id uuid primary key,status text);create table journal_lines(journal_entry_id uuid,account_id uuid,debit numeric,credit numeric);create table staff_journals(id uuid,owner_id uuid);create table review_routes14229(journal_id uuid);create table workspace_hook_config138(id boolean,previous_hook regprocedure);
+create table restaurant_members121(user_id uuid);
+create table payroll_runs(id uuid primary key,version integer,data jsonb);create table payroll_employees(id uuid primary key,version integer,data jsonb);create table payroll_leave_records(id uuid primary key,version integer,data jsonb);create table record_deletions108(table_name text,record_id uuid,record_data jsonb);
+create function public.active_account14228() returns boolean language sql as $$select coalesce((select status='active' from profiles where id=auth.uid()),false)$$;
+create function public.is_admin() returns boolean language sql as $$select coalesce((select role='admin' and status='active' from profiles where id=auth.uid()),false)$$;
+create function public.can_action113(text,text) returns boolean language sql as $$select active_account14228()$$;
+create function public.can_workspace113(uuid) returns boolean language sql as $$select is_admin() or $1=auth.uid()$$;
+create function public.in_branch14229(uuid) returns boolean language sql as $$select is_admin() or $1=auth.uid()$$;
+create function public.journal_visible14229(uuid) returns boolean language sql as $$select active_account14228()$$;
+insert into profiles values('${admin}','Admin','admin@example.invalid','admin','active'),('${staff}','Staff','staff@example.invalid','submitter','active');
+insert into user_permissions values('${staff}','Cashier','Accounts',null,array['${account}']::uuid[],null,false);
+insert into accounts values('${account}','Cash','LAK');insert into journal_entries values('${account}','posted');insert into journal_lines values('${account}','${account}',100,20);insert into workspace_hook_config138 values(true,null);
+select set_config('test.uid','${admin}',false);`);
+const defs=JSON.parse(fs.readFileSync(__dirname+'/restaurant-separation143101-routines.json')).routines;
+for(const x of defs)await db.exec(x.before);
+const before=(await db.query('select branch_home14229() as v')).rows[0].v;
+for(const x of defs)await db.exec(x.after);
+await db.exec('drop table restaurant_members121;create trigger organization_guard14229 before insert or update on user_permissions for each row execute function organization_guard14229();create trigger guard_delete108 before delete on payroll_runs for each row execute function guard_delete108();');
+await check('Home balances and reports remain identical after Restaurant tables disappear',async()=>assert.deepEqual((await db.query('select branch_home14229() as v')).rows[0].v,before));
+await check('Accounting directory works without Restaurant tables',async()=>assert.equal((await db.query('select review_directory14229() as v')).rows[0].v.length,2));
+await check('Active Accounting access remains allowed',async()=>assert.equal((await db.query('select accounting_workspace_allowed123() as v')).rows[0].v,true));
+await check('Manager assignment still accepts an active administrator',async()=>{await db.query('update user_permissions set manager_id=$1 where user_id=$2',[admin,staff])});
+await check('Manager cycles are still rejected',()=>rejected(`update user_permissions set manager_id='${staff}' where user_id='${staff}'`,/Supervisor needs|report to themselves/));
+await check('Finalized payroll deletion remains blocked',async()=>{await db.query("insert into payroll_runs values($1,1,'{\"status\":\"finalized\"}')",[account]);await rejected(`select delete_record108('payroll_runs','${account}',1)`,/Finalized payroll/)});
+await check('Restaurant deletion endpoints are no longer accepted',()=>rejected(`select delete_record108('menu_items104','${account}',1)`,/does not support/));
+await check('Draft payroll deletion still creates its audit record',async()=>{await db.query("update payroll_runs set data='{}' where id=$1",[account]);await db.query("select delete_record108('payroll_runs',$1,1)",[account]);assert.equal((await db.query('select count(*)::int n from record_deletions108')).rows[0].n,1)});
+await check('Administrator can still view an active staff account',async()=>{await db.query("select set_config('request.jwt.claims',$1,false),set_config('request.headers',$2,false)",[JSON.stringify({sub:admin,role:'authenticated'}),JSON.stringify({'x-ojm-workspace':staff})]);await db.exec('begin');await db.query('select workspace_pre_request138()');assert.equal((await db.query("select current_setting('request.jwt.claims')::jsonb->>'sub' as id")).rows[0].id,staff);await db.exec('commit')});
+await check('Inactive Accounting users remain blocked',async()=>{await db.query("update profiles set status='inactive' where id=$1",[admin]);assert.equal((await db.query('select accounting_workspace_allowed123() as v')).rows[0].v,false);await rejected('select workspace_pre_request138()',/active administrator/)});
+await check('Journal amounts remain untouched',async()=>assert.deepEqual((await db.query('select sum(debit) dr,sum(credit) cr from journal_lines')).rows[0],{dr:'100',cr:'20'}));
+await db.close();console.log(checks+' database checks passed');})().catch(e=>{console.error(e);process.exit(1)});
