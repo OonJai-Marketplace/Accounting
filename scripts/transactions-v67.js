@@ -60,6 +60,7 @@ renderAllTransactionsTable=function(){
 
  setTransactionTableHeaders('archiveHead0',false);renderTransactionReviewTable(document.getElementById('archiveBody0'),group,'none');
  historyMonth14341.bind(host,'journal',renderAllTransactionsTable);
+ if(oldHeader&&!oldHeader.querySelector('input,select,textarea,button'))oldHeader.remove();
 };
 
 const statusBefore67=changePeriodStatus;

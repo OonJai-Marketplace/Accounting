@@ -4175,6 +4175,12 @@
         "source": "src/core/sync/update14390.js",
         "suffix": "\n"
       }
+    ],
+    "scripts/undo143103.js": [
+      {
+        "source": "src/bookkeeping/journal/undo143103.js",
+        "suffix": ";\n"
+      }
     ]
   },
   "variants": [

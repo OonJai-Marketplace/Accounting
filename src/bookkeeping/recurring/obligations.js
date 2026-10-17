@@ -64,7 +64,7 @@ function renderRecurringTransactions(){
     const status=recurringStatus(item), cls=status==='OVERDUE'?'due-overdue':status==='DUE SOON'?'due-soon':'';
     return `<tr data-recurring-id="${escapeHtml(item.id)}">
       <td class="${cls}">${formatAppDate(item.nextDate)}</td><td>${escapeHtml(item.type==='one-time'?'One-Time':item.frequency)}</td><td>${escapeHtml(item.memo)}${item.reference?`<div class="je-subtitle">${escapeHtml(item.reference)}</div>`:''}</td>
-      <td class="num">${formatAppNumber(item.amount)} ${escapeHtml(item.currency)}</td>
+      <td class="num recurring-amount143103"><span class="currency-symbol-badge" data-currency-code="${escapeHtml(item.currency)}">${escapeHtml(currencySymbolV6(item.currency))}</span> ${formatAppNumber(item.amount)}</td>
       <td>${escapeHtml(reminderText(item))}</td><td class="${cls}">${status}</td>
       <td class="action-col upcoming-action-col no-print"><div class="recurring-inline-actions"><button class="je-btn je-btn-emerald" onclick="markRecurringPaid(${escapeHtml(JSON.stringify(item.id))})">Mark reminder paid</button><button class="je-btn je-btn-secondary" onclick="toggleRecurringPause(${escapeHtml(JSON.stringify(item.id))})">${item.paused?'Resume':'Pause'}</button><button class="je-btn je-btn-danger recurring-remove-x" onclick="removeRecurring(${escapeHtml(JSON.stringify(item.id))})" title="Remove upcoming transaction" aria-label="Remove upcoming transaction">&times;</button></div></td>
     </tr>`;

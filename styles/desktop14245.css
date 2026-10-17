@@ -5365,6 +5365,16 @@ html body #transactions-all #userEntryHistoryCards .final-section-title{border-b
 }
 html body #transactions-all #userEntryHistoryCards .final-record-card{border-top:3px solid #24634c!important;margin-block:14px!important}
 
+/* One submission, one prominent identity, and matching section headings. */
+html body :is(#transactions-all #userEntryHistoryCards,#userEntryReviewCards) .submission-identity143103{display:flex!important;flex-direction:column;align-items:flex-start;gap:3px}
+html body :is(#userEntryHistoryCards,#userEntryReviewCards) .submission-identity143103>strong{font-size:16px!important;line-height:1.35;color:#064c38}
+html body :is(#userEntryHistoryCards,#userEntryReviewCards) .submission-identity143103>.submission-reference143103{font-size:11px!important;font-weight:400;line-height:1.4;color:#58665e}
+html body #transactions-all #userEntryHistoryCards .submission-recon14345{padding:0!important}
+html body :is(#userEntryHistoryCards,#userEntryReviewCards) .submission-recon14345>.final-section-title{margin:0!important;padding:8px 14px!important;background:#eef5f0;color:#164b38;font-size:14px!important;font-weight:700;border-bottom:1px solid #bed3c7}
+html body :is(#userEntryHistoryCards,#userEntryReviewCards) .submission-recon14345>p{margin:8px 14px}
+
+html body :is(#transactions-all #userEntryHistoryCards,#userEntryReviewCards) .submission-identity143103>strong{padding:0;border:0;white-space:normal}
+
 
 /* styles/carry-forward-v142.css */
 #carryForward142{margin:14px 0 22px;padding:16px;border:1px solid var(--border-color,#c9d5ca);border-radius:12px;background:var(--card-bg,#faf8f0)}
@@ -5600,7 +5610,7 @@ body input.account-search1428:focus{outline:2px solid #b7cfaf;outline-offset:1px
 :is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=REVENUE]{color:#12569b!important;-webkit-text-fill-color:#12569b}
 :is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=EXPENSE]{color:#a43136!important;-webkit-text-fill-color:#a43136}
 :is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=DRAWING]{color:#8c4d7b!important;-webkit-text-fill-color:#8c4d7b}
-:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=SYSTEM]{color:#445560!important;-webkit-text-fill-color:#445560}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=SYSTEM]{color:#b91c1c!important;-webkit-text-fill-color:#b91c1c}
 .phone-account-picker14227 .account-types14253{gap:4px;padding:3px 0 6px}
 .phone-account-picker14227 .account-types14253 button{min-width:34px!important;width:34px!important;min-height:32px!important;padding:3px!important;font-size:16px!important}
 
@@ -5825,6 +5835,21 @@ body #auditMonths98 .audit-table98 :is(th,td):not(.audit-action1434){white-space
 .todo136 .todo-next1438{color:#164e3a;font-weight:600}
 .todo-error1438{color:#ad251d;white-space:pre-wrap}
 @media(max-width:600px){.todo-grid1438{grid-template-columns:1fr}}
+/* Consistent compact scheduling cards; dates stay visible while collapsed. */
+html body #scheduledJournals91 .schedule-card91>summary,html body #todos136 .todo136>summary{min-height:0!important;padding:6px 10px!important;gap:12px!important;background:#fffdf7!important;align-items:center}
+html body #todos136 .todo136{padding:0!important;overflow:hidden}
+#todos136 .todo136>:not(summary){margin-left:12px;margin-right:12px}
+#todos136 .todo-buttons1438{margin-bottom:12px}
+#todos136 .task-due143103{white-space:nowrap;font-size:12px;color:#405b51}
+#todos136 .task-number143103{font-variant-numeric:tabular-nums;min-width:2ch;display:inline-block}
+#todos136 .todo136 ol{list-style:none;padding-left:0}
+#todos136 .todo-step-number143103{min-width:2ch;flex:none;font-variant-numeric:tabular-nums}
+html body #tblRecurringTransactions th:nth-child(4),html body #tblRecurringTransactions td:nth-child(4){width:20ch!important;min-width:20ch!important;max-width:none!important;white-space:nowrap!important;font-variant-numeric:tabular-nums}
+html body #scheduledJournals91 .schedule-amount91{min-width:18ch;white-space:nowrap}
+
+html body #scheduledJournals91 .schedule-card91>summary{height:auto!important;display:grid!important;grid-template-columns:minmax(180px,1fr) auto minmax(18ch,auto) auto auto}
+html body #scheduledJournals91 .schedule-card91>summary>span{padding:0 6px;border:0}
+@media(max-width:1000px){html body #scheduledJournals91 .schedule-card91>summary{grid-template-columns:minmax(0,1fr) auto}html body #scheduledJournals91 .schedule-identity91{grid-column:1/-1}}
 
 /* styles/workspace1439.css */
 /* One full-screen workspace control, with the original layout restored on exit. */

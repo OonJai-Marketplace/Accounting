@@ -28,3 +28,18 @@
 .todo136 .todo-next1438{color:#164e3a;font-weight:600}
 .todo-error1438{color:#ad251d;white-space:pre-wrap}
 @media(max-width:600px){.todo-grid1438{grid-template-columns:1fr}}
+/* Consistent compact scheduling cards; dates stay visible while collapsed. */
+html body #scheduledJournals91 .schedule-card91>summary,html body #todos136 .todo136>summary{min-height:0!important;padding:6px 10px!important;gap:12px!important;background:#fffdf7!important;align-items:center}
+html body #todos136 .todo136{padding:0!important;overflow:hidden}
+#todos136 .todo136>:not(summary){margin-left:12px;margin-right:12px}
+#todos136 .todo-buttons1438{margin-bottom:12px}
+#todos136 .task-due143103{white-space:nowrap;font-size:12px;color:#405b51}
+#todos136 .task-number143103{font-variant-numeric:tabular-nums;min-width:2ch;display:inline-block}
+#todos136 .todo136 ol{list-style:none;padding-left:0}
+#todos136 .todo-step-number143103{min-width:2ch;flex:none;font-variant-numeric:tabular-nums}
+html body #tblRecurringTransactions th:nth-child(4),html body #tblRecurringTransactions td:nth-child(4){width:20ch!important;min-width:20ch!important;max-width:none!important;white-space:nowrap!important;font-variant-numeric:tabular-nums}
+html body #scheduledJournals91 .schedule-amount91{min-width:18ch;white-space:nowrap}
+
+html body #scheduledJournals91 .schedule-card91>summary{height:auto!important;display:grid!important;grid-template-columns:minmax(180px,1fr) auto minmax(18ch,auto) auto auto}
+html body #scheduledJournals91 .schedule-card91>summary>span{padding:0 6px;border:0}
+@media(max-width:1000px){html body #scheduledJournals91 .schedule-card91>summary{grid-template-columns:minmax(0,1fr) auto}html body #scheduledJournals91 .schedule-identity91{grid-column:1/-1}}

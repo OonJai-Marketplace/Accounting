@@ -35,7 +35,7 @@ function restore(d){restoring=true;try{
  JournalModule.editingEntryId=d?.editing||null;JournalModule.pendingLines=d?.pendingLines||[];
  card._editIds1437=d?.editIds||[];card._requestKey1437=d?.requestKey||'pj-'+crypto.randomUUID();
  entry1430.restore(d?.mode||'single',d?.single||[],d?.retained14232);window.JournalFX14383?.restore(d?.fxRates||{});calculateJournalBalance();
- window.dropdown1434?.enhance(card);
+ window.dropdown1434?.enhance(card);if(!d)window.JournalUndo143103?.reset();
 }finally{restoring=false;if(busy)card.querySelectorAll('input,select,textarea,button').forEach(n=>{if(!n.disabled){n.dataset.pendingSaveDisabled1437='1';n.disabled=true}})}}
 function detach(){if(!scope)return;remember();const sameActor=scopeActor===liveProfile?.id&&scopeClient===ojmDb;scope='';scopeActor='';scopeClient=null;card.removeAttribute('data-personal-owner1437');anchor.after(card);card.querySelectorAll('[data-personal-disabled1437]').forEach(n=>{n.disabled=false;delete n.dataset.personalDisabled1437});restore(sameActor?mainSnapshot:null);mainSnapshot=null;label();}
 function mount(id){const host=$('personalEditor1437');if(!host)return;if(scope===id&&scopeActor===liveProfile?.id&&scopeClient===ojmDb){if(card.parentElement!==host)host.append(card);return}

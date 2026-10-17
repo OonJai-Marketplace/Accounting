@@ -18,7 +18,7 @@ body input.account-search1428:focus{outline:2px solid #b7cfaf;outline-offset:1px
 :is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=REVENUE]{color:#12569b!important;-webkit-text-fill-color:#12569b}
 :is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=EXPENSE]{color:#a43136!important;-webkit-text-fill-color:#a43136}
 :is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=DRAWING]{color:#8c4d7b!important;-webkit-text-fill-color:#8c4d7b}
-:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=SYSTEM]{color:#445560!important;-webkit-text-fill-color:#445560}
+:is(.account-option1428,.phone-picker-list14227 [role=option],input.account-search1428)[data-account-type14277=SYSTEM]{color:#b91c1c!important;-webkit-text-fill-color:#b91c1c}
 .phone-account-picker14227 .account-types14253{gap:4px;padding:3px 0 6px}
 .phone-account-picker14227 .account-types14253 button{min-width:34px!important;width:34px!important;min-height:32px!important;padding:3px!important;font-size:16px!important}
 

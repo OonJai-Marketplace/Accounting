@@ -12,7 +12,7 @@ function syncSubAccountParentDropdown() {
   AccountingStore.accounts.filter(acc=>acc.isPosting===false).sort((a,b)=>a.code.localeCompare(b.code,undefined,{numeric:true})).forEach(acc => {
     const opt = document.createElement('option');
     opt.value = acc.code;
-    opt.textContent = `${acc.code} — ${acc.name}${window.AccountGroups14253?.type(acc)==='SYSTEM'?' · System':''}`;
+    opt.textContent = `${acc.code} — ${acc.name}`;
     select.appendChild(opt);
   });
 }
