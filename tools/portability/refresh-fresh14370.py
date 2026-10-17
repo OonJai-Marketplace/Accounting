@@ -32,6 +32,7 @@ CURRENT_ADDITIONS = [
     'supabase/migrations/20261015121608_journal_durable_changes14385.sql',
     'supabase/migrations/20261015122604_journal_recovery_receipts14385.sql',
     'supabase/migrations/20261016103522_mapping_carry_forward14397.sql',
+    'supabase/migrations/20261017145427_report_archive_integrity143106.sql',
 ]
 
 def refresh():

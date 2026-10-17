@@ -29,7 +29,7 @@ await check('Fresh Accounting has no Restaurant tables, routines, registry entri
 await check('Current FX, durable changes and tracking contracts exist in fresh installations',async()=>{
  const columns=(await db.query("SELECT table_name,column_name FROM information_schema.columns WHERE table_schema='public'")).rows;
  for(const [table,names] of Object.entries({journal_lines:['fx_rate_lak','book_rate_lak','base_debit','base_credit'],staff_journal_lines:['fx_rate_lak'],accounts:['track_foreign_funds'],sub_accounts:['track_foreign_funds']}))for(const name of names)assert(columns.some(c=>c.table_name===table&&c.column_name===name),table+'.'+name);
- for(const signature of ['change_journal14385(text,uuid,text,text,jsonb,jsonb)','journal_change_receipt14385(text)','journal_shape14385(date,text,jsonb)','account_history_label14381(uuid[])'])assert((await one('SELECT to_regprocedure($1)::text name',['public.'+signature])).name,signature);
+ for(const signature of ['change_journal14385(text,uuid,text,text,jsonb,jsonb)','journal_change_receipt14385(text)','journal_shape14385(date,text,jsonb)','account_history_label14381(uuid[])','backup_export143106(date,date)'])assert((await one('SELECT to_regprocedure($1)::text name',['public.'+signature])).name,signature);
  assert(!columns.some(c=>c.table_name==='journal_lines'&&c.column_name==='calculation14387'));
 });
 await check('Packaged verification SQL passes on a clean installation',()=>db.exec(file('setup/fresh/003-Verify-Installation.sql')));
