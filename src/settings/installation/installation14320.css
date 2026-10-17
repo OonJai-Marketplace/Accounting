@@ -6,3 +6,5 @@
 .installation-check14320 input{width:auto;flex:none}
 .installation-dialog14320 [role=alert]{color:#a32e2e}
 @media(max-width:600px){.installation-grid14320{grid-template-columns:1fr}}
+
+.website-updates143104{width:min(480px,calc(100vw - 32px));box-sizing:border-box}.website-updates143104>header,.website-updates143104>footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.website-updates143104 h3{margin:0}.website-updates143104 .actions82{display:flex;gap:8px;flex-wrap:wrap}.website-updates143104 [hidden]{display:none!important}

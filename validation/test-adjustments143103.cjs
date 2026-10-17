@@ -13,13 +13,13 @@ await page.route('**/rest/v1/workspace_actor_audit138?*',route=>{const u=new URL
 f.fixture.tables.audit_log=Array.from({length:125},(_,i)=>({id:i+1,created_at:'2026-10-05T10:00:00Z',actor_id:admin.id,action:'UPDATE',table_name:'journal_entries',record_id:'AUDIT-'+i,old_data:{memo:'Before'},new_data:{memo:'After'}}));
 f.fixture.tables.scheduled_journals=[{id:'schedule-fixture',schedule_no:'SCH-001',title:'Monthly supplies',frequency:'monthly',anchor_day:5,next_due:'2026-11-05',start_date:'2026-10-05',amount:10000000,currency_code:'LAK',status:'active',is_sample:true}];
 await login();page.setDefaultTimeout(12000);
-await check('Update notice opens System Settings with message and download action together',async()=>{
+await check('Update notice opens the version dialog with message and download action together',async()=>{
  await page.route('**/release-version.json*',r=>r.fulfill({contentType:'application/json',body:'{"version":"144.00"}'}));
  await page.evaluate(()=>offline14239.checkForUpdates());
- if(process.env.PHASE0_DEVICE==='tablet'){await page.evaluate(()=>switchTab('settings-system'))}else{await page.locator('#upcomingBell101').click();await page.locator('#headerNoticeList104 [data-target="website-update"]').click()}
- await page.waitForFunction(()=>document.querySelector('#settings-system.active'));
+ if(process.env.PHASE0_DEVICE==='tablet'){await page.evaluate(()=>websiteUpdates143103.open())}else{await page.locator('#upcomingBell101').click();await page.locator('#headerNoticeList104 [data-target="website-update"]').click()}
+ await page.waitForSelector('#websiteUpdates143103[open]');
  assert.match(await page.locator('#websiteUpdateMessage143103').textContent(),/144.00.*available/);
- assert(await page.locator('#websiteUpdateDownload143103').isVisible());assert.match(await page.locator('#websiteUpdateDownload143103').getAttribute('href'),/update.html/);
+ assert(await page.locator('#websiteUpdateDownload143103').isVisible());assert.match(await page.locator('#websiteUpdateDownload143103').getAttribute('href'),/update.html/);await page.locator('#websiteUpdates143103 [data-update-close]').first().click();
 });
 await check('Journal history has no empty header; audit month picker is adjacent to Print / Preview',async()=>{
  await page.evaluate(()=>switchTab('transactions-all'));assert.equal(await page.locator('#journalHistory14316 .history-search14343').count(),0);

@@ -1,7 +1,7 @@
 /* Shared workspace order and dismissal use each component's existing lifecycle. */
 (()=>{'use strict';
 const visible=n=>n?.isConnected&&n.getClientRects().length&&!n.closest('[hidden]')&&getComputedStyle(n).visibility!=='hidden';
-const rowSelector=':scope>.team-tabs14230,:scope>.workflow-switch14316,:scope>.workspace-tabs14337,:scope>.personal-tabs1437';
+const rowSelector=':scope>.team-tabs14230,:scope>.workflow-switch14316,:scope>.workspace-tabs14337';
 let sharedHeader,sharedTabs,scrollArea,mainArea,rows=[],observed=new Set();
 const rowHeights=new WeakMap();const sizes=new ResizeObserver(entries=>{for(const entry of entries)rowHeights.set(entry.target,entry.borderBoxSize?.[0]?.blockSize??entry.target.getBoundingClientRect().height);measure()});
 function measure(){let top=0;const positions=rows.map(row=>{const offset=top;if(!row.hidden&&!row.closest('[hidden]'))top+=rowHeights.get(row)??row.getBoundingClientRect().height;return [row,offset+'px']});for(const [row,value] of positions)if(row.style.getPropertyValue('--tab-top14344')!==value)row.style.setProperty('--tab-top14344',value);if(scrollArea&&scrollArea.style.getPropertyValue('--navigation-height14344')!==top+'px')scrollArea.style.setProperty('--navigation-height14344',top+'px')}
@@ -14,9 +14,10 @@ function layout(){
  scrollArea=document.querySelector('.workspace-scroll');mainArea=document.querySelector('.main-content-area');
  const panel=document.querySelector('.tab-content.active');if(!panel||!scrollArea)return;const settings=document.getElementById('settingsSections14335');if(settings&&panel.dataset.module!=='settings'&&panel.contains(settings))document.getElementById('settings-system')?.prepend(settings);
  sharedHeader||=document.querySelector('.module-header');sharedTabs||=document.getElementById('categoryTabShell');
- const personal=panel.querySelector('#personalWorkspace1437'),personalTabs=personal?.querySelector('.personal-tabs1437');
- for(const old of panel.querySelectorAll(':scope>.personal-tabs1437'))if(old._personalHost14344!==personal)old.remove();
- if(personalTabs){personalTabs._personalHost14344=personal;personalTabs.addEventListener('click',e=>{const b=e.target.closest('[data-personal-tab]');if(b)window.personalJournal1437?.show(personal.dataset.owner,b.dataset.personalTab)});panel.append(personalTabs)}
+ const personal=panel.querySelector('#personalWorkspace1437');
+ // Personal navigation stays inside its account, with the existing click controller.
+ for(const old of panel.querySelectorAll(':scope>.personal-tabs1437')){if(personal&&old._personalHost14344===personal)personal.prepend(old);else old.remove()}
+ const personalTabs=personal?.querySelector('.personal-tabs1437');if(personalTabs){personalTabs.classList.remove('section-menu-source14355','sticky-tabs14344');personalTabs.style.removeProperty('--tab-top14344')}
  const banner=panel.querySelector(':scope>.area-banner113');let anchor=null,next=[];
  if(panel.id==='dashboard'){
   // Dashboard rebuilds its own HTML, so keep the shared controls outside that host.
@@ -51,7 +52,7 @@ function decorateEmptyStates14355(panel){
  }
 }
 // Secondary workspace choices use a menu anchored to their main horizontal tab.
-const sectionRows14355=':scope>.workflow-switch14316,:scope>.workspace-tabs14337,:scope>.personal-tabs1437,:scope>#settingsSections14335';
+const sectionRows14355=':scope>.workflow-switch14316,:scope>.workspace-tabs14337,:scope>#settingsSections14335';
 let sectionMenu14355=null,sectionTrigger14355=null,pendingSection14355='';
 const tabKey14355=b=>b?.dataset.teamUser14230||b?.dataset.target||b?.dataset.settingsGroup14332||b?.getAttribute('onclick')||'';
 const mainTab14355=()=>document.querySelector('.tab-content.active .team-tabs14230 [aria-current="page"][data-team-user14230]')||document.querySelector('#categoryTabs .category-tab.active,#categoryTabs [aria-selected="true"]');
