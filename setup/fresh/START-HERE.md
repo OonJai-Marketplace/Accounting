@@ -21,4 +21,6 @@ Official references: [SQL functions](https://supabase.com/docs/guides/database/f
 
 ## Current backend and older installations
 
-File 001 includes the reviewed backend updates through v143.70, including maintenance, paged year windows, reconciliation, returned submissions, report posting and statement-cached permission checks. File 004 is retained for older installations that predate the maintenance update. Never replay file 001 against an existing project. See `../../docs/MAINTENANCE-v143.24.md` for maintenance coverage and use.
+File 001 includes the reviewed backend updates through v143.102, including maintenance, paged year windows, reconciliation, returned submissions, report posting and statement-cached permission checks. File 004 is retained for older installations that predate the maintenance update. Never replay file 001 against an existing project. See `../../docs/MAINTENANCE-v143.24.md` for maintenance coverage and use.
+
+Accounting is independent of Restaurant. This installer excludes restaurant/POS/menu/inventory tables, routines and backup registrations. The seven shared access, payroll and workspace routines use the same reviewed definitions as the live separation. Use the Restaurant repository and its own Supabase project for restaurant operations.
