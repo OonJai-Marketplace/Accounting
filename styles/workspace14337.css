@@ -27,7 +27,7 @@
  html body #personalWorkspace1437 .personal-tabs1437 button.active{border-bottom-color:#126246!important}
  html body #runMeta95>.payroll-meta14337{display:grid!important;grid-template-columns:repeat(5,minmax(120px,1fr))!important;gap:10px!important;align-items:end}
  html body #runMeta95>.payroll-meta14337>label:has([name=notes]){grid-column:1/-1!important}
- html body #subUserWorkspacePanel .v49-desktop-user-actions{padding-block:8px!important;margin-bottom:0!important;border-bottom:0!important;align-items:center!important;overflow:visible!important;caret-color:transparent!important;user-select:none!important;box-shadow:none!important}
+ html body #subUserWorkspacePanel .v49-desktop-user-actions{padding-block:0!important;margin-bottom:0!important;border-bottom:0!important;align-items:center!important;overflow:visible!important;caret-color:transparent!important;user-select:none!important;box-shadow:none!important}
  html body #subUserWorkspacePanel .v49-desktop-user-actions::before,html body #subUserWorkspacePanel .v49-desktop-user-actions::after{content:none!important;display:none!important}
  html body #subUserWorkspacePanel .v49-desktop-user-actions>button{margin-bottom:0!important;border-radius:6px!important;caret-color:transparent!important;cursor:pointer!important;box-shadow:none!important}
  #reconciliationWork14337[hidden],#settings-accounting [hidden]{display:none!important}

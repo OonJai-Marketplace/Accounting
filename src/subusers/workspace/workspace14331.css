@@ -18,7 +18,20 @@
   body #personalWorkspace1437 [hidden]{display:none!important}
   body #personalWorkspace1437 :is(#journalEntry98,.personal-active1437){width:100%!important;max-width:none!important;min-width:0!important;margin:12px 0!important;box-sizing:border-box!important;align-self:stretch!important}
   body #subUserWorkspacePanel .v49-desktop-workspace>main{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;padding-inline:0!important}
-  body #subUserWorkspacePanel .v49-desktop-user-actions{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-start!important;align-items:center!important;gap:8px!important;width:100%!important;min-width:0!important;min-height:0!important;margin:0!important;padding:8px 0!important;box-sizing:border-box!important}
+  body #subUserWorkspacePanel .v49-desktop-user-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:12px!important;padding:16px 12px!important;min-height:76px!important;box-sizing:border-box!important}
+  body #subUserWorkspacePanel .v49-desktop-user-heading>div:first-child{display:block!important;flex:1 1 220px!important;min-width:0!important;min-height:0!important;align-self:center!important}
+  body #subUserWorkspacePanel .v49-desktop-user-heading h2{line-height:1.4!important}
+  body #subUserWorkspacePanel .v49-desktop-user-heading p{overflow-wrap:anywhere}
+  body #subUserWorkspacePanel #workspaceContext14284{margin:0 12px 12px!important;padding:8px 10px!important}
+  body #subUserWorkspacePanel .v49-desktop-user-actions{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-start!important;align-items:center!important;gap:8px!important;width:auto!important;flex:0 1 auto!important;align-self:flex-start!important;min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;box-sizing:border-box!important}
+  body #personalWorkspace1437 .personal-history1437 .final-record-card>:is(header,summary){display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;padding:12px!important;background:#f6f4e9!important;color:#174b38!important}
+  body #personalWorkspace1437 .personal-history1437 .final-record-card>:is(header,summary)>span:first-child{flex:1 1 220px!important;min-width:0!important}
+  body #personalWorkspace1437 .personal-history1437 .final-record-card>:is(header,summary) strong{font-size:14px!important;line-height:1.4!important;overflow-wrap:anywhere}
+  body #personalWorkspace1437 .personal-history1437 .final-record-card>:is(header,summary) small{display:block!important;font-size:12px!important;margin-top:4px!important}
+  body #personalWorkspace1437 .personal-record-count143105{font-size:12px!important;font-weight:600!important;color:#52675b!important;white-space:nowrap}
+  body #personalWorkspace1437 .personal-history-list1437{display:grid;gap:12px;padding:0 12px 12px}
+  body #personalWorkspace1437 .personal-history-list1437 .final-record-card{margin:0!important;border-top:2px solid #24634c!important;border-radius:8px!important}
+  body #personalWorkspace1437 .submission-recon14345{margin:12px 0!important}
   body #subUserWorkspacePanel .v49-desktop-user-actions>button{position:static!important;flex:0 0 auto!important;width:auto!important;min-width:0!important;height:32px!important;min-height:32px!important;max-height:32px!important;margin:0!important;padding:0 12px!important;line-height:1.2!important;white-space:nowrap!important;box-sizing:border-box!important;font-size:12px!important}
   body #subUserWorkspacePanel .v49-desktop-user-actions>.workspace-expand1438{margin-left:auto!important}
  }

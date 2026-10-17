@@ -1,1 +1,1 @@
-{"version": "143.104"}
+{"version": "143.105", "changes": ["Aligned sub-user account names and Review, Submit, and Print Report actions at the top of every workspace tab.", "Show the entire selected month in submission history, account totals, and assigned ledgers without Previous/Next controls.", "Restored saved fund reconciliation in submission history and standardized report headings and entry counts.", "Simplified update progress to percentage and files remaining; release changes are available here and in Settings."]}

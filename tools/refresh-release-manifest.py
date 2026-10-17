@@ -48,7 +48,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     data = build()
     version_path = ROOT / 'release-version.json'
-    version_data = (json.dumps({'version': json.loads(data)['release']})+'\n').encode()
+    notes = json.loads((ROOT/'data/release-notes.json').read_text())
+    if notes.get('version') != json.loads(data)['release'] or not notes.get('changes') or not all(isinstance(item, str) for item in notes['changes']):
+        raise SystemExit('Release notes must describe the current release')
+    version_data = (json.dumps(notes)+'\n').encode()
     if args.check:
         if not version_path.exists() or version_path.read_bytes() != version_data:
             raise SystemExit('Published update version is stale; refresh-release-manifest.py')
