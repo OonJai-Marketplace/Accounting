@@ -107,7 +107,6 @@ function openAddAccountModal(systemOnly=false) {
   document.getElementById('accountOrigCode').value = '';
   document.getElementById('formAccount').reset();
   document.getElementById('accPurpose71').value=systemOnly?'':'regular';
-  window.ForeignFunds14386?.form('acc',false);
   openModal('modalAccount');
   document.getElementById('accCode').focus();
 }
@@ -126,7 +125,6 @@ function openEditAccountModal(code) {
   document.getElementById('accType').value = acc.type;
   document.getElementById('accDesc').value = acc.desc || '';
   document.getElementById('accPurpose71').value=acc.purpose||'regular';
-  window.ForeignFunds14386?.form('acc',acc.trackForeignFunds);
   openModal('modalAccount');
 }
 

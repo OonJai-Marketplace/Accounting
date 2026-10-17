@@ -1,9 +1,9 @@
 {
-  "version": "143.106",
+  "version": "143.107",
   "changes": [
-    "Period archives include opening balances in original currency and LAK, using saved transaction and carrying rates.",
-    "Audit reports separate System accounts from income and expenses and show LAK changes beside original-currency changes.",
-    "Year-end closing retains LAK carrying values and residual balances, with checks for missing or inconsistent valuations.",
-    "Voided-journal audit cleanup saves the complete entry, lines, rates and account snapshot before removal."
+    "Foreign-currency valuation is now automatic for all posting accounts; the tracking checkbox has been removed.",
+    "Includes cash, bank, liabilities, equity, income, expenses, and System or mapping accounts.",
+    "Normal credit balances show their recorded average rate; missing, zero, residual and inconsistent valuations remain explicit.",
+    "Existing transaction amounts and exchange rates are retained; this update does not perform a revaluation."
   ]
 }

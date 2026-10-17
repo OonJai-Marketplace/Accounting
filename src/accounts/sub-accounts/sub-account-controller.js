@@ -71,7 +71,6 @@ function openAddSubAccountModal() {
   document.getElementById('formSubAccount').reset();
   syncSubAccountCurrencyDropdown();
   showSubAccountType14380();
-  window.ForeignFunds14386?.form('sub',false);
   openModal('modalSubAccount');
   document.getElementById('subCode').focus();
 }
@@ -88,7 +87,6 @@ function openEditSubAccountModal(code) {
   document.getElementById('subDesc').value = sub.desc || '';
   syncSubAccountCurrencyDropdown(sub.currency || AccountingStore.accounts.find(a => a.code === sub.parentCode)?.currency || '');
   showSubAccountType14380();
-  window.ForeignFunds14386?.form('sub',sub.trackForeignFunds);
   openModal('modalSubAccount');
 }
 
