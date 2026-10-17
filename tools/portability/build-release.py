@@ -27,7 +27,7 @@ def build(target):
     for name in tracked:
         if not name:continue
         p=pathlib.PurePosixPath(name)
-        if p.parts[0]=='validation' and name not in ('validation/test-fresh-backend14322.cjs','validation/platform14322.sql','validation/fresh-backend14322-results.json'):continue
+        if p.parts[0]=='validation' and name not in ('validation/test-fresh-backend14322.cjs','validation/platform14322.sql','validation/fresh-backend14322-results.json','validation/restaurant-separation143101-routines.json','validation/test-report-posting14349.sql','validation/test-return-workflow14347.sql'):continue
         if p.parts[0] in ('archive','history') or '__pycache__' in p.parts or name.endswith('.zip'):continue
         if p.parts[0]=='setup' and not (name.startswith(('setup/fresh/','setup/maintenance/')) or name in offline_setup or name in ('setup/README.txt','setup/INSTALL-BACKEND-AND-MAINTENANCE-v143.22.sql')):continue
         if name.startswith('docs/history/'):continue

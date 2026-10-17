@@ -17,3 +17,9 @@ Validation:
 - Canonical generated assets and phase-zero structure checks; release diagnostics refreshed.
 
 The public web catalog remains a separate repository and is not yet managed from Back Office. Combining app folders and adding shared public content management remains a later implementation step; this release does not claim that work is complete.
+
+## Portable installation follow-up — v143.102
+
+The clean Accounting installer now excludes the former Restaurant objects and backup registrations, and uses the seven reviewed Accounting-only routine definitions. The refresh generator enforces this separation and the packaged verifier rejects restaurant tables/registrations. Historical installers are not part of the clean installation sequence. No live database writes were needed for this follow-up.
+
+The actual deliverable installer passed 35 isolated PostgreSQL checks, including installation, access isolation, posting/retries, foreign-currency rates, editing/voiding, staff submissions, payroll guards, backups and maintenance.

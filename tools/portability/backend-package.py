@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build a clean schema installer from the verified server, without bookkeeping data."""
-import argparse,hashlib,json,os,pathlib,re,subprocess,sys,tempfile
+import argparse,hashlib,importlib.util,json,os,pathlib,re,subprocess,sys,tempfile
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 def run(args,env):
     # Credentials are supplied through PG environment variables, never CLI arguments.
@@ -54,6 +54,9 @@ def install_clean(directory):
     print('Foundation installed. Follow START-HERE.md: create/confirm the first Auth user, edit and run 002-Create-First-Administrator.sql, then run 003-Verify-Installation.sql.')
 
 def validate_clean(sql):
+    spec=importlib.util.spec_from_file_location('separation',ROOT/'tools/portability/restaurant-separation.py')
+    separation=importlib.util.module_from_spec(spec);spec.loader.exec_module(separation)
+    if separation.FORBIDDEN.search(sql): raise RuntimeError('Fresh Accounting installer contains a Restaurant dependency')
     names=set(re.findall(r'(?i)CREATE(?: OR REPLACE)? FUNCTION (?:public\.)?([a-z0-9_]+)\s*\(',sql))
     missing=sorted(set(contracts())-names)
     if missing: raise RuntimeError('Schema is missing client functions: '+', '.join(missing))

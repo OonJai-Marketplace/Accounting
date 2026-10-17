@@ -1,10 +1,11 @@
 {
   "engine": "PGlite PostgreSQL with pgcrypto",
   "productionWrites": false,
-  "checks": 34,
+  "checks": 35,
   "passed": [
     "Standalone mutation fixtures refuse a database outside the isolated harness",
     "Complete installer restores empty database in one transaction",
+    "Fresh Accounting has no Restaurant tables, routines, registry entries or membership dependencies",
     "Current FX, durable changes and tracking contracts exist in fresh installations",
     "Packaged verification SQL passes on a clean installation",
     "All routine bodies compile with validation enabled",

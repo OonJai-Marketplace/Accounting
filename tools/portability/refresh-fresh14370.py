@@ -52,6 +52,10 @@ def refresh():
             raise RuntimeError('Unexpected outer transaction in ' + name)
         parts.append('-- Source: ' + name + '\n' + re.sub(r'[ \t]+$', '', text, flags=re.M))
     sql = foundation + MARKER + '\n'.join(parts) + '\nCOMMIT;\n'
+    separation_spec = importlib.util.spec_from_file_location('separation', ROOT/'tools/portability/restaurant-separation.py')
+    separation = importlib.util.module_from_spec(separation_spec)
+    separation_spec.loader.exec_module(separation)
+    sql = separation.separate(sql)
     spec = importlib.util.spec_from_file_location('backend', ROOT/'tools/portability/backend-package.py')
     backend = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(backend)
@@ -70,6 +74,8 @@ def refresh():
     provenance['currentUpdateRelease'] = version
     provenance['currentUpdates'] = [{'name': name, 'sha256': hashlib.sha256((ROOT/'setup'/name).read_bytes()).hexdigest()} for name in UPDATES]
     provenance['currentUpdates'].extend({'name': name, 'sha256': hashlib.sha256((ROOT/name).read_bytes()).hexdigest()} for name in CURRENT_ADDITIONS)
+    provenance['restaurantSeparation'] = {'tablesExcluded': separation.TABLES, 'functionsExcluded': separation.FUNCTIONS,
+        'reviewedRoutines': 'validation/restaurant-separation143101-routines.json'}
     provenance_path.write_text(json.dumps(provenance, indent=2)+'\n')
     manifest_path = directory/'manifest.json'
     manifest = json.loads(manifest_path.read_text())

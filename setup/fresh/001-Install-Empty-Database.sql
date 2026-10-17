@@ -240,11 +240,6 @@ CREATE TABLE "public"."cashier_shift_tenders"(
  "sort_order" integer NOT NULL
 );
 
-CREATE TABLE "public"."catalog_installations106"(
- "name" text NOT NULL,
- "installed_at" timestamp with time zone NOT NULL
-);
-
 CREATE TABLE "public"."company_documents105"(
  "id" uuid NOT NULL,
  "data" jsonb NOT NULL,
@@ -391,47 +386,6 @@ CREATE TABLE "public"."installation14320"(
  "updated_by" uuid
 );
 
-CREATE TABLE "public"."inventory_items"(
- "id" uuid NOT NULL,
- "sku" text,
- "name" text NOT NULL,
- "unit" text NOT NULL,
- "currency_code" text,
- "unit_cost" numeric(20,4) NOT NULL,
- "quantity_on_hand" numeric(20,4) NOT NULL,
- "reorder_level" numeric(20,4) NOT NULL,
- "is_active" boolean NOT NULL,
- "created_at" timestamp with time zone NOT NULL
-);
-
-CREATE TABLE "public"."inventory_items104"(
- "id" uuid NOT NULL,
- "data" jsonb NOT NULL,
- "version" integer NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "updated_at" timestamp with time zone NOT NULL,
- "updated_by" uuid
-);
-
-CREATE TABLE "public"."inventory_movements"(
- "id" uuid NOT NULL,
- "item_id" uuid NOT NULL,
- "movement_type" text NOT NULL,
- "quantity" numeric(20,4) NOT NULL,
- "unit_cost" numeric(20,4),
- "reference" text,
- "movement_date" date NOT NULL,
- "created_by" uuid,
- "created_at" timestamp with time zone NOT NULL
-);
-
-CREATE TABLE "public"."inventory_movements104"(
- "id" uuid NOT NULL,
- "data" jsonb NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "created_by" uuid
-);
-
 CREATE TABLE "public"."journal_entries"(
  "id" uuid NOT NULL,
  "entry_no" text NOT NULL,
@@ -493,59 +447,6 @@ CREATE TABLE "public"."legal_documents"(
  "expiry_date" date,
  "uploaded_by" uuid NOT NULL,
  "uploaded_at" timestamp with time zone NOT NULL
-);
-
-CREATE TABLE "public"."menu_categories104"(
- "id" uuid NOT NULL,
- "data" jsonb NOT NULL,
- "version" integer NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "updated_at" timestamp with time zone NOT NULL,
- "updated_by" uuid
-);
-
-CREATE TABLE "public"."menu_ingredients105"(
- "id" uuid NOT NULL,
- "data" jsonb NOT NULL,
- "version" integer NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "updated_at" timestamp with time zone NOT NULL,
- "updated_by" uuid
-);
-
-CREATE TABLE "public"."menu_item_ingredients"(
- "menu_item_id" uuid NOT NULL,
- "inventory_item_id" uuid NOT NULL,
- "quantity" numeric(20,4) NOT NULL
-);
-
-CREATE TABLE "public"."menu_items"(
- "id" uuid NOT NULL,
- "name" text NOT NULL,
- "category" text,
- "selling_price" numeric(20,2) NOT NULL,
- "currency_code" text,
- "is_available" boolean NOT NULL,
- "created_at" timestamp with time zone NOT NULL
-);
-
-CREATE TABLE "public"."menu_items104"(
- "id" uuid NOT NULL,
- "data" jsonb NOT NULL,
- "version" integer NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "updated_at" timestamp with time zone NOT NULL,
- "updated_by" uuid
-);
-
-CREATE TABLE "public"."menu_sales108"(
- "id" uuid NOT NULL,
- "data" jsonb NOT NULL,
- "version" integer NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "updated_at" timestamp with time zone NOT NULL,
- "created_by" uuid,
- "updated_by" uuid
 );
 
 CREATE TABLE "public"."opening_state14234"(
@@ -635,54 +536,6 @@ CREATE TABLE "public"."period_findings"(
  "reported_at" timestamp with time zone NOT NULL,
  "resolved_at" timestamp with time zone,
  "updated_at" timestamp with time zone NOT NULL
-);
-
-CREATE TABLE "public"."pos_cash118"(
- "id" uuid NOT NULL,
- "shift_id" uuid NOT NULL,
- "amount" numeric NOT NULL,
- "reason" text NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "created_by" uuid NOT NULL
-);
-
-CREATE TABLE "public"."pos_config118"(
- "id" boolean NOT NULL,
- "data" jsonb NOT NULL,
- "version" integer NOT NULL
-);
-
-CREATE TABLE "public"."pos_orders118"(
- "id" uuid NOT NULL,
- "number" bigint NOT NULL,
- "status" text NOT NULL,
- "data" jsonb NOT NULL,
- "version" integer NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "updated_at" timestamp with time zone NOT NULL,
- "created_by" uuid NOT NULL,
- "paid_at" timestamp with time zone,
- "refunded_at" timestamp with time zone
-);
-
-CREATE TABLE "public"."pos_shifts118"(
- "id" uuid NOT NULL,
- "cashier" uuid NOT NULL,
- "opened_at" timestamp with time zone NOT NULL,
- "closed_at" timestamp with time zone,
- "opening" numeric NOT NULL,
- "counted" numeric,
- "expected" numeric
-);
-
-CREATE TABLE "public"."pos_stock118"(
- "id" uuid NOT NULL,
- "order_id" uuid NOT NULL,
- "item_id" uuid NOT NULL,
- "quantity" numeric NOT NULL,
- "kind" text NOT NULL,
- "created_at" timestamp with time zone NOT NULL,
- "created_by" uuid NOT NULL
 );
 
 CREATE TABLE "public"."presentation_settings113"(
@@ -794,16 +647,6 @@ CREATE TABLE "public"."report_types14253"(
  "id" uuid NOT NULL,
  "name" text NOT NULL,
  "active" boolean NOT NULL,
- "created_at" timestamp with time zone NOT NULL
-);
-
-CREATE TABLE "public"."restaurant_members121"(
- "user_id" uuid NOT NULL,
- "email" text NOT NULL,
- "display_name" text NOT NULL,
- "enabled" boolean NOT NULL,
- "permissions" jsonb NOT NULL,
- "must_change_password" boolean NOT NULL,
  "created_at" timestamp with time zone NOT NULL
 );
 
@@ -1468,10 +1311,8 @@ CREATE OR REPLACE FUNCTION public.accounting_workspace_allowed123()
  STABLE SECURITY DEFINER
  SET search_path TO 'public', 'pg_temp'
 AS $function$
- SELECT public.active_account14228() AND (public.is_admin() OR NOT EXISTS(
-  SELECT 1 FROM public.restaurant_members121 WHERE user_id=auth.uid()))
-$function$
-;
+ SELECT public.active_account14228()
+$function$;
 
 CREATE OR REPLACE FUNCTION public.ack_period14317(p_month date, p_revision text, p_acknowledged boolean)
  RETURNS void
@@ -2027,20 +1868,19 @@ BEGIN
  'can_open',public.can_workspace113(p.id),'user_permissions',jsonb_build_object('job_title',u.job_title,'department14229',u.department14229,
  'manager_id',u.manager_id,'assigned_fund_account_ids',u.assigned_fund_account_ids))), '[]') INTO people
  FROM profiles p JOIN user_permissions u ON u.user_id=p.id WHERE p.status='active' AND (p.role<>'admin' OR p.id=auth.uid())
- AND public.in_branch14229(p.id) AND NOT EXISTS(SELECT 1 FROM restaurant_members121 WHERE user_id=p.id);
+ AND public.in_branch14229(p.id);
  SELECT coalesce(jsonb_object_agg(owner,rows),'{}') INTO balances FROM (
  SELECT u.user_id::text owner,jsonb_agg(jsonb_build_object('account_id',a.id,'name',a.name,'currency',a.currency_code,
  'opening',0,'received',coalesce(s.dr,0),'used',coalesce(s.cr,0),'handover',0,'closing',coalesce(s.dr,0)-coalesce(s.cr,0))) rows
  FROM user_permissions u JOIN profiles p ON p.id=u.user_id AND p.status='active'
  JOIN accounts a ON a.id=ANY(u.assigned_fund_account_ids)
  LEFT JOIN LATERAL (SELECT sum(l.debit) dr,sum(l.credit) cr FROM journal_lines l JOIN journal_entries e ON e.id=l.journal_entry_id WHERE l.account_id=a.id AND e.status::text='posted') s ON true
- WHERE public.in_branch14229(u.user_id) AND NOT EXISTS(SELECT 1 FROM restaurant_members121 WHERE user_id=u.user_id) GROUP BY u.user_id) q;
+ WHERE public.in_branch14229(u.user_id) GROUP BY u.user_id) q;
  SELECT coalesce(jsonb_agg(to_jsonb(j)||jsonb_build_object('review_route14229',to_jsonb(r))),'[]') INTO reports
  FROM staff_journals j LEFT JOIN review_routes14229 r ON r.journal_id=j.id
  WHERE public.in_branch14229(j.owner_id) AND public.can_action113('user-entry-review','view') AND public.journal_visible14229(j.id);
  RETURN jsonb_build_object('users',people,'balances',balances,'reports',reports);
-END $function$
-;
+END $function$;
 
 CREATE OR REPLACE FUNCTION public.budget_capabilities14316()
  RETURNS jsonb
@@ -2197,28 +2037,6 @@ BEGIN
  IF EXISTS(SELECT 1 FROM journal_lines WHERE journal_entry_id=p_id GROUP BY currency_code HAVING sum(debit)<>sum(credit))
   THEN RAISE EXCEPTION 'Every currency must balance';END IF;
 END $function$
-;
-
-CREATE OR REPLACE FUNCTION public.check_workspace_request123()
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-declare endpoint text;begin
- if auth.uid() is null then return;end if;
- if public.accounting_workspace_allowed123() then return;end if;
- if not exists(select 1 from public.profiles where id=auth.uid() and status='active') then
-  raise insufficient_privilege using message='Active account required';
- end if;
- endpoint:=regexp_replace(rtrim(coalesce(current_setting('request.path',true),''),'/'),'^.*/','');
- if endpoint = any(array['profiles','restaurant_members121','restaurant_presentation121',
- 'inventory_items104','inventory_movements104','menu_ingredients105','menu_items104','menu_categories104','menu_sales108',
- 'pos_config118','pos_orders118','pos_shifts118','pos_cash118','pos_stock118',
- 'is_admin','accounting_workspace_allowed123','restaurant_can121','restaurant_signed_in121','restaurant_table_can121','restaurant_delete121',
- 'pos_snapshot118','pos_order118','pos_manage118','pos_import_online_menu120']) then return;end if;
- raise insufficient_privilege using message='Restaurant accounts cannot access Accounting data or operations';
-end $function$
 ;
 
 CREATE OR REPLACE FUNCTION public.close_opening_setup14234()
@@ -2423,13 +2241,12 @@ AS $function$
 declare count_deleted integer;
 begin
  if not public.is_admin() then raise exception 'Administrator access required'; end if;
- if p_table<>all(array['payroll_employees','payroll_leave_records','payroll_runs','operational_reports','company_documents105','inventory_items104','menu_ingredients105','menu_items104','menu_categories104','menu_sales108']) then raise exception 'Record type does not support deletion'; end if;
+ if p_table<>all(array['payroll_employees','payroll_leave_records','payroll_runs','operational_reports','company_documents105']) then raise exception 'Record type does not support deletion'; end if;
  execute format('delete from public.%I where id=$1 and version=$2',p_table) using p_id,p_version;
  get diagnostics count_deleted=row_count;
  if count_deleted<>1 then raise exception 'Record changed or was already deleted. Reload before trying again.'; end if;
  return true;
-end $function$
-;
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.delete_scheduled_journal92(p_id uuid, p_reason text)
  RETURNS void
@@ -2620,20 +2437,9 @@ begin
   if old.data->>'status'='approved' then raise exception 'Cancel an approved leave record before deleting it.'; end if;
   if exists(select 1 from public.payroll_runs r cross join lateral jsonb_array_elements(coalesce(r.data->'rows','[]')) e where r.data->>'status'='finalized' and r.data->>'month'=old.data->>'month' and e->>'employeeId'=old.data->>'employeeId') then raise exception 'Leave included in finalized payroll is immutable.'; end if;
  end if;
- if tg_table_name in ('menu_items104','menu_ingredients105','menu_categories104') then
-  lock table public.menu_items104,public.menu_sales108 in share row exclusive mode;
-  if tg_table_name='menu_categories104' and exists(select 1 from public.menu_items104 where data->>'category'=old.id::text) then raise exception 'Category is in use.'; end if;
-  if tg_table_name in ('menu_items104','menu_ingredients105') and exists(select 1 from public.menu_items104 m cross join lateral jsonb_array_elements(coalesce(m.data->'recipe','[]')) line where line->>'itemId'=old.id::text) then raise exception 'Component is used in a recipe or bundle.'; end if;
-  if tg_table_name='menu_items104' and exists(select 1 from public.menu_sales108 where data->>'productId'=old.id::text) then raise exception 'Product has sales history. Make it unavailable instead.'; end if;
- end if;
- if tg_table_name='inventory_items104' then
-  lock table public.inventory_movements104 in share row exclusive mode;
-  if exists(select 1 from public.inventory_movements104 where data->>'itemId'=old.id::text) then raise exception 'Stock movements exist. Make the item inactive instead.'; end if;
- end if;
  insert into public.record_deletions108(table_name,record_id,record_data) values(tg_table_name,old.id,to_jsonb(old));
  return old;
-end $function$
-;
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.guard_hr_calendar14306()
  RETURNS trigger
@@ -2757,40 +2563,6 @@ BEGIN
 END $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.guard_sales108()
- RETURNS trigger
- LANGUAGE plpgsql
- SET search_path TO 'public'
-AS $function$
-begin
- if not public.is_admin() then raise exception 'Administrator access required'; end if;
- if tg_op='UPDATE' and new.version<>old.version+1 then raise exception 'Record version conflict'; end if;
- if (new.data->>'date')::date is null or (new.data->>'quantity')::numeric<=0 or (new.data->>'unitCost')::numeric<=0 or (new.data->>'revenue')::numeric<0 or not (new.data ?& array['date','quantity','unitCost','revenue','productId','currency']) then raise exception 'Invalid sales values'; end if;
- if not exists(select 1 from public.menu_items104 where id::text=new.data->>'productId' and data->>'currency'=new.data->>'currency') then raise exception 'Product or currency no longer matches'; end if;
- new.updated_at=now();new.updated_by=auth.uid();return new;
-end $function$
-;
-
-CREATE OR REPLACE FUNCTION public.guard_separate_members123()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
-begin
- if exists(select 1 from profiles where id=new.user_id and role='admin') then return new;end if;
- if tg_table_name='restaurant_members121' then
-  if exists(select 1 from user_permissions u where u.user_id=new.user_id and
-    (coalesce(to_jsonb(u)->'modules','[]') not in ('[]'::jsonb,'null'::jsonb)
-     or coalesce(to_jsonb(u)->'assigned_fund_account_ids','[]') not in ('[]'::jsonb,'null'::jsonb))) then
-   raise exception 'Keep this Accounting account unchanged. Create a separate Restaurant staff account.';
-  end if;
- elsif exists(select 1 from restaurant_members121 where user_id=new.user_id) then
-  raise exception 'This is a Restaurant staff account. Create a separate Accounting sub-user account.';
- end if;return new;
-end $function$
-;
-
 CREATE OR REPLACE FUNCTION public.handle_new_user()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -2832,50 +2604,6 @@ AS $function$
  UNION ALL SELECT p.user_id,b.path||p.user_id FROM user_permissions p JOIN branch b ON p.manager_id=b.id WHERE NOT p.user_id=ANY(b.path)
  ) SELECT 1 FROM branch WHERE id=p_owner))
 $function$
-;
-
-CREATE OR REPLACE FUNCTION public.install_catalog106()
- RETURNS void
- LANGUAGE plpgsql
- SET search_path TO 'public'
-AS $function$
-declare bundle jsonb := $catalog${"ingredients":[{"id":"696e4596-e261-429f-a589-05b2816f476c","data":{"code":"ING-01","name":"Brown rice","unit":"kg","cost":30000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":30000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"957e3b09-69f0-42ee-ac0d-33fa39145f65","data":{"code":"ING-02","name":"Firm tofu","unit":"kg","cost":45000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":45000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"dac45dbb-5d8c-4abc-a2b5-cbc6d77f0b21","data":{"code":"ING-03","name":"Cooked black beans","unit":"kg","cost":40000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":40000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"38af4174-4135-49d2-aa14-4a34abee9a04","data":{"code":"ING-04","name":"Cooked chickpeas","unit":"kg","cost":50000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":50000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"26934352-fbe1-4555-ab9b-416c28c87455","data":{"code":"ING-05","name":"Lettuce","unit":"kg","cost":30000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":30000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"955a533d-5245-484c-a5ff-171b966d7133","data":{"code":"ING-06","name":"Tomato","unit":"kg","cost":25000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":25000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"147f27a6-09d8-40b0-a1c4-d58ce3136371","data":{"code":"ING-07","name":"Carrot","unit":"kg","cost":18000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":18000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"c130b7e1-fc53-4b08-a76d-b268249d3764","data":{"code":"ING-08","name":"Avocado","unit":"kg","cost":80000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":80000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"091c75ba-fc62-413a-aeac-822291233e20","data":{"code":"ING-09","name":"Wholegrain bread","unit":"slice","cost":5000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":5000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"63ccdb39-5e8a-4408-a3c7-dd7fc42e618b","data":{"code":"ING-10","name":"Burger bun","unit":"each","cost":8000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":8000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"47410bd5-c8a4-4bff-a30f-280feb20184c","data":{"code":"ING-11","name":"Tortilla","unit":"each","cost":7000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":7000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"68955761-5cfc-440f-afd8-72ddd441558c","data":{"code":"ING-12","name":"Dry pasta","unit":"kg","cost":45000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":45000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"1b0f5377-778d-458e-abac-ae933f209df3","data":{"code":"ING-13","name":"Mushrooms","unit":"kg","cost":60000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":60000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"391ce603-419e-4a45-a510-53e44d924ea7","data":{"code":"ING-14","name":"Coconut milk","unit":"L","cost":30000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":30000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"62f00957-52c0-41f7-a362-fc0f8df18efe","data":{"code":"ING-15","name":"Banana","unit":"kg","cost":15000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":15000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"53b19c39-d7f8-4d44-a6c9-6f1f305408fc","data":{"code":"ING-16","name":"Mango","unit":"kg","cost":35000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":35000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"a53c23a0-74e4-41d3-a261-1a8532f5a562","data":{"code":"ING-17","name":"Mixed berries","unit":"kg","cost":100000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":100000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"ddca890e-1666-4c11-a2f9-661c8a9a8854","data":{"code":"ING-18","name":"Oat milk","unit":"L","cost":45000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":45000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"161f2308-4a3f-45a6-a931-518a260e128c","data":{"code":"ING-19","name":"Pitted dates","unit":"kg","cost":80000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":80000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"dc05391c-09f5-4b42-ab4a-013a0bd5feac","data":{"code":"ING-20","name":"Peanut butter","unit":"kg","cost":70000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":70000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"755e3f46-f171-4fa7-af9b-92a1998cbef5","data":{"code":"ING-21","name":"Lemon juice","unit":"L","cost":55000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":55000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"8c57388d-18b8-427e-a71d-c14973988504","data":{"code":"ING-22","name":"Ginger","unit":"kg","cost":30000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":30000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"797ad28a-8602-4bf0-a090-35670f66d4e4","data":{"code":"ING-23","name":"Potato","unit":"kg","cost":20000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":20000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"6a02681d-74f3-458a-a092-7dabf548bd59","data":{"code":"ING-24","name":"Cooking oil","unit":"L","cost":40000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":40000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"742156e3-5c99-4fdd-a990-12b51f201346","data":{"code":"ING-25","name":"House sauce","unit":"L","cost":60000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":60000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"1a94d912-36fe-479b-a031-309801261834","data":{"code":"ING-26","name":"Onion","unit":"kg","cost":22000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":22000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"6c3405ac-89c2-4081-ac1c-976969752e3d","data":{"code":"ING-27","name":"Spinach","unit":"kg","cost":30000,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":30000},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"997bcca7-a5c8-41a9-a679-3a5c842ec5ee","data":{"code":"ING-28","name":"Food packaging","unit":"each","cost":2500,"currency":"LAK","active":true,"purchaseQuantity":1,"purchasePrice":2500},"version":1,"created_at":"2026-09-01T00:00:00Z"}],"menu":[{"id":"314dd64c-69b8-44f3-af93-c2700743b141","data":{"code":"MENU-01","name":"Tofu Garden Bowl","category":"ae02b282-e240-429c-afa0-f216d7f06f50","price":65000,"currency":"LAK","active":true,"recipe":[{"itemId":"696e4596-e261-429f-a589-05b2816f476c","quantity":0.12},{"itemId":"957e3b09-69f0-42ee-ac0d-33fa39145f65","quantity":0.12},{"itemId":"26934352-fbe1-4555-ab9b-416c28c87455","quantity":0.04},{"itemId":"147f27a6-09d8-40b0-a1c4-d58ce3136371","quantity":0.04},{"itemId":"742156e3-5c99-4fdd-a990-12b51f201346","quantity":0.03}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"cd2e8365-701a-4596-a770-ecced5dfd30a","data":{"code":"MENU-02","name":"Chickpea Nourish Bowl","category":"ae02b282-e240-429c-afa0-f216d7f06f50","price":70000,"currency":"LAK","active":true,"recipe":[{"itemId":"696e4596-e261-429f-a589-05b2816f476c","quantity":0.12},{"itemId":"38af4174-4135-49d2-aa14-4a34abee9a04","quantity":0.15},{"itemId":"955a533d-5245-484c-a5ff-171b966d7133","quantity":0.06},{"itemId":"c130b7e1-fc53-4b08-a76d-b268249d3764","quantity":0.05},{"itemId":"742156e3-5c99-4fdd-a990-12b51f201346","quantity":0.03}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"64ddcdef-a933-4717-a87e-9553f4e28078","data":{"code":"MENU-03","name":"Black Bean Bowl","category":"ae02b282-e240-429c-afa0-f216d7f06f50","price":60000,"currency":"LAK","active":true,"recipe":[{"itemId":"696e4596-e261-429f-a589-05b2816f476c","quantity":0.12},{"itemId":"dac45dbb-5d8c-4abc-a2b5-cbc6d77f0b21","quantity":0.15},{"itemId":"26934352-fbe1-4555-ab9b-416c28c87455","quantity":0.05},{"itemId":"955a533d-5245-484c-a5ff-171b966d7133","quantity":0.05}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"1b2ef5ea-535d-40d0-aaec-1b20f94832a1","data":{"code":"MENU-04","name":"Mushroom Rice Bowl","category":"ae02b282-e240-429c-afa0-f216d7f06f50","price":70000,"currency":"LAK","active":true,"recipe":[{"itemId":"696e4596-e261-429f-a589-05b2816f476c","quantity":0.12},{"itemId":"1b0f5377-778d-458e-abac-ae933f209df3","quantity":0.12},{"itemId":"6c3405ac-89c2-4081-ac1c-976969752e3d","quantity":0.06},{"itemId":"742156e3-5c99-4fdd-a990-12b51f201346","quantity":0.03}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"93904036-b3ed-45b1-ab21-7550644336b2","data":{"code":"MENU-05","name":"Classic Bean Burger","category":"34777e61-1266-41d3-ab4a-3b2e504013e8","price":75000,"currency":"LAK","active":true,"recipe":[{"itemId":"63ccdb39-5e8a-4408-a3c7-dd7fc42e618b","quantity":1},{"itemId":"dac45dbb-5d8c-4abc-a2b5-cbc6d77f0b21","quantity":0.13},{"itemId":"26934352-fbe1-4555-ab9b-416c28c87455","quantity":0.03},{"itemId":"955a533d-5245-484c-a5ff-171b966d7133","quantity":0.04},{"itemId":"797ad28a-8602-4bf0-a090-35670f66d4e4","quantity":0.15},{"itemId":"6a02681d-74f3-458a-a092-7dabf548bd59","quantity":0.015}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"24e6215b-d887-4aeb-ab61-f05b394a8958","data":{"code":"MENU-06","name":"Tofu Burger","category":"34777e61-1266-41d3-ab4a-3b2e504013e8","price":80000,"currency":"LAK","active":true,"recipe":[{"itemId":"63ccdb39-5e8a-4408-a3c7-dd7fc42e618b","quantity":1},{"itemId":"957e3b09-69f0-42ee-ac0d-33fa39145f65","quantity":0.15},{"itemId":"26934352-fbe1-4555-ab9b-416c28c87455","quantity":0.03},{"itemId":"742156e3-5c99-4fdd-a990-12b51f201346","quantity":0.03},{"itemId":"797ad28a-8602-4bf0-a090-35670f66d4e4","quantity":0.15}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"115c7b5d-b2b3-47f2-adba-69254541a8da","data":{"code":"MENU-07","name":"Mushroom Burger","category":"34777e61-1266-41d3-ab4a-3b2e504013e8","price":85000,"currency":"LAK","active":true,"recipe":[{"itemId":"63ccdb39-5e8a-4408-a3c7-dd7fc42e618b","quantity":1},{"itemId":"1b0f5377-778d-458e-abac-ae933f209df3","quantity":0.14},{"itemId":"1a94d912-36fe-479b-a031-309801261834","quantity":0.03},{"itemId":"742156e3-5c99-4fdd-a990-12b51f201346","quantity":0.03},{"itemId":"797ad28a-8602-4bf0-a090-35670f66d4e4","quantity":0.15}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"bf7e7c28-6fb6-4412-a115-2d167ab0ea46","data":{"code":"MENU-08","name":"Avocado Sandwich","category":"5ed52395-a1a0-4c31-a187-b24ec248b3a0","price":65000,"currency":"LAK","active":true,"recipe":[{"itemId":"091c75ba-fc62-413a-aeac-822291233e20","quantity":2},{"itemId":"c130b7e1-fc53-4b08-a76d-b268249d3764","quantity":0.1},{"itemId":"955a533d-5245-484c-a5ff-171b966d7133","quantity":0.05},{"itemId":"26934352-fbe1-4555-ab9b-416c28c87455","quantity":0.03}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"a5036177-9007-4ad7-a9ee-96b802a3f3d6","data":{"code":"MENU-09","name":"Chickpea Sandwich","category":"5ed52395-a1a0-4c31-a187-b24ec248b3a0","price":60000,"currency":"LAK","active":true,"recipe":[{"itemId":"091c75ba-fc62-413a-aeac-822291233e20","quantity":2},{"itemId":"38af4174-4135-49d2-aa14-4a34abee9a04","quantity":0.12},{"itemId":"147f27a6-09d8-40b0-a1c4-d58ce3136371","quantity":0.04},{"itemId":"742156e3-5c99-4fdd-a990-12b51f201346","quantity":0.03}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"3fac7569-783b-4807-a550-dff74f222685","data":{"code":"MENU-10","name":"Tofu Club Sandwich","category":"5ed52395-a1a0-4c31-a187-b24ec248b3a0","price":75000,"currency":"LAK","active":true,"recipe":[{"itemId":"091c75ba-fc62-413a-aeac-822291233e20","quantity":3},{"itemId":"957e3b09-69f0-42ee-ac0d-33fa39145f65","quantity":0.12},{"itemId":"26934352-fbe1-4555-ab9b-416c28c87455","quantity":0.04},{"itemId":"955a533d-5245-484c-a5ff-171b966d7133","quantity":0.04}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"850da61c-51ce-4a0c-a898-b04551125c70","data":{"code":"MENU-11","name":"Bean Burrito","category":"eb9a812d-b82a-4593-a73b-ccf63026fc28","price":70000,"currency":"LAK","active":true,"recipe":[{"itemId":"47410bd5-c8a4-4bff-a30f-280feb20184c","quantity":1},{"itemId":"dac45dbb-5d8c-4abc-a2b5-cbc6d77f0b21","quantity":0.13},{"itemId":"696e4596-e261-429f-a589-05b2816f476c","quantity":0.06},{"itemId":"955a533d-5245-484c-a5ff-171b966d7133","quantity":0.05},{"itemId":"742156e3-5c99-4fdd-a990-12b51f201346","quantity":0.03}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"b65d1843-e13b-463c-a454-a611a39ac153","data":{"code":"MENU-12","name":"Tofu Wrap","category":"eb9a812d-b82a-4593-a73b-ccf63026fc28","price":65000,"currency":"LAK","active":true,"recipe":[{"itemId":"47410bd5-c8a4-4bff-a30f-280feb20184c","quantity":1},{"itemId":"957e3b09-69f0-42ee-ac0d-33fa39145f65","quantity":0.12},{"itemId":"26934352-fbe1-4555-ab9b-416c28c87455","quantity":0.05},{"itemId":"147f27a6-09d8-40b0-a1c4-d58ce3136371","quantity":0.04},{"itemId":"742156e3-5c99-4fdd-a990-12b51f201346","quantity":0.03}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"8852f103-324d-48f2-a063-d5d10cce2565","data":{"code":"MENU-13","name":"Tomato Mushroom Pasta","category":"fd443eab-a0dc-43e5-a2b4-2c2c211cf37d","price":85000,"currency":"LAK","active":true,"recipe":[{"itemId":"68955761-5cfc-440f-afd8-72ddd441558c","quantity":0.12},{"itemId":"955a533d-5245-484c-a5ff-171b966d7133","quantity":0.18},{"itemId":"1b0f5377-778d-458e-abac-ae933f209df3","quantity":0.08},{"itemId":"6a02681d-74f3-458a-a092-7dabf548bd59","quantity":0.01}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"edef9611-a4f6-42b3-ae13-7688c8ff9118","data":{"code":"MENU-14","name":"Creamy Coconut Pasta","category":"fd443eab-a0dc-43e5-a2b4-2c2c211cf37d","price":90000,"currency":"LAK","active":true,"recipe":[{"itemId":"68955761-5cfc-440f-afd8-72ddd441558c","quantity":0.12},{"itemId":"391ce603-419e-4a45-a510-53e44d924ea7","quantity":0.12},{"itemId":"6c3405ac-89c2-4081-ac1c-976969752e3d","quantity":0.05},{"itemId":"1b0f5377-778d-458e-abac-ae933f209df3","quantity":0.08}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"ab85c6e7-e6f0-4410-a671-f1d55a78536b","data":{"code":"MENU-15","name":"Banana Date Smoothie","category":"e4951e34-fa11-4907-a844-c158b1cc8359","price":45000,"currency":"LAK","active":true,"recipe":[{"itemId":"62f00957-52c0-41f7-a362-fc0f8df18efe","quantity":0.15},{"itemId":"161f2308-4a3f-45a6-a931-518a260e128c","quantity":0.03},{"itemId":"ddca890e-1666-4c11-a2f9-661c8a9a8854","quantity":0.18}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"4db262e5-50ad-4a1f-a91f-68a913bbacdd","data":{"code":"MENU-16","name":"Mango Smoothie","category":"e4951e34-fa11-4907-a844-c158b1cc8359","price":50000,"currency":"LAK","active":true,"recipe":[{"itemId":"53b19c39-d7f8-4d44-a6c9-6f1f305408fc","quantity":0.18},{"itemId":"62f00957-52c0-41f7-a362-fc0f8df18efe","quantity":0.07},{"itemId":"ddca890e-1666-4c11-a2f9-661c8a9a8854","quantity":0.15}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"11a4a2ef-c955-486b-a28e-9df650ce5379","data":{"code":"MENU-17","name":"Berry Smoothie","category":"e4951e34-fa11-4907-a844-c158b1cc8359","price":60000,"currency":"LAK","active":true,"recipe":[{"itemId":"a53c23a0-74e4-41d3-a261-1a8532f5a562","quantity":0.12},{"itemId":"62f00957-52c0-41f7-a362-fc0f8df18efe","quantity":0.08},{"itemId":"ddca890e-1666-4c11-a2f9-661c8a9a8854","quantity":0.18}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"300388bb-a83a-4e3b-a5df-083087953c3c","data":{"code":"MENU-18","name":"Peanut Banana Smoothie","category":"e4951e34-fa11-4907-a844-c158b1cc8359","price":55000,"currency":"LAK","active":true,"recipe":[{"itemId":"62f00957-52c0-41f7-a362-fc0f8df18efe","quantity":0.15},{"itemId":"dc05391c-09f5-4b42-ab4a-013a0bd5feac","quantity":0.03},{"itemId":"ddca890e-1666-4c11-a2f9-661c8a9a8854","quantity":0.18},{"itemId":"161f2308-4a3f-45a6-a931-518a260e128c","quantity":0.02}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"57568a31-a3f1-429f-a4e2-fe45a3824097","data":{"code":"MENU-19","name":"Lemon Ginger Refresher","category":"39eb9c08-d318-45e5-a0fb-071eed25dc57","price":35000,"currency":"LAK","active":true,"recipe":[{"itemId":"755e3f46-f171-4fa7-af9b-92a1998cbef5","quantity":0.04},{"itemId":"8c57388d-18b8-427e-a71d-c14973988504","quantity":0.01}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"3b00ea2d-ee3b-438d-ab28-ba1b30efdf0d","data":{"code":"MENU-20","name":"Carrot Ginger Refresher","category":"39eb9c08-d318-45e5-a0fb-071eed25dc57","price":45000,"currency":"LAK","active":true,"recipe":[{"itemId":"147f27a6-09d8-40b0-a1c4-d58ce3136371","quantity":0.25},{"itemId":"8c57388d-18b8-427e-a71d-c14973988504","quantity":0.01},{"itemId":"755e3f46-f171-4fa7-af9b-92a1998cbef5","quantity":0.02}],"description":""},"version":1,"created_at":"2026-09-01T00:00:00Z"}],"categories":[{"id":"ae02b282-e240-429c-afa0-f216d7f06f50","data":{"code":"CAT-0","name":"Bowls"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"34777e61-1266-41d3-ab4a-3b2e504013e8","data":{"code":"CAT-1","name":"Burgers"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"5ed52395-a1a0-4c31-a187-b24ec248b3a0","data":{"code":"CAT-2","name":"Sandwiches"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"eb9a812d-b82a-4593-a73b-ccf63026fc28","data":{"code":"CAT-3","name":"Tex-Mex"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"fd443eab-a0dc-43e5-a2b4-2c2c211cf37d","data":{"code":"CAT-4","name":"Pasta"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"e4951e34-fa11-4907-a844-c158b1cc8359","data":{"code":"CAT-5","name":"Smoothies"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"39eb9c08-d318-45e5-a0fb-071eed25dc57","data":{"code":"CAT-6","name":"Refreshers"},"version":1,"created_at":"2026-09-01T00:00:00Z"}],"items":[{"id":"84cdf888-92f1-42a5-ad9b-3452368f3dae","data":{"code":"SALE-0","name":"Bottled water","unit":"each","cost":10000,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"6d803bfa-c96c-45cc-ae55-1e2b1876d924","data":{"code":"SALE-1","name":"House granola pack","unit":"each","cost":12500,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"6738ba48-6799-4265-a1b6-5d8bb307554e","data":{"code":"SALE-2","name":"Peanut butter jar","unit":"each","cost":15000,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"29e23c8a-a34c-40e1-a974-2bba10a2dd66","data":{"code":"SALE-3","name":"Herbal tea pack","unit":"each","cost":17500,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"3196abc9-0560-40f9-a031-f9c066b9e5f1","data":{"code":"SALE-4","name":"Dried mango pack","unit":"each","cost":20000,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"67f0bd22-ada6-4796-a662-408e0fd84066","data":{"code":"SALE-5","name":"Coffee beans bag","unit":"each","cost":22500,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"d32579fb-49a5-407c-a576-1bbbbac9ef49","data":{"code":"SALE-6","name":"Reusable cup","unit":"each","cost":25000,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"513163d9-6abe-43b3-a8b4-ad0f285df5e5","data":{"code":"SALE-7","name":"Canvas tote bag","unit":"each","cost":27500,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"c16ec05f-d9ce-4d4f-a372-9abba85a9f2c","data":{"code":"SALE-8","name":"Oat cookies pack","unit":"each","cost":30000,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"7ed93ba4-78d2-4d80-a313-fa44fe2631be","data":{"code":"SALE-9","name":"Gift voucher","unit":"each","cost":32500,"currency":"LAK","reorder":5,"active":true},"version":1,"created_at":"2026-09-01T00:00:00Z"}],"moves":[{"id":"cbf5c462-e928-46cc-a1fc-95fac958ddba","data":{"kind":"in","itemId":"84cdf888-92f1-42a5-ad9b-3452368f3dae","itemName":"Bottled water","date":"2026-09-01","quantity":20,"cost":10000,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"3759a48e-86f0-44ea-acfa-ab5e16af7113","data":{"kind":"in","itemId":"6d803bfa-c96c-45cc-ae55-1e2b1876d924","itemName":"House granola pack","date":"2026-09-01","quantity":20,"cost":12500,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"15038eba-c8ac-40d6-a4ba-4c2297c5301d","data":{"kind":"in","itemId":"6738ba48-6799-4265-a1b6-5d8bb307554e","itemName":"Peanut butter jar","date":"2026-09-01","quantity":20,"cost":15000,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"edcf5d99-3336-4705-a1bd-150b7fba355e","data":{"kind":"in","itemId":"29e23c8a-a34c-40e1-a974-2bba10a2dd66","itemName":"Herbal tea pack","date":"2026-09-01","quantity":20,"cost":17500,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"7f0d975c-1430-478d-aded-64f453f47ba4","data":{"kind":"in","itemId":"3196abc9-0560-40f9-a031-f9c066b9e5f1","itemName":"Dried mango pack","date":"2026-09-01","quantity":20,"cost":20000,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"7e838fe8-e97d-4818-a204-b5811b971f52","data":{"kind":"in","itemId":"67f0bd22-ada6-4796-a662-408e0fd84066","itemName":"Coffee beans bag","date":"2026-09-01","quantity":20,"cost":22500,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"7a7b5e83-83b2-4be4-a909-63b4a14ac6ed","data":{"kind":"in","itemId":"d32579fb-49a5-407c-a576-1bbbbac9ef49","itemName":"Reusable cup","date":"2026-09-01","quantity":20,"cost":25000,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"de5bb080-1802-45bf-a5de-7aad9842bbe7","data":{"kind":"in","itemId":"513163d9-6abe-43b3-a8b4-ad0f285df5e5","itemName":"Canvas tote bag","date":"2026-09-01","quantity":20,"cost":27500,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"18271612-f062-4a14-a297-c912860c5dd2","data":{"kind":"in","itemId":"c16ec05f-d9ce-4d4f-a372-9abba85a9f2c","itemName":"Oat cookies pack","date":"2026-09-01","quantity":20,"cost":30000,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"},{"id":"0c551a6b-0007-436a-a013-c7b6b86ed061","data":{"kind":"in","itemId":"7ed93ba4-78d2-4d80-a313-fa44fe2631be","itemName":"Gift voucher","date":"2026-09-01","quantity":20,"cost":32500,"currency":"LAK","reference":"OPENING-CATALOG-106"},"version":1,"created_at":"2026-09-01T00:00:00Z"}]}$catalog$::jsonb; r jsonb; d jsonb; actual uuid; mapping jsonb := '{}'::jsonb;
-begin
-if not public.is_admin() then raise exception 'Administrator access required'; end if;
-perform pg_advisory_xact_lock(106,2026);
-if exists(select 1 from public.catalog_installations106 where name='initial-catalog') then return; end if;
-for r in select value from jsonb_array_elements(bundle->'ingredients') loop
-d:=r->'data';
-select id into actual from public.menu_ingredients105 where lower(data->>'code')=lower(d->>'code');
-if actual is null then insert into public.menu_ingredients105(id,data) values((r->>'id')::uuid,d) returning id into actual; end if;
-mapping:=mapping||jsonb_build_object(r->>'id',actual::text);
-end loop;
-for r in select value from jsonb_array_elements(bundle->'categories') loop
-d:=r->'data';
-select id into actual from public.menu_categories104 where lower(data->>'code')=lower(d->>'code');
-if actual is null then insert into public.menu_categories104(id,data) values((r->>'id')::uuid,d) returning id into actual; end if;
-mapping:=mapping||jsonb_build_object(r->>'id',actual::text);
-end loop;
-for r in select value from jsonb_array_elements(bundle->'items') loop
-d:=r->'data';
-select id into actual from public.inventory_items104 where lower(data->>'code')=lower(d->>'code');
-if actual is null then insert into public.inventory_items104(id,data) values((r->>'id')::uuid,d) returning id into actual; end if;
-mapping:=mapping||jsonb_build_object(r->>'id',actual::text);
-end loop;
-for r in select value from jsonb_array_elements(bundle->'menu') loop
-d:=r->'data';
-d:=jsonb_set(d,'{category}',mapping->(d->>'category'));
-d:=jsonb_set(d,'{recipe}',(select jsonb_agg(jsonb_set(l,'{itemId}',mapping->(l->>'itemId'))) from jsonb_array_elements(d->'recipe') l));
-if not exists(select 1 from public.menu_items104 where lower(data->>'code')=lower(d->>'code')) then insert into public.menu_items104(id,data) values((r->>'id')::uuid,d);end if;
-end loop;
-for r in select value from jsonb_array_elements(bundle->'moves') loop
-d:=r->'data';actual:=(mapping->>(d->>'itemId'))::uuid;
--- Opening stock is added only for newly installed products without movements.
-if actual=(d->>'itemId')::uuid and not exists(select 1 from public.inventory_movements104 where data->>'itemId'=actual::text) then
-insert into public.inventory_movements104(id,data) values((r->>'id')::uuid,d);end if;
-end loop;
-insert into public.catalog_installations106(name) values('initial-catalog');
-end $function$
 ;
 
 CREATE OR REPLACE FUNCTION public.installation_status14320()
@@ -3402,7 +3130,7 @@ BEGIN
  next_id:=NEW.manager_id;
  IF next_id IS NOT NULL THEN
  SELECT p.*,u.module_actions113,u.can_approve INTO supervisor FROM profiles p LEFT JOIN user_permissions u ON u.user_id=p.id WHERE p.id=next_id;
- IF NOT FOUND OR supervisor.status<>'active' OR EXISTS(SELECT 1 FROM restaurant_members121 WHERE user_id=next_id) THEN RAISE EXCEPTION 'Choose an active Accounting supervisor';END IF;
+ IF NOT FOUND OR supervisor.status<>'active' THEN RAISE EXCEPTION 'Choose an active Accounting supervisor';END IF;
  IF supervisor.role<>'admin' AND NOT (CASE WHEN supervisor.module_actions113 IS NULL THEN coalesce(supervisor.can_approve,false)
  ELSE coalesce(supervisor.module_actions113->'user-entry-review' @> '["view","approve"]',false) END) THEN RAISE EXCEPTION 'Supervisor needs View and Approve in Entry Submission Review';END IF;
  END IF;
@@ -3411,8 +3139,7 @@ BEGIN
  seen:=seen||next_id;SELECT manager_id INTO next_id FROM user_permissions WHERE user_id=next_id;
  END LOOP;
  RETURN NEW;
-END $function$
-;
+END $function$;
 
 CREATE OR REPLACE FUNCTION public.password_change_required14257()
  RETURNS boolean
@@ -3991,20 +3718,6 @@ BEGIN
 END $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.recipe_view113()
- RETURNS jsonb
- LANGUAGE plpgsql
- STABLE SECURITY DEFINER
- SET search_path TO 'pg_catalog', 'public'
-AS $function$
-declare result jsonb;
-begin
- if not (public.can_action113('menu-recipe') or public.can_action113('menu-details')) then raise exception 'Recipe view permission required';end if;
- select coalesce(jsonb_agg(jsonb_build_object('id',m.id,'code',m.data->>'code','name',m.data->>'name','description',m.data->>'description','photoData',m.data->>'photoData','recipe',coalesce((select jsonb_agg(jsonb_build_object('name',coalesce(i.data->>'name',component.data->>'name'),'unit',coalesce(i.data->>'unit','serving'),'quantity',l->'quantity')) from jsonb_array_elements(coalesce(m.data->'recipe','[]')) l left join public.menu_ingredients105 i on i.id::text=l->>'itemId' left join public.menu_items104 component on component.id::text=l->>'itemId'),'[]'::jsonb)) order by m.data->>'name'),'[]'::jsonb) into result from public.menu_items104 m where coalesce((m.data->>'active')::boolean,true);
- return result;
-end $function$
-;
-
 CREATE OR REPLACE FUNCTION public.recovery_attempt14320(p_actor uuid)
  RETURNS boolean
  LANGUAGE plpgsql
@@ -4211,28 +3924,6 @@ DECLARE actor uuid:=public.require_admin136();BEGIN
  UPDATE audit_reviews136 SET status='resolved',adjustment_id=p_adjustment WHERE id=p_review;END $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.restaurant_can121(p_scope text, p_action text DEFAULT 'view'::text)
- RETURNS boolean
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
- select public.active_account14228() and (public.is_admin() or exists(
- select 1 from public.restaurant_members121 m where m.user_id=auth.uid() and m.enabled and not m.must_change_password
- and m.permissions->p_scope->>'view'='true' and m.permissions->p_scope->>p_action='true'))
-$function$
-;
-
-CREATE OR REPLACE FUNCTION public.restaurant_signed_in121()
- RETURNS boolean
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_temp'
-AS $function$
- select public.active_account14228() and (public.is_admin() or exists(select 1 from restaurant_members121 where user_id=auth.uid() and enabled and not must_change_password))
-$function$
-;
-
 CREATE OR REPLACE FUNCTION public.return_fund_adjustment_v49(p_request_id uuid, p_reason text)
  RETURNS void
  LANGUAGE plpgsql
@@ -4297,10 +3988,8 @@ AS $function$
 BEGIN
  IF NOT public.accounting_workspace_allowed123() THEN RAISE EXCEPTION 'Current accounting access required';END IF;
  RETURN coalesce((SELECT jsonb_agg(to_jsonb(p)||jsonb_build_object('user_permissions',to_jsonb(u)) ORDER BY p.full_name)
- FROM profiles p LEFT JOIN user_permissions u ON u.user_id=p.id WHERE NOT EXISTS(SELECT 1 FROM restaurant_members121 WHERE user_id=p.id)
- AND (public.is_admin() OR p.id=auth.uid() OR public.can_workspace113(p.id))),'[]');
-END $function$
-;
+ FROM profiles p LEFT JOIN user_permissions u ON u.user_id=p.id WHERE (public.is_admin() OR p.id=auth.uid() OR public.can_workspace113(p.id))),'[]');
+END $function$;
 
 CREATE OR REPLACE FUNCTION public.review_exact14229(p_journal uuid, p_expected jsonb)
  RETURNS void
@@ -4936,35 +4625,6 @@ DECLARE request_key text:=p_payload->>'p_request_key';existing jsonb;actor uuid:
  op:=jsonb_build_object('id',gen_random_uuid(),'kind',p_kind,'payload',p_payload-'p_request_key','request_key14228',request_key);
  UPDATE book_sessions136 SET operations=operations||jsonb_build_array(op) WHERE id=s.id RETURNING * INTO s;
  RETURN to_jsonb(s)||jsonb_build_object('month',m);END $function$
-;
-
-CREATE OR REPLACE FUNCTION public.stamp_inventory_menu104()
- RETURNS trigger
- LANGUAGE plpgsql
-AS $function$
-declare on_hand numeric;
-begin
- if not public.is_admin() then raise exception 'Administrator access required'; end if;
- if tg_table_name='inventory_movements104' then
-  if tg_op<>'INSERT' then raise exception 'Stock movements are immutable; create a correcting movement'; end if;
-  if not exists(select 1 from public.inventory_items104 where id::text=new.data->>'itemId') then raise exception 'Inventory item does not exist'; end if;
-  if (new.data->>'quantity')::numeric<=0 or new.data->>'kind' not in ('in','out','adjust-in','adjust-out') then raise exception 'Invalid stock movement'; end if;
-  -- Serialize movements on this item so two simultaneous issues cannot overspend stock.
-  perform 1 from public.inventory_items104 where id::text=new.data->>'itemId' for update;
-  if new.data->>'kind' in ('out','adjust-out') then
-   select coalesce(sum(case when data->>'kind' in ('in','adjust-in') then (data->>'quantity')::numeric else -(data->>'quantity')::numeric end),0) into on_hand
-   from public.inventory_movements104 where data->>'itemId'=new.data->>'itemId';
-   if on_hand<(new.data->>'quantity')::numeric then raise exception 'Insufficient stock';end if;
-  end if;
-  new.created_by=auth.uid(); return new;
- end if;
- if coalesce(trim(new.data->>'code'),'')='' or coalesce(trim(new.data->>'name'),'')='' then raise exception 'Code and name are required'; end if;
- new.updated_by=auth.uid();new.updated_at=now();
- if tg_op='UPDATE' then
-  if new.version<>old.version+1 then raise exception 'Record changed; reload before editing'; end if;
- else new.version=1;end if;
- return new;
-end $function$
 ;
 
 CREATE OR REPLACE FUNCTION public.stamp_workspace105()
@@ -5653,17 +5313,12 @@ BEGIN
   PERFORM set_config('request.jwt.claim.sub',target::text,true);
  END IF;
  IF NOT public.active_account14228() THEN RAISE EXCEPTION 'Active account required' USING ERRCODE='42501';END IF;
- IF NOT public.accounting_workspace_allowed123() AND regexp_replace(rtrim(coalesce(current_setting('request.path',true),''),'/'),'^.*/','') <> ALL(ARRAY[
- 'profiles','restaurant_members121','restaurant_presentation121','inventory_items104','inventory_movements104','menu_ingredients105','menu_items104','menu_categories104','menu_sales108','pos_config118','pos_orders118','pos_shifts118','pos_cash118','pos_stock118',
- 'is_admin','restaurant_can121','restaurant_signed_in121','restaurant_table_can121','restaurant_delete121','pos_snapshot118','pos_order118','pos_manage118','pos_import_online_menu120'])
- THEN RAISE EXCEPTION 'Restaurant staff cannot access Accounting' USING ERRCODE='42501';END IF;
  SELECT previous_hook INTO previous FROM workspace_hook_config138 WHERE id;
  IF previous IS NOT NULL AND previous<>'public.workspace_pre_request138()'::regprocedure THEN
   SELECT n.nspname,f.proname INTO ns,fn FROM pg_proc f JOIN pg_namespace n ON n.oid=f.pronamespace WHERE f.oid=previous::oid;
   IF fn IS NOT NULL THEN EXECUTE format('SELECT %I.%I()',ns,fn);END IF;
  END IF;
-END $function$
-;
+END $function$;
 
 CREATE OR REPLACE FUNCTION public.workspace_write_scope14229()
  RETURNS trigger
@@ -5860,8 +5515,6 @@ ALTER TABLE "public"."cashier_shift_tenders" ALTER COLUMN "pos_amount" SET DEFAU
 
 ALTER TABLE "public"."cashier_shift_tenders" ALTER COLUMN "sort_order" SET DEFAULT 1;
 
-ALTER TABLE "public"."catalog_installations106" ALTER COLUMN "installed_at" SET DEFAULT now();
-
 ALTER TABLE "public"."company_documents105" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "public"."company_documents105" ALTER COLUMN "data" SET DEFAULT '{}'::jsonb;
@@ -5956,40 +5609,6 @@ ALTER TABLE "public"."installation14320" ALTER COLUMN "checks" SET DEFAULT '{}':
 
 ALTER TABLE "public"."installation14320" ALTER COLUMN "updated_at" SET DEFAULT now();
 
-ALTER TABLE "public"."inventory_items" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."inventory_items" ALTER COLUMN "unit_cost" SET DEFAULT 0;
-
-ALTER TABLE "public"."inventory_items" ALTER COLUMN "quantity_on_hand" SET DEFAULT 0;
-
-ALTER TABLE "public"."inventory_items" ALTER COLUMN "reorder_level" SET DEFAULT 0;
-
-ALTER TABLE "public"."inventory_items" ALTER COLUMN "is_active" SET DEFAULT true;
-
-ALTER TABLE "public"."inventory_items" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."inventory_items104" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."inventory_items104" ALTER COLUMN "data" SET DEFAULT '{}'::jsonb;
-
-ALTER TABLE "public"."inventory_items104" ALTER COLUMN "version" SET DEFAULT 1;
-
-ALTER TABLE "public"."inventory_items104" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."inventory_items104" ALTER COLUMN "updated_at" SET DEFAULT now();
-
-ALTER TABLE "public"."inventory_movements" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."inventory_movements" ALTER COLUMN "movement_date" SET DEFAULT CURRENT_DATE;
-
-ALTER TABLE "public"."inventory_movements" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."inventory_movements104" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."inventory_movements104" ALTER COLUMN "data" SET DEFAULT '{}'::jsonb;
-
-ALTER TABLE "public"."inventory_movements104" ALTER COLUMN "created_at" SET DEFAULT now();
-
 ALTER TABLE "public"."journal_entries" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
 
 ALTER TABLE "public"."journal_entries" ALTER COLUMN "memo" SET DEFAULT ''::text;
@@ -6023,56 +5642,6 @@ ALTER TABLE "public"."legal_documents" ALTER COLUMN "id" SET DEFAULT gen_random_
 ALTER TABLE "public"."legal_documents" ALTER COLUMN "document_type" SET DEFAULT 'other'::text;
 
 ALTER TABLE "public"."legal_documents" ALTER COLUMN "uploaded_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_categories104" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."menu_categories104" ALTER COLUMN "data" SET DEFAULT '{}'::jsonb;
-
-ALTER TABLE "public"."menu_categories104" ALTER COLUMN "version" SET DEFAULT 1;
-
-ALTER TABLE "public"."menu_categories104" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_categories104" ALTER COLUMN "updated_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_ingredients105" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."menu_ingredients105" ALTER COLUMN "data" SET DEFAULT '{}'::jsonb;
-
-ALTER TABLE "public"."menu_ingredients105" ALTER COLUMN "version" SET DEFAULT 1;
-
-ALTER TABLE "public"."menu_ingredients105" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_ingredients105" ALTER COLUMN "updated_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_items" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."menu_items" ALTER COLUMN "selling_price" SET DEFAULT 0;
-
-ALTER TABLE "public"."menu_items" ALTER COLUMN "is_available" SET DEFAULT true;
-
-ALTER TABLE "public"."menu_items" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_items104" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."menu_items104" ALTER COLUMN "data" SET DEFAULT '{}'::jsonb;
-
-ALTER TABLE "public"."menu_items104" ALTER COLUMN "version" SET DEFAULT 1;
-
-ALTER TABLE "public"."menu_items104" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_items104" ALTER COLUMN "updated_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_sales108" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."menu_sales108" ALTER COLUMN "version" SET DEFAULT 1;
-
-ALTER TABLE "public"."menu_sales108" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_sales108" ALTER COLUMN "updated_at" SET DEFAULT now();
-
-ALTER TABLE "public"."menu_sales108" ALTER COLUMN "created_by" SET DEFAULT auth.uid();
-
-ALTER TABLE "public"."menu_sales108" ALTER COLUMN "updated_by" SET DEFAULT auth.uid();
 
 ALTER TABLE "public"."opening_state14234" ALTER COLUMN "id" SET DEFAULT true;
 
@@ -6146,32 +5715,6 @@ ALTER TABLE "public"."period_findings" ALTER COLUMN "reported_at" SET DEFAULT no
 
 ALTER TABLE "public"."period_findings" ALTER COLUMN "updated_at" SET DEFAULT now();
 
-ALTER TABLE "public"."pos_cash118" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."pos_cash118" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."pos_config118" ALTER COLUMN "id" SET DEFAULT true;
-
-ALTER TABLE "public"."pos_config118" ALTER COLUMN "data" SET DEFAULT '{"methods": ["Cash", "BCEL QR", "Bank"], "cashiers": [], "receiptWidth": 80, "discountLimit": 10, "receiptFooter": "Thank you for visiting."}'::jsonb;
-
-ALTER TABLE "public"."pos_config118" ALTER COLUMN "version" SET DEFAULT 1;
-
-ALTER TABLE "public"."pos_orders118" ALTER COLUMN "status" SET DEFAULT 'unpaid'::text;
-
-ALTER TABLE "public"."pos_orders118" ALTER COLUMN "version" SET DEFAULT 1;
-
-ALTER TABLE "public"."pos_orders118" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."pos_orders118" ALTER COLUMN "updated_at" SET DEFAULT now();
-
-ALTER TABLE "public"."pos_shifts118" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."pos_shifts118" ALTER COLUMN "opened_at" SET DEFAULT now();
-
-ALTER TABLE "public"."pos_stock118" ALTER COLUMN "id" SET DEFAULT gen_random_uuid();
-
-ALTER TABLE "public"."pos_stock118" ALTER COLUMN "created_at" SET DEFAULT now();
-
 ALTER TABLE "public"."presentation_settings113" ALTER COLUMN "data" SET DEFAULT '{}'::jsonb;
 
 ALTER TABLE "public"."presentation_settings113" ALTER COLUMN "updated_at" SET DEFAULT now();
@@ -6241,18 +5784,6 @@ ALTER TABLE "public"."report_types14253" ALTER COLUMN "id" SET DEFAULT gen_rando
 ALTER TABLE "public"."report_types14253" ALTER COLUMN "active" SET DEFAULT true;
 
 ALTER TABLE "public"."report_types14253" ALTER COLUMN "created_at" SET DEFAULT now();
-
-ALTER TABLE "public"."restaurant_members121" ALTER COLUMN "email" SET DEFAULT ''::text;
-
-ALTER TABLE "public"."restaurant_members121" ALTER COLUMN "display_name" SET DEFAULT ''::text;
-
-ALTER TABLE "public"."restaurant_members121" ALTER COLUMN "enabled" SET DEFAULT true;
-
-ALTER TABLE "public"."restaurant_members121" ALTER COLUMN "permissions" SET DEFAULT '{}'::jsonb;
-
-ALTER TABLE "public"."restaurant_members121" ALTER COLUMN "must_change_password" SET DEFAULT false;
-
-ALTER TABLE "public"."restaurant_members121" ALTER COLUMN "created_at" SET DEFAULT now();
 
 ALTER TABLE "public"."review_routes14229" ALTER COLUMN "final_approved" SET DEFAULT false;
 
@@ -6570,8 +6101,6 @@ ALTER TABLE "public"."cashier_shift_tenders" ADD CONSTRAINT "cashier_shift_tende
 
 ALTER TABLE "public"."cashier_shift_tenders" ADD CONSTRAINT "cashier_shift_tenders_pkey" PRIMARY KEY (id);
 
-ALTER TABLE "public"."catalog_installations106" ADD CONSTRAINT "catalog_installations106_pkey" PRIMARY KEY (name);
-
 ALTER TABLE "public"."company_documents105" ADD CONSTRAINT "company_documents105_pkey" PRIMARY KEY (id);
 
 ALTER TABLE "public"."currencies" ADD CONSTRAINT "currencies_code_check" CHECK ((code ~ '^[A-Z]{3}$'::text));
@@ -6650,20 +6179,6 @@ ALTER TABLE "public"."installation14320" ADD CONSTRAINT "installation14320_id_ch
 
 ALTER TABLE "public"."installation14320" ADD CONSTRAINT "installation14320_pkey" PRIMARY KEY (id);
 
-ALTER TABLE "public"."inventory_items" ADD CONSTRAINT "inventory_items_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."inventory_items" ADD CONSTRAINT "inventory_items_sku_key" UNIQUE (sku);
-
-ALTER TABLE "public"."inventory_items104" ADD CONSTRAINT "inventory_items104_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."inventory_movements" ADD CONSTRAINT "inventory_movements_movement_type_check" CHECK ((movement_type = ANY (ARRAY['in'::text, 'out'::text, 'adjustment'::text])));
-
-ALTER TABLE "public"."inventory_movements" ADD CONSTRAINT "inventory_movements_quantity_check" CHECK ((quantity <> (0)::numeric));
-
-ALTER TABLE "public"."inventory_movements" ADD CONSTRAINT "inventory_movements_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."inventory_movements104" ADD CONSTRAINT "inventory_movements104_pkey" PRIMARY KEY (id);
-
 ALTER TABLE "public"."journal_entries" ADD CONSTRAINT "journal_entries_correction_status_check" CHECK ((correction_status = ANY (ARRAY['normal'::text, 'under_review'::text, 'corrected'::text, 'voided'::text])));
 
 ALTER TABLE "public"."journal_entries" ADD CONSTRAINT "journal_entries_source_check" CHECK ((source = ANY (ARRAY['manual'::text, 'staff_submission'::text, 'staff_journal'::text, 'recurring'::text, 'payroll'::text, 'system'::text])));
@@ -6691,20 +6206,6 @@ ALTER TABLE "public"."legal_documents" ADD CONSTRAINT "legal_documents_size_byte
 ALTER TABLE "public"."legal_documents" ADD CONSTRAINT "legal_documents_pkey" PRIMARY KEY (id);
 
 ALTER TABLE "public"."legal_documents" ADD CONSTRAINT "legal_documents_storage_path_key" UNIQUE (storage_path);
-
-ALTER TABLE "public"."menu_categories104" ADD CONSTRAINT "menu_categories104_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."menu_ingredients105" ADD CONSTRAINT "menu_ingredients105_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."menu_item_ingredients" ADD CONSTRAINT "menu_item_ingredients_quantity_check" CHECK ((quantity > (0)::numeric));
-
-ALTER TABLE "public"."menu_item_ingredients" ADD CONSTRAINT "menu_item_ingredients_pkey" PRIMARY KEY (menu_item_id, inventory_item_id);
-
-ALTER TABLE "public"."menu_items" ADD CONSTRAINT "menu_items_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."menu_items104" ADD CONSTRAINT "menu_items104_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."menu_sales108" ADD CONSTRAINT "menu_sales108_pkey" PRIMARY KEY (id);
 
 ALTER TABLE "public"."opening_state14234" ADD CONSTRAINT "opening_state14234_id_check" CHECK (id);
 
@@ -6739,32 +6240,6 @@ ALTER TABLE "public"."period_findings" ADD CONSTRAINT "period_findings_status_ch
 ALTER TABLE "public"."period_findings" ADD CONSTRAINT "period_findings_pkey" PRIMARY KEY (id);
 
 ALTER TABLE "public"."period_findings" ADD CONSTRAINT "period_findings_finding_no_key" UNIQUE (finding_no);
-
-ALTER TABLE "public"."pos_cash118" ADD CONSTRAINT "pos_cash118_amount_check" CHECK ((amount <> (0)::numeric));
-
-ALTER TABLE "public"."pos_cash118" ADD CONSTRAINT "pos_cash118_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."pos_config118" ADD CONSTRAINT "pos_config118_id_check" CHECK (id);
-
-ALTER TABLE "public"."pos_config118" ADD CONSTRAINT "pos_config118_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."pos_orders118" ADD CONSTRAINT "pos_orders118_status_check" CHECK ((status = ANY (ARRAY['unpaid'::text, 'paid'::text, 'cancelled'::text, 'refunded'::text])));
-
-ALTER TABLE "public"."pos_orders118" ADD CONSTRAINT "pos_orders118_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."pos_orders118" ADD CONSTRAINT "pos_orders118_number_key" UNIQUE (number);
-
-ALTER TABLE "public"."pos_shifts118" ADD CONSTRAINT "pos_shifts118_opening_check" CHECK ((opening >= (0)::numeric));
-
-ALTER TABLE "public"."pos_shifts118" ADD CONSTRAINT "pos_shifts118_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."pos_stock118" ADD CONSTRAINT "pos_stock118_kind_check" CHECK ((kind = ANY (ARRAY['sale'::text, 'return'::text])));
-
-ALTER TABLE "public"."pos_stock118" ADD CONSTRAINT "pos_stock118_quantity_check" CHECK ((quantity <> (0)::numeric));
-
-ALTER TABLE "public"."pos_stock118" ADD CONSTRAINT "pos_stock118_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."pos_stock118" ADD CONSTRAINT "pos_stock118_order_id_item_id_kind_key" UNIQUE (order_id, item_id, kind);
 
 ALTER TABLE "public"."presentation_settings113" ADD CONSTRAINT "presentation_settings113_pkey" PRIMARY KEY (area);
 
@@ -6805,10 +6280,6 @@ ALTER TABLE "public"."recurring_transactions" ADD CONSTRAINT "recurring_transact
 ALTER TABLE "public"."report_types14253" ADD CONSTRAINT "report_types14253_name_check" CHECK (((length(TRIM(BOTH FROM name)) >= 1) AND (length(TRIM(BOTH FROM name)) <= 80)));
 
 ALTER TABLE "public"."report_types14253" ADD CONSTRAINT "report_types14253_pkey" PRIMARY KEY (id);
-
-ALTER TABLE "public"."restaurant_members121" ADD CONSTRAINT "restaurant_members121_permissions_check" CHECK ((jsonb_typeof(permissions) = 'object'::text));
-
-ALTER TABLE "public"."restaurant_members121" ADD CONSTRAINT "restaurant_members121_pkey" PRIMARY KEY (user_id);
 
 ALTER TABLE "public"."review_routes14229" ADD CONSTRAINT "review_routes14229_pkey" PRIMARY KEY (journal_id);
 
@@ -7078,16 +6549,6 @@ ALTER TABLE "public"."installation14320" ADD CONSTRAINT "installation14320_incom
 
 ALTER TABLE "public"."installation14320" ADD CONSTRAINT "installation14320_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES profiles(id);
 
-ALTER TABLE "public"."inventory_items" ADD CONSTRAINT "inventory_items_currency_code_fkey" FOREIGN KEY (currency_code) REFERENCES currencies(code);
-
-ALTER TABLE "public"."inventory_items104" ADD CONSTRAINT "inventory_items104_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES profiles(id);
-
-ALTER TABLE "public"."inventory_movements" ADD CONSTRAINT "inventory_movements_created_by_fkey" FOREIGN KEY (created_by) REFERENCES profiles(id);
-
-ALTER TABLE "public"."inventory_movements" ADD CONSTRAINT "inventory_movements_item_id_fkey" FOREIGN KEY (item_id) REFERENCES inventory_items(id);
-
-ALTER TABLE "public"."inventory_movements104" ADD CONSTRAINT "inventory_movements104_created_by_fkey" FOREIGN KEY (created_by) REFERENCES profiles(id);
-
 ALTER TABLE "public"."journal_entries" ADD CONSTRAINT "journal_entries_accounting_period_id_fkey" FOREIGN KEY (accounting_period_id) REFERENCES accounting_periods(id);
 
 ALTER TABLE "public"."journal_entries" ADD CONSTRAINT "journal_entries_adjustment_for_entry_id_fkey" FOREIGN KEY (adjustment_for_entry_id) REFERENCES journal_entries(id);
@@ -7118,18 +6579,6 @@ ALTER TABLE "public"."journal_sources14253" ADD CONSTRAINT "journal_sources14253
 
 ALTER TABLE "public"."legal_documents" ADD CONSTRAINT "legal_documents_uploaded_by_fkey" FOREIGN KEY (uploaded_by) REFERENCES profiles(id);
 
-ALTER TABLE "public"."menu_categories104" ADD CONSTRAINT "menu_categories104_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES profiles(id);
-
-ALTER TABLE "public"."menu_ingredients105" ADD CONSTRAINT "menu_ingredients105_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES profiles(id);
-
-ALTER TABLE "public"."menu_item_ingredients" ADD CONSTRAINT "menu_item_ingredients_inventory_item_id_fkey" FOREIGN KEY (inventory_item_id) REFERENCES inventory_items(id);
-
-ALTER TABLE "public"."menu_item_ingredients" ADD CONSTRAINT "menu_item_ingredients_menu_item_id_fkey" FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE;
-
-ALTER TABLE "public"."menu_items" ADD CONSTRAINT "menu_items_currency_code_fkey" FOREIGN KEY (currency_code) REFERENCES currencies(code);
-
-ALTER TABLE "public"."menu_items104" ADD CONSTRAINT "menu_items104_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES profiles(id);
-
 ALTER TABLE "public"."operation_receipts14228" ADD CONSTRAINT "operation_receipts14228_actor_id_fkey" FOREIGN KEY (actor_id) REFERENCES profiles(id);
 
 ALTER TABLE "public"."operational_reports" ADD CONSTRAINT "budget_request_parent14316" FOREIGN KEY (budget_request_id14316) REFERENCES operational_reports(id) ON DELETE RESTRICT;
@@ -7156,20 +6605,6 @@ ALTER TABLE "public"."period_findings" ADD CONSTRAINT "period_findings_reported_
 
 ALTER TABLE "public"."period_findings" ADD CONSTRAINT "period_findings_resolved_by_fkey" FOREIGN KEY (resolved_by) REFERENCES profiles(id);
 
-ALTER TABLE "public"."pos_cash118" ADD CONSTRAINT "pos_cash118_created_by_fkey" FOREIGN KEY (created_by) REFERENCES profiles(id);
-
-ALTER TABLE "public"."pos_cash118" ADD CONSTRAINT "pos_cash118_shift_id_fkey" FOREIGN KEY (shift_id) REFERENCES pos_shifts118(id);
-
-ALTER TABLE "public"."pos_orders118" ADD CONSTRAINT "pos_orders118_created_by_fkey" FOREIGN KEY (created_by) REFERENCES profiles(id);
-
-ALTER TABLE "public"."pos_shifts118" ADD CONSTRAINT "pos_shifts118_cashier_fkey" FOREIGN KEY (cashier) REFERENCES profiles(id);
-
-ALTER TABLE "public"."pos_stock118" ADD CONSTRAINT "pos_stock118_created_by_fkey" FOREIGN KEY (created_by) REFERENCES profiles(id);
-
-ALTER TABLE "public"."pos_stock118" ADD CONSTRAINT "pos_stock118_item_id_fkey" FOREIGN KEY (item_id) REFERENCES inventory_items104(id);
-
-ALTER TABLE "public"."pos_stock118" ADD CONSTRAINT "pos_stock118_order_id_fkey" FOREIGN KEY (order_id) REFERENCES pos_orders118(id);
-
 ALTER TABLE "public"."presentation_settings113" ADD CONSTRAINT "presentation_settings113_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES profiles(id);
 
 ALTER TABLE "public"."print_settings" ADD CONSTRAINT "print_settings_updated_by_fkey" FOREIGN KEY (updated_by) REFERENCES profiles(id);
@@ -7191,8 +6626,6 @@ ALTER TABLE "public"."recurring_transactions" ADD CONSTRAINT "recurring_transact
 ALTER TABLE "public"."recurring_transactions" ADD CONSTRAINT "recurring_transactions_currency_code_fkey" FOREIGN KEY (currency_code) REFERENCES currencies(code);
 
 ALTER TABLE "public"."recurring_transactions" ADD CONSTRAINT "recurring_transactions_debit_account_id_fkey" FOREIGN KEY (debit_account_id) REFERENCES accounts(id);
-
-ALTER TABLE "public"."restaurant_members121" ADD CONSTRAINT "restaurant_members121_user_id_fkey" FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 ALTER TABLE "public"."review_routes14229" ADD CONSTRAINT "review_routes14229_current_reviewer_fkey" FOREIGN KEY (current_reviewer) REFERENCES profiles(id);
 
@@ -7306,10 +6739,6 @@ CREATE INDEX entry_submissions_status_idx ON public.entry_submissions USING btre
 
 CREATE INDEX fund_adjustment_owner_status_idx ON public.fund_adjustment_requests USING btree (owner_id, status, submitted_at DESC);
 
-CREATE UNIQUE INDEX inventory_item_code104 ON public.inventory_items104 USING btree (lower((data ->> 'code'::text))) WHERE (COALESCE((data ->> 'code'::text), ''::text) <> ''::text);
-
-CREATE UNIQUE INDEX inventory_one_reversal108 ON public.inventory_movements104 USING btree (((data ->> 'reverses108'::text))) WHERE (data ? 'reverses108'::text);
-
 CREATE INDEX journal_entries_date_idx ON public.journal_entries USING btree (transaction_date DESC);
 
 CREATE INDEX journal_entries_correction_status_idx ON public.journal_entries USING btree (correction_status, transaction_date DESC);
@@ -7317,14 +6746,6 @@ CREATE INDEX journal_entries_correction_status_idx ON public.journal_entries USI
 CREATE INDEX journal_lines_entry_idx ON public.journal_lines USING btree (journal_entry_id);
 
 CREATE INDEX journal_lines_account_idx ON public.journal_lines USING btree (account_id);
-
-CREATE UNIQUE INDEX menu_category_code104 ON public.menu_categories104 USING btree (lower((data ->> 'code'::text))) WHERE (COALESCE((data ->> 'code'::text), ''::text) <> ''::text);
-
-CREATE UNIQUE INDEX menu_ingredient_code105 ON public.menu_ingredients105 USING btree (lower((data ->> 'code'::text))) WHERE (COALESCE((data ->> 'code'::text), ''::text) <> ''::text);
-
-CREATE UNIQUE INDEX menu_item_code104 ON public.menu_items104 USING btree (lower((data ->> 'code'::text))) WHERE (COALESCE((data ->> 'code'::text), ''::text) <> ''::text);
-
-CREATE UNIQUE INDEX menu_sales_product_date108 ON public.menu_sales108 USING btree (((data ->> 'productId'::text)), ((data ->> 'date'::text)));
 
 CREATE INDEX operational_reports_budget_parent14316 ON public.operational_reports USING btree (budget_request_id14316);
 
@@ -7400,8 +6821,6 @@ INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SEL
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"cashier_shift_tenders"}'::jsonb);
 
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["name"],"table_name":"catalog_installations106"}'::jsonb);
-
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"company_documents105"}'::jsonb);
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["code"],"table_name":"currencies"}'::jsonb);
@@ -7430,14 +6849,6 @@ INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SEL
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"installation14320"}'::jsonb);
 
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"inventory_items"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"inventory_items104"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"inventory_movements"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":["data","date"],"pk_columns":["id"],"table_name":"inventory_movements104"}'::jsonb);
-
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":["transaction_date"],"pk_columns":["id"],"table_name":"journal_entries"}'::jsonb);
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"journal_lines"}'::jsonb);
@@ -7445,18 +6856,6 @@ INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SEL
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["journal_line_id","source_line_id"],"table_name":"journal_sources14253"}'::jsonb);
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"legal_documents"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"menu_categories104"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"menu_ingredients105"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["menu_item_id","inventory_item_id"],"table_name":"menu_item_ingredients"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"menu_items"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"menu_items104"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":["data","date"],"pk_columns":["id"],"table_name":"menu_sales108"}'::jsonb);
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"opening_state14234"}'::jsonb);
 
@@ -7474,16 +6873,6 @@ INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SEL
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"period_findings"}'::jsonb);
 
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"pos_cash118"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"pos_config118"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"pos_orders118"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"pos_shifts118"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"pos_stock118"}'::jsonb);
-
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["area"],"table_name":"presentation_settings113"}'::jsonb);
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"print_settings"}'::jsonb);
@@ -7495,8 +6884,6 @@ INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SEL
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"recurring_transactions"}'::jsonb);
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["id"],"table_name":"report_types14253"}'::jsonb);
-
-INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["user_id"],"table_name":"restaurant_members121"}'::jsonb);
 
 INSERT INTO public.backup_registry113("date_path","pk_columns","table_name") SELECT "date_path","pk_columns","table_name" FROM jsonb_populate_record(NULL::public.backup_registry113,'{"date_path":null,"pk_columns":["journal_id"],"table_name":"review_routes14229"}'::jsonb);
 
@@ -7659,10 +7046,6 @@ REVOKE ALL ON TABLE "public"."cashier_shift_tenders" FROM PUBLIC,anon,authentica
 
 ALTER TABLE "public"."cashier_shift_tenders" ENABLE ROW LEVEL SECURITY;
 
-REVOKE ALL ON TABLE "public"."catalog_installations106" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."catalog_installations106" ENABLE ROW LEVEL SECURITY;
-
 REVOKE ALL ON TABLE "public"."company_documents105" FROM PUBLIC,anon,authenticated,service_role;
 
 ALTER TABLE "public"."company_documents105" ENABLE ROW LEVEL SECURITY;
@@ -7719,22 +7102,6 @@ REVOKE ALL ON TABLE "public"."installation14320" FROM PUBLIC,anon,authenticated,
 
 ALTER TABLE "public"."installation14320" ENABLE ROW LEVEL SECURITY;
 
-REVOKE ALL ON TABLE "public"."inventory_items" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."inventory_items" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."inventory_items104" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."inventory_items104" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."inventory_movements" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."inventory_movements" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."inventory_movements104" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."inventory_movements104" ENABLE ROW LEVEL SECURITY;
-
 REVOKE ALL ON TABLE "public"."journal_entries" FROM PUBLIC,anon,authenticated,service_role;
 
 ALTER TABLE "public"."journal_entries" ENABLE ROW LEVEL SECURITY;
@@ -7750,30 +7117,6 @@ ALTER TABLE "public"."journal_sources14253" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE "public"."legal_documents" FROM PUBLIC,anon,authenticated,service_role;
 
 ALTER TABLE "public"."legal_documents" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."menu_categories104" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."menu_categories104" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."menu_ingredients105" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."menu_ingredients105" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."menu_item_ingredients" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."menu_item_ingredients" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."menu_items" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."menu_items" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."menu_items104" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."menu_items104" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."menu_sales108" FROM PUBLIC,anon,authenticated,service_role;
-
-ALTER TABLE "public"."menu_sales108" ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON TABLE "public"."opening_state14234" FROM PUBLIC,anon,authenticated,service_role;
 
@@ -7806,16 +7149,6 @@ ALTER TABLE "public"."payroll_runs" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE "public"."period_findings" FROM PUBLIC,anon,authenticated,service_role;
 
 ALTER TABLE "public"."period_findings" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."pos_cash118" FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON TABLE "public"."pos_config118" FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON TABLE "public"."pos_orders118" FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON TABLE "public"."pos_shifts118" FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON TABLE "public"."pos_stock118" FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON TABLE "public"."presentation_settings113" FROM PUBLIC,anon,authenticated,service_role;
 
@@ -7868,8 +7201,6 @@ ALTER TABLE "public"."recurring_transactions" ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE "public"."report_types14253" FROM PUBLIC,anon,authenticated,service_role;
 
 ALTER TABLE "public"."report_types14253" ENABLE ROW LEVEL SECURITY;
-
-REVOKE ALL ON TABLE "public"."restaurant_members121" FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON TABLE "public"."review_routes14229" FROM PUBLIC,anon,authenticated,service_role;
 
@@ -8045,8 +7376,6 @@ REVOKE ALL ON FUNCTION capture_report_funds14254() FROM PUBLIC,anon,authenticate
 
 REVOKE ALL ON FUNCTION check_ledger_entry14228(uuid) FROM PUBLIC,anon,authenticated,service_role;
 
-REVOKE ALL ON FUNCTION check_workspace_request123() FROM PUBLIC,anon,authenticated,service_role;
-
 REVOKE ALL ON FUNCTION close_opening_setup14234() FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION close_year136(integer,text,text) FROM PUBLIC,anon,authenticated,service_role;
@@ -8095,17 +7424,11 @@ REVOKE ALL ON FUNCTION guard_payroll_report_record83() FROM PUBLIC,anon,authenti
 
 REVOKE ALL ON FUNCTION guard_period_ack14317() FROM PUBLIC,anon,authenticated,service_role;
 
-REVOKE ALL ON FUNCTION guard_sales108() FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON FUNCTION guard_separate_members123() FROM PUBLIC,anon,authenticated,service_role;
-
 REVOKE ALL ON FUNCTION handle_new_user() FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION has_user_permission(text) FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION in_branch14229(uuid) FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON FUNCTION install_catalog106() FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION installation_status14320() FROM PUBLIC,anon,authenticated,service_role;
 
@@ -8189,8 +7512,6 @@ REVOKE ALL ON FUNCTION protect_todo1443() FROM PUBLIC,anon,authenticated,service
 
 REVOKE ALL ON FUNCTION provisioned_account14320(uuid,text) FROM PUBLIC,anon,authenticated,service_role;
 
-REVOKE ALL ON FUNCTION recipe_view113() FROM PUBLIC,anon,authenticated,service_role;
-
 REVOKE ALL ON FUNCTION recovery_attempt14320(uuid) FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION reject_entry_submission(uuid,text) FROM PUBLIC,anon,authenticated,service_role;
@@ -8218,10 +7539,6 @@ REVOKE ALL ON FUNCTION reset_scope_catalog14232() FROM PUBLIC,anon,authenticated
 REVOKE ALL ON FUNCTION reset_scope_tables14232(text[]) FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION resolve_audit_review136(uuid,uuid) FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON FUNCTION restaurant_can121(text,text) FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON FUNCTION restaurant_signed_in121() FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION return_fund_adjustment_v49(uuid,text) FROM PUBLIC,anon,authenticated,service_role;
 
@@ -8274,8 +7591,6 @@ REVOKE ALL ON FUNCTION staff_report1434(uuid) FROM PUBLIC,anon,authenticated,ser
 REVOKE ALL ON FUNCTION staff_rules14228() FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION stage_book_operation136(uuid,text,jsonb) FROM PUBLIC,anon,authenticated,service_role;
-
-REVOKE ALL ON FUNCTION stamp_inventory_menu104() FROM PUBLIC,anon,authenticated,service_role;
 
 REVOKE ALL ON FUNCTION stamp_workspace105() FROM PUBLIC,anon,authenticated,service_role;
 
@@ -8487,14 +7802,6 @@ CREATE POLICY "password_gate14257" ON "public"."cashier_shift_tenders" AS RESTRI
 
 CREATE POLICY "workspace_accounting123" ON "public"."cashier_shift_tenders" AS RESTRICTIVE FOR ALL TO "authenticated" USING (accounting_workspace_allowed123()) WITH CHECK (accounting_workspace_allowed123());
 
-CREATE POLICY "active_account14228" ON "public"."catalog_installations106" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_catalog106" ON "public"."catalog_installations106" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."catalog_installations106" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "workspace_accounting123" ON "public"."catalog_installations106" AS RESTRICTIVE FOR ALL TO "authenticated" USING (accounting_workspace_allowed123()) WITH CHECK (accounting_workspace_allowed123());
-
 CREATE POLICY "active_account14228" ON "public"."company_documents105" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
 
 CREATE POLICY "admin_documents1443" ON "public"."company_documents105" AS RESTRICTIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
@@ -8613,34 +7920,6 @@ CREATE POLICY "password_gate14257" ON "public"."installation14320" AS RESTRICTIV
 
 CREATE POLICY "workspace_accounting123" ON "public"."installation14320" AS RESTRICTIVE FOR ALL TO "authenticated" USING (accounting_workspace_allowed123()) WITH CHECK (accounting_workspace_allowed123());
 
-CREATE POLICY "active_account14228" ON "public"."inventory_items" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_all_inventory_items" ON "public"."inventory_items" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."inventory_items" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "workspace_accounting123" ON "public"."inventory_items" AS RESTRICTIVE FOR ALL TO "authenticated" USING (accounting_workspace_allowed123()) WITH CHECK (accounting_workspace_allowed123());
-
-CREATE POLICY "active_account14228" ON "public"."inventory_items104" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_records104" ON "public"."inventory_items104" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."inventory_items104" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "active_account14228" ON "public"."inventory_movements" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_all_inventory_movements" ON "public"."inventory_movements" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."inventory_movements" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "workspace_accounting123" ON "public"."inventory_movements" AS RESTRICTIVE FOR ALL TO "authenticated" USING (accounting_workspace_allowed123()) WITH CHECK (accounting_workspace_allowed123());
-
-CREATE POLICY "active_account14228" ON "public"."inventory_movements104" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_records104" ON "public"."inventory_movements104" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."inventory_movements104" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
 CREATE POLICY "active_account14228" ON "public"."journal_entries" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
 
 CREATE POLICY "admin_all_journal_entries" ON "public"."journal_entries" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
@@ -8691,46 +7970,6 @@ CREATE POLICY "admin_all_legal_documents" ON "public"."legal_documents" AS PERMI
 CREATE POLICY "password_gate14257" ON "public"."legal_documents" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
 
 CREATE POLICY "workspace_accounting123" ON "public"."legal_documents" AS RESTRICTIVE FOR ALL TO "authenticated" USING (accounting_workspace_allowed123()) WITH CHECK (accounting_workspace_allowed123());
-
-CREATE POLICY "active_account14228" ON "public"."menu_categories104" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_records104" ON "public"."menu_categories104" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."menu_categories104" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "active_account14228" ON "public"."menu_ingredients105" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_workspace105" ON "public"."menu_ingredients105" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."menu_ingredients105" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "active_account14228" ON "public"."menu_item_ingredients" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_all_menu_item_ingredients" ON "public"."menu_item_ingredients" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."menu_item_ingredients" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "workspace_accounting123" ON "public"."menu_item_ingredients" AS RESTRICTIVE FOR ALL TO "authenticated" USING (accounting_workspace_allowed123()) WITH CHECK (accounting_workspace_allowed123());
-
-CREATE POLICY "active_account14228" ON "public"."menu_items" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_all_menu_items" ON "public"."menu_items" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."menu_items" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "workspace_accounting123" ON "public"."menu_items" AS RESTRICTIVE FOR ALL TO "authenticated" USING (accounting_workspace_allowed123()) WITH CHECK (accounting_workspace_allowed123());
-
-CREATE POLICY "active_account14228" ON "public"."menu_items104" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_records104" ON "public"."menu_items104" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."menu_items104" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
-
-CREATE POLICY "active_account14228" ON "public"."menu_sales108" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
-
-CREATE POLICY "admin_sales108" ON "public"."menu_sales108" AS PERMISSIVE FOR ALL TO "authenticated" USING (is_admin()) WITH CHECK (is_admin());
-
-CREATE POLICY "password_gate14257" ON "public"."menu_sales108" AS RESTRICTIVE FOR ALL TO "authenticated" USING ((NOT password_change_required14257())) WITH CHECK ((NOT password_change_required14257()));
 
 CREATE POLICY "active_account14228" ON "public"."opening_state14234" AS RESTRICTIVE FOR ALL TO "authenticated" USING (active_account14228()) WITH CHECK (active_account14228());
 
@@ -9245,10 +8484,6 @@ GRANT SELECT ON TABLE "public"."cashier_shift_tenders" TO "authenticated";
 
 GRANT UPDATE ON TABLE "public"."cashier_shift_tenders" TO "authenticated";
 
-GRANT INSERT ON TABLE "public"."catalog_installations106" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."catalog_installations106" TO "authenticated";
-
 GRANT INSERT ON TABLE "public"."company_documents105" TO "authenticated";
 
 GRANT SELECT ON TABLE "public"."company_documents105" TO "authenticated";
@@ -9321,34 +8556,6 @@ GRANT SELECT ON TABLE "public"."hr_calendar_settings14306" TO "authenticated";
 
 GRANT UPDATE ON TABLE "public"."hr_calendar_settings14306" TO "authenticated";
 
-GRANT DELETE ON TABLE "public"."inventory_items" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."inventory_items" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."inventory_items" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."inventory_items" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."inventory_items104" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."inventory_items104" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."inventory_items104" TO "authenticated";
-
-GRANT DELETE ON TABLE "public"."inventory_movements" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."inventory_movements" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."inventory_movements" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."inventory_movements" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."inventory_movements104" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."inventory_movements104" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."inventory_movements104" TO "authenticated";
-
 GRANT DELETE ON TABLE "public"."journal_entries" TO "authenticated";
 
 GRANT INSERT ON TABLE "public"."journal_entries" TO "authenticated";
@@ -9378,48 +8585,6 @@ GRANT INSERT ON TABLE "public"."legal_documents" TO "authenticated";
 GRANT SELECT ON TABLE "public"."legal_documents" TO "authenticated";
 
 GRANT UPDATE ON TABLE "public"."legal_documents" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."menu_categories104" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."menu_categories104" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."menu_categories104" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."menu_ingredients105" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."menu_ingredients105" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."menu_ingredients105" TO "authenticated";
-
-GRANT DELETE ON TABLE "public"."menu_item_ingredients" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."menu_item_ingredients" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."menu_item_ingredients" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."menu_item_ingredients" TO "authenticated";
-
-GRANT DELETE ON TABLE "public"."menu_items" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."menu_items" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."menu_items" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."menu_items" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."menu_items104" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."menu_items104" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."menu_items104" TO "authenticated";
-
-GRANT DELETE ON TABLE "public"."menu_sales108" TO "authenticated";
-
-GRANT INSERT ON TABLE "public"."menu_sales108" TO "authenticated";
-
-GRANT SELECT ON TABLE "public"."menu_sales108" TO "authenticated";
-
-GRANT UPDATE ON TABLE "public"."menu_sales108" TO "authenticated";
 
 GRANT INSERT ON TABLE "public"."operational_reports" TO "authenticated";
 
@@ -9793,10 +8958,6 @@ GRANT EXECUTE ON FUNCTION cancel_scheduled_posting93(uuid,text) TO "authenticate
 
 GRANT EXECUTE ON FUNCTION capture_report_funds14254() TO "service_role";
 
-GRANT EXECUTE ON FUNCTION check_workspace_request123() TO "authenticated";
-
-GRANT EXECUTE ON FUNCTION check_workspace_request123() TO "service_role";
-
 GRANT EXECUTE ON FUNCTION close_opening_setup14234() TO "authenticated";
 
 GRANT EXECUTE ON FUNCTION close_opening_setup14234() TO "service_role";
@@ -9855,10 +9016,6 @@ GRANT EXECUTE ON FUNCTION guard_payroll_report_record83() TO "service_role";
 
 GRANT EXECUTE ON FUNCTION guard_period_ack14317() TO "service_role";
 
-GRANT EXECUTE ON FUNCTION guard_sales108() TO "authenticated";
-
-GRANT EXECUTE ON FUNCTION guard_sales108() TO "service_role";
-
 GRANT EXECUTE ON FUNCTION handle_new_user() TO "authenticated";
 
 GRANT EXECUTE ON FUNCTION handle_new_user() TO "service_role";
@@ -9868,8 +9025,6 @@ GRANT EXECUTE ON FUNCTION has_user_permission(text) TO "authenticated";
 GRANT EXECUTE ON FUNCTION in_branch14229(uuid) TO "authenticated";
 
 GRANT EXECUTE ON FUNCTION in_branch14229(uuid) TO "service_role";
-
-GRANT EXECUTE ON FUNCTION install_catalog106() TO "authenticated";
 
 GRANT EXECUTE ON FUNCTION installation_status14320() TO "authenticated";
 
@@ -9965,8 +9120,6 @@ GRANT EXECUTE ON FUNCTION protect_todo1443() TO "service_role";
 
 GRANT EXECUTE ON FUNCTION provisioned_account14320(uuid,text) TO "service_role";
 
-GRANT EXECUTE ON FUNCTION recipe_view113() TO "authenticated";
-
 GRANT EXECUTE ON FUNCTION recovery_attempt14320(uuid) TO "service_role";
 
 GRANT EXECUTE ON FUNCTION reject_entry_submission(uuid,text) TO "authenticated";
@@ -9998,10 +9151,6 @@ GRANT EXECUTE ON FUNCTION reset_scope_catalog14232() TO "service_role";
 GRANT EXECUTE ON FUNCTION reset_scope_tables14232(text[]) TO "service_role";
 
 GRANT EXECUTE ON FUNCTION resolve_audit_review136(uuid,uuid) TO "authenticated";
-
-GRANT EXECUTE ON FUNCTION restaurant_can121(text,text) TO "authenticated";
-
-GRANT EXECUTE ON FUNCTION restaurant_signed_in121() TO "authenticated";
 
 GRANT EXECUTE ON FUNCTION return_fund_adjustment_v49(uuid,text) TO "authenticated";
 
@@ -10072,10 +9221,6 @@ GRANT EXECUTE ON FUNCTION snapshot_scheduled_occurrence92() TO "service_role";
 GRANT EXECUTE ON FUNCTION staff_report1434(uuid) TO "authenticated";
 
 GRANT EXECUTE ON FUNCTION stage_book_operation136(uuid,text,jsonb) TO "authenticated";
-
-GRANT EXECUTE ON FUNCTION stamp_inventory_menu104() TO "authenticated";
-
-GRANT EXECUTE ON FUNCTION stamp_inventory_menu104() TO "service_role";
 
 GRANT EXECUTE ON FUNCTION stamp_workspace105() TO "authenticated";
 
@@ -10225,16 +9370,6 @@ CREATE TRIGGER guard_hr_calendar14306 BEFORE INSERT OR UPDATE ON public.hr_calen
 
 CREATE TRIGGER guard_hr_calendar14306 BEFORE INSERT OR UPDATE ON public.hr_calendar_settings14306 FOR EACH ROW EXECUTE FUNCTION guard_hr_calendar14306();
 
-CREATE TRIGGER action_guard113 BEFORE INSERT OR DELETE OR UPDATE ON public.inventory_items104 FOR EACH ROW EXECUTE FUNCTION guard_actions113('inv-items');
-
-CREATE TRIGGER guard_delete108 BEFORE DELETE ON public.inventory_items104 FOR EACH ROW EXECUTE FUNCTION guard_delete108();
-
-CREATE TRIGGER inventory_items_guard104 BEFORE INSERT OR UPDATE ON public.inventory_items104 FOR EACH ROW EXECUTE FUNCTION stamp_inventory_menu104();
-
-CREATE TRIGGER action_guard113 BEFORE INSERT OR DELETE OR UPDATE ON public.inventory_movements104 FOR EACH ROW EXECUTE FUNCTION guard_actions113('inv-stock-in');
-
-CREATE TRIGGER inventory_movements_guard104 BEFORE INSERT OR DELETE OR UPDATE ON public.inventory_movements104 FOR EACH ROW EXECUTE FUNCTION stamp_inventory_menu104();
-
 CREATE TRIGGER action_guard113 BEFORE INSERT OR DELETE OR UPDATE ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION guard_actions113('journal');
 
 CREATE TRIGGER close_opening_setup14234 AFTER INSERT ON public.journal_entries FOR EACH STATEMENT EXECUTE FUNCTION close_opening_setup14234();
@@ -10260,26 +9395,6 @@ CREATE TRIGGER ojm_postable_journal_20260929 BEFORE INSERT OR UPDATE ON public.j
 CREATE TRIGGER scheduled_line_change91 AFTER INSERT OR DELETE OR UPDATE ON public.journal_lines FOR EACH ROW EXECUTE FUNCTION unreview_scheduled_journal91();
 
 CREATE TRIGGER workspace_actor_log138 AFTER INSERT OR DELETE OR UPDATE ON public.journal_lines FOR EACH ROW EXECUTE FUNCTION workspace_actor_log138();
-
-CREATE TRIGGER action_guard113 BEFORE INSERT OR DELETE OR UPDATE ON public.menu_categories104 FOR EACH ROW EXECUTE FUNCTION guard_actions113('menu-categories');
-
-CREATE TRIGGER guard_delete108 BEFORE DELETE ON public.menu_categories104 FOR EACH ROW EXECUTE FUNCTION guard_delete108();
-
-CREATE TRIGGER action_guard113 BEFORE INSERT OR DELETE OR UPDATE ON public.menu_ingredients105 FOR EACH ROW EXECUTE FUNCTION guard_actions113('menu-ingredients');
-
-CREATE TRIGGER guard_delete108 BEFORE DELETE ON public.menu_ingredients105 FOR EACH ROW EXECUTE FUNCTION guard_delete108();
-
-CREATE TRIGGER stamp_workspace105 BEFORE INSERT OR UPDATE ON public.menu_ingredients105 FOR EACH ROW EXECUTE FUNCTION stamp_workspace105();
-
-CREATE TRIGGER action_guard113 BEFORE INSERT OR DELETE OR UPDATE ON public.menu_items104 FOR EACH ROW EXECUTE FUNCTION guard_actions113('menu-recipe');
-
-CREATE TRIGGER guard_delete108 BEFORE DELETE ON public.menu_items104 FOR EACH ROW EXECUTE FUNCTION guard_delete108();
-
-CREATE TRIGGER menu_items_guard104 BEFORE INSERT OR UPDATE ON public.menu_items104 FOR EACH ROW EXECUTE FUNCTION stamp_inventory_menu104();
-
-CREATE TRIGGER guard_delete108 BEFORE DELETE ON public.menu_sales108 FOR EACH ROW EXECUTE FUNCTION guard_delete108();
-
-CREATE TRIGGER guard_sales108 BEFORE INSERT OR UPDATE ON public.menu_sales108 FOR EACH ROW EXECUTE FUNCTION guard_sales108();
 
 CREATE TRIGGER budget_link_guard14316 BEFORE INSERT OR UPDATE ON public.operational_reports FOR EACH ROW EXECUTE FUNCTION budget_link_guard14316();
 
@@ -10310,8 +9425,6 @@ CREATE TRIGGER guard_record83 BEFORE INSERT OR UPDATE ON public.payroll_runs FOR
 CREATE TRIGGER workspace_actor_log138 AFTER INSERT OR DELETE OR UPDATE ON public.payroll_runs FOR EACH ROW EXECUTE FUNCTION workspace_actor_log138();
 
 CREATE TRIGGER workspace_actor_log138 AFTER INSERT OR DELETE OR UPDATE ON public.period_findings FOR EACH ROW EXECUTE FUNCTION workspace_actor_log138();
-
-CREATE TRIGGER guard_separate_members123 BEFORE INSERT OR UPDATE ON public.restaurant_members121 FOR EACH ROW EXECUTE FUNCTION guard_separate_members123();
 
 CREATE TRIGGER scheduled_occurrence_snapshot92 BEFORE INSERT ON public.scheduled_journal_occurrences FOR EACH ROW EXECUTE FUNCTION snapshot_scheduled_occurrence92();
 
@@ -10354,8 +9467,6 @@ CREATE TRIGGER sync_subaccount_delete14285 AFTER DELETE ON public.sub_accounts F
 CREATE TRIGGER sync_subaccount_write14285 BEFORE INSERT OR UPDATE ON public.sub_accounts FOR EACH ROW EXECUTE FUNCTION sync_subaccount_posting14285();
 
 CREATE TRIGGER guard_ledger_assignment14281 BEFORE INSERT OR UPDATE ON public.user_permissions FOR EACH ROW EXECUTE FUNCTION guard_ledger_assignment14281();
-
-CREATE TRIGGER guard_separate_members123 BEFORE INSERT OR UPDATE ON public.user_permissions FOR EACH ROW EXECUTE FUNCTION guard_separate_members123();
 
 CREATE TRIGGER organization_structure14229 BEFORE INSERT OR UPDATE ON public.user_permissions FOR EACH ROW EXECUTE FUNCTION organization_guard14229();
 
