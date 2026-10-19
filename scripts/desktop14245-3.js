@@ -207,6 +207,20 @@ const payrollTaxSettings = (() => {
       if (!loaded) { try { const cached = JSON.parse(localStorage.getItem(key()) || 'null'); if (cached?.data?.payroll && cached?.data?.tax) apply(cached); } catch (_) {} }
       throw Error('Shared payroll and tax settings could not be refreshed. ' + result.error.message);
     }
+    if (!result.data) {
+      const data={payroll:structuredClone(ApplicationSettings.payroll),tax:structuredClone(ApplicationSettings.tax)};
+      payrollConfig82(data);
+      const created=await c.db.from('payroll_tax_settings').insert({id:true,data,version:1,updated_by:c.actor,updated_at:new Date().toISOString()}).select('*');c.check();
+      if (created.error) {
+        if (created.error.code!=='23505') throw Error('Payroll and tax settings could not be initialized. '+created.error.message);
+        const winner=await c.db.from('payroll_tax_settings').select('*').eq('id',true).maybeSingle();c.check();
+        if(winner.error||!winner.data)throw Error('Shared settings initialization could not be verified. Retry while connected.');
+        result.data=winner.data;
+      } else {
+        if(created.data?.length!==1)throw Error('Shared settings initialization was not confirmed.');
+        result.data=created.data[0];
+      }
+    }
     loaded = true; row = result.data;
     if (row) apply(row);
     return row;
@@ -6027,7 +6041,7 @@ const audit82=[
  ['System','dateFormat, numberFormat','Connected','Report numbers and date labels. Native calendar controls follow browser locale. Visible full-date labels follow the saved System date format.'],
  ['System','defaultLandingPage','Connected','Used for fresh desktop sign-ins; valid saved sessions resume their workspace. Phone workspace navigation stays unchanged.'],
  ['Business / Access','Business information, account permissions','Existing integration','Business identity is used in printing. Existing Supabase authentication/permissions remain. New payroll/report records require an administrator.'],
- ['Storage','Payroll / Statutory settings','Shared database','Payroll and tax settings use one versioned database record. Save existing settings once to initialize it. Finalization verifies that configuration and preserves the applied snapshot. Other settings retain their existing storage.']
+ ['Storage','Payroll / Statutory settings','Shared database','Payroll and tax settings use one versioned database record. Existing settings migrate automatically on the first connected administrator sign-in. Finalization verifies that configuration and preserves the applied snapshot. Other settings retain their existing storage.']
 ];
 function auditHtml82(){return `<p>Settings usage in payroll and operational reports. This reference does not verify the live database installation or replace transaction reconciliation.</p>`+table82(['Area','Settings','Integration','Behavior / limits'],audit82.map(r=>r.map(esc82)))+`<p>Ledger reports use recorded transactions. Leave, attendance, explanations, POS totals and financing requests require their own saved records. Finalized payroll retains its applied settings snapshot.</p><p>For a new database, follow the fresh installation guide. Existing databases use only their required forward updates; never replay the fresh installer on an existing company.</p>`}
 function renderSettingsAudit82(){mount82('settings-integration82','Settings Integration Reference','How settings are used and which actions remain manual.',auditHtml82(),'<a class="download82" href="docs/README.txt" download>Documentation Guide</a><a class="download82" href="setup/fresh/START-HERE.md" download>New Database Setup</a>'+action82('Print Reference',"print82('Settings Integration Reference',auditHtml82(),today82())"))}

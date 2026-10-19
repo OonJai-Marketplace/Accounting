@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.120',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.121',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/operational-reset143108.js?v=143.109",
  "scripts/undo143103.js?v=143.109",
@@ -19,12 +19,12 @@ const FILES=[
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.117",
- "scripts/desktop14245-3.js?v=143.120",
+ "scripts/desktop14245-3.js?v=143.121",
  "scripts/desktop14245-4.js?v=143.119",
  "scripts/desktop14245-5.js?v=143.117",
  "scripts/desktop14245-6.js?v=143.118",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.120",
+ "scripts/offline14239.js?v=143.121",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -83,7 +83,7 @@ const FILES=[
  "scripts/account-security14257.js?v=143.70",
  "scripts/startup14257.js?v=143.79",
  "scripts/numeric-caret14257.js?v=142.57",
- "scripts/entry-number14257.js?v=143.120",
+ "scripts/entry-number14257.js?v=143.121",
  "styles/layout14256.css?v=142.76",
  "scripts/auto-sync14256.js?v=143.51-sync1",
  "scripts/workflow14253.js?v=143.83",
@@ -204,7 +204,7 @@ const FILES=[
  "styles/feedback-viewport14295.css?v=142.95",
  "scripts/desktop-corrections-v80.js?v=143.70",
  "scripts/payroll-polish-v97.js?v=143.70",
- "scripts/script.js?v=143.120",
+ "scripts/script.js?v=143.121",
  "scripts/transactions-v67.js?v=143.117",
  "scripts/workflows-v136.js?v=143.113",
  "scripts/workspace-consistency14343.js?v=143.109",
@@ -235,7 +235,7 @@ const FILES=[
  "scripts/opening-balances14234.js?v=143.113",
  "scripts/dashboard-warm-v112.js?v=143.70",
  "scripts/payroll-groups-v96.js?v=143.113",
- "scripts/payroll-reports-v82.js?v=143.117",
+ "scripts/payroll-reports-v82.js?v=143.121",
  "scripts/reports-system-v71.js?v=143.109",
  "scripts/reports-v118.js?v=143.117",
  "scripts/scheduled-journals-v91.js?v=143.70",

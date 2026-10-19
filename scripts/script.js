@@ -180,6 +180,20 @@ const payrollTaxSettings = (() => {
       if (!loaded) { try { const cached = JSON.parse(localStorage.getItem(key()) || 'null'); if (cached?.data?.payroll && cached?.data?.tax) apply(cached); } catch (_) {} }
       throw Error('Shared payroll and tax settings could not be refreshed. ' + result.error.message);
     }
+    if (!result.data) {
+      const data={payroll:structuredClone(ApplicationSettings.payroll),tax:structuredClone(ApplicationSettings.tax)};
+      payrollConfig82(data);
+      const created=await c.db.from('payroll_tax_settings').insert({id:true,data,version:1,updated_by:c.actor,updated_at:new Date().toISOString()}).select('*');c.check();
+      if (created.error) {
+        if (created.error.code!=='23505') throw Error('Payroll and tax settings could not be initialized. '+created.error.message);
+        const winner=await c.db.from('payroll_tax_settings').select('*').eq('id',true).maybeSingle();c.check();
+        if(winner.error||!winner.data)throw Error('Shared settings initialization could not be verified. Retry while connected.');
+        result.data=winner.data;
+      } else {
+        if(created.data?.length!==1)throw Error('Shared settings initialization was not confirmed.');
+        result.data=created.data[0];
+      }
+    }
     loaded = true; row = result.data;
     if (row) apply(row);
     return row;

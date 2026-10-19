@@ -15,7 +15,7 @@ BEGIN
  SELECT eid,ord,a,d,'Rollback test','LAK',(l->>'debit')::numeric,(l->>'credit')::numeric FROM (VALUES(older),(latest)) e(eid) CROSS JOIN jsonb_array_elements(lines) WITH ORDINALITY x(l,ord);
  PERFORM public.void_journal_entry(older,'Rollback older test');
  DELETE FROM public.audit_log WHERE table_name='journal_entries' AND record_id=older::text;
- IF EXISTS(SELECT 1 FROM private.reusable_journal_ids143120 WHERE entry_no=oldn) THEN RAISE EXCEPTION 'Older ID incorrectly released';END IF;
+ IF NOT EXISTS(SELECT 1 FROM private.reusable_journal_ids143120 WHERE entry_no=oldn) THEN RAISE EXCEPTION 'Older ID was not released';END IF;
  PERFORM public.void_journal_entry(latest,'Rollback latest test');
  INSERT INTO public.audit_log(table_name,record_id,action,reason,actor_id) VALUES('journal_entries',latest::text,'POST','Retain until final deletion test',auth.uid());
  DELETE FROM public.audit_log WHERE table_name='journal_entries' AND record_id=latest::text AND action='VOID';
@@ -23,13 +23,19 @@ BEGIN
  DELETE FROM public.audit_log WHERE table_name='journal_entries' AND record_id=latest::text;
  IF EXISTS(SELECT 1 FROM public.journal_entries WHERE id=latest) OR NOT EXISTS(SELECT 1 FROM private.reusable_journal_ids143120 WHERE entry_no=n) THEN RAISE EXCEPTION 'Final audit deletion did not release latest';END IF;
  IF NOT EXISTS(SELECT 1 FROM public.record_deletions108 WHERE record_id=latest) THEN RAISE EXCEPTION 'Deletion archive lost';END IF;
+ PERFORM public.select_available_journal_id143121(n,d,'TESTID',6);
  IF public.preview_journal_number143114(d,'TESTID',6)<>888002 THEN RAISE EXCEPTION 'Preview mismatch';END IF;
  SELECT * INTO posted FROM public.post_manual_worker14228(d,'Rollback replacement',lines,'TESTID',6);
  IF posted.entry_no<>n OR posted.entry_id=latest THEN RAISE EXCEPTION 'Reuse must keep display ID and issue a fresh internal UUID';END IF;
  IF EXISTS(SELECT 1 FROM private.reusable_journal_ids143120 WHERE entry_no=n) THEN RAISE EXCEPTION 'Claimed ID still available';END IF;
+ BEGIN
+ PERFORM public.select_available_journal_id143121(n,d,'TESTID',6);
+ RAISE EXCEPTION 'TEST occupied ID accepted';
+ EXCEPTION WHEN OTHERS THEN IF SQLERRM NOT LIKE 'ID is unavailable.%' THEN RAISE; END IF; END;
+ IF public.preview_journal_number143114(d,'TESTID',6)<>888001 THEN RAISE EXCEPTION 'Older available ID not next'; END IF;
  IF public.preview_journal_number143114(d,'TESTID',6)=888002 THEN RAISE EXCEPTION 'Used ID offered again';END IF;
  IF (SELECT last_value FROM public.journal_entry_number_seq)<>before_seq THEN RAISE EXCEPTION 'Reuse consumed sequence';END IF;
  SET CONSTRAINTS ALL IMMEDIATE;
 END $$;
-SELECT 'PASS: older ID protected, audit-retained ID protected, final deletion releases latest, archive kept, preview matches, replacement UUID distinct, no sequence reset' result;
+SELECT 'PASS: older ID available, manual next selection, occupied ID rejected, audit-retained ID protected, final deletion releases latest, archive kept, preview matches, replacement UUID distinct, no sequence reset' result;
 ROLLBACK;
