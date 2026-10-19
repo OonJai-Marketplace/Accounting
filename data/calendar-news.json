@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-16",
+  "checkedAt": "2026-10-19",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -735,19 +735,24 @@
     },
     {
       "id": "la-2026-korea-lifestyle-clozer-vientiane",
-      "revision": "2026-10-14T00:46:41Z",
-      "title": "CLOZER performance at Korea Lifestyle Festival 2026",
-      "location": "Parkson shopping mall, Vientiane city, Vientiane Capital, Laos; exact stage or floor not specified",
+      "revision": "2026-10-19T01:12:27Z",
+      "title": "Korea Lifestyle Festival 2026 · Food, products and culture",
+      "location": "First floor, Parkson Shopping Center, Vientiane Capital, Laos",
       "start": "2026-10-23",
-      "end": "2026-10-23",
-      "category": "community",
+      "end": "2026-10-24",
+      "category": "food",
       "confidence": "confirmed",
-      "summary": "Vientiane Times announces that Lao band CLOZER will perform at Korea Lifestyle Festival 2026 at Parkson shopping mall on 23 October. This proposal covers the announced performance date only. As of 14 October: 9 days ahead; shorter than six months’ notice.",
-      "uncertainty": "The accessible 14 October newspaper preview gives the performance date and mall but not the time, stage, admission rules or full festival date range. The full article is subscription-only and was not reviewed. Do not treat this one-day proposal as the entire festival schedule.",
-      "restaurantIdea": "Suggestion: If serving Vientiane customers, confirm performance time, access and promotion permissions this week, then consider a small pre-show takeaway or meal offer without assuming attendance or increasing stock substantially.",
+      "summary": "KPL confirms the two-day festival on 23–24 October, bringing together more than 60 Korean companies and brands with Korean products, food, beauty items and cultural activities. More than 25 Lao–Korean restaurants are listed, with special festival menus; programme highlights include K-pop dance and music contests, performances, workshops and an eating competition. Vientiane Times separately previews Lao band CLOZER performing on 23 October.",
+      "uncertainty": "KPL confirms the dates and first-floor Parkson venue. Daily opening hours, admission rules, CLOZER’s performance time, and permission for non-participating restaurants to promote nearby offers remain unverified. The full festival date range comes from KPL; the Vientiane Times preview mentions CLOZER on 23 October only.",
+      "restaurantIdea": "Suggestion: Shorter notice—4 days until opening as of 19 October 2026. If serving Vientiane customers, check access and public hours immediately. Because many restaurants are participating, assess whether a modest nearby takeaway offer or a future collaboration is practical; confirm permission and avoid assuming extra demand.",
       "sources": [
         {
-          "name": "Vientiane Times · Public Art & Culture preview, 14 October 2026",
+          "name": "KPL · Lao News Agency, 16 October 2026",
+          "url": "https://kpl.gov.la/en/detail.aspx?id=109186",
+          "language": "en"
+        },
+        {
+          "name": "Vientiane Times · Public Art & Culture preview, October 2026",
           "url": "https://www.vientianetimes.org.la/",
           "language": "en"
         }
