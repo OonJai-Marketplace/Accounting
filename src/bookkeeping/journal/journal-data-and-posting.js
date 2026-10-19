@@ -40,13 +40,13 @@ submitJournalEntry = async function() {
     if(groups.length!==1){showAppNotification('One Date Required','An edited entry must remain a single balanced transaction date.',true);return}
     const [date,g]=groups[0],oldLines=JournalModule.entries.filter(row=>row.id===JournalModule.editingEntryId);
     if(oldLines.some(row=>row.archived)||PeriodReview.status(String(oldLines[0]?.date||date).slice(0,7))!=='open'){showAppNotification('Archived Period','Only open-period transactions can be edited directly.',true);return}
-    JournalModule.pendingLines=g.lines.map(line=>({date,account:line.account,accountId:line.account.id,currency:line.currency,memo:line.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
+    JournalModule.pendingLines=g.lines.map(line=>({date:line.line_date||date,account:line.account,accountId:line.account.id,currency:line.currency,memo:line.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
     document.getElementById('txtEditReason').value='';openModal('modalEditReason');return;
   }
   if(groups.length>1||window.journalBatch1440?.hasPending())return window.journalBatch1440.post(groups);
   for(const [date,g] of groups){
     const memo=document.getElementById('jeGeneralMemo').value.trim(),prefix=String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'OJM').trim(),digits=Math.max(3,Math.min(9,Number(ApplicationSettings.accounting?.journalDigits)||6));
-    const lines=g.lines.map(line=>({account_id:line.account?.id||null,description:line.memo,currency_code:line.currency,debit:Number(line.debit||0),credit:Number(line.credit||0),fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
+    const lines=g.lines.map(line=>({line_date:line.line_date||date,account_id:line.account?.id||null,description:line.memo,currency_code:line.currency,debit:Number(line.debit||0),credit:Number(line.credit||0),fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
     if(lines.some(line=>!line.account_id)){showAppNotification('Posting Failed','One or more journal lines has no database account ID. Reselect the account and try again.',true);return}
     const editor=document.getElementById('journalEntry98');editor._postingRequest14228||=crypto.randomUUID();const {error}=await db.rpc('post_manual_journal14228',{p_request_key:editor._postingRequest14228,p_transaction_date:date,p_memo:memo,p_lines:lines,p_prefix:prefix,p_digits:digits});
     if(!current())return;if(error){showAppNotification('Posting Failed',error.message,true);return}

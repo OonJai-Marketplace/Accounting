@@ -127,14 +127,20 @@ function getMultiDateJournalState() {
     const memo = row.querySelector('.je-line-memo')?.value.trim() || document.getElementById('jeGeneralMemo')?.value.trim() || '';
     if (debit > 0) {
       grouped[date].totals[account.currency].debit += debit;
-      grouped[date].lines.push({account,currency:account.currency,memo,debit,credit:0});
+      grouped[date].lines.push({account,currency:account.currency,memo,debit,credit:0,line_date:date,rowIndex143118:index});
     }
     credits.forEach(c => {
       grouped[date].totals[c.currency] ||= {debit:0,credit:0};
       grouped[date].totals[c.currency].credit += c.value;
-      grouped[date].lines.push({account,currency:c.currency,memo,debit:0,credit:c.value});
+      grouped[date].lines.push({account,currency:c.currency,memo,debit:0,credit:c.value,line_date:date,rowIndex143118:index});
     });
   });
+  // One editor submission is one journal; dates belong to its lines.
+  const dates=Object.keys(grouped).sort(), merged={totals:Object.create(null),lines:[]};
+  if(new Set(dates.map(d=>d.slice(0,7))).size>1)errors.push('Keep all dates in the same accounting month.');
+  for(const date of dates){const g=grouped[date];merged.lines.push(...g.lines);for(const [currency,t] of Object.entries(g.totals)){merged.totals[currency]||={debit:0,credit:0};merged.totals[currency].debit+=t.debit;merged.totals[currency].credit+=t.credit;}delete grouped[date];}
+  merged.lines.sort((a,b)=>a.rowIndex143118-b.rowIndex143118);
+  if(dates.length)grouped[dates[0]]=merged;
   const differences = [];
   Object.entries(grouped).forEach(([date,g]) => {
     if (g.lines.length < 2) errors.push(`${date}: at least two posting lines are required.`);
@@ -157,12 +163,12 @@ calculateJournalBalance = function() {
     badge.className='je-status-badge unbalanced'; badge.textContent=state.errors[0]; if(postBtn)postBtn.disabled=true; return;
   }
   if (!Object.keys(state.grouped).length) {
-    badge.className='je-status-badge balanced'; badge.textContent='Ready — each date balances separately'; if(postBtn)postBtn.disabled=false; return;
+    badge.className='je-status-badge balanced'; badge.textContent='Ready — one journal with individual line dates'; if(postBtn)postBtn.disabled=false; return;
   }
   if (state.differences.length) {
     const d=state.differences[0]; badge.className='je-status-badge unbalanced'; badge.textContent=`${formatAppDate(d.date)} ${currencySymbolV6(d.currency)} ${d.currency}: DR ${formatCompactAmount(d.debit)} / CR ${formatCompactAmount(d.credit)}`; if(postBtn)postBtn.disabled=true; return;
   }
-  badge.className='je-status-badge balanced'; badge.textContent=`Balanced — ${Object.keys(state.grouped).length} date${Object.keys(state.grouped).length===1?'':'s'}`; if(postBtn)postBtn.disabled=false;
+  badge.className='je-status-badge balanced'; badge.textContent='Balanced — one journal entry'; if(postBtn)postBtn.disabled=false;
 };
 
 const submitJournalEntryV5 = submitJournalEntry;

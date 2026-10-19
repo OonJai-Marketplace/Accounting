@@ -1272,7 +1272,8 @@ function loadEntryForEdit(entryId) {
   const postCard = document.querySelector('.je-card');
   if (postCard) postCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  document.getElementById('jeTransDate').value = lines[0].date;
+  document.getElementById('jeTransDate').value = lines.map(l=>l.date).sort()[0];
+  setJournalDateMode(new Set(lines.map(l=>l.date)).size>1);
   document.getElementById('jeGeneralMemo').value = lines[0].generalMemo ?? lines[0].memo;
 
   const btnPost = document.getElementById('btnPostJournal');
@@ -1291,6 +1292,7 @@ function loadEntryForEdit(entryId) {
 
     addJournalLineRow(accStr, line.memo, drStr, crMap);
 
+    const dateInput=tbody.lastElementChild.querySelector('.je-line-date');if(dateInput){dateInput.value=line.date;dateInput.dataset.manualDate='1';window.datePicker104?.refresh(dateInput);}
     tbody.lastElementChild.dataset.bookRate14383=line.book_rate_lak||'';
     tbody.lastElementChild.dataset.fxRate14383=line.fx_rate_lak||'';
   });
@@ -2497,14 +2499,20 @@ function getMultiDateJournalState() {
     const memo = row.querySelector('.je-line-memo')?.value.trim() || document.getElementById('jeGeneralMemo')?.value.trim() || '';
     if (debit > 0) {
       grouped[date].totals[account.currency].debit += debit;
-      grouped[date].lines.push({account,currency:account.currency,memo,debit,credit:0});
+      grouped[date].lines.push({account,currency:account.currency,memo,debit,credit:0,line_date:date,rowIndex143118:index});
     }
     credits.forEach(c => {
       grouped[date].totals[c.currency] ||= {debit:0,credit:0};
       grouped[date].totals[c.currency].credit += c.value;
-      grouped[date].lines.push({account,currency:c.currency,memo,debit:0,credit:c.value});
+      grouped[date].lines.push({account,currency:c.currency,memo,debit:0,credit:c.value,line_date:date,rowIndex143118:index});
     });
   });
+  // One editor submission is one journal; dates belong to its lines.
+  const dates=Object.keys(grouped).sort(), merged={totals:Object.create(null),lines:[]};
+  if(new Set(dates.map(d=>d.slice(0,7))).size>1)errors.push('Keep all dates in the same accounting month.');
+  for(const date of dates){const g=grouped[date];merged.lines.push(...g.lines);for(const [currency,t] of Object.entries(g.totals)){merged.totals[currency]||={debit:0,credit:0};merged.totals[currency].debit+=t.debit;merged.totals[currency].credit+=t.credit;}delete grouped[date];}
+  merged.lines.sort((a,b)=>a.rowIndex143118-b.rowIndex143118);
+  if(dates.length)grouped[dates[0]]=merged;
   const differences = [];
   Object.entries(grouped).forEach(([date,g]) => {
     if (g.lines.length < 2) errors.push(`${date}: at least two posting lines are required.`);
@@ -2527,12 +2535,12 @@ calculateJournalBalance = function() {
     badge.className='je-status-badge unbalanced'; badge.textContent=state.errors[0]; if(postBtn)postBtn.disabled=true; return;
   }
   if (!Object.keys(state.grouped).length) {
-    badge.className='je-status-badge balanced'; badge.textContent='Ready — each date balances separately'; if(postBtn)postBtn.disabled=false; return;
+    badge.className='je-status-badge balanced'; badge.textContent='Ready — one journal with individual line dates'; if(postBtn)postBtn.disabled=false; return;
   }
   if (state.differences.length) {
     const d=state.differences[0]; badge.className='je-status-badge unbalanced'; badge.textContent=`${formatAppDate(d.date)} ${currencySymbolV6(d.currency)} ${d.currency}: DR ${formatCompactAmount(d.debit)} / CR ${formatCompactAmount(d.credit)}`; if(postBtn)postBtn.disabled=true; return;
   }
-  badge.className='je-status-badge balanced'; badge.textContent=`Balanced — ${Object.keys(state.grouped).length} date${Object.keys(state.grouped).length===1?'':'s'}`; if(postBtn)postBtn.disabled=false;
+  badge.className='je-status-badge balanced'; badge.textContent='Balanced — one journal entry'; if(postBtn)postBtn.disabled=false;
 };
 
 const submitJournalEntryV5 = submitJournalEntry;
@@ -2847,13 +2855,13 @@ submitJournalEntry = async function() {
     if(groups.length!==1){showAppNotification('One Date Required','An edited entry must remain a single balanced transaction date.',true);return}
     const [date,g]=groups[0],oldLines=JournalModule.entries.filter(row=>row.id===JournalModule.editingEntryId);
     if(oldLines.some(row=>row.archived)||PeriodReview.status(String(oldLines[0]?.date||date).slice(0,7))!=='open'){showAppNotification('Archived Period','Only open-period transactions can be edited directly.',true);return}
-    JournalModule.pendingLines=g.lines.map(line=>({date,account:line.account,accountId:line.account.id,currency:line.currency,memo:line.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
+    JournalModule.pendingLines=g.lines.map(line=>({date:line.line_date||date,account:line.account,accountId:line.account.id,currency:line.currency,memo:line.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
     document.getElementById('txtEditReason').value='';openModal('modalEditReason');return;
   }
   if(groups.length>1||window.journalBatch1440?.hasPending())return window.journalBatch1440.post(groups);
   for(const [date,g] of groups){
     const memo=document.getElementById('jeGeneralMemo').value.trim(),prefix=String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'OJM').trim(),digits=Math.max(3,Math.min(9,Number(ApplicationSettings.accounting?.journalDigits)||6));
-    const lines=g.lines.map(line=>({account_id:line.account?.id||null,description:line.memo,currency_code:line.currency,debit:Number(line.debit||0),credit:Number(line.credit||0),fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
+    const lines=g.lines.map(line=>({line_date:line.line_date||date,account_id:line.account?.id||null,description:line.memo,currency_code:line.currency,debit:Number(line.debit||0),credit:Number(line.credit||0),fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
     if(lines.some(line=>!line.account_id)){showAppNotification('Posting Failed','One or more journal lines has no database account ID. Reselect the account and try again.',true);return}
     const editor=document.getElementById('journalEntry98');editor._postingRequest14228||=crypto.randomUUID();const {error}=await db.rpc('post_manual_journal14228',{p_request_key:editor._postingRequest14228,p_transaction_date:date,p_memo:memo,p_lines:lines,p_prefix:prefix,p_digits:digits});
     if(!current())return;if(error){showAppNotification('Posting Failed',error.message,true);return}
@@ -3268,7 +3276,7 @@ function renderTransactionReviewTable(tbody, records, actionMode='none'){
   const ids=Object.keys(groups).sort((a,b)=>Number(groups[b][0].pendingSync||false)-Number(groups[a][0].pendingSync||false)||String(groups[b][0].date).localeCompare(String(groups[a][0].date))||String(groups[b][0].created_at||'').localeCompare(String(groups[a][0].created_at||''))||String(b).localeCompare(String(a)));
   tbody.closest('table')?.classList.add('journal-no-actions14388');const visible=transactionPage14340(tbody,groups,ids);
   if(!ids.length){tbody.innerHTML=`<tr><td colspan="7" class="period-empty">No transactions found.</td></tr>`;return;}
-  tbody.innerHTML=visible.map(({id,start,end})=>{const lines=groups[id].slice(start,end),first=lines[0],dbId=first.dbEntryId||'',pending=lines.some(line=>line.pendingSync),adjusted=isAdjustedTransaction(lines);return lines.map((line,index)=>{const account=getCleanAccountDisplay(line.account,line.currency),rowClass=lines.length===1?'cluster-row-start cluster-row-end':index===0?'cluster-row-start':index===lines.length-1?'cluster-row-cont cluster-row-end':'cluster-row-cont',actions=pending&&!first.localJournal14385?`<button class="je-btn je-btn-secondary" disabled aria-label="Edit after saving completes">Edit</button>${canVoidTransactions()?'<button class="je-btn je-btn-danger" disabled aria-label="Void after saving completes">Void</button>':''}`:actionMode==='edit'?`<button class="je-btn je-btn-secondary" onclick="loadEntryForEdit(${escapeHtml(JSON.stringify(id))})">Edit</button>${canVoidTransactions()&&(dbId||first.localJournal14385)?`<button class="je-btn je-btn-danger" onclick="voidLiveJournalEntry(${escapeHtml(JSON.stringify(dbId))},${escapeHtml(JSON.stringify(id))})">Void</button>`:''}`:actionMode==='review'?`<button class="je-btn je-btn-secondary" onclick="openTransactionReview(${escapeHtml(JSON.stringify(id))})">Review</button>${canVoidTransactions()&&(dbId||first.localJournal14385)?`<button class="je-btn je-btn-danger" onclick="voidLiveJournalEntry(${escapeHtml(JSON.stringify(dbId))},${escapeHtml(JSON.stringify(id))})">Void</button>`:''}`:'';return`<tr class="${rowClass}" data-created-at="${escapeHtml(first.created_at||first.createdAt||first.date||'')}" data-entry-id="${escapeHtml(id)}" data-line-index="${index+start}">${index===0?`<td rowspan="${lines.length}" class="entry-shared-cell">${formatAppDate(first.date)}</td><td rowspan="${lines.length}" class="entry-shared-cell"><div class="entry-id-stack"><span style="font-family:monospace;color:#065f46">${escapeHtml(first.localJournal14385&&!dbId?'Awaiting entry number':id)}${pending?'<small>Saved on device · pending sync</small>':''}</span>${adjusted?`<button type="button" class="adjusted-entry-badge adjusted-entry-button" onclick="event.stopPropagation();openAdjustedDetails(${escapeHtml(JSON.stringify(id))})">Adjusted</button>`:''}<div class="transaction-review-actions" hidden>${actions}</div></div></td>`:''}<td><div class="transaction-account-display"><span class="currency-symbol-badge">${escapeHtml(currencySymbolV6(account.currency))}</span><span class="account-clean-name ${AccountingStore.accounts.some(a=>(a.id===line.accountId||a.name===line.account)&&(a.isTechnical||a.type==='SYSTEM'))?'system-account-name14399':''}">${escapeHtml(account.name)}</span></div></td><td>${escapeHtml(line.memo||line.generalMemo||'')}</td><td class="rate-col14387">${escapeHtml(window.JournalFX14383?.compact(line.book_rate_lak||line.fx_rate_lak||(line.currency==='LAK'?1:null),line.currency)||'—')}</td><td class="num">${line.debit>0?formatAppNumber(line.debit):'-'}</td><td class="num">${line.credit>0?formatAppNumber(line.credit):'-'}</td></tr>`}).join('')}).join('');
+  tbody.innerHTML=visible.map(({id,start,end})=>{const lines=groups[id].slice(start,end),first=lines[0],dbId=first.dbEntryId||'',pending=lines.some(line=>line.pendingSync),adjusted=isAdjustedTransaction(lines);return lines.map((line,index)=>{const account=getCleanAccountDisplay(line.account,line.currency),rowClass=lines.length===1?'cluster-row-start cluster-row-end':index===0?'cluster-row-start':index===lines.length-1?'cluster-row-cont cluster-row-end':'cluster-row-cont',actions=pending&&!first.localJournal14385?`<button class="je-btn je-btn-secondary" disabled aria-label="Edit after saving completes">Edit</button>${canVoidTransactions()?'<button class="je-btn je-btn-danger" disabled aria-label="Void after saving completes">Void</button>':''}`:actionMode==='edit'?`<button class="je-btn je-btn-secondary" onclick="loadEntryForEdit(${escapeHtml(JSON.stringify(id))})">Edit</button>${canVoidTransactions()&&(dbId||first.localJournal14385)?`<button class="je-btn je-btn-danger" onclick="voidLiveJournalEntry(${escapeHtml(JSON.stringify(dbId))},${escapeHtml(JSON.stringify(id))})">Void</button>`:''}`:actionMode==='review'?`<button class="je-btn je-btn-secondary" onclick="openTransactionReview(${escapeHtml(JSON.stringify(id))})">Review</button>${canVoidTransactions()&&(dbId||first.localJournal14385)?`<button class="je-btn je-btn-danger" onclick="voidLiveJournalEntry(${escapeHtml(JSON.stringify(dbId))},${escapeHtml(JSON.stringify(id))})">Void</button>`:''}`:'';return`<tr class="${rowClass}" data-created-at="${escapeHtml(first.created_at||first.createdAt||first.date||'')}" data-entry-id="${escapeHtml(id)}" data-line-index="${index+start}">${`<td>${formatAppDate(line.date)}</td>`}${index===0?`<td rowspan="${lines.length}" class="entry-shared-cell"><div class="entry-id-stack"><span style="font-family:monospace;color:#065f46">${escapeHtml(first.localJournal14385&&!dbId?'Awaiting entry number':id)}${pending?'<small>Saved on device · pending sync</small>':''}</span>${adjusted?`<button type="button" class="adjusted-entry-badge adjusted-entry-button" onclick="event.stopPropagation();openAdjustedDetails(${escapeHtml(JSON.stringify(id))})">Adjusted</button>`:''}<div class="transaction-review-actions" hidden>${actions}</div></div></td>`:''}<td><div class="transaction-account-display"><span class="currency-symbol-badge">${escapeHtml(currencySymbolV6(account.currency))}</span><span class="account-clean-name ${AccountingStore.accounts.some(a=>(a.id===line.accountId||a.name===line.account)&&(a.isTechnical||a.type==='SYSTEM'))?'system-account-name14399':''}">${escapeHtml(account.name)}</span></div></td><td>${escapeHtml(line.memo||line.generalMemo||'')}</td><td class="rate-col14387">${escapeHtml(window.JournalFX14383?.compact(line.book_rate_lak||line.fx_rate_lak||(line.currency==='LAK'?1:null),line.currency)||'—')}</td><td class="num">${line.debit>0?formatAppNumber(line.debit):'-'}</td><td class="num">${line.credit>0?formatAppNumber(line.credit):'-'}</td></tr>`}).join('')}).join('');
 }
 function setTransactionTableHeaders(id,withActions){const header=document.getElementById(id);if(!header)return;header.innerHTML=`<th>Date</th><th>Entry ID</th><th>Account</th><th>Memo / Reference</th><th class="rate-col14387">Rate</th><th class="num">Debit</th><th class="num">Credit</th>`}
 renderJournalHistoryTable=function(records=JournalModule.entries){const current=getCurrentMonthPrefix();setTransactionTableHeaders('thJournalHistoryRow',true);renderTransactionReviewTable(document.getElementById('tblJournalHistoryBody'),records.filter(r=>String(r.date).slice(0,7)===current&&!r.archived),'edit')};

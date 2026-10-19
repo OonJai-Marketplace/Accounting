@@ -17,7 +17,8 @@ function loadEntryForEdit(entryId) {
   const postCard = document.querySelector('.je-card');
   if (postCard) postCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  document.getElementById('jeTransDate').value = lines[0].date;
+  document.getElementById('jeTransDate').value = lines.map(l=>l.date).sort()[0];
+  setJournalDateMode(new Set(lines.map(l=>l.date)).size>1);
   document.getElementById('jeGeneralMemo').value = lines[0].generalMemo ?? lines[0].memo;
 
   const btnPost = document.getElementById('btnPostJournal');
@@ -36,6 +37,7 @@ function loadEntryForEdit(entryId) {
 
     addJournalLineRow(accStr, line.memo, drStr, crMap);
 
+    const dateInput=tbody.lastElementChild.querySelector('.je-line-date');if(dateInput){dateInput.value=line.date;dateInput.dataset.manualDate='1';window.datePicker104?.refresh(dateInput);}
     tbody.lastElementChild.dataset.bookRate14383=line.book_rate_lak||'';
     tbody.lastElementChild.dataset.fxRate14383=line.fx_rate_lak||'';
   });
