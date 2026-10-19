@@ -135,6 +135,7 @@ body .summary-period14331 .period-modes14331 button{font-size:11px!important}
 }
 
 @media screen and (min-width:641px){
- html body #jeLinesBody td.cell-selected143116{outline:2px solid #059669!important;outline-offset:-2px}
+ html body #journalEntry98#journalEntry98 #jeLinesBody td.cell-selected143116{outline:2px solid #059669!important;outline-offset:-2px!important;box-shadow:inset 0 0 0 2px #059669!important}
+ html body #journalEntry98#journalEntry98 #jeLinesBody td.cell-editing143116 input{caret-color:#102d24!important}
  html body #jeLinesBody td.cell-selected143116:not(.cell-editing143116) input{caret-color:transparent}
 }

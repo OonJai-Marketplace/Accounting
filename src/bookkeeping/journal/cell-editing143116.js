@@ -10,7 +10,7 @@ function select(input){if(!eligible(input))return false;clear();window.dropdown1
 function edit(input,replaceAccount=false){if(!eligible(input))return;clear();selected=editor=input;input.closest('td').classList.add('cell-selected143116','cell-editing143116');input.focus({preventScroll:true});if(replaceAccount&&input.matches('.je-line-acc'))window.dropdown1434?.edit(input);else if(input.setSelectionRange){const end=input.value.length;try{input.setSelectionRange(end,end)}catch{}}}
 function changed(input){input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));window.JournalUndo143103?.record();}
 function replace(input,text){window.JournalUndo143103?.checkpoint();input.value=text;changed(input);}
-function move(input,key){const rows=[...document.querySelectorAll('#jeLinesBody tr')].map(row=>[...row.querySelectorAll(fields)].filter(eligible)),r=rows.findIndex(row=>row.includes(input));if(r<0)return;const col=rows[r].indexOf(input),flat=rows.flat();const target=key==='ArrowUp'||key==='ArrowDown'?rows[r+(key==='ArrowDown'?1:-1)]?.[col]:flat[flat.indexOf(input)+(key==='ArrowLeft'||key==='Previous'?-1:1)];if(target){select(target);target.scrollIntoView({block:'nearest',inline:'nearest'});}}
+function move(input,key){const rows=[...document.querySelectorAll('#jeLinesBody tr')].map(row=>[...row.querySelectorAll(fields)].filter(eligible)),r=rows.findIndex(row=>row.includes(input));if(r<0)return;const col=rows[r].indexOf(input),flat=rows.flat();const target=key==='ArrowUp'||key==='ArrowDown'?rows[r+(key==='ArrowDown'?1:-1)]?.[col]:flat[flat.indexOf(input)+(key==='ArrowLeft'||key==='Previous'?-1:1)];if(target){if(!target.value)edit(target);else select(target);target.scrollIntoView({block:'nearest',inline:'nearest'});}}
 document.addEventListener('pointerdown',e=>{
  if(e.button!==0||e.ctrlKey||e.metaKey||e.target.closest?.('.calc-pick14391,.account-list1428'))return;
  const input=inputAt(e.target);if(!eligible(input)){if(selected&&!e.target.closest?.('.account-list1428'))clear();return;}
@@ -36,5 +36,5 @@ document.addEventListener('keydown',e=>{
  else if(e.key.length===1){e.preventDefault();const input=selected;edit(input,input.matches('.je-line-acc'));replace(input,e.key);}
 },true);
 window.addEventListener('page113',clear);
-window.JournalCells143116={select,editing:input=>input===editor,chosen:input=>eligible(input)?select(input):false};
+window.JournalCells143116={select,navigate(input){if(!eligible(input))return false;if(!input.value)edit(input);else select(input);return true;},editing:input=>input===editor,chosen:input=>eligible(input)?select(input):false};
 })();

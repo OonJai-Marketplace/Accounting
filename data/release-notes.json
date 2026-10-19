@@ -1,10 +1,7 @@
 {
-  "version": "143.116",
+  "version": "143.117",
   "changes": [
-    "Double-entry cells: click once to select and copy or paste a value; double-click to edit. Double-click an account to clear it, with the previous choice first.",
-    "Number editing preserves the remaining digits and caret when replacing part of an amount. Currency symbols are excluded from cell copying.",
-    "Multiple Dates starts from the selected main date. Restoring a draft preserves its individual row dates.",
-    "Exchange rates display thousands separators without losing rate precision. Ledger IDs and amount columns are compact; trial-balance amount columns have balanced widths. Account labels no longer contain DR/CR.",
-    "Saved accounting records are unchanged."
+    "Resize table columns by dragging header edges. Widths are remembered on this device; double-click a header edge to reset.",
+    "Restored visible journal cell selection and arrow-key navigation. Existing amounts remain intact when editing."
   ]
 }
