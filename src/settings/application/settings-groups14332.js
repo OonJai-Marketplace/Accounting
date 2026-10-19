@@ -52,10 +52,30 @@ const settings=[
 ];
 // Expansion is a user choice, independent of the active workspace.
 const expanded143109={transactions:true,settings:false};
-let selected=null;
+let selected=null,memoryOwner=null;
+let rememberedModules={},rememberedGroups={};
+function restoreNavigationMemory(){
+ const owner=typeof liveProfile!=='undefined'?liveProfile?.id||'guest':'guest';
+ const key='ojm_grouped_navigation143111:'+String(window.OJM_SUPABASE_URL||'')+':'+owner;
+ if(memoryOwner===key)return;
+ memoryOwner=key;rememberedModules={};rememberedGroups={};expanded143109.transactions=true;expanded143109.settings=false;
+ try{const saved=JSON.parse(sessionStorage.getItem(key)||'null');if(saved){rememberedModules=saved.modules||{};rememberedGroups=saved.groups||{};for(const module of ['transactions','settings'])if(typeof saved.expanded?.[module]==='boolean')expanded143109[module]=saved.expanded[module];}}catch{}
+}
+function saveNavigationMemory(){try{sessionStorage.setItem(memoryOwner,JSON.stringify({modules:rememberedModules,groups:rememberedGroups,expanded:expanded143109}));}catch{}}
+function rememberedChoice(module,group){
+ restoreNavigationMemory();
+ const groups=module==='settings'?settings:books,items=(group?[group]:groups).flatMap(g=>g.items).filter(allowed);
+ const saved=group?rememberedGroups[module+'|'+group.label]:rememberedModules[module];
+ return items.find(i=>i.target===saved?.target&&i.kind===saved?.kind&&i.value===saved?.value)||items[0];
+}
+function rememberChoice(group,i){
+ const module=books.includes(group)?'transactions':'settings',saved={target:i.target,kind:i.kind,value:i.value};
+ if(JSON.stringify(rememberedModules[module])===JSON.stringify(saved)&&JSON.stringify(rememberedGroups[module+'|'+group.label])===JSON.stringify(saved))return;
+ rememberedModules[module]=saved;rememberedGroups[module+'|'+group.label]=saved;saveNavigationMemory();
+}
 const enabled=()=>innerWidth>640&&document.documentElement.dataset.device132!=='phone';
 const allowed=i=>!!$(i.target)&&(!window.access113||access113.can(i.target)&&access113.can(i.permission));
-function choose(i){if(!allowed(i))return;selected=i;window.switchTab(i.target);if(!$(i.target)?.classList.contains('active'))return;
+function choose(i){if(!i||!allowed(i))return;selected=i;window.switchTab(i.target);if(!$(i.target)?.classList.contains('active'))return;
  if(i.kind==='final')budgetWorkflow14316.finalization(i.value);
  if(i.kind==='history')budgetWorkflow14316.history(i.value);
  if(i.kind==='upcoming')workspace14337.showSection(i.value);
@@ -64,20 +84,46 @@ function choose(i){if(!allowed(i))return;selected=i;window.switchTab(i.target);i
 }
 let groupMenu14388=null,groupAnchor14388=null;
 function closeGroupMenu14388(focus=false){groupMenu14388?.remove();groupMenu14388=null;groupAnchor14388?.setAttribute('aria-expanded','false');if(focus&&groupAnchor14388?.isConnected)groupAnchor14388.focus();groupAnchor14388=null;}
-function openMenu14388(module,anchor){if(!enabled())return;const groups=module==='settings'?settings:books;if(groupMenu14388&&groupAnchor14388===anchor){closeGroupMenu14388(true);return}closeGroupMenu14388();groupAnchor14388=anchor;anchor.setAttribute('aria-expanded','true');const menu=document.createElement('nav');menu.id='groupMenu14388';menu.className='group-menu14388';menu.setAttribute('aria-label',module==='settings'?'Settings sections':'Bookkeeping sections');const title=document.createElement('strong');title.textContent=module==='settings'?'Settings':'Bookkeeping';menu.append(title);for(const g of groups.filter(g=>g.items.some(allowed))){const button=document.createElement('button');button.type='button';button.dataset.group14388=g.label;button.innerHTML='<span aria-hidden="true">'+g.icon+'</span><span>'+g.label+'</span>';button.onclick=()=>{closeGroupMenu14388();choose(g.items.find(allowed));};menu.append(button)}groupMenu14388=menu;document.body.append(menu);const r=anchor.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(r.right,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(r.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button')?.focus();}
+function openMenu14388(module,anchor){if(!enabled())return;const groups=module==='settings'?settings:books;if(groupMenu14388&&groupAnchor14388===anchor){closeGroupMenu14388(true);return}closeGroupMenu14388();groupAnchor14388=anchor;anchor.setAttribute('aria-expanded','true');const menu=document.createElement('nav');menu.id='groupMenu14388';menu.className='group-menu14388';menu.setAttribute('aria-label',module==='settings'?'Settings sections':'Bookkeeping sections');const title=document.createElement('strong');title.textContent=module==='settings'?'Settings':'Bookkeeping';menu.append(title);for(const g of groups.filter(g=>g.items.some(allowed))){const button=document.createElement('button');button.type='button';button.dataset.group14388=g.label;button.innerHTML='<span aria-hidden="true">'+g.icon+'</span><span>'+g.label+'</span>';button.onclick=()=>{closeGroupMenu14388();choose(rememberedChoice(module,g));};menu.append(button)}groupMenu14388=menu;document.body.append(menu);const r=anchor.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(r.right,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(r.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button')?.focus();}
 document.addEventListener('click',e=>{if(groupMenu14388&&!groupMenu14388.contains(e.target)&&!groupAnchor14388?.contains(e.target))closeGroupMenu14388();});
 document.addEventListener('keydown',e=>{if(!groupMenu14388)return;if(e.key==='Escape'){e.preventDefault();closeGroupMenu14388(true);return}if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){const bs=[...groupMenu14388.querySelectorAll('button')],i=bs.indexOf(document.activeElement);e.preventDefault();bs[e.key==='Home'?0:e.key==='End'?bs.length-1:(i+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length]?.focus();}});
 window.addEventListener('resize',()=>closeGroupMenu14388());window.addEventListener('page113',()=>closeGroupMenu14388());
-function sidebar(module,groups,current){const root=$('nav-module-'+module);if(!root)return;root.classList.add('grouped-nav14378');let nav=root.querySelector('.grouped-children14378');if(!nav){nav=document.createElement('nav');nav.className='grouped-children14378';nav.setAttribute('aria-label',module==='settings'?'Settings sections':'Bookkeeping sections');root.append(nav);const header=root.querySelector('.nav-header');header.addEventListener('click',e=>{if(!enabled())return;e.preventDefault();e.stopImmediatePropagation();const drawer=$('appSidebar').classList.contains('mobile-open');if(document.documentElement.dataset.device132==='tablet'&&!drawer||$('appSidebar').getBoundingClientRect().width<100){openMenu14388(module,header);return}expanded143109[module]=!expanded143109[module];root.classList.toggle('groups-open14378',expanded143109[module]);root.classList.toggle('open',expanded143109[module]);header.setAttribute('aria-expanded',String(expanded143109[module]));},true);header.setAttribute('aria-expanded','false')}
- root.classList.toggle('groups-open14378',expanded143109[module]);root.classList.toggle('open',expanded143109[module]);root.querySelector('.nav-header')?.setAttribute('aria-expanded',String(expanded143109[module]));
- const available=groups.filter(g=>g.items.some(allowed));const signature=available.map(g=>g.label).join('|');if(nav.dataset.signature!==signature){nav.dataset.signature=signature;nav.replaceChildren(...available.map(g=>{const b=document.createElement('button');b.type='button';b.dataset.group14378=g.label;b.innerHTML='<span aria-hidden="true">'+g.icon+'</span><span>'+g.label+'</span>';b.onclick=()=>choose(g.items.find(allowed));return b}))}
- for(const b of nav.children){const on=b.dataset.group14378===current?.label;b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false')}
+function sidebar(module,groups,current){
+ const root=$('nav-module-'+module);if(!root)return;
+ root.classList.add('grouped-nav14378');
+ let nav=root.querySelector('.grouped-children14378');
+ if(!nav){
+  nav=document.createElement('nav');nav.className='grouped-children14378';nav.id='groupedChildren143111-'+module;
+  nav.setAttribute('aria-label',module==='settings'?'Settings sections':'Bookkeeping sections');root.append(nav);
+  const header=root.querySelector('.nav-header');
+  // This controller owns grouped navigation. Remove the legacy inline route so
+  // its ancestor click handler cannot highlight an expansion-only action.
+  header.removeAttribute('onclick');
+  header.addEventListener('click',e=>{
+   if(!enabled())return;e.preventDefault();e.stopImmediatePropagation();
+   const drawer=$('appSidebar').classList.contains('mobile-open');
+   if(document.documentElement.dataset.device132==='tablet'&&!drawer||$('appSidebar').getBoundingClientRect().width<100){openMenu14388(module,header);return;}
+   choose(rememberedChoice(module));
+  },true);
+  const toggle=document.createElement('button');toggle.type='button';toggle.className='group-toggle143111';toggle.setAttribute('aria-controls',nav.id);
+  toggle.onclick=e=>{e.preventDefault();e.stopPropagation();restoreNavigationMemory();expanded143109[module]=!expanded143109[module];saveNavigationMemory();render();};
+  header.after(toggle);
+ }
+ const open=expanded143109[module],toggle=root.querySelector('.group-toggle143111');
+ root.classList.toggle('groups-open14378',open);root.classList.toggle('open',open);
+ const label=(open?'Collapse ':'Expand ')+(module==='settings'?'Settings':'Bookkeeping');
+ toggle.setAttribute('aria-expanded',String(open));toggle.setAttribute('aria-label',label);toggle.title=label;const arrow=open?'▾':'▸';if(toggle.textContent!==arrow)toggle.textContent=arrow;
+ const available=groups.filter(g=>g.items.some(allowed));const signature=available.map(g=>g.label).join('|');
+ if(nav.dataset.signature!==signature){nav.dataset.signature=signature;nav.replaceChildren(...available.map(g=>{const b=document.createElement('button');b.type='button';b.dataset.group14378=g.label;b.innerHTML='<span aria-hidden="true">'+g.icon+'</span><span>'+g.label+'</span>';b.onclick=()=>choose(rememberedChoice(module,g));return b;}));}
+ for(const b of nav.children){const on=b.dataset.group14378===current?.label;b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false');}
 }
+
 function render(target=document.querySelector('.tab-content.active')?.id){if(!enabled()||window.workspaceViews14364?.rendering)return false;
+ restoreNavigationMemory();
  const all=[...books,...settings];
  const section=target==='user-entry-review'?window.budgetWorkflow14316?.finalTab:target==='transactions-all'?window.budgetWorkflow14316?.historyTab:target==='transactions-recurring'?window.workspace14337?.section:target==='settings-accounting'?window.settingsGroups14332?.accountingSection:'';
  selected=all.flatMap(g=>g.items).find(i=>i.target===target&&(!section||i.value===section)&&allowed(i));
- const current=all.find(g=>g.items.includes(selected));sidebar('transactions',books,books.includes(current)?current:null);sidebar('settings',settings,settings.includes(current)?current:null);
+ const current=all.find(g=>g.items.includes(selected));if(current&&selected)rememberChoice(current,selected);sidebar('transactions',books,books.includes(current)?current:null);sidebar('settings',settings,settings.includes(current)?current:null);
  if(!current||!selected||selected.target!==target)return false;
  const root=$(target),host=$('categoryTabs'),shell=$('categoryTabShell');if(!host||!shell)return false;
  const items=current.items.filter(allowed),signature=current.label+'|'+items.map(i=>i.label).join('|');

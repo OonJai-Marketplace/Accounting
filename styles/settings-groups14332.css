@@ -21,12 +21,20 @@
 }
 
 @media(min-width:641px){
-.grouped-nav14378>.nav-header::after{content:'▸';margin-left:auto;font-size:12px}
-.grouped-nav14378.groups-open14378>.nav-header::after{content:'▾'}
+.grouped-nav14378{position:relative}
+.grouped-nav14378>.nav-header::after{display:none!important;content:none}
+body #appSidebar .grouped-nav14378>.nav-header{padding-right:42px!important}
+.grouped-nav14378>.group-toggle143111{position:absolute;right:7px;top:4px;width:28px;height:32px;padding:0;border:0;border-radius:4px;background:transparent;color:#fff8e8;font:inherit;font-size:13px;cursor:pointer;z-index:1}
+.grouped-nav14378:is(.current-module136,.active-category)>.group-toggle143111{color:#70431c}
+.grouped-nav14378>.group-toggle143111:focus-visible{outline:2px solid #d7b878;outline-offset:-2px}
+body #appSidebar .grouped-nav14378>.nav-header.has-count14311>.nav-count14311{right:40px!important}
 }
 
 /* Compact rails use a labelled section menu; full drawers retain readable children. */
 @layer corrections14337 {@media screen and (min-width:641px){
+html.tablet-landscape14337 body #appSidebar:not(.mobile-open) .group-toggle143111,
+html[data-device132=tablet] body #appSidebar:not(.mobile-open) .group-toggle143111,
+html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar:not(.mobile-open) .group-toggle143111,
 html.tablet-landscape14337 body #appSidebar:not(.mobile-open) .grouped-children14378,
 html[data-device132=desktop] body:is(.workspace-full1439,.compact-laptop14362) #appSidebar:not(.mobile-open) .grouped-children14378{display:none!important}
 html.tablet-landscape14337 body #appSidebar:not(.mobile-open) .grouped-nav14378>.nav-header::after,
@@ -49,3 +57,5 @@ html[data-device132=tablet] body #appSidebar.mobile-open .grouped-nav14378>.nav-
  html body #appSidebar#appSidebar>.sidebar-brand{flex-shrink:0!important}
  html body #appSidebar#appSidebar>#topHeaderProfile104{flex:0 0 auto!important;margin-top:0!important}
 }}
+
+@media(max-width:640px){.group-toggle143111{display:none!important}}

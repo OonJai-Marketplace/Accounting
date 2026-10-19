@@ -1,8 +1,8 @@
 {
-  "version": "143.110",
+  "version": "143.111",
   "changes": [
-    "Phone updates now retry interrupted files automatically and resume completed downloads when you retry.",
-    "Update progress shows the file and downloaded size, with a clear message if the connection or browser storage stops responding.",
-    "Saved accounting data and previous offline versions are preserved."
+    "Bookkeeping and Settings labels return to the last selected tab; their arrows expand or collapse the list separately.",
+    "Only the current workspace is highlighted. Opening or closing a navigation list does not select another workspace.",
+    "Journal, Upcoming, History and Settings groups remember their last selected sections while navigation expansion remains a manual choice."
   ]
 }
