@@ -20,7 +20,7 @@ function appLocalDate(date=new Date()) {
   let db, database, refreshJob, monthJob, enterJob, enterOwner, authBusy = false, draftTimer, touchAt = 0;
   const storageKey = 'sb-' + new URL(scope || location.origin).hostname.split('.')[0] + '-auth-token';
   let recovering=new URL(location.href).searchParams.has('password-recovery')||/(?:^|[#&])type=recovery(?:&|$)/.test(location.hash);
-  const key = id => scope + ':phone14242:' + (S.actor&&S.actor!==id?S.actor+':':'') + id;
+  const key = id => scope + (window.accountingReset143108?.suffix()||'') + ':phone14242:' + (S.actor&&S.actor!==id?S.actor+':':'') + id;
   const mirrorKey = id => key(id) + ':draft', activityKey = id => key(id) + ':activity', locationKey=id=>key(id)+':location';
   const current = (owner, epoch) => S.owner === owner && S.epoch === epoch;
   const fail = (message, code = '') => Object.assign(Error(message), {code});
@@ -137,6 +137,7 @@ function appLocalDate(date=new Date()) {
   const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
   function payloadDraft(p){return normalizeDraft({mode:'single',date:p.p_items[0].date,memo:p.p_snapshot.memo||p.p_items[0].memo,reference:p.p_snapshot.reference||'',requestKey:p.p_key,editIds:p.p_edit_ids||[],single:p.p_items.map(l=>({direction:l.direction,source:l.fund,affected:l.account,amount:String(l.amount),memo:l.memo||''}))});}
   async function migrateLegacy(owner,data){
+    if(window.accountingReset143108?.enabled())return data;
     // Read only this account's earlier phone draft and immutable staff save requests.
     const offlinePrefix='ojm-offline14239:'+scope+':'+S.actor+':entry:',savePrefix='ojm_staff_save14228:'+scope+':'+S.actor+':',jobs=[];
     for(const storage of [localStorage,sessionStorage])for(let i=0;i<storage.length;i++){

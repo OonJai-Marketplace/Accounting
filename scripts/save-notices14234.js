@@ -1,6 +1,6 @@
 /* Failed saves are durable per actor and database. Never retry with a new identity. */
 (()=>{'use strict';
-const actor=()=>liveProfile?.id||'',prefix=()=> 'ojm_staff_save14228:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+actor()+':';
+const actor=()=>liveProfile?.id||'',prefix=()=> 'ojm_staff_save14228:'+String(window.OJM_SUPABASE_URL||location.origin)+(window.accountingReset143108?.suffix()||'')+':'+actor()+':';
 const esc=v=>escapeHtml(String(v??''));const flights=new Map();let panel=null;
 let pendingCache;
 function staffPending(owner){if(!actor())return [];if(pendingCache?.actor===actor()&&pendingCache.prefix===prefix()&&pendingCache.client===ojmDb)return pendingCache.rows.filter(x=>!owner||x.payload.p_owner===owner);const out=[],scopePrefix=prefix();for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!key||!key.startsWith(scopePrefix))continue;try{const p=JSON.parse(localStorage.getItem(key));if(p)out.push({key,payload:p,message:localStorage.getItem(key+':error')||'Saving was interrupted. Retry the same entry.'})}catch{}}const rows=out.filter(x=>x.payload.p_key);pendingCache={actor:actor(),prefix:prefix(),client:ojmDb,rows};return rows.filter(x=>!owner||x.payload.p_owner===owner)}
@@ -14,7 +14,7 @@ const queued=window.offline14239?.queue().find(j=>j.payload.p_key===payload.p_ke
 }
 async function retryStaff(job){const who=actor(),client=ojmDb;const r=await saveStaff(job.payload);if(actor()!==who||ojmDb!==client)return;if(r.error)throw r.error;if(r.queued){showCenterStatus('Saved on this device. Open Connection & sync and tap Sync now when connected.');return;}
  // Clear only the exact draft that was sent; never discard subsequent typing.
- for(const key of ['ojm_phone_draft1427:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+who,'ojm-personal-journal1437:'+who+':'+job.payload.p_owner]){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(!d)continue;if(d.staff){if(d.staff[job.payload.p_owner]?.data?.requestKey===job.payload.p_key)delete d.staff[job.payload.p_owner]}else if(d.requestKey===job.payload.p_key){localStorage.removeItem(key);continue}localStorage.setItem(key,JSON.stringify(d))}catch{}}
+ for(const key of ['ojm_phone_draft1427:'+String(window.OJM_SUPABASE_URL||location.origin)+(window.accountingReset143108?.suffix()||'')+':'+who,'ojm-personal-journal1437:'+(window.accountingReset143108?.suffix()||'')+who+':'+job.payload.p_owner]){try{const d=JSON.parse(localStorage.getItem(key)||'null');if(!d)continue;if(d.staff){if(d.staff[job.payload.p_owner]?.data?.requestKey===job.payload.p_key)delete d.staff[job.payload.p_owner]}else if(d.requestKey===job.payload.p_key){localStorage.removeItem(key);continue}localStorage.setItem(key,JSON.stringify(d))}catch{}}
  window.dispatchEvent(new CustomEvent('staff-retried14234',{detail:{owner:job.payload.p_owner,key:job.payload.p_key,actor:who}}));
  await loadStaffJournalsForReview();if(actor()!==who||ojmDb!==client)return;window.funds113?.refresh();changed();
 }

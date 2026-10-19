@@ -4181,6 +4181,12 @@
         "source": "src/bookkeeping/journal/undo143103.js",
         "suffix": ";\n"
       }
+    ],
+    "scripts/operational-reset143108.js": [
+      {
+        "source": "src/core/sync/operational-reset143108.js",
+        "suffix": ";\n"
+      }
     ]
   },
   "variants": [

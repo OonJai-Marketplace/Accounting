@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const cache=new Map();let busy=false;
 const owner=()=>typeof liveProfile!=='undefined'?liveProfile?.id||'':'';
-const key=id=>'ojm_journal_batch1440:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+id;
+const key=id=>'ojm_journal_batch1440:'+String(window.OJM_SUPABASE_URL||location.origin)+(window.accountingReset143108?.suffix()||'')+':'+id;
 const esc=v=>escapeHtml(String(v??''));
 const canonical=v=>JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
 function load(id=owner()){

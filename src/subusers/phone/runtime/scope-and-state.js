@@ -13,7 +13,7 @@
   let db, database, refreshJob, monthJob, enterJob, enterOwner, authBusy = false, draftTimer, touchAt = 0;
   const storageKey = 'sb-' + new URL(scope || location.origin).hostname.split('.')[0] + '-auth-token';
   let recovering=new URL(location.href).searchParams.has('password-recovery')||/(?:^|[#&])type=recovery(?:&|$)/.test(location.hash);
-  const key = id => scope + ':phone14242:' + (S.actor&&S.actor!==id?S.actor+':':'') + id;
+  const key = id => scope + (window.accountingReset143108?.suffix()||'') + ':phone14242:' + (S.actor&&S.actor!==id?S.actor+':':'') + id;
   const mirrorKey = id => key(id) + ':draft', activityKey = id => key(id) + ':activity', locationKey=id=>key(id)+':location';
   const current = (owner, epoch) => S.owner === owner && S.epoch === epoch;
   const fail = (message, code = '') => Object.assign(Error(message), {code});

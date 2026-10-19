@@ -10,7 +10,7 @@ function appLocalDate(date=new Date()) {
 const A=parent.PhoneApp132,$=id=>document.getElementById(id);if(!A){document.body.textContent='Open Oon Jai from the main website.';return}
 const S={module:'subusers',page:'home',user:null,search:'',month:A.previewMonth||appLocalDate().slice(0,7),review:'submitted',journalForm:false,editingStaff:false,editingJournal:false};let actions=[],last='',busy=false;
 let lastDraft14237='';let draftOwner1427='',phoneSession14225='',phoneDrafts1427={staff:{}};
-function draftKey1427(id){return 'ojm_phone_draft1427:'+String(parent.OJM_SUPABASE_URL||location.origin)+':'+id}
+function draftKey1427(id){return 'ojm_phone_draft1427:'+String(parent.OJM_SUPABASE_URL||location.origin)+(parent.accountingReset143108?.suffix()||'')+':'+id}
 function ensurePhoneOwner1427(){
  const me=A.profile(),id=me?.id,session=A.session();if(!id||!A.ready())return false;if(id===draftOwner1427&&phoneSession14225===session)return true;
  draftOwner1427=id;phoneSession14225=session;document.documentElement.dataset.phoneOwner14288=session;document.documentElement.dataset.phoneReady14288='false';last='';lastDraft14237='';document.querySelectorAll('main.screen').forEach(n=>n.replaceChildren());

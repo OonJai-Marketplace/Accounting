@@ -15,7 +15,7 @@ function signature(id){const keys=groups(id),out=[actor(),client(),window.worksp
  if(keys.includes('review'))out.push(typeof reviewStaffJournals==='undefined'?null:reviewStaffJournals,typeof liveProfiles==='undefined'?null:liveProfiles,typeof activeSubUserId==='undefined'?'':activeSubUserId,DemoAccess.submissions);
  if(id==='transactions-voided')out.push(typeof LiveTransactionAudit==='undefined'?null:LiveTransactionAudit);
  if(/accounts-|trial-balance|account-balances/.test(id))out.push(JSON.stringify(Accounts69));
- if(id.startsWith('report-'))out.push(Reports79.from,Reports79.to,Reports79.mode,Reports79.currency,Reports79.account,Reports79.query,JSON.stringify(Reports79.selectedMonths14331||[]));
+ if(id.startsWith('report-'))out.push(Reports79.basis,JSON.stringify(Reports79.cash),JSON.stringify(Reports79.payroll),Reports79.from,Reports79.to,Reports79.mode,Reports79.currency,Reports79.account,Reports79.query,JSON.stringify(Reports79.selectedMonths14331||[]));
  return out;
 }
 const equal=(a,b)=>a?.length===b.length&&a.every((v,i)=>v===b[i]);
@@ -56,7 +56,7 @@ async function build(initial=true){if(pendingBuild)return pendingBuild;const who
   if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');
   if(initial&&allowed('report-bs'))window.prepareReportDefaults14364?.();
   const targets=(initial?[current()]:[...document.querySelectorAll('.tab-content[id]')].map(n=>n.id)).filter(allowed).filter(id=>!window.startup14257?.requirements||startup14257.requirements(id).every(name=>startup14257.isPrepared(name)));
-  for(const id of targets){if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');if(!initial&&(id===current()||valid(id)))continue;
+  for(const id of targets){if(!initial&&window.idleSync14341&&!idleSync14341.allowed())break;if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');if(!initial&&(id===current()||valid(id)))continue;
    preparingTarget=id;const node=document.getElementById(id),prior=[...document.querySelectorAll('.tab-content.active')];prior.forEach(n=>n.classList.remove('active'));node.classList.add('active');restore(id);
    let result;try{rendering=true;const fn=renderer(id);result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(()=>fn?.()):fn?.();}
    finally{rendering=false;node.classList.remove('active');prior.forEach(n=>n.classList.add('active'));holdPayroll(current());}
