@@ -23,15 +23,41 @@
  function allowed(input,value){const mode=modes(input),lower=input.min,upper=input.max;if(mode==='year'){const n=Number(value);return (!lower||n>=Number(lower))&&(!upper||n<=Number(upper))}return (!lower||value>=lower)&&(!upper||value<=upper)}
  function close(focus=false){if(!active)return;const {input,panel}=active;panel.remove();input.closest('.oj-date-shell104')?.querySelector('button')?.setAttribute('aria-expanded','false');active=null;if(focus)input.closest('.oj-date-shell104')?.querySelector('button')?.focus({preventScroll:true})}
  function choose(value){if(!active||!active.input.isConnected||active.input.matches(':disabled')||active.input.readOnly||value!==''&&!allowed(active.input,value))return;const input=active.input;input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));close(true)}
- function draw(){if(!active)return;const {input,panel}=active,mode=modes(input),year=shown.getFullYear(),month=shown.getMonth();panel.replaceChildren();
-  const head=document.createElement('div');head.className='oj-date-head104';const prev=document.createElement('button'),title=document.createElement('strong'),next=document.createElement('button');prev.type=next.type='button';prev.textContent='‹';next.textContent='›';prev.setAttribute('aria-label',mode==='date'?'Previous month':'Previous year');next.setAttribute('aria-label',mode==='date'?'Next month':'Next year');title.textContent=mode==='date'?`${monthName(month,true)} ${year}`:mode==='month'?String(year):`${year-5}–${year+6}`;head.append(prev,title,next);panel.append(head);prev.onclick=()=>{shown=new Date(year-(mode==='year'?12:mode==='month'?1:0),month-(mode==='date'?1:0),1);draw()};next.onclick=()=>{shown=new Date(year+(mode==='year'?12:mode==='month'?1:0),month+(mode==='date'?1:0),1);draw()};
+ // Browse months/years without changing the journal date until a day is chosen.
+ function periodAllowed(input,year,month){
+  const lower=month==null?`${year}-01-01`:`${year}-${pad(month+1)}-01`;
+  const upper=month==null?`${year}-12-31`:`${year}-${pad(month+1)}-${new Date(year,month+1,0).getDate()}`;
+  return year>=100&&year<=9999&&(!input.min||upper>=input.min)&&(!input.max||lower<=input.max);
+ }
+ function focusGrid(){const panel=active?.panel;(panel?.querySelector('button[data-value][aria-current="date"]:not(:disabled)')||panel?.querySelector('button[data-value]:not(:disabled)'))?.focus({preventScroll:true})}
+ function draw(){if(!active)return;const {input,panel}=active,inputMode=modes(input),mode=active.view||inputMode,year=shown.getFullYear(),month=shown.getMonth();panel.replaceChildren();
+  const head=document.createElement('div');head.className='oj-date-head104';
+  const prev=document.createElement('button'),title=document.createElement(active.jump&&mode!=='year'?'button':'strong'),next=document.createElement('button');
+  prev.type=next.type='button';prev.textContent='‹';next.textContent='›';
+  prev.setAttribute('aria-label',mode==='date'?'Previous month':mode==='year'?'Previous 12 years':'Previous year');
+  next.setAttribute('aria-label',mode==='date'?'Next month':mode==='year'?'Next 12 years':'Next year');
+  title.textContent=mode==='date'?`${monthName(month,true)} ${year}`:mode==='month'?String(year):`${year-5}–${year+6}`;
+  if(active.jump&&mode!=='year'){
+   title.type='button';title.className='oj-date-title143115';title.setAttribute('aria-label',mode==='date'?'Choose month and year':'Choose year');
+   title.onclick=()=>{active.view=mode==='date'?'month':'year';draw();focusGrid()};
+  }
+  head.append(prev,title,next);panel.append(head);
+  const navigate=direction=>{shown=new Date(year+direction*(mode==='year'?12:mode==='month'?1:0),month+direction*(mode==='date'?1:0),1);draw();active?.panel.querySelector(direction<0?'.oj-date-head104 button:first-child':'.oj-date-head104 button:last-child')?.focus({preventScroll:true})};
+  prev.onclick=()=>navigate(-1);next.onclick=()=>navigate(1);
   const grid=document.createElement('div');grid.className='oj-date-grid104 '+mode;panel.append(grid);
   if(mode==='date'){
    ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(day=>{const label=document.createElement('span');label.textContent=day;grid.append(label)});
    const offset=new Date(year,month,1).getDay(),days=new Date(year,month+1,0).getDate();for(let n=0;n<offset;n++)grid.append(document.createElement('i'));
    for(let day=1;day<=days;day++){const value=`${year}-${pad(month+1)}-${pad(day)}`,b=document.createElement('button');b.type='button';b.textContent=day;b.dataset.value=value;b.disabled=!allowed(input,value);if(input.value===value)b.setAttribute('aria-current','date');grid.append(b);b.onclick=()=>choose(value)}
-  }else{const total=mode==='month'?12:12;for(let n=0;n<total;n++){const value=mode==='month'?`${year}-${pad(n+1)}`:String(year-5+n),b=document.createElement('button');b.type='button';b.textContent=mode==='month'?monthName(n):value;b.dataset.value=value;b.disabled=!allowed(input,value);if(input.value===value)b.setAttribute('aria-current','date');grid.append(b);b.onclick=()=>choose(value)}}
-  const footer=document.createElement('div');footer.className='oj-date-footer104';const now=document.createElement('button');now.type='button';now.textContent=mode==='year'?'This year':mode==='month'?'This month':'Today';const date=today(),value=mode==='year'?String(date.getFullYear()):mode==='month'?`${date.getFullYear()}-${pad(date.getMonth()+1)}`:iso(date);now.disabled=!allowed(input,value);now.onclick=()=>choose(value);footer.append(now);if(!input.required){const clear=document.createElement('button');clear.type='button';clear.textContent='Clear';clear.onclick=()=>choose('');footer.append(clear)}panel.append(footer);
+  }else{
+   for(let n=0;n<12;n++){
+    const value=mode==='month'?`${year}-${pad(n+1)}`:String(year-5+n),b=document.createElement('button');b.type='button';b.textContent=mode==='month'?monthName(n):value;b.dataset.value=value;
+    b.disabled=active.jump?!periodAllowed(input,mode==='month'?year:Number(value),mode==='month'?n:null):!allowed(input,value);
+    if(input.value.slice(0,mode==='month'?7:4)===value)b.setAttribute('aria-current','date');grid.append(b);
+    b.onclick=()=>{if(!active.jump){choose(value);return}shown=mode==='month'?new Date(year,n,1):new Date(Number(value),month,1);active.view=mode==='month'?'date':'month';draw();focusGrid()};
+   }
+  }
+  const footer=document.createElement('div');footer.className='oj-date-footer104';const now=document.createElement('button');now.type='button';now.textContent=inputMode==='year'?'This year':inputMode==='month'?'This month':'Today';const date=today(),value=inputMode==='year'?String(date.getFullYear()):inputMode==='month'?`${date.getFullYear()}-${pad(date.getMonth()+1)}`:iso(date);now.disabled=!allowed(input,value);now.onclick=()=>choose(value);footer.append(now);if(!input.required){const clear=document.createElement('button');clear.type='button';clear.textContent='Clear';clear.onclick=()=>choose('');footer.append(clear)}panel.append(footer);
   panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();close(true)}if(e.key==='PageUp'||e.key==='PageDown'){e.preventDefault();(e.key==='PageUp'?prev:next).click()}};
  }
  function open(input){
@@ -40,7 +66,7 @@
   const button=input.closest('.oj-date-shell104')?.querySelector('button');if(!button)return;
   const overlay=input.closest('.save-overlay14234');if(overlay)panel.style.setProperty('z-index',String((Number(getComputedStyle(overlay).zIndex)||2147483500)+1),'important');
   // Measure complete contents before revealing; focus must not scroll the page.
-  panel.style.visibility='hidden';(input.closest('dialog[open]')||document.body).append(panel);active={input,panel};draw();
+  panel.style.visibility='hidden';(input.closest('dialog[open]')||document.body).append(panel);active={input,panel,jump:modes(input)==='date'&&(input.id==='jeTransDate'||input.id==='workspaceEntryDate'||!!input.closest('#journalEntry98'))};draw();
   const rect=(window.desktopScale14320?.rect(button)||button.getBoundingClientRect()),bounds=(window.desktopScale14320?.rect(panel)||panel.getBoundingClientRect());
   panel.style.left=Math.max(8,Math.min(rect.left,(window.desktopScale14320?.width||innerWidth)-bounds.width-8))+'px';
   panel.style.top=Math.max(8,Math.min(rect.bottom+4,(window.desktopScale14320?.height||innerHeight)-bounds.height-8))+'px';

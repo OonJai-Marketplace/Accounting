@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.114',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.115',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/operational-reset143108.js?v=143.109",
  "scripts/undo143103.js?v=143.109",
@@ -19,12 +19,12 @@ const FILES=[
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.109",
- "scripts/desktop14245-3.js?v=143.114",
+ "scripts/desktop14245-3.js?v=143.115",
  "scripts/desktop14245-4.js?v=143.109",
  "scripts/desktop14245-5.js?v=143.113",
  "scripts/desktop14245-6.js?v=143.113",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.114",
+ "scripts/offline14239.js?v=143.115",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -120,7 +120,7 @@ const FILES=[
  "styles/phone-accounting14246.css?v=142.47",
  "assets/banners/transactions.webp",
  "styles/password-help14278.css?v=142.94",
- "styles/desktop14245.css?v=143.109",
+ "styles/desktop14245.css?v=143.115",
  "scripts/tablet-journal14266.js?v=142.80",
  "scripts/workspace-header14266.js?v=142.83",
  "styles/tablet-journal14266.css?v=142.75",
@@ -243,7 +243,7 @@ const FILES=[
  "scripts/tax-reports-v102.js?v=143.109",
  "scripts/prepared-workspace14364.js?v=143.109",
  "scripts/transaction-consistency14300.js?v=143.69",
- "scripts/universal-date-v104.js?v=143.109",
+ "scripts/universal-date-v104.js?v=143.115",
  "scripts/layout-consistency-v87.js?v=143.67",
  "scripts/financial-numbers14231.js?v=143.69",
  "scripts/interface-v69.js?v=143.87",

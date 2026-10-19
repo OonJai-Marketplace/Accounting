@@ -10,7 +10,9 @@ body .oj-date-shell104 .oj-date-label104{min-width:0;overflow:hidden;text-overfl
 body .oj-date-popup104{position:fixed;z-index:2000;width:274px;max-height:calc(100dvh - 16px);overflow-y:auto;padding:9px;border:1px solid #b8d1c0;border-top:4px solid #008563;border-radius:8px;background:#fffcf6;color:#164936;box-shadow:0 12px 30px rgba(9,56,37,.2);box-sizing:border-box}
 body .oj-date-head104{display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:6px;margin-bottom:8px;text-align:center}
 body .oj-date-head104 button,body .oj-date-footer104 button{min-height:30px;border:1px solid #b9d2c0;border-radius:5px;background:#f5faf3;color:#075b43;font-size:17px;cursor:pointer}
-body .oj-date-head104 strong{font-size:12px}
+body .oj-date-head104 strong,body .oj-date-head104 .oj-date-title143115{font-size:12px}
+body .oj-date-head104 .oj-date-title143115{font-weight:700}
+body .oj-date-head104 .oj-date-title143115:focus-visible{outline:2px solid #008563;outline-offset:2px}
 body .oj-date-grid104{display:grid;gap:4px}
 body .oj-date-grid104.date{grid-template-columns:repeat(7,minmax(0,1fr))}
 body .oj-date-grid104.month,body .oj-date-grid104.year{grid-template-columns:repeat(3,minmax(0,1fr))}
