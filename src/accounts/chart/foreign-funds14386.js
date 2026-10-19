@@ -1,7 +1,7 @@
 /* Phase 2: recorded fund valuation, without rewriting historical journal amounts. */
 (()=>{'use strict';
 const esc=v=>escapeHtml(String(v??'')), num=v=>Number(v)||0;
-const rateText=v=>Number.isFinite(v)&&v>0?new Intl.NumberFormat('en-US',{maximumFractionDigits:8}).format(v):'—';
+const rateText=v=>Number.isFinite(v)&&v>0?formatAppRate(v):'—';
 const posting=a=>a.isPosting!==false&&a.is_posting!==false;
 const tracked=a=>posting(a)&&!!(a.currency||a.currency_code)&&!['LAK','NA','__PARENT__'].includes(a.currency||a.currency_code);
 function lineRateText(l){const c=l.originalCurrency||l.currency||l.currency_code;if(c==='LAK')return '1';const amount=num(l.debit)-num(l.credit),d=JournalFX14383.base(l,'debit'),cr=JournalFX14383.base(l,'credit');const saved=Number(l.book_rate_lak||l.fx_rate_lak);const r=saved>0?saved:amount&&d!==null&&cr!==null?(d-cr)/amount:null;return rateText(r)+' LAK / '+c+(l.book_rate_lak?' · carrying':'');}

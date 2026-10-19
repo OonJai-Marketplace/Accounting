@@ -274,7 +274,7 @@ function formatAppNumberEditing(input) {
   const escapedDecimal = decimal === '.' ? '\\.' : decimal;
   const clean = String(input.value ?? '').replace(new RegExp(`[^0-9${escapedDecimal}]`, 'g'), '');
   const parts = clean.split(decimal);
-  const whole = (parts.shift() || '0').replace(/^0+(?=\d)/, '');
+  const whole = (parts.shift() || '0');
   const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, group);
   input.value = grouped + (clean.includes(decimal) && places ? decimal + parts.join('').slice(0, places) : '');
 }
@@ -284,6 +284,13 @@ function finishAppNumberEditing(input) {
   input.value = Number.isFinite(value) ? formatAppNumber(value) : '';
 }
 
+
+// Rates retain their saved precision instead of inheriting money's decimal places.
+function formatAppRate(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const rate = Number(value);
+  return Number.isFinite(rate) ? rate.toLocaleString(appNumberLocale(), { useGrouping: true, maximumFractionDigits: 8 }) : '—';
+}
 function setSettingsFormValues(group) {
   const form = document.querySelector(`.app-settings-form[data-settings-group="${group}"]`);
   if (!form) return;
@@ -2449,22 +2456,24 @@ setupJournalColumns = function() {
   toggleMultipleDates(false);
 };
 
-function toggleMultipleDates(syncRows = true) {
+function toggleMultipleDates(syncRows = true, fromUser = false) {
   const enabled = !!document.getElementById('jeMultipleDates')?.checked;
   document.body.classList.toggle('je-multi-date', enabled);
   if (enabled && syncRows) {
     const mainDate = document.getElementById('jeTransDate')?.value || '';
-    document.querySelectorAll('.je-line-date').forEach(inp => { if (!inp.value) inp.value = mainDate; });
+    document.querySelectorAll('#jeLinesBody .je-line-date,#simpleRows1430 [data-simple=date]').forEach(inp => {
+      if (fromUser || !inp.value) { inp.value = mainDate; delete inp.dataset.manualDate; window.datePicker104?.refresh(inp); }
+    });
   }
   calculateJournalBalance();
 }
 
 document.addEventListener('change', event => {
   if (event.target?.id === 'jeTransDate' && document.getElementById('jeMultipleDates')?.checked) {
-    document.querySelectorAll('.je-line-date').forEach(inp => { if (!inp.dataset.manualDate) inp.value = event.target.value; });
+    document.querySelectorAll('#jeLinesBody .je-line-date,#simpleRows1430 [data-simple=date]').forEach(inp => { if (!inp.dataset.manualDate) { inp.value = event.target.value; window.datePicker104?.refresh(inp); } });
   }
-  if (event.target?.matches('.je-line-date')) event.target.dataset.manualDate = '1';
-});
+  if (event.target?.matches('.je-line-date,[data-simple=date]')) event.target.dataset.manualDate = '1';
+}, true); // Update inherited single-entry dates before their target change handler rebuilds lines.
 
 function getMultiDateJournalState() {
   const grouped = Object.create(null);
@@ -4783,7 +4792,7 @@ window.staffSave14228=async function(payload){return window.saveNotices14234.sav
   window.v56AutoGrow=function(textarea){textarea.style.height='auto';textarea.style.height=`${Math.max(46,textarea.scrollHeight)}px`};
   function numberParts(){const style=ApplicationSettings.system?.numberFormat||'1,234.56';return style==='1.234,56'?{group:'.',decimal:','}:style==='1 234,56'?{group:' ',decimal:','}:{group:',',decimal:'.'}}
   window.v56BeginAmount=function(){/* Preserve the existing amount and the clicked caret position. */};
-  window.v56FormatCorrectionAmount=function(input){const {group,decimal}=numberParts(),escaped=decimal==='.'?'\\.':decimal,clean=String(input.value).replace(new RegExp(`[^0-9${escaped}]`,'g'),''),parts=clean.split(decimal),whole=(parts.shift()||'0').replace(/^0+(?=\d)/,''),grouped=whole.replace(/\B(?=(\d{3})+(?!\d))/g,group),places=Math.max(0,Number(ApplicationSettings.accounting?.decimalPlaces??2));input.value=grouped+(clean.includes(decimal)&&places?decimal+(parts.join('').slice(0,places)): '')};
+  window.v56FormatCorrectionAmount=function(input){const {group,decimal}=numberParts(),escaped=decimal==='.'?'\\.':decimal,clean=String(input.value).replace(new RegExp(`[^0-9${escaped}]`,'g'),''),parts=clean.split(decimal),whole=(parts.shift()||'0'),grouped=whole.replace(/\B(?=(\d{3})+(?!\d))/g,group),places=Math.max(0,Number(ApplicationSettings.accounting?.decimalPlaces??2));input.value=grouped+(clean.includes(decimal)&&places?decimal+(parts.join('').slice(0,places)): '')};
   window.v56FinishAmount=function(input){const value=typeof wsParse==='function'?wsParse(input.value):Number(String(input.value).replaceAll(',',''));input.value=Number.isFinite(value)?fmt(value):'';renderReturnedBookTotals()};
   function splitDescription(value){const text=String(value||'').trim(),marker=' / ',at=text.lastIndexOf(marker);return at>0?{memo:text.slice(0,at).trim(),reference:text.slice(at+marker.length).trim()}:{memo:text,reference:''}}
   function returnedBookLines(){
@@ -4901,7 +4910,7 @@ window.staffSave14228=async function(payload){return window.saveNotices14234.sav
     const negative=/^\s*-/.test(old);
     const escapedDecimal=decimal==='.'?'\\.':decimal;
     const cleaned=old.replace(new RegExp(`[^0-9${escapedDecimal}]`,'g'),'');
-    const pieces=cleaned.split(decimal),whole=(pieces.shift()||'0').replace(/^0+(?=\d)/,''),fraction=pieces.join('').slice(0,places);
+    const pieces=cleaned.split(decimal),whole=(pieces.shift()||'0'),fraction=pieces.join('').slice(0,places);
     const grouped=whole.replace(/\B(?=(\d{3})+(?!\d))/g,group);
     const formatted=(negative?'-':'')+grouped+(cleaned.includes(decimal)&&places?decimal+fraction:'');
     input.value=formatted;
@@ -5039,10 +5048,10 @@ window.addEventListener('resize',schedule);window.addEventListener('page113',sch
 /* scripts/transactions-v67.js */
 function journalIsHistory14342(row){const period=PeriodReview.periods[String(row.date).slice(0,7)];return period?period.status!=='open':!!row.archived;}
 /* TRANSACTIONS 67: active books, archived months and correction context. */
-function setJournalDateMode(multiple) {
+function setJournalDateMode(multiple, fromUser = false) {
   document.getElementById('jeMultipleDates').checked=multiple;
   document.getElementById('jeSingleDate').checked=!multiple;
-  toggleMultipleDates();
+  toggleMultipleDates(true, fromUser);
 }
 function journalContext67(text='') {
   let banner=document.getElementById('journalContext67');
@@ -5681,9 +5690,14 @@ function reportSelect79(kind,key,checked){Reports79[kind]=checked?[...new Set([.
 const reportPages143108=new Map();
 function reportPage143108(key,delta){const s=reportPages143108.get(key);if(!s)return;s.page=Math.max(0,Math.min(s.page+delta,s.pages-1));renderReports79()}
 function reportTable79(headers,rows,currency,print=false){
- const ledger=headers.includes('Entry ID'),column=h=>({'Date':'date','Entry ID':'id','Account':'account','Description / Reference':'description','LAK rate':'rate'}[h]||'amount');let pager='';
+ const ledger=headers.includes('Entry ID'),trial=headers.includes('Period debit')&&headers.includes('Closing credit'),column=h=>({'Date':'date','Entry ID':'id','Account':'account','Description / Reference':'description','LAK rate':'rate','Classification':'classification','Original currency / net':'original'}[h]||'amount');let pager='';
+ // Measure all rows before pagination so columns do not jump between pages.
+ const longest=(indices,min)=>rows.reduce((max,row)=>Math.max(max,...indices.map(i=>String(row[i]??'').length)),min);
+ const idWidth=longest([headers.indexOf('Entry ID')],9)+2,amountWidth=longest(headers.flatMap((h,i)=>column(h)==='amount'?[i]:[]),12)+1;
+ const widths=`--report-id-width143116:calc(${idWidth}ch + 16px);--report-amount-width143116:calc(${amountWidth}ch + 16px);--report-min-width143116:calc(${ledger?665+(headers.includes('LAK rate')?100:0):360+(headers.includes('Original currency / net')?170:0)}px + ${ledger?idWidth+3*amountWidth:5*amountWidth}ch + ${ledger?64:80}px)`;
+ const attr=h=>ledger?'data-ledger-column143108="'+column(h)+'"':trial?'data-trial-column143116="'+column(h)+'"':'';
  if(ledger&&!print){const key=JSON.stringify([Reports79.kind,currency,Reports79.from,Reports79.to,Reports79.basis,Reports79.account,Reports79.currency,Reports79.query,Reports79.selectedMonths14331,rows[0]?.[0],rows.at(-1)?.[0]]),pages=Math.max(1,Math.ceil(rows.length/100)),s=reportPages143108.get(key)||{page:0};s.pages=pages;s.page=Math.min(s.page,pages-1);reportPages143108.set(key,s);if(reportPages143108.size>32)reportPages143108.delete(reportPages143108.keys().next().value);rows=rows.slice(s.page*100,(s.page+1)*100);pager=`<div class="table-pages14383 no-print"><button type="button" class="je-btn je-btn-secondary" ${s.page?'':'disabled'} onclick="reportPage143108(${re79(JSON.stringify(key))},-1)">Prev</button><span>${s.page+1} of ${pages}</span><button type="button" class="je-btn je-btn-secondary" ${s.page+1<pages?'':'disabled'} onclick="reportPage143108(${re79(JSON.stringify(key))},1)">Next</button></div>`;}
- return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':''}><thead><tr>${headers.map(h=>`<th ${ledger?'data-ledger-column143108="'+column(h)+'"':''}>${re79(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${row.map((v,i)=>`<td ${ledger?'data-ledger-column143108="'+column(headers[i])+'"':''}>${!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(v)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(v)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="showJournalSource69(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:re79(headers[i]==='Date'?formatAppDate(v):v)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`}</tbody></table></div>${pager}`}
+ return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${row.map((v,i)=>`<td ${attr(headers[i])}>${!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(v)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(v)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="showJournalSource69(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:re79(headers[i]==='Date'?formatAppDate(v):v)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`}</tbody></table></div>${pager}`}
 function reportHierarchy14383(rows){
  return window.ForeignFunds14386?ForeignFunds14386.hierarchy(rows):rows;
 }
@@ -5712,7 +5726,7 @@ function reportModel79(kind,oldest=false){
  }else{
  const selected=window.ForeignFunds14386?ForeignFunds14386.select(all,Reports79.account).filter(active):rows.filter(r=>!Reports79.account||r.key===Reports79.account);headers=['Date','Entry ID','Account','Description / Reference','Debit','Credit','Running DR / CR'];let lines=[];
  selected.forEach(r=>{let running=r.opening;r.lines.forEach(l=>{running+=l.dr-l.cr;lines.push({...l,accountName:r.account.name,running})})});const q=Reports79.query.trim().toLowerCase();lines=lines.filter(l=>!q||`${l.id} ${l.date} ${l.accountName} ${l.memo} ${l.generalMemo||''}`.toLowerCase().includes(q)).sort((a,b)=>{const c=a.date.localeCompare(b.date)||String(a.id).localeCompare(String(b.id),undefined,{numeric:true})||a.originalIndex-b.originalIndex;return oldest?c:-c});
- if(Reports79.basis==='LAK')headers.splice(4,0,'LAK rate');values=lines.map(l=>[l.date,l.id,l.accountName,l.memo||l.generalMemo||'',...(Reports79.basis==='LAK'?[String(l.book_rate_lak||l.fx_rate_lak||(l.originalCurrency==='LAK'?1:'—'))]:[]),money69(l.dr),money69(l.cr),balanceText69(l.running)]);metrics=[['Opening (DR less CR)',sum(selected,r=>r.opening)],['Period debit',sum(selected,r=>r.debit)],['Period credit',sum(selected,r=>r.credit)],['Closing (DR less CR)',sum(selected,r=>r.closing)]];note='Running balances are calculated chronologically for each account. Screen entries are newest first; printed and exported entries are oldest first. Search filters the detail rows only; totals cover the selected accounts for the full period.';
+ if(Reports79.basis==='LAK')headers.splice(4,0,'LAK rate');values=lines.map(l=>[l.date,l.id,l.accountName,l.memo||l.generalMemo||'',...(Reports79.basis==='LAK'?[formatAppRate(l.book_rate_lak||l.fx_rate_lak||(l.originalCurrency==='LAK'?1:null))]:[]),money69(l.dr),money69(l.cr),balanceText69(l.running)]);metrics=[['Opening (DR less CR)',sum(selected,r=>r.opening)],['Period debit',sum(selected,r=>r.debit)],['Period credit',sum(selected,r=>r.credit)],['Closing (DR less CR)',sum(selected,r=>r.closing)]];note='Running balances are calculated chronologically for each account. Screen entries are newest first; printed and exported entries are oldest first. Search filters the detail rows only; totals cover the selected accounts for the full period.';
  }
  const unknown=all.filter(r=>active(r)&&!['ASSET','LIABILITY','EQUITY','REVENUE','EXPENSE','SYSTEM'].includes(String(r.account.type).toUpperCase()));if(unknown.length)note+=` Attention: ${unknown.length} account(s) have no recognized classification. Review the Trial Balance before relying on statements.`;
  if(Reports79.basis==='LAK'){note+=' LAK amounts use saved transaction/carrying rates. Original currencies are retained; mapping accounts are excluded from operating results.';if(!['gl','activity','bs'].includes(kind)){const index=headers.indexOf('Account');if(index>=0){headers.splice(index+1,0,'Original currency / net');values=values.map(v=>{const row=rows.find(r=>r.account.name===String(v[index]).trim());return [...v.slice(0,index+1),row?row.sourceCurrency+' '+balanceText69(['pl','expense'].includes(kind)?row.original.debit-row.original.credit:row.original.closing):'Subtotal in LAK',...v.slice(index+1)]})}}}
@@ -6017,7 +6031,7 @@ function responsiveWork82(){document.querySelectorAll('.nav-links .only-desktop8
 for(const [parent,id,label]of [['reports','report-subusers82','Sub-user Reports'],['reports','report-financing82','Budget & Financing Reports']]){const p=APP_PERMISSION_TREE.find(p=>p.id===parent);if(p&&!p.children.some(c=>c[0]===id))p.children.push([id,label])}
 document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.app-settings-form').forEach(f=>f.onsubmit=saveSettingsGroup);responsiveWork82()});desktop80.addEventListener('change',responsiveWork82);
 document.addEventListener('click',e=>{if(!desktop80.matches)return;const input=e.target.closest('.work82 input[type=date],.work82 input[type=month]');if(input)try{input.showPicker()}catch(_){}});
-function conversionTable82(d,editing=false){return section82('Documented Currency Conversions',table82(['Source','Original amount','Currency','Rate per unit','Converted amount','Currency','Date / evidence',...(editing?['Action']:[])],(d.conversions||[]).map((x,i)=>[esc82(x.source),money82(x.amount),esc82(x.currency),money82(x.rate),money82(Number(x.amount)*Number(x.rate)),esc82(x.target),esc82(formatAppDate(x.date)+' · '+(x.evidence||x.reference||'')),...(editing?[action82('Remove',`readFinance82();Finance82.conversions.splice(${i},1);renderWork82()`)]:[])])))}
+function conversionTable82(d,editing=false){return section82('Documented Currency Conversions',table82(['Source','Original amount','Currency','Rate per unit','Converted amount','Currency','Date / evidence',...(editing?['Action']:[])],(d.conversions||[]).map((x,i)=>[esc82(x.source),money82(x.amount),esc82(x.currency),formatAppRate(x.rate),money82(Number(x.amount)*Number(x.rate)),esc82(x.target),esc82(formatAppDate(x.date)+' · '+(x.evidence||x.reference||'')),...(editing?[action82('Remove',`readFinance82();Finance82.conversions.splice(${i},1);renderWork82()`)]:[])])))}
 function financeHtml82(d){return financeHtmlBase82(d)+conversionTable82(d)}
 function renderFinance82(notice){renderFinanceBase82(notice);const host=document.querySelector('#report-financing82 .work82');if(!host)return;const box=document.createElement('div');box.innerHTML=conversionTable82(Finance82,true)+section82('Record a Conversion',`<form id="financeFx82" onsubmit="event.preventDefault();addConversion82()"><div class="fields82">${field82('Financing source','source','','text','required')}${field82('Original amount','amount','','number','min="0.01" step="0.01" required')}${select82('Source currency','currency','USD',CurrencyStore.currencies.map(c=>[c.code,c.code]))}${field82('Rate per source unit','rate','','number','min="0.000001" step="any" required')}${select82('Converted currency','target',ApplicationSettings.accounting.baseCurrency,CurrencyStore.currencies.map(c=>[c.code,c.code]))}${field82('Conversion date','date',today82(),'date','required')}${field82('Rate / transfer evidence','reference','','text','required')}<button type="submit">Add Conversion</button></div></form><p class="notice82">Conversions document actual funding evidence. They do not change the separate-currency request totals or post a ledger entry.</p>`);host.append(box)}
 function addConversion82(){if(!readFinance82())return;const d=form82('financeFx82');if(!d)return;if(d.currency===d.target)return showCenterStatus('Select different source and converted currencies.',true);Finance82.conversions||=[];Finance82.conversions.push(d);renderWork82()}
@@ -6172,18 +6186,19 @@ const nativeValue=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'va
 const bridged=new Set();
 const textSelector='input.je-line-dr,input.je-line-cr,input.v56-amount,input[inputmode="decimal"],input.adjustment-input69';
 function parts(){const f=ApplicationSettings.system?.numberFormat;return f==='1.234,56'?['.',',']:f==='1 234,56'?[' ',',']:[',','.']}
+// Editing is a digit-preserving operation; normalize the value only on commit.
 function edit(value,places=appDecimalPlaces()){
  const [group,decimal]=parts();let s=String(value),negative=s.trim().startsWith('-');
  if(!s)return '';
  s=s.replace(new RegExp('[^0-9'+(decimal==='.'?'\\.':',')+']','g'),'');
  if(!s)return negative?'-':'';
- const bits=s.split(decimal),whole=(bits.shift()||'0').replace(/^0+(?=\d)/,''),fraction=bits.join('').slice(0,places);
+ const bits=s.split(decimal),whole=(bits.shift()||'0'),fraction=bits.join('').slice(0,places);
  return (negative?'-':'')+whole.replace(/\B(?=(\d{3})+(?!\d))/g,group)+(s.includes(decimal)&&places?decimal+fraction:'');
 }
-function formatCaret(input,places){const before=nativeValue.get.call(input),at=input.selectionStart??before.length;const digits=before.slice(0,at).replace(/[^0-9]/g,'').length;const result=edit(before,places);nativeValue.set.call(input,result);let next=0,count=0;while(next<result.length&&count<digits){if(/\d/.test(result[next]))count++;next++}if(at===before.length)next=result.length;try{input.setSelectionRange(next,next)}catch{}}
-window.formatAppNumberEditing=function(input){formatCaret(input,input.dataset.numeric88?Number(input.dataset.precision88):appDecimalPlaces())};
+function formatCaret(input,places){const before=nativeValue.get.call(input),at=input.selectionStart??before.length,result=edit(before,places);if(result===before)return;const meaningful=ch=>/\d/.test(ch)||ch===parts()[1]||ch==='-',digits=[...before.slice(0,at)].filter(meaningful).length;nativeValue.set.call(input,result);let next=0,count=0;while(next<result.length&&count<digits){if(meaningful(result[next]))count++;next++}if(at===before.length)next=result.length;try{input.setSelectionRange(next,next)}catch{}}
+window.formatAppNumberEditing=function(input){formatCaret(input,input.dataset.fxRate14383?8:input.dataset.numeric88?Number(input.dataset.precision88):appDecimalPlaces())};
 window.v56FormatCorrectionAmount=window.formatAppNumberEditing;
-function precision(input){const key=(input.name||input.id||'').toLowerCase();if(/rate|exchange/.test(key))return 6;if(/salary|amount|base|pit\d.*(?:from|to)|opening|advance|reimbursement|deduction|bonus|allowance|penalty|ceiling/.test(key))return appDecimalPlaces();const step=input.getAttribute('step');return step==='any'?6:step?.includes('.')?step.split('.')[1].length:0}
+function precision(input){const key=(input.name||input.id||'').toLowerCase();if(/rate|exchange/.test(key))return 8;if(/salary|amount|base|pit\d.*(?:from|to)|opening|advance|reimbursement|deduction|bonus|allowance|penalty|ceiling/.test(key))return appDecimalPlaces();const step=input.getAttribute('step');return step==='any'?6:step?.includes('.')?step.split('.')[1].length:0}
 function validate(input){const value=input.value,n=Number(value),min=input.getAttribute('min'),max=input.getAttribute('max');let message='';if(value!==''&&!Number.isFinite(n))message='Enter a valid number.';else if(value!==''&&min!==null&&n<Number(min))message='Minimum: '+min;else if(value!==''&&max!==null&&n>Number(max))message='Maximum: '+max;input.setCustomValidity(message)}
 function bridge(input){
  if(input.closest('#document-editor105,.page-setup1427,.doc-images-dialog112')||input.hasAttribute('data-doc-setting'))return;
@@ -6195,7 +6210,7 @@ function bridge(input){
 }
 function within(root,selector){return [...(root.matches?.(selector)?[root]:[]),...root.querySelectorAll(selector)]}
 function scan(root=document){within(root,'input[type="number"]').forEach(bridge);for(const n of bridged)if(!n.isConnected)bridged.delete(n);within(root,'#returnedBookOverlay select').forEach(n=>{const text=n.selectedOptions[0]?.textContent||'';if(n.title!==text)n.title=text;if(matchMedia('(min-width:1025px)').matches){const width=Math.max(130,...[...n.options].map(o=>o.textContent.length*8+48))+'px';if(n.style.minWidth!==width)n.style.minWidth=width}})}
-document.addEventListener('input',e=>{const n=e.target;if(n instanceof HTMLInputElement){if(n.dataset.numeric88){formatCaret(n,Number(n.dataset.precision88));validate(n)}else if(n.matches(textSelector))formatCaret(n,appDecimalPlaces())}},true);
+document.addEventListener('input',e=>{const n=e.target;if(n instanceof HTMLInputElement){if(n.dataset.numeric88){formatCaret(n,Number(n.dataset.precision88));validate(n)}else if(n.matches(textSelector))formatCaret(n,n.dataset.fxRate14383?8:appDecimalPlaces())}},true);
 document.addEventListener('formdata',e=>{for(const input of e.target.querySelectorAll('[data-numeric88]'))if(input.name&&!input.disabled)e.formData.set(input.name,input.value)},true);
 // Contenteditable single-entry amounts use the same parser on commit.
 document.addEventListener('input',e=>{const cell=e.target.closest('[contenteditable][data-field="amount"],.pit-cell-editor');if(!cell)return;const selection=getSelection(),offset=selection?.anchorOffset||0,before=cell.textContent;cell.textContent=edit(before);const range=document.createRange();if(cell.firstChild){range.setStart(cell.firstChild,Math.min(cell.textContent.length,offset+cell.textContent.length-before.length));range.collapse(true);selection.removeAllRanges();selection.addRange(range)}},true);
@@ -7788,6 +7803,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  document.addEventListener('pointerdown',e=>{if(active&&!e.target.closest('.oj-date-popup104')&&!e.target.closest('.oj-date-shell104'))close()},true);
  document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();close(true)}});
+ window.datePicker104={refresh:update};
  const ready=()=>{scan();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','readonly','value','type','min','max']});window.addEventListener('page113',()=>{close();const root=document.querySelector('.tab-content.active');if(root)scan(root)})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 

@@ -74,7 +74,7 @@
     const negative=/^\s*-/.test(old);
     const escapedDecimal=decimal==='.'?'\\.':decimal;
     const cleaned=old.replace(new RegExp(`[^0-9${escapedDecimal}]`,'g'),'');
-    const pieces=cleaned.split(decimal),whole=(pieces.shift()||'0').replace(/^0+(?=\d)/,''),fraction=pieces.join('').slice(0,places);
+    const pieces=cleaned.split(decimal),whole=(pieces.shift()||'0'),fraction=pieces.join('').slice(0,places);
     const grouped=whole.replace(/\B(?=(\d{3})+(?!\d))/g,group);
     const formatted=(negative?'-':'')+grouped+(cleaned.includes(decimal)&&places?decimal+fraction:'');
     input.value=formatted;

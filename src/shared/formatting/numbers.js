@@ -30,7 +30,7 @@ function formatAppNumberEditing(input) {
   const escapedDecimal = decimal === '.' ? '\\.' : decimal;
   const clean = String(input.value ?? '').replace(new RegExp(`[^0-9${escapedDecimal}]`, 'g'), '');
   const parts = clean.split(decimal);
-  const whole = (parts.shift() || '0').replace(/^0+(?=\d)/, '');
+  const whole = (parts.shift() || '0');
   const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, group);
   input.value = grouped + (clean.includes(decimal) && places ? decimal + parts.join('').slice(0, places) : '');
 }
@@ -40,3 +40,10 @@ function finishAppNumberEditing(input) {
   input.value = Number.isFinite(value) ? formatAppNumber(value) : '';
 }
 
+
+// Rates retain their saved precision instead of inheriting money's decimal places.
+function formatAppRate(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const rate = Number(value);
+  return Number.isFinite(rate) ? rate.toLocaleString(appNumberLocale(), { useGrouping: true, maximumFractionDigits: 8 }) : '—';
+}

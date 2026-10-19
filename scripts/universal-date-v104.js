@@ -74,5 +74,6 @@
  }
  document.addEventListener('pointerdown',e=>{if(active&&!e.target.closest('.oj-date-popup104')&&!e.target.closest('.oj-date-shell104'))close()},true);
  document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'){e.preventDefault();close(true)}});
+ window.datePicker104={refresh:update};
  const ready=()=>{scan();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','readonly','value','type','min','max']});window.addEventListener('page113',()=>{close();const root=document.querySelector('.tab-content.active');if(root)scan(root)})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

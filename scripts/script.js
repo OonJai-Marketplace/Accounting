@@ -247,7 +247,7 @@ function formatAppNumberEditing(input) {
   const escapedDecimal = decimal === '.' ? '\\.' : decimal;
   const clean = String(input.value ?? '').replace(new RegExp(`[^0-9${escapedDecimal}]`, 'g'), '');
   const parts = clean.split(decimal);
-  const whole = (parts.shift() || '0').replace(/^0+(?=\d)/, '');
+  const whole = (parts.shift() || '0');
   const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, group);
   input.value = grouped + (clean.includes(decimal) && places ? decimal + parts.join('').slice(0, places) : '');
 }
@@ -257,6 +257,13 @@ function finishAppNumberEditing(input) {
   input.value = Number.isFinite(value) ? formatAppNumber(value) : '';
 }
 
+
+// Rates retain their saved precision instead of inheriting money's decimal places.
+function formatAppRate(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const rate = Number(value);
+  return Number.isFinite(rate) ? rate.toLocaleString(appNumberLocale(), { useGrouping: true, maximumFractionDigits: 8 }) : '—';
+}
 function setSettingsFormValues(group) {
   const form = document.querySelector(`.app-settings-form[data-settings-group="${group}"]`);
   if (!form) return;
@@ -2422,22 +2429,24 @@ setupJournalColumns = function() {
   toggleMultipleDates(false);
 };
 
-function toggleMultipleDates(syncRows = true) {
+function toggleMultipleDates(syncRows = true, fromUser = false) {
   const enabled = !!document.getElementById('jeMultipleDates')?.checked;
   document.body.classList.toggle('je-multi-date', enabled);
   if (enabled && syncRows) {
     const mainDate = document.getElementById('jeTransDate')?.value || '';
-    document.querySelectorAll('.je-line-date').forEach(inp => { if (!inp.value) inp.value = mainDate; });
+    document.querySelectorAll('#jeLinesBody .je-line-date,#simpleRows1430 [data-simple=date]').forEach(inp => {
+      if (fromUser || !inp.value) { inp.value = mainDate; delete inp.dataset.manualDate; window.datePicker104?.refresh(inp); }
+    });
   }
   calculateJournalBalance();
 }
 
 document.addEventListener('change', event => {
   if (event.target?.id === 'jeTransDate' && document.getElementById('jeMultipleDates')?.checked) {
-    document.querySelectorAll('.je-line-date').forEach(inp => { if (!inp.dataset.manualDate) inp.value = event.target.value; });
+    document.querySelectorAll('#jeLinesBody .je-line-date,#simpleRows1430 [data-simple=date]').forEach(inp => { if (!inp.dataset.manualDate) { inp.value = event.target.value; window.datePicker104?.refresh(inp); } });
   }
-  if (event.target?.matches('.je-line-date')) event.target.dataset.manualDate = '1';
-});
+  if (event.target?.matches('.je-line-date,[data-simple=date]')) event.target.dataset.manualDate = '1';
+}, true); // Update inherited single-entry dates before their target change handler rebuilds lines.
 
 function getMultiDateJournalState() {
   const grouped = Object.create(null);

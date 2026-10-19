@@ -1,9 +1,9 @@
 function journalIsHistory14342(row){const period=PeriodReview.periods[String(row.date).slice(0,7)];return period?period.status!=='open':!!row.archived;}
 /* TRANSACTIONS 67: active books, archived months and correction context. */
-function setJournalDateMode(multiple) {
+function setJournalDateMode(multiple, fromUser = false) {
   document.getElementById('jeMultipleDates').checked=multiple;
   document.getElementById('jeSingleDate').checked=!multiple;
-  toggleMultipleDates();
+  toggleMultipleDates(true, fromUser);
 }
 function journalContext67(text='') {
   let banner=document.getElementById('journalContext67');

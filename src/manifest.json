@@ -36,6 +36,11 @@
       {
         "source": "src/shared/ui/cell-navigation14233.js",
         "suffix": ";\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/cell-editing143116.js",
+        "prefix": "/* Journal spreadsheet cell editing */\n",
+        "suffix": ";\n"
       }
     ],
     "scripts/desktop14245-2.js": [
@@ -48,6 +53,11 @@
         "source": "src/shared/ui/cell-navigation14233.js",
         "prefix": "/* scripts/cell-navigation14233.js */\n",
         "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/cell-editing143116.js",
+        "prefix": "/* Journal spreadsheet cell editing */\n",
+        "suffix": ";\n"
       }
     ],
     "scripts/workspace-request-v138.js": [
