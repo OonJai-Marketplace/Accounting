@@ -17,7 +17,7 @@ openUserAccessEditor=function(id=''){
   window.AssignedLedger14281?.edit(p.ledger_account_ids14281||[]);renderAccountAccessEditor(p.destination_account_ids||p.allowed_account_ids||[],p.assigned_fund_account_ids||[]);enforceFundSelection();
   const counterpart=document.getElementById('moneyInCounterpartAccount');if(counterpart){counterpart.innerHTML='<option value="">Choose the automatic credit account</option>'+activeChartAccounts().map(a=>'<option value="'+escapeHtml(accountKey(a))+'">'+escapeHtml(a.name)+'</option>').join('');counterpart.value=p.money_in_counterpart_account_id||'';}
   const directions=p.allowed_directions||['out'];set('userTransactionActivity',directions.includes('in')?(directions.includes('out')?'both':'in'):'out');syncTransactionActivitySelection();
-  set('userEntryPrefix',p.entry_prefix||'SJR');set('userEntryInitials',p.entry_initials||(user?workspaceUserInitials(user):''));set('userEntryDigits',p.entry_digits||4);
+  set('userEntryPrefix',p.entry_prefix||'S');set('userEntryInitials',p.entry_initials||(user?workspaceUserInitials(user):''));set('userEntryDigits',p.entry_digits||4);
   ['userModuleAccessPanel','userSecurityAccessPanel','userAccountAssignmentPanel'].forEach(id=>document.getElementById(id).hidden=true);document.getElementById('userAccessStatus').textContent='';showAccountAssignmentPane('main');updateUserAccessSummaries();openModal('modalUserAccess');
 };
 saveUserAccess=async function(event){

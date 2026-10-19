@@ -1,14 +1,9 @@
-// ==============================================================================
-
-
-// ==============================================================================
-// JS 3: DYNAMIC GENERAL HEADERS & CURRENCY CREDIT COLUMNS ENGINE
-// Dynamically constructs columns across all logs.
-// ==============================================================================
-function generateEntryId() {
-  const prefix=String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'JRN').trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)||'JRN';
-  const digits=Math.max(3,Math.min(6,Number(ApplicationSettings.accounting?.journalDigits)||4));
-  return `${prefix}-${String(JournalModule.sequence).padStart(digits,'0')}`;
+// IDs retain the posting sequence; the transaction date supplies the year.
+function entryIdYear143114(date){return String(date||appLocalDate()).slice(2,4)}
+function formatEntryId143114(prefix,number,date,digits=4){return String(prefix||'OJM').toUpperCase().replace(/[^A-Z0-9]/g,'')+entryIdYear143114(date)+String(number).padStart(digits,'0')}
+function generateEntryId(){return formatEntryId143114(ApplicationSettings.accounting?.journalPrefix||'OJM',JournalModule.sequence,document.getElementById('jeTransDate')?.value,Number(ApplicationSettings.accounting?.journalDigits)||4)}
+function syncEntrySequence(){
+ const prefix=String(ApplicationSettings.accounting?.journalPrefix||'OJM').toUpperCase().replace(/[^A-Z0-9]/g,''),year=entryIdYear143114(document.getElementById('jeTransDate')?.value),pattern=new RegExp('^'+prefix+year+'([0-9]+)$');
+ const max=JournalModule.entries.reduce((value,row)=>{const match=String(row.id||'').match(pattern);return match?Math.max(value,Number(match[1])):value},0);
+ JournalModule.sequence=Math.max(JournalModule.sequence||1,max+1);
 }
-function syncEntrySequence(){const prefix=String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'JRN').trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)||'JRN',digits=Math.max(3,Math.min(6,Number(ApplicationSettings.accounting?.journalDigits)||4)),pattern=new RegExp(`^${prefix}-(\\d{${digits}})$`),max=JournalModule.entries.reduce((value,row)=>{const match=String(row.id||'').match(pattern);return match?Math.max(value,Number(match[1])):value},0);JournalModule.sequence=Math.max(1,max+1)}
-
