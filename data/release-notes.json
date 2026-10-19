@@ -1,8 +1,8 @@
 {
-  "version": "143.111",
+  "version": "143.112",
   "changes": [
-    "Bookkeeping and Settings labels return to the last selected tab; their arrows expand or collapse the list separately.",
-    "Only the current workspace is highlighted. Opening or closing a navigation list does not select another workspace.",
-    "Journal, Upcoming, History and Settings groups remember their last selected sections while navigation expansion remains a manual choice."
+    "Opening Balance is now in Journal Entry Options, using the normal journal lines and entered exchange rates.",
+    "Close Year locks the year and saves a printable balance report. It creates no closing journals or next-year opening entries.",
+    "Manual opening balances require the previous year to be closed; saved year-end reports remain available in History."
   ]
 }

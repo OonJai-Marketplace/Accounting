@@ -5,7 +5,7 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.109"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.70"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=143.111"></script>
+  <script src="scripts/offline14239.js?v=143.112"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=143.109">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.84">
   <script src="scripts/desktop14245-1.js?v=143.62"></script>
@@ -447,7 +447,7 @@
       <label for="periodReviewMonth105">Period</label>
       <input id="periodReviewMonth105" type="month" min="2000-01" max="2100-12" required onchange="selectReviewPeriod(this.value)">
     </div>
-    <button type="button" id="yearClose136" class="je-btn je-btn-danger" onclick="workflow136.yearClose()">Close Year &amp; Carry Forward</button>
+    <button type="button" id="yearClose136" class="je-btn je-btn-danger" onclick="workflow136.yearClose()">Close Year</button>
   </div>
 
   <div id="periodReviewUnavailable" class="period-review-unavailable" hidden>
@@ -559,7 +559,6 @@
                   <label for="searchCoa1439">Search accounts</label>
                   <input id="searchCoa1439" type="search" placeholder="Search code, name, currency, type or description" oninput="renderChartOfAccountsTable()">
                 </div>
-                <button type="button" id="openingBalances14234" class="btn btn-primary" hidden>Opening Balances</button>
                 <button type="button" class="btn btn-primary" onclick="openAddAccountModal()">+ ADD ACCOUNT</button>
               </div>
             </div>
@@ -1221,10 +1220,10 @@
 
 <script src="scripts/desktop14245-4.js?v=143.109"></script>
 
-<script src="scripts/desktop14245-5.js?v=143.109"></script>
+<script src="scripts/desktop14245-5.js?v=143.112"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.109"></script>
+<script src="scripts/desktop14245-6.js?v=143.112"></script>
 <script src="scripts/entry-actions14271.js?v=143.59"></script>
 <script src="scripts/tablet-journal14266.js?v=142.80"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
@@ -1241,7 +1240,7 @@
 <link rel="stylesheet" href="styles/tablet-journal14266.css?v=142.75">
 <link rel="stylesheet" href="styles/workspace-header14266.css?v=143.48">
 <link rel="stylesheet" href="styles/entry-layout14271.css?v=143.59">
-<script src="scripts/layout14256.js?v=143.109"></script>
+<script src="scripts/layout14256.js?v=143.112"></script>
 <script src="scripts/audit-explanation14260.js?v=142.60"></script>
 <script src="scripts/auto-sync14256.js?v=143.51-sync1"></script>
 <link rel="stylesheet" href="styles/password-help14278.css?v=142.94">
@@ -1305,7 +1304,7 @@
 <script src="scripts/session-cache14333.js?v=143.33"></script>
 <script src="scripts/year-window14333.js?v=143.109"></script>
 <script src="scripts/payroll-window14334.js?v=143.70"></script>
-<script src="scripts/local-first14333.js?v=143.109"></script>
+<script src="scripts/local-first14333.js?v=143.112"></script>
 <link rel="stylesheet" href="styles/workspace14337.css?v=143.109">
 <script src="scripts/export-center14337.js?v=143.70"></script>
 <script src="scripts/workspace14337.js?v=143.88"></script>

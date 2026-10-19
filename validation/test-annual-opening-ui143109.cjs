@@ -1,15 +1,2 @@
-const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
-(async()=>{const f=await create();try{const {page,login}=await f.open();await login();let saved=null,calls=0;
-await page.route('**/rest/v1/rpc/annual_opening_status143109',route=>{const year=route.request().postDataJSON().p_year;return route.fulfill({json:{available:!saved||saved.p_year!==year,generation:'test-generation',lines:saved?.p_year===year?saved.p_entries[0].p_lines:[],reason:'Opening balances already saved.'}})});
-await page.route('**/rest/v1/rpc/post_annual_opening143109',route=>{saved=route.request().postDataJSON();calls++;return route.fulfill({json:[{entry_id:'test-receipt',entry_no:'TEST-001'}]})});
-await page.evaluate(()=>{AccountingStore.accounts=[{id:'test-asset',code:'100',name:'Cash USD',currency:'USD',type:'ASSET',isPosting:true},{id:'test-equity',code:'300',name:'Opening equity USD',currency:'USD',type:'EQUITY',isPosting:true}];groupedNavigation14378.choose(groupedNavigation14378.books[0].items[0])});
-await page.screenshot({path:'/tmp/journal143109.png'});
-await page.evaluate(()=>openingBalances14234.open());
-const form=page.getByRole('dialog',{name:'Annual Opening Balances'}); const selectYear=async year=>{await form.getByRole('button',{name:/year picker:/}).click();await page.locator('.oj-date-popup104 [data-value="'+year+'"]').click();await page.waitForFunction(()=>!document.querySelector('[role=dialog] [type=submit]').disabled);};await selectYear(2026);
-await form.locator('[data-account=test-asset] [data-dr]').fill('200');await form.locator('[data-account=test-equity] [data-cr]').fill('200');await form.locator('[data-account=test-asset] [data-rate]').fill('22000');await form.locator('[data-account=test-equity] [data-rate]').fill('22000');
-await page.screenshot({path:'/tmp/opening143109.png'});
-await form.getByRole('button',{name:'Save Annual Opening Balances'}).click();await page.waitForFunction(()=>document.querySelector('[role=dialog] [role=status]')?.textContent.includes('already saved'));assert.equal(calls,1);assert.equal(saved.p_entries[0].p_lines[0].book_rate_lak,22000);assert.equal(saved.p_entries[0].p_transaction_date,'2026-01-01');assert(await form.locator('[data-account=test-asset] [data-dr]').isDisabled());
-await selectYear(2027);await form.locator('[data-account=test-asset] [data-dr]').fill('300'); await form.locator('[data-account=test-asset] [data-dr]').dispatchEvent('input');assert.equal(await form.locator('[data-account=test-equity] [data-cr]').inputValue(),'');
-await form.getByRole('button',{name:'Close',exact:true}).click();await page.evaluate(()=>openingBalances14234.open());await selectYear(2027);await page.waitForFunction(()=>!document.querySelector('[role=dialog] [type=submit]').disabled); assert.equal(await form.locator('[data-account=test-asset] [data-dr]').inputValue(),'300');
-console.log('PASS annual form: editable rates, posted payload, saved read-only state, independent years and restored unsaved draft.');
-}finally{await f.close()}})().catch(e=>{console.error(e);process.exit(1)});
+// The separate annual form was replaced by Journal Entry Options in v143.112.
+require("./test-journal-opening143112.cjs");

@@ -181,6 +181,6 @@ function ready(){
  try{const channel=new BroadcastChannel('ojm-journal14385');channel.onmessage=e=>{if(e.data===identity(context()))refreshDevice().catch(()=>{})};window.addEventListener('local-work14333',()=>{if(loaded===identity(context()))channel.postMessage(loaded)});}catch{}
 }
 async function refreshDevice(){const c=context();if(!c.actor)return;rows=await read(c);loaded=identity(c);project();refreshAllTables();}
-window.journalDurable14385={validateRecovery,verifyRecovery,restoreRecovery,initialize,create,change,sync,project,reconcile,findings,pending,content,fromLines,refreshDevice,get running(){return !!flight}};
+window.journalDurable14385={payloads,validateRecovery,verifyRecovery,restoreRecovery,initialize,create,change,sync,project,reconcile,findings,pending,content,fromLines,refreshDevice,get running(){return !!flight}};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
