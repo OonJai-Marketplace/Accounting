@@ -152,7 +152,8 @@ html body #printableDocArea .clustered-journal-table tbody tr.alt-transaction100
 @media print {.entry-options14389{display:none!important}}
 
 /* Keep the original Post Transaction grid, without selected/focused cell fills. */
-html body #journalEntry98#journalEntry98 #jeLinesBody tr,html body #journalEntry98#journalEntry98 #jeLinesBody td{background:transparent!important;box-shadow:none!important;outline:none!important;border-width:1px!important}
+html body #journalEntry98#journalEntry98 #jeLinesBody tr,html body #journalEntry98#journalEntry98 #jeLinesBody td{background:transparent!important;border-width:1px!important}
+html body #journalEntry98#journalEntry98 #jeLinesBody tr,html body #journalEntry98#journalEntry98 #jeLinesBody td:not(.cell-selected143116):not(:focus-within){box-shadow:none!important;outline:none!important}
 html body #journalEntry98#journalEntry98 #jeLinesBody :is(input,select,textarea,.account-choice14231,.account-input-wrap):focus{background:transparent!important;border:0!important;box-shadow:none!important;outline:none!important}
 #templateFields14399{display:grid;gap:10px;margin-top:12px}#templateFields14399 label{display:grid;gap:5px}#templateFields14399 textarea{width:100%;box-sizing:border-box;min-height:55px}
 .template-row14399{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;margin-bottom:12px}.template-row14399 input{width:100%;box-sizing:border-box}.template-row14399 button{justify-self:end}

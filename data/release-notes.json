@@ -1,8 +1,8 @@
 {
-  "version": "143.119",
+  "version": "143.120",
   "changes": [
-    "Website updates appear at the top of notifications, with properly indented release notes.",
-    "Opening Upcoming Events marks its reminders as read and reduces the notification badge.",
-    "Downloading an update saves document drafts first and pauses if a draft cannot be saved."
+    "Selected Post Entry cells have a noticeable light-green border without a cell fill.",
+    "Active Journal and journal reports show one shared date for consecutive lines with the same date, while keeping one entry ID.",
+    "The latest voided manual journal ID becomes reusable after its final audit record is explicitly deleted. Voiding alone keeps the ID reserved."
   ]
 }

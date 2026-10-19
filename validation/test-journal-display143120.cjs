@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
+(async()=>{const f=await create();try{const {page,login}=await f.open();await login();await page.evaluate(()=>switchTab('journal'));await page.waitForTimeout(500);
+const field=page.locator('#jeLinesBody .je-line-dr').first();await field.click();await page.waitForTimeout(350);assert.equal(await field.evaluate(n=>getComputedStyle(n.closest('td')).outlineColor),'rgb(107, 207, 155)');assert.equal(await field.evaluate(n=>getComputedStyle(n.closest('td')).outlineWidth),'2px');
+await field.fill('123');await page.locator('#jeLinesBody .je-line-memo').first().click();await field.click();assert.equal(await field.evaluate(n=>getComputedStyle(n.closest('td')).outlineColor),'rgb(107, 207, 155)');
+assert.equal(await page.evaluate(()=>{const data=new DataTransfer();document.activeElement.dispatchEvent(new ClipboardEvent('copy',{bubbles:true,cancelable:true,clipboardData:data}));return data.getData('text/plain')}),'123.00');
+await page.evaluate(()=>{window.testRows143120=Array.from({length:5},(_,i)=>({id:'OJM260004',dbEntryId:'one-entry',date:i<3?'2026-01-09':'2026-01-16',account:'Cash on hand',currency:'LAK',debit:i<3?100:0,credit:i<3?0:150,generalMemo:'Shared description',memo:'Line '+i,status:'posted'}));const t=document.createElement('table');t.id='testJournal143120';t.innerHTML='<tbody></tbody>';document.body.append(t);renderTransactionReviewTable(t.tBodies[0],testRows143120);});
+assert.deepEqual(await page.locator('#testJournal143120 tbody tr[data-line-index]:not(.journal-description14281)').evaluateAll(rows=>rows.map(r=>r.querySelector('td')?.getAttribute('rowspan'))),['3',null,null,'2',null]);
+assert.equal(await page.locator('#testJournal143120 td').filter({hasText:'OJM260004'}).count(),1);
+await page.evaluate(()=>{const div=document.createElement('div');div.id='printTest143120';div.innerHTML=reports14254.journalTable(testRows143120,false);window.testPrint143120=div});
+assert.deepEqual(await page.evaluate(()=>[...testPrint143120.querySelectorAll('td[rowspan]')].filter(n=>/2026/.test(n.textContent)).map(n=>n.rowSpan)),[3,2]);
+await page.evaluate(()=>{testRows143120.forEach(r=>r.date='2026-01-09');renderTransactionReviewTable(document.querySelector('#testJournal143120 tbody'),testRows143120);testPrint143120.innerHTML=reports14254.journalTable(testRows143120,false)});
+assert.equal(await page.locator('#testJournal143120 tbody tr[data-line-index]:not(.journal-description14281) td:first-child').first().getAttribute('rowspan'),'5');
+assert.deepEqual(await page.evaluate(()=>[...testPrint143120.querySelectorAll('td[rowspan]')].filter(n=>/2026/.test(n.textContent)).map(n=>n.rowSpan)),[5]);
+console.log('PASS light-green cell border, shared single date, multi-date spans 3+2, shared journal ID and printed dates');
+}finally{await f.close()}})().catch(e=>{console.error(e);process.exitCode=1});
