@@ -8,3 +8,5 @@
 @media(max-width:600px){.installation-grid14320{grid-template-columns:1fr}}
 
 .website-updates143104{width:min(480px,calc(100vw - 32px));box-sizing:border-box}.website-updates143104>header,.website-updates143104>footer{display:flex;align-items:center;justify-content:space-between;gap:12px}.website-updates143104 h3{margin:0}.website-updates143104 .actions82{display:flex;gap:8px;flex-wrap:wrap}.website-updates143104 [hidden]{display:none!important}
+
+#websiteUpdateNotes143105 ul{padding-inline-start:1.5rem;margin:12px 0}#websiteUpdateNotes143105 li{padding-inline-start:.25rem;margin-block:8px;line-height:1.5}

@@ -1,8 +1,8 @@
 {
-  "version": "143.118",
+  "version": "143.119",
   "changes": [
-    "One Post Entry submission now keeps its lines together under one journal ID, including different dates within the same month.",
-    "Individual dates and line order are preserved in Active Journal, editing and synchronization.",
-    "Header column resizing and visible cell selection from the previous update remain available. Existing journal records have not been merged or renumbered."
+    "Website updates appear at the top of notifications, with properly indented release notes.",
+    "Opening Upcoming Events marks its reminders as read and reduces the notification badge.",
+    "Downloading an update saves document drafts first and pauses if a draft cannot be saved."
   ]
 }
