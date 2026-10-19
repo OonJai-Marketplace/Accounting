@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.109',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.110',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/operational-reset143108.js?v=143.109",
  "scripts/undo143103.js?v=143.109",
@@ -24,7 +24,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.109",
  "scripts/desktop14245-6.js?v=143.109",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.109",
+ "scripts/offline14239.js?v=143.110",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -284,26 +284,72 @@ async function completeResponse(response){
  const bytes=await response.arrayBuffer();
  return new Response(bytes,{status:response.status,statusText:response.statusText,headers:response.headers});
 }
+let downloadState={type:'ojm-shell-progress',version:VERSION,completed:0,total:FILES.length};
+let installing=false;
+async function reportDownload(detail={}){
+ downloadState={...downloadState,...detail};
+ for(const client of await self.clients.matchAll({includeUncontrolled:true})){
+  if(new URL(client.url).pathname===new URL('update.html',scopeURL).pathname)client.postMessage(downloadState);
+ }
+}
+async function storageStep(operation){
+ let timer;
+ try{return await Promise.race([operation,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Browser storage is not responding')),30000)})]);}
+ finally{clearTimeout(timer);}
+}
+async function downloadFile(cache,file){
+ const url=new URL(file,scopeURL);
+ // A rejected installation never serves pages. Its complete files are safe to
+ // resume; older active releases and all accounting storage remain untouched.
+ if(await storageStep(cache.match(url.href)))return;
+ for(let retry=0;retry<3;retry++){
+  await reportDownload({file:file.split('?')[0],bytes:0,retry});
+  const controller=new AbortController();let timer,lastReport=0;
+  const arm=()=>{clearTimeout(timer);timer=setTimeout(()=>controller.abort(),60000)};
+  try{
+   const saved=url.searchParams.has('v')?await storageStep(caches.match(url.href)):null;
+   let response=saved;
+   if(!response){
+    arm();response=await fetch(url.href,{cache:'no-cache',signal:controller.signal});
+    if(!response.ok||response.type==='opaque')throw Error('Download returned '+response.status);
+    if(response.body){
+     const reader=response.body.getReader(),chunks=[];let bytes=0;
+     try{while(true){const part=await reader.read();if(part.done)break;chunks.push(part.value);bytes+=part.value.byteLength;arm();if(Date.now()-lastReport>500){lastReport=Date.now();await reportDownload({file:file.split('?')[0],bytes,retry});}}}
+     finally{reader.releaseLock();}
+     response=new Response(new Blob(chunks),{status:response.status,statusText:response.statusText,headers:response.headers});
+    }else response=await completeResponse(response);
+   }
+   clearTimeout(timer);
+   await storageStep(cache.put(url.href,response));return;
+  }catch(error){
+   if(error.name==='QuotaExceededError'||retry===2){error.downloadFile=file.split('?')[0];throw error;}
+   await new Promise(resolve=>setTimeout(resolve,1000*(retry+1)));
+  }finally{clearTimeout(timer);}
+ }
+}
 self.addEventListener('install',event=>event.waitUntil((async()=>{
- const cache=await caches.open(CACHE);
+ installing=true;
  try{
+  const cache=await storageStep(caches.open(CACHE));
   for(let offset=0;offset<FILES.length;offset+=2){
-   // Wait for both writes before removing a failed installation cache.
    const batch=await Promise.allSettled(FILES.slice(offset,offset+2).map(async file=>{
-    const url=new URL(file,scopeURL),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
-    try{const saved=url.searchParams.has('v')?await caches.match(url.href):null;const response=saved||await fetch(url.href,{cache:file.endsWith('.html')?'reload':'force-cache',signal:controller.signal});await cache.put(url.href,await completeResponse(response));}finally{clearTimeout(timer)}
+    await downloadFile(cache,file);
+    await reportDownload({completed:downloadState.completed+1,bytes:0});
    }));
    const failed=batch.find(result=>result.status==='rejected');if(failed)throw failed.reason;
-   for(const client of await self.clients.matchAll({includeUncontrolled:true}))if(new URL(client.url).pathname===new URL('update.html',scopeURL).pathname)client.postMessage({type:'ojm-shell-progress',version:VERSION,completed:Math.min(offset+2,FILES.length),total:FILES.length});
   }
   await self.skipWaiting();
- }catch(error){await caches.delete(CACHE);throw error;}
+ }catch(error){
+  await reportDownload({type:'ojm-shell-error',file:error.downloadFile||'',message:error.name==='QuotaExceededError'?'This device has insufficient browser storage for the update.':'A file could not finish downloading. Completed files are saved for retry.'});
+  throw error;
+ }
 })()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
+ installing=false;
  await self.clients.claim();
  for(const client of await self.clients.matchAll())client.postMessage({type:'ojm-shell-ready',version:VERSION});
 })()));
-self.addEventListener('message',event=>{if(event.data?.type==='ojm-shell-status')event.ports[0]?.postMessage({version:VERSION,ready:true});});
+self.addEventListener('message',event=>{if(event.data?.type==='ojm-shell-status')event.ports[0]?.postMessage({version:VERSION,ready:!installing,progress:installing?downloadState:null});});
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
  if(request.method!=='GET'||url.origin!==scopeURL.origin||!url.pathname.startsWith(scopeURL.pathname))return;

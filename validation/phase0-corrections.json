@@ -6,9 +6,9 @@
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
     "phone-sw.js": "d0cc279e3351772245da0be93f1d42e383000ecc3920b5c63b358d3c2c66e68d",
     "phone-accounting.html": "82c55afd1e4d44900ab2cdb2a098a5a37fa966ad5dd77029044a0312389a259c",
-    "desktop-sw14242.js": "52310e8f3e0771020a805f9543b8d2b48ad7fde2ce040a34c11987202fd0f654",
+    "desktop-sw14242.js": "c25e9b7c880e969ffc1d2baa3bbb483a3efc0c08dd81d8ba791cb28632aca7df",
     "phone.html": "bb83a18f23b9ceb6aba5f11dfff86664523283b4ec44c81447247e135bdfc953",
-    "desktop.html": "2656b257344aef96d54fcc298cc26644d8b596779d842493c8c64924632391f3",
+    "desktop.html": "ca5636a79b9fc9e0d18f7653f0f5fbf3ccfbdbe5225008a20aad63b7c67b3afd",
     "scripts/phone-runtime14242.js": "01f77065fd9aaa01abe74ab6a61de449e54148121a99416f95ef340c89d83283",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "93d6146e15144fa0e775b6f032a8c043d88115466df86e0f0243b3e943da1669",
@@ -17,7 +17,7 @@
     "scripts/payroll-polish-v97.js": "17654b07c3ca2a9d7504e4b6aa3325f5df91e460cc34ff157e60f2e56e00a87e",
     "scripts/startup14257.js": "641f6acec70d71e66fb45c7078104ccba79f0b3eab9e77a9c2a105601db150bc",
     "scripts/desktop14245-6.js": "b92d5acca5ab4572d6a24d03b4c59a4bfb911746947f40f04548a04d4a36d3e4",
-    "scripts/offline14239.js": "fe1895a9f103a1af6a548d40c21e5375134e56e4fe26f2220b3e3efd9d006f4f",
+    "scripts/offline14239.js": "872e75b415d64ca770517c7287818280ada107898d4b8723a8870ba017ca32a4",
     "scripts/desktop14245-3.js": "a8b2c9e5597fcdf82732490753e858152f10bcdb82aac5bdeb266581c41188bb",
     "scripts/desktop14245-4.js": "b46cb1303edfa00d06a8b3159dd74a906d8fb750518de2a8418590e0c478c3dc",
     "scripts/drafts1427.js": "d4bf716d649d31883629a926508f63416f3fd2013f8207e79fc70e9b0c93c157",
@@ -121,7 +121,7 @@
     "scripts/session-inputs-v88.js": "a93339f4547f59cc2b5e3cb8380b94fa659b43edfeb5140ecde2bcfe9c17667f",
     "scripts/startup1443.js": "fa6b40668048314f490c18bdd46e39477903bf35021a27af771c7fd07a59c342",
     "offline-assets14239.js": "e173de6fc3199d14808ba4a878b6a5736ee0602847a8b69f232a08fb5d5e26cb",
-    "index.html": "6f84ab4f1f601cd7700c0de8df9bfd4145702c1a102d01b20112201d25c1c8be",
+    "index.html": "fd6e1f30ef5a1764ce66e0ce88ca68fe99ea9c276609fe998be1b23349a4e9c7",
     "archive.html": "26ac5eb5a15c66481b12b9e8a26181cd9edb4513b1f2e79ee93c366de05fa1bc",
     "styles/polish-v101.css": "d43af6b1dbcbd59f02670116d74907a2c89bacd5e748f97ba4a0ec535c673dc3",
     "scripts/maintenance-engine14324.js": "3e10dfd4c82726fcfff0c2908f1d584710be3e3181a20e8cf9320f384a07f37c",
@@ -238,5 +238,6 @@
   },
   "audit_continuation_reason": "v143.76 user-requested cleanup and navigation/journal fixes; existing sources edited, temporary comparison files retired, desktop/tablet browser regressions verified.",
   "update14397": "User requested in-app update detection and a notification bell download action after repeated refreshes stayed on the old version. Canonical sources, generated assets, version metadata and cache entry points updated together.",
-  "restaurantSeparation143101": "2026-10-17: owner authorized a separate Restaurant project, removal of Restaurant/Public Website links from Accounting, preservation of financial records and existing layouts, and live publication. Changed canonical sources, generated files and release/cache entrypoints verified by targeted browser, database, and cache-upgrade checks. See docs/RESTAURANT-SEPARATION-v143.101.md."
+  "restaurantSeparation143101": "2026-10-17: owner authorized a separate Restaurant project, removal of Restaurant/Public Website links from Accounting, preservation of financial records and existing layouts, and live publication. Changed canonical sources, generated files and release/cache entrypoints verified by targeted browser, database, and cache-upgrade checks. See docs/RESTAURANT-SEPARATION-v143.101.md.",
+  "update143110": "2026-10-19: user reports phone updater repeatedly stuck at 6%. Add resumable partial downloads, streaming progress, bounded storage/network failures and automatic file retry; preserve existing offline caches and accounting storage. Verify interrupted and slow service-worker upgrade on a mobile viewport."
 }
