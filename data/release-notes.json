@@ -1,8 +1,8 @@
 {
-  "version": "143.112",
+  "version": "143.113",
   "changes": [
-    "Opening Balance is now in Journal Entry Options, using the normal journal lines and entered exchange rates.",
-    "Close Year locks the year and saves a printable balance report. It creates no closing journals or next-year opening entries.",
-    "Manual opening balances require the previous year to be closed; saved year-end reports remain available in History."
+    "Payroll and statutory tax settings now share a versioned database configuration across devices.",
+    "Conflicting settings saves are rejected; finalized payroll retains its original calculation snapshots.",
+    "Save existing Payroll and Tax settings once to initialize shared settings. Payroll finalization verifies the current shared configuration."
   ]
 }
