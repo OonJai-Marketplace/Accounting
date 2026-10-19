@@ -5116,10 +5116,10 @@ function accountData69(through=Accounts69.to){
   const a=resolve(line)||{name:line.account,code:line.accountCode||'Unmapped',currency:line.currency,type:'Unmapped'};
   const key=accountKey69(a,line.currency);if(!map.has(key))map.set(key,{account:a,key,currency:line.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]});
   const r=map.get(key),date=String(line.date||'').slice(0,10),dr=cents69(line.debit),cr=cents69(line.credit);
-  if(!date||date>through)return;
+  if(!date||date>through||date<String(through||Accounts69.to).slice(0,4)+'-01-01')return;
   const bd=window.JournalFX14383?.base(line,'debit')??(line.currency==='LAK'?Number(line.debit):null),bc=window.JournalFX14383?.base(line,'credit')??(line.currency==='LAK'?Number(line.credit):null);
   if(bd===null||bc===null)r.missingRates++;
-  if(Accounts69.from&&date<Accounts69.from){r.opening+=dr-cr;if(bd!==null&&bc!==null)r.baseOpening+=cents69(bd)-cents69(bc);}
+  if((line.annualOpening||String(line.generalMemo||'').startsWith('Annual opening balances ')||line.generalMemo==='Opening Balances')||(Accounts69.from&&date<Accounts69.from)){r.opening+=dr-cr;if(bd!==null&&bc!==null)r.baseOpening+=cents69(bd)-cents69(bc);}
   else{r.debit+=dr;r.credit+=cr;if(bd!==null)r.baseDebit+=cents69(bd);if(bc!==null)r.baseCredit+=cents69(bc);r.lines.push({...line,date,dr,cr,originalIndex:index})}
  });
  return [...map.values()].map(r=>{r.closing=r.opening+r.debit-r.credit;r.baseClosing=r.baseOpening+r.baseDebit-r.baseCredit;r.lines.sort((a,b)=>a.date.localeCompare(b.date)||String(a.id).localeCompare(String(b.id))||a.originalIndex-b.originalIndex);return r}).sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
@@ -7681,6 +7681,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(input.matches(':disabled')||input.readOnly)return;close();shown=chosen(input);
   const panel=document.createElement('div');panel.className='oj-date-popup104';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Select '+modes(input));
   const button=input.closest('.oj-date-shell104')?.querySelector('button');if(!button)return;
+  const overlay=input.closest('.save-overlay14234');if(overlay)panel.style.setProperty('z-index',String((Number(getComputedStyle(overlay).zIndex)||2147483500)+1),'important');
   // Measure complete contents before revealing; focus must not scroll the page.
   panel.style.visibility='hidden';(input.closest('dialog[open]')||document.body).append(panel);active={input,panel};draw();
   const rect=(window.desktopScale14320?.rect(button)||button.getBoundingClientRect()),bounds=(window.desktopScale14320?.rect(panel)||panel.getBoundingClientRect());

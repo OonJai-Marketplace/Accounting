@@ -2,8 +2,7 @@
 (()=>{'use strict';
 const groups=[
  {label:'Company',targets:['settings-business','settings-users','settings-organization14229']},
- {label:'Accounting',targets:['settings-accounting']},
- {label:'People & Statutory',targets:['settings-payroll','settings-tax']},
+ {label:'Accounting',targets:['settings-accounting','settings-payroll','settings-tax']},
  {label:'System & Tools',targets:['settings-system','settings-data14231','settings-maintenance14324']}
 ];
 const labels={'settings-business':'Business','settings-users':'Users & Permissions','settings-organization14229':'Organization & Reporting','settings-accounting':'Ledger & Numbering','settings-payroll':'Payroll','settings-tax':'Mandatory','settings-system':'System & Printing','settings-data14231':'Archive & Recovery','settings-maintenance14324':'Maintenance & Audit'};
@@ -42,18 +41,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 const $=id=>document.getElementById(id);
 const item=(label,target,kind='',value='',permission=target)=>({label,target,kind,value,permission});
 const books=[
- {label:'Journal',icon:'▤',items:[item('Journal','journal'),item('Submitted Entries','user-entry-review','final','submitted'),item('Schedule','transactions-recurring','upcoming','scheduled')]},
- {label:'Finalization',icon:'✓',items:[item('Fund Allocation','user-entry-review','final','funds','transactions-budget14313'),item('Reconciliation','user-entry-review','final','reconciliation','report-reconciliation'),item('Data Check','transactions-closing14325'),item('Period Closing','period-review')]},
- {label:'Upcoming',icon:'◷',items:[item('Recurring','transactions-recurring','upcoming','recurring'),item('To-dos','transactions-recurring','upcoming','todos'),item('Calendar','transactions-recurring','upcoming','calendar')]},
- {label:'Document',icon:'▧',items:[item('Vouchers','transactions-vouchers14299'),item('Budget Request','transactions-budget14313')]},
+ {label:'Journal',icon:'▤',items:[item('Journal','journal'),item('Submitted','user-entry-review','final','submitted'),item('Funds','user-entry-review','final','funds','transactions-budget14313'),item('Reconcile','user-entry-review','final','reconciliation','report-reconciliation'),item('Data Check','transactions-closing14325'),item('Closing','period-review'),item('Budget','transactions-budget14313'),item('Voucher','transactions-vouchers14299')]},
+ {label:'Upcoming',icon:'◷',items:[item('Schedule','transactions-recurring','upcoming','scheduled'),item('Recurring','transactions-recurring','upcoming','recurring'),item('To-dos','transactions-recurring','upcoming','todos'),item('Calendar','transactions-recurring','upcoming','calendar')]},
  {label:'History',icon:'↶',items:[item('Journal','transactions-all','history','journal'),item('User Entries','transactions-all','history','submitted','user-entry-review'),item('Budget Request','transactions-all','history','budget','transactions-budget14313'),item('Audit Logs','transactions-voided')]}
 ];
 const settings=[
  {label:'Company',icon:'▦',items:[item('Business','settings-business'),item('Users & Permissions','settings-users'),item('Organization & Reporting','settings-organization14229')]},
- {label:'Accounting',icon:'▤',items:['Accounting','Vouchers','Currency Manager'].map((n,i)=>item(n,'settings-accounting','accounting',['accounting','vouchers','currency'][i]))},
- {label:'People & Statutory',icon:'♙',items:[item('Payroll','settings-payroll'),item('Mandatory','settings-tax')]},
+ {label:'Accounting',icon:'▤',items:[...['Accounting','Vouchers','Currency Manager'].map((n,i)=>item(n,'settings-accounting','accounting',['accounting','vouchers','currency'][i])),item('Payroll','settings-payroll'),item('Mandatory','settings-tax')]},
  {label:'System & Tools',icon:'⚙',items:[item('System & Printing','settings-system'),item('Archive & Recovery','settings-data14231'),item('Maintenance & Audit','settings-maintenance14324')]}
 ];
+// Expansion is a user choice, independent of the active workspace.
+const expanded143109={transactions:true,settings:false};
 let selected=null;
 const enabled=()=>innerWidth>640&&document.documentElement.dataset.device132!=='phone';
 const allowed=i=>!!$(i.target)&&(!window.access113||access113.can(i.target)&&access113.can(i.permission));
@@ -70,8 +68,8 @@ function openMenu14388(module,anchor){if(!enabled())return;const groups=module==
 document.addEventListener('click',e=>{if(groupMenu14388&&!groupMenu14388.contains(e.target)&&!groupAnchor14388?.contains(e.target))closeGroupMenu14388();});
 document.addEventListener('keydown',e=>{if(!groupMenu14388)return;if(e.key==='Escape'){e.preventDefault();closeGroupMenu14388(true);return}if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){const bs=[...groupMenu14388.querySelectorAll('button')],i=bs.indexOf(document.activeElement);e.preventDefault();bs[e.key==='Home'?0:e.key==='End'?bs.length-1:(i+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length]?.focus();}});
 window.addEventListener('resize',()=>closeGroupMenu14388());window.addEventListener('page113',()=>closeGroupMenu14388());
-function sidebar(module,groups,current){const root=$('nav-module-'+module);if(!root)return;root.classList.add('grouped-nav14378');let nav=root.querySelector('.grouped-children14378');if(!nav){nav=document.createElement('nav');nav.className='grouped-children14378';nav.setAttribute('aria-label',module==='settings'?'Settings sections':'Bookkeeping sections');root.append(nav);const header=root.querySelector('.nav-header');header.addEventListener('click',e=>{if(!enabled())return;e.preventDefault();e.stopImmediatePropagation();const drawer=$('appSidebar').classList.contains('mobile-open');if(document.documentElement.dataset.device132==='tablet'&&!drawer||$('appSidebar').getBoundingClientRect().width<100){openMenu14388(module,header);return}if(drawer){const open=!root.classList.contains('groups-open14378');root.classList.toggle('groups-open14378',open);header.setAttribute('aria-expanded',String(open));return}const first=groups.flatMap(g=>g.items).find(allowed);if(first)choose(first)},true);header.setAttribute('aria-expanded','false')}
- root.classList.toggle('groups-open14378',!!current);root.classList.toggle('open',!!current);root.querySelector('.nav-header')?.setAttribute('aria-expanded',String(!!current));
+function sidebar(module,groups,current){const root=$('nav-module-'+module);if(!root)return;root.classList.add('grouped-nav14378');let nav=root.querySelector('.grouped-children14378');if(!nav){nav=document.createElement('nav');nav.className='grouped-children14378';nav.setAttribute('aria-label',module==='settings'?'Settings sections':'Bookkeeping sections');root.append(nav);const header=root.querySelector('.nav-header');header.addEventListener('click',e=>{if(!enabled())return;e.preventDefault();e.stopImmediatePropagation();const drawer=$('appSidebar').classList.contains('mobile-open');if(document.documentElement.dataset.device132==='tablet'&&!drawer||$('appSidebar').getBoundingClientRect().width<100){openMenu14388(module,header);return}expanded143109[module]=!expanded143109[module];root.classList.toggle('groups-open14378',expanded143109[module]);root.classList.toggle('open',expanded143109[module]);header.setAttribute('aria-expanded',String(expanded143109[module]));},true);header.setAttribute('aria-expanded','false')}
+ root.classList.toggle('groups-open14378',expanded143109[module]);root.classList.toggle('open',expanded143109[module]);root.querySelector('.nav-header')?.setAttribute('aria-expanded',String(expanded143109[module]));
  const available=groups.filter(g=>g.items.some(allowed));const signature=available.map(g=>g.label).join('|');if(nav.dataset.signature!==signature){nav.dataset.signature=signature;nav.replaceChildren(...available.map(g=>{const b=document.createElement('button');b.type='button';b.dataset.group14378=g.label;b.innerHTML='<span aria-hidden="true">'+g.icon+'</span><span>'+g.label+'</span>';b.onclick=()=>choose(g.items.find(allowed));return b}))}
  for(const b of nav.children){const on=b.dataset.group14378===current?.label;b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false')}
 }

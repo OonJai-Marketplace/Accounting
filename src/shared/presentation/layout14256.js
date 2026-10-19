@@ -5,16 +5,7 @@ const admin=()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin';
 let openingBusy=false,dateHome=null;
 async function openBalances(){
  if(!admin()||openingBusy)return;
- openingBusy=true;const who=liveProfile.id;
- try{
-  const r=await ojmDb.rpc('opening_status14234');
-  if(!admin()||liveProfile.id!==who)return;
-  if(r.error){const missing=['PGRST202','42883'].includes(r.error.code);showCenterStatus(missing?'Install setup/INSTALL-OPENING-BALANCES-v142.34.sql, then reopen Chart of Accounts.':'Unable to check opening balances: '+(r.error.message||'Reconnect and try again.'),true);return;}
-  if(typeof r.data?.available!=='boolean'){showCenterStatus('Opening balance status could not be confirmed. Reconnect and try again.',true);return;}
-  let job;try{job=JSON.parse(localStorage.getItem('ojm_opening14234:'+String(OJM_SUPABASE_URL)+':'+who)||'null')}catch{}
-  if(r.data.available||(job&&job.generation===r.data.generation)){await window.openingBalances14234.open();return;}
-  showCenterStatus('Opening balance setup is closed. It is available only before the first journal entry and before any period closing or carry-forward. Installing the SQL does not reopen an existing ledger.',true);
- }catch(e){if(!admin()||liveProfile.id!==who)return;showCenterStatus('Unable to check opening balances: '+e.message,true)}finally{openingBusy=false;decorate()}
+ openingBusy=true;try{await window.openingBalances14234.open()}catch(e){showCenterStatus('Unable to open annual balances: '+e.message,true)}finally{openingBusy=false;decorate()}
 }
 function decorate(){
  const card=$('journalEntry98'),date=card?.querySelector('.transaction-date-field'),meta=card?.querySelector('.je-meta-grid');

@@ -38,6 +38,7 @@
   if(input.matches(':disabled')||input.readOnly)return;close();shown=chosen(input);
   const panel=document.createElement('div');panel.className='oj-date-popup104';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Select '+modes(input));
   const button=input.closest('.oj-date-shell104')?.querySelector('button');if(!button)return;
+  const overlay=input.closest('.save-overlay14234');if(overlay)panel.style.setProperty('z-index',String((Number(getComputedStyle(overlay).zIndex)||2147483500)+1),'important');
   // Measure complete contents before revealing; focus must not scroll the page.
   panel.style.visibility='hidden';(input.closest('dialog[open]')||document.body).append(panel);active={input,panel};draw();
   const rect=(window.desktopScale14320?.rect(button)||button.getBoundingClientRect()),bounds=(window.desktopScale14320?.rect(panel)||panel.getBoundingClientRect());

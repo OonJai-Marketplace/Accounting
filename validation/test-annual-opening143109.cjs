@@ -1,0 +1,14 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const ctx={console,Date,Intl,Map,Set,JSON,Number,String,Math,structuredClone,document:{addEventListener(){},getElementById(){return null}},refreshAllTables(){},parseAppNumber:n=>Number(n),formatAppNumber:String,escapeHtml:String,AccountingStore:{accounts:[{id:'asset',name:'USD asset',code:'100',currency:'USD',type:'ASSET'},{id:'equity',name:'USD equity',code:'300',currency:'USD',type:'EQUITY'}]},JournalModule:{entries:[]}};ctx.window=ctx;ctx.addEventListener=()=>{};vm.createContext(ctx);
+for(const file of ['src/accounts/chart/accounts-v69.js','src/accounts/opening-balances/opening-balances14234.js'])vm.runInContext(fs.readFileSync(file,'utf8'),ctx);
+const build=ctx.openingBalances14234.buildLines,accounts=ctx.AccountingStore.accounts;
+const lines=build(accounts,{asset:{debit:200,rate:22000},equity:{credit:200,rate:22000}});assert.equal(lines[0].book_rate_lak,22000);
+assert.throws(()=>build(accounts,{asset:{debit:200},equity:{credit:200,rate:22000}}),/positive/);
+assert.throws(()=>build(accounts,{asset:{debit:200,rate:21000},equity:{credit:200,rate:22000}}),/LAK equivalent/);
+assert.throws(()=>build(accounts,{asset:{debit:200.001,rate:22000},equity:{credit:200.001,rate:22000}}),/two decimals/);
+ctx.JournalFX14383={base:(l,side)=>Number(l[side]||0)*Number(l.book_rate_lak||l.fx_rate_lak||1)};
+ctx.JournalModule.entries=[{date:'2025-01-01',accountId:'asset',currency:'USD',debit:100,credit:0,book_rate_lak:20000,generalMemo:'Annual opening balances 2025'},{date:'2026-01-01',accountId:'asset',currency:'USD',debit:200,credit:0,book_rate_lak:22000,generalMemo:'Annual opening balances 2026'},{date:'2026-01-10',accountId:'asset',currency:'USD',debit:10,credit:0,book_rate_lak:23000}];
+vm.runInContext("Object.assign(Accounts69,{from:'2026-01-01',to:'2026-12-31'})",ctx);
+let row=ctx.accountData69().find(r=>r.account.id==='asset');assert.equal(row.opening,20000);assert.equal(row.debit,1000);assert.equal(row.closing,21000);assert.equal(row.baseOpening,440000000);assert.equal(row.baseClosing,463000000);assert.equal(row.lines.length,1);
+vm.runInContext("Object.assign(Accounts69,{from:'2025-01-01',to:'2025-12-31'})",ctx);row=ctx.accountData69().find(r=>r.account.id==='asset');assert.equal(row.closing,10000);
+console.log('PASS annual opening rates, currency and LAK balance validation, prior-year isolation, starting-balance classification and historical reporting.');
