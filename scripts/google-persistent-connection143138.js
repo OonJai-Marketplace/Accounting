@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const base='https://nhjsesfhapnjtwlxvirm.supabase.co/functions/v1/';
 async function call(which,method='GET'){
-  const session=await window.ojmDb?.auth?.getSession();
+  const session=await (typeof ojmDb!=='undefined' ? ojmDb : null)?.auth?.getSession();
   const token=session?.data?.session?.access_token;
   if(!token)throw Error('Sign in to Accounting first.');
   const response=await fetch(base+which,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},...(method==='POST'?{body:'{}'}:{})});
@@ -12,7 +12,7 @@ async function call(which,method='GET'){
 }
 async function status(){return call('google-journal-bridge')}
 async function request(action,payload={}){
- const session=await window.ojmDb?.auth?.getSession(),token=session?.data?.session?.access_token;
+ const session=await (typeof ojmDb!=='undefined' ? ojmDb : null)?.auth?.getSession(),token=session?.data?.session?.access_token;
  if(!token)throw Error('Accounting sign-in required.');
  const response=await fetch(base+'google-journal-bridge',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
  const result=await response.json();
