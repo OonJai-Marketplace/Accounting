@@ -1,1 +1,1 @@
-{"version":"143.141","changes":["Fixed the persistent Google connection's Accounting session lookup; it now uses the same Supabase client as the signed-in application.","AI Journal continues to use the server-managed Google connection when available; no credentials or journal data changed."]}
+{"version":"143.142","changes":["AI Journal debit and credit preview now displays plain formatted numbers without misleading dollar symbols.","Currency still comes from the assigned Chart of Accounts in the transaction editor; calculations and posting rules are unchanged."]}
