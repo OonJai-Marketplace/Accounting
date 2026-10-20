@@ -1,5 +1,5 @@
 {
-  "version": "143.129",
+  "version": "143.130",
   "changes": [
     "Google Sheets links and connection management are now under Settings → Accounting → Google Sheets.",
     "GPT appears after Voucher. Edit drafts with the existing transaction editor, then Post to Journal without leaving GPT.",
