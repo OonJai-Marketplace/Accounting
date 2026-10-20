@@ -10,9 +10,9 @@ const permitted=id=>!!document.getElementById(id)&&(!window.access113||window.ac
 const active=()=>document.querySelector('.tab-content.active')?.id||'';
 function available(){return groups.map(g=>({...g,targets:g.targets.filter(permitted)})).filter(g=>g.targets.length)}
 let accountingSection='accounting';
-const accountingSections=[['accounting','Accounting'],['vouchers','Vouchers'],['currency','Currency Manager']];
+const accountingSections=[['accounting','Accounting'],['vouchers','Vouchers'],['currency','Currency Manager'],['google','Google Sheets']];
 function accountingChoice(key){accountingSection=key;accountingPanel();render('settings-accounting');window.navigationWorkflow14316?.sync();}
-function accountingPanel(){const root=document.getElementById('settings-accounting');if(!root)return;const voucher=root.querySelector('.voucher-config14299'),currency=[...root.querySelectorAll('.settings-module94')].find(n=>n.querySelector('h4')?.textContent==='Currency Manager');for(const node of [root.querySelector('[data-settings-group=accounting]'),root.querySelector('#prefixRegistry89')])if(node&&!node.closest('.voucher-config14299'))node.hidden=accountingSection!=='accounting';if(voucher)voucher.hidden=accountingSection!=='vouchers';if(currency)currency.hidden=accountingSection!=='currency';}
+function accountingPanel(){const root=document.getElementById('settings-accounting');if(!root)return;const voucher=root.querySelector('.voucher-config14299'),currency=[...root.querySelectorAll('.settings-module94')].find(n=>n.querySelector('h4')?.textContent==='Currency Manager');for(const node of [root.querySelector('[data-settings-group=accounting]'),root.querySelector('#prefixRegistry89')])if(node&&!node.closest('.voucher-config14299'))node.hidden=accountingSection!=='accounting';if(voucher)voucher.hidden=accountingSection!=='vouchers';if(currency)currency.hidden=accountingSection!=='currency';const google=root.querySelector('#googleSheets143129');if(google)google.hidden=accountingSection!=='google';}
 function sectionChoices(){if(active()==='settings-accounting')return accountingSections.map(([id,label])=>({id,label,button:{click:()=>accountingChoice(id)}}));const group=available().find(g=>g.targets.includes(active()));return (group?.targets||[]).map(id=>({id,label:labels[id],button:{click:()=>window.switchTab(id)}}))}
 function render(target=active()){
  if(window.groupedNavigation14378?.render(target))return true;
@@ -41,13 +41,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 const $=id=>document.getElementById(id);
 const item=(label,target,kind='',value='',permission=target)=>({label,target,kind,value,permission});
 const books=[
- {label:'Journal',icon:'▤',items:[item('Journal','journal'),item('Submitted','user-entry-review','final','submitted'),item('Funds','user-entry-review','final','funds','transactions-budget14313'),item('Reconcile','user-entry-review','final','reconciliation','report-reconciliation'),item('Data Check','transactions-closing14325'),item('Closing','period-review'),item('Budget','transactions-budget14313'),item('Voucher','transactions-vouchers14299')]},
+ {label:'Journal',icon:'▤',items:[item('Journal','journal','gpt','journal'),item('Submitted','user-entry-review','final','submitted'),item('Funds','user-entry-review','final','funds','transactions-budget14313'),item('Reconcile','user-entry-review','final','reconciliation','report-reconciliation'),item('Data Check','transactions-closing14325'),item('Closing','period-review'),item('Budget','transactions-budget14313'),item('Voucher','transactions-vouchers14299'),item('GPT','journal','gpt','gpt','journal')]},
  {label:'Upcoming',icon:'◷',items:[item('Schedule','transactions-recurring','upcoming','scheduled'),item('Recurring','transactions-recurring','upcoming','recurring'),item('To-dos','transactions-recurring','upcoming','todos'),item('Calendar','transactions-recurring','upcoming','calendar')]},
  {label:'History',icon:'↶',items:[item('Journal','transactions-all','history','journal'),item('User Entries','transactions-all','history','submitted','user-entry-review'),item('Budget Request','transactions-all','history','budget','transactions-budget14313'),item('Audit Logs','transactions-voided')]}
 ];
 const settings=[
  {label:'Company',icon:'▦',items:[item('Business','settings-business'),item('Users & Permissions','settings-users'),item('Organization & Reporting','settings-organization14229')]},
- {label:'Accounting',icon:'▤',items:[...['Accounting','Vouchers','Currency Manager'].map((n,i)=>item(n,'settings-accounting','accounting',['accounting','vouchers','currency'][i])),item('Payroll','settings-payroll'),item('Mandatory','settings-tax')]},
+ {label:'Accounting',icon:'▤',items:[...['Accounting','Vouchers','Currency Manager','Google Sheets'].map((n,i)=>item(n,'settings-accounting','accounting',['accounting','vouchers','currency','google'][i])),item('Payroll','settings-payroll'),item('Mandatory','settings-tax')]},
  {label:'System & Tools',icon:'⚙',items:[item('System & Printing','settings-system'),item('Archive & Recovery','settings-data14231'),item('Maintenance & Audit','settings-maintenance14324')]}
 ];
 // Expansion is a user choice, independent of the active workspace.
@@ -75,7 +75,7 @@ function rememberChoice(group,i){
 }
 const enabled=()=>innerWidth>640&&document.documentElement.dataset.device132!=='phone';
 const allowed=i=>!!$(i.target)&&(!window.access113||access113.can(i.target)&&access113.can(i.permission));
-function choose(i){if(!i||!allowed(i))return;selected=i;window.switchTab(i.target);if(!$(i.target)?.classList.contains('active'))return;
+function choose(i){if(!i||!allowed(i))return;if(i.kind==='gpt'&&window.DriveDrafts143128?.choose(i.value)===false)return;selected=i;window.switchTab(i.target);if(!$(i.target)?.classList.contains('active'))return;
  if(i.kind==='final')budgetWorkflow14316.finalization(i.value);
  if(i.kind==='history')budgetWorkflow14316.history(i.value);
  if(i.kind==='upcoming')workspace14337.showSection(i.value);
@@ -121,7 +121,7 @@ function sidebar(module,groups,current){
 function render(target=document.querySelector('.tab-content.active')?.id){if(!enabled()||window.workspaceViews14364?.rendering)return false;
  restoreNavigationMemory();
  const all=[...books,...settings];
- const section=target==='user-entry-review'?window.budgetWorkflow14316?.finalTab:target==='transactions-all'?window.budgetWorkflow14316?.historyTab:target==='transactions-recurring'?window.workspace14337?.section:target==='settings-accounting'?window.settingsGroups14332?.accountingSection:'';
+ const section=target==='journal'?(window.DriveDrafts143128?.view||'journal'):target==='user-entry-review'?window.budgetWorkflow14316?.finalTab:target==='transactions-all'?window.budgetWorkflow14316?.historyTab:target==='transactions-recurring'?window.workspace14337?.section:target==='settings-accounting'?window.settingsGroups14332?.accountingSection:'';
  selected=all.flatMap(g=>g.items).find(i=>i.target===target&&(!section||i.value===section)&&allowed(i));
  const current=all.find(g=>g.items.includes(selected));if(current&&selected)rememberChoice(current,selected);sidebar('transactions',books,books.includes(current)?current:null);sidebar('settings',settings,settings.includes(current)?current:null);
  if(!current||!selected||selected.target!==target)return false;

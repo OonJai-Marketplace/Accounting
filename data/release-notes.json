@@ -1,8 +1,8 @@
 {
-  "version": "143.128",
+  "version": "143.129",
   "changes": [
-    "Drive drafts: connect your Google Sheet, review entries, then approve posting. One-time Google OAuth setup is required.",
-    "Accounts refresh from the current database before draft review and approval.",
-    "Account assignment adds Select all and Clear for each category."
+    "Google Sheets links and connection management are now under Settings → Accounting → Google Sheets.",
+    "GPT appears after Voucher. Edit drafts with the existing transaction editor, then Post to Journal without leaving GPT.",
+    "GPT retains its draft reference and displays the confirmed journal ID. Existing manual entries are protected. Google authorization and automatic delivery still require setup."
   ]
 }
