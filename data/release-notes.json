@@ -1,6 +1,7 @@
 {
-  "version": "143.141",
+  "version": "143.142",
   "changes": [
-    "Corrected persistent Google sign-in bridge to read the signed-in Accounting session."
+    "Removed incorrect $ currency symbols from AI Journal draft amounts.",
+    "Account currency validation and posting behavior are unchanged."
   ]
 }
