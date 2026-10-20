@@ -1,5 +1,5 @@
 {
-  "release": "143.127",
+  "release": "143.128",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -39,12 +39,12 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "15074ff36ba72621a14ca79eefbfea895e2303bdc623b7201b4209b0af27ba35",
+      "sha256": "91a21dcb3763148c70df41b9bbeee7094ae3eae2515e10780ce296e9cee037fe",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "b7692ad18517103fda35d9a5e16a3b1909a803f64e3ec671681345a287bb0632",
+      "sha256": "1967715450f044b569d35ef52ebff3844a91874174a4068259e056d5a149366d",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -64,7 +64,7 @@
     },
     {
       "path": "phone-sw.js",
-      "sha256": "b05bfa73dbd6bde24d09bffa4d04788bac451b7b6ae57749c7b8d6f8a9b0e83e",
+      "sha256": "1bf05d6b9172b66ebb9163fb6a16f92b381525a63ea1c25b104b0aa8448946ae",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -837,6 +837,11 @@
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
+      "path": "scripts/drive-drafts143128.js",
+      "sha256": "74bb373f0795ddc5cc8f88736c845dd879cdcee8ec961ab43f85980da35679c2",
+      "effect": "Reload the current release and investigate mixed or changed files."
+    },
+    {
       "path": "scripts/editor-numbers1428.js",
       "sha256": "40082610e997dd7b8cc1435ca73f086a5b31f4ed84a47bb7b15da000847e4613",
       "effect": "Reload the current release and investigate mixed or changed files."
@@ -1103,7 +1108,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "d4bf2836b620529f2b45e5ba18890830a29d7f0f63a56c8bd28220b906cac1f3",
+      "sha256": "0286ce2c667d87223dbed454cb5bea32423b7e2a582310b752abcc75d4b17222",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1603,7 +1608,7 @@
     },
     {
       "path": "scripts/workflow14253.js",
-      "sha256": "a8c87d4e2f87d85f42c66c8213ce596c0dee7968a450cbc5c57bfb14f2399838",
+      "sha256": "cb015ef0632d551d518ed8650c9c9058e5fcad50458d501d535a3bd467192f46",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {

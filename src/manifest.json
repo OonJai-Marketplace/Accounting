@@ -4207,6 +4207,12 @@
         "source": "src/core/sync/operational-reset143108.js",
         "suffix": ";\n"
       }
+    ],
+    "scripts/drive-drafts143128.js": [
+      {
+        "source": "src/bookkeeping/journal/drive-drafts143128.js",
+        "suffix": ""
+      }
     ]
   },
   "variants": [
