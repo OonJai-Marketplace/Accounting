@@ -1,7 +1,7 @@
 {
-  "version": "143.132",
+  "version": "143.133",
   "changes": [
-    "Removed empty card in Google Sheets Settings.",
-    "Preserved Accounting, Voucher and Currency Manager content modules."
+    "Protected Google Sheets links with a deliberate edit action.",
+    "Removed duplicate GPT shortcut and empty Google Sheets container."
   ]
 }
