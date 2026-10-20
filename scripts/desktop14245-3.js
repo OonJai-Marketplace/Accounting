@@ -3325,7 +3325,7 @@ async function confirmVoidTransaction(){
   refreshAllTables();
   if(pendingVoidTransaction===pending)closeVoidTransactionModal();
   showAppNotification('Transaction Voided',`${pending.entryNo} remains in the audit trail with its void reason.`,false);
-  const results=await Promise.allSettled([loadTransactionAudit(),loadJournalFromSupabase()]);
+  const results=await Promise.allSettled([loadTransactionAudit(),window.offline14239?.freshReads(()=>loadJournalFromSupabase({cacheFirst:false})),window.entryNumber14257?.refresh(true)]);
   if(current()&&results.some(result=>result.status==='rejected'))showAppNotification('Transaction Voided','The void is confirmed. Some history could not refresh; retry the history refresh.',true);
  }catch(error){if(current()&&pendingVoidTransaction===pending&&errorBox)errorBox.textContent=error.message||'The server response could not be confirmed. Refresh before retrying.'}
  finally{pending.busy=false}
@@ -6985,11 +6985,16 @@ mountSettings();
       return rows;
     };
     try {
-      const rows = window.localFirst14333 ? await localFirst14333.snapshot('audit-transactions', read, {force}) : await read();
+      const rows = await read();
+      const voided=await db.from('journal_entries').select('id').eq('status','voided').setHeader('x-ojm-database-only','1');
+      if(voided.error)throw voided.error;
+      const ids=new Set((voided.data||[]).map(r=>String(r.id)));
+      rows.forEach(row=>{row.voidedJournal143122=ids.has(String(row.record_id))});
       if(liveProfile?.id!==owner||ojmDb!==db)return;
       LiveTransactionAudit = rows;
       window.renderVoidedTransactionsTable();
     } catch (error) {
+      if(liveProfile?.id===owner&&ojmDb===db){LiveTransactionAudit=[];window.renderVoidedTransactionsTable();}
       if(liveProfile?.id===owner&&ojmDb===db)window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
       throw error;
     }
@@ -7152,6 +7157,7 @@ mountSettings();
   const auditAction14361=item=>String(item.action||'CHANGE').toUpperCase();
   function auditKind14361(item){
     const action=auditAction14361(item),after=item.new_data||{};
+    if(item.voidedJournal143122&&['POST','AUTO_POST'].includes(action))return {group:'voids',tier:'red',label:'Voided entry — remaining posting record'};
     if(['POST','AUTO_POST','SCHEDULE_POST_ADVANCE','CREATE_SCHEDULE','MAINTENANCE_CLOSE','SUBMIT','REVIEW','REVIEW_FORWARD','APPROVE','APPROVE_AND_POST','LINK','MAINTENANCE_EDIT'].includes(action))return null;
     if(action==='PERIOD_STATUS')return String(after.status||'').toLowerCase()==='open'?{group:'periods',tier:'red',label:'Period reopened'}:null;
     if(/PERIOD.*(?:CLOSE|LOCK)|CLOSE.*PERIOD/.test(action))return null;
@@ -7235,7 +7241,7 @@ mountSettings();
     let host=byId('auditMonths98');if(!host){host=document.createElement('div');host.id='auditMonths98';original.closest('.table-container').after(host)}host.dataset.historySearch='off';
     const owner=typeof liveProfile==='undefined'?'':liveProfile?.id;if(auditOwner14361!==owner){auditOwner14361=owner;auditFilter14361='all'}
     const local=(JournalModule.voidedEntries||[]).map((item,i)=>({id:`local-${i}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp}));
-    const records=[...(LiveTransactionAudit||[]),...local].filter(auditKind14361).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
+    const records=[...(LiveTransactionAudit||[])].filter(auditKind14361).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
     const selected=historyMonth14341.choose('audit',records.map(r=>String(r.created_at||'').slice(0,7))),month=records.filter(item=>String(item.created_at||'').slice(0,7)===selected);
     if(auditFilter14361!=='all'&&!month.some(item=>auditKind14361(item).group===auditFilter14361))auditFilter14361='all';
     const cards=auditGroups14361.filter(([key])=>key==='all'||month.some(item=>auditKind14361(item).group===key)).map(([key,label])=>`<button type="button" class="period-summary-card" data-audit-filter14361="${key}" aria-pressed="${auditFilter14361===key}"><span>${label}</span><strong>${key==='all'?month.length:month.filter(item=>auditKind14361(item).group===key).length}</strong></button>`).join('');

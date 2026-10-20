@@ -1,8 +1,9 @@
 {
-  "version": "143.121",
+  "version": "143.122",
   "changes": [
-    "Voided manual journal IDs become available after their final audit record is deleted, including older entries.",
-    "Available IDs beside the next Journal ID lets administrators choose an available number or return to automatic selection.",
-    "Existing payroll and tax settings initialize the shared configuration automatically on connected administrator sign-in; finalized payroll keeps its saved figures."
+    "Journal IDs automatically use the lowest released number; the Available IDs button has been removed.",
+    "ID checks, voiding and audit deletion use the database directly without cached responses.",
+    "Deleting a voided journal audit permanently removes its linked audit history and refreshes the next ID.",
+    "Successful synchronization shows Done to close the completed result."
   ]
 }

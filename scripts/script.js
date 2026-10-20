@@ -3298,7 +3298,7 @@ async function confirmVoidTransaction(){
   refreshAllTables();
   if(pendingVoidTransaction===pending)closeVoidTransactionModal();
   showAppNotification('Transaction Voided',`${pending.entryNo} remains in the audit trail with its void reason.`,false);
-  const results=await Promise.allSettled([loadTransactionAudit(),loadJournalFromSupabase()]);
+  const results=await Promise.allSettled([loadTransactionAudit(),window.offline14239?.freshReads(()=>loadJournalFromSupabase({cacheFirst:false})),window.entryNumber14257?.refresh(true)]);
   if(current()&&results.some(result=>result.status==='rejected'))showAppNotification('Transaction Voided','The void is confirmed. Some history could not refresh; retry the history refresh.',true);
  }catch(error){if(current()&&pendingVoidTransaction===pending&&errorBox)errorBox.textContent=error.message||'The server response could not be confirmed. Refresh before retrying.'}
  finally{pending.busy=false}

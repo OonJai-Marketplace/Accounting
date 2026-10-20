@@ -34,7 +34,7 @@ function show(force=false){restore();if(force&&session){session.acknowledged=fal
  set('[data-records]',`${session.confirmed||0} operations confirmed · ${session.remaining??session.total} remaining · ${session.failed||0} failed/conflicted (batch: ${session.total}). Records: ${session.confirmedRecords||0} confirmed · ${session.remainingRecords??session.totalRecords} remaining · ${session.failedRecords||0} failed/conflicted.`);
  set('[data-bytes]',`Measured response payload: ${bytes(session.downloaded||0)} · Attempted request payload: ${bytes(session.uploaded||0)}. Network totals and total batch size unknown.`);
  set('[data-cleanup]',session.cleanup||'Recovery copies retained until confirmation and cleanup verification.');
- set('pre',(session.unresolved||[]).map(r=>r.id+' · '+r.status).join('\n')||'None');dialog.querySelector('progress').hidden=!session.running;dialog.querySelector('[data-ack]').disabled=session.running;
+ set('pre',(session.unresolved||[]).map(r=>r.id+' · '+r.status).join('\n')||'None');dialog.querySelector('progress').hidden=!session.running;dialog.querySelector('[data-ack]').disabled=session.running;set('[data-ack]',session.running?'Syncing…':session.result==='Synchronization complete'?'Done':'Acknowledge');
 }
 function outcome(remaining){if(remaining)return 'Partial synchronization';const findings=window.syncAssessment14332?.findings()||[...(window.localFirst14333?.findings()||[]),...(window.syncRecovery14351?.findings()||[])];if(findings.some(f=>f.kind!=='recovery'&&(f.critical||f.kind==='setup')))return 'Synchronization needs attention';return findings.some(f=>['cleanup','recovery'].includes(f.kind)||f.status==='Synced — Cleanup Pending')?'Uploads confirmed — recovery cleanup pending':'Synchronization complete';}
 function stage(text){if(session){session.stage=text;paint();show();}}
@@ -49,7 +49,7 @@ async function run(automatic=false){if(flight)return flight;if(!actor()||!window
   if(proceed()){stage('Synchronizing saved HR, payroll, reports and documents');await window.localFirst14333?.sync({automatic,coordinated:true});}
   if(proceed()){stage('Synchronizing entries and verifying posting receipts');await window.offline14239?.sync({automatic,coordinated:true});}
   if(proceed()){stage('Refreshing permitted workspace data');await window.startup14257?.revalidate?.(!automatic);}
-  if(proceed()){stage('Refreshing assigned ledgers');await window.AssignedLedger14281?.refresh?.(automatic);}
+  if(proceed()){await window.entryNumber14257?.refresh(true);stage('Refreshing assigned ledgers');await window.AssignedLedger14281?.refresh?.(automatic);}
   if(proceed()){stage('Verifying managed recovery copies');const cleanup=await window.syncRecovery14351?.cleanup({automatic:true});if(cleanup)session.cleanup=cleanup.message;}
   const after=pending(),remaining=new Set(after.map(j=>j.id));session.confirmed=before.filter(j=>!remaining.has(j.id)).length;session.remaining=after.length;session.unresolved=after;session.failed=after.filter(j=>['conflict','blocked','failed','attention','uncertain'].includes(j.status)).length;
   countRecords(after);session.stage=proceed()?'Finished checking eligible operations':'Paused after the current operation; remaining work retained';session.result=outcome(session.remaining);dirty=!proceed();
