@@ -1,1 +1,1 @@
-{"version":"143.143","changes":["Corrected Website Update installed-version display, which had been stuck at 143.130.","AI Journal previews show debit and credit as plain numbers without incorrect dollar symbols.","No journal data or posting logic changes."]}
+{"version":"143.144","changes":["Removed the unfinished persistent Google connection and restored manual OAuth.","AI Journal now has Connect Google directly beside Refresh Drafts.","Removed Disconnect Google from Settings. Original Google Sheets draft and posting safeguards remain unchanged."]}
