@@ -1,7 +1,8 @@
 {
-  "version": "143.146",
+  "version": "143.147",
   "changes": [
-    "AI Journal existing-posted-entry reconciliation and duplicate protection.",
-    "Corrected return to Active Journal after successful posting."
+    "Archive posted AI Journal drafts automatically and clear pending inbox.",
+    "Preserve journal source history and annual AI reference numbering.",
+    "Do not clear drafts when posting fails."
   ]
 }
