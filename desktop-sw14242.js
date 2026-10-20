@@ -3,7 +3,6 @@
 const VERSION='143.143',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/drive-drafts143128.js?v=143.143",
- "scripts/google-persistent-connection143138.js?v=143.143",
  "scripts/notification-focus143139.js?v=143.143",
  "scripts/operational-reset143108.js?v=143.109",
  "scripts/undo143103.js?v=143.109",
