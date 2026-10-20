@@ -1,7 +1,6 @@
 {
-  "version": "143.140",
+  "version": "143.141",
   "changes": [
-    "Restored working Connect Google behavior.",
-    "Persistent Google connection requires additional session compatibility work."
+    "Corrected persistent Google sign-in bridge to read the signed-in Accounting session."
   ]
 }
