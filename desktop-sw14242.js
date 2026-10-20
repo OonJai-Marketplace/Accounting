@@ -1,10 +1,10 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.141',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.142',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
- "scripts/drive-drafts143128.js?v=143.141",
- "scripts/google-persistent-connection143138.js?v=143.141",
- "scripts/notification-focus143139.js?v=143.141",
+ "scripts/drive-drafts143128.js?v=143.142",
+ "scripts/google-persistent-connection143138.js?v=143.142",
+ "scripts/notification-focus143139.js?v=143.142",
  "scripts/operational-reset143108.js?v=143.109",
  "scripts/undo143103.js?v=143.109",
  "scripts/editor-protection14380.js?v=143.80",
@@ -25,9 +25,9 @@ const FILES=[
  "scripts/desktop14245-3.js?v=143.128",
  "scripts/desktop14245-4.js?v=143.128",
  "scripts/desktop14245-5.js?v=143.117",
- "scripts/desktop14245-6.js?v=143.141",
+ "scripts/desktop14245-6.js?v=143.142",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.141",
+ "scripts/offline14239.js?v=143.142",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -42,7 +42,7 @@ const FILES=[
  "styles/final-review14345.css?v=143.47",
  "scripts/closing-eligibility14346.js?v=143.47",
  "scripts/budget-workflow14316.js?v=143.78",
- "scripts/navigation-workflow14316.js?v=143.141",
+ "scripts/navigation-workflow14316.js?v=143.142",
  "styles/workflow14316.css?v=143.20",
  "setup/INSTALL-BUDGET-LIFECYCLE-v143.16.sql",
  "docs/WORKFLOW-v143.16.md",
@@ -171,7 +171,7 @@ const FILES=[
  "docs/UPDATE-v143.31.md",
  "scripts/sync-assessment14332.js?v=143.109",
  "styles/sync-assessment14332.css?v=143.53",
- "scripts/settings-groups14332.js?v=143.141",
+ "scripts/settings-groups14332.js?v=143.142",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.32",
  "scripts/phone-runtime14242.js?v=143.109",
