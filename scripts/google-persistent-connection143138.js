@@ -11,6 +11,14 @@ async function call(which,method='GET'){
   return result;
 }
 async function status(){return call('google-journal-bridge')}
+async function request(action,payload={}){
+ const session=await window.ojmDb?.auth?.getSession(),token=session?.data?.session?.access_token;
+ if(!token)throw Error('Accounting sign-in required.');
+ const response=await fetch(base+'google-journal-bridge',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
+ const result=await response.json();
+ if(!response.ok||result.error)throw Error(result.error||'Persistent Google request failed.');
+ return result;
+}
 async function authorize(){
   const result=await call('google-oauth-start','POST');
   const target=new URL(result.authorization_url);
@@ -31,5 +39,5 @@ function install(){
   void check();return true;
 }
 document.addEventListener('DOMContentLoaded',()=>{if(install())return;let count=0;const timer=setInterval(()=>{if(install()||++count>30)clearInterval(timer)},500)});
-window.OonJaiPersistentGoogle={status,authorize};
+window.OonJaiPersistentGoogle={status,authorize,request};
 })();
