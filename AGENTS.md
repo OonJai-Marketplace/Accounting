@@ -63,3 +63,10 @@ Journal ID exception (user clarification, 2026-10-20): only the highest issued
 ID for the year and format may be reused after permanent deletion of its voided
 entry and audit history. Older deleted IDs remain visible gaps forever; never
 fill them or choose the lowest released number. Keeping the audit blocks reuse.
+
+Audit retention (user clarification, 2026-10-20): older voided journal audit
+records must remain to explain missing IDs. Only green routine records may be
+deleted when the referenced journal entry still exists. Orange/red records are
+protected. The sole exception is the latest issued voided journal ID: explicit
+single-record deletion may remove its linked audit history to release that ID.
+Enforce this on the database, including bulk deletes; never use cache decisions.

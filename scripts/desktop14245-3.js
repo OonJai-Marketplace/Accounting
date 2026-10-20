@@ -6967,6 +6967,13 @@ mountSettings();
     body.querySelectorAll('.action-col').forEach(cell => { cell.style.setProperty('width', '1.7cm', 'important'); cell.style.setProperty('text-align', 'right', 'important'); });
   }
 
+  window.auditDeletionPermissions143124=async function(rows,source,db){
+    if(liveProfile?.role!=='admin')return rows;
+    const args=source==='audit_log'?{p_audit_ids:rows.map(r=>String(r.id))}:{p_deletion_ids:rows.map(r=>String(r.id))};
+    const result=await db.rpc('audit_delete_permissions143124',args);if(result.error)throw result.error;
+    const policies=new Map((result.data||[]).map(r=>[String(r.id),r.policy]));
+    rows.forEach(r=>{r.deletePolicy143124=policies.get(String(r.id))||'protected'});return rows;
+  };
   window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
     const owner=liveProfile.id,db=ojmDb;
@@ -6985,7 +6992,7 @@ mountSettings();
       return rows;
     };
     try {
-      const rows = await read();
+      const rows = await auditDeletionPermissions143124(await read(),'audit_log',db);
       const voided=await db.from('journal_entries').select('id').eq('status','voided').setHeader('x-ojm-database-only','1');
       if(voided.error)throw voided.error;
       const ids=new Set((voided.data||[]).map(r=>String(r.id)));
@@ -7157,8 +7164,9 @@ mountSettings();
   const auditAction14361=item=>String(item.action||'CHANGE').toUpperCase();
   function auditKind14361(item){
     const action=auditAction14361(item),after=item.new_data||{};
+    if(item.deletePolicy143124==='green')return {group:'routine',tier:'green',label:action.replaceAll('_',' ')};
     if(item.voidedJournal143122&&['POST','AUTO_POST'].includes(action))return {group:'voids',tier:'red',label:'Voided entry — remaining posting record'};
-    if(['POST','AUTO_POST','SCHEDULE_POST_ADVANCE','CREATE_SCHEDULE','MAINTENANCE_CLOSE','SUBMIT','REVIEW','REVIEW_FORWARD','APPROVE','APPROVE_AND_POST','LINK','MAINTENANCE_EDIT'].includes(action))return null;
+    if(['POST','AUTO_POST','SCHEDULE_POST_ADVANCE','CREATE_SCHEDULE','MAINTENANCE_CLOSE','SUBMIT','REVIEW','REVIEW_FORWARD','APPROVE','APPROVE_AND_POST','LINK'].includes(action))return item.deletePolicy143124==='protected'?{group:'reviews',tier:'yellow',label:'Protected '+action.replaceAll('_',' ')}:null;
     if(action==='PERIOD_STATUS')return String(after.status||'').toLowerCase()==='open'?{group:'periods',tier:'red',label:'Period reopened'}:null;
     if(/PERIOD.*(?:CLOSE|LOCK)|CLOSE.*PERIOD/.test(action))return null;
     if(/REOPEN/.test(action))return {group:'periods',tier:'red',label:'Period / report reopened'};
@@ -7174,7 +7182,7 @@ mountSettings();
     // Unknown actions stay visible for review instead of silently losing evidence.
     return {group:'reviews',tier:'yellow',label:action.replaceAll('_',' ')};
   }
-  const auditGroups14361=[['all','All important events'],['voids','Voided'],['corrections','Corrections'],['periods','Period changes'],['schedules','Schedule changes'],['deletions','Deletions / cancellations'],['reviews','Review required']];
+  const auditGroups14361=[['all','All audit events'],['routine','Green / routine events'],['voids','Voided'],['corrections','Corrections'],['periods','Period changes'],['schedules','Schedule changes'],['deletions','Deletions / cancellations'],['reviews','Review required']];
   const auditLineIdentity14382=new WeakMap();
   const auditUuid14382=value=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value||''));
   function auditReadable14382(value,record,line=false){
@@ -7247,7 +7255,7 @@ mountSettings();
     const cards=auditGroups14361.filter(([key])=>key==='all'||month.some(item=>auditKind14361(item).group===key)).map(([key,label])=>`<button type="button" class="period-summary-card" data-audit-filter14361="${key}" aria-pressed="${auditFilter14361===key}"><span>${label}</span><strong>${key==='all'?month.length:month.filter(item=>auditKind14361(item).group===key).length}</strong></button>`).join('');
     const shown=month.filter(item=>auditFilter14361==='all'||auditKind14361(item).group===auditFilter14361);
     const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify(item))}" data-audit-severity="${kind.tier}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td><button type="button" class="je-btn je-btn-secondary" aria-label="View details for ${esc(auditRecordId(item))}">View</button></td><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td><span class="audit-count98 ${kind.tier}">${esc(kind.label)}</span></td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
-    host.innerHTML=historyMonth14341.control('audit',selected)+`<div class="period-summary-grid audit-filters14361">${cards}</div><section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Details</th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="period-empty">No important audit events match this month and category.</td></tr>'}</tbody></table></div></section>`;
+    host.innerHTML=historyMonth14341.control('audit',selected)+`<div class="period-summary-grid audit-filters14361">${cards}</div><section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Details</th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="period-empty">No audit events match this month and category.</td></tr>'}</tbody></table></div></section>`;
     host.querySelectorAll('[data-audit-filter14361]').forEach(button=>{button.onclick=()=>{auditFilter14361=button.dataset.auditFilter14361;renderVoidedTransactionsTable();host.querySelector(`[data-audit-filter14361="${auditFilter14361}"]`)?.focus()}});
     host.querySelectorAll('[data-audit-open14361]').forEach(row=>{row.onclick=e=>{if(e.target.closest('[data-delete-record1434]'))return;openAudit14361(shown[Number(row.dataset.auditOpen14361)],row)};row.onkeydown=e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();row.click()}}});
     historyMonth14341.bind(host,'audit',renderVoidedTransactionsTable,'local');

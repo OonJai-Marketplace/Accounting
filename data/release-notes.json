@@ -1,8 +1,9 @@
 {
-  "version": "143.123",
+  "version": "143.124",
   "changes": [
-    "Only the latest issued journal ID can be reused after the voided entry and its audit history are permanently deleted.",
-    "Older deleted IDs remain gaps, even when their audit history is removed.",
-    "Retaining a voided entry in audit keeps its ID unavailable. Database-direct ID checks remain automatic."
+    "Older voided journal audit records are protected so missing IDs remain explainable.",
+    "Green routine audit records can be deleted when the journal transaction remains. Orange/red history is protected.",
+    "The latest issued voided journal remains the explicit deletion exception, allowing only that ID to be reused.",
+    "Audit deletion permissions come directly from the database; bulk cleanup deletes green records only."
   ]
 }

@@ -377,6 +377,13 @@
     body.querySelectorAll('.action-col').forEach(cell => { cell.style.setProperty('width', '1.7cm', 'important'); cell.style.setProperty('text-align', 'right', 'important'); });
   }
 
+  window.auditDeletionPermissions143124=async function(rows,source,db){
+    if(liveProfile?.role!=='admin')return rows;
+    const args=source==='audit_log'?{p_audit_ids:rows.map(r=>String(r.id))}:{p_deletion_ids:rows.map(r=>String(r.id))};
+    const result=await db.rpc('audit_delete_permissions143124',args);if(result.error)throw result.error;
+    const policies=new Map((result.data||[]).map(r=>[String(r.id),r.policy]));
+    rows.forEach(r=>{r.deletePolicy143124=policies.get(String(r.id))||'protected'});return rows;
+  };
   window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
     const owner=liveProfile.id,db=ojmDb;
@@ -395,7 +402,7 @@
       return rows;
     };
     try {
-      const rows = await read();
+      const rows = await auditDeletionPermissions143124(await read(),'audit_log',db);
       const voided=await db.from('journal_entries').select('id').eq('status','voided').setHeader('x-ojm-database-only','1');
       if(voided.error)throw voided.error;
       const ids=new Set((voided.data||[]).map(r=>String(r.id)));
