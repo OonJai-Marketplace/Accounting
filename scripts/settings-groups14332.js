@@ -12,7 +12,7 @@ function available(){return groups.map(g=>({...g,targets:g.targets.filter(permit
 let accountingSection='accounting';
 const accountingSections=[['accounting','Accounting'],['vouchers','Vouchers'],['currency','Currency Manager'],['google','Google Sheets']];
 function accountingChoice(key){accountingSection=key;accountingPanel();render('settings-accounting');window.navigationWorkflow14316?.sync();}
-function accountingPanel(){const root=document.getElementById('settings-accounting');if(!root)return;const voucher=root.querySelector('.voucher-config14299'),currency=[...root.querySelectorAll('.settings-module94')].find(n=>n.querySelector('h4')?.textContent==='Currency Manager');for(const node of [root.querySelector('[data-settings-group=accounting]'),root.querySelector('#prefixRegistry89')])if(node&&!node.closest('.voucher-config14299'))node.hidden=accountingSection!=='accounting';if(voucher)voucher.hidden=accountingSection!=='vouchers';if(currency)currency.hidden=accountingSection!=='currency';const google=root.querySelector('#googleSheets143129');if(google)google.hidden=accountingSection!=='google';}
+function accountingPanel(){const root=document.getElementById('settings-accounting');if(!root)return;const duplicate=root.querySelector(':scope > .je-card > .je-card-header');if(duplicate)duplicate.hidden=true;const voucher=root.querySelector('.voucher-config14299'),currency=[...root.querySelectorAll('.settings-module94')].find(n=>n.querySelector('h4')?.textContent==='Currency Manager');for(const node of [root.querySelector('[data-settings-group=accounting]'),root.querySelector('#prefixRegistry89')])if(node&&!node.closest('.voucher-config14299'))node.hidden=accountingSection!=='accounting';if(voucher)voucher.hidden=accountingSection!=='vouchers';if(currency)currency.hidden=accountingSection!=='currency';const google=root.querySelector('#googleSheets143129');if(google){google.hidden=accountingSection!=='google';google.style.display=accountingSection==='google'?'block':'none';}}
 function sectionChoices(){if(active()==='settings-accounting')return accountingSections.map(([id,label])=>({id,label,button:{click:()=>accountingChoice(id)}}));const group=available().find(g=>g.targets.includes(active()));return (group?.targets||[]).map(id=>({id,label:labels[id],button:{click:()=>window.switchTab(id)}}))}
 function render(target=active()){
  if(window.groupedNavigation14378?.render(target))return true;
@@ -32,7 +32,7 @@ function render(target=active()){
 }
 function sync(){render()}
 window.settingsGroups14332={groups,available,sectionChoices,render,chooseAccounting:accountingChoice,get accountingSection(){return accountingSection}};
-function install(){document.getElementById('settingsTabShell')?.remove();sync();window.addEventListener('page113',sync);window.addEventListener('resize',sync);}
+function install(){document.getElementById('settingsTabShell')?.remove();const payrollHeading=document.querySelector('#settings-payroll > .settings-page-heading');if(payrollHeading)payrollHeading.hidden=true;sync();window.addEventListener('page113',sync);window.addEventListener('resize',sync);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 
