@@ -99,8 +99,9 @@ function toggleMultipleDates(syncRows = true, fromUser = false) {
 }
 
 document.addEventListener('change', event => {
-  if (event.target?.id === 'jeTransDate' && document.getElementById('jeMultipleDates')?.checked) {
-    document.querySelectorAll('#jeLinesBody .je-line-date,#simpleRows1430 [data-simple=date]').forEach(inp => { if (!inp.dataset.manualDate) { inp.value = event.target.value; window.datePicker104?.refresh(inp); } });
+  if(event.target?.id==='jeMultipleDates'&&event.target.checked&&event.isTrusted)toggleMultipleDates(true,true);
+  if (event.target?.id === 'jeTransDate') {
+    document.querySelectorAll('#jeLinesBody .je-line-date,#simpleRows1430 [data-simple=date]').forEach(inp => { if (!document.getElementById('jeMultipleDates')?.checked || !inp.dataset.manualDate) { inp.value = event.target.value; if(!document.getElementById('jeMultipleDates')?.checked)delete inp.dataset.manualDate; window.datePicker104?.refresh(inp); } });
   }
   if (event.target?.matches('.je-line-date,[data-simple=date]')) event.target.dataset.manualDate = '1';
 }, true); // Update inherited single-entry dates before their target change handler rebuilds lines.
@@ -140,7 +141,7 @@ function getMultiDateJournalState() {
   // One editor submission is one journal; dates belong to its lines.
   const dates=Object.keys(grouped).sort(), merged={totals:Object.create(null),lines:[]};
   const crossMonth=dates.some(d=>accountingDate&&d.slice(0,7)!==accountingDate.slice(0,7));
-  if(crossMonth)warnings.push(`Warning: line dates include another month. All amounts post in ${accountingDate.slice(0,7)}; other-month receipt dates are saved in line memos.`);
+  if(crossMonth){const receiptDates=dates.filter(d=>d.slice(0,7)!==accountingDate.slice(0,7)).map(d=>new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}));const month=new Date(accountingDate+'T12:00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'});warnings.push(`Warning: ${receiptDates.join(', ')} — recording in ${month}.`);}
   for(const date of dates){const g=grouped[date];merged.lines.push(...g.lines);for(const [currency,t] of Object.entries(g.totals)){merged.totals[currency]||={debit:0,credit:0};merged.totals[currency].debit+=t.debit;merged.totals[currency].credit+=t.credit;}delete grouped[date];}
   merged.lines.sort((a,b)=>a.rowIndex143118-b.rowIndex143118);
   for(const line of merged.lines){if(accountingDate&&line.line_date.slice(0,7)!==accountingDate.slice(0,7)){line.memo=[line.memo,`[Receipt date: ${line.line_date}]`].filter(Boolean).join(' ');line.line_date=accountingDate;}}

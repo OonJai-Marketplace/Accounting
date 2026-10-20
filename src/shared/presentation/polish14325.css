@@ -163,3 +163,5 @@ html body #journalEntry98#journalEntry98{border-width:1px!important}
 /* System accounts use text only; currency badges keep their existing palette. */
 html body .system-account-name14399,html body .account-option1428[data-account-type14277=SYSTEM],html body input[data-account-type14277=SYSTEM]{color:#b91c1c!important;-webkit-text-fill-color:#b91c1c;background:transparent!important}
 html body #journalEntry98#journalEntry98 #jeLinesBody input[data-account-type14277=SYSTEM]{color:#b91c1c!important;-webkit-text-fill-color:#b91c1c;background:transparent!important}
+
+@layer corrections14337 { html body #printableDocArea :is(.clustered-journal-table,.period-review-table) td.entry-shared-cell.entry-internal-date143127{border-bottom:1px solid #d8e3dc!important} }

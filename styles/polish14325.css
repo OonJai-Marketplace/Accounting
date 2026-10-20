@@ -164,6 +164,8 @@ html body #journalEntry98#journalEntry98{border-width:1px!important}
 html body .system-account-name14399,html body .account-option1428[data-account-type14277=SYSTEM],html body input[data-account-type14277=SYSTEM]{color:#b91c1c!important;-webkit-text-fill-color:#b91c1c;background:transparent!important}
 html body #journalEntry98#journalEntry98 #jeLinesBody input[data-account-type14277=SYSTEM]{color:#b91c1c!important;-webkit-text-fill-color:#b91c1c;background:transparent!important}
 
+@layer corrections14337 { html body #printableDocArea :is(.clustered-journal-table,.period-review-table) td.entry-shared-cell.entry-internal-date143127{border-bottom:1px solid #d8e3dc!important} }
+
 /* Compact currency calculations; posting diagnostics stay at the far left of the entry actions row. */
 #journalCalculation14391{position:fixed;bottom:0;right:0;z-index:950;box-sizing:border-box;padding:3px 12px calc(3px + env(safe-area-inset-bottom,0px));border-top:3px solid #367b62;background:#e3efe6;color:var(--text-main,#183f30);box-shadow:0 -3px 10px #163c2530;font-size:12px;line-height:1.2;min-height:calc(46px + env(safe-area-inset-bottom,0px));height:auto;max-height:40dvh;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin}
 #journalCalculation14391[hidden]{display:none!important}
@@ -181,7 +183,7 @@ html body #journalEntry98#journalEntry98 #jeLinesBody input[data-account-type142
 .calc-copy14391:hover{background:#dbeade}
 .calc-copy14391 svg{width:16px;height:16px}
 @layer corrections14337 {
- html body #journalEntry98#journalEntry98 #jeBalanceIndicator{display:block!important;max-width:none!important;min-height:0!important;margin:0 auto 0 0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;font-size:12px!important;font-weight:400!important;line-height:1.3!important;text-align:left!important;white-space:normal!important;color:#a12c25!important}
+ html body #journalEntry98#journalEntry98 #jeBalanceIndicator{display:block!important;max-width:100%!important;min-width:0!important;flex:1 1 0!important;overflow-wrap:anywhere!important;box-sizing:border-box!important;min-height:0!important;margin:0 auto 0 0!important;padding:0 16px 0 0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;font-size:12px!important;font-weight:400!important;line-height:1.3!important;text-align:left!important;white-space:normal!important;color:#a12c25!important}
  html body #journalEntry98#journalEntry98 #jeBalanceIndicator[hidden]{display:none!important}
  html body #journal #journalEntry98 #jeLinesBody .calc-amount-cell14391{position:relative!important;padding-left:24px!important}
  html body #journalEntry98 #jeLinesBody .calc-pick14391{position:absolute!important;left:5px!important;top:50%!important;transform:translateY(-50%);width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;max-height:14px!important;padding:0!important;border:1px solid #7f9b88!important;border-radius:3px!important;background:transparent!important;color:transparent!important;font:11px Arial!important;line-height:12px!important;cursor:pointer!important}

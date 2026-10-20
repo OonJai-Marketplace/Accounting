@@ -52,6 +52,7 @@ handleDemoLogin = async function(event) {
   const { error } = await ojmDb.auth.signInWithPassword({
     email:document.getElementById('loginEmail').value.trim(), password:document.getElementById('loginPassword').value
   });
+  if (!error) document.getElementById('loginPassword').value='';
   if (error && errorBox) errorBox.textContent = error.message;
 };
 

@@ -22,6 +22,8 @@ async function move(n,key,alreadyCommitted=false){const root=n.closest(roots);if
 }
 document.addEventListener('pointerdown',()=>sequence++,true);
 document.addEventListener('keydown',e=>{if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey||!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter'].includes(e.key))return;const n=e.target;if(!n.matches?.(fields)||!usable(n)||!n.closest(roots)||n.closest('#loginGate,#settings-recovery113,#operationalReset142,.scope-picker14233,#document-editor105'))return;if(n.matches('textarea,[contenteditable="true"],[contenteditable="plaintext-only"]')&&e.shiftKey&&e.key==='Enter')return;
+ // Post Entry Enter commits in place; an open account picker owns its selection.
+ if(e.key==='Enter'&&window.JournalCells143116?.handles(n)){if(n.getAttribute('aria-expanded')==='true')return;e.preventDefault();e.stopImmediatePropagation();window.JournalCells143116.finish(n);return;}
  const expanded=n.getAttribute('role')==='combobox'&&n.getAttribute('aria-expanded')==='true';if(expanded){if(e.key==='Enter'){const root=n.closest(roots),resolve=locate(root),row=matrix(root),r=row.findIndex(x=>x.includes(n)),c=row[r]?.indexOf(n);setTimeout(()=>{if(n.getAttribute('aria-expanded')==='false'){const current=n.isConnected?n:matrix(resolve()||root)[r]?.[c];if(current)move(current,'Enter',true)}})}return}
  e.preventDefault();e.stopImmediatePropagation();move(n,e.shiftKey&&e.key==='Enter'?'Previous':e.key);
 },true);
