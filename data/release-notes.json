@@ -1,7 +1,8 @@
 {
-  "version": "143.138",
+  "version": "143.139",
   "changes": [
-    "Persistent company OAuth authorization and connection status are now available in Google Sheets Settings.",
-    "Existing browser connection remains in place for safety."
+    "AI Journal persistent Google Sheets bridge for background draft reads.",
+    "Five-second orange notification target focus with automatic scrolling.",
+    "Kept existing manual refresh and posting logic."
   ]
 }
