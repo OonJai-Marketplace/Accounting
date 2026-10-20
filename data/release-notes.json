@@ -1,7 +1,7 @@
 {
-  "version": "143.133",
+  "version": "143.134",
   "changes": [
-    "Protected Google Sheets links with a deliberate edit action.",
-    "Removed duplicate GPT shortcut and empty Google Sheets container."
+    "Allow company Google account for authorized Accounting administrators.",
+    "Clarify Google authorization confirmation and refresh-drafts test."
   ]
 }
