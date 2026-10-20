@@ -1,7 +1,7 @@
 {
-  "version": "143.142",
+  "version": "143.143",
   "changes": [
-    "Removed incorrect $ currency symbols from AI Journal draft amounts.",
-    "Account currency validation and posting behavior are unchanged."
+    "Fixed stale installed-version label in Website Update.",
+    "Removed wrong currency symbols in AI Journal draft preview."
   ]
 }
