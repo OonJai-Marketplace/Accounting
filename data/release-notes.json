@@ -1,7 +1,7 @@
 {
-  "version": "143.145",
+  "version": "143.146",
   "changes": [
-    "Fixed AI Journal posting navigation and duplicate-post safeguards.",
-    "Corrected outdated GPT editing messages."
+    "AI Journal existing-posted-entry reconciliation and duplicate protection.",
+    "Corrected return to Active Journal after successful posting."
   ]
 }
