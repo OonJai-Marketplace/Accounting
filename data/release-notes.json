@@ -1,8 +1,7 @@
 {
-  "version": "143.131",
+  "version": "143.132",
   "changes": [
-    "Removed duplicated Settings headings (except Mandatory).",
-    "Restored Google Sheets connection panel and company Journal Submission Inbox default.",
-    "Google OAuth and draft refresh still require verification."
+    "Removed empty card in Google Sheets Settings.",
+    "Preserved Accounting, Voucher and Currency Manager content modules."
   ]
 }
