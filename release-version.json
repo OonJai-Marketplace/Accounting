@@ -1,1 +1,1 @@
-{"version":"143.140","changes":["Restored the working Connect Google browser authorization while the persistent backend session mismatch is investigated.","AI Journal retains its draft data and manual Refresh Drafts fallback.","No changes to journal posting or saved transactions."]}
+{"version":"143.141","changes":["Fixed the persistent Google connection's Accounting session lookup; it now uses the same Supabase client as the signed-in application.","AI Journal continues to use the server-managed Google connection when available; no credentials or journal data changed."]}
