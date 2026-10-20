@@ -1,7 +1,9 @@
 {
-  "version": "143.136",
+  "version": "143.137",
   "changes": [
-    "Corrected incompatible setHeader calls in GPT draft loading and settings.",
-    "Maintained account-currency validation without visible currency column."
+    "AI Journal: automated draft checks, pending notifications, focused navigation and manual refresh fallback.",
+    "Year-based no-dash AI references, retained separately from official IDs.",
+    "Cleaner review table and in-place edit/reset workflow.",
+    "Google OAuth still requires secure persistent-session work for seamless reconnects."
   ]
 }
