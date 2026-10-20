@@ -1,8 +1,7 @@
 {
-  "version": "143.144",
+  "version": "143.145",
   "changes": [
-    "Retired unused persistent Google connection.",
-    "Moved manual Connect Google into AI Journal.",
-    "Kept manual Refresh Drafts and existing AI Journal reviews."
+    "Fixed AI Journal posting navigation and duplicate-post safeguards.",
+    "Corrected outdated GPT editing messages."
   ]
 }
