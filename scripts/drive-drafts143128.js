@@ -3,7 +3,7 @@
 const HEAD=['draft_id','posting_date','description','line_no','account_id','account_code','currency','debit','credit','line_date','fx_rate_lak','book_rate_lak','line_memo'];
 const SCOPES='https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email';
 let sharedSettings=null,sharedOwner='',sharedLoaded=false;
-let googleSession=null,googleLoading=null,panel=null,settingsPanel=null,view='journal',editing=null,reviewed=new Map(),busy=false,epoch=0;
+let googleSession=null,googleLoading=null,panel=null,settingsPanel=null,view='journal',editing=null,reviewed=new Map(),busy=false,epoch=0;let pendingDraftNotices=[],lastDraftSignature='';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const identity=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 const configKey=()=> 'ojm-drive-drafts-v1:'+location.origin+':'+identity();
@@ -70,6 +70,7 @@ function display(id,rows,payload,error,receiptData,chart){
 async function refresh(){
  if(editing)throw Error('Finish or cancel the current edit before refreshing drafts.');const c=context();message('Refreshing accounts and reading drafts…');const a=await syncChart(),groups=parse(await readDrafts());assert(c);reviewed.clear();panel.querySelector('[data-drive-list]').replaceChildren();
  for(const [id,rows]of groups){let payload,error='',saved;try{saved=await receipt(id);payload=normalize(rows,a,settings());}catch(e){error=e.message;}assert(c);reviewed.set(id,{rows:JSON.stringify(rows),payload,chart:a,saved});display(id,rows,payload,error,saved,a);}
+ const pending=[...groups].filter(([key])=>!reviewed.get(key)?.saved).map(([key,items])=>({noticeId:key,type:'AI Journal draft',title:items[0]?.description||'Journal draft',detail:items[0]?.posting_date||'',target:'ai-journal'}));pendingDraftNotices=pending;lastDraftSignature=JSON.stringify([...groups].map(([key,items])=>[key,items]));window.refreshNotices1443?.();
  if(!groups.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">No AI Journal drafts yet. Entries will appear here after they are added to the connected submission sheet.</p>';
  message(groups.size+' drafts loaded · Last checked '+new Date().toLocaleTimeString()+'. Edit an entry, then Post to Journal.');
 }
@@ -127,6 +128,6 @@ function ready(){
  let last=identity();setInterval(()=>{if(identity()!==last){last=identity();disconnect();sharedSettings=null;sharedOwner='';sharedLoaded=false;view='journal';showView();renderSettings();void loadSharedSettings().catch(e=>message('Shared settings unavailable: '+e.message));}},1500);
  window.addEventListener('pagehide',()=>{googleSession=null;});void loadSharedSettings().catch(e=>message('Shared settings unavailable: '+e.message));
 }
-window.DriveDrafts143128={open,choose,parse,normalize,validDate,googleURL,get view(){return view},get editing(){return !!editing}};
+window.DriveDrafts143128={open,choose,parse,normalize,validDate,googleURL,notices:()=>pendingDraftNotices.slice(),get view(){return view},get editing(){return !!editing}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
