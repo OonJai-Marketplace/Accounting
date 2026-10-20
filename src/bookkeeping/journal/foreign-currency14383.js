@@ -20,7 +20,7 @@ function carrying(accountId,date){const ws=window.yearWindow14333?.state();let q
 function templates(){
  const row=(code,currency,memo,legacy)=>({code:accounts().some(a=>a.code===code)?code:legacy||code,currency,memo});
  return [
- {id:'fx14383-income',builtin:true,name:'1. Foreign Currency Income Mapping',generalMemo:'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:[
+ {id:'fx14383-income',builtin:true,name:'Foreign Currency Income Mapping',generalMemo:'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:[
  row('1016','LAK','Total cash received in LAK'),
  row('4010','LAK','Total dine-in sales in LAK, including foreign-currency receipts'),
  row('9190','LAK','LAK equivalent of THB and USD sales received','9035'),
@@ -28,7 +28,7 @@ function templates(){
  row('9101','THB','System offset for dine-in sales in THB','9031'),
  row('1018','USD','Actual US dollar cash received'),
  row('9102','USD','System offset for dine-in sales in USD','9033')]},
- {id:'fx14383-expense',builtin:true,name:'2. Foreign Currency Expense Mapping',generalMemo:'Record expenses paid in foreign currencies, with LAK mapping and exchange gain or loss.',lines:[
+ {id:'fx14383-expense',builtin:true,name:'Foreign Currency Expense Mapping',generalMemo:'Record expenses paid in foreign currencies, with LAK mapping and exchange gain or loss.',lines:[
  row('9201','THB','System offset for cost of goods in THB','9032'),
  row('1017','THB','Actual Thai baht cash paid'),
  row('5010','LAK','Cost of goods purchased at the transaction-date LAK value'),

@@ -2117,7 +2117,24 @@ const TemplateStore = {
   save(){ localStorage.setItem(this.key, JSON.stringify(this.templates)); }
 };
 
+// Numbers are independent of names and retained after deletion. The Web Lock
+// serializes allocation across tabs; the registry is written as one value.
+async function ensureTemplateNumbers143125(){
+  const allocate=()=>{
+    const key=TemplateStore.key+':numbers143125',raw=localStorage.getItem(key);
+    const registry=raw?JSON.parse(raw):{next:1,ids:{}};
+    if(!registry.ids||!Number.isSafeInteger(registry.next)||registry.next<1)throw Error('Template number registry is invalid. Restore the device backup before saving.');
+    const templates=[...(window.JournalFX14383?.templates()||[]),...TemplateStore.templates];
+    for(const t of templates){if(!Object.hasOwn(registry.ids,t.id)){registry.ids[t.id]=registry.next++;}}
+    localStorage.setItem(key,JSON.stringify(registry));
+    return registry.ids;
+  };
+  return navigator.locks?.request?navigator.locks.request('ojm-template-numbers143125',allocate):allocate();
+}
+function templateDisplayName143125(t){return /^fx14383-(income|expense)$/.test(t.id)?t.name.replace(/^[12]\.\s+(?=Foreign Currency)/,''):t.name;}
+
 let pendingTemplateLines = null;
+let savingTemplate143125=false;
 let editingTemplateId = null;
 let pendingTemplateOwner = null;
 
@@ -2156,8 +2173,8 @@ function createTemplateFromCurrent() {
   document.getElementById('templateNameInput').value = '';templateEditorFields14399(null);
   openModal('modalTemplateName');
 }
-function confirmSaveTemplate() {
-  if(liveProfile?.id!==pendingTemplateOwner)return;
+async function confirmSaveTemplate() {
+  if(savingTemplate143125||liveProfile?.id!==pendingTemplateOwner)return;
   const previous=structuredClone(TemplateStore.templates);
   const name = document.getElementById('templateNameInput').value.trim();
   if (!name || !pendingTemplateLines) {
@@ -2169,14 +2186,15 @@ function confirmSaveTemplate() {
     if(lines.length<2||lines.some(l=>!l)){showAppNotification('Template Needs Accounts','Choose a valid account for each of at least two lines.',true);return}
     pendingTemplateLines={generalMemo:document.querySelector('[data-template-memo14399]').value.trim(),lines};
   }
+  savingTemplate143125=true;
   if (editingTemplateId) {
     const t = TemplateStore.templates.find(x => x.id === editingTemplateId);
     if (t) Object.assign(t, {name, ...pendingTemplateLines,builtin:false,deleted:false});
     else TemplateStore.templates.push({id:editingTemplateId,name,...pendingTemplateLines});
   } else {
-    TemplateStore.templates.push({id:'tpl-'+Date.now(), name, ...pendingTemplateLines});
+    TemplateStore.templates.push({id:'tpl-'+crypto.randomUUID(), name, ...pendingTemplateLines});
   }
-  try{TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Saved',error.message,true);return} closeModal('modalTemplateName'); renderTemplateManager();
+  try{await ensureTemplateNumbers143125();if(liveProfile?.id!==pendingTemplateOwner)return;TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Saved',error.message,true);return}finally{savingTemplate143125=false} closeModal('modalTemplateName'); renderTemplateManager();
   showAppNotification('Template Saved', `${name} is permanently saved in this browser until edited or removed.`, false);
 }
 function openTemplateManager(){ renderTemplateManager(); openModal('modalTemplateManager'); }
@@ -2205,12 +2223,13 @@ function templateEditorFields14399(t){
   (t.lines||[]).forEach(add);
   const button=document.createElement('button');button.type='button';button.className='je-btn je-btn-secondary';button.textContent='Add line';button.onclick=()=>add();host.append(button);
 }
-function renderTemplateManager(){
+async function renderTemplateManager(){
   const host=document.getElementById('templateManagerList'); if(!host)return;
+  const owner=liveProfile?.id;let numbers;try{numbers=await ensureTemplateNumbers143125()}catch(error){showAppNotification('Template Numbers Unavailable',error.message,true);return}if(liveProfile?.id!==owner)return;
   const templates=availableTransactionTemplates();
   host.innerHTML = templates.length ? templates.map(t=>`
     <div class="template-item">
-      <div><strong>${escapeHtml(t.name)}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
+      <div><strong><span class="template-number143125">${numbers[t.id]}.</span> ${escapeHtml(templateDisplayName143125(t))}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">
         <button class="je-btn je-btn-emerald" onclick="applyTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Use</button>
         <button class="je-btn je-btn-secondary" onclick="editTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Edit</button>
@@ -2247,7 +2266,7 @@ function applyTransactionTemplate(id){
 function editTransactionTemplate(id){
   const t=availableTransactionTemplates().find(x=>x.id===id); if(!t)return;
   pendingTemplateOwner=liveProfile?.id;pendingTemplateLines={generalMemo:t.generalMemo||'',lines:t.lines.map(x=>({...x}))};
-  editingTemplateId=id; document.getElementById('templateNameInput').value=t.name;templateEditorFields14399(t);
+  editingTemplateId=id; document.getElementById('templateNameInput').value=templateDisplayName143125(t);templateEditorFields14399(t);
   closeModal('modalTemplateManager'); openModal('modalTemplateName');
 }
 async function deleteTransactionTemplate(id){
@@ -7182,7 +7201,7 @@ mountSettings();
     // Unknown actions stay visible for review instead of silently losing evidence.
     return {group:'reviews',tier:'yellow',label:action.replaceAll('_',' ')};
   }
-  const auditGroups14361=[['all','All audit events'],['routine','Green / routine events'],['voids','Voided'],['corrections','Corrections'],['periods','Period changes'],['schedules','Schedule changes'],['deletions','Deletions / cancellations'],['reviews','Review required']];
+  const auditGroups14361=[['all','All audit events'],['routine','Routine events'],['voids','Voided'],['corrections','Corrections'],['periods','Period changes'],['schedules','Schedule changes'],['deletions','Deletions / cancellations'],['reviews','Review required']];
   const auditLineIdentity14382=new WeakMap();
   const auditUuid14382=value=>/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value||''));
   function auditReadable14382(value,record,line=false){
@@ -7254,8 +7273,8 @@ mountSettings();
     if(auditFilter14361!=='all'&&!month.some(item=>auditKind14361(item).group===auditFilter14361))auditFilter14361='all';
     const cards=auditGroups14361.filter(([key])=>key==='all'||month.some(item=>auditKind14361(item).group===key)).map(([key,label])=>`<button type="button" class="period-summary-card" data-audit-filter14361="${key}" aria-pressed="${auditFilter14361===key}"><span>${label}</span><strong>${key==='all'?month.length:month.filter(item=>auditKind14361(item).group===key).length}</strong></button>`).join('');
     const shown=month.filter(item=>auditFilter14361==='all'||auditKind14361(item).group===auditFilter14361);
-    const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify(item))}" data-audit-severity="${kind.tier}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td><button type="button" class="je-btn je-btn-secondary" aria-label="View details for ${esc(auditRecordId(item))}">View</button></td><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td><span class="audit-count98 ${kind.tier}">${esc(kind.label)}</span></td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
-    host.innerHTML=historyMonth14341.control('audit',selected)+`<div class="period-summary-grid audit-filters14361">${cards}</div><section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Details</th><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="period-empty">No audit events match this month and category.</td></tr>'}</tbody></table></div></section>`;
+    const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify(item))}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td>${esc(kind.label)}</td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
+    host.innerHTML=historyMonth14341.control('audit',selected)+`<div class="period-summary-grid audit-filters14361">${cards}</div><section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="period-empty">No audit events match this month and category.</td></tr>'}</tbody></table></div></section>`;
     host.querySelectorAll('[data-audit-filter14361]').forEach(button=>{button.onclick=()=>{auditFilter14361=button.dataset.auditFilter14361;renderVoidedTransactionsTable();host.querySelector(`[data-audit-filter14361="${auditFilter14361}"]`)?.focus()}});
     host.querySelectorAll('[data-audit-open14361]').forEach(row=>{row.onclick=e=>{if(e.target.closest('[data-delete-record1434]'))return;openAudit14361(shown[Number(row.dataset.auditOpen14361)],row)};row.onkeydown=e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();row.click()}}});
     historyMonth14341.bind(host,'audit',renderVoidedTransactionsTable,'local');
@@ -7852,9 +7871,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const $=id=>document.getElementById(id);
  const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const readCache143119=new Map();
- function readKey143119(n){return JSON.stringify([n.type,n.hrEventId||'',n.title,n.detail,n.target])}
- function seen143119(){const actor=typeof liveProfile==='undefined'?'':liveProfile?.id;if(!actor)return new Set();if(!readCache143119.has(actor)){try{readCache143119.set(actor,new Set(JSON.parse(localStorage.getItem('ojm_notice_read143119:'+actor)||'[]')))}catch{readCache143119.set(actor,new Set())}}return readCache143119.get(actor)}
- function markRead143119(rows){if(!rows.length)return;const seen=seen143119();for(const row of rows)seen.add(readKey143119(row));try{localStorage.setItem('ojm_notice_read143119:'+liveProfile.id,JSON.stringify([...seen].slice(-500)))}catch{}}
+ function readKey143119(n){return JSON.stringify([n.type,n.noticeId||n.hrEventId||n.todoId||n.syncId||'',n.title,n.detail,n.target])}
+ function seen143119(){const actor=typeof liveProfile==='undefined'?'':liveProfile?.id;if(!actor)return new Set();if(!readCache143119.has(actor)){try{readCache143119.set(actor,new Set(JSON.parse(localStorage.getItem('ojm_notice_read143125:'+actor)||'[]')))}catch{readCache143119.set(actor,new Set())}}return readCache143119.get(actor)}
+ function markRead143119(rows){if(!rows.length)return;const seen=seen143119();for(const row of rows)seen.add(readKey143119(row));try{localStorage.setItem('ojm_notice_read143125:'+liveProfile.id,JSON.stringify([...seen].slice(-500)))}catch{}}
  const upcoming143119=n=>!n.critical&&(!!n.hrEventId||n.type==='Upcoming transaction'||n.type==='Scheduled journal · upcoming');
  window.markUpcomingRead143119=function(eventId){markRead143119(notices().filter(n=>eventId?n.hrEventId===eventId:upcoming143119(n)));updateBell()};
  document.addEventListener('click',async e=>{const link=e.target.closest('a[href]');if(!link||new URL(link.href,location.href).origin!==location.origin||!new URL(link.href,location.href).pathname.endsWith('/update.html'))return;e.preventDefault();if(link.getAttribute('aria-busy')==='true')return;link.setAttribute('aria-busy','true');try{window.drafts1427?.flush();await window.documentWorkspace105?.prepareUpdate?.();location.assign(link.href)}catch(error){const message='Update paused: '+error.message+' Your current work is still open.';if($('websiteUpdateMessage143103'))$('websiteUpdateMessage143103').textContent=message;else window.showCenterStatus?.(message,true)}finally{link.removeAttribute('aria-busy')}},true);
@@ -7873,17 +7892,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  window.websiteUpdates143103={open:openWebsiteUpdates,render:renderWebsiteUpdates};
  function notices(){if(typeof liveProfile==='undefined'||!liveProfile)return[];const rows=[];if(typeof getActiveRecurringWarnings==='function')for(const item of getActiveRecurringWarnings())rows.push({type:'Upcoming transaction',title:item.memo||'Payment',detail:item.nextDate?formatAppDate(item.nextDate):'',target:'transactions-recurring'});
   for(const item of window.getScheduledAlerts104?.()||[])rows.push({type:'Scheduled journal · '+item.status,title:item.title,detail:item.date?formatAppDate(item.date):'',target:'transactions-recurring'});
-  if(liveProfile.role==='admin'&&typeof reviewStaffJournals!=='undefined')for(const row of reviewStaffJournals.filter(r=>r.status==='submitted'))rows.push({type:'Submission review',title:row.reference||row.seed_key||row.period_start||'Submitted entry',detail:row.period_start?formatAppDate(row.period_start):'',target:'user-entry-review'});
+  if(liveProfile.role==='admin'&&typeof reviewStaffJournals!=='undefined')for(const row of reviewStaffJournals.filter(r=>r.status==='submitted'))rows.push({noticeId:row.id,type:'Submission review',title:row.reference||row.seed_key||row.period_start||'Submitted entry',detail:row.period_start?formatAppDate(row.period_start):'',target:'user-entry-review'});
   rows.push(...(window.getTodoNotices136?.()||[]));rows.push(...(window.vouchers14299?.notices?.()||[]));rows.push(...(window.hrCalendar14306?.notices?.()||[]));
   rows.push(...(window.syncAssessment14332?.notices?.()||[]));
-  const release=window.offline14239?.state();if(release?.availableShell)rows.unshift({type:'Website update',title:'Version '+release.availableShell+' is available',detail:'Open to review changes and download',target:'website-update'});
-  const badge=Number($('navUserReviewCount')?.textContent)||0,submissions=rows.filter(x=>x.type==='Submission review').length;for(let n=submissions;n<badge&&n<50;n++)rows.push({type:'Submission review',title:'Pending review',detail:'',target:'user-entry-review'});return rows.filter(n=>!upcoming143119(n)||!seen143119().has(readKey143119(n)))}
- function updateBell(){const release=window.offline14239?.state();const check=$('checkWebsiteUpdate14397');if(check){check.disabled=!!release?.checkingUpdate;check.textContent=release?.checkingUpdate?'Checking…':'Check for updates';}const status=$('websiteUpdateStatus14397');if(status)status.textContent=release?.availableShell?'':release?.updateMessage||('Open version: '+(release?.appVersion||''));renderWebsiteUpdates();const badge=$('headerNoticeBadge104');if(!badge)return;let rows=notices();if(document.querySelector('#transactions-recurring.active')){markRead143119(rows.filter(upcoming143119));rows=notices()}window.navigationBadges14311?.render();const count=rows.length,critical=rows.some(n=>n.critical);badge.hidden=!count;const countText=count>99?'99+':String(count);if(badge.textContent!==countText)badge.textContent=countText;badge.classList.toggle('critical14332',critical);$('upcomingBell101')?.classList.toggle('critical14332',critical);$('upcomingBell101')?.setAttribute('aria-label',`${count} notifications${critical?', sync needs attention':''}`);const list=$('headerNoticeList104');if(list&&!$('headerNotices104')?.hidden){const opened=new Set([...list.querySelectorAll('details[open]')].map(n=>n.dataset.notice1443));list.innerHTML=rows.length?rows.map(n=>n.todoId&&window.todos1438?.noticeHTML?todos1438.noticeHTML(n):`<button type="button" data-target="${escape(n.target)}" ${n.critical?'class="critical14332"':''} ${n.syncId?`data-sync-finding="${escape(n.syncId)}" data-sync-period="${escape(n.syncPeriod)}"`:''} ${n.hrEventId?`data-hr-event14306="${escape(n.hrEventId)}"`:''} ${n.todoId?`data-todo-target1438="${escape(n.todoId)}"`:""}><strong>${escape(n.type)}</strong><span>${escape(n.title)}</span><small>${escape(n.detail)}</small></button>`).join(''):'<p>No current notifications.</p>';list.querySelectorAll('details').forEach(n=>n.open=opened.has(n.dataset.notice1443));window.todos1438?.bindNotices(list)}}
+  const release=window.offline14239?.state();if(release?.availableShell)rows.unshift({type:'Website update',title:'Version '+release.availableShell+' is available',detail:'Open System to review the update',target:'website-update'});
+  const badge=Number($('navUserReviewCount')?.textContent)||0,submissions=rows.filter(x=>x.type==='Submission review').length;for(let n=submissions;n<badge&&n<50;n++)rows.push({noticeId:'pending-review-'+n,type:'Submission review',title:'Pending review',detail:'',target:'user-entry-review'});return rows.filter(n=>!seen143119().has(readKey143119(n)))}
+ function updateBell(){renderWebsiteUpdates();const badge=$('headerNoticeBadge104');if(!badge)return;const rows=notices();window.navigationBadges14311?.render();const count=rows.length,critical=rows.some(n=>n.critical);badge.hidden=!count;const countText=count>99?'99+':String(count);if(badge.textContent!==countText)badge.textContent=countText;badge.classList.toggle('critical14332',critical);$('upcomingBell101')?.classList.toggle('critical14332',critical);$('upcomingBell101')?.setAttribute('aria-label',`${count} notifications${critical?', sync needs attention':''}`);const list=$('headerNoticeList104');if(list&&!$('headerNotices104')?.hidden){const opened=new Set([...list.querySelectorAll('details[open]')].map(n=>n.dataset.notice1443));list.innerHTML=rows.length?rows.map(n=>`<button type="button" data-notice-key143125="${escape(readKey143119(n))}" data-target="${escape(n.target)}" ${n.critical?'class="critical14332"':''} ${n.syncId?`data-sync-finding="${escape(n.syncId)}" data-sync-period="${escape(n.syncPeriod)}"`:''} ${n.hrEventId?`data-hr-event14306="${escape(n.hrEventId)}"`:''} ${n.todoId?`data-todo-target1438="${escape(n.todoId)}"`:""}><strong>${escape(n.type)}</strong><span>${escape(n.title)}</span><small>${escape(n.detail)}</small></button>`).join(''):'<p>No current notifications.</p>';list.querySelectorAll('details').forEach(n=>n.open=opened.has(n.dataset.notice1443));window.todos1438?.bindNotices(list)}}
  window.getNotices14311=notices;
  window.refreshNotices1443=updateBell;
  function install(){const header=document.getElementById('transactionsHeading98'),menu=document.querySelector('.sidebar-user-footer'),toolbar=$('topTools101');if(!header||!menu||!toolbar)return;const trigger=$('headerAccountTrigger'),avatar=$('headerAccountInitials'),copy=menu.querySelector('.sidebar-user-copy');menu.id='topHeaderProfile104';menu.classList.add('top-header-profile104');trigger.replaceChildren(avatar,copy);trigger.setAttribute('aria-label','Open account menu');menu.querySelector('.header-account-identity')?.remove();menu.querySelectorAll('#global-csv-btn,#global-print-btn,.module-export-divider').forEach(node=>node.remove());header.append(toolbar,menu);
   const bell=$('upcomingBell101');bell.innerHTML+='<span id="headerNoticeBadge104" hidden></span>';bell.onclick=()=>{const panel=$('headerNotices104');panel.hidden=!panel.hidden;bell.setAttribute('aria-expanded',String(!panel.hidden));updateBell()};bell.setAttribute('aria-expanded','false');
-  const panel=document.createElement('section');panel.id='headerNotices104';panel.className='header-notices104';panel.hidden=true;panel.innerHTML='<header><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></header><section aria-label="Website updates" style="padding:12px;border-bottom:1px solid #e2e8f0"><button type="button" class="je-btn je-btn-secondary" data-target="website-update">Website updates</button> <button type="button" id="checkWebsiteUpdate14397">Check for updates</button><p id="websiteUpdateStatus14397" role="status" style="font-size:12px;margin:8px 0 0"></p></section><div id="headerNoticeList104"></div>';header.append(panel);$('checkWebsiteUpdate14397').onclick=()=>window.offline14239?.checkForUpdates();panel.querySelector('header button').onclick=()=>{panel.hidden=true;bell.setAttribute('aria-expanded','false')};panel.addEventListener('click',e=>{const target=e.target.closest('[data-target]')?.dataset.target;if(target){panel.hidden=true;bell.setAttribute('aria-expanded','false');if(target==='website-update'){openWebsiteUpdates();return;}switchTab(target);const sync=e.target.closest('[data-sync-finding]');if(sync)window.syncAssessment14332?.focus(sync.dataset.syncFinding,sync.dataset.syncPeriod);const eventId=e.target.closest('[data-hr-event14306]')?.dataset.hrEvent14306;if(eventId)window.hrCalendar14306?.open(eventId)}});
+  const panel=document.createElement('section');panel.id='headerNotices104';panel.className='header-notices104';panel.hidden=true;panel.innerHTML='<header><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></header><div id="headerNoticeList104"></div>';header.append(panel);panel.querySelector('header button').onclick=()=>{panel.hidden=true;bell.setAttribute('aria-expanded','false')};panel.addEventListener('click',e=>{const button=e.target.closest('[data-target]'),target=button?.dataset.target;if(!target)return;const row=notices().find(n=>readKey143119(n)===button.dataset.noticeKey143125);const destination=target==='website-update'?'settings-system':target;switchTab(destination);if(!document.getElementById(destination)?.classList.contains('active'))return;const sync=e.target.closest('[data-sync-finding]');if(sync)window.syncAssessment14332?.focus(sync.dataset.syncFinding,sync.dataset.syncPeriod);const eventId=e.target.closest('[data-hr-event14306]')?.dataset.hrEvent14306;if(eventId)window.hrCalendar14306?.open(eventId);if(row)markRead143119([row]);panel.hidden=true;bell.setAttribute('aria-expanded','false');updateBell()});
   document.addEventListener('click',e=>{if(!e.target.closest('#headerNotices104,#upcomingBell101')){panel.hidden=true;bell.setAttribute('aria-expanded','false')}},true);
   if($('websiteUpdateCheck143103'))$('websiteUpdateCheck143103').onclick=()=>window.offline14239?.checkForUpdates();
   const previousSwitch143119=window.switchTab;window.switchTab=function(...args){const result=previousSwitch143119.apply(this,args);if(args[0]==='transactions-recurring')updateBell();return result};

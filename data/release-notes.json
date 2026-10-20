@@ -1,9 +1,9 @@
 {
-  "version": "143.124",
+  "version": "143.125",
   "changes": [
-    "Older voided journal audit records are protected so missing IDs remain explainable.",
-    "Green routine audit records can be deleted when the journal transaction remains. Orange/red history is protected.",
-    "The latest issued voided journal remains the explicit deletion exception, allowing only that ID to be reused.",
-    "Audit deletion permissions come directly from the database; bulk cleanup deletes green records only."
+    "Audit rows open their details directly, without tier colors or a Details column. Protected records remain labeled in Action.",
+    "The latest journal audit remains deletable until a newer journal ID exists. Deleted trailing IDs become available automatically from the database.",
+    "Opening the notification bell keeps unread counts. Clicking a notification and reaching its destination marks only that item read. Website update controls stay in System.",
+    "Transaction templates receive permanent sequential numbers separate from their names. Deleting a template never renumbers the others or reuses its number."
   ]
 }

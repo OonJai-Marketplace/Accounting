@@ -70,3 +70,11 @@ deleted when the referenced journal entry still exists. Orange/red records are
 protected. The sole exception is the latest issued voided journal ID: explicit
 single-record deletion may remove its linked audit history to release that ID.
 Enforce this on the database, including bulk deletes; never use cache decisions.
+
+2026-10-20 correction: released trailing IDs do not cover older IDs. Reuse the
+first released ID above every remaining journal/audit record; never fill gaps
+below a retained higher journal. Latest journal audit may be explicitly deleted,
+including important events; deleting audit for an active journal keeps the entry.
+No audit tier colors or Details column. Rows open details. Notification opening
+never marks read; only successful item navigation does. Template numbers are
+permanent, separate from names, and never renumbered or reused after deletion.
