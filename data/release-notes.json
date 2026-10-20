@@ -1,7 +1,7 @@
 {
-  "version": "143.135",
+  "version": "143.136",
   "changes": [
-    "Simplified GPT draft review table by removing Currency column.",
-    "Kept internal account currency validation intact."
+    "Corrected incompatible setHeader calls in GPT draft loading and settings.",
+    "Maintained account-currency validation without visible currency column."
   ]
 }
