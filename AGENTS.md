@@ -58,3 +58,8 @@ Date presentation: visible full dates and date-picker labels use formatAppDate
 and the saved System dateFormat. Keep ISO values for storage, sorting, native
 input values, data exports and identifiers. Calendar month/day tiles and
 month-only period labels remain calendar components, not full date strings.
+
+Journal ID exception (user clarification, 2026-10-20): only the highest issued
+ID for the year and format may be reused after permanent deletion of its voided
+entry and audit history. Older deleted IDs remain visible gaps forever; never
+fill them or choose the lowest released number. Keeping the audit blocks reuse.
