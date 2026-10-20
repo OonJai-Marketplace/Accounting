@@ -111,12 +111,13 @@ async function alreadyPostedAiDraft(id){
 }
 async function postEdited(){
  if(!editing)throw Error('Choose an AI Journal draft to edit first.');const edit=editing,c=edit.context;assert(c);online();
- const existing=await alreadyPostedAiDraft(edit.id);assert(c);if(existing){cancelEdit(true);message('This AI Journal draft is already in Active Journal as '+existing.entry_no+'. Do not post it again.');window.switchTab('journal');return;}const prior=await receipt(edit.id);assert(c);if(prior){finishPosted(edit,prior.result,prior.payload?.[0]);return;}
+ const existing=await alreadyPostedAiDraft(edit.id);assert(c);if(existing){cancelEdit(true);choose('journal');window.switchTab('journal');message('Already posted as '+existing.entry_no+'. Do not post this draft twice.');return;}const prior=await receipt(edit.id);assert(c);if(prior){finishPosted(edit,prior.result,prior.payload?.[0]);return;}
  const groups=parse(await readDrafts());assert(c);if(JSON.stringify(groups.get(edit.id))!==edit.source)throw Error('The source draft changed in Google Sheets. Your editor is retained. Copy your adjustments, then cancel and refresh to review the new version.');
  const chart=await accounts();assert(c);const payload=editedPayload(chart);
  const r=await c.db.rpc('approve_drive_journal143128',{p_sheet:c.sheet,p_draft:edit.id,p_entry:payload});assert(c);if(r.error)throw r.error;finishPosted(edit,r.data,payload);
  window.yearWindow14333?.invalidateMemory?.();try{await loadJournalFromSupabase();assert(c);}catch{message('Posted successfully. Use Sync to refresh Active Journal.');}
  await window.entryNumber14257?.refresh();
+ choose('journal');window.switchTab('journal');
 }
 function finishPosted(edit,result,payload){if(!Array.isArray(result)||result.length!==1||!result[0].entry_id||!result[0].entry_no)throw Error('Posting confirmation incomplete. Retry this same draft to check its receipt.');const number=result[0].entry_no;edit.card.querySelector('[data-result]').textContent='Posted: '+number;edit.card.querySelector('[data-action]').replaceChildren();const review=reviewed.get(edit.id);if(review){review.saved={result,payload:payload?[payload]:undefined};if(payload){display(edit.id,JSON.parse(edit.source),payload,'',review.saved,review.chart);const updated=panel.querySelector('[data-drive-list]').lastElementChild;edit.card.replaceWith(updated);}}cancelEdit(true);message('Posted as '+number+'. You can edit the next AI Journal entry below.');}
 async function run(fn){if(busy)return;busy=true;const e=epoch;const controls=[...document.querySelectorAll('#gptDrafts143129 button,#googleSheets143129 button')];controls.forEach(b=>b.disabled=true);if(editing)$('journalEntry98').inert=true;try{await fn();}catch(err){if(e===epoch)message(err.message);}finally{busy=false;$('journalEntry98').inert=false;if(e===epoch)controls.forEach(b=>b.disabled=false);}}
