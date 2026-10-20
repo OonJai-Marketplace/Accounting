@@ -1,8 +1,8 @@
 {
-  "version": "143.130",
+  "version": "143.131",
   "changes": [
-    "Google Sheets links and connection management are now under Settings → Accounting → Google Sheets.",
-    "GPT appears after Voucher. Edit drafts with the existing transaction editor, then Post to Journal without leaving GPT.",
-    "GPT retains its draft reference and displays the confirmed journal ID. Existing manual entries are protected. Google authorization and automatic delivery still require setup."
+    "Removed duplicated Settings headings (except Mandatory).",
+    "Restored Google Sheets connection panel and company Journal Submission Inbox default.",
+    "Google OAuth and draft refresh still require verification."
   ]
 }
