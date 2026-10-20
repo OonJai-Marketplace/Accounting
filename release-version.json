@@ -1,1 +1,1 @@
-{"version":"143.135","changes":["Removed the redundant Currency column from GPT draft review; currency remains validated using the assigned Chart of Accounts.","No changes to journal posting rules or spreadsheet draft format."]}
+{"version":"143.136","changes":["Fixed GPT draft refresh failing with setHeader is not a function by using supported database query calls.","Kept Currency hidden in GPT draft review and preserved all account-currency validation.","No entries are posted by Refresh Drafts."]}
