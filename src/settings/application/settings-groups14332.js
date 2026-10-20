@@ -12,9 +12,10 @@ function available(){return groups.map(g=>({...g,targets:g.targets.filter(permit
 let accountingSection='accounting';
 const accountingSections=[['accounting','Accounting'],['vouchers','Vouchers'],['currency','Currency Manager'],['google','Google Sheets']];
 function accountingChoice(key){accountingSection=key;accountingPanel();render('settings-accounting');window.navigationWorkflow14316?.sync();}
-function accountingPanel(){const root=document.getElementById('settings-accounting');if(!root)return;const voucher=root.querySelector('.voucher-config14299'),currency=[...root.querySelectorAll('.settings-module94')].find(n=>n.querySelector('h4')?.textContent==='Currency Manager');for(const node of [root.querySelector('[data-settings-group=accounting]'),root.querySelector('#prefixRegistry89')])if(node&&!node.closest('.voucher-config14299'))node.hidden=accountingSection!=='accounting';if(voucher)voucher.hidden=accountingSection!=='vouchers';if(currency)currency.hidden=accountingSection!=='currency';const google=root.querySelector('#googleSheets143129');if(google)google.hidden=accountingSection!=='google';}
+function accountingPanel(){const root=document.getElementById('settings-accounting');if(!root)return;const duplicate=root.querySelector(':scope > .je-card > .je-card-header');if(duplicate)duplicate.hidden=true;const voucher=root.querySelector('.voucher-config14299'),currency=[...root.querySelectorAll('.settings-module94')].find(n=>n.querySelector('h4')?.textContent==='Currency Manager');for(const node of [root.querySelector('[data-settings-group=accounting]'),root.querySelector('#prefixRegistry89')])if(node&&!node.closest('.voucher-config14299'))node.hidden=accountingSection!=='accounting';if(voucher)voucher.hidden=accountingSection!=='vouchers';if(currency)currency.hidden=accountingSection!=='currency';const mainCard=root.querySelector(':scope > .je-card');if(mainCard)mainCard.hidden=accountingSection==='google';const google=root.querySelector('#googleSheets143129');if(google){google.hidden=accountingSection!=='google';google.style.display=accountingSection==='google'?'block':'none';}}
 function sectionChoices(){if(active()==='settings-accounting')return accountingSections.map(([id,label])=>({id,label,button:{click:()=>accountingChoice(id)}}));const group=available().find(g=>g.targets.includes(active()));return (group?.targets||[]).map(id=>({id,label:labels[id],button:{click:()=>window.switchTab(id)}}))}
 function render(target=active()){
+ if(target==='settings-accounting')accountingPanel();
  if(window.groupedNavigation14378?.render(target))return true;
  const host=document.getElementById('categoryTabs'),shell=document.getElementById('categoryTabShell');if(!host||!shell)return false;
  let sub=document.getElementById('settingsSections14335');
@@ -32,7 +33,7 @@ function render(target=active()){
 }
 function sync(){render()}
 window.settingsGroups14332={groups,available,sectionChoices,render,chooseAccounting:accountingChoice,get accountingSection(){return accountingSection}};
-function install(){document.getElementById('settingsTabShell')?.remove();sync();window.addEventListener('page113',sync);window.addEventListener('resize',sync);}
+function install(){document.getElementById('settingsTabShell')?.remove();const payrollHeading=document.querySelector('#settings-payroll > .settings-page-heading');if(payrollHeading)payrollHeading.hidden=true;sync();window.addEventListener('page113',sync);window.addEventListener('resize',sync);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 
@@ -41,7 +42,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 const $=id=>document.getElementById(id);
 const item=(label,target,kind='',value='',permission=target)=>({label,target,kind,value,permission});
 const books=[
- {label:'Journal',icon:'▤',items:[item('Journal','journal','gpt','journal'),item('Submitted','user-entry-review','final','submitted'),item('Funds','user-entry-review','final','funds','transactions-budget14313'),item('Reconcile','user-entry-review','final','reconciliation','report-reconciliation'),item('Data Check','transactions-closing14325'),item('Closing','period-review'),item('Budget','transactions-budget14313'),item('Voucher','transactions-vouchers14299'),item('GPT','journal','gpt','gpt','journal')]},
+ {label:'Journal',icon:'▤',items:[item('Journal','journal','gpt','journal'),item('Submitted','user-entry-review','final','submitted'),item('Funds','user-entry-review','final','funds','transactions-budget14313'),item('Reconcile','user-entry-review','final','reconciliation','report-reconciliation'),item('Data Check','transactions-closing14325'),item('Closing','period-review'),item('Budget','transactions-budget14313'),item('Voucher','transactions-vouchers14299'),item('AI Journal','journal','gpt','gpt','journal')]},
  {label:'Upcoming',icon:'◷',items:[item('Schedule','transactions-recurring','upcoming','scheduled'),item('Recurring','transactions-recurring','upcoming','recurring'),item('To-dos','transactions-recurring','upcoming','todos'),item('Calendar','transactions-recurring','upcoming','calendar')]},
  {label:'History',icon:'↶',items:[item('Journal','transactions-all','history','journal'),item('User Entries','transactions-all','history','submitted','user-entry-review'),item('Budget Request','transactions-all','history','budget','transactions-budget14313'),item('Audit Logs','transactions-voided')]}
 ];

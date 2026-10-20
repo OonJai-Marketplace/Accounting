@@ -1,7 +1,7 @@
 /* One Accounting registry; user rows edit existing permission records. */
 (function(){
 'use strict';
-const defs=[['journalPrefix','Main journal','JRN'],['automatedPrefix','Automated journal','AUTO'],['schedulePrefix','Schedule','SCH'],['adjustmentPrefix','Fund adjustment request','ADJ'],['subUserPrefix','Default sub-user prefix','S']];
+const defs=[['journalPrefix','Main journal / AI Journal','JRN'],['automatedPrefix','Automated journal','AUTO'],['schedulePrefix','Schedule','SCH'],['adjustmentPrefix','Fund adjustment request','ADJ'],['subUserPrefix','Default sub-user prefix','S']];
 let reserved89=[];
 const clean=v=>String(v||'').trim().toUpperCase();
 const esc=escapeHtml;
