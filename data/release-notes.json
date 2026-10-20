@@ -1,7 +1,8 @@
 {
-  "version": "143.143",
+  "version": "143.144",
   "changes": [
-    "Fixed stale installed-version label in Website Update.",
-    "Removed wrong currency symbols in AI Journal draft preview."
+    "Retired unused persistent Google connection.",
+    "Moved manual Connect Google into AI Journal.",
+    "Kept manual Refresh Drafts and existing AI Journal reviews."
   ]
 }
