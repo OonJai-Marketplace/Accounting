@@ -1,1 +1,1 @@
-{"version":"143.142","changes":["AI Journal debit and credit preview now displays plain formatted numbers without misleading dollar symbols.","Currency still comes from the assigned Chart of Accounts in the transaction editor; calculations and posting rules are unchanged."]}
+{"version":"143.143","changes":["Corrected Website Update installed-version display, which had been stuck at 143.130.","AI Journal previews show debit and credit as plain numbers without incorrect dollar symbols.","No journal data or posting logic changes."]}
