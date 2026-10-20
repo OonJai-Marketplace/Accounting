@@ -1,8 +1,7 @@
 {
-  "version": "143.139",
+  "version": "143.140",
   "changes": [
-    "AI Journal persistent Google Sheets bridge for background draft reads.",
-    "Five-second orange notification target focus with automatic scrolling.",
-    "Kept existing manual refresh and posting logic."
+    "Restored working Connect Google behavior.",
+    "Persistent Google connection requires additional session compatibility work."
   ]
 }
