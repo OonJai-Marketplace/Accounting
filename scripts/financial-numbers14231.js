@@ -17,6 +17,32 @@ function displayCurrency14231(n){const row=n.closest('tr'),table=n.closest('tabl
 const within=(root,selector)=>[...(root.matches?.(selector)?[root]:[]),...root.querySelectorAll(selector)];
 function displays(root=document){within(root,'td.num,td.amount82,.currency-cell97,[data-financial-display],.personal-recent1437 b,.th-money-grid strong').forEach(n=>{if(n.childElementCount)return;const text=n.textContent.trim(),match=text.match(/^(?:([₭$฿€]|LAK|USD|THB|EUR)\s*)?(-?[0-9][0-9,. ]*)(?:\s*([₭$฿€]|LAK|USD|THB|EUR))?$/);if(!match)return;const currency=match[1]||match[3]||displayCurrency14231(n);if(!currency)return;const mark=document.createElement('span'),value=document.createElement('span');mark.className='financial-display-symbol14231';mark.textContent=symbol(currency);value.className='financial-display-value14231';value.textContent=match[2].trim();n.classList.add('financial-display14231');n.replaceChildren(mark,value)})}
 function scan(root=document){within(root,'input').forEach(n=>{bridge(n);if(monetary(n)){money(n);format(n)}});displays(root)}
+// Immediate Post Entry amount suffixes; receipt/account/memo fields are excluded.
+const shortcutField143126=n=>n instanceof HTMLInputElement&&!n.disabled&&!n.readOnly&&!!n.closest('#journalEntry98')&&n.matches('.je-line-dr,.je-line-cr,[data-simple="amount"]');
+function expandAmount143126(input,key){
+ const powers={h:2,k:3,m:6,t:12},power=powers[key.toLowerCase()];
+ if(power===undefined)return false;
+ const raw=native.get.call(input),end=input.selectionEnd??raw.length,start=input.selectionStart??end;
+ // A suffix applies to the complete number before it, never a middle selection.
+ if(start!==raw.length||end!==raw.length)return false;
+ const [group,decimal]=separators(),text=raw.split(group).join('').replace(decimal,'.').trim();
+ if(!/^\d+(?:\.\d*)?$/.test(text))return false;
+ const [whole,fraction='']=text.split('.'),digits=whole+fraction,pivot=whole.length+power;
+ const expanded=digits.padEnd(pivot,'0'),integer=(expanded.slice(0,pivot)||'0').replace(/^0+(?=\d)/,''),tail=expanded.slice(pivot).replace(/0+$/,'');
+ if(tail.length>2||BigInt(integer)*100n+BigInt((tail||'').padEnd(2,'0'))>BigInt(Number.MAX_SAFE_INTEGER)){window.showCenterStatus?.('That amount exceeds the supported exact amount range.',true);return false;}
+ const result=grouped(integer+(tail?decimal+tail:''),2);
+ window.JournalUndo143103?.checkpoint();native.set.call(input,result);
+ input.setSelectionRange(result.length,result.length);
+ input.dispatchEvent(new Event('input',{bubbles:true}));window.JournalUndo143103?.record();return true;
+}
+function shortcut143126(e){
+ const input=e.target;if(!shortcutField143126(input)||e.isComposing||e.ctrlKey||e.metaKey||e.altKey)return;
+ const key=e.type==='keydown'?e.key:e.inputType==='insertText'?e.data:null;
+ if(!key||!key.match(/^[a-z]$/i))return;
+ e.preventDefault();expandAmount143126(input,key);
+}
+document.addEventListener('keydown',shortcut143126,true);
+document.addEventListener('beforeinput',shortcut143126,true);
 function ready(){scan();document.addEventListener('focusin',e=>{const n=e.target;if(n instanceof HTMLInputElement&&!excluded(n)&&(n.dataset.numeric88||monetary(n)))format(n)});document.addEventListener('input',e=>{const n=e.target;if(n instanceof HTMLInputElement&&!excluded(n)&&(n.dataset.numeric88||monetary(n))){format(n);if(monetary(n))money(n)}});document.addEventListener('change',()=>scan());document.addEventListener('formdata',e=>e.target.querySelectorAll('[data-numeric88]').forEach(n=>{if(n.name&&!n.disabled)e.formData.set(n.name,n.value)}));const pending=new Set();let queued=false;
 new MutationObserver(records=>{
  for(const r of records){

@@ -78,3 +78,10 @@ including important events; deleting audit for an active journal keeps the entry
 No audit tier colors or Details column. Rows open details. Notification opening
 never marks read; only successful item navigation does. Template numbers are
 permanent, separate from names, and never renumbered or reused after deletion.
+
+Post Entry 2026-10-20: mixed-month receipt dates warn but do not block posting.
+The main date determines the accounting month; other-month line dates are saved
+as receipt-date text in their memos and their posting date uses the main date.
+Keep existing same-month line dates. Amount inputs accept immediate H/K/M/T
+suffix expansion after a number, case-insensitive; no suffix in names or memos.
+Selected cells use a single 1px blue outline, without a second inset border.

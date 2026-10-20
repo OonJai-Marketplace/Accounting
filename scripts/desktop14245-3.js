@@ -2512,7 +2512,9 @@ document.addEventListener('change', event => {
 
 function getMultiDateJournalState() {
   const grouped = Object.create(null);
-  const errors = [];
+  const errors = [],warnings=[];
+  const accountingDate=document.getElementById('jeTransDate')?.value||'';
+  if(!accountingDate)errors.push('Choose the main entry date for the accounting month.');
   document.querySelectorAll('#jeLinesBody tr').forEach((row, index) => {
     const date = (document.getElementById('jeMultipleDates')?.checked ? row.querySelector('.je-line-date')?.value : '') || document.getElementById('jeTransDate')?.value || '';
     const raw = row.querySelector('.je-line-acc')?.value.trim() || '';
@@ -2542,10 +2544,12 @@ function getMultiDateJournalState() {
   });
   // One editor submission is one journal; dates belong to its lines.
   const dates=Object.keys(grouped).sort(), merged={totals:Object.create(null),lines:[]};
-  if(new Set(dates.map(d=>d.slice(0,7))).size>1)errors.push('Keep all dates in the same accounting month.');
+  const crossMonth=dates.some(d=>accountingDate&&d.slice(0,7)!==accountingDate.slice(0,7));
+  if(crossMonth)warnings.push(`Warning: line dates include another month. All amounts post in ${accountingDate.slice(0,7)}; other-month receipt dates are saved in line memos.`);
   for(const date of dates){const g=grouped[date];merged.lines.push(...g.lines);for(const [currency,t] of Object.entries(g.totals)){merged.totals[currency]||={debit:0,credit:0};merged.totals[currency].debit+=t.debit;merged.totals[currency].credit+=t.credit;}delete grouped[date];}
   merged.lines.sort((a,b)=>a.rowIndex143118-b.rowIndex143118);
-  if(dates.length)grouped[dates[0]]=merged;
+  for(const line of merged.lines){if(accountingDate&&line.line_date.slice(0,7)!==accountingDate.slice(0,7)){line.memo=[line.memo,`[Receipt date: ${line.line_date}]`].filter(Boolean).join(' ');line.line_date=accountingDate;}}
+  if(dates.length)grouped[merged.lines.map(l=>l.line_date).sort()[0]||accountingDate]=merged;
   const differences = [];
   Object.entries(grouped).forEach(([date,g]) => {
     if (g.lines.length < 2) errors.push(`${date}: at least two posting lines are required.`);
@@ -2554,7 +2558,7 @@ function getMultiDateJournalState() {
       if (Math.abs(t.debit - t.credit) >= .001) differences.push({date,currency,...t});
     });
   });
-  return {grouped,errors,differences};
+  return {grouped,errors,differences,warnings};
 }
 
 const calculateJournalBalanceV5 = calculateJournalBalance;
@@ -2573,7 +2577,7 @@ calculateJournalBalance = function() {
   if (state.differences.length) {
     const d=state.differences[0]; badge.className='je-status-badge unbalanced'; badge.textContent=`${formatAppDate(d.date)} ${currencySymbolV6(d.currency)} ${d.currency}: DR ${formatCompactAmount(d.debit)} / CR ${formatCompactAmount(d.credit)}`; if(postBtn)postBtn.disabled=true; return;
   }
-  badge.className='je-status-badge balanced'; badge.textContent='Balanced — one journal entry'; if(postBtn)postBtn.disabled=false;
+  badge.className='je-status-badge balanced'; badge.textContent=state.warnings?.[0]||'Balanced — one journal entry'; if(postBtn)postBtn.disabled=false;
 };
 
 const submitJournalEntryV5 = submitJournalEntry;
@@ -7170,6 +7174,7 @@ mountSettings();
       label = `Difference: ${difference.currency} ${formatAppNumber(Math.abs(difference.debit-difference.credit))}`;
       description = state.differences.map(d => `${formatAppDate(d.date)} · ${d.currency}: ${formatAppNumber(Math.abs(d.debit-d.credit))}`).join('\n');
     }
+    if(state.warnings?.length){label+=' · '+state.warnings.join(' ');description+='\n'+state.warnings.join('\n');}
     const invalid = empty || !!difference || !!state.errors.length;
     if (badge.textContent !== label) badge.textContent = label;
     badge.title = description;

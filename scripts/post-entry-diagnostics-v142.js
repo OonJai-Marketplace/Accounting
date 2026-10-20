@@ -27,8 +27,8 @@
   const differences=(state.differences||[]).map(d=>{const gap=Math.abs(Number(d.debit)-Number(d.credit)),side=Number(d.debit)>Number(d.credit)?'Credit':'Debit';return `${formatAppDate(d.date)} · ${d.currency}: add ${side} ${money(gap)} (DR ${money(d.debit)} / CR ${money(d.credit)}).`;});
   if(!used)return {valid:false,label:'Enter debit and credit',details:'Start with at least two posting lines: one Debit and one Credit.'};
   const gaps=(state.differences||[]).map(d=>`${Object.keys(state.grouped||{}).length>1?formatAppDate(d.date)+' · ':''}Add ${Number(d.debit)>Number(d.credit)?'CR':'DR'} ${d.currency} ${money(Math.abs(Number(d.debit)-Number(d.credit)))}`);
-  if(problems.length||gaps.length)return {valid:false,label:[...(problems.length?[problems[0]]:[]),...gaps].join(' · '),details:[...problems,...differences].join('\n')};
-  const dates=Object.keys(state.grouped||{}).length;return {valid:true,label:'✓ Balanced',details:`Ready to post. Debit equals Credit${dates>1?` for all ${dates} dates`:''} in every currency.`};
+  if(problems.length||gaps.length)return {valid:false,label:[...(problems.length?[problems[0]]:[]),...gaps,...(state.warnings||[])].join(' · '),details:[...problems,...differences,...(state.warnings||[])].join('\n')};
+  const dates=Object.keys(state.grouped||{}).length;return {valid:true,label:state.warnings?.[0]||'✓ Balanced',details:`${(state.warnings||[]).join(' ')} Ready to post. Debit equals Credit${dates>1?` for all ${dates} dates`:''} in every currency.`};
  }
  function install(){
   if(!byId('jeBalanceIndicator')||window.postEntryDiagnostics142Installed)return;window.postEntryDiagnostics142Installed=true;

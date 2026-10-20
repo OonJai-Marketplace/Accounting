@@ -47,6 +47,7 @@
       label = `Difference: ${difference.currency} ${formatAppNumber(Math.abs(difference.debit-difference.credit))}`;
       description = state.differences.map(d => `${formatAppDate(d.date)} · ${d.currency}: ${formatAppNumber(Math.abs(d.debit-d.credit))}`).join('\n');
     }
+    if(state.warnings?.length){label+=' · '+state.warnings.join(' ');description+='\n'+state.warnings.join('\n');}
     const invalid = empty || !!difference || !!state.errors.length;
     if (badge.textContent !== label) badge.textContent = label;
     badge.title = description;
