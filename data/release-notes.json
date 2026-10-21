@@ -1,6 +1,8 @@
 {
-  "version": "143.156",
+  "version": "143.157",
   "changes": [
-    "Simplified Final Payment headers and removed its redundant Currency column, preserving explicit currency symbols for every amount."
+    "Payroll Entries and History amounts open employee-specific calculation details, including attendance, exchange rates, SSO and PIT. Finalized runs use saved results and settings.",
+    "Payroll money cells use consistent left-side currency symbols and right-aligned amounts; editable fields have calculation buttons.",
+    "Attendance Summary counts and deductions open date-level explanations with consistent currency formatting."
   ]
 }

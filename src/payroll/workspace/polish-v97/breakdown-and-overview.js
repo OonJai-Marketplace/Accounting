@@ -3,42 +3,6 @@
     catch (_) { return run.results || []; }
   }
 
-  function polishBreakdown(run) {
-    const group = document.querySelector('#payroll-entries [data-group95$="-breakdown"]');
-    const table = group?.querySelector('table');
-    if (!table || !run?.rows) return;
-    const headers = ['Employee', 'Contracted Salary', 'Internal Deduction', 'Gross Salary (SSO)', 'Adjusted Salary (PIT)', 'Mandatory Deductions', 'Net Pay'];
-    const head = table.querySelector('thead tr');
-    if (!head) return;
-    head.innerHTML = headers.map(title => `<th>${escape(title)}</th>`).join('');
-    const results = new Map(resultRows(run).map(row => [row.employeeId, row]));
-    const ordered=run.rows.slice().sort(window.payroll95.order);
-    [...table.querySelectorAll('tbody tr')].forEach((tr, index) => {
-      const row = ordered[index];
-      const x = row && results.get(row.employeeId);
-      if (!row) return;
-      if (!x) { tr.innerHTML='<td>'+escape(row.employee.name)+'</td><td>'+money(row.employee.salary,row.employee.currency)+'</td>'+Array.from({length:5},()=>'<td>—</td>').join(''); return; }
-      const cells = [...tr.cells];
-      if (cells.length < 6) return;
-      const employee = cells[0].cloneNode(true);
-      const currency = row.employee.currency || 'LAK';
-      const values = [
-        employee,
-        money(x.contract ?? row.employee.salary, currency),
-        money(x.late + x.absence + x.penalty + x.other, 'LAK'),
-        money(x.gross, 'LAK'),
-        money(x.taxable, 'LAK'),
-        money(x.employeePit + x.employeeSso, 'LAK'),
-        money(Number(x.paidAmount ?? x.adjusted ?? 0), currency)
-      ];
-      tr.replaceChildren(...values.map((value, column) => {
-        const td = document.createElement('td');
-        if (column === 0) return value;
-        else { td.className = 'amount82 currency-cell97'; td.textContent = value; }
-        return td;
-      }));
-    });
-  }
 
   function renderOverview() {
     const host = document.querySelector('#payroll-overview .desktop82 .work82');

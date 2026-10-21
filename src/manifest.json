@@ -604,6 +604,9 @@
         "source": "src/payroll/engine/results-v96.js"
       },
       {
+        "source": "src/payroll/workspace/groups-v96/calculation-details143157.js"
+      },
+      {
         "source": "src/payroll/workspace/groups-v96/tables-and-attendance.js"
       },
       {
@@ -1283,6 +1286,9 @@
       },
       {
         "source": "src/payroll/engine/results-v96.js"
+      },
+      {
+        "source": "src/payroll/workspace/groups-v96/calculation-details143157.js"
       },
       {
         "source": "src/payroll/workspace/groups-v96/tables-and-attendance.js"

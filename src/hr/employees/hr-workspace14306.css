@@ -47,8 +47,8 @@ body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
   body table.attendance-grid99{width:100%!important;min-width:0!important;max-width:100%!important;table-layout:fixed!important;zoom:1!important}
   body table.attendance-grid99 tr>*:first-child{box-sizing:border-box!important;width:112px!important;min-width:0!important;max-width:112px!important}
   body table.attendance-grid99 thead th:not(:first-child),body table.attendance-grid99 tbody td{width:auto!important;min-width:0!important;max-width:none!important;text-align:center!important;padding:0!important;vertical-align:middle!important}
-  body table.attendance-grid99 .attendance-cell101{width:min(18px,100%)!important;min-width:0!important;max-width:18px!important;height:18px!important;min-height:18px!important;max-height:18px!important;padding:0!important;border-radius:3px!important;display:grid!important;place-items:center!important;margin:0 auto!important;border-color:var(--dot-color)!important;background:var(--dot-color)!important}
-  body table.attendance-grid99 thead th:not(:first-child){height:22px!important;min-height:22px!important;line-height:18px!important}
+  body table.attendance-grid99 .attendance-cell101{box-sizing:border-box!important;width:min(18px,100%)!important;min-width:0!important;max-width:18px!important;height:18px!important;min-height:18px!important;max-height:18px!important;padding:0!important;border-radius:3px!important;display:grid!important;place-items:center!important;margin:0 auto!important;border-color:var(--dot-color)!important;background:var(--dot-color)!important}
+  body table.attendance-grid99 thead th:not(:first-child){font-size:10px!important;letter-spacing:0!important;height:22px!important;min-height:22px!important;line-height:18px!important}
   body table.attendance-grid99 tbody tr,body table.attendance-grid99 tbody :is(th,td){height:22px!important;min-height:22px!important;padding-block:2px!important}
   body table.attendance-grid99 .attendance-dot99{display:none!important}
  }
@@ -172,3 +172,16 @@ body tr.employee-drop143154{outline:2px solid #008563;outline-offset:-2px;backgr
   body #hr-attendance table.attendance-grid99 thead th:not(:first-child),body #hr-attendance table.attendance-grid99 tbody td{box-sizing:border-box!important;width:calc((100% - 112px)/var(--days99))!important;min-width:0!important;padding:0!important}
  }
 }
+
+/* Currency at left, amount at right; calculation links remain keyboard accessible. */
+body .pay-amount143157{min-height:22px!important;height:auto!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important;min-width:0!important;padding:3px 2px!important;border:0!important;border-radius:3px!important;background:transparent!important;color:inherit!important;font:inherit!important;cursor:pointer!important;white-space:nowrap!important}
+body .pay-amount143157 span:last-child{margin-left:auto;text-align:right;font-variant-numeric:tabular-nums}
+body .pay-amount143157:hover,body .pay-amount143157:focus-visible{background:#e8f3ed!important;outline:1px solid #008563!important}
+body .pay-input143157{display:flex;align-items:center;gap:5px;min-width:0;width:100%}
+body .pay-input143157 input{min-width:0!important;width:100%!important;text-align:right!important;flex:1}
+body .pay-calc143157{flex:0 0 22px!important;width:22px!important;min-width:22px!important;padding:2px!important;cursor:pointer}
+body .pay-explain143157 .pay-dialog95{width:min(1100px,95vw)!important;max-width:95vw!important;max-height:90vh!important;overflow:auto!important}
+body .pay-explain143157 .data-table82{max-width:100%;overflow:auto}
+body .pay-explain-total143157{font-size:1.1em}
+
+body .pay-money143157{display:flex;align-items:center;justify-content:space-between;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums}body .pay-money143157 span:last-child{text-align:right;margin-left:auto}

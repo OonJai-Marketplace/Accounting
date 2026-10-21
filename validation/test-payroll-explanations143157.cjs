@@ -1,0 +1,41 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const config={workDays:26,hours:8,grace:5,overtime:1.5,latePenaltyFirst:5000,latePenaltySecond:7000,latePenaltyThird:10000,employeeSso:5.5,employerSso:6,ssoCap:4500000,sharing:'equal',brackets:[{from:0,to:1000000,rate:0},{from:1000000,to:null,rate:5}]};
+let modalBody='',updates=0;
+const c={formatAppDate:s=>s,window:{},testConfig:config,ApplicationSettings:{payroll:{}},Work82:{runs:[]},esc:s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;'),money:n=>Number(n).toFixed(2),number:n=>Number(n||0),approved:()=>[],remainingLeave105:()=>0,legends:()=>[],mark:a=>a.mark95,parseMark:m=>({minutes:Number(m)}),overlapLeave:()=>false,payrollOrder14337:()=>0,updateRun82:()=>updates++,showCenterStatus:m=>{throw Error(m)},table82:(h,rows)=>JSON.stringify({headers:h,rows}),modal:(_,title,body)=>{modalBody=body;return {classList:{add(){}},addEventListener(){}}}};
+vm.createContext(c);
+vm.runInContext(fs.readFileSync('src/payroll/engine/payroll-engine-v82.js','utf8')+'\npayrollConfig82=()=>testConfig;',c);
+const days=fs.readFileSync('src/bridges/hr-payroll/attendance-v96/approved-leave-and-days.js','utf8');vm.runInContext(days.slice(days.indexOf('function dayResults(')),c);
+vm.runInContext(fs.readFileSync('src/payroll/engine/results-v96.js','utf8'),c);
+vm.runInContext(fs.readFileSync('src/payroll/workspace/groups-v96/calculation-details143157.js','utf8'),c);
+const row={employeeId:'emp1',employee:{name:'Test employee',salary:3120000,currency:'LAK',sso:true,pit:true},input:{attendance:[{date:'2026-01-02',mark95:'6',overtime:0}],allowance:10000,reportedMissed:100,unreportedMissed:200,advance:3000,loanRecovery:4000,reimbursement:5000,absentDays:0,penalty:600,otherDeduction:700}};
+const run={month:'2026-01',status:'draft',rates:{LAK:1},rows:[row]};const x=c.results(run)[0],build=c.window.payrollExplain143157.build;
+assert.equal(x.late,250);assert.equal(x.latePenalty,5000);
+assert.equal(build(run,row,x,'internal',config).total,6850);
+assert.equal(build(run,row,x,'advance',config).total,3000);
+assert.equal(build(run,row,x,'loanRecovery',config).total,4000);
+assert.equal(x.gross,x.contractLak+x.overtime+x.allowance-6850);
+assert.equal(x.adjusted,x.net+5000-3000-4000);
+assert.equal(build(run,row,x,'late',config).days[0].deductible,1);
+assert.equal(build(run,row,x,'employeePit',config).brackets.length,2);
+assert.equal(build(run,row,x,'employeeSso',config).lines.find(l=>l.label==='Contribution rate').value,5.5);
+for(const key of ['contract','internal','gross','taxable','mandatory','net','absence','late','latePenalty','otherAdjustments','reportedMissed','unreportedMissed','employeePit','employerPit','employeeSso','employerSso','allowance','reimbursement','advance','loanRecovery','paidAmount','adjusted']){const d=build(run,row,x,key,config);assert.ok(Number.isFinite(d.total),key);assert.ok(d.lines.length,key);}
+const saved={...run,status:'finalized',config:structuredClone(config),results:[structuredClone(x)]};c.Work82.runs=[{id:'saved',data:saved}];c.Work82.run={...run,month:'2026-02'};c.testConfig={...config,grace:60,employeeSso:99};
+c.window.payrollExplain143157.open({dataset:{payScope143157:'history-saved',payEmployee143157:'emp1',payKey143157:'late'}});assert.equal(updates,0);assert.ok(modalBody.includes('Saved finalized calculation'));assert.ok(modalBody.includes('5.00 minutes'));assert.ok(modalBody.includes('250.00'));assert.equal(JSON.stringify(saved.results[0]),JSON.stringify(x));
+const old={...saved,config:undefined};assert.ok(build(old,row,{...x,attendance95:undefined},'late',null).notes.some(n=>n.includes('older saved payroll')));assert.ok(build(old,row,x,'employeePit',null).notes.some(n=>n.includes('no preserved')));
+const button=c.window.payrollExplain143157.amount('history-saved',row,'paidAmount',120,'USD');assert.ok(button.includes('<span>$</span><span>120.00</span>'));assert.ok(button.includes('data-pay-employee143157="emp1"'));
+assert.throws(()=>c.results({...run,rates:{}}),/exchange rate/);
+console.log('PASS: payroll formulas, six-minute late case, all 22 amount explanations, separate cash/loan recovery, saved-history isolation, missing historical details, currency symbols and missing-rate handling.');
+
+assert.ok(!c.window.payrollExplain143157.amount('print',row,'paidAmount',120,'USD').includes('<button'));
+
+assert.equal(build(run,row,x,'attendanceTotal',config).total,5250);
+assert.notEqual(build(run,row,x,'attendanceTotal',config).total,build(run,row,x,'internal',config).total);
+c.Work82.run=run;c.testConfig=config;c.results=()=>{throw Error('Full payroll must not be needed for attendance explanation')};
+c.window.payrollExplain143157.open({dataset:{payScope143157:'run',payEmployee143157:'emp1',payKey143157:'attendanceTotal'}});
+assert.ok(modalBody.includes('5250.00'));assert.ok(modalBody.includes('excludes additional payroll adjustments'));
+console.log('PASS: Attendance Summary explains its own daily total, independently of unrelated full-payroll calculations.');
+const attendanceSource=fs.readFileSync('src/payroll/workspace/payroll-v99.js','utf8');c.payroll95={order:()=>0};c.payrollExplain143157=c.window.payrollExplain143157;c.calendar=()=>[{date:'2026-01-01'},{date:'2026-01-02'},{date:'2026-01-03'}];c.status=(r,employee,d)=>d.date.endsWith('01')?{kind:'Present',minutes:0,label:'Present'}:d.date.endsWith('02')?{kind:'Late',minutes:6,label:'Late'}:{kind:'Upcoming',minutes:0,label:'Upcoming'};
+vm.runInContext(attendanceSource.slice(attendanceSource.indexOf('function summary('),attendanceSource.indexOf('const attendanceSelection143154')),c);
+const summary=c.summary(run,c.calendar(),new Map([['emp1',x.attendance95]]));assert.ok(summary.includes('data-pay-key143157="attendanceTotal"'));assert.ok(summary.includes('data-attendance-key143157="Total late minutes"'));
+c.window.openAttendanceCount143157({dataset:{attendanceEmployee143157:'emp1',attendanceKey143157:'Total late minutes'}});assert.ok(modalBody.includes('6.00 minutes'));assert.ok(modalBody.includes('2026-01-02'));assert.ok(!modalBody.includes('2026-01-03'));
+console.log('PASS: Attendance Summary count links show matching dates and recorded minutes, excluding future dates.');

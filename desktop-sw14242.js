@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.156',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.157',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/drive-drafts143128.js?v=143.152",
  "scripts/notification-focus143139.js?v=143.149",
@@ -21,12 +21,12 @@ const FILES=[
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.155",
- "scripts/desktop14245-3.js?v=143.156",
+ "scripts/desktop14245-3.js?v=143.157",
  "scripts/desktop14245-4.js?v=143.151",
  "scripts/desktop14245-5.js?v=143.154",
  "scripts/desktop14245-6.js?v=143.155",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.156",
+ "scripts/offline14239.js?v=143.157",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -205,7 +205,7 @@ const FILES=[
  "scripts/phone-tools14242.js?v=143.114",
  "styles/feedback-viewport14295.css?v=142.95",
  "scripts/desktop-corrections-v80.js?v=143.70",
- "scripts/payroll-polish-v97.js?v=143.128",
+ "scripts/payroll-polish-v97.js?v=143.157",
  "scripts/script.js?v=143.154",
  "scripts/transactions-v67.js?v=143.117",
  "scripts/workflows-v136.js?v=143.113",
@@ -236,7 +236,7 @@ const FILES=[
  "scripts/hr-calendar-model14306.js?v=143.70",
  "scripts/opening-balances14234.js?v=143.113",
  "scripts/dashboard-warm-v112.js?v=143.70",
- "scripts/payroll-groups-v96.js?v=143.156",
+ "scripts/payroll-groups-v96.js?v=143.157",
  "scripts/payroll-reports-v82.js?v=143.154",
  "scripts/reports-system-v71.js?v=143.109",
  "scripts/reports-v118.js?v=143.154",
@@ -252,7 +252,7 @@ const FILES=[
  "scripts/layout-voucher-polish14301.js?v=143.69",
  "scripts/subusers-final-v55.js?v=143.69",
  "styles/voucher-layout14299.css?v=143.84",
- "styles/hr-workspace14306.css?v=143.155",
+ "styles/hr-workspace14306.css?v=143.157",
  "scripts/heading-case14297.js?v=142.97",
  "styles/transaction-consistency14300.css?v=143.04",
  "styles/layout-voucher-polish14301.css?v=143.04",
