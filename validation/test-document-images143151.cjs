@@ -1,0 +1,31 @@
+const fs=require('fs'),assert=require('node:assert/strict'),{chromium}=require('playwright');
+(async()=>{const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/tmp/chromium',args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});try{
+ const page=await browser.newPage({viewport:{width:1100,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.setContent('<div id="document-editor105"><input id="titleInput"><div id="docStatus105"></div><span id="docCount108"></span><iframe id="docFrame105" style="width:900px;height:900px"></iframe></div>');
+ await page.evaluate(()=>{window.liveProfile={id:'test',status:'active'};window.access113={can:()=>true};window.ApplicationSettings={printing:{}};window.PrintSettings={};window.BusinessSettings={current:{}};window.AccountingStore={};window.ojmDb={};window.escapeHtml=x=>String(x).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');window.admin82=()=>true;window.$=id=>document.getElementById(id);});
+ let source=fs.readFileSync('src/documents/editor/document-editor-v105.js','utf8');source=source.slice(0,source.indexOf('/* Numeric controls'));
+ source=source.replace("if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();",`window.probe={async mount(html,settings={}){clearTimeout(timer);owner='test';tabClient14370=ojmDb;activeTab1432='fixture';model={...blank(),html,settings:{...defaults(),applyHeader:false,applyFooter:false,pageNumbers:false,...settings}};undo=[];cursor=-1;range=null;bookmark1424=null;selectedImage1424=null;localWrite=async()=>{};drawTabs1432=()=>{};await renderFrame(false);},format:formatImage143151,command,render:()=>{clearTimeout(timer);collect();return renderFrame(true)},history:historyMove,html:()=>{collect();return model.html},settings:()=>model.settings,size:imageSize143151,ui:imageWrapUI1424,select(index=0){editor().querySelectorAll('.page-content img')[index].dispatchEvent(new Event('image-select110'))},caretAtEnd(selector='.page-content'){const main=editor().querySelector(selector);range=frame.contentDocument.createRange();range.selectNodeContents(main);range.collapse(false);},get selected(){return !!selectedImage1424?.isConnected}};`);
+ await page.addScriptTag({content:source});const image=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=120;c.height=60;const x=c.getContext('2d');x.fillStyle='red';x.fillRect(0,0,60,60);x.fillStyle='blue';x.fillRect(60,0,60,60);return c.toDataURL()});
+ const html='<p>Before image</p><p><img src="'+image+'" style="width:120px;height:60px"></p><p>After image</p>';
+ await page.evaluate(html=>probe.mount(html),html);
+ await page.evaluate(()=>probe.select());await page.keyboard.press('Backspace');assert.equal(await page.evaluate(()=>document.querySelector('iframe').contentDocument.querySelectorAll('.page-content img').length),0);
+ await page.evaluate(async()=>{probe.history(-1);});await page.waitForFunction(()=>document.querySelector('iframe').contentDocument.querySelector('.page-content img'));
+ await page.evaluate(async()=>{probe.select();await probe.format('rotate-right');await probe.render()});
+ assert.deepEqual(await page.evaluate(()=>{const i=document.querySelector('iframe').contentDocument.querySelector('.page-content img');return [i.naturalWidth,i.naturalHeight,Math.round(i.getBoundingClientRect().width),Math.round(i.getBoundingClientRect().height)]}),[60,120,60,120]);
+ await page.evaluate(async()=>{probe.select();probe.command('justifyCenter');await probe.format('border');await probe.render()});
+ assert(await page.evaluate(()=>{const d=document.querySelector('iframe').contentDocument,i=d.querySelector('.page-content img'),p=i.parentElement;return Math.abs((i.getBoundingClientRect().left+i.getBoundingClientRect().right)/2-(p.getBoundingClientRect().left+p.getBoundingClientRect().right)/2)<2&&getComputedStyle(i).borderTopWidth==='1px'}));
+ const saved=await page.evaluate(()=>probe.html());await page.evaluate(html=>probe.mount(html),saved);assert(await page.evaluate(()=>getComputedStyle(document.querySelector('iframe').contentDocument.querySelector('img')).borderTopWidth==='1px'));
+ await page.evaluate(()=>probe.select());await page.locator('#titleInput').fill('Keep image');await page.keyboard.press('Backspace');assert.equal(await page.evaluate(()=>document.querySelector('iframe').contentDocument.querySelectorAll('.page-content img').length),1);
+ await page.frameLocator('iframe').locator('.page-content p').first().click();assert.equal(await page.evaluate(()=>probe.selected),false);
+ await page.evaluate(()=>probe.select());await page.keyboard.press('Delete');assert.equal(await page.evaluate(()=>document.querySelector('iframe').contentDocument.querySelectorAll('.page-content img').length),0);
+ // Image fits but following text does not: keep the picture on page one.
+ await page.evaluate(image=>probe.mount('<div style="height:850px">Spacer</div><p><img src="'+image+'" style="width:100px;height:100px"><span style="display:block;height:150px">Following text</span></p>'),image);
+ assert.equal(await page.evaluate(()=>document.querySelector('iframe').contentDocument.querySelector('.page-content').querySelectorAll('img').length),1);
+ assert.equal(await page.evaluate(()=>document.querySelector('iframe').contentDocument.querySelectorAll('.page').length),2);
+ // Insertion dimensions fit the actual remaining area rather than natural size.
+ await page.evaluate(()=>probe.mount('<div style="height:750px">Text</div>'));
+ const size=await page.evaluate(()=>{probe.caretAtEnd();return probe.size(1200,1200)});assert(size.height<300&&size.height>100);
+ await page.evaluate(()=>probe.mount('<div style="height:750px">Text</div><p><br></p>'));const emptySize=await page.evaluate(()=>{probe.caretAtEnd('.page-content p');return probe.size(1200,1200)});assert(emptySize.height<300&&emptySize.height>100);
+ await page.screenshot({path:'/tmp/document-images143151.png'});
+ assert.deepEqual(errors,[]);console.log('PASS actual-browser image selection, Backspace/Delete, undo, rotation dimensions, center alignment, persistent border, text-input protection, click-away, mixed-block pagination and insertion sizing.');
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

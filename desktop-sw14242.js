@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.150',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.151',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/drive-drafts143128.js?v=143.150",
  "scripts/notification-focus143139.js?v=143.149",
@@ -22,11 +22,11 @@ const FILES=[
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.128",
  "scripts/desktop14245-3.js?v=143.149",
- "scripts/desktop14245-4.js?v=143.128",
+ "scripts/desktop14245-4.js?v=143.151",
  "scripts/desktop14245-5.js?v=143.117",
  "scripts/desktop14245-6.js?v=143.150",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.150",
+ "scripts/offline14239.js?v=143.151",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -122,7 +122,7 @@ const FILES=[
  "styles/phone-accounting14246.css?v=142.47",
  "assets/banners/transactions.webp",
  "styles/password-help14278.css?v=142.94",
- "styles/desktop14245.css?v=143.128",
+ "styles/desktop14245.css?v=143.151",
  "scripts/tablet-journal14266.js?v=142.80",
  "scripts/workspace-header14266.js?v=142.83",
  "styles/tablet-journal14266.css?v=142.75",
@@ -232,7 +232,7 @@ const FILES=[
  "docs/UPDATE-v143.49.md",
  "setup/INSTALL-REPORT-POSTING-v143.49.sql",
  "scripts/corrections14231.js?v=143.65",
- "scripts/document-editor-v105.js?v=143.119",
+ "scripts/document-editor-v105.js?v=143.151",
  "scripts/hr-calendar-model14306.js?v=143.70",
  "scripts/opening-balances14234.js?v=143.113",
  "scripts/dashboard-warm-v112.js?v=143.70",

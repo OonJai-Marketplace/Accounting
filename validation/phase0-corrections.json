@@ -6,9 +6,9 @@
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
     "phone-sw.js": "d90dc3a9d6aca7d84f93b82d8811f35d0c4f8cad663bb8fb88bbb34596266d0e",
     "phone-accounting.html": "988a7658fb145d9ebdf9f490ceb693d7b96eecf0ab9219af4eae0dc52af9fd99",
-    "desktop-sw14242.js": "85cffd37cfee965c34f8985b63b5148bec70c2fb85c17a3aed401b972fe00a19",
+    "desktop-sw14242.js": "1c0c5906bbcb1022bf5f6bfdbc24f9738713e62569ce68ccd063eefee337bbe7",
     "phone.html": "bb83a18f23b9ceb6aba5f11dfff86664523283b4ec44c81447247e135bdfc953",
-    "desktop.html": "1e0693ce7e69d3b179a544c9fc1b95992b903409e708a89dcc57ff9ffb2294c6",
+    "desktop.html": "5d0b547fe0df07fcf9df518676bc406d5410df2d851e84a38f3c28b34d900ac6",
     "scripts/phone-runtime14242.js": "01f77065fd9aaa01abe74ab6a61de449e54148121a99416f95ef340c89d83283",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "58a42e626911f19bbcf926fd449b79670076738d84c972e4c5ed06da331da5cb",
@@ -17,9 +17,9 @@
     "scripts/payroll-polish-v97.js": "9b3c7c6b299af358064ab026a77d062fec3c3028f22c49d45f0442be7a5ac4d2",
     "scripts/startup14257.js": "ad30918ba2c3ff93c7769fdb5f1d1dd525ef9b39f5da45844eb8f6cd56c8c835",
     "scripts/desktop14245-6.js": "c83c331ace25609f34d4f9aa50f0f7a92745ed5e6460b4115dd636d757388887",
-    "scripts/offline14239.js": "a68092c2766685b863eb97995a7166679ca8d14a7123811e2c1dbb9718bffd79",
+    "scripts/offline14239.js": "7df19efdcee3fd94eccf3367b37f292bcf29ac7e11db5b11c3cf49655bf91f3d",
     "scripts/desktop14245-3.js": "c7808db6beaa599bcdb278cfd62049aafce08f095c16cbbc8a7fc77600d940f6",
-    "scripts/desktop14245-4.js": "e9b8e1a5db8a2a28b9c1ca81d976fe6e5a716b9de5136681b90e73d54f404793",
+    "scripts/desktop14245-4.js": "fef13af31a3cd1f0de081efe6d3eb0e098e205e74ba47df6f99d279c52d9c53f",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
     "scripts/interface-v69.js": "e3cbf3e31cbabb7fb6c3735c5b590cb57074f036c6be28976f6e69dd1cf40864",
     "scripts/navigation-workflow14316.js": "b75a6e535e9c8929d1682f0dbd1245e93fb2f89f30ed33e4ea909245a8bf3ead",
@@ -47,13 +47,13 @@
     "scripts/workspace-v99.js": "9762ffdf5572eda63be115857ef724945e2ebb8746f2b1034fd8e25f840cce05",
     "styles/sync-assessment14332.css": "1e7984743bb81cf50e19fbf5418a68640cfe0920f8a6ddf26bf2fd8479e4d6a0",
     "scripts/controls14317.js": "1a6f3e864c3c06addda648665973630e2c9aae8482afdf5e10403b7dd41c9bf3",
-    "scripts/document-editor-v105.js": "26749ae08e23eb8247b586b98264d9ace10af949fb0459641131657915d643c9",
+    "scripts/document-editor-v105.js": "347c8ddd35656f615ef6e7aae5073ba373bc8186743ee228f3128b628f5e9736",
     "scripts/editor-numbers1428.js": "40082610e997dd7b8cc1435ca73f086a5b31f4ed84a47bb7b15da000847e4613",
     "scripts/hr-calendar-model14306.js": "cf8b4e3cfe20af774f8775e28491ef0a6f7157128efec63da69a1d279e0102ce",
     "scripts/workflow14253.js": "cb015ef0632d551d518ed8650c9c9058e5fcad50458d501d535a3bd467192f46",
     "scripts/workspace14337.js": "d5e5d3036569c41d13902b93806b1abf58665b6ad573432395a1e88e34504309",
     "styles/workspace14337.css": "76e3e3ab4653640497aa3cb04ec8146725ace87754e55feff955696077a439f5",
-    "styles/desktop14245.css": "0b4fce2378dab4c4d1afb3f9cfecfaf42d1d57cb84bc02952aa27211b990edb0",
+    "styles/desktop14245.css": "d2cb3720f2272031f4a0519eb053620c2a4f035bd59927f7383bc2c2ec8d5fcd",
     "styles/workspace-consistency14343.css": "20b09b2d15a06c6f82990c79cd8c3719f5b963777a5cd7d9a8e344f0ebae44b6",
     "styles/submission-review-v139.css": "b0dfa03eb3120b0f030c7ef3dfc15b53028cf988c910460ace72802685591a2f",
     "scripts/subusers-final-v53.js": "908180b659386fc5dccf7d97850a985a1f689a6a5124f83e10dd11fa127a9a54",
@@ -231,7 +231,8 @@
     "scripts/reconciliation14345.js": "4e6ed086a2662ddea76f4536ab93153d8048a9411d427d6e0f30f69c581de69e",
     "styles/installation14320.css": "55828dba4c449975d4008d0b499923b9aa898a5d4f626dc0e93752cc65cd6ce1",
     "styles/universal-date-v104.css": "ba0543faf34fcee448ceb2ede246c2a6ae3bad0f89ec0a1e37129e1540ad907d",
-    "styles/functional-corrections14292.css": "eccde16d354f632601b42fb19783c1c4545d73ea37e669126b92439db5236800"
+    "styles/functional-corrections14292.css": "eccde16d354f632601b42fb19783c1c4545d73ea37e669126b92439db5236800",
+    "styles/editor-print1424.css": "d4d25c04b338f051380a46ea6fcfdaf256185ba05e4e5624575eafadd7294ac1"
   },
   "retired_assets": {
     "tools/desktop-source14245.html": "User-authorized obsolete-code cleanup, 2026-10-13. Input to retired full-desktop builder only; not loaded by any app entry point, manifest or service worker.",
@@ -243,5 +244,6 @@
   "restaurantSeparation143101": "2026-10-17: owner authorized a separate Restaurant project, removal of Restaurant/Public Website links from Accounting, preservation of financial records and existing layouts, and live publication. Changed canonical sources, generated files and release/cache entrypoints verified by targeted browser, database, and cache-upgrade checks. See docs/RESTAURANT-SEPARATION-v143.101.md.",
   "update143110": "2026-10-19: user reports phone updater repeatedly stuck at 6%. Add resumable partial downloads, streaming progress, bounded storage/network failures and automatic file retry; preserve existing offline caches and accounting storage. Verify interrupted and slow service-worker upgrade on a mobile viewport.",
   "sidebar143111": "2026-10-19: user reports duplicate active Bookkeeping/Accounts highlights and collapsing Bookkeeping on return from HR. Remove legacy inline route from grouped headers, separate navigation from explicit collapse buttons, restore permitted per-module and per-group sections, and retain manual expansion. Browser reproduction and desktop/compact regression checks cover actual clicks.",
-  "aiJournal143150": "2026-10-21 user authorized persistent background Google draft notifications, compact AI group tables without pagination, and debit/credit symbols from each chart account. Fixture tests cover authentication, scoped requests, archive integrity, currencies, and existing review/post flows."
+  "aiJournal143150": "2026-10-21 user authorized persistent background Google draft notifications, compact AI group tables without pagination, and debit/credit symbols from each chart account. Fixture tests cover authentication, scoped requests, archive integrity, currencies, and existing review/post flows.",
+  "documentImages143151": "2026-10-21 user requested image rotation, Backspace/Delete, alignment and borders, and unnecessary page-break correction. Verified in Chromium using fixture documents: selection, undo, rotation dimensions, alignment, saved borders, text-field protection, mixed image-block pagination and fitting inserted images to remaining space."
 }
