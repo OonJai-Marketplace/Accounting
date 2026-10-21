@@ -16,9 +16,9 @@ const duplicate=plain(p);duplicate.rowsJson=JSON.stringify([rows[0],rows[1],rows
 const badHash=plain(p);badHash.hash='wrong';assert.throws(()=>ctx.validatePack_(badHash,period,hash),/checksum/);
 const empty=plain(p);empty.rowsJson='[]';empty.hash=hash('[]');empty.entryList=[];empty.receipt={lines:0,entries:0,priorLines:0,totalLines:0,firstId:null,lastId:null,firstDate:null,lastDate:null};assert.equal(ctx.validatePack_(empty,period,hash).length,0);
 // Mock the Google boundary: successful publication versus corrupt readback.
-function run(corrupt){let active={getValues:()=>[['header'],['Other',1,'preserved',...Array(15).fill('')]],getSheet:()=>({setName(){},hideSheet(){}})},published=false,data=[];
-const stage={getName:()=>'_Incoming_test',getMaxRows:()=>1000,setName(){},setFrozenRows(){},getRange:(r,c,n,w)=>({getValues:()=>corrupt?[]:data,setFontWeight(){return this},setBackground(){return this}})};
-ctx.SpreadsheetApp={getActive:()=>({getSheetByName:()=>({}),getRangeByName:()=>active,insertSheet:()=>stage,setNamedRange:(name,range)=>{published=true;active=range;}}),flush(){}};
+function run(corrupt){let active={getValues:()=>[['header'],['Other',1,'preserved',...Array(15).fill('')]],getSheet:()=>({getSheetId:()=>2,setName(){},hideSheet(){}})},published=false,data=[];
+const stage={getSheetId:()=>1,getName:()=>'_Incoming_test',getMaxRows:()=>1000,setName(){},setFrozenRows(){},getRange:(r,c,n,w)=>({getValues:()=>corrupt?[]:data,setFontWeight(){return this},setBackground(){return this}})};
+ctx.SpreadsheetApp={getActive:()=>({getSheetByName:()=>({}),getRangeByName:()=>active,insertSheet:()=>stage,getNamedRanges:()=>[],getSheets:()=>[],deleteSheet(){},setNamedRange:(name,range)=>{published=true;active=range;}}),flush(){}};
 ctx.LockService={getDocumentLock:()=>({tryLock:()=>true,releaseLock(){}})};ctx.request_=()=>plain(p);ctx.session_=()=>'';ctx.md5_=hash;
 ctx.sheetsRequest_=(path,method,body)=>{data.push(...body.values);};
 if(corrupt)assert.throws(()=>ctx.importFromDatabase('Month',2026,2),/not published/);else{const result=ctx.importFromDatabase('Month',2026,2);assert.equal(result.receipt.lines,2);assert(data.some(r=>r[0]==='Other'));assert(data.some(r=>r[5]==='=literal memo'));}

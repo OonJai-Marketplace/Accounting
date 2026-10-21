@@ -1,0 +1,26 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+let source=fs.readFileSync('src/bookkeeping/journal/drive-drafts143128.js','utf8').replace('async function api(path,options={})','async function realApi(path,options={})');
+source=source.replace('window.DriveDrafts143128={','async function api(path,options={}){return window.mockApi(path,options)};window.probe={archivePostedDraft,disconnect,alreadyPostedAiDraft,readLegacySourceRefs,setNotices:n=>pendingDraftNotices=n};window.DriveDrafts143128={');
+const id='draft-0001',number='OJM260001';const rows=[['draft_id'],[id,'2026-01-01','source',1],[id,'2026-01-01','source',2]];
+let archive=[],deletes=0,appends=0,reads=0,changed=false,corrupt=false,bells=0,filter;
+const c={window:{refreshNotices1443:()=>bells++,access113:{can:()=>true}},document:{readyState:'loading',addEventListener(){}},console,liveProfile:{id:'reviewer'},location:{origin:'https://test'},localStorage:{getItem:()=>null},ojmDb:{from:()=>({select(){return this},ilike(){return this},eq(k,v){filter=[k,v];return this},limit:async()=>({data:[]})})}};
+c.window.mockApi=async(path,opts)=>{const d=decodeURIComponent(path);if(d.includes('Drafts!')){reads++;return {values:changed&&reads>1?[...rows,[id,'unexpected']]:rows}}if(d.startsWith('?fields'))return {sheets:[{properties:{title:'Drafts',sheetId:1}},{properties:{title:'Posted Archive',sheetId:2}}]};if(d.includes(':append')){appends++;archive=JSON.parse(opts.body).values;if(corrupt)archive[0][2]='corrupted';return{}}if(d.includes('Posted Archive'))return {values:archive};if(d===':batchUpdate'){deletes++;return{}}throw Error(path)};
+vm.createContext(c);vm.runInContext(source,c);
+(async()=>{
+ const p=c.window.probe;const expected=()=>rows.slice(1).map(r=>[...Array.from({length:14},(_,i)=>r[i]??''),'Posted',number]);
+ archive=expected();archive[0][2]='different';await assert.rejects(p.archivePostedDraft(id,number),/differs/);assert.equal(deletes,0);
+ archive=[];corrupt=true;await assert.rejects(p.archivePostedDraft(id,number),/not verified/);assert.equal(deletes,0);
+ corrupt=false;archive=[];reads=0;changed=true;await assert.rejects(p.archivePostedDraft(id,number),/changed/);assert.equal(deletes,0);
+ changed=false;reads=0;archive=[];await p.archivePostedDraft(id,number);assert.equal(deletes,1);
+ const before=appends;archive=expected().reverse();await p.archivePostedDraft(id,number);assert.equal(appends,before);assert.equal(deletes,2);
+ archive=expected();archive[0][15]='WRONG-ID';await assert.rejects(p.archivePostedDraft(id,number),/differs/);assert.equal(deletes,2);
+ p.setNotices([{noticeId:id,title:'private draft'}]);p.disconnect();assert.equal(c.window.DriveDrafts143128.notices().length,0);assert.equal(bells,1);
+ p.readLegacySourceRefs([[],[id,...Array(12).fill(''),'AI260001']]);await p.alreadyPostedAiDraft(id);assert.deepEqual(filter,['status','posted']);
+ console.log('PASS archive mismatch/corruption/change retain drafts; verified retry does not append; wrong posted ID blocked; disconnect clears notices; legacy lookup only posted');
+ const g={};vm.createContext(g);vm.runInContext(fs.readFileSync('integrations/google-sheets/Code.gs','utf8'),g);
+ const removed=[];const sheet=(id,name,hidden=true)=>({getSheetId:()=>id,getName:()=>name,isSheetHidden:()=>hidden});
+ const current=sheet(1,'Raw Data',false),previous=sheet(2,'_Previous_2'),older=sheet(3,'_Previous_1'),named=sheet(4,'_Previous_0'),visible=sheet(5,'_Previous_3',false),manual=sheet(6,'Budget'),staging=sheet(7,'_Incoming_0');
+ const ss={getNamedRanges:()=>[{getRange:()=>({getSheet:()=>named})}],getSheets:()=>[current,previous,older,named,visible,manual,staging],deleteSheet:s=>removed.push(s.getSheetId())};
+ assert.equal(g.cleanupImportSnapshots_(ss,current,previous),'');assert.deepEqual(removed,[3]);
+ console.log('PASS snapshot cleanup preserves current, immediate recovery, named, visible and unrelated sheets');
+})().catch(e=>{console.error(e);process.exitCode=1});

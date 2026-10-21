@@ -1,8 +1,9 @@
 {
-  "version": "143.147",
+  "version": "143.149",
   "changes": [
-    "Archive posted AI Journal drafts automatically and clear pending inbox.",
-    "Preserve journal source history and annual AI reference numbering.",
-    "Do not clear drafts when posting fails."
+    "Verify archived AI draft contents before removing inbox rows.",
+    "Clear AI notifications on disconnect and use one orange destination highlight.",
+    "Correct posted-entry detection and synchronize release/offline version checks.",
+    "Clean up redundant code and add bounded recovery snapshots to the Sheets importer source."
   ]
 }

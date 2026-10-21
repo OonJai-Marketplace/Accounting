@@ -31,6 +31,17 @@ function importFromDatabase(mode,year,part,from,to){var period=periodBounds_(mod
  SpreadsheetApp.flush();if(JSON.stringify(stage.getRange(1,1,all.length,18).getValues())!==JSON.stringify(all))throw Error('Raw-data readback mismatch; previous snapshot retained.');
  ss.setNamedRange('RawImport',stage.getRange(1,1,all.length,18));published=true;
  try{if(old){old.getSheet().setName('_Previous_'+Date.now());old.getSheet().hideSheet();}stage.setName('Raw Data');stage.setFrozenRows(1);stage.getRange(1,1,1,18).setFontWeight('bold').setBackground('#d9ead3');}catch(layoutError){}
- SpreadsheetApp.flush();return {message:'Import complete: '+c.lines+' journal lines / '+c.entries+' entries in '+period.from+' to '+period.to+'. First ID: '+(c.firstId||'none')+'; last ID: '+(c.lastId||'none')+'. '+c.priorLines+' earlier lines retained for opening balances. See Import Receipt.',receipt:c};
- }catch(e){throw Error((published?'Snapshot published; inspect Import Receipt. ':'Import not published; previous snapshot remains active. ')+e.message);}finally{lock.releaseLock();}}
+ SpreadsheetApp.flush();var cleanup=cleanupImportSnapshots_(ss,stage,old&&old.getSheet());return {message:'Import complete: '+c.lines+' journal lines / '+c.entries+' entries in '+period.from+' to '+period.to+'. First ID: '+(c.firstId||'none')+'; last ID: '+(c.lastId||'none')+'. '+c.priorLines+' earlier lines retained for opening balances. See Import Receipt.'+(cleanup?' Cleanup pending: '+cleanup:''),receipt:c};
+ }catch(e){if(!published&&stage){try{ss.deleteSheet(stage);}catch(cleanupError){}}throw Error((published?'Snapshot published; inspect Import Receipt. ':'Import not published; previous snapshot remains active. ')+e.message);}finally{lock.releaseLock();}}
 function sheetsRequest_(path,method,body){var r=UrlFetchApp.fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SpreadsheetApp.getActive().getId()+path,{method:method,contentType:'application/json',headers:{Authorization:'Bearer '+ScriptApp.getOAuthToken()},payload:JSON.stringify(body),muteHttpExceptions:true});if(r.getResponseCode()!==200)throw Error('Google Sheets staging failed ('+r.getResponseCode()+').');return JSON.parse(r.getContentText());}
+
+// Keep the current verified snapshot and its immediate predecessor. Never touch
+// named-range targets, visible worksheets, or sheets outside importer ownership.
+function cleanupImportSnapshots_(ss,current,previous){
+ var protectedIds={};protectedIds[current.getSheetId()]=true;if(previous)protectedIds[previous.getSheetId()]=true;
+ ss.getNamedRanges().forEach(function(n){protectedIds[n.getRange().getSheet().getSheetId()]=true;});
+ var failures=[];ss.getSheets().forEach(function(sheet){
+  if(protectedIds[sheet.getSheetId()]||!sheet.isSheetHidden()||!/^_Previous_[0-9]+$/.test(sheet.getName()))return;
+  try{ss.deleteSheet(sheet);}catch(e){failures.push(sheet.getName());}
+ });return failures.join(', ');
+}

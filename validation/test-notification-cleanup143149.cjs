@@ -1,0 +1,14 @@
+const fs=require('fs'),assert=require('node:assert/strict');
+const {JSDOM}=require(process.env.JSDOM_MODULE||'jsdom');
+const dom=new JSDOM('<head></head><body><div id="headerNoticeList104"><button data-target="journal">Journal</button><button data-target="ai-journal" data-notice-key143125=\'["AI Journal draft","draft-1"]\'>AI</button><button data-target="website-update">Update</button></div><section id="journal"></section><section id="gptDrafts143129"><div data-draft="draft-1"></div></section><div id="websiteUpdates143103"></div></body>',{runScripts:'outside-only'});
+const w=dom.window,d=w.document;let timers=[],scrolled=[],navigations=0;
+w.liveProfile={id:'one'};w.setTimeout=(fn,ms)=>timers.push([fn,ms]);w.HTMLElement.prototype.getClientRects=()=>[{}];w.HTMLElement.prototype.scrollIntoView=function(){scrolled.push(this)};
+w.DriveDrafts143128={open:()=>navigations++};w.websiteUpdates143103={open:()=>navigations++};
+w.eval(fs.readFileSync('src/shared/presentation/notification-focus143139.js','utf8'));
+const click=target=>{d.querySelector('[data-target="'+target+'"]').click();const ready=timers.filter(t=>t[1]<1000);timers=[];ready.forEach(t=>t[0]());};
+click('journal');assert.equal(scrolled.at(-1).id,'journal');assert.equal(navigations,0);
+click('ai-journal');assert.equal(scrolled.at(-1).dataset.draft,'draft-1');assert.equal(navigations,0);
+click('website-update');assert.equal(scrolled.at(-1).id,'websiteUpdates143103');assert.equal(navigations,0);
+const before=scrolled.length;d.querySelector('[data-target="ai-journal"]').click();w.liveProfile.id='two';timers.filter(t=>t[1]<1000).forEach(t=>t[0]());assert.equal(scrolled.length,before);
+assert.equal(d.querySelectorAll('.ojm-notice-target143139').length,1);
+console.log('PASS single highlight owner; normal Journal remains Journal; no duplicate navigation; delayed effects cancelled after account switch');dom.window.close();
