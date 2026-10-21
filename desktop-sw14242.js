@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.154',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.155',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/drive-drafts143128.js?v=143.152",
  "scripts/notification-focus143139.js?v=143.149",
@@ -20,13 +20,13 @@ const FILES=[
  "styles/installation14320.css?v=143.119",
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
- "scripts/desktop14245-2.js?v=143.154",
+ "scripts/desktop14245-2.js?v=143.155",
  "scripts/desktop14245-3.js?v=143.154",
  "scripts/desktop14245-4.js?v=143.151",
  "scripts/desktop14245-5.js?v=143.154",
- "scripts/desktop14245-6.js?v=143.154",
+ "scripts/desktop14245-6.js?v=143.155",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.154",
+ "scripts/offline14239.js?v=143.155",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -252,7 +252,7 @@ const FILES=[
  "scripts/layout-voucher-polish14301.js?v=143.69",
  "scripts/subusers-final-v55.js?v=143.69",
  "styles/voucher-layout14299.css?v=143.84",
- "styles/hr-workspace14306.css?v=143.154",
+ "styles/hr-workspace14306.css?v=143.155",
  "scripts/heading-case14297.js?v=142.97",
  "styles/transaction-consistency14300.css?v=143.04",
  "styles/layout-voucher-polish14301.css?v=143.04",
@@ -271,7 +271,7 @@ const FILES=[
  "styles/audit-workspace14232.css?v=142.34",
  "scripts/audit-engine14232.js?v=143.109",
  "scripts/audit-storage14232.js?v=143.70",
- "scripts/cell-navigation14233.js?v=143.128",
+ "scripts/cell-navigation14233.js?v=143.155",
  "scripts/feedback-viewport14295.js?v=142.95",
  "archive.html",
  "styles/setup14320.css?v=143.20",
