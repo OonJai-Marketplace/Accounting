@@ -8,9 +8,10 @@ function lineRateText(l){const c=l.originalCurrency||l.currency||l.currency_code
 function original(r){return r.original||r}
 function descendants(rows,parent){const byCode=new Map(AccountingStore.accounts.map(a=>[a.code,a]));return rows.filter(r=>{if(!posting(r.account))return false;let a=r.account;const seen=new Set([a.code]);while(a?.parentCode&&!seen.has(a.parentCode)){if(a.parentCode===parent.code)return true;seen.add(a.parentCode);a=byCode.get(a.parentCode)}return false})}
 function select(rows,key){if(!key)return rows;const target=rows.find(r=>r.key===key);return target&&!posting(target.account)?descendants(rows,target.account):rows.filter(r=>r.key===key);}
-function hierarchy(rows){
+function hierarchy(rows,compare){
+ if(compare)rows=[...rows].sort(compare);
  // Subtotals are display rows only. Financial metrics always use the leaf rows.
- const leaves=rows.filter(r=>posting(r.account)),parents=AccountingStore.accounts.filter(a=>!posting(a)),result=[],emitted=new Set();
+ const leaves=rows.filter(r=>posting(r.account)),parents=AccountingStore.accounts.filter(a=>!posting(a)).sort(compare?(a,b)=>compare({account:a},{account:b}):()=>0),result=[],emitted=new Set();
  function emit(parent,depth,path){if(path.has(parent.code))return;const children=descendants(leaves,parent);if(!children.length)return;const next=new Set(path).add(parent.code),total={...children[0],account:{...parent,name:'\u00a0'.repeat(depth*3)+parent.name+' — subtotal'},lines:[],isSubtotal14386:true};for(const k of ['opening','debit','credit','closing','baseOpening','baseDebit','baseCredit','baseClosing','missingRates'])total[k]=children.reduce((n,r)=>n+num(r[k]),0);result.push(total);for(const p of parents.filter(a=>a.parentCode===parent.code))emit(p,depth+1,next);for(const r of children.filter(r=>r.account.parentCode===parent.code)){if(emitted.has(r.key))continue;emitted.add(r.key);result.push({...r,account:{...r.account,name:'\u00a0'.repeat((depth+1)*3)+r.account.name}})}}
  for(const p of parents.filter(p=>!parents.some(a=>a.code===p.parentCode)))emit(p,0,new Set());
  for(const r of leaves)if(!emitted.has(r.key))result.push(r);

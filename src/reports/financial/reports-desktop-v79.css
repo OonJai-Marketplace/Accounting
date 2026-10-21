@@ -20,3 +20,17 @@
 .cash-group14230>strong{display:block;padding:8px;font-size:11px;letter-spacing:.06em;color:#61766b}
 .cash-symbol14230{flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 3px;box-sizing:border-box;border:1px solid #c5ded2;border-radius:5px;background:#edf8f2;color:#075e45;font-size:12px}
 @media print{.cash-filter14230{display:none!important}}
+/* Shared report filters collapse completely; search remains directly accessible. */
+body.shell113 :is(.r79,#report-cf .r79) .r79-filters.r79-filter-panel143153[hidden]{display:none!important}
+body.shell113 :is(.r79,#report-cf .r79) .r79-filters.r79-filter-panel143153{display:flex!important;flex-wrap:wrap!important;gap:12px!important;padding:12px!important;background:#f4f8f5;border-top:1px solid #d7e5df}
+body.shell113 :is(.r79,#report-cf .r79) .r79-filters.r79-filter-panel143153>label,body.shell113 .r79 .r79-filter-panel143153>.cash-filter14230{flex:1 1 180px!important;min-width:150px!important;max-width:330px!important;width:auto!important}
+body.shell113 .r79 .r79-filter-panel143153>.r79-picker{flex-basis:100%;margin:0}
+body.shell113 .r79 .r79-actions{flex-wrap:wrap;justify-content:flex-end}
+body.shell113 .r79 .r79-search143153{padding:0 12px 10px;display:flex;justify-content:flex-end}
+body.shell113 .r79 .r79-search143153 label{display:flex;align-items:center;gap:8px;width:min(100%,420px)}
+body.shell113 .r79 .r79-search143153 input{min-width:0;flex:1}
+@media print{.r79-filter-panel143153,.r79-search143153{display:none!important}}
+
+.tax-filters143153[hidden],.payroll-report-filters143153[hidden]{display:none!important}
+.tax-filters143153,.payroll-report-filters143153{padding:10px 12px;border-top:1px solid #d7e5df;background:#f4f8f5}
+.tax-filters143153 label{display:flex;align-items:center;gap:8px}

@@ -5,7 +5,7 @@ function control(key,month){return '<label class="history-month14341 no-print"><
 const searches=new Map(),loads=new Map();
 const actor=()=>typeof liveProfile==='undefined'?'':liveProfile?.id;
 function position(host,input){
- const label=input.closest('.history-month14341');if(!label)return;
+ const label=input.closest('.history-month14341');if(!label||input.closest('.payroll-report-filters143153'))return;
  const key=input.dataset.historyMonth14341;
  const titles={journal:'Journal History',submitted:'Submission History',budget:'Budget Request History',audit:'Audit Logs',reports:'Report History',payroll:'Payroll History'};
  const container=host.closest('.settings-section-card,.je-card,.work82');

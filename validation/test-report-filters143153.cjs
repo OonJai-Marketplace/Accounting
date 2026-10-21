@@ -1,0 +1,21 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const panels={},listeners={},ctx={console,Map,Set,Date,Accounts69:{month:'2026-10',year:2026,quarter:4,from:'2026-01-01',to:'2026-12-31'},JournalModule:{entries:[]},AccountingStore:{accounts:[]},CurrencyStore:{currencies:[{code:'LAK'}]},escapeHtml:s=>String(s).replaceAll('&','&amp;').replaceAll('"','&quot;'), currencySymbolV6:s=>s,formatAppDate:s=>s,formatAppRate:s=>s,money69:n=>String(n),balanceText69:n=>String(n),date71:(y,m,d)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`,matchMedia:()=>({matches:true,addEventListener(){}}),accountData69:()=>[],switchTab(){},logoutDemoUser(){},refreshAllTables(){},renderAccounts69(){},document:{addEventListener:(e,fn)=>listeners[e]=fn,getElementById:id=>panels[id]||null,querySelector:()=>null,querySelectorAll:()=>[]}};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(fs.readFileSync('src/reports/financial/reports-desktop-v79.js','utf8'),ctx);vm.runInContext(fs.readFileSync('src/accounts/chart/foreign-funds14386.js','utf8'),ctx);
+const run=code=>vm.runInContext(code,ctx);
+run("Reports79.basis='original';Reports79.mode='custom';Reports79.kind='gl';");
+const account=(code,name,lines)=>({key:code,account:{id:code,code,name,type:'ASSET',isPosting:true},currency:'LAK',opening:100,debit:30,credit:0,closing:130,lines});
+const line=(date,id,dr,index)=>({date,id,dr,cr:0,originalIndex:index,memo:id});
+const data=[account('9000','High',[line('2026-01-01','A',10,0),line('2026-02-01','B',20,1)]),account('1000','Low',[line('2026-01-02','C',10,2),line('2026-03-01','D',20,3)])];ctx.accountData69=()=>data;
+const values=()=>run("reportModel79('gl')[0].values");
+assert.deepEqual(Array.from(values(),r=>r[1]),['D','B','C','A']);
+const balances=new Map(Array.from(values(),r=>[r[1],r.at(-1)]));
+run("reportSorts143153.set('gl',{by:'date',direction:'asc'})");assert.deepEqual(Array.from(values(),r=>r[1]),['A','C','B','D']);
+run("reportSorts143153.set('gl',{by:'account',direction:'asc'})");assert.deepEqual(Array.from(values(),r=>r[2]),['Low','Low','High','High']);
+run("reportSorts143153.set('gl',{by:'account',direction:'desc'})");assert.deepEqual(Array.from(values(),r=>r[2]),['High','High','Low','Low']);
+for(const row of values())assert.equal(row.at(-1),balances.get(row[1]));assert.deepEqual(JSON.parse(JSON.stringify(run("reportModel79('gl',true)[0].values"))),JSON.parse(JSON.stringify(values())));
+const parent={id:'p',code:'5000',name:'Group',isPosting:false},children=[{...data[0],account:{...data[0].account,parentCode:'5000'}},{...data[1],account:{...data[1].account,parentCode:'5000'}}];ctx.AccountingStore.accounts=[parent,...children.map(r=>r.account)];const grouped=ctx.ForeignFunds14386.hierarchy(children,(a,b)=>Number(b.account.code)-Number(a.account.code));assert.equal(grouped[0].isSubtotal14386,true);assert.deepEqual(Array.from(grouped.slice(1),r=>r.account.code),['9000','1000']);assert.equal(grouped[0].debit,60);
+ctx.AccountingStore.accounts=[];ctx.periodFilters14331={markup:()=>'<label>Period<button>All months</button></label>'};
+for(const kind of ['gl','activity','pl','bs','tb','cf','expense','payroll']){
+ const host={innerHTML:''};panels['report-'+kind]={classList:{contains:()=>true},querySelector:()=>host};ctx.syncCashAccountPicker14230=()=>{};run('renderReports79()');assert.match(host.innerHTML,/onclick="toggleReportFilters143153\(this\)"/);assert.match(host.innerHTML,/r79-filter-panel143153 no-print" hidden/);assert.ok(host.innerHTML.indexOf('>Filter</button>')<host.innerHTML.indexOf('>Refresh</button>'));if(['gl','activity'].includes(kind))assert.match(host.innerHTML,/<\/div><div class="r79-search143153/);delete panels['report-'+kind];
+}
+const filter={hidden:true},button={setAttribute(k,v){this[k]=v}};panels['reportFilters143153-payroll']=filter;ctx.toggleReportFilters143153(button);assert.equal(filter.hidden,false);assert.equal(button['aria-expanded'],'true');ctx.toggleReportFilters143153(button);assert.equal(filter.hidden,true);
+console.log('PASS: all eight report filter panels, separate search, toggle accessibility, date/account ordering both directions, stable running balances, print/export ordering, and grouped subtotals. No financial writes.');
