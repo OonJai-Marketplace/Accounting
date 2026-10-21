@@ -13,3 +13,14 @@
  #tax-overview .tax-card102 :is(th,td){padding:2px 3px!important;font-size:9px;white-space:normal!important}
  #tax-overview .tax-card102 tr{break-inside:avoid}
 }
+
+/* Constrain every grid level so wide journal cells cannot expand or displace the report. */
+html body .tab-content[data-module="tax-sso"] .tax-report102{width:100%;max-width:100%;grid-template-columns:minmax(0,1fr);box-sizing:border-box}
+html body .tax-report102 :is(.tax-content102,.tax-card102,.tax-card-body102,.tax-table-scroll102){min-width:0!important;max-width:100%!important;box-sizing:border-box}
+html body .tax-report102 .tax-content102{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+html body .tax-report102 .tax-card102{width:100%!important;margin:0!important}
+html body .tax-report102 .tax-table-scroll102{width:100%!important;margin:0!important;overflow-x:auto}
+html body .tax-report102 .tax-table-scroll102 table{width:100%!important;min-width:0!important;max-width:100%!important;table-layout:fixed;margin:0!important}
+html body .tax-report102 .tax-table-scroll102 :is(th,td){min-width:0!important;white-space:normal!important;overflow-wrap:anywhere;vertical-align:top}
+html body .tax-report102 .tax-table-scroll102 td{font-variant-numeric:tabular-nums}
+html body .tax-report102 .tax-total102{min-width:0;max-width:100%;box-sizing:border-box;overflow-wrap:anywhere}

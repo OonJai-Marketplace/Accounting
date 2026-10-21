@@ -1,0 +1,10 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const c={window:{switchTab(){}},appLocalDate:()=> '2026-10-21',document:{readyState:'loading',addEventListener(){}},AccountingStore:{accounts:[{id:'pit',name:'PIT Payable',currency:'LAK',baseType:'LIABILITY'},{id:'vat',name:'VAT Expense',currency:'LAK',baseType:'EXPENSE'},{id:'mapping',name:'PIT Mapping',currency:'USD',baseType:'LIABILITY',isTechnical:true}]},JournalModule:{entries:[]}};
+vm.createContext(c);vm.runInContext(fs.readFileSync('src/reports/tax/tax-reports-v102.js','utf8').replace('window.taxReports102={','window.testState=state;window.taxReports102={'),c);
+c.window.testState.month='2026-02';
+const line=(accountId,date,debit,credit,extra={})=>({accountId,account:c.AccountingStore.accounts.find(a=>a.id===accountId)?.name||'VAT Payable',currency:'LAK',date,debit,credit,status:'posted',...extra});
+c.JournalModule.entries=[line('pit','2026-01-01',0,100),line('pit','2026-02-01',0,50),line('pit','2026-02-12',120,0),line('vat','2026-02-28',1941987,0),line('mapping','2026-02-10',0,500,{currency:'USD'}),line('pit','2026-02-12',0,999,{status:'voided'}),line('pit','2026-03-01',0,999),line('pit','2025-12-31',0,999)];
+let rows=c.window.taxReports102.statutoryBalances(),pit=rows.find(r=>r.group==='PIT'),vat=rows.find(r=>r.group==='VAT');assert.equal(pit.opening,10000);assert.equal(pit.credits,5000);assert.equal(pit.reductions,12000);assert.equal(pit.due,3000);assert.equal(vat.expense,194198700);assert.equal(vat.due,0);assert.equal(rows.length,2);
+c.JournalModule.entries.push(line('pit','2026-02-15',40,0));pit=c.window.taxReports102.statutoryBalances().find(r=>r.group==='PIT');assert.equal(pit.due,0);assert.equal(pit.advance,1000);
+c.JournalModule.entries.push(line('unmapped','2026-02-20',0,10,{currency:'USD'}));rows=c.window.taxReports102.statutoryBalances();assert.equal(rows.find(r=>r.currency==='USD').due,1000);
+console.log('Statutory balances passed: opening, additions, settlement, direct expense, advances, separate currencies and excluded records');

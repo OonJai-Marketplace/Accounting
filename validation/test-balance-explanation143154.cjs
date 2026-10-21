@@ -1,0 +1,11 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const source=fs.readFileSync('src/reports/financial/reports-desktop-v79.js','utf8');
+const fn=source.slice(source.indexOf('function balanceExplanation143154'),source.indexOf('function reportModel79'));
+const row=(code,currency,closing,baseClosing,isTechnical=false)=>({account:{code,name:code,baseType:'ASSET',isTechnical},currency,closing:Math.round(closing*100),baseClosing:Math.round(baseClosing*100)});
+const rows=[row('visible THB','THB',300,201000),row('mapping THB','THB',-300,-201000,true),row('visible LAK','LAK',-201000,-201000),row('mapping LAK','LAK',201000,201000,true)];
+const c={Reports79:{basis:'original',kind:'bs'},reportData79:()=>rows,money69:n=>(n/100).toFixed(2)};vm.createContext(c);vm.runInContext(fn,c);
+let note=c.balanceExplanation143154('THB',30000,0,0,0);assert.match(note,/Total 300.00 THB/);assert.match(note,/reconciles this currency to zero/);assert.match(note,/Combined LAK balance-sheet difference: 0.00/);assert.equal(c.Reports79.kind,'bs');
+rows[0].baseClosing+=100;note=c.balanceExplanation143154('THB',30000,0,0,0);assert.match(note,/1.00 LAK — review required/);
+rows[0].missingRates=1;assert.match(c.balanceExplanation143154('THB',30000,0,0,0),/exchange rates are missing/);
+assert.match(c.balanceExplanation143154('THB',30100,0,0,0),/Remaining difference.*1.00 THB/);
+console.log('Balance explanation: mapping reconciliation, residual, LAK mismatch and missing rates passed');

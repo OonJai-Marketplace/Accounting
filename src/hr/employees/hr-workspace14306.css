@@ -44,12 +44,12 @@ body #payDay95 label:has([name=note]),body #payDay95 label:has([name=override]),
 body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
 @media screen{
  @layer app-controls14305{
-  body table.attendance-grid99{width:100%!important;min-width:calc(116px + var(--days99)*24px)!important;max-width:none!important;table-layout:fixed!important;zoom:1!important}
+  body table.attendance-grid99{width:100%!important;min-width:calc(116px + var(--days99)*20px)!important;max-width:none!important;table-layout:fixed!important;zoom:1!important}
   body table.attendance-grid99 tr>*:first-child{width:116px!important;min-width:116px!important;max-width:116px!important}
-  body table.attendance-grid99 thead th:not(:first-child),body table.attendance-grid99 tbody td{width:auto!important;min-width:24px!important;max-width:none!important;text-align:center!important;padding:1px!important;vertical-align:middle!important}
-  body table.attendance-grid99 .attendance-cell101{width:22px!important;min-width:22px!important;max-width:22px!important;height:22px!important;min-height:22px!important;max-height:22px!important;padding:0!important;border-radius:3px!important;display:grid!important;place-items:center!important;margin:0 auto!important;border-color:var(--dot-color)!important;background:var(--dot-color)!important}
-  body table.attendance-grid99 thead th:not(:first-child){height:26px!important;min-height:26px!important;line-height:22px!important}
-  body table.attendance-grid99 tbody tr,body table.attendance-grid99 tbody :is(th,td){height:26px!important;min-height:26px!important;padding-block:2px!important}
+  body table.attendance-grid99 thead th:not(:first-child),body table.attendance-grid99 tbody td{width:auto!important;min-width:20px!important;max-width:none!important;text-align:center!important;padding:0!important;vertical-align:middle!important}
+  body table.attendance-grid99 .attendance-cell101{width:18px!important;min-width:18px!important;max-width:18px!important;height:18px!important;min-height:18px!important;max-height:18px!important;padding:0!important;border-radius:3px!important;display:grid!important;place-items:center!important;margin:0 auto!important;border-color:var(--dot-color)!important;background:var(--dot-color)!important}
+  body table.attendance-grid99 thead th:not(:first-child){height:22px!important;min-height:22px!important;line-height:18px!important}
+  body table.attendance-grid99 tbody tr,body table.attendance-grid99 tbody :is(th,td){height:22px!important;min-height:22px!important;padding-block:2px!important}
   body table.attendance-grid99 .attendance-dot99{display:none!important}
  }
 }
@@ -143,3 +143,24 @@ body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendan
 .hr-news-list14309 article{padding:12px 0;border-bottom:1px solid #d7e1d9}.hr-news-list14309 h4{margin:0 0 5px;font-size:14px}.hr-news-list14309 p{font-size:12px;line-height:1.5;margin:5px 0}.hr-news-list14309 .actions82{display:flex;gap:8px;margin-top:8px}.hr-news-list14309 small{color:#63736a}.hr-news-list14309 a{color:#006c50}.hr-news-list14309 details{margin-top:12px;font-size:12px}
 
 .hr-news-dialog14309 .hr-dialog-body14306>p{font-size:13px;line-height:1.5}
+
+/* Checkbox dropdown for shared-date leave requests. */
+body .leave-employees143154{position:relative;min-width:220px;border:1px solid #b9cfc3;border-radius:5px;background:#fff}
+body .leave-employees143154 summary{padding:8px;cursor:pointer}
+body .leave-employees143154>div{max-height:240px;overflow:auto;padding:6px}
+body .leave-employees143154 label{display:flex!important;flex-direction:row!important;align-items:center;gap:8px;padding:6px;min-width:0!important}
+body .leave-employees143154 input[type=checkbox]{width:18px!important;min-height:18px!important;flex:none}
+body [data-leave-days]{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+
+body .leave-employee-field143154{display:grid;gap:5px;flex:1;min-width:220px;font-size:12px}
+body .leave-employee-field143154 select[hidden]{display:none!important}
+
+body .employee-order143154{cursor:grab;touch-action:none;white-space:nowrap}
+body .employee-order143154:active{cursor:grabbing}
+body tr.employee-drop143154{outline:2px solid #008563;outline-offset:-2px;background:#e8f2e9}
+
+@layer app-controls14305{
+ body table.attendance-grid99 .attendance-name143154{display:block!important;width:100%!important;min-width:0!important;min-height:20px!important;height:auto!important;padding:0!important;border:0!important;background:transparent!important;color:inherit!important;font:inherit!important;text-align:left!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;cursor:pointer}
+ body table.attendance-grid99 .attendance-name143154:focus-visible{outline:2px solid #008563!important;outline-offset:-2px}
+ @media screen{body table.attendance-grid99 tr.attendance-selected143154> :is(th,td){background:#e1efbc!important;box-shadow:inset 0 1px #87a957,inset 0 -1px #87a957}}
+}

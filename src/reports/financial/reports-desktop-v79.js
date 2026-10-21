@@ -25,10 +25,27 @@ function reportTable79(headers,rows,currency,print=false){
  const idWidth=longest([headers.indexOf('Entry ID')],9)+2,amountWidth=longest(headers.flatMap((h,i)=>column(h)==='amount'?[i]:[]),12)+1;
  const widths=`--report-id-width143116:calc(${idWidth}ch + 16px);--report-amount-width143116:calc(${amountWidth}ch + 16px);--report-min-width143116:calc(${ledger?665+(headers.includes('LAK rate')?100:0):360+(headers.includes('Original currency / net')?170:0)}px + ${ledger?idWidth+3*amountWidth:5*amountWidth}ch + ${ledger?64:80}px)`;
  const attr=h=>ledger?'data-ledger-column143108="'+column(h)+'"':trial?'data-trial-column143116="'+column(h)+'"':'';
- if(ledger&&!print){const key=JSON.stringify([Reports79.kind,currency,Reports79.from,Reports79.to,Reports79.basis,Reports79.account,Reports79.currency,Reports79.query,Reports79.selectedMonths14331,reportSort143153(),rows[0]?.[0],rows.at(-1)?.[0]]),pages=Math.max(1,Math.ceil(rows.length/100)),s=reportPages143108.get(key)||{page:0};s.pages=pages;s.page=Math.min(s.page,pages-1);reportPages143108.set(key,s);if(reportPages143108.size>32)reportPages143108.delete(reportPages143108.keys().next().value);rows=rows.slice(s.page*100,(s.page+1)*100);pager=`<div class="table-pages14383 no-print"><button type="button" class="je-btn je-btn-secondary" ${s.page?'':'disabled'} onclick="reportPage143108(${re79(JSON.stringify(key))},-1)">Prev</button><span>${s.page+1} of ${pages}</span><button type="button" class="je-btn je-btn-secondary" ${s.page+1<pages?'':'disabled'} onclick="reportPage143108(${re79(JSON.stringify(key))},1)">Next</button></div>`;}
+
  return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${row.map((v,i)=>`<td ${attr(headers[i])}>${!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(v)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(v)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="showJournalSource69(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:re79(headers[i]==='Date'?formatAppDate(v):v)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`}</tbody></table></div>${pager}`}
 function reportHierarchy14383(rows){
  return window.ForeignFunds14386?ForeignFunds14386.hierarchy(rows,compareReportAccounts143153):[...rows].sort(compareReportAccounts143153);
+}
+function balanceExplanation143154(currency,assets,liabilities,equity,result){
+ const difference=assets-liabilities-equity-result,original=Reports79.basis!=='LAK',saved={...Reports79};let full;
+ try{Object.assign(Reports79,{kind:'tb',basis:'original',currency:''});full=reportData79()}finally{Object.assign(Reports79,saved)}
+ const recognized=r=>['ASSET','LIABILITY','EQUITY','REVENUE','EXPENSE'].includes(String(r.account.baseType||r.account.type).toUpperCase());
+ const selected=full.filter(r=>!original||r.currency===currency),excluded=selected.filter(r=>r.account.isTechnical||!recognized(r)),net=r=>original?r.closing:r.baseClosing;
+ const omitted=excluded.reduce((n,r)=>n+net(r),0),residual=difference+omitted;
+ let note=`Assets ${money69(assets)} − liabilities ${money69(liabilities)} − equity ${money69(equity)} − result ${money69(result)} = ${money69(difference)} ${currency}. `;
+ note+=difference>0?'Positive means assets exceed liabilities plus equity and result. ':difference<0?'Negative means assets are below liabilities plus equity and result. ':'This view balances. ';
+ if(original){note+='Original currencies are separate views: related reporting entries can be in LAK, while technical mapping accounts are excluded here. ';
+ const parts=excluded.filter(r=>net(r)).map(r=>`${r.account.code} ${r.account.name}: ${money69(-net(r))} ${currency}`);
+ if(parts.length)note+='Contribution from excluded accounts (opposite of their debit-minus-credit balances): '+parts.join('; ')+`. Total ${money69(-omitted)} ${currency}. `;
+ note+=residual?`Remaining difference after including those accounts: ${money69(residual)} ${currency}; review cross-currency entries and the trial balance. `:'Including those accounts reconciles this currency to zero. ';
+ }
+ const visible=full.filter(r=>!r.account.isTechnical&&recognized(r)),lak=visible.reduce((n,r)=>n+r.baseClosing,0);
+ note+=full.some(r=>r.missingRates)?'LAK validation is incomplete: exchange rates are missing. ':lak?`Combined LAK balance-sheet difference: ${money69(lak)} LAK — review required; do not treat this as only a currency-display difference.`:'Combined LAK balance-sheet difference: 0.00 LAK. ';
+ return note;
 }
 function reportModel79(kind,oldest=false){
  if(Reports79.basis==='LAK'){const missing=reportData79().filter(r=>r.missingRates);if(missing.length)return [{currency:'LAK — incomplete',headers:['Account','Original currency','Missing rate records'],values:missing.map(r=>[r.account.name,r.sourceCurrency,r.missingRates]),metrics:[],note:'LAK totals are withheld until missing exchange rates are supplied. Original-currency records remain available. No exchange rate has been guessed.'}];}
@@ -43,7 +60,7 @@ function reportModel79(kind,oldest=false){
  }else if(kind==='bs'){
  const assets=sum(type(rows,'ASSET'),r=>r.closing),liabilities=-sum(type(rows,'LIABILITY'),r=>r.closing),equity=-sum(type(rows,'EQUITY'),r=>r.closing),earnings=-sum([...type(rows,'REVENUE'),...type(rows,'EXPENSE')],r=>r.closing);
  headers=['Classification','Account','Closing amount'];values=['ASSET','LIABILITY','EQUITY'].flatMap(t=>reportHierarchy14383(type(rows,t)).map(r=>[t,r.account.name,money69(t==='ASSET'?r.closing:-r.closing)]));values.push(['EQUITY','Unclosed accumulated result',money69(earnings)]);metrics=[['Assets',assets],['Liabilities + equity + result',liabilities+equity+earnings],['Difference',assets-liabilities-equity-earnings]];
- note='Position at the end date, including all earlier posted balances. Unclosed accumulated result is the remaining revenue and expense balance; it is not posted again.';
+ note=balanceExplanation143154(currency,assets,liabilities,equity,earnings);
  }else if(kind==='tb'){
  headers=['Account','Classification','Opening (DR − CR)','Period debit','Period credit','Closing debit','Closing credit'];values=reportHierarchy14383(rows).map(r=>[r.account.name,(r.closing>0?'DR · ':r.closing<0?'CR · ':'— · ')+r.account.type,money69(r.opening),money69(r.debit),money69(r.credit),money69(Math.max(r.closing,0)),money69(Math.max(-r.closing,0))]);const dr=sum(rows,r=>Math.max(r.closing,0)),cr=sum(rows,r=>Math.max(-r.closing,0));metrics=[['Closing debit',dr],['Closing credit',cr],['Difference',dr-cr]];note='Equal totals check arithmetic; they do not confirm that every entry is complete or correctly classified.';
  }else if(kind==='cf'||kind==='payroll'){

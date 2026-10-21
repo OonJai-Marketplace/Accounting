@@ -13,7 +13,7 @@ function transactionPage14340(tbody,groups,ids){
   if(!bar?.classList.contains('transaction-pages14340')){bar=document.createElement('div');bar.className='transaction-pages14340 module-actions71 no-print';container.after(bar)}
   if(typeof isPrintMode!=='undefined'&&isPrintMode){bar.hidden=true;return ids.map(id=>({id,start:0,end:groups[id].length}))}
   const max=pages.length,selected=Math.min(Number(tbody.dataset.page14340)||0,max-1);tbody.dataset.page14340=String(selected);
-  bar.hidden=false;bar.replaceChildren();
+  bar.hidden=max<=1;bar.replaceChildren();
   const previous=document.createElement('button'),next=document.createElement('button'),label=document.createElement('span');
   previous.type=next.type='button';previous.className=next.className='je-btn je-btn-secondary';previous.textContent='Previous';next.textContent='Next';previous.disabled=selected===0;next.disabled=selected===max-1;
   label.textContent=`${selected+1} of ${max}`;

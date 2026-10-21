@@ -1,0 +1,12 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
+const employees=[{id:'a',data:{name:'A',active:true}},{id:'b',data:{name:'B',active:true}}],options=employees.map(e=>({value:e.id,selected:true}));const picker={options,get selectedOptions(){return options.filter(o=>o.selected)}};const form={elements:{employeeId:picker},querySelectorAll:()=>[],querySelector:()=>null};
+const c={window:{},Work82:{employees,leaves:[],runs:[]},document:{getElementById:()=>form},form82:()=>({employeeId:'b',from:'2026-10-22',to:'2026-10-22',month:'2026-10',days:1,type:'vacation',paid:'yes',reference:'ref',notes:'shared'}),runAction82:fn=>fn(),renderWork82(){},showCenterStatus(){},employee:id=>employees.find(e=>e.id===id),hrCalendar14306:{guard(){},config:()=>({}),state:{rows:[]},snapshot:()=>({}),changed(){}},M:{leaveDays:(from,to,id)=>id==='a'?1:0.5},ApplicationSettings:{payroll:{}},saved:[],fail:false};
+vm.createContext(c);vm.runInContext(fs.readFileSync('src/hr/leave/leave-forms-v82.js','utf8'),c);vm.runInContext(fs.readFileSync('src/hr/leave/approval14306.js','utf8'),c);
+c.hrWorkspace14306=c.window.hrWorkspace14306={prepareLeaveRequest:c.prepareLeaveRequest,finishLeaveBatch(){}};
+c.saveWork82=async(kind,data)=>{if(c.fail&&data.employeeId==='b')throw Error('Connection failed');c.saved.push(data);c.Work82.leaves.push({id:data.employeeId,data});};
+(async()=>{await c.saveLeave82();assert.equal(c.saved.length,2);assert.equal(c.saved[0].days,1);assert.equal(c.saved[1].days,0.5);assert.equal(c.saved[1].status,'pending');assert.equal(options.filter(o=>o.selected).length,0);
+options.forEach(o=>o.selected=true);await assert.rejects(c.saveLeave82(),/Overlapping leave for A/);assert.equal(c.saved.length,2);
+c.Work82.leaves=[];c.saved=[];c.fail=true;await assert.rejects(c.saveLeave82(),/Saved for A.*Remaining employees/);assert.equal(options[0].selected,false);assert.equal(options[1].selected,true);assert.equal(c.window.leaveBatchSaving82,false);
+c.fail=false;await c.saveLeave82();assert.equal(c.saved.length,2);assert.equal(c.saved.filter(d=>d.employeeId==='a').length,1);
+options.forEach(o=>o.selected=true);c.Work82.leaves=[];c.Work82.runs=[{data:{status:'finalized',month:'2026-10',rows:[{employeeId:'b'}]}}];const before=c.saved.length;await assert.rejects(c.saveLeave82(),/Payroll is finalized for B/);assert.equal(c.saved.length,before);
+console.log('Multi-employee leave passed: separate schedules, pending records, overlaps, finalized payroll and partial-save retry');})().catch(e=>{console.error(e);process.exitCode=1});
