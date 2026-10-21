@@ -1,8 +1,8 @@
 {
-  "version": "143.151",
+  "version": "143.152",
   "changes": [
-    "Rotate selected document images left or right, align them, and add or remove a border.",
-    "Delete selected images with Backspace or Delete, with undo support.",
-    "Fit newly inserted images to available page space and avoid moving an entire mixed image-and-text block unnecessarily."
+    "AI Journal opens Active Journal directly after confirmed posting, with completed drafts removed immediately.",
+    "Posting checks run concurrently; journal refresh and verified Google archiving continue in the background.",
+    "Returning to AI Journal keeps the remaining drafts ready without waiting for completed drafts to archive."
   ]
 }

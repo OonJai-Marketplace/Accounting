@@ -1,5 +1,5 @@
 {
-  "release": "143.151",
+  "release": "143.152",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -39,12 +39,12 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "1c0c5906bbcb1022bf5f6bfdbc24f9738713e62569ce68ccd063eefee337bbe7",
+      "sha256": "2aa7c20f63b5753c5fd6046bafa023914bbf238215f810f6ef767a6fabbc90d5",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "5d0b547fe0df07fcf9df518676bc406d5410df2d851e84a38f3c28b34d900ac6",
+      "sha256": "6facff86de0a551f43f7f79591f36e5c89e5f449a15b3125c5a9f5fe2c73cd07",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -838,7 +838,7 @@
     },
     {
       "path": "scripts/drive-drafts143128.js",
-      "sha256": "aa456962a5f7ba68ecec32ce940690d6dc507c5b7f04a4326532dcffb22271cc",
+      "sha256": "b7b0e44eea86078ba47b1cd70fdacd870d767d45d34f8878bef1bc9052647f96",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1113,7 +1113,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "7df19efdcee3fd94eccf3367b37f292bcf29ac7e11db5b11c3cf49655bf91f3d",
+      "sha256": "fc9880c697ebf7c164120054fb5c0f521f989d59b649c2b88a11c7669ed178fa",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {

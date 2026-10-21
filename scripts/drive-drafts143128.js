@@ -2,6 +2,7 @@
 (()=>{'use strict';
 const HEAD=['draft_id','posting_date','description','line_no','account_id','account_code','currency','debit','credit','line_date','fx_rate_lak','book_rate_lak','line_memo'];
 let sharedSettings=null,sharedOwner='',sharedLoaded=false;
+const completedDrafts=new Set(),archiveJobs=new Map();let archiveQueue=Promise.resolve(),journalRefresh=Promise.resolve();
 let backgroundBusy=false,connectionStatus=null,panel=null,settingsPanel=null,view='journal',editing=null,reviewed=new Map(),busy=false,epoch=0;let pendingDraftNotices=[],lastDraftSignature='';let originalEditorMarker=null;let aiSourceRefs=new Map();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const identity=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
@@ -12,7 +13,7 @@ function context(){if(!current())throw Error('Sign in with journal posting acces
 function assert(c){if(c.owner!==identity()||c.db!==ojmDb||c.epoch!==epoch||c.sheet!==config().sheet||!current())throw Error('Account or connection changed. Reopen Drive drafts.');}
 function online(){if(!navigator.onLine||window.offline14239?.offline()||window.sessionCache14333?.localMode)throw Error('Connect online before reading or approving Drive drafts.');}
 function message(s){for(const host of [panel,settingsPanel]){const n=host?.querySelector('[data-drive-status]');if(n)n.textContent=s;}}
-function disconnect(){if(editing)cancelEdit(true);connectionStatus=null;reviewed.clear();pendingDraftNotices=[];lastDraftSignature='';aiSourceRefs.clear();window.refreshNotices1443?.();epoch++;panel?.querySelector('[data-drive-list]')?.replaceChildren();message('Disconnected. Drafts remain in Google Drive.');}
+function disconnect(){if(editing)cancelEdit(true);connectionStatus=null;completedDrafts.clear();archiveJobs.clear();reviewed.clear();pendingDraftNotices=[];lastDraftSignature='';aiSourceRefs.clear();window.refreshNotices1443?.();epoch++;panel?.querySelector('[data-drive-list]')?.replaceChildren();message('Disconnected. Drafts remain in Google Drive.');}
 async function bridge(action,payload={},endpoint='google-journal-bridge'){
  const c=context();online();const session=await c.db.auth.getSession();assert(c);const token=session.data?.session?.access_token;if(!token)throw Error('Sign in to Accounting first.');
  const response=await fetch('https://nhjsesfhapnjtwlxvirm.supabase.co/functions/v1/'+endpoint,{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});const result=await response.json();assert(c);if(!response.ok||result.error)throw Error(result.error||'Google connection unavailable');return result;
@@ -21,9 +22,9 @@ async function connect(){if(editing||editorOccupied())throw Error('Finish or sav
 async function api(path,options={}){return bridge('request',{sheet:config().sheet,path,method:options.method||'GET',body:options.body?JSON.parse(options.body):undefined});}
 async function checkBackground(){
  if(!current()||!navigator.onLine||backgroundBusy)return;const c=context();backgroundBusy=true;
- try{const r=await c.db.from('google_inbox143150').select('notices,checked_at,error').eq('sheet',c.sheet).maybeSingle();assert(c);if(r.error)throw r.error;if(r.data){pendingDraftNotices=(r.data.notices||[]).filter(n=>!reviewed.get(n.noticeId)?.saved);window.refreshNotices1443?.();if(r.data.error)message('Background check: '+r.data.error);}
+ try{const r=await c.db.from('google_inbox143150').select('notices,checked_at,error').eq('sheet',c.sheet).maybeSingle();assert(c);if(r.error)throw r.error;if(r.data){pendingDraftNotices=(r.data.notices||[]).filter(n=>!completedDrafts.has(n.noticeId)&&!reviewed.get(n.noticeId)?.saved);window.refreshNotices1443?.();if(r.data.error)message('Background check: '+r.data.error);}
  const status=await bridge('status');assert(c);const firstCheck=!connectionStatus;connectionStatus=status;if(firstCheck&&status.connected&&!busy&&!editing)message('Connected as '+status.email+' · Background checks active.');document.querySelectorAll('#gptDrafts143129 [data-connect],#googleSheets143129 [data-connect]').forEach(b=>b.textContent=status.connected?'Reconnect Google':'Connect Google');if(!busy&&!editing&&!status.connected)message('Connect the company Google account once to activate background draft checks.');
- if(!busy&&!editing&&view==='gpt'){if(status.connected){const rows=await readDrafts(),groups=parse(rows),signature=JSON.stringify([...groups].map(([key,items])=>[key,items]));assert(c);if(signature!==lastDraftSignature)await run(refresh);}}
+ if(!busy&&!editing&&view==='gpt'){if(status.connected){const rows=await readDrafts(),groups=parse(rows),signature=JSON.stringify([...groups].filter(([key])=>!completedDrafts.has(key)).map(([key,items])=>[key,items]));assert(c);if(signature!==lastDraftSignature)await run(()=>refresh(rows));}}
  }catch(e){if(c.owner===identity()&&c.epoch===epoch&&view==='gpt')message(e.message);}finally{backgroundBusy=false;}
 }
 async function readDrafts(){const r=await api('/values/'+encodeURIComponent('Drafts!A1:N10002')+'?valueRenderOption=UNFORMATTED_VALUE');if(r.values?.length>10001)throw Error('Draft sheet exceeds 10,000 lines. Archive reviewed rows first.');return r.values||[];}
@@ -53,6 +54,23 @@ async function archivePostedDraft(id,number){
  const latest=await readDrafts();assert(c);
  if(JSON.stringify(latest)!==JSON.stringify(source))throw Error('Draft changed during archiving. Retry safely.');
  await request(':batchUpdate',{method:'POST',body:JSON.stringify({requests:indices.reverse().map(i=>({deleteDimension:{range:{sheetId:draft.properties.sheetId,dimension:'ROWS',startIndex:i,endIndex:i+1}}}))})});
+}
+function queueArchive(id,number,c=context()){
+ if(archiveJobs.has(id))return archiveJobs.get(id);
+ const job=archiveQueue.catch(()=>{}).then(()=>{assert(c);return archivePostedDraft(id,number);});
+ archiveQueue=job;archiveJobs.set(id,job);
+ void job.catch(e=>{if(c.owner===identity()&&c.epoch===epoch)message('Posted as '+number+'. Archive pending: '+e.message);}).finally(()=>{if(archiveJobs.get(id)===job)archiveJobs.delete(id);});
+ return job;
+}
+function openActiveJournal(){
+ choose('journal');window.switchTab('journal');window.groupedNavigation14378?.render('journal');
+ if($('jeSearchInput'))$('jeSearchInput').value='';
+ requestAnimationFrame(()=>{if(view==='journal'&&$('journal')?.classList.contains('active'))$('tblJournalHistory')?.closest('.je-card')?.scrollIntoView({behavior:'instant',block:'start'});});
+}
+function refreshPostedJournal(c,number){
+ // Serialize refreshes so a slower, older snapshot cannot overwrite the next post.
+ journalRefresh=journalRefresh.catch(()=>{}).then(async()=>{assert(c);window.yearWindow14333?.invalidateMemory?.();await loadJournalFromSupabase();assert(c);if(view==='journal'&&$('journal')?.classList.contains('active'))showCenterStatus('Posted as '+number+'. Active Journal updated.');});
+ void journalRefresh.catch(()=>{if(c.owner===identity()&&c.epoch===epoch){message('Posted as '+number+'. Use Sync to refresh Active Journal.');showCenterStatus('Posted as '+number+'. Use Sync to refresh Active Journal; do not post again.',true);}});
 }
 function readLegacySourceRefs(rows){
  // Preserve old references only for duplicate detection. Never allocate IDs in Sheets.
@@ -120,10 +138,10 @@ function display(id,rows,payload,error,receiptData,chart){
  if(!receiptData){const b=document.createElement('button');b.type='button';b.className='je-btn';b.textContent='Edit';b.onclick=()=>run(()=>editDraft(id,card));card.querySelector('[data-action]').append(b);}
  panel.querySelector('[data-drive-list]').append(card);return card;
 }
-async function refresh(){
- if(editing)throw Error('Finish or cancel the current edit before refreshing drafts.');const c=context();message('Refreshing accounts and reading drafts…');const a=await syncChart(),sourceRows=await readDrafts();readLegacySourceRefs(sourceRows);const groups=parse(sourceRows);assert(c);reviewed.clear();panel.querySelector('[data-drive-list]').replaceChildren();
- for(const [id,rows]of groups){let payload,error='',saved;try{saved=await receipt(id);if(!saved){const already=await alreadyPostedAiDraft(id);if(already)saved={result:[{entry_no:already.entry_no,entry_id:already.id}],manualReconciled:true};}payload=normalize(rows,a,settings());if(saved?.result?.[0]?.entry_no){await archivePostedDraft(id,saved.result[0].entry_no);continue;}}catch(e){error=e.message;}assert(c);reviewed.set(id,{rows:JSON.stringify(rows),payload,chart:a,saved});const card=display(id,rows,payload,error,saved,a);if(!saved&&!error){try{const next=await previewEntryId(rows[0].posting_date);assert(c);card.querySelector('[data-entry-id]').textContent='Next available: '+next;card.querySelector('[data-entry-id]').title='Not reserved. Accounting assigns the final ID when posted.';}catch(e){assert(c);card.querySelector('[data-entry-id]').textContent='Entry ID: unavailable';}}}
- const pending=[...groups].filter(([key])=>reviewed.has(key)&&!reviewed.get(key)?.saved).map(([key,items])=>({noticeId:key,type:'AI Journal draft',title:items[0]?.description||'Journal draft',detail:items[0]?.posting_date||'',target:'ai-journal'}));pendingDraftNotices=pending;lastDraftSignature=JSON.stringify([...groups].map(([key,items])=>[key,items]));window.refreshNotices1443?.();
+async function refresh(prefetchedRows){
+ if(editing)throw Error('Finish or cancel the current edit before refreshing drafts.');const c=context();message('Refreshing accounts and reading drafts…');const [a,sourceRows]=await Promise.all([syncChart(),prefetchedRows?Promise.resolve(prefetchedRows):readDrafts()]);readLegacySourceRefs(sourceRows);const groups=parse(sourceRows);assert(c);reviewed.clear();panel.querySelector('[data-drive-list]').replaceChildren();
+ for(const [id,rows]of groups){let payload,error='',saved;try{saved=await receipt(id);if(!saved){const already=await alreadyPostedAiDraft(id);if(already)saved={result:[{entry_no:already.entry_no,entry_id:already.id}],manualReconciled:true};}payload=normalize(rows,a,settings());if(saved?.result?.[0]?.entry_no){completedDrafts.add(id);void queueArchive(id,saved.result[0].entry_no,c);continue;}}catch(e){error=e.message;}assert(c);if(completedDrafts.has(id))continue;reviewed.set(id,{rows:JSON.stringify(rows),payload,chart:a,saved});const card=display(id,rows,payload,error,saved,a);if(!saved&&!error){try{const next=await previewEntryId(rows[0].posting_date);assert(c);card.querySelector('[data-entry-id]').textContent='Next available: '+next;card.querySelector('[data-entry-id]').title='Not reserved. Accounting assigns the final ID when posted.';}catch(e){assert(c);card.querySelector('[data-entry-id]').textContent='Entry ID: unavailable';}}}
+ const pending=[...groups].filter(([key])=>reviewed.has(key)&&!reviewed.get(key)?.saved).map(([key,items])=>({noticeId:key,type:'AI Journal draft',title:items[0]?.description||'Journal draft',detail:items[0]?.posting_date||'',target:'ai-journal'}));pendingDraftNotices=pending;lastDraftSignature=JSON.stringify([...groups].filter(([key])=>!completedDrafts.has(key)).map(([key,items])=>[key,items]));window.refreshNotices1443?.();
  if(!reviewed.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">No AI Journal drafts yet. Entries will appear here after they are added to the connected submission sheet.</p>';
  message(reviewed.size+' pending drafts loaded · Last checked '+new Date().toLocaleTimeString()+'. Edit an entry, then Post to Journal.');
 }
@@ -154,15 +172,25 @@ async function alreadyPostedAiDraft(id){
 }
 async function postEdited(){
  if(!editing)throw Error('Choose an AI Journal draft to edit first.');const edit=editing,c=edit.context;assert(c);online();
- const existing=await alreadyPostedAiDraft(edit.id);assert(c);if(existing){cancelEdit(true);choose('journal');window.switchTab('journal');message('Already posted as '+existing.entry_no+'. Do not post this draft twice.');return;}const prior=await receipt(edit.id);assert(c);if(prior){finishPosted(edit,prior.result,prior.payload?.[0]);return;}
- const groups=parse(await readDrafts());assert(c);if(JSON.stringify(groups.get(edit.id))!==edit.source)throw Error('The source draft changed in Google Sheets. Your editor is retained. Copy your adjustments, then cancel and refresh to review the new version.');
- const chart=await accounts();assert(c);const payload=editedPayload(chart);
+ // Independent reads overlap; validation and the idempotent posting RPC remain mandatory.
+ const [existing,prior,sourceRows,chart]=await Promise.all([alreadyPostedAiDraft(edit.id),receipt(edit.id),readDrafts(),accounts()]);assert(c);
+ if(existing){finishPosted(edit,[{entry_id:existing.id,entry_no:existing.entry_no}]);return;}
+ if(prior){finishPosted(edit,prior.result,prior.payload?.[0]);return;}
+ const groups=parse(sourceRows);if(JSON.stringify(groups.get(edit.id))!==edit.source)throw Error('The source draft changed in Google Sheets. Your editor is retained. Copy your adjustments, then cancel and refresh to review the new version.');
+ const payload=editedPayload(chart);
  const r=await c.db.rpc('approve_drive_journal143128',{p_sheet:c.sheet,p_draft:edit.id,p_entry:payload});assert(c);if(r.error)throw r.error;finishPosted(edit,r.data,payload);
- window.yearWindow14333?.invalidateMemory?.();try{await loadJournalFromSupabase();assert(c);}catch{message('Posted successfully. Use Sync to refresh Active Journal.');}
- await window.entryNumber14257?.refresh();
- choose('journal');window.switchTab('journal');
 }
-function finishPosted(edit,result,payload){if(!Array.isArray(result)||result.length!==1||!result[0].entry_id||!result[0].entry_no)throw Error('Posting confirmation incomplete. Retry this same draft to check its receipt.');const number=result[0].entry_no;edit.card.querySelector('[data-result]').textContent='Posted: '+number;edit.card.querySelector('[data-action]').replaceChildren();const review=reviewed.get(edit.id);if(review){review.saved={result,payload:payload?[payload]:undefined};if(payload){display(edit.id,JSON.parse(edit.source),payload,'',review.saved,review.chart);const updated=panel.querySelector('[data-drive-list]').lastElementChild;edit.card.replaceWith(updated);}}pendingDraftNotices=pendingDraftNotices.filter(n=>n.noticeId!==edit.id);window.refreshNotices1443?.();cancelEdit(true);message('Posted as '+number+'. Removing completed draft from inbox…');void archivePostedDraft(edit.id,number).then(()=>message('Posted as '+number+'. Draft archived.')).catch(e=>message('Posted as '+number+'. Archive pending: '+e.message));}
+function finishPosted(edit,result,payload){
+ if(!Array.isArray(result)||result.length!==1||!result[0].entry_id||!result[0].entry_no)throw Error('Posting confirmation incomplete. Retry this same draft to check its receipt.');
+ const number=result[0].entry_no,c=edit.context;assert(c);
+ completedDrafts.add(edit.id);reviewed.delete(edit.id);edit.card.remove();
+ if(lastDraftSignature)lastDraftSignature=JSON.stringify(JSON.parse(lastDraftSignature).filter(([id])=>id!==edit.id));
+ if(!reviewed.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts. Ready for the next entry.</p>';
+ pendingDraftNotices=pendingDraftNotices.filter(n=>n.noticeId!==edit.id);window.refreshNotices1443?.();cancelEdit(true);
+ message('Posted as '+number+'. '+reviewed.size+' drafts remaining.');openActiveJournal();showCenterStatus('Posted as '+number+'. Refreshing Active Journal…');
+ refreshPostedJournal(c,number);void queueArchive(edit.id,number,c);
+}
+
 async function run(fn){if(busy)return;busy=true;const e=epoch;const controls=[...document.querySelectorAll('#gptDrafts143129 button,#googleSheets143129 button')];controls.forEach(b=>b.disabled=true);if(editing)$('journalEntry98').inert=true;try{await fn();}catch(err){if(e===epoch)message(err.message);}finally{busy=false;$('journalEntry98').inert=false;if(e===epoch)controls.forEach(b=>b.disabled=false);}}
 function renderSettings(){
  if(!settingsPanel)return;const cfg=config();settingsPanel.innerHTML='<h3 class="je-title">Google Sheets</h3><p>Open your accounting spreadsheets and folders. Google controls access to each link.</p><div data-links class="gpt-links143129"></div><details><summary>Connection settings and protected link management</summary><p>Administrators save these links and connection settings to the shared accounting system. The company Google connection is saved securely on the server for background checks. Add one name and Google Sheets or Drive folder URL per line, separated by |.</p><div class="je-actions-bar"><button type="button" class="je-btn" data-edit-links>Edit saved links</button><button type="button" class="je-btn" data-cancel-links hidden>Cancel link changes</button></div><label>Saved links<textarea data-links-input class="je-input" rows="7" readonly aria-label="Saved links, read-only until Edit saved links is selected"></textarea></label><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><label>Google OAuth client ID<input data-client class="je-input" autocomplete="off"></label><p>Journal IDs use Accounting → Entry IDs &amp; Prefixes → Main journal and the shared number digits. IDs are assigned by Accounting when posted.</p><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save settings</button><button type="button" class="je-btn" data-reload>Reload settings</button></div><p><a href="docs/DRIVE-DRAFTS-v143.128.md" target="_blank" rel="noopener">Google connection setup instructions</a></p></details><div class="je-actions-bar"><button class="je-btn" type="button" data-connect>Connect Google</button></div><p data-drive-status role="status"></p><p>Google connection uses manual authorization after reloads. While this workspace is active, connected drafts are checked every minute. Posting still requires your review.</p>';
