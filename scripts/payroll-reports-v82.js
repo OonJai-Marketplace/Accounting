@@ -31,7 +31,8 @@ function leaveForm82(){return `<form id="leaveForm82" onsubmit="event.preventDef
 function leaveSelection82(form){return [...form.elements.employeeId.selectedOptions].map(o=>o.value).filter(Boolean)}
 function syncLeaveEmployees82(form){const select=form.elements.employeeId,ids=leaveSelection82(form);form.querySelectorAll('[data-leave-employee]').forEach(box=>box.checked=ids.includes(box.dataset.leaveEmployee));const title=form.querySelector('[data-leave-selection]');if(title)title.textContent=ids.length?ids.length+' employee'+(ids.length===1?'':'s')+' selected':'Choose employees';}
 function toggleLeaveEmployee82(box){const form=box.closest('form'),option=[...form.elements.employeeId.options].find(o=>o.value===box.dataset.leaveEmployee);if(option)option.selected=box.checked;syncLeaveEmployees82(form);form.elements.employeeId.dispatchEvent(new Event('change',{bubbles:true}));}
-function saveLeave82(){const form=document.getElementById('leaveForm82'),d=form82('leaveForm82');if(!d)return;const ids=leaveSelection82(form);delete d[''];return runAction82(async()=>{
+function saveLeave82(){const form=document.getElementById('leaveForm82'),d=form82('leaveForm82');if(!d)return;const ids=leaveSelection82(form),actor=liveProfile?.id,client=ojmDb;delete d[''];const guard=()=>{if(!actor||actor!==liveProfile?.id||client!==ojmDb)throw Error('The signed-in account changed. Reopen Leave before continuing.');};return runAction82(async()=>{
+ guard();
  if(!ids.length)throw Error('Select at least one employee.');
  if(d.from>d.to)throw Error('End date must follow the start date.');
  if(d.from.slice(0,7)!==d.month||d.to.slice(0,7)!==d.month)throw Error('Split leave across months before saving.');
@@ -41,8 +42,8 @@ function saveLeave82(){const form=document.getElementById('leaveForm82'),d=form8
  let data={...d,employeeId,status:'pending'};if(window.hrWorkspace14306?.prepareLeaveRequest)data=hrWorkspace14306.prepareLeaveRequest(data,true);
  if(!Number.isFinite(Number(data.days))||Number(data.days)<=0||Number(data.days)>duration)throw Error('Review working days for '+e.data.name+'.');return {name:e.data.name,data};});
  const saved=[];window.leaveBatchSaving82=true;
- try{for(const request of requests){await saveWork82('leaves',request.data);saved.push(request.name);const option=[...form.elements.employeeId.options].find(o=>o.value===request.data.employeeId);if(option)option.selected=false;syncLeaveEmployees82(form)}}
- catch(error){throw Error((saved.length?'Saved for '+saved.join(', ')+'. Remaining employees are still selected; retry saves only those remaining. ':'No requests saved. ')+(error.message||error))}
+ try{for(const request of requests){guard();await saveWork82('leaves',request.data);guard();saved.push(request.name);const option=[...form.elements.employeeId.options].find(o=>o.value===request.data.employeeId);if(option)option.selected=false;syncLeaveEmployees82(form)}}
+ catch(error){guard();throw Error((saved.length?'Saved for '+saved.join(', ')+'. Remaining employees are still selected; retry saves only those remaining. ':'No requests saved. ')+(error.message||error))}
  finally{window.leaveBatchSaving82=false;}
  window.hrWorkspace14306?.finishLeaveBatch?.();renderWork82();showCenterStatus(saved.length+' leave request'+(saved.length===1?'':'s')+' saved for review.');
 })}

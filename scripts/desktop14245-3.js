@@ -5737,21 +5737,19 @@ function reportSet79(k,v){const old={...Reports79};Reports79[k]=v;try{reportRang
 function reportSelect79(kind,key,checked){Reports79[kind]=checked?[...new Set([...Reports79[kind],key])]:Reports79[kind].filter(x=>x!==key);if(kind==='cash'&&document.querySelector('#report-cf .cash-picker14230')){syncCashAccountPicker14230();document.querySelector('#report-cf .r79-content').innerHTML=reportContent79('cf')}else renderReports79()}
 const reportFilterPanels143153=new Set(),reportSorts143153=new Map();
 function reportSort143153(kind=Reports79.kind){return reportSorts143153.get(kind)||{by:['gl','activity'].includes(kind)?'date':'account',direction:['gl','activity'].includes(kind)?'desc':'asc'}}
-function setReportSort143153(key,value){if(key==='by'&&!['date','account'].includes(value)||key==='direction'&&!['asc','desc'].includes(value))return;reportSorts143153.set(Reports79.kind,{...reportSort143153(),[key]:value});reportPages143108.clear();renderReports79()}
+function setReportSort143153(key,value){if(key==='by'&&!['date','account'].includes(value)||key==='direction'&&!['asc','desc'].includes(value))return;reportSorts143153.set(Reports79.kind,{...reportSort143153(),[key]:value});renderReports79()}
 function toggleReportFilters143153(button){const kind=Reports79.kind,panel=document.getElementById('reportFilters143153-'+kind);if(!panel)return;const show=panel.hidden;panel.hidden=!show;button.setAttribute('aria-expanded',String(show));if(show)reportFilterPanels143153.add(kind);else reportFilterPanels143153.delete(kind)}
 function compareReportAccounts143153(a,b){const direction=reportSort143153().direction==='desc'?-1:1;return direction*String(a.account.code||'').localeCompare(String(b.account.code||''),undefined,{numeric:true})}
 function compareReportLines143153(a,b,kind){const sort=reportSort143153(kind),direction=sort.direction==='desc'?-1:1,date=String(a.date).localeCompare(String(b.date)),account=String(a.accountCode||'').localeCompare(String(b.accountCode||''),undefined,{numeric:true});return direction*(sort.by==='account'?(account||date):(date||account))||String(a.id).localeCompare(String(b.id),undefined,{numeric:true})||(a.originalIndex||0)-(b.originalIndex||0)}
-const reportPages143108=new Map();
-function reportPage143108(key,delta){const s=reportPages143108.get(key);if(!s)return;s.page=Math.max(0,Math.min(s.page+delta,s.pages-1));renderReports79()}
 function reportTable79(headers,rows,currency,print=false){
- const ledger=headers.includes('Entry ID'),trial=headers.includes('Period debit')&&headers.includes('Closing credit'),column=h=>({'Date':'date','Entry ID':'id','Account':'account','Description / Reference':'description','LAK rate':'rate','Classification':'classification','Original currency / net':'original'}[h]||'amount');let pager='';
- // Measure all rows before pagination so columns do not jump between pages.
+ const ledger=headers.includes('Entry ID'),trial=headers.includes('Period debit')&&headers.includes('Closing credit'),column=h=>({'Date':'date','Entry ID':'id','Account':'account','Description / Reference':'description','LAK rate':'rate','Classification':'classification','Original currency / net':'original'}[h]||'amount');
+ // Measure all rows so column widths accommodate the complete report.
  const longest=(indices,min)=>rows.reduce((max,row)=>Math.max(max,...indices.map(i=>String(row[i]??'').length)),min);
  const idWidth=longest([headers.indexOf('Entry ID')],9)+2,amountWidth=longest(headers.flatMap((h,i)=>column(h)==='amount'?[i]:[]),12)+1;
  const widths=`--report-id-width143116:calc(${idWidth}ch + 16px);--report-amount-width143116:calc(${amountWidth}ch + 16px);--report-min-width143116:calc(${ledger?665+(headers.includes('LAK rate')?100:0):360+(headers.includes('Original currency / net')?170:0)}px + ${ledger?idWidth+3*amountWidth:5*amountWidth}ch + ${ledger?64:80}px)`;
  const attr=h=>ledger?'data-ledger-column143108="'+column(h)+'"':trial?'data-trial-column143116="'+column(h)+'"':'';
 
- return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${row.map((v,i)=>`<td ${attr(headers[i])}>${!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(v)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(v)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="showJournalSource69(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:re79(headers[i]==='Date'?formatAppDate(v):v)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`}</tbody></table></div>${pager}`}
+ return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${row.map((v,i)=>`<td ${attr(headers[i])}>${!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(v)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(v)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="showJournalSource69(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:re79(headers[i]==='Date'?formatAppDate(v):v)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`}</tbody></table></div>`}
 function reportHierarchy14383(rows){
  return window.ForeignFunds14386?ForeignFunds14386.hierarchy(rows,compareReportAccounts143153):[...rows].sort(compareReportAccounts143153);
 }
@@ -5762,6 +5760,7 @@ function balanceExplanation143154(currency,assets,liabilities,equity,result){
  const selected=full.filter(r=>!original||r.currency===currency),excluded=selected.filter(r=>r.account.isTechnical||!recognized(r)),net=r=>original?r.closing:r.baseClosing;
  const omitted=excluded.reduce((n,r)=>n+net(r),0),residual=difference+omitted;
  let note=`Assets ${money69(assets)} − liabilities ${money69(liabilities)} − equity ${money69(equity)} − result ${money69(result)} = ${money69(difference)} ${currency}. `;
+ note+='Result is accumulated income less expenses that has not yet been transferred to equity; it is included once in this balance. ';
  note+=difference>0?'Positive means assets exceed liabilities plus equity and result. ':difference<0?'Negative means assets are below liabilities plus equity and result. ':'This view balances. ';
  if(original){note+='Original currencies are separate views: related reporting entries can be in LAK, while technical mapping accounts are excluded here. ';
  const parts=excluded.filter(r=>net(r)).map(r=>`${r.account.code} ${r.account.name}: ${money69(-net(r))} ${currency}`);
@@ -5837,7 +5836,7 @@ const refreshBefore79=refreshAllTables;refreshAllTables=function(...args){const 
 matchMedia('(min-width:768px)').addEventListener('change',e=>{if(e.matches)renderReports79()});
 document.addEventListener('DOMContentLoaded',renderReports79);
 
-const logoutBefore79=logoutDemoUser;logoutDemoUser=async function(){reportPages143108.clear();reportSorts143153.clear();reportFilterPanels143153.clear();Reports79.notes={};Reports79.cash=[];Reports79.payroll=[];Reports79.account='';Reports79.query='';Reports79.currency='';document.querySelectorAll('.r79,.r79-print-frame').forEach(n=>n.remove());return logoutBefore79()};
+const logoutBefore79=logoutDemoUser;logoutDemoUser=async function(){reportSorts143153.clear();reportFilterPanels143153.clear();Reports79.notes={};Reports79.cash=[];Reports79.payroll=[];Reports79.account='';Reports79.query='';Reports79.currency='';document.querySelectorAll('.r79,.r79-print-frame').forEach(n=>n.remove());return logoutBefore79()};
 
 // Keep the cash selection beside the reporting period without rebuilding an open menu.
 function cashAccountRows14230(rows=reportData79()){
@@ -5991,7 +5990,8 @@ function leaveForm82(){return `<form id="leaveForm82" onsubmit="event.preventDef
 function leaveSelection82(form){return [...form.elements.employeeId.selectedOptions].map(o=>o.value).filter(Boolean)}
 function syncLeaveEmployees82(form){const select=form.elements.employeeId,ids=leaveSelection82(form);form.querySelectorAll('[data-leave-employee]').forEach(box=>box.checked=ids.includes(box.dataset.leaveEmployee));const title=form.querySelector('[data-leave-selection]');if(title)title.textContent=ids.length?ids.length+' employee'+(ids.length===1?'':'s')+' selected':'Choose employees';}
 function toggleLeaveEmployee82(box){const form=box.closest('form'),option=[...form.elements.employeeId.options].find(o=>o.value===box.dataset.leaveEmployee);if(option)option.selected=box.checked;syncLeaveEmployees82(form);form.elements.employeeId.dispatchEvent(new Event('change',{bubbles:true}));}
-function saveLeave82(){const form=document.getElementById('leaveForm82'),d=form82('leaveForm82');if(!d)return;const ids=leaveSelection82(form);delete d[''];return runAction82(async()=>{
+function saveLeave82(){const form=document.getElementById('leaveForm82'),d=form82('leaveForm82');if(!d)return;const ids=leaveSelection82(form),actor=liveProfile?.id,client=ojmDb;delete d[''];const guard=()=>{if(!actor||actor!==liveProfile?.id||client!==ojmDb)throw Error('The signed-in account changed. Reopen Leave before continuing.');};return runAction82(async()=>{
+ guard();
  if(!ids.length)throw Error('Select at least one employee.');
  if(d.from>d.to)throw Error('End date must follow the start date.');
  if(d.from.slice(0,7)!==d.month||d.to.slice(0,7)!==d.month)throw Error('Split leave across months before saving.');
@@ -6001,8 +6001,8 @@ function saveLeave82(){const form=document.getElementById('leaveForm82'),d=form8
  let data={...d,employeeId,status:'pending'};if(window.hrWorkspace14306?.prepareLeaveRequest)data=hrWorkspace14306.prepareLeaveRequest(data,true);
  if(!Number.isFinite(Number(data.days))||Number(data.days)<=0||Number(data.days)>duration)throw Error('Review working days for '+e.data.name+'.');return {name:e.data.name,data};});
  const saved=[];window.leaveBatchSaving82=true;
- try{for(const request of requests){await saveWork82('leaves',request.data);saved.push(request.name);const option=[...form.elements.employeeId.options].find(o=>o.value===request.data.employeeId);if(option)option.selected=false;syncLeaveEmployees82(form)}}
- catch(error){throw Error((saved.length?'Saved for '+saved.join(', ')+'. Remaining employees are still selected; retry saves only those remaining. ':'No requests saved. ')+(error.message||error))}
+ try{for(const request of requests){guard();await saveWork82('leaves',request.data);guard();saved.push(request.name);const option=[...form.elements.employeeId.options].find(o=>o.value===request.data.employeeId);if(option)option.selected=false;syncLeaveEmployees82(form)}}
+ catch(error){guard();throw Error((saved.length?'Saved for '+saved.join(', ')+'. Remaining employees are still selected; retry saves only those remaining. ':'No requests saved. ')+(error.message||error))}
  finally{window.leaveBatchSaving82=false;}
  window.hrWorkspace14306?.finishLeaveBatch?.();renderWork82();showCenterStatus(saved.length+' leave request'+(saved.length===1?'':'s')+' saved for review.');
 })}
