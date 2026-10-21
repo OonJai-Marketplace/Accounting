@@ -1,0 +1,13 @@
+const fs=require('fs'),assert=require('node:assert/strict');
+const {JSDOM}=require(process.env.JSDOM_MODULE||'jsdom');
+const dom=new JSDOM('<body><section class="tab-content active"><div id="gptDrafts143129"><div data-drive-list></div></div><table id="other"><tbody><tr><td>Other</td></tr></tbody></table></section></body>',{runScripts:'outside-only',pretendToBeVisual:true,url:'https://test/'}),w=dom.window,d=w.document;
+w.$=id=>d.getElementById(id);w.currencySymbolV6=code=>({LAK:'₭',USD:'$',THB:'฿',EUR:'€',XYZ:'X¤'}[code]||code);w.formatAppDate=x=>x;
+let src=fs.readFileSync('src/bookkeeping/journal/drive-drafts143128.js','utf8').replace('window.DriveDrafts143128={','window.probe={display,setPanel:x=>panel=x};window.DriveDrafts143128={');w.eval(src);w.probe.setPanel(d.getElementById('gptDrafts143129'));
+const chart=['LAK','USD','THB','EUR','XYZ'].map(currency_code=>({id:currency_code,currency_code,code:currency_code,name:'Account'}));
+const rows=chart.map(a=>({account_id:a.id,account_code:a.code,currency:'LAK',posting_date:'2026-01-01',description:'Mixed',debit:100,credit:0}));rows.push({...rows[0],account_id:'missing',debit:0,credit:50});
+w.probe.display('draft-0001',rows,null,'',null,chart);
+const cells=[...d.querySelectorAll('td.num')].filter(n=>n.textContent);assert.deepEqual(cells.map(n=>n.textContent),['₭ 100','$ 100','฿ 100','€ 100','X¤ 100','? 50']);assert.deepEqual(cells.map(n=>n.dataset.currency),['LAK','USD','THB','EUR','XYZ','']);
+const table=d.querySelector('#gptDrafts143129 table');for(let i=0;i<150;i++)table.tBodies[0].insertRow().insertCell().textContent='line';
+w.eval(fs.readFileSync('src/shared/ui/table-pagination14383.js','utf8'));w.tablePagination14383.scan();assert.equal(d.querySelectorAll('#gptDrafts143129 .table-pages14383').length,0);assert.equal(table.querySelectorAll('[data-page-hidden14383]').length,0);assert(d.querySelector('#other').nextElementSibling.classList.contains('table-pages14383'));
+assert(d.querySelector('.gpt-reference143129').previousElementSibling.classList.contains('table-container'));
+console.log('PASS mixed account currencies, configured symbol, missing-account no-default fallback, full group without pagination, status immediately after table.');dom.window.close();

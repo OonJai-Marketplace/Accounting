@@ -12,3 +12,11 @@ verify_jwt = false
 # Public probe returns only a constant and calls the anonymous grant.
 [functions.keepalive-ping]
 verify_jwt = false
+
+# Authenticated bridge/start; callback verifies a one-use expiring OAuth state.
+[functions.google-journal-bridge]
+verify_jwt = false
+[functions.google-oauth-start]
+verify_jwt = false
+[functions.google-oauth-callback]
+verify_jwt = false
