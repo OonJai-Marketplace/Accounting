@@ -1,8 +1,6 @@
 {
-  "version": "143.155",
+  "version": "143.156",
   "changes": [
-    "Attendance calendar fits all date columns to the available table width, removes extra cell padding and ignores saved manual column widths.",
-    "Column resizing remains available on other tables; attendance row highlighting and status colors are preserved.",
-    "Removed the payroll reference and journal-status banner from Payroll Entries to eliminate its extra space and layout shifts."
+    "Simplified Final Payment headers and removed its redundant Currency column, preserving explicit currency symbols for every amount."
   ]
 }
