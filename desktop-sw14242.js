@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.158',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.159',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/drive-drafts143128.js?v=143.152",
  "scripts/notification-focus143139.js?v=143.149",
@@ -26,7 +26,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.154",
  "scripts/desktop14245-6.js?v=143.155",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.158",
+ "scripts/offline14239.js?v=143.159",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -173,7 +173,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.147",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.109",
+ "scripts/phone-runtime14242.js?v=143.159",
  "scripts/local-first14333.js?v=143.122",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.109",
@@ -202,7 +202,7 @@ const FILES=[
  "scripts/idle-sync14341.js?v=143.122",
  "styles/responsive-work14341.css?v=143.62",
  "docs/UPDATE-v143.42.md",
- "scripts/phone-tools14242.js?v=143.114",
+ "scripts/phone-tools14242.js?v=143.159",
  "styles/feedback-viewport14295.css?v=142.95",
  "scripts/desktop-corrections-v80.js?v=143.70",
  "scripts/payroll-polish-v97.js?v=143.157",
