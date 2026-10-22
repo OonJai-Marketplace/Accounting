@@ -4,26 +4,26 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification.",
   "runtime_sha256": {
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
-    "phone-sw.js": "cf8d370b42861ae674d371d333ea9f25420ede3ed6ed45621fd9eae811dd9318",
+    "phone-sw.js": "4c1fe5abc16dfa5f4a54c07bca94f7842a98e6960d585cf5ef48d3dab847a0bc",
     "phone-accounting.html": "988a7658fb145d9ebdf9f490ceb693d7b96eecf0ab9219af4eae0dc52af9fd99",
-    "desktop-sw14242.js": "bf7e74674772763b9c3201987c4e2ec434c5aae625ac2ef0c535104f0109e052",
-    "phone.html": "e0a373e6d388697de15902d6b4e22d44f8c01014acc14c43524c192172a22dc7",
-    "desktop.html": "12fd4794df41d748c3737ebad76cc39c97423d94d36026accd546208f2cee508",
-    "scripts/phone-runtime14242.js": "a264bb6bc338eebc0526ff3de27350fe6f0b47d818104e5a9c0e661b4ed81a7b",
+    "desktop-sw14242.js": "a5a95eab87db89fa9012b72d952dc20d93367f76dcf21c6f79b9ea58d97dae6b",
+    "phone.html": "77baa31bad592f457421a7200821f488f3875e77105cb59317a43c9284dbba1a",
+    "desktop.html": "c20684876215bf72fb0b914ba6446b7aba7c7ee1759673949ac8ddaa1e706000",
+    "scripts/phone-runtime14242.js": "56ea58a69dcb5596aea648e343cf1afa98dcdc133a691f77b78530ded5eb2390",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "70f0a9e7661fa9017483641ae0d0a2d37307ac445423235e693fe801a4f832d7",
     "scripts/local-first14333.js": "ff9896b49afb11e76b37913cecef2623f51501ac12440ee0df001e8b426a2bd6",
     "scripts/corrections14231.js": "9be39691e4e3b40d03aaa3295a2b183c6d6b915a72594d4d9f20428e7b3892f0",
     "scripts/payroll-polish-v97.js": "5808ed23953e47013c091a5fbc0c0ad1c75fb75b5208b169e9facc07a27e756f",
     "scripts/startup14257.js": "d98b9a153f07c7e7e9753a8b3177ec4c7c00754a9f2bb5677e127d407de75e3a",
-    "scripts/desktop14245-6.js": "a60d14e702c9f511e77cbefd995cb3b2e4db578129955c0ea2068081e501305f",
-    "scripts/offline14239.js": "a76bd28d4d905adda722efe3078b3763d5082d14c96b3be83b87a00bd70f3e88",
+    "scripts/desktop14245-6.js": "cadf57401fe940f744112e3b47b2d0f35d4357ef05f017afb7cc841419d42d9b",
+    "scripts/offline14239.js": "41d09610c1f7512e1d6857747425b27603a745994db5acb0cc69e07e3fc6740f",
     "scripts/desktop14245-3.js": "54fe654f8c7de7ad48a6b19df3890daa6e390b7fe9bed92219c0d5eb1f109706",
     "scripts/desktop14245-4.js": "fef13af31a3cd1f0de081efe6d3eb0e098e205e74ba47df6f99d279c52d9c53f",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
     "scripts/interface-v69.js": "e3cbf3e31cbabb7fb6c3735c5b590cb57074f036c6be28976f6e69dd1cf40864",
     "scripts/navigation-workflow14316.js": "b75a6e535e9c8929d1682f0dbd1245e93fb2f89f30ed33e4ea909245a8bf3ead",
-    "scripts/opening-balances14234.js": "42d89aa761bb8ae4860e7f4d950b197c6284e2d545472e6690746135f788a94a",
+    "scripts/opening-balances14234.js": "528659c7b2d4141ac68a4426275e9323c46c5b190c47c1dc88bed588c5e0e100",
     "scripts/payroll-reports-v82.js": "40b96d54fed4213fce92185efb8e4827287c0e3ece4b9ae23e76b59a937aa61b",
     "scripts/shell-v113.js": "c595e0870bbf2bc803c598080f8aebffa316501bd475fac55bb32dfb16563474",
     "scripts/shortnames-v104.js": "d1708bddc13b599a4497aab58279d68ea48b2368a660b214c543999067cc1d41",
@@ -263,5 +263,9 @@
   "syncSummary143162": {
     "request": "2026-10-22: simplify synchronization into a single summary with uploaded/waiting records, module states and measured data sizes; automatically refresh at login/reconnect.",
     "checks": "Isolated browser tests cover one summary, quiet login/reconnect/idle, counts and sizes, scoped storage, unchanged editor, cross-tab lock, sign-out, cache replacement and recovery retry. See docs/SYNC-SUMMARY-v143.162.md."
+  },
+  "openingAdjustments143164": {
+    "request": "2026-10-22: keep Opening Balance visible and available; later amounts remain labeled opening adjustments on their entered dates, without restating January.",
+    "checks": "Browser and rollback SQL tests cover initial/additional/next-year openings, late adjustment, retries, permissions and closed periods. See docs/OPENING-ADJUSTMENTS-v143.164.md."
   }
 }

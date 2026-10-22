@@ -92,3 +92,10 @@ books without reopening, redating or reposting journals. Keep all four statement
 amounts together above the comparison, with expandable details below. Closing
 is entered independently; never silently overwrite it from the other amounts.
 Remove instructional paragraphs and redundant notices from this report window.
+
+Opening Balance 2026-10-22: Keep the Journal option visible and available after
+earlier openings and without requiring the prior year to be closed. Confirm each
+use. A 1 January entry is an initial opening; any later recording date is an
+Opening balance adjustment that affects its actual period, never January's
+opening retrospectively. Preserve period/year locks, permissions, balanced
+posting, immutable retries, and the user's entered date.
