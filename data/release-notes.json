@@ -1,6 +1,7 @@
 {
-  "version": "143.165",
+  "version": "143.166",
   "changes": [
-    "Reconciliation amounts run left to right: Previous / Opening Balance, Statement DR, Statement CR, Ending Balance."
+    "Reconciliation reports keep dates, entry ID, description, debit and credit together in one table.",
+    "Date, ID and amount columns fit their contents; the description uses the remaining space."
   ]
 }

@@ -4,21 +4,21 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification.",
   "runtime_sha256": {
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
-    "phone-sw.js": "f992708e44bb71ee3beaa4204c785aeb288d05055f6fd5daac8963bc4624df3f",
+    "phone-sw.js": "4dbc638e1742232fa8504528e11fb9e1ca3b77025e76d1bc3e85729ffa6869ad",
     "phone-accounting.html": "988a7658fb145d9ebdf9f490ceb693d7b96eecf0ab9219af4eae0dc52af9fd99",
-    "desktop-sw14242.js": "809f8f7a522d32d44bbf798d851c1c2cb61c9b03f5abce15e3fa33f35f135da4",
-    "phone.html": "84b7c59b1a314a8e963b8bf29398062e6e0bb5f71ef37ddc38e30efcf26df3ad",
-    "desktop.html": "3d6dee0fad6c8e9e8a2100c6b3d87b4072c904a031c1a592310d0ba54400db2c",
-    "scripts/phone-runtime14242.js": "7a9925001f45de1829c1bbe87de0fe9ccfc5bff34c77ecf519ac5b5abd34b9c0",
+    "desktop-sw14242.js": "a9463d0269cebb23b5f72a61f1445252c08c997e3f05322772391c53a6856689",
+    "phone.html": "f823013d6822bcfc3003cc5eea201dc01480d7080b9e23bba2dac0d1eee6aa8a",
+    "desktop.html": "8b835e73ca5ce0e3f5c60c9d5f13584d57813ef61b731310fced5991739f3231",
+    "scripts/phone-runtime14242.js": "12c92a263214b99375a272ffd15599c24ad3f5197c71e1308eae828f11482f8d",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "70f0a9e7661fa9017483641ae0d0a2d37307ac445423235e693fe801a4f832d7",
     "scripts/local-first14333.js": "ff9896b49afb11e76b37913cecef2623f51501ac12440ee0df001e8b426a2bd6",
     "scripts/corrections14231.js": "9be39691e4e3b40d03aaa3295a2b183c6d6b915a72594d4d9f20428e7b3892f0",
     "scripts/payroll-polish-v97.js": "5808ed23953e47013c091a5fbc0c0ad1c75fb75b5208b169e9facc07a27e756f",
     "scripts/startup14257.js": "d98b9a153f07c7e7e9753a8b3177ec4c7c00754a9f2bb5677e127d407de75e3a",
-    "scripts/desktop14245-6.js": "cadf57401fe940f744112e3b47b2d0f35d4357ef05f017afb7cc841419d42d9b",
-    "scripts/offline14239.js": "23a395f3dd0c07029dcf05c85f21770824dc5274f55f25e946497219f967d73a",
-    "scripts/desktop14245-3.js": "b192e2a6b3cdf3c6220180db04fe763586d518163f2fcd23bb7f6ed4fd98f301",
+    "scripts/desktop14245-6.js": "7e4a1e2b26e3a3cea10c7cf7d16f5e3d79c50311ec770e0bafaaba1094aba044",
+    "scripts/offline14239.js": "2646de10ffbde7d74d339850d5f7ee285cd2ac2f834553dd7760514c32a2bbe9",
+    "scripts/desktop14245-3.js": "5c3c5ce0fc4f19f768f7379bb206b62eaa9665c66c78d6be1518ef3e38cc5ec1",
     "scripts/desktop14245-4.js": "fef13af31a3cd1f0de081efe6d3eb0e098e205e74ba47df6f99d279c52d9c53f",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
     "scripts/interface-v69.js": "e3cbf3e31cbabb7fb6c3735c5b590cb57074f036c6be28976f6e69dd1cf40864",
@@ -53,7 +53,7 @@
     "scripts/workflow14253.js": "cb015ef0632d551d518ed8650c9c9058e5fcad50458d501d535a3bd467192f46",
     "scripts/workspace14337.js": "d5e5d3036569c41d13902b93806b1abf58665b6ad573432395a1e88e34504309",
     "styles/workspace14337.css": "76e3e3ab4653640497aa3cb04ec8146725ace87754e55feff955696077a439f5",
-    "styles/desktop14245.css": "d51caa479117f569153ecb75f1fe1145526a84e27313d386b1f1f4451f0621d8",
+    "styles/desktop14245.css": "7e93c067521b1108e691ce76410b511ce2b91735462be99352c1f5277ff70d2d",
     "styles/workspace-consistency14343.css": "20b09b2d15a06c6f82990c79cd8c3719f5b963777a5cd7d9a8e344f0ebae44b6",
     "styles/submission-review-v139.css": "b0dfa03eb3120b0f030c7ef3dfc15b53028cf988c910460ace72802685591a2f",
     "scripts/subusers-final-v53.js": "908180b659386fc5dccf7d97850a985a1f689a6a5124f83e10dd11fa127a9a54",
@@ -100,7 +100,7 @@
     "scripts/view-render14340.js": "b6f20da33edeecfbba07ef33ede68b6c70d955e3ed3d880d2740af118918f219",
     "scripts/tax-reports-v102.js": "c8819cf87b807640f925d27247184c6f3e0221ba39845363c6d72767a9d45975",
     "scripts/dashboard-warm-v112.js": "b1f79bcaa894333c793b50fffe1d151c2d18d592db0bfa6c6a0e59425f9874f5",
-    "scripts/reports-system-v71.js": "bba7caa47bb7be3404dd22685c14a12d9dcd2b180c0b1ddee5d4f5992e99174f",
+    "scripts/reports-system-v71.js": "3a680eca139dfaa01bdba71e2fb260a8d28da2066711bbcedfb196132c6a392c",
     "scripts/settings-payroll-v94.js": "b970902ee4a8c6a7850f8b867ac15ccb707c566df1e887ca58bcc4c9ad1cbe39",
     "scripts/reports-v118.js": "a498ce15f41f384d02008ca87367cfefd715586d7b4cf8d7ecfa39a591e7ccb2",
     "scripts/hr-calendar14306.js": "110871eabfff329e61e0ebc33900c6b51fc00c04c5d9bf6963e7a62c86855118",
@@ -153,7 +153,7 @@
     "scripts/desktop-layout1438.js": "3685d654bd09661685fe634f0df74e279dcb21189fa8f195a2c0d2868518c44b",
     "scripts/polish-v101.js": "6337a21eb908026b3741c1c239c49dc9aabe8f2eebea45f001e8f98bbdd7bd71",
     "scripts/installation14320.js": "6192008b411076527ebcfa1a3e5d11f66e942fcae8b64fe19ab41a87de51fd51",
-    "scripts/report-formats14282.js": "fb4115210e404fa120df719f1726261192f689cf951edc1dbe4a2914fe10fe83",
+    "scripts/report-formats14282.js": "140cb7f437d9d1ede5ac027ebd401cf9b0285f82e39c2f8f92e1124edc0533e2",
     "scripts/optional-tools14335.js": "e3d540531884543e3a0f61f8cce3733460b3adf293e719bb2c914ae112349cac",
     "scripts/report-templates14262.js": "78d70c21c136bfb2dcf84989e6a26fd1027667123f68699962a5012214a0c36c",
     "scripts/year-window14333.js": "7ca68dbb1490a34e32b38b6c2b5c3243c0fbde004f68c4a8edc397fbbb6dbb73",
@@ -216,7 +216,7 @@
     "styles/settings-groups14332.css": "724fd64c214c9d1522ca9873f67bd5199131f68ab31325215e2318c0c0c33a25",
     "styles/voucher-layout14299.css": "5107fd1f9621da0c95ef06bccd3b295ea04f622dc8a49d4180e3f9a0974df09f",
     "scripts/journal-description14281.js": "082f6f53ae1fba74f2b84b5932979c14744eaf32f38afd8b4dc7f6d13243df7e",
-    "scripts/workspace1439.js": "dec11b6dd7875a5f239d6e9393313dd5e2bf813c05461c31e943a7c679bc6f71",
+    "scripts/workspace1439.js": "62351bc735c8bb36d3d7e852e4792efbc8ff2f53f4790b0be601096828afea2c",
     "scripts/workspace14331.js": "baee74d07af7250371b907610df4befc75f4859bc95bcda5f65be54905437a94",
     "scripts/hr-calendar-news14309.js": "19dadee366e32da1e2b422f821487118ab11c8b538b022aa7bbce9b385fcbfa1",
     "scripts/permissions1441.js": "f5779a64908b017a99621dad121cab8a5d7d98c61598ea31f703f0760de1b6ca",
@@ -237,7 +237,7 @@
     "styles/statutory14332.css": "627ca3275293bd0d2a53206008a8ec1e1a6c31141faf45e5dfdb565dbd51cec4",
     "styles/hr-workspace14306.css": "c676fb8fa424c21c95c9554260ada78a30fb0d72a34a41ffe6efe68b2d921bfd",
     "styles/offline14239.css": "fb8379afb95e51c66547ff477fec825d99e8bbeddb6e494417dea725b23ae222",
-    "styles/desktop-v71.css": "a80eca8420dbb11d82dc065d99ee6a12cea15cc9cc5042ac13f3486ac25b2af0"
+    "styles/desktop-v71.css": "4b0565e11a00462732f3a31e53310a2162086765cece17670bd4a45e394b8d60"
   },
   "retired_assets": {
     "tools/desktop-source14245.html": "User-authorized obsolete-code cleanup, 2026-10-13. Input to retired full-desktop builder only; not loaded by any app entry point, manifest or service worker.",
@@ -271,5 +271,9 @@
   "reconciliationOrder143165": {
     "request": "2026-10-22: Previous / Opening Balance, Statement DR, Statement CR, Ending Balance from left to right.",
     "checks": "Rendered desktop field order, original bindings and horizontal positions verified; no calculation changes."
+  },
+  "reconciliationLayout143166": {
+    "request": "2026-10-22: content-sized receipt/posting dates, entry IDs and debit/credit, with remaining space for descriptions and all fields in one reconciliation row.",
+    "checks": "Browser regression verifies one six-column bank table, compact columns, narrow scrolling, preserved cash columns, A4 pagination and unchanged line data. Other wide reports retain continuation tables."
   }
 }

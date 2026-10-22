@@ -1426,7 +1426,7 @@ if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',re
 (()=>{'use strict';
  const moneyHeading=text=>/^running (?:amount|balance)$/i.test(text.trim())||/^(?:(?:opening|closing|total|base|foreign|adjusted|balance)\s+)*(?:debits?|credits?|dr|cr)(?:\b|\s|\()/i.test(text.trim())&& !/account|note|card|terms/i.test(text);
  function sizeTable(table){
-  if(table.closest('#docFrame105'))return;
+  if(table.closest('#docFrame105')||table.matches('.rec-ledger71'))return;
   const rows=[...table.rows],occupied=[],positions=new Map(),money=new Set();let columns=0;
   rows.forEach((row,ri)=>{let ci=0;for(const cell of row.cells){while(occupied[ci]>ri)ci++;const span=cell.colSpan||1;positions.set(cell,[ci,span]);for(let c=ci;c<ci+span;c++){occupied[c]=ri+(cell.rowSpan||1);if(cell.tagName==='TH'&&moneyHeading(cell.textContent))money.add(c);}ci+=span;columns=Math.max(columns,ci);}});
   // Some report generators use a TD header rather than a THEAD.
