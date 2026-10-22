@@ -1,0 +1,35 @@
+const fs=require('fs'),assert=require('node:assert/strict');
+const {PGlite}=require(process.env.PGLITE_MODULE||'@electric-sql/pglite');
+(async()=>{const db=new PGlite();try{
+ await db.exec(`create role anon; create role authenticated; create schema auth;
+ create function auth.uid() returns uuid language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+ create function public.can_action113(text,text) returns boolean language sql as $$select coalesce(current_setting('fixture.allowed',true),'yes')='yes'$$;
+ create function public.accounting_workspace_allowed123() returns boolean language sql as $$select coalesce(current_setting('fixture.workspace',true),'yes')='yes'$$;
+ create table public.operation_receipts14228(actor_id uuid,request_key text,operation text,payload jsonb,result jsonb,created_at timestamptz default now());
+ create table public.fixture_entries(id bigserial primary key,memo text);
+ create function public.drive_journal_receipt143128(p_sheet text,p_draft text) returns jsonb language sql as $$ select jsonb_build_object('payload',payload,'result',result) from public.operation_receipts14228 where request_key='drive-v1:'||p_sheet||':'||p_draft limit 1 $$;
+ create function public.post_journal_batch14228(k text, entries jsonb) returns jsonb language plpgsql as $$declare n bigint;result jsonb;begin
+ if entries->0->>'p_memo'='INVALID' then raise exception 'Fixture validation failure';end if;
+ insert into public.fixture_entries(memo) values(entries->0->>'p_memo') returning id into n;
+ result:=jsonb_build_array(jsonb_build_object('entry_id',n::text,'entry_no','OJM26'||n));
+ insert into public.operation_receipts14228 values(auth.uid(),k,'journal',entries,result,now());return result;end $$;
+ set request.jwt.claim.sub='11111111-1111-1111-1111-111111111111';`);
+ await db.exec(fs.readFileSync('setup/AI-JOURNAL-STACK-v143.160.sql','utf8'));
+ const sheet='abcdefghijklmnopqrst',entry=memo=>({p_memo:memo,p_transaction_date:'2026-01-09',p_lines:[]});
+ const batch=ds=>db.query('select public.approve_drive_journal_batch143160($1,$2::jsonb) result',[sheet,JSON.stringify(ds)]);
+ const disposition=(id,status)=>db.query('select public.set_drive_draft_disposition143160($1,$2,$3)',[sheet,id,status]);
+ const count=async()=>Number((await db.query('select count(*) n from public.fixture_entries')).rows[0].n);
+ await assert.rejects(batch([{draft_id:'draft-0001',entry:entry('Good')},{draft_id:'draft-0002',entry:entry('INVALID')}]),/validation failure/);assert.equal(await count(),0);assert.equal((await db.query('select count(*) n from public.operation_receipts14228')).rows[0].n,0);
+ const good=[{draft_id:'draft-0001',entry:entry('One')},{draft_id:'draft-0002',entry:entry('Two')}];const first=(await batch(good)).rows[0].result;assert.equal(first.length,2);assert.notEqual(first[0].result[0].entry_no,first[1].result[0].entry_no);assert.equal(await count(),2);
+ await db.exec("set request.jwt.claim.sub='22222222-2222-2222-2222-222222222222'");assert.deepEqual((await batch(good)).rows[0].result,first);assert.equal(await count(),2);
+ await assert.rejects(disposition('draft-0001','deleted'),/already been posted/);
+ await disposition('draft-0003','rejected');await assert.rejects(batch([{draft_id:'draft-0003',entry:entry('Three')}]),/rejected or deleted/);assert.equal(await count(),2);
+ await disposition('draft-0003','pending');await batch([{draft_id:'draft-0003',entry:entry('Three')}]);assert.equal(await count(),3);
+ await disposition('draft-0004','deleted');await assert.rejects(disposition('draft-0004','pending'),/deleted from/);await assert.rejects(db.query('select public.approve_drive_journal143128($1,$2,$3)',[sheet,'draft-0004',entry('Four')]),/rejected or deleted/);
+ await assert.rejects(batch([good[0],good[0]]),/Duplicate/);await assert.rejects(batch([]),/1 to 100/);await assert.rejects(batch([{draft_id:null,entry:{}}]),/Invalid draft/);
+ await db.exec("set fixture.allowed='no'");await assert.rejects(batch(good),/permission/);await assert.rejects(disposition('draft-0005','deleted'),/permission/);await assert.rejects(db.query('select public.drive_draft_dispositions143160($1)',[sheet]),/permission/);
+ await db.exec("set fixture.allowed='yes';set fixture.workspace='no'");await assert.rejects(batch(good),/permission/);
+ await db.exec("set fixture.workspace='yes';set request.jwt.claim.sub=''");await assert.rejects(batch(good),/permission/);
+ const grants=(await db.query("select has_function_privilege('anon','public.approve_drive_journal_batch143160(text,jsonb)','EXECUTE') anon,has_table_privilege('authenticated','public.drive_draft_dispositions143160','INSERT') direct_write,relrowsecurity from pg_class where oid='public.drive_draft_dispositions143160'::regclass")).rows[0];assert.equal(grants.anon,false);assert.equal(grants.direct_write,false);assert.equal(grants.relrowsecurity,true);
+ console.log('PASS isolated Postgres: whole-batch rollback, separate same-date entries, cross-user idempotence, posted rejection guard, reject/restore/delete, old-client guard, invalid/duplicate batch, permission/workspace/anonymous checks, RLS/direct-write restrictions. Financial posting worker fixture only; no live writes.');
+ }finally{await db.close();}})().catch(e=>{console.error(e);process.exitCode=1});
