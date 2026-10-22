@@ -4,12 +4,12 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification.",
   "runtime_sha256": {
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
-    "phone-sw.js": "41124ab9e4edce146fb1e35c9e3dc503c02a8637c2ead22cfbcf9b5a71494407",
+    "phone-sw.js": "449f18a8aadfd4007f19d154eb7ddd434e9288588bf7b3b46ade129e59206daf",
     "phone-accounting.html": "988a7658fb145d9ebdf9f490ceb693d7b96eecf0ab9219af4eae0dc52af9fd99",
-    "desktop-sw14242.js": "2dc28fe6f925b656b82c64adac8d1c09a350ca1988f32f515bfdc4da96a7450c",
-    "phone.html": "1ca532e657c37641844de08b1e5495d194f37313d83233dc4f16ff21dca1b4c8",
-    "desktop.html": "c7ee9b8004264615ebed49bcb968807fce2ebc09545c821086c14156be2c383b",
-    "scripts/phone-runtime14242.js": "2b0920a3d6b9991f06ca648b493396106b6c8d3dc6abd20675b4b0f524aee9c7",
+    "desktop-sw14242.js": "3557c4baffdcb2b6d12fe5c97a43d883a107242c38bf03ec47d5a71572975b07",
+    "phone.html": "a338d4c2c312846b1152f82a3c861774335c2d345b5605a15217fe7e5518cc17",
+    "desktop.html": "127a868233a87a7cb64252729dc4212fb765db8d0ce402cba478c68087eebde7",
+    "scripts/phone-runtime14242.js": "838fedbe9f676a682e4b5394bd880bd085f2599233bacd5a2bb44d2ee5e28e5c",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "70f0a9e7661fa9017483641ae0d0a2d37307ac445423235e693fe801a4f832d7",
     "scripts/local-first14333.js": "8b5689592e9f79decbe3bed1e4599e803d9ffd404d63c4f9325ffb6bab256d20",
@@ -17,7 +17,7 @@
     "scripts/payroll-polish-v97.js": "5808ed23953e47013c091a5fbc0c0ad1c75fb75b5208b169e9facc07a27e756f",
     "scripts/startup14257.js": "ad30918ba2c3ff93c7769fdb5f1d1dd525ef9b39f5da45844eb8f6cd56c8c835",
     "scripts/desktop14245-6.js": "a60d14e702c9f511e77cbefd995cb3b2e4db578129955c0ea2068081e501305f",
-    "scripts/offline14239.js": "ba80f45420909971d16449081ec79619591a7b3ce53dd808135201fa0aedaf7e",
+    "scripts/offline14239.js": "9b2630c3c2c6183a31ba9c837948d70f9760bd5b262aa9d7f1cef5fe600e431d",
     "scripts/desktop14245-3.js": "7416cd217374d9cc4c57e76108397fda92022b8b1c388276e6a6c797608ca39b",
     "scripts/desktop14245-4.js": "fef13af31a3cd1f0de081efe6d3eb0e098e205e74ba47df6f99d279c52d9c53f",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
@@ -253,5 +253,9 @@
   "aiPreparation143160": {
     "request": "Reject/delete AI drafts and stack multiple entries for editing and posting with separate IDs.",
     "checks": "Isolated browser-DOM and Postgres tests cover drafts, atomic posting and retry receipts; original layouts outside the requested preparation are preserved."
+  },
+  "aiRefresh143161": {
+    "request": "2026-10-22: automatically refresh AI Journal notifications after login/connection and prevent a stuck Refreshing status.",
+    "checks": "Login, background notifications on every page, bounded reads, separate connection/action messages and prepared edits tested; release/cache references kept in step. See docs/AI-REFRESH-v143.161.md."
   }
 }

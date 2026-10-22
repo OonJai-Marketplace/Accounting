@@ -1,9 +1,9 @@
 {
-  "version": "143.160",
+  "version": "143.161",
   "changes": [
-    "Added Reject, Restore and Delete controls for AI Journal drafts.",
-    "Edit now queues separate entries without switching tabs; open preparation once to edit the stack.",
-    "Post All saves the prepared entries together with separate journal IDs, including entries with the same date.",
-    "Prepared edits stay on this device, and posting retries check receipts to prevent duplicates."
+    "Saved Google connections and draft notifications refresh automatically after login, returning to the app and reconnecting.",
+    "Notifications update on every page without interrupting prepared journal edits.",
+    "Slow Google or draft checks time out and recover; loading progress replaces an indefinite Refreshing status.",
+    "Connection status and last-check time no longer overwrite journal actions or error messages."
   ]
 }
