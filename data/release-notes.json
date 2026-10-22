@@ -1,7 +1,9 @@
 {
-  "version": "143.166",
+  "version": "143.167",
   "changes": [
-    "Reconciliation reports keep dates, entry ID, description, debit and credit together in one table.",
-    "Date, ID and amount columns fit their contents; the description uses the remaining space."
+    "AI Journal entries now have Edit, Post and Reject. Post saves directly to Active Journal without opening preparation.",
+    "Removed Open preparation, Rejected drafts and duplicate Delete controls. Reject removes the draft from AI Journal.",
+    "AI Journal notifications show one item with the number of pending entries.",
+    "Journal navigation keeps the top of the page visible when switching between AI drafts and stacked preparation."
   ]
 }

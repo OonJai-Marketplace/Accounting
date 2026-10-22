@@ -39,7 +39,7 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {
  };
  await new Promise(r=>d.addEventListener('DOMContentLoaded',r));
  let source=fs.readFileSync('src/bookkeeping/journal/drive-drafts143128.js','utf8').replace('window.DriveDrafts143128={','window.probe={checkBackground,get busy(){return busy},get backgroundBusy(){return !!backgroundBusy}};window.DriveDrafts143128={');
- w.eval(source);await tick();assert.equal(state.inboxReads,0);
+ w.HTMLElement.prototype.scrollTo=function({top}){this.scrollTop=top;};w.eval(source);await tick();assert.equal(state.inboxReads,0);
  const status=()=>d.querySelector('#gptDrafts143129 [data-connection-status]').textContent;const actionStatus=()=>d.querySelector('#gptDrafts143129 [data-drive-status]').textContent;
  // Login + simultaneous page/focus events share one initialization, with bell updates on Home.
  w.liveProfile={id:'reviewer',role:'admin'};w.dispatchEvent(new w.Event('page113'));w.dispatchEvent(new w.Event('focus'));intervals.get(1500)();await tick();assert.equal(state.settingsReads,1);
@@ -54,7 +54,7 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {
  const heldMetadata=state.metadataGate;state.metadataGate=null;heldMetadata.resolve();await tick();assert.equal(d.querySelector('[data-drive-list]').innerHTML,oldTable,'late response cannot replace the displayed table');
  d.querySelector('[data-refresh]').click();await until(()=>!w.probe.busy);assert.match(actionStatus(),/2 pending drafts loaded/);
  // Checks never replace prepared edits or their status message.
- d.querySelector('[data-draft-action="edit"]').click();await until(()=>w.DriveDrafts143128.preparedCount===1);d.querySelector('[data-preparation]').click();
+ d.querySelector('[data-draft-action="edit"]').click();await until(()=>w.DriveDrafts143128.preparedCount===1);w.DriveDrafts143128.choose('journal');w.switchTab('journal');
  const memo=d.querySelector('[data-prepared-draft] [data-field="description"]');memo.value='Keep my adjustment';memo.dispatchEvent(new w.Event('input',{bubbles:true}));const prepStatus=d.querySelector('#aiPreparation143160 [data-drive-status]').textContent;
  state.notices.push(notice('draft-0004'));intervals.get(15000)();await until(()=>w.DriveDrafts143128.notices().length===4);assert.equal(memo.value,'Keep my adjustment');assert.equal(d.querySelector('#aiPreparation143160 [data-drive-status]').textContent,prepStatus);
  // Offline/reconnect automatically resumes; a server error remains visible even if authorization exists.

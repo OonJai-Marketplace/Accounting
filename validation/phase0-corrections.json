@@ -4,12 +4,12 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification.",
   "runtime_sha256": {
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
-    "phone-sw.js": "4dbc638e1742232fa8504528e11fb9e1ca3b77025e76d1bc3e85729ffa6869ad",
+    "phone-sw.js": "9fb13183c30f650f8a8a6ba1179e72ace4f58e250fc660d4ce856a50ebb50e1b",
     "phone-accounting.html": "988a7658fb145d9ebdf9f490ceb693d7b96eecf0ab9219af4eae0dc52af9fd99",
-    "desktop-sw14242.js": "a9463d0269cebb23b5f72a61f1445252c08c997e3f05322772391c53a6856689",
-    "phone.html": "f823013d6822bcfc3003cc5eea201dc01480d7080b9e23bba2dac0d1eee6aa8a",
-    "desktop.html": "8b835e73ca5ce0e3f5c60c9d5f13584d57813ef61b731310fced5991739f3231",
-    "scripts/phone-runtime14242.js": "12c92a263214b99375a272ffd15599c24ad3f5197c71e1308eae828f11482f8d",
+    "desktop-sw14242.js": "f91f7d9b8fb46d4823389160a497ff90577117d75b5e4db3ffb5c870653d72dc",
+    "phone.html": "96db7e69812e8c03410be7e2a5007dd7df0b1be6fff7e485cacf5a9c5dc3122f",
+    "desktop.html": "17ea0541694180a33bc6495ef2c2455b9f143e933106eaf26d4eb6b83db2cf6b",
+    "scripts/phone-runtime14242.js": "f213c601fdb7f9051387841cde7153c1132140cf9af48c76f2d083c62d340988",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "70f0a9e7661fa9017483641ae0d0a2d37307ac445423235e693fe801a4f832d7",
     "scripts/local-first14333.js": "ff9896b49afb11e76b37913cecef2623f51501ac12440ee0df001e8b426a2bd6",
@@ -17,7 +17,7 @@
     "scripts/payroll-polish-v97.js": "5808ed23953e47013c091a5fbc0c0ad1c75fb75b5208b169e9facc07a27e756f",
     "scripts/startup14257.js": "d98b9a153f07c7e7e9753a8b3177ec4c7c00754a9f2bb5677e127d407de75e3a",
     "scripts/desktop14245-6.js": "7e4a1e2b26e3a3cea10c7cf7d16f5e3d79c50311ec770e0bafaaba1094aba044",
-    "scripts/offline14239.js": "2646de10ffbde7d74d339850d5f7ee285cd2ac2f834553dd7760514c32a2bbe9",
+    "scripts/offline14239.js": "02d22d6cf9556114ec4080dc71a70e7ed85c8ae3f467e1de31a1e738b1d1ca4a",
     "scripts/desktop14245-3.js": "5c3c5ce0fc4f19f768f7379bb206b62eaa9665c66c78d6be1518ef3e38cc5ec1",
     "scripts/desktop14245-4.js": "fef13af31a3cd1f0de081efe6d3eb0e098e205e74ba47df6f99d279c52d9c53f",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
@@ -275,5 +275,9 @@
   "reconciliationLayout143166": {
     "request": "2026-10-22: content-sized receipt/posting dates, entry IDs and debit/credit, with remaining space for descriptions and all fields in one reconciliation row.",
     "checks": "Browser regression verifies one six-column bank table, compact columns, narrow scrolling, preserved cash columns, A4 pagination and unchanged line data. Other wide reports retain continuation tables."
+  },
+  "aiJournal143167": {
+    "request": "2026-10-22: prevent clipped Journal navigation; direct Post per AI draft; remove Open preparation, Rejected drafts and Delete controls; group AI notifications with draft count.",
+    "checks": "Fixture posting tests cover source changes, invalid accounts, offline/server failure, double clicks and lost-response receipts; browser verifies repeated Journal navigation and grouped bell on desktop/tablet. No live financial data changed."
   }
 }

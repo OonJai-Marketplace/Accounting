@@ -3,7 +3,7 @@
 const HEAD=['draft_id','posting_date','description','line_no','account_id','account_code','currency','debit','credit','line_date','fx_rate_lak','book_rate_lak','line_memo'];
 let sharedSettings=null,sharedOwner='',sharedLoaded=false;
 const completedDrafts=new Set(),archiveJobs=new Map();let archiveQueue=Promise.resolve(),journalRefresh=Promise.resolve();
-let backgroundBusy=null,settingsJob=null,lastConnectionCheck=0,lastDraftRead=0,lastCheckedAt='',backgroundError='',connectionStatus=null,panel=null,settingsPanel=null,view='journal',reviewed=new Map(),busy=false,epoch=0;let pendingDraftNotices=[],lastDraftSignature='';const prepared=new Map();let preparation=null,dispositions=new Map(),restoredKey='',rejectedView=false,observedOwner='';let aiSourceRefs=new Map();
+let backgroundBusy=null,settingsJob=null,lastConnectionCheck=0,lastDraftRead=0,lastCheckedAt='',backgroundError='',connectionStatus=null,panel=null,settingsPanel=null,view='journal',reviewed=new Map(),busy=false,epoch=0;let pendingDraftNotices=[],lastDraftSignature='';const prepared=new Map();let preparation=null,dispositions=new Map(),restoredKey='',observedOwner='';let aiSourceRefs=new Map();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const identity=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 observedOwner=identity();
@@ -112,7 +112,7 @@ function queueArchive(id,number,c=context()){
 function openActiveJournal(){
  choose('journal');window.switchTab('journal');window.groupedNavigation14378?.render('journal');
  if($('jeSearchInput'))$('jeSearchInput').value='';
- requestAnimationFrame(()=>{if(view==='journal'&&$('journal')?.classList.contains('active'))$('tblJournalHistory')?.closest('.je-card')?.scrollIntoView({behavior:'instant',block:'start'});});
+ scrollJournal($('tblJournalHistory')?.closest('.je-card'));
 }
 function refreshPostedJournal(c,number){
  // Serialize refreshes so a slower, older snapshot cannot overwrite the next post.
@@ -172,9 +172,19 @@ async function saveSharedSettings(value){
 function googleURL(value){try{const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password)return '';if(u.hostname==='docs.google.com'&&/^\/spreadsheets\/d\/[\w-]+(?:\/|$)/.test(u.pathname)||u.hostname==='drive.google.com'&&/^\/drive\/folders\/[\w-]+(?:\/|$)/.test(u.pathname))return u.href;}catch{}return '';}
 function formatDate(value){return typeof formatAppDate==='function'?formatAppDate(value):value;}
 function showView(){if(!panel)return;const root=$('journal');root.classList.toggle('gpt-view143129',view==='gpt');root.classList.toggle('ai-preparing143160',prepared.size>0);panel.hidden=view!=='gpt';if(preparation)preparation.hidden=view!=='journal'||!prepared.size;}
-function choose(next){view=next==='gpt'?'gpt':'journal';showView();return true;}
+// Only the workspace scrolls: scrollIntoView can also move hidden shell ancestors.
+function scrollJournal(target){
+ const expected=view;requestAnimationFrame(()=>{
+  if(view!==expected||!$('journal')?.classList.contains('active'))return;
+  const scroller=typeof appWorkspaceScroller==='function'?appWorkspaceScroller():document.querySelector('.workspace-scroll');if(!scroller)return;
+  for(let node=scroller.parentElement;node;node=node.parentElement)if(node.scrollTop)node.scrollTop=0;
+  const tabs=$('categoryTabShell'),inset=tabs&&scroller.contains(tabs)?tabs.getBoundingClientRect().height:0;
+  const top=target&&scroller.contains(target)?scroller.scrollTop+target.getBoundingClientRect().top-scroller.getBoundingClientRect().top-inset-12:0;
+  scroller.scrollTo({top:Math.max(0,top),behavior:'instant'});
+ });
+}
+function choose(next){view=next==='gpt'?'gpt':'journal';showView();scrollJournal();return true;}
 function open(){if(!current()){showCenterStatus('Sign in with journal posting permission.',true);return;}context();choose('gpt');window.switchTab('journal');window.groupedNavigation14378?.render('journal');}
-function openPreparation(){choose('journal');window.switchTab('journal');window.groupedNavigation14378?.render('journal');preparation?.scrollIntoView({behavior:'smooth',block:'start'});}
 function postedRows(id,p,chart){return p.p_lines.map((l,i)=>({draft_id:id,posting_date:p.p_transaction_date,description:p.p_memo,line_no:i+1,account_id:l.account_id,account_code:chart.find(a=>a.id===l.account_id)?.code||'',currency:l.currency_code,debit:l.debit,credit:l.credit,line_date:l.line_date||p.p_transaction_date,line_memo:l.description,fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak}));}
 function formatAiAmount(v){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:4}):String(v??'');}
 function aiAmountCell(value,row,chart){
@@ -188,15 +198,15 @@ function display(id,rows,payload,error,receiptData,chart,target=panel.querySelec
  card.innerHTML='<div class="table-container"><table class="clustered-journal-table"><thead><tr><th>Date</th><th>Account</th><th>Line memo</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody><tr class="gpt-description143129"><td colspan="5"><div><strong>'+esc(rows[0].description)+'</strong><span data-action></span></div></td></tr>'+rows.map(r=>'<tr>'+[formatDate(r.line_date||r.posting_date),r.account_code+' — '+(chart.find(a=>a.id===r.account_id)?.name||'Choose account in editor'),r.line_memo||''].map(v=>'<td>'+esc(v)+'</td>').join('')+aiAmountCell(r.debit,r,chart)+aiAmountCell(r.credit,r,chart)+'</tr>').join('')+'</tbody></table></div><p class="gpt-reference143129"><strong data-entry-id>Entry ID assigned when posted</strong> · Prepared via ChatGPT · <span data-result></span></p>';
  const result=card.querySelector('[data-result]');result.textContent=receiptData?'Posted: '+receiptData.result.map(r=>r.entry_no).join(', '):error||'Awaiting review';
  if(!receiptData){
- const buttons=rejectedView?[['Restore','pending'],['Delete','deleted']]:[['Edit','edit'],['Reject','rejected'],['Delete','deleted']];
- for(const [label,action]of buttons){const b=document.createElement('button');b.type='button';b.className='je-btn';b.textContent=action==='edit'&&prepared.has(id)?'Added to preparation':label;b.dataset.draftAction=action;b.disabled=action==='edit'&&prepared.has(id);b.onclick=()=>run(()=>action==='edit'?editDraft(id):disposeDraft(id,action));card.querySelector('[data-action]').append(b);}
+ const buttons=[['Edit','edit'],['Post','post'],['Reject','rejected']];
+ for(const [label,action]of buttons){const b=document.createElement('button');b.type='button';b.className='je-btn';b.textContent=action==='edit'&&prepared.has(id)?'Added to preparation':label;b.dataset.draftAction=action;b.disabled=(action==='edit'||action==='post')&&prepared.has(id)||action==='post'&&!payload;if(action==='post'){b.dataset.invalid=payload?'':'true';b.title=prepared.has(id)?'Post from Journal to include your preparation edits.':'Post directly to Active Journal';}b.onclick=()=>run(()=>action==='edit'?editDraft(id):action==='post'?postDraft(id):rejectDraft(id));card.querySelector('[data-action]').append(b);}
  }
  target.append(card);return card;
 }
 async function refresh(prefetchedRows){
  const c=context();message('Refreshing accounts and reading drafts…');await loadDispositions(c);
  const [a,sourceRows]=await Promise.all([syncChart(),prefetchedRows?Promise.resolve(prefetchedRows):readDrafts()]);assert(c);readLegacySourceRefs(sourceRows);const groups=parse(sourceRows);restorePreparation(c);
- const entries=[...groups].filter(([id])=>{const state=dispositions.get(id);return state!=='deleted'&&(rejectedView?state==='rejected':state!=='rejected');});
+ const entries=[...groups].filter(([id])=>!dispositions.has(id));
  const results=new Array(entries.length),previews=new Map();let cursor=0,done=0;
  // Keep the last complete table until every read has settled. Limit concurrency on slow devices.
  await Promise.all(Array.from({length:Math.min(4,entries.length)},async()=>{
@@ -211,8 +221,8 @@ async function refresh(prefetchedRows){
  for(const {id,rows,payload,error,saved,next}of results){if(completedDrafts.has(id))continue;nextReviewed.set(id,{rows:JSON.stringify(rows),payload,chart:a,saved});const card=display(id,rows,payload,error,saved,a,target);if(!saved&&!error){card.querySelector('[data-entry-id]').textContent=next?'Next available: '+next:'Entry ID: unavailable';card.querySelector('[data-entry-id]').title='Not reserved. Accounting assigns the final ID when posted.';}}
  reviewed=nextReviewed;panel.querySelector('[data-drive-list]').replaceChildren(target);
  const pending=[...groups].filter(([key])=>!dispositions.has(key)&&!completedDrafts.has(key)).map(([key,items])=>({noticeId:key,type:'AI Journal draft',title:items[0]?.description||'Journal draft',detail:items[0]?.posting_date||'',target:'ai-journal'}));pendingDraftNotices=pending;lastDraftSignature=JSON.stringify([...groups].filter(([key])=>!completedDrafts.has(key)).map(([key,items])=>[key,items]));lastDraftRead=Date.now();window.refreshNotices1443?.();
- if(!reviewed.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">'+(rejectedView?'No rejected drafts.':'No pending AI Journal drafts.')+'</p>';
- renderPreparation();message(reviewed.size+(rejectedView?' rejected':' pending')+' drafts loaded. Click Edit on each entry, then Open preparation.');
+ if(!reviewed.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';
+ renderPreparation();message(reviewed.size+' pending drafts loaded. Post an entry directly, or use Edit and open the Journal tab.');
 }
 function editorOccupied(){return !!(JournalModule.editingEntryId||pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId||PeriodReview.pendingAdjustment||window.personalJournal1437?.active||window.workflow136?.state.adjustmentReview||$('btnPostJournal')?.dataset.payroll1429||$('jeGeneralMemo').value.trim()||[...document.querySelectorAll('#jeLinesBody .je-line-acc,#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr')].some(n=>n.value.trim()&&!/^0(?:\.00)?$/.test(n.value))||window.entry1430?.mode==='single'&&window.entry1430.read().some(r=>r.source||r.affected||r.amount||r.memo));}
 async function alreadyPostedAiDraft(id){
@@ -247,19 +257,23 @@ async function editDraft(id){
  const chart=await accounts();assert(c);if(view!=='gpt'||editorOccupied())throw Error('The editor changed while the draft was loading. Finish your manual entry first.');
  AccountingStore.accounts=chart.map(a=>({...AccountingStore.accounts.find(old=>old.id===a.id),...a,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,baseType:a.account_type,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true,trackForeignFunds:a.is_posting!==false&&!!a.currency_code&&!['LAK','NA'].includes(a.currency_code)}));
  prepared.set(id,{id,source:review.rows,rows:JSON.parse(review.rows).sort((a,b)=>Number(a.line_no)-Number(b.line_no)),context:c});
- persistPreparation();renderPreparation();message(prepared.size+' entries in preparation. Add more with Edit, then open preparation once.');
+ persistPreparation();renderPreparation();message(prepared.size+' entries in preparation. Add more with Edit, then open the Journal tab.');
 }
 function removePrepared(id){
  if(busy||!window.confirm('Remove this entry and its local adjustments from preparation? Its Google Sheet draft will remain.'))return;
  prepared.delete(id);persistPreparation();renderPreparation();
 }
-async function disposeDraft(id,status){
+async function rejectDraft(id){
  const c=context(),item=reviewed.get(id);if(!item)throw Error('Refresh the draft first.');
- const prompt=status==='deleted'?'Delete this draft from the AI inbox? It will not return on refresh. Its source rows remain in Google Sheets; posted journals are unchanged.':status==='rejected'?'Reject this draft? It will move to Rejected drafts, where you can restore it.':'Restore this rejected draft to the pending AI inbox?';
+ const prompt='Reject and remove this draft from AI Journal?';
  if(!window.confirm(prompt+(prepared.has(id)?' Local preparation adjustments for this draft will be removed.':'')))return;
  const [prior,legacy]=await Promise.all([receipt(id),alreadyPostedAiDraft(id)]);assert(c);if(prior||legacy)throw Error('This entry is already posted. Use the posted journal correction controls.');
- const r=await c.db.rpc('set_drive_draft_disposition143160',{p_sheet:c.sheet,p_draft:id,p_status:status});assert(c);if(r.error)throw r.error;
- prepared.delete(id);persistPreparation();await refresh();message(status==='pending'?'Draft restored.':status==='deleted'?'Draft deleted from the AI inbox.':'Draft rejected. Open Rejected drafts to restore it.');
+ const r=await c.db.rpc('set_drive_draft_disposition143160',{p_sheet:c.sheet,p_draft:id,p_status:'rejected'});assert(c);if(r.error)throw r.error;
+ dispositions.set(id,'rejected');prepared.delete(id);reviewed.delete(id);
+ panel.querySelectorAll('[data-draft]').forEach(card=>{if(card.dataset.draft===id)card.remove();});
+ pendingDraftNotices=pendingDraftNotices.filter(n=>n.noticeId!==id);window.refreshNotices1443?.();persistPreparation();renderPreparation();
+ if(!reviewed.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';
+ message('Draft rejected and removed from AI Journal.');
 }
 const inputNumber=value=>value===''||value==null?0:typeof value==='number'?value:parseAppNumber(String(value));
 const inputAmount=value=>typeof value==='number'?formatAppNumber(value):String(value??'');
@@ -285,7 +299,7 @@ function updateStackTotals(item,card){
 function renderPreparation(){
  if(!preparation)return;
  panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>{const queued=prepared.has(b.closest('[data-draft]').dataset.draft);b.textContent=queued?'Added to preparation':'Edit';b.disabled=queued||busy;});
- const openButton=panel?.querySelector('[data-preparation]');if(openButton){openButton.textContent='Open preparation ('+prepared.size+')';openButton.disabled=!prepared.size;}
+ updatePostButtons();
  preparation.innerHTML='<div class="je-card-header"><div><h3 class="je-title">Journal Preparation · AI entries</h3><p>Each section posts as a separate entry, even when dates match. Accounting assigns each final journal ID when posted.</p></div><div class="je-header-actions"><button class="je-btn" type="button" data-add-more>Add more AI entries</button><button class="je-btn" type="button" data-post-all>Post all ('+prepared.size+')</button></div></div><p data-drive-status role="status"></p><div data-stack></div>';
  preparation.querySelector('[data-add-more]').onclick=open;preparation.querySelector('[data-post-all]').onclick=()=>run(postPrepared);
  let index=0;for(const item of prepared.values()){
@@ -310,34 +324,48 @@ function preparedPayload(item,chart){
  const rows=item.rows.map((r,i)=>({...r,line_no:i+1,debit:inputNumber(r.debit),credit:inputNumber(r.credit),fx_rate_lak:r.fx_rate_lak===''?'':inputNumber(r.fx_rate_lak),book_rate_lak:r.book_rate_lak===''||r.book_rate_lak==null?'':inputNumber(r.book_rate_lak)}));
  return normalize(rows,chart,settings());
 }
-function completePrepared(items,results){
+function completePrepared(items,results,stayInInbox=false){
  const numbers=[];for(const item of items){const result=results.get(item.id);if(!Array.isArray(result)||result.length!==1||!result[0].entry_id||!result[0].entry_no)throw Error('Posting confirmation incomplete. Keep this preparation and retry to check the saved receipts.');}
  for(const item of items){const number=results.get(item.id)[0].entry_no;completedDrafts.add(item.id);prepared.delete(item.id);reviewed.delete(item.id);numbers.push(number);
  panel.querySelectorAll('[data-draft]').forEach(card=>{if(card.dataset.draft===item.id)card.remove();});void queueArchive(item.id,number,item.context);
  }
- pendingDraftNotices=pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId));window.refreshNotices1443?.();persistPreparation();renderPreparation();openActiveJournal();
- const text='Posted '+numbers.length+' separate entries: '+numbers.join(', ');message(text);showCenterStatus(text);refreshPostedJournal(items[0].context,numbers.join(', '));
+ pendingDraftNotices=pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId));window.refreshNotices1443?.();persistPreparation();renderPreparation();if(!stayInInbox)openActiveJournal();
+ if(!reviewed.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';
+ const text=numbers.length===1?'Posted as '+numbers[0]+'. Saved to Active Journal.':'Posted '+numbers.length+' separate entries: '+numbers.join(', ');message(text);showCenterStatus(text);refreshPostedJournal(items[0].context,numbers.join(', '));
+}
+function updatePostButtons(){
+ panel?.querySelectorAll('[data-draft-action="post"]').forEach(b=>{const queued=prepared.has(b.closest('[data-draft]').dataset.draft);b.disabled=busy||queued||b.dataset.invalid==='true';b.title=queued?'Post from Journal to include your preparation edits.':'Post directly to Active Journal';});
+}
+async function postDraft(id){
+ const c=context(),review=reviewed.get(id);
+ if(!review||!review.payload||review.saved||dispositions.has(id)||completedDrafts.has(id))throw Error('Refresh and review this draft before posting.');
+ if(prepared.has(id))throw Error('This draft has preparation edits. Open Journal to review and post them.');
+ await postItems([{id,source:review.rows,rows:JSON.parse(review.rows),context:c,direct:true}],true);
 }
 async function postPrepared(){
- if(!prepared.size)throw Error('Add AI entries to preparation first.');const c=context(),items=[...prepared.values()];items.forEach(item=>assert(item.context));online();
- message('Checking all prepared entries…');const [sourceRows,chart]=await Promise.all([readDrafts(),accounts()]);assert(c);const groups=parse(sourceRows),drafts=[],results=new Map();
+ if(!prepared.size)throw Error('Add AI entries to preparation first.');
+ await postItems([...prepared.values()]);
+}
+async function postItems(items,stayInInbox=false){
+ const c=context();items.forEach(item=>assert(item.context));online();
+ message(stayInInbox?'Checking this entry…':'Checking all prepared entries…');const [sourceRows,chart]=await Promise.all([readDrafts(),accounts()]);assert(c);const groups=parse(sourceRows),drafts=[],results=new Map();
  // Resolve committed receipts before checking source rows: a prior successful attempt may already have archived them.
  for(const item of items){
   const [prior,legacy]=await Promise.all([receipt(item.id),alreadyPostedAiDraft(item.id)]);assert(c);
   if(prior){results.set(item.id,prior.result);continue;}if(legacy){results.set(item.id,[{entry_id:legacy.id,entry_no:legacy.entry_no}]);continue;}
-  if(JSON.stringify(groups.get(item.id))!==item.source)throw Error('Draft '+item.id+' changed in Google Sheets. Your adjustments are retained. Remove that entry from preparation, refresh, and review its new version.');
-  try{drafts.push({draft_id:item.id,entry:preparedPayload(item,chart)});}catch(e){throw Error('Draft '+item.id+': '+e.message);}
+  if(JSON.stringify(groups.get(item.id))!==item.source)throw Error('Draft '+item.id+' changed in Google Sheets. '+(item.direct?'Refresh and review its new version before posting.':'Your adjustments are retained. Remove that entry from preparation, refresh, and review its new version.'));
+  try{drafts.push({draft_id:item.id,entry:item.direct?normalize(item.rows,chart,settings()):preparedPayload(item,chart)});}catch(e){throw Error('Draft '+item.id+': '+e.message);}
  }
  if(drafts.length){const r=await c.db.rpc('approve_drive_journal_batch143160',{p_sheet:c.sheet,p_drafts:drafts});assert(c);if(r.error)throw r.error;
   if(!Array.isArray(r.data)||r.data.length!==drafts.length)throw Error('Posting confirmation incomplete. Retry this preparation to check the saved receipts.');
   for(const row of r.data)results.set(row.draft_id,row.result);
  }
- completePrepared(items,results);
+ completePrepared(items,results,stayInInbox);
 }
 async function run(fn){
  if(busy)return;busy=true;const e=epoch;const hosts=[panel,settingsPanel,preparation];hosts.forEach(h=>{if(h)h.inert=true;});
  try{if(!sharedLoaded&&identity()&&liveProfile.role==='admin')await loadSharedSettings();await fn();}catch(err){if(e===epoch){message(err.message);showCenterStatus(err.message,true);}}
- finally{busy=false;hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));}}
+ finally{busy=false;hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));updatePostButtons();}}
 }
 
 function renderSettings(){
@@ -350,14 +378,19 @@ function renderSettings(){
  settingsPanel.querySelector('[data-connect]').onclick=()=>run(async()=>{await connect();});
 
 }
+function draftNoticeSummary(){
+ const drafts=[...new Map(pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId)&&!dispositions.has(n.noticeId)).map(n=>[n.noticeId,n])).values()];
+ if(!drafts.length)return [];
+ // Changing draft membership must count as new, even when the total stays the same.
+ return [{noticeId:'ai-journal:'+JSON.stringify(drafts.map(n=>n.noticeId).sort()),type:'AI Journal draft',title:drafts.length+(drafts.length===1?' entry':' entries'),detail:'',target:'ai-journal'}];
+}
 function ready(){
  if(!$('journal'))return;
  const style=document.createElement('style');style.textContent='#gptDrafts143129 [data-drive-status]:empty,#googleSheets143129 [data-drive-status]:empty{display:none}#journal.gpt-view143129>:not(#gptDrafts143129):not(.area-banner113):not(.module-header):not(#categoryTabShell):not(#settingsSections14335){display:none!important}#journal:not(.gpt-view143129)>#gptDrafts143129{display:none!important}#journal.ai-preparing143160 #journalEntry98{display:none!important}.gpt-description143129 td{background:#e9f3ec;border-top:2px solid #9ab8a1}.gpt-description143129 td>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.gpt-description143129 strong{white-space:normal}.gpt-reference143129{padding:8px 12px;margin:0;color:#526357}#gptDrafts143129 .gpt-entry143129{margin-top:10px;overflow:hidden;min-height:0;height:auto;padding-bottom:0}#gptDrafts143129 .gpt-entry143129>.table-container{min-height:0!important;height:auto!important;max-height:none!important;margin-bottom:0!important;padding-bottom:0!important}#gptDrafts143129 .gpt-reference143129{margin:0!important;padding:6px 12px!important}#gptDrafts143129 .gpt-entry143129 :is(th,td){padding-top:6px;padding-bottom:6px}.gpt-entry143129 table{table-layout:fixed;min-width:760px}.gpt-entry143129 th:nth-child(1){width:110px}.gpt-entry143129 th:nth-child(2){width:220px}.gpt-entry143129 th:nth-child(4),.gpt-entry143129 th:nth-child(5){width:145px}.gpt-entry143129 td{overflow-wrap:anywhere}.gpt-links143129{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}#googleSheets143129 label{display:block;margin:12px 0}#googleSheets143129 input,#googleSheets143129 textarea{display:block;width:100%;max-width:850px}.gpt-empty143129{padding:24px 12px;color:#64748b}#aiPreparation143160[hidden]{display:none!important}#aiPreparation143160 .ai-prepared-entry143160{border:1px solid #9ab8a1;border-radius:6px;margin:14px 0;overflow:hidden}#aiPreparation143160 .ai-prepared-entry143160>.je-card-header{background:#e9f3ec}#aiPreparation143160 .ai-prepared-fields143160{display:flex;flex-wrap:wrap;gap:12px;padding:12px}#aiPreparation143160 label{display:flex;flex-direction:column;gap:4px}#aiPreparation143160 .ai-prepared-memo143160{flex:1;min-width:220px}#aiPreparation143160 .table-container{overflow-x:auto;max-width:100%}#aiPreparation143160 table{width:100%;min-width:960px;table-layout:fixed}#aiPreparation143160 th:first-child{width:125px}#aiPreparation143160 th:nth-child(2){width:230px}#aiPreparation143160 th:nth-child(3){width:200px}#aiPreparation143160 th:nth-child(4),#aiPreparation143160 th:nth-child(5){width:145px}#aiPreparation143160 th:last-child{width:44px}#aiPreparation143160 td{padding:6px;border:1px solid #d6ded8}#aiPreparation143160 td input,#aiPreparation143160 td select{width:100%;min-width:0;border:0;background:transparent;padding:4px}html body #journal #aiPreparation143160 td :is(input,select,textarea,.oj-date-button104,.account-choice14231){border:0!important;background:transparent!important;box-shadow:none!important}html body #journal #aiPreparation143160 :is(input,select,textarea):focus{outline:1px solid #60a5fa!important;box-shadow:none!important}#aiPreparation143160 .je-card-header,#gptDrafts143129 .je-header-actions,#gptDrafts143129 [data-action]{flex-wrap:wrap;gap:6px}#gptDrafts143129 [data-action]{display:flex}#aiPreparation143160 [data-totals]{font-size:12px}#aiPreparation143160 [data-date-warning]{padding:0 12px;color:#92400e} ';document.head.append(style);
- const originalTodoNotices=window.getTodoNotices136;window.getTodoNotices136=function(...args){const existing=typeof originalTodoNotices==='function'?originalTodoNotices.apply(this,args):[];return [...existing,...pendingDraftNotices];};
- panel=document.createElement('section');panel.id='gptDrafts143129';panel.hidden=true;panel.innerHTML='<div class="je-card"><div class="je-card-header"><div><h3 class="je-title">AI Journal</h3><p class="je-subtitle">Add drafts to preparation, review them together, then post with separate IDs.</p></div><div class="je-header-actions"><button type="button" class="je-btn" data-connect>Connect Google</button><button type="button" class="je-btn" data-refresh>Refresh drafts</button><button type="button" class="je-btn" data-rejected>Rejected drafts</button><button type="button" class="je-btn" data-preparation>Open preparation (0)</button></div></div><p data-connection-status role="status">Checking the saved Google connection…</p><p data-drive-status role="status"></p></div><div data-drive-list><p class="gpt-empty143129">Checking the saved Google connection…</p></div>';$('journal').append(panel);
+ const originalTodoNotices=window.getTodoNotices136;window.getTodoNotices136=function(...args){const existing=typeof originalTodoNotices==='function'?originalTodoNotices.apply(this,args):[];return [...existing,...draftNoticeSummary()];};
+ panel=document.createElement('section');panel.id='gptDrafts143129';panel.hidden=true;panel.innerHTML='<div class="je-card"><div class="je-card-header"><div><h3 class="je-title">AI Journal</h3><p class="je-subtitle">Post reviewed drafts directly, or use Edit to prepare them in Journal.</p></div><div class="je-header-actions"><button type="button" class="je-btn" data-connect>Connect Google</button><button type="button" class="je-btn" data-refresh>Refresh drafts</button></div></div><p data-connection-status role="status">Checking the saved Google connection…</p><p data-drive-status role="status"></p></div><div data-drive-list><p class="gpt-empty143129">Checking the saved Google connection…</p></div>';$('journal').append(panel);
  preparation=document.createElement('section');preparation.id='aiPreparation143160';preparation.className='je-card';preparation.hidden=true;$('journalEntry98').after(preparation);
  panel.querySelector('.je-card')?.append(panel.querySelector('[data-drive-list]'));panel.querySelector('[data-connect]').onclick=()=>run(connect);panel.querySelector('[data-refresh]').onclick=()=>run(refresh);
- panel.querySelector('[data-preparation]').onclick=openPreparation;panel.querySelector('[data-rejected]').onclick=()=>run(async()=>{rejectedView=!rejectedView;panel.querySelector('[data-rejected]').textContent=rejectedView?'Pending drafts':'Rejected drafts';await refresh();});
  settingsPanel=document.createElement('section');settingsPanel.id='googleSheets143129';settingsPanel.className='settings-module94';settingsPanel.hidden=true;$('settings-accounting')?.append(settingsPanel);renderSettings();
  // Prepared entries stay separate from the manual editor and its saved drafts.
  for(const name of ['loadEntryForEdit','applyTemplate','startFindingAdjustment','prepareComparedForm69']){const fn=window[name];if(typeof fn==='function')window[name]=function(...args){if(prepared.size){showCenterStatus('Post or remove the prepared AI entries first.',true);return;}return fn.apply(this,args)};}
@@ -373,6 +406,6 @@ function ready(){
  setInterval(()=>{if(syncSession())void checkBackground();},1500);
  void checkBackground();
 }
-window.DriveDrafts143128={open,choose,parse,normalize,validDate,googleURL,notices:()=>pendingDraftNotices.slice(),get view(){return view},get editing(){return prepared.size>0},get preparedCount(){return prepared.size}};
+window.DriveDrafts143128={open,choose,scrollToTop:()=>scrollJournal(),parse,normalize,validDate,googleURL,notices:()=>pendingDraftNotices.slice(),get view(){return view},get editing(){return prepared.size>0},get preparedCount(){return prepared.size}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
