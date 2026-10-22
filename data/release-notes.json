@@ -1,9 +1,9 @@
 {
-  "version": "143.161",
+  "version": "143.162",
   "changes": [
-    "Saved Google connections and draft notifications refresh automatically after login, returning to the app and reconnecting.",
-    "Notifications update on every page without interrupting prepared journal edits.",
-    "Slow Google or draft checks time out and recover; loading progress replaces an indefinite Refreshing status.",
-    "Connection status and last-check time no longer overwrite journal actions or error messages."
+    "One synchronization summary shows uploaded and waiting records, updated areas, and measured data sizes.",
+    "Sync notifications open the same summary; progress and completion no longer require separate popups or acknowledgement.",
+    "Saved work and permitted workspace records sync automatically after sign-in and reconnect, while the workspace remains available.",
+    "Detailed review, recovery and device tools remain available in expandable sections."
   ]
 }

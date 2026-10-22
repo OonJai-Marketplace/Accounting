@@ -4,21 +4,21 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification.",
   "runtime_sha256": {
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
-    "phone-sw.js": "449f18a8aadfd4007f19d154eb7ddd434e9288588bf7b3b46ade129e59206daf",
+    "phone-sw.js": "b847706cd8b046b7d37aaffc2edb9f97d8084fdb22a400708100f2f8ce63dd19",
     "phone-accounting.html": "988a7658fb145d9ebdf9f490ceb693d7b96eecf0ab9219af4eae0dc52af9fd99",
-    "desktop-sw14242.js": "3557c4baffdcb2b6d12fe5c97a43d883a107242c38bf03ec47d5a71572975b07",
-    "phone.html": "a338d4c2c312846b1152f82a3c861774335c2d345b5605a15217fe7e5518cc17",
-    "desktop.html": "127a868233a87a7cb64252729dc4212fb765db8d0ce402cba478c68087eebde7",
-    "scripts/phone-runtime14242.js": "838fedbe9f676a682e4b5394bd880bd085f2599233bacd5a2bb44d2ee5e28e5c",
+    "desktop-sw14242.js": "a685f9c034c243e73041559d171cb6968ffb8a7b8a52dbed8b8a47cd2b333009",
+    "phone.html": "d2b0c45c1493dcd84e02f2c41f179bb24abdc2d0bfeb00b1aa562e02d9db80b9",
+    "desktop.html": "5f8ab1600fe6329229eb1a1984d3fb73cdb405c9f7cf03ace93ebaabf78dbeeb",
+    "scripts/phone-runtime14242.js": "ee970123a6ba3e28aeeda853f70050359f9bf043899671d1338fe78958483a87",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "70f0a9e7661fa9017483641ae0d0a2d37307ac445423235e693fe801a4f832d7",
-    "scripts/local-first14333.js": "8b5689592e9f79decbe3bed1e4599e803d9ffd404d63c4f9325ffb6bab256d20",
+    "scripts/local-first14333.js": "ff9896b49afb11e76b37913cecef2623f51501ac12440ee0df001e8b426a2bd6",
     "scripts/corrections14231.js": "9be39691e4e3b40d03aaa3295a2b183c6d6b915a72594d4d9f20428e7b3892f0",
     "scripts/payroll-polish-v97.js": "5808ed23953e47013c091a5fbc0c0ad1c75fb75b5208b169e9facc07a27e756f",
-    "scripts/startup14257.js": "ad30918ba2c3ff93c7769fdb5f1d1dd525ef9b39f5da45844eb8f6cd56c8c835",
+    "scripts/startup14257.js": "d98b9a153f07c7e7e9753a8b3177ec4c7c00754a9f2bb5677e127d407de75e3a",
     "scripts/desktop14245-6.js": "a60d14e702c9f511e77cbefd995cb3b2e4db578129955c0ea2068081e501305f",
-    "scripts/offline14239.js": "9b2630c3c2c6183a31ba9c837948d70f9760bd5b262aa9d7f1cef5fe600e431d",
-    "scripts/desktop14245-3.js": "7416cd217374d9cc4c57e76108397fda92022b8b1c388276e6a6c797608ca39b",
+    "scripts/offline14239.js": "5ce72d55cc0f1c58d470ca9c2e13461db6dda584947d68a30645636cfaab5b98",
+    "scripts/desktop14245-3.js": "3256d6a28813916227ceacb00f418cfb094e9c507c94bc1c976a8f31ed6246a9",
     "scripts/desktop14245-4.js": "fef13af31a3cd1f0de081efe6d3eb0e098e205e74ba47df6f99d279c52d9c53f",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
     "scripts/interface-v69.js": "e3cbf3e31cbabb7fb6c3735c5b590cb57074f036c6be28976f6e69dd1cf40864",
@@ -31,7 +31,7 @@
     "scripts/account-picker1428.js": "f9773b99c382811057d1dbd2109199172bcb299e0fcfca5adcd20434259508c2",
     "scripts/assigned-ledger14281.js": "ffd278ad2d7d317b71b1f5dd4d2c1f4cb48112465bbc700b6fb605ed5dd39e4b",
     "scripts/desktop14245-5.js": "02f454169eed1f7d213d15640019db728c861be18f8df60dafe5f4b11c2da1cb",
-    "scripts/idle-sync14341.js": "e568e72b763ffaf6bb142e62169fa1857f2423299869f3fcf76efabdfe84fe61",
+    "scripts/idle-sync14341.js": "77ca7322988407598cb24a0aa4bacb04279479c9beb19d89d2d2dd0ed66e3bf4",
     "scripts/scheduled-journals-v91.js": "cc6c3b8ed39de42c0a50a5c3d88c25338895087c4898ffbd3f9d17ddcaa01910",
     "scripts/submission-review-v139.js": "d5c7f1f0e11180d3074ebf0910a7126d6a3584e3a902a9e88ff2a4635708548c",
     "scripts/team-home14227.js": "48893c5b417999b91630fc989b549f2ef46bb896785e104d31952f6c77730d4b",
@@ -39,11 +39,11 @@
     "scripts/shared-v108.js": "ea75087b559aae11a0caab3f0ded783fcfac65a1d2d246332f561893f0a7d69d",
     "scripts/workflows-v136.js": "8deac680c18cd42c5d34b24f516006acf13a59acd523dc676b6598c9ecd0bb74",
     "scripts/auto-sync14256.js": "f7286879f37b1c271ee64b48d41e14b122e5e35a9a692d750e02ab0dfec0c453",
-    "scripts/header-profile-v104.js": "454fb0dab69a94209e0bd431e01f705eb0be5fcaa674b0b600e30959ed5261d0",
+    "scripts/header-profile-v104.js": "b3cf12663d216b35ec5e0db3ee0a508b0786fe4f17f514a6429e531799e7f576",
     "scripts/journal-batch1440.js": "285f057a463a136920b81d21c0e62cb783fba7c0fa39eebdb80e014166c16749",
     "scripts/payroll-window14334.js": "aab53a45d45eab67936d5f19ed33ac80efd03822dd72c5739f3f11724b19eacc",
     "scripts/save-notices14234.js": "1448cfa9237661118b6c49448fff934f1494916570416316ae6093d34ad47ee4",
-    "scripts/sync-assessment14332.js": "f8e458f11d66126a9123ab10e5d48090fe36adbe7d13b7b0514c8417b2064b31",
+    "scripts/sync-assessment14332.js": "50f994e76d1265e3dda4af2ee8bd74c8474030e363a182a059b338fd4604c7a0",
     "scripts/workspace-v99.js": "9762ffdf5572eda63be115857ef724945e2ebb8746f2b1034fd8e25f840cce05",
     "styles/sync-assessment14332.css": "1e7984743bb81cf50e19fbf5418a68640cfe0920f8a6ddf26bf2fd8479e4d6a0",
     "scripts/controls14317.js": "1a6f3e864c3c06addda648665973630e2c9aae8482afdf5e10403b7dd41c9bf3",
@@ -53,7 +53,7 @@
     "scripts/workflow14253.js": "cb015ef0632d551d518ed8650c9c9058e5fcad50458d501d535a3bd467192f46",
     "scripts/workspace14337.js": "d5e5d3036569c41d13902b93806b1abf58665b6ad573432395a1e88e34504309",
     "styles/workspace14337.css": "76e3e3ab4653640497aa3cb04ec8146725ace87754e55feff955696077a439f5",
-    "styles/desktop14245.css": "2aa60d48cacd5105632bcbae4d01b773901aba86440919285018aed2766367c1",
+    "styles/desktop14245.css": "96660c594e6a832fa211b2486927ba83e1aa110251a3cad45d41a0c922fa40b9",
     "styles/workspace-consistency14343.css": "20b09b2d15a06c6f82990c79cd8c3719f5b963777a5cd7d9a8e344f0ebae44b6",
     "styles/submission-review-v139.css": "b0dfa03eb3120b0f030c7ef3dfc15b53028cf988c910460ace72802685591a2f",
     "scripts/subusers-final-v53.js": "908180b659386fc5dccf7d97850a985a1f689a6a5124f83e10dd11fa127a9a54",
@@ -235,7 +235,8 @@
     "styles/editor-print1424.css": "d4d25c04b338f051380a46ea6fcfdaf256185ba05e4e5624575eafadd7294ac1",
     "styles/reports-desktop-v79.css": "46dcb3cafc532acdbd336948fca307b9cb086a6ce3914f50927c24cc4c85b3bf",
     "styles/statutory14332.css": "627ca3275293bd0d2a53206008a8ec1e1a6c31141faf45e5dfdb565dbd51cec4",
-    "styles/hr-workspace14306.css": "c676fb8fa424c21c95c9554260ada78a30fb0d72a34a41ffe6efe68b2d921bfd"
+    "styles/hr-workspace14306.css": "c676fb8fa424c21c95c9554260ada78a30fb0d72a34a41ffe6efe68b2d921bfd",
+    "styles/offline14239.css": "fb8379afb95e51c66547ff477fec825d99e8bbeddb6e494417dea725b23ae222"
   },
   "retired_assets": {
     "tools/desktop-source14245.html": "User-authorized obsolete-code cleanup, 2026-10-13. Input to retired full-desktop builder only; not loaded by any app entry point, manifest or service worker.",
@@ -257,5 +258,9 @@
   "aiRefresh143161": {
     "request": "2026-10-22: automatically refresh AI Journal notifications after login/connection and prevent a stuck Refreshing status.",
     "checks": "Login, background notifications on every page, bounded reads, separate connection/action messages and prepared edits tested; release/cache references kept in step. See docs/AI-REFRESH-v143.161.md."
+  },
+  "syncSummary143162": {
+    "request": "2026-10-22: simplify synchronization into a single summary with uploaded/waiting records, module states and measured data sizes; automatically refresh at login/reconnect.",
+    "checks": "Isolated browser tests cover one summary, quiet login/reconnect/idle, counts and sizes, scoped storage, unchanged editor, cross-tab lock, sign-out, cache replacement and recovery retry. See docs/SYNC-SUMMARY-v143.162.md."
   }
 }

@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
 (async()=>{const f=await create();try{
  const {page,login}=await f.open(),errors=[];page.on('pageerror',e=>errors.push(e.message));
- await login();
+ await login();await page.waitForFunction(()=>idleSync14341.session?.trigger==='login'&&!idleSync14341.running);
  await page.evaluate(()=>switchTab('journal'));
  await page.waitForFunction(()=>startup14257.interactive&&!document.body.classList.contains('startup-pending1443'));
  await page.locator('#nav-module-transactions > .nav-header').click();
@@ -16,7 +16,7 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  const elapsed=Date.now()-begin;
  const info=await page.evaluate(()=>({view:Location69.view,journal:startup14257.isPrepared('journal'),payroll:startup14257.isPrepared('payroll'),prepared:workspaceViews14364.state().prepared}));
  assert.equal(info.view,'journal');assert(info.journal);assert(!info.payroll,'unopened payroll must not block return');
- assert(!f.requests.some(x=>x.includes('/rpc/journal_window14333')),'return must use saved journal');
+ assert(elapsed<15000,'The saved journal must remain interactive while fresh data loads in the background');
  await page.evaluate(()=>switchTab('chart-of-accounts'));
  await page.waitForFunction(()=>!document.body.classList.contains('startup-pending1443'));
  assert(!errors.length,errors.join('\n'));
