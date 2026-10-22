@@ -30,6 +30,20 @@
 .module-actions71{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;margin-left:auto}.purpose-help71{border:1px solid #059669;border-radius:50%;background:#ecfdf5;color:#065f46;cursor:pointer}
 .system-content71{padding:12px}.system-content71 details{margin-bottom:12px}.system-content71 p{line-height:1.5}
 .rec-overlay71{position:fixed;inset:0;background:#0f172a99;z-index:100000;overflow:auto;padding:24px}
+#recOverlay71 .rec-account71{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#recOverlay71 .rec-dialog71{width:100%;min-width:0;box-sizing:border-box}
+#recOverlay71 .rec-dialog71>header>div{min-width:0;max-width:100%;overflow-wrap:anywhere}
+#recOverlay71 .rec-amounts71{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#recOverlay71 .rec-amounts71 label{display:grid;gap:6px;font-size:12px;min-width:0}
+#recOverlay71 .rec-amounts71 input{width:100%;min-width:0}
+#recOverlay71 .rec-basis71{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:#475569}
+#recOverlay71 .rec-basis71 label{display:flex;align-items:center;gap:6px}
+#recOverlay71 .rec-basis71 input[type=checkbox]{width:auto;margin:0}
+#recOverlay71 details.rec-section71>summary{padding:12px;cursor:pointer;font-weight:600}
+#recOverlay71 .rec-comparison117 td:not(:first-child){text-align:right!important;font-variant-numeric:tabular-nums}
+#recOverlay71 .rec-error71:empty{display:none}
+#recCreate117 input[type=checkbox]{height:auto;width:auto;max-width:none}
+@media(max-width:700px){#recOverlay71 .rec-amounts71{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .rec-dialog71{max-width:1180px;margin:auto;background:white;border:1px solid #059669;border-top:6px solid #059669;border-radius:10px;color:#162e36}
 .rec-dialog71 header{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;padding:12px}.rec-dialog71 h3{margin:0;font-size:20px}.rec-body71{padding:12px}.rec-grid71{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.rec-grid71 label{display:flex;flex-direction:column;gap:5px;font-size:12px}
 .rec-dialog71 :is(input,textarea,select){font:inherit;box-sizing:border-box;max-width:100%;padding:7px;border:1px solid #94a3b8;border-radius:5px;background:white;color:#162e36}.rec-dialog71 input[type=number]{width:100%}.rec-dialog71 textarea{width:100%;min-height:60px}

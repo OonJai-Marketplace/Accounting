@@ -1,9 +1,8 @@
 {
-  "version": "143.162",
+  "version": "143.163",
   "changes": [
-    "One synchronization summary shows uploaded and waiting records, updated areas, and measured data sizes.",
-    "Sync notifications open the same summary; progress and completion no longer require separate popups or acknowledgement.",
-    "Saved work and permitted workspace records sync automatically after sign-in and reconnect, while the workspace remains available.",
-    "Detailed review, recovery and device tools remain available in expandable sections."
+    "Choose Bank statement to reconcile by receipt dates, including receipts posted in closed books. Cash and other accounts retain posting-date reconciliation.",
+    "All four statement amounts are together above the comparison table; findings, documents and ledger details expand below.",
+    "Statement totals are checked against the entered closing balance without replacing it. Repeated instructions and notices have been removed."
   ]
 }

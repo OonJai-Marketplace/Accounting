@@ -85,3 +85,10 @@ as receipt-date text in their memos and their posting date uses the main date.
 Keep existing same-month line dates. Amount inputs accept immediate H/K/M/T
 suffix expansion after a number, case-insensitive; no suffix in names or memos.
 Selected cells use a single 1px blue outline, without a second inset border.
+
+Reconciliation 2026-10-22: Bank statement is an explicit opt-in receipt-date mode;
+non-bank/cash reconciliation keeps posting dates. Include receipts from closed
+books without reopening, redating or reposting journals. Keep all four statement
+amounts together above the comparison, with expandable details below. Closing
+is entered independently; never silently overwrite it from the other amounts.
+Remove instructional paragraphs and redundant notices from this report window.
