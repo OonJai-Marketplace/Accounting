@@ -16,7 +16,7 @@ function setup(){
 }
 async function settled(t){for(let i=0;i<25&&t.s.busy;i++)await new Promise(r=>setImmediate(r));assert.equal(t.s.busy,false,t.s.message);}
 (async()=>{
- let t=setup();assert.equal(t.q('.hr-ai-heading'),null);assert(t.q('.area-banner113 [data-hr-banner-sync]'));assert.equal(t.w.document.querySelectorAll('[data-hr-banner-sync]').length,1);
+ let t=setup();assert.equal(t.q('.hr-ai-heading'),null);assert.equal(t.q('.hr-ai-status'),null);assert.equal(t.w.document.querySelectorAll('.hr-ai-filters button').length,4);assert(t.q('.area-banner113 [data-hr-banner-sync]'));assert.equal(t.w.document.querySelectorAll('[data-hr-banner-sync]').length,1);
  t.s.rows[0].data.start='';t.s.dirty.add('HR-TEST1');t.env.sheetFailure=true;t.click('[data-action="save"]');await settled(t);assert.equal(t.env.records[0].data.start,'');assert.equal(t.s.dirty.size,0);assert.match(t.s.message,/Drafts saved.*sync pending/);t.dom.window.close();
  t=setup();t.s.rows.push({...record(),id:'HR-TEST2',request_id:'HR-TEST2'});t.s.dirty.add('HR-TEST2');t.s.selected.add('HR-TEST1');t.api.draw();t.click('[data-action="preview"]');await settled(t);assert.match(t.s.message,/other edited drafts/);assert.equal(t.env.calls.length,0);t.dom.window.close();
  t=setup();t.s.rows[0].data.importError='An employee exception is malformed.';t.api.draw();const notes=t.q('[data-field="notes"]');notes.value='Edited note';notes.dispatchEvent(new t.w.Event('input',{bubbles:true}));assert(t.s.rows[0].data.importError);t.click('[data-action="resolve-import"]');assert.equal(t.s.rows[0].data.importError,'');t.dom.window.close();
