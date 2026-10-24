@@ -4225,6 +4225,21 @@
         "source": "src/shared/presentation/notification-focus143139.js",
         "suffix": ";\n"
       }
+    ],
+    "scripts/hr-inbox143168.js": [
+      {
+        "source": "src/hr/inbox/model143168.js",
+        "suffix": "\n"
+      },
+      {
+        "source": "src/hr/inbox/inbox143168.js",
+        "suffix": "\n"
+      }
+    ],
+    "styles/hr-inbox143168.css": [
+      {
+        "source": "src/hr/inbox/inbox143168.css"
+      }
     ]
   },
   "variants": [

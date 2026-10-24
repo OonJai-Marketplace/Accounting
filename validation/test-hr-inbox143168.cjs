@@ -1,0 +1,24 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+global.HRCalendarModel14306=require('../src/hr/calendar/hr-calendar-model14306.js');
+const M=require('../src/hr/inbox/model143168.js');let seq=0;
+const employee={id:'e1',data:{name:'Jade',code:'E1',active:true,currency:'LAK',salary:1000000,vacation:10,renewal:'2026-01-01'}};
+const base=()=>({employees:[structuredClone(employee)],runs:[],leaves:[],events:[],calendar:HRCalendarModel14306.scheduleDefaults({nonWorkDays99:[]}),payroll:{},uuid:()=>String(++seq)});
+const req=(extra={})=>({id:'HR-0001',data:{type:'attendance',scope:'selected',employeeIds:['e1'],start:'2026-10-24',end:'2026-10-24',reason:'Reported attendance',work:'no_work',pay:'paid',status:'late',minutes:15,amount:0,currency:'LAK',adjustment:'deduction',leaveType:'vacation',notes:'',exceptions:[],...extra}});
+let p=M.plan([req()],base());assert.equal(p.operations[0].data.rows[0].input.attendance[0].mark95,'15');assert.equal(p.operations[0].data.status,'draft');
+p=M.plan([req({type:'closure',pay:'unpaid'})],base());assert.equal(p.operations[0].data.rows[0].input.attendance[0].mark95,'NWU');assert.equal(p.operations[1].data.effect,'off');assert.equal(p.operations[1].data.payTreatment143168,'unpaid');
+p=M.plan([req({type:'closure',exceptions:[{employeeId:'e1',work:'assigned_work',pay:'paid'}]})],base());assert.equal(p.operations[0].data.rows[0].input.attendance[0].mark95,'0');assert.equal(p.operations[1].data.effect,'work');
+let s=base();s.runs=[{id:'r1',version:1,status:'finalized',data:{month:'2026-10',status:'finalized'}}];assert.throws(()=>M.plan([req()],s),/finalized/);
+s=base();s.leaves=[{data:{employeeId:'e1',status:'approved',from:'2026-10-24',to:'2026-10-24'}}];assert.throws(()=>M.plan([req()],s),/existing leave/);
+assert.throws(()=>M.plan([req(),{...req(),id:'HR-0002'}],base()),/overlap/);
+assert.throws(()=>M.plan([req({minutes:-1})],base()),/1,440/);
+assert.throws(()=>M.plan([req({start:'2026-02-30'})],base()),/valid dates/);
+p=M.plan([req({type:'closure',start:'2026-10-31',end:'2026-11-01'})],base());assert.equal(p.operations.filter(o=>o.table==='payroll_runs').length,2);
+s=base();s.runs=[{id:'r1',version:2,status:'draft',data:{month:'2026-10',status:'draft',rates:{LAK:1,USD:22000},rows:[{employeeId:'e1',employee:employee.data,input:{otherDeduction:100,attendance:[{date:'2026-10-24',mark95:'20',override95:{amount:200,reason:'old'}}]}}]}}];p=M.plan([req()],s);assert.match(p.warnings[0],/remove manual override/);assert.equal(p.operations[0].data.rows[0].input.attendance[0].override95,undefined);assert.equal(s.runs[0].data.rows[0].input.attendance[0].override95.amount,200);
+p=M.plan([req({type:'adjustment',amount:2,currency:'USD'})],s);assert.equal(p.operations[0].data.rows[0].input.otherDeduction,44100);
+assert.throws(()=>M.plan([req({type:'adjustment',amount:2,currency:'THB'})],s),/exchange rate/);
+p=M.plan([req({type:'leave'})],base());assert.equal(p.operations.find(o=>o.table==='payroll_leave_records').data.days,1);
+assert.throws(()=>M.plan([req({type:'leave',start:'2026-10-01',end:'2026-10-15'})],base()),/allowance/);
+let row=M.HEAD.map(k=>({request_id:'HR-1000',employee_names:'Jade',start_date:'2026-10-24'}[k]||''));assert.deepEqual(M.parse([M.HEAD,row],[employee])[0].data.employeeIds,['e1']);assert.match(M.parse([M.HEAD,row],[employee,{...employee,id:'e2'}])[0].data.importError,/uniquely/);assert.throws(()=>M.parse([M.HEAD,row,row],[employee]),/unique/);
+// Exercise actual shared payroll day calculation: an unpaid closure must deduct even with calendar work fraction zero.
+const ctx={structuredClone,ApplicationSettings:{payroll:{}},legendDefaults:[],Work82:{leaves:[]},window:{hrCalendar14306:{day:()=>({fraction:0})}},round82:x=>Math.round(x*100)/100};vm.createContext(ctx);vm.runInContext(fs.readFileSync('src/bridges/hr-payroll/attendance-v96/legend-and-marks.js','utf8')+'\n'+fs.readFileSync('src/bridges/hr-payroll/attendance-v96/approved-leave-and-days.js','utf8'),ctx);const run={month:'2026-10',rates:{LAK:1}},r={employeeId:'e1',employee:{salary:1000000,currency:'LAK'},input:{attendance:[{date:'2026-10-24',mark95:'NWU'}]}},config={workDays:25,hours:8,grace:0};assert.equal(ctx.dayResults(run,r,config,ctx.legends())[0].amount,40000);r.input.attendance[0].mark95='NWP';assert.equal(ctx.dayResults(run,r,config,ctx.legends())[0].amount,0);
+console.log('HR inbox: 20 checks passed (parsing, batches, closures, leave, FX, conflicts and payroll calculation)');

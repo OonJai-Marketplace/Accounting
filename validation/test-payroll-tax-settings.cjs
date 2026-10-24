@@ -21,6 +21,7 @@ assert.equal(await c.run('payrollTaxSettings.verify()'),1);
 // Statutory reports use finalized snapshots, not recalculated current settings.
 c.c.appLocalDate=()=> '2026-10-19';c.c.document={readyState:'loading',addEventListener(){},querySelector(){return null}};c.c.window.switchTab=()=>{};
 c.run("Work82.runs=[{id:'saved',data:{month:'2026-10',status:'finalized',results:[{employeePit:123,employerPit:45,employeeSso:67,employerSso:89}]}},{id:'draft',data:{month:'2026-10',status:'draft',results:[{employeePit:999}]}}]");
+vm.runInContext(fs.readFileSync('src/shared/data/workforce-storage-v82.js','utf8'),c.c);
 vm.runInContext(fs.readFileSync('src/reports/tax/tax-reports-v102.js','utf8'),c.c);
 assert.equal(c.c.window.taxReports102.payrollRows().length,1);assert.equal(c.c.window.taxReports102.payrollRows()[0].employeePit,123);
 c.run("ApplicationSettings.tax.pit2Rate='20'");assert.equal(c.c.window.taxReports102.payrollRows()[0].employeePit,123);

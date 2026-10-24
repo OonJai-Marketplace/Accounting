@@ -1,4 +1,4 @@
-function legends(){return ApplicationSettings.payroll.attendanceLegend95||structuredClone(legendDefaults)}
+function legends(){return [...(ApplicationSettings.payroll.attendanceLegend95||structuredClone(legendDefaults)).filter(r=>!['NWP','NWU'].includes(r.code)),{code:'NWP',description:'No work — paid',method:'percent',value:0,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#166534'},{code:'NWU',description:'No work — unpaid',method:'percent',value:100,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#b45309'}]}
 function number(v,label){const n=Number(v??0);if(!Number.isFinite(n)||n<0)throw Error(label+' must be zero or a positive number.');return n}
 function mark(a){return String(a?.mark95??a?.late??0).trim().toUpperCase()||'0'}
 function parseMark(value,rules=legends()){

@@ -1,9 +1,9 @@
 {
-  "version": "143.167",
+  "version": "143.168",
   "changes": [
-    "AI Journal entries now have Edit, Post and Reject. Post saves directly to Active Journal without opening preparation.",
-    "Removed Open preparation, Rejected drafts and duplicate Delete controls. Reject removes the draft from AI Journal.",
-    "AI Journal notifications show one item with the number of pending entries.",
-    "Journal navigation keeps the top of the page visible when switching between AI drafts and stacked preparation."
+    "Added AI HR Inbox to Human Resources with Layout B request cards, editing, employee exceptions and batch review.",
+    "Connected the existing Google Sheet with HR Draft Review for unfinished requests and HR History for confirmed/rejected records, including final reviewed details.",
+    "Confirm attendance, paid/unpaid closures, leave and manual payroll adjustments with atomic saves and an immutable audit trail.",
+    "Protect finalized payroll, prevent duplicate approvals and require a fresh review when HR records change."
   ]
 }

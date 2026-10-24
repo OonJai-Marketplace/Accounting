@@ -92,6 +92,25 @@ export async function handler(req:Request){
    try{return reply(await poll(c));}catch(e){checked(await admin.from('google_inbox143150').upsert({sheet:cfg.sheet,error:(e as Error).message}));throw e;}
   }
   const a=await auth(req,endpoint==='google-oauth-start'),cfg=await settings();
+  if(['hr-read','hr-status'].includes(body.action)){
+   const isAdmin=await a.user.rpc('is_admin');if(isAdmin.error||isAdmin.data!==true)throw Error('HR administrator required');
+   const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');
+   const source=await sheetRequest(c,"/values/"+encodeURIComponent("'HR Submission Inbox'!A1:T10002")+'?valueRenderOption=UNFORMATTED_VALUE');
+   if(source.values?.length>10001)throw Error('HR inbox exceeds 10,000 rows.');
+   if(body.action==='hr-read')return reply({sheet:cfg.sheet,values:source.values||[]});
+   const records=[];for(let offset=0;;offset+=500){const r=await a.user.from('hr_inbox143168').select('request_id,status,updated_at,updated_by,data,source').eq('sheet',cfg.sheet).order('request_id').range(offset,offset+499);if(r.error)throw Error('HR status unavailable');records.push(...r.data);if(r.data.length<500)break;}
+   const byId=new Map(records.map(r=>[r.request_id,r]));const data=(source.values||[]).slice(1).flatMap((row:any,i:number)=>{const r=byId.get(row[0]);return r?[{range:"'HR Submission Inbox'!R"+(i+2)+':T'+(i+2),values:[[r.status,r.updated_at,r.updated_by||'']]}]:[];});
+   if(data.length)await sheetRequest(c,'/values:batchUpdate','POST',{valueInputOption:'RAW',data});
+   // The source is retained; reviewed details feed separate draft/history views.
+   const meta=await sheetRequest(c,'?fields=sheets.properties'),review=meta.sheets?.find((s:any)=>s.properties.title==='HR Reviewed Data')?.properties;
+   if(!review)throw Error('HR Reviewed Data tab is missing. Restore the HR workbook tabs.');
+   if(records.length>10000)throw Error('HR review history exceeds 10,000 requests.');
+   const people=await a.user.from('payroll_employees').select('id,data');if(people.error)throw Error('Employee names could not be refreshed');
+   const names=new Map((people.data||[]).map((e:any)=>[e.id,e.data.name]));
+   const rows=records.map((r:any)=>{const d=r.data;return [r.request_id,d.type,d.scope==='all'?'all':(d.employeeIds||[]).join(';'),d.scope==='all'?'All active employees':(d.employeeIds||[]).map((id:string)=>names.get(id)||id).join('; '),d.start,d.end,d.reason,d.work,d.pay,d.status,d.minutes,d.amount,d.currency,d.adjustment,d.leaveType,d.notes,JSON.stringify(d.exceptions||[]),r.status,r.updated_at,r.updated_by||''].map(v=>({userEnteredValue:{stringValue:String(v??'')}}));});
+   await sheetRequest(c,':batchUpdate','POST',{requests:[{updateCells:{range:{sheetId:review.sheetId,startRowIndex:1,endRowIndex:review.gridProperties.rowCount,startColumnIndex:0,endColumnIndex:20},rows:rows.map(values=>({values})),fields:'userEnteredValue'}}]});
+   return reply({updated:data.length,drafts:records.filter(r=>r.status==='pending').length,history:records.filter(r=>r.status!=='pending').length});
+  }
   if(endpoint==='google-oauth-start'){
    if(!clientID()||!clientSecret())throw Error('Server Google OAuth credentials must be configured first.');
    if(cfg.client!==clientID())throw Error('Saved Google client ID does not match server configuration.');
