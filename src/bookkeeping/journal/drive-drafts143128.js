@@ -81,7 +81,7 @@ async function receiveInbox143173(snapshot,meta){
  if(meta.owner!==identity())return;receiving143173=true;
  try{
  syncSession();if(!sharedLoaded&&liveProfile.role==='admin')await loadSharedSettings();const c=context();if(c.sheet!==meta.sheet)throw Error('Reload Google settings to use the current submission sheet.');
- await loadDispositions(c);assert(c);if(restoredKey!==preparationKey()){const count=prepared.size;restorePreparation(c);if(prepared.size!==count)renderPreparation();}const groups=parse(snapshot.rows);readLegacySourceRefs(snapshot.rows);
+ if(Array.isArray(snapshot.dispositions))dispositions=new Map(snapshot.dispositions.map(d=>[d.draft,d.status]));else await loadDispositions(c);assert(c);if(restoredKey!==preparationKey()){const count=prepared.size;restorePreparation(c);if(prepared.size!==count)renderPreparation();}const groups=parse(snapshot.rows);readLegacySourceRefs(snapshot.rows);
  connectionStatus={connected:true,email:'oonjaimarketplace@gmail.com'};lastCheckedAt=new Date().toISOString();backgroundError='';
  pendingDraftNotices=[...groups].filter(([id])=>!completedDrafts.has(id)&&!dispositions.has(id)).map(([id,rows])=>({noticeId:id,type:'AI Journal draft',title:rows[0].description,detail:rows[0].posting_date,target:'ai-journal'}));window.refreshNotices1443?.();showConnection();
  const list=panel?.querySelector('[data-drive-list]');if(!list)return;
@@ -93,12 +93,17 @@ async function receiveInbox143173(snapshot,meta){
  catch(e){error=e.message;}assert(c);if(busy||prepared.has(id)){queuedSnapshot143173={snapshot,meta};continue;}
  const old=[...list.querySelectorAll('[data-draft]')].find(n=>n.dataset.draft===id);if(saved){old?.remove();reviewed.delete(id);continue;}
  const fragment=document.createDocumentFragment(),card=display(id,rows,payload,error,null,chart,fragment);if(next&&!error)card.querySelector('[data-entry-id]').textContent='Next available: '+next;
- reviewed.set(id,{rows:JSON.stringify(rows),payload,chart,saved});if(old)old.replaceWith(card);else{if(!list.querySelector('[data-draft]'))list.replaceChildren();list.querySelectorAll('.gpt-empty143129').forEach(n=>n.remove());list.append(card);}
+ reviewed.set(id,{rows:JSON.stringify(rows),payload,chart,saved,error});if(old)old.replaceWith(card);else{if(!list.querySelector('[data-draft]'))list.replaceChildren();list.querySelectorAll('.gpt-empty143129').forEach(n=>n.remove());list.append(card);}
  }
  for(const [id] of reviewed)if(!groups.has(id)||dispositions.has(id)||completedDrafts.has(id)){reviewed.delete(id);[...list.querySelectorAll('[data-draft]')].find(n=>n.dataset.draft===id)?.remove();}
  if(!reviewed.size&&!list.querySelector('[data-draft]'))list.innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';
  pendingDraftNotices=pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId));lastDraftSignature=JSON.stringify([...groups]);lastDraftRead=Date.now();window.refreshNotices1443?.();
- }finally{receiving143173=false;}
+ }finally{receiving143173=false;void window.AIInboxSync143173?.persist?.();}
+}
+function cacheInbox143174(){return {reviewed:[...reviewed],completed:[...completedDrafts],dispositions:[...dispositions],notices:pendingDraftNotices,signature:lastDraftSignature,settings:sharedSettings,refs:[...aiSourceRefs]};}
+function restoreInbox143174(saved,meta){
+ if(!saved||meta.owner!==identity()||!panel)return false;syncSession();sharedSettings={...(saved.settings||{}),sheet:meta.sheet};sharedOwner=meta.owner;sharedLoaded=true;completedDrafts.clear();for(const id of saved.completed||[])completedDrafts.add(id);dispositions=new Map(saved.dispositions||[]);aiSourceRefs=new Map(saved.refs||[]);reviewed=new Map(saved.reviewed||[]);pendingDraftNotices=saved.notices||[];lastDraftSignature=saved.signature||'';
+ const list=panel.querySelector('[data-drive-list]'),fragment=document.createDocumentFragment();for(const [id,r]of reviewed){if(completedDrafts.has(id)||dispositions.has(id))continue;display(id,JSON.parse(r.rows),r.payload,r.error||'',null,r.chart||[],fragment);}list.replaceChildren(fragment);if(!list.children.length)list.innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';restorePreparation(context());renderPreparation();renderSettings();showConnection();window.refreshNotices1443?.();return true;
 }
 function drainInbox143173(){const q=queuedSnapshot143173;if(!q||busy||receiving143173)return;queuedSnapshot143173=null;void receiveInbox143173(q.snapshot,q.meta).catch(e=>{backgroundError=e.message;showConnection();});}
 async function readDrafts(){const r=await api('/values/'+encodeURIComponent('Drafts!A1:N10002')+'?valueRenderOption=UNFORMATTED_VALUE');if(r.values?.length>10001)throw Error('Draft sheet exceeds 10,000 lines. Archive reviewed rows first.');return r.values||[];}
@@ -232,7 +237,7 @@ function display(id,rows,payload,error,receiptData,chart,target=panel.querySelec
 }
 async function refresh(prefetchedRows){
  const c=context();message('Refreshing accounts and reading drafts…');await loadDispositions(c);
- const [a,sourceRows]=await Promise.all([syncChart(),prefetchedRows?Promise.resolve(prefetchedRows):readDrafts()]);assert(c);readLegacySourceRefs(sourceRows);const groups=parse(sourceRows);restorePreparation(c);
+ const [a,sourceRows]=await Promise.all([syncChart(),prefetchedRows?Promise.resolve(prefetchedRows):readDrafts()]);assert(c);window.AIInboxSync143173?.retain?.('journal',sourceRows,c.sheet);readLegacySourceRefs(sourceRows);const groups=parse(sourceRows);restorePreparation(c);
  const entries=[...groups].filter(([id])=>!dispositions.has(id));
  const results=new Array(entries.length),previews=new Map();let cursor=0,done=0;
  // Keep the last complete table until every read has settled. Limit concurrency on slow devices.
@@ -245,7 +250,7 @@ async function refresh(prefetchedRows){
   }
  }));assert(c);
  const target=document.createDocumentFragment(),nextReviewed=new Map();
- for(const {id,rows,payload,error,saved,next}of results){if(completedDrafts.has(id))continue;nextReviewed.set(id,{rows:JSON.stringify(rows),payload,chart:a,saved});const card=display(id,rows,payload,error,saved,a,target);if(!saved&&!error){card.querySelector('[data-entry-id]').textContent=next?'Next available: '+next:'Entry ID: unavailable';card.querySelector('[data-entry-id]').title='Not reserved. Accounting assigns the final ID when posted.';}}
+ for(const {id,rows,payload,error,saved,next}of results){if(completedDrafts.has(id))continue;nextReviewed.set(id,{rows:JSON.stringify(rows),payload,chart:a,saved,error});const card=display(id,rows,payload,error,saved,a,target);if(!saved&&!error){card.querySelector('[data-entry-id]').textContent=next?'Next available: '+next:'Entry ID: unavailable';card.querySelector('[data-entry-id]').title='Not reserved. Accounting assigns the final ID when posted.';}}
  reviewed=nextReviewed;panel.querySelector('[data-drive-list]').replaceChildren(target);
  const pending=[...groups].filter(([key])=>!dispositions.has(key)&&!completedDrafts.has(key)).map(([key,items])=>({noticeId:key,type:'AI Journal draft',title:items[0]?.description||'Journal draft',detail:items[0]?.posting_date||'',target:'ai-journal'}));pendingDraftNotices=pending;lastDraftSignature=JSON.stringify([...groups].filter(([key])=>!completedDrafts.has(key)).map(([key,items])=>[key,items]));lastDraftRead=Date.now();window.refreshNotices1443?.();
  if(!reviewed.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';
@@ -392,7 +397,7 @@ async function postItems(items,stayInInbox=false){
 async function run(fn){
  if(busy)return;busy=true;const e=epoch;const hosts=[panel,settingsPanel,preparation];hosts.forEach(h=>{if(h)h.inert=true;});
  try{if(!sharedLoaded&&identity()&&liveProfile.role==='admin')await loadSharedSettings();await fn();}catch(err){if(e===epoch){message(err.message);showCenterStatus(err.message,true);}}
- finally{busy=false;drainInbox143173();hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));updatePostButtons();}}
+ finally{busy=false;void window.AIInboxSync143173?.persist?.();drainInbox143173();hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));updatePostButtons();}}
 }
 
 function renderSettings(){
@@ -433,7 +438,7 @@ function ready(){
  setInterval(()=>{if(syncSession())void checkBackground();},1500);
  void checkBackground();
 }
-window.AIInboxSync143173?.register('journal',{receive:receiveInbox143173,reset:()=>{syncSession();},error:e=>{backgroundError=e;showConnection();}});
+window.AIInboxSync143173?.register('journal',{checked:()=>{connectionStatus={connected:true,email:'oonjaimarketplace@gmail.com'};lastCheckedAt=new Date().toISOString();backgroundError='';showConnection();},cache:cacheInbox143174,restore:restoreInbox143174,receive:receiveInbox143173,reset:()=>{if(!syncSession()){disconnect();sharedLoaded=false;}},error:e=>{backgroundError=e;showConnection();}});
 window.DriveDrafts143128={open,choose,scrollToTop:()=>scrollJournal(),parse,normalize,validDate,googleURL,notices:()=>pendingDraftNotices.slice(),get view(){return view},get editing(){return prepared.size>0},get preparedCount(){return prepared.size}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

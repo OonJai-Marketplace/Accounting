@@ -21,6 +21,7 @@ window.deleteAuditRecord1434=async function(item){
  const actor=liveProfile?.id,db=ojmDb,current=()=>liveProfile?.id===actor&&ojmDb===db;
  if(liveProfile?.role!=='admin')return showCenterStatus('Administrator access required.',true);
  try{
+  if(window.offlineAudit143174&&(offlineAudit143174.offline()||item.voidRequest143174)){await offlineAudit143174.queueDelete(item);return;}
   const source=item.auditSource1434==='record_deletions108'?'record_deletions108':'audit_log';
   const args=source==='audit_log'?{p_audit_ids:[String(item.id)]}:{p_deletion_ids:[String(item.id)]};
   const permission=await db.rpc('audit_delete_permissions143124',args);if(!current())return;if(permission.error)throw permission.error;

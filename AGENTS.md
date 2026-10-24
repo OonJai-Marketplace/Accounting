@@ -99,3 +99,10 @@ use. A 1 January entry is an initial opening; any later recording date is an
 Opening balance adjustment that affects its actual period, never January's
 opening retrospectively. Preserve period/year locks, permissions, balanced
 posting, immutable retries, and the user's entered date.
+
+Offline clarification 2026-10-24: ID, void/delete and audit exceptions also work
+on the local browser. Save offline intent durably, show pending confirmation and
+provisional ID availability, and sync edits/voids and audit deletion before new
+posting. Recheck permissions, original UUID/content and latest-ID eligibility on
+the database. Conflicts remain pending; cached intent never overrides another
+device's changes. Online exception reads remain fresh.

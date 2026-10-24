@@ -16,6 +16,7 @@ window.addEventListener('focus',()=>activity());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)activity()});
 const size=value=>value===undefined?null:new TextEncoder().encode(JSON.stringify(value)).length;
 function pending(){const rows=new Map();
+ for(const j of window.offlineAudit143174?.pending()||[])rows.set(j.id,{id:j.id,status:j.status,source:'Audit deletion',records:1,payloadBytes:size(j.args)});
  for(const j of window.journalDurable14385?.pending()||[])rows.set(j.id,{id:j.id,status:j.status,source:'Journal',records:j.entries.length,payloadBytes:size(j.entries)});
  for(const j of window.localFirst14333?.state().jobs||[])if(!['synced','resolved'].includes(j.status))rows.set(j.id,{id:j.id,status:j.status,source:j.kind,records:1,payloadBytes:size(j.row)});
  for(const j of window.offline14239?.queue()||[])if(j.status!=='synced')rows.set(j.payload.p_key,{id:j.payload.p_key,status:j.status,source:'Sub-users',records:j.payload.p_items.length,payloadBytes:size(j.payload)});

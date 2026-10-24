@@ -39,12 +39,16 @@ async function sheetRequest(c:any,path:string,method='GET',body?:unknown){
  if(!r.ok)throw Error('Google Sheets request failed ('+r.status+'). Check workbook access or reconnect Google.');return r.status===204?{}:r.json();
 }
 async function poll(c:any){
- const data=await sheetRequest(c,'/values/Drafts!A1:N10002?valueRenderOption=UNFORMATTED_VALUE'),rows=data.values||[];
+ const data=await sheetRequest(c,'/values/Drafts!A1:A10002?valueRenderOption=UNFORMATTED_VALUE'),rows=data.values||[];
  if(rows.length>10001||rows[0]?.[0]!=='draft_id')throw Error('Draft sheet headers or row limit need review.');
- const groups=new Map<string,any>();for(const row of rows.slice(1)){if(!row[0])continue;if(!/^[\w-]{8,64}$/.test(row[0]))throw Error('A draft ID needs correction in Google Sheets.');if(!groups.has(row[0]))groups.set(row[0],{noticeId:row[0],type:'AI Journal draft',title:String(row[2]||'Journal draft'),detail:String(row[1]||''),target:'ai-journal'});}
- const ids=[...groups.keys()];for(let i=0;i<ids.length;i+=100){const receipts=checked(await admin.from('operation_receipts14228').select('request_key').eq('operation','journal').in('request_key',ids.slice(i,i+100).map(id=>'drive-v1:'+c.sheet+':'+id)));for(const r of receipts)groups.delete(r.request_key.slice(('drive-v1:'+c.sheet+':').length));}
+ const positions=new Map<string,number>();for(let i=1;i<rows.length;i++){const id=String(rows[i][0]||'');if(!id)continue;if(!/^[\w-]{8,64}$/.test(id))throw Error('A draft ID needs correction in Google Sheets.');if(!positions.has(id))positions.set(id,i+1);}
+ const ids=[...positions.keys()];for(let i=0;i<ids.length;i+=100){const receipts=checked(await admin.from('operation_receipts14228').select('request_key').eq('operation','journal').in('request_key',ids.slice(i,i+100).map(id=>'drive-v1:'+c.sheet+':'+id)));for(const r of receipts)positions.delete(r.request_key.slice(('drive-v1:'+c.sheet+':').length));}
+ const previous=checked(await admin.from('google_inbox143150').select('notices').eq('sheet',c.sheet).maybeSingle());
+ const groups=new Map<string,any>((previous?.notices||[]).filter((n:any)=>positions.has(n.noticeId)).map((n:any)=>[n.noticeId,n]));
+ const missing=[...positions].filter(([id])=>!groups.has(id));for(let i=0;i<missing.length;i+=100){const batch=missing.slice(i,i+100),result=await sheetRequest(c,'/values:batchGet?'+batch.map(([,row])=>'ranges='+encodeURIComponent('Drafts!A'+row+':C'+row)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');for(let n=0;n<batch.length;n++){const row=result.valueRanges?.[n]?.values?.[0];if(!row||String(row[0])!==batch[n][0])throw Error('Draft rows moved during the notification check. The next check will retry.');groups.set(row[0],{noticeId:row[0],type:'AI Journal draft',title:String(row[2]||'Journal draft'),detail:String(row[1]||''),target:'ai-journal'});}}
  checked(await admin.from('google_inbox143150').upsert({sheet:c.sheet,notices:[...groups.values()],checked_at:new Date().toISOString(),error:null}));return {count:groups.size};
 }
+
 // Only the fixed configured workbook and the three journal tabs are reachable.
 async function proxy(c:any,path:string,method:string,body:any){
  const decoded=decodeURIComponent(path);
@@ -95,8 +99,6 @@ export async function handler(req:Request){
   if(body.action==='inboxes-read'){
    const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');
    const isAdmin=await a.user.rpc('is_admin');if(isAdmin.error)throw Error('HR permission check failed');
-   const ranges=['Drafts!A1:N10002',...(isAdmin.data===true?["'HR Submission Inbox'!A1:T10002"]:[])];
-   const source=await sheetRequest(c,'/values:batchGet?'+ranges.map(r=>'ranges='+encodeURIComponent(r)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');
    const known=body.sheet===cfg.sheet?body.hashes||{}:{};
    async function delta(values:any[],name:string){
     if(values.length>10001)throw Error(name+' inbox exceeds its row limit.');
@@ -104,8 +106,29 @@ export async function handler(req:Request){
     const changed=[];for(const [id,rows] of groups){const digest=await hash(JSON.stringify(rows));if(known[name]?.[id]!==digest)changed.push({id,rows,hash:digest});}
     return {header:values[0]||[],ids:[...groups.keys()],changed};
    }
-   const journal=await delta(source.valueRanges?.[0]?.values||[],'journal');let hr:any=null;
-   if(isAdmin.data===true){hr=await delta(source.valueRanges?.[1]?.values||[],'hr');const versions=body.sheet===cfg.sheet?body.hrVersions||{}:{};const changedIds=[];
+   let journal:any,hr:any=null;
+   if(body.missingOnly===true){
+    const names=isAdmin.data===true?['journal','hr']:['journal'],tabs:any={journal:'Drafts',hr:"'HR Submission Inbox'"},ends:any={journal:'N',hr:'T'};
+    const index=await sheetRequest(c,'/values:batchGet?'+names.map(name=>'ranges='+encodeURIComponent(tabs[name]+'!A1:A10002')).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');
+    const output:any={};
+    for(let n=0;n<names.length;n++){const name=names[n],values=index.valueRanges?.[n]?.values||[];if(values.length>10001)throw Error(name+' inbox exceeds its row limit.');const ids=[...new Set<string>(values.slice(1).filter((r:any)=>r[0]!==''&&r[0]!=null).map((r:any)=>String(r[0])))];
+     const versions=name==='hr'&&body.sheet===cfg.sheet?body.hrVersions||{}:{};
+     const ranges:string[]=[],blocks:number[][]=[];let start=-1,last=-1;
+     for(let i=1;i<values.length;i++){const id=String(values[i]?.[0]||'');if(id&&!Object.prototype.hasOwnProperty.call(known[name]||{},id)&&!Object.prototype.hasOwnProperty.call(versions,id)){if(start<0)start=i;last=i;}else if(start>=0){blocks.push([start,last]);start=-1;}}
+     if(start>=0)blocks.push([start,last]);
+     let header=body.sheet===cfg.sheet?body.headers?.[name]:null;const needsHeader=!Array.isArray(header)||!header.length;if(needsHeader)ranges.push(tabs[name]+'!A1:'+ends[name]+'1');
+     for(const [from,to]of blocks)ranges.push(tabs[name]+'!A'+(from+1)+':'+ends[name]+(to+1));
+     const rows:any[]=[];for(let offset=0;offset<ranges.length;offset+=100){const data=await sheetRequest(c,'/values:batchGet?'+ranges.slice(offset,offset+100).map(r=>'ranges='+encodeURIComponent(r)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');for(let j=0;j<(data.valueRanges||[]).length;j++){const part=data.valueRanges[j].values||[];if(needsHeader&&offset===0&&j===0)header=part[0]||[];else rows.push(...part);}}
+     output[name]={...await delta([header||[],...rows],name),ids};
+    }
+    journal=output.journal;hr=output.hr||null;
+    const statuses=await a.user.rpc('drive_draft_dispositions143160',{p_sheet:cfg.sheet});if(statuses.error)throw Error('Journal review status unavailable');journal.dispositions=statuses.data||[];
+   }else{
+    const ranges=['Drafts!A1:N10002',...(isAdmin.data===true?["'HR Submission Inbox'!A1:T10002"]:[])];
+    const source=await sheetRequest(c,'/values:batchGet?'+ranges.map(r=>'ranges='+encodeURIComponent(r)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');
+    journal=await delta(source.valueRanges?.[0]?.values||[],'journal');if(isAdmin.data===true)hr=await delta(source.valueRanges?.[1]?.values||[],'hr');
+   }
+   if(isAdmin.data===true){const versions=body.sheet===cfg.sheet?body.hrVersions||{}:{};const changedIds=[];
     for(let offset=0;;offset+=500){const r=await a.user.from('hr_inbox143168').select('request_id,version').eq('sheet',cfg.sheet).order('request_id').range(offset,offset+499);if(r.error)throw Error('HR versions unavailable');for(const row of r.data)if(versions[row.request_id]!==row.version)changedIds.push(row.request_id);if(r.data.length<500)break;}
     hr.records=[];for(let offset=0;offset<changedIds.length;offset+=100){const r=await a.user.from('hr_inbox143168').select('*').eq('sheet',cfg.sheet).in('request_id',changedIds.slice(offset,offset+100));if(r.error)throw Error('HR drafts unavailable');hr.records.push(...r.data);}
    }

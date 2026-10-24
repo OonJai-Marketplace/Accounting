@@ -7160,6 +7160,9 @@ mountSettings();
   window.loadTransactionAudit = async function (force = true) {
     if (typeof ojmDb === 'undefined' || !ojmDb || typeof liveProfile === 'undefined' || !liveProfile) return;
     const owner=liveProfile.id,db=ojmDb;
+    await window.offlineAudit143174?.initialize();
+    if(liveProfile?.id!==owner||ojmDb!==db)return;
+    if(window.offlineAudit143174?.offline()){LiveTransactionAudit=offlineAudit143174.projectAudit();window.renderVoidedTransactionsTable();return;}
     const read = async () => {
       const pageSize = 500, rows = [];
       for (let offset = 0; ; offset += pageSize) {
@@ -7181,10 +7184,12 @@ mountSettings();
       const ids=new Set((voided.data||[]).map(r=>String(r.id)));
       rows.forEach(row=>{row.voidedJournal143122=ids.has(String(row.record_id))});
       if(liveProfile?.id!==owner||ojmDb!==db)return;
-      LiveTransactionAudit = rows;
+      await window.offlineAudit143174?.rememberAudit(rows);
+      if(liveProfile?.id!==owner||ojmDb!==db)return;
+      LiveTransactionAudit = window.offlineAudit143174?.projectAudit()||rows;
       window.renderVoidedTransactionsTable();
     } catch (error) {
-      if(liveProfile?.id===owner&&ojmDb===db){LiveTransactionAudit=[];window.renderVoidedTransactionsTable();}
+      if(liveProfile?.id===owner&&ojmDb===db){LiveTransactionAudit=window.offlineAudit143174?.projectAudit()||[];window.renderVoidedTransactionsTable();}
       if(liveProfile?.id===owner&&ojmDb===db)window.showAppNotification?.('Audit Log Could Not Load', error.message || 'Try reloading the Audit Log.', true);
       throw error;
     }
@@ -7348,6 +7353,8 @@ mountSettings();
   const auditAction14361=item=>String(item.action||'CHANGE').toUpperCase();
   function auditKind14361(item){
     const action=auditAction14361(item),after=item.new_data||{};
+    if(action==='VOID_PENDING')return {group:'voids',tier:'red',label:'Void · pending sync'};
+    if(action==='DELETE_PENDING')return {group:'deletions',tier:'red',label:'Deletion · pending sync'};
     if(item.deletePolicy143124==='green')return {group:'routine',tier:'green',label:action.replaceAll('_',' ')};
     if(item.voidedJournal143122&&['POST','AUTO_POST'].includes(action))return {group:'voids',tier:'red',label:'Voided entry — remaining posting record'};
     if(['POST','AUTO_POST','SCHEDULE_POST_ADVANCE','CREATE_SCHEDULE','MAINTENANCE_CLOSE','SUBMIT','REVIEW','REVIEW_FORWARD','APPROVE','APPROVE_AND_POST','LINK'].includes(action))return item.deletePolicy143124==='protected'?{group:'reviews',tier:'yellow',label:'Protected '+action.replaceAll('_',' ')}:null;

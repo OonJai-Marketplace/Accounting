@@ -4246,6 +4246,11 @@
         "source": "src/integrations/google/inbox-sync143173.js",
         "suffix": ";\n"
       }
+    ],
+    "scripts/offline-audit143174.js": [
+      {
+        "source": "src/bookkeeping/history/offline-audit143174.js"
+      }
     ]
   },
   "variants": [
