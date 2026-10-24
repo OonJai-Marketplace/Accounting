@@ -1,10 +1,9 @@
 {
-  "version": "143.169",
+  "version": "143.170",
   "changes": [
-    "Added AI HR Inbox to Human Resources with Layout B request cards, editing, employee exceptions and batch review.",
-    "Connected the existing Google Sheet with HR Draft Review for unfinished requests and HR History for confirmed/rejected records, including final reviewed details.",
-    "Confirm attendance, paid/unpaid closures, leave and manual payroll adjustments with atomic saves and an immutable audit trail.",
-    "Protect finalized payroll, prevent duplicate approvals and require a fresh review when HR records change.",
-    "Save unfinished HR edits as drafts; validation is required before confirmation."
+    "Removed Assessment from HR navigation, removed the duplicate inbox heading and moved Sync Google Sheet into the existing banner at top right.",
+    "Hardened HR draft imports, account-switch isolation and approval checks; incomplete drafts remain editable.",
+    "Preserve successful approval status when refresh or Sheet sync fails, and protect edited payroll drafts across months.",
+    "Verified draft/history routing, duplicate prevention, rollback, missing-input rejection and administrator-only access."
   ]
 }

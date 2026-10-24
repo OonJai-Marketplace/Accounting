@@ -30,3 +30,5 @@ html body .hr-ai-dialog{position:fixed;inset:0;margin:auto;width:min(850px,95vw)
 @media print{#hr-ai-inbox .hr-ai-bottom,#hr-ai-inbox .hr-ai-filters{display:none}}
 
 #hr-ai-inbox .hr-ai-pay>span{display:block;font-size:12px;margin-bottom:5px}#hr-ai-inbox .hr-ai-pay>div{display:flex}#hr-ai-inbox .hr-ai-pay button{flex:1;border-radius:0}#hr-ai-inbox .hr-ai-pay button:first-child{border-radius:5px 0 0 5px}#hr-ai-inbox .hr-ai-pay button:last-child{border-radius:0 5px 5px 0}
+
+#hr-ai-inbox>.area-banner113{position:relative}#hr-ai-inbox>.area-banner113 .banner-copy113{max-width:calc(100% - 200px)}#hr-ai-inbox .hr-ai-banner-sync{position:absolute;top:14px;right:18px;z-index:4}#hr-ai-inbox .hr-ai-warning pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px}

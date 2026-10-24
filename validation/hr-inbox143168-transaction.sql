@@ -11,6 +11,30 @@ BEGIN
  baseline=public.hr_inbox_baseline143168();
  plan=jsonb_build_object('operations',jsonb_build_array(jsonb_build_object('table','payroll_runs','id',rid,'version',0,'data',jsonb_build_object('month','2099-10','status','draft','reference','HR-TEST','rates',jsonb_build_object('LAK',1),'rows',jsonb_build_array(jsonb_build_object('employeeId',eid,'employee',jsonb_build_object('name','Rollback fixture','salary',1000000,'currency','LAK'),'input',jsonb_build_object('attendance',jsonb_build_array(jsonb_build_object('date','2099-10-24','mark95','15')))))))),'changes','[]'::jsonb);
  BEGIN
+  PERFORM public.hr_inbox_apply143168('test-rollback',req,plan,NULL);
+  RAISE EXCEPTION 'Missing input was accepted';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM NOT LIKE '%Invalid approval batch%' THEN RAISE; END IF;
+ END;
+ BEGIN
+  PERFORM public.hr_inbox_apply143168('test-rollback',req,'{}'::jsonb,baseline);
+  RAISE EXCEPTION 'Missing input was accepted';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM NOT LIKE '%Invalid approval batch%' THEN RAISE; END IF;
+ END;
+ BEGIN
+  PERFORM public.hr_inbox_save143168('test-rollback',jsonb_build_array((req->0)-'version'),'save');
+  RAISE EXCEPTION 'Missing input was accepted';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM NOT LIKE '%changed elsewhere%' THEN RAISE; END IF;
+ END;
+ BEGIN
+  PERFORM public.hr_inbox_apply143168('test-rollback',jsonb_build_array((req->0)-'version'),plan,baseline);
+  RAISE EXCEPTION 'Missing input was accepted';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM NOT LIKE '%already processed%' THEN RAISE; END IF;
+ END;
+ BEGIN
   PERFORM public.hr_inbox_apply143168('test-rollback',req,plan,'{}'::jsonb);
   RAISE EXCEPTION 'Stale baseline allowed';
  EXCEPTION WHEN OTHERS THEN
@@ -40,5 +64,19 @@ BEGIN
   IF SQLERRM NOT LIKE '%immutable%' THEN RAISE; END IF;
  END;
 END $$;
-SELECT 'Atomic approval, audit, duplicate prevention and immutability passed' AS result;
+DO $$
+DECLARE claims text=current_setting('request.jwt.claims');
+BEGIN
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',gen_random_uuid(),'role','authenticated')::text,true);
+ IF EXISTS(SELECT 1 FROM public.hr_inbox143168) OR EXISTS(SELECT 1 FROM public.hr_inbox_audit143168) THEN RAISE EXCEPTION 'Unauthorized row visible'; END IF;
+ BEGIN
+  PERFORM public.hr_inbox_save143168('test-rollback','[]'::jsonb,'import');
+  RAISE EXCEPTION 'Unauthorized RPC allowed';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM NOT LIKE '%Administrator required%' THEN RAISE; END IF;
+ END;
+ IF has_function_privilege('anon','public.hr_inbox_apply143168(text,jsonb,jsonb,jsonb)','EXECUTE') THEN RAISE EXCEPTION 'Anonymous approval allowed'; END IF;
+ PERFORM set_config('request.jwt.claims',claims,true);
+END $$;
+SELECT 'Atomic approval, failed-batch rollback, missing inputs, stale versions, duplicate protection, immutable receipts and unauthorized access passed' AS result;
 ROLLBACK;
