@@ -11,6 +11,7 @@ let s=base();s.runs=[{id:'r1',version:1,status:'finalized',data:{month:'2026-10'
 s=base();s.leaves=[{data:{employeeId:'e1',status:'approved',from:'2026-10-24',to:'2026-10-24'}}];assert.throws(()=>M.plan([req()],s),/existing leave/);
 assert.throws(()=>M.plan([req(),{...req(),id:'HR-0002'}],base()),/overlap/);
 assert.throws(()=>M.plan([req({minutes:-1})],base()),/1,440/);
+assert.throws(()=>M.plan([req({minutes:null})],base()),/1,440/);
 assert.throws(()=>M.plan([req({start:'2026-02-30'})],base()),/valid dates/);
 p=M.plan([req({type:'closure',start:'2026-10-31',end:'2026-11-01'})],base());assert.equal(p.operations.filter(o=>o.table==='payroll_runs').length,2);
 s=base();s.runs=[{id:'r1',version:2,status:'draft',data:{month:'2026-10',status:'draft',rates:{LAK:1,USD:22000},rows:[{employeeId:'e1',employee:employee.data,input:{otherDeduction:100,attendance:[{date:'2026-10-24',mark95:'20',override95:{amount:200,reason:'old'}}]}}]}}];p=M.plan([req()],s);assert.match(p.warnings[0],/remove manual override/);assert.equal(p.operations[0].data.rows[0].input.attendance[0].override95,undefined);assert.equal(s.runs[0].data.rows[0].input.attendance[0].override95.amount,200);

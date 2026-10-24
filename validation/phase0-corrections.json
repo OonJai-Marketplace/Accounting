@@ -6,9 +6,9 @@
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
     "phone-sw.js": "9fb13183c30f650f8a8a6ba1179e72ace4f58e250fc660d4ce856a50ebb50e1b",
     "phone-accounting.html": "988a7658fb145d9ebdf9f490ceb693d7b96eecf0ab9219af4eae0dc52af9fd99",
-    "desktop-sw14242.js": "42aab58c5748665eefd0cd36d905f8190e716371ec6d6562268331a6f91d2972",
+    "desktop-sw14242.js": "482631a87c63c9dc0b988739e446674603b2facdb738d6c0b6e43f4fbf0225a9",
     "phone.html": "96db7e69812e8c03410be7e2a5007dd7df0b1be6fff7e485cacf5a9c5dc3122f",
-    "desktop.html": "be20b26f8671c76edc2cd08ca8ad5072023e0e44fae6348d825b14894c0c6777",
+    "desktop.html": "5742b4fb8f367528c6febc7c39139e7c95d002978b96f87781f79229ce1eac60",
     "scripts/phone-runtime14242.js": "f213c601fdb7f9051387841cde7153c1132140cf9af48c76f2d083c62d340988",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "70f0a9e7661fa9017483641ae0d0a2d37307ac445423235e693fe801a4f832d7",
@@ -17,7 +17,7 @@
     "scripts/payroll-polish-v97.js": "5808ed23953e47013c091a5fbc0c0ad1c75fb75b5208b169e9facc07a27e756f",
     "scripts/startup14257.js": "d98b9a153f07c7e7e9753a8b3177ec4c7c00754a9f2bb5677e127d407de75e3a",
     "scripts/desktop14245-6.js": "7e4a1e2b26e3a3cea10c7cf7d16f5e3d79c50311ec770e0bafaaba1094aba044",
-    "scripts/offline14239.js": "35e30552718730e829c951ece98c95b7d5e9eea55e0cf6ae1bd871492b8df76c",
+    "scripts/offline14239.js": "19c807f885023ac635c67ec30aa359b83b96a60550d97d561502ebda3dd019ff",
     "scripts/desktop14245-3.js": "4fb997dcad95d39601b919364d3d7ac85376ffb7060395bfb744e9cda7767a3e",
     "scripts/desktop14245-4.js": "a955acea2f1c7e7165b386debffb4805d84683dfb91d9015acd493f4cfbd2b2f",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
@@ -281,7 +281,7 @@
     "checks": "Fixture posting tests cover source changes, invalid accounts, offline/server failure, double clicks and lost-response receipts; browser verifies repeated Journal navigation and grouped bell on desktop/tablet. No live financial data changed."
   },
   "hrInbox143168": {
-    "request": "Layout B stacked editors and shared review, sheet import, paid/unpaid closures, attendance, leave and payroll adjustments; explicit approval and audit before application.",
+    "request": "Layout B stacked editors and shared review, sheet import, paid/unpaid closures, attendance, leave and payroll adjustments; explicit approval and audit before application. Follow-up: keep unfinished edits in Draft Review and confirmed/rejected items in History; v143.169 refreshes cached clients.",
     "checks": "Pure model/payroll calculations and DOM control tests; live database rollback test for atomic approval, stale baseline, failed batch rollback, duplicate prevention and immutable receipts; Google headers and validation verified. Browser local-file preview is unavailable; authenticated visual comparison was not completed. Google Sheet draft/history FILTER views verified for pending, accepted and rejected states; temporary formula checks cleared."
   }
 }
