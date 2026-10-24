@@ -92,6 +92,25 @@ export async function handler(req:Request){
    try{return reply(await poll(c));}catch(e){checked(await admin.from('google_inbox143150').upsert({sheet:cfg.sheet,error:(e as Error).message}));throw e;}
   }
   const a=await auth(req,endpoint==='google-oauth-start'),cfg=await settings();
+  if(body.action==='inboxes-read'){
+   const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');
+   const isAdmin=await a.user.rpc('is_admin');if(isAdmin.error)throw Error('HR permission check failed');
+   const ranges=['Drafts!A1:N10002',...(isAdmin.data===true?["'HR Submission Inbox'!A1:T10002"]:[])];
+   const source=await sheetRequest(c,'/values:batchGet?'+ranges.map(r=>'ranges='+encodeURIComponent(r)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');
+   const known=body.sheet===cfg.sheet?body.hashes||{}:{};
+   async function delta(values:any[],name:string){
+    if(values.length>10001)throw Error(name+' inbox exceeds its row limit.');
+    const groups=new Map<string,any[]>();for(const row of values.slice(1)){if(!row.some((v:any)=>v!==''&&v!=null))continue;const id=String(row[0]||'');if(!id)throw Error(name+' request ID is missing.');if(!groups.has(id))groups.set(id,[]);groups.get(id)!.push(row);}
+    const changed=[];for(const [id,rows] of groups){const digest=await hash(JSON.stringify(rows));if(known[name]?.[id]!==digest)changed.push({id,rows,hash:digest});}
+    return {header:values[0]||[],ids:[...groups.keys()],changed};
+   }
+   const journal=await delta(source.valueRanges?.[0]?.values||[],'journal');let hr:any=null;
+   if(isAdmin.data===true){hr=await delta(source.valueRanges?.[1]?.values||[],'hr');const versions=body.sheet===cfg.sheet?body.hrVersions||{}:{};const changedIds=[];
+    for(let offset=0;;offset+=500){const r=await a.user.from('hr_inbox143168').select('request_id,version').eq('sheet',cfg.sheet).order('request_id').range(offset,offset+499);if(r.error)throw Error('HR versions unavailable');for(const row of r.data)if(versions[row.request_id]!==row.version)changedIds.push(row.request_id);if(r.data.length<500)break;}
+    hr.records=[];for(let offset=0;offset<changedIds.length;offset+=100){const r=await a.user.from('hr_inbox143168').select('*').eq('sheet',cfg.sheet).in('request_id',changedIds.slice(offset,offset+100));if(r.error)throw Error('HR drafts unavailable');hr.records.push(...r.data);}
+   }
+   return reply({sheet:cfg.sheet,journal,hr});
+  }
   if(['hr-read','hr-status'].includes(body.action)){
    const isAdmin=await a.user.rpc('is_admin');if(isAdmin.error||isAdmin.data!==true)throw Error('HR administrator required');
    const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');

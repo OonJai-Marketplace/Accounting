@@ -14,7 +14,7 @@ function context(){if(!current())throw Error('Sign in with journal posting acces
 function assert(c){if(c.owner!==identity()||c.db!==ojmDb||c.epoch!==epoch||c.sheet!==config().sheet||!current())throw Error('Account or connection changed. Reopen Drive drafts.');}
 function online(){if(!navigator.onLine||window.offline14239?.offline()||window.sessionCache14333?.localMode)throw Error('Connect online before reading or approving Drive drafts.');}
 function message(s){for(const host of [panel,settingsPanel,preparation]){const n=host?.querySelector('[data-drive-status]');if(n)n.textContent=s;}}
-function disconnect(){backgroundBusy=null;lastConnectionCheck=0;lastDraftRead=0;lastCheckedAt='';backgroundError='';prepared.clear();dispositions.clear();restoredKey='';renderPreparation();connectionStatus=null;completedDrafts.clear();archiveJobs.clear();reviewed.clear();pendingDraftNotices=[];lastDraftSignature='';aiSourceRefs.clear();window.refreshNotices1443?.();epoch++;panel?.querySelector('[data-drive-list]')?.replaceChildren();message('');showConnection();}
+function disconnect(){queuedSnapshot143173=null;backgroundBusy=null;lastConnectionCheck=0;lastDraftRead=0;lastCheckedAt='';backgroundError='';prepared.clear();dispositions.clear();restoredKey='';renderPreparation();connectionStatus=null;completedDrafts.clear();archiveJobs.clear();reviewed.clear();pendingDraftNotices=[];lastDraftSignature='';aiSourceRefs.clear();window.refreshNotices1443?.();epoch++;panel?.querySelector('[data-drive-list]')?.replaceChildren();message('');showConnection();}
 function syncSession(){const owner=identity();if(owner===observedOwner)return false;observedOwner=owner;disconnect();sharedSettings=null;sharedOwner='';sharedLoaded=false;view='journal';showView();renderSettings();return true;}
 // Bound reads without retrying financial mutations or allowing late results to change the UI.
 async function timed(task,label,ms=20000){
@@ -47,6 +47,7 @@ function showConnection(){
  if(!lastDraftSignature&&!prepared.size){const list=panel?.querySelector('[data-drive-list]');if(list&&!reviewed.size)list.textContent=connectionStatus?.connected?'Open AI Journal to load the latest drafts.':text;}
 }
 async function checkBackground(){
+ if(window.AIInboxSync143173)return AIInboxSync143173.check();
  syncSession();if(!current())return;
  if(!navigator.onLine||window.offline14239?.offline()||window.sessionCache14333?.localMode){showConnection();return;}
  if(backgroundBusy)return backgroundBusy.promise;
@@ -74,6 +75,32 @@ async function checkBackground(){
  finally{if(backgroundBusy===job)backgroundBusy=null;}
  })();return job.promise;
 }
+let queuedSnapshot143173=null,receiving143173=false;
+async function receiveInbox143173(snapshot,meta){
+ if(busy||receiving143173){queuedSnapshot143173={snapshot,meta};return;}
+ if(meta.owner!==identity())return;receiving143173=true;
+ try{
+ syncSession();if(!sharedLoaded&&liveProfile.role==='admin')await loadSharedSettings();const c=context();if(c.sheet!==meta.sheet)throw Error('Reload Google settings to use the current submission sheet.');
+ await loadDispositions(c);assert(c);if(restoredKey!==preparationKey()){const count=prepared.size;restorePreparation(c);if(prepared.size!==count)renderPreparation();}const groups=parse(snapshot.rows);readLegacySourceRefs(snapshot.rows);
+ connectionStatus={connected:true,email:'oonjaimarketplace@gmail.com'};lastCheckedAt=new Date().toISOString();backgroundError='';
+ pendingDraftNotices=[...groups].filter(([id])=>!completedDrafts.has(id)&&!dispositions.has(id)).map(([id,rows])=>({noticeId:id,type:'AI Journal draft',title:rows[0].description,detail:rows[0].posting_date,target:'ai-journal'}));window.refreshNotices1443?.();showConnection();
+ const list=panel?.querySelector('[data-drive-list]');if(!list)return;
+ const entries=[...groups].filter(([id,rows])=>!completedDrafts.has(id)&&!dispositions.has(id)&&!prepared.has(id)&&reviewed.get(id)?.rows!==JSON.stringify(rows));
+ const chart=entries.length?await accounts():[];assert(c);
+ // Preparation is a separate edited copy. Never redraw it during background discovery.
+ for(const [id,rows] of entries){if(busy){queuedSnapshot143173={snapshot,meta};break;}let payload,saved,error='',next='';
+ try{saved=await receipt(id);assert(c);if(!saved){const prior=await alreadyPostedAiDraft(id);assert(c);if(prior)saved={result:[{entry_no:prior.entry_no,entry_id:prior.id}]};}if(saved){completedDrafts.add(id);void queueArchive(id,saved.result[0].entry_no,c);}else{payload=normalize(rows,chart,settings());next=await previewEntryId(rows[0].posting_date);}}
+ catch(e){error=e.message;}assert(c);if(busy||prepared.has(id)){queuedSnapshot143173={snapshot,meta};continue;}
+ const old=[...list.querySelectorAll('[data-draft]')].find(n=>n.dataset.draft===id);if(saved){old?.remove();reviewed.delete(id);continue;}
+ const fragment=document.createDocumentFragment(),card=display(id,rows,payload,error,null,chart,fragment);if(next&&!error)card.querySelector('[data-entry-id]').textContent='Next available: '+next;
+ reviewed.set(id,{rows:JSON.stringify(rows),payload,chart,saved});if(old)old.replaceWith(card);else{if(!list.querySelector('[data-draft]'))list.replaceChildren();list.querySelectorAll('.gpt-empty143129').forEach(n=>n.remove());list.append(card);}
+ }
+ for(const [id] of reviewed)if(!groups.has(id)||dispositions.has(id)||completedDrafts.has(id)){reviewed.delete(id);[...list.querySelectorAll('[data-draft]')].find(n=>n.dataset.draft===id)?.remove();}
+ if(!reviewed.size&&!list.querySelector('[data-draft]'))list.innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';
+ pendingDraftNotices=pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId));lastDraftSignature=JSON.stringify([...groups]);lastDraftRead=Date.now();window.refreshNotices1443?.();
+ }finally{receiving143173=false;}
+}
+function drainInbox143173(){const q=queuedSnapshot143173;if(!q||busy||receiving143173)return;queuedSnapshot143173=null;void receiveInbox143173(q.snapshot,q.meta).catch(e=>{backgroundError=e.message;showConnection();});}
 async function readDrafts(){const r=await api('/values/'+encodeURIComponent('Drafts!A1:N10002')+'?valueRenderOption=UNFORMATTED_VALUE');if(r.values?.length>10001)throw Error('Draft sheet exceeds 10,000 lines. Archive reviewed rows first.');return r.values||[];}
 
 async function archivePostedDraft(id,number){
@@ -183,7 +210,7 @@ function scrollJournal(target){
   scroller.scrollTo({top:Math.max(0,top),behavior:'instant'});
  });
 }
-function choose(next){view=next==='gpt'?'gpt':'journal';showView();scrollJournal();return true;}
+function choose(next){drainInbox143173();view=next==='gpt'?'gpt':'journal';showView();scrollJournal();return true;}
 function open(){if(!current()){showCenterStatus('Sign in with journal posting permission.',true);return;}context();choose('gpt');window.switchTab('journal');window.groupedNavigation14378?.render('journal');}
 function postedRows(id,p,chart){return p.p_lines.map((l,i)=>({draft_id:id,posting_date:p.p_transaction_date,description:p.p_memo,line_no:i+1,account_id:l.account_id,account_code:chart.find(a=>a.id===l.account_id)?.code||'',currency:l.currency_code,debit:l.debit,credit:l.credit,line_date:l.line_date||p.p_transaction_date,line_memo:l.description,fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak}));}
 function formatAiAmount(v){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:4}):String(v??'');}
@@ -365,11 +392,11 @@ async function postItems(items,stayInInbox=false){
 async function run(fn){
  if(busy)return;busy=true;const e=epoch;const hosts=[panel,settingsPanel,preparation];hosts.forEach(h=>{if(h)h.inert=true;});
  try{if(!sharedLoaded&&identity()&&liveProfile.role==='admin')await loadSharedSettings();await fn();}catch(err){if(e===epoch){message(err.message);showCenterStatus(err.message,true);}}
- finally{busy=false;hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));updatePostButtons();}}
+ finally{busy=false;drainInbox143173();hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));updatePostButtons();}}
 }
 
 function renderSettings(){
- if(!settingsPanel)return;const cfg=config();settingsPanel.innerHTML='<h3 class="je-title">Google Sheets</h3><p>Open your accounting spreadsheets and folders. Google controls access to each link.</p><div data-links class="gpt-links143129"></div><details><summary>Connection settings and protected link management</summary><p>Administrators save these links and connection settings to the shared accounting system. The company Google connection is saved securely on the server for background checks. Add one name and Google Sheets or Drive folder URL per line, separated by |.</p><div class="je-actions-bar"><button type="button" class="je-btn" data-edit-links>Edit saved links</button><button type="button" class="je-btn" data-cancel-links hidden>Cancel link changes</button></div><label>Saved links<textarea data-links-input class="je-input" rows="7" readonly aria-label="Saved links, read-only until Edit saved links is selected"></textarea></label><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><label>Google OAuth client ID<input data-client class="je-input" autocomplete="off"></label><p>Journal IDs use Accounting → Entry IDs &amp; Prefixes → Main journal and the shared number digits. IDs are assigned by Accounting when posted.</p><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save settings</button><button type="button" class="je-btn" data-reload>Reload settings</button></div><p><a href="docs/DRIVE-DRAFTS-v143.128.md" target="_blank" rel="noopener">Google connection setup instructions</a></p></details><div class="je-actions-bar"><button class="je-btn" type="button" data-connect>Connect Google</button></div><p data-drive-status role="status"></p><p data-connection-status role="status"></p><p>Your saved Google connection is reused after login and reloads. Draft notifications update automatically on every page. Google is checked every minute; this screen checks for notifications every 15 seconds. Posting still requires your review.</p>';
+ if(!settingsPanel)return;const cfg=config();settingsPanel.innerHTML='<h3 class="je-title">Google Sheets</h3><p>Open your accounting spreadsheets and folders. Google controls access to each link.</p><div data-links class="gpt-links143129"></div><details><summary>Connection settings and protected link management</summary><p>Administrators save these links and connection settings to the shared accounting system. The company Google connection is saved securely on the server for background checks. Add one name and Google Sheets or Drive folder URL per line, separated by |.</p><div class="je-actions-bar"><button type="button" class="je-btn" data-edit-links>Edit saved links</button><button type="button" class="je-btn" data-cancel-links hidden>Cancel link changes</button></div><label>Saved links<textarea data-links-input class="je-input" rows="7" readonly aria-label="Saved links, read-only until Edit saved links is selected"></textarea></label><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><label>Google OAuth client ID<input data-client class="je-input" autocomplete="off"></label><p>Journal IDs use Accounting → Entry IDs &amp; Prefixes → Main journal and the shared number digits. IDs are assigned by Accounting when posted.</p><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save settings</button><button type="button" class="je-btn" data-reload>Reload settings</button></div><p><a href="docs/DRIVE-DRAFTS-v143.128.md" target="_blank" rel="noopener">Google connection setup instructions</a></p></details><div class="je-actions-bar"><button class="je-btn" type="button" data-connect>Connect Google</button></div><p data-drive-status role="status"></p><p data-connection-status role="status"></p><p>Your saved Google connection is reused after login and reloads. Draft notifications update automatically on every page. Both AI inboxes check together every 30 seconds on every page. Only new or changed requests are transferred; your edits stay in place. Posting still requires your review.</p>';
  const links=Array.isArray(cfg.links)?cfg.links:[];for(const [name,url]of links){const safe=googleURL(url);if(!safe)continue;const a=document.createElement('a');a.className='je-btn je-btn-secondary';a.href=safe;a.target='_blank';a.rel='noopener noreferrer';a.textContent=name;settingsPanel.querySelector('[data-links]').append(a);}
  settingsPanel.querySelector('[data-links-input]').value=links.map(l=>l.join(' | ')).join('\n');const linkEditor=settingsPanel.querySelector('[data-links-input]'),editLinks=settingsPanel.querySelector('[data-edit-links]'),cancelLinks=settingsPanel.querySelector('[data-cancel-links]');editLinks.onclick=()=>{linkEditor.readOnly=false;editLinks.hidden=true;cancelLinks.hidden=false;linkEditor.focus();};cancelLinks.onclick=()=>{linkEditor.value=links.map(l=>l.join(' | ')).join('\n');linkEditor.readOnly=true;editLinks.hidden=false;cancelLinks.hidden=true;};settingsPanel.querySelector('[data-sheet]').value=cfg.sheet||'';settingsPanel.querySelector('[data-client]').value=cfg.client||'';
  settingsPanel.querySelector('[data-connection-status]').textContent=connectionMessage();
@@ -382,7 +409,7 @@ function draftNoticeSummary(){
  const drafts=[...new Map(pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId)&&!dispositions.has(n.noticeId)).map(n=>[n.noticeId,n])).values()];
  if(!drafts.length)return [];
  // Changing draft membership must count as new, even when the total stays the same.
- return [{noticeId:'ai-journal:'+JSON.stringify(drafts.map(n=>n.noticeId).sort()),type:'AI Journal draft',title:drafts.length+(drafts.length===1?' entry':' entries'),detail:'',target:'ai-journal'}];
+ return [{count:drafts.length,noticeId:'ai-journal:'+JSON.stringify(drafts.map(n=>n.noticeId).sort()),type:'AI Journal draft',title:drafts.length+(drafts.length===1?' entry':' entries'),detail:'',target:'ai-journal'}];
 }
 function ready(){
  if(!$('journal'))return;
@@ -398,7 +425,7 @@ function ready(){
  const logout=window.logoutDemoUser;if(typeof logout==='function')window.logoutDemoUser=function(...args){if(busy){showCenterStatus('Wait for the current AI Journal operation to finish.',true);return;}persistPreparation();disconnect();return logout.apply(this,args)};
  window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue='';}});
  window.addEventListener('page113',()=>{showView();void checkBackground();});
- setInterval(()=>{if(document.visibilityState==='visible')void checkBackground();},15000);
+ setInterval(()=>{if(document.visibilityState==='visible')void checkBackground();},30000);
  window.addEventListener('focus',()=>{lastDraftRead=0;void checkBackground();});
  window.addEventListener('online',()=>{lastConnectionCheck=0;lastDraftRead=0;void checkBackground();});
  window.addEventListener('offline',showConnection);
@@ -406,6 +433,7 @@ function ready(){
  setInterval(()=>{if(syncSession())void checkBackground();},1500);
  void checkBackground();
 }
+window.AIInboxSync143173?.register('journal',{receive:receiveInbox143173,reset:()=>{syncSession();},error:e=>{backgroundError=e;showConnection();}});
 window.DriveDrafts143128={open,choose,scrollToTop:()=>scrollJournal(),parse,normalize,validDate,googleURL,notices:()=>pendingDraftNotices.slice(),get view(){return view},get editing(){return prepared.size>0},get preparedCount(){return prepared.size}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

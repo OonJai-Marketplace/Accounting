@@ -45,18 +45,18 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {
  w.liveProfile={id:'reviewer',role:'admin'};w.dispatchEvent(new w.Event('page113'));w.dispatchEvent(new w.Event('focus'));intervals.get(1500)();await tick();assert.equal(state.settingsReads,1);
  state.settingsGate.resolve();state.settingsGate=null;await until(()=>/Automatic checks active/.test(status()));
  assert.deepEqual(Array.from(w.DriveDrafts143128.notices(),x=>x.noticeId),['draft-0001']);assert.match(status(),/Last checked/);assert.equal(state.requests.filter(r=>r.path?.includes('/values/')).length,0,'Home only reads notification metadata');assert.equal(w.DriveDrafts143128.view,'journal');
- assert.ok(intervals.has(15000));state.notices.push(notice('draft-0002'));intervals.get(15000)();await until(()=>w.DriveDrafts143128.notices().length===2);
+ assert.ok(intervals.has(30000));state.notices.push(notice('draft-0002'));intervals.get(30000)();await until(()=>w.DriveDrafts143128.notices().length===2);
  // Opening AI Journal starts its full load automatically, with one ID preview per date.
  state.rows.push(...rows('draft-0002'));w.DriveDrafts143128.open();await until(()=>d.querySelectorAll('[data-draft]').length===2&&!w.probe.busy);assert.equal(state.previewCalls,1);assert.doesNotMatch(actionStatus(),/Refreshing/);
  // Pending manual refresh keeps the table; notification polling continues during the wait.
- const oldTable=d.querySelector('[data-drive-list]').innerHTML;state.metadataGate=deferred();d.querySelector('[data-refresh]').click();await until(()=>w.probe.busy);state.notices.push(notice('draft-0003'));intervals.get(15000)();await until(()=>w.DriveDrafts143128.notices().length===3);assert.equal(d.querySelector('[data-drive-list]').innerHTML,oldTable);
+ const oldTable=d.querySelector('[data-drive-list]').innerHTML;state.metadataGate=deferred();d.querySelector('[data-refresh]').click();await until(()=>w.probe.busy);state.notices.push(notice('draft-0003'));intervals.get(30000)();await until(()=>w.DriveDrafts143128.notices().length===3);assert.equal(d.querySelector('[data-drive-list]').innerHTML,oldTable);
  await until(()=>!w.probe.busy);assert.match(actionStatus(),/timed out/);assert.equal(d.getElementById('gptDrafts143129').inert,false);assert.ok(state.signals.some(s=>s.aborted));assert.equal(d.querySelector('[data-drive-list]').innerHTML,oldTable);
  const heldMetadata=state.metadataGate;state.metadataGate=null;heldMetadata.resolve();await tick();assert.equal(d.querySelector('[data-drive-list]').innerHTML,oldTable,'late response cannot replace the displayed table');
  d.querySelector('[data-refresh]').click();await until(()=>!w.probe.busy);assert.match(actionStatus(),/2 pending drafts loaded/);
  // Checks never replace prepared edits or their status message.
  d.querySelector('[data-draft-action="edit"]').click();await until(()=>w.DriveDrafts143128.preparedCount===1);w.DriveDrafts143128.choose('journal');w.switchTab('journal');
  const memo=d.querySelector('[data-prepared-draft] [data-field="description"]');memo.value='Keep my adjustment';memo.dispatchEvent(new w.Event('input',{bubbles:true}));const prepStatus=d.querySelector('#aiPreparation143160 [data-drive-status]').textContent;
- state.notices.push(notice('draft-0004'));intervals.get(15000)();await until(()=>w.DriveDrafts143128.notices().length===4);assert.equal(memo.value,'Keep my adjustment');assert.equal(d.querySelector('#aiPreparation143160 [data-drive-status]').textContent,prepStatus);
+ state.notices.push(notice('draft-0004'));intervals.get(30000)();await until(()=>w.DriveDrafts143128.notices().length===4);assert.equal(memo.value,'Keep my adjustment');assert.equal(d.querySelector('#aiPreparation143160 [data-drive-status]').textContent,prepStatus);
  // Offline/reconnect automatically resumes; a server error remains visible even if authorization exists.
  online=false;w.dispatchEvent(new w.Event('offline'));assert.match(status(),/Offline/);online=true;state.error='Google authorization expired. Reconnect Google.';w.dispatchEvent(new w.Event('online'));await until(()=>/authorization expired/.test(status()));
  state.error=null;await w.probe.checkBackground();assert.match(status(),/Automatic checks active/);
@@ -64,10 +64,10 @@ const deferred=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {
  const oldInbox=deferred();state.inboxGate=oldInbox;const oldCheck=w.probe.checkBackground();await until(()=>state.inboxGate===null);
  w.logoutDemoUser();w.liveProfile={id:'other-reviewer',role:'admin'};state.notices=[notice('other-draft-001')];w.dispatchEvent(new w.Event('page113'));await until(()=>w.DriveDrafts143128.notices()[0]?.noticeId==='other-draft-001');oldInbox.resolve({data:{notices:[notice('old-private-001')]}});await oldCheck;assert.deepEqual(Array.from(w.DriveDrafts143128.notices(),n=>n.noticeId),['other-draft-001']);assert.equal(w.probe.backgroundBusy,false);
  // A stuck status check releases its guard and retries on the next automatic cycle.
- state.statusGate=deferred();w.dispatchEvent(new w.Event('online'));await until(()=>/timed out/.test(status())&&!w.probe.backgroundBusy);state.statusGate.resolve();state.statusGate=null;intervals.get(15000)();await until(()=>/Automatic checks active/.test(status()));
+ state.statusGate=deferred();w.dispatchEvent(new w.Event('online'));await until(()=>/timed out/.test(status())&&!w.probe.backgroundBusy);state.statusGate.resolve();state.statusGate=null;intervals.get(30000)();await until(()=>/Automatic checks active/.test(status()));
  // No Google connection has an actionable status, with no endless checking or draft placeholders.
  state.connected=false;w.dispatchEvent(new w.Event('online'));await until(()=>/Connect the company Google account once/.test(status()));assert.equal(w.DriveDrafts143128.notices().length,0);assert.doesNotMatch(actionStatus(),/Refreshing/);
  assert(!state.requests.some(r=>r.action==='connect'),'login must not start interactive consent');assert.ok(state.bell>0);
- console.log('PASS login/focus single-flight, saved-connection reuse, Home notifications, 15-second polling, automatic table load, shared ID preview, timeout/late-response recovery, nonblocking bell updates, prepared-edit preservation, offline/reconnect, server errors, account isolation and retry. No live financial writes.');
+ console.log('PASS login/focus single-flight, saved-connection reuse, Home notifications, 30-second polling, automatic table load, shared ID preview, timeout/late-response recovery, nonblocking bell updates, prepared-edit preservation, offline/reconnect, server errors, account isolation and retry. No live financial writes.');
  }finally{dom.window.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});

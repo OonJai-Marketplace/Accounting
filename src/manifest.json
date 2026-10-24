@@ -4240,6 +4240,12 @@
       {
         "source": "src/hr/inbox/inbox143168.css"
       }
+    ],
+    "scripts/inbox-sync143173.js": [
+      {
+        "source": "src/integrations/google/inbox-sync143173.js",
+        "suffix": ";\n"
+      }
     ]
   },
   "variants": [
