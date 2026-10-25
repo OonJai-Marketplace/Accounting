@@ -81,3 +81,26 @@
  html body #chartMain143180 #tblChartOfAccounts :is(th,td):last-child{overflow:visible!important;text-overflow:clip!important;font-size:12px!important;max-width:none!important}
  html body #chartMain143180 #tblChartOfAccounts{margin:0!important}
 }}
+
+@layer corrections14337 { @media screen and (min-width:641px){
+ html body #chartMain143180 #tblChartOfAccounts.chart-no-actions143181 th:nth-child(5){width:auto!important;min-width:180px!important}
+ html body #chartMain143180 #tblChartOfAccounts.chart-no-actions143181 td:nth-child(5){white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.6!important;padding:10px 12px!important}
+ html body #chartMain143180 #tblChartOfAccounts.chart-no-actions143181 tr:focus-visible{outline:2px solid #337b5d;outline-offset:-2px}
+ html body .chart-action-menu143181{position:fixed;z-index:16000;display:flex!important;flex-direction:column!important;gap:8px!important;padding:12px!important;box-sizing:border-box!important;width:220px!important;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;border:1px solid #9ab3a4;border-radius:6px;background:#fffdf7;box-shadow:0 6px 24px #0003}
+ html body .chart-action-menu143181>strong{font-size:12px;line-height:1.5;overflow-wrap:anywhere;padding:0 0 10px!important;margin:0 0 2px!important;border-bottom:1px solid #cbd9cd;color:#194a38}
+ html body .chart-action-menu143181>button{display:block!important;width:100%!important;max-width:none!important;min-width:0!important;box-sizing:border-box!important;height:32px!important;min-height:32px!important;max-height:32px!important;margin:0!important;padding:5px 10px!important;border:1px solid #b6cbbd!important;border-radius:4px!important;background:#eef4e9!important;color:#194a38!important;text-align:left!important;font:600 12px/20px 'Plus Jakarta Sans',Arial!important;cursor:pointer}
+ html body .chart-action-menu143181>.chart-delete143181{color:#a9212b!important;border-color:#e4b6b8!important;background:#fff4f3!important}
+ html body .chart-action-menu143181>button:hover{background:#e1eddf!important}
+ html body .chart-action-menu143181>button:focus-visible{outline:2px solid #337b5d;outline-offset:2px}
+}}
+@media print{.chart-action-menu143181{display:none!important}}
+
+@layer corrections14337 { @media screen and (min-width:641px){
+ html body #chartMain143180 #tblChartOfAccounts.chart-no-actions143181 th:nth-child(1){width:80px!important}
+ html body #chartMain143180 #tblChartOfAccounts.chart-no-actions143181 th:nth-child(3){width:88px!important}
+ html body #chartMain143180 #tblChartOfAccounts.chart-no-actions143181 th:nth-child(4){width:100px!important}
+}}
+@layer corrections14337 { @media screen and (min-width:641px){
+ html body .chart-action-menu143181>button::before,
+ html body .chart-action-menu143181>button::after{content:none!important;display:none!important}
+}}

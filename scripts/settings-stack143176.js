@@ -25,7 +25,9 @@ function wrap(root,nodes,key,title,description='',open=false){
  const body=node('div','settings-stack-body143176');details.append(summary,body);
  const homes=nodes.map(n=>{const marker=document.createComment('Settings layout position');n.before(marker);return {n,marker};});
  homes[0].marker.after(details);body.append(...nodes);
- const record={root,key,title,description,details,summary,body,homes};sections.set(key,record);
+ const record={root,key,title,description,details,summary,body,homes,headingControls:[]};sections.set(key,record);
+ const pageHeading=body.querySelector(':scope>.settings-page-heading');
+ if(pageHeading){const actions=node('div','settings-stack-heading-actions143181');for(const control of pageHeading.querySelectorAll('button')){const marker=document.createComment('Settings heading control');control.before(marker);record.headingControls.push({control,marker});actions.append(control);}if(actions.childNodes.length)summary.append(actions);pageHeading.classList.add('settings-stack-redundant143181');record.pageHeading=pageHeading;}
  return record;
 }
 function rootNodes(root){return [...root.children].filter(n=>!n.matches('.area-banner113,.settings-stack-section143176,.module-header,#categoryTabShell,#settingsSections14335,.sub-user-tabs-shell'));}
@@ -68,8 +70,7 @@ function prepare(root){
   }
   for(const n of rootNodes(root))if(!n.matches('.embedded-settings14231,.settings-page-heading'))wrap(root,[n],'archive-extra-'+(++sequence),n.querySelector('h2,h3,h4')?.textContent.trim()||'Archive & Recovery');
  }else if(id==='settings-maintenance14324'){
-  for(const n of root.querySelectorAll('.maintenance-grid14324>.maintenance-card14324')){const title=n.querySelector('h3')?.textContent.trim()||'Maintenance';wrap(root,[n],'maintenance-'+(n.id||title.toLowerCase().replace(/[^a-z0-9]+/g,'-')),title);}
-  for(const n of rootNodes(root))if(!n.matches('.maintenance-grid14324,.maintenance-result14324,[role=status]'))wrap(root,[n],'maintenance-link-'+(n.id||n.tagName.toLowerCase()),n.querySelector('button')?'Closing & Data Checks':'Maintenance resources');
+  whole(root,'maintenance','Maintenance & Audit','Investigation, comparison and diagnostics');
  }
 }
 function mount(group){
@@ -96,6 +97,8 @@ function restore(){
  // Restore original nodes rather than cloning them; event listeners and unsaved inputs survive.
  for(const record of [...sections.values()].reverse()){
   if(record.prefix?.isConnected){record.prefix.before(...[...record.prefix.children].filter(n=>n.tagName!=='SUMMARY'));record.prefix.remove();}
+  for(const {control,marker} of record.headingControls||[])if(marker.isConnected)marker.replaceWith(control);
+  record.pageHeading?.classList.remove('settings-stack-redundant143181');
   for(const {n,marker} of record.homes){if(marker.isConnected&&n.isConnected)marker.replaceWith(n);else marker.remove();}
   record.details.remove();
  }
@@ -136,7 +139,7 @@ function refreshJump(){
  if(!enabled())return;
  for(const m of mounts.values()){
   const items=listFor(m.group),signature=items.map(r=>r.key+'|'+r.title).join('~');
-  if(m.jump.dataset.signature!==signature){m.jump.dataset.signature=signature;const children=[];let last='';for(const r of items){if(m.group.key==='system'&&last!==r.root.id){last=r.root.id;children.push(node('h3','settings-stack-jump-group143176',{'settings-system':'System & Printing','settings-data14231':'Archive & Recovery','settings-maintenance14324':'Maintenance & Audit'}[last]));}const b=button(r.title,()=>select(r),'settings-stack-jump-link143176');b.dataset.jump143176=r.key;b.setAttribute('aria-controls',r.details.id);children.push(b);}m.jump.replaceChildren(...children);}
+  if(m.jump.dataset.signature!==signature){m.jump.dataset.signature=signature;const children=[];let last='';for(const r of items){if(m.group.key==='system'&&last!==r.root.id&&r.key!=='maintenance'){last=r.root.id;children.push(node('h3','settings-stack-jump-group143176',{'settings-system':'System & Printing','settings-data14231':'Archive & Recovery','settings-maintenance14324':'Maintenance & Audit'}[last]));}const b=button(r.title,()=>select(r),'settings-stack-jump-link143176');b.dataset.jump143176=r.key;b.setAttribute('aria-controls',r.details.id);children.push(b);}m.jump.replaceChildren(...children);}
   for(const b of m.jump.querySelectorAll('[data-jump143176]')){const r=sections.get(b.dataset.jump143176);const on=r?.key===selectedKeys.get(m.group.key);b.setAttribute('aria-current',on?'page':'false');b.classList.toggle('is-open',on);}
  }
 }

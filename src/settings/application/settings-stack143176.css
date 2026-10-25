@@ -125,3 +125,89 @@
  html.settings-stack-enabled143176 body .settings-stack-workspace143176 [data-settings-stack-panel143176][hidden],
  html.settings-stack-enabled143176 body .settings-stack-section143176[hidden]{display:none!important}
 }}
+
+/* Consistent desktop fields and one heading per selected section. */
+@layer corrections14337 { @media screen and (min-width:641px){
+ html.settings-stack-enabled143176 body .settings-stack-redundant143181{display:none!important}
+ html.settings-stack-enabled143176 body .settings-stack-heading-actions143181{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
+ html.settings-stack-enabled143176 body .settings-stack-heading143176:has(.settings-stack-heading-actions143181) .settings-stack-description143176{margin-left:12px}
+ html.settings-stack-enabled143176 body .settings-stack-heading143176{flex-wrap:wrap;gap:10px 12px!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 :is(.settings-compact-block,.settings-section-card,.organization-card14231){border-top:0!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .organization-card14231{border:0!important;padding:0!important;margin:0!important;background:transparent!important}
+ html.settings-stack-enabled143176 body .organization-card14231>.je-card-header{display:none!important}
+ html.settings-stack-enabled143176 body .organization-card14231>p{margin:0 0 12px!important;line-height:1.6}
+ html.settings-stack-enabled143176 body .organization-zoom-controls143180{padding:0 0 12px!important;gap:8px!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 :is(.settings-mini-header,.settings-module94>header){margin:0 0 12px!important;padding:0 0 10px!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 :is(.settings-mini-header h4,.settings-module94 h4){margin:0!important;line-height:1.45}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 :is(.settings-module94>p,.settings-mini-header p){margin:8px 0 12px!important;line-height:1.6}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .settings-compact-grid{align-items:stretch!important;gap:16px!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .settings-field{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:6px!important;min-width:0!important;margin:0!important;line-height:1.5;overflow-wrap:anywhere}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .settings-field>label{margin:0!important;line-height:1.5}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .settings-field>:is(input,select,textarea,.money-field14231){margin-top:auto!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .settings-field>:is(input:not([type=checkbox]):not([type=radio]),select,.money-field14231){width:100%!important;max-width:none!important;min-width:0!important;box-sizing:border-box!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .settings-field :is(input:not([type=checkbox]):not([type=radio]),select){height:34px!important;min-height:34px!important;margin-bottom:0!important;box-sizing:border-box!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .money-field14231{display:flex!important;align-items:center!important;border:1px solid #8da593!important;border-radius:4px;min-width:0!important;max-width:none!important;height:34px!important;box-sizing:border-box;background:#fffdf7}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .money-field14231>.money-symbol14231{position:static!important;transform:none!important;flex:0 0 auto!important;padding:0 8px!important;line-height:1!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .money-field14231>input{flex:1 1 0!important;width:0!important;max-width:none!important;min-width:0!important;border:0!important;border-radius:0!important;background:transparent!important;padding:6px 8px 6px 0!important;height:32px!important;min-height:0!important;text-align:right!important}
+ html.settings-stack-enabled143176 body .settings-stack-body143176 .money-field14231:focus-within{outline:2px solid #337b5d;outline-offset:1px}
+ html.settings-stack-enabled143176 body #settings-payroll [data-settings-group=payroll] input[name$=Allowance]{width:100%!important;max-width:none!important}
+ html.settings-stack-enabled143176 body #settings-payroll .settings-module94{align-self:start}
+ html.settings-stack-enabled143176 body #settings-payroll .settings-module94 .settings-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-paired-grid{grid-template-columns:minmax(0,1fr)!important;gap:18px!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-block{margin:0!important;padding:16px!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table{table-layout:fixed!important;width:100%!important;min-width:510px!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table :is(th,td){padding:8px 10px!important;box-sizing:border-box!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table th:nth-child(1){width:20%!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table th:nth-child(2),
+ html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table th:nth-child(3){width:30%!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table th:nth-child(4){width:20%!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table input{width:100%!important;min-width:0!important;max-width:none!important;padding:5px 0!important;font-variant-numeric:tabular-nums}
+ html.settings-stack-enabled143176 body #settings-system [data-settings-group=system]>.settings-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-grid14324{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
+ html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-card14324{border:1px solid #d8e0d2!important;border-radius:5px!important;padding:16px!important;margin:0!important;min-width:0;background:#fbfcf6!important}
+ html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-card14324 h3{margin:0 0 10px!important}
+ html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-actions14324{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important;padding-top:12px!important;margin-top:12px!important;border-top:1px solid #d8e0d2;max-width:310px}
+ html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-result14324:empty,
+ html.settings-stack-enabled143176 body #settings-maintenance14324 [role=status]:empty{display:none!important}
+ html.settings-stack-enabled143176 body #demoUsersList .demo-user-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(80px,auto) 170px!important;grid-template-rows:auto auto auto auto;gap:8px 16px!important;padding:14px!important;align-items:start!important}
+ html.settings-stack-enabled143176 body #demoUsersList .demo-user-details{grid-column:1!important;grid-row:1 / span 4!important;min-width:0;overflow-wrap:anywhere}
+ html.settings-stack-enabled143176 body #demoUsersList .user-role-badge{grid-column:2!important;grid-row:1!important;margin:0!important;white-space:normal!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-status-badge{grid-column:2!important;grid-row:2!important;margin:0!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253{grid-column:3!important;grid-row:1 / span 3!important;display:flex!important;flex-direction:column!important;gap:8px!important;padding-left:12px!important;border-left:1px solid #cbd9cd}
+ html.settings-stack-enabled143176 body #demoUsersList [data-user-reset]{grid-column:3!important;grid-row:4!important;margin-left:13px!important}
+ html.settings-stack-enabled143176 body #demoUsersList :is(.user-actions14253>.je-btn,[data-user-reset]){height:32px!important;min-height:32px!important;margin-top:0!important;margin-bottom:0!important;width:auto!important;padding:5px 9px!important;border:1px solid #b6cbbd!important}
+ html.settings-stack-enabled143176 body #settings-users .settings-section-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:0 0 12px!important;margin:0 0 14px!important}
+ html.settings-stack-enabled143176 body #settings-users .settings-section-card{margin-top:16px!important;padding:0!important;border:0!important}
+ html.settings-stack-enabled143176 body #settings-users .current-users-actions14305{display:flex;flex-wrap:wrap;gap:8px}
+}}
+@layer corrections14337 { @media screen and (min-width:641px) and (max-width:1100px){
+ html.settings-stack-enabled143176 body #settings-payroll [data-settings-group=payroll]{grid-template-columns:minmax(0,1fr)!important}
+ html.settings-stack-enabled143176 body #settings-tax .settings-compact-grid.cols-3{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html.settings-stack-enabled143176 body #demoUsersList .demo-user-row{grid-template-columns:minmax(0,1fr) 160px!important}
+ html.settings-stack-enabled143176 body #demoUsersList .demo-user-details{grid-column:1!important;grid-row:1 / span 2!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-role-badge{grid-column:1!important;grid-row:3!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-status-badge{grid-column:1!important;grid-row:4!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253,html.settings-stack-enabled143176 body #demoUsersList [data-user-reset]{grid-column:2!important}
+}}
+
+@layer corrections14337 { @media screen and (min-width:641px){
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253{align-items:stretch!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253>.je-btn{width:100%!important;max-width:none!important;box-sizing:border-box!important;align-self:stretch!important}
+ html.settings-stack-enabled143176 body #demoUsersList [data-user-reset]{width:calc(100% - 13px)!important;max-width:none!important;box-sizing:border-box!important;justify-self:stretch!important}
+ html.settings-stack-enabled143176 body #settings-tax .statutory-block>.table-container{margin:0!important}
+ html.settings-stack-enabled143176 body #settings-maintenance14324 .settings-stack-body143176>p{margin:0 0 16px!important}
+ html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-card14324>label{display:grid;gap:6px;max-width:310px;margin:12px 0 0}
+ html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-card14324>label input{width:100%;box-sizing:border-box}
+}}
+
+@layer corrections14337 { @media screen and (min-width:641px){
+ html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101{display:grid!important;grid-template-columns:minmax(0,1fr) 56px auto!important;gap:12px!important;align-items:center!important;padding-top:16px!important;margin-top:16px!important}
+ html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101>:is(label,small){grid-column:1/-1!important}
+ html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101 #removeLogo101{width:auto!important;max-width:none!important;margin:0!important;justify-self:start!important}
+ html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101 #companyLogoUpload101{height:auto!important;min-height:34px!important}
+}}
+
+@layer corrections14337 { @media screen and (min-width:641px){
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253>[data-user-reset]{margin-left:0!important;width:100%!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253:has([data-user-reset]){grid-row:1 / span 4!important}
+}}

@@ -63,7 +63,7 @@ function renderChartOfAccountsTable() {
 
   if (visibleAccounts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No accounts match your search.</td></tr>`;
-    window.tablePagination14383?.refresh(table);syncSubAccountParentDropdown();syncCoaDatalist();window.AccountGroups143180?.render();return;
+    window.AccountGroups143180?.decorateTable();window.tablePagination14383?.refresh(table);syncSubAccountParentDropdown();syncCoaDatalist();window.AccountGroups143180?.render();return;
   }
 
   const fragment=document.createDocumentFragment();
@@ -90,6 +90,7 @@ function renderChartOfAccountsTable() {
   });
 
   tbody.appendChild(fragment);
+  window.AccountGroups143180?.decorateTable();
   // Apply the retained page before the browser paints rebuilt rows.
   window.tablePagination14383?.refresh(table);
   syncSubAccountParentDropdown();
