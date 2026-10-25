@@ -1,5 +1,5 @@
 {
-  "version": "143.177",
+  "version": "143.178",
   "changes": [
     "Settings sections now collapse with compact, even spacing. Jump links scroll only the workspace, keeping the top tabs and sidebar visible.",
     "Settings opens directly from the sidebar; Company, Accounting and System & Tools remain in the top tabs.",

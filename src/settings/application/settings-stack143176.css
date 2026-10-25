@@ -114,13 +114,13 @@
  html.settings-stack-enabled143176 body #appSidebar #nav-module-settings.settings-direct143177>:is(.nav-links,.grouped-children14378,.group-toggle143111),
  html.settings-stack-enabled143176 body #appSidebar #nav-module-settings.settings-direct143177>.nav-header .arrow{display:none!important}
  html.settings-stack-enabled143176 body #appSidebar #nav-module-settings.settings-direct143177>.nav-header{padding-right:16px!important}
- html.settings-stack-enabled143176 body #googleSheets143129 .gpt-links143129{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:14px 0}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-links143129{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;margin:14px 0!important}
  html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177{padding:14px 16px!important;margin:0!important;border:1px solid #b6cbbd!important;border-left:4px solid #337b5d!important;border-radius:6px;background:#fbfdf8;min-width:0}
  html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177 [hidden]{display:none!important}
  html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177 header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
- html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177 h4{margin:0;font-size:14px;color:#174b39}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177 h4{margin:0!important;font-size:14px;color:#174b39}
  html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-kind143177{padding:3px 7px;border:1px solid #c9d8c9;border-radius:4px;background:#eaf1e7;font-size:10px;font-weight:700;color:#3b6550;white-space:nowrap}
- html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-description143177{margin:9px 0 12px;font-size:12px;line-height:1.6;color:#526b5b;white-space:pre-wrap;overflow-wrap:anywhere}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-description143177{margin:9px 0 12px!important;font-size:12px;line-height:1.6;color:#526b5b;white-space:pre-wrap;overflow-wrap:anywhere}
  html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-actions143177{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
  html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-actions143177>.je-btn{height:32px!important;min-height:32px!important;padding:5px 12px!important;margin:0!important;line-height:20px!important;box-sizing:border-box}
  html.settings-stack-enabled143176 body #googleSheets143129 [data-link-editor] label{margin:0 0 12px;font-size:12px;font-weight:600}
