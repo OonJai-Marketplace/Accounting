@@ -17,8 +17,9 @@ function loadEntryForEdit(entryId) {
   const postCard = document.querySelector('.je-card');
   if (postCard) postCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  document.getElementById('jeTransDate').value = lines.map(l=>l.date).sort()[0];
-  setJournalDateMode(new Set(lines.map(l=>l.date)).size>1);
+  const postingDate=lines[0].postingDate||lines.map(l=>l.date).sort()[0];
+  document.getElementById('jeTransDate').value = postingDate;
+  setJournalDateMode(new Set(lines.map(l=>l.date)).size>1||lines.some(l=>l.date!==postingDate));
   document.getElementById('jeGeneralMemo').value = lines[0].generalMemo ?? lines[0].memo;
 
   const btnPost = document.getElementById('btnPostJournal');

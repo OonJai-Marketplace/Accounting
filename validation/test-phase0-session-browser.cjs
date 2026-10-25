@@ -1,10 +1,14 @@
 const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
 (async()=>{const f=await create();try{
  for(const device of ['desktop','phone']){
-  const {page,context,login}=await f.open(device,device==='phone'?'staff':'admin',true);await login();
+  const {page,context,login}=await f.open(device,device==='phone'?'staff':'admin',true);
+  // Phone readiness can be reached just before vault sign-in reloads the document.
+  if(device==='phone')await Promise.all([page.waitForNavigation({waitUntil:'load'}),login()]);else await login();
+  if(device==='phone')await page.waitForFunction(()=>window.PhoneWorkspace14242?.ready());
   await page.waitForFunction(device==='phone'?()=>PhoneWorkspace14242.offlineReady():()=>offline14239.state().shellReady);
-  const activity=()=>{const k=Object.keys(__rawLocal).find(k=>k.endsWith(deviceVault14334.actor+':activity'));return Number(__rawLocal.getItem(k))};
-  const initial=await page.evaluate(activity);
+  // Match the vault deadline key exactly; phone activity also has an encrypted key with this suffix.
+  const activity=()=>{const scope=String(window.OJM_SUPABASE_URL||window.OJM_DEPLOYMENT?.supabase?.url||location.origin),k='ojm-vault14334:'+encodeURIComponent(scope)+':'+deviceVault14334.actor+':activity';return Number(__rawLocal.getItem(k))};
+  const initial=await page.evaluate(activity);assert(Number.isFinite(initial)&&initial>0,'verified vault activity must be a finite timestamp');
   if(device==='desktop'){
    await page.evaluate(async()=>{const r=await ojmDb.auth.refreshSession();if(r.error)throw r.error;await localFirst14333.sync()});assert.equal(await page.evaluate(activity),initial,'SDK refresh/background sync must not touch activity');
   }

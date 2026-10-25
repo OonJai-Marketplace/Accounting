@@ -85,22 +85,24 @@ async function receiveInbox143173(snapshot,meta){
  connectionStatus={connected:true,email:'oonjaimarketplace@gmail.com'};lastCheckedAt=new Date().toISOString();backgroundError='';
  pendingDraftNotices=[...groups].filter(([id])=>!completedDrafts.has(id)&&!dispositions.has(id)).map(([id,rows])=>({noticeId:id,type:'AI Journal draft',title:rows[0].description,detail:rows[0].posting_date,target:'ai-journal'}));window.refreshNotices1443?.();showConnection();
  const list=panel?.querySelector('[data-drive-list]');if(!list)return;
- const entries=[...groups].filter(([id,rows])=>!completedDrafts.has(id)&&!dispositions.has(id)&&!prepared.has(id)&&reviewed.get(id)?.rows!==JSON.stringify(rows));
+ const entries=[...groups].filter(([id,rows])=>!completedDrafts.has(id)&&!dispositions.has(id)&&!prepared.has(id)&&(reviewed.get(id)?.retry||reviewed.get(id)?.rows!==JSON.stringify(rows)));
  const chart=entries.length?await accounts():[];assert(c);
  // Preparation is a separate edited copy. Never redraw it during background discovery.
- for(const [id,rows] of entries){if(busy){queuedSnapshot143173={snapshot,meta};break;}let payload,saved,error='',next='';
- try{saved=await receipt(id);assert(c);if(!saved){const prior=await alreadyPostedAiDraft(id);assert(c);if(prior)saved={result:[{entry_no:prior.entry_no,entry_id:prior.id}]};}if(saved){completedDrafts.add(id);void queueArchive(id,saved.result[0].entry_no,c);}else{payload=normalize(rows,chart,settings());next=await previewEntryId(rows[0].posting_date);}}
- catch(e){error=e.message;}assert(c);if(busy||prepared.has(id)){queuedSnapshot143173={snapshot,meta};continue;}
+ for(const [id,rows] of entries){if(busy){queuedSnapshot143173={snapshot,meta};break;}let payload,saved,error='',next='',retry=false,stage='receipt';
+ try{saved=await receipt(id);assert(c);if(!saved){const prior=await alreadyPostedAiDraft(id);assert(c);if(prior)saved={result:[{entry_no:prior.entry_no,entry_id:prior.id}]};}if(saved){completedDrafts.add(id);void queueArchive(id,saved.result[0].entry_no,c);}else{stage='validation';payload=normalize(rows,chart,settings());stage='preview';next=await previewEntryId(rows[0].posting_date);}}
+ catch(e){error=e.message;retry=stage!=='validation';}assert(c);if(busy||prepared.has(id)){queuedSnapshot143173={snapshot,meta};continue;}
  const old=[...list.querySelectorAll('[data-draft]')].find(n=>n.dataset.draft===id);if(saved){old?.remove();reviewed.delete(id);continue;}
  const fragment=document.createDocumentFragment(),card=display(id,rows,payload,error,null,chart,fragment);if(next&&!error)card.querySelector('[data-entry-id]').textContent='Next available: '+next;
- reviewed.set(id,{rows:JSON.stringify(rows),payload,chart,saved,error});if(old)old.replaceWith(card);else{if(!list.querySelector('[data-draft]'))list.replaceChildren();list.querySelectorAll('.gpt-empty143129').forEach(n=>n.remove());list.append(card);}
+ reviewed.set(id,{rows:JSON.stringify(rows),payload,chart,saved,error,retry});if(old)old.replaceWith(card);else{if(!list.querySelector('[data-draft]'))list.replaceChildren();list.querySelectorAll('.gpt-empty143129').forEach(n=>n.remove());list.append(card);}
  }
  for(const [id] of reviewed)if(!groups.has(id)||dispositions.has(id)||completedDrafts.has(id)){reviewed.delete(id);[...list.querySelectorAll('[data-draft]')].find(n=>n.dataset.draft===id)?.remove();}
  if(!reviewed.size&&!list.querySelector('[data-draft]'))list.innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';
  pendingDraftNotices=pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId));lastDraftSignature=JSON.stringify([...groups]);lastDraftRead=Date.now();window.refreshNotices1443?.();
+ // Keep transient read failures pending; unchanged cached rows still need validation.
+ if([...reviewed].some(([id,r])=>r.retry&&!prepared.has(id)))throw Error('Some draft checks could not finish. Automatic checks will retry.');
  }finally{receiving143173=false;void window.AIInboxSync143173?.persist?.();}
 }
-function cacheInbox143174(){return {pending:!!queuedSnapshot143173||receiving143173,reviewed:[...reviewed],completed:[...completedDrafts],dispositions:[...dispositions],notices:pendingDraftNotices,signature:lastDraftSignature,settings:sharedSettings,refs:[...aiSourceRefs]};}
+function cacheInbox143174(){return {pending:!!queuedSnapshot143173||receiving143173||[...reviewed].some(([id,r])=>r.retry&&!prepared.has(id)),reviewed:[...reviewed],completed:[...completedDrafts],dispositions:[...dispositions],notices:pendingDraftNotices,signature:lastDraftSignature,settings:sharedSettings,refs:[...aiSourceRefs]};}
 function restoreInbox143174(saved,meta){
  if(!saved||meta.owner!==identity()||!panel)return false;syncSession();sharedSettings={...(saved.settings||{}),sheet:meta.sheet};sharedOwner=meta.owner;sharedLoaded=true;completedDrafts.clear();for(const id of saved.completed||[])completedDrafts.add(id);dispositions=new Map(saved.dispositions||[]);aiSourceRefs=new Map(saved.refs||[]);reviewed=new Map(saved.reviewed||[]);pendingDraftNotices=saved.notices||[];lastDraftSignature=saved.signature||'';
  const list=panel.querySelector('[data-drive-list]'),fragment=document.createDocumentFragment();for(const [id,r]of reviewed){if(completedDrafts.has(id)||dispositions.has(id))continue;display(id,JSON.parse(r.rows),r.payload,r.error||'',null,r.chart||[],fragment);}list.replaceChildren(fragment);if(!list.children.length)list.innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';restorePreparation(context());renderPreparation();renderSettings();showConnection();window.refreshNotices1443?.();return !!saved.signature;

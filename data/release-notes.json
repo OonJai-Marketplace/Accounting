@@ -1,8 +1,10 @@
 {
-  "version": "143.181",
+  "version": "143.182",
   "changes": [
-    "Settings use one section heading, aligned fields for long labels, consistent padding and readable tax amounts. Existing Help and Add controls remain available.",
-    "Chart of Accounts gives the description the former Actions column space. Double-click a row, or press Enter, for a separated vertical Edit, Delete and Group menu.",
-    "Maintenance & Audit is one page with its tools stacked and always visible. User action buttons have consistent widths and spacing."
+    "Improved narrow-screen account descriptions, settings controls, and keyboard access to account actions.",
+    "Account saves resist double submission and retain newer edits; background refresh preserves unsaved company details.",
+    "Offline saves keep their correct order, and journal sync callers wait for confirmation. AI Journal retries interrupted draft checks.",
+    "Journal editing preserves the main posting date separately from receipt dates.",
+    "AI HR leave checks include finalized attendance; cross-year reports include each year and reconciliation shows required explanations."
   ]
 }

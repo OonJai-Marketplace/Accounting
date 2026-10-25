@@ -11,7 +11,7 @@ const name='journal-outbox14385';
 const identity=c=>c.scope+':'+c.actor;
 const active=j=>!j.retired;
 function content(p){return {date:p.p_transaction_date,memo:String(p.p_memo||'').trim(),lines:(p.p_lines||[]).map(l=>({...(l.line_date&&l.line_date!==p.p_transaction_date?{line_date:l.line_date}:{}),account_id:l.account_id,description:l.description||String(p.p_memo||'').trim(),currency_code:l.currency_code,debit:Number(l.debit||0),credit:Number(l.credit||0),fx_rate_lak:l.currency_code==='LAK'?1:l.fx_rate_lak==null||l.fx_rate_lak===''?null:Number(l.fx_rate_lak),book_rate_lak:l.book_rate_lak==null||l.book_rate_lak===''?null:Number(l.book_rate_lak)}))}}
-function fromLines(lines){return content({p_transaction_date:lines.map(l=>l.date).sort()[0],p_memo:lines[0]?.generalMemo??lines[0]?.memo,p_lines:lines.map(l=>({line_date:l.date,account_id:l.accountId||l.account?.id,description:l.memo,currency_code:l.currency,debit:l.debit,credit:l.credit,fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak}))})}
+function fromLines(lines){return content({p_transaction_date:lines[0]?.postingDate||lines.map(l=>l.date).sort()[0],p_memo:lines[0]?.generalMemo??lines[0]?.memo,p_lines:lines.map(l=>({line_date:l.date,account_id:l.accountId||l.account?.id,description:l.memo,currency_code:l.currency,debit:l.debit,credit:l.credit,fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak}))})}
 function desired(j,index){let value=j.entries[index];for(const op of j.changes||[])if(op.index===index)value=op.kind==='void'?null:op.value;return value}
 function changed(){window.dispatchEvent(new Event('local-work14333'));}
 async function read(c){assert(c);const value=await localFirst14333.edit(c.actor,name);assert(c);if(value&&!Array.isArray(value))throw Error('Journal device queue is unreadable. Keep browser data for recovery.');return value||[]}
@@ -42,7 +42,7 @@ async function change(lines,kind,value,reason,expected){if(window.workspaceReque
 async function patch(c,id,fn){return mutate(c,list=>{const j=list.find(j=>j.id===id);if(j)fn(j);return list})}
 function receipt(data,count){if(!Array.isArray(data)||data.length!==count||data.some(r=>!r.entry_id||!r.entry_no)||new Set(data.map(r=>r.entry_id)).size!==count)throw Error('Complete database receipt not received. The saved reference will be retried.');return data}
 async function call(c,rpc,args){assert(c);const r=await offline14239.request(c.client.rpc(rpc,args));assert(c);if(r.error)throw r.error;return r.data}
-async function sync(){const c=context();await initialize();assert(c);if(flight||offline14239.offline()||window.workspaceRequest138?.target)return;
+async function sync(){const c=context();await initialize();assert(c);if(flight)return flight;if(offline14239.offline()||window.workspaceRequest138?.target)return;
  const execute=async()=>{assert(c);await window.offlineAudit143174?.initialize();rows=await read(c);for(const original of rows.filter(active).sort((a,b)=>Number(!!b.receipt)-Number(!!a.receipt))){
  if(!valid(c)||offline14239.offline())break;const id=original.id;
  try{let j=(await read(c)).find(j=>j.id===id);if(!j||j.retired)continue;
@@ -66,7 +66,7 @@ function project(){if(typeof JournalModule==='undefined')return;let base=Journal
  for(const j of pending())for(let i=0;i<j.entries.length;i++){const r=j.receipt?.[i],value=desired(j,i),dirty=j.changes.some(op=>op.index===i);
  if(r&&dirty)base=base.filter(l=>l.dbEntryId!==r.entry_id);
  if(!value||r&&!dirty&&base.some(l=>l.dbEntryId===r.entry_id))continue;
- for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({localJournal14385:true,local14333:true,journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:r?.entry_no||'Device-'+j.id+(j.entries.length>1?'-'+(i+1):''),dbEntryId:r?.entry_id||null,date:line.line_date||value.date,created_at:j.created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
+ for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({localJournal14385:true,local14333:true,journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:r?.entry_no||'Device-'+j.id+(j.entries.length>1?'-'+(i+1):''),dbEntryId:r?.entry_id||null,postingDate:value.date,date:line.line_date||value.date,created_at:j.created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
  JournalModule.entries=base}
 async function reconcile(remote){const c=context();if(loaded!==identity(c))return;const ids=new Set(remote.map(l=>l.dbEntryId));await mutate(c,list=>{for(const j of list.filter(active)){if(j.status!=='saved'||!j.receipt||j.voucher&&!j.voucherLinked||j.changes.some(op=>op.status!=='saved'))continue;
  // Retire only entries in the complete loaded period and only when their final state is observed.

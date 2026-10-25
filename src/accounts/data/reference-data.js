@@ -38,7 +38,59 @@ CurrencyStore.edit = async function(code){const actor=liveProfile?.id,db=ojmDb,i
 CurrencyStore.remove = async function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;if(!await ui117.confirm(`Remove currency ${code}?`)||!isCurrent())return;const{error}=await db.from('currencies').delete().eq('code',code);if(!isCurrent())return;if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase()};
 
 // The legacy database flag is asset-only; automatic report tracking is derived from currency for every account type.
-handleAccountFormSubmit = async function(event){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;event.preventDefault();const groupChoice=document.getElementById('newAccountGroup143180');if(groupChoice&&!groupChoice.disabled&&!groupChoice.value){groupChoice.reportValidity();return;}const purpose=document.getElementById('accPurpose71');if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return}const original=document.getElementById('accountOrigCode').value;const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:document.getElementById('accPurpose71').value,created_by:liveProfile.id};const existing=AccountingStore.accounts.find(a=>a.code===original);const parent=payload.currency_code==='__PARENT__';payload.track_foreign_funds=!parent&&!!payload.currency_code&&!['LAK','NA'].includes(payload.currency_code)&&payload.account_type==='ASSET'&&payload.account_purpose==='regular'&&!existing?.isTechnical;payload.is_posting=!parent;payload.currency_label=parent?'—':payload.currency_code;if(parent){payload.currency_code=existing?.currency||CurrencyStore.currencies[0]?.code;if(!payload.currency_code){showAppNotification('Currency Required','Add at least one currency in Settings before creating an account.',true);return}if(existing?.id){const used=await db.from('journal_lines').select('id').eq('account_id',existing.id).limit(1);if(!isCurrent())return;if(used.error){showAppNotification('Account Check Failed',used.error.message,true);return}if(used.data?.length){showAppNotification('Account Has Transactions','Keep this account as a posting account. Create a separate parent account for grouping.',true);return}}}if(!isCurrent())return;const groupForm=document.getElementById('formAccount'),groupId=!existing&&groupForm?.dataset.group143180,createId=groupForm?.dataset.create143180;const query=groupId?db.rpc('create_group_account143180',{p_group:groupId,p_id:createId,p_account:payload}):existing?db.from('accounts').update(payload).eq('id',existing.id):db.from('accounts').insert(payload);let{error,data}=await query;if(!isCurrent())return;if(groupId&&!error&&(Array.isArray(data)?data[0]:data)?.id!==createId)error={message:'Account creation was not confirmed. Reopen the chart before retrying.'};if(error){showAppNotification('Account Save Failed',String(error.message).includes('account_purpose')?'Read setup/SETUP-GUIDE-v142.20.txt for the required existing database setup.':error.message,true);return}if(!groupId||groupForm.dataset.create143180===createId)closeModal('modalAccount');if(groupId)await window.AccountGroups143180?.load(true).catch(()=>{if(isCurrent())showCenterStatus('Account saved. Reopen the chart to refresh its group.',true);});if(isCurrent())await loadReferenceDataFromSupabase()};
+handleAccountFormSubmit = async function(event){
+  event.preventDefault();
+  const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
+  const form=document.getElementById('formAccount');
+  if(!actor||!form||form.accountSave143182)return;
+  const groupChoice=document.getElementById('newAccountGroup143180');
+  if(groupChoice&&!groupChoice.disabled&&!groupChoice.value){groupChoice.reportValidity();return;}
+  const purpose=document.getElementById('accPurpose71');
+  if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return;}
+  const original=document.getElementById('accountOrigCode').value;
+  const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:purpose.value,created_by:actor};
+  if(!payload.code||!payload.name){showAppNotification('Account Details Required','Enter an account code and name.',true);return;}
+  const existing=AccountingStore.accounts.find(a=>a.code===original);
+  if(original&&!existing){showAppNotification('Account Changed','This account is no longer in the loaded chart. Reopen the chart before editing it.',true);return;}
+  const groupId=!existing&&form.dataset.group143180,createId=form.dataset.create143180;
+  const editorState=()=>JSON.stringify(['accountOrigCode','accCode','accName','accCurrency','accType','accDesc','accPurpose71','newAccountGroup143180'].map(id=>document.getElementById(id)?.value).concat([form.dataset.group143180,form.dataset.create143180]));
+  const submittedState=editorState(),sameEditor=()=>form.isConnected&&document.getElementById('formAccount')===form&&editorState()===submittedState;
+  const button=form.querySelector('[type=submit]'),wasDisabled=button?.disabled,operation={};
+  form.accountSave143182=operation;if(button)button.disabled=true;
+  let saved=false;
+  try{
+    const parent=payload.currency_code==='__PARENT__';
+    payload.track_foreign_funds=!parent&&!!payload.currency_code&&!['LAK','NA'].includes(payload.currency_code)&&payload.account_type==='ASSET'&&payload.account_purpose==='regular'&&!existing?.isTechnical;
+    payload.is_posting=!parent;payload.currency_label=parent?'—':payload.currency_code;
+    if(parent){
+      payload.currency_code=existing?.currency||CurrencyStore.currencies[0]?.code;
+      if(!payload.currency_code){showAppNotification('Currency Required','Add at least one currency in Settings before creating an account.',true);return;}
+      if(existing?.id){
+        const used=await db.from('journal_lines').select('id').eq('account_id',existing.id).limit(1);
+        if(!isCurrent())return;
+        if(used.error){showAppNotification('Account Check Failed',used.error.message,true);return;}
+        if(used.data?.length){showAppNotification('Account Has Transactions','Keep this account as a posting account. Create a separate parent account for grouping.',true);return;}
+      }
+    }
+    if(!isCurrent())return;
+    if(!sameEditor()){showAppNotification('Account Form Changed','Review the current account details before saving.',true);return;}
+    const query=groupId?db.rpc('create_group_account143180',{p_group:groupId,p_id:createId,p_account:payload}):existing?db.from('accounts').update(payload).eq('id',existing.id):db.from('accounts').insert(payload);
+    let {error,data}=await query;
+    if(!isCurrent())return;
+    if(groupId&&!error&&(Array.isArray(data)?data[0]:data)?.id!==createId)error={message:'Account creation was not confirmed. Reopen the chart before retrying.'};
+    if(error)throw error;
+    saved=true;
+    if(sameEditor())closeModal('modalAccount');
+    if(groupId)await window.AccountGroups143180?.load(true).catch(()=>{if(isCurrent())showCenterStatus('Account saved. Reopen the chart to refresh its group.',true);});
+    if(isCurrent())await loadReferenceDataFromSupabase();
+  }catch(error){
+    if(!isCurrent())return;
+    const message=error.message||'The request was interrupted.';
+    showAppNotification(saved?'Account Saved — Refresh Incomplete':'Account Save Failed',saved?'Your account was saved. Reopen the chart to refresh its details.':String(message).includes('account_purpose')?'Read setup/SETUP-GUIDE-v142.20.txt for the required existing database setup.':message,true);
+  }finally{
+    if(form.accountSave143182===operation){delete form.accountSave143182;if(button)button.disabled=wasDisabled;}
+  }
+};
 promptDeleteAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('accounts').delete().eq('id',acc.id);if(!isCurrent())return;if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
 handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
   event.preventDefault();

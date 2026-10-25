@@ -105,3 +105,12 @@
  html body .chart-action-menu143181>button::after{content:none!important;display:none!important}
 }}
 
+/* Preserve usable columns when the sidebar leaves a narrow tablet content pane. */
+@layer corrections14337 { @media screen and (min-width:641px){
+ html body #chartMain143180>.table-container{max-width:100%!important;min-width:0!important;overflow-x:auto!important}
+ html body #chartMain143180 #tblChartOfAccounts.chart-no-actions143181{min-width:640px!important}
+ html body #chartMain143180 #tblChartOfAccounts.chart-no-actions143181 td{vertical-align:top!important}
+ html body #chartMain143180 .coa-toolbar{display:flex!important;flex-wrap:wrap!important;align-items:end!important}
+ html body #chartMain143180 .coa-search1439{flex:1 1 180px!important;min-width:0!important;max-width:100%!important}
+}}
+

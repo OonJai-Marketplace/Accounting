@@ -21,9 +21,9 @@ function reconciliationReceiptDate71(line){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z'))||new Date(date+'T00:00:00Z').toISOString().slice(0,10)!==date)throw Error('Invalid receipt date for '+line.id+'. Review the journal source.');
  return date;
 }
-function reconciliationAccount71(key,from,to,source=JournalModule.entries){
+function reconciliationAccount71(key,from,to,source=JournalModule.entries,basis='receipt'){
  const account=(AccountingStore.accounts||[]).find(a=>accountKey69(a)===key);if(!account)return null;
- const r={account,key,currency:account.currency,opening:0,debit:0,credit:0,closing:0,lines:[],dateBasis:'receipt'};
+ const r={account,key,currency:account.currency,opening:0,debit:0,credit:0,closing:0,lines:[],dateBasis:basis};
  const annual=line=>line.annualOpening||String(line.generalMemo||'').startsWith('Annual opening balances ')||line.generalMemo==='Opening Balances';
  const rows=source.filter(line=>!line.pendingSync&&!line.local14333&&!line.voided_at&&(!line.status||line.status==='posted')&&line.currency===r.currency&&accountKey69(accountForLine69(line)||{},line.currency)===key);
  // Start at the latest saved opening, avoiding a second count of prior-year balances.
@@ -31,7 +31,7 @@ function reconciliationAccount71(key,from,to,source=JournalModule.entries){
  for(const [index,line] of rows.entries()){
   const postingDate=String(line.date||'').slice(0,10),dr=cents69(line.debit),cr=cents69(line.credit);
   if(annual(line)){if(postingDate===baseline)r.opening+=dr-cr;continue}
-  const date=reconciliationReceiptDate71(line);
+  const date=basis==='posting'?postingDate:reconciliationReceiptDate71(line);
   // A receipt carried in an earlier book's closing must leave the opening and appear once on its actual date.
   if(baseline&&postingDate<baseline){if(date<baseline)continue;r.opening-=dr-cr;}
   if(date>to)continue;
@@ -45,6 +45,9 @@ async function readReconciliationAccount71(key,from,to,basis='posting',refresh=f
  const check=()=>{if(actor!==reportOwner71()||client!==ojmDb||(window.workspaceRequest138?.target||'')!==workspace||!reportPermission71())throw Error('Account or workspace changed while loading reconciliation.');};
  if(basis!=='receipt'){
   if(liveProfile){await window.yearWindow14333?.ensure(from,to);check();if(refresh)await loadJournalFromSupabase();check();}
+  // A spanning-year cash report needs every posting; year-specific openings
+  // already contain prior closings and must not be added twice.
+  if(from&&from.slice(0,4)!==to.slice(0,4))return reconciliationAccount71(key,from,to,JournalModule.entries,'posting');
   const saved={...Accounts69};try{Object.assign(Accounts69,{from,to});return accountData69().find(r=>r.key===key)}finally{Object.assign(Accounts69,saved)}
  }
  const account=(AccountingStore.accounts||[]).find(a=>accountKey69(a)===key);if(!account)return null;
@@ -103,10 +106,10 @@ function renderReport71(){
  <section class="rec-section71 rec-comparison117" data-currency-code="${e(r.currency)}"><header><h4>System and statement comparison</h4></header><div class="rec-body71">
  <div class="rec-amounts71">${[['statementOpening117','Previous / Opening Balance'],['statementDebit117','Statement DR'],['statementCredit117','Statement CR'],['statement','Ending Balance']].map(([key,label])=>`<label>${label}<input ${key==='statement'?'id="recStatement71"':`data-rec117="${key}"`} type="number" step="0.01" data-financial-number data-currency="${e(r.currency)}" value="${e(r[key]??'')}" ${disabled} oninput="recAmountField71('${key}',this)"></label>`).join('')}</div>
  <div class="rec-basis71"><label><input type="checkbox" data-rec-reverse117 ${r.statementReverse117!==false?'checked':''} ${disabled} onchange="recField71('statementReverse117',this.checked)"> Bank CR = deposits; bank DR = withdrawals</label><span>${r.dateBasis==='receipt'?'Bank · receipt dates':'Cash / books · posting dates'}</span></div>
- <p id="recStatementCheck71" class="rec-error71" role="status" hidden></p></div><div id="recCompare117"></div></section>
+ <p id="recStatementCheck71" class="rec-error71" role="status" hidden></p></div><div id="recCompare117"></div><div data-bank-reason14346 class="rec-body71" hidden><label>Explanation of difference<textarea placeholder="Explain the difference" ${disabled} oninput="recField71('notes',this.value)">${e(r.notes)}</textarea></label></div></section>
  <p class="rec-error71" id="recError71" role="status"></p>
  <details class="rec-section71" data-rec-findings ${r.findings.length?'open':''}><summary>Findings &amp; Outstanding Items${r.findings.length?' · '+r.findings.length:''}</summary><div class="rec-body71">${locked?'':`<button class="je-btn je-btn-secondary" onclick="addFinding71()">Add Finding</button>`}</div><div class="table-container"><table><thead><tr><th>Type</th><th>Signed amount</th><th>Explanation / resolution</th><th>Journal entry ID</th><th>Status</th>${locked?'':'<th>Action</th>'}</tr></thead><tbody>${r.findings.map((f,i)=>`<tr><td><select ${disabled} onchange="findingChange71(${i},'kind',this.value)">${[['outstanding','Timing / outstanding'],['correction','Posted correction'],['unexplained','Unexplained difference']].map(([v,t])=>`<option value="${v}" ${f.kind===v?'selected':''}>${t}</option>`).join('')}</select></td><td><input type="number" step="0.01" value="${e(f.amount)}" ${disabled} oninput="findingChange71(${i},'amount',recAmountValue71(this))"></td><td><textarea ${disabled} oninput="findingChange71(${i},'description',this.value)">${e(f.description)}</textarea></td><td><input value="${e(f.entryId)}" placeholder="Exact journal ID" ${disabled} oninput="findingChange71(${i},'entryId',this.value)"></td><td><select ${disabled} onchange="findingChange71(${i},'status',this.value)">${['investigating','outstanding','resolved'].map(v=>`<option ${f.status===v?'selected':''}>${v}</option>`).join('')}</select></td>${locked?'':`<td><button class="je-btn je-btn-danger" onclick="removeFinding71(${i})" aria-label="Remove finding">×</button></td>`}</tr>`).join('')||`<tr><td colspan="${locked?5:6}">No findings recorded.</td></tr>`}</tbody></table></div></details>
- <details class="rec-section71" data-rec-documents><summary>Supporting Documents &amp; Notes${r.attachments.length?' · '+r.attachments.length+' files':''}</summary><div class="rec-body71"><div class="rec-grid71"><label>Prepared by<strong>${e(r.preparedBy)}</strong></label><label>Reviewed by (name / reference)<input value="${e(r.reviewer)}" ${disabled} oninput="recField71('reviewer',this.value)"></label></div>${locked?'':'<label>Attach statement or receipt (PDF, PNG or JPEG; 10 MB each)<input type="file" accept="application/pdf,image/png,image/jpeg" multiple onchange="attachReportFiles71(this)"></label>'}<div id="recAttachments71" class="rec-attachments71">${r.attachments.map((a,i)=>`<span><button class="je-btn je-btn-secondary" onclick="downloadAttachment71(${i})">${e(a.name)}</button>${locked?'':`<button class="je-btn je-btn-secondary" onclick="currentReport71.attachments.splice(${i},1);renderReport71()" aria-label="Remove attachment">×</button>`}</span>`).join('')}</div><label data-bank-reason14346 hidden>Explanation of difference<textarea placeholder="Explain the difference" ${disabled} oninput="recField71('notes',this.value)">${e(r.notes)}</textarea></label></div></details>
+ <details class="rec-section71" data-rec-documents><summary>Supporting Documents${r.attachments.length?' · '+r.attachments.length+' files':''}</summary><div class="rec-body71"><div class="rec-grid71"><label>Prepared by<strong>${e(r.preparedBy)}</strong></label><label>Reviewed by (name / reference)<input value="${e(r.reviewer)}" ${disabled} oninput="recField71('reviewer',this.value)"></label></div>${locked?'':'<label>Attach statement or receipt (PDF, PNG or JPEG; 10 MB each)<input type="file" accept="application/pdf,image/png,image/jpeg" multiple onchange="attachReportFiles71(this)"></label>'}<div id="recAttachments71" class="rec-attachments71">${r.attachments.map((a,i)=>`<span><button class="je-btn je-btn-secondary" onclick="downloadAttachment71(${i})">${e(a.name)}</button>${locked?'':`<button class="je-btn je-btn-secondary" onclick="currentReport71.attachments.splice(${i},1);renderReport71()" aria-label="Remove attachment">×</button>`}</span>`).join('')}</div></div></details>
  <details class="rec-section71" data-rec-ledger><summary>Ledger details · ${r.lines.length} lines</summary>${snapshotTable71(r)}</details></div></section>`;
  document.body.appendChild(overlay);overlay.onclick=event=>{if(event.target===overlay)closeReport71()};updateRecTotals71();
 }

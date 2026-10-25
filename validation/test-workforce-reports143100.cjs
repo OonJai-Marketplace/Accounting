@@ -1,7 +1,7 @@
 /* Current real-SDK fixture; all financial records below are synthetic and in memory. */
 const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
 (async()=>{const f=await create();try{
- const {page,login}=await f.open();const errors=[];page.on('pageerror',e=>errors.push(e.message));await login();
+ const {page,login}=await f.open();const errors=[];page.on('pageerror',e=>errors.push(e.message));await login();await page.waitForFunction(()=>!idleSync14341.running);
  const payroll=await page.evaluate(()=>{
   const config={workDays:20,hours:8,grace:0,overtime:1.5,employeeSso:5,employerSso:6,ssoCap:null,sharing:'equal',brackets:[{from:0,to:null,rate:10}]};
   const employee={name:'Audit employee',currency:'USD',salary:1000,sso:true,pit:true};
@@ -21,12 +21,15 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
   return{days:approved.days,original:approved.requestedDays14307,recordDays:record.data.days,blocked};
  });
  assert.deepEqual(leave,{days:4,original:5,recordDays:5,blocked:true});console.log('PASS leave approval recalculates working days, retains original request and rejects inactive staff');
- await page.evaluate(()=>{
+ const journal=await page.evaluate(()=>{
   const cash=AccountingStore.accounts.find(a=>a.type==='ASSET'),expense=AccountingStore.accounts.find(a=>a.type==='EXPENSE');
   JournalModule.entries=[];for(let i=0;i<55;i++)JournalModule.entries.push({id:'AUDIT-2026-'+String(i).padStart(4,'0'),date:'2026-09-15',accountId:expense.id,account:expense.name,currency:'LAK',debit:123456789123.45,credit:0,memo:'Supporting details for the accounting report',status:'posted'},{id:'AUDIT-2026-'+String(i).padStart(4,'0'),date:'2026-09-15',accountId:cash.id,account:cash.name,currency:'LAK',debit:0,credit:123456789123.45,memo:'Bank payment',status:'posted'});
   Object.assign(Reports79,{from:'2026-09-01',to:'2026-09-30',month:'2026-09',kind:'pl',cash:[cash.id+'|LAK'],selectedMonths14331:[],allMonths14331:false});
   const modal=ui108.modal;ui108.modal=function(title,...args){return title==='Open in Document Editor'?Promise.resolve('new'):modal.call(this,title,...args)};
+  return structuredClone(JournalModule.entries);
  });
+ // Background refresh must read the same posted fixture as the report model.
+ f.fixture.journal=journal;f.fixture.journalRevision='workforce-reports143100';
  for(const kind of ['pl','bs','cf','tb','gl','activity','expense']){
   await page.evaluate(async kind=>{await openDocumentEditor105({title:reportNames79[kind],html:reportFormats14282.financial(kind),printPreview:true,approvedLayout14254:true,settings:reports14254.settings()})},kind);
   const frame=page.frames().find(f=>f.url()==='about:srcdoc');assert(frame,kind+' preview');

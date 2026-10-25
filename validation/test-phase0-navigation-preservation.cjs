@@ -8,6 +8,8 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  const click=async module=>{await page.locator('#nav-module-'+module+' .nav-header').click();await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))))};
  await click('transactions');await page.locator('#jeGeneralMemo').fill('UNSAVED navigation regression');
  await click('settings');await page.locator('#settingCompanyName').fill('UNSAVED company marker');
+ // Finish the login refresh before measuring renderer work attributable to navigation.
+ await page.waitForFunction(()=>idleSync14341.session?.trigger==='login'&&!idleSync14341.running);
  const before=await page.evaluate(()=>({journal:JSON.stringify(JournalModule.entries),employees:JSON.stringify(Work82.employees)}));
  await page.evaluate(()=>{window.__workCalls=0;const fn=renderWork82;window.renderWork82=function(...args){__workCalls++;return fn.apply(this,args)}});
  const start=f.requests.length;

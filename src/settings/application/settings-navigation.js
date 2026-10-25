@@ -52,7 +52,15 @@ reloadBusinessSettings=function(notifyUser=false){
   if(notifyUser)showCenterStatus('Unsaved changes were undone.');
 };
 const loadBusinessSettingsBeforeFoundation=loadBusinessSettingsFromSupabase;
-loadBusinessSettingsFromSupabase=async function(){const owner=liveProfile?.id;await loadBusinessSettingsBeforeFoundation();if(liveProfile?.id===owner)setBusinessSettingsBaseline()};
+loadBusinessSettingsFromSupabase=async function(){
+  const owner=liveProfile?.id,db=ojmDb;await loadBusinessSettingsBeforeFoundation();if(liveProfile?.id!==owner||ojmDb!==db)return;
+  businessSettingsBaseline=JSON.stringify(Object.fromEntries(Object.keys(collectBusinessSettings()).map(key=>[key,String(BusinessSettings.current[key]??'')])));
+  reconcileBusinessDirtyState();
+  if(businessSettingsSnapshot()!==businessSettingsBaseline){
+    renderBusinessIdentity(collectBusinessSettings(),false);
+    const status=document.getElementById('businessSettingsStatus');if(status){status.textContent='Saved business profile refreshed. Your unsaved changes are retained.';status.classList.remove('is-save-confirmation')}
+  }
+};
 const saveBusinessSettingsBeforeFoundation=saveBusinessSettings;
 saveBusinessSettings=async function(event){
   const owner=liveProfile?.id;const snapshot=businessSettingsSnapshot();const saved=await saveBusinessSettingsBeforeFoundation(event);
