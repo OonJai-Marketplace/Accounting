@@ -1,7 +1,7 @@
 /* Google-held drafts. Journal entries are written only after explicit review and posting. */
 (()=>{'use strict';
 const HEAD=['draft_id','posting_date','description','line_no','account_id','account_code','currency','debit','credit','line_date','fx_rate_lak','book_rate_lak','line_memo'];
-let sharedSettings=null,sharedOwner='',sharedLoaded=false;
+let sharedSettings=null,sharedOwner='',sharedLoaded=false,linkEditorOwner='';
 const completedDrafts=new Set(),archiveJobs=new Map();let archiveQueue=Promise.resolve(),journalRefresh=Promise.resolve();
 let backgroundBusy=null,settingsJob=null,lastConnectionCheck=0,lastDraftRead=0,lastCheckedAt='',backgroundError='',connectionStatus=null,panel=null,settingsPanel=null,view='journal',reviewed=new Map(),busy=false,epoch=0;let pendingDraftNotices=[],lastDraftSignature='';const prepared=new Map();let preparation=null,dispositions=new Map(),restoredKey='',observedOwner='';let aiSourceRefs=new Map();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -173,12 +173,12 @@ async function syncChart(){const c=context(),a=await accounts(),meta=await api('
 async function receipt(id){const c=context(),r=await readQuery(c.db.rpc('drive_journal_receipt143128',{p_sheet:c.sheet,p_draft:id}),'Posted draft check');assert(c);if(r.error)throw r.error;return r.data;}
 const $=id=>document.getElementById(id);
 const initialLinks=[
- ['Journal Submission Inbox','https://docs.google.com/spreadsheets/d/1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk/edit'],
- ['Accounting — Import and Review','https://docs.google.com/spreadsheets/d/1fxa4WzOHUA0bpEhz12-IPkG5Ps6sZMb_1RVptqiv_QA/edit'],
- ['Accounting — Data Upload','https://docs.google.com/spreadsheets/d/1f-V4Df1xAVhWoqVv0VWgSgG-jZ393JRncK_Np_1R-E0/edit'],
- ['Accounting — Personal Workspace','https://docs.google.com/spreadsheets/d/1g192fLF6Sbsq1EeDQAGWb3lHJ8-w1FyRhIGXOeOs6A8/edit'],
- ['Journal Submissions folder','https://drive.google.com/drive/folders/1SjBDUyCqz2-90-LFSci48D0pj-wjGT83'],
- ['Accounting Website folder','https://drive.google.com/drive/folders/1HhV0osCOdoXklqbOcy_-QC0B5G792z9J']
+ ['Journal & HR Submission Inbox','https://docs.google.com/spreadsheets/d/1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk/edit','AI Journal reads the Drafts tab. AI HR reads the HR Submission Inbox tab in this same spreadsheet.'],
+ ['Accounting — Import and Review','https://docs.google.com/spreadsheets/d/1fxa4WzOHUA0bpEhz12-IPkG5Ps6sZMb_1RVptqiv_QA/edit','Accounting import and review spreadsheet.'],
+ ['Accounting — Data Upload','https://docs.google.com/spreadsheets/d/1f-V4Df1xAVhWoqVv0VWgSgG-jZ393JRncK_Np_1R-E0/edit','Accounting data upload spreadsheet.'],
+ ['Accounting — Personal Workspace','https://docs.google.com/spreadsheets/d/1g192fLF6Sbsq1EeDQAGWb3lHJ8-w1FyRhIGXOeOs6A8/edit','Personal accounting workspace spreadsheet.'],
+ ['Journal Submissions folder','https://drive.google.com/drive/folders/1SjBDUyCqz2-90-LFSci48D0pj-wjGT83','Google Drive folder for journal submission files. The submission spreadsheet is listed separately above.'],
+ ['Accounting Website folder','https://drive.google.com/drive/folders/1HhV0osCOdoXklqbOcy_-QC0B5G792z9J','Google Drive folder for Accounting website files.']
 ];
 function defaults(){return !!identity()?{sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk',links:initialLinks}:{links:[]};}
 async function loadSharedSettings(){
@@ -188,7 +188,7 @@ async function loadSharedSettings(){
 async function readSharedSettings(){
  syncSession();const owner=identity(),db=ojmDb;if(!owner||liveProfile.role!=='admin')return;
  const r=await readQuery(db.from('budget_settings14313').select('*').eq('id',true).maybeSingle(),'Google settings check');
- if(owner!==identity()||db!==ojmDb)return;if(r.error)throw r.error;if(prepared.size)return;
+ if(owner!==identity()||db!==ojmDb)return;if(r.error)throw r.error;if(prepared.size||linkEditorOwner===owner)return;
  if(sharedLoaded&&JSON.stringify(sharedSettings)!==JSON.stringify(r.data?.data?.googleSheets143129||null))disconnect();sharedSettings=r.data?.data?.googleSheets143129||null;sharedOwner=owner;sharedLoaded=true;renderSettings();
 }
 async function saveSharedSettings(value){
@@ -400,16 +400,58 @@ async function run(fn){
  finally{busy=false;void window.AIInboxSync143173?.persist?.();drainInbox143173();hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));updatePostButtons();}}
 }
 
-function renderSettings(){
- if(!settingsPanel)return;const cfg=config();settingsPanel.innerHTML='<h3 class="je-title">Google Sheets</h3><p>Open your accounting spreadsheets and folders. Google controls access to each link.</p><div data-links class="gpt-links143129"></div><details><summary>Connection settings and protected link management</summary><p>Administrators save these links and connection settings to the shared accounting system. The company Google connection is saved securely on the server for background checks. Add one name and Google Sheets or Drive folder URL per line, separated by |.</p><div class="je-actions-bar"><button type="button" class="je-btn" data-edit-links>Edit saved links</button><button type="button" class="je-btn" data-cancel-links hidden>Cancel link changes</button></div><label>Saved links<textarea data-links-input class="je-input" rows="7" readonly aria-label="Saved links, read-only until Edit saved links is selected"></textarea></label><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><label>Google OAuth client ID<input data-client class="je-input" autocomplete="off"></label><p>Journal IDs use Accounting → Entry IDs &amp; Prefixes → Main journal and the shared number digits. IDs are assigned by Accounting when posted.</p><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save settings</button><button type="button" class="je-btn" data-reload>Reload settings</button></div><p><a href="docs/DRIVE-DRAFTS-v143.128.md" target="_blank" rel="noopener">Google connection setup instructions</a></p></details><div class="je-actions-bar"><button class="je-btn" type="button" data-connect>Connect Google</button></div><p data-drive-status role="status"></p><p data-connection-status role="status"></p><p>Your saved Google connection is reused after login and reloads. Draft notifications update automatically on every page. Both AI inboxes check together every 30 seconds on every page. Only new or changed requests are transferred; your edits stay in place. Posting still requires your review.</p>';
- const links=Array.isArray(cfg.links)?cfg.links:[];for(const [name,url]of links){const safe=googleURL(url);if(!safe)continue;const a=document.createElement('a');a.className='je-btn je-btn-secondary';a.href=safe;a.target='_blank';a.rel='noopener noreferrer';a.textContent=name;settingsPanel.querySelector('[data-links]').append(a);}
- settingsPanel.querySelector('[data-links-input]').value=links.map(l=>l.join(' | ')).join('\n');const linkEditor=settingsPanel.querySelector('[data-links-input]'),editLinks=settingsPanel.querySelector('[data-edit-links]'),cancelLinks=settingsPanel.querySelector('[data-cancel-links]');editLinks.onclick=()=>{linkEditor.readOnly=false;editLinks.hidden=true;cancelLinks.hidden=false;linkEditor.focus();};cancelLinks.onclick=()=>{linkEditor.value=links.map(l=>l.join(' | ')).join('\n');linkEditor.readOnly=true;editLinks.hidden=false;cancelLinks.hidden=true;};settingsPanel.querySelector('[data-sheet]').value=cfg.sheet||'';settingsPanel.querySelector('[data-client]').value=cfg.client||'';
- settingsPanel.querySelector('[data-connection-status]').textContent=connectionMessage();
- settingsPanel.querySelector('[data-save]').onclick=()=>run(async()=>{if(prepared.size){message('Post or remove the prepared AI entries before changing connection settings.');return;}try{const updatedLinks=(linkEditor.readOnly?links:settingsPanel.querySelector('[data-links-input]').value.split('\n').filter(s=>s.trim()).map(s=>{const [name,...rest]=s.split('|'),url=googleURL(rest.join('|').trim());if(!name.trim()||!url)throw Error('Each link needs a name | Google Sheets or Drive folder URL.');return [name.trim(),url]}));let sheet=settingsPanel.querySelector('[data-sheet]').value.trim();sheet=sheet.match(/\/spreadsheets\/d\/([\w-]+)/)?.[1]||sheet;if(sheet&&!/^[\w-]{20,120}$/.test(sheet))throw Error('Enter a valid submission spreadsheet ID or URL.');const client=settingsPanel.querySelector('[data-client]').value.trim();if(client&&!/^\d+-[\w-]+\.apps\.googleusercontent\.com$/.test(client))throw Error('Enter a valid Google OAuth web client ID.');await saveSharedSettings({links:updatedLinks,sheet,client});disconnect();renderSettings();message('Settings saved to the shared accounting system.');void checkBackground();}catch(e){message(e.message)}});
- settingsPanel.querySelector('[data-reload]').onclick=()=>run(async()=>{if(prepared.size)throw Error('Post or remove the prepared AI entries first.');await loadSharedSettings();message('Shared Google Sheets settings reloaded.');lastConnectionCheck=0;void checkBackground();});
- settingsPanel.querySelector('[data-connect]').onclick=()=>run(async()=>{await connect();});
-
+function describeLink(link,cfg){
+ const [name='',url='',savedDescription]=Array.isArray(link)?link:[];
+ const safe=googleURL(url),known=initialLinks.find(l=>l[1]===safe);
+ const submission=!!cfg.sheet&&safe.includes('/spreadsheets/d/'+cfg.sheet+'/');
+ return [submission&&name==='Journal Submission Inbox'?'Journal & HR Submission Inbox':String(name),String(url),savedDescription==null?(submission?initialLinks[0][2]:known?.[2]||''):String(savedDescription)];
 }
+function renderSettings(){
+ if(!settingsPanel)return;
+ if(linkEditorOwner&&linkEditorOwner===identity())return;
+ linkEditorOwner='';const cfg=config(),owner=identity();
+ const canEdit=()=>owner&&owner===identity()&&sharedLoaded&&sharedOwner===owner&&liveProfile?.role==='admin'&&access113.can('settings-accounting','edit');
+ settingsPanel.innerHTML='<h3 class="je-title">Saved links</h3><p>Spreadsheets and folders used by Accounting and HR.</p><div data-links class="gpt-links143129"></div><div class="je-actions-bar"><button type="button" class="je-btn" data-add-link>Add link</button></div><details data-connection-settings><summary>Connection settings</summary><p>Administrators save the shared submission spreadsheet and Google client settings here.</p><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><label>Google OAuth client ID<input data-client class="je-input" autocomplete="off"></label><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save settings</button><button type="button" class="je-btn" data-reload>Reload settings</button></div><p><a href="docs/DRIVE-DRAFTS-v143.128.md" target="_blank" rel="noopener">Google connection setup instructions</a></p></details><p data-drive-status role="status"></p><p data-connection-status role="status"></p>';
+ const original=Array.isArray(cfg.links)?cfg.links:[],links=original.map(l=>describeLink(l,cfg)),host=settingsPanel.querySelector('[data-links]');
+ const finish=()=>{linkEditorOwner='';renderSettings();};
+ const saveLinks=(next)=>{const editorOwner=owner;void run(async()=>{
+  if(!canEdit()||editorOwner!==identity())throw Error('Administrator settings access is required.');
+  if(prepared.size)throw Error('Post or remove the prepared AI entries before changing saved links.');
+  if(JSON.stringify(config().links||[])!==JSON.stringify(original))throw Error('Saved links changed. Cancel your edit and reload settings before saving.');
+  await saveSharedSettings({...config(),links:next});finish();message('Saved links updated.');
+ });};
+ function card(link,index){
+  const [name,url,description]=link,safe=googleURL(url),folder=safe.includes('/drive/folders/');
+  const item=document.createElement('article');item.className='gpt-link-card143177';item.dataset.linkIndex=index;
+  item.innerHTML='<div data-link-view><header><span class="gpt-link-kind143177">'+(folder?'Drive folder':'Google Sheets')+'</span><h4>'+esc(name||'New link')+'</h4></header><p class="gpt-link-description143177">'+esc(description||'No description yet.')+'</p><div class="gpt-link-actions143177">'+(safe?'<a class="je-btn je-btn-secondary" href="'+esc(safe)+'" target="_blank" rel="noopener noreferrer">Open</a>':'')+'<button type="button" class="je-btn" data-edit-link>Edit</button></div></div><div data-link-editor hidden><label>Name<input data-link-name class="je-input" maxlength="150"></label><label>Description<textarea data-link-description class="je-input" rows="2" maxlength="1000"></textarea></label><label>Google Sheets or Drive folder URL<input data-link-url type="url" class="je-input"></label><div class="gpt-link-actions143177"><button type="button" class="je-btn je-btn-emerald" data-save-link>Save link</button><button type="button" class="je-btn" data-cancel-link>Cancel</button><button type="button" class="je-btn" data-remove-link>Remove link</button></div></div>';
+  const edit=item.querySelector('[data-edit-link]'),editor=item.querySelector('[data-link-editor]');edit.hidden=!canEdit();
+  function open(){
+   if(!canEdit())return;if(linkEditorOwner){message('Save or cancel the link you are editing first.');return;}
+   linkEditorOwner=owner;item.querySelector('[data-link-view]').hidden=true;editor.hidden=false;
+   item.querySelector('[data-link-name]').value=name;item.querySelector('[data-link-description]').value=description;item.querySelector('[data-link-url]').value=url;
+   item.querySelector('[data-remove-link]').hidden=index>=links.length;item.querySelector('[data-link-name]').focus({preventScroll:true});
+  }
+  edit.onclick=open;item.querySelector('[data-cancel-link]').onclick=finish;
+  item.querySelector('[data-save-link]').onclick=()=>{
+   const nextName=item.querySelector('[data-link-name]').value.trim(),nextURL=googleURL(item.querySelector('[data-link-url]').value.trim()),nextDescription=item.querySelector('[data-link-description]').value.trim();
+   if(!nextName||!nextURL){message('Enter a name and a valid Google Sheets or Drive folder URL.');return;}
+   const next=links.map(l=>[...l]);next[index]=[nextName,nextURL,nextDescription];saveLinks(next);
+  };
+  item.querySelector('[data-remove-link]').onclick=()=>saveLinks(links.filter((_,i)=>i!==index));
+  host.append(item);return open;
+ }
+ links.forEach(card);
+ const add=settingsPanel.querySelector('[data-add-link]');add.hidden=!canEdit();add.onclick=()=>{if(!canEdit())return;if(linkEditorOwner){message('Save or cancel the link you are editing first.');return;}card(['','',''],links.length)();};
+ settingsPanel.querySelector('[data-sheet]').value=cfg.sheet||'';settingsPanel.querySelector('[data-client]').value=cfg.client||'';
+ settingsPanel.querySelector('[data-save]').onclick=()=>{const sheetInput=settingsPanel.querySelector('[data-sheet]').value.trim(),client=settingsPanel.querySelector('[data-client]').value.trim();void run(async()=>{
+  if(linkEditorOwner){message('Save or cancel your link edit first.');return;}
+  if(prepared.size){message('Post or remove the prepared AI entries before changing connection settings.');return;}
+  try{let sheet=sheetInput.match(/\/spreadsheets\/d\/([\w-]+)/)?.[1]||sheetInput;if(sheet&&!/^[\w-]{20,120}$/.test(sheet))throw Error('Enter a valid submission spreadsheet ID or URL.');if(client&&!/^\d+-[\w-]+\.apps\.googleusercontent\.com$/.test(client))throw Error('Enter a valid Google OAuth web client ID.');await saveSharedSettings({...config(),links:original,sheet,client});disconnect();renderSettings();message('Settings saved to the shared accounting system.');void checkBackground();}catch(e){message(e.message)}
+ });};
+ settingsPanel.querySelector('[data-reload]').onclick=()=>run(async()=>{if(linkEditorOwner)throw Error('Save or cancel your link edit first.');if(prepared.size)throw Error('Post or remove the prepared AI entries first.');await loadSharedSettings();message('Shared Google Sheets settings reloaded.');lastConnectionCheck=0;void checkBackground();});
+ showConnection();
+}
+
 function draftNoticeSummary(){
  const drafts=[...new Map(pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId)&&!dispositions.has(n.noticeId)).map(n=>[n.noticeId,n])).values()];
  if(!drafts.length)return [];
@@ -429,14 +471,15 @@ function ready(){
  const submit=window.submitJournalEntry;if(typeof submit==='function')window.submitJournalEntry=function(...args){return prepared.size?run(postPrepared):submit.apply(this,args)};
  const logout=window.logoutDemoUser;if(typeof logout==='function')window.logoutDemoUser=function(...args){if(busy){showCenterStatus('Wait for the current AI Journal operation to finish.',true);return;}persistPreparation();disconnect();return logout.apply(this,args)};
  window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue='';}});
- window.addEventListener('page113',()=>{showView();void checkBackground();});
+ const settingsEntry=()=>{if($('settings-accounting')?.classList.contains('active')&&!sharedLoaded&&identity()&&liveProfile.role==='admin')void loadSharedSettings().catch(e=>message(e.message));};
+ window.addEventListener('page113',()=>{showView();settingsEntry();void checkBackground();});
  setInterval(()=>{if(document.visibilityState==='visible')void checkBackground();},30000);
  window.addEventListener('focus',()=>{lastDraftRead=0;void checkBackground();});
  window.addEventListener('online',()=>{lastConnectionCheck=0;lastDraftRead=0;void checkBackground();});
  window.addEventListener('offline',showConnection);
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){lastDraftRead=0;void checkBackground();}});
  setInterval(()=>{if(syncSession())void checkBackground();},1500);
- void checkBackground();
+ settingsEntry();void checkBackground();
 }
 window.AIInboxSync143173?.register('journal',{checked:()=>{connectionStatus={connected:true,email:'oonjaimarketplace@gmail.com'};lastCheckedAt=new Date().toISOString();backgroundError='';showConnection();},cache:cacheInbox143174,restore:restoreInbox143174,receive:receiveInbox143173,reset:()=>{if(!syncSession()){disconnect();sharedLoaded=false;}},error:e=>{backgroundError=e;showConnection();}});
 window.DriveDrafts143128={open,choose,scrollToTop:()=>scrollJournal(),parse,normalize,validDate,googleURL,notices:()=>pendingDraftNotices.slice(),get view(){return view},get editing(){return prepared.size>0},get preparedCount(){return prepared.size}};

@@ -12,12 +12,12 @@
  html.settings-stack-enabled143176 .settings-stack-hero143176 .settings-stack-eyebrow143176{font-size:11px;color:#647b69}
  html.settings-stack-enabled143176 .settings-stack-grid143176{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}
  html.settings-stack-enabled143176 :is(.settings-stack-main143176,.settings-stack-list143176){min-width:0}
- html.settings-stack-enabled143176 .settings-stack-list143176{display:grid;gap:12px}
+ html.settings-stack-enabled143176 .settings-stack-list143176{display:block}
  html.settings-stack-enabled143176 .settings-stack-toolbar143176{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 12px;margin-bottom:10px;border:1px solid #d4ded2;border-radius:5px;background:#fffdf7}
  html.settings-stack-enabled143176 .settings-stack-toolbar143176>strong{flex:1;font-size:13px;color:#1c5140}
  html.settings-stack-enabled143176 .settings-stack-action143176{height:32px;padding:5px 10px;border:1px solid #ccd8c9;border-radius:4px;background:transparent;font:inherit;font-size:11px;color:#23553f;cursor:pointer}
  html.settings-stack-enabled143176 .settings-stack-action143176:hover{background:#ecf2e8}
- html.settings-stack-enabled143176 .settings-stack-section143176{border:1px solid #cbd9cd!important;border-radius:5px!important;margin:0 0 10px!important;background:var(--bg-card,#fffdf7)!important;box-shadow:none!important;min-width:0;scroll-margin-top:12px}
+ html.settings-stack-enabled143176 .settings-stack-section143176{border:1px solid #cbd9cd!important;border-radius:5px!important;margin:0 0 4px!important;background:var(--bg-card,#fffdf7)!important;box-shadow:none!important;min-width:0;scroll-margin-top:12px}
  html.settings-stack-enabled143176 .settings-stack-section143176>.settings-stack-heading143176{display:flex!important;align-items:center;gap:10px;min-height:54px;padding:12px 15px;margin:0;list-style:none;background:#fffdf7;color:#194a38;font:inherit;cursor:pointer;box-sizing:border-box;border-radius:5px}
  html.settings-stack-enabled143176 .settings-stack-heading143176::-webkit-details-marker{display:none}
  html.settings-stack-enabled143176 .settings-stack-heading143176::marker{content:''}
@@ -29,7 +29,7 @@
  html.settings-stack-enabled143176 .settings-stack-section143176[open]>.settings-stack-heading143176>.settings-stack-chevron143176{transform:rotate(180deg)}
  html.settings-stack-enabled143176 .settings-stack-body143176{padding:15px;min-width:0}
  html.settings-stack-enabled143176 .settings-stack-section143176:not([open])>.settings-stack-body143176{display:none!important}
- html.settings-stack-enabled143176 .settings-stack-aside143176{position:sticky;top:12px;display:grid;gap:14px;align-self:start;min-width:0;max-height:calc(100dvh - 160px);overflow:auto;scrollbar-width:thin}
+ html.settings-stack-enabled143176 .settings-stack-aside143176{position:sticky;top:calc(var(--navigation-height14344,46px) + 8px);display:grid;gap:14px;align-self:start;min-width:0;max-height:calc(100dvh - 160px);overflow:auto;scrollbar-width:thin}
  html.settings-stack-enabled143176 .settings-stack-sidecard143176{border:1px solid #cbd9cd;border-radius:5px;padding:15px;background:#fffdf7}
  html.settings-stack-enabled143176 .settings-stack-sidecard143176 h2{font-family:'Plus Jakarta Sans',Arial,sans-serif;font-size:14px;margin:0 0 12px;color:#194a38}
  html.settings-stack-enabled143176 .settings-stack-jump143176{display:grid;gap:5px}
@@ -106,4 +106,24 @@
  html.settings-stack-enabled143176 .settings-stack-jump143176{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media print{.settings-stack-workspace143176{display:none!important}}
+
+/* Match the existing correction layer so old panel padding cannot add gaps. */
+@layer corrections14337 { @media screen and (min-width:641px){
+ html.settings-stack-enabled143176 body .settings-stack-workspace143176 [data-settings-stack-panel143176]:not([hidden]){display:flow-root!important;padding:0!important;margin:0!important;min-height:0!important;height:auto!important}
+ html.settings-stack-enabled143176 body .settings-stack-workspace143176 .settings-stack-section143176{margin:0 0 4px!important}
+ html.settings-stack-enabled143176 body #appSidebar #nav-module-settings.settings-direct143177>:is(.nav-links,.grouped-children14378,.group-toggle143111),
+ html.settings-stack-enabled143176 body #appSidebar #nav-module-settings.settings-direct143177>.nav-header .arrow{display:none!important}
+ html.settings-stack-enabled143176 body #appSidebar #nav-module-settings.settings-direct143177>.nav-header{padding-right:16px!important}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-links143129{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:14px 0}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177{padding:14px 16px!important;margin:0!important;border:1px solid #b6cbbd!important;border-left:4px solid #337b5d!important;border-radius:6px;background:#fbfdf8;min-width:0}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177 [hidden]{display:none!important}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177 header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-card143177 h4{margin:0;font-size:14px;color:#174b39}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-kind143177{padding:3px 7px;border:1px solid #c9d8c9;border-radius:4px;background:#eaf1e7;font-size:10px;font-weight:700;color:#3b6550;white-space:nowrap}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-description143177{margin:9px 0 12px;font-size:12px;line-height:1.6;color:#526b5b;white-space:pre-wrap;overflow-wrap:anywhere}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-actions143177{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+ html.settings-stack-enabled143176 body #googleSheets143129 .gpt-link-actions143177>.je-btn{height:32px!important;min-height:32px!important;padding:5px 12px!important;margin:0!important;line-height:20px!important;box-sizing:border-box}
+ html.settings-stack-enabled143176 body #googleSheets143129 [data-link-editor] label{margin:0 0 12px;font-size:12px;font-weight:600}
+ html.settings-stack-enabled143176 body #googleSheets143129 [data-link-editor] :is(input,textarea){margin-top:5px;font-weight:400;box-sizing:border-box;max-width:100%}
+}}
 

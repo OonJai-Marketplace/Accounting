@@ -93,7 +93,7 @@ function mount(group){
 }
 function installLayout(){
  if(layout)return;layout=true;document.documentElement.classList.add('settings-stack-enabled143176');
- for(const group of groups){const m=mount(group);if(!m)continue;for(const id of group.targets){const root=$(id);if(!root)continue;const marker=document.createComment('Settings panel position');root.before(marker);records.set(id,{root,marker});root.dataset.settingsStackPanel143176='';m.list.append(root);prepare(root);}}
+ for(const group of groups){const m=mount(group);if(!m)continue;for(const id of group.targets){const root=$(id);if(!root)continue;const marker=document.createComment('Settings panel position');root.before(marker);records.set(id,{root,marker,padding:[root.style.getPropertyValue('padding'),root.style.getPropertyPriority('padding')]});root.style.setProperty('padding','0','important');root.dataset.settingsStackPanel143176='';m.list.append(root);prepare(root);}}
 }
 function restore(){
  if(!layout)return;layout=false;
@@ -106,18 +106,29 @@ function restore(){
   record.details.remove();
  }
  sections.clear();
- for(const {root,marker} of records.values()){if(marker.isConnected)marker.replaceWith(root);delete root.dataset.settingsStackPanel143176;root.hidden=false;}
+ for(const {root,marker,padding} of records.values()){if(marker.isConnected)marker.replaceWith(root);delete root.dataset.settingsStackPanel143176;root.hidden=false;if(padding[0])root.style.setProperty('padding',...padding);else root.style.removeProperty('padding');}
  records.clear();for(const m of mounts.values())m.host.remove();mounts.clear();lastTarget='';document.documentElement.classList.remove('settings-stack-enabled143176');
  window.settingsGroups14332?.render();
 }
 function groupFor(id){return groups.find(g=>g.targets.includes(id));}
 function listFor(group){return [...sections.values()].filter(r=>r.details.isConnected&&group.targets.includes(r.root.id)&&permitted(r.root.id)).sort((a,b)=>a.details.compareDocumentPosition(b.details)&4?-1:1);}
+function scrollSection(record){
+ const scroller=record.details.closest('.workspace-scroll');if(!scroller)return;
+ // scrollIntoView also scrolls overflow:hidden shell ancestors and clips the
+ // entire app. Keep navigation fixed and move only the workspace viewport.
+ for(let n=scroller.parentElement;n;n=n.parentElement)if(n.scrollTop)n.scrollTop=0;
+ const host=record.details.closest('.settings-stack-workspace143176');
+ const inset=[...host.querySelectorAll(':scope>.sticky-tabs14344')].reduce((sum,n)=>sum+n.getBoundingClientRect().height,0);
+ const top=scroller.scrollTop+record.details.getBoundingClientRect().top-scroller.getBoundingClientRect().top-scroller.clientTop-inset-8;
+ scroller.scrollTo({top:Math.max(0,top),behavior:'instant'});
+ record.summary.focus({preventScroll:true});
+}
 function select(record,scroll=true){
  if(!enabled()||!permitted(record.root.id))return;
  if(active()!==record.root.id)window.switchTab(record.root.id);
  if(active()!==record.root.id)return;
- record.details.open=true;refreshJump();
- if(scroll)requestAnimationFrame(()=>{if(record.details.isConnected){record.details.scrollIntoView?.({block:'start',behavior:'auto'});record.summary.focus({preventScroll:true});}});
+ const selected=sections.get(record.key)||record;selected.details.open=true;refreshJump();
+ if(scroll)requestAnimationFrame(()=>{const target=sections.get(record.key);if(enabled()&&target?.details.isConnected&&!target.details.closest('[hidden]')){target.details.open=true;scrollSection(target);}});
 }
 function activateForInteraction(event){
  if(!enabled())return;
