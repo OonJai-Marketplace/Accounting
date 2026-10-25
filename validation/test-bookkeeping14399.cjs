@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
-(async()=>{const f=await create();try{const {page,login}=await f.open();const errors=[];page.on('pageerror',e=>errors.push(e.message));await login();
+(async()=>{const f=await create();try{const {page,login}=await f.open();const errors=[];page.on('pageerror',e=>errors.push(e.message));await login();await page.evaluate(()=>idleSync14341.run(false));
 await page.evaluate(()=>{switchTab('journal');const lines=JournalFX14383.templates().flatMap(t=>t.lines);for(const l of lines)if(!AccountingStore.accounts.some(a=>a.code===l.code&&a.currency===l.currency))AccountingStore.accounts.push({id:'test-'+l.code,code:l.code,name:'Test '+l.code,currency:l.currency,isPosting:true,isTechnical:l.code.startsWith('9'),type:l.code.startsWith('9')?'SYSTEM':'ASSET'});TemplateStore.templates=[];openTemplateManager()});
 assert.equal(await page.locator('#templateManagerList').getByRole('button',{name:'Edit',exact:true}).count(),2);
 await page.evaluate(()=>editTransactionTemplate('fx14383-income'));
@@ -12,9 +12,9 @@ assert.equal(await page.locator('#jeGeneralMemo').inputValue(),'Changed general 
 assert.ok(await page.evaluate(()=>[...document.querySelectorAll('#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr')].every(n=>!parseAppNumber(n.value))));
 await page.evaluate(()=>{ui117.confirm=async()=>true;return deleteTransactionTemplate('fx14383-income')});await page.evaluate(()=>TemplateStore.load());assert.equal(await page.evaluate(()=>availableTransactionTemplates().some(t=>t.id==='fx14383-income')),false);
 await page.evaluate(()=>{applyTransactionTemplate('fx14383-expense');dropdown1434.enhance(document.getElementById('journalEntry98'))});
-assert.ok(await page.locator('#jeLinesBody input[data-account-type14277=SYSTEM]').count());assert.ok(await page.locator('#jeLinesBody .system-account-badge14399').count());
+assert.ok(await page.locator('#jeLinesBody input[data-account-type14277=SYSTEM]').count());assert.equal(await page.locator('#jeLinesBody input[data-account-type14277=SYSTEM]').first().evaluate(n=>getComputedStyle(n).color),'rgb(185, 28, 28)');
 const style=await page.evaluate(()=>{const row=document.querySelector('#jeLinesBody tr');row.classList.add('is-selected');const td=row.querySelector('td');return {bg:getComputedStyle(td).backgroundColor,border:getComputedStyle(td).borderTopWidth}});assert.equal(style.bg,'rgba(0, 0, 0, 0)');assert.equal(style.border,'1px');
 const dates=await page.evaluate(()=>{const item={nextDate:'2027-01-31',frequency:'Monthly'};advanceRecurringDate(item);const feb=item.nextDate;advanceRecurringDate(item);const mar=item.nextDate;const reminder=reminderThresholdDate({nextDate:'2027-03-31',reminders:[{unit:'months',count:1}]});return {feb,mar,reminder:[reminder.getFullYear(),reminder.getMonth()+1,reminder.getDate()]}});assert.deepEqual(dates,{feb:'2027-02-28',mar:'2027-03-31',reminder:[2027,2,28]});
 await page.screenshot({path:'/tmp/assessment14399/entry-desktop.png'});await page.setViewportSize({width:810,height:1080});await page.evaluate(()=>document.documentElement.dataset.device132='tablet');await page.screenshot({path:'/tmp/assessment14399/entry-tablet.png'});
-assert.deepEqual(errors,[]);console.log('PASS editable built-ins, persistent overrides/deletion, descriptions, zero amounts, system badge, plain entry grid, no JS errors');
+assert.deepEqual(errors,[]);console.log('PASS editable built-ins, persistent overrides/deletion, descriptions, zero amounts, red system account label, plain entry grid, no JS errors');
 }finally{await f.close()}})().catch(e=>{console.error(e);process.exitCode=1});

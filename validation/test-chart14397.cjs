@@ -6,19 +6,18 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
   AccountingStore.accounts=Array.from({length:205},(_,i)=>({id:'page-'+i,code:String(1000+i),name:'Pagination Account '+i,currency:i%2?'USD':'LAK',type:'ASSET',desc:'Page retention fixture',isPosting:true}));
   document.getElementById('searchCoa1439').value='';renderChartOfAccountsTable();
  });
- const pager=page.locator('#coaTableBody').locator('xpath=ancestor::table').locator('xpath=ancestor::*[contains(@class,"table-container")]/following-sibling::*[contains(@class,"table-pages14383")]');
- await page.waitForFunction(()=>document.querySelector('#coaTableBody tr:not([data-page-hidden14383])'));
- assert.match(await pager.innerText(),/1 of 3/);
- await pager.getByRole('button',{name:'Next',exact:true}).click();assert.match(await pager.innerText(),/2 of 3/);
- const position=await page.evaluate(()=>{const table=document.getElementById('coaTableBody').closest('table'),scroll=document.querySelector('.workspace-scroll');return {top:table.getBoundingClientRect().top,viewport:innerHeight,scroll:scroll.scrollTop}});
- assert.ok(position.top>=0&&position.top<position.viewport/2,JSON.stringify(position));
- await page.evaluate(()=>renderChartOfAccountsTable());assert.match(await pager.innerText(),/2 of 3/);
- assert.equal(await page.locator('#coaTableBody tr:not([data-page-hidden14383])').first().locator('td').first().innerText(),'1100');
- assert.ok(Math.abs((await page.evaluate(()=>document.querySelector('.workspace-scroll').scrollTop))-position.scroll)<3);
- await pager.getByRole('button',{name:'Next',exact:true}).click();assert.match(await pager.innerText(),/3 of 3/);
- await page.evaluate(()=>{AccountingStore.accounts.splice(150);renderChartOfAccountsTable()});assert.match(await pager.innerText(),/2 of 2/);
- await page.evaluate(()=>{document.getElementById('searchCoa1439').value='Account 149';renderChartOfAccountsTable()});assert.match(await pager.innerText(),/1 of 1/);
- console.log('PASS page retained during rebuilt refresh, Next scrolls to top, deleted rows clamp page, search resets page');
+ // v143.180 deliberately keeps the full filtered chart visible; only journal tables paginate.
+ const rows=page.locator('#coaTableBody tr');
+ assert.equal(await rows.count(),205);
+ assert.equal(await page.locator('#coaTableBody tr[data-page-hidden14383]').count(),0);
+ assert.equal(await page.locator('#chartMain143180 .table-pages14383').count(),0);
+ await rows.last().evaluate(n=>n.scrollIntoView({block:'nearest'}));assert(await rows.last().isVisible());
+ await page.evaluate(()=>renderChartOfAccountsTable());assert.equal(await rows.count(),205);
+ await page.evaluate(()=>{AccountingStore.accounts.splice(150);renderChartOfAccountsTable()});assert.equal(await rows.count(),150);
+ await page.evaluate(()=>{document.getElementById('searchCoa1439').value='Account 149';renderChartOfAccountsTable()});assert.equal(await rows.count(),1);assert.equal(await rows.first().locator('td').first().innerText(),'1149');
+ await page.evaluate(()=>renderChartOfAccountsTable());assert.equal(await rows.count(),1,'refresh retains search');
+ await page.evaluate(()=>{document.getElementById('searchCoa1439').value='';renderChartOfAccountsTable()});assert.equal(await rows.count(),150);
+ console.log('PASS complete account list, last row reachable, refresh, deleted rows and retained search filter');
  await page.evaluate(()=>{
   AccountingStore.accounts=templateAliases14397.map(([oldCode,oldName,currency,code,name],i)=>({id:'alias-'+i,code,name,currency,isPosting:true,isTechnical:true,type:'SYSTEM'}));
  });

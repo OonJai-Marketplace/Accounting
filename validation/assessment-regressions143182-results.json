@@ -1,0 +1,66 @@
+{
+  "release": "143.182",
+  "environment": "Synthetic local browser, isolated PostgreSQL and unit fixtures",
+  "results": [
+    {
+      "suite": "account-save143182",
+      "exitCode": 0,
+      "seconds": 0.9
+    },
+    {
+      "suite": "ai-retry143182",
+      "exitCode": 0,
+      "seconds": 1.6
+    },
+    {
+      "suite": "business-refresh143182",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "hr-leave-balance143182",
+      "exitCode": 0,
+      "seconds": 0.2
+    },
+    {
+      "suite": "journal-posting-date-browser143182",
+      "exitCode": 0,
+      "seconds": 4.6
+    },
+    {
+      "suite": "journal-posting-date-db143182",
+      "exitCode": 0,
+      "seconds": 2.9
+    },
+    {
+      "suite": "journal-posting-date143182",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "reconciliation-reason143182",
+      "exitCode": 0,
+      "seconds": 5.3
+    },
+    {
+      "suite": "report-years-ui143182",
+      "exitCode": 0,
+      "seconds": 4.7
+    },
+    {
+      "suite": "report-years143182",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "sync-order143182",
+      "exitCode": 0,
+      "seconds": 0.5
+    },
+    {
+      "suite": "ui-narrow143182",
+      "exitCode": 0,
+      "seconds": 7.0
+    }
+  ]
+}

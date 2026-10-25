@@ -212,3 +212,8 @@
  html.settings-stack-enabled143176 body #demoUsersList .user-actions14253:has([data-user-reset]){grid-row:1 / span 4!important}
 }}
 
+@layer corrections14337 { @media screen and (min-width:641px) and (max-width:950px){
+ html.settings-stack-enabled143176 body #settings-accounting .accounting-defaults94{grid-template-columns:minmax(0,1fr)!important}
+ html.settings-stack-enabled143176 body #maintenanceGoClosing14325{max-width:100%!important;white-space:normal!important;height:auto!important;min-height:32px!important;line-height:1.5!important}
+}}
+

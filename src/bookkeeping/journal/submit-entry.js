@@ -95,7 +95,7 @@ async function confirmEntryOverride() {
     const { error } = await db.rpc('revise_open_journal_entry', {
       p_entry_id: dbEntryId,
       p_reason: reason,
-      p_transaction_date: payload[0]?.line_date,
+      p_transaction_date: pending[0]?.postingDate||document.getElementById('jeTransDate').value||payload[0]?.line_date,
       p_memo: document.getElementById('jeGeneralMemo').value.trim(),
       p_lines: payload
     });

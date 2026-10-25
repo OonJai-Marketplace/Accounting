@@ -1,9 +1,12 @@
 async function loadBusinessSettingsFromSupabase() {
   const owner=liveProfile?.id,db=ojmDb;if(!owner||!db)return;
+  const before=collectBusinessSettings(),prior=BusinessSettings.current;
+  const retainExisting=BusinessSettings.loadedOwner143182===owner&&BusinessSettings.loadedClient143182===db;
   const {data,error}=await db.from('business_settings').select('*').eq('id',true).single(); if(error)throw error;if(liveProfile?.id!==owner||ojmDb!==db)return;
   const value={legalName:data.legal_name||'',companyName:data.display_name||'',enterpriseNo:data.enterprise_no||'',taxId:data.tax_id||'',businessLicense:data.business_license||'',industry:data.industry||'',phone:data.phone||'',email:data.email||'',website:data.website||'',address1:data.address_line||'',city:data.city||'',postalCode:data.postal_code||'',country:data.country||'Laos',timezone:data.timezone||'Asia/Vientiane'};
-  BusinessSettings.current=value; AccountingStore.companyName=value.companyName;
-  Object.entries(BUSINESS_FIELD_MAP).forEach(([key,id])=>{const field=document.getElementById(id);if(field)field.value=value[key]||''});
+  const draft=collectBusinessSettings();
+  BusinessSettings.current=value;BusinessSettings.loadedOwner143182=owner;BusinessSettings.loadedClient143182=db; AccountingStore.companyName=value.companyName;
+  Object.entries(BUSINESS_FIELD_MAP).forEach(([key,id])=>{const field=document.getElementById(id);const edited=draft[key]!==before[key]||retainExisting&&draft[key]!==String(prior[key]??'');if(field&&!edited)field.value=value[key]||''});
   renderBusinessIdentity(value,true);
   syncEntrySequence();updateNextEntryIdDisplay();
   const badge=document.getElementById('businessSavedBadge');if(badge){badge.textContent='Synced';badge.classList.add('is-saved')}

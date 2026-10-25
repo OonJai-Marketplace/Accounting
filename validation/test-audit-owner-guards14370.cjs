@@ -75,11 +75,18 @@ function source(name,c){c.window=c;vm.createContext(c);vm.runInContext(fs.readFi
  const r=c.maintenanceEngine14324.trial(pack,'2026-01');assert.equal(r.issues.length,1);assert.equal(r.totals[0].debit,90071992547400);console.log('PASS maintenance trial rejects overflow without corrupting accumulated totals');
 }
 (async()=>{
- let release,writes=0;const c=source('src/payroll/workspace/groups-v96/drafts-and-finalization.js',{structuredClone,liveProfile:{id:'first'},ojmDb:{},ApplicationSettings:{payroll:{attendanceLegend95:['original']}},APP_SETTINGS_KEY:'settings',localStorage:{setItem(){writes++}},legends:()=>['saved legend'],saveSettingsGroup:()=>new Promise(resolve=>release=resolve)});
- const event={currentTarget:{dataset:{settingsGroup:'payroll'}}};const rejected=c.saveSettingsGroup(event);assert.equal(writes,0);release(false);assert.equal(await rejected,false);assert.equal(writes,0);assert.deepEqual(c.ApplicationSettings.payroll.attendanceLegend95,['original']);
- const stale=c.saveSettingsGroup(event);c.liveProfile={id:'second'};release(true);await stale;assert.equal(writes,0);
- const accepted=c.saveSettingsGroup(event);release(true);assert.equal(await accepted,true);assert.equal(writes,1);assert.deepEqual(c.ApplicationSettings.payroll.attendanceLegend95,['saved legend']);console.log('PASS payroll settings preserve drafts until a successful save for the same account');
+ let release,writes=0,payload,stored;
+ const db={from(){const q={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:structuredClone(stored)}),update:p=>{payload=p;return q},then:resolve=>new Promise(r=>release=r).then(resolve)};return q}};
+ const c=source('src/settings/application/settings-store.js',{structuredClone,liveProfile:{id:'first',role:'admin'},ojmDb:db,OJM_SUPABASE_URL:'fixture',localStorage:{getItem:()=>null,setItem(){writes++}},payrollConfig82(){},setSettingsFormValues(){}});
+ stored={id:true,version:1,data:vm.runInContext('structuredClone({payroll:ApplicationSettings.payroll,tax:ApplicationSettings.tax})',c)};stored.data.payroll.attendanceLegend95=['original'];
+ await vm.runInContext('payrollTaxSettings.load()',c);const before=writes;
+ const save=()=>vm.runInContext("payrollTaxSettings.save('payroll',{attendanceLegend95:['saved legend']})",c);
+ const rejected=save();await Promise.resolve();release({error:{message:'Offline'}});await assert.rejects(rejected,/not saved/);assert.equal(writes,before);assert.equal(vm.runInContext("ApplicationSettings.payroll.attendanceLegend95[0]",c),'original');
+ const stale=save();c.liveProfile={id:'second',role:'admin'};await Promise.resolve();release({data:[structuredClone(payload)]});await assert.rejects(stale,/Account changed/);assert.equal(writes,before);
+ await vm.runInContext('payrollTaxSettings.load()',c);const confirmedBefore=writes,accepted=save();await Promise.resolve();release({data:[structuredClone(payload)]});assert.equal(await accepted,true);assert.equal(writes,confirmedBefore+2);assert.equal(vm.runInContext("ApplicationSettings.payroll.attendanceLegend95[0]",c),'saved legend');
+ console.log('PASS central payroll settings retain failed drafts, reject stale accounts, and cache only confirmed saves');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
 {
  const c=source('src/bridges/payroll-bookkeeping/payroll-template1431.js',{AccountingStore:{accounts:[{id:'inactive',currency:'LAK',isPosting:true,active:false},{id:'active',currency:'LAK',isPosting:true}]}});
  const run={status:'finalized',rows:[{employeeId:'e',employee:{name:'Employee'}}],results:[{employeeId:'e',currency:'LAK',gross:10}],reference:'Run'};const template=id=>({lines:[{account:id,side:'DR',basis:'gross',scope:'total'}]});assert.equal(c.payrollTemplate1431.eligible().length,1);assert(c.payrollTemplate1431.evaluate(run,template('inactive')).issues.some(x=>x.includes('Choose')));run.results[0].gross=Number.MAX_VALUE;assert(c.payrollTemplate1431.evaluate(run,template('active')).issues.some(x=>x.includes('supported range')));console.log('PASS payroll templates reject inactive accounts and overflowing calculated amounts');

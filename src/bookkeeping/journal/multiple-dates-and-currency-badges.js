@@ -145,7 +145,7 @@ function getMultiDateJournalState() {
   for(const date of dates){const g=grouped[date];merged.lines.push(...g.lines);for(const [currency,t] of Object.entries(g.totals)){merged.totals[currency]||={debit:0,credit:0};merged.totals[currency].debit+=t.debit;merged.totals[currency].credit+=t.credit;}delete grouped[date];}
   merged.lines.sort((a,b)=>a.rowIndex143118-b.rowIndex143118);
   for(const line of merged.lines){if(accountingDate&&line.line_date.slice(0,7)!==accountingDate.slice(0,7)){line.memo=[line.memo,`[Receipt date: ${line.line_date}]`].filter(Boolean).join(' ');line.line_date=accountingDate;}}
-  if(dates.length)grouped[merged.lines.map(l=>l.line_date).sort()[0]||accountingDate]=merged;
+  if(dates.length)grouped[accountingDate]=merged;
   const differences = [];
   Object.entries(grouped).forEach(([date,g]) => {
     if (g.lines.length < 2) errors.push(`${date}: at least two posting lines are required.`);

@@ -27,8 +27,10 @@ async function saveWork(kind,data,record,payload){const id=actor();await initial
 function transient(e){return !e.code||/^(NETWORK|TIMEOUT|OFFLINE)/.test(e.code)||/fetch|network|timeout|connection/i.test(e.message||'')||Number(e.status)>=500}
 async function sync({automatic=false}={}){const id=actor();await initialize();assertActor(id);if(!id||running||navigator.onLine===false||window.workspaceRequest138?.target)return;if(automatic&&!jobs.some(j=>['pending','uncertain'].includes(j.status)))return;const execute=async()=>{assertActor(id);running=true;changed();try{const rows=await edit(id,'outbox');assertActor(id);jobs=rows||[];
  for(const j of jobs.filter(j=>['pending','uncertain'].includes(j.status))){if(actor()!==id||navigator.onLine===false||automatic&&window.idleSync14341&&!idleSync14341.allowed())break;
- // A failed parent or newly changed employee/leave must be reviewed before dependent payroll.
- if(jobs.some(p=>p.created<=j.created&&p.id!==j.id&&!['synced','resolved'].includes(p.status)&&(p.row.id===j.row.id||j.kind==='runs')))continue;
+ // Saved queue order is authoritative: timestamps can tie or move backwards.
+ // A failed parent or earlier employee/leave must be reviewed before dependent payroll.
+ const position=jobs.findIndex(p=>p.id===j.id);
+ if(jobs.slice(0,position).some(p=>!['synced','resolved'].includes(p.status)&&(p.row.id===j.row.id||j.kind==='runs')))continue;
  try{const lookup=await ojmDb.from(j.table).select('*').eq('id',j.row.id).maybeSingle();assertActor(id);if(lookup.error)throw lookup.error;const remote=lookup.data;
  const same=r=>r&&Number(r.version)===Number(j.row.version)&&canonical(r.data)===canonical(j.row.data)&&(j.kind!=='runs'||['period_start','period_end','status'].every(k=>r[k]===j.row[k]));
  let saved=remote;

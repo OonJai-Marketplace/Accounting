@@ -1289,8 +1289,9 @@ function loadEntryForEdit(entryId) {
   const postCard = document.querySelector('.je-card');
   if (postCard) postCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  document.getElementById('jeTransDate').value = lines.map(l=>l.date).sort()[0];
-  setJournalDateMode(new Set(lines.map(l=>l.date)).size>1);
+  const postingDate=lines[0].postingDate||lines.map(l=>l.date).sort()[0];
+  document.getElementById('jeTransDate').value = postingDate;
+  setJournalDateMode(new Set(lines.map(l=>l.date)).size>1||lines.some(l=>l.date!==postingDate));
   document.getElementById('jeGeneralMemo').value = lines[0].generalMemo ?? lines[0].memo;
 
   const btnPost = document.getElementById('btnPostJournal');
@@ -1416,7 +1417,7 @@ async function confirmEntryOverride() {
     const { error } = await db.rpc('revise_open_journal_entry', {
       p_entry_id: dbEntryId,
       p_reason: reason,
-      p_transaction_date: payload[0]?.line_date,
+      p_transaction_date: pending[0]?.postingDate||document.getElementById('jeTransDate').value||payload[0]?.line_date,
       p_memo: document.getElementById('jeGeneralMemo').value.trim(),
       p_lines: payload
     });
@@ -2553,7 +2554,7 @@ function getMultiDateJournalState() {
   for(const date of dates){const g=grouped[date];merged.lines.push(...g.lines);for(const [currency,t] of Object.entries(g.totals)){merged.totals[currency]||={debit:0,credit:0};merged.totals[currency].debit+=t.debit;merged.totals[currency].credit+=t.credit;}delete grouped[date];}
   merged.lines.sort((a,b)=>a.rowIndex143118-b.rowIndex143118);
   for(const line of merged.lines){if(accountingDate&&line.line_date.slice(0,7)!==accountingDate.slice(0,7)){line.memo=[line.memo,`[Receipt date: ${line.line_date}]`].filter(Boolean).join(' ');line.line_date=accountingDate;}}
-  if(dates.length)grouped[merged.lines.map(l=>l.line_date).sort()[0]||accountingDate]=merged;
+  if(dates.length)grouped[accountingDate]=merged;
   const differences = [];
   Object.entries(grouped).forEach(([date,g]) => {
     if (g.lines.length < 2) errors.push(`${date}: at least two posting lines are required.`);
@@ -2798,7 +2799,59 @@ CurrencyStore.edit = async function(code){const actor=liveProfile?.id,db=ojmDb,i
 CurrencyStore.remove = async function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;if(!await ui117.confirm(`Remove currency ${code}?`)||!isCurrent())return;const{error}=await db.from('currencies').delete().eq('code',code);if(!isCurrent())return;if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase()};
 
 // The legacy database flag is asset-only; automatic report tracking is derived from currency for every account type.
-handleAccountFormSubmit = async function(event){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;event.preventDefault();const groupChoice=document.getElementById('newAccountGroup143180');if(groupChoice&&!groupChoice.disabled&&!groupChoice.value){groupChoice.reportValidity();return;}const purpose=document.getElementById('accPurpose71');if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return}const original=document.getElementById('accountOrigCode').value;const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:document.getElementById('accPurpose71').value,created_by:liveProfile.id};const existing=AccountingStore.accounts.find(a=>a.code===original);const parent=payload.currency_code==='__PARENT__';payload.track_foreign_funds=!parent&&!!payload.currency_code&&!['LAK','NA'].includes(payload.currency_code)&&payload.account_type==='ASSET'&&payload.account_purpose==='regular'&&!existing?.isTechnical;payload.is_posting=!parent;payload.currency_label=parent?'—':payload.currency_code;if(parent){payload.currency_code=existing?.currency||CurrencyStore.currencies[0]?.code;if(!payload.currency_code){showAppNotification('Currency Required','Add at least one currency in Settings before creating an account.',true);return}if(existing?.id){const used=await db.from('journal_lines').select('id').eq('account_id',existing.id).limit(1);if(!isCurrent())return;if(used.error){showAppNotification('Account Check Failed',used.error.message,true);return}if(used.data?.length){showAppNotification('Account Has Transactions','Keep this account as a posting account. Create a separate parent account for grouping.',true);return}}}if(!isCurrent())return;const groupForm=document.getElementById('formAccount'),groupId=!existing&&groupForm?.dataset.group143180,createId=groupForm?.dataset.create143180;const query=groupId?db.rpc('create_group_account143180',{p_group:groupId,p_id:createId,p_account:payload}):existing?db.from('accounts').update(payload).eq('id',existing.id):db.from('accounts').insert(payload);let{error,data}=await query;if(!isCurrent())return;if(groupId&&!error&&(Array.isArray(data)?data[0]:data)?.id!==createId)error={message:'Account creation was not confirmed. Reopen the chart before retrying.'};if(error){showAppNotification('Account Save Failed',String(error.message).includes('account_purpose')?'Read setup/SETUP-GUIDE-v142.20.txt for the required existing database setup.':error.message,true);return}if(!groupId||groupForm.dataset.create143180===createId)closeModal('modalAccount');if(groupId)await window.AccountGroups143180?.load(true).catch(()=>{if(isCurrent())showCenterStatus('Account saved. Reopen the chart to refresh its group.',true);});if(isCurrent())await loadReferenceDataFromSupabase()};
+handleAccountFormSubmit = async function(event){
+  event.preventDefault();
+  const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
+  const form=document.getElementById('formAccount');
+  if(!actor||!form||form.accountSave143182)return;
+  const groupChoice=document.getElementById('newAccountGroup143180');
+  if(groupChoice&&!groupChoice.disabled&&!groupChoice.value){groupChoice.reportValidity();return;}
+  const purpose=document.getElementById('accPurpose71');
+  if(!purpose.value||(purpose.dataset.systemOnly==='true'&&purpose.value==='regular')){purpose.reportValidity();return;}
+  const original=document.getElementById('accountOrigCode').value;
+  const payload={code:document.getElementById('accCode').value.trim(),name:document.getElementById('accName').value.trim(),currency_code:document.getElementById('accCurrency').value,account_type:document.getElementById('accType').value,description:document.getElementById('accDesc').value.trim(),account_purpose:purpose.value,created_by:actor};
+  if(!payload.code||!payload.name){showAppNotification('Account Details Required','Enter an account code and name.',true);return;}
+  const existing=AccountingStore.accounts.find(a=>a.code===original);
+  if(original&&!existing){showAppNotification('Account Changed','This account is no longer in the loaded chart. Reopen the chart before editing it.',true);return;}
+  const groupId=!existing&&form.dataset.group143180,createId=form.dataset.create143180;
+  const editorState=()=>JSON.stringify(['accountOrigCode','accCode','accName','accCurrency','accType','accDesc','accPurpose71','newAccountGroup143180'].map(id=>document.getElementById(id)?.value).concat([form.dataset.group143180,form.dataset.create143180]));
+  const submittedState=editorState(),sameEditor=()=>form.isConnected&&document.getElementById('formAccount')===form&&editorState()===submittedState;
+  const button=form.querySelector('[type=submit]'),wasDisabled=button?.disabled,operation={};
+  form.accountSave143182=operation;if(button)button.disabled=true;
+  let saved=false;
+  try{
+    const parent=payload.currency_code==='__PARENT__';
+    payload.track_foreign_funds=!parent&&!!payload.currency_code&&!['LAK','NA'].includes(payload.currency_code)&&payload.account_type==='ASSET'&&payload.account_purpose==='regular'&&!existing?.isTechnical;
+    payload.is_posting=!parent;payload.currency_label=parent?'—':payload.currency_code;
+    if(parent){
+      payload.currency_code=existing?.currency||CurrencyStore.currencies[0]?.code;
+      if(!payload.currency_code){showAppNotification('Currency Required','Add at least one currency in Settings before creating an account.',true);return;}
+      if(existing?.id){
+        const used=await db.from('journal_lines').select('id').eq('account_id',existing.id).limit(1);
+        if(!isCurrent())return;
+        if(used.error){showAppNotification('Account Check Failed',used.error.message,true);return;}
+        if(used.data?.length){showAppNotification('Account Has Transactions','Keep this account as a posting account. Create a separate parent account for grouping.',true);return;}
+      }
+    }
+    if(!isCurrent())return;
+    if(!sameEditor()){showAppNotification('Account Form Changed','Review the current account details before saving.',true);return;}
+    const query=groupId?db.rpc('create_group_account143180',{p_group:groupId,p_id:createId,p_account:payload}):existing?db.from('accounts').update(payload).eq('id',existing.id):db.from('accounts').insert(payload);
+    let {error,data}=await query;
+    if(!isCurrent())return;
+    if(groupId&&!error&&(Array.isArray(data)?data[0]:data)?.id!==createId)error={message:'Account creation was not confirmed. Reopen the chart before retrying.'};
+    if(error)throw error;
+    saved=true;
+    if(sameEditor())closeModal('modalAccount');
+    if(groupId)await window.AccountGroups143180?.load(true).catch(()=>{if(isCurrent())showCenterStatus('Account saved. Reopen the chart to refresh its group.',true);});
+    if(isCurrent())await loadReferenceDataFromSupabase();
+  }catch(error){
+    if(!isCurrent())return;
+    const message=error.message||'The request was interrupted.';
+    showAppNotification(saved?'Account Saved — Refresh Incomplete':'Account Save Failed',saved?'Your account was saved. Reopen the chart to refresh its details.':String(message).includes('account_purpose')?'Read setup/SETUP-GUIDE-v142.20.txt for the required existing database setup.':message,true);
+  }finally{
+    if(form.accountSave143182===operation){delete form.accountSave143182;if(button)button.disabled=wasDisabled;}
+  }
+};
 promptDeleteAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('accounts').delete().eq('id',acc.id);if(!isCurrent())return;if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
 handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
   event.preventDefault();
@@ -2834,10 +2887,13 @@ promptDeleteSubAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isC
 
 async function loadBusinessSettingsFromSupabase() {
   const owner=liveProfile?.id,db=ojmDb;if(!owner||!db)return;
+  const before=collectBusinessSettings(),prior=BusinessSettings.current;
+  const retainExisting=BusinessSettings.loadedOwner143182===owner&&BusinessSettings.loadedClient143182===db;
   const {data,error}=await db.from('business_settings').select('*').eq('id',true).single(); if(error)throw error;if(liveProfile?.id!==owner||ojmDb!==db)return;
   const value={legalName:data.legal_name||'',companyName:data.display_name||'',enterpriseNo:data.enterprise_no||'',taxId:data.tax_id||'',businessLicense:data.business_license||'',industry:data.industry||'',phone:data.phone||'',email:data.email||'',website:data.website||'',address1:data.address_line||'',city:data.city||'',postalCode:data.postal_code||'',country:data.country||'Laos',timezone:data.timezone||'Asia/Vientiane'};
-  BusinessSettings.current=value; AccountingStore.companyName=value.companyName;
-  Object.entries(BUSINESS_FIELD_MAP).forEach(([key,id])=>{const field=document.getElementById(id);if(field)field.value=value[key]||''});
+  const draft=collectBusinessSettings();
+  BusinessSettings.current=value;BusinessSettings.loadedOwner143182=owner;BusinessSettings.loadedClient143182=db; AccountingStore.companyName=value.companyName;
+  Object.entries(BUSINESS_FIELD_MAP).forEach(([key,id])=>{const field=document.getElementById(id);const edited=draft[key]!==before[key]||retainExisting&&draft[key]!==String(prior[key]??'');if(field&&!edited)field.value=value[key]||''});
   renderBusinessIdentity(value,true);
   syncEntrySequence();updateNextEntryIdDisplay();
   const badge=document.getElementById('businessSavedBadge');if(badge){badge.textContent='Synced';badge.classList.add('is-saved')}
@@ -2864,7 +2920,7 @@ async function loadJournalFromSupabase() {
   for(let offset=0;;offset+=500){
     check();const {data,error}=await db.from('journal_entries').select('id,entry_no,created_at,transaction_date,memo,status,source,journal_lines(fx_rate_lak,book_rate_lak,base_debit,base_credit,line_no,description,currency_code,debit,credit,line_date,accounts(id,name,code))').eq('status','posted').order('transaction_date',{ascending:false}).order('id').range(offset,offset+499);
     check();if(error)throw new Error(error.message);
-    (data||[]).forEach(entry=>(entry.journal_lines||[]).filter(Boolean).sort((a,b)=>a.line_no-b.line_no).forEach(line=>entries.push({created_at:entry.created_at,source:entry.source,scheduleId:String(entry.source||'').startsWith('scheduled:')?String(entry.source).slice(10):null,dbEntryId:entry.id,id:entry.entry_no||entry.id,date:line.line_date||entry.transaction_date,account:line.accounts?.name||'Unknown Account',accountId:line.accounts?.id,accountCode:line.accounts?.code,currency:line.currency_code,memo:line.description||entry.memo||'',generalMemo:entry.memo||'',debit:Number(line.debit),credit:Number(line.credit),fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,base_debit:line.base_debit,base_credit:line.base_credit,editReason:'',archived:false})));
+    (data||[]).forEach(entry=>(entry.journal_lines||[]).filter(Boolean).sort((a,b)=>a.line_no-b.line_no).forEach(line=>entries.push({created_at:entry.created_at,source:entry.source,scheduleId:String(entry.source||'').startsWith('scheduled:')?String(entry.source).slice(10):null,dbEntryId:entry.id,id:entry.entry_no||entry.id,postingDate:entry.transaction_date,date:line.line_date||entry.transaction_date,account:line.accounts?.name||'Unknown Account',accountId:line.accounts?.id,accountCode:line.accounts?.code,currency:line.currency_code,memo:line.description||entry.memo||'',generalMemo:entry.memo||'',debit:Number(line.debit),credit:Number(line.credit),fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,base_debit:line.base_debit,base_credit:line.base_credit,editReason:'',archived:false})));
     if(!data||data.length<500)break;
   }
   check();if(!window.offline14239?.offline()&&cacheRevision===window.offline14239?.cacheRevision)await window.journalDurable14385?.reconcile(entries);check();JournalModule.confirmedSnapshot14385=structuredClone(entries);JournalModule.entries=entries;syncEntrySequence();updateNextEntryIdDisplay();refreshAllTables();
@@ -2897,7 +2953,7 @@ submitJournalEntry = async function() {
     if(groups.length!==1){showAppNotification('One Date Required','An edited entry must remain a single balanced transaction date.',true);return}
     const [date,g]=groups[0],oldLines=JournalModule.entries.filter(row=>row.id===JournalModule.editingEntryId);
     if(oldLines.some(row=>row.archived)||PeriodReview.status(String(oldLines[0]?.date||date).slice(0,7))!=='open'){showAppNotification('Archived Period','Only open-period transactions can be edited directly.',true);return}
-    JournalModule.pendingLines=g.lines.map(line=>({date:line.line_date||date,account:line.account,accountId:line.account.id,currency:line.currency,memo:line.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
+    JournalModule.pendingLines=g.lines.map(line=>({postingDate:date,date:line.line_date||date,account:line.account,accountId:line.account.id,currency:line.currency,memo:line.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
     document.getElementById('txtEditReason').value='';openModal('modalEditReason');return;
   }
   if(groups.length>1||window.journalBatch1440?.hasPending())return window.journalBatch1440.post(groups);
@@ -3501,7 +3557,15 @@ reloadBusinessSettings=function(notifyUser=false){
   if(notifyUser)showCenterStatus('Unsaved changes were undone.');
 };
 const loadBusinessSettingsBeforeFoundation=loadBusinessSettingsFromSupabase;
-loadBusinessSettingsFromSupabase=async function(){const owner=liveProfile?.id;await loadBusinessSettingsBeforeFoundation();if(liveProfile?.id===owner)setBusinessSettingsBaseline()};
+loadBusinessSettingsFromSupabase=async function(){
+  const owner=liveProfile?.id,db=ojmDb;await loadBusinessSettingsBeforeFoundation();if(liveProfile?.id!==owner||ojmDb!==db)return;
+  businessSettingsBaseline=JSON.stringify(Object.fromEntries(Object.keys(collectBusinessSettings()).map(key=>[key,String(BusinessSettings.current[key]??'')])));
+  reconcileBusinessDirtyState();
+  if(businessSettingsSnapshot()!==businessSettingsBaseline){
+    renderBusinessIdentity(collectBusinessSettings(),false);
+    const status=document.getElementById('businessSettingsStatus');if(status){status.textContent='Saved business profile refreshed. Your unsaved changes are retained.';status.classList.remove('is-save-confirmation')}
+  }
+};
 const saveBusinessSettingsBeforeFoundation=saveBusinessSettings;
 saveBusinessSettings=async function(event){
   const owner=liveProfile?.id;const snapshot=businessSettingsSnapshot();const saved=await saveBusinessSettingsBeforeFoundation(event);
@@ -5539,9 +5603,9 @@ function reconciliationReceiptDate71(line){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z'))||new Date(date+'T00:00:00Z').toISOString().slice(0,10)!==date)throw Error('Invalid receipt date for '+line.id+'. Review the journal source.');
  return date;
 }
-function reconciliationAccount71(key,from,to,source=JournalModule.entries){
+function reconciliationAccount71(key,from,to,source=JournalModule.entries,basis='receipt'){
  const account=(AccountingStore.accounts||[]).find(a=>accountKey69(a)===key);if(!account)return null;
- const r={account,key,currency:account.currency,opening:0,debit:0,credit:0,closing:0,lines:[],dateBasis:'receipt'};
+ const r={account,key,currency:account.currency,opening:0,debit:0,credit:0,closing:0,lines:[],dateBasis:basis};
  const annual=line=>line.annualOpening||String(line.generalMemo||'').startsWith('Annual opening balances ')||line.generalMemo==='Opening Balances';
  const rows=source.filter(line=>!line.pendingSync&&!line.local14333&&!line.voided_at&&(!line.status||line.status==='posted')&&line.currency===r.currency&&accountKey69(accountForLine69(line)||{},line.currency)===key);
  // Start at the latest saved opening, avoiding a second count of prior-year balances.
@@ -5549,7 +5613,7 @@ function reconciliationAccount71(key,from,to,source=JournalModule.entries){
  for(const [index,line] of rows.entries()){
   const postingDate=String(line.date||'').slice(0,10),dr=cents69(line.debit),cr=cents69(line.credit);
   if(annual(line)){if(postingDate===baseline)r.opening+=dr-cr;continue}
-  const date=reconciliationReceiptDate71(line);
+  const date=basis==='posting'?postingDate:reconciliationReceiptDate71(line);
   // A receipt carried in an earlier book's closing must leave the opening and appear once on its actual date.
   if(baseline&&postingDate<baseline){if(date<baseline)continue;r.opening-=dr-cr;}
   if(date>to)continue;
@@ -5563,6 +5627,9 @@ async function readReconciliationAccount71(key,from,to,basis='posting',refresh=f
  const check=()=>{if(actor!==reportOwner71()||client!==ojmDb||(window.workspaceRequest138?.target||'')!==workspace||!reportPermission71())throw Error('Account or workspace changed while loading reconciliation.');};
  if(basis!=='receipt'){
   if(liveProfile){await window.yearWindow14333?.ensure(from,to);check();if(refresh)await loadJournalFromSupabase();check();}
+  // A spanning-year cash report needs every posting; year-specific openings
+  // already contain prior closings and must not be added twice.
+  if(from&&from.slice(0,4)!==to.slice(0,4))return reconciliationAccount71(key,from,to,JournalModule.entries,'posting');
   const saved={...Accounts69};try{Object.assign(Accounts69,{from,to});return accountData69().find(r=>r.key===key)}finally{Object.assign(Accounts69,saved)}
  }
  const account=(AccountingStore.accounts||[]).find(a=>accountKey69(a)===key);if(!account)return null;
@@ -5621,10 +5688,10 @@ function renderReport71(){
  <section class="rec-section71 rec-comparison117" data-currency-code="${e(r.currency)}"><header><h4>System and statement comparison</h4></header><div class="rec-body71">
  <div class="rec-amounts71">${[['statementOpening117','Previous / Opening Balance'],['statementDebit117','Statement DR'],['statementCredit117','Statement CR'],['statement','Ending Balance']].map(([key,label])=>`<label>${label}<input ${key==='statement'?'id="recStatement71"':`data-rec117="${key}"`} type="number" step="0.01" data-financial-number data-currency="${e(r.currency)}" value="${e(r[key]??'')}" ${disabled} oninput="recAmountField71('${key}',this)"></label>`).join('')}</div>
  <div class="rec-basis71"><label><input type="checkbox" data-rec-reverse117 ${r.statementReverse117!==false?'checked':''} ${disabled} onchange="recField71('statementReverse117',this.checked)"> Bank CR = deposits; bank DR = withdrawals</label><span>${r.dateBasis==='receipt'?'Bank · receipt dates':'Cash / books · posting dates'}</span></div>
- <p id="recStatementCheck71" class="rec-error71" role="status" hidden></p></div><div id="recCompare117"></div></section>
+ <p id="recStatementCheck71" class="rec-error71" role="status" hidden></p></div><div id="recCompare117"></div><div data-bank-reason14346 class="rec-body71" hidden><label>Explanation of difference<textarea placeholder="Explain the difference" ${disabled} oninput="recField71('notes',this.value)">${e(r.notes)}</textarea></label></div></section>
  <p class="rec-error71" id="recError71" role="status"></p>
  <details class="rec-section71" data-rec-findings ${r.findings.length?'open':''}><summary>Findings &amp; Outstanding Items${r.findings.length?' · '+r.findings.length:''}</summary><div class="rec-body71">${locked?'':`<button class="je-btn je-btn-secondary" onclick="addFinding71()">Add Finding</button>`}</div><div class="table-container"><table><thead><tr><th>Type</th><th>Signed amount</th><th>Explanation / resolution</th><th>Journal entry ID</th><th>Status</th>${locked?'':'<th>Action</th>'}</tr></thead><tbody>${r.findings.map((f,i)=>`<tr><td><select ${disabled} onchange="findingChange71(${i},'kind',this.value)">${[['outstanding','Timing / outstanding'],['correction','Posted correction'],['unexplained','Unexplained difference']].map(([v,t])=>`<option value="${v}" ${f.kind===v?'selected':''}>${t}</option>`).join('')}</select></td><td><input type="number" step="0.01" value="${e(f.amount)}" ${disabled} oninput="findingChange71(${i},'amount',recAmountValue71(this))"></td><td><textarea ${disabled} oninput="findingChange71(${i},'description',this.value)">${e(f.description)}</textarea></td><td><input value="${e(f.entryId)}" placeholder="Exact journal ID" ${disabled} oninput="findingChange71(${i},'entryId',this.value)"></td><td><select ${disabled} onchange="findingChange71(${i},'status',this.value)">${['investigating','outstanding','resolved'].map(v=>`<option ${f.status===v?'selected':''}>${v}</option>`).join('')}</select></td>${locked?'':`<td><button class="je-btn je-btn-danger" onclick="removeFinding71(${i})" aria-label="Remove finding">×</button></td>`}</tr>`).join('')||`<tr><td colspan="${locked?5:6}">No findings recorded.</td></tr>`}</tbody></table></div></details>
- <details class="rec-section71" data-rec-documents><summary>Supporting Documents &amp; Notes${r.attachments.length?' · '+r.attachments.length+' files':''}</summary><div class="rec-body71"><div class="rec-grid71"><label>Prepared by<strong>${e(r.preparedBy)}</strong></label><label>Reviewed by (name / reference)<input value="${e(r.reviewer)}" ${disabled} oninput="recField71('reviewer',this.value)"></label></div>${locked?'':'<label>Attach statement or receipt (PDF, PNG or JPEG; 10 MB each)<input type="file" accept="application/pdf,image/png,image/jpeg" multiple onchange="attachReportFiles71(this)"></label>'}<div id="recAttachments71" class="rec-attachments71">${r.attachments.map((a,i)=>`<span><button class="je-btn je-btn-secondary" onclick="downloadAttachment71(${i})">${e(a.name)}</button>${locked?'':`<button class="je-btn je-btn-secondary" onclick="currentReport71.attachments.splice(${i},1);renderReport71()" aria-label="Remove attachment">×</button>`}</span>`).join('')}</div><label data-bank-reason14346 hidden>Explanation of difference<textarea placeholder="Explain the difference" ${disabled} oninput="recField71('notes',this.value)">${e(r.notes)}</textarea></label></div></details>
+ <details class="rec-section71" data-rec-documents><summary>Supporting Documents${r.attachments.length?' · '+r.attachments.length+' files':''}</summary><div class="rec-body71"><div class="rec-grid71"><label>Prepared by<strong>${e(r.preparedBy)}</strong></label><label>Reviewed by (name / reference)<input value="${e(r.reviewer)}" ${disabled} oninput="recField71('reviewer',this.value)"></label></div>${locked?'':'<label>Attach statement or receipt (PDF, PNG or JPEG; 10 MB each)<input type="file" accept="application/pdf,image/png,image/jpeg" multiple onchange="attachReportFiles71(this)"></label>'}<div id="recAttachments71" class="rec-attachments71">${r.attachments.map((a,i)=>`<span><button class="je-btn je-btn-secondary" onclick="downloadAttachment71(${i})">${e(a.name)}</button>${locked?'':`<button class="je-btn je-btn-secondary" onclick="currentReport71.attachments.splice(${i},1);renderReport71()" aria-label="Remove attachment">×</button>`}</span>`).join('')}</div></div></details>
  <details class="rec-section71" data-rec-ledger><summary>Ledger details · ${r.lines.length} lines</summary>${snapshotTable71(r)}</details></div></section>`;
  document.body.appendChild(overlay);overlay.onclick=event=>{if(event.target===overlay)closeReport71()};updateRecTotals71();
 }

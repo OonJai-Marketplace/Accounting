@@ -48,9 +48,10 @@ if __name__ == '__main__':
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(run, [name for name in SUITES if name not in serial]))
     results.extend(run(name) for name in serial)
-    report = {'release': '143.100', 'completedAt': datetime.now(timezone.utc).isoformat(),
+    release = json.loads((ROOT/'data/release-notes.json').read_text())['version']
+    report = {'release': release, 'completedAt': datetime.now(timezone.utc).isoformat(),
               'environment': 'Synthetic local browser and isolated PostgreSQL fixtures',
               'results': results}
-    (ROOT/'validation/accounting-audit143100-results.json').write_text(json.dumps(report, indent=2)+'\n')
+    (ROOT/('validation/accounting-audit'+release.replace('.', '')+'-results.json')).write_text(json.dumps(report, indent=2)+'\n')
     print('Logs:', logs)
     raise SystemExit(1 if any(r['exitCode'] != 0 for r in results) else 0)

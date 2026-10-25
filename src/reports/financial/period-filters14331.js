@@ -13,5 +13,18 @@ async function apply(values,meta){const epoch=++selectionEpoch,owner=liveProfile
 function open(button){const s=Reports79;P.open(button,selection(s),apply,{mode:s.selectedMonths14331?.length?'monthly':s.allMonths14331?'monthly':s.mode,from:s.from,to:s.to,custom:true})}
 window.periodFilters14331={selection,caption,markup,apply,open};
 // Compare selected months as complete independent periods. Never add balance snapshots.
-const model=window.reportModel79;window.reportModel79=function(kind,...args){const selected=Reports79.selectedMonths14331;if(kind==='bs'||!selected?.length)return model.call(this,kind,...args);const old={...Reports79};try{return selected.flatMap(month=>{Object.assign(Reports79,{mode:'monthly',month,year:Number(month.slice(0,4)),from:month+'-01',to:P.end(month),selectedMonths14331:null,allMonths14331:false});return model.call(this,kind,...args).map(g=>({...g,periodLabel:P.monthLabel(month),note:'Selected month: '+P.monthLabel(month)+'. '+g.note}))})}finally{Object.assign(Reports79,old)}};
+const model=window.reportModel79;window.reportModel79=function(kind,...args){
+ const selected=Reports79.selectedMonths14331,old={...Reports79};if(kind==='bs')return model.call(this,kind,...args);
+ let periods;
+ if(selected?.length)periods=selected.map(month=>({mode:'monthly',month,year:Number(month.slice(0,4)),from:month+'-01',to:P.end(month),label:P.monthLabel(month),prefix:'Selected month: '}));
+ else{
+  const first=Number(String(old.from||'').slice(0,4)),last=Number(String(old.to||'').slice(0,4));
+  if(!Number.isInteger(first)||!Number.isInteger(last)||first<1900||last>9999||first>=last)return model.call(this,kind,...args);
+  // The ledger resets at each accounting year's saved opening. Keep each year
+  // separate so earlier activity is included without summing carryforwards twice.
+  periods=Array.from({length:last-first+1},(_,i)=>{const year=first+i;return {mode:'custom',year,from:year===first?old.from:year+'-01-01',to:year===last?old.to:year+'-12-31',label:String(year),prefix:'Accounting year: '}});
+  const sort=window.reportSort143153?.(kind);if(['gl','activity'].includes(kind)&&sort?.by==='date'&&sort.direction==='desc')periods.reverse();
+ }
+ try{return periods.flatMap(({label,prefix,...period})=>{Object.assign(Reports79,period,{selectedMonths14331:null,allMonths14331:false});return model.call(this,kind,...args).map(g=>({...g,periodLabel:label,note:prefix+label+'. '+g.note}))})}finally{Object.assign(Reports79,old)}
+};
 })();

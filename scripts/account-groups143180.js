@@ -72,7 +72,7 @@ function refreshAssignment(){
 function filterAssignment(){const selected=$('assignmentGroup143180')?.value||'all';for(const input of document.querySelectorAll('#userFundAccountGrid input,#userAccountAccessGrid input')){const a=accounts().find(a=>(a.id||a.code)===input.value);input.closest('label').hidden=!!a&&!input.checked&&!inGroup(a,selected);}}
 let actionHeader=null,actionMenu=null,actionAnchor=null;
 const rowActions=new WeakMap();
-function closeActions(focus=false){actionMenu?.remove();actionMenu=null;if(focus&&actionAnchor?.isConnected)actionAnchor.focus();actionAnchor=null;}
+function closeActions(focus=false){actionMenu?.remove();actionMenu=null;if(actionAnchor){actionAnchor.setAttribute('aria-expanded','false');actionAnchor.removeAttribute('aria-controls');if(focus&&actionAnchor.isConnected)actionAnchor.focus();}actionAnchor=null;}
 function decorateTable(){
  closeActions();const table=$('tblChartOfAccounts'),body=$('coaTableBody');if(!table||!body)return;
  const head=table.tHead?.rows[0];if(!head)return;
@@ -82,21 +82,22 @@ function decorateTable(){
   for(const row of body.rows){if(row.cells.length===1){row.cells[0].colSpan=5;continue;}if(row.cells.length!==6)continue;
    const cell=row.lastElementChild,buttons=[...cell.querySelectorAll('button')];
    for(const b of buttons){if(b.classList.contains('btn-action-edit')){b.textContent='Edit';b.className='je-btn je-btn-secondary chart-edit143181';}if(b.classList.contains('btn-action-delete')){b.textContent='Delete';b.className='je-btn je-btn-danger chart-delete143181';}}
-   rowActions.set(row,buttons);cell.remove();row.tabIndex=0;row.setAttribute('aria-haspopup','menu');row.setAttribute('aria-label',row.cells[0].textContent+' '+row.cells[1].textContent+'; Enter for actions');row.title='Double-click this row for account actions';
+   rowActions.set(row,buttons);cell.remove();row.tabIndex=0;row.setAttribute('aria-haspopup','menu');row.setAttribute('aria-expanded','false');row.setAttribute('aria-label',row.cells[0].textContent+' '+row.cells[1].textContent+'; Enter for actions');row.title='Double-click this row for account actions';
   }
  }else{if(actionHeader&&!actionHeader.isConnected){window.tableResize143117?.reset(table);head.append(actionHeader);}table.classList.remove('chart-no-actions143181');}
  window.tableResize143117?.install(table);
 }
 function openActions(row,event){
  const buttons=rowActions.get(row);if(!desktop()||!buttons?.length)return;closeActions();window.getSelection()?.removeAllRanges();actionAnchor=row;
- const menu=document.createElement('div');actionMenu=menu;menu.className='chart-action-menu143181';menu.setAttribute('role','menu');menu.setAttribute('aria-label','Account actions');
+ const menu=document.createElement('div');actionMenu=menu;menu.id='chartActionMenu143181';menu.className='chart-action-menu143181';menu.setAttribute('role','menu');menu.setAttribute('aria-label','Account actions');row.setAttribute('aria-expanded','true');row.setAttribute('aria-controls',menu.id);
  const title=document.createElement('strong');title.textContent=row.cells[0].textContent+' · '+row.cells[1].querySelector('strong').textContent;menu.append(title);
  for(const b of buttons){b.setAttribute('role','menuitem');menu.append(b);}
  document.body.append(menu);const box=row.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(event?event.clientX+6:box.left,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(event?event.clientY+6:box.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button:not(:disabled)')?.focus();
 }
 function ready(){
  document.addEventListener('dblclick',e=>{if(e.target.closest('button,input,select,a,.column-resize143117'))return;const row=e.target.closest('#coaTableBody tr');if(row)openActions(row,e);});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&actionMenu){e.preventDefault();closeActions(true);return;}if(actionMenu&&['ArrowDown','ArrowUp','Home','End'].includes(e.key)){const buttons=[...actionMenu.querySelectorAll('button:not(:disabled)')],i=buttons.indexOf(document.activeElement);e.preventDefault();buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();return;}if(e.key==='Enter'&&e.target.matches('#coaTableBody tr')){e.preventDefault();openActions(e.target);}});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&actionMenu){e.preventDefault();closeActions(true);return;}if(actionMenu?.contains(e.target)){if(e.key==='Tab'){closeActions(true);return;}if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){const buttons=[...actionMenu.querySelectorAll('button:not(:disabled)')],i=buttons.indexOf(document.activeElement);e.preventDefault();buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();return;}}if(e.key==='Enter'&&e.target.matches('#coaTableBody tr')){e.preventDefault();openActions(e.target);}});
+ document.addEventListener('focusin',e=>{if(actionMenu&&!actionMenu.contains(e.target))closeActions();});
  // Wait until delegated Group/Edit/Delete handlers have received the original button.
  document.addEventListener('click',()=>{const opened=actionMenu;if(opened)setTimeout(()=>{if(actionMenu===opened)closeActions();},0);});
  document.addEventListener('scroll',e=>{if(actionMenu&&!actionMenu.contains(e.target))closeActions();},true);
