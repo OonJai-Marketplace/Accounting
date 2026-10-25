@@ -1,0 +1,84 @@
+@media screen and (min-width:641px){
+ html:not([data-device132=phone]) #chartBrowser143180{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:16px;align-items:start;min-width:0}
+ #chartMain143180{min-width:0;border:1px solid #cbd9cd;border-radius:5px;background:#fffdf7;overflow:hidden}
+ #chartMain143180>.card-header-flex{padding:16px!important;margin:0!important;border-bottom:1px solid #dfe6da;background:#f5f8f0;display:flex;flex-wrap:wrap;gap:14px}
+ #chartMain143180 .coa-toolbar{display:flex;align-items:end;flex-wrap:wrap;gap:10px;width:100%;margin:0!important}
+ #chartMain143180 .coa-search1439{flex:1;min-width:160px}
+ #chartMain143180 .coa-search1439 input{width:100%;box-sizing:border-box}
+ #chartMain143180>.table-container{margin:0!important;border:0!important;width:100%;min-width:0;overflow:auto}
+ #chartMain143180 #tblChartOfAccounts{table-layout:fixed;width:100%!important;min-width:0!important}
+ #chartMain143180 #tblChartOfAccounts :is(th,td){white-space:normal!important;overflow-wrap:anywhere;font-size:12px}
+ #chartMain143180 #tblChartOfAccounts th:nth-child(1){width:65px!important}
+ #chartMain143180 #tblChartOfAccounts th:nth-child(2){width:26%!important}
+ #chartMain143180 #tblChartOfAccounts th:nth-child(3){width:73px!important}
+ #chartMain143180 #tblChartOfAccounts th:nth-child(4){width:87px!important}
+ #chartMain143180 #tblChartOfAccounts th:nth-child(5){width:auto!important}
+ #chartMain143180 #tblChartOfAccounts th:nth-child(6){width:83px!important}
+ #chartAside143180{display:grid;gap:14px;position:sticky;top:calc(var(--navigation-height14344,46px) + 8px);max-height:calc(100dvh - 70px);overflow:auto;scrollbar-width:thin;min-width:0}
+ .chart-sidecard143180{border:1px solid #cbd9cd;border-radius:5px;padding:14px;background:#fffdf7}
+ .chart-sidecard143180 h3{font-family:'Plus Jakarta Sans',Arial,sans-serif;font-size:14px;margin:0 0 12px;color:#194a38}
+ .chart-sidecard143180 nav{display:grid;gap:4px}
+ .chart-filter143180{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;border:0;border-left:3px solid transparent;border-radius:4px;padding:9px 10px;background:transparent;color:#365644;font:inherit;font-size:12px;text-align:left;cursor:pointer}
+ .chart-filter143180.active{background:#e4f0e5;color:#174d39;border-left-color:#337b5d}
+ .chart-filter143180:hover{background:#f0f5eb}
+ .chart-filter143180:focus-visible{outline:2px solid #996d25;outline-offset:1px}
+ .chart-filter143180 small{font-size:11px;color:#6a7e6e}
+ .chart-department143180{padding-left:25px}
+ #chartManage143180{margin-top:14px}
+ #chartGroupStatus143180{font-size:12px;color:#92400e;overflow-wrap:anywhere}
+ #chartGroupStatus143180:empty{display:none}
+ .account-group-badge143180{display:inline-block;margin:5px 4px 0 0;padding:2px 6px;border:1px solid #d2dfd0;border-radius:3px;background:#eef4e9;color:#38604a;font-size:10px;font-weight:500}
+ .assignment-group143180{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px;font-size:12px}
+ .assignment-group143180 select{max-width:260px;min-width:180px}
+ .organization-zoom-controls143180{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;padding:12px 0}
+ .organization-zoom-controls143180 input{width:140px!important;max-width:25%;margin:0}
+ .organization-zoom-controls143180 output{font-size:12px;min-width:38px;text-align:center}
+ html.settings-stack-enabled143176 #settings-organization14229 .organization-zoom-viewport143180{height:clamp(260px,calc(100dvh - 350px),620px);width:100%;max-width:100%;box-sizing:border-box;overflow:auto;padding:12px;border:1px solid #dfe6da;border-radius:4px;background:#f8faf5;overscroll-behavior:contain}
+ .organization-zoom-stage143180{position:relative;flex-shrink:0;margin:0 auto}
+ .organization-zoom-tree143180{position:absolute;top:0;left:0;transform-origin:top left;width:max-content;min-width:0}
+ .organization-zoom-tree143180 .organization-tree14231{min-width:0}
+ .organization-zoom-tree143180 .org-person14231{overflow-wrap:anywhere}
+}
+@media screen and (min-width:641px) and (max-width:1100px){
+ html:not([data-device132=phone]) #chartBrowser143180{grid-template-columns:minmax(0,1fr) 200px;gap:12px}
+ #chartMain143180 #tblChartOfAccounts th:nth-child(2){width:35%!important}
+}
+.group-manager143180{display:flex;gap:10px;flex-wrap:wrap}
+#accountGroupForm143180{display:grid;gap:14px;max-width:800px}
+#accountGroupForm143180 label{display:grid;gap:5px;font-size:12px}
+.group-fields143180{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+.group-account-list143180{display:grid;gap:6px;max-height:45dvh;overflow:auto;border:1px solid #d8e0d2;padding:10px;border-radius:5px}
+#accountGroupForm143180 [data-account-row]{display:flex;align-items:center;gap:10px;padding:9px;background:#f8faf5;border:1px solid #e1e8dd;border-radius:4px}
+#accountGroupForm143180 [data-account-row] span{display:grid;gap:4px}
+#accountGroupForm143180 [data-account-row] small{color:#6a7e6e}
+#accountGroupForm143180 [data-account-row] input{width:16px;height:16px;flex-shrink:0}
+#accountGroupForm143180 footer{display:flex;justify-content:flex-end}
+.group-help143180{margin:0;color:#6a7e6e;font-size:12px}
+@layer corrections14337 { @media screen and (min-width:641px){
+ html body #sec-chart-accounts:has(#chartBrowser143180){padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+ html body #chartMain143180 #tblChartOfAccounts{min-width:0!important;table-layout:fixed!important}
+ html body #chartMain143180 #tblChartOfAccounts :is(th,td){min-width:0!important}
+ html body :is(#chartManage143180,#chartAssign143180,.group-manager143180>.je-btn,#accountGroupForm143180 .je-btn,.organization-zoom-controls143180>.je-btn){height:32px!important;min-height:32px!important;padding:5px 10px!important;line-height:20px!important}
+ html body :is(#chartManage143180[hidden],#chartAssign143180[hidden],#accountGroupForm143180 .group-fields143180[hidden],#accountGroupForm143180 [data-account-row][hidden],#userFundAccountGrid label[hidden],#userAccountAccessGrid label[hidden]){display:none!important}
+}}
+@media screen and (max-width:640px){.assignment-group143180,.account-group-badge143180{display:none}}
+
+@media screen and (min-width:641px){.account-group-edit143180{display:block!important;margin:4px auto 0;height:32px!important;min-height:32px!important;padding:5px 8px!important;font-size:11px!important}#rowGroupForm143180{display:grid;gap:14px}#rowGroupForm143180 label{display:grid;gap:8px}#rowGroupForm143180 button{justify-self:end}}
+
+#newAccountGroupField143180{display:grid;gap:6px;margin-bottom:14px;font-size:12px}#newAccountGroupField143180[hidden]{display:none!important}
+
+@layer corrections14337 { @media screen and (min-width:641px){
+ html body #chartMain143180 #tblChartOfAccounts{width:100%!important;box-sizing:border-box!important}
+ html body #chartMain143180 #tblChartOfAccounts :is(th,td){box-sizing:border-box!important}
+ html body #chartMain143180 #tblChartOfAccounts th:nth-child(1){width:65px!important}
+ html body #chartMain143180 #tblChartOfAccounts th:nth-child(2){width:26%!important}
+ html body #chartMain143180 #tblChartOfAccounts th:nth-child(3){width:73px!important}
+ html body #chartMain143180 #tblChartOfAccounts th:nth-child(4){width:87px!important}
+ html body #chartMain143180 #tblChartOfAccounts th:nth-child(5){width:auto!important}
+ html body #chartMain143180 #tblChartOfAccounts th:nth-child(6){width:83px!important}
+}}
+@layer corrections14337 { @media screen and (min-width:641px){
+ html body #chartMain143180 #tblChartOfAccounts :is(th,td):last-child{overflow:visible!important;text-overflow:clip!important;font-size:12px!important;max-width:none!important}
+ html body #chartMain143180 #tblChartOfAccounts{margin:0!important}
+}}
+

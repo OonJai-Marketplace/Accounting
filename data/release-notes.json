@@ -1,9 +1,9 @@
 {
-  "version": "143.179",
+  "version": "143.180",
   "changes": [
-    "Settings now uses the Sections navigation to display one section at a time in the center. Opening Settings starts with Business Information.",
-    "The content panel scrolls independently, keeping the banner, top tabs and section navigation visible.",
-    "Organization & Reporting is arranged vertically while retaining the existing cards and reporting controls.",
-    "The Settings banner image is restored and follows the saved banner positioning."
+    "Chart of Accounts now has a central account list with Company, Restaurant, Wellness and Other group filters, followed by account types. Company contains shared accounts.",
+    "Manage groups, assign existing accounts and change an account’s group from any filtered view. New accounts created inside a group are saved with that assignment. Account codes and financial history remain unchanged.",
+    "Sub-user account assignment uses the same group filters while preserving existing permissions.",
+    "Organization & Reporting opens with the complete chart fitted to the panel, with zoom and 100% controls for closer inspection."
   ]
 }

@@ -51,19 +51,19 @@ function renderChartOfAccountsTable() {
   const filterCurr = document.getElementById('filterCoaCurrency')?.value || 'ALL';
   const table=tbody.closest('table');
   table.dataset.preservePage14397='true';
-  const filterKey=JSON.stringify([filterCurr,document.getElementById('searchCoa1439')?.value||'']);
+  const filterKey=JSON.stringify([filterCurr,document.getElementById('searchCoa1439')?.value||'',window.AccountGroups143180?.filterKey]);
   if(table.dataset.filterKey14397!==filterKey){window.tablePagination14383?.reset(table);table.dataset.filterKey14397=filterKey}
   tbody.innerHTML = '';
 
   const terms=(document.getElementById('searchCoa1439')?.value||'').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   const visibleAccounts = AccountingStore.accounts.filter(acc => {
     const text=[acc.code,acc.name,acc.currency,currencySymbolV6(acc.currency),acc.type,acc.desc].join(' ').toLocaleLowerCase();
-    return (filterCurr === 'ALL' || acc.currency === filterCurr)&&terms.every(term=>text.includes(term));
+    return (filterCurr === 'ALL' || acc.currency === filterCurr)&&terms.every(term=>text.includes(term))&&(!window.AccountGroups143180||AccountGroups143180.matches(acc));
   });
 
   if (visibleAccounts.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No accounts match your search.</td></tr>`;
-    window.tablePagination14383?.refresh(table);syncSubAccountParentDropdown();syncCoaDatalist();return;
+    window.tablePagination14383?.refresh(table);syncSubAccountParentDropdown();syncCoaDatalist();window.AccountGroups143180?.render();return;
   }
 
   const fragment=document.createDocumentFragment();
@@ -72,7 +72,7 @@ function renderChartOfAccountsTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td style="font-family: monospace; font-weight: 700; color: #064e3b;">${escapeHtml(acc.code)}</td>
-      <td><strong class="${acc.isTechnical||acc.type==='SYSTEM'?'system-account-name14399':''}">${escapeHtml(acc.name)}</strong></td>
+      <td><strong class="${acc.isTechnical||acc.type==='SYSTEM'?'system-account-name14399':''}">${escapeHtml(acc.name)}</strong><div>${window.AccountGroups143180?.badge(acc)||''}</div></td>
       <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'Parent':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${escapeHtml(acc.type)}</span></td>
       <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
@@ -83,6 +83,7 @@ function renderChartOfAccountsTable() {
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
+        ${window.AccountGroups143180?.canEdit()&&acc.id?`<button type="button" class="account-group-edit143180 je-btn je-btn-secondary" data-account-group143180="${escapeHtml(acc.id)}" aria-label="Change group for ${escapeHtml(acc.name)}">Group</button>`:''}
       </td>
     `;
     fragment.appendChild(tr);
@@ -93,6 +94,7 @@ function renderChartOfAccountsTable() {
   window.tablePagination14383?.refresh(table);
   syncSubAccountParentDropdown();
   syncCoaDatalist();
+  window.AccountGroups143180?.render();
 }
 
 function configureAccountPurpose87(systemOnly=false){

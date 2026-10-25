@@ -4263,6 +4263,24 @@
         "source": "src/settings/application/settings-stack143176.css",
         "suffix": "\n"
       }
+    ],
+    "scripts/organization-zoom143180.js": [
+      {
+        "source": "src/subusers/workspace/organization-zoom143180.js",
+        "suffix": "\n"
+      }
+    ],
+    "scripts/account-groups143180.js": [
+      {
+        "source": "src/accounts/chart/account-groups143180.js",
+        "suffix": "\n"
+      }
+    ],
+    "styles/account-groups143180.css": [
+      {
+        "source": "src/accounts/chart/account-groups143180.css",
+        "suffix": "\n"
+      }
     ]
   },
   "variants": [

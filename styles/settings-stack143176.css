@@ -119,17 +119,6 @@
  html.settings-stack-enabled143176 body #googleSheets143129 [data-link-editor] :is(input,textarea){margin-top:5px;font-weight:400;box-sizing:border-box;max-width:100%}
 }}
 
-@media screen and (min-width:641px){
- html.settings-stack-enabled143176 #settings-organization14229 .organization-scroll14231{overflow:visible;padding:12px 0 0}
- html.settings-stack-enabled143176 #settings-organization14229 :is(.organization-tree14231,.organization-tree14231 ul){display:flex;flex-direction:column;align-items:stretch;gap:14px;width:100%;min-width:0;padding:0;margin:0;list-style:none}
- html.settings-stack-enabled143176 #settings-organization14229 .organization-tree14231 li{padding:0;min-width:0;text-align:left}
- html.settings-stack-enabled143176 #settings-organization14229 .organization-tree14231 li::before,
- html.settings-stack-enabled143176 #settings-organization14229 .organization-tree14231 li::after,
- html.settings-stack-enabled143176 #settings-organization14229 .organization-tree14231 ul::before{display:none}
- html.settings-stack-enabled143176 #settings-organization14229 .organization-tree14231 ul{width:auto;margin:14px 0 0 12px;padding-left:16px;border-left:1px solid #b7cbbd}
- html.settings-stack-enabled143176 #settings-organization14229 .organization-tree14231 ul ul ul{margin-left:0;padding-left:8px}
- html.settings-stack-enabled143176 #settings-organization14229 .org-person14231{width:100%;max-width:420px;margin:0;overflow-wrap:anywhere}
-}
 @layer corrections14337 { @media screen and (min-width:641px){
  html.settings-stack-enabled143176 body .workspace-scroll:has(>.settings-stack-workspace143176:not([hidden])){overflow:hidden!important;padding-top:0!important;padding-bottom:12px!important}
  html.settings-stack-enabled143176 body .settings-stack-workspace143176>.sticky-tabs14344{position:static!important;flex:0 0 auto}
