@@ -1,9 +1,9 @@
 {
-  "version": "143.178",
+  "version": "143.179",
   "changes": [
-    "Settings sections now collapse with compact, even spacing. Jump links scroll only the workspace, keeping the top tabs and sidebar visible.",
-    "Settings opens directly from the sidebar; Company, Accounting and System & Tools remain in the top tabs.",
-    "Saved Google links have separate cards with editable names, descriptions and addresses. Journal and HR spreadsheet tabs and the Journal Submissions folder are clearly described.",
-    "The duplicate Connect Google button was removed from Settings; it remains in AI Journal."
+    "Settings now uses the Sections navigation to display one section at a time in the center. Opening Settings starts with Business Information.",
+    "The content panel scrolls independently, keeping the banner, top tabs and section navigation visible.",
+    "Organization & Reporting is arranged vertically while retaining the existing cards and reporting controls.",
+    "The Settings banner image is restored and follows the saved banner positioning."
   ]
 }

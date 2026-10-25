@@ -102,7 +102,7 @@ function sidebar(module,groups,current){
   header.removeAttribute('onclick');
   header.addEventListener('click',e=>{
    if(!enabled())return;e.preventDefault();e.stopImmediatePropagation();
-   if(module==='settings'&&window.settingsStack143176?.enabled()){closeGroupMenu14388();choose(rememberedChoice(module));return;}
+   if(module==='settings'&&window.settingsStack143176?.enabled()){closeGroupMenu14388();window.settingsStack143176.openDefault();return;}
    const drawer=$('appSidebar').classList.contains('mobile-open');
    if(document.documentElement.dataset.device132==='tablet'&&!drawer||$('appSidebar').getBoundingClientRect().width<100){openMenu14388(module,header);return;}
    choose(rememberedChoice(module));

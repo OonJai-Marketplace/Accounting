@@ -1,4 +1,4 @@
-/* Layout B: retain the live Settings nodes, forms, permissions and action handlers. */
+/* Layout B: secondary navigation shows one live Settings section at a time. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const groups=[
@@ -6,7 +6,7 @@ const groups=[
  {key:'accounting',title:'Accounting Settings',label:'Accounting',description:'Defaults, currencies, vouchers, payroll and mandatory settings.',targets:['settings-accounting','settings-payroll','settings-tax']},
  {key:'system',title:'System & Tools',label:'System & Tools',description:'Website, printing, archive, recovery and maintenance.',targets:['settings-system','settings-data14231','settings-maintenance14324']}
 ];
-const records=new Map(),mounts=new Map(),sections=new Map();
+const records=new Map(),mounts=new Map(),sections=new Map(),selectedKeys=new Map();
 let installed=false,layout=false,queued=false,lastTarget='',owner='',sequence=0;
 const desktop=()=>innerWidth>640&&document.documentElement.dataset.device132!=='phone';
 const enabled=()=>installed&&layout&&desktop();
@@ -19,18 +19,13 @@ function setText(el,value){const text=String(value??'—');if(el.textContent!==t
 function wrap(root,nodes,key,title,description='',open=false){
  nodes=nodes.filter(n=>n&&n.isConnected);nodes=nodes.filter(n=>!nodes.some(parent=>parent!==n&&parent.contains(n)));if(!nodes.length)return null;
  const old=sections.get(key);if(old?.details.isConnected)return old;
- const details=node('details','settings-stack-section143176');details.dataset.settingsSection143176=key;details.id='settingsSection143176-'+key;details.open=open;
- const summary=node('summary','settings-stack-heading143176');summary.append(node('span','settings-stack-symbol143176','▤'),node('strong','',title));
+ const details=node('section','settings-stack-section143176');details.dataset.settingsSection143176=key;details.id='settingsSection143176-'+key;details.hidden=true;
+ const summary=node('header','settings-stack-heading143176');summary.id=details.id+'-heading';details.setAttribute('aria-labelledby',summary.id);summary.append(node('span','settings-stack-symbol143176','▤'),node('strong','',title));
  if(description)summary.append(node('span','settings-stack-description143176',description));
- const chevron=node('span','settings-stack-chevron143176','⌄');chevron.setAttribute('aria-hidden','true');summary.append(chevron);
  const body=node('div','settings-stack-body143176');details.append(summary,body);
  const homes=nodes.map(n=>{const marker=document.createComment('Settings layout position');n.before(marker);return {n,marker};});
  homes[0].marker.after(details);body.append(...nodes);
  const record={root,key,title,description,details,summary,body,homes};sections.set(key,record);
- // Summary still provides native keyboard activation; prevent its second toggle
- // when the existing page lifecycle opens the section during navigation.
- summary.addEventListener('click',e=>{e.preventDefault();const open=!details.open;details.open=open;if(open)select(record,false);refreshJump();});
- details.addEventListener('toggle',()=>{refreshJump();});
  return record;
 }
 function rootNodes(root){return [...root.children].filter(n=>!n.matches('.area-banner113,.settings-stack-section143176,.module-header,#categoryTabShell,#settingsSections14335,.sub-user-tabs-shell'));}
@@ -73,8 +68,8 @@ function prepare(root){
   }
   for(const n of rootNodes(root))if(!n.matches('.embedded-settings14231,.settings-page-heading'))wrap(root,[n],'archive-extra-'+(++sequence),n.querySelector('h2,h3,h4')?.textContent.trim()||'Archive & Recovery');
  }else if(id==='settings-maintenance14324'){
-  for(const n of root.querySelectorAll('.maintenance-grid14324>.maintenance-card14324'))wrap(root,[n],'maintenance-'+(++sequence),n.querySelector('h3')?.textContent.trim()||'Maintenance');
-  for(const n of rootNodes(root))if(!n.matches('.maintenance-grid14324,.maintenance-result14324,[role=status]'))wrap(root,[n],'maintenance-link-'+(++sequence),n.querySelector('button')?'Closing & Data Checks':'Maintenance resources');
+  for(const n of root.querySelectorAll('.maintenance-grid14324>.maintenance-card14324')){const title=n.querySelector('h3')?.textContent.trim()||'Maintenance';wrap(root,[n],'maintenance-'+(n.id||title.toLowerCase().replace(/[^a-z0-9]+/g,'-')),title);}
+  for(const n of rootNodes(root))if(!n.matches('.maintenance-grid14324,.maintenance-result14324,[role=status]'))wrap(root,[n],'maintenance-link-'+(n.id||n.tagName.toLowerCase()),n.querySelector('button')?'Closing & Data Checks':'Maintenance resources');
  }
 }
 function mount(group){
@@ -82,14 +77,13 @@ function mount(group){
  const host=node('section','settings-stack-workspace143176');host.dataset.settingsWorkspace143176=group.key;host.hidden=true;
  const heading=node('header','settings-stack-hero143176');heading.append(node('p','settings-stack-eyebrow143176','Settings / '+group.label),node('h1','',group.title),node('p','',group.description));
  const grid=node('div','settings-stack-grid143176'),main=node('div','settings-stack-main143176'),aside=node('aside','settings-stack-aside143176');
- const tools=node('div','settings-stack-toolbar143176');tools.append(node('strong','',group.label+' sections'),button('Expand all',()=>expand(group,true)),button('Collapse all',()=>expand(group,false)));
- const list=node('div','settings-stack-list143176');main.append(tools,list);
- const jump=node('nav','settings-stack-jump143176');jump.setAttribute('aria-label',group.label+' — jump to section');
- const jumpCard=node('section','settings-stack-sidecard143176');jumpCard.append(node('h2','','Jump to section'),jump);
+ const list=node('div','settings-stack-list143176');main.append(list);main.setAttribute('aria-label',group.label+' settings content');main.tabIndex=0;
+ const jump=node('nav','settings-stack-jump143176');jump.setAttribute('aria-label',group.label+' sections');
+ const jumpCard=node('section','settings-stack-sidecard143176');jumpCard.append(node('h2','','Sections'),jump);
  const summary=node('section','settings-stack-sidecard143176');summary.append(node('h2','','Current setup'));const facts=node('dl','settings-stack-facts143176');summary.append(facts,node('p','settings-stack-save-note143176','Each section keeps its own Save action.'));
  aside.append(jumpCard,summary);grid.append(main,aside);host.append(heading,grid);
  const first=group.targets.map($).find(Boolean);if(!first)return null;first.before(host);
- const m={group,host,list,jump,facts};mounts.set(group.key,m);return m;
+ const m={group,host,heading,main,list,jump,facts};mounts.set(group.key,m);return m;
 }
 function installLayout(){
  if(layout)return;layout=true;document.documentElement.classList.add('settings-stack-enabled143176');
@@ -107,28 +101,26 @@ function restore(){
  }
  sections.clear();
  for(const {root,marker,padding} of records.values()){if(marker.isConnected)marker.replaceWith(root);delete root.dataset.settingsStackPanel143176;root.hidden=false;if(padding[0])root.style.setProperty('padding',...padding);else root.style.removeProperty('padding');}
- records.clear();for(const m of mounts.values())m.host.remove();mounts.clear();lastTarget='';document.documentElement.classList.remove('settings-stack-enabled143176');
+ records.clear();for(const m of mounts.values())m.host.remove();mounts.clear();selectedKeys.clear();lastTarget='';document.documentElement.classList.remove('settings-stack-enabled143176');
  window.settingsGroups14332?.render();
 }
 function groupFor(id){return groups.find(g=>g.targets.includes(id));}
 function listFor(group){return [...sections.values()].filter(r=>r.details.isConnected&&group.targets.includes(r.root.id)&&permitted(r.root.id)).sort((a,b)=>a.details.compareDocumentPosition(b.details)&4?-1:1);}
-function scrollSection(record){
- const scroller=record.details.closest('.workspace-scroll');if(!scroller)return;
- // scrollIntoView also scrolls overflow:hidden shell ancestors and clips the
- // entire app. Keep navigation fixed and move only the workspace viewport.
- for(let n=scroller.parentElement;n;n=n.parentElement)if(n.scrollTop)n.scrollTop=0;
- const host=record.details.closest('.settings-stack-workspace143176');
- const inset=[...host.querySelectorAll(':scope>.sticky-tabs14344')].reduce((sum,n)=>sum+n.getBoundingClientRect().height,0);
- const top=scroller.scrollTop+record.details.getBoundingClientRect().top-scroller.getBoundingClientRect().top-scroller.clientTop-inset-8;
- scroller.scrollTo({top:Math.max(0,top),behavior:'instant'});
- record.summary.focus({preventScroll:true});
-}
-function select(record,scroll=true){
+// Only the content pane scrolls. Section navigation never moves the app shell.
+function select(record){
  if(!enabled()||!permitted(record.root.id))return;
+ const group=groupFor(record.root.id),previous=selectedKeys.get(group.key);
+ selectedKeys.set(group.key,record.key);
  if(active()!==record.root.id)window.switchTab(record.root.id);
- if(active()!==record.root.id)return;
- const selected=sections.get(record.key)||record;selected.details.open=true;refreshJump();
- if(scroll)requestAnimationFrame(()=>{const target=sections.get(record.key);if(enabled()&&target?.details.isConnected&&!target.details.closest('[hidden]')){target.details.open=true;scrollSection(target);}});
+ if(active()!==record.root.id){selectedKeys.set(group.key,previous);return;}
+ sync();
+ if(previous!==record.key)mounts.get(group.key).main.scrollTop=0;
+}
+function openDefault(){
+ if(!enabled())return;
+ const target=groups.flatMap(g=>g.targets).find(permitted);
+ const record=listFor(groupFor(target)||groups[0]).find(r=>r.root.id===target);
+ if(record){select(record);mounts.get(groupFor(target).key).main.scrollTop=0;}
 }
 function activateForInteraction(event){
  if(!enabled())return;
@@ -140,19 +132,12 @@ function activateForInteraction(event){
  if(active()!==root.id){const scroll=document.querySelector('.workspace-scroll'),top=scroll?.scrollTop;window.switchTab(root.id);if(scroll)scroll.scrollTop=top;}
  if(active()!==root.id){event.preventDefault();event.stopImmediatePropagation();}
 }
-function expand(group,open){
- if(!enabled())return;const initial=active(),items=listFor(group);
- // Opening a previously inactive panel uses its existing entry lifecycle.
- if(open)for(const id of [...new Set(items.map(r=>r.root.id))])if(id!==initial)window.switchTab(id);
- if(open&&permitted(initial)&&active()!==initial)window.switchTab(initial);
- for(const r of listFor(group))r.details.open=open;refreshJump();
-}
 function refreshJump(){
  if(!enabled())return;
  for(const m of mounts.values()){
   const items=listFor(m.group),signature=items.map(r=>r.key+'|'+r.title).join('~');
   if(m.jump.dataset.signature!==signature){m.jump.dataset.signature=signature;const children=[];let last='';for(const r of items){if(m.group.key==='system'&&last!==r.root.id){last=r.root.id;children.push(node('h3','settings-stack-jump-group143176',{'settings-system':'System & Printing','settings-data14231':'Archive & Recovery','settings-maintenance14324':'Maintenance & Audit'}[last]));}const b=button(r.title,()=>select(r),'settings-stack-jump-link143176');b.dataset.jump143176=r.key;b.setAttribute('aria-controls',r.details.id);children.push(b);}m.jump.replaceChildren(...children);}
-  for(const b of m.jump.querySelectorAll('[data-jump143176]')){const r=sections.get(b.dataset.jump143176);b.setAttribute('aria-expanded',String(!!r?.details.open));b.classList.toggle('is-open',!!r?.details.open);}
+  for(const b of m.jump.querySelectorAll('[data-jump143176]')){const r=sections.get(b.dataset.jump143176);const on=r?.key===selectedKeys.get(m.group.key);b.setAttribute('aria-current',on?'page':'false');b.classList.toggle('is-open',on);}
  }
 }
 function summarize(){
@@ -173,13 +158,20 @@ function sync(){
  queued=false;if(!installed)return;
  if(!desktop()){restore();return;}
  installLayout();
- const current=active(),group=groupFor(current),changed=current!==lastTarget;
- if(owner!==actor()){owner=actor();for(const r of sections.values())r.details.open=['accounting','currency','business','preferences'].includes(r.key);lastTarget='';}
- for(const {root} of records.values()){root.hidden=!permitted(root.id);if(!root.hidden)prepare(root);}
- for(const m of mounts.values())m.host.hidden=m.group!==group||!permitted(current);
- if(group&&permitted(current)&&(changed||!lastTarget)){
-  const key=current==='settings-accounting'?(window.settingsGroups14332?.accountingSection||'accounting'):null;
-  const selected=key?sections.get(key):listFor(group).find(r=>r.root.id===current);if(selected)selected.details.open=true;
+ const current=active(),group=groupFor(current);
+ if(owner!==actor()){owner=actor();selectedKeys.clear();lastTarget='';}
+ for(const {root} of records.values())if(permitted(root.id))prepare(root);
+ for(const m of mounts.values()){
+  m.host.hidden=m.group!==group||!permitted(current);
+  const items=listFor(m.group),previous=selectedKeys.get(m.group.key);
+  let selected=items.find(r=>r.key===previous);
+  if(m.group===group&&selected?.root.id!==current)selected=items.find(r=>r.root.id===current);
+  selected||=items[0];
+  selectedKeys.set(m.group.key,selected?.key);
+  for(const r of items)r.details.hidden=r!==selected;
+  for(const id of m.group.targets){const root=$(id);if(root)root.hidden=!permitted(id)||id!==selected?.root.id;}
+  if(previous!==selected?.key)m.main.scrollTop=0;
+  if(!m.host.hidden)window.shell113?.paintBanner(m.heading,'settings',current);
  }
  lastTarget=current;refreshJump();summarize();if(group)window.groupedNavigation14378?.render(current);
 }
@@ -193,8 +185,8 @@ function renderNavigation(current,target){
  for(const b of host.children){const on=b.dataset.settingsGroup176===g.key;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on));}
  shell.hidden=false;$('settingsSections14335')?.classList.add('grouped-source14378');return true;
 }
-window.settingsStack143176={enabled,sync,revealAccounting,renderNavigation,chooseAccounting:key=>{if(enabled()){const r=sections.get(key);if(r)select(r);}},open:key=>{const r=sections.get(key);if(r)select(r);}};
-function ready(){installed=true;sync();window.addEventListener('page113',sync);window.addEventListener('resize',schedule);window.addEventListener('companysettings14320',schedule);window.addEventListener('storage',schedule);document.addEventListener('change',e=>{if(e.target.closest?.('[data-module=settings]'))schedule();});document.addEventListener('submit',e=>{if(e.target.closest?.('[data-module=settings]'))setTimeout(schedule,0);});
+window.settingsStack143176={enabled,sync,revealAccounting,renderNavigation,openDefault,chooseAccounting:key=>{if(enabled()){const r=sections.get(key);if(r)select(r);}},open:key=>{const r=sections.get(key);if(r)select(r);}};
+function ready(){installed=true;sync();window.addEventListener('page113',sync);window.addEventListener('presentation-ready113',schedule);window.addEventListener('resize',schedule);window.addEventListener('companysettings14320',schedule);window.addEventListener('storage',schedule);document.addEventListener('change',e=>{if(e.target.closest?.('[data-module=settings]'))schedule();});document.addEventListener('submit',e=>{if(e.target.closest?.('[data-module=settings]'))setTimeout(schedule,0);});
  for(const type of ['click','submit','focusin'])window.addEventListener(type,activateForInteraction,true);
  setInterval(()=>{if(enabled()&&groupFor(active())&&document.visibilityState==='visible')summarize();},2000);
  new MutationObserver(rs=>{if(rs.some(r=>r.type==='attributes'?r.target.matches?.('.tab-content'):r.target.matches?.('[data-settings-stack-panel143176]')||[...r.addedNodes].some(n=>n.nodeType===1&&(n.id==='googleSheets143129'||n.id==='prefixRegistry89'))))schedule();}).observe($('printableDocArea')||document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
