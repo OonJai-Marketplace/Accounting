@@ -1,0 +1,109 @@
+/* Desktop Layout B. Phone nodes are restored by the controller at its breakpoint. */
+@media screen and (min-width:641px){
+ html.settings-stack-enabled143176 .settings-stack-workspace143176{padding:0 12px 24px 16px;min-width:0;color:var(--text-main,#21382d)}
+ html.settings-stack-enabled143176 .settings-stack-workspace143176[hidden],
+ html.settings-stack-enabled143176 [data-settings-stack-panel143176][hidden]{display:none!important}
+ html.settings-stack-enabled143176 .settings-stack-workspace143176:not([hidden]){display:block!important}
+ html.settings-stack-enabled143176 .settings-stack-workspace143176 [data-settings-stack-panel143176]:not([hidden]){display:block!important;min-width:0!important;width:100%!important;max-width:none!important;padding:0!important;margin:0!important;overflow:visible!important;background:transparent!important;box-shadow:none!important;contain:none!important}
+ html.settings-stack-enabled143176 [data-settings-stack-panel143176]>.area-banner113{display:none!important}
+ html.settings-stack-enabled143176 .settings-stack-hero143176{margin:0 0 14px;padding:18px 22px;background:linear-gradient(110deg,#fcf3df,#fff8e9);border:1px solid #eee0be;border-radius:6px}
+ html.settings-stack-enabled143176 .settings-stack-hero143176 h1{font-family:'Playfair Display',Georgia,serif;font-size:30px;line-height:1.2;font-weight:700;margin:4px 0 6px;color:#123e2e}
+ html.settings-stack-enabled143176 .settings-stack-hero143176 p{margin:0;color:#607363;font-size:12px;line-height:1.5}
+ html.settings-stack-enabled143176 .settings-stack-hero143176 .settings-stack-eyebrow143176{font-size:11px;color:#647b69}
+ html.settings-stack-enabled143176 .settings-stack-grid143176{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}
+ html.settings-stack-enabled143176 :is(.settings-stack-main143176,.settings-stack-list143176){min-width:0}
+ html.settings-stack-enabled143176 .settings-stack-list143176{display:grid;gap:12px}
+ html.settings-stack-enabled143176 .settings-stack-toolbar143176{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 12px;margin-bottom:10px;border:1px solid #d4ded2;border-radius:5px;background:#fffdf7}
+ html.settings-stack-enabled143176 .settings-stack-toolbar143176>strong{flex:1;font-size:13px;color:#1c5140}
+ html.settings-stack-enabled143176 .settings-stack-action143176{height:32px;padding:5px 10px;border:1px solid #ccd8c9;border-radius:4px;background:transparent;font:inherit;font-size:11px;color:#23553f;cursor:pointer}
+ html.settings-stack-enabled143176 .settings-stack-action143176:hover{background:#ecf2e8}
+ html.settings-stack-enabled143176 .settings-stack-section143176{border:1px solid #cbd9cd!important;border-radius:5px!important;margin:0 0 10px!important;background:var(--bg-card,#fffdf7)!important;box-shadow:none!important;min-width:0;scroll-margin-top:12px}
+ html.settings-stack-enabled143176 .settings-stack-section143176>.settings-stack-heading143176{display:flex!important;align-items:center;gap:10px;min-height:54px;padding:12px 15px;margin:0;list-style:none;background:#fffdf7;color:#194a38;font:inherit;cursor:pointer;box-sizing:border-box;border-radius:5px}
+ html.settings-stack-enabled143176 .settings-stack-heading143176::-webkit-details-marker{display:none}
+ html.settings-stack-enabled143176 .settings-stack-heading143176::marker{content:''}
+ html.settings-stack-enabled143176 .settings-stack-heading143176 strong{font-size:14px;font-weight:700;line-height:1.45}
+ html.settings-stack-enabled143176 .settings-stack-symbol143176{font-size:21px;line-height:1;width:22px;flex-shrink:0;color:#28664e}
+ html.settings-stack-enabled143176 .settings-stack-description143176{font-size:11px;color:#6a7e6e;line-height:1.5;margin-left:auto;max-width:42%}
+ html.settings-stack-enabled143176 .settings-stack-chevron143176{margin-left:auto;flex-shrink:0;color:#396b53;font-size:18px}
+ html.settings-stack-enabled143176 .settings-stack-section143176[open]>.settings-stack-heading143176{border-bottom:1px solid #dfe6da;background:#f5f8f0;border-radius:5px 5px 0 0}
+ html.settings-stack-enabled143176 .settings-stack-section143176[open]>.settings-stack-heading143176>.settings-stack-chevron143176{transform:rotate(180deg)}
+ html.settings-stack-enabled143176 .settings-stack-body143176{padding:15px;min-width:0}
+ html.settings-stack-enabled143176 .settings-stack-section143176:not([open])>.settings-stack-body143176{display:none!important}
+ html.settings-stack-enabled143176 .settings-stack-aside143176{position:sticky;top:12px;display:grid;gap:14px;align-self:start;min-width:0;max-height:calc(100dvh - 160px);overflow:auto;scrollbar-width:thin}
+ html.settings-stack-enabled143176 .settings-stack-sidecard143176{border:1px solid #cbd9cd;border-radius:5px;padding:15px;background:#fffdf7}
+ html.settings-stack-enabled143176 .settings-stack-sidecard143176 h2{font-family:'Plus Jakarta Sans',Arial,sans-serif;font-size:14px;margin:0 0 12px;color:#194a38}
+ html.settings-stack-enabled143176 .settings-stack-jump143176{display:grid;gap:5px}
+ html.settings-stack-enabled143176 .settings-stack-jump-group143176{font-size:11px;margin:12px 10px 5px;color:#73816d;font-weight:600}
+ html.settings-stack-enabled143176 .settings-stack-jump-group143176:first-child{margin-top:0}
+ html.settings-stack-enabled143176 :is(#settings-system,#settings-data14231,#settings-maintenance14324)[data-settings-stack-panel143176]::before{display:block;margin:8px 0 10px;font-size:13px;font-weight:700;color:#3a6047}
+ html.settings-stack-enabled143176 #settings-system[data-settings-stack-panel143176]::before{content:'System & Printing'}
+ html.settings-stack-enabled143176 #settings-data14231[data-settings-stack-panel143176]::before{content:'Archive & Recovery'}
+ html.settings-stack-enabled143176 #settings-maintenance14324[data-settings-stack-panel143176]::before{content:'Maintenance & Audit'}
+ html.settings-stack-enabled143176 .settings-stack-jump-link143176{display:flex;gap:9px;align-items:center;width:100%;text-align:left;font:inherit;font-size:12px;line-height:1.45;padding:9px 10px;border:0;border-radius:4px;background:transparent;color:#365644;cursor:pointer}
+ html.settings-stack-enabled143176 .settings-stack-jump-link143176::before{content:'+';border:1px solid #8da893;border-radius:2px;line-height:13px;width:14px;text-align:center;flex-shrink:0;font-size:12px}
+ html.settings-stack-enabled143176 .settings-stack-jump-link143176.is-open{background:#e4f0e5;color:#174d39}
+ html.settings-stack-enabled143176 .settings-stack-jump-link143176.is-open::before{content:'−'}
+ html.settings-stack-enabled143176 :is(.settings-stack-jump-link143176,.settings-stack-action143176,.settings-stack-heading143176):focus-visible{outline:2px solid #996d25;outline-offset:2px}
+ html.settings-stack-enabled143176 .settings-stack-facts143176{margin:0;border:1px solid #e2e7dc;border-radius:4px}
+ html.settings-stack-enabled143176 .settings-stack-facts143176:empty{display:none}
+ html.settings-stack-enabled143176 .settings-stack-facts143176>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:12px;padding:10px;font-size:11px;border-bottom:1px solid #e8ebdf}
+ html.settings-stack-enabled143176 .settings-stack-facts143176>div:last-child{border-bottom:0}
+ html.settings-stack-enabled143176 .settings-stack-facts143176 dt{color:#70816f}
+ html.settings-stack-enabled143176 .settings-stack-facts143176 dd{margin:0;text-align:right;color:#244f3a;overflow-wrap:anywhere}
+ html.settings-stack-enabled143176 .settings-stack-save-note143176{margin:13px 0 0;color:#74826f;font-size:11px;line-height:1.6}
+ /* The original containers stay in place so existing selectors and form ownership work. */
+ html.settings-stack-enabled143176 #settings-accounting>.je-card,
+ html.settings-stack-enabled143176 #settings-maintenance14324>.maintenance-grid14324,
+ html.settings-stack-enabled143176 #settings-data14231>.embedded-settings14231{display:block!important;border:0!important;padding:0!important;margin:0!important;background:transparent!important;box-shadow:none!important}
+ html.settings-stack-enabled143176 #settings-accounting>.je-card>.je-card-header{display:none!important}
+ html.settings-stack-enabled143176 .settings-stack-body143176>:is(.settings-section-card,.settings-compact-block,.settings-module94,.voucher-config14299,.maintenance-card14324,.panel,.embedded-settings14231){border:0!important;padding:0!important;margin:0!important;box-shadow:none!important;background:transparent!important}
+ html.settings-stack-enabled143176 .settings-stack-body143176>.embedded-settings14231>.panel113{border:0!important;margin:0!important;padding:0!important}
+ html.settings-stack-enabled143176 .settings-stack-body143176 :is(.settings-compact-grid,.settings-form-grid){gap:14px 16px!important;min-width:0}
+ html.settings-stack-enabled143176 .settings-stack-body143176 :is(.settings-compact-grid.cols-3,.business-identity-grid,.contact-address-grid){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ html.settings-stack-enabled143176 .settings-stack-body143176 :is(input:not([type=checkbox]):not([type=radio]),select,textarea){max-width:100%;box-sizing:border-box}
+ html.settings-stack-enabled143176 .settings-stack-body143176 :is(.settings-field,.je-field-group){min-width:0}
+ html.settings-stack-enabled143176 .settings-stack-body143176 .settings-form-actions{margin-top:16px!important;padding-top:12px!important;border-top:1px solid #e2e7db;display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+ html.settings-stack-enabled143176 .settings-stack-body143176 :is(.table-container,.data-table82){max-width:100%;overflow-x:auto}
+ html.settings-stack-enabled143176 .settings-stack-body143176 :is(.je-table,.je-table th,.je-table td){font-size:12px}
+ html.settings-stack-enabled143176 #settings-accounting .settings-stack-body143176 .settings-module94{border:0!important;padding:0!important;margin:0!important;background:transparent!important}
+ html.settings-stack-enabled143176 #settings-accounting .accounting-defaults94{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ html.settings-stack-enabled143176 #settings-accounting .settings-stack-body143176>.settings-module94>header,
+ html.settings-stack-enabled143176 #settings-accounting [data-settings-group=accounting]>.settings-module94>header{display:none!important}
+ html.settings-stack-enabled143176 .settings-stack-prefix143176{margin:16px 0 0;border-top:1px solid #e2e7db;padding-top:12px}
+ html.settings-stack-enabled143176 .settings-stack-prefix143176>summary{cursor:pointer;color:#28573f;font-weight:600;font-size:12px;padding:5px 0}
+ html.settings-stack-enabled143176 #settings-accounting .currency-add-bar{display:flex!important;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+ html.settings-stack-enabled143176 #settings-accounting .currency-add-bar>.je-field-group{flex:1 1 110px!important;width:auto!important;min-width:0}
+ html.settings-stack-enabled143176 #settings-accounting .currency-add-bar>.je-field-group:nth-child(2){flex:2 1 180px!important}
+ html.settings-stack-enabled143176 #settings-payroll [data-settings-group=payroll]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px!important}
+ html.settings-stack-enabled143176 #settings-payroll [data-settings-group=payroll]>.settings-compact-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ html.settings-stack-enabled143176 #settings-payroll [data-settings-group=payroll]>.settings-module94{padding:12px!important;border:1px solid #d8e0d2!important;border-radius:4px!important;background:#fbfcf6!important}
+ html.settings-stack-enabled143176 #settings-business .settings-section-card,
+ html.settings-stack-enabled143176 #settings-tax .statutory-block{border:1px solid #d8e0d2!important;border-radius:4px!important;margin:0 0 14px!important;padding:14px!important;background:#fbfcf6!important}
+ html.settings-stack-enabled143176 #settings-business .settings-action-bar{position:static!important;padding:12px 0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+ html.settings-stack-enabled143176 #settings-data14231 #archiveExport129{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+ html.settings-stack-enabled143176 #settings-data14231 #archiveExport129>.data-actions14232{grid-column:1/-1!important}
+ html.settings-stack-enabled143176 #settings-data14231 #auditFiles14233{grid-template-columns:1fr!important}
+ html.settings-stack-enabled143176 #settings-data14231 #auditCopy14233{grid-template-columns:1fr 1fr!important}
+ html.settings-stack-enabled143176 #settings-data14231 #auditCopy14233>.data-actions14232{grid-column:1/-1!important;grid-row:auto!important}
+ html.settings-stack-enabled143176 #settings-data14231 :is(.form113,.data-actions14232){flex-wrap:wrap!important}
+ html.settings-stack-enabled143176 .settings-stack-body143176 #googleSheets143129{display:block!important}
+ html.settings-stack-enabled143176 .settings-stack-body143176 .settings-page-heading{margin-top:0!important}
+ html.settings-stack-enabled143176 .settings-stack-body143176 :is(.settings-form-actions,.settings-button-grid,.maintenance-actions14324,.actions82)>.je-btn,
+ html.settings-stack-enabled143176 .settings-stack-body143176 .maintenance-actions14324>button{height:32px!important;min-height:32px!important;padding:5px 10px!important;line-height:20px!important}
+}
+@media screen and (min-width:641px) and (max-width:1200px){
+ html.settings-stack-enabled143176 .settings-stack-grid143176{grid-template-columns:minmax(0,1fr) 235px;gap:12px}
+ html.settings-stack-enabled143176 .settings-stack-description143176{display:none}
+ html.settings-stack-enabled143176 .settings-stack-body143176{padding:12px}
+ html.settings-stack-enabled143176 #settings-accounting .accounting-defaults94,
+ html.settings-stack-enabled143176 .settings-stack-body143176 :is(.settings-compact-grid.cols-3,.business-identity-grid,.contact-address-grid),
+ html.settings-stack-enabled143176 #settings-payroll [data-settings-group=payroll]>.settings-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media screen and (min-width:641px) and (max-width:950px){
+ html.settings-stack-enabled143176 .settings-stack-grid143176{grid-template-columns:minmax(0,1fr)}
+ html.settings-stack-enabled143176 .settings-stack-aside143176{position:static;max-height:none;grid-row:1;display:block}
+ html.settings-stack-enabled143176 .settings-stack-aside143176>.settings-stack-sidecard143176:last-child{display:none}
+ html.settings-stack-enabled143176 .settings-stack-jump143176{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media print{.settings-stack-workspace143176{display:none!important}}
+

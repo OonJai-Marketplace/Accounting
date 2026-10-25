@@ -25,6 +25,9 @@ function layout(){
   const shell=panel.querySelector('.dash-shell112'),hero=panel.querySelector('.dash-hero112'),tabs=panel.querySelector('.dash-tabs112');
   if(shell&&hero&&shell.firstElementChild!==hero)shell.prepend(hero);
   if(hero&&tabs){place(shell,tabs,hero);next.push(tabs)}
+ }else if(window.settingsStack143176?.enabled()&&panel.closest('.settings-stack-workspace143176')){
+  const host=panel.closest('.settings-stack-workspace143176');
+  for(const node of [sharedHeader,sharedTabs]){if(node){anchor=place(host,node,anchor);next.push(node)}}
  }else{
   // Main tabs lead the page, followed directly by the shared banner.
   for(const node of [sharedHeader,sharedTabs,panel.dataset.module==='settings'?document.getElementById('settingsSections14335'):null,panel.id==='sub-users-workspace'?document.querySelector('.sub-user-tabs-shell'):null,...panel.querySelectorAll(rowSelector)]){

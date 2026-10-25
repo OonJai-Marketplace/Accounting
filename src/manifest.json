@@ -4251,6 +4251,18 @@
       {
         "source": "src/bookkeeping/history/offline-audit143174.js"
       }
+    ],
+    "scripts/settings-stack143176.js": [
+      {
+        "source": "src/settings/application/settings-stack143176.js",
+        "suffix": "\n"
+      }
+    ],
+    "styles/settings-stack143176.css": [
+      {
+        "source": "src/settings/application/settings-stack143176.css",
+        "suffix": "\n"
+      }
     ]
   },
   "variants": [

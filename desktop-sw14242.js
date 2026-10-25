@@ -1,7 +1,9 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.175',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.176',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
+ "scripts/settings-stack143176.js?v=143.176",
+ "styles/settings-stack143176.css?v=143.176",
  "scripts/offline-audit143174.js?v=143.175",
  "scripts/inbox-sync143173.js?v=143.175",
  "scripts/hr-inbox143168.js?v=143.175",
@@ -25,12 +27,12 @@ const FILES=[
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.155",
- "scripts/desktop14245-3.js?v=143.175",
- "scripts/desktop14245-4.js?v=143.175",
+ "scripts/desktop14245-3.js?v=143.176",
+ "scripts/desktop14245-4.js?v=143.176",
  "scripts/desktop14245-5.js?v=143.175",
  "scripts/desktop14245-6.js?v=143.175",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.175",
+ "scripts/offline14239.js?v=143.176",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -174,7 +176,7 @@ const FILES=[
  "docs/UPDATE-v143.31.md",
  "scripts/sync-assessment14332.js?v=143.175",
  "styles/sync-assessment14332.css?v=143.53",
- "scripts/settings-groups14332.js?v=143.147",
+ "scripts/settings-groups14332.js?v=143.176",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
  "scripts/phone-runtime14242.js?v=143.175",
@@ -213,7 +215,7 @@ const FILES=[
  "scripts/script.js?v=143.175",
  "scripts/transactions-v67.js?v=143.117",
  "scripts/workflows-v136.js?v=143.113",
- "scripts/workspace-consistency14343.js?v=143.109",
+ "scripts/workspace-consistency14343.js?v=143.176",
  "styles/workspace-consistency14343.css?v=143.96",
  "docs/UPDATE-v143.43.md",
  "phone-sw.js?v=143.109",
@@ -252,7 +254,7 @@ const FILES=[
  "scripts/universal-date-v104.js?v=143.117",
  "scripts/layout-consistency-v87.js?v=143.67",
  "scripts/financial-numbers14231.js?v=143.160",
- "scripts/interface-v69.js?v=143.87",
+ "scripts/interface-v69.js?v=143.176",
  "scripts/layout-voucher-polish14301.js?v=143.69",
  "scripts/subusers-final-v55.js?v=143.69",
  "styles/voucher-layout14299.css?v=143.84",
