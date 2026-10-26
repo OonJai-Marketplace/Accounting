@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "language": "en",
-  "checkedAt": "2026-10-19",
+  "checkedAt": "2026-10-26",
   "items": [
     {
       "id": "la-2026-end-lent",
@@ -25,24 +25,29 @@
     },
     {
       "id": "la-2026-vientiane-boats",
-      "revision": "2026-10-16T01:17:16Z",
+      "revision": "2026-10-26T01:12:18.239Z",
       "title": "Vientiane End-of-Lent and Boat Racing Festival · 2026",
       "location": "Vat Chan riverfront, Chanthabouly District, Vientiane Capital, Laos",
       "start": "2026-10-25",
       "end": "2026-10-27",
       "category": "festival",
       "confidence": "confirmed",
-      "summary": "KPL's 15 October announcement confirms a 25–27 October festival programme with boat races, religious ceremonies, cultural performances and local-product promotion. Illuminated-boat and candlelight activities are scheduled for the evening of 26 October. This expands the earlier single-day listing to the broader programme.",
-      "restaurantIdea": "Suggestion: Shorter notice—9 days until the programme opens as of 16 October 2026. If serving Vientiane visitors, check riverfront access, takeaway capacity and staffing now; prepare any promotion before 23 October. Demand is not guaranteed.",
-      "uncertainty": "The 25–27 October range describes the wider programme, not a verified postponement of the previously listed 27 October boat-racing observance. Exact race times, vendor access and traffic restrictions are not confirmed here. Separate Chomcheng and provincial races must not be merged with this occurrence.",
+      "summary": "The 25–27 October festival at the Vat Chan riverfront includes boat racing, religious ceremonies, cultural events and local-product promotion. On 26 October, the announced programme includes early-morning religious activities and evening candlelight and illuminated-boat activities. KPL's 23 October security update confirms over 1,000 personnel, three inner security zones, 15 entrance/exit checkpoints and 12 outer traffic diversion points around the festival area.",
+      "restaurantIdea": "Suggestion: Already underway as of 26 October 2026 and ending 27 October (short notice). If serving Vientiane customers, immediately verify practical delivery/visitor routes and consider small takeaway or flexible staffing rather than a large late promotion. Traffic controls may affect access; demand is not guaranteed.",
+      "uncertainty": "The programme lasts 25–27 October; this is not evidence that the 27 October boat-racing observance moved. KPL identifies controls from the Mahosot Hospital traffic-light intersection to the Pak Pasack three-way intersection, with measures along Setthathirath and Khoun Boulom roads, but exact road-closure times, race times, vendor permissions and traffic diversions by hour remain unverified. The Chomcheng and provincial races are separate occurrences.",
       "sources": [
         {
-          "name": "KPL · Organising committee announcement, 15 October 2026",
+          "name": "KPL · Festival organising committee announcement, 15 October 2026",
           "url": "https://kpl.gov.la/EN/detail.aspx?id=109155",
           "language": "en"
         },
         {
-          "name": "JICA Laos · Published 2026 calendar",
+          "name": "KPL · Festival security and traffic plan, 23 October 2026",
+          "url": "https://kpl.gov.la/EN/detail.aspx?id=111338",
+          "language": "en"
+        },
+        {
+          "name": "JICA Laos · Published 2026 office holiday calendar",
           "url": "https://www.jica.go.jp/english/overseas/laos/office/__icsFiles/afieldfile/2026/05/05/LaosOfficeHolidays2026_1.pdf",
           "language": "en"
         }
@@ -760,25 +765,30 @@
     },
     {
       "id": "watch-lan-xang-vientiane",
-      "revision": "2026-10-15T01:22:27Z",
-      "title": "Lan Xang International Folklore Festival · Dates need verification",
-      "location": "Vientiane city, Vientiane Capital, Laos; proposed programme mentions the Traditional Lao Silk Residence and Mekong riverbank; exact public venues unverified",
-      "start": null,
-      "end": null,
+      "revision": "2026-10-26T01:12:18.239Z",
+      "title": "Lan Xang International Folklore Celebration · February 2027 (organizer-listed)",
+      "location": "Vientiane Capital, Laos; organizer mentions Mekong riverbank cultural setting but no locally confirmed performance venue",
+      "start": "2027-02-21",
+      "end": "2027-02-28",
       "category": "festival",
-      "confidence": "conflicting",
-      "summary": "EAFF publishes a 21–28 February 2027 cultural-exchange programme with music, dance and performances in Vientiane. WAFF still lists the same-named festival for 21–28 November 2026. Provisional planning heads-up only: as of 15 October 2026, those candidate openings are 129 and 37 days away respectively, both shorter than six months’ notice. No calendar dates are assigned.",
-      "uncertainty": "EAFF’s current event heading says 21–28 February 2027, while its itinerary ends with departure on 27 February. WAFF lists 21–28 November 2026 and links to the EAFF festival listing. It is unclear whether the listings represent separate editions or an unannounced date change. No local authority or venue confirmation was found. Do not advertise either window as confirmed. This is a folklore event, not the Sayaboury Elephant Festival.",
-      "restaurantIdea": "Suggestion: If serving Vientiane visitors, keep a flexible group-meal or cultural-evening idea now and seek organizer confirmation before late October because the earlier listing is only 37 days away. If February 2027 is confirmed, prepare any agreed offer by January; avoid stock, staffing or advertising commitments until dates and public access are verified.",
+      "confidence": "tentative",
+      "summary": "WOFA publishes a February 21–28, 2027 Vientiane folklore celebration with international performances, music, dance and cultural exchange, and a participation deadline of December 18, 2026. Separate WOFA and WAFF listings describe a November 21–28, 2026 event under a similar name. These now have separate review proposals rather than treating them as one rescheduled event. As of October 26, 2026, the February programme begins in 118 days (less than six months).",
+      "uncertainty": "Dates are published by an international festival organizer, but no Lao provincial/municipal authority or local performance venue has corroborated the event. The EAFF listing shows February 21–28 but an itinerary ending February 27; verify final day and public performance access directly. WOFA labels both 2026 and 2027 offerings 'X', so the edition numbering remains ambiguous. Do not treat paid group registration as evidence of a confirmed open public fair.",
+      "restaurantIdea": "Suggestion: If serving Vientiane visitors, ask the organizer about public performances and group meal partnerships by December 2026, when applications are due. Do not book stock, staff, premises or advertising on this preliminary listing alone.",
       "sources": [
         {
-          "name": "EAFF · Published festival programme",
+          "name": "WOFA · Organizer listing, 21–28 February 2027",
+          "url": "https://wofafestivals.com/festivals/x-international-folklore-celebration-land-of-a-million-elephants-lan-x",
+          "language": "en"
+        },
+        {
+          "name": "EAFF · February 2027 published listing",
           "url": "https://eaff.eu/en/festivals/1652-5749-international-folklore-festival-land-of-million-elephants-lan-xang",
           "language": "en"
         },
         {
-          "name": "WAFF · Festival listing with November 2026 dates",
-          "url": "https://www.waff.org/page/festivals",
+          "name": "WOFA · Separate November 2026 listing",
+          "url": "https://wofafestivals.com/festivals/x-international-folklore-festival-spirit-of-lan-xang-land-of-a-million",
           "language": "en"
         }
       ]
@@ -822,6 +832,81 @@
           "language": "en"
         }
       ]
+    },
+    {
+      "id": "la-2026-lan-xang-folklore-vientiane",
+      "title": "Spirit of Lan Xang International Folklore Festival · November 2026 (organizer-listed)",
+      "location": "Vientiane Capital, Laos; organizer names Vientiane but does not confirm public performance venues",
+      "start": "2026-11-21",
+      "end": "2026-11-28",
+      "category": "festival",
+      "confidence": "tentative",
+      "summary": "WOFA lists an international folklore and cultural-exchange festival in Vientiane for 21–28 November 2026, with participating ensembles, traditional dance, music and workshops. The advertised itinerary begins with delegations arriving on 21 November, so the full eight-day period is not a verified schedule of public performances. This November programme is distinct from the similarly named February 2027 offer. As of 26 October, the listed start is 26 days away (short notice).",
+      "uncertainty": "No independent Lao municipal/provincial confirmation, exact performance venue, public admission or individual show dates were established. WOFA's 21 October registration deadline has passed, but that does not prove an event cancellation. The November dates partially overlap That Luang; the two are not the same festival. Both WOFA 2026 and 2027 pages use 'X' edition numbering, which has not been reconciled.",
+      "restaurantIdea": "Suggestion: Check public access and delegate meal opportunities with the organizer immediately, and avoid heavy staffing or promotion commitments unless Vientiane venues and performances are independently confirmed.",
+      "sources": [
+        {
+          "name": "WOFA · Organizer's November 2026 programme",
+          "url": "https://wofafestivals.com/festivals/x-international-folklore-festival-spirit-of-lan-xang-land-of-a-million",
+          "language": "en"
+        },
+        {
+          "name": "WAFF · November 2026 festival directory",
+          "url": "https://www.waff.org/page/festivals",
+          "language": "en"
+        }
+      ],
+      "revision": "2026-10-26T01:12:18.239Z"
+    },
+    {
+      "id": "la-2026-blue-chair-film-luang-prabang",
+      "title": "Blue Chair Film Festival · Luang Prabang 2026",
+      "location": "Luang Prabang city, Luang Prabang Province, Laos; reported partner venues: Luang Prabang Primary School (Ban Wat Sene), Heuan Chan Heritage House and Little Lao House",
+      "start": "2026-12-04",
+      "end": "2026-12-08",
+      "category": "community",
+      "confidence": "confirmed",
+      "summary": "The Blue Chair Film Festival organizer confirms 4–8 December 2026 in Luang Prabang. The nonprofit presents Southeast Asian films, public talks and performances; the supporting EXO Foundation says all festival screenings are free, and lists three screening venues. As of 26 October 2026, the event begins in 39 days, giving shorter than six months' notice.",
+      "uncertainty": "The organizer and festival partner agree on 4–8 December. Asian Trails' travel calendar instead lists 3–7 December, so follow the organizer dates rather than the travel listing. A September media report mentioned four screening venues, while the partner lists three; check the final festival map, session times, catering restrictions and individual venue participation before advertising.",
+      "restaurantIdea": "Suggestion: If the restaurant serves Luang Prabang or incoming travellers, check opportunities for modest film-goer meals, group orders or partnerships with nearby hospitality businesses now; aim to confirm any arrangements before mid-November. Extra restaurant traffic is not guaranteed.",
+      "sources": [
+        {
+          "name": "Blue Chair Film Festival · Official December 2026 organizer page",
+          "url": "https://bluechair.film/december-2026/",
+          "language": "en"
+        },
+        {
+          "name": "EXO Foundation · 2026 festival support and venues",
+          "url": "https://exofoundation.org/project/blue-chair-film-festival/",
+          "language": "en"
+        },
+        {
+          "name": "Laotian Times · Film festival announcement, 22 September 2026",
+          "url": "https://laotiantimes.com/2026/09/22/southeast-asian-cinema-returns-to-luang-prabang-in-december-with-blue-chair-film-festival/",
+          "language": "en"
+        }
+      ],
+      "revision": "2026-10-26T01:12:18.239Z"
+    },
+    {
+      "id": "watch-lao-gold-festival-vientiane-2027",
+      "title": "Lao Gold Festival · 2027 edition planning watch",
+      "location": "Vientiane Capital, Laos, provisional city based on 2025–26 editions; 2027 venue unannounced",
+      "start": null,
+      "end": null,
+      "category": "community",
+      "confidence": "awaiting-date",
+      "summary": "At a 30 September 2026 press conference, Lao Gold Festival organizers discussed plans for the 2027 edition to emphasize industry collaboration, Lao craft traditions and broader business impact. The 2026 festival took place 4–6 September at Vientiane's National Convention Centre and incorporated silk and cultural product exhibits, but no exact date or venue has been announced for 2027. Provisional planning heads-up only; no calendar date is assigned.",
+      "uncertainty": "The 2027 continuation is organizer intent, not a confirmed booking or public event date. Previous September timing must not be projected as a 2027 date. Advertised 2026 visitor totals were organizers' figures, not verified bookings; food vendors, restaurant partnerships and the exact 2027 programme remain unknown.",
+      "restaurantIdea": "Suggestion: Watch for a formal 2027 announcement early enough to assess a local-products or meal partnership with more than six months' lead time if publication permits; make no financial commitments until organizers confirm the dates, venue and participant eligibility.",
+      "sources": [
+        {
+          "name": "Laotian Times · Organizer press conference report, 1 October 2026 (advertorial)",
+          "url": "https://laotiantimes.com/2026/10/01/lao-gold-festival-2026-moves-beyond-a-festival-drawing-over-50000-visitors/",
+          "language": "en"
+        }
+      ],
+      "revision": "2026-10-26T01:12:18.239Z"
     }
   ]
 }
