@@ -4281,6 +4281,11 @@
         "source": "src/accounts/chart/account-groups143180.css",
         "suffix": "\n"
       }
+    ],
+    "scripts/word-of-hope183.js": [
+      {
+        "source": "src/integrations/hope/word-of-hope183.js"
+      }
     ]
   },
   "variants": [

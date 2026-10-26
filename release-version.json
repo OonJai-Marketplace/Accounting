@@ -1,1 +1,8 @@
-{"version": "143.182", "changes": ["Improved narrow-screen account descriptions, settings controls, and keyboard access to account actions.", "Account saves resist double submission and retain newer edits; background refresh preserves unsaved company details.", "Offline saves keep their correct order, and journal sync callers wait for confirmation. AI Journal retries interrupted draft checks.", "Journal editing preserves the main posting date separately from receipt dates.", "AI HR leave checks include finalized attendance; cross-year reports include each year and reconciliation shows required explanations."]}
+{
+  "version": "143.183",
+  "changes": [
+    "Word of Hope submissions now appear in the shared Journal / HR workbook.",
+    "Private unread notifications and message review are available in Accounting and Restaurant.",
+    "Customer messages receive confirmed delivery, retry protection, and optional permission to feature."
+  ]
+}
