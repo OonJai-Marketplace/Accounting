@@ -1,1 +1,1 @@
-{"version": "143.184", "changes": ["Completed the authorized Journal, AI Journal, attendance and payroll reset.", "Fresh device caches keep cleared records and older pending payroll or attendance from returning after reload.", "Chart of accounts and employee records are preserved; journal numbering restarts at 1 and Opening Balance is available."]}
+{"version": "143.185", "changes": ["Parent accounts and subtotals are bold in account reports and printed reports.", "Child accounts have clearer indentation outside their links; account links begin at the name."]}

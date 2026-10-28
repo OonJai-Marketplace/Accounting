@@ -24,7 +24,18 @@ function reportTable79(headers,rows,currency,print=false){
  const widths=`--report-id-width143116:calc(${idWidth}ch + 16px);--report-amount-width143116:calc(${amountWidth}ch + 16px);--report-min-width143116:calc(${ledger?665+(headers.includes('LAK rate')?100:0):360+(headers.includes('Original currency / net')?170:0)}px + ${ledger?idWidth+3*amountWidth:5*amountWidth}ch + ${ledger?64:80}px)`;
  const attr=h=>ledger?'data-ledger-column143108="'+column(h)+'"':trial?'data-trial-column143116="'+column(h)+'"':'';
 
- return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${row.map((v,i)=>`<td ${attr(headers[i])}>${!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(v)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(v)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="showJournalSource69(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:re79(headers[i]==='Date'?formatAppDate(v):v)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`}</tbody></table></div>`}
+ const accountIndex=headers.findIndex(h=>h==='Account'||h==='Account / parent');
+ const body=rows.map(row=>{
+  const account=accountIndex>=0?(window.ForeignFunds14386?.presentation(row[accountIndex])||{text:String(row[accountIndex]).trim(),name:String(row[accountIndex]).trim(),subtotal:false}):null;
+  return `<tr${account?.subtotal?' class="report-subtotal143185"':''}>${row.map((v,i)=>{
+   const isAccount=i===accountIndex,value=isAccount?account.text:v;
+   let content=!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(account.name)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(value)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="showJournalSource69(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:re79(headers[i]==='Date'?formatAppDate(v):value);
+   if(isAccount&&window.ForeignFunds14386)content=ForeignFunds14386.label(v,content);
+   return `<td ${attr(headers[i])}>${account?.subtotal?'<strong>'+content+'</strong>':content}</td>`;
+  }).join('')}</tr>`;
+ }).join('');
+ return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead><tbody>${body||`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`}</tbody></table></div>`}
+
 function reportHierarchy14383(rows){
  return window.ForeignFunds14386?ForeignFunds14386.hierarchy(rows,compareReportAccounts143153):[...rows].sort(compareReportAccounts143153);
 }

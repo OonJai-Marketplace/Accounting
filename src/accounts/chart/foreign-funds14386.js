@@ -17,6 +17,16 @@ function hierarchy(rows,compare){
  for(const r of leaves)if(!emitted.has(r.key))result.push(r);
  return result;
 }
+// Keep hierarchy spacing outside the account link and its navigation value.
+function presentation(value){
+ const raw=String(value??''),text=raw.trim(),name=text.replace(/(?: — subtotal| \(subtotal\))$/,'');
+ const account=AccountingStore.accounts.find(a=>name===a.code+' — '+a.name)||AccountingStore.accounts.find(a=>name===a.name);
+ let depth=0,a=account;const seen=new Set();
+ while(a?.parentCode&&!seen.has(a.parentCode)){seen.add(a.parentCode);const parent=AccountingStore.accounts.find(p=>p.code===a.parentCode);if(!parent)break;depth++;a=parent;}
+ const prefix=raw.match(/^\u00a0+/);if(prefix)depth=Math.ceil(prefix[0].length/3);
+ return {text,name:account?.name||name,depth,subtotal:/(?: — subtotal| \(subtotal\))$/.test(text)||!!account&&!posting(account)||/^Total\s/i.test(text)};
+}
+function label(value,content){const p=presentation(value);return '<span class="account-indent143185" style="display:block;margin-left:'+p.depth*24+'px">'+(content??esc(p.text))+'</span>';}
 function average(r){const o=original(r);if(!tracked(r.account))return '—';if(r.missingRates)return 'Valuation incomplete';if(!o.closing)return r.baseClosing?'Residual LAK value — review':'—';const rate=r.baseClosing/o.closing;if(!Number.isFinite(rate)||rate<=0)return 'Valuation mismatch — review';if(o.closing<0&&(r.account.baseType||r.account.type)==='ASSET'&&!r.account.isTechnical&&(!r.account.purpose||r.account.purpose==='regular'))return 'Negative balance — review';return rateText(rate)+' LAK / '+(r.sourceCurrency||r.currency);}
 function detailRows(rows){
  const leaves=rows.filter(r=>posting(r.account)),values=[];
@@ -29,6 +39,6 @@ function detailRows(rows){
 const headers=['Account / parent','Original closing balance','Recorded closing LAK','Average carrying rate'];
 const note='Parent subtotals sum each descendant posting account once. Original currencies remain separate; there is no mixed-currency average. Recorded LAK = opening LAK + recorded debits − recorded credits. Foreign-currency tracking is automatic for all posting accounts, including System and mapping accounts. Average carrying rate = recorded closing LAK ÷ original closing balance. A mapping balance’s rate describes its recorded net valuation, not a rate to use for a new transaction. Use the General Ledger for each saved transaction/carrying rate. These are recorded values, not current market valuations. Parent and child rows are explanatory and must not be added together.';
 function reportDetails(rows,kind){let selected=rows;if(['pl','expense'].includes(kind))selected=rows.filter(r=>['REVENUE','EXPENSE'].includes(r.account.baseType||r.account.type));if(kind==='bs')selected=rows.filter(r=>['ASSET','LIABILITY','EQUITY'].includes(r.account.baseType||r.account.type));if(['cf','payroll'].includes(kind))selected=rows.filter(r=>Reports79[kind==='cf'?'cash':'payroll'].includes(r.key));if(['gl','activity'].includes(kind)&&Reports79.account)selected=select(rows,Reports79.account);const values=detailRows(selected);return values.length?{currency:'Recorded valuation detail',headers,values,metrics:[],note}:null;}
-function html(rows){const values=detailRows(rows);return values.length?'<h4>Recorded valuation detail</h4><div class="table-container"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+values.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div><p class="report-note69">'+esc(note)+'</p>':'';}
-window.ForeignFunds14386={tracked,select,hierarchy,descendants,average,lineRateText,reportDetails,detailRows,html};
+function html(rows){const values=detailRows(rows);return values.length?'<h4>Recorded valuation detail</h4><div class="table-container"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+values.map(r=>{const p=presentation(r[0]);return '<tr'+(p.subtotal?' class="report-subtotal143185"':'')+'>'+r.map((v,i)=>'<td>'+(p.subtotal?'<strong>':'')+(i===0?label(v):esc(v))+(p.subtotal?'</strong>':'')+'</td>').join('')+'</tr>'}).join('')+'</tbody></table></div><p class="report-note69">'+esc(note)+'</p>':'';}
+window.ForeignFunds14386={presentation,label,tracked,select,hierarchy,descendants,average,lineRateText,reportDetails,detailRows,html};
 })();
