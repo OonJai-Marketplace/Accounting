@@ -1,0 +1,18 @@
+const fs=require('node:fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const source=fs.readFileSync('src/integrations/google/account-sheet-events143191.js','utf8'),tick=()=>new Promise(r=>setImmediate(r));
+function fixture(saved={}){
+ const dom=new JSDOM('',{url:'https://accounting.test/',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window,calls=[],timers=[],messages=[],delivered=[];let fail=false,gate=null;
+ w.liveProfile={id:'admin'};w.OJM_SUPABASE_URL='https://database.test';w.ojmDb={auth:{getSession:async()=>({data:{session:{access_token:'fixture',user:{id:w.liveProfile.id}}}})}};
+ w.setInterval=()=>{throw Error('Account updates must never poll');};w.setTimeout=(fn,ms)=>{if(ms===250)timers.push(fn);return timers.length;};w.clearTimeout=()=>{};w.showCenterStatus=(...args)=>messages.push(args);w.AIInboxSync143173={accountsChanged:async r=>delivered.push(r)};
+ for(const [k,v]of Object.entries(saved))w.localStorage.setItem(k,v);
+ w.fetch=async(url,options)=>{calls.push(JSON.parse(options.body));if(gate)await gate;if(fail)throw Error('Sheets unavailable');return {ok:true,json:async()=>({sheet:'configured',accounts:[{id:'new'}],accountHash:'hash'})};};w.eval(source);
+ return {w,dom,calls,timers,messages,delivered,api:w.AccountSheet143191,fail:v=>fail=v,gate:v=>gate=v,storage:()=>Object.fromEntries(Object.keys(w.localStorage).map(k=>[k,w.localStorage.getItem(k)]))};
+}
+(async()=>{
+ let f=fixture();for(const event of ['focus','page113','online'])f.w.dispatchEvent(new f.w.Event(event));await tick();assert.equal(f.calls.length,0);assert.equal(f.timers.length,0,'idle/reopening must not schedule a chart sync');
+ f.api.changed();f.api.changed();f.api.changed();assert.equal(f.calls.length,0,'saving remains nonblocking');assert(f.api.state.pending);await f.api.flush();assert.equal(f.calls.length,1,'rapid saves coalesce');assert.deepEqual(f.calls[0],{action:'accounts-sync'});assert.equal(f.api.state.pending,false);assert.equal(f.delivered.length,1);for(const fn of f.timers)fn();await tick();assert.equal(f.calls.length,1,'expired debounce callbacks cannot repeat a completed update');f.w.close();
+ f=fixture();f.fail(true);f.api.changed();assert.equal(await f.api.flush(),false);assert(f.api.state.pending);assert.equal(f.calls.length,1);const saved=f.storage();f.w.close();f=fixture(saved);f.w.dispatchEvent(new f.w.Event('online'));await tick();await tick();assert.equal(f.calls.length,1);assert.equal(f.api.state.pending,false,'reconnect resumes retained work');f.w.close();
+ f=fixture();let release;f.gate(new Promise(r=>release=r));f.api.changed();const first=f.api.flush();await tick();f.api.changed();release();await first;assert(f.api.state.pending,'older response cannot acknowledge a newer save');f.gate(null);await f.api.flush();assert.equal(f.calls.length,2);assert(!f.api.state.pending);f.w.close();
+ f=fixture();f.gate(new Promise(r=>release=r));f.api.changed();const old=f.api.flush();await tick();f.w.liveProfile={id:'other'};release();await old;assert.equal(f.delivered.length,0,'old-account response cannot change another inbox');assert.equal(Object.keys(f.storage()).length,1,'old owner retry is retained');f.w.dispatchEvent(new f.w.Event('focus'));await tick();assert.equal(f.calls.length,1,'new account never sends old-owner work');f.w.close();
+ console.log('PASS event-only account updates, zero idle requests, coalesced nonblocking saves, persistent failure/reconnect retry, intervening-save protection and session isolation');
+})().catch(e=>{console.error(e);process.exit(1)});

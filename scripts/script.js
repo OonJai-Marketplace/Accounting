@@ -2751,7 +2751,6 @@ async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=f
   AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
   for(const sub of AccountingStore.subAccounts){const posting=byId.get(sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
   CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
-  if(databaseOnly&&changed)window.dispatchEvent(new Event('reference-updated143190'));
 }
 
 CurrencyStore.add = async function(code,name,symbol){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
@@ -2814,6 +2813,7 @@ handleAccountFormSubmit = async function(event){
     if(!sameEditor()){showAppNotification('Account Form Changed','Review the current account details before saving.',true);return;}
     const query=groupId?db.rpc('create_group_account143180',{p_group:groupId,p_id:createId,p_account:payload}):existing?db.from('accounts').update(payload).eq('id',existing.id):db.from('accounts').insert(payload);
     let {error,data}=await query;
+    if(!error&&(!groupId||(Array.isArray(data)?data[0]:data)?.id===createId))window.AccountSheet143191?.changed({owner:actor,db});
     if(!isCurrent())return;
     if(groupId&&!error&&(Array.isArray(data)?data[0]:data)?.id!==createId)error={message:'Account creation was not confirmed. Reopen the chart before retrying.'};
     if(error)throw error;
@@ -2829,7 +2829,7 @@ handleAccountFormSubmit = async function(event){
     if(form.accountSave143182===operation){delete form.accountSave143182;if(button)button.disabled=wasDisabled;}
   }
 };
-promptDeleteAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('accounts').delete().eq('id',acc.id);if(!isCurrent())return;if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
+promptDeleteAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('accounts').delete().eq('id',acc.id);if(!error)window.AccountSheet143191?.changed({owner:actor,db});if(!isCurrent())return;if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
 handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
   event.preventDefault();
   const form=document.getElementById('formSubAccount');
@@ -2849,6 +2849,7 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
   try{
     if(!isCurrent())return;const query=existing?db.from('sub_accounts').update(payload).eq('id',existing.id):db.from('sub_accounts').insert(payload);
     const {error}=await query;
+    if(!error)window.AccountSheet143191?.changed({owner:actor,db});
     if(!isCurrent())return;if(error)throw error;
     confirmed=true;closeModal('modalSubAccount');
     await loadReferenceDataFromSupabase({databaseOnly:true});
@@ -2860,26 +2861,51 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
     showAppNotification(confirmed?'Sub-account Saved — Refresh Incomplete':'Sub-Account Save Failed',confirmed?'Your sub-account was saved to the database. Reopen the chart to refresh its details.':message,true);
   }finally{button.disabled=false}
 };
-promptDeleteSubAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('sub_accounts').delete().eq('id',sub.id);if(!isCurrent())return;if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
+promptDeleteSubAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('sub_accounts').delete().eq('id',sub.id);if(!error)window.AccountSheet143191?.changed({owner:actor,db});if(!isCurrent())return;if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
 
-
-// Keep reference data current without reloading the page or replacing journal edits.
-(()=>{let job=null,last=0,owner='',client=null;
- async function refresh(force=false){
-  if(typeof liveProfile==='undefined'||!liveProfile?.id||typeof ojmDb==='undefined'||!ojmDb||document.hidden||navigator.onLine===false||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)return;
-  if(owner!==liveProfile.id||client!==ojmDb){owner=liveProfile.id;client=ojmDb;last=0;}
-  if(job||window.startup14257?.preparing||window.startup14257?.dataReady===false||document.querySelector('.modal.active,dialog[open],.ui-overlay108')||!force&&Date.now()-last<30000)return;
-  const actor=owner,db=client;last=Date.now();
-  const task=loadReferenceDataFromSupabase({databaseOnly:true,onlyIfChanged:true});job=task;
-  try{await task;if(actor===liveProfile?.id&&db===ojmDb)window.idleSync14341?.areaUpdated('reference');}
-  catch(e){if(actor===liveProfile?.id&&db===ojmDb&&!/superseded/.test(e.message))window.idleSync14341?.areaStatus('reference','failed');}
-  finally{if(job===task)job=null;}
- }
- setInterval(()=>void refresh(),30000);
- for(const event of ['focus','online'])window.addEventListener(event,()=>void refresh(true));
- window.addEventListener('page113',()=>void refresh());
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh(true);});
+/* A confirmed account mutation requests one background spreadsheet update. No polling. */
+(()=>{'use strict';
+const endpoint='https://nhjsesfhapnjtwlxvirm.supabase.co/functions/v1/google-journal-bridge';
+const memory=new Map();let job=null,timer=null,lastError='';
+const identity=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
+const database=()=>typeof ojmDb==='undefined'?null:ojmDb;
+const key=c=>'ojm-account-sheet143191:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+c.owner;
+const current=c=>!!c.owner&&identity()===c.owner&&database()===c.db;
+function pending(c){if(memory.has(key(c)))return memory.get(key(c));try{return JSON.parse(localStorage.getItem(key(c))||'null');}catch{return null;}}
+function remember(c,value){memory.set(key(c),value);try{localStorage.setItem(key(c),JSON.stringify(value));}catch{lastError='Google Sheet update pending. Keep this page open; this browser could not retain its retry.';}}
+function forget(c,token){if(pending(c)?.token!==token)return;memory.delete(key(c));try{localStorage.removeItem(key(c));}catch{}}
+function schedule(){clearTimeout(timer);timer=setTimeout(()=>{timer=null;void flush();},250);}
+function changed(c={owner:identity(),db:database()}){
+ if(!c.owner||!c.db)return;
+ remember(c,{token:crypto.randomUUID(),at:new Date().toISOString()});if(current(c))schedule();
+}
+async function flush(){
+ const c={owner:identity(),db:database()};if(!current(c)||navigator.onLine===false||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)return false;
+ const item=pending(c);if(!item)return true;if(job)return job.promise;
+ const operation={c,token:item.token,promise:null};job=operation;
+ operation.promise=(async()=>{
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),35000);
+  try{
+   const session=await c.db.auth.getSession();if(!current(c))return false;
+   const auth=session.data?.session;if(!auth?.access_token||auth.user?.id&&auth.user.id!==c.owner)throw Error('Sign in again to update Google Sheets.');
+   const response=await fetch(endpoint,{method:'POST',headers:{Authorization:'Bearer '+auth.access_token,'Content-Type':'application/json'},body:JSON.stringify({action:'accounts-sync'}),signal:controller.signal});
+   const result=await response.json();if(!current(c))return false;
+   if(!response.ok||result.error||!Array.isArray(result.accounts)||!result.sheet)throw Error(result.error||'The Google Sheet update was not confirmed.');
+   forget(c,item.token);lastError='';
+   // Inbox validation is secondary: a display error must not undo confirmed delivery.
+   try{await window.AIInboxSync143173?.accountsChanged?.(result);}catch{}
+   if(current(c)&&!pending(c))window.showCenterStatus?.('Account saved. Google Sheet Accounts updated.');
+   return true;
+  }catch(e){if(current(c)){lastError='Account saved. Google Sheet update pending: '+(e.name==='AbortError'?'connection timed out.':e.message)+' It will retry when you reconnect or reopen Oon Jai.';window.showCenterStatus?.(lastError,true);}return false;}
+  finally{clearTimeout(timeout);if(job===operation){job=null;const next={owner:identity(),db:database()},retained=current(next)&&pending(next);if(retained&&(next.owner!==c.owner||retained.token!==item.token))schedule();}}
+ })();return operation.promise;
+}
+window.AccountSheet143191={changed,flush,get state(){const c={owner:identity(),db:database()};return {pending:!!(current(c)&&pending(c)),busy:!!job,error:lastError};}};
+// These events only retry a retained failed update; idle/opening without one sends nothing.
+for(const event of ['online','focus','page113'])window.addEventListener(event,()=>void flush());
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void flush();});
 })();
+
 async function loadBusinessSettingsFromSupabase() {
   const owner=liveProfile?.id,db=ojmDb;if(!owner||!db)return;
   const before=collectBusinessSettings(),prior=BusinessSettings.current;

@@ -38,7 +38,7 @@ async function sheetRequest(c:any,path:string,method='GET',body?:unknown){
  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(c.sheet)+path,{method,headers:{Authorization:'Bearer '+await googleToken(c),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(25000)});
  if(!r.ok)throw Error('Google Sheets request failed ('+r.status+'). Check workbook access or reconnect Google.');return r.status===204?{}:r.json();
 }
-// The database owns the Accounts copy, including when no Accounting browser is open.
+// Account-save events copy the authoritative database chart to Google Sheets.
 async function readAccounts(){
  const rows:any[]=[];
  for(let offset=0;;offset+=500){
@@ -78,7 +78,6 @@ async function syncAccountRates(c:any){
 }
 
 async function poll(c:any){
- let accounts:any;try{accounts=await syncAccounts(c,await readAccounts());}catch(e){accounts={error:(e as Error).message};}
  const data=await sheetRequest(c,'/values/Drafts!A1:A10002?valueRenderOption=UNFORMATTED_VALUE'),rows=data.values||[];
  if(rows.length>10001||rows[0]?.[0]!=='draft_id')throw Error('Draft sheet headers or row limit need review.');
  const positions=new Map<string,number>();for(let i=1;i<rows.length;i++){const id=String(rows[i][0]||'');if(!id)continue;if(!/^[\w-]{8,64}$/.test(id))throw Error('A draft ID needs correction in Google Sheets.');if(!positions.has(id))positions.set(id,i+1);}
@@ -88,9 +87,9 @@ async function poll(c:any){
  const missing=[...positions].filter(([id])=>!groups.has(id));for(let i=0;i<missing.length;i+=100){const batch=missing.slice(i,i+100),result=await sheetRequest(c,'/values:batchGet?'+batch.map(([,row])=>'ranges='+encodeURIComponent('Drafts!A'+row+':C'+row)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');for(let n=0;n<batch.length;n++){const row=result.valueRanges?.[n]?.values?.[0];if(!row||String(row[0])!==batch[n][0])throw Error('Draft rows moved during the notification check. The next check will retry.');groups.set(row[0],{noticeId:row[0],type:'AI Journal draft',title:String(row[2]||'Journal draft'),detail:String(row[1]||''),target:'ai-journal'});}}
  checked(await admin.from('google_inbox143150').upsert({sheet:c.sheet,notices:[...groups.values()],checked_at:new Date().toISOString(),error:null}));
  let rates:any;try{rates=await syncAccountRates(c);}catch(e){rates={error:(e as Error).message};}
- const issue=[accounts?.error,rates?.error].filter(Boolean).join(' · ');
+ const issue=rates?.error||'';
  if(issue)checked(await admin.from('google_inbox143150').update({error:issue}).eq('sheet',c.sheet));
- return {count:groups.size,accounts,rates};
+ return {count:groups.size,rates};
 }
 
 // Only the fixed configured workbook and the three journal tabs are reachable.
@@ -167,7 +166,7 @@ export async function handler(req:Request){
    const cfg=await settings(),c=await connection(cfg.sheet);if(!c)return reply({connected:false});
    try{return reply(await poll(c));}catch(e){checked(await admin.from('google_inbox143150').upsert({sheet:cfg.sheet,error:(e as Error).message}));throw e;}
   }
-  const a=await auth(req,endpoint==='google-oauth-start'),cfg=await settings();
+  const a=await auth(req,endpoint==='google-oauth-start'||body.action==='accounts-sync'),cfg=await settings();
   if(['news-read','news-history'].includes(body.action)){
    const role=await a.user.rpc('is_admin');if(role.error||role.data!==true)throw Error('News administrator required');
    const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in AI Journal to load news.');
@@ -177,7 +176,7 @@ export async function handler(req:Request){
   }
   if(body.action==='accounts-sync'){
    const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');
-   const accounts=await readAccounts();await syncAccounts(c,accounts);return reply({accounts});
+   const accounts=await readAccounts();await syncAccounts(c,accounts);return reply({sheet:cfg.sheet,accounts,accountHash:await hash(JSON.stringify(accounts))});
   }
   if(body.action==='inboxes-read'){
    const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');
@@ -215,10 +214,10 @@ export async function handler(req:Request){
     for(let offset=0;;offset+=500){const r=await a.user.from('hr_inbox143168').select('request_id,version').eq('sheet',cfg.sheet).order('request_id').range(offset,offset+499);if(r.error)throw Error('HR versions unavailable');for(const row of r.data)if(versions[row.request_id]!==row.version)changedIds.push(row.request_id);if(r.data.length<500)break;}
     hr.records=[];for(let offset=0;offset<changedIds.length;offset+=100){const r=await a.user.from('hr_inbox143168').select('*').eq('sheet',cfg.sheet).in('request_id',changedIds.slice(offset,offset+100));if(r.error)throw Error('HR drafts unavailable');hr.records.push(...r.data);}
    }
-   const accounts=await readAccounts();let referenceError='';try{await syncAccounts(c,accounts);}catch(e){referenceError=(e as Error).message;}
-   journal.accounts=accounts;journal.accountHash=await hash(JSON.stringify(accounts));
+   // Routine inbox checks never scan or copy the chart. Explicit opening/refresh reads it once.
+   if(body.refreshAccounts===true){const accounts=await readAccounts();journal.accounts=accounts;journal.accountHash=await hash(JSON.stringify(accounts));}
    if(!journal.dispositions){const statuses=await a.user.rpc('drive_draft_dispositions143160',{p_sheet:cfg.sheet});if(statuses.error)throw Error('Journal review status unavailable');journal.dispositions=statuses.data||[];}
-   return reply({sheet:cfg.sheet,journal,hr,referenceError});
+   return reply({sheet:cfg.sheet,journal,hr});
   }
   if(['hr-read','hr-status'].includes(body.action)){
    const isAdmin=await a.user.rpc('is_admin');if(isAdmin.error||isAdmin.data!==true)throw Error('HR administrator required');

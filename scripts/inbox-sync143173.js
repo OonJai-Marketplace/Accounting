@@ -1,11 +1,11 @@
 /* Cache-first inboxes. Official IDs, receipts, approvals and audit remain database-authoritative. */
 (()=>{'use strict';
 const consumers=new Map(),CACHE='snapshot:ai-inboxes143174';let owner='',client=null,generation=0,job=null,lastCheck=0,sheet='',error='',restored=false,cacheSignature='',persistJob=Promise.resolve();
-let forcePending=false,lastFullCheck=0;
+let forcePending=false;
 let snapshots={journal:null,hr:null},pending=new Set();
 const identity=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 const allowed=()=>identity()&&typeof ojmDb!=='undefined'&&ojmDb&&window.access113?.can('journal','post');
-function reset(){owner=identity();client=typeof ojmDb==='undefined'?null:ojmDb;generation++;job=null;forcePending=false;lastFullCheck=0;lastCheck=0;sheet='';error='';restored=false;cacheSignature='';snapshots={journal:null,hr:null};pending.clear();for(const c of consumers.values())c.reset?.();}
+function reset(){owner=identity();client=typeof ojmDb==='undefined'?null:ojmDb;generation++;job=null;forcePending=false;lastCheck=0;sheet='';error='';restored=false;cacheSignature='';snapshots={journal:null,hr:null};pending.clear();for(const c of consumers.values())c.reset?.();}
 function session(){if(owner!==identity()||client!==(typeof ojmDb==='undefined'?null:ojmDb))reset();}
 function snapshot(name){session();return snapshots[name];}
 function merge(previous,delta){if(!delta)return null;const groups=new Map(previous?.groups||[]),hashes={...(previous?.hashes||{})},keep=new Set(delta.ids);for(const id of groups.keys())if(!keep.has(id)){groups.delete(id);delete hashes[id];}for(const item of delta.changed){groups.set(item.id,item.rows);hashes[item.id]=item.hash;}return {ids:delta.ids,header:delta.header,accounts:delta.accounts||previous?.accounts,accountHash:delta.accountHash||previous?.accountHash,groups,hashes,rows:[delta.header,...[...groups.values()].flat()],records:delta.records||[],dispositions:delta.dispositions};}
@@ -15,20 +15,26 @@ async function restore(){if(restored)return;const actor=owner,gen=generation;try
 async function deliver(){const gen=generation,actor=owner;const results=await Promise.allSettled([...consumers].map(async([name,c])=>{if(!pending.has(name)||gen!==generation||actor!==identity()||name==='hr'&&liveProfile?.role!=='admin')return;const s=snapshots[name];if(s)try{await c.receive(s,{sheet,owner:actor,generation:gen});if(gen===generation)pending.delete(name);}catch(e){if(gen===generation&&actor===identity())c.error?.(e.message||String(e));throw e;}}));if(gen===generation&&actor===identity()){const failures=results.filter(r=>r.status==='rejected');if(failures.length)error=failures.map(r=>r.reason.message||String(r.reason)).join('; ');}}
 async function check(force=false){session();if(!allowed())return;if(job){if(force)forcePending=true;return job;}
  const actor=owner,db=client,gen=generation,current=()=>actor===identity()&&db===ojmDb&&gen===generation;
- const task=(async()=>{await restore();if(!current())return;if(!navigator.onLine||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)return;if(!force&&Date.now()-lastCheck<30000)return;lastCheck=Date.now();const full=force||!lastFullCheck||Date.now()-lastFullCheck>=60000;
+ const task=(async()=>{await restore();if(!current())return;if(!navigator.onLine||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)return;if(!force&&Date.now()-lastCheck<30000)return;lastCheck=Date.now();const full=force;
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),35000);try{
  const auth=await db.auth.getSession();if(!current())return;const token=auth.data?.session?.access_token;if(!token)throw Error('Sign in again to check for new inbox requests.');
- const response=await fetch('https://nhjsesfhapnjtwlxvirm.supabase.co/functions/v1/google-journal-bridge',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action:'inboxes-read',missingOnly:!full,sheet,hashes:{journal:snapshots.journal?.hashes||{},hr:snapshots.hr?.hashes||{}},headers:{journal:snapshots.journal?.header,hr:snapshots.hr?.header},hrVersions:consumers.get('hr')?.versions?.()||{}}),signal:controller.signal});
- const result=await response.json();if(!current())return;if(!response.ok||result.error)throw Error(result.error||'New-request check failed.');if(full)lastFullCheck=Date.now();
+ const response=await fetch('https://nhjsesfhapnjtwlxvirm.supabase.co/functions/v1/google-journal-bridge',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action:'inboxes-read',missingOnly:!full,refreshAccounts:force,sheet,hashes:{journal:snapshots.journal?.hashes||{},hr:snapshots.hr?.hashes||{}},headers:{journal:snapshots.journal?.header,hr:snapshots.hr?.header},hrVersions:consumers.get('hr')?.versions?.()||{}}),signal:controller.signal});
+ const result=await response.json();if(!current())return;if(!response.ok||result.error)throw Error(result.error||'New-request check failed.');
  if(sheet&&sheet!==result.sheet){snapshots={journal:null,hr:null};pending.clear();for(const c of consumers.values())c.reset?.();}sheet=result.sheet;
- for(const name of ['journal','hr']){const previous=snapshots[name],delta=result[name];if(!delta)continue;const changed=!previous||delta.accountHash!==previous.accountHash||delta.changed.length||delta.records?.length||JSON.stringify([...(previous.ids||previous.groups.keys())].sort())!==JSON.stringify([...delta.ids].sort())||JSON.stringify(previous.dispositions)!==JSON.stringify(delta.dispositions);if(changed){snapshots[name]=merge(previous,delta);pending.add(name);}}
+ for(const name of ['journal','hr']){const previous=snapshots[name],delta=result[name];if(!delta)continue;const changed=!previous||(delta.accountHash&&delta.accountHash!==previous.accountHash)||delta.changed.length||delta.records?.length||JSON.stringify([...(previous.ids||previous.groups.keys())].sort())!==JSON.stringify([...delta.ids].sort())||JSON.stringify(previous.dispositions)!==JSON.stringify(delta.dispositions);if(changed){snapshots[name]=merge(previous,delta);pending.add(name);}}
  error=result.referenceError||'';for(const [name,c]of consumers)if(result[name])c.checked?.();await deliver();if(!current())return;await persist();if(error)for(const c of consumers.values())c.error?.(error);window.refreshNotices1443?.();
  }catch(e){if(current()){error=e.message||String(e);for(const c of consumers.values())c.error?.(error);}}finally{clearTimeout(timer);}})();job=task;try{await task;}finally{if(job===task){job=null;if(forcePending){forcePending=false;void check(true);}}}}
 function retain(name,rows,forSheet){session();if(forSheet!==sheet||!snapshots[name])return;const groups=new Map();for(const row of rows.slice(1)){const id=String(row[0]||'');if(!id)continue;if(!groups.has(id))groups.set(id,[]);groups.get(id).push(row);}const old=snapshots[name];snapshots[name]={...old,header:rows[0]||[],groups,ids:[...groups.keys()],rows,hashes:Object.fromEntries([...groups.keys()].map(id=>[id,old.hashes[id]||'retained']))};}
-window.AIInboxSync143173={check,snapshot,reset,persist,retain,register(name,consumer){consumers.set(name,consumer);},get state(){session();return {owner,sheet,error,lastCheck,busy:!!job};}};
+async function accountsChanged(result){session();const actor=owner,db=client,gen=generation;
+ if(job)await job;
+ session();if(actor!==owner||db!==client||gen!==generation||!allowed()||result.sheet!==sheet||!snapshots.journal||!Array.isArray(result.accounts))return;
+ snapshots.journal={...snapshots.journal,accounts:result.accounts,accountHash:result.accountHash};pending.add('journal');
+ await deliver();await persist();
+}
+window.AIInboxSync143173={check,snapshot,reset,persist,retain,accountsChanged,register(name,consumer){consumers.set(name,consumer);},get state(){session();return {owner,sheet,error,lastCheck,busy:!!job};}};
 setInterval(()=>void check(),30000);setInterval(()=>{const before=owner;session();if(before!==owner)void check();},1500);
 window.addEventListener('page113',()=>void check());
-for(const event of ['focus','online','reference-updated143190'])window.addEventListener(event,()=>void check(true));
+for(const event of ['focus','online'])window.addEventListener(event,()=>void check(true));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check(true);});
 })();
 ;
