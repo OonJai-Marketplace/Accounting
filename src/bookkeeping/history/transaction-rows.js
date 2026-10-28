@@ -63,7 +63,7 @@ function renderTransactionRowsToTbody(tbody, records, showAction = false) {
         
         <td><div class="transaction-account-display"><span class="currency-symbol-badge" data-currency-code="${escapeHtml(cleanAcc.currency || '')}" title="${escapeHtml(cleanAcc.currency || '')}">${escapeHtml(currencySymbolV6(cleanAcc.currency))}</span><span class="account-clean-name">${escapeHtml(cleanAcc.name)}</span></div></td>
 
-        <td style="color: var(--text-muted);">${escapeHtml(line.memo)}</td>
+        <td style="color: var(--text-muted);">${journalMemoHtml143187(line.memo)}</td>
         
         <td class="num" style="color: ${line.debit > 0 ? '#0f172a' : '#94a3b8'};">
           ${line.debit > 0 ? formatAppNumber(line.debit) : '-'}

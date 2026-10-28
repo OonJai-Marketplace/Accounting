@@ -34,6 +34,11 @@
     ],
     "scripts/cell-navigation14233.js": [
       {
+        "source": "src/bookkeeping/journal/memo-links143187.js",
+        "prefix": "/* Journal description links */\n",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/shared/ui/cell-navigation14233.js",
         "suffix": ";\n"
       },
@@ -49,6 +54,11 @@
       }
     ],
     "scripts/desktop14245-2.js": [
+      {
+        "source": "src/bookkeeping/journal/memo-links143187.js",
+        "prefix": "/* Journal description links */\n",
+        "suffix": ";\n"
+      },
       {
         "source": "src/maintenance/backup/backup-validation1441.js",
         "prefix": "/* scripts/backup-validation1441.js */\n",
@@ -1823,6 +1833,11 @@
         "suffix": "\n;\n"
       },
       {
+        "source": "src/bookkeeping/journal/account-rates143186.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
+      },
+      {
         "source": "src/accounts/chart/foreign-funds14386.js",
         "prefix": "\n",
         "suffix": "\n;\n"
@@ -2073,6 +2088,11 @@
       },
       {
         "source": "src/bookkeeping/journal/foreign-currency14383.js",
+        "prefix": "\n",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/account-rates143186.js",
         "prefix": "\n",
         "suffix": "\n;\n"
       },
@@ -3648,6 +3668,11 @@
       }
     ],
     "scripts/phone-runtime14242.js": [
+      {
+        "source": "src/bookkeeping/journal/memo-links143187.js",
+        "prefix": "/* Journal description links */\n",
+        "suffix": ";\n"
+      },
       {
         "source": "src/shared/formatting/civil-date.js",
         "suffix": "\n"

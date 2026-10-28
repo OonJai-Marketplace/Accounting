@@ -229,13 +229,13 @@ function aiAmountCell(value,row,chart){
 function display(id,rows,payload,error,receiptData,chart,target=panel.querySelector('[data-drive-list]')){
  if(receiptData?.payload?.[0])rows=postedRows(id,receiptData.payload[0],chart);
  const card=document.createElement('section');card.className='je-card gpt-entry143129';card.dataset.draft=id;
- card.innerHTML='<div class="table-container"><table class="clustered-journal-table"><thead><tr><th>Date</th><th>Account</th><th>Line memo</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody><tr class="gpt-description143129"><td colspan="5"><div><strong>'+esc(rows[0].description)+'</strong><span data-action></span></div></td></tr>'+rows.map(r=>'<tr>'+[formatDate(r.line_date||r.posting_date),r.account_code+' — '+(chart.find(a=>a.id===r.account_id)?.name||'Choose account in editor'),r.line_memo||''].map(v=>'<td>'+esc(v)+'</td>').join('')+aiAmountCell(r.debit,r,chart)+aiAmountCell(r.credit,r,chart)+'</tr>').join('')+'</tbody></table></div><p class="gpt-reference143129"><strong data-entry-id>Entry ID assigned when posted</strong> · Prepared via ChatGPT · <span data-result></span></p>';
+ card.innerHTML='<div class="table-container"><table class="clustered-journal-table"><thead><tr><th>Date</th><th>Account</th><th>Line memo</th><th class="num">Debit</th><th class="num">Credit</th></tr></thead><tbody><tr class="gpt-description143129"><td colspan="5"><div><strong>'+journalMemoHtml143187(rows[0].description)+'</strong><span data-action></span></div></td></tr>'+rows.map(r=>'<tr>'+[formatDate(r.line_date||r.posting_date),r.account_code+' — '+(chart.find(a=>a.id===r.account_id)?.name||'Choose account in editor'),r.line_memo||''].map((v,i)=>'<td>'+(i===2?journalMemoHtml143187(v):esc(v))+'</td>').join('')+aiAmountCell(r.debit,r,chart)+aiAmountCell(r.credit,r,chart)+'</tr>').join('')+'</tbody></table></div><p class="gpt-reference143129"><strong data-entry-id>Entry ID assigned when posted</strong> · Prepared via ChatGPT · <span data-result></span></p>';
  const result=card.querySelector('[data-result]');result.textContent=receiptData?'Posted: '+receiptData.result.map(r=>r.entry_no).join(', '):error||'Awaiting review';
  if(!receiptData){
  const buttons=[['Edit','edit'],['Post','post'],['Reject','rejected']];
  for(const [label,action]of buttons){const b=document.createElement('button');b.type='button';b.className='je-btn';b.textContent=action==='edit'&&prepared.has(id)?'Added to preparation':label;b.dataset.draftAction=action;b.disabled=(action==='edit'||action==='post')&&prepared.has(id)||action==='post'&&!payload;if(action==='post'){b.dataset.invalid=payload?'':'true';b.title=prepared.has(id)?'Post from Journal to include your preparation edits.':'Post directly to Active Journal';}b.onclick=()=>run(()=>action==='edit'?editDraft(id):action==='post'?postDraft(id):rejectDraft(id));card.querySelector('[data-action]').append(b);}
  }
- target.append(card);return card;
+ target.append(card);if(!receiptData)window.AccountRates143186?.mount(card,rows,chart);return card;
 }
 async function refresh(prefetchedRows){
  const c=context();message('Refreshing accounts and reading drafts…');await loadDispositions(c);
@@ -326,6 +326,7 @@ function stackRates(item){
 }
 function updateStackTotals(item,card){
  const totals=new Map();for(const r of item.rows){const t=totals.get(r.currency)||[0,0];t[0]+=inputNumber(r.debit);t[1]+=inputNumber(r.credit);totals.set(r.currency,t);}
+ window.AccountRates143186?.mount(card,item.rows,AccountingStore.accounts);
  card.querySelector('[data-totals]').textContent=[...totals].map(([c,t])=>c+' · Debit '+formatAppNumber(t[0])+' · Credit '+formatAppNumber(t[1])+' · Difference '+formatAppNumber(t[0]-t[1])).join(' | ');
  const cross=item.rows.some(r=>r.line_date&&r.line_date.slice(0,7)!==r.posting_date.slice(0,7));
  card.querySelector('[data-date-warning]').textContent=cross?'Other-month receipt dates will be kept in line memos; the main date determines the posting month.':'';
@@ -382,6 +383,7 @@ async function postPrepared(){
 }
 async function postItems(items,stayInInbox=false){
  const c=context();items.forEach(item=>assert(item.context));online();
+ for(const item of items)await window.AccountRates143186?.checkReview(item.rows,AccountingStore.accounts);
  message(stayInInbox?'Checking this entry…':'Checking all prepared entries…');const [sourceRows,chart]=await Promise.all([readDrafts(),accounts()]);assert(c);const groups=parse(sourceRows),drafts=[],results=new Map();
  // Resolve committed receipts before checking source rows: a prior successful attempt may already have archived them.
  for(const item of items){

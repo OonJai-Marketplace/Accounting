@@ -37,7 +37,7 @@ function renderVoidedTransactionsTable() {
           <span class="badge-void-old">VOIDED</span> ${escapeHtml(item.id)}
         </td>
         <td><div class="transaction-account-display"><span class="currency-symbol-badge" data-currency-code="${escapeHtml(line.currency)}" title="${escapeHtml(line.currency)}">${escapeHtml(currencySymbolV6(line.currency))}</span><span>${escapeHtml(cleanAcc.name)}</span></div></td>
-        <td style="color: var(--text-muted);">${escapeHtml(line.memo)}</td>
+        <td style="color: var(--text-muted);">${journalMemoHtml143187(line.memo)}</td>
         <td class="num" style="color: #991b1b;">${line.debit > 0 ? formatAppNumber(line.debit) : '-'}</td>
         ${crCols}
       `;
@@ -63,7 +63,7 @@ function renderVoidedTransactionsTable() {
           <span class="badge-void-new">REVISED</span> ${escapeHtml(item.id)}
         </td>
         <td><div class="transaction-account-display"><span class="currency-symbol-badge" data-currency-code="${escapeHtml(line.currency)}" title="${escapeHtml(line.currency)}">${escapeHtml(currencySymbolV6(line.currency))}</span><span>${escapeHtml(cleanAcc.name)}</span></div></td>
-        <td style="color: var(--text-muted);">${escapeHtml(line.memo)}</td>
+        <td style="color: var(--text-muted);">${journalMemoHtml143187(line.memo)}</td>
         <td class="num" style="color: #065f46;">${line.debit > 0 ? formatAppNumber(line.debit) : '-'}</td>
         ${crCols}
       `;
@@ -113,7 +113,7 @@ function exportJournalCSV() {
     return dateCmp !== 0 ? dateCmp : String(a.id).localeCompare(String(b.id), undefined, { numeric: true });
   });
   exportEntries.forEach(e => {
-    csv += [e.date,e.id,e.account,e.memo,e.currency,e.debit,...currencies.map(c=>(e.currency===c.code&&e.credit>0)?e.credit:0)].map(cell).join(',')+'\n';
+    csv += [e.date,e.id,e.account,journalMemoValue143187(e),e.currency,e.debit,...currencies.map(c=>(e.currency===c.code&&e.credit>0)?e.credit:0)].map(cell).join(',')+'\n';
   });
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });

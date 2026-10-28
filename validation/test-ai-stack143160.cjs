@@ -33,6 +33,7 @@ async function fixture(storage={}){
  await new Promise(resolve=>d.addEventListener('DOMContentLoaded',resolve));
  w.eval(fs.readFileSync('src/settings/application/settings-groups14332.js','utf8'));
  w.eval(fs.readFileSync('src/shared/formatting/financial-numbers14231.js','utf8'));
+ w.eval(fs.readFileSync('src/bookkeeping/journal/memo-links143187.js','utf8'));
  w.eval(fs.readFileSync('src/bookkeeping/journal/drive-drafts143128.js','utf8'));await tick();w.DriveDrafts143128.open();await tick();
  const click=async sel=>{const n=d.querySelector(sel);assert.ok(n,'Missing '+sel);n.click();await tick();};
  const edit=id=>click('[data-draft="'+id+'"] [data-draft-action="edit"]');

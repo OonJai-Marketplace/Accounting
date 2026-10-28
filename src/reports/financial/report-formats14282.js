@@ -15,7 +15,7 @@ const allowed=id=>!!liveProfile&&access113.can(id,'view')&&access113.can(id,'exp
 function permission(id){if(!allowed(id))throw Error('View and Export / Print permission are required for this report.');if(document.getElementById('startup1443')?.hidden===false)throw Error('Wait for this area to finish loading before printing.');}
 function signatures(){return printSignatures1424({enabled:true,prepared:liveProfile?.full_name||liveProfile?.email||'',receiver:'',approver:''});}
 // Flatten layout containers so the editor can paginate tables row by row.
-function format(html){const root=document.createElement('div');root.innerHTML=html;root.querySelectorAll('table').forEach(t=>window.tablePagination14383?.restoreSpans(t));root.querySelectorAll('[data-page-hidden14383]').forEach(n=>n.removeAttribute('data-page-hidden14383'));root.querySelectorAll('.table-pages14383,.transaction-pages14340').forEach(n=>n.remove());
+function format(html){const root=document.createElement('div');root.innerHTML=html;window.JournalMemoLinks143187?.decorate(root);root.querySelectorAll('table').forEach(t=>window.tablePagination14383?.restoreSpans(t));root.querySelectorAll('[data-page-hidden14383]').forEach(n=>n.removeAttribute('data-page-hidden14383'));root.querySelectorAll('.table-pages14383,.transaction-pages14340').forEach(n=>n.remove());
  root.querySelectorAll('script,style,form,.no-print,.doc-source-action105,.row-menu99,.row-menu-panel99').forEach(n=>n.remove());
  root.querySelectorAll('input,textarea,select').forEach(n=>n.replaceWith(document.createTextNode(n.tagName==='SELECT'?n.selectedOptions[0]?.textContent||'':n.value||'')));
  root.querySelectorAll('button').forEach(n=>n.replaceWith(document.createTextNode(n.textContent)));
