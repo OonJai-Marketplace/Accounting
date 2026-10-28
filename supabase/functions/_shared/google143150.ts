@@ -38,6 +38,23 @@ async function sheetRequest(c:any,path:string,method='GET',body?:unknown){
  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(c.sheet)+path,{method,headers:{Authorization:'Bearer '+await googleToken(c),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(25000)});
  if(!r.ok)throw Error('Google Sheets request failed ('+r.status+'). Check workbook access or reconnect Google.');return r.status===204?{}:r.json();
 }
+// Publish only the configured workbook, from one database snapshot; never accept client rates.
+async function syncAccountRates(c:any){
+ const snapshot=checked(await admin.rpc('account_exchange_rates143186'));
+ if(!snapshot||!Array.isArray(snapshot.accounts)||snapshot.accounts.length>10000)throw Error('Account rate snapshot is incomplete');
+ const meta=await sheetRequest(c,'?fields=sheets.properties');
+ const tab=meta.sheets?.find((s:any)=>s.properties.title==='Account Exchange Rates')?.properties;
+ if(!tab)throw Error('Account Exchange Rates tab is missing');
+ const headers=['Account ID','Code','Account','Currency','Foreign balance','LAK carrying value','Average rate (LAK/unit)','Rate status','As of','Database checked (UTC)','Last transaction date','Basis','Offline limitation'];
+ const values=[headers,...snapshot.accounts.map((a:any)=>[a.account_id,a.account_code,a.account_name,a.currency,a.foreign_balance,a.lak_carrying_value,a.average_rate,a.rate_status,snapshot.as_of,snapshot.calculated_at,a.last_transaction_date,'Posted database records; current year with explicit opening entries','Unsynced device transactions are excluded. Recheck before posting.'])];
+ const rows=values.map((row:any[])=>({values:row.map(v=>v==null?{}:{userEnteredValue:typeof v==='number'?{numberValue:v}:{stringValue:String(v)}})}));
+ const count=Math.max(tab.gridProperties.rowCount,rows.length),requests:any[]=[];
+ if(count>tab.gridProperties.rowCount)requests.push({updateSheetProperties:{properties:{sheetId:tab.sheetId,gridProperties:{rowCount:count}},fields:'gridProperties.rowCount'}});
+ requests.push({updateCells:{range:{sheetId:tab.sheetId,startRowIndex:0,endRowIndex:count,startColumnIndex:0,endColumnIndex:13},rows,fields:'userEnteredValue'}});
+ await sheetRequest(c,':batchUpdate','POST',{requests});
+ return {accounts:snapshot.accounts.length,calculated_at:snapshot.calculated_at};
+}
+
 async function poll(c:any){
  const data=await sheetRequest(c,'/values/Drafts!A1:A10002?valueRenderOption=UNFORMATTED_VALUE'),rows=data.values||[];
  if(rows.length>10001||rows[0]?.[0]!=='draft_id')throw Error('Draft sheet headers or row limit need review.');
@@ -46,7 +63,9 @@ async function poll(c:any){
  const previous=checked(await admin.from('google_inbox143150').select('notices').eq('sheet',c.sheet).maybeSingle());
  const groups=new Map<string,any>((previous?.notices||[]).filter((n:any)=>positions.has(n.noticeId)).map((n:any)=>[n.noticeId,n]));
  const missing=[...positions].filter(([id])=>!groups.has(id));for(let i=0;i<missing.length;i+=100){const batch=missing.slice(i,i+100),result=await sheetRequest(c,'/values:batchGet?'+batch.map(([,row])=>'ranges='+encodeURIComponent('Drafts!A'+row+':C'+row)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');for(let n=0;n<batch.length;n++){const row=result.valueRanges?.[n]?.values?.[0];if(!row||String(row[0])!==batch[n][0])throw Error('Draft rows moved during the notification check. The next check will retry.');groups.set(row[0],{noticeId:row[0],type:'AI Journal draft',title:String(row[2]||'Journal draft'),detail:String(row[1]||''),target:'ai-journal'});}}
- checked(await admin.from('google_inbox143150').upsert({sheet:c.sheet,notices:[...groups.values()],checked_at:new Date().toISOString(),error:null}));return {count:groups.size};
+ checked(await admin.from('google_inbox143150').upsert({sheet:c.sheet,notices:[...groups.values()],checked_at:new Date().toISOString(),error:null}));
+ let rates:any;try{rates=await syncAccountRates(c);}catch(e){rates={error:(e as Error).message};}
+ return {count:groups.size,rates};
 }
 
 // Only the fixed configured workbook and the three journal tabs are reachable.
@@ -163,6 +182,7 @@ export async function handler(req:Request){
   const c=await connection(cfg.sheet);
   if(body.action==='status')return reply({connected:!!c,configured:!!clientID()&&!!clientSecret(),email:c?.email||''});
   if(!c)throw Error('Connect Google once to activate background checks.');
+  if(body.action==='rates-refresh')return reply(await syncAccountRates(c));
   if(body.action==='request'){if(body.sheet!==cfg.sheet)throw Error('Submission sheet changed. Refresh settings.');return reply(await proxy(c,String(body.path||''),body.method||'GET',body.body));}
   throw Error('Unsupported action');
  }catch(e){return reply({error:(e as Error).message||'Google connection unavailable'},400);}

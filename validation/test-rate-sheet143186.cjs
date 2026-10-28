@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{stripTypeScriptTypes}=require('node:module');
+const code=fs.readFileSync('supabase/functions/_shared/google143150.ts','utf8');
+const functionCode=code.slice(code.indexOf('async function syncAccountRates('),code.indexOf('async function poll('));
+(async()=>{const calls=[],snapshot={as_of:'2026-10-28',calculated_at:'2026-10-28T10:00:00Z',accounts:[{account_id:'id',account_code:'1041',account_name:'=not a formula',currency:'USD',foreign_balance:100,lak_carrying_value:2200000,average_rate:22000,rate_status:'available',last_transaction_date:'2026-10-27'},{account_id:'empty',average_rate:null}]};let missing=false;
+const ctx={admin:{rpc:async name=>{assert.equal(name,'account_exchange_rates143186');return {data:snapshot}}},checked:r=>r.data,sheetRequest:async(c,path,method,body)=>{calls.push({path,method,body});return path.startsWith('?')?{sheets:missing?[]:[{properties:{title:'Account Exchange Rates',sheetId:123,gridProperties:{rowCount:10}}}]}:{};}};
+vm.createContext(ctx);vm.runInContext(stripTypeScriptTypes(functionCode,{mode:'strip'})+';this.sync=syncAccountRates;',ctx);
+const result=await ctx.sync({sheet:'configured'});assert.equal(result.accounts,2);const update=calls[1].body.requests[0].updateCells;
+assert.equal(update.range.endColumnIndex,13);assert.equal(update.range.endRowIndex,10);assert.equal(update.rows[1].values[2].userEnteredValue.stringValue,'=not a formula');assert.equal(update.rows[1].values[6].userEnteredValue.numberValue,22000);assert.equal(Object.keys(update.rows[2].values[6]).length,0);assert.equal(update.fields,'userEnteredValue');
+missing=true;await assert.rejects(()=>ctx.sync({}),/tab is missing/);snapshot.accounts=Array(10001).fill({});await assert.rejects(()=>ctx.sync({}),/incomplete/);assert.match(code,/rates=await syncAccountRates\(c\)/);console.log('PASS rate sheet snapshot, raw numeric precision, literal text, blank unavailable rates, stale row clearing and bounds');
+})().catch(e=>{console.error(e);process.exit(1)});

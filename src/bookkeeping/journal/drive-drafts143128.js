@@ -235,7 +235,7 @@ function display(id,rows,payload,error,receiptData,chart,target=panel.querySelec
  const buttons=[['Edit','edit'],['Post','post'],['Reject','rejected']];
  for(const [label,action]of buttons){const b=document.createElement('button');b.type='button';b.className='je-btn';b.textContent=action==='edit'&&prepared.has(id)?'Added to preparation':label;b.dataset.draftAction=action;b.disabled=(action==='edit'||action==='post')&&prepared.has(id)||action==='post'&&!payload;if(action==='post'){b.dataset.invalid=payload?'':'true';b.title=prepared.has(id)?'Post from Journal to include your preparation edits.':'Post directly to Active Journal';}b.onclick=()=>run(()=>action==='edit'?editDraft(id):action==='post'?postDraft(id):rejectDraft(id));card.querySelector('[data-action]').append(b);}
  }
- target.append(card);return card;
+ target.append(card);if(!receiptData)window.AccountRates143186?.mount(card,rows,chart);return card;
 }
 async function refresh(prefetchedRows){
  const c=context();message('Refreshing accounts and reading drafts…');await loadDispositions(c);
@@ -326,6 +326,7 @@ function stackRates(item){
 }
 function updateStackTotals(item,card){
  const totals=new Map();for(const r of item.rows){const t=totals.get(r.currency)||[0,0];t[0]+=inputNumber(r.debit);t[1]+=inputNumber(r.credit);totals.set(r.currency,t);}
+ window.AccountRates143186?.mount(card,item.rows,AccountingStore.accounts);
  card.querySelector('[data-totals]').textContent=[...totals].map(([c,t])=>c+' · Debit '+formatAppNumber(t[0])+' · Credit '+formatAppNumber(t[1])+' · Difference '+formatAppNumber(t[0]-t[1])).join(' | ');
  const cross=item.rows.some(r=>r.line_date&&r.line_date.slice(0,7)!==r.posting_date.slice(0,7));
  card.querySelector('[data-date-warning]').textContent=cross?'Other-month receipt dates will be kept in line memos; the main date determines the posting month.':'';
@@ -382,6 +383,7 @@ async function postPrepared(){
 }
 async function postItems(items,stayInInbox=false){
  const c=context();items.forEach(item=>assert(item.context));online();
+ for(const item of items)await window.AccountRates143186?.checkReview(item.rows,AccountingStore.accounts);
  message(stayInInbox?'Checking this entry…':'Checking all prepared entries…');const [sourceRows,chart]=await Promise.all([readDrafts(),accounts()]);assert(c);const groups=parse(sourceRows),drafts=[],results=new Map();
  // Resolve committed receipts before checking source rows: a prior successful attempt may already have archived them.
  for(const item of items){
