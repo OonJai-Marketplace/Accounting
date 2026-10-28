@@ -32,6 +32,12 @@ module.exports=async function createFixture(){
     window.setTimeout=function(fn,ms,...args){const stack=new Error().stack||'';if(/auto-sync14256/.test(stack)||ms===1000&&/local-first14333/.test(stack)){__syncSuspended.timers++;return 0;}return timeout(fn,ms,...args)};
     window.MutationObserver=class extends Observer{constructor(fn){super(fn);this.syncOnly=/offline14239/.test(new Error().stack||'');}observe(...args){if(this.syncOnly){__syncSuspended.observers++;return;}return super.observe(...args);}};
   });
+  // Keep integration tests isolated from the real Google bridge; specific inbox tests override this route.
+  await page.route('https://nhjsesfhapnjtwlxvirm.supabase.co/functions/v1/google-journal-bridge',route=>{
+    const action=route.request().postDataJSON()?.action;
+    if(action==='inboxes-read'){if(fixture)fixture.inboxChecks=(fixture.inboxChecks||0)+1;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({sheet:'fixture-inbox'})});}
+    return route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({error:'Fixture bridge action not configured'})});
+  });
   await seed(page);await page.goto(base+(phone?'/phone.html?staff=1':'/desktop.html'));
   fixture=await page.evaluate(()=>__fixture);fixture.profiles.forEach(u=>u.user_permissions.modules=u.role==='admin'?[]:['sub-users']);fixture.tables.user_permissions=fixture.profiles.map(u=>({user_id:u.id,...u.user_permissions}));
   const me=role==='admin'?fixture.profiles[0]:fixture.profiles[1];

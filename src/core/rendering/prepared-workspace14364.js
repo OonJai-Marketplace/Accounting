@@ -66,7 +66,17 @@ async function build(initial=true){if(pendingBuild)return pendingBuild;const who
  }finally{if(reportKind!==null)Reports79.kind=reportKind;building=false;pendingBuild=null;preparingTarget='';restore(current());window.shell113?.sync();}
  });return pendingBuild;
 }
-async function finish(){window.startup14257.preparing=true;try{await build(true);window.startup14257.prepared=true;window.startup14257.interactive=true;document.body.classList.remove('startup-pending1443');const box=document.getElementById('startup1443');if(box)box.hidden=true;window.idleSync14341?.preparation('')}finally{window.startup14257.preparing=false}window.idleSync14341?.onEntry('login')}
+async function finish(){
+ const who=actor(),db=client();window.startup14257.preparing=true;
+ try{await build(true);if(actor()!==who||client()!==db)return;window.startup14257.prepared=true;}
+ finally{window.startup14257.preparing=false;}
+ // Login/reload completes its online upload and six-stage refresh before dismissing preparation.
+ // Cached screens remain usable when offline, without reporting a cloud confirmation.
+ if(window.offline14239?.canRefresh())await window.idleSync14341?.run(false,{trigger:'login'});
+ if(actor()!==who||client()!==db)return;
+ window.startup14257.interactive=true;document.body.classList.remove('startup-pending1443');
+ const box=document.getElementById('startup1443');if(box)box.hidden=true;window.idleSync14341?.preparation('');
+}
 function ready(){
  const original=window.preparedViews14340;original.build=()=>build(true);
  const hydrate=window.hydrateSupabaseSession;window.hydrateSupabaseSession=async function(session,...args){const result=await hydrate.call(this,session,...args);if(actor()===session?.user?.id&&window.startup14257?.dataReady)await finish();return result};

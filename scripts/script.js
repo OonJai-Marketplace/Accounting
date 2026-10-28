@@ -2733,12 +2733,11 @@ function applyLiveRoleAccess() {
 }
 
 let referenceLoadSerial14370=0;
-async function loadReferenceDataFromSupabase() {
+async function loadReferenceDataFromSupabase({databaseOnly=false}={}) {
   const actor=liveProfile?.id,db=ojmDb,serial=++referenceLoadSerial14370;
+  const read=table=>{const query=db.from(table).select('*').eq('is_active',true).order('code');return databaseOnly?query.setHeader('x-ojm-database-only','1'):query};
   const [{data:currencies,error:currencyError},{data:accounts,error:accountError},{data:subs,error:subError}] = await Promise.all([
-    db.from('currencies').select('*').eq('is_active',true).order('code'),
-    db.from('accounts').select('*').eq('is_active',true).order('code'),
-    db.from('sub_accounts').select('*').eq('is_active',true).order('code')
+    read('currencies'),read('accounts'),read('sub_accounts')
   ]);
   if(liveProfile?.id!==actor||ojmDb!==db||serial!==referenceLoadSerial14370)throw Error('Reference data request was superseded.');
   if(currencyError||accountError||subError) throw new Error((currencyError||accountError||subError).message);
@@ -2766,10 +2765,10 @@ CurrencyStore.add = async function(code,name,symbol){const actor=liveProfile?.id
     const constraint=String(error.message||'').includes('currencies_code_check');
     showAppNotification('Currency Save Failed',constraint?'The currency code must contain exactly three letters.':error.message,true);return false
   }
-  await loadReferenceDataFromSupabase();if(!isCurrent())return;showAppNotification('Currency Saved',`${clean} is now available to accounts and transactions.`,false);return true
+  await loadReferenceDataFromSupabase({databaseOnly:true});if(!isCurrent())return;showAppNotification('Currency Saved',`${clean} is now available to accounts and transactions.`,false);return true
 };
-CurrencyStore.edit = async function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const current=this.currencies.find(c=>c.code===code);if(!current)return;const name=await ui117.prompt(`Currency name for ${code}:`,current.name);if(name===null||!isCurrent())return;const symbol=await ui117.prompt(`Symbol for ${code}:`,current.symbol);if(symbol===null||!isCurrent())return;const{error}=await db.from('currencies').update({name:name.trim(),symbol:symbol.trim()}).eq('code',code);if(!isCurrent())return;if(error){showAppNotification('Currency Update Failed',error.message,true);return}await loadReferenceDataFromSupabase()};
-CurrencyStore.remove = async function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;if(!await ui117.confirm(`Remove currency ${code}?`)||!isCurrent())return;const{error}=await db.from('currencies').delete().eq('code',code);if(!isCurrent())return;if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase()};
+CurrencyStore.edit = async function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const current=this.currencies.find(c=>c.code===code);if(!current)return;const name=await ui117.prompt(`Currency name for ${code}:`,current.name);if(name===null||!isCurrent())return;const symbol=await ui117.prompt(`Symbol for ${code}:`,current.symbol);if(symbol===null||!isCurrent())return;const{error}=await db.from('currencies').update({name:name.trim(),symbol:symbol.trim()}).eq('code',code);if(!isCurrent())return;if(error){showAppNotification('Currency Update Failed',error.message,true);return}await loadReferenceDataFromSupabase({databaseOnly:true})};
+CurrencyStore.remove = async function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;if(!await ui117.confirm(`Remove currency ${code}?`)||!isCurrent())return;const{error}=await db.from('currencies').delete().eq('code',code);if(!isCurrent())return;if(error){showAppNotification('Currency Delete Failed','The currency may still be linked to accounts or transactions.',true);return}await loadReferenceDataFromSupabase({databaseOnly:true})};
 
 // The legacy database flag is asset-only; automatic report tracking is derived from currency for every account type.
 handleAccountFormSubmit = async function(event){
@@ -2816,7 +2815,7 @@ handleAccountFormSubmit = async function(event){
     saved=true;
     if(sameEditor())closeModal('modalAccount');
     if(groupId)await window.AccountGroups143180?.load(true).catch(()=>{if(isCurrent())showCenterStatus('Account saved. Reopen the chart to refresh its group.',true);});
-    if(isCurrent())await loadReferenceDataFromSupabase();
+    if(isCurrent()){await loadReferenceDataFromSupabase({databaseOnly:true});if(isCurrent())showCenterStatus(parent?'Parent account saved to the database. You can now create its sub-accounts.':'Account saved to the database.');}
   }catch(error){
     if(!isCurrent())return;
     const message=error.message||'The request was interrupted.';
@@ -2825,7 +2824,7 @@ handleAccountFormSubmit = async function(event){
     if(form.accountSave143182===operation){delete form.accountSave143182;if(button)button.disabled=wasDisabled;}
   }
 };
-promptDeleteAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('accounts').delete().eq('id',acc.id);if(!isCurrent())return;if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
+promptDeleteAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('accounts').delete().eq('id',acc.id);if(!isCurrent())return;if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
 handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
   event.preventDefault();
   const form=document.getElementById('formSubAccount');
@@ -2841,22 +2840,22 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
   const existing=AccountingStore.subAccounts.find(s=>s.code===original);
   const button=form.querySelector('[type=submit]');
   if(button.disabled)return;
-  button.disabled=true;
+  button.disabled=true;let confirmed=false;
   try{
     if(!isCurrent())return;const query=existing?db.from('sub_accounts').update(payload).eq('id',existing.id):db.from('sub_accounts').insert(payload);
     const {error}=await query;
     if(!isCurrent())return;if(error)throw error;
-    closeModal('modalSubAccount');
-    await loadReferenceDataFromSupabase();
+    confirmed=true;closeModal('modalSubAccount');
+    await loadReferenceDataFromSupabase({databaseOnly:true});
     if(!isCurrent())return;const saved=AccountingStore.subAccounts.find(s=>s.code===payload.code);if(!saved?.postingAccountId14285)showAppNotification('Sub-account saved','Run setup/INSTALL-SUBACCOUNT-POSTING-REPAIR-v142.87.sql to make sub-accounts available in the chart and posting account picker.',true);
   }catch(error){
     if(!isCurrent())return;const message=/currency_code/i.test(error.message||'')&&['PGRST204','42703'].includes(error.code)
       ?'Run setup/INSTALL-SUBACCOUNT-CURRENCY-v142.16.sql once in Supabase, then save again.'
       :error.message||'The sub-account could not be saved.';
-    showAppNotification('Sub-Account Save Failed',message,true);
+    showAppNotification(confirmed?'Sub-account Saved — Refresh Incomplete':'Sub-Account Save Failed',confirmed?'Your sub-account was saved to the database. Reopen the chart to refresh its details.':message,true);
   }finally{button.disabled=false}
 };
-promptDeleteSubAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('sub_accounts').delete().eq('id',sub.id);if(!isCurrent())return;if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase()}};
+promptDeleteSubAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('sub_accounts').delete().eq('id',sub.id);if(!isCurrent())return;if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
 
 async function loadBusinessSettingsFromSupabase() {
   const owner=liveProfile?.id,db=ojmDb;if(!owner||!db)return;
