@@ -38,6 +38,28 @@ async function sheetRequest(c:any,path:string,method='GET',body?:unknown){
  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(c.sheet)+path,{method,headers:{Authorization:'Bearer '+await googleToken(c),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(25000)});
  if(!r.ok)throw Error('Google Sheets request failed ('+r.status+'). Check workbook access or reconnect Google.');return r.status===204?{}:r.json();
 }
+// The database owns the Accounts copy, including when no Accounting browser is open.
+async function readAccounts(){
+ const rows:any[]=[];
+ for(let offset=0;;offset+=500){
+  const page=checked(await admin.from('accounts').select('id,code,name,currency_code,currency_label,account_type,is_posting,is_active,account_purpose,parent_code,is_technical,description').eq('is_active',true).order('code').order('id').range(offset,offset+499));
+  rows.push(...page);if(rows.length>10000)throw Error('Account list exceeds 10,000 accounts.');if(page.length<500)return rows;
+ }
+}
+async function syncAccounts(c:any,accounts:any[]){
+ const head=['account_id','account_code','name','currency','category','posting','purpose','refreshed_at'];
+ const cells=accounts.map(a=>[a.id,a.code,a.name,a.currency_code,a.account_type,a.is_posting,a.account_purpose||'regular']);
+ const previous=await sheetRequest(c,'/values/Accounts!A1:H10002?valueRenderOption=UNFORMATTED_VALUE');
+ const old=previous.values||[];
+ if(JSON.stringify(old[0])===JSON.stringify(head)&&JSON.stringify(old.slice(1).map((r:any[])=>r.slice(0,7)))===JSON.stringify(cells))return {count:accounts.length,changed:false};
+ const meta=await sheetRequest(c,'?fields=sheets.properties'),tab=meta.sheets?.find((s:any)=>s.properties.title==='Accounts')?.properties;
+ if(!tab)throw Error('Accounts tab is missing.');
+ const stamp=new Date().toISOString(),values=[head,...cells.map(row=>[...row,stamp])],count=Math.max(values.length,old.length),requests:any[]=[];
+ if(count>10001)throw Error('Accounts sheet exceeds its row limit.');
+ if(count>tab.gridProperties.rowCount)requests.push({updateSheetProperties:{properties:{sheetId:tab.sheetId,gridProperties:{rowCount:count}},fields:'gridProperties.rowCount'}});
+ requests.push({updateCells:{range:{sheetId:tab.sheetId,startRowIndex:0,endRowIndex:count,startColumnIndex:0,endColumnIndex:8},rows:values.map(row=>({values:row.map(v=>({userEnteredValue:typeof v==='boolean'?{boolValue:v}:typeof v==='number'?{numberValue:v}:{stringValue:String(v??'')}}))})),fields:'userEnteredValue'}});
+ await sheetRequest(c,':batchUpdate','POST',{requests});return {count:accounts.length,changed:true};
+}
 // Publish only the configured workbook, from one database snapshot; never accept client rates.
 async function syncAccountRates(c:any){
  const snapshot=checked(await admin.rpc('account_exchange_rates143186'));
@@ -56,6 +78,7 @@ async function syncAccountRates(c:any){
 }
 
 async function poll(c:any){
+ let accounts:any;try{accounts=await syncAccounts(c,await readAccounts());}catch(e){accounts={error:(e as Error).message};}
  const data=await sheetRequest(c,'/values/Drafts!A1:A10002?valueRenderOption=UNFORMATTED_VALUE'),rows=data.values||[];
  if(rows.length>10001||rows[0]?.[0]!=='draft_id')throw Error('Draft sheet headers or row limit need review.');
  const positions=new Map<string,number>();for(let i=1;i<rows.length;i++){const id=String(rows[i][0]||'');if(!id)continue;if(!/^[\w-]{8,64}$/.test(id))throw Error('A draft ID needs correction in Google Sheets.');if(!positions.has(id))positions.set(id,i+1);}
@@ -65,7 +88,9 @@ async function poll(c:any){
  const missing=[...positions].filter(([id])=>!groups.has(id));for(let i=0;i<missing.length;i+=100){const batch=missing.slice(i,i+100),result=await sheetRequest(c,'/values:batchGet?'+batch.map(([,row])=>'ranges='+encodeURIComponent('Drafts!A'+row+':C'+row)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');for(let n=0;n<batch.length;n++){const row=result.valueRanges?.[n]?.values?.[0];if(!row||String(row[0])!==batch[n][0])throw Error('Draft rows moved during the notification check. The next check will retry.');groups.set(row[0],{noticeId:row[0],type:'AI Journal draft',title:String(row[2]||'Journal draft'),detail:String(row[1]||''),target:'ai-journal'});}}
  checked(await admin.from('google_inbox143150').upsert({sheet:c.sheet,notices:[...groups.values()],checked_at:new Date().toISOString(),error:null}));
  let rates:any;try{rates=await syncAccountRates(c);}catch(e){rates={error:(e as Error).message};}
- return {count:groups.size,rates};
+ const issue=[accounts?.error,rates?.error].filter(Boolean).join(' · ');
+ if(issue)checked(await admin.from('google_inbox143150').update({error:issue}).eq('sheet',c.sheet));
+ return {count:groups.size,accounts,rates};
 }
 
 // Only the fixed configured workbook and the three journal tabs are reachable.
@@ -80,7 +105,12 @@ async function proxy(c:any,path:string,method:string,body:any){
    const d=r.deleteDimension?.range;if(d)return d.sheetId===tabs.Drafts&&d.dimension==='ROWS'&&Number.isInteger(d.startIndex)&&d.startIndex>=1&&d.endIndex===d.startIndex+1;
    const u=r.updateCells;if(u)return u.range?.sheetId===tabs.Accounts&&u.range.startRowIndex===0&&u.range.startColumnIndex===0&&u.range.endColumnIndex===8&&u.range.endRowIndex<=20000&&u.fields==='userEnteredValue'&&Array.isArray(u.rows)&&u.rows.length<=10001;
    const p=r.updateSheetProperties;return p?.properties?.sheetId===tabs.Accounts&&p.fields==='gridProperties.rowCount'&&Number.isInteger(p.properties.gridProperties?.rowCount)&&p.properties.gridProperties.rowCount<=10001;
-  });if(valid)return sheetRequest(c,path,method,body);
+  });if(valid){
+   // Older browsers may send an old cached chart. Replace it from the database.
+   const chartWrite=body.requests.some((r:any)=>r.updateCells||r.updateSheetProperties);
+   if(chartWrite){if(body.requests.some((r:any)=>r.deleteDimension))throw Error('Do not mix chart and draft changes.');return syncAccounts(c,await readAccounts());}
+   return sheetRequest(c,path,method,body);
+  }
  }
  throw Error('Unsupported journal sheet operation');
 }
@@ -145,6 +175,10 @@ export async function handler(req:Request){
    if(body.action==='news-history')return reply({sheet:cfg.sheet,history});
    return reply({sheet:cfg.sheet,feed:await readNews(c),history});
   }
+  if(body.action==='accounts-sync'){
+   const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');
+   const accounts=await readAccounts();await syncAccounts(c,accounts);return reply({accounts});
+  }
   if(body.action==='inboxes-read'){
    const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');
    const isAdmin=await a.user.rpc('is_admin');if(isAdmin.error)throw Error('HR permission check failed');
@@ -181,7 +215,10 @@ export async function handler(req:Request){
     for(let offset=0;;offset+=500){const r=await a.user.from('hr_inbox143168').select('request_id,version').eq('sheet',cfg.sheet).order('request_id').range(offset,offset+499);if(r.error)throw Error('HR versions unavailable');for(const row of r.data)if(versions[row.request_id]!==row.version)changedIds.push(row.request_id);if(r.data.length<500)break;}
     hr.records=[];for(let offset=0;offset<changedIds.length;offset+=100){const r=await a.user.from('hr_inbox143168').select('*').eq('sheet',cfg.sheet).in('request_id',changedIds.slice(offset,offset+100));if(r.error)throw Error('HR drafts unavailable');hr.records.push(...r.data);}
    }
-   return reply({sheet:cfg.sheet,journal,hr});
+   const accounts=await readAccounts();let referenceError='';try{await syncAccounts(c,accounts);}catch(e){referenceError=(e as Error).message;}
+   journal.accounts=accounts;journal.accountHash=await hash(JSON.stringify(accounts));
+   if(!journal.dispositions){const statuses=await a.user.rpc('drive_draft_dispositions143160',{p_sheet:cfg.sheet});if(statuses.error)throw Error('Journal review status unavailable');journal.dispositions=statuses.data||[];}
+   return reply({sheet:cfg.sheet,journal,hr,referenceError});
   }
   if(['hr-read','hr-status'].includes(body.action)){
    const isAdmin=await a.user.rpc('is_admin');if(isAdmin.error||isAdmin.data!==true)throw Error('HR administrator required');

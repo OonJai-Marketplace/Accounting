@@ -2759,8 +2759,8 @@ function applyLiveRoleAccess() {
   const title=document.getElementById('submissionTableTitle'); if(title)title.textContent=user.role==='admin'?'Submission Review Queue':'My Submissions';
 }
 
-let referenceLoadSerial14370=0;
-async function loadReferenceDataFromSupabase({databaseOnly=false}={}) {
+let referenceLoadSerial14370=0,referenceSignature143190='',referenceOwner143190='',referenceClient143190=null;
+async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=false}={}) {
   const actor=liveProfile?.id,db=ojmDb,serial=++referenceLoadSerial14370;
   const read=table=>{const query=db.from(table).select('*').eq('is_active',true).order('code');return databaseOnly?query.setHeader('x-ojm-database-only','1'):query};
   const [{data:currencies,error:currencyError},{data:accounts,error:accountError},{data:subs,error:subError}] = await Promise.all([
@@ -2768,12 +2768,17 @@ async function loadReferenceDataFromSupabase({databaseOnly=false}={}) {
   ]);
   if(liveProfile?.id!==actor||ojmDb!==db||serial!==referenceLoadSerial14370)throw Error('Reference data request was superseded.');
   if(currencyError||accountError||subError) throw new Error((currencyError||accountError||subError).message);
+  const signature=JSON.stringify([currencies,accounts,subs]);
+  const changed=referenceOwner143190!==actor||referenceClient143190!==db||referenceSignature143190!==signature;
+  if(onlyIfChanged&&!changed)return;
+  referenceOwner143190=actor;referenceClient143190=db;referenceSignature143190=signature;
   CurrencyStore.currencies=(currencies||[]).map(c=>({code:c.code,name:c.name,symbol:c.symbol,isBase:c.is_base}));
   AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,baseType:a.account_type,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true,trackForeignFunds:a.is_posting!==false&&!!a.currency_code&&!['LAK','NA'].includes(a.currency_code)}));
   const byId=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
   AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
   for(const sub of AccountingStore.subAccounts){const posting=byId.get(sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
   CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
+  if(databaseOnly&&changed)window.dispatchEvent(new Event('reference-updated143190'));
 }
 
 CurrencyStore.add = async function(code,name,symbol){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
@@ -2884,6 +2889,24 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
 };
 promptDeleteSubAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('sub_accounts').delete().eq('id',sub.id);if(!isCurrent())return;if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
 
+
+// Keep reference data current without reloading the page or replacing journal edits.
+(()=>{let job=null,last=0,owner='',client=null;
+ async function refresh(force=false){
+  if(typeof liveProfile==='undefined'||!liveProfile?.id||typeof ojmDb==='undefined'||!ojmDb||document.hidden||navigator.onLine===false||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)return;
+  if(owner!==liveProfile.id||client!==ojmDb){owner=liveProfile.id;client=ojmDb;last=0;}
+  if(job||window.startup14257?.preparing||window.startup14257?.dataReady===false||document.querySelector('.modal.active,dialog[open],.ui-overlay108')||!force&&Date.now()-last<30000)return;
+  const actor=owner,db=client;last=Date.now();
+  const task=loadReferenceDataFromSupabase({databaseOnly:true,onlyIfChanged:true});job=task;
+  try{await task;if(actor===liveProfile?.id&&db===ojmDb)window.idleSync14341?.areaUpdated('reference');}
+  catch(e){if(actor===liveProfile?.id&&db===ojmDb&&!/superseded/.test(e.message))window.idleSync14341?.areaStatus('reference','failed');}
+  finally{if(job===task)job=null;}
+ }
+ setInterval(()=>void refresh(),30000);
+ for(const event of ['focus','online'])window.addEventListener(event,()=>void refresh(true));
+ window.addEventListener('page113',()=>void refresh());
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh(true);});
+})();
 async function loadBusinessSettingsFromSupabase() {
   const owner=liveProfile?.id,db=ojmDb;if(!owner||!db)return;
   const before=collectBusinessSettings(),prior=BusinessSettings.current;
