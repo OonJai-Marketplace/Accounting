@@ -5,7 +5,7 @@ const fields='.je-line-acc,.je-line-memo,.je-line-dr,.je-line-cr';
 // Explicit form ownership keeps transaction fields separate from credential forms.
 window.markJournalInput143127=function(input){if(!input.closest?.('#journalEntry98'))return;let form=document.getElementById('journalDataForm143127');if(!form){form=document.createElement('form');form.id='journalDataForm143127';form.hidden=true;form.autocomplete='off';form.addEventListener('submit',e=>e.preventDefault());document.body.append(form);}input.setAttribute('form',form.id);input.setAttribute('autocomplete','off');input.setAttribute('data-form-type','other');input.setAttribute('data-1p-ignore','true');input.setAttribute('data-lpignore','true');};
 let selected=null,editor=null;
-const eligible=n=>!!n?.matches?.(fields)&&!!n.closest('#jeLinesBody')&&!n.disabled&&!n.readOnly&&document.documentElement.dataset.device132!=='phone'&&matchMedia('(min-width:641px)').matches;
+const eligible=n=>!!n?.matches?.(fields)&&!n.classList.contains('memo-link-value143187')&&!!n.closest('#jeLinesBody')&&!n.disabled&&!n.readOnly&&document.documentElement.dataset.device132!=='phone'&&matchMedia('(min-width:641px)').matches;
 const inputAt=target=>target.closest?.('#jeLinesBody td')?.querySelector(fields);
 function clear(){selected?.closest('td')?.classList.remove('cell-selected143116','cell-editing143116');selected=null;editor=null;}
 function select(input){if(!eligible(input))return false;clear();window.dropdown1434?.close();selected=input;const cell=input.closest('td');cell.classList.add('cell-selected143116');cell.tabIndex=-1;cell.focus({preventScroll:true});return true;}

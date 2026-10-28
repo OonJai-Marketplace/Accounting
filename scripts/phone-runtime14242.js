@@ -1,3 +1,59 @@
+/* Journal description links */
+/* Portable description links. The existing text fields remain the durable value;
+   only [label](https://source) is interpreted, never HTML or executable URLs. */
+(()=>{'use strict';if(window.JournalMemoLinks143187)return;
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function url(value){const text=String(value||'').trim();if(!/^https?:\/\//i.test(text)||/[\u0000-\u0020\u007f]/.test(text))return '';try{const u=new URL(text);return ['http:','https:'].includes(u.protocol)&&u.hostname&&!u.username&&!u.password?u.href:'';}catch{return '';}}
+const label=v=>String(v).replace(/\\/g,'\\\\').replace(/[\[\]]/g,'\\$&');
+function link(text,href){const safe=url(href);if(!safe)throw Error('Enter a full http:// or https:// link.');return '['+label(text)+']('+safe.replace(/[()]/g,c=>c==='('? '%28':'%29')+')';}
+function parts(value){const text=String(value??''),out=[],re=/\[((?:\\[\\\[\]]|[^\]\\\r\n])+)\]\((https?:\/\/[^\s()]+)\)/gi;let at=0,m;while((m=re.exec(text))){const href=url(m[2]);if(!href)continue;if(m.index>at)out.push({text:text.slice(at,m.index)});out.push({text:m[1].replace(/\\([\\\[\]])/g,'$1'),href});at=re.lastIndex;}if(at<text.length)out.push({text:text.slice(at)});return out;}
+function html(value){return parts(value).map(p=>p.href?'<a class="journal-source-link143187" href="'+esc(p.href)+'" target="_blank" rel="noopener noreferrer" title="'+esc(p.href)+'">'+esc(p.text)+'</a>':esc(p.text).replace(/\r?\n/g,'<br>')).join('');}
+function plain(value){return parts(value).map(p=>p.href?p.text+' ('+p.href+')':p.text).join('');}
+window.journalMemoHtml143187=html;
+function forLine(line){const memo=String(line.memo||line.description||line.generalMemo||''),seen=new Set(parts(memo).filter(p=>p.href).map(p=>p.href));const extra=parts(line.generalMemo||'').filter(p=>p.href&&!seen.has(p.href));return memo+(extra.length?'\n'+extra.map(p=>link(p.text,p.href)).join(' · '):'');}
+window.journalMemoValue143187=forLine;
+
+// Cover read-only descriptions copied into legacy views and document previews.
+// Never walk editing controls, attributes or existing links.
+function decorate(root){if(!root||root.closest?.('script,style,textarea,select,option,button,a,pre,code,[contenteditable],.memo-link-editor143187,dialog#memoLinkDialog143187'))return;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.data.includes('](')&&!n.parentElement?.closest('script,style,textarea,select,option,button,a,pre,code,[contenteditable],.memo-link-editor143187,#memoLinkDialog143187')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+ for(const n of nodes){if(!parts(n.data).some(p=>p.href))continue;const t=document.createElement('template');t.innerHTML=html(n.data);n.replaceWith(t.content);}
+}
+const selector='#jeGeneralMemo,.je-line-memo,#simpleRows1430 [data-simple="memo"],#aiPreparation143160 input[data-field="description"],#aiPreparation143160 input[data-field="line_memo"]';
+const editors=new WeakMap();let seq=0;
+function serialize(root){let text='';for(const n of root.childNodes){if(n.nodeType===3)text+=n.data;else if(n.nodeType===1){if(n.tagName==='BR')text+='\n';else if(n.tagName==='A'&&url(n.getAttribute('href'))&&n.textContent)text+=link(n.textContent,n.getAttribute('href'));else{if(['DIV','P'].includes(n.tagName)&&text&&!text.endsWith('\n'))text+='\n';text+=serialize(n);}}}return text;}
+function rangeFor(editor){const sel=getSelection();if(sel.rangeCount&&editor.contains(sel.anchorNode)&&editor.contains(sel.focusNode))return sel.getRangeAt(0).cloneRange();const r=document.createRange();r.selectNodeContents(editor);r.collapse(false);return r;}
+function restore(r){const s=getSelection();s.removeAllRanges();s.addRange(r);}
+function insert(editor,markup,range){editor.focus();restore(range);document.execCommand('insertHTML',false,markup);editor.dispatchEvent(new Event('input',{bubbles:true}));}
+function dialog(state){const {field,editor}=state;if(field.disabled||field.readOnly)return;document.getElementById('memoLinkDialog143187')?.close();const original=field.value,actor=typeof liveProfile==='undefined'?null:liveProfile?.id;
+ let applied=false;let range=rangeFor(editor),node=range.startContainer.nodeType===1?range.startContainer:range.startContainer.parentElement,anchor=node.closest?.('a');if(!editor.contains(anchor))anchor=null;if(anchor){range=document.createRange();range.selectNode(anchor);}
+ const d=document.createElement('dialog');d.id='memoLinkDialog143187';d.setAttribute('aria-labelledby','memoLinkTitle143187');d.innerHTML='<form><h3 id="memoLinkTitle143187">'+(anchor?'Edit link':'Insert link')+'</h3><label>Display text<input name="label" required autocomplete="off"></label><label>Link URL<input name="url" type="url" required placeholder="https://" autocomplete="off"></label><p role="alert"></p><footer><button type="button" class="je-btn" data-cancel>Cancel</button>'+(anchor?'<button type="button" class="je-btn" data-remove>Remove link</button>':'')+'<button type="submit" class="je-btn je-btn-emerald">Save link</button></footer></form>';
+ const name=d.querySelector('[name=label]'),href=d.querySelector('[name=url]'),error=d.querySelector('[role=alert]');name.value=anchor?.textContent||range.toString();href.value=anchor?.href||'';
+ const valid=()=>{if(!field.isConnected||field.disabled||field.readOnly||field.value!==original||(typeof liveProfile==='undefined'?null:liveProfile?.id)!==actor){error.textContent='The entry changed. Close this dialog and open the link again.';return false;}return true;};
+ d.querySelector('form').onsubmit=e=>{e.preventDefault();if(!valid())return;try{const text=name.value.trim();if(!text)throw Error('Enter display text.');const value=link(text,href.value);applied=true;d.close();insert(editor,html(value),range);}catch(e){error.textContent=e.message;}};
+ d.querySelector('[data-remove]')?.addEventListener('click',()=>{if(!valid())return;applied=true;d.close();editor.focus();restore(range);document.execCommand('unlink',false);editor.dispatchEvent(new Event('input',{bubbles:true}));});d.querySelector('[data-cancel]').onclick=()=>d.close();d.addEventListener('close',()=>{d.remove();if(field.isConnected&&!applied){editor.focus();restore(range);}});document.body.append(d);d.showModal();(name.value?href:name).focus();
+}
+function enhance(field){if(editors.has(field)||!['INPUT','TEXTAREA'].includes(field.tagName))return;const wrap=document.createElement('span'),editor=document.createElement('span'),button=document.createElement('button');wrap.className='memo-link-editor143187';editor.className='memo-link-text143187';editor.id='memoLinkText143187-'+(++seq);editor.setAttribute('role','textbox');editor.setAttribute('aria-multiline','true');editor.setAttribute('aria-label',field.getAttribute('aria-label')||(field.id==='jeGeneralMemo'?'General description':'Line memo'));editor.dataset.placeholder=field.placeholder||'';button.type='button';button.className='je-btn memo-link-button143187 no-print';button.textContent='↗';button.title='Insert or edit link (Ctrl+K / ⌘K)';button.setAttribute('aria-label','Insert or edit link');
+ field.before(wrap);wrap.append(field,editor,button);field.classList.add('memo-link-value143187');field.tabIndex=-1;field.setAttribute('aria-hidden','true');const proto=Object.getOwnPropertyDescriptor(field.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value');let rawValue=proto.get.call(field);const initial=field.getAttribute('value');if(initial&&initial.replace(/[\r\n]/g,'')===rawValue)rawValue=initial;const state={field,editor,button};editors.set(field,state);
+ const draw=()=>{editor.innerHTML=html(rawValue).replace(/\n/g,'<br>');},sync=()=>{editor.contentEditable=String(!field.disabled&&!field.readOnly);editor.setAttribute('aria-disabled',String(field.disabled));button.disabled=field.disabled||field.readOnly;};
+ Object.defineProperty(field,'value',{configurable:true,get(){return rawValue},set(v){rawValue=String(v??'');proto.set.call(this,rawValue);draw();}});const focus=field.focus.bind(field);field.focus=options=>editor.isConnected?editor.focus(options):focus(options);field.blur=()=>editor.blur();field.select=()=>{editor.focus();const r=document.createRange();r.selectNodeContents(editor);restore(r);};
+ editor.addEventListener('input',e=>{e.stopPropagation();rawValue=serialize(editor);proto.set.call(field,rawValue);field.dispatchEvent(new Event('input',{bubbles:true}));});editor.addEventListener('blur',()=>field.dispatchEvent(new Event('change',{bubbles:true})));
+ editor.addEventListener('paste',e=>{e.preventDefault();const text=e.clipboardData?.getData('text/plain')||'';insert(editor,html(text).replace(/\n/g,'<br>'),rangeFor(editor));});editor.addEventListener('drop',e=>e.preventDefault());
+ for(const type of ['copy','cut'])editor.addEventListener(type,e=>{const r=rangeFor(editor);if(r.collapsed||!e.clipboardData)return;const fragment=r.cloneContents();e.clipboardData.setData('text/plain',serialize(fragment));e.preventDefault();if(type==='cut')insert(editor,'',r);});
+ editor.addEventListener('click',e=>{const a=e.target.closest('a');if(a&&(e.ctrlKey||e.metaKey)){e.preventDefault();window.open(a.href,'_blank','noopener,noreferrer');}});
+ button.addEventListener('pointerdown',e=>e.preventDefault());button.onclick=()=>dialog(state);draw();sync();new MutationObserver(sync).observe(field,{attributes:true,attributeFilter:['disabled','readonly']});
+}
+function scan(root){if(root.nodeType!==1&&root.nodeType!==9)return;if(root.matches?.(selector))enhance(root);root.querySelectorAll?.(selector).forEach(enhance);decorate(root);}
+function ready(){const style=document.createElement('style');style.textContent=`.journal-source-link143187{color:#1465a8;text-decoration:underline;overflow-wrap:anywhere}.memo-link-editor143187{display:flex;align-items:flex-start;gap:4px;min-width:0;width:100%}.memo-link-value143187{display:none!important}.memo-link-text143187{display:block;flex:1;min-width:0;min-height:32px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;white-space:pre-wrap;overflow-wrap:anywhere;background:transparent;font:inherit;line-height:1.4}.memo-link-text143187:empty:before{content:attr(data-placeholder);color:#64748b}.memo-link-text143187:focus{outline:1px solid #60a5fa}.memo-link-text143187[aria-disabled=true]{opacity:.6}td .memo-link-text143187{border:0;border-radius:0;padding:4px}.memo-link-button143187{height:32px!important;min-height:32px!important;width:32px;padding:0!important;flex:0 0 32px}#memoLinkDialog143187{border:1px solid #cbd5e1;border-radius:10px;padding:20px;max-width:440px;width:calc(100% - 32px);color:#18392e}#memoLinkDialog143187::backdrop{background:#0006}#memoLinkDialog143187 label{display:block;margin:12px 0}#memoLinkDialog143187 input{display:block;width:100%;padding:8px;box-sizing:border-box}#memoLinkDialog143187 footer{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}#memoLinkDialog143187 [role=alert]{color:#b91c1c} @media print{.memo-link-button143187{display:none!important}.journal-source-link143187{color:inherit}}`;document.head.append(style);
+ scan(document.body);const pending=new Set();let timer;new MutationObserver(records=>{for(const r of records){if(r.type==='characterData'){if(r.target.parentElement&&!r.target.parentElement.closest('.memo-link-editor143187'))pending.add(r.target.parentElement);}else for(const n of r.addedNodes){if(n.nodeType===1&&!n.closest('.memo-link-editor143187'))pending.add(n);else if(n.nodeType===3&&n.parentElement&&!n.parentElement.closest('.memo-link-editor143187'))pending.add(n.parentElement);}}if(pending.size&&!timer)timer=setTimeout(()=>{timer=null;for(const n of pending)if(n.isConnected)scan(n);pending.clear();},0);}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&!e.altKey){const wrap=e.target.closest?.('.memo-link-editor143187'),field=wrap?.querySelector(selector);if(field){e.preventDefault();e.stopImmediatePropagation();dialog(editors.get(field));}}},true);
+ // A saved link opens independently of row navigation or entry selection.
+ document.addEventListener('click',e=>{if(e.target.closest?.('a.journal-source-link143187')&&!e.target.closest('[contenteditable]'))e.stopPropagation();},true);
+}
+window.JournalMemoLinks143187={html,plain,parts,link,url,forLine,decorate,enhance,scan,field:n=>n?.closest?.('.memo-link-editor143187')?.querySelector(selector)};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+})();
+;
 /* Calendar defaults use the device's local civil day, matching native date inputs.
    ISO timestamps remain UTC for storage, audit events and synchronization. */
 function appLocalDate(date=new Date()) {
@@ -8,7 +64,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.186', $ = id => document.getElementById(id);
+  const VERSION = '143.187', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

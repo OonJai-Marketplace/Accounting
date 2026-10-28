@@ -22,7 +22,7 @@ assert.equal(await page.locator('[data-draft-action="post"]').count(),2);
 const checkTop=async()=>{await page.waitForTimeout(300);const pos=await page.evaluate(()=>({heading:document.getElementById('transactionsHeading98').getBoundingClientRect().top,prep:document.getElementById('aiPreparation143160').getBoundingClientRect().top,root:document.scrollingElement.scrollTop,scroll:appWorkspaceScroller().scrollTop}));assert.ok(pos.heading>=0,JSON.stringify(pos));assert.ok(pos.prep>=0,JSON.stringify(pos));assert.equal(pos.root,0);assert.equal(pos.scroll,0);};
 await checkTop();
 for(let i=0;i<2;i++){await page.evaluate(()=>appWorkspaceScroller().scrollTo({top:900,behavior:'instant'}));await page.locator('[data-section14378="AI Journal"]').click();await page.locator('[data-section14378="Journal"]').click();await checkTop();}
-const a=page.locator('[data-prepared-draft="draft-0001"]');await a.locator('[data-field="description"]').fill('Reviewed withdrawal');
+const a=page.locator('[data-prepared-draft="draft-0001"]');await a.locator('[data-field="description"] + .memo-link-text143187').fill('Reviewed withdrawal');
 await page.waitForFunction(()=>document.querySelectorAll('#aiPreparation143160 .account-search1428').length===4);
 await a.locator('.account-search1428').first().click();await page.locator('.account-options14266 [role="option"]').last().click();
 assert.equal(await a.locator('[data-field="description"]').inputValue(),'Reviewed withdrawal');

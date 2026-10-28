@@ -1,8 +1,9 @@
 {
-  "version": "143.186",
+  "version": "143.187",
   "changes": [
-    "Compare entered FX and book rates with each account’s average below Journal and AI Journal transactions.",
-    "Offline account averages include local changes and are labelled as device estimates. Online posting rechecks averages without replacing entered rates.",
-    "The Google Sheets Account Exchange Rates tab refreshes from posted database records through the background connection. Unsynced device work is excluded."
+    "Add labelled source links to journal general descriptions and line memos with Insert link or Ctrl+K / Command+K, including AI Journal preparation.",
+    "Source links follow descriptions into journal review, ledger details and printed reports. General-description links remain accessible beside distinct ledger line memos.",
+    "Compare entered FX and book rates with per-account averages before Journal and AI Journal posting, with clear offline device estimates.",
+    "The Google Sheets Account Exchange Rates tab publishes posted database balances; source links also survive ChatGPT submissions and offline drafts."
   ]
 }
