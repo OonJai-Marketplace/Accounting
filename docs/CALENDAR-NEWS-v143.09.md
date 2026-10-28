@@ -1,3 +1,5 @@
+> Superseded by [News via Google Sheets v143.189](NEWS-SHEETS-v143.189.md). The public JSON publication route described below is historical and must not be used. Research writes only News Drafts in the shared workbook; see LOCAL-EVENTS-SETUP.txt.
+
 # Calendar and local news — v143.09
 
 The user requested a weekly Monday-morning information watch for Lao holiday/date changes and restaurant opportunities, including food fairs, vegetarian/vegan events, traditional festivals and major local gatherings. ALL titles, summaries, location descriptions, uncertainty notes and suggestions must be in English. Translate Lao announcements faithfully and retain their original source URL and language. Label uncertain translations, dates and conflicting reports. Never invent an event or infer a Lao event from a Thai festival.

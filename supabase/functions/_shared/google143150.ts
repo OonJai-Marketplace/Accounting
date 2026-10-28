@@ -84,6 +84,29 @@ async function proxy(c:any,path:string,method:string,body:any){
  }
  throw Error('Unsupported journal sheet operation');
 }
+// News is read only from the configured Google workbook; history comes from confirmed calendar records.
+const newsHeaders=['news_id','revision','section','category','title','summary','location','start','end','confidence','event_status','sources_json','uncertainty','action_suggestion','checked_at'];
+const historyHeaders=['news_id','revision','section','title','start','end','attendance_effect','calendar_status','approved_at','approved_by','summary','sources_json','approval_key','record_status'];
+async function readNews(c:any){
+ const r=await sheetRequest(c,'/values/'+encodeURIComponent("'News Drafts'!A1:O502")+'?valueRenderOption=UNFORMATTED_VALUE');
+ const rows=r.values||[];if(JSON.stringify(rows[0])!==JSON.stringify(newsHeaders)||rows.length>501)throw Error('News Drafts headers or 500-item limit need review.');
+ const items=rows.slice(1).filter((r:any[])=>r.some(v=>v!==''&&v!=null)).map((r:any[])=>{const v=Object.fromEntries(newsHeaders.map((k,i)=>[k,String(r[i]??'')]));let sources;try{sources=JSON.parse(v.sources_json)}catch{throw Error('News sources need valid JSON: '+v.news_id)}return {id:v.news_id,revision:v.revision,section:v.section,category:v.category,title:v.title,summary:v.summary,location:v.location,start:v.start||null,end:v.end||null,confidence:v.confidence,eventStatus:v.event_status||'scheduled',sources,uncertainty:v.uncertainty,restaurantIdea:v.action_suggestion,checkedAt:v.checked_at};});
+ return {schema:1,language:'en',checkedAt:items.map((p:any)=>p.checkedAt).filter(Boolean).sort().at(-1)||new Date().toISOString().slice(0,10),items};
+}
+async function syncNewsHistory(c:any,user:any){
+ const r=await user.from('hr_calendar_settings14306').select('data,version').eq('id',true).maybeSingle();if(r.error)throw Error('Calendar history could not be verified.');
+ const data=r.data?.data||{},history=new Map<string,any>();
+ for(const h of data.newsCalendarHistory143189||[])history.set(h.id+':'+h.newsRevision14309,h);
+ for(const e of data.approvedCalendarNews14309||[]){const d=data.calendarNewsDecisions14309?.[e.id];if(e.newsRevision14309)history.set(e.id+':'+e.newsRevision14309,{...e,approvedAt:e.approvedAt||d?.at||e.updatedAt||'',approvedBy:e.approvedBy||''});}
+ const values=[historyHeaders,...[...history].sort(([a],[b])=>a.localeCompare(b)).map(([key,e])=>[e.id,e.newsRevision14309||'',e.newsSection143189||'community',e.title,e.start,e.end,e.effect||'none',e.status||'scheduled',e.approvedAt||'',e.approvedBy||'',e.newsSummary143189||e.notes||'',JSON.stringify(e.sources||[]),key,'Added to Calendar'])];
+ const old=await sheetRequest(c,'/values/'+encodeURIComponent("'News Calendar History'!A1:N10002")+'?valueRenderOption=UNFORMATTED_VALUE');
+ if(JSON.stringify(old.values||[])===JSON.stringify(values))return {count:history.size};
+ const meta=await sheetRequest(c,'?fields=sheets.properties'),tab=meta.sheets?.find((s:any)=>s.properties.title==='News Calendar History')?.properties;if(!tab)throw Error('News Calendar History tab is missing.');
+ const count=Math.max(values.length,old.values?.length||1);if(count>10001)throw Error('News history exceeds 10,000 approvals.');
+ const requests:any[]=[];if(count>tab.gridProperties.rowCount)requests.push({updateSheetProperties:{properties:{sheetId:tab.sheetId,gridProperties:{rowCount:count}},fields:'gridProperties.rowCount'}});
+ requests.push({updateCells:{range:{sheetId:tab.sheetId,startRowIndex:0,endRowIndex:count,startColumnIndex:0,endColumnIndex:14},rows:values.map(row=>({values:row.map(v=>({userEnteredValue:{stringValue:String(v??'')}}))})),fields:'userEnteredValue'}});
+ await sheetRequest(c,':batchUpdate','POST',{requests});return {count:history.size};
+}
 export async function handler(req:Request){
  try{
   if(req.headers.get('origin')&&req.headers.get('origin')!==origin)throw Error('Origin not allowed');
@@ -115,6 +138,13 @@ export async function handler(req:Request){
    try{return reply(await poll(c));}catch(e){checked(await admin.from('google_inbox143150').upsert({sheet:cfg.sheet,error:(e as Error).message}));throw e;}
   }
   const a=await auth(req,endpoint==='google-oauth-start'),cfg=await settings();
+  if(['news-read','news-history'].includes(body.action)){
+   const role=await a.user.rpc('is_admin');if(role.error||role.data!==true)throw Error('News administrator required');
+   const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in AI Journal to load news.');
+   let history:any;try{history=await syncNewsHistory(c,a.user)}catch(e){history={error:(e as Error).message}}
+   if(body.action==='news-history')return reply({sheet:cfg.sheet,history});
+   return reply({sheet:cfg.sheet,feed:await readNews(c),history});
+  }
   if(body.action==='inboxes-read'){
    const c=await connection(cfg.sheet);if(!c)throw Error('Connect Google in Settings first.');
    const isAdmin=await a.user.rpc('is_admin');if(isAdmin.error)throw Error('HR permission check failed');
