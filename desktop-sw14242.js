@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.183',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.184',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/word-of-hope183.js?v=143.183",
  "styles/account-groups143180.css?v=143.182",
@@ -14,7 +14,7 @@ const FILES=[
  "styles/hr-inbox143168.css?v=143.175",
  "scripts/drive-drafts143128.js?v=143.182",
  "scripts/notification-focus143139.js?v=143.175",
- "scripts/operational-reset143108.js?v=143.109",
+ "scripts/operational-reset143108.js?v=143.184",
  "scripts/undo143103.js?v=143.109",
  "scripts/editor-protection14380.js?v=143.80",
  "scripts/font-size14380.js?v=143.80",
@@ -36,7 +36,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.175",
  "scripts/desktop14245-6.js?v=143.180",
  "scripts/local-events14310.js?v=143.109",
- "scripts/offline14239.js?v=143.183",
+ "scripts/offline14239.js?v=143.184",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",

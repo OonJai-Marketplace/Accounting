@@ -1,10 +1,8 @@
 {
-  "version": "143.182",
+  "version": "143.184",
   "changes": [
-    "Improved narrow-screen account descriptions, settings controls, and keyboard access to account actions.",
-    "Account saves resist double submission and retain newer edits; background refresh preserves unsaved company details.",
-    "Offline saves keep their correct order, and journal sync callers wait for confirmation. AI Journal retries interrupted draft checks.",
-    "Journal editing preserves the main posting date separately from receipt dates.",
-    "AI HR leave checks include finalized attendance; cross-year reports include each year and reconciliation shows required explanations."
+    "Completed the authorized Journal, AI Journal, attendance and payroll reset.",
+    "Fresh device caches keep cleared records and older pending payroll or attendance from returning after reload.",
+    "Chart of accounts and employee records are preserved; journal numbering restarts at 1 and Opening Balance is available."
   ]
 }

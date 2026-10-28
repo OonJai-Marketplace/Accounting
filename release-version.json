@@ -1,8 +1,1 @@
-{
-  "version": "143.183",
-  "changes": [
-    "Word of Hope submissions now appear in the shared Journal / HR workbook.",
-    "Private unread notifications and message review are available in Accounting and Restaurant.",
-    "Customer messages receive confirmed delivery, retry protection, and optional permission to feature."
-  ]
-}
+{"version": "143.184", "changes": ["Completed the authorized Journal, AI Journal, attendance and payroll reset.", "Fresh device caches keep cleared records and older pending payroll or attendance from returning after reload.", "Chart of accounts and employee records are preserved; journal numbering restarts at 1 and Opening Balance is available."]}
