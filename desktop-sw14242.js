@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.192',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.193',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/word-of-hope183.js?v=143.190",
  "styles/account-groups143180.css?v=143.182",
@@ -9,7 +9,7 @@ const FILES=[
  "scripts/settings-stack143176.js?v=143.181",
  "styles/settings-stack143176.css?v=143.182",
  "scripts/offline-audit143174.js?v=143.175",
- "scripts/inbox-sync143173.js?v=143.192",
+ "scripts/inbox-sync143173.js?v=143.193",
  "scripts/hr-inbox143168.js?v=143.182",
  "styles/hr-inbox143168.css?v=143.175",
  "scripts/drive-drafts143128.js?v=143.190",
@@ -31,12 +31,12 @@ const FILES=[
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.187",
- "scripts/desktop14245-3.js?v=143.192",
+ "scripts/desktop14245-3.js?v=143.193",
  "scripts/desktop14245-4.js?v=143.189",
  "scripts/desktop14245-5.js?v=143.175",
  "scripts/desktop14245-6.js?v=143.187",
  "scripts/local-events14310.js?v=143.189",
- "scripts/offline14239.js?v=143.192",
+ "scripts/offline14239.js?v=143.193",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -183,7 +183,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.179",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.192",
+ "scripts/phone-runtime14242.js?v=143.193",
  "scripts/local-first14333.js?v=143.189",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.109",
@@ -216,7 +216,7 @@ const FILES=[
  "styles/feedback-viewport14295.css?v=142.95",
  "scripts/desktop-corrections-v80.js?v=143.70",
  "scripts/payroll-polish-v97.js?v=143.175",
- "scripts/script.js?v=143.192",
+ "scripts/script.js?v=143.193",
  "scripts/transactions-v67.js?v=143.117",
  "scripts/workflows-v136.js?v=143.113",
  "scripts/workspace-consistency14343.js?v=143.176",

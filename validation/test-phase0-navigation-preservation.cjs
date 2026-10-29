@@ -6,7 +6,7 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  f.fixture.journal=[{id:'fixture-journal',date:'2026-10-05',accountId:f.fixture.accounts[0].id,currency:'LAK',debit:100,credit:0,memo:'fixture'},{id:'fixture-journal',date:'2026-10-05',accountId:f.fixture.accounts[1].id,currency:'LAK',debit:0,credit:100,memo:'fixture'}];
  await login();await page.waitForFunction(()=>offline14239.state().shellReady);
  const click=async module=>{await page.locator('#nav-module-'+module+' .nav-header').click();await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))))};
- await click('transactions');await page.locator('#jeGeneralMemo').fill('UNSAVED navigation regression');
+ await click('transactions');await page.getByRole('textbox',{name:'General description',exact:true}).fill('UNSAVED navigation regression');
  await click('settings');await page.locator('#settingCompanyName').fill('UNSAVED company marker');
  // Finish the login refresh before measuring renderer work attributable to navigation.
  await page.waitForFunction(()=>idleSync14341.session?.trigger==='login'&&!idleSync14341.running);

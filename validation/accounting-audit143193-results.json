@@ -1,0 +1,312 @@
+{
+  "release": "143.193",
+  "completedAt": "2026-10-29T01:14:12.979953+00:00",
+  "environment": "Synthetic local Chromium and isolated PostgreSQL fixtures; no hosted financial writes",
+  "reviewNotes": [
+    "Updated navigation test to use the visible memo editor.",
+    "Updated cache/preload assertions for required six-stage online refresh.",
+    "Used PGlite 0.5.10 with pgcrypto for database installation checks.",
+    "Reproduced and fixed delayed sub-account save closing an edited form."
+  ],
+  "results": [
+    {
+      "suite": "app-integrity143100",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "civil-date143100",
+      "exitCode": 0,
+      "seconds": 5.8
+    },
+    {
+      "suite": "workforce-reports143100",
+      "exitCode": 0,
+      "seconds": 7.0
+    },
+    {
+      "suite": "confirmation143100",
+      "exitCode": 0,
+      "seconds": 4.2
+    },
+    {
+      "suite": "all-workspaces",
+      "exitCode": 0,
+      "seconds": 19.9
+    },
+    {
+      "suite": "phase0-browser",
+      "exitCode": 0,
+      "seconds": 25.7
+    },
+    {
+      "suite": "phase0-session-browser",
+      "exitCode": 0,
+      "seconds": 11.3
+    },
+    {
+      "suite": "phase0-navigation-preservation",
+      "exitCode": 0,
+      "verifiedAfterReview": true
+    },
+    {
+      "suite": "phase0-preload",
+      "exitCode": 0,
+      "verifiedAfterReview": true
+    },
+    {
+      "suite": "phase0-inactivity",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "phone-cache14368",
+      "exitCode": 0,
+      "seconds": 1.5
+    },
+    {
+      "suite": "phone-idle-sync",
+      "exitCode": 0,
+      "seconds": 1.4
+    },
+    {
+      "suite": "audit-owner-guards14370",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "audit-drafts14370",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "sync-coordinator",
+      "exitCode": 0,
+      "seconds": 10.3
+    },
+    {
+      "suite": "sync-cache",
+      "exitCode": 0,
+      "verifiedAfterReview": true
+    },
+    {
+      "suite": "sync-mixed-recovery",
+      "exitCode": 0,
+      "seconds": 7.5
+    },
+    {
+      "suite": "sync-recovery",
+      "exitCode": 0,
+      "seconds": 16.9
+    },
+    {
+      "suite": "hr-calendar-model14306",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "journal-durable14385",
+      "exitCode": 0,
+      "seconds": 31.3
+    },
+    {
+      "suite": "foreign-currency14383",
+      "exitCode": 0,
+      "seconds": 6.1
+    },
+    {
+      "suite": "foreign-funds14386",
+      "exitCode": 0,
+      "seconds": 4.3
+    },
+    {
+      "suite": "account-ledger14381",
+      "exitCode": 0,
+      "seconds": 3.1
+    },
+    {
+      "suite": "assigned-ledger14281",
+      "exitCode": 0,
+      "seconds": 1.1
+    },
+    {
+      "suite": "subaccounts14287-repair",
+      "exitCode": 0,
+      "seconds": 4.2
+    },
+    {
+      "suite": "chart14397",
+      "exitCode": 0,
+      "seconds": 6.4
+    },
+    {
+      "suite": "mapping-close14397",
+      "exitCode": 0,
+      "seconds": 1.3
+    },
+    {
+      "suite": "bookkeeping14399",
+      "exitCode": 0,
+      "seconds": 5.8
+    },
+    {
+      "suite": "return-current14399",
+      "exitCode": 0,
+      "seconds": 6.4
+    },
+    {
+      "suite": "year-windows14334",
+      "exitCode": 0,
+      "seconds": 1.1
+    },
+    {
+      "suite": "budget-lifecycle14316",
+      "exitCode": 0,
+      "seconds": 1.1
+    },
+    {
+      "suite": "fresh-backend14322",
+      "exitCode": 0,
+      "verifiedAfterReview": true
+    },
+    {
+      "suite": "audit-reconciliation14382",
+      "exitCode": 0,
+      "seconds": 5.2
+    },
+    {
+      "suite": "news-local14396",
+      "exitCode": 0,
+      "seconds": 4.6
+    },
+    {
+      "suite": "audit-ui14370",
+      "exitCode": 0,
+      "seconds": 0.5
+    },
+    {
+      "suite": "document-table14370",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "suite": "archive-limits14373",
+      "exitCode": 0,
+      "seconds": 11.2
+    },
+    {
+      "suite": "encrypted-download14372",
+      "exitCode": 0,
+      "seconds": 4.3
+    },
+    {
+      "suite": "edge-services14320",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "pdf-export14370",
+      "exitCode": 0,
+      "seconds": 1.6
+    },
+    {
+      "suite": "word-images14372",
+      "exitCode": 0,
+      "seconds": 0.8
+    },
+    {
+      "suite": "update143100",
+      "exitCode": 0,
+      "seconds": 8.7
+    },
+    {
+      "suite": "account-rates143186",
+      "exitCode": 0
+    },
+    {
+      "suite": "rate-snapshot143186",
+      "exitCode": 0
+    },
+    {
+      "suite": "rate-sheet143186",
+      "exitCode": 0
+    },
+    {
+      "suite": "rate-ai-review143186",
+      "exitCode": 0
+    },
+    {
+      "suite": "rate-ai-regression143186",
+      "exitCode": 0
+    },
+    {
+      "suite": "memo-links143187",
+      "exitCode": 0
+    },
+    {
+      "suite": "online-save-search143188",
+      "exitCode": 0
+    },
+    {
+      "suite": "news-sheets143189",
+      "exitCode": 0
+    },
+    {
+      "suite": "news-edge143189",
+      "exitCode": 0
+    },
+    {
+      "suite": "live-reference143190",
+      "exitCode": 0
+    },
+    {
+      "suite": "live-inboxes143190",
+      "exitCode": 0
+    },
+    {
+      "suite": "account-sheet-events143191",
+      "exitCode": 0
+    },
+    {
+      "suite": "account-sheet-no-poll143191",
+      "exitCode": 0
+    },
+    {
+      "suite": "account-save143182",
+      "exitCode": 0
+    },
+    {
+      "suite": "inbox-edge143173",
+      "exitCode": 0
+    },
+    {
+      "suite": "inbox-missing143174",
+      "exitCode": 0
+    },
+    {
+      "suite": "account-confirmation143192",
+      "exitCode": 0
+    },
+    {
+      "suite": "reset-cache143108",
+      "exitCode": 0
+    },
+    {
+      "suite": "sync-order143182",
+      "exitCode": 0
+    },
+    {
+      "suite": "report-years143182",
+      "exitCode": 0
+    },
+    {
+      "suite": "report-years-ui143182",
+      "exitCode": 0
+    },
+    {
+      "suite": "scheduled-prepaid-isolated143193",
+      "exitCode": 0,
+      "verifiedAfterReview": true
+    }
+  ]
+}

@@ -111,6 +111,8 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
   if(!payload.code||!payload.name){showCenterStatus('Enter a sub-account code and name.',true);return}
   const existing=AccountingStore.subAccounts.find(s=>s.code===original);
   if(original&&!existing){showCenterStatus('This sub-account is no longer in the loaded chart. Reopen the chart before editing it.',true);return;}
+  const editorState=()=>JSON.stringify(['subAccountOrigCode','subParentCode','subCurrency','subCode','subName','subDesc'].map(id=>document.getElementById(id)?.value));
+  const submittedState=editorState(),sameEditor=()=>form.isConnected&&document.getElementById('formSubAccount')===form&&editorState()===submittedState;
   const button=form.querySelector('[type=submit]');
   if(button.disabled)return;
   button.disabled=true;let confirmed=false;
@@ -120,7 +122,7 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
     if(!error&&(data?.length!==1||!data[0].id||data[0].code!==payload.code||(existing&&data[0].id!==existing.id)))error={message:'Sub-account save was not confirmed. Reopen the chart before retrying.'};
     if(!error)window.AccountSheet143191?.changed({owner:actor,db});
     if(!isCurrent())return;if(error)throw error;
-    confirmed=true;closeModal('modalSubAccount');
+    confirmed=true;if(sameEditor())closeModal('modalSubAccount');
     await loadReferenceDataFromSupabase({databaseOnly:true});
     if(!isCurrent())return;const saved=AccountingStore.subAccounts.find(s=>s.code===payload.code);if(!saved?.postingAccountId14285)showAppNotification('Sub-account saved','Run setup/INSTALL-SUBACCOUNT-POSTING-REPAIR-v142.87.sql to make sub-accounts available in the chart and posting account picker.',true);
   }catch(error){

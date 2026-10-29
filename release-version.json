@@ -1,1 +1,1 @@
-{"version": "143.192", "changes": ["Account and sub-account saves now require the database to return the affected record before reporting success or updating Google Sheets.", "Account and sub-account deletion reports an unconfirmed result when no database record was removed.", "Google Sheet retries preserve newer changes from another open tab and resume on reconnect."]}
+{"version": "143.193", "changes": ["Sub-account saves preserve any newer edits made while the previous save is finishing."]}

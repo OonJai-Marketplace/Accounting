@@ -24,7 +24,13 @@ subaccounts14287-repair chart14397 mapping-close14397 bookkeeping14399
 return-current14399 year-windows14334 budget-lifecycle14316 fresh-backend14322
 audit-reconciliation14382 news-local14396 audit-ui14370 document-table14370
 archive-limits14373 encrypted-download14372 edge-services14320 pdf-export14370
-word-images14372 update143100""".split()
+word-images14372 update143100
+account-rates143186 rate-snapshot143186 rate-sheet143186 rate-ai-review143186
+rate-ai-regression143186 memo-links143187 online-save-search143188 news-sheets143189
+news-edge143189 live-reference143190 live-inboxes143190 account-sheet-events143191
+account-sheet-no-poll143191 account-save143182 inbox-edge143173 inbox-missing143174
+account-confirmation143192 reset-cache143108 sync-order143182 report-years143182
+report-years-ui143182 scheduled-prepaid-isolated143193""".split()
 
 if __name__ == '__main__':
     logs = Path(tempfile.mkdtemp(prefix='accounting-audit143100-'))
