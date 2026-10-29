@@ -1,3 +1,4 @@
+function journalPostedHistory143195(row){return !row.pendingSync&&!row.local14333&&!row.voided_at&&(!row.status||row.status==='posted')}
 function journalIsHistory14342(row){const period=PeriodReview.periods[String(row.date).slice(0,7)];return period?period.status!=='open':!!row.archived;}
 /* TRANSACTIONS 67: active books, archived months and correction context. */
 function setJournalDateMode(multiple, fromUser = false) {

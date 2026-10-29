@@ -24,7 +24,7 @@ function ready(){
  const archive=window.renderAllTransactionsTable;let archiveRevision=-1,archiveMonth='',archiveRecords;
  window.renderAllTransactionsTable=function(...args){
   if(!preparing&&!active('transactions-all'))return;
-  const rows=JournalModule.entries,month=window.historyMonth14341?.choose('journal',rows.filter(journalIsHistory14342).map(r=>String(r.date).slice(0,7)))||'';
+  const rows=JournalModule.entries,month=window.historyMonth14341?.choose('journal',rows.filter(journalPostedHistory143195).map(r=>String(r.date).slice(0,7)))||'';
   if(archiveRevision===revision&&archiveRecords===rows&&archiveMonth===month)return;
   archiveRevision=revision;archiveRecords=rows;archiveMonth=month;return archive.apply(this,args);
  };

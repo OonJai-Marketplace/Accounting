@@ -108,8 +108,8 @@ function renderAccounts69(){
  renderOtherAccounts69(rows);
 }
 function openIndividualLedger69(encoded){Accounts69.account=decodeURIComponent(encoded);Accounts69.query='';renderAccounts69();scrollToAccountModule('sec-general-ledger')}
-function showJournalSource69(encoded){
- const id=decodeURIComponent(encoded),lines=JournalModule.entries.filter(l=>l.id===id);if(!lines.length)return;
+function showJournalSource69(encoded,providedLines){
+ const id=decodeURIComponent(encoded),lines=providedLines||JournalModule.entries.filter(l=>l.id===id);if(!lines.length)return;
  document.getElementById('source69')?.remove();const overlay=document.createElement('div');overlay.id='source69';overlay.className='submission-compare-overlay';overlay.innerHTML=`<section class="source-dialog69"><header><h3>Journal Entry ${escapeHtml(id)}</h3><button class="je-btn je-btn-secondary" onclick="document.getElementById('source69').remove()">Close</button></header><p class="general-description14281">${journalMemoHtml143187(lines[0]?.generalMemo||'')}</p><div class="table-container"><table><thead><tr><th>Date</th><th>Account</th><th>Currency</th><th>Description</th><th>Debit</th><th>Credit</th></tr></thead><tbody>${lines.map(l=>`<tr><td>${formatAppDate(l.date)}</td><td>${escapeHtml(l.account)}</td><td>${escapeHtml(l.currency)}</td><td>${journalMemoHtml143187(l.memo)}</td><td>${formatAppNumber(l.debit)}</td><td>${formatAppNumber(l.credit)}</td></tr>`).join('')}</tbody></table></div><p>${lines.some(l=>l.archived)?'Closed period — use Period Closing to review or reopen.':'Open period — editing remains available in Active Journal.'}</p></section>`;document.body.append(overlay);
 }
 function renderOtherAccounts69(){if(typeof renderSystemAccounts71==='function')renderSystemAccounts71()}
