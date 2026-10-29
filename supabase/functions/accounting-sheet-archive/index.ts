@@ -44,20 +44,22 @@ async function write(g:any,meta:any[],title:string,values:any[],immutable=false)
  let tab=meta.find(t=>t.title===title);
  if(immutable&&tab){const existing=await read(g,title,Math.max(height,tab.gridProperties.rowCount),width);if(canonical(normalized(existing,width))!==canonical(normalized(values,width)))throw Error(title+' already exists with different content; history was preserved.');return tab;}
  const requests:any[]=[];
- if(!tab){const created=await g(':batchUpdate','POST',{requests:[{addSheet:{properties:{title,gridProperties:{rowCount:Math.max(100,height),columnCount:Math.max(26,width),frozenRowCount:1}}}}]});tab=created.replies[0].addSheet.properties;meta.push(tab);}
+ if(!tab){let sheetId=194500000;while(meta.some(t=>t.sheetId===sheetId))sheetId++;tab={sheetId,title,gridProperties:{rowCount:Math.max(100,height),columnCount:Math.max(26,width),frozenRowCount:1}};requests.push({addSheet:{properties:tab}});meta.push(tab);}
  const rowCount=Math.max(height,tab.gridProperties.rowCount),columnCount=Math.max(width,tab.gridProperties.columnCount);
  if(rowCount!==tab.gridProperties.rowCount||columnCount!==tab.gridProperties.columnCount)requests.push({updateSheetProperties:{properties:{sheetId:tab.sheetId,gridProperties:{rowCount,columnCount}},fields:'gridProperties.rowCount,gridProperties.columnCount'}});
  // Only live sheets may be cleared; history is created once and never overwritten.
  requests.push({updateCells:{range:{sheetId:tab.sheetId,startRowIndex:0,endRowIndex:rowCount,startColumnIndex:0,endColumnIndex:columnCount},rows:values.map(r=>({values:r.map(cell)})),fields:'userEnteredValue'}});
  requests.push({updateSheetProperties:{properties:{sheetId:tab.sheetId,gridProperties:{frozenRowCount:1}},fields:'gridProperties.frozenRowCount'}});
  requests.push({repeatCell:{range:{sheetId:tab.sheetId,startRowIndex:0,endRowIndex:1},cell:{userEnteredFormat:{backgroundColor:{red:.9,green:.94,blue:.91},textFormat:{bold:true,foregroundColor:{red:.1,green:.2,blue:.15}}}},fields:'userEnteredFormat'}});
+ if(immutable)requests.push({addProtectedRange:{protectedRange:{range:{sheetId:tab.sheetId},description:'Closed year history. Automatic sync never edits this sheet.',warningOnly:false,editors:{users:[OWNER]}}}});
  await g(':batchUpdate','POST',{requests});
  const saved=await read(g,title,height,width);if(canonical(normalized(saved,width))!==canonical(normalized(values,width)))throw Error(title+' readback does not match. Cleanup is blocked.');
- if(immutable)await g(':batchUpdate','POST',{requests:[{addProtectedRange:{protectedRange:{range:{sheetId:tab.sheetId},description:'Closed year history. Automatic sync never edits this sheet.',warningOnly:false,editors:{users:[OWNER]}}}}]});
  return tab;
 }
 async function append(g:any,meta:any[],title:string,headers:string[],newRows:any[]){let tab=meta.find(t=>t.title===title);if(!tab){tab=await write(g,meta,title,[headers],true);}
- const saved=await read(g,title,tab.gridProperties.rowCount,headers.length),seen=new Map(saved.slice(1).map((r:any[])=>[String(r[0]),r]));
+ const saved=await read(g,title,tab.gridProperties.rowCount,headers.length),seen=new Map();
+ if(canonical(saved[0])!==canonical(headers))throw Error(title+' headings changed. Saving stopped to preserve history.');
+ for(const row of saved.slice(1)){if(!row[0]||seen.has(String(row[0])))throw Error(title+' contains missing or duplicate revision IDs.');seen.set(String(row[0]),row);}
  const missing:any[]=[];for(const row of newRows){const old=seen.get(String(row[0]));if(old&&canonical(normalized([old],headers.length)[0])!==canonical(normalized([row],headers.length)[0]))throw Error('Saved archive revision differs: '+row[0]);if(!old){missing.push(row);seen.set(String(row[0]),row);}}
  if(!missing.length)return;
  const start=saved.length,end=start+missing.length,req:any[]=[];if(end>100000)throw Error('Source history exceeds capacity. Cleanup is blocked.');
@@ -99,7 +101,7 @@ async function verifyReset(a:any,body:any,state:any){const g=await google(state.
  if(body.pack&&(canonical(body.pack.tables)!==canonical(p.tables)||canonical(body.pack.scopes)!==canonical(p.scopes)))throw Error('Selected records changed after your backup. Prepare and review the selection again.');
  // This is a read-only comparison. Never repair a mismatch by overwriting history during verification.
  const meta=await metadata(g),raw=meta.find((t:any)=>t.title==='Raw Data');if(!raw)throw Error('The first complete archive save has not finished.');
- const current=unpack((await read(g,'Raw Data',raw.gridProperties.rowCount,4)).slice(1));
+ let current:any;try{current=unpack((await read(g,'Raw Data',raw.gridProperties.rowCount,4)).slice(1));}catch(e){const result={match:false,counts:[],differences:[{table:'Raw Data',id:'',field:'saved records',database:'Readable complete record parts',sheet:String(e.message),kind:'saved_records_unreadable'}]};await diffReport(g,state,result);return {...result,pack:p};}
  const result=compare(p.tables,current,{bidirectional:false});
  for(const year of new Set((p.tables.journal_entries||[]).map((e:any)=>Number(e.transaction_date.slice(0,4))))){
   let historical:any;try{const h=await historyFor(g,state,Number(year));historical=h.tables;result.differences.push(...h.differences,...await checkHistoryReports(g,historical,Number(year)));}catch(e){result.differences.push({table:'journal_entries',id:String(year),field:'year closure',database:'Selected for deletion',sheet:e.message,kind:'history_not_verified'});continue;}

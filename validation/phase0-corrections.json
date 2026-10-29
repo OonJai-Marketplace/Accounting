@@ -16,7 +16,7 @@
     "scripts/corrections14231.js": "9be39691e4e3b40d03aaa3295a2b183c6d6b915a72594d4d9f20428e7b3892f0",
     "scripts/payroll-polish-v97.js": "cab149bc05053fb8cbcb0ada3b6097e59c0feb4b8c74db844521696a9dd34433",
     "scripts/startup14257.js": "5eb0602866c98229301e12575bb47e9e9c763dee6646db2d9b4303fa5af791ba",
-    "scripts/desktop14245-6.js": "69f0bf21195d1d6529ab99322bba6285c2a6e2b76666d26e5c93d6884e903fe4",
+    "scripts/desktop14245-6.js": "614491c526fd2ba6e95e26a77b1f67b72a8542407d09a2aa7abe7efd3ad47e34",
     "scripts/offline14239.js": "ddf57e73c11fc217352368efae9962085370a41fd3b0fa808a18df1df456c222",
     "scripts/desktop14245-3.js": "d21662de75a47ecd2b0ce6ae6b46d44229255c592fe9175d26c5a56badf0b787",
     "scripts/desktop14245-4.js": "91209f5e02c5878fc45f407633912e3fdb6024217100384428587dc79c5fa390",
@@ -157,7 +157,7 @@
     "scripts/optional-tools14335.js": "e3d540531884543e3a0f61f8cce3733460b3adf293e719bb2c914ae112349cac",
     "scripts/report-templates14262.js": "78d70c21c136bfb2dcf84989e6a26fd1027667123f68699962a5012214a0c36c",
     "scripts/year-window14333.js": "7ca68dbb1490a34e32b38b6c2b5c3243c0fbde004f68c4a8edc397fbbb6dbb73",
-    "scripts/data-tools14232.js": "e521ef5a5324d284a3c64ba78df3f05880e8c26fe88ec938bdd6c07e9af46b60",
+    "scripts/data-tools14232.js": "6076c1eb3cc63f236f719fe82da8f0c52d16c8589bf654e3a4fd3f522290583f",
     "scripts/theme-v100.js": "251f4c14023a53e7ed6691418b97f3a2965df1d09ea6fb6124d7945e75866e5a",
     "scripts/post-entry-diagnostics-v142.js": "9bf6740c85b231a0d94c01401b517af790c073a4a76fd80bb1d2ae8a60750791",
     "scripts/payroll-print1424.js": "0c50465991a664a49960be11ac6c330a324d4401bcad6418595f3d8297d7de45",
@@ -315,7 +315,7 @@
     "limits": "Browser preview uses sample data; financial calculations and production records are outside this layout-only change."
   },
   "googleHistory143194": {
-    "changes": "User-requested event-triggered company workbook, fixed closed-year history, exact pre-deletion comparison, fresh database Excel backup and final confirmation. Recovered unfinished work and corrected URL shadowing, large record IDs, account switching and backup gates.",
-    "checks": "Core comparison and long Unicode records; isolated SQL snapshot/deletion/lock/permit tests; actual browser cancellation, account-switch and XLSX tests; existing archive FX/engine/UI and reset database regressions. No production journal records deleted."
+    "changes": "Event-triggered company workbook, fixed closed-year history, exact cleanup comparison, actual database Excel download with retry link and final confirmation. Review fixes: atomic history creation, closed-year operating results, untransferred earnings, posted-only ledger, cent totals, durable bulk-reset deletion events and queue/snapshot ordering.",
+    "checks": "Core financial/record/Unicode comparisons; actual Edge code atomic failures, retries and history tampering; isolated SQL expiry/stale data/non-admin/lock/permit/event-race cases; real Chromium downloads and XLSX parsing plus cancellation/unsaved/account-switch/final-confirmation gates; existing archive and reset regressions and current cross-year report suite. No production journal records deleted."
   }
 }

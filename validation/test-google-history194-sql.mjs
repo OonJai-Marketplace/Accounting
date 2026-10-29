@@ -1,10 +1,11 @@
 process.on('uncaughtException',e=>{console.error(e.message);console.error(e.where||e.stack);process.exit(1)});
-import {PGlite} from '/tmp/accounting-audit-pglite/node_modules/@electric-sql/pglite/dist/index.js';
+import {createRequire} from 'node:module';
+const {PGlite}=createRequire(import.meta.url)('@electric-sql/pglite');
 import fs from 'node:fs';import assert from 'node:assert/strict';
 const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create schema net;
-create function auth.uid() returns uuid language sql as $$select '11111111-1111-1111-1111-111111111111'::uuid$$;
+create function auth.uid() returns uuid language sql as $$select coalesce(nullif(current_setting('test.actor',true),''),'11111111-1111-1111-1111-111111111111')::uuid$$;
 create function public.is_admin() returns boolean language sql as $$select true$$;
-create function public.require_admin136() returns uuid language sql as $$select auth.uid()$$;
+create function public.require_admin136() returns uuid language plpgsql as $$begin if auth.uid() is distinct from '11111111-1111-1111-1111-111111111111'::uuid then raise exception 'Administrator required';end if;return auth.uid();end$$;
 create function public.accounting_workspace_allowed123() returns boolean language sql as $$select true$$;
 create function public.google_poll_key143150() returns text language sql as $$select 'synthetic-only'$$;
 create function net.http_post(url text,headers jsonb,body jsonb,timeout_milliseconds integer) returns bigint language sql as $$select 1::bigint$$;
@@ -26,11 +27,14 @@ insert into year_closings136(year,anchor_entry) values(2025,'33333333-3333-3333-
 const frozen=(await db.query('select snapshot from private.sheet_archive_years194 where year=2025')).rows[0].snapshot;assert(frozen.journal_entries.length===2);
 await assert.rejects(db.query("select sheet_archive_year_pack194(2025)"),/verified Google/);
 await db.query("select sheet_archive_seal194(2025,'digest',10,194)");
+await db.exec("begin;insert into journal_entries values('77777777-7777-7777-7777-777777777777','2026-01-02','posted','2026-2','22222222-2222-2222-2222-222222222222')");await assert.rejects(db.query('select sheet_archive_year_pack194(2025)'),/another year/);await db.exec('rollback');
 const pack=(await db.query('select sheet_archive_year_pack194(2025) p')).rows[0].p;
 const historical=(await db.query('select sheet_archive_history_selection194($1::jsonb,2025) p',[JSON.stringify(frozen)])).rows[0].p;assert.deepEqual(pack.tables,historical);
 await assert.rejects(db.query("select scoped_reset14232('{}',true,'RESET SELECTED DATA')"),/Compare the selected/);
 await assert.rejects(db.query("select sheet_archive_delete_year194(gen_random_uuid(),'DELETE VERIFIED YEAR 2025')"),/Fresh Google/);
 const actor='11111111-1111-1111-1111-111111111111';await assert.rejects(db.query("select sheet_archive_permit194($1,'year',$2,'digest')",[actor,JSON.stringify(pack)]),/Excel backup/);await db.query("select sheet_archive_excel194($1,'year','digest')",[actor]);let token=(await db.query("select sheet_archive_permit194($1,'year',$2,'digest') t",[actor,JSON.stringify(pack)])).rows[0].t;
+await db.exec("begin;update private.sheet_archive_permits194 set expires_at=now()-interval '1 minute'");
+await assert.rejects(db.query("select sheet_archive_delete_year194($1,'DELETE VERIFIED YEAR 2025')",[token]),/Fresh Google/);await db.exec('rollback');
 await db.query("update journal_lines set debit=11 where id='55555555-5555-5555-5555-555555555555'");
 await assert.rejects(db.query("select sheet_archive_delete_year194($1,'DELETE VERIFIED YEAR 2025')",[token]),/changed after verification/);
 assert.equal((await db.query('select count(*)::int n from journal_entries')).rows[0].n,2);
@@ -39,4 +43,14 @@ const done=(await db.query("select sheet_archive_delete_year194($1,'DELETE VERIF
 assert.equal((await db.query('select count(*)::int n from accounting_periods')).rows[0].n,1);
 await assert.rejects(db.query("select sheet_archive_delete_year194($1,'DELETE VERIFIED YEAR 2025')",[token]),/Fresh Google/);
 await assert.rejects(db.query("select sheet_archive_excel194($1,'year','changed',gen_random_uuid())",[actor]),/fresh database Excel/);
+const resetPack={tables:{journal_entries:[{id:'saved-before-reset',transaction_date:'2025-01-01'}]}};await db.query("select sheet_archive_excel194($1,'reset','reset-digest')",[actor]);await db.query("select sheet_archive_permit194($1,'reset',$2,'reset-digest')",[actor,JSON.stringify(resetPack)]);await db.query("select scoped_reset14232($1,true,'RESET SELECTED DATA')",[JSON.stringify(resetPack)]);assert.equal((await db.query("select count(*)::int n from private.sheet_archive_queue194 where operation='DELETE' and record->>'id'='saved-before-reset'")).rows[0].n,1);
+// Emulate a change committed between queue capture and snapshot collection.
+await db.exec(`begin;alter function private.sheet_archive_snapshot194() rename to snapshot_before_test194;
+create function private.sheet_archive_snapshot194() returns jsonb language plpgsql as $$begin insert into private.sheet_archive_queue194(table_name,operation,record) values('journal_entries','DELETE','{"id":"during-snapshot"}');return private.snapshot_before_test194();end$$;
+update private.sheet_archive_config194 set enabled=true,lease=null,lease_until=null;`);
+const lease='88888888-8888-8888-8888-888888888888',job=(await db.query('select sheet_archive_job194($1) job',[lease])).rows[0].job;
+assert(!job.queue.some(q=>q.record.id==='during-snapshot'));
+await db.query('select sheet_archive_finish194($1,$2,null)',[lease,job.queue.map(q=>q.id)]);
+assert.equal((await db.query("select count(*)::int n from private.sheet_archive_queue194 where record->>'id'='during-snapshot'")).rows[0].n,1);await db.exec('rollback');
+await db.query("select set_config('test.actor','99999999-9999-9999-9999-999999999999',false)");await assert.rejects(db.query('select sheet_archive_year_pack194(2025)'),/Administrator/);await assert.rejects(db.query("select sheet_archive_delete_year194(gen_random_uuid(),'DELETE VERIFIED YEAR 2025')"),/Administrator/);assert.equal((await db.query("select has_function_privilege('authenticated','sheet_archive_permit194(uuid,text,jsonb,text)','execute') allowed")).rows[0].allowed,false);
 console.log('PASS migration, durable row capture, closed-year snapshot, precise history comparison, stale-data rejection, no-permit rejection, atomic year-only deletion, preserved year/month locks, single-use permit, Excel gate');await db.close();

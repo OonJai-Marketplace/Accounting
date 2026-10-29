@@ -244,7 +244,7 @@
     },
     {
       "path": "scripts/data-tools14232.js",
-      "sha256": "e521ef5a5324d284a3c64ba78df3f05880e8c26fe88ec938bdd6c07e9af46b60",
+      "sha256": "6076c1eb3cc63f236f719fe82da8f0c52d16c8589bf654e3a4fd3f522290583f",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -628,7 +628,7 @@
     },
     {
       "path": "scripts/desktop14245-6.js",
-      "sha256": "69f0bf21195d1d6529ab99322bba6285c2a6e2b76666d26e5c93d6884e903fe4",
+      "sha256": "614491c526fd2ba6e95e26a77b1f67b72a8542407d09a2aa7abe7efd3ad47e34",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -797,7 +797,7 @@
         },
         {
           "source": "scripts/opening-balances14234.js",
-          "sha256": "02d26ecf198107bbf6ea6f21118a8a3880611661235fd66cb947d74aafe0faaa"
+          "sha256": "011424de9a3927c18a4970b8f0e6faad1047362f02571cb3d0a83743f8547c4a"
         }
       ]
     },
