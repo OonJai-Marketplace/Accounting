@@ -299,11 +299,11 @@ function finishAppNumberEditing(input) {
 }
 
 
-// Rates retain their saved precision instead of inheriting money's decimal places.
-function formatAppRate(value) {
+// Read-only rates are compact; editable rates retain the full saved precision.
+function formatAppRate(value, editing = false) {
   if (value === null || value === undefined || value === '') return '—';
   const rate = Number(value);
-  return Number.isFinite(rate) ? rate.toLocaleString(appNumberLocale(), { useGrouping: true, maximumFractionDigits: 8 }) : '—';
+  return Number.isFinite(rate) ? rate.toLocaleString(appNumberLocale(), { useGrouping: true, maximumFractionDigits: editing ? 20 : 2 }) : '—';
 }
 function setSettingsFormValues(group) {
   const form = document.querySelector(`.app-settings-form[data-settings-group="${group}"]`);

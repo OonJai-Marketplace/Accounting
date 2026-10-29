@@ -23,7 +23,8 @@ for(const style of ['1,234.56','1.234,56','1 234,56']){
   input(n,`6${group}000${group}000${decimal}50`,10);assert.equal(raw(n),`6${group}000${group}000${decimal}50`);assert.equal(n.selectionStart,10,'decimal position remains stable');
  }
  const rate=c.document.querySelector('[data-fx-rate14383]');input(rate,`21400${decimal}12345678`,14);assert.equal(raw(rate),`21${group}400${decimal}12345678`,'rates keep eight decimals');
- assert.equal(c.formatAppRate(21400.12345678),new Intl.NumberFormat(c.appNumberLocale(),{maximumFractionDigits:8}).format(21400.12345678));
+ assert.equal(c.formatAppRate(21400.12345678),new Intl.NumberFormat(c.appNumberLocale(),{maximumFractionDigits:2}).format(21400.12345678));
+ assert.equal(c.parseAppNumber(c.formatAppRate(21400.1234567891,true)),21400.1234567891,'editable rates preserve saved precision');
 }
 c.ApplicationSettings.system.numberFormat='1,234.56';const amount=c.document.getElementById('amount');input(amount,'000,000',0);c.finishAppNumberEditing(amount);assert.equal(raw(amount),'0.00','normalization happens on commit');
 // Execute the real date-mode functions and all their change listeners.

@@ -6,7 +6,7 @@ const selected=new Set();
 let selectedRate='',queued=false,drag=null,host,results,signature='',noticeTimer;
 const round=n=>Math.round((n+Number.EPSILON)*100)/100;
 const number=v=>{const text=String(v??'').trim();return text?parseAppNumber(text):0};
-const money=n=>formatAppNumber(n),rateText=n=>new Intl.NumberFormat(appNumberLocale(),{maximumFractionDigits:8}).format(n);
+const money=n=>formatAppNumber(n),rateText=n=>formatAppRate(n);
 const copyIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/></svg>';
 function copyButton(value,label){return '<button type="button" class="calc-copy14391" data-copy-number="'+esc(String(value))+'" aria-label="Copy '+esc(label)+'" title="Copy '+esc(label)+'">'+copyIcon+'</button>'}
 function resultValue(value,currency,label){return '<strong>'+esc(money(value))+' '+esc(currency)+'</strong>'+copyButton(value,label)}
