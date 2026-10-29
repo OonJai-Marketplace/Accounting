@@ -78,10 +78,11 @@ handleAccountFormSubmit = async function(event){
     if(!isCurrent())return;
     if(!sameEditor()){showAppNotification('Account Form Changed','Review the current account details before saving.',true);return;}
     const query=groupId?db.rpc('create_group_account143180',{p_group:groupId,p_id:createId,p_account:payload}):existing?db.from('accounts').update(payload).eq('id',existing.id):db.from('accounts').insert(payload);
-    let {error,data}=await query;
-    if(!error&&(!groupId||(Array.isArray(data)?data[0]:data)?.id===createId))window.AccountSheet143191?.changed({owner:actor,db});
+    let {error,data}=await (groupId?query:query.select('id,code'));
+    const rows=Array.isArray(data)?data:data?[data]:[],row=rows[0];
+    if(!error&&(rows.length!==1||!row?.id||(groupId?row.id!==createId:existing&&row.id!==existing.id)||(!groupId&&row.code!==payload.code)))error={message:'Account save was not confirmed. Reopen the chart before retrying.'};
+    if(!error)window.AccountSheet143191?.changed({owner:actor,db});
     if(!isCurrent())return;
-    if(groupId&&!error&&(Array.isArray(data)?data[0]:data)?.id!==createId)error={message:'Account creation was not confirmed. Reopen the chart before retrying.'};
     if(error)throw error;
     saved=true;
     if(sameEditor())closeModal('modalAccount');
@@ -95,7 +96,7 @@ handleAccountFormSubmit = async function(event){
     if(form.accountSave143182===operation){delete form.accountSave143182;if(button)button.disabled=wasDisabled;}
   }
 };
-promptDeleteAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('accounts').delete().eq('id',acc.id);if(!error)window.AccountSheet143191?.changed({owner:actor,db});if(!isCurrent())return;if(error){showAppNotification('Account Delete Failed','Posted journal lines may protect this account from deletion. Deactivate it instead.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
+promptDeleteAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const acc=AccountingStore.accounts.find(a=>a.code===code);if(!acc)return;if(acc.subAccountId14285)return promptDeleteSubAccount(code);document.getElementById('confirmDeletePrompt').innerText=`Delete account “${acc.code} — ${acc.name}”? Linked sub-accounts will also be deleted.`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error,data}=await db.from('accounts').delete().eq('id',acc.id).select('id');const confirmed=!error&&data?.length===1&&data[0].id===acc.id;if(confirmed)window.AccountSheet143191?.changed({owner:actor,db});if(!isCurrent())return;if(!confirmed){showAppNotification('Account Delete Failed',error?'Posted journal lines may protect this account from deletion. Deactivate it instead.':'Account deletion was not confirmed. Reopen the chart to check its current status.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
 handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
   event.preventDefault();
   const form=document.getElementById('formSubAccount');
@@ -109,12 +110,14 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
   const payload={track_foreign_funds:!!currency&&!['LAK','NA'].includes(currency)&&(parent.baseType||parent.type)==='ASSET'&&!parent.isTechnical&&(!parent.purpose||parent.purpose==='regular'),parent_account_id:parent.id,currency_code:currency,code:document.getElementById('subCode').value.trim(),name:document.getElementById('subName').value.trim(),description:document.getElementById('subDesc').value.trim()};
   if(!payload.code||!payload.name){showCenterStatus('Enter a sub-account code and name.',true);return}
   const existing=AccountingStore.subAccounts.find(s=>s.code===original);
+  if(original&&!existing){showCenterStatus('This sub-account is no longer in the loaded chart. Reopen the chart before editing it.',true);return;}
   const button=form.querySelector('[type=submit]');
   if(button.disabled)return;
   button.disabled=true;let confirmed=false;
   try{
     if(!isCurrent())return;const query=existing?db.from('sub_accounts').update(payload).eq('id',existing.id):db.from('sub_accounts').insert(payload);
-    const {error}=await query;
+    let {error,data}=await query.select('id,code');
+    if(!error&&(data?.length!==1||!data[0].id||data[0].code!==payload.code||(existing&&data[0].id!==existing.id)))error={message:'Sub-account save was not confirmed. Reopen the chart before retrying.'};
     if(!error)window.AccountSheet143191?.changed({owner:actor,db});
     if(!isCurrent())return;if(error)throw error;
     confirmed=true;closeModal('modalSubAccount');
@@ -127,4 +130,4 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
     showAppNotification(confirmed?'Sub-account Saved — Refresh Incomplete':'Sub-Account Save Failed',confirmed?'Your sub-account was saved to the database. Reopen the chart to refresh its details.':message,true);
   }finally{button.disabled=false}
 };
-promptDeleteSubAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error}=await db.from('sub_accounts').delete().eq('id',sub.id);if(!error)window.AccountSheet143191?.changed({owner:actor,db});if(!isCurrent())return;if(error){showAppNotification('Delete Failed',error.message,true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};
+promptDeleteSubAccount = function(code){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;const sub=AccountingStore.subAccounts.find(s=>s.code===code);if(!sub)return;document.getElementById('confirmDeletePrompt').innerText=`Delete sub-account “${sub.code} — ${sub.name}”?`;openModal('modalConfirmDelete');document.getElementById('btnDeleteConfirmAction').onclick=async()=>{if(!isCurrent())return;const{error,data}=await db.from('sub_accounts').delete().eq('id',sub.id).select('id');const confirmed=!error&&data?.length===1&&data[0].id===sub.id;if(confirmed)window.AccountSheet143191?.changed({owner:actor,db});if(!isCurrent())return;if(!confirmed){showAppNotification('Delete Failed',error?.message||'Sub-account deletion was not confirmed. Reopen the chart to check its current status.',true);return}closeModal('modalConfirmDelete');await loadReferenceDataFromSupabase({databaseOnly:true})}};

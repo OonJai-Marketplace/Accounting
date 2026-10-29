@@ -7,7 +7,7 @@ const database=()=>typeof ojmDb==='undefined'?null:ojmDb;
 const key=c=>'ojm-account-sheet143191:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+c.owner;
 const current=c=>!!c.owner&&identity()===c.owner&&database()===c.db;
 function pending(c){if(memory.has(key(c)))return memory.get(key(c));try{return JSON.parse(localStorage.getItem(key(c))||'null');}catch{return null;}}
-function remember(c,value){memory.set(key(c),value);try{localStorage.setItem(key(c),JSON.stringify(value));}catch{lastError='Google Sheet update pending. Keep this page open; this browser could not retain its retry.';}}
+function remember(c,value){try{localStorage.setItem(key(c),JSON.stringify(value));memory.delete(key(c));}catch{memory.set(key(c),value);lastError='Google Sheet update pending. Keep this page open; this browser could not retain its retry.';}}
 function forget(c,token){if(pending(c)?.token!==token)return;memory.delete(key(c));try{localStorage.removeItem(key(c));}catch{}}
 function schedule(){clearTimeout(timer);timer=setTimeout(()=>{timer=null;void flush();},250);}
 function changed(c={owner:identity(),db:database()}){
@@ -37,6 +37,7 @@ async function flush(){
 }
 window.AccountSheet143191={changed,flush,get state(){const c={owner:identity(),db:database()};return {pending:!!(current(c)&&pending(c)),busy:!!job,error:lastError};}};
 // These events only retry a retained failed update; idle/opening without one sends nothing.
-for(const event of ['online','focus','page113'])window.addEventListener(event,()=>void flush());
+window.addEventListener('storage',event=>{const c={owner:identity(),db:database()};if(current(c)&&event.key===key(c)&&event.newValue){memory.delete(key(c));schedule();}});
+for(const event of ['online','focus','page113','session-online14333'])window.addEventListener(event,()=>void flush());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void flush();});
 })();

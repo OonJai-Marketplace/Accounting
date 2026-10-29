@@ -15,7 +15,7 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  // Warm a reference cache, then a slow server causes only a browsing fallback.
  await page.evaluate(()=>loadReferenceDataFromSupabase());let writes=0,slow=true;
  await page.route(url=>url.pathname==='/rest/v1/accounts',async route=>{
-  if(route.request().method()==='POST'){writes++;const data=route.request().postDataJSON();f.fixture.tables.accounts.push({...data,id:'00000000-0000-4000-8000-000000000188',is_active:true});return route.fulfill({status:201,contentType:'application/json',body:'[]'});}
+  if(route.request().method()==='POST'){writes++;const data=route.request().postDataJSON();f.fixture.tables.accounts.push({...data,id:'00000000-0000-4000-8000-000000000188',is_active:true});return route.fulfill({status:201,contentType:'application/json',body:JSON.stringify([f.fixture.tables.accounts.at(-1)])});}
   if(slow)await new Promise(r=>setTimeout(r,2400));return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(f.fixture.tables.accounts)});
  });
  await page.evaluate(()=>loadReferenceDataFromSupabase());assert.equal(await page.evaluate(()=>offline14239.offline()),false,'slow cached browsing must not mark a working connection offline');
