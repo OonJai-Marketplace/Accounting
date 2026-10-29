@@ -1,0 +1,13 @@
+# Google history and database Excel safeguard — v143.194
+
+The business-owned Accounting Web workbook receives saved database changes through a durable queue. A database event wakes the worker; a successful Sheets readback clears that event. This does not poll and rewrite the workbook every minute. Errors remain visible in Settings, with a manual retry.
+
+Current Year Journal contains the current Vientiane calendar year. Open Years Journal retains other unclosed years. Whole-year closure captures a database snapshot, creates fixed Records/Journal/report History tabs and verifies their contents before sealing them. Routine synchronization never overwrites sealed history. The Google owner can still edit a protected history tab; such edits block later cleanup.
+
+Settings → System & Tools → Backup & Export contains Google Sheets — Current Year & History. Cleanup requires administrator authentication, a fresh record/field and report-cell comparison, a separate readable Excel workbook generated directly from a fresh database snapshot, acknowledgement that the file was saved, and the exact final confirmation phrase. The server repeats the comparison and the deletion transaction rechecks the selected records under locks. Differences create a Cleanup Comparison report. A missing/changed history, failed download, changed account, stale selection or missing Excel token blocks deletion.
+
+Closed-year cleanup preserves year/month locks and master data. Scoped operational reset keeps its prior selection/permission/backup checks and now passes the archive gate. Legacy bulk-clear RPCs cannot bypass this gate. This workflow does not change normal single-entry corrections and authorized void/audit operations.
+
+Validation: record/field comparison, lossless large Unicode data, stable compound record IDs; PGlite database snapshot, stale selection, year locks, single-use permits and Excel prerequisite; Chromium cancel/failure/account-change/final-confirmation flows and actual XLSX parsing; existing archive FX, archive engine, archive UI and reset database tests. Production verification read back the live workbook and confirmed the financial record counts were unchanged. No production cleanup was executed. No year is fully closed yet, so live year-history tabs cannot be exercised on real closed data; the closed-year destructive path was tested only in an isolated database.
+
+Workbook data/report mirrors do not enable posting by editing cells. Raw Data and Source Records preserve business records; attachments remain stored at their original locations. Authentication credentials, OAuth tokens and recovery secrets are excluded.

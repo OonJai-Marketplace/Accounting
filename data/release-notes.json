@@ -1,6 +1,8 @@
 {
-  "version": "143.193",
+  "version": "143.194",
   "changes": [
-    "Sub-account saves preserve any newer edits made while the previous save is finishing."
+    "Database changes save the business Accounting workbook with Current Year Journal and fixed closed-year History.",
+    "Permanent cleanup requires a fresh field-by-field Google History comparison, a separate readable Excel backup from Supabase, and an additional confirmation.",
+    "Changed records, cancelled downloads and account changes block cleanup."
   ]
 }

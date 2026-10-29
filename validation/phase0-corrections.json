@@ -4,11 +4,11 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification.",
   "runtime_sha256": {
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
-    "phone-sw.js": "4674239c1830b23657d3fa89c26948c733eaa46a4db2b9dfcf219b988adb8d16",
+    "phone-sw.js": "48c0314b8002b016248b02a59ccff5d9c1e7e5be8f2b93946e4433ca01cbb5b8",
     "phone-accounting.html": "877ef4b441687433df204d9b089e8b4d98b49734322f83901f97164358ec2214",
-    "desktop-sw14242.js": "a77ebae470c5730c0a7027dcce65a7bafaf92a2d47028afa8f40b30bf7dc7f35",
+    "desktop-sw14242.js": "76c8eeca5b8ad84f75d0b72e267118680ca9122c52e4ce1c969737bcef23501f",
     "phone.html": "b2435f7801f9b2b12405c6b71ad572e40707093e02a90bf4ba1e05fd6a4903fa",
-    "desktop.html": "ae9bde9a42b250429c798f568f8ad16052e4826822ee4ac7312aaddebd752820",
+    "desktop.html": "0c14e0f8f0abb90c1f6a250af3d221921658bf37bdd26cedd3a948d92f18f7cd",
     "scripts/phone-runtime14242.js": "071090217766c502f57d5f7b46e34ef9813e513f474b74af79a2a4cbb55356e2",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "eda7a239fcc7496bad96cb0f77d9e66621ed6dc7a4f240f1e5f5f87fc89c4492",
@@ -16,8 +16,8 @@
     "scripts/corrections14231.js": "9be39691e4e3b40d03aaa3295a2b183c6d6b915a72594d4d9f20428e7b3892f0",
     "scripts/payroll-polish-v97.js": "cab149bc05053fb8cbcb0ada3b6097e59c0feb4b8c74db844521696a9dd34433",
     "scripts/startup14257.js": "5eb0602866c98229301e12575bb47e9e9c763dee6646db2d9b4303fa5af791ba",
-    "scripts/desktop14245-6.js": "3c3cb4ec3f48afcb456c4ad0403bbd888cabff5d8c0b64169cc1169e02129262",
-    "scripts/offline14239.js": "7b0518b84cd5b35b6b2f222825bdded0cc14388911d1d013b69b43d3e204186f",
+    "scripts/desktop14245-6.js": "69f0bf21195d1d6529ab99322bba6285c2a6e2b76666d26e5c93d6884e903fe4",
+    "scripts/offline14239.js": "ddf57e73c11fc217352368efae9962085370a41fd3b0fa808a18df1df456c222",
     "scripts/desktop14245-3.js": "d21662de75a47ecd2b0ce6ae6b46d44229255c592fe9175d26c5a56badf0b787",
     "scripts/desktop14245-4.js": "91209f5e02c5878fc45f407633912e3fdb6024217100384428587dc79c5fa390",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
@@ -30,7 +30,7 @@
     "scripts/workspace-consistency14343.js": "9d49f96051feed8aa49e188e431da2def17c57d17761f39addf444ccded4ed23",
     "scripts/account-picker1428.js": "f9773b99c382811057d1dbd2109199172bcb299e0fcfca5adcd20434259508c2",
     "scripts/assigned-ledger14281.js": "ffd278ad2d7d317b71b1f5dd4d2c1f4cb48112465bbc700b6fb605ed5dd39e4b",
-    "scripts/desktop14245-5.js": "02afcbdbedb0e229209ddafa5043cf735b82f17dfc7aa3ec9dbe8caae881f189",
+    "scripts/desktop14245-5.js": "4355128b4e08eac961608e5e4c0e5d51f6fc8887b3b0c2733173a257d4e88fdd",
     "scripts/idle-sync14341.js": "13e67a563cd02a3cfffc639c311f75d364dc63e5b07390fa60df8ddc6a6b4d32",
     "scripts/scheduled-journals-v91.js": "cc6c3b8ed39de42c0a50a5c3d88c25338895087c4898ffbd3f9d17ddcaa01910",
     "scripts/submission-review-v139.js": "d5c7f1f0e11180d3074ebf0910a7126d6a3584e3a902a9e88ff2a4635708548c",
@@ -157,7 +157,7 @@
     "scripts/optional-tools14335.js": "e3d540531884543e3a0f61f8cce3733460b3adf293e719bb2c914ae112349cac",
     "scripts/report-templates14262.js": "78d70c21c136bfb2dcf84989e6a26fd1027667123f68699962a5012214a0c36c",
     "scripts/year-window14333.js": "7ca68dbb1490a34e32b38b6c2b5c3243c0fbde004f68c4a8edc397fbbb6dbb73",
-    "scripts/data-tools14232.js": "cd9bd26054d45c84a8d7302d7f6bed346aaba900ee74f3732dec11d0c51a9a6a",
+    "scripts/data-tools14232.js": "e521ef5a5324d284a3c64ba78df3f05880e8c26fe88ec938bdd6c07e9af46b60",
     "scripts/theme-v100.js": "251f4c14023a53e7ed6691418b97f3a2965df1d09ea6fb6124d7945e75866e5a",
     "scripts/post-entry-diagnostics-v142.js": "9bf6740c85b231a0d94c01401b517af790c073a4a76fd80bb1d2ae8a60750791",
     "scripts/payroll-print1424.js": "0c50465991a664a49960be11ac6c330a324d4401bcad6418595f3d8297d7de45",
@@ -199,7 +199,7 @@
     "scripts/account-security14257.js": "e2f85282c930905b718a94bd218e03fd30619e00f702143225d8a42b70b3c706",
     "scripts/refinements-v93.js": "40d5c17904006e79d0deb75e9a3a4f7357939ed06b0589d8dce35270d55e1494",
     "scripts/accounts-v69.js": "8a03f748b6e2f4bb979dae0743227db20506b46a582b3f5183c97718e53127b2",
-    "scripts/archive-xlsx-v129.js": "ede88a9a6e3c64cd980e6c489b28907155a372b0b6e36a76337c34530a212cb3",
+    "scripts/archive-xlsx-v129.js": "d26cb040236161f79ceed375018ee10f56a40932c817629c7e7d965c4a028f05",
     "scripts/audit-storage14232.js": "4c36af9369f65eb5d24bd6df57a1266803b838e9d3b84e04991770649ced875b",
     "scripts/prefixes-badges-v89.js": "9d5ebd98c9807132739f126d13d84a1059b2b17953d210acb71e976d25306813",
     "scripts/workflows1434.js": "87d3c78b80445c58284af6bc6a4fb705270e4395f2b6b2a5b33032cb37fe2f08",
@@ -313,5 +313,9 @@
     "changes": "Desktop Layout B across all Settings groups, retained DOM controls and form ownership, independent accordion state, context-aware existing permission checks, restored phone structure.",
     "checks": "Settings DOM regression suite and isolated browser fixture visual review.",
     "limits": "Browser preview uses sample data; financial calculations and production records are outside this layout-only change."
+  },
+  "googleHistory143194": {
+    "changes": "User-requested event-triggered company workbook, fixed closed-year history, exact pre-deletion comparison, fresh database Excel backup and final confirmation. Recovered unfinished work and corrected URL shadowing, large record IDs, account switching and backup gates.",
+    "checks": "Core comparison and long Unicode records; isolated SQL snapshot/deletion/lock/permit tests; actual browser cancellation, account-switch and XLSX tests; existing archive FX/engine/UI and reset database regressions. No production journal records deleted."
   }
 }

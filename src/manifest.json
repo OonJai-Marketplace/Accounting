@@ -1956,6 +1956,11 @@
       {
         "source": "src/maintenance/backup/data-tools14232.js",
         "suffix": ";\n"
+      },
+      {
+        "source": "src/maintenance/backup/google-history194.js",
+        "prefix": "\n/* Google Sheets history and verification */\n",
+        "suffix": ""
       }
     ],
     "scripts/save-notices14234.js": [
@@ -2210,6 +2215,11 @@
         "source": "src/accounts/opening-balances/opening-balances14234.js",
         "prefix": "/* scripts/opening-balances14234.js */\n",
         "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/maintenance/backup/google-history194.js",
+        "prefix": "\n/* Google Sheets history and verification */\n",
+        "suffix": ""
       }
     ],
     "styles/offline14239.css": [
