@@ -3412,14 +3412,20 @@ function transactionPage14340(tbody,groups,ids){
   table.dataset.ownPager14383='1';
   let bar=container.nextElementSibling;
   if(!bar?.classList.contains('transaction-pages14340')){bar=document.createElement('div');bar.className='transaction-pages14340 module-actions71 no-print';container.after(bar)}
-  if(typeof isPrintMode!=='undefined'&&isPrintMode){bar.hidden=true;return ids.map(id=>({id,start:0,end:groups[id].length}))}
+  const heading=container.closest('.history-table14343')?.querySelector(':scope > .je-card-header');
+  let top=heading?.querySelector('.transaction-pages-top143197');
+  if(heading&&!top){top=document.createElement('div');top.className='transaction-pages14340 transaction-pages-top143197 module-actions71 no-print';heading.append(top)}
+  const bars=[bar,top].filter(Boolean);
+  if(typeof isPrintMode!=='undefined'&&isPrintMode){bars.forEach(b=>b.hidden=true);return ids.map(id=>({id,start:0,end:groups[id].length}))}
   const max=pages.length,selected=Math.min(Number(tbody.dataset.page14340)||0,max-1);tbody.dataset.page14340=String(selected);
-  bar.hidden=max<=1;bar.replaceChildren();
+  const go=step=>{tbody.dataset.page14340=String(selected+step);renderTransactionReviewTable(tbody,Object.values(groups).flat(),'page14340:'+tbody.dataset.action14340);if(heading)requestAnimationFrame(()=>{if(heading.isConnected)heading.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'})})};
+  for(const pager of bars){
+  pager.hidden=max<=1;pager.replaceChildren();pager.setAttribute('role','navigation');pager.setAttribute('aria-label',pager===top?'Transaction History top pagination':'Transaction pagination');
   const previous=document.createElement('button'),next=document.createElement('button'),label=document.createElement('span');
   previous.type=next.type='button';previous.className=next.className='je-btn je-btn-secondary';previous.textContent='Previous';next.textContent='Next';previous.disabled=selected===0;next.disabled=selected===max-1;
   label.textContent=`${selected+1} of ${max}`;
-  const go=step=>{tbody.dataset.page14340=String(selected+step);renderTransactionReviewTable(tbody,Object.values(groups).flat(),'page14340:'+tbody.dataset.action14340)};
-  previous.onclick=()=>go(-1);next.onclick=()=>go(1);bar.append(previous,label,next);
+  previous.onclick=()=>go(-1);next.onclick=()=>go(1);pager.append(previous,label,next);
+  }
   return pages[selected];
 }
 function journalDateSpans143120(lines){const spans=Array(lines.length).fill(0);for(let i=0;i<lines.length;){let end=i+1;while(end<lines.length&&lines[end].date===lines[i].date)end++;spans[i]=end-i;i=end}return spans}

@@ -1,5 +1,5 @@
 {
-  "release": "143.196",
+  "release": "143.197",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -319,7 +319,7 @@
     },
     {
       "path": "scripts/desktop14245-3.js",
-      "sha256": "2a562e5e5ca04b47f797a80024a5ccde35783b5226e7eaba6475e99710e22d40",
+      "sha256": "4376742701f7fc035b99c636d0995f4c46f02b5aad648c528a38e7801d4c974e",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -328,7 +328,7 @@
         },
         {
           "source": "scripts/script.js",
-          "sha256": "bd174824fbe645617f7119a826af8881fb44a93c7b93f41c88cde972bf824d0c"
+          "sha256": "f8be5fcc8a4fd3721a3451657c3f49336f242e39a1a4023032588f2699305878"
         },
         {
           "source": "scripts/workspace-settings.js",
@@ -1133,7 +1133,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "9579d8af99b2ac9a988acb7f30a67d30859718c2997200e45b351c43a5a4aca5",
+      "sha256": "bf00ea6bf0816ba73dc238c7a7b194a63fb4b9fb333099d5fe814aa3afb65bc6",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1438,7 +1438,7 @@
     },
     {
       "path": "scripts/script.js",
-      "sha256": "3f23b30157ffd2e972bab627135d54ac3cbebbdab95473fc1b1790bc3c794772",
+      "sha256": "3b592eaad93e8fcad005f7f3efcda2924aaedbd97d3617f7e007282bc05ed0c0",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1888,7 +1888,7 @@
     },
     {
       "path": "styles/desktop14245.css",
-      "sha256": "7e93c067521b1108e691ce76410b511ce2b91735462be99352c1f5277ff70d2d",
+      "sha256": "5a9d83c9543a4799212cfe082270d73246bff3fba54562c3025191982b1dba07",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -2029,7 +2029,7 @@
         },
         {
           "source": "styles/transactions-v98.css",
-          "sha256": "6a67ad57552e17619810c1591f95b95af9cd5f748a5a98c79ee2e413cb486d5f"
+          "sha256": "b509eb2efcc3f757a2fbf7b4558e80acb6bb42c946d3f9ab5420377daa69e9f8"
         },
         {
           "source": "styles/workspace-v99.css",
@@ -2701,7 +2701,7 @@
     },
     {
       "path": "styles/transactions-v98.css",
-      "sha256": "8084fc839b0145b716cd7a476cc20da9b252d419ba734311b26615e101fde151",
+      "sha256": "bd8e720b89b0a98486ce9a3c04fceef5f82e1f2cb90a32d97cfef37b4d315717",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {

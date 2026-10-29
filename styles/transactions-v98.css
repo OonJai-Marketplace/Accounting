@@ -95,6 +95,10 @@ html body dialog#auditDetails14361{position:fixed;inset:0;width:min(1050px,calc(
 .transaction-pages14340{align-items:center;padding:8px 12px;gap:8px}
 .transaction-pages14340[hidden]{display:none}
 .transaction-pages14340 span{font-size:12px;color:#475569;white-space:nowrap}
+@layer action-finalization14317 {
+html body .history-table14343 .transaction-pages-top143197{width:auto!important;margin:0 0 0 auto!important;padding:0!important;clear:none!important;flex-wrap:wrap}
+html body .history-table14343>.je-card-header{flex-wrap:wrap;gap:8px;scroll-margin-top:12px}
+}
 .pending-entry14340{font-size:12px;color:#64748b}
 #auditDetails14361 .audit-details-scroll14361 tr[hidden]{display:none!important}
 #auditDetails14361 [data-audit-all14382]{margin-left:12px}

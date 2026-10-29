@@ -1,7 +1,7 @@
 {
-  "version": "143.196",
+  "version": "143.197",
   "changes": [
-    "Exchange rates display up to two decimal places in reports, ledgers and account comparisons.",
-    "Editing and calculations retain full saved exchange-rate precision."
+    "Transaction History has Previous/Next controls at both the heading and the bottom.",
+    "Changing history pages returns to the heading of the new page."
   ]
 }
