@@ -1,8 +1,1 @@
-{
-  "version": "143.199",
-  "changes": [
-    "Add first-half, second-half and annual profit-tax calculations with ledger profit, adjustments, prior payments, credits, saved calculations and print/export.",
-    "Add configurable profit-tax settings and include posted profit-tax activity in statutory reports.",
-    "Show linked supporting receipt rows from journal details; restore historical petty-cash receipt grouping and provenance."
-  ]
-}
+{"version": "143.200", "changes": ["Show original payroll deduction formulas by historical period and employee.", "Retain attendance calculation evidence alongside finalized payroll without changing saved totals.", "Add historical leave records and period balances to HR Leave and Employee History; retain balances when contracts end or renew."]}

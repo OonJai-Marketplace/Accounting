@@ -1,3 +1,13 @@
+function historicalLeaveHistory200(onlyId=''){
+ const employees=orderedEmployees82().filter(e=>(!onlyId||e.id===onlyId)&&e.data.leaveHistory200);
+ if(!employees.length)return '';
+ return section82('Leave History',employees.map(e=>{const h=e.data.leaveHistory200,esc=esc82,fmt=v=>v==null?'Not recorded':money82(v),date=v=>v?esc(formatAppDate(v)):'Not recorded';
+ const snapshots=[...(h.closedPeriods||[]),...(h.snapshots||[])].sort((a,b)=>String(b.sourceMonth).localeCompare(String(a.sourceMonth))).map(s=>'<details class="block82"><summary>'+esc(s.sourceMonth)+' · '+esc(s.dateMeaning)+' · '+date(s.sourcePeriodDate)+'</summary>'+table82(['Leave type','Allowance','Used','Remaining against allowance'],['vacation','sick','personal','bereavement'].map(k=>[esc(k),fmt(s.allowance?.[k]),fmt(s.used?.[k]),fmt(s.remainingAgainstAllowance?.[k])]))+(s.cachedVacationAvailable!=null?'<p>Source available vacation: '+fmt(s.cachedVacationAvailable)+' days.</p>':'')+'<p>'+esc(s.source||'Contract outcome')+' · '+esc(s.sourceRange||'')+(s.endConfirmed?' · End: '+date(s.end):'')+'</p></details>').join('');
+ const records=table82(['Dates','Type','Days','Informed / form','Notes','Source'],[...(h.records||[])].sort((a,b)=>b.from.localeCompare(a.from)).map(r=>[date(r.from)+' – '+date(r.to),esc(r.type),fmt(r.days),(r.informed?'Yes':'No')+' / '+(r.formReceived?'Yes':'No'),esc(r.notes),esc(r.sources?.at(-1)?.file||'')+' · '+esc(r.sources?.at(-1)?.range||'')]));
+ return '<details class="block82"><summary>'+esc(e.data.name)+' · '+(h.records||[]).length+' historical leave records</summary>'+snapshots+records+'</details>';
+ }).join(''));
+}
+window.historicalLeaveHistory200=historicalLeaveHistory200;
 function leaveSummary82(e){const d=e.data,leaves=Work82.leaves.filter(r=>r.data.employeeId===e.id&&r.data.status==='approved'&&r.data.from>=d.renewal),used=k=>leaves.filter(r=>r.data.type===k||(k==='sick'&&r.data.type==='minorSick')).reduce((s,r)=>s+Number(r.data.days),0);return [esc82(d.name),money82(Number(d.vacation)-used('vacation')),money82(used('vacation')),money82(used('sick')),money82(used('personal')),money82(used('bereavement')),esc82(d.renewal?formatAppDate(d.renewal):'')]}
 function leaveForm82(){return `<form id="leaveForm82" onsubmit="event.preventDefault();saveLeave82()"><div class="fields82">${select82('Employees','employeeId','',orderedEmployees82().filter(e=>e.data.active!==false&&!e.data.archived).map(e=>[e.id,e.data.name])).replace('<select','<select multiple size=\"4\"')}${select82('Leave type','type','vacation',['vacation','sick','personal','bereavement','absent','other'].map(x=>[x,x[0].toUpperCase()+x.slice(1)]))}${field82('From','from',today82(),'date','required')}${field82('Through','to',today82(),'date','required')}${field82('Working days / fraction','days','','number','min="0.125" step="0.125" required')}${field82('Apply to payroll month','month',today82().slice(0,7),'month','required')}${select82('Payment treatment','paid','yes',[['yes','Paid — no salary deduction'],['no','Unpaid — deduct working days']])}${field82('Form / supporting reference','reference','','text','required')}${field82('Explanation','notes','','text','required')}${check82('Employee informed management','informed',false)}${check82('Leave form received','formReceived',false)}</div><p class="notice82">Enter actual working days; holidays and weekends are not counted automatically. Split leave crossing payroll months into separate records. Approval makes unpaid days available to that payroll month.</p><div class="form-actions82"><button type="submit" class="primary82">Save Leave Request</button></div></form>`}
 function leaveSelection82(form){return [...form.elements.employeeId.selectedOptions].map(o=>o.value).filter(Boolean)}
@@ -21,3 +31,16 @@ function saveLeave82(){const form=document.getElementById('leaveForm82'),d=form8
 })}
 
 function leaveStatus82(id,status){runAction82(async()=>{const r=Work82.leaves.find(x=>x.id===id);if(!r)return;if(window.payrollWindow14334?.finalized(r.data.month,r.data.employeeId)||Work82.runs.some(run=>run.data.status==='finalized'&&run.data.month===r.data.month&&run.data.rows.some(x=>x.employeeId===r.data.employeeId)))throw Error('That month has finalized payroll. Record the correction in a new payroll period.');const data=status==='approved'&&window.hrWorkspace14306?hrWorkspace14306.leaveApprovalData(r):r.data;await saveWork82('leaves',{...data,status},r);renderWork82()})}
+
+function closeLeavePeriod200(e,contract,outcome){
+ const start=e.data.renewal||contract.start,end=outcome.date,types=['vacation','sick','personal','bereavement'],used={},allowance={},remainingAgainstAllowance={};
+ for(const type of types){
+  const matches=t=>t===type||type==='sick'&&t==='minorSick';
+  const records=Work82.leaves.filter(l=>l.data.employeeId===e.id&&l.data.status==='approved'&&l.data.from>=start&&l.data.from<=end&&matches(l.data.type)).reduce((n,l)=>n+Number(l.data.days||0),0);
+  const attendance=Work82.runs.filter(r=>r.data.status==='finalized'&&!r.data.isSample).reduce((n,r)=>n+(r.data.results||[]).filter(x=>x.employeeId===e.id).reduce((v,x)=>v+(x.attendance95||[]).filter(d=>!d.linked&&d.date>=start&&d.date<=end&&matches(d.leaveType)).reduce((v,d)=>v+Number(d.scheduleFraction??1),0),0),0);
+  used[type]=records+attendance+(Work82.leaveCarry14334||[]).filter(r=>!Work82.runs.some(run=>run.id===r.runId)&&r.employeeId===e.id&&r.date>=start&&r.date<=end&&matches(r.type)).reduce((n,r)=>n+Number(r.days||0),0);allowance[type]=Number(e.data[type]||0);remainingAgainstAllowance[type]=allowance[type]-used[type];
+ }
+ const prior=e.data.leaveHistory200||{records:[],snapshots:[]};
+ return {...prior,closedPeriods:[...(prior.closedPeriods||[]).filter(p=>p.contractId!==contract.id),{contractId:contract.id,sourceMonth:end.slice(0,7),sourcePeriodDate:start,end,endConfirmed:true,dateMeaning:'Closed entitlement period',used,allowance,remainingAgainstAllowance,source:'Contract outcome: '+outcome.status,sourceRange:contract.title}]};
+}
+window.closeLeavePeriod200=closeLeavePeriod200;

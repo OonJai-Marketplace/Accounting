@@ -12,6 +12,14 @@ function payrollExplanation143157(run,row,x,key,config){
  const out={title:payrollLabels143157[key]||key,total,currency,lines:[],notes:[],days:[],brackets:[]};
  const line=(label,value,unit='LAK')=>out.lines.push({label,value,unit});
  const note=s=>out.notes.push(s);
+ const historical=x.historicalCalculation200;
+ if(historical&&['attendanceTotal','internal','late','latePenalty','absence','otherAdjustments'].includes(key)){
+  line('Late deduction recorded in payroll',x.late);line('Late penalty recorded in payroll',x.latePenalty);line('Absence recorded in payroll',x.absence);line('Reported missed-time charge',x.reportedMissed);line('Unreported missed-time charge',x.unreportedMissed);
+  line('Historical hourly rate',historical.hourlyRate);line('Daily attendance deductions',historical.dailyTotal);line('Absence / employment-period adjustment recorded separately',historical.unallocatedAbsence);line('Total internal deductions',historical.internalTotal);
+  note(historical.description);note('Source: '+historical.source+' · '+historical.hourlySource+' · '+historical.bandSource);note('Hourly formula: '+historical.hourlyFormula);note('Late formula: '+historical.bandFormula);
+  (historical.sourceNotes||[]).forEach(note);note(historical.leaveSource||'');note('Finalized payroll totals are retained. This evidence uses the original period formulas and source precision.');
+  out.days=x.attendance95||[];return out;
+ }
  const daily=(attendance=false)=>{const converted=attendance&&config?Number(x.contract)*Number(x.rate):x.contractLak,day=attendance&&config?converted/config.workDays:x.daily,hour=attendance&&config?day/config.hours:x.hourly;line('Contract salary',x.contract,x.currency);line('LAK per 1 '+x.currency,x.rate,'rate');line('Salary converted to LAK',converted);if(config){line('Working days per month',config.workDays,'days');line('Hours per day',config.hours,'hours')}line('Daily salary = converted salary ÷ working days',day);line('Hourly salary = daily salary ÷ hours per day',hour);line('One minute = hourly salary ÷ 60',Number(hour)/60);};
  const internalLines=()=>{line('Late time',x.late);line('Unpaid absence',x.absence);line('Penalties and attendance adjustments',x.penalty);line('Other deduction',x.other);line('Late penalties included above',x.latePenalty);line('Fixed attendance charges included above',x.legendFixed);line('Manual attendance overrides included above',x.manualDayDeduction);line('Additional penalty included above',x.manualPenalty);line('Reported missed-time charge included above',x.reportedMissed);line('Unreported missed-time charge included above',x.unreportedMissed);};
  const manual={allowance:'Taxable allowance added before SSO and PIT.',reimbursement:'Reimbursement added after SSO and PIT.',advance:'Cash advance recovered after net pay.',loanRecovery:'Loan repayment recovered after net pay.',reportedMissed:'Reported missed-time charge included in penalties before SSO and PIT.',unreportedMissed:'Unreported missed-time charge included in penalties before SSO and PIT.'};
@@ -42,7 +50,7 @@ window.payrollExplain143157={attendanceCount(run,row,label,items,total,unit){con
  const config=run.status==='finalized'?(run.config||(run.settingsSnapshot?payrollConfig82(run.settingsSnapshot):null)):payrollConfig82();
  let x;
  if(button.dataset.payKey143157==='attendanceTotal'){
-  x=run.status==='finalized'?run.results?.find(r=>r.employeeId===row.employeeId):{currency:row.employee.currency,rate:run.rates[row.employee.currency],attendance95:dayResults(run,row,config,legends())};
+  x=run.status==='finalized'?results(run).find(r=>r.employeeId===row.employeeId):{currency:row.employee.currency,rate:run.rates[row.employee.currency],attendance95:dayResults(run,row,config,legends())};
   if(!x?.attendance95)throw Error('This saved payroll has no preserved daily attendance breakdown.');
  }else x=results(run).find(r=>r.employeeId===row.employeeId);
  if(!x)throw Error('No saved calculation is available for this employee.');
