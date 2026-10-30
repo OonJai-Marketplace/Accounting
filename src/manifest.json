@@ -735,6 +735,11 @@
       {
         "source": "src/reports/tax/tax-reports-v102.js",
         "suffix": ";\n"
+      },
+      {
+        "source": "src/reports/tax/profit-tax143199.js",
+        "prefix": "/* Profit tax calculation */\n",
+        "suffix": ";\n"
       }
     ],
     "scripts/journal-actions-v102.js": [
@@ -1416,6 +1421,11 @@
         "source": "src/reports/tax/tax-reports-v102.js",
         "prefix": "/* scripts/tax-reports-v102.js */\n",
         "suffix": ";\n;\n"
+      },
+      {
+        "source": "src/reports/tax/profit-tax143199.js",
+        "prefix": "/* Profit tax calculation */\n",
+        "suffix": ";\n"
       },
       {
         "source": "src/bookkeeping/journal/journal-actions-v102.js",

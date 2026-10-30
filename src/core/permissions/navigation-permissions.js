@@ -8,7 +8,7 @@ const APP_PERMISSION_TREE=[
   {id:'payroll',label:'Payroll',children:[['payroll-overview','Payroll Overview'],['payroll-employees','Employees'],['payroll-entries','Payroll Entries'],['payroll-history','Salary History'],['payroll-deductions','Payroll Deductions']]},
   {id:'documents',label:'Documents',children:[['document-editor105','Document Editor / Print Preparation']]},
   {id:'reports',label:'Reports',children:[['report-pl','Profit and Loss'],['report-bs','Balance Sheet'],['report-cf','Cash Flow'],['report-tb','Trial Balance'],['report-gl','General Ledger'],['report-activity','Account Activity'],['report-expense','Expense Report'],['report-payroll','Payroll Report'],['report-reconciliation','Reconciliation Reports']]},
-  {id:'tax-sso',label:'Tax and SSO',children:[['tax-overview','Tax Overview'],['tax-vat','VAT'],['tax-pit','Personal Income Tax'],['tax-social','Social Security'],['tax-payment','Tax and Social Payment'],['tax-sso-payment','SSO Payment'],['tax-records','Tax and SSO Records']]},
+  {id:'tax-sso',label:'Tax and SSO',children:[['tax-overview','Tax Overview'],['tax-vat','VAT'],['tax-profit','Profit Tax'],['tax-pit','Personal Income Tax'],['tax-social','Social Security'],['tax-payment','Tax and Social Payment'],['tax-sso-payment','SSO Payment'],['tax-records','Tax and SSO Records']]},
   {id:'settings',label:'Settings',children:[['settings-business','Business Information'],['settings-users','Users & Permissions'],['settings-accounting','Accounting'],['settings-payroll','Payroll'],['settings-tax','Statutory'],['settings-print','Printing'],['settings-system','System']]}
 ];
 function permissionToken(parent,target){return`${parent}:${target}`}

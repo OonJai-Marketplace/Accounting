@@ -18,7 +18,7 @@
     employeeSso:Number(row.employeeSso||0),employerSso:Number(row.employerSso||0),
     runId:record.id
   })))}
-  function groupOf(line){const name=String(line.account||'');if(/\b(?:VAT|value.added.tax)\b/i.test(name))return 'VAT';if(/\b(?:PITx?|personal.income.tax|withholding.tax|payroll.tax.bridge)\b/i.test(name))return 'PIT';if(/\b(?:SSO|social.security)\b/i.test(name))return 'SSO';return ''}
+  function groupOf(line){const name=String(line.account||'');if(/\bprofit.tax\b/i.test(name))return 'Profit Tax';if(/\b(?:VAT|value.added.tax)\b/i.test(name))return 'VAT';if(/\b(?:PITx?|personal.income.tax|withholding.tax|payroll.tax.bridge)\b/i.test(name))return 'PIT';if(/\b(?:SSO|social.security)\b/i.test(name))return 'SSO';return ''}
   const postedLines=()=>((typeof JournalModule!=='undefined'&&JournalModule.entries)||[]).filter(line=>!line.pendingSync&&!line.local14333&&!line.voided_at&&(!line.status||line.status==='posted'));
   function journalRows(){return postedLines().filter(line=>String(line.date||'').slice(0,7)===state.month).map(line=>({...line,group:groupOf(line)})).filter(line=>line.group)}
   function statutoryBalances(){
@@ -60,6 +60,7 @@
     if(active==='tax-overview'){
       content=card('Monthly statutory summary',`<p>One monthly working report from finalized payroll and posted journal activity. Review source records before filing.</p><div class="tax-metrics102">${totals(payroll,'employeePit')}${totals(payroll,'employerPit')}${totals(payroll,'employeeSso')}${totals(payroll,'employerSso')}</div>`+table(['Payroll reference','Employee','PIT employee · LAK','PIT employer · LAK','SSO employee · LAK','SSO employer · LAK'],payroll.map(r=>[r.reference,r.employee,number(r.employeePit),number(r.employerPit),number(r.employeeSso),number(r.employerSso)])))+
         card('VAT · posted journal activity',journalTable(journal.filter(r=>r.group==='VAT')))+
+        card('Profit tax · posted journal activity',journalTable(journal.filter(r=>r.group==='Profit Tax')))+
         card('Income tax · posted journal activity',journalTable(journal.filter(r=>r.group==='PIT')))+
         card('Social security · posted journal activity',journalTable(journal.filter(r=>r.group==='SSO')));
     }else if(active==='tax-vat'){

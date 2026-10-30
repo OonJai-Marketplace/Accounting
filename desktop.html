@@ -5,8 +5,8 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.70"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=143.198"></script>
-  <link rel="stylesheet" href="styles/desktop14245.css?v=143.198">
+  <script src="scripts/offline14239.js?v=143.199"></script>
+  <link rel="stylesheet" href="styles/desktop14245.css?v=143.199">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.84">
   <script src="scripts/desktop14245-1.js?v=143.62"></script>
 <title>Oon Jai Accounting — v143.109</title>
@@ -187,6 +187,7 @@
         <div class="nav-header" onclick="activateCategory(this, 'tax-overview')">Tax and SSO <span class="arrow">▼</span></div>
         <div class="nav-links">
           <button type="button" class="tab-btn" onclick="switchTab('tax-overview')">Monthly Statutory</button>
+          <button type="button" class="tab-btn" onclick="switchTab('tax-profit')">Profit Tax</button>
           <button type="button" class="tab-btn" onclick="switchTab('tax-payment')">Payments</button>
           <button type="button" class="tab-btn" onclick="switchTab('tax-records')">Records</button>
         </div>
@@ -853,6 +854,7 @@
         <div id="report-activity" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Account Activity.</div></div>
         <div id="report-expense" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Expense Report.</div></div>
         <div id="report-payroll" data-module="reports" class="tab-content"><div class="placeholder-warning">No data available for Payroll Report.</div></div>
+        <div id="tax-profit" data-module="tax-sso" class="tab-content"></div>
         <div id="tax-overview" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Tax Overview</h3></div><div class="placeholder-warning">No tax overview data available yet.</div></section></div>
         <div id="tax-vat" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>VAT</h3></div><div class="placeholder-warning">No VAT data available yet.</div></section></div>
         <div id="tax-pit" data-module="tax-sso" class="tab-content"><section class="module-card tax-card102"><div class="je-card-header"><h3>Personal Income Tax</h3></div><div class="placeholder-warning">No personal income tax data available yet.</div></section></div>
@@ -900,6 +902,7 @@
             </tbody></table></div></section>
             <section class="statutory-block"><div class="settings-mini-header"><div><h4>Social Security</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Employee Rate (%)</label><input class="je-input" name="ssoEmployeeRate" type="number" step="0.1" value="5.5"></div><div class="settings-field"><label>Employer Rate (%)</label><input class="je-input" name="ssoEmployerRate" type="number" step="0.1" value="6"></div><div class="settings-field"><label>Maximum Contribution Base (LAK)</label><input class="je-input" name="ssoMaxBase" type="number" placeholder="Enter official ceiling"></div><div class="settings-field"><label>SSO Payable Account</label><input class="je-input" name="ssoAccount" value="SSO Payable"></div></div></section>
             <section class="statutory-block"><div class="settings-mini-header"><div><h4>Value Added Tax</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Standard VAT Rate (%)</label><input class="je-input" name="vatRate" type="number" min="0" max="100" step="0.01" value="10"></div><div class="settings-field"><label>Filing Period</label><select class="je-select" name="filingPeriod"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option></select></div><div class="settings-field"><label>VAT Payable Account</label><input class="je-input" name="vatAccount" value="VAT Payable"></div><div class="settings-field"><label>PIT Payable Account</label><input class="je-input" name="pitAccount" value="PIT Payable"></div></div></section>
+            <section class="statutory-block"><div class="settings-mini-header"><div><h4>Profit Tax</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Applicable Profit-Tax Rate (%)</label><input class="je-input" name="profitTaxRate" type="number" min="0" max="100" step="0.01" placeholder="Enter applicable rate"></div><div class="settings-field"><label>Profit-Tax Expense Account</label><input class="je-input" name="profitTaxExpenseAccount" placeholder="Profit Tax Expense"></div><div class="actions82"><button type="button" class="je-btn je-btn-secondary" onclick="switchTab('tax-profit')">Open Profit Tax Calculation</button></div></div></section>
             <section class="statutory-block compliance-reminder-block"><div class="settings-mini-header"><div><h4>Compliance Reminders</h4><p>Set a separate due day and advance warning for each obligation.</p></div></div><div class="settings-compact-grid cols-3 compliance-reminder-grid"><div class="settings-field"><label>PIT Due Day</label><input class="je-input" name="pitDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>SSO Due Day</label><input class="je-input" name="ssoDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>VAT Due Day</label><input class="je-input" name="vatDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>PIT Reminder</label><select class="je-select" name="pitReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div><div class="settings-field"><label>SSO Reminder</label><select class="je-select" name="ssoReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div><div class="settings-field"><label>VAT Reminder</label><select class="je-select" name="vatReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div></div></section>
             <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('tax')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Statutory Settings</button></div>
           </form>
@@ -1214,16 +1217,16 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
 
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.198"></script>
+  <script src="scripts/desktop14245-3.js?v=143.199"></script>
 <script src="scripts/optional-tools14335.js?v=143.75"></script>
 
 
-<script src="scripts/desktop14245-4.js?v=143.198"></script>
+<script src="scripts/desktop14245-4.js?v=143.199"></script>
 
-<script src="scripts/desktop14245-5.js?v=143.198"></script>
+<script src="scripts/desktop14245-5.js?v=143.199"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.198"></script>
+<script src="scripts/desktop14245-6.js?v=143.199"></script>
 <script src="scripts/entry-actions14271.js?v=143.59"></script>
 <script src="scripts/tablet-journal14266.js?v=142.80"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
@@ -1247,7 +1250,7 @@
 <script src="scripts/password-policy14257.js?v=143.67"></script>
 <script src="scripts/password-service14264.js?v=142.84"></script>
 <script src="scripts/account-security14257.js?v=143.70"></script>
-<script src="scripts/startup14257.js?v=143.198"></script>
+<script src="scripts/startup14257.js?v=143.199"></script>
 <script src="scripts/offline-audit143174.js?v=143.175"></script>
 <script src="scripts/entry-number14257.js?v=143.175"></script>
 <script src="scripts/account-currency14257.js?v=143.70"></script>
@@ -1305,7 +1308,7 @@
 <script src="scripts/session-cache14333.js?v=143.33"></script>
 <script src="scripts/year-window14333.js?v=143.195"></script>
 <script src="scripts/payroll-window14334.js?v=143.70"></script>
-<script src="scripts/local-first14333.js?v=143.198"></script>
+<script src="scripts/local-first14333.js?v=143.199"></script>
 <link rel="stylesheet" href="styles/workspace14337.css?v=143.109">
 <script src="scripts/export-center14337.js?v=143.70"></script>
 <script src="scripts/workspace14337.js?v=143.88"></script>

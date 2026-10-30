@@ -1,9 +1,8 @@
 {
-  "version": "143.198",
+  "version": "143.199",
   "changes": [
-    "Fix the repeated update download caused by mismatched app and offline release versions.",
-    "Audit Logs loads 50 summaries per page; full saved details load when a record is opened.",
-    "Reuse prepared Audit Logs when changing tabs and page administrator-assisted activity.",
-    "Load saved document titles first, then fetch document contents when opened."
+    "Add first-half, second-half and annual profit-tax calculations with ledger profit, adjustments, prior payments, credits, saved calculations and print/export.",
+    "Add configurable profit-tax settings and include posted profit-tax activity in statutory reports.",
+    "Show linked supporting receipt rows from journal details; restore historical petty-cash receipt grouping and provenance."
   ]
 }
