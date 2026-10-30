@@ -138,7 +138,7 @@ function renderDialog(){
 }
 
 function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and automatic sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='143.197';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='',lastShellCheck=0;
+const SHELL_VERSION='143.198';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='',lastShellCheck=0;
 function shellStatus(data){shellReady=data.ready===true&&data.version===SHELL_VERSION;if(data.ready&&String(data.version).localeCompare(SHELL_VERSION,undefined,{numeric:true})>0&&availableShell!==data.version){availableShell=data.version;window.showCenterStatus?.('Website update '+data.version+' is ready. Open System to review and apply it.');}if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}
 async function checkForUpdates(){
  if(checkingUpdate)return;
@@ -153,8 +153,8 @@ async function checkForUpdates(){
   const release=await response.json();if(!/^\d+\.\d+$/.test(release.version))throw Error('invalid release');
   releaseNotes={version:release.version,changes:Array.isArray(release.changes)?release.changes.filter(x=>typeof x==='string').slice(0,30):[]};try{localStorage.setItem('ojm_release_notes143105',JSON.stringify(releaseNotes))}catch{}
   if(release.version.localeCompare(SHELL_VERSION,undefined,{numeric:true})>0){availableShell=release.version;updateMessage='Version '+release.version+' is available. Download the update when you are ready.';}
-  else{updateMessage=availableShell?'Version '+availableShell+' is ready to open.':'You are using the latest published version ('+SHELL_VERSION+').';}
- }catch{updateMessage=navigator.onLine===false?'You are offline. Reconnect to check for updates.':'Could not check for updates. Please try again when your connection improves.';}
+  else{if(availableShell&&availableShell.localeCompare(SHELL_VERSION,undefined,{numeric:true})<=0)availableShell='';updateMessage=availableShell?'Version '+availableShell+' is ready to open.':'You are using the latest published version ('+SHELL_VERSION+').';}
+ }catch{updateMessage=navigator.onLine===false?'You are offline. Reconnect to check for updates.':'The update server could not be reached. Try again; your internet connection may still be working.';}
  finally{clearTimeout(timeout);checkingUpdate=false;changed();}
 }
 async function checkShell(worker){if(!worker)return;const channel=new MessageChannel();let timer;try{const data=await new Promise((resolve,reject)=>{timer=setTimeout(()=>reject(Error('Offline files are still preparing')),1500);channel.port1.onmessage=e=>resolve(e.data);worker.postMessage({type:'ojm-shell-status'},[channel.port2])});shellStatus(data)}catch{shellReady=false}finally{clearTimeout(timer);channel.port1.close()}}
@@ -165,7 +165,7 @@ function registerShell(){
  if(document.readyState!=='complete'){if(!waitingForLoad){waitingForLoad=true;window.addEventListener('load',registerShell,{once:true})}return}
  if(shellRegistration){shellRegistration.then(reg=>{if(reg&&!reg.installing&&!reg.waiting)reg.update().catch(()=>{shellRegistration=null;registerShell()})});return}
  shellRegistration=navigator.serviceWorker.register('desktop-sw14242.js?v='+SHELL_VERSION,{updateViaCache:'none'}).then(reg=>{
-  const watch=()=>{const worker=reg.installing;if(worker)worker.addEventListener('statechange',()=>{if(worker.state==='activated')checkShell(reg.active);if(worker.state==='redundant'){shellReady=false;storageError='Offline files could not finish downloading. Continue working online and retry when connected.';shellRegistration=null;if(navigator.onLine&&++shellFailures<=3){clearTimeout(shellRetry);shellRetry=setTimeout(registerShell,1500)}changed()}})};
+  const watch=()=>{const worker=reg.installing;if(worker)worker.addEventListener('statechange',()=>{if(worker.state==='activated')checkShell(reg.active);if(worker.state==='redundant'){shellReady=false;storageError='Offline files could not finish downloading. Continue working online and retry the update.';shellRegistration=null;if(navigator.onLine&&++shellFailures<=3){clearTimeout(shellRetry);shellRetry=setTimeout(registerShell,1500)}changed()}})};
   reg.addEventListener('updatefound',watch);watch();checkShell(reg.active);return reg;
  }).catch(e=>{shellRegistration=null;storageError='Offline reopening is unavailable: '+e.message;changed()});
 }

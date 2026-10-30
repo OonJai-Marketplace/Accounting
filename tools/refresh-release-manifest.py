@@ -19,6 +19,10 @@ def build():
     version = re.search(r"const SHELL_VERSION='([0-9]+\.[0-9]+)'", (ROOT/'src/core/sync/offline14239.js').read_text())
     if not version:
         raise ValueError('Application release is missing')
+    for worker in ('desktop-sw14242.js', 'phone-sw.js'):
+        worker_version = re.search(r"const VERSION='([0-9]+\.[0-9]+)'", (ROOT/worker).read_text())
+        if not worker_version or worker_version[1] != version[1]:
+            raise ValueError('Offline worker version does not match the application: '+worker)
     outputs = json.loads((ROOT/'src/manifest.json').read_text())['outputs']
     previous = {item['path']: item for item in manifest['files']}
     names = set(previous) | set(outputs)

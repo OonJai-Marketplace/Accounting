@@ -63,10 +63,11 @@
   };
 
   // Important changes only. Routine events remain in the stored audit trail.
-  let auditFilter14361='all',auditOwner14361='';
+  let auditFilter14361='all',auditOwner14361='',auditDetailRequest143198=0;
   const auditAction14361=item=>String(item.action||'CHANGE').toUpperCase();
   function auditKind14361(item){
     const action=auditAction14361(item),after=item.new_data||{};
+    if(item.group143198)return {group:item.group143198,tier:'yellow',label:({routine:action.replaceAll('_',' '),voids:'Voided',corrections:'Correction / adjustment',periods:'Period change',schedules:'Schedule change',deletions:'Deletion / cancellation',reviews:'Review required'})[item.group143198]||action};
     if(action==='VOID_PENDING')return {group:'voids',tier:'red',label:'Void · pending sync'};
     if(action==='DELETE_PENDING')return {group:'deletions',tier:'red',label:'Deletion · pending sync'};
     if(item.deletePolicy143124==='green')return {group:'routine',tier:'green',label:action.replaceAll('_',' ')};
@@ -133,7 +134,10 @@
     if(value===undefined)return 'Not recorded';if(value===null)return 'None';if(typeof value==='boolean')return value?'Yes':'No';if(typeof value==='object')return Array.isArray(value)?'Empty list':'Empty object';
     const text=String(value);if(/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(text))return esc(formatAppDate(text,text.includes('T')));return esc(text===''?'Empty text':text);
   }
-  function openAudit14361(item,trigger){
+  async function openAudit14361(item,trigger){
+    const request=++auditDetailRequest143198,owner=liveProfile?.id;
+    try{item=await window.auditPage143198?.detail(item)||item;}catch(e){if(request===auditDetailRequest143198&&owner===liveProfile?.id)window.showCenterStatus?.(e.message,true);return;}
+    if(request!==auditDetailRequest143198||owner!==liveProfile?.id)return;
     byId('auditDetails14361')?.close();byId('auditDetails14361')?.remove();
     const dialog=document.createElement('dialog');dialog.id='auditDetails14361';dialog.setAttribute('aria-labelledby','auditTitle14361');
     const kind=auditKind14361(item),record=auditRecordId(item),{old,next}=auditValues14361(auditReadable14382(item.old_data??{},record),auditReadable14382(item.new_data??{},record));
@@ -156,14 +160,19 @@
     const local=(JournalModule.voidedEntries||[]).map((item,i)=>({id:`local-${i}`,record_id:item.id,action:'ADJUSTMENT',reason:item.explanation,old_data:item.oldData,new_data:item.newData,created_at:item.timestamp}));
     const records=[...(LiveTransactionAudit||[])].filter(auditKind14361).sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));
     const selected=historyMonth14341.choose('audit',records.map(r=>String(r.created_at||'').slice(0,7))),month=records.filter(item=>String(item.created_at||'').slice(0,7)===selected);
-    if(auditFilter14361!=='all'&&!month.some(item=>auditKind14361(item).group===auditFilter14361))auditFilter14361='all';
-    const cards=auditGroups14361.filter(([key])=>key==='all'||month.some(item=>auditKind14361(item).group===key)).map(([key,label])=>`<button type="button" class="period-summary-card" data-audit-filter14361="${key}" aria-pressed="${auditFilter14361===key}"><span>${label}</span><strong>${key==='all'?month.length:month.filter(item=>auditKind14361(item).group===key).length}</strong></button>`).join('');
-    const shown=month.filter(item=>auditFilter14361==='all'||auditKind14361(item).group===auditFilter14361);
-    const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify(item))}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td>${esc(kind.label)}</td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
-    host.innerHTML=historyMonth14341.control('audit',selected)+`<div class="period-summary-grid audit-filters14361">${cards}</div><section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="period-empty">No audit events match this month and category.</td></tr>'}</tbody></table></div></section>`;
-    host.querySelectorAll('[data-audit-filter14361]').forEach(button=>{button.onclick=()=>{auditFilter14361=button.dataset.auditFilter14361;renderVoidedTransactionsTable();host.querySelector(`[data-audit-filter14361="${auditFilter14361}"]`)?.focus()}});
+    const page=window.auditPage143198?.state(),remote=page?.loaded&&!page.offline&&page.month===selected;
+    if(remote)auditFilter14361=page.group;
+    const count=key=>remote?(key==='all'?Object.values(page.counts).reduce((n,v)=>n+Number(v),0):Number(page.counts[key]||0)):(key==='all'?month.length:month.filter(item=>auditKind14361(item).group===key).length);
+    const cards=auditGroups14361.filter(([key])=>key==='all'||count(key)).map(([key,label])=>`<button type="button" class="period-summary-card" data-audit-filter14361="${key}" aria-pressed="${auditFilter14361===key}"><span>${label}</span><strong>${count(key)}</strong></button>`).join('');
+    const matching=month.filter(item=>auditFilter14361==='all'||auditKind14361(item).group===auditFilter14361),shown=remote?matching.slice(0,50):matching.slice(page?.offset||0,(page?.offset||0)+50);
+    const paging=remote?page:{...page,total:matching.length,offset:page?.offset||0};
+    const pager=(page?.offline?'<p>Showing downloaded audit records. Connect to browse the complete history.</p>':'')+(page?`<div class="archive-month-actions no-print"><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${Math.max(0,paging.offset-50)}" ${paging.offset?'':'disabled'}>Previous</button><span>${paging.total?Math.min(paging.offset+1,paging.total):0}–${Math.min(paging.offset+50,paging.total)} of ${paging.total}</span><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${paging.offset+50}" ${paging.offset+50>=paging.total?'disabled':''}>Next</button></div>`:'');
+    const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify({id:item.id,auditSource1434:item.auditSource1434,record_id:item.record_id,action:item.action,deletePolicy143124:item.deletePolicy143124,old_data:{entry_no:item.old_data?.entry_no},new_data:{entry_no:item.new_data?.entry_no},summary143198:true}))}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td>${esc(kind.label)}</td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
+    host.innerHTML=historyMonth14341.control('audit',selected)+`<div class="period-summary-grid audit-filters14361">${cards}</div>${pager}<section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="period-empty">No audit events match this month and category.</td></tr>'}</tbody></table></div></section>${pager}`;
+    host.querySelectorAll('[data-audit-filter14361]').forEach(button=>{button.onclick=()=>{auditFilter14361=button.dataset.auditFilter14361;if(remote){window.auditPage143198.move(0,auditFilter14361).catch(()=>{});return;}renderVoidedTransactionsTable();host.querySelector(`[data-audit-filter14361="${auditFilter14361}"]`)?.focus()}});
     host.querySelectorAll('[data-audit-open14361]').forEach(row=>{row.onclick=e=>{if(e.target.closest('[data-delete-record1434]'))return;openAudit14361(shown[Number(row.dataset.auditOpen14361)],row)};row.onkeydown=e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();row.click()}}});
-    historyMonth14341.bind(host,'audit',renderVoidedTransactionsTable,'local');
+    host.querySelectorAll('[data-audit-page143198]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await window.auditPage143198.move(Number(b.dataset.auditPage143198));host.scrollIntoView({block:'start'});}catch{}finally{b.disabled=false;}});
+    historyMonth14341.bind(host,'audit',()=>window.auditPage143198.month().catch(()=>{}),'local');
   };
 
   // CSV is imported as an editable draft only; the existing Post Entry validation still applies.

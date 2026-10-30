@@ -18,10 +18,11 @@ window.deleteAuditMonth1434=async function(month){
  }catch(e){if(current())showCenterStatus('Audit records were not deleted: '+e.message,true)}
 };
 window.deleteAuditRecord1434=async function(item){
+ item=(LiveTransactionAudit||[]).find(r=>String(r.id)===String(item.id)&&(r.auditSource1434||'audit_log')===(item.auditSource1434||'audit_log'))||item;
  const actor=liveProfile?.id,db=ojmDb,current=()=>liveProfile?.id===actor&&ojmDb===db;
  if(liveProfile?.role!=='admin')return showCenterStatus('Administrator access required.',true);
  try{
-  if(window.offlineAudit143174&&(offlineAudit143174.offline()||item.voidRequest143174)){await offlineAudit143174.queueDelete(item);return;}
+  if(window.offlineAudit143174&&(offlineAudit143174.offline()||item.voidRequest143174)){item=await window.auditPage143198?.detail(item)||item;if(!current())return;await offlineAudit143174.queueDelete(item);return;}
   const source=item.auditSource1434==='record_deletions108'?'record_deletions108':'audit_log';
   const args=source==='audit_log'?{p_audit_ids:[String(item.id)]}:{p_deletion_ids:[String(item.id)]};
   const permission=await db.rpc('audit_delete_permissions143124',args);if(!current())return;if(permission.error)throw permission.error;

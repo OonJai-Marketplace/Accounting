@@ -1,10 +1,10 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-let VERSION='143.110';
+let VERSION='143.198';
 const status=document.getElementById('updateStatus'),retry=document.getElementById('updateRetry'),progress=document.getElementById('updateProgress');
 let attempt=0,finished=false,timer,poll,registration,unwatch=()=>{},lastProgress='',reportedError=false;
 function fail(message){clearTimeout(timer);clearInterval(poll);status.textContent=message;retry.hidden=false;}
-function watchForStall(token){clearTimeout(timer);timer=setTimeout(()=>{if(token===attempt&&!finished)fail('The download has paused. Check your connection, then tap Retry update. Completed files are saved.')},90000);}
+function watchForStall(token){clearTimeout(timer);timer=setTimeout(()=>{if(token===attempt&&!finished)fail('The update has stopped making progress. Tap Retry update. Completed files are saved; this does not necessarily mean your internet is disconnected.')},90000);}
 function showProgress(data,token){
  if(finished||token!==attempt||data?.version!==VERSION)return;
  if(data.type==='ojm-shell-error'){
@@ -24,7 +24,8 @@ async function verify(worker,token){
   const reply=await new Promise((resolve,reject)=>{timeout=setTimeout(()=>reject(Error('Waiting for the new website files.')),2000);channel.port1.onmessage=e=>resolve(e.data);worker.postMessage({type:'ojm-shell-status'},[channel.port2])});
   if(token!==attempt||finished)return;
   if(reply.progress)showProgress(reply.progress,token);
-  if(worker.state!=='activated'||!reply.ready||String(reply.version).localeCompare(VERSION,undefined,{numeric:true})<0)return;
+  if(worker.state!=='activated'||!reply.ready)return;
+  if(String(reply.version).localeCompare(VERSION,undefined,{numeric:true})<0){if(new URL(worker.scriptURL).searchParams.get('v')===VERSION&&!registration?.installing&&!registration?.waiting){reportedError=true;fail('The website announced '+VERSION+' but supplied offline files for '+reply.version+'. The release files do not match. Retry after publication finishes.');}return;}
   finished=true;clearTimeout(timer);clearInterval(poll);unwatch();status.textContent='Update ready. Opening Accounting…';progress.value=1;
   const url=new URL('desktop.html',location.href);url.searchParams.set('v',reply.version);location.replace(url.href);
  }catch{}finally{clearTimeout(timeout);channel.port1.close();}
@@ -55,10 +56,10 @@ async function start(){
   registration.addEventListener('updatefound',watch);
   unwatch=()=>{registration.removeEventListener('updatefound',watch);for(const [worker,change]of watched)worker.removeEventListener('statechange',change);};
   watch();await verify(registration.active,token);
-  if(finished)return;
+  if(finished||reportedError)return;
   poll=setInterval(()=>{verify(registration.installing||registration.waiting||registration.active,token)},4000);
   if(!registration.installing&&!registration.waiting)await registration.update();
- }catch(e){if(token===attempt)fail('The update could not finish: '+e.message+'. Tap Retry update when connected.');}
+ }catch(e){if(token===attempt)fail('The update could not finish: '+e.message+'. Tap Retry update.');}
 }
 navigator.serviceWorker?.addEventListener('message',e=>{
  if(e.data?.version!==VERSION)return;

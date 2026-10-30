@@ -63,26 +63,29 @@ function menu(){if(liveProfile?.role!=='admin'&&!saved)return switchAccount();le
  const box=(window.desktopScale14320?.rect($('switchAccount110'))||$('switchAccount110').getBoundingClientRect());panel.style.position='fixed';panel.style.right=Math.max(12,(window.desktopScale14320?.width||innerWidth)-box.left+10)+'px';panel.style.bottom=Math.max(12,(window.desktopScale14320?.height||innerHeight)-box.bottom)+'px';panel.style.maxHeight='70vh';panel.querySelector('header button').onclick=()=>panel.remove();panel.querySelector('[data-return138]')?.addEventListener('click',restore);
  if(saved){panel.querySelector('input').hidden=true;panel.querySelector('div').textContent='Return to Administrator to choose another account.';return;}
  const users=liveProfiles.filter(u=>u.role!=='admin'&&u.status==='active');const draw=()=>{const q=panel.querySelector('input').value.toLowerCase();panel.querySelector('div').innerHTML=users.filter(u=>(u.full_name+' '+u.email).toLowerCase().includes(q)).map(u=>'<button data-select138="'+esc(u.id)+'">'+esc(u.full_name||u.email)+'</button>').join('')||'<p>No active sub-users.</p>';panel.querySelectorAll('[data-select138]').forEach(b=>b.onclick=()=>enter(b.dataset.select138));};panel.querySelector('input').oninput=draw;draw();panel.querySelector('input').focus();}
-let assistedRecords143103=[],assistedOwner143103='',assistedClient143103=null;
+let assistedRecords143103=[],assistedOwner143103='',assistedClient143103=null,assistedOffset143198=0,assistedTotal143198=0,assistedMonth143198='',assistedGeneration143198=0;
 function renderAssisted143103(error=''){
  const panel=$('assistedAudit138');if(!panel||assistedOwner143103!==liveProfile?.id||assistedClient143103!==ojmDb)return;
  const name=id=>liveProfiles.find(u=>u.id===id)?.full_name||'Name not recorded';
  const month=document.querySelector('[data-history-month14341=audit]')?.value||window.historyMonth14341?.choose('audit',assistedRecords143103.map(r=>String(r.created_at||'').slice(0,7)));
  const records=assistedRecords143103.filter(r=>String(r.created_at||'').slice(0,7)===month);
  panel.innerHTML='<div class="je-card-header"><h3>Administrator-assisted account activity</h3><small>'+esc(month||'')+'</small></div>'+(error?'<p role="alert">Assisted-account activity could not load: '+esc(error)+'</p>':'<div class="table-container"><table><thead><tr><th>Date</th><th>Administrator</th><th>Acting for</th><th>Action</th><th>Record</th></tr></thead><tbody>'+(records.map((r,index)=>'<tr tabindex="0" aria-haspopup="dialog" data-assisted-detail14361="'+index+'"><td>'+esc(formatAppDate(r.created_at,true))+'</td><td>'+esc(name(r.actor_id))+'</td><td>'+esc(name(r.effective_user_id))+'</td><td>'+esc(r.operation)+'</td><td>'+esc([r.table_name,r.row_id].filter(Boolean).join(' · '))+'</td></tr>').join('')||'<tr><td colspan="5">No assisted-account activity in this month.</td></tr>')+'</tbody></table></div>');
+ panel.insertAdjacentHTML('beforeend',`<div class="archive-month-actions no-print"><button type="button" class="je-btn je-btn-secondary" data-assisted-page143198="${Math.max(0,assistedOffset143198-50)}" ${assistedOffset143198?'':'disabled'}>Previous</button><span>${assistedTotal143198?assistedOffset143198+1:0}–${Math.min(assistedOffset143198+50,assistedTotal143198)} of ${assistedTotal143198}</span><button type="button" class="je-btn je-btn-secondary" data-assisted-page143198="${assistedOffset143198+50}" ${assistedOffset143198+50>=assistedTotal143198?'disabled':''}>Next</button></div>`);
+ panel.querySelectorAll('[data-assisted-page143198]').forEach(b=>b.onclick=()=>{assistedOffset143198=Number(b.dataset.assistedPage143198);assistedAudit(true,true).catch(e=>renderAssisted143103(e.message));});
  panel.querySelectorAll('[data-assisted-detail14361]').forEach(row=>{row.onclick=()=>window.auditDetails14361.open(records[Number(row.dataset.assistedDetail14361)],row);row.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();row.click()}}});
 }
 async function assistedAudit(preparing=false,force=true){
  const host=$('transactions-voided');if(!host||liveProfile?.role!=='admin'||!preparing&&!host.classList.contains('active'))return;
  let panel=$('assistedAudit138');if(!panel){panel=document.createElement('section');panel.id='assistedAudit138';panel.className='je-card';host.append(panel)}
- const actor=liveProfile.id,db=ojmDb,current=()=>liveProfile?.id===actor&&ojmDb===db;
- const read=async()=>{const rows=[];for(let offset=0;;offset+=500){if(!current())throw Error('Account changed while loading activity.');const r=await db.from('workspace_actor_audit138').select('*').order('created_at',{ascending:false}).order('id').range(offset,offset+499);if(r.error)throw r.error;if(!Array.isArray(r.data))throw Error('The complete activity list could not be read.');rows.push(...r.data);if(r.data.length<500)return rows}};
- let data=[],error='';try{data=window.localFirst14333?await localFirst14333.snapshot('audit-assisted-complete143103',read,{force}):await read()}catch(e){if(preparing)throw e;error=e.message}
+ const actor=liveProfile.id,db=ojmDb,generation=++assistedGeneration143198,current=()=>liveProfile?.id===actor&&ojmDb===db&&generation===assistedGeneration143198;
+ const month=window.historyMonth14341.choose('audit',[]);
+ if(assistedOwner143103!==actor||assistedClient143103!==db||assistedMonth143198!==month){assistedOffset143198=0;assistedRecords143103=[];}
+ const read=async()=>{const r=await db.rpc('audit_page143198',{p_month:month+'-01',p_offset:assistedOffset143198,p_limit:50,p_assisted:true});if(r.error)throw r.error;if(!Array.isArray(r.data?.rows))throw Error('Activity page service is not installed.');return r.data;};
+ let data={rows:[],total:0},error='';try{data=window.localFirst14333?await localFirst14333.snapshot('audit-assisted-page143198:'+month+':'+assistedOffset143198,read,{force}):await read();}catch(e){if(preparing)throw e;error=e.message;}
  if(!current()||!panel.isConnected)return;
- const name=id=>liveProfiles.find(u=>u.id===id)?.full_name||'Name not recorded';
- assistedOwner143103=actor;assistedClient143103=db;assistedRecords143103=data.map(r=>({...r,record_id:r.row_id,action:r.operation,old_data:r.before_data,new_data:r.after_data,reason:'Administrator acting for '+name(r.effective_user_id)})).filter(r=>window.auditDetails14361?.kind(r));renderAssisted143103(error);
+ assistedOwner143103=actor;assistedClient143103=db;assistedMonth143198=month;assistedTotal143198=Number(data.total)||0;assistedRecords143103=data.rows||[];renderAssisted143103(error);
 }
-window.addEventListener('history-month143103',e=>{if(e.detail?.key==='audit')renderAssisted143103()});
+window.addEventListener('history-month143103',e=>{if(e.detail?.key==='audit')assistedAudit(true,false).catch(e=>renderAssisted143103(e.message))});
 
 function ready(){window.addEventListener('page113',()=>{badge();if(!window.startup14257?.isPrepared('audit'))assistedAudit();});const before=loadLiveProfile;loadLiveProfile=async function(user){if(ctx.target)user={...user,id:ctx.target};return before(user);};
  const oldLogout=logoutDemoUser;logoutDemoUser=async function(...args){contextEpoch++;switching=false;ctx.busy=false;transition(null);ctx.target=null;ctx.actor=null;saved=null;badge();return oldLogout(...args);};

@@ -1,7 +1,9 @@
 {
-  "version": "143.197",
+  "version": "143.198",
   "changes": [
-    "Transaction History has Previous/Next controls at both the heading and the bottom.",
-    "Changing history pages returns to the heading of the new page."
+    "Fix the repeated update download caused by mismatched app and offline release versions.",
+    "Audit Logs loads 50 summaries per page; full saved details load when a record is opened.",
+    "Reuse prepared Audit Logs when changing tabs and page administrator-assisted activity.",
+    "Load saved document titles first, then fetch document contents when opened."
   ]
 }
