@@ -19,7 +19,7 @@
   canvas.getContext('2d').drawImage(video,0,0);return canvas;
  }
  function capture(){return frame().toDataURL('image/jpeg',.97);}
- function captureScan(){const canvas=frame(),found=window.ReceiptCore202.detect(canvas);return {original:canvas.toDataURL('image/jpeg',.97),corners:found.corners,automatic:found.automatic};}
+ async function captureScan(canvas=frame()){const found=window.ReceiptCore202.detect(canvas);return {original:await window.ReceiptCore202.jpeg(canvas,.97),corners:found.corners,automatic:found.automatic,source:canvas};}
  function watch(onEdges){
   if(edgeTimer!==null)clearTimeout(edgeTimer);const ticket=request;let previous=null;
   function inspect(){
@@ -29,6 +29,6 @@
   }
   inspect();
  }
- window.ReceiptCamera209={start,stop,capture,captureScan,watch,get active(){return !!stream}};
+ window.ReceiptCamera209={start,stop,capture,frame,captureScan,watch,get active(){return !!stream}};
  window.addEventListener('pagehide',stop);
 })();

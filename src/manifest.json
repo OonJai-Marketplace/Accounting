@@ -3331,6 +3331,10 @@
     ],
     "scripts/device-vault14334.js": [
       {
+        "source": "src/core/auth/remembered-phone212.js",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/core/auth/device-vault14334.js"
       }
     ],

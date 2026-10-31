@@ -47,6 +47,8 @@
     locked = false,
     signingOut = false,
     client = null;
+  const rememberPhone212 = window.OJM_REMEMBER_PHONE212 === true;
+  const remembered212 = rememberPhone212 ? createRememberedPhone212(scope, id => rawLocal.getItem(P + id + ":generation")) : null;
   const ephemeral = [new Map(), new Map()],
     isLegacy = (k) =>
       /^(?:ojm[_-]|oonjai[_-]|sb-)/i.test(k) || k.startsWith(scope + ":");
@@ -100,6 +102,15 @@
     }
     return value;
   }
+  async function packAsync(value,label) {
+    requireKey();
+    if(!String(label).includes(actor))throw Error("The account changed before device storage completed.");
+    const id=actor,key=secret,iv=random(12),aad=scope+":"+id+":"+label;
+    const native=await crypto.subtle.importKey('raw',key,{name:'AES-GCM'},false,['encrypt']);
+    const data=await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:encoder.encode(aad)},native,encoder.encode(JSON.stringify(value)));
+    requireKey();if(actor!==id||secret!==key)throw Error("The account changed before device storage completed.");
+    return {vault14334:1,iv:b64(iv),data:b64(new Uint8Array(data)),actor:id};
+  }
   function session() {
     try {
       return JSON.parse(rawSession.getItem(P + "session") || "null");
@@ -123,7 +134,7 @@
       !s ||
       s.actor !== actor ||
       !at ||
-      now - at >= DAY ||
+      (!(rememberPhone212 && s.remember212) && now - at >= DAY) ||
       at > now + 60000 ||
       s.generation !== rawLocal.getItem(P + actor + ":generation")
     );
@@ -177,6 +188,27 @@
     secret = null;
     rawSession.removeItem(P + "session");
   }
+  async function rememberCurrent212() {
+    if (!remembered212 || !secret || locked) return;
+    const id=actor,key=secret,stamp=rawLocal.getItem(P+id+":generation");
+    const saved=await remembered212.save(id,key,stamp);
+    if(saved && secret===key && actor===id && !locked){const s=session();if(s?.actor===id){s.remember212=true;rawSession.setItem(P+"session",JSON.stringify(s));}}
+  }
+  const ready212 = (async () => {
+    if (!remembered212) return;
+    try {
+      if(secret){await rememberCurrent212().catch(()=>{});return;}
+      const saved=await remembered212.load();
+      if(!saved || locked || secret)return;
+      actor=saved.actor;secret=saved.key;
+      // Check the encrypted session before allowing remembered access to local work.
+      const name=physical(0,authKey()),envelope=rawLocal.getItem(name);
+      const token=envelope?JSON.parse(openWith(secret,JSON.parse(envelope),name)):null;
+      if(token?.user?.id!==actor || !token.refresh_token || saved.generation!==rawLocal.getItem(P+actor+":generation"))throw Error('Saved session is unavailable.');
+      rawSession.setItem(P+"session",JSON.stringify({actor,key:b64(secret),at:Date.now(),generation:saved.generation,remember212:true}));
+      lastActivityAt14360=Date.now();
+    } catch {secret?.fill(0);secret=null;rawSession.removeItem(P+"session");}
+  })();
   function logicalKeys(raw, kind) {
     if (!secret) return [...ephemeral[kind].keys()];
     const prefix = physical(kind, "");
@@ -537,6 +569,7 @@
     locked = true;
     const id = actor;
     rawSession.removeItem(P + "session");
+    if (remembered212)void remembered212.forget(id).catch(()=>{});
     if (message) rawSession.setItem(P + "notice", message);
     if (broadcast && id)
       rawLocal.setItem(P + id + ":generation", crypto.randomUUID());
@@ -554,6 +587,7 @@
     location.reload();
   }
   async function attach(authClient) {
+    await ready212;
     client = authClient;
     // The SDK's default channel is shared by every account on the origin. Our
     // encrypted storage events and lock generation already synchronize same-account
@@ -642,6 +676,7 @@
         }
         rawSession.setItem(P + "offline", offline ? "1" : "0");
         rawSession.setItem(P + "fresh", verified ? "1" : "0");
+        if(remembered212)await rememberCurrent212().catch(()=>{});
         credentials.password = "";
         navigating = true;
         location.reload();
@@ -705,6 +740,7 @@
   }
   offline = rawSession.getItem(P + "offline") === "1";
   window.deviceVault14334 = {
+    ready: ready212,
     consumeFresh() {
       const fresh = rawSession.getItem(P + "fresh") === "1";
       rawSession.removeItem(P + "fresh");
@@ -720,6 +756,7 @@
         localStorage.setItem(authKey(), JSON.stringify(session));
     },
     finishRecovery() {
+      if(remembered212)void remembered212.forget(actor).catch(()=>{});
       rawSession.removeItem(P + "session");
       if (actor)
         rawLocal.setItem(P + actor + ":generation", crypto.randomUUID());
@@ -728,6 +765,7 @@
       ephemeral.forEach((m) => m.clear());
     },
     pack,
+    packAsync,
     unpack,
     attach,
     lock,

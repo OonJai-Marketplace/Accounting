@@ -29,6 +29,7 @@
   }
   async function boot() {
     if (!window.supabase || !scope || !window.OJM_SUPABASE_ANON_KEY) { sessionGate('Sign-in files could not load. Reconnect and reload this page.');return; }
+    await window.deviceVault14334?.ready;
     if (!db) {
       db=window.supabase.createClient(scope,window.OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:recovering},global:{fetch:boundedFetch}});
       try{await window.deviceVault14334?.attach(db);}catch(e){db=null;sessionGate(e.message||'Sign-in storage could not open. Reload and try again.');return;}

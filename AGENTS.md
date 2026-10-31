@@ -134,3 +134,10 @@ Keep retake, optional manual crop, delete, next receipt, next entry and finish i
 one focused interface with phone-sized icon controls. Put destination, batch,
 numbering and other secondary options behind settings. Retain the previous
 photo until its replacement is durably stored; preserve pending scan recovery.
+
+Phone refinements 2026-10-31: remember phone sign-in across app closure until
+explicit sign-out or revoked access. Preserve encrypted drafts and account
+isolation; do not apply remembered phone unlocking to desktop tabs. Show the
+captured photo immediately while correction finishes. Retake replaces the same
+scan only after its new original is protected. Bottom navigation has exactly
+five items: Home, Accounts, Post, Entries, Scan. History is a view inside Entries.
