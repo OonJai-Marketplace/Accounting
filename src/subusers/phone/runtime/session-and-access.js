@@ -13,7 +13,7 @@
     $('adminNav').hidden=!isAdmin();$('userTabs').hidden=true;$('bottom').hidden=$('bottom').hidden||S.area!=='users';
     document.querySelector('.brand small').textContent='Marketplace';
     for(const b of $('adminNav').querySelectorAll('[data-area]'))b.classList.toggle('active',b.dataset.area===S.area);
-    for (const b of $('bottom').querySelectorAll('[data-page]')) {let badge=b.querySelector('.returned-badge14347');const count=b.dataset.page==='entries'?headers().filter(j=>j.status==='returned').length:0;if(count){if(!badge){badge=document.createElement('span');badge.className='returned-badge14347';b.append(badge)}badge.textContent=String(count);badge.setAttribute('aria-label',count+' submissions returned for correction');}else badge?.remove(); b.classList.toggle('active', b.dataset.page === S.page); b.setAttribute('aria-current', b.dataset.page === S.page ? 'page' : 'false'); }
+    for (const b of $('bottom').querySelectorAll('[data-page]')) {let badge=b.querySelector('.returned-badge14347');const count=b.dataset.page==='entries'?headers().filter(j=>j.status==='returned').length:0;if(count){if(!badge){badge=document.createElement('span');badge.className='returned-badge14347';b.append(badge)}badge.textContent=String(count);badge.setAttribute('aria-label',count+' submissions returned for correction');}else badge?.remove(); b.classList.toggle('active', b.dataset.page === (S.page==='history'?'entries':S.page)); b.setAttribute('aria-current', b.dataset.page === (S.page==='history'?'entries':S.page) ? 'page' : 'false'); }
     for(const b of $('workspace').querySelectorAll('[data-action=refresh]')){b.disabled=S.loading;b.textContent=S.loading?'Updating…':'Refresh';}
   }
   function sessionGate(message = '') {

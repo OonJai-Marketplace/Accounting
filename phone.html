@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en"><head><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <script>(()=>{if(window.recoveryRedirect14257)return;const ua=navigator.userAgent||'',tablet=/iPad/i.test(ua)||/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1||/Android/i.test(ua)&&!/Mobile/i.test(ua);if(tablet){const u=new URL('desktop.html',location.href);u.search=location.search;u.searchParams.delete('staff');u.hash=location.hash;location.replace(u.href)}})();</script>
-  <meta charset="utf-8"><script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.70"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta charset="utf-8"><script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script>window.OJM_REMEMBER_PHONE212=true;</script><script src="scripts/device-vault14334.js?v=143.212"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <meta name="theme-color" content="#07513e"><title>Oon Jai · My workspace</title>
-  <link rel="stylesheet" href="styles/phone14242.css?v=143.209">
+  <link rel="stylesheet" href="styles/phone14242.css?v=143.212">
     <link rel="stylesheet" href="styles/functional-corrections14292.css?v=143.128">
     <script>setTimeout(()=>{if(window.PhoneWorkspace14242)return;const m=document.getElementById('workspace');if(!m)return;document.documentElement.classList.remove('session-checking1444');document.getElementById('loginGate')?.classList.add('is-authenticated');m.hidden=false;m.textContent='Phone files did not finish loading. Reconnect and retry.';const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Retry';b.onclick=()=>location.reload();m.append(b)},10000);</script>
   <link rel="stylesheet" href="styles/loading1444.css?v=142.94"><script src="scripts/loading1444.js?v=142.94"></script><script defer src="assets/vendor/supabase.js?v=142.41"></script>
@@ -13,7 +13,7 @@
 <script defer src="scripts/password-policy14257.js?v=143.67"></script>
 <script defer src="scripts/staff-entry14225.js?v=143.70"></script>
   <link rel="stylesheet" href="styles/final-review14345.css?v=143.47"><script defer src="scripts/reconciliation14345.js?v=143.109"></script>
-<script defer src="scripts/phone-runtime14242.js?v=143.211"></script>
+<script defer src="scripts/phone-runtime14242.js?v=143.212"></script>
 <script src="scripts/numeric-caret14257.js?v=142.57"></script>
 <script src="scripts/login-notifications14293.js?v=142.94"></script><link rel="stylesheet" href="styles/login-notifications14293.css?v=142.94"><script src="scripts/feedback-viewport14295.js?v=143.20"></script><link rel="stylesheet" href="styles/feedback-viewport14295.css?v=143.59"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="48x48" href="assets/app-icons/accounting-48-v1.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/app-icons/accounting-180-v1.png"><link rel="stylesheet" href="styles/app-install205.css?v=143.208"><script src="scripts/app-install205.js?v=143.208"></script><script defer src="scripts/receipt-links208.js?v=143.208"></script><script defer src="scripts/scan-viewer208.js?v=143.208"></script><link rel="stylesheet" href="styles/scan-viewer208.css?v=143.208"></head><body><div class="app">
   <header class="top"><div class="brand"><img src="assets/logo.png" alt="Oon Jai" width="42" height="42" loading="lazy" decoding="async"><div>Oon Jai<small>Marketplace</small></div></div><div class="top-actions"><button id="connection" class="connection" type="button">Starting…</button><button id="avatar" class="avatar" type="button" aria-label="Account" aria-expanded="false" hidden></button></div></header>
@@ -44,10 +44,9 @@
   <nav id="bottom" class="bottom" aria-label="Workspace navigation" hidden>
     <button type="button" data-page="home"><span data-icon="home"></span>Home</button>
     <button type="button" data-page="accounts"><span data-icon="wallet"></span>Accounts</button>
-    <button type="button" data-action="scan" aria-label="Scan receipts"><span data-icon="camera"></span>Scan</button>
     <button type="button" data-page="post"><span data-icon="plus"></span>Post</button>
     <button type="button" data-page="entries"><span data-icon="book"></span>Entries</button>
-    <button type="button" data-page="history"><span data-icon="chart"></span>History</button>
+    <button type="button" data-action="scan" aria-label="Scan receipts"><span data-icon="camera"></span>Scan</button>
   </nav>
 </div><dialog id="dialog"><form method="dialog"><div id="dialogBody"></div><div id="dialogButtons" class="actions"></div></form></dialog><script src="scripts/action-feedback14296.js?v=143.70"></script>
 <link rel="stylesheet" href="styles/controls14305.css?v=143.08">

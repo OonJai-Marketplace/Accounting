@@ -1,8 +1,8 @@
 {
-  "version": "143.211",
+  "version": "143.212",
   "changes": [
-    "Scanner opens directly to the camera, detects paper corners live, and automatically straightens each captured receipt before review.",
-    "Focused icon controls for retake, optional corner adjustment, delete, next receipt, next entry and save; storage and batch controls stay in the settings tray.",
-    "Retakes, unfinished scans and imports remain protected on this device; save still supports Google Drive and local PDFs."
+    "Phone sign-in is remembered across app closure; explicit sign-out still protects saved drafts.",
+    "Capture displays the photo immediately, avoids redundant processing and uses faster protected storage. The camera-and-arrow icon retakes the same receipt.",
+    "Five bottom tabs: Home, Accounts, Post, Entries, Scan. History is now inside Entries."
   ]
 }
