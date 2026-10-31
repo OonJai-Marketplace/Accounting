@@ -64,11 +64,14 @@ debug signing is for evaluation only. A production Android signing key and an
 Apple signing/distribution setup are separate release steps. iOS Simulator
 compilation does not produce an installable iPhone application.
 
-Build installable test updates from `feat/connected-native-scanner`: GitHub
-Actions caches are branch-scoped, so another branch can generate a different
-debug key. Compare the delivered APK certificate to the previous APK before
-calling it an in-place update. Never suggest uninstalling to bypass a signing
-mismatch when there may be unsaved device drafts.
+The original v143.214 test key was not retained by its CI cache. Starting with
+v143.215, `org.oonjai.accounting.preview` installs beside the original app and
+keeps its drafts intact. Delivered preview APKs must be signed with the retained
+private test keystore (OonJai-Accounting-Preview-test-signing.zip in the owner's
+ChatGPT files), using alias `oonjai-preview` and the standard debug-store password
+`android`. Do not deliver the ephemeral CI debug signature. Compare the signing
+certificate before every preview update. Never suggest uninstalling to bypass
+a signing mismatch when there may be unsaved device drafts.
 
 ## Validation and release limits
 

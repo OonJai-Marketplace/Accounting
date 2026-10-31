@@ -2,7 +2,7 @@ name: Connected Accounting native builds
 on:
   workflow_dispatch:
   push:
-    # Keep installable test builds on the signing-cache branch for in-place upgrades.
+    # CI checks compilation; delivered preview APKs are signed with the retained test key.
     branches: [feat/connected-native-scanner]
     paths: ['mobile/connected-accounting/**', '.github/workflows/native-accounting.yml', 'src/documents/scanner/**', 'src/subusers/phone/**']
 permissions:
@@ -25,16 +25,23 @@ jobs:
         working-directory: mobile/connected-accounting
       - run: npm run build && npx cap add android && npm run prepare:native
         working-directory: mobile/connected-accounting
-      - uses: actions/cache@v4
-        with:
-          path: ~/.android/debug.keystore
-          key: oonjai-connected-accounting-test-signing-v1
       - run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
         working-directory: mobile/connected-accounting/android
+      - name: Retain SDK signing tool for local preview packaging
+        run: |
+          for signer_jar in "$ANDROID_HOME"/build-tools/*/lib/apksigner.jar; do
+            if [ -f "$signer_jar" ]; then
+              cp "$signer_jar" mobile/connected-accounting/android/app/build/outputs/apk/debug/apksigner.jar
+              break
+            fi
+          done
+          test -f mobile/connected-accounting/android/app/build/outputs/apk/debug/apksigner.jar
       - uses: actions/upload-artifact@v4
         with:
           name: OonJai-Accounting-Android-test
-          path: mobile/connected-accounting/android/app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            mobile/connected-accounting/android/app/build/outputs/apk/debug/app-debug.apk
+            mobile/connected-accounting/android/app/build/outputs/apk/debug/apksigner.jar
           retention-days: 30
   ios-compile:
     runs-on: macos-15
