@@ -2,7 +2,8 @@ name: Connected Accounting native builds
 on:
   workflow_dispatch:
   push:
-    branches: [feat/connected-native-scanner, feat/scanner-setup215]
+    # Keep installable test builds on the signing-cache branch for in-place upgrades.
+    branches: [feat/connected-native-scanner]
     paths: ['mobile/connected-accounting/**', '.github/workflows/native-accounting.yml', 'src/documents/scanner/**', 'src/subusers/phone/**']
 permissions:
   contents: read

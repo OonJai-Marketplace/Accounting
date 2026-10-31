@@ -64,6 +64,12 @@ debug signing is for evaluation only. A production Android signing key and an
 Apple signing/distribution setup are separate release steps. iOS Simulator
 compilation does not produce an installable iPhone application.
 
+Build installable test updates from `feat/connected-native-scanner`: GitHub
+Actions caches are branch-scoped, so another branch can generate a different
+debug key. Compare the delivered APK certificate to the previous APK before
+calling it an in-place update. Never suggest uninstalling to bypass a signing
+mismatch when there may be unsaved device drafts.
+
 ## Validation and release limits
 
 Automated checks cover 60 returned pages, exact Android image-byte preservation,
