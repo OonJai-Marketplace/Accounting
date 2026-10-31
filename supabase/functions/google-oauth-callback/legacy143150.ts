@@ -72,7 +72,7 @@ export async function handler(req:Request){
    if(!/^[a-f0-9-]{72,74}$/.test(state))throw Error('Invalid authorization state');
    const saved=checked(await admin.from('google_states143150').delete().eq('state_hash',await hash(state)).gt('expires_at',new Date().toISOString()).select().maybeSingle());
    if(!saved)throw Error('Authorization expired. Start Connect Google again.');
-   if([`documents202:${saved.owner}`,`documents202:${saved.owner}:native214`].includes(saved.sheet)){const {finishDocumentOAuth}=await import('../_shared/documents202.ts');return finishDocumentOAuth(saved,params);}
+   if([`documents202:${saved.owner}`,`documents202:${saved.owner}:native214`,`documents202:${saved.owner}:native215`].includes(saved.sheet)){const {finishDocumentOAuth}=await import('../_shared/documents202.ts');return finishDocumentOAuth(saved,params);}
    const profile=checked(await admin.from('profiles').select('role,status').eq('id',saved.owner).single());if(profile.role!=='admin'||profile.status!=='active')throw Error('Active administrator required');
    if(params.has('error'))throw Error('Google authorization cancelled.');
    const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',body:new URLSearchParams({client_id:clientID(),client_secret:clientSecret(),redirect_uri:redirect,grant_type:'authorization_code',code:params.get('code')||''})});const token=await r.json();

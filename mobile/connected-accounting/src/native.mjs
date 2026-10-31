@@ -19,13 +19,14 @@ if (Capacitor.isNativePlatform()) {
   });
   void Scanner.prepare().catch(() => {});
   void App.addListener('appUrlOpen', async ({url}) => {
-    const u=new URL(url);if(u.protocol!=='oonjai-accounting:'||u.hostname!=='scan')return;
+    const u=new URL(url);if(u.protocol!=='oonjai-accounting-preview:'||u.hostname!=='scan')return;
     await Browser.close().catch(()=>{});location.replace('scan.html?settings=1'+(u.search?'&'+u.search.slice(1):''));
   });
   // Keep the same account and APIs; never navigate the native WebView to OAuth.
   window.OJM_PUBLIC_APP_URL = 'https://oonjai-marketplace.github.io/Accounting/';
   window.ReceiptNative214 = {
     available: true,
+    preview215: true,
     platform,
     pickDirectory: folder => Storage.pickDirectory(folder || {}),
     checkDirectory: folder => Storage.checkDirectory(folder),
