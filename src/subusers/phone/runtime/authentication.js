@@ -21,7 +21,7 @@
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
-        touch();$('login').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
+        touch();if(new URL(location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){location.replace('scan.html?capture=1');return;}$('login').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
         if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(current(owner,epoch)&&denied(e))void revoke(e)});phoneSyncActivity14351();}
       } catch(e) { if(current(owner,epoch)){notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('login').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;

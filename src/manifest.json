@@ -4392,6 +4392,11 @@
       {
         "source": "src/documents/scanner/viewer208.css"
       }
+    ],
+    "scripts/receipt-camera209.js": [
+      {
+        "source": "src/documents/scanner/camera209.js"
+      }
     ]
   },
   "variants": [

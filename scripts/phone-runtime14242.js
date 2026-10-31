@@ -64,7 +64,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.208', $ = id => document.getElementById(id);
+  const VERSION = '143.209', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -352,7 +352,7 @@ function appLocalDate(date=new Date()) {
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
-        touch();$('login').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
+        touch();if(new URL(location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){location.replace('scan.html?capture=1');return;}$('login').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
         if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(current(owner,epoch)&&denied(e))void revoke(e)});phoneSyncActivity14351();}
       } catch(e) { if(current(owner,epoch)){notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('login').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;
@@ -421,6 +421,15 @@ function appLocalDate(date=new Date()) {
     const m=$('month');if(m)m.onchange=()=>{if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(m.value))return;S.month=m.value;S.limit=30;rememberLocation();void persist(S.owner,{month:S.month});render();void loadMonth();};
     const search=$('historySearch14359');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();$('workspace').querySelectorAll('details.entry').forEach(row=>row.hidden=!!q&&!row.textContent.toLowerCase().includes(q))};
     const form=$('postForm');if(form){form.addEventListener('input',captureDraft);form.addEventListener('change',captureDraft);form.onsubmit=e=>{e.preventDefault();void saveEntry();};updateValidation();}
+  }
+  async function openScanner209(settings=false){
+    if(!S.owner||S.owner!==S.actor||!permission('sub-users-workspace')||S.saving||S.submitting)return;
+    const owner=S.owner,epoch=S.epoch;
+    clearTimeout(draftTimer);
+    // Await durable storage before leaving an unfinished journal form.
+    if(S.draft){await persist(owner,{draft:structuredClone(S.draft),page:S.page});if(!current(owner,epoch))return;saveMirror();}
+    rememberLocation();touch();
+    location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
   function captureDraft(e){const n=e.target;if(!n.dataset.field||S.saving)return;const field=n.dataset.field;if(n.dataset.index!==undefined)S.draft[S.draft.mode==='double'?'lines':'single'][Number(n.dataset.index)][field]=n.value;else S.draft[field]=n.value;saveDraftLater();updateValidation();}
@@ -524,6 +533,7 @@ function appLocalDate(date=new Date()) {
   async function printReport(){notice('Use a tablet, iPad or desktop to print reports.');}
   function connectionDialog(){const dialog=$('dialog');dialog.close();dialog.classList.add('phone-connection14246');$('dialogBody').innerHTML='<h2>Connection & sync</h2><p>Saved entries sync automatically. Unfinished form edits stay on this device until saved.</p><section class="sync-section14246"><h3>Connection</h3><p>'+esc(navigator.onLine?(S.online?'Online':'Limited connection'):'Offline')+'</p></section><section class="sync-section14246"><h3>Website files</h3><p>'+esc(S.shellReady?'Downloaded for reopening without connection.':'Still preparing for offline reopening.')+'</p></section><section class="sync-section14246"><h3>Device entries · '+queue().length+'</h3>'+(queue().map(q=>'<article class="sync-entry14246"><strong>'+esc(q.draft.date+' · '+q.draft.memo)+'</strong><p>'+esc(q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Waiting to sync')+'</p>'+(q.message?'<p>'+esc(q.message)+'</p>':'')+'<small>Reference: '+esc(q.key)+'</small></article>').join('')||'<p>No device entries waiting to sync.</p>')+'</section>';$('dialogButtons').innerHTML='<button class="btn" value="close">Close</button>';dialog.onclose=()=>dialog.classList.remove('phone-connection14246');dialog.showModal();}
   async function handle(name,index){const owner=S.owner,epoch=S.epoch;try{
+    if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
     if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh')return await refresh();if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='mode')S.draft.mode=S.draft.mode==='single'?'double':'single';
@@ -545,7 +555,7 @@ function appLocalDate(date=new Date()) {
   window.addEventListener('online',()=>{S.online=true;paintConnection();phoneSyncActivity14351();});window.addEventListener('offline',()=>{S.online=false;paintConnection();notice('Offline. Downloaded records and your drafts remain available.');});
   window.addEventListener('storage',e=>{if(e.key===storageKey){const session=cachedSession();if(!session?.user||session.user.id!==S.actor){saveMirror();sessionGate();void boot();}else S.session=session;}});
   let pullStart=null;document.addEventListener('touchstart',e=>{if(window.scrollY===0&&!e.target.closest('input,textarea,select,dialog'))pullStart=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{if(pullStart!==null&&e.changedTouches[0].clientY-pullStart>90&&S.page!=='post')void refresh();pullStart=null;},{passive:true});
-  const icons={home:'M3 10l9-7 9 7v11h-6v-6H9v6H3z',wallet:'M3 6h18v14H3z M3 6V3h14v3 M16 12h5',plus:'M12 4v16 M4 12h16',book:'M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h5',chart:'M4 20V10 M10 20V4 M16 20v-9 M22 20H2'};for(const node of document.querySelectorAll('[data-icon]'))node.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+icons[node.dataset.icon]+'"/></svg>';
+  const icons={camera:'M3 7h4l2-3h6l2 3h4v14H3z M16 14a4 4 0 1 1-8 0 4 4 0 0 1 8 0',home:'M3 10l9-7 9 7v11h-6v-6H9v6H3z',wallet:'M3 6h18v14H3z M3 6V3h14v3 M16 12h5',plus:'M12 4v16 M4 12h16',book:'M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h5',chart:'M4 20V10 M10 20V4 M16 20v-9 M22 20H2'};for(const node of document.querySelectorAll('[data-icon]'))node.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+icons[node.dataset.icon]+'"/></svg>';
   if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='ojm-phone-ready'&&e.data.version===VERSION){S.shellReady=true;paintConnection();}});window.addEventListener('load',()=>{navigator.serviceWorker.register('phone-sw.js?v='+VERSION,{scope:'./',updateViaCache:'none'}).then(reg=>{if(reg.active)reg.active.postMessage({type:'ojm-phone-status'});}).catch(()=>notice('Offline reopening is not ready yet. Continue online and reconnect to finish downloading the phone files.',true));},{once:true});}
   window.PhoneWorkspace14242={version:VERSION,ready:()=>!!S.owner&&permission('sub-users-workspace'),offlineReady:()=>S.shellReady,documentSession:async()=>{if(S.owner!==S.actor||!permission('sub-users-workspace'))throw Error('Open your own workspace first.');if(!validSession(S.session)||Number(S.session.expires_at)*1000-Date.now()<30000)await access();return S.session;},refresh,navigate};
   // This standalone runtime has one timer; it is not loaded alongside the desktop coordinator.
