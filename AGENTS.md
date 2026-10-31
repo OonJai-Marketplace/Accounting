@@ -116,3 +116,8 @@ review remain on laptop/tablet. Preserve the embedded Accounting scanner.
 Printing scope 2026-10-31: report printing/export and document editing belong to
 tablets/iPads and desktops only. No print/report-export controls on phones, for
 any role. Keep phone receipt scanning and saving scanned PDFs available.
+
+Scanner scope 2026-10-31: the user cancelled the separate scanner app. Focus on
+the scanner connected to Accounting, private document previews and journal
+links. Do not resume native standalone app development or automatic builds
+unless the user requests it again. Retain the existing phone/print restrictions.

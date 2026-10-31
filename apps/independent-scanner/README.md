@@ -1,3 +1,5 @@
+> Development stopped at the user’s request on 2026-10-31. This source is retained for reference; automatic native builds are disabled. The supported scanner is the one inside Accounting (`scan.html`).
+
 # Pocket Scan — independent mobile scanner
 
 An Android/iPhone app with bundled image correction and PDF code. Opening the app, capturing photos, cropping, reviewing, reopening drafts and saving a PDF do not require GitHub, Accounting, a login or a database. GitHub is used only for development/build distribution. The installed package has no remote `server.url`, hosted assets, analytics or automatic upload.
