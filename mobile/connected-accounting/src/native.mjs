@@ -8,7 +8,7 @@ import { installAndroidUpdates } from './updates.mjs';
 
 if (Capacitor.isNativePlatform()) {
   const platform = Capacitor.getPlatform(), Scanner = registerPlugin('OonJaiNativeScanner');
-  const Storage = registerPlugin('OonJaiStorage');
+  const Storage = registerPlugin('OonJaiStorage'), Updater=registerPlugin('OonJaiAppUpdate');
   const queue = pendingScan(localStorage, () => window.deviceVault14334);
   let active = false;
   const restored = App.addListener('appRestoredResult', event => {
@@ -33,6 +33,13 @@ if (Capacitor.isNativePlatform()) {
       return response.data;
     },
     openDownload: url => Browser.open({url}),
+    downloadUpdate: async release => {
+      const session=window.deviceVault14334?.readSession?.();
+      if(!window.deviceVault14334?.unlocked||!session?.access_token)throw Error('Sign in to Accounting, then retry the update download.');
+      return Updater.download({sha256:release.sha256,versionCode:release.versionCode,token:session.access_token,apikey:window.OJM_SUPABASE_ANON_KEY});
+    },
+    installUpdate: release => Updater.install({sha256:release.sha256,versionCode:release.versionCode}),
+    onProgress: callback => { void Updater.addListener('progress',callback); },
     onResume: callback => { void App.addListener('appStateChange', ({isActive}) => { if (isActive) callback(); }); }
   });
   window.ReceiptNative214 = {

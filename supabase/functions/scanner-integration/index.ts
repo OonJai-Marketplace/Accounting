@@ -1,6 +1,6 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import {BUCKET,uuid,validateManifest,latestGroups,pinnedTargets} from './validation.mjs';
-import {idRequest,idResults,requireAvailable,sameTargets} from './ids215.mjs';
+import {idRequest,idResults,requireAvailable,sameTargets,suggestionRequest217,nextDocumentID217} from './ids215.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,KEY=Deno.env.get('SUPABASE_ANON_KEY')!;
 const admin=createClient(URL,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
 const origins=new Set(['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost']);
@@ -41,6 +41,32 @@ export async function handler(req:Request){
   if(b.action==='ids'){
    check(!b.scan||uuid(b.scan),'Invalid scan reference.');
    return reply({ids:await checkIDs(idRequest(b),b.scan||'')});
+  }
+  if(b.action==='suggest-ids'){
+   check(!b.scan||uuid(b.scan),'Invalid scan reference.');
+   const q=suggestionRequest217(b);let seed=q.seed;
+   if(b.resume===true){
+    const previous=result(await user.from('scanner_documents208').select('entry_label').eq('owner_id',owner).like('entry_label',q.prefix+'%').order('created_at',{ascending:false}).order('entry_label',{ascending:false}).limit(1));
+    if(previous.length)seed=nextDocumentID217(previous[0].entry_label);
+   }
+   const selected=/\d$/.test(q.label)||q.type==='support'?(await checkIDs([{type:q.type,label:q.label}],b.scan||''))[0]:{type:q.type,label:q.label,available:false,reason:'Choose a complete ID from the suggestions.'};
+   if(q.exclude.has(selected.label)){selected.available=false;selected.reason='Already used by a device batch';}
+   const suggestions:any[]=[],seen=new Set();
+   // Read existing journal numbers, including gaps larger than 20. Never allocate a journal ID.
+   for(let offset=0;offset<5000&&suggestions.length<20;offset+=100){
+    let labels:string[]=[];
+    if(q.type==='journal'){
+     const [entries,lines]=await Promise.all([
+      edit?user.from('journal_entries').select('entry_no').like('entry_no',q.prefix+'%').gte('entry_no',seed).order('entry_no').range(offset,offset+99).then(result):[],
+      workspace?user.from('staff_journal_lines').select('workspace_entry_no,staff_journals!inner(owner_id)').eq('staff_journals.owner_id',owner).like('workspace_entry_no',q.prefix+'%').gte('workspace_entry_no',seed).order('workspace_entry_no').range(offset,offset+99).then(result):[]
+     ]);labels=[...new Set([...entries.map((r:any)=>r.entry_no),...lines.map((r:any)=>r.workspace_entry_no)])].sort();
+     if(!labels.length)break;
+    }else{for(let i=0;i<100;i++){labels.push(seed);seed=nextDocumentID217(seed);}}
+    labels=labels.filter(label=>!seen.has(label)&&!q.exclude.has(label));labels.forEach(label=>seen.add(label));
+    for(let i=0;i<labels.length;i+=100){const rows=await checkIDs(labels.slice(i,i+100).map(label=>({type:q.type,label})),b.scan||'');suggestions.push(...rows.filter(r=>r.available));}
+   }
+   suggestions.sort((a,b)=>a.label.localeCompare(b.label,undefined,{numeric:true}));
+   return reply({selected,suggestions:suggestions.slice(0,20)});
   }
   if(b.action==='register'){
    const m=validateManifest(b.manifest,owner),files:any[]=[];for(let offset=0;offset<2000;offset+=1000){const batch=result(await admin.storage.from(BUCKET).list(m.root.slice(0,-1),{limit:1000,offset}));files.push(...batch);if(batch.length<1000)break;}

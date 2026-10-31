@@ -10,5 +10,5 @@ export function updateRelease(manifest, installed) {
   const github = url.hostname === 'github.com' && /^\/OonJai-Marketplace\/Accounting\/releases\/download\/[^/]+\/[^/]+\.apk$/.test(url.pathname);
   if (url.protocol !== 'https:' || url.username || url.password || url.port || url.hash || (!drive && !github)) throw Error('The update download address is invalid.');
   if (!Array.isArray(manifest.notes) || manifest.notes.length > 8 || manifest.notes.some(note => typeof note !== 'string' || note.length > 300)) throw Error('The update notes are invalid.');
-  return {available: manifest.versionCode > Number(installed.build), version: manifest.version, versionCode: manifest.versionCode, url: url.href, notes: [...manifest.notes], provider: drive ? 'drive' : 'github'};
+  return {available: manifest.versionCode > Number(installed.build), version: manifest.version, versionCode: manifest.versionCode, sha256:manifest.sha256, url: url.href, notes: [...manifest.notes], provider: drive ? 'drive' : 'github'};
 }

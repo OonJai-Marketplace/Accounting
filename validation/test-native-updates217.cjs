@@ -1,0 +1,21 @@
+const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict');
+(async()=>{
+ const root=path.resolve(__dirname,'..'),server=http.createServer((req,res)=>{try{res.setHeader('Content-Type',req.url.includes('.css')?'text/css':'text/javascript');res.end(fs.readFileSync(path.join(root,new URL(req.url,'http://localhost').pathname)));}catch{res.writeHead(404);res.end();}}).listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
+ const browser=await chromium.launch({executablePath:'/tmp/scanner-chrome/chromium',args:['--no-sandbox']});
+ try{
+ const page=await browser.newPage({viewport:{width:390,height:844}});await page.goto('http://127.0.0.1:'+server.address().port+'/mobile/connected-accounting/src/updates.mjs');await page.setContent('<link rel="stylesheet" href="/styles/phone14242.css"><div id="accountMenu"><button data-accounting-install></button></div><section><h1>Settings</h1><button data-native-updates217>App updates</button></section><input id="draft" value="Retain draft">');
+ await page.evaluate(async()=>{
+  window.calls=[];window.installCalls=0;window.permission=true;window.fail=false;window.resumeDownload=null;localStorage.setItem('ojm_auto_updates217','on');
+  window.release={schema:1,applicationId:'org.oonjai.accounting.preview',signerSha256:'58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c',version:'143.218-test',versionCode:143218,sha256:'b'.repeat(64),url:'https://drive.google.com/file/d/123456789012345/view',notes:['Fixture update']};
+  const {installAndroidUpdates}=await import('/mobile/connected-accounting/src/updates.mjs');installAndroidUpdates({getInfo:async()=>({id:release.applicationId,build:'143217',version:'143.217-test'}),getManifest:async()=>release,downloadUpdate:async r=>{calls.push(r);if(fail)throw Error('Interrupted download');await new Promise(resolve=>resumeDownload=resolve);},installUpdate:async()=>{installCalls++;return {permissionRequired:permission};},onProgress:cb=>window.progress=cb,autoDelay:0});
+ });
+ await page.waitForFunction(()=>calls.length===1);assert.equal(await page.locator('#nativeUpdateDialog216').isVisible(),false,'background download never interrupts work');
+ await page.click('[data-native-updates217]');await page.evaluate(()=>progress({bytes:50,total:100}));assert.match(await page.locator('[data-update-status]').innerText(),/50%/);assert.equal(await page.evaluate(()=>installCalls),0,'download never installs automatically');
+ await page.evaluate(()=>resumeDownload());await page.waitForFunction(()=>document.querySelector('[data-update-download]').textContent==='Install update');assert.equal(await page.evaluate(()=>calls[0].sha256),'b'.repeat(64));await page.click('[data-update-download]');assert.match(await page.locator('[data-update-status]').innerText(),/Allow updates/);
+ await page.evaluate(()=>permission=false);await page.click('[data-update-download]');assert.match(await page.locator('[data-update-status]').innerText(),/Confirm Update/);assert.equal(await page.evaluate(()=>installCalls),2);
+ await page.uncheck('[data-update-auto]');await page.click('[data-update-check]');await page.waitForFunction(()=>!document.querySelector('[data-update-check]').disabled);assert.equal(await page.evaluate(()=>calls.length),1,'disabled automatic download respected');
+ await page.evaluate(()=>fail=true);await page.click('[data-update-download]');await page.waitForFunction(()=>document.querySelector('[data-update-download]').textContent==='Retry download');assert.match(await page.locator('[data-update-status]').innerText(),/Interrupted/);
+ await page.evaluate(()=>fail=false);await page.click('[data-update-download]');await page.waitForFunction(()=>calls.length===3);await page.evaluate(()=>resumeDownload());await page.waitForFunction(()=>document.querySelector('[data-update-download]').textContent==='Install update');
+ assert.equal(await page.locator('#draft').inputValue(),'Retain draft');await page.screenshot({path:'/tmp/accounting-updates217.png'});console.log('PASS Settings entry, automatic background download, progress, explicit install and permission handoff, automatic-download setting, failure/retry, preserved draft');
+ }finally{await browser.close();await new Promise(r=>server.close(r));}
+})().catch(e=>{console.error(e);process.exitCode=1;});

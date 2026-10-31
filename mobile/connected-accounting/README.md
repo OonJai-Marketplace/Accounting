@@ -124,3 +124,18 @@ Google Drive API must be enabled in the OAuth project's Google Cloud settings;
 a connected Google account alone does not enable the API. The configured project
 is 128865919484. Cloud Console access was unavailable during this change, so
 API activation and physical-device folder access remain acceptance checks.
+
+### v143.217
+
+Settings → App updates checks automatically and, by default, downloads the verified
+APK using the signed-in user's existing company Drive connection. It verifies SHA-256,
+package, build number and the retained signing certificate before offering Install
+update. Android requires installation approval (and may first request Allow from this
+source). The download can be retried and automatic download can be disabled in Settings.
+Only the fixed company APK file can be streamed by the authenticated backend; Drive
+tokens never reach the device. A different Drive account needs access to that APK.
+This delivers full APK updates, not differential web patches, and preserves the
+existing application ID, private app data and origin. v143.216 needs its existing
+in-app download link once to acquire this updater. Physical-device installation
+remains to be confirmed; CI compilation and browser fixtures are not a phone test.
+The user reports Drive is now connected; no Google Cloud configuration was changed here.

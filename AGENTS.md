@@ -178,3 +178,11 @@ Destination correction 2026-10-31: choosing Drive, phone or SD immediately opens
 that provider's folder browser at its remembered path. No intermediate Choose
 folder/New folder/Google account control panel. Create folders inside the folder
 browser; use the native system folder picker for phone and SD-card locations.
+
+Scanner feedback 2026-10-31 v143.217: show delayed action feedback after 300 ms,
+remove setup Document month but keep PDF name, and suggest actual existing IDs
+while typing and after the last scanned entry. Main journal IDs are OJM260001,
+not the previous scanner-generated OJM26-0001. Preserve RLS and journal numbering.
+App updates belong in Settings; automatically download and verify the existing
+APK update, then request Android's install confirmation. Keep package, signer,
+login and drafts. Never silently reload or replace active scanner work.

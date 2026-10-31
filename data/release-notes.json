@@ -1,8 +1,8 @@
 {
-  "version": "143.216",
+  "version": "143.217",
   "changes": [
-    "Selecting Drive, phone or SD card opens its folder browser directly and remembers each path.",
-    "Android keeps the same installation and signing key, restores the Oon Jai Accounting name, and adds Check for updates inside the app.",
-    "Drive API configuration errors are clearly distinguished from Google account authorization."
+    "Delayed loading feedback for scanner actions, with Document month removed and PDF name retained.",
+    "Starting-ID suggestions use existing Accounting IDs, remember the last entry and skip used numbers.",
+    "Settings includes automatic verified Android update downloads and an Install update button."
   ]
 }
