@@ -55,3 +55,10 @@ console.log('PASS actual Edge code: atomic history write/retry, immutable histor
 const bigRows=Array.from({length:120},(_,i)=>[i,'x'.repeat(28000)]);const chunks=api.rowRequests(1,bigRows,5);assert(chunks.length>1);assert.equal(chunks[0].updateCells.start.rowIndex,5);assert.equal(chunks.reduce((n,r)=>n+r.updateCells.rows.length,0),120);let count=0;await api.sendBatches(async(path,method,body)=>{assert(JSON.stringify(body).length<2000000);count++;},chunks);assert(count>1);console.log('PASS bounded large-payload requests without losing or duplicating rows');
 
 assert(api.sameCells([[1,null],[]],[[1,'']],2));assert(!api.sameCells([[1,'x']],[[1,'']],2));assert(!api.sameCells([['1']],[[1]],1));assert(!api.sameCells([[1]],[[1],[2]],1));
+// Resumable phases write bounded groups and verify only after all source tabs exist.
+sheets=[];const staged={First:[['Header'],['one']],Second:[['Header'],['two']],Third:[['Header'],['three']]};
+assert.deepEqual(await api.liveBatch(g,props(),staged,'write',0,2),{done:false,next:2});assert.equal(sheets.length,2);
+assert.deepEqual(await api.liveBatch(g,props(),staged,'write',2,2),{done:true,next:3});assert.equal(sheets.length,3);
+assert.deepEqual(await api.liveBatch(g,props(),staged,'verify',0,2),{done:false,next:2});
+sheets.find(s=>s.properties.title==='Third').rows[1][0]='changed';await assert.rejects(api.liveBatch(g,props(),staged,'verify',2,2),/readback mismatch/);
+console.log('PASS resumable bounded write/verify stages and corruption rejection');

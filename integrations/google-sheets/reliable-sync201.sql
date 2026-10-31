@@ -32,3 +32,20 @@ declare c private.sheet_archive_config194; queued jsonb; snapshot jsonb; begin
  'years',(select coalesce(jsonb_agg(y order by year),'[]') from private.sheet_archive_years194 y));
 end $$;
 notify pgrst, 'reload schema';
+
+-- Bound each worker's CPU time; checkpoints never acknowledge unverified data.
+alter table private.sheet_archive_config194 add column if not exists work_revision bigint not null default -1;
+alter table private.sheet_archive_config194 add column if not exists work_phase text not null default 'write';
+alter table private.sheet_archive_config194 add column if not exists work_cursor integer not null default 0;
+create or replace function public.sheet_archive_progress201(p_lease uuid,p_revision bigint,p_phase text,p_cursor integer,p_continue boolean)
+returns void language plpgsql security definer set search_path='' as $$
+begin
+ if p_phase not in ('write','verify') or p_cursor<0 then raise exception 'Invalid archive progress';end if;
+ update private.sheet_archive_config194 set work_revision=p_revision,work_phase=p_phase,work_cursor=p_cursor,
+ lease=case when p_continue then null else lease end,lease_until=case when p_continue then null else lease_until end where lease=p_lease;
+ if not found then raise exception 'Archive lease changed';end if;
+ if p_continue then perform public.sheet_archive_wake194();end if;
+end $$;
+revoke all on function public.sheet_archive_progress201(uuid,bigint,text,integer,boolean) from public,anon,authenticated;
+grant execute on function public.sheet_archive_progress201(uuid,bigint,text,integer,boolean) to service_role;
+notify pgrst, 'reload schema';

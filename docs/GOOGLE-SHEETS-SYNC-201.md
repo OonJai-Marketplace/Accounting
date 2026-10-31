@@ -13,6 +13,8 @@ large Raw Data and revision append writes. Live tabs are written one at a time,
 and source matrices are compared cell by cell to keep verification memory bounded. Source revision retries read only IDs
 and overlapping payloads, avoiding repeated full-history downloads.
 
+Writes and readback resume in groups of ten tabs per worker, with checkpoints
+tied to the database revision. A changed revision restarts the write phase.
 Readback checks both formula/source content and calculated results. A failed
 write or calculation never acknowledges queued changes or advances saved_revision.
 Only a verified live snapshot advances that revision. Queued historical revisions
