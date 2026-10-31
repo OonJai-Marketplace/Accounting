@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "applicationId": "org.oonjai.accounting.preview",
+  "signerSha256": "58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c",
+  "version": "143.216-test",
+  "versionCode": 143216,
+  "sha256": "f12c4930af57a9d587a0f0374d1097fd5d222e82334aaaf110a46232971a2c73",
+  "url": "https://drive.google.com/file/d/1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje/view?usp=drivesdk",
+  "notes": [
+    "Oon Jai Accounting updates the existing app and keeps its saved data.",
+    "Choose Drive, phone or SD card to open its folder browser directly.",
+    "Use the account menu to check for future updates."
+  ]
+}

@@ -1,9 +1,10 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Browser } from '@capacitor/browser';
 import { pendingScan } from './pending-scan.mjs';
+import { installAndroidUpdates } from './updates.mjs';
 
 if (Capacitor.isNativePlatform()) {
   const platform = Capacitor.getPlatform(), Scanner = registerPlugin('OonJaiNativeScanner');
@@ -24,6 +25,16 @@ if (Capacitor.isNativePlatform()) {
   });
   // Keep the same account and APIs; never navigate the native WebView to OAuth.
   window.OJM_PUBLIC_APP_URL = 'https://oonjai-marketplace.github.io/Accounting/';
+  if (platform === 'android') installAndroidUpdates({
+    getInfo: () => App.getInfo(),
+    getManifest: async () => {
+      const response = await CapacitorHttp.get({url: window.OJM_PUBLIC_APP_URL + 'data/android-release.json?t=' + Date.now(), headers: {'Cache-Control': 'no-cache'}, connectTimeout: 10000, readTimeout: 10000, responseType: 'json'});
+      if (response.status !== 200) throw Error('The update service is unavailable.');
+      return response.data;
+    },
+    openDownload: url => Browser.open({url}),
+    onResume: callback => { void App.addListener('appStateChange', ({isActive}) => { if (isActive) callback(); }); }
+  });
   window.ReceiptNative214 = {
     available: true,
     preview215: true,

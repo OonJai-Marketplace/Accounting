@@ -1,6 +1,6 @@
 {
   "appId": "org.oonjai.accounting.preview",
-  "appName": "Accounting Preview",
+  "appName": "Oon Jai Accounting",
   "webDir": "www",
   "server": { "hostname": "localhost", "androidScheme": "https" },
   "ios": { "contentInset": "automatic" }
