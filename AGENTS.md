@@ -122,3 +122,8 @@ with private document previews and journal links. The cancelled separate native
 app must be removed, including its source package, build dependencies, generated
 packages and saved development patches; stopping its builds alone is insufficient.
 Do not recreate an external scanner app. Retain the existing phone/print restrictions.
+
+Login scope 2026-10-31: the independent phone client must keep the approved web
+login: the 430px ivory card, emerald backdrop, company logo, matching controls,
+and the shared full-screen six orbiting/pulsing marbles during session restore
+and sign-in. Do not substitute a simplified phone login or a different spinner.

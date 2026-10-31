@@ -2291,6 +2291,9 @@
         "source": "src/core/navigation/foundation/responsive-shell.css"
       },
       {
+        "source": "src/core/auth/foundation/login-card.css"
+      },
+      {
         "source": "src/core/auth/foundation/login-and-users.css"
       },
       {
@@ -2846,6 +2849,9 @@
       },
       {
         "source": "src/core/navigation/foundation/responsive-shell.css"
+      },
+      {
+        "source": "src/core/auth/foundation/login-card.css"
       },
       {
         "source": "src/core/auth/foundation/login-and-users.css"
@@ -3720,6 +3726,9 @@
         "source": "src/subusers/phone/runtime/draft-persistence.js"
       },
       {
+        "source": "src/subusers/phone/runtime/login210.js"
+      },
+      {
         "source": "src/subusers/phone/runtime/session-and-access.js"
       },
       {
@@ -4396,6 +4405,14 @@
     "scripts/receipt-camera209.js": [
       {
         "source": "src/documents/scanner/camera209.js"
+      }
+    ],
+    "styles/phone-login210.css": [
+      {
+        "source": "src/core/auth/foundation/login-card.css"
+      },
+      {
+        "source": "src/subusers/phone/login210.css"
       }
     ]
   },

@@ -64,7 +64,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.209', $ = id => document.getElementById(id);
+  const VERSION = '143.210', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -215,6 +215,33 @@ function appLocalDate(date=new Date()) {
   function saveMirror() { if (!S.owner || !S.draft) return; try { localStorage.setItem(mirrorKey(S.owner), JSON.stringify(S.draft)); } catch { notice('This browser could not keep the draft. Keep this page open until you can save it.', true); } }
   function rememberLocation(){if(!S.owner)return;try{localStorage.setItem(locationKey(S.owner),JSON.stringify({page:S.page,month:S.month}));}catch{}}
   function saveDraftLater() { saveMirror(); clearTimeout(draftTimer); const owner = S.owner, epoch=S.epoch,draft = structuredClone(S.draft); draftTimer = setTimeout(() => {if(current(owner,epoch))persist(owner,{draft}).catch(e => {if(current(owner,epoch))notice(e.message,true)})}, 150); }
+  // Reuse the approved login gate and shared six-marble animation on phones.
+  function releasePhoneLogin210() {
+    document.documentElement.classList.remove('session-checking1444');
+    $('loginGate').classList.remove('busy99');$('loginProgress99').hidden=true;
+    $('loginForm').removeAttribute('aria-busy');$('loginForm').querySelector('[type=submit]').disabled=false;
+  }
+  window.releaseLogin1443=releasePhoneLogin210;
+  window.phoneLogin210={
+    start(){document.documentElement.classList.remove('session-checking1444');$('loginGate').classList.remove('is-authenticated');$('loginGate').classList.add('busy99');$('loginProgress99').innerHTML=window.loading1444.markup();$('loginProgress99').hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('[type=submit]').disabled=true;},
+    show(){releasePhoneLogin210();$('loginGate').classList.remove('is-authenticated');},
+    finish(){releasePhoneLogin210();$('loginGate').classList.add('is-authenticated');}
+  };
+  async function phonePasswordReset210(){
+    const input=$('loginEmail'),email=input.value.trim(),button=$('phoneForgotPassword210'),message=loginMessageTarget14293();
+    if(authBusy||button.disabled)return;
+    if(!email||!input.checkValidity()){message.textContent='Enter a valid email address first.';input.focus();return;}
+    button.disabled=true;
+    try{
+      if(!db)throw Error('Authentication is still loading. Try again in a moment.');
+      const url=new URL(String(window.OJM_PUBLIC_APP_URL||localStorage.getItem('ojm_public_app_url105')||window.location.href).trim());
+      if(url.protocol!=='https:'||/^(?:localhost|127\.0\.0\.1|0\.0\.0\.0)$/i.test(url.hostname)||/\.(?:local|localhost)$/i.test(url.hostname)||/(?:stackblitz|webcontainer|codesandbox)/i.test(url.hostname))throw Error('Open the published HTTPS app to request a password reset.');
+      url.username='';url.password='';url.hash='';url.search='';url.searchParams.set('password-recovery','1');
+      const result=await db.auth.resetPasswordForEmail(email,{redirectTo:url.href});if(result.error)throw result.error;
+      message.textContent='If this account exists, check its recovery email and open the secure link.';
+    }catch(e){message.textContent=e.message||'Recovery could not be requested. Try again.';}
+    finally{button.disabled=false;}
+  }
   function touch() {
     if (!S.owner || Date.now() - touchAt < 1000) return;
     touchAt = Date.now(); try { localStorage.setItem(activityKey(S.actor), String(touchAt)); } catch {}
@@ -235,7 +262,7 @@ function appLocalDate(date=new Date()) {
   }
   function sessionGate(message = '') {
     window.PhoneTools14242?.close();S.epoch++; S.actor=S.owner = ''; S.session = null; S.data = {}; S.directory=[];S.directoryLoading=false;S.directoryLoaded=false;S.selection=false;S.area='users';S.draft = null; S.loading = S.syncing = S.saving = S.submitting = false; refreshJob = monthJob = enterJob = null;enterOwner=''; touchAt=0;
-    clearTimeout(draftTimer); $('workspace').replaceChildren(); $('workspace').hidden = true; $('login').hidden = false;$('recovery').hidden=true; $('bottom').hidden = true; $('accountMenu').hidden = true; $('dialog').close(); loginMessageTarget14293().textContent = message; paintConnection(); notice();
+    window.phoneLogin210?.show();clearTimeout(draftTimer); $('workspace').replaceChildren(); $('workspace').hidden = true; $('loginForm').hidden = false;$('phoneRecoveryForm').hidden=true; $('bottom').hidden = true; $('accountMenu').hidden = true; $('dialog').close(); loginMessageTarget14293().textContent = message; paintConnection(); notice();
   }
   async function revoke(error) {
     window.deviceVault14334?.revoke();
@@ -339,7 +366,7 @@ function appLocalDate(date=new Date()) {
     // A locked device has no session until its saved password unlocks the vault.
     // Do not block that valid offline sign-in with an unsolicited error dialog.
     if (!validSession(session)&&!locallyVerified) { sessionGate(session?.user?.id&&!navigator.onLine ? 'Reconnect to verify this session. Your saved drafts remain on this device.' : ''); return; }
-    const owner = session.user.id;
+    const owner = session.user.id;window.phoneLogin210?.start();
     if (enterJob && enterOwner===owner) return enterJob;
     enterOwner=owner;
     const job = (async () => {
@@ -347,24 +374,25 @@ function appLocalDate(date=new Date()) {
       try {
         let data = await record(owner); if (!current(owner,epoch)) return;
         S.data=data;data=await migrateLegacy(owner,data);if(!current(owner,epoch))return;S.data=data;S.directory=[];
-        let location;try{location=JSON.parse(localStorage.getItem(locationKey(owner)));}catch{}
-        S.page = (location?.page||data.page)==='totals'?'history':pages.includes(location?.page||data.page) ? location?.page||data.page : 'home'; S.month = /^\d{4}-\d{2}$/.test(location?.month||data.month||'') ? location?.month||data.month : today().slice(0,7);
+        let savedLocation;try{savedLocation=JSON.parse(localStorage.getItem(locationKey(owner)));}catch{}
+        S.page = (savedLocation?.page||data.page)==='totals'?'history':pages.includes(savedLocation?.page||data.page) ? savedLocation?.page||data.page : 'home'; S.month = /^\d{4}-\d{2}$/.test(savedLocation?.month||data.month||'') ? savedLocation?.month||data.month : today().slice(0,7);
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
-        touch();if(new URL(location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){location.replace('scan.html?capture=1');return;}$('login').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
+        touch();if(new URL(window.location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){window.location.replace('scan.html?capture=1');return;}$('loginForm').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
         if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(current(owner,epoch)&&denied(e))void revoke(e)});phoneSyncActivity14351();}
-      } catch(e) { if(current(owner,epoch)){notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('login').hidden=true;$('workspace').hidden=false;} }
+        if(current(owner,epoch))window.phoneLogin210?.finish();
+      } catch(e) { if(current(owner,epoch)){window.phoneLogin210?.finish();notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('loginForm').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;
   }
   async function boot() {
     if (!window.supabase || !scope || !window.OJM_SUPABASE_ANON_KEY) { sessionGate('Sign-in files could not load. Reconnect and reload this page.');return; }
     if (!db) {
       db=window.supabase.createClient(scope,window.OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:recovering},global:{fetch:boundedFetch}});
-      await window.deviceVault14334?.attach(db);
+      try{await window.deviceVault14334?.attach(db);}catch(e){db=null;sessionGate(e.message||'Sign-in storage could not open. Reload and try again.');return;}
       db.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT' && !authBusy)sessionGate();if(event==='TOKEN_REFRESHED'&&session?.user.id===S.actor)S.session=session;});
     }
-    if(recovering){try{const result=await db.auth.getSession();if(result.error)throw result.error;if(!validSession(result.data.session))throw fail('This recovery link is unavailable or expired. Request another reset link.');sessionGate();$('login').hidden=true;$('recovery').hidden=false;const url=new URL(location.href);url.searchParams.delete('password-recovery');url.hash='';history.replaceState(null,'',url.href);return;}catch(e){recovering=false;sessionGate(e.message);return;}}
+    if(recovering){try{const result=await db.auth.getSession();if(result.error)throw result.error;if(!validSession(result.data.session))throw fail('This recovery link is unavailable or expired. Request another reset link.');sessionGate();$('loginForm').hidden=true;$('phoneRecoveryForm').hidden=false;const url=new URL(location.href);url.searchParams.delete('password-recovery');url.hash='';history.replaceState(null,'',url.href);return;}catch(e){recovering=false;sessionGate(e.message);return;}}
     const stored=cachedSession();
     if(stored?.user?.id&&stored?.refresh_token)return enter(stored);
     try { const result=await db.auth.getSession();if(result.error)throw result.error;return enter(result.data.session); }
@@ -544,8 +572,19 @@ function appLocalDate(date=new Date()) {
     saveDraftLater();render();
   }catch(e){if(current(owner,epoch))notice(e.message,true);}}
   document.addEventListener('click',e=>{const owner=e.target.closest('[data-owner]'),area=e.target.closest('[data-area]');if(owner){void selectUser(owner.dataset.owner).catch(e=>notice(e.message,true));return;}if(area){void openArea(area.dataset.area).catch(e=>notice(e.message,true));return;}const page=e.target.closest('[data-page],[data-go]');if(page)return navigate(page.dataset.page||page.dataset.go);const b=e.target.closest('[data-action]');if(b&&!b.disabled){e.preventDefault();void handle(b.dataset.action,Number(b.dataset.index||0)).catch(e=>notice(e.message,true));}});
-  $('loginForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;authBusy=true;const button=$('loginForm').querySelector('button');button.disabled=true;const spinner=document.createElement('span');spinner.id='phoneLoginProgress14293';spinner.innerHTML=window.loading1444?.markup()||'';$('loginForm').append(spinner);loginMessageTarget14293().textContent='';try{const result=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(result.error)throw result.error;$('loginPassword').value='';if(!window.deviceVault14334)await enter(result.data.session);}catch(e){loginMessageTarget14293().textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
-  $('phoneRecoveryForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;const recoveryActor=S.session?.user?.id,password=$('recoveryPassword').value;if(password!==$('recoveryConfirm').value){$('recoveryStatus').textContent='The passwords do not match.';return;}authBusy=true;const button=e.target.querySelector('button');button.disabled=true;$('recoveryStatus').textContent='Updating password…';try{const result=await db.auth.updateUser({password});if(S.session?.user?.id!==recoveryActor)return;if(result.error)throw result.error;$('recoveryPassword').value=$('recoveryConfirm').value='';recovering=false;await signout(false,'Password updated. Sign in with your new password.');}catch(e){$('recoveryStatus').textContent=e.message;}finally{authBusy=false;button.disabled=false;document.getElementById('phoneLoginProgress14293')?.remove();}};
+  $('phoneForgotPassword210').onclick=phonePasswordReset210;
+  $('loginForm').onsubmit=async e=>{
+    e.preventDefault();if(authBusy)return;authBusy=true;window.phoneLogin210.start();loginMessageTarget14293().textContent='';
+    try{
+      if(!db)throw Error('Authentication is still loading. Try again in a moment.');
+      const result=await db.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});
+      if(result.error)throw result.error;$('loginPassword').value='';
+      // Vault sign-in reloads with its unlocked session; keep the same overlay until navigation.
+      if(!window.deviceVault14334)await enter(result.data.session);
+    }catch(e){releasePhoneLogin210();loginMessageTarget14293().textContent=e.message;}
+    finally{authBusy=false;}
+  };
+  $('phoneRecoveryForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;const recoveryActor=S.session?.user?.id,password=$('recoveryPassword').value;if(password!==$('recoveryConfirm').value){$('recoveryStatus').textContent='The passwords do not match.';return;}authBusy=true;const button=e.target.querySelector('button');button.disabled=true;$('recoveryStatus').textContent='Updating password…';try{const result=await db.auth.updateUser({password});if(S.session?.user?.id!==recoveryActor)return;if(result.error)throw result.error;$('recoveryPassword').value=$('recoveryConfirm').value='';recovering=false;await signout(false,'Password updated. Sign in with your new password.');}catch(e){$('recoveryStatus').textContent=e.message;}finally{authBusy=false;button.disabled=false;}};
   $('dialog').addEventListener('click',e=>{const dialog=$('dialog');if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close('cancel');});
   $('avatar').onclick=()=>{$('accountMenu').hidden=!$('accountMenu').hidden;$('avatar').setAttribute('aria-expanded',String(!$('accountMenu').hidden));};$('connection').onclick=connectionDialog;
   document.addEventListener('click',e=>{if(!e.target.closest('#avatar,#accountMenu'))$('accountMenu').hidden=true;});
