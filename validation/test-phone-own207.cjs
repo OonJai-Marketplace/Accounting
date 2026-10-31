@@ -32,7 +32,7 @@ async function ownOnly(admin){
  let message='';const guard={notice:v=>message=v,window:{print:()=>assert.fail('phone must never invoke print')}};vm.createContext(guard);vm.runInContext(read('src/subusers/phone/runtime/report-printing.js'),guard);await guard.printReport();assert.match(message,/tablet/);
  const tools={window:{},document:{addEventListener(){}}};vm.createContext(tools);vm.runInContext(read('src/subusers/phone/phone-tools14242.js'),tools);await assert.rejects(tools.window.PhoneTools14242.open('documents',{state:()=>({admin:true})}),/settings only/);await assert.rejects(tools.window.PhoneTools14242.open('settings',{state:()=>({admin:false})}),/settings only/);
  assert.ok(!read('src/subusers/phone/phone-tools14242.js').includes('.print('));
- assert.ok(read('phone.html').includes("location.assign('scan.html')"));
+ assert.ok(read('phone.html').includes('data-action="scan"'));
  await ownOnly(false);await ownOnly(true);
  console.log('PASS phone-first routing before desktop startup, laptop/tablet unchanged, own account for both roles, no directory preload, no cross-user switch, admin-only on-demand settings, phone printing blocked, scanner preserved, tablet routing recovered');
 })().catch(e=>{console.error(e);process.exitCode=1;});

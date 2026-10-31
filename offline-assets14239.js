@@ -3,6 +3,6 @@ self.OJM_OFFLINE_ASSETS.push(...["scripts/budget-workflow14316.js", "scripts/nav
 
 self.OJM_OFFLINE_ASSETS.push("scripts/hr-inbox143168.js","styles/hr-inbox143168.css");
 
-self.OJM_OFFLINE_ASSETS.push(...["scan.html", "scripts/receipt-core202.js", "scripts/receipt-pdf202.js", "scripts/receipt-scanner202.js", "styles/receipt-scanner202.css", "assets/vendor/document14285/jspdf.umd.min.js"]);
+self.OJM_OFFLINE_ASSETS.push(...["scripts/receipt-camera209.js", "scan.html", "scripts/receipt-core202.js", "scripts/receipt-pdf202.js", "scripts/receipt-scanner202.js", "styles/receipt-scanner202.css", "assets/vendor/document14285/jspdf.umd.min.js"]);
 
 self.OJM_OFFLINE_ASSETS.push(...["scripts/receipt-links208.js", "scripts/scan-viewer208.js", "styles/scan-viewer208.css"]);

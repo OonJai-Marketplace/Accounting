@@ -1,0 +1,26 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const read=p=>fs.readFileSync(p,'utf8');
+(async()=>{
+ const S={owner:'self',actor:'self',epoch:1,page:'post',draft:{memo:'Unsaved receipt',amount:'125000'}},calls=[];
+ let saveResolve,saveReject;
+ const ctx={S,permission:()=>true,clearTimeout(){},draftTimer:null,persist:()=>new Promise((r,j)=>{saveResolve=r;saveReject=j}),structuredClone,current:(o,e)=>S.owner===o&&S.epoch===e,saveMirror:()=>calls.push('mirror'),rememberLocation:()=>calls.push('location'),touch(){},location:{assign:u=>calls.push(u)}};
+ vm.createContext(ctx);vm.runInContext(read('src/subusers/phone/runtime/navigation-and-dialogs.js').split('  function navigate')[0],ctx);
+ const opening=ctx.openScanner209();assert.deepEqual(calls,[]);saveResolve();await opening;assert.deepEqual(calls,['mirror','location','scan.html?capture=1']);
+ calls.length=0;const fail=ctx.openScanner209();saveReject(Error('Disk full'));await assert.rejects(fail,/Disk full/);assert.deepEqual(calls,[],'failed draft save must not navigate');
+ const changed=ctx.openScanner209();S.actor=S.owner='other';S.epoch++;saveResolve();await changed;assert.deepEqual(calls,[],'account change cancels navigation');
+ console.log('PASS scanner navigation awaits durable journal draft, preserves location, blocks storage failure and account switch');
+ let resolveMedia,stops=0,drawn=false;const listeners={},w={};
+ const camera={window:w,document:{hidden:false,createElement:()=>({getContext:()=>({drawImage(){drawn=true}}),toDataURL:()=> 'data:image/jpeg;base64,photo'})},navigator:{mediaDevices:{getUserMedia:()=>new Promise(r=>resolveMedia=r)}},Error};w.addEventListener=(k,fn)=>listeners[k]=fn;
+ vm.createContext(camera);vm.runInContext(read('src/documents/scanner/camera209.js'),camera);const C=w.ReceiptCamera209;
+ const stream=()=>({getTracks:()=>[{stop(){stops++}}]}),video=()=>({play:async()=>{},videoWidth:2560,videoHeight:1920,srcObject:null});
+ const start=C.start(video());C.stop();resolveMedia(stream());assert.equal(await start,false);assert.equal(stops,1,'late camera permission must release hardware');
+ const v=video(),active=C.start(v);resolveMedia(stream());assert.equal(await active,true);assert.equal(C.capture(),'data:image/jpeg;base64,photo');assert.equal(drawn,true);listeners.pagehide();assert.equal(C.active,false);assert.equal(v.srcObject,null);assert.equal(stops,2);
+ assert.throws(()=>C.capture(),/still opening/);
+ let rejectOldPlay,enteredPlay;
+ const playStarted=new Promise(r=>enteredPlay=r),slowVideo={...video(),play:()=>{enteredPlay();return new Promise((_,reject)=>rejectOldPlay=reject)}};
+ const oldStart=C.start(slowVideo);resolveMedia(stream());await playStarted;
+ const latest=C.start(video());resolveMedia(stream());await latest;rejectOldPlay(Error('Old playback cancelled'));assert.equal(await oldStart,false);assert.equal(C.active,true,'old play rejection must not stop the newer camera');C.stop();
+ const hidden=C.start(video());camera.document.hidden=true;resolveMedia(stream());assert.equal(await hidden,false);assert.equal(stops,5);
+ console.log('PASS camera full-resolution capture, delayed permission cancellation, background release, no stale camera capture');
+ assert.match(read('phone.html'),/data-action="scan" aria-label="Scan receipts"/);
+})().catch(e=>{console.error(e);process.exitCode=1});

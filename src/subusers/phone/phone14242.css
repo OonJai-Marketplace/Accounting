@@ -269,3 +269,6 @@ label.no-print{font-size:11px;color:#627880;font-weight:400;margin:8px 0}#month{
 #historySearch14359{width:100%;box-sizing:border-box;margin:0 0 8px}.history-summary14359{font-size:12px;color:var(--ink)}
 
 #workspace>.empty{margin:12px 0;padding:28px 14px;border:1px dashed #b8d7c9;border-radius:8px;background:#f1f8f4;text-align:center;color:#36594a}
+
+/* Direct scanner access keeps the existing phone icon and label navigation. */
+#bottom [data-action="scan"]{color:#07513e}#bottom [data-action="scan"] span{background:#e4efe0;border-radius:9px;margin:0 auto;width:34px}
