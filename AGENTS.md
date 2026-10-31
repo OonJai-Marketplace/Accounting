@@ -106,3 +106,13 @@ provisional ID availability, and sync edits/voids and audit deletion before new
 posting. Recheck permissions, original UUID/content and latest-ID eligibility on
 the database. Conflicts remain pending; cached intent never overrides another
 device's changes. Online exception reads remain fresh.
+
+Phone scope 2026-10-31: phones use the independent own-account sub-user client
+for every role. Administrators additionally manage authorizations in Settings.
+Do not preload the user directory or other users' journals on phones; the user
+directory is loaded only for Settings. Full accounting and cross-user workspace
+review remain on laptop/tablet. Preserve the embedded Accounting scanner.
+
+Printing scope 2026-10-31: report printing/export and document editing belong to
+tablets/iPads and desktops only. No print/report-export controls on phones, for
+any role. Keep phone receipt scanning and saving scanned PDFs available.

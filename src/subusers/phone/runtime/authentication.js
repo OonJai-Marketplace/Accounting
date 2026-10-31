@@ -15,7 +15,7 @@
       S.epoch++; const epoch = S.epoch;S.actor=owner;S.owner=owner; S.session=session; S.data={};S.area='users';S.selection=false;S.directory=[];S.directoryLoaded=false; S.page='home'; S.error=''; S.draft=null;
       try {
         let data = await record(owner); if (!current(owner,epoch)) return;
-        S.data=data;data=await migrateLegacy(owner,data);if(!current(owner,epoch))return;S.data=data;if(isAdmin())S.directory=data.directory||[];
+        S.data=data;data=await migrateLegacy(owner,data);if(!current(owner,epoch))return;S.data=data;S.directory=[];
         let location;try{location=JSON.parse(localStorage.getItem(locationKey(owner)));}catch{}
         S.page = (location?.page||data.page)==='totals'?'history':pages.includes(location?.page||data.page) ? location?.page||data.page : 'home'; S.month = /^\d{4}-\d{2}$/.test(location?.month||data.month||'') ? location?.month||data.month : today().slice(0,7);
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}

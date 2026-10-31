@@ -7,13 +7,12 @@
     return {lines:result, savedAt:Date.now(), batchIds:ids,revision14359:monthRevision14359(month,batchHeaders)};
   }
   async function refresh() {
-    if (!S.owner) return;
+    if (!S.owner || S.owner!==S.actor) return;
     if (refreshJob) return refreshJob;
     const owner = S.owner, epoch = S.epoch, month = S.month; S.loading = true; paintConnection();
     refreshJob = (async () => {
       try {
         await access();if(!current(owner,epoch))return;
-        if(isAdmin()){paintConnection();drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();if(!S.directoryLoaded&&!S.directoryLoading)void loadDirectory(false);}
         const confirmedKeys=new Set(queue().filter(q=>q.status==='confirmed').map(q=>q.key));const ids = accountIds();
         const [rawAccounts, ownFunds, ownHeaders] = await Promise.all([
           ids.length ? paged('accounts', {id:'in.(' + ids.join(',') + ')'}, 'id,code,name,currency_code,is_posting,is_active') : [],

@@ -64,7 +64,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.206', $ = id => document.getElementById(id);
+  const VERSION = '143.207', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -227,10 +227,9 @@ function appLocalDate(date=new Date()) {
     $('avatar').hidden = !S.owner; $('bottom').hidden = !S.owner || !permission('sub-users-workspace');
     const profile = S.data.access?.profile;
     if (profile) { $('avatar').textContent = (profile.full_name || profile.email || 'Me').split(/\s+/).map(x => x[0]).slice(0,2).join('').toUpperCase(); $('accountName').textContent = profile.full_name || profile.email; }
-    $('adminNav').hidden=!isAdmin();$('userTabs').hidden=!isAdmin()||S.area!=='users';$('bottom').hidden=$('bottom').hidden||S.area!=='users';
+    $('adminNav').hidden=!isAdmin();$('userTabs').hidden=true;$('bottom').hidden=$('bottom').hidden||S.area!=='users';
     document.querySelector('.brand small').textContent='Marketplace';
     for(const b of $('adminNav').querySelectorAll('[data-area]'))b.classList.toggle('active',b.dataset.area===S.area);
-    $('accountMenu').querySelector('[data-action=print]').hidden = !canPrint();
     for (const b of $('bottom').querySelectorAll('[data-page]')) {let badge=b.querySelector('.returned-badge14347');const count=b.dataset.page==='entries'?headers().filter(j=>j.status==='returned').length:0;if(count){if(!badge){badge=document.createElement('span');badge.className='returned-badge14347';b.append(badge)}badge.textContent=String(count);badge.setAttribute('aria-label',count+' submissions returned for correction');}else badge?.remove(); b.classList.toggle('active', b.dataset.page === S.page); b.setAttribute('aria-current', b.dataset.page === S.page ? 'page' : 'false'); }
     for(const b of $('workspace').querySelectorAll('[data-action=refresh]')){b.disabled=S.loading;b.textContent=S.loading?'Updating…':'Refresh';}
   }
@@ -257,9 +256,9 @@ function appLocalDate(date=new Date()) {
     if (!current(owner, epoch)) throw fail('Your account changed.', 'ACCOUNT_CHANGED');
     if (value?.profile?.id !== S.actor || value.profile.status !== 'active') throw fail('Your account is no longer active.', 'ACCESS_REVOKED');
     S.data.access = value;
-    if(owner!==S.actor&&!isAdmin())throw fail('Administrator access is required to open another user.','ACCESS_REVOKED');
+    if(owner!==S.actor)throw fail('Use your laptop to open another user’s workspace.','ACCESS_REVOKED');
     if (!permission('sub-users-workspace')) throw fail('Your account does not have a phone workspace. Ask the administrator to assign Sub-users Workspace access.', 'ACCESS_REVOKED');
-    await persist(owner,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');if(owner!==S.actor){await persist(S.actor,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');const [profiles,permissions]=await Promise.all([http('profiles',{id:'eq.'+owner,select:'id,full_name,email,role,status'}),http('user_permissions',{user_id:'eq.'+owner})]);if(!current(owner,epoch))throw fail('The selected workspace changed.','ACCOUNT_CHANGED');if(profiles.data?.length!==1||profiles.data[0].id!==owner||permissions.data?.length!==1||permissions.data[0].user_id!==owner)throw fail('This sub-user is unavailable. Refresh the user list.','INVALID_RESPONSE');S.data.target={profile:profiles.data[0],permissions:permissions.data[0]};await persist(owner,{target:S.data.target});}
+    await persist(owner,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');
     if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');S.online = true; return value;
   }
   const monthRevision14359=(month,list)=>JSON.stringify(list.filter(j=>String(j.period_start).slice(0,7)===month));
@@ -271,13 +270,12 @@ function appLocalDate(date=new Date()) {
     return {lines:result, savedAt:Date.now(), batchIds:ids,revision14359:monthRevision14359(month,batchHeaders)};
   }
   async function refresh() {
-    if (!S.owner) return;
+    if (!S.owner || S.owner!==S.actor) return;
     if (refreshJob) return refreshJob;
     const owner = S.owner, epoch = S.epoch, month = S.month; S.loading = true; paintConnection();
     refreshJob = (async () => {
       try {
         await access();if(!current(owner,epoch))return;
-        if(isAdmin()){paintConnection();drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();if(!S.directoryLoaded&&!S.directoryLoading)void loadDirectory(false);}
         const confirmedKeys=new Set(queue().filter(q=>q.status==='confirmed').map(q=>q.key));const ids = accountIds();
         const [rawAccounts, ownFunds, ownHeaders] = await Promise.all([
           ids.length ? paged('accounts', {id:'in.(' + ids.join(',') + ')'}, 'id,code,name,currency_code,is_posting,is_active') : [],
@@ -312,34 +310,25 @@ function appLocalDate(date=new Date()) {
       finally { if(monthJob===task)monthJob=null;if(current(owner,epoch))paintConnection(); }
     })(); monthJob=task;return task;
   }
-  function drawUsers(){
-    const host=$('userTabs');if(!isAdmin()){host.replaceChildren();host.hidden=true;return;}
-    host.innerHTML=S.directory.map(u=>{const words=(u.full_name||u.email||'User').trim().split(/\s+/),label=words.length>1?words.slice(0,-1).map(w=>w[0]+'.').join(' ')+' '+words.at(-1):words[0];return `<button type="button" data-owner="${esc(u.id)}" class="${S.selection&&S.owner===u.id?'active':''}" title="${esc(u.full_name||u.email)}">${esc(label)}</button>`;}).join('');host.hidden=S.area!=='users';
-  }
+  function drawUsers(){const host=$('userTabs');host.replaceChildren();host.hidden=true;}
   async function loadDirectory(verify=true){
-    if(!isAdmin()||S.directoryLoading)return;const actor=S.actor;S.directoryLoading=true;
+    if(!isAdmin()||S.area!=='settings'||S.directoryLoading)return;const actor=S.actor;S.directoryLoading=true;
     try{if(verify)await access();if(S.actor!==actor)return;if(!isAdmin())throw fail('Administrator access required.','ACCESS_REVOKED');const users=await rpc('review_directory14229');if(S.actor!==actor||!isAdmin())return;
       if(!Array.isArray(users)||users.some(u=>!u.id)||new Set(users.map(u=>u.id)).size!==users.length)throw fail('The complete sub-user list was not received.','INVALID_RESPONSE');
       S.directory=users;S.directoryLoaded=true;await persist(actor,{directory:users});if(S.actor!==actor)return;drawUsers();if(S.area==='users'&&!S.selection&&S.page==='home')render();
     }catch(e){if(S.actor===actor){if(denied(e))await revoke(e);else if(e.code!=='ACCOUNT_CHANGED'){notice('Downloaded sub-users are kept. '+e.message,true);if(S.area==='users'&&!S.selection)render();}}}
     finally{if(S.actor===actor)S.directoryLoading=false;}
   }
-  async function selectUser(owner){
-    if(!isAdmin())throw fail('Administrator access required.');const user=S.directory.find(u=>u.id===owner);if(!user)throw fail('Refresh the sub-user list first.');if(S.saving||S.syncing||S.submitting){notice('Let the current save finish before switching users.',true);return;}
-    saveMirror();clearTimeout(draftTimer);window.PhoneTools14242?.close();const accessValue=S.data.access;S.epoch++;const epoch=S.epoch;S.owner=owner;S.area='users';S.selection=true;S.loading=false;refreshJob=monthJob=null;S.data={access:accessValue,target:owner===S.actor?null:{profile:user,permissions:user.user_permissions||{}}};S.draft=null;S.page='home';notice();render();drawUsers();
-    try{let data=await record(owner);if(!current(owner,epoch))return;S.data={...data,access:accessValue,target:owner===S.actor?null:(data.target||{profile:user,permissions:user.user_permissions||{}})};data=await migrateLegacy(owner,S.data);if(!current(owner,epoch))return;S.data=data;
-      let mirrored;try{mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner)));}catch{}S.draft=normalizeDraft(mirrored||data.draft||{});if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();S.page=data.page==='totals'?'history':pages.includes(data.page)?data.page:'home';S.month=/^\d{4}-(0[1-9]|1[0-2])$/.test(data.month||'')?data.month:today().slice(0,7);touch();render();drawUsers();void refresh();
-    }catch(e){if(current(owner,epoch))notice(e.message,true);}
-  }
+  async function selectUser(owner){if(owner!==S.actor)throw fail('Use your laptop to open another user’s workspace.');S.area='users';S.page='home';render();}
   let toolsJob;
   async function openTools(area,report){
-    if(area==='settings'&&!isAdmin()||area==='documents'&&!permission('document-editor105'))return;
-    const owner=S.owner,epoch=S.epoch,actor=S.actor;saveMirror();S.area=area;paintConnection();if(!window.PhoneTools14242){$('workspace').innerHTML=action('tool-back','Back')+empty('Opening '+(area==='settings'?'sub-user settings':'document editor')+'…');toolsJob ||= new Promise((resolve,reject)=>{const script=document.createElement('script'),stop=()=>{clearTimeout(timer);toolsJob=null;script.remove();if('caches'in window)void caches.open('ojm-phone-shell-'+VERSION).then(c=>c.delete(script.src)).catch(()=>{});reject(fail('This area has not downloaded yet. Reconnect and retry.'));},timer=setTimeout(stop,10000);script.src='scripts/phone-tools14242.js?v='+VERSION;script.onload=()=>{if(window.PhoneTools14242){clearTimeout(timer);resolve();}else stop();};script.onerror=stop;document.head.append(script);});await toolsJob;}
+    if(area!=='settings'||!isAdmin())return;
+    const owner=S.owner,epoch=S.epoch,actor=S.actor;saveMirror();S.area=area;paintConnection();if(!S.directoryLoaded)await loadDirectory();if(!current(owner,epoch)||S.area!==area)return;if(!window.PhoneTools14242){$('workspace').innerHTML=action('tool-back','Back')+empty('Opening '+(area==='settings'?'sub-user settings':'document editor')+'…');toolsJob ||= new Promise((resolve,reject)=>{const script=document.createElement('script'),stop=()=>{clearTimeout(timer);toolsJob=null;script.remove();if('caches'in window)void caches.open('ojm-phone-shell-'+VERSION).then(c=>c.delete(script.src)).catch(()=>{});reject(fail('This area has not downloaded yet. Reconnect and retry.'));},timer=setTimeout(stop,10000);script.src='scripts/phone-tools14242.js?v='+VERSION;script.onload=()=>{if(window.PhoneTools14242){clearTimeout(timer);resolve();}else stop();};script.onerror=stop;document.head.append(script);});await toolsJob;}
     if(!current(owner,epoch)||S.actor!==actor||S.area!==area)return;
     const api={state:()=>({actor:S.actor,owner:S.owner,admin:isAdmin(),profile:S.data.access?.profile,target:S.data.target?.profile,directory:S.directory,online:navigator.onLine}),esc,money,notice,permission,access,rpc,http,paged,refreshUsers:()=>loadDirectory(),selectUser,back:()=>{S.area='users';window.PhoneTools14242?.close();render();drawUsers();},saveDevice:(patch)=>persist(S.actor,patch),device:()=>record(S.actor),confirm:confirmDialog,revoke,denied,ambiguous,request:boundedFetch,session:()=>S.session,scope,anon:window.OJM_SUPABASE_ANON_KEY,resetPassword:async email=>{if(!current(owner,epoch)||S.actor!==actor)throw fail('Account changed.','ACCOUNT_CHANGED');await access();if(!current(owner,epoch)||S.actor!==actor)throw fail('Account changed.','ACCOUNT_CHANGED');if(!isAdmin())throw fail('Administrator access required.');const configured=String(window.OJM_PUBLIC_APP_URL||'').trim(),url=new URL('phone.html',configured||location.href);if(url.protocol!=='https:'||/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(url.hostname))throw fail('Open the published HTTPS website to request a password reset.');url.search='?password-recovery=1';url.hash='';const result=await db.auth.resetPasswordForEmail(email,{redirectTo:url.href});if(result.error)throw result.error;}};
     await window.PhoneTools14242.open(area,api,report);
   }
-  async function openArea(area){if(!isAdmin())return;if(area==='users'){const wasUsers=S.area==='users';S.area='users';window.PhoneTools14242?.close();if(wasUsers){S.selection=false;S.page='home';}render();drawUsers();if(!S.directoryLoaded)void loadDirectory();}else await openTools(area);}
+  async function openArea(area){if(area==='users'){S.area='users';S.page='home';window.PhoneTools14242?.close();render();drawUsers();}else if(area==='settings'&&isAdmin())await openTools(area);}
   let enterAttempt=0;
   async function enter(session) {
     if(enterJob&&enterOwner===session?.user?.id)return enterJob;
@@ -357,7 +346,7 @@ function appLocalDate(date=new Date()) {
       S.epoch++; const epoch = S.epoch;S.actor=owner;S.owner=owner; S.session=session; S.data={};S.area='users';S.selection=false;S.directory=[];S.directoryLoaded=false; S.page='home'; S.error=''; S.draft=null;
       try {
         let data = await record(owner); if (!current(owner,epoch)) return;
-        S.data=data;data=await migrateLegacy(owner,data);if(!current(owner,epoch))return;S.data=data;if(isAdmin())S.directory=data.directory||[];
+        S.data=data;data=await migrateLegacy(owner,data);if(!current(owner,epoch))return;S.data=data;S.directory=[];
         let location;try{location=JSON.parse(localStorage.getItem(locationKey(owner)));}catch{}
         S.page = (location?.page||data.page)==='totals'?'history':pages.includes(location?.page||data.page) ? location?.page||data.page : 'home'; S.month = /^\d{4}-\d{2}$/.test(location?.month||data.month||'') ? location?.month||data.month : today().slice(0,7);
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}
@@ -400,12 +389,11 @@ function appLocalDate(date=new Date()) {
     return [...groups.values()].sort((a,b)=>Number(b.batch.status==='returned')-Number(a.batch.status==='returned')||String(b.lines[0].transaction_date).localeCompare(String(a.lines[0].transaction_date)));
   }
   function monthControl(){return `<header class="phone-history-header14359"><strong>${esc(new Date(S.month+'-01T12:00:00Z').toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'}))}</strong><label class="no-print"><input id="month" aria-label="History month" type="month" value="${esc(S.month)}"></label></header>`;}
-  function commonActions(){return `<div class="actions no-print">${action('submit',S.submitting?'Submitting…':'Submit',S.submitting?'disabled':'',true)}${canPrint()?action('print','Print report'):''}${action('refresh',S.loading?'Updating…':'Refresh',S.loading?'disabled':'')}</div>`;}
+  function commonActions(){return `<div class="actions no-print">${action('submit',S.submitting?'Submitting…':'Submit',S.submitting?'disabled':'',true)}${action('refresh',S.loading?'Updating…':'Refresh',S.loading?'disabled':'')}</div>`;}
   const visualIcon = type => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+({wallet:'M3 6h18v14H3z M3 6V3h14v3 M16 12h5',plus:'M12 4v16 M4 12h16',book:'M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h5',chart:'M4 20V10 M10 20V4 M16 20v-9 M22 20H2'}[type]||'M3 10l9-7 9 7v11h-6v-6H9v6H3z')+'"/></svg>';
   const progress = (remaining,total) => total>0?Math.max(0,Math.min(100,remaining/total*100)):0;
   function fundCards(){return funds().map(f=>{const total=Number(f.opening||0)+Number(f.received||0),remaining=balance(f);return `<section class="card fund-card1425"><div class="row"><h2>${accountTitle(f.account_id)}</h2></div><small>Remaining Funds</small><strong class="fund-amount132 ${remaining<0?'negative':''}">${money(remaining,f.currency)}</strong><div class="bar"><i style="width:${progress(remaining,total)}%"></i></div><div class="row"><small>${money(remaining,f.currency)} remaining</small><small>${money(total,f.currency)} total</small></div><div class="grid fund-detail1425"><div><small>Funds received</small><b>${money(f.received,f.currency)}</b></div><div><small>Used / handed over</small><b>${money(Number(f.used||0)+Number(f.handover||0),f.currency)}</b></div></div><p class="muted">Available balance includes saved entries awaiting review. ${queue().length?'Includes device entries awaiting sync.':''}</p></section>`;}).join('')||empty(S.data.savedAt?'No fund accounts are assigned to you.':'Your assigned funds have not downloaded yet.');}
   function home(){
-    if(isAdmin()&&!S.selection)return `<div class="team-home14227"><header class="th-head"><h2>Sub-users</h2></header><section class="th-panel"><header><h3>User workspaces</h3></header>${S.directory.map(u=>`<button type="button" class="user-row th-button th-user" data-owner="${esc(u.id)}"><span class="th-avatar">${esc((u.full_name||u.email||'U').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join(''))}</span><span class="th-user-copy"><strong>${esc(u.full_name||u.email)}</strong><small>${esc(u.user_permissions?.job_title||u.status||'')}</small></span><span class="th-open">Open ›</span></button>`).join('')||empty(S.directoryLoading?'Loading sub-users…':'The sub-user list has not downloaded yet.')}</section>${action('directory-refresh','Refresh sub-users')}</div>`;
     const metrics={};for(const f of funds()){const m=metrics[f.currency]||={remaining:0,total:0,used:0};m.remaining+=balance(f);m.total+=Number(f.opening||0)+Number(f.received||0);m.used+=Number(f.used||0)+Number(f.handover||0);}
     return `<div class="card hero funds-hero1425"><div class="row"><b>Remaining Funds</b></div>${Object.entries(metrics).map(([c,m])=>`<strong>${money(m.remaining,c)}</strong>`).join('')||'<strong>—</strong>'}<small>Across assigned accounts</small></div>`+Object.entries(metrics).map(([c,m])=>{const p=progress(m.remaining,m.total);return `<div class="fund-summary1425"><div><small>${Math.round(p)}%</small><div class="bar"><i style="width:${p}%"></i></div><b>${money(m.remaining,c)}</b><small>Remaining</small></div><div><small>${Math.round(100-p)}%</small><div class="bar spent1425"><i style="width:${100-p}%"></i></div><b>${money(m.used,c)}</b><small>Spent / handed over</small></div><div>${visualIcon('chart')}<b>${money(m.total,c)}</b><small>Available funds</small></div></div>`;}).join('')+`<div class="grid quick-tiles1425">${[['Post','Record an expense','post','plus'],['Accounts','View accounts','accounts','wallet'],['Entries','Unsubmitted entries','entries','book'],['History','Submitted reports','history','chart']].map(([t,d,page,k])=>`<button type="button" class="tile" data-go="${page}"><b>${t}</b><small>${d}</small><span class="tile-arrow" aria-hidden="true">›</span></button>`).join('')}</div>${monthControl()}<p class="muted">${lines().length} entries this period · ${monthHeaders().filter(j=>j.status==='submitted').length} waiting for review · ${queue().length} waiting to sync</p>${commonActions()}${S.data.pendingSubmit?'<p class="submit-note">The last submission needs confirmation. Refresh records before retrying.</p>':''}<div class="muted">${funds().map(f=>accountTitle(f.account_id)).join(' · ')}</div>`;
   }
@@ -532,11 +520,8 @@ function appLocalDate(date=new Date()) {
     const owner=S.owner,epoch=S.epoch,reason=await confirmDialog('Void this entry?','All lines in this entry will be voided together.','Void',true);if(!reason||!current(owner,epoch))return;
     try{await access();if(!current(owner,epoch))return;await rpc('void_staff_editor1437',{p_owner:owner,p_ids:g.lines.map(l=>l.id),p_reason:reason});if(!current(owner,epoch))return;notice('Entry voided.');await refresh();}catch(e){if(current(owner,epoch)){if(denied(e))await revoke(e);else notice('The result needs confirmation. Refresh before retrying. '+e.message,true);}}
   }
-  function canPrint(){return permission('sub-users-workspace')&&(permission('document-editor105','export')||permission('sub-users-workspace','export'));}
-  async function printReport(){if(!canPrint()){notice('Printing is not enabled for this account.',true);return;}if(queue().length||draftFilled()||!S.data.months?.[S.month]){notice('Finish your draft and sync pending entries before printing a complete report.',true);return;}
-    const title=(targetName()||'My workspace')+' · '+S.month,rows=lines(),html='<h1>'+esc(title)+'</h1><table><thead><tr><th>Date</th><th>Entry</th><th>Amount</th><th>Memo</th></tr></thead><tbody>'+rows.map(l=>'<tr><td>'+esc(l.transaction_date)+'</td><td>'+esc(l.direction==='in'?'Money In':'Money Out')+'<br>'+esc(name(l.fund_account_id))+(l.direction==='out'?'<br>'+esc(name(l.account_id)):'')+'</td><td>'+esc(money(l.amount,l.currency_code||currency(l.fund_account_id)))+'</td><td>'+esc(l.memo)+(l.reference?'<br>'+esc(l.reference):'')+'</td></tr>').join('')+'</tbody></table><p>Downloaded records as of '+esc(new Date(S.data.months[S.month].savedAt).toLocaleString())+'. This document is a working copy.</p>';
-    if(permission('document-editor105'))await openTools('documents',{title,html,category:'Sub-users',savedReport1434:true,sourceJournal1434:monthHeaders().length===1?monthHeaders()[0].id:undefined});else{const previous=S.page,oldLimit=S.limit;S.page='history';S.limit=Infinity;S.printing14294=true;render();try{window.print()}finally{S.printing14294=false;S.page=previous;S.limit=oldLimit;render()}}
-  }
+  // Guard stale controls from earlier cached phone releases. Reports stay in the full tablet/desktop app.
+  async function printReport(){notice('Use a tablet, iPad or desktop to print reports.');}
   function connectionDialog(){const dialog=$('dialog');dialog.close();dialog.classList.add('phone-connection14246');$('dialogBody').innerHTML='<h2>Connection & sync</h2><p>Saved entries sync automatically. Unfinished form edits stay on this device until saved.</p><section class="sync-section14246"><h3>Connection</h3><p>'+esc(navigator.onLine?(S.online?'Online':'Limited connection'):'Offline')+'</p></section><section class="sync-section14246"><h3>Website files</h3><p>'+esc(S.shellReady?'Downloaded for reopening without connection.':'Still preparing for offline reopening.')+'</p></section><section class="sync-section14246"><h3>Device entries · '+queue().length+'</h3>'+(queue().map(q=>'<article class="sync-entry14246"><strong>'+esc(q.draft.date+' · '+q.draft.memo)+'</strong><p>'+esc(q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Waiting to sync')+'</p>'+(q.message?'<p>'+esc(q.message)+'</p>':'')+'<small>Reference: '+esc(q.key)+'</small></article>').join('')||'<p>No device entries waiting to sync.</p>')+'</section>';$('dialogButtons').innerHTML='<button class="btn" value="close">Close</button>';dialog.onclose=()=>dialog.classList.remove('phone-connection14246');dialog.showModal();}
   async function handle(name,index){const owner=S.owner,epoch=S.epoch;try{
     if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh')return await refresh();if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}

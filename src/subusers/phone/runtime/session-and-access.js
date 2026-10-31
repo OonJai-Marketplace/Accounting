@@ -10,10 +10,9 @@
     $('avatar').hidden = !S.owner; $('bottom').hidden = !S.owner || !permission('sub-users-workspace');
     const profile = S.data.access?.profile;
     if (profile) { $('avatar').textContent = (profile.full_name || profile.email || 'Me').split(/\s+/).map(x => x[0]).slice(0,2).join('').toUpperCase(); $('accountName').textContent = profile.full_name || profile.email; }
-    $('adminNav').hidden=!isAdmin();$('userTabs').hidden=!isAdmin()||S.area!=='users';$('bottom').hidden=$('bottom').hidden||S.area!=='users';
+    $('adminNav').hidden=!isAdmin();$('userTabs').hidden=true;$('bottom').hidden=$('bottom').hidden||S.area!=='users';
     document.querySelector('.brand small').textContent='Marketplace';
     for(const b of $('adminNav').querySelectorAll('[data-area]'))b.classList.toggle('active',b.dataset.area===S.area);
-    $('accountMenu').querySelector('[data-action=print]').hidden = !canPrint();
     for (const b of $('bottom').querySelectorAll('[data-page]')) {let badge=b.querySelector('.returned-badge14347');const count=b.dataset.page==='entries'?headers().filter(j=>j.status==='returned').length:0;if(count){if(!badge){badge=document.createElement('span');badge.className='returned-badge14347';b.append(badge)}badge.textContent=String(count);badge.setAttribute('aria-label',count+' submissions returned for correction');}else badge?.remove(); b.classList.toggle('active', b.dataset.page === S.page); b.setAttribute('aria-current', b.dataset.page === S.page ? 'page' : 'false'); }
     for(const b of $('workspace').querySelectorAll('[data-action=refresh]')){b.disabled=S.loading;b.textContent=S.loading?'Updating…':'Refresh';}
   }
@@ -40,8 +39,8 @@
     if (!current(owner, epoch)) throw fail('Your account changed.', 'ACCOUNT_CHANGED');
     if (value?.profile?.id !== S.actor || value.profile.status !== 'active') throw fail('Your account is no longer active.', 'ACCESS_REVOKED');
     S.data.access = value;
-    if(owner!==S.actor&&!isAdmin())throw fail('Administrator access is required to open another user.','ACCESS_REVOKED');
+    if(owner!==S.actor)throw fail('Use your laptop to open another user’s workspace.','ACCESS_REVOKED');
     if (!permission('sub-users-workspace')) throw fail('Your account does not have a phone workspace. Ask the administrator to assign Sub-users Workspace access.', 'ACCESS_REVOKED');
-    await persist(owner,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');if(owner!==S.actor){await persist(S.actor,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');const [profiles,permissions]=await Promise.all([http('profiles',{id:'eq.'+owner,select:'id,full_name,email,role,status'}),http('user_permissions',{user_id:'eq.'+owner})]);if(!current(owner,epoch))throw fail('The selected workspace changed.','ACCOUNT_CHANGED');if(profiles.data?.length!==1||profiles.data[0].id!==owner||permissions.data?.length!==1||permissions.data[0].user_id!==owner)throw fail('This sub-user is unavailable. Refresh the user list.','INVALID_RESPONSE');S.data.target={profile:profiles.data[0],permissions:permissions.data[0]};await persist(owner,{target:S.data.target});}
+    await persist(owner,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');
     if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');S.online = true; return value;
   }
