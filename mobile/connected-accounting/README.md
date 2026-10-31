@@ -59,7 +59,7 @@ cd android
 
 After later source edits use `npm run sync`. Generated platform projects,
 bundled web assets and signing material are ignored by git. The GitHub workflow
-builds a debug-signed APK artifact and compiles the iOS Simulator target. Cached
+builds a debug-signed APK artifact and compiles the iOS Simulator target. CI
 debug signing is for evaluation only. A production Android signing key and an
 Apple signing/distribution setup are separate release steps. iOS Simulator
 compilation does not produce an installable iPhone application.
@@ -97,3 +97,30 @@ Official references:
 Google Drive, phone and SD-card folders have separate remembered settings. Android uses persistable Storage Access Framework permissions; iPhone uses security-scoped folder bookmarks. Create subfolders using New folder. Removed cards, moved folders or revoked permissions require choosing the folder again. Browser folder saving requires the File System Access API.
 
 Save PDF rechecks all group IDs, saves and verifies the single PDF, then creates private page previews and journal links. Saving to phone/SD first also uploads a private PDF copy to Accounting, as stated in the destination panel, so web journal links work. A failed link keeps the draft and retries the existing PDF. HR/support groups remain named document sections and do not fabricate journal records.
+
+## v143.216 updates and direct folder browsing
+
+Keep application ID `org.oonjai.accounting.preview` and the retained certificate
+SHA-256 `58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c`.
+The displayed app name returns to Oon Jai Accounting; Android updates replace
+v143.215 and preserve its app data. The original v143.214 key cannot be recovered
+and that older installation must keep its unsaved drafts until exported.
+
+Android exposes Check for updates in the account menu and before login. A
+non-blocking check starts after launch and on foregrounding at most every six
+hours per page lifetime. The trusted HTTPS release manifest is
+`data/android-release.json`; publish its version, checksum and link only after
+signing and verifying the APK. The dialog opens the download in a browser without
+navigating the Accounting WebView. Users still download the APK and confirm the
+Android update. Drive downloads use the Oon Jai Google account. No silent install,
+data reset, forced logout or automatic page refresh is performed.
+
+Choosing a destination opens its folder browser immediately. Drive shows real
+subfolders, navigation and New folder inside that browser. Phone/SD uses the
+system folder picker, including its folder creation menu, at the remembered
+location. On Android 10+ first use requests the selected device volume.
+
+Google Drive API must be enabled in the OAuth project's Google Cloud settings;
+a connected Google account alone does not enable the API. The configured project
+is 128865919484. Cloud Console access was unavailable during this change, so
+API activation and physical-device folder access remain acceptance checks.

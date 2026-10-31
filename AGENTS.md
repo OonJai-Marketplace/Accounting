@@ -167,3 +167,14 @@ and saving; save and verify the single bookmarked PDF before registering links.
 Native return screens use explicit text buttons: Add receipts, Next ID, Skip ID,
 Save PDF. Do not repeat crop/delete/enhancement controls already in native capture.
 Keep destination, names, document type and sequence editable without losing pages.
+
+Native updates 2026-10-31: the user rejects separate app names/installations for
+each release. Keep the v143.215 application ID and retained signing certificate
+for all later Android updates. Restore the displayed name Oon Jai Accounting.
+Provide Check for updates and the current APK link inside the account menu.
+Never clear drafts, reset login or change the application ID to ship an update.
+
+Destination correction 2026-10-31: choosing Drive, phone or SD immediately opens
+that provider's folder browser at its remembered path. No intermediate Choose
+folder/New folder/Google account control panel. Create folders inside the folder
+browser; use the native system folder picker for phone and SD-card locations.

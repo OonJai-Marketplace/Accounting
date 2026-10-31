@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.DocumentsContract;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.*;
 import com.getcapacitor.annotation.*;
@@ -41,6 +43,17 @@ public class NativeStoragePlugin extends Plugin {
     }
     @PluginMethod public void pickDirectory(PluginCall call) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        // Open the requested device volume on its first use. Later selections
+        // reopen the separately remembered directory through EXTRA_INITIAL_URI.
+        if (Build.VERSION.SDK_INT >= 29 && call.getString("id") == null) {
+            StorageManager storage = (StorageManager) getContext().getSystemService(android.content.Context.STORAGE_SERVICE);
+            if ("local".equals(call.getString("kind"))) intent = storage.getPrimaryStorageVolume().createOpenDocumentTreeIntent();
+            else if ("sd".equals(call.getString("kind"))) {
+                for (StorageVolume volume : storage.getStorageVolumes()) {
+                    if (volume.isRemovable() && android.os.Environment.MEDIA_MOUNTED.equals(volume.getState())) { intent = volume.createOpenDocumentTreeIntent(); break; }
+                }
+            }
+        }
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
         if (Build.VERSION.SDK_INT >= 26 && call.getString("id") != null) intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, Uri.parse(call.getString("id")));
         startActivityForResult(call, intent, "directorySelected");
