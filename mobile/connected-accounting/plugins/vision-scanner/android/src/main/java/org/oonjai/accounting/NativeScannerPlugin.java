@@ -14,7 +14,6 @@ import com.google.android.gms.common.moduleinstall.ModuleInstallRequest;
 import com.google.mlkit.vision.documentscanner.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.json.JSONArray;
@@ -23,6 +22,15 @@ import org.json.JSONArray;
 public class NativeScannerPlugin extends Plugin {
     private final ExecutorService files = Executors.newSingleThreadExecutor();
     private boolean scanning = false;
+
+    private JSONArray readManifest(File file) throws Exception {
+        // java.nio.file.Files requires API 26; the connected app supports API 24.
+        try (InputStream input = new FileInputStream(file); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192]; int length;
+            while ((length = input.read(buffer)) != -1) output.write(buffer, 0, length);
+            return new JSONArray(new String(output.toByteArray(), StandardCharsets.UTF_8));
+        }
+    }
 
     private void manifest(File dir, String name, JSONArray paths) throws IOException {
         File target = new File(dir, name + ".json"), temp = new File(dir, name + ".part");
@@ -110,7 +118,7 @@ public class NativeScannerPlugin extends Plugin {
             File dir = folder(call), manifest = new File(dir, "result.json"), sources = new File(dir, "sources.json");
             JSObject response = new JSObject();
             response.put("requestId", call.getString("requestId"));
-            response.put("scannedImages", manifest.isFile() ? new JSONArray(new String(Files.readAllBytes(manifest.toPath()), StandardCharsets.UTF_8)) : sources.isFile() ? protect(dir, new JSONArray(new String(Files.readAllBytes(sources.toPath()), StandardCharsets.UTF_8))) : new JSONArray());
+            response.put("scannedImages", manifest.isFile() ? readManifest(manifest) : sources.isFile() ? protect(dir, readManifest(sources)) : new JSONArray());
             call.resolve(response);
         } catch (Exception error) { call.reject(error.getMessage()); } });
     }
