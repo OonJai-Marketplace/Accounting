@@ -1,0 +1,50 @@
+const {chromium}=require('playwright'),fs=require('fs'),path=require('path'),http=require('http'),assert=require('assert/strict'),crypto=require('crypto');
+const ROOT=path.resolve(__dirname,'..');
+(async()=>{
+ const server=http.createServer((req,res)=>{try{const p=path.join(ROOT,new URL(req.url,'http://localhost').pathname);res.setHeader('Content-Type',p.endsWith('.js')?'text/javascript':p.endsWith('.html')?'text/html':p.endsWith('.css')?'text/css':'application/octet-stream');res.end(fs.readFileSync(p));}catch{res.writeHead(404);res.end();}}).listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/tmp/scanner-chrome/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+ try{
+ const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true}),errors=[],events=[];page.on('pageerror',e=>errors.push(e.message));let uploaded=null,manifest=null,rejectID=null,failLink=true,putCount=0;
+ await page.route('**/scripts/device-vault14334.js*',r=>r.fulfill({contentType:'text/javascript',body:`window.deviceVault14334={unlocked:true,actor:'test-owner',attach:async()=>{},pack:v=>({actor:'test-owner',data:v}),unpack:v=>v?.data};`}));
+ await page.route('**/assets/vendor/supabase.js*',r=>r.fulfill({contentType:'text/javascript',body:`window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:{user:{id:'test-owner'},access_token:'synthetic'}}})}})};`}));
+ const folder=id=>({id,name:id==='root'?'My Drive':id==='receiptsfolder'?'Receipts':'New folder',parents:id==='root'?[]:['root'],capabilities:{canAddChildren:true,canRename:true},mimeType:'application/vnd.google-apps.folder'});
+ await page.route('**/functions/v1/accounting-documents',r=>{const b=r.request().postDataJSON();let data;switch(b.action){case 'status':data={connected:true,email:'test@example.test'};break;case 'folder':data=folder(b.id);break;case 'folders':data={parent:folder(b.parent),files:b.parent==='root'?[folder('receiptsfolder')]:[]};break;case 'reserve-id':data={ids:['pdf123456789']};break;case 'file':events.push('verify');data=uploaded||{error:'File not found 404'};break;case 'upload-start':events.push('start');data={id:b.id,session:'https://www.googleapis.com/upload/drive/v3/files?upload_id=fixture'};break;default:throw Error('Unexpected '+b.action);}return r.fulfill({json:data});});
+ await page.route('https://www.googleapis.com/upload/**',r=>{const range=r.request().headers()['content-range'];if(range.startsWith('bytes */'))return r.fulfill({status:uploaded?200:308,body:'{}'});putCount++;events.push('upload');const bytes=r.request().postDataBuffer();uploaded={id:'pdf123456789',name:'October receipts.pdf',version:'1',size:String(bytes.length),sha256Checksum:crypto.createHash('sha256').update(bytes).digest('hex')};fs.writeFileSync('/tmp/scanner-workflow215.pdf',bytes);return r.fulfill({status:200,body:'{}'});});
+ await page.route('**/storage/v1/object/scan-documents208/**',r=>r.fulfill({status:200,body:'{}'}));
+ await page.route('**/functions/v1/scanner-integration',r=>{const b=r.request().postDataJSON();if(b.action==='ids'){events.push('ids');return r.fulfill({json:{ids:b.groups.map(g=>({...g,available:g.label!==rejectID&&g.label!=='OJM26-0012'&&(g.type!=='journal'||/^OJM26-00(1[0-9]|20)$/.test(g.label)),reason:g.label===rejectID||g.label==='OJM26-0012'?'Already used':'No matching journal',journal_ids:g.type==='journal'?['uuid-'+g.label]:[],staff_line_ids:[]}))}});}assert.equal(b.action,'register');events.push('register');assert.ok(uploaded,'link only after Drive saved');assert.ok(events.indexOf('verify')<events.indexOf('register'));manifest=b.manifest;if(failLink){failLink=false;return r.fulfill({status:503,json:{error:'Synthetic link interruption'}});}return r.fulfill({json:{registered:true,pending:0}});});
+ await page.addInitScript(()=>{
+  window.captureCalls=0;window.captureCount=2;const read=()=>JSON.parse(localStorage.getItem('test-native')||'null'),write=j=>localStorage.setItem('test-native',JSON.stringify(j));
+  window.ReceiptNative214={available:true,platform:'android',recover:async()=>read(),pending:read,
+   scan:async context=>{window.captureCalls++;if(window.cancelCapture)return null;const job={...context,id:crypto.randomUUID(),paths:Array.from({length:captureCount},(_,i)=>'file:///scan/'+i+'.jpg'),acknowledged:[]};write(job);return job;},
+   readPage:async()=>{const c=document.createElement('canvas');c.width=300;c.height=400;const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,300,400);x.fillStyle='black';x.fillText('Receipt test',30,40);return c.toDataURL('image/jpeg');},
+   acknowledge:async(job,i)=>{const j=read();j.acknowledged.push(i);write(j);},complete:async()=>localStorage.removeItem('test-native'),
+   pickDirectory:async previous=>previous||{id:'content://fixture/tree/sd',name:'My SD / Receipts'},checkDirectory:async()=>({}),createDirectory:async(folder,name)=>({id:folder.id+'/'+name,name:folder.name+'/'+name}),savePDF:async()=>({verified:true})
+  };
+ });
+ const idle=()=>page.waitForFunction(()=>window.ReceiptScanner202&&!ReceiptScanner202.state.busy);
+ const click=async s=>{await page.click(s);await idle();};
+ await page.goto('http://127.0.0.1:'+server.address().port+'/scan.html');await page.waitForSelector('#setupID215');await idle();
+ assert.equal(await page.evaluate(()=>captureCalls),0,'setup must precede native capture');
+ await click('[data-scan=setup-confirm215]');assert.equal(await page.evaluate(()=>captureCalls),0,'unknown journal ID blocked');
+ await page.fill('#setupTitle215','October receipts');await page.fill('#setupID215','OJM26-0010');await page.locator('#setupID215').blur();await idle();
+ await click('[data-scan=destination215]');await page.selectOption('#destinationMode215','sd');await idle();await click('[data-scan=browse215]');
+ await page.selectOption('#destinationMode215','drive');await idle();await click('[data-scan=browse215]');await click('[data-scan=folder-open][data-folder=receiptsfolder]');await click('[data-scan=folder-select]');
+ await page.selectOption('#destinationMode215','sd');await idle();assert.match(await page.locator('#destinationDialog204').innerText(),/My SD \/ Receipts/);
+ await page.selectOption('#destinationMode215','drive');await idle();assert.match(await page.locator('#destinationDialog204').innerText(),/Receipts/);await click('[data-scan=destination-done215]');
+ await click('[data-scan=setup-confirm215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.pages.length),2);
+ assert.equal(await page.locator('[data-scan=recrop],[data-scan=delete-page]').count(),0,'native return has no duplicate crop/delete controls');
+ await page.evaluate(()=>captureCount=1);await click('[data-scan=add-receipts215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.pages.length),3);
+ await page.evaluate(()=>cancelCapture=true);await click('[data-scan=next-id215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.pages.length),3);assert.equal(await page.locator('#scanDialog').isVisible(),false,'cancel returns to the Accounting batch');await page.evaluate(()=>cancelCapture=false);await click('[data-scan=add-receipts215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.groups.at(-1).label),'OJM26-0011');
+ const captures=await page.evaluate(()=>captureCalls);await click('[data-scan=next-id215]');assert.equal(await page.evaluate(()=>captureCalls),captures,'taken next ID cannot silently jump');
+ await click('[data-scan=skip-id215]');await page.fill('#setupID215','OJM26-0014');await page.locator('#setupID215').blur();await idle();await click('[data-scan=setup-confirm215]');
+ assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.pages.length),5);assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.groups.length),3);
+ rejectID='OJM26-0014';await click('[data-scan=save-pdf215]');assert.equal(putCount,0,'recheck failure blocks upload');rejectID=null;
+ await click('[data-scan=save-pdf215]');assert.equal(putCount,1);assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.links208.status),'pending');
+ await click('[data-scan=save-pdf215]');assert.equal(putCount,1,'retry links without duplicate PDF upload');assert.equal(manifest.workflow,215);assert.equal(manifest.groups.length,3);assert.equal(manifest.pages.length,5);assert.ok(manifest.groups.every(g=>g.type==='journal'&&g.targets.journal_ids.length===1));
+ assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.completed215===ReceiptScanner202.state.draft.revision),true);
+ await page.reload();await page.waitForSelector('#setupID215');await idle();assert.equal(await page.locator('#setupID215').inputValue(),'OJM26-0015');assert.match(await page.locator('#setupPath215').innerText(),/Receipts/);
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
+ await page.screenshot({path:'/tmp/scanner-setup215.png',fullPage:true});
+ console.log('PASS setup before capture; confirmed IDs; independent remembered Drive/SD paths; Add receipts/Next ID/Skip ID; 5 pages in one PDF; upload before linking; safe retry; next-ID memory; phone layout');
+ }finally{await browser.close();await new Promise(r=>server.close(r));}
+})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -159,3 +159,11 @@ JPEGs unchanged. Naming and grouping remain Accounting controls around the nativ
 session. Preserve account isolation, encrypted drafts, atomic retakes and recovery.
 A successful build does not establish physical-phone speed or Google-equivalent
 accuracy. Keep test builds distinguished from signed production releases.
+
+Scanner workflow 2026-10-31 v143.215: Scan first asks for document type, starting
+ID, PDF name and destination. Remember the next ID and separate Drive/phone/SD
+folders. Verify journal IDs against permitted database entries before capture
+and saving; save and verify the single bookmarked PDF before registering links.
+Native return screens use explicit text buttons: Add receipts, Next ID, Skip ID,
+Save PDF. Do not repeat crop/delete/enhancement controls already in native capture.
+Keep destination, names, document type and sequence editable without losing pages.

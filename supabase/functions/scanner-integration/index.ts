@@ -1,5 +1,6 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import {BUCKET,uuid,validateManifest,latestGroups,pinnedTargets} from './validation.mjs';
+import {idRequest,idResults,requireAvailable,sameTargets} from './ids215.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,KEY=Deno.env.get('SUPABASE_ANON_KEY')!;
 const admin=createClient(URL,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
 const origins=new Set(['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost']);
@@ -27,15 +28,32 @@ export async function handler(req:Request){
    const data=await r.json();check(r.ok&&!data.error,data.error||'Drive request failed.');return data;
   }
   if(b.action==='status')return reply({ready:true,bucket:BUCKET,drive:await drive('status').catch(()=>({connected:false})),canLinkJournal:!!edit});
+  async function checkIDs(groups:any[],scan:string){
+   const labels=groups.map(g=>g.label),journalLabels=groups.filter(g=>g.type==='journal').map(g=>g.label);
+   const [entries,lines,docs]=await Promise.all([
+    edit&&journalLabels.length?user.from('journal_entries').select('id,entry_no,status').in('entry_no',journalLabels).limit(201).then(result):[],
+    workspace&&journalLabels.length?user.from('staff_journal_lines').select('id,workspace_entry_no,staff_journal_id,staff_journals!inner(owner_id)').in('workspace_entry_no',journalLabels).eq('staff_journals.owner_id',owner).limit(10001).then(result):[],
+    user.from('scanner_documents208').select('scan_id,entry_label,journal_ids,staff_line_ids').in('entry_label',labels).limit(10001).then(result)
+   ]);
+   check(entries.length<201&&lines.length<10001&&docs.length<10001,'Too many matches. Check fewer IDs.');
+   return idResults(groups,entries,lines,docs,scan);
+  }
+  if(b.action==='ids'){
+   check(!b.scan||uuid(b.scan),'Invalid scan reference.');
+   return reply({ids:await checkIDs(idRequest(b),b.scan||'')});
+  }
   if(b.action==='register'){
    const m=validateManifest(b.manifest,owner),files:any[]=[];for(let offset=0;offset<2000;offset+=1000){const batch=result(await admin.storage.from(BUCKET).list(m.root.slice(0,-1),{limit:1000,offset}));files.push(...batch);if(batch.length<1000)break;}
    const byName=new Map(files.map((f:any)=>[f.name,f]));
    for(const group of m.groups)for(const p of group.pages){const f:any=byName.get(p.id+'.jpg');check(f&&f.metadata?.mimetype==='image/jpeg'&&f.metadata?.size>0&&f.metadata?.size<=2097152,'Upload every page preview before linking.');}
    if(m.provider==='supabase'){const f:any=byName.get('document.pdf');check(f&&f.metadata?.mimetype==='application/pdf'&&f.metadata?.size>0,'Upload the PDF before linking.');}
    else{const f=await drive('file',{id:m.pdf.path,scan:m.id});check(!f.trashed&&f.sha256Checksum===m.pdf.sha256,'Drive has not confirmed this PDF version.');}
+   const strict=b.manifest.workflow===215;
+   const checkedIDs=strict?requireAvailable(await checkIDs(idRequest({groups:b.manifest.groups.map((g:any)=>({type:g.type,label:g.entryLabel}))}),m.id)):[];
    const previous=result(await admin.from('scanner_documents208').select('*').eq('owner_id',owner).eq('scan_id',m.id).order('revision',{ascending:true})),rows=[],linked=[];
    for(const g of m.groups){
     const history=previous.filter((r:any)=>r.group_id===g.id);let targets=pinnedTargets(history,g.label);
+    if(strict){const checked=checkedIDs.find((r:any)=>r.label===g.label),submitted=b.manifest.groups.find((r:any)=>r.id===g.id);check(sameTargets(checked,submitted.targets),'The journal identity changed. Verify the IDs again before linking.');targets={journal_ids:checked.journal_ids,staff_line_ids:checked.staff_line_ids};}
     if(!targets){let ids:string[]=[];if(edit){const matches=result(await user.from('journal_entries').select('id').eq('entry_no',g.label).limit(2));if(matches.length===1)ids=[matches[0].id];}
      let staff:string[]=[];if(!ids.length&&workspace){const lines=result(await user.from('staff_journal_lines').select('id,staff_journal_id,staff_journals!inner(owner_id)').eq('workspace_entry_no',g.label).eq('staff_journals.owner_id',owner).limit(1001));check(lines.length<=1000,'Too many matching workspace lines.');if(new Set(lines.map((l:any)=>l.staff_journal_id)).size===1)staff=lines.map((l:any)=>l.id);}
      targets={journal_ids:ids,staff_line_ids:staff};
@@ -43,9 +61,9 @@ export async function handler(req:Request){
     const same=history.find((r:any)=>r.revision===m.revision);
     if(same)check(same.pdf_sha256===m.pdf.sha256&&same.entry_label===g.label,'This version was already registered with different contents. Save a new revision.');
     rows.push({...(same?{id:same.id}:{}),owner_id:owner,scan_id:m.id,group_id:g.id,revision:m.revision,title:m.title,entry_label:g.label,...targets,pages:g.pages,pdf_provider:m.provider,pdf_path:m.pdf.path,pdf_sha256:m.pdf.sha256});
-    linked.push({label:g.label,linked:!!(targets.journal_ids.length||targets.staff_line_ids.length)});
+    linked.push({label:g.label,linked:strict&&b.manifest.groups.find((r:any)=>r.id===g.id).type!=='journal'||!!(targets.journal_ids.length||targets.staff_line_ids.length)});
    }
-   result(await admin.rpc('scanner_register208',{p_rows:rows}));
+   result(await admin.rpc(strict?'scanner_register215':'scanner_register208',{p_rows:rows}));
    return reply({registered:true,groups:linked,pending:linked.filter(g=>!g.linked).length});
   }
   if(b.action==='list'){
