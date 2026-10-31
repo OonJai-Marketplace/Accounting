@@ -18,20 +18,20 @@ private API override. VisionKit's own device limits still apply.
 
 ## Capture and Accounting
 
-1. Open Scan from the five-item phone navigation.
+1. Open Scan, confirm the document type, starting ID, PDF name and destination. Journal IDs must match a permitted database entry and cannot already belong to another scan batch. HR/support names are checked for document conflicts.
 2. Capture all pages for the current entry in the native scanner, then finish
    its review. Android returns Google's JPEGs without another crop, filter or
    JPEG recompression. iOS returns VisionKit pages encoded at JPEG quality 1.
 3. Accounting imports approved pages directly into the protected draft. Use
-   **Next receipt** to add to the current group or **Next entry** to advance the
+   **Add receipts** to add to the current group or **Next ID** to advance the
    saved naming sequence. Entry IDs, support groups and group splits remain
    available through Accounting settings and page options.
-4. Save the PDF to connected Drive or the phone's share destination, retaining
+4. Save the PDF to connected Drive or a remembered phone/SD-card folder, retaining
    the existing journal-link workflow.
 
 Google owns the native camera/review screens. Its public API does not expose
 custom buttons or per-shutter callbacks for our grouping controls. To change
-entry during a session, finish it and use Next entry, or split groups afterwards.
+entry during a session, finish it and use Next ID, or split groups afterwards.
 
 Native results are held in private app storage until every page has been
 durably imported into the account's encrypted draft. Request context is encrypted
@@ -82,3 +82,9 @@ Official references:
 - https://developers.google.com/ml-kit/vision/doc-scanner/android
 - https://developers.google.com/android/reference/com/google/mlkit/vision/documentscanner/GmsDocumentScannerOptions.Builder
 - https://developer.apple.com/documentation/visionkit/vndocumentcameraviewcontroller
+
+## v143.215 setup and destinations
+
+Google Drive, phone and SD-card folders have separate remembered settings. Android uses persistable Storage Access Framework permissions; iPhone uses security-scoped folder bookmarks. Create subfolders using New folder. Removed cards, moved folders or revoked permissions require choosing the folder again. Browser folder saving requires the File System Access API.
+
+Save PDF rechecks all group IDs, saves and verifies the single PDF, then creates private page previews and journal links. Saving to phone/SD first also uploads a private PDF copy to Accounting, as stated in the destination panel, so web journal links work. A failed link keeps the draft and retries the existing PDF. HR/support groups remain named document sections and do not fabricate journal records.

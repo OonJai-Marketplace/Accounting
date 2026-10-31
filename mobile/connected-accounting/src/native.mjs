@@ -7,6 +7,7 @@ import { pendingScan } from './pending-scan.mjs';
 
 if (Capacitor.isNativePlatform()) {
   const platform = Capacitor.getPlatform(), Scanner = registerPlugin('OonJaiNativeScanner');
+  const Storage = registerPlugin('OonJaiStorage');
   const queue = pendingScan(localStorage, () => window.deviceVault14334);
   let active = false;
   const restored = App.addListener('appRestoredResult', event => {
@@ -26,6 +27,16 @@ if (Capacitor.isNativePlatform()) {
   window.ReceiptNative214 = {
     available: true,
     platform,
+    pickDirectory: folder => Storage.pickDirectory(folder || {}),
+    checkDirectory: folder => Storage.checkDirectory(folder),
+    createDirectory: (folder,name) => Storage.createDirectory({...folder,name}),
+    async savePDF(file, folder, sha256) {
+      const data = await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(r.error);r.readAsDataURL(file);});
+      const path='scan-exports/'+crypto.randomUUID()+'.pdf';
+      const source=await Filesystem.writeFile({path,data,directory:Directory.Cache,recursive:true});
+      try { return await Storage.writePDF({...folder,name:file.name,sha256,source:source.uri}); }
+      finally { await Filesystem.deleteFile({path,directory:Directory.Cache}).catch(()=>{}); }
+    },
     async scan(context) {
       await restored;
       if (active) throw Error('The document scanner is already open.');

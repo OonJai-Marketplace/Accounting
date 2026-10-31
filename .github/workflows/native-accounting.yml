@@ -2,7 +2,7 @@ name: Connected Accounting native builds
 on:
   workflow_dispatch:
   push:
-    branches: [feat/connected-native-scanner]
+    branches: [feat/connected-native-scanner, feat/scanner-setup215]
     paths: ['mobile/connected-accounting/**', '.github/workflows/native-accounting.yml', 'src/documents/scanner/**', 'src/subusers/phone/**']
 permissions:
   contents: read

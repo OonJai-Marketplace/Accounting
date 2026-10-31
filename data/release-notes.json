@@ -1,8 +1,8 @@
 {
-  "version": "143.214",
+  "version": "143.215",
   "changes": [
-    "The connected Android test app now uses Google ML Kit document capture and cleanup, with no fixed page-count setting.",
-    "Native scans retain Accounting entry naming, groups and private journal links, with recovery of returned pages and protected retake replacement.",
-    "The iPhone integration uses Apple VisionKit. Native build and integration checks do not establish physical-device speed or camera accuracy."
+    "Scan begins with document type, confirmed starting ID, PDF name and remembered destination.",
+    "Google Drive, phone storage and SD-card folders are remembered separately. Native file pickers can browse folders and create subfolders.",
+    "Add receipts, Next ID, Skip ID and Save PDF are explicit text buttons. IDs are checked before capture and saving; the single bookmarked PDF is verified before journal links are registered."
   ]
 }

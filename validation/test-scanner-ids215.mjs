@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {idRequest,idResults,requireAvailable,sameTargets} from '../supabase/functions/scanner-integration/ids215.mjs';
+const groups=idRequest({groups:[{type:'journal',label:'OJM26-0010'},{type:'hr',label:'HR26-0001'},{type:'support',label:'Cash slips'}]});
+const entries=[{id:'entry',entry_no:'OJM26-0010',status:'posted'}];
+assert.ok(idResults(groups,entries,[],[],'batch').every(r=>r.available));
+assert.equal(idResults(groups,[],[],[],'batch')[0].available,false);
+assert.equal(idResults(groups,[{...entries[0],status:'voided'}],[],[],'batch')[0].available,false);
+assert.equal(idResults(groups,entries,[],[{scan_id:'other',entry_label:'OJM26-0010'}],'batch')[0].available,false);
+assert.equal(idResults(groups,entries,[],[{scan_id:'batch',entry_label:'OJM26-0010'}],'batch')[0].available,true);
+assert.equal(idResults(groups,[...entries,{...entries[0],id:'duplicate'}],[],[],'batch')[0].available,false);
+const staff=[{id:'line1',staff_journal_id:'staff',workspace_entry_no:'OJM26-0010'},{id:'line2',staff_journal_id:'staff',workspace_entry_no:'OJM26-0010'}];
+assert.deepEqual(idResults(groups,[],staff,[],'batch')[0].staff_line_ids,['line1','line2']);
+assert.equal(idResults(groups,[],[...staff,{...staff[0],staff_journal_id:'ambiguous'}],[],'batch')[0].available,false);
+assert.throws(()=>requireAvailable(idResults(groups,[],[],[],'batch')),/No matching journal/);
+assert.throws(()=>idRequest({groups:[groups[0],groups[0]]}),/distinct/);
+assert.equal(sameTargets({journal_ids:['entry']},{journal_ids:['replacement']}),false,'reused numeric IDs must not silently change the journal UUID');
+assert.equal(sameTargets({staff_line_ids:['b','a']},{staff_line_ids:['a','b']}),true);
+console.log('PASS permitted existing IDs, missing/void/ambiguous rejection, used-ID blocking, same-batch retry, HR/support names and stable UUID checks');
