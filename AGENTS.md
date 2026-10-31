@@ -149,3 +149,13 @@ restart it after foregrounding. Detect the captured frame afresh; uncertain or
 invalid predictions preserve the whole original. Verify photographed documents
 and failure paths, and do not claim perfect accuracy or physical-phone testing
 from synthetic or desktop-browser fixtures.
+
+Native scanner clarification 2026-10-31: the user now authorizes an Android APK
+and iPhone integration of the same connected Accounting app. Use Google's ML Kit
+on Android and public VisionKit APIs on iPhone. Do not recreate an independent
+external scanner. Normal Android scanning leaves the SDK page limit unset; do
+not impose a 24-page cap. Keep Google's native capture/cleanup and embed returned
+JPEGs unchanged. Naming and grouping remain Accounting controls around the native
+session. Preserve account isolation, encrypted drafts, atomic retakes and recovery.
+A successful build does not establish physical-phone speed or Google-equivalent
+accuracy. Keep test builds distinguished from signed production releases.

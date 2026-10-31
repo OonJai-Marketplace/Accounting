@@ -2,7 +2,7 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import {BUCKET,uuid,validateManifest,latestGroups,pinnedTargets} from './validation.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,KEY=Deno.env.get('SUPABASE_ANON_KEY')!;
 const admin=createClient(URL,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
-const origins=new Set(['https://oonjai-marketplace.github.io']);
+const origins=new Set(['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost']);
 const result=(r:any)=>{if(r.error)throw Error(r.error.message);return r.data;};
 const check=(value:any,message:string)=>{if(!value)throw Error(message);};
 export async function handler(req:Request){

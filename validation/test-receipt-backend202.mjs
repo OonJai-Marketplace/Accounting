@@ -28,5 +28,11 @@ assert.match((await (await invoke({...data,version:'2'})).json()).error,/does no
 existing.appProperties.ojmOwner=user;assert.match((await (await invoke({...data,version:'1'})).json()).error,/changed/);
 result=await (await invoke({...data,version:'2'})).json();assert(result.session);assert.equal(calls.at(-1).o.method,'PATCH');
 existing.appProperties.ojmOwner='other';assert.match((await (await invoke({action:'file',id:data.id,scan:data.scan})).json()).error,/not this account/);
-assert.equal((await T.documentHandler(new Request('https://edge.test',{method:'POST',headers:{Origin:'https://evil.test'}}))).status,400);
+assert.equal((await T.documentHandler(new Request('https://edge.test',{method:'POST',headers:{Origin:'https://evil.test'}}))).status,403);
 console.log('PASS: server auth, permission and owner isolation; folder/session validation; duplicate prevention and version checks');
+
+for(const origin of ['https://localhost','capacitor://localhost']){
+ const response=await T.documentHandler(new Request('https://edge.test',{method:'OPTIONS',headers:{Origin:origin}}));assert.equal(response.status,200);assert.equal(response.headers.get('Access-Control-Allow-Origin'),origin);
+ user=null;const denied=await T.documentHandler(new Request('https://edge.test',{method:'POST',headers:{Origin:origin,Authorization:'Bearer fake'},body:'{"action":"status"}'}));assert.match((await denied.json()).error,/expired/);user='owner-a';
+}
+console.log('PASS native origins have explicit CORS and retain session authorization');

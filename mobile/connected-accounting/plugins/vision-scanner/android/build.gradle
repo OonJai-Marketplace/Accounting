@@ -1,0 +1,13 @@
+apply plugin: 'com.android.library'
+android {
+    namespace 'org.oonjai.accounting.scanner'
+    compileSdk rootProject.ext.compileSdkVersion
+    defaultConfig { minSdkVersion 24 }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_21; targetCompatibility JavaVersion.VERSION_21 }
+}
+dependencies {
+    implementation project(':capacitor-android')
+    implementation 'com.google.android.gms:play-services-mlkit-document-scanner:16.0.0'
+    implementation 'com.google.android.gms:play-services-base:18.9.0'
+    implementation 'androidx.activity:activity:1.11.0'
+}
