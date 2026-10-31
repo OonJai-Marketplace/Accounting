@@ -141,3 +141,11 @@ isolation; do not apply remembered phone unlocking to desktop tabs. Show the
 captured photo immediately while correction finishes. Retake replaces the same
 scan only after its new original is protected. Bottom navigation has exactly
 five items: Home, Accounts, Post, Entries, Scan. History is a view inside Entries.
+
+Scanner detection 2026-10-31: use the local trained document-corner detector in
+a dedicated worker; keep model assets pinned and on the same origin. Never send
+camera frames to a third-party detection service. Keep live tracking stable and
+restart it after foregrounding. Detect the captured frame afresh; uncertain or
+invalid predictions preserve the whole original. Verify photographed documents
+and failure paths, and do not claim perfect accuracy or physical-phone testing
+from synthetic or desktop-browser fixtures.

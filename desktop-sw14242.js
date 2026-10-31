@@ -1,7 +1,7 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.212',CACHE='ojm-desktop-shell-'+VERSION;
-const FILES=["scripts/receipt-links208.js?v=143.208","scripts/scan-viewer208.js?v=143.208","styles/scan-viewer208.css?v=143.208","manifest.webmanifest","scripts/app-install205.js?v=143.208","styles/app-install205.css?v=143.208","assets/app-icons/accounting-192-v1.png","assets/app-icons/accounting-180-v1.png","assets/app-icons/accounting-512-v1.png","assets/app-icons/accounting-maskable-v1.png","assets/app-icons/accounting-48-v1.png","scripts/receipt-camera209.js?v=143.212","scan.html","scripts/receipt-core202.js?v=143.212","scripts/receipt-pdf202.js?v=143.208","scripts/receipt-scanner202.js?v=143.212","styles/receipt-scanner202.css?v=143.211","assets/vendor/document14285/jspdf.umd.min.js",
+const VERSION='143.213',CACHE='ojm-desktop-shell-'+VERSION;
+const FILES=["scripts/receipt-detector-worker213.js?v=143.213","scripts/receipt-links208.js?v=143.208","scripts/scan-viewer208.js?v=143.208","styles/scan-viewer208.css?v=143.208","manifest.webmanifest","scripts/app-install205.js?v=143.208","styles/app-install205.css?v=143.208","assets/app-icons/accounting-192-v1.png","assets/app-icons/accounting-180-v1.png","assets/app-icons/accounting-512-v1.png","assets/app-icons/accounting-maskable-v1.png","assets/app-icons/accounting-48-v1.png","scripts/receipt-camera209.js?v=143.213","scan.html","scripts/receipt-core202.js?v=143.213","scripts/receipt-pdf202.js?v=143.208","scripts/receipt-scanner202.js?v=143.213","styles/receipt-scanner202.css?v=143.211","assets/vendor/document14285/jspdf.umd.min.js",
  "scripts/word-of-hope183.js?v=143.190",
  "styles/account-groups143180.css?v=143.182",
  "scripts/organization-zoom143180.js?v=143.180",
@@ -36,7 +36,7 @@ const FILES=["scripts/receipt-links208.js?v=143.208","scripts/scan-viewer208.js?
  "scripts/desktop14245-5.js?v=143.208",
  "scripts/desktop14245-6.js?v=143.208",
  "scripts/local-events14310.js?v=143.189",
- "scripts/offline14239.js?v=143.212",
+ "scripts/offline14239.js?v=143.213",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -183,7 +183,7 @@ const FILES=["scripts/receipt-links208.js?v=143.208","scripts/scan-viewer208.js?
  "scripts/settings-groups14332.js?v=143.179",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.212",
+ "scripts/phone-runtime14242.js?v=143.213",
  "scripts/local-first14333.js?v=143.208",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -222,7 +222,7 @@ const FILES=["scripts/receipt-links208.js?v=143.208","scripts/scan-viewer208.js?
  "scripts/workspace-consistency14343.js?v=143.176",
  "styles/workspace-consistency14343.css?v=143.96",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.212",
+ "phone-sw.js?v=143.213",
  "scripts/personal-journal1437.js?v=143.109",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
@@ -296,7 +296,9 @@ const FILES=["scripts/receipt-links208.js?v=143.208","scripts/scan-viewer208.js?
 ];
 
 const scopeURL=new URL(self.registration.scope);
-const paths=new Map(FILES.map(file=>[file.split('?')[0],file]));
+// Optional scanner model files are cached on use, never block the app update.
+const SCANNER_ASSETS=["assets/vendor/document-detector213/ort-api.js", "assets/vendor/document-detector213/ort-wasm-simd-threaded.mjs", "assets/vendor/document-detector213/ort-wasm-simd-threaded.wasm", "assets/vendor/document-detector213/doccornernet_lean.ort"];
+const paths=new Map([...FILES,...SCANNER_ASSETS].map(file=>[file.split('?')[0],file]));
 async function completeResponse(response){
  if(!response.ok||response.type==='opaque')throw Error('Offline file did not finish downloading');
  const bytes=await response.arrayBuffer();
@@ -392,6 +394,7 @@ self.addEventListener('fetch',event=>{
   // A navigation uses its complete cached release immediately. Updates install
   // separately; ordinary tab changes never depend on this network path.
   if(saved)return saved;
+  if(SCANNER_ASSETS.includes(file)){const previous=await caches.match(canonical.href);if(previous?.ok)return previous;}
   const response=await completeResponse(await fetch(request));
   await cache.put(canonical.href,response.clone());return response;
  })());
