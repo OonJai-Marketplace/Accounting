@@ -239,8 +239,7 @@
     "styles/offline14239.css": "fb8379afb95e51c66547ff477fec825d99e8bbeddb6e494417dea725b23ae222",
     "styles/desktop-v71.css": "4b0565e11a00462732f3a31e53310a2162086765cece17670bd4a45e394b8d60",
     "styles/local-events14310.css": "633900e74365669b74514e61eecdb0d9cbfa56d3968335383a038349ef29fef8",
-    "scripts/navigation-badges14311.js": "2ca2fb9fb0ae1bb552e1ec7355cd8b475820a863cde225851a8437eb57d1c7d5",
-    "scripts/receipt-scanner202.js": "43b15933b237d8eab70dcf3b604e7ac712a6e7a16dd1d5fcf17acd77add529dc"
+    "scripts/navigation-badges14311.js": "2ca2fb9fb0ae1bb552e1ec7355cd8b475820a863cde225851a8437eb57d1c7d5"
   },
   "retired_assets": {
     "tools/desktop-source14245.html": "User-authorized obsolete-code cleanup, 2026-10-13. Input to retired full-desktop builder only; not loaded by any app entry point, manifest or service worker.",
