@@ -9,7 +9,7 @@ const redirect=url+'/functions/v1/google-oauth-callback';
 const scope='https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email';
 const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...headers,'Content-Type':'application/json'}});
 const checked=(r:any)=>{if(r.error)throw Error('Connection storage unavailable');return r.data;};
-export {admin,auth,connection,googleToken,hash,reply};
+export {admin,auth,connection,googleToken,hash,reply,encrypt,clientID,clientSecret};
 const b64=(a:Uint8Array)=>btoa(String.fromCharCode(...a));
 const bytes=(s:string)=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function key(){return crypto.subtle.importKey('raw',await crypto.subtle.digest('SHA-256',new TextEncoder().encode(Deno.env.get('GOOGLE_TOKEN_ENCRYPTION_KEY')||service)), 'AES-GCM',false,['encrypt','decrypt']);}

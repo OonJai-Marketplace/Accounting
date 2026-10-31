@@ -4345,6 +4345,26 @@
       {
         "source": "src/integrations/hope/word-of-hope183.js"
       }
+    ],
+    "scripts/receipt-core202.js": [
+      {
+        "source": "src/documents/scanner/core202.js"
+      }
+    ],
+    "scripts/receipt-pdf202.js": [
+      {
+        "source": "src/documents/scanner/pdf202.js"
+      }
+    ],
+    "scripts/receipt-scanner202.js": [
+      {
+        "source": "src/documents/scanner/scanner202.js"
+      }
+    ],
+    "styles/receipt-scanner202.css": [
+      {
+        "source": "src/documents/scanner/scanner202.css"
+      }
     ]
   },
   "variants": [

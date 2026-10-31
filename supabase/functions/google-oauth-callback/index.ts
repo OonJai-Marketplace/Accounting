@@ -1,2 +1,2 @@
-import {handler} from '../_shared/google143150.ts';
+import {handler} from './legacy143150.ts';
 Deno.serve(handler);

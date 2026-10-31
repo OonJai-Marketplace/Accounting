@@ -1,1 +1,8 @@
-{"version": "143.200", "changes": ["Show original payroll deduction formulas by historical period and employee.", "Retain attendance calculation evidence alongside finalized payroll without changing saved totals.", "Add historical leave records and period balances to HR Leave and Employee History; retain balances when contracts end or renew."]}
+{
+  "version": "143.202",
+  "changes": [
+    "Add phone Receipts & Documents with crop correction, review, entry groups and monthly PDF contents/bookmarks.",
+    "Connect a Google Drive account, browse/create/rename folders, paste folder links, and change the account or destination later.",
+    "Keep encrypted device drafts and verify completed Drive uploads before marking them saved."
+  ]
+}
