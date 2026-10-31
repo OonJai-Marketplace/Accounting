@@ -36,6 +36,14 @@ async function documentHandler214(req:Request){
  if(b.action==='connect'){if(!clientID()||!clientSecret())throw Error('Google authorization is not configured.');const state=crypto.randomUUID()+crypto.randomUUID();checked(await admin.from('google_states143150').delete().lt('expires_at',new Date().toISOString()));checked(await admin.from('google_states143150').insert({state_hash:await hash(state),owner,sheet:b.native215===true?key+':native215':b.native214===true?key+':native214':key,expires_at:new Date(Date.now()+600000).toISOString()}));const u=new URL('https://accounts.google.com/o/oauth2/v2/auth');u.search=new URLSearchParams({client_id:clientID(),redirect_uri:redirect(),response_type:'code',scope:SCOPE+' https://www.googleapis.com/auth/userinfo.email',access_type:'offline',prompt:'consent select_account',state,login_hint:c?.email||'oonjaimarketplace@gmail.com'}).toString();return reply({authorization_url:u.href});}
  if(b.action==='disconnect'){checked(await admin.from('google_connections143150').delete().eq('sheet',key).eq('owner',owner));return reply({disconnected:true});}
  if(!c)throw Error('Connect Google Drive in scanner Settings first.');
+ if(b.action==='app-update217'){
+  // Only the published company APK; never accept arbitrary file IDs or expose Drive tokens.
+  const id='1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje',f=await item(c,id);
+  if(f.trashed||f.mimeType!=='application/vnd.android.package-archive'||!Number(f.size)||Number(f.size)>104857600||!/^([a-f0-9]{64})$/.test(String(b.sha256))||f.sha256Checksum!==b.sha256)throw Error('The published update changed. Check for updates again.');
+  const r=await fetch(DRIVE+'/files/'+id+'?alt=media',{headers:{Authorization:'Bearer '+await googleToken(c)},signal:AbortSignal.timeout(120000)});
+  if(!r.ok)throw Error('Google Drive could not download the app update.');
+  return new Response(r.body,{headers:{'Content-Type':'application/vnd.android.package-archive','Content-Length':String(f.size),'Cache-Control':'no-store'}});
+ }
  if(b.action==='folders'){const parent=await folder(c,fileID(b.parent||'root'));const q="'"+parent.id+"' in parents and trashed = false and mimeType = 'application/vnd.google-apps.folder'";return reply({parent,...await drive(c,'/files?'+new URLSearchParams({q,fields:'nextPageToken,files(id,name,parents,capabilities(canAddChildren,canRename))',orderBy:'name',pageSize:'100',supportsAllDrives:'true',includeItemsFromAllDrives:'true',...(b.pageToken?{pageToken:String(b.pageToken)}:{})}))});}
  if(b.action==='folder'){return reply(await folder(c,fileID(b.id)));}
  if(b.action==='create-folder'){const p=await folder(c,fileID(b.parent||'root'));if(!p.capabilities?.canAddChildren)throw Error('This folder does not allow new files.');return reply(await drive(c,'/files?supportsAllDrives=true&fields=id,name,parents','POST',{name:fileName(b.name),mimeType:'application/vnd.google-apps.folder',parents:[p.id]}));}

@@ -38,7 +38,7 @@ async function resumePhoto(key){const pending=draft.pending?.find(p=>p.key===key
 async function resumeDraft(id){if(cameraQueue.length)await protectImports();if(draft)await persist(false);const selected=await store('draft:'+id);if(!selected)throw Error('This draft is no longer available.');draft=selected;draft.pending||=[];pdfCache=null;await persist(false);closeDialog();render();if(draft.pending.length)await nextPhoto();}
 async function api(action,args={}){valid();const session=await db.auth.getSession();if(session.error||session.data.session?.user?.id!==owner)throw Error('Sign in again to connect to Drive.');const r=await fetch(scope+'/functions/v1/accounting-documents',{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token,apikey:OJM_SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(35000)});const data=await r.json();valid();if(!r.ok||data.error){const disabled=/Google Drive API has not been used in project (\d+) before, or it is disabled/i.exec(data.error||'');throw Error(disabled?'Google Drive is authorized, but the Drive API is disabled for app project '+disabled[1]+'. Enable Google Drive API in Google Cloud, then retry.':data.error||'The connection did not complete.');}return data;}
 async function connection(){const next=await api('status');if(next.connected&&settings.email&&settings.email!==next.email){settings.driveFolders215||={};settings.driveFolders215[settings.email]=settings.folder;settings.folder=settings.driveFolders215[next.email]||{id:'root',name:'My Drive'};if(draft){draft.folder=settings.folder;draft.file=null;draft.upload=null;await persist(false);}}driveState=next;if(next.email){settings.email=next.email;await store('settings',settings);}return next;}
-function open(title,html){if(dialog===primaryDialog){ReceiptCamera209.stop();dialog.classList.remove("scan-camera-dialog209","scan-workflow211");}dialog.innerHTML=`<header><h2>${esc(title)}</h2>${icon211('close','Close','close')}</header>${html}<p class="scan-error" role="alert"></p>`;if(!dialog.open)dialog.showModal();}
+function open(title,html){if(dialog===primaryDialog){ReceiptCamera209.stop();dialog.classList.remove("scan-camera-dialog209","scan-workflow211");}dialog.innerHTML=`<header><h2>${esc(title)}</h2>${icon211('close','Close','close')}</header>${html}<p class="scan-error" role="alert"></p>`;if(!dialog.open)dialog.showModal();paintLoading217();}
 function dialogError(e){const n=dialog.querySelector('[role=alert]');if(n)n.textContent=e.message||e;status(e.message||e,true);}
 const storageMode=()=>['local','sd'].includes(settings.storage)?'local':'drive';
 function storageChoice(id){return `<label>Save destination<select id="${id}"><option value="drive" ${storageMode()==='drive'?'selected':''}>Google Drive</option><option value="local" ${storageMode()==='local'?'selected':''}>Phone / local storage</option></select></label>`;}
@@ -172,7 +172,7 @@ const nativeUI215=()=>!!window.ReceiptNative214?.available;
 const typeName215=type=>({journal:'Journal',hr:'HR',support:'Supporting document'}[type]||'Document');
 const destinationName215=()=>storageMode()==='drive'?'Google Drive / '+(settings.folder?.name||'My Drive'):(settings.storage==='sd'?'SD card / ':'Phone storage / ')+(settings.localFolders215?.[settings.storage]?.name||'Choose a folder');
 function nextLabel215(type,label){if(type!=='support')return C.nextID(label);try{return C.nextID(label);}catch{return label+' 2';}}
-function suggested215(type){return settings.nextIDs215?.[type]||(type==='support'?'Supporting documents 1':(type==='hr'?'HR':'OJM')+C.monthNow().slice(2,4)+'-0001');}
+function suggested215(type){return settings.nextIDs215?.[type]||(type==='support'?'Supporting documents 1':(type==='hr'?'HR':'OJM')+C.monthNow().slice(2,4)+'0001');}
 async function ids215(groups,scan=draft?.id){
  valid();const session=async()=>{valid();const r=await db.auth.getSession();if(r.error||r.data.session?.user?.id!==owner)throw Error('Sign in again to check the document IDs.');return r.data.session;};
  const client=ReceiptLinks208.create({url:scope,key:OJM_SUPABASE_ANON_KEY,session});
@@ -190,28 +190,34 @@ async function rememberIDs215(){
  settings.nextIDs215||={};const current=draft.groups.find(g=>g.id===draft.active&&draft.pages.some(p=>p.group===g.id));for(const g of current?[current]:C.plan(draft)){settings.nextIDs215[g.type]=nextLabel215(g.type,g.label);settings.lastType215=g.type;}
  await store('settings',settings);
 }
-function setupValue215(){if(!$('setupID215'))return setup215;return {...setup215,type:$('setupType215').value,label:$('setupID215').value.trim(),title:$('setupTitle215').value.trim(),month:$('setupMonth215').value};}
+function setupValue215(){if(!$('setupID215'))return setup215;return {...setup215,type:$('setupType215').value,label:$('setupID215').value.trim(),title:$('setupTitle215').value.trim(),month:setup215.month};}
 async function keepSetup215(){setup215=setupValue215();settings.pendingSetup215=setup215;await store('settings',settings);}
 async function openSetup215(mode='start',groupID=null){
  valid();if(draft&&draft.completed215===draft.revision&&mode==='start'){await store('current',null);draft=null;pdfCache=null;render();}
  const g=groupID?draft?.groups.find(g=>g.id===groupID):null;
  const prior=mode==='start'?settings.pendingSetup215:null,type=g?.type||prior?.type||settings.lastType215||'journal';
  setup215={mode,groupID:g?.id||null,type,label:g?.label||prior?.label||requestedEntry208||suggested215(type),title:prior?.title||draft?.title||C.monthTitle(C.monthNow()),month:prior?.month||draft?.month||C.monthNow()};
- dialog=primaryDialog;open(mode==='edit'?'Edit document':'Before scanning',`<div class="scan-setup215"><label>PDF name<input id="setupTitle215" value="${esc(setup215.title)}" maxlength="170"></label><label>Document month<input id="setupMonth215" type="month" value="${setup215.month}"></label><label>Document type<select id="setupType215">${['journal','hr','support'].map(t=>`<option value="${t}" ${t===type?'selected':''}>${typeName215(t)}</option>`).join('')}</select></label><label>${mode==='edit'?'Entry ID / name':'Starting ID / name'}<input id="setupID215" list="availableIDs215" value="${esc(setup215.label)}" maxlength="120" autocomplete="off"></label><datalist id="availableIDs215"></datalist><p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-path215"><span id="setupPath215">${esc(destinationName215())}</span>${btn('destination215','Destination')}</div><p class="scan-small215">${draft?.pages.length?draft.pages.length+' pages remain in this PDF. ':''}Confirm the ID against your documents.</p><div class="scan-actions">${btn('setup-confirm215',mode==='edit'?'Apply changes':'Start scan','primary')}${mode==='start'&&draft?.pages.length?btn('batch-view215','View batch'):''}</div></div>`);
- $('setupType215').onchange=()=>run(async()=>{setup215=setupValue215();$('setupID215').value=suggested215($('setupType215').value);await keepSetup215();await refreshIDs215();});
- for(const id of ['setupTitle215','setupMonth215'])$(id).onchange=()=>run(keepSetup215);
- $('setupID215').onchange=()=>run(async()=>{await keepSetup215();await refreshIDs215();});
- await refreshIDs215();
+ dialog=primaryDialog;open(mode==='edit'?'Edit document':'Before scanning',`<div class="scan-setup215"><label>PDF name<input id="setupTitle215" value="${esc(setup215.title)}" maxlength="170"></label><label>Document type<select id="setupType215">${['journal','hr','support'].map(t=>`<option value="${t}" ${t===type?'selected':''}>${typeName215(t)}</option>`).join('')}</select></label><label>${mode==='edit'?'Entry ID / name':'Starting ID / name'}<input id="setupID215" list="availableIDs215" value="${esc(setup215.label)}" maxlength="120" autocomplete="off"></label><datalist id="availableIDs215"></datalist><p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-path215"><span id="setupPath215">${esc(destinationName215())}</span>${btn('destination215','Destination')}</div><p class="scan-small215">${draft?.pages.length?draft.pages.length+' pages remain in this PDF. ':''}Confirm the ID against your documents.</p><div class="scan-actions">${btn('setup-confirm215',mode==='edit'?'Apply changes':'Start scan','primary')}${mode==='start'&&draft?.pages.length?btn('batch-view215','View batch'):''}</div></div>`);
+ $('setupType215').onchange=()=>run(async()=>{setup215=setupValue215();$('setupID215').value=suggested215($('setupType215').value);await keepSetup215();await refreshIDs215(true);});
+ for(const id of ['setupTitle215'])$(id).onchange=()=>run(keepSetup215);
+ let typing;const input=$('setupID215');input.oninput=()=>{++idsRequest215;clearTimeout(typing);typing=setTimeout(()=>{void keepSetup215().then(()=>refreshIDs215()).catch(dialogError);},300);};input.onchange=()=>{clearTimeout(typing);void keepSetup215().then(()=>refreshIDs215()).catch(dialogError);};
+ await refreshIDs215(mode==='start'&&!requestedEntry208, !settings.nextIDs215?.[type]);
 }
-async function refreshIDs215(){
- const ticket=++idsRequest215,form=setupValue215();if(!form?.label)return;
- let label=form.label;const groups=[];for(let i=0;i<(form.type==='support'?1:20);i++){groups.push({type:form.type,label});try{label=nextLabel215(form.type,label);}catch{break;}}
- try{const rows=await ids215(groups);if(ticket!==idsRequest215||!$('idStatus215'))return;
-  for(const row of rows)if(draft?.groups.some(g=>g.id!==form.groupID&&g.label===row.label&&draft.pages.some(p=>p.group===g.id))){row.available=false;row.reason='Already in this PDF';}
-  $('availableIDs215').innerHTML=rows.filter(r=>r.available).map(r=>`<option value="${esc(r.label)}"></option>`).join('');
-  const selected=rows[0];$('idStatus215').textContent=selected.available?'Available · confirmed in Accounting':selected.reason+ (rows.some(r=>r.available)?' · choose an available ID from the suggestions.':'');
-  $('idStatus215').className=selected.available?'available215':'unavailable215';
- }catch(e){if(ticket===idsRequest215&&$('idStatus215')){$('idStatus215').textContent=e.message;$('idStatus215').className='unavailable215';}}
+async function refreshIDs215(choose=false,resume=false){
+ const ticket=++idsRequest215,form=setupValue215(),input=$('setupID215');if(!input||!form?.label)return;
+ const session=async()=>{valid();const r=await db.auth.getSession();if(r.error||r.data.session?.user?.id!==owner)throw Error('Sign in again to check IDs.');return r.data.session;};
+ $('idStatus215').textContent='Checking available IDs…';
+ try{await loading217(async()=>{
+  const exclude=[];for(const entry of draftIndex){const other=entry.id===draft?.id?draft:await store('draft:'+entry.id);for(const g of other?.groups||[])if(!(entry.id===draft?.id&&g.id===form.groupID)&&other.pages.some(p=>p.group===g.id))exclude.push(g.label);}
+  const client=ReceiptLinks208.create({url:scope,key:OJM_SUPABASE_ANON_KEY,session});
+  const response=await client.api('suggest-ids',{type:form.type,label:form.label,scan:draft?.id,exclude:[...new Set(exclude)],resume:choose&&resume});valid();
+  if(ticket!==idsRequest215||$('setupID215')!==input||input.value.trim()!==form.label)return;
+  const rows=response.suggestions||[];let selected=response.selected;
+  if(choose&&rows.length){input.value=rows[0].label;selected=rows[0];await keepSetup215();}
+  $('availableIDs215').innerHTML=rows.map(r=>`<option value="${esc(r.label)}"></option>`).join('');
+  $('idStatus215').textContent=selected?.available?'Available · confirmed in Accounting':(selected?.reason||'Choose an existing journal ID.')+(rows.length?' · choose an available ID from the suggestions.':' No available IDs found after this number.');
+  $('idStatus215').className=selected?.available?'available215':'unavailable215';
+ },'Checking IDs…');}catch(e){if(ticket===idsRequest215&&$('setupID215')===input){$('idStatus215').textContent=e.message;$('idStatus215').className='unavailable215';}}
 }
 async function checkDestination215(){
  if(storageMode()==='drive'){
@@ -368,9 +374,20 @@ function cameraVisibility213(){
   cameraPaused213=false;void run(openCamera209);
  }
 }
-async function run(fn){if(busy||frozen)return;busy=true;try{await fn();}catch(e){dialogError(e);}finally{busy=false;}}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-scan]');if(!b)return;e.preventDefault();void run(()=>action(b.dataset.scan,b));});if(nativeUI215()){$('settingsButton').textContent='Settings';$('settingsButton').className='scan-action';} $('settingsButton').onclick=()=>run(destinationPanel215);for(const id of ['scanCamera','scanImport'])$(id).onchange=e=>run(async()=>{valid();cameraQueue.push(...Array.from(e.target.files||[]).map((file,i)=>({file,group:retakeTarget211?.group||draft.active,replace:i===0?retakeTarget211?.key:null})));e.target.value='';await protectImports();await nextPhoto();});for(const d of [primaryDialog,destinationDialog])d.addEventListener('cancel',e=>{e.preventDefault();if(!busy)void run(()=>action('close',null));});document.addEventListener('visibilitychange',cameraVisibility213);window.addEventListener('beforeunload',e=>{if(cameraQueue.length){e.preventDefault();e.returnValue='';}});
+const loadingJobs217=new Map();let loadingSerial217=0;
+function paintLoading217(){
+ document.querySelectorAll('.scan-wait217').forEach(n=>n.remove());
+ const job=[...loadingJobs217.values()].find(j=>j.visible);for(const host of [main,primaryDialog,destinationDialog]){if(job)host.setAttribute('aria-busy','true');else host.removeAttribute('aria-busy');}
+ if(!job||frozen)return;const n=document.createElement('div');n.className='scan-wait217';n.setAttribute('role','status');n.setAttribute('aria-live','polite');const spinner=document.createElement('span');spinner.className='scan-spinner217';spinner.setAttribute('aria-hidden','true');n.append(spinner,document.createTextNode(job.label));(destinationDialog.open?destinationDialog:primaryDialog.open?primaryDialog:document.body).append(n);
+}
+async function loading217(fn,label='Loading…'){
+ const id=++loadingSerial217,job={label,visible:false};loadingJobs217.set(id,job);const timer=setTimeout(()=>{job.visible=true;paintLoading217();},300);
+ try{return await fn();}finally{clearTimeout(timer);loadingJobs217.delete(id);paintLoading217();}
+}
+async function run(fn,label){if(busy||frozen)return;busy=true;try{await loading217(fn,label);}catch(e){dialogError(e);}finally{busy=false;}}
+const actionLoading217=name=>name==='folder-new'?'Creating folder…':/folder|provider|destination|browse/.test(name)?'Opening destination…':name==='connect'?'Connecting to Google Drive…':/save|upload/.test(name)?'Saving…':'Loading…';
+document.addEventListener('click',e=>{const b=e.target.closest('[data-scan]');if(!b)return;e.preventDefault();void run(()=>action(b.dataset.scan,b),actionLoading217(b.dataset.scan));});if(nativeUI215()){$('settingsButton').textContent='Settings';$('settingsButton').className='scan-action';} $('settingsButton').onclick=()=>run(destinationPanel215);for(const id of ['scanCamera','scanImport'])$(id).onchange=e=>run(async()=>{valid();cameraQueue.push(...Array.from(e.target.files||[]).map((file,i)=>({file,group:retakeTarget211?.group||draft.active,replace:i===0?retakeTarget211?.key:null})));e.target.value='';await protectImports();await nextPhoto();});for(const d of [primaryDialog,destinationDialog])d.addEventListener('cancel',e=>{e.preventDefault();if(!busy)void run(()=>action('close',null));});document.addEventListener('visibilitychange',cameraVisibility213);window.addEventListener('beforeunload',e=>{if(cameraQueue.length){e.preventDefault();e.returnValue='';}});
 window.addEventListener('offline',()=>status('Offline: scans stay on this device. Upload when connected.'));window.addEventListener('online',()=>status('Connection available. Pending scans can be uploaded.'));
 try{await deviceVault14334.ready;db=supabase.createClient(scope,OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:false}});await deviceVault14334.attach(db);let s;try{s=await db.auth.getSession();if(s.error)throw s.error;}catch(e){if([400,401,403].includes(Number(e.status))||/invalid.*token|revoked|refresh_token_not_found/i.test(e.code+' '+e.message))throw e;const cached=deviceVault14334.readSession?.();if(!cached?.refresh_token||cached.user?.id!==deviceVault14334.actor)throw e;s={data:{session:cached}};}owner=s.data.session?.user?.id||'';valid();settings=await store('settings')||settings;draftIndex=await store('draft-list')||[];draft=await store('current')||null;if(draft){draft.pending||=[];await persist(false);}render();status('Ready. Readability comes first; review each scan before keeping it.');const params=new URL(location.href).searchParams,error=params.get('connection_error'),showSettings=params.get('settings')==='1';history.replaceState(null,'',location.pathname);if(error)status(error,true);if(window.ReceiptNative214?.available&&await ReceiptNative214.recover()){await ensureDraft211();await nativeScan214(true);}else if(showSettings){if(settings.pendingSetup215)await openSetup215();else await destinationPanel215();if(settings.resumeFolder216&&!error){delete settings.resumeFolder216;await store('settings',settings);destination215=true;dialog=destinationDialog;try{await chooseFolder(settings.folder?.id||'root');}catch(e){await destinationPanel215();status(e.message,true);}}}else if(quickCapture209){if(draft?.pending.length)await nextPhoto();else await openSetup215();}if(storageMode()==='drive')void connection().then(()=>{if(!dialog.open)render();else if($('settingsStorage'))scannerSettings();}).catch(e=>status('Drive is unavailable. You can still scan and save locally.',false));setInterval(()=>{try{valid();}catch{lockUI();}},1000);}catch(e){lockUI();status(e.message,true);}
-window.ReceiptScanner202={version:'143.215',get state(){return {owner,draft,busy,driveState,draftIndex};}};
+window.ReceiptScanner202={version:'143.217',get state(){return {owner,draft,busy,driveState,draftIndex};}};
 })();

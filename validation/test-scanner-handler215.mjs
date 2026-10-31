@@ -9,10 +9,10 @@ let authenticated=true,active=true,canEdit=true,driveSaved=true,registered=null;
 const records={journal_entries:[{id:journal,entry_no:'OJM26-0010',status:'posted'}],staff_journal_lines:[],scanner_documents208:[]};
 class Query{
  constructor(table){this.table=table;this.filters=[];}
- select(){return this;}order(){return this;}limit(){return this;}
+ select(){return this;}order(key,{ascending=true}={}){this.sort=key;this.asc=ascending;return this;}limit(n){this.end=n;return this;}range(a,b){this.start=a;this.end=b+1;return this;}like(key,value){this.filters.push(row=>row[key]?.startsWith(value.slice(0,-1)));return this;}gte(key,value){this.filters.push(row=>row[key]>=value);return this;}
  eq(key,value){this.filters.push(row=>(key==='staff_journals.owner_id'?row.owner_id:row[key])===value);return this;}
  in(key,values){this.filters.push(row=>values.includes(row[key]));return this;}
- then(resolve,reject){return Promise.resolve({data:records[this.table].filter(row=>this.filters.every(f=>f(row)))}).then(resolve,reject);}
+ then(resolve,reject){return Promise.resolve({data:records[this.table].filter(row=>this.filters.every(f=>f(row))).sort((a,b)=>String(a[this.sort]).localeCompare(String(b[this.sort]))*(this.asc?1:-1)).slice(this.start||0,this.end)}).then(resolve,reject);}
 }
 const user={rpc:async(name,args)=>({data:name==='password_change_required14257'?false:name==='active_account14228'?active:name==='can_action113'?(args.p_target==='sub-users-workspace'||canEdit):true}),from:table=>new Query(table)};
 const admin={auth:{getUser:async()=>authenticated?{data:{user:{id:owner}}}:{error:true,data:{}}},from:table=>new Query(table),storage:{from:()=>({list:async()=>({data:[{name:page+'.jpg',metadata:{mimetype:'image/jpeg',size:123}}]})})},rpc:async(name,args)=>{registered={name,rows:args.p_rows};return {data:true};}};
@@ -28,6 +28,12 @@ const manifest={workflow:215,id:scan,revision:1,title:'Receipts',provider:'drive
 driveSaved=false;r=await invoke({action:'register',manifest});assert.match(r.data.error,/Drive has not confirmed/);assert.equal(registered,null);
 driveSaved=true;records.journal_entries[0].id='66666666-6666-4666-8666-666666666666';r=await invoke({action:'register',manifest});assert.match(r.data.error,/identity changed/);assert.equal(registered,null);
 records.journal_entries[0].id=journal;r=await invoke({action:'register',manifest});assert.equal(r.data.registered,true);assert.equal(registered.name,'scanner_register215');assert.equal(registered.rows[0].owner_id,owner);
+records.staff_journal_lines=[];records.journal_entries=[{id:journal,entry_no:'OJM260001',status:'posted'},{id:page,entry_no:'OJM260050',status:'posted'}];records.scanner_documents208=[];
+r=await invoke({action:'suggest-ids',type:'journal',label:'OJM26-0001',exclude:[]});assert.equal(r.data.suggestions[0].label,'OJM260001','use actual database format');
+r=await invoke({action:'suggest-ids',type:'journal',label:'OJM260002',exclude:[]});assert.equal(r.data.suggestions[0].label,'OJM260050','find real ID beyond 20-number gaps');
+r=await invoke({action:'suggest-ids',type:'journal',label:'OJM26',exclude:['OJM260001']});assert.equal(r.data.suggestions[0].label,'OJM260050','typing suggestions exclude device batches');
+records.scanner_documents208=[{owner_id:owner,entry_label:'OJM260001',created_at:'2026-11-01',scan_id:'other'}];r=await invoke({action:'suggest-ids',type:'journal',label:'OJM260001',resume:true,exclude:[]});assert.equal(r.data.suggestions[0].label,'OJM260050','resume after last saved entry');
+canEdit=false;r=await invoke({action:'suggest-ids',type:'journal',label:'OJM26',exclude:[]});assert.equal(r.data.suggestions.some(x=>x.label==='OJM260050'),false,'suggestions do not expand access');canEdit=true;
 authenticated=false;r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.equal(r.status,401);
 authenticated=true;active=false;r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.match(r.data.error,/active, unlocked/);
 console.log('PASS actual handler: authorized ID lookup, own-staff scope, verified Drive before registration, immutable journal UUID recheck and service-only atomic registration');

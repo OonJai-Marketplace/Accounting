@@ -17,3 +17,14 @@ export function idResults(groups,journals,lines,documents,scan){
 }
 export function requireAvailable(rows){const bad=rows.find(r=>!r.available);if(bad)throw Error(bad.label+': '+bad.reason);return rows;}
 export function sameTargets(a,b){return ['journal_ids','staff_line_ids'].every(key=>JSON.stringify([...(a?.[key]||[])].sort())===JSON.stringify([...(b?.[key]||[])].sort()));}
+
+export function suggestionRequest217(b){
+ const type=b.type,label=String(b.label||'').trim();
+ if(!['journal','hr','support'].includes(type)||!label||label.length>120||/[\x00-\x1f%_\\]/.test(label))throw Error('Enter an ID or name to find available documents.');
+ if(!Array.isArray(b.exclude||[])||(b.exclude||[]).length>2000||(b.exclude||[]).some(x=>typeof x!=='string'||x.length>120))throw Error('Too many device document IDs.');
+ // Earlier scanner defaults inserted a hyphen that the Accounting sequence does not use.
+ const seed=type==='journal'?label.replace(/^(OJM\d{2})-(\d{4,})$/,'$1$2'):label;
+ const match=seed.match(/^(.*?)(\d{4,})$/),prefix=match?match[1]+match[2].slice(0,-4):seed;
+ return {type,label,seed,prefix,exclude:new Set(b.exclude||[])};
+}
+export function nextDocumentID217(label){const m=label.match(/^(.*?)(\d+)$/);if(!m)return label+' 2';const n=Number(m[2])+1;if(!Number.isSafeInteger(n))throw Error('ID number is too large.');return m[1]+String(n).padStart(m[2].length,'0');}

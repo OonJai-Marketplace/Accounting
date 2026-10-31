@@ -19,7 +19,7 @@
     settingsDrafts[settingsUser||'new']={values,base:settingsBase};void saveSettingsDraft().catch(e=>status(e.message,true));
   }
   async function settings(){checkAdmin();const stamp=generation;const data=await api.device();if(!live(stamp))return;settingsDrafts=data.phoneSettingsDrafts||{};
-    frame('Sub-user settings','<p>Manage access and assigned accounts.</p><div class="actions compact-actions">'+button('Add sub-user','new-user')+button('Refresh users','refresh-users')+'</div><div id="settingsUsers"></div>');drawSettingsUsers();
+    frame('Settings',(window.OJMAppUpdates217?'<div class="actions compact-actions"><button type="button" class="btn" data-native-updates217>App updates</button></div>':'')+'<p>Manage access and assigned accounts.</p><div class="actions compact-actions">'+button('Add sub-user','new-user')+button('Refresh users','refresh-users')+'</div><div id="settingsUsers"></div>');drawSettingsUsers();
   }
   function drawSettingsUsers(){const root=document.getElementById('settingsUsers');if(!root)return;root.innerHTML=api.state().directory.map(u=>`<button class="user-row" type="button" data-tool-user="${esc(u.id)}"><strong>${esc(u.full_name||u.email)}</strong><small>${esc(u.email||'')}</small><span>›</span></button>`).join('')||'<p>No downloaded sub-users. Refresh when connected.</p>';}
   async function editUser(id){checkAdmin();const stamp=++generation;captureSettings();settingsUser=id;frame(id?'Edit sub-user':'Add sub-user','<p>Opening account assignments…</p>');
