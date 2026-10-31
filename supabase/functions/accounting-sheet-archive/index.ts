@@ -1,41 +1,60 @@
 import {admin,auth,connection,googleToken,hash,reply} from '../_shared/google143150.ts';
 import {canonical,parts,records,unpack,compare,journal,reports,currentViews,key} from './core.mjs';
+import {formulaViews,formulaValue,formulaExpected,safeViews,spillPlan} from './formulas.mjs';
 const OWNER='oonjaimarketplace@gmail.com';
 const checked=(r:any)=>{if(r.error)throw Error(r.error.message);return r.data;};
 const rpc=async(n:string,p:any={})=>checked(await admin.rpc(n,p));
 const selectionDigest=(p:any)=>hash(canonical({year:p.year??null,scopes:p.scopes??null,owner:p.owner??null,instance:p.instance??null,tables:p.tables}));
 const col=(n:number)=>{let s='';for(n++;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s;};
-const cell=(v:any)=>v==null?{}:{userEnteredValue:typeof v==='number'?{numberValue:v}:typeof v==='boolean'?{boolValue:v}:{stringValue:String(v)}};
+const cell=(v:any)=>v&&typeof v==='object'&&v.formula?{userEnteredValue:{formulaValue:v.formula}}:v==null?{}:{userEnteredValue:typeof v==='number'?{numberValue:v}:typeof v==='boolean'?{boolValue:v}:{stringValue:String(v)}};
 const quote=(s:string)=>"'"+s.replaceAll("'","''")+"'";
 async function google(cfg:any){const c=await connection(cfg.connection_sheet);if(c?.email?.toLowerCase()!==OWNER)throw Error('Reconnect the Oon Jai Google account in AI Journal.');const access=await googleToken(c);
  return async(path:string,method='GET',body?:any)=>{const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(cfg.sheet)+path,{method,headers:{Authorization:'Bearer '+access,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(45000)});if(!r.ok){const detail=await r.json().catch(()=>({}));throw Error('Google archive request failed ('+r.status+'): '+String(detail.error?.message||'Check the connection').slice(0,500)+'. Nothing was deleted.');}return r.json();};}
 async function read(g:any,title:string,rows:number,width:number){if(rows>100000)throw Error('Archive read exceeds capacity. Cleanup is blocked.');const r=await g('/values/'+encodeURIComponent(quote(title)+'!A1:'+col(width-1)+Math.max(rows,1))+'?valueRenderOption=UNFORMATTED_VALUE');return r.values||[];}
 async function metadata(g:any){return (await g('?fields=sheets.properties')).sheets.map((s:any)=>s.properties);}
 function normalized(rows:any[],width:number){return rows.map(r=>Array.from({length:width},(_,i)=>r[i]??''));}
+function sameCells(actual:any[],expected:any[],width:number){const length=(rows:any[])=>{let n=rows.length;while(n&&rows[n-1].every((v:any)=>v==null||v===''))n--;return n;};const n=length(expected);if(length(actual)!==n)return false;for(let r=0;r<n;r++)for(let c=0;c<width;c++)if((actual[r]?.[c]??'')!==(expected[r]?.[c]??''))return false;return true;}
+// Bounded writes preserve raw record parts without one oversized workbook request.
+async function sendBatches(g:any,requests:any[]){
+ let batch:any[]=[],size=0;
+ for(const request of requests){const bytes=JSON.stringify(request).length;if(bytes>1900000)throw Error('One workbook request exceeds the safe batch size');if(size+bytes>1900000&&batch.length){await g(':batchUpdate','POST',{requests:batch});batch=[];size=0;}batch.push(request);size+=bytes;}
+ if(batch.length)await g(':batchUpdate','POST',{requests:batch});
+}
+function rowRequests(sheetId:number,values:any[],start=0){const requests:any[]=[];let chunk:any[]=[],bytes=0,offset=start;
+ for(const row of values){const r={values:row.map(cell)},n=JSON.stringify(r).length;if(bytes+n>1400000&&chunk.length){requests.push({updateCells:{start:{sheetId,rowIndex:offset,columnIndex:0},rows:chunk,fields:'userEnteredValue'}});offset+=chunk.length;chunk=[];bytes=0;}chunk.push(r);bytes+=n;}
+ if(chunk.length)requests.push({updateCells:{start:{sheetId,rowIndex:offset,columnIndex:0},rows:chunk,fields:'userEnteredValue'}});return requests;
+}
 async function liveBatch(g:any,meta:any[],views:any){
- const requests:any[]=[{updateSpreadsheetProperties:{properties:{timeZone:'Asia/Vientiane'},fields:'timeZone'}}],ranges:string[]=[],expected:any[]=[];let next=194000000;
+ await g(':batchUpdate','POST',{requests:[{updateSpreadsheetProperties:{properties:{timeZone:'Asia/Vientiane'},fields:'timeZone'}}]});
+ const expected:any[]=[];let next=194000000;
  for(const [title,values]of Object.entries(views) as any){
+  const requests:any[]=[];
   if(/History|^Source Records$/.test(title))throw Error('Live batch cannot edit history');
   const width=Math.max(1,...values.map((r:any[])=>r.length)),height=Math.max(1,values.length);
-  if(height>100000||width>80||values.some((r:any[])=>r.some(v=>typeof v==='string'&&v.length>49000)))throw Error('Workbook capacity exceeded; cleanup is blocked.');
-  let tab=meta.find(t=>t.title===title);if(!tab){while(meta.some(t=>t.sheetId===next))next++;tab={sheetId:next++,title,gridProperties:{rowCount:Math.max(100,height),columnCount:Math.max(26,width)}};meta.push(tab);requests.push({addSheet:{properties:tab}});}
-  const rowCount=Math.max(height,tab.gridProperties.rowCount),columnCount=Math.max(width,tab.gridProperties.columnCount);
-  requests.push({updateSheetProperties:{properties:{sheetId:tab.sheetId,gridProperties:{rowCount,columnCount,frozenRowCount:1}},fields:'gridProperties.rowCount,gridProperties.columnCount,gridProperties.frozenRowCount'}});
-  requests.push({unmergeCells:{range:{sheetId:tab.sheetId}}});
-  requests.push({updateCells:{range:{sheetId:tab.sheetId,startRowIndex:0,endRowIndex:rowCount,startColumnIndex:0,endColumnIndex:columnCount},rows:values.map((r:any[])=>({values:r.map(cell)})),fields:'userEnteredValue'}});
-  requests.push({repeatCell:{range:{sheetId:tab.sheetId},cell:{userEnteredFormat:{numberFormat:{type:'NUMBER',pattern:'#,##0.00########'},backgroundColor:{red:1,green:1,blue:1},textFormat:{fontFamily:'Arial',fontSize:10,foregroundColor:{red:0,green:0,blue:0}},wrapStrategy:'CLIP'}},fields:'userEnteredFormat'}});
-  requests.push({repeatCell:{range:{sheetId:tab.sheetId,startRowIndex:0,endRowIndex:1},cell:{userEnteredFormat:{backgroundColor:{red:.9,green:.94,blue:.91},textFormat:{bold:true},wrapStrategy:'WRAP'}},fields:'userEnteredFormat.backgroundColor,userEnteredFormat.textFormat.bold,userEnteredFormat.wrapStrategy'}});
-  requests.push({updateDimensionProperties:{range:{sheetId:tab.sheetId,dimension:'COLUMNS',startIndex:0,endIndex:width},properties:{pixelSize:155},fields:'pixelSize'}});
-  requests.push({updateDimensionProperties:{range:{sheetId:tab.sheetId,dimension:'ROWS',startIndex:0,endIndex:1},properties:{pixelSize:42},fields:'pixelSize'}});
-  for(let i=0;i<width;i++)if(/description|memo|Notes|Status|Saved value/i.test(String(values[0]?.[i])))requests.push({updateDimensionProperties:{range:{sheetId:tab.sheetId,dimension:'COLUMNS',startIndex:i,endIndex:i+1},properties:{pixelSize:310},fields:'pixelSize'}});
-  for(let i=0;i<width;i++)if(/^(Year|Part|Record parts|Employees|Days)$/.test(String(values[0]?.[i]))||(['Home','Dashboard','Archive Status','Checks','Payroll Check'].includes(title)&&i===1))requests.push({repeatCell:{range:{sheetId:tab.sheetId,startColumnIndex:i,endColumnIndex:i+1},cell:{userEnteredFormat:{numberFormat:{type:'NUMBER',pattern:'0'}}},fields:'userEnteredFormat.numberFormat'}});
-  if(title==='Raw Data')requests.push({updateDimensionProperties:{range:{sheetId:tab.sheetId,dimension:'COLUMNS',startIndex:3,endIndex:4},properties:{pixelSize:600},fields:'pixelSize'}});
-  ranges.push(quote(title)+'!A1:'+col(width-1)+height);expected.push({values,width,title});
+  if(height>100000||width>80||values.some((r:any[])=>r.some(v=>typeof v==='string'&&v.length>49000)))throw Error('Workbook capacity exceeded in '+title+'; cleanup is blocked.');
+  let tab=meta.find(t=>t.title===title),fresh=!tab;if(!tab){while(meta.some(t=>t.sheetId===next))next++;tab={sheetId:next++,title,gridProperties:{rowCount:Math.max(100,height),columnCount:Math.max(26,width)}};meta.push(tab);requests.push({addSheet:{properties:tab}});}
+  const rowCount=Math.max(height,tab.gridProperties.rowCount),columnCount=Math.max(width,tab.gridProperties.columnCount),sheetId=tab.sheetId;
+  requests.push({updateSheetProperties:{properties:{sheetId,gridProperties:{rowCount,columnCount,frozenRowCount:1}},fields:'gridProperties.rowCount,gridProperties.columnCount,gridProperties.frozenRowCount'}});
+  // These are generated report ranges. Remove obsolete template dropdowns, but retain their formatting.
+  requests.push({unmergeCells:{range:{sheetId}}});
+  requests.push({setDataValidation:{range:{sheetId},rule:null}});
+  requests.push({updateCells:{range:{sheetId,startRowIndex:0,endRowIndex:rowCount,startColumnIndex:0,endColumnIndex:columnCount},rows:[],fields:'userEnteredValue'}});
+  const spill=spillPlan(title,values,views);requests.push(...rowRequests(sheetId,spill?.input||values));
+  requests.push({repeatCell:{range:{sheetId,startRowIndex:0,endRowIndex:1,startColumnIndex:0,endColumnIndex:width},cell:{userEnteredFormat:{backgroundColor:{red:.9,green:.94,blue:.91},textFormat:{bold:true},wrapStrategy:'WRAP'}},fields:'userEnteredFormat.backgroundColor,userEnteredFormat.textFormat.bold,userEnteredFormat.wrapStrategy'}});
+  if(fresh){requests.push({repeatCell:{range:{sheetId,startRowIndex:1,endRowIndex:rowCount},cell:{userEnteredFormat:{numberFormat:{type:'NUMBER',pattern:'#,##0.00########'},textFormat:{fontFamily:'Arial',fontSize:10},wrapStrategy:'CLIP'}},fields:'userEnteredFormat'}});requests.push({updateDimensionProperties:{range:{sheetId,dimension:'COLUMNS',startIndex:0,endIndex:width},properties:{pixelSize:155},fields:'pixelSize'}});}
+  requests.push({updateDimensionProperties:{range:{sheetId,dimension:'ROWS',startIndex:0,endIndex:1},properties:{pixelSize:60},fields:'pixelSize'}});
+  await sendBatches(g,requests);
+  expected.push({values,width,title,height,formulaRows:spill?.readback||values.map((r:any[])=>r.map(formulaValue))});
  }
- if(JSON.stringify(requests).length>8*1024*1024)throw Error('Archive live batch is too large; cleanup remains blocked.');
- await g(':batchUpdate','POST',{requests});
- const result=await g('/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&'+ranges.map(r=>'ranges='+encodeURIComponent(r)).join('&'));
- for(let i=0;i<expected.length;i++){const e=expected[i];if(canonical(normalized(result.valueRanges[i].values||[],e.width))!==canonical(normalized(e.values,e.width)))throw Error(e.title+' readback mismatch');}
+ // Read formulas as formulas first: text beginning '=' remains literal on all source tabs.
+ for(let offset=0;offset<expected.length;offset+=8){const group=expected.slice(offset,offset+8),ranges=group.map(e=>quote(e.title)+'!A1:'+col(e.width-1)+e.height);
+  const result=await g('/values:batchGet?valueRenderOption=FORMULA&'+ranges.map(r=>'ranges='+encodeURIComponent(r)).join('&'));
+  for(let i=0;i<group.length;i++){const e=group[i],want=e.formulaRows;if(!sameCells(result.valueRanges[i].values||[],want,e.width))throw Error(e.title+' formula/source readback mismatch');}
+ }
+ const calculated=expected.filter(e=>e.values.some((r:any[])=>r.some(v=>v&&typeof v==='object'&&v.formula)));
+ for(let offset=0;offset<calculated.length;offset+=8){const group=calculated.slice(offset,offset+8),ranges=group.map(e=>quote(e.title)+'!A1:'+col(e.width-1)+e.height),result=await g('/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&'+ranges.map(r=>'ranges='+encodeURIComponent(r)).join('&'));
+  for(let i=0;i<group.length;i++){const e=group[i],actual=result.valueRanges[i].values||[],want=e.values;if(actual.length!==want.length)throw Error(e.title+' calculated row count mismatch');for(let r=0;r<want.length;r++)for(let c=0;c<e.width;c++){const a=actual[r]?.[c]??'',w=formulaExpected(want[r][c])??'';if(typeof w==='number'&&typeof a==='number'?Math.abs(a-w)>Math.max(.00001,Math.abs(w)*1e-12):a!==w)throw Error(e.title+' calculated result mismatch at '+col(c)+(r+1)+': '+String(a)+' / '+String(w));}}
+ }
 }
 async function write(g:any,meta:any[],title:string,values:any[],immutable=false){
  if(!immutable&&/History|^Source Records$/.test(title))throw Error('Live writes cannot target history.');
@@ -56,17 +75,18 @@ async function write(g:any,meta:any[],title:string,values:any[],immutable=false)
  const saved=await read(g,title,height,width);if(canonical(normalized(saved,width))!==canonical(normalized(values,width)))throw Error(title+' readback does not match. Cleanup is blocked.');
  return tab;
 }
-async function append(g:any,meta:any[],title:string,headers:string[],newRows:any[]){let tab=meta.find(t=>t.title===title);if(!tab){tab=await write(g,meta,title,[headers],true);}
- const saved=await read(g,title,tab.gridProperties.rowCount,headers.length),seen=new Map();
- if(canonical(saved[0])!==canonical(headers))throw Error(title+' headings changed. Saving stopped to preserve history.');
- for(const row of saved.slice(1)){if(!row[0]||seen.has(String(row[0])))throw Error(title+' contains missing or duplicate revision IDs.');seen.set(String(row[0]),row);}
- const missing:any[]=[];for(const row of newRows){const old=seen.get(String(row[0]));if(old&&canonical(normalized([old],headers.length)[0])!==canonical(normalized([row],headers.length)[0]))throw Error('Saved archive revision differs: '+row[0]);if(!old){missing.push(row);seen.set(String(row[0]),row);}}
+async function readSlice(g:any,title:string,start:number,end:number,width:number){const r=await g('/values/'+encodeURIComponent(quote(title)+'!A'+(start+1)+':'+col(width-1)+Math.max(start+1,end))+'?valueRenderOption=UNFORMATTED_VALUE');return r.values||[];}
+async function append(g:any,meta:any[],title:string,headers:string[],newRows:any[]){let tab=meta.find(t=>t.title===title);if(!tab)tab=await write(g,meta,title,[headers],true);
+ const head=await read(g,title,1,headers.length);if(canonical(head[0])!==canonical(headers))throw Error(title+' headings changed. Saving stopped to preserve history.');
+ const ids=await read(g,title,tab.gridProperties.rowCount,1),seen=new Map();for(let i=1;i<ids.length;i++){const id=String(ids[i]?.[0]||'');if(!id||seen.has(id))throw Error(title+' contains missing or duplicate revision IDs.');seen.set(id,i);}
+ const missing:any[]=[],existing:any[]=[];for(const row of newRows){const at=seen.get(String(row[0]));if(at!==undefined)existing.push({at,row});else{missing.push(row);seen.set(String(row[0]),ids.length+missing.length-1);}}
+ // Verify only overlapping revisions (retries), not the entire growing JSON history.
+ existing.sort((a,b)=>a.at-b.at);for(let i=0;i<existing.length;){let j=i+1;while(j<existing.length&&existing[j].at===existing[j-1].at+1)j++;const group=existing.slice(i,j),actual=await readSlice(g,title,group[0].at,group.at(-1).at+1,headers.length);for(let k=0;k<group.length;k++)if(canonical(normalized([actual[k]||[]],headers.length)[0])!==canonical(normalized([group[k].row],headers.length)[0]))throw Error('Saved archive revision differs: '+group[k].row[0]);i=j;}
  if(!missing.length)return;
- const start=saved.length,end=start+missing.length,req:any[]=[];if(end>100000)throw Error('Source history exceeds capacity. Cleanup is blocked.');
+ const start=ids.length,end=start+missing.length,req:any[]=[];if(end>100000)throw Error('Source history exceeds capacity. Cleanup is blocked.');
  if(end>tab.gridProperties.rowCount)req.push({updateSheetProperties:{properties:{sheetId:tab.sheetId,gridProperties:{rowCount:end}},fields:'gridProperties.rowCount'}});
- req.push({updateCells:{start:{sheetId:tab.sheetId,rowIndex:start,columnIndex:0},rows:missing.map(r=>({values:r.map(cell)})),fields:'userEnteredValue'}});
- await g(':batchUpdate','POST',{requests:req});tab.gridProperties.rowCount=Math.max(end,tab.gridProperties.rowCount);
- const readback=(await read(g,title,end,headers.length)).slice(start);if(canonical(normalized(readback,headers.length))!==canonical(normalized(missing,headers.length)))throw Error('Archive append verification failed.');
+ req.push(...rowRequests(tab.sheetId,missing,start));await sendBatches(g,req);tab.gridProperties.rowCount=Math.max(end,tab.gridProperties.rowCount);
+ const actual=await readSlice(g,title,start,end,headers.length);if(canonical(normalized(actual,headers.length))!==canonical(normalized(missing,headers.length)))throw Error('Archive append verification failed.');
 }
 async function sync(){const lease=crypto.randomUUID(),job=await rpc('sheet_archive_job194',{p_lease:lease});if(!job)return {busy:true};const ids=job.queue.map((q:any)=>q.id);
  try{const g=await google(job.config),meta=await metadata(g);
@@ -82,11 +102,18 @@ async function sync(){const lease=crypto.randomUUID(),job=await rpc('sheet_archi
   }
   const sealed=new Set(job.years.filter((y:any)=>y.sealed_at).map((y:any)=>y.year));
   const currentYear=Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Vientiane',year:'numeric'}).format(new Date()));
-  const views=currentViews(job.tables,sealed,currentYear);
+  if(job.config.saved_revision!==job.config.revision){
+  const views=formulaViews(job.tables,safeViews(currentViews(job.tables,sealed,currentYear)));
   await append(g,meta,'Journal History',['Year','Closed UTC','Archived UTC','Journal tab','Records tab','SHA-256','Record parts'],[]);
-  const overview=[['Accounting Web','Status'],['Google account',OWNER],['Current year',currentYear],['Database journal entries',job.tables.journal_entries?.length||0],['Database journal lines',job.tables.journal_lines?.length||0],['Business tables',Object.keys(job.tables).length],['Last successful save UTC',new Date().toISOString()],['Saving','Database changes trigger saving. No repeating full-workbook polling.'],['History','Full-year closure creates fixed values. Subsequent database changes cannot overwrite those tabs.'],['Cleanup','Fresh comparison and a second confirmation are required. A mismatch blocks deletion.'],['Report basis','Posted records, original currency and saved LAK valuations; technical mapping accounts excluded from profit and loss.'],['Source Records','Append-only record revisions; deletion records preserve the last database value.'],['Scope','Business data only. Login credentials, OAuth tokens and recovery secrets are excluded.']];
-  views.Home=overview;views.Dashboard=overview;views['Archive Status']=overview;views['Import Receipt']=[['Live database copy','Value'],['Current year',currentYear],['Journal entries',job.tables.journal_entries?.length||0],['Journal lines',job.tables.journal_lines?.length||0],['Saved UTC',new Date().toISOString()]];views.Import=[['Accounting workbook','Current workflow'],['Source','Saved database changes update this workbook automatically.'],['Review','Use the website for journal posting and approval.'],['Archive','Close the entire year in the website to save fixed History.']];
+  const overview=[['Accounting Web','Status'],['Google account',OWNER],['Current year',currentYear],['Database journal entries',job.tables.journal_entries?.length||0],['Database journal lines',job.tables.journal_lines?.length||0],['Business tables',Object.keys(job.tables).length],['Last successful save UTC',job.config.last_saved||'Not yet verified'],['Saving','Saved changes trigger sync; queued failures retry every five minutes. Idle workbooks are not rewritten.'],['History','Full-year closure creates fixed values. Subsequent database changes cannot overwrite those tabs.'],['Cleanup','Fresh comparison and a second confirmation are required. A mismatch blocks deletion.'],['Report basis','Live formulas use posted journal records and saved LAK valuations. Historical payroll retains period-specific rules.'],['Source Records','Append-only record revisions; deletion records preserve the last database value.'],['Scope','Business data only. Login credentials, OAuth tokens and recovery secrets are excluded.'],['Verification','Updating; awaiting readback']];
+  views.Home=overview;views.Dashboard=overview;views['Archive Status']=overview;views['Import Receipt']=[['Live database copy','Value'],['Current year',currentYear],['Journal entries',job.tables.journal_entries?.length||0],['Journal lines',job.tables.journal_lines?.length||0],['Saved UTC',job.config.last_saved||'Not yet verified']];views.Import=[['Accounting workbook','Current workflow'],['Source','Saved database changes update this workbook automatically.'],['Review','Use the website for journal posting and approval.'],['Archive','Close the entire year in the website to save fixed History.']];
   await liveBatch(g,meta,views);
+  const verifiedAt=new Date().toISOString(),statusRequests:any[]=[];
+  for(const title of ['Home','Dashboard','Archive Status']){const tab=meta.find(t=>t.title===title);statusRequests.push({updateCells:{start:{sheetId:tab.sheetId,rowIndex:6,columnIndex:1},rows:[{values:[cell(verifiedAt)]}],fields:'userEnteredValue'}},{updateCells:{start:{sheetId:tab.sheetId,rowIndex:13,columnIndex:1},rows:[{values:[cell('Verified source records and formulas')]}],fields:'userEnteredValue'}});}
+  statusRequests.push({updateCells:{start:{sheetId:meta.find(t=>t.title==='Import Receipt').sheetId,rowIndex:4,columnIndex:1},rows:[{values:[cell(verifiedAt)]}],fields:'userEnteredValue'}});
+  await g(':batchUpdate','POST',{requests:statusRequests});
+  await rpc('sheet_archive_mark_live201',{p_lease:lease,p_revision:job.config.revision});
+  }
   await rpc('sheet_archive_finish194',{p_lease:lease,p_ids:ids,p_error:null});return {saved:true,events:ids.length,tables:Object.keys(job.tables).length};
  }catch(e){await rpc('sheet_archive_finish194',{p_lease:lease,p_ids:[],p_error:String(e.message)});throw e;}
 }
