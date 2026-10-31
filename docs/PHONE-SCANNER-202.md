@@ -35,11 +35,23 @@ Group several pages under one ID. Page labels use A–Z, then AA, AB, etc. Reord
 
 Readability takes priority over a target MB size. The scan preview is the exact JPEG embedded in the PDF without another JPEG recompression. Large source photos are limited to 12 million working pixels for phone memory; original images are retained in the encrypted local draft for recropping. Verify small writing and signatures before accepting. The finished monthly file can be large; available phone memory and Google Drive quota still apply.
 
+## Change the path while scanning
+
+Use **Save destination** on the scanner header, crop screen or readability preview. A separate popup uses the same Google account, folder and local-storage settings while keeping the current scan underneath. Closing the popup returns to the same scan. Folder browsing, pasted links and local-storage selection do not navigate away. Changing Google accounts still requires Google's sign-in page; the app protects pending photos and crop state before opening it.
+
+## Unsaved scans and interruptions
+
+Photos are copied into an encrypted device draft before the crop screen opens. Imported photos are protected one at a time; wait for protection to finish before closing the browser. If device storage fails, the app identifies the unprotected photos and offers **Retry protecting photos**. Failed writes abort the metadata/photo transaction together.
+
+**Finish later** closes crop/review without deleting the photo. **Unsaved scans → Resume review** restores pending photos, rotation, crop corners and grayscale choice after an interruption or reload. **Open unsaved scans** lists retained batches, including the current batch. Starting another batch keeps the old one; **Resume batch** switches back. Adding a reviewed page and removing its pending copy happen in the same storage transaction so a refresh does not duplicate or lose the page. Finish reviewing pending photos before saving the complete PDF.
+
+Only an explicit **Discard photo** or **Discard draft** confirmation removes these local drafts. Saved PDFs in Drive or local folders are unaffected. Drafts belong to the Accounting login in this browser on this device. Browser data clearing, private-session disposal, device loss or operating-system storage eviction can remove them; an exported PDF is the separate durable copy. The app requests persistent browser storage where supported, but the browser decides whether to grant it.
+
 ## Save and recover
 
 Use **Review / Save PDF**, inspect the filename/account/folder, then Save. Encrypted drafts remain on this device until explicitly cleared. Offline capture works after the scanner assets have been downloaded; Google sign-in, folder browsing and upload need internet. Uploads use resumable chunks and a reserved file ID, and the app verifies the stored size and SHA-256 checksum before showing saved. After an interruption press Save again. A failed verification keeps the draft.
 
-Continue adding pages to the current monthly batch and update its saved PDF. Updates require the original file's latest verified version; an unexpected Drive change blocks overwriting. Use Save as new PDF with another filename for a copy. Identical names already in a destination are not silently overwritten. Before starting another batch, upload or download the current one. Clearing browser storage removes device drafts; uploaded files remain in Google Drive.
+Continue adding pages to the current monthly batch and update its saved PDF. Updates require the original file's latest verified version; an unexpected Drive change blocks overwriting. Use Save as new PDF with another filename for a copy. Identical names already in a destination are not silently overwritten. Starting another batch retains the current one in Unsaved scans; it does not discard its photos. Clearing browser storage removes device drafts; uploaded files remain in Google Drive.
 
 ## Deployment setup
 
