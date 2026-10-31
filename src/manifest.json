@@ -4365,6 +4365,14 @@
         "suffix": ";\n"
       },
       {
+        "source": "src/documents/scanner/detector-policy213.js",
+        "suffix": ";\n"
+      },
+      {
+        "source": "src/documents/scanner/detector213.js",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/documents/scanner/core202.js"
       }
     ],
@@ -4421,6 +4429,11 @@
       },
       {
         "source": "src/subusers/phone/login210.css"
+      }
+    ],
+    "scripts/receipt-detector-worker213.js": [
+      {
+        "source": "src/documents/scanner/detector-worker213.js"
       }
     ]
   },

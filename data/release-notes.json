@@ -1,8 +1,8 @@
 {
-  "version": "143.212",
+  "version": "143.213",
   "changes": [
-    "Phone sign-in is remembered across app closure; explicit sign-out still protects saved drafts.",
-    "Capture displays the photo immediately, avoids redundant processing and uses faster protected storage. The camera-and-arrow icon retakes the same receipt.",
-    "Five bottom tabs: Home, Accounts, Post, Entries, Scan. History is now inside Entries."
+    "Document scanning now uses an on-device corner-detection model for receipts, colored paper, shadows and angled documents.",
+    "The live outline waits for stable corners, clears when the paper moves away, and resumes after returning to the app. Captured photos receive their own fresh detection.",
+    "The detector runs separately from the camera interface, loads only when scanning, and is cached for reuse. Retake, manual crop and protected originals remain available."
   ]
 }

@@ -61,6 +61,101 @@ function find({data,width:w,height:h}){
 const api={find,hull,quadFromHull};root.ReceiptEdges211=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
 ;
+/* Shared, deterministic safety checks for trained document-corner predictions. */
+(function(root){'use strict';
+ const full=()=>({automatic:false,corners:[[0,0],[1,0],[1,1],[0,1]],confidence:0});
+ function accept(coords,score){
+  if(!Number.isFinite(score)||score<.9||!coords||coords.length!==8)return full();
+  const p=Array.from({length:4},(_,i)=>[coords[i*2],coords[i*2+1]]);
+  // An edge at the frame boundary can mean a clipped document. Keep the original.
+  if(p.some(a=>a.some(v=>!Number.isFinite(v)||v<.006||v>.994)))return full();
+  let area=0;
+  for(let i=0;i<4;i++){
+   const a=p[i],b=p[(i+1)%4],c=p[(i+2)%4];
+   const cross=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);
+   if(cross<.001||Math.hypot(a[0]-b[0],a[1]-b[1])<.045)return full();
+   area+=a[0]*b[1]-b[0]*a[1];
+  }
+  if(area/2<.025||area/2>.97)return full();
+  // A little breathing room protects thin borders, digits and signatures.
+  const center=[0,1].map(j=>p.reduce((n,a)=>n+a[j],0)/4);
+  const corners=p.map(a=>a.map((v,j)=>Math.max(0,Math.min(1,center[j]+(v-center[j])*1.018))));
+  return {automatic:true,corners,confidence:score,method:'model'};
+ }
+ function tracker(){
+  let previous=null,count=0;
+  return found=>{
+   if(!found.automatic){previous=null;count=0;return found;}
+   const close=previous&&found.corners.every((p,i)=>Math.hypot(p[0]-previous[i][0],p[1]-previous[i][1])<.045);
+   count=close?count+1:1;
+   previous=close?found.corners.map((p,i)=>p.map((v,j)=>v*.7+previous[i][j]*.3)):found.corners.map(p=>p.slice());
+   // Never leave the old outline over a moved/removed document.
+   return count<2?{...full(),status:'aligning'}:{...found,corners:previous,stable:true};
+  };
+ }
+ const api={full,accept,tracker};root.ReceiptDetectorPolicy213=api;
+ if(typeof module!=='undefined')module.exports=api;
+})(globalThis);
+;
+/* Local document inference in a reusable worker; no camera pixels leave the device. */
+(function(root){'use strict';
+ const policy=root.ReceiptDetectorPolicy213;
+ const script=typeof document!=='undefined'?document.currentScript?.src:null;
+ const workerURL=script?new URL('receipt-detector-worker213.js?v=143.213',script):null;
+ let worker=null,ready=null,state='idle',serial=0,failedAt=0;
+ const waiting=new Map();
+ function fail(){
+  state='unavailable';failedAt=Date.now();worker?.terminate();worker=null;ready=null;
+  for(const task of waiting.values()){clearTimeout(task.timer);task.resolve(null);}waiting.clear();
+ }
+ function ask(message,transfer=[],timeout=2000){
+  if(!worker)return Promise.resolve(null);
+  return new Promise(resolve=>{
+   const id=++serial,timer=setTimeout(fail,timeout);waiting.set(id,{resolve,timer});
+   try{worker.postMessage({...message,id},transfer);}catch{fail();}
+  });
+ }
+ function warmup(){
+  if(ready)return ready;
+  if(!workerURL||typeof Worker==='undefined'||state==='unavailable'&&Date.now()-failedAt<15000)return Promise.resolve(false);
+  state='loading';
+  try{
+   worker=new Worker(workerURL);
+   worker.onerror=fail;worker.onmessage=({data})=>{
+    const task=waiting.get(data?.id);if(!task)return;waiting.delete(data.id);clearTimeout(task.timer);
+    if(data.error){task.resolve(null);fail();return;}task.resolve(data);
+   };
+   ready=ask({type:'ready'},[],15000).then(result=>{if(!result){ready=null;return false;}state='ready';return true;});
+  }catch{fail();return Promise.resolve(false);}
+  return ready;
+ }
+ function prepare(source){
+  const c=document.createElement('canvas');c.width=c.height=224;
+  const x=c.getContext('2d',{willReadFrequently:true});x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(source,0,0,224,224);
+  return x.getImageData(0,0,224,224).data;
+ }
+ async function boundedReady(){
+  let timer;try{return await Promise.race([warmup(),new Promise(resolve=>{timer=setTimeout(()=>resolve(false),1200);})]);}finally{clearTimeout(timer);}
+ }
+ async function detect(source,fallback,{live=false}={}){
+  void warmup();
+  // Live frames never queue up while the model downloads. Capture can always proceed.
+  if(live&&state!=='ready')return {...policy.full(),status:state==='loading'?'preparing':'unavailable'};
+  if(state==='ready'||!live&&await boundedReady()){
+   try{
+    const pixels=prepare(source),result=await ask({type:'detect',pixels},[pixels.buffer]);
+    if(result)return policy.accept(result.coords,result.score);
+   }catch{fail();}
+  }
+  // Unsupported/offline-first-use devices retain a conservative local fallback.
+  if(live)return {...policy.full(),status:'unavailable'};
+  try{const found=fallback();if(found.automatic&&found.confidence>=.85)return {...found,method:'edges'};}catch{}
+  return policy.full();
+ }
+ root.ReceiptDetector213={warmup,detect,get state(){return state;}};
+ if(typeof addEventListener==='function')addEventListener('pagehide',()=>{fail();state='idle';failedAt=0;});
+})(globalThis);
+;
 /* Receipt grouping and perspective correction. No journal mutations or OCR guessing. */
 (function(root){'use strict';
 const uid=()=>crypto.randomUUID(),nextID=id=>{const m=String(id).trim().match(/^(.*?)(\d+)$/);if(!m||m[2].length>12)throw Error('Use a prefix followed by an entry number, such as OJM26-0001.');const n=BigInt(m[2])+1n;if(String(n).length>m[2].length)throw Error('The numbering range is full. Choose the next starting ID.');return m[1]+String(n).padStart(m[2].length,'0');};
@@ -79,9 +174,10 @@ async function image(data){const i=new Image();i.src=data;await i.decode();retur
 function canvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
 // Downsample only the detection view; preserve full-resolution pixels for correction.
 function detect(source,maxSize=480){const sw=source.videoWidth||source.width,sh=source.videoHeight||source.height,scale=Math.min(1,maxSize/Math.max(sw,sh)),w=Math.max(2,Math.round(sw*scale)),h=Math.max(2,Math.round(sh*scale)),c=canvas(w,h),x=c.getContext('2d',{willReadFrequently:true});x.drawImage(source,0,0,w,h);return root.ReceiptEdges211.find(x.getImageData(0,0,w,h));}
+async function detectDocument(source,options){return root.ReceiptDetector213?root.ReceiptDetector213.detect(source,()=>detect(source),options):detect(source);}
 async function warp(source,corners,gray=false){if(!validQuad(corners))throw Error('Keep four corners in clockwise order without crossing.');const p=corners.map(([x,y])=>[x*(source.width-1),y*(source.height-1)]),dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);let w=Math.round(Math.max(dist(p[0],p[1]),dist(p[3],p[2]))),h=Math.round(Math.max(dist(p[0],p[3]),dist(p[1],p[2])));const scale=Math.min(1,Math.sqrt(12000000/(w*h)));w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));const mapping=homography(p);const input=source.getContext('2d',{willReadFrequently:true}).getImageData(0,0,source.width,source.height).data,out=canvas(w,h),ctx=out.getContext('2d'),pixels=ctx.createImageData(w,h),m=mapping;let sliceAt=Date.now();
  for(let y=0;y<h;y++){for(let x=0;x<w;x++){const u=x/Math.max(1,w-1),v=y/Math.max(1,h-1),z=m[6]*u+m[7]*v+1,sx=(m[0]*u+m[1]*v+m[2])/z,sy=(m[3]*u+m[4]*v+m[5])/z,ix=Math.max(0,Math.min(source.width-2,Math.floor(sx))),iy=Math.max(0,Math.min(source.height-2,Math.floor(sy))),dx=Math.max(0,Math.min(1,sx-ix)),dy=Math.max(0,Math.min(1,sy-iy)),at=(iy*source.width+ix)*4,to=(y*w+x)*4;for(let k=0;k<3;k++)pixels.data[to+k]=input[at+k]*(1-dx)*(1-dy)+input[at+4+k]*dx*(1-dy)+input[at+source.width*4+k]*(1-dx)*dy+input[at+source.width*4+4+k]*dx*dy;if(gray){const a=pixels.data[to]*.299+pixels.data[to+1]*.587+pixels.data[to+2]*.114;pixels.data[to]=pixels.data[to+1]=pixels.data[to+2]=a;}pixels.data[to+3]=255;}if(y%64===63&&Date.now()-sliceAt>12){await new Promise(r=>setTimeout(r,0));sliceAt=Date.now();}}ctx.putImageData(pixels,0,0);return {data:await jpeg(out,.95),width:w,height:h};}
 async function jpeg(c,quality=.95){if(!c.toBlob)return c.toDataURL('image/jpeg',quality);const blob=await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(Error('The photo could not be encoded.')),'image/jpeg',quality));return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(blob);});}
 async function sourceCanvas(data,rotate=0){const i=await image(data);if(i.naturalWidth<2||i.naturalHeight<2)throw Error('Use a larger photo.');const scale=Math.min(1,Math.sqrt(12000000/(i.naturalWidth*i.naturalHeight))),w=Math.round(i.naturalWidth*scale),h=Math.round(i.naturalHeight*scale),c=canvas(rotate%180?h:w,rotate%180?w:h),x=c.getContext('2d');x.translate(c.width/2,c.height/2);x.rotate(rotate*Math.PI/180);x.drawImage(i,-w/2,-h/2,w,h);return c;}
-const api={nextID,letters,folderID,monthNow,monthTitle,create,addGroup,plan,split,validQuad,homography,project,image,canvas,detect,warp,jpeg,sourceCanvas};root.ReceiptCore202=api;if(typeof module!=='undefined')module.exports=api;
+const api={nextID,letters,folderID,monthNow,monthTitle,create,addGroup,plan,split,validQuad,homography,project,image,canvas,detect,detectDocument,warp,jpeg,sourceCanvas};root.ReceiptCore202=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

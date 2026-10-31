@@ -1,5 +1,5 @@
 {
-  "release": "143.212",
+  "release": "143.213",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -38,6 +38,26 @@
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
+      "path": "assets/vendor/document-detector213/doccornernet_lean.ort",
+      "sha256": "80a689be5933f05f7f1800f5cf952cdf3368d89cec966463112c6a84197785c4",
+      "effect": "Reload the scanner model from the current application release."
+    },
+    {
+      "path": "assets/vendor/document-detector213/ort-api.js",
+      "sha256": "6d185727fae93105c8b91a1334c9c6767464776875a5937b48b9b5c41c348e6c",
+      "effect": "Reload the scanner model from the current application release."
+    },
+    {
+      "path": "assets/vendor/document-detector213/ort-wasm-simd-threaded.mjs",
+      "sha256": "a50a4c3eababb846506b6a595481adea78126de6357a4ca49ff5cc49c20b1ac9",
+      "effect": "Reload the scanner model from the current application release."
+    },
+    {
+      "path": "assets/vendor/document-detector213/ort-wasm-simd-threaded.wasm",
+      "sha256": "85b7a7445c5af07536b64bddd1367ab909699729393f136c854253bf5f1bcd0b",
+      "effect": "Reload the scanner model from the current application release."
+    },
+    {
       "path": "assets/vendor/document14285/cfb.min.js",
       "sha256": "c843298014fa8e5b8b5449ebca1bd510091da37a1f04c37555e644f5a4406e35",
       "effect": "The component may differ from the tested release; reload and investigate this file."
@@ -64,17 +84,17 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "c69c5afeb175329bd53b3e5775c708eecae897cf512c4611cd710f624f1ae740",
+      "sha256": "3b3e4dd49eceebaa45a2068d8e2f1b4f31f3fc3e746c1fb766f699a3c79ff9fe",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "eaac278706a520dbb9d910eebcfd85afc7b705bc0634df00f2a330cfb5b54d5b",
+      "sha256": "90ee7fcc95330b3924fa29ca50ad6402cbd572a1e13702cef59f38a4cac75287",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "index.html",
-      "sha256": "5913efa30c86ebe578cf0469df80ed4dd480c5efe6fcfac8f46ccf7b89398d20",
+      "sha256": "934d67775d708834bf8f7519c0a7367dbb32d77373b8bc820ca6a20077cf0565",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -94,12 +114,12 @@
     },
     {
       "path": "phone-sw.js",
-      "sha256": "f04608848e3550463d2a1cb99ca7a3a1e4f7251d6c3db3b607f7eab4791e8fcd",
+      "sha256": "31d3aaaa04b996d041467fcbe5baa27e2fe9896fc9147a221fc794130c08c237",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "phone.html",
-      "sha256": "2323b8a07e553ce744bf1019df3d136c10d06b635c98e7c67d231f45fd22a5cc",
+      "sha256": "2dee8fb1e3d6705e5e26b2941089fa54b0e4cd4432e88cf3458e6deea18b9bd8",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -109,7 +129,7 @@
     },
     {
       "path": "scan.html",
-      "sha256": "ff8253e4fd14511c22664164b9551218b7b1268e2050aa21bbb56363f13a495e",
+      "sha256": "2d02cd1b4472bb5fb63b31ccc3b7887c3452fcd477490aa26298909256331ccf",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1173,7 +1193,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "27661c1f3ccc704e0f3b0008e85a163f23215714d6a1a13946331fa6b0add4a5",
+      "sha256": "b567e95edf478ddd593f3097482f80377f68587016d5eae60f872b2ed8ee5625",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1323,7 +1343,7 @@
     },
     {
       "path": "scripts/phone-runtime14242.js",
-      "sha256": "2017ffa24de00bf2fa222d4f528bf05b55c9e27786b2083829a3aa76d2683bd8",
+      "sha256": "e3c1cde847401f3b9683c2d254cbe325f18e9102653a19f71be51f5b0905e739",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1368,12 +1388,17 @@
     },
     {
       "path": "scripts/receipt-camera209.js",
-      "sha256": "a0ad2b72d94b9249776e4040fe265a4fce234f5a7bbb6eb77d38cb9a76fdb559",
+      "sha256": "2762ff5cbc09b310c226450c9a075fe1f3eb5b5c7f96cf5759818856a4df7d00",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
       "path": "scripts/receipt-core202.js",
-      "sha256": "0a53f6e6b7cc9e4248ae1e5f5d3fc4ce7c5eddc90b7ff8206094f2d66ea7f396",
+      "sha256": "45db016231ccd801f8406620925cd7626d59bde0d34729eb8e643b517d553314",
+      "effect": "Reload the current release and investigate mixed or changed files."
+    },
+    {
+      "path": "scripts/receipt-detector-worker213.js",
+      "sha256": "309fe43751c4bb03464e20e08315ed1f698dae17e47736092ab4679160f36486",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1388,7 +1413,7 @@
     },
     {
       "path": "scripts/receipt-scanner202.js",
-      "sha256": "f496c333b9f276496e8676bbe7dcf758b49f350a3b87a40c82e8deefcec82458",
+      "sha256": "9b79d2b04d72caa18c1a1d61eb2c7c5d8b66870de53a6eec2e7b615429e7563d",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1688,7 +1713,7 @@
     },
     {
       "path": "scripts/update14390.js",
-      "sha256": "0fd7e80eba160b0e528f70764ae5d3a80e4c8f0c89d89eaf133e543aafc40545",
+      "sha256": "5c29284f3594435c1ae59076f3b0418fe571ffe6c6e540bb1c1eb1eeab6b861a",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -2871,7 +2896,7 @@
     },
     {
       "path": "update.html",
-      "sha256": "fb7188a2ba4fd2902a64affbbf483fbc7f0190a4872dbcad7a53751cc42dbf1a",
+      "sha256": "7b43f90b76ca09ee176ff64a93f289b397a665245293d7e16cdf5b64b31b2ec0",
       "effect": "Reload the current release and investigate mixed or changed files."
     }
   ],
