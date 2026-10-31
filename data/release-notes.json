@@ -4,6 +4,6 @@
     "Supporting documents open beside Journal, History and General Ledger entries with small private page previews.",
     "Verified Drive PDFs link to matching entry IDs; local PDFs can be explicitly uploaded and linked. Unmatched sections stay pending for retry.",
     "Document versions retain stable journal identities when entry numbers are reused.",
-    "Keep phone own-account access and tablet/iPad/desktop printing. Separate scanner development and automatic native builds are stopped."
+    "Company scanner inside Accounting, with phone own-account access and tablet/iPad/desktop printing."
   ]
 }

@@ -1,7 +1,7 @@
 # Connected Accounting scanner — v143.208
 
-The separate native scanner is stopped; its automatic build workflow is removed.
-The supported scanner remains **Menu → Receipts & Documents** inside Accounting.
+The company scanner is **Menu → Receipts & Documents** inside Accounting.
+The cancelled native app package and its build configuration have been removed.
 
 Saving a verified Drive PDF uploads small private JPEG previews and registers
 links to matching entry IDs. **Documents** beside Journal, History, personal
