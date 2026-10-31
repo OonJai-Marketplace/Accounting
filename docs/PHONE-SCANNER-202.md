@@ -1,8 +1,18 @@
 # Phone receipts and Google Drive
 
-Open the Accounting phone menu → **Receipts & Documents**. Sign in to Accounting first.
+Open the Accounting phone menu → **Receipts & Documents → Storage settings**, or use **Document storage settings** directly in the phone menu. Sign in to Accounting first.
 
-## Connect or change the destination
+## Choose phone storage or Google Drive
+
+**Save destination** is available before starting a batch, in Storage settings, and in Review / Save PDF. The choice is remembered for your Accounting login on this browser. Choose **Phone / local storage** to scan and export without Google authorization or an internet connection after the scanner has been cached.
+
+In the local save screen, confirm the PDF filename. If your browser provides **Choose location and save**, use the system picker to select an available phone folder or SD card. The app verifies the resulting file's size and checksum. It does not retain folder permissions for silent future writes.
+
+On browsers without that picker, use **Download PDF**. It uses the browser's download location; check Downloads in your phone's Files app and move the PDF to the desired phone folder or SD card. If supported, **Share / Save with Files** opens the system share sheet, where your installed apps determine the available destinations. A share handoff does not prove another app saved the PDF, so check the resulting file. Cancelling a picker or share sheet retains the draft.
+
+A web app cannot guarantee a direct SD-card picker on every phone. It cannot create or rename arbitrary local folders itself on unsupported browsers; use the phone's Files app for that. Browser drafts remain in encrypted browser storage on the device even when the exported PDF goes to an SD card. No documents are uploaded to Google when using the local save actions.
+
+## Connect or change the Google destination
 
 1. Open **Settings → Connect Google Drive** (or **Change Google account**).
 2. Select the personal or company Google account that should receive the PDFs and approve Google's permission screen.

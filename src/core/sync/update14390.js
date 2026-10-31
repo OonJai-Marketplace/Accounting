@@ -1,6 +1,6 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-let VERSION='143.202';
+let VERSION='143.203';
 const status=document.getElementById('updateStatus'),retry=document.getElementById('updateRetry'),progress=document.getElementById('updateProgress');
 let attempt=0,finished=false,timer,poll,registration,unwatch=()=>{},lastProgress='',reportedError=false;
 function fail(message){clearTimeout(timer);clearInterval(poll);status.textContent=message;retry.hidden=false;}
