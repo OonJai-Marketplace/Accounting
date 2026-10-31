@@ -2,10 +2,12 @@
 (()=>{'use strict';
 if(window.accountingInstall205)return;
 let pending=null,installing=false,installed=false,dialog=null,opener=null;
-const standalone=()=>installed||window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const running=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const standalone=()=>installed||running();
 function paint(){document.querySelectorAll('[data-accounting-install]').forEach(b=>{b.textContent=standalone()?'Accounting installed':'Install Accounting';b.disabled=installing;});}
 function instructions(){
- if(standalone())return 'Accounting is already running as an installed app.';
+ if(running())return 'Accounting is already running as an installed app.';
+ if(installed)return 'Accounting has been installed. Open it from your apps or home screen.';
  const ua=navigator.userAgent;
  if(/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return 'Open this page in Safari. Tap Share, then Add to Home Screen, and confirm Add. If needed, enable Open as Web App.';
  if(/Android/.test(ua))return 'Open this page in Chrome. Tap the browser menu (⋮), then Install app or Add to Home screen. If the option is missing, reconnect, reload this page after saving your work, and try again.';
@@ -31,7 +33,8 @@ async function open(){
  try{
   await event.prompt();
   const choice=await event.userChoice;
-  if(choice?.outcome==='accepted')show('Installation was requested. Follow your browser’s confirmation; Accounting will appear in your apps when installation finishes.');
+  if(installed)show('Accounting has been installed. Open it from your apps or home screen.');
+  else if(choice?.outcome==='accepted')show('Installation was requested. Follow your browser’s confirmation; Accounting will appear in your apps when installation finishes.');
   else show('Installation was cancelled. Your work remains open. You can try again from the browser menu.');
  }catch{show(instructions());}
  finally{installing=false;paint();}

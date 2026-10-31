@@ -1,8 +1,8 @@
 {
-  "version": "143.205",
+  "version": "143.206",
   "changes": [
-    "Give Accounting its own Oon Jai journal app icon, distinct from Wellness and Restaurant.",
-    "Install Accounting from the sign-in screen, phone menu or System settings, with browser-specific instructions when needed.",
-    "Preserve unsaved scans and accounting records while opening or closing the install window."
+    "Complete the phone offline download with missing styles and scripts.",
+    "Reopen the installed staff workspace and return from scans through the correct offline-ready app.",
+    "Keep installation completion messages accurate while preserving drafts and the existing app identity."
   ]
 }
