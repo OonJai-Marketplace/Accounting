@@ -6,6 +6,8 @@ const app=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..'), repo=
 const exists=async file=>access(file).then(()=>true,()=>false);
 const android=path.join(app,'android/app/src/main');
 if(await exists(android)){
+ const gradle=path.join(app,'android/app/build.gradle');let g=await readFile(gradle,'utf8');
+ g=g.replace(/versionCode \d+/, 'versionCode 143214').replace(/versionName "[^"]+"/, 'versionName "143.214-test"');await writeFile(gradle,g);
  const manifest=path.join(android,'AndroidManifest.xml');let s=await readFile(manifest,'utf8');
  s=s.replace('android:allowBackup="true"','android:allowBackup="false"');
  if(!s.includes('oonjai-accounting'))s=s.replace('</activity>','<intent-filter><action android:name="android.intent.action.VIEW"/><category android:name="android.intent.category.DEFAULT"/><category android:name="android.intent.category.BROWSABLE"/><data android:scheme="oonjai-accounting" android:host="scan"/></intent-filter></activity>');

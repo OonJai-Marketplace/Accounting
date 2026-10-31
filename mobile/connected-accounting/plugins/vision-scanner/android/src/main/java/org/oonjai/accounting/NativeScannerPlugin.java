@@ -24,6 +24,33 @@ public class NativeScannerPlugin extends Plugin {
     private final ExecutorService files = Executors.newSingleThreadExecutor();
     private boolean scanning = false;
 
+    private void manifest(File dir, String name, JSONArray paths) throws IOException {
+        File target = new File(dir, name + ".json"), temp = new File(dir, name + ".part");
+        try (FileOutputStream output = new FileOutputStream(temp)) {
+            output.write(paths.toString().getBytes(StandardCharsets.UTF_8)); output.getFD().sync();
+        }
+        if (!temp.renameTo(target)) throw new IOException("The scan recovery record could not be saved.");
+    }
+
+    private JSONArray protect(File dir, JSONArray sources) throws Exception {
+        JSONArray paths = new JSONArray();
+        for (int i = 0; i < sources.length(); i++) {
+            File target = new File(dir, i + ".jpg"), temporary = new File(dir, i + ".part");
+            if (!target.isFile()) {
+                try (InputStream input = getContext().getContentResolver().openInputStream(Uri.parse(sources.getString(i)));
+                     FileOutputStream output = new FileOutputStream(temporary)) {
+                    if (input == null) throw new IOException("A scanned page could not be opened.");
+                    byte[] buffer = new byte[65536]; int length;
+                    while ((length = input.read(buffer)) != -1) output.write(buffer, 0, length);
+                    output.getFD().sync();
+                }
+                if (!temporary.renameTo(target)) throw new IOException("A scanned page could not be protected.");
+            }
+            paths.put(Uri.fromFile(target).toString());
+        }
+        manifest(dir, "result", paths); return paths;
+    }
+
     private File folder(PluginCall call) throws IOException {
         String id = call.getString("requestId", "");
         if (!id.matches("[0-9a-fA-F-]{36}")) throw new IOException("Invalid scan recovery reference.");
@@ -67,34 +94,23 @@ public class NativeScannerPlugin extends Plugin {
         if (scan == null || scan.getPages() == null) { call.reject("No scanned pages were returned."); return; }
         files.execute(() -> {
             try {
-                File dir = folder(call); JSONArray paths = new JSONArray();
+                File dir = folder(call); JSONArray sources = new JSONArray();
                 for (int i = 0; i < scan.getPages().size(); i++) {
-                    File target = new File(dir, i + ".jpg"), temporary = new File(dir, i + ".part");
-                    try (InputStream input = getContext().getContentResolver().openInputStream(scan.getPages().get(i).getImageUri());
-                         FileOutputStream output = new FileOutputStream(temporary)) {
-                        if (input == null) throw new IOException("A scanned page could not be opened.");
-                        byte[] buffer = new byte[65536]; int length;
-                        while ((length = input.read(buffer)) != -1) output.write(buffer, 0, length);
-                        output.getFD().sync();
-                    }
-                    if (!temporary.renameTo(target)) throw new IOException("A scanned page could not be protected.");
-                    paths.put(Uri.fromFile(target).toString());
+                    sources.put(scan.getPages().get(i).getImageUri().toString());
                 }
-                File manifest = new File(dir, "result.json"), temp = new File(dir, "result.part");
-                try (FileOutputStream output = new FileOutputStream(temp)) {
-                    output.write(paths.toString().getBytes(StandardCharsets.UTF_8)); output.getFD().sync();
-                }
-                if (!temp.renameTo(manifest)) throw new IOException("The scan recovery record could not be saved.");
-                JSObject response = new JSObject(); response.put("scannedImages", paths); call.resolve(response);
+                manifest(dir, "sources", sources);
+                JSObject response = new JSObject(); response.put("requestId", call.getString("requestId"));
+                response.put("scannedImages", protect(dir, sources)); call.resolve(response);
             } catch (Exception error) { call.reject(error.getMessage()); }
         });
     }
 
     @PluginMethod public void recover(PluginCall call) {
         files.execute(() -> { try {
-            File manifest = new File(folder(call), "result.json");
+            File dir = folder(call), manifest = new File(dir, "result.json"), sources = new File(dir, "sources.json");
             JSObject response = new JSObject();
-            response.put("scannedImages", manifest.isFile() ? new JSONArray(new String(Files.readAllBytes(manifest.toPath()), StandardCharsets.UTF_8)) : new JSONArray());
+            response.put("requestId", call.getString("requestId"));
+            response.put("scannedImages", manifest.isFile() ? new JSONArray(new String(Files.readAllBytes(manifest.toPath()), StandardCharsets.UTF_8)) : sources.isFile() ? protect(dir, new JSONArray(new String(Files.readAllBytes(sources.toPath()), StandardCharsets.UTF_8))) : new JSONArray());
             call.resolve(response);
         } catch (Exception error) { call.reject(error.getMessage()); } });
     }

@@ -1,7 +1,7 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.213',CACHE='ojm-desktop-shell-'+VERSION;
-const FILES=["scripts/receipt-detector-worker213.js?v=143.213","scripts/receipt-links208.js?v=143.208","scripts/scan-viewer208.js?v=143.208","styles/scan-viewer208.css?v=143.208","manifest.webmanifest","scripts/app-install205.js?v=143.208","styles/app-install205.css?v=143.208","assets/app-icons/accounting-192-v1.png","assets/app-icons/accounting-180-v1.png","assets/app-icons/accounting-512-v1.png","assets/app-icons/accounting-maskable-v1.png","assets/app-icons/accounting-48-v1.png","scripts/receipt-camera209.js?v=143.213","scan.html","scripts/receipt-core202.js?v=143.213","scripts/receipt-pdf202.js?v=143.208","scripts/receipt-scanner202.js?v=143.213","styles/receipt-scanner202.css?v=143.211","assets/vendor/document14285/jspdf.umd.min.js",
+const VERSION='143.214',CACHE='ojm-desktop-shell-'+VERSION;
+const FILES=["scripts/receipt-detector-worker213.js?v=143.213","scripts/receipt-links208.js?v=143.208","scripts/scan-viewer208.js?v=143.208","styles/scan-viewer208.css?v=143.208","manifest.webmanifest","scripts/app-install205.js?v=143.208","styles/app-install205.css?v=143.208","assets/app-icons/accounting-192-v1.png","assets/app-icons/accounting-180-v1.png","assets/app-icons/accounting-512-v1.png","assets/app-icons/accounting-maskable-v1.png","assets/app-icons/accounting-48-v1.png","scripts/receipt-camera209.js?v=143.213","scan.html","scripts/receipt-core202.js?v=143.213","scripts/receipt-pdf202.js?v=143.208","scripts/receipt-scanner202.js?v=143.214","styles/receipt-scanner202.css?v=143.211","assets/vendor/document14285/jspdf.umd.min.js",
  "scripts/word-of-hope183.js?v=143.190",
  "styles/account-groups143180.css?v=143.182",
  "scripts/organization-zoom143180.js?v=143.180",
@@ -36,7 +36,7 @@ const FILES=["scripts/receipt-detector-worker213.js?v=143.213","scripts/receipt-
  "scripts/desktop14245-5.js?v=143.208",
  "scripts/desktop14245-6.js?v=143.208",
  "scripts/local-events14310.js?v=143.189",
- "scripts/offline14239.js?v=143.213",
+ "scripts/offline14239.js?v=143.214",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -183,7 +183,7 @@ const FILES=["scripts/receipt-detector-worker213.js?v=143.213","scripts/receipt-
  "scripts/settings-groups14332.js?v=143.179",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.213",
+ "scripts/phone-runtime14242.js?v=143.214",
  "scripts/local-first14333.js?v=143.208",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -222,7 +222,7 @@ const FILES=["scripts/receipt-detector-worker213.js?v=143.213","scripts/receipt-
  "scripts/workspace-consistency14343.js?v=143.176",
  "styles/workspace-consistency14343.css?v=143.96",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.213",
+ "phone-sw.js?v=143.214",
  "scripts/personal-journal1437.js?v=143.109",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",

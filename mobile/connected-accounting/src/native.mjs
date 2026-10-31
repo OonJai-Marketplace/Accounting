@@ -34,16 +34,15 @@ if (Capacitor.isNativePlatform()) {
       // An interrupted launch with no returned pages is safe to restart.
       const interrupted = queue.context();
       if (interrupted) queue.cancel(interrupted.id);
-      const request = queue.start(context); active = true; let returned = false;
+      const request = queue.start(context); active = true;
       try {
         const result = await Scanner.scan({requestId: request.id, singlePage: !!context.replace});
-        returned = !!result.scannedImages?.length;
         if (result.cancelled || !result.scannedImages?.length) { queue.cancel(request.id); return null; }
         queue.record(result);
         return queue.pending();
       } catch (error) {
-        // Never clear a successfully returned batch after an import/storage error.
-        if (!returned && !queue.pending()) queue.cancel(request.id);
+        // Keep the recovery reference even if native file copying failed. A later
+        // launch checks native storage before restarting an interrupted capture.
         if (/Scan cancelled or failed\. Result code: 0/.test(error.message)) return null;
         throw error;
       } finally { active = false; }

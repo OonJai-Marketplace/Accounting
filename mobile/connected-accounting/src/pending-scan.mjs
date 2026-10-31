@@ -22,6 +22,8 @@ export function pendingScan(storage, vault) {
     record(result) {
       const envelope = read(requestKey);
       if (!envelope) throw Error('The scan has no saved Accounting destination.');
+      const request = context();
+      if (request && result.requestId && result.requestId !== request.id) throw Error('The returned scan belongs to another capture session.');
       if (read(resultKey)) throw Error('A scan is already waiting to be imported.');
       const paths = result.scannedImages;
       if (!Array.isArray(paths) || paths.some(p => typeof p !== 'string' || !/^(file:\/\/|content:\/\/|\/)/.test(p))) throw Error('The native scanner returned invalid page files.');
