@@ -4365,6 +4365,18 @@
       {
         "source": "src/documents/scanner/scanner202.css"
       }
+    ],
+    "scripts/app-install205.js": [
+      {
+        "source": "src/core/startup/app-install205.js",
+        "suffix": ";\n"
+      }
+    ],
+    "styles/app-install205.css": [
+      {
+        "source": "src/settings/installation/app-install205.css",
+        "suffix": "\n"
+      }
     ]
   },
   "variants": [

@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "Oon Jai Accounting",
+  "short_name": "Accounting",
+  "description": "Oon Jai accounting journal, reports and supporting documents.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fffdf7",
+  "theme_color": "#07513e",
+  "icons": [
+    {
+      "src": "assets/app-icons/accounting-192-v1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app-icons/accounting-512-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/app-icons/accounting-maskable-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
-  "version": "143.204",
+  "version": "143.205",
   "changes": [
-    "Change the save destination in a popup while keeping the current scan open.",
-    "Protect captured photos before review and resume unfinished photos and batches from Unsaved scans.",
-    "Keep unfinished batches when starting another; require explicit discard and preserve earlier drafts when storage fails."
+    "Give Accounting its own Oon Jai journal app icon, distinct from Wellness and Restaurant.",
+    "Install Accounting from the sign-in screen, phone menu or System settings, with browser-specific instructions when needed.",
+    "Preserve unsaved scans and accounting records while opening or closing the install window."
   ]
 }
