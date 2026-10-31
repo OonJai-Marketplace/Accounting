@@ -90,7 +90,7 @@ async function nativeScan214(recoverOnly=false){
  if(!job&&recoverOnly)return false;
  workflow211('Scan',`<div class="scan-empty211">${native.platform==='android'?'Google document scanner':'iPhone document scanner'}</div>`,icon211('camera','Open scanner','camera','','primary')+icon211('camera-review209','Review saved scans','check'));
  if(!job)job=await native.scan({owner,draftID:draft.id,group:retakeTarget211?.group||draft.active,replace:retakeTarget211?.key||null});
- if(!job){const previous=retakeTarget211;retakeTarget211=null;if(previous){await resumePhoto(previous.key);status('Scan cancelled. Your previous scan is kept.');}else status('Scan cancelled. Your previous scans are kept.');return true;}
+ if(!job){const previous=retakeTarget211;retakeTarget211=null;if(previous){await resumePhoto(previous.key);status('Scan cancelled. Your previous scan is kept.');}else{closeDialog();render();status('Scan cancelled. Your previous scans are kept.');}return true;}
  valid();if(job.owner!==owner)throw Error('Sign in to the original account to recover these scans.');
  if(draft.id!==job.draftID){const saved=await store('draft:'+job.draftID);if(!saved)throw Error('Open the original scan batch to recover these pages.');draft=saved;draft.pending||=[];await persist(false);}
  for(let i=0;i<job.paths.length;i++){

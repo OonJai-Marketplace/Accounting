@@ -15,7 +15,7 @@ const ROOT=path.resolve(__dirname,'..');
  await page.addInitScript(()=>{
   window.captureCalls=0;window.captureCount=2;const read=()=>JSON.parse(localStorage.getItem('test-native')||'null'),write=j=>localStorage.setItem('test-native',JSON.stringify(j));
   window.ReceiptNative214={available:true,platform:'android',recover:async()=>read(),pending:read,
-   scan:async context=>{window.captureCalls++;const job={...context,id:crypto.randomUUID(),paths:Array.from({length:captureCount},(_,i)=>'file:///scan/'+i+'.jpg'),acknowledged:[]};write(job);return job;},
+   scan:async context=>{window.captureCalls++;if(window.cancelCapture)return null;const job={...context,id:crypto.randomUUID(),paths:Array.from({length:captureCount},(_,i)=>'file:///scan/'+i+'.jpg'),acknowledged:[]};write(job);return job;},
    readPage:async()=>{const c=document.createElement('canvas');c.width=300;c.height=400;const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,300,400);x.fillStyle='black';x.fillText('Receipt test',30,40);return c.toDataURL('image/jpeg');},
    acknowledge:async(job,i)=>{const j=read();j.acknowledged.push(i);write(j);},complete:async()=>localStorage.removeItem('test-native'),
    pickDirectory:async previous=>previous||{id:'content://fixture/tree/sd',name:'My SD / Receipts'},checkDirectory:async()=>({}),createDirectory:async(folder,name)=>({id:folder.id+'/'+name,name:folder.name+'/'+name}),savePDF:async()=>({verified:true})
@@ -34,7 +34,7 @@ const ROOT=path.resolve(__dirname,'..');
  await click('[data-scan=setup-confirm215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.pages.length),2);
  assert.equal(await page.locator('[data-scan=recrop],[data-scan=delete-page]').count(),0,'native return has no duplicate crop/delete controls');
  await page.evaluate(()=>captureCount=1);await click('[data-scan=add-receipts215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.pages.length),3);
- await click('[data-scan=next-id215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.groups.at(-1).label),'OJM26-0011');
+ await page.evaluate(()=>cancelCapture=true);await click('[data-scan=next-id215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.pages.length),3);assert.equal(await page.locator('#scanDialog').isVisible(),false,'cancel returns to the Accounting batch');await page.evaluate(()=>cancelCapture=false);await click('[data-scan=add-receipts215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.groups.at(-1).label),'OJM26-0011');
  const captures=await page.evaluate(()=>captureCalls);await click('[data-scan=next-id215]');assert.equal(await page.evaluate(()=>captureCalls),captures,'taken next ID cannot silently jump');
  await click('[data-scan=skip-id215]');await page.fill('#setupID215','OJM26-0014');await page.locator('#setupID215').blur();await idle();await click('[data-scan=setup-confirm215]');
  assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.pages.length),5);assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.groups.length),3);
