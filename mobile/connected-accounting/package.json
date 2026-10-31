@@ -1,0 +1,26 @@
+{
+  "name": "oonjai-connected-accounting",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "sync": "npm run build && cap sync",
+    "android": "cap open android",
+    "ios": "cap open ios",
+    "prepare:native": "node tools/prepare.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/browser": "8.0.3",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/ios": "8.6.0",
+    "@capacitor/share": "8.0.3",
+    "@oonjai/vision-scanner": "file:plugins/vision-scanner"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0",
+    "esbuild": "0.25.12"
+  }
+}
