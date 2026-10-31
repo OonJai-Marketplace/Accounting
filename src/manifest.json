@@ -4357,6 +4357,10 @@
     ],
     "scripts/receipt-core202.js": [
       {
+        "source": "src/documents/scanner/edges211.js",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/documents/scanner/core202.js"
       }
     ],
