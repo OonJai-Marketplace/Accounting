@@ -8,7 +8,7 @@
     // A locked device has no session until its saved password unlocks the vault.
     // Do not block that valid offline sign-in with an unsolicited error dialog.
     if (!validSession(session)&&!locallyVerified) { sessionGate(session?.user?.id&&!navigator.onLine ? 'Reconnect to verify this session. Your saved drafts remain on this device.' : ''); return; }
-    const owner = session.user.id;
+    const owner = session.user.id;window.phoneLogin210?.start();
     if (enterJob && enterOwner===owner) return enterJob;
     enterOwner=owner;
     const job = (async () => {
@@ -16,24 +16,25 @@
       try {
         let data = await record(owner); if (!current(owner,epoch)) return;
         S.data=data;data=await migrateLegacy(owner,data);if(!current(owner,epoch))return;S.data=data;S.directory=[];
-        let location;try{location=JSON.parse(localStorage.getItem(locationKey(owner)));}catch{}
-        S.page = (location?.page||data.page)==='totals'?'history':pages.includes(location?.page||data.page) ? location?.page||data.page : 'home'; S.month = /^\d{4}-\d{2}$/.test(location?.month||data.month||'') ? location?.month||data.month : today().slice(0,7);
+        let savedLocation;try{savedLocation=JSON.parse(localStorage.getItem(locationKey(owner)));}catch{}
+        S.page = (savedLocation?.page||data.page)==='totals'?'history':pages.includes(savedLocation?.page||data.page) ? savedLocation?.page||data.page : 'home'; S.month = /^\d{4}-\d{2}$/.test(savedLocation?.month||data.month||'') ? savedLocation?.month||data.month : today().slice(0,7);
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
-        touch();if(new URL(location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){location.replace('scan.html?capture=1');return;}$('login').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
+        touch();if(new URL(window.location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){window.location.replace('scan.html?capture=1');return;}$('loginForm').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
         if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(current(owner,epoch)&&denied(e))void revoke(e)});phoneSyncActivity14351();}
-      } catch(e) { if(current(owner,epoch)){notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('login').hidden=true;$('workspace').hidden=false;} }
+        if(current(owner,epoch))window.phoneLogin210?.finish();
+      } catch(e) { if(current(owner,epoch)){window.phoneLogin210?.finish();notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('loginForm').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;
   }
   async function boot() {
     if (!window.supabase || !scope || !window.OJM_SUPABASE_ANON_KEY) { sessionGate('Sign-in files could not load. Reconnect and reload this page.');return; }
     if (!db) {
       db=window.supabase.createClient(scope,window.OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:recovering},global:{fetch:boundedFetch}});
-      await window.deviceVault14334?.attach(db);
+      try{await window.deviceVault14334?.attach(db);}catch(e){db=null;sessionGate(e.message||'Sign-in storage could not open. Reload and try again.');return;}
       db.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT' && !authBusy)sessionGate();if(event==='TOKEN_REFRESHED'&&session?.user.id===S.actor)S.session=session;});
     }
-    if(recovering){try{const result=await db.auth.getSession();if(result.error)throw result.error;if(!validSession(result.data.session))throw fail('This recovery link is unavailable or expired. Request another reset link.');sessionGate();$('login').hidden=true;$('recovery').hidden=false;const url=new URL(location.href);url.searchParams.delete('password-recovery');url.hash='';history.replaceState(null,'',url.href);return;}catch(e){recovering=false;sessionGate(e.message);return;}}
+    if(recovering){try{const result=await db.auth.getSession();if(result.error)throw result.error;if(!validSession(result.data.session))throw fail('This recovery link is unavailable or expired. Request another reset link.');sessionGate();$('loginForm').hidden=true;$('phoneRecoveryForm').hidden=false;const url=new URL(location.href);url.searchParams.delete('password-recovery');url.hash='';history.replaceState(null,'',url.href);return;}catch(e){recovering=false;sessionGate(e.message);return;}}
     const stored=cachedSession();
     if(stored?.user?.id&&stored?.refresh_token)return enter(stored);
     try { const result=await db.auth.getSession();if(result.error)throw result.error;return enter(result.data.session); }

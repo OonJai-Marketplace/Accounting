@@ -2,17 +2,18 @@
 <html lang="en"><head><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <script>(()=>{if(window.recoveryRedirect14257)return;const ua=navigator.userAgent||'',tablet=/iPad/i.test(ua)||/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1||/Android/i.test(ua)&&!/Mobile/i.test(ua);if(tablet){const u=new URL('desktop.html',location.href);u.search=location.search;u.searchParams.delete('staff');u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="utf-8"><script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.70"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <meta name="theme-color" content="#07513e"><title>Oon Jai · My workspace</title>
   <link rel="stylesheet" href="styles/phone14242.css?v=143.209">
     <link rel="stylesheet" href="styles/functional-corrections14292.css?v=143.128">
-    <script>setTimeout(()=>{if(window.PhoneWorkspace14242)return;const m=document.getElementById('workspace');if(!m)return;m.hidden=false;m.textContent='Phone files did not finish loading. Reconnect and retry.';const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Retry';b.onclick=()=>location.reload();m.append(b)},10000);</script>
+    <script>setTimeout(()=>{if(window.PhoneWorkspace14242)return;const m=document.getElementById('workspace');if(!m)return;document.documentElement.classList.remove('session-checking1444');document.getElementById('loginGate')?.classList.add('is-authenticated');m.hidden=false;m.textContent='Phone files did not finish loading. Reconnect and retry.';const b=document.createElement('button');b.type='button';b.className='btn';b.textContent='Retry';b.onclick=()=>location.reload();m.append(b)},10000);</script>
   <link rel="stylesheet" href="styles/loading1444.css?v=142.94"><script src="scripts/loading1444.js?v=142.94"></script><script defer src="assets/vendor/supabase.js?v=142.41"></script>
 
   <script defer src="scripts/phone-reset-gate14257.js?v=142.57"></script>
 <script defer src="scripts/password-policy14257.js?v=143.67"></script>
 <script defer src="scripts/staff-entry14225.js?v=143.70"></script>
   <link rel="stylesheet" href="styles/final-review14345.css?v=143.47"><script defer src="scripts/reconciliation14345.js?v=143.109"></script>
-<script defer src="scripts/phone-runtime14242.js?v=143.209"></script>
+<script defer src="scripts/phone-runtime14242.js?v=143.210"></script>
 <script src="scripts/numeric-caret14257.js?v=142.57"></script>
 <script src="scripts/login-notifications14293.js?v=142.94"></script><link rel="stylesheet" href="styles/login-notifications14293.css?v=142.94"><script src="scripts/feedback-viewport14295.js?v=143.20"></script><link rel="stylesheet" href="styles/feedback-viewport14295.css?v=143.59"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="48x48" href="assets/app-icons/accounting-48-v1.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/app-icons/accounting-180-v1.png"><link rel="stylesheet" href="styles/app-install205.css?v=143.208"><script src="scripts/app-install205.js?v=143.208"></script><script defer src="scripts/receipt-links208.js?v=143.208"></script><script defer src="scripts/scan-viewer208.js?v=143.208"></script><link rel="stylesheet" href="styles/scan-viewer208.css?v=143.208"></head><body><div class="app">
   <header class="top"><div class="brand"><img src="assets/logo.png" alt="Oon Jai" width="42" height="42" loading="lazy" decoding="async"><div>Oon Jai<small>Marketplace</small></div></div><div class="top-actions"><button id="connection" class="connection" type="button">Starting…</button><button id="avatar" class="avatar" type="button" aria-label="Account" aria-expanded="false" hidden></button></div></header>
@@ -20,8 +21,25 @@
   <nav id="adminNav" class="admin-nav" aria-label="Administrator areas" hidden><button type="button" data-area="users">My workspace</button><button type="button" data-area="settings">Settings</button></nav>
   <nav id="userTabs" class="user-tabs" aria-label="Sub-user workspaces" hidden></nav>
   <p id="notice" class="notice" role="status" aria-live="polite"></p>
-  <section id="login" class="screen" hidden><img class="login-company-logo14295" src="assets/brand/oonjai-logo.png" alt="Oon Jai company logo" width="52" height="52"><h1>Welcome back</h1><p>Sign in to your own workspace.</p><form id="loginForm" class="card"><label>Email<input id="loginEmail" name="email" type="email" autocomplete="username" required></label><label>Password<input id="loginPassword" name="password" type="password" autocomplete="current-password" required></label><button class="btn primary" type="submit">Sign in</button></form><button type="button" class="btn" data-accounting-install>Install Accounting</button></section>
-  <section id="recovery" class="screen" hidden><h1>Choose a new password</h1><form id="phoneRecoveryForm" class="card"><label>New password<input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required></label><label>Confirm password<input id="recoveryConfirm" type="password" autocomplete="new-password" minlength="8" required></label><p id="recoveryStatus" role="status"></p><button class="btn primary" type="submit">Update password</button></form></section>
+  <div id="loginGate" class="login-gate">
+    <div id="sessionRestore1444" role="status" aria-label="Restoring your session"><span class="loading-orbit1444" aria-hidden="true"><i style="--i:0"><b></b></i><i style="--i:1"><b></b></i><i style="--i:2"><b></b></i><i style="--i:3"><b></b></i><i style="--i:4"><b></b></i><i style="--i:5"><b></b></i></span></div>
+    <form id="loginForm" class="login-card">
+      <div class="login-brand-mark"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai company logo" width="52" height="52"></div>
+      <h1>Oon Jai Accounting</h1>
+      <p>Sign in with your assigned email account.</p>
+      <label>Email Address<input id="loginEmail" name="email" type="email" autocomplete="username" required placeholder="name@example.com"></label>
+      <label>Password<input id="loginPassword" name="password" type="password" autocomplete="current-password" required placeholder="Enter password"></label>
+      <button type="submit" class="je-btn je-btn-emerald login-submit">Sign In</button>
+      <button id="phoneForgotPassword210" type="button" class="login-link-button">Forgot password?</button>
+      <button type="button" class="login-link-button" data-accounting-install>Install Accounting</button>
+    </form>
+    <div id="loginProgress99" role="status" aria-label="Signing in" hidden></div>
+    <form id="phoneRecoveryForm" class="login-card" hidden>
+      <div class="login-brand-mark"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai company logo" width="52" height="52"></div>
+      <h1>Set a New Password</h1><p>Enter a secure password for your Oon Jai account.</p>
+      <label>New password<input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required></label><label>Confirm password<input id="recoveryConfirm" type="password" autocomplete="new-password" minlength="8" required></label><p id="recoveryStatus" role="status"></p><button class="je-btn je-btn-emerald login-submit" type="submit">Update Password</button>
+    </form>
+  </div>
   <main id="workspace" class="screen" hidden></main>
   <nav id="bottom" class="bottom" aria-label="Workspace navigation" hidden>
     <button type="button" data-page="home"><span data-icon="home"></span>Home</button>
@@ -33,4 +51,5 @@
   </nav>
 </div><dialog id="dialog"><form method="dialog"><div id="dialogBody"></div><div id="dialogButtons" class="actions"></div></form></dialog><script src="scripts/action-feedback14296.js?v=143.70"></script>
 <link rel="stylesheet" href="styles/controls14305.css?v=143.08">
+<link rel="stylesheet" href="styles/phone-login210.css?v=143.210">
 </body></html>
