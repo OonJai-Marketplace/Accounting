@@ -4,12 +4,12 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification.",
   "runtime_sha256": {
     "recovery.html": "bc9bb81540a15311841b673cc5fcd7889478267efdfc48d778e1952ef254d3e7",
-    "phone-sw.js": "2ccfbb6965f382599a8be1a124cb63dfccd62de371226cc46ff99e066ffcf99b",
+    "phone-sw.js": "d436c3e2a504a4e67753a5ea505de42ca0e7f128d2a206025b12918085b43a84",
     "phone-accounting.html": "a31428c5c172ac3708dcd87b9ed11abde7e1fc92eb30984870c38ad8326e341d",
-    "desktop-sw14242.js": "3878e7d59af1af1454af12623a329f2f6907dac233a4811d10807f7183cd496b",
-    "phone.html": "6a6eeb3e3ee059b462a9fd962f89d8cfd94518d5de66cb30f4cd99e2df10d5ad",
-    "desktop.html": "17937055ce379958507fa9fc50b727b412cf391b9dbf75dafb28fac208938c57",
-    "scripts/phone-runtime14242.js": "67d7cf723f008829a026cb36953c185d006339d9b7752f5b46f7c1714adef77f",
+    "desktop-sw14242.js": "be3644916c56e6337f8a20713a9e4b9a49e8c1a47cfd97c9a267c17412b454f8",
+    "phone.html": "d5cb772fcb607f5020f8b21f602b14a23520e8e3a2f85d1a136946b521b38760",
+    "desktop.html": "bffdccd9040dc20d9f6e0d6367fdb5bd2e31064bca9eb9c6927fbaf9d802e2b2",
+    "scripts/phone-runtime14242.js": "bb51eb76b36b3dde5251f02614068678b87f98972ff547f9c0c2bdd057f46118",
     "scripts/device-vault14334.js": "ba354b4ce15672fba8ead7c27c6442e94a18e71771b818cfd9532530c98d14a4",
     "scripts/script.js": "39be5e1a40d227cc38814536a022ce807ab151d004a7c4cd9485b9840162bd62",
     "scripts/local-first14333.js": "28fd65f6202733342c4e0c2c2bd88bfb640330eadc2c842ff7d623caabb40041",
@@ -17,7 +17,7 @@
     "scripts/payroll-polish-v97.js": "5fb0f6271b5ad8e75aa131cd7189f16163daec34f653b6fd04665005d0556bcd",
     "scripts/startup14257.js": "68ef6e54e8c5e14ae82ce0096d256ebeaf3f88ce4c83f7d65f008fcbc8b066c1",
     "scripts/desktop14245-6.js": "503ab7db6c96ca74ae6f271644fdf17d4c3daa9a1935547998cdf7522147d3b1",
-    "scripts/offline14239.js": "bb4a12fc2ab942151160f71cdc4f2d12bef677f6a109be8c8a8ade6ce0257970",
+    "scripts/offline14239.js": "ffbca5ecc45ef311672a1f41113cd6f7e8642bb05b18806dc4faa69659b206c6",
     "scripts/desktop14245-3.js": "a83dc57e08de55e7e7eb93f57df070fde1b69edc636060b3092eb9f94ae59843",
     "scripts/desktop14245-4.js": "bc0cb17f8295b05fc89a65181616fa61b82bd12663947c898515ef72bea1b552",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
@@ -121,7 +121,7 @@
     "scripts/session-inputs-v88.js": "ceb3b64a1db4431314417fe6044da707443432b562a422e6498b8c78bd8dc529",
     "scripts/startup1443.js": "fa6b40668048314f490c18bdd46e39477903bf35021a27af771c7fd07a59c342",
     "offline-assets14239.js": "cb66a7d813833cf839d8331e2ef1d0c5d21723976141a07dc4cc4e9b620ee6e9",
-    "index.html": "45424ef49f772c1a6ec7e029acec365c8015b3d92996765465df9eb3117c5e91",
+    "index.html": "01ad46e73f8b21206ba7ef8c4f2596c17d9296bffea9cc3148d1e2f04862da52",
     "archive.html": "dc940e14817e04d4e3eebe02dd9bc11e2473c1cd170b1835d2921894d4b438d7",
     "styles/polish-v101.css": "d43af6b1dbcbd59f02670116d74907a2c89bacd5e748f97ba4a0ec535c673dc3",
     "scripts/maintenance-engine14324.js": "3e10dfd4c82726fcfff0c2908f1d584710be3e3181a20e8cf9320f384a07f37c",
@@ -336,6 +336,16 @@
       "Shared login busy, retry, duplicate submission and vault reload handoff tests.",
       "390px side-by-side browser comparison against the complete approved desktop CSS; full-page animated overlay and simulated failed sign-in.",
       "Desktop CSS bundles remain byte-identical after extracting the shared login foundation."
+    ]
+  },
+  "scanner211": {
+    "authorization": "2026-10-31: replace the rejected scanner flow with direct camera, live corner detection, automatic straightened preview, retake/manual adjustment/delete and next receipt/entry icons. Keep secondary controls in settings. Publish under the standing workflow.",
+    "validation": [
+      "Detector fixtures: perspective, light table, shadow, rotated paper, narrow receipt, and conservative blank/full/clipped fallbacks.",
+      "Durable retake replacement, quota failure/retry, no duplicate pending photos, next-entry grouping, save handoff, selected-scan deletion.",
+      "Browser with synthetic camera: live polygon, automatically straightened preview, retake, optional corner adjustment, settings over preview, entry numbering, delete, PDF review and download request.",
+      "Phone-width browser checks at 390px and 320px: full-screen camera has no horizontal or vertical overflow; recovered next-entry review returns to the camera.",
+      "Real phone camera hardware and Google sign-in/upload are not exercised by this fixture."
     ]
   }
 }

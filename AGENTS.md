@@ -127,3 +127,10 @@ Login scope 2026-10-31: the independent phone client must keep the approved web
 login: the 430px ivory card, emerald backdrop, company logo, matching controls,
 and the shared full-screen six orbiting/pulsing marbles during session restore
 and sign-in. Do not substitute a simplified phone login or a different spinner.
+
+Scanner interaction 2026-10-31: Scan opens the camera directly. Detect the paper's
+four corners live and automatically straighten the captured photo before review.
+Keep retake, optional manual crop, delete, next receipt, next entry and finish in
+one focused interface with phone-sized icon controls. Put destination, batch,
+numbering and other secondary options behind settings. Retain the previous
+photo until its replacement is durably stored; preserve pending scan recovery.
