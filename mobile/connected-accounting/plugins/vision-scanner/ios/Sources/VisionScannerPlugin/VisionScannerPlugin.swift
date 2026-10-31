@@ -6,7 +6,7 @@ import VisionKit
 public class VisionScannerPlugin: CAPPlugin, CAPBridgedPlugin, VNDocumentCameraViewControllerDelegate {
     public let identifier = "VisionScannerPlugin"
     public let jsName = "OonJaiNativeScanner"
-    public let pluginMethods = ["scan", "recover", "finish", "prepare"].map { CAPPluginMethod(name: $0, returnType: CAPPluginReturnPromise) }
+    public let pluginMethods: [CAPPluginMethod] = ["scan", "recover", "finish", "prepare"].compactMap { CAPPluginMethod(name: $0, returnType: CAPPluginReturnPromise) }
     private var pending: CAPPluginCall?
 
     private func directory(_ call: CAPPluginCall) throws -> URL {

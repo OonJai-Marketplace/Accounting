@@ -37,9 +37,12 @@ export function pendingScan(storage, vault) {
       if (!result.acknowledged.includes(index)) result.acknowledged.push(index);
       storage.setItem(resultKey, JSON.stringify(result));
     },
-    complete(id) {
+    assertComplete(id) {
       const job=this.pending();
       if(!job||job.id!==id||!job.paths.every((_,i)=>job.acknowledged.includes(i)))throw Error('Protect every returned page before finishing.');
+    },
+    complete(id) {
+      this.assertComplete(id);
       storage.removeItem(resultKey);storage.removeItem(requestKey);
     },
     cancel(id) {

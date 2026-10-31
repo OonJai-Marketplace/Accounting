@@ -65,6 +65,7 @@ if (Capacitor.isNativePlatform()) {
       queue.acknowledge(job.id, index);
     },
     async complete(job) {
+      queue.assertComplete(job.id);
       await Scanner.finish({requestId:job.id});queue.complete(job.id);
     },
     async openConnection(url) {

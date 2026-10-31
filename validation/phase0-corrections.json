@@ -9,7 +9,7 @@
     "desktop-sw14242.js": "3b3e4dd49eceebaa45a2068d8e2f1b4f31f3fc3e746c1fb766f699a3c79ff9fe",
     "phone.html": "2dee8fb1e3d6705e5e26b2941089fa54b0e4cd4432e88cf3458e6deea18b9bd8",
     "desktop.html": "90ee7fcc95330b3924fa29ca50ad6402cbd572a1e13702cef59f38a4cac75287",
-    "scripts/phone-runtime14242.js": "e3c1cde847401f3b9683c2d254cbe325f18e9102653a19f71be51f5b0905e739",
+    "scripts/phone-runtime14242.js": "3ab0e72d6a69d3a5d7989d1b67536215a2221c30ac76755a51cabe5462630822",
     "scripts/device-vault14334.js": "43d6ba5d699ba2952f1c60a5ae38e6cb2f7fea03ff30b019594cd70d3684f17a",
     "scripts/script.js": "39be5e1a40d227cc38814536a022ce807ab151d004a7c4cd9485b9840162bd62",
     "scripts/local-first14333.js": "28fd65f6202733342c4e0c2c2bd88bfb640330eadc2c842ff7d623caabb40041",
@@ -366,5 +366,14 @@
       "test-detector213.cjs; test-detector-cache213.cjs; existing phone camera/cache, scanner-flow and receipt-core regression checks."
     ],
     "limits": "The upstream photo/annotation set is small and model-seeded; no independent real-phone benchmark or perfect/Google-equivalent accuracy claim."
+  },
+  "native_scanner214": {
+    "authorization": "2026-10-31: user authorizes connected Android APK and iPhone native scanners for rapid capture, clean scans, naming and grouping.",
+    "changes": "Native builds skip PWA worker registration; use bundled phone app with native capture. Browser retains its existing worker.",
+    "checks": [
+      "test-native-scanner214.mjs: 60-page import, replay, encrypted context ownership and atomic retakes.",
+      "test-receipt-backend202.mjs: explicit native CORS retains authenticated ownership."
+    ],
+    "limits": "Hardware scanning speed, image accuracy and Google authorization still require physical-device validation."
   }
 }

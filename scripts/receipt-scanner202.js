@@ -53,6 +53,7 @@ async function pageOptions211(id){const p=draft.pages.find(p=>p.id===id);if(!p)r
 async function openPage(id){const meta=draft.pages.find(p=>p.id===id);if(!meta)return;const page=await store('page:'+id);if(draft.active!==meta.group){draft.active=meta.group;await persist(false);}viewingPage211=id;const label=C.plan(draft).flatMap(g=>g.pages).find(p=>p.id===id).label;workflow211(label,`<div class="scan-image-stage211"><img class="scan-preview" src="${page.data}" alt="Saved scan ${esc(label)}"></div>`,icon211('camera','Scan next receipt','receipt')+icon211('next','Start next entry','entry')+icon211('review','Save PDF','check','','primary'),icon211('retake-page211','Retake scan','retake',`data-page="${id}"`)+icon211('recrop','Adjust corners','crop',`data-page="${id}"`)+icon211('delete-page','Delete scan','trash',`data-page="${id}"`)+icon211('page-options211','Page options','more',`data-page="${id}"`));}
 async function openCamera209(){
  valid();await ensureDraft211();
+ if(window.ReceiptNative214?.available&&await nativeScan214(true))return;
  if(draft.pending?.length&&!retakeTarget211){captureLoop209=true;return nextPhoto();}
  captureLoop209=true;editing=null;viewingPage211=null;
  if(window.ReceiptNative214?.available)return nativeScan214();
@@ -89,7 +90,7 @@ async function nativeScan214(recoverOnly=false){
  if(!job&&recoverOnly)return false;
  workflow211('Scan',`<div class="scan-empty211">${native.platform==='android'?'Google document scanner':'iPhone document scanner'}</div>`,icon211('camera','Open scanner','camera','','primary')+icon211('camera-review209','Review saved scans','check'));
  if(!job)job=await native.scan({owner,draftID:draft.id,group:retakeTarget211?.group||draft.active,replace:retakeTarget211?.key||null});
- if(!job){retakeTarget211=null;status('Scan cancelled. Your previous scans are kept.');return true;}
+ if(!job){const previous=retakeTarget211;retakeTarget211=null;if(previous){await resumePhoto(previous.key);status('Scan cancelled. Your previous scan is kept.');}else status('Scan cancelled. Your previous scans are kept.');return true;}
  valid();if(job.owner!==owner)throw Error('Sign in to the original account to recover these scans.');
  if(draft.id!==job.draftID){const saved=await store('draft:'+job.draftID);if(!saved)throw Error('Open the original scan batch to recover these pages.');draft=saved;draft.pending||=[];await persist(false);}
  for(let i=0;i<job.paths.length;i++){
