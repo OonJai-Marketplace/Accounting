@@ -1,3 +1,5 @@
+import {storageState231,storageRPC231,ensureYear231} from './storage231.ts';
+import {receiptYear231} from './receipt-year231.ts';
 // Drive documents are isolated from the journal Sheets connection and from other users.
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.49.8';
 import {admin,connection,googleToken,hash,reply,encrypt,clientID,clientSecret} from './google143150.ts';
@@ -8,7 +10,7 @@ export const docKey=(owner:string)=>'documents202:'+owner;
 const candidateKey228=(owner:string)=>'documents-admin228:'+owner;
 async function companySettings228(){const row=checked(await admin.from('budget_settings14313').select('data').eq('id',true).maybeSingle());return row?.data?.googleSheets143129||{};}
 async function manage228(owner:string,req?:Request){const p=await profile(owner);if(p.role!=='admin')throw Error('Administrator required.');if(req){const user=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{global:{headers:{Authorization:req.headers.get('Authorization')!}},auth:{persistSession:false,autoRefreshToken:false}});const allowed=await user.rpc('can_action113',{p_target:'settings-accounting',p_action:'edit'});if(allowed.error||allowed.data!==true)throw Error('Administrator settings access is required.');}}
-export function destination228(cfg:any){const value=cfg?.receiptDrive228?.active;if(!value||!/^https:\/\/drive\.google\.com\/drive\/folders\/[\w-]{10,160}$/.test(String(value.folderURL||''))||!value.email)return null;const id=value.folderURL.split('/').pop();if(!/^documents-company228:[\w-]+:[\w-]+$/.test(String(value.connectionKey||'')))return null;return {id,name:String(value.name||'Company receipts').slice(0,180),email:String(value.email).toLowerCase(),folderURL:value.folderURL,connectionKey:value.connectionKey};}
+export function destination228(cfg:any){const value=cfg?.receiptDrive228?.active;if(!value||!/^https:\/\/drive\.google\.com\/drive\/folders\/[\w-]{10,160}$/.test(String(value.folderURL||''))||!value.email)return null;const id=value.folderURL.split('/').pop();if(!/^documents-company228:[\w-]+:[\w-]+$/.test(String(value.connectionKey||'')))return null;return {id,name:String(value.name||'Company receipts').slice(0,180),email:String(value.email).toLowerCase(),folderURL:value.folderURL,connectionKey:value.connectionKey,annual231:value.annual231===true};}
 function desktopReturn228(ok:boolean){const nonce=crypto.randomUUID().replace(/-/g,'');return new Response('<!doctype html><meta charset="utf-8"><title>Google Drive authorization</title><p>'+ (ok?'Google Drive connected. Return to Accounting settings and check folder access.':'Google authorization was not completed. Your saved details and current destination are kept.')+'</p><script nonce="'+nonce+'">if(window.opener){window.opener.postMessage({type:"receipt-drive228",ok:'+JSON.stringify(ok)+'},'+JSON.stringify(ORIGIN)+');window.close();}</script>',{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; script-src 'nonce-"+nonce+"'; base-uri 'none'; frame-ancestors 'none'"}});}
 export function fileID(value:any){if(!/^[\w-]{10,160}$/.test(String(value||''))&&value!=='root')throw Error('Choose a valid Google Drive folder or file.');return String(value);}
 export function fileName(value:any){const name=String(value||'').trim();if(!name||name.length>180||/[\x00-\x1f/\\]/.test(name))throw Error('Enter a name without slashes, up to 180 characters.');return name;}
@@ -38,11 +40,27 @@ export async function documentHandler(req:Request){
  return response;
 }
 async function documentHandler214(req:Request){
- try{if(req.method==='OPTIONS')return reply({});if(req.method!=='POST')return reply({error:'Use POST'},405);const owner=await actor(req);const raw=await req.text();if(raw.length>20000)throw Error('Request too large.');const b=JSON.parse(raw||'{}'),key=docKey(owner),personal=await connection(key);if(personal&&personal.owner!==owner)throw Error('Connection owner mismatch.');const cfg=await companySettings228(),destination=destination228(cfg);let c=personal;if(destination&&!(['connect','verify-destination228','verify-folders230','storage-status230','app-update217'].includes(b.action))){c=await connection(destination.connectionKey);if(!c||c.email.toLowerCase()!==destination.email)throw Error('The company Drive connection needs administrator attention. Your scans are kept.');await manage228(c.owner);}
- if(b.action==='status')return reply({connected:!!c,email:c?.email||'',configured:!!clientID()&&!!clientSecret(),companyDestination228:destination?{id:destination.id,name:destination.name,email:destination.email,folderURL:destination.folderURL}:null,companyManaged228:!!destination});
+ try{if(req.method==='OPTIONS')return reply({});if(req.method!=='POST')return reply({error:'Use POST'},405);const owner=await actor(req);const raw=await req.text();if(raw.length>20000)throw Error('Request too large.');const b=JSON.parse(raw||'{}'),key=docKey(owner),personal=await connection(key);if(personal&&personal.owner!==owner)throw Error('Connection owner mismatch.');const cfg=await companySettings228(),destination=destination228(cfg);let c=personal;if(destination&&!(['connect','verify-destination228','verify-folders230','storage-status230','activate-yearly231','prepare-yearly231','app-update217'].includes(b.action))){c=await connection(destination.connectionKey);if(!c||c.email.toLowerCase()!==destination.email)throw Error('The company Drive connection needs administrator attention. Your scans are kept.');await manage228(c.owner);}
+ if(b.action==='status')return reply({connected:!!c,email:c?.email||'',configured:!!clientID()&&!!clientSecret(),companyDestination228:destination?{id:destination.id,name:destination.name,email:destination.email,folderURL:destination.folderURL}:null,companyManaged228:!!destination,annual231:destination?.annual231===true});
  if(b.action==='storage-status230'){
-  await manage228(owner,req);const state=checked(await admin.rpc('sheet_archive_state194')),archive=state?.config||{},archiveConnection=archive.connection_sheet?await connection(archive.connection_sheet):null;
+  await manage228(owner,req);const state=checked(await admin.rpc('sheet_archive_state194')),archive=state?.config||{},annual=archive.annual231;
+  if(annual){const yearly=await storageState231();return reply({archive:{email:annual.email,layout:'yearly',yearlyActive:true,folderURL:'https://drive.google.com/drive/folders/'+annual.archiveRoot,lastSaved:archive.last_saved,error:archive.last_error},years:yearly.years.map((y:any)=>({year:y.year,sheet:y.sheet,folder:y.receipt_folder,ready:y.initialized,savedAt:y.saved_at,closed:!!y.history_digest}))});}
+  const archiveConnection=archive.connection_sheet?await connection(archive.connection_sheet):null;
   return reply({archive:{sheet:archive.sheet||'',email:archiveConnection?.email||'',lastSaved:archive.last_saved||null,error:archive.last_error||null,layout:'existing-workbook',yearlyActive:false}});
+ }
+ if(b.action==='prepare-yearly231'){await manage228(owner,req);await storageRPC231('storage_year_prepare231');return reply({queued:true});}
+ if(b.action==='activate-yearly231'){
+  await manage228(owner,req);const candidate=await connection(candidateKey228(owner))||personal;
+  if(!candidate||candidate.owner!==owner||!cfg.accountEmail228||candidate.email.toLowerCase()!==String(cfg.accountEmail228).toLowerCase())throw Error('Save both parent folders and connect the saved company Google account first.');
+  const roots:any={};for(const [key,link]of [['receiptRoot',cfg.receiptDrive228?.folderURL],['archiveRoot',cfg.archiveDrive230?.folderURL]]){
+   if(!/^https:\/\/drive\.google\.com\/drive\/folders\/[\w-]{10,160}$/.test(String(link||'')))throw Error('Save both parent folder links first.');
+   const f=await folder(candidate,String(link).split('/').pop()!);if(!f.capabilities?.canAddChildren)throw Error('The company account cannot add files to '+f.name);
+   if(/^20[0-9]{2}$/.test(f.name))throw Error('Select the parent folder, not the '+f.name+' subfolder. The system creates each year inside it.');roots[key]=f.id;
+  }
+  if(roots.receiptRoot===roots.archiveRoot)throw Error('Choose separate parent folders for receipts and accounting data.');
+  const snapshot='documents-company228:'+owner+':'+crypto.randomUUID();checked(await admin.from('google_connections143150').insert({...candidate,sheet:snapshot}));
+  await storageRPC231('storage_year_activate231',{p_actor:owner,p_email:candidate.email.toLowerCase(),p_receipt_root:roots.receiptRoot,p_archive_root:roots.archiveRoot,p_connection:snapshot});
+  return reply({active:true,email:candidate.email});
  }
  if(b.action==='verify-folders230'){
   await manage228(owner,req);const candidate=await connection(candidateKey228(owner))||personal;
@@ -57,6 +75,7 @@ async function documentHandler214(req:Request){
   if(!result.receipts&&!result.archive)throw Error('Save at least one folder link before checking access.');return reply(result);
  }
  if(b.action==='verify-destination228'){
+  if(destination?.annual231)throw Error('Automatic yearly storage is active. Use its company storage controls to change the destination.');
   await manage228(owner,req);const candidate=await connection(candidateKey228(owner))||personal,link=String(cfg.receiptDrive228?.folderURL||'');
   if(!/^https:\/\/drive\.google\.com\/drive\/folders\/[\w-]{10,160}$/.test(link))throw Error('Save a valid receipt folder link first.');
   if(!candidate)throw Error('Details are saved. Connect Google when authorization is available.');
@@ -84,7 +103,7 @@ async function documentHandler214(req:Request){
   if(b.action==='folders')return reply({parent:await folder(c,destination.id),files:[],companyManaged228:true});
   if(b.action==='folder')return reply(await folder(c,destination.id));
   if(['create-folder','rename-folder','move-file'].includes(b.action))throw Error('Manage the company folder in desktop Settings.');
-  if(b.action==='upload-start')b.parent=destination.id;
+  if(['upload-start','receipt-year231'].includes(b.action)){if(destination.annual231){const state=await storageState231();if(!state.config||state.config.connectionKey!==destination.connectionKey)throw Error('The yearly storage connection changed. Reopen Settings before uploading.');const year=await receiptYear231(req,owner,b),row=await ensureYear231(state.config,year);b.parent=row.receipt_folder;b.verifiedYear231=year;if(b.action==='receipt-year231')return reply({year,folder:row.receipt_folder});}else b.parent=destination.id;}
  }
 
 
@@ -100,9 +119,9 @@ async function documentHandler214(req:Request){
  let existing:any=null;try{existing=await item(c,id);}catch(e){if(!/404|not found/i.test(e.message))throw e;}
  if(existing){if(existing.appProperties?.ojmOwner!==owner||existing.appProperties?.ojmScan!==scan||existing.trashed)throw Error('Existing file does not match this scan.');if(String(existing.version)!==String(b.version))throw Error('The PDF changed in Drive. Review it before updating.');if(existing.name!==name||!existing.parents?.includes(p.id))throw Error('For another name or folder, choose Save as new PDF.');}
  if(!existing){const q="'"+p.id+"' in parents and trashed=false and name='"+name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'";const duplicates=await drive(c,'/files?'+new URLSearchParams({q,fields:'files(id)',pageSize:'1',supportsAllDrives:'true',includeItemsFromAllDrives:'true'}));if(duplicates.files?.length)throw Error('A file with this name already exists. Choose a different name; it will not be overwritten.');}
- const metadata=existing?{name}:{id,name,mimeType:'application/pdf',parents:[p.id],appProperties:{ojmOwner:owner,ojmScan:scan,ojmMonth:String(b.month||'').slice(0,7),ojmVersion:'202'}};
+ const metadata=existing?{name}:{id,name,mimeType:'application/pdf',parents:[p.id],appProperties:{ojmOwner:owner,ojmScan:scan,ojmMonth:String(b.month||'').slice(0,7),ojmVersion:'202',...(b.verifiedYear231?{ojmAccountingYear:String(b.verifiedYear231)}:{})}};
  const url='https://www.googleapis.com/upload/drive/v3/files'+(existing?'/'+id:'')+'?uploadType=resumable&supportsAllDrives=true&fields='+encodeURIComponent(fields);
- const r=await fetch(url,{method:existing?'PATCH':'POST',headers:{Authorization:'Bearer '+await googleToken(c),'Content-Type':'application/json','X-Upload-Content-Type':'application/pdf','X-Upload-Content-Length':String(b.size)},body:JSON.stringify(metadata),signal:AbortSignal.timeout(25000)});if(!r.ok)throw Error('Drive could not start the upload ('+r.status+').');const session=r.headers.get('location');if(!session)throw Error('Drive did not return an upload session.');return reply({session:resumableURL(session),id});
+ const r=await fetch(url,{method:existing?'PATCH':'POST',headers:{Authorization:'Bearer '+await googleToken(c),'Content-Type':'application/json','X-Upload-Content-Type':'application/pdf','X-Upload-Content-Length':String(b.size)},body:JSON.stringify(metadata),signal:AbortSignal.timeout(25000)});if(!r.ok)throw Error('Drive could not start the upload ('+r.status+').');const session=r.headers.get('location');if(!session)throw Error('Drive did not return an upload session.');if(b.verifiedYear231)await storageRPC231('storage_year_receipt231',{p_file:id,p_owner:owner,p_year:b.verifiedYear231});return reply({session:resumableURL(session),id,...b.verifiedYear231?{year:b.verifiedYear231,folder:p.id}:{}});
  }
  throw Error('Unsupported document action.');
  }catch(e){return reply({error:e.message||'Document action failed.'},400);}

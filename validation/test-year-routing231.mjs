@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {preparationYears231,router231,reportTables231} from '../supabase/functions/accounting-sheet-archive/year-routing231.mjs';
+assert.deepEqual(preparationYears231(new Date('2026-12-29T16:59:59Z')),[2026]);
+assert.deepEqual(preparationYears231(new Date('2026-12-29T17:00:00Z')),[2026,2027]);
+assert.deepEqual(preparationYears231(new Date('2026-12-31T16:59:59Z')),[2026,2027]);
+assert.deepEqual(preparationYears231(new Date('2026-12-31T17:00:00Z')),[2027]);
+assert.deepEqual(preparationYears231(new Date('2026-11-01T00:00:00Z'),true),[2026,2027]);
+const tables={accounts:[{id:'cash',created_at:'2025-01-01'}],journal_entries:[{id:'dec',transaction_date:'2026-12-30',created_at:'2027-01-03'},{id:'jan',transaction_date:'2027-01-01',created_at:'2026-12-30'}],journal_lines:[{id:'l1',journal_entry_id:'dec',created_at:'2027-01-03'},{id:'l2',journal_entry_id:'jan',created_at:'2026-12-30'}],payroll_runs:[{id:'pay',period_start:'2026-12-01',data:{month:'2026-12'},created_at:'2027-01-03'}],payroll_lines:[{id:'pl',payroll_run_id:'pay'}]};
+const route=router231(tables);assert.deepEqual(route.select(2026).journal_entries.map(x=>x.id),['dec']);assert.deepEqual(route.select(2027).journal_lines.map(x=>x.id),['l2']);assert.equal(route.select(2027).payroll_runs.length,0);assert.equal(route.select(2026).payroll_lines.length,1);assert.equal(route.select(2027).accounts.length,1);assert.equal(tables.journal_entries.length,2);
+const missing=router231({journal_lines:[{id:'orphan',journal_entry_id:'gone'}]});assert.throws(()=>missing.select(2026),/parent is missing/);
+console.log('PASS Laos December 30/January 1 boundaries, manual preparation, December entered in January, future-dated January, dated child rows, master data, and unresolved-parent blocking');

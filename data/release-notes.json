@@ -1,8 +1,8 @@
 {
-  "version": "143.230",
+  "version": "143.231",
   "changes": [
-    "Save separate receipt and approved-data archive folder links together in Google Drive and Sheets.",
-    "Check both folders with the company Google account; receipt activation stays separate and yearly archive setup is clearly marked pending.",
-    "Remove the temporary browser audit workspace and duplicate legacy controls while retaining portable backups, prior-copy recovery and verified cleanup."
+    "Build separate Accounting YYYY workbooks directly in the company Accounting Data folder, without a template file.",
+    "Prepare next year on December 30 in Laos time, with a manual preparation control and administrator notification.",
+    "Route records and receipts by their accounting date, retain future-year data until January 1, and preserve verified history and receipt links."
   ]
 }
