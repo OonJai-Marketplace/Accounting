@@ -35,7 +35,7 @@ report-years-ui143182 scheduled-prepaid-isolated143193""".split()
 
 # Current workflow extensions; historical tests with superseded UI contracts stay
 # outside this gate. Keep real regressions separate from obsolete test fixtures.
-SUITES += """release-integrity143198 navigation-header232 retired-journal143195
+SUITES += """release-integrity143198 navigation-header232 retired-phone233 security233 retired-journal143195
 report-window143195 report-history-ui143195 history-pagination143197 document-index143198
 audit-pages143198 historical-hr143200 profit-tax143199 profit-tax-dom143199 profit-tax-ui143199
 google-history194.mjs google-history194-edge.mjs google-history194-sql.mjs google-history194-ui

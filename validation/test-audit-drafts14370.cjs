@@ -1,13 +1,25 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 function run(code,c){c.window=c;vm.createContext(c);vm.runInContext(fs.readFileSync('src/shared/formatting/civil-date.js','utf8'),c);vm.runInContext(code,c);return c}
 (async()=>{
- const phone=fs.readFileSync('src/subusers/phone/connected/scope-and-draft.js','utf8').split('const esc=')[0]+'window.test={ensurePhoneOwner1427,get state(){return S},get drafts(){return phoneDrafts1427}};})();';
- let session='first',stored={staff:{a:{data:[]},other:{data:{memo:'allowed shape'}}},ui:[],journal:{data:[]},location:[]};
- const api={profile:()=>({id:'a',role:'employee'}),session:()=>session,ready:()=>true,allowed:()=>true,users:()=>[{id:'a'}]};
- const c=run(phone,{parent:{PhoneApp132:api,OJM_SUPABASE_URL:'https://db.example'},location:{origin:'https://app.example'},document:{documentElement:{dataset:{}},body:{},querySelectorAll:()=>[],addEventListener(){}},addEventListener(){},localStorage:{getItem:()=>JSON.stringify(stored)}});
- assert(c.test.ensurePhoneOwner1427());assert.equal(c.test.state.staffDraft,null);assert.equal(c.test.state.journalDraft,null);assert.equal(c.test.drafts.location,undefined);assert.equal(c.test.drafts.staff.a,undefined);assert.equal(Array.isArray(c.test.drafts.ui.positions),false);
- session='second';stored={staff:{a:{data:{memo:'kept'},editing:true}},journal:{data:{memo:'journal kept'},editing:true}};assert(c.test.ensurePhoneOwner1427());assert.equal(c.test.state.staffDraft.memo,'kept');assert.equal(c.test.state.journalDraft.memo,'journal kept');
- console.log('PASS phone draft recovery rejects malformed nested data and preserves valid drafts');
+ // Exercise the retained importer in the independent phone client. The old
+ // embedded presentation was retired in v143.233; its device data must survive.
+ const storage=()=>{const values=new Map();return {get length(){return values.size},key:i=>[...values.keys()][i],getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,String(v)),removeItem:k=>values.delete(k),clear:()=>values.clear()}};
+ const local=storage(),sessionStore=storage(),scope='https://db.example',owner='a';let phoneStored={};
+ const c=run(fs.readFileSync('src/subusers/phone/runtime/draft-persistence.js','utf8'),{scope,S:{actor:owner},localStorage:local,sessionStorage:sessionStore,mirrorKey:id=>'mirror:'+id,rules:()=>({directions:['out'],fundIds:['cash']}),today:()=> '2026-11-01',crypto:{randomUUID:()=> 'fixture'},fail:message=>Error(message),record:async(id,fn)=>{assert.equal(id,owner);phoneStored=fn(phoneStored);return phoneStored}});
+ const legacy='ojm_phone_draft1427:'+scope+':'+owner;
+ local.setItem(legacy,JSON.stringify({staff:{a:{data:{memo:'kept',single:[],lines:{}}},other:{data:{memo:'other account'}}},journal:{data:{memo:'main journal'}}}));
+ const imported=await c.migrateLegacy(owner,{});assert.equal(imported.draft.memo,'kept');assert.equal(imported.legacyDraftImported,true);assert.equal(imported.draft.single.length,1);assert.equal(imported.draft.lines.length,2);assert.ok(local.getItem(legacy),'import must preserve old browser data');
+ const existing={draft:{memo:'newer'}};assert.equal(await c.migrateLegacy(owner,existing),existing,'new draft wins');
+ phoneStored={};local.setItem('mirror:'+owner,'{}');assert.equal(await c.migrateLegacy(owner,phoneStored),phoneStored,'unflushed current draft wins');local.removeItem('mirror:'+owner);
+ c.S.actor='other';assert.equal(await c.migrateLegacy(owner,phoneStored),phoneStored,'never import another actor storage');c.S.actor=owner;
+ local.setItem(legacy,'invalid json');assert.equal(await c.migrateLegacy(owner,phoneStored),phoneStored,'ignore unreadable presentation draft without erasing it');assert.equal(local.getItem(legacy),'invalid json');local.removeItem(legacy);
+ const priorKey='ojm_staff_save14228:'+scope+':'+owner+':pending';
+ const items=[{date:'2026-11-01',direction:'out',fund:'cash',account:'expense',amount:5,memo:'pending entry'}];
+ const prior={p_owner:owner,p_key:'immutable-request',p_items:items,p_snapshot:{memo:'saved intent',components1437:items}};
+ local.setItem(priorKey,JSON.stringify(prior));phoneStored=await c.migrateLegacy(owner,phoneStored);assert.equal(phoneStored.queue.length,1);assert.equal(phoneStored.queue[0].status,'uncertain');assert.equal(phoneStored.queue[0].draft.memo,'saved intent');assert.equal(phoneStored.queue[0].key,prior.p_key);assert.ok(local.getItem(priorKey));
+ phoneStored=await c.migrateLegacy(owner,phoneStored);assert.equal(phoneStored.queue.length,1,'repeat import keeps one immutable request');
+ local.setItem(priorKey,JSON.stringify({...prior,p_snapshot:{components1437:[]}}));await assert.rejects(c.migrateLegacy(owner,phoneStored),/incomplete/);assert.ok(local.getItem(priorKey),'malformed pending entry remains recoverable');
+ console.log('PASS current phone imports own legacy drafts and immutable requests, preserves newer work, rejects incomplete requests, and retains source data');
  const lines=fs.readFileSync('src/bridges/subusers-bookkeeping/budget-workflow14316.js','utf8').split('\n');
  const functionCode=name=>lines.find(l=>l.startsWith('async function '+name+'(')||l.startsWith('function '+name+'('));
  let pages=0,confirm,dialog,errors=[];const button={dataset:{allocationTemplate14316:'501'}};

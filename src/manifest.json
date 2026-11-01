@@ -3427,21 +3427,6 @@
         "source": "src/core/sync/payroll-window14334.js"
       }
     ],
-    "scripts/phone-data14248.js": [
-      {
-        "source": "src/core/startup/phone-data14248.js"
-      }
-    ],
-    "scripts/phone-keyboard14252.js": [
-      {
-        "source": "src/core/navigation/phone-keyboard14252.js"
-      }
-    ],
-    "scripts/phone-pull-refresh1423.js": [
-      {
-        "source": "src/core/navigation/phone-pull-refresh1423.js"
-      }
-    ],
     "scripts/phone-reset-gate14257.js": [
       {
         "source": "src/core/auth/phone-reset-gate14257.js"
@@ -3552,11 +3537,6 @@
         "source": "src/core/navigation/phone-navigation14285.css"
       }
     ],
-    "styles/phone-pull-refresh1423.css": [
-      {
-        "source": "src/core/navigation/phone-pull-refresh1423.css"
-      }
-    ],
     "styles/phone-shell14285.css": [
       {
         "source": "src/core/navigation/phone-shell14285.css"
@@ -3655,56 +3635,6 @@
     "scripts/assigned-ledger14281.js": [
       {
         "source": "src/subusers/accounts/assigned-ledger14281.js"
-      }
-    ],
-    "scripts/phone-account-picker14227.js": [
-      {
-        "source": "src/subusers/workspace/phone-account-picker14227.js"
-      }
-    ],
-    "scripts/phone-connected.js": [
-      {
-        "source": "src/shared/formatting/civil-date.js",
-        "suffix": "\n"
-      },
-      {
-        "source": "src/subusers/phone/connected/scope-and-draft.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/navigation.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/render-and-settings.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/home-and-accounts.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/entry-fields.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/templates.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/entry-form-and-save.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/history.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/bookkeeping-compatibility.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/entry-validation.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/account-ledger.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/connection-and-sync.js"
-      },
-      {
-        "source": "src/subusers/phone/connected/startup-and-scope-close.js"
       }
     ],
     "scripts/phone-runtime14242.js": [
@@ -3806,16 +3736,6 @@
         "source": "src/subusers/workspace/workspace14337.js"
       }
     ],
-    "styles/phone-account-picker14227.css": [
-      {
-        "source": "src/subusers/workspace/phone-account-picker14227.css"
-      }
-    ],
-    "styles/phone-accounting14246.css": [
-      {
-        "source": "src/subusers/phone/phone-accounting14246.css"
-      }
-    ],
     "styles/phone-approved14225.css": [
       {
         "source": "src/subusers/phone/phone-approved14225.css"
@@ -3824,11 +3744,6 @@
     "styles/phone-approved14247.css": [
       {
         "source": "src/subusers/phone/phone-approved14247.css"
-      }
-    ],
-    "styles/phone-connected.css": [
-      {
-        "source": "src/subusers/phone/connected/phone-connected.css"
       }
     ],
     "styles/phone-design14248.css": [

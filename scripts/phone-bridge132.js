@@ -1,4 +1,4 @@
-/* Same application, alternate phone view. All mutations use existing desktop handlers. */
+/* Shared sub-user helper API retained for desktop callers. The embedded phone view is retired. */
 (()=>{'use strict';const $=id=>document.getElementById(id);const phone=()=>document.documentElement.dataset.device132==='phone';
 const allowed=(target,verb='view')=>!!window.access113?.can(target,verb);
 function run(target,verb,fn){if(!allowed(target,verb)){showCenterStatus('This action is not included in your permissions.',true);return false}return fn()}
@@ -56,7 +56,7 @@ async function loadPhoneWorkspace14237(id,force=false){
   const [funds]=await Promise.all([phoneRead14238(client.rpc('fund_balances136',{p_owner:id,p_month:null})),phoneReportsRequest14237]);
   if(who!==api.session()||ojmDb!==client||!user(id))return;
   if(funds.error)throw Error(funds.error.message);if(!Array.isArray(funds.data))throw Error('Fund balances could not be read.');phoneFunds14237.set(id,funds.data);
- }catch(e){if(who===api.session()&&ojmDb===client)phoneErrors14237.set(id,e.message||'Loading failed.');throw e;}finally{if(who===api.session()&&ojmDb===client){phoneLoads14237.delete(id);notify();}}})();
+ }catch(e){if(who===api.session()&&ojmDb===client)phoneErrors14237.set(id,e.message||'Loading failed.');throw e;}finally{if(who===api.session()&&ojmDb===client){phoneLoads14237.delete(id);}}})();
  phoneLoads14237.set(id,task);return task;
 }
 const api=window.PhoneApp132={
@@ -157,9 +157,7 @@ const api=window.PhoneApp132={
  printStaff:id=>run('document-editor105','export',()=>reportHistory1443.open(id)),
  printSavedReport:id=>run('document-editor105','export',()=>reportHistory1443.has(id)?reportHistory1443.print(id):savedReports1434.print(id)),
  logout:()=>logoutDemoUser(),
- refresh:async()=>{if(!profile())return;const selected=$('connectedPhone132')?.contentWindow?.phoneSelection14237?.();if(selected?.module==='subusers'){if(selected.user)await loadPhoneWorkspace14237(selected.user,true);else await window.TeamHome14227?.reload();notify();return;}await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload();notify()}
+ refresh:async()=>{if(!profile())return;await Promise.all([loadJournalFromSupabase(),loadStaffJournalsForReview()]);window.funds113?.refresh();await window.TeamHome14227?.reload()}
 };
-function notify(){const frame=$('connectedPhone132');try{frame?.contentWindow?.phoneRefresh132?.()}catch{}}
-function ready(){if(!phone())return;const f=document.createElement('iframe');f.id='connectedPhone132';f.title='Oon Jai phone workspace';f.src='phone-accounting.html?v=142.93';document.body.append(f);const gate=$('loginGate');if(gate){new MutationObserver(()=>{const doc=f.contentDocument;if(doc?.documentElement&&(!api.ready()||doc.documentElement.dataset.phoneOwner14288!==api.session())){doc.documentElement.dataset.phoneReady14288='false';notify();}}).observe(gate,{attributes:true,attributeFilter:['class']});}let timer;new MutationObserver(records=>{if(records.every(r=>r.target.closest?.('#connectedPhone132')))return;clearTimeout(timer);timer=setTimeout(notify,180)}).observe(document.querySelector('.app-layout'),{childList:true,subtree:true});window.addEventListener('page113',notify);setInterval(()=>{notify()},3000)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
+;
