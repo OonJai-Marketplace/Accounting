@@ -3972,19 +3972,9 @@
         "source": "src/hr/calendar/local-events14310.css"
       }
     ],
-    "scripts/archive-v128.js": [
-      {
-        "source": "src/maintenance/archive/archive-v128.js"
-      }
-    ],
     "scripts/audit-explanation14260.js": [
       {
         "source": "src/maintenance/audit/audit-explanation14260.js"
-      }
-    ],
-    "scripts/audit-workspace14232.js": [
-      {
-        "source": "src/maintenance/audit/audit-workspace14232.js"
       }
     ],
     "scripts/budget-gmail14314.js": [
@@ -4168,16 +4158,6 @@
       },
       {
         "source": "src/bridges/subusers-bookkeeping/workspace-settings/handover-standalone.js"
-      }
-    ],
-    "styles/archive-v128.css": [
-      {
-        "source": "src/maintenance/archive/archive-v128.css"
-      }
-    ],
-    "styles/audit-workspace14232.css": [
-      {
-        "source": "src/maintenance/audit/audit-workspace14232.css"
       }
     ],
     "styles/budget-messages14314.css": [

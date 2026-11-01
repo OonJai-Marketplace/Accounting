@@ -64,11 +64,11 @@ function prepare(root){
    if(embedded.id==='settings-recovery113')wrap(root,[embedded],'recovery','Recovery vault','Protected recovery contacts and encrypted copies');
    else for(const n of [...embedded.children])if(!n.matches('.settings-stack-section143176')){
     const title=n.querySelector('h2,h3,h4')?.textContent.trim()||'Archive tools';
-    const key=n.querySelector('#operationalReset142')||n.id==='operationalReset142'?'operational-reset':n.querySelector('#auditFiles14233')||n.id==='auditFiles14233'?'audit-files':n.querySelector('#archiveExport129')||n.id==='archiveExport129'?'archive-export':'archive-'+(++sequence);
+    const key=n.querySelector('#operationalReset142')||n.id==='operationalReset142'?'operational-reset':n.id==='previousAuditRecovery230'?'previous-audit-recovery':n.querySelector('#archiveExport129')||n.id==='archiveExport129'?'archive-export':'archive-'+(++sequence);
     wrap(root,[n],key,title,'',false);
    }
   }
-  for(const n of rootNodes(root))if(!n.matches('.embedded-settings14231,.settings-page-heading'))wrap(root,[n],'archive-extra-'+(++sequence),n.querySelector('h2,h3,h4')?.textContent.trim()||'Archive & Recovery');
+  for(const n of rootNodes(root))if(!n.matches('.embedded-settings14231,.settings-page-heading'))wrap(root,[n],'archive-extra-'+(++sequence),n.querySelector('h2,h3,h4')?.textContent.trim()||'Backup & Recovery');
  }else if(id==='settings-maintenance14324'){
   whole(root,'maintenance','Maintenance & Audit','Investigation, comparison and diagnostics');
  }
@@ -139,7 +139,7 @@ function refreshJump(){
  if(!enabled())return;
  for(const m of mounts.values()){
   const items=listFor(m.group),signature=items.map(r=>r.key+'|'+r.title).join('~');
-  if(m.jump.dataset.signature!==signature){m.jump.dataset.signature=signature;const children=[];let last='';for(const r of items){if(m.group.key==='system'&&last!==r.root.id&&r.key!=='maintenance'){last=r.root.id;children.push(node('h3','settings-stack-jump-group143176',{'settings-system':'System & Printing','settings-data14231':'Archive & Recovery','settings-maintenance14324':'Maintenance & Audit'}[last]));}const b=button(r.title,()=>select(r),'settings-stack-jump-link143176');b.dataset.jump143176=r.key;b.setAttribute('aria-controls',r.details.id);children.push(b);}m.jump.replaceChildren(...children);}
+  if(m.jump.dataset.signature!==signature){m.jump.dataset.signature=signature;const children=[];let last='';for(const r of items){if(m.group.key==='system'&&last!==r.root.id&&r.key!=='maintenance'){last=r.root.id;children.push(node('h3','settings-stack-jump-group143176',{'settings-system':'System & Printing','settings-data14231':'Backup & Recovery','settings-maintenance14324':'Maintenance & Audit'}[last]));}const b=button(r.title,()=>select(r),'settings-stack-jump-link143176');b.dataset.jump143176=r.key;b.setAttribute('aria-controls',r.details.id);children.push(b);}m.jump.replaceChildren(...children);}
   for(const b of m.jump.querySelectorAll('[data-jump143176]')){const r=sections.get(b.dataset.jump143176);const on=r?.key===selectedKeys.get(m.group.key);b.setAttribute('aria-current',on?'page':'false');b.classList.toggle('is-open',on);}
  }
 }

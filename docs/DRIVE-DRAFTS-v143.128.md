@@ -1,5 +1,7 @@
 # Drive draft submissions
 
+> Historical implementation notes. The browser OAuth client textbox and session-only token flow below have been superseded. Use [the current Google storage and AI connection guide](SETTINGS-CLEANUP-v143.230.md) for setup.
+
 Drafts remain in a private Google Sheet until the signed-in reviewer presses **Post to Journal**. No background posting or pending-database rows are created. Existing journal validation, permissions, period locks and number allocation apply. One draft ID posts one entry with all its lines. Receipt references prevent repeat approval, including another authorized reviewer.
 
 ## Activate once
