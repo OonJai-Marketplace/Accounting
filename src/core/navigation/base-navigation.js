@@ -46,7 +46,8 @@ function switchTab(tabId) {
   const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(tabId));
   if (btn) {
     btn.classList.add('active');
-    document.getElementById('mainHeaderTitle').textContent = btn.textContent.trim();
+    const title = document.getElementById('mainHeaderTitle');
+    if (title) title.textContent = btn.textContent.trim();
   }
 
   const targetTab = document.getElementById(tabId);
@@ -70,7 +71,8 @@ function scrollToAccountModule(moduleId) {
   const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(moduleId));
   if (btn) {
     btn.classList.add('active');
-    document.getElementById('mainHeaderTitle').textContent = "Accounts — " + btn.textContent.trim();
+    const title = document.getElementById('mainHeaderTitle');
+    if (title) title.textContent = "Accounts — " + btn.textContent.trim();
   }
 
   const moduleTarget = document.getElementById(moduleId);

@@ -23,6 +23,14 @@ def build():
         worker_version = re.search(r"const VERSION='([0-9]+\.[0-9]+)'", (ROOT/worker).read_text())
         if not worker_version or worker_version[1] != version[1]:
             raise ValueError('Offline worker version does not match the application: '+worker)
+    phone = (ROOT/'scripts/phone-runtime14242.js').read_text()
+    phone_version = re.search(r"const VERSION\s*=\s*'([0-9]+\.[0-9]+)'", phone)
+    if not phone_version or phone_version[1] != version[1]:
+        raise ValueError('Phone runtime version must match the offline worker handshake')
+    phone_asset = 'scripts/phone-runtime14242.js?v='+version[1]
+    for consumer in ('phone.html', 'phone-sw.js', 'desktop-sw14242.js'):
+        if phone_asset not in (ROOT/consumer).read_text():
+            raise ValueError('Phone runtime cache reference is stale: '+consumer)
     outputs = json.loads((ROOT/'src/manifest.json').read_text())['outputs']
     previous = {item['path']: item for item in manifest['files']}
     names = set(previous) | set(outputs)

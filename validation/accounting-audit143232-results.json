@@ -1,0 +1,603 @@
+{
+  "release": "143.232",
+  "completedAt": "2026-11-01T15:01:53.845905+00:00",
+  "environment": "Synthetic local browser and isolated PostgreSQL fixtures",
+  "results": [
+    {
+      "suite": "app-integrity143100",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "civil-date143100",
+      "exitCode": 0,
+      "seconds": 8.0
+    },
+    {
+      "suite": "workforce-reports143100",
+      "exitCode": 0,
+      "seconds": 9.9
+    },
+    {
+      "suite": "confirmation143100",
+      "exitCode": 0,
+      "seconds": 6.6
+    },
+    {
+      "suite": "all-workspaces",
+      "exitCode": 0,
+      "seconds": 26.7
+    },
+    {
+      "suite": "phase0-browser",
+      "exitCode": 0,
+      "seconds": 33.9
+    },
+    {
+      "suite": "phase0-session-browser",
+      "exitCode": 0,
+      "seconds": 13.4,
+      "previousAttempts": [
+        {
+          "suite": "phase0-session-browser",
+          "exitCode": 1,
+          "seconds": 32.2
+        }
+      ]
+    },
+    {
+      "suite": "phase0-navigation-preservation",
+      "exitCode": 0,
+      "seconds": 18.6
+    },
+    {
+      "suite": "phase0-preload",
+      "exitCode": 0,
+      "seconds": 0.2
+    },
+    {
+      "suite": "phase0-inactivity",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "phone-cache14368",
+      "exitCode": 0,
+      "seconds": 2.6
+    },
+    {
+      "suite": "phone-idle-sync",
+      "exitCode": 0,
+      "seconds": 1.8
+    },
+    {
+      "suite": "audit-owner-guards14370",
+      "exitCode": 0,
+      "seconds": 0.2
+    },
+    {
+      "suite": "audit-drafts14370",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "sync-coordinator",
+      "exitCode": 0,
+      "seconds": 12.0
+    },
+    {
+      "suite": "sync-cache",
+      "exitCode": 0,
+      "seconds": 14.0
+    },
+    {
+      "suite": "sync-mixed-recovery",
+      "exitCode": 0,
+      "seconds": 12.0
+    },
+    {
+      "suite": "sync-recovery",
+      "exitCode": 0,
+      "seconds": 23.9
+    },
+    {
+      "suite": "hr-calendar-model14306",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "journal-durable14385",
+      "exitCode": 0,
+      "seconds": 23.7,
+      "previousAttempts": [
+        {
+          "suite": "journal-durable14385",
+          "exitCode": 1,
+          "seconds": 23.9
+        },
+        {
+          "suite": "journal-durable14385",
+          "exitCode": 1,
+          "seconds": 20.5
+        }
+      ]
+    },
+    {
+      "suite": "foreign-currency14383",
+      "exitCode": 0,
+      "seconds": 8.3
+    },
+    {
+      "suite": "foreign-funds14386",
+      "exitCode": 0,
+      "seconds": 6.6
+    },
+    {
+      "suite": "account-ledger14381",
+      "exitCode": 0,
+      "seconds": 5.2
+    },
+    {
+      "suite": "assigned-ledger14281",
+      "exitCode": 0,
+      "seconds": 1.8
+    },
+    {
+      "suite": "subaccounts14287-repair",
+      "exitCode": 0,
+      "seconds": 7.4
+    },
+    {
+      "suite": "chart14397",
+      "exitCode": 0,
+      "seconds": 6.5
+    },
+    {
+      "suite": "mapping-close14397",
+      "exitCode": 0,
+      "seconds": 2.0
+    },
+    {
+      "suite": "bookkeeping14399",
+      "exitCode": 0,
+      "seconds": 7.7
+    },
+    {
+      "suite": "return-current14399",
+      "exitCode": 0,
+      "seconds": 8.3
+    },
+    {
+      "suite": "year-windows14334",
+      "exitCode": 0,
+      "seconds": 1.7
+    },
+    {
+      "suite": "budget-lifecycle14316",
+      "exitCode": 0,
+      "seconds": 2.1
+    },
+    {
+      "suite": "fresh-backend14322",
+      "exitCode": 0,
+      "seconds": 6.5
+    },
+    {
+      "suite": "audit-reconciliation14382",
+      "exitCode": 0,
+      "seconds": 6.7
+    },
+    {
+      "suite": "news-local14396",
+      "exitCode": 0,
+      "seconds": 5.3
+    },
+    {
+      "suite": "audit-ui14370",
+      "exitCode": 0,
+      "seconds": 0.7
+    },
+    {
+      "suite": "document-table14370",
+      "exitCode": 0,
+      "seconds": 0.6
+    },
+    {
+      "suite": "archive-limits14373",
+      "exitCode": 0,
+      "seconds": 11.5
+    },
+    {
+      "suite": "encrypted-download14372",
+      "exitCode": 0,
+      "seconds": 5.5
+    },
+    {
+      "suite": "edge-services14320",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "pdf-export14370",
+      "exitCode": 0,
+      "seconds": 1.6
+    },
+    {
+      "suite": "word-images14372",
+      "exitCode": 0,
+      "seconds": 0.8
+    },
+    {
+      "suite": "update143100",
+      "exitCode": 0,
+      "seconds": 11.5
+    },
+    {
+      "suite": "account-rates143186",
+      "exitCode": 0,
+      "seconds": 6.5
+    },
+    {
+      "suite": "rate-snapshot143186",
+      "exitCode": 0,
+      "seconds": 2.0
+    },
+    {
+      "suite": "rate-sheet143186",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "ai-stack143160",
+      "exitCode": 0,
+      "seconds": 2.7
+    },
+    {
+      "suite": "rate-ai-review143186",
+      "exitCode": 0,
+      "seconds": 1.0,
+      "previousAttempts": [
+        {
+          "suite": "rate-ai-review143186",
+          "exitCode": 1,
+          "seconds": 0.8
+        }
+      ]
+    },
+    {
+      "suite": "rate-ai-regression143186",
+      "exitCode": 0,
+      "seconds": 12.4
+    },
+    {
+      "suite": "memo-links143187",
+      "exitCode": 0,
+      "seconds": 8.3
+    },
+    {
+      "suite": "online-save-search143188",
+      "exitCode": 0,
+      "seconds": 23.2
+    },
+    {
+      "suite": "news-sheets143189",
+      "exitCode": 0,
+      "seconds": 6.2
+    },
+    {
+      "suite": "news-edge143189",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "previousAttempts": [
+        {
+          "suite": "news-edge143189",
+          "exitCode": 1,
+          "seconds": 0.1
+        }
+      ]
+    },
+    {
+      "suite": "live-reference143190",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "suite": "live-inboxes143190",
+      "exitCode": 0,
+      "seconds": 1.0,
+      "previousAttempts": [
+        {
+          "suite": "live-inboxes143190",
+          "exitCode": 1,
+          "seconds": 0.7
+        }
+      ]
+    },
+    {
+      "suite": "account-sheet-events143191",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "suite": "account-sheet-no-poll143191",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "account-save143182",
+      "exitCode": 0,
+      "seconds": 0.5
+    },
+    {
+      "suite": "inbox-edge143173",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "previousAttempts": [
+        {
+          "suite": "inbox-edge143173",
+          "exitCode": 1,
+          "seconds": 0.1
+        }
+      ]
+    },
+    {
+      "suite": "inbox-missing143174",
+      "exitCode": 0,
+      "seconds": 0.1,
+      "previousAttempts": [
+        {
+          "suite": "inbox-missing143174",
+          "exitCode": 1,
+          "seconds": 0.1
+        }
+      ]
+    },
+    {
+      "suite": "account-confirmation143192",
+      "exitCode": 0,
+      "seconds": 0.5
+    },
+    {
+      "suite": "reset-cache143108",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "sync-order143182",
+      "exitCode": 0,
+      "seconds": 0.6
+    },
+    {
+      "suite": "report-years143182",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "report-years-ui143182",
+      "exitCode": 0,
+      "seconds": 4.6
+    },
+    {
+      "suite": "scheduled-prepaid-isolated143193",
+      "exitCode": 0,
+      "seconds": 2.5
+    },
+    {
+      "suite": "release-integrity143198",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "navigation-header232",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "suite": "retired-journal143195",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "report-window143195",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "report-history-ui143195",
+      "exitCode": 0,
+      "seconds": 5.6
+    },
+    {
+      "suite": "history-pagination143197",
+      "exitCode": 0,
+      "seconds": 6.2
+    },
+    {
+      "suite": "document-index143198",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "audit-pages143198",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "historical-hr143200",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "profit-tax143199",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "profit-tax-dom143199",
+      "exitCode": 0,
+      "seconds": 0.5
+    },
+    {
+      "suite": "profit-tax-ui143199",
+      "exitCode": 0,
+      "seconds": 0.9
+    },
+    {
+      "suite": "google-history194.mjs",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "google-history194-edge.mjs",
+      "exitCode": 0,
+      "seconds": 0.2
+    },
+    {
+      "suite": "google-history194-sql.mjs",
+      "exitCode": 0,
+      "seconds": 1.9
+    },
+    {
+      "suite": "google-history194-ui",
+      "exitCode": 0,
+      "seconds": 0.7
+    },
+    {
+      "suite": "sheet-formulas201.mjs",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "receipt-core202",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "receipt-backend202.mjs",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "phone-own207",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "phone-login210",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "phone-url210",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "phone-session212",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "phone-navigation212",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "scanner-sequence223",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "scanner-handler215.mjs",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "scanner-ids215.mjs",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "journal-receipts224",
+      "exitCode": 0,
+      "seconds": 11.5
+    },
+    {
+      "suite": "receipt-status226.mjs",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "receipt-icons226",
+      "exitCode": 0,
+      "seconds": 6.9
+    },
+    {
+      "suite": "journal-display227",
+      "exitCode": 0,
+      "seconds": 4.5
+    },
+    {
+      "suite": "company-drive228.mjs",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "receipt-settings229",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "suite": "storage-settings230",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "suite": "year-routing231.mjs",
+      "exitCode": 0,
+      "seconds": 0.1
+    },
+    {
+      "suite": "yearly-storage231-edge.mjs",
+      "exitCode": 0,
+      "seconds": 0.2
+    },
+    {
+      "suite": "yearly-storage231-sql.mjs",
+      "exitCode": 0,
+      "seconds": 1.9
+    },
+    {
+      "suite": "yearly-storage231-ui",
+      "exitCode": 0,
+      "seconds": 0.4
+    },
+    {
+      "suite": "scheduled-approval225",
+      "exitCode": 0,
+      "seconds": 2.6
+    },
+    {
+      "suite": "scheduled-approval-ui225",
+      "exitCode": 0,
+      "seconds": 4.6
+    }
+  ],
+  "summary": {
+    "passed": 105,
+    "failed": 0
+  },
+  "notes": [
+    "Initial failing fixtures were corrected and rerun; previousAttempts retains those outcomes.",
+    "Interrupted journal fixture also passed an earlier isolated run before authoritative chart seeding; final result uses the seeded fixture.",
+    "No live financial writes; production inspection was read-only."
+  ],
+  "additionalChecks": {
+    "generatedAssets": 380,
+    "sourceModules": 628,
+    "shippedScriptsSyntaxChecked": 239,
+    "releaseManifestAssets": 417,
+    "phase0Structure": "passed",
+    "diffWhitespace": "passed"
+  }
+}
