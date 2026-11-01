@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+const ctx={window:{}};vm.runInNewContext(fs.readFileSync('src/bookkeeping/journal/journal-description14281.js','utf8'),ctx);
+const plan=(rows,general)=>JSON.parse(JSON.stringify(ctx.window.JournalDescription225.plan(rows,general)));
+assert.deepEqual(plan([{memo:''},{memo:''}],'Rent'),{shared:'Rent',lines:['','']});
+assert.deepEqual(plan([{memo:'Rent'},{memo:' Rent  '}],'Rent'),{shared:'Rent',lines:['','']});
+assert.deepEqual(plan([{memo:'Shared note'},{memo:'Shared note'}],'Rent'),{shared:'Rent\nShared note',lines:['','']});
+assert.deepEqual(plan([{memo:'Shared note'},{memo:'Shared note'}],''),{shared:'Shared note',lines:['','']});
+const distinct=[{memo:'Receipt https://example.invalid/a'},{memo:'Payment https://example.invalid/b'}],before=JSON.stringify(distinct);
+assert.deepEqual(plan(distinct,'Rent'),{shared:'Rent',lines:distinct.map(x=>x.memo)});assert.equal(JSON.stringify(distinct),before);
+assert.deepEqual(plan([{memo:'Detail'},{memo:''}],'Rent'),{shared:'Rent',lines:['Detail','']});
+console.log('PASS shared descriptions once, distinct/blank line details, links and stored text preserved');

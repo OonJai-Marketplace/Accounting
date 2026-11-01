@@ -54,19 +54,19 @@ async function section(node,doc,ticket,retry=false){
  }catch(e){if(active(ticket)&&node.isConnected)retryBox(body,e.message,()=>section(node,doc,ticket,true));}finally{delete node.dataset.loading;}
 }
 async function open(id){
- if(!enabled())return;host();if(dialog.open)dialog.close();clear();const ticket=epoch;entry=String(id||'');const next=identity();if(context!==next)views.clear();context=next;
+ if(!enabled())return;const request=typeof id==='object'&&id?.staffLine?{staffLine:String(id.staffLine)}:{entry:String(id||'')};host();if(dialog.open)dialog.close();clear();const ticket=epoch;entry=request.staffLine?String(id.label||'Entry'):request.entry;const next=identity();if(context!==next)views.clear();context=next;
  dialog.innerHTML='<header><div><h2 id="jr-title224">Receipts · '+esc(entry)+'</h2><p>Scroll through this entry’s receipts. Select an image to enlarge it.</p></div><button type="button" data-jr-close>Close</button></header><div class="jr-scroll224">'+loading('Opening receipts…')+'</div>';
  dialog.querySelector('[data-jr-close]').onclick=()=>dialog.close();dialog.showModal();
  try{const s=await session();if(ticket!==epoch||!dialog.open||context!==identity())return;if(actor!==s.user.id){views.clear();actor=s.user.id;}if(!active(ticket))throw Error('Your account changed. Sign in again.');
-  const result=await client().api('list',{entry});if(!active(ticket))return;const body=dialog.querySelector('.jr-scroll224');body.replaceChildren();const documents=result.documents||[];
+  const result=await client().api('list',request);if(!active(ticket))return;if(request.staffLine&&result.entry){entry=result.entry;dialog.querySelector('h2').textContent='Receipts · '+entry;}const body=dialog.querySelector('.jr-scroll224');body.replaceChildren();const documents=result.documents||[];
   if(!documents.length){const p=document.createElement('p');p.textContent='No receipts are linked to this entry yet.';body.append(p);}
   else{const count=documents.reduce((n,d)=>n+Number(d.pages||0),0);const summary=document.createElement('p');summary.className='jr-summary224';summary.textContent=count+' receipt page'+(count===1?'':'s')+' · '+documents.length+' group'+(documents.length===1?'':'s');body.append(summary);
    for(const doc of documents){const node=document.createElement('section');node.className='jr-section224';node.innerHTML='<h3>'+esc(doc.label||entry)+'</h3><p class="jr-document-title224">'+esc(doc.title)+' · '+esc(doc.pages)+' pages</p><div class="jr-section-body224">'+loading('Receipt group loads as you scroll')+'</div>';body.append(node);observe(node,()=>section(node,doc,ticket));}
   }
-  if(window.access113?.can('journal','edit')){const a=document.createElement('a');a.className='jr-add224';a.href='scan.html?entry='+encodeURIComponent(entry);a.target='_blank';a.rel='noopener noreferrer';a.textContent='Add supporting documents';dialog.querySelector('header>div').append(a);}
+  if(window.access113?.can(request.staffLine?'sub-users-workspace':'journal','edit')){const a=document.createElement('a');a.className='jr-add224';a.href='scan.html?entry='+encodeURIComponent(entry);a.target='_blank';a.rel='noopener noreferrer';a.textContent='Add supporting documents';dialog.querySelector('header>div').append(a);}
  }catch(e){if(ticket===epoch&&dialog.open)retryBox(dialog.querySelector('.jr-scroll224'),e.message,()=>open(id));}
 }
-function button(id){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent='Receipts';b.dataset.journalReceipts224=id;b.onclick=()=>void open(id);return b;}
+function button(id){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent='Receipts';b.dataset.journalReceipts224=typeof id==='object'?id.staffLine:id;b.onclick=()=>void open(id);return b;}
 setInterval(()=>{if(actor&&locked()){views.clear();actor='';if(dialog?.open)dialog.close();else clear();}},1000);
 window.JournalReceipts224={enabled,open,button};
 })();
