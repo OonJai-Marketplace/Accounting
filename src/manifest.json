@@ -4288,6 +4288,11 @@
     ],
     "scripts/drive-drafts143128.js": [
       {
+        "source": "src/integrations/google/receipt-drive228.js",
+        "prefix": "/* Receipt Drive settings */\n",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/bookkeeping/journal/drive-drafts143128.js",
         "suffix": ""
       }
