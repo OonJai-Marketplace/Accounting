@@ -903,7 +903,7 @@
     },
     {
       "path": "scripts/drive-drafts143128.js",
-      "sha256": "0a8c97cde51b87e73339e279a67c2870f18575a88356d8cc795e345cc7d1f1a7",
+      "sha256": "d2b3cd3d8c92073fce8344f7f6c62bc429e24f3f377d18464ba9022a5cf42d5b",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
