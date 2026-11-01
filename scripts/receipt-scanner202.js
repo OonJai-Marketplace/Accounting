@@ -19,7 +19,7 @@ async function ensureDraft211(){if(draft)return;const month=C.monthNow();draft=C
 async function scannerOptions211(){await ensureDraft211();await checkpointEditing();dialog=destinationDialog;open('Scanner settings',`<div class="scan-setting-list211">${btn('save-destination','Save destination')}${btn('batch','PDF title and month')}${draft?btn('entry-settings211','Entry IDs / current group'):''}${btn('drafts','Unsaved scans')}${btn('import','Import photos')}${btn('native-camera209','Use phone camera')}</div>`);}
 function nextControls211(){return icon211('keep-next-receipt211','Keep and scan next receipt','receipt')+icon211('keep-next-entry211','Keep and start next entry','entry')+icon211('keep-save211','Keep and save PDF','check','','primary');}
 function valid(){if(!owner||!deviceVault14334.unlocked||deviceVault14334.actor!==owner)throw Error('Sign in to Accounting again to unlock your scans.');}
-function lockUI(){ReceiptCamera209.stop();if(frozen)return;frozen=true;idCache221=[];idRequests221.clear();++idsRequest215;draft=null;pdfCache=null;cameraQueue=[];editing=null;if(pdfURL)URL.revokeObjectURL(pdfURL);for(const d of [primaryDialog,destinationDialog]){d.close();d.replaceChildren();}dialog=primaryDialog;draftIndex=[];main.innerHTML='<section class="scan-card"><h1>Sign in to continue</h1><p>Your encrypted scans remain on this device.</p><a class="scan-link" href="index.html?scan=1">Open Accounting sign-in</a></section>';}
+function lockUI(){ReceiptCamera209.stop();if(frozen)return;frozen=true;document.querySelectorAll('.scan-receipt-choice218,.scan-compare-zoom222').forEach(d=>d.close());idCache221=[];idRequests221.clear();++idsRequest215;draft=null;pdfCache=null;cameraQueue=[];editing=null;if(pdfURL)URL.revokeObjectURL(pdfURL);for(const d of [primaryDialog,destinationDialog]){d.close();d.replaceChildren();}dialog=primaryDialog;draftIndex=[];main.innerHTML='<section class="scan-card"><h1>Sign in to continue</h1><p>Your encrypted scans remain on this device.</p><a class="scan-link" href="index.html?scan=1">Open Accounting sign-in</a></section>';}
 async function store(key,value){valid();database ||= new Promise((resolve,reject)=>{const r=indexedDB.open('ojm-scans202',1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('Close another old scanner tab and try again.'));});const conn=await database,label=scope+':'+owner+':'+key,encoded=value===undefined?null:deviceVault14334.pack(value,label);return new Promise((resolve,reject)=>{const t=conn.transaction('drafts',value===undefined?'readonly':'readwrite'),s=t.objectStore('drafts'),r=value===undefined?s.get(label):s.put(encoded,label);let out;r.onsuccess=()=>{try{valid();out=value===undefined?deviceVault14334.unpack(r.result,label):value;}catch(e){reject(e);}};t.oncomplete=()=>resolve(out);t.onerror=t.onabort=()=>reject(t.error||Error('Device storage could not save this scan.'));});}
 async function remove(key){const conn=await database;valid();return new Promise((resolve,reject)=>{const t=conn.transaction('drafts','readwrite');t.objectStore('drafts').delete(scope+':'+owner+':'+key);t.oncomplete=resolve;t.onerror=()=>reject(t.error);});}
 async function writeRecords(entries,deletes=[]){valid();await store('__ready204');const conn=await database,prefix=scope+':'+owner+':',encoded=await Promise.all(entries.map(async([key,value])=>[prefix+key,await (deviceVault14334.packAsync?deviceVault14334.packAsync(value,prefix+key):deviceVault14334.pack(value,prefix+key))]));valid();return new Promise((resolve,reject)=>{const t=conn.transaction('drafts','readwrite'),objects=t.objectStore('drafts');try{for(const [key,value] of encoded)objects.put(value,key);for(const key of deletes)objects.delete(prefix+key);}catch(e){t.abort();reject(e);return;}t.oncomplete=()=>{try{valid();resolve();}catch(e){reject(e);}};t.onerror=t.onabort=()=>reject(t.error||Error('Device storage could not protect this scan. Keep this window open and retry.'));});}
@@ -214,27 +214,70 @@ async function ids215(groups,scan=draft?.id){
  }
  return response.ids;
 }
-async function validateIDs215(groups){
- const rows=await ids215(groups),bad=rows.find(r=>!r.available);if(bad)throw Error(bad.label+': '+bad.reason);
- for(const row of rows){
+async function validateIDs215(groups,review222=false){
+ const rows=await ids215(groups),bad=rows.findIndex(r=>!r.available);if(bad>=0){if(review222)await idProblem223(rows[bad],groups[bad]?.id);throw Error(rows[bad].label+': '+rows[bad].reason);}
+ for(const [index,row] of rows.entries()){
   const expected=(row.receipts||[]).map(r=>r.id).sort(),previous=draft?.idChecks215?.[row.label]?.receiptChoice;
-  row.receiptChoice=previous&&JSON.stringify(previous.expected)===JSON.stringify(expected)?previous:expected.length?await receiptChoice218(row):{mode:'new',expected:[]};
+  row.receiptChoice=previous&&JSON.stringify(previous.expected)===JSON.stringify(expected)?previous:expected.length?(review222?await compareReceipts222(row,groups[index]?.id):await receiptChoice218(row)):{mode:'new',expected:[]};
  }
  return rows;
 }
 async function receiptChoice218(row){
  const popup=document.createElement('dialog');popup.className='scan-receipt-choice218';
- popup.innerHTML=`<h2>Receipts already saved</h2><p><strong>${esc(row.label)}</strong> has ${(row.receipts||[]).length} saved document section(s).</p><p>Add keeps the existing receipts. Replace makes your new scans the current receipts for this entry after the PDF is saved successfully.</p><div class="scan-setting-list211"><button class="scan-action primary" data-receipt-choice="add">Add supporting documents</button><button class="scan-action danger" data-receipt-choice="replace">Replace existing receipts</button><button class="scan-action" data-receipt-choice="cancel">Cancel</button></div>`;
+ popup.innerHTML=`<h2>Receipts already saved</h2><p><strong>${esc(row.label)}</strong> has ${(row.receipts||[]).length} saved document section(s).</p><p>Add keeps the existing receipts. Replace makes your new scans the current receipts for this entry after the PDF is saved successfully. This choice will be remembered when saving. If the saved receipts change, you can compare them before deciding again.</p><div class="scan-setting-list211"><button class="scan-action primary" data-receipt-choice="add">Add supporting documents</button><button class="scan-action danger" data-receipt-choice="replace">Replace existing receipts</button><button class="scan-action" data-receipt-choice="cancel">Cancel</button></div>`;
  document.body.append(popup);popup.showModal();paintLoading217(true);
- try{return await new Promise((resolve,reject)=>{const choose=mode=>{if(mode==='cancel')reject(Error('Scan cancelled. Existing receipts are unchanged.'));else resolve({mode,expected:row.receipts.map(r=>r.id).sort()});};popup.onclick=e=>{const b=e.target.closest('[data-receipt-choice]');if(b)choose(b.dataset.receiptChoice);};popup.oncancel=e=>{e.preventDefault();choose('cancel');};});}
+ try{return await new Promise((resolve,reject)=>{const choose=mode=>{if(mode==='cancel')reject(Error('Scan cancelled. Existing receipts are unchanged.'));else resolve({mode,expected:row.receipts.map(r=>r.id).sort()});};popup.onclick=e=>{const b=e.target.closest('[data-receipt-choice]');if(b)choose(b.dataset.receiptChoice);};popup.oncancel=e=>{e.preventDefault();choose('cancel');};popup.onclose=()=>choose('cancel');});}
  finally{popup.close();popup.remove();paintLoading217();}
+}
+async function compareReceipts222(row,groupID){
+ const group=C.plan(draft).find(g=>g.id===groupID&&g.type===row.type&&idKey221(g.label)===idKey221(row.label));
+ if(!group?.pages.length)throw Error('Review this entry’s new scans before saving.');
+ const revision=draft.revision,batchID=draft.id,receipts=row.receipts,views=new Map(),ready={saved:false,incoming:false},images={},positions={saved:0,incoming:0},tickets={saved:0,incoming:0};let documentIndex=0,finished=false,zoom=null;
+ const popup=document.createElement('dialog');popup.className='scan-receipt-choice218 scan-compare222';popup.setAttribute('aria-label','Compare saved and new receipts');
+ const pane=(side,title)=>`<section class="scan-compare-pane222" data-compare-pane="${side}"><h3>${title}</h3><div class="scan-compare-caption222" data-compare-caption="${side}"></div><div class="scan-compare-image222" data-compare-image="${side}"></div><p class="scan-compare-status222" data-compare-status="${side}" role="status">Loading preview…</p><div class="scan-compare-nav222"><button type="button" class="scan-action" data-compare-prev="${side}" aria-label="Previous ${side} page">‹</button><span data-compare-page="${side}"></span><button type="button" class="scan-action" data-compare-next="${side}" aria-label="Next ${side} page">›</button></div><button type="button" class="scan-action" data-compare-zoom="${side}" disabled>Enlarge</button><button type="button" class="scan-action" data-compare-retry="${side}" hidden>Retry preview</button></section>`;
+ const oldPages=receipts.reduce((n,r)=>n+Number(r.pages||0),0);
+ popup.innerHTML=`<header><h2>Compare receipts</h2><button type="button" class="scan-action" data-receipt-choice="cancel">Back</button></header><div class="scan-compare-body222"><p class="scan-compare-entry222"><strong>${esc(row.label)}</strong></p><p class="scan-compare-summary222">Saved: ${receipts.length} document(s) · ${oldPages} page(s).<br>New: ${group.pages.length} page(s) for this entry.</p>${receipts.length>1?`<label>Saved document<select data-compare-document>${receipts.map((r,i)=>`<option value="${i}">${esc(r.title)} · ${r.pages} page(s)</option>`).join('')}</select></label>`:''}<div class="scan-compare-grid222">${pane('saved','Currently saved')}${pane('incoming','Your new scans')}</div><p class="scan-compare-warning222">Replace will use these ${group.pages.length} new page(s) in place of all ${oldPages} saved page(s) for ${esc(row.label)}. Add keeps both.</p></div><div class="scan-setting-list211"><button type="button" class="scan-action primary" data-receipt-choice="add" disabled>Add supporting documents</button><button type="button" class="scan-action danger" data-receipt-choice="replace" disabled>Replace saved receipts</button><button type="button" class="scan-action" data-receipt-choice="edit">Edit ID first</button></div>`;
+ const node=(kind,side)=>popup.querySelector(`[data-compare-${kind}="${side}"]`);
+ const active=()=>{valid();return !finished&&popup.open&&!frozen&&draft?.id===batchID&&draft.revision===revision;};
+ const buttons=()=>{for(const mode of ['add','replace'])popup.querySelector(`[data-receipt-choice="${mode}"]`).disabled=!(ready.saved&&ready.incoming);};
+ const session=async()=>{valid();const r=await db.auth.getSession();if(r.error||r.data.session?.user?.id!==owner)throw Error('Sign in again to open saved receipts.');return r.data.session;},client=ReceiptLinks208.create({url:scope,key:OJM_SUPABASE_ANON_KEY,session});
+ async function load(side,retry=false){
+  const ticket=++tickets[side];ready[side]=false;images[side]=null;buttons();node('zoom',side).disabled=true;node('retry',side).hidden=true;node('image',side).replaceChildren();node('status',side).textContent='Loading preview…';node('status',side).classList.remove('error');node('prev',side).disabled=node('next',side).disabled=true;
+  try{
+   let pages,title,label,src;
+   if(side==='saved'){
+    const id=receipts[documentIndex].id;let view=views.get(id);if(retry||!view||view.expires<=Date.now()){view=await client.api('view',{id});if(!active()||ticket!==tickets[side])return;if(idKey221(view.label)!==idKey221(row.label))throw Error('The saved receipt ID changed. Go back and check this entry again.');views.set(id,view);}
+    pages=view.pages;title=view.title;label=view.label;if(!pages?.length)throw Error('No saved page previews are available.');positions[side]=Math.min(positions[side],pages.length-1);src=pages[positions[side]].url;
+    const url=new URL(src);if(url.origin!==new URL(scope).origin||!url.pathname.startsWith('/storage/v1/object/sign/scan-documents208/'))throw Error('The saved preview could not be verified.');
+   }else{pages=group.pages;title=draft.title;label=group.label;src=(await store('page:'+pages[positions[side]].id))?.data;if(!/^data:image\/(jpeg|png|webp);base64,/.test(src||''))throw Error('The new scan could not be read. Your draft is kept.');}
+   if(!active()||ticket!==tickets[side])return;
+   const index=positions[side],page=pages[index];node('caption',side).textContent=title+' · '+label;node('page',side).textContent=(index+1)+' / '+pages.length;
+   const img=document.createElement('img');img.alt=(side==='saved'?'Saved':'New')+' receipt '+(page.label||label)+' · page '+(index+1);img.referrerPolicy='no-referrer';img.src=src;node('image',side).append(img);
+   let timer;try{await Promise.race([img.decode(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Preview took too long to load. Retry when connected.')),30000);})]);}finally{clearTimeout(timer);}
+   if(!active()||ticket!==tickets[side])return;
+   ready[side]=true;images[side]={src,alt:img.alt};node('status',side).textContent=page.label||label;node('prev',side).disabled=index===0;node('next',side).disabled=index===pages.length-1;node('zoom',side).disabled=false;buttons();
+  }catch(e){if(finished||ticket!==tickets[side])return;node('status',side).textContent=e.message||'Preview unavailable. Retry when connected.';node('status',side).classList.add('error');node('retry',side).hidden=false;}
+ }
+ function enlarge(side){
+  if(!images[side]||!active())return;zoom=document.createElement('dialog');zoom.className='scan-compare-zoom222';
+  zoom.innerHTML=`<header><h2>${side==='saved'?'Currently saved':'Your new scan'}</h2><button type="button" class="scan-action" data-zoom-close222>Back</button></header><p>${esc(images[side].alt)}</p><div class="scan-compare-zoom-stage222"><img src="${esc(images[side].src)}" alt="${esc(images[side].alt)}" referrerpolicy="no-referrer"></div><button type="button" class="scan-action" data-zoom-size222>Zoom in</button>`;
+  zoom.onclick=e=>{if(e.target.closest('[data-zoom-close222]'))zoom.close();if(e.target.closest('[data-zoom-size222]')){const big=zoom.querySelector('img').classList.toggle('enlarged');e.target.textContent=big?'Fit image':'Zoom in';}};zoom.onclose=()=>{zoom?.remove();zoom=null;};document.body.append(zoom);zoom.showModal();
+ }
+ document.body.append(popup);popup.showModal();paintLoading217(true);
+ try{return await new Promise((resolve,reject)=>{
+  const choose=mode=>{if(finished)return;if((mode==='add'||mode==='replace')&&!(ready.saved&&ready.incoming))return;finished=true;if(mode==='edit'){const e=Error('Edit the entry ID before saving.');e.editGroup222=group.id;reject(e);}else if(mode==='cancel')reject(Error('Save cancelled. Your scans are kept; existing receipts are unchanged.'));else{try{valid();resolve({mode,expected:receipts.map(r=>r.id).sort()});}catch(e){reject(e);}}};
+  popup.onclick=e=>{const choice=e.target.closest('[data-receipt-choice]');if(choice)return choose(choice.dataset.receiptChoice);for(const kind of ['prev','next','retry','zoom']){const b=e.target.closest('[data-compare-'+kind+']');if(!b)continue;const side=b.dataset['compare'+kind[0].toUpperCase()+kind.slice(1)];if(kind==='zoom')enlarge(side);else{if(kind!=='retry')positions[side]+=kind==='prev'?-1:1;void load(side,kind==='retry');}}};
+  const select=popup.querySelector('[data-compare-document]');if(select)select.onchange=()=>{documentIndex=Number(select.value);positions.saved=0;void load('saved');};
+  popup.oncancel=e=>{e.preventDefault();choose('cancel');};popup.onclose=()=>choose('cancel');void load('saved');void load('incoming');
+ });}finally{finished=true;zoom?.close();popup.close();popup.remove();views.clear();paintLoading217();}
 }
 async function rememberIDs215(){
  settings.nextIDs215||={};const current=draft.groups.find(g=>g.id===draft.active&&draft.pages.some(p=>p.group===g.id));for(const g of current?[current]:C.plan(draft)){settings.nextIDs215[g.type]=nextLabel215(g.type,g.label);settings.lastType215=g.type;}
  await store('settings',settings);
 }
 function setupValue215(){if(!$('setupID215'))return setup215;return {...setup215,type:$('setupType215')?.value||setup215.type,label:$('setupID215').value.trim(),title:$('setupTitle215')?.value.trim()??setup215.title,month:setup215.month};}
-async function keepSetup215(){setup215=setupValue215();if(setup215.mode!=='skip'){settings.pendingSetup215=setup215;await store('settings',settings);}}
+async function keepSetup215(){setup215=setupValue215();if(setup215.mode==='start'){settings.pendingSetup215=setup215;await store('settings',settings);}}
+const idCheckMoment223=()=>setup215?.mode==='edit'?'saving':'scanning';
 let idPicker219=null;
 function idField219(label){return `<div class="scan-id-picker219"><label for="setupID215">${esc(label)}</label><div class="scan-id-field219"><input id="setupID215" role="combobox" aria-autocomplete="none" aria-controls="availableIDs215" aria-expanded="false" aria-describedby="idStatus215" value="${esc(setup215.label)}" maxlength="120" autocomplete="off" spellcheck="false"><button type="button" id="showIDs219" aria-label="Show ID suggestions" aria-controls="availableIDs215" aria-expanded="false">▾</button></div><div id="availableIDs215" class="scan-id-options219" role="listbox" tabindex="-1" aria-label="Suggested IDs" hidden></div></div>`;}
 function bindIDPicker219(){
@@ -246,7 +289,7 @@ function bindIDPicker219(){
  const choose=index=>{if(!rows[index]||busy)return;clearError();input.value=rows[index].label;++idsRequest215;show(false);toggle.focus({preventScroll:true});refresh();};
  idPicker219={input,update(values,message='No suggestions. You can type an ID above.'){rows=values;active=-1;list.removeAttribute('aria-activedescendant');list.innerHTML=rows.map((r,i)=>`<div id="idOption219-${i}" role="option" aria-selected="false" data-id-index="${i}">${esc(r.label)}</div>`).join('')||`<p class="scan-small215">${esc(message)}</p>`;}};
  input.onfocus=input.onpointerdown=()=>show(false);
- input.oninput=()=>{++idsRequest215;clearError();clearTimeout(typing);idPicker219.update([],input.value.trim()?'Loading ID suggestions…':'Type an ID above.');show(false);$('idStatus215').textContent=input.value.trim()?'ID will be checked before scanning.':'Type an ID to check it in Accounting.';typing=setTimeout(refresh,300);};
+ input.oninput=()=>{++idsRequest215;clearError();clearTimeout(typing);idPicker219.update([],input.value.trim()?'Loading ID suggestions…':'Type an ID above.');show(false);$('idStatus215').textContent=input.value.trim()?'ID will be checked before '+idCheckMoment223()+'.':'Type an ID to check it in Accounting.';typing=setTimeout(refresh,300);};
  input.onchange=refresh;
  list.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();show(false);toggle.focus({preventScroll:true});}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(rows.length){active=active<0?(e.key==='ArrowDown'?0:rows.length-1):(active+(e.key==='ArrowDown'?1:-1)+rows.length)%rows.length;highlight();}}else if(e.key==='Enter'&&active>=0){e.preventDefault();choose(active);}};
  input.closest('.scan-id-picker219').onfocusout=e=>{if(!e.currentTarget.contains(e.relatedTarget))show(false);};
@@ -264,9 +307,9 @@ function openSkipID219(current){
 async function openSetup215(mode='start',groupID=null){
  valid();if(draft&&draft.completed215===draft.revision&&mode==='start'){await store('current',null);draft=null;pdfCache=null;render();}
  const g=groupID?draft?.groups.find(g=>g.id===groupID):null;
- const prior=mode==='start'?settings.pendingSetup215:null,type=g?.type||prior?.type||settings.lastType215||'journal';
+ const prior=mode==='start'&&settings.pendingSetup215?.mode!=='edit'?settings.pendingSetup215:null,type=g?.type||prior?.type||settings.lastType215||'journal';
  setup215={mode,groupID:g?.id||null,type,label:g?.label||prior?.label||requestedEntry208||suggested215(type),title:prior?.title||draft?.title||C.monthTitle(C.monthNow()),month:prior?.month||draft?.month||C.monthNow()};
- dialog=primaryDialog;open(mode==='edit'?'Edit document':'Before scanning',`<div class="scan-setup215"><label>PDF name<input id="setupTitle215" value="${esc(setup215.title)}" maxlength="170"></label><label>Document type<select id="setupType215">${['journal','hr','support'].map(t=>`<option value="${t}" ${t===type?'selected':''}>${typeName215(t)}</option>`).join('')}</select></label>${idField219(mode==='edit'?'Entry ID / name':'Starting ID / name')}<p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-path215"><span id="setupPath215">${esc(destinationName215())}</span>${btn('destination215','Destination')}</div><p class="scan-small215">${draft?.pages.length?draft.pages.length+' pages remain in this PDF. ':''}Confirm the ID against your documents.</p><div class="scan-actions">${btn('setup-confirm215',mode==='edit'?'Apply changes':'Start scan','primary')}${mode==='start'&&draft?.pages.length?btn('batch-view215','View batch'):''}</div></div>`);
+ dialog=primaryDialog;open(mode==='edit'?'Edit document':'Before scanning',`<div class="scan-setup215"><label>PDF name<input id="setupTitle215" value="${esc(setup215.title)}" maxlength="170"></label><label>Document type<select id="setupType215">${['journal','hr','support'].map(t=>`<option value="${t}" ${t===type?'selected':''}>${typeName215(t)}</option>`).join('')}</select></label>${idField219(mode==='edit'?'Entry ID / name':'Starting ID / name')}<p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-path215"><span id="setupPath215">${esc(destinationName215())}</span>${btn('destination215','Destination')}</div><p class="scan-small215">${draft?.pages.length?draft.pages.length+' pages remain in this PDF. ':''}${mode==='edit'?'Numbered IDs shift later IDs in the same sequence, keeping Next/Skip gaps. IDs are checked when saving.':'Confirm the ID against your documents.'}</p><div class="scan-actions">${btn('setup-confirm215',mode==='edit'?'Apply changes':'Start scan','primary')}${mode==='start'&&draft?.pages.length?btn('batch-view215','View batch'):''}</div></div>`);
  $('setupType215').onchange=()=>run(async()=>{setup215=setupValue215();$('setupID215').value=suggested215($('setupType215').value);await keepSetup215();await refreshIDs215(true);});
  for(const id of ['setupTitle215'])$(id).onchange=()=>run(keepSetup215);
  bindIDPicker219();
@@ -284,7 +327,7 @@ async function refreshIDs215(choose=false,resume=false,allowFetch=choose){
   idPicker219.update(cached,allowFetch?'Loading ID suggestions…':'Open the dropdown to load more IDs, or type an ID.');
   if(choose&&cached.length&&(resume||!cached.some(r=>idKey221(r.label)===idKey221(form.label)))){input.value=cached[0].label;await keepSetup215();}
   if(!current())return;
-  $('idStatus215').textContent=cached.length?'Saved ID list · checked again before scanning.':'ID will be checked before scanning.';
+  $('idStatus215').textContent=cached.length?'Saved ID list · checked again before '+idCheckMoment223()+'.':'ID will be checked before '+idCheckMoment223()+'.';
   $('idStatus215').className='';
   if(!allowFetch||cached.some(r=>Date.now()-r.checkedAt<idCacheAge221))return;
   const args={type:form.type,label:form.label,scan:draft?.id,exclude:[...new Set(exclude)],resume:choose&&resume},key=JSON.stringify(args);
@@ -300,9 +343,9 @@ async function refreshIDs215(choose=false,resume=false,allowFetch=choose){
   if(choose&&rows.length&&(resume||!selected?.available)){input.value=rows[0].label;selected=rows[0];await keepSetup215();}
   if(!current())return;
   idPicker219.update(rows);
-  $('idStatus215').textContent=selected?.available?'ID list updated · checked again before scanning.':(selected?.reason||'Choose an existing journal ID.')+(rows.length?' · choose an ID from the suggestions.':' You can type another ID.');
+  $('idStatus215').textContent=selected?.available?'ID list updated · checked again before '+idCheckMoment223()+'.':(selected?.reason||'Choose an existing journal ID.')+(rows.length?' · choose an ID from the suggestions.':' You can type another ID.');
   $('idStatus215').className=selected?.available?'':'unavailable215';
- }catch(e){if(current()){$('idStatus215').textContent=cached.length?'Using saved IDs. Connect to verify before scanning.':e.message; $('idStatus215').className=cached.length?'':'unavailable215';if(!cached.length)idPicker219.update([],'Could not load IDs. Reopen the dropdown to retry, or type an ID.');}}
+ }catch(e){if(current()){$('idStatus215').textContent=cached.length?'Using saved IDs. Connect to verify before '+idCheckMoment223()+'.':e.message; $('idStatus215').className=cached.length?'':'unavailable215';if(!cached.length)idPicker219.update([],'Could not load IDs. Reopen the dropdown to retry, or type an ID.');}}
 }
 async function checkDestination215(){
  if(storageMode()==='drive'){
@@ -314,8 +357,43 @@ async function checkDestination215(){
   else {const handle=await browserFolder215();if(!handle||await handle.queryPermission({mode:'readwrite'})!=='granted')throw Error('Choose this folder again to restore permission.');}
  }
 }
+function idParts223(type,label){
+ const text=type==='journal'?idKey221(label):String(label).trim(),main=(type==='journal'?/^(OJM\d{2})(\d{4})$/:/^(HR\d{2})(\d{4})$/i).exec(text),parts=main||/^(.*?)(\d+)$/.exec(text);
+ if(!parts||parts[2].length>12)throw Error('Use an ID ending in a number.');return {prefix:parts[1],number:BigInt(parts[2]),width:parts[2].length,text};
+}
+function editedGroups223(form){
+ const groups=structuredClone(draft.groups),at=groups.findIndex(g=>g.id===form.groupID);if(at<0)throw Error('That entry is no longer in this batch.');
+ const old=groups[at],changed=[];let label=form.label.trim();if(!label||label.length>120||/[\x00-\x1f]/.test(label))throw Error('Enter an entry ID or document name.');
+ if(form.type!=='support')label=idParts223(form.type,label).text;
+ if(old.type===form.type&&form.type!=='support'&&old.label!==label){
+  const before=idParts223(old.type,old.label),after=idParts223(form.type,label);
+  for(let i=at;i<groups.length;i++){
+   const g=groups[i];if(g.type!==old.type)continue;let p;try{p=idParts223(g.type,g.label);}catch{continue;}if(p.prefix!==before.prefix)continue;
+   const number=after.number+p.number-before.number;if(number<0n||String(number).length>after.width)throw Error('The adjusted IDs exceed this numbering range.');
+   changed.push(g.id);g.label=after.prefix+String(number).padStart(after.width,'0');
+  }
+ }else if(old.label!==label||old.type!==form.type)changed.push(old.id);
+ groups[at].label=label;groups[at].type=form.type;
+ const labels=new Set();for(const g of groups){const key=g.type==='journal'?idKey221(g.label):g.label;if(labels.has(key))throw Error('The adjusted IDs would duplicate '+g.label+' in this batch. Choose another starting ID.');labels.add(key);}
+ return {groups,changed};
+}
+async function editIDs223(form){
+ const update=editedGroups223(form),previous=structuredClone(draft),checks={...draft.idChecks215};
+ for(const id of update.changed){const old=draft.groups.find(g=>g.id===id),next=update.groups.find(g=>g.id===id);delete checks[old.label];delete checks[next.label];}
+ draft.groups=update.groups;draft.idChecks215=checks;draft.title=form.title.replace(/\.pdf$/i,'');draft.outputName=draft.title+'.pdf';draft.month=form.month;
+ for(const type of ['journal','hr']){const last=[...draft.groups].reverse().find(g=>g.type===type);if(last)draft.next[type]=nextLabel215(type,last.label);}
+ try{await persist();}catch(e){draft=previous;throw e;}
+ delete settings.pendingSetup215;await rememberIDs215();closeDialog();render();status(update.changed.length>1?update.changed.length+' IDs updated. Next/Skip gaps kept; all IDs will be checked when saving.':'Entry updated. Its ID will be checked when saving.');
+}
+async function idProblem223(row,groupID){
+ const popup=document.createElement('dialog');popup.className='scan-receipt-choice218';popup.innerHTML=`<h2>Check entry ID</h2><p><strong>${esc(row.label)}</strong></p><p>${esc(row.reason||'This entry is unavailable.')}</p><p>Your scans are kept. Change the ID before saving.</p><div class="scan-setting-list211"><button type="button" class="scan-action primary" data-id-problem223="edit">Change ID</button><button type="button" class="scan-action" data-id-problem223="cancel">Back to batch</button></div>`;
+ document.body.append(popup);popup.showModal();paintLoading217(true);let finished=false;
+ try{await new Promise((resolve,reject)=>{const choose=mode=>{if(finished)return;finished=true;const e=Error('Save paused. Your scans are kept.');if(mode==='edit')e.editGroup222=groupID;reject(e);};popup.onclick=e=>{const b=e.target.closest('[data-id-problem223]');if(b)choose(b.dataset.idProblem223);};popup.oncancel=e=>{e.preventDefault();choose('cancel');};popup.onclose=()=>choose('cancel');});}
+ finally{popup.close();popup.remove();paintLoading217();}
+}
 async function confirmSetup215(){
  const form=setupValue215();if(!form.title||/[\\/\x00-\x1f]/.test(form.title))throw Error('Enter a PDF name without slashes.');C.monthTitle(form.month);
+ if(form.mode==='edit')return editIDs223(form);
  if(draft?.groups.some(g=>g.id!==form.groupID&&g.label===form.label&&draft.pages.some(p=>p.group===g.id)))throw Error('That ID is already in this PDF. Use Add receipts for its existing entry.');
  const checked=await validateIDs215([{type:form.type,label:form.label}]);form.label=checked[0].label;await checkDestination215();
  const previous=draft?structuredClone(draft):null;
@@ -372,7 +450,7 @@ async function browse215(previousStorage=settings.storage){
 }
 async function saveBatch215(){
  if(!draft?.pages.length)throw Error('Scan at least one receipt.');
- draft.workflow215=true;const groups=C.plan(draft),checks=await validateIDs215(groups.map(g=>({type:g.type,label:g.label})));draft.idChecks215=Object.fromEntries(checks.map(r=>[r.label,r]));await persist(false);await checkDestination215();
+ draft.workflow215=true;const groups=C.plan(draft);let checks;try{checks=await validateIDs215(groups.map(g=>({id:g.id,type:g.type,label:g.label})),true);}catch(e){if(e.editGroup222){draft.active=e.editGroup222;await persist(false);render();return openSetup215('edit',e.editGroup222);}throw e;}draft.idChecks215=Object.fromEntries(checks.map(r=>[r.label,r]));await persist(false);await checkDestination215();
  const r=await pdf();draft.outputName=draft.outputName||draft.title+'.pdf';
  if(storageMode()==='drive')await upload();
  else{
@@ -474,5 +552,5 @@ const actionLoading217=name=>name==='folder-new'?'Creating folder…':/folder|pr
 document.addEventListener('click',e=>{const b=e.target.closest('[data-scan]');if(!b)return;e.preventDefault();void run(()=>action(b.dataset.scan,b),actionLoading217(b.dataset.scan),b);});for(const id of ['scanCamera','scanImport'])$(id).onchange=e=>run(async()=>{valid();cameraQueue.push(...Array.from(e.target.files||[]).map((file,i)=>({file,group:retakeTarget211?.group||draft.active,replace:i===0?retakeTarget211?.key:null})));e.target.value='';await protectImports();await nextPhoto();});for(const d of [primaryDialog,destinationDialog])d.addEventListener('cancel',e=>{e.preventDefault();if(!busy)void run(()=>action('close',null));});document.addEventListener('visibilitychange',cameraVisibility213);window.addEventListener('beforeunload',e=>{if(cameraQueue.length){e.preventDefault();e.returnValue='';}});
 window.addEventListener('offline',()=>status('Offline: scans stay on this device. Upload when connected.'));window.addEventListener('online',()=>status('Connection available. Pending scans can be uploaded.'));
 try{await deviceVault14334.ready;db=supabase.createClient(scope,OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:false}});await deviceVault14334.attach(db);let s;try{s=await db.auth.getSession();if(s.error)throw s.error;}catch(e){if([400,401,403].includes(Number(e.status))||/invalid.*token|revoked|refresh_token_not_found/i.test(e.code+' '+e.message))throw e;const cached=deviceVault14334.readSession?.();if(!cached?.refresh_token||cached.user?.id!==deviceVault14334.actor)throw e;s={data:{session:cached}};}owner=s.data.session?.user?.id||'';valid();settings=await store('settings')||settings;idCache221=await store('id-suggestions221')||[];draftIndex=await store('draft-list')||[];draft=await store('current')||null;if(draft){draft.pending||=[];await persist(false);}render();status('Ready. Readability comes first; review each scan before keeping it.');const params=new URL(location.href).searchParams,error=params.get('connection_error'),showSettings=params.get('settings')==='1';history.replaceState(null,'',location.pathname);if(error)status(error,true);if(window.ReceiptNative214?.available&&await ReceiptNative214.recover()){await ensureDraft211();await nativeScan214(true);}else if(showSettings){if(settings.pendingSetup215)await openSetup215();else await destinationPanel215();if(settings.resumeFolder216&&!error){delete settings.resumeFolder216;await store('settings',settings);destination215=true;dialog=destinationDialog;try{await loading217(()=>chooseFolder(settings.folder?.id||'root'),'Opening Drive folders…');}catch(e){await destinationPanel215();status(e.message,true);}}}else if(quickCapture209){if(draft?.pending.length)await nextPhoto();else await openSetup215();}if(storageMode()==='drive')void connection().then(()=>{if(!dialog.open)render();else if($('settingsStorage'))scannerSettings();}).catch(e=>status('Drive is unavailable. You can still scan and save locally.',false));setInterval(()=>{try{valid();}catch{lockUI();}},1000);}catch(e){lockUI();status(e.message,true);}
-window.ReceiptScanner202={version:'143.221',get state(){return {owner,draft,busy,driveState,draftIndex};}};
+window.ReceiptScanner202={version:'143.223',get state(){return {owner,draft,busy,driveState,draftIndex};}};
 })();

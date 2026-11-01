@@ -1,0 +1,15 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('src/documents/scanner/scanner202.js','utf8'),key=source.slice(source.indexOf('const idKey221='),source.indexOf('\n',source.indexOf('const idKey221='))),functions=source.slice(source.indexOf('function idParts223('),source.indexOf('async function editIDs223('));
+const context={structuredClone,draft:null};vm.createContext(context);vm.runInContext(key+'\n'+functions+'\nthis.plan=editedGroups223;',context);
+const group=(id,label,type='journal')=>({id,label,type}),original=[group('a','OJM260001'),group('b','OJM260002'),group('c','OJM260005'),group('h','HR260009','hr'),group('y','OJM270001'),group('s','Cash slips','support')];
+const plan=(groups,id,label,type='journal')=>{context.draft={groups:structuredClone(groups)};const result=context.plan({groupID:id,label,type});assert.deepEqual(context.draft.groups,groups,'planning never mutates the batch');return result;};
+let result=plan(original,'a','OJM260010');assert.deepEqual(result.groups.map(g=>g.label),['OJM260010','OJM260011','OJM260014','HR260009','OJM270001','Cash slips']);assert.deepEqual(result.groups.map(g=>g.id),original.map(g=>g.id),'page associations retain the same group IDs');
+result=plan(original,'b','OJM260011');assert.deepEqual(result.groups.slice(0,3).map(g=>g.label),['OJM260001','OJM260011','OJM260014'],'editing a later ID preserves earlier IDs and later skip gaps');
+result=plan(original,'a','OJM270010');assert.deepEqual(result.groups.filter(g=>g.type==='journal').map(g=>g.label),['OJM270010','OJM270011','OJM270014','OJM270001'],'only the original sequence moves to the new prefix');
+assert.throws(()=>plan(original,'b','OJM260001'),/duplicate/);assert.deepEqual(context.draft.groups,original,'duplicate rejection leaves the original batch intact');
+assert.throws(()=>plan(original,'a','OJM269999'),/numbering range/);assert.deepEqual(context.draft.groups,original,'range rejection leaves the original batch intact');
+result=plan([group('a','OJM260001-1'),group('b','OJM260001-4')],'a','OJM260010-2');assert.deepEqual(result.groups.map(g=>g.label),['OJM260010-2','OJM260010-5'],'sub-entry sequences retain their gaps');
+result=plan(original,'s','New cash slips','support');assert.equal(result.groups.at(-1).label,'New cash slips');assert.deepEqual(result.groups.slice(0,-1),original.slice(0,-1));
+result=plan([group('a','HR260001','hr'),group('b','HR260004','hr'),group('c','HR270001','hr')],'a','HR260010','hr');assert.deepEqual(result.groups.map(g=>g.label),['HR260010','HR260013','HR270001'],'HR year sequences remain separate');
+assert.throws(()=>plan(original,'missing','OJM260001'),/no longer/);assert.throws(()=>plan(original,'a',''),/Enter an entry ID/);
+console.log('PASS exact group identities, Next/Skip offsets, earlier IDs, separate types/years, prefix changes, sub-entry gaps, collision/range rejection, non-mutating plans');

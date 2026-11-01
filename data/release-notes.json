@@ -1,10 +1,8 @@
 {
-  "version": "143.221",
+  "version": "143.223",
   "changes": [
-    "Entry ID suggestions open only when the dropdown arrow is activated.",
-    "Tapping or typing in the ID text box closes the suggestions and keeps manual editing available.",
-    "Edit ID and Skip ID start with the dropdown closed; delayed ID checks do not reopen it.",
-    "Opening and skipping IDs reuse an encrypted ID suggestion list on this device; typing no longer repeats server lookups.",
-    "IDs and receipt conflicts are checked again before capture and before finalizing a Google Drive save, including changes made on another phone."
+    "Save checks every entry ID, then proceeds automatically when there are no new conflicts.",
+    "Previously approved Add or Replace choices are remembered unless the saved receipts change; new conflicts open saved/new image comparison.",
+    "Changing an earlier ID shifts later IDs in that sequence while preserving Next/Skip gaps. Cancel or Change ID keeps all scans."
   ]
 }
