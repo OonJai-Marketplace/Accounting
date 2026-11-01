@@ -2,13 +2,13 @@
   "schema": 1,
   "applicationId": "org.oonjai.accounting.preview",
   "signerSha256": "58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c",
-  "version": "143.228-test",
-  "versionCode": 143228,
-  "sha256": "c63a87f5d446b34ba6337fb530f37bce98a244d9ce4acbcd2ecc22a989ee7d1d",
+  "version": "143.231-test",
+  "versionCode": 143231,
+  "sha256": "06c9c699c6c82eb02ff8b59793a0e087c00d8b2af769bb11e46e555ec875c94f",
   "url": "https://drive.google.com/file/d/1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje/view?usp=drivesdk",
   "notes": [
-    "Phone scanners follow the company Drive folder activated in desktop Settings.",
-    "The shared destination updates without reconnecting each phone; existing scan pages and journal links are preserved.",
-    "App identity and signing certificate are unchanged."
+    "Supports company yearly receipt folders activated in desktop Settings.",
+    "Receipt uploads follow the confirmed accounting year; December receipts stay in December even when scanned in January.",
+    "Update preserves the existing app identity and signing certificate."
   ]
 }
