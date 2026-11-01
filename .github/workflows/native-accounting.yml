@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     # CI checks compilation; delivered preview APKs are signed with the retained test key.
-    branches: [feat/connected-native-scanner, feat/scanner-receipts218, fix/scanner-picker219]
+    branches: [feat/connected-native-scanner, feat/scanner-receipts218, fix/scanner-picker219, fix/scanner-drafts220]
     paths: ['mobile/connected-accounting/**', '.github/workflows/native-accounting.yml', 'src/documents/scanner/**', 'src/subusers/phone/**']
 permissions:
   contents: read

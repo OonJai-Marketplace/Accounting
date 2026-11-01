@@ -147,3 +147,7 @@ All destination entry points share the direct folder browser. Buttons acknowledg
 ### v143.219
 
 ID suggestions render inside Accounting with opaque backgrounds and touch/keyboard selection; manual IDs remain editable and are checked against the existing permissions. The duplicate scanner header Settings button is removed; Destination remains in the batch and initial setup. Skip ID uses a focused chooser of later IDs without reopening the PDF/type/destination setup. Cancelling preserves the active ID and all pages. APK identity and signer remain unchanged.
+
+### v143.220
+
+The existing View batch screen offers Delete device copy for saved copies and Delete draft for unfinished batches. Confirmation distinguishes unsaved changes and unfinished Accounting links. Cleanup atomically removes only that account’s selected local draft and page records, including its current pointer when applicable. Saved Drive/phone/SD PDFs, Accounting attachments and other batches remain. Pending native camera recovery must finish before its batch can be deleted.
