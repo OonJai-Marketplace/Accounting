@@ -207,17 +207,43 @@ async function rememberIDs215(){
  settings.nextIDs215||={};const current=draft.groups.find(g=>g.id===draft.active&&draft.pages.some(p=>p.group===g.id));for(const g of current?[current]:C.plan(draft)){settings.nextIDs215[g.type]=nextLabel215(g.type,g.label);settings.lastType215=g.type;}
  await store('settings',settings);
 }
-function setupValue215(){if(!$('setupID215'))return setup215;return {...setup215,type:$('setupType215').value,label:$('setupID215').value.trim(),title:$('setupTitle215').value.trim(),month:setup215.month};}
-async function keepSetup215(){setup215=setupValue215();settings.pendingSetup215=setup215;await store('settings',settings);}
+function setupValue215(){if(!$('setupID215'))return setup215;return {...setup215,type:$('setupType215')?.value||setup215.type,label:$('setupID215').value.trim(),title:$('setupTitle215')?.value.trim()??setup215.title,month:setup215.month};}
+async function keepSetup215(){setup215=setupValue215();if(setup215.mode!=='skip'){settings.pendingSetup215=setup215;await store('settings',settings);}}
+let idPicker219=null;
+function idField219(label){return `<div class="scan-id-picker219"><label for="setupID215">${esc(label)}</label><div class="scan-id-field219"><input id="setupID215" role="combobox" aria-autocomplete="list" aria-controls="availableIDs215" aria-expanded="false" aria-describedby="idStatus215" value="${esc(setup215.label)}" maxlength="120" autocomplete="off" spellcheck="false"><button type="button" id="showIDs219" aria-label="Show ID suggestions" aria-controls="availableIDs215" aria-expanded="false">▾</button></div><div id="availableIDs215" class="scan-id-options219" role="listbox" aria-label="Suggested IDs" hidden></div></div>`;}
+function bindIDPicker219(expanded=false){
+ const input=$('setupID215'),list=$('availableIDs215'),toggle=$('showIDs219');let rows=[],active=-1,typing;
+ const show=value=>{list.hidden=!value;input.setAttribute('aria-expanded',String(value));toggle.setAttribute('aria-expanded',String(value));if(!value)input.removeAttribute('aria-activedescendant');};
+ const highlight=()=>{[...list.children].forEach((n,i)=>n.setAttribute('aria-selected',String(i===active)));if(active>=0&&list.children[active]){input.setAttribute('aria-activedescendant',list.children[active].id);list.children[active].scrollIntoView({block:'nearest'});}else input.removeAttribute('aria-activedescendant');};
+ const refresh=()=>{clearTimeout(typing);if($('setupID215')!==input||!primaryDialog.open)return;void keepSetup215().then(()=>refreshIDs215()).catch(dialogError);};
+ const clearError=()=>{primaryDialog.querySelector('.scan-error').textContent='';};
+ const choose=index=>{if(!rows[index]||busy)return;clearError();input.value=rows[index].label;++idsRequest215;active=index;highlight();show(false);refresh();};
+ idPicker219={input,update(values,message='No suggestions. You can type an ID above.'){rows=values;active=-1;input.removeAttribute('aria-activedescendant');list.innerHTML=rows.map((r,i)=>`<div id="idOption219-${i}" role="option" aria-selected="false" data-id-index="${i}">${esc(r.label)}</div>`).join('')||`<p class="scan-small215">${esc(message)}</p>`;}};
+ input.onfocus=()=>show(true);
+ input.oninput=()=>{++idsRequest215;clearError();clearTimeout(typing);idPicker219.update([],input.value.trim()?'Loading ID suggestions…':'Type an ID above.');show(true);$('idStatus215').textContent=input.value.trim()?'Checking available IDs…':'Type an ID to check it in Accounting.';typing=setTimeout(refresh,300);};
+ input.onchange=refresh;
+ input.onkeydown=e=>{if(e.key==='Escape'&&!list.hidden){e.preventDefault();e.stopPropagation();show(false);}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();show(true);if(rows.length){active=active<0?(e.key==='ArrowDown'?0:rows.length-1):(active+(e.key==='ArrowDown'?1:-1)+rows.length)%rows.length;highlight();}}else if(e.key==='Enter'&&!list.hidden&&active>=0){e.preventDefault();choose(active);}};
+ input.closest('.scan-id-picker219').onfocusout=e=>{if(!e.currentTarget.contains(e.relatedTarget))show(false);};
+ toggle.onclick=()=>show(list.hidden);
+ list.onpointerdown=e=>{if(e.target.closest('[data-id-index]'))e.preventDefault();};
+ list.onclick=e=>{const option=e.target.closest('[data-id-index]');if(option)choose(Number(option.dataset.idIndex));};
+ idPicker219.update([],'Loading ID suggestions…');show(expanded);
+}
+function laterID219(label,current){const key=s=>String(s).trim().replace(/^OJM[\s-]*(\d{2})[\s-]*(\d{4})(-\d+)?$/i,(_,year,number,suffix)=>'OJM'+year+number+(suffix||''));return key(label).localeCompare(key(current),undefined,{numeric:true,sensitivity:'base'})>0;}
+function openSkipID219(current){
+ setup215={mode:'skip',groupID:null,type:current.type,label:nextLabel215(current.type,current.label),after:current.label,title:draft.title,month:draft.month};
+ dialog=primaryDialog;open('Skip to ID',`<div class="scan-setup215"><p class="scan-small215">Current ID: ${esc(current.label)}</p>${idField219('Choose or type an ID')}<p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-actions">${btn('setup-confirm215','Start scan','primary')}</div></div>`);
+ bindIDPicker219(true);void refreshIDs215(true);
+}
 async function openSetup215(mode='start',groupID=null){
  valid();if(draft&&draft.completed215===draft.revision&&mode==='start'){await store('current',null);draft=null;pdfCache=null;render();}
  const g=groupID?draft?.groups.find(g=>g.id===groupID):null;
  const prior=mode==='start'?settings.pendingSetup215:null,type=g?.type||prior?.type||settings.lastType215||'journal';
  setup215={mode,groupID:g?.id||null,type,label:g?.label||prior?.label||requestedEntry208||suggested215(type),title:prior?.title||draft?.title||C.monthTitle(C.monthNow()),month:prior?.month||draft?.month||C.monthNow()};
- dialog=primaryDialog;open(mode==='edit'?'Edit document':'Before scanning',`<div class="scan-setup215"><label>PDF name<input id="setupTitle215" value="${esc(setup215.title)}" maxlength="170"></label><label>Document type<select id="setupType215">${['journal','hr','support'].map(t=>`<option value="${t}" ${t===type?'selected':''}>${typeName215(t)}</option>`).join('')}</select></label><label>${mode==='edit'?'Entry ID / name':'Starting ID / name'}<input id="setupID215" list="availableIDs215" value="${esc(setup215.label)}" maxlength="120" autocomplete="off"></label><datalist id="availableIDs215"></datalist><p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-path215"><span id="setupPath215">${esc(destinationName215())}</span>${btn('destination215','Destination')}</div><p class="scan-small215">${draft?.pages.length?draft.pages.length+' pages remain in this PDF. ':''}Confirm the ID against your documents.</p><div class="scan-actions">${btn('setup-confirm215',mode==='edit'?'Apply changes':'Start scan','primary')}${mode==='start'&&draft?.pages.length?btn('batch-view215','View batch'):''}</div></div>`);
+ dialog=primaryDialog;open(mode==='edit'?'Edit document':'Before scanning',`<div class="scan-setup215"><label>PDF name<input id="setupTitle215" value="${esc(setup215.title)}" maxlength="170"></label><label>Document type<select id="setupType215">${['journal','hr','support'].map(t=>`<option value="${t}" ${t===type?'selected':''}>${typeName215(t)}</option>`).join('')}</select></label>${idField219(mode==='edit'?'Entry ID / name':'Starting ID / name')}<p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-path215"><span id="setupPath215">${esc(destinationName215())}</span>${btn('destination215','Destination')}</div><p class="scan-small215">${draft?.pages.length?draft.pages.length+' pages remain in this PDF. ':''}Confirm the ID against your documents.</p><div class="scan-actions">${btn('setup-confirm215',mode==='edit'?'Apply changes':'Start scan','primary')}${mode==='start'&&draft?.pages.length?btn('batch-view215','View batch'):''}</div></div>`);
  $('setupType215').onchange=()=>run(async()=>{setup215=setupValue215();$('setupID215').value=suggested215($('setupType215').value);await keepSetup215();await refreshIDs215(true);});
  for(const id of ['setupTitle215'])$(id).onchange=()=>run(keepSetup215);
- let typing;const input=$('setupID215');input.oninput=()=>{++idsRequest215;clearTimeout(typing);typing=setTimeout(()=>{void keepSetup215().then(()=>refreshIDs215()).catch(dialogError);},300);};input.onchange=()=>{clearTimeout(typing);void keepSetup215().then(()=>refreshIDs215()).catch(dialogError);};
+ bindIDPicker219();
  void refreshIDs215(mode==='start'&&!requestedEntry208, !settings.nextIDs215?.[type]);
 }
 async function refreshIDs215(choose=false,resume=false){
@@ -229,9 +255,10 @@ async function refreshIDs215(choose=false,resume=false){
   const client=ReceiptLinks208.create({url:scope,key:OJM_SUPABASE_ANON_KEY,session});
   const response=await client.api('suggest-ids',{type:form.type,label:form.label,scan:draft?.id,exclude:[...new Set(exclude)],resume:choose&&resume});valid();
   if(ticket!==idsRequest215||$('setupID215')!==input||input.value.trim()!==form.label)return;
-  const rows=response.suggestions||[];let selected=response.selected;
+  const rows=(response.suggestions||[]).filter(r=>!form.after||laterID219(r.label,form.after));let selected=response.selected;
   if(choose&&rows.length&&(resume||!selected?.available)){input.value=rows[0].label;selected=rows[0];await keepSetup215();}
-  $('availableIDs215').innerHTML=rows.map(r=>`<option value="${esc(r.label)}"></option>`).join('');
+  if(ticket!==idsRequest215||$('setupID215')!==input)return;
+  idPicker219.update(rows);
   $('idStatus215').textContent=selected?.available?(selected.receiptCount?'Existing receipts · choose Add or Replace when continuing':'Available · confirmed in Accounting'):(selected?.reason||'Choose an existing journal ID.')+(rows.length?' · choose an available ID from the suggestions.':' No available IDs found after this number.');
   $('idStatus215').className=selected?.available?'available215':'unavailable215';
  },'Checking IDs…');}catch(e){if(ticket===idsRequest215&&$('setupID215')===input){$('idStatus215').textContent=e.message;$('idStatus215').className='unavailable215';}}
@@ -254,7 +281,7 @@ async function confirmSetup215(){
  if(!draft){draft=C.create(form.month,form.label,form.type);draft.pending=[];}
  else if(form.groupID){const g=draft.groups.find(g=>g.id===form.groupID);g.type=form.type;g.label=form.label;draft.active=g.id;}
  else {const empty=draft.groups.find(g=>!draft.pages.some(p=>p.group===g.id)&&!draft.pending.some(p=>p.group===g.id));if(empty){empty.type=form.type;empty.label=form.label;draft.active=empty.id;}else C.addGroup(draft,form.type,form.label);}
- draft.workflow215=true;draft.configured215=true;draft.title=form.title.replace(/\.pdf$/i,'');draft.outputName=draft.title+'.pdf';draft.month=form.month;draft.folder=settings.folder||{id:'root',name:'My Drive'};
+ draft.workflow215=true;draft.configured215=true;if(form.mode!=='skip'){draft.title=form.title.replace(/\.pdf$/i,'');draft.outputName=draft.title+'.pdf';draft.month=form.month;draft.folder=settings.folder||{id:'root',name:'My Drive'};}
  draft.next[form.type]=nextLabel215(form.type,form.label);draft.idChecks215={...draft.idChecks215,[form.label]:checked[0]};
  try{await persist();}catch(e){draft=previous;throw e;}
  delete settings.pendingSetup215;await store('settings',settings);closeDialog();render();
@@ -267,7 +294,7 @@ function renderBatch215(){
 }
 async function nextEntry215(skip=false){
  const current=draft.groups.find(g=>g.id===draft.active);let label=nextLabel215(current.type,current.label);
- if(skip){await openSetup215('skip');$('setupType215').value=current.type;$('setupID215').value=label;setup215.type=current.type;await keepSetup215();return refreshIDs215();}
+ if(skip)return openSkipID219(current);
  const candidates=[{type:current.type,label}];
  const rows=await validateIDs215(candidates),next=rows.find(r=>r.available&&!draft.groups.some(g=>g.label===r.label));
  if(!next)throw Error(label+' is unavailable. Use Skip ID to choose another ID.');
@@ -403,8 +430,8 @@ async function loading217(fn,label='Loading…'){
 }
 async function run(fn,label,button){if(busy||frozen){paintLoading217();return;}busy=true;const original=button?.innerHTML;if(button){button.disabled=true;button.setAttribute('aria-busy','true');button.textContent=label||'Loading…';}try{await loading217(fn,label);}catch(e){dialogError(e);}finally{busy=false;if(button?.isConnected){button.disabled=false;button.removeAttribute('aria-busy');button.innerHTML=original;}}}
 const actionLoading217=name=>name==='folder-new'?'Creating folder…':/folder|provider|destination|browse/.test(name)?'Opening destination…':name==='connect'?'Connecting to Google Drive…':/save|upload/.test(name)?'Saving…':'Loading…';
-document.addEventListener('click',e=>{const b=e.target.closest('[data-scan]');if(!b)return;e.preventDefault();void run(()=>action(b.dataset.scan,b),actionLoading217(b.dataset.scan),b);});if(nativeUI215()){$('settingsButton').textContent='Settings';$('settingsButton').className='scan-action';} $('settingsButton').onclick=()=>run(destinationPanel215);for(const id of ['scanCamera','scanImport'])$(id).onchange=e=>run(async()=>{valid();cameraQueue.push(...Array.from(e.target.files||[]).map((file,i)=>({file,group:retakeTarget211?.group||draft.active,replace:i===0?retakeTarget211?.key:null})));e.target.value='';await protectImports();await nextPhoto();});for(const d of [primaryDialog,destinationDialog])d.addEventListener('cancel',e=>{e.preventDefault();if(!busy)void run(()=>action('close',null));});document.addEventListener('visibilitychange',cameraVisibility213);window.addEventListener('beforeunload',e=>{if(cameraQueue.length){e.preventDefault();e.returnValue='';}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-scan]');if(!b)return;e.preventDefault();void run(()=>action(b.dataset.scan,b),actionLoading217(b.dataset.scan),b);});for(const id of ['scanCamera','scanImport'])$(id).onchange=e=>run(async()=>{valid();cameraQueue.push(...Array.from(e.target.files||[]).map((file,i)=>({file,group:retakeTarget211?.group||draft.active,replace:i===0?retakeTarget211?.key:null})));e.target.value='';await protectImports();await nextPhoto();});for(const d of [primaryDialog,destinationDialog])d.addEventListener('cancel',e=>{e.preventDefault();if(!busy)void run(()=>action('close',null));});document.addEventListener('visibilitychange',cameraVisibility213);window.addEventListener('beforeunload',e=>{if(cameraQueue.length){e.preventDefault();e.returnValue='';}});
 window.addEventListener('offline',()=>status('Offline: scans stay on this device. Upload when connected.'));window.addEventListener('online',()=>status('Connection available. Pending scans can be uploaded.'));
 try{await deviceVault14334.ready;db=supabase.createClient(scope,OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:false}});await deviceVault14334.attach(db);let s;try{s=await db.auth.getSession();if(s.error)throw s.error;}catch(e){if([400,401,403].includes(Number(e.status))||/invalid.*token|revoked|refresh_token_not_found/i.test(e.code+' '+e.message))throw e;const cached=deviceVault14334.readSession?.();if(!cached?.refresh_token||cached.user?.id!==deviceVault14334.actor)throw e;s={data:{session:cached}};}owner=s.data.session?.user?.id||'';valid();settings=await store('settings')||settings;draftIndex=await store('draft-list')||[];draft=await store('current')||null;if(draft){draft.pending||=[];await persist(false);}render();status('Ready. Readability comes first; review each scan before keeping it.');const params=new URL(location.href).searchParams,error=params.get('connection_error'),showSettings=params.get('settings')==='1';history.replaceState(null,'',location.pathname);if(error)status(error,true);if(window.ReceiptNative214?.available&&await ReceiptNative214.recover()){await ensureDraft211();await nativeScan214(true);}else if(showSettings){if(settings.pendingSetup215)await openSetup215();else await destinationPanel215();if(settings.resumeFolder216&&!error){delete settings.resumeFolder216;await store('settings',settings);destination215=true;dialog=destinationDialog;try{await loading217(()=>chooseFolder(settings.folder?.id||'root'),'Opening Drive folders…');}catch(e){await destinationPanel215();status(e.message,true);}}}else if(quickCapture209){if(draft?.pending.length)await nextPhoto();else await openSetup215();}if(storageMode()==='drive')void connection().then(()=>{if(!dialog.open)render();else if($('settingsStorage'))scannerSettings();}).catch(e=>status('Drive is unavailable. You can still scan and save locally.',false));setInterval(()=>{try{valid();}catch{lockUI();}},1000);}catch(e){lockUI();status(e.message,true);}
-window.ReceiptScanner202={version:'143.218',get state(){return {owner,draft,busy,driveState,draftIndex};}};
+window.ReceiptScanner202={version:'143.219',get state(){return {owner,draft,busy,driveState,draftIndex};}};
 })();

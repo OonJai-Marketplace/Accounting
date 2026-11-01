@@ -143,3 +143,7 @@ The user reports Drive is now connected; no Google Cloud configuration was chang
 ### v143.218
 
 All destination entry points share the direct folder browser. Buttons acknowledge taps immediately; a delayed spinner stays inside the active dialog during folder navigation and creation. Background ID suggestions do not lock destination controls. Main IDs accept the former hyphenated spelling and resolve to the actual saved ID. Closed periods do not block attaching documents. Existing receipts require Add, Replace, or Cancel; replacement is committed only after the new PDF is verified. The server atomically checks the exact reviewed receipt set, retains superseded document history and preserves journal UUIDs. APK identity and signer remain unchanged.
+
+### v143.219
+
+ID suggestions render inside Accounting with opaque backgrounds and touch/keyboard selection; manual IDs remain editable and are checked against the existing permissions. The duplicate scanner header Settings button is removed; Destination remains in the batch and initial setup. Skip ID uses a focused chooser of later IDs without reopening the PDF/type/destination setup. Cancelling preserves the active ID and all pages. APK identity and signer remain unchanged.

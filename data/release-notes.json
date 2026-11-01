@@ -1,8 +1,8 @@
 {
-  "version": "143.218",
+  "version": "143.219",
   "changes": [
-    "Scanner buttons acknowledge taps immediately and show visible loading progress for slow destinations and folders.",
-    "All destination shortcuts open Drive, phone or SD folders directly.",
-    "Existing and closed journal IDs accept receipts, with explicit Add supporting documents or Replace existing receipts choices."
+    "ID suggestions use an opaque, readable in-app list with manual ID entry.",
+    "The scanner keeps Destination and removes the duplicate top Settings button.",
+    "Skip ID opens only later ID choices and manual entry while keeping the current PDF and destination."
   ]
 }
