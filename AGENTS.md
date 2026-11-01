@@ -192,3 +192,5 @@ Scanner receipts 2026-11-01: existing/closed journal IDs remain selectable for s
 Scanner picker 2026-11-01 v143.219: use an opaque in-app ID suggestion list with manual entry, remove the duplicate scanner header Settings button, and keep Destination. Skip ID opens only later ID choices/manual entry, preserving the current PDF name, type, destination and pages; never reopen initial batch setup for Skip ID.
 
 Scanner cleanup 2026-11-01 v143.220: put Delete directly on the existing View batch screen; the user can already find their scans. Confirm deletion of the selected local device copy or unfinished draft, warning about unsaved changes and unfinished links. Never delete saved PDFs or Accounting attachments as part of device-draft cleanup. Preserve other batches and account isolation.
+
+Scanner dropdown 2026-11-01 v143.221: ID suggestions open only through the dropdown button. Text-field focus, taps and typing close the list; initial setup, Edit ID and Skip ID start closed. Background results must not reopen it. Keep manual editing and keyboard activation of the dropdown button.

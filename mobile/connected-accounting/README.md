@@ -151,3 +151,7 @@ ID suggestions render inside Accounting with opaque backgrounds and touch/keyboa
 ### v143.220
 
 The existing View batch screen offers Delete device copy for saved copies and Delete draft for unfinished batches. Confirmation distinguishes unsaved changes and unfinished Accounting links. Cleanup atomically removes only that account’s selected local draft and page records, including its current pointer when applicable. Saved Drive/phone/SD PDFs, Accounting attachments and other batches remain. Pending native camera recovery must finish before its batch can be deleted.
+
+### v143.221
+
+The ID list opens only through its dropdown arrow. Focusing, tapping or typing in the text box closes the list for normal keyboard editing. Setup, Edit ID and Skip ID all start with the list closed, and asynchronous suggestion responses never reopen it. The dropdown button and opened list support keyboard activation, selection and Escape.
