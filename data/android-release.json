@@ -2,13 +2,13 @@
   "schema": 1,
   "applicationId": "org.oonjai.accounting.preview",
   "signerSha256": "58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c",
-  "version": "143.222-test",
-  "versionCode": 143222,
-  "sha256": "9da25f77fd8f78df0cb59d367859c59260457d4b5d635315a2cbd571c59f5eca",
+  "version": "143.221-test",
+  "versionCode": 143221,
+  "sha256": "2463795147e587f74fe0e092d0ce713e99885e212906041dee850edc597b0147",
   "url": "https://drive.google.com/file/d/1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje/view?usp=drivesdk",
   "notes": [
-    "Before saving, compare currently saved receipts beside the new scans for the same entry.",
-    "Browse pages and documents, enlarge either image, and see the entry ID and page counts.",
-    "Choose Add, Replace, or Edit ID first; editing keeps the scans and writes no PDF."
+    "ID suggestions open only with the dropdown arrow; editing closes the list.",
+    "Opening and skipping IDs reuse an encrypted list on this phone for faster selection.",
+    "New scans and final Google Drive saves check Accounting again, including receipt changes from other phones."
   ]
 }

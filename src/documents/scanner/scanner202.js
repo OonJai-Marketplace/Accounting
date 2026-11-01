@@ -215,16 +215,16 @@ async function ids215(groups,scan=draft?.id){
  return response.ids;
 }
 async function validateIDs215(groups,review222=false){
- const rows=await ids215(groups),bad=rows.find(r=>!r.available);if(bad)throw Error(bad.label+': '+bad.reason);
+ const rows=await ids215(groups),bad=rows.findIndex(r=>!r.available);if(bad>=0){if(review222)await idProblem223(rows[bad],groups[bad]?.id);throw Error(rows[bad].label+': '+rows[bad].reason);}
  for(const [index,row] of rows.entries()){
   const expected=(row.receipts||[]).map(r=>r.id).sort(),previous=draft?.idChecks215?.[row.label]?.receiptChoice;
-  row.receiptChoice=review222&&expected.length?await compareReceipts222(row,groups[index]?.id):previous&&JSON.stringify(previous.expected)===JSON.stringify(expected)?previous:expected.length?await receiptChoice218(row):{mode:'new',expected:[]};
+  row.receiptChoice=previous&&JSON.stringify(previous.expected)===JSON.stringify(expected)?previous:expected.length?(review222?await compareReceipts222(row,groups[index]?.id):await receiptChoice218(row)):{mode:'new',expected:[]};
  }
  return rows;
 }
 async function receiptChoice218(row){
  const popup=document.createElement('dialog');popup.className='scan-receipt-choice218';
- popup.innerHTML=`<h2>Receipts already saved</h2><p><strong>${esc(row.label)}</strong> has ${(row.receipts||[]).length} saved document section(s).</p><p>Add keeps the existing receipts. Replace makes your new scans the current receipts for this entry after the PDF is saved successfully. Compare both documents before the final save.</p><div class="scan-setting-list211"><button class="scan-action primary" data-receipt-choice="add">Add supporting documents</button><button class="scan-action danger" data-receipt-choice="replace">Replace existing receipts</button><button class="scan-action" data-receipt-choice="cancel">Cancel</button></div>`;
+ popup.innerHTML=`<h2>Receipts already saved</h2><p><strong>${esc(row.label)}</strong> has ${(row.receipts||[]).length} saved document section(s).</p><p>Add keeps the existing receipts. Replace makes your new scans the current receipts for this entry after the PDF is saved successfully. This choice will be remembered when saving. If the saved receipts change, you can compare them before deciding again.</p><div class="scan-setting-list211"><button class="scan-action primary" data-receipt-choice="add">Add supporting documents</button><button class="scan-action danger" data-receipt-choice="replace">Replace existing receipts</button><button class="scan-action" data-receipt-choice="cancel">Cancel</button></div>`;
  document.body.append(popup);popup.showModal();paintLoading217(true);
  try{return await new Promise((resolve,reject)=>{const choose=mode=>{if(mode==='cancel')reject(Error('Scan cancelled. Existing receipts are unchanged.'));else resolve({mode,expected:row.receipts.map(r=>r.id).sort()});};popup.onclick=e=>{const b=e.target.closest('[data-receipt-choice]');if(b)choose(b.dataset.receiptChoice);};popup.oncancel=e=>{e.preventDefault();choose('cancel');};popup.onclose=()=>choose('cancel');});}
  finally{popup.close();popup.remove();paintLoading217();}
@@ -276,7 +276,8 @@ async function rememberIDs215(){
  await store('settings',settings);
 }
 function setupValue215(){if(!$('setupID215'))return setup215;return {...setup215,type:$('setupType215')?.value||setup215.type,label:$('setupID215').value.trim(),title:$('setupTitle215')?.value.trim()??setup215.title,month:setup215.month};}
-async function keepSetup215(){setup215=setupValue215();if(setup215.mode!=='skip'){settings.pendingSetup215=setup215;await store('settings',settings);}}
+async function keepSetup215(){setup215=setupValue215();if(setup215.mode==='start'){settings.pendingSetup215=setup215;await store('settings',settings);}}
+const idCheckMoment223=()=>setup215?.mode==='edit'?'saving':'scanning';
 let idPicker219=null;
 function idField219(label){return `<div class="scan-id-picker219"><label for="setupID215">${esc(label)}</label><div class="scan-id-field219"><input id="setupID215" role="combobox" aria-autocomplete="none" aria-controls="availableIDs215" aria-expanded="false" aria-describedby="idStatus215" value="${esc(setup215.label)}" maxlength="120" autocomplete="off" spellcheck="false"><button type="button" id="showIDs219" aria-label="Show ID suggestions" aria-controls="availableIDs215" aria-expanded="false">▾</button></div><div id="availableIDs215" class="scan-id-options219" role="listbox" tabindex="-1" aria-label="Suggested IDs" hidden></div></div>`;}
 function bindIDPicker219(){
@@ -288,7 +289,7 @@ function bindIDPicker219(){
  const choose=index=>{if(!rows[index]||busy)return;clearError();input.value=rows[index].label;++idsRequest215;show(false);toggle.focus({preventScroll:true});refresh();};
  idPicker219={input,update(values,message='No suggestions. You can type an ID above.'){rows=values;active=-1;list.removeAttribute('aria-activedescendant');list.innerHTML=rows.map((r,i)=>`<div id="idOption219-${i}" role="option" aria-selected="false" data-id-index="${i}">${esc(r.label)}</div>`).join('')||`<p class="scan-small215">${esc(message)}</p>`;}};
  input.onfocus=input.onpointerdown=()=>show(false);
- input.oninput=()=>{++idsRequest215;clearError();clearTimeout(typing);idPicker219.update([],input.value.trim()?'Loading ID suggestions…':'Type an ID above.');show(false);$('idStatus215').textContent=input.value.trim()?'ID will be checked before scanning.':'Type an ID to check it in Accounting.';typing=setTimeout(refresh,300);};
+ input.oninput=()=>{++idsRequest215;clearError();clearTimeout(typing);idPicker219.update([],input.value.trim()?'Loading ID suggestions…':'Type an ID above.');show(false);$('idStatus215').textContent=input.value.trim()?'ID will be checked before '+idCheckMoment223()+'.':'Type an ID to check it in Accounting.';typing=setTimeout(refresh,300);};
  input.onchange=refresh;
  list.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();show(false);toggle.focus({preventScroll:true});}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(rows.length){active=active<0?(e.key==='ArrowDown'?0:rows.length-1):(active+(e.key==='ArrowDown'?1:-1)+rows.length)%rows.length;highlight();}}else if(e.key==='Enter'&&active>=0){e.preventDefault();choose(active);}};
  input.closest('.scan-id-picker219').onfocusout=e=>{if(!e.currentTarget.contains(e.relatedTarget))show(false);};
@@ -306,9 +307,9 @@ function openSkipID219(current){
 async function openSetup215(mode='start',groupID=null){
  valid();if(draft&&draft.completed215===draft.revision&&mode==='start'){await store('current',null);draft=null;pdfCache=null;render();}
  const g=groupID?draft?.groups.find(g=>g.id===groupID):null;
- const prior=mode==='start'?settings.pendingSetup215:null,type=g?.type||prior?.type||settings.lastType215||'journal';
+ const prior=mode==='start'&&settings.pendingSetup215?.mode!=='edit'?settings.pendingSetup215:null,type=g?.type||prior?.type||settings.lastType215||'journal';
  setup215={mode,groupID:g?.id||null,type,label:g?.label||prior?.label||requestedEntry208||suggested215(type),title:prior?.title||draft?.title||C.monthTitle(C.monthNow()),month:prior?.month||draft?.month||C.monthNow()};
- dialog=primaryDialog;open(mode==='edit'?'Edit document':'Before scanning',`<div class="scan-setup215"><label>PDF name<input id="setupTitle215" value="${esc(setup215.title)}" maxlength="170"></label><label>Document type<select id="setupType215">${['journal','hr','support'].map(t=>`<option value="${t}" ${t===type?'selected':''}>${typeName215(t)}</option>`).join('')}</select></label>${idField219(mode==='edit'?'Entry ID / name':'Starting ID / name')}<p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-path215"><span id="setupPath215">${esc(destinationName215())}</span>${btn('destination215','Destination')}</div><p class="scan-small215">${draft?.pages.length?draft.pages.length+' pages remain in this PDF. ':''}Confirm the ID against your documents.</p><div class="scan-actions">${btn('setup-confirm215',mode==='edit'?'Apply changes':'Start scan','primary')}${mode==='start'&&draft?.pages.length?btn('batch-view215','View batch'):''}</div></div>`);
+ dialog=primaryDialog;open(mode==='edit'?'Edit document':'Before scanning',`<div class="scan-setup215"><label>PDF name<input id="setupTitle215" value="${esc(setup215.title)}" maxlength="170"></label><label>Document type<select id="setupType215">${['journal','hr','support'].map(t=>`<option value="${t}" ${t===type?'selected':''}>${typeName215(t)}</option>`).join('')}</select></label>${idField219(mode==='edit'?'Entry ID / name':'Starting ID / name')}<p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-path215"><span id="setupPath215">${esc(destinationName215())}</span>${btn('destination215','Destination')}</div><p class="scan-small215">${draft?.pages.length?draft.pages.length+' pages remain in this PDF. ':''}${mode==='edit'?'Numbered IDs shift later IDs in the same sequence, keeping Next/Skip gaps. IDs are checked when saving.':'Confirm the ID against your documents.'}</p><div class="scan-actions">${btn('setup-confirm215',mode==='edit'?'Apply changes':'Start scan','primary')}${mode==='start'&&draft?.pages.length?btn('batch-view215','View batch'):''}</div></div>`);
  $('setupType215').onchange=()=>run(async()=>{setup215=setupValue215();$('setupID215').value=suggested215($('setupType215').value);await keepSetup215();await refreshIDs215(true);});
  for(const id of ['setupTitle215'])$(id).onchange=()=>run(keepSetup215);
  bindIDPicker219();
@@ -326,7 +327,7 @@ async function refreshIDs215(choose=false,resume=false,allowFetch=choose){
   idPicker219.update(cached,allowFetch?'Loading ID suggestions…':'Open the dropdown to load more IDs, or type an ID.');
   if(choose&&cached.length&&(resume||!cached.some(r=>idKey221(r.label)===idKey221(form.label)))){input.value=cached[0].label;await keepSetup215();}
   if(!current())return;
-  $('idStatus215').textContent=cached.length?'Saved ID list · checked again before scanning.':'ID will be checked before scanning.';
+  $('idStatus215').textContent=cached.length?'Saved ID list · checked again before '+idCheckMoment223()+'.':'ID will be checked before '+idCheckMoment223()+'.';
   $('idStatus215').className='';
   if(!allowFetch||cached.some(r=>Date.now()-r.checkedAt<idCacheAge221))return;
   const args={type:form.type,label:form.label,scan:draft?.id,exclude:[...new Set(exclude)],resume:choose&&resume},key=JSON.stringify(args);
@@ -342,9 +343,9 @@ async function refreshIDs215(choose=false,resume=false,allowFetch=choose){
   if(choose&&rows.length&&(resume||!selected?.available)){input.value=rows[0].label;selected=rows[0];await keepSetup215();}
   if(!current())return;
   idPicker219.update(rows);
-  $('idStatus215').textContent=selected?.available?'ID list updated · checked again before scanning.':(selected?.reason||'Choose an existing journal ID.')+(rows.length?' · choose an ID from the suggestions.':' You can type another ID.');
+  $('idStatus215').textContent=selected?.available?'ID list updated · checked again before '+idCheckMoment223()+'.':(selected?.reason||'Choose an existing journal ID.')+(rows.length?' · choose an ID from the suggestions.':' You can type another ID.');
   $('idStatus215').className=selected?.available?'':'unavailable215';
- }catch(e){if(current()){$('idStatus215').textContent=cached.length?'Using saved IDs. Connect to verify before scanning.':e.message; $('idStatus215').className=cached.length?'':'unavailable215';if(!cached.length)idPicker219.update([],'Could not load IDs. Reopen the dropdown to retry, or type an ID.');}}
+ }catch(e){if(current()){$('idStatus215').textContent=cached.length?'Using saved IDs. Connect to verify before '+idCheckMoment223()+'.':e.message; $('idStatus215').className=cached.length?'':'unavailable215';if(!cached.length)idPicker219.update([],'Could not load IDs. Reopen the dropdown to retry, or type an ID.');}}
 }
 async function checkDestination215(){
  if(storageMode()==='drive'){
@@ -356,8 +357,43 @@ async function checkDestination215(){
   else {const handle=await browserFolder215();if(!handle||await handle.queryPermission({mode:'readwrite'})!=='granted')throw Error('Choose this folder again to restore permission.');}
  }
 }
+function idParts223(type,label){
+ const text=type==='journal'?idKey221(label):String(label).trim(),main=(type==='journal'?/^(OJM\d{2})(\d{4})$/:/^(HR\d{2})(\d{4})$/i).exec(text),parts=main||/^(.*?)(\d+)$/.exec(text);
+ if(!parts||parts[2].length>12)throw Error('Use an ID ending in a number.');return {prefix:parts[1],number:BigInt(parts[2]),width:parts[2].length,text};
+}
+function editedGroups223(form){
+ const groups=structuredClone(draft.groups),at=groups.findIndex(g=>g.id===form.groupID);if(at<0)throw Error('That entry is no longer in this batch.');
+ const old=groups[at],changed=[];let label=form.label.trim();if(!label||label.length>120||/[\x00-\x1f]/.test(label))throw Error('Enter an entry ID or document name.');
+ if(form.type!=='support')label=idParts223(form.type,label).text;
+ if(old.type===form.type&&form.type!=='support'&&old.label!==label){
+  const before=idParts223(old.type,old.label),after=idParts223(form.type,label);
+  for(let i=at;i<groups.length;i++){
+   const g=groups[i];if(g.type!==old.type)continue;let p;try{p=idParts223(g.type,g.label);}catch{continue;}if(p.prefix!==before.prefix)continue;
+   const number=after.number+p.number-before.number;if(number<0n||String(number).length>after.width)throw Error('The adjusted IDs exceed this numbering range.');
+   changed.push(g.id);g.label=after.prefix+String(number).padStart(after.width,'0');
+  }
+ }else if(old.label!==label||old.type!==form.type)changed.push(old.id);
+ groups[at].label=label;groups[at].type=form.type;
+ const labels=new Set();for(const g of groups){const key=g.type==='journal'?idKey221(g.label):g.label;if(labels.has(key))throw Error('The adjusted IDs would duplicate '+g.label+' in this batch. Choose another starting ID.');labels.add(key);}
+ return {groups,changed};
+}
+async function editIDs223(form){
+ const update=editedGroups223(form),previous=structuredClone(draft),checks={...draft.idChecks215};
+ for(const id of update.changed){const old=draft.groups.find(g=>g.id===id),next=update.groups.find(g=>g.id===id);delete checks[old.label];delete checks[next.label];}
+ draft.groups=update.groups;draft.idChecks215=checks;draft.title=form.title.replace(/\.pdf$/i,'');draft.outputName=draft.title+'.pdf';draft.month=form.month;
+ for(const type of ['journal','hr']){const last=[...draft.groups].reverse().find(g=>g.type===type);if(last)draft.next[type]=nextLabel215(type,last.label);}
+ try{await persist();}catch(e){draft=previous;throw e;}
+ delete settings.pendingSetup215;await rememberIDs215();closeDialog();render();status(update.changed.length>1?update.changed.length+' IDs updated. Next/Skip gaps kept; all IDs will be checked when saving.':'Entry updated. Its ID will be checked when saving.');
+}
+async function idProblem223(row,groupID){
+ const popup=document.createElement('dialog');popup.className='scan-receipt-choice218';popup.innerHTML=`<h2>Check entry ID</h2><p><strong>${esc(row.label)}</strong></p><p>${esc(row.reason||'This entry is unavailable.')}</p><p>Your scans are kept. Change the ID before saving.</p><div class="scan-setting-list211"><button type="button" class="scan-action primary" data-id-problem223="edit">Change ID</button><button type="button" class="scan-action" data-id-problem223="cancel">Back to batch</button></div>`;
+ document.body.append(popup);popup.showModal();paintLoading217(true);let finished=false;
+ try{await new Promise((resolve,reject)=>{const choose=mode=>{if(finished)return;finished=true;const e=Error('Save paused. Your scans are kept.');if(mode==='edit')e.editGroup222=groupID;reject(e);};popup.onclick=e=>{const b=e.target.closest('[data-id-problem223]');if(b)choose(b.dataset.idProblem223);};popup.oncancel=e=>{e.preventDefault();choose('cancel');};popup.onclose=()=>choose('cancel');});}
+ finally{popup.close();popup.remove();paintLoading217();}
+}
 async function confirmSetup215(){
  const form=setupValue215();if(!form.title||/[\\/\x00-\x1f]/.test(form.title))throw Error('Enter a PDF name without slashes.');C.monthTitle(form.month);
+ if(form.mode==='edit')return editIDs223(form);
  if(draft?.groups.some(g=>g.id!==form.groupID&&g.label===form.label&&draft.pages.some(p=>p.group===g.id)))throw Error('That ID is already in this PDF. Use Add receipts for its existing entry.');
  const checked=await validateIDs215([{type:form.type,label:form.label}]);form.label=checked[0].label;await checkDestination215();
  const previous=draft?structuredClone(draft):null;
@@ -516,5 +552,5 @@ const actionLoading217=name=>name==='folder-new'?'Creating folder…':/folder|pr
 document.addEventListener('click',e=>{const b=e.target.closest('[data-scan]');if(!b)return;e.preventDefault();void run(()=>action(b.dataset.scan,b),actionLoading217(b.dataset.scan),b);});for(const id of ['scanCamera','scanImport'])$(id).onchange=e=>run(async()=>{valid();cameraQueue.push(...Array.from(e.target.files||[]).map((file,i)=>({file,group:retakeTarget211?.group||draft.active,replace:i===0?retakeTarget211?.key:null})));e.target.value='';await protectImports();await nextPhoto();});for(const d of [primaryDialog,destinationDialog])d.addEventListener('cancel',e=>{e.preventDefault();if(!busy)void run(()=>action('close',null));});document.addEventListener('visibilitychange',cameraVisibility213);window.addEventListener('beforeunload',e=>{if(cameraQueue.length){e.preventDefault();e.returnValue='';}});
 window.addEventListener('offline',()=>status('Offline: scans stay on this device. Upload when connected.'));window.addEventListener('online',()=>status('Connection available. Pending scans can be uploaded.'));
 try{await deviceVault14334.ready;db=supabase.createClient(scope,OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:false}});await deviceVault14334.attach(db);let s;try{s=await db.auth.getSession();if(s.error)throw s.error;}catch(e){if([400,401,403].includes(Number(e.status))||/invalid.*token|revoked|refresh_token_not_found/i.test(e.code+' '+e.message))throw e;const cached=deviceVault14334.readSession?.();if(!cached?.refresh_token||cached.user?.id!==deviceVault14334.actor)throw e;s={data:{session:cached}};}owner=s.data.session?.user?.id||'';valid();settings=await store('settings')||settings;idCache221=await store('id-suggestions221')||[];draftIndex=await store('draft-list')||[];draft=await store('current')||null;if(draft){draft.pending||=[];await persist(false);}render();status('Ready. Readability comes first; review each scan before keeping it.');const params=new URL(location.href).searchParams,error=params.get('connection_error'),showSettings=params.get('settings')==='1';history.replaceState(null,'',location.pathname);if(error)status(error,true);if(window.ReceiptNative214?.available&&await ReceiptNative214.recover()){await ensureDraft211();await nativeScan214(true);}else if(showSettings){if(settings.pendingSetup215)await openSetup215();else await destinationPanel215();if(settings.resumeFolder216&&!error){delete settings.resumeFolder216;await store('settings',settings);destination215=true;dialog=destinationDialog;try{await loading217(()=>chooseFolder(settings.folder?.id||'root'),'Opening Drive folders…');}catch(e){await destinationPanel215();status(e.message,true);}}}else if(quickCapture209){if(draft?.pending.length)await nextPhoto();else await openSetup215();}if(storageMode()==='drive')void connection().then(()=>{if(!dialog.open)render();else if($('settingsStorage'))scannerSettings();}).catch(e=>status('Drive is unavailable. You can still scan and save locally.',false));setInterval(()=>{try{valid();}catch{lockUI();}},1000);}catch(e){lockUI();status(e.message,true);}
-window.ReceiptScanner202={version:'143.222',get state(){return {owner,draft,busy,driveState,draftIndex};}};
+window.ReceiptScanner202={version:'143.223',get state(){return {owner,draft,busy,driveState,draftIndex};}};
 })();
