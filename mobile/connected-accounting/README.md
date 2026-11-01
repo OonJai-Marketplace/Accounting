@@ -155,3 +155,5 @@ The existing View batch screen offers Delete device copy for saved copies and De
 ### v143.221
 
 The ID list opens only through its dropdown arrow. Focusing, tapping or typing in the text box closes the list for normal keyboard editing. Setup, Edit ID and Skip ID all start with the list closed, and asynchronous suggestion responses never reopen it. The dropdown button and opened list support keyboard activation, selection and Escape.
+
+Recent server-verified ID labels are cached in the account-scoped encrypted vault (up to 500). Browsing and skipping reuse matching labels without another server request; a missing list loads on opening the picker and a list older than 24 hours refreshes without blocking cached choices. Manual entry stays available. Cache entries contain only type, label and check time, never target UUIDs or receipt decisions. New capture sessions and every Save PDF validate against Accounting; final registration retains its existing server-side target and receipt-set checks, including changes from another phone. Native recovery remains available without a new network check.

@@ -19,7 +19,7 @@ async function ensureDraft211(){if(draft)return;const month=C.monthNow();draft=C
 async function scannerOptions211(){await ensureDraft211();await checkpointEditing();dialog=destinationDialog;open('Scanner settings',`<div class="scan-setting-list211">${btn('save-destination','Save destination')}${btn('batch','PDF title and month')}${draft?btn('entry-settings211','Entry IDs / current group'):''}${btn('drafts','Unsaved scans')}${btn('import','Import photos')}${btn('native-camera209','Use phone camera')}</div>`);}
 function nextControls211(){return icon211('keep-next-receipt211','Keep and scan next receipt','receipt')+icon211('keep-next-entry211','Keep and start next entry','entry')+icon211('keep-save211','Keep and save PDF','check','','primary');}
 function valid(){if(!owner||!deviceVault14334.unlocked||deviceVault14334.actor!==owner)throw Error('Sign in to Accounting again to unlock your scans.');}
-function lockUI(){ReceiptCamera209.stop();if(frozen)return;frozen=true;draft=null;pdfCache=null;cameraQueue=[];editing=null;if(pdfURL)URL.revokeObjectURL(pdfURL);for(const d of [primaryDialog,destinationDialog]){d.close();d.replaceChildren();}dialog=primaryDialog;draftIndex=[];main.innerHTML='<section class="scan-card"><h1>Sign in to continue</h1><p>Your encrypted scans remain on this device.</p><a class="scan-link" href="index.html?scan=1">Open Accounting sign-in</a></section>';}
+function lockUI(){ReceiptCamera209.stop();if(frozen)return;frozen=true;idCache221=[];idRequests221.clear();++idsRequest215;draft=null;pdfCache=null;cameraQueue=[];editing=null;if(pdfURL)URL.revokeObjectURL(pdfURL);for(const d of [primaryDialog,destinationDialog]){d.close();d.replaceChildren();}dialog=primaryDialog;draftIndex=[];main.innerHTML='<section class="scan-card"><h1>Sign in to continue</h1><p>Your encrypted scans remain on this device.</p><a class="scan-link" href="index.html?scan=1">Open Accounting sign-in</a></section>';}
 async function store(key,value){valid();database ||= new Promise((resolve,reject)=>{const r=indexedDB.open('ojm-scans202',1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('Close another old scanner tab and try again.'));});const conn=await database,label=scope+':'+owner+':'+key,encoded=value===undefined?null:deviceVault14334.pack(value,label);return new Promise((resolve,reject)=>{const t=conn.transaction('drafts',value===undefined?'readonly':'readwrite'),s=t.objectStore('drafts'),r=value===undefined?s.get(label):s.put(encoded,label);let out;r.onsuccess=()=>{try{valid();out=value===undefined?deviceVault14334.unpack(r.result,label):value;}catch(e){reject(e);}};t.oncomplete=()=>resolve(out);t.onerror=t.onabort=()=>reject(t.error||Error('Device storage could not save this scan.'));});}
 async function remove(key){const conn=await database;valid();return new Promise((resolve,reject)=>{const t=conn.transaction('drafts','readwrite');t.objectStore('drafts').delete(scope+':'+owner+':'+key);t.oncomplete=resolve;t.onerror=()=>reject(t.error);});}
 async function writeRecords(entries,deletes=[]){valid();await store('__ready204');const conn=await database,prefix=scope+':'+owner+':',encoded=await Promise.all(entries.map(async([key,value])=>[prefix+key,await (deviceVault14334.packAsync?deviceVault14334.packAsync(value,prefix+key):deviceVault14334.pack(value,prefix+key))]));valid();return new Promise((resolve,reject)=>{const t=conn.transaction('drafts','readwrite'),objects=t.objectStore('drafts');try{for(const [key,value] of encoded)objects.put(value,key);for(const key of deletes)objects.delete(prefix+key);}catch(e){t.abort();reject(e);return;}t.oncomplete=()=>{try{valid();resolve();}catch(e){reject(e);}};t.onerror=t.onabort=()=>reject(t.error||Error('Device storage could not protect this scan. Keep this window open and retry.'));});}
@@ -67,10 +67,11 @@ async function chooseFolder(id='root',more=false){
 function groupDialog(jump=false){const type=draft.groups.find(g=>g.id===draft.active)?.type==='hr'?'hr':'journal';open(jump?'Skip or jump to an entry':'Add document group',`<label>Group type<select id="newType"><option value="journal">Journal entry ID</option><option value="hr" ${type==='hr'?'selected':''}>HR document ID</option><option value="support">Named supporting document</option></select></label><label>Name or entry ID<input id="newLabel" value="${esc(draft.next[type])}" maxlength="120"></label><small>Supporting documents do not advance journal numbering.</small><div class="scan-actions">${btn('group-confirm','Use this group','primary')}</div>`);$('newType').onchange=()=>{$('newLabel').value=$('newType').value==='support'?draft.title+' — Cash Slips':draft.next[$('newType').value];};}
 async function pageOptions211(id){const p=draft.pages.find(p=>p.id===id);if(!p)return;const data=await store('page:'+id);const label=C.plan(draft).flatMap(g=>g.pages).find(x=>x.id===id).label;open(label,`<img class="scan-preview" src="${data.data}" alt="Approved scan"><p>Pinch or open full image to inspect small text.</p><div class="scan-actions"><a class="scan-link" href="${data.data}" download="${esc(label)}.jpg">Download image</a><button class="scan-action" data-scan="recrop" data-page="${id}">Crop / straighten</button><button class="scan-action danger" data-scan="delete-page" data-page="${id}">Remove page</button></div><label>Move to group<select id="moveGroup">${draft.groups.map(g=>`<option value="${g.id}" ${g.id===p.group?'selected':''}>${esc(g.label)}</option>`).join('')}</select></label><button class="scan-action" data-scan="move-page" data-page="${id}">Move page</button><details><summary>Start a new entry at this page</summary><label>Entry ID<input id="splitID" value="${esc(draft.next.journal)}"></label><button class="scan-action" data-scan="split" data-page="${id}">Split group here</button><p>This page and the following pages in its current group become the new entry.</p></details>`);}
 async function openPage(id){if(nativeUI215()){closeDialog();render();return;}const meta=draft.pages.find(p=>p.id===id);if(!meta)return;const page=await store('page:'+id);if(draft.active!==meta.group){draft.active=meta.group;await persist(false);}viewingPage211=id;const label=C.plan(draft).flatMap(g=>g.pages).find(p=>p.id===id).label;workflow211(label,`<div class="scan-image-stage211"><img class="scan-preview" src="${page.data}" alt="Saved scan ${esc(label)}"></div>`,icon211('camera','Scan next receipt','receipt')+icon211('next','Start next entry','entry')+icon211('review','Save PDF','check','','primary'),icon211('retake-page211','Retake scan','retake',`data-page="${id}"`)+icon211('recrop','Adjust corners','crop',`data-page="${id}"`)+icon211('delete-page','Delete scan','trash',`data-page="${id}"`)+icon211('page-options211','Page options','more',`data-page="${id}"`));}
-async function openCamera209(){
+async function openCamera209(checked215=false){
  valid();if(!draft?.configured215&&!retakeTarget211)return openSetup215();await ensureDraft211();
  if(window.ReceiptNative214?.available&&await nativeScan214(true))return;
  if(draft.pending?.length&&!retakeTarget211){captureLoop209=true;return nextPhoto();}
+ if(!checked215){const g=draft.groups.find(g=>g.id===(retakeTarget211?.group||draft.active));const rows=await validateIDs215([{type:g.type,label:g.label}]);draft.idChecks215={...draft.idChecks215,[g.label]:rows[0]};await persist(false);}
  captureLoop209=true;editing=null;viewingPage211=null;
  if(window.ReceiptNative214?.available)return nativeScan214();
  const count=draft.pages.length;
@@ -184,6 +185,20 @@ async function upload(asNew=false){const name=($('pdfName')?.value||draft.title+
  if(draft.upload)throw Error('Upload is awaiting final verification. Tap Save again.');closeDialog();render();status('Verified and saved to Google Drive.');}
 async function download(){await setStorage('local');render();return review();}
 let setup215=null,destination215=false,idsRequest215=0;
+// Suggestions are encrypted, account-scoped hints, never permission or receipt decisions.
+let idCache221=[];const idRequests221=new Map(),idCacheAge221=24*60*60*1000;
+const idKey221=label=>String(label||'').trim().replace(/^OJM[\s-]*(\d{2})[\s-]*(\d{4})(-\d+)?$/i,(_,year,number,suffix)=>'OJM'+year+number+(suffix||'')).toUpperCase();
+async function cacheIDs221(rows){
+ valid();if(frozen)return;const entries=new Map(idCache221.map(r=>[r.type+':'+idKey221(r.label),r]));
+ for(const r of rows){if(!r?.label||!['journal','hr','support'].includes(r.type))continue;const key=r.type+':'+idKey221(r.label);if(r.available)entries.set(key,{type:r.type,label:r.label,checkedAt:Date.now()});else entries.delete(key);}
+ idCache221=[...entries.values()].sort((a,b)=>b.checkedAt-a.checkedAt).slice(0,500);
+ // A full device must not turn an optional suggestion cache into a failed ID check.
+ try{await store('id-suggestions221',idCache221);}catch{valid();}
+}
+function cachedIDs221(form,exclude){
+ const seed=idKey221(form.label),match=seed.match(/^(.*?)(\d{4,})$/),prefix=match?match[1]+match[2].slice(0,-4):seed;
+ return idCache221.filter(r=>r.type===form.type&&idKey221(r.label).startsWith(prefix)&&!exclude.has(idKey221(r.label))&&(!form.after||laterID219(r.label,form.after))&&idKey221(r.label).localeCompare(seed,undefined,{numeric:true})>=0).sort((a,b)=>idKey221(a.label).localeCompare(idKey221(b.label),undefined,{numeric:true})).slice(0,20);
+}
 const nativeUI215=()=>!!window.ReceiptNative214?.available;
 const typeName215=type=>({journal:'Journal',hr:'HR',support:'Supporting document'}[type]||'Document');
 const destinationName215=()=>storageMode()==='drive'?'Google Drive / '+(settings.folder?.name||'My Drive'):(settings.storage==='sd'?'SD card / ':'Phone storage / ')+(settings.localFolders215?.[settings.storage]?.name||'Choose a folder');
@@ -192,7 +207,7 @@ function suggested215(type){return settings.nextIDs215?.[type]||(type==='support
 async function ids215(groups,scan=draft?.id){
  valid();const session=async()=>{valid();const r=await db.auth.getSession();if(r.error||r.data.session?.user?.id!==owner)throw Error('Sign in again to check the document IDs.');return r.data.session;};
  const client=ReceiptLinks208.create({url:scope,key:OJM_SUPABASE_ANON_KEY,session});
- const response=await client.api('ids',{groups,scan});valid();
+ const response=await client.api('ids',{groups,scan});valid();await cacheIDs221(response.ids);
  for(const entry of draftIndex.filter(d=>d.id!==scan&&!d.backed)){
   const other=await store('draft:'+entry.id);
   for(const row of response.ids)if(other?.groups.some(g=>g.label===row.label&&other.pages.some(p=>p.group===g.id))){row.available=false;row.reason='Already used by another saved device batch';}
@@ -231,16 +246,16 @@ function bindIDPicker219(){
  const choose=index=>{if(!rows[index]||busy)return;clearError();input.value=rows[index].label;++idsRequest215;show(false);toggle.focus({preventScroll:true});refresh();};
  idPicker219={input,update(values,message='No suggestions. You can type an ID above.'){rows=values;active=-1;list.removeAttribute('aria-activedescendant');list.innerHTML=rows.map((r,i)=>`<div id="idOption219-${i}" role="option" aria-selected="false" data-id-index="${i}">${esc(r.label)}</div>`).join('')||`<p class="scan-small215">${esc(message)}</p>`;}};
  input.onfocus=input.onpointerdown=()=>show(false);
- input.oninput=()=>{++idsRequest215;clearError();clearTimeout(typing);idPicker219.update([],input.value.trim()?'Loading ID suggestions…':'Type an ID above.');show(false);$('idStatus215').textContent=input.value.trim()?'Checking available IDs…':'Type an ID to check it in Accounting.';typing=setTimeout(refresh,300);};
+ input.oninput=()=>{++idsRequest215;clearError();clearTimeout(typing);idPicker219.update([],input.value.trim()?'Loading ID suggestions…':'Type an ID above.');show(false);$('idStatus215').textContent=input.value.trim()?'ID will be checked before scanning.':'Type an ID to check it in Accounting.';typing=setTimeout(refresh,300);};
  input.onchange=refresh;
  list.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();show(false);toggle.focus({preventScroll:true});}else if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(rows.length){active=active<0?(e.key==='ArrowDown'?0:rows.length-1):(active+(e.key==='ArrowDown'?1:-1)+rows.length)%rows.length;highlight();}}else if(e.key==='Enter'&&active>=0){e.preventDefault();choose(active);}};
  input.closest('.scan-id-picker219').onfocusout=e=>{if(!e.currentTarget.contains(e.relatedTarget))show(false);};
- toggle.onclick=()=>{const opening=list.hidden;show(opening);if(opening)list.focus({preventScroll:true});};
+ toggle.onclick=()=>{const opening=list.hidden;show(opening);if(opening){list.focus({preventScroll:true});clearTimeout(typing);void keepSetup215().then(()=>refreshIDs215(false,false,true)).catch(dialogError);}};
  list.onpointerdown=e=>{if(e.target.closest('[data-id-index]'))e.preventDefault();};
  list.onclick=e=>{const option=e.target.closest('[data-id-index]');if(option)choose(Number(option.dataset.idIndex));};
  idPicker219.update([],'Loading ID suggestions…');show(false);
 }
-function laterID219(label,current){const key=s=>String(s).trim().replace(/^OJM[\s-]*(\d{2})[\s-]*(\d{4})(-\d+)?$/i,(_,year,number,suffix)=>'OJM'+year+number+(suffix||''));return key(label).localeCompare(key(current),undefined,{numeric:true,sensitivity:'base'})>0;}
+function laterID219(label,current){return idKey221(label).localeCompare(idKey221(current),undefined,{numeric:true})>0;}
 function openSkipID219(current){
  setup215={mode:'skip',groupID:null,type:current.type,label:nextLabel215(current.type,current.label),after:current.label,title:draft.title,month:draft.month};
  dialog=primaryDialog;open('Skip to ID',`<div class="scan-setup215"><p class="scan-small215">Current ID: ${esc(current.label)}</p>${idField219('Choose or type an ID')}<p id="idStatus215" role="status">Checking available IDs…</p><div class="scan-actions">${btn('setup-confirm215','Start scan','primary')}</div></div>`);
@@ -255,24 +270,39 @@ async function openSetup215(mode='start',groupID=null){
  $('setupType215').onchange=()=>run(async()=>{setup215=setupValue215();$('setupID215').value=suggested215($('setupType215').value);await keepSetup215();await refreshIDs215(true);});
  for(const id of ['setupTitle215'])$(id).onchange=()=>run(keepSetup215);
  bindIDPicker219();
- void refreshIDs215(mode==='start'&&!requestedEntry208, !settings.nextIDs215?.[type]);
+ void refreshIDs215(mode==='start'&&!requestedEntry208, !settings.nextIDs215?.[type],true);
 }
-async function refreshIDs215(choose=false,resume=false){
+async function refreshIDs215(choose=false,resume=false,allowFetch=choose){
  const ticket=++idsRequest215,form=setupValue215(),input=$('setupID215');if(!input||!form?.label)return;
+ const current=()=>!frozen&&ticket===idsRequest215&&$('setupID215')===input&&primaryDialog.open;
  const session=async()=>{valid();const r=await db.auth.getSession();if(r.error||r.data.session?.user?.id!==owner)throw Error('Sign in again to check IDs.');return r.data.session;};
- $('idStatus215').textContent='Checking available IDs…';
- try{await loading217(async()=>{
+ let cached=[];
+ try{
   const exclude=[];for(const entry of draftIndex){const other=entry.id===draft?.id?draft:await store('draft:'+entry.id);for(const g of other?.groups||[])if(!entry.backed&&!(entry.id===draft?.id&&g.id===form.groupID)&&other.pages.some(p=>p.group===g.id))exclude.push(g.label);}
-  const client=ReceiptLinks208.create({url:scope,key:OJM_SUPABASE_ANON_KEY,session});
-  const response=await client.api('suggest-ids',{type:form.type,label:form.label,scan:draft?.id,exclude:[...new Set(exclude)],resume:choose&&resume});valid();
-  if(ticket!==idsRequest215||$('setupID215')!==input||input.value.trim()!==form.label)return;
+  if(!current())return;
+  cached=cachedIDs221(form,new Set(exclude.map(idKey221)));
+  idPicker219.update(cached,allowFetch?'Loading ID suggestions…':'Open the dropdown to load more IDs, or type an ID.');
+  if(choose&&cached.length&&(resume||!cached.some(r=>idKey221(r.label)===idKey221(form.label)))){input.value=cached[0].label;await keepSetup215();}
+  if(!current())return;
+  $('idStatus215').textContent=cached.length?'Saved ID list · checked again before scanning.':'ID will be checked before scanning.';
+  $('idStatus215').className='';
+  if(!allowFetch||cached.some(r=>Date.now()-r.checkedAt<idCacheAge221))return;
+  const args={type:form.type,label:form.label,scan:draft?.id,exclude:[...new Set(exclude)],resume:choose&&resume},key=JSON.stringify(args);
+  const fetchList=async()=>{
+   let pending=idRequests221.get(key);
+   if(!pending){pending=(async()=>{const client=ReceiptLinks208.create({url:scope,key:OJM_SUPABASE_ANON_KEY,session});const response=await client.api('suggest-ids',args);valid();await cacheIDs221([...(response.suggestions||[]),response.selected]);return response;})();idRequests221.set(key,pending);void pending.finally(()=>idRequests221.delete(key)).catch(()=>{});}
+   return pending;
+  };
+  if(!cached.length)$('idStatus215').textContent='Checking available IDs…';
+  const response=await (cached.length?fetchList():loading217(fetchList,'Loading ID suggestions…'));
+  if(!current()||input.value.trim()!==form.label)return;
   const rows=(response.suggestions||[]).filter(r=>!form.after||laterID219(r.label,form.after));let selected=response.selected;
   if(choose&&rows.length&&(resume||!selected?.available)){input.value=rows[0].label;selected=rows[0];await keepSetup215();}
-  if(ticket!==idsRequest215||$('setupID215')!==input)return;
+  if(!current())return;
   idPicker219.update(rows);
-  $('idStatus215').textContent=selected?.available?(selected.receiptCount?'Existing receipts · choose Add or Replace when continuing':'Available · confirmed in Accounting'):(selected?.reason||'Choose an existing journal ID.')+(rows.length?' · choose an available ID from the suggestions.':' No available IDs found after this number.');
-  $('idStatus215').className=selected?.available?'available215':'unavailable215';
- },'Checking IDs…');}catch(e){if(ticket===idsRequest215&&$('setupID215')===input){$('idStatus215').textContent=e.message;$('idStatus215').className='unavailable215';}}
+  $('idStatus215').textContent=selected?.available?'ID list updated · checked again before scanning.':(selected?.reason||'Choose an existing journal ID.')+(rows.length?' · choose an ID from the suggestions.':' You can type another ID.');
+  $('idStatus215').className=selected?.available?'':'unavailable215';
+ }catch(e){if(current()){$('idStatus215').textContent=cached.length?'Using saved IDs. Connect to verify before scanning.':e.message; $('idStatus215').className=cached.length?'':'unavailable215';if(!cached.length)idPicker219.update([],'Could not load IDs. Reopen the dropdown to retry, or type an ID.');}}
 }
 async function checkDestination215(){
  if(storageMode()==='drive'){
@@ -297,7 +327,7 @@ async function confirmSetup215(){
  try{await persist();}catch(e){draft=previous;throw e;}
  delete settings.pendingSetup215;await store('settings',settings);closeDialog();render();
  if(form.mode==='edit'){await rememberIDs215();return;}
- return openCamera209();
+ return openCamera209(true);
 }
 function renderBatch215(){
  const groups=C.plan(draft),current=draft.groups.find(g=>g.id===draft.active);
@@ -310,7 +340,7 @@ async function nextEntry215(skip=false){
  const rows=await validateIDs215(candidates),next=rows.find(r=>r.available&&!draft.groups.some(g=>g.label===r.label));
  if(!next)throw Error(label+' is unavailable. Use Skip ID to choose another ID.');
  if(draft.pages.some(p=>p.group===current.id))C.addGroup(draft,current.type,next.label);else current.label=next.label;
- draft.idChecks215={...draft.idChecks215,[next.label]:next};draft.next[current.type]=nextLabel215(current.type,next.label);await persist();return openCamera209();
+ draft.idChecks215={...draft.idChecks215,[next.label]:next};draft.next[current.type]=nextLabel215(current.type,next.label);await persist();return openCamera209(true);
 }
 async function destinationPanel215(){
  destination215=true;dialog=destinationDialog;
@@ -443,6 +473,6 @@ async function run(fn,label,button){if(busy||frozen){paintLoading217();return;}b
 const actionLoading217=name=>name==='folder-new'?'Creating folder…':/folder|provider|destination|browse/.test(name)?'Opening destination…':name==='connect'?'Connecting to Google Drive…':/save|upload/.test(name)?'Saving…':'Loading…';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-scan]');if(!b)return;e.preventDefault();void run(()=>action(b.dataset.scan,b),actionLoading217(b.dataset.scan),b);});for(const id of ['scanCamera','scanImport'])$(id).onchange=e=>run(async()=>{valid();cameraQueue.push(...Array.from(e.target.files||[]).map((file,i)=>({file,group:retakeTarget211?.group||draft.active,replace:i===0?retakeTarget211?.key:null})));e.target.value='';await protectImports();await nextPhoto();});for(const d of [primaryDialog,destinationDialog])d.addEventListener('cancel',e=>{e.preventDefault();if(!busy)void run(()=>action('close',null));});document.addEventListener('visibilitychange',cameraVisibility213);window.addEventListener('beforeunload',e=>{if(cameraQueue.length){e.preventDefault();e.returnValue='';}});
 window.addEventListener('offline',()=>status('Offline: scans stay on this device. Upload when connected.'));window.addEventListener('online',()=>status('Connection available. Pending scans can be uploaded.'));
-try{await deviceVault14334.ready;db=supabase.createClient(scope,OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:false}});await deviceVault14334.attach(db);let s;try{s=await db.auth.getSession();if(s.error)throw s.error;}catch(e){if([400,401,403].includes(Number(e.status))||/invalid.*token|revoked|refresh_token_not_found/i.test(e.code+' '+e.message))throw e;const cached=deviceVault14334.readSession?.();if(!cached?.refresh_token||cached.user?.id!==deviceVault14334.actor)throw e;s={data:{session:cached}};}owner=s.data.session?.user?.id||'';valid();settings=await store('settings')||settings;draftIndex=await store('draft-list')||[];draft=await store('current')||null;if(draft){draft.pending||=[];await persist(false);}render();status('Ready. Readability comes first; review each scan before keeping it.');const params=new URL(location.href).searchParams,error=params.get('connection_error'),showSettings=params.get('settings')==='1';history.replaceState(null,'',location.pathname);if(error)status(error,true);if(window.ReceiptNative214?.available&&await ReceiptNative214.recover()){await ensureDraft211();await nativeScan214(true);}else if(showSettings){if(settings.pendingSetup215)await openSetup215();else await destinationPanel215();if(settings.resumeFolder216&&!error){delete settings.resumeFolder216;await store('settings',settings);destination215=true;dialog=destinationDialog;try{await loading217(()=>chooseFolder(settings.folder?.id||'root'),'Opening Drive folders…');}catch(e){await destinationPanel215();status(e.message,true);}}}else if(quickCapture209){if(draft?.pending.length)await nextPhoto();else await openSetup215();}if(storageMode()==='drive')void connection().then(()=>{if(!dialog.open)render();else if($('settingsStorage'))scannerSettings();}).catch(e=>status('Drive is unavailable. You can still scan and save locally.',false));setInterval(()=>{try{valid();}catch{lockUI();}},1000);}catch(e){lockUI();status(e.message,true);}
+try{await deviceVault14334.ready;db=supabase.createClient(scope,OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:false}});await deviceVault14334.attach(db);let s;try{s=await db.auth.getSession();if(s.error)throw s.error;}catch(e){if([400,401,403].includes(Number(e.status))||/invalid.*token|revoked|refresh_token_not_found/i.test(e.code+' '+e.message))throw e;const cached=deviceVault14334.readSession?.();if(!cached?.refresh_token||cached.user?.id!==deviceVault14334.actor)throw e;s={data:{session:cached}};}owner=s.data.session?.user?.id||'';valid();settings=await store('settings')||settings;idCache221=await store('id-suggestions221')||[];draftIndex=await store('draft-list')||[];draft=await store('current')||null;if(draft){draft.pending||=[];await persist(false);}render();status('Ready. Readability comes first; review each scan before keeping it.');const params=new URL(location.href).searchParams,error=params.get('connection_error'),showSettings=params.get('settings')==='1';history.replaceState(null,'',location.pathname);if(error)status(error,true);if(window.ReceiptNative214?.available&&await ReceiptNative214.recover()){await ensureDraft211();await nativeScan214(true);}else if(showSettings){if(settings.pendingSetup215)await openSetup215();else await destinationPanel215();if(settings.resumeFolder216&&!error){delete settings.resumeFolder216;await store('settings',settings);destination215=true;dialog=destinationDialog;try{await loading217(()=>chooseFolder(settings.folder?.id||'root'),'Opening Drive folders…');}catch(e){await destinationPanel215();status(e.message,true);}}}else if(quickCapture209){if(draft?.pending.length)await nextPhoto();else await openSetup215();}if(storageMode()==='drive')void connection().then(()=>{if(!dialog.open)render();else if($('settingsStorage'))scannerSettings();}).catch(e=>status('Drive is unavailable. You can still scan and save locally.',false));setInterval(()=>{try{valid();}catch{lockUI();}},1000);}catch(e){lockUI();status(e.message,true);}
 window.ReceiptScanner202={version:'143.221',get state(){return {owner,draft,busy,driveState,draftIndex};}};
 })();

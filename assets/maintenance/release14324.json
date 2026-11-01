@@ -1413,7 +1413,7 @@
     },
     {
       "path": "scripts/receipt-scanner202.js",
-      "sha256": "b59c3df9250cb6902f9620fd00670e7adaa93706e4d40101d2442b78e8c373d9",
+      "sha256": "48165ce626776d332b6e37010b939a67b3e9faf8d752189e3c33ba5589796a06",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
