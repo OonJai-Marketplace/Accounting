@@ -216,9 +216,9 @@ async function ids215(groups,scan=draft?.id){
 }
 async function validateIDs215(groups,review222=false){
  const rows=await ids215(groups),bad=rows.find(r=>!r.available);if(bad)throw Error(bad.label+': '+bad.reason);
- for(const row of rows){
+ for(const [index,row] of rows.entries()){
   const expected=(row.receipts||[]).map(r=>r.id).sort(),previous=draft?.idChecks215?.[row.label]?.receiptChoice;
-  row.receiptChoice=review222&&expected.length?await compareReceipts222(row):previous&&JSON.stringify(previous.expected)===JSON.stringify(expected)?previous:expected.length?await receiptChoice218(row):{mode:'new',expected:[]};
+  row.receiptChoice=review222&&expected.length?await compareReceipts222(row,groups[index]?.id):previous&&JSON.stringify(previous.expected)===JSON.stringify(expected)?previous:expected.length?await receiptChoice218(row):{mode:'new',expected:[]};
  }
  return rows;
 }
@@ -229,8 +229,8 @@ async function receiptChoice218(row){
  try{return await new Promise((resolve,reject)=>{const choose=mode=>{if(mode==='cancel')reject(Error('Scan cancelled. Existing receipts are unchanged.'));else resolve({mode,expected:row.receipts.map(r=>r.id).sort()});};popup.onclick=e=>{const b=e.target.closest('[data-receipt-choice]');if(b)choose(b.dataset.receiptChoice);};popup.oncancel=e=>{e.preventDefault();choose('cancel');};popup.onclose=()=>choose('cancel');});}
  finally{popup.close();popup.remove();paintLoading217();}
 }
-async function compareReceipts222(row){
- const group=C.plan(draft).find(g=>g.type===row.type&&idKey221(g.label)===idKey221(row.label));
+async function compareReceipts222(row,groupID){
+ const group=C.plan(draft).find(g=>g.id===groupID&&g.type===row.type&&idKey221(g.label)===idKey221(row.label));
  if(!group?.pages.length)throw Error('Review this entry’s new scans before saving.');
  const revision=draft.revision,batchID=draft.id,receipts=row.receipts,views=new Map(),ready={saved:false,incoming:false},images={},positions={saved:0,incoming:0},tickets={saved:0,incoming:0};let documentIndex=0,finished=false,zoom=null;
  const popup=document.createElement('dialog');popup.className='scan-receipt-choice218 scan-compare222';popup.setAttribute('aria-label','Compare saved and new receipts');
@@ -414,7 +414,7 @@ async function browse215(previousStorage=settings.storage){
 }
 async function saveBatch215(){
  if(!draft?.pages.length)throw Error('Scan at least one receipt.');
- draft.workflow215=true;const groups=C.plan(draft);let checks;try{checks=await validateIDs215(groups.map(g=>({type:g.type,label:g.label})),true);}catch(e){if(e.editGroup222){draft.active=e.editGroup222;await persist(false);render();return openSetup215('edit',e.editGroup222);}throw e;}draft.idChecks215=Object.fromEntries(checks.map(r=>[r.label,r]));await persist(false);await checkDestination215();
+ draft.workflow215=true;const groups=C.plan(draft);let checks;try{checks=await validateIDs215(groups.map(g=>({id:g.id,type:g.type,label:g.label})),true);}catch(e){if(e.editGroup222){draft.active=e.editGroup222;await persist(false);render();return openSetup215('edit',e.editGroup222);}throw e;}draft.idChecks215=Object.fromEntries(checks.map(r=>[r.label,r]));await persist(false);await checkDestination215();
  const r=await pdf();draft.outputName=draft.outputName||draft.title+'.pdf';
  if(storageMode()==='drive')await upload();
  else{
