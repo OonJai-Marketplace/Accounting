@@ -12,7 +12,8 @@ corrections = (json.loads(correction_file.read_text())['runtime_sha256']
                if correction_file.exists() else {})
 assert set(corrections) <= set(baseline['runtime_sha256']), 'Unknown correction asset'
 retired = set(json.loads(correction_file.read_text()).get('retired_assets', {})) if correction_file.exists() else set()
-assert retired <= {'tools/desktop-source14245.html','scripts/navigation-experiment14366.js','styles/navigation-experiment14366.css','scripts/archive-v128.js','scripts/audit-workspace14232.js','styles/archive-v128.css','styles/audit-workspace14232.css'}, 'Unapproved retired asset'
+approved_phone_retirements = set(json.loads((ROOT/'validation/retired-phone233.json').read_text())['outputs'])
+assert retired <= approved_phone_retirements | {'tools/desktop-source14245.html','scripts/navigation-experiment14366.js','styles/navigation-experiment14366.css','scripts/archive-v128.js','scripts/audit-workspace14232.js','styles/archive-v128.css','styles/audit-workspace14232.css'}, 'Unapproved retired asset'
 assert all(not (ROOT / name).exists() for name in retired), 'Retired asset returned'
 changed = [name for name, digest in baseline['runtime_sha256'].items()
            if name not in retired and hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != corrections.get(name, digest)]

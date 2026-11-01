@@ -1,0 +1,68 @@
+{
+  "release": "143.233",
+  "reason": "Independent phone.html replaces the embedded desktop iframe. Legacy URL redirects; current desktop helper API and draft migration remain.",
+  "outputs": {
+    "scripts/phone-connected.js": {
+      "sha256": "98019f0056e14097eac2a9d90fbb8a8b77bcca1d02d4a455ca456725cef8d508",
+      "bytes": 100219
+    },
+    "styles/phone-connected.css": {
+      "sha256": "5dfca77eecc48b701227c43355c80498fcd60d1d0cff34c594498c649417a406",
+      "bytes": 7668
+    },
+    "styles/phone-accounting14246.css": {
+      "sha256": "982ed6e6c8d65f99f6b47caa2c2174634d5ca614fb3de804ce98f8aa40537ad6",
+      "bytes": 19837
+    },
+    "scripts/phone-data14248.js": {
+      "sha256": "63c799744fba1ab2facab7161c1e9483a7f0e07b4fbad73d27e9dcde55e13357",
+      "bytes": 5384
+    },
+    "scripts/phone-pull-refresh1423.js": {
+      "sha256": "a0726ca0ac1a7aa390179ff3f5d159205f8d9745e559ee277368a52712b156e4",
+      "bytes": 1832
+    },
+    "styles/phone-pull-refresh1423.css": {
+      "sha256": "889132da00c279cf1f6b932d2293fed0ef7da4f7778cec94e88efe7c347857b7",
+      "bytes": 741
+    },
+    "scripts/phone-account-picker14227.js": {
+      "sha256": "2ef023ff2cdb4ed074be4d6bdf995da614ad499a50f37de1945b3748f5a50b3c",
+      "bytes": 7964
+    },
+    "styles/phone-account-picker14227.css": {
+      "sha256": "c8b7a2092b54bc41416803b8d23ab99cd6932ea2d331ca93380c7c703596b56f",
+      "bytes": 2333
+    },
+    "scripts/phone-keyboard14252.js": {
+      "sha256": "f1e0014bfeada4ac824243920e3164304aab0d0545648632fe9c8ec03cb7e16a",
+      "bytes": 3066
+    }
+  },
+  "sources": [
+    "src/core/navigation/phone-keyboard14252.js",
+    "src/core/navigation/phone-pull-refresh1423.css",
+    "src/core/navigation/phone-pull-refresh1423.js",
+    "src/core/startup/phone-data14248.js",
+    "src/subusers/phone/connected/account-ledger.js",
+    "src/subusers/phone/connected/bookkeeping-compatibility.js",
+    "src/subusers/phone/connected/connection-and-sync.js",
+    "src/subusers/phone/connected/entry-fields.js",
+    "src/subusers/phone/connected/entry-form-and-save.js",
+    "src/subusers/phone/connected/entry-validation.js",
+    "src/subusers/phone/connected/history.js",
+    "src/subusers/phone/connected/home-and-accounts.js",
+    "src/subusers/phone/connected/navigation.js",
+    "src/subusers/phone/connected/phone-connected.css",
+    "src/subusers/phone/connected/render-and-settings.js",
+    "src/subusers/phone/connected/scope-and-draft.js",
+    "src/subusers/phone/connected/startup-and-scope-close.js",
+    "src/subusers/phone/connected/templates.js",
+    "src/subusers/phone/phone-accounting14246.css",
+    "src/subusers/workspace/phone-account-picker14227.css",
+    "src/subusers/workspace/phone-account-picker14227.js"
+  ],
+  "retainedSharedSources": [
+    "src/shared/formatting/civil-date.js"
+  ]
+}

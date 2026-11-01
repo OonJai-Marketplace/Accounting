@@ -1,0 +1,66 @@
+{
+  "release": "143.233",
+  "checkedAt": "2026-11-01",
+  "scope": "Accounting database only; read-only comparisons around an applied schema migration",
+  "migration": "20261101151747_cleanup_security233.sql",
+  "journalRowsAndContentUnchanged": true,
+  "existingTableGrantsUnchanged": true,
+  "existingFunctionPrivilegesAndSecurityModesUnchanged": true,
+  "functionsCompared": 272,
+  "policySemanticsUnchanged": true,
+  "policyCountBefore": 315,
+  "policyCountAfter": 314,
+  "removedPolicy": "payroll_runs.admin_all_payroll_runs (exact duplicate of admin_records82)",
+  "foreignKeyLookup": {
+    "table": "staff_journal_lines",
+    "column": "journal_entry_id",
+    "before": "Sequential scan",
+    "after": "Index Only Scan",
+    "index": "staff_journal_lines_entry233_idx",
+    "note": "Plan evidence for one lookup, not an end-to-end speed benchmark"
+  },
+  "advisors": {
+    "before": {
+      "security": {
+        "rls_enabled_no_policy": 19,
+        "function_search_path_mutable": 3,
+        "extension_in_public": 1,
+        "unsupported_reg_types": 1,
+        "anon_security_definer_function_executable": 2,
+        "authenticated_security_definer_function_executable": 144,
+        "auth_leaked_password_protection": 1
+      },
+      "performance": {
+        "unindexed_foreign_keys": 106,
+        "auth_rls_initplan": 33,
+        "unused_index": 22,
+        "multiple_permissive_policies": 19
+      }
+    },
+    "after": {
+      "security": {
+        "rls_enabled_no_policy": 19,
+        "extension_in_public": 1,
+        "unsupported_reg_types": 1,
+        "anon_security_definer_function_executable": 2,
+        "authenticated_security_definer_function_executable": 144,
+        "auth_leaked_password_protection": 1
+      },
+      "performance": {
+        "unindexed_foreign_keys": 105,
+        "unused_index": 22,
+        "multiple_permissive_policies": 15
+      }
+    }
+  },
+  "limitations": [
+    "No production financial test writes",
+    "No physical-phone/native-scanner testing",
+    "No live Google authorization exercise",
+    "Advisor notices are triage signals, not a count of proven vulnerabilities"
+  ],
+  "publicTablesWithoutRLS": 0,
+  "optimizedPolicies": 33,
+  "optimizedPolicyTables": 27,
+  "pinnedInvokerFunctions": 3
+}

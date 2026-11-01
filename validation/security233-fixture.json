@@ -1,0 +1,366 @@
+{
+  "policies": [
+    {
+      "schemaname": "public",
+      "tablename": "accounting_feature_samples",
+      "policyname": "accounting_feature_samples_admin_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::app_role) AND (profiles.status = 'active'::record_status))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "audit_reviews136",
+      "policyname": "admin_read136",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::app_role) AND (profiles.status = 'active'::record_status))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "book_sessions136",
+      "policyname": "admin_read136",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::app_role) AND (profiles.status = 'active'::record_status))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cashier_currency_counts",
+      "policyname": "cashier_currency_counts_access",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (cashier_shift_closes s\n     JOIN staff_journals j ON ((j.id = s.staff_journal_id)))\n  WHERE ((s.id = cashier_currency_counts.shift_close_id) AND ((j.owner_id = auth.uid()) OR has_user_permission('approve'::text)))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM (cashier_shift_closes s\n     JOIN staff_journals j ON ((j.id = s.staff_journal_id)))\n  WHERE ((s.id = cashier_currency_counts.shift_close_id) AND (j.owner_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cashier_shift_closes",
+      "policyname": "cashier_shift_closes_access",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM staff_journals j\n  WHERE ((j.id = cashier_shift_closes.staff_journal_id) AND ((j.owner_id = auth.uid()) OR has_user_permission('approve'::text)))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM staff_journals j\n  WHERE ((j.id = cashier_shift_closes.staff_journal_id) AND (j.owner_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "cashier_shift_tenders",
+      "policyname": "cashier_shift_tenders_access",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM (cashier_shift_closes s\n     JOIN staff_journals j ON ((j.id = s.staff_journal_id)))\n  WHERE ((s.id = cashier_shift_tenders.shift_close_id) AND ((j.owner_id = auth.uid()) OR has_user_permission('approve'::text)))))",
+      "with_check": "(EXISTS ( SELECT 1\n   FROM (cashier_shift_closes s\n     JOIN staff_journals j ON ((j.id = s.staff_journal_id)))\n  WHERE ((s.id = cashier_shift_tenders.shift_close_id) AND (j.owner_id = auth.uid()))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "entry_prefix_reservations",
+      "policyname": "prefix_admin_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::app_role))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fund_adjustment_lines",
+      "policyname": "fund_adjustment_lines_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM fund_adjustment_requests r\n  WHERE ((r.id = fund_adjustment_lines.request_id) AND ((r.owner_id = auth.uid()) OR has_user_permission('approve'::text)))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "fund_adjustment_requests",
+      "policyname": "fund_adjustment_requests_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((owner_id = auth.uid()) OR has_user_permission('approve'::text))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "hr_inbox_audit143168",
+      "policyname": "hr_inbox_audit_insert",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(is_admin() AND active_account14228() AND accounting_workspace_allowed123() AND (NOT password_change_required14257()) AND (changed_by = auth.uid()))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "journal_entries",
+      "policyname": "journal_entries_permitted_insert",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(( SELECT has_user_permission('post'::text) AS has_user_permission) AND (posted_by = auth.uid()))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "journal_lines",
+      "policyname": "journal_lines_permitted_insert",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "(( SELECT has_user_permission('post'::text) AS has_user_permission) AND (EXISTS ( SELECT 1\n   FROM journal_entries e\n  WHERE ((e.id = journal_lines.journal_entry_id) AND (e.posted_by = auth.uid())))))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "profiles",
+      "policyname": "current_profiles14228",
+      "permissive": "RESTRICTIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((id = auth.uid()) OR is_admin() OR can_workspace113(id))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "report_types14253",
+      "policyname": "report_types_read14253",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.status = 'active'::record_status))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "scheduled_journal_occurrences",
+      "policyname": "occurrences_admin_read91",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::app_role) AND (profiles.status = 'active'::record_status))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "scheduled_journals",
+      "policyname": "scheduled_admin_read91",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::app_role) AND (profiles.status = 'active'::record_status))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "staff_journal_lines",
+      "policyname": "staff_journal_lines_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM staff_journals j\n  WHERE ((j.id = staff_journal_lines.staff_journal_id) AND ((j.owner_id = auth.uid()) OR has_user_permission('approve'::text)))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "staff_journal_lines",
+      "policyname": "staff_journal_lines_write",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(EXISTS ( SELECT 1\n   FROM staff_journals j\n  WHERE ((j.id = staff_journal_lines.staff_journal_id) AND (((j.owner_id = auth.uid()) AND (j.status = ANY (ARRAY['draft'::text, 'returned'::text]))) OR has_user_permission('approve'::text)))))",
+      "with_check": "((EXISTS ( SELECT 1\n   FROM staff_journals j\n  WHERE ((j.id = staff_journal_lines.staff_journal_id) AND (((j.owner_id = auth.uid()) AND (j.status = ANY (ARRAY['draft'::text, 'returned'::text]))) OR has_user_permission('approve'::text))))) AND can_use_staff_account(account_id))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "staff_journals",
+      "policyname": "staff_journals_delete_draft",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "DELETE",
+      "qual": "((owner_id = auth.uid()) AND (status = ANY (ARRAY['draft'::text, 'returned'::text])))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "staff_journals",
+      "policyname": "staff_journals_insert_own_or_reviewer",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "INSERT",
+      "qual": null,
+      "with_check": "((owner_id = auth.uid()) OR has_user_permission('approve'::text))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "staff_journals",
+      "policyname": "staff_journals_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((owner_id = auth.uid()) OR has_user_permission('approve'::text))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "staff_journals",
+      "policyname": "staff_journals_update_own_or_reviewer",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "(((owner_id = auth.uid()) AND (status = ANY (ARRAY['draft'::text, 'returned'::text, 'submitted'::text]))) OR has_user_permission('approve'::text))",
+      "with_check": "(((owner_id = auth.uid()) AND (status = ANY (ARRAY['draft'::text, 'returned'::text, 'submitted'::text]))) OR has_user_permission('approve'::text))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "todo_completions1443",
+      "policyname": "own_completions1443",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((owner_id = auth.uid()) AND can_action113('transactions-recurring'::text, 'view'::text))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "todo_starter_installs14335",
+      "policyname": "own_starters14335",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(owner_id = auth.uid())",
+      "with_check": "((owner_id = auth.uid()) AND active_account14228() AND (NOT password_change_required14257()) AND accounting_workspace_allowed123() AND can_action113('transactions-recurring'::text, 'edit'::text))"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_fund_assignments",
+      "policyname": "assignments_current14228",
+      "permissive": "RESTRICTIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(is_admin() OR ((user_id = auth.uid()) AND can_action113('sub-users-workspace'::text, 'view'::text)))",
+      "with_check": "is_admin()"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_fund_assignments",
+      "policyname": "user_fund_assignments_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((user_id = auth.uid()) OR has_user_permission('approve'::text))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_permissions",
+      "policyname": "user_permissions_read_own_or_admin",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((user_id = auth.uid()) OR is_admin())",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "user_print_preferences1434",
+      "policyname": "own_print_defaults1434",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(owner_id = auth.uid())",
+      "with_check": "(owner_id = auth.uid())"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "workspace_actor_audit138",
+      "policyname": "administrator_read138",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::app_role) AND (profiles.status = 'active'::record_status))))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "workspace_notifications",
+      "policyname": "workspace_notifications_read",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "((owner_id = auth.uid()) OR has_user_permission('approve'::text))",
+      "with_check": null
+    },
+    {
+      "schemaname": "public",
+      "tablename": "workspace_notifications",
+      "policyname": "workspace_notifications_update",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "UPDATE",
+      "qual": "(owner_id = auth.uid())",
+      "with_check": "(owner_id = auth.uid())"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "workspace_todos136",
+      "policyname": "own_todos136",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "ALL",
+      "qual": "(owner_id = auth.uid())",
+      "with_check": "(owner_id = auth.uid())"
+    },
+    {
+      "schemaname": "public",
+      "tablename": "year_closings136",
+      "policyname": "admin_read136",
+      "permissive": "PERMISSIVE",
+      "roles": "{authenticated}",
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM profiles\n  WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::app_role) AND (profiles.status = 'active'::record_status))))",
+      "with_check": null
+    }
+  ],
+  "functions": [
+    {
+      "signature": "ojm_guard_postable_account_20260929()",
+      "proname": "ojm_guard_postable_account_20260929",
+      "nspname": "public",
+      "prosecdef": false,
+      "proconfig": null,
+      "anon_execute": false,
+      "user_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.ojm_guard_postable_account_20260929()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nDECLARE key text; account_uuid uuid; permitted boolean;\r\nBEGIN\r\n  FOREACH key IN ARRAY TG_ARGV LOOP\r\n    account_uuid := NULLIF(to_jsonb(NEW)->>key,'')::uuid;\r\n    IF account_uuid IS NOT NULL THEN\r\n      SELECT a.is_posting AND a.is_active INTO permitted FROM public.accounts a WHERE a.id=account_uuid;\r\n      IF permitted IS DISTINCT FROM true THEN\r\n        RAISE EXCEPTION 'Account % must be an active posting child',account_uuid;\r\n      END IF;\r\n    END IF;\r\n  END LOOP;\r\n  RETURN NEW;\r\nEND $function$\n"
+    },
+    {
+      "signature": "schedule_next_date91(date,text,text,integer,integer)",
+      "proname": "schedule_next_date91",
+      "nspname": "public",
+      "prosecdef": false,
+      "proconfig": null,
+      "anon_execute": false,
+      "user_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.schedule_next_date91(p_anchor date, p_frequency text, p_rule text, p_day integer, p_index integer)\n RETURNS date\n LANGUAGE plpgsql\n IMMUTABLE\nAS $function$\r\ndeclare first_month date;result_month date;\r\nbegin\r\n if p_frequency='weekly' then return p_anchor+(7*p_index);end if;\r\n first_month:=date_trunc('month',p_anchor)::date;\r\n result_month:=(first_month+(case p_frequency when 'quarterly' then 3 when 'yearly' then 12 else 1 end*p_index||' months')::interval)::date;\r\n if p_rule='last_day' then return (result_month+interval '1 month - 1 day')::date;end if;\r\n return result_month+least(p_day,extract(day from (result_month+interval '1 month - 1 day'))::int)-1;\r\nend $function$\n"
+    },
+    {
+      "signature": "handle_updated_at()",
+      "proname": "handle_updated_at",
+      "nspname": "public",
+      "prosecdef": false,
+      "proconfig": null,
+      "anon_execute": false,
+      "user_execute": true,
+      "definition": "CREATE OR REPLACE FUNCTION public.handle_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    NEW.updated_at = now();\r\n    RETURN NEW;\r\nEND;\r\n$function$\n"
+    }
+  ]
+}
