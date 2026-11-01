@@ -4435,6 +4435,16 @@
       {
         "source": "src/documents/scanner/detector-worker213.js"
       }
+    ],
+    "scripts/journal-receipts224.js": [
+      {
+        "source": "src/documents/scanner/journal-receipts224.js"
+      }
+    ],
+    "styles/journal-receipts224.css": [
+      {
+        "source": "src/documents/scanner/journal-receipts224.css"
+      }
     ]
   },
   "variants": [
