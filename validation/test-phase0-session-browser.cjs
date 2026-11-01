@@ -19,6 +19,12 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
   await context.setOffline(true);await page.clock.setFixedTime(touched+86399999);
   await page.evaluate(()=>dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));assert.equal(await page.evaluate(()=>deviceVault14334.unlocked),true);
   await page.clock.setFixedTime(touched+86400000);await page.evaluate(()=>dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true})));
+  // v143.212 explicitly remembers phone access until sign-out or revocation.
+  if(device==='phone'){
+   assert.equal(await page.evaluate(()=>deviceVault14334.unlocked),true,'phone remembrance must survive the desktop idle deadline');
+   assert.equal(await page.evaluate(()=>!!deviceVault14334.readSession()?.refresh_token),true,'remembered phone keeps its encrypted session');
+   console.log('PASS phone real browser readiness, trusted activity and remembered access across the desktop idle deadline');await context.close();continue;
+  }
   await page.waitForFunction(()=>window.deviceVault14334&&!deviceVault14334.unlocked&&document.querySelector('#loginNotification14293[open]'));
   assert.match(await page.locator('#loginNotification14293').innerText(),/One day without activity/);
   assert.equal(await page.evaluate(()=>localStorage.getItem('sb-'+new URL(OJM_SUPABASE_URL).hostname.split('.')[0]+'-auth-token')),null);
