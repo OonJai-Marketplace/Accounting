@@ -1,10 +1,7 @@
-/* Shared descriptions are displayed once; stored journal text is never changed. */
+/* Entry headings and saved line memos stay in their respective locations. */
 (()=>{'use strict';
 function plan(records,general=records[0]?.generalMemo||''){
- const clean=value=>String(value??'').trim(),key=value=>clean(value).replace(/\s+/g,' '),header=clean(general),raw=records.map(r=>clean(r.memo??r.description??''));
- const common=raw.length>1&&key(raw[0])&&raw.every(m=>key(m)===key(raw[0]))?raw[0]:'';
- const shared=[header,common&&key(common)!==key(header)?common:''].filter(Boolean).join('\n');
- return {shared,lines:raw.map(m=>key(m)===key(header)||common?'':m)};
+ return {shared:String(general??'').trim(),lines:records.map(r=>String(r.memo??r.description??''))};
 }
 window.JournalDescription225={plan};
 function addDescription(body,records){if(!body)return;

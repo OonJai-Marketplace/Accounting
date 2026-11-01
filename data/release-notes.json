@@ -1,8 +1,8 @@
 {
-  "version": "143.226",
+  "version": "143.227",
   "changes": [
-    "A small link icon appears immediately to the right of Entry IDs that have supporting documents. Entries without documents have no icon.",
-    "Click the icon to open only that entry\u2019s receipts. Journal row menus keep their edit actions, and ledger Entry ID navigation stays unchanged.",
-    "Receipt presence is checked in batches without downloading images. Delayed checks and connection errors appear separately from the entry ID. Phone scanner behavior is unchanged."
+    "Edit and Void remain in the original double-click row menu after journal refreshes.",
+    "Saved line memos and reference links are visible in their own cells, including repeated wording.",
+    "The small receipt link remains beside documented entry IDs; entries without supporting documents show no icon."
   ]
 }
