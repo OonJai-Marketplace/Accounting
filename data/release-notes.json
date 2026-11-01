@@ -1,8 +1,8 @@
 {
-  "version": "143.227",
+  "version": "143.228",
   "changes": [
-    "Edit and Void remain in the original double-click row menu after journal refreshes.",
-    "Saved line memos and reference links are visible in their own cells, including repeated wording.",
-    "The small receipt link remains beside documented entry IDs; entries without supporting documents show no icon."
+    "Settings now contains Google Drive and Sheets with administrator-managed company email and receipt folder.",
+    "Save future account details before authorization; connect and activate one Drive destination for every phone scanner.",
+    "Company-owned saved links replace personal accounting links; existing journal receipt references are preserved."
   ]
 }

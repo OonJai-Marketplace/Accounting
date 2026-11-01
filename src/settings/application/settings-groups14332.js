@@ -10,7 +10,7 @@ const permitted=id=>!!document.getElementById(id)&&(!window.access113||window.ac
 const active=()=>document.querySelector('.tab-content.active')?.id||'';
 function available(){return groups.map(g=>({...g,targets:g.targets.filter(permitted)})).filter(g=>g.targets.length)}
 let accountingSection='accounting';
-const accountingSections=[['accounting','Accounting'],['vouchers','Vouchers'],['currency','Currency Manager'],['google','Google Sheets']];
+const accountingSections=[['accounting','Accounting'],['vouchers','Vouchers'],['currency','Currency Manager'],['google','Google Drive and Sheets']];
 function accountingChoice(key){accountingSection=key;accountingPanel();render('settings-accounting');window.navigationWorkflow14316?.sync();window.settingsStack143176?.chooseAccounting(key);}
 function accountingPanel(){const root=document.getElementById('settings-accounting');if(!root)return;if(window.settingsStack143176?.enabled()){window.settingsStack143176.revealAccounting();return;}const duplicate=root.querySelector(':scope > .je-card > .je-card-header');if(duplicate)duplicate.hidden=true;const voucher=root.querySelector('.voucher-config14299'),currency=[...root.querySelectorAll('.settings-module94')].find(n=>n.querySelector('h4')?.textContent==='Currency Manager');for(const node of [root.querySelector('[data-settings-group=accounting]'),root.querySelector('#prefixRegistry89')])if(node&&!node.closest('.voucher-config14299'))node.hidden=accountingSection!=='accounting';if(voucher)voucher.hidden=accountingSection!=='vouchers';if(currency)currency.hidden=accountingSection!=='currency';const mainCard=root.querySelector(':scope > .je-card');if(mainCard)mainCard.hidden=accountingSection==='google';const google=root.querySelector('#googleSheets143129');if(google){google.hidden=accountingSection!=='google';google.style.display=accountingSection==='google'?'block':'none';}}
 function sectionChoices(){if(active()==='settings-accounting')return accountingSections.map(([id,label])=>({id,label,button:{click:()=>accountingChoice(id)}}));const group=available().find(g=>g.targets.includes(active()));return (group?.targets||[]).map(id=>({id,label:labels[id],button:{click:()=>window.switchTab(id)}}))}
@@ -48,7 +48,7 @@ const books=[
 ];
 const settings=[
  {label:'Company',icon:'▦',items:[item('Business','settings-business'),item('Users & Permissions','settings-users'),item('Organization & Reporting','settings-organization14229')]},
- {label:'Accounting',icon:'▤',items:[...['Accounting','Vouchers','Currency Manager','Google Sheets'].map((n,i)=>item(n,'settings-accounting','accounting',['accounting','vouchers','currency','google'][i])),item('Payroll','settings-payroll'),item('Mandatory','settings-tax')]},
+ {label:'Accounting',icon:'▤',items:[...['Accounting','Vouchers','Currency Manager','Google Drive and Sheets'].map((n,i)=>item(n,'settings-accounting','accounting',['accounting','vouchers','currency','google'][i])),item('Payroll','settings-payroll'),item('Mandatory','settings-tax')]},
  {label:'System & Tools',icon:'⚙',items:[item('System & Printing','settings-system'),item('Archive & Recovery','settings-data14231'),item('Maintenance & Audit','settings-maintenance14324')]}
 ];
 // Expansion is a user choice, independent of the active workspace.

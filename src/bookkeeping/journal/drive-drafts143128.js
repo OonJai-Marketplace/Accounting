@@ -38,7 +38,7 @@ function connectionMessage(){
  if(!connectionStatus.connected)return 'Connect the company Google account once to activate automatic draft checks.';
  const stamp=Date.parse(lastCheckedAt);
  const checked=Number.isFinite(stamp)?' · Last checked '+new Date(stamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}):'';
- return 'Connected as '+connectionStatus.email+checked+' · Automatic checks active.';
+ return (connectionStatus.email?'Connected as '+connectionStatus.email:'Google Sheets connected')+checked+' · Automatic checks active.';
 }
 function showConnection(){
  if(busy)return;
@@ -82,7 +82,7 @@ async function receiveInbox143173(snapshot,meta){
  try{
  syncSession();if(!sharedLoaded&&liveProfile.role==='admin')await loadSharedSettings();const c=context();if(c.sheet!==meta.sheet)throw Error('Reload Google settings to use the current submission sheet.');
  if(Array.isArray(snapshot.dispositions))dispositions=new Map(snapshot.dispositions.map(d=>[d.draft,d.status]));else await loadDispositions(c);assert(c);if(restoredKey!==preparationKey()){const count=prepared.size;restorePreparation(c);if(prepared.size!==count)renderPreparation();}const groups=parse(snapshot.rows);readLegacySourceRefs(snapshot.rows);
- connectionStatus={connected:true,email:'oonjaimarketplace@gmail.com'};lastCheckedAt=new Date().toISOString();backgroundError='';
+ connectionStatus={connected:true,email:connectionStatus?.email||''};lastCheckedAt=new Date().toISOString();backgroundError='';
  pendingDraftNotices=[...groups].filter(([id])=>!completedDrafts.has(id)&&!dispositions.has(id)).map(([id,rows])=>({noticeId:id,type:'AI Journal draft',title:rows[0].description,detail:rows[0].posting_date,target:'ai-journal'}));window.refreshNotices1443?.();showConnection();
  const list=panel?.querySelector('[data-drive-list]');if(!list)return;
  const entries=[...groups].filter(([id,rows])=>!completedDrafts.has(id)&&!dispositions.has(id)&&!prepared.has(id)&&(reviewed.get(id)?.retry||snapshot.accountHash&&reviewed.get(id)?.accountHash!==snapshot.accountHash||reviewed.get(id)?.rows!==JSON.stringify(rows)));
@@ -176,11 +176,10 @@ async function receipt(id){const c=context(),r=await readQuery(c.db.rpc('drive_j
 const $=id=>document.getElementById(id);
 const initialLinks=[
  ['Journal & HR Submission Inbox','https://docs.google.com/spreadsheets/d/1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk/edit','AI Journal reads the Drafts tab. AI HR reads the HR Submission Inbox tab in this same spreadsheet.'],
- ['Accounting — Import and Review','https://docs.google.com/spreadsheets/d/1fxa4WzOHUA0bpEhz12-IPkG5Ps6sZMb_1RVptqiv_QA/edit','Accounting import and review spreadsheet.'],
- ['Accounting — Data Upload','https://docs.google.com/spreadsheets/d/1f-V4Df1xAVhWoqVv0VWgSgG-jZ393JRncK_Np_1R-E0/edit','Accounting data upload spreadsheet.'],
- ['Accounting — Personal Workspace','https://docs.google.com/spreadsheets/d/1g192fLF6Sbsq1EeDQAGWb3lHJ8-w1FyRhIGXOeOs6A8/edit','Personal accounting workspace spreadsheet.'],
- ['Journal Submissions folder','https://drive.google.com/drive/folders/1SjBDUyCqz2-90-LFSci48D0pj-wjGT83','Google Drive folder for journal submission files. The submission spreadsheet is listed separately above.'],
- ['Accounting Website folder','https://drive.google.com/drive/folders/1HhV0osCOdoXklqbOcy_-QC0B5G792z9J','Google Drive folder for Accounting website files.']
+ ['Accounting Web — Current and History','https://docs.google.com/spreadsheets/d/1XSlBJL1X2tcbBsVcfDpffm0qIlYPGPwLBgwxcxzWx0I/edit','Company raw data, source revisions, current reports and fixed history.'],
+ ['Journal receipts','https://drive.google.com/drive/folders/1GYQRea6PCEjehyZC0Pewq2oqAGB-mCX_','Company receipt PDFs. The active upload destination is controlled above.'],
+ ['Journal Submissions folder','https://drive.google.com/drive/folders/1oZWJstSJIU2HvPvelKdBdUkiUIcU-mpa','Company journal and HR submission files.'],
+ ['Accounting Website folder','https://drive.google.com/drive/folders/1vgFTHzPeC6ai2HL__U13BYUslHFT-vip','Company Accounting website files.']
 ];
 function defaults(){return !!identity()?{sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk',links:initialLinks}:{links:[]};}
 async function loadSharedSettings(){
@@ -415,7 +414,7 @@ function renderSettings(){
  if(linkEditorOwner&&linkEditorOwner===identity())return;
  linkEditorOwner='';const cfg=config(),owner=identity();
  const canEdit=()=>owner&&owner===identity()&&sharedLoaded&&sharedOwner===owner&&liveProfile?.role==='admin'&&access113.can('settings-accounting','edit');
- settingsPanel.innerHTML='<h3 class="je-title">Saved links</h3><p>Spreadsheets and folders used by Accounting and HR.</p><div data-links class="gpt-links143129"></div><div class="je-actions-bar"><button type="button" class="je-btn" data-add-link>Add link</button></div><details data-connection-settings><summary>Connection settings</summary><p>Administrators save the shared submission spreadsheet and Google client settings here.</p><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><label>Google OAuth client ID<input data-client class="je-input" autocomplete="off"></label><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save settings</button><button type="button" class="je-btn" data-reload>Reload settings</button></div><p><a href="docs/DRIVE-DRAFTS-v143.128.md" target="_blank" rel="noopener">Google connection setup instructions</a></p></details><p data-drive-status role="status"></p><p data-connection-status role="status"></p>';
+ settingsPanel.innerHTML='<h3 class="je-title">Saved links</h3><p>Spreadsheets and folders used by Accounting and HR.</p><div data-links class="gpt-links143129"></div><div class="je-actions-bar"><button type="button" class="je-btn" data-add-link>Add link</button></div><details data-connection-settings><summary>Google Sheets connection</summary><p>Administrators save the shared submission spreadsheet and Google client settings here.</p><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><label>Google OAuth client ID<input data-client class="je-input" autocomplete="off"></label><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save settings</button><button type="button" class="je-btn" data-reload>Reload settings</button><button type="button" class="je-btn" data-connect-sheets228>Connect / change Sheets account</button></div><p><a href="docs/DRIVE-DRAFTS-v143.128.md" target="_blank" rel="noopener">Google connection setup instructions</a></p></details><p data-drive-status role="status"></p><p data-connection-status role="status"></p>';
  const original=Array.isArray(cfg.links)?cfg.links:[],links=original.map(l=>describeLink(l,cfg)),host=settingsPanel.querySelector('[data-links]');
  const finish=()=>{linkEditorOwner='';renderSettings();};
  const saveLinks=(next)=>{const editorOwner=owner;void run(async()=>{
@@ -453,6 +452,12 @@ function renderSettings(){
   try{let sheet=sheetInput.match(/\/spreadsheets\/d\/([\w-]+)/)?.[1]||sheetInput;if(sheet&&!/^[\w-]{20,120}$/.test(sheet))throw Error('Enter a valid submission spreadsheet ID or URL.');if(client&&!/^\d+-[\w-]+\.apps\.googleusercontent\.com$/.test(client))throw Error('Enter a valid Google OAuth web client ID.');await saveSharedSettings({...config(),links:original,sheet,client});disconnect();renderSettings();message('Settings saved to the shared accounting system.');void checkBackground();}catch(e){message(e.message)}
  });};
  settingsPanel.querySelector('[data-reload]').onclick=()=>run(async()=>{if(linkEditorOwner)throw Error('Save or cancel your link edit first.');if(prepared.size)throw Error('Post or remove the prepared AI entries first.');await loadSharedSettings();message('Shared Google Sheets settings reloaded.');lastConnectionCheck=0;void checkBackground();});
+ settingsPanel.querySelector('[data-connect-sheets228]').onclick=()=>run(connect);
+ window.ReceiptDriveSettings228.mount(settingsPanel,{cfg,canEdit,
+  editing:value=>{linkEditorOwner=value?owner:'';},finish:text=>{linkEditorOwner='';renderSettings();if(text)message(text);},
+  save:async value=>{if(!canEdit())throw Error('Administrator settings access is required.');await saveSharedSettings(value);},
+  request:async(action,args={})=>{if(!canEdit())throw Error('Administrator settings access is required.');online();const db=ojmDb,session=await db.auth.getSession();if(session.error||session.data.session?.user?.id!==owner)throw Error('Sign in again to manage Google Drive.');const response=await fetch(OJM_SUPABASE_URL+'/functions/v1/accounting-documents',{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token,apikey:OJM_SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(35000)}),value=await response.json();if(!canEdit()||db!==ojmDb)throw Error('Account changed. Reopen settings.');if(!response.ok||value.error)throw Error(value.error||'Google Drive connection failed.');return value;}
+ });
  showConnection();
 }
 
@@ -485,7 +490,7 @@ function ready(){
  setInterval(()=>{if(syncSession())void checkBackground();},1500);
  settingsEntry();void checkBackground();
 }
-window.AIInboxSync143173?.register('journal',{checked:()=>{connectionStatus={connected:true,email:'oonjaimarketplace@gmail.com'};lastCheckedAt=new Date().toISOString();backgroundError='';showConnection();},cache:cacheInbox143174,restore:restoreInbox143174,receive:receiveInbox143173,reset:()=>{if(!syncSession()){disconnect();sharedLoaded=false;}},error:e=>{backgroundError=e;showConnection();}});
+window.AIInboxSync143173?.register('journal',{checked:()=>{connectionStatus={connected:true,email:connectionStatus?.email||''};lastCheckedAt=new Date().toISOString();backgroundError='';showConnection();},cache:cacheInbox143174,restore:restoreInbox143174,receive:receiveInbox143173,reset:()=>{if(!syncSession()){disconnect();sharedLoaded=false;}},error:e=>{backgroundError=e;showConnection();}});
 window.DriveDrafts143128={open,choose,scrollToTop:()=>scrollJournal(),parse,normalize,validDate,googleURL,notices:()=>pendingDraftNotices.slice(),get view(){return view},get editing(){return prepared.size>0},get preparedCount(){return prepared.size}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

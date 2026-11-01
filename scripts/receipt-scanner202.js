@@ -48,7 +48,22 @@ async function protectImports(){while(cameraQueue.length){const entry=cameraQueu
 async function resumePhoto(key){const pending=draft.pending?.find(p=>p.key===key);if(!pending)throw Error('This photo is no longer pending.');const raw=capturedSource212?.pendingKey===key?{original:capturedSource212.original}:await store('pending:'+key);if(!raw?.original)throw Error('This photo could not be read from device storage.');await editPage(raw.original,pending.id,pending);}
 async function resumeDraft(id){if(cameraQueue.length)await protectImports();if(draft)await persist(false);const selected=await store('draft:'+id);if(!selected)throw Error('This draft is no longer available.');draft=selected;draft.pending||=[];pdfCache=null;await persist(false);closeDialog();render();if(draft.pending.length)await nextPhoto();}
 async function api(action,args={}){valid();const session=await db.auth.getSession();if(session.error||session.data.session?.user?.id!==owner)throw Error('Sign in again to connect to Drive.');const r=await fetch(scope+'/functions/v1/accounting-documents',{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token,apikey:OJM_SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(35000)});const data=await r.json();valid();if(!r.ok||data.error){const disabled=/Google Drive API has not been used in project (\d+) before, or it is disabled/i.exec(data.error||'');throw Error(disabled?'Google Drive is authorized, but the Drive API is disabled for app project '+disabled[1]+'. Enable Google Drive API in Google Cloud, then retry.':data.error||'The connection did not complete.');}return data;}
-async function connection(){const next=await api('status');if(next.connected&&settings.email&&settings.email!==next.email){settings.driveFolders215||={};settings.driveFolders215[settings.email]=settings.folder;settings.folder=settings.driveFolders215[next.email]||{id:'root',name:'My Drive'};if(draft){draft.folder=settings.folder;draft.file=null;draft.upload=null;await persist(false);}}driveState=next;if(next.email){settings.email=next.email;await store('settings',settings);}return next;}
+async function connection(){
+ const next=await api('status'),company=next.companyDestination228;
+ if(company&&next.companyManaged228){
+  const target={id:company.id,name:company.name};
+  if(settings.folder?.id!==target.id||settings.email!==next.email){
+   settings.folder=target;
+   if(draft){draft.folder=target;draft.file=null;draft.upload=null;await persist(false);}
+  }
+  settings.companyManaged228=true;
+ }else{
+  settings.companyManaged228=false;
+  if(next.connected&&settings.email&&settings.email!==next.email){settings.driveFolders215||={};settings.driveFolders215[settings.email]=settings.folder;settings.folder=settings.driveFolders215[next.email]||{id:'root',name:'My Drive'};if(draft){draft.folder=settings.folder;draft.file=null;draft.upload=null;await persist(false);}}
+ }
+ driveState=next;if(next.email)settings.email=next.email;await store('settings',settings);return next;
+}
+
 function open(title,html){if(dialog===primaryDialog){ReceiptCamera209.stop();dialog.classList.remove("scan-camera-dialog209","scan-workflow211");}dialog.innerHTML=`<header><h2>${esc(title)}</h2>${icon211('close','Close','close')}</header>${html}<p class="scan-error" role="alert"></p>`;if(!dialog.open)dialog.showModal();paintLoading217();}
 function dialogError(e){const n=dialog.querySelector('[role=alert]');if(n)n.textContent=e.message||e;status(e.message||e,true);}
 const storageMode=()=>['local','sd'].includes(settings.storage)?'local':'drive';
@@ -426,7 +441,7 @@ async function destinationPanel215(){
  open('Save destination',`<div class="scan-locations216">${Object.entries(names).map(([mode,name])=>`<button type="button" class="scan-location216" data-scan="provider-${mode}215"><strong>${name}</strong><small>${esc(mode==='drive'?(settings.folder?.name||'My Drive'):(settings.localFolders215?.[mode]?.name||'Choose a folder'))}</small></button>`).join('')}</div>`);
 }
 function driveFolder216(r){
- open('Google Drive',`<div class="scan-drive-account216"><small>${esc(driveState.email)}</small>${btn('connect','Switch account')}</div><nav class="scan-actions" aria-label="Folder navigation">${btn('locations215','Locations')}${btn('folder-root','My Drive')}${r.parent.parents?.length?btn('folder-up','Up'):''}${r.parent.capabilities?.canAddChildren?btn('folder-new','New folder'):''}</nav><h3 class="scan-drive-path216">${esc(r.parent.name)}</h3><div class="scan-drive-folders216">${folders.items.map(f=>`<button type="button" class="scan-drive-folder216" data-scan="folder-open" data-folder="${f.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7l2 3h9v13H3z"/></svg><span>${esc(f.name)}</span><span aria-hidden="true">›</span></button>`).join('')||'<p>This folder has no subfolders.</p>'}</div>${folders.next?btn('folder-more','More folders'):''}<div class="scan-actions">${r.parent.capabilities?.canAddChildren?btn('folder-select','Use this folder','primary'):'<small>This folder is read-only.</small>'}</div>`);
+ open('Google Drive',`<div class="scan-drive-account216"><small>${esc(driveState.email)}</small>${driveState.companyManaged228?'<small>Company destination · managed in desktop Settings</small>':btn('connect','Switch account')}</div><nav class="scan-actions" aria-label="Folder navigation">${btn('locations215','Locations')}${btn('folder-root','My Drive')}${r.parent.parents?.length?btn('folder-up','Up'):''}${r.parent.capabilities?.canAddChildren&&!driveState.companyManaged228?btn('folder-new','New folder'):''}</nav><h3 class="scan-drive-path216">${esc(r.parent.name)}</h3><div class="scan-drive-folders216">${folders.items.map(f=>`<button type="button" class="scan-drive-folder216" data-scan="folder-open" data-folder="${f.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7l2 3h9v13H3z"/></svg><span>${esc(f.name)}</span><span aria-hidden="true">›</span></button>`).join('')||'<p>This folder has no subfolders.</p>'}</div>${folders.next?btn('folder-more','More folders'):''}<div class="scan-actions">${r.parent.capabilities?.canAddChildren?btn('folder-select','Use this folder','primary'):'<small>This folder is read-only.</small>'}</div>`);
  status('Choose the folder for your PDF.');
 }
 async function browserFolder215(value){

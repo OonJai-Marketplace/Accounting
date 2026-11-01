@@ -44,7 +44,7 @@ function prepare(root){
   const currencies=wrap(root,[currency],'currency','Currency Manager','Available currencies',true);
   const vouchers=wrap(root,[root.querySelector('.voucher-config14299')],'vouchers','Vouchers','Prefix, classification and numbering');
   if(currencies&&vouchers&&currencies.details.parentElement===vouchers.details.parentElement&&currencies.details.nextElementSibling!==vouchers.details)vouchers.details.before(currencies.details);
-  wrap(root,[$('googleSheets143129')],'google','Google Sheets','Submission inbox and connections');
+  wrap(root,[$('googleSheets143129')],'google','Google Drive and Sheets','Company Drive, spreadsheets and connections');
  }else if(id==='settings-business')whole(root,'business','Business information','Identity, contact details and company accounts',true);
  else if(id==='settings-users')whole(root,'users','Users & Permissions','Accounts, access and permissions');
  else if(id==='settings-organization14229')whole(root,'organization','Organization & Reporting','Departments and reporting lines');
