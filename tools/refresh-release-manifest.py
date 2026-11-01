@@ -28,6 +28,8 @@ def build():
     names = set(previous) | set(outputs)
     names.update(p.name for p in ROOT.glob('*.html'))
     names.update(['desktop-sw14242.js', 'phone-sw.js', 'sw14239.js', 'offline-assets14239.js'])
+    retired = json.loads((ROOT/'validation/phase0-corrections.json').read_text()).get('retired_assets', {})
+    names.difference_update(retired)
     names.difference_update(['deployment-config.js', 'data/calendar-news.json', str(TARGET.relative_to(ROOT))])
     files = []
     for name in sorted(names):
