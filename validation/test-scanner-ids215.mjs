@@ -5,7 +5,7 @@ const entries=[{id:'entry',entry_no:'OJM26-0010',status:'posted'}];
 assert.ok(idResults(groups,entries,[],[],'batch').every(r=>r.available));
 assert.equal(idResults(groups,[],[],[],'batch')[0].available,false);
 assert.equal(idResults(groups,[{...entries[0],status:'voided'}],[],[],'batch')[0].available,false);
-assert.equal(idResults(groups,entries,[],[{scan_id:'other',entry_label:'OJM26-0010'}],'batch')[0].available,false);
+const attached=idResults(groups,entries,[],[{id:'receipt',scan_id:'other',entry_label:'OJM26-0010'}],'batch')[0];assert.equal(attached.available,true);assert.equal(attached.requiresChoice,true);
 assert.equal(idResults(groups,entries,[],[{scan_id:'batch',entry_label:'OJM26-0010'}],'batch')[0].available,true);
 assert.equal(idResults(groups,[...entries,{...entries[0],id:'duplicate'}],[],[],'batch')[0].available,false);
 const staff=[{id:'line1',staff_journal_id:'staff',workspace_entry_no:'OJM26-0010'},{id:'line2',staff_journal_id:'staff',workspace_entry_no:'OJM26-0010'}];
@@ -15,4 +15,6 @@ assert.throws(()=>requireAvailable(idResults(groups,[],[],[],'batch')),/No match
 assert.throws(()=>idRequest({groups:[groups[0],groups[0]]}),/distinct/);
 assert.equal(sameTargets({journal_ids:['entry']},{journal_ids:['replacement']}),false,'reused numeric IDs must not silently change the journal UUID');
 assert.equal(sameTargets({staff_line_ids:['b','a']},{staff_line_ids:['a','b']}),true);
-console.log('PASS permitted existing IDs, missing/void/ambiguous rejection, used-ID blocking, same-batch retry, HR/support names and stable UUID checks');
+console.log('PASS permitted existing IDs, missing/void/ambiguous rejection, existing-receipt choice, same-batch retry, HR/support names and stable UUID checks');
+
+assert.equal(idResults([{type:"journal",label:"OJM 26 0001"}],[{id:"closed",entry_no:"OJM260001",status:"posted"}],[],[],"batch")[0].label,"OJM260001");

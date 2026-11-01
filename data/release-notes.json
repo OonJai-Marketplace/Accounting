@@ -1,8 +1,8 @@
 {
-  "version": "143.217",
+  "version": "143.218",
   "changes": [
-    "Delayed loading feedback for scanner actions, with Document month removed and PDF name retained.",
-    "Starting-ID suggestions use existing Accounting IDs, remember the last entry and skip used numbers.",
-    "Settings includes automatic verified Android update downloads and an Install update button."
+    "Scanner buttons acknowledge taps immediately and show visible loading progress for slow destinations and folders.",
+    "All destination shortcuts open Drive, phone or SD folders directly.",
+    "Existing and closed journal IDs accept receipts, with explicit Add supporting documents or Replace existing receipts choices."
   ]
 }

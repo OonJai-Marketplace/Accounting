@@ -18,7 +18,7 @@ private API override. VisionKit's own device limits still apply.
 
 ## Capture and Accounting
 
-1. Open Scan, confirm the document type, starting ID, PDF name and destination. Journal IDs must match a permitted database entry and cannot already belong to another scan batch. HR/support names are checked for document conflicts.
+1. Open Scan, confirm the document type, starting ID, PDF name and destination. Journal IDs must match a permitted database entry including closed entries. Existing receipts require an explicit Add supporting documents or Replace existing receipts choice. HR/support names are checked for document conflicts.
 2. Capture all pages for the current entry in the native scanner, then finish
    its review. Android returns Google's JPEGs without another crop, filter or
    JPEG recompression. iOS returns VisionKit pages encoded at JPEG quality 1.
@@ -139,3 +139,7 @@ existing application ID, private app data and origin. v143.216 needs its existin
 in-app download link once to acquire this updater. Physical-device installation
 remains to be confirmed; CI compilation and browser fixtures are not a phone test.
 The user reports Drive is now connected; no Google Cloud configuration was changed here.
+
+### v143.218
+
+All destination entry points share the direct folder browser. Buttons acknowledge taps immediately; a delayed spinner stays inside the active dialog during folder navigation and creation. Background ID suggestions do not lock destination controls. Main IDs accept the former hyphenated spelling and resolve to the actual saved ID. Closed periods do not block attaching documents. Existing receipts require Add, Replace, or Cancel; replacement is committed only after the new PDF is verified. The server atomically checks the exact reviewed receipt set, retains superseded document history and preserves journal UUIDs. APK identity and signer remain unchanged.
