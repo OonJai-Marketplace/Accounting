@@ -192,15 +192,17 @@ async function readSharedSettings(){
  if(owner!==identity()||db!==ojmDb)return;if(r.error)throw r.error;if(prepared.size||linkEditorOwner===owner)return;
  if(sharedLoaded&&JSON.stringify(sharedSettings)!==JSON.stringify(r.data?.data?.googleSheets143129||null))disconnect();sharedSettings=r.data?.data?.googleSheets143129||null;sharedOwner=owner;sharedLoaded=true;renderSettings();
 }
-async function saveSharedSettings(value){
+async function saveSharedSettings(value,receiptMode){
  const owner=identity(),db=ojmDb;if(!owner||liveProfile.role!=='admin'||!access113.can('settings-accounting'))throw Error('Administrator settings access is required.');online();
  const check=()=>{if(owner!==identity()||db!==ojmDb||liveProfile.role!=='admin'||!access113.can('settings-accounting'))throw Error('Account changed. Reopen settings.');};
  const r=await db.from('budget_settings14313').select('*').eq('id',true).maybeSingle();check();if(r.error)throw r.error;
- if(sharedLoaded&&sharedOwner===owner&&JSON.stringify(r.data?.data?.googleSheets143129||null)!==JSON.stringify(sharedSettings))throw Error('Google Sheets settings changed on another device. Click Reload settings before saving.');
+ if(receiptMode)value=window.ReceiptDriveSettings228.merge(r.data?.data?.googleSheets143129||defaults(),value,receiptMode);
+ else if(sharedLoaded&&sharedOwner===owner&&JSON.stringify(r.data?.data?.googleSheets143129||null)!==JSON.stringify(sharedSettings))throw Error('Google Sheets settings changed on another device. Click Reload settings before saving.');
  const old=r.data,payload={id:true,version:old?old.version+1:1,data:{...(old?.data||{}),googleSheets143129:value},updated_at:new Date().toISOString(),updated_by:owner};
  const q=old?db.from('budget_settings14313').update(payload).eq('id',true).eq('version',old.version):db.from('budget_settings14313').insert(payload);
  const saved=await q.select('*');check();if(saved.error)throw saved.error;if(!saved.data?.length)throw Error('Settings changed elsewhere. Reload settings and retry.');
  sharedSettings=value;sharedOwner=owner;sharedLoaded=true;localStorage.setItem(configKey(),JSON.stringify(value));
+ return value;
 }
 function googleURL(value){try{const u=new URL(value);if(u.protocol!=='https:'||u.username||u.password)return '';if(u.hostname==='docs.google.com'&&/^\/spreadsheets\/d\/[\w-]+(?:\/|$)/.test(u.pathname)||u.hostname==='drive.google.com'&&/^\/drive\/folders\/[\w-]+(?:\/|$)/.test(u.pathname))return u.href;}catch{}return '';}
 function formatDate(value){return typeof formatAppDate==='function'?formatAppDate(value):value;}
@@ -455,7 +457,8 @@ function renderSettings(){
  settingsPanel.querySelector('[data-connect-sheets228]').onclick=()=>run(connect);
  window.ReceiptDriveSettings228.mount(settingsPanel,{cfg,canEdit,
   editing:value=>{linkEditorOwner=value?owner:'';},finish:text=>{linkEditorOwner='';renderSettings();if(text)message(text);},
-  save:async value=>{if(!canEdit())throw Error('Administrator settings access is required.');await saveSharedSettings(value);},
+  load:async()=>{if(!canEdit())throw Error('Administrator settings access is required.');online();const db=ojmDb,r=await readQuery(db.from('budget_settings14313').select('data').eq('id',true).maybeSingle(),'Receipt destination check');if(!canEdit()||db!==ojmDb)throw Error('Account changed. Reopen settings.');if(r.error)throw r.error;return r.data?.data?.googleSheets143129||defaults();},
+  save:async(value,mode)=>{if(!canEdit())throw Error('Administrator settings access is required.');return await saveSharedSettings(value,mode);},
   request:async(action,args={})=>{if(!canEdit())throw Error('Administrator settings access is required.');online();const db=ojmDb,session=await db.auth.getSession();if(session.error||session.data.session?.user?.id!==owner)throw Error('Sign in again to manage Google Drive.');const response=await fetch(OJM_SUPABASE_URL+'/functions/v1/accounting-documents',{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token,apikey:OJM_SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(35000)}),value=await response.json();if(!canEdit()||db!==ojmDb)throw Error('Account changed. Reopen settings.');if(!response.ok||value.error)throw Error(value.error||'Google Drive connection failed.');return value;}
  });
  showConnection();

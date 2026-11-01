@@ -1,8 +1,8 @@
 {
-  "version": "143.228",
+  "version": "143.229",
   "changes": [
-    "Settings now contains Google Drive and Sheets with administrator-managed company email and receipt folder.",
-    "Save future account details before authorization; connect and activate one Drive destination for every phone scanner.",
-    "Company-owned saved links replace personal accounting links; existing journal receipt references are preserved."
+    "Receipt Drive settings load the current saved destination instead of an old AI inbox snapshot.",
+    "Saving a new receipt account and folder preserves the active connection and newer Sheets settings.",
+    "Save and authorization progress stays visible; a direct Google authorization link is available when pop-ups are blocked."
   ]
 }
