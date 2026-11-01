@@ -25,7 +25,7 @@ export function annualEngine231(h:any){
   const queuedYears=job.queue.flatMap((q:any)=>q.accounting_years231??route.years(q.table_name,q.record)??[]);
   const wanted=[...new Set([...preparationYears231(),...(cfg.prepareYear===current+1?[cfg.prepareYear]:[]),...route.allYears().filter((y:number)=>y<=current),...queuedYears.filter((y:number)=>y<=current),...job.years.map((y:any)=>y.year).filter((y:number)=>y<=current)])].sort((a:number,b:number)=>a-b);
   let state=await storageState231();const rows=new Map(state.years.map((y:any)=>[y.year,y]));
-  for(const year of wanted){const row:any=rows.get(year);if(!row?.initialized||!row.receipt_folder)rows.set(year,await ensureYear231(cfg,year,initialize));}
+  for(const year of wanted)rows.set(year,await ensureYear231(cfg,year,initialize));
   const open=wanted.filter((year:number)=>year<=current);
   for(const year of open){const row:any=rows.get(year),closed=job.years.find((y:any)=>y.year===year);if(row.history_digest||closed?.purged_at)continue;
    if(row.saved_revision===job.config.revision&&!closed?.snapshot)continue;
