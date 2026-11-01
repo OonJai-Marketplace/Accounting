@@ -2,13 +2,13 @@
   "schema": 1,
   "applicationId": "org.oonjai.accounting.preview",
   "signerSha256": "58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c",
-  "version": "143.219-test",
-  "versionCode": 143219,
-  "sha256": "7249ddc36082539f8f92e719325c0fc9624fca9a456b22fa28bcdb34d324f690",
+  "version": "143.220-test",
+  "versionCode": 143220,
+  "sha256": "be3c46d5aa504599a8df84f14f07a773a676bd35f03e96aaccc9e43019e3c947",
   "url": "https://drive.google.com/file/d/1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje/view?usp=drivesdk",
   "notes": [
-    "ID suggestions use an opaque, readable in-app list with manual ID entry.",
-    "The scanner keeps Destination and removes the duplicate top Settings button.",
-    "Skip ID opens only later ID choices and manual entry while keeping the current PDF and destination."
+    "View batch now has a Delete draft or Delete device copy button.",
+    "Deletion requires confirmation and warns about unsaved scans or unfinished Accounting links.",
+    "Deleting a batch removes only its copy in this app; saved PDFs, Accounting attachments and other batches stay."
   ]
 }
