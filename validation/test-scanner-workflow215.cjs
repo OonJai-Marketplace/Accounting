@@ -82,8 +82,46 @@ const ROOT=path.resolve(__dirname,'..');
  existingReceipts.push({id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',title:'Newer receipt',pages:1});
  const uploadsBefore=putCount;await page.click('[data-scan=save-pdf215]');await page.waitForSelector('[data-receipt-choice=cancel]');await page.click('[data-receipt-choice=cancel]');await idle();assert.equal(putCount,uploadsBefore,'changed receipt list must be reviewed before saving');
  uploaded=null;await page.click('[data-scan=save-pdf215]');await page.waitForSelector('[data-receipt-choice=replace]');await page.click('[data-receipt-choice=replace]');await idle();assert.equal(manifest.groups[0].receiptChoice.mode,'replace');assert.equal(manifest.groups[0].receiptChoice.expected.length,2);
+
+ // Device-copy cleanup: reachable after saving; cancelled/failed deletion is non-destructive.
+ const saved=await page.evaluate(()=>structuredClone(ReceiptScanner202.state.draft));
+ const readRecords=()=>page.evaluate(async()=>{const conn=await new Promise((resolve,reject)=>{const r=indexedDB.open('ojm-scans202',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});return await new Promise((resolve,reject)=>{const t=conn.transaction('drafts','readonly'),s=t.objectStore('drafts'),keys=s.getAllKeys(),values=s.getAll();t.oncomplete=()=>{conn.close();resolve(Object.fromEntries(keys.result.map((k,i)=>[k,values.result[i]])));};t.onerror=()=>reject(t.error);});});
+ const prefix=await page.evaluate(()=>OJM_SUPABASE_URL+':test-owner:');
+ const beforeDelete=await readRecords(),pdfBeforeDelete=JSON.stringify(uploaded),registeredBeforeDelete=JSON.stringify(manifest),eventsBeforeDelete=events.length;
+ assert.equal(await page.locator('#scanMain [data-scan=discard-draft]').innerText(),'Delete device copy');
+ page.once('dialog',d=>{assert.match(d.message(),/saved and linked/);assert.match(d.message(),/Accounting attachments will remain/);return d.dismiss();});
+ await click('#scanMain [data-scan=discard-draft]');assert.deepEqual(await readRecords(),beforeDelete,'cancel retains every local record');
+ await page.screenshot({path:'/tmp/scanner-drafts220.png',fullPage:true});
+ const selectedDelete=`#scanMain [data-scan=discard-draft][data-draft="${saved.id}"]`;
+ await page.evaluate(()=>{window.originalDelete220=IDBObjectStore.prototype.delete;let calls=0;IDBObjectStore.prototype.delete=function(key){if(++calls===2)throw Error('Synthetic local delete failure');return originalDelete220.call(this,key);};});
+ page.once('dialog',d=>d.accept());await click(selectedDelete);assert.deepEqual(await readRecords(),beforeDelete,'storage failure rolls back draft, pointer and photo deletion');
+ assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.id),saved.id);
+ await page.evaluate(()=>IDBObjectStore.prototype.delete=originalDelete220);
+ page.once('dialog',d=>d.accept());await click(selectedDelete);
+ const afterDelete=await readRecords();assert.equal(afterDelete[prefix+'draft:'+saved.id],undefined);for(const p of saved.pages)assert.equal(afterDelete[prefix+'page:'+p.id],undefined);assert.equal(afterDelete[prefix+'current'].data,null);
+ for(const [key,value] of Object.entries(beforeDelete))if(![prefix+'draft:'+saved.id,prefix+'current',prefix+'draft-list',...saved.pages.map(p=>prefix+'page:'+p.id)].includes(key))assert.deepEqual(afterDelete[key],value,'other draft/settings retained: '+key);
+ assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft),null);assert.equal(JSON.stringify(uploaded),pdfBeforeDelete);assert.equal(JSON.stringify(manifest),registeredBeforeDelete);assert.equal(events.length,eventsBeforeDelete,'cleanup never calls Drive or Accounting APIs');
+ await click('#scanDialog [data-scan=close]');await click('#scanMain [data-scan=drafts]');assert.equal(await page.locator(`[data-scan=discard-draft][data-draft="${saved.id}"]`).count(),0,'deleted copy does not reappear from setup');
+ const otherID=await page.locator('#scanDialog [data-scan=discard-draft]').first().getAttribute('data-draft');
+ page.once('dialog',d=>d.accept());await click(`#scanDialog [data-scan=discard-draft][data-draft="${otherID}"]`);assert.equal((await readRecords())[prefix+'draft:'+otherID],undefined,'older saved copies can also be deleted');
+ await click('#scanDialog [data-scan=close]');await click('#scanMain [data-scan=setup215]');await idsReady();
+ existingReceipts=[];await page.fill('#setupID215','OJM260019');await page.locator('#setupID215').blur();await idsReady();await click('[data-scan=setup-confirm215]');
+ await page.reload();await page.waitForSelector('#setupID215');await idle();await click('#scanDialog [data-scan=batch-view215]');
+ const unfinished=await page.evaluate(()=>structuredClone(ReceiptScanner202.state.draft));
+ assert.equal(await page.locator('#scanMain [data-scan=discard-draft]').innerText(),'Delete draft');
+ page.once('dialog',d=>{assert.match(d.message(),/unsaved scans or changes.*permanently lost/);return d.dismiss();});await click('#scanMain [data-scan=discard-draft]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.id),unfinished.id);
+ // The native recovery queue must keep its original batch until recovery finishes.
+ await page.evaluate(id=>localStorage.setItem('test-native',JSON.stringify({draftID:id})),unfinished.id);await click('#scanMain [data-scan=discard-draft]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.id),unfinished.id);await page.evaluate(()=>localStorage.removeItem('test-native'));
+ // A saved PDF with unfinished links has a distinct confirmation.
+ uploaded=null;failLink=true;await click('[data-scan=save-pdf215]');assert.equal(await page.evaluate(()=>ReceiptScanner202.state.draft.links208.status),'pending');
+ page.once('dialog',d=>{assert.match(d.message(),/Accounting links are unfinished/);assert.match(d.message(),/removes the ability to retry/);return d.dismiss();});await click('#scanMain [data-scan=discard-draft]');
+ page.once('dialog',d=>d.accept());await click('#scanMain [data-scan=discard-draft]');
+ await page.reload();await page.waitForSelector('#setupID215');await idle();await click('#scanDialog [data-scan=close]');await click('#scanMain [data-scan=drafts]');assert.equal(await page.locator(`[data-scan=discard-draft][data-draft="${unfinished.id}"]`).count(),0,'deleted batch stays deleted after restart');
+ await click('#scanDialog [data-scan=close]');await click('#scanMain [data-scan=setup215]');await idsReady();await page.fill('#setupID215','OJM260020');await page.locator('#setupID215').blur();await idsReady();await click('[data-scan=setup-confirm215]');
+ const unsavedID=await page.evaluate(()=>ReceiptScanner202.state.draft.id),serverBeforeUnsavedDelete=events.length;
+ page.once('dialog',d=>{assert.match(d.message(),/permanently lost/);return d.accept();});await click('#scanMain [data-scan=discard-draft]');assert.equal((await readRecords())[prefix+'draft:'+unsavedID],undefined,'confirmed unsaved draft is removed');assert.equal(events.length,serverBeforeUnsavedDelete);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
  await page.screenshot({path:'/tmp/scanner-setup215.png',fullPage:true});
- console.log('PASS setup before capture; confirmed IDs; immediate Drive/SD browser opening, folder creation, picker cancellation and API-disabled recovery; independent remembered paths; opaque touch/keyboard ID suggestions; ID-only Skip ID with cancellation and manual entry; no duplicate Settings; Add receipts/Next ID/Skip ID; 5 pages in one PDF; upload before linking; safe retry; next-ID memory; phone layout');
+ console.log('PASS setup before capture; confirmed IDs; immediate Drive/SD browser opening, folder creation, picker cancellation and API-disabled recovery; independent remembered paths; opaque touch/keyboard ID suggestions; ID-only Skip ID with cancellation and manual entry; no duplicate Settings; Add receipts/Next ID/Skip ID; 5 pages in one PDF; upload before linking; safe retry; next-ID memory; confirmed saved/unsaved cleanup, atomic rollback, retained PDFs and Accounting links; phone layout');
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});
