@@ -14,3 +14,16 @@
 .journal-receipt-zoom224{width:min(1200px,96vw);height:94dvh;max-height:94dvh}.jr-zoom-caption224{margin:0;padding:10px 22px;font-size:13px;border-bottom:1px solid #d8dfd6}.jr-zoom-scroll224{overflow:auto;min-height:0;flex:1;background:#e8ede6}.jr-zoom-scroll224 img{display:block;width:100%;height:auto;margin:auto}.jr-fullsize224 .jr-zoom-scroll224 img{width:200%;max-width:none}.journal-receipt-zoom224 footer{padding:10px 22px;border-top:1px solid #d8dfd6}
 @keyframes jr-spin224{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.jr-spinner224{animation:none}}
 @media print{.journal-receipts224,.journal-receipt-zoom224,[data-journal-receipts224]{display:none!important}}
+
+/* Preserve the entry ID action; its separate receipt indicator stays on the right. */
+.jr-id226{display:inline-flex;align-items:center;gap:3px;white-space:nowrap;vertical-align:middle}
+.jr-id226>.entry-menu-trigger14387{display:inline;flex:none}
+body .jr-id226>.jr-link226{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:32px;height:32px;min-height:32px;min-width:32px;flex:none;padding:6px;border:1px solid transparent;border-radius:6px;background:transparent;color:#60716b;cursor:pointer;vertical-align:middle}
+.jr-link226 svg{display:block;width:18px;height:18px;overflow:visible}
+body .jr-id226>.jr-link226[data-receipt-state226=linked]{color:#087247;background:#edf7ef}
+body .jr-id226>.jr-link226[hidden],.jr-check-note226[hidden]{display:none!important}
+body .jr-id226>.jr-link226:hover{border-color:currentColor}
+body .jr-id226>.jr-link226:focus-visible{outline:2px solid #087247;outline-offset:2px}
+.jr-check-note226{display:flex;align-items:center;gap:10px;margin:5px 0;color:#60716b;font-size:12px}
+@media(prefers-reduced-motion:reduce){.jr-check-spinner226{animation:none}}
+@media print{.jr-link226{display:none!important}}

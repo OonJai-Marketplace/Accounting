@@ -58,7 +58,7 @@ async function open(id){
  dialog.innerHTML='<header><div><h2 id="jr-title224">Receipts · '+esc(entry)+'</h2><p>Scroll through this entry’s receipts. Select an image to enlarge it.</p></div><button type="button" data-jr-close>Close</button></header><div class="jr-scroll224">'+loading('Opening receipts…')+'</div>';
  dialog.querySelector('[data-jr-close]').onclick=()=>dialog.close();dialog.showModal();
  try{const s=await session();if(ticket!==epoch||!dialog.open||context!==identity())return;if(actor!==s.user.id){views.clear();actor=s.user.id;}if(!active(ticket))throw Error('Your account changed. Sign in again.');
-  const result=await client().api('list',request);if(!active(ticket))return;if(request.staffLine&&result.entry){entry=result.entry;dialog.querySelector('h2').textContent='Receipts · '+entry;}const body=dialog.querySelector('.jr-scroll224');body.replaceChildren();const documents=result.documents||[];
+  const result=await client().api('list',request);if(!active(ticket))return;scopeChanged226();remember226(id,result.resolved===false?null:(result.documents||[]).length>0);if(request.staffLine&&result.entry){entry=result.entry;dialog.querySelector('h2').textContent='Receipts · '+entry;}const body=dialog.querySelector('.jr-scroll224');body.replaceChildren();const documents=result.documents||[];
   if(!documents.length){const p=document.createElement('p');p.textContent='No receipts are linked to this entry yet.';body.append(p);}
   else{const count=documents.reduce((n,d)=>n+Number(d.pages||0),0);const summary=document.createElement('p');summary.className='jr-summary224';summary.textContent=count+' receipt page'+(count===1?'':'s')+' · '+documents.length+' group'+(documents.length===1?'':'s');body.append(summary);
    for(const doc of documents){const node=document.createElement('section');node.className='jr-section224';node.innerHTML='<h3>'+esc(doc.label||entry)+'</h3><p class="jr-document-title224">'+esc(doc.title)+' · '+esc(doc.pages)+' pages</p><div class="jr-section-body224">'+loading('Receipt group loads as you scroll')+'</div>';body.append(node);observe(node,()=>section(node,doc,ticket));}
@@ -67,6 +67,94 @@ async function open(id){
  }catch(e){if(ticket===epoch&&dialog.open)retryBox(dialog.querySelector('.jr-scroll224'),e.message,()=>open(id));}
 }
 function button(id){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent='Receipts';b.dataset.journalReceipts224=typeof id==='object'?id.staffLine:id;b.onclick=()=>void open(id);return b;}
+// Receipt presence is metadata only. Preview URLs are fetched only on opening.
+const statusCache226=new Map(),statusNotes226=new WeakMap();let statusScope226='',statusBusy226=false,statusTimer226=0;
+const key226=id=>typeof id==='object'?'staff:'+id.staffLine:'entry:'+id;
+const scope226=()=>identity()+':'+(window.deviceVault14334?.actor||'')+':'+(window.deviceVault14334?.unlocked===false?'locked':'unlocked');
+const svg226=body=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+body+'</svg>';
+const chain226='<path d="m10 13 4-4M8 16l-1 1a4.2 4.2 0 0 1-6-6l4-4a4.2 4.2 0 0 1 6 0m2 10a4.2 4.2 0 0 0 6 0l4-4a4.2 4.2 0 0 0-6-6l-1 1"/>';
+function paint226(b,state){
+ const id=b._receiptTarget226,label=typeof id==='object'?id.label:id;
+ const message='Supporting documents attached. Open receipts.';
+ b.hidden=state!=='linked';
+ if(b.dataset.receiptState226!==state){b.dataset.receiptState226=state;b.innerHTML=state==='linked'?svg226(chain226):'';}
+ b.title=label+': '+message;b.setAttribute('aria-label',b.title);
+}
+function note226(table,message,retry=false){
+ if(!table?.isConnected)return;let note=statusNotes226.get(table);
+ if(!note&&message){note=document.createElement('p');note.className='jr-check-note226 no-print';note.setAttribute('role','status');table.before(note);statusNotes226.set(table,note);}
+ if(!note)return;if(!message){note.hidden=true;return;}
+ note.hidden=false;note.replaceChildren();const text=document.createElement('span');text.textContent=message;note.append(text);
+ if(retry){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent='Retry';b.onclick=refresh226;note.append(b);}
+}
+function statusTables226(){return [...new Set([...document.querySelectorAll('.jr-link226')].filter(b=>b.parentElement.getBoundingClientRect().height).map(b=>b.closest('table')).filter(Boolean))];}
+function settleNotes226(){for(const table of statusTables226()){
+ const unavailable=[...table.querySelectorAll('.jr-link226')].some(b=>statusCache226.get(b.dataset.receiptKey226)?.state==='unknown');
+ note226(table,unavailable?'Some receipt links could not be checked.':'',unavailable);
+}}
+
+function remember226(id,hasDocuments){
+ if(statusScope226!==scope226())return;
+ const state=hasDocuments===true?'linked':hasDocuments===false?'missing':'unknown',key=key226(id);
+ statusCache226.set(key,{state,until:Date.now()+(state==='unknown'?20000:60000)});
+ while(statusCache226.size>1200)statusCache226.delete(statusCache226.keys().next().value);
+ for(const b of document.querySelectorAll('.jr-link226'))if(b.dataset.receiptKey226===key)paint226(b,state);
+}
+function scopeChanged226(){
+ const next=scope226();if(next===statusScope226)return false;
+ statusScope226=next;statusCache226.clear();statusBusy226=false;
+ for(const b of document.querySelectorAll('.jr-link226'))paint226(b,'unknown');
+ for(const table of statusTables226())note226(table,'');
+ return true;
+}
+function decorate226(){
+ if(!enabled())return;
+ for(const label of document.querySelectorAll('[data-entry-menu14387],.r79-link[data-entry]')){
+  if(label.closest('.jr-id226,.journal-receipts224,.journal-receipt-zoom224'))continue;
+  const row=label.closest('tr[data-entry-id]'),id=label.dataset.entry||row?.dataset.entryId;
+  if(!id)continue;
+  const target=row?.closest('#personalWorkspace1437')?{staffLine:id,label:label.textContent.trim()}:id;
+  const wrap=document.createElement('span'),b=document.createElement('button');wrap.className='jr-id226';b.className='jr-link226 no-print';b.type='button';b._receiptTarget226=target;b.dataset.receiptKey226=key226(target);
+  b.onclick=e=>{e.preventDefault();e.stopPropagation();void open(target);};b.ondblclick=e=>e.stopPropagation();
+  paint226(b,statusCache226.get(key226(target))?.state||'unknown');label.replaceWith(wrap);wrap.append(label,b);
+ }
+}
+async function checkVisible226(){
+ statusTimer226=0;if(!enabled()||document.hidden)return;
+ scopeChanged226();decorate226();
+ if(statusBusy226||typeof liveProfile==='undefined'||!liveProfile?.id||window.deviceVault14334&&(deviceVault14334.unlocked===false||deviceVault14334.actor!==liveProfile.id)||navigator.onLine===false)return;
+ const targets=new Map();
+ for(const b of document.querySelectorAll('.jr-link226')){
+  const box=b.parentElement.getBoundingClientRect();if(!box.width||!box.height||box.bottom<0||box.top>innerHeight+300)continue;
+  const key=b.dataset.receiptKey226,cached=statusCache226.get(key);
+  if(cached?.until>Date.now()){paint226(b,cached.state);continue;}
+  if(targets.size<100||targets.has(key)){targets.set(key,b._receiptTarget226);paint226(b,'loading');}
+ }
+ if(!targets.size)return;
+ statusBusy226=true;const scope=statusScope226,entries=[],staffLines=[];
+ const loadingTimer=setTimeout(()=>{if(scope===statusScope226)for(const table of statusTables226())if([...table.querySelectorAll('.jr-link226')].some(b=>b.dataset.receiptState226==='loading'))note226(table,'Checking receipt links…');},300);
+ for(const target of targets.values())if(typeof target==='object')staffLines.push(target.staffLine);else entries.push(target);
+ try{
+  const signed=await session();if(signed.user.id!==liveProfile?.id)throw Error('Account changed.');
+  const response=await client().api('receipt-status',{entries,staffLines});
+  if(scope!==scope226()||scope!==statusScope226)return;
+  for(const target of targets.values()){const row=typeof target==='object'?response.staffLines?.find(r=>r.staffLine===target.staffLine):response.entries?.find(r=>r.entry===target);remember226(target,row?.hasDocuments);}
+ }catch{
+  if(scope===scope226()&&scope===statusScope226)for(const target of targets.values())remember226(target,null);
+ }finally{clearTimeout(loadingTimer);if(scope===statusScope226){statusBusy226=false;settleNotes226();schedule226();}}
+}
+function schedule226(){if(!statusTimer226)statusTimer226=setTimeout(()=>void checkVisible226(),120);}
+function refresh226(){statusCache226.clear();schedule226();}
+function start226(){
+ const mutations=new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.jr-id226,.jr-check-note226,.journal-receipts224,.journal-receipt-zoom224')))schedule226();});
+ mutations.observe(document.body,{childList:true,subtree:true});schedule226();
+ document.addEventListener('scroll',schedule226,true);window.addEventListener('page113',schedule226);window.addEventListener('idle-sync14341',schedule226);window.addEventListener('focus',refresh226);window.addEventListener('online',refresh226);
+ window.addEventListener('offline',()=>{statusCache226.clear();for(const b of document.querySelectorAll('.jr-link226'))paint226(b,'unknown');for(const table of statusTables226())note226(table,'Reconnect to check receipt links.',true);});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule226();});
+ setInterval(()=>{if(scopeChanged226())schedule226();},1000);
+ setInterval(schedule226,60000);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start226,{once:true});else start226();
 setInterval(()=>{if(actor&&locked()){views.clear();actor='';if(dialog?.open)dialog.close();else clear();}},1000);
 window.JournalReceipts224={enabled,open,button};
 })();

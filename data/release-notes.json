@@ -1,8 +1,8 @@
 {
-  "version": "143.225",
+  "version": "143.226",
   "changes": [
-    "Scheduled journals now wait in Upcoming for explicit Approve & Post. Due notifications open the schedule; no entry ID is assigned while waiting.",
-    "Receipts is in the desktop/tablet double-click row menu beside Edit and Void, including personal journals.",
-    "Entry descriptions appear once without the General description label; distinct line details and saved text are preserved."
+    "A small link icon appears immediately to the right of Entry IDs that have supporting documents. Entries without documents have no icon.",
+    "Click the icon to open only that entry\u2019s receipts. Journal row menus keep their edit actions, and ledger Entry ID navigation stays unchanged.",
+    "Receipt presence is checked in batches without downloading images. Delayed checks and connection errors appear separately from the entry ID. Phone scanner behavior is unchanged."
   ]
 }

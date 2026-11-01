@@ -16,7 +16,7 @@ document.addEventListener('pointerover',e=>{const b=e.target.closest('[data-scan
 document.addEventListener('pointerout',e=>{if(e.target.closest('[data-scan-entry208],[data-scan-line208]'))clearTimeout(prefetch);});
 function button(value,staff=false){const b=document.createElement('button');b.type='button';b.className='scan-support-link208 no-print';b.dataset[staff?'scanLine208':'scanEntry208']=value;b.textContent='Documents';b.setAttribute('aria-label','Supporting documents for '+value);return b;}
 function decorate(root=document){
- // Desktop/tablet receipts belong only to entry menus and entry-detail windows.
+ // Desktop/tablet uses the dedicated receipt icon and group viewer.
  if(document.documentElement.dataset.device132!=='phone'&&!window.PhoneWorkspace14242){root.querySelectorAll('.entry-id-stack .scan-support-link208,.r79-link[data-entry] + .scan-support-link208').forEach(b=>b.remove());return;}
  for(const row of root.querySelectorAll('tr[data-entry-id]')){const host=row.querySelector('.entry-id-stack');if(!host||host.querySelector('.scan-support-link208'))continue;const id=row.dataset.entryId;if(id)host.append(button(id,/^[0-9a-f-]{36}$/i.test(id)));}
  for(const link of root.querySelectorAll('.r79-link[data-entry]')){if(!link.parentElement.querySelector('.scan-support-link208'))link.after(button(link.dataset.entry));}
