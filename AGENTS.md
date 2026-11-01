@@ -186,3 +186,5 @@ not the previous scanner-generated OJM26-0001. Preserve RLS and journal numberin
 App updates belong in Settings; automatically download and verify the existing
 APK update, then request Android's install confirmation. Keep package, signer,
 login and drafts. Never silently reload or replace active scanner work.
+
+Scanner receipts 2026-11-01: existing/closed journal IDs remain selectable for supporting documents. If receipts already exist, offer Add supporting documents, Replace existing receipts, or Cancel. Confirm replacement against the current receipt set; save/verify first, retain prior versions, and never change journal amounts or reopen closed periods. All destination shortcuts use one direct provider folder browser with visible delayed loading feedback.

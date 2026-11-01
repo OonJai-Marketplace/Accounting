@@ -40,3 +40,6 @@ body:has(#scanDialog.scan-workflow211[open]){overflow:hidden;height:100dvh}
 
 /* Delayed action feedback; the approved sign-in loader is unchanged. */
 .scan-wait217{position:fixed;z-index:30;left:50%;bottom:24px;transform:translateX(-50%);display:flex;align-items:center;gap:9px;max-width:calc(100% - 32px);padding:11px 16px;border-radius:24px;background:#123f35;color:#fff;box-shadow:0 3px 18px #0003;font-size:14px;pointer-events:none}.scan-spinner217{flex:none;width:18px;height:18px;border:2px solid #ffffff55;border-top-color:#fff;border-radius:50%;animation:scan-spin217 .8s linear infinite}@keyframes scan-spin217{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.scan-spinner217{animation:none;border-style:dotted}}
+
+/* Keep progress in the visible modal scroll area, including Android WebView. */
+dialog > .scan-wait217{position:sticky;top:0;left:auto;bottom:auto;transform:none;max-width:100%;width:fit-content;margin:0 auto 12px;z-index:100;flex-shrink:0}body > .scan-wait217{top:70px;bottom:auto}.scan-receipt-choice218{max-width:460px}.scan-receipt-choice218 .scan-setting-list211{display:grid;gap:12px}

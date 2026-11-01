@@ -13,5 +13,5 @@ export function validateManifest(value,owner){
  for(const p of value.pages){const g=groups.get(p.groupID);if(!g||!uuid(p.id)||pageIDs.has(p.id)||p.preview?.path!==root+p.id+'.jpg'||!Number.isSafeInteger(p.page)||p.page<1||p.page>2000)throw Error('A page does not belong to this document.');pageIDs.add(p.id);g.pages.push({id:p.id,label:String(p.label||g.label).slice(0,160),page:p.page,path:p.preview.path});}
  return {id:value.id,revision:value.revision,title,provider:value.provider,pdf:value.pdf,root,groups:[...groups.values()].filter(g=>g.pages.length)};
 }
-export function latestGroups(rows){const map=new Map();for(const row of [...rows].sort((a,b)=>b.revision-a.revision)){const key=[row.owner_id,row.scan_id,row.group_id].join(':');if(!map.has(key))map.set(key,row);}return [...map.values()];}
+export function latestGroups(rows){const map=new Map();for(const row of rows.filter(r=>!r.superseded_by218).sort((a,b)=>b.revision-a.revision)){const key=[row.owner_id,row.scan_id,row.group_id].join(':');if(!map.has(key))map.set(key,row);}return [...map.values()];}
 export function pinnedTargets(previous,label){const first=previous.find(r=>r.entry_label===label&&(r.journal_ids?.length||r.staff_line_ids?.length));return first?{journal_ids:first.journal_ids,staff_line_ids:first.staff_line_ids}:null;}
