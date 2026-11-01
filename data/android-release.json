@@ -2,13 +2,13 @@
   "schema": 1,
   "applicationId": "org.oonjai.accounting.preview",
   "signerSha256": "58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c",
-  "version": "143.221-test",
-  "versionCode": 143221,
-  "sha256": "2463795147e587f74fe0e092d0ce713e99885e212906041dee850edc597b0147",
+  "version": "143.223-test",
+  "versionCode": 143223,
+  "sha256": "889c5a8fcc650eda287e14440724ca6fcaf897b203c362eb320aca7cb7f3b9c0",
   "url": "https://drive.google.com/file/d/1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje/view?usp=drivesdk",
   "notes": [
-    "ID suggestions open only with the dropdown arrow; editing closes the list.",
-    "Opening and skipping IDs reuse an encrypted list on this phone for faster selection.",
-    "New scans and final Google Drive saves check Accounting again, including receipt changes from other phones."
+    "Save checks all entry IDs and proceeds automatically when no new conflicts exist.",
+    "Accepted Add or Replace choices are remembered; changed receipts open a saved/new image comparison.",
+    "Editing an earlier ID shifts later IDs while preserving Next/Skip gaps. Cancel keeps every scan."
   ]
 }
