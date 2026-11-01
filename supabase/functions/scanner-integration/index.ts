@@ -1,4 +1,5 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.49.8';
+import {receiptStatus226} from './receipt-status226.mjs';
 import {BUCKET,uuid,validateManifest,latestGroups,pinnedTargets} from './validation.mjs';
 import {idRequest,idResults,requireAvailable,sameTargets,suggestionRequest217,nextDocumentID217,canonicalID218,aliases218} from './ids215.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,KEY=Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -93,14 +94,15 @@ export async function handler(req:Request){
    result(await admin.rpc(modern?'scanner_register218':strict?'scanner_register215':'scanner_register208',{p_rows:rows,...(modern?{p_decisions:decisions}:{})}));
    return reply({registered:true,groups:linked,pending:linked.filter(g=>!g.linked).length});
   }
+  if(b.action==='receipt-status')return reply(await receiptStatus226(user,b));
   if(b.action==='list'){
    const ids:string[]=[],staff:string[]=[];let entry='';
    if(b.staffLine){check(uuid(b.staffLine),'Invalid workspace entry.');const line=result(await user.from('staff_journal_lines').select('id,workspace_entry_no,staff_journal_id').eq('id',b.staffLine).maybeSingle());if(line){entry=line.workspace_entry_no;const siblings=result(await user.from('staff_journal_lines').select('id').eq('staff_journal_id',line.staff_journal_id).eq('workspace_entry_no',line.workspace_entry_no).limit(1000));staff.push(...siblings.map((l:any)=>l.id));}}
    else if(b.entry){const label=String(b.entry);entry=label;check(label.length<=120,'Invalid entry ID.');const matches=result(await user.from('journal_entries').select('id').eq('entry_no',label).limit(2));if(matches.length===1){ids.push(matches[0].id);const lines=result(await user.from('staff_journal_lines').select('id').eq('journal_entry_id',ids[0]).limit(1000));staff.push(...lines.map((l:any)=>l.id));}}
-   if(!ids.length&&!staff.length)return reply({documents:[],entry});
+   if(!ids.length&&!staff.length)return reply({documents:[],entry,resolved:false});
    const filters=[ids.length?'journal_ids.ov.{'+ids.join(',')+'}':'',staff.length?'staff_line_ids.ov.{'+staff.join(',')+'}':''].filter(Boolean).join(',');
    const rows=result(await user.from('scanner_documents208').select('*').is('superseded_by218',null).or(filters).order('revision',{ascending:false}).limit(500));
-   return reply({entry,documents:latestGroups(rows).map((r:any)=>({id:r.id,title:r.title,label:r.entry_label,pages:r.pages.length,revision:r.revision}))});
+   return reply({entry,resolved:true,documents:latestGroups(rows).map((r:any)=>({id:r.id,title:r.title,label:r.entry_label,pages:r.pages.length,revision:r.revision}))});
   }
   if(b.action==='view'){
    check(uuid(b.id),'Invalid document.');const row=result(await user.from('scanner_documents208').select('*').eq('id',b.id).maybeSingle());check(row,'Document unavailable or access denied.');

@@ -1895,11 +1895,6 @@ function decorate(body,records=[],personal=false){if(!body)return;const previous
   const label=host.parentElement.querySelector(':scope>span'),entryLabel=label?.textContent||id,buttons=[...host.querySelectorAll('button')];
   if(personal){const root=body.closest('#personalWorkspace1437');for(const button of buttons)button.onclick=()=>{const event=new MouseEvent('click',{bubbles:true}),proxy=button.cloneNode(true);proxy.hidden=true;root.append(proxy);proxy.dispatchEvent(event);proxy.remove();};}
   else if(document.documentElement.dataset.device132==='tablet'){const view=document.createElement('button');view.type='button';view.className='je-btn je-btn-secondary';view.textContent='View entry';view.onclick=()=>showJournalSource69(encodeURIComponent(id));buttons.unshift(view);}
-  if(document.documentElement.dataset.device132!=='phone'&&!window.PhoneWorkspace14242){const target=personal?{staffLine:id,label:entryLabel}:id;
-   if(window.JournalReceipts224?.enabled())buttons.push(JournalReceipts224.button(target));
-   else{const receipt=document.createElement('button');receipt.type='button';receipt.className='je-btn je-btn-secondary';receipt.textContent='Receipts';receipt.onclick=()=>window.ScanViewer208?.open(personal?{staffLine:id}:{entry:id});buttons.push(receipt);}
-   row.querySelectorAll('.entry-id-stack .scan-support-link208').forEach(b=>b.remove());
-  }
   const trigger=document.createElement('span');trigger.className='entry-menu-trigger14387';trigger.dataset.entryMenu14387=id;if(buttons.length){trigger.setAttribute('aria-label','Actions for '+entryLabel);trigger.setAttribute('aria-haspopup','menu');trigger.title='Double-click this row for entry actions';}if(label)trigger.append(...label.childNodes);else trigger.textContent=id;label?.replaceWith(trigger);host.remove();map.set(id,buttons);
  }
  for(const row of body.querySelectorAll('tr[data-entry-id]')){if(map.get(row.dataset.entryId)?.length){row.tabIndex=0;row.setAttribute('aria-label','Journal '+row.dataset.entryId+'; Enter for actions');}else{row.removeAttribute('tabindex');row.removeAttribute('aria-label');}}actions.set(body,map);
