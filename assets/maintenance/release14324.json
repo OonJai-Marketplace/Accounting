@@ -1,5 +1,5 @@
 {
-  "release": "143.237",
+  "release": "143.238",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -84,12 +84,12 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "68b7e48c496cfba9a4bd97fd892a81f96c71f4132705ad7f292c1fbb2bf61812",
+      "sha256": "b20d231be24748f787cfd55a0053a8d8704e6c5c52da3360e8b12aa760bf6cca",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "66548915bcb8fd689ac4e799668a4e8c1ed55e416c9531377ac648df2f60720a",
+      "sha256": "14abb245aa57d91c36e5b1ae5700425386be59f7e5a7b3c4e757335aacfac047",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -114,12 +114,12 @@
     },
     {
       "path": "phone-sw.js",
-      "sha256": "642679757bce2b982e00fd8511ce2b6e4f2a568fe1e6795a564033d385c1ea1a",
+      "sha256": "8ad0e169fc7aff8c4f6edcdceddc3c4d3ce5507f03ffafa5db7118632a458f67",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "phone.html",
-      "sha256": "29dc1a3779121e064d6cb8a838afc912231c94d24211f9dc87c6007451e0d694",
+      "sha256": "807d75e420de783aa30de666ff64ff14d0612f2ad416b116ad4469912f4c5350",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -369,7 +369,7 @@
     },
     {
       "path": "scripts/desktop14245-3.js",
-      "sha256": "f4827cfb4ee86af756097c05e1f1a3601615fa5ccd1b78c6f4805ef7fb778867",
+      "sha256": "6b0e03adbe9b59f106dfba1084e5eb65d64db6d82e3d184c2071d31f927446be",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -514,7 +514,7 @@
         },
         {
           "source": "scripts/payroll-groups-v96.js",
-          "sha256": "2f5fce98f6c58ba34c9086099bffa4315f9b0637052987380dc4df846ea999f1"
+          "sha256": "f5c7824719fcc1966264b4bb25633c26f1ce59216b7a4ae3154260a103c15066"
         },
         {
           "source": "scripts/payroll-polish-v97.js",
@@ -526,7 +526,7 @@
         },
         {
           "source": "scripts/payroll-v99.js",
-          "sha256": "93d687417121c81c98997a32e8e20dc594171c84cc14c139c3bf22408044c6f2"
+          "sha256": "1e35a1e8105bf9453c69e70c9c22d45fc7e0c06c09f51336de5001dae48d1d60"
         },
         {
           "source": "scripts/workspace-v99.js",
@@ -534,7 +534,7 @@
         },
         {
           "source": "scripts/hr-v99.js",
-          "sha256": "7ac5a38d8f2ba1fc5ff2a356564cc124dc01cca3effc1a81d3b5b36527734729"
+          "sha256": "4d08bfa45aaf183c34ad2ba069c0e937980d9ade7755fc006aa7cc05ce315570"
         },
         {
           "source": "scripts/theme-v100.js",
@@ -1008,7 +1008,7 @@
     },
     {
       "path": "scripts/hr-calendar14306.js",
-      "sha256": "9044c4816f3efba071a6a590468780108ace650716a0c1f38133ebf81e713f84",
+      "sha256": "072ee133f488757d6675b21baea8714218b44c0fd186b421d193987573b76c78",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1018,7 +1018,7 @@
     },
     {
       "path": "scripts/hr-v99.js",
-      "sha256": "b52cd782a68e344e921935c66f1f96e120e09b09205273461e5724e702dfbe5c",
+      "sha256": "da93910ed6156f08cf33822b2341170ab1c65608cd3b8280106e739210de9b7f",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1188,7 +1188,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "49931a5f1a2f89bd625c466ed6d672502a77020219baa88e7f83c61640537b96",
+      "sha256": "a8982ca9256039cb7acd1c751c92e396004a10fb113e4a439bfa2d01d4525a68",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1238,7 +1238,7 @@
     },
     {
       "path": "scripts/payroll-groups-v96.js",
-      "sha256": "a7f419cc90c53d9030e3e09f791dc7e6eac3e8924bd021c66bb6ff69e2f31948",
+      "sha256": "246203ffd59b16163496f333f0275ccc6d08a7050ac02f6d5f42a84d027debf2",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1273,7 +1273,7 @@
     },
     {
       "path": "scripts/payroll-v99.js",
-      "sha256": "7646b392d517984614e4a8825309dd99a575fc22f6bf592bcb2e600e658e4152",
+      "sha256": "dcd956955e2fe9edea1343254b57ca0bcf9b75b01b7a18a7c1acf85bbf230caa",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -1313,7 +1313,7 @@
     },
     {
       "path": "scripts/phone-runtime14242.js",
-      "sha256": "5180fbb52e0ddcfcc404b5cfc8c04ac6cbe535b2f25504800c1fe0f7ad7132c6",
+      "sha256": "edcf5dd0694dbed58bad8c01d8f84b16909a92ce2992f52fd2fe38ee808dcbdf",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1683,7 +1683,7 @@
     },
     {
       "path": "scripts/update14390.js",
-      "sha256": "c82cc0b9139cd94482aaebf06a4399fd3f2c24ad0e74529c092c825ef94dd80b",
+      "sha256": "fb5c6979c61f7ec6e0ef534a9781f3451fa0e9a76de9b6e021d5fbad898cc0d6",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -2381,7 +2381,7 @@
     },
     {
       "path": "styles/hr-workspace14306.css",
-      "sha256": "c7581931154d6fa65289fdcd74d67759d1e1000b19a909368c11f84402e9892e",
+      "sha256": "1e3d47b3cc4d742ffc7bd205993a5917f0c9ead95baf53cdf76299f1669046f8",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -2841,7 +2841,7 @@
     },
     {
       "path": "update.html",
-      "sha256": "2cb46023546122d060fa5bf22a758fc2a82bbd6564294ea30c6a35426fc6b6e8",
+      "sha256": "296598a315185b2e56acf9b66f91057f589729cb68c6ce7c7b95170387f23423",
       "effect": "Reload the current release and investigate mixed or changed files."
     }
   ],

@@ -21,13 +21,13 @@ function parseMark(value,rules=legends()){
 }
 function approved(run,id){return (run.isSample?[]:Work82.leaves).filter(l=>l.data.employeeId===id&&l.data.month===run.month&&l.data.status==='approved').map(l=>l.data)}
 function overlapLeave(leaves,date){return leaves.find(l=>date>=l.from&&date<=l.to)}
-// Allocate a leave record's declared days across scheduled work dates. Explicit day entries replace that share.
+// Allocate declared leave across scheduled dates. Explicit exceptions replace that share; zero-minute defaults do not.
 function remainingLeave105(run,row,leave){
  const nonWork=ApplicationSettings.payroll.nonWorkDays99||[],dates=[];
  for(let date=new Date(leave.from+'T12:00:00');date<=new Date(leave.to+'T12:00:00');date.setDate(date.getDate()+1)){
  const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');const info=window.hrCalendar14306?.day(iso,row.employeeId,run);const fraction=info?.fraction??(nonWork.includes(date.getDay())?0:1);if(fraction)dates.push({date:iso,fraction});
  }
- const overrides=new Set((row.input.attendance||[]).map(a=>a.date));
+ const overrides=new Set((row.input.attendance||[]).filter(a=>mark(a)!=='0'||Number(a.overtime||0)||a.override95).map(a=>a.date));
  if(!dates.length)return 0;
  const total=dates.reduce((s,d)=>s+d.fraction,0);return Math.min(Number(leave.days||0),total)*dates.filter(d=>!beforeEmployment234(row.employee,d.date)&&!overrides.has(d.date)).reduce((s,d)=>s+d.fraction,0)/total;
 }
@@ -173,10 +173,21 @@ function untouchedNewDraft235(run){
  const numeric=new Set(numericInputs235);
  return [...(run.rows||[]),...(run.inactiveRows99||[])].every(r=>Object.entries(r.input||{}).every(([key,value])=>key==='attendance'?Array.isArray(value)&&value.length===0:key==='note'?!value:numeric.has(key)&&Number(value||0)===0));
 }
+// An unsaved draft may already contain the same rate/details as a newly imported month.
+// Fill only a compatible partial draft; conflicting local inputs require explicit reload.
+function compatibleNewDraft238(run,saved){
+ if(!saved||run.status!=='draft'||run.isSample||run.previewOnly83||run.month!==saved.month)return false;
+ if(run.reference!=='PAY-'+run.month&&run.reference!==saved.reference)return false;
+ if(run.rateDate!==today82()&&run.rateDate!==saved.rateDate)return false;
+ for(const key of ['rateSource','notes'])if(run[key]&&run[key]!==saved[key])return false;
+ if(Object.entries(run.rates||{}).some(([code,value])=>Number(value||0)!==0&&Number(value)!==Number(saved.rates?.[code])))return false;
+ const numeric=new Set(numericInputs235),rows=[...(saved.rows||[]),...(saved.inactiveRows99||[])];
+ return [...(run.rows||[]),...(run.inactiveRows99||[])].every(row=>{const other=rows.find(r=>r.employeeId===row.employeeId)?.input||{};return Object.entries(row.input||{}).every(([key,value])=>key==='attendance'?Array.isArray(value)&&value.every(a=>(other.attendance||[]).some(b=>JSON.stringify(a)===JSON.stringify(b))):numeric.has(key)?Number(value||0)===0||Number(value)===Number(other[key]):!value||value===other[key])});
+}
 function savedMonth235(month){return Work82.runs.filter(r=>!r.data.isSample&&r.data.month===month).sort((a,b)=>(a.data.status==='draft'?-1:1)-(b.data.status==='draft'?-1:1)||String(b.updated_at).localeCompare(String(a.updated_at)))[0]}
 function replaceUntouched235(cached,saved){
  if(!cached||!saved||cached.run.status!=='draft'||cached.run.isSample||cached.run.previewOnly83)return false;
- return cached.record?saved.id===cached.record.id&&saved.version>cached.record.version&&draftInputs235(cached.run)===draftInputs235(cached.record.data):untouchedNewDraft235(cached.run);
+ return cached.record?saved.id===cached.record.id&&saved.version>cached.record.version&&draftInputs235(cached.run)===draftInputs235(cached.record.data):untouchedNewDraft235(cached.run)||compatibleNewDraft238(cached.run,saved.data);
 }
 function useSaved235(saved){const run=structuredClone(saved.data);if(run.status==='draft')run.reviewed=false;return {run,record:saved}}
 function refreshSaved235(){
@@ -193,6 +204,15 @@ function selectMonth(month){
  Work82.run=next.run;Work82.runRecord=next.record;ui.drafts[month]=next;
 }
 window.updateRun82=function(){const run=Work82.run;if(!run||run.status==='finalized')return;const f=document.getElementById('runMeta95');if(f){const d=Object.fromEntries(new FormData(f));for(const k of ['reference','rateDate','rateSource','notes'])run[k]=d[k];run.reviewed=true;Object.keys(d).filter(k=>k.startsWith('rate_')).forEach(k=>run.rates[k.slice(5)]=Number(d[k]));run.rates.LAK=1}document.querySelectorAll('[data-row95][data-field95]').forEach(n=>{const r=run.rows[Number(n.dataset.row95)];if(r)r.input[n.dataset.field95]=n.value});document.querySelectorAll('[data-att-row95]').forEach(n=>{const row=run.rows[Number(n.dataset.attRow95)];if(!row)return;const date=n.dataset.date95,value=n.value.trim().toUpperCase()||'0';let a=row.input.attendance.find(a=>a.date===date);if(a){a.mark95=value;a.late=0}else if(value!=='0')row.input.attendance.push({date,mark95:value,late:0,overtime:0})})};
+window.reloadAttendance238=async function(){
+ const actor=liveProfile?.id,client=ojmDb,month=Work82.run?.month;if(!month)return;if(Work82.loading)throw Error('Wait for payroll records to finish loading.');const form=document.getElementById('runMeta95');if(!form||boundForms235.get(form)===Work82.run)window.updateRun82();
+ await loadWork82(true);if(actor!==liveProfile?.id||client!==ojmDb||Work82.run?.month!==month)return;if(Work82.error)throw Error(Work82.error);
+ const saved=savedMonth235(month);if(!saved)return showCenterStatus('No saved payroll for '+month+'. The current draft is retained.');
+ const current=Work82.run,before=draftInputs235(current);
+ if(current.status==='draft'&&before!==draftInputs235(saved.data)&&!await ui117.confirm('Reload the saved payroll for '+month+'? This replaces unsaved attendance and payroll edits for this month.'))return;
+ if(actor!==liveProfile?.id||client!==ojmDb||Work82.run!==current||draftInputs235(current)!==before)return;
+ const next=useSaved235(saved);ui.drafts[month]=next;Work82.run=next.run;Work82.runRecord=next.record;renderWork82();showCenterStatus('Saved attendance loaded for '+month+'.');
+};
 let repaint95=false;
 function softRender95(){if(repaint95)return;repaint95=true;const run=Work82.run,tab=document.querySelector('.tab-content.active')?.id;requestAnimationFrame(()=>{repaint95=false;if(run!==Work82.run||tab!==document.querySelector('.tab-content.active')?.id)return;updateRun82();const n=document.activeElement,focus=n?.dataset?.attRow95!==undefined?`[data-att-row95="${n.dataset.attRow95}"][data-date95="${n.dataset.date95}"]`:n?.dataset?.row95!==undefined?`[data-row95="${n.dataset.row95}"][data-field95="${n.dataset.field95}"]`:n?.closest?.('#runMeta95')&&n.name?`#runMeta95 [name="${n.name}"]`:null;const pos=n?.selectionStart,scrolls=[...document.querySelectorAll('#'+tab+' .attendance-scroll95,#'+tab+' .data-table82')].map(n=>[n.scrollLeft,n.scrollTop]);renderWork82();document.querySelectorAll('#'+tab+' .attendance-scroll95,#'+tab+' .data-table82').forEach((n,i)=>{if(scrolls[i]){n.scrollLeft=scrolls[i][0];n.scrollTop=scrolls[i][1]}});if(focus){const next=document.querySelector(focus);const target=next?.classList.contains('oj-date-original104')?next.closest('.oj-date-shell104')?.querySelector('button'):next;target?.focus({preventScroll:true});if(pos!=null)try{next.setSelectionRange(pos,pos)}catch(_){}}})}
 function bindRun(){const f=document.getElementById('runMeta95');if(f){boundForms235.set(f,Work82.run);window.datePicker104?.enhance(f);}if(f)f.onchange=async e=>{if(e.target.name==='month'){const month=e.target.value,run=Work82.run,actor=liveProfile?.id;updateRun82();try{await window.payrollWindow14334?.ensure(month);if(actor!==liveProfile?.id||run!==Work82.run||!f.isConnected||f.elements.month.value!==month)return;selectMonth(month);renderWork82()}catch(error){showCenterStatus(error.message,true)}}else{updateRun82();if(e.target.name!=='reviewed'){Work82.run.reviewed=false;softRender95()}}};document.querySelectorAll('[data-row95][data-field95]').forEach(n=>n.onchange=()=>{updateRun82();Work82.run.reviewed=false;softRender95()});document.querySelectorAll('[data-att-row95]').forEach(n=>{n.onchange=()=>{updateRun82();try{parseMark(n.value);n.setCustomValidity('');const row=Work82.run.rows[Number(n.dataset.attRow95)],date=n.dataset.date95;let a=row.input.attendance.find(a=>a.date===date);if(!a){a={date,late:0,overtime:0};row.input.attendance.push(a)}a.mark95=n.value.trim().toUpperCase()||'0';a.late=0;Work82.run.reviewed=false;softRender95()}catch(e){n.setCustomValidity(e.message);n.reportValidity()}};n.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();n.blur()}}})}

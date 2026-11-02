@@ -193,3 +193,6 @@ body #hr-leave .row-menu99>summary{width:32px!important;box-sizing:border-box!im
 body #hr-leave .row-menu99>summary::marker{content:''}
 body #payDay95 .attendance-record237{margin:0 12px 10px;padding:10px 12px;background:#f3f7f0;border:1px solid #c9d7c9;border-radius:5px}
 body #payDay95 .attendance-record237 p{margin:5px 0;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+
+/* Company holidays have a separate date-header indicator from weekly days off. */
+body table.attendance-grid99 thead th.holiday238{background:#fff0cf!important;color:#745113!important;border-bottom:2px solid #c39131!important}
