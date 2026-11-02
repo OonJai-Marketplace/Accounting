@@ -185,3 +185,11 @@ body .pay-explain143157 .data-table82{max-width:100%;overflow:auto}
 body .pay-explain-total143157{font-size:1.1em}
 
 body .pay-money143157{display:flex;align-items:center;justify-content:space-between;gap:8px;white-space:nowrap;font-variant-numeric:tabular-nums}body .pay-money143157 span:last-child{text-align:right;margin-left:auto}
+
+/* The overflow ellipsis must not appear beside the real Leave row menu. */
+body #hr-leave td.actions-column99{overflow:visible!important;text-overflow:clip!important;white-space:normal!important}
+body #hr-leave .row-menu99{max-width:100%!important;width:auto!important}
+body #hr-leave .row-menu99>summary{width:32px!important;box-sizing:border-box!important;padding:4px!important;text-align:center!important;overflow:visible!important;text-overflow:clip!important}
+body #hr-leave .row-menu99>summary::marker{content:''}
+body #payDay95 .attendance-record237{margin:0 12px 10px;padding:10px 12px;background:#f3f7f0;border:1px solid #c9d7c9;border-radius:5px}
+body #payDay95 .attendance-record237 p{margin:5px 0;font-size:12px;line-height:1.45;overflow-wrap:anywhere}

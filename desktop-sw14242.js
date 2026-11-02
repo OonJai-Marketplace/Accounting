@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.236',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.237',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/journal-receipts224.js?v=143.226",
  "styles/journal-receipts224.css?v=143.226",
@@ -52,12 +52,12 @@ const FILES=[
  "scripts/feedback-viewport14295.js?v=143.20",
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.187",
- "scripts/desktop14245-3.js?v=143.236",
+ "scripts/desktop14245-3.js?v=143.237",
  "scripts/desktop14245-4.js?v=143.231",
  "scripts/desktop14245-5.js?v=143.231",
  "scripts/desktop14245-6.js?v=143.236",
  "scripts/local-events14310.js?v=143.189",
- "scripts/offline14239.js?v=143.236",
+ "scripts/offline14239.js?v=143.237",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -191,7 +191,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.231",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.236",
+ "scripts/phone-runtime14242.js?v=143.237",
  "scripts/local-first14333.js?v=143.208",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.176",
  "styles/workspace-consistency14343.css?v=143.96",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.236",
+ "phone-sw.js?v=143.237",
  "scripts/personal-journal1437.js?v=143.109",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
@@ -254,7 +254,7 @@ const FILES=[
  "scripts/hr-calendar-model14306.js?v=143.236",
  "scripts/opening-balances14234.js?v=143.113",
  "scripts/dashboard-warm-v112.js?v=143.70",
- "scripts/payroll-groups-v96.js?v=143.236",
+ "scripts/payroll-groups-v96.js?v=143.237",
  "scripts/payroll-reports-v82.js?v=143.158",
  "scripts/reports-system-v71.js?v=143.187",
  "scripts/reports-v118.js?v=143.195",
@@ -270,7 +270,7 @@ const FILES=[
  "scripts/layout-voucher-polish14301.js?v=143.69",
  "scripts/subusers-final-v55.js?v=143.69",
  "styles/voucher-layout14299.css?v=143.84",
- "styles/hr-workspace14306.css?v=143.157",
+ "styles/hr-workspace14306.css?v=143.237",
  "scripts/heading-case14297.js?v=142.97",
  "styles/transaction-consistency14300.css?v=143.04",
  "styles/layout-voucher-polish14301.css?v=143.04",
