@@ -68,7 +68,7 @@ async function open(id){
 }
 function button(id){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent='Receipts';b.dataset.journalReceipts224=typeof id==='object'?id.staffLine:id;b.onclick=()=>void open(id);return b;}
 // Receipt presence is metadata only. Preview URLs are fetched only on opening.
-const statusCache226=new Map(),statusNotes226=new WeakMap();let statusScope226='',statusBusy226=false,statusTimer226=0;
+const statusCache226=new Map(),statusNotes226=new WeakMap();let statusScope226='',statusBusy226=false,statusTimer226=0,statusRevision240=0;
 const key226=id=>typeof id==='object'?'staff:'+id.staffLine:'entry:'+id;
 const scope226=()=>identity()+':'+(window.deviceVault14334?.actor||'')+':'+(window.deviceVault14334?.unlocked===false?'locked':'unlocked');
 const svg226=body=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+body+'</svg>';
@@ -80,24 +80,15 @@ function paint226(b,state){
  if(b.dataset.receiptState226!==state){b.dataset.receiptState226=state;b.innerHTML=state==='linked'?svg226(chain226):'';}
  b.title=label+': '+message;b.setAttribute('aria-label',b.title);
 }
-function note226(table,message,retry=false){
- if(!table?.isConnected)return;let note=statusNotes226.get(table);
- if(!note&&message){note=document.createElement('p');note.className='jr-check-note226 no-print';note.setAttribute('role','status');table.before(note);statusNotes226.set(table,note);}
- if(!note)return;if(!message){note.hidden=true;return;}
- note.hidden=false;note.replaceChildren();const text=document.createElement('span');text.textContent=message;note.append(text);
- if(retry){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent='Retry';b.onclick=refresh226;note.append(b);}
-}
-function statusTables226(){return [...new Set([...document.querySelectorAll('.jr-link226')].filter(b=>b.parentElement.getBoundingClientRect().height).map(b=>b.closest('table')).filter(Boolean))];}
-function settleNotes226(){for(const table of statusTables226()){
- const unavailable=[...table.querySelectorAll('.jr-link226')].some(b=>statusCache226.get(b.dataset.receiptKey226)?.state==='unknown');
- note226(table,unavailable?'Some receipt links could not be checked.':'',unavailable);
-}}
+function note226(){} // Presence checks are silent; the explicit viewer reports errors.
+function statusTables226(){return [];}
+function settleNotes226(){}
 
 function remember226(id,hasDocuments){
  if(statusScope226!==scope226())return;
  const state=hasDocuments===true?'linked':hasDocuments===false?'missing':'unknown',key=key226(id);
- statusCache226.set(key,{state,until:Date.now()+(state==='unknown'?20000:60000)});
- while(statusCache226.size>1200)statusCache226.delete(statusCache226.keys().next().value);
+ statusCache226.set(key,{state});
+
  for(const b of document.querySelectorAll('.jr-link226'))if(b.dataset.receiptKey226===key)paint226(b,state);
 }
 function scopeChanged226(){
@@ -127,34 +118,36 @@ async function checkVisible226(){
  for(const b of document.querySelectorAll('.jr-link226')){
   const box=b.parentElement.getBoundingClientRect();if(!box.width||!box.height||box.bottom<0||box.top>innerHeight+300)continue;
   const key=b.dataset.receiptKey226,cached=statusCache226.get(key);
-  if(cached?.until>Date.now()){paint226(b,cached.state);continue;}
+  if(cached){paint226(b,cached.state);continue;}
   if(targets.size<100||targets.has(key)){targets.set(key,b._receiptTarget226);paint226(b,'loading');}
  }
  if(!targets.size)return;
- statusBusy226=true;const scope=statusScope226,entries=[],staffLines=[];
- const loadingTimer=setTimeout(()=>{if(scope===statusScope226)for(const table of statusTables226())if([...table.querySelectorAll('.jr-link226')].some(b=>b.dataset.receiptState226==='loading'))note226(table,'Checking receipt links…');},300);
+ statusBusy226=true;const scope=statusScope226,revision=statusRevision240,entries=[],staffLines=[];
+
  for(const target of targets.values())if(typeof target==='object')staffLines.push(target.staffLine);else entries.push(target);
  try{
   const signed=await session();if(signed.user.id!==liveProfile?.id)throw Error('Account changed.');
   const response=await client().api('receipt-status',{entries,staffLines});
-  if(scope!==scope226()||scope!==statusScope226)return;
+  if(scope!==scope226()||scope!==statusScope226||revision!==statusRevision240)return;
   for(const target of targets.values()){const row=typeof target==='object'?response.staffLines?.find(r=>r.staffLine===target.staffLine):response.entries?.find(r=>r.entry===target);remember226(target,row?.hasDocuments);}
  }catch{
-  if(scope===scope226()&&scope===statusScope226)for(const target of targets.values())remember226(target,null);
- }finally{clearTimeout(loadingTimer);if(scope===statusScope226){statusBusy226=false;settleNotes226();schedule226();}}
+  if(scope===scope226()&&scope===statusScope226&&revision===statusRevision240)for(const target of targets.values())remember226(target,null);
+ }finally{if(scope===statusScope226){statusBusy226=false;settleNotes226();schedule226();}}
 }
 function schedule226(){if(!statusTimer226)statusTimer226=setTimeout(()=>void checkVisible226(),120);}
-function refresh226(){statusCache226.clear();schedule226();}
+function refresh226(){statusRevision240++;statusCache226.clear();schedule226();}
+function receiptChanged240(value){let change;try{change=typeof value==='string'?JSON.parse(value):value;}catch{return;}if(!change||change.actor!==liveProfile?.id)return;statusRevision240++;const labels=new Set(change.labels||[]);for(const b of document.querySelectorAll('.jr-link226')){const t=b._receiptTarget226;if(labels.has(typeof t==='object'?t.label:t))statusCache226.delete(b.dataset.receiptKey226);}schedule226();}
 function start226(){
- const mutations=new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.jr-id226,.jr-check-note226,.journal-receipts224,.journal-receipt-zoom224')))schedule226();});
+ const mutations=new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.jr-id226,.journal-receipts224,.journal-receipt-zoom224')&&[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('[data-entry-menu14387],.r79-link[data-entry],.jr-link226')||n.querySelector?.('[data-entry-menu14387],.r79-link[data-entry],.jr-link226')))))schedule226();});
  mutations.observe(document.body,{childList:true,subtree:true});schedule226();
- document.addEventListener('scroll',schedule226,true);window.addEventListener('page113',schedule226);window.addEventListener('idle-sync14341',schedule226);window.addEventListener('focus',refresh226);window.addEventListener('online',refresh226);
- window.addEventListener('offline',()=>{statusCache226.clear();for(const b of document.querySelectorAll('.jr-link226'))paint226(b,'unknown');for(const table of statusTables226())note226(table,'Reconnect to check receipt links.',true);});
+ document.addEventListener('scroll',schedule226,true);window.addEventListener('page113',schedule226);window.addEventListener('focus',schedule226);window.addEventListener('online',schedule226);
+
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule226();});
  setInterval(()=>{if(scopeChanged226())schedule226();},1000);
- setInterval(schedule226,60000);
+ window.addEventListener('storage',e=>{if(e.key==='ojm-receipts-changed240')receiptChanged240(e.newValue);});
+ window.addEventListener('receipt-links-changed240',e=>receiptChanged240(e.detail));
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start226,{once:true});else start226();
 setInterval(()=>{if(actor&&locked()){views.clear();actor='';if(dialog?.open)dialog.close();else clear();}},1000);
-window.JournalReceipts224={enabled,open,button};
+window.JournalReceipts224={enabled,open,button,refresh:refresh226};
 })();

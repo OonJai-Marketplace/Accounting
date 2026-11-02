@@ -5,7 +5,7 @@
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='mode')S.draft.mode=S.draft.mode==='single'?'double':'single';
     if(name==='direction'){const direction=S.draft.single[0]?.direction==='in'?'out':'in';if(!rules().directions.includes(direction))return;for(const l of S.draft.single){l.direction=direction;if(!rules().entryIds.includes(l.affected))l.affected='';}}
-    if(name==='add-line')S.draft[S.draft.mode==='double'?'lines':'single'].push(S.draft.mode==='double'?{account:'',debit:'',credit:'',memo:''}:{direction:S.draft.single[0]?.direction||rules().directions[0],source:'',affected:'',amount:'',memo:''});
+    if(name==='add-line')S.draft[S.draft.mode==='double'?'lines':'single'].push(S.draft.mode==='double'?{account:'',debit:'',credit:'',memo:''}:{direction:S.draft.single[0]?.direction||rules().directions[0],source:rules().fundIds.length===1?rules().fundIds[0]:'',affected:'',amount:'',memo:''});
     if(name==='remove-line'){const rows=S.draft[S.draft.mode==='double'?'lines':'single'];if(rows.length<=(S.draft.mode==='double'?2:1)){notice('Keep at least '+(S.draft.mode==='double'?'two journal lines.':'one entry line.'),true);return;}rows.splice(index,1);}
     if(name==='clear-draft'){if(draftFilled()&&!await confirmDialog('Clear the draft?','This only clears the unfinished form. Saved and pending entries are kept.','Clear'))return;if(!current(owner,epoch))return;S.draft=blankDraft();}
     saveDraftLater();render();

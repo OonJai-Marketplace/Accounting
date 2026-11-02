@@ -102,11 +102,11 @@ function pairs(){
  return result;
 }
 function display(){
- const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.dataset.mode=mode;
- toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Double Entry':'Single Entry';$('jeOptions14389').title='Entry options · '+(single?'Single Entry':'Double Entry');
+ const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.dataset.mode=mode;toggle.hidden=!!window.personalJournal1437?.cashbook&&single;
+ toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Full Double Entry':'Simplified Double Entry';$('jeOptions14389').title='Entry options · '+(single?'Simplified Double Entry':'Full Double Entry');
  $('simpleEntry1430').hidden=!single;$('jeLinesBody').closest('.table-container').hidden=single;
  $('journalEntry98').classList.toggle('single-entry1430',single);$('simpleEntry1430').querySelectorAll('input,select,button').forEach(n=>{n.disabled=!!lastSingle?.unmapped;});
- $('journalEntry98').querySelector('.je-title').textContent=single?'Post Single-Entry Transaction':'Post Double-Entry Transaction';
+ $('journalEntry98').querySelector('.je-title').textContent=window.personalJournal1437?.cashbook?'Post Cashbook Transaction':single?'Post Simplified Double-Entry Transaction':'Post Double-Entry Transaction';
 }
 function signature(){return JSON.stringify(canonicalRows14232().map(r=>({account:r.account,memo:r.memo,date:r.date,dr:amount(r.dr),credits:r.credits.map(c=>({currency:c.currency,value:amount(c.value)}))})));}
 function canonicalRows14232(){return [...$('jeLinesBody').rows].map(r=>({account:r.querySelector('.je-line-acc')?.value||'',memo:r.querySelector('.je-line-memo')?.value||'',date:r.querySelector('.je-line-date')?.value||$('jeTransDate').value,dr:r.querySelector('.je-line-dr')?.value||'',credits:[...r.querySelectorAll('.je-line-cr')].map(n=>({currency:n.dataset.currency||'',value:n.value}))}));}

@@ -9,7 +9,7 @@
   }
   function rules() {
     const p = (S.owner!==S.actor?S.data.target?.permissions:S.data.access?.permissions) || {};
-    return {directions:(p.allowed_directions?.length ? p.allowed_directions : ['out']).filter(x => ['in','out'].includes(x)), fundIds:(p.assigned_fund_account_ids || []).filter(Boolean), entryIds:(p.destination_account_ids?.length ? p.destination_account_ids : p.allowed_account_ids || []).filter(Boolean), counterpart:p.money_in_counterpart_account_id || '', multiple:!!p.allow_multiple_funds};
+    return {entryMode:p.workspace_entry_mode240||'double_simple',directions:(p.allowed_directions?.length ? p.allowed_directions : ['out']).filter(x => ['in','out'].includes(x)), fundIds:(p.assigned_fund_account_ids || []).filter(Boolean), entryIds:(p.destination_account_ids?.length ? p.destination_account_ids : p.allowed_account_ids || []).filter(Boolean), counterpart:p.money_in_counterpart_account_id || '', multiple:!!p.allow_multiple_funds};
   }
   const isAdmin=()=>S.data.access?.profile?.id===S.actor&&S.data.access.profile.status==='active'&&S.data.access.profile.role==='admin';
   const targetName=()=>S.owner===S.actor?S.data.access?.profile?.full_name:S.data.target?.profile?.full_name;

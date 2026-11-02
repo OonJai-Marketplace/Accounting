@@ -6,8 +6,8 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.212"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=143.239"></script>
-  <link rel="stylesheet" href="styles/desktop14245.css?v=143.231">
+  <script src="scripts/offline14239.js?v=143.240"></script>
+  <link rel="stylesheet" href="styles/desktop14245.css?v=143.240">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.84">
   <script src="scripts/desktop14245-1.js?v=143.62"></script>
 <title>Oon Jai Accounting</title>
@@ -43,14 +43,14 @@
 
 
 
-<script src="scripts/desktop14245-2.js?v=143.187"></script>
+<script src="scripts/desktop14245-2.js?v=143.240"></script>
 <script src="scripts/numeric-caret14257.js?v=142.57"></script>
 <script src="scripts/login-notifications14293.js?v=142.94"></script><link rel="stylesheet" href="styles/login-notifications14293.css?v=142.94"><link rel="stylesheet" href="styles/account-parent14287.css?v=142.96"><script src="scripts/feedback-viewport14295.js?v=143.20"></script><link rel="stylesheet" href="styles/hr-workspace14306.css?v=143.238">
   <link rel="stylesheet" href="styles/budget-messages14314.css?v=143.20">
 <link rel="stylesheet" href="styles/desktop-scale14320.css?v=143.20"><script src="scripts/desktop-scale14320.js?v=143.23"></script><link rel="stylesheet" href="styles/compact14327.css?v=143.58-polish">
 <script src="scripts/summary-period14331.js?v=143.70"></script>
 <link rel="stylesheet" href="styles/workspace14331.css?v=143.128">
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="48x48" href="assets/app-icons/accounting-48-v1.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/app-icons/accounting-180-v1.png"><link rel="stylesheet" href="styles/app-install205.css?v=143.208"><script src="scripts/app-install205.js?v=143.208"></script><meta name="theme-color" content="#07513e"><script defer src="scripts/receipt-links208.js?v=143.208"></script><script defer src="scripts/scan-viewer208.js?v=143.226"></script><link rel="stylesheet" href="styles/scan-viewer208.css?v=143.208"><script defer src="scripts/journal-receipts224.js?v=143.226"></script><link rel="stylesheet" href="styles/journal-receipts224.css?v=143.226"></head>
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="48x48" href="assets/app-icons/accounting-48-v1.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/app-icons/accounting-180-v1.png"><link rel="stylesheet" href="styles/app-install205.css?v=143.208"><script src="scripts/app-install205.js?v=143.208"></script><meta name="theme-color" content="#07513e"><script defer src="scripts/receipt-links208.js?v=143.208"></script><script defer src="scripts/scan-viewer208.js?v=143.226"></script><link rel="stylesheet" href="styles/scan-viewer208.css?v=143.208"><script defer src="scripts/journal-receipts224.js?v=143.240"></script><link rel="stylesheet" href="styles/journal-receipts224.css?v=143.226"></head>
 <body>
 
   <div id="loginGate" class="login-gate no-print">
@@ -1163,6 +1163,10 @@
           <div class="access-trigger-row assignment-activity-row">
           <button type="button" class="access-picker-trigger" onclick="openAccessPicker('Account Assignment','userAccountAssignmentPanel',this)"><span><strong>Account Assignment</strong><span id="userAccountAssignmentSummary" class="access-selection-summary">Select main and category accounts</span></span><span class="access-picker-chevron">›</span></button>
           <div class="settings-field"><label for="userTransactionActivity">Transaction Activity</label><select id="userTransactionActivity" class="je-select" onchange="syncTransactionActivitySelection()"><option value="out">Money Out Only</option><option value="in">Money In Only</option><option value="both">Money In &amp; Money Out (Both)</option></select></div></div>
+          <div class="settings-form-grid">
+            <div class="settings-field"><label for="userBookkeepingMode240">Bookkeeping mode</label><select id="userBookkeepingMode240" class="je-select" onchange="document.getElementById('userJournalStyleField240').hidden=this.value==='cashbook'"><option value="double">Double-entry journal</option><option value="cashbook">Single-entry cashbook</option></select></div>
+            <div class="settings-field" id="userJournalStyleField240"><label for="userJournalStyle240">Default double-entry form</label><select id="userJournalStyle240" class="je-select"><option value="double_simple">Simplified — source and affected account</option><option value="double_full">Full — debit and credit lines</option></select></div>
+          </div>
           <div class="settings-form-grid user-id-grid">
             <div class="settings-field"><label>Entry Prefix</label><input id="userEntryPrefix" class="je-input" maxlength="8" pattern="[A-Za-z0-9]+" value="S" required></div>
             <div class="settings-field"><label>Entry Initials</label><input id="userEntryInitials" class="je-input" maxlength="8" pattern="[A-Za-z0-9]+" placeholder="RP" required></div>
@@ -1220,7 +1224,7 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
 
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.238"></script>
+  <script src="scripts/desktop14245-3.js?v=143.240"></script>
 <script src="scripts/optional-tools14335.js?v=143.75"></script>
 
 
@@ -1229,7 +1233,7 @@
 <script src="scripts/desktop14245-5.js?v=143.231"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.239"></script>
+<script src="scripts/desktop14245-6.js?v=143.240"></script>
 <script src="scripts/entry-actions14271.js?v=143.59"></script>
 <script src="scripts/tablet-journal14266.js?v=142.80"></script>
 <link rel="stylesheet" href="styles/module-dock14269.css?v=142.75">
@@ -1238,7 +1242,7 @@
 <link rel="stylesheet" href="styles/workflow14253.css?v=142.53">
 <script src="scripts/account-groups14253.js?v=142.53"></script>
 <script src="scripts/field-focus14253.js?v=143.41"></script>
-<link rel="stylesheet" href="styles/final-review14345.css?v=143.47"><script src="scripts/reconciliation14345.js?v=143.109"></script>
+<link rel="stylesheet" href="styles/final-review14345.css?v=143.47"><script src="scripts/reconciliation14345.js?v=143.240"></script>
 <script src="scripts/workflow14253.js?v=143.128"></script>
 <script src="scripts/reports14254.js?v=143.187"></script>
 <link rel="stylesheet" href="styles/layout14256.css?v=142.76">
