@@ -1,8 +1,9 @@
 {
-  "version": "143.234",
+  "version": "143.235",
   "changes": [
-    "Use existing contract dates for Not yet employed attendance and prorate first-month salary using the configured salary-day basis.",
-    "Adjust progressive monthly late penalties and their qualifying threshold separately from automatic time deductions in Payroll Settings.",
-    "Keep original attendance inputs and finalized payroll calculations; add a Penalty settings shortcut to attendance."
+    "Saved payroll attendance now refreshes into untouched local drafts while preserving unsaved edits.",
+    "Attendance colors and date headers follow the effective company calendar, including imported zero-minute entries on days off.",
+    "Work Schedule loads the selected effective date, and payroll refreshes when calendar data arrives or changes.",
+    "Payroll date controls render together and close detached calendar popups during redraws."
   ]
 }
