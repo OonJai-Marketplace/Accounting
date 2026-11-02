@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.240', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.241', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "scripts/receipt-detector-worker213.js?v=143.213",
  "styles/phone-login210.css?v=143.210",
@@ -27,13 +27,13 @@ const FILES=[
  "styles/controls14305.css?v=143.08",
  "scripts/action-feedback14296.js?v=143.70",
  "scripts/feedback-viewport14295.js?v=143.20",
- "styles/feedback-viewport14295.css?v=143.59",
+ "styles/feedback-viewport14295.css?v=143.241",
  "assets/brand/oonjai-logo.png",
  "styles/password-help14278.css?v=142.94",
- "styles/loading1444.css?v=142.94",
+ "styles/loading1444.css?v=143.241",
  "scripts/login-notifications14293.js?v=142.94",
  "styles/login-notifications14293.css?v=142.94",
- "scripts/loading1444.js?v=142.94",
+ "scripts/loading1444.js?v=143.241",
  "styles/functional-corrections14292.css?v=143.128",
  "recovery.html",
  "scripts/recovery14257.js?v=143.70",
@@ -45,15 +45,15 @@ const FILES=[
  "styles/phone14242.css?v=143.212",
  "scripts/reconciliation14345.js?v=143.240",
  "styles/final-review14345.css?v=143.47",
- "scripts/phone-runtime14242.js?v=143.240",
+ "scripts/phone-runtime14242.js?v=143.241",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",
  "scripts/staff-entry14225.js?v=143.70",
- "styles/loading1444.css?v=142.93",
- "scripts/loading1444.js?v=142.93",
+ "styles/loading1444.css?v=143.241",
+ "scripts/loading1444.js?v=143.241",
  "scripts/password-service14264.js?v=142.84",
- "styles/feedback-viewport14295.css?v=142.95"
+ "styles/feedback-viewport14295.css?v=143.241"
 ];
 const OPTIONAL=["assets/vendor/document-detector213/ort-api.js","assets/vendor/document-detector213/ort-wasm-simd-threaded.mjs","assets/vendor/document-detector213/ort-wasm-simd-threaded.wasm","assets/vendor/document-detector213/doccornernet_lean.ort",'scripts/phone-tools14242.js?v='+VERSION,'assets/logo.png'];
 const scopeURL=new URL(self.registration.scope);

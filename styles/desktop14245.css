@@ -5620,6 +5620,8 @@ body #document-editor105.menus1426 [hidden]{display:none!important}
 @media(max-width:650px){body #document-editor105.menus1426 .doc-shell105{padding:6px!important}body #document-editor105.menus1426 .doc-status105{display:none}body #document-editor105.menus1426 .doc-menu-bar1426{overflow-x:auto}body #document-editor105.menus1426 .doc-menu-bar1426 button{padding:4px 7px!important}body #document-editor105.menus1426 .doc-menu-page1426{width:340px}}
 
 body #document-editor105.menus1426 .doc-quick1426 [data-style=fontSize]{width:48px!important}
+/* Keep page placement choices readable and directly selectable in both dialogs. */
+.page-setup1427 [data-doc-setting$="Placement"],.doc-images-dialog112 [data-doc-setting$="Placement"]{width:150px!important;max-width:100%!important;min-width:0!important;min-height:32px}
 
 /* styles/focused1427.css */
 /* Left aligned, bold headings only: body-cell alignment is unchanged. */
