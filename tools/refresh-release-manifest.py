@@ -9,12 +9,34 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 
 ROOT = Path(__file__).resolve().parent.parent
 TARGET = ROOT / 'assets/maintenance/release14324.json'
 MARKER = re.compile(r'/\* ((?:scripts/[^\n]+\.js|styles/[^\n]+\.css)) \*/\n')
 
+def check_changed_cache_keys():
+    # Workers reuse an existing response for an identical versioned URL.
+    # Check the working release against HEAD before it can be committed/published.
+    if subprocess.run(['git', 'rev-parse', '--verify', 'HEAD'], cwd=ROOT, capture_output=True).returncode:
+        return
+    pattern = re.compile(r'[\"\']([^\"\'\s]+\?v=[0-9.]+)[\"\']')
+    for worker in ('desktop-sw14242.js', 'phone-sw.js'):
+        previous = subprocess.run(['git', 'show', 'HEAD:'+worker], cwd=ROOT, capture_output=True)
+        if previous.returncode:
+            continue
+        retained = set(pattern.findall(previous.stdout.decode())) & set(pattern.findall((ROOT/worker).read_text()))
+        for url in sorted(retained):
+            name = url.split('?', 1)[0]
+            path = (ROOT/name).resolve()
+            if not path.is_relative_to(ROOT) or not path.is_file():
+                continue
+            old = subprocess.run(['git', 'show', 'HEAD:'+name], cwd=ROOT, capture_output=True)
+            if not old.returncode and old.stdout != path.read_bytes():
+                raise ValueError('Changed cached asset keeps its old URL in '+worker+': '+url)
+
 def build():
+    check_changed_cache_keys()
     manifest = json.loads(TARGET.read_text())
     version = re.search(r"const SHELL_VERSION='([0-9]+\.[0-9]+)'", (ROOT/'src/core/sync/offline14239.js').read_text())
     if not version:
