@@ -33,7 +33,7 @@ function status(run,row,day){
  const defaults=run.status!=='finalized'||!!run.calendarSnapshot14306;
  const calendarDefault235=defaults&&off&&!rule&&parsed.minutes===0&&!Number(a?.overtime||0)&&!a?.override95;
  if(!a&&off)rule=null;
- const kind=calendarDefault235?(scheduled?.holiday?'Holiday':'Non-work day'):absent&&(!off||a)?'Absent':rule?'Leave / legend':parsed.minutes>0?'Late':!a?(off?(scheduled?.holiday?'Holiday':'Non-work day'):defaults?'Present':'Not recorded'):'Present';
+ const kind=run.status!=='finalized'&&rule?.code==='H'?'Holiday':calendarDefault235?(scheduled?.holiday?'Holiday':'Non-work day'):absent&&(!off||a)?'Absent':rule?'Leave / legend':parsed.minutes>0?'Late':!a?(off?(scheduled?.holiday?'Holiday':'Non-work day'):defaults?'Present':'Not recorded'):'Present';
  const color=rule?.color||(kind==='Absent'?'#dc2626':parsed.minutes>0?'#f59e0b':kind==='Present'?'#22a06b':kind==='Holiday'?'#c39131':'#94a3a0');
  const future=run.status!=='finalized'&&day.date>HRCalendarModel14306.today();
  return {kind:future?'Upcoming':kind,color:future?'#94a3a0':color,off,minutes:future?0:parsed.minutes||0,label:(future?'Upcoming · ':'')+(rule?.description||kind)+(scheduled?.fraction===.5?' · half-day':'')+(off?' · '+(scheduled?.label||'non-work day'):'')+(a?' · manually entered':kind==='Present'?' · scheduled default':''),a};

@@ -1,10 +1,9 @@
 {
-  "version": "143.236",
+  "version": "143.237",
   "changes": [
-    "Saved payroll attendance now refreshes into untouched local drafts while preserving unsaved edits.",
-    "Attendance colors and date headers follow the effective company calendar, including imported zero-minute entries on days off.",
-    "Work Schedule loads the selected effective date, and payroll refreshes when calendar data arrives or changes.",
-    "Payroll date controls render together and close detached calendar popups during redraws.",
-    "Refresh changed payroll and calendar cache keys so installed apps receive the updated calculation and display code."
+    "Attendance leave dates open the approved leave record with its saved reason, dates and payment treatment.",
+    "Holiday and excused attendance have distinct default colors, with recorded details and notes available when a day is opened.",
+    "Leave Records keeps one row-action menu without the extra overflow dots.",
+    "Payroll calculations, saved attendance and finalized history remain unchanged."
   ]
 }
