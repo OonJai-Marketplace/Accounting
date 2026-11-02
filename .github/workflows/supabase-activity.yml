@@ -1,9 +1,9 @@
-name: Supabase activity check
+name: Accounting health check
 
 on:
   schedule:
-    # Three user database requests per day, away from the top of the hour.
-    - cron: "17 2,10,18 * * *"
+    # One small health request per hour, outside the app. Workflow failures are visible in GitHub Actions.
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:

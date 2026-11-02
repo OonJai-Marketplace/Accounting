@@ -29,8 +29,8 @@ function linesMain(){return [...document.querySelectorAll('#jeLinesBody tr')].ma
 function descriptors(rows,chart){const seen=new Set();return rows.flatMap(r=>{const a=chart.find(a=>String(a.id)===String(r.account_id)),currency=a?.currency||a?.currency_code;if(!a||!currency||['LAK','NA'].includes(currency))return [];let date=r.line_date||r.posting_date;if(date?.slice(0,7)!==r.posting_date?.slice(0,7))date=r.posting_date;const fx=num(r.fx_rate_lak),book=num(r.book_rate_lak),s=[a.id,date,fx,book].join('|');if(seen.has(s))return [];seen.add(s);return [{a,currency,date,fx:valid(fx)?fx:null,book:valid(book)?book:null}];});}
 async function fetchSnapshot(date,exclude,force=false){
  if(!session()||offline()||!/^\d{4}-\d{2}-\d{2}$/.test(date||''))return null;
- const k=key(date,exclude),old=snapshots.get(k);if(!force&&old&&Date.now()-old.received<30000)return old.data;
- if(!force&&failures.has(k)&&Date.now()-failures.get(k)<30000)return null;
+ const k=key(date,exclude),old=snapshots.get(k);if(!force&&old)return old.data;
+ if(!force&&failures.has(k))return null;
  if(flights.has(k))return flights.get(k);
  const id=owner,db=client;
  const job=(async()=>{try{let query=db.rpc('account_exchange_rates143186',{p_as_of:date,p_exclude_entry:exclude||null});if(query.abortSignal)query=query.abortSignal(AbortSignal.timeout(15000));const r=await query;if(r.error)throw r.error;if(!r.data||!Array.isArray(r.data.accounts)||r.data.as_of!==date)throw Error('Incomplete rate snapshot');if(session()!==id||client!==db)return null;snapshots.set(k,{data:r.data,received:Date.now()});failures.delete(k);return r.data;}catch{if(session()===id&&client===db)failures.set(k,Date.now());return null;}finally{if(owner===id&&client===db){flights.delete(k);schedule();}}})();
@@ -71,7 +71,6 @@ function ready(){
  document.addEventListener('input',e=>{if(e.target.closest('#journalEntry98'))schedule();});document.addEventListener('change',e=>{if(e.target.closest('#journalEntry98'))schedule();});
  const body=$('jeLinesBody');if(body)new MutationObserver(schedule).observe(body,{childList:true,subtree:true});
  for(const name of ['page113','online','offline','local-work14333','sync-assessment14332','focus'])window.addEventListener(name,schedule);
- setInterval(()=>{if(document.visibilityState==='visible'&&$('journal')?.classList.contains('active'))schedule();},30000);
  setTimeout(()=>{const submit=window.submitJournalEntry;window.submitJournalEntry=async function(...args){if(checkingPost)return;checkingPost=true;try{if(!window.DriveDrafts143128?.editing&&!window.personalJournal1437?.active){const rows=linesMain();await checkReview(rows,AccountingStore.accounts||[],JournalModule.editingEntryId||null);if(JSON.stringify(rows)!==JSON.stringify(linesMain()))throw Error('The entry changed during the rate check. Review it before posting.');}return await submit.apply(this,args);}catch(e){showCenterStatus(e.message,true);}finally{checkingPost=false;}};},0);schedule();
 }
 window.AccountRates143186={mount,refresh:schedule,local,descriptors,checkReview};

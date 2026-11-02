@@ -3,15 +3,17 @@ const assert=require('node:assert/strict'),createFixture=require('./phase0-brows
 await page.evaluate(async()=>{
  const h=['draft_id','posting_date','description','line_no','account_id','account_code','currency','debit','credit','line_date','fx_rate_lak','book_rate_lak','line_memo'];
  const chart=AccountingStore.accounts.filter(a=>a.isPosting!==false&&a.currency==='LAK').slice(0,2);if(chart.length!==2)throw Error('Fixture needs two LAK accounts');
- window.__aiStack={rows:[h,...['draft-0001','draft-0002'].flatMap((id,i)=>chart.map((a,j)=>[id,'2026-01-09',i?'Supplies':'Withdrawal',j+1,a.id,a.code,'LAK',j?100:0,j?0:100,'2026-01-09',1,'',a.name]))],writes:[]};
+ window.__aiStack={rows:[h,...['draft-0001','draft-0002'].flatMap((id,i)=>chart.map((a,j)=>[id,'2026-01-09',i?'Supplies':'Withdrawal',j+1,a.id,a.code,'LAK',j?100:0,j?0:100,'2026-01-09',1,'',a.name]))],writes:[],checks:0};
  const rpc=ojmDb.rpc.bind(ojmDb);ojmDb.rpc=(name,args)=>{
  if(name==='drive_draft_dispositions143160')return Promise.resolve({data:[]});if(name==='drive_journal_receipt143128')return Promise.resolve({data:null});if(name==='preview_journal_number143114')return Promise.resolve({data:9});
  if(name==='approve_drive_journal_batch143160'){__aiStack.writes.push(args);return Promise.resolve({error:{message:'Fixture: batch retained for inspection'}});}return rpc(name,args);};
  const original=window.fetch;window.fetch=async(url,options)=>{
  if(!String(url).includes('/functions/v1/google-'))return original(url,options);const req=JSON.parse(options.body),path=decodeURIComponent(req.path||'');let data={};
- if(req.action==='inboxes-read')data={sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk',journal:{header:__aiStack.rows[0],ids:['draft-0001','draft-0002'],changed:['draft-0001','draft-0002'].map(id=>({id,hash:id,rows:__aiStack.rows.filter(r=>r[0]===id)}))},hr:null};else if(req.action==='status')data={connected:true,email:'fixture@example.test'};else if(path.includes('/values/'))data={values:__aiStack.rows};else if(path.includes('fields=sheets'))data={sheets:['Accounts','Drafts','Posted Archive'].map((title,i)=>({properties:{title,sheetId:i,gridProperties:{rowCount:1000}}}))};return new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});
- };DriveDrafts143128.open();await AIInboxSync143173.check(true);await AIInboxSync143173.check(true);
+ if(req.action==='inboxes-read')data=(__aiStack.checks++,{sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk',journal:{header:__aiStack.rows[0],ids:['draft-0001','draft-0002'],changed:['draft-0001','draft-0002'].map(id=>({id,hash:id,rows:__aiStack.rows.filter(r=>r[0]===id)}))},hr:null});else if(req.action==='status')data={connected:true,email:'fixture@example.test'};else if(path.includes('/values/'))data={values:__aiStack.rows};else if(path.includes('fields=sheets'))data={sheets:['Accounts','Drafts','Posted Archive'].map((title,i)=>({properties:{title,sheetId:i,gridProperties:{rowCount:1000}}}))};return new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});
+ };DriveDrafts143128.open();
 });
+assert.equal(await page.evaluate(()=>__aiStack.checks),0,'opening AI Journal does not check Google');
+await page.locator('#gptDrafts143129 [data-refresh]').click();
 fx.fixture.tables.google_inbox143150=[{sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk',notices:['draft-0001','draft-0002'].map(noticeId=>({noticeId,type:'AI Journal draft',target:'ai-journal'}))}];
 await page.locator('[data-draft="draft-0001"] [data-draft-action="edit"]').waitFor();
 await page.locator('[data-draft="draft-0001"] [data-draft-action="edit"]').click();await page.waitForFunction(()=>DriveDrafts143128.preparedCount===1);

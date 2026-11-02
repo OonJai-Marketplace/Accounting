@@ -13,7 +13,7 @@ function packed(){return {format:2,sheet,pending:[...pending],snapshots:Object.f
 async function persist(){session();if(!allowed()||!sheet||!window.localFirst14333?.edit)return;const actor=owner,gen=generation,value=packed(),signature=JSON.stringify(value);if(signature===cacheSignature)return;const work=async()=>{if(gen!==generation||actor!==identity())return;await localFirst14333.edit(actor,CACHE,()=>value);if(gen===generation)cacheSignature=signature;};persistJob=persistJob.catch(()=>{}).then(work);try{await persistJob;}catch(e){if(gen===generation){error='Inbox cache could not be saved: '+e.message;window.localFirst14333?.storageError?.(error);}}}
 async function restore(){if(restored)return;const actor=owner,gen=generation;try{const saved=await window.localFirst14333?.edit?.(actor,CACHE);if(gen!==generation||actor!==identity())return;if([1,2].includes(saved?.format)&&saved.sheet){sheet=saved.sheet;for(const name of ['journal','hr']){if(name==='hr'&&liveProfile?.role!=='admin')continue;const s=saved.snapshots?.[name];if(!s||!Array.isArray(s.groups)||!Array.isArray(s.header))continue;snapshots[name]={...s,groups:new Map(s.groups),records:[]};const ok=await consumers.get(name)?.restore?.(saved.consumers?.[name],{sheet,owner:actor,generation:gen});if(gen!==generation||actor!==identity())return;if(!ok||saved.format===1||saved.pending?.includes(name)||saved.consumers?.[name]?.pending)pending.add(name);}}}catch(e){if(gen===generation)error='Saved inbox cache could not be loaded: '+e.message;}finally{if(gen===generation)restored=true;}}
 async function deliver(){const gen=generation,actor=owner;const results=await Promise.allSettled([...consumers].map(async([name,c])=>{if(!pending.has(name)||gen!==generation||actor!==identity()||name==='hr'&&liveProfile?.role!=='admin')return;const s=snapshots[name];if(s)try{await c.receive(s,{sheet,owner:actor,generation:gen});if(gen===generation)pending.delete(name);}catch(e){if(gen===generation&&actor===identity())c.error?.(e.message||String(e));throw e;}}));if(gen===generation&&actor===identity()){const failures=results.filter(r=>r.status==='rejected');if(failures.length)error=failures.map(r=>r.reason.message||String(r.reason)).join('; ');}}
-async function check(force=false){session();if(!allowed())return;if(job){if(force)forcePending=true;return job;}
+async function check(force=false){session();if(!allowed())return;if(!force){await restore();return;}if(job){if(force)forcePending=true;return job;}
  const actor=owner,db=client,gen=generation,current=()=>actor===identity()&&db===ojmDb&&gen===generation;
  const task=(async()=>{await restore();if(!current())return;if(!navigator.onLine||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)return;if(!force&&Date.now()-lastCheck<30000)return;lastCheck=Date.now();const full=force;
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),35000);try{
@@ -32,9 +32,9 @@ async function accountsChanged(result){session();const actor=owner,db=client,gen
  await deliver();await persist();
 }
 window.AIInboxSync143173={check,snapshot,reset,persist,retain,accountsChanged,register(name,consumer){consumers.set(name,consumer);},get state(){session();return {owner,sheet,error,lastCheck,busy:!!job};}};
-setInterval(()=>void check(),30000);setInterval(()=>{const before=owner;session();if(before!==owner)void check();},1500);
+// Navigation restores device snapshots only. Network reads require an explicit Refresh.
+setInterval(session,1500);
 window.addEventListener('page113',()=>void check());
-for(const event of ['focus','online'])window.addEventListener(event,()=>void check(true));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check(true);});
+
 })();
 ;

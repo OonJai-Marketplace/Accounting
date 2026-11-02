@@ -121,7 +121,7 @@ function syncSession(){const owner=identity();if(owner===observedOwner)return fa
 // Bound reads without retrying financial mutations or allowing late results to change the UI.
 async function timed(task,label,ms=20000){
  const controller=new AbortController();let timer;
- try{return await Promise.race([Promise.resolve().then(()=>task(controller.signal)),new Promise((_,reject)=>{timer=setTimeout(()=>{reject(Error(label+' timed out. Automatic checks will retry.'));controller.abort();},ms);})]);}
+ try{return await Promise.race([Promise.resolve().then(()=>task(controller.signal)),new Promise((_,reject)=>{timer=setTimeout(()=>{reject(Error(label+' timed out. Press Refresh to retry.'));controller.abort();},ms);})]);}
  finally{clearTimeout(timer);}
 }
 function readQuery(query,label='Draft check'){return timed(signal=>typeof query.abortSignal==='function'?query.abortSignal(signal):query,label);}
@@ -134,48 +134,23 @@ async function connect(){if(prepared.size||editorOccupied())throw Error('Finish 
 async function api(path,options={}){return bridge('request',{sheet:config().sheet,path,method:options.method||'GET',body:options.body?JSON.parse(options.body):undefined});}
 function connectionMessage(){
  if(!identity())return 'Sign in to check the saved Google connection.';
- if(!navigator.onLine||window.offline14239?.offline()||window.sessionCache14333?.localMode)return 'Offline · Automatic draft checks will resume when connected.';
+ if(!navigator.onLine||window.offline14239?.offline()||window.sessionCache14333?.localMode)return 'Offline · Reconnect and press Refresh drafts to check for new entries.';
  if(backgroundError)return 'Draft check: '+backgroundError;
- if(!connectionStatus)return 'Checking the saved Google connection…';
- if(!connectionStatus.connected)return 'Connect the company Google account once to activate automatic draft checks.';
+ if(!connectionStatus)return 'Press Refresh drafts to check Google Sheets.';
+ if(!connectionStatus.connected)return 'Connect the company Google account, then press Refresh drafts.';
  const stamp=Date.parse(lastCheckedAt);
  const checked=Number.isFinite(stamp)?' · Last checked '+new Date(stamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}):'';
- return (connectionStatus.email?'Connected as '+connectionStatus.email:'Google Sheets connected')+checked+' · Automatic checks active.';
+ return (connectionStatus.email?'Connected as '+connectionStatus.email:'Google Sheets connected')+checked+' · Checks run when you press Refresh drafts.';
 }
 function showConnection(){
  if(busy)return;
  const text=connectionMessage();
  for(const host of [panel,settingsPanel]){const n=host?.querySelector('[data-connection-status]');if(n)n.textContent=text;}
- if(!lastDraftSignature&&!prepared.size){const list=panel?.querySelector('[data-drive-list]');if(list&&!reviewed.size)list.textContent=connectionStatus?.connected?'Open AI Journal to load the latest drafts.':text;}
+ if(!lastDraftSignature&&!prepared.size){const list=panel?.querySelector('[data-drive-list]');if(list&&!reviewed.size)list.textContent=connectionStatus?.connected?'Press Refresh drafts to load the latest drafts.':text;}
 }
 async function checkBackground(){
- if(window.AIInboxSync143173)return AIInboxSync143173.check();
- syncSession();if(!current())return;
- if(!navigator.onLine||window.offline14239?.offline()||window.sessionCache14333?.localMode){showConnection();return;}
- if(backgroundBusy)return backgroundBusy.promise;
- const job={owner:identity(),epoch,db:ojmDb,promise:null};backgroundBusy=job;
- job.promise=(async()=>{
- let c;
- try{
-  if(!sharedLoaded&&liveProfile.role==='admin')await loadSharedSettings();
-  if(job.owner!==identity()||job.db!==ojmDb||job.epoch!==epoch||!current())return;
-  c=context();
-  // Refresh the bell on every page, including while prepared entries are being edited.
-  const [,r]=await Promise.all([loadDispositions(c),readQuery(c.db.from('google_inbox143150').select('notices,checked_at,error').eq('sheet',c.sheet).maybeSingle(),'Notification check')]);assert(c);if(r.error)throw r.error;
-  pendingDraftNotices=(r.data?.notices||[]).filter(n=>!completedDrafts.has(n.noticeId)&&!dispositions.has(n.noticeId)&&!reviewed.get(n.noticeId)?.saved);lastCheckedAt=r.data?.checked_at||'';backgroundError=r.data?.error||'';window.refreshNotices1443?.();
-  if(!connectionStatus||Date.now()-lastConnectionCheck>=60000){const status=await bridge('status');assert(c);connectionStatus=status;lastConnectionCheck=Date.now();}
-  document.querySelectorAll('#gptDrafts143129 [data-connect],#googleSheets143129 [data-connect]').forEach(b=>b.textContent=connectionStatus.connected?'Reconnect Google':'Connect Google');
-  if(!connectionStatus.connected){pendingDraftNotices=[];window.refreshNotices1443?.();showConnection();return;}
-  showConnection();
-  if(!busy&&!prepared.size&&view==='gpt'&&(!lastDraftSignature||Date.now()-lastDraftRead>=60000)){
-   const rows=await readDrafts();assert(c);lastDraftRead=Date.now();
-   const groups=parse(rows),signature=JSON.stringify([...groups].filter(([key])=>!completedDrafts.has(key)).map(([key,items])=>[key,items]));
-   // Do not hold notification polling behind the full table/Accounts refresh.
-   if(!busy&&!prepared.size&&view==='gpt'&&signature!==lastDraftSignature)void run(()=>refresh(rows));
-  }
- }catch(e){if(job.owner===identity()&&job.db===ojmDb&&job.epoch===epoch){backgroundError=e.message;showConnection();}}
- finally{if(backgroundBusy===job)backgroundBusy=null;}
- })();return job.promise;
+ // Cached drafts remain available without contacting Google or the database.
+ syncSession();if(window.AIInboxSync143173)await AIInboxSync143173.check();showConnection();
 }
 let queuedSnapshot143173=null,receiving143173=false;
 async function receiveInbox143173(snapshot,meta){
@@ -201,7 +176,7 @@ async function receiveInbox143173(snapshot,meta){
  if(!reviewed.size&&!list.querySelector('[data-draft]'))list.innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';
  pendingDraftNotices=pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId));lastDraftSignature=JSON.stringify([...groups]);lastDraftRead=Date.now();window.refreshNotices1443?.();
  // Keep transient read failures pending; unchanged cached rows still need validation.
- if([...reviewed].some(([id,r])=>r.retry&&!prepared.has(id)))throw Error('Some draft checks could not finish. Automatic checks will retry.');
+ if([...reviewed].some(([id,r])=>r.retry&&!prepared.has(id)))throw Error('Some draft checks could not finish. Press Refresh drafts to retry.');
  }finally{receiving143173=false;void window.AIInboxSync143173?.persist?.();}
 }
 function cacheInbox143174(){return {pending:!!queuedSnapshot143173||receiving143173||[...reviewed].some(([id,r])=>r.retry&&!prepared.has(id)),reviewed:[...reviewed],completed:[...completedDrafts],dispositions:[...dispositions],notices:pendingDraftNotices,signature:lastDraftSignature,settings:sharedSettings,refs:[...aiSourceRefs]};}
@@ -320,7 +295,7 @@ function scrollJournal(target){
   scroller.scrollTo({top:Math.max(0,top),behavior:'instant'});
  });
 }
-function choose(next){drainInbox143173();view=next==='gpt'?'gpt':'journal';showView();scrollJournal();if(view==='gpt')void window.AIInboxSync143173?.check(true);return true;}
+function choose(next){drainInbox143173();view=next==='gpt'?'gpt':'journal';showView();scrollJournal();if(view==='gpt')void window.AIInboxSync143173?.check();return true;}
 function open(){if(!current()){showCenterStatus('Sign in with journal posting permission.',true);return;}context();choose('gpt');window.switchTab('journal');window.groupedNavigation14378?.render('journal');}
 function postedRows(id,p,chart){return p.p_lines.map((l,i)=>({draft_id:id,posting_date:p.p_transaction_date,description:p.p_memo,line_no:i+1,account_id:l.account_id,account_code:chart.find(a=>a.id===l.account_id)?.code||'',currency:l.currency_code,debit:l.debit,credit:l.credit,line_date:l.line_date||p.p_transaction_date,line_memo:l.description,fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak}));}
 function formatAiAmount(v){const n=Number(v);return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:4}):String(v??'');}
@@ -576,9 +551,9 @@ function ready(){
  if(!$('journal'))return;
  const style=document.createElement('style');style.textContent='#gptDrafts143129 [data-drive-status]:empty,#googleSheets143129 [data-drive-status]:empty{display:none}#journal.gpt-view143129>:not(#gptDrafts143129):not(.area-banner113):not(.module-header):not(#categoryTabShell):not(#settingsSections14335){display:none!important}#journal:not(.gpt-view143129)>#gptDrafts143129{display:none!important}#journal.ai-preparing143160 #journalEntry98{display:none!important}.gpt-description143129 td{background:#e9f3ec;border-top:2px solid #9ab8a1}.gpt-description143129 td>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.gpt-description143129 strong{white-space:normal}.gpt-reference143129{padding:8px 12px;margin:0;color:#526357}#gptDrafts143129 .gpt-entry143129{margin-top:10px;overflow:hidden;min-height:0;height:auto;padding-bottom:0}#gptDrafts143129 .gpt-entry143129>.table-container{min-height:0!important;height:auto!important;max-height:none!important;margin-bottom:0!important;padding-bottom:0!important}#gptDrafts143129 .gpt-reference143129{margin:0!important;padding:6px 12px!important}#gptDrafts143129 .gpt-entry143129 :is(th,td){padding-top:6px;padding-bottom:6px}.gpt-entry143129 table{table-layout:fixed;min-width:760px}.gpt-entry143129 th:nth-child(1){width:110px}.gpt-entry143129 th:nth-child(2){width:220px}.gpt-entry143129 th:nth-child(4),.gpt-entry143129 th:nth-child(5){width:145px}.gpt-entry143129 td{overflow-wrap:anywhere}.gpt-links143129{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}#googleSheets143129 label{display:block;margin:12px 0}#googleSheets143129 input,#googleSheets143129 textarea{display:block;width:100%;max-width:850px}.gpt-empty143129{padding:24px 12px;color:#64748b}#aiPreparation143160[hidden]{display:none!important}#aiPreparation143160 .ai-prepared-entry143160{border:1px solid #9ab8a1;border-radius:6px;margin:14px 0;overflow:hidden}#aiPreparation143160 .ai-prepared-entry143160>.je-card-header{background:#e9f3ec}#aiPreparation143160 .ai-prepared-fields143160{display:flex;flex-wrap:wrap;gap:12px;padding:12px}#aiPreparation143160 label{display:flex;flex-direction:column;gap:4px}#aiPreparation143160 .ai-prepared-memo143160{flex:1;min-width:220px}#aiPreparation143160 .table-container{overflow-x:auto;max-width:100%}#aiPreparation143160 table{width:100%;min-width:960px;table-layout:fixed}#aiPreparation143160 th:first-child{width:125px}#aiPreparation143160 th:nth-child(2){width:230px}#aiPreparation143160 th:nth-child(3){width:200px}#aiPreparation143160 th:nth-child(4),#aiPreparation143160 th:nth-child(5){width:145px}#aiPreparation143160 th:last-child{width:44px}#aiPreparation143160 td{padding:6px;border:1px solid #d6ded8}#aiPreparation143160 td input,#aiPreparation143160 td select{width:100%;min-width:0;border:0;background:transparent;padding:4px}html body #journal #aiPreparation143160 td :is(input,select,textarea,.oj-date-button104,.account-choice14231){border:0!important;background:transparent!important;box-shadow:none!important}html body #journal #aiPreparation143160 :is(input,select,textarea):focus{outline:1px solid #60a5fa!important;box-shadow:none!important}#aiPreparation143160 .je-card-header,#gptDrafts143129 .je-header-actions,#gptDrafts143129 [data-action]{flex-wrap:wrap;gap:6px}#gptDrafts143129 [data-action]{display:flex}#aiPreparation143160 [data-totals]{font-size:12px}#aiPreparation143160 [data-date-warning]{padding:0 12px;color:#92400e} ';document.head.append(style);
  const originalTodoNotices=window.getTodoNotices136;window.getTodoNotices136=function(...args){const existing=typeof originalTodoNotices==='function'?originalTodoNotices.apply(this,args):[];return [...existing,...draftNoticeSummary()];};
- panel=document.createElement('section');panel.id='gptDrafts143129';panel.hidden=true;panel.innerHTML='<div class="je-card"><div class="je-card-header"><div><h3 class="je-title">AI Journal</h3><p class="je-subtitle">Post reviewed drafts directly, or use Edit to prepare them in Journal.</p></div><div class="je-header-actions"><button type="button" class="je-btn" data-connect>Connect Google</button><button type="button" class="je-btn" data-refresh>Refresh drafts</button></div></div><p data-connection-status role="status">Checking the saved Google connection…</p><p data-drive-status role="status"></p></div><div data-drive-list><p class="gpt-empty143129">Checking the saved Google connection…</p></div>';$('journal').append(panel);
+ panel=document.createElement('section');panel.id='gptDrafts143129';panel.hidden=true;panel.innerHTML='<div class="je-card"><div class="je-card-header"><div><h3 class="je-title">AI Journal</h3><p class="je-subtitle">Post reviewed drafts directly, or use Edit to prepare them in Journal.</p></div><div class="je-header-actions"><button type="button" class="je-btn" data-connect>Connect Google</button><button type="button" class="je-btn" data-refresh>Refresh drafts</button></div></div><p data-connection-status role="status">Press Refresh drafts to check Google Sheets.</p><p data-drive-status role="status"></p></div><div data-drive-list><p class="gpt-empty143129">Press Refresh drafts to check Google Sheets.</p></div>';$('journal').append(panel);
  preparation=document.createElement('section');preparation.id='aiPreparation143160';preparation.className='je-card';preparation.hidden=true;$('journalEntry98').after(preparation);
- panel.querySelector('.je-card')?.append(panel.querySelector('[data-drive-list]'));panel.querySelector('[data-connect]').onclick=()=>run(connect);panel.querySelector('[data-refresh]').onclick=()=>run(refresh);
+ panel.querySelector('.je-card')?.append(panel.querySelector('[data-drive-list]'));panel.querySelector('[data-connect]').onclick=()=>run(connect);panel.querySelector('[data-refresh]').onclick=()=>run(()=>window.AIInboxSync143173?AIInboxSync143173.check(true):refresh());
  settingsPanel=document.createElement('section');settingsPanel.id='googleSheets143129';settingsPanel.className='settings-module94';settingsPanel.hidden=true;$('settings-accounting')?.append(settingsPanel);renderSettings();
  // Prepared entries stay separate from the manual editor and its saved drafts.
  for(const name of ['loadEntryForEdit','applyTemplate','startFindingAdjustment','prepareComparedForm69']){const fn=window[name];if(typeof fn==='function')window[name]=function(...args){if(prepared.size){showCenterStatus('Post or remove the prepared AI entries first.',true);return;}return fn.apply(this,args)};}
@@ -587,7 +562,6 @@ function ready(){
  window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue='';}});
  const settingsEntry=()=>{if($('settings-accounting')?.classList.contains('active')&&!sharedLoaded&&identity()&&liveProfile.role==='admin')void loadSharedSettings().catch(e=>message(e.message));};
  window.addEventListener('page113',()=>{showView();settingsEntry();void checkBackground();});
- setInterval(()=>{if(document.visibilityState==='visible')void checkBackground();},30000);
  window.addEventListener('focus',()=>{lastDraftRead=0;void checkBackground();});
  window.addEventListener('online',()=>{lastConnectionCheck=0;lastDraftRead=0;void checkBackground();});
  window.addEventListener('offline',showConnection);

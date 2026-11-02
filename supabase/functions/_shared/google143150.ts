@@ -87,10 +87,8 @@ async function poll(c:any){
  const groups=new Map<string,any>((previous?.notices||[]).filter((n:any)=>positions.has(n.noticeId)).map((n:any)=>[n.noticeId,n]));
  const missing=[...positions].filter(([id])=>!groups.has(id));for(let i=0;i<missing.length;i+=100){const batch=missing.slice(i,i+100),result=await sheetRequest(c,'/values:batchGet?'+batch.map(([,row])=>'ranges='+encodeURIComponent('Drafts!A'+row+':C'+row)).join('&')+'&valueRenderOption=UNFORMATTED_VALUE');for(let n=0;n<batch.length;n++){const row=result.valueRanges?.[n]?.values?.[0];if(!row||String(row[0])!==batch[n][0])throw Error('Draft rows moved during the notification check. The next check will retry.');groups.set(row[0],{noticeId:row[0],type:'AI Journal draft',title:String(row[2]||'Journal draft'),detail:String(row[1]||''),target:'ai-journal'});}}
  checked(await admin.from('google_inbox143150').upsert({sheet:c.sheet,notices:[...groups.values()],checked_at:new Date().toISOString(),error:null}));
- let rates:any;try{rates=await syncAccountRates(c);}catch(e){rates={error:(e as Error).message};}
- const issue=rates?.error||'';
- if(issue)checked(await admin.from('google_inbox143150').update({error:issue}).eq('sheet',c.sheet));
- return {count:groups.size,rates};
+ // Account averages are refreshed through rates-refresh when requested.
+ return {count:groups.size};
 }
 
 // Only the fixed configured workbook and the three journal tabs are reachable.

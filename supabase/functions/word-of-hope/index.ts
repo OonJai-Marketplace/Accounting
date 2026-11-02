@@ -68,8 +68,8 @@ Deno.serve(async(req:Request)=>{
    const day=new Date().toISOString().slice(0,10),ip=req.headers.get('x-forwarded-for')?.split(',')[0].trim()||'unknown';
    const payloadHash=await hash(JSON.stringify([message,name,b.consent===true]));
    const result=check(await db.rpc('hope_submit183',{p_id:b.id,p_message:message,p_name:name,p_consent:b.consent===true,p_payload_hash:payloadHash,p_device:await hash(service+day+b.device),p_ip:await hash(service+day+ip)}));
-   let copied=false;try{await sync();copied=!!check(await db.from('hope_messages183').select('synced_at').eq('id',b.id).single()).synced_at;}catch{console.warn('Word of Hope copy pending; scheduled retry will recover.');}
-   return reply({saved:true,id:result.id,sheet_synced:copied});
+   // The submission is durable now; the daily 06:00 Laos job copies it to Sheets.
+   return reply({saved:true,id:result.id,sheet_synced:false});
   }
   if(action==='sync'){
    const secret=check(await db.rpc('google_poll_key143150'));if(!secret||req.headers.get('Authorization')!=='Bearer '+secret)return reply({error:'Unauthorized.'},401);

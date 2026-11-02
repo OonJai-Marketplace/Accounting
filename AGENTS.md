@@ -228,3 +228,14 @@ Release cache rule 2026-11-02 v143.236: the offline updater reuses matching vers
 Attendance detail correction 2026-11-02 v143.237: approved leave-only days open the linked HR leave record and saved reason. Preserve attendance editing for overtime, actual late minutes and manual overrides. Show recorded holiday/excused labels and notes; distinguish their default colors without replacing configured colors or finalized snapshots. Leave Records has one 32px row menu with no overflow ellipsis. Do not alter payroll inputs or formulas to repair display issues.
 
 HR workflow 2026-11-02 v143.238: leave belongs in HR Leave and holidays in HR Calendar. Remove H, L and leave-type codes from new attendance status choices while preserving imported marks and finalized history. Add Holiday preselects company holiday and paid time off. Holiday indicators and date headers are amber, regular days off gray; future holidays stay identifiable but excluded from elapsed counts. Ordinary zero-minute defaults cannot hide approved leave or suppress its day allocation; explicit attendance exceptions retain precedence. Reconcile compatible partial drafts with saved payroll and provide an explicit guarded reload for conflicting local edits.
+
+Performance policy 2026-11-02 v143.239: AI inbox discovery is manual; navigation,
+focus, reconnect and idle startup must not fetch inboxes. Keep device snapshots
+and explicit Refresh drafts / Sync now. Word of Hope copies run at 06:00 Laos,
+and ordinary messages save immediately. History revisions stay durable locally
+in the database until month closure or explicit Save pending changes starts a
+verified copy; only unfinished requested copies get the daily retry. Preserve
+year preparation, immutable history, formula readback and cleanup guards. Account
+averages load on demand; retain a fresh check before online posting. No timer may
+rewrite the rate Sheet. Retention applies only to old successful technical cron
+logs, never accounting records or audit history.

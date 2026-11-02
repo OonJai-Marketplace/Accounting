@@ -4,20 +4,20 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification. 2026-11-01: user authorized opaque ID suggestions, removal of duplicate scanner header Settings, and ID-only Skip ID with manual entry; publish v143.219. 2026-11-01: user requested Delete directly on the existing View batch screen for saved device copies and unfinished drafts; preserve saved PDFs and Accounting attachments (v143.220). 2026-11-01: user requested entry ID suggestions only through the dropdown button, with text editing automatically closing the list and delayed lookups never reopening it (v143.221). Include encrypted provisional ID suggestions for fast browsing, with fresh capture/save checks and final server-side validation across phones. 2026-11-01: user requested visual saved/new receipt comparison and an edit-before-saving option with retained scans; release v143.222. 2026-11-01: user clarified automatic Save with only new conflicts, no repeated pre-capture warning, and following-ID renumbering preserving Next/Skip gaps (v143.223). 2026-11-01: user authorized desktop/tablet/iPad main-journal receipt actions in journal, closed History and ledger details; group-only scrolling private previews with captions outside images and unchanged phone behavior (v143.224). 2026-11-01: administrator-managed Google Drive and Sheets settings, staged company email/folder authorization, server-enforced shared scan destination, and company-owned links (v143.228).",
   "runtime_sha256": {
     "recovery.html": "669df5f69c6af2a5d4c82e553916593231aa6fb4e1d43bb000719f60df6a324d",
-    "phone-sw.js": "8ad0e169fc7aff8c4f6edcdceddc3c4d3ce5507f03ffafa5db7118632a458f67",
+    "phone-sw.js": "922e705cfa464fb241ef62b38f78e7e40facbad9da92cb9ea82652b7afb80528",
     "phone-accounting.html": "b1242a5cd79644de75c24434b3da9843bc58bb199e5fa3bc5f064dd1cef3afc4",
-    "desktop-sw14242.js": "b20d231be24748f787cfd55a0053a8d8704e6c5c52da3360e8b12aa760bf6cca",
-    "phone.html": "807d75e420de783aa30de666ff64ff14d0612f2ad416b116ad4469912f4c5350",
-    "desktop.html": "14abb245aa57d91c36e5b1ae5700425386be59f7e5a7b3c4e757335aacfac047",
-    "scripts/phone-runtime14242.js": "edcf5dd0694dbed58bad8c01d8f84b16909a92ce2992f52fd2fe38ee808dcbdf",
+    "desktop-sw14242.js": "9b31c94fee61d6f6e5fef084ff098b5218d7c28eddf24f72261e557ec8656de8",
+    "phone.html": "7170a4ab012ad33808b53ff4ad4e47a48d0df6b55052e6df58777dad28c135fc",
+    "desktop.html": "ad202762ced07a86d0f85c5123856eb55de37f62b59b4b86d4408dae6ec2628e",
+    "scripts/phone-runtime14242.js": "4f50cd199b6f01822c0bfa19fdc0284bd5fe8c99ebdefb965d07b6a5acb5d4d7",
     "scripts/device-vault14334.js": "43d6ba5d699ba2952f1c60a5ae38e6cb2f7fea03ff30b019594cd70d3684f17a",
     "scripts/script.js": "73d2b4c736e148bd16fe58be8caa9c6c39a632f6d104d89d409ba9da11f4e46f",
     "scripts/local-first14333.js": "28fd65f6202733342c4e0c2c2bd88bfb640330eadc2c842ff7d623caabb40041",
     "scripts/corrections14231.js": "9be39691e4e3b40d03aaa3295a2b183c6d6b915a72594d4d9f20428e7b3892f0",
     "scripts/payroll-polish-v97.js": "5fb0f6271b5ad8e75aa131cd7189f16163daec34f653b6fd04665005d0556bcd",
-    "scripts/startup14257.js": "68ef6e54e8c5e14ae82ce0096d256ebeaf3f88ce4c83f7d65f008fcbc8b066c1",
-    "scripts/desktop14245-6.js": "124f2077878ee56a8728a649cb155a6c35e5838492a88275e741566b02d20f45",
-    "scripts/offline14239.js": "a8982ca9256039cb7acd1c751c92e396004a10fb113e4a439bfa2d01d4525a68",
+    "scripts/startup14257.js": "b5d21bcdf536af0525f7089ebd84af5e84980d5621a62df68d79b5a9348e5291",
+    "scripts/desktop14245-6.js": "eb9669d70dbef6545c0cfd4bd29c5e84687494172a307f841ff9bdeb2ed3d317",
+    "scripts/offline14239.js": "55e83873d77fa2915d16ddf1c09e566732a19b3281d174b0ba63a9ece119f55f",
     "scripts/desktop14245-3.js": "6b0e03adbe9b59f106dfba1084e5eb65d64db6d82e3d184c2071d31f927446be",
     "scripts/desktop14245-4.js": "2f1e69409b87c254934ec7338c9af8e1ebfd3b9e7bcef18544a888df07989851",
     "scripts/drafts1427.js": "db14d4a638eb94762a333e6c2409c052ada30952ab5ed60b31b5a7330193873f",
@@ -40,7 +40,7 @@
     "scripts/workflows-v136.js": "8deac680c18cd42c5d34b24f516006acf13a59acd523dc676b6598c9ecd0bb74",
     "scripts/auto-sync14256.js": "f7286879f37b1c271ee64b48d41e14b122e5e35a9a692d750e02ab0dfec0c453",
     "scripts/header-profile-v104.js": "79c1042fe77b8b8bba15fa09444c81c892cc3765f5bfc96938e32c52e2d54430",
-    "scripts/journal-batch1440.js": "fda0a193ae689e80ec74434065ff7aa193da695765c5028948136ace18a9168f",
+    "scripts/journal-batch1440.js": "4d75b3e055edeaff534ee4934bc800ca04eb0176992f539565f5630944b147c4",
     "scripts/payroll-window14334.js": "aab53a45d45eab67936d5f19ed33ac80efd03822dd72c5739f3f11724b19eacc",
     "scripts/save-notices14234.js": "1448cfa9237661118b6c49448fff934f1494916570416316ae6093d34ad47ee4",
     "scripts/sync-assessment14332.js": "49270ac0026544d844f07e2c800b03629318fc92db72bdd6aeed8c062de09278",
@@ -155,7 +155,7 @@
     "scripts/optional-tools14335.js": "e3d540531884543e3a0f61f8cce3733460b3adf293e719bb2c914ae112349cac",
     "scripts/report-templates14262.js": "be33961005fb71901962ccac6ec28825c5ff72ed264ab2257298aa807e1fd22e",
     "scripts/year-window14333.js": "813bca98e01c6af5ffe38d0f8e71fe163ce68763d2cd599b4bd1292ff8dc0444",
-    "scripts/data-tools14232.js": "f85590508bdf58b68d0c1111eccb7340cf407df5271d9cdd19d85bf6cb4f6e52",
+    "scripts/data-tools14232.js": "c4d42f873d109a93fe51733aa869211b2ffa03ded6cfed88ffbf27dbcb6648a6",
     "scripts/theme-v100.js": "251f4c14023a53e7ed6691418b97f3a2965df1d09ea6fb6124d7945e75866e5a",
     "scripts/post-entry-diagnostics-v142.js": "9bf6740c85b231a0d94c01401b517af790c073a4a76fd80bb1d2ae8a60750791",
     "scripts/payroll-print1424.js": "0c50465991a664a49960be11ac6c330a324d4401bcad6418595f3d8297d7de45",
@@ -407,5 +407,14 @@
       "folder browsing without intermediate controls"
     ],
     "limits": "Google Cloud Console could not be reached; Google Drive API activation and physical device access remain unverified."
+  },
+  "performance239": {
+    "authorization": "2026-11-02: user authorizes manual AI refresh, daily 06:00 Laos Word of Hope, month-close Google history, on-demand exchange rates and remaining background-load adjustments.",
+    "checks": [
+      "Offline PGlite month-close, lease, failed-copy recovery and retention tests",
+      "Inbox cache/account isolation and no idle network checks",
+      "Archive source/formula verification and deletion guards"
+    ],
+    "limits": "Database workload is reduced; this does not guarantee a free-tier I/O warning can never recur."
   }
 }
