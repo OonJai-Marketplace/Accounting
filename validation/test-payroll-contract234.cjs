@@ -1,0 +1,46 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const read=p=>fs.readFileSync(p,'utf8');
+const config={workDays:22,hours:8,grace:5,penaltyGrace:5,overtime:1.5,latePenaltyFirst:3000,latePenaltySecond:5000,latePenaltyThird:7000,employeeSso:5.5,employerSso:6,ssoCap:null,sharing:'equal',brackets:[{from:0,to:2500000,rate:0},{from:2500000,to:null,rate:5}]};
+const c={structuredClone,console,Intl,Date,ApplicationSettings:{payroll:{}},Work82:{leaves:[],employees:[]},testConfig:config,employeeOrder82:()=>0,esc82:String,money82:String,formatAppDate:String};c.window=c;vm.createContext(c);
+vm.runInContext(read('src/hr/calendar/hr-calendar-model14306.js'),c);
+const M=c.HRCalendarModel14306,schedule=M.scheduleDefaults({nonWorkDays99:[0,6]});
+schedule.schedules.push({from:'2026-10-19',days:Array.from({length:7},(_,day)=>({day,work:day!==6,fraction:1,start:'08:00',end:'17:00'}))});
+let events=[];c.hrCalendar14306={day:(date,id)=>M.dayInfo(date,id,schedule,events,{})};
+vm.runInContext(read('src/payroll/engine/payroll-engine-v82.js')+'\npayrollConfig82=()=>testConfig;',c);
+vm.runInContext(read('src/bridges/hr-payroll/attendance-v96/scope-and-state.js')+read('src/bridges/hr-payroll/attendance-v96/legend-and-marks.js')+read('src/bridges/hr-payroll/attendance-v96/approved-leave-and-days.js')+read('src/payroll/engine/results-v96.js')+'\nwindow.test234={results,dayResults,legends};})();',c);
+const row={employeeId:'new',employee:{name:'New employee',salary:2700000,currency:'LAK',renewal:'2026-10-15',pit:false,sso:false},input:{attendance:Array.from({length:31},(_,i)=>({date:'2026-10-'+String(i+1).padStart(2,'0'),mark95:i<14?'A':'0'}))}};
+const run={month:'2026-10',status:'draft',rates:{LAK:1},rows:[row]};
+const calculate=(r=run)=>c.test234.results(r)[0];
+let x=calculate();assert.equal(x.earnedSalaryLak,1595454.55);assert.equal(x.gross,1595454.55);assert.equal(x.employmentProration234.eligibleDays,13);assert.equal(x.absence,0);assert.equal(x.attendance95.filter(d=>d.mark==='NE').length,14);assert.equal(row.input.attendance[0].mark95,'A');
+row.input.attendance[1]={date:'2026-10-02',mark95:'60',overtime:10,override95:{amount:999999,currency:'LAK',reason:'Source retained'}};
+x=calculate();assert.equal(x.latePenalty,0);assert.equal(x.overtime,0);assert.equal(x.gross,1595454.55);
+row.input.attendance[14].mark95='A';x=calculate();assert.equal(x.absence,122727.27);assert.equal(x.gross,1472727.28);row.input.attendance[14].mark95='0';
+for(const start of ['2026-10-01','2026-09-15']){const r=structuredClone(run);r.rows[0].employee.renewal=start;r.rows[0].input.attendance=[];assert.equal(calculate(r).gross,2700000);assert.equal(calculate(r).employmentProration234,null);}
+const future=structuredClone(run);future.rows[0].employee.renewal='2026-11-01';assert.equal(calculate(future).gross,0);
+assert.equal(c.contractStart234({renewal:'2026-10-15',contracts99:[{start:'2026-01-01',status:'renewed'},{start:'2026-10-15',status:'active'}]}),'2026-01-01');
+assert.equal(c.contractStart234({renewal:'2026-10-15',contracts99:[{start:'2025-01-01',status:'cancelled'}]}),'2026-10-15');
+assert.throws(()=>c.contractStart234({name:'Invalid',renewal:'2026-02-30'}),/date/);
+const noDate=structuredClone(run);delete noDate.rows[0].employee.renewal;noDate.rows[0].input.attendance=[];assert.equal(calculate(noDate).gross,2700000);
+events=[{id:'holiday',data:{title:'Paid holiday',start:'2026-10-16',end:'2026-10-16',type:'holiday',effect:'off',status:'scheduled'}}];
+assert.equal(calculate().earnedSalaryLak,1595454.55);assert.equal(c.hrCalendar14306.day('2026-10-16','new').fraction,0);assert.equal(c.hrCalendar14306.day('2026-10-16','new').paidFraction,1);
+events.push({id:'half',data:{title:'Half day',start:'2026-10-19',end:'2026-10-19',type:'workday',effect:'half',status:'scheduled'}});assert.equal(calculate().employmentProration234.eligibleDays,12.5);events=[];
+const capped=structuredClone(run);capped.rows[0].employee.renewal='2026-10-02';capped.rows[0].input.attendance=[];assert.equal(calculate(capped).earnedSalaryLak,2700000);
+const originalDay=c.hrCalendar14306.day;c.hrCalendar14306.day=()=>null;assert.throws(()=>calculate(),/calendar/);c.hrCalendar14306.day=originalDay;
+// Count qualifying incidents progressively, independent of total minutes or time grace.
+const lateRow={employeeId:'late',employee:{name:'Late employee',salary:4500000,currency:'LAK',pit:false,sso:false},input:{attendance:[]}};
+const lateRun={...run,rows:[lateRow]};c.hrCalendar14306.day=()=>({fraction:1,paidFraction:1,work:true});
+lateRow.input.attendance=Array.from({length:6},(_,i)=>({date:'2026-10-'+String(i+1).padStart(2,'0'),mark95:'9'}));
+x=calculate(lateRun);assert.equal(x.latePenalty,20000);assert.equal(x.lateCount,6);assert.equal(x.minutes,24);assert.equal(x.late,10227.27);
+lateRow.input.attendance.push(...Array.from({length:5},(_,i)=>({date:'2026-10-'+String(i+7).padStart(2,'0'),mark95:'6'})));assert.equal(calculate(lateRun).latePenalty,47000);
+lateRow.input.attendance.reverse();assert.equal(calculate(lateRun).attendance95.find(d=>d.date==='2026-10-11').penalty,7000);
+lateRow.input.attendance=[{date:'2026-10-01',mark95:'5'},{date:'2026-10-02',mark95:'EX:60'},{date:'2026-10-03',mark95:'6'}];
+x=calculate(lateRun);assert.equal(x.lateCount,1);assert.equal(x.latePenalty,3000);assert.equal(x.minutes,1);
+c.testConfig={...config,penaltyGrace:0,latePenaltyFirst:4000};x=calculate(lateRun);assert.equal(x.lateCount,2);assert.equal(x.latePenalty,8000);assert.equal(x.minutes,1);assert.equal(x.late,426.14);
+c.testConfig={...config,latePenaltyFirst:0};assert.equal(calculate(lateRun).lateCount,1);c.testConfig=config;
+lateRow.input.attendance=[{date:'2026-11-01',mark95:'6'}];assert.equal(calculate({...lateRun,month:'2026-11'}).latePenalty,3000);
+const saved={...run,status:'finalized',results:[structuredClone(x)]};c.testConfig={...config,workDays:31,penaltyGrace:0,latePenaltyFirst:99999};assert.equal(JSON.stringify(c.test234.results(saved)[0]),JSON.stringify(x));
+// Saved historical attendance is not reclassified using a renewal date.
+const source=read('src/payroll/workspace/payroll-v99.js');c.payroll95={legends:()=>c.test234.legends(),parseMark:m=>({minutes:Number(m)||0,rule:null})};c.nonWork=()=>[];
+vm.runInContext(source.slice(source.indexOf('function status('),source.indexOf('function calculations(')),c);
+const early={date:'2026-10-01',weekday:4};assert.equal(c.status(run,row,early).kind,'Not yet employed');assert.notEqual(c.status({...run,status:'finalized',results:[]},row,early).kind,'Not yet employed');
+console.log('PASS contract dates, renewals, first-month proration, pre-employment exclusion, holidays, half-days, salary cap, grace boundaries, progressive monthly tiers, adjustable penalty policy, unchanged time deductions and finalized history.');

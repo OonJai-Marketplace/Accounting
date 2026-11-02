@@ -24,5 +24,6 @@ c.run("Work82.runs=[{id:'saved',data:{month:'2026-10',status:'finalized',results
 vm.runInContext(fs.readFileSync('src/shared/data/workforce-storage-v82.js','utf8'),c.c);
 vm.runInContext(fs.readFileSync('src/reports/tax/tax-reports-v102.js','utf8'),c.c);
 assert.equal(c.c.window.taxReports102.payrollRows().length,1);assert.equal(c.c.window.taxReports102.payrollRows()[0].employeePit,123);
+await c.run("payrollTaxSettings.save('payroll',{latePenaltyGraceMinutes:'0',latePenaltyFirst:'3000',latePenaltySecond:'5000',latePenaltyThird:'7000'})");await d.run('payrollTaxSettings.load()');assert.equal(d.run('payrollConfig82().penaltyGrace'),0);assert.equal(d.run('payrollConfig82().grace'),5);assert.equal(d.run('payrollConfig82().workDays'),22);assert.equal(d.run('payrollConfig82().latePenaltyFirst'),3000);
 c.run("ApplicationSettings.tax.pit2Rate='20'");assert.equal(c.c.window.taxReports102.payrollRows()[0].employeePit,123);
 console.log('PASS: automatic migration, racing initializers, statutory snapshots, shared configuration, revision conflicts, finalization refresh, key ordering, structured rules, failed saves and role guard');})().catch(e=>{console.error(e);process.exit(1)});

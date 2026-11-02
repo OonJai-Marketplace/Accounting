@@ -1,8 +1,8 @@
 {
-  "version": "143.233",
+  "version": "143.234",
   "changes": [
-    "Remove the retired embedded phone interface and its unused assets while retaining saved-draft recovery.",
-    "Keep the current phone, desktop and tablet workflows; redirect older phone links to the current app.",
-    "Harden database function paths and future-object grants; reduce repeated permission checks and index linked journal lookups."
+    "Use existing contract dates for Not yet employed attendance and prorate first-month salary using the configured salary-day basis.",
+    "Adjust progressive monthly late penalties and their qualifying threshold separately from automatic time deductions in Payroll Settings.",
+    "Keep original attendance inputs and finalized payroll calculations; add a Penalty settings shortcut to attendance."
   ]
 }
