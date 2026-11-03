@@ -370,3 +370,17 @@ Journal pagination 2026-11-03 v143.266: apply newest-posted-first screen order
 before the 100-line page is selected. A monthly report with earlier receipt
 dates must remain visible with the newest posting. Preserve original detail
 dates, line order, amounts, IDs, source links, pending priority and print ordering.
+
+
+Sync and report preparation 2026-11-03 v143.267: preload permitted daily modules
+and the complete posted-report dataset before opening the workspace. Share the
+account-scoped complete report copy across report types and periods, retaining
+filters and screens while data is unchanged. Cancel obsolete period requests and
+never let a departed report redraw the active screen. Use the shared foreground
+Processing indicator. Token renewal must not trigger a forced refresh during work.
+Show a persistent successful sync state/time; keep retry distinct from success and
+an explicit Check for new data action. Keep AI inbox discovery manual. Restore
+Print in expanded main History and personal History with existing owner/export
+permissions and immutable saved reports. Long personal descriptions/memos wrap
+and grow vertically on desktop/tablet. The user withdrew the header complaint;
+leave its scrolling behavior unchanged. No financial records are changed.
