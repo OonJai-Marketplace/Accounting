@@ -67,12 +67,12 @@ html+=`<p style="${textStyle}font-size:9pt;margin:1mm 0">Rate date: ${esc(run.ra
 // Salary vouchers keep readable type while making space for letterhead and notes.
 function compactVoucher241(html,language){
  const body=document.createElement('div');body.innerHTML=html;
- body.querySelectorAll('table').forEach(n=>{n.style.margin='0 0 0.5mm';n.style.lineHeight=language==='lo'?'1.1':'1'});
- body.querySelectorAll('th,td').forEach(n=>{n.style.padding=n.closest('table').querySelectorAll('col').length>10?'0.1mm 0':'0.1mm 0.65mm'});
- body.querySelectorAll('h3').forEach(n=>{n.style.margin='0.6mm 0 0.4mm';n.style.padding='0.4mm 1mm'});
- body.querySelectorAll('p').forEach(n=>{n.style.margin='0 0 0.6mm'});
- // Retain the 6 mm signing line; reduce only the surrounding blank space.
- body.querySelectorAll('[data-print-signatures]').forEach(n=>{n.style.marginTop='1.5mm';n.querySelectorAll('[style]').forEach(child=>{if(child.style.marginTop==='2mm')child.style.marginTop='1mm'})});
+ body.querySelectorAll('table').forEach(n=>{n.style.margin='0 0 1mm';n.style.lineHeight='1.1'});
+ body.querySelectorAll('th,td').forEach(n=>{n.style.padding=n.closest('table').querySelectorAll('col').length>10?'0.4mm 0':language==='lo'?'0.4mm 1mm':'0.5mm 1mm'});
+ body.querySelectorAll('h3').forEach(n=>{n.style.margin=language==='lo'?'1.2mm 0 0.7mm':'1.5mm 0 0.8mm';n.style.padding='0.6mm 1mm'});
+ body.querySelectorAll('p').forEach(n=>{n.style.margin='0 0 1mm';n.style.lineHeight=language==='lo'?'1.12':'1.18'});
+ // Keep usable signing lines and a clear gap after the acknowledgment.
+ body.querySelectorAll('[data-print-signatures]').forEach(n=>{n.style.marginTop='3mm'});
  return body.innerHTML;
 }
 function voucher(run,x,choices,language='en'){const internal=num(x.late)+num(x.absence)+num(x.penalty)+num(x.other),rate=num(x.rate);if(rate<=0)throw Error('Saved payroll exchange rate is missing.');const rows=[['Contract salary',x.contract],['Overtime',num(x.overtime)/rate],['Taxable allowance',num(x.allowance)/rate],['Internal deductions',-internal/rate],['Gross earnings',num(x.gross)/rate],['Employee SSO',-num(x.employeeSso)/rate],['Employee PIT',-num(x.employeePit)/rate],['Reimbursement',num(x.reimbursement)/rate],['Cash advance recovery',-num(x.cashAdvance??x.advance)/rate],['Loan repayment',-num(x.loanRecovery)/rate],['Final payment',x.paidAmount]];

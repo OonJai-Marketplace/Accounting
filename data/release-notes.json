@@ -1,8 +1,7 @@
 {
-  "version": "143.247",
+  "version": "143.248",
   "changes": [
-    "Receipt-link checks run quietly in main and personal journals without repeatedly rewriting unchanged buttons.",
-    "Known receipt icons stay visible during a recheck; legacy receipt-check notices below tables are removed.",
-    "Preserves journal contents, Edit/Void menus, ledger navigation and account isolation."
+    "Salary vouchers have taller table rows and clearer spacing between headings, tables, paragraphs, notes and signatures.",
+    "Keeps the employee-first layout, compact metadata, hidden zero-value optional rows and existing payroll figures."
   ]
 }
