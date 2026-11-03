@@ -77,8 +77,9 @@ async function confirmVoidTransaction(){
 
 let LiveTransactionAudit=[];
 async function loadTransactionAudit(){
+  if(liveProfile?.role!=='admin'||window.workspaceRequest138?.target){LiveTransactionAudit=[];return;}
   if(!ojmDb||!liveProfile)return;const actor=liveProfile.id,client=ojmDb;const {data,error}=await client.from('audit_log').select('id,record_id,action,reason,old_data,new_data,actor_id,created_at').in('table_name',['journal_entries','accounting_periods','period_findings','scheduled_journals']).order('created_at',{ascending:false}).limit(250);
-  if(liveProfile?.id!==actor||ojmDb!==client)return;if(error)throw error;if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
+  if(liveProfile?.role!=='admin'||window.workspaceRequest138?.target||liveProfile?.id!==actor||ojmDb!==client)return;if(error)throw error;if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
 }
 function auditRecordId(item){
  const safe=item||{},old=(Array.isArray(safe.old_data)?safe.old_data[0]:safe.old_data)||{},next=(Array.isArray(safe.new_data)?safe.new_data[0]:safe.new_data)||{},uuid=v=>/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(String(v||''));

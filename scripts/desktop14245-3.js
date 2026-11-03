@@ -3480,8 +3480,9 @@ async function confirmVoidTransaction(){
 
 let LiveTransactionAudit=[];
 async function loadTransactionAudit(){
+  if(liveProfile?.role!=='admin'||window.workspaceRequest138?.target){LiveTransactionAudit=[];return;}
   if(!ojmDb||!liveProfile)return;const actor=liveProfile.id,client=ojmDb;const {data,error}=await client.from('audit_log').select('id,record_id,action,reason,old_data,new_data,actor_id,created_at').in('table_name',['journal_entries','accounting_periods','period_findings','scheduled_journals']).order('created_at',{ascending:false}).limit(250);
-  if(liveProfile?.id!==actor||ojmDb!==client)return;if(error)throw error;if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
+  if(liveProfile?.role!=='admin'||window.workspaceRequest138?.target||liveProfile?.id!==actor||ojmDb!==client)return;if(error)throw error;if(!error){LiveTransactionAudit=data||[];renderVoidedTransactionsTable();}
 }
 function auditRecordId(item){
  const safe=item||{},old=(Array.isArray(safe.old_data)?safe.old_data[0]:safe.old_data)||{},next=(Array.isArray(safe.new_data)?safe.new_data[0]:safe.new_data)||{},uuid=v=>/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(String(v||''));
@@ -7456,14 +7457,16 @@ mountSettings();
     if(s.owner!==liveProfile?.id||s.db!==ojmDb||s.target!==target){Object.assign(s,{owner:liveProfile?.id,db:ojmDb,target,month:'',offset:0,group:'all',total:0,counts:{},months:[],loaded:false,loading:null,generation:s.generation+1,details:new Map(),offline:false});}
     return s;
   }
+  const canReadAudit143242=()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin'&&!window.workspaceRequest138?.target;
   async function auditDetail143198(item){
+    if(!canReadAudit143242())throw Error('Administrator access required.');
     if(!item?.summary143198)return item;
     const s=auditScope143198(),owner=s.owner,db=s.db,target=s.target,key=(item.auditSource1434||'audit_log')+':'+item.id;
     if(s.details.has(key))return s.details.get(key);
     if(window.offlineAudit143174?.offline())throw Error('These saved details are not downloaded on this device. Connect once to open this record.');
     const source=['record_deletions108','workspace_actor_audit138'].includes(item.auditSource1434)?item.auditSource1434:'audit_log';
     const result=await db.from(source).select('*').eq('id',item.id).single();
-    if(owner!==liveProfile?.id||db!==ojmDb||target!==(window.workspaceRequest138?.target||''))throw Error('Account changed while loading audit details.');
+    if(!canReadAudit143242()||owner!==liveProfile?.id||db!==ojmDb||target!==(window.workspaceRequest138?.target||''))throw Error('Account changed while loading audit details.');
     if(result.error)throw result.error;if(!result.data)throw Error('This audit record is no longer available. Refresh Audit Logs.');
     const r=result.data,full={...item,...r,summary143198:false};
     if(source==='record_deletions108')Object.assign(full,{old_data:r.record_data,new_data:null,created_at:r.deleted_at,actor_id:r.deleted_by});
@@ -7478,13 +7481,18 @@ mountSettings();
   };
   window.loadTransactionAudit=async function(force=true){
     if(typeof ojmDb==='undefined'||!ojmDb||typeof liveProfile==='undefined'||!liveProfile)return;
-    const s=auditScope143198(),owner=s.owner,db=s.db,target=s.target;
+    const s=auditScope143198();
+    if(!canReadAudit143242()){
+      LiveTransactionAudit=[];Object.assign(s,{month:'',offset:0,group:'all',total:0,counts:{},months:[],loaded:false,loading:null,generation:s.generation+1,details:new Map(),offline:false});
+      return;
+    }
+    const owner=s.owner,db=s.db,target=s.target;
     const month=window.historyMonth14341?.choose('audit',s.months)||new Date().toISOString().slice(0,7);
     if(s.month&&s.month!==month){s.offset=0;s.group='all';}
     const key=month+':'+s.offset+':'+s.group;
     if(s.loading?.key===key)return s.loading.promise;
     if(!force&&s.loaded&&s.key===key){window.renderVoidedTransactionsTable();return;}
-    const generation=++s.generation,current=()=>generation===s.generation&&owner===liveProfile?.id&&db===ojmDb&&target===(window.workspaceRequest138?.target||'');
+    const generation=++s.generation,current=()=>canReadAudit143242()&&generation===s.generation&&owner===liveProfile?.id&&db===ojmDb&&target===(window.workspaceRequest138?.target||'');
     const promise=(async()=>{
       await window.offlineAudit143174?.initialize();if(!current())return;
       if(window.offlineAudit143174?.offline()){

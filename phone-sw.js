@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.241', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.242', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "scripts/receipt-detector-worker213.js?v=143.213",
  "styles/phone-login210.css?v=143.210",
@@ -45,7 +45,7 @@ const FILES=[
  "styles/phone14242.css?v=143.212",
  "scripts/reconciliation14345.js?v=143.240",
  "styles/final-review14345.css?v=143.47",
- "scripts/phone-runtime14242.js?v=143.241",
+ "scripts/phone-runtime14242.js?v=143.242",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",
