@@ -4350,6 +4350,16 @@
       {
         "source": "src/core/sync/tablet-refresh143244.js"
       }
+    ],
+    "scripts/receipt-workflow245.js": [
+      {
+        "source": "src/reports/vouchers/receipt-workflow245.js"
+      }
+    ],
+    "scripts/receipt-phone245.js": [
+      {
+        "source": "src/reports/vouchers/receipt-phone245.js"
+      }
     ]
   },
   "variants": [

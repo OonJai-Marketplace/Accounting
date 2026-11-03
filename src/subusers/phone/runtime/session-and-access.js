@@ -10,14 +10,14 @@
     $('avatar').hidden = !S.owner; $('bottom').hidden = !S.owner || !permission('sub-users-workspace');
     const profile = S.data.access?.profile;
     if (profile) { $('avatar').textContent = (profile.full_name || profile.email || 'Me').split(/\s+/).map(x => x[0]).slice(0,2).join('').toUpperCase(); $('accountName').textContent = profile.full_name || profile.email; }
-    $('adminNav').hidden=!isAdmin();$('userTabs').hidden=true;$('bottom').hidden=$('bottom').hidden||S.area!=='users';
+    $('adminNav').hidden=!isAdmin();if($('issueReceipt245'))$('issueReceipt245').hidden=!isAdmin();$('userTabs').hidden=true;$('bottom').hidden=$('bottom').hidden||S.area!=='users';
     document.querySelector('.brand small').textContent='Marketplace';
     for(const b of $('adminNav').querySelectorAll('[data-area]'))b.classList.toggle('active',b.dataset.area===S.area);
     for (const b of $('bottom').querySelectorAll('[data-page]')) {let badge=b.querySelector('.returned-badge14347');const count=b.dataset.page==='entries'?headers().filter(j=>j.status==='returned').length:0;if(count){if(!badge){badge=document.createElement('span');badge.className='returned-badge14347';b.append(badge)}badge.textContent=String(count);badge.setAttribute('aria-label',count+' submissions returned for correction');}else badge?.remove(); b.classList.toggle('active', b.dataset.page === (S.page==='history'?'entries':S.page)); b.setAttribute('aria-current', b.dataset.page === (S.page==='history'?'entries':S.page) ? 'page' : 'false'); }
     for(const b of $('workspace').querySelectorAll('[data-action=refresh]')){b.disabled=S.loading;b.textContent=S.loading?'Updating…':'Refresh';}
   }
   function sessionGate(message = '') {
-    window.PhoneTools14242?.close();S.epoch++; S.actor=S.owner = ''; S.session = null; S.data = {}; S.directory=[];S.directoryLoading=false;S.directoryLoaded=false;S.selection=false;S.area='users';S.draft = null; S.loading = S.syncing = S.saving = S.submitting = false; refreshJob = monthJob = enterJob = null;enterOwner=''; touchAt=0;
+    window.ReceiptPhone245?.close();window.PhoneTools14242?.close();S.epoch++; S.actor=S.owner = ''; S.session = null; S.data = {}; S.directory=[];S.directoryLoading=false;S.directoryLoaded=false;S.selection=false;S.area='users';S.draft = null; S.loading = S.syncing = S.saving = S.submitting = false; refreshJob = monthJob = enterJob = null;enterOwner=''; touchAt=0;
     window.phoneLogin210?.show();clearTimeout(draftTimer); $('workspace').replaceChildren(); $('workspace').hidden = true; $('loginForm').hidden = false;$('phoneRecoveryForm').hidden=true; $('bottom').hidden = true; $('accountMenu').hidden = true; $('dialog').close(); loginMessageTarget14293().textContent = message; paintConnection(); notice();
   }
   async function revoke(error) {

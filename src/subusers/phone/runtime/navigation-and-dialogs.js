@@ -23,3 +23,18 @@
   }
   function confirmDialog(title,text,label='Continue',input=false){return phoneDialog14370(()=>{$('dialogBody').innerHTML='<h2>'+esc(title)+'</h2><p>'+esc(text)+'</p>'+(input?'<label>Reason<textarea id="dialogReason" required></textarea></label>':'');$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes">'+esc(label)+'</button>';},()=>input?$('dialogReason').value.trim():true);}
   function chooseReportTypes14294(types,month){return phoneDialog14370(()=>{$('dialogBody').innerHTML='<h2>Submit for review</h2><p>'+esc(month)+'</p>'+submissionReconciliation14345.types(types,'phoneReportTypes14346');$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes" disabled>Submit</button>';const submit=$('dialogButtons').querySelector('[value=yes]');submissionReconciliation14345.bindTypes($('dialogBody'));$('dialogBody').onchange=()=>{submit.disabled=!$('dialogBody').querySelector('input:checked')};},()=>{const chosen=[...$('dialogBody').querySelectorAll('input:checked')].map(n=>n.value);return chosen.length?chosen:false});}
+
+  async function openReceipt245(){
+    if(!isAdmin()||S.saving||S.submitting)return;
+    const actor=S.actor,epoch=S.epoch,check=()=>{if(!isAdmin()||actor!==S.actor||epoch!==S.epoch)throw fail('Administrator access changed. Reopen Receipts.');};
+    saveMirror();$('accountMenu').hidden=true;
+    await Receipt245.script('scripts/receipt-phone245.js?v=143.245',()=>window.ReceiptPhone245);check();
+    await ReceiptPhone245.open({check,today,rpc,
+      getDraft:async()=>(await record(actor)).receiptDraft245,
+      saveDraft:draft=>{check();return persist(actor,{receiptDraft245:draft})},
+      getPending:async()=>(await record(actor)).receiptPending245,
+      savePending:request=>{check();return persist(actor,{receiptPending245:request})},
+      list:async()=>(await http('vouchers14299',{'data->>documentType':'eq.receipt',select:'id,number,voucher_date,kind,status,version',order:'created_at.desc',limit:'100'})).data,
+      get:async id=>(await http('vouchers14299',{id:'eq.'+id,select:'*'})).data[0]
+    });
+  }
