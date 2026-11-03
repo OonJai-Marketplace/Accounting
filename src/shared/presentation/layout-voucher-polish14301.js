@@ -32,7 +32,7 @@ function tableTools(){
  host.querySelector('.doc-title105>h2')?.remove();
  const save=host.querySelector('[data-doc-action="voucher-save14299"]'),voucher=window.documentWorkspace105?.voucher;
  host.querySelector('.voucher-mode14303')?.remove();
- if(save){const bar=host.querySelector('.doc-quick1426');if(bar&&bar.lastElementChild!==save)bar.append(save)}
+ if(save){const bar=host.querySelector('.doc-quick1426');if(bar){let group=bar.querySelector('.doc-voucher-actions250');if(!group){group=document.createElement('span');group.className='doc-voucher-actions250';bar.append(group)}for(const name of ['voucher-save14299','receipt-details245','receipt-pdf245','receipt-share245']){const button=host.querySelector('[data-doc-action="'+name+'"]');if(button&&button.parentElement!==group)group.append(button)}}}
  const sidebar=$('#docTableSidebar14298',host);if(!sidebar)return;const controls=$('.doc-table-controls1424',sidebar);if(!controls||controls.dataset.organized14301)return;
  controls.dataset.organized14301='1';const fields=all(':scope>fieldset',controls),labels=['Insert','Structure','Size','Borders','Selected Cell'];
  const tabs=document.createElement('div');tabs.className='doc-table-tabs14301';tabs.setAttribute('role','tablist');[0,2,3,1,4].forEach(i=>{const label=labels[i];const b=document.createElement('button');b.type='button';b.dataset.tablePanel14301=i;b.textContent=label;b.setAttribute('role','tab');b.onclick=()=>selectTablePanel(sidebar,i);tabs.append(b)});controls.before(tabs);
@@ -48,14 +48,14 @@ function connection(){
  const state=source?.dataset.state||(!navigator.onLine?'offline':'online'),label=source?.textContent?.trim()||(!navigator.onLine?'Offline':'Online');button.dataset.state=state;button.title=label;button.setAttribute('aria-label',label+' connection status');
  const tile=$('.logo-tile113');if(tile){let dot=$('.connection-logo14301',tile);if(!dot){dot=document.createElement('i');dot.className='connection-logo14301';dot.setAttribute('aria-hidden','true');tile.append(dot)}dot.dataset.state=state}
 }
-function polish(){queued=false;const blank=$('#voucherBlank14299');if(blank&&blank.textContent!=='Open Handwritten Draft')blank.textContent='Open Handwritten Draft';pageHeaders();periodRows();tableTools();connection()}
+function polish(){queued=false;pageHeaders();periodRows();tableTools();connection()}
 function schedule(){if(!queued){queued=true;requestAnimationFrame(polish)}}
 document.addEventListener('click',event=>{
  const table=event.target.closest('[data-doc-action="table109"]');if(table)setTimeout(()=>{const sidebar=$('#docTableSidebar14298');if(sidebar)selectTablePanel(sidebar,0)},0);
 },true);
 window.addEventListener('connection14239',schedule);window.addEventListener('online',schedule);window.addEventListener('offline',schedule);
 document.addEventListener('DOMContentLoaded',()=>{polish();new MutationObserver(records=>{
- const selector='#voucherBlank14299,#transactions-voided,#period-review,#document-editor105,.connection14239,#workspaceTools108,.logo-tile113';
+ const selector='#transactions-voided,#period-review,#document-editor105,.connection14239,#workspaceTools108,.logo-tile113';
  if(records.some(r=>r.target.closest?.(selector)||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches(selector)||n.querySelector(selector)))))schedule();
 }).observe(document.body,{childList:true,subtree:true})},{once:true});
 })();

@@ -257,3 +257,19 @@ Journal stability 2026-11-03 v143.247: tablet/iPad main and personal journal rec
 Salary voucher spacing 2026-11-03 v143.248: user rejects the overly compressed rows and sections. Keep the employee-first structure and zero-row omission, but restore comfortable cell padding, paragraph line height, section gaps and signature spacing. Scope the change to salary voucher presentation.
 
 Voucher refinements 2026-11-03 v143.249: salary header has three two-column rows: code/full name with position, salary month with voucher number, and payment date with currency. Keep improved salary-calculation spacing; attendance uses Code, wider dates and centered date glyphs even in the editor. Add two blank lines of signing space and preserve it during print regeneration. Payment voucher/receipt share wide payer/contact fields, smaller ID/date fields, seven rows, automatic currency-aware amount in words with LAK/USD/THB choices, Cash/Bank then transaction reference, and larger signatures. Payroll shortcut opens the voucher register. Preserve accounting values, shared numbering, retained PDFs, blank batches and silent journal metadata. Long notes paginate without clipping or shrinking the approved readable layout.
+
+2026-11-03 v143.250: AI Journal follows PDF source order and shows provisional
+next journal IDs separately from source references. Preserve posted records and
+prepared edits. Edit keeps its label and becomes gray while queued. General
+descriptions stop before Debit; debit, credit and actions retain their columns.
+Processing stays top-right above dialogs without inline button spinners; pause
+launcher feedback while awaiting a dialog and finish saves at completion.
+Payment vouchers/receipts default to blank date, amount words and unchecked
+currency/payment choices. Contact number is one line; use Reference / Unit,
+Reference, consistent square checks, no amount-words suffix, and live commas.
+Keep Details, Download and Share beside Save Voucher on the right. Create blank
+batches inside Details, retain one shared ID and PDF per page, reuse IDs on
+reprints, and remove the separate handwritten/blank launchers. Salary voucher
+reference is PAY-YYMM-CODE (e.g. PAY-2610-R04); employee codes and posted journal
+IDs stay unchanged. Omit internal attendance calculation commentary and label
+value/deduction currency in the headings.
