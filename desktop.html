@@ -6,7 +6,7 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.212"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <script src="scripts/offline14239.js?v=143.264"></script>
+  <script src="scripts/offline14239.js?v=143.265"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=143.241">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.84">
   <script src="scripts/desktop14245-1.js?v=143.262"></script>
@@ -43,7 +43,7 @@
 
 
 
-<script src="scripts/desktop14245-2.js?v=143.264"></script>
+<script src="scripts/desktop14245-2.js?v=143.265"></script>
 <script src="scripts/numeric-caret14257.js?v=142.57"></script>
 <script src="scripts/login-notifications14293.js?v=142.94"></script><link rel="stylesheet" href="styles/login-notifications14293.css?v=142.94"><link rel="stylesheet" href="styles/account-parent14287.css?v=142.96"><script src="scripts/feedback-viewport14295.js?v=143.20"></script><link rel="stylesheet" href="styles/hr-workspace14306.css?v=143.241">
   <link rel="stylesheet" href="styles/budget-messages14314.css?v=143.20">
@@ -1142,10 +1142,10 @@
           <div class="settings-form-grid user-identity-grid">
             <div class="settings-field"><label>Full Name *</label><input id="userAccessName" class="je-input" required></div>
             <div class="settings-field"><label>Email *</label><input id="userAccessEmail" class="je-input" type="email" required></div>
-            <div class="settings-field"><label>Temporary Password</label><input id="userAccessPassword" class="je-input" type="password" minlength="8" placeholder="Required for a new user"></div>
             <div class="settings-field"><label>User Type</label><select id="userAccessType" class="je-select"><option value="sub_user">Sub-user</option><option value="manager">Manager / Reviewer</option><option value="admin">Administrator</option></select></div>
             <div class="settings-field"><label>Direct Supervisor / Reports to</label><select id="userAccessManager" class="je-select"><option value="">Primary administrator</option></select></div>
             <div class="settings-field"><label>Position</label><input id="userAccessJob" class="je-input" maxlength="100" list="organizationPositions14229" placeholder="e.g., President, Manager or Cashier"><datalist id="organizationPositions14229"><option>President</option><option>Vice President</option><option>Director</option><option>Manager</option><option>Supervisor</option><option>Cashier</option></datalist></div><div class="settings-field"><label>Department / Team</label><input id="userAccessDepartment14229" class="je-input" maxlength="100" placeholder="e.g., Finance or Branch A"></div>
+            <div class="settings-field"><label>Temporary Password</label><input id="userAccessPassword" class="je-input" type="password" minlength="8" placeholder="Required for a new user"></div>
           </div>
           <div class="access-trigger-row">
             <button type="button" class="access-picker-trigger" onclick="openAccessPicker('Module Access','userModuleAccessPanel',this)"><span><strong>Module Access</strong><span id="userModuleAccessSummary" class="access-selection-summary">No modules selected</span></span><span class="access-picker-chevron">›</span></button>
@@ -1208,7 +1208,7 @@
     <div class="modal-dialog access-picker-dialog">
       <div class="modal-header"><h4 id="accessPickerTitle">Select Access</h4><button type="button" class="modal-close-x" onclick="closeAccessPicker()">&times;</button></div>
       <div id="accessPickerContent" class="access-picker-scroll"></div>
-      <div class="modal-footer"><button type="button" class="je-btn je-btn-emerald" onclick="closeAccessPicker()">Done</button></div>
+      <div class="modal-footer"><button type="button" class="je-btn je-btn-secondary" onclick="closeAccessPicker()">Cancel</button><button type="button" class="je-btn je-btn-emerald" onclick="completeAccessPicker265()">Done</button></div>
     </div>
   </div>
 
@@ -1224,16 +1224,16 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
 
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.264"></script>
+  <script src="scripts/desktop14245-3.js?v=143.265"></script>
 <script src="scripts/optional-tools14335.js?v=143.75"></script>
 
 
-<script src="scripts/desktop14245-4.js?v=143.256"></script>
+<script src="scripts/desktop14245-4.js?v=143.265"></script>
 
 <script src="scripts/desktop14245-5.js?v=143.253"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.264"></script>
+<script src="scripts/desktop14245-6.js?v=143.265"></script>
 <script src="scripts/entry-actions14271.js?v=143.261"></script>
 <script src="scripts/tablet-journal14266.js?v=143.262"></script>
 <script src="scripts/tablet-refresh143244.js?v=143.244"></script>
@@ -1244,10 +1244,10 @@
 <script src="scripts/account-groups14253.js?v=142.53"></script>
 <script src="scripts/field-focus14253.js?v=143.41"></script>
 <link rel="stylesheet" href="styles/final-review14345.css?v=143.250"><script src="scripts/reconciliation14345.js?v=143.240"></script>
-<script src="scripts/workflow14253.js?v=143.263"></script>
+<script src="scripts/workflow14253.js?v=143.265"></script>
 <script src="scripts/reports14254.js?v=143.261"></script>
 <link rel="stylesheet" href="styles/layout14256.css?v=142.76">
-<link rel="stylesheet" href="styles/tablet-journal14266.css?v=143.264">
+<link rel="stylesheet" href="styles/tablet-journal14266.css?v=143.265">
 <link rel="stylesheet" href="styles/workspace-header14266.css?v=143.48">
 <link rel="stylesheet" href="styles/entry-layout14271.css?v=143.261">
 <script src="scripts/layout14256.js?v=143.113"></script>
@@ -1282,7 +1282,7 @@
 <script src="scripts/transaction-consistency14300.js?v=143.69"></script>
 <link rel="stylesheet" href="styles/layout-voucher-polish14301.css?v=143.250">
 <script src="scripts/layout-voucher-polish14301.js?v=143.250"></script>
-<link rel="stylesheet" href="styles/controls14305.css?v=143.264">
+<link rel="stylesheet" href="styles/controls14305.css?v=143.265">
 <script src="scripts/hr-calendar-model14306.js?v=143.236"></script>
 <script src="scripts/hr-calendar14306.js?v=143.241"></script>
 <script src="scripts/hr-calendar-news14309.js?v=143.189"></script>
@@ -1337,7 +1337,7 @@
 <script src="scripts/notification-focus143139.js?v=143.175"></script>
 <link rel="stylesheet" href="styles/hr-inbox143168.css?v=143.175">
 <script src="scripts/hr-inbox143168.js?v=143.182"></script>
-<link rel="stylesheet" href="styles/settings-stack143176.css?v=143.231">
+<link rel="stylesheet" href="styles/settings-stack143176.css?v=143.265">
 <script src="scripts/settings-stack143176.js?v=143.231"></script>
 <link rel="stylesheet" href="styles/account-groups143180.css?v=143.182">
 <script src="scripts/organization-zoom143180.js?v=143.180"></script>

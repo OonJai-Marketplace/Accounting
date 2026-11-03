@@ -166,13 +166,14 @@
  html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-actions14324{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important;padding-top:12px!important;margin-top:12px!important;border-top:1px solid #d8e0d2;max-width:310px}
  html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-result14324:empty,
  html.settings-stack-enabled143176 body #settings-maintenance14324 [role=status]:empty{display:none!important}
- html.settings-stack-enabled143176 body #demoUsersList .demo-user-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(80px,auto) 170px!important;grid-template-rows:auto auto auto auto;gap:8px 16px!important;padding:14px!important;align-items:start!important}
- html.settings-stack-enabled143176 body #demoUsersList .demo-user-details{grid-column:1!important;grid-row:1 / span 4!important;min-width:0;overflow-wrap:anywhere}
- html.settings-stack-enabled143176 body #demoUsersList .user-role-badge{grid-column:2!important;grid-row:1!important;margin:0!important;white-space:normal!important}
- html.settings-stack-enabled143176 body #demoUsersList .user-status-badge{grid-column:2!important;grid-row:2!important;margin:0!important}
- html.settings-stack-enabled143176 body #demoUsersList .user-actions14253{grid-column:3!important;grid-row:1 / span 3!important;display:flex!important;flex-direction:column!important;gap:8px!important;padding-left:12px!important;border-left:1px solid #cbd9cd}
- html.settings-stack-enabled143176 body #demoUsersList [data-user-reset]{grid-column:3!important;grid-row:4!important;margin-left:13px!important}
- html.settings-stack-enabled143176 body #demoUsersList :is(.user-actions14253>.je-btn,[data-user-reset]){height:32px!important;min-height:32px!important;margin-top:0!important;margin-bottom:0!important;width:auto!important;padding:5px 9px!important;border:1px solid #b6cbbd!important}
+ html.settings-stack-enabled143176 body #demoUsersList .demo-user-row{display:grid!important;grid-template-columns:minmax(0,1fr) 260px!important;grid-template-rows:auto!important;gap:12px 18px!important;padding:12px 14px!important;align-items:center!important}
+ html.settings-stack-enabled143176 body #demoUsersList .demo-user-details{grid-column:1!important;grid-row:1!important;min-width:0;overflow-wrap:anywhere}
+ html.settings-stack-enabled143176 body #demoUsersList .demo-user-details>span:empty{display:none}
+ html.settings-stack-enabled143176 body #demoUsersList .user-meta265{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:6px}
+ html.settings-stack-enabled143176 body #demoUsersList .user-meta265 :is(.user-role-badge,.user-status-badge){grid-column:auto!important;grid-row:auto!important;margin:0!important;white-space:nowrap!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-status-badge{display:inline-flex;align-items:center;gap:5px}
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253{grid-column:2!important;grid-row:1!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;padding:0!important;border:0!important;align-items:stretch!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253>.je-btn{height:32px!important;min-height:32px!important;margin:0!important;width:100%!important;max-width:none!important;padding:5px 8px!important;border:1px solid #b6cbbd!important;grid-column:auto!important;grid-row:auto!important;box-sizing:border-box!important;justify-self:stretch!important}
  html.settings-stack-enabled143176 body #settings-users .settings-section-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:0 0 12px!important;margin:0 0 14px!important}
  html.settings-stack-enabled143176 body #settings-users .settings-section-card{margin-top:16px!important;padding:0!important;border:0!important}
  html.settings-stack-enabled143176 body #settings-users .current-users-actions14305{display:flex;flex-wrap:wrap;gap:8px}
@@ -180,17 +181,11 @@
 @layer corrections14337 { @media screen and (min-width:641px) and (max-width:1100px){
  html.settings-stack-enabled143176 body #settings-payroll [data-settings-group=payroll]{grid-template-columns:minmax(0,1fr)!important}
  html.settings-stack-enabled143176 body #settings-tax .settings-compact-grid.cols-3{grid-template-columns:repeat(2,minmax(0,1fr))!important}
- html.settings-stack-enabled143176 body #demoUsersList .demo-user-row{grid-template-columns:minmax(0,1fr) 160px!important}
- html.settings-stack-enabled143176 body #demoUsersList .demo-user-details{grid-column:1!important;grid-row:1 / span 2!important}
- html.settings-stack-enabled143176 body #demoUsersList .user-role-badge{grid-column:1!important;grid-row:3!important}
- html.settings-stack-enabled143176 body #demoUsersList .user-status-badge{grid-column:1!important;grid-row:4!important}
- html.settings-stack-enabled143176 body #demoUsersList .user-actions14253,html.settings-stack-enabled143176 body #demoUsersList [data-user-reset]{grid-column:2!important}
 }}
 
 @layer corrections14337 { @media screen and (min-width:641px){
  html.settings-stack-enabled143176 body #demoUsersList .user-actions14253{align-items:stretch!important}
  html.settings-stack-enabled143176 body #demoUsersList .user-actions14253>.je-btn{width:100%!important;max-width:none!important;box-sizing:border-box!important;align-self:stretch!important}
- html.settings-stack-enabled143176 body #demoUsersList [data-user-reset]{width:calc(100% - 13px)!important;max-width:none!important;box-sizing:border-box!important;justify-self:stretch!important}
  html.settings-stack-enabled143176 body #settings-tax .statutory-block>.table-container{margin:0!important}
  html.settings-stack-enabled143176 body #settings-maintenance14324 .settings-stack-body143176>p{margin:0 0 16px!important}
  html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-card14324>label{display:grid;gap:6px;max-width:310px;margin:12px 0 0}
@@ -206,11 +201,45 @@
 
 @layer corrections14337 { @media screen and (min-width:641px){
  html.settings-stack-enabled143176 body #demoUsersList .user-actions14253>[data-user-reset]{margin-left:0!important;width:100%!important}
- html.settings-stack-enabled143176 body #demoUsersList .user-actions14253:has([data-user-reset]){grid-row:1 / span 4!important}
+ html.settings-stack-enabled143176 body #demoUsersList .user-actions14253:has([data-user-reset]){grid-row:1!important}
 }}
 
 @layer corrections14337 { @media screen and (min-width:641px) and (max-width:950px){
  html.settings-stack-enabled143176 body #settings-accounting .accounting-defaults94{grid-template-columns:minmax(0,1fr)!important}
  html.settings-stack-enabled143176 body #maintenanceGoClosing14325{max-width:100%!important;white-space:normal!important;height:auto!important;min-height:32px!important;line-height:1.5!important}
+}}
+
+/* User editing: a compact, aligned form with independently scrolling account lists. */
+@layer corrections14337 { @media screen and (min-width:641px){
+ body #modalUserAccess .modal-dialog{width:min(800px,94vw)!important;max-height:90dvh!important}
+ body #userAccessForm>.modal-body{display:grid!important;gap:12px!important;align-content:start;padding:14px 16px!important}
+ body #userAccessForm .user-identity-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 14px!important;margin:0!important}
+ body #userAccessForm .settings-field{min-width:0;margin:0!important}
+ body #userAccessForm .settings-field:has(#userAccessPassword){grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:5px 10px!important;align-items:center!important}
+ body #userAccessForm .settings-field:has(#userAccessPassword)>label{grid-column:1/-1;margin:0!important}
+ body #userAccessForm .settings-field:has(#userAccessPassword)>.temporary-action14278{margin:0!important}
+ body #userAccessForm .settings-field:has(#userAccessPassword):not(:has(.temporary-action14278:not([hidden])))>#userAccessPassword{grid-column:1/-1}
+ body #userAccessForm :is(.je-input,.je-select,.account-select1434){width:100%!important;max-width:none!important;box-sizing:border-box}
+ body #userAccessForm .settings-field:has(#userAccessPassword)>label{text-align:left!important}
+ body #userAccessForm .access-trigger-row{gap:10px!important;margin:0!important;align-items:stretch}
+ body #userAccessForm .access-picker-trigger{margin:0!important;height:auto!important;min-height:56px!important;padding:9px 11px!important;align-items:center}
+ body #userAccessForm .ledger-security14281{margin:0!important}
+ body #userAccessForm>.modal-body>.settings-form-grid{margin:0!important;gap:10px!important}
+ body #userAccessForm #userAccessStatus:empty{display:none!important}
+ body #modalAccessPicker .modal-dialog{width:min(820px,94vw)!important;max-width:820px!important;height:auto!important;max-height:88dvh!important}
+ body #modalAccessPicker #assignmentSearch14253{margin:12px 14px 8px!important;width:calc(100% - 28px)!important;flex:none}
+ body #modalAccessPicker #assignmentTypes14253{margin:0 14px!important;padding:0 0 8px!important;gap:5px!important;flex:none}
+ body #modalAccessPicker #assignmentTypes14253>button{height:32px!important;min-height:32px!important;padding:5px 9px!important}
+ body #modalAccessPicker #assignmentBulk143128{justify-content:flex-start!important;gap:8px!important;margin:0!important;padding:8px 14px!important;border-top:1px solid #d7e2de}
+ body #modalAccessPicker #assignmentBulk143128>button{margin:0!important;height:32px!important;min-height:32px!important}
+ body #modalAccessPicker #accessPickerContent{padding:4px 14px 12px!important}
+ body #modalAccessPicker .assignment-group143180{margin:0 0 10px!important;display:grid!important;grid-template-columns:160px minmax(0,1fr)!important;gap:10px!important;align-items:center!important}
+ body #modalAccessPicker .multiple-fund-rule{margin:0 0 10px!important;padding:9px 10px!important;align-items:center}
+ body #modalAccessPicker .account-assignment-options{max-height:34dvh;padding:10px!important}
+ body #modalAccessPicker .permission-heading{margin:0 0 4px!important}
+ body #modalAccessPicker .permission-explanation{margin:0 0 8px!important}
+ body #modalAccessPicker .account-rule-grid{display:none!important}
+ body :is(#modalUserAccess,#modalAccessPicker) .modal-header{padding:13px 18px!important}
+ body :is(#modalUserAccess,#modalAccessPicker) .modal-footer{padding:10px 14px!important;gap:8px!important}
 }}
 

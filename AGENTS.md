@@ -353,3 +353,15 @@ selection, and provide a usable touch target. On tablet single-header tables,
 apply widths directly to visible native headers without a compressed COLGROUP;
 legacy column defaults must not overwrite manual widths. Preserve approved
 orientation fitting, pinch zoom, desktop/phone entry behavior and financial data.
+
+Report dates and user settings 2026-11-03 v143.265: Detailed — fund total once
+keeps each original detail date and enables Multiple dates. The combined fund
+rows use an editable report-month date, defaulting to month-end. This supersedes
+v143.260's shared-date rule for this format only. Preserve source dates when the
+header date changes or a draft is restored. Server matching must still enforce
+exact approved accounts, amounts, source IDs, rates, permission and period locks.
+Picker Done accepts selections into the unsaved parent form, without a discard
+prompt. Explicit Cancel/discard restores the prior account/module selections;
+only Save User persists them. Keep desktop/tablet Current Users actions in a
+2×2 grid with role/status beside user details. Keep user-edit and account-picker
+windows compact, aligned and scrollable; preserve phone styling.

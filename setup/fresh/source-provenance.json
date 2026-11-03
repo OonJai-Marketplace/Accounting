@@ -355,6 +355,10 @@
     {
       "name": "supabase/migrations/20261103121009_report_journal_formats260.sql",
       "sha256": "58663e37cc55d8dd14e367771f740db5a8170181543b6bcb79ba83fc183872fb"
+    },
+    {
+      "name": "supabase/migrations/20261103135144_report_detail_dates265.sql",
+      "sha256": "410cc12eeb998448ceee297e6e30fdd68fc7d8fde8fcd8911128205b0f0a4c7c"
     }
   ],
   "restaurantSeparation": {
