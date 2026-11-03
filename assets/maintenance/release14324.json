@@ -1,5 +1,5 @@
 {
-  "release": "143.256",
+  "release": "143.257",
   "comparisonBaseline": "v143.16 / 14d724e15c057bbd4e63324754f89959ea48a784",
   "files": [
     {
@@ -84,17 +84,17 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "c8aeab41c17651e9c39c359ea88378d8a8874486cf400452f546d3af8e386696",
+      "sha256": "f729dc4b6e5c223ec7cf7aa3feb748e7dda6ce772a79f996cf41f3fff5ac60e4",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "5e483b1587e18e601b2d9ed4a61d20131b6bb54fde109ec498a46caca22ef47b",
+      "sha256": "6875ca8537925305b6c5d86ccbea1e7cec1bc1e7d01e56dc00def240cc648015",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "index.html",
-      "sha256": "5204eb5d1dd5a534cbdd2df4678e2b66e446c7fb606be0277f1cbb98997774c0",
+      "sha256": "4c84a3118ea71eaf4393d7a5215860eaba90dab9ee4da9ee70888376fc33b5eb",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -114,12 +114,12 @@
     },
     {
       "path": "phone-sw.js",
-      "sha256": "5ef4b9325d76d920fbd53b33f5e455dfdea6a5b1c30a6cdd205a25340f93b3aa",
+      "sha256": "327d449e83b9678e7e76f4a059475639ee385cb3bdfab72475159463e34f5d4d",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "phone.html",
-      "sha256": "be0576f5aa8eb8f06f38cadcfb962531a890b86eee019d3e9ec596cea39bf49f",
+      "sha256": "0c56fae53edd717181f349698d7132d74c45834724ff491189495f9c95acf25f",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -678,7 +678,7 @@
     },
     {
       "path": "scripts/desktop14245-6.js",
-      "sha256": "47e1b1040a6f176b090c6ac09a8adbe2468884929cb9f62fc1a50d97b236da16",
+      "sha256": "2323fc7b1da8e1c3ef74a3b27dfc27262deb247063d3640f4ec59c0bb2a286dd",
       "effect": "The component may differ from the tested release; reload and investigate this file.",
       "segments": [
         {
@@ -779,7 +779,7 @@
         },
         {
           "source": "scripts/journal-batch1440.js",
-          "sha256": "aca535dedfc5e24613c93168b7bf49625eef49d706bebd90f2c286b8a3994d28"
+          "sha256": "cc27b1a36a97a2409b4844ec603e3df61a85f5a14c872fafe41e410060a2314e"
         },
         {
           "source": "scripts/permissions1441.js",
@@ -1053,13 +1053,18 @@
     },
     {
       "path": "scripts/journal-batch1440.js",
-      "sha256": "4d75b3e055edeaff534ee4934bc800ca04eb0176992f539565f5630944b147c4",
+      "sha256": "9badf45f7c4aec71a29a9576a02bee15d157ea713bab4f396327c1502bf47fb1",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
       "path": "scripts/journal-description14281.js",
       "sha256": "074739acb706cc6bf8937ed48fb5453309206703a1828ed13c5fd7d44b9b4439",
       "effect": "The component may differ from the tested release; reload and investigate this file."
+    },
+    {
+      "path": "scripts/journal-generator257.js",
+      "sha256": "9fd94512a9d14eef99301a56a40c49568047d6ed1902cf005c721003fe8eeec8",
+      "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
       "path": "scripts/journal-receipts224.js",
@@ -1188,7 +1193,7 @@
     },
     {
       "path": "scripts/offline14239.js",
-      "sha256": "3fec7904638cb00ab5218b98b8783c6bbd917b55f41368cbc6648af2270ae252",
+      "sha256": "3376c51ac880f011b8eaaddfedff7824ca2c68be4c5c453b0b5b1ccaff4741c9",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1313,7 +1318,7 @@
     },
     {
       "path": "scripts/phone-runtime14242.js",
-      "sha256": "87d29c96f8d864b316fae469b96d8ceed9b809b7cd8fc7446a54a0c6bd51462e",
+      "sha256": "643f544d56ddc57abb39fa6a585d43807156f8e42a17d3d4b4d83aaf401bf4a4",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {

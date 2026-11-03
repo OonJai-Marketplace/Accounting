@@ -1,8 +1,8 @@
 {
-  "version": "143.256",
+  "version": "143.257",
   "changes": [
-    "Keyboard navigation uses distinct shortcuts for Attendance and AI HR Inbox, Journal and Submitted Entries, and Profit Tax and Payments. Settings shortcuts also resolve duplicate initials.",
-    "Opening or switching a document reveals its selected tab even when many tabs are open. Editing preserves manual scrolling of the tab bar.",
-    "A whole-app workflow review and its exact verification limits are recorded in docs/WORKFLOW-AUDIT-v143.256.md."
+    "Post Entry has Generate lines for immediate expenses, income, existing-balance payments and cash transfers or currency exchanges. Enter the main details and review the calculated journal before adding it.",
+    "Generated drafts use the approved currency mappings and separate transaction and book rates. Cash FX, payable FX and separate bank fees are calculated without posting automatically.",
+    "Fresh account checks, missing-account validation and editable previews preserve existing journal rows. Online errors keep the inputs; complete offline balances are labelled as estimates."
   ]
 }

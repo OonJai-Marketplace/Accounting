@@ -73,6 +73,6 @@ function ready(){
  for(const name of ['page113','online','offline','local-work14333','sync-assessment14332','focus'])window.addEventListener(name,schedule);
  setTimeout(()=>{const submit=window.submitJournalEntry;window.submitJournalEntry=async function(...args){if(checkingPost)return;checkingPost=true;try{if(!window.DriveDrafts143128?.editing&&!window.personalJournal1437?.active){const rows=linesMain();await checkReview(rows,AccountingStore.accounts||[],JournalModule.editingEntryId||null);if(JSON.stringify(rows)!==JSON.stringify(linesMain()))throw Error('The entry changed during the rate check. Review it before posting.');}return await submit.apply(this,args);}catch(e){showCenterStatus(e.message,true);}finally{checkingPost=false;}};},0);schedule();
 }
-window.AccountRates143186={mount,refresh:schedule,local,descriptors,checkReview};
+window.AccountRates143186={mount,refresh:schedule,local,descriptors,checkReview,snapshot:fetchSnapshot};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

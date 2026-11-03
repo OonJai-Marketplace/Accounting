@@ -280,3 +280,14 @@ After confirmed phone issuance, clear only the matching completed draft; preserv
 Workspace consistency 2026-11-03 v143.252: use one delayed foreground Processing indicator; pause launcher feedback while a dialog awaits input and keep actual dialog saves above the dialog. No inline button or tab spinners. User-tab layout must be idempotent so pointer clicks are not cancelled by reparenting; render the selected account even when the legacy tab strip was removed. Bind desktop panels, personal journals and prepared views to the selected owner. Generated documents retain their incoming titles. Remove the Payroll voucher shortcut, preserving Transactions vouchers. Salary metadata has a blank payment date and a spacer before calculation; numeric attendance headings and cells align right and editor defaults must respect inline alignment. Bind payroll form reads to their run and employee identities; conflicting advance amounts or explicit recovery notes block new vouchers without changing payroll data. Header/footer Settings images use separate company presentation records with verified readback, safe migration of existing device images, and persistent removals; logo previews follow the company record.
 
 Salary advance correction 2026-11-03 v143.253: an administrator may increase an employee advance after additional money is released. Current payroll input/results determine the deduction and final payment; a historical free-text note must never cap, reset or block that amount. Keep run/employee ownership and calculated-result consistency checks. For new draft vouchers, refresh only the generated recovery sentence using the current calculated advance; preserve stored notes, finalized snapshots and unrelated prose. Never reload old database payroll over the administrator's newer device draft to solve a note mismatch.
+
+Guided journals 2026-11-03 v143.257: the main company Post Entry generator prepares
+editable lines, descriptions and memos from transaction details using approved
+mapping accounts. Preserve transaction rates separately from source carrying
+rates. Immediate expenses, income, existing-balance settlement and transfers have
+distinct rules; never duplicate previously recognized expense or use unexplained
+differences as FX. Generation/preview must never post, allocate journal IDs,
+overwrite unfinished rows or bypass permissions/period locks. Recheck source
+book values before adding; label complete offline estimates and retain the online
+pre-post check. Missing mappings or valuation block generation. See
+docs/GUIDED-JOURNAL-v143.257.md for supported cases and verification limits.

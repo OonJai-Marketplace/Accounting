@@ -4360,6 +4360,16 @@
       {
         "source": "src/reports/vouchers/receipt-phone245.js"
       }
+    ],
+    "scripts/journal-generator257.js": [
+      {
+        "source": "src/bookkeeping/journal/generator-core257.js",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/journal/generator-ui257.js",
+        "suffix": "\n"
+      }
     ]
   },
   "variants": [
