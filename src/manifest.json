@@ -4345,6 +4345,11 @@
       {
         "source": "src/documents/scanner/journal-receipts224.css"
       }
+    ],
+    "scripts/tablet-refresh143244.js": [
+      {
+        "source": "src/core/sync/tablet-refresh143244.js"
+      }
     ]
   },
   "variants": [
