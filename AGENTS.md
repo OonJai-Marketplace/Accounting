@@ -322,3 +322,15 @@ source links in saved drafts; recover older missing links from approved snapshot
 Allow supported manual regrouping that exactly matches approved accounts, amounts,
 currencies, rates and dates. Do not reset or return an approved report just to
 change its posting layout. Preserve manually edited descriptions.
+
+Tablet correction 2026-11-03 v143.262: preserve the approved desktop workspace
+fitted independently to iPad portrait and landscape, with pinch zoom available.
+Keyboard height changes and pinch zoom must not refit the document. Account
+selection on iPad/tablet is dropdown-only, with no software keyboard or search
+textbox, for every sub-user workspace in Single Entry and Double Entry and the
+main journal. Keep the account field's text size when making it read-only.
+Do not move a visible field to reserve space for a list; the list chooses the
+available space above or below. Resize the named visible column, excluding hidden
+Date/Action cells, and refresh the mapping when date mode changes. Preserve
+financial data and unrelated phone/desktop layouts. Synthetic viewport checks
+are not physical iPad Safari verification.

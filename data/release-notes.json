@@ -1,9 +1,8 @@
 {
-  "version": "143.261",
+  "version": "143.262",
   "changes": [
-    "Long journal entries retain Generate, Delete, Add, Reset and Post Entry at the bottom while scrolling.",
-    "Bulk report preparation calculates once after filling the rows. Memo typing skips unchanged arithmetic, and unchanged badges, FX controls and link buttons no longer trigger repeated redraws.",
-    "Edited approved reports can recover missing draft source links and post supported fund/category groupings while preserving custom descriptions and server verification of approved amounts.",
-    "Generated line memos use item numbers and descriptions. Fund totals use a compact item range; dates, submitter/receipt IDs and source-document references remain in source records rather than being repeated in every memo."
+    "iPad and tablet account selection opens only a dropdown, without the keyboard, across every sub-user workspace and the main journal.",
+    "Account column resizing targets the visible Account column, including after switching date mode; hidden columns no longer shift widths.",
+    "Portrait and landscape fitting preserves pinch zoom and stays stable when keyboard height changes. Dropdowns use available space above or below without pushing visible fields to the top."
   ]
 }

@@ -1,0 +1,10 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('src/shared/ui/table-resize143117.js','utf8'),section=source.slice(source.indexOf('function headerRows'),source.indexOf('function apply'));
+const ctx={getComputedStyle:h=>({display:h.hidden?'none':'table-cell'})};vm.runInNewContext(section,ctx);
+const cell=(label,hidden=false,colSpan=1,rowSpan=1)=>({textContent:label,hidden,colSpan,rowSpan});
+const date=cell('Date',true),account=cell('Account'),memo=cell('Memo'),debit=cell('Debit'),credit=cell('Credit'),action=cell('Action',true),table={tHead:{rows:[{cells:[date,account,memo,debit,credit,action]}]}};
+let g=ctx.grid(table);assert.equal(g.count,4);assert.equal(g.cells.find(c=>c.h===account).start,0);assert.equal(g.cells.find(c=>c.h===memo).start,1);
+date.hidden=false;g=ctx.grid(table);assert.equal(g.count,5);assert.equal(g.cells.find(c=>c.h===account).start,1);assert.equal(g.cells.find(c=>c.h===memo).start,2);
+date.hidden=true;g=ctx.grid(table);assert.equal(g.count,4);assert.equal(g.cells.find(c=>c.h===account).start,0);
+const grouped={tHead:{rows:[{cells:[cell('Account',false,1,2),cell('Amounts',false,2)]},{cells:[cell('Debit'),cell('Credit')]}]}};g=ctx.grid(grouped);assert.equal(g.count,3);assert.equal(g.cells[2].start,1);assert.equal(g.cells[3].start,2);
+console.log('PASS visible column mapping, date-mode transitions, hidden actions, grouped headers');

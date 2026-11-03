@@ -1,8 +1,8 @@
 /* Keep the desktop proportions while retaining a 16px editable field for iPad focus. */
 html[data-device132=tablet] body.shell113 #sub-users-workspace #subUserWorkspacePanel :is(input:not([type=checkbox]):not([type=radio]),textarea,select,[contenteditable="true"],[contenteditable="plaintext-only"]),
 html[data-device132=tablet] body.shell113 #transactions-module :is(input.je-input,textarea.je-input,.je-line-acc){font-size:16px!important;line-height:normal!important}
-html[data-device132=tablet] body.shell113 #sub-users-workspace #subUserWorkspacePanel :is(input[readonly],select),
-html[data-device132=tablet] body.shell113 #transactions-module :is(input[readonly],select.je-input){font-size:12px!important}
+html[data-device132=tablet] body.shell113 #sub-users-workspace #subUserWorkspacePanel :is(input[readonly]:not(.je-line-acc),select),
+html[data-device132=tablet] body.shell113 #transactions-module :is(input[readonly]:not(.je-line-acc),select.je-input){font-size:12px!important}
 html[data-device132=tablet] body.shell113 #sub-users-workspace #subUserWorkspacePanel :is(input,textarea)::placeholder,
 html[data-device132=tablet] body.shell113 #transactions-module :is(input.je-input,textarea.je-input)::placeholder{font-size:inherit!important;line-height:inherit!important}
 html[data-device132=tablet] :is(#sub-users-workspace,#journal) input.account-search1428[readonly]{cursor:pointer;caret-color:transparent;touch-action:manipulation}
