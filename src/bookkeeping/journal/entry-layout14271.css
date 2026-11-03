@@ -175,3 +175,17 @@ html[data-device132=tablet] body #journalEntry98#journalEntry98 .transaction-dat
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-row1430,
 html[data-device132=tablet] body #journalEntry98#journalEntry98.single-entry1430 .simple-head14272{grid-template-columns:110px minmax(0,1fr) minmax(0,1fr) 180px minmax(0,1fr)!important}
 html[data-device132=tablet] body #journalEntry98#journalEntry98 .je-meta-grid>.transaction-date-field:has(#jeTransDate) .oj-date-button104{font-size:14px!important}
+
+/* Keep the actual journal actions reachable throughout a long entry. */
+@media screen and (min-width:761px){
+ html:not([data-device132="phone"]) body #journalEntry98#journalEntry98{overflow:visible!important}
+ html:not([data-device132="phone"]) body #journalEntry98#journalEntry98>.je-actions-bar{
+  position:sticky!important;bottom:var(--calculation-height14391,0px);z-index:30;
+  background:var(--surface,#fffcf4);border-top:1px solid #b8c8bc;box-shadow:0 -3px 8px #153f2920;
+  padding:10px 12px!important;min-height:52px;box-sizing:border-box;flex-wrap:wrap;gap:8px;
+ }
+ html:not([data-device132="phone"]) body #journalEntry98>.je-actions-bar .entry-actions1444{flex-wrap:wrap}
+ html:not([data-device132="phone"]) body #journalEntry98 :is(#jeLinesBody tr,.simple-row1430){scroll-margin-bottom:100px}
+}
+
+html body #journalEntry98 .je-actions-bar #generateJournal258{order:2}

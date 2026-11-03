@@ -2433,16 +2433,16 @@ syncCoaDatalist = function() {
 
 function updateJournalAccountBadge(input) {
   if (!input) return;
-  const account = getSelectedAccountInfo(input.value);
-  const credit = input.closest('tr')?.querySelector('.je-line-cr');
-  if (credit) credit.dataset.currency = account?.currency || '';
-  const badge = input.closest('.account-input-wrap')?.querySelector('.currency-symbol-badge');
-  input.dataset.accountCode = account?.code || '';
-  input.dataset.accountCurrency = account?.currency || '';
-  if (!badge) return;
-  badge.dataset.currencyCode = account?.currency || '';
-  badge.textContent = account ? currencySymbolV6(account.currency) : '¤';
-  badge.title = account ? `${account.currency} — ${account.code}` : 'Select an account';
+  const account=getSelectedAccountInfo(input.value),currency=account?.currency||'',code=account?.code||'';
+  const credit=input.closest('tr')?.querySelector('.je-line-cr');
+  if(credit&&credit.dataset.currency!==currency)credit.dataset.currency=currency;
+  if(input.dataset.accountCode!==code)input.dataset.accountCode=code;
+  if(input.dataset.accountCurrency!==currency)input.dataset.accountCurrency=currency;
+  const badge=input.closest('.account-input-wrap')?.querySelector('.currency-symbol-badge');if(!badge)return;
+  if(badge.dataset.currencyCode!==currency)badge.dataset.currencyCode=currency;
+  const symbol=account?currencySymbolV6(currency):'¤',title=account?`${currency} — ${code}`:'Select an account';
+  if(badge.textContent!==symbol)badge.textContent=symbol;
+  if(badge.title!==title)badge.title=title;
 }
 
 const addJournalLineRowV5 = addJournalLineRow;

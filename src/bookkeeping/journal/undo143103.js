@@ -45,6 +45,6 @@ function ready(){
  window.addEventListener('page113',()=>{if(owner!==context()||client!==(typeof ojmDb==='undefined'?null:ojmDb))reset()});
  reset();
 }
-window.JournalUndo143103={checkpoint,record:()=>checkpoint(),reset,undo:()=>travel(false),redo:()=>travel(true)};
+window.JournalUndo143103={batch(fn){checkpoint();actionDepth++;try{return fn();}finally{actionDepth--;if(!actionDepth)schedule();}},checkpoint,record:()=>checkpoint(),reset,undo:()=>travel(false),redo:()=>travel(true)};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

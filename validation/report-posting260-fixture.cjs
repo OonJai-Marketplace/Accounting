@@ -22,7 +22,7 @@ module.exports=async function(db){
   if(currency==='THB')await q('UPDATE staff_journal_lines SET fx_rate_lak=$1 WHERE id=$2',[i===1?650:660,result.line_id]);
  }
  const source=await one("SELECT jsonb_build_object('id',j.id,'owner_id',j.owner_id,'period_start',j.period_start,'lines',(SELECT jsonb_agg(to_jsonb(l) ORDER BY transaction_date) FROM staff_journal_lines l WHERE staff_journal_id=j.id)) report FROM staff_journals j WHERE id=$1",[journal]);
- const rows=JSON.parse(JSON.stringify(c.summarize(source.report,mode,m+'-28'))),date=mode==='detailed'?m+'-01':m+'-28';
+ const originalRows=JSON.parse(JSON.stringify(c.summarize(source.report,mode,m+'-28'))),rows=JSON.parse(JSON.stringify(c.matchReportJournal261(source.report,originalRows.map(({source_ids,...r})=>r),mode,m+'-28').lines)),date=mode==='detailed'?m+'-01':m+'-28';
  assert.equal(rows.length,currency==='LAK'?({category_totals:3,fund_totals:4,detailed:6}[mode]):({category_totals:5,fund_totals:5,detailed:6}[mode]));
  const context=(await one('SELECT submission_context14345($1,$2) r',[journal,m+'-28'])).r,types=(await q('SELECT id FROM report_types14253 WHERE active')).map(r=>r.id),actuals=context.funds.map(f=>({account_id:f.account_id,actual:Number(f.posted)+Number(f.unposted),reason:''}));
  await q('SELECT submit_reconciled14345($1,$2,$3,$4,$5)',[journal,types,m+'-28',context.fingerprint,actuals]);

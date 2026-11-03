@@ -5,13 +5,37 @@ function summarize(j,mode='category_totals',postingDate=reportDate260(j)){
  if(!['category_totals','fund_totals','consolidated','detailed'].includes(mode))throw Error('Choose a posting format.');
  const combined=['category_totals','fund_totals'].includes(mode),source=eligibleReportLines260(j),fundIds=new Set(source.map(l=>String(l.fund_account_id))),groups=new Map();
  if(combined&&(!/^\d{4}-\d{2}-\d{2}$/.test(postingDate)||source.some(l=>String(l.transaction_date).slice(0,7)!==postingDate.slice(0,7))||postingDate.slice(0,7)!==String(j.period_start).slice(0,7)))throw Error('Choose a journal date in the report month. Original receipt dates stay linked to the report.');
- for(const l of source){const cents=Math.round(Number(l.amount)*100);if(!Number.isSafeInteger(cents)||cents<=0)throw Error('Invalid source amount.');
+ for(const [index,l] of source.entries()){const cents=Math.round(Number(l.amount)*100);if(!Number.isSafeInteger(cents)||cents<=0)throw Error('Invalid source amount.');
   for(const fund of [false,true]){const incoming=l.direction==='in',side=fund?(incoming?'debit':'credit'):(incoming?'credit':'debit'),account=fund?l.fund_account_id:l.account_id,date=combined?postingDate:l.transaction_date,rate=combined&&l.currency_code==='LAK'?1:l.fx_rate_lak,bucket=mode==='category_totals'?'all':mode==='fund_totals'&&(fund||fundIds.has(String(account)))?'fund':mode==='consolidated'&&fund?'fund':l.id,key=[date,account,l.currency_code,side,rate||'',bucket].join('|');
-   let g=groups.get(key);if(!g){g={key,fx_rate_lak:rate,account_id:account,currency_code:l.currency_code,side,line_date:date,cents:0,fund:fund||fundIds.has(String(account)),source_ids:[],references:[],memos:[],details:[]};groups.set(key,g);}
-   g.cents+=cents;if(!Number.isSafeInteger(g.cents))throw Error('Amount exceeds safe precision.');g.source_ids.push(l.id);g.references.push(String(l.workspace_entry_no||l.id));g.details.push([combined?formatAppDate(l.transaction_date):null,String(l.workspace_entry_no||l.id),l.memo,l.reference].filter(v=>v!==null&&v!==undefined&&v!=='').join(' · '));if(l.memo)g.memos.push(l.memo);if(l.reference)g.memos.push(l.reference);
+   let g=groups.get(key);if(!g){g={key,fx_rate_lak:rate,account_id:account,currency_code:l.currency_code,side,line_date:date,cents:0,fund:fund||fundIds.has(String(account)),source_ids:[],references:[],memos:[],details:[],itemNumbers:[]};groups.set(key,g);}
+   g.cents+=cents;if(!Number.isSafeInteger(g.cents))throw Error('Amount exceeds safe precision.');g.source_ids.push(l.id);g.references.push(String(l.workspace_entry_no||l.id));const item=Number.isInteger(Number(l.line_no))&&Number(l.line_no)>0?Number(l.line_no):index+1;g.itemNumbers.push(item);g.details.push(item+'. '+String(l.memo||'').trim());if(l.memo)g.memos.push(l.memo);if(l.reference)g.memos.push(l.reference);
   }
  }
- const rows=[...groups.values()].map(g=>({...g,debit:g.side==='debit'?g.cents/100:0,credit:g.side==='credit'?g.cents/100:0,source_ids:g.source_ids.sort(),description:g.details.join(' | ')}));
+ const rows=[...groups.values()].map(g=>({...g,debit:g.side==='debit'?g.cents/100:0,credit:g.side==='credit'?g.cents/100:0,source_ids:g.source_ids.sort(),description:combined&&g.fund?reportItems261(g.itemNumbers):g.details.join(' | ')}));
  return combined?rows.sort((a,b)=>Number(a.fund)-Number(b.fund)):rows;
+}
+function reportItems261(numbers){
+ const sorted=[...new Set(numbers)].sort((a,b)=>a-b),parts=[];
+ for(let i=0;i<sorted.length;i++){const start=sorted[i];let end=start;while(sorted[i+1]===end+1)end=sorted[++i];parts.push(start===end?String(start):start+'–'+end);}
+ return (sorted.length===1?'Item ':'Items ')+parts.join(', ');
+}
+function cleanReportMemo261(value,row,j){
+ const memo=String(value||''),source=eligibleReportLines260(j),linked=source.filter(l=>row.source_ids.includes(l.id));
+ const parts=memo.split(' | ');if(parts.length!==linked.length)return memo;
+ const remaining=linked.slice();for(const part of parts){const i=remaining.findIndex(l=>[false,true].some(dated=>[dated?formatAppDate(l.transaction_date):null,String(l.workspace_entry_no||l.id),l.memo,l.reference].filter(v=>v!==null&&v!==undefined&&v!=='').join(' · ')===part));if(i<0)return memo;remaining.splice(i,1);}
+ return row.description;
+}
+function matchReportJournal261(j,lines,preferred,mainDate){
+ const modes=[...new Set([preferred,'fund_totals','category_totals','detailed','consolidated'].filter(Boolean))];
+ for(const mode of modes){let expected;try{expected=summarize(j,mode,mainDate)}catch{continue}if(expected.length!==lines.length)continue;
+  const unused=expected.slice(),linked=[];let valid=true;
+  for(const line of lines){
+   const candidates=unused.filter(r=>String(r.account_id)===String(line.account_id)&&r.currency_code===line.currency_code&&r.line_date===line.line_date&&r.debit===line.debit&&r.credit===line.credit&&(r.currency_code==='LAK'||!r.fx_rate_lak||Number(r.fx_rate_lak)===Number(line.fx_rate_lak)));
+   const hint=JSON.stringify([...(line.source_ids||[])].sort()),row=candidates.find(r=>JSON.stringify(r.source_ids)===hint)||candidates[0];
+   if(!row){valid=false;break}unused.splice(unused.indexOf(row),1);linked.push({...line,description:cleanReportMemo261(line.description,row,j),source_ids:row.source_ids.slice()});
+  }
+  if(valid&&!unused.length)return {mode,lines:linked};
+ }
+ throw Error('The edited accounts, amounts, currencies or dates do not match a supported grouping of the approved report. To total a fund once, use one Journal date and keep the approved category amounts. Your draft is retained; Change format can preview the supported layouts.');
 }
 let prepared=null,posting=false;

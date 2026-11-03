@@ -2460,16 +2460,16 @@ syncCoaDatalist = function() {
 
 function updateJournalAccountBadge(input) {
   if (!input) return;
-  const account = getSelectedAccountInfo(input.value);
-  const credit = input.closest('tr')?.querySelector('.je-line-cr');
-  if (credit) credit.dataset.currency = account?.currency || '';
-  const badge = input.closest('.account-input-wrap')?.querySelector('.currency-symbol-badge');
-  input.dataset.accountCode = account?.code || '';
-  input.dataset.accountCurrency = account?.currency || '';
-  if (!badge) return;
-  badge.dataset.currencyCode = account?.currency || '';
-  badge.textContent = account ? currencySymbolV6(account.currency) : '¤';
-  badge.title = account ? `${account.currency} — ${account.code}` : 'Select an account';
+  const account=getSelectedAccountInfo(input.value),currency=account?.currency||'',code=account?.code||'';
+  const credit=input.closest('tr')?.querySelector('.je-line-cr');
+  if(credit&&credit.dataset.currency!==currency)credit.dataset.currency=currency;
+  if(input.dataset.accountCode!==code)input.dataset.accountCode=code;
+  if(input.dataset.accountCurrency!==currency)input.dataset.accountCurrency=currency;
+  const badge=input.closest('.account-input-wrap')?.querySelector('.currency-symbol-badge');if(!badge)return;
+  if(badge.dataset.currencyCode!==currency)badge.dataset.currencyCode=currency;
+  const symbol=account?currencySymbolV6(currency):'¤',title=account?`${currency} — ${code}`:'Select an account';
+  if(badge.textContent!==symbol)badge.textContent=symbol;
+  if(badge.title!==title)badge.title=title;
 }
 
 const addJournalLineRowV5 = addJournalLineRow;
@@ -5621,8 +5621,8 @@ hydrateSupabaseSession=async function(session){
 const logoutBefore69=logoutDemoUser;
 logoutDemoUser=async function(){const id=liveProfile?.id;hydratedUser69='';Location69.ready=false;Location69.hydrating=false;startup88=null;clearTimeout(SessionTimeoutManager.logoutTimer);clearTimeout(SessionTimeoutManager.warningTimer);if(id)localStorage.removeItem(locationKey69(id));return logoutBefore69()};
 
-function snapshotJournal69(){return {fxRates:window.JournalFX14383?.capture()||{},rows:[...document.querySelectorAll('#jeLinesBody tr')].map(r=>({bookRate:r.dataset.bookRate14383||'',fxRate:r.dataset.fxRate14383||'',account:r.querySelector('.je-line-acc')?.value||'',memo:r.querySelector('.je-line-memo')?.value||'',dr:r.querySelector('.je-line-dr')?.value||'',date:r.querySelector('.je-line-date')?.value||'',credits:Object.fromEntries([...r.querySelectorAll('.je-line-cr')].map(n=>[n.dataset.currency,n.value]))})),owner:pendingWorkspacePostOwnerId,journal:pendingWorkspacePostJournalId,local:pendingWorkspacePostIsLocal};}
-function restoreJournal69(s){const body=document.getElementById('jeLinesBody');if(!body||!s.rows.length)return;body.innerHTML='';s.rows.forEach(r=>{addJournalLineRow(r.account,r.memo,r.dr,r.credits);body.lastElementChild.dataset.bookRate14383=r.bookRate||'';body.lastElementChild.dataset.fxRate14383=r.fxRate||'';const date=body.lastElementChild.querySelector('.je-line-date');if(date)date.value=r.date});pendingWorkspacePostOwnerId=s.owner;pendingWorkspacePostJournalId=s.journal;pendingWorkspacePostIsLocal=s.local;window.JournalFX14383?.restore(s.fxRates||{});calculateJournalBalance()}
+function snapshotJournal69(){return {fxRates:window.JournalFX14383?.capture()||{},rows:[...document.querySelectorAll('#jeLinesBody tr')].map(r=>({sourceIds:r.dataset.sourceIds14253||'',bookRate:r.dataset.bookRate14383||'',fxRate:r.dataset.fxRate14383||'',account:r.querySelector('.je-line-acc')?.value||'',memo:r.querySelector('.je-line-memo')?.value||'',dr:r.querySelector('.je-line-dr')?.value||'',date:r.querySelector('.je-line-date')?.value||'',credits:Object.fromEntries([...r.querySelectorAll('.je-line-cr')].map(n=>[n.dataset.currency,n.value]))})),owner:pendingWorkspacePostOwnerId,journal:pendingWorkspacePostJournalId,local:pendingWorkspacePostIsLocal};}
+function restoreJournal69(s){const body=document.getElementById('jeLinesBody');if(!body||!s.rows.length)return;const fill=()=>{body.innerHTML='';s.rows.forEach(r=>{addJournalLineRow(r.account,r.memo,r.dr,r.credits);body.lastElementChild.dataset.sourceIds14253=r.sourceIds||'';body.lastElementChild.dataset.bookRate14383=r.bookRate||'';body.lastElementChild.dataset.fxRate14383=r.fxRate||'';const date=body.lastElementChild.querySelector('.je-line-date');if(date)date.value=r.date});pendingWorkspacePostOwnerId=s.owner;pendingWorkspacePostJournalId=s.journal;pendingWorkspacePostIsLocal=s.local;window.JournalFX14383?.restore(s.fxRates||{});calculateJournalBalance()};if(window.JournalRendering261)JournalRendering261.batch(fill);else fill();}
 function applyCurrencyOrder69(){const order=ApplicationSettings.accounting.currencyOrder||[];CurrencyStore.currencies.sort((a,b)=>(order.includes(a.code)?order.indexOf(a.code):999)-(order.includes(b.code)?order.indexOf(b.code):999))}
 const renderCurrencyBefore69=CurrencyStore.render;
 CurrencyStore.render=function(){applyCurrencyOrder69();renderCurrencyBefore69.call(this);const host=document.getElementById('currencyTableBody');if(!host)return;[...host.rows].forEach((row,i)=>{row.draggable=true;row.dataset.currency=this.currencies[i].code;const handle=document.createElement('span');handle.className='currency-handle69';handle.textContent='⠿ ';handle.title='Drag to reorder';row.cells[0].prepend(handle);row.ondragstart=e=>e.dataTransfer.setData('text/plain',row.dataset.currency);row.ondragover=e=>e.preventDefault();row.ondrop=e=>{e.preventDefault();moveCurrency69(e.dataTransfer.getData('text/plain'),i)}})};
@@ -7675,7 +7675,7 @@ mountSettings();
     const state = getMultiDateJournalState();
     const lines = Object.values(state.grouped).flatMap(g => g.lines);
     const empty = !lines.some(l => l.debit || l.credit);
-    badge.hidden = empty;
+    if(badge.hidden!==empty)badge.hidden=empty;
     const difference = state.differences[0];
     let label = '✓ Balanced', description = 'Debits equal credits in each currency.';
     if (state.errors.length) { label = 'Check entry'; description = state.errors.join('\n'); }
@@ -7687,10 +7687,10 @@ mountSettings();
     if(state.warnings?.length){label+=' · '+state.warnings.join(' ');description+='\n'+state.warnings.join('\n');}
     const invalid = empty || !!difference || !!state.errors.length;
     if (badge.textContent !== label) badge.textContent = label;
-    badge.title = description;
-    badge.setAttribute('aria-label', `${label}. ${description}`);
-    badge.className = 'je-status-badge ' + (invalid ? 'unbalanced' : 'balanced');
-    if (post) post.disabled = invalid;
+    if(badge.title!==description)badge.title=description;
+    if(badge.getAttribute('aria-label')!==`${label}. ${description}`)badge.setAttribute('aria-label', `${label}. ${description}`);
+    const kind='je-status-badge ' + (invalid ? 'unbalanced' : 'balanced');if(badge.className!==kind)badge.className=kind;
+    if(post&&post.disabled!==invalid)post.disabled=invalid;
   };
 
   // Important changes only. Routine events remain in the stored audit trail.

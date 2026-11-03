@@ -311,3 +311,14 @@ separate. Cancel preserves drafts. The first two formats share an editable date
 within the report month; retain original receipt dates/references in source links.
 Keep funds, currencies, FX rates and debit/credit sides separate. Preserve exact
 approved sources, permissions, immutable retries and period locks on the server.
+
+Long journals 2026-11-03 v143.261: keep the real Generate/Delete/Add/Reset/Post
+Entry actions visible at the bottom during desktop/tablet scrolling. Batch bulk
+row preparation; memo-only typing must not recalculate unchanged amounts. Keep
+amount validation, draft recovery, undo and explicit posting. Report line memos
+contain item numbers and user descriptions, without generated dates, names,
+receipt IDs or document references. Retain source provenance separately. Preserve
+source links in saved drafts; recover older missing links from approved snapshots.
+Allow supported manual regrouping that exactly matches approved accounts, amounts,
+currencies, rates and dates. Do not reset or return an approved report just to
+change its posting layout. Preserve manually edited descriptions.

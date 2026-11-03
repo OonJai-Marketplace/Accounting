@@ -1,7 +1,7 @@
 /* Version 142 focused repair: visible, exact Post Double Entry diagnostics. */
 (function(){'use strict';
  const byId=id=>document.getElementById(id);
- let touched=false;
+ let touched=false,batchDepth261=0,batchDirty261=false,generalPresent261=false;
  function started(){return touched||!!JournalModule.editingEntryId||!!byId('jeGeneralMemo')?.value.trim()||!!byId('jeVoucher14299')?.value||[...document.querySelectorAll('#jeLinesBody .je-line-acc,#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr,#jeLinesBody .je-line-memo')].some(n=>n.value.trim())}
  const number=(value,input)=>{const clean=String(value??'').trim();if(!clean)return 0;const n=input?.dataset.numeric88||input?.type==='number'?Number(clean):parseAppNumber(clean);return Number.isFinite(n)?n:NaN};
  const money=value=>typeof formatAppNumber==='function'?formatAppNumber(value):Number(value).toLocaleString(undefined,{maximumFractionDigits:2});
@@ -34,12 +34,14 @@
   if(!byId('jeBalanceIndicator')||window.postEntryDiagnostics142Installed)return;window.postEntryDiagnostics142Installed=true;
   const original=window.calculateJournalBalance;
   window.calculateJournalBalance=function(){
+   if(batchDepth261){batchDirty261=true;return;}
    try{original?.apply(this,arguments)}catch(_){}
-   const result=diagnose(),badge=byId('jeBalanceIndicator'),post=byId('btnPostJournal');if(!badge)return;
-   badge.hidden=!started();badge.textContent=result.label;badge.title=result.details;badge.setAttribute('aria-label',`${result.label}. ${result.details}`);badge.className='je-status-badge '+(result.valid?'balanced':'unbalanced');if(post)post.disabled=!result.valid;
+   generalPresent261=!!byId('jeGeneralMemo')?.value.trim();const result=diagnose(),badge=byId('jeBalanceIndicator'),post=byId('btnPostJournal');if(!badge)return;
+   const hidden=!started(),label=`${result.label}. ${result.details}`,kind='je-status-badge '+(result.valid?'balanced':'unbalanced');if(badge.hidden!==hidden)badge.hidden=hidden;if(badge.textContent!==result.label)badge.textContent=result.label;if(badge.title!==result.details)badge.title=result.details;if(badge.getAttribute('aria-label')!==label)badge.setAttribute('aria-label',label);if(badge.className!==kind)badge.className=kind;if(post&&post.disabled===result.valid)post.disabled=!result.valid;
    window.JournalCalculation14391?.refresh();
   };
-  const changed=event=>{if(event.target.closest('#journalEntry98,#journalRates14383')){touched=true;window.calculateJournalBalance()}};
+  window.JournalRendering261={batch(fn){batchDepth261++;try{return window.JournalUndo143103?.batch?JournalUndo143103.batch(fn):fn();}finally{batchDepth261--;if(!batchDepth261&&batchDirty261){batchDirty261=false;window.calculateJournalBalance();}}}};
+  const changed=event=>{const target=event.target;if(target.closest('#journalEntry98,#journalRates14383')){touched=true;if(target.getAttribute('on'+event.type)?.includes('calculateJournalBalance'))return;if(target.matches('.je-line-memo')||target.id==='jeGeneralMemo'&&!!target.value.trim()===generalPresent261)return;window.calculateJournalBalance()}};
   document.addEventListener('input',changed);document.addEventListener('change',changed);
   const reset=window.clearJournalEntry;window.clearJournalEntry=function(...args){touched=false;const result=reset.apply(this,args);touched=false;window.calculateJournalBalance();return result};
   window.calculateJournalBalance();

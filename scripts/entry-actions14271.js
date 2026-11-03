@@ -49,6 +49,6 @@ function ready(){
  root.addEventListener('focusin',e=>{const row=e.target.closest('.simple-row1430,#jeLinesBody tr');if(row&&root.contains(row))choose(row)});
  choose(null);
 }
-window.entryActions14271={add,remove};
+const batch261=fn=>window.JournalRendering261?JournalRendering261.batch(fn):fn();window.entryActions14271={add:()=>batch261(add),remove:()=>batch261(remove)};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

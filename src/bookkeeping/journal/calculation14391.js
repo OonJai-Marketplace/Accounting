@@ -57,12 +57,12 @@ function selectionHtml(cells){
 function decorate(){
  for(const input of document.querySelectorAll(amountSelector)){
   const cell=input.closest('td');if(!cell)continue;
-  cell.classList.add('calc-amount-cell14391');
+  if(!cell.classList.contains('calc-amount-cell14391'))cell.classList.add('calc-amount-cell14391');
   let pick=cell.querySelector('.calc-pick14391');
   if(!pick){pick=document.createElement('button');pick.type='button';pick.className='calc-pick14391';pick.textContent='✓';cell.append(pick)}
   pick._amount14391=input;
   const checked=selected.has(input),side=input.matches('.je-line-dr')?'Debit':'Credit';
-  pick.setAttribute('aria-pressed',String(checked));pick.setAttribute('aria-label','Select '+side+' amount for calculation');pick.title=pick.getAttribute('aria-label');cell.classList.toggle('calc-selected14391',checked);
+  const pressed=String(checked),label='Select '+side+' amount for calculation';if(pick.getAttribute('aria-pressed')!==pressed)pick.setAttribute('aria-pressed',pressed);if(pick.getAttribute('aria-label')!==label)pick.setAttribute('aria-label',label);if(pick.title!==label)pick.title=label;if(cell.classList.contains('calc-selected14391')!==checked)cell.classList.toggle('calc-selected14391',checked);
  }
 }
 function visible(){const card=$('journalEntry98');return !!card?.getClientRects().length&&document.documentElement.dataset.device132!=='phone'&&!window.personalJournal1437?.active&&!$('loginGate')?.matches(':not(.is-authenticated)')}

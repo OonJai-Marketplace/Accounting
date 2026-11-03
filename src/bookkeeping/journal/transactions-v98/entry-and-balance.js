@@ -38,7 +38,7 @@
     const state = getMultiDateJournalState();
     const lines = Object.values(state.grouped).flatMap(g => g.lines);
     const empty = !lines.some(l => l.debit || l.credit);
-    badge.hidden = empty;
+    if(badge.hidden!==empty)badge.hidden=empty;
     const difference = state.differences[0];
     let label = '✓ Balanced', description = 'Debits equal credits in each currency.';
     if (state.errors.length) { label = 'Check entry'; description = state.errors.join('\n'); }
@@ -50,9 +50,9 @@
     if(state.warnings?.length){label+=' · '+state.warnings.join(' ');description+='\n'+state.warnings.join('\n');}
     const invalid = empty || !!difference || !!state.errors.length;
     if (badge.textContent !== label) badge.textContent = label;
-    badge.title = description;
-    badge.setAttribute('aria-label', `${label}. ${description}`);
-    badge.className = 'je-status-badge ' + (invalid ? 'unbalanced' : 'balanced');
-    if (post) post.disabled = invalid;
+    if(badge.title!==description)badge.title=description;
+    if(badge.getAttribute('aria-label')!==`${label}. ${description}`)badge.setAttribute('aria-label', `${label}. ${description}`);
+    const kind='je-status-badge ' + (invalid ? 'unbalanced' : 'balanced');if(badge.className!==kind)badge.className=kind;
+    if(post&&post.disabled!==invalid)post.disabled=invalid;
   };
 
