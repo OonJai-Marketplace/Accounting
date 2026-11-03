@@ -1,6 +1,4 @@
 {
-  "version": "143.253",
-  "changes": [
-    "Salary vouchers use the administrator\u2019s current payroll advance and recalculated payment. Older recovery notes no longer block legitimate edits. Generated recovery text follows the current amount without changing stored notes or finalized payroll."
-  ]
+  "version": "143.254",
+  "changes": ["Document printing preserves the editor’s heading highlights, table shading and attendance colors."]
 }
