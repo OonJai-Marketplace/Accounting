@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const saved=new Map(),S={owner:'one',actor:'one',data:{access:{permissions:{workspace_entry_mode240:'cashbook',assigned_fund_account_ids:['fund'],destination_account_ids:['expense'],allowed_directions:['out','in']}},accounts:[{id:'fund',currency:'LAK'},{id:'expense',currency:'LAK'}]}};
+const ctx={S,scope:'test',localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},today:()=> '2026-11-03',crypto:{randomUUID:()=> 'test'},notice:()=>{},structuredClone};vm.createContext(ctx);
+vm.runInContext(fs.readFileSync('src/subusers/phone/runtime/permissions-and-accounts.js','utf8')+fs.readFileSync('src/subusers/phone/runtime/draft-persistence.js','utf8'),ctx);
+vm.runInContext("S.draft=blankDraft();S.draft.single=[{direction:'out',source:'fund',affected:'expense',amount:'1200',memo:'Keep memo'}]",ctx);
+assert(vm.runInContext("changeMode243('double')",ctx));assert.equal(S.draft.lines[0].debit,'1200');assert.equal(S.draft.lines[1].credit,'1200');assert.equal(S.draft.lines[1].memo,'Keep memo');
+assert(vm.runInContext("changeMode243('single')",ctx));assert.equal(S.draft.single[0].amount,'1200');assert.equal(S.draft.single[0].source,'fund');
+vm.runInContext("changeMode243('double');S.draft.lines[0].memo='Distinct memo'",ctx);const before=JSON.stringify(S.draft);assert.equal(vm.runInContext("changeMode243('single')",ctx),false);assert.equal(JSON.stringify(S.draft),before,'unrepresentable entries must remain unchanged');
+S.owner='two';S.data.target={permissions:{workspace_entry_mode240:'double_simple'}};assert.equal(vm.runInContext('preferredMode243()',ctx),'double','another user must not inherit cashbook preference');
+console.log('PASS phone entry conversion, balanced amounts, retained distinct memos, isolated preferences');

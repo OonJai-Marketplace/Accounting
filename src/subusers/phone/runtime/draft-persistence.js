@@ -25,3 +25,29 @@
   function saveMirror() { if (!S.owner || !S.draft) return; try { localStorage.setItem(mirrorKey(S.owner), JSON.stringify(S.draft)); } catch { notice('This browser could not keep the draft. Keep this page open until you can save it.', true); } }
   function rememberLocation(){if(!S.owner)return;try{localStorage.setItem(locationKey(S.owner),JSON.stringify({page:S.page,month:S.month}));}catch{}}
   function saveDraftLater() { saveMirror(); clearTimeout(draftTimer); const owner = S.owner, epoch=S.epoch,draft = structuredClone(S.draft); draftTimer = setTimeout(() => {if(current(owner,epoch))persist(owner,{draft}).catch(e => {if(current(owner,epoch))notice(e.message,true)})}, 150); }
+
+  function changeMode243(next){
+    const d=S.draft;if(!d||S.saving)return false;
+    if(next!==d.mode){
+      if(next==='double'){
+        d.lines=d.single.flatMap(l=>{const incoming=l.direction==='in';return [{account:incoming?l.source:l.affected,debit:l.amount,credit:'',memo:l.memo||''},{account:incoming?l.affected:l.source,debit:'',credit:l.amount,memo:l.memo||''}];});
+        if(!d.lines.length)d.lines=blankDraft().lines;
+      }else{
+        const rows=d.lines.filter(l=>l.account||l.debit||l.credit||l.memo),result=[],r=rules();
+        const amount=v=>Number(String(v||'').replaceAll(',',''));
+        for(let i=0;i<rows.length;i+=2){
+          const a=rows[i],b=rows[i+1];
+          const debit=a&&amount(a.debit)>0&&!amount(a.credit)?a:b&&amount(b.debit)>0&&!amount(b.credit)?b:null;
+          const credit=a&&amount(a.credit)>0&&!amount(a.debit)?a:b&&amount(b.credit)>0&&!amount(b.debit)?b:null;
+          const outgoing=debit&&credit&&r.directions.includes('out')&&r.fundIds.includes(credit.account)&&r.entryIds.includes(debit.account);
+          const incoming=debit&&credit&&r.directions.includes('in')&&r.fundIds.includes(debit.account)&&r.entryIds.includes(credit.account);
+          if(!a||!b||!debit||!credit||debit===credit||amount(debit.debit)!==amount(credit.credit)||!Number.isFinite(amount(debit.debit))||currency(debit.account)!==currency(credit.account)||debit.memo&&credit.memo&&debit.memo!==credit.memo||!outgoing&&!incoming){notice('These lines need Double Entry. Your draft is unchanged; finish it before starting a cashbook entry.',true);return false;}
+          result.push({direction:outgoing?'out':'in',source:outgoing?credit.account:debit.account,affected:outgoing?debit.account:credit.account,amount:debit.debit,memo:debit.memo||credit.memo||''});
+        }
+        d.single=result.length?result:blankDraft().single;
+      }
+      d.mode=next;
+    }
+    try{localStorage.setItem(modeKey243(),next)}catch{}
+    return true;
+  }

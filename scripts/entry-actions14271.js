@@ -43,7 +43,7 @@ function ready(){
   simple.prepend(head);
  }
  root.addEventListener('click',e=>{
-  if(e.target.closest('#jeEntryMode1430,[onclick="clearJournalEntry()"]')){queueMicrotask(()=>choose(null));return}
+  if(e.target.closest('#jeEntryMode1430,[data-workspace-mode243],[onclick="clearJournalEntry()"]')){queueMicrotask(()=>choose(null));return}
   const row=e.target.closest('.simple-row1430,#jeLinesBody tr');if(row&&root.contains(row))choose(row);
  });
  root.addEventListener('focusin',e=>{const row=e.target.closest('.simple-row1430,#jeLinesBody tr');if(row&&root.contains(row))choose(row)});

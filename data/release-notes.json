@@ -1,7 +1,8 @@
 {
-  "version": "143.242",
+  "version": "143.243",
   "changes": [
-    "Fixed administrator-only Audit Log requests during sub-user workspace loading and synchronization.",
-    "Applies to all sub-users. Administrator audit access and existing account permissions are preserved."
+    "All sub-users can choose Single Entry (Cashbook) or Double Entry from Entry options. Simplified is removed from sub-user entry choices.",
+    "Improved iPad journal taps, account lists, keyboard scrolling and field focus while preserving entered amounts.",
+    "Added space around personal Ledger and History modules."
   ]
 }

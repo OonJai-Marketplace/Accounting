@@ -150,3 +150,18 @@ html body #period-review .period-review-table th:first-child{width:110px!importa
  html body.scroll-navigation14344 :is(#categoryTabs .category-tab.active,.team-tabs14230 button[aria-current=page]){background:#e7f0e9!important;color:#174b39!important;border-bottom-color:#24634c!important}
  html body.scroll-navigation14344 .team-tabs14230 .team-search14231{margin:0 12px 0 auto!important}
 }
+
+@layer corrections14337 {
+/* Personal ledger/history: space between modules, tables flush inside each card. */
+@media (min-width:641px){
+ html body #personalWorkspace1437 [data-personal-panel=ledger]{padding:16px!important;box-sizing:border-box;min-width:0}
+ html body #personalWorkspace1437 .assigned-ledger14281{min-width:0}
+ html body #personalWorkspace1437 [data-personal-panel=history]{padding:12px!important;box-sizing:border-box;min-width:0}
+ html body #personalWorkspace1437 .personal-history-list1437{padding:12px!important;gap:12px}
+ html body #personalWorkspace1437 .personal-history-list1437 .final-record-card{margin:0!important;overflow:hidden}
+ html body #personalWorkspace1437 .personal-history-list1437 .final-record-content{padding:0!important}
+ html body #personalWorkspace1437 .personal-history-list1437 .final-record-content>.table-container{margin:0!important;border:0!important;border-radius:0!important}
+ html body #personalWorkspace1437 .personal-history-list1437 .final-record-content :is(h3,h4){margin:12px!important}
+}
+
+}

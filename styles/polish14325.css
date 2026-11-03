@@ -165,6 +165,12 @@ html body .system-account-name14399,html body .account-option1428[data-account-t
 html body #journalEntry98#journalEntry98 #jeLinesBody input[data-account-type14277=SYSTEM]{color:#b91c1c!important;-webkit-text-fill-color:#b91c1c;background:transparent!important}
 
 @layer corrections14337 { html body #printableDocArea :is(.clustered-journal-table,.period-review-table) td.entry-shared-cell.entry-internal-date143127{border-bottom:1px solid #d8e3dc!important} }
+@layer corrections14337 {
+/* Hidden mode choices must override the shared menu button display rule. */
+html body #journalEntry98#journalEntry98#journalEntry98 #jeOptionsMenu14389 :is(#jeEntryMode1430,button)[hidden]{display:none!important}
+html body #journalEntry98#journalEntry98#journalEntry98 #jeOptionsMenu14389 button[aria-checked=true]{font-weight:700!important;background:#e3eedf!important}
+
+}
 
 /* Compact currency calculations; posting diagnostics stay at the far left of the entry actions row. */
 #journalCalculation14391{position:fixed;bottom:0;right:0;z-index:950;box-sizing:border-box;padding:3px 12px calc(3px + env(safe-area-inset-bottom,0px));border-top:3px solid #367b62;background:#e3efe6;color:var(--text-main,#183f30);box-shadow:0 -3px 10px #163c2530;font-size:12px;line-height:1.2;min-height:calc(46px + env(safe-area-inset-bottom,0px));height:auto;max-height:40dvh;overflow-x:hidden;overflow-y:auto;scrollbar-width:thin}

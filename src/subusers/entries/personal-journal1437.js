@@ -12,8 +12,9 @@ const key=id=>{if(memoryClient!==ojmDb){states.clear();drafts.clear();historyExt
 const tabs=['home','review','journal','summary','history','reports','ledger'];
 const tabKey=id=>'ojm-personal-tab1437:'+key(id);
 const state=id=>{const k=key(id);if(!states.has(k)){let tab='home';try{const saved=localStorage.getItem(tabKey(id));if(tabs.includes(saved))tab=saved}catch{}states.set(k,{tab,month:wsPeriod[id]||appLocalDate().slice(0,7),year:String(new Date().getFullYear()),historyMonth:'',search:''})}return states.get(k)};
-const cashbook=id=>user(id)?.user_permissions?.workspace_entry_mode240==='cashbook';
-const preferredMode=id=>user(id)?.user_permissions?.workspace_entry_mode240==='double_full'?'double':'single';
+const preferredMode=id=>{try{const saved=localStorage.getItem('ojm-entry-mode243:'+key(id));if(['single','double'].includes(saved))return saved}catch{}return user(id)?.user_permissions?.workspace_entry_mode240==='cashbook'?'single':'double'};
+const cashbook=id=>preferredMode(id)==='single';
+function chooseMode(mode){if(!scope||!['single','double'].includes(mode))return;try{localStorage.setItem('ojm-entry-mode243:'+key(scope),mode)}catch{}remember();updatePanels(scope);label();}
 const journals=id=>(reviewStaffJournals||[]).filter(j=>String(j.owner_id)===String(id));
 function allowed(a,id=scope){const u=user(id);if(!a||!u||a.isPosting===false||a.active===false||a.is_active===false)return false;const r=workspaceRules(u);return [...r.fundIds,...r.entryIds,r.counterpart].includes(String(a.id));}
 function readDraft(id){
@@ -182,6 +183,6 @@ function ready(){card=$('journalEntry98');if(!card||!window.entry1430)return;anc
  installDesktop();
 }
 function openCorrection(journalId){const j=(reviewStaffJournals||[]).find(x=>x.id===journalId);if(!j||j.status!=='returned'||!access113.can('sub-users-workspace','edit'))return false;const id=String(j.owner_id);if(!Organization14229.mayOpen(id))return false;document.getElementById('finalRecordsOverlay')?.remove();document.getElementById('returnedBookOverlay')?.remove();openWorkspaceUser(id);installDesktop();state(id).correction=journalId;state(id).tab='journal';updatePanels(id);show(id,'journal');document.getElementById('personalActive1437')?.scrollIntoView({block:'start'});return true;}
-window.personalJournal1437={openCorrection,endCorrection(id){if(busy)return;const d=scope===id?capture():readDraft(id);if(d?.editIds?.some(lineId=>journals(id).find(j=>j.id===state(id).correction)?.lines?.some(l=>l.id===lineId))){restore(null);remember();}state(id).correction=null;updatePanels(id);show(id,'review')},correctionFor(id){return state(id).correction||null},get cashbook(){return !!scope&&cashbook(scope)},get active(){return !!scope},get owner(){return scope},get rules(){return scope?workspaceRules(user(scope)):null},allowed,show,save,prepareItems,detach};
+window.personalJournal1437={chooseMode,openCorrection,endCorrection(id){if(busy)return;const d=scope===id?capture():readDraft(id);if(d?.editIds?.some(lineId=>journals(id).find(j=>j.id===state(id).correction)?.lines?.some(l=>l.id===lineId))){restore(null);remember();}state(id).correction=null;updatePanels(id);show(id,'review')},correctionFor(id){return state(id).correction||null},get cashbook(){return !!scope&&cashbook(scope)},get active(){return !!scope},get owner(){return scope},get rules(){return scope?workspaceRules(user(scope)):null},allowed,show,save,prepareItems,detach};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })()

@@ -76,7 +76,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.242', $ = id => document.getElementById(id);
+  const VERSION = '143.243', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -178,9 +178,11 @@ function appLocalDate(date=new Date()) {
     const view = (p.modules || []).some(m => m === target || m === parent || m === 'all:' + parent || m.endsWith(':' + target));
     return view && (verb === 'view' || !!p[{edit:'can_manage_data', export:'can_export', void:'can_void'}[verb]]);
   }
+  const modeKey243=()=> 'ojm-phone-entry-mode243:'+scope+':'+S.actor+':'+S.owner;
+  function preferredMode243(){try{const value=localStorage.getItem(modeKey243());if(['single','double'].includes(value))return value}catch{}const p=(S.owner!==S.actor?S.data.target?.permissions:S.data.access?.permissions)||{};return p.workspace_entry_mode240==='cashbook'?'single':'double';}
   function rules() {
     const p = (S.owner!==S.actor?S.data.target?.permissions:S.data.access?.permissions) || {};
-    return {entryMode:p.workspace_entry_mode240||'double_simple',directions:(p.allowed_directions?.length ? p.allowed_directions : ['out']).filter(x => ['in','out'].includes(x)), fundIds:(p.assigned_fund_account_ids || []).filter(Boolean), entryIds:(p.destination_account_ids?.length ? p.destination_account_ids : p.allowed_account_ids || []).filter(Boolean), counterpart:p.money_in_counterpart_account_id || '', multiple:!!p.allow_multiple_funds};
+    return {entryMode:preferredMode243()==='single'?'cashbook':'double_full',directions:(p.allowed_directions?.length ? p.allowed_directions : ['out']).filter(x => ['in','out'].includes(x)), fundIds:(p.assigned_fund_account_ids || []).filter(Boolean), entryIds:(p.destination_account_ids?.length ? p.destination_account_ids : p.allowed_account_ids || []).filter(Boolean), counterpart:p.money_in_counterpart_account_id || '', multiple:!!p.allow_multiple_funds};
   }
   const isAdmin=()=>S.data.access?.profile?.id===S.actor&&S.data.access.profile.status==='active'&&S.data.access.profile.role==='admin';
   const targetName=()=>S.owner===S.actor?S.data.access?.profile?.full_name:S.data.target?.profile?.full_name;
@@ -227,6 +229,32 @@ function appLocalDate(date=new Date()) {
   function saveMirror() { if (!S.owner || !S.draft) return; try { localStorage.setItem(mirrorKey(S.owner), JSON.stringify(S.draft)); } catch { notice('This browser could not keep the draft. Keep this page open until you can save it.', true); } }
   function rememberLocation(){if(!S.owner)return;try{localStorage.setItem(locationKey(S.owner),JSON.stringify({page:S.page,month:S.month}));}catch{}}
   function saveDraftLater() { saveMirror(); clearTimeout(draftTimer); const owner = S.owner, epoch=S.epoch,draft = structuredClone(S.draft); draftTimer = setTimeout(() => {if(current(owner,epoch))persist(owner,{draft}).catch(e => {if(current(owner,epoch))notice(e.message,true)})}, 150); }
+
+  function changeMode243(next){
+    const d=S.draft;if(!d||S.saving)return false;
+    if(next!==d.mode){
+      if(next==='double'){
+        d.lines=d.single.flatMap(l=>{const incoming=l.direction==='in';return [{account:incoming?l.source:l.affected,debit:l.amount,credit:'',memo:l.memo||''},{account:incoming?l.affected:l.source,debit:'',credit:l.amount,memo:l.memo||''}];});
+        if(!d.lines.length)d.lines=blankDraft().lines;
+      }else{
+        const rows=d.lines.filter(l=>l.account||l.debit||l.credit||l.memo),result=[],r=rules();
+        const amount=v=>Number(String(v||'').replaceAll(',',''));
+        for(let i=0;i<rows.length;i+=2){
+          const a=rows[i],b=rows[i+1];
+          const debit=a&&amount(a.debit)>0&&!amount(a.credit)?a:b&&amount(b.debit)>0&&!amount(b.credit)?b:null;
+          const credit=a&&amount(a.credit)>0&&!amount(a.debit)?a:b&&amount(b.credit)>0&&!amount(b.debit)?b:null;
+          const outgoing=debit&&credit&&r.directions.includes('out')&&r.fundIds.includes(credit.account)&&r.entryIds.includes(debit.account);
+          const incoming=debit&&credit&&r.directions.includes('in')&&r.fundIds.includes(debit.account)&&r.entryIds.includes(credit.account);
+          if(!a||!b||!debit||!credit||debit===credit||amount(debit.debit)!==amount(credit.credit)||!Number.isFinite(amount(debit.debit))||currency(debit.account)!==currency(credit.account)||debit.memo&&credit.memo&&debit.memo!==credit.memo||!outgoing&&!incoming){notice('These lines need Double Entry. Your draft is unchanged; finish it before starting a cashbook entry.',true);return false;}
+          result.push({direction:outgoing?'out':'in',source:outgoing?credit.account:debit.account,affected:outgoing?debit.account:credit.account,amount:debit.debit,memo:debit.memo||credit.memo||''});
+        }
+        d.single=result.length?result:blankDraft().single;
+      }
+      d.mode=next;
+    }
+    try{localStorage.setItem(modeKey243(),next)}catch{}
+    return true;
+  }
   // Reuse the approved login gate and shared six-marble animation on phones.
   function releasePhoneLogin210() {
     document.documentElement.classList.remove('session-checking1444');
@@ -445,7 +473,7 @@ function appLocalDate(date=new Date()) {
     if(!permission('sub-users-workspace','edit'))return '<h1>Post entry</h1>'+empty('Posting is not enabled for this account.');
     if(!S.data.savedAt)return '<h1>Post entry</h1>'+empty('Download your assigned accounts once before gathering entries offline.')+action('refresh','Try loading accounts','',true);
     S.draft ||= blankDraft();const d=S.draft,r=rules(),disabled=S.saving?'disabled':'';
-    const controls=`<div class="switches"><button type="button" data-action="mode" ${r.entryMode==='cashbook'&&d.mode==='single'?'hidden':''} ${disabled}>${d.mode==='double'?'Simplified double entry':'Full double entry'} ⇄</button>${d.mode==='single'?`<button type="button" data-action="direction" class="direction-${d.single[0]?.direction==='in'?'in':'out'}" ${disabled||r.directions.length<2?'disabled':''}>${d.single[0]?.direction==='in'?'Money In':'Money Out'} ⇄</button>`:''}</div>`;
+    const controls=`<div class="switches"><details><summary>Entry options</summary><button type="button" data-action="mode-single" aria-pressed="${d.mode==='single'}" ${disabled}>Single Entry (Cashbook)</button><button type="button" data-action="mode-double" aria-pressed="${d.mode==='double'}" ${disabled}>Double Entry</button></details>${d.mode==='single'?`<button type="button" data-action="direction" class="direction-${d.single[0]?.direction==='in'?'in':'out'}" ${disabled||r.directions.length<2?'disabled':''}>${d.single[0]?.direction==='in'?'Money In':'Money Out'} ⇄</button>`:''}</div>`;
     const single=d.single.map((l,i)=>`<section class="line staff-single-line14225" data-line="${i}">${i?`<div class="row"><strong>Entry ${i+1} · ${l.direction==='in'?'Money In':'Money Out'}</strong><button type="button" class="remove" data-action="remove-line" data-index="${i}" ${disabled}>Remove</button></div>`:''}${field('Account / fund',`<select data-field="source" data-index="${i}" ${disabled}>${options(r.fundIds,l.source)}</select>`)}<div class="grid">${field('Category',`<select data-field="affected" data-index="${i}" ${disabled}>${options(r.entryIds.filter(id=>!l.source||currency(id)===currency(l.source)),l.affected)}</select>`)}${field('Amount',`<input data-field="amount" data-index="${i}" inputmode="decimal" value="${esc(l.amount)}" ${disabled}>`)}</div>${field('Line memo (optional)',`<input data-field="memo" data-index="${i}" value="${esc(l.memo)}" ${disabled}>`)}</section>`).join('');
     const double=d.lines.map((l,i)=>`<section class="line staff-double-line14225"><div class="staff-account-row14225"><span class="staff-line-number14225">${i+1}</span>${field('Account',`<select data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),l.account)}</select>`)}<button type="button" class="remove" data-action="remove-line" data-index="${i}" aria-label="Remove line ${i+1}" ${disabled}>×</button></div><div class="grid">${field('Debit',`<input data-field="debit" data-index="${i}" inputmode="decimal" value="${esc(l.debit)}" ${disabled}>`)}${field('Credit',`<input data-field="credit" data-index="${i}" inputmode="decimal" value="${esc(l.credit)}" ${disabled}>`)}</div>${field('Line memo (optional)',`<input data-field="memo" data-index="${i}" value="${esc(l.memo)}" ${disabled}>`)}</section>`).join('');
     const description=field('Description',`<input data-field="memo" value="${esc(d.memo)}" ${disabled}>`);
@@ -579,7 +607,7 @@ function appLocalDate(date=new Date()) {
     if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
     if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh')return await refresh();if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
-    if(name==='mode')S.draft.mode=S.draft.mode==='single'?'double':'single';
+    if(name==='mode-single'||name==='mode-double'){if(!changeMode243(name==='mode-single'?'single':'double'))return;}
     if(name==='direction'){const direction=S.draft.single[0]?.direction==='in'?'out':'in';if(!rules().directions.includes(direction))return;for(const l of S.draft.single){l.direction=direction;if(!rules().entryIds.includes(l.affected))l.affected='';}}
     if(name==='add-line')S.draft[S.draft.mode==='double'?'lines':'single'].push(S.draft.mode==='double'?{account:'',debit:'',credit:'',memo:''}:{direction:S.draft.single[0]?.direction||rules().directions[0],source:rules().fundIds.length===1?rules().fundIds[0]:'',affected:'',amount:'',memo:''});
     if(name==='remove-line'){const rows=S.draft[S.draft.mode==='double'?'lines':'single'];if(rows.length<=(S.draft.mode==='double'?2:1)){notice('Keep at least '+(S.draft.mode==='double'?'two journal lines.':'one entry line.'),true);return;}rows.splice(index,1);}
