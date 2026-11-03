@@ -273,3 +273,6 @@ reprints, and remove the separate handwritten/blank launchers. Salary voucher
 reference is PAY-YYMM-CODE (e.g. PAY-2610-R04); employee codes and posted journal
 IDs stay unchanged. Omit internal attendance calculation commentary and label
 value/deduction currency in the headings.
+
+Verification follow-up 2026-11-03 v143.251: phone receipt entry shows the provisional available ID before Preview, refreshes it when the date changes, and never allocates on preview. Download and Share perform their named actions after company PDF retention. Use native/browser sharing when available; preserve the browser-required second-tap and unsupported-browser download fallback. Keep blank defaults, all v143.250 requirements, shared numbering, account guards and existing saved PDFs.
+After confirmed phone issuance, clear only the matching completed draft; preserve newer unfinished details during interrupted-save recovery. Keep the retained record accessible for PDF recovery.

@@ -45,12 +45,23 @@ async function frameHTML(host,contents,settings={}){
 const base64=blob=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(r.error);r.readAsDataURL(blob)});
 function pdfBlob(b64){const b=atob(b64),bytes=Uint8Array.from(b,c=>c.charCodeAt(0));return new Blob([bytes],{type:'application/pdf'});}
 async function retained(rpc,row,makePDF,check=()=>{}){check();let saved=await rpc('receipt_pdf245',{p_id:row.id,p_version:row.version});check();if(!saved){const blob=await makePDF();check();saved=await rpc('receipt_pdf245',{p_id:row.id,p_version:row.version,p_pdf:await base64(blob)});check();}if(!saved?.base64)throw Error('The company PDF copy was not confirmed. Retry before sharing.');return new File([pdfBlob(saved.base64)],saved.filename,{type:'application/pdf'});}
-function delivery(file,check=()=>{}){
+function download(file,check=()=>{}){check();const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000);}
+function canShare(file){try{return !!window.ReceiptNative214?.sharePDF||!!navigator.canShare?.({files:[file]});}catch{return false;}}
+function share(file,check){check();return window.ReceiptNative214?.sharePDF?ReceiptNative214.sharePDF(file):navigator.share({files:[file],title:file.name});}
+function delivery(file,check=()=>{},notice=''){
  check();const d=document.createElement('dialog');d.className='receipt-delivery245';d.innerHTML='<h3>PDF saved</h3><p>Your company copy is retained. Choose how to release it.</p><p role="status"></p><div><button type="button" data-share>Share</button> <button type="button" data-download>Download</button> <button type="button" data-close>Close</button></div>';
- document.body.append(d);const message=d.querySelector('[role=status]');d.querySelector('[data-close]').onclick=()=>d.close();d.onclose=()=>d.remove();d.querySelector('[data-download]').onclick=()=>{try{check();const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),30000);}catch(e){message.textContent=e.message}};
- const share=d.querySelector('[data-share]');if(!window.ReceiptNative214?.sharePDF&&(!navigator.canShare||!navigator.canShare({files:[file]}))){share.disabled=true;message.textContent='This browser does not support sharing PDF files. Download the PDF and attach it in your chosen app.';}
- share.onclick=async()=>{try{check();if(window.ReceiptNative214?.sharePDF)await ReceiptNative214.sharePDF(file);else await navigator.share({files:[file],title:file.name});check();message.textContent='Share menu closed. The company copy remains saved.';}catch(e){message.textContent=e.name==='AbortError'?'Sharing cancelled. The saved receipt is unchanged.':e.message}};d.showModal();return d;
+ document.body.append(d);const message=d.querySelector('[role=status]');message.textContent=notice;d.querySelector('[data-close]').onclick=()=>d.close();d.onclose=()=>d.remove();d.querySelector('[data-download]').onclick=()=>{try{download(file,check);}catch(e){message.textContent=e.message}};
+ const shareButton=d.querySelector('[data-share]');if(!canShare(file)){shareButton.disabled=true;message.textContent='This browser does not support sharing PDF files. Download the PDF and attach it in your chosen app.';}
+ shareButton.onclick=async()=>{try{await share(file,check);check();message.textContent='Share menu closed. The company copy remains saved.';}catch(e){message.textContent=e.name==='AbortError'?'Sharing cancelled. The saved receipt is unchanged.':e.message}};d.showModal();return d;
+}
+function release(file,check,action){
+ check();if(action==='download'){download(file,check);return;}
+ if(action!=='share')return delivery(file,check);
+ // Browsers require a recent tap; lengthy PDF preparation may consume it.
+ if(!canShare(file)||(!window.ReceiptNative214?.sharePDF&&navigator.userActivation?.isActive===false))return delivery(file,check,'Your PDF is ready. Tap Share to choose an app.');
+ const failed=e=>{if(e.name==='AbortError')return;try{check();delivery(file,check,e.name==='NotAllowedError'?'Your PDF is ready. Tap Share to choose an app.':e.message);}catch{}};
+ try{Promise.resolve(share(file,check)).catch(failed);}catch(e){failed(e);}
 }
 async function pdf(dom){await script('scripts/document-downloads14311.js?v=143.75',()=>window.documentDownloads14311);return documentDownloads14311.pdf(dom);}
-window.Receipt245={amountWords,groupAmount,formatAmount,choices,syncFields,html,total,fmt,esc,frameHTML,retained,delivery,pdf,base64,pdfBlob,script};
+window.Receipt245={amountWords,groupAmount,formatAmount,choices,syncFields,html,total,fmt,esc,frameHTML,retained,delivery,release,pdf,base64,pdfBlob,script};
 })();

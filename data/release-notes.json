@@ -1,9 +1,9 @@
 {
-  "version": "143.250",
+  "version": "143.251",
   "changes": [
-    "AI Journal follows source entry order, shows available journal IDs, keeps Edit stable and separates descriptions from debit, credit and actions.",
-    "Payment vouchers and receipts have blank date/currency/payment defaults, automatic words and commas, and Details/Download/Share beside Save Voucher. Blank forms are created inside Details with a saved ID per page.",
-    "Processing notices stay at the top right above dialogs; button labels and widths stay stable.",
-    "Salary vouchers use PAY-2610-R04 style references and omit internal calculation notes."
+    "Verified the complete payroll, voucher/receipt, AI Journal and processing-feedback checklist. Salary references retain PAY-2610-R04 formatting.",
+    "Phone administrators now see the available receipt ID before Preview, with blank date/currency/payment fields. Preview does not use an ID. Completed receipt details are cleared before starting a new phone receipt; newer unfinished edits remain protected.",
+    "Download releases the retained PDF directly. Share opens the native or browser share menu when supported, with a second-tap fallback when the browser requires it.",
+    "Five-form blank batches retain five distinct IDs and PDFs; reprints reuse them. Existing AI Journal order, descriptions, available IDs, stable Edit buttons and silent receipt-link checks are preserved."
   ]
 }
