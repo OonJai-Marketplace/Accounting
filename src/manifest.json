@@ -4363,11 +4363,11 @@
     ],
     "scripts/journal-generator257.js": [
       {
-        "source": "src/bookkeeping/journal/generator-core257.js",
+        "source": "src/bookkeeping/journal/completion-core258.js",
         "suffix": "\n;\n"
       },
       {
-        "source": "src/bookkeeping/journal/generator-ui257.js",
+        "source": "src/bookkeeping/journal/completion-ui258.js",
         "suffix": "\n"
       }
     ]

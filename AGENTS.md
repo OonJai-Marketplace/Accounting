@@ -281,13 +281,15 @@ Workspace consistency 2026-11-03 v143.252: use one delayed foreground Processing
 
 Salary advance correction 2026-11-03 v143.253: an administrator may increase an employee advance after additional money is released. Current payroll input/results determine the deduction and final payment; a historical free-text note must never cap, reset or block that amount. Keep run/employee ownership and calculated-result consistency checks. For new draft vouchers, refresh only the generated recovery sentence using the current calculated advance; preserve stored notes, finalized snapshots and unrelated prose. Never reload old database payroll over the administrator's newer device draft to solve a note mismatch.
 
-Guided journals 2026-11-03 v143.257: the main company Post Entry generator prepares
-editable lines, descriptions and memos from transaction details using approved
-mapping accounts. Preserve transaction rates separately from source carrying
-rates. Immediate expenses, income, existing-balance settlement and transfers have
-distinct rules; never duplicate previously recognized expense or use unexplained
-differences as FX. Generation/preview must never post, allocate journal IDs,
-overwrite unfinished rows or bypass permissions/period locks. Recheck source
-book values before adding; label complete offline estimates and retain the online
-pre-post check. Missing mappings or valuation block generation. See
-docs/GUIDED-JOURNAL-v143.257.md for supported cases and verification limits.
+Template journal generation 2026-11-03 v143.258: this supersedes the first
+transaction-questionnaire implementation. Generate beside Add opens a separate
+editable journal window. Reuse saved template structures; the user enters the
+business rows, description and header exchange rates. Generate writes actual
+missing debit/credit amounts and mapping/valuation/FX rows in that window, not
+only a calculation summary. Recalculate without duplicate rows, preserve manual
+business amounts and descriptions, and identify inconsistencies. Support each
+configured foreign currency with valid chart counterparts. Missing accounts,
+ambiguous tax allocation and unsupported historical rates must not become FX
+plugs. Keep a separate recoverable draft per owner/template. Use in Post Entry
+copies the completed draft, with normal review and explicit posting. Never
+allocate journal IDs or write financial records while generating.

@@ -1,8 +1,8 @@
 {
-  "version": "143.257",
+  "version": "143.258",
   "changes": [
-    "Post Entry has Generate lines for immediate expenses, income, existing-balance payments and cash transfers or currency exchanges. Enter the main details and review the calculated journal before adding it.",
-    "Generated drafts use the approved currency mappings and separate transaction and book rates. Cash FX, payable FX and separate bank fees are calculated without posting automatically.",
-    "Fresh account checks, missing-account validation and editable previews preserve existing journal rows. Online errors keep the inputs; complete offline balances are labelled as estimates."
+    "Generate beside Add opens a separate editable journal window using saved templates. Enter the business lines, description and rates, then Generate fills the actual debit and credit cells.",
+    "The generator completes missing mapping, payroll, withholding and FX lines, reuses existing lines and recalculates generated amounts without duplicates. It supports configured foreign currencies and flags missing accounts, rates or inconsistent business amounts.",
+    "Generator drafts are retained separately by account and template. Use in Post Entry copies the completed journal for normal explicit posting."
   ]
 }

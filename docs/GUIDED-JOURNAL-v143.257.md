@@ -1,5 +1,8 @@
 # Generate journal lines
 
+Superseded by [editable template journal generation v143.258](JOURNAL-COMPLETION-v143.258.md).
+The description below records the previous release and is not the current UI.
+
 The main desktop/tablet Post Entry header now has **Generate lines**. It prepares
 editable journal rows from main transaction details using the existing chart and
 the Complex Journal Protocol v3 (29 October 2026). It never allocates an ID or
