@@ -1,7 +1,8 @@
 {
-  "version": "143.248",
+  "version": "143.249",
   "changes": [
-    "Salary vouchers have taller table rows and clearer spacing between headings, tables, paragraphs, notes and signatures.",
-    "Keeps the employee-first layout, compact metadata, hidden zero-value optional rows and existing payroll figures."
+    "Salary vouchers use a three-row employee/payment header, wider centered attendance dates under Code, and additional signing space.",
+    "Payment vouchers and receipts use a wider payer/payee header, automatic currency-aware amount in words, Cash/Bank choices and a larger signature area.",
+    "Payroll Vouchers & Receipts opens the correct register. Saved PDFs, blank batches, shared IDs and silent journal receipt-link checks remain available."
   ]
 }
