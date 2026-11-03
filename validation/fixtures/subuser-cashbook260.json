@@ -1,0 +1,230 @@
+{
+  "journal": {
+    "id": "report-fixture260",
+    "owner_id": "00000000-0000-4000-8000-000000000002",
+    "period_start": "2026-10-01",
+    "status": "submitted",
+    "seed_key": "PETTY-2026-10",
+    "report_types14253": [
+      {
+        "name": "Petty Cash Liquidation"
+      }
+    ],
+    "lines": [
+      {
+        "id": "line-3",
+        "line_no": 3,
+        "workspace_entry_no": "PC26-0003",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-a",
+        "account_id": "kitchen",
+        "direction": "out",
+        "amount": 125000,
+        "memo": "Kitchen cleaning products",
+        "reference": "Receipt 3",
+        "currency_code": "LAK",
+        "fx_rate_lak": 1
+      },
+      {
+        "id": "line-1",
+        "line_no": 1,
+        "workspace_entry_no": "PC26-0001",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-a",
+        "account_id": "support",
+        "direction": "in",
+        "amount": 1000000,
+        "memo": "Petty cash replenishment",
+        "reference": "Receipt 1",
+        "currency_code": "LAK",
+        "fx_rate_lak": 1
+      },
+      {
+        "id": "line-2",
+        "line_no": 2,
+        "workspace_entry_no": "PC26-0002",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-a",
+        "account_id": "food",
+        "direction": "out",
+        "amount": 275000,
+        "memo": "Vegetables & ingredients",
+        "reference": "Receipt 2",
+        "currency_code": "LAK",
+        "fx_rate_lak": 1
+      },
+      {
+        "id": "line-4",
+        "line_no": 4,
+        "workspace_entry_no": "PC26-0004",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-a",
+        "account_id": "fund-b",
+        "direction": "out",
+        "amount": 200000,
+        "memo": "Transfer to bank",
+        "reference": "Receipt 4",
+        "currency_code": "LAK",
+        "fx_rate_lak": 1
+      },
+      {
+        "id": "line-5",
+        "line_no": 5,
+        "workspace_entry_no": "PC26-0005",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-b",
+        "account_id": "kitchen",
+        "direction": "out",
+        "amount": 50000,
+        "memo": "Kitchen supplies paid by bank",
+        "reference": "Receipt 5",
+        "currency_code": "LAK",
+        "fx_rate_lak": 1
+      },
+      {
+        "id": "line-6",
+        "line_no": 6,
+        "workspace_entry_no": "PC26-0006",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-usd",
+        "account_id": "food",
+        "direction": "out",
+        "amount": 12.5,
+        "memo": "Imported food supplies",
+        "reference": "Receipt 6",
+        "currency_code": "USD",
+        "fx_rate_lak": 22000
+      },
+      {
+        "id": "line-7",
+        "line_no": 7,
+        "workspace_entry_no": "PC26-0007",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-usd",
+        "account_id": "support",
+        "direction": "in",
+        "amount": 50,
+        "memo": "Foreign support received",
+        "reference": "Receipt 7",
+        "currency_code": "USD",
+        "fx_rate_lak": 22000
+      },
+      {
+        "id": "line-8",
+        "line_no": 8,
+        "workspace_entry_no": "PC26-0008",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-a",
+        "account_id": "food",
+        "direction": "out",
+        "amount": 999999,
+        "memo": "Voided test",
+        "reference": "Receipt 8",
+        "currency_code": "LAK",
+        "fx_rate_lak": 1,
+        "status": "voided"
+      },
+      {
+        "id": "line-9",
+        "line_no": 9,
+        "workspace_entry_no": "PC26-0009",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-a",
+        "account_id": "kitchen",
+        "direction": "out",
+        "amount": 999999,
+        "memo": "Removed test",
+        "reference": "Receipt 9",
+        "currency_code": "LAK",
+        "fx_rate_lak": 1,
+        "voided_at": "2026-10-06"
+      },
+      {
+        "id": "line-10",
+        "line_no": 10,
+        "workspace_entry_no": "PC26-0010",
+        "transaction_date": "2026-10-05",
+        "fund_account_id": "fund-a",
+        "account_id": "fund-a",
+        "direction": "in",
+        "amount": 60000,
+        "memo": "Reported cash collection",
+        "reference": "Receipt 10",
+        "currency_code": "LAK",
+        "fx_rate_lak": 1,
+        "entry_kind": "collection"
+      }
+    ],
+    "reconciliation14345": {
+      "responsible": "Sample sub-user",
+      "asOf": "2026-10-31",
+      "funds": [
+        {
+          "account_id": "fund-a",
+          "name": "Petty Cash",
+          "currency": "LAK",
+          "recorded": 460000,
+          "actual": 460000,
+          "difference": 0
+        },
+        {
+          "account_id": "fund-b",
+          "name": "Bank",
+          "currency": "LAK",
+          "recorded": 150000,
+          "actual": 150000,
+          "difference": 0
+        }
+      ]
+    }
+  },
+  "user": {
+    "id": "00000000-0000-4000-8000-000000000002",
+    "full_name": "Sample sub-user"
+  },
+  "accounts": [
+    {
+      "id": "fund-a",
+      "code": "101",
+      "name": "Petty Cash",
+      "currency_code": "LAK",
+      "account_type": "ASSET"
+    },
+    {
+      "id": "fund-b",
+      "code": "102",
+      "name": "Bank",
+      "currency_code": "LAK",
+      "account_type": "ASSET"
+    },
+    {
+      "id": "fund-usd",
+      "code": "103",
+      "name": "Cash USD",
+      "currency_code": "USD",
+      "account_type": "ASSET"
+    },
+    {
+      "id": "food",
+      "code": "501",
+      "name": "Food ingredients",
+      "currency_code": "LAK",
+      "account_type": "EXPENSE"
+    },
+    {
+      "id": "kitchen",
+      "code": "502",
+      "name": "Kitchen supplies",
+      "currency_code": "LAK",
+      "account_type": "EXPENSE"
+    },
+    {
+      "id": "support",
+      "code": "301",
+      "name": "Financial support",
+      "currency_code": "LAK",
+      "account_type": "EQUITY"
+    }
+  ],
+  "posted": []
+}

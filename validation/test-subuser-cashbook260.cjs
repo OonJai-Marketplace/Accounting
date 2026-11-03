@@ -1,0 +1,35 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{JSDOM}=require('jsdom');
+const pack=JSON.parse(fs.readFileSync('validation/fixtures/subuser-cashbook260.json','utf8'));
+const esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+let ready,opened;
+const c={escapeHtml:esc,formatAppNumber:n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),appNumberLocale:()=> 'en-US',formatAppDate:s=>String(s).slice(0,10).split('-').reverse().join('/'),journalMemoHtml143187:esc,journalDateSpans143120:rows=>rows.map(()=>1),ApplicationSettings:{printing:{}},PrintSettings:{},printSignatures1424:()=>'<p data-print-signatures>Prepared / Approved</p>',savedReports1434:{},reportHistory1443:{render(){}},choosePrintSignatories1424:async()=>({}),openDocumentEditor105:async model=>(opened=model),employeeForm82:()=>'',renderWork82(){},print(){},copyReportToEditor105(){},document:{readyState:'loading',addEventListener(_,fn){ready=fn},body:{},querySelector(){return null}},MutationObserver:class{observe(){}},liveProfile:{id:'admin'},ojmDb:{rpc:async()=>({data:pack})}};c.window=c;vm.createContext(c);vm.runInContext(fs.readFileSync('src/reports/financial/reports14254.js','utf8'),c);ready();
+const read=model=>new JSDOM(model.html).window.document;
+const books=d=>[...d.querySelectorAll('h3')].filter(h=>h.textContent.startsWith('Cashbook · ')).map(h=>({title:h.textContent,table:h.nextElementSibling}));
+const contents=table=>[...table.querySelectorAll('tbody tr')].map(r=>[...r.cells].map(c=>c.textContent));
+const before=JSON.stringify(pack),model=c.savedReports1434.model(pack),doc=read(model),views=books(doc);
+assert.equal(views.length,3);assert.equal(JSON.stringify(pack),before,'rendering must not change the saved report');
+for(const view of views)assert.deepEqual([...view.table.querySelectorAll('thead th')].map(n=>n.textContent),['Date','Entry ID','Account / category','Description / reference','Money In','Money Out']);
+assert(![...doc.querySelectorAll('th')].some(n=>/^(Debit|Credit)$/.test(n.textContent)));
+const cash=contents(views[0].table),bank=contents(views[1].table),usd=contents(views[2].table);
+assert.deepEqual(cash.map(r=>r[1]),['PC26-0001','PC26-0002','PC26-0003','PC26-0004','PC26-0010'],'source line order and distinct same-day IDs');
+assert.deepEqual(cash[0].slice(4),['1,000,000.00','—']);assert.deepEqual(cash[1].slice(4),['—','275,000.00']);
+assert.equal(cash[1][3],'Vegetables & ingredients · Receipt 2');assert.equal(cash[1][0],'05/10/2026');
+assert.deepEqual(bank.map(r=>r[1]),['PC26-0004','PC26-0005']);assert.deepEqual(bank[0].slice(4),['200,000.00','—']);assert.equal(bank[0][2],'101 — Petty Cash');
+assert.deepEqual(usd.map(r=>r.slice(4)),[['—','12.50'],['50.00','—']]);
+assert.deepEqual([...views[0].table.querySelectorAll('tfoot td')].map(n=>n.textContent),['1,060,000.00','600,000.00']);
+assert.deepEqual([...views[1].table.querySelectorAll('tfoot td')].map(n=>n.textContent),['200,000.00','50,000.00']);
+assert(!doc.body.textContent.includes('Voided test'));assert(!doc.body.textContent.includes('Removed test'));
+for(const title of ['Main account summary','Remaining funds reconciliation','Liquidation by account','Liquidation in LAK'])assert([...doc.querySelectorAll('h3')].some(h=>h.textContent===title));
+const summary=[...doc.querySelectorAll('h3')].find(h=>h.textContent==='Liquidation by account').nextElementSibling;
+assert(contents(summary).some(r=>r[1]==='501 — Food ingredients'&&r[4]==='275,000.00'));
+assert(doc.querySelector('[data-print-signatures]'));assert.equal(model.sourceJournal1434,pack.journal.id);assert.equal(model.settings.orientation,'portrait');
+for(const status of ['draft','submitted','approved','posted'])for(const mode of ['cashbook','double_simple','double_full']){
+ const copy=structuredClone(pack);copy.journal.status=status;copy.user.full_name='Another sub-user';copy.user.user_permissions={workspace_entry_mode240:mode};copy.posted=[{lines:[{debit:999999,credit:999999}]}];
+ const d=read(c.savedReports1434.model(copy));assert.equal(books(d).length,3);assert.equal(books(d)[0].table.outerHTML,views[0].table.outerHTML,'entry mode/status cannot change report layout');
+}
+const snapshot=structuredClone(pack);snapshot.fund_snapshot14254=[{account_id:'fund-a',currency:'LAK',opening:10,received:20,used:5,handover:0,closing:25}];const snapDoc=read(c.savedReports1434.model(snapshot));const main=[...snapDoc.querySelectorAll('h3')].find(h=>h.textContent==='Main account summary').nextElementSibling;assert.deepEqual(contents(main)[0].slice(2),['10.00','20.00','5.00','0.00','25.00'],'saved posted snapshot remains authoritative');
+const missing=structuredClone(pack);delete missing.journal.lines.find(l=>l.id==='line-6').fx_rate_lak;assert(read(c.savedReports1434.model(missing)).body.textContent.includes('Rate missing'));
+const legacy=structuredClone(pack);legacy.journal.lines=[{...pack.journal.lines[0],direction:undefined,entry_kind:'collection',account_id:'fund-a',fund_account_id:'fund-a'}];const legacyDoc=read(c.savedReports1434.model(legacy));assert.equal(contents(books(legacyDoc)[0].table).length,1);assert.equal(contents(books(legacyDoc)[0].table)[0][4],'125,000.00');
+const transfer=structuredClone(pack);transfer.journal.lines=pack.journal.lines.filter(l=>l.id==='line-4');assert.equal(books(read(c.savedReports1434.model(transfer))).length,2,'submitted reconciliation identifies destination fund even without its own payment');
+const journal=c.reports14254.journalTable([{date:'2026-10-05',id:'MAIN1',group:'g',account:'Main account',currency:'LAK',debit:10,credit:0},{date:'2026-10-05',id:'MAIN1',group:'g',account:'Expense',currency:'LAK',debit:0,credit:10}]);assert(journal.includes('Debit'));assert(journal.includes('Credit'));
+(async()=>{await c.openDocumentEditor105({savedReport1434:true,sourceJournal1434:pack.journal.id,html:'legacy debit/credit layout'});assert(opened.approvedLayout14254);assert(opened.html.includes('Cashbook · '));assert(!opened.html.includes('legacy debit/credit layout'));assert.equal(JSON.stringify(pack),before);console.log('PASS sub-user cashbook report: all modes/statuses, receipt order, separate currencies/funds, transfer direction, void filtering, category summaries, saved balances, signatures, legacy print routing and unchanged main journal layout.');})().catch(e=>{console.error(e);process.exitCode=1});

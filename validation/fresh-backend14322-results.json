@@ -1,7 +1,7 @@
 {
   "engine": "PGlite PostgreSQL with pgcrypto",
   "productionWrites": false,
-  "checks": 35,
+  "checks": 36,
   "passed": [
     "Standalone mutation fixtures refuse a database outside the isolated harness",
     "Complete installer restores empty database in one transaction",
@@ -32,6 +32,7 @@
     "Anonymous and staff cannot execute owner maintenance tools or read backups",
     "Real staff permission save and assigned transaction creation work",
     "Current report posting preserves dates, amounts and idempotency in both modes",
+    "Preview formats post exact approved totals with original sources, FX rates and guarded retries",
     "Returned reports remain isolated from regular drafts",
     "Auth submission identity is generated automatically",
     "Archive/export and scoped reset preview include actual temporary rows",

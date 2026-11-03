@@ -270,7 +270,7 @@
       "sha256": "40178a23b927ef36d55be6a6440be405a6073fc780d999d51c9db700c7b87f81"
     }
   ],
-  "currentUpdateRelease": "143.106",
+  "currentUpdateRelease": "143.260",
   "currentUpdates": [
     {
       "name": "INSTALL-MAINTENANCE-v143.24.sql",
@@ -351,6 +351,10 @@
     {
       "name": "supabase/migrations/20261017145427_report_archive_integrity143106.sql",
       "sha256": "0a9ec10a9f0901257605d8c7284f73b0f387ca337e0e0e938d71001b276a9b58"
+    },
+    {
+      "name": "supabase/migrations/20261103121009_report_journal_formats260.sql",
+      "sha256": "58663e37cc55d8dd14e367771f740db5a8170181543b6bcb79ba83fc183872fb"
     }
   ],
   "restaurantSeparation": {

@@ -1,8 +1,8 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.259',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.260',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
- "scripts/journal-generator257.js?v=143.259",
+ "scripts/journal-generator257.js?v=143.260",
  "scripts/receipt-workflow245.js?v=143.253",
  "scripts/receipt-phone245.js?v=143.253",
  "scripts/journal-receipts224.js?v=143.247",
@@ -58,9 +58,9 @@ const FILES=[
  "scripts/desktop14245-3.js?v=143.253",
  "scripts/desktop14245-4.js?v=143.256",
  "scripts/desktop14245-5.js?v=143.253",
- "scripts/desktop14245-6.js?v=143.259",
+ "scripts/desktop14245-6.js?v=143.260",
  "scripts/local-events14310.js?v=143.189",
- "scripts/offline14239.js?v=143.259",
+ "scripts/offline14239.js?v=143.260",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -120,7 +120,7 @@ const FILES=[
  "scripts/entry-number14257.js?v=143.175",
  "styles/layout14256.css?v=142.76",
  "scripts/auto-sync14256.js?v=143.51-sync1",
- "scripts/workflow14253.js?v=143.128",
+ "scripts/workflow14253.js?v=143.260",
  "scripts/account-groups14253.js?v=142.53",
  "scripts/field-focus14253.js?v=143.41",
  "styles/workflow14253.css?v=142.53",
@@ -151,7 +151,7 @@ const FILES=[
  "styles/tablet-journal14266.css?v=142.75",
  "styles/workspace-header14266.css?v=143.48",
  "styles/phone-design14248.css?v=142.50",
- "scripts/reports14254.js?v=143.256",
+ "scripts/reports14254.js?v=143.260",
  "styles/account-parent14287.css?v=142.96",
  "desktop.html",
  "scripts/report-templates14262.js?v=143.109",
@@ -195,7 +195,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.231",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.259",
+ "scripts/phone-runtime14242.js?v=143.260",
  "scripts/local-first14333.js?v=143.208",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -234,7 +234,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.253",
  "styles/workspace-consistency14343.css?v=143.243",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.259",
+ "phone-sw.js?v=143.260",
  "scripts/personal-journal1437.js?v=143.253",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",

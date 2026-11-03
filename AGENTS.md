@@ -293,3 +293,21 @@ ambiguous tax allocation and unsupported historical rates must not become FX
 plugs. Keep a separate recoverable draft per owner/template. Use in Post Entry
 copies the completed draft, with normal review and explicit posting. Never
 allocate journal IDs or write financial records while generating.
+
+Sub-user reporting correction 2026-11-03 v143.260: liquidation/account reports
+print as cashbooks for every sub-user, regardless of Cashbook or Double Entry
+input preference. Use one saved transaction row per fund view with Money In and
+Money Out; preserve source receipt IDs, line order, descriptions and references.
+Separate fund accounts/currencies, reflect internal transfers in both known fund
+views, and keep account/category summaries, reconciliation and signatures below.
+Apply the same format in Submitted review, user workspaces and report history.
+Do not change entry modes, saved financial records or company journal/ledger prints.
+
+Report journaling 2026-11-03 v143.260: after final approval, preview three choices:
+Consolidated category totals; Detailed with each main fund totaled once; As entered
+individual source transactions. Only Use in Journal transfers the previewed rows,
+explicitly selecting the main Journal even after AI Journal. Post Entry remains
+separate. Cancel preserves drafts. The first two formats share an editable date
+within the report month; retain original receipt dates/references in source links.
+Keep funds, currencies, FX rates and debit/credit sides separate. Preserve exact
+approved sources, permissions, immutable retries and period locks on the server.
