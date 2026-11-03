@@ -20,3 +20,9 @@ html[data-device132=tablet] #sub-users-workspace :is(input,textarea,select,butto
 html[data-device132=tablet] body.shell113 .workspace-scroll,
 html[data-device132=tablet] body.workspace-full1439 .workspace-scroll{padding-right:12px!important;scrollbar-gutter:auto!important;box-sizing:border-box!important}
 html[data-device132=tablet] body.shell113 .tab-content{padding-left:12px!important;padding-right:12px!important}
+
+/* Native button inputs retain the existing cell and value, without text editing. */
+html[data-device132=tablet] input[data-tablet-choice143264]{-webkit-appearance:none;appearance:none;text-align:left;cursor:pointer;caret-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+html[data-device132=tablet] :is(#sub-users-workspace,#transactions-module) input[data-tablet-choice143264]{font-size:16px!important}
+html[data-device132=tablet] .account-input-wrap:has(>.je-line-acc[data-tablet-choice143264]){position:relative}
+html[data-device132=tablet] .account-input-wrap:has(>.je-line-acc[data-tablet-choice143264][value=""])::after{content:'Choose account…';position:absolute;left:36px;right:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;font-size:16px;color:#60756a}

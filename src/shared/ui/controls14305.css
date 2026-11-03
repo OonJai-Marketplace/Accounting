@@ -4,7 +4,7 @@
 :root{--app-control-height:32px;--app-control-gap:8px}
 @layer app-controls14305{
  :where(
-  input[type=button],input[type=submit],input[type=reset],button[type=submit],a.je-btn,
+  input[type=button]:not([data-tablet-choice143264]),input[type=submit],input[type=reset],button[type=submit],a.je-btn,
   button.je-btn,button.btn,button.primary82,button.primary113,button.doc-primary105,
   button.btn-action-edit,button.btn-action-delete,button.btn-icon-edit,button.custom-alert-btn,
   button.modal-close-x,button.oj-date-button104,button.tx-primary,button.tx-outline,

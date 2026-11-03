@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.263', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.264', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "scripts/receipt-workflow245.js?v=143.253",
  "scripts/receipt-phone245.js?v=143.253",
@@ -26,7 +26,7 @@ const FILES=[
  "scripts/operational-reset143108.js?v=143.184",
  "assets/vendor/noble-gcm14334.js?v=143.34",
  "scripts/device-vault14334.js?v=143.212",
- "styles/controls14305.css?v=143.08",
+ "styles/controls14305.css?v=143.264",
  "scripts/action-feedback14296.js?v=143.253",
  "scripts/feedback-viewport14295.js?v=143.20",
  "styles/feedback-viewport14295.css?v=143.253",
@@ -47,7 +47,7 @@ const FILES=[
  "styles/phone14242.css?v=143.212",
  "scripts/reconciliation14345.js?v=143.240",
  "styles/final-review14345.css?v=143.250",
- "scripts/phone-runtime14242.js?v=143.263",
+ "scripts/phone-runtime14242.js?v=143.264",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",

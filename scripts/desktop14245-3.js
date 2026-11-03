@@ -7452,7 +7452,7 @@ mountSettings();
     if (window.innerWidth < 900) return;
     const header = document.getElementById('jeHeaderRow');
     const body = document.getElementById('jeLinesBody');
-    if (!header || !body) return;
+    if (!header || !body || header.closest('table')?.classList.contains('table-resized143117')) return;
     header.closest('table')?.classList.add('journal-fixed-widths97');
     const cells = [...header.cells];
     cells.forEach(cell => {

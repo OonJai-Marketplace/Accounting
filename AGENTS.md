@@ -343,3 +343,13 @@ preserve every source line and journal ID. Generated memos use original source
 item numbers (including a shared item split across accounts), never PDF filenames.
 Legacy memo recognition must handle separators inside source memos/references.
 Do not claim an existing device draft was rewritten or posted without evidence.
+
+Tablet follow-up 2026-11-03 v143.264: user reports v143.262 still opens the
+keyboard and moves Memo when dragging Account on a real iPad. Do not describe
+simulated tablet tests as physical-device verification. Tablet account triggers
+must be native non-text controls, including all sub-user entry modes. Use the
+owning header for resize targeting, capture the pointer, suppress header text
+selection, and provide a usable touch target. On tablet single-header tables,
+apply widths directly to visible native headers without a compressed COLGROUP;
+legacy column defaults must not overwrite manual widths. Preserve approved
+orientation fitting, pinch zoom, desktop/phone entry behavior and financial data.
