@@ -1,6 +1,10 @@
 const reportModes260={category_totals:'Consolidated — category totals',fund_totals:'Detailed — fund total once',detailed:'As entered — individual transactions'};
 const eligibleReportLines260=j=>(j.lines||[]).filter(l=>!wsIsCollection(l)&&!l.journal_entry_id&&!l.voided_at&&l.status!=='voided').map((line,index)=>({line,index})).sort((a,b)=>(Number(a.line.line_no)||a.index+1)-(Number(b.line.line_no)||b.index+1)).map(x=>x.line);
 const reportDate260=j=>eligibleReportLines260(j).map(l=>String(l.transaction_date)).sort().at(-1)||String(j.period_start||'').slice(0,10);
+function reportItem263(line,index){
+ const match=String(line.reference||'').match(/(?:^|[|·;])\s*item\s*(?:no\.?\s*)?#?\s*(\d+)(?=\s*(?:[|·;]|$))/i),item=match?Number(match[1]):Number(line.line_no);
+ return Number.isSafeInteger(item)&&item>0?item:index+1;
+}
 function summarize(j,mode='category_totals',postingDate=reportDate260(j)){
  if(!['category_totals','fund_totals','consolidated','detailed'].includes(mode))throw Error('Choose a posting format.');
  const combined=['category_totals','fund_totals'].includes(mode),source=eligibleReportLines260(j),fundIds=new Set(source.map(l=>String(l.fund_account_id))),groups=new Map();
@@ -8,7 +12,7 @@ function summarize(j,mode='category_totals',postingDate=reportDate260(j)){
  for(const [index,l] of source.entries()){const cents=Math.round(Number(l.amount)*100);if(!Number.isSafeInteger(cents)||cents<=0)throw Error('Invalid source amount.');
   for(const fund of [false,true]){const incoming=l.direction==='in',side=fund?(incoming?'debit':'credit'):(incoming?'credit':'debit'),account=fund?l.fund_account_id:l.account_id,date=combined?postingDate:l.transaction_date,rate=combined&&l.currency_code==='LAK'?1:l.fx_rate_lak,bucket=mode==='category_totals'?'all':mode==='fund_totals'&&(fund||fundIds.has(String(account)))?'fund':mode==='consolidated'&&fund?'fund':l.id,key=[date,account,l.currency_code,side,rate||'',bucket].join('|');
    let g=groups.get(key);if(!g){g={key,fx_rate_lak:rate,account_id:account,currency_code:l.currency_code,side,line_date:date,cents:0,fund:fund||fundIds.has(String(account)),source_ids:[],references:[],memos:[],details:[],itemNumbers:[]};groups.set(key,g);}
-   g.cents+=cents;if(!Number.isSafeInteger(g.cents))throw Error('Amount exceeds safe precision.');g.source_ids.push(l.id);g.references.push(String(l.workspace_entry_no||l.id));const item=Number.isInteger(Number(l.line_no))&&Number(l.line_no)>0?Number(l.line_no):index+1;g.itemNumbers.push(item);g.details.push(item+'. '+String(l.memo||'').trim());if(l.memo)g.memos.push(l.memo);if(l.reference)g.memos.push(l.reference);
+   g.cents+=cents;if(!Number.isSafeInteger(g.cents))throw Error('Amount exceeds safe precision.');g.source_ids.push(l.id);g.references.push(String(l.workspace_entry_no||l.id));const item=reportItem263(l,index);g.itemNumbers.push(item);g.details.push(item+'. '+String(l.memo||'').trim());if(l.memo)g.memos.push(l.memo);if(l.reference)g.memos.push(l.reference);
   }
  }
  const rows=[...groups.values()].map(g=>({...g,debit:g.side==='debit'?g.cents/100:0,credit:g.side==='credit'?g.cents/100:0,source_ids:g.source_ids.sort(),description:combined&&g.fund?reportItems261(g.itemNumbers):g.details.join(' | ')}));
@@ -21,9 +25,11 @@ function reportItems261(numbers){
 }
 function cleanReportMemo261(value,row,j){
  const memo=String(value||''),source=eligibleReportLines260(j),linked=source.filter(l=>row.source_ids.includes(l.id));
- const parts=memo.split(' | ');if(parts.length!==linked.length)return memo;
- const remaining=linked.slice();for(const part of parts){const i=remaining.findIndex(l=>[false,true].some(dated=>[dated?formatAppDate(l.transaction_date):null,String(l.workspace_entry_no||l.id),l.memo,l.reference].filter(v=>v!==null&&v!==undefined&&v!=='').join(' · ')===part));if(i<0)return memo;remaining.splice(i,1);}
- return row.description;
+ // References and source descriptions can themselves contain " | ". Consume
+ // complete known source strings; splitting on that separator loses identity.
+ const remaining=linked.map(l=>[false,true].map(dated=>[dated?formatAppDate(l.transaction_date):null,String(l.workspace_entry_no||l.id),l.memo,l.reference].filter(v=>v!==null&&v!==undefined&&v!=='').join(' · ')));let rest=memo;
+ while(remaining.length){let match=null;remaining.forEach((variants,index)=>variants.forEach(part=>{if((rest===part||rest.startsWith(part+' | '))&&(!match||part.length>match.part.length))match={index,part};}));if(!match)return memo;remaining.splice(match.index,1);rest=rest===match.part?'':rest.slice(match.part.length+3);}
+ return rest===''&&linked.length?row.description:memo;
 }
 function matchReportJournal261(j,lines,preferred,mainDate){
  const modes=[...new Set([preferred,'fund_totals','category_totals','detailed','consolidated'].filter(Boolean))];

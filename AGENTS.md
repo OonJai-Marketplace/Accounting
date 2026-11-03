@@ -334,3 +334,12 @@ available space above or below. Resize the named visible column, excluding hidde
 Date/Action cells, and refresh the mapping when date mode changes. Preserve
 financial data and unrelated phone/desktop layouts. Synthetic viewport checks
 are not physical iPad Safari verification.
+
+Report recovery 2026-11-03 v143.263: the user explicitly requested returning the
+unposted Ryan October petty-cash report to Submitted before approval. This
+supersedes the v143.261 instruction against returning this report. Revoke only
+that unposted approval, retain its snapshot and review history in the audit, and
+preserve every source line and journal ID. Generated memos use original source
+item numbers (including a shared item split across accounts), never PDF filenames.
+Legacy memo recognition must handle separators inside source memos/references.
+Do not claim an existing device draft was rewritten or posted without evidence.
