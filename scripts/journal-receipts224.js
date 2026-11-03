@@ -68,7 +68,7 @@ async function open(id){
 }
 function button(id){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent='Receipts';b.dataset.journalReceipts224=typeof id==='object'?id.staffLine:id;b.onclick=()=>void open(id);return b;}
 // Receipt presence is metadata only. Preview URLs are fetched only on opening.
-const statusCache226=new Map(),statusNotes226=new WeakMap();let statusScope226='',statusBusy226=false,statusTimer226=0,statusRevision240=0;
+const statusCache226=new Map();let statusScope226='',statusBusy226=false,statusTimer226=0,statusRevision240=0;
 const key226=id=>typeof id==='object'?'staff:'+id.staffLine:'entry:'+id;
 const scope226=()=>identity()+':'+(window.deviceVault14334?.actor||'')+':'+(window.deviceVault14334?.unlocked===false?'locked':'unlocked');
 const svg226=body=>'<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+body+'</svg>';
@@ -76,13 +76,13 @@ const chain226='<path d="m10 13 4-4M8 16l-1 1a4.2 4.2 0 0 1-6-6l4-4a4.2 4.2 0 0 
 function paint226(b,state){
  const id=b._receiptTarget226,label=typeof id==='object'?id.label:id;
  const message='Supporting documents attached. Open receipts.';
- b.hidden=state!=='linked';
+ // Rechecking known links must not make them blink; account changes still clear them immediately.
+ if(state==='loading'&&b.dataset.receiptState226==='linked')return;
+ const hidden=state!=='linked';if(b.hidden!==hidden)b.hidden=hidden;
  if(b.dataset.receiptState226!==state){b.dataset.receiptState226=state;b.innerHTML=state==='linked'?svg226(chain226):'';}
- b.title=label+': '+message;b.setAttribute('aria-label',b.title);
+ const title=label+': '+message;if(b.title!==title)b.title=title;if(b.getAttribute('aria-label')!==title)b.setAttribute('aria-label',title);
 }
-function note226(){} // Presence checks are silent; the explicit viewer reports errors.
-function statusTables226(){return [];}
-function settleNotes226(){}
+// Metadata checks never create a table notice or global notification.
 
 function remember226(id,hasDocuments){
  if(statusScope226!==scope226())return;
@@ -95,7 +95,6 @@ function scopeChanged226(){
  const next=scope226();if(next===statusScope226)return false;
  statusScope226=next;statusCache226.clear();statusBusy226=false;
  for(const b of document.querySelectorAll('.jr-link226'))paint226(b,'unknown');
- for(const table of statusTables226())note226(table,'');
  return true;
 }
 function decorate226(){
@@ -132,12 +131,14 @@ async function checkVisible226(){
   for(const target of targets.values()){const row=typeof target==='object'?response.staffLines?.find(r=>r.staffLine===target.staffLine):response.entries?.find(r=>r.entry===target);remember226(target,row?.hasDocuments);}
  }catch{
   if(scope===scope226()&&scope===statusScope226&&revision===statusRevision240)for(const target of targets.values())remember226(target,null);
- }finally{if(scope===statusScope226){statusBusy226=false;settleNotes226();schedule226();}}
+ }finally{if(scope===statusScope226){statusBusy226=false;schedule226();}}
 }
 function schedule226(){if(!statusTimer226)statusTimer226=setTimeout(()=>void checkVisible226(),120);}
 function refresh226(){statusRevision240++;statusCache226.clear();schedule226();}
 function receiptChanged240(value){let change;try{change=typeof value==='string'?JSON.parse(value):value;}catch{return;}if(!change||change.actor!==liveProfile?.id)return;statusRevision240++;const labels=new Set(change.labels||[]);for(const b of document.querySelectorAll('.jr-link226')){const t=b._receiptTarget226;if(labels.has(typeof t==='object'?t.label:t))statusCache226.delete(b.dataset.receiptKey226);}schedule226();}
 function start226(){
+ // Remove notices left by earlier cached releases without touching journal rows.
+ document.querySelectorAll('.jr-check-note226').forEach(n=>n.remove());
  const mutations=new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.jr-id226,.journal-receipts224,.journal-receipt-zoom224')&&[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('[data-entry-menu14387],.r79-link[data-entry],.jr-link226')||n.querySelector?.('[data-entry-menu14387],.r79-link[data-entry],.jr-link226')))))schedule226();});
  mutations.observe(document.body,{childList:true,subtree:true});schedule226();
  document.addEventListener('scroll',schedule226,true);window.addEventListener('page113',schedule226);window.addEventListener('focus',schedule226);window.addEventListener('online',schedule226);

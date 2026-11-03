@@ -7,7 +7,7 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
   if(b.action==='receipt-status'){
    if(hold){started=true;await hold;}
    if(fail)return route.fulfill({status:503,json:{error:'Connection interrupted'}});
-   return route.fulfill({json:{entries:(b.entries||[]).map(entry=>({entry,hasDocuments:entry===linked?true:entry===unknown?null:false})),staffLines:[]}});
+   return route.fulfill({json:{entries:(b.entries||[]).map(entry=>({entry,hasDocuments:entry===linked?true:entry===unknown?null:false})),staffLines:(b.staffLines||[]).map(staffLine=>({staffLine,hasDocuments:true}))}});
   }
   if(b.action==='list')return route.fulfill({json:{entry:b.entry,resolved:true,documents:b.entry===linked?[{id:'fixture-document',label:linked,title:'Receipt fixture',pages:1}]:[]}});
   assert.equal(b.action,'view');return route.fulfill({json:{label:linked,title:'Receipt fixture',expires:Date.now()+180000,pages:[{label:linked+'A',page:1,url:f.base+'/storage/v1/object/sign/scan-documents208/fixture/page.jpg'}]}});
@@ -35,6 +35,19 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  assert.equal(await icon(missing).isVisible(),false);
  await page.locator('#ledger-id226').click();assert.equal(await page.evaluate(()=>ledgerClicks226),1,'ledger ID keeps its own navigation');
  await page.locator('#ledger-id226 + .jr-link226').click();await page.locator('.journal-receipts224 img').waitFor();assert.equal(await page.evaluate(()=>ledgerClicks226),1);await page.locator('.journal-receipts224').getByRole('button',{name:'Close',exact:true}).click();
+ await page.evaluate(()=>{const staff=document.createElement('div');staff.id='personalWorkspace1437';staff.innerHTML='<table><tbody><tr data-entry-id="staff-line-247"><td><span data-entry-menu14387="1">STAFF-247</span></td></tr></tbody></table>';document.getElementById('icons-fixture226').append(staff);});
+ await page.waitForFunction(()=>document.querySelector('#icons-fixture226 [data-receipt-key226="staff:staff-line-247"]')?.dataset.receiptState226==='linked');
+ assert(calls.some(c=>c.action==='receipt-status'&&c.staffLines?.includes('staff-line-247')),'personal journal uses the staff-line metadata endpoint');
+ // Repeated viewport checks must be DOM-idempotent and must never display metadata notices.
+ await page.waitForTimeout(300);
+ const beforeChecks=calls.filter(c=>c.action==='receipt-status').length;
+ await page.evaluate(()=>{window.receiptMutations247=[];window.receiptObserver247=new MutationObserver(rs=>receiptMutations247.push(...rs.map(r=>r.attributeName)));receiptObserver247.observe(document.getElementById('icons-fixture226'),{attributes:true,subtree:true});const stale=document.createElement('p');stale.className='jr-check-note226';stale.textContent='Checking receipt links…';document.getElementById('icons-fixture226').append(stale);});
+ for(let i=0;i<6;i++){await page.evaluate(()=>document.dispatchEvent(new Event('scroll')));await page.waitForTimeout(160);}
+ assert.equal(calls.filter(c=>c.action==='receipt-status').length,beforeChecks,'scrolling reuses linked, missing and unknown metadata');
+ assert.deepEqual(await page.evaluate(()=>receiptMutations247),[],'unchanged link metadata causes no attribute mutations or layout feedback');
+ assert.equal(await page.locator('.jr-check-note226').isVisible(),false,'legacy metadata notice stays hidden');
+ await page.evaluate(()=>{receiptObserver247.disconnect();document.querySelector('.jr-check-note226').remove()});
+ console.log('PASS quiet cached metadata: no repeated requests, no unchanged DOM writes and no legacy status notice');
  fail=true;await page.evaluate(()=>JournalReceipts224.refresh());
  await page.waitForFunction(()=>[...document.querySelectorAll('#icons-body226 .jr-link226')].every(b=>b.dataset.receiptState226==='unknown'),'connection failure never indicates missing');
  fail=false;await page.evaluate(()=>JournalReceipts224.refresh());

@@ -24,6 +24,6 @@ body .jr-id226>.jr-link226[data-receipt-state226=linked]{color:#087247;backgroun
 body .jr-id226>.jr-link226[hidden],.jr-check-note226[hidden]{display:none!important}
 body .jr-id226>.jr-link226:hover{border-color:currentColor}
 body .jr-id226>.jr-link226:focus-visible{outline:2px solid #087247;outline-offset:2px}
-.jr-check-note226{display:flex;align-items:center;gap:10px;margin:5px 0;color:#60716b;font-size:12px}
+.jr-check-note226{display:none!important}
 @media(prefers-reduced-motion:reduce){.jr-check-spinner226{animation:none}}
 @media print{.jr-link226{display:none!important}}
