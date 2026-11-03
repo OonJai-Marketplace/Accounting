@@ -365,3 +365,8 @@ prompt. Explicit Cancel/discard restores the prior account/module selections;
 only Save User persists them. Keep desktop/tablet Current Users actions in a
 2×2 grid with role/status beside user details. Keep user-edit and account-picker
 windows compact, aligned and scrollable; preserve phone styling.
+
+Journal pagination 2026-11-03 v143.266: apply newest-posted-first screen order
+before the 100-line page is selected. A monthly report with earlier receipt
+dates must remain visible with the newest posting. Preserve original detail
+dates, line order, amounts, IDs, source links, pending priority and print ordering.
