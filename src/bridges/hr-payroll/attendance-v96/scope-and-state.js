@@ -10,5 +10,5 @@ const legendDefaults=[
  {code:'A',description:'Unpaid absence',method:'percent',value:100,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#b91c1c'},
  {code:'MTT',description:'Reported missed time tracking',method:'fixed',value:5000,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#92400e'},
  {code:'MMT',description:'Unreported missed time tracking',method:'fixed',value:10000,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#b91c1c'},
- {code:'EX',description:'Excused attendance / lateness',method:'percent',value:0,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#7c3aed'}
+ {code:'EX',description:'Excused late',method:'percent',value:0,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#7c3aed'}
 ];

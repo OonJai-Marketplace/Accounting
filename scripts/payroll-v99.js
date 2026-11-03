@@ -39,6 +39,7 @@ function status(run,row,day){
  const future=run.status!=='finalized'&&day.date>HRCalendarModel14306.today();
  return {kind:future?'Upcoming':kind,color:future&&kind!=='Holiday'?'#94a3a0':color,off,minutes:future?0:parsed.minutes||0,label:(future?'Upcoming · ':'')+(rule?.description||kind)+(scheduled?.fraction===.5?' · half-day':'')+(off?' · '+(scheduled?.label||'non-work day'):'')+(a?' · manually entered':kind==='Present'?' · scheduled default':''),a};
 }
+window.payrollAttendanceStatus246=status;
 function calculations(run){const map=new Map(),savedByEmployee=new Map((run.results||[]).map(r=>[r.employeeId,window.historicalPayrollResult200?.(run,r)||r]));for(const row of run.rows){try{const saved=savedByEmployee.get(row.employeeId);map.set(row.employeeId,run.status==='finalized'?(saved?.attendance95??null):payroll95.dayResults(run,row,payrollConfig82(),payroll95.legends()))}catch(_){map.set(row.employeeId,null)}}return map}
 function summary(run,dates,computed){
  const rows=[...run.rows].sort(payroll95.order).map(row=>{const counts={Present:0,Late:0,Absent:0,'Leave / legend':0,'Not recorded':0,'Holiday':0,'Non-work day':0};let minutes=0;

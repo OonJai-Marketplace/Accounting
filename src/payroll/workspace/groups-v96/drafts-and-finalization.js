@@ -66,7 +66,7 @@ function attendanceRecord237(run,row,date){
  const schedule=window.hrCalendar14306?.day(date,row.employeeId,run);
  const sameLeave=leave&&(!entry||mark(entry)==='0'||parsed.rule?.leaveType===leave.data.type||leave.data.type==='sick'&&parsed.rule?.leaveType==='minorSick');
  const leaveOnly=!!(sameLeave&&!entry?.override95&&!Number(entry?.overtime||0)&&!parsed.minutes);
- const label=parsed.rule?.code==='EX'?(parsed.minutes?'Excused lateness':'Excused attendance'):parsed.rule?.description||(parsed.minutes?'Late':schedule?.work===false&&!Number(entry?.overtime||0)&&!entry?.override95?schedule.label:'Present');
+ const label=parsed.rule?.code==='EX'?'Excused late':parsed.rule?.description||(parsed.minutes?'Late':schedule?.work===false&&!Number(entry?.overtime||0)&&!entry?.override95?schedule.label:'Present');
  return {entry,parsed,leave,leaveOnly,label,schedule};
 }
 function attendanceDetail237(record){

@@ -6830,9 +6830,9 @@ const legendDefaults=[
  {code:'A',description:'Unpaid absence',method:'percent',value:100,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#b91c1c'},
  {code:'MTT',description:'Reported missed time tracking',method:'fixed',value:5000,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#92400e'},
  {code:'MMT',description:'Unreported missed time tracking',method:'fixed',value:10000,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#b91c1c'},
- {code:'EX',description:'Excused attendance / lateness',method:'percent',value:0,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#7c3aed'}
+ {code:'EX',description:'Excused late',method:'percent',value:0,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#7c3aed'}
 ];
-function legends(){return [...(ApplicationSettings.payroll.attendanceLegend95||structuredClone(legendDefaults)).filter(r=>!['NWP','NWU'].includes(r.code)),{code:'NWP',description:'No work — paid',method:'percent',value:0,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#166534'},{code:'NWU',description:'No work — unpaid',method:'percent',value:100,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#b45309'}]}
+function legends(){return [...(ApplicationSettings.payroll.attendanceLegend95||structuredClone(legendDefaults)).filter(r=>!['NWP','NWU'].includes(r.code)).map(r=>r.code==='EX'?{...r,description:'Excused late'}:r),{code:'NWP',description:'No work — paid',method:'percent',value:0,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#166534'},{code:'NWU',description:'No work — unpaid',method:'percent',value:100,currency:'LAK',leaveType:'',lateMode:'exempt',color:'#b45309'}]}
 function number(v,label){const n=Number(v??0);if(!Number.isFinite(n)||n<0)throw Error(label+' must be zero or a positive number.');return n}
 function mark(a){return String(a?.mark95??a?.late??0).trim().toUpperCase()||'0'}
 function parseMark(value,rules=legends()){
@@ -6859,11 +6859,26 @@ function dayResults(run,row,config,rules){
   if(beforeEmployment234(row.employee,a.date))return {date:a.date,mark:'NE',sourceMark:mark(a),scheduleFraction:0,minutes:0,deductible:0,normal:0,time:0,penalty:0,fixed:0,lostDays:0,paidDays:0,leaveType:'',linked:false,manual:null,amount:0,color:'#94a3a0',note:'Not yet employed',overtime:0,override:null};
   const {minutes,rule}=parseMark(mark(a),rules),linked=overlapLeave(leaves,a.date),schedule=window.hrCalendar14306?.day(a.date,row.employeeId,run),fraction=mark(a)==='NWU'?1:(schedule?.fraction??1),deductible=rule?.lateMode==='exempt'||fraction===0?0:Math.max(0,minutes-config.grace);const qualifies=rule?.lateMode!=='exempt'&&fraction>0&&minutes>(config.penaltyGrace??config.grace);if(qualifies)count++;
   let time=deductible*hourly/60,penalty=qualifies?(count<=5?config.latePenaltyFirst:count<=10?config.latePenaltySecond:config.latePenaltyThird):0,fixed=0,lostDays=0,paidDays=0,leaveType='';
-  if(rule){if(rule.method==='percent'){lostDays=rule.value/100*fraction;paidDays=fraction-lostDays;leaveType=rule.leaveType||''}else if(rule.method==='fixed'){const fx=rule.currency==='LAK'?1:Number(run.rates[rule.currency]);if(!Number.isFinite(fx)||fx<=0)throw Error('Enter a LAK rate for legend currency '+rule.currency+'.');fixed=rule.value*fx} else if(!a.override95)throw Error(row.employee.name+' '+a.date+': enter the manual deduction using the calculated cell.');}
+  if(rule){if(rule.method==='percent'){lostDays=rule.value/100*fraction;paidDays=rule.code==='EX'?0:rule.code==='H'?Math.max(0,Number(schedule?.paidFraction??fraction)-lostDays):fraction-lostDays;leaveType=rule.code==='EX'?'':rule.leaveType||''}else if(rule.method==='fixed'){const fx=rule.currency==='LAK'?1:Number(run.rates[rule.currency]);if(!Number.isFinite(fx)||fx<=0)throw Error('Enter a LAK rate for legend currency '+rule.currency+'.');fixed=rule.value*fx} else if(!a.override95)throw Error(row.employee.name+' '+a.date+': enter the manual deduction using the calculated cell.');}
   const normal=time+penalty+fixed+lostDays*daily;let manual=null;
   if(a.override95){if(!String(a.override95.reason||'').trim())throw Error('A manual deduction needs a reason.');const currency=a.override95.currency||'LAK',fx=currency==='LAK'?1:Number(run.rates[currency]);if(!Number.isFinite(fx)||fx<=0)throw Error('Enter a LAK rate for override currency '+currency+'.');manual=number(a.override95.amount,'Manual deduction')*fx;time=0;penalty=0;fixed=0;lostDays=0;paidDays=0;}
   return {date:a.date,mark:mark(a),scheduleFraction:fraction,minutes,qualifyingLate234:qualifies,occurrence234:qualifies?count:null,deductible:manual===null?deductible:0,normal:round82(normal),time,penalty,fixed,lostDays,paidDays,leaveType,linked:Boolean(linked),manual,amount:round82(manual??normal),color:rule?.color||'',note:a.note||'',overtime:number(a.overtime,'Overtime hours'),override:a.override95||null};
  });
+}
+
+// Calendar holidays have no required attendance row. Count each eligible date once.
+function calendarPaidDays246(run,row){
+ let days=0;const end=new Date(Number(run.month.slice(0,4)),Number(run.month.slice(5,7)),0).getDate();
+ const today=window.HRCalendarModel14306?.today?.()||'9999-12-31';
+ for(let i=1;i<=end;i++){
+  const date=run.month+'-'+String(i).padStart(2,'0');if(date>today||beforeEmployment234(row.employee,date))continue;
+  const schedule=window.hrCalendar14306?.day(date,row.employeeId,run);if(!schedule?.holiday||schedule.work)continue;
+  const a=(row.input.attendance||[]).find(a=>a.date===date);
+  // An explicit holiday is already counted by dayResults; other explicit exceptions retain precedence.
+  if(a&&(mark(a)!=='0'||a.override95))continue;
+  days+=Number(schedule.paidFraction||0);
+ }
+ return days;
 }
 // Historical evidence supplements finalized results without recalculating their amounts.
 function historicalPayrollResult200(run,x){
@@ -6879,7 +6894,7 @@ function results(run=Work82.run){if(!run)return[];if(run.status==='finalized')re
  const days=dayResults(run,row,config,rules),sum=k=>days.reduce((s,d)=>s+Number(d[k]||0),0),input=row.input,unpaid=approved(run,row.employeeId).filter(l=>l.paid==='no').reduce((n,l)=>n+remainingLeave105(run,row,l),0);
  const time=round82(sum('time')),latePenalty=round82(sum('penalty')),fixed=round82(sum('fixed')),manual=round82(sum('manual'));
  const base={...input,attendance:(input.attendance||[]).filter(a=>!beforeEmployment234(row.employee,a.date)).map(a=>({...a,late:0})),absentDays:number(input.absentDays,'Additional absence days')+sum('lostDays'),penalty:number(input.penalty,'Additional penalty')+latePenalty+fixed+manual,otherDeduction:number(input.otherDeduction,'Other deduction')+time};
- const x=calcPay82(row.employee,base,config,Number(run.rates[row.employee.currency]),unpaid,employmentProration234(run,row,config)),paidDays=number(input.paidHolidayDays,'Additional paid holiday days')+sum('paidDays')+approved(run,row.employeeId).filter(l=>l.paid==='yes').reduce((n,l)=>n+remainingLeave105(run,row,l),0);
+ const x=calcPay82(row.employee,base,config,Number(run.rates[row.employee.currency]),unpaid,employmentProration234(run,row,config)),paidDays=number(input.paidHolidayDays,'Additional paid holiday days')+sum('paidDays')+calendarPaidDays246(run,row)+approved(run,row.employeeId).filter(l=>l.paid==='yes').reduce((n,l)=>n+remainingLeave105(run,row,l),0);
  if(paidDays>config.workDays)throw Error('Paid leave/holiday days exceed working days for '+row.employee.name+'.');
  const usage={};days.filter(d=>d.leaveType&&!d.linked).forEach(d=>usage[d.leaveType]=(usage[d.leaveType]||0)+d.scheduleFraction);
  return {...x,employeeId:row.employeeId,employee:row.employee,late:time,other:number(input.otherDeduction,'Other deduction'),manualPenalty:number(input.penalty,'Additional penalty'),latePenalty,minutes:sum('deductible'),lateCount:days.filter(d=>d.qualifyingLate234).length,legendFixed:fixed,manualDayDeduction:manual,attendance95:days,legendLeaveUsage95:usage,paidLeaveDays:paidDays,paidLeaveValue:round82(paidDays*x.daily)};
@@ -7043,7 +7058,7 @@ function attendanceRecord237(run,row,date){
  const schedule=window.hrCalendar14306?.day(date,row.employeeId,run);
  const sameLeave=leave&&(!entry||mark(entry)==='0'||parsed.rule?.leaveType===leave.data.type||leave.data.type==='sick'&&parsed.rule?.leaveType==='minorSick');
  const leaveOnly=!!(sameLeave&&!entry?.override95&&!Number(entry?.overtime||0)&&!parsed.minutes);
- const label=parsed.rule?.code==='EX'?(parsed.minutes?'Excused lateness':'Excused attendance'):parsed.rule?.description||(parsed.minutes?'Late':schedule?.work===false&&!Number(entry?.overtime||0)&&!entry?.override95?schedule.label:'Present');
+ const label=parsed.rule?.code==='EX'?'Excused late':parsed.rule?.description||(parsed.minutes?'Late':schedule?.work===false&&!Number(entry?.overtime||0)&&!entry?.override95?schedule.label:'Present');
  return {entry,parsed,leave,leaveOnly,label,schedule};
 }
 function attendanceDetail237(record){
@@ -7879,6 +7894,7 @@ function status(run,row,day){
  const future=run.status!=='finalized'&&day.date>HRCalendarModel14306.today();
  return {kind:future?'Upcoming':kind,color:future&&kind!=='Holiday'?'#94a3a0':color,off,minutes:future?0:parsed.minutes||0,label:(future?'Upcoming · ':'')+(rule?.description||kind)+(scheduled?.fraction===.5?' · half-day':'')+(off?' · '+(scheduled?.label||'non-work day'):'')+(a?' · manually entered':kind==='Present'?' · scheduled default':''),a};
 }
+window.payrollAttendanceStatus246=status;
 function calculations(run){const map=new Map(),savedByEmployee=new Map((run.results||[]).map(r=>[r.employeeId,window.historicalPayrollResult200?.(run,r)||r]));for(const row of run.rows){try{const saved=savedByEmployee.get(row.employeeId);map.set(row.employeeId,run.status==='finalized'?(saved?.attendance95??null):payroll95.dayResults(run,row,payrollConfig82(),payroll95.legends()))}catch(_){map.set(row.employeeId,null)}}return map}
 function summary(run,dates,computed){
  const rows=[...run.rows].sort(payroll95.order).map(row=>{const counts={Present:0,Late:0,Absent:0,'Leave / legend':0,'Not recorded':0,'Holiday':0,'Non-work day':0};let minutes=0;
