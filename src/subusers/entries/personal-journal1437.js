@@ -113,7 +113,7 @@ function show(id,tab){const actor=liveProfile?.id,client=ojmDb;const root=$('per
  if(tab==='history')window.workspaceRecords1437.getAdjustments(id).then(rows=>{if(actor!==liveProfile?.id||client!==ojmDb)return;historyExtra.set(key(id),{client,rows});if($('personalWorkspace1437')===root&&root.dataset.owner===id)paintPanel1437(root.querySelector('[data-personal-panel=history]'),historyHtml(id))}).catch(e=>{if(actor===liveProfile?.id&&client===ojmDb&&$('personalWorkspace1437')===root)showCenterStatus('History could not load: '+e.message,true)});
 }
 function installDesktop(){if(!desktop()||!$('sub-users-workspace')?.classList.contains('active'))return;const id=String(activeSubUserTab()?.userId||''),u=user(id),shell=$('subUserWorkspacePanel')?.querySelector('.v49-desktop-workspace');if(!id||!u||!shell)return;
- if(shell.querySelector('#personalWorkspace1437')){updatePanels(id);return}
+ const existing=shell.querySelector('#personalWorkspace1437');if(existing?.dataset.owner===id){updatePanels(id);return}if(shell.dataset.workspaceOwner252!==id)return;if(existing){detach();existing.remove();}
  const main=shell.querySelector('main');if(!main)return;
  shell.querySelectorAll('[onclick*="openWorkspaceReview"]').forEach(b=>{if(b.getAttribute('onclick').includes("'history'"))b.remove()});
  const accounts=main.querySelector('.v49-desktop-accounts'),funds=main.querySelector('.fund-summary113');

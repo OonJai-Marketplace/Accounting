@@ -1949,32 +1949,47 @@ if (originalFinalizeEditReasonV3) {
   };
 }
 
-// ----- Print settings and multi-page print flow -----
-const PrintSettings = {
-  headerImage: localStorage.getItem('ojm_print_header') || '',
-  footerImage: localStorage.getItem('ojm_print_footer') || ''
-};
-
-function handlePrintImageUpload(event, type) {
-  const file = event.target.files?.[0];
-  if (!file||!['header','footer'].includes(type)) return;
-  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>8*1024*1024){showAppNotification('Image Not Saved','Choose a PNG, JPG or WebP image under 8 MB.',true);return}
-  const owner=liveProfile?.id;
-  const reader = new FileReader();
-  reader.onload = () => {
-    if(liveProfile?.id!==owner)return;
-    try{localStorage.setItem(type === 'header' ? 'ojm_print_header' : 'ojm_print_footer', reader.result)}catch(error){showAppNotification('Image Not Saved',error.message,true);return}
-    PrintSettings[type + 'Image'] = reader.result;
-    renderPrintSettingPreviews();
-  };
-  reader.onerror=()=>showAppNotification('Image Not Saved','The image could not be read.',true);
-  reader.readAsDataURL(file);
+// Header/footer images use independent company records so concurrent edits do not overwrite one another.
+const PrintSettings = {headerImage:localStorage.getItem('ojm_print_header')||'',footerImage:localStorage.getItem('ojm_print_footer')||''};
+const printBrand252=(()=>{
+ const inFlight=new Map();let identity='';
+ const valid=v=>typeof v==='string'&&(!v||/^data:image\/(png|jpeg|webp);base64,/i.test(v));
+ const area=kind=>'print-'+kind+'252';
+ function apply(kind,image){PrintSettings[kind+'Image']=image;try{localStorage.setItem('ojm_print_'+kind,image)}catch{}renderPrintSettingPreviews();}
+ function context(){const actor=liveProfile?.id,client=ojmDb;if(!actor||!client||liveProfile.role!=='admin')throw Error('Administrator access is required to save company images.');return {actor,client,check(){if(liveProfile?.id!==actor||ojmDb!==client)throw Error('Account changed. Reopen company images.')}}}
+ async function save(kind,image,migrate=false){
+  if(!['header','footer'].includes(kind)||!valid(image))throw Error('Choose a PNG, JPG or WebP image.');
+  const c=context(),key=c.actor+':'+kind;if(inFlight.has(key)){await inFlight.get(key).catch(()=>{});c.check();return save(kind,image,migrate)}
+  const job=(async()=>{const payload={area:area(kind),data:{image},updated_by:c.actor,updated_at:new Date().toISOString()};
+   const q=migrate?c.client.from('presentation_settings113').insert(payload):c.client.from('presentation_settings113').upsert(payload,{onConflict:'area'});
+   const result=await q.select('area,data');c.check();
+   if(result.error&&!(migrate&&result.error.code==='23505'))throw Error(result.error.message);
+   const confirmed=await c.client.from('presentation_settings113').select('area,data').eq('area',area(kind)).maybeSingle();c.check();
+   if(confirmed.error||!confirmed.data||!valid(confirmed.data.data?.image))throw Error('The company image save could not be confirmed. Retry while connected.');
+   if(!migrate&&confirmed.data.data.image!==image)throw Error('The company image changed on another device. Reload Settings before retrying.');
+   if(window.shell113?.state.owner===c.actor){shell113.state.rows[area(kind)]=confirmed.data.data;}
+   apply(kind,confirmed.data.data.image||'');return true;
+  })();inFlight.set(key,job);try{return await job}finally{if(inFlight.get(key)===job)inFlight.delete(key)}
+ }
+ async function hydrate(){const state=window.shell113?.state;if(!liveProfile?.id||!state?.loaded||state.owner!==liveProfile.id)return;
+  const next=liveProfile.id;if(identity&&identity!==next){PrintSettings.headerImage='';PrintSettings.footerImage=''}identity=next;
+  for(const kind of ['header','footer']){const record=state.rows[area(kind)];if(record&&valid(record.image)){apply(kind,record.image||'');continue}
+   const local=PrintSettings[kind+'Image'];if(liveProfile.role==='admin'&&local&&valid(local)){try{await save(kind,local,true)}catch(e){notice(kind,'Company copy not saved: '+e.message,true)}}
+  }
+ }
+ function notice(kind,text,error=false){const preview=document.getElementById(kind==='header'?'printHeaderPreview':'printFooterPreview');if(!preview)return;let p=preview.parentElement.querySelector('[data-print-save252]');if(!p){p=document.createElement('p');p.dataset.printSave252='';preview.after(p)}p.setAttribute('role',error?'alert':'status');p.textContent=text;if(error){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent='Retry save';b.onclick=()=>save(kind,PrintSettings[kind+'Image']).then(()=>notice(kind,'Company image saved.')).catch(e=>notice(kind,e.message,true));p.append(' ',b)}}
+ window.addEventListener('presentation-ready113',()=>{void hydrate()});
+ return {save,hydrate,apply,notice};
+})();
+async function handlePrintImageUpload(event,type){
+ const file=event.target.files?.[0];if(!file||!['header','footer'].includes(type))return;
+ if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>8*1024*1024)return showAppNotification('Image Not Saved','Choose a PNG, JPG or WebP image under 8 MB.',true);
+ const actor=liveProfile?.id,client=ojmDb;
+ try{const image=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)});if(liveProfile?.id!==actor||ojmDb!==client)return;
+  printBrand252.apply(type,image);printBrand252.notice(type,'Saving company image…');await printBrand252.save(type,image);printBrand252.notice(type,'Company image saved. Available on your other devices.');
+ }catch(e){printBrand252.notice(type,'Image kept on this device. Company save failed: '+e.message,true)}
 }
-function clearPrintImage(type) {
-  PrintSettings[type + 'Image'] = '';
-  localStorage.removeItem(type === 'header' ? 'ojm_print_header' : 'ojm_print_footer');
-  renderPrintSettingPreviews();
-}
+async function clearPrintImage(type){try{await printBrand252.save(type,'');printBrand252.notice(type,'Company image removed.')}catch(e){printBrand252.notice(type,e.message,true)}}
 function renderPrintSettingPreviews() {
   const h = document.getElementById('printHeaderPreview');
   const f = document.getElementById('printFooterPreview');
@@ -4259,7 +4274,7 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
       const message=warnings?'Review the warning on your assigned account.':ready?'Check your saved entries before submitting.':'Record your next transaction.';
       content+=`<div class="v62-next-action"><span>Next action</span><strong>${message}</strong><button class="je-btn je-btn-emerald" onclick="v49SetView(${escapeHtml(JSON.stringify(user.id))},${escapeHtml(JSON.stringify(next))})">Open</button></div>`;
     }
-    return `<div class="v49-phone-workspace">${workspaceHeader(user)}<main>${content}</main>${bottomNav(user)}</div><div class="v49-desktop-workspace">${desktopHeader(user)}<main>${desktopAccounts(user)}${desktopPost(user)}${totalsTable(user,draftLines(user.id))}</main></div>`;
+    return `<div class="v49-phone-workspace">${workspaceHeader(user)}<main>${content}</main>${bottomNav(user)}</div><div class="v49-desktop-workspace" data-workspace-owner252="${escapeHtml(user.id)}">${desktopHeader(user)}<main>${desktopAccounts(user)}${desktopPost(user)}${totalsTable(user,draftLines(user.id))}</main></div>`;
   }
 
   function adminHome() {
@@ -4273,11 +4288,11 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
   const originalRender = window.renderSubUserWorkspace;
   window.renderSubUserWorkspace = function () {
     const tabs=document.getElementById('subUserWorkspaceTabs'), panel=document.getElementById('subUserWorkspacePanel');
-    if(!tabs||!panel) return;
+    if(!panel) return;
     const staff=isStaff();
     if(staff){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:true}];activeSubUserId='self'}
     else if(!openSubUserTabs.length){openSubUserTabs=[{key:'default',userId:null,permanent:true}];activeSubUserId='default'}
-    tabs.innerHTML='<button type="button" class="sub-user-mobile-menu" aria-label="Open main navigation" aria-controls="appSidebar" onclick="toggleMobileNavigation()"><span></span><span></span><span></span></button>' + openSubUserTabs.map(tab=>{const user=currentUser(tab.userId),label=tab.permanent?'Home':user?subUserName(user):'New';return`<button type="button" class="sub-user-browser-tab ${tab.key===activeSubUserId?'active':''}" onclick="activateSubUserTab(${escapeHtml(JSON.stringify(tab.key))})"><span class="v62-tab-label" data-phone-label="${escapeHtml(label.trim().split(/\s+/)[0])}">${escapeHtml(label)}</span>${tab.permanent?'':`<span class="sub-user-tab-close" onclick="closeSubUserWorkspace(event,${escapeHtml(JSON.stringify(tab.key))})">×</span>`}</button>`}).join('') + (!staff?'<button type="button" class="sub-user-add-tab" onclick="addSubUserTab()">＋</button>':'');
+    if(tabs)tabs.innerHTML='<button type="button" class="sub-user-mobile-menu" aria-label="Open main navigation" aria-controls="appSidebar" onclick="toggleMobileNavigation()"><span></span><span></span><span></span></button>' + openSubUserTabs.map(tab=>{const user=currentUser(tab.userId),label=tab.permanent?'Home':user?subUserName(user):'New';return`<button type="button" class="sub-user-browser-tab ${tab.key===activeSubUserId?'active':''}" onclick="activateSubUserTab(${escapeHtml(JSON.stringify(tab.key))})"><span class="v62-tab-label" data-phone-label="${escapeHtml(label.trim().split(/\s+/)[0])}">${escapeHtml(label)}</span>${tab.permanent?'':`<span class="sub-user-tab-close" onclick="closeSubUserWorkspace(event,${escapeHtml(JSON.stringify(tab.key))})">×</span>`}</button>`}).join('') + (!staff?'<button type="button" class="sub-user-add-tab" onclick="addSubUserTab()">＋</button>':'');
     const tab=activeSubUserTab();
     if(tab?.permanent&&!staff){
       panel.replaceChildren();
@@ -6995,7 +7010,7 @@ function metadata(run){const disabled=run.status==='finalized'?'disabled':'';ret
 function newDraft(month){return {month,reference:'PAY-'+month,status:'draft',rates:{LAK:1},rateDate:today82(),rateSource:'',notes:'',reviewed:false,rows:orderedEmployees82().filter(e=>e.data.active!==false&&!e.data.archived).map(e=>({employeeId:e.id,employee:structuredClone(e.data),input:{attendance:[],absentDays:0,penalty:0,otherDeduction:0,allowance:0,reimbursement:0,advance:0}}))}}
 // Saved attendance may arrive after a browser has already prepared an empty month.
 // Reconcile only untouched drafts; never replace actual unsaved attendance or adjustments.
-const boundForms235=new WeakMap();
+const boundForms235=new WeakMap(),boundInputs252=new WeakMap();
 const numericInputs235=['absentDays','penalty','otherDeduction','allowance','reimbursement','advance','loanRecovery','reportedMissed','unreportedMissed','paidHolidayDays'];
 function draftInputs235(run){
  const rows=values=>(values||[]).map(r=>({employeeId:r.employeeId,input:{...(r.input||{}),...Object.fromEntries(numericInputs235.map(k=>[k,Number(r.input?.[k]||0)])),note:r.input?.note||'',attendance:[...(r.input?.attendance||[])].sort((a,b)=>a.date.localeCompare(b.date))}})).filter(r=>Object.entries(r.input).some(([k,v])=>k==='attendance'?v.length:k==='note'?!!v:numericInputs235.includes(k)?v!==0:true)).sort((a,b)=>a.employeeId.localeCompare(b.employeeId));
@@ -7038,7 +7053,7 @@ function selectMonth(month){
  const next=cached&&!replaceUntouched235(cached,saved)?cached:saved?useSaved235(saved):{run:newDraft(month),record:null};
  Work82.run=next.run;Work82.runRecord=next.record;ui.drafts[month]=next;
 }
-window.updateRun82=function(){const run=Work82.run;if(!run||run.status==='finalized')return;const f=document.getElementById('runMeta95');if(f){const d=Object.fromEntries(new FormData(f));for(const k of ['reference','rateDate','rateSource','notes'])run[k]=d[k];run.reviewed=true;Object.keys(d).filter(k=>k.startsWith('rate_')).forEach(k=>run.rates[k.slice(5)]=Number(d[k]));run.rates.LAK=1}document.querySelectorAll('[data-row95][data-field95]').forEach(n=>{const r=run.rows[Number(n.dataset.row95)];if(r)r.input[n.dataset.field95]=n.value});document.querySelectorAll('[data-att-row95]').forEach(n=>{const row=run.rows[Number(n.dataset.attRow95)];if(!row)return;const date=n.dataset.date95,value=n.value.trim().toUpperCase()||'0';let a=row.input.attendance.find(a=>a.date===date);if(a){a.mark95=value;a.late=0}else if(value!=='0')row.input.attendance.push({date,mark95:value,late:0,overtime:0})})};
+window.updateRun82=function(){const run=Work82.run;if(!run||run.status==='finalized')return;const f=document.getElementById('runMeta95');if(f&&boundForms235.get(f)===run){const d=Object.fromEntries(new FormData(f));for(const k of ['reference','rateDate','rateSource','notes'])run[k]=d[k];run.reviewed=true;Object.keys(d).filter(k=>k.startsWith('rate_')).forEach(k=>run.rates[k.slice(5)]=Number(d[k]));run.rates.LAK=1}document.querySelectorAll('[data-row95][data-field95]').forEach(n=>{const bound=boundInputs252.get(n),r=bound?.run===run?bound.row:null;if(r&&run.rows.includes(r))r.input[n.dataset.field95]=n.value});document.querySelectorAll('[data-att-row95]').forEach(n=>{const bound=boundInputs252.get(n),row=bound?.run===run?bound.row:null;if(!row||!run.rows.includes(row))return;const date=n.dataset.date95,value=n.value.trim().toUpperCase()||'0';let a=row.input.attendance.find(a=>a.date===date);if(a){a.mark95=value;a.late=0}else if(value!=='0')row.input.attendance.push({date,mark95:value,late:0,overtime:0})})};
 window.reloadAttendance238=async function(){
  const actor=liveProfile?.id,client=ojmDb,month=Work82.run?.month;if(!month)return;if(Work82.loading)throw Error('Wait for payroll records to finish loading.');const form=document.getElementById('runMeta95');if(!form||boundForms235.get(form)===Work82.run)window.updateRun82();
  await loadWork82(true);if(actor!==liveProfile?.id||client!==ojmDb||Work82.run?.month!==month)return;if(Work82.error)throw Error(Work82.error);
@@ -7050,7 +7065,7 @@ window.reloadAttendance238=async function(){
 };
 let repaint95=false;
 function softRender95(){if(repaint95)return;repaint95=true;const run=Work82.run,tab=document.querySelector('.tab-content.active')?.id;requestAnimationFrame(()=>{repaint95=false;if(run!==Work82.run||tab!==document.querySelector('.tab-content.active')?.id)return;updateRun82();const n=document.activeElement,focus=n?.dataset?.attRow95!==undefined?`[data-att-row95="${n.dataset.attRow95}"][data-date95="${n.dataset.date95}"]`:n?.dataset?.row95!==undefined?`[data-row95="${n.dataset.row95}"][data-field95="${n.dataset.field95}"]`:n?.closest?.('#runMeta95')&&n.name?`#runMeta95 [name="${n.name}"]`:null;const pos=n?.selectionStart,scrolls=[...document.querySelectorAll('#'+tab+' .attendance-scroll95,#'+tab+' .data-table82')].map(n=>[n.scrollLeft,n.scrollTop]);renderWork82();document.querySelectorAll('#'+tab+' .attendance-scroll95,#'+tab+' .data-table82').forEach((n,i)=>{if(scrolls[i]){n.scrollLeft=scrolls[i][0];n.scrollTop=scrolls[i][1]}});if(focus){const next=document.querySelector(focus);const target=next?.classList.contains('oj-date-original104')?next.closest('.oj-date-shell104')?.querySelector('button'):next;target?.focus({preventScroll:true});if(pos!=null)try{next.setSelectionRange(pos,pos)}catch(_){}}})}
-function bindRun(){const f=document.getElementById('runMeta95');if(f){boundForms235.set(f,Work82.run);window.datePicker104?.enhance(f);}if(f)f.onchange=async e=>{if(e.target.name==='month'){const month=e.target.value,run=Work82.run,actor=liveProfile?.id;updateRun82();try{await window.payrollWindow14334?.ensure(month);if(actor!==liveProfile?.id||run!==Work82.run||!f.isConnected||f.elements.month.value!==month)return;selectMonth(month);renderWork82()}catch(error){showCenterStatus(error.message,true)}}else{updateRun82();if(e.target.name!=='reviewed'){Work82.run.reviewed=false;softRender95()}}};document.querySelectorAll('[data-row95][data-field95]').forEach(n=>n.onchange=()=>{updateRun82();Work82.run.reviewed=false;softRender95()});document.querySelectorAll('[data-att-row95]').forEach(n=>{n.onchange=()=>{updateRun82();try{parseMark(n.value);n.setCustomValidity('');const row=Work82.run.rows[Number(n.dataset.attRow95)],date=n.dataset.date95;let a=row.input.attendance.find(a=>a.date===date);if(!a){a={date,late:0,overtime:0};row.input.attendance.push(a)}a.mark95=n.value.trim().toUpperCase()||'0';a.late=0;Work82.run.reviewed=false;softRender95()}catch(e){n.setCustomValidity(e.message);n.reportValidity()}};n.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();n.blur()}}})}
+function bindRun(){const root=document.querySelector('.tab-content.active')||document;root.querySelectorAll('[data-row95][data-field95],[data-att-row95]').forEach(n=>boundInputs252.set(n,{run:Work82.run,row:Work82.run?.rows[Number(n.dataset.row95??n.dataset.attRow95)]}));const f=root.querySelector('#runMeta95');if(f){boundForms235.set(f,Work82.run);window.datePicker104?.enhance(f);}if(f)f.onchange=async e=>{if(e.target.name==='month'){const month=e.target.value,run=Work82.run,actor=liveProfile?.id;updateRun82();try{await window.payrollWindow14334?.ensure(month);if(actor!==liveProfile?.id||run!==Work82.run||!f.isConnected||f.elements.month.value!==month)return;selectMonth(month);renderWork82()}catch(error){showCenterStatus(error.message,true)}}else{updateRun82();if(e.target.name!=='reviewed'){Work82.run.reviewed=false;softRender95()}}};root.querySelectorAll('[data-row95][data-field95]').forEach(n=>n.onchange=()=>{updateRun82();Work82.run.reviewed=false;softRender95()});root.querySelectorAll('[data-att-row95]').forEach(n=>{n.onchange=()=>{updateRun82();try{parseMark(n.value);n.setCustomValidity('');const bound=boundInputs252.get(n),row=bound?.run===Work82.run?bound.row:null;if(!row||!Work82.run.rows.includes(row))return;const date=n.dataset.date95;let a=row.input.attendance.find(a=>a.date===date);if(!a){a={date,late:0,overtime:0};row.input.attendance.push(a)}a.mark95=n.value.trim().toUpperCase()||'0';a.late=0;Work82.run.reviewed=false;softRender95()}catch(e){n.setCustomValidity(e.message);n.reportValidity()}};n.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();n.blur()}}})}
 function modal(id,title,body){document.getElementById(id)?.remove();const root=document.createElement('div');root.id=id;root.className='pay-overlay95';root.innerHTML=`<section class="pay-dialog95" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><h3>${esc(title)}</h3><button type="button" aria-label="Close">×</button></header>${body}</section>`;root.querySelector('header button').onclick=()=>root.remove();root.addEventListener('keydown',e=>{if(e.key==='Escape')root.remove()});document.body.append(root);root.querySelector('input,button')?.focus();return root}
 function attendanceRecord237(run,row,date){
  const entry=(row.input.attendance||[]).find(a=>a.date===date),parsed=parseMark(mark(entry));
@@ -8201,10 +8216,10 @@ function updateBrand(value){const brand=document.querySelector('.sidebar-brand h
 function installBrand(){document.querySelector('.sidebar-brand .brand-icon-emblem')?.remove();updateBrand(BusinessSettings.current);
  const original=window.renderBusinessIdentity;window.renderBusinessIdentity=function(value,...rest){const result=original.apply(this,[value,...rest]);updateBrand(value);return result};
  const form=document.querySelector('#settings-system .app-settings-form');if(!form||$('companyLogoSettings101'))return;
- const block=document.createElement('div');block.id='companyLogoSettings101';block.className='settings-field';block.innerHTML='<label for="companyLogoUpload101">Company logo (PNG)</label><input type="file" id="companyLogoUpload101" accept="image/png,.png"><img id="logoPreview101" alt="Selected company logo" hidden><button type="button" class="je-btn je-btn-secondary" id="removeLogo101">Remove Logo</button><small>Saved to the database in v113. The company name comes from Business Information.</small>';
+ const block=document.createElement('div');block.id='companyLogoSettings101';block.className='settings-field';block.innerHTML='<label for="companyLogoUpload101">Company logo (PNG)</label><input type="file" id="companyLogoUpload101" accept="image/png,image/jpeg,image/webp"><img id="logoPreview101" alt="Selected company logo" hidden><button type="button" class="je-btn je-btn-secondary" id="removeLogo101">Remove Logo</button><small>Saved to the database in v113. The company name comes from Business Information.</small>';
  form.querySelector('.settings-form-actions')?.before(block);showLogo(storedLogo101());
- $('companyLogoUpload101').onchange=e=>{const file=e.target.files?.[0];if(!file)return;if(file.type!=='image/png'||file.size>2*1024*1024){showCenterStatus('Select a PNG logo under 2 MB.',true);e.target.value='';return}const reader=new FileReader();const actor=liveProfile?.id;reader.onload=()=>{if(liveProfile?.id!==actor)return;try{localStorage.setItem('ojm_company_logo101',reader.result);showLogo(reader.result);showCenterStatus('Company logo saved on this browser.')}catch(_){showCenterStatus('The browser could not save the image. Choose a smaller PNG.',true)}};reader.readAsDataURL(file)};
- $('removeLogo101').onclick=()=>{localStorage.removeItem('ojm_company_logo101');showLogo('');$('companyLogoUpload101').value='';showCenterStatus('Company logo removed.')};
+ // Upload and removal are handled once by the shared database-backed shell.
+
 }
 function renameHr(){const header=$('nav-module-hr')?.querySelector('.nav-header');if(header)[...header.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE&&/\bHR\b/.test(n.textContent)).forEach(n=>n.textContent=n.textContent.replace(/\bHR\b/,'Human Resources'))}
 function install(){installToolbar();installBrand();renameHr();const sidebar=$('appSidebar');if(sidebar)new MutationObserver(renameHr).observe(sidebar,{childList:true,subtree:true});scheduleAudit()}

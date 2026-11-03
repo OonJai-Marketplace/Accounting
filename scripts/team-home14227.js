@@ -88,7 +88,7 @@ function desktop(){
 
 function ready(){
  const beforeOpen=window.openWorkspaceUser;
- window.openWorkspaceUser=function(id){id=String(id);if(!Organization14229.mayOpen(id)){showCenterStatus('This account is not assigned to you.',true);return false}window.personalJournal1437?.detach();const out=beforeOpen.call(this,id);if(String(activeSubUserTab()?.userId)!==id)return out;if(!document.getElementById('sub-users-workspace')?.classList.contains('active'))switchTab('sub-users-workspace');desktop();window.workflow136?.decorate();window.saveLocation69?.();return out;};
+ window.openWorkspaceUser=function(id){id=String(id);if(!Organization14229.mayOpen(id)){showCenterStatus('This account is not assigned to you.',true);return false}window.personalJournal1437?.detach();const out=beforeOpen.call(this,id);if(String(activeSubUserTab()?.userId)!==id)return out;if(!document.getElementById('sub-users-workspace')?.classList.contains('active'))switchTab('sub-users-workspace');if(document.querySelector('#subUserWorkspacePanel [data-workspace-owner252]')?.dataset.workspaceOwner252!==id)renderSubUserWorkspace();desktop();window.workflow136?.decorate();window.saveLocation69?.();return out;};
  const beforeActivate=window.activateSubUserTab;
  window.activateSubUserTab=function(key){const tab=openSubUserTabs.find(t=>t.key===key);if(tab&&!tab.userId&&admin())return home();if(tab?.userId)return openUser(tab.userId);return beforeActivate.call(this,key)};
  window.selectSubUserForActiveTab=function(id){return openUser(id)};

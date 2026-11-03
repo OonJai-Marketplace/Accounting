@@ -1,0 +1,26 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const read=p=>fs.readFileSync(p,'utf8');
+(async()=>{
+ const source=read('src/payroll/workspace/groups-v96/drafts-and-finalization.js');
+ const oldRow={employeeId:'old',input:{advance:3500000,attendance:[]}},newRow={employeeId:'new',input:{advance:900000,attendance:[]}},oldRun={status:'draft',rows:[oldRow]},newRun={status:'draft',rows:[newRow]};
+ const node={dataset:{row95:'0',field95:'advance'},value:'3500000'},c={Work82:{run:oldRun},window:{},document:{getElementById:()=>null,querySelectorAll:s=>s.includes('data-field95')?[node]:[]},node,oldRun,oldRow};vm.createContext(c);
+ vm.runInContext('const boundForms235=new WeakMap(),boundInputs252=new WeakMap();boundInputs252.set(node,{run:oldRun,row:oldRow});'+source.slice(source.indexOf('window.updateRun82='),source.indexOf('window.reloadAttendance238=')),c);
+ c.Work82.run=newRun;c.window.updateRun82();assert.equal(newRow.input.advance,900000);
+ c.Work82.run=oldRun;node.value='3600000';oldRun.rows.unshift({employeeId:'added',input:{advance:12}});c.window.updateRun82();assert.equal(oldRow.input.advance,'3600000');assert.equal(oldRun.rows[0].input.advance,12);
+ oldRun.status='finalized';node.value='0';c.window.updateRun82();assert.equal(oldRow.input.advance,'3600000');
+ console.log('PASS stale payroll inputs cannot overwrite another run; reordered rows keep identity; finalized snapshots untouched');
+ const reports=read('src/reports/financial/reports14254.js'),v={num:v=>Number(v||0),money:v=>v.toLocaleString('en-US')};vm.createContext(v);vm.runInContext(reports.slice(reports.indexOf('function checkVoucherAdvance252('),reports.indexOf('function voucher(')),v);
+ const row={employeeId:'e',input:{advance:900000,note:'Salary advance recovery, October payroll: 900,000 LAK.'}},run={rows:[row]},x={employeeId:'e',employee:{name:'Test Employee'},cashAdvance:900000};assert.equal(v.checkVoucherAdvance252(run,x),900000);assert.throws(()=>v.checkVoucherAdvance252(run,{...x,cashAdvance:3500000}),/does not match/);row.input.advance=3500000;assert.throws(()=>v.checkVoucherAdvance252(run,{...x,cashAdvance:3500000}),/note says 900,000/);delete row.input.advance;row.input.note='Legacy finalized record';assert.equal(v.checkVoucherAdvance252(run,x),900000);
+ console.log('PASS voucher recovery consistency; conflicting note is blocked; legacy snapshots supported');
+ const data=new Map(),cache=new Map(),image='data:image/png;base64,YQ==';let fail=false,delay=null;
+ const db={from(){let payload,insert=false,key;const q={upsert(p){payload=p;return q},insert(p){payload=p;insert=true;return q},select(){return q},eq(k,v){key=v;return q},maybeSingle(){return q},then(resolve,reject){return (async()=>{if(delay){const d=delay;delay=null;await d}if(fail)return {data:null,error:{message:'offline'}};if(payload){if(insert&&data.has(payload.area))return {error:{code:'23505'}};data.set(payload.area,structuredClone(payload));return {data:[payload],error:null}}return {data:data.get(key)||null,error:null}})().then(resolve,reject)}};return q}};
+ const p={Map,Date,Error,Promise,liveProfile:{id:'admin',role:'admin'},ojmDb:db,window:{addEventListener(){},shell113:{state:{owner:'admin',loaded:true,rows:{}}}},localStorage:{getItem:k=>cache.get(k)||'',setItem:(k,v)=>cache.set(k,v)},document:{getElementById:()=>null},renderPrintSettingPreviews(){}};p.shell113=p.window.shell113;vm.createContext(p);const printing=read('src/reports/printing/configured-print.js');vm.runInContext(printing.slice(0,printing.indexOf('async function handlePrintImageUpload'))+';this.brand=printBrand252;this.printSettings=PrintSettings;',p);
+ await p.brand.save('header',image);assert.equal(data.get('print-header252').data.image,image);assert.equal(p.printSettings.headerImage,image);
+ await p.brand.save('footer',image);await p.brand.save('header','');assert.equal(data.get('print-footer252').data.image,image);assert.equal(data.get('print-header252').data.image,'');
+ await p.brand.save('header',image,true);assert.equal(p.printSettings.headerImage,'','removed server image wins over old device migration');
+ p.shell113.state.rows={'print-header252':{image},'print-footer252':{image:''}};await p.brand.hydrate();assert.equal(p.printSettings.headerImage,image);assert.equal(p.printSettings.footerImage,'');
+ fail=true;await assert.rejects(p.brand.save('header',''),/offline/);assert.equal(p.printSettings.headerImage,image);fail=false;
+ let release;delay=new Promise(r=>release=r);const first=p.brand.save('header',image),last=p.brand.save('header','');release();await Promise.all([first,last]);assert.equal(p.printSettings.headerImage,'');assert.equal(data.get('print-header252').data.image,'');
+ delay=new Promise(r=>release=r);const stale=p.brand.save('header',image);p.liveProfile={id:'other',role:'admin'};release();await assert.rejects(stale,/Account changed/);assert.equal(p.printSettings.headerImage,'');
+ console.log('PASS database image readback; separate header/footer; cross-device hydration; removal survives migration; failures; queued edits; account-change guards');
+})().catch(e=>{console.error(e);process.exitCode=1});

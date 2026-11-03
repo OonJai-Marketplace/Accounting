@@ -1258,7 +1258,7 @@ function show(id,tab){const actor=liveProfile?.id,client=ojmDb;const root=$('per
  if(tab==='history')window.workspaceRecords1437.getAdjustments(id).then(rows=>{if(actor!==liveProfile?.id||client!==ojmDb)return;historyExtra.set(key(id),{client,rows});if($('personalWorkspace1437')===root&&root.dataset.owner===id)paintPanel1437(root.querySelector('[data-personal-panel=history]'),historyHtml(id))}).catch(e=>{if(actor===liveProfile?.id&&client===ojmDb&&$('personalWorkspace1437')===root)showCenterStatus('History could not load: '+e.message,true)});
 }
 function installDesktop(){if(!desktop()||!$('sub-users-workspace')?.classList.contains('active'))return;const id=String(activeSubUserTab()?.userId||''),u=user(id),shell=$('subUserWorkspacePanel')?.querySelector('.v49-desktop-workspace');if(!id||!u||!shell)return;
- if(shell.querySelector('#personalWorkspace1437')){updatePanels(id);return}
+ const existing=shell.querySelector('#personalWorkspace1437');if(existing?.dataset.owner===id){updatePanels(id);return}if(shell.dataset.workspaceOwner252!==id)return;if(existing){detach();existing.remove();}
  const main=shell.querySelector('main');if(!main)return;
  shell.querySelectorAll('[onclick*="openWorkspaceReview"]').forEach(b=>{if(b.getAttribute('onclick').includes("'history'"))b.remove()});
  const accounts=main.querySelector('.v49-desktop-accounts'),funds=main.querySelector('.fund-summary113');
@@ -2294,7 +2294,7 @@ function desktop(){
 
 function ready(){
  const beforeOpen=window.openWorkspaceUser;
- window.openWorkspaceUser=function(id){id=String(id);if(!Organization14229.mayOpen(id)){showCenterStatus('This account is not assigned to you.',true);return false}window.personalJournal1437?.detach();const out=beforeOpen.call(this,id);if(String(activeSubUserTab()?.userId)!==id)return out;if(!document.getElementById('sub-users-workspace')?.classList.contains('active'))switchTab('sub-users-workspace');desktop();window.workflow136?.decorate();window.saveLocation69?.();return out;};
+ window.openWorkspaceUser=function(id){id=String(id);if(!Organization14229.mayOpen(id)){showCenterStatus('This account is not assigned to you.',true);return false}window.personalJournal1437?.detach();const out=beforeOpen.call(this,id);if(String(activeSubUserTab()?.userId)!==id)return out;if(!document.getElementById('sub-users-workspace')?.classList.contains('active'))switchTab('sub-users-workspace');if(document.querySelector('#subUserWorkspacePanel [data-workspace-owner252]')?.dataset.workspaceOwner252!==id)renderSubUserWorkspace();desktop();window.workflow136?.decorate();window.saveLocation69?.();return out;};
  const beforeActivate=window.activateSubUserTab;
  window.activateSubUserTab=function(key){const tab=openSubUserTabs.find(t=>t.key===key);if(tab&&!tab.userId&&admin())return home();if(tab?.userId)return openUser(tab.userId);return beforeActivate.call(this,key)};
  window.selectSubUserForActiveTab=function(id){return openUser(id)};

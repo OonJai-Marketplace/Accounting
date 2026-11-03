@@ -28,13 +28,21 @@ function layout(){
  }else if(window.settingsStack143176?.enabled()&&panel.closest('.settings-stack-workspace143176')){
   const host=panel.closest('.settings-stack-workspace143176');
   for(const node of [sharedHeader,sharedTabs]){if(node){anchor=place(host,node,anchor);next.push(node)}}
+ }else if(panel.id==='sub-users-home14229'||panel.id==='sub-users-workspace'){
+  // Keep the user strip in its final position. Moving it twice on every layout
+  // cancels pointer clicks between pointerdown and pointerup.
+  const users=panel.querySelector(':scope>.team-tabs14230');
+  anchor=place(panel,users,null);anchor=place(panel,banner,anchor);
+  if(users)next.push(users);sharedTabs.hidden=true;
+  for(const node of [sharedHeader,sharedTabs,panel.id==='sub-users-workspace'?document.querySelector('.sub-user-tabs-shell'):null,...panel.querySelectorAll(':scope>.workflow-switch14316,:scope>.workspace-tabs14337')]){
+   if(!node)continue;anchor=place(panel,node,anchor);if(node!==sharedTabs)next.push(node);
+  }
  }else{
   // Main tabs lead the page, followed directly by the shared banner.
   for(const node of [sharedHeader,sharedTabs,panel.dataset.module==='settings'?document.getElementById('settingsSections14335'):null,panel.id==='sub-users-workspace'?document.querySelector('.sub-user-tabs-shell'):null,...panel.querySelectorAll(rowSelector)]){
    if(!node)continue;anchor=place(panel,node,anchor);next.push(node);if(node===sharedTabs)anchor=place(panel,banner,anchor);
   }
  }
- if(panel.id==='sub-users-home14229'||panel.id==='sub-users-workspace'){const users=panel.querySelector(':scope>.team-tabs14230');sharedTabs.hidden=true;if(users){place(panel,users,null);place(panel,banner,users)}next=next.filter(n=>n!==sharedTabs)}
  for(const row of rows)if(!next.includes(row)){row.classList.remove('sticky-tabs14344');row.style.removeProperty('--tab-top14344')}
  window.groupedNavigation14378?.render(panel.id);
  syncSectionMenus(panel);
@@ -83,7 +91,7 @@ function syncSectionMenus(panel){
 document.addEventListener('click',e=>{
  const trigger=e.target.closest?.('#categoryTabs .category-tab,.team-tabs14230 [data-team-user14230]');if(!trigger||innerWidth<=640||document.documentElement.dataset.device132==='phone')return;
  const panel=document.querySelector('.tab-content.active'),key=tabKey14355(trigger);
- if(trigger===mainTab14355()&&panel&&sectionChoices14355(panel).length){e.preventDefault();e.stopImmediatePropagation();pendingSection14355='';if(sectionTrigger14355===trigger)closeSectionMenu14355();else showSectionMenu14355(trigger,panel)}else{closeSectionMenu14355();pendingSection14355=key;schedule()}
+ if(trigger===mainTab14355()&&!trigger.dataset.teamUser14230&&panel&&sectionChoices14355(panel).length){e.preventDefault();e.stopImmediatePropagation();pendingSection14355='';if(sectionTrigger14355===trigger)closeSectionMenu14355();else showSectionMenu14355(trigger,panel)}else{closeSectionMenu14355();pendingSection14355=trigger.dataset.teamUser14230?'':key;schedule()}
 },true);
 document.addEventListener('keydown',e=>{const trigger=e.target.closest?.('#categoryTabs .category-tab,.team-tabs14230 [data-team-user14230]');if(trigger&&e.key==='ArrowDown'&&trigger.getAttribute('aria-haspopup')==='menu'){e.preventDefault();showSectionMenu14355(trigger,document.querySelector('.tab-content.active'))}});
 document.addEventListener('pointerdown',e=>{if(sectionMenu14355&&!sectionMenu14355.contains(e.target)&&!sectionTrigger14355?.contains(e.target))closeSectionMenu14355()},true);

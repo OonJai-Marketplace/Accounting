@@ -35,7 +35,7 @@
       const message=warnings?'Review the warning on your assigned account.':ready?'Check your saved entries before submitting.':'Record your next transaction.';
       content+=`<div class="v62-next-action"><span>Next action</span><strong>${message}</strong><button class="je-btn je-btn-emerald" onclick="v49SetView(${escapeHtml(JSON.stringify(user.id))},${escapeHtml(JSON.stringify(next))})">Open</button></div>`;
     }
-    return `<div class="v49-phone-workspace">${workspaceHeader(user)}<main>${content}</main>${bottomNav(user)}</div><div class="v49-desktop-workspace">${desktopHeader(user)}<main>${desktopAccounts(user)}${desktopPost(user)}${totalsTable(user,draftLines(user.id))}</main></div>`;
+    return `<div class="v49-phone-workspace">${workspaceHeader(user)}<main>${content}</main>${bottomNav(user)}</div><div class="v49-desktop-workspace" data-workspace-owner252="${escapeHtml(user.id)}">${desktopHeader(user)}<main>${desktopAccounts(user)}${desktopPost(user)}${totalsTable(user,draftLines(user.id))}</main></div>`;
   }
 
   function adminHome() {
@@ -49,11 +49,11 @@
   const originalRender = window.renderSubUserWorkspace;
   window.renderSubUserWorkspace = function () {
     const tabs=document.getElementById('subUserWorkspaceTabs'), panel=document.getElementById('subUserWorkspacePanel');
-    if(!tabs||!panel) return;
+    if(!panel) return;
     const staff=isStaff();
     if(staff){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:true}];activeSubUserId='self'}
     else if(!openSubUserTabs.length){openSubUserTabs=[{key:'default',userId:null,permanent:true}];activeSubUserId='default'}
-    tabs.innerHTML='<button type="button" class="sub-user-mobile-menu" aria-label="Open main navigation" aria-controls="appSidebar" onclick="toggleMobileNavigation()"><span></span><span></span><span></span></button>' + openSubUserTabs.map(tab=>{const user=currentUser(tab.userId),label=tab.permanent?'Home':user?subUserName(user):'New';return`<button type="button" class="sub-user-browser-tab ${tab.key===activeSubUserId?'active':''}" onclick="activateSubUserTab(${escapeHtml(JSON.stringify(tab.key))})"><span class="v62-tab-label" data-phone-label="${escapeHtml(label.trim().split(/\s+/)[0])}">${escapeHtml(label)}</span>${tab.permanent?'':`<span class="sub-user-tab-close" onclick="closeSubUserWorkspace(event,${escapeHtml(JSON.stringify(tab.key))})">×</span>`}</button>`}).join('') + (!staff?'<button type="button" class="sub-user-add-tab" onclick="addSubUserTab()">＋</button>':'');
+    if(tabs)tabs.innerHTML='<button type="button" class="sub-user-mobile-menu" aria-label="Open main navigation" aria-controls="appSidebar" onclick="toggleMobileNavigation()"><span></span><span></span><span></span></button>' + openSubUserTabs.map(tab=>{const user=currentUser(tab.userId),label=tab.permanent?'Home':user?subUserName(user):'New';return`<button type="button" class="sub-user-browser-tab ${tab.key===activeSubUserId?'active':''}" onclick="activateSubUserTab(${escapeHtml(JSON.stringify(tab.key))})"><span class="v62-tab-label" data-phone-label="${escapeHtml(label.trim().split(/\s+/)[0])}">${escapeHtml(label)}</span>${tab.permanent?'':`<span class="sub-user-tab-close" onclick="closeSubUserWorkspace(event,${escapeHtml(JSON.stringify(tab.key))})">×</span>`}</button>`}).join('') + (!staff?'<button type="button" class="sub-user-add-tab" onclick="addSubUserTab()">＋</button>':'');
     const tab=activeSubUserTab();
     if(tab?.permanent&&!staff){
       panel.replaceChildren();
