@@ -4367,6 +4367,10 @@
         "suffix": "\n;\n"
       },
       {
+        "source": "src/bookkeeping/templates/generation-catalog268.js",
+        "suffix": "\n;\n"
+      },
+      {
         "source": "src/bookkeeping/journal/completion-ui258.js",
         "suffix": "\n"
       }

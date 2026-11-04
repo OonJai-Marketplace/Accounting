@@ -2118,7 +2118,7 @@ async function ensureTemplateNumbers143125(){
     const key=TemplateStore.key+':numbers143125',raw=localStorage.getItem(key);
     const registry=raw?JSON.parse(raw):{next:1,ids:{}};
     if(!registry.ids||!Number.isSafeInteger(registry.next)||registry.next<1)throw Error('Template number registry is invalid. Restore the device backup before saving.');
-    const templates=[...(window.JournalFX14383?.templates()||[]),...TemplateStore.templates];
+    const templates=[...builtInTransactionTemplates268(),...TemplateStore.templates];
     for(const t of templates){if(!Object.hasOwn(registry.ids,t.id)){registry.ids[t.id]=registry.next++;}}
     localStorage.setItem(key,JSON.stringify(registry));
     return registry.ids;
@@ -2192,9 +2192,10 @@ async function confirmSaveTemplate() {
   showAppNotification('Template Saved', `${name} is permanently saved in this browser until edited or removed.`, false);
 }
 function openTemplateManager(){ renderTemplateManager(); openModal('modalTemplateManager'); }
+function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
 function availableTransactionTemplates(){
   const overrides=new Map(TemplateStore.templates.map(t=>[t.id,t]));
-  return [...(window.JournalFX14383?.templates()||[]).filter(t=>!overrides.has(t.id)),...TemplateStore.templates].filter(t=>!t.deleted);
+  return [...builtInTransactionTemplates268().filter(t=>!overrides.has(t.id)),...TemplateStore.templates].filter(t=>!t.deleted);
 }
 function templateEditorFields14399(t){
   let host=document.getElementById('templateFields14399');
@@ -2236,9 +2237,9 @@ function applyTransactionTemplate(id){
   let lines=t.lines;
   if(t.builtin){
     lines=t.lines.map(line=>{const a=AccountingStore.accounts.find(a=>a.code===line.code&&a.currency===line.currency&&a.isPosting!==false&&a.active!==false);return {...line,account:a?a.code+' — '+a.name:'',resolved:a}});
-    const missing=lines.filter(l=>!l.resolved);
+    const missing=lines.filter(l=>!l.resolved&&!l.role);
     if(missing.length){showAppNotification('Template Accounts Missing','Check these posting accounts: '+missing.map(l=>l.code+' ('+l.currency+')').join(', '),true);return;}
-    if(window.personalJournal1437?.active&&lines.some(l=>!personalJournal1437.allowed(l.resolved))){showAppNotification('Template Accounts Not Assigned','This template includes accounts outside this user’s assignments. Use the main journal or update the user’s allowed accounts.',true);return;}
+    if(window.personalJournal1437?.active&&lines.some(l=>l.resolved&&!personalJournal1437.allowed(l.resolved))){showAppNotification('Template Accounts Not Assigned','This template includes accounts outside this user’s assignments. Use the main journal or update the user’s allowed accounts.',true);return;}
   }
   if(!t.builtin){
     lines=t.lines.map(line=>{const a=resolveTemplateAccount14397(line);return {...line,account:a?a.code+' — '+a.name:line.account,resolved:a}});
@@ -2267,7 +2268,7 @@ async function deleteTransactionTemplate(id){
   const owner=liveProfile?.id;
   const t=availableTransactionTemplates().find(x=>x.id===id); if(!t)return;
   if(!await ui117.confirm(`Remove template "${t.name}"?`))return;
-  if(liveProfile?.id!==owner)return;const previous=TemplateStore.templates;TemplateStore.templates=previous.filter(x=>x.id!==id);if((window.JournalFX14383?.templates()||[]).some(x=>x.id===id))TemplateStore.templates.push({id,deleted:true});try{TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Removed',error.message,true);return}renderTemplateManager();
+  if(liveProfile?.id!==owner)return;const previous=TemplateStore.templates;TemplateStore.templates=previous.filter(x=>x.id!==id);if(builtInTransactionTemplates268().some(x=>x.id===id))TemplateStore.templates.push({id,deleted:true});try{TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Removed',error.message,true);return}renderTemplateManager();
 }
 
 // ------------------------- Recurring Obligations -------------------------------

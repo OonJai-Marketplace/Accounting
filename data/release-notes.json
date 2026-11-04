@@ -1,9 +1,9 @@
 {
-  "version": "143.267",
+  "version": "143.268",
   "changes": [
-    "Synchronization shows a completed Synced state and time, with explicit checking for new data.",
-    "Daily workspace data and the complete posted-report dataset are prepared before use. Reports share downloaded data across periods and report types.",
-    "Report loading shows Processing, cancels obsolete period requests and prevents late redraws after navigation. Routine session renewal no longer forces a refresh during work.",
-    "Print is restored in expanded Journal History and sub-user History. Long descriptions and line memos wrap on desktop and iPad."
+    "Generate journal opens centered and closes immediately while retaining its draft. Late calculations cannot update a closed or reopened window.",
+    "Typing replaces the selected template name. Search covers the complete available catalog and saved templates.",
+    "Added chart-backed templates for supported expenses, fees, income, financial support, salary accrual and withholding, balance payments, transfers and currency exchanges. Existing template edits, numbers and removals are retained.",
+    "Manual journal details can match a template and fill its missing lines. Ambiguous choices remain visible for selection; amounts and tax allocations are not guessed."
   ]
 }

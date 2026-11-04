@@ -47,6 +47,9 @@ function complete(input){
  if(errors.length)return {errors};
  const source=rows.filter(l=>l.a&&l.generated!=='output'&&!reg.isBridge(l.a));
  const foreign=source.filter(l=>l.c!=='LAK');
+ // A local journal can fill one explicitly chosen counterpart. More than one
+ // missing business amount remains ambiguous and must be entered by the user.
+ if(!foreign.length){const blanks=source.filter(l=>!l.debit&&!l.credit&&!technical(l.a)&&String(l.a.code)!=='5419'),gap=sum(source);if(gap&&blanks.length===1){const l=blanks[0];l.debit=gap<0?-gap:0;l.credit=gap>0?gap:0;l.generated='source';notes.push('Filled row '+(l.index+1)+'.');}}
  const cashNeeds=new Map();
  function carry(l){
   const b=balances[l.a.id];

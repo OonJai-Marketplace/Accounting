@@ -47,6 +47,9 @@ function complete(input){
  if(errors.length)return {errors};
  const source=rows.filter(l=>l.a&&l.generated!=='output'&&!reg.isBridge(l.a));
  const foreign=source.filter(l=>l.c!=='LAK');
+ // A local journal can fill one explicitly chosen counterpart. More than one
+ // missing business amount remains ambiguous and must be entered by the user.
+ if(!foreign.length){const blanks=source.filter(l=>!l.debit&&!l.credit&&!technical(l.a)&&String(l.a.code)!=='5419'),gap=sum(source);if(gap&&blanks.length===1){const l=blanks[0];l.debit=gap<0?-gap:0;l.credit=gap>0?gap:0;l.generated='source';notes.push('Filled row '+(l.index+1)+'.');}}
  const cashNeeds=new Map();
  function carry(l){
   const b=balances[l.a.id];
@@ -155,10 +158,79 @@ root.JournalCompletion258={complete,registry,currency,type,technical,available,f
 })(globalThis);
 
 ;
+/* Chart-backed starters and conservative matching; never changes saved templates. */
+((root)=>{'use strict';
+const G=()=>root.JournalCompletion258;
+function templates(chart){
+ const g=G();if(!g)return [];const reg=g.registry(chart),out=[];
+ const row=(a,side,memo)=>({code:String(a.code),currency:g.currency(a),memo: memo||a.name,side});
+ const slot=(role,currency,side,memo)=>({role,currency,side,memo});
+ const add=(id,name,lines,autoMatch=true)=>out.push({id:'gen268-'+id,name,builtin:true,lines,generalMemo:'',autoMatch});
+ for(const [id,m] of reg.maps){
+  const a=reg.all.find(a=>a.id===id),c=g.currency(a);if(!m.actual||!m.offset)continue;
+  const expense=g.type(m.actual)==='EXPENSE',asset=g.type(m.actual)==='ASSET';
+  const name=String(m.actual.name||m.actual.code).replace(/\s*[—–-]?\s*LAK\s*$/i,'').trim();
+  if(String(m.actual.code)==='5311'){
+   add('payroll-'+c,'Salary accrual · '+c,[row(a,'debit','Gross salary'),slot('staff',c,'credit','Net salary owed')]);
+   const tax=reg.bridge(c,true),pit=reg.byCode('2111'),sso=reg.byCode('2112');
+   if(tax&&pit)add('payroll-pit-'+c,'Salary accrual with PIT · '+c,[row(a,'debit','Gross salary'),slot('staff',c,'credit','Net salary owed'),row(tax,'credit','Employee PIT withholding'),row(pit,'credit','PIT payable')],false);
+   if(tax&&pit&&sso)add('payroll-tax-sso-'+c,'Salary accrual with PIT and SSO · '+c,[row(a,'debit','Gross salary'),slot('staff',c,'credit','Net salary owed'),row(tax,'credit','Employee withholding'),row(pit,'credit','PIT payable — enter the allocation'),row(sso,'credit','SSO payable — enter the allocation')],false);
+   continue;
+  }
+  add('mapping-'+a.code+'-'+c,name+' · '+c+(expense?' payment':asset?' purchase':' receipt'),expense||asset?[row(a,'debit'),slot('fund',c,'credit','Cash / bank payment')]:[slot('fund',c,'debit','Cash / bank receipt'),row(a,'credit')]);
+  const fee=[...reg.maps].find(([id,m])=>String(m.actual?.code)==='5414'&&g.currency(reg.all.find(a=>a.id===id))===c);
+  if(expense&&String(m.actual.code)!=='5414'&&fee){const feeAccount=reg.all.find(a=>a.id===fee[0]);add('fee-'+a.code+'-'+c,name+' with bank fee · '+c,[row(a,'debit'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')],false);}
+ }
+ const salaries=[...reg.maps].filter(([,m])=>String(m.actual?.code)==='5311').map(([id])=>reg.all.find(a=>a.id===id));
+ if(salaries.length>1)add('mixed-payroll','Salary accrual · mixed currencies',salaries.flatMap(a=>[row(a,'debit','Gross salary'),slot('staff',g.currency(a),'credit','Net salary owed')]),false);
+ const currencies=[...new Set(reg.all.filter(g.fund).map(g.currency))].sort();
+ for(const c of currencies){
+  add('transfer-'+c,'Cash / bank transfer · '+c,[slot('fund',c,'debit','Receiving fund'),slot('fund',c,'credit','Paying fund')],false);
+  add('settlement-'+c,'Pay salary or existing balance · '+c,[slot('balance',c,'debit','Balance payment'),slot('fund','', 'credit','Cash / bank payment')],false);
+  for(const to of currencies.filter(x=>x!==c))add('exchange-'+c+'-'+to,'Currency exchange · '+c+' to '+to,[slot('fund',c,'credit','Amount paid'),slot('fund',to,'debit','Amount received')],false);
+ }
+ for(const a of reg.all.filter(a=>g.currency(a)==='LAK'&&!g.technical(a)&&['EXPENSE','REVENUE','EQUITY'].includes(g.type(a))&&String(a.code)!=='5419')){
+  const expense=g.type(a)==='EXPENSE';add('local-'+a.code,a.name+' · LAK '+(expense?'payment':'receipt'),expense?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
+ }
+ return out;
+}
+function accepts(line,a){const g=G();return !!a&&(!line.currency||line.currency===g.currency(a))&&(line.role==='fund'?g.fund(a):line.role==='staff'?g.staff(a):line.role==='balance'?g.staff(a)||g.type(a)==='LIABILITY':false);}
+function resolve(line,chart){return line.accountId?chart.find(a=>a.id===line.accountId&&(!line.currency||G().currency(a)===line.currency)):line.code?chart.find(a=>String(a.code)===String(line.code)&&(!line.currency||G().currency(a)===line.currency)):root.resolveTemplateAccount14397?.(line);}
+function match(rows,definitions,chart){
+ const g=G(),reg=g.registry(chart),entered=rows.filter(l=>l.account_id&&l.generated!=='output'),anchors=entered.filter(l=>{const a=chart.find(a=>a.id===l.account_id);return a&&!g.fund(a)&&(!g.technical(a)||reg.maps.has(a.id))});
+ if(!anchors.length)return [];
+ const candidates=[];
+ for(const t of definitions.filter(t=>t.id!=='blank'&&t.autoMatch!==false)){
+  const lines=t.lines||[];let score=0,valid=true;
+  for(const l of entered){const a=chart.find(a=>a.id===l.account_id);if(!a)continue;const side=Number(l.debit)>0?'debit':Number(l.credit)>0?'credit':'';
+   const matches=lines.filter(x=>(!side||!x.side||x.side===side)&&(resolve(x,chart)?.id===a.id||accepts(x,a)||reg.maps.get(resolve(x,chart)?.id)?.actual?.id===a.id));
+   if(!matches.length){if(anchors.includes(l)||g.fund(a)){valid=false;break;}continue;}
+   if(anchors.includes(l))score+=matches.some(x=>resolve(x,chart)?.id===a.id)?4:2;
+   else score++;
+  }
+  if(valid&&score>=2)candidates.push({template:t,score});
+ }
+ candidates.sort((a,b)=>b.score-a.score);return candidates.filter(x=>x.score===candidates[0]?.score).map(x=>x.template);
+}
+function merge(rows,template,chart,makeRows){
+ const result=rows.map(l=>({...l})),used=new Set();
+ for(const [i,line] of (template.lines||[]).entries()){
+  const a=resolve(line,chart),index=result.findIndex((l,j)=>!used.has(j)&&l.account_id&&(!line.side||!Number(l.debit)&&!Number(l.credit)||Number(l[line.side])>0)&&(a?.id===l.account_id||accepts(line,chart.find(a=>a.id===l.account_id))));
+  if(index>=0){used.add(index);continue;}
+  const empty=result.findIndex((l,j)=>!used.has(j)&&!l.account_id&&!l.line_memo&&!l.debit&&!l.credit),next=makeRows(template)[i];
+  if(empty>=0){result[empty]=next;used.add(empty);}else{result.push(next);used.add(result.length-1);}
+ }
+ return result;
+}
+root.JournalTemplateCatalog268={templates,accepts,resolve,match,merge};
+})(globalThis);
+
+;
 /* A separate template draft. Only Use in Post Entry copies rows to the journal. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id),G=window.JournalCompletion258,esc=v=>escapeHtml(String(v??''));
-let dialog=null,owner='',state=null,busy=false,revision=0,verified='',storageWarning='';
+let dialog=null,owner='',state=null,busy=false,revision=0,verified='',storageWarning='',job=null;
+const Catalog=window.JournalTemplateCatalog268;
 const who=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 const chart=()=>AccountingStore.accounts.filter(G.available);
 const key=()=> 'ojm_generator258:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+owner;
@@ -171,25 +243,45 @@ function persist(){if(owner!==who()||!state)return;try{localStorage.setItem(key(
 function invalidate(){revision++;verified='';if(dialog){dialog.querySelector('[data-use]').disabled=true;dialog.querySelector('[data-status]').textContent='';}persist();}
 function definitions(){
  const saved=typeof availableTransactionTemplates==='function'?availableTransactionTemplates():[];
- return [{id:'blank',name:'Blank journal',lines:[{},{}]},...saved];
+ return [{id:'blank',name:'Enter manually — detect template',lines:[{},{}]},...saved];
 }
-function templateRows(t){return (t.lines||[]).map(l=>{const a=l.code?chart().find(a=>String(a.code)===String(l.code)&&G.currency(a)===l.currency):l.accountId?chart().find(a=>a.id===l.accountId):typeof resolveTemplateAccount14397==='function'?resolveTemplateAccount14397(l):null;return {...blank(),account_id:a?.id||'',line_memo:l.memo||'',missing:!a&&(l.accountId||l.account||l.code)?String(l.account||l.code||l.accountId):''};});}
+function templateRows(t){return (t.lines||[]).map(l=>{const a=l.code?chart().find(a=>String(a.code)===String(l.code)&&G.currency(a)===l.currency):l.accountId?chart().find(a=>a.id===l.accountId):typeof resolveTemplateAccount14397==='function'?resolveTemplateAccount14397(l):null;return {...blank(),account_id:a?.id||'',line_memo:l.memo||'',role:l.role,expectedCurrency:l.currency,expectedSide:l.side,missing:!a&&(l.accountId||l.account||l.code)?String(l.account||l.code||l.accountId):''};});}
 function selectTemplate(id){
  state.drafts[state.template]={rows:state.rows,memo:state.memo,rates:state.rates};
  const previous=state.drafts[id],t=definitions().find(t=>t.id===id);if(!t)return;
  Object.assign(state,previous||{rows:templateRows(t),memo:t.generalMemo||'',rates:{}},{template:id});invalidate();render();
 }
 function message(text,error=false){const host=dialog?.querySelector('[data-status]');if(host){host.textContent=text+(storageWarning?' '+storageWarning:'');host.classList.toggle('has-error258',error);}}
+function close(){
+ const previous=dialog;if(!previous)return;revision++;job?.end?.();job=null;busy=false;verified='';
+ window.dropdown1434?.close();dialog=null;previous.close();previous.remove();persist();
+ $('generateJournal258')?.focus({preventScroll:true});
+}
+function templateChoices(query=''){
+ const host=dialog.querySelector('[data-template-options]'),field=dialog.querySelector('[data-template-query]');host.replaceChildren();
+ const tokens=query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean),matches=definitions().filter(t=>tokens.every(token=>(t.name+' '+(t.lines||[]).map(l=>l.memo||l.account||l.code||'').join(' ')).toLocaleLowerCase().includes(token)));
+ for(const t of matches){const b=document.createElement('button');b.type='button';b.setAttribute('role','option');b.setAttribute('aria-selected',String(state.template===t.id));b.textContent=t.name;b.onpointerdown=e=>e.preventDefault();b.onclick=()=>{selectTemplate(t.id);host.hidden=true;field.setAttribute('aria-expanded','false');};host.append(b);}
+ if(!matches.length)host.textContent='No matching templates. Choose manual entry and enter the accounts you know.';
+ host.hidden=false;field.setAttribute('aria-expanded','true');
+}
+function detect(){
+ if(state.template!=='blank'||!Catalog)return '';
+ const matches=Catalog.match(state.rows,definitions(),chart()),host=dialog.querySelector('[data-matches]');host.replaceChildren();
+ const apply=t=>{state.rows=Catalog.merge(state.rows,t,chart(),templateRows);invalidate();renderRows();renderRates();};
+ if(matches.length===1){apply(matches[0]);return 'Matched '+matches[0].name+'. ';}
+ if(matches.length>1){host.append('Several templates fit. Choose one to add its missing lines: ');for(const t of matches){const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent=t.name;b.onclick=()=>{apply(t);host.replaceChildren();message('Matched '+t.name+'. Review the accounts and press Generate.');};host.append(b);}}
+ return '';
+}
 function renderRates(){
  const host=dialog.querySelector('[data-rates]'),cs=[...new Set(state.rows.map(l=>chart().find(a=>a.id===l.account_id)).filter(Boolean).map(G.currency).filter(c=>c!=='LAK'))].sort();
  for(const n of [...host.children])if(!cs.includes(n.dataset.currency))n.remove();
  for(const c of cs)if(![...host.children].some(n=>n.dataset.currency===c)){const label=document.createElement('label');label.dataset.currency=c;label.textContent='LAK per 1 '+c;const n=document.createElement('input');n.className='je-input';n.inputMode='decimal';n.setAttribute('aria-label','LAK per 1 '+c);n.value=state.rates[c]||'';n.oninput=()=>{state.rates[c]=n.value;for(const l of state.rows)if(G.currency(chart().find(a=>a.id===l.account_id))===c)delete l.fx_rate_lak;invalidate();};label.append(n);host.append(label);}
 }
 function renderRows(){
- const body=dialog.querySelector('tbody');body.replaceChildren();
+ const body=dialog.querySelector('tbody'),accounts=chart(),options=accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('');body.replaceChildren();
  state.rows.forEach((l,i)=>{
   const a=chart().find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
-  tr.innerHTML='<td>'+(i+1)+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">Choose account</option>'+chart().map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('')+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','book_rate_lak'].map(k=>'<td><input inputmode="decimal" aria-label="'+({debit:'Debit',credit:'Credit',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]||''))+'"'+(k==='book_rate_lak'&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
+  tr.innerHTML='<td>'+(i+1)+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">Choose account</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','book_rate_lak'].map(k=>'<td><input inputmode="decimal" aria-label="'+({debit:'Debit',credit:'Credit',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]||''))+'"'+(k==='book_rate_lak'&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
   const select=tr.querySelector('select');select.value=l.account_id;select.onchange=()=>{l.account_id=select.value;l.missing='';delete l.generated;delete l.book_rate_lak;delete l.fx_rate_lak;delete l.autoBook;invalidate();renderRows();renderRates();};
   for(const n of tr.querySelectorAll('[data-field]'))n.oninput=()=>{l[n.dataset.field]=n.value;if(n.dataset.field==='line_memo')delete l.autoMemo;if(['debit','credit'].includes(n.dataset.field))delete l.generated;if(n.dataset.field==='book_rate_lak'){delete l.autoBook;delete l.generated;}invalidate();};
   tr.querySelector('button').onclick=()=>{state.rows.splice(i,1);if(!state.rows.length)state.rows.push(blank());invalidate();renderRows();renderRates();};body.append(tr);
@@ -197,6 +289,7 @@ function renderRows(){
 }
 function render(){
  dialog.querySelector('[data-template]').value=state.template;dialog.querySelector('[data-date]').value=state.date;dialog.querySelector('[data-memo]').value=state.memo;
+ dialog.querySelector('[data-template-query]').value=definitions().find(t=>t.id===state.template)?.name||'';
  dialog.querySelector('[data-rates]').replaceChildren();renderRates();renderRows();dialog.querySelector('[data-use]').disabled=true;
  const missing=state.rows.filter(l=>l.missing);if(missing.length)message('Choose current accounts for these saved template lines: '+missing.map(l=>l.missing).join(', '),true);
 }
@@ -221,15 +314,15 @@ async function balances(input){
 }
 function showErrors(errors){message(errors.map(e=>(e.row!=null?'Row '+(e.row+1)+': ':'')+e.message.replace(/^Row \d+: /,'')).join('\n'),true);const book=errors.find(e=>e.needsBook&&e.row!=null);if(book)dialog.querySelector('[data-row="'+book.row+'"] [data-field="book_rate_lak"]')?.focus({preventScroll:true});}
 async function calculate(){
- if(busy)return;busy=true;verified='';dialog.querySelector('[data-use]').disabled=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-generate]'),'Generating journal…');
- try{eligible();if(!state.memo.trim())throw Error('Enter the general description.');if(!/^\d{4}-\d{2}-\d{2}$/.test(state.date))throw Error('Choose the transaction date.');const input=readInput(),b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
+ if(busy)return;const detected=detect();busy=true;verified='';dialog.querySelector('[data-use]').disabled=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-generate]'),'Generating journal…'),task=job={end};
+ try{eligible();if(!state.memo.trim())throw Error('Enter the general description.');if(!/^\d{4}-\d{2}-\d{2}$/.test(state.date))throw Error('Choose the transaction date.');const input=readInput();const missing=state.rows.findIndex(l=>!l.account_id&&(l.role||l.missing));if(missing>=0)throw Error('Row '+(missing+1)+': choose the '+(state.rows[missing].role||'missing')+' account before generating.');const b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
   const result=G.complete({...input,balances:b.values});if(result.errors.length){verified='';dialog.querySelector('[data-use]').disabled=true;showErrors(result.errors);return;}
-  state.rows=result.rows;persist();renderRows();renderRates();verified=JSON.stringify(readInput().rows);dialog.querySelector('[data-use]').disabled=false;message('Journal amounts filled. Review the debit and credit cells. '+b.note+(result.notes.length?' '+result.notes.join(' '):''));
- }catch(e){if(actor===who()&&dialog?.open)message(e.message,true);}finally{busy=false;end?.();}
+  state.rows=result.rows;persist();renderRows();renderRates();verified=JSON.stringify(readInput().rows);dialog.querySelector('[data-use]').disabled=false;message(detected+'Journal amounts filled. Review the debit and credit cells. '+b.note+(result.notes.length?' '+result.notes.join(' '):''));
+ }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;}end?.();}
 }
 async function useEntry(){
- if(busy||!verified)return;busy=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-use]'),'Checking journal…');
- try{eligible();const input=readInput(),b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
+ if(busy||!verified)return;busy=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-use]'),'Checking journal…'),task=job={end};
+ try{eligible();const input=readInput();const missing=state.rows.findIndex(l=>!l.account_id&&(l.role||l.missing));if(missing>=0)throw Error('Row '+(missing+1)+': choose the '+(state.rows[missing].role||'missing')+' account before generating.');const b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
   const result=G.complete({...input,balances:b.values});if(result.errors.length){showErrors(result.errors);verified='';dialog.querySelector('[data-use]').disabled=true;return;}
   if(JSON.stringify(result.rows)!==JSON.stringify(state.rows)){state.rows=result.rows;persist();renderRows();verified=JSON.stringify(readInput().rows);message('Recorded values changed. Review the updated debit and credit amounts, then use the journal again.',true);return;}
   const body=$('jeLinesBody'),memo=$('jeGeneralMemo'),oldMemo=memo.value,oldRates=JournalFX14383.capture(),oldDate=$('jeTransDate').value;
@@ -242,26 +335,31 @@ async function useEntry(){
    memo.value=existing&&oldMemo.trim()?oldMemo+'\n'+state.memo:state.memo;JournalFX14383.restore(existing?{...state.rates,...oldRates}:state.rates);calculateJournalBalance();memo.dispatchEvent(new Event('input',{bubbles:true}));window.dispatchEvent(new Event('save-state14234'));window.drafts1427?.flush();window.JournalUndo143103?.record();
   }catch(e){body.replaceChildren(...oldRows);memo.value=oldMemo;$('jeTransDate').value=oldDate;JournalFX14383.restore(oldRates);calculateJournalBalance();throw e;}
   delete state.drafts[state.template];state={template:'blank',date:state.date,memo:'',rates:{},rows:[blank(),blank()],drafts:state.drafts};persist();dialog.close();dialog.remove();dialog=null;verified='';showJournalEntry98();showCenterStatus('Completed journal copied. Review it, then use Post Entry when ready.');
- }catch(e){if(actor===who()&&dialog?.open)message(e.message,true);}finally{busy=false;end?.();}
+ }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;}end?.();}
 }
 function open(){
  try{eligible();}catch(e){showCenterStatus(e.message,true);return;}
- if(dialog&&owner===who()){dialog.showModal();return;}owner=who();
- try{state=JSON.parse(localStorage.getItem(key())||'null');}catch{state=null;}
+ if(dialog&&owner===who()){if(!dialog.open)dialog.showModal();return;}const retained=owner===who()&&state;owner=who();
+ if(!retained)try{state=JSON.parse(localStorage.getItem(key())||'null');}catch{state=null;}
  if(!state||!Array.isArray(state.rows))state={template:'blank',date:$('jeTransDate').value,memo:'',rates:{},rows:[blank(),blank()],drafts:{}};
  state.drafts||={};state.rates||={};if(!definitions().some(t=>t.id===state.template))state.template='blank';
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
- dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-meta258"><label>Transaction template<select class="je-select" data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts below. Generate fills missing amounts and system / FX lines in this table. Book rates are checked against recorded balances; you can enter a specific historical rate when needed.</p><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>Book rate · LAK/unit</th><th></th></tr></thead><tbody></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p>';
+ dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Choose a template, or enter the accounts and amounts you know. Generate detects a matching template and fills the remaining amounts. Enter the original book rate for a partial balance payment.</p><div data-matches></div><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>Book rate · LAK/unit</th><th></th></tr></thead><tbody></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p>';
  document.body.append(dialog);render();
  dialog.querySelector('[data-template]').onchange=e=>selectTemplate(e.target.value);
+ const query=dialog.querySelector('[data-template-query]'),list=dialog.querySelector('[data-template-options]');
+ query.onfocus=()=>{query.select();templateChoices();};query.onclick=()=>{if(query.value===definitions().find(t=>t.id===state.template)?.name)query.select();templateChoices(query.value===definitions().find(t=>t.id===state.template)?.name?'':query.value);};query.oninput=()=>templateChoices(query.value);
+ query.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.setAttribute('aria-expanded','false');}else if(e.key==='ArrowDown'){e.preventDefault();if(list.hidden)templateChoices();list.querySelector('button')?.focus();}else if(e.key==='Enter'){e.preventDefault();if(list.querySelectorAll('button').length===1)list.querySelector('button').click();}};
+ list.onkeydown=e=>{const buttons=[...list.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.focus();list.hidden=true;query.setAttribute('aria-expanded','false');}};
+ dialog.addEventListener('pointerdown',e=>{if(!e.target.closest('.generator-template268')){list.hidden=true;query.setAttribute('aria-expanded','false');}});
  dialog.querySelector('[data-date]').onchange=e=>{state.date=e.target.value;invalidate();};dialog.querySelector('[data-memo]').oninput=e=>{state.memo=e.target.value;invalidate();};
- dialog.querySelector('[data-close]').onclick=()=>{revision++;persist();dialog.close();};dialog.addEventListener('cancel',()=>{revision++;persist();});
+ dialog.querySelector('[data-close]').onclick=close;dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
  dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();
 }
 function ready(){
  const button=document.createElement('button');button.type='button';button.id='generateJournal258';button.className='je-btn je-btn-secondary';button.textContent='Generate';button.onclick=open;$('addEntryRow14271')?.after(button);
- const style=document.createElement('style');style.textContent='#journalGenerator258{width:min(1280px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-sizing:border-box;overflow:auto;border:1px solid #b9cfc2;border-radius:8px;padding:18px;background:#fff;color:#18392e}#journalGenerator258::backdrop{background:#0006}#journalGenerator258 header,#journalGenerator258 footer{display:flex;align-items:center;gap:8px;justify-content:space-between}#journalGenerator258 h3{margin:0 0 12px}#journalGenerator258 footer{justify-content:flex-end;flex-wrap:wrap;margin-top:14px}#journalGenerator258 .je-btn{height:32px;min-height:32px}#journalGenerator258 .generator-meta258{display:grid;grid-template-columns:2fr 1fr;gap:12px}#journalGenerator258 label{display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0}#journalGenerator258 .generator-wide258{grid-column:1/-1}#journalGenerator258 input,#journalGenerator258 select,#journalGenerator258 textarea{box-sizing:border-box;width:100%;color:inherit;background:#fff}#journalGenerator258 .generator-rates258{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}#journalGenerator258 .generator-rates258 label{width:180px}#journalGenerator258 p{font-size:13px;line-height:1.4}#journalGenerator258 .generator-table258{overflow:auto}#journalGenerator258 table{border-collapse:collapse;min-width:1070px;width:100%;font-size:12px}#journalGenerator258 th,#journalGenerator258 td{padding:6px;border-bottom:1px solid #d6e1da;text-align:left}#journalGenerator258 th{background:#eff5f1}#journalGenerator258 th:nth-child(2){width:29%}#journalGenerator258 th:nth-child(3){width:20%}#journalGenerator258 td input{border:0;background:transparent;padding:6px;min-width:92px}#journalGenerator258 td:nth-child(n+5) input{text-align:right}#journalGenerator258 td select{border:0;background:transparent;min-width:250px}#journalGenerator258 [data-status]{white-space:pre-wrap;color:#235d44}#journalGenerator258 [data-status].has-error258{color:#9f2e24}@media(max-width:650px){#journalGenerator258{padding:12px}#journalGenerator258 .generator-meta258{grid-template-columns:1fr}}';document.head.append(style);
- const context=()=>{button.hidden=!!window.personalJournal1437?.active;const locked=$('loginGate')&&!$('loginGate').classList.contains('is-authenticated');if(dialog&&(owner!==who()||locked||window.personalJournal1437?.active)){revision++;dialog.close();dialog.remove();dialog=null;state=null;verified='';}};
+ const style=document.createElement('style');style.textContent='#journalGenerator258{position:fixed;inset:0;margin:auto;transform:none;max-width:calc(100vw - 24px);width:min(1280px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-sizing:border-box;overflow:auto;border:1px solid #b9cfc2;border-radius:8px;padding:18px;background:#fff;color:#18392e}#journalGenerator258:not([open]){display:none!important}#journalGenerator258 .generator-template268{position:relative}#journalGenerator258 [data-template-options]{position:absolute;top:100%;left:0;right:0;max-height:260px;overflow:auto;z-index:3;background:#fffdf7;border:1px solid #98b3a2;box-shadow:0 6px 18px #0002}#journalGenerator258 [data-template-options][hidden]{display:none}#journalGenerator258 [data-template-options] button{display:block;width:100%;text-align:left;padding:9px;border:0;background:transparent;color:inherit;cursor:pointer;font-size:13px}#journalGenerator258 [data-template-options] button:hover,#journalGenerator258 [data-template-options] button:focus{background:#e4f1e7}#journalGenerator258 [data-matches]{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}#journalGenerator258::backdrop{background:#0006}#journalGenerator258 header,#journalGenerator258 footer{display:flex;align-items:center;gap:8px;justify-content:space-between}#journalGenerator258 h3{margin:0 0 12px}#journalGenerator258 footer{justify-content:flex-end;flex-wrap:wrap;margin-top:14px}#journalGenerator258 .je-btn{height:32px;min-height:32px}#journalGenerator258 .generator-meta258{display:grid;grid-template-columns:2fr 1fr;gap:12px}#journalGenerator258 label{display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0}#journalGenerator258 .generator-wide258{grid-column:1/-1}#journalGenerator258 input,#journalGenerator258 select,#journalGenerator258 textarea{box-sizing:border-box;width:100%;color:inherit;background:#fff}#journalGenerator258 .generator-rates258{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}#journalGenerator258 .generator-rates258 label{width:180px}#journalGenerator258 p{font-size:13px;line-height:1.4}#journalGenerator258 .generator-table258{overflow:auto}#journalGenerator258 table{border-collapse:collapse;min-width:1070px;width:100%;font-size:12px}#journalGenerator258 th,#journalGenerator258 td{padding:6px;border-bottom:1px solid #d6e1da;text-align:left}#journalGenerator258 th{background:#eff5f1}#journalGenerator258 th:nth-child(2){width:29%}#journalGenerator258 th:nth-child(3){width:20%}#journalGenerator258 td input{border:0;background:transparent;padding:6px;min-width:92px}#journalGenerator258 td:nth-child(n+5) input{text-align:right}#journalGenerator258 td .account-search1428{border:0!important;background:transparent!important;box-shadow:none!important}#journalGenerator258 td select{border:0;background:transparent;min-width:250px}#journalGenerator258 [data-status]{white-space:pre-wrap;color:#235d44}#journalGenerator258 [data-status].has-error258{color:#9f2e24}@media(max-width:650px){#journalGenerator258{padding:12px}#journalGenerator258 .generator-meta258{grid-template-columns:1fr}}';document.head.append(style);
+ const context=()=>{button.hidden=!!window.personalJournal1437?.active;const locked=$('loginGate')&&!$('loginGate').classList.contains('is-authenticated');if(dialog&&(owner!==who()||locked||window.personalJournal1437?.active)){close();state=null;verified='';}};
  window.addEventListener('page113',context);window.addEventListener('local-work14333',context);document.addEventListener('visibilitychange',context);new MutationObserver(context).observe($('loginGate')||document.body,{attributes:true,attributeFilter:['class','hidden']});
  // The shared editor moves into personal workspaces after page navigation.
  const card=$('journalEntry98');if(card)new MutationObserver(context).observe(card,{attributes:true,attributeFilter:['data-personal-owner1437']});

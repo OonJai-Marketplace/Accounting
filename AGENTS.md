@@ -384,3 +384,12 @@ Print in expanded main History and personal History with existing owner/export
 permissions and immutable saved reports. Long personal descriptions/memos wrap
 and grow vertically on desktop/tablet. The user withdrew the header complaint;
 leave its scrolling behavior unchanged. No financial records are changed.
+
+Generate corrections 2026-11-04 v143.268: center the independent Generate dialog,
+close it immediately with draft recovery and stale-result invalidation, and let
+typing replace the selected template name. Show chart-backed supported transaction
+templates alongside saved templates; preserve permanent IDs/numbers, edits and
+explicit removals. Manual account/currency/side matching may add missing template
+structure without overwriting entered amounts/memos. Offer tied matches for
+selection. Never infer tax allocations, missing fund/employee identities or
+historical lot rates from a description. Keep explicit Post Entry review/posting.
