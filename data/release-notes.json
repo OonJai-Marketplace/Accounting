@@ -1,11 +1,10 @@
 {
-  "version": "143.275",
+  "version": "143.276",
   "changes": [
-    "Review and save one, two or three named signatories per report before opening the editor. Remove Received by from payroll calculation reports; preserve separate salary voucher receiver checks.",
-    "Show page numbers on every numbered page independently of the image footer. Add two or three lines of space above below-content footers; keep page numbers at the bottom.",
-    "Fix sign-in failing with an invalid report selector when no workspace tab is active during session restoration.",
-    "Sync private custom templates to the signed-in account with verified revisions, offline retry and conflict review. Preserve permanent numbers and removals; offer retained-copy recovery and template export/import.",
-    "Complete foreign payroll reimbursements using explicitly selected chart-backed expense mappings and matching LAK rows. Preserve original payroll values and separate posting approval.",
-    "Keep payroll report symbols, OJM employee codes, numeric protections and the existing sidebar layout unchanged."
+    "Keep payroll journal action results beside the buttons. Confirm default loading, distinguish device-only saves, explain draft/finalization and unfinished-entry blocks, and prevent duplicate actions or navigation after closing.",
+    "Keep the saved payroll journal template in the payroll recovery copy. Preparing a finalized payroll opens Transactions for review; posting remains explicit.",
+    "Preserve per-report signatory defaults when saving salary-voucher defaults. Reuse report defaults across date ranges and report entry points.",
+    "Keep each employee receiver and signing space when salary vouchers open through the Reports chooser.",
+    "Audit payroll/report, login, sync, journal generation and template recovery regressions. Missing historical custom templates and financial postings remain separate from this software update."
   ]
 }
