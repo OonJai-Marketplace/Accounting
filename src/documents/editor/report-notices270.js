@@ -7,6 +7,7 @@ function annotate(root){
 }
 const status=/^(?:draft(?:\s*[—–-]\s*not finalized)?|finalized(?: calculation)?|submitted|approved(?:_posted)?|posted|reviewed|completed?|open|closed|final approved|reviewed & forwarded; awaiting final approval|ສະບັບຮ່າງ — ຍັງບໍ່ສຳເລັດ|ສຳເລັດແລ້ວ)$/i;
 const standalone=/^(?:DRAFT\s*[—–-]\s*NOT FINALIZED|FINALIZED(?: CALCULATION)?|SAMPLE\s*[—–-]\s*NOT FOR PAYMENT|ສະບັບຮ່າງ — ຍັງບໍ່ສຳເລັດ|ສຳເລັດແລ້ວ|ຕົວຢ່າງ — ບໍ່ໃຊ້ສຳລັບຈ່າຍເງິນ|Printing this voucher does not mark the salary paid or post a journal entry\.)$/i;
+const deviceCopy=/^Device copy\s*[—–-]\s*\d+\s+save(?:\(s\)|s)?\s+awaiting database confirmation\.?$/i;
 function split(html,existing=[],context={}){
  const root=document.createElement('div');root.innerHTML=String(html||'');annotate(root);
  const notices=Array.isArray(existing)?existing.filter(n=>typeof n==='string'&&n.trim()):[];
@@ -18,7 +19,7 @@ function split(html,existing=[],context={}){
   if(node.closest('table,[data-print-signatures]')||node.hasAttribute(marker))continue;
   const text=node.textContent.trim();
   if(text.includes('Report activity below may await posting.')){const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);let part;while((part=walker.nextNode()))part.data=part.data.replace(/\s*Report activity below may await posting\./g,'');add('Report activity may await posting.');}
-  if(standalone.test(text)||/^Source status: .+(?:PROVISIONAL — includes unposted records)?$/i.test(text)){add(text);node.remove();continue}
+  if(deviceCopy.test(text)||standalone.test(text)||/^Source status: .+(?:PROVISIONAL — includes unposted records)?$/i.test(text)){add(text);node.remove();continue}
   const heading=node.previousElementSibling;
   const nearTitle=heading?.matches('h1,h2')||heading?.matches('p')&&heading.previousElementSibling?.matches('h1,h2');
   if(!nearTitle)continue;
@@ -40,7 +41,12 @@ function draw(host,model){
  const banner=host?.querySelector('.doc-report-notices270');if(!banner)return;
  banner.replaceChildren();banner.removeAttribute('title');banner.removeAttribute('aria-label');banner.hidden=!model?.reportNotices270?.length;if(banner.hidden)return;
  const labels={'DRAFT — NOT FINALIZED':'Draft — not finalized','FINALIZED':'Finalized','SAMPLE — NOT FOR PAYMENT':'Sample — not for payment'};
- const messages=model.reportNotices270.map(message=>labels[message]||message);
+ const messages=model.reportNotices270.map(message=>{
+  if(!deviceCopy.test(message))return labels[message]||message;
+  const state=window.offline14239?.state?.(),count=state?Number(state.pending||0):Number(message.match(/\d+/)?.[0]||0);
+  return count?count+' app save'+(count===1?'':'s')+' awaiting database confirmation':'';
+ }).filter(Boolean);
+ if(!messages.length){banner.hidden=true;return;}
  banner.textContent='· '+messages.join(' · ');
  banner.title='Internal notice (not printed)\n'+messages.join('\n');
  banner.setAttribute('aria-label','Internal notice, not printed: '+messages.join('; '));
