@@ -5,7 +5,7 @@ function initializeV4Enhancements() {
   updateNextEntryIdDisplay();
   resetJournalLinesForm();
   refreshAllTables();
-  TemplateStore.load();
+  try{TemplateStore.load();}catch(e){console.warn('Saved templates were retained:',e.message);}
   if(liveProfile?.role==='admin')RecurringStore.load();
   renderRecurringTransactions();
   renderPendingReminders();
