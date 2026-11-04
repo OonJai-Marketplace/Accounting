@@ -460,3 +460,9 @@ the earlier name-on-line rule. Put payroll rate/source/date/month/reference abov
 the breakdown; rate format is ₭22,912/$ with commas and no forced zero decimals.
 Keep editor Print icon-sized and adjacent actions close together. Preserve cash
 slips and the approved phone layout.
+
+2026-11-04 v143.279: the whole-day review found a direct-child Save Voucher
+auto margin still separating receipt actions after the v143.278 grouped-action
+fix. Keep both toolbar forms compact; preserve the 32px Print button and all
+receipt actions. Do not equate passing software checks with recovered custom
+templates, posted rent corrections, or physical iPad verification.

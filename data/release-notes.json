@@ -1,10 +1,7 @@
 {
-  "version": "143.278",
+  "version": "143.279",
   "changes": [
-    "Close payroll into Salary History before journaling, with a separate Post to Active Journal action. Save journal template is now clearly labelled.",
-    "Edit closed payroll with the saved calculation rules. Open-month corrections keep their journal ID; closed-month corrections retain the original and require a separate adjustment and explanation.",
-    "Centered report titles, short centered signature lines, editable names and job titles below each line, and saved report defaults.",
-    "Payroll rate, source, date, month and reference appear above the breakdown. Rates use the compact format ₭22,912/$.",
-    "The editor Print button is compact, leaving room for the adjacent formatting, voucher and receipt controls."
+    "Removed the remaining empty toolbar gap before Save Voucher, Details, Download and Share. The compact Print button and formatting controls stay together.",
+    "Retains the monthly cash slip, payroll history/correction workflow, report signatories, compact exchange rates and receipt/footer improvements."
   ]
 }
