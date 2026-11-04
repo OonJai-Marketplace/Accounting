@@ -4062,6 +4062,10 @@
     "scripts/vouchers14299.js": [
       {
         "source": "src/reports/vouchers/vouchers14299.js"
+      },
+      {
+        "source": "src/reports/vouchers/monthly-cash-slip277.js",
+        "prefix": "\n/* Monthly cash slip */\n"
       }
     ],
     "scripts/workspace-settings.js": [
