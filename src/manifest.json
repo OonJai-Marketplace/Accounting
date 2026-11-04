@@ -176,6 +176,9 @@
         "source": "src/bookkeeping/templates/transaction-templates.js"
       },
       {
+        "source": "src/bookkeeping/templates/template-cloud275.js"
+      },
+      {
         "source": "src/bookkeeping/recurring/obligations.js"
       },
       {
@@ -866,6 +869,9 @@
       },
       {
         "source": "src/bookkeeping/templates/transaction-templates.js"
+      },
+      {
+        "source": "src/bookkeeping/templates/template-cloud275.js"
       },
       {
         "source": "src/bookkeeping/recurring/obligations.js"

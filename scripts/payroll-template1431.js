@@ -25,7 +25,7 @@ function journalDate(run,template=run.payrollTemplate1429){
 }
 function defaultTemplate(run){
  const rows=run.rows||[],currencies=[...new Set(rows.map(r=>r.employee.currency))].sort((a,b)=>(a==='LAK'?1:b==='LAK'?-1:a==='USD'?-1:b==='USD'?1:a.localeCompare(b)));
- const t={name:'Oon Jai payroll journal',version:143274,journalDate:journalDate(run),employeeAccounts:{},lines:[]};
+ const t={name:'Oon Jai payroll journal',version:143275,journalDate:journalDate(run),employeeAccounts:{},lines:[]};
  rows.forEach(r=>t.employeeAccounts[r.employeeId]=employeeAccount(r.employee));
  const tax=(run.status==='finalized'?run.settingsSnapshot:ApplicationSettings)?.tax||ApplicationSettings.tax||{};
  const pitExpense=exact('5211','LAK',['PIT Expense','OJM- PITx Expense']),pitPayable=settingsAccount(tax.pitAccount,'2111',['PIT Payable','OJM- PITx Payable']),ssoExpense=exact('5212','LAK',['SSO Expense']),ssoPayable=settingsAccount(tax.ssoAccount,'2112',['SSO Payable','OJM- SSO Payable']);
@@ -45,6 +45,9 @@ function defaultTemplate(run){
    for(const r of t.lines.slice(start))r.conversionSource274=true;
    const derived=(account,kind,memo)=>({...rule(account,'AUTO','rounding',c,'total',memo,kind==='quantity'?c:'LAK'),derived274:kind});
    t.lines.push(rule(exact('5311','LAK'),'DR','gross',c,'total','Salary expense · '+c+' payroll','LAK'),derived(exact('9290','LAK'),'salaryOffset','Salary mapping · converted value'));
+   for(const row of group)if(Number(row.input?.reimbursement)>0||run.results?.some(x=>x.employeeId===row.employeeId&&Number(x.reimbursement)>0)){
+    for(const [kind,memo] of [['reimbursementExpense','Reimbursement expense'],['reimbursementOffset','Reimbursement mapping · converted value']])t.lines.push({...derived('',kind,memo),employees:'employee:'+row.employeeId,scope:'each'});
+   }
    t.lines.push(derived(exact('9041','LAK'),'taxBridge','Employee withholding · converted value'));
    t.lines.push(rule(pitExpense,'DR','employerPit',c,'total','PIT · company share','LAK'),rule(pitPayable,'CR','pit',c,'total','PIT · employee and company payable','LAK'));
    if(sso)t.lines.push(rule(ssoPayable,'CR','employeeSso',c,'total','Employee SSO payable','LAK'));
@@ -54,6 +57,7 @@ function defaultTemplate(run){
    t.lines.push(rule(pitPayable,'CR','employeePit',c,'total','Local workers PIT · employee withholding'),rule(pitExpense,'DR','employerPit',c,'total','Local workers PIT · company share'),rule(pitPayable,'CR','employerPit',c,'total','Local workers PIT · company share payable'));
   }
   if(sso)t.lines.push(rule(ssoExpense,'DR','employerSso',c,'total','Company SSO share','LAK'),rule(ssoPayable,'CR','employerSso',c,'total','Company SSO payable','LAK'));
+  for(const r of t.lines.slice(start))r.groupCurrency275=c;
  }
  return t;
 }
@@ -86,7 +90,7 @@ function evaluate(run,template){
   if(!Number.isFinite(value)||!Number.isFinite(round(value))){report('Payroll amount exceeds the supported range.');return;}
   if(!value)return;
   const e=employees.get(x.employeeId)||x.employee||{};
-  lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex,sourceLak274,fx_rate_lak:a.currency==='LAK'?1:Number(run.rates?.[a.currency]),book_rate_lak:null});
+  lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex,employeeId275:x.employeeId,sourceLak274,fx_rate_lak:a.currency==='LAK'?1:Number(run.rates?.[a.currency]),book_rate_lak:null});
  }
  rules.forEach((r,ruleIndex)=>{
   if(r.basis==='rounding'||r.derived274)return;
@@ -126,21 +130,30 @@ function evaluate(run,template){
  });
  // Every conversion adjustment is derived from the saved LAK amounts and their
  // rounded foreign quantities. An edited/missing business row cannot become FX.
- for(const c of new Set(rules.filter(r=>r.derived274).map(r=>r.employees))){
+ const groupCurrency=r=>r.groupCurrency275||r.employees;
+ for(const c of new Set(rules.filter(r=>r.derived274).map(groupCurrency))){
   const chosen=selected(results,c),rate=Number(run.rates?.[c]),source=lines.filter(l=>rules[l.ruleIndex].conversionSource274&&l.account.currency===c);
   const signed=l=>l.side==='DR'?l.amount:-l.amount;
   const original=round(source.reduce((n,l)=>n+(l.side==='DR'?1:-1)*Number(l.sourceLak274),0));
   if(!source.length)continue;
   if(!(rate>0)||source.some(l=>l.sourceLak274===null)||original!==0){report(c+' payroll source amounts must match the saved calculations before conversion rounding. Review edited or missing business rows.');continue;}
-  if(source.some(l=>rules[l.ruleIndex].basis==='reimbursement')){report('Review foreign reimbursement mapping separately before preparing this payroll journal.');continue;}
+  const reimbursements=source.filter(l=>rules[l.ruleIndex].basis==='reimbursement');
+  const registry=window.JournalCompletion258?.registry(eligible());
+  for(const l of reimbursements){
+   const mapping=registry?.maps.get(l.account.id),pair=rules.filter(r=>groupCurrency(r)===c&&r.employees==='employee:'+l.employeeId275&&/^reimbursement/.test(r.derived274||''));
+   if(!mapping?.actual||!mapping?.offset||mapping.offsetCode!=='9290'||!/^5/.test(mapping.actual.code)||pair.length!==2||new Set(pair.map(r=>r.derived274)).size!==2||l.side!=='DR'){
+    report('Choose a supported foreign expense mapping for each reimbursement; use the default journal to include its LAK counterparts.');continue;
+   }
+   for(const r of pair){const expense=r.derived274==='reimbursementExpense',a=expense?mapping.actual:mapping.offset,v=expense?l.sourceLak274:round(l.amount*rate);push({...r,side:expense?'DR':'CR'},a,v,chosen.find(x=>x.employeeId===l.employeeId275),rules.indexOf(r));}
+  }
   const qty=round(source.reduce((n,l)=>n+signed(l),0));
   if(Math.abs(qty)>source.length*.005+.000001){report(c+' difference exceeds the calculated conversion rounding.');continue;}
   const converted=bases=>round(source.filter(l=>bases.includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n+round(signed(l)*rate),0));
   const entitlement=source.filter(l=>['adjusted','cashAdvance','loanRecovery'].includes(rules[l.ruleIndex].basis));
   const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,0));
   const values={salaryOffset:-converted(['gross']),taxBridge:-converted(['employeePit','employeeSso']),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
-  for(const [i,r] of rules.entries())if(r.derived274&&r.employees===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
-  const local=round(lines.filter(l=>l.account.currency==='LAK'&&rules[l.ruleIndex].employees===c).reduce((n,l)=>n+signed(l),0));
+  for(const [i,r] of rules.entries())if(r.derived274&&groupCurrency(r)===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
+  const local=round(lines.filter(l=>l.account.currency==='LAK'&&groupCurrency(rules[l.ruleIndex])===c).reduce((n,l)=>n+signed(l),0));
   if(local!==0)report(c+' LAK mapping rows differ from the saved payroll by '+Math.abs(local)+'. Review the accounts and amounts; no balancing adjustment was invented.');
  }
  // Keep rule order, including the small foreign rounding row beside the bridge.
@@ -153,4 +166,5 @@ function evaluate(run,template){
 }
 function buildLines(run,t){const e=evaluate(run,t);if(e.issues.length)throw Error(e.issues.join('\n'));if(Object.values(e.balances).some(b=>b.difference))throw Error('Payroll journal must balance separately in every currency. Review the template.');if(e.lines.length<2)throw Error('The template needs at least two non-zero posting lines.');return e.lines;}
 window.payrollTemplate1431={fields,eligible,defaultTemplate,isStarter,evaluate,buildLines,journalDate};
-})();
+})()
+;

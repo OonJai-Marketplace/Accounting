@@ -478,16 +478,9 @@ const esc=v=>escapeHtml(String(v??'')),cash=v=>formatAppNumber(Number(v)||0);
 const voucherImages14370=new Map();
 async function voucherImage14370(kind,configured){if(/^data:image\/(png|jpeg|webp);base64,/i.test(configured||''))return configured;const path='assets/payroll-voucher-'+kind+'1424.png';if(!voucherImages14370.has(path)){const request=fetch(path).then(async response=>{if(!response.ok)throw Error('Voucher '+kind+' image could not load.');const blob=await response.blob();return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(new Blob([blob],{type:'image/png'}))})});voucherImages14370.set(path,request);request.catch(()=>{if(voucherImages14370.get(path)===request)voucherImages14370.delete(path)})}return voucherImages14370.get(path)}
 const currentName=()=>liveProfile?.full_name||liveProfile?.email||'';
-window.printSignatures1424=(choices,receiver=choices.receiver,receiverId='')=>choices.voucherSignatories1433?voucherSignatories1433.html(choices,receiver,receiverId):!choices.enabled?'':`<div data-print-signatures="1" style="display:flex;gap:12mm;margin-top:22mm;break-inside:avoid">${[[choices.prepared,'Prepared by'],[receiver,'Received by'],...(choices.approver?[[choices.approver,'Approved by']]:[])].map(([name,label])=>`<div style="flex:1;min-width:0"><div style="border-bottom:1px solid #333;height:9mm"></div><div style="font-size:10pt;margin-top:2mm">${esc(name)}</div><div style="font-size:9pt">${label}</div></div>`).join('')}</div>`;
-window.choosePrintSignatories1424=async function(options={}){
- const actor=liveProfile?.id,client=ojmDb;if(options.voucherOnly1433)return voucherSignatories1433.choose(options);
- const names=[...new Set([currentName(),...(typeof liveProfiles!=='undefined'?liveProfiles:[]).map(p=>p.full_name),...(Work82.employees||[]).map(e=>e.data.name)].filter(Boolean))];
- const pending=ui108.modal('Before printing',`<form id="printSignatories1424"><label class="print-check1424"><input name="enabled" type="checkbox" ${options.payroll||options.enabled?'checked':''} ${options.payroll?'disabled':''}>Include signatories</label><div class="print-sign-fields1424"><label>Prepared by<input name="prepared" list="printPeople1424" value="${esc(options.prepared||currentName())}" required maxlength="120"></label><label>Received by<input name="receiver" list="printPeople1424" value="${esc(options.receiver||'')}" ${options.perEmployee?'disabled placeholder="Each voucher uses its employee’s name"':'maxlength="120"'}></label><label class="print-check1424"><input name="third" type="checkbox" ${options.approver?'checked':''}>Add a third signatory</label><label class="print-third1424" hidden>Approved by<input name="approver" list="printPeople1424" maxlength="120" value="${esc(options.approver||'')}"></label></div><datalist id="printPeople1424">${names.map(name=>`<option value="${esc(name)}"></option>`).join('')}</datalist></form>`,[{label:'Cancel',value:false},{label:'Print',value:true,primary:true}]);
- const overlay=document.querySelector('.ui-overlay108:last-child'),form=overlay.querySelector('form');overlay.classList.add('print-options1424');let result;
- const refresh=()=>{form.querySelector('.print-sign-fields1424').hidden=!form.elements.enabled.checked;form.querySelector('.print-third1424').hidden=!form.elements.third.checked};form.elements.enabled.onchange=refresh;form.elements.third.onchange=refresh;refresh();
- overlay.querySelector('footer .primary108').onclick=()=>{if(form.elements.enabled.checked){form.elements.prepared.required=true;form.elements.receiver.required=!!options.payroll&&!options.perEmployee;form.elements.approver.required=form.elements.third.checked;if(!form.reportValidity())return}result={enabled:form.elements.enabled.checked,prepared:form.elements.prepared.value.trim(),receiver:form.elements.receiver.value.trim(),approver:form.elements.third.checked?form.elements.approver.value.trim():''};overlay.resolve108(true)};
- return await pending&&liveProfile?.id===actor&&ojmDb===client?result:null;
-};
+window.printSignatures1424=(choices,receiver=choices.receiver,receiverId='')=>choices.reportSignatories275?ReportSignatories275.html(choices):choices.voucherSignatories1433?voucherSignatories1433.html(choices,receiver,receiverId):!choices.enabled?'':`<div data-print-signatures="1" style="display:flex;gap:12mm;margin-top:22mm;break-inside:avoid">${[[choices.prepared,'Prepared by'],...(choices.payrollReport275?[]:[[receiver,'Received by']]),...(choices.approver?[[choices.approver,'Approved by']]:[])].map(([name,label])=>`<div style="flex:1;min-width:0"><div style="border-bottom:1px solid #333;height:9mm"></div><div style="font-size:10pt;margin-top:2mm">${esc(name)}</div><div style="font-size:9pt">${label}</div></div>`).join('')}</div>`;
+window.choosePrintSignatories1424=options=>options?.voucherOnly1433?voucherSignatories1433.choose(options):ReportSignatories275.choose(options);
+
 function attendanceNote(run,x){const row=run.rows.find(r=>r.employeeId===x.employeeId),records=x.attendance95||[],minutes=records.reduce((n,d)=>n+Number(d.minutes||0),0),occurrences=records.filter(d=>Number(d.minutes)>0).length;const leaves=(run.leaveSnapshot||(Work82.leaves||[]).filter(r=>r.data.status==='approved'&&r.data.month===run.month).map(r=>r.data)).filter(l=>l.employeeId===x.employeeId);const duration=minutes>=60?` (${Math.floor(minutes/60)} hours ${minutes%60} minutes)`:'';return `Late record: ${occurrences} late occurrence${occurrences===1?'':'s'}; ${minutes} total late minutes${duration}.`+(leaves.length?' '+leaves.map(l=>`${l.type}: ${formatAppDate(l.from)} to ${formatAppDate(l.to)}${l.notes?' — '+l.notes:''}`).join('; ')+'.':'')+(row?.input.note?' '+row.input.note:'')}
 function voucher(run,x,choices){const rate=Number(x.rate)||1,convert=v=>Number(v||0)/rate,internal=Number(x.late||0)+Number(x.absence||0)+Number(x.penalty||0)+Number(x.other||0),advance=x.cashAdvance!=null?Number(x.cashAdvance)+Number(x.loanRecovery||0):Number(x.advance||0),rows=[['Contracted salary',x.contract,'strong'],['Internal deductions',convert(internal)],['Salary after internal deductions',convert(Number(x.contractLak||Number(x.contract)*rate)-internal),'strong']];if(x.overtime)rows.push(['Overtime',convert(x.overtime)]);if(x.allowance)rows.push(['Taxable allowance',convert(x.allowance)]);rows.push(['Personal income tax (employee share)',convert(x.employeePit)],['Social security obligation',convert(x.employeeSso)]);if(advance)rows.push(['Cash advance / loan recovery',convert(advance)]);if(x.reimbursement)rows.push(['Reimbursement',convert(x.reimbursement)]);rows.push(['Total listed deductions',convert(internal+Number(x.employeePit||0)+Number(x.employeeSso||0)+advance),'strong'],['Net payment',x.paidAmount,'net']);const [year,month]=run.month.split('-').map(Number),end=new Date(year,month,0).getDate(),period=new Date(Date.UTC(year,month-1,1)).toLocaleDateString('en-US',{month:'long',timeZone:'UTC'})+' 1-'+end+', '+year;const img=(source,fallback,alt)=>`<img class="voucher-brand1424" src="${esc(/^data:image\/(png|jpeg|webp);base64,/i.test(source||'')?source:new URL(fallback,location.href).href)}" alt="${alt}">`;
 return `<article class="payroll-voucher1424">${img(PrintSettings.headerImage,'assets/payroll-voucher-header1424.png','Oon Jai company letterhead')}<div class="voucher-body1424"><strong class="voucher-business1424">OON JAI MARKETPLACE</strong><p class="voucher-company1424">${esc(BusinessSettings.current?.companyName||'Oon Jai Company Ltd.')}</p><h1>Payroll Voucher</h1>${run.isSample?'<p data-report-notice270 class="voucher-warning1424">SAMPLE — NOT FOR PAYMENT</p>':''}<p class="voucher-meta1424">Employee: ${esc(x.employee.name)}<br>Payroll period: ${esc(period)}<br>Voucher number: ${esc(run.reference||'____________________')} &nbsp; Payment date: ____________________</p><table><colgroup><col style="width:73%"><col style="width:27%"></colgroup><thead><tr><th>Payroll details</th><th>Amount in ${esc(x.currency)}</th></tr></thead><tbody>${rows.map(([label,amount,style])=>`<tr class="${style||''}"><td>${esc(label)}</td><td>${cash(amount)}</td></tr>`).join('')}</tbody></table><section class="voucher-attendance1424"><h2>Attendance note</h2><p>${esc(attendanceNote(run,x))}</p>${x.currency!=='LAK'?`<p class="voucher-rate1424">Payroll note: ${esc(x.currency)} deductions use the ${esc(run.rateDate?formatAppDate(run.rateDate):run.month)} ${esc(run.rateSource||'saved payroll')} exchange rate of ${cash(rate)} LAK per ${esc(x.currency)}.</p>`:''}</section>${printSignatures1424(choices,x.employee.name,x.employeeId)}</div>${img(PrintSettings.footerImage,'assets/payroll-voucher-footer1424.png','Oon Jai company footer')}</article>`
@@ -506,9 +499,46 @@ async function printVouchers(run,results,choices){
  }).join('<div data-page-break="1"></div>');
  return openDocumentEditor105({title:'Payroll Vouchers '+run.month,category:'Payroll',payrollVouchers:true,printPreview:true,payrollReceivers1433:results.map(voucherSignatories1433.receiver),voucherSignatories1433:choices,receiverName:results.length===1?results[0].employee.name:'',html,settings:{paper:'A4',orientation:'portrait',top:9,bottom:8,left:15.5,right:15.5,headerGap:7,footerGap:4,headerHeight:0,footerHeight:0,headerWidth:89.3855,footerWidth:89.3855,headerImage,footerImage,applyHeader:true,applyFooter:true,headerPlacement:'all',footerPlacement:'all',pageNumbers:false,showBusinessName:false,font:'Arial',size:11,line:1.4}});
 }
-function ready(){window.printPayroll82=async function(vouchers=false){try{if(!Work82.run)throw Error('Open a payroll run first.');if(Work82.run.status!=='finalized')updateRun82();const actor=liveProfile?.id,client=ojmDb,run=structuredClone(Work82.run),results=runResults82(run);if(!results.length)throw Error('This payroll has no employees to print.');const choices={enabled:true,prepared:currentName(),receiver:results.length===1?results[0].employee.name:'',approver:''};if(vouchers){const selected=await choosePrintSignatories1424({voucherOnly1433:true,receivers:results.map(voucherSignatories1433.receiver),actionLabel:'Open vouchers'});if(!selected||liveProfile?.id!==actor||ojmDb!==client)return;return await printVouchers(run,results,selected);}else return print82('Payroll Register',(window.printPayrollBody99?printPayrollBody99(run):payrollSummary82(results))+printSignatures1424(choices),run.month,{receiverName:choices.receiver})}catch(e){showCenterStatus(e.message,true)}}}
+function ready(){window.printPayroll82=async function(vouchers=false){try{if(!Work82.run)throw Error('Open a payroll run first.');if(Work82.run.status!=='finalized')updateRun82();const actor=liveProfile?.id,client=ojmDb,run=structuredClone(Work82.run),results=runResults82(run);if(!results.length)throw Error('This payroll has no employees to print.');const choices={enabled:true,payrollReport275:true,prepared:currentName(),receiver:'',approver:''};if(vouchers){const selected=await choosePrintSignatories1424({voucherOnly1433:true,receivers:results.map(voucherSignatories1433.receiver),actionLabel:'Open vouchers'});if(!selected||liveProfile?.id!==actor||ojmDb!==client)return;return await printVouchers(run,results,selected);}else return print82('Payroll Register',(window.printPayrollBody99?printPayrollBody99(run):payrollSummary82(results))+printSignatures1424(choices),run.month,{receiverName:choices.receiver})}catch(e){showCenterStatus(e.message,true)}}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
+})()
+/* Report-specific signatories are reviewed before entering the editor. */
+;(()=>{'use strict';
+const esc=v=>escapeHtml(String(v??''));
+function key(options={}){
+ if(options.reportKey275)return String(options.reportKey275).slice(0,200);
+ const title=String(options.title||'Report');
+ if(/^(Payroll Calculation Report|Payroll Register)(?:\s|$)/i.test(title))return 'Payroll:calculation';
+ if(options.source==='profit-tax199')return 'Tax & SSO:profit-tax';
+ const type=title.replace(/\b\d{4}(?:[-/]\d{1,2}){0,2}\b/g,'').replace(/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b/gi,'').replace(/[\s·—–:]+$/g,'').trim();
+ return (String(options.category||'Reports')+':'+(type||options.source||'Report')).slice(0,200);
+}
+function html(choices){return !choices?.enabled?'':`<div data-print-signatures="1" style="display:flex;gap:8mm;margin-top:3mm;break-inside:avoid">${choices.signers.map(s=>`<div style="flex:1;min-width:0"><div data-report-signature-line275="1" style="border-bottom:1px solid #333;height:14mm;display:flex;align-items:flex-end;padding-bottom:1mm"><span data-report-signature-name275="1" contenteditable="true" style="display:block;width:100%;min-height:1.2em;line-height:1.2;font-size:10pt">${esc(s.name)}</span></div><div data-report-signature-role275="1" style="font-size:9pt">${esc(s.role)}</div></div>`).join('')}</div>`;}
+function read(model){const root=document.createElement('div');root.innerHTML=model.html||'';const group=root.querySelector('[data-print-signatures]');if(!group)return model.reportSignatories275||null;const signers=[...group.children].map(c=>({name:c.querySelector('[data-report-signature-name275],[data-payroll-signature-name273]')?.textContent.trim()??c.children[1]?.textContent.trim()??'',role:c.querySelector('[data-report-signature-role275]')?.textContent.trim()||c.lastElementChild?.textContent.trim()||''})).filter(s=>key(model)!=='Payroll:calculation'||s.role!=='Received by').slice(0,3);return signers.length?{reportSignatories275:true,enabled:true,signers}:model.reportSignatories275||null;}
+function apply(options,choices){const root=document.createElement('div');root.innerHTML=options.html||'';const groups=[...root.querySelectorAll('[data-print-signatures]')];if(groups.length){groups[0].insertAdjacentHTML('beforebegin',html(choices));groups.forEach(n=>n.remove());}else root.insertAdjacentHTML('beforeend',html(choices));return {...options,html:root.innerHTML,reportKey275:key(options),reportSignatories275:choices};}
+async function choose(options={}){
+ const actor=liveProfile?.id,client=ojmDb,current=()=>!!actor&&liveProfile?.id===actor&&ojmDb===client;
+ if(!current())return null;
+ const reportKey=key(options),defaults=await window.printPreferences1434?.load();if(!current())return null;
+ const previous=options.previous?.reportSignatories275?options.previous:defaults?.reports275?.[reportKey];
+ const initial=(previous?.signers||[{name:options.prepared||liveProfile.full_name||liveProfile.email||'',role:'Prepared by'},...(options.approver?[{name:options.approver,role:'Approved by'}]:[])]).slice(0,3);
+ const names=[...new Set([liveProfile.full_name,...(typeof liveProfiles!=='undefined'?liveProfiles:[]).map(p=>p.full_name),...(typeof Work82!=='undefined'?Work82.employees||[]:[]).map(e=>e.data?.name)].filter(Boolean))];
+ const pending=ui108.modal('Report signatories',`<form id="reportSignatories275"><p>${esc(options.title||'Report')} · Choose the people and roles for this report.</p><label>Number of signatories<select name="count">${[1,2,3].map(n=>`<option value="${n}" ${n===initial.length?'selected':''}>${n} signator${n===1?'y':'ies'}</option>`).join('')}</select></label>${[0,1,2].map(i=>`<fieldset data-signer275="${i}"><legend>Signatory ${i+1}</legend><label>Name<input name="person${i}" maxlength="120" list="reportPeople275" value="${esc(initial[i]?.name||'')}"></label><label>Role / label<input name="role${i}" maxlength="80" list="reportRoles275" value="${esc(initial[i]?.role||['Prepared by','Checked by','Approved by'][i])}"></label></fieldset>`).join('')}<datalist id="reportPeople275">${names.map(n=>`<option value="${esc(n)}"></option>`).join('')}</datalist><datalist id="reportRoles275">${['Prepared by','Checked by','Verified by','Approved by'].map(r=>`<option value="${r}"></option>`).join('')}</datalist><label><input type="checkbox" name="saveDefaults"> Save as default for this report</label><p role="alert" aria-live="polite"></p></form>`,[{label:'Cancel',value:false},{label:options.actionLabel||'Open report',value:true,primary:true}]);
+ const overlay=document.querySelector('.ui-overlay108:last-child'),form=overlay.querySelector('form'),button=overlay.querySelector('footer .primary108');let result;
+ const refresh=()=>form.querySelectorAll('[data-signer275]').forEach((row,i)=>{row.hidden=i>=Number(form.elements.count.value);row.querySelectorAll('input').forEach(input=>{input.disabled=row.hidden;input.required=!row.hidden;});});form.elements.count.onchange=refresh;refresh();
+ button.onclick=async()=>{if(button.disabled)return;if(!current()){form.querySelector('[role=alert]').textContent='Your account changed. Open the report again.';return;}if(!form.reportValidity())return;const signers=Array.from({length:Number(form.elements.count.value)},(_,i)=>({name:form.elements['person'+i].value.trim(),role:form.elements['role'+i].value.trim()}));if(signers.some(s=>!s.name||!s.role)){form.querySelector('[role=alert]').textContent='Enter a name and role for each selected signatory.';return;}if(/Payroll:calculation/.test(reportKey)&&signers.some(s=>/^received by$/i.test(s.role))){form.querySelector('[role=alert]').textContent='Use a report role such as Prepared by, Checked by or Approved by. This report does not require a receiver.';return;}result={reportSignatories275:true,enabled:true,signers};button.disabled=true;try{if(form.elements.saveDefaults.checked){if(!window.printPreferences1434)throw Error('Saved defaults are unavailable. Uncheck Save as default to continue for this report.');const latest=await printPreferences1434.load();if(!current())return;await printPreferences1434.save({...latest,reports275:{...latest?.reports275,[reportKey]:result}});}if(current())overlay.resolve108(true);}catch(e){form.querySelector('[role=alert]').textContent=e.message;}finally{button.disabled=false;}};
+ return await pending&&current()?result:null;
+}
+async function before(options){
+ if(!options.html||!options.printPreview||options.voucher14299)return options;
+ const actor=liveProfile?.id,client=ojmDb,source=options.source==='profit-tax199'?'tax-profit':options.source;
+ const allowed=()=>liveProfile?.id===actor&&ojmDb===client&&(!window.access113||access113.can('document-editor105','view')&&access113.can('document-editor105','export')&&(!source||!document.getElementById(source)||access113.can(source,'view')&&access113.can(source,'export')));
+ if(options.payrollVouchers){if(options.voucherSignatories1433?.voucherSignatories1433)return options;const root=document.createElement('div');root.innerHTML=options.html;const receivers=options.payrollReceivers1433||[...root.querySelectorAll('[data-print-signatures]')].map(n=>({name:n.dataset.printReceiver||options.receiverName,employeeId:n.dataset.printReceiverId||''}));const choices=await choosePrintSignatories1424({voucherOnly1433:true,receivers,previous:options.voucherSignatories1433,actionLabel:'Open vouchers'});if(!choices||!allowed())return null;root.querySelectorAll('[data-print-signatures]').forEach(n=>{n.outerHTML=printSignatures1424(choices,n.dataset.printReceiver||options.receiverName||'',n.dataset.printReceiverId||'');});return {...options,html:root.innerHTML,voucherSignatories1433:choices};}
+ const choices=await choose({...options,prepared:options.reportSigner1434,approver:options.reportApprover1434,previous:options.reportSignatories275});if(!choices||!allowed())return null;return apply(options,choices);
+}
+window.ReportSignatories275={key,html,read,apply,choose,before};
 })();
+;
 
 ;
 /* scripts/print-preview1426.js */
@@ -732,7 +762,7 @@ function journalDate(run,template=run.payrollTemplate1429){
 }
 function defaultTemplate(run){
  const rows=run.rows||[],currencies=[...new Set(rows.map(r=>r.employee.currency))].sort((a,b)=>(a==='LAK'?1:b==='LAK'?-1:a==='USD'?-1:b==='USD'?1:a.localeCompare(b)));
- const t={name:'Oon Jai payroll journal',version:143274,journalDate:journalDate(run),employeeAccounts:{},lines:[]};
+ const t={name:'Oon Jai payroll journal',version:143275,journalDate:journalDate(run),employeeAccounts:{},lines:[]};
  rows.forEach(r=>t.employeeAccounts[r.employeeId]=employeeAccount(r.employee));
  const tax=(run.status==='finalized'?run.settingsSnapshot:ApplicationSettings)?.tax||ApplicationSettings.tax||{};
  const pitExpense=exact('5211','LAK',['PIT Expense','OJM- PITx Expense']),pitPayable=settingsAccount(tax.pitAccount,'2111',['PIT Payable','OJM- PITx Payable']),ssoExpense=exact('5212','LAK',['SSO Expense']),ssoPayable=settingsAccount(tax.ssoAccount,'2112',['SSO Payable','OJM- SSO Payable']);
@@ -752,6 +782,9 @@ function defaultTemplate(run){
    for(const r of t.lines.slice(start))r.conversionSource274=true;
    const derived=(account,kind,memo)=>({...rule(account,'AUTO','rounding',c,'total',memo,kind==='quantity'?c:'LAK'),derived274:kind});
    t.lines.push(rule(exact('5311','LAK'),'DR','gross',c,'total','Salary expense · '+c+' payroll','LAK'),derived(exact('9290','LAK'),'salaryOffset','Salary mapping · converted value'));
+   for(const row of group)if(Number(row.input?.reimbursement)>0||run.results?.some(x=>x.employeeId===row.employeeId&&Number(x.reimbursement)>0)){
+    for(const [kind,memo] of [['reimbursementExpense','Reimbursement expense'],['reimbursementOffset','Reimbursement mapping · converted value']])t.lines.push({...derived('',kind,memo),employees:'employee:'+row.employeeId,scope:'each'});
+   }
    t.lines.push(derived(exact('9041','LAK'),'taxBridge','Employee withholding · converted value'));
    t.lines.push(rule(pitExpense,'DR','employerPit',c,'total','PIT · company share','LAK'),rule(pitPayable,'CR','pit',c,'total','PIT · employee and company payable','LAK'));
    if(sso)t.lines.push(rule(ssoPayable,'CR','employeeSso',c,'total','Employee SSO payable','LAK'));
@@ -761,6 +794,7 @@ function defaultTemplate(run){
    t.lines.push(rule(pitPayable,'CR','employeePit',c,'total','Local workers PIT · employee withholding'),rule(pitExpense,'DR','employerPit',c,'total','Local workers PIT · company share'),rule(pitPayable,'CR','employerPit',c,'total','Local workers PIT · company share payable'));
   }
   if(sso)t.lines.push(rule(ssoExpense,'DR','employerSso',c,'total','Company SSO share','LAK'),rule(ssoPayable,'CR','employerSso',c,'total','Company SSO payable','LAK'));
+  for(const r of t.lines.slice(start))r.groupCurrency275=c;
  }
  return t;
 }
@@ -793,7 +827,7 @@ function evaluate(run,template){
   if(!Number.isFinite(value)||!Number.isFinite(round(value))){report('Payroll amount exceeds the supported range.');return;}
   if(!value)return;
   const e=employees.get(x.employeeId)||x.employee||{};
-  lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex,sourceLak274,fx_rate_lak:a.currency==='LAK'?1:Number(run.rates?.[a.currency]),book_rate_lak:null});
+  lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex,employeeId275:x.employeeId,sourceLak274,fx_rate_lak:a.currency==='LAK'?1:Number(run.rates?.[a.currency]),book_rate_lak:null});
  }
  rules.forEach((r,ruleIndex)=>{
   if(r.basis==='rounding'||r.derived274)return;
@@ -833,21 +867,30 @@ function evaluate(run,template){
  });
  // Every conversion adjustment is derived from the saved LAK amounts and their
  // rounded foreign quantities. An edited/missing business row cannot become FX.
- for(const c of new Set(rules.filter(r=>r.derived274).map(r=>r.employees))){
+ const groupCurrency=r=>r.groupCurrency275||r.employees;
+ for(const c of new Set(rules.filter(r=>r.derived274).map(groupCurrency))){
   const chosen=selected(results,c),rate=Number(run.rates?.[c]),source=lines.filter(l=>rules[l.ruleIndex].conversionSource274&&l.account.currency===c);
   const signed=l=>l.side==='DR'?l.amount:-l.amount;
   const original=round(source.reduce((n,l)=>n+(l.side==='DR'?1:-1)*Number(l.sourceLak274),0));
   if(!source.length)continue;
   if(!(rate>0)||source.some(l=>l.sourceLak274===null)||original!==0){report(c+' payroll source amounts must match the saved calculations before conversion rounding. Review edited or missing business rows.');continue;}
-  if(source.some(l=>rules[l.ruleIndex].basis==='reimbursement')){report('Review foreign reimbursement mapping separately before preparing this payroll journal.');continue;}
+  const reimbursements=source.filter(l=>rules[l.ruleIndex].basis==='reimbursement');
+  const registry=window.JournalCompletion258?.registry(eligible());
+  for(const l of reimbursements){
+   const mapping=registry?.maps.get(l.account.id),pair=rules.filter(r=>groupCurrency(r)===c&&r.employees==='employee:'+l.employeeId275&&/^reimbursement/.test(r.derived274||''));
+   if(!mapping?.actual||!mapping?.offset||mapping.offsetCode!=='9290'||!/^5/.test(mapping.actual.code)||pair.length!==2||new Set(pair.map(r=>r.derived274)).size!==2||l.side!=='DR'){
+    report('Choose a supported foreign expense mapping for each reimbursement; use the default journal to include its LAK counterparts.');continue;
+   }
+   for(const r of pair){const expense=r.derived274==='reimbursementExpense',a=expense?mapping.actual:mapping.offset,v=expense?l.sourceLak274:round(l.amount*rate);push({...r,side:expense?'DR':'CR'},a,v,chosen.find(x=>x.employeeId===l.employeeId275),rules.indexOf(r));}
+  }
   const qty=round(source.reduce((n,l)=>n+signed(l),0));
   if(Math.abs(qty)>source.length*.005+.000001){report(c+' difference exceeds the calculated conversion rounding.');continue;}
   const converted=bases=>round(source.filter(l=>bases.includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n+round(signed(l)*rate),0));
   const entitlement=source.filter(l=>['adjusted','cashAdvance','loanRecovery'].includes(rules[l.ruleIndex].basis));
   const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,0));
   const values={salaryOffset:-converted(['gross']),taxBridge:-converted(['employeePit','employeeSso']),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
-  for(const [i,r] of rules.entries())if(r.derived274&&r.employees===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
-  const local=round(lines.filter(l=>l.account.currency==='LAK'&&rules[l.ruleIndex].employees===c).reduce((n,l)=>n+signed(l),0));
+  for(const [i,r] of rules.entries())if(r.derived274&&groupCurrency(r)===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
+  const local=round(lines.filter(l=>l.account.currency==='LAK'&&groupCurrency(rules[l.ruleIndex])===c).reduce((n,l)=>n+signed(l),0));
   if(local!==0)report(c+' LAK mapping rows differ from the saved payroll by '+Math.abs(local)+'. Review the accounts and amounts; no balancing adjustment was invented.');
  }
  // Keep rule order, including the small foreign rounding row beside the bridge.
@@ -860,7 +903,8 @@ function evaluate(run,template){
 }
 function buildLines(run,t){const e=evaluate(run,t);if(e.issues.length)throw Error(e.issues.join('\n'));if(Object.values(e.balances).some(b=>b.difference))throw Error('Payroll journal must balance separately in every currency. Review the template.');if(e.lines.length<2)throw Error('The template needs at least two non-zero posting lines.');return e.lines;}
 window.payrollTemplate1431={fields,eligible,defaultTemplate,isStarter,evaluate,buildLines,journalDate};
-})();
+})()
+;
 
 ;
 /* scripts/payroll-journal1429.js */
@@ -901,7 +945,7 @@ async function openTemplate(){const check=guard1429();
   $('payJournalLines1432').append(tr);
  }
  function evaluate(){return payrollTemplate1431.evaluate(Work82.run,template)}
- function balances(){try{const result=evaluate();for(const tr of [...$('payJournalLines1432').rows]){const index=Number(tr.dataset.rule1432);if(template.lines[index]?.derived274&&!result.lines.some(l=>l.ruleIndex===index))tr.remove();}for(const line of result.lines){let tr=$('payJournalLines1432').querySelector('[data-rule1432="'+line.ruleIndex+'"]');if(!tr){row(line,line.ruleIndex);tr=$('payJournalLines1432').lastElementChild;const after=[...$('payJournalLines1432').rows].find(r=>Number(r.dataset.rule1432)>line.ruleIndex);if(after)after.before(tr);}if(String(template.lines[line.ruleIndex].manual??'')==='')for(const side of ['DR','CR']){const input=tr.querySelector('[data-journal1432="'+side+'"]');if(input!==document.activeElement)input.value=line.side===side?line.amount:'';}}$('payBalances1432').innerHTML=Object.entries(result.balances).map(([c,b])=>`<span class="${b.difference?'unbalanced1431':''}"><strong>${esc(c)}</strong> · DR ${formatAppNumber(b.debit)} · CR ${formatAppNumber(b.credit)} · ${b.difference?'Difference '+formatAppNumber(Math.abs(b.difference)):'Balanced'}</span>`).join('');$('payIssues1432').textContent=result.issues.join('\n');return result}catch(e){$('payIssues1432').textContent=e.message;return null}}
+ function balances(){try{const result=evaluate();for(const tr of [...$('payJournalLines1432').rows]){const index=Number(tr.dataset.rule1432);if(template.lines[index]?.derived274&&!result.lines.some(l=>l.ruleIndex===index))tr.remove();}for(const line of result.lines){let tr=$('payJournalLines1432').querySelector('[data-rule1432="'+line.ruleIndex+'"]');if(!tr){row(line,line.ruleIndex);tr=$('payJournalLines1432').lastElementChild;const after=[...$('payJournalLines1432').rows].find(r=>Number(r.dataset.rule1432)>line.ruleIndex);if(after)after.before(tr);}if(template.lines[line.ruleIndex].derived274){tr.querySelector('select').value=line.account?.id||'';tr.querySelector('[data-row-currency1432]').textContent=line.account?.currency||'';}if(String(template.lines[line.ruleIndex].manual??'')==='')for(const side of ['DR','CR']){const input=tr.querySelector('[data-journal1432="'+side+'"]');if(input!==document.activeElement)input.value=line.side===side?line.amount:'';}}$('payBalances1432').innerHTML=Object.entries(result.balances).map(([c,b])=>`<span class="${b.difference?'unbalanced1431':''}"><strong>${esc(c)}</strong> · DR ${formatAppNumber(b.debit)} · CR ${formatAppNumber(b.credit)} · ${b.difference?'Difference '+formatAppNumber(Math.abs(b.difference)):'Balanced'}</span>`).join('');$('payIssues1432').textContent=result.issues.join('\n');return result}catch(e){$('payIssues1432').textContent=e.message;return null}}
  function draw(){const result=balances();$('payJournalLines1432').replaceChildren();for(const l of result?.lines||[])row(l,l.ruleIndex);}
  let queued=false;function changed(){if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;if(overlay.isConnected)balances()})}}
  overlay.addEventListener('input',e=>{const tr=e.target.closest('[data-rule1432]');if(!tr)return;const r=template.lines[Number(tr.dataset.rule1432)],field=e.target.dataset.journal1432;if(field==='memo')r.manualMemo=e.target.value;if((field==='DR'||field==='CR')&&!r.derived274){r.side=field;r.manual=e.target.value||'0';if(r.basis==='rounding')r.basis='gross';tr.querySelector('[data-journal1432="'+(field==='DR'?'CR':'DR')+'"]').value='';}changed();});
@@ -924,7 +968,8 @@ const clearBefore=window.clearJournalEntry;window.clearJournalEntry=function(...
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',installPosting1429,{once:true});else installPosting1429();
 window.payrollJournal1429={openTemplate,buildLines,prepare,viewJournal,findPosted};
 new MutationObserver(records=>{if(records.some(r=>r.target.closest?.('#payroll-entries,#payroll-deductions,#journalEntry98')||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches('#payroll-entries,#payroll-deductions,#journalEntry98')||n.querySelector('#payroll-entries,#payroll-deductions,#journalEntry98')))))schedule()}).observe(document.body,{childList:true,subtree:true});window.addEventListener('page113',schedule);schedule();
-})();
+})()
+;
 
 ;
 /* scripts/entry1430.js */

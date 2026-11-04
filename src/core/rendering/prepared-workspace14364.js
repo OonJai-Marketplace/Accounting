@@ -20,7 +20,7 @@ function signature(id){const keys=groups(id),out=[actor(),client(),window.worksp
  return out;
 }
 const equal=(a,b)=>a?.length===b.length&&a.every((v,i)=>v===b[i]);
-function remember(id){if(document.querySelector('#'+id+' .r79[aria-busy="true"]'))prepared.delete(id);else if(allowed(id))prepared.set(id,signature(id));}
+function remember(id){const node=id&&document.getElementById(id);if(!node||!allowed(id)||node.querySelector('.r79[aria-busy="true"]'))prepared.delete(id);else prepared.set(id,signature(id));}
 function valid(id){if(id==='sub-users-workspace'&&String(document.querySelector('#subUserWorkspacePanel [data-workspace-owner252]')?.dataset.workspaceOwner252||'')!==String(activeSubUserTab()?.userId||''))return false;return owner===actor()&&ownerClient===client()&&prepared.has(id)&&equal(prepared.get(id),signature(id));}
 function holdPayroll(except=''){for(const id of ['payroll-entries','payroll-deductions']){if(id===except)continue;const node=document.querySelector('#'+id+' .desktop82');if(node){node.remove();shelves.set(id,node)}}}
 function restore(id){if(owner!==actor()||ownerClient!==client()){shelves.clear();return}if(!['payroll-entries','payroll-deductions'].includes(id))return;holdPayroll(id);const node=shelves.get(id);if(node&&!document.querySelector('#'+id+' .desktop82')){document.getElementById(id)?.append(node);shelves.delete(id)}}
