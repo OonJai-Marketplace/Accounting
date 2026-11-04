@@ -32,9 +32,15 @@ function templates(chart){
  for(const a of reg.all.filter(a=>g.currency(a)==='LAK'&&!g.technical(a)&&['EXPENSE','REVENUE','EQUITY'].includes(g.type(a))&&String(a.code)!=='5419')){
   const expense=g.type(a)==='EXPENSE';add('local-'+a.code,a.name+' · LAK '+(expense?'payment':'receipt'),expense?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
  }
+ // Releases consume the prepaid asset; they do not repeat the original payment.
+ for(const [id,name,expense,prepaid,c] of [['wifi','Prepaid Wi-Fi amortization','5110','1311','LAK'],['rent','Prepaid house rent amortization','5119','1310','LAK'],['restaurant','Prepaid restaurant rent amortization','9222','1312','THB']]){
+  const e=reg.byCode(expense,c),p=reg.byCode(prepaid,c);if(e&&p)add('amortization-'+id,name+' · '+c,[row(e,'debit','Monthly prepaid expense'),row(p,'credit','Release prepaid balance')]);
+ }
+ add('amortization-insurance','Prepaid insurance amortization · LAK',[slot('expense','LAK','debit','Insurance expense'),slot('prepaid','LAK','credit','Release prepaid insurance')],false);
+ add('amortization-other','Other prepaid amortization · LAK',[slot('expense','LAK','debit','Prepaid expense allocation'),slot('prepaid','LAK','credit','Release prepaid balance')],false);
  return out;
 }
-function accepts(line,a){const g=G();return !!a&&(!line.currency||line.currency===g.currency(a))&&(line.role==='fund'?g.fund(a):line.role==='staff'?g.staff(a):line.role==='balance'?g.staff(a)||g.type(a)==='LIABILITY':false);}
+function accepts(line,a){const g=G();return !!a&&(!line.currency||line.currency===g.currency(a))&&(line.role==='fund'?g.fund(a):line.role==='staff'?g.staff(a):line.role==='balance'?g.staff(a)||g.type(a)==='LIABILITY':line.role==='prepaid'?g.type(a)==='ASSET'&&/^13\d\d$/.test(String(a.code)):line.role==='expense'?g.type(a)==='EXPENSE'&&!g.technical(a):false);}
 function resolve(line,chart){return line.accountId?chart.find(a=>a.id===line.accountId&&(!line.currency||G().currency(a)===line.currency)):line.code?chart.find(a=>String(a.code)===String(line.code)&&(!line.currency||G().currency(a)===line.currency)):root.resolveTemplateAccount14397?.(line);}
 function match(rows,definitions,chart){
  const g=G(),reg=g.registry(chart),entered=rows.filter(l=>l.account_id&&l.generated!=='output'),anchors=entered.filter(l=>{const a=chart.find(a=>a.id===l.account_id);return a&&!g.fund(a)&&(!g.technical(a)||reg.maps.has(a.id))});

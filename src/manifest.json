@@ -4402,6 +4402,22 @@
         "source": "src/bookkeeping/journal/completion-ui258.js",
         "suffix": "\n"
       }
+    ],
+    "scripts/upcoming-plans280.js": [
+      {
+        "source": "src/bookkeeping/recurring/plan-model280.js",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/bookkeeping/recurring/upcoming-plans280.js",
+        "suffix": "\n"
+      }
+    ],
+    "styles/upcoming-plans280.css": [
+      {
+        "source": "src/bookkeeping/recurring/upcoming-plans280.css",
+        "suffix": "\n"
+      }
     ]
   },
   "variants": [

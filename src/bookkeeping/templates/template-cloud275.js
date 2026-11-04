@@ -15,6 +15,14 @@ function validate(value){
  return value;
 }
 function snapshot(){return validate({templates:JSON.parse(localStorage.getItem(key)||'[]'),numbers:JSON.parse(localStorage.getItem(numberKey)||'{"next":1,"ids":{}}')});}
+function missingContent(data=snapshot()){const present=new Set(data.templates.map(t=>t.id));return Object.entries(data.numbers.ids).filter(([id])=>id.startsWith('tpl-')&&!present.has(id)).map(([id,number])=>({id,number}));}
+function retainedCopies(){const backups=JSON.parse(localStorage.getItem(backupKey)||'[]'),previous=localStorage.getItem(key+':previous274');if(previous)backups.unshift({at:'Previous device save',data:{templates:JSON.parse(previous)}});return backups;}
+function recoverMissingRetained(owner){
+ const before=snapshot(),missing=missingContent(before),copies=retainedCopies(),restored=[];
+ for(const {id} of missing){const candidates=new Map();for(const backup of copies)for(const item of backup.data?.templates||[])if(item.id===id&&!item.deleted&&typeof item.name==='string'&&Array.isArray(item.lines)&&item.lines.length)candidates.set(canonical(item),item);if(candidates.size===1)restored.push(structuredClone([...candidates.values()][0]));}
+ if(restored.length){install(owner,{templates:[...before.templates,...restored],numbers:before.numbers},before);}
+ return restored.length;
+}
 function metadata(){const raw=localStorage.getItem(metaKey);if(!raw)return {version:0,base:empty()};const m=JSON.parse(raw);if(!Number.isSafeInteger(m.version)||m.version<0)throw Error('Invalid template sync metadata. Saved copies are retained.');validate(m.base);return m;}
 function merge(base,local,remote,choices={}){
  [base,local,remote].forEach(validate);
@@ -60,6 +68,7 @@ async function sync(options={}){
    if(typeof ojmDb==='undefined'||!ojmDb)throw Error('Cloud connection is not ready. Device copy retained.');
    if(!TemplateStore.load())return false;
    if(JSON.stringify(TemplateStore.templates)!==TemplateStore.baseline&&!(TemplateStore.baseline===null&&TemplateStore.templates.length===0))throw Error('Finish the open template edit before syncing.');
+   const recovered=recoverMissingRetained(owner);
    announce(owner,'Checking saved templates…');
    const client=ojmDb,local=snapshot(),meta=metadata();
    const result=await client.from('journal_template_collections275').select('data,version,updated_at').eq('owner_id',owner).maybeSingle();guard(owner);if(client!==ojmDb)throw Error('Connection changed; retry template sync.');if(result.error)throw result.error;
@@ -80,7 +89,8 @@ async function sync(options={}){
    // Do not erase edits that arrived while the cloud request was in flight.
    install(owner,merged.data,local);
    writeVerified(metaKey,{version:confirmed?.version||0,base:merged.data,at:confirmed?.updated_at||new Date().toISOString()});
-   announce(owner,'Device and cloud copies confirmed'+(confirmed?.updated_at?' · '+when(confirmed.updated_at):'.'));return true;
+   const missing=missingContent(merged.data);
+   announce(owner,(recovered?'Recovered '+recovered+' custom template(s) from retained device copies. ':'')+'Device and cloud copies confirmed'+(confirmed?.updated_at?' · '+when(confirmed.updated_at):'.')+(missing.length?' · '+missing.length+' old custom template numbers have no saved content. Open Recover templates to trace them.':''));return true;
   }catch(e){if(TemplateStore.actor()===owner&&(!window.deviceVault14334||deviceVault14334.unlocked)){state={owner,message:'Device data retained; cloud pending: '+(e.message||String(e)),conflict:null};paint();}return false;}
   finally{if(flight===job)flight=null;}
  })();return job.promise;
@@ -112,6 +122,7 @@ function recoveryList(candidates,title){
 function recover(){guard(TemplateStore.actor());const current=snapshot(),items=[],seen=new Set();const previous=localStorage.getItem(key+':previous274');const backups=JSON.parse(localStorage.getItem(backupKey)||'[]');if(previous)backups.unshift({at:'Previous local save',data:{templates:JSON.parse(previous)}});
  for(const backup of backups)for(const item of backup.data.templates||[]){const signature=canonical(item);if(!item.deleted&&!seen.has(signature)&&!current.templates.some(t=>equal(t,item))){seen.add(signature);const n=backup.data.numbers?.ids?.[item.id],existing=current.numbers.ids[item.id];items.push({item,copy:!Number.isSafeInteger(existing)||!!(n&&n!==existing),label:when(backup.at)});}}
  recoveryList(items,'Choose a retained version. Recovery does not change journal entries.');
+ const missing=missingContent(current);if(missing.length){const p=document.createElement('p');p.textContent='Trace: custom template '+missing.map(x=>'#'+x.number+' ('+x.id+')').join(', ')+' still has a permanent number, but its accounts and memos are missing from the current copy. Numbers are reserved. This browser’s previous save and retained versions were checked. A built-in starter is not the recovered original.';document.getElementById('templateManagerList').append(p);}
 }
 function importCopy(){const owner=TemplateStore.actor();guard(owner);const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.onchange=async()=>{try{guard(owner);const file=input.files[0];if(!file)return;if(file.size>2097152)throw Error('Template backup exceeds 2 MB.');const data=JSON.parse(await file.text());guard(owner);if(data.format!=='oonjai-templates-275')throw Error('Choose an Oon Jai template export.');validate(data);recoveryList(data.templates.filter(t=>!t.deleted).map(item=>({item,copy:true,label:'Imported copy · new ID and number'})),'Review the backup. Selected templates are imported as new copies; existing IDs and numbers are preserved.');}catch(e){showAppNotification('Import paused',e.message,true);}};input.click();}
 async function restoreCloud(){
@@ -148,7 +159,7 @@ async function review(){
  }
  const save=document.createElement('button');save.className='je-btn je-btn-emerald';save.textContent='Save reviewed versions';save.onclick=async()=>{try{guard(owner);if(conflict.conflicts.some(x=>!choices[x.id]))throw Error('Choose a version for every conflicting template.');archive(owner,conflict.local);archive(owner,conflict.server);await sync({choices,expected:conflict});await renderTemplateManager();}catch(e){showAppNotification('Template conflict',e.message,true);}};host.append(save);
 }
-window.TemplateCloud275={sync,queue,decorate,status,merge,validate,recover,restoreOne,restoreCloud,renderFailure,snapshot};
+window.TemplateCloud275={sync,queue,decorate,status,merge,validate,recover,restoreOne,restoreCloud,renderFailure,snapshot,missingContent,recoverMissingRetained};
 window.addEventListener('online',()=>void sync());
 window.addEventListener('session-online14333',()=>void sync());
 window.addEventListener('idle-sync14341',()=>void sync());

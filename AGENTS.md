@@ -466,3 +466,14 @@ auto margin still separating receipt actions after the v143.278 grouped-action
 fix. Keep both toolbar forms compact; preserve the 32px Print button and all
 receipt actions. Do not equate passing software checks with recovered custom
 templates, posted rent corrections, or physical iPad verification.
+
+Upcoming 2026-11-04 v143.280: Save as reuses the prepared Post Entry fields and
+asks only for missing transaction/mapping fields and plan details. Merge scheduled
+and recurring journals; keep prepaid amortization separate. Recurring occurrences
+require review. Only explicitly approved amortization plans may post automatically,
+using historical non-monetary prepaid values, atomic foreign/LAK mapping, separate
+AMO/REC IDs, period locks, sufficient balance, and idempotent retries. First-day
+releases wait for the prior month to close. Preserve year-end remainder and annual
+opening balances. Do not silently convert or duplicate mismatched legacy schedules.
+Template recovery preserves original permanent numbers/tombstones, automatically
+restores only unambiguous retained contents, and identifies missing bodies honestly.
