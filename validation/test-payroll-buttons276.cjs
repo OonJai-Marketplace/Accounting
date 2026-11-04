@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),{JSDOM}=require('jsdom'),fixture=require('./payroll-actions-fixture276.cjs');
+const dom=new JSDOM(fixture.html,{runScripts:'outside-only',url:'https://fixture.test',pretendToBeVisual:true}),w=dom.window,c=dom.getInternalVMContext();
+vm.runInContext('('+fixture.setup.toString()+')()',c);fixture.scripts().forEach(s=>vm.runInContext(s,c));
+const el=id=>w.document.getElementById(id),flush=()=>new Promise(r=>setTimeout(r,35)),click=async id=>{el(id).click();await flush();},status=()=>el('payTemplateError1429').textContent;
+(async()=>{
+ await flush();await click('qa-open');
+ assert(el('payTemplateError1429').compareDocumentPosition(el('payJournalLines1432'))&w.Node.DOCUMENT_POSITION_FOLLOWING,'feedback must appear before long table');
+ await click('payPrepare1429');assert.match(status(),/draft.*finalize/i);assert.equal(w.qa276.saves,0);assert.equal(el('qa-tab').textContent,'payroll-entries');
+ await click('payDefault1431');const confirmation=[...w.document.querySelectorAll('.ui-overlay108')].at(-1);assert.match(confirmation.textContent,/Replace these journal edits/);[...confirmation.querySelectorAll('button')].find(b=>b.textContent==='Confirm').click();await flush();assert.match(status(),/Default journal loaded/);
+ el('payJournalDate274').value='2026-10-30';el('payJournalDate274').dispatchEvent(new w.Event('change',{bubbles:true}));await click('paySaveTemplate1429');assert.match(status(),/saved with this payroll/);assert.equal(w.qa276.record.data.payrollTemplate1429.journalDate,'2026-10-30');assert.equal(w.qa276.cache.drafts['2026-10'].run.payrollTemplate1429.journalDate,'2026-10-30');assert.equal(w.qa276.postCalls,0);
+ w.qa276.fail='Synthetic save failure';await click('paySaveTemplate1429');assert.match(status(),/Synthetic save failure/);assert.equal(el('paySaveTemplate1429').disabled,false);w.qa276.fail=null;
+ w.document.querySelector('.pay-dialog1432 [data-dismiss]').click();await click('qa-finalized');await click('qa-open');
+ el('jeGeneralMemo').value='Unfinished other journal';await click('payPrepare1429');assert.match(status(),/unfinished journal/);assert.equal(el('jeGeneralMemo').value,'Unfinished other journal');assert.equal(el('qa-tab').textContent,'payroll-entries');el('jeGeneralMemo').value='';
+ let finish;w.qa276.delay=new Promise(r=>finish=r);const before=w.qa276.saves;await click('paySaveTemplate1429');await click('paySaveTemplate1429');assert.equal(w.qa276.saves,before+1,'duplicate clicks must save once');assert(el('payPrepare1429').disabled);finish();await flush();w.qa276.delay=null;
+ await click('payPrepare1429');assert.equal(w.document.querySelector('.pay-dialog1432'),null);assert.equal(el('qa-tab').textContent,'journal');assert.equal(el('jeTransDate').value,'2026-10-30');assert.equal(el('btnPostJournal').textContent,'Post Payroll Journal');assert(el('jeLinesBody').rows.length>=4);assert.equal(w.qa276.postCalls,0);
+ await click('qa-open');let closed;w.qa276.delay=new Promise(r=>closed=r);await click('payPrepare1429');w.document.querySelector('.pay-dialog1432 [data-dismiss]').click();el('qa-tab').textContent='payroll-entries';closed();await flush();assert.equal(el('qa-tab').textContent,'payroll-entries','closing during save must not navigate');assert.equal(w.qa276.postCalls,0);
+ console.log('PASS real button handlers: reset confirmation/result, save/readback/cache, draft block, failure/retry, duplicate protection, draft preservation, finalized transfer and close-during-save. No posting.');w.close();
+})().catch(e=>{console.error(e);w.close();process.exitCode=1});
