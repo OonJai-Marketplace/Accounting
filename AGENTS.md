@@ -437,3 +437,13 @@ posted journal or a changed schedule.
 2026-11-04 v143.275 report follow-up: show 1/2/3 named signatories and editable roles before report editor entry; save defaults per report type in the existing account preference row. Payroll calculation reports have no Received by role/requirement; salary vouchers retain their own receiver identity and approval constraints. Keep typed signature names focusable on their lines and preserve them through draft save/reopen/print. Page numbers appear on every numbered page independently of footer visibility and position. Below-content footers default to two lines of separation, with three lines selectable; page numbers stay at the bottom. Verify actual browser rendering and both spacing options before release.
 
 2026-11-04 v143.276: payroll journal buttons must show results beside the controls, preserve the saved template in payroll recovery, and distinguish device saves from server confirmation. Reset requires confirmation; Prepare requires finalized payroll and preserves unfinished Transactions. Closing or switching payroll during pending work must not navigate later. Report defaults use stable report-type keys across periods and survive voucher-default saves. Salary vouchers opened through Reports retain each receiver identity and signing space. No financial postings or schedule changes are authorized by these checks.
+
+Monthly cash slips 2026-11-04 v143.277: Bookkeeping Documents contains vouchers,
+receipts and Create Cash Slip. Cash slips are blank A4 portrait forms with exactly
+40 numbered rows and nine columns; use day-only dates, two-letter name initials,
+a wide description, Cash/BCEL source, debit/credit and received/released signatures.
+Put month/full year above the initials legend at bottom left and a compact
+reviewer name/role/signature at bottom right. Month is editable by double-click
+in the editor. Save legend/reviewer defaults separately in print preferences.
+Do not create a month-end transaction-entry grid, consume voucher/journal IDs or
+post financial records. Preserve ordinary document editing, saving and printing.
