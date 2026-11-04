@@ -1,5 +1,5 @@
 {
-  "version": "143.271",
+  "version": "143.272",
   "changes": [
     "Receipt and payment voucher forms use Quantity, currency beside the amount and total, consistent money formatting, an editable receiver name above its line, and a date underline that remains after choosing a date.",
     "Document Editor adds Footer position: Bottom of page or Immediately below content. Choose Every page or Last page only independently; the position follows content and is retained in saved documents and printed pages.",

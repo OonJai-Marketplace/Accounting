@@ -28,7 +28,7 @@
     if(!isAdmin()||S.saving||S.submitting)return;
     const actor=S.actor,epoch=S.epoch,check=()=>{if(!isAdmin()||actor!==S.actor||epoch!==S.epoch)throw fail('Administrator access changed. Reopen Receipts.');};
     saveMirror();$('accountMenu').hidden=true;
-    await Receipt245.script('scripts/receipt-phone245.js?v=143.271',()=>window.ReceiptPhone245);check();
+    await Receipt245.script('scripts/receipt-phone245.js?v=143.272',()=>window.ReceiptPhone245);check();
     await ReceiptPhone245.open({check,today,rpc,
       getDraft:async()=>(await record(actor)).receiptDraft245,
       saveDraft:draft=>{check();return persist(actor,{receiptDraft245:draft})},
