@@ -393,3 +393,13 @@ explicit removals. Manual account/currency/side matching may add missing templat
 structure without overwriting entered amounts/memos. Offer tied matches for
 selection. Never infer tax allocations, missing fund/employee identities or
 historical lot rates from a description. Keep explicit Post Entry review/posting.
+
+Payroll reports 2026-11-04 v143.269: keep Bookkeeping work independent. In the
+first Payroll breakdown table show the short employee code and surname; retain
+saved employee IDs and names. Put ₭ / foreign currency before monetary values
+and remove repeated LAK header labels. Allow two extra lines for report signatures.
+Overview defaults to the open Entries month, otherwise the current Lao month,
+prioritizes the device draft, and displays overlapping dated HR leave/history
+without duplicating live leave records or assuming missing pay treatment. Put
+Internal Deduction Summary before Attendance Deductions; filtering is unchanged.
+Draft/finalized follows Save and archive, independently of journal posting.

@@ -4,16 +4,36 @@
   }
 
 
+  function overviewLeaves269(month) {
+    const start = month + '-01', end = month + '-31';
+    const overlaps = d => d.from ? d.from <= end && (d.to || d.from) >= start : d.month === month;
+    const key = d => [d.employeeId,d.from,d.to || d.from,String(d.type || '').toLowerCase().replace(/\s*leave$/, '').trim()].join('|');
+    const records = (Work82.leaves || []).filter(r => overlaps(r.data || {}));
+    const seen = new Set(records.map(r => key(r.data)));
+    for (const employee of Work82.employees || []) {
+      for (const historical of employee.data?.leaveHistory200?.records || []) {
+        const data = {...historical,employeeId:employee.id,status:'Historical record',reference:historical.reference || historical.notes || ''};
+        if (!overlaps(data) || seen.has(key(data))) continue;
+        seen.add(key(data));records.push({data});
+      }
+    }
+    return records.sort((a,b) => String(a.data.from || '').localeCompare(String(b.data.from || '')));
+  }
+
   function renderOverview() {
     const host = document.querySelector('#payroll-overview .desktop82 .work82');
     if (!host) return;
+    const context = [liveProfile?.id || '', Work82.run?.month || '', currentMonth()].join('|');
+    if (context !== overviewContext269) {
+      overviewContext269 = context;
+      overviewMonth = Work82.run?.month || currentMonth();
+    }
     const month = overviewMonth;
     const runs = (Work82.runs || []).filter(record => record.data?.month === month && !record.data?.isSample)
       .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
-    const run = runs[0]?.data || (Work82.run?.month === month ? Work82.run : null);
-    const leaves = (Work82.leaves || []).filter(record => record.data?.month === month)
-      .sort((a, b) => String(a.data.from || '').localeCompare(String(b.data.from || '')));
-    let payroll = '<p class="empty82">No payroll has been saved for this month.</p>';
+    const run = Work82.run?.month === month ? Work82.run : runs[0]?.data;
+    const leaves = overviewLeaves269(month);
+    let payroll = '<p class="empty82">No payroll is open or saved for this month.</p>';
     if (run) {
       const results = new Map(resultRows(run).map(row => [row.employeeId, row]));
       const rows = (run.rows || []).map(row => {
@@ -25,12 +45,22 @@
     const leaveRows = leaves.map(record => {
       const d = record.data;
       const employee = Work82.employees.find(item => item.id === d.employeeId)?.data?.name || 'Former employee';
-      return `<tr><td>${escape(employee)}</td><td>${escape(formatAppDate(d.from || ''))} – ${escape(formatAppDate(d.to || ''))}</td><td>${escape(d.type || '')}</td><td>${amount(d.days)}</td><td>${escape(d.paid === 'yes' ? 'Paid' : 'Unpaid')}</td><td>${escape(d.status || '')}</td><td>${escape(d.reference || '')}</td></tr>`;
+      return `<tr><td>${escape(employee)}</td><td>${escape(formatAppDate(d.from || ''))} – ${escape(formatAppDate(d.to || ''))}</td><td>${escape(d.type || '')}</td><td>${d.days == null ? '—' : amount(d.days)}</td><td>${escape(d.paid === 'yes' ? 'Paid' : d.paid === 'no' ? 'Unpaid' : 'Not recorded')}</td><td>${escape(d.status || '')}</td><td>${escape(d.reference || '')}</td></tr>`;
     }).join('');
-    host.innerHTML = `<header><div><h3>Payroll Overview</h3><p>Saved payroll and leave records for the selected month.</p></div><div class="actions82"><button class="je-btn je-btn-secondary" type="button" onclick="loadWork82(true)">Reload Records</button><button class="je-btn je-btn-emerald" type="button" onclick="openPayroll99()">Open Payroll</button></div></header>${Work82.error ? `<p class="notice82 warn82">${escape(Work82.error)}</p>` : ''}<section class="block82"><header><h4>Payroll period</h4></header><div class="overview-month97"><label for="overviewPayrollMonth97">Month</label><input type="month" id="overviewPayrollMonth97" value="${escape(month)}"></div>${payroll}</section><section class="block82"><header><h4>Leave this month</h4><span>${leaves.length} records</span></header><div class="data-table82"><table><thead><tr><th>Employee</th><th>Dates</th><th>Leave type</th><th>Days</th><th>Pay treatment</th><th>Status</th><th>Reference</th></tr></thead><tbody>${leaveRows || '<tr><td colspan="7" class="empty82">No leave records for this month.</td></tr>'}</tbody></table></div></section>`;
-    host.querySelector('#overviewPayrollMonth97')?.addEventListener('change', event => {
+    host.innerHTML = `<header><div><h3>Payroll Overview</h3><p>Current payroll and HR leave records for the selected month.</p></div><div class="actions82"><button class="je-btn je-btn-secondary" type="button" onclick="loadWork82(true)">Reload Records</button><button class="je-btn je-btn-emerald" type="button" onclick="openPayroll99()">Open Payroll</button></div></header>${Work82.error ? `<p class="notice82 warn82">${escape(Work82.error)}</p>` : ''}<section class="block82"><header><h4>Payroll period</h4></header><div class="overview-month97"><label for="overviewPayrollMonth97">Month</label><input type="month" id="overviewPayrollMonth97" value="${escape(month)}"></div>${payroll}</section><section class="block82"><header><h4>Leave this month</h4><span>${leaves.length} records</span></header><div class="data-table82"><table><thead><tr><th>Employee</th><th>Dates</th><th>Leave type</th><th>Days</th><th>Pay treatment</th><th>Status</th><th>Reference</th></tr></thead><tbody>${leaveRows || '<tr><td colspan="7" class="empty82">No leave records for this month.</td></tr>'}</tbody></table></div></section>`;
+    host.querySelector('#overviewPayrollMonth97')?.addEventListener('change', async event => {
       overviewMonth = /^\d{4}-\d{2}$/.test(event.target.value) ? event.target.value : currentMonth();
       renderOverview();
+      const selected = overviewMonth, actor = liveProfile?.id;
+      try {
+        await window.payrollWindow14334?.ensure(selected);
+        if (actor === liveProfile?.id && selected === overviewMonth && document.querySelector('#payroll-overview.active')) renderOverview();
+      } catch (error) { if (actor === liveProfile?.id && selected === overviewMonth) showCenterStatus(error.message,true); }
     });
   }
 
+  window.payrollOverview269 = { enter() {
+    const month = Work82.run?.month || currentMonth(), changed = overviewMonth !== month;
+    overviewMonth = month;overviewContext269 = null;
+    return changed;
+  } };

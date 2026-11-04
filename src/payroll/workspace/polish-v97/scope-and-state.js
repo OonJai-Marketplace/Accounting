@@ -9,6 +9,6 @@
     const date = new Date();
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
-  const currentMonth = () => localDate().slice(0, 7);
-  let overviewMonth = currentMonth();
+  const currentMonth = () => (typeof appLocalDate === 'function' ? appLocalDate() : localDate()).slice(0, 7);
+  let overviewMonth = currentMonth(), overviewContext269 = null;
 

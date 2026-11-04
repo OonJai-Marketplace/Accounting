@@ -9,7 +9,11 @@
       const internal = details.find(item => item.dataset.group95.endsWith('-internal'));
       const title = internal?.querySelector('summary strong, .pay-heading14331 strong');
       if (title) title.textContent = 'Internal Deduction Summary';
-      if (internal) internal.open = true;
+      if (internal) {
+        internal.open = true;
+        const attendance = details.find(item => item.dataset.group95 === 'attendance' || item.dataset.group95.endsWith('-attendance'));
+        if (attendance) attendance.before(internal);
+      }
     }
   }
 
