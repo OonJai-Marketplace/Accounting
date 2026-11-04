@@ -26,3 +26,30 @@ html[data-device132=tablet] input[data-tablet-choice143264]{-webkit-appearance:n
 html[data-device132=tablet] :is(#sub-users-workspace,#transactions-module) input[data-tablet-choice143264]{font-size:16px!important}
 html[data-device132=tablet] .account-input-wrap:has(>.je-line-acc[data-tablet-choice143264]){position:relative}
 html[data-device132=tablet] .account-input-wrap:has(>.je-line-acc[data-tablet-choice143264][value=""])::after{content:'Choose account…';position:absolute;left:36px;right:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;font-size:16px;color:#60756a}
+
+/* One tablet shell height, independent of keyboard/pinch and legacy vh rules.
+   Use the first application correction layer to beat older fixed heights. */
+@layer action-finalization14317 {
+ @media screen {
+  html:root[data-device132=tablet],html:root[data-device132=tablet] body{overflow:hidden!important;height:var(--tablet-height285,100dvh)!important;min-height:0!important;margin:0!important}
+  html:root[data-device132=tablet] body .app-layout{height:var(--tablet-height285,100dvh)!important;min-height:0!important;max-height:none!important;overflow:hidden!important}
+  html:root[data-device132=tablet] body .main-content-area{height:var(--tablet-main-height285,var(--tablet-height285,100dvh))!important;min-height:0!important;max-height:100%!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+  html:root[data-device132=tablet] body .workspace-scroll{height:auto!important;max-height:none!important;min-height:0!important;flex:1 1 0!important;overflow-y:auto!important;overflow-x:hidden!important;box-sizing:border-box!important}
+  html:root[data-device132=tablet] body #appSidebar#appSidebar{height:var(--tablet-height285,100dvh)!important;min-height:0!important;max-height:none!important;bottom:auto!important;box-sizing:border-box!important}
+  html:root[data-device132=tablet] body .area-banner113{height:auto!important;min-height:104px!important;max-height:none!important;flex:0 0 auto!important;flex-wrap:wrap!important;overflow:visible!important}
+  html:root[data-device132=tablet] body .area-banner113 blockquote{position:static!important;transform:none!important;flex:0 1 30%!important;margin:0!important;overflow-wrap:anywhere!important}
+  html:root[data-device132=tablet] body .banner-copy113{min-width:0!important;flex:1 1 50%!important;overflow-wrap:anywhere!important}
+  html:root[data-device132=tablet] body :is(.area-banner113 h1,.area-banner113 p,.area-banner113 blockquote,.v49-user-header h2,.v49-user-header p){white-space:normal!important;overflow:visible!important;max-height:none!important;text-overflow:clip!important}
+  html:root[data-device132=tablet] body .v49-user-header{height:auto!important;max-height:none!important;flex-wrap:wrap!important}
+  html:root[data-device132=tablet] body #journalEntry98#journalEntry98{max-height:none!important;height:auto!important;flex:0 0 auto!important}
+  html:root[data-device132=tablet] body #journalEntry98#journalEntry98>.table-container{max-height:none!important;height:auto!important;flex:0 0 auto!important;overflow-x:auto!important}
+  html:root[data-device132=tablet] body #journalEntry98#journalEntry98>.je-actions-bar{bottom:calc(var(--tablet-actions-inset285,0px) + var(--calculation-height14391,0px))!important}
+  html:root[data-device132=tablet] body .workspace-journal-entry-card>.je-actions-bar{position:sticky!important;bottom:var(--tablet-actions-inset285,0px)!important;z-index:30;background:var(--surface,#fffcf4)}
+  html:root[data-device132=tablet] body #journalEntry98 .je-actions-bar .je-btn{height:calc(32px * var(--tablet-text-scale285,1))!important;min-height:calc(32px * var(--tablet-text-scale285,1))!important;max-height:none!important}
+  /* Contenteditable memos must have the same readable size as native inputs. */
+  html:root[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-grid,#simpleRows1430,#jeLinesBody) :is(input:not([type=checkbox]):not([type=radio]),textarea,.memo-link-text143187){font-size:calc(16px * var(--app-font-scale14380,1))!important;line-height:1.35!important}
+  html:root[data-device132=tablet] body #journalEntry98#journalEntry98 :is(.je-meta-grid,#simpleRows1430,#jeLinesBody) :is(input:not([type=checkbox]):not([type=radio]),textarea,.oj-date-shell104,.oj-date-button104,.direction-toggle1439,.account-choice14231,.account-input-wrap){height:auto!important;min-height:calc(36px * var(--tablet-text-scale285,1))!important;max-height:none!important}
+  html:root[data-device132=tablet] body #journalEntry98#journalEntry98 .memo-link-text143187{min-height:calc(36px * var(--tablet-text-scale285,1))!important;box-sizing:border-box!important}
+  html:root[data-device132=tablet] body #appSidebar.mobile-open .nav-header{height:auto!important;min-height:40px!important;white-space:normal!important}
+ }
+}

@@ -492,3 +492,14 @@ Do not silently post or alter financial records to clear findings.
 2026-11-04 v143.282 report follow-up: payroll calculation report attendance explanations must read as formal report notes, not slash-separated interface instructions. Use a concise Attendance basis paragraph; migrate only the exact generated legacy paragraph in saved reports, retaining financial values and user notes.
 
 2026-11-04 v143.283: explicit workforce/document saves persist their owner-scoped recovery request before attempting a targeted online upload. Retain version checks and exact server receipts. Payroll depends on prior employee/leave changes and its own record versions, not unrelated documents/reports. Identical unconfirmed new-payroll retries keep their original UUID; changed figures require resolving the earlier request. General typing recovery is batched for 300 ms with immediate save/navigation/leave flushes; account recovery stays independent. Keep access revocation checks, refresh shared people/review data on relevant screen entry or explicit refresh instead of every unchanged access check, and avoid journal-ID requests without journal view permission. Tests use synthetic records only; do not claim physical-device timing.
+
+Tablet correction 2026-11-04 v143.285: keep one 1280px tablet viewport declaration;
+let the browser handle orientation fitting and pinch instead of rewriting initial
+scale on resize. Screen orientation, not keyboard-shortened aspect ratio, controls
+tablet navigation. Compensate text size for initial fitting while preserving the
+saved font choice and printed sizing. Use full unoccluded shell/sidebar height and
+a keyboard-visible main workspace; never scroll a memo behind sticky tabs/actions.
+Banners and quotations grow in flow. Enhance new account inputs before first-touch
+focus and point labels at visible controls. Keep desktop/phone behavior and financial
+data unchanged. Synthetic geometry and Chrome rendering are not physical iPad Safari
+verification; see docs/tablet285.md.
