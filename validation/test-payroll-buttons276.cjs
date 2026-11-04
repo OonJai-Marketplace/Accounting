@@ -5,7 +5,7 @@ const el=id=>w.document.getElementById(id),flush=()=>new Promise(r=>setTimeout(r
 (async()=>{
  await flush();await click('qa-open');
  assert(el('payTemplateError1429').compareDocumentPosition(el('payJournalLines1432'))&w.Node.DOCUMENT_POSITION_FOLLOWING,'feedback must appear before long table');
- await click('payPrepare1429');assert.match(status(),/draft.*finalize/i);assert.equal(w.qa276.saves,0);assert.equal(el('qa-tab').textContent,'payroll-entries');
+ await click('payPrepare1429');assert.match(status(),/draft.*Close payroll/i);assert.equal(w.qa276.saves,0);assert.equal(el('qa-tab').textContent,'payroll-entries');
  await click('payDefault1431');const confirmation=[...w.document.querySelectorAll('.ui-overlay108')].at(-1);assert.match(confirmation.textContent,/Replace these journal edits/);[...confirmation.querySelectorAll('button')].find(b=>b.textContent==='Confirm').click();await flush();assert.match(status(),/Default journal loaded/);
  el('payJournalDate274').value='2026-10-30';el('payJournalDate274').dispatchEvent(new w.Event('change',{bubbles:true}));await click('paySaveTemplate1429');assert.match(status(),/saved with this payroll/);assert.equal(w.qa276.record.data.payrollTemplate1429.journalDate,'2026-10-30');assert.equal(w.qa276.cache.drafts['2026-10'].run.payrollTemplate1429.journalDate,'2026-10-30');assert.equal(w.qa276.postCalls,0);
  w.qa276.fail='Synthetic save failure';await click('paySaveTemplate1429');assert.match(status(),/Synthetic save failure/);assert.equal(el('paySaveTemplate1429').disabled,false);w.qa276.fail=null;

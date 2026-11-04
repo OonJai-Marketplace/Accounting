@@ -39,6 +39,10 @@ c.testConfig={...config,penaltyGrace:0,latePenaltyFirst:4000};x=calculate(lateRu
 c.testConfig={...config,latePenaltyFirst:0};assert.equal(calculate(lateRun).lateCount,1);c.testConfig=config;
 lateRow.input.attendance=[{date:'2026-11-01',mark95:'6'}];assert.equal(calculate({...lateRun,month:'2026-11'}).latePenalty,3000);
 const saved={...run,status:'finalized',results:[structuredClone(x)]};c.testConfig={...config,workDays:31,penaltyGrace:0,latePenaltyFirst:99999};assert.equal(JSON.stringify(c.test234.results(saved)[0]),JSON.stringify(x));
+// A correction recalculates using the saved month policy even after live settings change.
+const correction=structuredClone(lateRun);correction.correction277={id:'test'};correction.config=structuredClone(config);correction.legendSnapshot95=structuredClone(c.test234.legends());correction.leaveSnapshot=[];correction.rows[0].input.attendance=[{date:'2026-10-01',mark95:'6'}];
+const corrected=calculate(correction);assert.equal(corrected.latePenalty,3000);assert.equal(corrected.late,426.14);
+c.testConfig={...config,workDays:10,hours:4,grace:0,penaltyGrace:0,latePenaltyFirst:99999};assert.deepEqual(calculate(correction),corrected,'live policy does not change corrected historical pay');
 // Saved historical attendance is not reclassified using a renewal date.
 const source=read('src/payroll/workspace/payroll-v99.js');c.payroll95={legends:()=>c.test234.legends(),parseMark:m=>({minutes:Number(m)||0,rule:null})};c.nonWork=()=>[];
 vm.runInContext(source.slice(source.indexOf('function status('),source.indexOf('function calculations(')),c);

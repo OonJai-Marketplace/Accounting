@@ -8,7 +8,7 @@ function historicalPayrollResult200(run,x){
  return {...x,attendance95:attendance,historicalCalculation200:h.calculation};
 }
 window.historicalPayrollResult200=historicalPayrollResult200;
-function results(run=Work82.run){if(!run)return[];if(run.status==='finalized')return (run.results||[]).map(x=>historicalPayrollResult200(run,x)).sort(payrollOrder14337);const config=payrollConfig82(),rules=legends();return run.rows.map(row=>{
+function results(run=Work82.run){if(!run)return[];if(run.status==='finalized')return (run.results||[]).map(x=>historicalPayrollResult200(run,x)).sort(payrollOrder14337);const config=run.correction277?run.config:payrollConfig82(),rules=run.correction277?run.legendSnapshot95||[]:legends();return run.rows.map(row=>{
  const days=dayResults(run,row,config,rules),sum=k=>days.reduce((s,d)=>s+Number(d[k]||0),0),input=row.input,unpaid=approved(run,row.employeeId).filter(l=>l.paid==='no').reduce((n,l)=>n+remainingLeave105(run,row,l),0);
  const time=round82(sum('time')),latePenalty=round82(sum('penalty')),fixed=round82(sum('fixed')),manual=round82(sum('manual'));
  const base={...input,attendance:(input.attendance||[]).filter(a=>!beforeEmployment234(row.employee,a.date)).map(a=>({...a,late:0})),absentDays:number(input.absentDays,'Additional absence days')+sum('lostDays'),penalty:number(input.penalty,'Additional penalty')+latePenalty+fixed+manual,otherDeduction:number(input.otherDeduction,'Other deduction')+time};

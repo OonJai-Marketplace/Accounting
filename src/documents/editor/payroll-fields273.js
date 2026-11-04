@@ -58,7 +58,7 @@ function blocked(doc,event){
 }
 function stop(event,doc,status){if(!blocked(doc,event))return false;event?.preventDefault();status?.('Calculated figures stay unchanged. Edit them in Payroll, then generate a new report.');return true;}
 function focusName(event,doc){
- const line=event.target.closest?.('[data-payroll-signature-line273],[data-report-signature-line275]'),field=line?.querySelector(name+', [data-report-signature-name275]');if(!field)return;
+ const line=event.target.closest?.('[data-payroll-signature-line273],[data-report-signature-line275]'),field=line?.parentElement?.querySelector(name+', [data-report-signature-name275]');if(!field)return;
  const selection=doc.getSelection();if(field.contains(selection?.anchorNode))return;
  field.focus({preventScroll:true});const range=doc.createRange();range.selectNodeContents(field);range.collapse(false);selection.removeAllRanges();selection.addRange(range);
 }
