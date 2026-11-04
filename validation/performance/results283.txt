@@ -1,0 +1,37 @@
+PASS online employee save returns exact database receipt without idle or global refresh
+PASS offline saves retain independent new records, IDs and newest same-record version
+PASS a save uploads only its own dependency chain, retaining unrelated pending work
+PASS payroll bypasses unrelated blocked documents but confirms employee and leave dependencies first
+PASS payroll cannot bypass a blocked employee or leave dependency
+PASS payroll cannot overwrite an unresolved prior version of the same payroll
+PASS offline finalization retains editor without claiming completion
+PASS interrupted new payroll retries its original request and UUID
+PASS lost receipt after server commit is recovered without a duplicate write
+PASS changed payroll figures cannot create a second record while the first save is unconfirmed
+PASS wrong version is retained as conflict and never overwrites another session
+PASS permission rejection keeps recoverable work and cannot confirm payroll
+PASS rapid independent saves serialize uploads and both return confirmed receipts
+PASS two tabs sharing an outbox and Web Lock issue one write per request
+PASS explicit Save waits for another tab lock instead of silently skipping the upload
+PASS actor or connection change after lookup cannot write or confirm under the new context
+PASS storage failure prevents remote writes and retains input
+{"suite":"save-path283","passed":17,"productionRequests":0}
+{"fixture":"40 payroll field input events; 1500 synthetic recovery rows; deterministic timer flush","baselineCommit":"4fa4107d960a55d8d9d3bc5aa6b4b5b0265936e2","before":{"keystrokes":40,"during":{"writes":80,"modelClones":320,"modelReads":80},"writes":80,"bytes":63790631,"modelClones":320,"modelReads":80},"after":{"keystrokes":40,"during":{"writes":0,"modelClones":0,"modelReads":0},"writes":1,"bytes":797383,"modelClones":4,"modelReads":1},"limitations":"Counts and serialized bytes in jsdom, not measured iPad latency or production timings."}
+PASS draft batching, six immediate recovery boundaries, reload, discard, account isolation and storage failure recovery
+PASS four access checks with zero unchanged directory/inbox reloads; navigation freshness, permission changes, transient failure, revocation and authorized-only journal ID previews
+PASS account typing/dropdown batching, bounded recovery writes, legacy recovery, leave/submit/reset/navigation/pagehide, account isolation, storage retry and payroll preservation
+PASS real payroll finalization/template save use queue confirmation without global Sync now; unconfirmed, offline and account-change saves cannot finalize.
+PASS combined save/close and direct post through real save coordinator: no global sync, cancellation safe, Active Journal navigation and stale receipt recovery without duplicate posting.
+PASS actual payroll button handlers: print/voucher routes, combined save/close → retained Entries plus unjournaled History, open-month edit with no prompt, explicit prepared posting, same-ID direct revision, closed-month reason, visible delta and separate adjustment. All saves/postings are synthetic.
+PASS same report defaults across months, date formats and entry points
+PASS saving voucher defaults preserves report defaults and concurrent preference changes
+PASS Reports chooser preserves two voucher receiver identities and signing space
+PASS all cross-report regression checks
+PASS report notices: payroll draft/finalized/sample, English/Lao vouchers, legacy saved reports, banner persistence/tab clearing, table/user-content preservation, clean print iframe
+PASS actual posting wrapper recovers approved source after reload, accepts a new combined fund row without lost metadata, keeps custom descriptions, and rejects account-switch races
+PASS memo-only edits skip arithmetic; amount and required-memo changes still validate; bulk updates calculate once; exceptions release batching; unchanged account badges cause no DOM mutations
+PASS cross-year custom/All months reports include each year; opening balances are not duplicated; date sorting, LAK/original results, trial balance, latest balance sheet, selected months and state restoration remain correct
+PASS complete preparation, shared all-month data, persistent cache, revision checks, cancelled obsolete requests, selected-view priority and progress lifecycle
+PASS payroll protocol cases: local, USD, mixed, THB, PIT/SSO, rounding, saved rates/date, advances, missing/edited rows and input immutability. No posting performed.
+PASS: automatic migration, racing initializers, statutory snapshots, shared configuration, revision conflicts, finalization refresh, key ordering, structured rules, failed saves and role guard
+PASS 15 performance/recovery and accounting regression suites; synthetic data only.

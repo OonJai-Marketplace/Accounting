@@ -7,7 +7,7 @@ async function click(label,scope=w.document){const b=[...scope.querySelectorAll(
 const mockSave=w.saveWork82,jobs=[];let globalSync=0,queueSync=0,confirmed=true;
 w.tables82={runs:'payroll_runs'};w.date71=(y,m,d)=>[y,String(m).padStart(2,'0'),String(d).padStart(2,'0')].join('-');w.offline14239={offline:()=>false};
 w.idleSync14341={syncNow:async()=>{globalSync++;throw Error('Unexpected full workspace sync');}};
-w.localFirst14333={saveWork:async(kind,data,record)=>{const row=await mockSave(kind,data,record);jobs.push({row,status:'pending'});return {...row,_pending14333:true};},sync:async options=>{assert.equal(options.coordinated,true);queueSync++;if(confirmed)jobs.forEach(j=>{j.status='synced';j.receipt=j.row;})},state:()=>({jobs})};
+w.localFirst14333={saveWork:async(kind,data,record)=>{const row=await mockSave(kind,data,record);queueSync++;jobs.push({row,status:confirmed?'synced':'pending',...(confirmed?{receipt:row}:{})});return confirmed?row:{...row,_pending14333:true};},sync:async()=>{throw Error('Unexpected unrelated queue drain')},state:()=>({jobs})};
 const storage=fs.readFileSync('src/shared/data/workforce-storage-v82.js','utf8');w.eval(storage.slice(storage.indexOf('async function saveWork82('),storage.indexOf('async function runAction82(')));
 (async()=>{
  await tick();assert.equal([...el('payroll-entries').querySelectorAll('button')].filter(b=>/Save Draft|Close payroll/.test(b.textContent)).length,0);

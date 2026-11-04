@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),{JSDOM}=require('jsdom');
+const tick=()=>new Promise(r=>setImmediate(r));
+(async()=>{
+ const dom=new JSDOM('<div class="app-layout"></div><section class="tab-content active" id="journal"></section><span id="jeNextIdDisplay"></span><input id="jeTransDate" value="2026-11-04">',{url:'https://isolated.test',runScripts:'outside-only'}),w=dom.window;
+ await new Promise(r=>w.document.readyState==='loading'?w.document.addEventListener('DOMContentLoaded',r,{once:true}):r());
+ let target='journal',permitted=true,accessCalls=0,revalidations=0,invalidations=0,logouts=0,revokes=0,previews=0,response;
+ w.liveProfile={id:'admin',role:'admin',status:'active'};w.livePermission={modules:['journal']};w.liveProfiles=[{...w.liveProfile}];w.sessionEpoch1430=1;
+ response={data:{profile:{...w.liveProfile},permissions:structuredClone(w.livePermission)}};
+ w.ojmDb={rpc:async name=>{if(name==='current_access14228'){accessCalls++;return structuredClone(response)}previews++;assert.equal(name,'offline_journal_state143174');return {data:{next:10}}}};
+ w.access113={can:()=>permitted,currentTarget:()=>target,enforce(){}};w.Organization14229={revalidate:async()=>{revalidations++},invalidate:()=>invalidations++};w.deviceVault14334={revoke:()=>revokes++};w.logoutDemoUser=async()=>logouts++;w.showLoginForm=()=>{};
+ w.requestAnimationFrame=()=>0;w.setInterval=()=>0;w.closeModal=()=>{};w.showCenterStatus=()=>{};w.canAccessAppTarget=()=>true;w.switchTab=()=>{};
+ w.eval(fs.readFileSync('src/core/permissions/permissions1441.js','utf8'));w.document.dispatchEvent(new w.Event('DOMContentLoaded'));await tick();
+ for(let i=0;i<3;i++)await w.permissions1441.verify();assert.equal(accessCalls,4);assert.equal(revalidations,0,'unchanged access cannot download directory and inbox repeatedly');
+ target='user-entry-review';w.dispatchEvent(new w.Event('page113'));await tick();assert.equal(revalidations,1,'opening Submitted refreshes shared data');w.dispatchEvent(new w.Event('page113'));await tick();assert.equal(revalidations,1,'repainting current screen does not refetch');target='journal';w.dispatchEvent(new w.Event('page113'));target='settings-users';w.dispatchEvent(new w.Event('page113'));await tick();assert.equal(revalidations,2);
+ response.data.permissions={modules:['journal','new permission']};await w.permissions1441.verify();assert.equal(invalidations,1);assert.equal(revalidations,3,'permission change still refreshes organization');
+ response={error:{code:'NETWORK',message:'Temporary interruption'}};await w.permissions1441.verify();assert.equal(logouts,0);assert.equal(w.permissions1441.stale,true);
+ response={data:{profile:{id:'admin',role:'admin',status:'inactive'},permissions:{}}};await w.permissions1441.verify();assert.equal(logouts,1);assert.equal(revokes,1,'revoked access still clears vault and signs out');
+ w.JournalModule={};w.ApplicationSettings={accounting:{journalPrefix:'TEST',journalDigits:4}};w.formatEntryId143114=(p,n)=>p+n;w.appLocalDate=()=> '2026-11-04';w.loadJournalFromSupabase=async()=>{};
+ w.eval(fs.readFileSync('src/bookkeeping/journal/entry-number14257.js','utf8'));permitted=false;await w.entryNumber14257.refresh();assert.equal(previews,0);permitted=true;await w.entryNumber14257.refresh();assert.equal(previews,1);assert.equal(w.document.getElementById('jeNextIdDisplay').textContent,'TEST10');
+ console.log('PASS four access checks with zero unchanged directory/inbox reloads; navigation freshness, permission changes, transient failure, revocation and authorized-only journal ID previews');dom.window.close();
+})().catch(e=>{console.error(e);process.exitCode=1});

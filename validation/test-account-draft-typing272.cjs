@@ -18,7 +18,8 @@ async function fixture(initial,script=source){
  const resetCounts=()=>{writes.length=0;cloneCalls=0;modelReads=0};resetCounts();
  return {dom,w,d,store,writes,warnings,timers,resetCounts,setFail:v=>fail=v,get clones(){return cloneCalls},get modelReads(){return modelReads},edit:(id,value,type='input')=>{const n=d.getElementById(id);n.value=value;n.dispatchEvent(new w.Event(type,{bubbles:true}));},settle:async()=>{await Promise.resolve();await Promise.resolve()},idle:()=>{for(const [id,fn] of [...timers]){timers.delete(id);fn()}},saved:()=>JSON.parse(store.get(small)||'null'),close:()=>dom.window.close()};
 }
-(async()=>{
+module.exports={fixture,key,prefix};
+if(require.main===module)(async()=>{
  let f=await fixture();assert.equal(f.d.getElementById('accName').value,'Recovered account','legacy account drafts still recover');
  const originalPayroll=f.store.get(key);for(let i=1;i<=40;i++)f.edit('accName','Account '+i);f.edit('accCurrency','USD');f.edit('accCurrency','USD','change');await f.settle();
  assert.equal(f.writes.length,0,'typing and choosing a currency do not write storage synchronously');assert.equal(f.clones,0,'account typing never clones other module drafts');assert.equal(f.modelReads,0);assert.equal(f.timers.size,1);
@@ -30,7 +31,7 @@ async function fixture(initial,script=source){
  f.edit('accName','Must not return after reset');f.d.getElementById('formAccount').reset();f.idle();assert.equal(Object.keys(f.saved().forms).length,0);const cleared=new Map(f.store);f.close();f=await fixture(cleared);assert.equal(f.d.getElementById('accName').value,'','an empty account copy suppresses stale legacy fields');
  f.edit('subName','Child account');await f.settle();f.idle();assert.equal(f.saved().forms['modalSubAccount|formSubAccount|'].fields['#subName'],'Child account');
  f.resetCounts();f.edit('accName','Leaving immediately');f.w.dispatchEvent(new f.w.Event('pagehide'));assert.equal(f.saved().forms['modalAccount|formAccount|'].fields['#accName'],'Leaving immediately');assert.equal(f.timers.size,0);
- f.resetCounts();f.edit('payAmount','250');await f.settle();assert(f.clones>0&&f.modelReads>0,'payroll edits retain their model snapshots');assert(f.writes.some(x=>x.key===key));
+ f.resetCounts();f.edit('payAmount','250');await f.settle();assert.equal(f.writes.length,0);f.idle();assert(f.clones>0&&f.modelReads>0,'payroll edits retain their model snapshots');assert(f.writes.some(x=>x.key===key));
  f.resetCounts();f.edit('accName','Pending before navigation');f.w.switchTab('accounts');assert.equal(f.saved().forms['modalAccount|formAccount|'].fields['#accName'],'Pending before navigation');
  f.resetCounts();f.edit('accName','Pending old user');f.w.liveProfile={id:'other'};f.idle();assert.equal(f.writes.length,0,'pending timer cannot write after actor changes');f.w.drafts1427.restore();f.edit('accName','Other user');f.idle();assert.equal(JSON.parse(f.store.get(prefix+'other:account-forms272')).forms['modalAccount|formAccount|'].fields['#accName'],'Other user');assert.notEqual(f.saved().forms['modalAccount|formAccount|'].fields['#accName'],'Other user');f.close();
  f=await fixture();f.setFail(true);f.edit('accName','Storage retry');f.idle();assert.equal(f.warnings.length,1);f.w.drafts1427.flush();assert.equal(f.warnings.length,1,'failed recovery write warns once');f.setFail(false);f.w.drafts1427.flush();assert.equal(f.saved().forms['modalAccount|formAccount|'].fields['#accName'],'Storage retry');f.close();

@@ -1,0 +1,29 @@
+{
+  "fixture": "40 payroll field input events; 1500 synthetic recovery rows; deterministic timer flush",
+  "baselineCommit": "4fa4107d960a55d8d9d3bc5aa6b4b5b0265936e2",
+  "before": {
+    "keystrokes": 40,
+    "during": {
+      "writes": 80,
+      "modelClones": 320,
+      "modelReads": 80
+    },
+    "writes": 80,
+    "bytes": 63790631,
+    "modelClones": 320,
+    "modelReads": 80
+  },
+  "after": {
+    "keystrokes": 40,
+    "during": {
+      "writes": 0,
+      "modelClones": 0,
+      "modelReads": 0
+    },
+    "writes": 1,
+    "bytes": 797383,
+    "modelClones": 4,
+    "modelReads": 1
+  },
+  "limitations": "Counts and serialized bytes in jsdom, not measured iPad latency or production timings."
+}

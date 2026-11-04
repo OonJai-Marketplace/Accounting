@@ -1,12 +1,10 @@
 {
-  "version": "143.282",
+  "version": "143.283",
   "changes": [
-    "Payroll uses one Save & Close Payroll action and stays in Entries, with Salary History retained.",
-    "Payroll journal keeps Prepare in Transactions and Post to Active Journal, saves the layout with either action and confirms payroll without opening the full sync window.",
-    "Device-copy confirmation notices appear only in the compact editor status area, including when reopening older payroll reports.",
-    "Payroll attendance explanations use a formal Attendance basis note, including saved report copies.",
-    "Data Check now reviews every posted journal through month-end, foreign rates and LAK mappings, and recorded exchange gain/loss.",
-    "Amortization and recurring checks include due items, monthly/daily allocations, historical values, year carryover and linked postings.",
-    "Closing reruns mandatory checks; arithmetic errors block closing and review items require an explanation. No financial records are changed by checking."
+    "Explicit employee, leave, payroll, report and document saves attempt database confirmation immediately, with device recovery retained.",
+    "Payroll confirms its own save and required employee/leave changes without draining unrelated pending documents or reports.",
+    "Typing batches large recovery copies after a short pause while preserving immediate recovery at Save, navigation and page-leave boundaries.",
+    "Access checks retain permission revocation but avoid repeatedly downloading unchanged user directories and submitted reports; those screens refresh on entry.",
+    "Journal ID previews respect journal-view permission. Accounting calculations, posting rules and report layouts are retained."
   ]
 }

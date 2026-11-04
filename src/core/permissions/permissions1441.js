@@ -17,7 +17,11 @@ function ready(){
   if(active&&!can(target)){active.classList.remove('active');const fallback=typeof firstPermittedAppTarget==='function'?firstPermittedAppTarget():'';if(fallback){if(fallback.startsWith('sec-'))scrollToAccountModule(fallback);else window.switchTab(fallback)}}
   window.applyGranularPermissionAccess?.();window.access113.enforce();
  }
- window.addEventListener('page113',refresh);let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh()})}).observe(document.body,{childList:true,subtree:true});
+ let organizationPage283='';
+ window.addEventListener('page113',()=>{refresh();const target=window.access113.currentTarget();if(target===organizationPage283)return;organizationPage283=target;
+  // Refresh shared submissions/people when entering their screens, not on every access check.
+  if(['user-entry-review','sub-users-home14229','settings-users','settings-organization14229'].includes(target)&&can(target))void window.Organization14229?.revalidate();
+ });let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh()})}).observe(document.body,{childList:true,subtree:true});
  let verification=null,retryTimer=null;
  function reconnect(show,message='The connection was interrupted. Rechecking your access…'){
   window.permissions1441.reconnecting=show;let box=document.getElementById('sessionReconnect14233');
@@ -39,7 +43,9 @@ function ready(){
    const self=liveProfiles.find(u=>u.id===id);if(self)Object.assign(self,liveProfile,{user_permissions:livePermission});
    window.permissions1441.verified=true;window.permissions1441.stale=false;clearTimeout(retryTimer);reconnect(false);
    refresh();
-   await window.Organization14229?.revalidate();
+   // Access stays fresh without downloading unchanged business data every 30 seconds.
+   // Startup, explicit refresh and mutations still own directory/inbox refreshes.
+   if(changed14229)await window.Organization14229?.revalidate();
    if(!current())return;
    if(!can('document-editor105','view')||!can('document-editor105','export')){
     document.getElementById('reportHistory1443')?.replaceChildren();

@@ -1,0 +1,11 @@
+{
+  "name": "oon-jai-performance-validation",
+  "private": true,
+  "scripts": {
+    "test": "node run283.cjs"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "6.2.4",
+    "jsdom": "26.1.0"
+  }
+}
