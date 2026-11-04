@@ -4,7 +4,7 @@ const TemplateStore = {
   actor(){return typeof liveProfile==='undefined'?'':liveProfile?.id||'';},
   load(){
     const owner=this.actor();
-    if(!owner||window.deviceVault14334&&!window.deviceVault14334.unlocked){this.templates=[];this.owner='';this.loaded=false;return false;}
+    if(!owner||window.deviceVault14334&&(!window.deviceVault14334.unlocked||window.deviceVault14334.actor&&window.deviceVault14334.actor!==owner)){this.templates=[];this.owner='';this.loaded=false;return false;}
     if(owner!==this.owner){this.templates=[];this.loaded=false;this.owner=owner;this.baseline=null;}
     try{
       const raw=localStorage.getItem(this.key);
@@ -25,7 +25,7 @@ const TemplateStore = {
       if(localStorage.getItem(this.key)!==value)throw Error('The device template save could not be confirmed.');
       this.baseline=value;this.error='';
     };
-    return navigator.locks?.request?navigator.locks.request('ojm-template-save274',write):write();
+    const result=await (navigator.locks?.request?navigator.locks.request('ojm-template-save274',write):write());window.TemplateCloud275?.queue();return result;
   }
 };
 
@@ -41,7 +41,7 @@ async function ensureTemplateNumbers143125(){
     if(!registry.ids||!Number.isSafeInteger(registry.next)||registry.next<1)throw Error('Template number registry is invalid. Restore the device backup before saving.');
     const templates=[...builtInTransactionTemplates268(),...TemplateStore.templates];
     for(const t of templates){if(!Object.hasOwn(registry.ids,t.id)){registry.ids[t.id]=registry.next++;}}
-    localStorage.setItem(key,JSON.stringify(registry));
+    const value=JSON.stringify(registry);if(raw!==value){localStorage.setItem(key,value);window.TemplateCloud275?.queue();}
     return registry.ids;
   };
   return navigator.locks?.request?navigator.locks.request('ojm-template-numbers143125',allocate):allocate();
@@ -116,9 +116,9 @@ async function confirmSaveTemplate() {
     TemplateStore.templates.push({id:'tpl-'+crypto.randomUUID(), name, ...pendingTemplateLines});
   }
   try{await ensureTemplateNumbers143125();if(liveProfile?.id!==pendingTemplateOwner)return;await TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Saved',error.message,true);return}finally{savingTemplate143125=false} closeModal('modalTemplateName'); renderTemplateManager();
-  showAppNotification('Template Saved', `${name} was saved and verified on this browser for your signed-in account. It is not a cloud copy.`, false);
+  showAppNotification('Template Saved', `${name} was saved and verified on this browser for your signed-in account. ${window.TemplateCloud275?'Cloud confirmation is pending; check Templates for the result.':'It is not a cloud copy.'}`, false);
 }
-async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');}
+async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');const status=document.getElementById('templateCloudStatus275'),owner=liveProfile?.id;await window.TemplateCloud275?.sync();if(status?.isConnected&&liveProfile?.id===owner)await renderTemplateManager();}
 function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
 function availableTransactionTemplates(){
   TemplateStore.load();
@@ -149,9 +149,9 @@ function templateEditorFields14399(t){
 }
 async function renderTemplateManager(){
   const host=document.getElementById('templateManagerList'); if(!host)return;
-  const owner=liveProfile?.id;let numbers;try{numbers=await ensureTemplateNumbers143125()}catch(error){showAppNotification('Template Numbers Unavailable',error.message,true);return}if(liveProfile?.id!==owner)return;
+  const owner=liveProfile?.id;let numbers;try{numbers=await ensureTemplateNumbers143125()}catch(error){if(window.TemplateCloud275){TemplateCloud275.renderFailure(host,error);return true;}showAppNotification('Template Numbers Unavailable',error.message,true);return}if(liveProfile?.id!==owner)return;
   const templates=availableTransactionTemplates();
-  host.innerHTML = '<p class="je-subtitle">'+TemplateStore.templates.filter(t=>!t.deleted).length+' saved custom templates · '+templates.filter(t=>t.builtin).length+' built-in templates. Saved templates belong to this account on this browser.</p>'+ (templates.length ? templates.map(t=>`
+  host.innerHTML = '<p class="je-subtitle">'+TemplateStore.templates.filter(t=>!t.deleted).length+' saved custom templates · '+templates.filter(t=>t.builtin).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
     <div class="template-item">
       <div><strong><span class="template-number143125">${numbers[t.id]}.</span> ${escapeHtml(templateDisplayName143125(t))}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">
@@ -159,7 +159,7 @@ async function renderTemplateManager(){
         <button class="je-btn je-btn-secondary" onclick="editTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Edit</button>
         <button class="je-btn je-btn-danger" onclick="deleteTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Remove</button>
       </div>
-    </div>`).join('') : '<div class="empty-archive-state">No templates saved.</div>');return true;
+    </div>`).join('') : '<div class="empty-archive-state">No templates saved.</div>');window.TemplateCloud275?.decorate(host);return true;
 }
 function applyTransactionTemplate(id){
   const t=availableTransactionTemplates().find(x=>x.id===id); if(!t)return;

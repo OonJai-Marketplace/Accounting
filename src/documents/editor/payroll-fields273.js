@@ -1,10 +1,11 @@
 /* Payroll document fields: preserve saved figures; edit names on their lines. */
 (()=>{'use strict';
 const number='[data-payroll-number273]',name='[data-payroll-signature-name273]';
-function isPayroll(model){return model?.category==='Payroll'&&(/^(Payroll Calculation Report|Salary Vouchers|Payroll Vouchers)(?:\s|$)/i.test(model.title||'')||model.source==='payroll-entries'||model.payrollVouchers);}
+function isPayroll(model){return model?.category==='Payroll'&&(/^(Payroll Calculation Report|Payroll Register|Salary Vouchers|Payroll Vouchers)(?:\s|$)/i.test(model.title||'')||model.source==='payroll-entries'||model.payrollVouchers);}
 function prepare(model){
  if(!isPayroll(model))return;
  const root=document.createElement('div');root.innerHTML=model.html||'';
+ if(!model.payrollVouchers)for(const group of root.querySelectorAll('[data-print-signatures]'))for(const column of [...group.children])if(column.lastElementChild?.textContent.trim()==='Received by')column.remove();
  if(!model.payrollVouchers&&/Payroll Calculation Report/i.test(model.title||'')){for(const row of root.querySelector('table')?.querySelectorAll('tbody tr')||[]){const cell=row.cells[0];if(cell&&/^(?:OJM?[-\s]*)?[A-Z]{1,4}[-\s]?\d{1,5}\s*·\s*\S/.test(cell.textContent.trim())){const walker=document.createTreeWalker(cell,NodeFilter.SHOW_TEXT);let node;while(node=walker.nextNode())if(node.nodeValue.trim()){node.nodeValue=node.nodeValue.replace(/^(\s*)(?:OJM?[-\s]*)?([A-Z]{1,4})[-\s]?(\d{1,5})(?=\s*·)/,'$1OJM-$2$3');break;}}}}
  // The approved report generator aligns calculated columns right. Migrate the
  // saved presentation in place; never regenerate it from newer payroll data.
@@ -23,7 +24,7 @@ function prepare(model){
  // The calculation report's freely entered signatories are editable on the line.
  if(!model.payrollVouchers)for(const group of root.querySelectorAll('[data-print-signatures]')){
   [...group.children].forEach((column,index)=>{
-   if(column.querySelector(name))return;
+   if(column.querySelector(name+', [data-report-signature-name275]'))return;
    const line=column.children[0],oldName=column.children[1];
    if(!line||!oldName||!line.style.borderBottom)return;
    const field=document.createElement('span');field.dataset.payrollSignatureName273=String(index);
@@ -39,8 +40,8 @@ function prepare(model){
 function names(model){
  if(!isPayroll(model)||model.payrollVouchers)return null;
  const root=document.createElement('div');root.innerHTML=model.html||'';
- const fields=[...root.querySelector('[data-print-signatures]')?.querySelectorAll(name)||[]];
- return fields.length?{prepared:fields[0]?.textContent.trim()||'',receiver:fields[1]?.textContent.trim()||'',approver:fields[2]?.textContent.trim()||''}:null;
+ const columns=[...root.querySelector('[data-print-signatures]')?.children||[]],value=label=>columns.find(c=>c.lastElementChild?.textContent.trim()===label)?.querySelector(name)?.textContent.trim()||'';
+ return columns.some(c=>c.querySelector(name))?{prepared:value('Prepared by'),receiver:'',approver:value('Approved by')}:null;
 }
 function intersects(range,root){
  if(!range||!root)return false;
@@ -57,10 +58,10 @@ function blocked(doc,event){
 }
 function stop(event,doc,status){if(!blocked(doc,event))return false;event?.preventDefault();status?.('Calculated figures stay unchanged. Edit them in Payroll, then generate a new report.');return true;}
 function focusName(event,doc){
- const line=event.target.closest?.('[data-payroll-signature-line273]'),field=line?.querySelector(name);if(!field)return;
+ const line=event.target.closest?.('[data-payroll-signature-line273],[data-report-signature-line275]'),field=line?.querySelector(name+', [data-report-signature-name275]');if(!field)return;
  const selection=doc.getSelection();if(field.contains(selection?.anchorNode))return;
  field.focus({preventScroll:true});const range=doc.createRange();range.selectNodeContents(field);range.collapse(false);selection.removeAllRanges();selection.addRange(range);
 }
-const css='[data-payroll-signature-line273]{align-items:flex-end}[data-payroll-number273]{cursor:default}[data-payroll-signature-name273]:focus{outline:1px solid #008563;outline-offset:2px}@media print{[data-payroll-signature-name273]:focus{outline:0}}';
+const css='[data-report-signature-line275],[data-payroll-signature-line273]{align-items:flex-end}[data-payroll-number273]{cursor:default}[data-report-signature-name275]:focus,[data-payroll-signature-name273]:focus{outline:1px solid #008563;outline-offset:2px}@media print{[data-report-signature-name275]:focus,[data-payroll-signature-name273]:focus{outline:0}}';
 window.payrollFields273={prepare,names,blocked,stop,focusName,css};
 })();

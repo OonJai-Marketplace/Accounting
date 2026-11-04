@@ -425,3 +425,13 @@ posting explicit. Load custom templates after the account vault unlocks, retain
 DR/CR sides, permanent numbers and removals, and reject stale-tab overwrites.
 Do not describe built-in catalog entries as recovered custom templates, local
 storage as cloud storage, or unposted financial work as completed.
+
+2026-11-04 v143.275: complete remaining template recovery and payroll journal
+edge cases; include the user-reported sign-in selector failure before pushing.
+No active tab during session restoration is valid: never interpolate an empty
+view ID into a CSS selector. Keep private template cloud confirmation distinct
+from device saves, retain conflicts and permanent numbers, and preserve explicit
+approval for financial corrections. A rent reconciliation proposal is not a
+posted journal or a changed schedule.
+
+2026-11-04 v143.275 report follow-up: show 1/2/3 named signatories and editable roles before report editor entry; save defaults per report type in the existing account preference row. Payroll calculation reports have no Received by role/requirement; salary vouchers retain their own receiver identity and approval constraints. Keep typed signature names focusable on their lines and preserve them through draft save/reopen/print. Page numbers appear on every numbered page independently of footer visibility and position. Below-content footers default to two lines of separation, with three lines selectable; page numbers stay at the bottom. Verify actual browser rendering and both spacing options before release.
