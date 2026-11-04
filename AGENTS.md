@@ -447,3 +447,16 @@ reviewer name/role/signature at bottom right. Month is editable by double-click
 in the editor. Save legend/reviewer defaults separately in print preferences.
 Do not create a month-end transaction-entry grid, consume voucher/journal IDs or
 post financial records. Preserve ordinary document editing, saving and printing.
+
+2026-11-04 v143.278: Close payroll saves Salary History before journaling. Keep
+Save journal template separate from explicit Post to Active Journal. Open-month
+corrections keep the journal ID; closed-month corrections retain the original,
+require an explanation and a separate adjustment/report. Recalculation retains
+the saved policy, calendar, legends and leave, including closed leave usage while
+editing. Never post real financial records to test a release. Report titles are
+centered; compact signature lines have about 6.35mm each side of the name, with
+editable name and actual job title below the line. These instructions supersede
+the earlier name-on-line rule. Put payroll rate/source/date/month/reference above
+the breakdown; rate format is ₭22,912/$ with commas and no forced zero decimals.
+Keep editor Print icon-sized and adjacent actions close together. Preserve cash
+slips and the approved phone layout.

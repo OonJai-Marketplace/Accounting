@@ -1,9 +1,10 @@
 {
-  "version": "143.277",
+  "version": "143.278",
   "changes": [
-    "Bookkeeping Documents now includes Create Cash Slip alongside vouchers and receipts.",
-    "Print a Monthly Cash Slip with 40 blank rows and nine columns, a wide description area, and received/released signatures.",
-    "Choose and save an initials legend plus reviewer name and role before opening the editor. Month and full year appear above the legend at the bottom left; double-click to choose another month.",
-    "Cash slips use document saving and printing without issuing voucher numbers or creating journal entries."
+    "Close payroll into Salary History before journaling, with a separate Post to Active Journal action. Save journal template is now clearly labelled.",
+    "Edit closed payroll with the saved calculation rules. Open-month corrections keep their journal ID; closed-month corrections retain the original and require a separate adjustment and explanation.",
+    "Centered report titles, short centered signature lines, editable names and job titles below each line, and saved report defaults.",
+    "Payroll rate, source, date, month and reference appear above the breakdown. Rates use the compact format ₭22,912/$.",
+    "The editor Print button is compact, leaving room for the adjacent formatting, voucher and receipt controls."
   ]
 }

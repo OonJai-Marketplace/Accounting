@@ -47,10 +47,10 @@ window.payrollExplain143157={attendanceCount(run,row,label,items,total,unit){con
  const scope=button.dataset.payScope143157,run=scope==='run'?Work82.run:Work82.runs.find(r=>'history-'+r.id===scope)?.data;
  if(!run)return showCenterStatus('This payroll is no longer open. Reopen the record.',true);
  try{if(scope==='run'&&run.status!=='finalized')updateRun82();const row=run.rows.find(r=>r.employeeId===button.dataset.payEmployee143157);if(!row)return;
- const config=run.status==='finalized'?(run.config||(run.settingsSnapshot?payrollConfig82(run.settingsSnapshot):null)):payrollConfig82();
+ const config=(run.status==='finalized'||run.correction277)?(run.config||(run.settingsSnapshot?payrollConfig82(run.settingsSnapshot):null)):payrollConfig82();
  let x;
  if(button.dataset.payKey143157==='attendanceTotal'){
-  x=run.status==='finalized'?results(run).find(r=>r.employeeId===row.employeeId):{currency:row.employee.currency,rate:run.rates[row.employee.currency],attendance95:dayResults(run,row,config,legends())};
+  x=run.status==='finalized'?results(run).find(r=>r.employeeId===row.employeeId):{currency:row.employee.currency,rate:run.rates[row.employee.currency],attendance95:dayResults(run,row,config,run.correction277?run.legendSnapshot95||[]:legends())};
   if(!x?.attendance95)throw Error('This saved payroll has no preserved daily attendance breakdown.');
  }else x=results(run).find(r=>r.employeeId===row.employeeId);
  if(!x)throw Error('No saved calculation is available for this employee.');
