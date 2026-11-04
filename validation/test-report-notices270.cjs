@@ -12,6 +12,11 @@ for(const state of ['draft','finalized'])for(const sample of [false,true]){
  for(const language of ['en','lo']){const voucher=split(w.reports14254.voucher(r,result,{},language));assert(voucher.notices.length);assert(!/DRAFT|FINALIZED|SAMPLE|ສະບັບຮ່າງ|ຕົວຢ່າງ|ສຳເລັດແລ້ວ/.test(clean(voucher.html)));assert.match(voucher.html,/PAY-2610-S01/);}
 }
 assert.equal(JSON.stringify(run),before);
+assert.match(w.reports14254.payroll(run,[result]),/Attendance basis:/);assert.doesNotMatch(w.reports14254.payroll(run,[result]),/Late min\.: actual \/ deducted/);
+vm.runInContext(read('src/documents/editor/payroll-fields273.js'),c);
+const savedNote={category:'Payroll',title:'Payroll Calculation Report',html:'<p>'+"Late min.: actual / deducted. Absence and unpaid leave: days / deduction. Paid leave: days / value (included in salary). Missed time: count / deduction. “+ charge”: additional charge."+'</p><p>My note: keep this wording.</p><table><tr><td>123.00</td></tr></table>'};
+w.payrollFields273.prepare(savedNote);assert.match(savedNote.html,/Attendance basis:/);assert.match(savedNote.html,/My note: keep this wording/);assert.match(savedNote.html,/123.00/);
+
 for(const [heading,meta,expected,kept]of [
  ['Payroll Calculation Report','2026-10 · PAY-2026-10 · Draft — Not Finalized','Draft — Not Finalized','PAY-2026-10'],
  ['Bank Reconciliation Report','DRAFT · REC-001','DRAFT','REC-001'],
@@ -20,6 +25,17 @@ for(const [heading,meta,expected,kept]of [
  ['Account Report','Period: 2026-10 · Reference: REP-001 · Status: Final approved','Final approved','REP-001']]){
  const out=split('<h1>'+heading+'</h1><p>'+meta+'</p><h3>Notes</h3><p>User note: draft plan</p><table><tr><td>Draft</td><td>100.00</td></tr></table>');assert(out.notices.includes(expected));assert.match(out.html,new RegExp(kept));assert.match(out.html,/User note: draft plan/);assert.match(out.html,/<td>Draft<\/td>/);
 }
+// Legacy unmarked sync headers must migrate too, including saved documents.
+for(const wording of ['Device copy — 1 save(s) awaiting database confirmation.','Device copy - 1 saves awaiting database confirmation','Device copy – 2 saves awaiting database confirmation.']){
+ const migrated=split('<p style="font-size:10pt"><strong>'+wording+'</strong></p><h1>Payroll Calculation Report</h1><table><tr><td>'+wording+'</td><td>123.00</td></tr></table><p>User note: '+wording+'</p>');
+ assert(migrated.notices.includes(wording));assert(!migrated.html.startsWith('<p style='));assert.match(migrated.html,/<td>Device copy/);assert.match(migrated.html,/User note: Device copy/);assert.match(migrated.html,/123.00/);
+}
+const local=read('src/core/sync/local-first14333.js'),wrapper=local.slice(local.indexOf(' const before=window.openDocumentEditor105;'),local.indexOf(' const profile=window.loadLiveProfile;'));
+let received;w.openDocumentEditor105=options=>{received=options};w.offline14239={state:()=>({pending:1})};vm.runInContext(wrapper,c);
+w.openDocumentEditor105({html:'<h1>Payroll Calculation Report</h1><p>123.00</p>',printPreview:true,reportNotices270:['FINALIZED']});
+assert.equal(received.html,'<h1>Payroll Calculation Report</h1><p>123.00</p>');assert.equal(received.reportNotices270.length,2);
+w.reportNotices270.prepare(received);w.reportNotices270.draw(w.document.querySelector('section'),received);assert.match(w.document.querySelector('.doc-report-notices270').textContent,/1 app save awaiting database confirmation/);assert.doesNotMatch(received.html,/Device copy|awaiting database/);
+w.offline14239.state=()=>({pending:0});w.reportNotices270.draw(w.document.querySelector('section'),received);assert.doesNotMatch(w.document.querySelector('.doc-report-notices270').textContent,/awaiting database/);
 const custom='<h1>Custom Letter</h1><p>Discussion · Draft</p><p>Draft — Not Finalized</p>';assert.equal(split(custom).html,custom,'ordinary authored text is retained');
 let model={title:'Payroll Calculation Report',html:'<h1>Payroll Calculation Report</h1><p>2026-10 · PAY-2610 · DRAFT — NOT FINALIZED</p><p class="notice82">Printing does not post a journal.</p><table><tr><td>100.00</td></tr></table>'};
 w.reportNotices270.prepare(model);const saved=JSON.stringify(model);model=JSON.parse(saved);w.reportNotices270.prepare(model);assert.equal(JSON.stringify(model),saved,'saved/restored migration is idempotent and retains notices');

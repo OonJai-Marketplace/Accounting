@@ -1,8 +1,1 @@
-{
-  "version": "143.280",
-  "changes": [
-    "Post Entry now offers Save as Template, Recurring transaction or Amortization, reusing the entered accounts, descriptions, memos and historical rates.",
-    "Upcoming combines scheduled and recurring journals, with a separate Amortization tab. Approved prepaid releases support equal monthly amounts or daily proration, year carryover, historical foreign mappings and separate IDs.",
-    "Generate includes named prepaid Wi-Fi, rent, insurance and other amortization starters. Template recovery checks retained originals while preserving permanent numbers and identifying missing custom content."
-  ]
-}
+{"version": "143.281", "changes": ["Payroll uses one Save & Close Payroll action and stays in Entries, with Salary History retained.", "Payroll journal keeps Prepare in Transactions and Post to Active Journal, saves the layout with either action and confirms payroll without opening the full sync window.", "Device-copy confirmation notices appear only in the compact editor status area, including when reopening older payroll reports.", "Payroll attendance explanations use a formal Attendance basis note, including saved report copies."]}
