@@ -5629,6 +5629,8 @@ body #document-editor105.menus1426 [hidden]{display:none!important}
 body #document-editor105.menus1426 .doc-quick1426 [data-style=fontSize]{width:48px!important}
 /* Keep page placement choices readable and directly selectable in both dialogs. */
 .page-setup1427 [data-doc-setting$="Placement"],.doc-images-dialog112 [data-doc-setting$="Placement"]{width:150px!important;max-width:100%!important;min-width:0!important;min-height:32px}
+.page-setup1427 [data-doc-setting="footerPosition"],.doc-images-dialog112 [data-doc-setting="footerPosition"]{width:220px!important;max-width:100%!important;min-width:0!important;min-height:32px}
+.page-setup1427 label:has([data-doc-setting="footerPosition"]),.doc-images-dialog112 label:has([data-doc-setting="footerPosition"]){grid-column:1/-1}
 
 /* styles/focused1427.css */
 /* Left aligned, bold headings only: body-cell alignment is unchanged. */

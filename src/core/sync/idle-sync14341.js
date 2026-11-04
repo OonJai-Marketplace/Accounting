@@ -76,9 +76,8 @@ function feedback(){
  return {busy,synced,completed,message,label:retry?'Retry download':busy?'Syncing…':synced?'Synced':completed?'Sync again':'Sync now',disabled:!!busy&&!retry||!window.offline14239?.canRefresh()||synced};
 }
 function paint(){
- const status=feedback(),{busy,message}=status;
- const footer=document.querySelector('#appSidebar #topHeaderProfile104,#sidebar .sidebar-user-footer,.sidebar .sidebar-user-footer,#sidebar #topHeaderProfile104,.sidebar #topHeaderProfile104')||document.querySelector('.sidebar-user-footer');
- let box=document.getElementById('syncStatus14341');if(footer&&actor()){if(!box){box=document.createElement('section');box.id='syncStatus14341';box.className='no-print';box.innerHTML='<span class="action-spin14296" aria-hidden="true"></span><p role="status" aria-live="polite"></p>';footer.before(box)}box.hidden=!!session?.running||!busy&&!status.completed;box.querySelector('.action-spin14296').style.display=busy?'':'none';const copy=box.querySelector('p');if(copy.textContent!==message)copy.textContent=message;}
+ const status=feedback(),{message}=status;
+ document.getElementById('syncStatus14341')?.remove();
  for(const node of document.querySelectorAll('[data-sync-status14343]'))if(node.textContent!==message)node.textContent=message;
  for(const button of document.querySelectorAll('[data-sync-now14343]')){if(button.textContent!==status.label)button.textContent=status.label;button.disabled=status.disabled;button.onclick=retry||syncNow;}
 }

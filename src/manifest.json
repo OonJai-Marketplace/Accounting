@@ -1459,6 +1459,11 @@
         "suffix": ";\n"
       },
       {
+        "source": "src/documents/editor/payroll-fields273.js",
+        "prefix": "/* Payroll report fields */\n",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/documents/editor/document-editor-v105.js",
         "suffix": ";\n"
       }
@@ -1524,6 +1529,11 @@
       },
       {
         "source": "src/documents/editor/report-notices270.js",
+        "suffix": ";\n"
+      },
+      {
+        "source": "src/documents/editor/payroll-fields273.js",
+        "prefix": "/* Payroll report fields */\n",
         "suffix": ";\n"
       },
       {

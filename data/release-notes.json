@@ -1,7 +1,11 @@
 {
-  "version": "143.272",
+  "version": "143.273",
   "changes": [
-    "Account and sub-account typing now keeps a small encrypted recovery copy instead of repeatedly saving the open payroll and workspace drafts.",
-    "Account draft writes are combined after a short typing pause and retained when leaving or submitting the form. Existing account, payroll and workspace recovery remains available."
+    "Payroll calculation reports protect calculated numeric cells and show a small lock icon in the editor. Reopened reports keep their saved figures and notes.",
+    "Type signatory names directly above their lines in payroll calculation reports. Names remain in saved drafts and are prefilled before printing.",
+    "Document Editor footer position can be Bottom of page or Immediately below content, separately from the pages on which it appears.",
+    "Remove the left-navigation sync status panel; keep sync controls in the sync window.",
+    "Complete the pending receipt layout corrections: Quantity heading, currency beside totals, LAK formatting, receiver name above the line and date underline preservation.",
+    "Align the updater and cached assets to this release. Preserve the account typing fix and financial records."
   ]
 }

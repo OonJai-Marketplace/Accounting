@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const image=v=>/^data:image\/(png|jpeg|webp);base64,/i.test(v||'')?v:'';
-const fmt=n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt=(n,currency='')=>Number(n).toLocaleString('en-US',{minimumFractionDigits:currency==='LAK'?0:2,maximumFractionDigits:2});
 function total(rows){let cents=0;for(const r of rows){const raw=String(r.amount??'').trim().replace(/,/g,'');if(!raw)continue;if(!/^\d+(?:\.\d{1,2})?$/.test(raw))throw Error('Use nonnegative amounts with at most two decimal places.');cents+=Math.round(Number(raw)*100);if(!Number.isSafeInteger(cents))throw Error('Amount is too large.');}return cents/100;}
 function amountWords(value,currency=''){
  const cents=Math.round(Number(value)*100);if(!Number.isSafeInteger(cents)||cents<0)throw Error('Amount is outside the supported range.');
@@ -14,7 +14,43 @@ function amountWords(value,currency=''){
 }
 function choiceMark(checked){return `<span style="display:inline-block;width:3.5mm;height:3.5mm;border:1px solid #355c46;vertical-align:middle;text-align:center;line-height:3.2mm;font-family:Arial;color:#144c2a">${checked?'✓':'&nbsp;'}</span>`;}
 function choices(field,value,blank=false){const options=field==='currency'?['LAK','USD','THB']:['Cash','Bank transfer',...(value==='Other'?['Other']:[])];return options.map(option=>`<span data-receipt-choice249="${field}:${option}" contenteditable="false" style="display:inline-block;white-space:nowrap;margin-right:2mm">${choiceMark(!blank&&option===value)} ${option==='Bank transfer'?'Bank':option}</span>`).join(' ');}
+// Upgrade only the known generated payment layout when an editable copy is opened.
+function upgradeLayout(root){
+ const tables=[...root.querySelectorAll('table[data-voucher-table14298]')].filter(t=>/^payment-(receipt|voucher)$/.test(t.dataset.voucherTable14298));
+ if(!tables.length)return;
+ for(const table of tables){
+  const heads=table.querySelectorAll('thead th');
+  if(heads[1]?.textContent.trim()==='Reference / Unit')heads[1].textContent='Quantity';
+  if(heads[2]&&/^Amount(?: \((?:LAK|USD|THB)\))?$/.test(heads[2].textContent.trim()))heads[2].dataset.receiptField245='amount-heading';
+  const value=table.querySelector('[data-voucher-total14298]');
+  if(value?.tagName==='TD'){
+   const amount=value.ownerDocument.createElement('span');amount.dataset.voucherTotal14298='1';amount.contentEditable='false';amount.textContent=value.textContent;
+   const currency=value.ownerDocument.createElement('span');currency.dataset.receiptField245='total-currency';
+   value.removeAttribute('data-voucher-total14298');value.removeAttribute('contenteditable');value.replaceChildren(currency,amount);value.style.fontWeight='700';
+  }
+ }
+ root.querySelectorAll('[data-voucher-date14299]').forEach(n=>{if(!n.style.borderBottom)n.style.cssText+=';flex:1;min-width:0;min-height:5mm;border-bottom:1px solid #7b867e';});
+ for(const p of root.querySelectorAll('p')){
+  if(!p.style.borderTop||!p.textContent.trim().endsWith('Received by (name and signature)'))continue;
+  const label=[...p.childNodes].find(n=>n.nodeType===3&&n.textContent.trim()==='Received by (name and signature)');if(!label)continue;
+  const name=p.ownerDocument.createElement('div');name.dataset.receiptField245='receiver';name.style.cssText='min-height:8mm;border-bottom:1px solid #7b867e';
+  while(p.firstChild&&p.firstChild!==label)name.append(p.firstChild);
+  if(name.lastChild?.nodeName==='BR')name.lastChild.remove();if(!name.textContent.trim())name.innerHTML='<br>';
+  const block=p.ownerDocument.createElement('div');block.style.cssText='width:80mm;max-width:100%;break-inside:avoid';
+  p.style.borderTop='';p.style.paddingTop='3mm';p.style.margin='0';block.append(name);p.replaceWith(block);block.append(p);
+ }
+}
+function syncMoney(root,meta,amount){
+ const currency=['LAK','USD','THB'].includes(meta.currency)?meta.currency:'';
+ root.querySelectorAll('[data-receipt-field245="amount-heading"]').forEach(n=>{const value='Amount'+(currency?' ('+currency+')':'');if(n.textContent!==value)n.textContent=value;});
+ root.querySelectorAll('[data-receipt-field245="total-currency"]').forEach(n=>{const value=currency?currency+' ':'';if(n.textContent!==value)n.textContent=value;});
+ root.querySelectorAll('table[data-voucher-table14298] [data-voucher-total14298]').forEach(n=>{const value=amount===null?'—':fmt(amount,currency);if(n.textContent!==value)n.textContent=value;});
+ // Never replace the text node under the caret while the user edits an amount.
+ const doc=root.ownerDocument,anchor=doc.getSelection()?.anchorNode,active=(anchor?.nodeType===1?anchor:anchor?.parentElement)?.closest('td');
+ root.querySelectorAll('table[data-voucher-table14298] tbody tr').forEach(row=>{const cell=row.cells[2],raw=cell?.textContent.trim().replace(/,/g,'');if(!raw||cell===active&&doc.hasFocus()||!/^\d+(?:\.\d{1,2})?$/.test(raw))return;const value=fmt(Number(raw),currency);if(cell.textContent!==value)cell.textContent=value;});
+}
 function syncFields(root,meta,amount){
+ syncMoney(root,meta,amount);
  const hasAmount=[...root.querySelectorAll('table[data-voucher-table14298] tbody tr')].some(r=>r.cells[2]?.textContent.trim());
  root.querySelectorAll('[data-receipt-field245="words"]').forEach(n=>{const value=!hasAmount?'':amount===null?'—':amountWords(amount,meta.currency||'');if(n.textContent!==value)n.textContent=value;});
  root.querySelectorAll('[data-receipt-choice249]').forEach(n=>{const [field,value]=n.dataset.receiptChoice249.split(':');const checked=meta[field]===value;const html=choiceMark(checked)+' '+(value==='Bank transfer'?'Bank':value);if(n.dataset.checked250!==String(checked)){n.innerHTML=html;n.dataset.checked250=String(checked);}});
@@ -32,7 +68,7 @@ function html({number,date,currency='',paymentMethod='',party='',contact='',refe
  const field=(label,value='',attribute='',width=34)=>`<p style="display:flex;gap:2mm;margin:2mm 0"><strong style="flex:0 0 ${width}mm;white-space:nowrap">${label}</strong><span ${attribute} style="flex:1;min-width:0;border-bottom:1px solid #7b867e;min-height:5mm">${esc(value)||'&nbsp;'}</span></p>`;
  const block=(label,value,attrs='')=>`<div><strong style="display:block;margin-bottom:2mm">${label}</strong><div ${attrs} style="min-height:7mm;border-bottom:1px solid #7b867e">${value||'&nbsp;'}</div></div>`;
  const filled=Array.from({length:7},(_,i)=>rows[i]||{}),title=type==='receipt'?'PAYMENT RECEIPT':'PAYMENT VOUCHER',amount=blank?0:total(filled);
- return `<h2 style="background-color:#144c2a;color:#fff;font-size:16pt;padding:3mm;margin:0 0 4mm">${title}</h2><div style="display:flex;gap:6mm;margin-bottom:4mm"><div style="flex:2;min-width:0">${field(type==='receipt'?'Received from':'Pay to',blank?'':party)}${field('Contact number',blank?'':contact)}</div><div style="flex:1;min-width:0">${field(type==='receipt'?'Receipt No.':'Voucher No.',number,'data-voucher-number14299="1" contenteditable="false"',25)}${field('Date',blank?'':displayDate,'data-voucher-date14299="1"',25)}</div></div><table ${blank?'data-handwritten-table14303="1"':'data-voucher-table14298="payment-'+type+'"'} style="width:100%;border-collapse:collapse;table-layout:fixed;margin-top:4mm"><colgroup><col style="width:60%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr style="background-color:#144c2a;color:#fff"><th>Description / Purpose</th><th>Reference / Unit</th><th>Amount</th></tr></thead><tbody>${filled.map(r=>`<tr style="height:8mm"><td>${esc(blank?'':r.description)||'<br>'}</td><td>${esc(blank?'':r.reference)||'<br>'}</td><td>${esc(blank?'':r.amount)||'<br>'}</td></tr>`).join('')}</tbody><tfoot><tr style="background-color:#eaf3e6"><td colspan="2"><strong>${type==='receipt'?'TOTAL RECEIVED':'TOTAL'}</strong></td><td ${blank?'':'data-voucher-total14298="1" contenteditable="false"'}>${blank?'<br>':fmt(amount)}</td></tr></tfoot></table><div style="display:flex;gap:6mm;margin-top:4mm"><div style="flex:2;min-width:0">${block('Amount in words',blank||!filled.some(r=>String(r.amount??'').trim())?'':esc(amountWords(amount,currency)),'data-receipt-field245="words" contenteditable="false"')}</div><div style="flex:1;min-width:0"><strong style="display:block;margin-bottom:2mm">Currency</strong>${choices('currency',currency,blank)}</div></div><div style="display:flex;gap:6mm;margin-top:4mm"><div style="flex:2;min-width:0">${block('Reference',esc(blank?'':reference))}</div><div style="flex:1;min-width:0"><strong style="display:block;margin-bottom:2mm">Payment type</strong>${choices('paymentMethod',paymentMethod,blank)}</div></div><div style="height:24mm"></div><p style="border-top:1px solid #7b867e;width:80mm;padding-top:3mm;margin-top:0">${esc(receiver)}<br>Received by (name and signature)</p>`;
+ return `<h2 style="background-color:#144c2a;color:#fff;font-size:16pt;padding:3mm;margin:0 0 4mm">${title}</h2><div style="display:flex;gap:6mm;margin-bottom:4mm"><div style="flex:2;min-width:0">${field(type==='receipt'?'Received from':'Pay to',blank?'':party)}${field('Contact number',blank?'':contact)}</div><div style="flex:1;min-width:0">${field(type==='receipt'?'Receipt No.':'Voucher No.',number,'data-voucher-number14299="1" contenteditable="false"',25)}${field('Date',blank?'':displayDate,'data-voucher-date14299="1"',25)}</div></div><table ${blank?'data-handwritten-table14303="1"':'data-voucher-table14298="payment-'+type+'"'} style="width:100%;border-collapse:collapse;table-layout:fixed;margin-top:4mm"><colgroup><col style="width:60%"><col style="width:20%"><col style="width:20%"></colgroup><thead><tr style="background-color:#144c2a;color:#fff"><th>Description / Purpose</th><th>Quantity</th><th data-receipt-field245="amount-heading">Amount${!blank&&currency?' ('+esc(currency)+')':''}</th></tr></thead><tbody>${filled.map(r=>`<tr style="height:8mm"><td>${esc(blank?'':r.description)||'<br>'}</td><td>${esc(blank?'':r.reference)||'<br>'}</td><td>${blank||!String(r.amount??'').trim()?'<br>':fmt(Number(String(r.amount).replace(/,/g,'')),currency)}</td></tr>`).join('')}</tbody><tfoot><tr style="background-color:#eaf3e6"><td colspan="2"><strong>${type==='receipt'?'TOTAL RECEIVED':'TOTAL'}</strong></td><td style="font-weight:700">${blank?'<br>':`<span data-receipt-field245="total-currency">${currency?esc(currency)+' ':''}</span><span data-voucher-total14298="1" contenteditable="false">${fmt(amount,currency)}</span>`}</td></tr></tfoot></table><div style="display:flex;gap:6mm;margin-top:4mm"><div style="flex:2;min-width:0">${block('Amount in words',blank||!filled.some(r=>String(r.amount??'').trim())?'':esc(amountWords(amount,currency)),'data-receipt-field245="words" contenteditable="false"')}</div><div style="flex:1;min-width:0"><strong style="display:block;margin-bottom:2mm">Currency</strong>${choices('currency',currency,blank)}</div></div><div style="display:flex;gap:6mm;margin-top:4mm"><div style="flex:2;min-width:0">${block('Reference',esc(blank?'':reference))}</div><div style="flex:1;min-width:0"><strong style="display:block;margin-bottom:2mm">Payment type</strong>${choices('paymentMethod',paymentMethod,blank)}</div></div><div style="height:24mm"></div><div style="width:80mm;max-width:100%;break-inside:avoid"><div data-receipt-field245="receiver" style="min-height:8mm;border-bottom:1px solid #7b867e">${esc(receiver)||'<br>'}</div><p style="padding-top:3mm;margin:0">Received by (name and signature)</p></div>`;
 }
 
 const loads=new Map();function script(path,test){if(test())return Promise.resolve();if(!loads.has(path))loads.set(path,new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=path;s.onload=resolve;s.onerror=()=>{loads.delete(path);reject(Error('PDF tools did not load. Reconnect and retry.'))};document.head.append(s)}));return loads.get(path);}
@@ -63,5 +99,5 @@ function release(file,check,action){
  try{Promise.resolve(share(file,check)).catch(failed);}catch(e){failed(e);}
 }
 async function pdf(dom){await script('scripts/document-downloads14311.js?v=143.75',()=>window.documentDownloads14311);return documentDownloads14311.pdf(dom);}
-window.Receipt245={amountWords,groupAmount,formatAmount,choices,syncFields,html,total,fmt,esc,frameHTML,retained,delivery,release,pdf,base64,pdfBlob,script};
+window.Receipt245={upgradeLayout,amountWords,groupAmount,formatAmount,choices,syncFields,html,total,fmt,esc,frameHTML,retained,delivery,release,pdf,base64,pdfBlob,script};
 })();
