@@ -405,3 +405,5 @@ Internal Deduction Summary before Attendance Deductions; filtering is unchanged.
 Draft/finalized follows Save and archive, independently of journal posting.
 
 2026-11-04 v143.270: user requests all internal report notifications outside printable pages. Preserve notices in editor metadata/banner across saved copies; migrate exact legacy generated status lines. Do not strip financial table status values, user-authored notes, or report provenance. No bookkeeping logic or financial records changed.
+
+2026-11-04 v143.271: user requested compact internal report status beside page/word counts at the bottom of the editor, with no upper banner or additional vertical space. Retain print/PDF exclusion and saved notice metadata.

@@ -1,8 +1,7 @@
 {
-  "version": "143.270",
+  "version": "143.271",
   "changes": [
-    "Internal draft, finalization, sample and posting notices appear above the document in an editor-only banner, outside printed reports and PDFs.",
-    "Shared report copying and saved-report reopening keep notifications separate from report content, including payroll reports, English/Lao salary vouchers, account reports, reconciliation and period review.",
-    "Report figures, references, user notes, record status columns and approval/signature data remain intact."
+    "Internal report notices now share the bottom page and word count line. The large banner above the report has been removed.",
+    "Long notices stay on one line, with their full text available on hover. Notices remain excluded from printed reports and PDFs."
   ]
 }

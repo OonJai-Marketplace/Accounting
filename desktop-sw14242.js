@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.270',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.271',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/journal-generator257.js?v=143.268",
  "scripts/receipt-workflow245.js?v=143.253",
@@ -56,11 +56,11 @@ const FILES=[
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.265",
  "scripts/desktop14245-3.js?v=143.270",
- "scripts/desktop14245-4.js?v=143.270",
+ "scripts/desktop14245-4.js?v=143.271",
  "scripts/desktop14245-5.js?v=143.253",
  "scripts/desktop14245-6.js?v=143.270",
  "scripts/local-events14310.js?v=143.189",
- "scripts/offline14239.js?v=143.270",
+ "scripts/offline14239.js?v=143.271",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -144,7 +144,7 @@ const FILES=[
  "phone-accounting.html",
  "assets/banners/transactions.webp",
  "styles/password-help14278.css?v=142.94",
- "styles/desktop14245.css?v=143.270",
+ "styles/desktop14245.css?v=143.271",
  "scripts/tablet-journal14266.js?v=143.262",
  "scripts/tablet-refresh143244.js?v=143.244",
  "scripts/workspace-header14266.js?v=142.83",
@@ -195,7 +195,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.231",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.270",
+ "scripts/phone-runtime14242.js?v=143.271",
  "scripts/local-first14333.js?v=143.208",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -234,7 +234,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.253",
  "styles/workspace-consistency14343.css?v=143.243",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.270",
+ "phone-sw.js?v=143.271",
  "scripts/personal-journal1437.js?v=143.267",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
@@ -254,7 +254,7 @@ const FILES=[
  "docs/UPDATE-v143.49.md",
  "setup/INSTALL-REPORT-POSTING-v143.49.sql",
  "scripts/corrections14231.js?v=143.65",
- "scripts/document-editor-v105.js?v=143.270",
+ "scripts/document-editor-v105.js?v=143.271",
  "scripts/hr-calendar-model14306.js?v=143.236",
  "scripts/opening-balances14234.js?v=143.113",
  "scripts/dashboard-warm-v112.js?v=143.70",

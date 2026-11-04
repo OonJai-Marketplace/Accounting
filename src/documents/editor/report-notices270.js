@@ -38,9 +38,12 @@ function split(html,existing=[],context={}){
 function prepare(model){if(!model)return;const result=split(model.html,model.reportNotices270,model);model.html=result.html;model.reportNotices270=result.notices;}
 function draw(host,model){
  const banner=host?.querySelector('.doc-report-notices270');if(!banner)return;
- banner.replaceChildren();banner.hidden=!model?.reportNotices270?.length;if(banner.hidden)return;
- const label=document.createElement('strong');label.textContent='Internal notice · Not printed';banner.append(label);
- for(const message of model.reportNotices270){const line=document.createElement('div');line.textContent=message;banner.append(line)}
+ banner.replaceChildren();banner.removeAttribute('title');banner.removeAttribute('aria-label');banner.hidden=!model?.reportNotices270?.length;if(banner.hidden)return;
+ const labels={'DRAFT — NOT FINALIZED':'Draft — not finalized','FINALIZED':'Finalized','SAMPLE — NOT FOR PAYMENT':'Sample — not for payment'};
+ const messages=model.reportNotices270.map(message=>labels[message]||message);
+ banner.textContent='· '+messages.join(' · ');
+ banner.title='Internal notice (not printed)\n'+messages.join('\n');
+ banner.setAttribute('aria-label','Internal notice, not printed: '+messages.join('; '));
 }
 window.reportNotices270={annotate,split,prepare,draw};
 })();
