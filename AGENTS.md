@@ -406,6 +406,12 @@ Draft/finalized follows Save and archive, independently of journal posting.
 
 2026-11-04 v143.270: user requests all internal report notifications outside printable pages. Preserve notices in editor metadata/banner across saved copies; migrate exact legacy generated status lines. Do not strip financial table status values, user-authored notes, or report provenance. No bookkeeping logic or financial records changed.
 
+Receipt and footer correction 2026-11-04 v143.272: label the shared payment table Quantity; show the selected currency in its amount heading and beside its bold total. LAK whole amounts omit trailing decimals without rounding fractional source amounts; USD/THB retain two decimals. Receiver name is editable above its line with the label below; date selection preserves the underline. Keep seven rows, descriptions, reference values, branding, IDs and retained issued PDFs. Document Editor Footer position is independent of Footer on: bottom (existing default) or after-content. Measure the last visible content, reserve footer space while paginating, follow edits, and retain the choice in drafts, saved documents and print/export.
+
+Sidebar correction 2026-11-04: do not add a Last sync timestamp or sync status panel beneath the user name in the left navigation. Keep sync details and controls in their existing sync window.
+
 2026-11-04 v143.271: user requested compact internal report status beside page/word counts at the bottom of the editor, with no upper banner or additional vertical space. Retain print/PDF exclusion and saved notice metadata.
 
 2026-11-04 v143.272: account names and cached dropdowns must remain responsive. Keep account/sub-account recovery in a small owner-scoped encrypted copy, combine typing writes after a short pause, and flush on leave/submit. Do not copy unrelated payroll/workspace models on account input. Preserve recovery, confirmed-save behavior, cached lists and encryption.
+
+2026-11-04 v143.273: complete the unpublished receipt/footer/sidebar corrections together with payroll report numeric locks and names editable on signature lines. Migrate existing editable reports in place, preserving figures and notes; retain voucher receiver identity checks. Align release/cache versions and retain v143.272 account typing recovery. No payroll calculation, journal posting, financial data or missing-template recovery is certified by this UI release.
