@@ -110,7 +110,7 @@ async function useEntry(){
  }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;}end?.();}
 }
 function open(){
- try{eligible();}catch(e){showCenterStatus(e.message,true);return;}
+ try{eligible();if(typeof TemplateStore!=='undefined')TemplateStore.load();}catch(e){showCenterStatus(e.message,true);return;}
  if(dialog&&owner===who()){if(!dialog.open)dialog.showModal();return;}const retained=owner===who()&&state;owner=who();
  if(!retained)try{state=JSON.parse(localStorage.getItem(key())||'null');}catch{state=null;}
  if(!state||!Array.isArray(state.rows))state={template:'blank',date:$('jeTransDate').value,memo:'',rates:{},rows:[blank(),blank()],drafts:{}};

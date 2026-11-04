@@ -2102,19 +2102,42 @@ executeConfiguredPrint = function() {
 
 // ------------------------- Transaction Templates -------------------------------
 const TemplateStore = {
-  key: 'ojm_transaction_templates_v1',
-  templates: [],
-  load() {
-    try { this.templates = JSON.parse(localStorage.getItem(this.key) || '[]'); } catch { this.templates = []; }
-    if(!Array.isArray(this.templates))this.templates=[];
+  key: 'ojm_transaction_templates_v1', templates: [], owner: '', baseline: null, loaded: false, error: '',
+  actor(){return typeof liveProfile==='undefined'?'':liveProfile?.id||'';},
+  load(){
+    const owner=this.actor();
+    if(!owner||window.deviceVault14334&&!window.deviceVault14334.unlocked){this.templates=[];this.owner='';this.loaded=false;return false;}
+    if(owner!==this.owner){this.templates=[];this.loaded=false;this.owner=owner;this.baseline=null;}
+    try{
+      const raw=localStorage.getItem(this.key);
+      if(this.loaded&&raw===this.baseline)return true;
+      if(this.loaded&&JSON.stringify(this.templates)!==JSON.stringify(JSON.parse(this.baseline||'[]')))throw Error('Templates changed in another tab. Reopen Templates before saving.');
+      const value=JSON.parse(raw||'[]');
+      if(!Array.isArray(value)||value.some(t=>!t||typeof t.id!=='string'||!t.deleted&&(!Array.isArray(t.lines)||typeof t.name!=='string'))||new Set(value.map(t=>t.id)).size!==value.length)throw Error('Saved template data is invalid. It has been retained; restore a verified device backup.');
+      this.templates=value;this.baseline=raw;this.loaded=true;this.error='';return true;
+    }catch(e){this.error=e.message;throw e;}
   },
-  save(){ localStorage.setItem(this.key, JSON.stringify(this.templates)); }
+  async save(){
+    const owner=this.owner,baseline=this.baseline,value=JSON.stringify(this.templates);
+    const write=()=>{
+      if(!this.loaded||!owner||owner!==this.actor()||window.deviceVault14334&&!window.deviceVault14334.unlocked)throw Error('Sign in again before saving templates.');
+      if(localStorage.getItem(this.key)!==baseline)throw Error('Templates changed in another tab. Your edits have not overwritten them. Reopen Templates to review.');
+      if(baseline!==null)localStorage.setItem(this.key+':previous274',baseline);
+      localStorage.setItem(this.key,value);
+      if(localStorage.getItem(this.key)!==value)throw Error('The device template save could not be confirmed.');
+      this.baseline=value;this.error='';
+    };
+    return navigator.locks?.request?navigator.locks.request('ojm-template-save274',write):write();
+  }
 };
 
 // Numbers are independent of names and retained after deletion. The Web Lock
 // serializes allocation across tabs; the registry is written as one value.
 async function ensureTemplateNumbers143125(){
+  if(!TemplateStore.load())throw Error('Sign in to unlock saved templates.');
+  const owner=TemplateStore.owner;
   const allocate=()=>{
+    if(TemplateStore.actor()!==owner||window.deviceVault14334&&!window.deviceVault14334.unlocked)throw Error('Account changed before template numbers were saved.');
     const key=TemplateStore.key+':numbers143125',raw=localStorage.getItem(key);
     const registry=raw?JSON.parse(raw):{next:1,ids:{}};
     if(!registry.ids||!Number.isSafeInteger(registry.next)||registry.next<1)throw Error('Template number registry is invalid. Restore the device backup before saving.');
@@ -2131,6 +2154,7 @@ let pendingTemplateLines = null;
 let savingTemplate143125=false;
 let editingTemplateId = null;
 let pendingTemplateOwner = null;
+let pendingTemplateRevision274 = null;
 
 // Old local templates stored display text. Resolve known restructuring aliases
 // only against the expected account/currency; new templates keep stable identities.
@@ -2152,11 +2176,15 @@ function captureTemplateStructure() {
     const account = row.querySelector('.je-line-acc')?.value?.trim() || '';
     const memo = row.querySelector('.je-line-memo')?.value?.trim() || '';
     const resolved=getSelectedAccountInfo(account);
-    if (account || memo) lines.push({account, memo, ...(resolved?.id?{accountId:resolved.id,currency:resolved.currency}:{})});
+    const debit=parseAppNumber(row.querySelector('.je-line-dr')?.value||'0'),credit=parseAppNumber(row.querySelector('.je-line-cr')?.value||'0');
+    const side=debit>0&&credit===0?'debit':credit>0&&debit===0?'credit':row.dataset.templateSide274||'';
+    if (account || memo) lines.push({account, memo,side, ...(resolved?.id?{accountId:resolved.id,currency:resolved.currency}:{})});
   });
   return { generalMemo: document.getElementById('jeGeneralMemo')?.value?.trim() || '', lines };
 }
 function createTemplateFromCurrent() {
+  try{if(!TemplateStore.load())return;}catch(e){showAppNotification('Templates Unavailable',e.message,true);return;}
+  pendingTemplateRevision274=TemplateStore.baseline;
   const structure = captureTemplateStructure();
   if (!structure.lines.length) {
     showAppNotification('Template Needs Accounts', 'Enter the account names and line descriptions you want to save, then create the template.', true);
@@ -2169,6 +2197,7 @@ function createTemplateFromCurrent() {
 }
 async function confirmSaveTemplate() {
   if(savingTemplate143125||liveProfile?.id!==pendingTemplateOwner)return;
+  if(!TemplateStore.loaded||TemplateStore.owner!==pendingTemplateOwner||localStorage.getItem(TemplateStore.key)!==pendingTemplateRevision274){showAppNotification('Template Changed','Reopen the template before saving; another tab or account changed its saved copy.',true);return;}
   const previous=structuredClone(TemplateStore.templates);
   const name = document.getElementById('templateNameInput').value.trim();
   if (!name || !pendingTemplateLines) {
@@ -2176,7 +2205,7 @@ async function confirmSaveTemplate() {
   }
   if(editingTemplateId){
     const rows=[...document.querySelectorAll('#templateRows14399 .template-row14399')];
-    const lines=rows.map(row=>{const a=AccountingStore.accounts.find(a=>a.id===row.querySelector('select').value);return a?{accountId:a.id,currency:a.currency,account:a.code+' — '+a.name,memo:row.querySelector('[data-template-line-memo14399]').value.trim()}:null});
+    const lines=rows.map(row=>{const a=AccountingStore.accounts.find(a=>a.id===row.querySelector('select').value);return a?{accountId:a.id,currency:a.currency,account:a.code+' — '+a.name,memo:row.querySelector('[data-template-line-memo14399]').value.trim(),side:row.querySelector('[data-template-side274]').value}:null});
     if(lines.length<2||lines.some(l=>!l)){showAppNotification('Template Needs Accounts','Choose a valid account for each of at least two lines.',true);return}
     pendingTemplateLines={generalMemo:document.querySelector('[data-template-memo14399]').value.trim(),lines};
   }
@@ -2188,12 +2217,13 @@ async function confirmSaveTemplate() {
   } else {
     TemplateStore.templates.push({id:'tpl-'+crypto.randomUUID(), name, ...pendingTemplateLines});
   }
-  try{await ensureTemplateNumbers143125();if(liveProfile?.id!==pendingTemplateOwner)return;TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Saved',error.message,true);return}finally{savingTemplate143125=false} closeModal('modalTemplateName'); renderTemplateManager();
-  showAppNotification('Template Saved', `${name} is permanently saved in this browser until edited or removed.`, false);
+  try{await ensureTemplateNumbers143125();if(liveProfile?.id!==pendingTemplateOwner)return;await TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Saved',error.message,true);return}finally{savingTemplate143125=false} closeModal('modalTemplateName'); renderTemplateManager();
+  showAppNotification('Template Saved', `${name} was saved and verified on this browser for your signed-in account. It is not a cloud copy.`, false);
 }
-function openTemplateManager(){ renderTemplateManager(); openModal('modalTemplateManager'); }
+async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');}
 function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
 function availableTransactionTemplates(){
+  TemplateStore.load();
   const overrides=new Map(TemplateStore.templates.map(t=>[t.id,t]));
   return [...builtInTransactionTemplates268().filter(t=>!overrides.has(t.id)),...TemplateStore.templates].filter(t=>!t.deleted);
 }
@@ -2213,7 +2243,8 @@ function templateEditorFields14399(t){
     account.value=resolved?.id||'';
     const description=document.createElement('input');description.value=line.memo||'';description.placeholder='Line description';description.setAttribute('aria-label','Line description');description.dataset.templateLineMemo14399='';
     const remove=document.createElement('button');remove.type='button';remove.className='je-btn je-btn-secondary';remove.textContent='Remove line';remove.onclick=()=>row.remove();
-    row.append(account,description,remove);list.append(row);window.dropdown1434?.enhance(row);
+    const side=document.createElement('select');side.dataset.templateSide274='';side.setAttribute('aria-label','Template debit or credit');for(const [value,label] of [['','Choose side'],['debit','Debit'],['credit','Credit']]){const o=document.createElement('option');o.value=value;o.textContent=label;side.append(o);}side.value=line.side||'';
+    row.append(account,side,description,remove);list.append(row);window.dropdown1434?.enhance(row);
   }
   (t.lines||[]).forEach(add);
   const button=document.createElement('button');button.type='button';button.className='je-btn je-btn-secondary';button.textContent='Add line';button.onclick=()=>add();host.append(button);
@@ -2222,7 +2253,7 @@ async function renderTemplateManager(){
   const host=document.getElementById('templateManagerList'); if(!host)return;
   const owner=liveProfile?.id;let numbers;try{numbers=await ensureTemplateNumbers143125()}catch(error){showAppNotification('Template Numbers Unavailable',error.message,true);return}if(liveProfile?.id!==owner)return;
   const templates=availableTransactionTemplates();
-  host.innerHTML = templates.length ? templates.map(t=>`
+  host.innerHTML = '<p class="je-subtitle">'+TemplateStore.templates.filter(t=>!t.deleted).length+' saved custom templates · '+templates.filter(t=>t.builtin).length+' built-in templates. Saved templates belong to this account on this browser.</p>'+ (templates.length ? templates.map(t=>`
     <div class="template-item">
       <div><strong><span class="template-number143125">${numbers[t.id]}.</span> ${escapeHtml(templateDisplayName143125(t))}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">
@@ -2230,7 +2261,7 @@ async function renderTemplateManager(){
         <button class="je-btn je-btn-secondary" onclick="editTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Edit</button>
         <button class="je-btn je-btn-danger" onclick="deleteTransactionTemplate(${escapeHtml(JSON.stringify(t.id))})">Remove</button>
       </div>
-    </div>`).join('') : '<div class="empty-archive-state">No templates saved.</div>';
+    </div>`).join('') : '<div class="empty-archive-state">No templates saved.</div>');return true;
 }
 function applyTransactionTemplate(id){
   const t=availableTransactionTemplates().find(x=>x.id===id); if(!t)return;
@@ -2251,7 +2282,7 @@ function applyTransactionTemplate(id){
   window.entry1430?.restore('double',[]);
   const body=document.getElementById('jeLinesBody'); body.innerHTML='';
   document.getElementById('jeGeneralMemo').value=t.generalMemo || '';
-  lines.forEach(line=>addJournalLineRow(line.account,line.memo,'',{}));
+  lines.forEach(line=>{addJournalLineRow(line.account,line.memo,'',{});body.lastElementChild.dataset.templateSide274=line.side||'';});
   while(body.querySelectorAll('tr').length<2)addJournalLineRow();
 
   setTransactionDateToToday(true); updateNextEntryIdDisplay(); calculateJournalBalance();
@@ -2260,7 +2291,7 @@ function applyTransactionTemplate(id){
 }
 function editTransactionTemplate(id){
   const t=availableTransactionTemplates().find(x=>x.id===id); if(!t)return;
-  pendingTemplateOwner=liveProfile?.id;pendingTemplateLines={generalMemo:t.generalMemo||'',lines:t.lines.map(x=>({...x}))};
+  pendingTemplateRevision274=TemplateStore.baseline;pendingTemplateOwner=liveProfile?.id;pendingTemplateLines={generalMemo:t.generalMemo||'',lines:t.lines.map(x=>({...x}))};
   editingTemplateId=id; document.getElementById('templateNameInput').value=templateDisplayName143125(t);templateEditorFields14399(t);
   closeModal('modalTemplateManager'); openModal('modalTemplateName');
 }
@@ -2268,7 +2299,7 @@ async function deleteTransactionTemplate(id){
   const owner=liveProfile?.id;
   const t=availableTransactionTemplates().find(x=>x.id===id); if(!t)return;
   if(!await ui117.confirm(`Remove template "${t.name}"?`))return;
-  if(liveProfile?.id!==owner)return;const previous=TemplateStore.templates;TemplateStore.templates=previous.filter(x=>x.id!==id);if(builtInTransactionTemplates268().some(x=>x.id===id))TemplateStore.templates.push({id,deleted:true});try{TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Removed',error.message,true);return}renderTemplateManager();
+  if(liveProfile?.id!==owner)return;const previous=TemplateStore.templates;TemplateStore.templates=previous.filter(x=>x.id!==id);TemplateStore.templates.push({id,deleted:true});try{await TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Removed',error.message,true);return}renderTemplateManager();
 }
 
 // ------------------------- Recurring Obligations -------------------------------
@@ -2390,7 +2421,7 @@ function initializeV4Enhancements() {
   updateNextEntryIdDisplay();
   resetJournalLinesForm();
   refreshAllTables();
-  TemplateStore.load();
+  try{TemplateStore.load();}catch(e){console.warn('Saved templates were retained:',e.message);}
   if(liveProfile?.role==='admin')RecurringStore.load();
   renderRecurringTransactions();
   renderPendingReminders();

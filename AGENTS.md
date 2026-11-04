@@ -415,3 +415,13 @@ Sidebar correction 2026-11-04: do not add a Last sync timestamp or sync status p
 2026-11-04 v143.272: account names and cached dropdowns must remain responsive. Keep account/sub-account recovery in a small owner-scoped encrypted copy, combine typing writes after a short pause, and flush on leave/submit. Do not copy unrelated payroll/workspace models on account input. Preserve recovery, confirmed-save behavior, cached lists and encryption.
 
 2026-11-04 v143.273: complete the unpublished receipt/footer/sidebar corrections together with payroll report numeric locks and names editable on signature lines. Migrate existing editable reports in place, preserving figures and notes; retain voucher receiver identity checks. Align release/cache versions and retain v143.272 account typing recovery. No payroll calculation, journal posting, financial data or missing-template recovery is certified by this UI release.
+
+2026-11-04 v143.274: user rejects visible payroll padlocks. Preserve numeric
+protection without icons; use currency symbols to the left of payroll amounts
+and restore OJM-code plus surname in the first Payroll Breakdown column.
+Correct payroll accrual mappings, employee/company withholding, saved rates and
+reviewable journal date; keep finalization, payment, advance settlement and
+posting explicit. Load custom templates after the account vault unlocks, retain
+DR/CR sides, permanent numbers and removals, and reject stale-tab overwrites.
+Do not describe built-in catalog entries as recovered custom templates, local
+storage as cloud storage, or unposted financial work as completed.

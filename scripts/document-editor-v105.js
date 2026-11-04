@@ -56,12 +56,17 @@ function isPayroll(model){return model?.category==='Payroll'&&(/^(Payroll Calcul
 function prepare(model){
  if(!isPayroll(model))return;
  const root=document.createElement('div');root.innerHTML=model.html||'';
+ if(!model.payrollVouchers&&/Payroll Calculation Report/i.test(model.title||'')){for(const row of root.querySelector('table')?.querySelectorAll('tbody tr')||[]){const cell=row.cells[0];if(cell&&/^(?:OJM?[-\s]*)?[A-Z]{1,4}[-\s]?\d{1,5}\s*·\s*\S/.test(cell.textContent.trim())){const walker=document.createTreeWalker(cell,NodeFilter.SHOW_TEXT);let node;while(node=walker.nextNode())if(node.nodeValue.trim()){node.nodeValue=node.nodeValue.replace(/^(\s*)(?:OJM?[-\s]*)?([A-Z]{1,4})[-\s]?(\d{1,5})(?=\s*·)/,'$1OJM-$2$3');break;}}}}
  // The approved report generator aligns calculated columns right. Migrate the
  // saved presentation in place; never regenerate it from newer payroll data.
  for(const cell of root.querySelectorAll('td')){
   if(cell.style.textAlign!=='right'&&!cell.matches(number))continue;
   cell.dataset.payrollNumber273='1';cell.setAttribute('contenteditable','false');
   cell.title='Calculated in Payroll';
+  const text=cell.textContent.trim(),symbols={USD:'$',LAK:'₭',THB:'฿',EUR:'€'};
+  const prefixed=text.match(/^(USD|LAK|THB|EUR)(?=\s+[−-]?[\d.,]+$)/);
+  if(prefixed){const walker=document.createTreeWalker(cell,NodeFilter.SHOW_TEXT);let node;while(node=walker.nextNode())if(node.nodeValue.includes(prefixed[1])){node.nodeValue=node.nodeValue.replace(prefixed[1],symbols[prefixed[1]]);break;}}
+  else if(model.payrollVouchers&&/^[−-]?[\d.,]+$/.test(text)&&symbols[cell.nextElementSibling?.textContent.trim()])cell.prepend(symbols[cell.nextElementSibling.textContent.trim()]+' ');
   const header=cell.closest('table')?.querySelector('thead tr')?.cells[cell.cellIndex];
   if(header)header.dataset.payrollNumberHeader273='1';
  }
@@ -107,7 +112,7 @@ function focusName(event,doc){
  const selection=doc.getSelection();if(field.contains(selection?.anchorNode))return;
  field.focus({preventScroll:true});const range=doc.createRange();range.selectNodeContents(field);range.collapse(false);selection.removeAllRanges();selection.addRange(range);
 }
-const css='[data-payroll-signature-line273]{align-items:flex-end}[data-payroll-number273]{cursor:default}[data-payroll-number-header273]::after{content:" 🔒";font-size:7pt;font-weight:normal}[data-payroll-signature-name273]:focus{outline:1px solid #008563;outline-offset:2px}@media print{[data-payroll-number-header273]::after{content:none}[data-payroll-signature-name273]:focus{outline:0}}';
+const css='[data-payroll-signature-line273]{align-items:flex-end}[data-payroll-number273]{cursor:default}[data-payroll-signature-name273]:focus{outline:1px solid #008563;outline-offset:2px}@media print{[data-payroll-signature-name273]:focus{outline:0}}';
 window.payrollFields273={prepare,names,blocked,stop,focusName,css};
 })();
 ;

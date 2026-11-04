@@ -5732,6 +5732,7 @@ body #journal #journalEntry98 .transaction-date-field .oj-date-shell104,body #jo
 .pay-balances1431>span.unbalanced1431{background:#fff0e5;color:#993a1b;border-color:#dfad91}
 #payPreview1431 table{table-layout:auto}#payPreview1431 th:nth-last-child(-n+2),#payPreview1431 td:nth-last-child(-n+2){white-space:nowrap;text-align:right}
 @media(max-width:650px){#payEmployeeMappings1431{grid-template-columns:1fr}.pay-template1431 .template-tools1429{gap:5px}}
+.pay-date274{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:8px 0}.pay-date274 label{white-space:nowrap}.pay-date274 span{font-size:12px;color:#4b5563}.pay-lines1432 input[readonly]{color:#4b5563}
 
 /* styles/entry1430.css */
 /* The previous date control was 290px. 160px is approximately 45% shorter. */
