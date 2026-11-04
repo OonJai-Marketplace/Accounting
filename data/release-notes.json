@@ -1,10 +1,9 @@
 {
-  "version": "143.283",
+  "version": "143.284",
   "changes": [
-    "Explicit employee, leave, payroll, report and document saves attempt database confirmation immediately, with device recovery retained.",
-    "Payroll confirms its own save and required employee/leave changes without draining unrelated pending documents or reports.",
-    "Typing batches large recovery copies after a short pause while preserving immediate recovery at Save, navigation and page-leave boundaries.",
-    "Access checks retain permission revocation but avoid repeatedly downloading unchanged user directories and submitted reports; those screens refresh on entry.",
-    "Journal ID previews respect journal-view permission. Accounting calculations, posting rules and report layouts are retained."
+    "Synchronization lists the actual waiting journal IDs or saved request references, payroll months, employee/leave records and document titles as bullets, with expandable details.",
+    "Database-confirmed records are distinguished from pending edits, voids, voucher links and downloaded-data refreshes.",
+    "Unresolved sync notifications remain visible after being read. Device-only document, template, payroll, attendance, employee, leave and report saves no longer claim database success.",
+    "Retry keeps the original saved request and version safeguards; the sync window explains reconnection, conflicts, storage failures and recovery without re-entering records."
   ]
 }

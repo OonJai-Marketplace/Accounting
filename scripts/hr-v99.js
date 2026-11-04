@@ -27,7 +27,7 @@ window.renderHr99=function(){
  const f=document.getElementById('hrRecord99');if(f&&!editor?.id)window.armNewForm108?.(f,cancelHr99);if(f){f.classList.add('hr-form105');const picker=document.querySelector('#'+id+' .hr-picker105 label');if(picker){const old=picker.parentElement;f.querySelector('.fields82').prepend(picker);old.remove()}}if(f)f.onsubmit=event=>{event.preventDefault();if(!f.reportValidity())return;const actor=liveProfile?.id,db=ojmDb,editing=editor,data=Object.fromEntries(new FormData(f)),current=()=>liveProfile?.id===actor&&ojmDb===db;return runAction82(async()=>{if(!current())return;
  if(data.start&&data.end&&data.start>data.end)throw Error('The contract end date must follow its start date.');if(data.document&&!/^https:\/\//i.test(data.document))throw Error('Use an HTTPS document link.');
  const prior=list.find(r=>r.id===editing?.id);const next={...data,id:prior?.id||crypto.randomUUID(),updatedAt:new Date().toISOString(),reviewer:data.reviewer||liveProfile.full_name||liveProfile.email,revisions:[...(prior?.revisions||[]),...(prior?[{...prior,revisions:undefined}]:[])]};
- await saveWork82('employees',{...e.data,[kind+'99']:[next,...list.filter(r=>r.id!==next.id)]},e);if(!current())return;if(editor===editing)editor=null;renderHr99();showCenterStatus('HR record saved.');
+ const saved=await saveWork82('employees',{...e.data,[kind+'99']:[next,...list.filter(r=>r.id!==next.id)]},e);if(!current())return;if(editor===editing)editor=null;renderHr99();showCenterStatus(saved._pending14333?'HR record: Saved on this device; database confirmation is still pending. Open Synchronization to retry the saved request. Do not enter it again.':'HR record saved to company records.');
  })};
 };
 window.addEventListener('DOMContentLoaded',()=>{

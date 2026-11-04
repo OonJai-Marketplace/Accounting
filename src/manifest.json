@@ -3379,6 +3379,10 @@
     ],
     "scripts/idle-sync14341.js": [
       {
+        "source": "src/core/sync/sync-records284.js",
+        "suffix": "\n;\n"
+      },
+      {
         "source": "src/core/sync/idle-sync14341.js"
       }
     ],

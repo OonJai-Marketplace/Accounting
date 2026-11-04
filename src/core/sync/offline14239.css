@@ -47,3 +47,11 @@ html body #syncSummary143162 button{height:32px!important;min-height:32px!import
 #syncSummary143162>footer button:first-child{background:transparent;color:#174b38}
 #syncSummary143162>footer button:last-child{background:#125c42;color:#fff}
 @media(max-width:420px){#syncSummary143162 .sync-stats143162 strong{font-size:18px}#syncSummary143162 .sync-row143162{gap:8px;font-size:12px}}
+/* Record-specific pending saves stay compact and wrap on tablets/phones. */
+#syncSummary143162 .sync-records284{margin:16px 0;overflow-wrap:anywhere}
+#syncSummary143162 ul{list-style:disc;padding-left:20px;margin:8px 0}
+#syncSummary143162 li{margin:8px 0}
+#syncSummary143162 .sync-records284>ul>li{padding-bottom:8px}
+#syncSummary143162 .sync-records284 small{display:block;color:#61756b;font-size:11px}
+#syncSummary143162 .sync-records284 details{border:0;padding:4px 0}
+#syncSummary143162 .sync-records284 article{padding:8px 0}

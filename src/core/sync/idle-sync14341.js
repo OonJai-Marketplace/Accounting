@@ -14,18 +14,7 @@ try{channel=new BroadcastChannel('ojm-idle14341');channel.onmessage=e=>{if(e.dat
 for(const type of ['pointerdown','pointermove','keydown','wheel','touchstart','scroll'])document.addEventListener(type,()=>activity(),{capture:true,passive:true});
 window.addEventListener('focus',()=>activity());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)activity()});
-const size=value=>value===undefined?null:new TextEncoder().encode(JSON.stringify(value)).length;
-function pending(){const rows=new Map();
- for(const j of window.offlineAudit143174?.pending()||[])rows.set(j.id,{id:j.id,status:j.status,source:'Audit deletion',records:1,payloadBytes:size(j.args)});
- for(const j of window.journalDurable14385?.pending()||[])rows.set(j.id,{id:j.id,status:j.status==='saved'&&j.receipt?'server-confirmed':j.status,source:'Journal',records:j.entries.length,payloadBytes:size(j.entries)});
- for(const j of window.localFirst14333?.state().jobs||[])if(!['synced','resolved'].includes(j.status))rows.set(j.id,{id:j.id,status:j.status,source:j.kind,records:1,payloadBytes:size(j.row)});
- for(const j of window.offline14239?.queue()||[])if(j.status!=='synced')rows.set(j.payload.p_key,{id:j.payload.p_key,status:j.status,source:'Sub-users',records:j.payload.p_items.length,payloadBytes:size(j.payload)});
- for(const j of window.pendingPosts99?.values()||[])rows.set(j.id,{id:j.id,status:j.receipt?'server-confirmed':j.status,source:'Journal',records:j.payload.p_entries?.length||1,payloadBytes:size(j.payload)});
- for(const j of window.saveNotices14234?.staffPending()||[])if(!rows.has(j.payload.p_key))rows.set(j.payload.p_key,{id:j.payload.p_key,status:'attention',source:'Sub-users',records:j.payload.p_items.length,payloadBytes:size(j.payload)});
- const batch=window.journalBatch1440?.getJob();if(batch&&!batch.completed&&!rows.has(batch.id))rows.set(batch.id,{id:batch.id,status:batch.dates.every(d=>d.status==='saved')?'server-confirmed':batch.dates.some(d=>d.status==='uncertain')?'uncertain':'pending',source:'Journal batch',records:batch.dates.length});
- for(const j of window.saveNotices14234?.entries()||[])if(!rows.has(j.id))rows.set(j.id,{id:j.id,status:'attention',source:'Saved request',records:1});
- return [...rows.values()];
-}
+function pending(){return window.syncRecords284?.pending()||[];}
 function needsAttention(value){return !!value&&!value.running&&(value.remaining>0||value.failed>0||value.unresolved?.length>0||/needs attention|needs review|Partial synchronization/i.test(value.result||''));}
 function persist(){if(!session||session.actor!==actor())return;try{const old=JSON.parse(localStorage.getItem(storageKey())||'{"history":[]}');const history=session.running?(old.history||[]).filter(needsAttention):needsAttention(session)?[{...session}]:[];const latest=session;if(!latest&&!history.length)localStorage.removeItem(storageKey());else localStorage.setItem(storageKey(),JSON.stringify({latest,history}));}catch(e){problem='Sync result could not be saved: '+e.message;}}
 function restore(){if(summaryOwner===actor())return;summaryOwner=actor();session=null;if(!summaryOwner)return;try{const saved=JSON.parse(localStorage.getItem(storageKey())||'null');session=saved?.latest;if(session?.running){session.running=false;session.stage='Previous session has no saved completion result. Requests are retained; another tab may still be working.';session.result='Synchronization status needs review';session.acknowledged=false;}if(session?.automatic&&!session.total&&!needsAttention(session))session.acknowledged=true;if(session)persist();else if(saved)localStorage.removeItem(storageKey());}catch{problem='Saved sync history could not be read.';}}
@@ -40,7 +29,7 @@ function overview(){restore();const rows=pending(),waiting=rows.filter(j=>j.stat
  for(const j of waiting)group(j.source).pending+=j.records;
  for(const name of session?.updatedAreas||[])group(name).updated=true;
  for(const [name,status] of Object.entries(session?.refreshAreas||{}))group(name).refresh=status;
- return {problem,session:session?structuredClone(session):null,groups:[...groups.values()],synced:session?.confirmedRecords||0,pending:waiting.reduce((n,j)=>n+j.records,0),pendingBytes:waiting.reduce((n,j)=>n+(j.payloadBytes||0),0),unmeasured:waiting.some(j=>j.payloadBytes==null),checking:rows.filter(j=>j.status==='server-confirmed').length};
+ return {requests:rows,problem,session:session?structuredClone(session):null,groups:[...groups.values()],synced:session?.confirmedRecords||0,pending:waiting.reduce((n,j)=>n+j.records,0),pendingBytes:waiting.reduce((n,j)=>n+(j.payloadBytes||0),0),unmeasured:waiting.some(j=>j.payloadBytes==null),checking:rows.filter(j=>j.status==='server-confirmed').length};
 }
 function onEntry(trigger='login'){clearTimeout(entryTimer);const id=actor(),requested=Date.now();if(!id)return;let attempts=0;const start=()=>{if(actor()!==id||navigator.onLine===false)return;if(!window.startup14257?.prepared||window.startup14257?.preparing){if(++attempts<60)entryTimer=setTimeout(start,1000);return;}if(session?.actor===id&&session.trigger==='login'&&Date.parse(session.finished||'')>=requested)return;void run(false,{trigger}).catch(e=>{problem=e.message;paint()})};entryTimer=setTimeout(start,0);}
 function outcome(remaining){if(remaining)return 'Partial synchronization';const findings=window.syncAssessment14332?.findings()||[...(window.localFirst14333?.findings()||[]),...(window.syncRecovery14351?.findings()||[])];if(findings.some(f=>f.kind!=='recovery'&&(f.critical||f.kind==='setup')))return 'Synchronization needs attention';return findings.some(f=>['cleanup','recovery'].includes(f.kind)||f.status==='Synced — Cleanup Pending')?'Uploads confirmed — recovery cleanup pending':'Synchronization complete';}
@@ -72,7 +61,7 @@ function feedback(){
  restore();const state=window.offline14239?.state()||{},busy=!!(manual||session?.running||state.syncing||window.localFirst14333?.syncing||window.startup14257?.preparing);
  const completed=!!session?.finished&&!needsAttention(session)&&session.result==='Synchronization complete'&&!problem&&!state.pending&&!state.attention;
  const synced=completed&&!busy&&!dirty,when=completed?formatAppDate(session.finished,true):'';
- const message=preparation||problem||(busy?'Syncing…':!state.online?'Offline · saved on this device':state.attention?'Saved work needs attention':state.pending?state.pending+' saved · waiting to sync':synced?'Synced · '+when:completed?'Last synced · '+when:'Ready to sync');
+ const message=preparation||problem||(busy?'Syncing…':!state.online?'Offline · saved on this device':state.attention?'Saved work needs attention':state.pending?state.pending+' waiting for database confirmation':synced?'Synced · '+when:completed?'Last synced · '+when:'Ready to sync');
  return {busy,synced,completed,message,label:retry?'Retry download':busy?'Syncing…':synced?'Synced':completed?'Sync again':'Sync now',disabled:!!busy&&!retry||!window.offline14239?.canRefresh()||synced};
 }
 function paint(){

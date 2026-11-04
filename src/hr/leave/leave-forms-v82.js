@@ -23,11 +23,11 @@ function saveLeave82(){const form=document.getElementById('leaveForm82'),d=form8
  if(Work82.leaves.some(r=>r.data.employeeId===employeeId&&r.data.status!=='cancelled'&&d.from<=r.data.to&&d.to>=r.data.from))throw Error('Overlapping leave for '+e.data.name+'. No new requests were saved.');
  let data={...d,employeeId,status:'pending'};if(window.hrWorkspace14306?.prepareLeaveRequest)data=hrWorkspace14306.prepareLeaveRequest(data,true);
  if(!Number.isFinite(Number(data.days))||Number(data.days)<=0||Number(data.days)>duration)throw Error('Review working days for '+e.data.name+'.');return {name:e.data.name,data};});
- const saved=[];window.leaveBatchSaving82=true;
- try{for(const request of requests){guard();await saveWork82('leaves',request.data);guard();saved.push(request.name);const option=[...form.elements.employeeId.options].find(o=>o.value===request.data.employeeId);if(option)option.selected=false;syncLeaveEmployees82(form)}}
- catch(error){guard();throw Error((saved.length?'Saved for '+saved.join(', ')+'. Remaining employees are still selected; retry saves only those remaining. ':'No requests saved. ')+(error.message||error))}
+ const saved=[],waiting=[];window.leaveBatchSaving82=true;
+ try{for(const request of requests){guard();const result=await saveWork82('leaves',request.data);guard();saved.push(request.name);if(result._pending14333)waiting.push(request.name);const option=[...form.elements.employeeId.options].find(o=>o.value===request.data.employeeId);if(option)option.selected=false;syncLeaveEmployees82(form)}}
+ catch(error){guard();throw Error((saved.length?'Retained requests for '+saved.join(', ')+(waiting.length?'. Waiting for database confirmation: '+waiting.join(', '):'. Database confirmed')+'. Do not re-enter those requests. Remaining employees are still selected; retry saves only those remaining. ':'No requests saved. ')+(error.message||error))}
  finally{window.leaveBatchSaving82=false;}
- window.hrWorkspace14306?.finishLeaveBatch?.();renderWork82();showCenterStatus(saved.length+' leave request'+(saved.length===1?'':'s')+' saved for review.');
+ window.hrWorkspace14306?.finishLeaveBatch?.();renderWork82();showCenterStatus(waiting.length?'Leave for '+waiting.join(', ')+': waiting for database confirmation. '+(saved.length-waiting.length)+' confirmed. Open Synchronization; do not enter these requests again.':saved.length+' leave request'+(saved.length===1?'':'s')+' saved to company records for review.');
 })}
 
 function leaveStatus82(id,status){runAction82(async()=>{const r=Work82.leaves.find(x=>x.id===id);if(!r)return;if(window.payrollWindow14334?.finalized(r.data.month,r.data.employeeId)||Work82.runs.some(run=>run.data.status==='finalized'&&run.data.month===r.data.month&&run.data.rows.some(x=>x.employeeId===r.data.employeeId)))throw Error('That month has finalized payroll. Record the correction in a new payroll period.');const data=status==='approved'&&window.hrWorkspace14306?hrWorkspace14306.leaveApprovalData(r):r.data;await saveWork82('leaves',{...data,status},r);renderWork82()})}
