@@ -478,6 +478,15 @@ opening balances. Do not silently convert or duplicate mismatched legacy schedul
 Template recovery preserves original permanent numbers/tombstones, automatically
 restores only unambiguous retained contents, and identifies missing bodies honestly.
 
-2026-11-04 v143.281: combine actual payroll save/close as Save & Close Payroll, remain in Entries and retain Salary History. Payroll journal toolbar has only Prepare in Transactions and Post to Active Journal; save its layout with the selected action. Confirm payroll through the durable workforce queue without the app-wide Sync now window or unrelated workspace refresh. Reopening resolves posted receipts automatically. Keep server confirmation, explicit posting, open-month same-ID corrections, closed-month adjustment reports, and original calculations. Device-copy pending notices belong only in the compact bottom editor status; migrate exact older generated report paragraphs without changing user notes or table data.
+Data Check 2026-11-04 v143.281: include individual posted journals, saved foreign
+rates/LAK mappings, supported gain/loss calculations, amortization allocations and
+due recurring/scheduled work. Never certify external rate or historical-lot evidence
+from balanced totals alone. Preserve detailed item dates with one summary contra
+line; do not require each date inside a journal to balance. Checks are read-only,
+closing reruns them on the server, blocking errors stop closing, and warnings need
+an explicit reason. Changes to schedules invalidate an earlier closing review.
+Do not silently post or alter financial records to clear findings.
 
-2026-11-04 v143.281 report follow-up: payroll calculation report attendance explanations must read as formal report notes, not slash-separated interface instructions. Use a concise Attendance basis paragraph; migrate only the exact generated legacy paragraph in saved reports, retaining financial values and user notes.
+2026-11-04 v143.282: combine actual payroll save/close as Save & Close Payroll, remain in Entries and retain Salary History. Payroll journal toolbar has only Prepare in Transactions and Post to Active Journal; save its layout with the selected action. Confirm payroll through the durable workforce queue without the app-wide Sync now window or unrelated workspace refresh. Reopening resolves posted receipts automatically. Keep server confirmation, explicit posting, open-month same-ID corrections, closed-month adjustment reports, and original calculations. Device-copy pending notices belong only in the compact bottom editor status; migrate exact older generated report paragraphs without changing user notes or table data.
+
+2026-11-04 v143.282 report follow-up: payroll calculation report attendance explanations must read as formal report notes, not slash-separated interface instructions. Use a concise Attendance basis paragraph; migrate only the exact generated legacy paragraph in saved reports, retaining financial values and user notes.
