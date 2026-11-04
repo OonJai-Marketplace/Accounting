@@ -403,3 +403,5 @@ prioritizes the device draft, and displays overlapping dated HR leave/history
 without duplicating live leave records or assuming missing pay treatment. Put
 Internal Deduction Summary before Attendance Deductions; filtering is unchanged.
 Draft/finalized follows Save and archive, independently of journal posting.
+
+2026-11-04 v143.270: user requests all internal report notifications outside printable pages. Preserve notices in editor metadata/banner across saved copies; migrate exact legacy generated status lines. Do not strip financial table status values, user-authored notes, or report provenance. No bookkeeping logic or financial records changed.

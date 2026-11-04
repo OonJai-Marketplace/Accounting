@@ -41,3 +41,8 @@ body #document-editor105 .doc-options105 input:not([type=color]):not([type=file]
 
 /* Dock table controls beside the editable paper; never cover it. */
 #document-editor105.table-open14298 .doc-canvas105{display:flex;align-items:flex-start;gap:12px}#document-editor105.table-open14298 #docFrame105{flex:1;min-width:0;width:calc(100% - 292px)!important}#document-editor105 .doc-table-sidebar14298{flex:0 0 280px;width:280px;min-width:0;max-height:calc(100dvh - 210px);overflow:auto;box-sizing:border-box;padding:12px;background:#fffaf1;border-left:1px solid #d5c5a8}#document-editor105 .doc-table-sidebar14298[hidden]{display:none!important}#document-editor105 .doc-table-sidebar14298>header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}#document-editor105 .doc-table-sidebar14298>header button{font-size:20px;line-height:1;padding:4px 9px}#document-editor105 .doc-table-sidebar14298 .doc-options105{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}#document-editor105 .doc-table-sidebar14298 label,#document-editor105 .doc-table-sidebar14298 input,#document-editor105 .doc-table-sidebar14298 select{min-width:0;max-width:100%;box-sizing:border-box}#document-editor105 .doc-table-sidebar14298 .doc-table-panel113{border:0;box-shadow:none;padding:0}
+
+/* Status stays outside the document iframe and every printed page. */
+#document-editor105 .doc-report-notices270{margin:8px 0;padding:8px 12px;border-left:3px solid #ac7a22;background:#fff4d8;color:#594215;font:13px/1.4 Arial,sans-serif;overflow-wrap:anywhere}
+#document-editor105 .doc-report-notices270[hidden]{display:none}
+@media print{#document-editor105 .doc-report-notices270{display:none!important}}

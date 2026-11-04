@@ -4620,6 +4620,11 @@ body #document-editor105 details{padding:8px!important}
 body #document-editor105 details>summary{padding:4px!important;min-height:0!important;background:transparent!important}
 body #document-editor105 .doc-toolbar105>button{align-self:end;min-height:30px!important;height:30px!important}
 body #document-editor105 .doc-options105 input:not([type=color]):not([type=file]):not([type=checkbox]),body #document-editor105 .doc-toolbar105 input:not([type=color]){width:76px!important;min-width:0!important;max-width:100%!important}
+/* Status stays outside the document iframe and every printed page. */
+#document-editor105 .doc-report-notices270{margin:8px 0;padding:8px 12px;border-left:3px solid #ac7a22;background:#fff4d8;color:#594215;font:13px/1.4 Arial,sans-serif;overflow-wrap:anywhere}
+#document-editor105 .doc-report-notices270[hidden]{display:none}
+@media print{#document-editor105 .doc-report-notices270{display:none!important}}
+
 
 /* styles/refinements-v106.css */
 /* Ivory navigation, emerald working surfaces, restrained brass accents. */

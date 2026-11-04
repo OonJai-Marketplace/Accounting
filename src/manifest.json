@@ -1455,6 +1455,10 @@
     ],
     "scripts/document-editor-v105.js": [
       {
+        "source": "src/documents/editor/report-notices270.js",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/documents/editor/document-editor-v105.js",
         "suffix": ";\n"
       }
@@ -1517,6 +1521,10 @@
         "source": "src/documents/import-export/document-import-v1422.js",
         "prefix": "/* scripts/document-import-v1422.js */\n",
         "suffix": "\n;\n"
+      },
+      {
+        "source": "src/documents/editor/report-notices270.js",
+        "suffix": ";\n"
       },
       {
         "source": "src/documents/editor/document-editor-v105.js",

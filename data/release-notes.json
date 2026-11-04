@@ -1,9 +1,8 @@
 {
-  "version": "143.269",
+  "version": "143.270",
   "changes": [
-    "Payroll reports show short employee code plus surname, compact headers, and currency before every amount.",
-    "Report signatories have two extra lines of signing space.",
-    "Payroll Overview follows the open Entries month or the current month, shows the current draft, and includes dated HR leave history without duplicate records.",
-    "Internal Deduction Summary appears above Attendance Deductions. Attendance filtering and payroll calculations are unchanged."
+    "Internal draft, finalization, sample and posting notices appear above the document in an editor-only banner, outside printed reports and PDFs.",
+    "Shared report copying and saved-report reopening keep notifications separate from report content, including payroll reports, English/Lao salary vouchers, account reports, reconciliation and period review.",
+    "Report figures, references, user notes, record status columns and approval/signature data remain intact."
   ]
 }
