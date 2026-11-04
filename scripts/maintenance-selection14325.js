@@ -17,6 +17,6 @@ function select(pack,{month,scope,groups:selected}){
  wanted.forEach(get);
  return {format:pack.format,maintenanceVersion:pack.maintenanceVersion,copiedAt14324:pack.copiedAt14324,exportSelection:{scope,month,groups:selected,referenceRows:'Chart and employee references are not date-filtered.'},tables};
 }
-function issueGroup(i){return /^(draft|deferred|pending|finding|review|submission|payroll|report):/.test(i.id)?'pending':/^(control|clearing|memo):/.test(i.id)?'control':'ledger'}
+function issueGroup(i){return i.category||(/^fx:/.test(i.id)?'foreign':/^schedule:/.test(i.id)?'schedules':/^(draft|deferred|pending|finding|review|submission|payroll|report):/.test(i.id)?'pending':/^(control|clearing|memo):/.test(i.id)?'control':'ledger')}
 window.maintenanceSelection14325={groups,select,issueGroup};
 })();

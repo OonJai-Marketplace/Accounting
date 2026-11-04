@@ -1,8 +1,8 @@
 {
-  "version": "143.280",
+  "version": "143.281",
   "changes": [
-    "Post Entry now offers Save as Template, Recurring transaction or Amortization, reusing the entered accounts, descriptions, memos and historical rates.",
-    "Upcoming combines scheduled and recurring journals, with a separate Amortization tab. Approved prepaid releases support equal monthly amounts or daily proration, year carryover, historical foreign mappings and separate IDs.",
-    "Generate includes named prepaid Wi-Fi, rent, insurance and other amortization starters. Template recovery checks retained originals while preserving permanent numbers and identifying missing custom content."
+    "Data Check now reviews every posted journal through month-end, foreign rates and LAK mappings, and recorded exchange gain/loss.",
+    "Amortization and recurring checks include due items, monthly/daily allocations, historical values, year carryover and linked postings.",
+    "Closing reruns mandatory checks; arithmetic errors block closing and review items require an explanation. No financial records are changed by checking."
   ]
 }

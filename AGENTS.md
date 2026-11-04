@@ -477,3 +477,12 @@ releases wait for the prior month to close. Preserve year-end remainder and annu
 opening balances. Do not silently convert or duplicate mismatched legacy schedules.
 Template recovery preserves original permanent numbers/tombstones, automatically
 restores only unambiguous retained contents, and identifies missing bodies honestly.
+
+Data Check 2026-11-04 v143.281: include individual posted journals, saved foreign
+rates/LAK mappings, supported gain/loss calculations, amortization allocations and
+due recurring/scheduled work. Never certify external rate or historical-lot evidence
+from balanced totals alone. Preserve detailed item dates with one summary contra
+line; do not require each date inside a journal to balance. Checks are read-only,
+closing reruns them on the server, blocking errors stop closing, and warnings need
+an explicit reason. Changes to schedules invalidate an earlier closing review.
+Do not silently post or alter financial records to clear findings.
