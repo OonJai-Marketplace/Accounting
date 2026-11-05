@@ -688,33 +688,25 @@ document.addEventListener('keydown', event => {
 });
 
 
-// Reserve one rail width; expanding the navigation only changes the overlay.
+// Laptops expose the rail with CSS hover or keyboard focus. Touch devices
+// keep a tap target and never depend on a simulated hover event.
 function initNavigationRail291(){
- const root=document.documentElement,sidebar=document.getElementById('appSidebar');
- if(!sidebar||!document.getElementById('journalEntry98'))return;
+ const sidebar=document.getElementById('appSidebar');
+ if(!sidebar||!document.getElementById('journalEntry98')||document.documentElement.dataset.device132!=='tablet')return;
  const button=document.createElement('button');
  button.type='button';button.className='nav-rail-toggle291';button.setAttribute('aria-controls','appSidebar');
  button.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';
  sidebar.prepend(button);
- let pinned=false,hover=false,keyboard=false;
- function paint(){
-  const open=pinned||hover||keyboard;
-  const mode=open?'open':'closed';
-  if(root.dataset.navRail291===mode)return;
-  root.dataset.navRail291=mode;
+ function setOpen(open){
+  sidebar.classList.toggle('rail-open292',open);
   button.setAttribute('aria-expanded',String(open));
   button.setAttribute('aria-label',open?'Collapse navigation':'Expand navigation');
  }
- function close(){pinned=hover=keyboard=false;paint();}
- sidebar.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){hover=true;paint();}});
- sidebar.addEventListener('pointerleave',()=>{hover=false;paint();});
- sidebar.addEventListener('focusin',e=>{if(e.target!==button&&e.target.matches(':focus-visible')){keyboard=true;paint();}});
- sidebar.addEventListener('focusout',e=>{if(!sidebar.contains(e.relatedTarget)){keyboard=false;paint();}});
- button.addEventListener('click',()=>{if(root.dataset.navRail291==='open')close();else{pinned=true;paint();}});
- document.addEventListener('pointerdown',e=>{if(!sidebar.contains(e.target))close();},true);
- sidebar.addEventListener('click',e=>{if(pinned&&e.target.closest('.tab-btn,.group-child14378'))close();});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.dataset.navRail291==='open'){if(sidebar.contains(document.activeElement))button.focus();close();}});
- paint();
+ button.addEventListener('click',()=>setOpen(!sidebar.classList.contains('rail-open292')));
+ document.addEventListener('pointerdown',e=>{if(sidebar.classList.contains('rail-open292')&&!sidebar.contains(e.target))setOpen(false);},true);
+ sidebar.addEventListener('click',e=>{if(e.target.closest('.tab-btn,.grouped-children14378 button'))setOpen(false);});
+ sidebar.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('rail-open292')){button.focus();setOpen(false);}});
+ setOpen(false);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initNavigationRail291);else initNavigationRail291();
 function handleTableSearch(term) {

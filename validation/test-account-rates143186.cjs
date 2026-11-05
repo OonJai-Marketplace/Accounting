@@ -12,7 +12,8 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
   document.getElementById('jeLinesBody').replaceChildren();addJournalLineRow('1011 — Cash USD','',10,{});addJournalLineRow('1041 — Bank USD','','',{USD:10});JournalFX14383.restore({USD:22500});showJournalEntry98();AccountRates143186.refresh();
  });
  const notice=page.locator('#journalEntry98 > .account-rate-review143186');await notice.waitFor({state:'visible'});await page.waitForFunction(()=>document.querySelector('#journalEntry98 > .account-rate-review143186').textContent.includes('Database checked'));
- const text=await notice.innerText();assert.match(text,/22,000/);assert.match(text,/23,000/);assert.match(text,/\+500/);assert.match(text,/-500/);
+ const text=await notice.innerText();assert.match(text,/22,000/);assert.match(text,/23,000/);assert.match(text,/Matches/);
+ const bookFields=page.locator('#jeLinesBody input[aria-label="Book rate"]:visible');assert.deepEqual(await bookFields.evaluateAll(els=>els.map(el=>el.value)),['22,000','23,000']);
  const local=await page.evaluate(()=>AccountRates143186.local(AccountingStore.accounts[0],rateTestDate,null));assert.equal(local.rate,23500,'weighted balance ratio, not mean of rates');
  const original=await page.locator('[data-fx-rate14383="USD"]').inputValue();assert.equal(original,'22,500');
  const checks=await page.evaluate(async()=>{const rows=[{account_id:'usd-a',currency:'USD',posting_date:rateTestDate,fx_rate_lak:22500}];await AccountRates143186.checkReview(rows,AccountingStore.accounts);return true});assert.equal(checks,true);
@@ -26,7 +27,7 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  assert.equal(edge.excluded.rate,23500);assert.equal(edge.missing.rate,null);assert.match(edge.missing.status,/Missing/);assert.equal(edge.zero.rate,null);assert.equal(edge.negative.rate,null);assert.match(edge.negative.status,/Negative/);assert.match(edge.outside.status,/not loaded/);
  // Keep a realistic preview for layout inspection.
  await page.evaluate(()=>{JournalModule.entries=[{id:'J1',date:rateTestDate,accountId:'usd-a',currency:'USD',debit:100,credit:0,fx_rate_lak:22000},{id:'Device-X',date:rateTestDate,accountId:'usd-a',currency:'USD',debit:100,credit:0,fx_rate_lak:23000,pendingSync:true,local14333:true}];AccountRates143186.refresh()});
- await page.addStyleTag({content:'#status118,.ui-dialog108,.app-notification-overlay{display:none!important}'});await notice.scrollIntoViewIfNeeded();await page.screenshot({path:'/workspace/scratch/18d2ab841cf6/rate-review-desktop.png',fullPage:false});
- await page.setViewportSize({width:1024,height:768});await page.waitForTimeout(250);assert.equal(await notice.evaluate(e=>e.getBoundingClientRect().right<=window.innerWidth),true);assert.equal(await notice.locator('.tx72-open,.tx72-preview').count(),0);await page.screenshot({path:'/workspace/scratch/18d2ab841cf6/rate-review-tablet.png',fullPage:false});
+ await page.addStyleTag({content:'#status118,.ui-dialog108,.app-notification-overlay{display:none!important}'});await notice.scrollIntoViewIfNeeded();await page.screenshot({path:require('node:path').join(require('node:os').tmpdir(),'rate-review-desktop.png'),fullPage:false});
+ await page.setViewportSize({width:1024,height:768});await page.waitForTimeout(250);assert.equal(await notice.evaluate(e=>e.getBoundingClientRect().right<=window.innerWidth),true);assert.equal(await notice.locator('.tx72-open,.tx72-preview').count(),0);await page.screenshot({path:require('node:path').join(require('node:os').tmpdir(),'rate-review-tablet.png'),fullPage:false});
  assert.deepEqual(errors,[]);console.log('PASS per-account rate comparison, weighted device average, local pending entries, missing/zero/negative balances, edit exclusion, AI book rate, changed-rate review, preserved inputs and tablet layout');
  }finally{await f.close()}})().catch(e=>{console.error(e);process.exit(1)});

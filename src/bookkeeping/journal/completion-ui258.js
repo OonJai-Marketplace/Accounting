@@ -49,14 +49,26 @@ function renderRates(){
  for(const n of [...host.children])if(!cs.includes(n.dataset.currency))n.remove();
  for(const c of cs)if(![...host.children].some(n=>n.dataset.currency===c)){const label=document.createElement('label');label.dataset.currency=c;label.textContent='LAK per 1 '+c;const n=document.createElement('input');n.className='je-input';n.inputMode='decimal';n.setAttribute('aria-label','LAK per 1 '+c);bindAppRateInput(n,state.rates[c]??'');n.oninput=()=>{state.rates[c]=n.value;for(const l of state.rows)if(G.currency(chart().find(a=>a.id===l.account_id))===c)delete l.fx_rate_lak;invalidate();};label.append(n);host.append(label);}
 }
+const bookRequests292=new WeakMap();
+async function suggestBook292(line){
+ const account=chart().find(a=>a.id===line.account_id),date=state.date,actor=who();
+ if(!account||G.currency(account)==='LAK'||!window.AccountRates143186)return;
+ const request={};bookRequests292.set(line,request);
+ const book=await AccountRates143186.bookRateFor(account,date);
+ if(bookRequests292.get(line)!==request||actor!==who()||date!==state.date||account.id!==line.account_id||!dialog?.open||!state.rows.includes(line)||line.book_rate_lak&&!line.autoBook)return;
+ line.book_rate_lak=book||'';line.autoBook=true;
+ const input=dialog.querySelector('[data-row="'+state.rows.indexOf(line)+'"] [data-field=book_rate_lak]');
+ if(input&&document.activeElement!==input)bindAppRateInput(input,line.book_rate_lak);
+ invalidate();persist();
+}
 function renderRows(){
  const body=dialog.querySelector('tbody'),accounts=chart(),options=accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('');body.replaceChildren();
  state.rows.forEach((l,i)=>{
   const a=chart().find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
   tr.innerHTML='<td>'+(i+1)+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">Choose account</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','book_rate_lak'].map(k=>'<td><input inputmode="decimal" aria-label="'+({debit:'Debit',credit:'Credit',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]||''))+'"'+(k==='book_rate_lak'&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
   const bookField=tr.querySelector('[data-field=book_rate_lak]');bindAppRateInput(bookField,l.book_rate_lak??'');
-  const select=tr.querySelector('select');select.value=l.account_id;select.onchange=()=>{l.account_id=select.value;l.missing='';delete l.generated;delete l.book_rate_lak;delete l.fx_rate_lak;delete l.autoBook;invalidate();renderRows();renderRates();};
-  for(const n of tr.querySelectorAll('[data-field]'))n.oninput=()=>{l[n.dataset.field]=n.value;if(n.dataset.field==='line_memo')delete l.autoMemo;if(['debit','credit'].includes(n.dataset.field))delete l.generated;if(n.dataset.field==='book_rate_lak'){delete l.autoBook;delete l.generated;}invalidate();};
+  const select=tr.querySelector('select');select.value=l.account_id;select.onchange=()=>{l.account_id=select.value;l.missing='';delete l.generated;delete l.book_rate_lak;delete l.fx_rate_lak;delete l.autoBook;invalidate();renderRows();renderRates();void suggestBook292(l);};
+  for(const n of tr.querySelectorAll('[data-field]'))n.oninput=()=>{l[n.dataset.field]=n.value;if(n.dataset.field==='line_memo')delete l.autoMemo;if(['debit','credit'].includes(n.dataset.field))delete l.generated;if(n.dataset.field==='book_rate_lak'){bookRequests292.delete(l);delete l.autoBook;delete l.generated;}invalidate();};
   tr.querySelector('button').onclick=()=>{state.rows.splice(i,1);if(!state.rows.length)state.rows.push(blank());invalidate();renderRows();renderRates();};body.append(tr);
  });
 }
@@ -127,7 +139,7 @@ function open(){
  query.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.setAttribute('aria-expanded','false');}else if(e.key==='ArrowDown'){e.preventDefault();if(list.hidden)templateChoices();list.querySelector('button')?.focus();}else if(e.key==='Enter'){e.preventDefault();if(list.querySelectorAll('button').length===1)list.querySelector('button').click();}};
  list.onkeydown=e=>{const buttons=[...list.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.focus();list.hidden=true;query.setAttribute('aria-expanded','false');}};
  dialog.addEventListener('pointerdown',e=>{if(!e.target.closest('.generator-template268')){list.hidden=true;query.setAttribute('aria-expanded','false');}});
- dialog.querySelector('[data-date]').onchange=e=>{state.date=e.target.value;invalidate();};dialog.querySelector('[data-memo]').oninput=e=>{state.memo=e.target.value;invalidate();};
+ dialog.querySelector('[data-date]').onchange=e=>{state.date=e.target.value;invalidate();for(const line of state.rows)if(line.autoBook||!line.book_rate_lak)void suggestBook292(line);};dialog.querySelector('[data-memo]').oninput=e=>{state.memo=e.target.value;invalidate();};
  dialog.querySelector('[data-close]').onclick=close;dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
  dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();
 }
