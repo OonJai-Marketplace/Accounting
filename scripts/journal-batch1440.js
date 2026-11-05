@@ -91,9 +91,11 @@ const accounts=()=>AccountingStore.accounts||[];
 function currencies(){return [...new Set([...document.querySelectorAll('#jeLinesBody .je-line-acc')].map(n=>getSelectedAccountInfo(n.value)?.currency).filter(c=>c&&c!=='LAK'&&c!=='NA'))].sort()}
 function capture(){for(const n of document.querySelectorAll('input[data-fx-rate14383]'))rates[n.dataset.fxRate14383]=readAppRateInput(n);return {...rates}}
 function rate(c){if(c==='LAK')return 1;const n=parse(capture()[c]);return positive(n)?n:null}
-function lineRate(row,c){return c==='LAK'?1:positive(row?.dataset.fxRate14383)?Number(row.dataset.fxRate14383):rate(c)}
+function lineRate(row,c){return c==='LAK'?1:positive(row?.dataset.fxRate14383)?Number(row.dataset.fxRate14383):positive(row?.dataset.inheritedFx294)?Number(row.dataset.inheritedFx294):rate(c)}
 function restore(value={}){rates={...value};const host=$('journalRates14383');if(host)host.replaceChildren();draw()}
-function draw(){queued=false;const grid=document.querySelector('#journalEntry98 .je-meta-grid');if(!grid)return;let host=$('journalRates14383');if(!host){host=document.createElement('div');host.id='journalRates14383';host.className='journal-rates14383';const voucher=grid.querySelector('.voucher-pick14299');if(voucher)voucher.before(host);else grid.append(host)}const cs=currencies();if(host.hidden!==!cs.length)host.hidden=!cs.length;grid.classList.toggle('has-fx14383',!!cs.length);for(const n of [...host.children])if(!cs.includes(n.dataset.currency))n.remove();for(const c of cs){if(host.querySelector(`[data-currency="${c}"]`))continue;const label=document.createElement('label');label.dataset.currency=c;label.textContent=`LAK / 1 ${c}`;const input=document.createElement('input');input.type='text';input.inputMode='decimal';input.className='je-input';input.dataset.fxRate14383=c;input.setAttribute('aria-label',`LAK per 1 ${c}`);input.placeholder='Rate';bindAppRateInput(input,rates[c]??'');input.autocomplete='off';input.addEventListener('input',()=>{rates[c]=readAppRateInput(input);input.setCustomValidity('');document.querySelectorAll('#jeLinesBody tr').forEach(tr=>{if(!tr.dataset.explicitFx291&&!JournalModule.editingEntryId&&getSelectedAccountInfo(tr.querySelector('.je-line-acc')?.value)?.currency===c)delete tr.dataset.fxRate14383})});input.addEventListener('blur',()=>{const n=readAppRateInput(input);if(positive(n)){rates[c]=n}else input.setCustomValidity('Enter a positive exchange rate.')});label.append(input);host.append(label)}}
+function draw(){queued=false;const grid=document.querySelector('#journalEntry98 .je-meta-grid');if(!grid)return;let host=$('journalRates14383');if(!host){host=document.createElement('div');host.id='journalRates14383';host.className='journal-rates14383';const voucher=grid.querySelector('.voucher-pick14299');if(voucher)voucher.before(host);else grid.append(host)}const inline=!!window.AccountRates143186&&!$('journalEntry98').classList.contains('single-entry1430');
+ const cs=inline?[]:currencies();
+ if(host.hidden!==!cs.length)host.hidden=!cs.length;grid.classList.toggle('has-fx14383',!!cs.length);for(const n of [...host.children])if(!cs.includes(n.dataset.currency))n.remove();for(const c of cs){if(host.querySelector(`[data-currency="${c}"]`))continue;const label=document.createElement('label');label.dataset.currency=c;label.textContent=`LAK / 1 ${c}`;const input=document.createElement('input');input.type='text';input.inputMode='decimal';input.className='je-input';input.dataset.fxRate14383=c;input.setAttribute('aria-label',`LAK per 1 ${c}`);input.placeholder='Rate';bindAppRateInput(input,rates[c]??'');input.autocomplete='off';input.addEventListener('input',()=>{rates[c]=readAppRateInput(input);input.setCustomValidity('');document.querySelectorAll('#jeLinesBody tr').forEach(tr=>{if(!tr.dataset.explicitFx291&&!JournalModule.editingEntryId&&getSelectedAccountInfo(tr.querySelector('.je-line-acc')?.value)?.currency===c)delete tr.dataset.fxRate14383})});input.addEventListener('blur',()=>{const n=readAppRateInput(input);if(positive(n)){rates[c]=n}else input.setCustomValidity('Enter a positive exchange rate.')});label.append(input);host.append(label)}}
 function schedule(){if(!queued){queued=true;requestAnimationFrame(draw)}}
 function attach(state){const card=$('journalEntry98');if(card){window.AccountRates143186?.syncLineRates?.(card);if(card.querySelector('input[data-line-rate291]:invalid'))state.errors.push('Enter a positive rate on each edited foreign line.');}capture();const rows=[...document.querySelectorAll('#jeLinesBody tr')].filter(r=>getSelectedAccountInfo(r.querySelector('.je-line-acc')?.value)&&(parse(r.querySelector('.je-line-dr')?.value)>0||parse(r.querySelector('.je-line-cr')?.value)>0));let i=0;for(const [date,g] of Object.entries(state.grouped))for(const l of g.lines){const row=(Number.isInteger(l.rowIndex143118)?document.querySelectorAll('#jeLinesBody tr')[l.rowIndex143118]:null)||rows.find(r=>!r._fxUsed14383&&getSelectedAccountInfo(r.querySelector('.je-line-acc')?.value)?.id===l.account?.id&&(!r.querySelector('.je-line-date')?.value||r.querySelector('.je-line-date').value===(l.line_date||date)||!$('jeMultipleDates')?.checked))||rows[i];if(row)row._fxUsed14383=true;i++;l.fx_rate_lak=lineRate(row,l.currency);l.book_rate_lak=positive(row?.dataset.bookRate14383)?Number(row.dataset.bookRate14383):null;if(l.currency!=='LAK'&&!positive(l.fx_rate_lak))state.errors.push(`Enter LAK per 1 ${l.currency} before posting.`)}rows.forEach(r=>delete r._fxUsed14383);return state}
 function base(line,side){const c=line.currency||line.currency_code;if(c==='LAK')return round(Number(line[side]||0));const stored=line['base_'+side];if(stored!==null&&stored!==undefined&&Number.isFinite(Number(stored)))return Number(stored);if(!Number(line[side]||0))return 0;const r=line.book_rate_lak||line.fx_rate_lak;return positive(r)?round(Number(line[side]||0)*Number(r)):null}
@@ -218,7 +220,23 @@ function rateCell(row,field,label){
   if(input.value.trim()&&valid(n))row.dataset[field]=String(n);else delete row.dataset[field];
   input.setCustomValidity(input.value.trim()&&!valid(n)?'Enter a positive rate.':'');
  });
- cell.append(input);const action=row.querySelector('td.action-col');row.insertBefore(cell,action);return input;
+ cell.append(input);
+ if(field==='fxRate14383'){
+  const use=document.createElement('button');use.type='button';use.className='use-book-rate294';use.hidden=true;
+  use.textContent='Use book';use.title='Use this row’s book rate as its transaction rate';
+  use.onclick=()=>{
+   const book=Number(row.dataset.bookRate14383);
+   if(!valid(book))return;
+   row.dataset.fxRate14383=String(book);
+   row.dataset.explicitFx291='1';
+   bindAppRateInput(input,book);
+   input.setCustomValidity('');
+   input.dispatchEvent(new Event('change',{bubbles:true}));
+   use.hidden=true;input.focus();
+  };
+  cell.append(use);
+ }
+ const action=row.querySelector('td.action-col');row.insertBefore(cell,action);return input;
 }
 function effectiveAverage(account,date,exclude){
  const saved=snapshots.get(key(date,exclude))?.data.accounts.find(r=>r.account_id===account.id);
@@ -244,6 +262,21 @@ function syncLineRates(card){
   const th=document.createElement('th');th.className='line-rate291';th.textContent=label;header.insertBefore(th,header.querySelector('th.action-col'));
  }
  const exclude=JournalModule.entries?.find(l=>l.id===JournalModule.editingEntryId)?.dbEntryId||null;
+ const postDate=$('jeTransDate').value;
+ const rowDate=row=>{
+  const date=$('jeMultipleDates')?.checked?row.querySelector('.je-line-date')?.value:postDate;
+  return date&&date.slice(0,7)===postDate.slice(0,7)?date:postDate;
+ };
+ // A single confirmed rate can be shared within this entry, currency and day.
+ // Two different explicit rates leave remaining lines for individual review.
+ const entered=new Map();
+ for(const {row,account} of rows){
+  if(!foreign(account)||!row.dataset.fxRate14383||JournalModule.editingEntryId)continue;
+  const previous=lineState.get(row)?.account;
+  if(previous&&previous!==account.id)continue;
+  const key=rowDate(row)+'|'+account.currency,value=Number(row.dataset.fxRate14383);
+  if(valid(value))entered.set(key,entered.has(key)&&entered.get(key)!==value?null:value);
+ }
  for(const {row,account} of rows){
   if(!row.querySelector('.je-line-acc'))continue;
   let state=lineState.get(row);
@@ -257,10 +290,10 @@ function syncLineRates(card){
   state.account=id;
   const active=foreign(account);
   if(active&&row.dataset.bookRate14383&&row.dataset.bookRate14383!==state.autoValue)state.automatic=false;
+  const date=rowDate(row);
+  const inherited=active&&!JournalModule.editingEntryId&&!row.dataset.savedRate291&&!row.dataset.fxRate14383?entered.get(date+'|'+account.currency):null;
+  if(valid(inherited))row.dataset.inheritedFx294=String(inherited);else delete row.dataset.inheritedFx294;
   if(active&&state.automatic){
-   const postDate=$('jeTransDate').value;
-   let date=$('jeMultipleDates')?.checked?row.querySelector('.je-line-date')?.value:postDate;
-   if(!date||date.slice(0,7)!==postDate.slice(0,7))date=postDate;
    const avg=date?effectiveAverage(account,date,exclude):null;
    if(valid(avg)){state.autoValue=String(avg);row.dataset.bookRate14383=state.autoValue;}
    else{state.autoValue=null;delete row.dataset.bookRate14383;}
@@ -271,12 +304,17 @@ function syncLineRates(card){
    if(input.disabled===!!active)input.disabled=!active;
    if(input.hidden===!!active)input.hidden=!active;
    if(document.activeElement===input||active&&!input.validity.valid)continue;
-   const raw=active?row.dataset[field]:null;
+   const common=active&&field==='fxRate14383'?JournalFX14383.lineRate(row,account.currency):null;
+   const raw=active?(row.dataset[field]||common):null;
    const n=raw&&valid(Number(raw))?Number(raw):null;
    if((n===null&&input.value)||(n!==null&&readAppRateInput(input)!==n))bindAppRateInput(input,n??'');
    input.setCustomValidity('');
-   const fallback=active&&field==='fxRate14383'?JournalFX14383.rate(account.currency):null;
-   const placeholder=valid(fallback)?formatAppRate(fallback):'—';
+   const use=input.parentElement.querySelector('.use-book-rate294');
+   if(use){
+    const offer=!!(active&&n===null&&valid(Number(row.dataset.bookRate14383)));
+    if(use.hidden===offer)use.hidden=!offer;
+   }
+   const placeholder=active&&field==='fxRate14383'?'Enter rate':'—';
    if(input.placeholder!==placeholder)input.placeholder=placeholder;
   }
  }
@@ -356,7 +394,7 @@ window.ForeignFunds14386={presentation,label,tracked,select,hierarchy,descendant
 const $=id=>document.getElementById(id),esc=v=>escapeHtml(String(v??''));
 const amountSelector='#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr';
 const selected=new Set();
-let selectedRate='',queued=false,drag=null,host,results,signature='',noticeTimer;
+let selectedRate='',selectedRateInput=null,queued=false,drag=null,host,results,signature='',noticeTimer;
 const round=n=>Math.round((n+Number.EPSILON)*100)/100;
 const number=v=>{const text=String(v??'').trim();return text?parseAppNumber(text):0};
 const money=n=>formatAppNumber(n),rateText=n=>formatAppRate(n);
@@ -373,7 +411,7 @@ function summarize(cells,rates,chosenCurrency=''){
  const currency=foreign[0]||chosenCurrency;
  const rate=Number(rates[currency]),reverse=!foreign.length&&Object.hasOwn(totals,'LAK');
  if(!currency&&!errors.length)errors.push('Select a foreign amount or a matching exchange rate.');
- else if(!(Number.isFinite(rate)&&rate>0)&&!errors.length)errors.push('Enter a positive LAK per '+currency+' rate above.');
+ else if(!(Number.isFinite(rate)&&rate>0)&&!errors.length)errors.push('Enter a positive LAK per '+currency+' rate in the journal row.');
  const result={totals,currency,rate,reverse,errors:[...new Set(errors)],hasLak:Object.hasOwn(totals,'LAK')};
  if(!errors.length&&cells.length){result.source=reverse?totals.LAK:totals[currency];result.value=round(reverse?result.source/rate:result.source*rate);if(!Number.isFinite(result.value)){result.errors.push('The selected amounts are too large to calculate.');delete result.value}else if(!reverse&&result.hasLak)result.difference=round(result.value-totals.LAK);}
  return result;
@@ -390,7 +428,11 @@ function selectionHtml(cells){
  let total=0,complete=true;
  for(const currency of groups){
   const group=foreign.length?cells.filter(c=>c.currency===currency):cells;
-  const s=summarize(group,availableRates,selectedRate),lines=[];
+  const rowRates=group.filter(c=>c.currency!=='LAK').map(c=>JournalFX14383.lineRate(c.row,c.currency));
+  const picked=selectedRateInput?.isConnected?readAppRateInput(selectedRateInput):null;
+  const chosen=rowRates.length?rowRates[0]:(picked||availableRates[currency]);
+  const s=summarize(group,{...availableRates,[currency]:chosen},selectedRate),lines=[];
+  if(rowRates.some(r=>r!==chosen))s.errors=['Selected lines use different rates. Select lines with the same transaction rate.'];
   if(s.errors.length){complete=false;lines.push('<span class="calc-warning14391">'+s.errors.map(esc).join(' ')+'</span>')}
   else if(s.value!==undefined){
    total+=s.value;
@@ -439,7 +481,7 @@ function render(){
  results.hidden=!html;layout();
 }
 function refresh(){if(!queued){queued=true;requestAnimationFrame(render)}}
-function clear(){for(const input of selected){input.closest('td')?.classList.remove('calc-selected14391');input.closest('td')?.querySelector('.calc-pick14391')?.setAttribute('aria-pressed','false')}selected.clear();selectedRate='';drag=null;signature='';if(results)results.replaceChildren();document.querySelectorAll('.calc-rate-selected14391').forEach(n=>n.classList.remove('calc-rate-selected14391'));clearTimeout(noticeTimer);if($('calcCopyStatus14391'))$('calcCopyStatus14391').textContent='';layout()}
+function clear(){for(const input of selected){input.closest('td')?.classList.remove('calc-selected14391');input.closest('td')?.querySelector('.calc-pick14391')?.setAttribute('aria-pressed','false')}selected.clear();selectedRate='';selectedRateInput=null;drag=null;signature='';if(results)results.replaceChildren();document.querySelectorAll('.calc-rate-selected14391').forEach(n=>n.classList.remove('calc-rate-selected14391'));clearTimeout(noticeTimer);if($('calcCopyStatus14391'))$('calcCopyStatus14391').textContent='';layout()}
 function changed(){if(selected.size&&visible())refresh()}
 function toggle(input){if(selected.has(input))selected.delete(input);else selected.add(input);refresh()}
 async function copy(value,button){
@@ -461,7 +503,10 @@ function ready(){
  const card=$('journalEntry98'),body=$('jeLinesBody');
  card.addEventListener('input',changed);card.addEventListener('change',changed);
  // Rate controls can be moved into the journal header by the responsive layout.
- const chooseRate=e=>{if(selected.size&&visible()&&e.target.matches('[data-fx-rate14383]')){selectedRate=e.target.dataset.fxRate14383;refresh()}};
+ const chooseRate=e=>{if(selected.size&&visible()&&e.target.matches('[data-fx-rate14383],[data-line-rate291="fxRate14383"]')){
+  selectedRate=e.target.dataset.fxRate14383||getSelectedAccountInfo(e.target.closest('tr')?.querySelector('.je-line-acc')?.value)?.currency||'';
+  selectedRateInput=e.target;refresh();
+ }};
  document.addEventListener('focusin',chooseRate,true);document.addEventListener('click',chooseRate,true);
  document.addEventListener('input',e=>{if(e.target.matches('[data-fx-rate14383]'))changed()},true);
  body.addEventListener('click',e=>{const pick=e.target.closest('.calc-pick14391');if(pick){e.preventDefault();e.stopPropagation();toggle(pick._amount14391)}},true);

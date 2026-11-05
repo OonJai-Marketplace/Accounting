@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),esc=v=>escapeHtml(String(v??''));
 const amountSelector='#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr';
 const selected=new Set();
-let selectedRate='',queued=false,drag=null,host,results,signature='',noticeTimer;
+let selectedRate='',selectedRateInput=null,queued=false,drag=null,host,results,signature='',noticeTimer;
 const round=n=>Math.round((n+Number.EPSILON)*100)/100;
 const number=v=>{const text=String(v??'').trim();return text?parseAppNumber(text):0};
 const money=n=>formatAppNumber(n),rateText=n=>formatAppRate(n);
@@ -20,7 +20,7 @@ function summarize(cells,rates,chosenCurrency=''){
  const currency=foreign[0]||chosenCurrency;
  const rate=Number(rates[currency]),reverse=!foreign.length&&Object.hasOwn(totals,'LAK');
  if(!currency&&!errors.length)errors.push('Select a foreign amount or a matching exchange rate.');
- else if(!(Number.isFinite(rate)&&rate>0)&&!errors.length)errors.push('Enter a positive LAK per '+currency+' rate above.');
+ else if(!(Number.isFinite(rate)&&rate>0)&&!errors.length)errors.push('Enter a positive LAK per '+currency+' rate in the journal row.');
  const result={totals,currency,rate,reverse,errors:[...new Set(errors)],hasLak:Object.hasOwn(totals,'LAK')};
  if(!errors.length&&cells.length){result.source=reverse?totals.LAK:totals[currency];result.value=round(reverse?result.source/rate:result.source*rate);if(!Number.isFinite(result.value)){result.errors.push('The selected amounts are too large to calculate.');delete result.value}else if(!reverse&&result.hasLak)result.difference=round(result.value-totals.LAK);}
  return result;
@@ -37,7 +37,11 @@ function selectionHtml(cells){
  let total=0,complete=true;
  for(const currency of groups){
   const group=foreign.length?cells.filter(c=>c.currency===currency):cells;
-  const s=summarize(group,availableRates,selectedRate),lines=[];
+  const rowRates=group.filter(c=>c.currency!=='LAK').map(c=>JournalFX14383.lineRate(c.row,c.currency));
+  const picked=selectedRateInput?.isConnected?readAppRateInput(selectedRateInput):null;
+  const chosen=rowRates.length?rowRates[0]:(picked||availableRates[currency]);
+  const s=summarize(group,{...availableRates,[currency]:chosen},selectedRate),lines=[];
+  if(rowRates.some(r=>r!==chosen))s.errors=['Selected lines use different rates. Select lines with the same transaction rate.'];
   if(s.errors.length){complete=false;lines.push('<span class="calc-warning14391">'+s.errors.map(esc).join(' ')+'</span>')}
   else if(s.value!==undefined){
    total+=s.value;
@@ -86,7 +90,7 @@ function render(){
  results.hidden=!html;layout();
 }
 function refresh(){if(!queued){queued=true;requestAnimationFrame(render)}}
-function clear(){for(const input of selected){input.closest('td')?.classList.remove('calc-selected14391');input.closest('td')?.querySelector('.calc-pick14391')?.setAttribute('aria-pressed','false')}selected.clear();selectedRate='';drag=null;signature='';if(results)results.replaceChildren();document.querySelectorAll('.calc-rate-selected14391').forEach(n=>n.classList.remove('calc-rate-selected14391'));clearTimeout(noticeTimer);if($('calcCopyStatus14391'))$('calcCopyStatus14391').textContent='';layout()}
+function clear(){for(const input of selected){input.closest('td')?.classList.remove('calc-selected14391');input.closest('td')?.querySelector('.calc-pick14391')?.setAttribute('aria-pressed','false')}selected.clear();selectedRate='';selectedRateInput=null;drag=null;signature='';if(results)results.replaceChildren();document.querySelectorAll('.calc-rate-selected14391').forEach(n=>n.classList.remove('calc-rate-selected14391'));clearTimeout(noticeTimer);if($('calcCopyStatus14391'))$('calcCopyStatus14391').textContent='';layout()}
 function changed(){if(selected.size&&visible())refresh()}
 function toggle(input){if(selected.has(input))selected.delete(input);else selected.add(input);refresh()}
 async function copy(value,button){
@@ -108,7 +112,10 @@ function ready(){
  const card=$('journalEntry98'),body=$('jeLinesBody');
  card.addEventListener('input',changed);card.addEventListener('change',changed);
  // Rate controls can be moved into the journal header by the responsive layout.
- const chooseRate=e=>{if(selected.size&&visible()&&e.target.matches('[data-fx-rate14383]')){selectedRate=e.target.dataset.fxRate14383;refresh()}};
+ const chooseRate=e=>{if(selected.size&&visible()&&e.target.matches('[data-fx-rate14383],[data-line-rate291="fxRate14383"]')){
+  selectedRate=e.target.dataset.fxRate14383||getSelectedAccountInfo(e.target.closest('tr')?.querySelector('.je-line-acc')?.value)?.currency||'';
+  selectedRateInput=e.target;refresh();
+ }};
  document.addEventListener('focusin',chooseRate,true);document.addEventListener('click',chooseRate,true);
  document.addEventListener('input',e=>{if(e.target.matches('[data-fx-rate14383]'))changed()},true);
  body.addEventListener('click',e=>{const pick=e.target.closest('.calc-pick14391');if(pick){e.preventDefault();e.stopPropagation();toggle(pick._amount14391)}},true);

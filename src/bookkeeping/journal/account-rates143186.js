@@ -75,7 +75,23 @@ function rateCell(row,field,label){
   if(input.value.trim()&&valid(n))row.dataset[field]=String(n);else delete row.dataset[field];
   input.setCustomValidity(input.value.trim()&&!valid(n)?'Enter a positive rate.':'');
  });
- cell.append(input);const action=row.querySelector('td.action-col');row.insertBefore(cell,action);return input;
+ cell.append(input);
+ if(field==='fxRate14383'){
+  const use=document.createElement('button');use.type='button';use.className='use-book-rate294';use.hidden=true;
+  use.textContent='Use book';use.title='Use this row’s book rate as its transaction rate';
+  use.onclick=()=>{
+   const book=Number(row.dataset.bookRate14383);
+   if(!valid(book))return;
+   row.dataset.fxRate14383=String(book);
+   row.dataset.explicitFx291='1';
+   bindAppRateInput(input,book);
+   input.setCustomValidity('');
+   input.dispatchEvent(new Event('change',{bubbles:true}));
+   use.hidden=true;input.focus();
+  };
+  cell.append(use);
+ }
+ const action=row.querySelector('td.action-col');row.insertBefore(cell,action);return input;
 }
 function effectiveAverage(account,date,exclude){
  const saved=snapshots.get(key(date,exclude))?.data.accounts.find(r=>r.account_id===account.id);
@@ -101,6 +117,21 @@ function syncLineRates(card){
   const th=document.createElement('th');th.className='line-rate291';th.textContent=label;header.insertBefore(th,header.querySelector('th.action-col'));
  }
  const exclude=JournalModule.entries?.find(l=>l.id===JournalModule.editingEntryId)?.dbEntryId||null;
+ const postDate=$('jeTransDate').value;
+ const rowDate=row=>{
+  const date=$('jeMultipleDates')?.checked?row.querySelector('.je-line-date')?.value:postDate;
+  return date&&date.slice(0,7)===postDate.slice(0,7)?date:postDate;
+ };
+ // A single confirmed rate can be shared within this entry, currency and day.
+ // Two different explicit rates leave remaining lines for individual review.
+ const entered=new Map();
+ for(const {row,account} of rows){
+  if(!foreign(account)||!row.dataset.fxRate14383||JournalModule.editingEntryId)continue;
+  const previous=lineState.get(row)?.account;
+  if(previous&&previous!==account.id)continue;
+  const key=rowDate(row)+'|'+account.currency,value=Number(row.dataset.fxRate14383);
+  if(valid(value))entered.set(key,entered.has(key)&&entered.get(key)!==value?null:value);
+ }
  for(const {row,account} of rows){
   if(!row.querySelector('.je-line-acc'))continue;
   let state=lineState.get(row);
@@ -114,10 +145,10 @@ function syncLineRates(card){
   state.account=id;
   const active=foreign(account);
   if(active&&row.dataset.bookRate14383&&row.dataset.bookRate14383!==state.autoValue)state.automatic=false;
+  const date=rowDate(row);
+  const inherited=active&&!JournalModule.editingEntryId&&!row.dataset.savedRate291&&!row.dataset.fxRate14383?entered.get(date+'|'+account.currency):null;
+  if(valid(inherited))row.dataset.inheritedFx294=String(inherited);else delete row.dataset.inheritedFx294;
   if(active&&state.automatic){
-   const postDate=$('jeTransDate').value;
-   let date=$('jeMultipleDates')?.checked?row.querySelector('.je-line-date')?.value:postDate;
-   if(!date||date.slice(0,7)!==postDate.slice(0,7))date=postDate;
    const avg=date?effectiveAverage(account,date,exclude):null;
    if(valid(avg)){state.autoValue=String(avg);row.dataset.bookRate14383=state.autoValue;}
    else{state.autoValue=null;delete row.dataset.bookRate14383;}
@@ -128,12 +159,17 @@ function syncLineRates(card){
    if(input.disabled===!!active)input.disabled=!active;
    if(input.hidden===!!active)input.hidden=!active;
    if(document.activeElement===input||active&&!input.validity.valid)continue;
-   const raw=active?row.dataset[field]:null;
+   const common=active&&field==='fxRate14383'?JournalFX14383.lineRate(row,account.currency):null;
+   const raw=active?(row.dataset[field]||common):null;
    const n=raw&&valid(Number(raw))?Number(raw):null;
    if((n===null&&input.value)||(n!==null&&readAppRateInput(input)!==n))bindAppRateInput(input,n??'');
    input.setCustomValidity('');
-   const fallback=active&&field==='fxRate14383'?JournalFX14383.rate(account.currency):null;
-   const placeholder=valid(fallback)?formatAppRate(fallback):'—';
+   const use=input.parentElement.querySelector('.use-book-rate294');
+   if(use){
+    const offer=!!(active&&n===null&&valid(Number(row.dataset.bookRate14383)));
+    if(use.hidden===offer)use.hidden=!offer;
+   }
+   const placeholder=active&&field==='fxRate14383'?'Enter rate':'—';
    if(input.placeholder!==placeholder)input.placeholder=placeholder;
   }
  }

@@ -81,6 +81,11 @@ html[data-device132="tablet"] body.shell113 .tab-content{
   #journalEntry98.foreign-lines291 table:not(.table-resized143117) #jeHeaderRow .line-rate291{width:94px!important;min-width:84px!important;max-width:100px!important;white-space:normal!important;padding-inline:4px!important;line-height:1.15!important}
   #journalEntry98 .line-rate291{box-sizing:border-box}
   #journalEntry98 .line-rate291 input{box-sizing:border-box;width:100%!important;min-width:0!important;text-align:right!important;font:inherit;font-variant-numeric:tabular-nums;color:inherit;border:0;background:transparent;padding:5px 7px}
+  #journalEntry98 td.line-rate291{white-space:normal!important;vertical-align:middle}
+  #journalEntry98 .line-rate291 input:not([hidden]){display:block!important}
+  #journalEntry98 .line-rate291 .use-book-rate294:not([hidden]){display:block!important;width:100%;min-width:0;box-sizing:border-box}
+  #journalEntry98 .line-rate291 .use-book-rate294{border:0;background:transparent;color:#175c45;font:inherit;font-size:11px;text-decoration:underline;cursor:pointer;padding:1px 6px}
+  #journalEntry98 .line-rate291 .use-book-rate294[hidden]{display:none!important}
   #journalEntry98 .line-rate291 input[hidden]{display:none!important}
   #journalEntry98 .line-rate291 input:focus-visible{outline:1px solid #20765d;outline-offset:-1px}
   #journalEntry98 .rate-review-scroll143186 table:not(.table-resized143117){width:auto!important;min-width:min(100%,600px)!important;max-width:100%!important;table-layout:auto!important}
