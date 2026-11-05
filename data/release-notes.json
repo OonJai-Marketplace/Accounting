@@ -1,7 +1,7 @@
 {
-  "version": "143.299",
+  "version": "143.300",
   "changes": [
-    "Reports opens Filter in a window. Choose the period, basis, currency, accounts and sort order, then select OK to apply them together.",
-    "Returning to General Ledger reuses the loaded report. Receipt links are prepared near the visible rows."
+    "General Ledger keeps loaded entries available and displays nearby rows as you scroll, including when returning from another report.",
+    "Trial Balance fits six columns at either reporting basis. The DR/CR indicator in Classification identifies the side of the closing balance."
   ]
 }

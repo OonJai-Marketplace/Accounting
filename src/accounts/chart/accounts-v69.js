@@ -24,7 +24,7 @@ function accountForLine69(line){
  return a.find(x=>line.accountId&&String(x.id)===String(line.accountId))||a.find(x=>line.accountCode&&String(x.code)===String(line.accountCode))||a.find(x=>x.name===line.account&&x.currency===line.currency)||null;
 }
 function accountKey69(a,currency){return `${a.id||a.code||a.name}|${currency||a.currency||''}`}
-function accountData69(through=Accounts69.to){
+function accountData69(through=Accounts69.to,includeLines=true){
  // Build each lookup once for this calculation; preserve first-match resolution.
  const byId=new Map(),byCode=new Map(),byName=new Map();
  for(const a of AccountingStore.accounts||[]){if(!byId.has(String(a.id)))byId.set(String(a.id),a);if(!byCode.has(String(a.code)))byCode.set(String(a.code),a);let currencies=byName.get(a.name);if(!currencies)byName.set(a.name,currencies=new Map());if(!currencies.has(a.currency))currencies.set(a.currency,a)}
@@ -40,7 +40,7 @@ function accountData69(through=Accounts69.to){
   const bd=window.JournalFX14383?.base(line,'debit')??(line.currency==='LAK'?Number(line.debit):null),bc=window.JournalFX14383?.base(line,'credit')??(line.currency==='LAK'?Number(line.credit):null);
   if(bd===null||bc===null)r.missingRates++;
   if((line.annualOpening||String(line.generalMemo||'').startsWith('Annual opening balances ')||line.generalMemo==='Opening Balances')||(Accounts69.from&&date<Accounts69.from)){r.opening+=dr-cr;if(bd!==null&&bc!==null)r.baseOpening+=cents69(bd)-cents69(bc);}
-  else{r.debit+=dr;r.credit+=cr;if(bd!==null)r.baseDebit+=cents69(bd);if(bc!==null)r.baseCredit+=cents69(bc);r.lines.push({...line,date,dr,cr,originalIndex:index})}
+  else{r.debit+=dr;r.credit+=cr;if(bd!==null)r.baseDebit+=cents69(bd);if(bc!==null)r.baseCredit+=cents69(bc);if(includeLines)r.lines.push({...line,date,dr,cr,originalIndex:index})}
  });
  return [...map.values()].map(r=>{r.closing=r.opening+r.debit-r.credit;r.baseClosing=r.baseOpening+r.baseDebit-r.baseCredit;r.lines.sort((a,b)=>a.date.localeCompare(b.date)||String(a.id).localeCompare(String(b.id))||a.originalIndex-b.originalIndex);return r}).sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
 }

@@ -49,4 +49,5 @@ dialog.report-dialog299 {
 .report-fields299 :is(select,[data-period],input[type=month]) {width:100%; min-width:0; min-height:38px; border:1px solid #b8cec4; border-radius:6px; background:white; color:inherit; padding:6px 8px; font:inherit}
 .report-fields299 fieldset {grid-column:1/-1; min-width:0; margin:0; border:1px solid #b8cec4}
 .report-fields299 [data-choices] {display:grid; gap:5px; max-height:14rem; overflow:auto; padding:6px}
+.report-fields299 [data-choices] [role=group] {display:grid; gap:5px}
 
