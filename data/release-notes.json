@@ -1,7 +1,7 @@
 {
-  "version": "143.297",
+  "version": "143.298",
   "changes": [
-    "iPad uses one left navigation rail in portrait and landscape. The duplicate top buttons and the extra Users icon above the cashier workspace have been removed.",
-    "The workspace refits after rotation and Split View changes, including when viewing the cashier workspace from an administrator account."
+    "Prepaid releases for rent, Wi-Fi and other prepaid expenses share one Amortization list and AMO numbering. Recurring journals use their own REC numbering.",
+    "The company house-rent template uses its own expense account."
   ]
 }

@@ -196,8 +196,11 @@ function templates(chart){
   const expense=g.type(a)==='EXPENSE';add('local-'+a.code,a.name+' · LAK '+(expense?'payment':'receipt'),expense?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
  }
  // Releases consume the prepaid asset; they do not repeat the original payment.
- for(const [id,name,expense,prepaid,c] of [['wifi','Prepaid Wi-Fi amortization','5110','1311','LAK'],['rent','Prepaid house rent amortization','5119','1310','LAK'],['restaurant','Prepaid restaurant rent amortization','9222','1312','THB']]){
-  const e=reg.byCode(expense,c),p=reg.byCode(prepaid,c);if(e&&p)add('amortization-'+id,name+' · '+c,[row(e,'debit','Monthly prepaid expense'),row(p,'credit','Release prepaid balance')]);
+ for(const [id,name,expense,prepaid,c] of [['wifi','Prepaid Wi-Fi amortization','5110','1311','LAK'],['rent','Prepaid company house rent amortization','5421','1310','LAK'],['restaurant','Prepaid restaurant rent amortization','9222','1312','THB']]){
+  const e=reg.byCode(expense,c),p=reg.byCode(prepaid,c);
+  if(!p)continue;
+  const debit=e&&g.type(e)==='EXPENSE'?row(e,'debit','Monthly prepaid expense'):null;
+  if(debit||id==='rent')add('amortization-'+id,name+' · '+c,[debit||slot('expense',c,'debit','Company house rent expense'),row(p,'credit','Release prepaid balance')]);
  }
  add('amortization-insurance','Prepaid insurance amortization · LAK',[slot('expense','LAK','debit','Insurance expense'),slot('prepaid','LAK','credit','Release prepaid insurance')],false);
  add('amortization-other','Other prepaid amortization · LAK',[slot('expense','LAK','debit','Prepaid expense allocation'),slot('prepaid','LAK','credit','Release prepaid balance')],false);

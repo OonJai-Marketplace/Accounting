@@ -166,7 +166,7 @@ async function receiveInbox143173(snapshot,meta){
  const chart=entries.length?(snapshot.accounts||await accounts()):[];assert(c);
  // Preparation is a separate edited copy. Never redraw it during background discovery.
  for(const [id,rows] of entries){if(busy){queuedSnapshot143173={snapshot,meta};break;}let payload,saved,error='',next='',retry=false,stage='receipt';
- try{saved=await receipt(id);assert(c);if(!saved){const prior=await alreadyPostedAiDraft(id);assert(c);if(prior)saved={result:[{entry_no:prior.entry_no,entry_id:prior.id}]};}if(saved){completedDrafts.add(id);void queueArchive(id,saved.result[0].entry_no,c);}else{stage='validation';payload=normalize(rows,chart,settings());stage='preview';next=await previewEntryId(rows[0].posting_date);}}
+ try{saved=await receipt(id);assert(c);if(!saved){const prior=await alreadyPostedAiDraft(id);assert(c);if(prior)saved={result:[{entry_no:prior.entry_no,entry_id:prior.id}]};}if(saved){completedDrafts.add(id);void queueArchive(id,saved.result[0].issued_entry_no||saved.result[0].entry_no,c);}else{stage='validation';payload=normalize(rows,chart,settings());stage='preview';next=await previewEntryId(rows[0].posting_date);}}
  catch(e){error=e.message;retry=stage!=='validation';}assert(c);if(busy||prepared.has(id)){queuedSnapshot143173={snapshot,meta};continue;}
  const old=[...list.querySelectorAll('[data-draft]')].find(n=>n.dataset.draft===id);if(saved){old?.remove();reviewed.delete(id);continue;}
  const fragment=document.createDocumentFragment(),card=display(id,rows,payload,error,null,chart,fragment);if(next&&!error)card.querySelector('[data-entry-id]').textContent='Next available: '+next;
@@ -333,7 +333,7 @@ async function refresh(prefetchedRows){
  await Promise.all(Array.from({length:Math.min(4,entries.length)},async()=>{
   for(;;){const index=cursor++;if(index>=entries.length)return;const [id,rows]=entries[index];let payload,error='',saved,next='';
    try{saved=await receipt(id);assert(c);if(!saved){const already=await alreadyPostedAiDraft(id);assert(c);if(already)saved={result:[{entry_no:already.entry_no,entry_id:already.id}],manualReconciled:true};}
-    if(saved?.result?.[0]?.entry_no){completedDrafts.add(id);void queueArchive(id,saved.result[0].entry_no,c);}
+    if(saved?.result?.[0]?.entry_no){completedDrafts.add(id);void queueArchive(id,saved.result[0].issued_entry_no||saved.result[0].entry_no,c);}
     else{payload=normalize(rows,a,settings());const date=rows[0].posting_date;if(!previews.has(date))previews.set(date,previewEntryId(date).catch(()=>''));next=await previews.get(date);}
    }catch(e){error=e.message;}assert(c);results[index]={id,rows,payload,error,saved,next};message('Refreshing drafts… '+(++done)+'/'+entries.length);
   }
@@ -469,8 +469,8 @@ function preparedPayload(item,chart){
 }
 function completePrepared(items,results,stayInInbox=false){
  const numbers=[];for(const item of items){const result=results.get(item.id);if(!Array.isArray(result)||result.length!==1||!result[0].entry_id||!result[0].entry_no)throw Error('Posting confirmation incomplete. Keep this preparation and retry to check the saved receipts.');}
- for(const item of items){const number=results.get(item.id)[0].entry_no;completedDrafts.add(item.id);prepared.delete(item.id);reviewed.delete(item.id);numbers.push(number);
- panel.querySelectorAll('[data-draft]').forEach(card=>{if(card.dataset.draft===item.id)card.remove();});void queueArchive(item.id,number,item.context);
+ for(const item of items){const posted=results.get(item.id)[0],number=posted.entry_no;completedDrafts.add(item.id);prepared.delete(item.id);reviewed.delete(item.id);numbers.push(number);
+ panel.querySelectorAll('[data-draft]').forEach(card=>{if(card.dataset.draft===item.id)card.remove();});void queueArchive(item.id,posted.issued_entry_no||number,item.context);
  }
  pendingDraftNotices=pendingDraftNotices.filter(n=>!completedDrafts.has(n.noticeId));window.refreshNotices1443?.();persistPreparation();renderPreparation();if(!stayInInbox)openActiveJournal();
  if(!reviewed.size)panel.querySelector('[data-drive-list]').innerHTML='<p class="gpt-empty143129">No pending AI Journal drafts.</p>';

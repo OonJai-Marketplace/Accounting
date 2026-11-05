@@ -11,16 +11,17 @@ function dates(config){
  }else for(let i=0;i<600;i++){const d=step(start,config.frequency,i);if(d>end)return out;out.push({date:d,weight:1,period:month(d)});if(config.frequency==='once')return out;}
  throw Error('Use a schedule with fewer than 600 occurrences.');
 }
-function prepare(lines,chart,kind){
- if(lines.length<2)throw Error('Enter at least two journal lines first.');
- const normalized=lines.map((l,i)=>{const a=chart.find(a=>a.id===l.account_id);if(!G().available(a))throw Error('Choose the account on line '+(i+1)+'.');const debit=Number(l.debit||0),credit=Number(l.credit||0),c=G().currency(a),r=c==='LAK'?1:Number(l.book_rate_lak||l.fx_rate_lak);
-  if(!Number.isFinite(debit)||!Number.isFinite(credit)||debit<0||credit<0||!(debit>0||credit>0)||debit>0&&credit>0||Math.abs(round(debit)-debit)>1e-8||Math.abs(round(credit)-credit)>1e-8)throw Error('Enter one positive debit or credit on line '+(i+1)+'.');
-  if(!(r>0)||!Number.isFinite(r)||r>1e9)throw Error('Enter the recorded book rate on line '+(i+1)+'.');if(debit+credit>9e12)throw Error('The amount is too large for a plan.');
-  return {account_id:a.id,currency_code:c,description:String(l.description??l.line_memo??''),debit,credit,fx_rate_lak:kind==='amortization'?r:Number(l.fx_rate_lak||r),book_rate_lak:r};
- });
- for(const c of new Set(normalized.map(l=>l.currency_code)))if(Math.abs(normalized.filter(l=>l.currency_code===c).reduce((n,l)=>n+l.debit-l.credit,0))>.004)throw Error(c+' debits and credits must balance.');
- if(kind==='amortization'){
-  const prepaid=normalized.filter(l=>l.credit>0&&/^13\d\d$/.test(String(chart.find(a=>a.id===l.account_id).code))&&G().type(chart.find(a=>a.id===l.account_id))==='ASSET');
+function prepaidAsset(a){
+ const parent=a?.parentCode||a?.parent_code;
+ return G().type(a)==='ASSET'&&!G().technical(a)&&a.isPosting!==false&&a.is_posting!==false&&
+  (parent?String(parent)==='1300':/^13\d{2}$/.test(String(a.code)));
+}
+function prepaidPair(expense,prepaid){
+ const g=G(),c=g.currency(expense);
+ return g.type(expense)==='EXPENSE'&&prepaidAsset(prepaid)&&c===g.currency(prepaid)&&(!g.technical(expense)||c!=='LAK');
+}
+function checkAmortization(normalized,chart){
+  const prepaid=normalized.filter(l=>l.credit>0&&prepaidAsset(chart.find(a=>a.id===l.account_id)));
   if(prepaid.length!==1)throw Error('Use one prepaid asset credit per amortization plan. Prepare the expense release with Generate first.');
   if(normalized.some(l=>G().fund(chart.find(a=>a.id===l.account_id))||String(chart.find(a=>a.id===l.account_id).code)==='5419'))throw Error('Amortization releases a prepaid balance. Remove cash, bank and exchange gain/loss lines.');
   const p=prepaid[0],same=normalized.filter(l=>l.currency_code===p.currency_code),expense=same.find(l=>l.debit>0);
@@ -31,6 +32,25 @@ function prepare(lines,chart,kind){
    const actual=normalized.find(l=>l.account_id===m.actual.id),offset=normalized.find(l=>l.account_id===m.offset.id);
    if(!actual?.debit||!offset?.credit||Math.abs(actual.debit-round(p.credit*p.book_rate_lak))>.01||expense.book_rate_lak!==p.book_rate_lak)throw Error('The LAK expense and mapping must use the prepaid’s recorded book rate. Run Generate with that rate.');
   }
+}
+function prepare(lines,chart,kind){
+ if(lines.length<2)throw Error('Enter at least two journal lines first.');
+ const normalized=lines.map((l,i)=>{const a=chart.find(a=>a.id===l.account_id);if(!G().available(a))throw Error('Choose the account on line '+(i+1)+'.');const debit=Number(l.debit||0),credit=Number(l.credit||0),c=G().currency(a),r=c==='LAK'?1:Number(l.book_rate_lak||l.fx_rate_lak);
+  if(!Number.isFinite(debit)||!Number.isFinite(credit)||debit<0||credit<0||!(debit>0||credit>0)||debit>0&&credit>0||Math.abs(round(debit)-debit)>1e-8||Math.abs(round(credit)-credit)>1e-8)throw Error('Enter one positive debit or credit on line '+(i+1)+'.');
+  if(!(r>0)||!Number.isFinite(r)||r>1e9)throw Error('Enter the recorded book rate on line '+(i+1)+'.');if(debit+credit>9e12)throw Error('The amount is too large for a plan.');
+  return {account_id:a.id,currency_code:c,description:String(l.description??l.line_memo??''),debit,credit,fx_rate_lak:kind==='amortization'?r:Number(l.fx_rate_lak||r),book_rate_lak:r};
+ });
+ for(const c of new Set(normalized.map(l=>l.currency_code)))if(Math.abs(normalized.filter(l=>l.currency_code===c).reduce((n,l)=>n+l.debit-l.credit,0))>.004)throw Error(c+' debits and credits must balance.');
+ if(kind==='amortization')checkAmortization(normalized,chart);
+ if(kind==='recurring'){
+  let release=false;
+  if(normalized.length===2){
+   const dr=normalized.find(l=>l.debit>0),cr=normalized.find(l=>l.credit>0);
+   release=prepaidPair(chart.find(a=>a.id===dr?.account_id),chart.find(a=>a.id===cr?.account_id));
+  }else if(normalized.length===4&&normalized.some(l=>l.currency_code!=='LAK'&&l.credit>0&&prepaidAsset(chart.find(a=>a.id===l.account_id)))&&normalized.every(l=>l.fx_rate_lak===l.book_rate_lak)){
+   try{checkAmortization(normalized,chart);release=true;}catch{/* Other balanced four-line journals can recur. */}
+  }
+  if(release)throw Error('Choose Amortization for this prepaid expense release.');
  }
  return normalized;
 }
@@ -49,7 +69,7 @@ function preview(config,source,chart){
   return {...p,index,lines:allocated};
  });
 }
-root.JournalPlanModel280={dates,preview,prepare,step,last,month,round};
+root.JournalPlanModel280={dates,preview,prepare,prepaidPair,step,last,month,round};
 })(globalThis);
 
 ;
@@ -125,8 +145,10 @@ function next(p){return p.occurrences.find(o=>o.status==='pending');}
 function actionButton(label,action,extra=''){return '<button type="button" class="je-btn je-btn-secondary" data-plan-action="'+action+'" '+extra+'>'+label+'</button>';}
 function render(){for(const kind of ['recurring','amortization']){const h=host(kind);h.hidden=!canViewPlans();if(h.hidden)continue;const rows=state.owner===actor()&&state.client===ojmDb?state.rows.filter(p=>p.kind===kind):[];
  const opened=new Set([...h.querySelectorAll('details[open][data-plan]')].map(n=>n.dataset.plan));
- h.innerHTML='<div class="je-card-header"><div><h3>'+(kind==='amortization'?'Amortization':'Recurring journals')+'</h3><p>'+(kind==='amortization'?'Prepaid expenses · fixed historical value · separate journal IDs':'Scheduled once or repeated · prepared journal for each occurrence')+'</p></div><div>'+actionButton('Refresh','refresh')+actionButton('From Post Entry','new','data-kind="'+kind+'"')+'</div></div>'+(state.error?'<p role="alert">'+esc(state.error)+'</p>':'')+(!state.loaded&&!state.error?'<p>Open Upcoming to load your plans.</p>':'')+rows.map(p=>{const due=next(p),posted=p.occurrences.filter(o=>o.status==='posted').length,errors=p.occurrences.some(o=>o.status==='posted'&&o.entry_status!=='posted');return '<details data-plan="'+esc(p.id)+'" '+(opened.has(p.id)?'open':'')+'><summary><strong>'+esc(p.title)+'</strong><span>'+esc(p.status)+' · '+(p.auto_post?'Automatic':'Approval required')+'</span><span>'+(due?esc(formatAppDate(due.due_date)):'Ended')+'</span><span>'+posted+'/'+p.occurrences.length+' posted</span></summary><div class="plan-content280"><p>'+esc(p.memo)+'</p>'+(p.last_error?'<p role="alert">'+esc(p.last_error)+'</p>':'')+(errors?'<p role="alert">A linked posting was voided. It will not be automatically posted again; review the remaining balance.</p>':'')+(due?lineTable(due.lines):'')+'<div class="plan-actions280">'+(due&&p.status==='active'?actionButton('Open prepared journal','prepare'):'')+(!['complete','stopped'].includes(p.status)?actionButton(p.status==='paused'?'Resume':'Pause',p.status==='paused'?'resume':'pause')+actionButton('Stop future entries','stop'):'')+(due&&p.kind==='recurring'?actionButton('Reschedule next','reschedule')+actionButton('Skip next','skip'):'')+'</div><details><summary>All dates and posting history</summary><div class="plan-scroll280"><table><thead><tr><th>Journal date</th><th>Status</th><th>Entry ID</th></tr></thead><tbody>'+p.occurrences.map(o=>'<tr><td>'+esc(formatAppDate(o.due_date))+'</td><td>'+esc(o.entry_status&&o.entry_status!=='posted'?o.entry_status:o.status)+'</td><td>'+(o.entry_no?actionButton(esc(o.entry_no),'view','data-entry="'+esc(o.entry_no)+'"'):'—')+'</td></tr>').join('')+'</tbody></table></div></details></div></details>';}).join('')+(state.loaded&&!rows.length?'<p>No '+(kind==='amortization'?'amortization plans':'recurring journals')+' yet. Prepare the accounts in Post Entry, then choose Save as.</p>':'');
- h.onclick=e=>{const b=e.target.closest('[data-plan-action]');if(!b)return;const action=b.dataset.planAction,p=state.rows.find(p=>p.id===b.closest('[data-plan]')?.dataset.plan);if(action==='refresh')void load(true);else if(action==='new'){switchTab('journal');showJournalEntry98();showCenterStatus('Prepare the journal or use Generate, then choose Save as → '+(kind==='amortization'?'Amortization':'Recurring transaction')+'.');}else if(action==='view'){switchTab('journal');loadEntryForEdit(b.dataset.entry);}else if(action==='prepare')void prepare(p);else void act(p,action);};
+ const priorSchedules=kind==='amortization'?$('legacyAmortization280'):null;
+ h.innerHTML='<div class="je-card-header"><div><h3>'+(kind==='amortization'?'Amortization':'Recurring journals')+'</h3><p>'+(kind==='amortization'?'Prepaid expense releases · AMO journal numbers':'Scheduled journals · REC journal numbers')+'</p></div><div>'+actionButton('Refresh','refresh')+actionButton('From Post Entry','new','data-kind="'+kind+'"')+'</div></div>'+(state.error?'<p role="alert">'+esc(state.error)+'</p>':'')+(!state.loaded&&!state.error?'<p>Open Upcoming to load your plans.</p>':'')+rows.map(p=>{const due=next(p),posted=p.occurrences.filter(o=>o.status==='posted').length,errors=p.occurrences.some(o=>o.status==='posted'&&o.entry_status!=='posted');return '<details data-plan="'+esc(p.id)+'" '+(opened.has(p.id)?'open':'')+'><summary><strong>'+esc(p.title)+'</strong><span>'+esc(p.status)+' · '+(p.auto_post?'Automatic':'Approval required')+'</span><span>'+(due?esc(formatAppDate(due.due_date)):'Ended')+'</span><span>'+posted+'/'+p.occurrences.length+' posted</span></summary><div class="plan-content280"><p>'+esc(p.memo)+'</p>'+(p.last_error?'<p role="alert">'+esc(p.last_error)+'</p>':'')+(errors?'<p role="alert">A linked posting was voided. It will not be automatically posted again; review the remaining balance.</p>':'')+(due?lineTable(due.lines):'')+'<div class="plan-actions280">'+(due&&p.status==='active'?actionButton('Open prepared journal','prepare'):'')+(!['complete','stopped'].includes(p.status)?actionButton(p.status==='paused'?'Resume':'Pause',p.status==='paused'?'resume':'pause')+actionButton('Stop future entries','stop'):'')+(due&&p.kind==='recurring'?actionButton('Reschedule next','reschedule')+actionButton('Skip next','skip'):'')+'</div><details><summary>All dates and posting history</summary><div class="plan-scroll280"><table><thead><tr><th>Journal date</th><th>Status</th><th>Entry ID</th></tr></thead><tbody>'+p.occurrences.map(o=>'<tr><td>'+esc(formatAppDate(o.due_date))+'</td><td>'+esc(o.entry_status&&o.entry_status!=='posted'?o.entry_status:o.status)+'</td><td>'+(o.entry_no?actionButton(esc(o.entry_no),'view','data-entry="'+esc(o.entry_no)+'"'):'—')+'</td></tr>').join('')+'</tbody></table></div></details></div></details>';}).join('')+(state.loaded&&!rows.length?'<p class="plan-empty298">No '+(kind==='amortization'?'amortization plans':'recurring journals')+' yet. Prepare the accounts in Post Entry, then choose Save as.</p>':'');
+ if(priorSchedules)h.append(priorSchedules);
+ h.onclick=e=>{const b=e.target.closest('[data-plan-action]');if(!b)return;const action=b.dataset.planAction,p=state.rows.find(p=>p.id===b.closest('[data-plan]')?.dataset.plan);if(action==='refresh'){void load(true);if(kind==='amortization')void window.loadSchedules91?.(true);}else if(action==='new'){switchTab('journal');showJournalEntry98();showCenterStatus('Prepare the journal or use Generate, then choose Save as → '+(kind==='amortization'?'Amortization':'Recurring transaction')+'.');}else if(action==='view'){switchTab('journal');loadEntryForEdit(b.dataset.entry);}else if(action==='prepare')void prepare(p);else void act(p,action);};
  }recovery();window.workspace14337?.upcomingTabs();window.refreshNotices1443?.();}
 async function load(force=false){
  if(!ojmDb||!canViewPlans())return false;
