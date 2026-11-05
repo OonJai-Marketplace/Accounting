@@ -1,1 +1,1 @@
-{"version": "143.294", "changes": ["Post Entry shows the current book rate beside each foreign-currency account. Review or enter its transaction rate in the same row.", "An entered rate can fill other new lines for the same currency and date. Use book applies that account\u2019s exact carrying rate when appropriate."]}
+{"version": "143.295", "changes": ["On iPad, the Post Entry buttons stay at their usual bottom position when the keyboard opens, leaving more space to see the line you are editing."]}

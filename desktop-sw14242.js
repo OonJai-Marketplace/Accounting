@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.294',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.295',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/journal-generator257.js?v=143.292",
  "scripts/upcoming-plans280.js?v=143.293",
@@ -47,7 +47,7 @@ const FILES=[
  "styles/font-size14380.css?v=143.80",
  "docs/UPDATE-v143.21.md",
  "scripts/hr-calendar14306.js?v=143.279",
- "scripts/desktop14245-1.js?v=143.285",
+ "scripts/desktop14245-1.js?v=143.295",
  "deployment-config.js?v=143.109",
  "scripts/supabase-config.js?v=143.109",
  "scripts/desktop-scale14320.js?v=143.23",
@@ -62,7 +62,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.290",
  "scripts/desktop14245-6.js?v=143.294",
  "scripts/local-events14310.js?v=143.189",
- "scripts/offline14239.js?v=143.294",
+ "scripts/offline14239.js?v=143.295",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.20",
@@ -147,7 +147,7 @@ const FILES=[
  "assets/banners/transactions.webp",
  "styles/password-help14278.css?v=142.94",
  "styles/desktop14245.css?v=143.292",
- "scripts/tablet-journal14266.js?v=143.285",
+ "scripts/tablet-journal14266.js?v=143.295",
  "scripts/tablet-refresh143244.js?v=143.244",
  "scripts/workspace-header14266.js?v=142.83",
  "styles/tablet-journal14266.css?v=143.285",
@@ -197,7 +197,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.292",
  "styles/settings-groups14332.css?v=143.113",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.294",
+ "scripts/phone-runtime14242.js?v=143.295",
  "scripts/local-first14333.js?v=143.284",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -236,7 +236,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.253",
  "styles/workspace-consistency14343.css?v=143.243",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.294",
+ "phone-sw.js?v=143.295",
  "scripts/personal-journal1437.js?v=143.267",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",

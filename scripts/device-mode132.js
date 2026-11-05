@@ -23,7 +23,11 @@
   state={width,layoutWidth,fitScale,height:normalHeight/fitScale,keyboard,landscape:isLandscape,chromeHeight:Math.max(0,screenHeight-normalHeight)};
   root.dataset.tabletZoom132=String(fitScale);root.dataset.tabletOrientation132=isLandscape?'landscape':'portrait';
   set('--tablet-workspace132',layoutWidth+'px');set('--tablet-height285',state.height+'px');
-  set('--tablet-main-height285',(keyboard?Math.min(state.height,(v?.offsetTop||0)+(v?.height||innerHeight)):state.height)+'px');
+  const mainHeight=keyboard?Math.min(state.height,(v?.offsetTop||0)+(v?.height||innerHeight)):state.height;
+  set('--tablet-main-height285',mainHeight+'px');
+  // The iPad keyboard can cover the journal actions. Keep their sticky anchor at
+  // the full-height workspace bottom while the scrollable editing area shrinks.
+  if(ipad)set('--tablet-actions-inset285',(mainHeight-state.height)+'px');
   // Undo only the initial fit for typography. Pinch zoom still magnifies text.
   set('--tablet-text-scale285',String(1/fitScale));
   window.dispatchEvent(new CustomEvent('tabletviewport132',{detail:state}));
