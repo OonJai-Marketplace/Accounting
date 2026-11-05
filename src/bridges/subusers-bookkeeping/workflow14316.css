@@ -13,6 +13,9 @@ body .budget-header14316>label{min-width:0!important}body .budget-header14316 in
 .workflow-switch14316 button:focus-visible,.fund-tools14316 button:focus-visible,.budget-editor-actions14316 button:focus-visible{outline:3px solid #dbab37;outline-offset:2px}
 .fund-tools14316{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.fund-tools14316 h3{flex:1 1 200px}
 .budget-editor-actions14316{display:flex;gap:6px;margin-left:auto}.doc-quick1426:has(.budget-editor-actions14316){flex-wrap:wrap}
-#fundAllocation14316 .finance-controls117{display:flex;gap:10px;align-items:end;flex-wrap:wrap}#fundAllocation14316 .finance-controls117 label{flex:1 1 140px;min-width:120px}
+:is(#budgetFunds290,#fundAllocation14316) .finance-controls117{display:flex;gap:10px;align-items:end;flex-wrap:wrap}:is(#budgetFunds290,#fundAllocation14316) .finance-controls117 label{flex:1 1 140px;min-width:120px}
 #navigationHint14316{position:fixed;z-index:100100;bottom:22px;left:50%;transform:translateX(-50%);max-width:85vw;box-sizing:border-box;background:#173c2e;color:#fff;padding:14px 18px;border-radius:8px;box-shadow:0 4px 20px #0004;font-size:13px;line-height:1.6}
 }
+body #financeForm82 .budget-header14316{grid-template-columns:repeat(2,minmax(125px,.7fr)) repeat(2,minmax(140px,1fr))!important}
+body #financeForm82 .budget-header14316 label:has([name=notes]){grid-column:1/-1}
+@media(max-width:760px){body #financeForm82 .budget-header14316{grid-template-columns:repeat(2,minmax(0,1fr))!important}}

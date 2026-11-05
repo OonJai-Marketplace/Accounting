@@ -6,7 +6,8 @@ function texts(d,link){
  const groups=new Map(),totals=new Map();
  for(const l of d.lines||[]){const category=l.category||'Other';if(!groups.has(category))groups.set(category,{lines:[],totals:new Map()});const g=groups.get(category),amount=Number(l.amount);g.lines.push(l);g.totals.set(l.currency,(g.totals.get(l.currency)||0)+amount);totals.set(l.currency,(totals.get(l.currency)||0)+amount);}
  const amounts=m=>[...m].map(([c,n])=>c+' '+fmt(n)).join(' · ');
- const period=/^\d{4}-\d{2}-\d{2}$/.test(d.date||'')?new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(d.date+'T12:00:00Z')):d.date||'';
+ const periodDate=d.budgetMonth290?d.budgetMonth290+'-01':d.date;
+ const period=/^\d{4}-\d{2}-\d{2}$/.test(periodDate||'')?new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(periodDate+'T12:00:00Z')):periodDate||'';
  const subject='Oon Jai Marketplace — Budget Request for '+period;
  const date=typeof formatAppDate==='function'?formatAppDate(d.date):d.date;
  const opening='Dear '+(d.recipient||'Administrators')+',\n\nPlease review the following budget request for Oon Jai Marketplace.\n\nPeriod: '+period+'\nRequest date: '+date+(d.purpose?'\nPurpose: '+d.purpose:'');

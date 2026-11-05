@@ -12,3 +12,8 @@ body .budget-dialog14313 details label{display:block;margin-top:10px}
 @media(max-width:600px){body .budget-dialog14313 [data-email-preview14314]{height:330px}}
 
 .budget-template-items14319{overflow-x:auto;min-width:0}.budget-template-items14319 table{width:100%;border-collapse:collapse}.budget-template-items14319 th,.budget-template-items14319 td{padding:6px;text-align:left}.budget-template-items14319 input,.budget-template-items14319 select{box-sizing:border-box;width:100%;min-width:85px}.budget-template-items14319 td:nth-child(2){min-width:180px}
+#transactions-budget14313 .budget-items290 .actions-column99{width:60px!important;max-width:none!important;overflow:visible!important;text-overflow:clip!important}
+#transactions-budget14313 .budget-items290 .row-menu99>summary{list-style:none!important;overflow:visible!important;text-overflow:clip!important;width:36px!important;box-sizing:border-box!important;padding:4px!important;text-align:center}
+#transactions-budget14313 .budget-items290 .row-menu99>summary::marker{content:''}
+#transactions-budget14313 .budget-items290 .row-menu99>summary::-webkit-details-marker{display:none}
+:is(#budgetFunds290,#fundAllocation14316) .finance-controls117 [hidden]{display:none!important}

@@ -522,3 +522,10 @@ Deductions has only Manage Employees / Leave in the toolbar. Open a saved
 payroll journal directly in Post Transaction or view its confirmed posting.
 Preserve linked source evidence, saved calculations and explicit posting.
 Keep internal payroll identifiers out of visible descriptions and reports.
+
+Budget Request 2026-11-05 v143.290: keep the request and internal utilization
+report self-contained. The budget month is separate from the dates of receipts,
+spending, exchanges, temporary advances and repayments. Journal entry and
+attachment are manual. Keep original currency amounts, category subtotals and
+saved item identities. An advance or repayment is distinct from funding or an
+expense. PDF output uses a full-width total and formal signature lines.
