@@ -1,1 +1,1 @@
-{"version": "143.298", "changes": ["Prepaid releases for rent, Wi-Fi and other prepaid expenses share one Amortization list and AMO numbering. Recurring journals use their own REC numbering.", "The company house-rent template uses its own expense account."]}
+{"version": "143.299", "changes": ["Reports opens Filter in a window. Choose the period, basis, currency, accounts and sort order, then select OK to apply them together.", "Returning to General Ledger reuses the loaded report. Receipt links are prepared near the visible rows."]}

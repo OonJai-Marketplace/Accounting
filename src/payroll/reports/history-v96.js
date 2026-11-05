@@ -24,15 +24,20 @@ function historyView(id){
   if(report)return group(key,title,summary,'<div class="history-actions95">'+actions+'</div>'+tables);
   return `<section class="pay-group95"><header class="salary-history-record"><div><strong>${esc(title)}</strong><div>${esc(summary)}</div></div><div class="actions82 no-print">${actions}</div></header><div class="pay-group-body95">${tables}</div></section>`;
  }).join('')||'<p class="empty82">No matching saved payroll.</p>';
- const filters=report?`<div id="payrollReportFilters143153" class="payroll-report-filters143153 no-print" ${ui.reportFilters143153?'':'hidden'}>${monthControl}</div>`:'';
- const actions=salaryHistory?monthControl:`<input id="payHistorySearch95" class="je-input" type="search" aria-label="Search payroll history" placeholder="Search payroll history" value="${esc(ui.search)}"><button type="button" class="je-btn je-btn-secondary" data-payroll-filter143153 aria-controls="payrollReportFilters143153" aria-expanded="${!!ui.reportFilters143153}">Filter</button>`+action82('Reload Records','loadWork82(true)');
+ const filters=report?'<div hidden class="payroll-report-filters143153">'+monthControl+'</div>':'';
+ const actions=salaryHistory?monthControl:`<input id="payHistorySearch95" class="je-input" type="search" aria-label="Search payroll history" placeholder="Search payroll history" value="${esc(ui.search)}"><button type="button" class="je-btn je-btn-secondary" data-payroll-filter143153 aria-haspopup="dialog">Filter</button>`+action82('Reload Records','loadWork82(true)');
  mount82(id,'Salary History',report?'Search references, employees, payroll codes, months, amounts and saved notes.':'',storageNotice82()+filters+historyMonth14341.summary([['Payroll records',monthRuns.length],['Adjusted total (LAK)',money(sum(finalRows,'adjusted'))]])+'<div id="historyRecords95">'+records+'</div>',actions);
  const panel=document.getElementById(id);
  historyMonth14341.bind(panel,id,()=>historyView(id),true);
  historyMonth14341.expand(panel.querySelector('#historyRecords95'));
  if(salaryHistory)return;
  panel.querySelector('[data-payroll-filter143153]').onclick=event=>{
-  ui.reportFilters143153=!ui.reportFilters143153;panel.querySelector('#payrollReportFilters143153').hidden=!ui.reportFilters143153;event.currentTarget.setAttribute('aria-expanded',String(ui.reportFilters143153));
+  const input=panel.querySelector('[data-history-month14341]');
+  const dialog=openReportDialog299(event.currentTarget,'Payroll report filters','<label>Month<input name="month" type="month" required></label>',()=>{
+   if(input.isConnected&&input.value!==month.value){input.value=month.value;void input.onchange()}
+  });
+  const month=dialog.querySelector('[name=month]');month.value=input.value;
+
  };
  const input=panel.querySelector('#payHistorySearch95');
  input.oninput=()=>{const pos=input.selectionStart;ui.search=input.value;historyView(id);const next=panel.querySelector('#payHistorySearch95');next.focus();next.setSelectionRange(pos,pos);bindGroups()};

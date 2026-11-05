@@ -29,7 +29,17 @@ function periods(){const s=Reports79;let list;if(s.allMonths14331)return [allPer
 }
 const available=p=>cache.get(allKey)||cache.get(key(p));
 function complete(){return periods().every(available)}
-function normalizeAll(){if(!Reports79.allMonths14331)return;const rows=cache.get(allKey)?.rows;if(rows?.length){let first=rows[0].date,last=first;for(const row of rows){if(row.date<first)first=row.date;if(row.date>last)last=row.date}Reports79.from=first;Reports79.to=last}}
+const coverage=new WeakMap();
+function normalizeAll(){
+ if(!Reports79.allMonths14331)return;
+ const snapshot=cache.get(allKey);if(!snapshot?.rows.length)return;
+ if(!coverage.has(snapshot)){
+  let from=snapshot.rows[0].date,to=from;
+  for(const row of snapshot.rows){if(row.date<from)from=row.date;if(row.date>to)to=row.date}
+  coverage.set(snapshot,{from,to});
+ }
+ Object.assign(Reports79,coverage.get(snapshot));
+}
 function read(p,{refresh=false,persist=false,cacheFirst=false}={}){
  const k=key(p);if(!refresh&&available(p))return Promise.resolve(available(p));if(pending.has(k))return pending.get(k).promise;
  const who=scope,db=client,epoch=generation,controller=new AbortController(),task={controller,keep:persist};
@@ -57,13 +67,19 @@ function snapshot(from,to){if(Reports79.allMonths14331)return cache.get(allKey)|
  return available(range(from,to))||null;
 }
 function addOpening(rows,snapshot){for(const b of snapshot.opening){let row=rows.find(r=>String(r.account.id)===String(b.accountId)&&r.currency===b.currency);if(!row){const account=AccountingStore.accounts.find(a=>String(a.id)===String(b.accountId))||{id:b.accountId,name:'Unmapped',code:'Unmapped',type:'Unmapped',currency:b.currency};row={account,key:accountKey69(account,b.currency),currency:b.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]};rows.push(row)}const amount=cents69(b.balance);row.opening+=amount;row.closing+=amount;if(b.currency!=='LAK'&&b.base_balance==null)row.missingRates++;else{const base=cents69(b.currency==='LAK'?b.balance:b.base_balance);row.baseOpening+=base;row.baseClosing+=base}}return rows}
-function signature(){return JSON.stringify([scope,generation,Reports79,window.reportSort143153?.(Reports79.kind),AccountingStore.accounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)])}
-function reuse(host){restoreFilters();normalizeAll();save();return complete()&&renderedViews.get(host)===signature()}
+function signature(){
+ const s=Reports79,kind=s.kind,settings=typeof ApplicationSettings==='undefined'?{}:ApplicationSettings;
+ const selection=['gl','activity'].includes(kind)?[s.account,s.query]:kind==='cf'?s.cash:kind==='payroll'?s.payroll:null;
+ return JSON.stringify([scope,generation,kind,s.mode,s.month,s.year,s.quarter,s.from,s.to,s.allMonths14331,s.selectedMonths14331,s.basis,s.currency,
+  selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
+  AccountingStore.accounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)]);
+}
+function reuse(host){restoreFilters();normalizeAll();return complete()&&renderedViews.get(host)===signature()}
 function rendered(host){host.removeAttribute('aria-busy');renderedViews.set(host,signature());window.workspaceViews14364?.remember?.(active())}
 function prioritize(){const view=active(),wanted=new Set(periods().map(key));if(foreground&&(foreground.view!==view||foreground.selection!==[...wanted].join(',')))cancelForeground();for(const [k,task]of pending)if(!task.keep&&(!view.startsWith('report-')||!wanted.has(k))){task.controller.abort();pending.delete(k)}}
 function prepare(host){restoreFilters();normalizeAll();save();prioritize();if(complete()){host.removeAttribute('aria-busy');return true}
  const list=periods(),error=list.map(p=>failures.get(key(p))).find(Boolean),selection=list.map(key).join(','),view=active();
- host.setAttribute('aria-busy',String(!error));host.innerHTML='<div class="r79-header"><h3>'+escapeHtml(reportNames79[Reports79.kind])+'</h3><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Retry / Refresh</button></div><div class="r79-filters">'+(window.periodFilters14331?.markup()||'')+'</div><p role="status">'+escapeHtml(error||'Preparing the selected report…')+'</p>';
+ renderedViews.delete(host);host.setAttribute('aria-busy',String(!error));host.innerHTML='<div class="r79-header"><h3>'+escapeHtml(reportNames79[Reports79.kind])+'</h3><button class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Retry / Refresh</button></div><p role="status">'+escapeHtml(error||'Preparing the selected report…')+'</p>';
  if(!error&&!(foreground?.view===view&&foreground?.selection===selection)){
   cancelForeground();const token=sequence,who=scope,db=client,end=window.actionFeedback14296?.begin(host,'Processing report…');foreground={view,selection,end};
   const current=()=>token===sequence&&identity()===who&&client===db&&active()===view&&periods().map(key).join(',')===selection;
@@ -83,15 +99,18 @@ function selection(s){if(s.selectedMonths14331?.length)return P.clean(s.selected
 function caption(s){return s.allMonths14331?'All months':s.selectedMonths14331?.length?P.label(s.selectedMonths14331):s.mode==='custom'?formatAppDate(s.from)+' – '+formatAppDate(s.to):P.label(selection(s))}
 function markup(){return '<label class="filter-period81 shared-period14331">Period<button type="button" class="oj-date-button104" aria-haspopup="dialog" aria-expanded="false" onclick="periodFilters14331.open(this)"><span aria-hidden="true">▦</span><span>'+escapeHtml(caption(Reports79))+'</span></button></label>'}
 let selectionEpoch=0;
-async function apply(values,meta){const epoch=++selectionEpoch,owner=liveProfile?.id,current=()=>epoch===selectionEpoch&&liveProfile?.id===owner;const list=P.clean(values),s=Reports79,previous={...s};s.selectedMonths14331=null;s.allMonths14331=false;
+function setPeriod(s,values,meta){const list=P.clean(values);s.selectedMonths14331=null;s.allMonths14331=false;
  if(meta.mode==='custom'){s.mode='custom';s.from=meta.from;s.to=meta.to;}
  else if(!list.length){const dates=(JournalModule.entries||[]).filter(l=>(!l.status||l.status==='posted')&&!l.voided_at).map(l=>String(l.date||'').slice(0,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort();s.mode='custom';s.allMonths14331=true;s.from=dates[0]||P.current()+'-01';s.to=dates.at(-1)||P.end(P.current());}
  else{s.month=list[0];s.year=Number(list[0].slice(0,4));s.quarter=Math.ceil(Number(list[0].slice(5,7))/3);s.from=list[0]+'-01';s.to=P.end(list.at(-1));s.mode=meta.mode==='quarterly'?'quarterly':meta.mode==='yearly'?'yearly':list.length===1?'monthly':'custom';if(meta.mode==='monthly'&&list.length>1)s.selectedMonths14331=list;}
+}
+async function apply(values,meta){const epoch=++selectionEpoch,owner=liveProfile?.id,current=()=>epoch===selectionEpoch&&liveProfile?.id===owner,s=Reports79,previous={...s};
+ setPeriod(s,values,meta);
  if(window.reportWindow143195){reportWindow143195.prioritize();renderReports79();return;}
  const end=window.actionFeedback14296?.begin(document.activeElement,'Loading selected period…');try{await window.yearWindow14333?.ensure(s.allMonths14331?'1900-01-01':s.from,s.to);if(current())renderReports79()}catch(e){if(current()){Object.assign(s,previous);renderReports79();showCenterStatus('The requested period could not load: '+e.message,true)}}finally{end?.()}
 }
 function open(button){const s=Reports79;P.open(button,selection(s),apply,{mode:s.selectedMonths14331?.length?'monthly':s.allMonths14331?'monthly':s.mode,from:s.from,to:s.to,custom:true})}
-window.periodFilters14331={selection,caption,markup,apply,open};
+window.periodFilters14331={selection,caption,markup,apply,open,setPeriod};
 // Compare selected months as complete independent periods. Never add balance snapshots.
 const model=window.reportModel79;window.reportModel79=function(kind,...args){
  const selected=Reports79.selectedMonths14331,old={...Reports79};if(kind==='bs')return model.call(this,kind,...args);

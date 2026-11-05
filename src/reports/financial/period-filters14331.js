@@ -4,15 +4,18 @@ function selection(s){if(s.selectedMonths14331?.length)return P.clean(s.selected
 function caption(s){return s.allMonths14331?'All months':s.selectedMonths14331?.length?P.label(s.selectedMonths14331):s.mode==='custom'?formatAppDate(s.from)+' – '+formatAppDate(s.to):P.label(selection(s))}
 function markup(){return '<label class="filter-period81 shared-period14331">Period<button type="button" class="oj-date-button104" aria-haspopup="dialog" aria-expanded="false" onclick="periodFilters14331.open(this)"><span aria-hidden="true">▦</span><span>'+escapeHtml(caption(Reports79))+'</span></button></label>'}
 let selectionEpoch=0;
-async function apply(values,meta){const epoch=++selectionEpoch,owner=liveProfile?.id,current=()=>epoch===selectionEpoch&&liveProfile?.id===owner;const list=P.clean(values),s=Reports79,previous={...s};s.selectedMonths14331=null;s.allMonths14331=false;
+function setPeriod(s,values,meta){const list=P.clean(values);s.selectedMonths14331=null;s.allMonths14331=false;
  if(meta.mode==='custom'){s.mode='custom';s.from=meta.from;s.to=meta.to;}
  else if(!list.length){const dates=(JournalModule.entries||[]).filter(l=>(!l.status||l.status==='posted')&&!l.voided_at).map(l=>String(l.date||'').slice(0,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)).sort();s.mode='custom';s.allMonths14331=true;s.from=dates[0]||P.current()+'-01';s.to=dates.at(-1)||P.end(P.current());}
  else{s.month=list[0];s.year=Number(list[0].slice(0,4));s.quarter=Math.ceil(Number(list[0].slice(5,7))/3);s.from=list[0]+'-01';s.to=P.end(list.at(-1));s.mode=meta.mode==='quarterly'?'quarterly':meta.mode==='yearly'?'yearly':list.length===1?'monthly':'custom';if(meta.mode==='monthly'&&list.length>1)s.selectedMonths14331=list;}
+}
+async function apply(values,meta){const epoch=++selectionEpoch,owner=liveProfile?.id,current=()=>epoch===selectionEpoch&&liveProfile?.id===owner,s=Reports79,previous={...s};
+ setPeriod(s,values,meta);
  if(window.reportWindow143195){reportWindow143195.prioritize();renderReports79();return;}
  const end=window.actionFeedback14296?.begin(document.activeElement,'Loading selected period…');try{await window.yearWindow14333?.ensure(s.allMonths14331?'1900-01-01':s.from,s.to);if(current())renderReports79()}catch(e){if(current()){Object.assign(s,previous);renderReports79();showCenterStatus('The requested period could not load: '+e.message,true)}}finally{end?.()}
 }
 function open(button){const s=Reports79;P.open(button,selection(s),apply,{mode:s.selectedMonths14331?.length?'monthly':s.allMonths14331?'monthly':s.mode,from:s.from,to:s.to,custom:true})}
-window.periodFilters14331={selection,caption,markup,apply,open};
+window.periodFilters14331={selection,caption,markup,apply,open,setPeriod};
 // Compare selected months as complete independent periods. Never add balance snapshots.
 const model=window.reportModel79;window.reportModel79=function(kind,...args){
  const selected=Reports79.selectedMonths14331,old={...Reports79};if(kind==='bs')return model.call(this,kind,...args);

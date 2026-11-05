@@ -34,3 +34,19 @@ body.shell113 .r79 .r79-search143153 input{min-width:0;flex:1}
 .tax-filters143153[hidden],.payroll-report-filters143153[hidden]{display:none!important}
 .tax-filters143153,.payroll-report-filters143153{padding:10px 12px;border-top:1px solid #d7e5df;background:#f4f8f5}
 .tax-filters143153 label{display:flex;align-items:center;gap:8px}
+dialog.report-dialog299 {
+ width:min(36rem,calc(100vw - 32px)); max-height:calc(100dvh - 32px);
+ margin:auto; padding:0; border:1px solid #b8cec4; border-radius:12px;
+ background:white; color:#173b32; box-shadow:0 12px 48px #173b3244;
+}
+.report-dialog299::backdrop {background:#12362b66}
+.report-dialog299 form {display:flex; flex-direction:column; max-height:calc(100dvh - 36px)}
+.report-dialog299 header,.report-dialog299 footer {padding:14px 18px}
+.report-dialog299 h3 {margin:0; font-size:18px}
+.report-dialog299 footer {display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #d7e5df}
+.report-fields299 {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); gap:14px; padding:16px 18px; overflow:auto; border-top:1px solid #d7e5df}
+.report-fields299>label {display:grid; align-content:start; gap:5px; font-weight:600; font-size:13px}
+.report-fields299 :is(select,[data-period],input[type=month]) {width:100%; min-width:0; min-height:38px; border:1px solid #b8cec4; border-radius:6px; background:white; color:inherit; padding:6px 8px; font:inherit}
+.report-fields299 fieldset {grid-column:1/-1; min-width:0; margin:0; border:1px solid #b8cec4}
+.report-fields299 [data-choices] {display:grid; gap:5px; max-height:14rem; overflow:auto; padding:6px}
+

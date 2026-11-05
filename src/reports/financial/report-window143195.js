@@ -29,7 +29,17 @@ function periods(){const s=Reports79;let list;if(s.allMonths14331)return [allPer
 }
 const available=p=>cache.get(allKey)||cache.get(key(p));
 function complete(){return periods().every(available)}
-function normalizeAll(){if(!Reports79.allMonths14331)return;const rows=cache.get(allKey)?.rows;if(rows?.length){let first=rows[0].date,last=first;for(const row of rows){if(row.date<first)first=row.date;if(row.date>last)last=row.date}Reports79.from=first;Reports79.to=last}}
+const coverage=new WeakMap();
+function normalizeAll(){
+ if(!Reports79.allMonths14331)return;
+ const snapshot=cache.get(allKey);if(!snapshot?.rows.length)return;
+ if(!coverage.has(snapshot)){
+  let from=snapshot.rows[0].date,to=from;
+  for(const row of snapshot.rows){if(row.date<from)from=row.date;if(row.date>to)to=row.date}
+  coverage.set(snapshot,{from,to});
+ }
+ Object.assign(Reports79,coverage.get(snapshot));
+}
 function read(p,{refresh=false,persist=false,cacheFirst=false}={}){
  const k=key(p);if(!refresh&&available(p))return Promise.resolve(available(p));if(pending.has(k))return pending.get(k).promise;
  const who=scope,db=client,epoch=generation,controller=new AbortController(),task={controller,keep:persist};
@@ -57,13 +67,19 @@ function snapshot(from,to){if(Reports79.allMonths14331)return cache.get(allKey)|
  return available(range(from,to))||null;
 }
 function addOpening(rows,snapshot){for(const b of snapshot.opening){let row=rows.find(r=>String(r.account.id)===String(b.accountId)&&r.currency===b.currency);if(!row){const account=AccountingStore.accounts.find(a=>String(a.id)===String(b.accountId))||{id:b.accountId,name:'Unmapped',code:'Unmapped',type:'Unmapped',currency:b.currency};row={account,key:accountKey69(account,b.currency),currency:b.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]};rows.push(row)}const amount=cents69(b.balance);row.opening+=amount;row.closing+=amount;if(b.currency!=='LAK'&&b.base_balance==null)row.missingRates++;else{const base=cents69(b.currency==='LAK'?b.balance:b.base_balance);row.baseOpening+=base;row.baseClosing+=base}}return rows}
-function signature(){return JSON.stringify([scope,generation,Reports79,window.reportSort143153?.(Reports79.kind),AccountingStore.accounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)])}
-function reuse(host){restoreFilters();normalizeAll();save();return complete()&&renderedViews.get(host)===signature()}
+function signature(){
+ const s=Reports79,kind=s.kind,settings=typeof ApplicationSettings==='undefined'?{}:ApplicationSettings;
+ const selection=['gl','activity'].includes(kind)?[s.account,s.query]:kind==='cf'?s.cash:kind==='payroll'?s.payroll:null;
+ return JSON.stringify([scope,generation,kind,s.mode,s.month,s.year,s.quarter,s.from,s.to,s.allMonths14331,s.selectedMonths14331,s.basis,s.currency,
+  selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
+  AccountingStore.accounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)]);
+}
+function reuse(host){restoreFilters();normalizeAll();return complete()&&renderedViews.get(host)===signature()}
 function rendered(host){host.removeAttribute('aria-busy');renderedViews.set(host,signature());window.workspaceViews14364?.remember?.(active())}
 function prioritize(){const view=active(),wanted=new Set(periods().map(key));if(foreground&&(foreground.view!==view||foreground.selection!==[...wanted].join(',')))cancelForeground();for(const [k,task]of pending)if(!task.keep&&(!view.startsWith('report-')||!wanted.has(k))){task.controller.abort();pending.delete(k)}}
 function prepare(host){restoreFilters();normalizeAll();save();prioritize();if(complete()){host.removeAttribute('aria-busy');return true}
  const list=periods(),error=list.map(p=>failures.get(key(p))).find(Boolean),selection=list.map(key).join(','),view=active();
- host.setAttribute('aria-busy',String(!error));host.innerHTML='<div class="r79-header"><h3>'+escapeHtml(reportNames79[Reports79.kind])+'</h3><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Retry / Refresh</button></div><div class="r79-filters">'+(window.periodFilters14331?.markup()||'')+'</div><p role="status">'+escapeHtml(error||'Preparing the selected report…')+'</p>';
+ renderedViews.delete(host);host.setAttribute('aria-busy',String(!error));host.innerHTML='<div class="r79-header"><h3>'+escapeHtml(reportNames79[Reports79.kind])+'</h3><button class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Retry / Refresh</button></div><p role="status">'+escapeHtml(error||'Preparing the selected report…')+'</p>';
  if(!error&&!(foreground?.view===view&&foreground?.selection===selection)){
   cancelForeground();const token=sequence,who=scope,db=client,end=window.actionFeedback14296?.begin(host,'Processing report…');foreground={view,selection,end};
   const current=()=>token===sequence&&identity()===who&&client===db&&active()===view&&periods().map(key).join(',')===selection;

@@ -97,14 +97,36 @@ function scopeChanged226(){
  for(const b of document.querySelectorAll('.jr-link226'))paint226(b,'unknown');
  return true;
 }
+// Observe ledger cells once. Revisiting or scrolling a long report should only
+// measure receipt links near the viewport, even when every line is loaded.
+const nearbyLedger226=new Set(),observedLedger226=new WeakSet();
+const ledgerObserver226=typeof IntersectionObserver==='function'?new IntersectionObserver(records=>{
+ for(const record of records){
+  if(record.isIntersecting)nearbyLedger226.add(record.target);else nearbyLedger226.delete(record.target);
+ }
+ schedule226();
+},{rootMargin:'300px 0px'}):null;
+function observeLedger226(root,remove=false){
+ if(!ledgerObserver226)return;
+ const selector='.r79-link[data-entry]';
+ const labels=root.matches?.(selector)?[root]:root.querySelectorAll(selector);
+ for(const label of labels){
+  if(remove){
+   if(!label.isConnected){observedLedger226.delete(label);nearbyLedger226.delete(label);ledgerObserver226.unobserve(label)}
+  }else if(!observedLedger226.has(label)){
+   observedLedger226.add(label);ledgerObserver226.observe(label);
+  }
+ }
+}
 function decorate226(){
  if(!enabled())return;
- for(const label of document.querySelectorAll('[data-entry-menu14387],.r79-link[data-entry]')){
+ for(const label of [...document.querySelectorAll('[data-entry-menu14387]'),...(ledgerObserver226?nearbyLedger226:document.querySelectorAll('.r79-link[data-entry]'))]){
+  if(!label.isConnected){nearbyLedger226.delete(label);continue}
   if(label.closest('.jr-id226,.journal-receipts224,.journal-receipt-zoom224'))continue;
   const row=label.closest('tr[data-entry-id]'),id=label.dataset.entry||row?.dataset.entryId;
   if(!id)continue;
   const target=row?.closest('#personalWorkspace1437')?{staffLine:id,label:label.textContent.trim()}:id;
-  const wrap=document.createElement('span'),b=document.createElement('button');wrap.className='jr-id226';b.className='jr-link226 no-print';b.type='button';b._receiptTarget226=target;b.dataset.receiptKey226=key226(target);
+  const wrap=document.createElement('span'),b=document.createElement('button');wrap.className='jr-id226';if(label.matches('.r79-link[data-entry]'))wrap.dataset.ledgerReceipt299='';b.className='jr-link226 no-print';b.type='button';b._receiptTarget226=target;b.dataset.receiptKey226=key226(target);
   b.onclick=e=>{e.preventDefault();e.stopPropagation();void open(target);};b.ondblclick=e=>e.stopPropagation();
   paint226(b,statusCache226.get(key226(target))?.state||'unknown');label.replaceWith(wrap);wrap.append(label,b);
  }
@@ -114,7 +136,9 @@ async function checkVisible226(){
  scopeChanged226();decorate226();
  if(statusBusy226||typeof liveProfile==='undefined'||!liveProfile?.id||window.deviceVault14334&&(deviceVault14334.unlocked===false||deviceVault14334.actor!==liveProfile.id)||navigator.onLine===false)return;
  const targets=new Map();
- for(const b of document.querySelectorAll('.jr-link226')){
+ const journalLinks=document.querySelectorAll('.jr-id226:not([data-ledger-receipt299])>.jr-link226');
+ const ledgerLinks=ledgerObserver226?[...nearbyLedger226].map(label=>label.nextElementSibling).filter(b=>b?.matches('.jr-link226')):document.querySelectorAll('[data-ledger-receipt299]>.jr-link226');
+ for(const b of [...journalLinks,...ledgerLinks]){
   const box=b.parentElement.getBoundingClientRect();if(!box.width||!box.height||box.bottom<0||box.top>innerHeight+300)continue;
   const key=b.dataset.receiptKey226,cached=statusCache226.get(key);
   if(cached){paint226(b,cached.state);continue;}
@@ -139,7 +163,20 @@ function receiptChanged240(value){let change;try{change=typeof value==='string'?
 function start226(){
  // Remove notices left by earlier cached releases without touching journal rows.
  document.querySelectorAll('.jr-check-note226').forEach(n=>n.remove());
- const mutations=new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.jr-id226,.journal-receipts224,.journal-receipt-zoom224')&&[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('[data-entry-menu14387],.r79-link[data-entry],.jr-link226')||n.querySelector?.('[data-entry-menu14387],.r79-link[data-entry],.jr-link226')))))schedule226();});
+ observeLedger226(document);
+ const mutations=new MutationObserver(records=>{
+  let changed=false;
+  for(const record of records){
+   if(record.target.closest?.('.jr-id226,.journal-receipts224,.journal-receipt-zoom224'))continue;
+   for(const node of record.removedNodes)if(node.nodeType===1&&!node.isConnected)observeLedger226(node,true);
+   for(const node of record.addedNodes){
+    if(node.nodeType!==1)continue;
+    observeLedger226(node);
+    if(!changed)changed=node.matches('[data-entry-menu14387],.r79-link[data-entry],.jr-link226')||!!node.querySelector('[data-entry-menu14387],.r79-link[data-entry],.jr-link226');
+   }
+  }
+  if(changed)schedule226();
+ });
  mutations.observe(document.body,{childList:true,subtree:true});schedule226();
  document.addEventListener('scroll',schedule226,true);window.addEventListener('page113',schedule226);window.addEventListener('focus',schedule226);window.addEventListener('online',schedule226);
 
