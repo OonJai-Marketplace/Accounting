@@ -123,7 +123,19 @@ function templates(){
 function openTemplate(kind){return applyTransactionTemplate('fx14383-'+kind)}
 function ready(){const collect=window.collectLiveJournalGroups;window.collectLiveJournalGroups=function(...args){return attach(collect.apply(this,args))};const clear=window.clearJournalEntry;window.clearJournalEntry=function(...args){const out=clear.apply(this,args);restore({});return out};const card=$('journalEntry98');if(card){card.addEventListener('change',e=>{if(e.target.matches('.je-line-acc'))schedule()});card.addEventListener('input',e=>{if(e.target.matches('.je-line-acc')){const row=e.target.closest('tr');if(row){delete row.dataset.fxRate14383;delete row.dataset.bookRate14383}}if(e.target.matches('.je-line-acc'))schedule()});new MutationObserver(rs=>{if(rs.some(r=>r.target===$('jeLinesBody')))schedule()}).observe($('jeLinesBody'),{childList:true})}draw();window.addEventListener('page113',schedule)}
 function compact(rate,c){return c!=='LAK'&&rate>0?formatAppRate(rate)+' '+currencySymbolV6('LAK')+'/'+currencySymbolV6(c):'—'}
-window.JournalFX14383={compact,capture,restore,rate,lineRate,base,carrying,templates,openTemplate,round,positive};
+// Rate evidence and account carrying value can have different sources.
+function lineRates(line){
+ const c=line.originalCurrency||line.currency||line.currency_code;
+ if(!c||c==='LAK'||c==='NA')return [];
+ const fx=Number(line.fx_rate_lak),book=Number(line.book_rate_lak);
+ const kind=line.fxRateKind288;
+ if(kind==='book')return positive(book||fx)?['Book '+compact(book||fx,c)]:[];
+ const names={actual:'Actual',equivalent:'Equivalent',valuation:'Valuation',review:'Posted',recorded:'Recorded',reference:'Reference'};
+ const out=positive(fx)?[(names[kind]||'Recorded')+' '+compact(fx,c)]:[];
+ if(positive(book)&&(!positive(fx)||formatAppRate(book)!==formatAppRate(fx)))out.push('Book '+compact(book,c));
+ return out;
+}
+window.JournalFX14383={compact,lineRates,capture,restore,rate,lineRate,base,carrying,templates,openTemplate,round,positive};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 
@@ -216,7 +228,7 @@ const esc=v=>escapeHtml(String(v??'')), num=v=>Number(v)||0;
 const rateText=v=>Number.isFinite(v)&&v>0?formatAppRate(v):'—';
 const posting=a=>a.isPosting!==false&&a.is_posting!==false;
 const tracked=a=>posting(a)&&!!(a.currency||a.currency_code)&&!['LAK','NA','__PARENT__'].includes(a.currency||a.currency_code);
-function lineRateText(l){const c=l.originalCurrency||l.currency||l.currency_code;if(c==='LAK')return '1';const amount=num(l.debit)-num(l.credit),d=JournalFX14383.base(l,'debit'),cr=JournalFX14383.base(l,'credit');const saved=Number(l.book_rate_lak||l.fx_rate_lak);const r=saved>0?saved:amount&&d!==null&&cr!==null?(d-cr)/amount:null;return rateText(r)+' LAK / '+c+(l.book_rate_lak?' · carrying':'');}
+function lineRateText(l){const c=l.originalCurrency||l.currency||l.currency_code;if(c==='LAK')return '1';const rates=window.JournalFX14383?.lineRates?.(l);if(rates?.length)return rates.join(' / ');const amount=num(l.debit)-num(l.credit),d=JournalFX14383.base(l,'debit'),cr=JournalFX14383.base(l,'credit');const saved=Number(l.book_rate_lak||l.fx_rate_lak);const r=saved>0?saved:amount&&d!==null&&cr!==null?(d-cr)/amount:null;return rateText(r)+' LAK / '+c+(l.book_rate_lak?' · carrying':'');}
 function original(r){return r.original||r}
 function descendants(rows,parent){const byCode=new Map(AccountingStore.accounts.map(a=>[a.code,a]));return rows.filter(r=>{if(!posting(r.account))return false;let a=r.account;const seen=new Set([a.code]);while(a?.parentCode&&!seen.has(a.parentCode)){if(a.parentCode===parent.code)return true;seen.add(a.parentCode);a=byCode.get(a.parentCode)}return false})}
 function select(rows,key){if(!key)return rows;const target=rows.find(r=>r.key===key);return target&&!posting(target.account)?descendants(rows,target.account):rows.filter(r=>r.key===key);}

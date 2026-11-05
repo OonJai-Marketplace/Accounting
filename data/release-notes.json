@@ -1,9 +1,8 @@
 {
-  "version": "143.287",
+  "version": "143.288",
   "changes": [
-    "Exchange rates display at most two decimal places while retaining saved calculation precision.",
-    "Historical BCEL source links open the explicitly recorded date; multiple source dates remain separately clickable.",
-    "A named BCEL payroll rate and its saved date now provide a dated source link in payroll and journal posting.",
-    "Other Operating Expenses supports a general USD mapping in journal generation and closing checks."
+    "Journal rates distinguish recorded exchanges, LAK valuations and book values.",
+    "Reviewed source notes identify the amount, currency and date for each published quote.",
+    "Eligible open-period financial corrections use the signed-in journal revision workflow."
   ]
 }

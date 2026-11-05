@@ -41,6 +41,18 @@ function templates(){
 function openTemplate(kind){return applyTransactionTemplate('fx14383-'+kind)}
 function ready(){const collect=window.collectLiveJournalGroups;window.collectLiveJournalGroups=function(...args){return attach(collect.apply(this,args))};const clear=window.clearJournalEntry;window.clearJournalEntry=function(...args){const out=clear.apply(this,args);restore({});return out};const card=$('journalEntry98');if(card){card.addEventListener('change',e=>{if(e.target.matches('.je-line-acc'))schedule()});card.addEventListener('input',e=>{if(e.target.matches('.je-line-acc')){const row=e.target.closest('tr');if(row){delete row.dataset.fxRate14383;delete row.dataset.bookRate14383}}if(e.target.matches('.je-line-acc'))schedule()});new MutationObserver(rs=>{if(rs.some(r=>r.target===$('jeLinesBody')))schedule()}).observe($('jeLinesBody'),{childList:true})}draw();window.addEventListener('page113',schedule)}
 function compact(rate,c){return c!=='LAK'&&rate>0?formatAppRate(rate)+' '+currencySymbolV6('LAK')+'/'+currencySymbolV6(c):'—'}
-window.JournalFX14383={compact,capture,restore,rate,lineRate,base,carrying,templates,openTemplate,round,positive};
+// Rate evidence and account carrying value can have different sources.
+function lineRates(line){
+ const c=line.originalCurrency||line.currency||line.currency_code;
+ if(!c||c==='LAK'||c==='NA')return [];
+ const fx=Number(line.fx_rate_lak),book=Number(line.book_rate_lak);
+ const kind=line.fxRateKind288;
+ if(kind==='book')return positive(book||fx)?['Book '+compact(book||fx,c)]:[];
+ const names={actual:'Actual',equivalent:'Equivalent',valuation:'Valuation',review:'Posted',recorded:'Recorded',reference:'Reference'};
+ const out=positive(fx)?[(names[kind]||'Recorded')+' '+compact(fx,c)]:[];
+ if(positive(book)&&(!positive(fx)||formatAppRate(book)!==formatAppRate(fx)))out.push('Book '+compact(book,c));
+ return out;
+}
+window.JournalFX14383={compact,lineRates,capture,restore,rate,lineRate,base,carrying,templates,openTemplate,round,positive};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

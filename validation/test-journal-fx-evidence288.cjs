@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),vm=require('node:vm');
+const w={document:{readyState:'loading',addEventListener(){}},URL,formatAppRate:n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2}),currencySymbolV6:c=>c,renderTransactionReviewTable(){},renderPeriodReview(){}};
+w.window=w;vm.createContext(w);
+for(const name of ['foreign-currency14383','memo-links143187','journal-description14281'])
+ vm.runInContext(fs.readFileSync('src/bookkeeping/journal/'+name+'.js','utf8'),w);
+const fx=w.JournalFX14383,links=w.JournalMemoLinks143187;
+const row={currency:'USD',fx_rate_lak:21000,book_rate_lak:20500,fxRateKind288:'valuation'};
+assert.deepEqual(Array.from(fx.lineRates(row)),['Valuation 21,000 LAK/USD','Book 20,500 LAK/USD']);
+assert.deepEqual(Array.from(fx.lineRates({...row,fxRateKind288:'actual'})),['Actual 21,000 LAK/USD','Book 20,500 LAK/USD']);
+assert.deepEqual(Array.from(fx.lineRates({...row,fxRateKind288:'book'})),['Book 20,500 LAK/USD']);
+assert.equal(fx.lineRates({...row,currency:'LAK'}).length,0);
+const legacy='[Source rate](https://www.bcel.com.la/bcel/exchange-rate.html?lang=en)';
+assert.equal(links.parts(legacy+' USD: 21,000 LAK/USD · Entry rate.').filter(x=>x.href).length,0);
+const mixed=legacy+' USD: 21,000 LAK/USD · BCEL 2026-01-05, Round 1. USD: 20,500 LAK/USD · Entry rate.';
+const citations=links.parts(mixed).filter(x=>x.href);assert.equal(citations.length,1);assert(citations[0].href.includes('exDate=2026-01-05'));assert(citations[0].text.includes('21,000'));assert(!citations[0].text.includes('20,500'));
+const heading='[BCEL EFT valuation · 21,000 LAK/USD · 2026-01-05, round 1](https://www.bcel.com.la/bcel/exchange-rate.html?exDate=2026-01-05&lang=en&round=1)';
+const line={...row,memo:'Line-specific information',generalMemo:mixed,fxEvidenceMemo288:heading};
+assert(links.forLine(line).includes('exDate=2026-01-05'));
+assert(!links.forLine({...line,fxRateKind288:'actual'}).includes('bcel.com'));
+assert(!links.forLine({...line,fx_rate_lak:20500}).includes('bcel.com'));
+assert.equal(w.JournalDescription225.plan([line]).shared,heading);
+assert.equal(w.JournalDescription225.plan([line]).lines[0],line.memo);
+assert(links.parts('[Cash receipt](https://example.test/receipt)')[0].href.endsWith('receipt'));
+console.log('PASS exact source labels, two currencies, book and actual rates, derived values, private links, reviewed and legacy journal headings.');

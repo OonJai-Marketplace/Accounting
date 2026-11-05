@@ -18,16 +18,38 @@ function payrollRateSource287(run){
 }
 window.payrollRateSource287=payrollRateSource287;
 function datedSources287(value){
- const text=String(value??'');if(!text.includes('BCEL ')||!text.toLowerCase().includes('[source rate]('))return text;
- const dates=[...new Map([...text.matchAll(/\bBCEL (\d{4}-\d{2}-\d{2}), Round ([1-9]\d*)\b/g)].filter(m=>{const d=new Date(m[1]+'T00:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===m[1];}).map(m=>[m[1]+'|'+m[2],{date:m[1],round:m[2]}])).values()];
- if(!dates.length)return text;
- return text.replace(/\[Source rate\]\((https?:\/\/[^\s()]+)\)/gi,(whole,href)=>{let u;try{u=new URL(href);}catch{return whole;}if(!['www.bcel.com.la','bcel.com.la'].includes(u.hostname)||u.pathname!=='/bcel/exchange-rate.html'||u.username||u.password||u.port||u.hash||[...u.searchParams.keys()].some(k=>k!=='lang'))return whole;return dates.map(({date,round})=>link('Source rate · '+(typeof formatAppDate==='function'?formatAppDate(date):date),'https://www.bcel.com.la/bcel/exchange-rate.html?exDate='+date+'&lang=en&round='+round)).join(' · ');});
+ const text=String(value??'');
+ const generic=/\[Source rate\]\(https?:\/\/(?:www\.)?bcel\.com\.la\/bcel\/exchange-rate\.html(?:\?lang=(?:en|la))?\)/ig;
+ if(!generic.test(text))return text;
+ // An unqualified homepage link in an import establishes no rate. Bind a dated
+ // quote to its own amount only, including when two source dates occur together.
+ return text.replace(generic,'').replace(/\b([A-Z]{3}): ([\d,.]+) LAK\/\1 · BCEL (\d{4}-\d{2}-\d{2}), Round ([1-9]\d*)\b/g,
+  (original,currency,amount,day,round)=>{
+   const date=new Date(day+'T00:00:00Z');if(!Number.isFinite(+date)||date.toISOString().slice(0,10)!==day)return original;
+   return link('BCEL valuation · '+amount+' LAK/'+currency+' · '+day+', round '+round,
+    'https://www.bcel.com.la/bcel/exchange-rate.html?exDate='+day+'&lang=en&round='+round);
+  });
 }
 function parts(value){const text=datedSources287(value),out=[],re=/\[((?:\\[\\\[\]]|[^\]\\\r\n])+)\]\((https?:\/\/[^\s()]+)\)/gi;let at=0,m;while((m=re.exec(text))){const href=url(m[2]);if(!href)continue;if(m.index>at)out.push({text:text.slice(at,m.index)});out.push({text:m[1].replace(/\\([\\\[\]])/g,'$1'),href});at=re.lastIndex;}if(at<text.length)out.push({text:text.slice(at)});return out;}
 function html(value){return parts(value).map(p=>p.href?'<a class="journal-source-link143187" href="'+esc(p.href)+'" target="_blank" rel="noopener noreferrer" title="'+esc(p.href)+'">'+esc(p.text)+'</a>':esc(p.text).replace(/\r?\n/g,'<br>')).join('');}
 function plain(value){return parts(value).map(p=>p.href?p.text+' ('+p.href+')':p.text).join('');}
 window.journalMemoHtml143187=html;
-function forLine(line){const memo=String(line.memo||line.description||line.generalMemo||''),seen=new Set(parts(memo).filter(p=>p.href).map(p=>p.href));const extra=parts(line.generalMemo||'').filter(p=>p.href&&!seen.has(p.href));return memo+(extra.length?'\n'+extra.map(p=>link(p.text,p.href)).join(' · '):'');}
+function forLine(line){
+ const heading=line.fxEvidenceMemo288||line.generalMemo||'';
+ const memo=String(line.memo||line.description||heading);
+ if(memo===line.generalMemo)return heading;
+ const seen=new Set(parts(memo).filter(p=>p.href).map(p=>p.href));
+ // A shared rate link belongs with the entry heading. Copying it to an
+ // unrelated line wrongly attributes private conversions and carrying values.
+ const extra=parts(heading).filter(p=>{
+  if(!p.href||seen.has(p.href))return false;
+  if(!/^https?:\/\/(?:www\.)?bcel\.com\.la\/bcel\/exchange-rate\.html(?:[?#]|$)/i.test(p.href))return true;
+  if(line.fxRateKind288!=='valuation')return false;
+  const match=/^BCEL EFT valuation · ([\d,.]+) LAK\/([A-Z]{3}) ·/.exec(p.text);
+  return !!match&&match[2]===(line.originalCurrency||line.currency||line.currency_code)&&Number(match[1].replace(/,/g,''))===Number(line.fx_rate_lak);
+ });
+ return memo+(extra.length?'\n'+extra.map(p=>link(p.text,p.href)).join(' · '):'');
+}
 window.journalMemoValue143187=forLine;
 
 // Cover read-only descriptions copied into legacy views and document previews.
