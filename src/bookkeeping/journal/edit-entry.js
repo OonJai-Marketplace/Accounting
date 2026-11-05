@@ -39,6 +39,7 @@ function loadEntryForEdit(entryId) {
     addJournalLineRow(accStr, line.memo, drStr, crMap);
 
     const dateInput=tbody.lastElementChild.querySelector('.je-line-date');if(dateInput){dateInput.value=line.date;dateInput.dataset.manualDate='1';window.datePicker104?.refresh(dateInput);}
+    tbody.lastElementChild.dataset.savedRate291='1';
     tbody.lastElementChild.dataset.bookRate14383=line.book_rate_lak||'';
     tbody.lastElementChild.dataset.fxRate14383=line.fx_rate_lak||'';
   });

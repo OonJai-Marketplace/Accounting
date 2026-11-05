@@ -714,6 +714,36 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape') closeMobileNavigation();
 });
 
+
+// Reserve one rail width; expanding the navigation only changes the overlay.
+function initNavigationRail291(){
+ const root=document.documentElement,sidebar=document.getElementById('appSidebar');
+ if(!sidebar||!document.getElementById('journalEntry98'))return;
+ const button=document.createElement('button');
+ button.type='button';button.className='nav-rail-toggle291';button.setAttribute('aria-controls','appSidebar');
+ button.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';
+ sidebar.prepend(button);
+ let pinned=false,hover=false,keyboard=false;
+ function paint(){
+  const open=pinned||hover||keyboard;
+  const mode=open?'open':'closed';
+  if(root.dataset.navRail291===mode)return;
+  root.dataset.navRail291=mode;
+  button.setAttribute('aria-expanded',String(open));
+  button.setAttribute('aria-label',open?'Collapse navigation':'Expand navigation');
+ }
+ function close(){pinned=hover=keyboard=false;paint();}
+ sidebar.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){hover=true;paint();}});
+ sidebar.addEventListener('pointerleave',()=>{hover=false;paint();});
+ sidebar.addEventListener('focusin',e=>{if(e.target!==button&&e.target.matches(':focus-visible')){keyboard=true;paint();}});
+ sidebar.addEventListener('focusout',e=>{if(!sidebar.contains(e.relatedTarget)){keyboard=false;paint();}});
+ button.addEventListener('click',()=>{if(root.dataset.navRail291==='open')close();else{pinned=true;paint();}});
+ document.addEventListener('pointerdown',e=>{if(!sidebar.contains(e.target))close();},true);
+ sidebar.addEventListener('click',e=>{if(pinned&&e.target.closest('.tab-btn,.group-child14378'))close();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.dataset.navRail291==='open'){if(sidebar.contains(document.activeElement))button.focus();close();}});
+ paint();
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initNavigationRail291);else initNavigationRail291();
 function handleTableSearch(term) {
   const query = term.toLowerCase().trim();
   document.querySelectorAll('#coaTableBody tr, #subAccountTableBody tr').forEach(row => {
@@ -1331,6 +1361,7 @@ function loadEntryForEdit(entryId) {
     addJournalLineRow(accStr, line.memo, drStr, crMap);
 
     const dateInput=tbody.lastElementChild.querySelector('.je-line-date');if(dateInput){dateInput.value=line.date;dateInput.dataset.manualDate='1';window.datePicker104?.refresh(dateInput);}
+    tbody.lastElementChild.dataset.savedRate291='1';
     tbody.lastElementChild.dataset.bookRate14383=line.book_rate_lak||'';
     tbody.lastElementChild.dataset.fxRate14383=line.fx_rate_lak||'';
   });

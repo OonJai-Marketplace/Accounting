@@ -18,3 +18,42 @@ html[data-device132="tablet"] body.workspace-full1439 .workspace-scroll{
 html[data-device132="tablet"] body.shell113 .tab-content{
  padding-left:8px!important;padding-right:8px!important;max-width:none!important;
 }
+
+.nav-rail-toggle291{display:none}
+@layer journalRail291{
+ @media screen{
+  html:is([data-device132=desktop],[data-device132=tablet])[data-nav-rail291] #appSidebar{
+   display:flex!important;flex-direction:column!important;align-items:stretch!important;
+   position:fixed!important;inset:0 auto 0 0!important;width:52px!important;min-width:52px!important;max-width:52px!important;
+   box-sizing:border-box!important;transform:none!important;overflow:auto hidden!important;overflow-y:auto!important;
+   padding:6px!important;height:100dvh!important;z-index:1300!important;transition:none!important
+  }
+  html:is([data-device132=desktop],[data-device132=tablet])[data-nav-rail291] .app-layout>.main-content-area{
+   margin-left:52px!important;margin-inline-start:52px!important;width:calc(100% - 52px)!important;
+   min-width:0!important;max-width:calc(100% - 52px)!important;flex:1 1 auto!important
+  }
+  html[data-nav-rail291] #appSidebar>.nav-rail-toggle291{display:grid!important;place-items:center;width:38px;height:34px;min-height:34px;flex:none;margin:0 0 4px;border:1px solid #ffffff48;border-radius:5px;color:#fff;background:transparent;cursor:pointer}
+  html[data-nav-rail291] #appSidebar>.nav-rail-toggle291:focus-visible{outline:2px solid #f5cf8d;outline-offset:-2px}
+  html:is([data-device132=desktop],[data-device132=tablet])[data-nav-rail291=open] #appSidebar{width:238px!important;min-width:238px!important;max-width:min(85vw,238px)!important;box-shadow:5px 0 18px #152b2533!important}
+  html[data-nav-rail291=closed] #appSidebar :is(.sidebar-brand h2,.universal-search108,.nav-links,.grouped-children14378,.group-toggle143111,.sidebar-user-copy,.arrow,.nav-icon100,.nav-count14311){display:none!important}
+  html[data-nav-rail291=closed] #appSidebar :is(.nav-header,#headerAccountTrigger,.sidebar-brand){width:38px!important;min-width:0!important;max-width:38px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;font-size:0!important;padding:4px!important;gap:0!important;box-sizing:border-box!important}
+  html[data-nav-rail291=closed] #appSidebar .nav-header>span:not(.nav-icon113){display:none!important}
+  html[data-nav-rail291=closed] #appSidebar .nav-icon113{margin:0!important;position:static!important;display:inline-flex!important;flex:0 0 21px!important}
+  html[data-nav-rail291=closed] #appSidebar .logo-tile113{width:32px!important;min-width:32px!important;height:32px!important;flex-basis:32px!important;padding:2px!important}
+  html[data-nav-rail291=closed] #appSidebar #topHeaderProfile104{padding:2px!important;width:38px!important;margin-top:auto!important}
+  html[data-nav-rail291=open] #appSidebar .nav-header{font-size:13px!important;justify-content:flex-start!important;width:100%!important;gap:8px!important;padding-inline:8px!important}
+  html[data-nav-rail291=open] #appSidebar :is(.sidebar-brand h2,.universal-search108,.sidebar-user-copy){display:block!important}
+  html[data-nav-rail291=open] #appSidebar .group-toggle143111:not([hidden]){display:flex!important}
+  html[data-nav-rail291=open] #appSidebar .groups-open14378>.grouped-children14378:not([hidden]),html[data-nav-rail291=open] #appSidebar .nav-category.open>.nav-links:not([hidden]){display:block!important}
+  html[data-nav-rail291=open] #appSidebar :is(.sidebar-brand,#topHeaderProfile104,#headerAccountTrigger){width:auto!important;max-width:none!important}
+  html[data-nav-rail291=open] #appSidebar #headerAccountTrigger{justify-content:flex-start!important;font-size:13px!important;gap:8px!important}
+  html[data-nav-rail291] #mobileMenuToggle{display:none!important}
+ }
+}
+@layer journalRail291{
+ #journalEntry98:not(.foreign-lines291) .line-rate291{display:none!important}
+ #journalEntry98 .line-rate291{width:96px;min-width:72px;box-sizing:border-box}
+ #journalEntry98 .line-rate291 input{box-sizing:border-box;width:100%;min-width:0;text-align:right;font:inherit;color:inherit;border:0;background:transparent;padding:6px}
+ #journalEntry98 .line-rate291 input[hidden]{display:none!important}
+ #journalEntry98 .line-rate291 input:focus-visible{outline:1px solid #20765d;outline-offset:-1px}
+}

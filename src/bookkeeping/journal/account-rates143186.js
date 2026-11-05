@@ -57,7 +57,83 @@ function renderCard(card){
  const html='<div class="rate-review-title143186"><strong>Account average exchange rates · LAK per 1 unit</strong><button type="button" class="je-btn je-btn-secondary" data-refresh-rates>Refresh averages</button></div><div class="rate-review-scroll143186"><table><thead><tr><th>Account / date</th><th>Entered FX</th><th>Entered book rate</th><th>Account average</th><th>Used rate − average</th></tr></thead><tbody>'+body+'</tbody></table></div>';
  if(host._html!==html){host.innerHTML=html;host._html=html;host.querySelector('[data-refresh-rates]').onclick=async()=>{const button=host.querySelector('button');button.disabled=true;await Promise.all(rows.map(r=>fetchSnapshot(r.date,source.exclude,true)));renderCard(card);button.disabled=false;};}
 }
-function render(){queued=false;session();const card=$('journalEntry98');if(card){card._rateReview143186={rows:linesMain(),chart:AccountingStore.accounts||[],exclude:JournalModule.editingEntryId||null};cards.add(card);}for(const c of cards){if(!c.isConnected){cards.delete(c);continue;}if(!owner){c.querySelector(':scope > .account-rate-review143186')?.remove();continue;}renderCard(c);}}
+
+// Existing journal rows, restored drafts and generated lines carry exact rates.
+// Only an unpriced new line follows the account's as-of-date carrying value.
+const lineState=new WeakMap();
+const rateFields=[['fxRate14383','Transaction rate'],['bookRate14383','Book rate']];
+function rateCell(row,field,label){
+ const cell=document.createElement('td'),input=document.createElement('input');
+ cell.className='line-rate291';input.type='text';input.inputMode='decimal';input.autocomplete='off';
+ input.dataset.lineRate291=field;input.setAttribute('aria-label',label);input.title=label+' in LAK per foreign unit';
+ bindAppRateInput(input,'');
+ input.addEventListener('input',()=>{
+  const state=lineState.get(row),n=readAppRateInput(input);
+  if(!state)return;
+  if(field==='bookRate14383')state.automatic=false;
+  else row.dataset.explicitFx291=input.value.trim()?'1':'';
+  if(input.value.trim()&&valid(n))row.dataset[field]=String(n);else delete row.dataset[field];
+  input.setCustomValidity(input.value.trim()&&!valid(n)?'Enter a positive rate.':'');
+ });
+ cell.append(input);const action=row.querySelector('td.action-col');row.insertBefore(cell,action);return input;
+}
+function effectiveAverage(account,date,exclude){
+ const saved=snapshots.get(key(date,exclude))?.data.accounts.find(r=>r.account_id===account.id);
+ const device=local(account,date,exclude);
+ if(device.pending||!saved)return device.rate;
+ return valid(Number(saved.average_rate))?Number(saved.average_rate):null;
+}
+function syncLineRates(card){
+ const body=$('jeLinesBody'),header=$('jeHeaderRow');
+ if(!body||!header)return;
+ const rows=[...body.rows].map(row=>({row,account:getSelectedAccountInfo(row.querySelector('.je-line-acc')?.value)}));
+ const foreign=a=>a&&a.currency&&a.currency!=='LAK'&&a.currency!=='NA';
+ const show=rows.some(({account})=>foreign(account))&&!card.classList.contains('single-entry1430');
+ card.classList.toggle('foreign-lines291',show);
+ if(!show&&!header.querySelector('.line-rate291'))return;
+ if(!header.querySelector('.line-rate291'))for(const [,label] of rateFields){
+  const th=document.createElement('th');th.className='line-rate291';th.textContent=label;header.insertBefore(th,header.querySelector('th.action-col'));
+ }
+ const exclude=JournalModule.entries?.find(l=>l.id===JournalModule.editingEntryId)?.dbEntryId||null;
+ for(const {row,account} of rows){
+  if(!row.querySelector('.je-line-acc'))continue;
+  let state=lineState.get(row);
+  if(!state){state={account:null,automatic:!row.dataset.bookRate14383&&!row.dataset.savedRate291,inputs:{},autoValue:null};lineState.set(row,state);}
+  const id=account?.id||'';
+  if(state.account!==null&&state.account!==id){
+   delete row.dataset.fxRate14383;delete row.dataset.bookRate14383;delete row.dataset.explicitFx291;delete row.dataset.savedRate291;
+   for(const input of Object.values(state.inputs)){input.setCustomValidity('');bindAppRateInput(input,'');}
+   state.automatic=true;state.autoValue=null;
+  }
+  state.account=id;
+  const active=foreign(account);
+  if(active&&row.dataset.bookRate14383&&row.dataset.bookRate14383!==state.autoValue)state.automatic=false;
+  if(active&&state.automatic){
+   const postDate=$('jeTransDate').value;
+   let date=$('jeMultipleDates')?.checked?row.querySelector('.je-line-date')?.value:postDate;
+   if(!date||date.slice(0,7)!==postDate.slice(0,7))date=postDate;
+   const avg=date?effectiveAverage(account,date,exclude):null;
+   if(valid(avg)){state.autoValue=String(avg);row.dataset.bookRate14383=state.autoValue;}
+   else{state.autoValue=null;delete row.dataset.bookRate14383;}
+  }
+  for(const [field,label] of rateFields){
+   let input=state.inputs[field];
+   if(!input?.isConnected)input=state.inputs[field]=rateCell(row,field,label);
+   if(input.disabled===!!active)input.disabled=!active;
+   if(input.hidden===!!active)input.hidden=!active;
+   if(document.activeElement===input||active&&!input.validity.valid)continue;
+   const raw=active?row.dataset[field]:null;
+   const n=raw&&valid(Number(raw))?Number(raw):null;
+   if((n===null&&input.value)||(n!==null&&readAppRateInput(input)!==n))bindAppRateInput(input,n??'');
+   input.setCustomValidity('');
+   const fallback=active&&field==='fxRate14383'?JournalFX14383.rate(account.currency):null;
+   const placeholder=valid(fallback)?formatAppRate(fallback):'—';
+   if(input.placeholder!==placeholder)input.placeholder=placeholder;
+  }
+ }
+}
+
+function render(){queued=false;session();const card=$('journalEntry98');if(card){syncLineRates(card);card._rateReview143186={rows:linesMain(),chart:AccountingStore.accounts||[],exclude:JournalModule.entries?.find(l=>l.id===JournalModule.editingEntryId)?.dbEntryId||null};cards.add(card);}for(const c of cards){if(!c.isConnected){cards.delete(c);continue;}if(!owner){c.querySelector(':scope > .account-rate-review143186')?.remove();continue;}renderCard(c);}}
 function schedule(){if(!queued){queued=true;requestAnimationFrame(render);}}
 async function checkReview(rows,chart,exclude=null){
  const actor=session(),db=client;if(offline())return;
@@ -71,8 +147,8 @@ function ready(){
  document.addEventListener('input',e=>{if(e.target.closest('#journalEntry98'))schedule();});document.addEventListener('change',e=>{if(e.target.closest('#journalEntry98'))schedule();});
  const body=$('jeLinesBody');if(body)new MutationObserver(schedule).observe(body,{childList:true,subtree:true});
  for(const name of ['page113','online','offline','local-work14333','sync-assessment14332','focus'])window.addEventListener(name,schedule);
- setTimeout(()=>{const submit=window.submitJournalEntry;window.submitJournalEntry=async function(...args){if(checkingPost)return;checkingPost=true;try{if(!window.DriveDrafts143128?.editing&&!window.personalJournal1437?.active){const rows=linesMain();await checkReview(rows,AccountingStore.accounts||[],JournalModule.editingEntryId||null);if(JSON.stringify(rows)!==JSON.stringify(linesMain()))throw Error('The entry changed during the rate check. Review it before posting.');}return await submit.apply(this,args);}catch(e){showCenterStatus(e.message,true);}finally{checkingPost=false;}};},0);schedule();
+ setTimeout(()=>{const submit=window.submitJournalEntry;window.submitJournalEntry=async function(...args){if(checkingPost)return;checkingPost=true;try{if(!window.DriveDrafts143128?.editing&&!window.personalJournal1437?.active){const card=$('journalEntry98');if(card)syncLineRates(card);const bad=card?.querySelector('input[data-line-rate291]:invalid');if(bad){bad.reportValidity();return;}const rows=linesMain();await checkReview(rows,AccountingStore.accounts||[],JournalModule.entries?.find(l=>l.id===JournalModule.editingEntryId)?.dbEntryId||null);if(JSON.stringify(rows)!==JSON.stringify(linesMain()))throw Error('The entry changed during the rate check. Review it before posting.');}return await submit.apply(this,args);}catch(e){showCenterStatus(e.message,true);}finally{checkingPost=false;}};},0);schedule();
 }
-window.AccountRates143186={mount,refresh:schedule,local,descriptors,checkReview,snapshot:fetchSnapshot};
+window.AccountRates143186={syncLineRates,mount,refresh:schedule,local,descriptors,checkReview,snapshot:fetchSnapshot};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

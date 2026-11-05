@@ -1,8 +1,7 @@
 {
-  "version": "143.290",
+  "version": "143.291",
   "changes": [
-    "Budget items are grouped by category with currency-specific subtotals. Edit an item in the original form, or change its currency in a template.",
-    "Budget Request documents have full-width totals and an editable formal signature block.",
-    "Internal fund utilization tracks actual receipts, expenses, exchanges, temporary advances and repayments under the original budget month. Journal posting and attaching the report are manual."
+    "Foreign journal lines show editable transaction and book rates. New lines use the selected account’s carrying rate on the journal date.",
+    "The desktop and tablet navigation rail expands over the workspace by pointer, keyboard or tap."
   ]
 }
