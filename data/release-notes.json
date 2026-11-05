@@ -1,7 +1,6 @@
 {
-  "version": "143.302",
+  "version": "143.303",
   "changes": [
-    "Reconciliation prioritizes BCEL, main cash, float, petty cash and cashier clearing. Add main accounts to your own list.",
-    "Cash counts compare the amount counted with the ledger. Bank statements default to receipt dates."
+    "Reconciliation guidance uses the current Bookkeeping → Journal → Reconcile menu path."
   ]
 }
