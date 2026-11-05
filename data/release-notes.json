@@ -1,9 +1,8 @@
 {
-  "version": "143.285",
+  "version": "143.286",
   "changes": [
-    "Tablet rotation keeps one viewport definition and uses device orientation instead of the keyboard-shortened page shape.",
-    "Tablet font sizes compensate for the initial page fit; banners grow to contain enlarged text.",
-    "Journal fields and action buttons use the visible keyboard area, with full-height navigation restored when it closes.",
-    "New account fields become dropdown buttons on the first touch; labels focus the visible picker."
+    "Payroll Exchange Rate Source now supports the journal link button and Ctrl+K / Command+K.",
+    "Saved source links appear in payroll reports and carry into both Prepare in Transactions and Post to Active Journal.",
+    "Adding a source link keeps the payroll form stable and preserves payroll amounts and finalized-record protections."
   ]
 }

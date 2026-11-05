@@ -503,3 +503,5 @@ Banners and quotations grow in flow. Enhance new account inputs before first-tou
 focus and point labels at visible controls. Keep desktop/phone behavior and financial
 data unchanged. Synthetic geometry and Chrome rendering are not physical iPad Safari
 verification; see docs/tablet285.md.
+
+Payroll source evidence 2026-11-05 v143.286: use the existing portable journal-link editor in Payroll Exchange Rate Source. Preserve its serialized source text through draft recovery, save/reload and finalized snapshots. Source-only edits must not rerender the form on blur while the link dialog is open. Carry saved rates, rate date and source links into both prepared and direct payroll journal descriptions, retaining payroll markers. Render links safely in report metadata. Keep existing Edit payroll, finalization, explicit posting and correction guards; never change ledger amounts or insert live test records for UI verification.

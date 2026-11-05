@@ -19,7 +19,7 @@ function decorate(root){if(!root||root.closest?.('script,style,textarea,select,o
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.data.includes('](')&&!n.parentElement?.closest('script,style,textarea,select,option,button,a,pre,code,[contenteditable],.memo-link-editor143187,#memoLinkDialog143187')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
  for(const n of nodes){if(!parts(n.data).some(p=>p.href))continue;const t=document.createElement('template');t.innerHTML=html(n.data);n.replaceWith(t.content);}
 }
-const selector='#jeGeneralMemo,.je-line-memo,#simpleRows1430 [data-simple="memo"],#aiPreparation143160 input[data-field="description"],#aiPreparation143160 input[data-field="line_memo"]';
+const selector='#jeGeneralMemo,.je-line-memo,#simpleRows1430 [data-simple="memo"],#aiPreparation143160 input[data-field="description"],#aiPreparation143160 input[data-field="line_memo"],#runMeta95 [name="rateSource"]';
 const editors=new WeakMap();let seq=0;
 function serialize(root){let text='';for(const n of root.childNodes){if(n.nodeType===3)text+=n.data;else if(n.nodeType===1){if(n.tagName==='BR')text+='\n';else if(n.tagName==='A'&&url(n.getAttribute('href'))&&n.textContent)text+=link(n.textContent,n.getAttribute('href'));else{if(['DIV','P'].includes(n.tagName)&&text&&!text.endsWith('\n'))text+='\n';text+=serialize(n);}}}return text;}
 function rangeFor(editor){const sel=getSelection();if(sel.rangeCount&&editor.contains(sel.anchorNode)&&editor.contains(sel.focusNode))return sel.getRangeAt(0).cloneRange();const r=document.createRange();r.selectNodeContents(editor);r.collapse(false);return r;}
@@ -76,7 +76,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.285', $ = id => document.getElementById(id);
+  const VERSION = '143.286', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
