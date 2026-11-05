@@ -1,6 +1,7 @@
 {
-  "version": "143.295",
+  "version": "143.296",
   "changes": [
-    "On iPad, the Post Entry buttons stay at their usual bottom position when the keyboard opens, leaving more space to see the line you are editing."
+    "Tables fit the available workspace by default. Drag a column divider to adjust it, or double-click to fit again.",
+    "Journal rate labels use ER for exchange, VR for valuation, and BR for book. Post Entry keeps rate fields numeric."
   ]
 }

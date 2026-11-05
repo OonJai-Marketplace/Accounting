@@ -1933,10 +1933,10 @@ function lineRates(line){
  if(!c||c==='LAK'||c==='NA')return [];
  const fx=Number(line.fx_rate_lak),book=Number(line.book_rate_lak);
  const kind=line.fxRateKind288;
- if(kind==='book')return positive(book||fx)?['Book '+compact(book||fx,c)]:[];
- const names={actual:'Actual',equivalent:'Equivalent',valuation:'Valuation',review:'Posted',recorded:'Recorded',reference:'Reference'};
- const out=positive(fx)?[(names[kind]||'Recorded')+' '+compact(fx,c)]:[];
- if(positive(book)&&(!positive(fx)||formatAppRate(book)!==formatAppRate(fx)))out.push('Book '+compact(book,c));
+ if(kind==='book')return positive(book||fx)?['BR '+compact(book||fx,c)]:[];
+ const codes={actual:'ER ',equivalent:'VR ',valuation:'VR ',reference:'VR ',review:'',recorded:''};
+ const out=positive(fx)?[(codes[kind]??'ER ')+compact(fx,c)]:[];
+ if(positive(book)&&(!positive(fx)||formatAppRate(book)!==formatAppRate(fx)))out.push('BR '+compact(book,c));
  return out;
 }
 window.JournalFX14383={compact,lineRates,capture,restore,rate,lineRate,base,carrying,templates,openTemplate,round,positive};
@@ -1999,9 +1999,9 @@ function renderCard(card){
   if(!valid(rate))detail+=' · '+(useDevice?device.status:({no_balance:'No balance',missing_valuation:'Missing recorded valuation',invalid_balance:'Balance needs review',negative_asset_balance:'Negative asset balance — review'}[remote?.rate_status]||'No rate available'));
   if(device.pending&&average!=null)detail+=' · Last checked database average '+fmt(average);
   if(!offline())void fetchSnapshot(date,source.exclude);
-  return '<tr><td>'+esc(a.code+' — '+a.name)+'<small>'+esc(currency+' · '+(date?formatAppDate(date):'Choose date'))+'</small></td><td>'+esc(fmt(fx))+'</td><td>'+esc(book==null?'Uses FX rate':fmt(book))+'</td><td><strong>'+esc(fmt(rate))+'</strong></td><td class="'+(diff!=null&&Math.abs(diff)>0.00000001?'rate-different143186':'')+'">'+esc(diff==null?'—':Math.abs(diff)<0.00000001?'Matches':(diff>0?'+':'')+fmt(diff))+'</td></tr><tr class="rate-source143186"><td colspan="5">'+esc(detail)+'</td></tr>';
+  return '<tr><td>'+esc(a.code+' — '+a.name)+'<small>'+esc(currency+' · '+(date?formatAppDate(date):'Choose date'))+'</small></td><td>'+esc(fmt(fx))+'</td><td>'+esc(book==null?'Uses ER':fmt(book))+'</td><td><strong>'+esc(fmt(rate))+'</strong></td><td class="'+(diff!=null&&Math.abs(diff)>0.00000001?'rate-different143186':'')+'">'+esc(diff==null?'—':Math.abs(diff)<0.00000001?'Matches':(diff>0?'+':'')+fmt(diff))+'</td></tr><tr class="rate-source143186"><td colspan="5">'+esc(detail)+'</td></tr>';
  }).join('');
- const html='<div class="rate-review-title143186"><strong>Account average exchange rates · LAK per 1 unit</strong><button type="button" class="je-btn je-btn-secondary" data-refresh-rates>Refresh averages</button></div><div class="rate-review-scroll143186"><table><thead><tr><th>Account / date</th><th>Entered FX</th><th>Entered book rate</th><th>Account average</th><th>Used rate − average</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+ const html='<div class="rate-review-title143186"><strong>Account book rate · LAK per foreign unit</strong><button type="button" class="je-btn je-btn-secondary" data-refresh-rates>Refresh averages</button></div><small>ER = exchange rate · VR = valuation rate · BR = book rate</small><div class="rate-review-scroll143186"><table><thead><tr><th>Account / date</th><th title="Entered exchange rate">ER</th><th title="Entered book rate">Entered BR</th><th title="Book rate from the account balance">Account BR</th><th>Difference</th></tr></thead><tbody>'+body+'</tbody></table></div>';
  if(host._html!==html){host.innerHTML=html;host._html=html;host.querySelector('[data-refresh-rates]').onclick=async()=>{const button=host.querySelector('button');button.disabled=true;await Promise.all(rows.map(r=>fetchSnapshot(r.date,source.exclude,true)));renderCard(card);button.disabled=false;};}
 }
 
@@ -2025,7 +2025,7 @@ function rateCell(row,field,label){
  cell.append(input);
  if(field==='fxRate14383'){
   const use=document.createElement('button');use.type='button';use.className='use-book-rate294';use.hidden=true;
-  use.textContent='Use book';use.title='Use this row’s book rate as its transaction rate';
+  use.textContent='Use BR';use.setAttribute('aria-label','Use book rate');use.title='Use this row’s book rate as its transaction rate';
   use.onclick=()=>{
    const book=Number(row.dataset.bookRate14383);
    if(!valid(book))return;
@@ -2061,7 +2061,7 @@ function syncLineRates(card){
  card.classList.toggle('foreign-lines291',show);
  if(!show&&!header.querySelector('.line-rate291'))return;
  if(!header.querySelector('.line-rate291'))for(const [,label] of rateFields){
-  const th=document.createElement('th');th.className='line-rate291';th.textContent=label;header.insertBefore(th,header.querySelector('th.action-col'));
+  const th=document.createElement('th');th.className='line-rate291';th.textContent=label==='Book rate'?'BR':'ER';th.title=label+' in LAK per foreign unit';th.setAttribute('aria-label',label);th.dataset.resizeLabel=label;header.insertBefore(th,header.querySelector('th.action-col'));
  }
  const exclude=JournalModule.entries?.find(l=>l.id===JournalModule.editingEntryId)?.dbEntryId||null;
  const postDate=$('jeTransDate').value;

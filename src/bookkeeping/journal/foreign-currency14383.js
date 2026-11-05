@@ -49,10 +49,10 @@ function lineRates(line){
  if(!c||c==='LAK'||c==='NA')return [];
  const fx=Number(line.fx_rate_lak),book=Number(line.book_rate_lak);
  const kind=line.fxRateKind288;
- if(kind==='book')return positive(book||fx)?['Book '+compact(book||fx,c)]:[];
- const names={actual:'Actual',equivalent:'Equivalent',valuation:'Valuation',review:'Posted',recorded:'Recorded',reference:'Reference'};
- const out=positive(fx)?[(names[kind]||'Recorded')+' '+compact(fx,c)]:[];
- if(positive(book)&&(!positive(fx)||formatAppRate(book)!==formatAppRate(fx)))out.push('Book '+compact(book,c));
+ if(kind==='book')return positive(book||fx)?['BR '+compact(book||fx,c)]:[];
+ const codes={actual:'ER ',equivalent:'VR ',valuation:'VR ',reference:'VR ',review:'',recorded:''};
+ const out=positive(fx)?[(codes[kind]??'ER ')+compact(fx,c)]:[];
+ if(positive(book)&&(!positive(fx)||formatAppRate(book)!==formatAppRate(fx)))out.push('BR '+compact(book,c));
  return out;
 }
 window.JournalFX14383={compact,lineRates,capture,restore,rate,lineRate,base,carrying,templates,openTemplate,round,positive};

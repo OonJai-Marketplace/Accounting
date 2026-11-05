@@ -1,11 +1,42 @@
 /* Header-only column resizing. No body-cell listeners or drag-time row scans. */
 (()=>{'use strict';
 const states=new WeakMap(),pending=new Set();let queued=false,drag=null,suppressClick=false;
-const storageKey=()=> 'ojm-table-widths143117:'+String(typeof liveProfile==='undefined'?'device':liveProfile?.id||'device');
-function saved(){try{return JSON.parse(localStorage.getItem(storageKey())||'{}')}catch{return {}}}
+const storageKey=()=> 'ojm-table-widths143296:'+String(typeof liveProfile==='undefined'?'device':liveProfile?.id||'device');
+function saved(key=storageKey()){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}}
 function headerRows(table){if(table.tHead)return [...table.tHead.rows];const rows=[];for(const row of table.rows){if(!row.cells.length||![...row.cells].every(c=>c.tagName==='TH'))break;rows.push(row);}return rows;}
 function headers(table){return headerRows(table).flatMap(row=>[...row.cells]).filter(c=>c.closest('table')===table);}
-function identity(table,heads){const section=table.closest('[id]');return [table.id||section?.id||location.pathname,...heads.map(h=>h.textContent.trim())].join('|');}
+function identity(table,heads){const section=table.closest('[id]');return [table.id||section?.id||location.pathname,...heads.map(h=>h.dataset.resizeLabel||h.textContent.trim())].join('|');}
+// Reuse the normal table layout while it fits. Only overflowing workspace tables
+// get proportional columns; manual widths and document/print layouts take priority.
+const fitBoxes=new WeakMap();
+const fitObserver=typeof ResizeObserver==='function'?new ResizeObserver(entries=>{
+ for(const {target} of entries){const tables=fitBoxes.get(target);if(!tables)continue;
+  for(const table of tables){if(table.parentElement===target)queue(table);else tables.delete(table);}
+ }
+}):null;
+function fit(s){
+ const {table}=s,box=table.parentElement;
+ if(!box||!table.closest('.tab-content,dialog')||table.closest('.attendance-grid99,.print-page,[contenteditable=true],.voucher-paper,.salary-paper')||s.widths)return;
+ if(fitObserver&&!fitBoxes.get(box)?.has(table)){
+  if(!fitBoxes.has(box)){fitBoxes.set(box,new Set());fitObserver.observe(box);}
+  fitBoxes.get(box).add(table);
+ }
+ if(!table.offsetWidth)return;
+ const style=getComputedStyle(box);
+ const available=box.clientWidth-parseFloat(style.paddingLeft||0)-parseFloat(style.paddingRight||0);
+ if(available<=0)return;
+ if(table.classList.contains('workspace-fit296')){
+  if(available<s.naturalWidth)return;
+  table.classList.remove('workspace-fit296');for(const h of s.heads)h.style.removeProperty('--fitted-column296');
+ }
+ const natural=table.offsetWidth;if(natural<=available+1)return;
+ const measured=measure(s),sum=measured.reduce((a,b)=>a+b,0);
+ for(const {h,start,end} of s.cells){
+  const width=100*measured.slice(start,end).reduce((a,b)=>a+b,0)/sum;
+  h.style.setProperty('--fitted-column296',width+'%');
+ }
+ s.naturalWidth=natural;table.classList.add('workspace-fit296');
+}
 function grid(table){const rows=headerRows(table),occupied=[],cells=[];let count=0;rows.forEach((row,r)=>{occupied[r]||=[];let col=0;for(const h of row.cells){if(getComputedStyle(h).display==='none')continue;while(occupied[r][col])col++;const span=h.colSpan||1;cells.push({h,start:col,end:col+span});for(let y=r;y<r+(h.rowSpan||1);y++){occupied[y]||=[];for(let x=col;x<col+span;x++)occupied[y][x]=true;}col+=span;count=Math.max(count,col);}});return {cells,count};}
 function apply(s,widths){const {table}=s;if(!s.initialized){s.original=table.getAttribute('style');s.headerStyles=s.cells.map(c=>[c.h,c.h.getAttribute('style')]);s.oldGroups=[...table.children].filter(n=>n.tagName==='COLGROUP');s.oldGroups.forEach(g=>g.remove());// Single header rows use their own widths. A separate compressed COLGROUP
 // can assign widths to the wrong native table column when Date is hidden.
@@ -16,10 +47,16 @@ s.cols=null;if(document.documentElement.dataset.device132!=='tablet'||headerRows
  table.classList.add('table-resized143117');
 }
 function restoreLayout(s){const {table}=s;if(s.initialized){s.cols?.remove();s.oldGroups.forEach(g=>table.prepend(g));s.original===null?table.removeAttribute('style'):table.setAttribute('style',s.original);s.headerStyles.forEach(([h,style])=>style===null?h.removeAttribute('style'):h.setAttribute('style',style));table.classList.remove('table-resized143117');s.original=null;s.initialized=false;}}
-function reset(table){const s=states.get(table);if(!s)return;restoreLayout(s);const all=saved();delete all[s.key];try{localStorage.setItem(storageKey(),JSON.stringify(all))}catch{}s.widths=null;}
-function install(table){if(!table?.isConnected)return;if(table.matches('.attendance-grid99')){reset(table);table.querySelectorAll('.column-resize143117').forEach(h=>h.remove());table.querySelectorAll('.column-header143117').forEach(h=>h.classList.remove('column-header143117'));states.delete(table);return;}const layout=grid(table),heads=layout.cells.map(c=>c.h);if(!heads.length)return;for(const h of heads){h.classList.add('column-header143117');h.style.setProperty('position','relative','important');}let s=states.get(table);if(s&&s.owner===storageKey()&&heads.every((h,i)=>h===s.heads[i]&&layout.cells[i].start===s.cells[i].start&&layout.cells[i].end===s.cells[i].end)&&heads.length===s.heads.length)return;if(s)restoreLayout(s);for(const h of headers(table))if(!heads.includes(h))h.querySelector(':scope > .column-resize143117')?.remove();s={table,heads,...layout,owner:storageKey(),key:identity(table,heads)};states.set(table,s);
+function reset(table){const s=states.get(table);if(!s)return;restoreLayout(s);const all=saved();all[s.key]=null;try{localStorage.setItem(storageKey(),JSON.stringify(all))}catch{}s.widths=null;queue(table);}
+function install(table){if(!table?.isConnected)return;if(table.matches('.attendance-grid99')){reset(table);table.querySelectorAll('.column-resize143117').forEach(h=>h.remove());table.querySelectorAll('.column-header143117').forEach(h=>h.classList.remove('column-header143117'));states.delete(table);return;}const layout=grid(table),heads=layout.cells.map(c=>c.h);if(!heads.length)return;for(const h of heads){h.classList.add('column-header143117');h.style.setProperty('position','relative','important');}let s=states.get(table);if(s&&s.owner===storageKey()&&heads.every((h,i)=>h===s.heads[i]&&layout.cells[i].start===s.cells[i].start&&layout.cells[i].end===s.cells[i].end)&&heads.length===s.heads.length){fit(s);return;}if(s)restoreLayout(s);table.classList.remove('workspace-fit296');for(const h of headers(table))if(!heads.includes(h))h.querySelector(':scope > .column-resize143117')?.remove();s={table,heads,...layout,owner:storageKey(),key:identity(table,heads)};states.set(table,s);
  for(const c of s.cells){const existing=c.h.querySelector(':scope > .column-resize143117');if(existing){existing.dataset.end143117=c.end-1;continue;}const handle=document.createElement('span');handle.className='column-resize143117 no-print';handle.tabIndex=0;handle.setAttribute('role','separator');handle.setAttribute('aria-orientation','vertical');handle.setAttribute('aria-label','Resize '+c.h.textContent.trim()+' column');handle.title='Drag to resize. Double-click to reset table widths.';handle.dataset.end143117=c.end-1;c.h.classList.add('column-header143117');c.h.style.setProperty('position','relative','important');c.h.append(handle);}
- const widths=saved()[s.key];if(Array.isArray(widths)&&widths.length===s.count&&widths.every(w=>Number.isFinite(w)&&w>=40&&w<=2400))apply(s,widths);
+ const prefs=saved();let widths=prefs[s.key];
+ // Keep older manual widths only where the saved table still fits this screen.
+ if(widths===undefined&&table.offsetWidth){
+  const previous=saved(storageKey().replace('143296','143117'))[s.key];
+  if(Array.isArray(previous)&&previous.reduce((sum,w)=>sum+w,0)<=table.parentElement.clientWidth)widths=previous;
+ }
+ if(Array.isArray(widths)&&widths.length===s.count&&widths.every(w=>Number.isFinite(w)&&w>=40&&w<=2400))apply(s,widths);else fit(s);
 }
 function measure(s){if(s.widths)return [...s.widths];const left=s.table.getBoundingClientRect().left,edges=Array(s.count+1).fill(null);edges[0]=0;edges[s.count]=s.table.getBoundingClientRect().width;for(const c of s.cells){const r=c.h.getBoundingClientRect();if(!r.width)continue;edges[c.start]=r.left-left;edges[c.end]=r.right-left;}for(let i=1;i<edges.length;i++)if(edges[i]===null){let end=i+1;while(edges[end]===null)end++;const start=i-1,step=(edges[end]-edges[start])/(end-start);for(;i<end;i++)edges[i]=edges[start]+step*(i-start);i--;}
  return edges.slice(1).map((v,i)=>Math.max(40,v-edges[i]));}

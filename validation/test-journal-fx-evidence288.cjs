@@ -6,10 +6,12 @@ for(const name of ['foreign-currency14383','memo-links143187','journal-descripti
  vm.runInContext(fs.readFileSync('src/bookkeeping/journal/'+name+'.js','utf8'),w);
 const fx=w.JournalFX14383,links=w.JournalMemoLinks143187;
 const row={currency:'USD',fx_rate_lak:21000,book_rate_lak:20500,fxRateKind288:'valuation'};
-assert.deepEqual(Array.from(fx.lineRates(row)),['Valuation 21,000 LAK/USD','Book 20,500 LAK/USD']);
-assert.deepEqual(Array.from(fx.lineRates({...row,fxRateKind288:'actual'})),['Actual 21,000 LAK/USD','Book 20,500 LAK/USD']);
-assert.deepEqual(Array.from(fx.lineRates({...row,fxRateKind288:'book'})),['Book 20,500 LAK/USD']);
+assert.deepEqual(Array.from(fx.lineRates(row)),['VR 21,000 LAK/USD','BR 20,500 LAK/USD']);
+assert.deepEqual(Array.from(fx.lineRates({...row,fxRateKind288:'actual'})),['ER 21,000 LAK/USD','BR 20,500 LAK/USD']);
+assert.deepEqual(Array.from(fx.lineRates({...row,fxRateKind288:'book'})),['BR 20,500 LAK/USD']);
 assert.equal(fx.lineRates({...row,currency:'LAK'}).length,0);
+assert.equal(fx.lineRates({...row,fxRateKind288:'review'})[0],'21,000 LAK/USD');
+assert.match(w.JournalDescription225.plan([{...row,fxRateKind288:'review',memo:'Fee'}]).lines[0],/Fee\nPosted rate/);
 const legacy='[Source rate](https://www.bcel.com.la/bcel/exchange-rate.html?lang=en)';
 assert.equal(links.parts(legacy+' USD: 21,000 LAK/USD · Entry rate.').filter(x=>x.href).length,0);
 const mixed=legacy+' USD: 21,000 LAK/USD · BCEL 2026-01-05, Round 1. USD: 20,500 LAK/USD · Entry rate.';

@@ -2,7 +2,11 @@
 (()=>{'use strict';
 function plan(records,general=records[0]?.generalMemo||''){
  const heading=records[0]?.fxEvidenceMemo288||general;
- return {shared:String(heading??'').trim(),lines:records.map(r=>String(r.memo===general&&heading!==general?'':(r.memo??r.description??'')))};
+ return {shared:String(heading??'').trim(),lines:records.map(r=>{
+  const memo=String(r.memo===general&&heading!==general?'':(r.memo??r.description??''));
+  const detail=({equivalent:'Rate calculated from the recorded LAK equivalent.',reference:'Reference valuation.',review:'Posted rate; source needs review.',recorded:'Rate stated in the original journal.'})[r.fxRateKind288];
+  return detail?[memo,detail].filter(Boolean).join('\n'):memo;
+ })};
 }
 window.JournalDescription225={plan};
 function addDescription(body,records){if(!body)return;

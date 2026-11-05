@@ -7830,7 +7830,7 @@ mountSettings();
         const currency = label.replace(/^CR[\s:-]*/, '').trim();
         fixed = '180px';
       }
-      if (fixed) for (const property of ['width', 'min-width', 'max-width']) cell.style.setProperty(property, fixed, 'important');
+      if (fixed) for (const property of ['width', 'min-width', 'max-width']) cell.style.setProperty(property, property==='width'?'var(--screen-column296, '+fixed+')':fixed, 'important');
       else if (/MEMO|DESCRIPTION/.test(label)) cell.style.width = 'auto';
       if (fixed) { cell.style.setProperty('text-align', 'left', 'important'); cell.style.setProperty('font-weight', '700', 'important'); }
     });

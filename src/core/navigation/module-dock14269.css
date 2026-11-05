@@ -101,3 +101,25 @@ html[data-device132="tablet"] body.shell113 .tab-content{
   html[data-device132=desktop] #journalEntry98.foreign-lines291 table:not(.table-resized143117) :is(#jeHeaderRow th.num,#jeLinesBody td[data-money1439]){width:clamp(112px,12vw,138px)!important;min-width:0!important;max-width:none!important}
  }
 }
+
+@layer screenFit296 {
+ @media screen {
+  :is(table.workspace-fit296,table.staff-journal-table):not(.table-resized143117) {
+   width:100%!important;min-width:0!important;max-width:100%!important;
+   table-layout:fixed!important;box-sizing:border-box!important;
+  }
+  :is(.workspace-fit296,.staff-journal-table):not(.table-resized143117) :is(th,td,col) {
+   min-width:0!important;max-width:none!important;box-sizing:border-box!important;
+  }
+  :is(.workspace-fit296,.staff-journal-table):not(.table-resized143117) :is(th,td){
+   white-space:normal!important;overflow-wrap:anywhere;padding-inline:clamp(3px,.48vw,8px)!important;
+  }
+  :is(.workspace-fit296,.staff-journal-table):not(.table-resized143117) th {--screen-column296:var(--fitted-column296);width:var(--fitted-column296,auto)!important}
+  :is(.workspace-fit296,.staff-journal-table):not(.table-resized143117) :is(td,col){width:auto!important}
+  :is(.workspace-fit296,.staff-journal-table):not(.table-resized143117) :is(input:not([type=checkbox]),select,textarea,button){min-width:0!important;max-width:100%!important;box-sizing:border-box}
+  .staff-journal-table:not(.table-resized143117) #staffEntryHeader th:first-child{width:112px!important}
+  .staff-journal-table:not(.table-resized143117) #staffEntryHeader th:nth-child(2){width:22%!important}
+  .staff-journal-table:not(.table-resized143117) #staffEntryHeader th:nth-child(3){width:23%!important}
+  .staff-journal-table:not(.table-resized143117) #staffEntryHeader .action-col{width:34px!important}
+ }
+}
