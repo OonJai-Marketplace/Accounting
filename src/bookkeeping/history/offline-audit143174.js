@@ -29,8 +29,8 @@ async function queueDelete(item){await initialize();if(liveProfile?.role!=='admi
  await update(s=>{if(s.jobs.some(j=>j.item.id===item.id))return s;s.jobs.push({id,item:clone(item),entry:item.record_id,release,args,status:'pending',created:new Date().toISOString()});return s;});
  LiveTransactionAudit=projectAudit();window.renderVoidedTransactionsTable?.();window.entryNumber14257?.paint();window.idleSync14341?.request();showCenterStatus('Deletion saved on this device. Database confirmation is pending.');return true;
 }
-async function sync(){await initialize();const c=context();if(offline())return;state=await read(c);
- for(const job of pending()){try{if(job.args.p_void_request){const queued=window.journalDurable14385?.pending().flatMap(j=>j.changes).find(o=>o.id===job.args.p_void_request);if(queued&&queued.status!=='saved')throw Object.assign(Error('Waiting for the original void to be confirmed.'),{code:'DEPENDENCY'});}
+async function sync(targetId=null){await initialize();const c=context();if(offline())return;state=await read(c);
+ for(const job of pending().filter(j=>!targetId||j.id===targetId)){try{if(job.args.p_void_request){const queued=window.journalDurable14385?.pending().flatMap(j=>j.changes).find(o=>o.id===job.args.p_void_request);if(queued&&queued.status!=='saved')throw Object.assign(Error('Waiting for the original void to be confirmed.'),{code:'DEPENDENCY'});}
  const result=await offline14239.request(c.db.rpc('delete_audit_offline143174',job.args));assert(c);if(result.error)throw result.error;if(result.data?.request_key!==job.id||result.data?.kind!=='audit-delete')throw Error('Deletion receipt is incomplete. The same request will be retried.');
  await update(s=>{const j=s.jobs.find(j=>j.id===job.id);j.status='saved';j.receipt=result.data;delete j.message;return s;});
  }catch(e){assert(c);await update(s=>{const j=s.jobs.find(j=>j.id===job.id);j.status=e.code==='40001'?'conflict':e.code==='DEPENDENCY'?'pending':'uncertain';j.message=e.message;return s;});break;}}

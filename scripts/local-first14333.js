@@ -118,7 +118,7 @@ async function initialize(){const c=context();if(!c.actor){rows=[];loaded='';ret
  if(imports.length)await mutate(c,list=>{for(const j of imports)if(!list.some(x=>x.id===j.id))list.push(j);return list});
  for(const j of imports){localFirst14333.mainFinish(c.actor,j.id);window.pendingPosts99?.delete(j.id)}
  if(batch&&imports.some(j=>j.id===batch.id))window.journalBatch1440?.retire14385?.(batch.id);
- changed();}catch(e){if(valid(c)){error=e.message;loaded='';changed()}throw e}})();loading={key:identity(c),promise};try{await promise}finally{if(loading?.promise===promise)loading=null}}
+ error='';changed();}catch(e){if(valid(c)){error=e.message;loaded='';changed()}throw e}})();loading={key:identity(c),promise};try{await promise}finally{if(loading?.promise===promise)loading=null}}
 function ownRows(){return loaded===identity(context())?rows:[]}
 function pending(){return ownRows().filter(active)}
 async function create(payload,options={}){if(window.workspaceRequest138?.target)throw Error('Return to your own accounting workspace before posting.');const c=context();await initialize();assert(c);if(window.journalBatch1440?.hasPending())throw Error('An older unfinished batch requires review before another posting.');const j={voucher:options.voucher||null,id:payload.p_request_key,payload:clone(payload),entries:(payload.p_entries||[payload]).map(content),receipt:null,changes:[],status:'pending',created:new Date().toISOString()};
@@ -135,11 +135,13 @@ async function change(lines,kind,value,reason,expected){if(window.workspaceReque
 async function patch(c,id,fn){return mutate(c,list=>{const j=list.find(j=>j.id===id);if(j)fn(j);return list})}
 function receipt(data,count){if(!Array.isArray(data)||data.length!==count||data.some(r=>!r.entry_id||!r.entry_no)||new Set(data.map(r=>r.entry_id)).size!==count)throw Error('Complete database receipt not received. The saved reference will be retried.');return data}
 async function call(c,rpc,args){assert(c);const r=await offline14239.request(c.client.rpc(rpc,args));assert(c);if(r.error)throw r.error;return r.data}
-async function sync({explicit=false}={}){const c=context();await initialize();assert(c);if(flight){await flight;assert(c);if(!explicit)return;}if(explicit)await offline14239.confirmConnection();if(offline14239.offline()||window.workspaceRequest138?.target)return;
- const execute=async()=>{assert(c);await window.offlineAudit143174?.initialize();rows=await read(c);for(const original of rows.filter(active).sort((a,b)=>Number(!!b.receipt)-Number(!!a.receipt))){
+async function sync({explicit=false,targetId=null}={}){const c=context();await initialize();assert(c);if(flight){await flight;assert(c);if(!explicit)return;}if(explicit)await offline14239.confirmConnection();if(offline14239.offline()||window.workspaceRequest138?.target)return;
+ const execute=async()=>{assert(c);await window.offlineAudit143174?.initialize();rows=await read(c);for(const original of rows.filter(j=>active(j)&&(!targetId||j.id===targetId)).sort((a,b)=>Number(!!b.receipt)-Number(!!a.receipt))){
  if(!valid(c)||offline14239.offline())break;const id=original.id;
  try{let j=(await read(c)).find(j=>j.id===id);if(!j||j.retired)continue;
- if(!j.receipt){await window.offlineAudit143174?.beforePost();if(!access113.can('journal','post'))throw Object.assign(Error('Current journal posting permission required.'),{code:'42501'});
+ if(!j.receipt){if(targetId&&rows.some(other=>other.id!==targetId&&active(other)&&other.changes?.some(op=>op.status!=='saved')))throw Object.assign(Error('Sync the pending journal edits or voids before posting this entry.'),{code:'DEPENDENCY'});
+ if(targetId&&window.offlineAudit143174?.pending().length)throw Object.assign(Error('Sync the earlier audit deletion before posting this entry.'),{code:'DEPENDENCY'});
+ if(!targetId)await window.offlineAudit143174?.beforePost();if(!access113.can('journal','post'))throw Object.assign(Error('Current journal posting permission required.'),{code:'42501'});
  await patch(c,id,j=>{j.status='saving';j.message='Saved on this device. Synchronizing…'});
  const data=receipt(await call(c,j.payload.p_entries?'post_journal_batch14228':'post_manual_journal14228',j.payload),j.entries.length);
  await patch(c,id,j=>{j.receipt=data;j.status='saved';delete j.message});}
@@ -152,6 +154,7 @@ async function sync({explicit=false}={}){const c=context();await initialize();as
  await patch(c,id,j=>{j.status=j.changes.some(op=>op.status!=='saved')?'pending':'saved';j.message='Database confirmed. Refreshing journal history.'});
  }catch(e){if(!valid(c))return;await patch(c,id,j=>{j.status=e.code==='40001'?'conflict':e.code&&!/NETWORK|TIMEOUT|OFFLINE/.test(e.code)?'blocked':'uncertain';j.message=j.status==='conflict'?'Another session changed this entry. Your saved change is retained for review.':j.status==='blocked'?'Saved on this device; database rejected synchronization: '+e.message:'Saved on this device; database confirmation is pending. Retry uses the same reference.'});if(offline14239.offline())break;}
  }
+ if(targetId){if(valid(c)){project();refreshAllTables()}return;}
  if(valid(c)){await window.offlineAudit143174?.sync();project();refreshAllTables();try{window.yearWindow14333?.invalidateMemory?.();await loadJournalFromSupabase({cacheFirst:false});if(valid(c))await loadTransactionAudit()}catch(e){/* Confirmed operations remain available in the durable device overlay. */}}
  };
  flight=Promise.resolve().then(()=>navigator.locks?navigator.locks.request('ojm-journal14385:'+identity(c),{ifAvailable:true},lock=>lock?execute():undefined):execute()).finally(()=>{flight=null;if(valid(c))changed()});return flight}

@@ -5,7 +5,7 @@ const dialogSelector='dialog[open],.ui-overlay108,.voucher-modal14299:not([hidde
 let knownDialogs=new Set(),lastTop=null;
 function dialogs(){return [...document.querySelectorAll(dialogSelector)].filter(n=>n.isConnected&&!n.hidden&&n.getClientRects().length);}
 function paint(){let box=document.getElementById('actionProgress14343');if(!box){box=document.createElement('div');box.id='actionProgress14343';box.setAttribute('role','status');box.setAttribute('aria-live','polite');box.setAttribute('popover','manual');box.innerHTML='<span class="action-spin14296" aria-hidden="true"></span><span></span>';document.body.append(box)}
- const visible=[...active].filter(x=>x.ready&&![...x.waiting].some(d=>knownDialogs.has(d))),show=visible.length>0,top=[...knownDialogs].at(-1)||null;
+ const visible=[...active].filter(x=>x.ready&&![...x.waiting].some(d=>knownDialogs.has(d))),show=visible.length>0&&!document.body.classList.contains('startup-pending1443')&&!document.querySelector('#loginGate:not(.is-authenticated),#startup1443:not([hidden]),#deviceLock14334'),top=[...knownDialogs].at(-1)||null;
  const message=visible.at(-1)?.message||'';if(box.lastElementChild.textContent!==message)box.lastElementChild.textContent=message;
  if(box.hidden===show)box.hidden=!show;
  if(typeof box.showPopover==='function'){try{if(box.matches(':popover-open')&&(!show||lastTop!==top))box.hidePopover();if(show&&!box.matches(':popover-open'))box.showPopover();}catch{}}

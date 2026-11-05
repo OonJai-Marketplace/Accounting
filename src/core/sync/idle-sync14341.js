@@ -72,7 +72,25 @@ function paint(){
 }
 
 function updateRecovery(){if(!session||session.actor!==actor()||session.running)return;const rows=window.syncRecovery14351?.findings()||[];session.cleanup=rows.length?rows.length+' recovery backup(s) require verification or manual cleanup.':'Managed recovery cleanup verified; no known downloaded backups awaiting cleanup.';if(!session.remaining&&/Synchronization complete|Uploads confirmed/.test(session.result||''))session.result=outcome(0);persist();show();}
-window.idleSync14341={feedback,progress(message){stage(message);const box=document.getElementById('startup1443');if(box&&!box.hidden){const copy=box.querySelector('p');if(copy)copy.textContent=message;}},overview,onEntry,acknowledge,planAreas(names){if(session?.running&&session.actor===actor()){for(const name of names)session.refreshAreas[name]||='waiting';show();}},areaStatus(name,status){if(session?.running&&session.actor===actor()){session.refreshAreas[name]=status;show();}},areaUpdated(name){if(session?.running&&session.actor===actor()&&!session.updatedAreas.includes(name)){session.updatedAreas.push(name);session.refreshAreas[name]='updated';show();}},updateRecovery,allowed,remaining:()=>Math.max(0,delay-(Date.now()-last)),syncNow,run,request,paint,show,bytes,pending,history:()=>{restore();try{return JSON.parse(localStorage.getItem(storageKey())||'null')?.history?.filter(needsAttention)||[]}catch{return[]}},measure(uploaded,downloaded){if(session?.running&&session.actor===actor()){session.uploaded+=uploaded;session.downloaded+=downloaded;show();}},preparation(message,again){preparation=message;retry=again;paint()},get automatic(){return !manual},get running(){return !!flight},get session(){return session&&session.actor===actor()?structuredClone(session):null}};
+function refreshFindings(){
+ restore();return Object.entries(session?.refreshAreas||{}).filter(([,status])=>status==='failed').map(([area])=>({id:'refresh:'+area,area,kind:'refresh',periods:[],critical:true,status:'Refresh needed',title:(areaNames[area]||area)+' · downloaded records',detail:'The last download did not finish. Refresh this area to get the latest records.'}));
+}
+async function retryArea(area){
+ const owner=actor(),original=session;
+ await window.startup14257.retryArea(area);
+ if(actor()!==owner||session!==original)return;
+ session.refreshAreas[area]='updated';
+ if(!refreshFindings().length&&session.refreshProblem){if(problem===session.refreshProblem)problem='';delete session.refreshProblem;window.localFirst14333?.setNotice('');}
+}
+function afterRepair(){
+ restore();if(!session||session.running)return;
+ const rows=pending(),waiting=rows.filter(r=>r.status!=='server-confirmed');
+ session.remaining=waiting.length;session.unresolved=waiting;session.failed=waiting.filter(r=>['conflict','blocked','failed','attention','uncertain'].includes(r.status)).length;
+ countRecords(rows,session);
+ if(!problem&&!session.refreshProblem){session.result=outcome(waiting.length);session.stage=session.result;}
+ persist();paint();show();
+}
+window.idleSync14341={refreshFindings,retryArea,afterRepair,feedback,progress(message){stage(message);const box=document.getElementById('startup1443');if(box&&!box.hidden){const copy=box.querySelector('p');if(copy)copy.textContent=message;}},overview,onEntry,acknowledge,planAreas(names){if(session?.running&&session.actor===actor()){for(const name of names)session.refreshAreas[name]||='waiting';show();}},areaStatus(name,status){if(session?.running&&session.actor===actor()){session.refreshAreas[name]=status;show();}},areaUpdated(name){if(session?.running&&session.actor===actor()&&!session.updatedAreas.includes(name)){session.updatedAreas.push(name);session.refreshAreas[name]='updated';show();}},updateRecovery,allowed,remaining:()=>Math.max(0,delay-(Date.now()-last)),syncNow,run,request,paint,show,bytes,pending,history:()=>{restore();try{return JSON.parse(localStorage.getItem(storageKey())||'null')?.history?.filter(needsAttention)||[]}catch{return[]}},measure(uploaded,downloaded){if(session?.running&&session.actor===actor()){session.uploaded+=uploaded;session.downloaded+=downloaded;show();}},preparation(message,again){preparation=message;retry=again;paint()},get automatic(){return !manual},get running(){return !!flight},get session(){return session&&session.actor===actor()?structuredClone(session):null}};
 for(const name of ['connection14239','local-work14333','save-state14234','page113'])window.addEventListener(name,()=>{paint();if(session?.running){const rows=pending().filter(j=>j.status!=='server-confirmed'),ids=new Set(rows.map(j=>j.id));session.confirmed=(session.initial||[]).filter(id=>!ids.has(id)).length;session.remaining=rows.length;session.unresolved=rows;session.failed=rows.filter(j=>['conflict','blocked','failed','attention','uncertain'].includes(j.status)).length;countRecords(rows,session);}show();});
 window.addEventListener('online',()=>onEntry('reconnect'));window.addEventListener('session-online14333',request);arm();
 })();

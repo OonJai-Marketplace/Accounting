@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.300', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.301', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "scripts/receipt-workflow245.js?v=143.273",
  "scripts/receipt-phone245.js?v=143.273",
@@ -27,9 +27,9 @@ const FILES=[
  "assets/vendor/noble-gcm14334.js?v=143.34",
  "scripts/device-vault14334.js?v=143.212",
  "styles/controls14305.css?v=143.265",
- "scripts/action-feedback14296.js?v=143.253",
+ "scripts/action-feedback14296.js?v=143.301",
  "scripts/feedback-viewport14295.js?v=143.20",
- "styles/feedback-viewport14295.css?v=143.253",
+ "styles/feedback-viewport14295.css?v=143.301",
  "assets/brand/oonjai-logo.png",
  "styles/password-help14278.css?v=142.94",
  "styles/loading1444.css?v=143.241",
@@ -46,8 +46,8 @@ const FILES=[
  "phone.html",
  "styles/phone14242.css?v=143.212",
  "scripts/reconciliation14345.js?v=143.240",
- "styles/final-review14345.css?v=143.250",
- "scripts/phone-runtime14242.js?v=143.300",
+ "styles/final-review14345.css?v=143.301",
+ "scripts/phone-runtime14242.js?v=143.301",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",
@@ -55,7 +55,7 @@ const FILES=[
  "styles/loading1444.css?v=143.241",
  "scripts/loading1444.js?v=143.241",
  "scripts/password-service14264.js?v=142.84",
- "styles/feedback-viewport14295.css?v=143.253"
+ "styles/feedback-viewport14295.css?v=143.301"
 ];
 const OPTIONAL=["assets/vendor/document-detector213/ort-api.js","assets/vendor/document-detector213/ort-wasm-simd-threaded.mjs","assets/vendor/document-detector213/ort-wasm-simd-threaded.wasm","assets/vendor/document-detector213/doccornernet_lean.ort",'scripts/phone-tools14242.js?v='+VERSION,'assets/logo.png'];
 const scopeURL=new URL(self.registration.scope);

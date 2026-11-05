@@ -1,7 +1,7 @@
 {
-  "version": "143.300",
+  "version": "143.301",
   "changes": [
-    "General Ledger keeps loaded entries available and displays nearby rows as you scroll, including when returning from another report.",
-    "Trial Balance fits six columns at either reporting basis. The DR/CR indicator in Classification identifies the side of the closing balance."
+    "Retry an individual saved entry or downloaded copy directly from Synchronization and Data Check.",
+    "Journal copy warnings show the period. Processing appears at top center after sign-in."
   ]
 }
