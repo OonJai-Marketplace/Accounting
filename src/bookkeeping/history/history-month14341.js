@@ -7,6 +7,7 @@ const actor=()=>typeof liveProfile==='undefined'?'':liveProfile?.id;
 function position(host,input){
  const label=input.closest('.history-month14341');if(!label||input.closest('.payroll-report-filters143153'))return;
  const key=input.dataset.historyMonth14341;
+ if(key==='payroll-history')return; // Salary History owns its month picker and header.
  const titles={journal:'Journal History',submitted:'Submission History',budget:'Budget Request History',audit:'Audit Logs',reports:'Report History',payroll:'Payroll History'};
  const container=host.closest('.settings-section-card,.je-card,.work82');
  let header=container?.querySelector(':scope>.settings-section-header,:scope>.je-card-header')||host.querySelector(':scope>.work82>header,:scope>header:has(h2)');

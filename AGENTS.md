@@ -515,3 +515,10 @@ Use general Other Operating Expenses (5120) with USD mapping 9251 and offset 929
 Retained airfare support uses its original carrying value with no new bank movement.
 Changes to live open journals require audit reasons and existing period/validation
 guards; code releases never post payroll or close books automatically.
+
+Payroll 2026-11-05 v143.289: Salary History has one month picker in its header
+and record-specific journal, edit and export/print controls at the top right.
+Deductions has only Manage Employees / Leave in the toolbar. Open a saved
+payroll journal directly in Post Transaction or view its confirmed posting.
+Preserve linked source evidence, saved calculations and explicit posting.
+Keep internal payroll identifiers out of visible descriptions and reports.

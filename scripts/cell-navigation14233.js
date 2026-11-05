@@ -32,8 +32,11 @@ function datedSources287(value){
   });
 }
 function parts(value){const text=datedSources287(value),out=[],re=/\[((?:\\[\\\[\]]|[^\]\\\r\n])+)\]\((https?:\/\/[^\s()]+)\)/gi;let at=0,m;while((m=re.exec(text))){const href=url(m[2]);if(!href)continue;if(m.index>at)out.push({text:text.slice(at,m.index)});out.push({text:m[1].replace(/\\([\\\[\]])/g,'$1'),href});at=re.lastIndex;}if(at<text.length)out.push({text:text.slice(at)});return out;}
-function html(value){return parts(value).map(p=>p.href?'<a class="journal-source-link143187" href="'+esc(p.href)+'" target="_blank" rel="noopener noreferrer" title="'+esc(p.href)+'">'+esc(p.text)+'</a>':esc(p.text).replace(/\r?\n/g,'<br>')).join('');}
-function plain(value){return parts(value).map(p=>p.href?p.text+' ('+p.href+')':p.text).join('');}
+// A posted payroll's database marker is retained for linking and duplicate protection.
+const payrollMarkers=/\[Payroll(?:Adjustment)?:[a-z0-9-]+(?::[a-z0-9-]+)?\]/gi;
+function visibleMemo(value){const text=String(value??'');return text.includes('[Payroll')?text.replace(/[ \t]*\[Payroll(?:Adjustment)?:[a-z0-9-]+(?::[a-z0-9-]+)?\]/gi,''):text;}
+function html(value){return parts(visibleMemo(value)).map(p=>p.href?'<a class="journal-source-link143187" href="'+esc(p.href)+'" target="_blank" rel="noopener noreferrer" title="'+esc(p.href)+'">'+esc(p.text)+'</a>':esc(p.text).replace(/\r?\n/g,'<br>')).join('');}
+function plain(value){return parts(visibleMemo(value)).map(p=>p.href?p.text+' ('+p.href+')':p.text).join('');}
 window.journalMemoHtml143187=html;
 function forLine(line){
  const heading=line.fxEvidenceMemo288||line.generalMemo||'';
@@ -56,8 +59,8 @@ window.journalMemoValue143187=forLine;
 // Cover read-only descriptions copied into legacy views and document previews.
 // Never walk editing controls, attributes or existing links.
 function decorate(root){if(!root||root.closest?.('script,style,textarea,select,option,button,a,pre,code,[contenteditable],.memo-link-editor143187,dialog#memoLinkDialog143187'))return;
- const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.data.includes('](')&&!n.parentElement?.closest('script,style,textarea,select,option,button,a,pre,code,[contenteditable],.memo-link-editor143187,#memoLinkDialog143187')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
- for(const n of nodes){if(!parts(n.data).some(p=>p.href))continue;const t=document.createElement('template');t.innerHTML=html(n.data);n.replaceWith(t.content);}
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>(n.data.includes('](')||n.data.includes('[Payroll'))&&!n.parentElement?.closest('script,style,textarea,select,option,button,a,pre,code,[contenteditable],.memo-link-editor143187,#memoLinkDialog143187')?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+ for(const n of nodes){if(visibleMemo(n.data)===n.data&&!parts(n.data).some(p=>p.href))continue;const t=document.createElement('template');t.innerHTML=html(n.data);n.replaceWith(t.content);}
 }
 const selector='#jeGeneralMemo,.je-line-memo,#simpleRows1430 [data-simple="memo"],#aiPreparation143160 input[data-field="description"],#aiPreparation143160 input[data-field="line_memo"],#runMeta95 [name="rateSource"]';
 const editors=new WeakMap();let seq=0;
@@ -89,7 +92,7 @@ function enhance(field){if(editors.has(field)||!['INPUT','TEXTAREA'].includes(fi
  field.before(wrap);wrap.append(field,editor,button);field.classList.add('memo-link-value143187');field.tabIndex=-1;field.setAttribute('aria-hidden','true');const proto=Object.getOwnPropertyDescriptor(field.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype,'value');let rawValue=proto.get.call(field);const initial=field.getAttribute('value');if(initial&&initial.replace(/[\r\n]/g,'')===rawValue)rawValue=initial;const state={field,editor,button};editors.set(field,state);
  const draw=()=>{editor.innerHTML=html(rawValue).replace(/\n/g,'<br>');},sync=()=>{editor.contentEditable=String(!field.disabled&&!field.readOnly);editor.setAttribute('aria-disabled',String(field.disabled));button.disabled=field.disabled||field.readOnly;button.hidden=!foreignLink240(field);};
  Object.defineProperty(field,'value',{configurable:true,get(){return rawValue},set(v){rawValue=String(v??'');proto.set.call(this,rawValue);draw();}});const focus=field.focus.bind(field);field.focus=options=>editor.isConnected?editor.focus(options):focus(options);field.blur=()=>editor.blur();field.select=()=>{editor.focus();const r=document.createRange();r.selectNodeContents(editor);restore(r);};
- editor.addEventListener('input',e=>{e.stopPropagation();rawValue=serialize(editor);proto.set.call(field,rawValue);field.dispatchEvent(new Event('input',{bubbles:true}));});editor.addEventListener('blur',()=>field.dispatchEvent(new Event('change',{bubbles:true})));
+ editor.addEventListener('input',e=>{e.stopPropagation();const markers=rawValue.match(payrollMarkers)||[];rawValue=[serialize(editor),...markers].filter(Boolean).join(' ');proto.set.call(field,rawValue);field.dispatchEvent(new Event('input',{bubbles:true}));});editor.addEventListener('blur',()=>field.dispatchEvent(new Event('change',{bubbles:true})));
  editor.addEventListener('paste',e=>{e.preventDefault();const text=e.clipboardData?.getData('text/plain')||'';insert(editor,html(text).replace(/\n/g,'<br>'),rangeFor(editor));});editor.addEventListener('drop',e=>e.preventDefault());
  for(const type of ['copy','cut'])editor.addEventListener(type,e=>{const r=rangeFor(editor);if(r.collapsed||!e.clipboardData)return;const fragment=r.cloneContents();e.clipboardData.setData('text/plain',serialize(fragment));e.preventDefault();if(type==='cut')insert(editor,'',r);});
  editor.addEventListener('click',e=>{const a=e.target.closest('a');if(a&&(e.ctrlKey||e.metaKey)){e.preventDefault();window.open(a.href,'_blank','noopener,noreferrer');}});

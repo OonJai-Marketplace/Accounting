@@ -4063,6 +4063,10 @@ body .audit-summary-row[data-audit-severity=edit] td:first-child{border-left:4px
 @keyframes loader-pulse-show97{0%,48%{opacity:0;transform:scale(.6)}60%,94%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.8)}}
 @keyframes loader-pulse-spin97{to{rotate:360deg}}
 @media(prefers-reduced-motion:reduce){.loader-ball97,.loader-orbit97,.loader-orbit97 i,.loader-pulse-spinner97{animation-duration:8s!important}}
+#payroll-history .work82>header p:empty{display:none}
+#payroll-history .work82>header .actions82,#payroll-history .salary-history-record .actions82{margin-left:auto;justify-content:flex-end}
+#payroll-history .work82>header .history-month14341{margin:0;padding:0}
+#payroll-history .salary-history-record{align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
 
 /* styles/transactions-v98.css */
 /* Flat, compact journal layout. */

@@ -11,11 +11,9 @@
     if (typeof priorRender === 'function') {
       window.renderWork82 = function (...args) {
         const active = document.querySelector('.tab-content.active')?.id;
-        if (['payroll-entries', 'payroll-deductions'].includes(active)) syncDraftRoster();
         const result = priorRender.apply(this, args);
         if (typeof desktop80 !== 'undefined' && !desktop80.matches) return result;
         if (active === 'payroll-employees') decorateEmployeeForm();
-        if (active === 'payroll-entries') { separateTabs(active); }
         if (active === 'payroll-deductions') separateTabs(active);
         if (active === 'payroll-overview') renderOverview();
         if (active === 'payroll-employees') {

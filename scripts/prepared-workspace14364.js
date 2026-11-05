@@ -12,7 +12,7 @@ function signature(id){const keys=groups(id),out=[actor(),client(),window.worksp
  if(keys.includes('journal'))out.push(JournalModule.entries,PeriodReview.periods,window.preparedViews14340?.revision?.());
  if(keys.includes('payroll'))out.push(Work82.employees,Work82.leaves,Work82.runs,Work82.reports,JSON.stringify(window.hrCalendar14306?.config()?.employeeOrder143154||[]));
  if(['payroll-entries','payroll-deductions','hr-attendance'].includes(id))out.push(Work82.run,Work82.employee,Work82.runRecord?.id,Work82.run?.month,Work82.run?.status);
- if(id==='payroll-overview')out.push(JSON.stringify(Work82.run),typeof appLocalDate==='function'?appLocalDate().slice(0,7):'');
+ if(id==='payroll-overview')out.push(Work82.run?.status==='finalized'?Work82.run:JSON.stringify(Work82.run),typeof appLocalDate==='function'?appLocalDate().slice(0,7):'');
  if(keys.includes('review'))out.push(typeof reviewStaffJournals==='undefined'?null:reviewStaffJournals,typeof liveProfiles==='undefined'?null:liveProfiles,typeof activeSubUserId==='undefined'?'':activeSubUserId,DemoAccess.submissions);
  if(id==='transactions-voided')out.push(typeof LiveTransactionAudit==='undefined'?null:LiveTransactionAudit);
  if(/accounts-|trial-balance|account-balances/.test(id))out.push(JSON.stringify(Accounts69));

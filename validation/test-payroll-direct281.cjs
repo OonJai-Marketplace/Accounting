@@ -12,9 +12,9 @@ const storage=fs.readFileSync('src/shared/data/workforce-storage-v82.js','utf8')
 (async()=>{
  await tick();assert.equal([...el('payroll-entries').querySelectorAll('button')].filter(b=>/Save Draft|Close payroll/.test(b.textContent)).length,0);
  await click('Save & Close Payroll',el('payroll-entries'));await click('Confirm',[...w.document.querySelectorAll('.ui-overlay108')].at(-1));assert.equal(w.Work82.run.status,'finalized');assert.equal(el('qa-tab').textContent,'payroll-entries');assert.equal(w.qa276.postCalls,0);
- await click('Payroll journal',el('payroll-entries'));await click('Post to Active Journal');assert.equal(w.qa276.postCalls,0);await click('Cancel',[...w.document.querySelectorAll('.ui-overlay108')].at(-1));assert.equal(w.qa276.postCalls,0);
- await click('Post to Active Journal');await click('Confirm',[...w.document.querySelectorAll('.ui-overlay108')].at(-1));assert.equal(w.qa276.entries.length,1);assert.equal(el('qa-tab').textContent,'journal');assert.match(el('qa-status').textContent,/confirmed in Active Journal/);assert.equal(globalSync,0);assert(queueSync>=2);
+ await click('Payroll journal',el('payroll-entries'));assert.equal(el('qa-tab').textContent,'journal');assert.equal(w.qa276.postCalls,0);assert.equal(w.document.querySelector('.pay-dialog1432'),null);
+ await click('Post Payroll Journal');assert.equal(w.qa276.entries.length,1);assert.match(el('qa-status').textContent,/posted as/);assert.equal(globalSync,0);assert(queueSync>=1);
  // Simulate stale device state after the server committed: reopening resolves it without reposting.
  w.Work82.runRecord.data.journalLink1429=null;w.Work82.run.journalLink1429=null;w.switchTab('payroll-entries');await tick();const posts=w.qa276.postCalls;await click('Payroll journal',el('payroll-entries'));assert.equal(w.qa276.postCalls,posts);assert.equal(el('qa-tab').textContent,'journal');assert.equal(w.document.querySelector('.pay-dialog1432'),null);
- console.log('PASS combined save/close and direct post through real save coordinator: no global sync, cancellation safe, Active Journal navigation and stale receipt recovery without duplicate posting.');w.close();
+ console.log('PASS combined save/close and direct post through real save coordinator: no global sync, explicit transaction posting, Active Journal navigation and stale receipt recovery without duplicate posting.');w.close();
 })().catch(e=>{console.error(e);console.error(el('qa-status')?.textContent);w.close();process.exitCode=1});

@@ -30,13 +30,18 @@ async function scenario(mode){
   w.eval('var textStyle="",quantity=formatAppNumber;'+metadata);const report=d.createElement('div');report.innerHTML=w.payrollMetadata277(w.Work82.run);assert(report.querySelector('a[href^="https://example.test/"]'));
   report.innerHTML=w.payrollMetadata277({...w.Work82.run,rateSource:'<img src=x onerror=alert(1)>'});assert.equal(report.querySelector('img'),null);
   await click('Save & Close Payroll',el('payroll-entries'));await click('Confirm',[...d.querySelectorAll('.ui-overlay108')].at(-1));assert.equal(w.Work82.run.status,'finalized');assert(source().disabled);assert(source().parentElement.querySelector('button').disabled);assert.equal(w.qa276.postCalls,0);
-  await click('Payroll journal',el('payroll-entries'));assert(d.querySelector('.pay-date274 a[href^="https://example.test/"]'));
   if(mode==='prepare'){
-   await click('Prepare in Transactions');assert.match(el('jeGeneralMemo').value,/\[Payroll:test-run\]/);assert(el('jeGeneralMemo').value.includes(savedSource));assert.match(el('jeGeneralMemo').value,/₭22,294\/\$/);assert.equal(w.qa276.postCalls,0);
+   await click('Payroll journal',el('payroll-entries'));assert.equal(d.querySelector('.pay-dialog1432'),null);assert(!el('jeGeneralMemo').value.includes('[Payroll:'));assert(el('jeGeneralMemo').value.includes(savedSource));assert.match(el('jeGeneralMemo').value,/₭22,294\/\$/);assert.equal(w.qa276.postCalls,0);
+   const draft=w.payrollJournal1429.snapshot();w.payrollJournal1429.restore(null);w.payrollJournal1429.restore(draft);assert.equal(el('btnPostJournal').textContent,'Post Payroll Journal');
+   await click('Post Payroll Journal');assert.equal(w.qa276.postCalls,1);
   }else{
+   // The explicit setup action still supports separately confirming a repaired template.
+   await w.payrollJournal1429.openTemplate();
    await click('Post to Active Journal');await click('Cancel',[...d.querySelectorAll('.ui-overlay108')].at(-1));assert.equal(w.qa276.postCalls,0);
-   await click('Post to Active Journal');await click('Confirm',[...d.querySelectorAll('.ui-overlay108')].at(-1));assert.equal(w.qa276.postCalls,1);assert(w.qa276.entries[0].memo.includes(savedSource));assert.match(w.qa276.entries[0].memo,/Rate date: 2026-10-30/);assert.match(w.qa276.entries[0].memo,/\[Payroll:test-run\]/);
+   await click('Post to Active Journal');await click('Confirm',[...d.querySelectorAll('.ui-overlay108')].at(-1));assert.equal(w.qa276.postCalls,1);
   }
+  const memo=w.qa276.entries[0].memo;assert(memo.includes(savedSource));assert.match(memo,/: 2026-10-30/);assert.match(memo,/\[Payroll:test-run\]/);
+  assert(!w.journalMemoHtml143187(memo).includes('[Payroll:'));assert(!w.JournalMemoLinks143187.plain(memo).includes('[Payroll:'));
  }finally{w.close();}
 }
 (async()=>{await scenario('prepare');await scenario('direct');console.log('PASS payroll source link: Ctrl+K, safe URL validation, stable blur, save/reload, locked finalized source, report link, prepared and direct journal evidence, unchanged financial lines and cancellation.');})().catch(e=>{console.error(e);process.exitCode=1;});
