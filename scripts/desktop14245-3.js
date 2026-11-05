@@ -644,6 +644,13 @@ function setMobileNavigation(open) {
   const sidebar = document.getElementById('appSidebar');
   const toggle = document.getElementById('mobileMenuToggle');
   if (!sidebar) return;
+  if (document.documentElement.dataset.device132==='tablet') {
+    const railToggle=sidebar.querySelector('.nav-rail-toggle291');
+    sidebar.classList.toggle('rail-open292',open);
+    railToggle?.setAttribute('aria-expanded',String(open));
+    railToggle?.setAttribute('aria-label',open?'Collapse navigation':'Expand navigation');
+    return;
+  }
   sidebar.classList.toggle('mobile-open', open);
   document.body.classList.toggle('nav-drawer-open', open);
   if (toggle) toggle.setAttribute('aria-expanded', String(open));
@@ -651,7 +658,7 @@ function setMobileNavigation(open) {
 
 function toggleMobileNavigation() {
   const sidebar = document.getElementById('appSidebar');
-  setMobileNavigation(!sidebar?.classList.contains('mobile-open'));
+  setMobileNavigation(!sidebar?.matches('.rail-open292,.mobile-open'));
 }
 
 function closeMobileNavigation() {
@@ -659,7 +666,7 @@ function closeMobileNavigation() {
 }
 
 function closeNavigationAfterSelection() {
-  if (document.body.classList.contains('tablet117') || window.matchMedia('(max-width: 1024px)').matches || (document.body.classList.contains('subusers-workspace-active') && window.matchMedia('(hover:none) and (pointer:coarse)').matches)) closeMobileNavigation();
+  if (document.documentElement.dataset.device132==='tablet' || window.matchMedia('(max-width: 1024px)').matches || (document.body.classList.contains('subusers-workspace-active') && window.matchMedia('(hover:none) and (pointer:coarse)').matches)) closeMobileNavigation();
 }
 
 function switchTab(tabId) {
@@ -707,7 +714,7 @@ function scrollToAccountModule(moduleId) {
 }
 
 window.addEventListener('resize', () => {
-  if (window.innerWidth >= 768) closeMobileNavigation();
+  if (document.documentElement.dataset.device132!=='tablet' && window.innerWidth >= 768) closeMobileNavigation();
 });
 
 document.addEventListener('keydown', event => {
@@ -768,16 +775,16 @@ function initNavigationRail291(){
  button.type='button';button.className='nav-rail-toggle291';button.setAttribute('aria-controls','appSidebar');
  button.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';
  sidebar.prepend(button);
- function setOpen(open){
-  sidebar.classList.toggle('rail-open292',open);
-  button.setAttribute('aria-expanded',String(open));
-  button.setAttribute('aria-label',open?'Collapse navigation':'Expand navigation');
- }
- button.addEventListener('click',()=>setOpen(!sidebar.classList.contains('rail-open292')));
- document.addEventListener('pointerdown',e=>{if(sidebar.classList.contains('rail-open292')&&!sidebar.contains(e.target))setOpen(false);},true);
- sidebar.addEventListener('click',e=>{if(e.target.closest('.tab-btn,.grouped-children14378 button'))setOpen(false);});
- sidebar.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('rail-open292')){button.focus();setOpen(false);}});
- setOpen(false);
+ let orientation=document.documentElement.dataset.tabletOrientation132;
+ window.addEventListener('tabletviewport132',()=>{
+  const next=document.documentElement.dataset.tabletOrientation132;
+  if(next!==orientation){orientation=next;closeMobileNavigation();}
+ });
+ button.addEventListener('click',()=>toggleMobileNavigation());
+ document.addEventListener('pointerdown',e=>{if(sidebar.classList.contains('rail-open292')&&!sidebar.contains(e.target))closeMobileNavigation();},true);
+ sidebar.addEventListener('click',e=>{if(e.target.closest('.tab-btn,.grouped-children14378 button'))closeMobileNavigation();});
+ sidebar.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('rail-open292')){button.focus();closeMobileNavigation();}});
+ closeMobileNavigation();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initNavigationRail291);else initNavigationRail291();
 function handleTableSearch(term) {
@@ -8382,21 +8389,12 @@ window.addEventListener('DOMContentLoaded',()=>{
  const hydrate=hydrateSupabaseSession;window.hydrateSupabaseSession=async function(...args){startLogin();try{return await hydrate.apply(this,args)}finally{endLogin()}};
  const findingForm=document.getElementById('periodFindingForm');
  if(findingForm){findingForm.dataset.autoClose99='';const before=openPeriodFindingForm;window.openPeriodFindingForm=function(...args){const out=before.apply(this,args);clearTimeout(timers.get(findingForm));timers.delete(findingForm);armCollapse(findingForm);return out};}
- installTablet();polish();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
+ polish();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
  installPosting();
 });
 function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let p=$('loginProgress99');if(!p){p=document.createElement('div');p.id='loginProgress99';p.setAttribute('role','status');p.innerHTML=loading1444.markup();$('loginForm').append(p)}p.hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('button[type=submit]').disabled=true;}
 window.releaseLogin1443=()=>endLogin();
 function endLogin(){$('loginGate')?.classList.remove('busy99');if($('loginProgress99'))$('loginProgress99').hidden=true;$('loginForm')?.removeAttribute('aria-busy');const b=$('loginForm')?.querySelector('button[type=submit]');if(b)b.disabled=false;}
-function installTablet(){
- const tablet=()=>document.documentElement.dataset.device132==='tablet';
- const overlay=document.createElement('div');overlay.id='rotateTablet99';overlay.innerHTML='<div><strong>Please rotate your tablet</strong><p>Use landscape orientation for the accounting workspace. Your work is preserved.</p></div>';document.body.append(overlay);
- const toggle=document.createElement('button');toggle.id='tabletMenu99';toggle.type='button';toggle.textContent='☰';toggle.setAttribute('aria-label','Open navigation');toggle.setAttribute('aria-expanded','false');$('categoryTabShell')?.before(toggle);
- const scrim=document.createElement('button');scrim.id='tabletScrim99';scrim.setAttribute('aria-label','Close navigation');document.body.append(scrim);
- const close=()=>{document.body.classList.remove('tablet-nav-open99');toggle.setAttribute('aria-expanded','false')};toggle.onclick=()=>{const open=document.body.classList.toggle('tablet-nav-open99');toggle.setAttribute('aria-expanded',String(open))};scrim.onclick=close;
- $('appSidebar')?.addEventListener('click',e=>{if(e.target.closest('.tab-btn'))close()});
- function resize(){document.body.classList.toggle('tablet99',tablet());document.body.classList.toggle('portrait99',tablet()&&innerHeight>innerWidth);if(!tablet())close()}resize();window.addEventListener('resize',resize);
-}
 function installPosting(){
  const legacy=submitJournalEntry;
  const jobs=new Map();window.pendingPosts99=jobs;

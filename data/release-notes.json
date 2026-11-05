@@ -1,7 +1,7 @@
 {
-  "version": "143.296",
+  "version": "143.297",
   "changes": [
-    "Tables fit the available workspace by default. Drag a column divider to adjust it, or double-click to fit again.",
-    "Journal rate labels use ER for exchange, VR for valuation, and BR for book. Post Entry keeps rate fields numeric."
+    "iPad uses one left navigation rail in portrait and landscape. The duplicate top buttons and the extra Users icon above the cashier workspace have been removed.",
+    "The workspace refits after rotation and Split View changes, including when viewing the cashier workspace from an administrator account."
   ]
 }

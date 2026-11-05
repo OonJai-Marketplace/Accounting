@@ -12,9 +12,6 @@ html[data-device132=tablet] .account-filter-toggle14266{display:block;width:100%
 html[data-device132=tablet] .account-filter14266{display:block;width:100%;min-height:42px;margin:5px 0;padding:8px 12px;box-sizing:border-box;font-size:16px;line-height:normal;border:1px solid #a3bca6;border-radius:6px}
 html[data-device132=tablet] .account-filter14266[hidden]{display:none}
 @media print{html[data-device132=tablet] :is(#sub-users-workspace,#journal) :is(input,textarea,select,[contenteditable]){font-size:inherit!important}}
-/* Fit the same 1280px workspace to portrait width and remove the rotate-only guard. */
-html[data-device132=tablet] body.tablet-portrait117 #landscape117{display:none!important}
-html[data-device132=tablet] body.tablet-portrait117{overflow:auto!important}
 html[data-device132=tablet] #sub-users-workspace :is(input,textarea,select,button,[contenteditable]){touch-action:manipulation}
 /* Floating controls have their own fixed position; use the remaining page width. */
 html[data-device132=tablet] body.shell113 .workspace-scroll,

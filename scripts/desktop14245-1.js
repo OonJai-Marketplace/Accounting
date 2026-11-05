@@ -9,19 +9,36 @@
  function laptopLayout(){document.body?.classList.toggle('compact-laptop14362',!tablet&&!phone&&innerWidth<=1100)}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',laptopLayout,{once:true});else laptopLayout();
  window.addEventListener('resize',laptopLayout);if(!tablet)return;
- const layoutWidth=1280,heights=new Map();let frame=0,state=null;
+ const designWidth=1280,heights=new Map();let frame=0,state=null,awaitingRefit=false;
  const editing=()=>!!document.activeElement?.matches?.('input:not([readonly]):not([disabled]):not([type=button]):not([type=checkbox]):not([type=radio]),textarea:not([readonly]),[contenteditable="true"],[contenteditable="plaintext-only"]');
- function landscape(){const type=screen.orientation?.type;if(type)return type.startsWith('landscape');if(typeof window.orientation==='number')return Math.abs(window.orientation)===90;return state?.landscape??screen.width>screen.height}
+ function landscape(){const type=screen.orientation?.type;if(type)return type.startsWith('landscape');if(typeof window.orientation==='number')return Math.abs(window.orientation)===90;return screen.width>screen.height}
  function set(name,value){if(root.style.getPropertyValue(name)!==value)root.style.setProperty(name,value)}
  function update(){
   frame=0;const v=window.visualViewport,scale=v?.scale||1;
   const width=Math.round(v?.width>0?v.width*scale:landscape()?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height));
-  const fitScale=width/layoutWidth,physicalHeight=(v?.height||innerHeight)*scale,isLandscape=landscape(),key=(isLandscape?'l':'p')+width;
+  // A width change identifies rotation or Split View. A pinch only changes the
+  // visual viewport and scale together, leaving their product unchanged.
+  const targetScale=width/designWidth;
+  const widthChanged=state && Math.abs(width-state.width)>2;
+  let fitScale=state?.fitScale||targetScale;
+  if(widthChanged){
+   // Safari may report the new window width before it refits the page.
+   // Keep the user's existing magnification and fill the new visible width.
+   const retainedScale=Math.abs(scale-state.scale)<0.005;
+   awaitingRefit=ipad && retainedScale && Math.abs(fitScale-targetScale)>0.005;
+   if(!awaitingRefit)fitScale=targetScale;
+  }
+  if(awaitingRefit && Math.abs(scale-targetScale)<0.005){
+   awaitingRefit=false;
+   fitScale=targetScale;
+  }
+  const layoutWidth=Math.round(width/fitScale);
+  const physicalHeight=(v?.height||innerHeight)*scale,isLandscape=landscape(),key=(isLandscape?'l':'p')+width;
   const screenHeight=isLandscape?Math.min(screen.width,screen.height):Math.max(screen.width,screen.height);
   let normalHeight=heights.get(key)||(state?.keyboard?Math.max(physicalHeight,screenHeight-state.chromeHeight):physicalHeight);
   const keyboard=!!((editing()||state?.keyboard)&&normalHeight-physicalHeight>120);
   if(!keyboard){normalHeight=physicalHeight;heights.set(key,normalHeight)}
-  state={width,layoutWidth,fitScale,height:normalHeight/fitScale,keyboard,landscape:isLandscape,chromeHeight:Math.max(0,screenHeight-normalHeight)};
+  state={width,scale,layoutWidth,fitScale,height:normalHeight/fitScale,keyboard,landscape:isLandscape,chromeHeight:Math.max(0,screenHeight-normalHeight)};
   root.dataset.tabletZoom132=String(fitScale);root.dataset.tabletOrientation132=isLandscape?'landscape':'portrait';
   set('--tablet-workspace132',layoutWidth+'px');set('--tablet-height285',state.height+'px');
   const mainHeight=keyboard?Math.min(state.height,(v?.offsetTop||0)+(v?.height||innerHeight)):state.height;
@@ -37,6 +54,10 @@
  window.tabletViewport132={get state(){return state},landscape,update:schedule};
  const meta=document.querySelector('meta[name=viewport]');
  if(meta)meta.content='width=1280, minimum-scale=0.25, maximum-scale=5, user-scalable=yes';
+ // A deliberate pinch is independent of the browser's delayed rotation refit.
+ document.addEventListener('touchstart',e=>{if(e.touches.length>1)awaitingRefit=false},{passive:true});
+ window.addEventListener('pageshow',schedule);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
  update();window.addEventListener('resize',schedule);window.addEventListener('orientationchange',schedule);
  screen.orientation?.addEventListener('change',schedule);window.visualViewport?.addEventListener('resize',schedule);window.visualViewport?.addEventListener('scroll',schedule);
  document.addEventListener('DOMContentLoaded',schedule,{once:true});

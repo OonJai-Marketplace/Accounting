@@ -50,5 +50,30 @@ check('Android tablet keeps its action bar above the keyboard',()=>{
 check('dismissed keyboard restores original padding, toolbar position and full height',()=>{const f=fixture();f.memo.focus();const h=f.vv.height;f.vv.height=900;f.resize();f.memo.blur();f.vv.height=h;f.resize();assert(!f.w.tabletViewport132.state.keyboard);assert.equal(f.host.style.paddingBottom,'17px');assert.equal(f.root.style.getPropertyValue('--tablet-actions-inset285'),'0px');assert(!f.root.hasAttribute('data-tablet-keyboard14266'));f.close()});
 check('keyboard rotation uses an unoccluded orientation baseline',()=>{const f=fixture();f.memo.focus();f.vv.height=900;f.resize();f.direction.type='landscape-primary';f.vv.scale=1194/1280;f.vv.width=1280;f.vv.height=414/f.vv.scale;f.resize();assert(f.w.tabletViewport132.state.keyboard);assert(Math.abs(f.w.tabletViewport132.state.height-744/f.vv.scale)<1);f.close()});
 check('desktop and phone keep their native viewport and font scaling',()=>{for(const opts of [{ua:'Chrome',platform:'Linux',touch:0},{ua:'iPhone',platform:'iPhone',touch:5},{ua:'Android Mobile',platform:'Linux',touch:5}]){const f=fixture(opts);assert.equal(f.w.document.querySelector('meta').content,'width=device-width,initial-scale=1');assert.equal(f.w.tabletViewport132,undefined);f.close()}});
+check('iPad fills the window when its previous scale survives rotation or Split View',()=>{
+ const f=fixture();
+ const meta=f.w.document.querySelector('meta').content;
+ for(const width of [1194,834,507,1194]){
+  const oldScale=f.vv.scale;
+  f.direction.type=width>834?'landscape-primary':'portrait-primary';
+  f.w.dispatchEvent(new f.w.Event('orientationchange'));f.flush();
+  f.vv.width=width/oldScale;f.resize();
+  const state=f.w.tabletViewport132.state;
+  assert(Math.abs(state.layoutWidth*oldScale-width)<1,'no right gap or clipped edge while Safari keeps the prior scale');
+  f.vv.scale=width/1280;f.vv.width=1280;f.resize();
+  assert.equal(f.root.style.getPropertyValue('--tablet-workspace132'),'1280px','late native refit');
+  assert.equal(f.w.document.querySelector('meta').content,meta);
+ }
+ f.close();
+});
+check('pinching a rotated iPad preserves user magnification',()=>{
+ const f=fixture();f.vv.width=1194/f.vv.scale;f.resize();
+ const layout=f.w.tabletViewport132.state.layoutWidth;
+ const touch=new f.w.Event('touchstart');Object.defineProperty(touch,'touches',{value:[{},{}]});
+ f.w.document.dispatchEvent(touch);
+ f.vv.scale=1194/1280;f.vv.width=1280;f.resize();
+ assert.equal(f.w.tabletViewport132.state.layoutWidth,layout);
+ f.close();
+});
 check('iPad desktop UA and Android tablets use the tablet controller',()=>{for(const opts of [{ua:'Mozilla Macintosh',platform:'MacIntel',touch:5},{ua:'Android',platform:'Linux',touch:5}]){const f=fixture(opts);assert.equal(f.root.dataset.device132,'tablet');assert(f.w.tabletViewport132);f.close()}});
 console.log(checks+' tablet viewport regression groups passed.');

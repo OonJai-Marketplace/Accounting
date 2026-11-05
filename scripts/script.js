@@ -617,6 +617,13 @@ function setMobileNavigation(open) {
   const sidebar = document.getElementById('appSidebar');
   const toggle = document.getElementById('mobileMenuToggle');
   if (!sidebar) return;
+  if (document.documentElement.dataset.device132==='tablet') {
+    const railToggle=sidebar.querySelector('.nav-rail-toggle291');
+    sidebar.classList.toggle('rail-open292',open);
+    railToggle?.setAttribute('aria-expanded',String(open));
+    railToggle?.setAttribute('aria-label',open?'Collapse navigation':'Expand navigation');
+    return;
+  }
   sidebar.classList.toggle('mobile-open', open);
   document.body.classList.toggle('nav-drawer-open', open);
   if (toggle) toggle.setAttribute('aria-expanded', String(open));
@@ -624,7 +631,7 @@ function setMobileNavigation(open) {
 
 function toggleMobileNavigation() {
   const sidebar = document.getElementById('appSidebar');
-  setMobileNavigation(!sidebar?.classList.contains('mobile-open'));
+  setMobileNavigation(!sidebar?.matches('.rail-open292,.mobile-open'));
 }
 
 function closeMobileNavigation() {
@@ -632,7 +639,7 @@ function closeMobileNavigation() {
 }
 
 function closeNavigationAfterSelection() {
-  if (document.body.classList.contains('tablet117') || window.matchMedia('(max-width: 1024px)').matches || (document.body.classList.contains('subusers-workspace-active') && window.matchMedia('(hover:none) and (pointer:coarse)').matches)) closeMobileNavigation();
+  if (document.documentElement.dataset.device132==='tablet' || window.matchMedia('(max-width: 1024px)').matches || (document.body.classList.contains('subusers-workspace-active') && window.matchMedia('(hover:none) and (pointer:coarse)').matches)) closeMobileNavigation();
 }
 
 function switchTab(tabId) {
@@ -680,7 +687,7 @@ function scrollToAccountModule(moduleId) {
 }
 
 window.addEventListener('resize', () => {
-  if (window.innerWidth >= 768) closeMobileNavigation();
+  if (document.documentElement.dataset.device132!=='tablet' && window.innerWidth >= 768) closeMobileNavigation();
 });
 
 document.addEventListener('keydown', event => {
@@ -741,16 +748,16 @@ function initNavigationRail291(){
  button.type='button';button.className='nav-rail-toggle291';button.setAttribute('aria-controls','appSidebar');
  button.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';
  sidebar.prepend(button);
- function setOpen(open){
-  sidebar.classList.toggle('rail-open292',open);
-  button.setAttribute('aria-expanded',String(open));
-  button.setAttribute('aria-label',open?'Collapse navigation':'Expand navigation');
- }
- button.addEventListener('click',()=>setOpen(!sidebar.classList.contains('rail-open292')));
- document.addEventListener('pointerdown',e=>{if(sidebar.classList.contains('rail-open292')&&!sidebar.contains(e.target))setOpen(false);},true);
- sidebar.addEventListener('click',e=>{if(e.target.closest('.tab-btn,.grouped-children14378 button'))setOpen(false);});
- sidebar.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('rail-open292')){button.focus();setOpen(false);}});
- setOpen(false);
+ let orientation=document.documentElement.dataset.tabletOrientation132;
+ window.addEventListener('tabletviewport132',()=>{
+  const next=document.documentElement.dataset.tabletOrientation132;
+  if(next!==orientation){orientation=next;closeMobileNavigation();}
+ });
+ button.addEventListener('click',()=>toggleMobileNavigation());
+ document.addEventListener('pointerdown',e=>{if(sidebar.classList.contains('rail-open292')&&!sidebar.contains(e.target))closeMobileNavigation();},true);
+ sidebar.addEventListener('click',e=>{if(e.target.closest('.tab-btn,.grouped-children14378 button'))closeMobileNavigation();});
+ sidebar.addEventListener('keydown',e=>{if(e.key==='Escape'&&sidebar.classList.contains('rail-open292')){button.focus();closeMobileNavigation();}});
+ closeMobileNavigation();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initNavigationRail291);else initNavigationRail291();
 function handleTableSearch(term) {

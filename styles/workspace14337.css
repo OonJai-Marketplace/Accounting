@@ -36,73 +36,22 @@
  #report-reconciliation>[data-print14282],#report-reconciliation>.doc-source-action105{display:none!important}
 }
 @media screen and (max-width:900px) and (min-width:641px){html body #runMeta95>.payroll-meta14337{grid-template-columns:repeat(3,minmax(120px,1fr))!important}}
-@media screen{
- html.tablet-portrait14337 body .main-content-area{margin-left:0!important;width:100%!important;max-width:100%!important}
- html.tablet-portrait14337 body #appSidebar{position:fixed!important;inset:0 auto 0 0!important;width:260px!important;max-width:85vw!important;height:100dvh!important;z-index:1500!important;transform:translateX(-105%)!important;display:flex!important}
- html.tablet-portrait14337 body #appSidebar.mobile-open{transform:translateX(0)!important}
- html.tablet-portrait14337 body #mobileMenuToggle{display:flex!important;visibility:visible!important;position:static!important;flex:0 0 40px!important;width:40px!important;height:40px!important;margin:2px 6px!important;align-self:center!important;flex-direction:column!important;justify-content:center!important;gap:4px!important;padding:10px!important;background:#edf2e7!important;border:1px solid #aebfaf!important;border-radius:5px!important}html.tablet-portrait14337 body #mobileMenuToggle span{display:block!important;width:18px!important;height:2px!important;background:#17543e!important}
- html.tablet-landscape14337 body #mobileMenuToggle,html:is(.tablet-landscape14337,.tablet-portrait14337) body #tabletMenu118{display:none!important}
-}
-
-@media screen{
- html.tablet-landscape14337 body #appSidebar{display:flex!important;position:fixed!important;inset:0 auto 0 0!important;width:56px!important;min-width:56px!important;max-width:56px!important;height:100dvh!important;padding:6px!important;box-sizing:border-box!important;overflow-y:auto!important;overflow-x:hidden!important;transform:none!important;gap:3px!important;z-index:650!important;background:#074532!important}
- html.tablet-landscape14337 body .main-content-area{margin-left:56px!important;margin-right:0!important;width:calc(100% - 56px)!important;max-width:calc(100% - 56px)!important;min-width:0!important}
- html.tablet-landscape14337 body .workspace-scroll{padding:0 12px 46px!important}
- html.tablet-landscape14337 body #appSidebar :is(.sidebar-brand h2,.universal-search108,.nav-links,.arrow,.nav-icon100,.sidebar-user-copy,.user-photo113){display:none!important}
- html.tablet-landscape14337 body #appSidebar .sidebar-brand{padding:0 0 6px!important;margin:0!important;min-height:44px!important;height:44px!important;max-height:44px!important;display:flex!important;justify-content:center!important}
- html.tablet-landscape14337 body #appSidebar .logo-tile113{width:38px!important;min-width:38px!important;max-width:38px!important;height:38px!important;min-height:38px!important;max-height:38px!important;padding:3px!important;margin:0!important}
- html.tablet-landscape14337 body #appSidebar .logo-tile113 img{width:100%!important;height:100%!important;object-fit:contain!important}
- html.tablet-landscape14337 body #appSidebar .nav-category{margin:0!important;padding:0!important;border:0!important;flex-shrink:0!important}
- html.tablet-landscape14337 body #appSidebar .nav-header{display:flex!important;position:relative!important;justify-content:center!important;align-items:center!important;width:40px!important;height:36px!important;min-height:36px!important;padding:6px!important;margin:0!important;box-sizing:border-box!important;font-size:0!important;gap:0!important;border:1px solid #ffffff38!important;border-radius:6px!important;background:#12654d!important;color:#fff!important}
- html.tablet-landscape14337 body #appSidebar .nav-header[aria-current=page]{background:#914511!important;border-color:#e5b85c!important}
- html.tablet-landscape14337 body #appSidebar .nav-header:focus-visible{outline:2px solid #e5b85c!important;outline-offset:-2px!important}
- html.tablet-landscape14337 body #appSidebar .nav-icon113{display:inline-flex!important;position:static!important;width:22px!important;height:22px!important;flex:0 0 22px!important;margin:0!important}
- html.tablet-landscape14337 body #appSidebar .nav-count14311{position:absolute!important;right:-1px!important;top:-2px!important;min-width:12px!important;height:12px!important;font-size:8px!important;padding:0 2px!important}
- html.tablet-landscape14337 body #appSidebar #topHeaderProfile104{display:block!important;margin-top:auto!important;width:40px!important;padding:5px 0 0!important;border:0!important}
- html.tablet-landscape14337 body #appSidebar #headerAccountTrigger{width:40px!important;height:38px!important;min-height:38px!important;padding:2px!important;justify-content:center!important;gap:0!important;box-sizing:border-box!important}
- html.tablet-landscape14337 body #appSidebar #headerAccountInitials{display:flex!important;width:30px!important;height:30px!important;flex:0 0 30px!important;margin:0!important}
- html.tablet-landscape14337 body #workspaceTools108{gap:3px!important;padding:3px!important;right:6px!important;bottom:6px!important}
- html.tablet-landscape14337 body #workspaceTools108>button{width:32px!important;height:32px!important;min-height:32px!important;padding:5px!important}
-}
 
 }
-
-@layer corrections14337 {
-/* Persistent tablet context and compact portrait navigation. */
-#tabletHeader14353{display:none}
-@media screen{
- html:is(.tablet-landscape14337,.tablet-portrait14337) body #tabletHeader14353{display:flex;flex:0 0 auto;flex-direction:column;gap:6px;position:relative;z-index:700;padding:7px 10px;background:#fffaf2;border-bottom:1px solid #aebfaf;box-sizing:border-box;min-width:0;color:#173c2d}
- #tabletHeader14353 .tablet-navigation14353{display:flex;align-items:center;gap:6px;min-width:0}
- #tabletHeader14353 nav{display:flex;justify-content:flex-start;gap:5px;overflow-x:auto;min-width:0;scrollbar-width:thin}
- #tabletHeader14353 nav>button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:38px;height:36px;padding:6px;border:1px solid #aebfaf;border-radius:5px;background:#e8eee2;color:#17543e;cursor:pointer}
- #tabletHeader14353 nav>button[aria-current=page]{background:#17543e;color:#fffaf2;border-color:#17543e}#tabletHeader14353 nav .nav-icon113{display:flex;width:22px;height:22px;margin:0;flex:0 0 22px}#tabletHeader14353 svg{width:22px;height:22px}
- #tabletHeader14353 button:focus-visible{outline:2px solid #b68b43;outline-offset:-2px}
- html:is(.tablet-landscape14337,.tablet-portrait14337) body #tabletHeader14353 #mobileMenuToggle{display:flex!important;visibility:visible!important;position:static!important;flex:0 0 38px!important;width:38px!important;height:36px!important;min-height:36px!important;margin:0!important;align-items:center!important;justify-content:center!important;flex-direction:column!important;gap:4px!important;padding:8px!important;border:1px solid #aebfaf!important;border-radius:5px!important;background:#e8eee2!important}
- #tabletHeader14353 #mobileMenuToggle span{display:block!important;width:18px!important;height:2px!important;background:#17543e!important}
- html.tablet-landscape14337 #tabletHeader14353 .tablet-navigation14353{display:none}
- /* Fullscreen never removes the tablet's escape route or its navigation drawer. */
- html:is(.tablet-landscape14337,.tablet-portrait14337) body #appSidebar.mobile-open{display:flex!important;position:fixed!important;inset:0 auto 0 0!important;width:260px!important;min-width:260px!important;max-width:85vw!important;height:100dvh!important;transform:none!important;z-index:1500!important;padding:12px!important;overflow-y:auto!important}
- html.tablet-landscape14337 body #appSidebar.mobile-open .nav-header{font-size:13px!important;width:100%!important;justify-content:flex-start!important;gap:10px!important;height:40px!important}
- html.tablet-landscape14337 body #appSidebar.mobile-open :is(.sidebar-brand h2,.sidebar-user-copy){display:block!important}
- html.tablet-landscape14337 body #appSidebar.mobile-open .nav-category.open .nav-links{display:block!important}
- html.tablet-landscape14337 body #appSidebar.mobile-open #topHeaderProfile104{width:100%!important}html.tablet-landscape14337 body #appSidebar.mobile-open #headerAccountTrigger{width:100%!important;height:auto!important;justify-content:flex-start!important;gap:8px!important}
- html:is(.tablet-landscape14337,.tablet-portrait14337) body.nav-drawer-open .sidebar-scrim{display:block!important;position:fixed!important;inset:0!important;z-index:1490!important;background:#102a2255!important}
- html:is(.tablet-landscape14337,.tablet-portrait14337) body #document-editor105 .doc-shell105{border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;background:transparent!important}
- html:is(.tablet-landscape14337,.tablet-portrait14337) body #document-editor105{padding-top:0!important}
-}
-@media print{#tabletHeader14353{display:none!important}}
-}
-
-@media screen{html.tablet-landscape14337 body #tabletHeader14353{display:none!important}}
-
 @layer corrections14337{@media screen{
 html[data-device132=tablet] body #appSidebar #headerAccountInitials{display:none!important}
 html[data-device132=tablet] body #appSidebar #headerAccountTrigger{background:transparent!important;border:0!important;box-shadow:none!important}
-html.tablet-landscape14337 body #appSidebar .sidebar-brand{align-items:center!important;justify-content:center!important}
-html.tablet-landscape14337 body #appSidebar .logo-tile113{align-self:center!important}
-html.tablet-landscape14337 body #appSidebar #headerAccountTrigger::before{content:"";display:block;width:22px;height:22px;background:#fff;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='7' r='4' fill='none' stroke='black' stroke-width='1.7'/%3E%3Cpath d='M4 22v-3a8 8 0 0 1 16 0v3' fill='none' stroke='black' stroke-width='1.7'/%3E%3C/svg%3E") center/contain no-repeat}
+html[data-device132=tablet] body #appSidebar .sidebar-brand{align-items:center!important;justify-content:center!important}
+html[data-device132=tablet] body #appSidebar .logo-tile113{align-self:center!important}
+html[data-device132=tablet] body #appSidebar #headerAccountTrigger::before{content:"";display:block;width:22px;height:22px;background:#fff;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='7' r='4' fill='none' stroke='black' stroke-width='1.7'/%3E%3Cpath d='M4 22v-3a8 8 0 0 1 16 0v3' fill='none' stroke='black' stroke-width='1.7'/%3E%3C/svg%3E") center/contain no-repeat}
 html[data-device132=tablet] body #appSidebar #tabletSignOut14270{display:flex!important;align-items:center!important;justify-content:center!important;width:40px!important;height:36px!important;min-height:36px!important;padding:7px!important;margin:8px 0!important;border:1px solid #d17779!important;border-radius:6px!important;background:#b4232f!important;color:#fff!important;flex-shrink:0!important}
 #tabletSignOut14270 svg{width:22px;height:22px}
 }}
 
 @layer corrections14337{@media screen{html[data-device132=tablet] body #appSidebar #topHeaderProfile104{background:transparent!important;border:0!important;box-shadow:none!important}}}
+
+@layer corrections14337 { @media screen {
+ html[data-device132=tablet] :is(#sub-users-workspace,#sub-users-home14229) .area-banner113 :is(.banner-icon113,.banner-art113){display:none!important}
+ html[data-device132=tablet] body #document-editor105 .doc-shell105{border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;background:transparent!important}
+ html[data-device132=tablet] body #document-editor105{padding-top:0!important}
+} }

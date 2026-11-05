@@ -6,17 +6,9 @@ html[data-device132=phone] :is(.ui-overlay108,.modal-overlay,.modal-backdrop,.su
 html[data-device132=phone] :is(.ui-dialog108,.modal-content,.v49-review-dialog,.final-records-dialog,.v56-returned-dialog,.scheduled-dialog91){width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;min-width:0!important;max-height:90dvh!important;overflow:auto!important;background:#fffdf5!important;border-radius:14px!important;color:#173c2e!important}
 html[data-device132=phone] :is(.ui-dialog108,.modal-content,.v49-review-dialog,.scheduled-dialog91) :is(input,select,textarea){font-size:16px!important;max-width:100%!important}
 html[data-device132=phone] .submission-compare-grid{grid-template-columns:1fr!important}
-html[data-device132=phone] #landscape117{display:none!important}
-html[data-device132=tablet] .app-layout{min-width:var(--tablet-workspace132)!important}
-html[data-device132=tablet] body.tablet-portrait117 #landscape117{display:flex!important}
-html[data-device132=tablet] #appSidebar{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:270px!important;transform:translateX(-105%)!important;z-index:1300!important}
-html[data-device132=tablet] body.nav118 #appSidebar{transform:translateX(0)!important}
-html[data-device132=tablet] .main-content-area{margin-left:0!important;width:100%!important}
-html[data-device132=tablet] #tabletMenu118{display:inline-flex!important;flex:0 0 40px!important}
-html[data-device132=tablet] body.nav118 #tabletScrim118{display:block!important;position:fixed;inset:0;z-index:1290;background:#102a2255;border:0}
 @media print{#connectedPhone132{display:none!important}html[data-device132=phone] .app-layout{position:static!important;visibility:visible!important;left:0!important;width:100%!important}}
 html[data-device132=phone] :is(#workspaceTools108,#tx73Balance,#headerNotices104){display:none!important}
-html[data-device132=tablet] body,html[data-device132=tablet] .app-layout{width:var(--tablet-workspace132)!important;min-width:var(--tablet-workspace132)!important;max-width:var(--tablet-workspace132)!important}
+html[data-device132=tablet],html[data-device132=tablet] body,html[data-device132=tablet] .app-layout{width:var(--tablet-workspace132)!important;min-width:var(--tablet-workspace132)!important;max-width:var(--tablet-workspace132)!important}
 html[data-device132=tablet] :is(.login-gate,.modal-backdrop,.submission-compare-overlay,.ui-overlay108){width:var(--tablet-workspace132)!important;right:auto!important}
 /* Phone settings sheets use original fields and handlers. */
 html[data-device132=phone] :is(#modalUserAccess,#modalAccessPicker){padding:8px!important;align-items:center!important}

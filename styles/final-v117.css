@@ -68,15 +68,6 @@ body.shell113 #sub-users-workspace #subUserWorkspacePanel .inline-cell117:focus{
 .inline-cell117[contenteditable]:empty:before{content:attr(data-placeholder);color:#829083;pointer-events:none}.inline-cell117[aria-invalid=true]{outline:2px solid #b52d2d!important}.inline-reference117{font-size:10px!important;color:#627367}
 body.shell113 #sub-users-workspace tr[data-saving117] .inline-cell117{opacity:.6;pointer-events:none}
 body.shell113 #subUserWorkspaceTabs .sub-user-browser-tab{padding:9px 12px!important;min-width:max-content!important}
-#landscape117{display:none;position:fixed;inset:0;z-index:1000000;background:#f7f0e2;color:#174632;align-items:center;justify-content:center;text-align:center;padding:32px;box-sizing:border-box}#landscape117>div{max-width:420px}#landscape117 svg{width:86px;height:86px;color:#a57633}#landscape117 h2{font:28px Georgia,serif}#landscape117 p{font:16px/1.5 Arial,sans-serif}
-body.tablet-portrait117 #landscape117{display:flex}body.tablet-portrait117{overflow:hidden!important}
-body.shell113.tablet117 .sidebar{position:fixed!important;inset:0 auto 0 0!important;z-index:1200;width:min(310px,84vw)!important;max-width:310px;transform:translateX(-105%)!important;transition:transform .2s ease;box-shadow:12px 0 30px #02140f40}
-body.shell113.tablet117 .sidebar.mobile-open{transform:translateX(0)!important}
-body.shell113.tablet117 .main-content-area{width:100%!important;margin-left:0!important;flex:1 1 auto}
-body.shell113.tablet117 .mobile-menu-toggle{display:inline-flex!important;width:38px;height:38px;flex:0 0 38px;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:1px solid #53735e;border-radius:7px;background:#fff;cursor:pointer}
-body.shell113.tablet117 .mobile-menu-toggle span{width:18px;height:2px;background:#0b3426}
-body.shell113.tablet117 .sidebar-scrim{position:fixed;inset:0;z-index:1190;width:100%;height:100%;border:0;background:#0f172a6b}body.shell113.tablet117.nav-drawer-open .sidebar-scrim{display:block!important}
-@media print{#landscape117{display:none!important}}
 
 body.shell113 #sub-users-workspace #subUserWorkspacePanel select.inline-cell117{height:32px!important;min-height:32px!important;padding:2px!important;line-height:28px!important}
 body.shell113 #sub-users-workspace #subUserWorkspacePanel input[type=date].inline-cell117{height:32px!important;min-height:32px!important;padding:2px!important;font-size:11px!important}

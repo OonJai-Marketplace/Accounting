@@ -59,21 +59,12 @@ window.addEventListener('DOMContentLoaded',()=>{
  const hydrate=hydrateSupabaseSession;window.hydrateSupabaseSession=async function(...args){startLogin();try{return await hydrate.apply(this,args)}finally{endLogin()}};
  const findingForm=document.getElementById('periodFindingForm');
  if(findingForm){findingForm.dataset.autoClose99='';const before=openPeriodFindingForm;window.openPeriodFindingForm=function(...args){const out=before.apply(this,args);clearTimeout(timers.get(findingForm));timers.delete(findingForm);armCollapse(findingForm);return out};}
- installTablet();polish();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
+ polish();new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
  installPosting();
 });
 function startLogin(){const gate=$('loginGate');gate.classList.add('busy99');let p=$('loginProgress99');if(!p){p=document.createElement('div');p.id='loginProgress99';p.setAttribute('role','status');p.innerHTML=loading1444.markup();$('loginForm').append(p)}p.hidden=false;$('loginForm').setAttribute('aria-busy','true');$('loginForm').querySelector('button[type=submit]').disabled=true;}
 window.releaseLogin1443=()=>endLogin();
 function endLogin(){$('loginGate')?.classList.remove('busy99');if($('loginProgress99'))$('loginProgress99').hidden=true;$('loginForm')?.removeAttribute('aria-busy');const b=$('loginForm')?.querySelector('button[type=submit]');if(b)b.disabled=false;}
-function installTablet(){
- const tablet=()=>document.documentElement.dataset.device132==='tablet';
- const overlay=document.createElement('div');overlay.id='rotateTablet99';overlay.innerHTML='<div><strong>Please rotate your tablet</strong><p>Use landscape orientation for the accounting workspace. Your work is preserved.</p></div>';document.body.append(overlay);
- const toggle=document.createElement('button');toggle.id='tabletMenu99';toggle.type='button';toggle.textContent='☰';toggle.setAttribute('aria-label','Open navigation');toggle.setAttribute('aria-expanded','false');$('categoryTabShell')?.before(toggle);
- const scrim=document.createElement('button');scrim.id='tabletScrim99';scrim.setAttribute('aria-label','Close navigation');document.body.append(scrim);
- const close=()=>{document.body.classList.remove('tablet-nav-open99');toggle.setAttribute('aria-expanded','false')};toggle.onclick=()=>{const open=document.body.classList.toggle('tablet-nav-open99');toggle.setAttribute('aria-expanded',String(open))};scrim.onclick=close;
- $('appSidebar')?.addEventListener('click',e=>{if(e.target.closest('.tab-btn'))close()});
- function resize(){document.body.classList.toggle('tablet99',tablet());document.body.classList.toggle('portrait99',tablet()&&innerHeight>innerWidth);if(!tablet())close()}resize();window.addEventListener('resize',resize);
-}
 function installPosting(){
  const legacy=submitJournalEntry;
  const jobs=new Map();window.pendingPosts99=jobs;
