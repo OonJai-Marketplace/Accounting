@@ -2,7 +2,7 @@ const fs=require('node:fs'),vm=require('node:vm');
 const read=p=>fs.readFileSync(p,'utf8');
 const shared=read('src/shared/presentation/shared-v108.js');
 const confirm=read('src/shared/presentation/final-v117.js');
-function scripts(){return [shared.slice(0,shared.indexOf('window.leaveAccrual108'))+'})();',confirm.slice(0,confirm.indexOf('function badge'))+'})();',read('src/bridges/payroll-bookkeeping/payroll-template1431.js'),read('src/bridges/payroll-bookkeeping/payroll-journal1429.js'),read('src/shared/ui/action-feedback14296.js')];}
+function scripts(){return [read('src/shared/formatting/numbers.js'),shared.slice(0,shared.indexOf('window.leaveAccrual108'))+'})();',confirm.slice(0,confirm.indexOf('function badge'))+'})();',read('src/bridges/payroll-bookkeeping/payroll-template1431.js'),read('src/bridges/payroll-bookkeeping/payroll-journal1429.js'),read('src/shared/ui/action-feedback14296.js')];}
 function setup(){
  const w=window,clone=v=>JSON.parse(JSON.stringify(v));w.structuredClone=clone;
  w.escapeHtml=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));w.shell113={esc:w.escapeHtml};w.formatAppNumber=n=>Number(n).toLocaleString('en-US');w.formatAppDate=s=>s;

@@ -6,13 +6,13 @@ require('../src/bookkeeping/journal/completion-core258.js');const G=globalThis.J
 const uid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
 (async()=>{const db=new PGlite({extensions:{pgcrypto}});let count=0;try{
  const test=async(name,fn)=>{await fn();count++;console.log('PASS',name)};
- for(const f of ['validation/platform14322.sql','setup/fresh/001-Install-Empty-Database.sql','supabase/migrations/20261104103848_upcoming_journal_plans280.sql','supabase/migrations/20261104114420_data_check_schedules_fx281.sql','supabase/migrations/20261104120216_data_check_summary_dates281.sql']){await db.exec(read(f));if(f==='setup/fresh/001-Install-Empty-Database.sql')await db.exec('ALTER TABLE public.scheduled_journals ADD COLUMN fixed_book_rate_lak numeric, ADD COLUMN fixed_rate_currency text');}
+ for(const f of ['validation/platform14322.sql','setup/fresh/001-Install-Empty-Database.sql','supabase/migrations/20261104103848_upcoming_journal_plans280.sql','supabase/migrations/20261104114420_data_check_schedules_fx281.sql','supabase/migrations/20261104120216_data_check_summary_dates281.sql','supabase/migrations/20261105030143_other_operating_mapping287.sql']){await db.exec(read(f));if(f==='setup/fresh/001-Install-Empty-Database.sql')await db.exec('ALTER TABLE public.scheduled_journals ADD COLUMN fixed_book_rate_lak numeric, ADD COLUMN fixed_rate_currency text');}
  await db.query('INSERT INTO auth.users(id,email,email_confirmed_at) VALUES($1,$2,now())',[uid(1),'checks@example.invalid']);
  await db.exec(read('setup/fresh/002-Create-First-Administrator.sql').replace('00000000-0000-0000-0000-000000000000',uid(1)));
  await db.query("SELECT set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claims',$2,false)",[uid(1),JSON.stringify({sub:uid(1),role:'authenticated'})]);
  const chart=[];for(const [code,currency,type,technical=false] of [
   ['1010','LAK','ASSET'],['1041','USD','ASSET'],['1220','USD','ASSET'],['1311','LAK','ASSET'],['1312','THB','ASSET'],['3010','LAK','EQUITY'],['3011','THB','EQUITY'],
-  ['5110','LAK','EXPENSE'],['5111','LAK','EXPENSE'],['5119','LAK','EXPENSE'],['5419','LAK','EXPENSE'],
+  ['5120','LAK','EXPENSE'],['9251','USD','EXPENSE',true],['5110','LAK','EXPENSE'],['5111','LAK','EXPENSE'],['5119','LAK','EXPENSE'],['5419','LAK','EXPENSE'],
   ['9010','LAK','ASSET',true],['9011','USD','ASSET',true],['9290','LAK','ASSET',true],['9211','USD','EXPENSE',true],['9222','THB','EXPENSE',true]
  ]){const id=(await db.query('INSERT INTO accounts(code,name,account_type,currency_code,is_technical) VALUES($1,$1,$2,$3,$4) RETURNING id',[code,type,currency,technical])).rows[0].id;chart.push({id,code,name:code,currency,baseType:type,isTechnical:technical});}
  const acc=c=>chart.find(a=>a.code===c),line=(c,debit,credit,fx=1,book=fx)=>({account_id:acc(c).id,currency_code:acc(c).currency,debit,credit,fx_rate_lak:fx,book_rate_lak:book,description:'Synthetic line'});
@@ -25,6 +25,12 @@ const uid=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0');
   local=await insert([line('5110',100,0),line('1010',0,100)]);
   fx=await insert(generate([line('9211',100,0,23000,null),line('1041',0,100,23000,null)]));
   const c=await check();assert.equal(c.coverage.entries,2);assert.equal(c.coverage.foreign_entries,1);assert.equal(c.issues.length,0,JSON.stringify(c.issues));assert.equal(c.entry_checks.find(e=>e.id===fx).fx_expected,-50000);
+ });
+ await test('General USD operating expense is included in LAK profit and loss and mapping checks',async()=>{
+  await db.exec(read('supabase/migrations/20261105030143_other_operating_mapping287.sql'));
+  const entry=await insert(generate([line('9251',200,0,22273,null),line('1041',0,200,22273,22500)],22273));
+  const c=await check();assert.equal(issuesFor(c,entry).length,0,JSON.stringify(issuesFor(c,entry)));
+  const expense=(await db.query('select sum(debit-credit) value from journal_lines where journal_entry_id=$1 and account_id=$2',[entry,acc('5120').id])).rows[0];assert.equal(Number(expense.value),4454600);
  });
  await test('Same-currency settlement and transfer use saved carrying values',async()=>{
   settlement=await insert(generate([line('1220',100,0,23000,22000),line('1041',0,100,23000,null)]));

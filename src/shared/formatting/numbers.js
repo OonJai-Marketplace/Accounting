@@ -41,9 +41,27 @@ function finishAppNumberEditing(input) {
 }
 
 
-// Read-only rates are compact; editable rates retain the full saved precision.
-function formatAppRate(value, editing = false) {
+// Rates display at most two decimals. Stored valuation precision is independent.
+function formatAppRate(value) {
   if (value === null || value === undefined || value === '') return '—';
   const rate = Number(value);
-  return Number.isFinite(rate) ? rate.toLocaleString(appNumberLocale(), { useGrouping: true, maximumFractionDigits: editing ? 20 : 2 }) : '—';
+  return Number.isFinite(rate) ? rate.toLocaleString(appNumberLocale(), { useGrouping: true, maximumFractionDigits: 2 }) : '—';
+}
+
+// A focus/blur/save must not round a historical carrying rate. Only an actual
+// input event changes it; retain the exact value behind the compact display.
+const appRateInputs287 = new WeakMap();
+function readAppRateInput(input) {
+  const state=appRateInputs287.get(input);
+  if(state && input.value===state.display)return state.value;
+  return input.type==='number'?Number(input.value):parseAppNumber(input.value);
+}
+function bindAppRateInput(input, value) {
+  if(!appRateInputs287.has(input)){
+    input.addEventListener('input',()=>appRateInputs287.set(input,{value:input.type==='number'?Number(input.value):parseAppNumber(input.value),display:input.value}));
+    input.addEventListener('blur',()=>{const rate=readAppRateInput(input);if(input.value.trim()&&Number.isFinite(rate))bindAppRateInput(input,rate);});
+  }
+  const rate=typeof value==='number'?value:input.type==='number'?Number(value):parseAppNumber(value);
+  input.value=value!==''&&value!=null&&Number.isFinite(rate)?(input.type==='number'?String(Number(rate.toFixed(2))):formatAppRate(rate)):'';
+  appRateInputs287.set(input,{value:rate,display:input.value});
 }

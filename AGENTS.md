@@ -505,3 +505,13 @@ data unchanged. Synthetic geometry and Chrome rendering are not physical iPad Sa
 verification; see docs/tablet285.md.
 
 Payroll source evidence 2026-11-05 v143.286: use the existing portable journal-link editor in Payroll Exchange Rate Source. Preserve its serialized source text through draft recovery, save/reload and finalized snapshots. Source-only edits must not rerender the form on blur while the link dialog is open. Carry saved rates, rate date and source links into both prepared and direct payroll journal descriptions, retaining payroll markers. Render links safely in report metadata. Keep existing Edit payroll, finalization, explicit posting and correction guards; never change ledger amounts or insert live test records for UI verification.
+
+Exchange-rate evidence 2026-11-05 v143.287: show rates with at most two decimals,
+retaining exact stored values through focus, blur and unchanged saves. Published
+BCEL EFT quotes are the fallback for bank movements; actual external transaction
+evidence takes priority. Resolve historical generic BCEL links only from explicitly
+saved source dates/rounds, including multiple dates. Preserve closed journals.
+Use general Other Operating Expenses (5120) with USD mapping 9251 and offset 9290.
+Retained airfare support uses its original carrying value with no new bank movement.
+Changes to live open journals require audit reasons and existing period/validation
+guards; code releases never post payroll or close books automatically.

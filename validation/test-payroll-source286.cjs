@@ -9,7 +9,7 @@ async function scenario(mode){
   w.eval('('+fixture.baseSetup.toString()+')();('+fixture.lifecycleSetup.toString()+')();('+fixture.setup.toString()+')();');
   fixture.scripts().forEach(s=>w.eval(s));await tick();
   const el=id=>d.getElementById(id),source=()=>d.querySelector('#runMeta95 [name=rateSource]'),editor=()=>source().parentElement.querySelector('[role=textbox]');
-  async function click(label,scope=d){const button=[...scope.querySelectorAll('button')].find(b=>b.textContent.trim()===label);assert(button,label);button.click();await tick();}
+  async function click(label,scope=d){let button;for(let i=0;i<20;i++){button=[...scope.querySelectorAll('button')].find(b=>b.textContent.trim()===label&&!b.disabled);if(button)break;await tick();}assert(button,label);button.click();await tick();}
   const before=JSON.stringify(w.payrollTemplate1431.buildLines(w.Work82.run,w.payrollTemplate1431.defaultTemplate(w.Work82.run)));
   editor().textContent='Synthetic rate evidence';editor().dispatchEvent(new w.Event('input',{bubbles:true}));
   assert.equal(w.Work82.run.rateSource,'Synthetic rate evidence');

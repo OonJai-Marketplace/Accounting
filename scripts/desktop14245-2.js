@@ -6,7 +6,25 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function url(value){const text=String(value||'').trim();if(!/^https?:\/\//i.test(text)||/[\u0000-\u0020\u007f]/.test(text))return '';try{const u=new URL(text);return ['http:','https:'].includes(u.protocol)&&u.hostname&&!u.username&&!u.password?u.href:'';}catch{return '';}}
 const label=v=>String(v).replace(/\\/g,'\\\\').replace(/[\[\]]/g,'\\$&');
 function link(text,href){const safe=url(href);if(!safe)throw Error('Enter a full http:// or https:// link.');return '['+label(text)+']('+safe.replace(/[()]/g,c=>c==='('? '%28':'%29')+')';}
-function parts(value){const text=String(value??''),out=[],re=/\[((?:\\[\\\[\]]|[^\]\\\r\n])+)\]\((https?:\/\/[^\s()]+)\)/gi;let at=0,m;while((m=re.exec(text))){const href=url(m[2]);if(!href)continue;if(m.index>at)out.push({text:text.slice(at,m.index)});out.push({text:m[1].replace(/\\([\\\[\]])/g,'$1'),href});at=re.lastIndex;}if(at<text.length)out.push({text:text.slice(at)});return out;}
+// Closed journals retain their original text. Resolve the generic BCEL link only
+// from explicitly recorded source dates/rounds, never from the posting date or
+// a carrying average. External receipt links and already dated URLs take priority.
+function payrollRateSource287(run){
+ const source=String(run?.rateSource||''),day=String(run?.rateDate||'');
+ // Only a named bank quote can supply a bank link. Never substitute one for
+ // a user receipt, an unspecified Google result, or an absent source.
+ if(!/^BCEL (?:EFT|Note|Bill)(?: buying)?(?: rate)?$/i.test(source.trim())||!/^\d{4}-\d{2}-\d{2}$/.test(day))return source;
+ const date=new Date(day+'T00:00:00Z');if(!Number.isFinite(+date)||date.toISOString().slice(0,10)!==day)return source;
+ return link(source.trim(),'https://www.bcel.com.la/bcel/exchange-rate.html?exDate='+day+'&lang=en');
+}
+window.payrollRateSource287=payrollRateSource287;
+function datedSources287(value){
+ const text=String(value??'');if(!text.includes('BCEL ')||!text.toLowerCase().includes('[source rate]('))return text;
+ const dates=[...new Map([...text.matchAll(/\bBCEL (\d{4}-\d{2}-\d{2}), Round ([1-9]\d*)\b/g)].filter(m=>{const d=new Date(m[1]+'T00:00:00Z');return Number.isFinite(+d)&&d.toISOString().slice(0,10)===m[1];}).map(m=>[m[1]+'|'+m[2],{date:m[1],round:m[2]}])).values()];
+ if(!dates.length)return text;
+ return text.replace(/\[Source rate\]\((https?:\/\/[^\s()]+)\)/gi,(whole,href)=>{let u;try{u=new URL(href);}catch{return whole;}if(!['www.bcel.com.la','bcel.com.la'].includes(u.hostname)||u.pathname!=='/bcel/exchange-rate.html'||u.username||u.password||u.port||u.hash||[...u.searchParams.keys()].some(k=>k!=='lang'))return whole;return dates.map(({date,round})=>link('Source rate · '+(typeof formatAppDate==='function'?formatAppDate(date):date),'https://www.bcel.com.la/bcel/exchange-rate.html?exDate='+date+'&lang=en&round='+round)).join(' · ');});
+}
+function parts(value){const text=datedSources287(value),out=[],re=/\[((?:\\[\\\[\]]|[^\]\\\r\n])+)\]\((https?:\/\/[^\s()]+)\)/gi;let at=0,m;while((m=re.exec(text))){const href=url(m[2]);if(!href)continue;if(m.index>at)out.push({text:text.slice(at,m.index)});out.push({text:m[1].replace(/\\([\\\[\]])/g,'$1'),href});at=re.lastIndex;}if(at<text.length)out.push({text:text.slice(at)});return out;}
 function html(value){return parts(value).map(p=>p.href?'<a class="journal-source-link143187" href="'+esc(p.href)+'" target="_blank" rel="noopener noreferrer" title="'+esc(p.href)+'">'+esc(p.text)+'</a>':esc(p.text).replace(/\r?\n/g,'<br>')).join('');}
 function plain(value){return parts(value).map(p=>p.href?p.text+' ('+p.href+')':p.text).join('');}
 window.journalMemoHtml143187=html;
