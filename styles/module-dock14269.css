@@ -37,8 +37,8 @@ html[data-device132="tablet"] body.shell113 .tab-content{
   html[data-device132=tablet] #appSidebar>.nav-rail-toggle291:focus-visible{outline:2px solid #f5cf8d;outline-offset:-2px}
   html:is([data-device132=desktop],[data-device132=tablet]) #mobileMenuToggle{display:none!important}
   #appSidebar .grouped-nav14378>.nav-links{display:none!important}
-  :is(html[data-device132=desktop] #appSidebar:not(:hover):not(:has(:focus-visible)),html[data-device132=tablet] #appSidebar:not(.rail-open292):not(.mobile-open)){
-   & :is(.sidebar-brand h2,.universal-search108,.nav-links,.grouped-children14378,.group-toggle143111,.sidebar-user-copy,.arrow,.nav-icon100,.nav-count14311){display:none!important}
+  :is(html[data-device132=desktop] #appSidebar,html[data-device132=tablet] #appSidebar:not(.rail-open292):not(.mobile-open)){
+   & :is(.sidebar-brand h2,.nav-links,.grouped-children14378,.group-toggle143111,.sidebar-user-copy,.arrow,.nav-icon100,.nav-count14311){display:none!important}
    & :is(.nav-header,#headerAccountTrigger){width:38px!important;min-width:0!important;max-width:38px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;font-size:0!important;padding:4px!important;gap:0!important;box-sizing:border-box!important}
    & .nav-header>span:not(.nav-icon113){display:none!important}
    & .nav-icon113{margin:0!important;position:static!important;display:inline-flex!important;flex:0 0 21px!important}
@@ -47,7 +47,7 @@ html[data-device132="tablet"] body.shell113 .tab-content{
    & #companyLogo101{width:100%!important;height:100%!important;min-width:0!important;object-fit:contain!important;object-position:center!important;margin:0!important;position:static!important;transform:none!important}
    & #topHeaderProfile104{padding:2px!important;width:38px!important;margin-top:auto!important}
   }
-  :is(html[data-device132=desktop] #appSidebar:is(:hover,:has(:focus-visible)),html[data-device132=tablet] #appSidebar:is(.rail-open292,.mobile-open)){
+  html[data-device132=tablet] #appSidebar:is(.rail-open292,.mobile-open){
    width:238px!important;min-width:238px!important;max-width:min(85vw,238px)!important;box-shadow:5px 0 18px #152b2533!important;
    & .nav-header{font-size:13px!important;justify-content:flex-start!important;width:100%!important;gap:8px!important;padding-inline:8px!important}
    & :is(.sidebar-brand h2,.universal-search108,.sidebar-user-copy){display:block!important}
@@ -55,6 +55,27 @@ html[data-device132="tablet"] body.shell113 .tab-content{
    & .groups-open14378>.grouped-children14378:not([hidden]){display:grid!important}
    & :is(.sidebar-brand,#topHeaderProfile104,#headerAccountTrigger){width:auto!important;max-width:none!important}
    & #headerAccountTrigger{justify-content:flex-start!important;font-size:13px!important;gap:8px!important}
+  }
+  html[data-device132=desktop] #appSidebar .universal-search108:not(.rail-search-open),
+  html[data-device132=tablet] #appSidebar:not(.rail-open292):not(.mobile-open) .universal-search108{display:none!important}
+  html[data-device132=desktop] #appSidebar .rail-search-button{
+   display:grid;place-items:center;width:38px;height:38px;padding:0;margin:0 0 2px;
+   border:0;border-radius:5px;background:transparent;color:inherit;cursor:pointer
+  }
+  html[data-device132=desktop] #appSidebar :is(.rail-search-button,.nav-header,#headerAccountTrigger):focus-visible{
+   outline:2px solid #f5cf8d!important;outline-offset:-2px!important
+  }
+  html[data-device132=desktop] #appSidebar .rail-search-button:hover{background:#ffffff19}
+  html[data-device132=desktop] #appSidebar .universal-search108.rail-search-open{
+   display:block!important;position:fixed!important;inset:var(--rail-search-top,52px) auto auto 58px!important;
+   width:min(320px,calc(100vw - 70px));box-sizing:border-box;padding:6px!important;background:#173c2b;
+   border:1px solid #648369;border-radius:7px;box-shadow:0 4px 14px #122b2029;z-index:2
+  }
+  html[data-device132=desktop] #appSidebar .rail-search-open>div{left:0;right:0;max-height:min(55dvh,360px)}
+  html[data-device132=desktop] body>.rail-hover-label{
+   position:fixed;left:58px;transform:translateY(-50%);z-index:1301;
+   padding:5px 10px!important;border:1px solid #55705d;border-radius:5px;background:#173c2b;color:white;
+   font:600 13px/18px 'Plus Jakarta Sans',Arial,sans-serif;white-space:nowrap;pointer-events:none
   }
   #journalEntry98:not(.foreign-lines291) .line-rate291{display:none!important}
   #journalEntry98.foreign-lines291 table:not(.table-resized143117) #jeHeaderRow .line-rate291{width:94px!important;min-width:84px!important;max-width:100px!important;white-space:normal!important;padding-inline:4px!important;line-height:1.15!important}

@@ -7,10 +7,10 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  console.log('PASS login completes six ordered database refresh stages before dismissing preparation');
  // Search must render local navigation even if unrelated remote modules never load.
  await page.evaluate(()=>{window.__oldLoadWork=loadWork82;loadWork82=()=>new Promise(()=>{});Work82.loaded=false;});
- const search=page.getByRole('searchbox',{name:'Search entire system'});await search.focus();await search.fill('update');
+ const search=page.getByRole('searchbox',{name:'Search entire system'});await page.getByRole('button',{name:'Search',exact:true}).click();await search.fill('update');
  const result=page.locator('.universal-search108 button').filter({hasText:'Website Update'});await result.waitFor({state:'visible',timeout:2000});await result.click();
  assert(await page.locator('[data-website-update143104]').isVisible());
- await search.fill('currency');await page.locator('.universal-search108 button').filter({hasText:'Currency Manager'}).first().click();assert(await page.locator('#settingsSection143176-currency').isVisible());
+ await page.getByRole('button',{name:'Search',exact:true}).click();await search.fill('currency');await page.locator('.universal-search108 button').filter({hasText:'Currency Manager'}).first().click();assert(await page.locator('#settingsSection143176-currency').isVisible());
  await page.evaluate(()=>{loadWork82=__oldLoadWork;Work82.loaded=true;});console.log('PASS Update and Currency search open the correct Settings sections without waiting for unrelated reads');
  // Warm a reference cache, then a slow server causes only a browsing fallback.
  await page.evaluate(()=>loadReferenceDataFromSupabase());let writes=0,slow=true;

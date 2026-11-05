@@ -91,11 +91,55 @@ document.addEventListener('keydown', event => {
 });
 
 
-// Laptops expose the rail with CSS hover or keyboard focus. Touch devices
-// keep a tap target and never depend on a simulated hover event.
+// One label outside the scrollable rail avoids clipping and keeps hover work
+// local. Moving within the same icon never measures the workspace.
+function installRailLabels(sidebar){
+ const label=document.createElement('span');
+ label.className='rail-hover-label no-print';
+ label.hidden=true;
+ label.setAttribute('aria-hidden','true'); // Controls already have accessible names.
+ document.body.append(label);
+ let current;
+ function hide(){
+  current=null;
+  label.hidden=true;
+ }
+ function show(control){
+  if(!control||control===current)return;
+  const name=control.getAttribute('aria-label');
+  if(!name)return;
+  const rect=control.getBoundingClientRect();
+  current=control;
+  label.textContent=name;
+  label.style.top=Math.max(17,Math.min(innerHeight-17,rect.top+rect.height/2))+'px';
+  label.hidden=false;
+ }
+ const selector='.nav-header,#headerAccountTrigger,.rail-search-button';
+ sidebar.addEventListener('pointerover',event=>{
+  if(event.pointerType!=='touch')show(event.target.closest(selector));
+ });
+ sidebar.addEventListener('pointerout',event=>{
+  if(current&&!current.contains(event.relatedTarget))hide();
+ });
+ sidebar.addEventListener('focusin',event=>{
+  if(event.target.matches(':focus-visible'))show(event.target.closest(selector));
+ });
+ sidebar.addEventListener('focusout',hide);
+ sidebar.addEventListener('click',hide,true);
+ sidebar.addEventListener('scroll',hide,true);
+ document.addEventListener('keydown',event=>{if(event.key==='Escape')hide();});
+ window.addEventListener('resize',hide);
+ window.addEventListener('blur',hide);
+ window.addEventListener('page113',hide);
+}
+
+// Touch devices keep an explicit drawer and never require hover.
 function initNavigationRail291(){
  const sidebar=document.getElementById('appSidebar');
- if(!sidebar||!document.getElementById('journalEntry98')||document.documentElement.dataset.device132!=='tablet')return;
+ if(!sidebar||!document.getElementById('journalEntry98'))return;
+ const device=document.documentElement.dataset.device132;
+ if(device==='desktop'){installRailLabels(sidebar);return;}
+ if(device!=='tablet')return;
  const button=document.createElement('button');
  button.type='button';button.className='nav-rail-toggle291';button.setAttribute('aria-controls','appSidebar');
  button.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>';

@@ -648,6 +648,38 @@ function searchInstall(){
  const box=document.createElement('div');box.className='universal-search108';box.innerHTML='<input type="search" name="app-navigation-query" autocomplete="off" autocapitalize="off" spellcheck="false" readonly data-lpignore="true" data-1p-ignore aria-label="Search entire system" placeholder="Search entire system…"><div hidden></div>';
  document.getElementById('nav-module-dashboard')?.before(box);
  const input=box.firstChild,list=box.lastChild;for(const event of ['pointerdown','focus'])input.addEventListener(event,()=>{input.readOnly=false});let timer,revision=0;
+ if(document.documentElement.dataset.device132==='desktop'){
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='rail-search-button';
+  button.setAttribute('aria-label','Search');
+  box.id='railSearchPanel';
+  button.setAttribute('aria-controls',box.id);
+  button.setAttribute('aria-expanded','false');
+  button.innerHTML='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5"/></svg>';
+  box.before(button);
+  function closeSearch(){
+   if(!box.classList.contains('rail-search-open'))return;
+   box.classList.remove('rail-search-open');
+   button.setAttribute('aria-expanded','false');
+   clearTimeout(timer);revision++;list.hidden=true;input.value='';
+  }
+  button.onclick=()=>{
+   if(box.classList.contains('rail-search-open')){closeSearch();return;}
+   box.style.setProperty('--rail-search-top',Math.max(4,button.getBoundingClientRect().top)+'px');
+   box.classList.add('rail-search-open');
+   button.setAttribute('aria-expanded','true');
+   input.focus();
+  };
+  box.addEventListener('keydown',event=>{
+   if(event.key==='Escape'){event.preventDefault();closeSearch();button.focus();}
+  });
+  box.addEventListener('click',event=>{if(event.target.closest('button'))closeSearch();});
+  box.addEventListener('focusout',event=>{if(event.relatedTarget&&!box.contains(event.relatedTarget)&&event.relatedTarget!==button)closeSearch();});
+  document.addEventListener('pointerdown',event=>{if(!box.contains(event.target)&&!button.contains(event.target))closeSearch();});
+  window.addEventListener('page113',closeSearch);
+  window.addEventListener('resize',closeSearch);
+ }
  input.oninput=()=>{clearTimeout(timer);const generation=++revision;timer=setTimeout(()=>{
   const actor=liveProfile?.id,db=ojmDb,q=input.value.trim().toLowerCase(),results=[];
   const current=()=>generation===revision&&actor===liveProfile?.id&&db===ojmDb&&input.isConnected&&input.value.trim().toLowerCase()===q;
@@ -679,7 +711,7 @@ function searchInstall(){
   const render=()=>{if(!current())return;list.replaceChildren();const seen=new Set();for(const r of results){const key=r.group+r.label;if(seen.has(key))continue;seen.add(key);if(seen.size>25)break;const b=document.createElement('button');b.type='button';const group=document.createElement('small'),label=document.createElement('span');group.textContent=r.group;label.textContent=r.label;b.append(group,label);b.onclick=()=>{list.hidden=true;if(current())r.fn()};list.append(b)}if(!list.children.length){const empty=document.createElement('p');empty.setAttribute('role','status');empty.textContent='No matching pages or loaded records. Try another name or keyword.';list.append(empty)}};
   // Navigation and loaded records never wait for an unrelated database download.
   render();
-  if(admin82()&&q.length>=2&&permitted('document-editor105'))Promise.resolve(db.from('company_documents105').select('id,data,version').ilike('data->>title','%'+q.replace(/[%_]/g,'')+'%').limit(10)).then(out=>{if(!current()||out.error)return;for(const r of out.data||[])add('Documents',r.data.title,()=>openDocumentEditor105({savedRecord:r}));render()}).catch(()=>{});
+  if(navigator.onLine&&admin82()&&q.length>=2&&permitted('document-editor105'))Promise.resolve(db.from('company_documents105').select('id,data,version').ilike('data->>title','%'+q.replace(/[%_]/g,'')+'%').limit(10)).then(out=>{if(!current()||out.error)return;for(const r of out.data||[])add('Documents',r.data.title,()=>openDocumentEditor105({savedRecord:r}));render()}).catch(()=>{});
  },140)};
  input.onkeydown=e=>{if(e.key==='Escape'){revision++;list.hidden=true}if(e.key==='ArrowDown')list.querySelector('button')?.focus()};document.addEventListener('pointerdown',e=>{if(!box.contains(e.target))list.hidden=true});
 }
