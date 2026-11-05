@@ -94,3 +94,10 @@ body.shell113 .banner-preview113 blockquote::before {
  background:linear-gradient(100deg,#e7c989d9,#f4dfb4ed 35%,#e8c58fd9);
  clip-path:polygon(1% 20%,12% 9%,31% 13%,49% 3%,70% 10%,94% 4%,99% 21%,95% 32%,100% 45%,96% 61%,99% 76%,88% 88%,68% 84%,48% 97%,26% 89%,6% 96%,2% 77%,6% 62%,0 44%,4% 32%);
 }
+#recCreate117 .rec-selection302,#recCreate117 .rec-period302,#recCreate117 .rec-add302{display:flex;flex-wrap:wrap;align-items:end;gap:10px;width:100%}
+#recCreate117 .rec-selection302 select,#recCreate117 .rec-add302 select{max-width:min(48ch,100%);width:100%}
+#recCreate117 .rec-selection302 label,#recCreate117 .rec-add302 label{min-width:0;max-width:100%}
+#recCreate117 .rec-add302{padding:10px 0;border-block:1px solid #c8d3bf}
+#recCreate117 [hidden]{display:none!important}
+#recCreate117 [data-method]{align-self:center;font-size:12px}
+#recCreate117 p:empty{display:none}

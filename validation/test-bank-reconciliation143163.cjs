@@ -13,10 +13,13 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  await page.evaluate(()=>createReconciliation71('receipt'));
  assert.deepEqual(await page.evaluate(()=>[currentReport71.opening,currentReport71.debit,currentReport71.credit,currentReport71.closing]),[100000,4000,5000,99000]);
  assert.deepEqual(await page.evaluate(()=>currentReport71.lines.map(l=>l.id)),['JAN-OUT','FEB-JAN']);
- // Explicit checkbox, not the account's name, controls the bank mode.
+ // Add a future bank account once and keep its receipt-date method.
  await page.evaluate(async()=>{document.getElementById('recOverlay71')?.remove();currentReport71=null;switchTab('user-entry-review');budgetWorkflow14316.finalization('reconciliation');await renderReconciliationList71()});
- assert.equal(await page.locator('#recCreate117 [name=bank]').isChecked(),false);
- await page.locator('#recCreate117 [name=bank]').check();await page.locator('#recCreate117 [name=account]').selectOption(key,{force:true});assert.equal(await page.locator('#recCreate117 [name=bank]').isChecked(),false);await page.locator('#recCreate117 [name=month]').fill('2026-02',{force:true});await page.locator('#recCreate117 [name=bank]').check();await page.locator('#recCreate117 button[type=submit]').click();await page.waitForFunction(()=>currentReport71?.from==='2026-02-01');
+ const form=page.locator('#recCreate117');
+ await form.locator('[data-add-account]').click();await form.locator('[name=candidate]').selectOption(key);
+ await form.locator('[name=method]').selectOption('bank');await form.locator('[data-save-account]').click();
+ await page.waitForFunction(key=>document.querySelector('#recCreate117 [name=account]').value===key,key);
+ assert.equal(await form.locator('[name=basis]').inputValue(),'receipt');await form.locator('[name=month]').fill('2026-02');await page.locator('#recCreate117 button[type=submit]').click();await page.waitForFunction(()=>currentReport71?.from==='2026-02-01');
  assert.deepEqual(await page.evaluate(()=>[currentReport71.opening,currentReport71.debit,currentReport71.credit,currentReport71.closing]),[99000,20000,3000,116000]);
  assert.deepEqual(await page.evaluate(()=>currentReport71.lines.map(l=>[l.id,l.date,l.postingDate])),[['FEB-OUT','2026-02-05','2026-02-05'],['JAN-FEB','2026-02-10','2026-01-15']]);
  // Amounts stay together; all detail sections initially collapse.
@@ -36,7 +39,7 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  // An entire cached bank dataset works offline; it cannot mix cached pages from different runs.
  await context.setOffline(true);const before=requests;await page.evaluate(async key=>{Object.assign(Accounts69,{account:key,from:'2026-03-01',to:'2026-03-31'});await createReconciliation71('receipt')},key);assert.equal(requests,before);assert.deepEqual(await page.evaluate(()=>[currentReport71.opening,currentReport71.debit,currentReport71.closing]),[116000,6000,122000]);await context.setOffline(false);
  // Cash defaults to posting dates and retains future receipt amounts in the posted month.
- await page.evaluate(async({key,normalized})=>{JournalModule.entries=normalized;Object.assign(Accounts69,{account:key,from:'2026-01-01',to:'2026-01-31'});await createReconciliation71()}, {key,normalized});assert.equal(await page.evaluate(()=>currentReport71.dateBasis),'posting');assert.deepEqual(await page.evaluate(()=>[currentReport71.opening,currentReport71.debit,currentReport71.credit,currentReport71.closing]),[100000,26000,5000,121000]);assert.equal(await page.locator('[data-rec-reverse117]').isChecked(),false);
+ await page.evaluate(async({key,normalized})=>{JournalModule.entries=normalized;Object.assign(Accounts69,{account:key,from:'2026-01-01',to:'2026-01-31'});await createReconciliation71('posting',{...Accounts69},'cash')}, {key,normalized});assert.equal(await page.evaluate(()=>currentReport71.dateBasis),'posting');assert.deepEqual(await page.evaluate(()=>[currentReport71.opening,currentReport71.debit,currentReport71.credit,currentReport71.closing]),[100000,26000,5000,121000]);assert.equal(await page.locator('[data-rec-reverse117]').count(),0);assert.equal(await page.locator('.rec-amounts71 input').count(),1);assert.match(await page.locator('.rec-amounts71').innerText(),/Actual cash counted/);
  // Cross-year carried receipt: opening already contains the prior book's payment, so avoid double counting.
  const boundary=await page.evaluate(({key,account})=>{const common={accountId:account.id,account:account.name,accountCode:account.code,currency:account.currency,status:'posted',archived:true};const rows=[{...common,id:'OB25',date:'2025-01-01',annualOpening:true,debit:1050,credit:0},{...common,id:'DEC-JAN',date:'2025-12-31',memo:'[Receipt date: 2026-01-05]',debit:0,credit:50},{...common,id:'OB26',date:'2026-01-01',annualOpening:true,debit:1000,credit:0}];const r=reconciliationAccount71(key,'2026-01-01','2026-01-31',rows);return [r.opening,r.debit,r.credit,r.closing,r.lines.map(l=>l.id)]},{key,account});assert.deepEqual(boundary,[105000,0,5000,100000,['DEC-JAN']]);
  // Invalid dates are surfaced; pending and void rows never become bank movements.

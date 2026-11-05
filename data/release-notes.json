@@ -1,7 +1,7 @@
 {
-  "version": "143.301",
+  "version": "143.302",
   "changes": [
-    "Retry an individual saved entry or downloaded copy directly from Synchronization and Data Check.",
-    "Journal copy warnings show the period. Processing appears at top center after sign-in."
+    "Reconciliation prioritizes BCEL, main cash, float, petty cash and cashier clearing. Add main accounts to your own list.",
+    "Cash counts compare the amount counted with the ledger. Bank statements default to receipt dates."
   ]
 }

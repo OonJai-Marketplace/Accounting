@@ -20,7 +20,66 @@ window.importFinance117=()=>{captureFinance();const current=draftGuard();const i
 function summaryText(d){return `${d.recipient?'Dear '+d.recipient+',\n\n':''}Budget request${d.reference?' — '+d.reference:''}\n${formatAppDate(d.date)}\n${d.purpose?d.purpose+'\n':''}\n${d.lines.map((l,i)=>`${i+1}. ${l.category}: ${l.currency} ${money(l.amount)}${l.description?' — '+l.description:''}`).join('\n')}\n\n${Object.entries(totals(d)).map(([c,t])=>`Total requested: ${c} ${money(t.requested)}${t.received||t.spent||t.convertedIn||t.convertedOut?'\nReceived: '+c+' '+money(t.received)+'\nAllocated: '+c+' '+money(t.spent)+'\nRemaining: '+c+' '+money(t.received+t.convertedIn-t.convertedOut-t.spent):''}`).join('\n')}\n${d.notes?'\n'+d.notes:''}`}
 window.shareFinance117=()=>{captureFinance();ui108.modal('Review your summary',`<textarea id="financeShare117" rows="13" style="width:100%;box-sizing:border-box">${esc(summaryText(Finance82))}</textarea><div class="finance-controls117"><button type="button" data-whatsapp117>Share to WhatsApp</button><button type="button" data-email117>Email</button><button type="button" data-copy117>Copy</button></div><p role="status"></p>`);const root=document.querySelector('.ui-overlay108:last-child'),value=()=>root.querySelector('textarea').value;root.querySelector('[data-whatsapp117]').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(value()),'_blank','noopener');root.querySelector('[data-email117]').onclick=()=>{location.href='mailto:?subject='+encodeURIComponent('Budget request '+Finance82.reference)+'&body='+encodeURIComponent(value())};root.querySelector('[data-copy117]').onclick=async()=>{try{await navigator.clipboard.writeText(value());root.querySelector('[role=status]').textContent='Copied.'}catch{root.querySelector('textarea').select();root.querySelector('[role=status]').textContent='Select and copy the summary above.'}}};
 // Select an account and period directly in Reconciliation.
-const recList=window.renderReconciliationList71;window.renderReconciliationList71=async function(){const actor=liveProfile?.id,client=ojmDb;await recList();if(liveProfile?.id!==actor||ojmDb!==client)return;const host=document.getElementById('reconciliationList71');if(!host||host.querySelector('#recCreate117'))return;const rows=accountData69(),form=document.createElement('form');form.id='recCreate117';form.className='rec-controls117';form.innerHTML=`<label>Account<select name="account" required><option value="">Choose account</option>${options(rows.map(r=>[r.key,r.account.name+' · '+r.currency]))}</select></label><label>Period<select name="mode"><option value="monthly">Month</option><option value="quarterly">Quarter</option></select></label><label data-month117>Month<input type="month" name="month" value="${today82().slice(0,7)}" required></label><label data-quarter117 hidden>Quarter<select name="quarter">${options(['1','2','3','4'].map(x=>[x,'Q'+x]))}</select></label><label data-quarter117 hidden>Year<input type="number" name="year" min="2000" max="2200" value="${new Date().getFullYear()}"></label><label><span>Reconcile as</span><span><input type="checkbox" name="bank"> Bank statement — use receipt dates</span></label><button type="submit" class="je-btn je-btn-emerald">Reconcile account</button><p role="status"></p>`;host.querySelector('.je-card-header')?.after(form);form.elements.account.onchange=()=>{form.elements.bank.checked=false};form.elements.mode.onchange=()=>{form.querySelector('[data-month117]').hidden=form.elements.mode.value!=='monthly';form.querySelectorAll('[data-quarter117]').forEach(x=>x.hidden=form.elements.mode.value!=='quarterly')};form.onsubmit=e=>{e.preventDefault();const saved={...Accounts69};try{Object.assign(Accounts69,{account:form.elements.account.value,mode:form.elements.mode.value,month:form.elements.month.value,year:form.elements.year.value,quarter:form.elements.quarter.value,query:''});periodRange71();createReconciliation71(form.elements.bank.checked?'receipt':'posting',{...Accounts69})}finally{Object.assign(Accounts69,saved)}};host.querySelectorAll('td').forEach(td=>{if(td.textContent.includes('Create a report from the General Ledger'))td.textContent='Select an account and period above to start.'})};
+const recList=window.renderReconciliationList71;
+window.renderReconciliationList71=async function(){
+ const actor=liveProfile?.id,client=ojmDb;
+ await recList();
+ const host=document.getElementById('reconciliationList71');
+ if(!actor||actor!==liveProfile?.id||ojmDb!==client||!host||!reportPermission71()||host.querySelector('#recCreate117'))return;
+ const form=document.createElement('form');form.id='recCreate117';form.className='rec-controls117';
+ const canEdit=()=>actor===liveProfile?.id&&client===ojmDb&&form.isConnected&&access113.can('report-reconciliation','edit');
+ form.innerHTML=`<div class="rec-selection302"><label>Priority accounts<select name="account" required></select></label><button type="button" class="je-btn je-btn-secondary" data-add-account>Add account</button></div>
+ <section class="rec-add302" data-add-panel hidden><label>Main account<select name="candidate"></select></label><label>Reconciliation method<select name="method">${options(Object.entries(reconciliationLabels71))}</select></label><button type="button" class="je-btn je-btn-emerald" data-save-account>Add to my list</button><button type="button" class="je-btn je-btn-secondary" data-cancel>Cancel</button></section>
+ <div class="rec-period302"><label>Period<select name="mode"><option value="monthly">Month</option><option value="quarterly">Quarter</option></select></label><label data-month117>Month<input type="month" name="month" value="${today82().slice(0,7)}" required></label><label data-quarter117 hidden>Quarter<select name="quarter">${options(['1','2','3','4'].map(x=>[x,'Q'+x]))}</select></label><label data-quarter117 hidden>Year<input type="number" name="year" min="2000" max="2200" value="${new Date().getFullYear()}"></label>
+ <label data-bank-dates hidden>Bank statement dates<select name="basis"><option value="receipt">Receipt dates</option><option value="posting">Posting dates</option></select></label><span data-method></span><button type="submit" class="je-btn je-btn-emerald">Reconcile account</button></div><p role="status"></p>`;
+ const heading=host.querySelector('.je-card-header');if(!heading)return;heading.after(form);
+ const el=form.elements,panel=form.querySelector('[data-add-panel]'),add=form.querySelector('[data-add-account]'),message=form.querySelector('[role=status]');
+ const available=()=>reconAccounts71(),find=key=>available().find(a=>accountKey69(a)===key);
+ const label=a=>[accountKey69(a),a.code+' — '+a.name+' · '+a.currency];
+ let extras={};
+ function isDefault(a){
+  if(liveProfile.role==='admin')return priorityReconciliation71.includes(String(a.code));
+  return workspaceRules(liveProfile).fundIds.includes(a.id);
+ }
+ function syncMethod(){
+  const a=find(el.account.value),method=a&&(extras[el.account.value]||defaultReconciliation71(a));
+  form.querySelector('[data-bank-dates]').hidden=method!=='bank';el.basis.value='receipt';
+  form.querySelector('[data-method]').textContent=method&&method!=='bank'?reconciliationLabels71[method]+' · posting dates':'';
+ }
+ function fill(selected){
+  const accounts=available(),primary=accounts.filter(isDefault),added=accounts.filter(a=>!isDefault(a)&&Object.hasOwn(extras,accountKey69(a)));
+  if(liveProfile.role==='admin')primary.sort((a,b)=>priorityReconciliation71.indexOf(String(a.code))-priorityReconciliation71.indexOf(String(b.code)));
+  el.account.innerHTML='<option value="">Choose account</option>'+options(primary.map(label))+(added.length?'<optgroup label="Added accounts">'+options(added.map(label))+'</optgroup>':'');
+  if(selected)el.account.value=selected;
+  el.candidate.innerHTML='<option value="">Choose main account</option>'+options(accounts.filter(a=>!isDefault(a)&&!Object.hasOwn(extras,accountKey69(a))).map(label));
+  syncMethod();
+ }
+ add.disabled=true;
+ try{extras=await reconPreferences71(actor)||{};}catch(e){message.textContent='Your saved account list could not load. '+e.message;}
+ if(!form.isConnected||actor!==liveProfile?.id||client!==ojmDb)return;
+ fill();add.disabled=!canEdit();
+ add.onclick=()=>{panel.hidden=false;el.candidate.focus()};
+ form.querySelector('[data-cancel]').onclick=()=>{panel.hidden=true;add.focus()};
+ el.candidate.onchange=()=>{const a=find(el.candidate.value);if(a)el.method.value=defaultReconciliation71(a)};
+ form.querySelector('[data-save-account]').onclick=async function(){
+  if(!canEdit())return;
+  const key=el.candidate.value,method=el.method.value;
+  if(!find(key)||!Object.hasOwn(reconciliationLabels71,method)){message.textContent='Choose a main account and method.';return;}
+  this.disabled=true;
+  try{extras=await reconPreferences71(actor,old=>({...old,[key]:method}));if(!canEdit())return;
+   fill(key);panel.hidden=true;message.textContent='Account added to your reconciliation list.';el.account.focus();
+  }catch(e){if(canEdit())message.textContent=e.message}finally{this.disabled=false}
+ };
+ el.account.onchange=syncMethod;
+ el.mode.onchange=()=>{const monthly=el.mode.value==='monthly';form.querySelector('[data-month117]').hidden=!monthly;el.month.disabled=!monthly;form.querySelectorAll('[data-quarter117]').forEach(n=>n.hidden=monthly);};
+ form.onsubmit=e=>{
+  e.preventDefault();if(!canEdit())return;
+  const account=find(el.account.value);if(!account)return;
+  const method=extras[el.account.value]||defaultReconciliation71(account),saved={...Accounts69};
+  try{Object.assign(Accounts69,{account:el.account.value,mode:el.mode.value,month:el.month.value,year:el.year.value,quarter:el.quarter.value,query:''});periodRange71();return createReconciliation71(method==='bank'?el.basis.value:'posting',{...Accounts69},method)}finally{Object.assign(Accounts69,saved)}
+ };
+ host.querySelectorAll('td').forEach(td=>{if(td.textContent.includes('Create a report from the General Ledger'))td.textContent='Select an account and period above to start.'});
+};
 window.printReport71=()=>{const r=currentReport71;if(!r)return;print82('Reconciliation — '+r.account.name,`<p>${esc(r.preparedBy)} · ${esc(r.status)} · ${r.dateBasis==='receipt'?'Receipt dates':'Posting dates'}</p>`+reconciliationComparison71(r)+snapshotTable71(r)+table(['Finding','Amount','Explanation','Status'],r.findings.map(f=>[esc(f.kind),esc(f.amount),esc(f.description),esc(f.status)]))+`<p>${esc(r.notes)}</p>`,formatAppDate(r.from)+' to '+formatAppDate(r.to))};
 // Send report data, rather than screen controls, into the editor.
 const copyBefore=window.copyReportToEditor105;window.copyReportToEditor105=function(){const active=document.querySelector('.tab-content.active');if(!active)return;let html,title,period='';const report=Object.entries(reportNames79).find(([k])=>active.querySelector(`[onclick*="printDesktopReport79('${k}')"]`));if(report){const [kind,name]=report;title=name;html=reportContent79(kind,true);period=formatAppDate(Reports79.from)+' to '+formatAppDate(Reports79.to)}else if(active.id==='report-financing82'){title='Budget & Financing Reports';html=budget14313.savedReportsHtml();period='Saved reports'}else if(active.id==='trial-balance'){title='Trial Balance';html=trialHtml69(reportRows69(trialThrough87()));period=trialRangeLabel87()}else if(active.id==='account-balances'){title='Account Balances';html=balancesHtml69(reportRows69());period=formatAppDate(Accounts69.from)+' to '+formatAppDate(Accounts69.to)}else return copyBefore();const node=document.createElement('div');node.innerHTML=html;node.querySelectorAll('.r79-metrics').forEach(metrics=>{const table=document.createElement('table');table.innerHTML='<tbody>'+[...metrics.children].map(m=>'<tr><th style="text-align:left;width:65%">'+esc(m.querySelector('small')?.textContent||'')+'</th><td style="text-align:right">'+esc(m.querySelector('strong')?.textContent||'')+'</td></tr>').join('')+'</tbody>';metrics.replaceWith(table)});node.querySelectorAll('button').forEach(b=>b.replaceWith(document.createTextNode(b.textContent)));return openDocumentEditor105({title,source:active.id,category:'Reports',capturedAt:new Date().toISOString(),html:`<h1>${esc(title)}</h1><p>${esc(period)}</p>`+node.innerHTML})};
