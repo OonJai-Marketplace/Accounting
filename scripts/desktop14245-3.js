@@ -6012,6 +6012,7 @@ function reconciliationAccount71(key,from,to,source=JournalModule.entries,basis=
 }
 async function readReconciliationAccount71(key,from,to,basis='posting',refresh=false){
  const actor=reportOwner71(),client=ojmDb,workspace=window.workspaceRequest138?.target||'';
+ if(reconciliationCloud305()){const a=reconAccounts71().find(a=>accountKey69(a)===key);return a?reconciliationSnapshot305(a,from,to,basis):null;}
  const check=()=>{if(actor!==reportOwner71()||client!==ojmDb||(window.workspaceRequest138?.target||'')!==workspace||!reportPermission71())throw Error('Account or workspace changed while loading reconciliation.');};
  if(basis!=='receipt'){
   if(liveProfile){await window.yearWindow14333?.ensure(from,to);check();if(refresh)await loadJournalFromSupabase();check();}
@@ -6047,8 +6048,50 @@ function defaultReconciliation71(a){
  if(a.type==='ASSET'&&/cash on hand|petty cash|cashier float|^cash$/i.test(a.name))return 'cash';
  return 'balance';
 }
-function reconPreferences71(owner,update){
- return window.localFirst14333.edit(owner,'reconciliation-list302',update);
+function reconciliationCloud305(){return liveProfile?.role==='admin'}
+async function reconciliationRpc305(name,args={}){
+ const actor=reportOwner71(),client=ojmDb;
+ if(navigator.onLine===false)throw Error('Connect to save and verify reconciliation.');
+ const result=await client.rpc(name,args);
+ if(actor!==reportOwner71()||client!==ojmDb)throw Error('Account changed while verifying reconciliation.');
+ if(result.error)throw Error(result.error.message);return result.data;
+}
+async function reconPreferences71(owner,update){
+ if(!reconciliationCloud305())return window.localFirst14333.edit(owner,'reconciliation-list302',update);
+ let saved=await reconciliationRpc305('reconciliation_preferences305');
+ if(saved.preferences===null){
+  const local=await window.localFirst14333.edit(owner,'reconciliation-list302')||{};
+  try{saved=await reconciliationRpc305('reconciliation_preferences305',{p_preferences:local,p_revision:saved.revision})}
+  catch(e){if(!/list changed/.test(e.message))throw e;saved=await reconciliationRpc305('reconciliation_preferences305')}
+ }
+ if(update)saved=await reconciliationRpc305('reconciliation_preferences305',{p_preferences:update(structuredClone(saved.preferences)),p_revision:saved.revision});
+ return saved.preferences||{};
+}
+async function reconciliationSnapshot305(account,from,to,basis){
+ const data=await reconciliationRpc305('reconciliation_snapshot305',{p_account:account.id,p_from:from,p_to:to,p_basis:basis});
+ return {...data,account,key:accountKey69(account),currency:account.currency};
+}
+async function reconciliationRecords305(){
+ const actor=reportOwner71(),client=ojmDb;
+ let local=[];try{local=await reportStore71('readonly',s=>s.getAll())}catch(e){if(!reconciliationCloud305())throw e}
+ local=local.filter(r=>r.owner===actor);
+ if(!reconciliationCloud305())return local;
+ const remote=await reconciliationRpc305('reconciliation_records305'),records=new Map(local.map(r=>[reconciliationKey71(r),r]));
+ for(const r of remote)records.set(reconciliationKey71(r),r);
+ // Preserve saved legacy counts when their dated financial movements still match.
+ for(const r of local){
+  if(records.get(reconciliationKey71(r))?.cloudConfirmed305||!reconciliationRecorded71(r))continue;
+  try{
+   validateReport71(r,'save');const latest=await reconciliationSnapshot305(r.account,r.from,r.to,r.dateBasis||'posting');
+   const signature=x=>JSON.stringify([x.opening,x.debit,x.credit,x.closing,x.lines.map(l=>[l.date,l.dr,l.cr]).sort()]);
+   if(signature(r)!==signature(latest))continue;
+   const copy={...r,method:reportMethod71(r),status:reportCalculation71(r).difference===0?'reconciled':'saved'};
+   const saved=await reconciliationRpc305('reconciliation_save305',{p_report:copy,p_fingerprint:latest.fingerprint});
+   records.set(reconciliationKey71(saved),saved);
+   try{await reportStore71('readwrite',s=>s.put(saved))}catch{}
+  }catch(e){if(actor!==reportOwner71()||client!==ojmDb)throw e;/* Older incomplete counts remain visible but cannot authorize closing. */}
+ }
+ return [...records.values()];
 }
 function reportMethod71(r){
  if(Object.hasOwn(reconciliationLabels71,r.method))return r.method;
@@ -6056,6 +6099,17 @@ function reportMethod71(r){
  if(r.dateBasis!=='posting'||['statementOpening117','statementDebit117','statementCredit117'].some(k=>r[k]!=null&&r[k]!==''))return 'bank';
  return defaultReconciliation71(r.account);
 }
+// Visible month/account numbers are independent of the unique saved-record key.
+function reconciliationId71(account,to){
+ const month=String(to||'').slice(0,7),code=String(account?.code||'').trim();
+ if(!/^\d{4}-\d{2}$/.test(month)||!code)throw Error('Choose an account and period before saving reconciliation.');
+ return 'REC-'+month.slice(2,4)+month.slice(5,7)+'-'+code;
+}
+function reconciliationNumber71(r){try{return reconciliationId71(r.account,r.to)}catch{return r.id}}
+function reconciliationKey71(r){return r.recordId||r.id}
+function reconciliationRecorded71(r){return r.status!=='draft'||!!r.key}
+function reconciliationStatus71(r){return r.status==='draft'?(r.key?'Saved':'Not saved'):r.status==='saved'?'Saved with difference':r.status==='reconciled'?'Saved':r.status}
+function confirmReconciliation71(checked){if(currentReport71?.status==='draft')currentReport71.differenceConfirmed=!!checked}
 async function createReconciliation71(dateBasis,selection=Accounts69,method){
  if(!reportPermission71())return showAppNotification('Access denied','Reconciliation Reports is not enabled in your permissions.',true);
  const {account:key,from,to}=selection,actor=reportOwner71(),client=ojmDb,request=++reportRequest71;
@@ -6072,16 +6126,16 @@ async function createReconciliation71(dateBasis,selection=Accounts69,method){
  const r=await readReconciliationAccount71(key,from,to,dateBasis);
  if(request!==reportRequest71||actor!==reportOwner71()||client!==ojmDb||!reportPermission71())return;
  if(!r)return showAppNotification('Choose one account','Select the bank account in the General Ledger Account filter before creating a report.',true);
- currentReport71={id:'REC-'+crypto.randomUUID(),owner:actor,method,accountKey:r.key,account:structuredClone(r.account),currency:r.currency,from,to,dateBasis:dateBasis==='receipt'?'receipt':'posting',statementReverse117:dateBasis==='receipt',opening:r.opening,debit:r.debit,credit:r.credit,closing:r.closing,lines:structuredClone(r.lines),statement:'',statementReference:'',notes:'',reviewer:'',preparedBy:preparer71(),createdAt:new Date().toISOString(),snapshotAt:new Date().toISOString(),status:'draft',findings:[],attachments:[]};renderReport71();
+ currentReport71={id:reconciliationId71(r.account,to),recordId:crypto.randomUUID(),owner:actor,method,accountKey:r.key,account:structuredClone(r.account),currency:r.currency,from,to,cloudFingerprint305:r.fingerprint||null,correctionSession305:r.session||null,dateBasis:dateBasis==='receipt'?'receipt':'posting',statementReverse117:dateBasis==='receipt',opening:r.opening,debit:r.debit,credit:r.credit,closing:r.closing,lines:structuredClone(r.lines),statement:'',statementReference:'',notes:'',reviewer:'',preparedBy:preparer71(),createdAt:new Date().toISOString(),snapshotAt:new Date().toISOString(),status:'draft',findings:[],attachments:[]};renderReport71();
  }catch(e){if(request===reportRequest71&&actor===reportOwner71()&&client===ojmDb)showAppNotification('Reconciliation unavailable',e.message,true)}
 }
 function reportCalculation71(r){const statement=r.statement==null||r.statement===''?null:cents69(r.statement),outstanding=r.findings.filter(f=>f.kind==='outstanding').reduce((s,f)=>s+cents69(f.amount),0);return {statement,outstanding,adjusted:statement===null?null:statement+outstanding,difference:statement===null?null:r.closing-statement-outstanding}}
-function recField71(key,value){if(currentReport71?.status!=='draft')return;currentReport71[key]=value;updateRecTotals71()}
+function recField71(key,value){if(currentReport71?.status!=='draft')return;if(currentReport71[key]!==value)currentReport71.differenceConfirmed=false;currentReport71[key]=value;updateRecTotals71()}
 function recAmountValue71(input){const raw=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').get.call(input);return raw.trim()===''?'':String(input.type==='number'?Number(raw):parseAppNumber(raw))}
 function recAmountField71(key,input){recField71(key,recAmountValue71(input))}
-function findingChange71(index,key,value){if(currentReport71?.status!=='draft')return;currentReport71.findings[index][key]=value;updateRecTotals71()}
-function addFinding71(){if(currentReport71?.status!=='draft')return;currentReport71.findings.push({kind:'unexplained',amount:'',description:'',entryId:'',status:'investigating'});renderReport71()}
-function removeFinding71(index){if(currentReport71?.status!=='draft')return;currentReport71.findings.splice(index,1);renderReport71()}
+function findingChange71(index,key,value){if(currentReport71?.status!=='draft')return;currentReport71.differenceConfirmed=false;currentReport71.findings[index][key]=value;updateRecTotals71()}
+function addFinding71(){if(currentReport71?.status!=='draft')return;currentReport71.differenceConfirmed=false;currentReport71.findings.push({kind:'unexplained',amount:'',description:'',entryId:'',status:'investigating'});renderReport71()}
+function removeFinding71(index){if(currentReport71?.status!=='draft')return;currentReport71.differenceConfirmed=false;currentReport71.findings.splice(index,1);renderReport71()}
 function statementParts71(r){
  const read=k=>r[k]!==''&&r[k]!=null&&Number.isFinite(Number(r[k]))?cents69(r[k]):null;
  const opening=read('statementOpening117'),dr=read('statementDebit117'),cr=read('statementCredit117'),reverse=r.statementReverse117!==false;
@@ -6102,25 +6156,25 @@ function reconciliationComparison71(r){
 }
 function updateRecTotals71(){
  const r=currentReport71;if(!r)return;const c=reportCalculation71(r),p=statementParts71(r),reason=document.querySelector('[data-bank-reason14346]');
- if(reason){reason.hidden=(c.difference===null||c.difference===0)&&!r.notes;reason.querySelector('textarea').required=c.difference!==null&&c.difference!==0}
+ if(reason){reason.hidden=(c.difference===null||c.difference===0)&&!r.notes;reason.querySelector('textarea').required=c.difference!==null&&c.difference!==0;const confirmation=reason.querySelector('[data-rec-confirm305]');if(confirmation){confirmation.closest('label').hidden=c.difference===null||c.difference===0;confirmation.checked=!!r.differenceConfirmed}}
  const table=document.getElementById('recCompare117');if(table)table.innerHTML=reconciliationComparison71(r);
  const check=document.getElementById('recStatementCheck71');if(check){check.hidden=p.calculated===null||c.statement===null||p.calculated===c.statement;check.textContent=check.hidden?'':`Statement totals differ by ${money69(c.statement-p.calculated)} ${r.currency}. Calculated closing: ${money69(p.calculated)}.`;}
 }
 function renderReport71(){
- document.getElementById('recOverlay71')?.remove();const r=currentReport71;if(!r)return;const locked=r.status!=='draft',disabled=locked?'disabled':'',e=escapeHtml;
+ document.getElementById('recOverlay71')?.remove();const r=currentReport71;if(!r)return;const locked=reconciliationRecorded71(r),disabled=locked?'disabled':'',e=escapeHtml;
  const method=reportMethod71(r),bank=method==='bank',title=bank?'Bank Reconciliation Report':method==='cash'?'Cash Count Reconciliation':'Account Reconciliation Report';
  const fields=bank?[['statementOpening117','Previous / Opening Balance'],['statementDebit117','Statement DR'],['statementCredit117','Statement CR'],['statement','Ending Balance']]:[['statement',method==='cash'?'Actual cash counted':'Supporting balance']];
  const overlay=document.createElement('div');overlay.id='recOverlay71';overlay.className='rec-overlay71';
- overlay.innerHTML=`<section class="rec-dialog71"><header><div><h3>${title}</h3><small>${e(r.id)} · ${e(r.status.toUpperCase())}</small></div><div class="module-actions71">${locked?'':`<button class="je-btn je-btn-secondary" onclick="refreshReportSnapshot71()">Refresh Ledger Figures</button><button class="je-btn je-btn-secondary" onclick="saveReport71(false)">Save Draft</button><button class="je-btn je-btn-emerald" onclick="saveReport71(true)">Finish Reconciliation</button>`}<button class="je-btn je-btn-secondary" onclick="printReport71()">Print / PDF</button><button class="je-btn je-btn-secondary" onclick="exportReport71()">Download Backup</button><button class="je-btn je-btn-secondary close117" onclick="closeReport71()" aria-label="Close">×</button></div></header>
- <div class="rec-body71"><div class="rec-account71"><strong>${e(r.account.code+' — '+r.account.name)} · ${e(r.currency)}</strong><span>${e(r.from?formatAppDate(r.from):'Beginning')} – ${e(formatAppDate(r.to))}</span></div>
+ overlay.innerHTML=`<section class="rec-dialog71" data-method="${e(method)}" role="dialog" aria-modal="true" aria-labelledby="recTitle71"><header><div><h3 id="recTitle71">${title}</h3><small>${e(reconciliationNumber71(r))} · ${e(reconciliationStatus71(r))}</small></div></header>
+ <div class="rec-body71">
  <section class="rec-section71 rec-comparison117" data-currency-code="${e(r.currency)}"><header><h4>${bank?'System and statement comparison':method==='cash'?'Physical cash count':'Supporting record comparison'}</h4></header><div class="rec-body71">
- <div class="rec-amounts71">${fields.map(([key,label])=>`<label>${label}<input ${key==='statement'?'id="recStatement71"':`data-rec117="${key}"`} type="number" step="0.01" data-financial-number data-currency="${e(r.currency)}" value="${e(r[key]??'')}" ${disabled} oninput="recAmountField71('${key}',this)"></label>`).join('')}</div>
- <div class="rec-basis71">${bank?`<label><input type="checkbox" data-rec-reverse117 ${r.statementReverse117!==false?'checked':''} ${disabled} onchange="recField71('statementReverse117',this.checked)"> Bank CR = deposits; bank DR = withdrawals</label>`:''}<span>${r.dateBasis==='receipt'?'Bank · receipt dates':'Posting dates'}</span></div>
- <p id="recStatementCheck71" class="rec-error71" role="status" hidden></p></div><div id="recCompare117"></div><div data-bank-reason14346 class="rec-body71" hidden><label>Explanation of difference<textarea placeholder="Explain the difference" ${disabled} oninput="recField71('notes',this.value)">${e(r.notes)}</textarea></label></div></section>
- <p class="rec-error71" id="recError71" role="status"></p>
+ <div class="rec-account71"><strong>${e(r.account.code+' — '+r.account.name)} · ${e(r.currency)}</strong><span>${e(r.from?formatAppDate(r.from):'Beginning')} – ${e(formatAppDate(r.to))}</span></div>
+ ${locked?'':`<div class="rec-amounts71">${fields.map(([key,label])=>`<label>${label}<input ${key==='statement'?'id="recStatement71"':`data-rec117="${key}"`} type="number" step="0.01" data-financial-number data-currency="${e(r.currency)}" value="${e(r[key]??'')}" ${disabled} oninput="recAmountField71('${key}',this)"></label>`).join('')}</div>`}
+ <div class="rec-basis71">${bank&&!locked?`<label><input type="checkbox" data-rec-reverse117 ${r.statementReverse117!==false?'checked':''} ${disabled} onchange="recField71('statementReverse117',this.checked)"> Bank CR = deposits; bank DR = withdrawals</label>`:''}<span>${r.dateBasis==='receipt'?'Bank · receipt dates':'Posting dates'}</span></div>
+ <p id="recStatementCheck71" class="rec-error71" role="status" hidden></p></div><div id="recCompare117"></div><div data-bank-reason14346 class="rec-body71" hidden><label>Explanation of difference<textarea placeholder="Explain the difference" ${disabled} oninput="recField71('notes',this.value)">${e(r.notes)}</textarea></label><label class="rec-confirm305"><input type="checkbox" data-rec-confirm305 ${r.differenceConfirmed?'checked':''} ${disabled} onchange="confirmReconciliation71(this.checked)"> I confirm this amount and the explanation of the difference.</label></div></section>
  <details class="rec-section71" data-rec-findings ${r.findings.length?'open':''}><summary>Findings &amp; Outstanding Items${r.findings.length?' · '+r.findings.length:''}</summary><div class="rec-body71">${locked?'':`<button class="je-btn je-btn-secondary" onclick="addFinding71()">Add Finding</button>`}</div><div class="table-container"><table><thead><tr><th>Type</th><th>Signed amount</th><th>Explanation / resolution</th><th>Journal entry ID</th><th>Status</th>${locked?'':'<th>Action</th>'}</tr></thead><tbody>${r.findings.map((f,i)=>`<tr><td><select ${disabled} onchange="findingChange71(${i},'kind',this.value)">${[['outstanding','Timing / outstanding'],['correction','Posted correction'],['unexplained','Unexplained difference']].map(([v,t])=>`<option value="${v}" ${f.kind===v?'selected':''}>${t}</option>`).join('')}</select></td><td><input type="number" step="0.01" value="${e(f.amount)}" ${disabled} oninput="findingChange71(${i},'amount',recAmountValue71(this))"></td><td><textarea ${disabled} oninput="findingChange71(${i},'description',this.value)">${e(f.description)}</textarea></td><td><input value="${e(f.entryId)}" placeholder="Exact journal ID" ${disabled} oninput="findingChange71(${i},'entryId',this.value)"></td><td><select ${disabled} onchange="findingChange71(${i},'status',this.value)">${['investigating','outstanding','resolved'].map(v=>`<option ${f.status===v?'selected':''}>${v}</option>`).join('')}</select></td>${locked?'':`<td><button class="je-btn je-btn-danger" onclick="removeFinding71(${i})" aria-label="Remove finding">×</button></td>`}</tr>`).join('')||`<tr><td colspan="${locked?5:6}">No findings recorded.</td></tr>`}</tbody></table></div></details>
- <details class="rec-section71" data-rec-documents><summary>Supporting Documents${r.attachments.length?' · '+r.attachments.length+' files':''}</summary><div class="rec-body71"><div class="rec-grid71"><label>Prepared by<strong>${e(r.preparedBy)}</strong></label><label>Reviewed by (name / reference)<input value="${e(r.reviewer)}" ${disabled} oninput="recField71('reviewer',this.value)"></label></div>${locked?'':'<label>Attach supporting evidence (PDF, PNG or JPEG; 10 MB each)<input type="file" accept="application/pdf,image/png,image/jpeg" multiple onchange="attachReportFiles71(this)"></label>'}<div id="recAttachments71" class="rec-attachments71">${r.attachments.map((a,i)=>`<span><button class="je-btn je-btn-secondary" onclick="downloadAttachment71(${i})">${e(a.name)}</button>${locked?'':`<button class="je-btn je-btn-secondary" onclick="currentReport71.attachments.splice(${i},1);renderReport71()" aria-label="Remove attachment">×</button>`}</span>`).join('')}</div></div></details>
- <details class="rec-section71" data-rec-ledger><summary>Ledger details · ${r.lines.length} lines</summary>${snapshotTable71(r)}</details></div></section>`;
+ <details class="rec-section71" data-rec-documents><summary>Supporting Documents${r.attachments.length?' · '+r.attachments.length+' files':''}</summary><div class="rec-body71"><div class="rec-grid71"><label>Prepared by<strong>${e(r.preparedBy)}</strong></label><label>Reviewed by (name / reference)<input value="${e(r.reviewer)}" ${disabled} oninput="recField71('reviewer',this.value)"></label></div>${locked?'':'<label>Supporting evidence (optional; PDF, PNG or JPEG; 10 MB each)<input type="file" accept="application/pdf,image/png,image/jpeg" multiple onchange="attachReportFiles71(this)"></label>'}<div id="recAttachments71" class="rec-attachments71">${r.attachments.map((a,i)=>`<span><button class="je-btn je-btn-secondary" onclick="downloadAttachment71(${i})">${e(a.name)}</button>${locked?'':`<button class="je-btn je-btn-secondary" onclick="currentReport71.attachments.splice(${i},1);renderReport71()" aria-label="Remove attachment">×</button>`}</span>`).join('')}</div></div></details>
+ <details class="rec-section71" data-rec-ledger><summary>Ledger details · ${r.lines.length} lines</summary>${snapshotTable71(r)}</details>${r.correctionSession305&&!r.correctionApplied305?'<p class="rec-section71">This reconciliation includes pending book corrections. Finish those corrections to apply them to the ledger.</p>':''}</div><footer class="rec-actions305"><div class="module-actions71"><button type="button" class="je-btn je-btn-secondary" onclick="closeReport71()">Close</button>${locked?'<button type="button" class="je-btn je-btn-emerald" onclick="printReport71()">Export / Print</button>':'<button type="button" class="je-btn je-btn-emerald" data-rec-save305 onclick="saveReport71()">Save</button>'}</div><p class="rec-error71" id="recError71" role="status"></p></footer></section>`;
  document.body.appendChild(overlay);overlay.onclick=event=>{if(event.target===overlay)closeReport71()};updateRecTotals71();
 }
 function snapshotTable71(r){const receipt=r.dateBasis==='receipt';return `<div class="table-container"><table class="rec-ledger71"><thead><tr><th class="rec-compact71">${receipt?'Receipt date':'Date'}</th>${receipt?'<th class="rec-compact71">Posting date</th>':''}<th class="rec-compact71">Entry ID</th><th class="rec-description71">Description</th><th class="rec-compact71 rec-number71">Debit</th><th class="rec-compact71 rec-number71">Credit</th></tr></thead><tbody>${r.lines.map(l=>`<tr><td class="rec-compact71">${escapeHtml(formatAppDate(l.date))}</td>${receipt?`<td class="rec-compact71">${escapeHtml(formatAppDate(l.postingDate||l.date))}</td>`:''}<td class="rec-compact71">${escapeHtml(l.id)}</td><td class="rec-description71">${journalMemoHtml143187(journalMemoValue143187(l))}</td><td class="rec-compact71 rec-number71">${money69(l.dr)}</td><td class="rec-compact71 rec-number71">${money69(l.cr)}</td></tr>`).join('')}</tbody></table></div>`}
@@ -6134,21 +6188,55 @@ function validateReport71(r,finish){
  for(const f of r.findings){if(f.amount===''||!Number.isFinite(Number(f.amount))||Math.abs(Number(f.amount)*100-Math.round(Number(f.amount)*100))>0.00001||!f.description.trim())throw Error('Each finding needs an amount with at most two decimal places and an explanation.');if(f.entryId&&!r.lines.some(l=>l.id===f.entryId))throw Error('Linked entry '+f.entryId+' is not in this account snapshot. Refresh the ledger figures after posting a correction.');}
  if(reportCalculation71(r).difference!==null&&reportCalculation71(r).difference!==0&&!String(r.notes||'').trim())throw Error('Explain the reconciliation difference.');
  if(!finish)return;
- if(r.statement==null||r.statement==='')throw Error(reportMethod71(r)==='cash'?'Enter the actual cash counted.':reportMethod71(r)==='bank'?'Enter the statement closing balance.':'Enter the supporting balance.');
+ if(r.statement==null||String(r.statement).trim()==='')throw Error(reportMethod71(r)==='cash'?'Enter the actual cash counted.':reportMethod71(r)==='bank'?'Enter the statement closing balance.':'Enter the supporting balance.');
  if(reportMethod71(r)==='bank'&&r.status==='draft'&&statementParts71(r).calculated!==null&&statementParts71(r).calculated!==cents69(r.statement))throw Error('The statement opening, DR and CR do not agree with its closing balance. Check the four amounts.');
+ if(finish==='save'){if(reportCalculation71(r).difference!==0&&!r.differenceConfirmed)throw Error('Confirm the amount and explanation of the difference before saving.');return;}
  if(reportCalculation71(r).difference!==0)throw Error('The unexplained difference must be zero before finishing.');
  if(r.findings.some(f=>f.kind==='unexplained'||f.status==='investigating'||(f.kind==='correction'&&(!f.entryId||f.status!=='resolved'))||(f.kind==='outstanding'&&f.status!=='outstanding')))throw Error('Resolve unexplained findings. Timing items must be Outstanding; corrections must be Resolved with a linked posted entry.');
 }
-async function saveReport71(finish){if(reportAttaching71)return recError71('Wait for the attachment to finish loading before saving.');if(reportBusy71||currentReport71?.status!=='draft')return;reportBusy71=true;const report=currentReport71,actor=reportOwner71(),client=ojmDb;try{if(!reportPermission71()||currentReport71.owner!==reportOwner71())throw Error('Report access is not available.');validateReport71(currentReport71,finish);if(finish){const latest=await readReconciliationAccount71(report.accountKey,report.from,report.to,report.dateBasis,true);if(reportOwner71()!==actor||client!==ojmDb||currentReport71!==report)return;const signature=x=>JSON.stringify([x.opening,x.debit,x.credit,x.closing,x.lines.map(l=>[l.id,l.date,l.postingDate,l.memo,l.dr,l.cr])]);if(!latest||signature(latest)!==signature(report))throw Error('The ledger has changed. Refresh Ledger Figures, review the differences, then finish again.');}validateReport71(currentReport71,finish);const originalState=JSON.stringify(currentReport71),copy=structuredClone(currentReport71);copy.status=finish?'reconciled':'draft';copy.updatedAt=new Date().toISOString();if(finish){copy.completedAt=copy.updatedAt;copy.completedBy=preparer71()}copy.key=copy.owner+':'+copy.id;await reportStore71('readwrite',s=>s.put(copy));if(reportOwner71()!==actor||client!==ojmDb||currentReport71!==report)return;if(JSON.stringify(currentReport71)!==originalState){recError71('Report saved. Newer edits remain unsaved.');return}currentReport71=copy;renderReport71();recError71(finish?'Reconciliation saved. This snapshot is now read-only.':'Draft saved in this browser.');await renderReconciliationList71()}catch(e){recError71('Not saved: '+e.message)}finally{reportBusy71=false}}
-function closeReport71(){const report=currentReport71;if(currentReport71?.status==='draft'){if(document.querySelector('#activeAppConfirm.rec-confirm14231'))return;showAppConfirm('Close report','Unsaved changes will be lost. Save Draft first if you want to keep them.','Close',()=>{if(currentReport71!==report)return;document.getElementById('recOverlay71')?.remove();currentReport71=null});const confirm=document.getElementById('activeAppConfirm');confirm.classList.add('rec-confirm14231');confirm.setAttribute('role','alertdialog');confirm.setAttribute('aria-modal','true');confirm.setAttribute('aria-label','Close bank reconciliation report');confirm.querySelector('[data-cancel]').focus({preventScroll:true});return}document.getElementById('recOverlay71')?.remove();currentReport71=null}
+async function saveReport71(mode='save'){
+ if(reportAttaching71)return recError71('Wait for the attachment to finish loading before saving.');
+ if(reportBusy71||currentReport71?.status!=='draft')return;
+ reportBusy71=true;const report=currentReport71,actor=reportOwner71(),client=ojmDb,finish=mode!==false;
+ const current=()=>reportOwner71()===actor&&client===ojmDb&&currentReport71===report;
+ const button=document.querySelector('[data-rec-save305]');if(button)button.disabled=true;
+ try{
+  if(!reportPermission71()||report.owner!==actor||!access113.can('report-reconciliation','edit'))throw Error('Report access is not available.');
+  validateReport71(report,mode);
+  if(finish){
+   const latest=await readReconciliationAccount71(report.accountKey,report.from,report.to,report.dateBasis,true);if(!current())return;
+   const signature=x=>JSON.stringify([x.opening,x.debit,x.credit,x.closing,x.lines.map(l=>[l.id,l.date,l.postingDate,l.memo,l.dr,l.cr])]);
+   if(!latest)throw Error('The original account is no longer available.');
+   if((latest.fingerprint&&latest.fingerprint!==report.cloudFingerprint305)||signature(latest)!==signature(report)){
+    Object.assign(report,{cloudFingerprint305:latest.fingerprint||null,correctionSession305:latest.session||null,opening:latest.opening,debit:latest.debit,credit:latest.credit,closing:latest.closing,lines:structuredClone(latest.lines),snapshotAt:new Date().toISOString(),differenceConfirmed:false});renderReport71();
+    throw Error('The ledger has changed. Review the updated figures and save again.');
+   }
+  }
+  if(!reportPermission71()||!access113.can('report-reconciliation','edit'))throw Error('Report access is not available.');
+  validateReport71(report,mode);const originalState=JSON.stringify(report),copy=structuredClone(report);
+  copy.status=finish?(reportCalculation71(copy).difference===0?'reconciled':'saved'):'draft';copy.updatedAt=new Date().toISOString();
+  if(finish){copy.completedAt=copy.updatedAt;copy.completedBy=preparer71()}
+  copy.key=copy.owner+':'+reconciliationKey71(copy);
+  if(finish&&reconciliationCloud305())Object.assign(copy,await reconciliationRpc305('reconciliation_save305',{p_report:copy,p_fingerprint:report.cloudFingerprint305}));
+  if(!current())return;
+  try{await reportStore71('readwrite',s=>s.put(copy))}catch(e){if(!copy.cloudConfirmed305)throw e}
+
+  if(!current())return;
+  if(JSON.stringify(report)!==originalState){recError71('Report saved. Newer edits remain unsaved.');return}
+  currentReport71=copy;
+  if(finish){document.getElementById('recOverlay71')?.remove();currentReport71=null;await renderReconciliationList71();const notice=document.querySelector('#recCreate117 [role=status]');if(notice)notice.textContent=reconciliationNumber71(copy)+' saved.';}
+  else{renderReport71();recError71('Reconciliation saved.');await renderReconciliationList71();}
+ }catch(e){if(current())recError71('Not saved: '+e.message)}finally{reportBusy71=false;const save=document.querySelector('[data-rec-save305]');if(save)save.disabled=false}
+}
+function closeReport71(){const report=currentReport71;if(currentReport71&&!reconciliationRecorded71(currentReport71)){if(document.querySelector('#activeAppConfirm.rec-confirm14231'))return;showAppConfirm('Close report','Unsaved changes will be lost. Save first if you want to keep them.','Close',()=>{if(currentReport71!==report)return;document.getElementById('recOverlay71')?.remove();currentReport71=null});const confirm=document.getElementById('activeAppConfirm');confirm.classList.add('rec-confirm14231');confirm.setAttribute('role','alertdialog');confirm.setAttribute('aria-modal','true');confirm.setAttribute('aria-label','Close reconciliation');confirm.querySelector('[data-cancel]').focus({preventScroll:true});return}document.getElementById('recOverlay71')?.remove();currentReport71=null}
 document.addEventListener('keydown',event=>{if(event.key!=='Escape'||!document.getElementById('recOverlay71')||document.querySelector('#activeAppConfirm,.ui-overlay108,.account-list1428'))return;event.preventDefault();closeReport71()});
 async function attachReportFiles71(input){if(currentReport71?.status!=='draft')return;const report=currentReport71,actor=reportOwner71(),client=ojmDb;reportAttaching71=true;try{for(const f of input.files){if(!['application/pdf','image/png','image/jpeg'].includes(f.type)||f.size>10*1024*1024)throw Error('Use PDF, PNG or JPEG files up to 10 MB each.');const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(f)});if(actor!==reportOwner71()||client!==ojmDb||currentReport71!==report)return;report.attachments.push({name:f.name,type:f.type,data})}if(currentReport71===report)renderReport71()}catch(e){recError71(e.message)}finally{reportAttaching71=false}}
 async function downloadData71(data,name,type){const url=URL.createObjectURL(new Blob([data],{type}));const a=document.createElement('a');a.href=url;a.download=name;await (window.exportCenter14337?exportCenter14337.fromLink(a):a.click());setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function downloadAttachment71(i){const a=currentReport71?.attachments[i];if(!a)return;const bytes=Uint8Array.from(atob(a.data.split(',')[1]),c=>c.charCodeAt(0));downloadData71(bytes,a.name,a.type)}
 function exportReport71(){if(!currentReport71)return;downloadData71(JSON.stringify({format:'oonjai-reconciliation-1',report:currentReport71},null,2),currentReport71.id+'.json','application/json')}
-async function renderReconciliationList71(){const host=document.getElementById('reconciliationList71');if(!host||!reportPermission71())return;try{const all=await reportStore71('readonly',s=>s.getAll()),rows=all.filter(r=>r.owner===reportOwner71()).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));host.innerHTML=`<div class="je-card-header"><div><h3>Reconciliation Reports</h3><p>Saved snapshots for this user in this browser. Back up reports before clearing browser data.</p></div><div class="module-actions71"><button class="je-btn je-btn-secondary" onclick="document.getElementById('importRec71').click()">Import Backup</button><button class="je-btn je-btn-emerald" onclick="scrollToAccountModule('sec-general-ledger')">Open General Ledger</button><input id="importRec71" type="file" accept="application/json,.json" hidden onchange="importReport71(this)"></div></div><div class="table-container"><table><thead><tr><th>Report</th><th>Account</th><th>Period</th><th>Status</th><th>Updated</th><th>Action</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${escapeHtml(r.id)}</td><td>${escapeHtml(r.account.name)} (${escapeHtml(r.currency)})</td><td>${escapeHtml(formatAppDate(r.from))} – ${escapeHtml(formatAppDate(r.to))}</td><td>${escapeHtml(r.status)}</td><td>${escapeHtml(formatAppDate(r.updatedAt))}</td><td><button class="je-btn je-btn-secondary" onclick="openSavedReport71('${encodeURIComponent(r.id).replaceAll("'",'%27')}')">Open</button></td></tr>`).join('')||'<tr><td colspan="6">Create a report from the General Ledger after selecting one bank account.</td></tr>'}</tbody></table></div>`}catch(e){host.textContent='Report storage unavailable: '+e.message}}
-async function openSavedReport71(id){if(!reportPermission71())return;try{const r=await reportStore71('readonly',s=>s.get(reportOwner71()+':'+decodeURIComponent(id)));if(!r||r.owner!==reportOwner71())throw Error('Report not found for this user.');currentReport71=r;renderReport71()}catch(e){recError71(e.message)}}
-async function importReport71(input){const actor=reportOwner71(),client=ojmDb;try{if(!reportPermission71())throw Error('Report access is not available.');const file=input.files[0];if(!file)return;if(file.size>50*1024*1024)throw Error('Backup exceeds 50 MB.');const data=JSON.parse(await file.text()),r=data.report;if(data.format!=='oonjai-reconciliation-1'||!r||!Array.isArray(r.lines)||!Array.isArray(r.findings)||!Array.isArray(r.attachments)||!r.account?.name||!['draft','reconciled'].includes(r.status)||!Number.isSafeInteger(r.closing))throw Error('Invalid report backup.');if(r.attachments.some(a=>!/^data:(application\/pdf|image\/png|image\/jpeg);base64,[A-Za-z0-9+/=]+$/.test(a.data)))throw Error('Unsupported attachment in backup.');validateReport71(r,r.status==='reconciled');if(actor!==reportOwner71()||client!==ojmDb||!reportPermission71())return;r.originalReportId=r.id;r.id='REC-'+crypto.randomUUID();r.owner=reportOwner71();r.key=r.owner+':'+r.id;r.updatedAt=new Date().toISOString();r.importedAt=r.updatedAt;await reportStore71('readwrite',s=>s.put(r));await renderReconciliationList71()}catch(e){showAppNotification('Import failed',e.message,true)}finally{input.value=''}}
+async function renderReconciliationList71(){const host=document.getElementById('reconciliationList71');if(!host||!reportPermission71())return;try{const all=await reconciliationRecords305(),rows=all.filter(r=>r.owner===reportOwner71()).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));host.innerHTML=`<div class="je-card-header"><div><h3>Reconciliation Reports</h3><p>Saved reconciliation records. Every account in the list is required before closing its month.</p></div><div class="module-actions71"><button type="button" class="je-btn je-btn-secondary" data-add-account disabled>Add account</button></div></div><div class="table-container"><table><thead><tr><th>Report</th><th>Account</th><th>Period</th><th>Status</th><th>Updated</th><th>Action</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${escapeHtml(reconciliationNumber71(r))}</td><td>${escapeHtml(r.account.name)} (${escapeHtml(r.currency)})</td><td>${escapeHtml(formatAppDate(r.from))} – ${escapeHtml(formatAppDate(r.to))}</td><td>${escapeHtml(reconciliationStatus71(r))}</td><td>${escapeHtml(formatAppDate(r.updatedAt))}</td><td><button class="je-btn je-btn-secondary" onclick="openSavedReport71('${encodeURIComponent(reconciliationKey71(r)).replaceAll("'",'%27')}')">Open</button></td></tr>`).join('')||'<tr><td colspan="6">Create a report from the General Ledger after selecting one bank account.</td></tr>'}</tbody></table></div>`}catch(e){host.textContent='Report storage unavailable: '+e.message}}
+async function openSavedReport71(id){if(!reportPermission71())return;try{const r=(await reconciliationRecords305()).find(r=>reconciliationKey71(r)===decodeURIComponent(id));if(!r||r.owner!==reportOwner71())throw Error('Report not found for this user.');currentReport71=r;renderReport71()}catch(e){recError71(e.message)}}
+async function importReport71(input){const actor=reportOwner71(),client=ojmDb;try{if(!reportPermission71())throw Error('Report access is not available.');const file=input.files[0];if(!file)return;if(file.size>50*1024*1024)throw Error('Backup exceeds 50 MB.');const data=JSON.parse(await file.text()),r=data.report;if(data.format!=='oonjai-reconciliation-1'||!r||!Array.isArray(r.lines)||!Array.isArray(r.findings)||!Array.isArray(r.attachments)||!r.account?.name||!['draft','reconciled','saved'].includes(r.status)||!Number.isSafeInteger(r.closing))throw Error('Invalid report backup.');if(r.attachments.some(a=>!/^data:(application\/pdf|image\/png|image\/jpeg);base64,[A-Za-z0-9+/=]+$/.test(a.data)))throw Error('Unsupported attachment in backup.');validateReport71(r,r.status==='saved'?'save':r.status==='reconciled');if(actor!==reportOwner71()||client!==ojmDb||!reportPermission71())return;r.originalReportId=r.id;r.id=reconciliationNumber71(r);r.recordId=crypto.randomUUID();r.owner=reportOwner71();r.key=r.owner+':'+reconciliationKey71(r);r.updatedAt=new Date().toISOString();r.importedAt=r.updatedAt;await reportStore71('readwrite',s=>s.put(r));await renderReconciliationList71()}catch(e){showAppNotification('Import failed',e.message,true)}finally{input.value=''}}
 function printReport71(){
  const r=currentReport71;if(!r)return;const c=reportCalculation71(r),e=escapeHtml,frame=document.createElement('iframe');frame.style.cssText='position:fixed;width:0;height:0;border:0';document.body.appendChild(frame);const doc=frame.contentDocument;const setting=ApplicationSettings.printing||{},paper=['A4','Letter','Legal'].includes(setting.paperSize)?setting.paperSize:'A4',orientation=setting.orientation==='landscape'?'landscape':'portrait';
  const safeImage=(src)=>/^data:image\/(png|jpeg|webp|gif);base64,/.test(src||'')?`<img style="max-width:100%;max-height:100px" src="${src}">`:'';

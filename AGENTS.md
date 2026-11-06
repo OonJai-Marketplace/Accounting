@@ -529,3 +529,17 @@ spending, exchanges, temporary advances and repayments. Journal entry and
 attachment are manual. Keep original currency amounts, category subtotals and
 saved item identities. An advance or repayment is distinct from funding or an
 expense. PDF output uses a full-width total and formal signature lines.
+
+Reconciliation 2026-11-06 v143.305: put Add account at the top right, opening a
+popup to add or remove accounts from the user's reconciliation list (never delete
+chart accounts). Keep Account, Period, Month/Quarter and Reconcile on one row.
+Remove Import Backup and Open General Ledger from this work screen. New counts
+have one bottom-right Save, no Draft/Finish/Refresh or export controls. Save
+closes after confirmed storage; supporting documents stay optional. A difference
+requires an explanation and explicit confirmation, without requiring attachments.
+Retain the ledger-change check and never silently save stale figures. Saved
+records show the comparison and ledger details without count inputs; Export / Print
+is available there. Display REC-YYMM-account-code, including existing records,
+with a separate unique storage identity so repeated counts never overwrite history.
+
+Month closing requirement 2026-11-06 v143.305: the shared administrator reconciliation list is mandatory for monthly close/lock and correction completion. Store confirmed reports and list revisions on the server; require an account-specific dated financial fingerprint, never blanket-invalidate counts for unrelated changes or memo edits. Reconcile staged corrections against their projected figures, and verify committed figures again. Freeze the required list on first close so future list edits do not retroactively alter closed months. Existing matching saved counts may be certified without re-entry; incomplete or changed old snapshots cannot authorize closing. Keep counts out of the closing/history editor. Supporting documents remain optional. Do not post journals or close live periods to test releases.

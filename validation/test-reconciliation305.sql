@@ -1,0 +1,78 @@
+-- Synthetic temporary fixtures only. No live journals, counts or periods are written.
+BEGIN;
+CREATE TEMP TABLE accounts (LIKE public.accounts);
+CREATE TEMP TABLE journal_entries (LIKE public.journal_entries);
+CREATE TEMP TABLE journal_lines (LIKE public.journal_lines);
+CREATE TEMP TABLE book_sessions136 (LIKE public.book_sessions136);
+CREATE TEMP TABLE accounting_periods (LIKE public.accounting_periods);
+CREATE TEMP TABLE reconciliation_settings305 (LIKE private.reconciliation_settings305 INCLUDING DEFAULTS);
+CREATE TEMP TABLE reconciliation_records305 (LIKE private.reconciliation_records305 INCLUDING DEFAULTS INCLUDING INDEXES);
+CREATE TEMP TABLE reconciliation_periods305 (LIKE private.reconciliation_periods305);
+DO $test$
+DECLARE fn text; d text; tab text; a uuid=gen_random_uuid(); b uuid=gen_random_uuid(); e uuid=gen_random_uuid(); bank uuid=gen_random_uuid(); sid uuid=gen_random_uuid(); pid uuid=gen_random_uuid(); actor uuid=gen_random_uuid(); original jsonb; changed jsonb; saved jsonb; report jsonb; result jsonb; rejected boolean; admin uuid;
+BEGIN
+ FOREACH fn IN ARRAY ARRAY['private.reconciliation_snapshot305(uuid,date,date,text,uuid)','private.reconciliation_requirements305(date)','private.reconciliation_check305(date)','public.reconciliation_save305(jsonb,text)'] LOOP
+  d=pg_get_functiondef(fn::regprocedure);
+  d=replace(d,'private.reconciliation_snapshot305','pg_temp.reconciliation_snapshot305');
+  d=replace(d,'private.reconciliation_requirements305','pg_temp.reconciliation_requirements305');
+  d=replace(d,'private.reconciliation_check305','pg_temp.reconciliation_check305');
+  d=replace(d,'public.reconciliation_save305','pg_temp.reconciliation_save305');
+  d=replace(d,'PERFORM private.reconciliation_admin305();','NULL;');
+  FOREACH tab IN ARRAY ARRAY['accounts','journal_entries','journal_lines','book_sessions136','accounting_periods'] LOOP d=replace(d,'public.'||tab,'pg_temp.'||tab);END LOOP;
+  FOREACH tab IN ARRAY ARRAY['reconciliation_settings305','reconciliation_records305','reconciliation_periods305'] LOOP d=replace(d,'private.'||tab,'pg_temp.'||tab);END LOOP;
+  EXECUTE d;
+ END LOOP;
+ PERFORM set_config('request.jwt.claim.sub',actor::text,true);
+ INSERT INTO pg_temp.accounts(id,code,name,account_type,currency_code,is_posting,is_technical) VALUES(a,'1010','Cash on Hand fixture','ASSET','LAK',true,false),(b,'1040','Bank fixture','ASSET','LAK',true,false);
+ INSERT INTO pg_temp.reconciliation_settings305(singleton,revision,preferences) VALUES(true,0,'{}');
+ INSERT INTO pg_temp.journal_entries(id,entry_no,transaction_date,memo,status) VALUES(e,'TEST-CASH','2099-10-15','Cash fixture','posted'),(bank,'TEST-BANK','2099-11-01','Bank fixture','posted');
+ INSERT INTO pg_temp.journal_lines(id,journal_entry_id,account_id,currency_code,debit,credit,line_date,description) VALUES(gen_random_uuid(),e,a,'LAK',120,0,'2099-10-15','Count'),(gen_random_uuid(),bank,b,'LAK',80,0,'2099-11-01','[Receipt date: 2099-10-30]');
+ original=pg_temp.reconciliation_snapshot305(a,'2099-10-01','2099-10-31','posting');
+ ASSERT (original->>'closing')::numeric=12000;
+ changed=pg_temp.reconciliation_snapshot305(b,'2099-10-01','2099-10-31','receipt');ASSERT (changed->>'closing')::numeric=8000;
+ ASSERT (pg_temp.reconciliation_snapshot305(b,'2099-10-01','2099-10-31','posting')->>'closing')::numeric=0;
+ UPDATE pg_temp.journal_lines SET description='Changed unrelated text',debit=99 WHERE account_id=b;
+ ASSERT pg_temp.reconciliation_snapshot305(a,'2099-10-01','2099-10-31','posting')->>'fingerprint'=original->>'fingerprint','Unrelated edit invalidated cash';
+ UPDATE pg_temp.journal_lines SET description='Memo only' WHERE account_id=a;
+ ASSERT pg_temp.reconciliation_snapshot305(a,'2099-10-01','2099-10-31','posting')->>'fingerprint'=original->>'fingerprint','Memo-only edit invalidated cash';
+ UPDATE pg_temp.journal_lines SET line_date='2099-10-16' WHERE account_id=a;
+ ASSERT pg_temp.reconciliation_snapshot305(a,'2099-10-01','2099-10-31','posting')->>'fingerprint'<>original->>'fingerprint','Date edit not detected';
+ UPDATE pg_temp.journal_lines SET line_date='2099-10-15' WHERE account_id=a;
+ INSERT INTO pg_temp.accounting_periods(id,period_month,status) VALUES(pid,'2099-10-01','closed');
+ INSERT INTO pg_temp.book_sessions136(id,period_id,owner_id,status,operations) VALUES(sid,pid,actor,'editing',jsonb_build_array(jsonb_build_object('kind','revise','id',gen_random_uuid(),'payload',jsonb_build_object('p_entry_id',e,'p_transaction_date','2099-10-15','p_memo','Correction','p_lines',jsonb_build_array(jsonb_build_object('account_id',a,'currency_code','LAK','debit',120,'credit',0))))));
+ ASSERT pg_temp.reconciliation_snapshot305(a,'2099-10-01','2099-10-31','posting',sid)->>'fingerprint'=original->>'fingerprint','Unchanged staged account invalidated';
+ UPDATE pg_temp.book_sessions136 SET operations=jsonb_set(operations,'{0,payload,p_lines,0,debit}','121') WHERE id=sid;
+ changed=pg_temp.reconciliation_snapshot305(a,'2099-10-01','2099-10-31','posting',sid);
+ ASSERT changed->>'fingerprint'<>original->>'fingerprint','Changed staged count not detected';
+ UPDATE pg_temp.journal_lines SET debit=121 WHERE account_id=a;
+ ASSERT pg_temp.reconciliation_snapshot305(a,'2099-10-01','2099-10-31','posting')->>'fingerprint'=changed->>'fingerprint','Projected and committed financial signatures disagree';
+ UPDATE pg_temp.journal_lines SET debit=120 WHERE account_id=a;
+ result=pg_temp.reconciliation_check305('2099-10-01');ASSERT jsonb_array_length(result->'issues')=2;
+ report=original||jsonb_build_object('id','REC-9910-1010','recordId','test-'||gen_random_uuid(),'owner',actor,'account',jsonb_build_object('id',a),'from','2099-10-01','to','2099-10-31','method','cash','dateBasis','posting','status','reconciled','statement','120','findings','[]'::jsonb);
+ saved=pg_temp.reconciliation_save305(report,original->>'fingerprint');
+ ASSERT saved->>'cloudConfirmed305'='true';
+ PERFORM pg_temp.reconciliation_save305(report,original->>'fingerprint');ASSERT (SELECT count(*) FROM pg_temp.reconciliation_records305)=1,'Retry duplicated report';
+ result=pg_temp.reconciliation_check305('2099-10-01');ASSERT jsonb_array_length(result->'issues')=1,'Saved cash still blocks';
+ UPDATE pg_temp.journal_lines SET debit=125 WHERE account_id=a;
+ result=pg_temp.reconciliation_check305('2099-10-01');ASSERT jsonb_array_length(result->'issues')=2,'Changed cash did not block';
+ rejected=false;BEGIN PERFORM pg_temp.reconciliation_save305(report,original->>'fingerprint');EXCEPTION WHEN OTHERS THEN rejected=SQLERRM LIKE '%account changed%';END;ASSERT rejected,'Stale save was accepted';
+ UPDATE pg_temp.journal_lines SET debit=120 WHERE account_id=a;
+ UPDATE pg_temp.reconciliation_settings305 SET preferences=jsonb_build_object('__excluded305',jsonb_build_array(b::text||'|LAK'));
+ result=pg_temp.reconciliation_check305('2099-10-01');ASSERT result->>'complete'='true','Removed account still required';
+ INSERT INTO pg_temp.reconciliation_periods305 VALUES('2099-10-01',result->'requirements');
+ UPDATE pg_temp.reconciliation_settings305 SET preferences='{}';
+ ASSERT jsonb_array_length(pg_temp.reconciliation_requirements305('2099-10-01'))=1,'Historical requirement changed';
+ ASSERT jsonb_array_length(pg_temp.reconciliation_requirements305('2099-11-01'))=2,'New month failed to use current list';
+ -- Real wrappers: anonymous callers cannot read or save admin reports.
+ PERFORM set_config('request.jwt.claim.sub','',true);
+ rejected=false;BEGIN PERFORM public.reconciliation_records305();EXCEPTION WHEN OTHERS THEN rejected=SQLERRM LIKE '%administrator required%';END;ASSERT rejected;
+ ASSERT NOT has_function_privilege('anon','public.reconciliation_save305(jsonb,text)','EXECUTE');
+ ASSERT NOT has_table_privilege('authenticated','private.reconciliation_records305','SELECT');
+ -- Real preflight is read-only; confirms all existing checks coexist with the new gate.
+ SELECT id INTO admin FROM public.profiles WHERE role='admin' AND status='active' LIMIT 1;
+ PERFORM set_config('request.jwt.claim.sub',admin::text,true);
+ result=public.maintenance_preflight14324('2026-10-01');
+ ASSERT result->'reconciliation305'->>'version'='305';ASSERT result->'coverage'->>'version'='281';
+END $test$;
+SELECT 'PASS: snapshot dates, receipt dates, unrelated edits, description edits, affected edits, correction projection, stale-save rejection, retry identity, required list, removal, historical requirements, anonymous denial and live read-only preflight' result;
+ROLLBACK;

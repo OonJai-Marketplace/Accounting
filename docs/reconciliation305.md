@@ -1,0 +1,9 @@
+# Reconciliation release 143.305
+
+The company administrator list is stored with a revision check. Every listed account requires a saved full-month reconciliation before close or lock. The first close freezes that month’s list. Server receipts retain separate storage identities while displaying REC-YYMM-account-code. Financial signatures include the opening and dated account movements, currency and date basis; descriptions and unrelated accounts do not invalidate counts. Correction sessions use projected figures; closing checks the committed ledger again and replaces provisional report entry labels.
+
+The editor has one Save at the bottom right and optional supporting documents. Differences require a note and explicit confirmation. Only saved reports expose Export / Print. Legacy matching saved counts are certified on load without altering journals; incomplete or changed counts stay visible and cannot authorize closing.
+
+Validation uses jsdom 26.1.0 and @electric-sql/pglite 0.3.14 (installed outside the shipped site). Run validation/test-reconciliation304-dom.cjs, validation/test-reconciliation305-dom.cjs and validation/test-reconciliation305-db.cjs with those modules on NODE_PATH. The SQL fixtures run against an isolated PostgreSQL WASM database; they do not post journals or close real months. Tests cover controls, save failures/retries, saved reports, dates, differences, unrelated edits, correction projections, required lists, trigger enforcement and permissions. The production preflight was checked read-only. DOM tests do not establish physical iPad/Safari rendering.
+
+Private tables intentionally have no direct client grants or RLS policies. The four exposed RPCs require an active accounting administrator; report reads are owner scoped. Anonymous execution is revoked, helper functions are private, and search_path is fixed.

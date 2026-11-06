@@ -3367,6 +3367,31 @@ button[hidden]{display:none!important}
  .report-group69{border:1px solid #059669!important;border-top:5px solid #059669!important;border-radius:8px;overflow:hidden;margin:12px 0!important}
  .final-records-dialog>header h2{font-size:20px!important;line-height:1.3!important}
 }
+#recOverlay71 .rec-actions305{position:sticky;bottom:0;padding:12px;background:white;border-top:1px solid #c8d3bf;z-index:1}
+#recOverlay71 .rec-actions305 .module-actions71{justify-content:flex-end;margin-left:0}
+#recOverlay71 .rec-actions305 .rec-error71{margin:8px 0 0}
+#recOverlay71 .rec-account71{margin-bottom:12px}
+#recOverlay71 .rec-dialog71:not([data-method="bank"]) .rec-amounts71{grid-template-columns:minmax(0,360px)}
+#recOverlay71 .rec-confirm305{display:flex;align-items:center;gap:8px;margin-top:10px}
+#recOverlay71 .rec-confirm305 input{width:auto;margin:0}
+#recCreate117 [data-method]{font-weight:normal;color:#475569}
+
+#recCreate117 .rec-row305{display:flex;align-items:end;gap:10px;flex-wrap:nowrap;width:100%}
+#recCreate117 .rec-row305 label{min-width:0;flex:0 1 160px}
+#recCreate117 .rec-row305 .rec-account-picker305{flex:1 1 280px}
+#recCreate117 .rec-row305 .rec-period-picker305{flex:0 1 110px}
+#recCreate117 .rec-row305 label :is(input,select){width:100%;max-width:100%}
+#recCreate117 .rec-row305>button{flex:none}
+#recCreate117 .rec-date-note305:has([data-bank-dates][hidden]):has([data-method]:empty){display:none}
+#recCreate117>p:empty{display:none}
+.rec-accounts-overlay305 .rec-add-fields305{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
+.rec-accounts-overlay305 label{display:grid;gap:6px;min-width:0}
+.rec-accounts-overlay305 input,.rec-accounts-overlay305 select{box-sizing:border-box;max-width:100%;width:100%}
+.rec-accounts-overlay305 .rec-account-row305{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #d5dfd8}
+.rec-accounts-overlay305 .rec-account-row305 span{overflow-wrap:anywhere}
+.rec-accounts-overlay305 [data-rec-account-list305]{max-height:38vh;overflow:auto}
+
+#recCreate117 [hidden],#recOverlay71 [hidden]{display:none!important}
 
 /* styles/transactions-mobile-v72.css */
 /* All overrides are constrained to Transactions on phones/tablets. */
