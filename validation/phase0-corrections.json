@@ -4,21 +4,21 @@
   "reason": "Original extraction baseline preserved. Reviewed canonical-source fixes and corresponding generated/entrypoint/cache bytes recorded; byte identity is not audit or deployment certification. 2026-11-01: user authorized opaque ID suggestions, removal of duplicate scanner header Settings, and ID-only Skip ID with manual entry; publish v143.219. 2026-11-01: user requested Delete directly on the existing View batch screen for saved device copies and unfinished drafts; preserve saved PDFs and Accounting attachments (v143.220). 2026-11-01: user requested entry ID suggestions only through the dropdown button, with text editing automatically closing the list and delayed lookups never reopening it (v143.221). Include encrypted provisional ID suggestions for fast browsing, with fresh capture/save checks and final server-side validation across phones. 2026-11-01: user requested visual saved/new receipt comparison and an edit-before-saving option with retained scans; release v143.222. 2026-11-01: user clarified automatic Save with only new conflicts, no repeated pre-capture warning, and following-ID renumbering preserving Next/Skip gaps (v143.223). 2026-11-01: user authorized desktop/tablet/iPad main-journal receipt actions in journal, closed History and ledger details; group-only scrolling private previews with captions outside images and unchanged phone behavior (v143.224). 2026-11-01: administrator-managed Google Drive and Sheets settings, staged company email/folder authorization, server-enforced shared scan destination, and company-owned links (v143.228). 2026-11-03: user requested original detailed report dates with a separate month-end fund date, correct Done/discard staging, and compact 2\u00d72 user actions and aligned editing windows (v143.265). 2026-11-03: user reports posted report OJM260364 absent from Active Journal. Fix newest-posted ordering before pagination, preserving saved financial records (v143.266). Regression: test-journal-pagination266.cjs. 2026-11-03: user requested completed sync feedback, full report preparation and reuse, active-report cancellation/progress, restored History printing and wrapping personal memos (v143.267). See docs/SYNC-REPORTS-v143.267.md. 2026-11-04: repair Generate centering, close/draft lifecycle, replace-on-type template search and missing supported template catalog; conservative manual account matching (v143.268). See docs/GENERATOR-v143.268.md. 2026-11-04: user requested Payroll report currencies/names/signature space, open-month Overview and HR leave visibility, and internal-summary ordering (v143.269). No financial records or Bookkeeping workflows changed. 2026-11-04: user requested internal report notices above the editor paper, excluded from print/PDF across reporting templates and older saved reports (v143.270). Preserve table facts, references, user notes and source records. 2026-11-04: user requested moving the oversized report-notice banner to the existing bottom page/word count line, with compact text and unchanged print exclusion (v143.271). 2026-11-04: complete pending receipt/footer/sidebar work with payroll report numeric protection and editable line names, preserving saved report content and financial sources; release v143.273. 2026-11-04 v143.274: correct payroll symbols/full employee codes and remove unrequested lock icons; fix payroll accrual mapping/rates/date and protected-browser custom template loading/saving. See docs/PAYROLL-TEMPLATES-v143.274.md. No hosted financial records changed. 2026-11-04 v143.275: complete private template cloud/recovery and foreign reimbursement mappings; fix the user-reported sign-in crash from an empty active-view selector. No financial entries posted. See docs/COMPLETION-v143.275.md. v143.275 follow-up: report-specific signatories before editor, no payroll Received by, focusable names, independent page numbering and two/three-line footer separation. 2026-11-04 v143.276: report/voucher default isolation, stable report keys and receiver preservation; payroll button feedback, save recovery and guarded preparation. See docs/COMPLETION-v143.276.md. No financial records changed. 2026-11-04 v143.283: user authorized direct performance improvements after assessment; targeted durable saves, guarded payroll retries, batched typing recovery and reduced unrelated access-check downloads. See docs/performance283.md and the synthetic regression results. 2026-11-04 v143.284: user requested record-specific waiting-sync bullets and failure guidance; retain unresolved notices and distinguish device-only saves from database confirmation. See docs/sync-details284.md. 2026-11-05 v143.287: dated BCEL source links from saved evidence, compact exchange-rate inputs with exact-value retention, and general USD operating-expense mapping.",
   "runtime_sha256": {
     "recovery.html": "b20d9bad53872a108d474b622e76af49c8d137ccb27999bb93feeb0e90e545dc",
-    "phone-sw.js": "fc1e8ed0a4828b940dfd48d7038e153771078056c185eba22a822c468729f2c7",
+    "phone-sw.js": "dc510e75b14821aca747d7126403e4733880403e0ba8b149b3b9844b30a6ad7d",
     "phone-accounting.html": "b1242a5cd79644de75c24434b3da9843bc58bb199e5fa3bc5f064dd1cef3afc4",
-    "desktop-sw14242.js": "e4f4c5acebd418cce3c8172094a632e256bb4467823ddba9a2ae2b9c7d91af0e",
-    "phone.html": "682529e586863db13d82f6855fa5773f90d3311f24ae8f5629833cacea8078bd",
-    "desktop.html": "7ff642552d01bc81f72d65d01c3f7a49cf0ed0824888e175a75298d8c59fc7c7",
-    "scripts/phone-runtime14242.js": "99c7967459218650822185088380de5ae055a3f07cd3231eab5155cc98dff856",
+    "desktop-sw14242.js": "c87d712a0f77869a991444b6c04eb5ce57ab5794ee775642c98c3cad15ad1429",
+    "phone.html": "5927924585ebad6530aa497eedc42093a22da88cf253672e04c12eadbaa0e875",
+    "desktop.html": "28348e914bbd2ab77d422d32385714b658bc3bad3ab5515ef48a97804ad76e7f",
+    "scripts/phone-runtime14242.js": "d1b2a6f1fa538232953e077b6ac247e9a71c5a5399eaa0732f16f955cca5bc4c",
     "scripts/device-vault14334.js": "43d6ba5d699ba2952f1c60a5ae38e6cb2f7fea03ff30b019594cd70d3684f17a",
     "scripts/script.js": "7bb6eb38d00dc216585c206393d3c84d0dd543caa8710893af90e524505cb6e2",
     "scripts/local-first14333.js": "e98498a71d63803450da2a7ebb8a9e2f1cc83d52d5253a55f08d2705b5a0fca5",
     "scripts/corrections14231.js": "9be39691e4e3b40d03aaa3295a2b183c6d6b915a72594d4d9f20428e7b3892f0",
     "scripts/payroll-polish-v97.js": "2698d5b2e331ca9cca3c287eb4136a8971772b31b880d91e7c5a8bcf2cb78f31",
     "scripts/startup14257.js": "c87dd65411b87d893d9642a9444f3d28afe824f3927275e0d9fd00c11be40e8a",
-    "scripts/desktop14245-6.js": "e55a8ec3b657c67c9123b1e820635a90046705dc6270bc1193c31bfa3bea62c8",
-    "scripts/offline14239.js": "57b4f4268edd7db270f1fb9b4824a1ae42337767573ac0343a35e4c8aacf4ace",
-    "scripts/desktop14245-3.js": "f7680c9477645ace69330ef5d873056019440d4d768ef7665a732729e8449d58",
+    "scripts/desktop14245-6.js": "01ad8d8e898ede8332950b23ca43827f018fe838b2580b9488cb8d5d9948baa4",
+    "scripts/offline14239.js": "0c9b881672000b18eade5c8cd4b864f974b38802c154c6433bb726a621a66a01",
+    "scripts/desktop14245-3.js": "96cd0e9b2898a8def87e55e4c811d1edf39a8480cc2fd257882aca74cb37f3c1",
     "scripts/desktop14245-4.js": "a7b9e882ea85e3ec17eb5db5e9488115bc85853e85e317015f4ad2c5fa7465c1",
     "scripts/drafts1427.js": "c01e8a4da3548895ee20d476bef4fd1077b44d4776da6c6bcf0373b375b5754b",
     "scripts/interface-v69.js": "860d9e9597dcbd237e42926e893699cadd56659c0be38f9687633e67b8965021",
@@ -53,7 +53,7 @@
     "scripts/workflow14253.js": "d4ec5c29a82dea55b84fa46c5ad766268f9df73031f0bcdd370f3c8af27b9c0d",
     "scripts/workspace14337.js": "3b9da05c277af595677c87de3c7ec9a9ffa2479aac20fff2865ef128225dbd81",
     "styles/workspace14337.css": "27c2303278295f59e426692cd84d6236f257454af19139e1897fe8f684624e30",
-    "styles/desktop14245.css": "0ab00356134702a4fd4e4641955ca6ed58e4fcf0d0cde72021770bad53b18f99",
+    "styles/desktop14245.css": "71fd48591bb07396743a9bfe901b3ace947a1961719a3ca968a34d4136f87837",
     "styles/workspace-consistency14343.css": "778d5e9bc27eff1e4b335bc76984f14146205d9b44a25ff90da1821e3ae409bc",
     "styles/submission-review-v139.css": "b0dfa03eb3120b0f030c7ef3dfc15b53028cf988c910460ace72802685591a2f",
     "scripts/subusers-final-v53.js": "908180b659386fc5dccf7d97850a985a1f689a6a5124f83e10dd11fa127a9a54",
@@ -70,7 +70,7 @@
     "scripts/refinements-v109.js": "ff37691943613ebd02cd5858c7ed776c398b058ebdca4ee6f182d6a50cbd6514",
     "scripts/report-history1443.js": "c7cfdaf97056baae27f9ae96c211de6acb92be0ea26b512d40dd68cfdd7cea50",
     "scripts/transaction-consistency14300.js": "a7285a67d53a12d13aa3c3f68545a5b9d35d865c1eaa02399f9bc6eab33e1377",
-    "scripts/transactions-v98.js": "f5667f9cb6fe96759e75281efc80e3a7110a9e9ce07f891a30561c4e1716ef18",
+    "scripts/transactions-v98.js": "37f61adb147b7bba33bdc2f5badd9c7b2706f28511838ce9a72a3024d896ba75",
     "styles/corrections14231.css": "eecfff78218bace7c6936dbd5a495afd4823096b4a9cc6c89cf421b0026c53b9",
     "styles/dashboard-warm-v112.css": "b776694817f30b4a26b3455dc7386bd71a2e5311e514b333816294dd409ef5d3",
     "styles/design14284.css": "15373b49b3452d54b97e0335a5cc3eac466c0a8da0bb8b610d23c20aab36176f",
@@ -120,7 +120,7 @@
     "scripts/session-inputs-v88.js": "ceb3b64a1db4431314417fe6044da707443432b562a422e6498b8c78bd8dc529",
     "scripts/startup1443.js": "fa6b40668048314f490c18bdd46e39477903bf35021a27af771c7fd07a59c342",
     "offline-assets14239.js": "9efbff058a8eecd29a182ac2ac19a50af0c08c2f8c5652a1f2ba32d754af4e94",
-    "index.html": "1e2fc25d4e3fd93045389386c9f258db3a6217df03a1d486907bdc9d4233a96a",
+    "index.html": "51d43255462ee241493f60fd5919e630a092e13fa1c73710cdfbc10e19abfd1c",
     "archive.html": "eb60ead6ea4859069344ca3f3edbd1b57fbba054c51f5c65e4fd8e29ed70260b",
     "styles/polish-v101.css": "d43af6b1dbcbd59f02670116d74907a2c89bacd5e748f97ba4a0ec535c673dc3",
     "scripts/maintenance-engine14324.js": "3e10dfd4c82726fcfff0c2908f1d584710be3e3181a20e8cf9320f384a07f37c",
@@ -198,7 +198,7 @@
     "scripts/archive-xlsx-v129.js": "d26cb040236161f79ceed375018ee10f56a40932c817629c7e7d965c4a028f05",
     "scripts/audit-storage14232.js": "4c36af9369f65eb5d24bd6df57a1266803b838e9d3b84e04991770649ced875b",
     "scripts/prefixes-badges-v89.js": "9d5ebd98c9807132739f126d13d84a1059b2b17953d210acb71e976d25306813",
-    "scripts/workflows1434.js": "4f57f39b792a01b3f924ea88d831573e716cca297bb1e2bc1a2f006a2d81eb1e",
+    "scripts/workflows1434.js": "1b77e18f491fe1d5787a22e2bc61ebd96da0704c0481d793ae29029307959f8f",
     "scripts/payroll-engine-v82.js": "7db6861591546113d46949f2bd87fc7ce362529b2c80152707271a5d78661d35",
     "scripts/refinements-v105.js": "377ec2a5df798966cbfadae9594ea8bc22e7b686cff37accd41c5fbe047ad52f",
     "scripts/subusers-final-v56.js": "7fe0afe7638032104d707a7cacf771a79b1851d183a51580e93c2b7c0b997c16",
@@ -256,7 +256,8 @@
     "styles/device-mode132.css": "b89e6f41ef2bf35754d582f64e5ee45da257ab9d0d806dcb777773f69397a64f",
     "styles/final-v117.css": "ed00d7ab7f99233f5926b37600b347d9ae03a4527322b48cbf353487bb9a1c76",
     "styles/final-v118.css": "48502e243e7e8f72fd659443ac8e7725f1b37ee82313b02f36be8c1e05d965bd",
-    "styles/workspace-v99.css": "b2587b4d6e72a472d15e4fd84a88e7df0ff5506c21183842ac8b2cbddb768d9f"
+    "styles/workspace-v99.css": "b2587b4d6e72a472d15e4fd84a88e7df0ff5506c21183842ac8b2cbddb768d9f",
+    "styles/workflows1434.css": "a04b993ee2d9dc582ce599a4529d16f380b0b90b5eaa083ea491a9b56f826447"
   },
   "retired_assets": {
     "tools/desktop-source14245.html": "User-authorized obsolete-code cleanup, 2026-10-13. Input to retired full-desktop builder only; not loaded by any app entry point, manifest or service worker.",
@@ -500,5 +501,14 @@
     ],
     "limits": "Browser execution is unavailable in this environment (Chromium socket restriction). DOM tests simulate controls and do not establish physical-device geometry. No live financial records changed.",
     "closing": "Required server-confirmed monthly reports, per-account dated movement fingerprints, correction projections and frozen historical requirement lists. Unrelated and description-only edits preserve completion."
+  },
+  "audit313": {
+    "authorization": "2026-11-06: clear main Bookkeeping audit logs, keep administrator-assisted activity, skip routine events, and add individual/record/month/quarter/year cleanup.",
+    "checks": [
+      "Isolated database tests including permissions, date boundaries, stale previews, preservation and repeat installation",
+      "Browser cleanup controls, cancellation without extra prompts, error recovery and refresh",
+      "Live cleanup preserved exact contents of nine financial/assisted tables; 197 logs removed, 129 assisted rows kept"
+    ],
+    "limits": "Synthetic browser and database tests do not establish physical iPad behavior."
   }
 }
