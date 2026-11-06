@@ -1,8 +1,9 @@
 {
-  "version": "143.306",
+  "version": "143.307",
   "changes": [
-    "Amortization groups restaurant rent, Wi-Fi and company house rent as equal plan rows, with replaced schedules kept separately.",
-    "Amortization uses first-day monthly dates and its own AMO journal numbers.",
-    "Active Journal sorts by posting date, newest first, placing first-day amortization below later monthly transactions."
+    "Reconciliation uses the open book, one stable account picker, monthly completion filtering, and version-checked editing of saved records.",
+    "Reports include compact summaries and ledger details, with account/date selection and up to three signatories in one export dialog.",
+    "Bank date controls stay inline with clear explanations; duplicate working labels and the misplaced Funds shortcut are removed.",
+    "Previously published first-day amortization, separate AMO IDs and Active Journal ordering are preserved."
   ]
 }

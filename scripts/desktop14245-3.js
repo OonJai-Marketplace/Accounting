@@ -6110,9 +6110,41 @@ function reconciliationId71(account,to){
  return 'REC-'+month.slice(2,4)+month.slice(5,7)+'-'+code;
 }
 function reconciliationNumber71(r){try{return reconciliationId71(r.account,r.to)}catch{return r.id}}
-function reconciliationKey71(r){return r.recordId||r.id}
-function reconciliationRecorded71(r){return r.status!=='draft'||!!r.key}
-function reconciliationStatus71(r){return r.status==='draft'?(r.key?'Saved':'Not saved'):r.status==='saved'?'Saved with difference':r.status==='reconciled'?'Saved':r.status}
+function reconciliationKey71(r){return r.recordId||(r.key&&r.owner&&r.key.startsWith(r.owner+':')?r.key.slice(r.owner.length+1):r.id)}
+function reconciliationRecorded71(r){return !r.editing306&&(r.status!=='draft'||!!r.key)}
+function reconciliationStatus71(r){const c=reportCalculation71(r);return !reconciliationRecorded71(r)||c.statement===null?'Incomplete':c.difference===0?'Reconciled':'Difference confirmed'}
+function reconciliationPeriod306(from,to){
+ const a=new Date(from+'T00:00:00Z'),b=new Date(to+'T00:00:00Z');if(!Number.isFinite(+a)||!Number.isFinite(+b))return String(from||'')+' – '+String(to||'');
+ const month=d=>d.toLocaleDateString('en-US',{month:'long',timeZone:'UTC'}),day=d=>d.getUTCDate(),year=d=>d.getUTCFullYear();
+ if(from===to)return month(a)+' '+day(a)+', '+year(a);
+ return year(a)===year(b)?month(a)+' '+day(a)+'–'+(a.getUTCMonth()===b.getUTCMonth()?'':month(b)+' ')+day(b)+', '+year(b):month(a)+' '+day(a)+', '+year(a)+' – '+month(b)+' '+day(b)+', '+year(b);
+}
+function reconciliationAccountLabel306(r,includeCurrency=false){
+ const a=r.account||r,currency=r.currency||a.currency||'',name=String(a.name||''),escaped=currency.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ const clean=currency?name.replace(new RegExp('(?:\\s*[-–—·]\\s*|\\s+)'+escaped+'$','i'),'').replace(new RegExp('\\s*\\('+escaped+'\\)\\s*$','i'),'').trim():name;
+ return (a.code?a.code+' — ':'')+clean+(includeCurrency&&currency?' · '+currency:'');
+}
+function latestReconciliations306(rows){const groups=new Map();for(const r of [...rows].sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))){const key=[r.account.id||r.account.code,r.from,r.to].join('|');if(!groups.has(key))groups.set(key,r)}return [...groups.values()]}
+async function reconciliationWorkspace306(month){
+ if(reconciliationCloud305())return reconciliationRpc305('reconciliation_workspace306',{p_month:month?month+'-01':null});
+ const periods=typeof PeriodReview==='undefined'?{}:PeriodReview.periods,months=Object.entries(periods).filter(([,p])=>p.status==='open').map(([month])=>({month,status:'open'})).sort((a,b)=>a.month.localeCompare(b.month));
+ if(!months.length){const now=typeof today82==='function'?today82().slice(0,7):new Date().toISOString().slice(0,7);if(!periods[now]||periods[now].status==='open')months.push({month:now,status:'open'})}
+ const chosen=months.some(x=>x.month===month)?month:month?null:months[0]?.month||null;
+ return {months,month:chosen,progress:{items:[]}};
+}
+async function editReconciliation306(id){try{
+ if(!reportPermission71()||!access113.can('report-reconciliation','edit'))throw Error('Reconciliation edit access is required.');
+ const owner=reportOwner71(),client=ojmDb;
+ let r;if(reconciliationCloud305())r=await reconciliationRpc305('reconciliation_edit306',{p_record:decodeURIComponent(id)});
+ else{r=(await reconciliationRecords305()).find(x=>reconciliationKey71(x)===decodeURIComponent(id));if(!r)throw Error('Reconciliation not found');if(!(await reconciliationWorkspace306(r.from.slice(0,7))).month)throw Error('This book is closed. View it in Reports.');r={...structuredClone(r),status:'draft',editing306:true}}
+ const latest=await readReconciliationAccount71(r.accountKey,r.from,r.to,r.dateBasis,true);
+ if(owner!==reportOwner71()||client!==ojmDb)return;if(!latest)throw Error('Account is unavailable.');
+ if(r.cloudFingerprint305!==latest.fingerprint)r.differenceConfirmed=false;
+ Object.assign(r,{opening:latest.opening,debit:latest.debit,credit:latest.credit,closing:latest.closing,lines:structuredClone(latest.lines),cloudFingerprint305:latest.fingerprint||null,snapshotAt:new Date().toISOString()});
+ currentReport71=r;renderReport71();
+ }catch(e){showAppNotification('Reconciliation',e.message,true)}
+}
+
 function confirmReconciliation71(checked){if(currentReport71?.status==='draft')currentReport71.differenceConfirmed=!!checked}
 async function createReconciliation71(dateBasis,selection=Accounts69,method){
  if(!reportPermission71())return showAppNotification('Access denied','Reconciliation Reports is not enabled in your permissions.',true);
@@ -6127,6 +6159,10 @@ async function createReconciliation71(dateBasis,selection=Accounts69,method){
  }
  if(!Object.hasOwn(reconciliationLabels71,method))throw Error('Choose a reconciliation method.');
  dateBasis=method==='bank'?(dateBasis||'receipt'):'posting';
+ if(reconciliationCloud305()){
+  const work=await reconciliationWorkspace306(from.slice(0,7));if(!work.month)throw Error('This book is closed. Its reconciliations are available in Reports.');
+  if(work.progress?.items?.some(x=>x.id===account.id&&x.complete))throw Error('This account is already reconciled for this month. Use Edit on its saved record.');
+ }
  const r=await readReconciliationAccount71(key,from,to,dateBasis);
  if(request!==reportRequest71||actor!==reportOwner71()||client!==ojmDb||!reportPermission71())return;
  if(!r)return showAppNotification('Choose one account','Select the bank account in the General Ledger Account filter before creating a report.',true);
@@ -6169,10 +6205,10 @@ function renderReport71(){
  const method=reportMethod71(r),bank=method==='bank',title=bank?'Bank Reconciliation Report':method==='cash'?'Cash Count Reconciliation':'Account Reconciliation Report';
  const fields=bank?[['statementOpening117','Previous / Opening Balance'],['statementDebit117','Statement DR'],['statementCredit117','Statement CR'],['statement','Ending Balance']]:[['statement',method==='cash'?'Actual cash counted':'Supporting balance']];
  const overlay=document.createElement('div');overlay.id='recOverlay71';overlay.className='rec-overlay71';
- overlay.innerHTML=`<section class="rec-dialog71" data-method="${e(method)}" role="dialog" aria-modal="true" aria-labelledby="recTitle71"><header><div><h3 id="recTitle71">${title}</h3><small>${e(reconciliationNumber71(r))} · ${e(reconciliationStatus71(r))}</small></div></header>
+ overlay.innerHTML=`<section class="rec-dialog71" data-method="${e(method)}" role="dialog" aria-modal="true" aria-labelledby="recTitle71"><header><div><h3 id="recTitle71">${title}</h3>${locked?`<small>${e(reconciliationNumber71(r))} · ${e(reconciliationStatus71(r))}</small>`:''}</div></header>
  <div class="rec-body71">
  <section class="rec-section71 rec-comparison117" data-currency-code="${e(r.currency)}"><header><h4>${bank?'System and statement comparison':method==='cash'?'Physical cash count':'Supporting record comparison'}</h4></header><div class="rec-body71">
- <div class="rec-account71"><strong>${e(r.account.code+' — '+r.account.name)} · ${e(r.currency)}</strong><span>${e(r.from?formatAppDate(r.from):'Beginning')} – ${e(formatAppDate(r.to))}</span></div>
+ <div class="rec-account71"><strong>${e(reconciliationAccountLabel306(r,true))}</strong><span>${e(reconciliationPeriod306(r.from,r.to))}</span></div>
  ${locked?'':`<div class="rec-amounts71">${fields.map(([key,label])=>`<label>${label}<input ${key==='statement'?'id="recStatement71"':`data-rec117="${key}"`} type="number" step="0.01" data-financial-number data-currency="${e(r.currency)}" value="${e(r[key]??'')}" ${disabled} oninput="recAmountField71('${key}',this)"></label>`).join('')}</div>`}
  <div class="rec-basis71">${bank&&!locked?`<label><input type="checkbox" data-rec-reverse117 ${r.statementReverse117!==false?'checked':''} ${disabled} onchange="recField71('statementReverse117',this.checked)"> Bank CR = deposits; bank DR = withdrawals</label>`:''}<span>${r.dateBasis==='receipt'?'Bank · receipt dates':'Posting dates'}</span></div>
  <p id="recStatementCheck71" class="rec-error71" role="status" hidden></p></div><div id="recCompare117"></div><div data-bank-reason14346 class="rec-body71" hidden><label>Explanation of difference<textarea placeholder="Explain the difference" ${disabled} oninput="recField71('notes',this.value)">${e(r.notes)}</textarea></label><label class="rec-confirm305"><input type="checkbox" data-rec-confirm305 ${r.differenceConfirmed?'checked':''} ${disabled} onchange="confirmReconciliation71(this.checked)"> I confirm this amount and the explanation of the difference.</label></div></section>
@@ -6221,14 +6257,15 @@ async function saveReport71(mode='save'){
   copy.status=finish?(reportCalculation71(copy).difference===0?'reconciled':'saved'):'draft';copy.updatedAt=new Date().toISOString();
   if(finish){copy.completedAt=copy.updatedAt;copy.completedBy=preparer71()}
   copy.key=copy.owner+':'+reconciliationKey71(copy);
-  if(finish&&reconciliationCloud305())Object.assign(copy,await reconciliationRpc305('reconciliation_save305',{p_report:copy,p_fingerprint:report.cloudFingerprint305}));
+  if(finish&&reconciliationCloud305())Object.assign(copy,await reconciliationRpc305(report.editing306?'reconciliation_update306':'reconciliation_save305',{p_report:copy,p_fingerprint:report.cloudFingerprint305,...(report.editing306?{p_expected:report.editVersion306}:{})}));
+  delete copy.editing306;delete copy.editVersion306;
   if(!current())return;
   try{await reportStore71('readwrite',s=>s.put(copy))}catch(e){if(!copy.cloudConfirmed305)throw e}
 
   if(!current())return;
   if(JSON.stringify(report)!==originalState){recError71('Report saved. Newer edits remain unsaved.');return}
   currentReport71=copy;
-  if(finish){document.getElementById('recOverlay71')?.remove();currentReport71=null;await renderReconciliationList71();const notice=document.querySelector('#recCreate117 [role=status]');if(notice)notice.textContent=reconciliationNumber71(copy)+' saved.';}
+  if(finish){document.getElementById('recOverlay71')?.remove();currentReport71=null;await renderReconciliationList71();}
   else{renderReport71();recError71('Reconciliation saved.');await renderReconciliationList71();}
  }catch(e){if(current())recError71('Not saved: '+e.message)}finally{reportBusy71=false;const save=document.querySelector('[data-rec-save305]');if(save)save.disabled=false}
 }
@@ -6238,7 +6275,72 @@ async function attachReportFiles71(input){if(currentReport71?.status!=='draft')r
 async function downloadData71(data,name,type){const url=URL.createObjectURL(new Blob([data],{type}));const a=document.createElement('a');a.href=url;a.download=name;await (window.exportCenter14337?exportCenter14337.fromLink(a):a.click());setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function downloadAttachment71(i){const a=currentReport71?.attachments[i];if(!a)return;const bytes=Uint8Array.from(atob(a.data.split(',')[1]),c=>c.charCodeAt(0));downloadData71(bytes,a.name,a.type)}
 function exportReport71(){if(!currentReport71)return;downloadData71(JSON.stringify({format:'oonjai-reconciliation-1',report:currentReport71},null,2),currentReport71.id+'.json','application/json')}
-async function renderReconciliationList71(){const host=document.getElementById('reconciliationList71');if(!host||!reportPermission71())return;try{const all=await reconciliationRecords305(),rows=all.filter(r=>r.owner===reportOwner71()).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));host.innerHTML=`<div class="je-card-header"><div><h3>Reconciliation Reports</h3><p>Saved reconciliation records. Every account in the list is required before closing its month.</p></div><div class="module-actions71"><button type="button" class="je-btn je-btn-secondary" data-add-account disabled>Add account</button></div></div><div class="table-container"><table><thead><tr><th>Report</th><th>Account</th><th>Period</th><th>Status</th><th>Updated</th><th>Action</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${escapeHtml(reconciliationNumber71(r))}</td><td>${escapeHtml(r.account.name)} (${escapeHtml(r.currency)})</td><td>${escapeHtml(formatAppDate(r.from))} – ${escapeHtml(formatAppDate(r.to))}</td><td>${escapeHtml(reconciliationStatus71(r))}</td><td>${escapeHtml(formatAppDate(r.updatedAt))}</td><td><button class="je-btn je-btn-secondary" onclick="openSavedReport71('${encodeURIComponent(reconciliationKey71(r)).replaceAll("'",'%27')}')">Open</button></td></tr>`).join('')||'<tr><td colspan="6">Create a report from the General Ledger after selecting one bank account.</td></tr>'}</tbody></table></div>`}catch(e){host.textContent='Report storage unavailable: '+e.message}}
+let reconciliationLoad306=null;
+async function renderReconciliationList71(){
+ const host=document.getElementById('reconciliationList71'),owner=reportOwner71(),client=ojmDb;if(!host||!reportPermission71())return;
+ if(reconciliationLoad306?.owner===owner&&reconciliationLoad306.client===client)return reconciliationLoad306.promise;
+ const task={owner,client};task.promise=(async()=>{try{
+  const selected=host.dataset.recOwner306===owner?host.querySelector('#recCreate117 [name=month]')?.value:null;
+  const all=await reconciliationRecords305();const [prefs,initial]=await Promise.all([reconPreferences71(owner),reconciliationWorkspace306(selected)]);
+  const work=initial.month||!selected?initial:await reconciliationWorkspace306();
+  if(reportOwner71()!==owner||client!==ojmDb)return;
+  if(selected&&host.querySelector('#recCreate117 [name=month]')?.value!==selected){task.reload=true;return;}
+  if(host.dataset.recOwner306!==owner||!host.querySelector('[data-rec-rows306]')){
+   host.innerHTML='<div class="je-card-header"><div><h3>Reconciliation</h3><p>Complete the required accounts for the open book. Past months are in Reports.</p></div><div class="module-actions71"><button type="button" class="je-btn je-btn-secondary" data-add-account disabled>Add account</button></div></div><div class="table-container"><table><thead><tr><th>Reconciliation ID</th><th>Account</th><th>Status</th><th>Actual</th><th>Action</th></tr></thead><tbody data-rec-rows306></tbody></table></div>';host.dataset.recOwner306=owner;
+  }
+  host.querySelector('[data-rec-error306]')?.remove();
+  host.recWorkspace306=work;host.recPreferences306=prefs;
+  const rows=latestReconciliations306(all.filter(r=>r.owner===owner&&work.month&&r.from===work.month+'-01'&&r.to.slice(0,7)===work.month)),open=work.months.find(m=>m.month===work.month)?.status==='open';
+  host.querySelector('[data-rec-rows306]').innerHTML=rows.map(r=>{const c=reportCalculation71(r),item=work.progress?.items?.find(x=>x.id===r.account.id),status=item&&!item.complete?'Needs review':reconciliationStatus71(r),id=encodeURIComponent(reconciliationKey71(r)).replaceAll("'",'%27');return `<tr><td>${escapeHtml(reconciliationNumber71(r))}</td><td>${escapeHtml(reconciliationAccountLabel306(r,true))}</td><td>${escapeHtml(status)}</td><td>${c.adjusted===null?'—':money69(c.adjusted)}</td><td><button class="je-btn je-btn-secondary" onclick="openSavedReport71('${id}')">View</button> <button class="je-btn je-btn-secondary" ${open?'':'disabled'} onclick="editReconciliation306('${id}')">Edit</button></td></tr>`}).join('')||'<tr><td colspan="5">'+(work.month?'No reconciliations recorded for this open month.':'No open book. Saved reconciliations are available in Reports.')+'</td></tr>';
+  host.querySelector('#recCreate117')?.refresh306?.(work,prefs);
+ }catch(e){if(owner===reportOwner71()&&client===ojmDb){let note=host.querySelector('[data-rec-error306]');if(!note){note=document.createElement('p');note.dataset.recError306='';note.setAttribute('role','status');host.append(note)}note.textContent='Reconciliation could not load: '+e.message}}
+ })().finally(()=>{if(reconciliationLoad306===task){reconciliationLoad306=null;if(task.reload)void renderReconciliationList71()}});reconciliationLoad306=task;return task.promise;
+}
+
+function reconciliationSummary306(rows){
+ return '<div class="table-container"><table data-reconciliation-summary306><thead><tr>'+['Reconciliation ID','Account','Currency','Period','Ledger','Actual','Difference'].map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>{const c=reportCalculation71(r);return '<tr>'+[escapeHtml(reconciliationNumber71(r)),escapeHtml(reconciliationAccountLabel306(r)),escapeHtml(r.currency),escapeHtml(reconciliationPeriod306(r.from,r.to)),money69(r.closing),c.adjusted===null?'—':money69(c.adjusted),c.difference===null?'—':money69(c.difference)].map(x=>'<td>'+x+'</td>').join('')+'</tr>'}).join('')+'</tbody></table></div>';
+}
+function reconciliationReportContent306(rows,choices){
+ let html=choices.summary?'<h2>Reconciliation Summary</h2>'+reconciliationSummary306(rows):'';
+ if(choices.ledger)for(const r of rows){html+='<h2>'+escapeHtml(reconciliationNumber71(r))+' · '+escapeHtml(reconciliationAccountLabel306(r,true))+'</h2><p>'+escapeHtml(reconciliationPeriod306(r.from,r.to))+' · '+(r.dateBasis==='receipt'?'Receipt dates':'Posting dates')+'</p>'+snapshotTable71(r);if(r.notes)html+='<p><strong>Reconciliation note:</strong> '+escapeHtml(r.notes)+'</p>';if(r.findings?.length)html+='<h3>Reconciling items</h3>'+table82(['Item','Amount','Explanation'],r.findings.map(f=>[escapeHtml(f.kind),money69(cents69(f.amount)),escapeHtml(f.description)]));}
+ return html;
+}
+async function reconciliationExport306(preferred=null){
+ const owner=reportOwner71(),client=ojmDb,current=()=>owner===reportOwner71()&&client===ojmDb&&reportPermission71();
+ try{
+  if(!current()||!access113.can('report-reconciliation','export'))throw Error('Reconciliation export access is required.');
+  const all=latestReconciliations306((await reconciliationRecords305()).filter(reconciliationRecorded71));if(!current())return;if(!all.length)throw Error('There are no saved reconciliations to export.');
+  if(preferred){const i=all.findIndex(r=>r.account.id===preferred.account.id&&r.from===preferred.from&&r.to===preferred.to);if(i>=0)all[i]=preferred;}
+  const latest=preferred||all[0],defaults=await window.printPreferences1434?.load();if(!current())return;
+  const previous=defaults?.reports275?.['report:report-reconciliation'],signers=previous?.signers||[{name:liveProfile?.full_name||liveProfile?.email||'',role:'Manager'}];
+  const accounts=[...new Map(all.map(r=>[r.account.id||r.accountKey,r])).values()],esc=escapeHtml;
+  const pending=ui108.modal('Reconciliation report',`<form id="recExport306"><div class="rec-export-dates306"><label>From<input name="from" type="date" value="${esc(latest.from)}" required></label><label>Through<input name="to" type="date" value="${esc(latest.to)}" required></label></div><p>Includes the latest saved reconciliation for each account and period within these dates.</p><fieldset><legend>Accounts</legend><label><input type="checkbox" data-rec-all306 ${preferred?'':'checked'}> Select all</label><div class="rec-export-accounts306">${accounts.map((r,i)=>`<label><input type="checkbox" name="account" value="${i}" ${!preferred||r.account.id===preferred.account.id?'checked':''}> ${esc(reconciliationAccountLabel306(r,true))}</label>`).join('')}</div></fieldset><fieldset class="rec-export-content306"><legend>Include</legend><label><input name="summary" type="checkbox" checked> Summary</label><label><input name="ledger" type="checkbox" checked> Ledger details and reconciliation notes</label></fieldset><label>Signatories<select name="count" data-plain14285>${[0,1,2,3].map(n=>`<option value="${n}" ${n===signers.length?'selected':''}>${n===0?'None':n}</option>`).join('')}</select></label>${[0,1,2].map(i=>`<fieldset data-rec-signer306="${i}"><legend>Signatory ${i+1}</legend><div class="rec-export-dates306"><label>Name<input name="person${i}" value="${esc(signers[i]?.name||'')}" maxlength="120"></label><label>Job title<input name="role${i}" value="${esc(signers[i]?.role||['Manager','Cashier','Director'][i])}" maxlength="80"></label></div></fieldset>`).join('')}<label><input type="checkbox" name="saveSignatories"> Save these signatories for reconciliation reports</label><p role="status" data-rec-export-status306></p></form>`,[{label:'Cancel',value:false},{label:'Open report',value:true,primary:true}],true);
+  const overlay=document.querySelector('.ui-overlay108:last-child'),form=overlay.querySelector('form'),button=overlay.querySelector('footer button:last-child'),status=form.querySelector('[role=status]');let chosen=null;
+  const refresh=()=>{
+   form.querySelectorAll('[data-rec-signer306]').forEach((f,i)=>{f.hidden=i>=Number(form.elements.count.value);f.querySelectorAll('input').forEach(n=>{n.disabled=f.hidden;n.required=!f.hidden})});
+   const from=form.elements.from.value,to=form.elements.to.value;
+   form.querySelectorAll('[name=account]').forEach(box=>{const r=accounts[Number(box.value)],available=all.some(x=>(x.account.id||x.accountKey)===(r.account.id||r.accountKey)&&x.from>=from&&x.to<=to);box.disabled=!available;box.closest('label').hidden=!available});
+   const boxes=[...form.querySelectorAll('[name=account]:not(:disabled)')],checked=boxes.filter(b=>b.checked).length,allBox=form.querySelector('[data-rec-all306]');allBox.checked=!!boxes.length&&checked===boxes.length;allBox.indeterminate=checked>0&&checked<boxes.length;
+   status.textContent=boxes.length?'':'No saved reconciliations fall within these dates.';
+  };
+  form.elements.count.onchange=refresh;form.elements.from.onchange=refresh;form.elements.to.onchange=refresh;
+  form.querySelector('[data-rec-all306]').onchange=e=>{form.querySelectorAll('[name=account]:not(:disabled)').forEach(b=>b.checked=e.target.checked);refresh()};form.querySelectorAll('[name=account]').forEach(b=>b.onchange=refresh);
+  button.onclick=async()=>{
+   if(button.disabled)return;if(!current()){status.textContent='Account changed. Open the report again.';return}if(!form.reportValidity())return;
+   const from=form.elements.from.value,to=form.elements.to.value,selected=new Set([...form.querySelectorAll('[name=account]:checked:not(:disabled)')].map(b=>accounts[Number(b.value)].account.id||accounts[Number(b.value)].accountKey));
+   const rows=all.filter(r=>selected.has(r.account.id||r.accountKey)&&r.from>=from&&r.to<=to);
+   if(from>to||!rows.length){status.textContent='Choose a valid date range and at least one account.';return}
+   if(!form.elements.summary.checked&&!form.elements.ledger.checked){status.textContent='Include the summary, ledger details, or both.';return}
+   const names=Array.from({length:Number(form.elements.count.value)},(_,i)=>({name:form.elements['person'+i].value.trim(),role:form.elements['role'+i].value.trim()}));
+   if(names.some(s=>!s.name||!s.role)){status.textContent='Enter each signatory’s name and job title.';return}
+   const signatures={reportSignatories275:true,enabled:names.length>0,signers:names};button.disabled=true;
+   try{if(form.elements.saveSignatories.checked){if(!window.printPreferences1434)throw Error('Signatory defaults are unavailable.');const previous=await printPreferences1434.load();if(!current())return;await printPreferences1434.save({...previous,reports275:{...previous?.reports275,'report:report-reconciliation':signatures}})}if(!current())return;chosen={rows,from,to,summary:form.elements.summary.checked,ledger:form.elements.ledger.checked,signatures};overlay.resolve108(true)}catch(e){status.textContent=e.message}finally{button.disabled=false}
+  };
+  refresh();if(!await pending||!chosen||!current())return;
+  return print82('Reconciliation Report',reconciliationReportContent306(chosen.rows,chosen),reconciliationPeriod306(chosen.from,chosen.to),{source:'report-reconciliation',reconciliationOptions306:true,reportSignatories275:chosen.signatures});
+ }catch(e){if(current())showAppNotification('Reconciliation report',e.message,true)}
+}
+
 async function openSavedReport71(id){if(!reportPermission71())return;try{const r=(await reconciliationRecords305()).find(r=>reconciliationKey71(r)===decodeURIComponent(id));if(!r||r.owner!==reportOwner71())throw Error('Report not found for this user.');currentReport71=r;renderReport71()}catch(e){recError71(e.message)}}
 async function importReport71(input){const actor=reportOwner71(),client=ojmDb;try{if(!reportPermission71())throw Error('Report access is not available.');const file=input.files[0];if(!file)return;if(file.size>50*1024*1024)throw Error('Backup exceeds 50 MB.');const data=JSON.parse(await file.text()),r=data.report;if(data.format!=='oonjai-reconciliation-1'||!r||!Array.isArray(r.lines)||!Array.isArray(r.findings)||!Array.isArray(r.attachments)||!r.account?.name||!['draft','reconciled','saved'].includes(r.status)||!Number.isSafeInteger(r.closing))throw Error('Invalid report backup.');if(r.attachments.some(a=>!/^data:(application\/pdf|image\/png|image\/jpeg);base64,[A-Za-z0-9+/=]+$/.test(a.data)))throw Error('Unsupported attachment in backup.');validateReport71(r,r.status==='saved'?'save':r.status==='reconciled');if(actor!==reportOwner71()||client!==ojmDb||!reportPermission71())return;r.originalReportId=r.id;r.id=reconciliationNumber71(r);r.recordId=crypto.randomUUID();r.owner=reportOwner71();r.key=r.owner+':'+reconciliationKey71(r);r.updatedAt=new Date().toISOString();r.importedAt=r.updatedAt;await reportStore71('readwrite',s=>s.put(r));await renderReconciliationList71()}catch(e){showAppNotification('Import failed',e.message,true)}finally{input.value=''}}
 function printReport71(){
@@ -6606,7 +6708,7 @@ function renderReports79(){
  const blocks=['gl','tb'].includes(kind)&&typeof IntersectionObserver==='function'?[]:null;
  let content;
  try{ledgerRenderBlocks300=blocks;content=reportContent79(kind)}finally{ledgerRenderBlocks300=null}
- host.innerHTML=`<header class="r79-header"><div><span class="r79-eyebrow">REPORTS · POSTED JOURNAL</span><h3>${title}</h3><p>${s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'||kind==='tb'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · Active and archived posted entries</p></div><div class="r79-actions"><button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>${isLedger?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<div class="r79-content">${content}</div><div class="r79-notes"><label>Report notes / findings <span>Optional · included when printing or exporting; kept for this session only</span><textarea rows="3" placeholder="Add context, supporting references or matters to review…" oninput="Reports79.notes['${kind}']=this.value">${re79(s.notes[kind]||'')}</textarea></label></div>`;
+ host.innerHTML=`<header class="r79-header"><div><span class="r79-eyebrow">REPORTS · POSTED JOURNAL</span><h3>${title}</h3><p>${s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'||kind==='tb'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · Active and archived posted entries</p></div><div class="r79-actions">${kind==='gl'?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>${isLedger&&kind!=='gl'?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<div class="r79-content">${content}</div><div class="r79-notes"><label>Report notes / findings <span>Optional · included when printing or exporting; kept for this session only</span><textarea rows="3" placeholder="Add context, supporting references or matters to review…" oninput="Reports79.notes['${kind}']=this.value">${re79(s.notes[kind]||'')}</textarea></label></div>`;
  if(blocks)bindLedgerBlocks300(host,blocks);
  window.reportWindow143195?.rendered(host);
  }

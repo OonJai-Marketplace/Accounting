@@ -19,41 +19,37 @@ window.exportFinance117=()=>{captureFinance();downloadData71(JSON.stringify({for
 window.importFinance117=()=>{captureFinance();const current=draftGuard();const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.onchange=async()=>{try{const f=input.files[0];if(!f||f.size>5e6)throw Error('Choose a report JSON under 5 MB.');const parsed=JSON.parse(await f.text(),(k,v)=>['__proto__','constructor','prototype'].includes(k)?undefined:v),d=parsed.report||parsed.data;if(!['oonjai-finance-117','oonjai-backup-82'].includes(parsed.format)||!d||!Array.isArray(d.lines)||!Array.isArray(d.movements))throw Error('This is not a financing report backup.');for(const l of d.lines)if(typeof l.category!=='string'||typeof l.description!=='string'||typeof l.currency!=='string'||!Number.isFinite(Number(l.amount))||num(l.amount)<0)throw Error('Invalid budget item.');for(const m of d.movements)if(typeof m.currency!=='string'||![m.inflow||0,m.outflow||0].every(v=>Number.isFinite(Number(v))&&Number(v)>=0)||(Number(m.inflow)>0&&Number(m.outflow)>0))throw Error('Invalid funding movement.');if(d.conversions&&!Array.isArray(d.conversions))throw Error('Invalid conversions.');for(const c of d.conversions||[])if(typeof c.currency!=='string'||typeof c.target!=='string'||c.currency===c.target||![c.amount,c.rate].every(v=>Number.isFinite(Number(v))&&Number(v)>0))throw Error('Invalid currency conversion.');if(!current()||!await ui117.confirm('Replace the open draft with this imported report?')||!current())return;Object.assign(Finance82,{reference:'',date:today82(),budgetMonth290:today82().slice(0,7),recipient:'',purpose:'',mode:'request',notes:'',reviewer:'',conversions:[]},d);Work82.reportRecord=null;Work82.report=null;renderWork82()}catch(e){showCenterStatus(e.message,true)}};input.click()};
 function summaryText(d){return `${d.recipient?'Dear '+d.recipient+',\n\n':''}Budget request${d.reference?' — '+d.reference:''}\n${formatAppDate(d.date)}\n${d.purpose?d.purpose+'\n':''}\n${d.lines.map((l,i)=>`${i+1}. ${l.category}: ${l.currency} ${money(l.amount)}${l.description?' — '+l.description:''}`).join('\n')}\n\n${Object.entries(totals(d)).map(([c,t])=>`Total requested: ${c} ${money(t.requested)}${t.received||t.spent||t.convertedIn||t.convertedOut?'\nReceived: '+c+' '+money(t.received)+'\nAllocated: '+c+' '+money(t.spent)+'\nRemaining: '+c+' '+money(t.received+t.convertedIn-t.convertedOut-t.spent):''}`).join('\n')}\n${d.notes?'\n'+d.notes:''}`}
 window.shareFinance117=()=>{captureFinance();ui108.modal('Review your summary',`<textarea id="financeShare117" rows="13" style="width:100%;box-sizing:border-box">${esc(summaryText(Finance82))}</textarea><div class="finance-controls117"><button type="button" data-whatsapp117>Share to WhatsApp</button><button type="button" data-email117>Email</button><button type="button" data-copy117>Copy</button></div><p role="status"></p>`);const root=document.querySelector('.ui-overlay108:last-child'),value=()=>root.querySelector('textarea').value;root.querySelector('[data-whatsapp117]').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(value()),'_blank','noopener');root.querySelector('[data-email117]').onclick=()=>{location.href='mailto:?subject='+encodeURIComponent('Budget request '+Finance82.reference)+'&body='+encodeURIComponent(value())};root.querySelector('[data-copy117]').onclick=async()=>{try{await navigator.clipboard.writeText(value());root.querySelector('[role=status]').textContent='Copied.'}catch{root.querySelector('textarea').select();root.querySelector('[role=status]').textContent='Select and copy the summary above.'}}};
-// Select an account and period directly in Reconciliation.
+// The working picker belongs to the open book; report periods are selected in Reports.
 const recList=window.renderReconciliationList71;
 window.renderReconciliationList71=async function(){
- const actor=liveProfile?.id,client=ojmDb;
- await recList();
+ const actor=liveProfile?.id,client=ojmDb;await recList();
  const host=document.getElementById('reconciliationList71');
- if(!actor||actor!==liveProfile?.id||ojmDb!==client||!host||!reportPermission71()||host.querySelector('#recCreate117'))return;
- const form=document.createElement('form');form.id='recCreate117';form.className='rec-controls117';
- const canEdit=()=>actor===liveProfile?.id&&client===ojmDb&&form.isConnected&&access113.can('report-reconciliation','edit');
- form.innerHTML=`<div class="rec-row305"><label class="rec-account-picker305">Account<select id="recAccount117" name="account" required></select></label><label class="rec-period-picker305">Period<select name="mode"><option value="monthly">Month</option><option value="quarterly">Quarter</option></select></label><label data-month117>Month<input type="month" name="month" value="${today82().slice(0,7)}" required></label><label data-quarter117 hidden>Quarter<select name="quarter">${options(['1','2','3','4'].map(x=>[x,'Q'+x]))}</select></label><label data-quarter117 hidden>Year<input type="number" name="year" min="2000" max="2200" value="${new Date().getFullYear()}"></label><button type="submit" class="je-btn je-btn-emerald">Reconcile</button></div>
- <div class="rec-date-note305"><label data-bank-dates hidden>Bank statement dates<select name="basis"><option value="receipt">Receipt dates</option><option value="posting">Posting dates</option></select></label><small data-method></small></div><p role="status"></p>`;
- const heading=host.querySelector('.je-card-header');if(!heading)return;heading.after(form);
+ if(!actor||actor!==liveProfile?.id||client!==ojmDb||!host?.recWorkspace306||!reportPermission71()||host.querySelector('#recCreate117'))return;
+ const form=document.createElement('form');form.id='recCreate117';form.className='rec-controls117';form.style.visibility='hidden';
+ form.innerHTML=`<div class="rec-row305"><label class="rec-account-picker305" for="recAccount117Search1434">Account<select id="recAccount117" name="account" required></select></label><label class="rec-period-picker305">Period<input value="Month" readonly aria-label="Period"></label><label>Open book<select name="month" data-plain14285 required></select></label><label data-bank-dates hidden>Bank statement dates <button type="button" class="rec-help306" aria-label="Explain receipt and posting dates" title="Receipt dates use the recorded bank receipt date; posting dates use the journal date." data-date-help306>*</button><select name="basis" data-plain14285><option value="receipt">Receipt dates</option><option value="posting">Posting dates</option></select></label><button type="submit" class="je-btn je-btn-emerald">Reconcile</button></div><p role="status"></p>`;
+ host.querySelector('.je-card-header').after(form);
  const el=form.elements,add=host.querySelector('[data-add-account]'),message=form.querySelector('[role=status]');
- const available=()=>reconAccounts71(),find=key=>available().find(a=>accountKey69(a)===key),label=a=>[accountKey69(a),a.code+' — '+a.name+' · '+a.currency];
- let extras={};
+ const canEdit=()=>actor===liveProfile?.id&&client===ojmDb&&form.isConnected&&access113.can('report-reconciliation','edit');
+ const available=()=>reconAccounts71(),find=key=>available().find(a=>accountKey69(a)===key),label=a=>[accountKey69(a),reconciliationAccountLabel306(a,true)];
+ let extras=host.recPreferences306||{},completed=new Set(),choiceSignature='';
  const excluded=()=>new Set(Array.isArray(extras.__excluded305)?extras.__excluded305:[]);
  function isDefault(a){return liveProfile.role==='admin'?priorityReconciliation71.includes(String(a.code)):workspaceRules(liveProfile).fundIds.includes(a.id)}
- function listed(){const hidden=excluded(),all=available().filter(a=>!hidden.has(accountKey69(a))),primary=all.filter(isDefault),added=all.filter(a=>!isDefault(a)&&Object.hasOwn(extras,accountKey69(a)));if(liveProfile.role==='admin')primary.sort((a,b)=>priorityReconciliation71.indexOf(String(a.code))-priorityReconciliation71.indexOf(String(b.code)));return {primary,added}}
- function syncMethod(){
-  const a=find(el.account.value),method=a&&(extras[el.account.value]||defaultReconciliation71(a));
-  form.querySelector('[data-bank-dates]').hidden=method!=='bank';el.basis.value='receipt';
-  form.querySelector('[data-method]').textContent=method&&method!=='bank'?reconciliationLabels71[method]+' · posting dates':'';
+ function listed(){const all=available().filter(a=>!excluded().has(accountKey69(a))),primary=all.filter(isDefault),added=all.filter(a=>!isDefault(a)&&Object.hasOwn(extras,accountKey69(a)));if(liveProfile.role==='admin')primary.sort((a,b)=>priorityReconciliation71.indexOf(String(a.code))-priorityReconciliation71.indexOf(String(b.code)));return {primary,added}}
+ function syncMethod(){const a=find(el.account.value),method=a&&(extras[el.account.value]||defaultReconciliation71(a));form.querySelector('[data-bank-dates]').hidden=method!=='bank';}
+ function fill(selected=el.account.value){
+  const {primary,added}=listed(),rows=[...primary,...added].filter(a=>!completed.has(a.id)),html='<option value="">Choose account</option>'+options(rows.map(label));
+  if(choiceSignature!==html){el.account.innerHTML=html;choiceSignature=html;el.account.value=rows.some(a=>accountKey69(a)===selected)?selected:'';}else if(rows.some(a=>accountKey69(a)===selected))el.account.value=selected;
+  el.account.disabled=!host.recWorkspace306?.month||!rows.length;form.querySelector('[type=submit]').disabled=el.account.disabled;
+  syncMethod();window.dropdown1434?.enhance(form);form.style.visibility='';
  }
- function fill(selected=''){
-  const {primary,added}=listed();el.account.innerHTML='<option value="">Choose account</option>'+options(primary.map(label))+(added.length?'<optgroup label="Added accounts">'+options(added.map(label))+'</optgroup>':'');el.account.value=selected;
-  const input=form.querySelector('#recAccount117Search1434');if(input){delete input.dataset.pickerDraft1444;input.setCustomValidity('');input.value=el.account.selectedOptions[0]?.value?dropdown1434.accountLabel(el.account.value,el.account.selectedOptions[0].textContent):'';}
-  syncMethod();window.dropdown1434?.enhance(form);
- }
- add.disabled=true;
- try{extras=await reconPreferences71(actor)||{};}catch(e){message.textContent='Your saved account list could not load. '+e.message;form.querySelectorAll('button,select,input').forEach(n=>n.disabled=true);return;}
- if(!form.isConnected||actor!==liveProfile?.id||client!==ojmDb)return;
- fill();add.disabled=!canEdit();
+ form.refresh306=(work,prefs)=>{
+  extras=prefs||{};const html=work.months.map(m=>`<option value="${esc(m.month)}">${esc(new Date(m.month+'-01T00:00:00Z').toLocaleDateString('en-US',{month:'long',year:'numeric',timeZone:'UTC'}))}${m.status==='reopened'?' · Reopened':''}</option>`).join('');if(el.month.innerHTML!==html)el.month.innerHTML=html;el.month.value=work.month||'';
+  completed=new Set((work.progress?.items||[]).filter(x=>x.complete).map(x=>x.id));fill();add.disabled=!canEdit();message.textContent=!work.month?'No open book. View saved reconciliations in Reports.':el.account.disabled?'All required accounts are reconciled for this month.':'';
+ };
+ form.querySelector('[data-date-help306]').onclick=()=>ui108.modal('Bank statement dates','<p><strong>Receipt dates:</strong> Uses the recorded date the bank received or processed the transaction. If no separate receipt date is recorded, the posting date is used.</p><p><strong>Posting dates:</strong> Uses the transaction date in the journal.</p><p>Example: posted October 31, received November 1 — October using posting dates, November using receipt dates.</p>');
  add.onclick=()=>{
   if(!canEdit())return;
-  ui108.modal('Reconciliation accounts',`<form id="recAccounts305" class="rec-accounts305"><div class="rec-add-fields305"><label>Account<select id="recCandidate117" name="candidate" required></select></label><label>Reconciliation method<select name="method">${options(Object.entries(reconciliationLabels71))}</select></label></div><h4>Accounts required for month closing</h4><p>Every listed account needs a saved monthly reconciliation. Removing an account here keeps its chart account and past reports. Closed months keep their saved requirements.</p><div data-rec-account-list305></div><p role="status"></p></form>`);
+  ui108.modal('Reconciliation accounts',`<form id="recAccounts305" class="rec-accounts305"><div class="rec-add-fields305"><label for="recCandidate117Search1434">Account<select id="recCandidate117" name="candidate" required></select></label><label>Reconciliation method<select name="method" data-plain14285>${options(Object.entries(reconciliationLabels71))}</select></label></div><h4>Accounts required for month closing</h4><p>Every listed account needs a saved monthly reconciliation. Removing an account here keeps its chart account and past reports. Closed months keep their saved requirements.</p><div data-rec-account-list305></div><p role="status"></p></form>`);
   const popup=document.querySelector('.ui-overlay108:last-child'),editor=popup.querySelector('form'),fields=editor.elements,status=editor.querySelector('[role=status]'),list=editor.querySelector('[data-rec-account-list305]'),footer=popup.querySelector('footer');
   popup.classList.add('rec-accounts-overlay305');let busy=false;
   const current=()=>canEdit()&&popup.isConnected;
@@ -71,28 +67,27 @@ window.renderReconciliationList71=async function(){
    const key=fields.candidate.value,method=fields.method.value;
    if(!find(key)||!Object.hasOwn(reconciliationLabels71,method)){status.textContent='Choose an account and method.';return}
    busy=true;const button=footer.querySelector('[data-save-account]');button.disabled=true;
-   try{extras=await reconPreferences71(actor,old=>({...old,[key]:method,__excluded305:(Array.isArray(old?.__excluded305)?old.__excluded305:[]).filter(k=>k!==key)}));if(!canEdit())return;fill(key);message.textContent='Account added to your reconciliation list.';if(popup.isConnected)popup.resolve108(true);}
+   try{extras=await reconPreferences71(actor,old=>({...old,[key]:method,__excluded305:(Array.isArray(old?.__excluded305)?old.__excluded305:[]).filter(k=>k!==key)}));if(!canEdit())return;await renderReconciliationList71();fill(key);if(popup.isConnected)popup.resolve108(true);}
    catch(e){if(current())status.textContent=e.message}finally{busy=false;button.disabled=false}
   };
   list.onclick=async event=>{
    const button=event.target.closest('[data-remove-account305]');if(!button||!current()||busy)return;
    const key=button.dataset.removeAccount305;busy=true;button.disabled=true;
-   try{extras=await reconPreferences71(actor,old=>{const next={...old,__excluded305:[...new Set([...(Array.isArray(old?.__excluded305)?old.__excluded305:[]),key])]};delete next[key];return next;});if(!canEdit())return;fill(el.account.value===key?'':el.account.value);if(current()){paint();status.textContent='Removed from your reconciliation list.'}}
+   try{extras=await reconPreferences71(actor,old=>{const next={...old,__excluded305:[...new Set([...(Array.isArray(old?.__excluded305)?old.__excluded305:[]),key])]};delete next[key];return next;});if(!canEdit())return;await renderReconciliationList71();fill(el.account.value===key?'':el.account.value);if(current()){paint();status.textContent='Removed from your reconciliation list.'}}
    catch(e){if(current())status.textContent=e.message}finally{busy=false;button.disabled=false}
   };
   paint();if(window.dropdown1434)dropdown1434.focus(fields.candidate);else fields.candidate.focus();
  };
+
  el.account.onchange=syncMethod;
- el.mode.onchange=()=>{const monthly=el.mode.value==='monthly';form.querySelector('[data-month117]').hidden=!monthly;el.month.disabled=!monthly;form.querySelectorAll('[data-quarter117]').forEach(n=>n.hidden=monthly);};
- form.onsubmit=e=>{
-  e.preventDefault();if(!canEdit())return;
-  const account=find(el.account.value);if(!account||excluded().has(el.account.value))return;
-  const method=extras[el.account.value]||defaultReconciliation71(account),saved={...Accounts69};
-  try{Object.assign(Accounts69,{account:el.account.value,mode:el.mode.value,month:el.month.value,year:el.year.value,quarter:el.quarter.value,query:''});periodRange71();return createReconciliation71(method==='bank'?el.basis.value:'posting',{...Accounts69},method)}finally{Object.assign(Accounts69,saved)}
+ el.month.onchange=()=>{void renderReconciliationList71()};
+ form.onsubmit=event=>{event.preventDefault();if(!canEdit())return;const account=find(el.account.value),month=el.month.value;if(!account||completed.has(account.id)||!month)return;
+ const method=extras[el.account.value]||defaultReconciliation71(account),[year,m]=month.split('-').map(Number),to=new Date(Date.UTC(year,m,0)).toISOString().slice(0,10);
+ return createReconciliation71(method==='bank'?el.basis.value:'posting',{account:el.account.value,from:month+'-01',to},method);
  };
- host.querySelectorAll('td').forEach(td=>{if(td.textContent.includes('Create a report from the General Ledger'))td.textContent='Select an account and period above to start.'});
+ form.refresh306(host.recWorkspace306,extras);
 };
-window.printReport71=()=>{const r=currentReport71;if(!r)return;print82(reconciliationNumber71(r)+' — '+r.account.name,`<p>${esc(r.preparedBy)} · ${esc(reconciliationStatus71(r))} · ${r.dateBasis==='receipt'?'Receipt dates':'Posting dates'}</p>`+reconciliationComparison71(r)+snapshotTable71(r)+table(['Finding','Amount','Explanation','Status'],r.findings.map(f=>[esc(f.kind),esc(f.amount),esc(f.description),esc(f.status)]))+`<p>${esc(r.notes)}</p>`,formatAppDate(r.from)+' to '+formatAppDate(r.to))};
+window.printReport71=()=>currentReport71&&reconciliationExport306(currentReport71);
 // Send report data, rather than screen controls, into the editor.
 const copyBefore=window.copyReportToEditor105;window.copyReportToEditor105=function(){const active=document.querySelector('.tab-content.active');if(!active)return;let html,title,period='';const report=Object.entries(reportNames79).find(([k])=>active.querySelector(`[onclick*="printDesktopReport79('${k}')"]`));if(report){const [kind,name]=report;title=name;html=reportContent79(kind,true);period=formatAppDate(Reports79.from)+' to '+formatAppDate(Reports79.to)}else if(active.id==='report-financing82'){title='Budget & Financing Reports';html=budget14313.savedReportsHtml();period='Saved reports'}else if(active.id==='trial-balance'){title='Trial Balance';html=trialHtml69(reportRows69(trialThrough87()));period=trialRangeLabel87()}else if(active.id==='account-balances'){title='Account Balances';html=balancesHtml69(reportRows69());period=formatAppDate(Accounts69.from)+' to '+formatAppDate(Accounts69.to)}else return copyBefore();const node=document.createElement('div');node.innerHTML=html;node.querySelectorAll('.r79-metrics').forEach(metrics=>{const table=document.createElement('table');table.innerHTML='<tbody>'+[...metrics.children].map(m=>'<tr><th style="text-align:left;width:65%">'+esc(m.querySelector('small')?.textContent||'')+'</th><td style="text-align:right">'+esc(m.querySelector('strong')?.textContent||'')+'</td></tr>').join('')+'</tbody>';metrics.replaceWith(table)});node.querySelectorAll('button').forEach(b=>b.replaceWith(document.createTextNode(b.textContent)));return openDocumentEditor105({title,source:active.id,category:'Reports',capturedAt:new Date().toISOString(),html:`<h1>${esc(title)}</h1><p>${esc(period)}</p>`+node.innerHTML})};
 window.financeTotals117=totals;

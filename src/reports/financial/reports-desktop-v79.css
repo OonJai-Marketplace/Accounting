@@ -50,3 +50,9 @@ dialog.report-dialog299 {
 .report-fields299 fieldset {grid-column:1/-1; min-width:0; margin:0; border:1px solid #b8cec4}
 .report-fields299 [data-choices] {display:grid; gap:5px; max-height:14rem; overflow:auto; padding:6px}
 .report-fields299 [data-choices] [role=group] {display:grid; gap:5px}
+
+body.shell113 #report-gl .r79-actions .r79-search143153{padding:0;align-items:center}
+body.shell113 #report-gl .r79-actions .r79-search143153 label{width:240px;max-width:100%}
+body.shell113 #report-gl .r79-actions .r79-search143153 input{width:185px}
+body.shell113 #report-gl .r79-header{gap:12px;flex-wrap:wrap}
+body.shell113 #report-gl .r79-actions{align-items:center}

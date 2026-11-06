@@ -80,7 +80,7 @@
 
 #recCreate117 .rec-row305{display:flex;align-items:end;gap:10px;flex-wrap:nowrap;width:100%}
 #recCreate117 .rec-row305 label{min-width:0;flex:0 1 160px}
-#recCreate117 .rec-row305 .rec-account-picker305{flex:1 1 280px}
+#recCreate117 .rec-row305 .rec-account-picker305{flex:0 1 300px;max-width:300px}
 #recCreate117 .rec-row305 .rec-period-picker305{flex:0 1 110px}
 #recCreate117 .rec-row305 label :is(input,select){width:100%;max-width:100%}
 #recCreate117 .rec-row305>button{flex:none}
@@ -94,3 +94,14 @@
 .rec-accounts-overlay305 [data-rec-account-list305]{max-height:38vh;overflow:auto}
 
 #recCreate117 [hidden],#recOverlay71 [hidden]{display:none!important}
+#recCreate117 select.account-source1428,#recAccounts305 select.account-source1428{display:none!important}
+#recCreate117 .rec-row305{justify-content:flex-start}
+#recCreate117 .rec-row305 [data-bank-dates]{position:relative;flex:0 1 180px}
+#recCreate117 .rec-help306{border:0;background:transparent;color:#067653;padding:0 4px;font-weight:700;cursor:help;min-height:0}
+#recExport306 [hidden],#recCreate117 [hidden]{display:none!important}
+#recExport306 .rec-export-dates306{display:flex;gap:12px;flex-wrap:wrap}
+#recExport306 .rec-export-dates306>label{flex:1;min-width:180px}
+#recExport306 .rec-export-accounts306{max-height:220px;overflow:auto;display:grid;gap:8px}
+#recExport306 input[type=checkbox]{width:auto;min-height:0;margin-right:6px}
+#recExport306 fieldset{margin:12px 0;padding:12px}
+#recExport306 .rec-export-content306{display:flex;gap:20px;flex-wrap:wrap}

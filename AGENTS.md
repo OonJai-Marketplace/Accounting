@@ -543,3 +543,18 @@ is available there. Display REC-YYMM-account-code, including existing records,
 with a separate unique storage identity so repeated counts never overwrite history.
 
 Month closing requirement 2026-11-06 v143.305: the shared administrator reconciliation list is mandatory for monthly close/lock and correction completion. Store confirmed reports and list revisions on the server; require an account-specific dated financial fingerprint, never blanket-invalidate counts for unrelated changes or memo edits. Reconcile staged corrections against their projected figures, and verify committed figures again. Freeze the required list on first close so future list edits do not retroactively alter closed months. Existing matching saved counts may be certified without re-entry; incomplete or changed old snapshots cannot authorize closing. Keep counts out of the closing/history editor. Supporting documents remain optional. Do not post journals or close live periods to test releases.
+
+
+Reconciliation 2026-11-06 v143.306: Bookkeeping works only on available open books
+(or explicitly reopened correction workspaces); historical periods are in Reports.
+Hide completed accounts per month and permit version-checked same-record edits only
+while the book is open. Preserve previous versions and merge legacy copies by stable
+storage identity. Keep one compact searchable picker without generic draft recovery
+or native duplicate dropdown. Account management remains a popup. Bank dates stay
+inline with an asterisk explanation. Report export first selects accounts, dates,
+summary/ledger and zero to three signatories; retain selected ledger content in the
+editor. Remove the obsolete Funds tab and keep GL search in the action toolbar.
+
+Reconciliation integration 2026-11-06 v143.307: preserve published amortization 306.
+Keep working IDs hidden until saved, use one currency label, and display ledger
+details beneath the historical Reports summary as well as in exported documents.

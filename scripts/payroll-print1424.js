@@ -98,6 +98,12 @@ async function before(options){
  const actor=liveProfile?.id,client=ojmDb,source=options.source==='profit-tax199'?'tax-profit':options.source;
  const allowed=()=>liveProfile?.id===actor&&ojmDb===client&&(!window.access113||access113.can('document-editor105','view')&&access113.can('document-editor105','export')&&(!source||!document.getElementById(source)||access113.can(source,'view')&&access113.can(source,'export')));
  if(options.payrollVouchers){if(options.voucherSignatories1433?.voucherSignatories1433)return options;const root=document.createElement('div');root.innerHTML=options.html;const receivers=options.payrollReceivers1433||[...root.querySelectorAll('[data-print-signatures]')].map(n=>({name:n.dataset.printReceiver||options.receiverName,employeeId:n.dataset.printReceiverId||''}));const choices=await choosePrintSignatories1424({voucherOnly1433:true,receivers,previous:options.voucherSignatories1433,actionLabel:'Open vouchers'});if(!choices||!allowed())return null;const groups=[...root.querySelectorAll('[data-print-signatures]')];if(groups.length!==receivers.length)throw Error('The voucher list changed. Reopen it from Reports or Payroll.');groups.forEach((n,i)=>{const receiver=receivers[i],name=n.dataset.printReceiver||receiver?.name||options.receiverName||'',id=n.dataset.printReceiverId||receiver?.employeeId||'';const wrapper=document.createElement('div');wrapper.innerHTML=printSignatures1424(choices,name,id);const signature=wrapper.firstElementChild;if(n.style.marginTop)signature.style.marginTop=n.style.marginTop;n.replaceWith(signature);});return {...options,html:root.innerHTML,voucherSignatories1433:choices};}
+ if(options.reconciliationOptions306&&options.source==='report-reconciliation'){
+  const choices=options.reportSignatories275;
+  if(!allowed())return null;
+  if(!choices?.reportSignatories275||!Array.isArray(choices.signers)||choices.signers.length>3||choices.enabled!==!!choices.signers.length||choices.signers.some(s=>!String(s.name||'').trim()||!String(s.role||'').trim()))throw Error('Review the selected reconciliation signatories.');
+  return apply(options,choices);
+ }
  const choices=await choose({...options,prepared:options.reportSigner1434,approver:options.reportApprover1434,previous:options.reportSignatories275});if(!choices||!allowed())return null;return apply(options,choices);
 }
 window.ReportSignatories275={key,html,read,apply,choose,before,signatureHtml277,prepare277,jobRole277};
