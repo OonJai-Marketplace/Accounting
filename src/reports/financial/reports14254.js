@@ -67,13 +67,41 @@ function payrollMetadata277(run){
  const evidence=window.payrollRateEvidence(run)||'LAK only';
  return `<div data-payroll-metadata277="1" style="${textStyle}display:flex;gap:8mm;margin:0 0 3mm;break-inside:avoid"><div style="flex:1;min-width:0">${(window.journalMemoHtml143187||esc)(evidence)}</div><div style="flex:1;min-width:0"><div><strong>Month:</strong> ${esc(run.month)}</div><div><strong>Reference:</strong> ${esc(run.reference)}</div></div></div>`;
 }
+// Journal checking totals use saved payroll amounts and the same grouping/rounding
+// as the journal: gross/tax by currency, salary and recoveries by employee.
+function payrollJournalSummary309(run,results){
+ const round=n=>Math.sign(n)*Math.round((Math.abs(n)+Number.EPSILON)*100)/100;
+ const sum=(rows,key)=>round(rows.reduce((n,x)=>n+num(key==='pitPayable'?(x.pitPayable309??x.pit??(num(x.employeePit)+num(x.employerPit))):key==='ssoPayable'?num(x.employeeSso)+num(x.employerSso):key==='cashAdvance'?(x.cashAdvance??x.advance):x[key]),0));
+ const local=results.filter(x=>x.currency==='LAK'),foreign=results.filter(x=>x.currency!=='LAK');
+ const items=[['gross','Gross salary'],['adjusted','Net salary payable'],['cashAdvance','Advance allocation'],['loanRecovery','Loan recovery allocation'],['reimbursement','Reimbursements'],['employeePit','PIT withheld — employee'],['employerPit','PIT expense — company'],['pitPayable','Total PIT payable'],['employeeSso','SSO withheld — employee'],['employerSso','SSO expense — company'],['ssoPayable','Total SSO payable']];
+ const always=new Set(['gross','adjusted','pitPayable','ssoPayable']),visible=items.filter(([k])=>always.has(k)||sum(results,k)!==0);
+ let html='<section data-payroll-journal-summary309="1" style="break-inside:avoid">'+heading('Payroll journal summary',4)+table(['Journal amount','Local · LAK','Foreign · LAK','Total · LAK'],visible.map(([k,label])=>[label,money(sum(local,k)),money(sum(foreign,k)),money(sum(results,k))]),[37,21,21,21],{numeric:[1,2,3]});
+ for(const c of [...new Set(foreign.map(x=>x.currency))]){
+  const rows=foreign.filter(x=>x.currency===c),rate=num(run.rates?.[c]??rows[0]?.rate);
+  if(!(rate>0)){html+=`<p style="${textStyle}">${esc(c)} journal equivalents are unavailable: the saved exchange rate is missing.</p>`;continue;}
+  const currencyRows=[];
+  for(const [k,label] of items){
+   if(['employerPit','employerSso','pitPayable','ssoPayable'].includes(k)||(!always.has(k)&&sum(rows,k)===0))continue;
+   const each=['adjusted','cashAdvance','loanRecovery','reimbursement'].includes(k);
+   const amounts=each?rows.map(x=>round(sum([x],k)/rate)):[round(sum(rows,k)/rate)];
+   const amount=round(amounts.reduce((n,v)=>n+v,0)),base=round(amounts.reduce((n,v)=>n+round(v*rate),0));
+   currencyRows.push([label,money(amount),money(base)]);
+  }
+  const rounding=round(['adjusted','cashAdvance','loanRecovery'].reduce((total,key)=>total+rows.reduce((n,x)=>n+round(round(sum([x],key)/rate)*rate)-sum([x],key),0),0));
+  if(rounding)currencyRows.push(['Payroll conversion rounding · '+(rounding>0?'DR':'CR'),'—',money(Math.abs(rounding))]);
+  html+=`<div data-payroll-journal-currency309="${esc(c)}" style="break-inside:avoid">`+heading('Foreign journal amounts · '+c)+table(['Journal amount',c,'LAK equivalent'],currencyRows,[44,24,32],{numeric:[1,2]})+'</div>';
+ }
+ if(foreign.length)html+=`<p style="${textStyle}font-size:9pt;margin:0 0 2mm">LAK equivalents and the tax bridge use rounded foreign amounts × the saved rate. PIT and SSO payables retain the LAK payroll shares above; the salary conversion difference is shown separately as rounding.</p>`;
+ return html+'</section>';
+}
 function payroll(run,results){const internal=x=>num(x.late)+num(x.absence)+num(x.penalty)+num(x.other);let html=title('Payroll Calculation Report','')+payrollMetadata277(run)+`<p data-report-notice270>${esc(run.status==='finalized'?'FINALIZED':'DRAFT — NOT FINALIZED')}</p>`;
 if(run.isSample)html+=`<p data-report-notice270 style="${textStyle}">SAMPLE — NOT FOR PAYMENT</p>`;
 html+=heading('Payroll breakdown',1)+table(['Employee','Contract','Internal deductions','Gross','Taxable','Net'],results.map(x=>[payrollEmployee269(x.employee),payrollMoney269(x.contract,x.currency),payrollMoney269(internal(x)),payrollMoney269(x.gross),payrollMoney269(x.taxable),payrollMoney269(x.net)]),[20,16,16,16,16,16],{numeric:[1,2,3,4,5]});
 html+=heading('Mandatory deductions',2)+table(['Code','Employee PIT','Employer PIT','Employee SSO','Employer SSO','Employee total'],results.map(x=>[x.employee.code,payrollMoney269(x.employeePit),payrollMoney269(x.employerPit),payrollMoney269(x.employeeSso),payrollMoney269(x.employerSso),payrollMoney269(num(x.employeePit)+num(x.employeeSso))]),[14,17,17,17,17,18],{numeric:[1,2,3,4,5]});
-if(results.some(x=>x.pitRounding308))html+=table(['Code','PIT rounding','Total PIT payable'],results.filter(x=>x.pitRounding308).map(x=>[x.employee.code,payrollMoney269(x.pitRounding308),payrollMoney269(x.pit)]),[20,40,40],{numeric:[1,2]});
+if(results.some(x=>x.pitRounding308&&x.pitPayable309==null))html+=table(['Code','PIT rounding','Total PIT payable'],results.filter(x=>x.pitRounding308).map(x=>[x.employee.code,payrollMoney269(x.pitRounding308),payrollMoney269(x.pit)]),[20,40,40],{numeric:[1,2]});
 html+=heading('Final payment',3)+table(['Code','Allowance','Reimbursement','Advance','Loan'],results.map(x=>[x.employee.code,payrollMoney269(x.allowance),payrollMoney269(x.reimbursement),payrollMoney269(x.cashAdvance??x.advance),payrollMoney269(x.loanRecovery)]),[14,21,23,21,21],{numeric:[1,2,3,4]})+table(['Code','Net','Final amount','Equivalent'],results.map(x=>[x.employee.code,payrollMoney269(x.net),payrollMoney269(x.paidAmount,x.currency),payrollMoney269(x.adjusted)]),[16,28,28,28],{numeric:[1,2,3]});
-html+=(run.rows.length<=12?'<div style="break-inside:avoid">':'')+heading('Attendance record',4)+attendance(run,run.rows)+(run.rows.length<=12?'</div>':'')+heading('Attendance summary',5)+attendanceSummary(run,results,'en',true);
+html+=payrollJournalSummary309(run,results);
+html+=(run.rows.length<=12?'<div style="break-inside:avoid">':'')+heading('Attendance record',5)+attendance(run,run.rows)+(run.rows.length<=12?'</div>':'')+heading('Attendance summary',6)+attendanceSummary(run,results,'en',true);
 if(run.notes)html+=`<p style="${textStyle}font-size:9pt;margin:1mm 0">${esc(run.notes)}</p>`;return html;}
 // Salary vouchers keep readable type while making space for letterhead and notes.
 function compactVoucher241(html,language){

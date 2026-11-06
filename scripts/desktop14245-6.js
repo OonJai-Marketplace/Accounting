@@ -850,20 +850,14 @@ function defaultTemplate(run){
 // Upgrade only generated arithmetic rows. Preserve custom accounts, manual
 // amounts, dates and employee mappings; never rewrite a saved payroll result.
 function upgrade308(template){
- const t={...template,lines:template.lines.map(r=>({...r}))},group=r=>r.groupCurrency275||r.employees;
+ const t={...template,lines:template.lines.map(r=>({...r}))};
  t.lines=t.lines.flatMap(r=>{
-  if(r.derived274==='taxBridge'&&!t.lines.some(x=>group(x)===group(r)&&x.derived274==='taxConversionRounding308'))return [{...r,memo:'Employee withholding · payroll LAK amount'},{...r,derived274:'taxConversionRounding308',memo:'Withholding currency conversion rounding'}];
+  if(['taxConversionRounding308','pitRoundingPayable308','pitRoundingOffset308'].includes(r.derived274))return [];
+  if(r.derived274==='taxBridge')return [{...r,memo:'Employee withholding · converted value'}];
   if(r.basis==='pit'&&r.side==='CR'&&r.scope==='total'&&r.expectedCurrency==='LAK'&&String(r.manual??'').trim()==='')return [{...r,basis:'employeePit',memo:'PIT · employee share payable'},{...r,basis:'employerPit',memo:'PIT · company share payable'}];
   return [r];
  });
- for(const c of new Set(t.lines.map(group))){
-  if(t.lines.some(r=>group(r)===c&&r.derived274==='pitRoundingPayable308'))continue;
-  const payable=t.lines.filter(r=>group(r)===c&&r.side==='CR'&&r.expectedCurrency==='LAK'&&['employeePit','employerPit','pit'].includes(r.basis)&&String(r.manual??'').trim()==='');
-  if(!payable.length||new Set(payable.map(r=>r.account)).size!==1)continue;
-  const rule={...payable[0],side:'AUTO',basis:'rounding',employees:c,scope:'total',manual:'',groupCurrency275:c};
-  for(const [kind,account,memo] of [['pitRoundingPayable308',payable[0].account,'PIT rounding · reconcile to assessed tax'],['pitRoundingOffset308',exact('5420','LAK'),'PIT split rounding']])t.lines.push({...rule,account,memo,derived274:kind});
- }
- t.version=143308;return t;
+ t.version=143309;return t;
 }
 function isStarter(t){return t?.lines?.length===2&&t.lines[0].account===''&&t.lines[0].basis==='gross'&&t.lines[1].account==='$employee'&&t.lines[1].basis==='adjusted';}
 function selected(results,filter){return results.filter(x=>!filter||filter==='all'||x.currency===filter||filter==='employee:'+x.employeeId);}
@@ -932,6 +926,8 @@ function evaluate(run,template){
   if(r.side!=='AUTO'&&r.side!==side){report('Rounding line must use '+side+' for '+c+'.');return;}
   push({...r,side},a,Math.abs(gap),chosen[0],ruleIndex);
  });
+ // The LAK tax bridge mirrors the rounded foreign withholding at its saved rate.
+ // Keep one net salary conversion rounding amount so both bridge currencies clear.
  // Every conversion adjustment is derived from the saved LAK amounts and their
  // rounded foreign quantities. An edited/missing business row cannot become FX.
  const groupCurrency=r=>r.groupCurrency275||r.employees;
@@ -955,24 +951,13 @@ function evaluate(run,template){
   const converted=bases=>round(source.filter(l=>bases.includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n+round(signed(l)*rate),0));
   const entitlement=source.filter(l=>['adjusted','cashAdvance','loanRecovery'].includes(rules[l.ruleIndex].basis));
   const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,0));
-  const exactWithholding=round(source.filter(l=>['employeePit','employeeSso'].includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n-l.sourceLak274*(l.side==='DR'?1:-1),0));
-  const values={salaryOffset:-converted(['gross']),taxBridge:exactWithholding,taxConversionRounding308:round(-converted(['employeePit','employeeSso'])-exactWithholding),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
+  const values={salaryOffset:-converted(['gross']),taxBridge:-converted(['employeePit','employeeSso']),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
   for(const [i,r] of rules.entries())if(r.derived274&&groupCurrency(r)===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
   const local=round(lines.filter(l=>l.account.currency==='LAK'&&groupCurrency(rules[l.ruleIndex])===c).reduce((n,l)=>n+signed(l),0));
   if(local!==0)report(c+' LAK mapping rows differ from the saved payroll by '+Math.abs(local)+'. Review the accounts and amounts; no balancing adjustment was invented.');
  }
- // Equal rounded shares may sum to one cent more than the assessed tax. Show
- // that cent explicitly, preserving the tax liability and the employee's net.
- for(const c of new Set(results.map(x=>x.currency))){
-  const chosen=selected(results,c),delta=round(chosen.reduce((n,x)=>n+Number(x.pitRounding308||0),0));
-  if(chosen.some(x=>x.pitRounding308!=null&&(!Number.isFinite(x.pitRounding308)||Math.abs(x.pitRounding308)>.01||round(Number(x.pit)-Number(x.employeePit)-Number(x.employerPit))!==x.pitRounding308))){report('PIT rounding must reconcile the saved shares to the assessed tax.');continue;}
-  if(!delta)continue;
-  for(const [kind,v] of [['pitRoundingPayable308',-delta],['pitRoundingOffset308',delta]]){
-   const matches=rules.map((r,i)=>({r,i})).filter(({r})=>groupCurrency(r)===c&&r.derived274===kind);
-   if(matches.length!==1){report('Include one PIT rounding payable and offset for '+c+'.');continue;}
-   const {r,i}=matches[0];push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);
-  }
- }
+ // PIT payable is the sum of the equal rounded shares. Do not generate
+ // an offsetting pair to restore the unallocated tax-assessment cent.
  // Keep rule order, including the small foreign rounding row beside the bridge.
  lines.sort((a,b)=>a.ruleIndex-b.ruleIndex);
  const balances=Object.create(null);for(const l of lines){const b=balances[l.account.currency]||={debit:0,credit:0};b[l.side==='DR'?'debit':'credit']=round(b[l.side==='DR'?'debit':'credit']+l.amount);}
