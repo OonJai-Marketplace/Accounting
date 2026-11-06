@@ -52,6 +52,26 @@ const root=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p
  await assert.rejects(save(306,{...plan,start:'2022-01-01',end:'2022-02-28',posting_day:'last'}),/first day/);
  await save(307,{...plan,start:'2022-01-01',end:'2022-02-28',posting_day:'first'});
  assert.equal((await db.query('SELECT bool_and(due_date=coverage_month) ok FROM private.journal_plan_occurrences280 WHERE plan_id=$1',[uuid(307)])).rows[0].ok,true);
+ await db.exec(read('supabase/migrations/20261106070952_manual_amortization309.sql'));
+ assert.equal((await db.query('SELECT count(*) n FROM private.journal_plans280 WHERE auto_post')).rows[0].n,0);
+ await save(309,{...plan,start:'2022-01-01',end:'2022-02-28',posting_day:'first',auto_post:true});
+ await save(309,{...plan,start:'2022-01-01',end:'2022-02-28',posting_day:'first',auto_post:true});
+ assert.equal((await db.query('SELECT auto_post FROM private.journal_plans280 WHERE id=$1',[uuid(309)])).rows[0].auto_post,false);
+ const count309=(await db.query('SELECT count(*) n FROM journal_entries')).rows[0].n;
+ assert.equal((await db.query('SELECT private.process_journal_plans280() n')).rows[0].n,0);
+ assert.equal((await db.query('SELECT count(*) n FROM journal_entries')).rows[0].n,count309);
+ const listed309=(await db.query('SELECT public.list_journal_plans280() p')).rows[0].p.find(p=>p.id===uuid(309));
+ assert.match(listed309.blocking_reason,/December 2021/);
+ assert.equal(listed309.occurrences[0].status,'pending');
+ await assert.rejects(post(309,1,'2022-01-01'),/previous month/);
+ // A due, eligible occurrence still posts only through the explicit posting RPC.
+ await save(310,{...plan,start:'2021-01-01',end:'2021-01-31',posting_day:'first',auto_post:true});
+ assert.equal((await db.query('SELECT status FROM private.journal_plan_occurrences280 WHERE plan_id=$1',[uuid(310)])).rows[0].status,'pending');
+ const manual309=(await post(310,1,'2021-01-01')).rows[0].result;
+ assert(manual309.entry_no.startsWith('AMO21-'));
+ assert.equal((await post(310,1,'2021-01-01')).rows[0].result.entry_id,manual309.entry_id);
+ assert.equal((await db.query("SELECT count(*) n FROM pg_trigger WHERE tgname='upcoming_plans280'")).rows[0].n,0);
+ await assert.rejects(db.query('UPDATE private.journal_plans280 SET auto_post=true WHERE id=$1',[uuid(309)]),/manual_posting309/);
  await db.query("SELECT set_config('request.jwt.claim.sub','',false),set_config('request.jwt.claims','{}',false)");await assert.rejects(db.query('SELECT public.list_journal_plans280()'),/administrator/);
- console.log('PASS isolated PostgreSQL: immutable save retries, atomic four-line FX releases, historical valuation, exact cents, cross-year schedule, separate IDs, posting idempotency, insufficient-balance/closed-period guards, first-day wait, automatic worker retry and identity restore, RPC/table permissions.');
+ console.log('PASS isolated PostgreSQL: immutable save retries, atomic four-line FX releases, historical valuation, exact cents, cross-year schedule, separate IDs, posting idempotency, insufficient-balance/closed-period guards, first-day wait, legacy worker behavior, manual-only migration, no automatic posts, named previous-month warning, explicit posting retries and RPC/table permissions.');
 }finally{await db.close()}})().catch(e=>{console.error(e);process.exitCode=1});

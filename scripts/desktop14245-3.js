@@ -6075,8 +6075,16 @@ async function reconciliationSnapshot305(account,from,to,basis){
  const data=await reconciliationRpc305('reconciliation_snapshot305',{p_account:account.id,p_from:from,p_to:to,p_basis:basis});
  return {...data,account,key:accountKey69(account),currency:account.currency};
 }
-async function reconciliationRecords305(){
+let reconciliationRecordsFlight309=null,legacyChecks309={owner:'',client:null,journal:null,records:new Map()};
+function reconciliationRecords305(){
+ const owner=reportOwner71(),client=ojmDb;
+ if(reconciliationRecordsFlight309?.owner===owner&&reconciliationRecordsFlight309.client===client)return reconciliationRecordsFlight309.promise;
+ const task={owner,client};task.promise=readReconciliationRecords309().finally(()=>{if(reconciliationRecordsFlight309===task)reconciliationRecordsFlight309=null});reconciliationRecordsFlight309=task;return task.promise;
+}
+async function readReconciliationRecords309(){
  const actor=reportOwner71(),client=ojmDb;
+ if(legacyChecks309.owner!==actor||legacyChecks309.client!==client||legacyChecks309.journal!==JournalModule.entries)legacyChecks309={owner:actor,client,journal:JournalModule.entries,records:new Map()};
+ const checked=legacyChecks309.records;
  let local=[];try{local=await reportStore71('readonly',s=>s.getAll())}catch(e){if(!reconciliationCloud305())throw e}
  local=local.filter(r=>r.owner===actor);
  if(!reconciliationCloud305())return local;
@@ -6085,10 +6093,12 @@ async function reconciliationRecords305(){
  // Preserve saved legacy counts when their dated financial movements still match.
  for(const r of local){
   if(records.get(reconciliationKey71(r))?.cloudConfirmed305||!reconciliationRecorded71(r))continue;
+  const key=reconciliationKey71(r),fingerprint=JSON.stringify(r),prior=checked.get(key);
+  if(prior?.fingerprint===fingerprint&&Date.now()-prior.at<60000)continue;
   try{
    validateReport71(r,'save');const latest=await reconciliationSnapshot305(r.account,r.from,r.to,r.dateBasis||'posting');
    const signature=x=>JSON.stringify([x.opening,x.debit,x.credit,x.closing,x.lines.map(l=>[l.date,l.dr,l.cr]).sort()]);
-   if(signature(r)!==signature(latest))continue;
+   if(signature(r)!==signature(latest)){checked.set(key,{fingerprint,at:Date.now()});continue;}
    const copy={...r,method:reportMethod71(r),status:reportCalculation71(r).difference===0?'reconciled':'saved'};
    const saved=await reconciliationRpc305('reconciliation_save305',{p_report:copy,p_fingerprint:latest.fingerprint});
    records.set(reconciliationKey71(saved),saved);
@@ -6281,7 +6291,7 @@ async function renderReconciliationList71(){
  if(reconciliationLoad306?.owner===owner&&reconciliationLoad306.client===client)return reconciliationLoad306.promise;
  const task={owner,client};task.promise=(async()=>{try{
   const selected=host.dataset.recOwner306===owner?host.querySelector('#recCreate117 [name=month]')?.value:null;
-  const all=await reconciliationRecords305();const [prefs,initial]=await Promise.all([reconPreferences71(owner),reconciliationWorkspace306(selected)]);
+  const [all,prefs]=await Promise.all([reconciliationRecords305(),reconPreferences71(owner)]);const initial=await reconciliationWorkspace306(selected);
   const work=initial.month||!selected?initial:await reconciliationWorkspace306();
   if(reportOwner71()!==owner||client!==ojmDb)return;
   if(selected&&host.querySelector('#recCreate117 [name=month]')?.value!==selected){task.reload=true;return;}
@@ -6350,7 +6360,7 @@ function printReport71(){
 }
 const saveAccountBefore71=handleAccountFormSubmit;
 handleAccountFormSubmit=async function(event){await saveAccountBefore71(event);renderAccounts69()};
-document.addEventListener('DOMContentLoaded',()=>{renderAccounts69();renderReconciliationList71()});
+document.addEventListener('DOMContentLoaded',()=>{renderAccounts69();if(document.querySelector('#report-reconciliation.active,#user-entry-review.active'))void renderReconciliationList71()});
 
 const logoutBefore71=logoutDemoUser;
 logoutDemoUser=async function(){document.getElementById('recOverlay71')?.remove();currentReport71=null;document.getElementById('reconciliationList71')?.replaceChildren();return logoutBefore71()}
@@ -9214,7 +9224,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  window.refreshNotices1443=updateBell;
  function install(){const header=document.getElementById('transactionsHeading98'),menu=document.querySelector('.sidebar-user-footer'),toolbar=$('topTools101');if(!header||!menu||!toolbar)return;const trigger=$('headerAccountTrigger'),avatar=$('headerAccountInitials'),copy=menu.querySelector('.sidebar-user-copy');menu.id='topHeaderProfile104';menu.classList.add('top-header-profile104');trigger.replaceChildren(avatar,copy);trigger.setAttribute('aria-label','Open account menu');menu.querySelector('.header-account-identity')?.remove();menu.querySelectorAll('#global-csv-btn,#global-print-btn,.module-export-divider').forEach(node=>node.remove());header.append(toolbar,menu);
   const bell=$('upcomingBell101');bell.innerHTML+='<span id="headerNoticeBadge104" hidden></span>';bell.onclick=()=>{const panel=$('headerNotices104');panel.hidden=!panel.hidden;bell.setAttribute('aria-expanded',String(!panel.hidden));updateBell()};bell.setAttribute('aria-expanded','false');
-  const panel=document.createElement('section');panel.id='headerNotices104';panel.className='header-notices104';panel.hidden=true;panel.innerHTML='<header><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></header><div id="headerNoticeList104"></div><button type="button" data-hope-inbox183>Word of Hope inbox</button>';header.append(panel);panel.querySelector('[data-hope-inbox183]').onclick=()=>{window.WordOfHope183?.open();panel.hidden=true;bell.setAttribute('aria-expanded','false')};panel.querySelector('header button').onclick=()=>{panel.hidden=true;bell.setAttribute('aria-expanded','false')};panel.addEventListener('click',e=>{const button=e.target.closest('[data-target]'),target=button?.dataset.target;if(!target)return;const row=groupedNotices143173(notices()).find(n=>readKey143119(n)===button.dataset.noticeKey143125);if(target==='word-of-hope'){window.WordOfHope183?.open();panel.hidden=true;bell.setAttribute('aria-expanded','false');return;}if(target==='sync-status'){const opened=window.offline14239?.open();if(!opened)return;if(row)markRead143119([row]);panel.hidden=true;bell.setAttribute('aria-expanded','false');updateBell();return;}if(target==='website-update'){window.websiteUpdates143103?.open();if(row)markRead143119([row]);panel.hidden=true;bell.setAttribute('aria-expanded','false');updateBell();return;}const destination=target==='ai-journal'?'journal':target;switchTab(destination);if(row?.scheduleId)window.openScheduleSource91?.(row.scheduleId);if(row?.planId280)window.UpcomingPlans280?.open(row.planId280);if(row?.newsSection)window.localEvents14310?.selectSection(row.newsSection);if(target==='ai-journal')window.DriveDrafts143128?.open?.();if(!document.getElementById(destination)?.classList.contains('active'))return;const sync=e.target.closest('[data-sync-finding]');if(sync)window.syncAssessment14332?.focus(sync.dataset.syncFinding,sync.dataset.syncPeriod);const eventId=e.target.closest('[data-hr-event14306]')?.dataset.hrEvent14306;if(eventId)window.hrCalendar14306?.open(eventId);if(row)markRead143119([row]);panel.hidden=true;bell.setAttribute('aria-expanded','false');updateBell()});
+  const panel=document.createElement('section');panel.id='headerNotices104';panel.className='header-notices104';panel.hidden=true;panel.innerHTML='<header><strong>Notifications</strong><button type="button" aria-label="Close notifications">×</button></header><div id="headerNoticeList104"></div><button type="button" data-hope-inbox183>Word of Hope inbox</button>';header.append(panel);panel.querySelector('[data-hope-inbox183]').onclick=()=>{window.WordOfHope183?.open();panel.hidden=true;bell.setAttribute('aria-expanded','false')};panel.querySelector('header button').onclick=()=>{panel.hidden=true;bell.setAttribute('aria-expanded','false')};panel.addEventListener('click',async e=>{const button=e.target.closest('[data-target]'),target=button?.dataset.target;if(!target)return;const row=groupedNotices143173(notices()).find(n=>readKey143119(n)===button.dataset.noticeKey143125);if(target==='word-of-hope'){window.WordOfHope183?.open();panel.hidden=true;bell.setAttribute('aria-expanded','false');return;}if(target==='sync-status'){const opened=window.offline14239?.open();if(!opened)return;if(row)markRead143119([row]);panel.hidden=true;bell.setAttribute('aria-expanded','false');updateBell();return;}if(target==='website-update'){window.websiteUpdates143103?.open();if(row)markRead143119([row]);panel.hidden=true;bell.setAttribute('aria-expanded','false');updateBell();return;}if(row?.planId280){panel.hidden=true;bell.setAttribute('aria-expanded','false');try{if(await window.UpcomingPlans280?.open(row.planId280))markRead143119([row]);}catch(error){window.showCenterStatus?.(error.message,true)}updateBell();return;}const destination=target==='ai-journal'?'journal':target;switchTab(destination);if(row?.scheduleId)window.openScheduleSource91?.(row.scheduleId);if(row?.newsSection)window.localEvents14310?.selectSection(row.newsSection);if(target==='ai-journal')window.DriveDrafts143128?.open?.();if(!document.getElementById(destination)?.classList.contains('active'))return;const sync=e.target.closest('[data-sync-finding]');if(sync)window.syncAssessment14332?.focus(sync.dataset.syncFinding,sync.dataset.syncPeriod);const eventId=e.target.closest('[data-hr-event14306]')?.dataset.hrEvent14306;if(eventId)window.hrCalendar14306?.open(eventId);if(row)markRead143119([row]);panel.hidden=true;bell.setAttribute('aria-expanded','false');updateBell()});
   document.addEventListener('click',e=>{if(!e.target.closest('#headerNotices104,#upcomingBell101')){panel.hidden=true;bell.setAttribute('aria-expanded','false')}},true);
   if($('websiteUpdateCheck143103'))$('websiteUpdateCheck143103').onclick=()=>window.offline14239?.checkForUpdates();
   const previousSwitch143119=window.switchTab;window.switchTab=function(...args){const result=previousSwitch143119.apply(this,args);if(args[0]==='transactions-recurring')updateBell();return result};

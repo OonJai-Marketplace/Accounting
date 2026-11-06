@@ -101,8 +101,16 @@ async function reconciliationSnapshot305(account,from,to,basis){
  const data=await reconciliationRpc305('reconciliation_snapshot305',{p_account:account.id,p_from:from,p_to:to,p_basis:basis});
  return {...data,account,key:accountKey69(account),currency:account.currency};
 }
-async function reconciliationRecords305(){
+let reconciliationRecordsFlight309=null,legacyChecks309={owner:'',client:null,journal:null,records:new Map()};
+function reconciliationRecords305(){
+ const owner=reportOwner71(),client=ojmDb;
+ if(reconciliationRecordsFlight309?.owner===owner&&reconciliationRecordsFlight309.client===client)return reconciliationRecordsFlight309.promise;
+ const task={owner,client};task.promise=readReconciliationRecords309().finally(()=>{if(reconciliationRecordsFlight309===task)reconciliationRecordsFlight309=null});reconciliationRecordsFlight309=task;return task.promise;
+}
+async function readReconciliationRecords309(){
  const actor=reportOwner71(),client=ojmDb;
+ if(legacyChecks309.owner!==actor||legacyChecks309.client!==client||legacyChecks309.journal!==JournalModule.entries)legacyChecks309={owner:actor,client,journal:JournalModule.entries,records:new Map()};
+ const checked=legacyChecks309.records;
  let local=[];try{local=await reportStore71('readonly',s=>s.getAll())}catch(e){if(!reconciliationCloud305())throw e}
  local=local.filter(r=>r.owner===actor);
  if(!reconciliationCloud305())return local;
@@ -111,10 +119,12 @@ async function reconciliationRecords305(){
  // Preserve saved legacy counts when their dated financial movements still match.
  for(const r of local){
   if(records.get(reconciliationKey71(r))?.cloudConfirmed305||!reconciliationRecorded71(r))continue;
+  const key=reconciliationKey71(r),fingerprint=JSON.stringify(r),prior=checked.get(key);
+  if(prior?.fingerprint===fingerprint&&Date.now()-prior.at<60000)continue;
   try{
    validateReport71(r,'save');const latest=await reconciliationSnapshot305(r.account,r.from,r.to,r.dateBasis||'posting');
    const signature=x=>JSON.stringify([x.opening,x.debit,x.credit,x.closing,x.lines.map(l=>[l.date,l.dr,l.cr]).sort()]);
-   if(signature(r)!==signature(latest))continue;
+   if(signature(r)!==signature(latest)){checked.set(key,{fingerprint,at:Date.now()});continue;}
    const copy={...r,method:reportMethod71(r),status:reportCalculation71(r).difference===0?'reconciled':'saved'};
    const saved=await reconciliationRpc305('reconciliation_save305',{p_report:copy,p_fingerprint:latest.fingerprint});
    records.set(reconciliationKey71(saved),saved);
@@ -307,7 +317,7 @@ async function renderReconciliationList71(){
  if(reconciliationLoad306?.owner===owner&&reconciliationLoad306.client===client)return reconciliationLoad306.promise;
  const task={owner,client};task.promise=(async()=>{try{
   const selected=host.dataset.recOwner306===owner?host.querySelector('#recCreate117 [name=month]')?.value:null;
-  const all=await reconciliationRecords305();const [prefs,initial]=await Promise.all([reconPreferences71(owner),reconciliationWorkspace306(selected)]);
+  const [all,prefs]=await Promise.all([reconciliationRecords305(),reconPreferences71(owner)]);const initial=await reconciliationWorkspace306(selected);
   const work=initial.month||!selected?initial:await reconciliationWorkspace306();
   if(reportOwner71()!==owner||client!==ojmDb)return;
   if(selected&&host.querySelector('#recCreate117 [name=month]')?.value!==selected){task.reload=true;return;}
@@ -376,7 +386,7 @@ function printReport71(){
 }
 const saveAccountBefore71=handleAccountFormSubmit;
 handleAccountFormSubmit=async function(event){await saveAccountBefore71(event);renderAccounts69()};
-document.addEventListener('DOMContentLoaded',()=>{renderAccounts69();renderReconciliationList71()});
+document.addEventListener('DOMContentLoaded',()=>{renderAccounts69();if(document.querySelector('#report-reconciliation.active,#user-entry-review.active'))void renderReconciliationList71()});
 
 const logoutBefore71=logoutDemoUser;
 logoutDemoUser=async function(){document.getElementById('recOverlay71')?.remove();currentReport71=null;document.getElementById('reconciliationList71')?.replaceChildren();return logoutBefore71()}
