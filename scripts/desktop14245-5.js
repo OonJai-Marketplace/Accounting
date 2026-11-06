@@ -186,8 +186,8 @@ window.renderReconciliationList71=async function(){
  if(!actor||actor!==liveProfile?.id||ojmDb!==client||!host||!reportPermission71()||host.querySelector('#recCreate117'))return;
  const form=document.createElement('form');form.id='recCreate117';form.className='rec-controls117';
  const canEdit=()=>actor===liveProfile?.id&&client===ojmDb&&form.isConnected&&access113.can('report-reconciliation','edit');
- form.innerHTML=`<div class="rec-selection302"><label>Priority accounts<select name="account" required></select></label><button type="button" class="je-btn je-btn-secondary" data-add-account>Add account</button></div>
- <section class="rec-add302" data-add-panel hidden><label>Main account<select name="candidate"></select></label><label>Reconciliation method<select name="method">${options(Object.entries(reconciliationLabels71))}</select></label><button type="button" class="je-btn je-btn-emerald" data-save-account>Add to my list</button><button type="button" class="je-btn je-btn-secondary" data-cancel>Cancel</button></section>
+ form.innerHTML=`<div class="rec-selection302"><label>Priority accounts<select id="recAccount117" name="account" required></select></label><button type="button" class="je-btn je-btn-secondary" data-add-account>Add account</button></div>
+ <section class="rec-add302" data-add-panel hidden><label>Main account<select id="recCandidate117" name="candidate"></select></label><label>Reconciliation method<select name="method">${options(Object.entries(reconciliationLabels71))}</select></label><button type="button" class="je-btn je-btn-emerald" data-save-account>Add to my list</button><button type="button" class="je-btn je-btn-secondary" data-cancel>Cancel</button></section>
  <div class="rec-period302"><label>Period<select name="mode"><option value="monthly">Month</option><option value="quarterly">Quarter</option></select></label><label data-month117>Month<input type="month" name="month" value="${today82().slice(0,7)}" required></label><label data-quarter117 hidden>Quarter<select name="quarter">${options(['1','2','3','4'].map(x=>[x,'Q'+x]))}</select></label><label data-quarter117 hidden>Year<input type="number" name="year" min="2000" max="2200" value="${new Date().getFullYear()}"></label>
  <label data-bank-dates hidden>Bank statement dates<select name="basis"><option value="receipt">Receipt dates</option><option value="posting">Posting dates</option></select></label><span data-method></span><button type="submit" class="je-btn je-btn-emerald">Reconcile account</button></div><p role="status"></p>`;
  const heading=host.querySelector('.je-card-header');if(!heading)return;heading.after(form);
@@ -211,12 +211,13 @@ window.renderReconciliationList71=async function(){
   if(selected)el.account.value=selected;
   el.candidate.innerHTML='<option value="">Choose main account</option>'+options(accounts.filter(a=>!isDefault(a)&&!Object.hasOwn(extras,accountKey69(a))).map(label));
   syncMethod();
+  window.dropdown1434?.enhance(form);
  }
  add.disabled=true;
  try{extras=await reconPreferences71(actor)||{};}catch(e){message.textContent='Your saved account list could not load. '+e.message;}
  if(!form.isConnected||actor!==liveProfile?.id||client!==ojmDb)return;
  fill();add.disabled=!canEdit();
- add.onclick=()=>{panel.hidden=false;el.candidate.focus()};
+ add.onclick=()=>{panel.hidden=false;if(window.dropdown1434)dropdown1434.open(el.candidate);else el.candidate.focus()};
  form.querySelector('[data-cancel]').onclick=()=>{panel.hidden=true;add.focus()};
  el.candidate.onchange=()=>{const a=find(el.candidate.value);if(a)el.method.value=defaultReconciliation71(a)};
  form.querySelector('[data-save-account]').onclick=async function(){
@@ -225,7 +226,7 @@ window.renderReconciliationList71=async function(){
   if(!find(key)||!Object.hasOwn(reconciliationLabels71,method)){message.textContent='Choose a main account and method.';return;}
   this.disabled=true;
   try{extras=await reconPreferences71(actor,old=>({...old,[key]:method}));if(!canEdit())return;
-   fill(key);panel.hidden=true;message.textContent='Account added to your reconciliation list.';el.account.focus();
+   fill(key);panel.hidden=true;message.textContent='Account added to your reconciliation list.';if(window.dropdown1434)dropdown1434.focus(el.account);else el.account.focus();
   }catch(e){if(canEdit())message.textContent=e.message}finally{this.disabled=false}
  };
  el.account.onchange=syncMethod;

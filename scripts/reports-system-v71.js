@@ -70,7 +70,7 @@ const reconciliationLabels71={bank:'Bank statement',cash:'Cash count',balance:'S
 function reconAccounts71(){
  const staff=liveProfile&&liveProfile.role!=='admin'?workspaceRules(liveProfile):null;
  const assigned=staff?new Set([...staff.fundIds,...staff.entryIds]):null;
- return AccountingStore.accounts.filter(a=>a.isPosting!==false&&!a.subAccountId14285&&!a.isTechnical&&a.type!=='SYSTEM'&&a.currency!=='NA'&&(!staff||staff.permission.allow_any_account||assigned.has(a.id)));
+ return AccountingStore.accounts.filter(a=>a.isPosting!==false&&!a.isTechnical&&a.type!=='SYSTEM'&&a.currency!=='NA'&&(!staff||staff.permission.allow_any_account||assigned.has(a.id)));
 }
 function defaultReconciliation71(a){
  if(a.type==='ASSET'&&/\b(?:BCEL|bank)\b/i.test(a.name))return 'bank';

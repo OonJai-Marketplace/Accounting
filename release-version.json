@@ -1,1 +1,1 @@
-{"version": "143.303", "changes": ["Reconciliation guidance uses the current Bookkeeping \u2192 Journal \u2192 Reconcile menu path."]}
+{"version": "143.304", "changes": ["Removed Create Reconciliation from General Ledger. Open Bookkeeping \u2192 Journal \u2192 Reconcile to choose an account and start reconciliation.", "Reconciliation search includes regular accounts within chart groups, restoring bank/cash priorities and Add account choices."]}

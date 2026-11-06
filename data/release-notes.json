@@ -1,6 +1,7 @@
 {
-  "version": "143.303",
+  "version": "143.304",
   "changes": [
-    "Reconciliation guidance uses the current Bookkeeping → Journal → Reconcile menu path."
+    "Removed Create Reconciliation from General Ledger. Open Bookkeeping → Journal → Reconcile to choose an account and start reconciliation.",
+    "Reconciliation search includes regular accounts within chart groups, restoring bank/cash priorities and Add account choices."
   ]
 }
