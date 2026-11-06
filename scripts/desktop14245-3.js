@@ -3739,12 +3739,16 @@ function journalDateSpans143120(lines){const spans=Array(lines.length).fill(0);f
 function renderTransactionReviewTable(tbody, records, actionMode='none'){
   if(!tbody)return;const groups=Object.create(null);records.forEach(r=>(groups[r.id]||(groups[r.id]=[])).push(r));
   if(actionMode.startsWith('page14340:'))actionMode=actionMode.slice(10);else tbody.dataset.page14340='0';tbody.dataset.action14340=actionMode;
-  // Match the screen's newest-posted-first order before selecting a page. Sorting
-  // only rendered rows hides a new multi-date report behind older receipt dates.
+  // Active Journal follows posting dates before pagination. Other views retain
+  // their recorded-time order; line receipt dates do not split an entry.
   const screenOrder=typeof isPrintMode==='undefined'||!isPrintMode;
+  const activeJournal=tbody.id==='tblJournalHistoryBody';
+  if(activeJournal&&tbody.closest('table'))tbody.closest('table').dataset.journalPostingOrder306='1';
   const recorded=row=>String(row.created_at||row.createdAt||row.date||'');
+  const posting=row=>String(row.postingDate||row.date||'');
+  const amort=row=>/^AMO\d{2}-/.test(String(row.id||''));
   const ids=Object.keys(groups).sort((a,b)=>Number(groups[b][0].pendingSync||false)-Number(groups[a][0].pendingSync||false)||(screenOrder
-    ?recorded(groups[b][0]).localeCompare(recorded(groups[a][0]))||String(b).localeCompare(String(a),undefined,{numeric:true})
+    ?(activeJournal?(posting(groups[b][0]).localeCompare(posting(groups[a][0]))||Number(amort(groups[a][0]))-Number(amort(groups[b][0]))):0)||recorded(groups[b][0]).localeCompare(recorded(groups[a][0]))||String(b).localeCompare(String(a),undefined,{numeric:true})
     :String(groups[b][0].date).localeCompare(String(groups[a][0].date))||String(groups[b][0].created_at||'').localeCompare(String(groups[a][0].created_at||''))||String(b).localeCompare(String(a))));
   tbody.closest('table')?.classList.add('journal-no-actions14388');const visible=transactionPage14340(tbody,groups,ids);
   if(!ids.length){tbody.innerHTML=`<tr><td colspan="7" class="period-empty">No transactions found.</td></tr>`;return;}
@@ -6379,7 +6383,7 @@ function orderedRecords78(records,oldest=false){return [...records].sort((a,b)=>
  }
  function orderTables(oldest,tables=document.querySelectorAll('table')){tables.forEach(table=>{
   if(!table.isConnected)return;
-  if(table.closest('.personal-active1437'))return;
+  if(table.closest('.personal-active1437')||table.dataset.journalPostingOrder306==='1')return;
   if(table.querySelector('tbody input,tbody select,tbody textarea')||table.closest('#submissionComparisonOverlay,#tx72Viewer,#tx74Comparison,.v49-totals,.final-account-totals'))return;
   const headers=[...table.querySelectorAll('thead tr:last-child th')].map(n=>n.textContent.trim());const dateIndex=headers.findIndex(t=>/^(date|transaction date|created|submitted|recorded|timestamp)$/i.test(t));if(dateIndex<0)return;
   for(const body of table.tBodies){const rows=[...body.rows],groups=[];for(const row of rows){const previous=groups.at(-1),id=row.dataset.entryId;if(previous&&((id&&id===previous.id)||row.classList.contains('cluster-row-cont')||row.classList.contains('cluster-explanation-row')||row.classList.contains('period-linked-finding'))){previous.rows.push(row);continue}const key=(!oldest&&row.dataset.createdAt)||row.dataset.date||dateKey(row.cells[dateIndex]?.textContent);groups.push({id,key,rows:[row]})}const dated=groups.filter(g=>g.key);if(dated.length<2)continue;dated.sort((a,b)=>{const c=a.key.localeCompare(b.key)||String(a.id||'').localeCompare(String(b.id||''),undefined,{numeric:true});return oldest?c:-c});let index=0;const sorted=groups.flatMap(g=>(g.key?dated[index++]:g).rows);if(sorted.some((row,i)=>row!==rows[i])){if(oldest&&!originals.has(body))originals.set(body,rows);body.append(...sorted)}}
@@ -7201,8 +7205,8 @@ function render(){const h=host();if(!h)return;h.hidden=!admin();if(h.hidden)retu
  parent?.append(legacy);
 }
 const legacyOpen=new Set([...legacy.querySelectorAll('details[open]')].map(n=>n.dataset.scheduleId));
-const prepaidRows=State.rows.filter(legacyAmort);legacy.hidden=!prepaidRows.length&&!State.error;
-legacy.innerHTML=(State.error?'<p role="alert">'+esc(State.error)+'</p>':'')+prepaidRows.map(card).join('');legacy.querySelectorAll('details[data-schedule-id]').forEach(n=>{if(legacyOpen.has(n.dataset.scheduleId))n.open=true});window.workspace14337?.upcomingTabs()}
+const prepaidRows=State.rows.filter(legacyAmort),replaced=prepaidRows.filter(r=>r.status!=='active'&&window.UpcomingPlans280?.replacesSchedule(r.schedule_no)),current=prepaidRows.filter(r=>!replaced.includes(r));legacy.hidden=!prepaidRows.length&&!State.error;
+legacy.innerHTML=(State.error?'<p role="alert">'+esc(State.error)+'</p>':'')+current.map(card).join('')+(replaced.length?'<details class="plan-previous306"><summary>Previous schedules · '+replaced.length+'</summary>'+replaced.map(card).join('')+'</details>':'');legacy.querySelectorAll('details[data-schedule-id]').forEach(n=>{if(legacyOpen.has(n.dataset.scheduleId))n.open=true});window.workspace14337?.upcomingTabs()}
 window.renderSchedules14364=render;
 window.loadSchedules91=async function(force=false){if(!admin()||!ojmDb)return;const owner=liveProfile.id,client=ojmDb;if(State.loading&&State.owner===owner&&State.client===client)return State.promise;if(State.loaded&&State.owner===owner&&State.client===client&&!force)return true;const check=context91();if(State.owner!==owner||State.client!==client){State.rows=[];State.occurrences=[];State.editing=null;State.error='';}State.loading=true;State.loaded=false;State.owner=owner;State.client=client;render();const task=(async()=>{try{const [rows,occurrences]=await Promise.all([pages91('journals',()=>client.from('scheduled_journals').select('*').order('created_at',{ascending:false}),check),pages91('occurrences',()=>client.from('scheduled_journal_occurrences').select('*,journal_entries(entry_no,transaction_date,status)').order('posted_at',{ascending:false}),check)]);check();State.rows=rows;State.occurrences=occurrences;State.loaded=true;State.error='';return true}catch(e){if(liveProfile?.id===owner&&ojmDb===client)State.error='Schedules could not be loaded: '+e.message;return false}finally{if(State.owner===owner&&State.client===client){State.loading=false;render();window.refreshNotices1443?.()}}})();State.promise=task;try{return await task}finally{if(State.promise===task)State.promise=null}};
 function optionHtml(selected='',currency=''){return AccountingStore.accounts.filter(a=>a.active!==false&&a.is_active!==false&&a.isPosting!==false&&(!currency||a.currency===currency)).map(a=>`<option value="${esc(a.id)}" ${String(selected)===String(a.id)?'selected':''}>${esc(a.code+' — '+a.name+' ('+a.currency+')')}</option>`).join('')}

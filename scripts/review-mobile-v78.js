@@ -22,7 +22,7 @@ function orderedRecords78(records,oldest=false){return [...records].sort((a,b)=>
  }
  function orderTables(oldest,tables=document.querySelectorAll('table')){tables.forEach(table=>{
   if(!table.isConnected)return;
-  if(table.closest('.personal-active1437'))return;
+  if(table.closest('.personal-active1437')||table.dataset.journalPostingOrder306==='1')return;
   if(table.querySelector('tbody input,tbody select,tbody textarea')||table.closest('#submissionComparisonOverlay,#tx72Viewer,#tx74Comparison,.v49-totals,.final-account-totals'))return;
   const headers=[...table.querySelectorAll('thead tr:last-child th')].map(n=>n.textContent.trim());const dateIndex=headers.findIndex(t=>/^(date|transaction date|created|submitted|recorded|timestamp)$/i.test(t));if(dateIndex<0)return;
   for(const body of table.tBodies){const rows=[...body.rows],groups=[];for(const row of rows){const previous=groups.at(-1),id=row.dataset.entryId;if(previous&&((id&&id===previous.id)||row.classList.contains('cluster-row-cont')||row.classList.contains('cluster-explanation-row')||row.classList.contains('period-linked-finding'))){previous.rows.push(row);continue}const key=(!oldest&&row.dataset.createdAt)||row.dataset.date||dateKey(row.cells[dateIndex]?.textContent);groups.push({id,key,rows:[row]})}const dated=groups.filter(g=>g.key);if(dated.length<2)continue;dated.sort((a,b)=>{const c=a.key.localeCompare(b.key)||String(a.id||'').localeCompare(String(b.id||''),undefined,{numeric:true});return oldest?c:-c});let index=0;const sorted=groups.flatMap(g=>(g.key?dated[index++]:g).rows);if(sorted.some((row,i)=>row!==rows[i])){if(oldest&&!originals.has(body))originals.set(body,rows);body.append(...sorted)}}

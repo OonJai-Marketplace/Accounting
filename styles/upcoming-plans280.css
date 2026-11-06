@@ -2,3 +2,10 @@
 
 #amortizationPlans280:has(#legacyAmortization280:not([hidden]) details)>.plan-empty298{display:none}
 
+/* Equal sibling rows for every amortization plan. */
+#amortizationPlans280>.plan-item306>summary{display:grid;grid-template-columns:minmax(180px,1.7fr) minmax(150px,1fr) minmax(100px,.7fr) minmax(80px,.6fr);gap:12px;padding:8px 0}
+#amortizationPlans280>.plan-item306>summary strong{font-size:14px;color:#07513e}
+#amortizationPlans280 .plan-previous306{border-top:1px solid #dce5e8;margin-top:16px;padding-top:12px}
+#amortizationPlans280 .plan-previous306>summary{cursor:pointer;font-size:13px;color:#526575}
+@media(max-width:850px){#amortizationPlans280>.plan-item306>summary{grid-template-columns:minmax(0,1fr) auto}#amortizationPlans280>.plan-item306>summary strong{grid-column:1/-1}}
+

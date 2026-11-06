@@ -31,12 +31,16 @@ function journalDateSpans143120(lines){const spans=Array(lines.length).fill(0);f
 function renderTransactionReviewTable(tbody, records, actionMode='none'){
   if(!tbody)return;const groups=Object.create(null);records.forEach(r=>(groups[r.id]||(groups[r.id]=[])).push(r));
   if(actionMode.startsWith('page14340:'))actionMode=actionMode.slice(10);else tbody.dataset.page14340='0';tbody.dataset.action14340=actionMode;
-  // Match the screen's newest-posted-first order before selecting a page. Sorting
-  // only rendered rows hides a new multi-date report behind older receipt dates.
+  // Active Journal follows posting dates before pagination. Other views retain
+  // their recorded-time order; line receipt dates do not split an entry.
   const screenOrder=typeof isPrintMode==='undefined'||!isPrintMode;
+  const activeJournal=tbody.id==='tblJournalHistoryBody';
+  if(activeJournal&&tbody.closest('table'))tbody.closest('table').dataset.journalPostingOrder306='1';
   const recorded=row=>String(row.created_at||row.createdAt||row.date||'');
+  const posting=row=>String(row.postingDate||row.date||'');
+  const amort=row=>/^AMO\d{2}-/.test(String(row.id||''));
   const ids=Object.keys(groups).sort((a,b)=>Number(groups[b][0].pendingSync||false)-Number(groups[a][0].pendingSync||false)||(screenOrder
-    ?recorded(groups[b][0]).localeCompare(recorded(groups[a][0]))||String(b).localeCompare(String(a),undefined,{numeric:true})
+    ?(activeJournal?(posting(groups[b][0]).localeCompare(posting(groups[a][0]))||Number(amort(groups[a][0]))-Number(amort(groups[b][0]))):0)||recorded(groups[b][0]).localeCompare(recorded(groups[a][0]))||String(b).localeCompare(String(a),undefined,{numeric:true})
     :String(groups[b][0].date).localeCompare(String(groups[a][0].date))||String(groups[b][0].created_at||'').localeCompare(String(groups[a][0].created_at||''))||String(b).localeCompare(String(a))));
   tbody.closest('table')?.classList.add('journal-no-actions14388');const visible=transactionPage14340(tbody,groups,ids);
   if(!ids.length){tbody.innerHTML=`<tr><td colspan="7" class="period-empty">No transactions found.</td></tr>`;return;}

@@ -48,6 +48,10 @@ const root=path.resolve(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p
  await db.exec('CREATE TEMP TABLE close_fixture280(period_month date,status text);CREATE TRIGGER pending280 BEFORE INSERT ON close_fixture280 FOR EACH ROW EXECUTE FUNCTION private.pending_amortization_guard280();');await assert.rejects(db.query("INSERT INTO close_fixture280 VALUES('2020-10-01','closed')"),/pending amortization/);
  await assert.rejects(post(102,2,'2020-10-30'),/Plan changed/);
  await db.exec('SET ROLE authenticated');await assert.rejects(db.query('SELECT private.process_journal_plans280()'),/permission denied/);await assert.rejects(db.query('SELECT * FROM private.journal_plans280'),/permission denied/);await db.exec('RESET ROLE');
+ await db.exec(read('supabase/migrations/20261106053209_amortization_first_day306.sql'));
+ await assert.rejects(save(306,{...plan,start:'2022-01-01',end:'2022-02-28',posting_day:'last'}),/first day/);
+ await save(307,{...plan,start:'2022-01-01',end:'2022-02-28',posting_day:'first'});
+ assert.equal((await db.query('SELECT bool_and(due_date=coverage_month) ok FROM private.journal_plan_occurrences280 WHERE plan_id=$1',[uuid(307)])).rows[0].ok,true);
  await db.query("SELECT set_config('request.jwt.claim.sub','',false),set_config('request.jwt.claims','{}',false)");await assert.rejects(db.query('SELECT public.list_journal_plans280()'),/administrator/);
  console.log('PASS isolated PostgreSQL: immutable save retries, atomic four-line FX releases, historical valuation, exact cents, cross-year schedule, separate IDs, posting idempotency, insufficient-balance/closed-period guards, first-day wait, automatic worker retry and identity restore, RPC/table permissions.');
 }finally{await db.close()}})().catch(e=>{console.error(e);process.exitCode=1});
