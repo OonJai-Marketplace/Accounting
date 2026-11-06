@@ -5,6 +5,37 @@
   const mobileQuery = window.matchMedia('(max-width: 767px)');
   let activeTarget = '';
   const categoryState = new WeakMap();
+  // Navigation preferences contain only destinations, scoped to the signed-in account.
+  const idleLimit312 = 12 * 60 * 60 * 1000;
+  let memoryKey312 = '', memory312, persisted312 = 0;
+  function navigationMemory312() {
+    const owner = typeof liveProfile !== 'undefined' ? liveProfile?.id : '';
+    const key = 'ojm_navigation312:' + String(window.OJM_SUPABASE_URL || '') + ':' + (owner || 'guest');
+    if (key !== memoryKey312) {
+      memoryKey312 = key; memory312 = null;
+      try { memory312 = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch {}
+    }
+    const now = Date.now();
+    if (!memory312 || !Number.isFinite(memory312.lastActivity) || now - memory312.lastActivity >= idleLimit312) {
+      memory312 = {lastActivity:now,tabs:{},grouped:null};
+      persistMemory312();
+    }
+    return memory312;
+  }
+  function persistMemory312() {
+    try { sessionStorage.setItem(memoryKey312, JSON.stringify(memory312)); persisted312 = Date.now(); } catch {}
+  }
+  function activity312() {
+    const state = navigationMemory312(); state.lastActivity = Date.now();
+    if (Date.now() - persisted312 > 15000) persistMemory312();
+  }
+  window.navigationMemory312 = {
+    get: key => navigationMemory312().tabs[key],
+    set(key, value) { const state = navigationMemory312(); if (state.tabs[key] === value) return; state.tabs[key] = value; persistMemory312(); },
+    grouped() { return navigationMemory312().grouped; },
+    saveGrouped(value) { navigationMemory312().grouped = value; persistMemory312(); }
+  };
+
 
   function buttonTarget(button) {
     const source = button?.getAttribute('onclick') || '';
@@ -97,6 +128,7 @@
   function markNavigation(target) {
     activeTarget = target;
     const category = categoryForTarget(target);
+    if (category) window.navigationMemory312.set(category.dataset.module, target);
     document.querySelectorAll('.nav-category').forEach(item => item.classList.toggle('active-category', item === category));
     document.querySelectorAll('.nav-links .tab-btn').forEach(button => button.classList.toggle('active', buttonTarget(button) === target));
     renderCategoryTabs(target);
@@ -170,7 +202,11 @@
   }
 
   function navigateCategory(category, defaultTarget) {
-    if (category?.dataset.module === 'dashboard') { window.switchTab('dashboard'); return; }
+    if (category?.dataset.module === 'dashboard') {
+      const saved=window.navigationMemory312.get('dashboard-section') || 'Home';
+      window.switchTab('dashboard');
+      const button=[...document.querySelectorAll('#dashboard [data-tab112]')].find(b=>b.dataset.tab112===saved);button?.click();return;
+    }
     if (!category) return;
     if (mobileQuery.matches) {
       if (category.dataset.module === 'dashboard') {
@@ -182,8 +218,10 @@
       category.classList.toggle('open', opening);
       return;
     }
-    const preferred = sourceButton(defaultTarget);
-    const fallback = visibleCategoryButtons(category)[0];
+    const buttons = visibleCategoryButtons(category);
+    const remembered = window.navigationMemory312.get(category.dataset.module);
+    const preferred = buttons.find(button => buttonTarget(button) === remembered);
+    const fallback = buttons[0] || sourceButton(defaultTarget);
     (preferred || fallback)?.click();
   }
 
@@ -220,6 +258,9 @@
   }
 
   function initializeV48Navigation() {
+    for (const name of ['pointerdown','keydown','input','wheel','touchmove']) document.addEventListener(name, activity312, {capture:true,passive:true});
+    document.addEventListener('click',event=>{const tab=event.target.closest?.('#dashboard [data-tab112]');if(tab)window.navigationMemory312.set('dashboard-section',tab.dataset.tab112);},true);
+    window.addEventListener('pagehide', () => { if(memory312) persistMemory312(); });
     movePrintingIntoSystem();
     document.getElementById('settingsTabShell')?.setAttribute('hidden', '');
     const payrollForm = document.querySelector('form[data-settings-group="payroll"]');

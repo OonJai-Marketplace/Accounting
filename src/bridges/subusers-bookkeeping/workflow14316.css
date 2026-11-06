@@ -19,3 +19,24 @@ body .budget-header14316>label{min-width:0!important}body .budget-header14316 in
 body #financeForm82 .budget-header14316{grid-template-columns:repeat(2,minmax(125px,.7fr)) repeat(2,minmax(140px,1fr))!important}
 body #financeForm82 .budget-header14316 label:has([name=notes]){grid-column:1/-1}
 @media(max-width:760px){body #financeForm82 .budget-header14316{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+/* Align the request and utilization editors with their actual field groups. */
+body #transactions-budget14313 .budget-header14316{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px 18px!important;padding:16px!important;margin:0 0 18px!important;border:1px solid #d7e4dc;border-radius:8px;background:#fff}
+body #transactions-budget14313 .budget-header14316>label{display:flex!important;flex-direction:column!important;gap:6px!important;align-items:stretch!important}
+body #transactions-budget14313 .budget-header14316 label:has([name=notes]){grid-column:1/-1}
+body #transactions-budget14313 .budget-header14316 :is(input,select,textarea){width:100%!important;max-width:none!important;min-height:34px;box-sizing:border-box}
+body #transactions-budget14313 .work82>header{align-items:flex-start;gap:16px;flex-wrap:wrap}
+body #transactions-budget14313 .work82>header .actions82{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+body #transactions-budget14313 .finance-controls117{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end}
+body #transactions-budget14313 .finance-controls117>label{min-width:0;display:grid;gap:6px}
+body #transactions-budget14313 .finance-controls117 :is(input,select){width:100%;max-width:none;min-width:0}
+body #transactions-budget14313 .finance-controls117 label:has([name=description290]){grid-column:span 2}
+body #transactions-budget14313 .fund-tools14316{padding:14px 0;gap:8px;justify-content:flex-end}
+body #transactions-budget14313 .fund-tools14316 h3{flex-basis:100%;margin:0 0 6px}
+.fund-entry-actions312{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+@media(max-width:1000px){body #transactions-budget14313 .finance-controls117{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+body #transactions-budget14313 .budget-header14316 .oj-date-shell104{display:block;width:100%}
+body #transactions-budget14313 .budget-header14316 .oj-date-button104{width:100%;justify-content:flex-start}
+body #transactions-budget14313 .block82>header{gap:8px}
+body #transactions-budget14313 .block82>header button+button{margin-left:8px}

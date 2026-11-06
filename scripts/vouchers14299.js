@@ -78,7 +78,7 @@ function validate(value){
 const sheetSettings={paper:'A4',orientation:'portrait',top:10,right:10,bottom:10,left:10,size:10,line:1,font:'Arial',showBusinessName:false,pageNumbers:false,applyHeader:false,applyFooter:false};
 function html(options){
  const value=validate(options),period=options.month||'',start=Number(options.start)||1;
- const widths=[3,4,4,37,6,11,11,12,12],head=['No','Date','Name','Description','Source','Debit','Credit','Received by','Released by'];
+ const widths=[3,4,4,37,6,11,11,12,12],head=['No','Date','Name','Description','Source','Debit','Credit','Signature 1','Signature 2'];
  const cell='border:0.5pt solid #555;padding:0.25mm 0.5mm;vertical-align:middle;font-size:10pt;line-height:1;color:#111;';
  const legend=[...value.legend,{initials:'____',name:'____________________'},{initials:'____',name:'____________________'}];
  return `<h1 style="text-align:center;color:#111;font-size:14pt;line-height:1.1;margin:0 0 2mm">MONTHLY CASH SLIP</h1>

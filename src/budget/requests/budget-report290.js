@@ -106,17 +106,17 @@ window.BudgetReport290 = (() => {
    const spent=amountList(amounts(used.map(m=>({amount:m.outflow,currency:m.currency}))));
    const complete=used.every(m=>m.currency===l.currency||Number(m.budgetAmount290)>0);
    const equivalent=used.reduce((n,m)=>n+Number(m.currency===l.currency?m.outflow:m.budgetAmount290||0),0);
-   return [esc(l.category),esc(l.description),esc(l.currency+' '+money(l.amount)),esc(spent||'—'),complete?esc(l.currency+' '+money(l.amount-equivalent)):'Equivalent pending'];
+   return [esc(l.category),esc(l.description)+(used.some(m=>m.description290)?'<br><small>'+used.filter(m=>m.description290).map(m=>esc(m.description290)).join('; ')+'</small>':''),esc(l.currency+' '+money(l.amount)),esc(spent||'—'),complete?esc(l.currency+' '+money(l.amount-equivalent)):'Equivalent pending'];
   });
   const unassigned=d.movements.filter(m=>kind(m)==='spend'&&!m.budgetKey117);
   if(unassigned.length)uses.push(['Unassigned','—','—',esc(amountList(amounts(unassigned.map(m=>({currency:m.currency,amount:m.outflow}))))),'—']);
-  return section82('Funding by currency',cash)+debt+section82('Spending by budget item',table82(['Category','Item','Requested','Actual spending','Budget remaining'],uses));
+  return section82('Funding by currency',cash)+debt+section82('Budget compared with actual spending',table82(['Category','Item','Requested','Actual spending','Budget remaining'],uses));
  }
  function movementRows(d){
   return d.movements.map(m=>{
    const loan=kind(m)==='repay'?d.movements.find(l=>l.id290===m.loanId290&&kind(l)==='borrow'):null;
    const ref=loan?m.reference+' · Advance '+loan.reference+' · '+loan.currency+' '+money(m.loanAmount290||m.outflow)+' settled':m.reference;
-   return [esc(m.date290?formatAppDate(m.date290):'—'),esc(labels[kind(m)]),esc(m.account),esc(m.destination290||loan?.account||'—'),esc(d.lines.find(l=>l.key117===m.budgetKey117)?.description||'—'),esc(m.currency+' '+money(Number(m.inflow)||Number(m.outflow))),esc(ref)];
+   return [esc(m.date290?formatAppDate(m.date290):'—'),esc(labels[kind(m)]),esc(m.account),esc(m.destination290||loan?.account||'—'),esc(d.lines.find(l=>l.key117===m.budgetKey117)?.description||'—')+(m.description290?'<br>'+esc(m.description290):''),esc(m.currency+' '+money(Number(m.inflow)||Number(m.outflow))),esc(ref)];
   });
  }
  const movementHeaders=['Date','Activity','Source / lender','Paid to / destination','Budget item','Amount','Reference'];

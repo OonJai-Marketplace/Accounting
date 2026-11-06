@@ -4870,6 +4870,37 @@ window.staffSave14228=async function(payload){return window.saveNotices14234.sav
   const mobileQuery = window.matchMedia('(max-width: 767px)');
   let activeTarget = '';
   const categoryState = new WeakMap();
+  // Navigation preferences contain only destinations, scoped to the signed-in account.
+  const idleLimit312 = 12 * 60 * 60 * 1000;
+  let memoryKey312 = '', memory312, persisted312 = 0;
+  function navigationMemory312() {
+    const owner = typeof liveProfile !== 'undefined' ? liveProfile?.id : '';
+    const key = 'ojm_navigation312:' + String(window.OJM_SUPABASE_URL || '') + ':' + (owner || 'guest');
+    if (key !== memoryKey312) {
+      memoryKey312 = key; memory312 = null;
+      try { memory312 = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch {}
+    }
+    const now = Date.now();
+    if (!memory312 || !Number.isFinite(memory312.lastActivity) || now - memory312.lastActivity >= idleLimit312) {
+      memory312 = {lastActivity:now,tabs:{},grouped:null};
+      persistMemory312();
+    }
+    return memory312;
+  }
+  function persistMemory312() {
+    try { sessionStorage.setItem(memoryKey312, JSON.stringify(memory312)); persisted312 = Date.now(); } catch {}
+  }
+  function activity312() {
+    const state = navigationMemory312(); state.lastActivity = Date.now();
+    if (Date.now() - persisted312 > 15000) persistMemory312();
+  }
+  window.navigationMemory312 = {
+    get: key => navigationMemory312().tabs[key],
+    set(key, value) { const state = navigationMemory312(); if (state.tabs[key] === value) return; state.tabs[key] = value; persistMemory312(); },
+    grouped() { return navigationMemory312().grouped; },
+    saveGrouped(value) { navigationMemory312().grouped = value; persistMemory312(); }
+  };
+
 
   function buttonTarget(button) {
     const source = button?.getAttribute('onclick') || '';
@@ -4962,6 +4993,7 @@ window.staffSave14228=async function(payload){return window.saveNotices14234.sav
   function markNavigation(target) {
     activeTarget = target;
     const category = categoryForTarget(target);
+    if (category) window.navigationMemory312.set(category.dataset.module, target);
     document.querySelectorAll('.nav-category').forEach(item => item.classList.toggle('active-category', item === category));
     document.querySelectorAll('.nav-links .tab-btn').forEach(button => button.classList.toggle('active', buttonTarget(button) === target));
     renderCategoryTabs(target);
@@ -5035,7 +5067,11 @@ window.staffSave14228=async function(payload){return window.saveNotices14234.sav
   }
 
   function navigateCategory(category, defaultTarget) {
-    if (category?.dataset.module === 'dashboard') { window.switchTab('dashboard'); return; }
+    if (category?.dataset.module === 'dashboard') {
+      const saved=window.navigationMemory312.get('dashboard-section') || 'Home';
+      window.switchTab('dashboard');
+      const button=[...document.querySelectorAll('#dashboard [data-tab112]')].find(b=>b.dataset.tab112===saved);button?.click();return;
+    }
     if (!category) return;
     if (mobileQuery.matches) {
       if (category.dataset.module === 'dashboard') {
@@ -5047,8 +5083,10 @@ window.staffSave14228=async function(payload){return window.saveNotices14234.sav
       category.classList.toggle('open', opening);
       return;
     }
-    const preferred = sourceButton(defaultTarget);
-    const fallback = visibleCategoryButtons(category)[0];
+    const buttons = visibleCategoryButtons(category);
+    const remembered = window.navigationMemory312.get(category.dataset.module);
+    const preferred = buttons.find(button => buttonTarget(button) === remembered);
+    const fallback = buttons[0] || sourceButton(defaultTarget);
     (preferred || fallback)?.click();
   }
 
@@ -5085,6 +5123,9 @@ window.staffSave14228=async function(payload){return window.saveNotices14234.sav
   }
 
   function initializeV48Navigation() {
+    for (const name of ['pointerdown','keydown','input','wheel','touchmove']) document.addEventListener(name, activity312, {capture:true,passive:true});
+    document.addEventListener('click',event=>{const tab=event.target.closest?.('#dashboard [data-tab112]');if(tab)window.navigationMemory312.set('dashboard-section',tab.dataset.tab112);},true);
+    window.addEventListener('pagehide', () => { if(memory312) persistMemory312(); });
     movePrintingIntoSystem();
     document.getElementById('settingsTabShell')?.setAttribute('hidden', '');
     const payrollForm = document.querySelector('form[data-settings-group="payroll"]');
@@ -7961,21 +8002,31 @@ mountSettings();
       .sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
     const run = Work82.run?.month === month ? Work82.run : runs[0]?.data;
     const leaves = overviewLeaves269(month);
-    let payroll = '<p class="empty82">No payroll is open or saved for this month.</p>';
-    if (run) {
-      const results = new Map(resultRows(run).map(row => [row.employeeId, row]));
-      const rows = (run.rows || []).map(row => {
-        const x = results.get(row.employeeId);
-        return `<tr><td>${escape(row.employee?.name || 'Employee')}</td><td>${escape(row.employee?.employmentType === 'contractual' ? 'Contractual' : 'Full-time')}</td><td>${money(row.employee?.salary, row.employee?.currency || 'LAK')}</td><td>${x ? '₭ ' + amount(x.gross) : '—'}</td><td>${x ? '₭ ' + amount(x.taxable) : '—'}</td><td>${x ? escape(window.currencySymbolV6?.(row.employee?.currency) || row.employee?.currency || '') + ' ' + amount(x.paidAmount ?? x.adjusted ?? 0) : '—'}</td></tr>`;
-      }).join('');
-      payroll = `<div class="overview-run-summary97"><div><strong>${escape(run.reference || 'Payroll')}</strong><span>${escape(run.status==='finalized'?'Saved & archived':'In progress')} · ${run.rows?.length || 0} employees</span></div></div><div class="data-table82"><table><thead><tr><th>Employee</th><th>Employment type</th><th>Contracted salary</th><th>Gross salary (SSO)</th><th>Adjusted salary (PIT)</th><th>Net pay</th></tr></thead><tbody>${rows || '<tr><td colspan="6">No employee rows are available.</td></tr>'}</tbody></table></div>`;
+    const results = run ? resultRows(run) : [];
+    const byEmployee = new Map(results.map(row => [row.employeeId, row]));
+    const complete = !!run?.rows?.length && run.rows.every(row => byEmployee.has(row.employeeId));
+    const sum = keys => results.reduce((total,row) => total + keys.reduce((n,key) => n + Number(row[key] || 0),0),0);
+    const payments = new Map();
+    for (const row of results) {
+      const currency = row.currency || row.employee?.currency || 'LAK';
+      payments.set(currency, (payments.get(currency) || 0) + Number(row.paidAmount || 0));
     }
+    const paymentTotals = [...payments].map(([currency,value]) => `<span>${escape(money(value,currency))}</span>`).join('');
+    const status = !run ? 'Not started' : run.status === 'finalized' ? 'Saved & archived' : 'In progress';
+    const metric = (label,value,note,accent='') => `<article class="payroll-metric312 ${accent}"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`;
+    const metrics = `<div class="payroll-metrics312">${metric('Employees',run?.rows?.length || 0,escape(status))}${metric('Gross payroll',complete?escape(money(sum(['gross']))):'—','LAK equivalent')}${metric('Employee PIT & SSO',complete?escape(money(sum(['employeePit','employeeSso']))):'—','Employee deductions · LAK')}${metric('Final payment',complete?paymentTotals:'—','Separate totals by payment currency','payroll-payment312')}</div>`;
+    const rows = (run?.rows || []).map(row => {
+      const x = byEmployee.get(row.employeeId),currency=row.employee?.currency||x?.currency||'LAK';
+      const value = n => x ? escape(money(n)) : '—';
+      return `<tr><td><strong>${escape(row.employee?.name || 'Employee')}</strong><small>${escape(row.employee?.code || '')}</small></td><td>${escape(money(row.employee?.salary,currency))}</td><td>${value(x?.gross)}</td><td>${value(Number(x?.employeePit||0)+Number(x?.employeeSso||0))}</td><td>${value(x?.net)}</td><td><strong>${x?escape(money(x.paidAmount,currency)):'—'}</strong></td></tr>`;
+    }).join('');
+    const payroll = run ? `<div class="overview-run-summary97"><div><strong>${escape(run.reference || 'Payroll')}</strong><span>${escape(status)}${complete?'':' · Calculation incomplete'}</span></div><span>Gross, deductions and net salary shown in LAK</span></div><div class="data-table82"><table class="payroll-summary312"><thead><tr><th>Employee</th><th>Contract salary</th><th>Gross · ₭</th><th>PIT & SSO · ₭</th><th>Net salary · ₭</th><th>Final payment</th></tr></thead><tbody>${rows || '<tr><td colspan="6">No employee rows are available.</td></tr>'}</tbody></table></div>` : '<p class="empty82">No payroll is open or saved for this month. Open Entries to prepare payroll.</p>';
     const leaveRows = leaves.map(record => {
       const d = record.data;
       const employee = Work82.employees.find(item => item.id === d.employeeId)?.data?.name || 'Former employee';
       return `<tr><td>${escape(employee)}</td><td>${escape(formatAppDate(d.from || ''))} – ${escape(formatAppDate(d.to || ''))}</td><td>${escape(d.type || '')}</td><td>${d.days == null ? '—' : amount(d.days)}</td><td>${escape(d.paid === 'yes' ? 'Paid' : d.paid === 'no' ? 'Unpaid' : 'Not recorded')}</td><td>${escape(d.status || '')}</td><td>${escape(d.reference || '')}</td></tr>`;
     }).join('');
-    host.innerHTML = `<header><div><h3>Payroll Overview</h3><p>Current payroll and HR leave records for the selected month.</p></div><div class="actions82"><button class="je-btn je-btn-emerald" type="button" onclick="openPayroll99()">Open Payroll</button></div></header>${Work82.error ? `<p class="notice82 warn82">${escape(Work82.error)}</p>` : ''}<section class="block82"><header><h4>Payroll period</h4></header><div class="overview-month97"><label for="overviewPayrollMonth97">Month</label><input type="month" id="overviewPayrollMonth97" value="${escape(month)}"></div>${payroll}</section><section class="block82"><header><h4>Leave this month</h4><span>${leaves.length} records</span></header><div class="data-table82"><table><thead><tr><th>Employee</th><th>Dates</th><th>Leave type</th><th>Days</th><th>Pay treatment</th><th>Status</th><th>Reference</th></tr></thead><tbody>${leaveRows || '<tr><td colspan="7" class="empty82">No leave records for this month.</td></tr>'}</tbody></table></div></section>`;
+    host.innerHTML = `<header class="payroll-overview-header312"><div><h3>Payroll Overview</h3><p>Monthly payroll totals, employee payments and processing status.</p></div><div class="actions82"><button type="button" onclick="switchTab('payroll-history')">Salary History</button><button class="je-btn je-btn-emerald" type="button" onclick="switchTab('payroll-entries')">Open Entries</button></div></header>${Work82.error ? `<p class="notice82 warn82">${escape(Work82.error)}</p>` : ''}<div class="payroll-period312"><div class="overview-month97"><label for="overviewPayrollMonth97">Payroll month</label><input type="month" id="overviewPayrollMonth97" value="${escape(month)}"></div><span class="payroll-status312">${escape(status)}</span></div>${metrics}<section class="block82"><header><h4>Employee payroll</h4></header>${payroll}</section><details class="block82 payroll-leave312"><summary>Leave this month <span>${leaves.length} records</span></summary><div class="data-table82"><table><thead><tr><th>Employee</th><th>Dates</th><th>Leave type</th><th>Days</th><th>Pay treatment</th><th>Status</th><th>Reference</th></tr></thead><tbody>${leaveRows || '<tr><td colspan="7" class="empty82">No leave records for this month.</td></tr>'}</tbody></table></div></details>`;
     host.querySelector('#overviewPayrollMonth97')?.addEventListener('change', async event => {
       overviewMonth = /^\d{4}-\d{2}$/.test(event.target.value) ? event.target.value : currentMonth();
       renderOverview();

@@ -121,7 +121,9 @@ function select(record){
 }
 function openDefault(){
  if(!enabled())return;
- const target=groups.flatMap(g=>g.targets).find(permitted);
+ const targets=groups.flatMap(g=>g.targets).filter(permitted);
+ const remembered=window.navigationMemory312?.get('settings');
+ const target=targets.includes(remembered)?remembered:targets[0];
  const record=listFor(groupFor(target)||groups[0]).find(r=>r.root.id===target);
  if(record){select(record);mounts.get(groupFor(target).key).main.scrollTop=0;}
 }

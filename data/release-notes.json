@@ -1,8 +1,8 @@
 {
-  "version": "143.311",
+  "version": "143.312",
   "changes": [
-    "Payroll calculation reports restore exchange rate, plain-text source and rate date at the top, without source links on paper.",
-    "More compact report spacing accommodates company headers and footers while retaining attendance, journal-summary totals and signature space.",
-    "Payroll and journal figures are unchanged."
+    "Monthly cash slips use Signature 1 and Signature 2 for either direction of payment.",
+    "Payroll Overview now shows monthly totals, status and employee payment summaries. Main areas remember the last tab until 12 hours of inactivity.",
+    "All main-area shortcut sequences use current destinations, including grouped Bookkeeping and Settings tabs. Budget requests have aligned fields, direct saving and clearer spending entry and comparisons."
   ]
 }
