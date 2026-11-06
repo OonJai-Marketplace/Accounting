@@ -1,9 +1,8 @@
 {
-  "version": "143.307",
+  "version": "143.308",
   "changes": [
-    "Reconciliation uses the open book, one stable account picker, monthly completion filtering, and version-checked editing of saved records.",
-    "Reports include compact summaries and ledger details, with account/date selection and up to three signatories in one export dialog.",
-    "Bank date controls stay inline with clear explanations; duplicate working labels and the misplaced Funds shortcut are removed.",
-    "Previously published first-day amortization, separate AMO IDs and Active Journal ordering are preserved."
+    "Payroll uses equal rounded PIT shares for employees and the company, with any one-cent difference shown separately against assessed tax.",
+    "Foreign payroll journals retain the exact LAK withholding and show currency-conversion rounding separately.",
+    "Payroll history, calculation details and tax reports retain the assessed tax total."
   ]
 }

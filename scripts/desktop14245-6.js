@@ -845,7 +845,25 @@ function defaultTemplate(run){
   if(sso)t.lines.push(rule(ssoExpense,'DR','employerSso',c,'total','Company SSO share','LAK'),rule(ssoPayable,'CR','employerSso',c,'total','Company SSO payable','LAK'));
   for(const r of t.lines.slice(start))r.groupCurrency275=c;
  }
- return t;
+ return upgrade308(t);
+}
+// Upgrade only generated arithmetic rows. Preserve custom accounts, manual
+// amounts, dates and employee mappings; never rewrite a saved payroll result.
+function upgrade308(template){
+ const t={...template,lines:template.lines.map(r=>({...r}))},group=r=>r.groupCurrency275||r.employees;
+ t.lines=t.lines.flatMap(r=>{
+  if(r.derived274==='taxBridge'&&!t.lines.some(x=>group(x)===group(r)&&x.derived274==='taxConversionRounding308'))return [{...r,memo:'Employee withholding · payroll LAK amount'},{...r,derived274:'taxConversionRounding308',memo:'Withholding currency conversion rounding'}];
+  if(r.basis==='pit'&&r.side==='CR'&&r.scope==='total'&&r.expectedCurrency==='LAK'&&String(r.manual??'').trim()==='')return [{...r,basis:'employeePit',memo:'PIT · employee share payable'},{...r,basis:'employerPit',memo:'PIT · company share payable'}];
+  return [r];
+ });
+ for(const c of new Set(t.lines.map(group))){
+  if(t.lines.some(r=>group(r)===c&&r.derived274==='pitRoundingPayable308'))continue;
+  const payable=t.lines.filter(r=>group(r)===c&&r.side==='CR'&&r.expectedCurrency==='LAK'&&['employeePit','employerPit','pit'].includes(r.basis)&&String(r.manual??'').trim()==='');
+  if(!payable.length||new Set(payable.map(r=>r.account)).size!==1)continue;
+  const rule={...payable[0],side:'AUTO',basis:'rounding',employees:c,scope:'total',manual:'',groupCurrency275:c};
+  for(const [kind,account,memo] of [['pitRoundingPayable308',payable[0].account,'PIT rounding · reconcile to assessed tax'],['pitRoundingOffset308',exact('5420','LAK'),'PIT split rounding']])t.lines.push({...rule,account,memo,derived274:kind});
+ }
+ t.version=143308;return t;
 }
 function isStarter(t){return t?.lines?.length===2&&t.lines[0].account===''&&t.lines[0].basis==='gross'&&t.lines[1].account==='$employee'&&t.lines[1].basis==='adjusted';}
 function selected(results,filter){return results.filter(x=>!filter||filter==='all'||x.currency===filter||filter==='employee:'+x.employeeId);}
@@ -937,10 +955,23 @@ function evaluate(run,template){
   const converted=bases=>round(source.filter(l=>bases.includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n+round(signed(l)*rate),0));
   const entitlement=source.filter(l=>['adjusted','cashAdvance','loanRecovery'].includes(rules[l.ruleIndex].basis));
   const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,0));
-  const values={salaryOffset:-converted(['gross']),taxBridge:-converted(['employeePit','employeeSso']),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
+  const exactWithholding=round(source.filter(l=>['employeePit','employeeSso'].includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n-l.sourceLak274*(l.side==='DR'?1:-1),0));
+  const values={salaryOffset:-converted(['gross']),taxBridge:exactWithholding,taxConversionRounding308:round(-converted(['employeePit','employeeSso'])-exactWithholding),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
   for(const [i,r] of rules.entries())if(r.derived274&&groupCurrency(r)===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
   const local=round(lines.filter(l=>l.account.currency==='LAK'&&groupCurrency(rules[l.ruleIndex])===c).reduce((n,l)=>n+signed(l),0));
   if(local!==0)report(c+' LAK mapping rows differ from the saved payroll by '+Math.abs(local)+'. Review the accounts and amounts; no balancing adjustment was invented.');
+ }
+ // Equal rounded shares may sum to one cent more than the assessed tax. Show
+ // that cent explicitly, preserving the tax liability and the employee's net.
+ for(const c of new Set(results.map(x=>x.currency))){
+  const chosen=selected(results,c),delta=round(chosen.reduce((n,x)=>n+Number(x.pitRounding308||0),0));
+  if(chosen.some(x=>x.pitRounding308!=null&&(!Number.isFinite(x.pitRounding308)||Math.abs(x.pitRounding308)>.01||round(Number(x.pit)-Number(x.employeePit)-Number(x.employerPit))!==x.pitRounding308))){report('PIT rounding must reconcile the saved shares to the assessed tax.');continue;}
+  if(!delta)continue;
+  for(const [kind,v] of [['pitRoundingPayable308',-delta],['pitRoundingOffset308',delta]]){
+   const matches=rules.map((r,i)=>({r,i})).filter(({r})=>groupCurrency(r)===c&&r.derived274===kind);
+   if(matches.length!==1){report('Include one PIT rounding payable and offset for '+c+'.');continue;}
+   const {r,i}=matches[0];push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);
+  }
  }
  // Keep rule order, including the small foreign rounding row beside the bridge.
  lines.sort((a,b)=>a.ruleIndex-b.ruleIndex);
@@ -950,8 +981,8 @@ function evaluate(run,template){
  if(!Number.isFinite(base)||base!==0)report('Recorded LAK values must balance. Review the payroll conversion rates and rows.');
  return {lines,issues,balances};
 }
-function buildLines(run,t){const e=evaluate(run,t);if(e.issues.length)throw Error(e.issues.join('\n'));if(Object.values(e.balances).some(b=>b.difference))throw Error('Payroll journal must balance separately in every currency. Review the template.');if(e.lines.length<2)throw Error('The template needs at least two non-zero posting lines.');return e.lines;}
-window.payrollTemplate1431={fields,eligible,defaultTemplate,isStarter,evaluate,buildLines,journalDate};
+function buildLines(run,t){const e=evaluate(run,upgrade308(t));if(e.issues.length)throw Error(e.issues.join('\n'));if(Object.values(e.balances).some(b=>b.difference))throw Error('Payroll journal must balance separately in every currency. Review the template.');if(e.lines.length<2)throw Error('The template needs at least two non-zero posting lines.');return e.lines;}
+window.payrollTemplate1431={fields,eligible,defaultTemplate,isStarter,evaluate,buildLines,journalDate,upgrade308};
 })()
 ;
 
@@ -1031,7 +1062,7 @@ async function journalPlan277(record){
  const check=guard1429();let context={mode:'initial',record};
  if(record.data.correction277?.pending){const r=await ojmDb.rpc('payroll_journal_context277',{p_run_id:record.id});check();if(r.error)throw Error(r.error.message);context=r.data;if(context.record.version!==record.version)throw Error('Payroll changed. Reopen its journal before preparing.');if(context.needs_report)throw Error('The payroll month is now closed. Reopen Payroll journal to add the correction explanation.');}
  const run=record.data,saved=run.payrollTemplate1429;
- const template=saved?.lines?.length&&!payrollTemplate1431.isStarter(saved)?saved:payrollTemplate1431.defaultTemplate(run);
+ const template=payrollTemplate1431.upgrade308(saved?.lines?.length&&!payrollTemplate1431.isStarter(saved)?saved:payrollTemplate1431.defaultTemplate(run));
  let date=payrollTemplate1431.journalDate(run,template);
  if(context.mode==='adjustment'&&typeof PeriodReview!=='undefined'&&PeriodReview.status(date.slice(0,7))!=='open')date=today82();
  const targetLines=buildLines(run,template),lines=journalLines277(targetLines,context),noChange=context.mode==='adjustment'&&lines.length===0&&context.ledger?.length>0;
@@ -1063,7 +1094,7 @@ async function openTemplate(){const check=guard1429();
  if(Work82.runRecord&&Work82.run.status==='finalized'&&Work82.run.correction277?.pending){let result=await ojmDb.rpc('payroll_journal_context277',{p_run_id:Work82.runRecord.id});check();if(Work82.run!==beforeOpen)return;if(result.error)throw Error(result.error.message);correctionContext277=result.data;if(correctionContext277.record.version!==Work82.runRecord.version)throw Error('Payroll changed. Reload Salary History before opening its journal.');if(correctionContext277.needs_report){const reason=await ui117.prompt('The accounting month has closed. Describe the payroll correction for Audit Logs before preparing its adjustment.');check();if(Work82.run!==beforeOpen||reason===null)return;if(!reason.trim())throw Error('A closed-month correction needs an explanation.');result=await ojmDb.rpc('document_payroll_correction277',{p_run_id:Work82.runRecord.id,p_expected_version:Work82.runRecord.version,p_reason:reason.trim()});check();if(Work82.run!==beforeOpen)return;if(result.error)throw Error(result.error.message);activate(result.data);correctionContext277.record=result.data;correctionContext277.needs_report=false;}}
 
  const expand=t=>({...t,lines:t.lines.flatMap(r=>r.scope==='each'?Work82.run.rows.filter(x=>!r.employees||r.employees==='all'||r.employees===x.employee.currency||r.employees==='employee:'+x.employeeId).map(x=>({...r,employees:'employee:'+x.employeeId})): [{...r}])});
- let template=expand(Work82.run.payrollTemplate1429&&!payrollTemplate1431.isStarter(Work82.run.payrollTemplate1429)?structuredClone(Work82.run.payrollTemplate1429):payrollTemplate1431.defaultTemplate(Work82.run));
+ let template=expand(payrollTemplate1431.upgrade308(Work82.run.payrollTemplate1429&&!payrollTemplate1431.isStarter(Work82.run.payrollTemplate1429)?structuredClone(Work82.run.payrollTemplate1429):payrollTemplate1431.defaultTemplate(Work82.run)));
  if(correctionContext277?.mode==='adjustment'&&typeof PeriodReview!=='undefined'&&PeriodReview.status(template.journalDate?.slice(0,7))!=='open')template.journalDate=today82();
  ui108.modal(correctionContext277?.mode==='adjustment'?'Payroll adjustment':'Payroll journal',`<div class="pay-journal1432"><p><strong>${esc(Work82.run.reference)}</strong> · Edit the journal directly. Automatic amounts follow this payroll’s saved calculations; PIT expense is the company share. This journal accrues salary; cash payment and advance clearing are reviewed separately.</p><div class="pay-date274"><label>Journal date <input id="payJournalDate274" type="date" value="${esc(payrollTemplate1431.journalDate(Work82.run,template))}"></label><span>Payroll rate: ${esc(Object.entries(Work82.run.rates||{}).filter(([c])=>c!=='LAK').map(([c,r])=>formatAppRate(r)+' LAK / 1 '+c).join(', ')||'LAK')} · ${esc(Work82.run.rateDate?formatAppDate(Work82.run.rateDate):'')} · ${(window.journalMemoHtml143187||esc)((window.payrollRateSource287?.(Work82.run)??Work82.run.rateSource)||'')}</span></div><div class="template-tools1429"><button type="button" id="payPrepare1429">Prepare in Transactions</button><button type="button" id="payPostDirect277">${correctionContext277?.mode==='replace'?'Save changes to Active Journal':'Post to Active Journal'}</button></div><p class="template-error1429" id="payTemplateError1429" role="status" aria-live="polite">${Work82.run.status==='finalized'?'Review the journal below. Your journal edits are saved when you prepare or post.':'Payroll is a draft. Use Save & Close Payroll in Payroll Entries, then open Payroll journal here.'}</p><div id="payBalances1432" class="pay-balances1431" aria-live="polite"></div><div class="table-container"><table class="je-table pay-lines1432"><colgroup><col style="width:30%"><col style="width:34%"><col style="width:7%"><col style="width:12%"><col style="width:12%"><col style="width:5%"></colgroup><thead><tr><th>Account</th><th>Description / Reference</th><th>Currency</th><th>Debit</th><th>Credit</th><th></th></tr></thead><tbody id="payJournalLines1432"></tbody></table></div><div id="payCorrectionPreview277"></div><p id="payIssues1432" class="template-error1429" aria-live="polite"></p><p>${Work82.run.status==='finalized'?'Review here and choose Post to Active Journal, or Prepare in Transactions for further editing.':'Save & Close Payroll first, then return to Payroll journal on the same screen.'}</p><details><summary>Link an already posted journal</summary><p>Select the journal that records this payroll after reviewing its accounts and amounts.</p><select id="payExistingJournal1429" aria-label="Existing posted journal"><option value="">Choose journal ID</option>${options([...new Map(JournalModule.entries.filter(e=>e.dbEntryId&&!e.staged136&&!e.local14333&&!e.pendingSync&&(!e.status||e.status==='posted')&&e.date?.slice(0,7)===Work82.run.month).map(e=>[e.dbEntryId,[e.dbEntryId,e.id+' · '+formatAppDate(e.date)+' · '+e.generalMemo]])).values()],'')}</select><button type="button" id="payLinkExisting1429">Link selected journal</button></details></div>`,[{label:'Close',value:false}],true);
  const overlay=$('payJournalLines1432').closest('.ui-overlay108');overlay.classList.add('pay-dialog1432');overlay.querySelector('.ui-dialog108').style.maxWidth='1250px';

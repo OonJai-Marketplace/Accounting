@@ -14,7 +14,7 @@
     date:record.data.finalizedAt?.slice(0,10)||state.month+'-01',reference:record.data.reference||record.id,
     employee:row.employee?.name||'Employee',currency:row.currency||row.employee?.currency||'LAK',
     ssoBase:Number(row.ssoBase||0),taxable:Number(row.taxable||0),
-    employeePit:Number(row.employeePit||0),employerPit:Number(row.employerPit||0),
+    employeePit:Number(row.employeePit||0),employerPit:Number(row.employerPit||0),pitRounding308:Number(row.pitRounding308||0),pit:Number(row.pit??(Number(row.employeePit||0)+Number(row.employerPit||0))),
     employeeSso:Number(row.employeeSso||0),employerSso:Number(row.employerSso||0),
     runId:record.id
   })))}
@@ -51,7 +51,7 @@
   function table(headers,rows,exportRows=rows){state.exports.push({headers,rows:exportRows});return `<div class="tax-table-scroll102"><table class="je-table"><thead><tr>${headers.map(h=>`<th>${escape(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${row.map(cell=>`<td>${escape(cell)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No matching saved records for ${escape(state.month)}. Use Filter to choose the month of your journal entries.</td></tr>`}</tbody></table></div>`}
   function card(title,content){return `<section class="module-card tax-card102"><div class="je-card-header"><h3>${escape(title)}</h3></div><div class="tax-card-body102">${content}</div></section>`}
   function journalTable(rows){const raw=rows.map(line=>[line.date,line.id,line.account,line.memo,line.currency,number(line.debit),number(line.credit),line.group]);for(const currency of [...new Set(rows.map(r=>r.currency))]){const group=rows.filter(r=>r.currency===currency);raw.push(['','TOTAL','','',currency,number(total(group,'debit')),number(total(group,'credit')),''])}return table(['Date','Entry #','Account','Memo','Currency','DR','CR','Source'],raw.map(([date,...cells])=>[date?formatAppDate(date):'',...cells]),raw)}
-  function payrollTable(rows,kind){const pit=kind==='PIT';return table(['Employee','Payroll reference','Tax basis · LAK',`Employee ${kind} · LAK`,`Employer ${kind} · LAK`,`Total ${kind} · LAK`],rows.map(row=>[row.employee,row.reference,number(pit?row.taxable:row.ssoBase),number(pit?row.employeePit:row.employeeSso),number(pit?row.employerPit:row.employerSso),number(pit?row.employeePit+row.employerPit:row.employeeSso+row.employerSso)]))}
+  function payrollTable(rows,kind){const pit=kind==='PIT';return table(['Employee','Payroll reference','Tax basis · LAK',`Employee ${kind} · LAK`,`Employer ${kind} · LAK`,...(pit?['PIT rounding · LAK']:[]),`Total ${kind} · LAK`],rows.map(row=>[row.employee,row.reference,number(pit?row.taxable:row.ssoBase),number(pit?row.employeePit:row.employeeSso),number(pit?row.employerPit:row.employerSso),...(pit?[number(row.pitRounding308)]:[]),number(pit?row.pit:row.employeeSso+row.employerSso)]))}
   function totals(rows,key){const labels={employeePit:'Employee PIT',employerPit:'Employer PIT',employeeSso:'Employee SSO',employerSso:'Employer SSO'};const sum=total(rows,key);return `<div class="tax-total102"><span>${escape(labels[key]||key)}</span><strong>₭ ${number(sum)}</strong></div>`}
   function render(){const active=id();if(!views[active])return;const host=document.getElementById(active);if(!host)return;if(typeof liveProfile==='undefined'||liveProfile?.role!=='admin'){host.innerHTML=card(views[active],'<p>Administrator access is required for tax and payroll records.</p>');return}
     if(!state.monthChosen){const months=((typeof JournalModule!=='undefined'&&JournalModule.entries)||[]).filter(l=>!l.pendingSync&&!l.local14333&&!l.voided_at&&(!l.status||l.status==='posted')).map(l=>String(l.date||'').slice(0,7)).filter(m=>/^\d{4}-\d{2}$/.test(m)).sort();if(months.length)state.month=months.at(-1)}
@@ -75,7 +75,7 @@
       content=card('Potential settlements · journal debit lines',journalTable(rows))+
         card('Other related journal activity',journalTable(related.filter(r=>!rows.includes(r))));
     }else{
-      content=card('Finalized payroll snapshots',table(['Month','Reference','Finalized','Employees','PIT · LAK','SSO · LAK'],paidRuns().map(record=>[record.data.month,record.data.reference,record.data.finalizedAt?.slice(0,10)||'—',record.data.results?.length||0,number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.employeePit||0)+Number(r.employerPit||0),0)),number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.employeeSso||0)+Number(r.employerSso||0),0))])))+
+      content=card('Finalized payroll snapshots',table(['Month','Reference','Finalized','Employees','PIT · LAK','SSO · LAK'],paidRuns().map(record=>[record.data.month,record.data.reference,record.data.finalizedAt?.slice(0,10)||'—',record.data.results?.length||0,number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.pit??(Number(r.employeePit||0)+Number(r.employerPit||0))),0)),number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.employeeSso||0)+Number(r.employerSso||0),0))])))+
         card('Posted tax and SSO journal lines',journalTable(journal));
     }
     content=balanceSummary(active)+content;
@@ -101,7 +101,8 @@
   window.switchTab=function(target,...args){const result=previous.call(this,target,...args);if(views[target]&&!window.workspaceViews14364?.reuseView(target)){render();if(!window.startup14257?.isPrepared('payroll'))refresh(false)}return result};
   window.taxReports102={render,refresh,groupOf,payrollRows,journalRows,statutoryBalances};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{if(views[id()])refresh(false)},{once:true});else if(views[id()])refresh(false);
-})();
+})()
+;
 /* Profit tax calculation */
 /* Profit-tax working calculations. Saved documents never post or pay the ledger. */
 (()=>{'use strict';

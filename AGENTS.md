@@ -558,3 +558,5 @@ editor. Remove the obsolete Funds tab and keep GL search in the action toolbar.
 Reconciliation integration 2026-11-06 v143.307: preserve published amortization 306.
 Keep working IDs hidden until saved, use one currency label, and display ledger
 details beneath the historical Reports summary as well as in exported documents.
+
+Payroll 2026-11-06 v143.308: equal PIT sharing uses the same rounded half for both parties, including custom 50%. Preserve assessed tax and employee net pay through an explicit signed split-rounding amount. Foreign journal withholding retains the original LAK amount; show conversion rounding separately. Keep original payroll snapshots, audited same-ID open-month correction, and all closed-period guards.
