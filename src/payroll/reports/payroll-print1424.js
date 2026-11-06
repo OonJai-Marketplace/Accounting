@@ -61,6 +61,8 @@ function prepare277(model){
  for(const group of root.querySelectorAll('[data-print-signatures]')){
   const legacy=!group.hasAttribute('data-signature-layout277'),count=group.children.length;if(!count)continue;group.dataset.signatureLayout277='1';
   Object.assign(group.style,{display:'flex',justifyContent:'center',gap:'8mm',width:'100%'});
+  const compact311=key(model)==='Payroll:calculation'&&!!root.querySelector('[data-payroll-layout311]');
+  if(compact311)group.style.marginTop='1mm';
   for(const column of group.children){
    const line=column.querySelector('[data-report-signature-line275],[data-payroll-signature-line273]')||column.firstElementChild;
    const name=column.querySelector('[data-report-signature-name275],[data-payroll-signature-name273]')||column.children[1];
@@ -68,6 +70,7 @@ function prepare277(model){
    if(!line||!name||!role||line===name||name===role||!line.style.borderBottom)continue;
    if(name.parentElement===line)line.after(name);
    Object.assign(column.style,{flex:'0 1 auto',display:'flex',flexDirection:'column',width:'max-content',maxWidth:`calc(${100/count}% - ${(count-1)*8/count}mm)`,minWidth:'0',textAlign:'center'});
+   if(compact311)line.style.height='9mm';
    line.dataset.reportSignatureLine275='1';Object.assign(line.style,{display:'block',width:'100%',paddingBottom:'0'});
    name.dataset.reportSignatureName275='1';name.setAttribute('contenteditable','true');Object.assign(name.style,{display:'block',width:'auto',padding:'1mm 6.35mm 0',margin:'0',lineHeight:'1.2',fontSize:'10pt',textAlign:'center',overflowWrap:'anywhere'});
    role.dataset.reportSignatureRole275='1';role.setAttribute('contenteditable','true');Object.assign(role.style,{width:'0',minWidth:'100%',fontSize:'9pt',lineHeight:'1.2',textAlign:'center',overflowWrap:'anywhere'});

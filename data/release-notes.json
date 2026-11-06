@@ -1,9 +1,8 @@
 {
-  "version": "143.310",
+  "version": "143.311",
   "changes": [
-    "Bookkeeping avoids duplicate reconciliation rendering, unrelated payroll loading and repeated checks of unchanged retained counts.",
-    "Amortization reminders open the plan directly; every release waits for your Post action and keeps its first-day journal date.",
-    "The previous-month warning is shown with the plan; obsolete Wi-Fi schedule SCH260001 has been removed.",
-    "Includes the separately published payroll tax conversion correction and journal-summary report."
+    "Payroll calculation reports restore exchange rate, plain-text source and rate date at the top, without source links on paper.",
+    "More compact report spacing accommodates company headers and footers while retaining attendance, journal-summary totals and signature space.",
+    "Payroll and journal figures are unchanged."
   ]
 }

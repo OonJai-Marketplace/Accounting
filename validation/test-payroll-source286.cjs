@@ -25,9 +25,9 @@ async function scenario(mode){
   assert.equal(JSON.stringify(w.payrollTemplate1431.buildLines(w.Work82.run,w.payrollTemplate1431.defaultTemplate(w.Work82.run))),before,'source edit must not alter financial lines');
   await w.saveRun82(false);await tick();assert.equal(w.qa276.record.data.rateSource,savedSource);
   w.openRun82(w.qa276.record.id);await tick();assert.equal(source().value,savedSource);assert(editor().querySelector('a[href^="https://example.test/"]'),'saved link reloads as a link');
-  // Report metadata uses the safe link renderer; hostile markup stays text.
+  // Printed metadata retains the source label and separate rate/date, with no links.
   const reports=fs.readFileSync('src/reports/financial/reports14254.js','utf8'),metadata=reports.slice(reports.indexOf('function payrollMetadata277('),reports.indexOf('function payroll(run,results)'));
-  w.eval('var textStyle="",quantity=formatAppNumber;'+metadata);const report=d.createElement('div');report.innerHTML=w.payrollMetadata277(w.Work82.run);assert(report.querySelector('a[href^="https://example.test/"]'));
+  w.eval('var textStyle="",quantity=formatAppNumber;'+metadata);const report=d.createElement('div');report.innerHTML=w.payrollMetadata277(w.Work82.run);assert.equal(report.querySelector('a'),null);assert.match(report.textContent,/Rate source: Synthetic rate evidence/);assert.match(report.textContent,/Exchange rate:.*22,294/);assert.match(report.textContent,/Rate date:.*2026-10-30/);assert.doesNotMatch(report.textContent,/https?:/);
   report.innerHTML=w.payrollMetadata277({...w.Work82.run,rateSource:'<img src=x onerror=alert(1)>'});assert.equal(report.querySelector('img'),null);
   await click('Save & Close Payroll',el('payroll-entries'));await click('Confirm',[...d.querySelectorAll('.ui-overlay108')].at(-1));assert.equal(w.Work82.run.status,'finalized');assert(source().disabled);assert(source().parentElement.querySelector('button').disabled);assert.equal(w.qa276.postCalls,0);
   if(mode==='prepare'){
@@ -44,4 +44,4 @@ async function scenario(mode){
   assert(!w.journalMemoHtml143187(memo).includes('[Payroll:'));assert(!w.JournalMemoLinks143187.plain(memo).includes('[Payroll:'));
  }finally{w.close();}
 }
-(async()=>{await scenario('prepare');await scenario('direct');console.log('PASS payroll source link: Ctrl+K, safe URL validation, stable blur, save/reload, locked finalized source, report link, prepared and direct journal evidence, unchanged financial lines and cancellation.');})().catch(e=>{console.error(e);process.exitCode=1;});
+(async()=>{await scenario('prepare');await scenario('direct');console.log('PASS payroll source link: Ctrl+K, safe URL validation, stable blur, save/reload, locked finalized source, plain-text report metadata, prepared and direct journal evidence, unchanged financial lines and cancellation.');})().catch(e=>{console.error(e);process.exitCode=1;});

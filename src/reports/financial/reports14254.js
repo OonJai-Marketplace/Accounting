@@ -64,8 +64,25 @@ function attendanceSummary(run,results,language='en',compact=false){if(compact){
 function payrollEmployee269(employee){const code=String(employee.code||'').replace(/^OJM?[-\s]*/i,'').replace(/[-\s]/g,''),words=String(employee.name||'').trim().split(/\s+/).filter(Boolean);return [code?'OJM-'+code:'',words.at(-1)||''].filter(Boolean).join(' · ');}
 const payrollMoney269=(value,currency='LAK')=>({LAK:'₭',USD:'$',THB:'฿',EUR:'€'}[currency]||currency)+' '+money(value);
 function payrollMetadata277(run){
- const evidence=window.payrollRateEvidence(run)||'LAK only';
- return `<div data-payroll-metadata277="1" style="${textStyle}display:flex;gap:8mm;margin:0 0 3mm;break-inside:avoid"><div style="flex:1;min-width:0">${(window.journalMemoHtml143187||esc)(evidence)}</div><div style="flex:1;min-width:0"><div><strong>Month:</strong> ${esc(run.month)}</div><div><strong>Reference:</strong> ${esc(run.reference)}</div></div></div>`;
+ const holder=document.createElement('span');
+ holder.innerHTML=(window.journalMemoHtml143187||esc)(run.rateSource||'');
+ const source=(holder.textContent||'').replace(/https?:\/\/[^\s<>]+/gi,'').replace(/\(\s*\)/g,'').trim()||'Not specified';
+ const rates=Object.entries(run.rates||{}).filter(([c,r])=>c!=='LAK'&&Number(r)>0).map(([c,r])=>'₭'+(typeof formatAppRate==='function'?formatAppRate(Number(r)):Number(r).toLocaleString(appNumberLocale(),{maximumFractionDigits:2}))+'/'+({USD:'$',THB:'฿',EUR:'€'}[c]||c)).join(' · ')||'LAK only';
+ return `<div data-payroll-metadata277="1" data-payroll-layout311="1" style="${textStyle}display:flex;gap:8mm;margin:0 0 2mm;break-inside:avoid"><div style="flex:1;min-width:0"><div><strong>Exchange rate:</strong> ${esc(rates)}</div><div><strong>Rate source:</strong> ${esc(source)}</div><div><strong>Rate date:</strong> ${esc(run.rateDate?formatAppDate(run.rateDate):'Not specified')}</div></div><div style="flex:1;min-width:0"><div><strong>Month:</strong> ${esc(run.month)}</div><div><strong>Reference:</strong> ${esc(run.reference)}</div></div></div>`;
+}
+// Slightly tighter report rows; retain font sizes, all data and the journal summary.
+function compactPayrollReport311(html){
+ const body=document.createElement('div');body.innerHTML=html;
+ body.querySelectorAll('th,td').forEach(cell=>{
+  if(cell.closest('[data-payroll-journal-summary309]'))return;
+  const vertical=parseFloat(cell.style.paddingTop);
+  if(vertical>=1)cell.style.paddingTop=cell.style.paddingBottom='0.5mm';
+  else if(vertical>0)cell.style.paddingTop=cell.style.paddingBottom='0.2mm';
+ });
+ body.querySelectorAll('table').forEach(table=>{if(!table.closest('[data-payroll-journal-summary309]')){table.style.lineHeight='1.1';table.style.marginBottom='0.5mm';}});
+ body.querySelectorAll('h3').forEach(h=>{if(!h.closest('[data-payroll-journal-summary309]')){h.style.margin='0.5mm 0 0.5mm';h.style.padding='0.5mm 1.5mm';}});
+ body.querySelectorAll('h1+p').forEach(p=>{if(!p.textContent.trim())p.remove();});
+ return body.innerHTML;
 }
 // Journal checking totals use saved payroll amounts and the same grouping/rounding
 // as the journal: gross/tax by currency, salary and recoveries by employee.
@@ -75,7 +92,7 @@ function payrollJournalSummary309(run,results){
  const local=results.filter(x=>x.currency==='LAK'),foreign=results.filter(x=>x.currency!=='LAK');
  const items=[['gross','Gross salary'],['adjusted','Net salary payable'],['cashAdvance','Advance allocation'],['loanRecovery','Loan recovery allocation'],['reimbursement','Reimbursements'],['employeePit','PIT withheld — employee'],['employerPit','PIT expense — company'],['pitPayable','Total PIT payable'],['employeeSso','SSO withheld — employee'],['employerSso','SSO expense — company'],['ssoPayable','Total SSO payable']];
  const always=new Set(['gross','adjusted','pitPayable','ssoPayable']),visible=items.filter(([k])=>always.has(k)||sum(results,k)!==0);
- let html='<section data-payroll-journal-summary309="1" style="break-inside:avoid">'+heading('Payroll journal summary',4)+table(['Journal amount','Local · LAK','Foreign · LAK','Total · LAK'],visible.map(([k,label])=>[label,money(sum(local,k)),money(sum(foreign,k)),money(sum(results,k))]),[37,21,21,21],{numeric:[1,2,3]});
+ let html='<section data-payroll-journal-summary309="1" style="break-inside:avoid">'+heading('Payroll journal summary',5)+table(['Journal amount','Local · LAK','Foreign · LAK','Total · LAK'],visible.map(([k,label])=>[label,money(sum(local,k)),money(sum(foreign,k)),money(sum(results,k))]),[37,21,21,21],{numeric:[1,2,3]});
  for(const c of [...new Set(foreign.map(x=>x.currency))]){
   const rows=foreign.filter(x=>x.currency===c),rate=num(run.rates?.[c]??rows[0]?.rate);
   if(!(rate>0)){html+=`<p style="${textStyle}">${esc(c)} journal equivalents are unavailable: the saved exchange rate is missing.</p>`;continue;}
@@ -100,9 +117,9 @@ html+=heading('Payroll breakdown',1)+table(['Employee','Contract','Internal dedu
 html+=heading('Mandatory deductions',2)+table(['Code','Employee PIT','Employer PIT','Employee SSO','Employer SSO','Employee total'],results.map(x=>[x.employee.code,payrollMoney269(x.employeePit),payrollMoney269(x.employerPit),payrollMoney269(x.employeeSso),payrollMoney269(x.employerSso),payrollMoney269(num(x.employeePit)+num(x.employeeSso))]),[14,17,17,17,17,18],{numeric:[1,2,3,4,5]});
 if(results.some(x=>x.pitRounding308&&x.pitPayable309==null))html+=table(['Code','PIT rounding','Total PIT payable'],results.filter(x=>x.pitRounding308).map(x=>[x.employee.code,payrollMoney269(x.pitRounding308),payrollMoney269(x.pit)]),[20,40,40],{numeric:[1,2]});
 html+=heading('Final payment',3)+table(['Code','Allowance','Reimbursement','Advance','Loan'],results.map(x=>[x.employee.code,payrollMoney269(x.allowance),payrollMoney269(x.reimbursement),payrollMoney269(x.cashAdvance??x.advance),payrollMoney269(x.loanRecovery)]),[14,21,23,21,21],{numeric:[1,2,3,4]})+table(['Code','Net','Final amount','Equivalent'],results.map(x=>[x.employee.code,payrollMoney269(x.net),payrollMoney269(x.paidAmount,x.currency),payrollMoney269(x.adjusted)]),[16,28,28,28],{numeric:[1,2,3]});
-html+=payrollJournalSummary309(run,results);
-html+=(run.rows.length<=12?'<div style="break-inside:avoid">':'')+heading('Attendance record',5)+attendance(run,run.rows)+(run.rows.length<=12?'</div>':'')+heading('Attendance summary',6)+attendanceSummary(run,results,'en',true);
-if(run.notes)html+=`<p style="${textStyle}font-size:9pt;margin:1mm 0">${esc(run.notes)}</p>`;return html;}
+html+=(run.rows.length<=12?'<div style="break-inside:avoid">':'')+heading('Attendance record',4)+attendance(run,run.rows)+(run.rows.length<=12?'</div>':'');
+html+=payrollJournalSummary309(run,results)+heading('Attendance summary',6)+attendanceSummary(run,results,'en',true);
+if(run.notes)html+=`<p style="${textStyle}font-size:9pt;margin:1mm 0">${esc(run.notes)}</p>`;return compactPayrollReport311(html);}
 // Salary vouchers keep readable type while making space for letterhead and notes.
 function compactVoucher241(html,language){
  const body=document.createElement('div');body.innerHTML=html;
@@ -170,7 +187,7 @@ function installSavedReports(){
  new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)collect(node);flush();}).observe(document.body,{childList:true,subtree:true});
  collect(document.body);flush();
 }
-function ready(){installSavedReports();const oldSign=window.printSignatures1424;window.printSignatures1424=function(...args){let html=oldSign(...args).replaceAll('margin-top:22mm','margin-top:3mm').replaceAll('gap:12mm','gap:8mm').replaceAll('height:9mm','height:14mm');if(args[0]?.voucherLanguages14254)html=html.replaceAll('margin-top:3mm','margin-top:1.5mm').replaceAll('margin-top:2mm','margin-top:1mm');return translateHTML(html,args[0]?.voucherLanguages14254?.[args[2]||'']);};
+function ready(){installSavedReports();const oldSign=window.printSignatures1424;window.printSignatures1424=function(...args){let html=oldSign(...args).replaceAll('margin-top:22mm','margin-top:3mm').replaceAll('gap:12mm','gap:8mm').replaceAll('height:9mm','height:14mm');if(args[0]?.payrollReport275)html=html.replaceAll('height:14mm','height:9mm').replaceAll('margin-top:3mm','margin-top:1mm');if(args[0]?.voucherLanguages14254)html=html.replaceAll('margin-top:3mm','margin-top:1.5mm').replaceAll('margin-top:2mm','margin-top:1mm');return translateHTML(html,args[0]?.voucherLanguages14254?.[args[2]||'']);};
 const form=window.employeeForm82;window.employeeForm82=function(record){return form(record).replace('<div class="form-actions82">',`<div class="fields82"><label>Salary voucher language<select name="voucherLanguage"><option value="en" ${record?.data?.voucherLanguage!=='lo'?'selected':''}>English</option><option value="lo" ${record?.data?.voucherLanguage==='lo'?'selected':''}>Lao</option></select></label></div><div class="form-actions82">`);};
 const render=window.renderWork82;window.renderWork82=function(...args){const result=render.apply(this,args);for(const id of (window.historyMonth14341?[]:['payroll-history','report-payroll'])){const panel=document.getElementById(id);if(!panel||!panel.querySelector('table')||panel.querySelector('[data-payroll-month14254]'))continue;const label=document.createElement('label');label.dataset.payrollMonth14254='1';label.textContent='Report month ';const input=document.createElement('input');input.type='month';input.setAttribute('aria-label','Payroll history month');label.append(input);panel.querySelector('table').parentElement.before(label);input.onchange=()=>{for(const row of panel.querySelectorAll('tbody tr'))row.hidden=!!input.value&&!row.textContent.includes(input.value);};}return result;};
 window.printPayroll82=printPayroll;window.printPayrollBody99=run=>payroll(run,runResults82(run));window.payrollVoucherPreview1424=(run,x,choices)=>voucher(run,x,choices,(x.employee.voucherLanguage||Work82.employees?.find(e=>e.id===x.employeeId)?.data?.voucherLanguage)==='lo'?'lo':'en');
