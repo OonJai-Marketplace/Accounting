@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Accounting protocols · Oon Jai</title>
+<style>
+:root{color-scheme:light;--ink:#172e28;--green:#145c48;--rule:#cedbd1;--paper:#fffef9;font:16px/1.54 system-ui,sans-serif;color:var(--ink);background:#f3f5ee}
+*{box-sizing:border-box}body{margin:0}main{max-width:57rem;margin:0 auto;padding:clamp(1rem,4vw,3rem)}a{color:var(--green);text-underline-offset:3px}a:focus-visible,select:focus-visible{outline:3px solid #aa6f1b;outline-offset:2px}header{border-top:5px solid var(--green);padding:1.1rem 0 1.4rem;border-bottom:1px solid var(--rule)}.brand,.category{font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;font-weight:750;color:var(--green)}h1,h2,h3,p{margin:0}h1{font:clamp(2rem,6vw,3.15rem)/1.08 Georgia,serif;margin:.4rem 0 .65rem}h2{font:1.7rem/1.2 Georgia,serif;margin:1.6rem 0 .5rem}h3{font-size:1.03rem}.meta,.route,small{color:#52665a}.toolbar,.links{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem .9rem}.toolbar{margin-top:1rem}.toolbar a,.links a{display:inline-flex;align-items:center;min-height:2.4rem;font-size:.9rem}.primary{background:var(--green);color:white;padding:.45rem .8rem;border-radius:5px;font-weight:650;text-decoration:none}.topic-list{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}.topic-list li{padding:.5rem 0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:0 .65rem;border-bottom:1px solid var(--rule)}.topic-title{font-weight:650;color:var(--ink);text-decoration:none}.topic-title:hover,.topic-title:focus-visible{text-decoration:underline}.code{display:inline-block;font:600 .78rem/1.4 monospace;color:#536b5f;margin-right:.65rem}label{font-size:.9rem;font-weight:650}select{padding:.45rem;margin:.3rem 0;border:1px solid var(--rule);background:white;color:var(--ink);border-radius:4px;font:inherit;max-width:100%}.reader{background:var(--paper);padding:clamp(1rem,4vw,2.3rem);border:1px solid var(--rule);border-radius:5px}.reader header{margin-top:.9rem}.route{font-size:.9rem}.lead{font-size:1.13rem;margin:1rem 0}.steps{padding-left:1.65rem}.steps li{padding:0 0 .95rem .3rem}.steps li::marker{font-weight:700;color:var(--green)}.example,.check{padding:.85rem 1rem;margin:.8rem 0;background:#f0f4ef;border-left:3px solid #579277}.check{background:#f8f2e4;border-color:#baa46b}table{border-collapse:collapse;width:100%;margin:.45rem 0 0;font-variant-numeric:tabular-nums;font-size:.92rem}th,td{text-align:right;padding:.35rem .25rem;border-bottom:1px solid var(--rule)}th:first-child,td:first-child{text-align:left}.source{font-size:.81rem;margin-top:1.5rem}.source a{overflow-wrap:anywhere}footer{font-size:.82rem;color:#52665a;margin:1.3rem 0}
+@media(max-width:650px){.topic-list li{grid-template-columns:1fr}.topic-title{padding-top:.25rem}.links{gap:.9rem}.links a{min-height:2.55rem}table{font-size:.84rem}main{padding:.85rem}.reader{padding:.85rem}}
+[hidden]{display:none!important}
+</style></head><body><main>
+<section id="catalog"><header><div class="brand">Oon Jai Company Limited</div><h1 tabindex="-1">Accounting protocols</h1><p class="meta">Journal and payroll handbook · 8 November 2026</p><div class="toolbar"><a class="primary" href="Oon-Jai-Accounting-Protocols.pdf" download>Download complete PDF</a><a href="Oon-Jai-Accounting-Protocols.pdf" target="_blank" rel="noopener">Open complete PDF in new tab</a></div></header>
+<div class="toolbar"><label for="area">Show area</label><select id="area"><option value="">All areas</option>[[OPTIONS]]</select></div>
+[[INDEX]]
+<p class="source">Based on Oon Jai workflows through v143.315 and the 29 October journal protocol. Examples use illustrative figures. Statutory rate reference · <a href="https://taxsummaries.pwc.com/lao-pdr/individual/other-taxes" target="_blank" rel="noopener">PwC Lao PDR – Individual, Other taxes</a>.</p>
+</section>
+[[ARTICLES]]
+</main><script>
+const catalog=document.getElementById('catalog'),area=document.getElementById('area');
+const topics=new Map(Array.from(document.querySelectorAll('article'),a=>[a.id,a]));
+function show(focus=false){
+ const slug=location.hash.slice(1),active=topics.get(slug);
+ catalog.hidden=!!active;
+ for(const article of topics.values())article.hidden=article!==active;
+ if(!active && slug && !topics.has(slug))history.replaceState(null,'',location.pathname+location.search);
+ document.title=(active?active.querySelector('h1').textContent:'Accounting protocols')+' · Oon Jai';
+ if(focus){(active||catalog).querySelector('h1').focus({preventScroll:true});window.scrollTo(0,0);}
+}
+area.addEventListener('change',()=>{for(const group of catalog.querySelectorAll('[data-area]'))group.hidden=area.value!==''&&area.value!==group.dataset.area;});
+addEventListener('hashchange',()=>show(true));show();
+</script></body></html>

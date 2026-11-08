@@ -1,0 +1,293 @@
+@ Journal preparation
+# J01 | Prepare the source record
+> Bookkeeping / Journal / Post Transaction
+= Use one journal for one economic event. Gather the evidence before choosing accounts.
+Identify the event | Record the payee or payer, what changed, the business purpose and who approved it. Keep the invoice, receipt, BCEL advice, POS close or signed cash slip with its reference.
+Set the dates | The main date places the journal in the accounting month. Keep individual receipt dates on the lines. For receipts from another month, review the warning and preserve the original date in the memo. Select the correct open period before posting.
+Enter each leg | Select an active posting account, fund or employee where required. The account determines the currency. Enter the amount in either Debit or Credit, with the original quantity and supported rate for foreign currency.
+Write a usable description | Give the shared purpose once. Use line memos for items, receipt dates, quantities, rates or references that differ. Link the evidence so someone else can reconstruct the entry.
+~ Example memo | Kitchen supplies for the restaurant, paid from petty cash. Line memo: vegetables, receipt A17, 6 November.
+! Check the source against the date, currency, funding account and total. Search Active Journal and Submitted for an existing entry with the same evidence.
+# J02 | Use a journal template
+> Bookkeeping / Journal / Post Transaction / Templates or Generate
+= Start with the event that occurred. A saved layout can be reused with new amounts, dates and evidence.
+Choose the layout | Select a saved template by name and permanent number, or choose a chart-backed starter. Read the rows before applying it. Use a salary accrual template for wages earned and a settlement template for wages already owed.
+Replace the changing fields | Enter this event’s date, counterparty, memo, amount, currency-specific accounts and rate evidence. Resolve every unassigned fund, employee or payable. Check the intended debit and credit directions.
+Review generated lines | Use Generate where applicable. Compare each mapping, offset, bridge and rounding line with its source. If the app offers several matches, choose the one that describes the evidence. Investigate a missing mapping before proceeding.
+Save or post | Saving a template retains its layout. A draft or generated preview can still be edited. Use the explicit posting action only after review and retain the confirmed journal ID.
+~ Template choice | A supplier invoice already credited Accounts Payable. When the bank transfers the money, select settlement and debit that payable. A second purchase template would duplicate the expense.
+! A balanced template can still use the wrong accounts. Check the ledger effect as well as the totals.
+# J03 | Review staff and AI submissions
+> Bookkeeping / Journal / Submitted or AI Journal
+= Convert a submitted cash-book record or an AI draft into a reviewed double-entry journal.
+Identify the source | For staff submissions, open the record for the correct person, date and assigned fund. For AI Journal, open the corresponding draft from the connected inbox. Compare the source reference and receipt with the draft.
+Translate the direction | Identify whose cash book you are reading. Money out of petty cash credits that fund in the company journal. Choose the expense, asset or payable on the other side. For a handover, identify both custodians.
+Review the full entry | Preserve individual receipt dates and line details when several items share one funding line. Resolve currency, account mapping and approval questions before posting. Return an incomplete submission for clarification.
+Confirm completion | After posting, match the resulting journal ID to the submission or archive record. If confirmation is interrupted, reopen the original and check Active Journal and the pending queue before retrying.
+~ Handover | An assistant returns unused cash to the cashier. Debit the receiving cash account and credit the assistant’s fund. Record the handover once across both records.
+! A submission, sheet row or device copy is evidence of preparation. Use the confirmed Active Journal entry as evidence of posting.
+# J04 | Post, verify or correct a journal
+> Bookkeeping / Journal / Active Journal
+= Post only after each currency, the LAK reporting amount and the economic purpose agree.
+Review the draft | Check the period, evidence, totals by currency, account ownership and line memos. For foreign entries, inspect the LAK counterparts. Review staff-clearing, statutory and technical balances affected by the entry.
+Post once | Use Post and wait for confirmation. Record the assigned ID. Ordinary journals use the normal OJM sequence. Keep payroll run references, document numbers, AMO and REC series distinct.
+Verify the receipt | Open the saved entry and trace it into the relevant ledger or report. If a device shows pending confirmation, resolve the original request. For a batch, identify which items posted before retrying any remainder.
+Correct with a trail | In an open book, use the authorized edit or void workflow and record the reason. For a closed book, use the correction process and retain the link to the original. Keep the original evidence, approval and before/after amounts.
+~ Duplicate check | Two equal purchases on the same day can both be valid. Compare supplier, receipt number, custodian and line details before deciding whether one is a duplicate.
+! Never fill an older numbering gap by hand. Use the ID assigned by the app after confirmation.
+
+@ Operating entries
+# O01 | Record sales, refunds and collections
+> Bookkeeping / Journal · POS closing and BCEL evidence
+= Classify receipts by who earned the money, the payment channel and the date the sale was recognized.
+Record verified sales | Reconcile the POS or invoice total by cash, QR/bank and credit. Debit the actual cash, bank or receivable and credit sales. Separate output VAT when the tax invoice and configured treatment require it.
+Settle receivables | For an invoice sale, debit the customer or platform receivable at recognition. When the customer pays, debit the receiving fund and credit that same receivable. Split any documented platform fee from the gross collection.
+Record reversals | Link a refund or credit note to its original sale, channel and tax treatment. Use the approved returns or discount account. For deposits received before earning revenue, credit a customer liability and release it when earned.
+Separate money held for others | Keep tips, consignment collections and other third-party proceeds in the relevant payable until settlement. Record only the earned commission or fee as Oon Jai income.
+~ QR example · LAK | A platform collects 100,000 already invoiced and transfers 97,000 after a 3,000 fee. Debit bank 97,000 and fees 3,000. Credit the platform receivable 100,000.
+! POS revenue, the cashier’s handover and the later bank deposit must each have a distinct purpose in the ledger.
+# O02 | Close a cashier shift and resolve differences
+> Cashier daily closing / Submitted / Active Journal
+= Tie the shift to POS totals, QR records, the cash count and the signed handover.
+Count each channel | Record opening float, receipts, payouts, refunds, closing cash and cash surrendered. List QR separately. Retain the POS close, count and handover with the shift date and cashier reference.
+Use cashier clearing | When money is surrendered before the sales breakdown is verified, debit the receiving fund and credit the shift’s cashier clearing in that currency. At verification, debit clearing and credit sales, tax or third-party liabilities as applicable.
+Investigate a difference | Recount and check float, payouts, QR timing and duplicate slips. Record an approved cash over/short amount or collectible staff balance only after the cause and treatment are documented. State the shift and who reviewed it.
+Record a later recovery | On the actual recovery date debit cash/bank and credit the outstanding receivable or clearing account under the approved treatment. Keep the later receipt linked to the shift shortfall.
+~ Cash example · LAK | Verified cash sales are 400,000 and the cashier surrenders 390,000. If the 10,000 shortfall is approved as collectible, record the receivable separately. Credit it when the missing cash is received.
+! Reconcile each shift and currency. An open clearing balance must identify a specific amount still awaiting verification or settlement.
+# O03 | Record purchases, payables and fees
+> Bookkeeping / Journal / Post Transaction
+= Decide whether the item was consumed, held in stock, prepaid or capitalized, and whether it has already been paid.
+Recognize the purchase | Debit the supported expense, inventory, prepaid or fixed-asset account. Separate recoverable tax only where supported. Credit the actual cash/bank for immediate payment or the supplier payable for an unpaid invoice.
+Handle partial settlement | On the payment date debit the same supplier payable and credit the paying fund. Record invoice number, currency and amount settled so the remaining balance can be identified.
+Separate bank fees | Use the bank advice to distinguish supplier payment from service charges. Debit the fee account separately. For a foreign fee confirm its own mapping and LAK counterpart.
+Handle employee purchases | If someone used personal funds, credit an employee reimbursement payable or approved clearing account. Match the later repayment to that balance. Check whether the cost was already recorded before entering a claim.
+~ Supplier example · LAK | Invoice 600,000: debit supplies 600,000 and credit supplier payable 600,000. Pay 400,000: debit payable and credit bank 400,000. The unpaid invoice balance is 200,000.
+! The expense or asset should appear once. The payable should explain exactly what remains unpaid.
+# O04 | Transfer funds and account for advances
+> Bookkeeping / Journal · Sub-user cash book · Fund allocation
+= Keep changes of cash location separate from spending and from money that must be returned.
+Transfer between company funds | On the actual handover date debit the receiving fund and credit the releasing fund in the same currency. Keep both sides of a cash-to-bank transfer under one reference.
+Issue an advance | Debit the designated employee advance/clearing account and credit the paying fund. Record recipient, purpose, due date, currency and approval. Check whether a petty-cash float already represents company cash.
+Liquidate the advance | Match receipts to approved expenses or assets, credit the advance for the supported amount, and record returned cash against the balance. Keep unliquidated amounts against the named person.
+Track fund allocations | Record approved limits or budget allocations in their own workflow. Post a journal only when cash moves, an obligation arises or an expense is supported. Tie a payroll recovery to the original advance.
+~ Advance example · LAK | Issue 500,000. Receipts support 380,000 and the employee returns 120,000. The advance ledger shows a 500,000 debit and credits of 380,000 and 120,000.
+! Check both fund ledgers and the employee balance. A transfer, budget or repaid advance has no sales-income effect.
+# O05 | Record owner support and designated funds
+> Bookkeeping / Journal · Funding and reimbursement evidence
+= The funding terms determine the credit side. Identify the beneficiary and repayment terms before selecting a template.
+Classify the receipt | For documented nonrepayable owner capital, debit the receiving fund and credit the approved equity account. For repayable support, credit the owner loan/payable. Keep money held for a named beneficiary in the designated liability.
+Record direct payments | If the owner paid a company supplier directly, debit the supported expense, asset or payable and credit owner funding under the agreement. Enter the bank account only if company cash actually moved.
+Split recoverable costs | If an employee owes part of an owner-funded purchase, identify the recoverable share separately. Preserve its original amount and carrying value, then record collections against that employee’s balance.
+Track restricted amounts | Keep funding receipts, uses and releases under the same purpose or beneficiary reference. For shared house costs distinguish the company’s rent, staff contributions and funds held for others.
+~ Funding example · LAK | An owner pays a 900,000 company invoice directly under a documented loan. Debit the outstanding supplier payable 900,000 and credit the owner loan 900,000. The company bank balance stays the same.
+! Reconcile the confirmed funding balance to the agreement, payment evidence and beneficiary schedule.
+# O06 | Record inventory and equipment
+> Bookkeeping / Journal · Stock and asset records
+= Use purchase evidence and the approved classification to distinguish stock on hand, current consumption and long-lived assets.
+Receive goods | For items tracked as stock, debit inventory and credit cash/bank or supplier payable. Record item, quantity, unit cost and receipt. Use the approved costing method when stock is issued.
+Recognize consumption or loss | Debit cost of sales or the approved waste/adjustment account and credit inventory for the documented cost. Compare count differences to the stock records, with quantity, date and reviewer.
+Record equipment | Use the approved capitalization policy. Debit the asset and credit its funding source or payable. Record in-service date, cost, useful life and custody. Expense items below the approved threshold according to policy.
+Depreciate or dispose | Debit depreciation expense and credit accumulated depreciation per the approved schedule. On disposal, remove cost and accumulated depreciation, record proceeds, and recognize the supported gain or loss.
+~ Stock example · LAK | Receive stock at 800,000, then issue ingredients costing 300,000. The first entry increases inventory. The issue debits cost of sales and credits inventory 300,000.
+! The stock count or asset register must explain the closing ledger balance and any adjustment.
+# O07 | Link vouchers, cash slips and budget records
+> Bookkeeping / Journal / Documents or Budget
+= Connect the journal with its supporting documents while keeping each document’s identifier and purpose.
+Prepare the support | Use a receipt or voucher for the transaction and keep the reference, purpose, original amount and signatories. Scan readable pages in order and link the finalized file to the correct journal.
+Use the monthly cash slip | Fill in number, day, initials, description, source, debit or credit, and both signatures. Complete the month/year and initials legend. Use Signature 1 and Signature 2 for the two people involved in either direction.
+Prepare the budget record | Separate the request month from dates of actual funding, expenses, exchanges, advances and repayments. Compare actual spending by category and retain receipts. Confirm any remaining balance.
+Connect the records | A printed voucher or finalized utilization report supports a transaction. Prepare and post the associated journal explicitly, then cross-reference the confirmed journal ID and the document.
+~ Reference example | A December budget request approved in November funds a January purchase. Keep the budget month on the request and the actual payment date, receipt and journal reference on the utilization line.
+! A document number identifies the document. Match it to the confirmed journal ID before treating the transaction as posted.
+
+@ Currency and schedules
+# F01 | Choose and record exchange rates
+> Post Transaction / Rate and memo · Payroll / Exchange Rate Source
+= Preserve the foreign amount and quote rates as LAK per unit of the foreign currency.
+Actual exchange or transaction rate | When both exchanged amounts are evidenced, divide LAK by foreign units. Record the date, counterparty or bank advice and separate fees. For a foreign-to-foreign exchange retain both quantities and a supported LAK valuation.
+Valuation rate | Use a dated rate appropriate to the transaction or valuation. For bank/noncash activity use the applicable BCEL EFT quote when actual evidence is unavailable. For cash-counter quotes use the applicable Note rate. Keep the relevant side, source and date.
+Book rate | Read the book average or carrying value of the particular foreign account before releasing it. Check the displayed BR against the account ledger and the amount being discharged. Historical nonmonetary prepaids retain their acquisition basis.
+Record the evidence | Keep the Rate field numeric. Put ER/FX for actual, VR for valuation or BR for book rate in the memo with the date and source. In payroll, save the run’s chosen rate, rate date and source with the calculation.
+~ Actual exchange | A receipt shows USD 100 exchanged for LAK 2,210,000 before fees. The actual exchange rate is 22,100 LAK per USD. Keep any separate fee on its own line.
+! A current web quote or midpoint cannot replace documented transaction amounts or the payroll run’s saved historical rate.
+# F02 | Check mappings, bridges and FX gain or loss
+> Post Transaction / Generate · Reports / General Ledger
+= Follow the original currency and the LAK reporting effect through the same event.
+Use the matching mapping | On a foreign operating expense, debit the foreign expense mapping and credit the paying fund. Recognize the actual LAK expense and its configured LAK offset. For income, follow the configured revenue mapping in the opposite direction.
+Separate conversions and settlements | Identify the foreign quantity received or released, recognition or settlement rate, and book rate. Trace exchange bridges across both currencies. Allow for FX on the payable or receivable as well as on the cash used.
+Classify the difference | A supported change between carrying value and settlement value goes to 5419 Foreign Exchange Gain / Loss. A documented decimal or payment rounding amount uses the appropriate rounding treatment. A missing rate or balancing leg requires investigation.
+Review special cases | Same-currency transfers between funds may move carrying value. Foreign monetary accounts may require an approved period-end revaluation. Keep realized settlement and period-end revaluation schedules distinct from historical prepaid costs.
+~ LAK settlement example | A USD 100 payable carries at LAK 2,200,000. It is settled from a LAK bank account for 2,230,000. Debit payable carrying value 2,200,000 and FX loss 30,000. Credit bank 2,230,000. The generator may express these amounts through currency bridges.
+! Verify original-currency balance, LAK result and bridge clearance. A zero overall journal difference alone cannot establish the correct gain or loss.
+# S01 | Purchase and amortize a prepaid item
+> Bookkeeping / Upcoming / Amortization
+= Record the original payment once, then release the prepaid asset over the covered service months.
+Record the purchase | Debit the correct prepaid asset and credit the actual paying fund. Retain the contract, coverage period, original currency and historical LAK basis. Identify restaurant rent, company house rent, Wi-Fi or another prepaid separately.
+Prepare the plan | From Post Entry, use Save as for an amortization plan where available. Select expense and prepaid accounts, first month, installments and allocation basis. Review the final remainder against the original balance.
+Post each due occurrence | After the prior month closes, open the due notice or Upcoming plan. Check the first-day journal date, service month, remaining balance and generated lines. Use Post explicitly. The confirmed occurrence uses the AMO series.
+Check the account pair | Wi-Fi uses 1311 prepaid and 5110 expense. Company house rent uses 1310 prepaid and its house-rent expense, 5421 when configured. THB restaurant rent uses 1312 and the restaurant expense mapping 9222 with its LAK reporting pair.
+~ Wi-Fi example · LAK | Prepay 600,000 for six equal months. At purchase debit prepaid Wi-Fi and credit bank 600,000. Each month debit Wi-Fi expense and credit prepaid 100,000. After three releases, prepaid holds 300,000.
+! Compare the plan’s posted releases plus its remaining balance to the original cost. If a legacy plan disagrees, identify the existing postings before editing or retrying.
+# S02 | Prepare and post a recurring journal
+> Bookkeeping / Upcoming / Recurring
+= Use a recurring plan for a repeatable event whose terms, accounts and dates can be checked at each occurrence.
+Set up the plan | Prepare the journal in Post Entry. Use Save as for the recurring transaction, enter the schedule and reminder, and inspect its accounts, currency, memo and dates.
+Review when due | Open the next occurrence in Upcoming. Confirm that the service, obligation or payment actually occurred and that the period is open. Replace any outdated amount, account or rate through the applicable plan workflow.
+Post and trace | Use the explicit posting control, wait for the receipt and retain the REC journal number. If interrupted, reopen that occurrence and confirm its status or linked journal before trying again.
+~ Rent example | A monthly service billed in arrears may use a recurring expense/payable entry. Rent paid in advance uses the prepaid plan so every release can be checked against the remaining asset.
+! Confirm the occurrence appears once in Active Journal and the next due date is correct. A reminder is a prompt for review.
+
+@ Payroll
+# P01 | Set up the employee and pay period
+> Payroll / Employees and Leave · Settings / Accounting / Payroll and Mandatory
+= Start with the employment agreement and the approved settings for the month.
+Check the employee record | Verify employee code, contract start date, active status, salary amount and currency, payroll clearing account, PIT/SSO participation and approved sharing arrangement. Match the clearing account currency to the salary currency.
+Open the correct month | In Payroll Entries, select the payroll month, employee roster and calendar. Review working days, holidays, scheduled fractions, approved leave and contract changes effective during the month.
+Review the salary basis | Oon Jai uses a fixed 22-day monthly basis. For a first month, the app prorates using eligible scheduled paid days on or after the contract start, capped at the full monthly salary. The hourly rate uses the daily rate divided by configured hours per day.
+Record the inputs | Retain the contract or authorized change, effective date, approval and employee code. For foreign pay, enter the calculation rate, rate date and source before reviewing the LAK figures.
+~ First-month example · LAK | A 4,400,000 monthly contract with 11 eligible full paid days earns 4,400,000 × 11 ÷ 22 = 2,200,000 before adjustments. Dates before the contract start are marked as pre-employment.
+! Compare contracted pay, earned pay and the proposed clearing account employee by employee before entering deductions.
+# P02 | Enter attendance, leave and lateness
+> Payroll / Entries / Attendance · Employees and Leave
+= Record what happened on each date. The calculation uses both deductible minutes and qualifying occurrences.
+Record daily evidence | Use the attendance mark for that employee and date, actual minutes late, overtime hours and a note where needed. Match approved leave to the correct dates and paid/unpaid status. Exclude days before employment.
+Apply the five-minute grace | For an ordinary scheduled day, 5 minutes or less produces zero deductible minutes and zero late occurrences. At 8 minutes, record the actual 8. The calculation uses 3 deductible minutes and one qualifying occurrence.
+Check the tier by occurrence | Occurrences 1–5 cost LAK 5,000 each, 6–10 cost 7,000 each and 11 onward cost 10,000 each. Earlier occurrences keep their original tier. The time deduction is calculated separately using the employee’s hourly rate.
+Review exceptions | Apply the approved excused mark where appropriate. If overriding a daily deduction, record the reason, amount and currency. Inspect the daily breakdown and monthly occurrence count. An approved leave record should affect pay once.
+~ Six qualifying occurrences | The occurrence penalties total 5 × 5,000 + 1 × 7,000 = LAK 32,000. Deductible time is calculated from the minutes beyond grace on each applicable day.
+! Compare the attendance explanation, paid leave, unpaid days, time deduction and penalty totals against the signed or approved record.
+# P03 | Calculate gross pay and employee deductions
+> Payroll / Entries / Calculation details
+= Keep the salary basis, statutory base, net entitlement and amount actually paid visible as different figures.
+Build gross pay | Begin with earned salary in LAK at the saved rate. Add approved overtime and taxable allowances. Check attendance time, unpaid absence, penalties and other internal deductions against the daily detail.
+Inspect the statutory bases | For participants, the app applies the configured SSO ceiling to gross pay. PIT taxable salary is gross less employee SSO, subject to the app’s configured brackets and eligibility. Review the employee’s calculation detail before posting.
+Read the net figure | Gross minus employee SSO minus employee PIT gives net before recoveries. Add approved reimbursements and subtract salary advance and loan recoveries to arrive at final net payment.
+Reconcile by person | Keep each input with the employee, date, original currency, LAK conversion, purpose and approval. Enter the recovery or reimbursement in its own field so the journal template receives its meaning.
+~ Net-pay example · LAK | Given approved gross of 3,000,000, employee SSO of 165,000 and employee PIT of 40,000, net is 2,795,000. Add a 50,000 reimbursement and recover a 100,000 advance. The final cash entitlement is 2,745,000.
+! Use the approved payroll calculation for the period. Example tax amounts illustrate the accounting arithmetic only.
+# P04 | Record PIT and social security shares
+> Payroll / Entries / Mandatory deductions · Settings / Accounting / Mandatory
+= Keep employee withholding, employer expense and the statutory payable traceable by person and month.
+Calculate PIT in LAK | Apply the saved progressive brackets to the employee’s taxable LAK salary. Oon Jai’s equal-sharing setting gives employee and employer the same rounded half. Preserve the original assessment and the two resulting shares in the calculation.
+Post the PIT liability | Employee withholding reduces net entitlement. Debit 5211 PIT Expense for the company share only. Credit 2111 PIT Payable for both shares. A displayed USD equivalent is a reference to the same liability.
+Calculate SSO separately | For participating employees, check the saved ceiling and covered base. The referenced rates are 5.5% employee and 6% employer, with a LAK 4,500,000 monthly base ceiling. Debit 5212 for the employer cost and credit 2112 for both shares.
+Review the period settings | Preserve the approved brackets, rates, coverage, sharing, employee exceptions and effective dates used by the run. The payment-stage whole-kip rule is applied separately when remitting each liability.
+~ Equal-share example · LAK | An assessed PIT of 87,308.21 produces two shares of 43,654.11. The journal credits PIT payable 87,308.22. Only 43,654.11 is company PIT expense.
+! Employee and employer PIT must agree under the 50/50 setting. Compare each SSO share to its own rate.
+# P05 | Record advances, loans and reimbursements
+> Payroll / Deductions · Entries / Adjustments · Individual Ledger
+= Trace each employee adjustment to the balance or approved expense that it settles.
+Identify the opening balance | For an advance or loan, verify the original disbursement, amount outstanding, employee, currency and repayment agreement. Record the authorized recovery in the corresponding payroll field.
+Map the recovery | Inspect the employee clearing rows. The template separates final cash entitlement from the amount allocated to recovery. Trace the recovery credit against the earlier debit and check the remaining employee balance.
+Map each reimbursement | Record the receipt, original purpose, approval and employee. For a new expense, select the appropriate debit account or eligible foreign expense mapping. If the expense and payable were recognized earlier, use the established payable settlement treatment and check for duplicates.
+Review other adjustments | Document bonuses, allowances, unpaid time or final-pay items separately. Verify their approved treatment before the run is closed. A manual attendance override needs its own reason.
+~ Advance example · LAK | Staff clearing already has a 100,000 debit. Net entitlement before recovery is 1,000,000. The template allocates 100,000 to recovery and 900,000 to final pay. The settlement pays only 900,000.
+! The employee ledger after settlement should show only the remaining supported balance. Check that a reimbursement was expensed once.
+# P06 | Save, close and prepare the payroll journal
+> Payroll / Entries / Save & Close Payroll · Salary History
+= Closing saves the approved calculation. Posting is a separate action that creates or revises the linked journal.
+Review the run | Check all employees, attendance, gross-to-net breakdowns, recoveries, statutory shares and final payments by currency. Confirm the calculation date, rates and source. Preview the payroll calculation report.
+Save and close | Select Save & Close Payroll. Wait for confirmed storage and verify the month in Salary History. A closed run may still be awaiting its journal. Resolve a pending device save under the same record.
+Prepare the template | From the run or Salary History, open its journal. Use the default or saved layout, select an eligible employee account for each employee, resolve nonzero reimbursements and inspect the journal date. Retain the calculation rate evidence in the description.
+Choose the posting route | Prepare in Transactions opens the editable journal for review. Post to Active Journal requests posting directly. Use one route for the run and verify the linked journal ID after confirmation. A saved layout or preview carries no posting receipt.
+~ In the history row | If the month is closed and marked as not journaled, open that same record, prepare its journal and check the posting status. Creating another monthly payroll would duplicate the run.
+! The closed payroll, linked journal and calculation report must refer to the same month, employees and saved figures.
+# P07 | Post local salary accrual in LAK
+> Payroll / Prepare journal · Bookkeeping / Active Journal
+= Recognize wages in the pay period and leave the net entitlement in the employee’s designated clearing account until payment.
+Debit the earned costs | Debit 5311 Salaries – LAK for gross pay. Debit 5211 for employer PIT and 5212 for employer SSO. Map any approved reimbursement separately to its actual purpose.
+Credit what is owed | Credit employee clearing for final pay and applicable recovery allocations, 2111 for both PIT shares, and 2112 for both SSO shares. Choose the employee’s own assigned account.
+Check a whole accrual | The example below uses hypothetical approved deductions and no advance, loan or reimbursement. Debit and credit totals both equal LAK 3,220,000.
+% Illustrative posting in LAK | Account or employee balance | Debit | Credit
+: 5311 Salaries | 3,000,000 | —
+: 5211 PIT expense / 5212 SSO expense | 40,000 + 180,000 | —
+: Employee clearing / final net | — | 2,795,000
+: 2111 PIT payable / both shares | — | 80,000
+: 2112 SSO payable / both shares | — | 345,000
+! Reconcile the employee’s final pay to Salary History, and both liabilities to their respective statutory schedules. Cash moves when payment is made.
+# P08 | Post foreign or mixed-currency payroll
+> Payroll / Prepare journal / Currency groups
+= Keep USD and THB quantities in their own groups. LAK remains the reporting currency and the statutory basis.
+Post the gross and net | Debit the salary mapping in the salary currency, 9231 for USD or 9232 for THB when configured. Credit the employee’s clearing account for their entitlement and allocate applicable deductions. Verify the actual 5311 salary expense and 9290 LAK mapping offset.
+Trace the withholding | Preserve the assessed LAK employee and company shares. The USD withholding bridge is 9042 with 9041 in LAK. Confirm the LAK bridge equals the rounded USD withholding multiplied by the saved calculation rate. For another currency, resolve a valid matching tax bridge.
+Apply the template’s rounding boundary | Round a grouped row once after summing its raw values. Round separate employee payables individually. Compare using the same grouping in the report and review conversion rounding on 5420.
+Inspect mixed payroll | Check each group in its own currency, then check combined LAK. Track salary mapping, tax bridges and conversion rounding separately. Resolve any missing mapping.
+~ Grouped versus individual | Three values of 3.005 produce one grouped entry of 9.02. Three separately payable entries round to 3.01 each, totaling 9.03. The posting rule determines which figure the report must reproduce.
+~ USD withholding example | LAK 12,320 ÷ 22,000 = USD 0.56. Credit 9042 by USD 0.56 and debit 9041 by LAK 12,320. The equal PIT shares total LAK 24,640 in 2111.
+! Check each currency, each employee entitlement, both statutory payables and each bridge. A foreign reference amount must never replace the approved LAK PIT basis.
+# P09 | Pay salaries and settle employee balances
+> Bookkeeping / Journal / Templates / Pay salary or existing balance
+= Settle only the amount actually released. Payroll expense was recognized when the payroll journal posted.
+Identify the entitlement | Open Salary History and the employee ledger. Match the linked accrual, employee, currency, recoveries, remaining balance and approved final payment.
+Record the payment | On the payment date debit that employee’s clearing or salary payable and credit the actual cash/bank fund. For partial payment, identify the unpaid portion. Retain bank advice or signed salary voucher.
+Settle foreign pay | Preserve the payroll calculation rate and original liability basis. Determine the payment amount and the payment-date rate from evidence. If paying in another currency, trace the liability discharged, the fund’s carrying value, bridges and any supported realized FX.
+Verify each person | Check employee balances separately. A combined bank transfer must reconcile to its employee breakdown. Save the settlement journal ID against the evidence.
+~ Same-currency example · LAK | A payroll accrual credits employee clearing 2,795,000. Paying it in full debits that clearing account and credits BCEL – LAK 2,795,000. Salary expense was already recorded.
+! Verify the person received their approved amount and any remaining balance has a reason. Keep payment rounding separate from a realized exchange difference.
+# P10 | Remit PIT and SSO in whole kip
+> Tax & SSO / Payment summary · Post Transaction / Templates
+= Start with the confirmed outstanding LAK liability for each obligation and match it to the government payment receipt.
+Read the due amount | Reconcile 2111 PIT Payable and 2112 SSO Payable to the period and the relevant payment notice. Exclude amounts previously paid and identify any credit balance or advance. Treat PIT and SSO as separate obligations.
+Calculate each whole-kip payment | For each positive amount due with a fraction, round upward to the next whole kip. An exact whole number remains unchanged. Apply this once to each remittance total after combining the applicable liability lines.
+Post the settlement | Use the PIT payment or SSO payment whole-kip template. Debit the payable for its book amount, debit 5420 for the documented upward difference, and credit the actual LAK fund for the receipt amount. Enter the assessed period and payment date.
+% Worked remittances · LAK | Obligation | Book due | Rounding | Paid
+: PIT | 100.02 | 0.98 | 101
+: SSO | 21.99 | 0.01 | 22
+! Each ledger liability clears by its book amount. The two payments total 123 kip. Retain the filed figures and receipts to explain any difference between assessment and payment.
+# P11 | Verify payroll reports and correct a run
+> Payroll / Salary History / Report, voucher and journal
+= Use the saved calculation, its linked accrual and the later settlement as the audit trail for each employee.
+Compare the report | Check gross, net, employee and company PIT, employee and company SSO, reimbursements and recoveries. Review local, foreign and grand LAK totals, plus original foreign quantities and their journal LAK equivalents.
+Check the print record | Confirm payroll month, employee code, attendance detail, rate, source and rate date. The printed source line identifies the source without an embedded URL. Inspect the A4 preview with the configured header/footer and signatures. Keep the salary voucher with payment evidence.
+Correct an open month | Open the existing run from Salary History. Use its edit workflow, retain the original evidence and review the saved policies and attendance. Re-close and revise through the existing journal link. Verify the same journal ID where the app permits that revision.
+Correct a closed month | Use the authorized correction/adjustment workflow with an explanation and supporting evidence. Review the delta and related adjustment report and verify the link to the original closed run and journal.
+~ Correction example | An approved unpaid day was omitted. Trace its effects through gross, SSO, taxable salary, PIT, net and the employee balance. If salary was already paid, document the resulting balance or recovery separately.
+! Compare Salary History, the journal, employee ledger and statutory ledgers after the correction. Keep both the calculation evidence and the posting confirmation.
+
+@ Reconciliation and closing
+# C01 | Reconcile a bank statement
+> Bookkeeping / Journal / Reconcile · Reports / Reconciliation
+= Use the bank’s statement dates and independently supplied opening and closing balances.
+Select the scope | Choose the open period and bank account from the reconciliation list. Add account manages the list of accounts to reconcile. Use the bank statement date mode and the bank account’s own currency.
+Match the movements | Enter the statement opening, receipts, payments and closing. Match BCEL references and statement dates to ledger entries, including deposits, QR settlements, withdrawals and fees. Preserve the bank’s decimal precision.
+Resolve timing differences | Check receipts with bank dates in this period even when the journal posting month differs. Identify deposits in transit, outstanding payments and bank-only items separately. Post a genuine missing fee through Journal with evidence.
+Save the comparison | Review opening plus receipts less payments against the independently entered closing. Explain any remaining difference, confirm and Save. Open the saved details for the same account before making an open-month revision.
+~ Date example | A 31 October receipt reaches the bank on 2 November. Keep the journal’s supported posting date. Use 2 November to match the receipt on the November statement and identify the timing item in October.
+! Keep the statement and saved reconciliation ID. A difference, including a small decimal amount, needs an identified reason.
+# C02 | Reconcile cash on hand
+> Bookkeeping / Journal / Reconcile · Cash count
+= Compare the physical count in each currency and location with the ledger closing for its posting month.
+Set the count | Select the cash account, period, custodian and currency. Retain the dated count sheet and handovers. Count each denomination and total the actual physical cash.
+Compare the ledger | Use the posting-month ledger opening and cash movements. Match petty-cash advances, receipts, transfers, surrendered cash and returns. Separate unsettled QR transactions from notes and coins.
+Investigate differences | Recount, check both sides of transfers and inspect late receipt submissions. Record the reason for any remaining difference. Use a separately supported correction or approved shortfall entry where required.
+Save and revisit | Save the count and review the confirmed comparison. Recheck an affected account if a later authorized posting changes its period figures. Use Reports for historical closed-period reconciliations.
+~ Cash count · LAK | Ledger closing 1,250,000 and counted cash 1,240,000 gives a 10,000 shortage. Preserve both figures and the explanation. A journal adjustment requires its own evidence and approval.
+! A bank statement reconciles a bank account. Physical notes and coins establish cash on hand by account and currency.
+# C03 | Review statutory balances and prior-period payments
+> Tax & SSO · Reports / General Ledger or Individual Ledger
+= Separate the period that created the obligation from the date on which money was paid.
+Build a roll-forward | For PIT, SSO, VAT and other recorded tax accounts, begin with the opening balance, add assessed/posted liabilities and subtract payments or documented credits. Keep tax type and assessed month on each line.
+Match payroll and sales | PIT and SSO additions should trace to payroll journals or approved adjustments. Match VAT to the supported invoice and return. Verify whether an account is expense, payable, input/output tax or advance before choosing it.
+Record a later payment | On the actual payment date debit the existing liability and credit the actual bank/cash. Record the assessment period and receipt. For PIT and SSO apply the separate whole-kip remittance procedure in P10.
+Handle unsupported balances | For prior-year amounts, locate the opening balance or original return. Investigate a payment without an established payable, refunds and overpayments against the supporting documents before classifying them.
+~ Prior-month example | February PIT paid in March reduces the February liability on the March payment date. The February payroll journal and March receipt explain the two dates.
+! An expense balance alone cannot establish tax due. Reconcile the actual liability to the submitted return and receipt.
+# C04 | Run Data Check and resolve findings
+> Bookkeeping / Journal / Data Check
+= Run the checks after posting and reconciliation and again before closing the period.
+Inspect individual entries | Check balanced debits and credits by currency and the combined LAK result. Inspect missing or inactive accounts, incorrect mapping counterparts, source rates and unexplained FX or clearing balances.
+Review schedules | Reconcile prepaid original cost, releases and amounts remaining. Review due recurring and AMO occurrences. Confirm each expected posting has its own receipt and date, including the first-day releases.
+Follow each exception | Open the affected journal, employee, reconciliation or plan. Compare with evidence and correct the underlying record through its normal workflow. Re-run checks after relevant changes.
+Read warnings separately | A blocking error must be resolved before close. For a warning that remains, record the supported reason in the close review. Balanced totals cannot verify an external exchange quote or the historical cost of a prepaid by themselves.
+~ Mapping example | A USD expense mapping and its bank line can balance in USD while the actual LAK expense is missing. Trace the mapping to its configured expense and offset, then verify the P&L after correction.
+! Retain the unresolved-item list, explanations, reviewer and fresh check result for the closing period.
+# C05 | Close a month or year and maintain opening balances
+> Bookkeeping / Journal / Closing · Reports
+= Close only after the period’s journal, schedules, required reconciliations and reports agree.
+Complete the month | Confirm submitted items, closed payroll and linked accruals, due schedules, tax liabilities and pending sync receipts. Complete the shared required-account reconciliation list and rerun any report affected by late entries.
+Review the reports | Compare the Trial Balance, General Ledger, employee or supplier ledgers, P&L, balance sheet and cash flow with their supporting schedules. Investigate unexplained technical residuals or cash/foreign reporting differences.
+Close explicitly | Run the server-backed close review, resolve blockers and explain any accepted warnings. Confirm the selected period and retain the close evidence. Use Reports for closed history. An authorized correction requires updated checks on affected balances.
+Carry the year forward | At year end, complete the year-close review, retain the archive and verified backup or Excel export, and compare next-year openings to the closed balance sheet. Use a dated opening-balance adjustment for later corrections, with evidence and approval.
+~ Opening check | Compare the prior closing BCEL balance to the new opening in the same fund and currency, including decimals. Trace a mismatch through the ledger and opening document before posting any adjustment.
+! Confirm the period status, archived reports and opening balances. Log cleanup affects log records only and cannot serve as a financial correction.

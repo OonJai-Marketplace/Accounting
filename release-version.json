@@ -1,1 +1,1 @@
-{"version": "143.315", "changes": ["Round grouped payroll journal amounts once and match the payroll report to the posting groups.", "Calculate whole-kip PIT and SSO remittances separately and show the extra kip fraction on payment journals."]}
+{"version": "143.316", "changes": ["Read accounting protocols in Settings or open a procedure in a new browser tab.", "Download the complete indexed handbook or a single journal, payroll or closing procedure."]}

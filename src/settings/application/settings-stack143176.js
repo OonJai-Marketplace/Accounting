@@ -52,6 +52,7 @@ function prepare(root){
  else if(id==='settings-tax')whole(root,'mandatory','Mandatory','PIT, SSO, VAT and reminders');
  else if(id==='settings-system'){
   wrap(root,[root.querySelector('[data-settings-group=system]')],'preferences','General preferences','Dates, numbers, text size and opening page',true);
+  wrap(root,[$('accountingProtocols')],'protocols','Protocols','Journal, payroll and closing procedures');
   wrap(root,[root.querySelector('.system-printing-panel')],'printing','Printing','Paper, images, page numbers and file names');
   wrap(root,[$('settings-appearance113')],'appearance','Logo & banner','Company branding and banner placement');
   const backup=[...root.querySelectorAll(':scope>.settings-section-card')].find(n=>n.querySelector('#settingsBackupInput'));

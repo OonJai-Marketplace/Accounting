@@ -243,3 +243,12 @@
  body :is(#modalUserAccess,#modalAccessPicker) .modal-footer{padding:10px 14px!important;gap:8px!important}
 }}
 
+#accountingProtocols iframe {
+  display: block;
+  width: 100%;
+  height: clamp(360px, 67vh, 850px);
+  border: 0;
+  background: #f3f5ee;
+}
+.settings-stack-section143176 #accountingProtocols > h4 { display: none; }
+
