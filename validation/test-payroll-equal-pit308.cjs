@@ -23,3 +23,6 @@ const employeeTax=old.lines.find(x=>x.basis==='employeePit'&&x.expectedCurrency=
 old.journalDate='2026-10-30';const original=JSON.stringify(old),up=p.upgrade308(old);assert.equal(JSON.stringify(old),original);assert.equal(up.journalDate,'2026-10-30');assert.equal(JSON.stringify(p.upgrade308(up)),JSON.stringify(up));evaluate(r,up);assert(up.lines.some(x=>x.manualMemo==='Retain custom label'));
 const manual=structuredClone(old);manual.lines.find(x=>x.basis==='pit').manual='1';assert.throws(()=>p.buildLines(r,manual),/mapping rows|balance|rounding/,'manual inconsistent tax cannot be silently replaced');
 console.log('PASS equal local/foreign PIT, rounded-share payable, unchanged net, custom sharing, exact foreign bridge matching, net conversion rounding, and legacy-template upgrade. Synthetic data only.');
+for (const [amount, expected] of [[10.075,10.08],[-10.075,-10.08],[10.0749,10.07],[1098453.125,1098453.13]]) {
+  assert.equal(vm.runInContext('round82('+amount+')',c),expected,'decimal rounding of '+amount);
+}

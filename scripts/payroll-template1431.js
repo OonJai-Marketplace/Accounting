@@ -1,6 +1,33 @@
 /* User-approved journal layout. Values come from payroll, never from the example amounts. */
 (()=>{'use strict';
-const round=n=>Math.sign(Number(n))*Math.round((Math.abs(Number(n))+Number.EPSILON)*100)/100;
+const decimalMoney = new Intl.NumberFormat('en-US', {useGrouping:false, maximumFractionDigits:2});
+const round=n=>Number(decimalMoney.format(Number(n)));
+// Use the decimal values stored in payroll. Sum before conversion for a grouped
+// journal line, or pass one employee's amount for a separate settlement.
+function decimalParts(value){
+ const [mantissa, exponent = '0'] = String(value).toLowerCase().split('e');
+ const [whole, fraction = ''] = mantissa.split('.');
+ return {units:BigInt(whole + fraction), scale:fraction.length - Number(exponent)};
+}
+function roundedTotal(amounts, rate = 1){
+ if(!Number.isFinite(rate) || rate <= 0 || amounts.some(n=>!Number.isFinite(n)))return NaN;
+ const divisor = decimalParts(rate);
+ let total = 0n, scale = 0;
+ for(const amount of amounts){
+  const part = decimalParts(amount);
+  if(part.scale > scale){
+   total *= 10n ** BigInt(part.scale - scale);
+   scale = part.scale;
+  }
+  total += part.units * 10n ** BigInt(scale - part.scale);
+ }
+ const shift = divisor.scale + 2 - scale;
+ const numerator = (total < 0n ? -total : total) * 10n ** BigInt(Math.max(0,shift));
+ const denominator = divisor.units * 10n ** BigInt(Math.max(0,-shift));
+ const cents = numerator / denominator + (2n * (numerator % denominator) >= denominator ? 1n : 0n);
+ if(cents > BigInt(Number.MAX_SAFE_INTEGER))return NaN;
+ return Number(total < 0n ? -cents : cents) / 100;
+}
 const eligible=()=>AccountingStore.accounts.filter(a=>a.id&&a.active!==false&&a.is_active!==false&&a.isPosting!==false&&a.is_posting!==false&&a.currency&&a.currency!=='NA'&&a.displayCurrency!=='—');
 const norm=s=>String(s||'').toLowerCase().replace(/[–—-]/g,' ').replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();
 const fields={contractLak:'Contracted salary',gross:'Gross salary',taxable:'Adjusted salary for PIT',employeePit:'Employee PIT share',employerPit:'Company PIT share',pit:'Total PIT (employee + company)',employeeSso:'Employee SSO',employerSso:'Company SSO',totalSso:'Total SSO',net:'Net salary before recoveries',adjusted:'Final net payment',cashAdvance:'Salary advance recovery',loanRecovery:'Loan / MOU recovery',reimbursement:'Reimbursement',internal:'Internal deductions',allowance:'Allowance',overtime:'Overtime',rounding:'Currency rounding difference'};
@@ -118,12 +145,12 @@ function evaluate(run,template){
    const a=accountFor(r,x),rate=a.currency==='LAK'?1:Number(run.rates?.[a.currency]);
    if(!Number.isFinite(rate)||rate<=0){report('Enter the saved LAK exchange rate for '+a.currency+' in Payroll.');continue;}
    if(a.currency!=='LAK'&&!run.rateSource?.trim()){report('Enter the exchange-rate source in Payroll.');continue;}
-   const raw=manual!==''?Number(manual):lak/rate;
+
    if(r.scope==='total'){
-    const key=a.id||a.currency;const g=groups.get(key)||{a,x,value:0,lak:0};g.lak+=lak;g.value=manual!==''?Number(manual):g.value+raw;groups.set(key,g);
-   }else push(r,a,round(raw),x,ruleIndex,manual===''?lak:null);
+    const key=a.id||a.currency;const g=groups.get(key)||{a,x,rate,amounts:[]};g.amounts.push(lak);groups.set(key,g);
+   }else push(r,a,manual!==''?Number(manual):roundedTotal([lak],rate),x,ruleIndex,manual===''?lak:null);
   }
-  for(const g of groups.values())push(r,g.a,round(g.value),g.x,ruleIndex,manual===''?round(g.lak):null);
+  for(const g of groups.values())push(r,g.a,manual!==''?Number(manual):roundedTotal(g.amounts,g.rate),g.x,ruleIndex,manual===''?roundedTotal(g.amounts):null);
  });
  // Only conversion-size differences may use the explicit rounding row. Never hide
  // a missing withholding or expense behind a balancing amount.
@@ -181,6 +208,6 @@ function evaluate(run,template){
  return {lines,issues,balances};
 }
 function buildLines(run,t){const e=evaluate(run,upgrade308(t));if(e.issues.length)throw Error(e.issues.join('\n'));if(Object.values(e.balances).some(b=>b.difference))throw Error('Payroll journal must balance separately in every currency. Review the template.');if(e.lines.length<2)throw Error('The template needs at least two non-zero posting lines.');return e.lines;}
-window.payrollTemplate1431={fields,eligible,defaultTemplate,isStarter,evaluate,buildLines,journalDate,upgrade308};
+window.payrollTemplate1431={fields,roundedTotal,eligible,defaultTemplate,isStarter,evaluate,buildLines,journalDate,upgrade308};
 })()
 ;

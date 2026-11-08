@@ -29,6 +29,13 @@ function templates(chart){
   add('settlement-'+c,'Pay salary or existing balance · '+c,[slot('balance',c,'debit','Balance payment'),slot('fund','', 'credit','Cash / bank payment')],false);
   for(const to of currencies.filter(x=>x!==c))add('exchange-'+c+'-'+to,'Currency exchange · '+c+' to '+to,[slot('fund',c,'credit','Amount paid'),slot('fund',to,'debit','Amount received')],false);
  }
+ if(currencies.includes('LAK')){
+  for(const [code,label] of [['2111','PIT'],['2112','SSO']]){
+   const payable=reg.byCode(code,'LAK');
+   if(payable&&g.type(payable)==='LIABILITY')add('remit-'+label,label+' payment · whole kip',
+    [row(payable,'debit',label+' liability to settle'),slot('fund','LAK','credit','Government payment')],false);
+  }
+ }
  for(const a of reg.all.filter(a=>g.currency(a)==='LAK'&&!g.technical(a)&&['EXPENSE','REVENUE','EQUITY'].includes(g.type(a))&&String(a.code)!=='5419')){
   const expense=g.type(a)==='EXPENSE';add('local-'+a.code,a.name+' · LAK '+(expense?'payment':'receipt'),expense?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
  }

@@ -21,3 +21,25 @@ const missing=context.payrollJournalSummary309({...run,rates:{USD:0}},results);a
 // Saved 308 templates remove both obsolete pairs, while retaining unrelated rows.
 const legacy=structuredClone(template);legacy.lines.push({...legacy.lines[0],derived274:'taxConversionRounding308'},{...legacy.lines[0],derived274:'pitRoundingPayable308'},{...legacy.lines[0],derived274:'pitRoundingOffset308'});assert.equal(JSON.stringify(p.upgrade308(legacy)),JSON.stringify(template));
 dom.window.close();console.log('PASS journal summary matches synthetic posted-line quantities, per-line USD equivalents, local/foreign and grand totals, equal PIT, SSO, recoveries, zero omission and immutable saved payroll; obsolete split rounding pairs removed; foreign tax bridge clears with one conversion rounding credit.');
+
+// Preserve fractional inputs until the posting rule's rounding boundary.
+for(const [input,count,grouped,separate] of [[0.005,3,0.02,0.03],[3.005,3,9.02,9.03],[20.075,3,60.23,60.24],[20.075,5,100.38,100.40]]){
+ const employees=Array.from({length:count},(_,i)=>({...local,employeeId:'R'+i,gross:input,adjusted:input}));
+ const sample={...run,results:employees};
+ const debit={account:'5311',expectedCurrency:'LAK',basis:'gross',side:'DR',scope:'total'};
+ const credit={...debit,account:'1210',side:'CR'};
+ const build=(d,c)=>p.buildLines(sample,{lines:[d,c]});
+ assert.deepEqual(Array.from(build(debit,credit),l=>l.amount),[grouped,grouped]);
+ const split=build({...debit,scope:'each'},{...credit,scope:'each'});
+ assert.equal(p.roundedTotal(split.filter(l=>l.side==='CR').map(l=>l.amount)),separate);
+ assert.throws(()=>build(debit,{...credit,scope:'each'}),/balance/);
+ const doc=new JSDOM(context.payrollJournalSummary309(sample,employees));
+ const summary=rows(doc.window.document.querySelector('table'));
+ assert.equal(summary['Gross salary'][2],grouped);
+ assert.equal(summary['Net salary payable'][2],separate);
+ doc.window.close();
+}
+assert.equal(p.roundedTotal([40.15,40.15,40.15],2),60.23);
+assert.equal(p.roundedTotal([-0.005,-0.005,-0.005]),-0.02);
+assert.equal(p.roundedTotal([1e-7,0.0049999]),0.01);
+console.log('PASS grouped and individual payroll lines, printed totals, exact rate conversion and mismatched posting rejection.');

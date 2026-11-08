@@ -1,5 +1,7 @@
 /* Settings-based calculation engine. No rates are inferred from PDF examples. */
-const round82=n=>Math.round((Number(n)+Number.EPSILON)*100)/100;
+// Decimal half-away-from-zero rounding, including negative adjustments.
+const payrollDecimal82 = new Intl.NumberFormat('en-US', {useGrouping:false, maximumFractionDigits:2});
+const round82 = value => Number(payrollDecimal82.format(Number(value)));
 function payrollConfig82(settings=ApplicationSettings){
  const p=settings.payroll||{},t=settings.tax||{};const num=(v,label,min=0,max=Infinity)=>{const n=Number(v);if(v===''||v==null||!Number.isFinite(n)||n<min||n>max)throw Error('Review '+label+' in Settings.');return n};
  if(!['equal','employee','employer','custom'].includes(p.pitSharing))throw Error('Review PIT sharing in Settings.');

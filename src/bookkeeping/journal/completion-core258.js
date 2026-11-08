@@ -7,7 +7,8 @@ const available=a=>a?.id&&a.isPosting!==false&&a.is_posting!==false&&a.active!==
 const fund=a=>available(a)&&type(a)==='ASSET'&&!technical(a)&&/^10\d{2}$/.test(String(a.code));
 const staff=a=>/^12[12]\d$/.test(String(a.code));
 const monetary=a=>fund(a)||staff(a)||type(a)==='LIABILITY'||/^11\d\d$/.test(String(a.code));
-const round=n=>{if(!Number.isFinite(n)||Math.abs(n)>9e12)throw Error('An amount is too large to calculate safely.');return Math.sign(n)*Math.round((Math.abs(n)+Number.EPSILON)*100)/100;};
+const decimalMoney = new Intl.NumberFormat('en-US', {useGrouping:false, maximumFractionDigits:2});
+const round=n=>{if(!Number.isFinite(n)||Math.abs(n)>9e12)throw Error('An amount is too large to calculate safely.');return Number(decimalMoney.format(n));};
 const displayRate=n=>typeof formatAppRate==='function'?formatAppRate(n):Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
 const close=(a,b)=>Math.abs(a-b)<.005;
 const known={9101:['4010','9190','THB'],9102:['4010','9190','USD'],9111:['4110','9190','USD'],9112:['4110','9190','THB'],9121:['4120','9190','USD'],9131:['4130','9190','USD'],9132:['4130','9190','THB'],9201:['5010','9290','THB'],9202:['5010','9290','USD'],9211:['5111','9290','USD'],9212:['5111','9290','THB'],9222:['5119','9290','THB'],9231:['5311','9290','USD'],9232:['5311','9290','THB'],9233:['5315','9290','USD'],9234:['5315','9290','THB'],9241:['5414','9290','USD'],9242:['5414','9290','THB'],9251:['5120','9290','USD'],9311:['3023','9390','USD'],9312:['3023','9390','THB'],9321:['3024','9390','USD'],9322:['3024','9390','THB'],9331:['3031','9390','USD'],9332:['3031','9390','THB'],9411:['1310','9490','USD']};
@@ -48,6 +49,39 @@ function complete(input){
  if(errors.length)return {errors};
  const source=rows.filter(l=>l.a&&l.generated!=='output'&&!reg.isBridge(l.a));
  const foreign=source.filter(l=>l.c!=='LAK');
+ // For a LAK remittance, total PIT and SSO separately. The payable debit
+ // clears the recorded liability; only the extra cash is a rounding expense.
+ const taxCode=l=>['2111','2112'].includes(String(l.a.code));
+ const liabilities=source.filter(l=>taxCode(l)&&type(l.a)==='LIABILITY'&&l.debit>0);
+ const payingFunds=source.filter(l=>fund(l.a)&&!l.debit);
+ const roundingLines=source.filter(l=>String(l.a.code)==='5420');
+ const remittance=!foreign.length && liabilities.length && payingFunds.length===1 &&
+  source.length===liabilities.length+payingFunds.length+roundingLines.length;
+ if(remittance){
+  const assessed=new Map();
+  for(const l of liabilities){
+   const code=String(l.a.code);
+   assessed.set(code,(assessed.get(code)||0)+Math.round(l.debit*100));
+  }
+  let payment=0, extraCents=0;
+  for(const cents of assessed.values()){
+   const kip=Math.ceil(cents/100);
+   payment+=kip;
+   extraCents+=kip*100-cents;
+  }
+  const bank=payingFunds[0];
+  if(bank.credit && bank.credit!==payment)error('The whole-kip PIT / SSO payment totals '+payment+' LAK. Review the payable debits and bank credit.',bank.index);
+  else if(!bank.credit){bank.credit=payment;bank.generated='source';}
+  if(roundingLines.length){
+   if(roundingLines.length!==1 || roundingLines[0].credit || roundingLines[0].debit!==extraCents/100)
+    error('The statutory payment rounding debit must equal '+(extraCents/100)+' LAK.');
+  }else if(extraCents){
+   const expense=reg.byCode('5420');
+   if(!expense || type(expense)!=='EXPENSE')error('Choose the LAK rounding expense account 5420 before generating the payment.');
+   else add(expense,extraCents/100,'Whole-kip statutory payment rounding');
+  }
+  if(errors.length)return {errors};
+ }
  // A local journal can fill one explicitly chosen counterpart. More than one
  // missing business amount remains ambiguous and must be entered by the user.
  if(!foreign.length){const blanks=source.filter(l=>!l.debit&&!l.credit&&!technical(l.a)&&String(l.a.code)!=='5419'),gap=sum(source);if(gap&&blanks.length===1){const l=blanks[0];l.debit=gap<0?-gap:0;l.credit=gap>0?gap:0;l.generated='source';notes.push('Filled row '+(l.index+1)+'.');}}

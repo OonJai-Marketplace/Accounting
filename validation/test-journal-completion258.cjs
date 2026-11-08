@@ -41,3 +41,13 @@ check('corrected combined offset remains stable',()=>{const rows=ok(run([line('9
 check('half-cent valuations round debit and credit symmetrically',()=>{const rows=ok(run([line('9211',100.25),line('1011',0,100.25)],{USD:23000.5}));assert.equal(net(rows,'5111'),2305800.13);assert.equal(net(rows,'5419'),-100300.13);assert.deepEqual(ok(run(rows,{USD:23000.5})),rows);});
 for(let i=1;i<100;i++)check('fractional valuation '+i,()=>ok(run([line('9211',i/100),line('1011',0,i/100)],{USD:22195.12345678+i/3},{balances:{1011:{quantity:1000,rate:22040.12345678+i/7}}})));
 console.log('PASS '+cases+' journal completion scenarios; no posting or database writes.');
+
+const withRounding={chart:[...chart,a('5420','LAK','EXPENSE')]};
+for(const [code,amount,payment,rounding] of [['2111',1574704.22,1574705,.78],['2112',516728.98,516729,.02],['2111',100.01,101,.99],['2112',100,100,0]]){
+ const rows=ok(run([line(code,amount),line('1010')],{},withRounding));
+ assert.equal(net(rows,code),amount);assert.equal(net(rows,'1010'),-payment);assert.equal(net(rows,'5420'),rounding);
+}
+const combined=ok(run([line('2111',3.01),line('2111',3.01),line('2112',4.01),line('1010')],{},withRounding));
+assert.equal(net(combined,'1010'),-12);assert.equal(net(combined,'5420'),1.97);
+assert(run([line('2111',100.01),line('1010',0,100.01)],{},withRounding).errors.length);
+console.log('PASS whole-kip PIT and SSO payments, fractional and integral dues, separate totals and idempotent generation.');

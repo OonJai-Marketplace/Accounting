@@ -46,6 +46,19 @@
     return card('Recorded amount still payable',`<div class="tax-metrics102">${currencies.map(currency=>`<div class="tax-total102"><span>Total still payable · ${escape(currency)}</span><strong>${money(rows.filter(r=>r.currency===currency).reduce((n,r)=>n+r.due,0))}</strong></div>`).join('')}</div>`+table(headers,values)+`<p class="tax-note102">Opening payable + additions − settlements/reductions gives the closing liability. Positive balances are still payable; debit balances are shown separately. Direct expenses are not added again to the unpaid total. This summary uses posted tax liability accounts through the selected month, including this year's opening balances; it does not calculate unrecorded tax. Payroll snapshots below are supporting detail and are not added twice.</p>`);
   }
 
+  function remittanceSummary(active){
+    const tax=({'tax-pit':'PIT','tax-social':'SSO','tax-sso-payment':'SSO'})[active];
+    if(!tax && !['tax-overview','tax-payment'].includes(active))return '';
+    const rows=statutoryBalances().filter(r=>r.currency==='LAK' && ['PIT','SSO'].includes(r.group) && (!tax||r.group===tax));
+    if(!rows.length)return '';
+    const values=rows.map(r=>{
+      // The ledger balance is in integer hundredths of a kip.
+      const payment=Math.ceil(r.due/100);
+      return [r.group,number(r.due/100),number((payment*100-r.due)/100),String(payment)];
+    });
+    return card('Payment to settle outstanding PIT / SSO',table(['Tax','Outstanding · LAK','Rounding · LAK','Payment · whole kip'],values));
+  }
+
   const total=(rows,key)=>rows.reduce((sum,row)=>sum+Number(row[key]||0),0);
   const id=()=>document.querySelector('.tab-content.active')?.id;
   function table(headers,rows,exportRows=rows){state.exports.push({headers,rows:exportRows});return `<div class="tax-table-scroll102"><table class="je-table"><thead><tr>${headers.map(h=>`<th>${escape(h)}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(row=>`<tr>${row.map(cell=>`<td>${escape(cell)}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${headers.length}">No matching saved records for ${escape(state.month)}. Use Filter to choose the month of your journal entries.</td></tr>`}</tbody></table></div>`}
@@ -78,7 +91,7 @@
       content=card('Finalized payroll snapshots',table(['Month','Reference','Finalized','Employees','PIT · LAK','SSO · LAK'],paidRuns().map(record=>[record.data.month,record.data.reference,record.data.finalizedAt?.slice(0,10)||'—',record.data.results?.length||0,number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.pitPayable309??r.pit??(Number(r.employeePit||0)+Number(r.employerPit||0))),0)),number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.employeeSso||0)+Number(r.employerSso||0),0))])))+
         card('Posted tax and SSO journal lines',journalTable(journal));
     }
-    content=balanceSummary(active)+content;
+    content=balanceSummary(active)+remittanceSummary(active)+content;
     let report=host.querySelector(':scope>.tax-report102');
     if(!report){for(const child of [...host.children])if(!child.classList.contains('area-banner113'))child.remove();report=document.createElement('div');report.className='tax-report102';report.innerHTML=`<div class="tax-toolbar102"><strong data-tax-period143154></strong><button type="button" class="je-btn je-btn-secondary" id="taxFilter143153" aria-expanded="false" aria-controls="taxFilters143153-${active}">Filter</button><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div><div id="taxFilters143153-${active}" class="tax-filters143153 no-print" hidden><label for="taxMonth102">Month <input id="taxMonth102" type="month" value="${escape(state.month)}"></label></div><p class="tax-error102" hidden role="status"></p><p class="tax-note102" hidden role="status">Loading saved records…</p><div class="tax-content102"></div>`;host.append(report);
       report.querySelector('#taxFilter143153').onclick=event=>{const filters=report.querySelector('.tax-filters143153');filters.hidden=!filters.hidden;event.currentTarget.setAttribute('aria-expanded',String(!filters.hidden));};

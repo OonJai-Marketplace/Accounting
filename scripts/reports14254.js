@@ -87,8 +87,20 @@ function compactPayrollReport311(html){
 // Journal checking totals use saved payroll amounts and the same grouping/rounding
 // as the journal: gross/tax by currency, salary and recoveries by employee.
 function payrollJournalSummary309(run,results){
- const round=n=>Math.sign(n)*Math.round((Math.abs(n)+Number.EPSILON)*100)/100;
- const sum=(rows,key)=>round(rows.reduce((n,x)=>n+num(key==='pitPayable'?(x.pitPayable309??x.pit??(num(x.employeePit)+num(x.employerPit))):key==='ssoPayable'?num(x.employeeSso)+num(x.employerSso):key==='cashAdvance'?(x.cashAdvance??x.advance):x[key]),0));
+ const {roundedTotal}=window.payrollTemplate1431;
+ const round=n=>roundedTotal([n]);
+ const perEmployee=new Set(['adjusted','cashAdvance','loanRecovery','reimbursement']);
+ const value=(x,key)=>num(key==='pitPayable'?(x.pitPayable309??x.pit??(num(x.employeePit)+num(x.employerPit))):key==='ssoPayable'?num(x.employeeSso)+num(x.employerSso):key==='cashAdvance'?(x.cashAdvance??x.advance):x[key]);
+ const sum=(rows,key)=>{
+  const groups=new Map();
+  for(const x of rows){
+   const values=groups.get(x.currency)||[];
+   const raw=value(x,key);
+   values.push(perEmployee.has(key) && x.currency==='LAK'?round(raw):raw);
+   groups.set(x.currency,values);
+  }
+  return roundedTotal([...groups.values()].map(values=>roundedTotal(values)));
+ };
  const local=results.filter(x=>x.currency==='LAK'),foreign=results.filter(x=>x.currency!=='LAK');
  const items=[['gross','Gross salary'],['adjusted','Net salary payable'],['cashAdvance','Advance allocation'],['loanRecovery','Loan recovery allocation'],['reimbursement','Reimbursements'],['employeePit','PIT withheld — employee'],['employerPit','PIT expense — company'],['pitPayable','Total PIT payable'],['employeeSso','SSO withheld — employee'],['employerSso','SSO expense — company'],['ssoPayable','Total SSO payable']];
  const always=new Set(['gross','adjusted','pitPayable','ssoPayable']),visible=items.filter(([k])=>always.has(k)||sum(results,k)!==0);
@@ -99,12 +111,12 @@ function payrollJournalSummary309(run,results){
   const currencyRows=[];
   for(const [k,label] of items){
    if(['employerPit','employerSso','pitPayable','ssoPayable'].includes(k)||(!always.has(k)&&sum(rows,k)===0))continue;
-   const each=['adjusted','cashAdvance','loanRecovery','reimbursement'].includes(k);
-   const amounts=each?rows.map(x=>round(sum([x],k)/rate)):[round(sum(rows,k)/rate)];
+   const values=rows.map(x=>value(x,k));
+   const amounts=perEmployee.has(k)?values.map(v=>roundedTotal([v],rate)):[roundedTotal(values,rate)];
    const amount=round(amounts.reduce((n,v)=>n+v,0)),base=round(amounts.reduce((n,v)=>n+round(v*rate),0));
    currencyRows.push([label,money(amount),money(base)]);
   }
-  const rounding=round(['adjusted','cashAdvance','loanRecovery'].reduce((total,key)=>total+rows.reduce((n,x)=>n+round(round(sum([x],key)/rate)*rate)-sum([x],key),0),0));
+  const rounding=round(['adjusted','cashAdvance','loanRecovery'].reduce((total,key)=>total+rows.reduce((n,x)=>n+round(roundedTotal([value(x,key)],rate)*rate)-value(x,key),0),0));
   if(rounding)currencyRows.push(['Payroll conversion rounding · '+(rounding>0?'DR':'CR'),'—',money(Math.abs(rounding))]);
   html+=`<div data-payroll-journal-currency309="${esc(c)}" style="break-inside:avoid">`+heading('Foreign journal amounts · '+c)+table(['Journal amount',c,'LAK equivalent'],currencyRows,[44,24,32],{numeric:[1,2]})+'</div>';
  }
