@@ -1,6 +1,7 @@
 {
-  "version": "143.317",
+  "version": "143.318",
   "changes": [
-    "Download the full-year archive JSON with reconciliation reports, prepaid and recurring plans, receipt references and cashier details."
+    "Confirm scheduled entries one at a time in the same window, then continue to closing.",
+    "Review deferred reports by submitter and foreign-currency findings by journal. Record one reason per group."
   ]
 }

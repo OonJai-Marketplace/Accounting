@@ -7429,12 +7429,66 @@ window.cancelSchedulePosting93=function(id){const check=context91();
  overlay.querySelector('form').onsubmit=async event=>{event.preventDefault();const reason=overlay.querySelector('textarea').value.trim();if(!reason)return;const button=overlay.querySelector('[type="submit"]');if(button.disabled)return;button.disabled=true;try{check();const r=await ojmDb.rpc('cancel_scheduled_posting93',{p_occurrence:id,p_reason:reason});if(r.error)throw r.error;check();overlay.remove();await Promise.all([loadSchedules91(true),loadJournalFromSupabase(),loadTransactionAudit()]);showCenterStatus('Posting cancelled. Next scheduled date is unchanged.')}catch(e){overlay.querySelector('[role="alert"]').textContent=e.message;button.disabled=false}};overlay.querySelector('textarea').focus();
 };
 window.correctScheduledDate92=function(id){const check=context91();const o=State.occurrences.find(o=>o.id===id);if(!o)return;showAppConfirm('Correct Scheduled Journal Date',`Change this journal date from ${formatAppDate(o.journal_entries.transaction_date)} to its scheduled date ${formatAppDate(o.occurrence_date)}? Both periods must be open. The correction will be audited.`,'Correct Date',async()=>{try{check()}catch(e){showCenterStatus(e.message,true);return}const r=await ojmDb.rpc('correct_scheduled_date92',{p_occurrence:id});if(r.error){showCenterStatus(r.error.message,true);return}try{check()}catch(e){showCenterStatus(e.message,true);return}await Promise.all([loadSchedules91(true),loadJournalFromSupabase()]);showCenterStatus('Journal date corrected and recorded in Audit Log.')},false)};
-window.reviewScheduled91=async id=>{const check=context91();try{const r=await ojmDb.rpc('review_scheduled_occurrence91',{p_occurrence:id});if(r.error){showCenterStatus(r.error.message,true);return false}check();await loadSchedules91(true);check();showCenterStatus('Scheduled entry marked checked.');return true}catch(e){showCenterStatus(e.message,true);return false}};
+window.reviewScheduled91=async (id,notify=showCenterStatus)=>{
+ const check=context91();
+ try{
+  const result=await ojmDb.rpc('review_scheduled_occurrence91',{p_occurrence:id});
+  if(result.error)throw result.error;
+  check();await loadSchedules91(true);check();
+  notify('Scheduled entry marked checked.');return true;
+ }catch(error){notify(error.message,true);return false}
+};
 window.openScheduleSource91=function(id){closeScheduledEditor91();switchTab('transactions-recurring');window.workspace14337?.showSection(legacyAmort(State.rows.find(r=>r.id===id)||{})?'amortization':'recurring');loadSchedules91().then(()=>requestAnimationFrame(()=>{const d=[...document.querySelectorAll('[data-schedule-id]')].find(n=>n.dataset.scheduleId===id);if(!d){const o=State.occurrences.find(o=>o.schedule_snapshot?.id===id);if(o?.schedule_snapshot){showAppConfirm('Deleted Schedule',`${o.schedule_snapshot.schedule_no}: ${o.schedule_snapshot.title}. This schedule was deleted; its posted journal and audit record remain.`,'View Audit Log',()=>switchTab('transactions-voided'),false)}else showCenterStatus('Linked schedule is unavailable.',true);return}d.open=true;document.querySelectorAll('.schedule-focus91').forEach(n=>n.classList.remove('schedule-focus91'));window.traceSchedule108?.(d);d.scrollIntoView({behavior:'smooth',block:'center'});d.tabIndex=-1;d.focus({preventScroll:true})}))};
 window.scheduleHistory108=button=>ui108.modal('Posting history',button.closest('details').querySelector('.schedule-history108').innerHTML,undefined,true);
 const loadJournal=loadJournalFromSupabase;window.loadJournalFromSupabase=async function(...args){const actor=liveProfile?.id,client=ojmDb;await loadJournal(...args);if(!admin()||!client||actor!==liveProfile?.id||client!==ojmDb)return;const check=context91();try{const ids=[...new Set(JournalModule.entries.map(e=>e.dbEntryId).filter(Boolean))],rows=[];for(let start=0;start<ids.length;start+=300)rows.push(...await pages91('links:'+ids.slice(start,start+300).join(','),()=>client.from('scheduled_journal_occurrences').select('id,schedule_id,schedule_snapshot,journal_entry_id').in('journal_entry_id',ids.slice(start,start+300)),check));check();const byId=new Map(rows.map(o=>[o.journal_entry_id,o.schedule_id||o.schedule_snapshot?.id]));JournalModule.entries.forEach(e=>{if(byId.has(e.dbEntryId))e.scheduleId=byId.get(e.dbEntryId)});refreshAllTables()}catch(error){if(actor===liveProfile?.id&&client===ojmDb)State.error='Schedule links could not load: '+error.message;}};
 const switchBefore=switchTab;window.switchTab=function(id){const result=switchBefore(id);if(id==='transactions-recurring'&&!window.workspaceViews14364?.reuseView(id))loadSchedules91();return result};
-const closeBefore=closeMonthFromAccounts;window.closeMonthFromAccounts=async function(targetMonth){const month=targetMonth||document.getElementById('closeMonth67')?.value;if(!month||!admin())return closeBefore(month);try{const check=context91(),client=ojmDb,rows=await pages91(null,()=>client.from('scheduled_journal_occurrences').select('id,journal_entry_id,journal_entries(transaction_date,status)').is('reviewed_at',null),check);check();const pending=rows.filter(o=>o.journal_entries?.status==='posted'&&o.journal_entries.transaction_date.slice(0,7)===month);if(!pending.length)return closeBefore(month);const overlay=document.createElement('div');overlay.id='scheduledReviewGate91';overlay.className='submission-compare-overlay scheduled-overlay91';overlay.innerHTML=`<section class="scheduled-dialog91 scheduled-gate91" role="dialog" aria-modal="true"><header><div><span>REVIEW REQUIRED</span><h2>Check Scheduled Entries Before Archiving</h2><p>${pending.length} entry or entries in ${esc(month)} need confirmation against their source documents.</p></div><button type="button" class="je-btn je-btn-secondary" onclick="document.getElementById('scheduledReviewGate91').remove()">Close</button></header><div class="scheduled-scroll91"><div class="schedule-table91"><table><thead><tr><th>Date</th><th>Entry ID</th><th>Amount</th><th>Action</th></tr></thead><tbody>${pending.map(o=>{const linked=JournalModule.entries.find(e=>e.dbEntryId===o.journal_entry_id),amount=JournalModule.entries.filter(e=>e.dbEntryId===o.journal_entry_id).reduce((sum,e)=>sum+Number(e.debit||0),0);return `<tr><td>${esc(formatAppDate(o.journal_entries.transaction_date))}</td><td>${esc(linked?.id||'—')}</td><td>${money(amount)}</td><td><button class="je-btn je-btn-secondary" onclick="document.getElementById('scheduledReviewGate91').remove();switchTab('journal');loadEntryForEdit(${esc(JSON.stringify(linked?.id||''))})">View / Correct</button><button class="je-btn je-btn-danger" onclick="reviewScheduled91(${esc(JSON.stringify(o.id))}).then(ok=>{if(ok)document.getElementById('scheduledReviewGate91')?.remove()})">Confirm Checked</button></td></tr>`}).join('')}</tbody></table></div></div></section>`;document.body.append(overlay)}catch(error){showAppNotification('Period Review Could Not Load',error.message||'Check your connection and retry. Your journal remains open.',true)}};
+const closeBefore=closeMonthFromAccounts;
+window.closeMonthFromAccounts=async function reviewBeforeClosing(targetMonth){
+ const month=targetMonth||document.getElementById('closeMonth67')?.value;
+ if(!month||!admin())return closeBefore(month);
+ const check=context91(),client=ojmDb;
+ try{
+  const rows=await pages91(null,()=>client.from('scheduled_journal_occurrences').select('id,journal_entry_id,journal_entries(entry_no,transaction_date,status)').is('reviewed_at',null),check);
+  check();
+  const pending=rows.filter(o=>o.journal_entries?.status==='posted'&&o.journal_entries.transaction_date.slice(0,7)===month);
+  if(!pending.length)return closeBefore(month);
+  if(document.getElementById('scheduledReviewGate91'))return;
+  const overlay=document.createElement('div');
+  overlay.id='scheduledReviewGate91';overlay.className='submission-compare-overlay scheduled-overlay91';
+  const body=pending.map((o,index)=>{
+   const lines=JournalModule.entries.filter(e=>e.dbEntryId===o.journal_entry_id);
+   const byCurrency=new Map();
+   for(const line of lines)byCurrency.set(line.currency,(byCurrency.get(line.currency)||0)+Number(line.debit||0));
+   const amounts=[...byCurrency].map(([currency,total])=>money(total)+' '+(currency||'')).join(' / ');
+   return '<tr data-row="'+index+'"><td>'+esc(formatAppDate(o.journal_entries.transaction_date))+'</td><td>'+esc(o.journal_entries.entry_no||lines[0]?.id||'—')+'</td><td>'+esc(amounts||'—')+'</td><td><button type="button" data-view class="je-btn je-btn-secondary">View / Correct</button> <button type="button" data-confirm class="je-btn je-btn-emerald">Confirm Checked</button></td></tr>';
+  }).join('');
+  overlay.innerHTML='<section class="scheduled-dialog91 scheduled-gate91" role="dialog" aria-modal="true" aria-labelledby="scheduledReviewTitle91"><header><div><h2 id="scheduledReviewTitle91">Check scheduled entries · '+esc(month)+'</h2></div><button type="button" data-close class="je-btn je-btn-secondary">Close</button></header><div class="scheduled-scroll91"><div class="schedule-table91"><table><thead><tr><th>Date</th><th>Entry ID</th><th>Amount</th><th>Action</th></tr></thead><tbody>'+body+'</tbody></table></div></div><footer><span role="status" aria-live="polite"></span><button type="button" data-continue class="je-btn je-btn-emerald" disabled>Continue to closing</button></footer></section>';
+  document.body.append(overlay);
+  const next=overlay.querySelector('[data-continue]'),status=overlay.querySelector('[role=status]');
+  let remaining=pending.length;
+  const progress=()=>{status.textContent=(pending.length-remaining)+' of '+pending.length+' confirmed';next.disabled=remaining!==0};
+  progress();
+  overlay.onclick=async event=>{
+   const button=event.target.closest('button');
+   if(!button||button.disabled)return;
+   if(button.hasAttribute('data-close')){overlay.remove();return}
+   try{
+    check();
+    if(button===next){overlay.remove();return await reviewBeforeClosing(month)}
+    const item=pending[Number(button.closest('tr').dataset.row)];
+    if(button.hasAttribute('data-view')){
+     overlay.remove();switchTab('journal');return loadEntryForEdit(item.journal_entries.entry_no||JournalModule.entries.find(e=>e.dbEntryId===item.journal_entry_id)?.id);
+    }
+    button.disabled=true;button.textContent='Confirming…';
+    const ok=await reviewScheduled91(item.id,(message,isError)=>{if(isError)status.textContent=message});
+    check();if(!overlay.isConnected)return;
+    if(!ok){button.disabled=false;button.textContent='Retry confirmation';return}
+    button.textContent='Confirmed';remaining--;progress();
+    if(!remaining)next.focus();
+   }catch(error){status.textContent=error.message}
+  };
+ }catch(error){showAppNotification('Period Review Could Not Load',error.message||'Check your connection and retry.',true)}
+};
 // Existing badge uses the database relationship, not an ID-prefix guess.
 window.openAutoSource89=function(entryId){const e=JournalModule.entries.find(x=>x.id===entryId);if(e?.scheduleId)openScheduleSource91(e.scheduleId);else showCenterStatus('No linked schedule is available for this entry.',true)};
 window.getScheduledAlerts104=()=>!admin()||State.owner!==liveProfile?.id||State.client!==ojmDb||!window.access113?.can('transactions-recurring')?[]:State.rows.filter(row=>!row.is_sample&&(row.status==='failed'||row.status==='active'&&row.next_due&&Date.parse(row.next_due+'T12:00:00Z')-Date.parse(today()+'T12:00:00Z')<=Number(row.reminder_days||0)*86400000)).map(row=>({id:row.id,title:row.title||row.schedule_no||'Scheduled journal',date:row.next_due,status:row.status==='failed'?'Needs attention':row.next_due<=today()?'Awaiting approval':'upcoming',pending:row.status==='active'&&row.next_due<=today()}));

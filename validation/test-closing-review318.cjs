@@ -1,0 +1,88 @@
+const assert = require('node:assert/strict');
+const create = require('./phase0-browser-fixture.cjs');
+
+(async () => {
+ const fixture = await create();
+ try {
+  const {page, login} = await fixture.open();
+  await login();
+  const month = '2026-01';
+  const rows = [1, 2].map(n => ({
+   id: 'scheduled-' + n, journal_entry_id: 'entry-' + n,
+   journal_entries: {entry_no: 'AMO-' + n, transaction_date: month + '-01', status: 'posted'}
+  }));
+  const confirmed = new Set();
+  await page.route('**/rest/v1/scheduled_journal_occurrences?**', route => {
+   const isPending = new URL(route.request().url()).searchParams.get('reviewed_at') === 'is.null';
+   return route.fulfill({json: isPending ? rows.filter(row => !confirmed.has(row.id)) : []});
+  });
+  let failOnce = true;
+  await page.route('**/rest/v1/rpc/review_scheduled_occurrence91', route => {
+   if (failOnce) {
+    failOnce = false;
+    return route.fulfill({status: 409, json: {message: 'Retry fixture'}});
+   }
+   confirmed.add(route.request().postDataJSON().p_occurrence);
+   return route.fulfill({json: null});
+  });
+  await page.evaluate(month => finishEditing69(month), month);
+  const gate = page.locator('#scheduledReviewGate91');
+  const buttons = gate.locator('[data-confirm]');
+  const notice=page.locator('#status118 .status-close1440');
+  if(await notice.isVisible())await notice.click();
+  await buttons.first().click();
+  await page.waitForFunction(() => document.querySelector('[data-confirm]')?.textContent === 'Retry confirmation');
+  await buttons.first().click();
+  await page.waitForFunction(() => document.querySelector('[data-confirm]')?.textContent === 'Confirmed');
+  assert.equal(await gate.locator('[data-continue]').isDisabled(), true);
+  await buttons.last().click();
+  await page.waitForFunction(() => document.querySelector('[data-continue]')?.disabled === false);
+  assert.equal(await gate.locator('[role=status]').innerText(), '2 of 2 confirmed');
+  await gate.locator('[data-continue]').click();
+  assert.equal(confirmed.size, 2);
+  assert.equal(await gate.count(), 0);
+
+  const issues = [
+   ...['june','october'].map(id => ({id:'report:'+id, title:'Deferred staff report', detail:'Cashier A / '+id+': unposted lines'})),
+   ...Array.from({length:120}, (_,n) => ({
+    id:'fx:test:'+n, title:'Source review', detail:(n%2?'TEST-21 / account 9290':'TEST-128: original rates')
+   })),
+   {id:'memo:entry', title:'Missing entry description', detail:'TEST-17'}
+  ].map(i => ({...i,severity:'warning'}));
+  const check = {version:14324,month:month+'-01',fingerprint:'fixture',issues,trial:[],balances:[],
+   entry_checks:[{entry_no:'TEST-21',date:'2026-01-30'},{entry_no:'TEST-128',date:'2026-01-01'}],
+   coverage:{version:281},reconciliation305:{version:305,items:[]},
+   pending:{revision:'fixture',items:[{id:'october',owner_id:'cashier',owner_name:'Cashier A'}]}};
+  await page.route('**/rest/v1/staff_journals?**', route => route.fulfill({json:
+   ['june','october'].map(id => ({id,owner_id:'cashier',period_start:'2026-01-01',owner:{user_permissions:{job_title:'Cashier'}}}))}));
+  await page.route('**/rest/v1/rpc/maintenance_preflight14324', route => route.fulfill({json:check}));
+  await page.evaluate(month => {window.testReview=maintenance14324.review(month)},month);
+  const review=page.locator('.maintenance-modal14324');
+  await review.locator('[data-coverage]').check();
+  const groups=review.locator('[data-ack-group]');
+  assert.equal(await groups.count(),3);
+  assert.equal(await groups.first().locator('legend').innerText(),'Cashier · Cashier A');
+  const foreign=groups.filter({hasText:'Foreign currency · posted journals'});
+  assert.equal(await foreign.locator('details details').count(),2);
+  assert.equal(await foreign.getByText('View findings (120)').count(),1);
+  for(const group of await groups.all()){
+   await group.locator('[data-accept]').check();
+   await group.locator('[data-reason]').fill('Reviewed '+await group.locator('legend').innerText());
+  }
+  await review.locator('[data-reason]').last().fill('');
+  assert.equal(await review.locator('footer button').last().isDisabled(),true);
+  await review.locator('[data-reason]').last().fill('Reviewed description');
+  await review.locator('footer button').last().click();
+  const result=await page.evaluate(async()=> (await window.testReview).review);
+  assert.deepEqual(Object.keys(result.acknowledgments).sort(),issues.map(i=>i.id).sort());
+  assert.equal(result.acknowledgments['report:june'].reason,'Reviewed Cashier · Cashier A');
+  assert.equal(result.acknowledgments['fx:test:119'].reason,'Reviewed Foreign Currency · Posted Journals');
+  check.issues.push({id:'required-reconciliation',severity:'block',title:'Required reconciliation',detail:'Fixture account'});
+  const blocked=await page.evaluate(async month=>{
+   try{await maintenance14324.review(month);return false}catch(error){return error.message}
+  },month);
+  assert.match(blocked,/Closing blocked/);
+  assert.equal(await review.count(),0);
+  console.log('PASS scheduled confirmation retry, same-dialog progress, continuation and grouped per-finding closing acknowledgments');
+ } finally { await fixture.close() }
+})().catch(error => { console.error(error); process.exitCode=1 });
