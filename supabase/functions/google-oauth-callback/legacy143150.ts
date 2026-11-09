@@ -17,6 +17,10 @@ async function encrypt(s:string){const iv=crypto.getRandomValues(new Uint8Array(
 async function decrypt(s:string){const [iv,data]=s.split('.');return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(iv)},await key(),bytes(data)));}
 async function hash(s:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(n=>n.toString(16).padStart(2,'0')).join('');}
 async function settings(){const row=checked(await admin.from('budget_settings14313').select('data').eq('id',true).single());const cfg=row.data.googleSheets143129;if(!/^[\w-]{20,120}$/.test(cfg?.sheet||''))throw Error('Save a valid submission sheet in Accounting settings.');return cfg;}
+async function workspaceGoogleEmail(cfg:any){
+ const existing=checked(await admin.from('google_connections143150').select('email').eq('sheet',cfg.sheet).maybeSingle());
+ return String(existing?.email||cfg.accountEmail228||'oonjaimarketplace@gmail.com').trim().toLowerCase();
+}
 async function auth(req:Request,management=false){
  const token=req.headers.get('Authorization')?.replace(/^Bearer\s+/i,'');if(!token)throw Error('Accounting sign-in required');
  const {data,error}=await admin.auth.getUser(token);if(error||!data.user)throw Error('Accounting session expired');
@@ -78,9 +82,9 @@ export async function handler(req:Request){
    const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',body:new URLSearchParams({client_id:clientID(),client_secret:clientSecret(),redirect_uri:redirect,grant_type:'authorization_code',code:params.get('code')||''})});const token=await r.json();
    if(!r.ok||!token.access_token||!token.refresh_token)throw Error('Google did not grant background access. Try Connect Google again.');
    const identity=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token.access_token}});const info=await identity.json();
-   const expectedEmail=String((await settings()).accountEmail228||'oonjaimarketplace@gmail.com').toLowerCase();if(!identity.ok||String(info.email||'').toLowerCase()!==expectedEmail||info.email_verified!==true)throw Error('Choose the company Google account saved in Accounting settings.');
-   if(!String(token.scope).split(' ').includes('https://www.googleapis.com/auth/spreadsheets'))throw Error('Google Sheets permission required');
    const cfg=await settings();if(cfg.sheet!==saved.sheet||cfg.client!==clientID())throw Error('Connection settings changed. Start again.');
+   const expectedEmail=await workspaceGoogleEmail(cfg);if(!identity.ok||String(info.email||'').toLowerCase()!==expectedEmail||info.email_verified!==true)throw Error('Choose the Google account linked to this workspace: '+expectedEmail);
+   if(!String(token.scope).split(' ').includes('https://www.googleapis.com/auth/spreadsheets'))throw Error('Google Sheets permission required');
    const candidate={sheet:cfg.sheet,owner:saved.owner,email:info.email,refresh_token:await encrypt(token.refresh_token),access_token:await encrypt(token.access_token),expires_at:new Date(Date.now()+token.expires_in*1000).toISOString()};
    await sheetRequest(candidate,'?fields=sheets.properties');checked(await admin.from('google_connections143150').upsert(candidate));
    await poll(candidate);return new Response(null,{status:303,headers:{Location:home+'?google_connected=1','Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
@@ -99,7 +103,7 @@ export async function handler(req:Request){
    if(cfg.client!==clientID())throw Error('Saved Google client ID does not match server configuration.');
    const state=crypto.randomUUID()+crypto.randomUUID();checked(await admin.from('google_states143150').delete().lt('expires_at',new Date().toISOString()));
    checked(await admin.from('google_states143150').insert({state_hash:await hash(state),owner:a.id,sheet:cfg.sheet,expires_at:new Date(Date.now()+600000).toISOString()}));
-   const target=new URL('https://accounts.google.com/o/oauth2/v2/auth');target.search=new URLSearchParams({client_id:clientID(),redirect_uri:redirect,response_type:'code',scope,access_type:'offline',prompt:'consent select_account',state,login_hint:cfg.accountEmail228||'oonjaimarketplace@gmail.com'}).toString();return reply({authorization_url:target.href});
+   const target=new URL('https://accounts.google.com/o/oauth2/v2/auth');target.search=new URLSearchParams({client_id:clientID(),redirect_uri:redirect,response_type:'code',scope,access_type:'offline',prompt:'consent select_account',state,login_hint:await workspaceGoogleEmail(cfg)}).toString();return reply({authorization_url:target.href});
   }
   const c=await connection(cfg.sheet);
   if(body.action==='status')return reply({connected:!!c,configured:!!clientID()&&!!clientSecret(),email:c?.email||''});
