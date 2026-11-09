@@ -111,11 +111,29 @@ function reviewPanel(){const month=PeriodReview.selectedMonth,locked=PeriodRevie
  else document.querySelectorAll('#periodTransactionsBody [onclick*="reviewPeriodTransaction"],#periodTransactionsBody [onclick*="openTransactionReview"]').forEach(b=>{const id=(b.getAttribute('onclick')||'').match(/\('([^']+)'\)/)?.[1];if(id){b.textContent='Edit';b.onclick=()=>loadEntryForEdit(id);const row=JournalModule.entries.find(x=>x.id===id);if(row?.dbEntryId&&!b.parentElement.querySelector('[data-void136]')){const v=document.createElement('button');v.dataset.void136='';v.textContent='Void';v.className='je-btn je-btn-danger';v.onclick=()=>voidLiveJournalEntry(row.dbEntryId,id);b.after(v);}}});
 }
 const renderReviewBefore=renderPeriodReview;renderPeriodReview=function(...args){const r=renderReviewBefore(...args);reviewPanel();return r;};
-async function yearClose(selectedYear){const guard=context136();if(!admin())return showCenterStatus('Administrator access is required to close a year.',true);let year=Number(selectedYear||PeriodReview.selectedMonth.slice(0,4));if(!selectedYear){const entered=await ui117.prompt('Year to close / view:',String(year));if(!entered)return;year=Number(entered);}if(!Number.isInteger(year)||year<1900||year>2198)return showCenterStatus('Enter a valid year.',true);
- try{guard();const check=await rpc('year_preflight136',{p_year:year});guard();const record=check.completed?check.record:null;
-  $('yearEnd136')?.remove();const root=document.createElement('div');root.className='submission-compare-overlay';root.id='yearEnd136';root.innerHTML=`<section class="source-dialog69"><header><h2>${record?'Year-end Report':'Close Year'} · ${year}</h2></header><div class="year-warning136"><p>Finish and lock the months first, then review and close the year. This saves the year-end report and locks the year. No closing journals or next-year opening balances are created.</p>${(check.blockers||[]).map(x=>`<p>Blocked: ${esc(x)}</p>`).join('')}${(check.warnings||[]).map(x=>`<p>Check: ${esc(x)}</p>`).join('')}</div>${carryForward142.reportHTML(record||{year,balances:check.balances||[]})}${record?'':`<label><input type="checkbox" id="yearVerified136"> I checked all balances, source documents, pending entries and warnings.</label><label>Type CLOSE YEAR ${year}<input id="yearPhrase136" autocomplete="off"></label>`}<footer><button class="je-btn je-btn-secondary" data-cancel-year136>${record?'Close':'Cancel'}</button>${record?'<button class="je-btn je-btn-primary" data-print-year143112>Print Report</button>':`<button class="je-btn je-btn-danger" id="confirmYear136" disabled>Close Year</button>`}</footer></section>`;document.body.append(root);root.querySelector('[data-cancel-year136]').onclick=()=>root.remove();root.querySelector('[data-print-year143112]')?.addEventListener('click',()=>{root.remove();carryForward142.printRecord(record)});
-  const button=$('confirmYear136');if(button){const validate=()=>button.disabled=!!check.blockers?.length||!$('yearVerified136').checked||$('yearPhrase136').value!=='CLOSE YEAR '+year;root.addEventListener('input',validate);button.onclick=async()=>{button.disabled=true;try{guard();if(!await window.periodClosing14317.closeYear(year,$('yearPhrase136').value,check.fingerprint)){validate();return;}guard();root.remove();await reload();await carryForward142.load(true);await yearClose(year);showCenterStatus(year+' closed. Review or print the saved report; enter next year’s opening balances manually.');}catch(e){showCenterStatus(e.message,true);if(root.isConnected)validate();}};}
- }catch(e){showCenterStatus('Year-end checks unavailable: '+e.message,true);}
+async function yearClose(selectedYear){
+ const guard=context136();if(!admin())return showCenterStatus('Administrator access is required to close a year.',true);
+ const year=Number(selectedYear||PeriodReview.selectedMonth.slice(0,4));
+ if(!Number.isInteger(year)||year<1900||year>2198)return showCenterStatus('Choose a valid accounting year.',true);
+ try{
+  guard();const check=await rpc('year_preflight136',{p_year:year});guard();
+  const record=check.completed?check.record:null;
+  const report=carryForward142.reportHTML(record||{year,balances:check.balances||[]});
+  const notes=(check.warnings||[]).map(x=>'<p>'+esc(x)+'</p>').join('');
+  if(!record&&!check.blockers?.length){
+   const done=await maintenance14324.finish({kind:'year',year,month:year+'-12',confirmation:'CLOSE YEAR '+year,fingerprint:check.fingerprint,annualReport:report+notes});
+   if(done){guard();await reload();await carryForward142.load(true);await yearClose(year)}
+   return;
+  }
+  const reasons=(check.blockers||[]).map(x=>'<p>'+esc(x)+'</p>').join('');
+  $('yearEnd136')?.remove();
+  const root=document.createElement('div');root.id='yearEnd136';root.className='submission-compare-overlay';
+  root.innerHTML='<section class="source-dialog69"><header><h2>'+(record?'Year-end Report':'Year-end checks')+' · '+year+'</h2></header>'+reasons+notes+report+
+   '<footer><button class="je-btn je-btn-secondary" data-cancel-year136>Close</button>'+(record?'<button class="je-btn je-btn-primary" data-print-year143112>Print Report</button>':'')+'</footer></section>';
+  document.body.append(root);root.querySelector('[data-cancel-year136]').onclick=()=>root.remove();
+  root.querySelector('[data-print-year143112]')?.addEventListener('click',()=>{guard();root.remove();carryForward142.printRecord(record)});
+
+ }catch(e){showCenterStatus('Year-end review: '+e.message,true)}
 }
 
 function positionPopover(panel,button){const box=button.getBoundingClientRect();panel.style.setProperty('position','fixed','important');panel.style.setProperty('inset','auto','important');panel.style.setProperty('right',Math.max(12,innerWidth-box.left+10)+'px','important');panel.style.setProperty('bottom',Math.max(12,innerHeight-box.bottom)+'px','important');panel.style.setProperty('max-height',Math.max(160,box.bottom-20)+'px','important');panel.style.setProperty('transform','none','important');}

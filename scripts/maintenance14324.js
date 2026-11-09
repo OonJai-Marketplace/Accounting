@@ -8,33 +8,119 @@ function clear(){document.querySelectorAll('.maintenance-modal14324').forEach(n=
 function table(headers,values){return '<div class="maintenance-table14324"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+values.map(row=>'<tr>'+row.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
 async function download(name,value,type='application/json'){const text=type==='application/json'?JSON.stringify(value,null,2):value,url=URL.createObjectURL(new Blob([text],{type})),a=document.createElement('a');a.href=url;a.download=name;try{const delivered=await (window.exportCenter14337?exportCenter14337.fromLink(a):a.click());if(delivered===false)throw Error('The export was not prepared. Try again.')}finally{setTimeout(()=>URL.revokeObjectURL(url),3000)}}
 function status(message){for(const id of ['maintenanceStatus14324','maintenanceClosingStatus14325'])if($(id))$(id).textContent=message}
-async function task(fn){if(busy)return;busy=true;const id=actor(),client=ojmDb;try{guard(id,client);if(owner!==id||contextClient!==client)clear();document.querySelectorAll('#'+ID+' button,#'+CLOSE+' button').forEach(b=>b.disabled=true);await fn(id);guard(id,client)}catch(e){if(id===actor()&&client===ojmDb){status(e.message);if(!document.querySelector('.maintenance-modal14324'))await modal('Action needs attention','<p>'+esc(e.message)+'</p>')}}finally{busy=false;document.querySelectorAll('#'+ID+' button,#'+CLOSE+' button').forEach(b=>b.disabled=false)}}
+async function task(fn){if(busy)return;busy=true;const id=actor(),client=ojmDb;try{guard(id,client);if(owner!==id||contextClient!==client)clear();document.querySelectorAll('#'+ID+' button,#'+CLOSE+' button').forEach(b=>b.disabled=true);await fn(id);guard(id,client)}catch(e){if(id===actor()&&client===ojmDb){status(e.message);if(!document.querySelector('.maintenance-modal14324'))await modal('Action needs attention','<p>'+esc(e.message)+'</p>')}}finally{busy=false;document.querySelectorAll('#'+ID+' button,#'+CLOSE+' button').forEach(b=>b.disabled=false);showClosingState()}}
 function validateCheck(c,month){if(c?.version!==14324||c.month!==month+'-01'||typeof c.fingerprint!=='string'||!Array.isArray(c.issues)||!Array.isArray(c.trial)||!Array.isArray(c.balances)||!c.pending?.revision)throw Error('Incomplete database check. Closing is unavailable.');if(c.reconciliation305?.version!==305)throw Error('Required reconciliation verification is unavailable. Reload before closing.');if(c.coverage?.version!==281||!Array.isArray(c.entry_checks))throw Error('The schedule and foreign-currency checks are unavailable. Update the database before closing.');return c}
 async function preflight(month){E.cutoff(month);return validateCheck(await rpc('maintenance_preflight14324',{p_month:month+'-01'}),month)}
 async function snapshot(){const p=await rpc('maintenance_snapshot14324');if(p?.maintenanceVersion!==14324||!p.tables||!['accounts','journal_entries','journal_lines','payroll_runs','payroll_lines'].every(t=>Array.isArray(p.tables[t])))throw Error('Incomplete maintenance snapshot');return p}
+async function describeFindings(check,client){
+ const journalByNumber=new Map(check.entry_checks.map(e=>[e.entry_no,e.id]));
+ const ids={journal:new Set(),report:new Set(),submission:new Set(),payroll:new Set(),line:new Set(),finding:new Set(),review:new Set()};
+ const sourceKeys=new Map();
+ for(const issue of check.issues){
+  const [type,id]=issue.id.split(':');
+  let kind=type==='line-date'?'line':type,key=id;
+  const number=(issue.detail||'').split(/ \/ |:| \(/,1)[0];
+  const journal=journalByNumber.get(number);
+  if(journal||['draft','memo','entry','empty','missing-id'].includes(type)){
+   kind='journal';key=journal||id;
+  }
+  if(ids[kind]&&key){ids[kind].add(key);sourceKeys.set(issue.id,kind+':'+key)}
+ }
+ const sources=new Map();
+ async function batches(kind,tableName,columns,record){
+  const keys=[...ids[kind]];
+  for(let i=0;i<keys.length;i+=50){
+   const result=await client.from(tableName).select(columns).in('id',keys.slice(i,i+50));
+   if(result.error)continue;
+   for(const row of result.data||[])sources.set(kind+':'+row.id,record(row));
+  }
+ }
+ const account=a=>a?[a.code,a.name].filter(Boolean).join(' · '):'';
+ const date=v=>v?formatAppDate(v):'';
+ const amount=v=>v==null?'':formatAppNumber(v);
+ const rate=v=>v==null?'—':formatAppNumber(Number(v));
+ const receipt=(entry,staffLine)=>({entry,staffLine});
+ const journalColumns='id,entry_no,transaction_date,memo,reference,journal_lines(line_no,line_date,description,currency_code,debit,credit,book_rate_lak,fx_rate_lak,accounts(code,name))';
+ await Promise.all([
+  batches('journal','journal_entries',journalColumns,r=>({
+   label:[r.entry_no,date(r.transaction_date),r.memo].filter(Boolean).join(' · '),reference:r.reference,receipt:receipt(r.entry_no),
+   headers:['Date','Account','Line memo','Currency','Debit','Credit','Book rate','Transaction rate'],
+   rows:(r.journal_lines||[]).sort((a,b)=>a.line_no-b.line_no).map(l=>[date(l.line_date||r.transaction_date),account(l.accounts),l.description,l.currency_code,amount(l.debit),amount(l.credit),l.currency_code==='LAK'?'—':rate(l.book_rate_lak),l.currency_code==='LAK'?'—':rate(l.fx_rate_lak)])
+  })),
+  batches('report','staff_journals','id,owner_id,period_start,status,owner:profiles!staff_journals_owner_id_fkey(full_name,user_permissions!user_permissions_user_id_fkey(job_title))',r=>({
+   label:[r.owner?.full_name,r.period_start&&monthLabel(r.period_start.slice(0,7)),r.status].filter(Boolean).join(' · '),meta:r,
+   headers:['Date','Source entry','Description / reference','Account','In / out','Amount','Currency','Receipts'],rows:[]
+  })),
+  batches('submission','entry_submissions','id,submission_no,transaction_date,memo,reference,amount,currency_code,status,debit:accounts!debit_account_id(code,name),credit:accounts!credit_account_id(code,name)',r=>({
+   label:[r.submission_no,date(r.transaction_date),r.memo].filter(Boolean).join(' · '),reference:r.reference,
+   headers:['Debit account','Credit account','Amount','Currency','Status'],rows:[[account(r.debit),account(r.credit),amount(r.amount),r.currency_code,r.status]]
+  })),
+  batches('line','journal_lines','id,line_no,line_date,description,currency_code,debit,credit,journal_entries(entry_no,transaction_date,memo),accounts(code,name)',l=>({
+   label:[l.journal_entries?.entry_no,date(l.line_date||l.journal_entries?.transaction_date),l.journal_entries?.memo].filter(Boolean).join(' · '),
+   receipt:receipt(l.journal_entries?.entry_no),headers:['Line','Account','Description','Currency','Debit','Credit'],rows:[[l.line_no,account(l.accounts),l.description,l.currency_code,amount(l.debit),amount(l.credit)]]
+  })),
+  batches('finding','period_findings','id,finding_no,reported_at,description,resolution_note,status',r=>({
+   label:[r.finding_no,date(r.reported_at),r.status].filter(Boolean).join(' · '),headers:['Finding','Resolution note'],rows:[[r.description,r.resolution_note]]
+  })),
+  batches('review','audit_reviews136','id,created_at,description,status',r=>({
+   label:'Audit review · '+date(r.created_at),headers:['Status','Description'],rows:[[r.status,r.description]]
+  })),
+  batches('payroll','payroll_runs','id,period_start,period_end,status',r=>({
+   label:'Payroll · '+date(r.period_start)+' – '+date(r.period_end),headers:['Period start','Period end','Status'],rows:[[date(r.period_start),date(r.period_end),r.status]]
+  }))
+ ]);
+ const reports=[...ids.report];
+ for(let start=0;start<reports.length;start+=50){
+  const batch=reports.slice(start,start+50);
+  for(let offset=0;;offset+=500){
+   const result=await client.from('staff_journal_lines').select('id,staff_journal_id,workspace_entry_no,transaction_date,memo,reference,direction,amount,currency_code,account:accounts!account_id(code,name),fund:accounts!fund_account_id(code,name)').in('staff_journal_id',batch).is('journal_entry_id',null).lt('transaction_date',E.cutoff(check.month.slice(0,7))).order('transaction_date').order('id').range(offset,offset+499);
+   if(result.error){for(const id of batch){const s=sources.get('report:'+id);if(s)s.error='Report lines could not load. Run Data Check again.'}break}
+   for(const l of result.data||[]){
+    sources.get('report:'+l.staff_journal_id)?.rows.push([date(l.transaction_date),l.workspace_entry_no,[l.memo,l.reference].filter(Boolean).join(' · '),[account(l.account),account(l.fund)].filter(Boolean).join(' / '),l.direction,amount(l.amount),l.currency_code,receipt(l.workspace_entry_no,l.id)]);
+   }
+   if((result.data||[]).length<500)break;
+  }
+ }
+ check.sourceDetails321=Object.fromEntries([...sourceKeys].map(([id,key])=>[id,sources.get(key)||{label:'Source details unavailable',error:'Refresh Data Check to retry loading this record.'}]));
+}
+function sourceHTML(source){
+ if(!source)return '';
+ const button=r=>window.JournalReceipts224?.enabled()&&(r.entry||r.staffLine)?'<button type="button" class="je-btn je-btn-secondary" data-source-receipt321="'+esc(r.entry||'')+'" data-staff-line321="'+esc(r.staffLine||'')+'">Receipts</button>':'';
+ return '<div class="maintenance-source321"><strong>'+esc(source.label)+'</strong> '+(source.receipt?button(source.receipt):'')+
+  (source.reference?'<p>'+esc(source.reference)+'</p>':'')+
+  (source.rows?.length?'<div class="maintenance-table14324"><table><thead><tr>'+source.headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+source.rows.map(r=>'<tr>'+r.map(v=>'<td>'+(v&&typeof v==='object'?button(v):esc(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>':'')+
+  (source.error?'<p>'+esc(source.error)+'</p>':'')+'</div>';
+}
 function renderCheck(c){
  const block=c.issues.filter(x=>x.severity==='block'),v=c.coverage;
  const signed=n=>n==null?'Needs source review':formatAppNumber(n);
  const entryRows=(c.entry_checks||[]).map(e=>{const found=c.issues.filter(i=>i.id.includes(e.id)||i.detail?.startsWith(e.entry_no+' /')||i.detail?.startsWith(e.entry_no+':'));return [e.entry_no,formatAppDate(e.date),e.lines,e.foreign_lines,signed(e.base_difference),e.foreign_lines||e.fx_recorded?signed(e.fx_expected):'—',e.foreign_lines||e.fx_recorded?signed(e.fx_recorded):'—',found.some(i=>i.severity==='block')?'Fix before closing':found.length?'Review '+found.length+' item(s)':'No arithmetic issue found'];});
- return '<h3>'+esc(c.month.slice(0,7))+' Closing Checks</h3><p>'+esc(block.length?block.length+' blocking error(s). Closing cannot continue.':c.issues.length+' item(s) need review. '+(c.selectedCoverage?'Selected checks only; see the complete flag list before closing.':'No blocking arithmetic error found.'))+'</p><p>Posted ledger through month-end. Currencies stay separate. Checked '+esc(formatAppDate(c.checkedAt,true))+'.</p>'+(v?'<p>'+esc(v.entries+' entries · '+v.foreign_entries+' foreign-currency entries · '+v.schedule_items+' schedule items checked.')+'</p><p>'+esc(v.rate_evidence)+'</p>':'')+table(['Currency','Debit','Credit','Difference'],c.trial.map(t=>[t.currency,formatAppNumber(t.debit),formatAppNumber(t.credit),formatAppNumber(t.difference)]))+(c.trial.length?'':'<p>No posted ledger lines through this month.</p>')+(block.length?'<h4>Fix before closing</h4>'+table(['Issue','Record / calculation'],block.map(i=>[i.title,i.detail])):'')+checkWarningDetails(c.issues)+(!c.selectedCoverage&&entryRows.length?'<details><summary>Entry-by-entry results ('+entryRows.length+')</summary><p>FX amounts are LAK: positive is a loss/debit; negative is a gain/credit. Expected amounts use the saved business carrying values, with mapping and rate checks above.</p>'+table(['Entry ID','Date','Lines','Foreign lines','LAK difference','Expected FX','Recorded FX','Result'],entryRows)+'</details>':'');
+ return '<h3>'+esc(c.month.slice(0,7))+' Closing Checks</h3><p>'+esc(block.length?block.length+' blocking error(s). Closing cannot continue.':c.issues.length+' item(s) need review. '+(c.selectedCoverage?'Selected checks only; see the complete flag list before closing.':'No blocking arithmetic error found.'))+'</p><p>Posted ledger through month-end. Currencies stay separate. Checked '+esc(formatAppDate(c.checkedAt,true))+'.</p>'+(v?'<p>'+esc(v.entries+' entries · '+v.foreign_entries+' foreign-currency entries · '+v.schedule_items+' schedule items checked.')+'</p><p>'+esc(v.rate_evidence)+'</p>':'')+table(['Currency','Debit','Credit','Difference'],c.trial.map(t=>[t.currency,formatAppNumber(t.debit),formatAppNumber(t.credit),formatAppNumber(t.difference)]))+(c.trial.length?'':'<p>No posted ledger lines through this month.</p>')+(c.reconciliation305?.items?.length?'<details><summary>Required reconciliations</summary>'+reconciliationTable(c)+'</details>':'')+(block.length?'<h4>Fix before closing</h4>'+block.map(i=>'<p><strong>'+esc(i.title)+'</strong> · '+esc(i.detail)+'</p>'+sourceHTML(c.sourceDetails321?.[i.id])).join(''):'')+checkWarningDetails(c)+(!c.selectedCoverage&&entryRows.length?'<details><summary>Entry-by-entry results ('+entryRows.length+')</summary><p>FX amounts are LAK: positive is a loss/debit; negative is a gain/credit. Expected amounts use the saved business carrying values, with mapping and rate checks above.</p>'+table(['Entry ID','Date','Lines','Foreign lines','LAK difference','Expected FX','Recorded FX','Result'],entryRows)+'</details>':'');
 }
-function checkWarningDetails(issues){
- const byTitle=new Map();
- for(const issue of issues.filter(i=>i.severity==='warning')){
-  if(!byTitle.has(issue.title))byTitle.set(issue.title,[]);
-  byTitle.get(issue.title).push([issue.detail]);
+function checkWarningDetails(c){
+ const groups=new Map();
+ for(const issue of c.issues.filter(i=>i.severity==='warning')){
+  const source=c.sourceDetails321?.[issue.id],meta=source?.meta;
+  const title=meta?.owner?.full_name?'Staff reports · '+meta.owner.full_name:issue.title;
+  if(!groups.has(title))groups.set(title,new Map());
+  const records=groups.get(title),key=source||issue;
+  if(!records.has(key))records.set(key,[]);
+  records.get(key).push(issue);
  }
- return [...byTitle].map(([title,rows])=>'<details><summary>'+esc(title)+' ('+rows.length+')</summary>'+table(['Record / calculation'],rows)+'</details>').join('');
+ return [...groups].map(([title,records])=>{
+  let count=0;
+  const content=[...records].map(([key,items])=>{
+   count+=items.length;return items.map(i=>'<p>'+esc(i.detail)+'</p>').join('')+sourceHTML(c.sourceDetails321?.[items[0].id]);
+  }).join('');
+  return '<details><summary>'+esc(title)+' ('+count+')</summary>'+content+'</details>';
+ }).join('');
 }
-async function runChecks(){const month=$('maintenanceMonth14324').value;status('Checking current saved records…');const c=await preflight(month);if($('maintenanceMonth14324').value!==month)throw Error('The selected month changed. Run the check again.');checkup=c;$('maintenanceChecks14324').innerHTML=renderCheck(checkup);window.syncAssessment14332?.render();status('Checks complete. Review device sync findings and reconciliation before closing.');return checkup}
+function reconciliationTable(c){
+ const n=v=>v==null?'—':formatAppNumber(Number(v));
+ return table(['Account','Currency','Status','Ledger','Statement / count','Reference','Reconciliation ID'],(c.reconciliation305?.items||[]).map(a=>[a.code+' '+a.name,a.currency,a.state,n(a.ledgerAmount321),n(a.actualAmount321),a.reference321||'—',a.reportId||'—']));
+}
+async function runChecks(){const month=$('maintenanceMonth14324').value;status('Checking current saved records…');const id=actor(),client=ojmDb,c=await preflight(month);await describeFindings(c,client);guard(id,client);if($('maintenanceMonth14324').value!==month)throw Error('The selected month changed. Run the check again.');checkup=c;$('maintenanceChecks14324').innerHTML=renderCheck(checkup);window.syncAssessment14332?.render();status('Checks complete. Review device sync findings and reconciliation before closing.');return checkup}
 async function closingGroups(check,client,annual){
- const reportIds=check.issues.filter(i=>i.severity==='warning'&&i.id.startsWith('report:')).map(i=>i.id.slice(7));
- const metadata=new Map();
- // Descriptive labels only. The preflight list and its fingerprint govern every acknowledgment.
- for(let offset=0;offset<reportIds.length;offset+=100){
-  const {data}=await client.from('staff_journals').select('id,owner_id,period_start,owner:profiles!staff_journals_owner_id_fkey(user_permissions!user_permissions_user_id_fkey(job_title))').in('id',reportIds.slice(offset,offset+100));
-  for(const row of data||[])metadata.set(String(row.id),row);
- }
  const groups=new Map();
  const reports=new Map((check.pending.items||[]).map(r=>[String(r.id),r]));
  const entries=new Map((check.entry_checks||[]).map(e=>[e.entry_no,e]));
@@ -42,7 +128,7 @@ async function closingGroups(check,client,annual){
  for(const issue of check.issues.filter(i=>i.severity==='warning')){
   let key=issue.title,title=issue.title,action='Acknowledge the listed findings for this closing.',record='';
   if(issue.id.startsWith('report:')){
-   const reportId=issue.id.slice(7),report=reports.get(reportId),meta=metadata.get(reportId);
+   const reportId=issue.id.slice(7),report=reports.get(reportId),meta=check.sourceDetails321?.[issue.id]?.meta;
    const owner=report?.owner_name||issue.detail.split(' / '+reportId+':')[0];
    const matches=profiles.filter(p=>(p.full_name||p.email)===owner);
    const profile=matches.length===1?matches[0]:null;
@@ -62,7 +148,7 @@ async function closingGroups(check,client,annual){
   if(!groups.has(key))groups.set(key,{title,action,items:[],records:new Map()});
   const group=groups.get(key);
   const decision=check.decisions319?.[issue.id];
-  const item={...issue,record,saved:annual?null:decision?.saved,canCarry:!annual&&!!decision?.balanceScope};
+  const item={...issue,record,source:check.sourceDetails321?.[issue.id],saved:annual?null:decision?.saved,canCarry:!annual&&!!decision?.balanceScope};
   group.items.push(item);
   if(!group.records.has(record))group.records.set(record,[]);
   group.records.get(record).push(item);
@@ -74,7 +160,8 @@ function groupDetails(group,saved){
  for(const [record,items] of group.records){
   const rows=items.filter(i=>!!i.saved===saved);
   if(!rows.length)continue;
-  const list=rows.map(i=>'<div data-review-item="'+esc(i.id)+'"><strong>'+esc(i.title)+'</strong><p>'+esc(i.detail)+'</p>'+
+  const groupedSource=record&&rows[0].source&&rows.every(i=>i.source===rows[0].source)?rows[0].source:null;
+  const list=sourceHTML(groupedSource)+rows.map(i=>(groupedSource?'':sourceHTML(i.source))+'<div data-review-item="'+esc(i.id)+'"><strong>'+esc(i.title)+'</strong><p>'+esc(i.detail)+'</p>'+
    (i.saved?'<small>Previously acknowledged · '+esc(monthLabel(i.saved.month.slice(0,7)))+'</small>':'')+
    '<label>'+(i.saved?'Saved reason':'Separate reason (optional)')+'<input type="text" maxlength="2000" data-item-reason value="'+esc(i.saved?.reason||'')+'"></label>'+
    (i.canCarry?'<label><input type="checkbox" data-carry '+(i.saved?.allowCarry?'checked':'')+'>Allow this account to carry a balance on this side at future monthly closes. Give the reason above.</label>':'')+'</div>').join('');
@@ -92,7 +179,7 @@ function reviewHTML(c,groups,options){
  }).join('');
  const monthly=options.kind!=='year',deferred=all.filter(i=>i.id.startsWith('report:')).length;
  const newItems=sections(false)+'<label>'+(monthly?'Closing note (optional)':'Reason for the remaining findings')+'<input type="text" data-common-reason maxlength="2000"></label>';
- return '<div class="maintenance-review14324"><h3>Required reconciliations</h3>'+table(['Account','Status','Reconciliation ID'],(c.reconciliation305?.items||[]).map(a=>[a.code+' '+a.name,a.state,a.reportId||'']))+
+ return '<div class="maintenance-review14324"><h3>Required reconciliations</h3>'+reconciliationTable(c)+
   (deferred?'<p>Unposted lines in '+deferred+' staff report'+(deferred===1?'':'s')+' stay outside this closing.</p>':'')+
   (remaining?(monthly?'<details><summary>Accounting follow-up ('+remaining+')</summary>'+newItems+'</details>':'<h3>Annual review ('+remaining+')</h3>'+newItems):'')+
   (remaining<all.length?'<details><summary>Previously acknowledged ('+(all.length-remaining)+')</summary>'+sections(true)+'</details>':'')+
@@ -121,9 +208,11 @@ function answers(root,groups,check,options){
   result.acknowledgments[issue.id]={acknowledged:true,reason,allowCarry};
  }
  for(const f of root.querySelectorAll('[data-recon]')){const actual=actualAmount14342(f.querySelector('[data-actual]'));const delta=E.cents(actual)-E.cents(f.dataset.balance),a={actual,expectedBalance:f.dataset.balance,acknowledged:f.querySelector('[data-accept]')?.checked||false,reason:f.querySelector('[data-reason]')?.value.trim()||''};if(delta!==0&&(!a.acknowledged||a.reason.length<3))throw Error('Explain and acknowledge each cash / bank difference.');result.reconciliations[f.dataset.recon]=a}return result}
-async function review(month,options={}){const id=actor(),client=ojmDb;if(options.kind&&E.cutoff(month)>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()))throw Error('This month has not ended. Finish, Close and Lock are available from '+formatAppDate(E.cutoff(month))+'.');if(options.kind)window.syncAssessment14332?.beforeClose(month);await reconPreferences71(id);await reconciliationRecords305();const c=await preflight(month);if(options.kind==='session'){const p=await snapshot();c.balances=E.projectSession(p,options.session,month,c.balances);c.projected=true;}guard(id,client);if(c.trial.some(t=>Math.abs(Number(t.difference))>0.005)||c.issues.some(i=>i.severity==='block')){checkup=c;$('maintenanceMonth14324').value=month;$('maintenanceChecks14324').innerHTML=renderCheck(c);switchTab(CLOSE);throw Error('Closing blocked. Complete the listed required reconciliations and resolve any Data Check errors. Only accounts whose movements changed need reconciliation again.');}if(options.kind==='period'&&options.status==='locked'){const saved=await savedReview14342(month,c,id);if(saved){const ok=await modal('Lock month — '+month,'<p>This month is already closed. Its saved reconciliation still matches the current records.</p><p>Lock this month using that reconciliation?</p>',[{label:'Cancel',value:false},{label:'Lock Month',value:true,primary:true}]);guard(id,client);if(!ok)return null;window.syncAssessment14332?.beforeClose(month);return {check:c,review:saved,actor:id,client}}}if(c.issues.some(i=>i.severity==='block')){switchTab(CLOSE);$('maintenanceMonth14324').value=month;checkup=c;$('maintenanceChecks14324').innerHTML=renderCheck(c);void modal('Closing blocked — '+month,renderCheck(c));throw Error('Closing blocked. Review Bookkeeping → Closing & Data Checks for the listed errors.')}const groups=await closingGroups(c,client,options.kind==='year');guard(id,client);const pending=modal('Closing review — '+month,reviewHTML(c,groups,options),[{label:'Cancel',value:false},{label:options.kind==='period'?(options.status==='locked'?'Confirm & Lock Month':'Confirm & Close Month'):options.kind==='year'?'Confirm & Close Year':options.kind==='session'?'Confirm & Finish Corrections':'Export Reconciliation Review',value:true,primary:true}],true),root=document.querySelector('.ui-overlay108:last-child'),button=root.querySelector('footer button:last-child');root.classList.add('maintenance-modal14324');button.disabled=true;const validate=()=>{for(const f of root.querySelectorAll('[data-recon]')){try{const delta=E.cents(actualAmount14342(f.querySelector('[data-actual]')))-E.cents(f.dataset.balance);f.querySelector('[data-difference]').textContent='Difference: '+formatAppNumber(delta/100);reconDifference14382(f,delta)}catch{f.querySelector('[data-difference]').textContent='Enter a valid amount.';reconDifference14382(f,null)}}try{answers(root,groups,c,options);button.disabled=false;root.querySelector('[data-validation]').textContent='Ready to submit this review. Saved records are checked again during closing.'}catch(e){button.disabled=true;root.querySelector('[data-validation]').textContent=e.message}};root.addEventListener('input',validate);root.addEventListener('change',validate);root.addEventListener('focusout',e=>{if(e.target.matches('[data-actual]')&&Number.isFinite(parseAppNumber(e.target.value))){e.target.value=formatAppNumber(parseAppNumber(e.target.value));validate()}});validate();if(!await pending)return null;guard(id,client);window.syncAssessment14332?.beforeClose(month);return {check:c,review:answers(root,groups,c,options),actor:id,client}}
-async function savedReview14342(month,check,id){const client=ojmDb,result=await client.from('audit_log').select('new_data,created_at').eq('table_name','accounting_periods').eq('record_id',month).eq('action','MAINTENANCE_CLOSE').order('created_at',{ascending:false}).limit(1);guard(id,client);if(result.error)throw Error('The saved reconciliation could not be verified. Retry locking.');const data=result.data?.[0]?.new_data;return data?.check?.fingerprint===check.fingerprint&&data?.review?.coverageConfirmed===true&&(!check.decisionRevision319||check.decisionRevision319===data.review.decisionRevision319)?data.review:null}
-let closing=false;async function finish(options){if(closing)throw Error('A closing review is already in progress.');closing=true;try{const r=await review(options.month,options);if(!r)return false;guard(r.actor,r.client);showPeriodToast('Saving closing and reconciliation…');await rpc('maintenance_finish14324',{p_month:options.month+'-01',p_kind:options.kind,p_fingerprint:r.check.fingerprint,p_review:r.review,p_status:options.status||'closed',p_session:options.session||null,p_year:options.year||null,p_confirmation:options.confirmation||null,p_year_fingerprint:options.fingerprint||null});if(options.kind==='period'){PeriodReview.periods[options.month]={...(PeriodReview.periods[options.month]||{}),status:options.status||'closed'};JournalModule.entries.forEach(row=>{if(String(row.date).startsWith(options.month))row.archived=true});PeriodReview.save();refreshAllTables();renderPeriodReview();}try{await (window.offline14239?.freshReads?offline14239.freshReads(()=>loadAccountingPeriodStatuses()):loadAccountingPeriodStatuses())}catch(e){showPeriodToast('Closing saved. Period status refresh is pending: '+e.message,true)}window.dispatchEvent(new Event('period-finished280'));return true}finally{closing=false}}
+async function review(month,options={}){const id=actor(),client=ojmDb;if(options.kind&&E.cutoff(month)>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()))throw Error('This month has not ended. Monthly close is available from '+formatAppDate(E.cutoff(month))+'.');if(options.kind)window.syncAssessment14332?.beforeClose(month);const c=await preflight(month);await describeFindings(c,client);guard(id,client);if(options.kind==='session'){const p=await snapshot();c.balances=E.projectSession(p,options.session,month,c.balances);c.projected=true;}guard(id,client);if(c.trial.some(t=>Math.abs(Number(t.difference))>0.005)||c.issues.some(i=>i.severity==='block')){checkup=c;$('maintenanceMonth14324').value=month;$('maintenanceChecks14324').innerHTML=renderCheck(c);switchTab(CLOSE);throw Error('Closing blocked. Complete the listed required reconciliations and resolve any Data Check errors. Only accounts whose movements changed need reconciliation again.');}const groups=await closingGroups(c,client,options.kind==='year');guard(id,client);const pending=modal(options.kind==='year'?'Year-end review · '+options.year:'Closing review — '+month,(options.annualReport||'')+reviewHTML(c,groups,options),[{label:'Cancel',value:false},{label:options.kind==='period'?'Confirm & Close Month':options.kind==='year'?'Close & Lock Year':options.kind==='session'?'Confirm & Finish Corrections':'Export Reconciliation Review',value:true,primary:true}],true),root=document.querySelector('.ui-overlay108:last-child'),button=root.querySelector('footer button:last-child');root.classList.add('maintenance-modal14324');button.disabled=true;const validate=()=>{for(const f of root.querySelectorAll('[data-recon]')){try{const delta=E.cents(actualAmount14342(f.querySelector('[data-actual]')))-E.cents(f.dataset.balance);f.querySelector('[data-difference]').textContent='Difference: '+formatAppNumber(delta/100);reconDifference14382(f,delta)}catch{f.querySelector('[data-difference]').textContent='Enter a valid amount.';reconDifference14382(f,null)}}try{answers(root,groups,c,options);button.disabled=false;root.querySelector('[data-validation]').textContent='Ready to submit this review. Saved records are checked again during closing.'}catch(e){button.disabled=true;root.querySelector('[data-validation]').textContent=e.message}};root.addEventListener('input',validate);root.addEventListener('change',validate);root.addEventListener('focusout',e=>{if(e.target.matches('[data-actual]')&&Number.isFinite(parseAppNumber(e.target.value))){e.target.value=formatAppNumber(parseAppNumber(e.target.value));validate()}});validate();if(!await pending)return null;guard(id,client);window.syncAssessment14332?.beforeClose(month);return {check:c,review:answers(root,groups,c,options),actor:id,client}}
+let closing=false;async function finish(options){if(options.kind==='period'){
+ if(options.status==='locked')throw Error('Monthly close is complete. Locking takes place at year-end.');
+ if(['closed','locked'].includes(PeriodReview.status(options.month))){showPeriodToast('This month is already finalized.');return false}
+ }if(closing)throw Error('A closing review is already in progress.');closing=true;try{const r=await review(options.month,options);if(!r)return false;guard(r.actor,r.client);showPeriodToast('Saving closing and reconciliation…');await rpc('maintenance_finish14324',{p_month:options.month+'-01',p_kind:options.kind,p_fingerprint:r.check.fingerprint,p_review:r.review,p_status:options.status||'closed',p_session:options.session||null,p_year:options.year||null,p_confirmation:options.confirmation||null,p_year_fingerprint:options.fingerprint||null});if(options.kind==='period'){PeriodReview.periods[options.month]={...(PeriodReview.periods[options.month]||{}),status:options.status||'closed'};JournalModule.entries.forEach(row=>{if(String(row.date).startsWith(options.month))row.archived=true});PeriodReview.save();refreshAllTables();renderPeriodReview();}try{await (window.offline14239?.freshReads?offline14239.freshReads(()=>loadAccountingPeriodStatuses()):loadAccountingPeriodStatuses())}catch(e){showPeriodToast('Closing saved. Period status refresh is pending: '+e.message,true)}window.dispatchEvent(new Event('period-finished280'));return true}finally{closing=false}}
 function modal(title,html,buttons=[{label:'Close',value:false}],wide=true){
  const pending=ui108.modal(title,html,buttons,wide),root=document.querySelector('.ui-overlay108:last-child');root.classList.add('maintenance-modal14324');return pending;
 }
@@ -156,6 +245,13 @@ async function exportSelected(id){
  zip.file('READ-ME.txt','Selected raw data is described in export-selection.json. Reference rows are not date-filtered. Comparison contains cumulative posted balances through '+month+' and payroll results for that month, only for the selected datasets. Currencies are separate. Open comparison-reports-' + month + '.xlsx. Its General Ledger and Trial Balance calculate from Journal Data; Payroll calculates from saved payroll components. Enter independently prepared amounts in yellow External cells on Comparison. Re-export when adding records. The older six-column comparison CSV remains available for other systems. CSV text is escaped against spreadsheet formulas; JSON preserves exact source text.');
  const blob=await zip.generateAsync({type:'blob'});guard(id,client);await download('oonjai-maintenance-'+month+'.zip',blob,'application/zip');status('Selected maintenance export prepared.');
 }
+function showClosingState(){
+ const button=$('maintenanceClose14325'),month=$('maintenanceMonth14324')?.value;
+ if(!button||!month)return;
+ const finalized=['closed','locked'].includes(PeriodReview.status(month));
+ button.textContent=finalized?'Month finalized':'Review & Close Month';
+ button.disabled=busy||finalized;
+}
 function mountClosing(){
  const closing=document.createElement('section');closing.id=CLOSE;closing.className='tab-content';closing.dataset.module='transactions';$(ID).after(closing);
  const card=$(ID).querySelector('.maintenance-card14324');closing.append(card);
@@ -164,11 +260,13 @@ function mountClosing(){
  const nav=document.querySelector('#nav-module-transactions .nav-links'),button=document.createElement('button');button.type='button';button.className='tab-btn';button.textContent='Data Check';button.setAttribute('onclick',"switchTab('"+CLOSE+"')");nav.append(button);
  const tree=APP_PERMISSION_TREE.find(t=>t.id==='transactions');if(tree&&!tree.children.some(([id])=>id===CLOSE))tree.children.push([CLOSE,'Closing & Data Checks']);
  const link=document.createElement('p');link.innerHTML='<button type="button" class="je-btn" id="maintenanceGoClosing14325">Open Closing & Data Checks in Bookkeeping</button>';$(ID).prepend(link);link.firstChild.onclick=()=>switchTab(CLOSE);
- finishButton.onclick=()=>task(async()=>{const month=$('maintenanceMonth14324').value;if(await finish({kind:'period',month,status:'closed'})){status(month+' closed successfully.');if(typeof loadAccountingPeriodStatuses==='function')await loadAccountingPeriodStatuses();await runChecks();status(month+' closed successfully.');}});
+ finishButton.onclick=()=>task(async()=>{const month=$('maintenanceMonth14324').value;if(await finish({kind:'period',month,status:'closed'})){status(month+' closed successfully.');}});
+ window.addEventListener('period-finished280',showClosingState);window.addEventListener('page113',showClosingState);showClosingState();
  window.navigationWorkflow14316?.sync();
 }
-function install(){if(!$('settings-system')||$(ID))return;shell113.addSettings(ID,'Maintenance & Audit');$(ID).innerHTML='<div class="maintenance-grid14324"><section class="maintenance-card14324"><h3>Closing & Data Checks</h3><p><strong>Before period closing</strong></p><p>Run checks, reconcile cash and bank accounts, review flags, then confirm month closing. Test and reconciliation buttons do not close the month.</p><label>Month <input id="maintenanceMonth14324" type="month"></label><div class="maintenance-actions14324"><button id="maintenanceRun14324" type="button">Test Data</button><button id="maintenanceReconcile14324" type="button">Reconcile Accounts</button><button id="maintenanceReport14324" type="button">Export Check Report</button></div></section><section class="maintenance-card14324"><h3>Investigator</h3><p>Find an exact Entry ID, record ID, reference or employee ID and follow its saved links and audit history across all dates.</p><label>Identifier <input id="maintenanceQuery14324" type="search" placeholder="Entry ID or reference" autocomplete="off"></label><div class="maintenance-actions14324"><button id="maintenanceFind14324" type="button">Investigate</button></div></section><section class="maintenance-card14324"><h3>Independent Data Comparison</h3><p>Download General Ledger, Trial Balance and Payroll as an Excel comparison workbook with the selected month already filled in. Review its formulas, then enter independent figures in the yellow External cells to see differences. ZIP and CSV exports remain available.</p><div class="maintenance-actions14324"><button id="maintenanceExport14324" type="button">Export Maintenance Data</button><button type="button" class="maintenance-download14324">Excel Comparison Workbook</button></div><p>Exports contain company and payroll records. Keep downloaded copies with your accounting files.</p></section><section class="maintenance-card14324"><h3>System Diagnostics</h3><p>Check release files, required code, known logic tests and the current maintenance layout. Findings name the file and explain the likely effect.</p><div class="maintenance-actions14324"><button id="maintenanceSystem14324" type="button">Run System Diagnostics</button><button id="maintenanceSystemExport14324" type="button">Export Diagnostic Report</button></div><p>Checks compare against the tested release and recorded approved rules. They do not prove every possible workflow is free of bugs.</p></section></div><p id="maintenanceStatus14324" role="status" aria-live="polite"></p><p><a href="setup/INSTALL-MAINTENANCE-v143.24.sql" download>Database update</a> · <a href="docs/MAINTENANCE-v143.24.md" target="_blank" rel="noopener">Maintenance guide and check coverage</a></p><section id="maintenanceChecks14324" class="maintenance-result14324"></section><section id="maintenanceTrace14324" class="maintenance-result14324"></section><section id="maintenanceDiagnostics14324" class="maintenance-result14324"></section>';
- $('maintenanceMonth14324').value=monthNow();$('maintenanceMonth14324').onchange=()=>{checkup=null;$('maintenanceChecks14324').replaceChildren()};
+function install(){if(!$('settings-system')||$(ID))return;
+ document.addEventListener('click',event=>{const b=event.target.closest('[data-source-receipt321]');if(b&&actor())window.JournalReceipts224?.open(b.dataset.staffLine321?{staffLine:b.dataset.staffLine321,label:b.dataset.sourceReceipt321}:b.dataset.sourceReceipt321)});shell113.addSettings(ID,'Maintenance & Audit');$(ID).innerHTML='<div class="maintenance-grid14324"><section class="maintenance-card14324"><h3>Closing & Data Checks</h3><p><strong>Before period closing</strong></p><p>Run checks, reconcile cash and bank accounts, review flags, then confirm month closing. Test and reconciliation buttons do not close the month.</p><label>Month <input id="maintenanceMonth14324" type="month"></label><div class="maintenance-actions14324"><button id="maintenanceRun14324" type="button">Test Data</button><button id="maintenanceReconcile14324" type="button">Reconcile Accounts</button><button id="maintenanceReport14324" type="button">Export Check Report</button></div></section><section class="maintenance-card14324"><h3>Investigator</h3><p>Find an exact Entry ID, record ID, reference or employee ID and follow its saved links and audit history across all dates.</p><label>Identifier <input id="maintenanceQuery14324" type="search" placeholder="Entry ID or reference" autocomplete="off"></label><div class="maintenance-actions14324"><button id="maintenanceFind14324" type="button">Investigate</button></div></section><section class="maintenance-card14324"><h3>Independent Data Comparison</h3><p>Download General Ledger, Trial Balance and Payroll as an Excel comparison workbook with the selected month already filled in. Review its formulas, then enter independent figures in the yellow External cells to see differences. ZIP and CSV exports remain available.</p><div class="maintenance-actions14324"><button id="maintenanceExport14324" type="button">Export Maintenance Data</button><button type="button" class="maintenance-download14324">Excel Comparison Workbook</button></div><p>Exports contain company and payroll records. Keep downloaded copies with your accounting files.</p></section><section class="maintenance-card14324"><h3>System Diagnostics</h3><p>Check release files, required code, known logic tests and the current maintenance layout. Findings name the file and explain the likely effect.</p><div class="maintenance-actions14324"><button id="maintenanceSystem14324" type="button">Run System Diagnostics</button><button id="maintenanceSystemExport14324" type="button">Export Diagnostic Report</button></div><p>Checks compare against the tested release and recorded approved rules. They do not prove every possible workflow is free of bugs.</p></section></div><p id="maintenanceStatus14324" role="status" aria-live="polite"></p><p><a href="setup/INSTALL-MAINTENANCE-v143.24.sql" download>Database update</a> · <a href="docs/MAINTENANCE-v143.24.md" target="_blank" rel="noopener">Maintenance guide and check coverage</a></p><section id="maintenanceChecks14324" class="maintenance-result14324"></section><section id="maintenanceTrace14324" class="maintenance-result14324"></section><section id="maintenanceDiagnostics14324" class="maintenance-result14324"></section>';
+ $('maintenanceMonth14324').value=monthNow();$('maintenanceMonth14324').onchange=()=>{checkup=null;$('maintenanceChecks14324').replaceChildren();showClosingState()};
  mountClosing();
  $('maintenanceRun14324').onclick=()=>task(testSelected);
  $('maintenanceReconcile14324').onclick=()=>task(async()=>{const r=await review($('maintenanceMonth14324').value);if(r){await download('reconciliation-'+r.check.month+'.json',{check:r.check,review:r.review});status('Reconciliation review exported. No period status was changed.')}});

@@ -414,7 +414,6 @@ const api=window.PhoneApp132={
  closing:()=>allowed('period-review')?({month:PeriodReview.selectedMonth,status:PeriodReview.status(PeriodReview.selectedMonth),findings:PeriodReview.findings.filter(f=>f.month===PeriodReview.selectedMonth),entries:periodEntries()}):({month:'',status:'unavailable',findings:[],entries:[]}),
  closingMonth:month=>{api.navigate('period-review');selectReviewPeriod(month)},
  close:()=>run('period-review','approve',()=>finishEditing69(PeriodReview.selectedMonth)),
- lock:()=>run('period-review','approve',()=>changePeriodStatus('locked')),
  reopen:()=>run('period-review','edit',()=>changePeriodStatus('open')),
  finding:data=>run('period-review','edit',()=>{put('findingTransactionId',data.transaction);put('findingType',data.type);put('findingDescription',data.description);return savePeriodFinding({preventDefault(){}})}),
  schedule:id=>run('transactions-recurring','edit',()=>openScheduledEditor91(id||'')),

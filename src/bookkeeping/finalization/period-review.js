@@ -18,7 +18,7 @@ function renderPeriodReview(){
   setText('periodReviewDebits',formatAppNumber(rows.reduce((sum,row)=>sum+Number(row.debit||0),0)));
   setText('periodReviewCredits',formatAppNumber(rows.reduce((sum,row)=>sum+Number(row.credit||0),0)));
   setText('periodReviewOpenFindings',findings.filter(item=>!['corrected','closed'].includes(item.status)).length);
-  setText('periodClosingMessage',status==='open'?'Open periods accept normal postings.':status==='review'?'The period is under review.':status==='closed'?'Normal postings are blocked. Approved adjustments remain available.':'This period is locked and final. Add a review; post corrections in an open period.');
+  setText('periodClosingMessage',status==='open'?'Open periods accept normal postings.':status==='review'?'The period is under review.':status==='closed'?'Month closed. Use Reopen for a correction.':'This period is locked and final. Add a review; post corrections in an open period.');
   const statusNode=document.getElementById('periodReviewStatus');if(statusNode)statusNode.dataset.status=status;
   const reviewRoot=document.getElementById('period-review'),unavailable=document.getElementById('periodReviewUnavailable');
   if(reviewRoot)reviewRoot.classList.toggle('period-review-open',status==='open');

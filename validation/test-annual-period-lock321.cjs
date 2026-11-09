@@ -1,0 +1,36 @@
+const assert=require('node:assert/strict'), fs=require('node:fs'),path=require('node:path');
+const {PGlite}=require('@electric-sql/pglite');
+const root=path.resolve(__dirname,'..');
+(async()=>{const db=new PGlite();try{
+ await db.exec(`create schema private;create schema auth;create role anon;create role authenticated;
+ create function auth.uid() returns uuid language sql as $$select '00000000-0000-0000-0000-000000000001'::uuid$$;
+ create function public.require_admin136() returns uuid language sql as $$select auth.uid()$$;
+ create function public.accounting_workspace_allowed123() returns boolean language sql as $$select true$$;
+ create table accounting_periods(id uuid default gen_random_uuid(),period_month date primary key,status text,closed_at timestamptz,locked_at timestamptz,updated_by uuid,updated_at timestamptz);
+ create table accounts(id uuid primary key,code text,name text,is_technical boolean,account_purpose text,account_type text,currency_code text,is_posting boolean);
+ create table journal_entries(id uuid,transaction_date date,status text);
+ create table journal_lines(journal_entry_id uuid,account_id uuid,line_date date,currency_code text,debit numeric,credit numeric,base_debit numeric,base_credit numeric);
+ create table staff_journals(period_start date,status text);create table entry_submissions(transaction_date date,status text);
+ create table book_sessions136(id uuid,period_id uuid,status text,owner_id uuid,created_at timestamptz,operations jsonb);create table audit_reviews136(period_id uuid,status text);create table period_findings(accounting_period_id uuid,status text);create table payroll_runs(period_start date,status text);
+ create table profiles(id uuid primary key,role text,status text);create table year_closings136(year integer primary key,actor uuid,balances jsonb,closing_entries jsonb,anchor_entry uuid);
+ `);
+ await db.exec(fs.readFileSync(path.join(root,'setup/INSTALL-RECONCILIATION-v143.305.sql'),'utf8'));
+ const name=fs.readdirSync(path.join(root,'supabase/migrations')).find(n=>n.endsWith('_annual_period_lock321.sql'));
+ await db.exec(fs.readFileSync(path.join(root,'supabase/migrations',name),'utf8'));
+ await db.exec(`create or replace function public.maintenance_preflight14324(p_month date) returns jsonb language sql as $$select '{"issues":[],"reconciliation305":{"requirements":[]}}'::jsonb$$;
+ create or replace function private.reconciliation_session305(p_month date) returns uuid language sql as $$select null::uuid$$;
+ insert into accounting_periods(period_month,status,locked_at) values('2024-01-01','locked','2025-01-01'),('2024-02-01','closed',null),('2024-03-01','open',null);
+ create trigger annual_gate before insert or update of status on accounting_periods for each row execute function guard_maintenance14324();
+ select set_config('app.maintenance14324',jsonb_build_object('actor',auth.uid(),'months',(select jsonb_agg(to_char(make_date(2024,m,1),'YYYY-MM')) from generate_series(1,12)m))::text,false);`);
+ const pre=async()=>(await db.query('select year_preflight136(2024) c')).rows[0].c;
+ const close=async c=>(await db.query("select close_year136(2024,'CLOSE YEAR 2024',$1) c",[c.fingerprint])).rows[0].c;
+ assert((await pre()).blockers.length);
+ await assert.rejects(db.exec("update accounting_periods set status='locked' where period_month='2024-02-01'"),/year-end/);
+ await db.exec("update accounting_periods set status='closed' where period_month='2024-03-01'");
+ const c=await pre();assert.deepEqual(c.blockers,[]);assert((await close(c)).completed);assert((await close(c)).completed);
+ assert.equal((await db.query("select count(*) n from accounting_periods where status='locked'")).rows[0].n,12);
+ assert.equal((await db.query("select count(*) n from accounting_periods where locked_at='2025-01-01'")).rows[0].n,1);
+ assert.equal((await db.query('select count(*) n from year_closings136')).rows[0].n,1);
+ console.log('PASS annual finalization locks closed and missing months together, preserves prior locks and rejects standalone locks and incomplete years');
+ }finally{await db.close()}
+})().catch(e=>{console.error(e.message,e.where);process.exitCode=1});

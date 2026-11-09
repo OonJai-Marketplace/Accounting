@@ -1,1 +1,1 @@
-{"version": "143.320", "changes": ["Close the monthly review with one confirmation after required reconciliations. Routine warnings remain in Data Check for accounting follow-up.", "Optional reasons can be saved for a group, individual finding or expected monthly control-account balance. Annual review stays separate."]}
+{"version": "143.321", "changes": ["Close each month once. Close & Lock Year saves the annual report and locks the months in one action.", "Review source lines and receipts in Closing and Data Check. Post a due amortization directly from its plan."]}
