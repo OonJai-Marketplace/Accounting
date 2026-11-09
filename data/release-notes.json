@@ -1,6 +1,7 @@
 {
-  "version": "143.322",
+  "version": "143.323",
   "changes": [
-    "Fixed the Account dropdown on phone Double Entry lines so sub-users can tap and select their assigned accounts."
+    "Restored mint green collapsible Amortization headers and separated expanded details.",
+    "Open a loaded prepared journal without downloading the plan list again. Reduced repeated layout work when switching workspaces."
   ]
 }

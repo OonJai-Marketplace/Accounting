@@ -82,8 +82,10 @@ function showSectionMenu14355(trigger,panel){
 }
 function syncSectionMenus(panel){
  if(innerWidth<=640||document.documentElement.dataset.device132==='phone'){closeSectionMenu14355();return}
+ const sectionRows=panel.querySelectorAll(sectionRows14355);
+ if(!sectionRows.length)return;
  const trigger=mainTab14355(),canAnchor=trigger&&visible(trigger);
- for(const row of panel.querySelectorAll(sectionRows14355))if(row.classList.contains('section-menu-source14355')!==!!canAnchor)row.classList.toggle('section-menu-source14355',!!canAnchor);
+ for(const row of sectionRows)if(row.classList.contains('section-menu-source14355')!==!!canAnchor)row.classList.toggle('section-menu-source14355',!!canAnchor);
  const choices=canAnchor?sectionChoices14355(panel):[];
  if(trigger&&choices.length){trigger.setAttribute('aria-haspopup','menu');trigger.setAttribute('aria-controls','sectionMenu14355');if(!trigger.hasAttribute('aria-expanded'))trigger.setAttribute('aria-expanded','false')}
  if(pendingSection14355&&tabKey14355(trigger)===pendingSection14355&&choices.length){pendingSection14355='';showSectionMenu14355(trigger,panel)}

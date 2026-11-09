@@ -187,7 +187,11 @@ async function act(p,action){try{allowed();if(!p)throw Error('Refresh Upcoming f
 function fill(value){window.entry1430?.setMode('double');$('jeLinesBody').replaceChildren();if($('jeMultipleDates')?.checked)setJournalDateMode(false,true);$('jeTransDate').value=value.date;$('jeGeneralMemo').value=value.memo;
  for(const l of value.lines){const a=chart().find(a=>a.id===l.account_id);if(!a)throw Error('A prepared account is missing. Refresh accounts first.');addJournalLineRow(a.code+' — '+a.name,l.description,l.debit?String(l.debit):'',{[l.currency_code]:l.credit?String(l.credit):''});const r=$('jeLinesBody').lastElementChild;r.dataset.fxRate14383=l.fx_rate_lak;r.dataset.bookRate14383=l.book_rate_lak;const date=r.querySelector('.je-line-date');if(date)date.value=value.date;}
  JournalFX14383.restore(Object.fromEntries(value.lines.map(l=>[l.currency_code,l.fx_rate_lak])));calculateJournalBalance();$('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles:true}));window.dispatchEvent(new Event('save-state14234'));window.drafts1427?.flush();}
-async function prepare(plan){try{allowed();const c=context();await load(true);c.check();const p=state.rows.find(x=>x.id===plan.id),o=p&&next(p);if(!o||p.status!=='active')throw Error('No active occurrence is ready.');
+async function prepare(plan){try{allowed();const c=context();
+ // Opening an editor is a local read. Use the plan the user selected and
+ // join an explicit refresh already in progress. Posting validates the occurrence on the server.
+ if(!await (flight?.owner===c.owner&&flight.client===c.client?flight.promise:load()))throw Error(state.error||'Refresh Upcoming before opening the journal.');
+ c.check();const p=state.rows.find(x=>x.id===plan.id),o=p&&next(p);if(!o||p.status!=='active')throw Error('No active occurrence is ready.');
  if(JournalModule.editingEntryId||window.DriveDrafts143128?.preparedCount||window.DriveDrafts143128?.editing||pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId)throw Error('Finish the open journal or submitted entries first.');const old=pending();if(old&&old.id!==p.id||!old&&capture().lines.some(l=>l.account_id||l.debit||l.credit))throw Error('Finish or reset your current Post Entry draft before opening this prepared journal.');
  const value={id:p.id,occurrence:o.occurrence_no,date:o.due_date,memo:p.memo,kind:p.kind,title:p.title,lines:o.lines,owner:c.owner};remember(value);fill(value);switchTab('journal');showJournalEntry98();banner();
  }catch(e){fail(e);}}
