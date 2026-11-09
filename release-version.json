@@ -1,1 +1,1 @@
-{"version": "143.318", "changes": ["Confirm scheduled entries one at a time in the same window, then continue to closing.", "Review deferred reports by submitter and foreign-currency findings by journal. Record one reason per group."]}
+{"version": "143.319", "changes": ["Confirm the monthly closing review once. Enter a common reason and separate reasons for exceptions.", "Reuse saved decisions for unchanged findings and allow a specific control account to carry a monthly debit or credit balance with a reason."]}
