@@ -1,7 +1,6 @@
 {
-  "version": "143.321",
+  "version": "143.322",
   "changes": [
-    "Close each month once. Close & Lock Year saves the annual report and locks the months in one action.",
-    "Review source lines and receipts in Closing and Data Check. Post a due amortization directly from its plan."
+    "Fixed the Account dropdown on phone Double Entry lines so sub-users can tap and select their assigned accounts."
   ]
 }
