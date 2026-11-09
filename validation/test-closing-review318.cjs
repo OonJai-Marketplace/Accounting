@@ -60,13 +60,14 @@ const create = require('./phase0-browser-fixture.cjs');
   await page.evaluate(month => {window.testReview=maintenance14324.review(month)},month);
   const review=page.locator('.maintenance-modal14324');
   const groups=review.locator('[data-review-group]');
+  await review.getByText('Accounting follow-up (123)',{exact:true}).click();
   await groups.first().waitFor();
   assert.equal(await groups.count(),3);
   assert.match(await groups.first().locator('legend').innerText(),/Cashier · Cashier A/);
   const fxGroup=groups.filter({hasText:'Foreign currency · posted journals'});
   assert.equal(await fxGroup.locator('details details').count(),2);
   const submit=review.locator('footer button').last();
-  assert.equal(await submit.isDisabled(),true);
+  assert.equal(await submit.isEnabled(),true);
   await review.locator('[data-common-reason]').fill('Reviewed remaining source records');
   await groups.first().locator('[data-group-reason]').fill('Defer cashier drafts');
   await fxGroup.locator('summary').first().click();
@@ -79,6 +80,11 @@ const create = require('./phase0-browser-fixture.cjs');
   assert.equal(result.acknowledgments['report:june'].reason,'Defer cashier drafts');
   assert.equal(result.acknowledgments['fx:test:0'].reason,'Opening carrying value reviewed');
   assert.equal(result.acknowledgments['fx:test:119'].reason,'Reviewed remaining source records');
+  await page.evaluate(month=>{window.testReview=maintenance14324.review(month)},month);
+  await review.getByText('Accounting follow-up (123)',{exact:true}).waitFor();
+  await submit.click();
+  const monthly=await page.evaluate(async()=> (await window.testReview).review);
+  assert.equal(monthly.acknowledgments['fx:test:0'].reason,'Retained in Data Check for monthly accounting follow-up.');
   check.decisions319=Object.fromEntries(issues.map(i=>[i.id,{saved:{reason:result.acknowledgments[i.id].reason,month:'2025-12-01',allowCarry:false}}]));
   check.decisionRevision319='fixture-decisions';
   await page.evaluate(month=>{window.testReview=maintenance14324.review(month)},month);
@@ -89,6 +95,29 @@ const create = require('./phase0-browser-fixture.cjs');
   const repeated=await page.evaluate(async()=> (await window.testReview).review);
   assert.equal(repeated.decisionRevision319,'fixture-decisions');
   assert.deepEqual(repeated.acknowledgments,result.acknowledgments);
+  // A monthly close through Finish opens the final review directly. The database fixture records only an explicit final click.
+  let closeCalls=0;
+  await page.route('**/rest/v1/rpc/maintenance_finish14324',route=>{
+   fixture.fixture.tables.accounting_periods=[{period_month:month+'-01',status:'closed'}];
+   closeCalls++;return route.fulfill({json:{status:'closed'}});
+  });
+  await page.evaluate(month=>{
+   const record={id:'TEST-CLOSE',date:month+'-10',currency:'LAK',memo:'Temporary',account:'Cash',accountId:'fixture'};
+   JournalModule.entries.push({...record,debit:10,credit:0},{...record,debit:0,credit:10});
+   void finishEditing69(month);
+  },month);
+  await review.getByText('Previously acknowledged (123)',{exact:true}).waitFor();
+  assert.equal(closeCalls,0);
+  await review.getByRole('button',{name:'Confirm & Close Month',exact:true}).click();
+  await page.waitForFunction(month=>PeriodReview.status(month)==='closed',month);
+  assert.equal(closeCalls,1);
+
+  // The year-end action still requires an explicit reason for current findings.
+  await page.evaluate(month=>{window.testReview=maintenance14324.review(month,{kind:'year'})},month);
+  await review.locator('[data-common-reason]').waitFor();
+  assert.match(await review.locator('h3').allTextContents().then(parts=>parts.join(' ')),/annual review \(123\)/i);
+  assert.equal(await submit.isDisabled(),true);
+  await review.getByRole('button',{name:'Cancel',exact:true}).click();
   check.issues.push({id:'required-reconciliation',severity:'block',title:'Required reconciliation',detail:'Fixture account'});
   const blocked=await page.evaluate(async month=>{
    try{await maintenance14324.review(month);return false}catch(error){return error.message}

@@ -5672,7 +5672,9 @@ async function closeMonthFromAccounts(targetMonth){
   const rows=periodEntries(month);if(!rows.length){showAppNotification('No Entries','There are no posted entries in this month.',true);return}
   const currencies=[...new Set(rows.map(r=>r.currency))];
   if(currencies.some(c=>Math.abs(rows.filter(r=>r.currency===c).reduce((n,r)=>n+Number(r.debit)-Number(r.credit),0))>0.005)){showAppNotification('Unbalanced Month','Resolve the currency balances before closing.',true);return}
-  showAppConfirm('Close & Archive Month',`Close ${monthLabel(month)} after reviewing the General Ledger and Trial Balance?`,'Close Month',async()=>{if(liveProfile?.id!==actor)return;PeriodReview.selectedMonth=month;await changePeriodStatus('closed');refreshAllTables()});
+  if(liveProfile?.id!==actor)return;
+  PeriodReview.selectedMonth=month;
+  return changePeriodStatus('closed');
 }
 archiveTransactionMonth=function(month){document.getElementById('closeMonth67').value=month;scrollToAccountModule('sec-general-ledger')};
 startFindingAdjustment=function(id){

@@ -1,7 +1,7 @@
 {
-  "version": "143.319",
+  "version": "143.320",
   "changes": [
-    "Confirm the monthly closing review once. Enter a common reason and separate reasons for exceptions.",
-    "Reuse saved decisions for unchanged findings and allow a specific control account to carry a monthly debit or credit balance with a reason."
+    "Close the monthly review with one confirmation after required reconciliations. Routine warnings remain in Data Check for accounting follow-up.",
+    "Optional reasons can be saved for a group, individual finding or expected monthly control-account balance. Annual review stays separate."
   ]
 }
