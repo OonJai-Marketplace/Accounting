@@ -19,6 +19,7 @@ for(const type of ['pointerdown','mousedown','touchstart','click'])window.addEve
  const outside=e.target===root&&(root.tagName!=='DIALOG'||(()=>{const r=root.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom})());
  if(outside){stop(e);return;}
  if(type!=='click')return;const b=e.target.closest('button,[role=button],a');if(!b||replaying.has(b)||!isDismiss(b))return;
+ if(root.classList.contains('fund-popup326')&&b.hasAttribute('data-dismiss'))return; // Closing retains this form for the same signed-in session.
  if(state?.changed&&snapshot(root)!==state.base){stop(e);void confirm(root,b,state)}
 },true);
 for(const type of ['input','change'])window.addEventListener(type,e=>{const root=rootOf(e.target);if(root&&editable(root)){const state=track(root);if(state)state.changed=true}},true);

@@ -583,3 +583,8 @@ screens at sign-in. Show retained saves in the bell and provide source-group act
 Data Check, preserving individual review and server checks. Calendar News follows Monday
 08:00 Asia/Vientiane plus explicit refresh. Permission revalidation is interaction-driven.
 Release checks use worker events and explicit checks without a recurring desktop timer.
+
+Budget Request, 2026-11-10: Fund utilization opens the editable movement list in a
+popup, including when there are no saved requests. An open budget draft can be saved
+with its utilization. Unlinked utilization reports keep their own identity. A temporary
+advance and its linked repayment must stay distinct from income and actual spending.
