@@ -1,1 +1,7 @@
-{"version": "143.323", "changes": ["Restored mint green collapsible Amortization headers and separated expanded details.", "Open a loaded prepared journal without downloading the plan list again. Reduced repeated layout work when switching workspaces."]}
+{
+  "version": "143.324",
+  "changes": [
+    "Red financial audit events are permanently retained; only Orange events can be cleared after monthly review.",
+    "Separated administrator-assisted activity panel removed; previous audit history cleared from the active database after preservation in the compliance archive."
+  ]
+}

@@ -1,5 +1,6 @@
   window.auditDeletionPermissions143124=async function(rows,source,db){
     if(liveProfile?.role!=='admin')return rows;
+    if(source==='workspace_actor_audit138'){rows.forEach(r=>{r.deletePolicy143124=String(r.category143324||'').startsWith('O')?'green':'protected';});return rows;}
     const args=source==='audit_log'?{p_audit_ids:rows.map(r=>String(r.id))}:{p_deletion_ids:rows.map(r=>String(r.id))};
     const result=await db.rpc('audit_delete_permissions143124',args);if(result.error)throw result.error;
     const policies=new Map((result.data||[]).map(r=>[String(r.id),r.policy]));
@@ -58,7 +59,7 @@
       if(!r.data||!Array.isArray(r.data.rows))throw Error('Audit page service is not installed.');
       const page=r.data,rows=page.rows;
       if(s.offset>0&&s.offset>=Number(page.total)){s.offset=Math.max(0,Math.ceil(Number(page.total)/50)-1)*50;return window.loadTransactionAudit(true);}
-      await Promise.all(['audit_log','record_deletions108'].map(source=>{const part=rows.filter(x=>x.auditSource1434===source);return part.length?auditDeletionPermissions143124(part,source,db):null;}));
+      await Promise.all(['audit_log','record_deletions108','workspace_actor_audit138'].map(source=>{const part=rows.filter(x=>x.auditSource1434===source);return part.length?auditDeletionPermissions143124(part,source,db):null;}));
       if(!current())return;
       Object.assign(s,{key,month,months:page.months||[],total:Number(page.total)||0,counts:page.counts||{},loaded:true,offline:false});
       await window.offlineAudit143174?.rememberAudit(rows.map(x=>s.details.get((x.auditSource1434||'audit_log')+':'+x.id)||x));
