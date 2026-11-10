@@ -47,7 +47,7 @@ function renderer(id){
  if(id.startsWith('hr-'))return ()=>window.renderHr99?.();
  if(id.startsWith('payroll-')||['transactions-budget14313','report-subusers82','report-financing82','report-payroll'].includes(id))return ()=>window.renderWork82?.();
  if(id.startsWith('report-')&&typeof reportNames79!=='undefined'&&reportNames79[id.slice(7)])return ()=>renderReports79();
- if(id==='report-reconciliation')return ()=>window.renderReconciliationList71?.();
+ if(id==='report-reconciliation')return ()=>window.workspace14337?.summary();
  if(id==='local-events'||id==='local-events-account')return ()=>window.localEvents14364?.render();
  return null;
 }
@@ -57,12 +57,17 @@ async function build(initial=true){if(pendingBuild)return pendingBuild;const who
   if(initial&&current()==='local-events'&&liveProfile?.role==='admin'&&allowed('local-events'))await window.localEvents14364?.load();
   if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');
   if(initial&&allowed('report-bs'))window.prepareReportDefaults14364?.();
-  const targets=[current()].filter(allowed).filter(id=>!window.startup14257?.requirements||startup14257.requirements(id).every(name=>startup14257.isPrepared(name)));
+  const initialView=current();
+  const ids=initial?[...document.querySelectorAll('.tab-content[id]')].map(node=>node.id):[initialView];
+  // Build the visible screen last so shared controls and report selections end on it.
+  const targets=[...new Set([...ids.filter(id=>id!==initialView),initialView])].filter(allowed).filter(id=>!window.startup14257?.requirements||startup14257.requirements(id).every(name=>startup14257.isPrepared(name)));
   for(const id of targets){if(!initial&&window.idleSync14341&&!idleSync14341.allowed())break;if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');if(!initial&&valid(id))continue;
+   const fn=renderer(id);if(!fn)continue;
    preparingTarget=id;const node=document.getElementById(id),prior=[...document.querySelectorAll('.tab-content.active')];prior.forEach(n=>n.classList.remove('active'));node.classList.add('active');restore(id);
-   let result;try{rendering=true;const fn=renderer(id);result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(()=>fn?.()):fn?.();}
+   let result;try{rendering=true;result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(fn):fn();if(result?.then)result=await result;}
+   catch(error){prepared.delete(id);console.warn('Screen will load on opening:',id,error.message);continue;}
    finally{rendering=false;node.classList.remove('active');prior.forEach(n=>n.classList.add('active'));holdPayroll(current());}
-   if(result?.then)await result;if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');prepared.set(id,signature(id));
+   if(result===false){prepared.delete(id);continue;}if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');prepared.set(id,signature(id));
    await new Promise(resolve=>setTimeout(resolve,0));if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');
   }
  }finally{if(reportKind!==null)Reports79.kind=reportKind;building=false;pendingBuild=null;preparingTarget='';restore(current());window.shell113?.sync();}
@@ -72,9 +77,7 @@ async function finish(){
  const who=actor(),db=client();window.startup14257.preparing=true;
  try{await build(true);if(actor()!==who||client()!==db)return;window.startup14257.prepared=true;}
  finally{window.startup14257.preparing=false;}
- // Login/reload completes its online upload and six-stage refresh before dismissing preparation.
- // Cached screens remain usable when offline, without reporting a cloud confirmation.
- if(window.offline14239?.canRefresh())await window.idleSync14341?.run(false,{trigger:'login'});
+ // Preparing cached screens must never submit this account's outbox.
  if(actor()!==who||client()!==db)return;
  window.startup14257.interactive=true;document.body.classList.remove('startup-pending1443');
  const box=document.getElementById('startup1443');if(box)box.hidden=true;window.idleSync14341?.preparation('');
@@ -86,7 +89,7 @@ function ready(){
  for(const name of names){const fn=window[name];if(typeof fn!=='function')continue;window[name]=function(...args){const id=current();// Financial reports validate their own rendered host and journal revision.
  if(name==='renderReports79')return fn.apply(this,args);
  if(navigation&&!building&&valid(id)){restore(id);return}const result=fn.apply(this,args);return result};}
- const switchTab=window.switchTab;window.switchTab=function(id,...args){if(id==='payroll-overview'&&current()!==id&&window.payrollOverview269?.enter())prepared.delete(id);navigation++;try{return switchTab.call(this,id,...args)}finally{navigation--;const actual=current();restore(actual);remember(actual);holdPayroll(actual)}};
+ const switchTab=window.switchTab;window.switchTab=function(id,...args){if(['payroll-entries','payroll-deductions'].includes(id)&&allowed(id))restore(id);if(id==='payroll-overview'&&current()!==id&&window.payrollOverview269?.enter())prepared.delete(id);navigation++;try{return switchTab.call(this,id,...args)}finally{navigation--;const actual=current();restore(actual);remember(actual);holdPayroll(actual)}};
  const scroll=window.scrollToAccountModule;window.scrollToAccountModule=function(...args){navigation++;try{return scroll.apply(this,args)}finally{navigation--;const id=current();remember(id)}};
  for(const [name,group]of Object.entries({loadJournalFromSupabase:'journal',loadReferenceDataFromSupabase:'reference',loadWork82:'payroll',loadStaffJournalsForReview:'review',loadSubmissionsFromSupabase:'review',loadBusinessSettingsFromSupabase:'settings',loadTransactionAudit:'journal'})){const fn=window[name];if(typeof fn!=='function')continue;window[name]=async function(...args){const before=signature(group==='payroll'?'payroll-overview':group==='reference'?'chart-of-accounts':group==='review'?'user-entry-review':'journal');const result=await fn.apply(this,args);const after=signature(group==='payroll'?'payroll-overview':group==='reference'?'chart-of-accounts':group==='review'?'user-entry-review':'journal');if(!equal(before,after))invalidate(group);return result};}
  document.addEventListener('input',e=>{if(!e.isTrusted)return;const id=e.target.closest('.tab-content')?.id;if(!id)return;if(['payroll-entries','payroll-deductions','hr-attendance'].includes(id))versions.payroll++;},true);

@@ -22,26 +22,29 @@ function ready(){
   // Refresh shared submissions/people when entering their screens, not on every access check.
   if(['user-entry-review','sub-users-home14229','settings-users','settings-organization14229'].includes(target)&&can(target))void window.Organization14229?.revalidate();
  });let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh()})}).observe(document.body,{childList:true,subtree:true});
- let verification=null,retryTimer=null;
+ let verification=null,lastCheck=0,lastActor=null,lastClient=null;
  function reconnect(show,message='The connection was interrupted. Rechecking your access…'){
   window.permissions1441.reconnecting=show;let box=document.getElementById('sessionReconnect14233');
   if(show&&!box){box=document.createElement('section');box.id='sessionReconnect14233';box.className='session-reconnect14233';box.setAttribute('role','alertdialog');box.setAttribute('aria-modal','true');box.innerHTML='<div><h2>Reconnecting</h2><p></p><button type="button" data-retry>Retry now</button><button type="button" data-signout>Sign out</button></div>';document.body.append(box);box.querySelector('[data-retry]').onclick=()=>verify();box.querySelector('[data-signout]').onclick=()=>logoutDemoUser();}
   if(box){box.hidden=!show;box.querySelector('p').textContent=message;}
   const layout=document.querySelector('.app-layout');if(layout){if(show){if(!layout.inert)layout.dataset.reconnectInert14233='1';layout.inert=true}else if(layout.dataset.reconnectInert14233){layout.inert=false;delete layout.dataset.reconnectInert14233}}
  }
- const logoutBefore=window.logoutDemoUser;window.logoutDemoUser=function(...args){clearTimeout(retryTimer);reconnect(false);return logoutBefore.apply(this,args)};
+ const logoutBefore=window.logoutDemoUser;window.logoutDemoUser=function(...args){reconnect(false);return logoutBefore.apply(this,args)};
 
- async function verify(){
+ async function verify(fresh=false){
   const id=typeof liveProfile==='undefined'?null:liveProfile?.id,epoch=typeof sessionEpoch1430==='undefined'?0:sessionEpoch1430,client=ojmDb;if(!id||!client||window.workspaceRequest138?.busy){if(!id)reconnect(false);return;}const current=()=>liveProfile?.id===id&&ojmDb===client&&(typeof sessionEpoch1430==='undefined'||epoch===sessionEpoch1430);
   if(verification?.current())return verification.promise;
+  lastCheck=Date.now();lastActor=id;lastClient=client;
   const job={current,promise:null};verification=job;
   job.promise=(async()=>{try{
-   let timeout;const r=await Promise.race([client.rpc('current_access14228'),new Promise((_,reject)=>timeout=setTimeout(()=>reject(Error('Connection timed out.')),12000))]).finally(()=>clearTimeout(timeout));if(r.error)throw Object.assign(new Error(r.error.message),r.error,{status:r.status||r.error.status});
+   let timeout;const request=client.rpc('current_access14228');
+   if(fresh===true)request.setHeader('x-ojm-database-only','1');
+   const r=await Promise.race([request,new Promise((_,reject)=>timeout=setTimeout(()=>reject(Error('Connection timed out.')),12000))]).finally(()=>clearTimeout(timeout));if(r.error)throw Object.assign(new Error(r.error.message),r.error,{status:r.status||r.error.status});
    if(!current())return;
    if(r.data?.profile?.id!==id||r.data.profile.status!=='active')throw Object.assign(Error('This account is inactive or no longer permitted.'),{code:'ACCESS_REVOKED'});
    const changed14229=JSON.stringify([liveProfile,livePermission])!==JSON.stringify([r.data.profile,r.data.permissions]);liveProfile=r.data.profile;livePermission=r.data.permissions;if(changed14229){window.Organization14229?.invalidate();window.PrivateReminders14229?.invalidate();}
    const self=liveProfiles.find(u=>u.id===id);if(self)Object.assign(self,liveProfile,{user_permissions:livePermission});
-   window.permissions1441.verified=true;window.permissions1441.stale=false;clearTimeout(retryTimer);reconnect(false);
+   window.permissions1441.verified=true;window.permissions1441.stale=false;reconnect(false);
    refresh();
    // Access stays fresh without downloading unchanged business data every 30 seconds.
    // Startup, explicit refresh and mutations still own directory/inbox refreshes.
@@ -58,13 +61,22 @@ function ready(){
    const previouslyVerified=window.permissions1441.verified;
    const denied=['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e.code)||[401,403].includes(Number(e.status));
    if(denied){window.deviceVault14334?.revoke();window.permissions1441.verified=false;reconnect(false);document.getElementById('loginGate')?.classList.remove('is-authenticated');await logoutDemoUser();showLoginForm('');}
-   else if(previouslyVerified){window.permissions1441.stale=true;reconnect(false);clearTimeout(retryTimer);window.offline14239?.connectionIssue?.(e.message||'Access refresh interrupted');retryTimer=setTimeout(verify,15000);}
-   else{window.permissions1441.verified=false;reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));clearTimeout(retryTimer);retryTimer=setTimeout(verify,5000);}
+   else if(previouslyVerified){window.permissions1441.stale=true;reconnect(false);window.offline14239?.connectionIssue?.(e.message||'Access refresh interrupted');}
+   else{window.permissions1441.verified=false;reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));}
   }finally{if(verification===job)verification=null}})();return job.promise;
  }
  window.permissions1441={refresh,verify,verified:true,reconnecting:false,stale:false};refresh();
- window.addEventListener('online',verify);window.addEventListener('focus',verify);document.addEventListener('visibilitychange',()=>{if(!document.hidden)verify()});
- setInterval(()=>{if(!document.hidden)verify()},30000);verify();
+ function onUse(event){
+  if(!event.isTrusted||document.hidden||navigator.onLine===false||!liveProfile?.id)return;
+  if(event.type==='click'){
+   const control=event.target.closest?.('button,[role=button],a[href],[onclick]');
+   if(!control||!control.closest('#appSidebar,#categoryTabs,#modalUserAccess,#userAccessForm')&&!window.access113?.actionFor(control))return;
+  }
+  if(lastActor!==liveProfile.id||lastClient!==ojmDb||Date.now()-lastCheck>=30000)void verify(true);
+ }
+ document.addEventListener('click',onUse,true);
+ document.addEventListener('submit',onUse,true);
+ verify();
 }
 document.addEventListener('DOMContentLoaded',ready,{once:true});
 })()

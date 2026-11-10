@@ -158,12 +158,15 @@ async function sync({explicit=false,targetId=null}={}){const c=context();await i
  if(valid(c)){await window.offlineAudit143174?.sync();project();refreshAllTables();try{window.yearWindow14333?.invalidateMemory?.();await loadJournalFromSupabase({cacheFirst:false});if(valid(c))await loadTransactionAudit()}catch(e){/* Confirmed operations remain available in the durable device overlay. */}}
  };
  flight=Promise.resolve().then(()=>navigator.locks?navigator.locks.request('ojm-journal14385:'+identity(c),{ifAvailable:true},lock=>lock?execute():undefined):execute()).finally(()=>{flight=null;if(valid(c))changed()});return flight}
-function project(){if(typeof JournalModule==='undefined')return;let base=JournalModule.entries.filter(r=>!r.localJournal14385);
- for(const j of pending())for(let i=0;i<j.entries.length;i++){const r=j.receipt?.[i],value=desired(j,i),dirty=j.changes.some(op=>op.index===i);
+function project(){if(typeof JournalModule==='undefined')return;
+ const jobs=pending();
+ if(!jobs.length&&!JournalModule.entries.some(row=>row.localJournal14385))return;
+ let base=JournalModule.entries.filter(r=>!r.localJournal14385);
+ for(const j of jobs)for(let i=0;i<j.entries.length;i++){const r=j.receipt?.[i],value=desired(j,i),dirty=j.changes.some(op=>op.index===i);
  if(r&&dirty)base=base.filter(l=>l.dbEntryId!==r.entry_id);
  if(!value||r&&!dirty&&base.some(l=>l.dbEntryId===r.entry_id))continue;
  for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({localJournal14385:true,local14333:true,journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:r?.entry_no||'Device-'+j.id+(j.entries.length>1?'-'+(i+1):''),dbEntryId:r?.entry_id||null,postingDate:value.date,date:line.line_date||value.date,created_at:j.created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
- JournalModule.entries=base}
+ if(base.length!==JournalModule.entries.length||base.some((row,i)=>row!==JournalModule.entries[i]))JournalModule.entries=base}
 function retirementCheckpoint(){return new Map(pending().filter(j=>j.status==='saved'&&j.receipt&&!j.changes.some(op=>op.status!=='saved')).map(j=>[j.id,canonical(j)]))}
 async function reconcile(remote,checkpoint=new Map()){const c=context();if(loaded!==identity(c))return;const ids=new Set(remote.map(l=>l.dbEntryId));await mutate(c,list=>{for(const j of list.filter(active)){if(j.status!=='saved'||!j.receipt||j.voucher&&!j.voucherLinked||j.changes.some(op=>op.status!=='saved'))continue;
  // A fresh complete cloud snapshot supersedes already-confirmed device copies.

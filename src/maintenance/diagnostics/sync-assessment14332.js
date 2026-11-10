@@ -18,6 +18,10 @@ function findings(selected=''){
  const requests=new Map((window.syncRecords284?.pending()||[]).map(r=>[r.id,r]));
  const refresh=window.idleSync14341?.refreshFindings?.()||[];
  const raw=[...refresh,...jobs,...main,...legacy,...errors,...(window.journalDurable14385?.findings()||[]),...(window.offlineAudit143174?.findings()||[]),...(window.localFirst14333?.findings?.()||[]),...(window.syncRecovery14351?.findings()||[])].filter(f=>!(refresh.length&&f.id==='year-loading14333'&&f.detail?.startsWith('Refreshing saved records is waiting: ')));
+ for(const request of requests.values()){
+  if(request.status!=='server-confirmed'&&!raw.some(item=>item.id===request.id))
+   raw.push({id:request.id,periods:[],kind:request.kind,status:request.status,critical:!request.retry});
+ }
  return [...new Map(raw.map(f=>[f.id,f])).values()].map(f=>{
   const request=requests.get(f.id);
   if(!request)return f;
@@ -25,7 +29,7 @@ function findings(selected=''){
   return {...f,kind:confirmed?'cleanup':f.kind,critical:confirmed?false:f.critical,status:request.state,title:request.source+' · '+window.syncRecords284.summarize(request.items),detail:request.message||request.action,repair:request.retry?'request':request.recheck?'recheck':null};
  }).map(f=>({...f,created:f.created||f.job?.created||f.job?.syncedAt||null,source:f.job?.kind||f.kind})).filter(f=>!selected||f.periods.includes(selected)||!f.periods.length||f.kind==='storage');
 }
-function notices(){const items=findings();if(!items.length)return [];const overview=window.idleSync14341?.overview(),count=overview?.pending??items.length,issues=new Set(items.filter(f=>f.critical).map(f=>f.id)).size;const fingerprint=JSON.stringify(items.map(f=>[f.id,f.status]).sort()).split('').reduce((hash,c)=>Math.imul(hash^c.charCodeAt(0),16777619)>>>0,2166136261).toString(36);return [{noticeId:'sync-'+fingerprint,type:'Synchronization',title:count?count+' records waiting to sync':issues?'Sync needs attention':'Saved copies need checking',detail:[issues?issues+' need review':'',overview?.pendingBytes?idleSync14341.bytes(overview.pendingBytes)+' queued':'','Open sync summary'].filter(Boolean).join(' · '),target:'sync-status',syncId:'overview',critical:issues>0,persistent:count>0||issues>0}];}
+function notices(){const items=findings();if(!items.length)return [];const overview=window.idleSync14341?.overview(),count=overview?.pending??items.length,issues=new Set(items.filter(f=>f.critical).map(f=>f.id)).size;const fingerprint=JSON.stringify(items.map(f=>[f.id,f.status]).sort()).split('').reduce((hash,c)=>Math.imul(hash^c.charCodeAt(0),16777619)>>>0,2166136261).toString(36);return [{noticeId:'sync-'+fingerprint,type:'Synchronization',title:count?count+' records waiting to sync':issues?'Sync needs attention':'Saved copies need checking',detail:[issues?issues+' need review':'',overview?.pendingBytes?idleSync14341.bytes(overview.pendingBytes)+' queued':'','Open Data Check to sync by group'].filter(Boolean).join(' · '),target:window.access113?.can('transactions-closing14325')?'transactions-closing14325':'sync-status',syncId:'overview',critical:issues>0,persistent:count>0||issues>0}];}
 function pendingFor(monthKey){return findings().filter(f=>!['storage','setup','cleanup','recovery','refresh'].includes(f.kind)&&(!f.periods.length||f.periods.some(m=>m<=monthKey)));}
 function duplicateCandidates(selected){const rows=typeof JournalModule==='undefined'?[]:JournalModule.entries||[],entries=new Map(),same=new Map();for(const row of rows){if(!String(row.date||'').startsWith(selected)||!row.id)continue;let group=entries.get(row.id);if(!group){group=[];entries.set(row.id,group)}group.push(row)}for(const [id,group] of entries){const signature=JSON.stringify([group[0].date,String(group[0].generalMemo||'').trim().toLowerCase(),group.map(r=>[r.accountId||r.account,r.currency,Number(r.debit||0),Number(r.credit||0)]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]);let list=same.get(signature);if(!list){list=[];same.set(signature,list)}list.push(id)}return [...same.values()].filter(ids=>ids.length>1)}
 function beforeClose(monthKey){const pending=pendingFor(monthKey);if(pending.length)throw Error(pending.length+' device entry or save(s) dated through '+monthKey+' still need database confirmation. Open Bookkeeping → Data Check and resolve them before closing.');if(state()?.storageError)throw Error('Device storage has an error. Open Connection & sync and resolve it before closing.');}
@@ -56,8 +60,34 @@ async function repair(id){
  }).finally(()=>{activeRepairs.delete(key);render();window.offline14239?.refreshDialog();});
  activeRepairs.set(key,promise);return promise;
 }
+let syncingGroup=false;
+function groupButtons(controls){
+ const sources=new Map();
+ for(const row of window.syncRecords284?.pending()||[]){
+  if(!row.retry)continue;
+  if(!sources.has(row.source))sources.set(row.source,[]);
+  sources.get(row.source).push(row.id);
+ }
+ const host=controls.querySelector('[data-sync-groups]'),who=liveProfile?.id;
+ const key=JSON.stringify([who,[...sources],syncingGroup,navigator.onLine]);
+ if(host.dataset.groups===key)return;
+ host.dataset.groups=key;host.replaceChildren();
+ for(const [source,ids] of sources){
+  const button=document.createElement('button');button.type='button';button.textContent='Sync '+source+' ('+ids.length+')';
+  button.disabled=syncingGroup||navigator.onLine===false;
+  button.onclick=async()=>{
+   if(syncingGroup||liveProfile?.id!==who)return;
+   syncingGroup=true;const status=controls.querySelector('p');status.textContent='Syncing '+source+'…';render();
+   try{await window.syncRecords284.retryGroup(ids,source);if(liveProfile?.id===who)status.textContent=source+' confirmed.';}
+   catch(e){if(liveProfile?.id===who)status.textContent=e.message;}
+   finally{syncingGroup=false;render();window.refreshNotices1443?.();}
+  };
+  button.title='Sync waiting '+source+' requests across all months';
+  host.append(button);
+ }
+}
 function render(){const host=$('maintenanceSync14332');if(!host||!host.closest('.tab-content.active'))return;const selected=$('maintenanceMonth14324')?.value||'',all=findings(),items=all.filter(f=>!selected||f.periods.includes(selected)||!f.periods.length||f.kind==='storage'),late=all.filter(f=>f.late).length,duplicates=duplicateCandidates(selected);
- let controls=host.querySelector('[data-sync-tools14351]');if(!controls){controls=document.createElement('div');controls.dataset.syncTools14351='';controls.className='maintenance-actions14324';controls.innerHTML='<button type="button" data-sync-now14343>Sync All Pending</button><button type="button" data-backup>Download Recovery Backup</button><button type="button" data-restore>Restore Recovery Backup</button><button type="button" data-cleanup>Clean Up Synchronized Backups</button><button type="button" data-result>Latest Sync Result</button><p role="status"></p>';host.prepend(controls);controls.querySelector('[data-backup]').onclick=()=>syncRecovery14351.open('export');controls.querySelector('[data-restore]').onclick=()=>syncRecovery14351.open('import');controls.querySelector('[data-cleanup]').onclick=async()=>{try{const r=await syncRecovery14351.cleanup();controls.querySelector('p').textContent=r.message;render()}catch(e){controls.querySelector('p').textContent=e.message}};controls.querySelector('[data-result]').onclick=()=>idleSync14341.show(true);}window.idleSync14341?.paint();controls.querySelector('[data-result]').hidden=false;const resultButton=controls.querySelector('[data-result]');if(resultButton.textContent!=='Sync summary')resultButton.textContent='Sync summary';
+ let controls=host.querySelector('[data-sync-tools14351]');if(!controls){controls=document.createElement('div');controls.dataset.syncTools14351='';controls.className='maintenance-actions14324';controls.innerHTML='<span data-sync-groups></span><button type="button" data-backup>Download Recovery Backup</button><button type="button" data-restore>Restore Recovery Backup</button><button type="button" data-cleanup>Clean Up Synchronized Backups</button><button type="button" data-result>Latest Sync Result</button><p role="status"></p>';host.prepend(controls);controls.querySelector('[data-backup]').onclick=()=>syncRecovery14351.open('export');controls.querySelector('[data-restore]').onclick=()=>syncRecovery14351.open('import');controls.querySelector('[data-cleanup]').onclick=async()=>{try{const r=await syncRecovery14351.cleanup();controls.querySelector('p').textContent=r.message;render()}catch(e){controls.querySelector('p').textContent=e.message}};controls.querySelector('[data-result]').onclick=()=>idleSync14341.show(true);}groupButtons(controls);controls.querySelector('[data-result]').hidden=false;const resultButton=controls.querySelector('[data-result]');if(resultButton.textContent!=='Sync summary')resultButton.textContent='Sync summary';
  let content=host.querySelector('[data-sync-content14335]');if(!content){content=document.createElement('div');content.dataset.syncContent14335='';host.append(content);}
  const markup='<p>'+esc(items.length?items.length+' findings for this month or device (includes diagnostics and recovery, not just transactions). '+(late?late+' closed-period item(s) require review.':''):'No known device sync findings for this month. Other offline devices cannot be checked until they reconnect.')+'</p>'+
  items.map((f,i)=>'<article data-sync-finding14351="'+esc(f.id)+'" class="sync-finding14332 '+(f.late?'late14332':f.critical?'error14332':'pending14332')+'"><strong>'+esc(f.title)+'</strong><span>'+esc(f.periods.join(', ')||'Device')+' · '+esc(f.status)+'</span><p>'+esc(f.detail)+'</p><small>Source: '+esc(f.source)+' · Created: '+esc(f.created?formatAppDate(f.created,true):'Not recorded by the original operation')+(f.date?' · Dates: '+esc(f.date):'')+(f.amount?' · Amounts: '+esc(f.amount):'')+'</small><div><button type="button" data-copy14332="'+i+'">Download entry details</button>'+(action(f)?'<button type="button" data-open14332="'+i+'">'+esc(action(f)[0])+'</button>':'')+' '+(f.manualCleanup?'<button type="button" data-manual-cleanup14351="'+i+'">I removed the downloaded backup</button>':'')+'</div></article>').join('')+

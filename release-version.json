@@ -1,7 +1,1 @@
-{
-  "version": "143.324",
-  "changes": [
-    "Red financial audit events are permanently retained; only Orange events can be cleared after monthly review.",
-    "Separated administrator-assisted activity panel removed; previous audit history cleared from the active database after preservation in the compliance archive."
-  ]
-}
+{"version": "143.325", "changes": ["Sync saved records manually by group in Data Check. The bell reminds you when work is waiting.", "Prepare workspaces at sign-in. Check calendar news weekly and verify access on use. Website updates no longer poll while you work.", "Red financial audit events are permanently retained; only Orange events can be cleared after monthly review.", "Separated administrator-assisted activity panel removed; previous audit history cleared from the active database after preservation in the compliance archive."]}

@@ -32,8 +32,34 @@ function banner(){const n=pending().length;return '<div class="hr-news-banner143
 function redraw(){C.render();window.localEvents14310?.render();window.refreshNotices1443?.()}
 async function bridge(action){const actor=liveProfile?.id,db=ojmDb,auth=await db.auth.getSession(),token=auth.data?.session?.access_token;if(!token)throw Error('Sign in to load news from Google Sheets.');const response=await fetch(OJM_SUPABASE_URL+'/functions/v1/google-journal-bridge',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action}),signal:AbortSignal.timeout(35000)});const result=await response.json();if(actor!==liveProfile?.id||db!==ojmDb)throw Error('Account changed. Reopen News.');if(!response.ok||result.error)throw Error(result.error||'News could not sync.');return result;}
 async function syncHistory(){try{const r=await bridge('news-history');state.historyError=r.history?.error||'';}catch(e){state.historyError=e.message}redraw();}
-async function refresh(force=false){if(!allowed())return;if(state.owner!==liveProfile.id){state.feed=null;state.lastFetch=0;state.error='';state.sheet='';state.historyError='';state.owner=liveProfile.id;}if(state.loading)return state.loading;if(!force&&Date.now()-state.lastFetch<60000&&state.feed)return;
- const actor=state.owner;state.loading=(async()=>{try{const r=await bridge('news-read');if(actor!==liveProfile?.id)return;state.feed=validate(r.feed);state.sheet=r.sheet;state.lastFetch=Date.now();state.error='';state.historyError=r.history?.error||'';}catch(e){if(actor===liveProfile?.id)state.error=(state.feed?'Showing last loaded news. ':'')+e.message;}finally{state.loading=null;redraw()}})();return state.loading;
+const WEEK=7*86400000;
+const mondayEight=Date.UTC(1970,0,5,1); // 08:00 in Vientiane
+const weekStart=()=>mondayEight+Math.floor((Date.now()-mondayEight)/WEEK)*WEEK;
+let attempted=0,weeklyTimer;
+function armWeekly(){
+ clearTimeout(weeklyTimer);
+ weeklyTimer=setTimeout(()=>{if(!document.hidden)void refresh();},Math.max(1,weekStart()+WEEK-Date.now()));
+}
+async function refresh(force=false){
+ if(!allowed())return;
+ const actor=liveProfile.id,db=ojmDb,key=localKey()+':weekly-feed',week=weekStart();
+ if(state.owner!==actor){
+  Object.assign(state,{owner:actor,feed:null,loading:null,lastFetch:0,error:'',historyError:'',sheet:''});attempted=0;
+  try{const saved=JSON.parse(localStorage.getItem(key));if(saved){state.feed=validate(saved.feed);state.sheet=saved.sheet;state.lastFetch=saved.at;}}catch{}
+ }
+ armWeekly();
+ if(state.loading)return state.loading;
+ if(!force&&(attempted===week||state.lastFetch>=week)||navigator.onLine===false)return;
+ attempted=week;
+ const current=()=>allowed()&&liveProfile.id===actor&&ojmDb===db&&state.owner===actor;
+ const task=(async()=>{try{
+  const r=await bridge('news-read');if(!current())return;
+  state.feed=validate(r.feed);state.sheet=r.sheet;state.lastFetch=Date.now();state.error='';state.historyError=r.history?.error||'';
+  try{localStorage.setItem(key,JSON.stringify({feed:state.feed,sheet:state.sheet,at:state.lastFetch}));}catch{}
+ }catch(e){if(current())state.error=(state.feed?'Showing last loaded news. ':'')+e.message;}
+ finally{if(current())redraw();}})();
+ state.loading=task;
+ try{return await task;}finally{if(state.loading===task)state.loading=null;}
 }
 function sources(p){return p.sources.map(s=>'<a href="'+esc(safeUrl(s.url))+'" target="_blank" rel="noopener noreferrer">'+esc(s.name)+'</a> ('+(s.language==='lo'?'Lao · English summary':s.language==='en'?'English':'English summary')+')').join(' · ')}
 function row(p,decided=false){const decision=decisions()[p.id],old=C.allEvents(Number((p.start||M.today()).slice(0,4))).find(e=>e.id===p.id);return '<article class="'+(accounting(p)?'accounting-news143189':'')+'"><span class="news-category143189">'+(accounting(p)?'High priority · Accounting Updates':'Community &amp; Marketing')+'</span><h4>'+esc(p.title)+'</h4><small>'+esc(p.category+' · '+p.location+' · '+p.confidence.replaceAll('-',' '))+'</small><p><strong>'+esc(p.start?formatAppDate(p.start)+(p.end!==p.start?' – '+formatAppDate(p.end):''):'Date awaiting a confirmed announcement')+'</strong>'+(old&&p.start&&(old.start!==p.start||old.end!==p.end)?'<br>Currently in calendar: '+esc(formatAppDate(old.start)+' – '+formatAppDate(old.end)):'')+'</p><p>'+esc(p.summary)+'</p>'+(p.uncertainty?'<p class="hr-review-note14307">'+esc(p.uncertainty)+'</p>':'')+(p.restaurantIdea?'<p><b>Suggested action:</b> '+esc(p.restaurantIdea)+' <small>Suggestion, not a statement from the source.</small></p>':'')+'<p>'+sources(p)+'</p>'+(decided&&decision?.action==='approved'?'<small>Added to Calendar</small>':'')+'<div class="actions82">'+(!decided?'<button type="button" class="je-btn je-btn-secondary" data-news-review="'+p.id+'">Add to Calendar</button>':'')+'<button type="button" class="je-btn je-btn-secondary" data-news-dismiss="'+p.id+'">Dismiss</button></div>'+'</article>'}
@@ -49,6 +75,5 @@ function ordered(items=visibleItems(),today=M.today()){
 function open(){if(!allowed())return;const rows=ordered(),history=decisions();const box=C.dialog('All News', '<p>English summaries from public sources in Laos. Review every proposal before it enters your calendar. Lao announcements keep their original source link.</p><div class="actions82"><button type="button" class="je-btn je-btn-secondary" data-news-refresh>Refresh News</button></div><p>'+esc(state.error||(state.feed?'Sources last checked '+formatAppDate(state.feed.checkedAt):'No news loaded yet.'))+'</p><div class="hr-news-list14309">'+(rows.length?rows.map(p=>row(p,history[p.id]?.revision===p.revision)).join(''):'<p>No news to review.</p>')+'</div>');box.classList.add('hr-news-dialog14309');box.querySelector('[data-news-refresh]').onclick=async e=>{e.target.disabled=true;await refresh(true);box.close();open()};box.querySelectorAll('[data-news-review]').forEach(b=>b.onclick=()=>{box.close();review(b.dataset.newsReview)});box.querySelectorAll('[data-news-dismiss]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await dismiss(b.dataset.newsDismiss);box.close();open()}catch(e){box.querySelector('[role=alert]').textContent=e.message;b.disabled=false}});return box;}
 
 window.hrCalendarNews14309={state,validate,refresh,pending,visibleItems,notices,banner,open,review,dismiss,row,decisions,ordered,accounting,syncHistory,prepareConfig,migrateDismissals};
-setInterval(()=>{if(!document.hidden)void refresh()},60000);
-window.addEventListener('online',()=>void refresh(true));document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&allowed()&&weekStart()>Math.max(attempted,state.lastFetch))void refresh()});
 })();

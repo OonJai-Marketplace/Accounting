@@ -44,6 +44,24 @@ function retry(id,{reviewed=false}={}){const who=actor(),client=typeof ojmDb==='
  if(actor()!==who||ojmDb!==client)return;
  const remaining=pending().find(r=>r.id===id&&r.status!=='server-confirmed');
  if(remaining)throw Error(remaining.message||remaining.action||'This request is still waiting for confirmation.');if(actor()!==who||ojmDb!==client)return;window.idleSync14341?.afterRepair?.();window.offline14239?.refreshDialog();}).finally(()=>flights.delete(key));flights.set(key,task);return task;}
+async function retryGroup(ids,source){
+ const who=actor(),client=ojmDb;
+ async function send(){
+  for(const id of ids){
+   if(!who||actor()!==who||ojmDb!==client)throw Error('Account changed. Reopen Data Check.');
+   const row=pending().find(item=>item.id===id);
+   if(!row||row.status==='server-confirmed')continue;
+   if(row.source!==source||!row.retry)throw Error('Review the remaining requests in Data Check.');
+   await retry(id);
+  }
+ }
+ if(!navigator.locks)return send();
+ const key='ojm-sync14351:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+who;
+ return navigator.locks.request(key,{ifAvailable:true},lock=>{
+  if(!lock)throw Error('Another synchronization is running. Wait for it to finish.');
+  return send();
+ });
+}
 function render(host,{busy=false,online=true,opened=new Set(),onReview=()=>{},rows=pending()}={}){const who=actor(),doc=host.ownerDocument,add=(tag,text,parent)=>{const n=doc.createElement(tag);n.textContent=text;parent.append(n);return n},list=groups(rows),section=add('section','',host);section.className='sync-records284';add('h3','Waiting for database confirmation',section);add('p','Saved requests on this device, for this account. Unsaved editor changes and work on other devices are not included.',section).className='sync-caption143162';
  if(!list.length)add('p','No saved requests are waiting on this device.',section);
  const bullets=add('ul','',section);
@@ -53,26 +71,18 @@ function render(host,{busy=false,online=true,opened=new Set(),onReview=()=>{},ro
  const confirmed=rows.filter(r=>r.status==='server-confirmed');if(confirmed.length)add('p',confirmed.length+' request'+(confirmed.length===1?' is':'s are')+' already database-confirmed; checking or refreshing the saved copies remains.',section);
  return section;
 }
-window.syncRecords284={pending,groups,summarize,workLabel,month,retry,render};
+window.syncRecords284={pending,groups,summarize,workLabel,month,retry,retryGroup,render};
 })();
 
 ;
-/* One idle/manual lifecycle. Module workers retain their server validation. */
+/* Desktop and tablet outbox synchronization requires a user action. */
 (()=>{'use strict';
-const delay=120000;let last=Date.now(),timer,wasIdle=false,manual=false,preparation='',problem='',retry,channel,flight,session,summaryOwner='',entryTimer,dirty=true;
+let manual=false,preparation='',problem='',retry,flight,session,summaryOwner='',dirty=true;
 const actor=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 const scope=()=>String(window.OJM_SUPABASE_URL||location.origin);
 const storageKey=()=> 'ojm-sync14351:'+scope()+':'+actor();
-const allowed=()=>Date.now()-last>=delay;
+const allowed=()=>false;
 const bytes=n=>n<1000?n+' bytes':n<1000000?(n/1000).toFixed(2)+' KB':(n/1000000).toFixed(2)+' MB';
-function announce(){const idle=allowed();if(idle&&!wasIdle){wasIdle=true;window.dispatchEvent(new Event('idle-sync14341'));void run(true);}paint();}
-function arm(){clearTimeout(timer);timer=setTimeout(announce,Math.max(20,delay-(Date.now()-last)));}
-let broadcastAt=0;
-function activity(remote=false){const now=Date.now();last=now;if(wasIdle){wasIdle=false;paint();}arm();if(!remote&&now-broadcastAt>1000){broadcastAt=now;channel?.postMessage({type:'activity',actor:actor()});}}
-try{channel=new BroadcastChannel('ojm-idle14341');channel.onmessage=e=>{if(e.data?.type==='activity'&&e.data.actor===actor())activity(true)}}catch{}
-for(const type of ['pointerdown','pointermove','keydown','wheel','touchstart','scroll'])document.addEventListener(type,()=>activity(),{capture:true,passive:true});
-window.addEventListener('focus',()=>activity());
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)activity()});
 function pending(){return window.syncRecords284?.pending()||[];}
 function needsAttention(value){return !!value&&!value.running&&(value.remaining>0||value.failed>0||value.unresolved?.length>0||/needs attention|needs review|Partial synchronization/i.test(value.result||''));}
 function persist(){if(!session||session.actor!==actor())return;try{const old=JSON.parse(localStorage.getItem(storageKey())||'{"history":[]}');const history=session.running?(old.history||[]).filter(needsAttention):needsAttention(session)?[{...session}]:[];const latest=session;if(!latest&&!history.length)localStorage.removeItem(storageKey());else localStorage.setItem(storageKey(),JSON.stringify({latest,history}));}catch(e){problem='Sync result could not be saved: '+e.message;}}
@@ -90,18 +100,15 @@ function overview(){restore();const rows=pending(),waiting=rows.filter(j=>j.stat
  for(const [name,status] of Object.entries(session?.refreshAreas||{}))group(name).refresh=status;
  return {requests:rows,problem,session:session?structuredClone(session):null,groups:[...groups.values()],synced:session?.confirmedRecords||0,pending:waiting.reduce((n,j)=>n+j.records,0),pendingBytes:waiting.reduce((n,j)=>n+(j.payloadBytes||0),0),unmeasured:waiting.some(j=>j.payloadBytes==null),checking:rows.filter(j=>j.status==='server-confirmed').length};
 }
-function onEntry(trigger='login'){clearTimeout(entryTimer);const id=actor(),requested=Date.now();if(!id)return;let attempts=0;const start=()=>{if(actor()!==id||navigator.onLine===false)return;if(!window.startup14257?.prepared||window.startup14257?.preparing){if(++attempts<60)entryTimer=setTimeout(start,1000);return;}if(session?.actor===id&&session.trigger==='login'&&Date.parse(session.finished||'')>=requested)return;void run(false,{trigger}).catch(e=>{problem=e.message;paint()})};entryTimer=setTimeout(start,0);}
 function outcome(remaining){if(remaining)return 'Partial synchronization';const findings=window.syncAssessment14332?.findings()||[...(window.localFirst14333?.findings()||[]),...(window.syncRecovery14351?.findings()||[])];if(findings.some(f=>f.kind!=='recovery'&&(f.critical||f.kind==='setup')))return 'Synchronization needs attention';return findings.some(f=>['cleanup','recovery'].includes(f.kind)||f.status==='Synced — Cleanup Pending')?'Uploads confirmed — recovery cleanup pending':'Synchronization complete';}
 function stage(text,current=session){if(current){current.stage=text;if(current.actor===actor()){paint();show();}}}
-async function run(automatic=false,{trigger='manual'}={}){if(flight)return flight;if(!actor()||!window.offline14239||window.startup14257?.preparing||window.workspaceRequest138?.target||automatic&&!allowed())return;
+async function run(automatic=false,{trigger='manual'}={}){if(automatic||!['manual','pull-refresh'].includes(trigger))return;if(flight)return flight;if(!actor()||!window.offline14239||window.startup14257?.preparing||window.workspaceRequest138?.target||automatic&&!allowed())return;
  const id=actor();const execute=async()=>{if(actor()!==id||automatic&&!allowed())return;restore();manual=!automatic;problem='';const before=pending();
- // Empty idle checks refresh and measure downloads without reopening the summary.
- const refreshOnly=automatic&&!before.length;
- const current={id:crypto.randomUUID(),actor:id,started:new Date().toISOString(),running:true,automatic:automatic||trigger!=='manual',trigger,updatedAreas:[],refreshAreas:{},acknowledged:automatic||trigger!=='manual',total:before.length,initial:before.map(j=>j.id),initialRecords:before.map(j=>({id:j.id,records:j.records,source:j.source})),totalRecords:before.reduce((n,j)=>n+j.records,0),confirmed:0,remaining:before.length,failed:0,uploaded:0,downloaded:0,stage:'Checking saved operations',unresolved:before};session=current;persist();show();paint();
+ const current={id:crypto.randomUUID(),actor:id,started:new Date().toISOString(),running:true,automatic:false,trigger,updatedAreas:[],refreshAreas:{},acknowledged:trigger!=='manual',total:before.length,initial:before.map(j=>j.id),initialRecords:before.map(j=>({id:j.id,records:j.records,source:j.source})),totalRecords:before.reduce((n,j)=>n+j.records,0),confirmed:0,remaining:before.length,failed:0,uploaded:0,downloaded:0,stage:'Checking saved operations',unresolved:before};session=current;persist();show();paint();
  const proceed=()=>actor()===id&&(!automatic||allowed());
  try{if(navigator.onLine===false)throw Error('Offline — saved operations remain on this device.');
-  if(proceed()&&!refreshOnly){stage('Uploading saved records',current);await window.localFirst14333?.sync({automatic,coordinated:true});}
-  if(proceed()&&!refreshOnly){stage('Confirming journal entries',current);await window.offline14239?.sync({automatic,coordinated:true});}
+  if(proceed()){stage('Uploading saved records',current);await window.localFirst14333?.sync({automatic,coordinated:true});}
+  if(proceed()){stage('Confirming journal entries',current);await window.offline14239?.sync({automatic,coordinated:true});}
   if(proceed()){stage('Refreshing workspace data',current);const refreshed=await window.startup14257?.revalidate?.(!automatic,{includeInboxes:trigger==='manual'&&!automatic});if(refreshed===false&&proceed())current.refreshProblem=window.startup14257?.refreshError||'Some records could not refresh. Open details to review.';}
   if(proceed()){await window.entryNumber14257?.refresh(true);stage('Refreshing assigned ledgers',current);await window.AssignedLedger14281?.refresh?.(automatic);}
   if(proceed()){stage('Checking saved copies',current);const cleanup=await window.syncRecovery14351?.cleanup({automatic:true});if(cleanup)current.cleanup=cleanup.message;}
@@ -115,7 +122,7 @@ async function run(automatic=false,{trigger='manual'}={}){if(flight)return fligh
 }
 function countRecords(rows,session){if(!session)return;const pendingIds=new Set(rows.filter(j=>j.status!=='server-confirmed').map(j=>j.id));session.confirmedRecords=(session.initialRecords||[]).filter(j=>!pendingIds.has(j.id)).reduce((n,j)=>n+j.records,0);session.remainingRecords=rows.filter(j=>j.status!=='server-confirmed').reduce((n,j)=>n+j.records,0);session.failedRecords=rows.filter(j=>['conflict','blocked','failed','attention','uncertain'].includes(j.status)).reduce((n,j)=>n+j.records,0);}
 function syncNow(){show(true);return run(false)}
-function request(){dirty=true;/* The single idle transition runs the work; no independent polling. */if(allowed()&&!flight){wasIdle=false;arm();}}
+function request(){dirty=true;}
 function feedback(){
  restore();const state=window.offline14239?.state()||{},busy=!!(manual||session?.running||state.syncing||window.localFirst14333?.syncing||window.startup14257?.preparing);
  const completed=!!session?.finished&&!needsAttention(session)&&session.result==='Synchronization complete'&&!problem&&!state.pending&&!state.attention;
@@ -149,7 +156,7 @@ function afterRepair(){
  if(!problem&&!session.refreshProblem){session.result=outcome(waiting.length);session.stage=session.result;}
  persist();paint();show();
 }
-window.idleSync14341={refreshFindings,retryArea,afterRepair,feedback,progress(message){stage(message);const box=document.getElementById('startup1443');if(box&&!box.hidden){const copy=box.querySelector('p');if(copy)copy.textContent=message;}},overview,onEntry,acknowledge,planAreas(names){if(session?.running&&session.actor===actor()){for(const name of names)session.refreshAreas[name]||='waiting';show();}},areaStatus(name,status){if(session?.running&&session.actor===actor()){session.refreshAreas[name]=status;show();}},areaUpdated(name){if(session?.running&&session.actor===actor()&&!session.updatedAreas.includes(name)){session.updatedAreas.push(name);session.refreshAreas[name]='updated';show();}},updateRecovery,allowed,remaining:()=>Math.max(0,delay-(Date.now()-last)),syncNow,run,request,paint,show,bytes,pending,history:()=>{restore();try{return JSON.parse(localStorage.getItem(storageKey())||'null')?.history?.filter(needsAttention)||[]}catch{return[]}},measure(uploaded,downloaded){if(session?.running&&session.actor===actor()){session.uploaded+=uploaded;session.downloaded+=downloaded;show();}},preparation(message,again){preparation=message;retry=again;paint()},get automatic(){return !manual},get running(){return !!flight},get session(){return session&&session.actor===actor()?structuredClone(session):null}};
+window.idleSync14341={refreshFindings,retryArea,afterRepair,feedback,progress(message){stage(message);const box=document.getElementById('startup1443');if(box&&!box.hidden){const copy=box.querySelector('p');if(copy)copy.textContent=message;}},overview,acknowledge,planAreas(names){if(session?.running&&session.actor===actor()){for(const name of names)session.refreshAreas[name]||='waiting';show();}},areaStatus(name,status){if(session?.running&&session.actor===actor()){session.refreshAreas[name]=status;show();}},areaUpdated(name){if(session?.running&&session.actor===actor()&&!session.updatedAreas.includes(name)){session.updatedAreas.push(name);session.refreshAreas[name]='updated';show();}},updateRecovery,allowed,remaining:()=>0,syncNow,run,request,paint,show,bytes,pending,history:()=>{restore();try{return JSON.parse(localStorage.getItem(storageKey())||'null')?.history?.filter(needsAttention)||[]}catch{return[]}},measure(uploaded,downloaded){if(session?.running&&session.actor===actor()){session.uploaded+=uploaded;session.downloaded+=downloaded;show();}},preparation(message,again){preparation=message;retry=again;paint()},get automatic(){return !manual},get running(){return !!flight},get session(){return session&&session.actor===actor()?structuredClone(session):null}};
 for(const name of ['connection14239','local-work14333','save-state14234','page113'])window.addEventListener(name,()=>{paint();if(session?.running){const rows=pending().filter(j=>j.status!=='server-confirmed'),ids=new Set(rows.map(j=>j.id));session.confirmed=(session.initial||[]).filter(id=>!ids.has(id)).length;session.remaining=rows.length;session.unresolved=rows;session.failed=rows.filter(j=>['conflict','blocked','failed','attention','uncertain'].includes(j.status)).length;countRecords(rows,session);}show();});
-window.addEventListener('online',()=>onEntry('reconnect'));window.addEventListener('session-online14333',request);arm();
+window.addEventListener('session-online14333',request);
 })();

@@ -1852,7 +1852,7 @@ window.dialogs1440={attach,detach,requestClose};
 /* scripts/journal-batch1440.js */
 /* Multi-date client recovery only. Existing RPCs and accounting-period rules remain authoritative. */
 (()=>{'use strict';
-const cache=new Map();let busy=false;
+const cache=new Map();let busy=false,revision=0,drawnRevision=-1,drawnOwner;
 const owner=()=>typeof liveProfile!=='undefined'?liveProfile?.id||'':'';
 const key=id=>'ojm_journal_batch1440:'+String(window.OJM_SUPABASE_URL||location.origin)+(window.accountingReset143108?.suffix()||'')+':'+id;
 const esc=v=>escapeHtml(String(v??''));
@@ -1862,7 +1862,7 @@ function load(id=owner()){
  let job=null;try{job=JSON.parse(localStorage.getItem(key(id))||'null');if(job?.owner!==id||!Array.isArray(job?.dates)||!job.dates.length||!Array.isArray(job.payloads)||job.payloads.length!==job.dates.length||job.payloads.some(p=>!p||!Array.isArray(p.p_lines)))job=null;job?.dates.forEach(d=>{if(d.status==='sending')d.status='uncertain'});}catch{}
  cache.set(id,job);return job;
 }
-function persist(job){localStorage.setItem(key(job.owner),JSON.stringify(job));cache.set(job.owner,job);}
+function persist(job){localStorage.setItem(key(job.owner),JSON.stringify(job));cache.set(job.owner,job);revision++;}
 function payloads(groups){
  const memo=document.getElementById('jeGeneralMemo').value.trim(),prefix=String(ApplicationSettings.accounting?.journalPrefix||businessInitials()||'OJM').trim(),digits=Math.max(3,Math.min(9,Number(ApplicationSettings.accounting?.journalDigits)||6));
  return groups.map(([date,g])=>({p_transaction_date:date,p_memo:memo,p_lines:g.lines.map(l=>({account_id:l.account?.id||null,description:l.memo,currency_code:l.currency,debit:Number(l.debit||0),credit:Number(l.credit||0),fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak})),p_prefix:prefix,p_digits:digits})).sort((a,b)=>a.p_transaction_date.localeCompare(b.p_transaction_date));
@@ -1877,7 +1877,11 @@ async function restore(job){
  window.JournalFX14383?.restore(Object.fromEntries(job.payloads.flatMap(p=>p.p_lines).map(l=>[l.currency_code,l.fx_rate_lak])));calculateJournalBalance();showJournalEntry98();showCenterStatus('Batch draft restored. Post Entry retries failed dates and skips confirmed dates.');
 }
 function draw(){
- window.dispatchEvent(new Event('save-state14234'));let host=document.getElementById('journalBatch1440');const job=load();if(!job||job.completed){host?.remove();return;}
+ const id=owner(),job=load(id);let host=document.getElementById('journalBatch1440');
+ const changed=drawnRevision!==revision||drawnOwner!==id;
+ if(changed){drawnRevision=revision;drawnOwner=id;window.dispatchEvent(new Event('save-state14234'));}
+ else if(job&&!job.completed?host:!host)return;
+ if(!job||job.completed){host?.remove();return;}
  if(!host){host=document.createElement('section');host.id='journalBatch1440';host.className='journal-batch1440';document.getElementById('journalEntry98')?.after(host);}
  host.hidden=true;const names={pending:'Not sent',sending:'Sending',saved:'Saved — will not resend',failed:'Not saved — may retry',uncertain:'Unconfirmed — check History first'};
  host.innerHTML='<h3>Multi-date posting status</h3><p>Confirmed dates are skipped on retry. A retry uses the same server reference and cannot post the batch twice.</p><ul>'+job.dates.map(d=>'<li><strong>'+esc(formatAppDate(d.date))+'</strong> — '+esc(names[d.status])+(d.message?' · '+esc(d.message):'')+'</li>').join('')+'</ul><div><button type="button" data-restore1440>Restore batch draft</button><button type="button" data-copy1440>Download entry copy</button><button type="button" data-history1440>Refresh History</button></div>';
@@ -1928,7 +1932,7 @@ async function post(groups){
  }finally{busy=false;if(owner()===id)draw();}
 }
 window.journalBatch1440={retire14385(id){const j=load();if(j?.id===id){j.completed=true;persist(j);draw()}},getJob:()=>load(),retry:async()=>{const j=load();if(!j||busy||!access113.can('journal','post'))return;const who=owner();busy=true;try{const r=await ojmDb.rpc('post_journal_batch14228',{p_request_key:j.id,p_entries:j.payloads});if(r.error)throw r.error;if(!Array.isArray(r.data)||r.data.length!==j.dates.length||r.data.some(x=>!x.entry_id))throw Error('Complete database receipt not confirmed. Retry the same reference.');j.dates.forEach(d=>d.status='saved');persist(j);if(owner()!==who)return;await loadJournalFromSupabase();if(owner()!==who)return;j.completed=true;persist(j);if(owner()===who){const current=Object.entries(collectLiveJournalGroups().grouped).filter(([,g])=>g.lines.length);if(canonical(payloads(current))===canonical(j.payloads))finalizePostSuccess();}}catch(e){j.dates.forEach(d=>{d.status=d.status==='saved'?'saved':'uncertain';d.message=e.message});persist(j);throw e}finally{busy=false;if(owner()===who)draw()}},post,hasPending:()=>!!load()&&!load().completed,draw};
-document.addEventListener('input',e=>{if(e.isTrusted&&e.target.closest('#journalEntry98')){const job=load();if(job?.completed){localStorage.removeItem(key(job.owner));cache.set(job.owner,null);draw()}}},true);
+document.addEventListener('input',e=>{if(e.isTrusted&&e.target.closest('#journalEntry98')){const job=load();if(job?.completed){localStorage.removeItem(key(job.owner));cache.set(job.owner,null);revision++;draw()}}},true);
 window.addEventListener('page113',draw);document.addEventListener('DOMContentLoaded',draw,{once:true});
 })();
 ;
@@ -2460,26 +2464,29 @@ function ready(){
   // Refresh shared submissions/people when entering their screens, not on every access check.
   if(['user-entry-review','sub-users-home14229','settings-users','settings-organization14229'].includes(target)&&can(target))void window.Organization14229?.revalidate();
  });let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;refresh()})}).observe(document.body,{childList:true,subtree:true});
- let verification=null,retryTimer=null;
+ let verification=null,lastCheck=0,lastActor=null,lastClient=null;
  function reconnect(show,message='The connection was interrupted. Rechecking your access…'){
   window.permissions1441.reconnecting=show;let box=document.getElementById('sessionReconnect14233');
   if(show&&!box){box=document.createElement('section');box.id='sessionReconnect14233';box.className='session-reconnect14233';box.setAttribute('role','alertdialog');box.setAttribute('aria-modal','true');box.innerHTML='<div><h2>Reconnecting</h2><p></p><button type="button" data-retry>Retry now</button><button type="button" data-signout>Sign out</button></div>';document.body.append(box);box.querySelector('[data-retry]').onclick=()=>verify();box.querySelector('[data-signout]').onclick=()=>logoutDemoUser();}
   if(box){box.hidden=!show;box.querySelector('p').textContent=message;}
   const layout=document.querySelector('.app-layout');if(layout){if(show){if(!layout.inert)layout.dataset.reconnectInert14233='1';layout.inert=true}else if(layout.dataset.reconnectInert14233){layout.inert=false;delete layout.dataset.reconnectInert14233}}
  }
- const logoutBefore=window.logoutDemoUser;window.logoutDemoUser=function(...args){clearTimeout(retryTimer);reconnect(false);return logoutBefore.apply(this,args)};
+ const logoutBefore=window.logoutDemoUser;window.logoutDemoUser=function(...args){reconnect(false);return logoutBefore.apply(this,args)};
 
- async function verify(){
+ async function verify(fresh=false){
   const id=typeof liveProfile==='undefined'?null:liveProfile?.id,epoch=typeof sessionEpoch1430==='undefined'?0:sessionEpoch1430,client=ojmDb;if(!id||!client||window.workspaceRequest138?.busy){if(!id)reconnect(false);return;}const current=()=>liveProfile?.id===id&&ojmDb===client&&(typeof sessionEpoch1430==='undefined'||epoch===sessionEpoch1430);
   if(verification?.current())return verification.promise;
+  lastCheck=Date.now();lastActor=id;lastClient=client;
   const job={current,promise:null};verification=job;
   job.promise=(async()=>{try{
-   let timeout;const r=await Promise.race([client.rpc('current_access14228'),new Promise((_,reject)=>timeout=setTimeout(()=>reject(Error('Connection timed out.')),12000))]).finally(()=>clearTimeout(timeout));if(r.error)throw Object.assign(new Error(r.error.message),r.error,{status:r.status||r.error.status});
+   let timeout;const request=client.rpc('current_access14228');
+   if(fresh===true)request.setHeader('x-ojm-database-only','1');
+   const r=await Promise.race([request,new Promise((_,reject)=>timeout=setTimeout(()=>reject(Error('Connection timed out.')),12000))]).finally(()=>clearTimeout(timeout));if(r.error)throw Object.assign(new Error(r.error.message),r.error,{status:r.status||r.error.status});
    if(!current())return;
    if(r.data?.profile?.id!==id||r.data.profile.status!=='active')throw Object.assign(Error('This account is inactive or no longer permitted.'),{code:'ACCESS_REVOKED'});
    const changed14229=JSON.stringify([liveProfile,livePermission])!==JSON.stringify([r.data.profile,r.data.permissions]);liveProfile=r.data.profile;livePermission=r.data.permissions;if(changed14229){window.Organization14229?.invalidate();window.PrivateReminders14229?.invalidate();}
    const self=liveProfiles.find(u=>u.id===id);if(self)Object.assign(self,liveProfile,{user_permissions:livePermission});
-   window.permissions1441.verified=true;window.permissions1441.stale=false;clearTimeout(retryTimer);reconnect(false);
+   window.permissions1441.verified=true;window.permissions1441.stale=false;reconnect(false);
    refresh();
    // Access stays fresh without downloading unchanged business data every 30 seconds.
    // Startup, explicit refresh and mutations still own directory/inbox refreshes.
@@ -2496,13 +2503,22 @@ function ready(){
    const previouslyVerified=window.permissions1441.verified;
    const denied=['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e.code)||[401,403].includes(Number(e.status));
    if(denied){window.deviceVault14334?.revoke();window.permissions1441.verified=false;reconnect(false);document.getElementById('loginGate')?.classList.remove('is-authenticated');await logoutDemoUser();showLoginForm('');}
-   else if(previouslyVerified){window.permissions1441.stale=true;reconnect(false);clearTimeout(retryTimer);window.offline14239?.connectionIssue?.(e.message||'Access refresh interrupted');retryTimer=setTimeout(verify,15000);}
-   else{window.permissions1441.verified=false;reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));clearTimeout(retryTimer);retryTimer=setTimeout(verify,5000);}
+   else if(previouslyVerified){window.permissions1441.stale=true;reconnect(false);window.offline14239?.connectionIssue?.(e.message||'Access refresh interrupted');}
+   else{window.permissions1441.verified=false;reconnect(true,'Your sign-in is being kept while the connection is checked. Protected actions are paused. '+(e.message||''));}
   }finally{if(verification===job)verification=null}})();return job.promise;
  }
  window.permissions1441={refresh,verify,verified:true,reconnecting:false,stale:false};refresh();
- window.addEventListener('online',verify);window.addEventListener('focus',verify);document.addEventListener('visibilitychange',()=>{if(!document.hidden)verify()});
- setInterval(()=>{if(!document.hidden)verify()},30000);verify();
+ function onUse(event){
+  if(!event.isTrusted||document.hidden||navigator.onLine===false||!liveProfile?.id)return;
+  if(event.type==='click'){
+   const control=event.target.closest?.('button,[role=button],a[href],[onclick]');
+   if(!control||!control.closest('#appSidebar,#categoryTabs,#modalUserAccess,#userAccessForm')&&!window.access113?.actionFor(control))return;
+  }
+  if(lastActor!==liveProfile.id||lastClient!==ojmDb||Date.now()-lastCheck>=30000)void verify(true);
+ }
+ document.addEventListener('click',onUse,true);
+ document.addEventListener('submit',onUse,true);
+ verify();
 }
 document.addEventListener('DOMContentLoaded',ready,{once:true});
 })()
@@ -3147,6 +3163,6 @@ async function confirmReset(pack){return flow('reset',pack);}
 async function cleanupYear(){const n=document.getElementById('historyStatus194');try{confirmation={};const allowed=await ui108.modal('Confirm administrator','<label>Current administrator password<input type="password" id="historyPassword194" autocomplete="current-password"></label>',[{label:'Cancel',value:false},{label:'Compare selected year',value:true}]);if(!allowed)return;await dataTools14232.verifyPassword(confirmation.password||'');confirmation={};n.textContent='Comparing the selected year with its saved history…';const r=await flow('year');n.textContent='Year '+r.year+': '+r.total+' database records removed. Google history and your Excel backup remain. Refresh the website to reload all views.';window.dispatchEvent(new CustomEvent('transactions-reset14316',{detail:{scopes:['journal']}}));}catch(e){n.textContent=e.message;}}
 async function status(){if(!admin()||busy)return;busy=true;try{const s=await call({action:'status'}),n=document.getElementById('historyStatus194');if(s.config?.annual231){const year=Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Vientiane',year:'numeric'}).format(new Date())),row=s.annualYears231?.find(r=>r.year===year);s.config.sheet=row?.sheet||'';}const link=document.getElementById('historyWorkbook230');if(link)link.hidden=true;if(link&&/^[\w-]{20,160}$/.test(s.config?.sheet||'')){link.href='https://docs.google.com/spreadsheets/d/'+s.config.sheet+'/edit';link.hidden=false;}if(n)n.textContent=s.config?.last_error?'Saving needs attention: '+s.config.last_error:s.pending?s.pending+' changes saved in Accounting, waiting for the next month-close copy or Save pending changes.':s.config?.last_saved?'Saved to company Google Sheets: '+(typeof formatAppDate==='function'?formatAppDate(s.config.last_saved,true):s.config.last_saved):'First archive save is pending.';}catch(e){const n=document.getElementById('historyStatus194');if(n)n.textContent=e.message;}finally{busy=false;}}
 function install(){const host=document.getElementById('settings-backup113');if(!host||document.getElementById('googleHistory194'))return;const s=document.createElement('section');s.id='googleHistory194';s.className='panel113';s.innerHTML='<header><h2>Google accounting archive</h2></header><p>Accounting saves entries immediately. Google Sheets copies start after a month closes, or when you press Save pending changes. Check the active archive here. Automatic yearly storage is managed in Google Drive and Sheets. Each record follows its accounting year, and archived history must pass a fresh comparison before database cleanup.</p><div class="data-actions14232"><a id="historyWorkbook230" hidden target="_blank" rel="noopener">Open current archive workbook</a><button type="button" id="historySave194" class="je-btn je-btn-secondary">Save pending changes</button><button type="button" id="historyCheck194" class="je-btn je-btn-secondary">Check archive status</button></div><p id="historyStatus194" role="status"></p><label>Closed year to release from database<input id="historyYear194" type="number" min="1900" max="2198" value="'+(Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Vientiane',year:'numeric'}).format(new Date()))-1)+'"></label><div class="data-actions14232"><button type="button" id="historyCleanup194" class="je-btn je-btn-secondary">Compare, back up &amp; review cleanup</button></div><div id="historyComparison194"></div>';host.prepend(s);document.getElementById('historyCleanup194').onclick=cleanupYear;document.getElementById('historyCheck194').onclick=status;document.getElementById('historySave194').onclick=async()=>{const n=document.getElementById('historyStatus194');n.textContent='Saving and checking Google Sheets…';try{const r=await call({action:'sync'});n.textContent=r.busy?'Another save is running. Check status shortly.':r.continuing?'Copy in progress. Check archive status shortly.':'Copy processed. Check archive status to confirm all pending changes are saved.';}catch(e){n.textContent=e.message;}};}
-window.AccountingHistory194={confirmReset,call};window.addEventListener('page113',()=>{install();if(document.getElementById('googleHistory194')?.offsetParent)void status();});
+window.AccountingHistory194={confirmReset,call};window.addEventListener('page113',()=>{install();const panel=document.getElementById('googleHistory194');if(panel?.closest('.tab-content.active')&&panel.offsetParent)void status();});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();

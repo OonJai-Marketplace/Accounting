@@ -45,7 +45,7 @@ function ready(){
  const save=window.saveUserAccess;window.saveUserAccess=async function(...args){if(editorAdmin()&&!chartReady()){args[0]?.preventDefault();showCenterStatus('Accounts are still loading. Please try saving again when they finish.',true);return;}editorPolicy();const result=await save.apply(this,args);if(!document.getElementById('modalUserAccess')?.classList.contains('active'))await permissions1441.verify();return result;};
  const staff=window.staffSave14228;window.staffSave14228=async function(payload){const actor=liveProfile?.id,session=window.PhoneApp132?.session(),db=ojmDb;await sync(payload.p_owner);if(liveProfile?.id!==actor||window.PhoneApp132?.session()!==session||ojmDb!==db)throw Error('Account changed. Reopen the entry before saving.');return staff(payload);};
  const pulse=()=>{if(document.hidden||document.getElementById('modalUserAccess')?.classList.contains('active')||!isAdmin(liveProfile)||!livePermission||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;const actor=liveProfile.id;sync(actor).catch(e=>{if(liveProfile?.id!==actor)return;if(lastError!==e.message){lastError=e.message;showCenterStatus(e.message,true);}});};
- window.adminAccess14251={effective,sync,editorPolicy};setInterval(pulse,15000);window.addEventListener('focus',pulse);window.addEventListener('online',pulse);setTimeout(pulse,1000);
+ window.adminAccess14251={effective,sync,editorPolicy};window.addEventListener('page113',()=>{if(['settings-users','users-permissions','chart-of-accounts'].includes(window.access113?.currentTarget()))pulse()});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

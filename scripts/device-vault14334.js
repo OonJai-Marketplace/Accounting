@@ -41,7 +41,7 @@ if(typeof module!=='undefined')module.exports=createRememberedPhone212;
     });
     for (const e of ["pointerdown", "pointermove", "keydown", "touchstart", "wheel", "input", "change", "scroll"])
       window.addEventListener(e, (event) => {
-        if (event.isTrusted) window.deviceVault14334.touch();
+        if (event.isTrusted) window.deviceVault14334.touch(event.type==="pointermove");
       }, {
         passive: true,
         capture: true,
@@ -172,8 +172,9 @@ if(typeof module!=='undefined')module.exports=createRememberedPhone212;
     if (secret && !locked && expired())
       void lock("One day without activity. Sign in again to continue.");
   }
-  function touch() {
+  function touch(pointerMove=false) {
     if (!secret || locked) return;
+    if (pointerMove && Date.now()-lastActivityWrite14360<5000) return;
     if (expired()) {
       void lock("One day without activity. Sign in again to continue.");
       return;
@@ -820,7 +821,7 @@ if(typeof module!=='undefined')module.exports=createRememberedPhone212;
     },
   };
   for (const e of ["pointerdown", "pointermove", "keydown", "touchstart", "wheel", "input", "change", "scroll"])
-    window.addEventListener(e, (event) => { if (event.isTrusted) touch(); }, { passive: true, capture: true });
+    window.addEventListener(e, (event) => { if (event.isTrusted) touch(event.type==="pointermove"); }, { passive: true, capture: true });
   window.addEventListener("pageshow", checkDeadline);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) checkDeadline();

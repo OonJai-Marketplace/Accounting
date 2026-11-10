@@ -44,6 +44,24 @@ function retry(id,{reviewed=false}={}){const who=actor(),client=typeof ojmDb==='
  if(actor()!==who||ojmDb!==client)return;
  const remaining=pending().find(r=>r.id===id&&r.status!=='server-confirmed');
  if(remaining)throw Error(remaining.message||remaining.action||'This request is still waiting for confirmation.');if(actor()!==who||ojmDb!==client)return;window.idleSync14341?.afterRepair?.();window.offline14239?.refreshDialog();}).finally(()=>flights.delete(key));flights.set(key,task);return task;}
+async function retryGroup(ids,source){
+ const who=actor(),client=ojmDb;
+ async function send(){
+  for(const id of ids){
+   if(!who||actor()!==who||ojmDb!==client)throw Error('Account changed. Reopen Data Check.');
+   const row=pending().find(item=>item.id===id);
+   if(!row||row.status==='server-confirmed')continue;
+   if(row.source!==source||!row.retry)throw Error('Review the remaining requests in Data Check.');
+   await retry(id);
+  }
+ }
+ if(!navigator.locks)return send();
+ const key='ojm-sync14351:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+who;
+ return navigator.locks.request(key,{ifAvailable:true},lock=>{
+  if(!lock)throw Error('Another synchronization is running. Wait for it to finish.');
+  return send();
+ });
+}
 function render(host,{busy=false,online=true,opened=new Set(),onReview=()=>{},rows=pending()}={}){const who=actor(),doc=host.ownerDocument,add=(tag,text,parent)=>{const n=doc.createElement(tag);n.textContent=text;parent.append(n);return n},list=groups(rows),section=add('section','',host);section.className='sync-records284';add('h3','Waiting for database confirmation',section);add('p','Saved requests on this device, for this account. Unsaved editor changes and work on other devices are not included.',section).className='sync-caption143162';
  if(!list.length)add('p','No saved requests are waiting on this device.',section);
  const bullets=add('ul','',section);
@@ -53,5 +71,5 @@ function render(host,{busy=false,online=true,opened=new Set(),onReview=()=>{},ro
  const confirmed=rows.filter(r=>r.status==='server-confirmed');if(confirmed.length)add('p',confirmed.length+' request'+(confirmed.length===1?' is':'s are')+' already database-confirmed; checking or refreshing the saved copies remains.',section);
  return section;
 }
-window.syncRecords284={pending,groups,summarize,workLabel,month,retry,render};
+window.syncRecords284={pending,groups,summarize,workLabel,month,retry,retryGroup,render};
 })();
