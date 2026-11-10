@@ -13,18 +13,20 @@ const fixture=require('./phase0-browser-fixture.cjs');
    {key117:'b',category:'Supplies',description:'Paper',currency:'LAK',amount:25000},
    {key117:'c',category:'Operations',description:'Transport',currency:'USD',amount:15}
   ];
-  await page.evaluate(lines=>{
-   Object.assign(Finance82,{mode:'request',date:'2026-11-01',budgetMonth290:'2026-10',purpose:'Kitchen support',recipient:'Fixture',lines,movements:[],conversions:[]});
-   Work82.reportRecord=null;switchTab('transactions-budget14313');renderWork82();
-  },lines);
-  const panel=page.locator('#transactions-budget14313'),table=panel.locator('.budget-items290');
-  assert.equal(await table.locator('summary').count(),3);
+  await page.evaluate(()=>switchTab('transactions-budget14313'));
+  const panel=page.locator('#transactions-budget14313'),request=page.locator('.budget-request327'),table=request.locator('.budget-items290');
+  await panel.getByRole('button',{name:'New Report'}).click();
+  await request.locator('[name=budgetMonth290]').fill('2026-10');
+  await request.locator('[name=date]').fill('2026-11-01');
+  await request.locator('[name=recipient]').fill('Fixture');await request.locator('[name=purpose]').fill('Kitchen support');
+  await request.getByRole('button',{name:'Budget items',exact:true}).click();
+  await page.evaluate(lines=>{budgetWorkflow14316.requestData().lines=lines;budgetWorkflow14316.templateApplied()},lines);
   assert.deepEqual(await table.locator('[data-budget-key14316]').evaluateAll(rs=>rs.map(r=>r.dataset.budgetKey14316)),['a','c','b']);
   const item=table.locator('[data-budget-key14316="c"]');
-  await item.locator('summary').click();await item.getByText('Edit',{exact:true}).click();
-  assert.equal(await panel.locator('#financeLine82 [name=description]').inputValue(),'Transport');
-  await panel.locator('#financeLine82 [name=amount]').fill('25');
-  await panel.getByText('Update item',{exact:true}).click();
+  if(await item.locator('summary').count())await item.locator('summary').click();await item.getByText('Edit',{exact:true}).click();
+  assert.equal(await request.locator('[data-item-form] [name=description]').inputValue(),'Transport');
+  await request.locator('[data-item-form] [name=amount]').fill('25');
+  await request.getByText('Update item',{exact:true}).click();
   assert.equal(await table.locator('[data-budget-key14316]').count(),3);assert.match(await table.innerText(),/USD 45/);
   const template={id:'00000000-0000-4000-a000-000000000290',version:1,data:{name:'Fixture',lines}};
   await page.route('**/rest/v1/budget_templates14313*',route=>route.fulfill({json:[template]}));
@@ -36,7 +38,18 @@ const fixture=require('./phase0-browser-fixture.cjs');
   assert.equal(await edit.locator('tbody>tr').first().locator('.money-symbol14231').textContent(),'$');
   await page.locator('.ui-overlay108').last().getByText('Save',{exact:true}).click();
   await edit.waitFor({state:'detached'});
-  await panel.getByRole('button',{name:'Print / PDF',exact:true}).click();
+  const db=new Map();
+  await page.route('**/rest/v1/operational_reports*',async route=>{
+   const req=route.request(),u=new URL(req.url()),id=u.searchParams.get('id')?.slice(3);
+   if(req.method()==='POST'){const row=req.postDataJSON();db.set(row.id,row);return route.fulfill({json:[row]});}
+   if(id)return route.fulfill({json:db.get(id)||null});
+   return route.fulfill({json:[...db.values()].filter(r=>r.data.requestId14316===u.searchParams.get('data->>requestId14316')?.slice(3)&&r.data.status==='draft')});
+  });
+  await request.getByRole('button',{name:'Save request'}).click();
+  await page.waitForFunction(()=>Work82.reports.some(r=>r.data.purpose==='Kitchen support'));
+  await request.getByRole('button',{name:'Close',exact:true}).click();
+  const original=[...db.values()].find(r=>r.data.mode==='request');
+  await page.evaluate(id=>{void budgetWorkflow14316.openRequest(id)},original.id);
   await page.getByRole('button',{name:'Add new tab',exact:true}).click();
   await page.waitForFunction(()=>documentWorkspace105.model?.budget14316);
   const sheet=page.frameLocator('#docFrame105');
@@ -50,21 +63,15 @@ const fixture=require('./phase0-browser-fixture.cjs');
    return {data:parsed.data,sub:node.querySelectorAll('[data-budget-summary290]').length,sign:!!node.querySelector('[data-report-signature-line275]'),shaded:[...node.querySelectorAll('tfoot tr>*')].every(c=>!!c.style.backgroundColor)};
   });
   assert.equal(doc.sub,2);assert(doc.sign&&doc.shaded);assert.equal(doc.data.budgetMonth290,'2026-10');assert.equal(doc.data.lines.length,3);
-  const db=new Map();
-  await page.route('**/rest/v1/operational_reports*',async route=>{
-   const req=route.request(),u=new URL(req.url()),id=u.searchParams.get('id')?.slice(3);
-   if(req.method()==='POST'){const row=req.postDataJSON();db.set(row.id,row);return route.fulfill({json:[row]});}
-   if(id)return route.fulfill({json:db.get(id)||null});
-   return route.fulfill({json:[...db.values()].filter(r=>r.data.requestId14316===u.searchParams.get('data->>requestId14316')?.slice(3)&&r.data.status==='draft')});
-  });
-  assert(await page.evaluate(()=>documentWorkspace105.save()),'Save the request from the editor');
+
   const saved=[...db.values()].find(r=>r.data.mode==='request');assert(saved);
-  assert.equal((await page.evaluate(()=>budgetWorkflow14316.requireSaved())).id,saved.id);
-  await page.route('**/rest/v1/rpc/budget_capabilities14316',r=>r.fulfill({json:{version:14316}}));
   await page.exposeFunction('testStoreBudget',r=>{db.set(r.id,r);return r});
   await page.evaluate(()=>{
    const save=window.saveWork82;window.saveWork82=(kind,d,record)=>kind==='reports'?window.testStoreBudget({id:record?.id||'00000000-0000-4000-a000-000000000321',version:(record?.version||0)+1,data:d}):save(kind,d,record);
   });
+  assert(await page.evaluate(()=>documentWorkspace105.save()),'Save the reviewed document from Editor');
+  assert.equal((await page.evaluate(()=>budgetWorkflow14316.requireSaved())).id,saved.id);
+  await page.route('**/rest/v1/rpc/budget_capabilities14316',r=>r.fulfill({json:{version:14316}}));
   await page.locator('#document-editor105').getByRole('button',{name:'Fund utilization',exact:true}).click();
   const popup=page.getByRole('dialog',{name:'Fund utilization',exact:true});
   await popup.locator('#financeMove82').waitFor();
@@ -92,7 +99,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const amounts=Object.fromEntries(result.totals);assert.equal(amounts.USD.remaining,50);assert.equal(amounts.LAK.remaining,640000);assert.equal(result.debt,40000);assert.match(result.html,/October 2026/);assert.match(result.html,/Supplier/);assert.match(result.html,/Fuel for delivery route/);assert.match(result.html,/TEST-RECEIPT/);assert.match(result.html,/Internal Fund Utilization Report/);assert.equal(report.data.movements[0].date290,'2026-11-05');
   await popup.getByRole('button',{name:'Close',exact:true}).click();
   await page.evaluate(()=>switchTab('transactions-budget14313'));
-  assert.equal(await table.locator('[data-budget-key14316]').count(),3);
+  assert(await panel.getByRole('button',{name:'Open request'}).isVisible());
   const count=db.size;
   await panel.getByRole('button',{name:'Fund utilization',exact:true}).click();
   await popup.getByRole('button',{name:'Requests and saved reports'}).click();

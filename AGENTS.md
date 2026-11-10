@@ -588,3 +588,8 @@ Budget Request, 2026-11-10: Fund utilization opens the editable movement list in
 popup, including when there are no saved requests. An open budget draft can be saved
 with its utilization. Unlinked utilization reports keep their own identity. A temporary
 advance and its linked repayment must stay distinct from income and actual spending.
+
+Budget Request 143.327: the main header contains Fund utilization, New Report and
+Print / PDF. Request details, items, shared categories, templates, Save request and
+copyable email/WhatsApp messages belong inside the request dialog. Keep request
+messages manual and retain totals by original currency.

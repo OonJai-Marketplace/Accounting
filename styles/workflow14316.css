@@ -48,3 +48,19 @@ body .fund-popup326 .budget-dialog14313{width:min(1050px,calc(100vw - 36px))!imp
 .fund-popup326 .finance-controls117{padding:10px 0}
 .fund-popup326 .fund-entry-actions312 button{min-height:32px}
 @media(max-width:600px){body .fund-popup326 #budgetFunds290 .finance-controls117{grid-template-columns:repeat(2,minmax(0,1fr))}.fund-popup326 .fund-tools14316{justify-content:flex-start}}
+
+body .budget-request327 .budget-dialog14313{width:min(880px,calc(100vw - 36px))!important;max-height:92vh;max-height:92dvh}
+.budget-request327 .ui-body108{min-height:0;overflow:auto;overscroll-behavior:contain}
+.budget-request327 [hidden]{display:none!important}
+.request-tabs327,.request-tools327,.request-footer327{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.request-tabs327{border-bottom:1px solid #cad8d2;padding-bottom:10px;margin-bottom:16px}
+.request-tabs327 button[aria-pressed=true],.request-footer327 [data-save-request]{background:#145c4a;color:white}
+body .budget-request327 .request-fields327{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:10px 0}
+.request-fields327 label{display:grid;gap:4px;min-width:0}
+.request-fields327 input,.request-fields327 select,.request-fields327 textarea{width:100%;min-width:0;box-sizing:border-box}
+.request-fields327 label:has(textarea){grid-column:1/-1}
+.budget-request327 .data-table82{overflow-x:auto}
+.request-footer327{justify-content:space-between;border-top:1px solid #cad8d2;margin-top:14px;padding-top:10px}
+.budget-request327 [data-category-form]{padding:12px 0}
+.budget-request327 [data-pane=messages] textarea,.budget-copy327 textarea{width:100%;box-sizing:border-box;background:white;resize:vertical}
+.budget-request327 [data-pane=messages] [role=status],.budget-copy327 [role=status]{margin-left:8px}
