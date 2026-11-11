@@ -30,7 +30,8 @@ function entrySource(){
   const data=editorRows[index]?.dataset||{};
   if(data.generatorTemplate)template=data.generatorTemplate;
   rows.push({...blank(),expectedSide:data.templateSide274,role:data.generatorRole,expectedCurrency:data.generatorCurrency,stage:data.generatorStage,receiptLeg:data.generatorReceipt,
-   ...(data.generatorCalculated&&!number(r.dr)&&!credits.length?{generated:'output',autoMemo:true}:{}),sourceIndex:index,account_id:a?.id||'',missing:!a?r.account:'',line_memo:r.memo||'',debit:r.dr||'',credit:credits[0]?.[1]||'',
+   ...(r.averageBookRate?{autoBook:true}:{}),
+   ...(data.generatorCalculated&&!number(r.dr)&&!credits.length||r.generatorOutput===JSON.stringify([a?.id,number(r.dr),number(credits[0]?.[1]),r.memo||'',number(r.fxRate),number(r.bookRate)])?{generated:'output',autoMemo:true}:{}),sourceIndex:index,account_id:a?.id||'',missing:!a?r.account:'',line_memo:r.memo||'',debit:r.dr||'',credit:credits[0]?.[1]||'',
    fx_rate_lak:r.fxRate?Number(r.fxRate):'',book_rate_lak:r.bookRate?Number(r.bookRate):''});
  }
  if((!snap&&!memo.trim())||!memo.trim()&&!rows.length)return null;
@@ -175,13 +176,34 @@ function renderRows(){
  });
 }
 function render(){
+ const repair=dialog.querySelector('[data-repair-layout]');
+ repair.hidden=!legacyCashLayout();
+ if(!repair.hidden){
+  const t=definitions().find(t=>t.id===state.template);
+  repair.textContent=t?'Load corrected template':'Choose a different template';
+  repair.onclick=()=>{
+   if(!t){dialog.querySelector('[data-template-query]').focus();templateChoices('');return;}
+   state.rows=templateRows(t);invalidate();render();
+   message('Enter the documented amounts in the corrected layout.');
+  };
+ }
  dialog.querySelector('[data-template]').value=state.template;dialog.querySelector('[data-date]').value=state.date;dialog.querySelector('[data-memo]').value=state.memo;
  dialog.querySelector('[data-template-query]').value=definitions().find(t=>t.id===state.template)?.name||'';
  dialog.querySelector('[data-rates]').replaceChildren();renderRates();renderRows();dialog.querySelector('[data-use]').disabled=true;
  const missing=state.rows.filter(l=>l.missing);if(missing.length)message('Choose current accounts for these saved template lines: '+missing.map(l=>l.missing).join(', '),true);
 }
 function readInput(){return {date:state.date,chart:chart(),rates:Object.fromEntries(Object.entries(state.rates).map(([c,v])=>[c,number(v)])),rows:state.rows.map(l=>({...l,debit:number(l.debit),credit:number(l.credit),book_rate_lak:number(l.book_rate_lak),fx_rate_lak:number(l.fx_rate_lak)}))};}
+function legacyCashLayout(){
+ if(!String(state.template||'').startsWith('gen268-local-'))return false;
+ const t=definitions().find(t=>t.id===state.template);
+ if(t&&!t.builtin)return false;
+ const cash=state.rows.find(l=>l.role==='fund');
+ if(!cash)return false;
+ return !t||!t.lines.some(l=>l.role==='fund'&&l.side===cash.expectedSide)||
+  t.id==='gen268-local-5420'&&!state.rows.some(l=>l.account_id===Catalog.resolve(t.lines[0],chart())?.id);
+}
 function validateLayout(input){
+ if(legacyCashLayout())throw Error('This draft uses a superseded cash posting. Load the current template and review its accounts before generating.');
  for(const [i,l] of input.rows.entries()){
   const a=input.chart.find(a=>a.id===l.account_id);
   if(!a)continue;
@@ -192,7 +214,7 @@ function validateLayout(input){
 }
 function fingerprint(){return JSON.stringify([who(),window.OJM_SUPABASE_URL,JournalModule.editingEntryId,state,snapshotJournal69(),$('jeGeneralMemo')?.value,$('jeTransDate')?.value]);}
 async function balances(input){
- const explicitPrepaid=({l,a})=>a&&/^13\d\d$/.test(String(a.code))&&G.type(a)==='ASSET'&&!G.technical(a)&&l.credit>0&&l.book_rate_lak>0;
+ const explicitPrepaid=({l,a})=>a&&/^13\d\d$/.test(String(a.code))&&G.type(a)==='ASSET'&&!G.technical(a)&&l.credit>0&&l.book_rate_lak>0&&!l.autoBook;
  const source=input.rows.filter(l=>l.generated!=='output').map(l=>({l,a:input.chart.find(a=>a.id===l.account_id)}));
  const needs=source.filter(x=>!x.l.receiptLeg&&!explicitPrepaid(x)).filter(({l,a})=>a&&G.currency(a)!=='LAK'&&(G.fund(a)&&!l.debit||(l.debit>0||!l.debit&&!l.credit)&&(G.staff(a)||G.type(a)==='LIABILITY')||l.credit>0&&!G.technical(a)&&!G.fund(a)&&!G.staff(a)&&G.type(a)==='ASSET'));
  if(!needs.length)return {values:{},note:source.some(explicitPrepaid)?'Uses the entered historical prepaid rate. Check the source balance before posting.':''};
@@ -228,11 +250,17 @@ async function useEntry(){
   if(state.entrySignature&&entrySource()?.signature!==state.entrySignature)throw Error('Post Entry changed. Reopen Generate to use its current lines.');
   if(existing&&!state.entrySignature&&oldDate!==state.date)throw Error('Post Entry has an unfinished journal on another date. Finish it before copying this journal.');
   window.JournalUndo143103?.checkpoint();window.entry1430?.setMode('double');
-  const oldRows=[...body.children];
+  const oldRows=[...body.children],builtin=definitions().find(t=>t.id===state.template)?.builtin;
   try{for(const r of oldRows)if(state.entrySignature||!meaningful(r))r.remove();if(!existing||state.entrySignature)$('jeTransDate').value=state.date;
    for(const l of result.rows.filter(l=>l.debit||l.credit)){const a=chart().find(a=>a.id===l.account_id);addJournalLineRow(a.code+' — '+a.name,l.line_memo,l.debit?display(l.debit):'',{[G.currency(a)]:l.credit?display(l.credit):''});const r=body.lastElementChild,original=state.entrySignature?oldRows[l.sourceIndex]:null;
     if(original){Object.assign(r.dataset,original.dataset);}
+    if(builtin){
+     Object.assign(r.dataset,{generatorTemplate:state.template,generatorRole:l.role||'',generatorCurrency:l.expectedCurrency||'',
+      generatorStage:l.stage||'',generatorReceipt:l.receiptLeg||'',templateSide274:l.expectedSide||''});
+    }
+    delete r.dataset.averageBookRate;delete r.dataset.generatorOutput;
     r.dataset.fxRate14383=l.fx_rate_lak||number(state.rates[G.currency(a)])||1;r.dataset.bookRate14383=l.book_rate_lak||'';const date=r.querySelector('.je-line-date');if(date){const prior=original?.querySelector('.je-line-date');date.value=prior?.value||state.date;if(prior?.dataset.manualDate)date.dataset.manualDate=prior.dataset.manualDate;}
+    if(l.generated==='output')r.dataset.generatorOutput=JSON.stringify([a.id,l.debit,l.credit,l.line_memo||'',number(r.dataset.fxRate14383),number(r.dataset.bookRate14383)]);
     if(l.fx_rate_lak&&G.currency(a)!=='LAK')r.dataset.explicitFx291='true';}
    memo.value=!state.entrySignature&&existing&&oldMemo.trim()?oldMemo+'\n'+state.memo:state.memo;JournalFX14383.restore(!state.entrySignature&&existing?{...state.rates,...oldRates}:state.rates);calculateJournalBalance();memo.dispatchEvent(new Event('input',{bubbles:true}));window.dispatchEvent(new Event('save-state14234'));window.drafts1427?.flush();window.JournalUndo143103?.record();
   }catch(e){body.replaceChildren(...oldRows);memo.value=oldMemo;$('jeTransDate').value=oldDate;JournalFX14383.restore(oldRates);calculateJournalBalance();throw e;}
@@ -247,10 +275,10 @@ function open(){
  if(entry&&entry.signature!==state.entrySignature){
   state={template:entry.template,entrySignature:entry.signature,date:entry.date,memo:entry.memo,rates:entry.rates,rows:entry.rows,drafts:{},standalone:state.entrySignature?state.standalone:state};
  }else if(!entry&&state.entrySignature)state=state.standalone||{template:'blank',date:$('jeTransDate').value,memo:'',rates:{},rows:[blank(),blank()],drafts:{}};
- state.drafts||={};state.rates||={};if(!definitions().some(t=>t.id===state.template))state.template='blank';
+ state.drafts||={};state.rates||={};if(!definitions().some(t=>t.id===state.template)&&!legacyCashLayout())state.template='blank';
  restoreProtocolRows(state,definitions().find(t=>t.id===state.template));
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
- dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><details data-history><summary>Compare posted journals</summary><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div><div data-history-entry></div></details><a href="docs/protocols/index.html#F02" target="_blank" rel="noopener">Journaling protocol</a><div data-matches></div><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p>';
+ dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><details data-history><summary>Compare posted journals</summary><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div><div data-history-entry></div></details><a href="docs/protocols/index.html#F02" target="_blank" rel="noopener">Journaling protocol</a><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p>';
  dismissible(dialog);document.body.append(dialog);
  const history=dialog.querySelector('[data-history]');history.ontoggle=()=>{if(history.open)showHistory();};history.querySelector('input').oninput=showHistory;
  try{render();}catch(e){close();showCenterStatus(e.message,true);return;}

@@ -2057,7 +2057,7 @@ function rateCell(row,field,label){
  input.addEventListener('input',()=>{
   const state=lineState.get(row),n=readAppRateInput(input);
   if(!state)return;
-  if(field==='bookRate14383')state.automatic=false;
+  if(field==='bookRate14383'){state.automatic=false;delete row.dataset.averageBookRate;}
   else row.dataset.explicitFx291=input.value.trim()?'1':'';
   if(input.value.trim()&&valid(n))row.dataset[field]=String(n);else delete row.dataset[field];
   input.setCustomValidity(input.value.trim()&&!valid(n)?'Enter a positive rate.':'');
@@ -2122,23 +2122,23 @@ function syncLineRates(card){
  for(const {row,account} of rows){
   if(!row.querySelector('.je-line-acc'))continue;
   let state=lineState.get(row);
-  if(!state){state={account:null,automatic:!row.dataset.bookRate14383&&!row.dataset.savedRate291,inputs:{},autoValue:null};lineState.set(row,state);}
+  if(!state){state={account:null,automatic:!!row.dataset.averageBookRate||!row.dataset.bookRate14383&&!row.dataset.savedRate291,inputs:{},autoValue:row.dataset.averageBookRate?row.dataset.bookRate14383:null};lineState.set(row,state);}
   const id=account?.id||'';
   if(state.account!==null&&state.account!==id){
-   delete row.dataset.fxRate14383;delete row.dataset.bookRate14383;delete row.dataset.explicitFx291;delete row.dataset.savedRate291;
+   delete row.dataset.fxRate14383;delete row.dataset.bookRate14383;delete row.dataset.explicitFx291;delete row.dataset.savedRate291;delete row.dataset.averageBookRate;
    for(const input of Object.values(state.inputs)){input.setCustomValidity('');bindAppRateInput(input,'');}
    state.automatic=true;state.autoValue=null;
   }
   state.account=id;
   const active=foreign(account);
-  if(active&&row.dataset.bookRate14383&&row.dataset.bookRate14383!==state.autoValue)state.automatic=false;
+  if(active&&row.dataset.bookRate14383&&row.dataset.bookRate14383!==state.autoValue){state.automatic=false;delete row.dataset.averageBookRate;}
   const date=rowDate(row);
   const inherited=active&&!JournalModule.editingEntryId&&!row.dataset.savedRate291&&!row.dataset.fxRate14383?entered.get(date+'|'+account.currency):null;
   if(valid(inherited))row.dataset.inheritedFx294=String(inherited);else delete row.dataset.inheritedFx294;
   if(active&&state.automatic){
    const avg=date?effectiveAverage(account,date,exclude):null;
-   if(valid(avg)){state.autoValue=String(avg);row.dataset.bookRate14383=state.autoValue;}
-   else{state.autoValue=null;delete row.dataset.bookRate14383;}
+   if(valid(avg)){state.autoValue=String(avg);row.dataset.bookRate14383=state.autoValue;row.dataset.averageBookRate='1';}
+   else{state.autoValue=null;delete row.dataset.bookRate14383;delete row.dataset.averageBookRate;}
   }
   for(const [field,label] of rateFields){
    let input=state.inputs[field];

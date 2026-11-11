@@ -4,7 +4,7 @@ const currency=a=>a?.currency||a?.currency_code;
 const type=a=>String(a?.baseType||a?.account_type||a?.type||'').toUpperCase();
 const technical=a=>!!(a?.isTechnical||a?.is_technical||a?.type==='SYSTEM');
 const available=a=>a?.id&&a.isPosting!==false&&a.is_posting!==false&&a.active!==false&&a.is_active!==false&&/^[A-Z]{3}$/.test(currency(a)||'')&&currency(a)!=='NA';
-const fund=a=>available(a)&&type(a)==='ASSET'&&!technical(a)&&/^10\d{2}$/.test(String(a.code));
+const fund=a=>available(a)&&type(a)==='ASSET'&&!technical(a)&&/^10\d{2}$/.test(String(a.code))&&String(a.code)!=='1099';
 const staff=a=>/^12[12]\d$/.test(String(a.code));
 const monetary=a=>fund(a)||staff(a)||type(a)==='LIABILITY'||/^11\d\d$/.test(String(a.code));
 const decimalMoney = new Intl.NumberFormat('en-US', {useGrouping:false, maximumFractionDigits:2});
@@ -88,6 +88,8 @@ function completePart(input){
   const leg=key=>receipt.find(l=>l.receiptLeg===key);
   if(receipt.length!==4||!['receive','equity','deposit','clear'].every(leg)||leg('receive').account_id!==leg('clear').account_id)
    error('The receipt and handover must identify the same staff clearing account.');
+  else if(!staff(leg('receive').a)||!fund(leg('deposit').a)||reg.maps.get(leg('equity').a.id)?.actualCode!=='3023'||new Set(receipt.map(l=>l.c)).size!==1)
+   error('Choose the staff clearing, remaining owner support and receiving fund in the same currency.');
   else{
    const amounts=new Set(receipt.map(l=>l.debit||l.credit).filter(Boolean));
    if(amounts.size!==1)error('Enter the support amount. A full deposit must equal the amount received.');
@@ -97,6 +99,7 @@ function completePart(input){
     else if(!l[side]){l[side]=[...amounts][0];l.generated='source';}
    }
   }
+  if(new Set(receipt.map(l=>l.rt)).size>1)error('A full same-currency handover uses the receipt valuation. Review the receipt and deposit rates.');
   const fee=source.find(l=>l.c==='LAK'&&String(l.a.code)==='5414'&&l.debit),payer=source.find(l=>l.role==='payer');
   if(fee&&payer&&!payer.credit&&!payer.debit){payer.credit=fee.debit;payer.generated='source';}
   if(payer&&(!fee||payer.credit!==fee.debit))error('Enter the separate LAK fee and its paying account.',payer.index);
@@ -200,10 +203,20 @@ function completePart(input){
    }
   }
   if(maps.length&&!close(sum(active),0))error(c+' source rows differ by '+Math.abs(sum(active))+'. Check the gross amount, payment, staff amounts and deductions. This is not automatically FX.',active[0].index);
+  // Matched new receipts have one recognition value, including receipts imported
+  // from older drafts that stored an account average without its provenance.
+  const receiptMap=maps.length===1&&maps[0].credit&&['9190','9390'].includes(reg.maps.get(maps[0].a.id).offsetCode)?maps[0]:null;
+  if(receiptMap&&active.every(l=>l===receiptMap||fund(l.a)&&l.debit||custody.has(l))){
+   if(active.some(l=>l.rt!==receiptMap.rt))error('Use the same recognition rate for this receipt and its mapping. Record a later settlement separately.');
+   if(active.some(l=>l.book_rate_lak&&Number(l.book_rate_lak)!==l.rt))notes.push('Used the receipt rate for the new funds and their mapping.');
+  }
   for(const l of active.filter(l=>!reg.maps.has(l.a.id))){
    if(reg.isTax(l.a)){l.book=l.rt;continue;}
    if(custody.has(l)){l.book=l.rt;continue;}
    if(l.credit>0&&fund(l.a)||l.debit>0&&(staff(l.a)||type(l.a)==='LIABILITY')||l.credit>0&&!fund(l.a)&&!staff(l.a)&&type(l.a)==='ASSET')l.book=carry(l);else l.book=l.specified||l.rt;
+   // New money and a newly recognized obligation enter at this transaction's rate.
+   // A receiving account's existing average belongs to its previous balance.
+   if(fund(l.a)&&l.debit||type(l.a)==='LIABILITY'&&l.credit||staff(l.a)&&l.credit&&maps.some(m=>reg.maps.get(m.a.id).actualCode==='5311'))l.book=l.rt;
    if(fund(l.a)&&l.credit>0)cashNeeds.set(l.a.id,(cashNeeds.get(l.a.id)||0)+l.credit);
   }
   const outs=active.filter(l=>fund(l.a)&&l.credit>0),outQ=outs.reduce((n,l)=>n+l.credit,0),outValue=outs.reduce((n,l)=>n+round(l.credit*(l.book||0)),0),otherDr=active.filter(l=>!reg.maps.has(l.a.id)&&!fund(l.a)&&!reg.isTax(l.a)).reduce((n,l)=>n+l.debit,0),mapDr=maps.reduce((n,l)=>n+l.debit,0),cashPart=Math.max(0,Math.min(mapDr,outQ-otherDr));
@@ -212,10 +225,15 @@ function completePart(input){
    const m=reg.maps.get(l.a.id);if(!m.actual||!m.offset){error('Row '+(l.index+1)+': required LAK accounts '+m.actualCode+' / '+m.offsetCode+' are missing.',l.index);continue;}
    l.book=l.specified||(l.debit>0&&cashPart?(cashPart*(outs.length===1?outs[0].book:outValue/outQ)+(mapDr-cashPart)*l.rt)/mapDr:l.rt);
    if(historical.length){if(historical.length!==1||maps.length!==1){error('Use each historical asset lot and its recorded rate separately.',l.index);continue;}l.book=historical[0].book;l.rt=l.book;}
-   if(m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
+   const historicalEquity=m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size;
+   if(l.credit&&['9190','9390'].includes(m.offsetCode)&&!historicalEquity)l.book=l.rt;
+   if(historicalEquity){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
    if(m.offsetCode==='9490'){l.book=l.rt;}
    if(l.book>0){add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');}
   }
+  const reclass=maps.filter(l=>reg.maps.get(l.a.id).offsetCode==='9390');
+  if(reclass.length===2&&reclass.some(l=>reg.maps.get(l.a.id).actualCode==='3024')&&reclass[0].book!==reclass[1].book)
+   error('Use the same original contribution rate on both sides of the support allocation.');
   for(const l of tax)add(reg.bridge('LAK',true),-round(signed(l)*l.rt),'Payroll withholding · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));
  }
  const taxValue=round(foreign.filter(l=>reg.isTax(l.a)&&(l.debit||l.credit)).reduce((n,l)=>n-signed(l)*l.rt,0));
@@ -225,6 +243,7 @@ function completePart(input){
  const active=foreign.filter(l=>l.debit||l.credit),maps=active.filter(l=>reg.maps.has(l.a.id));
  const real=source.filter(l=>!technical(l.a)&&(l.debit||l.credit)),cash=real.filter(l=>fund(l.a)),out=cash.filter(l=>l.credit>0),incoming=cash.filter(l=>l.debit>0),settled=real.filter(l=>!fund(l.a)&&l.debit>0&&(staff(l.a)||type(l.a)==='LIABILITY'));
  const sameTransfer=!maps.length&&real.length===cash.length&&new Set(cash.map(l=>l.c)).size===1;
+ if(sameTransfer&&cash.length&&out.some(l=>incoming.some(r=>r.account_id===l.account_id)))error('Choose different paying and receiving accounts for this transfer.');
  if(sameTransfer){if(!close(sum(cash),0))error('Transfer debits and credits must match. Record an actual fee separately.');else{const q=out.reduce((n,l)=>n+l.credit,0),v=out.reduce((n,l)=>n+round(l.credit*(l.book||1)),0);for(const l of incoming)if(l.c!=='LAK')l.book=v/q;}}
  const econ=new Map(active.map(l=>[l,round(signed(l)*(sameTransfer?l.book:l.rt))]));
  const exchangeRounding=real.filter(l=>l.c==='LAK'&&String(l.a.code)==='5420');
@@ -272,7 +291,7 @@ function completePart(input){
   }
  }
  const components=[];
- for(const l of active.filter(l=>!technical(l.a)&&monetary(l.a))){const n=round((econ.get(l)??signed(l)*l.rt)-round(signed(l)*l.book));if(n)components.push({l,n});}
+ for(const l of active.filter(l=>!technical(l.a)&&monetary(l.a)&&!(fund(l.a)&&l.debit))){const n=round((econ.get(l)??signed(l)*l.rt)-round(signed(l)*l.book));if(n)components.push({l,n});}
  const net=round(components.reduce((n,x)=>n+x.n,0));
  if(components.length){
   const memo=components.map(({l,n})=>(fund(l.a)?'Cash disposal FX':'Balance settlement FX')+' · '+l.a.name+' · '+Math.abs(n)+' LAK '+(n>0?'loss':'gain')).join(' / ');
@@ -317,9 +336,9 @@ root.JournalCompletion258={complete,registry,currency,type,technical,available,f
 const G=()=>root.JournalCompletion258;
 const actions={
  '1310':'Prepay company house rent','3010':'Receive an owner capital contribution',
- '3023':'Receive financial support','3024':'Apply financial support to expenses','3031':'Receive owner support for airfare',
+ '3023':'Receive financial support','3024':'Apply financial support to expenses','3031':'Receive cash contributed for airfare',
  '4010':'Record dine-in sales','4019':'Record other sales','4110':'Receive a donation or external support',
- '4120':'Receive a housing contribution','4130':'Receive other income','5010':'Buy food for the restaurant',
+ '4120':'Receive a housing contribution','4130':'Receive other income','5010':'Buy food for immediate use',
  '5110':'Pay a utility bill','5111':'Buy kitchen supplies','5113':'Pay for transport','5114':'Pay for cleaning',
  '5115':'Pay for marketing','5116':'Pay for maintenance or repairs','5117':'Pay for an event',
  '5118':'Pay legal or permit fees','5119':'Pay restaurant rent','5120':'Pay an operating expense',
@@ -418,7 +437,38 @@ function templates(chart){
    if(remaining)add('local-'+a.code,action(a)+' · LAK',[row(remaining,'debit','Release remaining support'),row(a,'credit','Support applied')],false);
    continue;
   }
-  const expense=g.type(a)==='EXPENSE';add('local-'+a.code,action(a)+' · LAK',expense?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
+  const code=String(a.code);
+  // Opening and retained earnings are prepared in the dedicated opening/closing workflows.
+  if(['3110','3200'].includes(code))continue;
+  const fixed={
+   '3042':['1410','Withdraw inventory for the owner','debit','Inventory at supported cost'],
+   '4011':['1110','Record Foodpanda sales on account','credit','Amount due from Foodpanda'],
+   '4012':['1111','Record EGetS sales on account','credit','Amount due from EGetS'],
+   '4013':['1112','Record Champa sales on account','credit','Amount due from Champa'],
+   '5211':['2111','Accrue employer PIT','debit','PIT payable'],
+   '5212':['2112','Accrue employer SSO','debit','SSO payable'],
+   '5213':['2113','Accrue assessed profit tax','debit','Profit tax payable'],
+   '5416':['1410','Record inventory waste','debit','Inventory at supported cost'],
+   '5417':['1511','Record equipment depreciation','debit','Accumulated depreciation']
+  }[code];
+  if(fixed){
+   const [otherCode,title,side,memo]=fixed,other=reg.byCode(otherCode);
+   if(other)add('local-'+code,title+' · LAK',side==='debit'?[row(a,side),row(other,'credit',memo)]:[row(other,'debit',memo),row(a,side)]);
+   continue;
+  }
+  if(code==='5420'){
+   const payable=reg.byCode('2010');
+   if(payable)add('local-'+code,'Settle a supplier payable with a rounding difference · LAK',
+    [row(payable,'debit','Amount discharged'),row(a,'','Documented rounding difference'),slot('fund','LAK','credit','Actual payment')],false);
+   continue;
+  }
+  if(code==='5311'){
+   add('local-'+code,'Accrue salary owed to staff · LAK',[row(a,'debit','Salary earned'),slot('staff','LAK','credit','Salary owed')]);
+   continue;
+  }
+  const withdrawal=code==='3041',expense=g.type(a)==='EXPENSE';
+  const title=withdrawal?'Withdraw cash for the owner':code==='5418'?'Record a confirmed cash shortage':action(a);
+  add('local-'+code,title+' · LAK',expense||withdrawal?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
  }
  // Releases consume the prepaid asset; they do not repeat the original payment.
  for(const [id,name,expense,prepaid,c] of [['wifi','Recognize prepaid Wi-Fi expense','5110','1311','LAK'],['rent','Recognize prepaid company house rent','5421','1310','LAK'],['restaurant','Recognize prepaid restaurant rent','9222','1312','THB']]){
@@ -495,7 +545,8 @@ function entrySource(){
   const data=editorRows[index]?.dataset||{};
   if(data.generatorTemplate)template=data.generatorTemplate;
   rows.push({...blank(),expectedSide:data.templateSide274,role:data.generatorRole,expectedCurrency:data.generatorCurrency,stage:data.generatorStage,receiptLeg:data.generatorReceipt,
-   ...(data.generatorCalculated&&!number(r.dr)&&!credits.length?{generated:'output',autoMemo:true}:{}),sourceIndex:index,account_id:a?.id||'',missing:!a?r.account:'',line_memo:r.memo||'',debit:r.dr||'',credit:credits[0]?.[1]||'',
+   ...(r.averageBookRate?{autoBook:true}:{}),
+   ...(data.generatorCalculated&&!number(r.dr)&&!credits.length||r.generatorOutput===JSON.stringify([a?.id,number(r.dr),number(credits[0]?.[1]),r.memo||'',number(r.fxRate),number(r.bookRate)])?{generated:'output',autoMemo:true}:{}),sourceIndex:index,account_id:a?.id||'',missing:!a?r.account:'',line_memo:r.memo||'',debit:r.dr||'',credit:credits[0]?.[1]||'',
    fx_rate_lak:r.fxRate?Number(r.fxRate):'',book_rate_lak:r.bookRate?Number(r.bookRate):''});
  }
  if((!snap&&!memo.trim())||!memo.trim()&&!rows.length)return null;
@@ -640,13 +691,34 @@ function renderRows(){
  });
 }
 function render(){
+ const repair=dialog.querySelector('[data-repair-layout]');
+ repair.hidden=!legacyCashLayout();
+ if(!repair.hidden){
+  const t=definitions().find(t=>t.id===state.template);
+  repair.textContent=t?'Load corrected template':'Choose a different template';
+  repair.onclick=()=>{
+   if(!t){dialog.querySelector('[data-template-query]').focus();templateChoices('');return;}
+   state.rows=templateRows(t);invalidate();render();
+   message('Enter the documented amounts in the corrected layout.');
+  };
+ }
  dialog.querySelector('[data-template]').value=state.template;dialog.querySelector('[data-date]').value=state.date;dialog.querySelector('[data-memo]').value=state.memo;
  dialog.querySelector('[data-template-query]').value=definitions().find(t=>t.id===state.template)?.name||'';
  dialog.querySelector('[data-rates]').replaceChildren();renderRates();renderRows();dialog.querySelector('[data-use]').disabled=true;
  const missing=state.rows.filter(l=>l.missing);if(missing.length)message('Choose current accounts for these saved template lines: '+missing.map(l=>l.missing).join(', '),true);
 }
 function readInput(){return {date:state.date,chart:chart(),rates:Object.fromEntries(Object.entries(state.rates).map(([c,v])=>[c,number(v)])),rows:state.rows.map(l=>({...l,debit:number(l.debit),credit:number(l.credit),book_rate_lak:number(l.book_rate_lak),fx_rate_lak:number(l.fx_rate_lak)}))};}
+function legacyCashLayout(){
+ if(!String(state.template||'').startsWith('gen268-local-'))return false;
+ const t=definitions().find(t=>t.id===state.template);
+ if(t&&!t.builtin)return false;
+ const cash=state.rows.find(l=>l.role==='fund');
+ if(!cash)return false;
+ return !t||!t.lines.some(l=>l.role==='fund'&&l.side===cash.expectedSide)||
+  t.id==='gen268-local-5420'&&!state.rows.some(l=>l.account_id===Catalog.resolve(t.lines[0],chart())?.id);
+}
 function validateLayout(input){
+ if(legacyCashLayout())throw Error('This draft uses a superseded cash posting. Load the current template and review its accounts before generating.');
  for(const [i,l] of input.rows.entries()){
   const a=input.chart.find(a=>a.id===l.account_id);
   if(!a)continue;
@@ -657,7 +729,7 @@ function validateLayout(input){
 }
 function fingerprint(){return JSON.stringify([who(),window.OJM_SUPABASE_URL,JournalModule.editingEntryId,state,snapshotJournal69(),$('jeGeneralMemo')?.value,$('jeTransDate')?.value]);}
 async function balances(input){
- const explicitPrepaid=({l,a})=>a&&/^13\d\d$/.test(String(a.code))&&G.type(a)==='ASSET'&&!G.technical(a)&&l.credit>0&&l.book_rate_lak>0;
+ const explicitPrepaid=({l,a})=>a&&/^13\d\d$/.test(String(a.code))&&G.type(a)==='ASSET'&&!G.technical(a)&&l.credit>0&&l.book_rate_lak>0&&!l.autoBook;
  const source=input.rows.filter(l=>l.generated!=='output').map(l=>({l,a:input.chart.find(a=>a.id===l.account_id)}));
  const needs=source.filter(x=>!x.l.receiptLeg&&!explicitPrepaid(x)).filter(({l,a})=>a&&G.currency(a)!=='LAK'&&(G.fund(a)&&!l.debit||(l.debit>0||!l.debit&&!l.credit)&&(G.staff(a)||G.type(a)==='LIABILITY')||l.credit>0&&!G.technical(a)&&!G.fund(a)&&!G.staff(a)&&G.type(a)==='ASSET'));
  if(!needs.length)return {values:{},note:source.some(explicitPrepaid)?'Uses the entered historical prepaid rate. Check the source balance before posting.':''};
@@ -693,11 +765,17 @@ async function useEntry(){
   if(state.entrySignature&&entrySource()?.signature!==state.entrySignature)throw Error('Post Entry changed. Reopen Generate to use its current lines.');
   if(existing&&!state.entrySignature&&oldDate!==state.date)throw Error('Post Entry has an unfinished journal on another date. Finish it before copying this journal.');
   window.JournalUndo143103?.checkpoint();window.entry1430?.setMode('double');
-  const oldRows=[...body.children];
+  const oldRows=[...body.children],builtin=definitions().find(t=>t.id===state.template)?.builtin;
   try{for(const r of oldRows)if(state.entrySignature||!meaningful(r))r.remove();if(!existing||state.entrySignature)$('jeTransDate').value=state.date;
    for(const l of result.rows.filter(l=>l.debit||l.credit)){const a=chart().find(a=>a.id===l.account_id);addJournalLineRow(a.code+' — '+a.name,l.line_memo,l.debit?display(l.debit):'',{[G.currency(a)]:l.credit?display(l.credit):''});const r=body.lastElementChild,original=state.entrySignature?oldRows[l.sourceIndex]:null;
     if(original){Object.assign(r.dataset,original.dataset);}
+    if(builtin){
+     Object.assign(r.dataset,{generatorTemplate:state.template,generatorRole:l.role||'',generatorCurrency:l.expectedCurrency||'',
+      generatorStage:l.stage||'',generatorReceipt:l.receiptLeg||'',templateSide274:l.expectedSide||''});
+    }
+    delete r.dataset.averageBookRate;delete r.dataset.generatorOutput;
     r.dataset.fxRate14383=l.fx_rate_lak||number(state.rates[G.currency(a)])||1;r.dataset.bookRate14383=l.book_rate_lak||'';const date=r.querySelector('.je-line-date');if(date){const prior=original?.querySelector('.je-line-date');date.value=prior?.value||state.date;if(prior?.dataset.manualDate)date.dataset.manualDate=prior.dataset.manualDate;}
+    if(l.generated==='output')r.dataset.generatorOutput=JSON.stringify([a.id,l.debit,l.credit,l.line_memo||'',number(r.dataset.fxRate14383),number(r.dataset.bookRate14383)]);
     if(l.fx_rate_lak&&G.currency(a)!=='LAK')r.dataset.explicitFx291='true';}
    memo.value=!state.entrySignature&&existing&&oldMemo.trim()?oldMemo+'\n'+state.memo:state.memo;JournalFX14383.restore(!state.entrySignature&&existing?{...state.rates,...oldRates}:state.rates);calculateJournalBalance();memo.dispatchEvent(new Event('input',{bubbles:true}));window.dispatchEvent(new Event('save-state14234'));window.drafts1427?.flush();window.JournalUndo143103?.record();
   }catch(e){body.replaceChildren(...oldRows);memo.value=oldMemo;$('jeTransDate').value=oldDate;JournalFX14383.restore(oldRates);calculateJournalBalance();throw e;}
@@ -712,10 +790,10 @@ function open(){
  if(entry&&entry.signature!==state.entrySignature){
   state={template:entry.template,entrySignature:entry.signature,date:entry.date,memo:entry.memo,rates:entry.rates,rows:entry.rows,drafts:{},standalone:state.entrySignature?state.standalone:state};
  }else if(!entry&&state.entrySignature)state=state.standalone||{template:'blank',date:$('jeTransDate').value,memo:'',rates:{},rows:[blank(),blank()],drafts:{}};
- state.drafts||={};state.rates||={};if(!definitions().some(t=>t.id===state.template))state.template='blank';
+ state.drafts||={};state.rates||={};if(!definitions().some(t=>t.id===state.template)&&!legacyCashLayout())state.template='blank';
  restoreProtocolRows(state,definitions().find(t=>t.id===state.template));
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
- dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><details data-history><summary>Compare posted journals</summary><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div><div data-history-entry></div></details><a href="docs/protocols/index.html#F02" target="_blank" rel="noopener">Journaling protocol</a><div data-matches></div><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p>';
+ dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><details data-history><summary>Compare posted journals</summary><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div><div data-history-entry></div></details><a href="docs/protocols/index.html#F02" target="_blank" rel="noopener">Journaling protocol</a><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p>';
  dismissible(dialog);document.body.append(dialog);
  const history=dialog.querySelector('[data-history]');history.ontoggle=()=>{if(history.open)showHistory();};history.querySelector('input').oninput=showHistory;
  try{render();}catch(e){close();showCenterStatus(e.message,true);return;}
