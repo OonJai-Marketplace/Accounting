@@ -7,6 +7,7 @@ async function scenario(initialPersonal){
   w.liveProfile={id:'review-admin'};w.AccountingStore={accounts:[]};w.JournalCompletion258={available:()=>true,currency:()=>"LAK"};w.escapeHtml=s=>s;w.access113={can:()=>true};w.pendingWorkspacePostOwnerId='';w.pendingWorkspacePostJournalId='';w.personalJournal1437={active:initialPersonal};w.showCenterStatus=()=>{};
   w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false};
   const card=d.querySelector('#journalEntry98');if(initialPersonal)card.dataset.personalOwner1437='user-a';
+  w.ApplicationSettings={system:{},accounting:{}};w.eval(fs.readFileSync('src/shared/formatting/numbers.js','utf8'));
   w.eval(source);const button=d.querySelector('#generateJournal258');
   assert.equal(button.hidden,initialPersonal,'initial context');
   const switchOwner=async owner=>{w.personalJournal1437.active=!!owner;if(owner)card.dataset.personalOwner1437=owner;else card.removeAttribute('data-personal-owner1437');await new Promise(resolve=>w.setTimeout(resolve,0))};

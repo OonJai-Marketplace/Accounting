@@ -34,6 +34,38 @@ function registry(chart){
  return {all,maps,unknown,byCode,bridge,isBridge:a=>currency(a)!=='LAK'&&bridge(currency(a))?.id===a.id,isTax:a=>currency(a)!=='LAK'&&bridge(currency(a),true)?.id===a.id};
 }
 function complete(input){
+ if(!input.rows?.some(l=>l.stage))return completePart(input);
+ const stages=new Map(),balances=Object.fromEntries(Object.entries(input.balances||{}).map(([id,b])=>[id,{...b}]));
+ const rows=[],notes=[],totals={};
+ for(const [index,line] of input.rows.entries()){
+  const stage=line.stage||'Additional lines';
+  if(!stages.has(stage))stages.set(stage,[]);
+  stages.get(stage).push({index,line});
+ }
+ const ordered=[...stages].sort(([a],[b])=>Number(b==='Receipt')-Number(a==='Receipt'));
+ for(const [stage,items] of ordered){
+  const result=completePart({...input,balances,rows:items.map(x=>x.line)});
+  if(result.errors.length)return {errors:result.errors.map(e=>({...e,row:items[e.row]?.index,message:stage+' · '+e.message.replace(/^Row \d+: /,'')}))};
+  if(stage==='Exchange'&&stages.has('Receipt')){
+   const receipt=rows.find(l=>l.stage==='Receipt'&&fund(input.chart.find(a=>a.id===l.account_id))&&l.debit);
+   const paid=result.rows.filter(l=>fund(input.chart.find(a=>a.id===l.account_id))&&l.credit);
+   if(!receipt||paid.length!==1||paid[0].account_id!==receipt.account_id||paid[0].credit>receipt.debit)
+    return {errors:[{message:'Exchange the support from its receiving fund, up to the amount received.'}]};
+  }
+  for(const l of result.rows){
+   rows.push({...l,stage});
+   const b=balances[l.account_id],a=input.chart.find(a=>a.id===l.account_id);
+   if(b&&fund(a)&&currency(a)!=='LAK'){
+    const n=l.debit-l.credit,newQuantity=round(b.quantity+n);
+    const value=b.quantity*(b.rate||0)+n*(l.book_rate_lak||l.fx_rate_lak);
+    b.rate=newQuantity&&(!b.quantity||b.rate)?value/newQuantity:0;b.quantity=newQuantity;
+   }
+  }
+  Object.assign(totals,result.totals);notes.push(...result.notes);
+ }
+ return {errors:[],rows,notes,totals};
+}
+function completePart(input){
  const reg=registry(input.chart||[]),errors=[],notes=[],expected=[],rates=input.rates||{},balances=input.balances||{};
  const error=(message,row,needsBook=false)=>errors.push({message,row,needsBook});
  const signed=l=>round(l.debit-l.credit),sum=ls=>round(ls.reduce((n,l)=>n+signed(l),0));
@@ -49,6 +81,27 @@ function complete(input){
  if(errors.length)return {errors};
  const source=rows.filter(l=>l.a&&l.generated!=='output'&&!reg.isBridge(l.a));
  const foreign=source.filter(l=>l.c!=='LAK');
+ // A full bank deposit via a custodian is one receipt with two movements.
+ // Only this explicitly selected layout equates the four amounts.
+ const receipt=source.filter(l=>l.receiptLeg);
+ if(receipt.length){
+  const leg=key=>receipt.find(l=>l.receiptLeg===key);
+  if(receipt.length!==4||!['receive','equity','deposit','clear'].every(leg)||leg('receive').account_id!==leg('clear').account_id)
+   error('The receipt and handover must identify the same staff clearing account.');
+  else{
+   const amounts=new Set(receipt.map(l=>l.debit||l.credit).filter(Boolean));
+   if(amounts.size!==1)error('Enter the support amount. A full deposit must equal the amount received.');
+   else for(const l of receipt){
+    const side=['receive','deposit'].includes(l.receiptLeg)?'debit':'credit';
+    if(l[side==='debit'?'credit':'debit'])error('Check the side of this support movement.',l.index);
+    else if(!l[side]){l[side]=[...amounts][0];l.generated='source';}
+   }
+  }
+  const fee=source.find(l=>l.c==='LAK'&&String(l.a.code)==='5414'&&l.debit),payer=source.find(l=>l.role==='payer');
+  if(fee&&payer&&!payer.credit&&!payer.debit){payer.credit=fee.debit;payer.generated='source';}
+  if(payer&&(!fee||payer.credit!==fee.debit))error('Enter the separate LAK fee and its paying account.',payer.index);
+ }
+ if(errors.length)return {errors};
  // For a LAK remittance, total PIT and SSO separately. The payable debit
  // clears the recorded liability; only the extra cash is a rounding expense.
  const taxCode=l=>['2111','2112'].includes(String(l.a.code));
@@ -85,6 +138,20 @@ function complete(input){
  // A local journal can fill one explicitly chosen counterpart. More than one
  // missing business amount remains ambiguous and must be entered by the user.
  if(!foreign.length){const blanks=source.filter(l=>!l.debit&&!l.credit&&!technical(l.a)&&String(l.a.code)!=='5419'),gap=sum(source);if(gap&&blanks.length===1){const l=blanks[0];l.debit=gap<0?-gap:0;l.credit=gap>0?gap:0;l.generated='source';notes.push('Filled row '+(l.index+1)+'.');}}
+ // A documented exchange against kip supplies its own rate. A receipt
+ // valuation in the same journal can legitimately be different.
+ const transactionLines=source.filter(l=>l.debit||l.credit);
+ const exchangeFunds=transactionLines.filter(l=>fund(l.a));
+ const localLegs=exchangeFunds.filter(l=>l.c==='LAK'),foreignLegs=exchangeFunds.filter(l=>l.c!=='LAK');
+ const rounding=transactionLines.filter(l=>l.c==='LAK'&&String(l.a.code)==='5420');
+ if(localLegs.length===1&&foreignLegs.length===1&&exchangeFunds.length+rounding.length===transactionLines.length){
+  const l=foreignLegs[0],kip=round(signed(localLegs[0])+sum(rounding));
+  if(kip*signed(l)<0){
+   if(l.overrideRate&&Math.abs(round(Math.abs(signed(l))*l.rt)-Math.abs(kip))>=.005)
+    error('The entered exchange rate disagrees with the documented amounts and rounding.',l.index);
+   else l.rt=Math.abs(kip/signed(l));
+  }
+ }
  const cashNeeds=new Map();
  function carry(l){
   const b=balances[l.a.id];
@@ -110,6 +177,19 @@ function complete(input){
   for(const l of active){if(!Number.isFinite(l.rt)||!(l.rt>0))error('Enter the '+c+' exchange rate above the table.',l.index);if(reg.unknown.has(l.a.id)||technical(l.a)&&!reg.maps.has(l.a.id)&&!reg.isTax(l.a))error('Row '+(l.index+1)+': this mapping has no supported LAK counterpart in the chart.',l.index);}
   if(errors.length)continue;
   const maps=active.filter(l=>reg.maps.has(l.a.id)),tax=active.filter(l=>reg.isTax(l.a));
+  const newSupport=maps.some(l=>reg.maps.get(l.a.id).actualCode==='3023'&&l.credit>0);
+  // Staff may receive funds on behalf of the company and deposit the same
+  // funds. This line creates a new balance at receipt value, not a settlement
+  // of an older payroll liability. Require a matching support receipt amount.
+  const custody=new Set();
+  if(newSupport){
+   const receipts=active.filter(l=>reg.maps.get(l.a.id)?.actualCode==='3023'&&l.credit);
+   const staffReceipts=active.filter(l=>staff(l.a)&&l.debit);
+   if(staffReceipts.length===1&&receipts.length===1&&close(staffReceipts[0].debit,receipts[0].credit)){
+    const incoming=staffReceipts[0];custody.add(incoming);
+    for(const handover of active.filter(l=>l.a.id===incoming.a.id&&l.credit>0&&l.credit<=incoming.debit))custody.add(handover);
+   }
+  }
   if(maps.length&&sum(active)>0&&!tax.length){
    const withholding=round(source.filter(l=>l.c==='LAK'&&['2111','2112'].includes(String(l.a.code))).reduce((n,l)=>n+l.credit-l.debit,0)-source.filter(l=>l.c==='LAK'&&['5211','5212'].includes(String(l.a.code))).reduce((n,l)=>n+l.debit-l.credit,0));
    const used=foreign.filter(l=>l.c!==c&&reg.isTax(l.a)).reduce((n,l)=>n+round(l.credit*l.rt),0),q=sum(active);
@@ -122,6 +202,7 @@ function complete(input){
   if(maps.length&&!close(sum(active),0))error(c+' source rows differ by '+Math.abs(sum(active))+'. Check the gross amount, payment, staff amounts and deductions. This is not automatically FX.',active[0].index);
   for(const l of active.filter(l=>!reg.maps.has(l.a.id))){
    if(reg.isTax(l.a)){l.book=l.rt;continue;}
+   if(custody.has(l)){l.book=l.rt;continue;}
    if(l.credit>0&&fund(l.a)||l.debit>0&&(staff(l.a)||type(l.a)==='LIABILITY')||l.credit>0&&!fund(l.a)&&!staff(l.a)&&type(l.a)==='ASSET')l.book=carry(l);else l.book=l.specified||l.rt;
    if(fund(l.a)&&l.credit>0)cashNeeds.set(l.a.id,(cashNeeds.get(l.a.id)||0)+l.credit);
   }
@@ -131,7 +212,8 @@ function complete(input){
    const m=reg.maps.get(l.a.id);if(!m.actual||!m.offset){error('Row '+(l.index+1)+': required LAK accounts '+m.actualCode+' / '+m.offsetCode+' are missing.',l.index);continue;}
    l.book=l.specified||(l.debit>0&&cashPart?(cashPart*(outs.length===1?outs[0].book:outValue/outQ)+(mapDr-cashPart)*l.rt)/mapDr:l.rt);
    if(historical.length){if(historical.length!==1||maps.length!==1){error('Use each historical asset lot and its recorded rate separately.',l.index);continue;}l.book=historical[0].book;l.rt=l.book;}
-   if(m.offsetCode==='9390'&&!active.some(x=>fund(x.a))){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
+   if(m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
+   if(m.offsetCode==='9490'){l.book=l.rt;}
    if(l.book>0){add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');}
   }
   for(const l of tax)add(reg.bridge('LAK',true),-round(signed(l)*l.rt),'Payroll withholding · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));
@@ -145,10 +227,13 @@ function complete(input){
  const sameTransfer=!maps.length&&real.length===cash.length&&new Set(cash.map(l=>l.c)).size===1;
  if(sameTransfer){if(!close(sum(cash),0))error('Transfer debits and credits must match. Record an actual fee separately.');else{const q=out.reduce((n,l)=>n+l.credit,0),v=out.reduce((n,l)=>n+round(l.credit*(l.book||1)),0);for(const l of incoming)if(l.c!=='LAK')l.book=v/q;}}
  const econ=new Map(active.map(l=>[l,round(signed(l)*(sameTransfer?l.book:l.rt))]));
- if(!maps.length&&!sameTransfer&&incoming.length&&real.length===cash.length&&out.length){
-  const received=round(incoming.reduce((n,l)=>n+l.debit*(l.c==='LAK'?1:l.rt),0)),paid=out.reduce((n,l)=>n+l.credit*(l.c==='LAK'?1:l.rt),0);
+ const exchangeRounding=real.filter(l=>l.c==='LAK'&&String(l.a.code)==='5420');
+ const exchange=!maps.length&&!sameTransfer&&incoming.length&&out.length&&real.length===cash.length+exchangeRounding.length&&new Set(cash.map(l=>l.c)).size>1;
+ const roundingValue=sum(exchangeRounding);
+ if(exchange){
+  const received=round(incoming.reduce((n,l)=>n+l.debit*(l.c==='LAK'?1:l.rt),0)+roundingValue),paid=out.reduce((n,l)=>n+l.credit*(l.c==='LAK'?1:l.rt),0);
   for(const l of out)if(l.c!=='LAK')econ.set(l,-round(received*l.credit*l.rt/paid));
-  if(out.some(l=>l.c==='LAK')&&!close(paid,received))error('The LAK payment and receipt rate disagree. Check the actual exchange rate.');
+  if((roundingValue||out.some(l=>l.c==='LAK'))&&!close(paid,received))error('The LAK payment and receipt rate disagree. Check the actual exchange rate.');
  }else if(!maps.length&&settled.length&&real.length===out.length+settled.length&&new Set(real.map(l=>l.c)).size>1&&settled.every(l=>l.c!=='LAK')){
   const paid=round(out.reduce((n,l)=>n+l.credit*(l.c==='LAK'?1:l.rt),0)),owed=settled.reduce((n,l)=>n+l.debit*l.rt,0);for(const l of settled)econ.set(l,round(paid*l.debit*l.rt/owed));
  }else if(!maps.length&&real.filter(l=>!fund(l.a)).every(l=>l.c==='LAK'&&l.debit>0)&&out.length&&real.length===out.length+real.filter(l=>!fund(l.a)).length){
@@ -156,12 +241,44 @@ function complete(input){
  }
  if(!maps.length&&new Set(real.map(l=>l.c)).size===1&&!close(sum(active),0))error('The entered foreign debits and credits differ. Correct the business amounts before generating.');
  const bridges=new Map();
- for(const l of active){if(!(l.book>0)){error('Row '+(l.index+1)+' needs a recorded rate.',l.index,true);continue;}const k=[...bridges.keys()].find(k=>bridges.get(k).c===l.c&&Math.abs(bridges.get(k).book-l.book)<1e-8)||l.c+'|'+l.book,b=bridges.get(k)||{c:l.c,book:l.book,rt:l.rt,n:0};b.n=round(b.n-signed(l));bridges.set(k,b);l.book_rate_lak=l.book;l.fx_rate_lak=l.rt;l.autoBook=!l.specified;}
+ for(const l of active){if(!(l.book>0)){error('Row '+(l.index+1)+' needs a recorded rate.',l.index,true);continue;}const k=[...bridges.keys()].find(k=>bridges.get(k).c===l.c&&Math.abs(bridges.get(k).book-l.book)<1e-8)||l.c+'|'+l.book,b=bridges.get(k)||{c:l.c,book:l.book,rt:l.rt,n:0,value:0};b.n=round(b.n-signed(l));b.value=round(b.value-round(signed(l)*l.book));bridges.set(k,b);l.book_rate_lak=l.book;l.fx_rate_lak=l.rt;l.autoBook=!l.specified;}
  let bridgeValue=0;
- for(const b of bridges.values())if(b.n){const a=reg.bridge(b.c);if(!a)error('The '+b.c+' exchange bridge is missing from the chart.');else{add(a,b.n,'Foreign settlement · recorded value',b.rt,b.book);bridgeValue=round(bridgeValue+round(b.n*b.book));}}
+ if(exchange){
+  // Show the exchange itself, then the release of the fund at its carrying
+  // value. Netting these before display hides the evidence for realized FX.
+  for(const l of cash){
+   const n=signed(l),value=l.c==='LAK'?n:econ.get(l),actual=Math.abs(value/n);
+   const roundedLeg=roundingValue&&l===incoming.find(x=>x.c==='LAK');
+   add(reg.bridge(l.c),-n-(roundedLeg?roundingValue:0),'Currency exchanged · actual proceeds',actual,actual);
+   if(l.c!=='LAK'&&!close(value,round(n*l.book))){
+    add(reg.bridge(l.c),-n,'Release at recorded carrying value',l.book,l.book);
+    add(reg.bridge(l.c),n,'Clear at actual exchange value',actual,actual);
+    bridgeValue=round(bridgeValue+value-round(n*l.book));
+   }
+  }
+ }else{
+  // Combine same-side exchange-bridge movements using the sum of the actual
+  // rounded LAK line values. Original business rows retain their own rates.
+  const sides=new Map();
+  for(const b of bridges.values()){
+   if(!b.n)continue;
+   const key=b.c+'|'+Math.sign(b.n),side=sides.get(key)||{c:b.c,n:0,value:0,book:b.book,rt:b.rt};
+   side.n=round(side.n+b.n);side.value=round(side.value+b.value);sides.set(key,side);
+  }
+  for(const b of sides.values()){
+   const effective=close(round(b.n*b.book),b.value)?b.book:b.value/b.n;
+   add(reg.bridge(b.c),b.n,'Foreign settlement · recorded value',effective,effective);
+   bridgeValue=round(bridgeValue+b.value);
+  }
+ }
  const components=[];
- for(const l of active.filter(l=>!technical(l.a)&&monetary(l.a))){const n=round((econ.get(l)??signed(l)*l.rt)-round(signed(l)*l.book));if(n){components.push({l,n});add(reg.byCode('5419'),n,(fund(l.a)?'Cash disposal FX':'Balance settlement FX')+' · '+l.a.name+' · '+(n>0?'loss':'gain'));}}
- if(bridgeValue){if(!maps.length&&!real.some(l=>l.c==='LAK')&&close(components.reduce((n,x)=>n+x.n,0),bridgeValue))for(const x of components)add(reg.bridge('LAK'),-x.n,'Settlement valuation · '+x.l.a.name);else add(reg.bridge('LAK'),-bridgeValue,'Exchange / settlement · LAK valuation');}
+ for(const l of active.filter(l=>!technical(l.a)&&monetary(l.a))){const n=round((econ.get(l)??signed(l)*l.rt)-round(signed(l)*l.book));if(n)components.push({l,n});}
+ const net=round(components.reduce((n,x)=>n+x.n,0));
+ if(components.length){
+  const memo=components.map(({l,n})=>(fund(l.a)?'Cash disposal FX':'Balance settlement FX')+' · '+l.a.name+' · '+Math.abs(n)+' LAK '+(n>0?'loss':'gain')).join(' / ');
+  add(reg.byCode('5419'),net,memo);
+ }
+ if(bridgeValue)add(reg.bridge('LAK'),-bridgeValue,'Exchange / settlement · LAK valuation');
  if(errors.length)return {errors};
  const localRows=source.filter(l=>l.c==='LAK'&&(l.debit||l.credit)),localSeparate=localRows.length>0&&close(sum(localRows),0)&&!localRows.some(l=>technical(l.a)||String(l.a.code)==='5419');
  const buckets=new Map(),used=new Set(),result=rows.map(l=>({...l}));

@@ -2401,7 +2401,8 @@ function applyTransactionTemplate(id){
   window.entry1430?.restore('double',[]);
   const body=document.getElementById('jeLinesBody'); body.innerHTML='';
   document.getElementById('jeGeneralMemo').value=t.generalMemo || '';
-  lines.forEach(line=>{addJournalLineRow(line.account,line.memo,'',{});body.lastElementChild.dataset.templateSide274=line.side||'';});
+  lines.forEach(line=>{addJournalLineRow(line.account,line.memo,'',{});const data=body.lastElementChild.dataset;data.templateSide274=line.side||'';
+    if(t.builtin){data.generatorTemplate=t.id;data.generatorRole=line.role||'';data.generatorCurrency=line.currency||'';data.generatorStage=line.stage||'';data.generatorReceipt=line.receiptLeg||'';if(line.calculated)data.generatorCalculated='true';}});
   while(body.querySelectorAll('tr').length<2)addJournalLineRow();
 
   setTransactionDateToToday(true); updateNextEntryIdDisplay(); calculateJournalBalance();
