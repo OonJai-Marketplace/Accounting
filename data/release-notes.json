@@ -1,5 +1,5 @@
 {
-  "version": "143.328",
+  "version": "143.329",
   "changes": [
     "Use Settings › System & Tools › Backup & Recovery for raw Excel, a restorable file, and append-only Google Sheets archives.",
     "Clear a month or date range, including locked records, journal history, audit logs and payroll attendance. Employee records and leave balances are retained. Restore an original Excel or JSON backup in the same panel."

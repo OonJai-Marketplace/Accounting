@@ -28,6 +28,8 @@ const create=require('./phase0-browser-fixture.cjs');
   const root=page.locator('#portable328'),status=root.locator(':scope>p[role=status]');
   if(!await root.isVisible())await page.locator('[data-jump143176="archive-export"]:visible').click();
   await root.waitFor({state:'visible'});
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('page113',{detail:'settings-data14231'})));
+  assert.equal(await page.locator('#operationalReset142,#practiceReset130').count(),0,'Legacy all-data resets must never reappear after navigation');
   assert.equal(await page.getByRole('button',{name:'Maintenance & Audit',exact:true}).count(),0);
   await root.locator(':scope>fieldset [name=period]').selectOption('custom',{force:true});
   await root.locator(':scope>fieldset [name=from]').fill(dates.from);await root.locator(':scope>fieldset [name=to]').fill(dates.to);
