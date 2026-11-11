@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.338',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.339',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "docs/protocols/index.html?v=143.338",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.316",
@@ -92,10 +92,10 @@ const FILES=[
  "scripts/desktop14245-2.js?v=143.323",
  "scripts/desktop14245-3.js?v=143.336",
  "scripts/desktop14245-4.js?v=143.315",
- "scripts/desktop14245-5.js?v=143.328",
+ "scripts/desktop14245-5.js?v=143.339",
  "scripts/desktop14245-6.js?v=143.338",
  "scripts/local-events14310.js?v=143.327",
- "scripts/offline14239.js?v=143.338",
+ "scripts/offline14239.js?v=143.339",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -229,7 +229,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.328",
  "styles/settings-groups14332.css?v=143.297",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.338",
+ "scripts/phone-runtime14242.js?v=143.339",
  "scripts/local-first14333.js?v=143.335",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -258,7 +258,7 @@ const FILES=[
  "scripts/idle-sync14341.js?v=143.325",
  "styles/responsive-work14341.css?v=143.62",
  "docs/UPDATE-v143.42.md",
- "scripts/phone-tools14242.js?v=143.338",
+ "scripts/phone-tools14242.js?v=143.339",
  "styles/feedback-viewport14295.css?v=143.301",
  "scripts/desktop-corrections-v80.js?v=143.70",
  "scripts/payroll-polish-v97.js?v=143.325",
@@ -268,7 +268,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.323",
  "styles/workspace-consistency14343.css?v=143.243",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.338",
+ "phone-sw.js?v=143.339",
  "scripts/personal-journal1437.js?v=143.336",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
