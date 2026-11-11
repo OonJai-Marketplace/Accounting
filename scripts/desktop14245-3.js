@@ -3521,11 +3521,18 @@ async function loadCurrentPermissions(){
   if(error)throw new Error('Could not load this account’s permissions: '+error.message);
   livePermission=data||{user_type:'sub_user',modules:['submissions'],can_approve:false,can_post_directly:false,can_void:false,can_export:false};
 }
+function refreshJournalPostAccess(){
+  const button=document.getElementById('btnPostJournal');
+  if(!button||!livePermission)return;
+  button.hidden=button.closest('#personalEditor1437')
+    ? !window.access113?.can('sub-users-workspace','edit')
+    : !livePermission.can_post_directly;
+}
 function applyPermissionAccess(){
   if(!livePermission)return;
   document.querySelectorAll('.nav-category').forEach(category=>{const module=category.dataset.module;category.hidden=!livePermission.modules.includes(module)});
   const subUsersNav=document.getElementById('nav-module-sub-users');if(subUsersNav)subUsersNav.hidden=!livePermission.modules.includes('sub-users')&&!livePermission.can_approve;
-  const post=document.getElementById('btnPostJournal');if(post)post.hidden=!livePermission.can_post_directly;
+  refreshJournalPostAccess();
 }
 function renderPermissionGrid(selected=[]){const host=document.getElementById('userPermissionGrid');if(host)host.innerHTML=PERMISSION_MODULES.map(([id,label])=>`<label class="permission-option"><input type="checkbox" value="${id}" ${selected.includes(id)?'checked':''}><span>${label}</span></label>`).join('')}
 function populateUserManagerOptions(selected=''){const select=document.getElementById('userAccessManager');if(!select)return;select.innerHTML='<option value="">Primary administrator</option>'+liveProfiles.filter(user=>user.role==='admin'||user.user_permissions?.user_type==='manager').map(user=>`<option value="${user.id}">${escapeHtml(user.full_name||user.email)}</option>`).join('');select.value=selected||''}
@@ -4568,6 +4575,9 @@ sendSubUserPasswordReset=async function(id){const user=availableSubUsers().find(
     return `<section class="v49-desktop-admin"><div class="v49-desktop-home-title"><h2>Sub-users Workspace</h2><p>Search for a user or review everyone’s current fund activity.</p><div class="sub-user-search-wrap"><span class="v49-search-icon">⌕</span><input id="subUserTabSearch" class="je-input" type="search" autocomplete="off" placeholder="Search by name, email, or position" oninput="renderSubUserTabSearch(this.value)" onfocus="renderSubUserTabSearch(this.value)"><div id="subUserSearchResults" class="sub-user-search-results" hidden></div></div></div><div class="v49-desktop-stats"><div><i>${icon('home')}</i><strong>${users.length} <span>Sub-users</span></strong></div><div><i>${icon('fund')}</i><strong>${assigned} <span>Assigned Funds</span></strong></div><div><i>${icon('review')}</i><strong>${reviews} <span>Reviews</span></strong></div><div class="attention"><i>${icon('alert')}</i><strong>${negative} <span>Negative Funds</span></strong></div></div><section class="v49-card"><header><div><h3>User Fund Overview</h3><p>Current activity for every assigned main account.</p></div><b>${users.length} users</b></header><div class="v49-desktop-home-table"><table><thead><tr><th>User</th><th>Main account</th><th>Funds received</th><th>Funds used</th><th>Handover</th><th>Tracked remaining</th><th>Status</th></tr></thead><tbody>${rows.join('')||'<tr><td colspan="7" class="period-empty">No sub-users are available.</td></tr>'}</tbody></table></div></section></section>`;
   }
   function renderUser(user) {
+    if(document.documentElement.dataset.device132!=='phone'){
+      return `<div class="v49-desktop-workspace" data-workspace-owner252="${escapeHtml(user.id)}">${desktopHeader(user)}<main>${desktopAccounts(user)}</main></div>`;
+    }
     const view = getView(user.id);
     let content = view==='accounts'?accountsView(user):view==='post'?postView(user):view==='entries'?entriesView(user):view==='records'?recordsView(user):dashboard(user);
     if(view==='home') {
@@ -4687,7 +4697,7 @@ openUserAccessEditor=function(id=''){
   window.AssignedLedger14281?.edit(p.ledger_account_ids14281||[]);renderAccountAccessEditor(p.destination_account_ids||p.allowed_account_ids||[],p.assigned_fund_account_ids||[]);enforceFundSelection();
   const counterpart=document.getElementById('moneyInCounterpartAccount');if(counterpart){counterpart.innerHTML='<option value="">Choose the automatic credit account</option>'+activeChartAccounts().map(a=>'<option value="'+escapeHtml(accountKey(a))+'">'+escapeHtml(a.name)+'</option>').join('');counterpart.value=p.money_in_counterpart_account_id||'';}
   const directions=p.allowed_directions||['out'];set('userTransactionActivity',directions.includes('in')?(directions.includes('out')?'both':'in'):'out');syncTransactionActivitySelection();
-  const entryMode=p.workspace_entry_mode240||'double_simple';set('userBookkeepingMode240',entryMode==='cashbook'?'cashbook':'double');set('userJournalStyle240','double_full');document.getElementById('userJournalStyleField240').hidden=entryMode==='cashbook';
+  const entryMode=p.workspace_entry_mode240||'double_simple';set('userBookkeepingMode240',['cashbook','both'].includes(entryMode)?entryMode:'double');set('userJournalStyle240','double_full');document.getElementById('userJournalStyleField240').hidden=entryMode==='cashbook';
   set('userEntryPrefix',p.entry_prefix||'S');set('userEntryInitials',p.entry_initials||(user?workspaceUserInitials(user):''));set('userEntryDigits',p.entry_digits||4);
   ['userModuleAccessPanel','userSecurityAccessPanel','userAccountAssignmentPanel'].forEach(id=>document.getElementById(id).hidden=true);document.getElementById('userAccessStatus').textContent='';showAccountAssignmentPane('main');updateUserAccessSummaries();openModal('modalUserAccess');
 };
@@ -4705,8 +4715,12 @@ saveUserAccess=async function(event){
     if(liveProfile?.id!==actor||liveProfile.role!=='admin')throw Error('Account changed. Reopen Users to confirm the result.');
     const {password,email,full_name,...access}=payload;
     const existing=liveProfiles.find(u=>u.id===userId)?.user_permissions||{};
-    const permissionData={...access,workspace_entry_mode240:value('userBookkeepingMode240')==='cashbook'?'cashbook':value('userJournalStyle240'),ledger_account_ids14281:ledgerIds,user_id:userId,module_actions113:actionMatrix,allow_any_account:false,allowed_account_ids:entries,destination_account_ids:entries,assigned_fund_account_ids:funds,fund_allocations:existing.fund_allocations||[],default_out_credit_account_id:funds[0]||null,default_in_debit_account_id:funds[0]||null,allowed_directions:directions,allow_multiple_funds:multiple,money_in_counterpart_account_id:counterpart,entry_prefix:prefix,entry_initials:initials,entry_digits:digits,updated_by:liveProfile.id,updated_at:new Date().toISOString()};
+    const selectedMethod=value('userBookkeepingMode240');
+    const entryMode=selectedMethod==='double'?(existing.workspace_entry_mode240==='double_simple'?'double_simple':value('userJournalStyle240')):selectedMethod;
+    const permissionData={...access,workspace_entry_mode240:entryMode,ledger_account_ids14281:ledgerIds,user_id:userId,module_actions113:actionMatrix,allow_any_account:false,allowed_account_ids:entries,destination_account_ids:entries,assigned_fund_account_ids:funds,fund_allocations:existing.fund_allocations||[],default_out_credit_account_id:funds[0]||null,default_in_debit_account_id:funds[0]||null,allowed_directions:directions,allow_multiple_funds:multiple,money_in_counterpart_account_id:counterpart,entry_prefix:prefix,entry_initials:initials,entry_digits:digits,updated_by:liveProfile.id,updated_at:new Date().toISOString()};
     const result=await db.rpc('admin_save_access14281',{p_user:userId,p_name:full_name,p_role:payload.user_type==='admin'?'admin':'submitter',p_permissions:permissionData});if(!current())return;if(result.error)throw Error(result.error.code==='PGRST202'?'Install setup/INSTALL-ASSIGNED-LEDGER-v142.81.sql before saving access.':'Access save not confirmed. Reload Users before retrying: '+result.error.message);if(result.data?.user_id!==userId||result.data?.ledger_saved!==true)throw Error('The server did not confirm this user’s access. Reload Users before retrying.');if(liveProfile?.id!==actor||liveProfile.role!=='admin')return;
+    const savedProfile=liveProfiles.find(u=>u.id===userId);
+    if(savedProfile)savedProfile.user_permissions={...savedProfile.user_permissions,workspace_entry_mode240:entryMode};
     closeModal('modalUserAccess');await loadProfilesFromSupabase();if(!current())return;renderSubUserWorkspace();showCenterStatus('User access saved.');
   }catch(error){if(!current())return;status.textContent='Access operation or refresh was not confirmed. Reload Users before retrying. '+error.message;showCenterStatus(status.textContent,true)}finally{if(button&&current())button.disabled=false}
 };

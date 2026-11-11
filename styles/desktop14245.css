@@ -5972,6 +5972,15 @@ body #auditMonths98 .audit-table98 :is(th,td):not(.audit-action1434){white-space
  html body :is(#personalWorkspace1437,#userEntryHistoryCards,#userEntryReviewCards) .final-record-card>:is(summary,header):has([data-print-saved1434]){grid-template-columns:minmax(0,1fr) repeat(3,auto)!important;flex-wrap:wrap}
  html body :is(#personalWorkspace1437,#userEntryHistoryCards,#userEntryReviewCards) [data-print-saved1434]{display:inline-flex!important;align-items:center;justify-content:center}
 }
+/* A narrow desktop window or tablet split view still uses the personal journal. */
+@media screen and (max-width:767px){
+ html:not([data-device132=phone]) body.subusers-workspace-active #subUserWorkspacePanel:has(.v49-desktop-workspace){overflow:auto!important;min-width:0}
+ html:not([data-device132=phone]) #subUserWorkspacePanel .v49-desktop-workspace{display:block!important;min-width:0}
+ #personalWorkspace1437 [hidden]{display:none!important}
+ #personalWorkspace1437 .personal-tabs1437{display:flex;overflow-x:auto;gap:4px}
+ #personalWorkspace1437 .personal-tabs1437>button{flex:none}
+ #personalWorkspace1437 .table-container{max-width:100%;overflow-x:auto}
+}
 
 /* styles/desktop-tasks1438.css */
 @media(min-width:1025px){

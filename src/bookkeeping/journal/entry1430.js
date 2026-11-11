@@ -103,6 +103,14 @@ function pairs(){
 }
 function display(){
  const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.dataset.mode=mode;toggle.hidden=!!window.personalJournal1437?.active;
+ const methods=$('personalEntryMethods');
+ methods.hidden=!window.personalJournal1437?.offersBothMethods;
+ if(!methods.hidden)for(const button of methods.querySelectorAll('button')){
+  const selected=button.dataset.personalMethod===mode;
+  button.setAttribute('aria-pressed',String(selected));
+  button.classList.toggle('je-btn-emerald',selected);
+  button.classList.toggle('je-btn-secondary',!selected);
+ }
  for(const n of document.querySelectorAll('[data-workspace-mode243]')){n.hidden=!window.personalJournal1437?.active;n.setAttribute('aria-checked',String(n.dataset.workspaceMode243===mode));}
  toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Full Double Entry':'Simplified Double Entry';$('jeOptions14389').title='Entry options · '+(single?(window.personalJournal1437?.active?'Single Entry (Cashbook)':'Simplified Double Entry'):'Double Entry');
  $('simpleEntry1430').hidden=!single;$('jeLinesBody').closest('.table-container').hidden=single;
@@ -147,7 +155,9 @@ function ready(){
  const panel=document.createElement('section');panel.id='simpleEntry1430';panel.hidden=true;panel.innerHTML='<div id="simpleRows1430"></div><p id="simplePreview1430" role="status"></p>';
  card.querySelector('.table-container').before(panel);add();
  $('jeEntryMode1430').onclick=()=>setMode(mode==='single'?'double':'single');
- for(const n of group.querySelectorAll('[data-workspace-mode243]'))n.onclick=()=>{setMode(n.dataset.workspaceMode243);window.personalJournal1437?.chooseMode(mode)};
+ function choosePersonalMethod(next){setMode(next);window.personalJournal1437?.chooseMode(mode)}
+ for(const n of group.querySelectorAll('[data-workspace-mode243]'))n.onclick=()=>choosePersonalMethod(n.dataset.workspaceMode243);
+ for(const n of $('personalEntryMethods').querySelectorAll('button'))n.onclick=()=>choosePersonalMethod(n.dataset.personalMethod);
  const options=$('jeOptions14389'),menu=$('jeOptionsMenu14389');
  for(const button of card.querySelectorAll('.je-header-actions>button[onclick]')){button.setAttribute('role','menuitem');menu.append(button);}
  const closeOptions=(focus=false)=>{menu.hidden=true;options.setAttribute('aria-expanded','false');if(focus)options.focus()};

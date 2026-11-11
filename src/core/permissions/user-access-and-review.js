@@ -8,11 +8,18 @@ async function loadCurrentPermissions(){
   if(error)throw new Error('Could not load this account’s permissions: '+error.message);
   livePermission=data||{user_type:'sub_user',modules:['submissions'],can_approve:false,can_post_directly:false,can_void:false,can_export:false};
 }
+function refreshJournalPostAccess(){
+  const button=document.getElementById('btnPostJournal');
+  if(!button||!livePermission)return;
+  button.hidden=button.closest('#personalEditor1437')
+    ? !window.access113?.can('sub-users-workspace','edit')
+    : !livePermission.can_post_directly;
+}
 function applyPermissionAccess(){
   if(!livePermission)return;
   document.querySelectorAll('.nav-category').forEach(category=>{const module=category.dataset.module;category.hidden=!livePermission.modules.includes(module)});
   const subUsersNav=document.getElementById('nav-module-sub-users');if(subUsersNav)subUsersNav.hidden=!livePermission.modules.includes('sub-users')&&!livePermission.can_approve;
-  const post=document.getElementById('btnPostJournal');if(post)post.hidden=!livePermission.can_post_directly;
+  refreshJournalPostAccess();
 }
 function renderPermissionGrid(selected=[]){const host=document.getElementById('userPermissionGrid');if(host)host.innerHTML=PERMISSION_MODULES.map(([id,label])=>`<label class="permission-option"><input type="checkbox" value="${id}" ${selected.includes(id)?'checked':''}><span>${label}</span></label>`).join('')}
 function populateUserManagerOptions(selected=''){const select=document.getElementById('userAccessManager');if(!select)return;select.innerHTML='<option value="">Primary administrator</option>'+liveProfiles.filter(user=>user.role==='admin'||user.user_permissions?.user_type==='manager').map(user=>`<option value="${user.id}">${escapeHtml(user.full_name||user.email)}</option>`).join('');select.value=selected||''}

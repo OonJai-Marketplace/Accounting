@@ -8,8 +8,8 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.325"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script>
-  <script src="scripts/offline14239.js?v=143.335"></script>
-  <link rel="stylesheet" href="styles/desktop14245.css?v=143.315">
+  <script src="scripts/offline14239.js?v=143.336"></script>
+  <link rel="stylesheet" href="styles/desktop14245.css?v=143.336">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.84">
 <title>Oon Jai Accounting</title>
 <link rel="stylesheet" href="styles/functional-corrections14292.css?v=143.128">
@@ -292,6 +292,11 @@
       <button type="button" class="je-btn je-btn-secondary" onclick="openTemplateManager()">Templates</button>
       <button type="button" class="je-btn je-btn-secondary" onclick="createTemplateFromCurrent()">+ Create Template</button>
     </div>
+  </div>
+
+  <div id="personalEntryMethods" role="group" aria-label="Transaction entry method" hidden>
+    <button type="button" class="je-btn je-btn-secondary" data-personal-method="single">Single Entry (Cashbook)</button>
+    <button type="button" class="je-btn je-btn-secondary" data-personal-method="double">Double Entry Journal</button>
   </div>
 
   <!-- Meta Controls: General Memo & Transaction Date -->
@@ -1169,7 +1174,7 @@
           <button type="button" class="access-picker-trigger" onclick="openAccessPicker('Account Assignment','userAccountAssignmentPanel',this)"><span><strong>Account Assignment</strong><span id="userAccountAssignmentSummary" class="access-selection-summary">Select main and category accounts</span></span><span class="access-picker-chevron">›</span></button>
           <div class="settings-field"><label for="userTransactionActivity">Transaction Activity</label><select id="userTransactionActivity" class="je-select" onchange="syncTransactionActivitySelection()"><option value="out">Money Out Only</option><option value="in">Money In Only</option><option value="both">Money In &amp; Money Out (Both)</option></select></div></div>
           <div class="settings-form-grid">
-            <div class="settings-field"><label for="userBookkeepingMode240">Default entry option</label><select id="userBookkeepingMode240" class="je-select" onchange="document.getElementById('userJournalStyleField240').hidden=this.value==='cashbook'"><option value="double">Double-entry journal</option><option value="cashbook">Single-entry cashbook</option></select></div>
+            <div class="settings-field"><label for="userBookkeepingMode240">Transaction entry option</label><select id="userBookkeepingMode240" class="je-select" onchange="document.getElementById('userJournalStyleField240').hidden=this.value==='cashbook'"><option value="double">Double-entry journal</option><option value="cashbook">Single-entry cashbook</option><option value="both">Both — user chooses</option></select></div>
             <div class="settings-field" id="userJournalStyleField240" style="display:none"><label for="userJournalStyle240">Default double-entry form</label><select id="userJournalStyle240" class="je-select"><option value="double_full">Full — debit and credit lines</option></select></div>
           </div>
           <div class="settings-form-grid user-id-grid">
@@ -1229,7 +1234,7 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
 
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.335"></script>
+  <script src="scripts/desktop14245-3.js?v=143.336"></script>
 <script src="scripts/optional-tools14335.js?v=143.275"></script>
 
 
@@ -1238,7 +1243,7 @@
 <script src="scripts/desktop14245-5.js?v=143.328"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.335"></script>
+<script src="scripts/desktop14245-6.js?v=143.336"></script>
 <script src="scripts/entry-actions14271.js?v=143.261"></script>
 <script src="scripts/tablet-journal14266.js?v=143.295"></script>
 <script src="scripts/tablet-refresh143244.js?v=143.244"></script>

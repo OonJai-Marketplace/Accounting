@@ -1,1 +1,1 @@
-{"version": "143.335", "changes": ["Post Entry calculates journal IDs on the device. Posting series, vouchers and staff entries keep distinct references.", "Generate Journal closes with Close, an outside tap, or Escape and keeps the draft."]}
+{"version": "143.336", "changes": ["Sub-user settings now include Both \u2014 user chooses. The personal entry form shows Single Entry (Cashbook) and Double Entry Journal on desktop, tablet and phone.", "Resizing a laptop window or iPad split view keeps the current sub-user journal and draft open."]}

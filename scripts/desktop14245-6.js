@@ -1266,6 +1266,14 @@ function pairs(){
 }
 function display(){
  const single=mode==='single',toggle=$('jeEntryMode1430');toggle.value=mode;toggle.dataset.mode=mode;toggle.hidden=!!window.personalJournal1437?.active;
+ const methods=$('personalEntryMethods');
+ methods.hidden=!window.personalJournal1437?.offersBothMethods;
+ if(!methods.hidden)for(const button of methods.querySelectorAll('button')){
+  const selected=button.dataset.personalMethod===mode;
+  button.setAttribute('aria-pressed',String(selected));
+  button.classList.toggle('je-btn-emerald',selected);
+  button.classList.toggle('je-btn-secondary',!selected);
+ }
  for(const n of document.querySelectorAll('[data-workspace-mode243]')){n.hidden=!window.personalJournal1437?.active;n.setAttribute('aria-checked',String(n.dataset.workspaceMode243===mode));}
  toggle.querySelector('[data-entry-mode-label1430]').textContent=single?'Full Double Entry':'Simplified Double Entry';$('jeOptions14389').title='Entry options · '+(single?(window.personalJournal1437?.active?'Single Entry (Cashbook)':'Simplified Double Entry'):'Double Entry');
  $('simpleEntry1430').hidden=!single;$('jeLinesBody').closest('.table-container').hidden=single;
@@ -1310,7 +1318,9 @@ function ready(){
  const panel=document.createElement('section');panel.id='simpleEntry1430';panel.hidden=true;panel.innerHTML='<div id="simpleRows1430"></div><p id="simplePreview1430" role="status"></p>';
  card.querySelector('.table-container').before(panel);add();
  $('jeEntryMode1430').onclick=()=>setMode(mode==='single'?'double':'single');
- for(const n of group.querySelectorAll('[data-workspace-mode243]'))n.onclick=()=>{setMode(n.dataset.workspaceMode243);window.personalJournal1437?.chooseMode(mode)};
+ function choosePersonalMethod(next){setMode(next);window.personalJournal1437?.chooseMode(mode)}
+ for(const n of group.querySelectorAll('[data-workspace-mode243]'))n.onclick=()=>choosePersonalMethod(n.dataset.workspaceMode243);
+ for(const n of $('personalEntryMethods').querySelectorAll('button'))n.onclick=()=>choosePersonalMethod(n.dataset.personalMethod);
  const options=$('jeOptions14389'),menu=$('jeOptionsMenu14389');
  for(const button of card.querySelectorAll('.je-header-actions>button[onclick]')){button.setAttribute('role','menuitem');menu.append(button);}
  const closeOptions=(focus=false)=>{menu.hidden=true;options.setAttribute('aria-expanded','false');if(focus)options.focus()};
@@ -1453,7 +1463,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 /* Desktop personal workspaces share the live journal editor and its calculator.
    The existing staff review pipeline remains the only route to ledger posting. */
 (()=>{'use strict';
-const $=id=>document.getElementById(id),esc=v=>escapeHtml(String(v??'')),desktop=()=>matchMedia('(min-width:641px)').matches&&document.documentElement.dataset.device132!=='phone';
+const $=id=>document.getElementById(id),esc=v=>escapeHtml(String(v??'')),desktop=()=>document.documentElement.dataset.device132!=='phone';
 const completed=j=>['posted','reviewed','approved','approved_applied','approved_posted'].includes(j.status);
 const editable=j=>['draft','returned'].includes(j.status);
 const states=new Map(),drafts=new Map(),historyExtra=new Map();
@@ -1464,7 +1474,8 @@ const key=id=>{if(memoryClient!==ojmDb){states.clear();drafts.clear();historyExt
 const tabs=['home','review','journal','summary','history','reports','ledger'];
 const tabKey=id=>'ojm-personal-tab1437:'+key(id);
 const state=id=>{const k=key(id);if(!states.has(k)){let tab='home';try{const saved=localStorage.getItem(tabKey(id));if(tabs.includes(saved))tab=saved}catch{}states.set(k,{tab,month:wsPeriod[id]||appLocalDate().slice(0,7),year:String(new Date().getFullYear()),historyMonth:'',search:''})}return states.get(k)};
-const preferredMode=id=>{try{const saved=localStorage.getItem('ojm-entry-mode243:'+key(id));if(['single','double'].includes(saved))return saved}catch{}return user(id)?.user_permissions?.workspace_entry_mode240==='cashbook'?'single':'double'};
+const entrySetting=id=>subUserPermission(user(id)).workspace_entry_mode240;
+const preferredMode=id=>{try{const saved=localStorage.getItem('ojm-entry-mode243:'+key(id));if(['single','double'].includes(saved))return saved}catch{}return entrySetting(id)==='cashbook'?'single':'double'};
 const cashbook=id=>preferredMode(id)==='single';
 function chooseMode(mode){if(!scope||!['single','double'].includes(mode))return;try{localStorage.setItem('ojm-entry-mode243:'+key(scope),mode)}catch{}remember();updatePanels(scope);label();}
 const journals=id=>(reviewStaffJournals||[]).filter(j=>String(j.owner_id)===String(id));
@@ -1499,6 +1510,7 @@ function detach(){if(!scope)return;remember();const sameActor=scopeActor===liveP
 function mount(id){const host=$('personalEditor1437');if(!host)return;if(scope===id&&scopeActor===liveProfile?.id&&scopeClient===ojmDb){if(card.parentElement!==host)host.append(card);return}
  detach();mainSnapshot=capture();scope=id;scopeActor=liveProfile?.id||'';scopeClient=ojmDb;card.dataset.personalOwner1437=id;host.append(card);window.vouchers14299?.picker?.();document.getElementById('journalIdAction335')?.remove();restore(readDraft(id));card.hidden=false;card.querySelectorAll('input,select,textarea').forEach(n=>{if(!access113.can('sub-users-workspace','edit')&&!n.disabled){n.dataset.personalDisabled1437='1';n.disabled=true}});label();}
 function label(){if(!card)return;const button=$('btnPostJournal'),sub=card.querySelector('.je-subtitle');
+ refreshJournalPostAccess();
  if(scope){button.textContent=card._editIds1437?.length?'Save Changes':'Post Entry';sub.textContent='Save to this personal journal, then submit for review.';$('jeNextIdDisplay').textContent=localWorkspaceEntryPreview(user(scope));}
  else{sub.textContent='Currency follows the selected account.';button.textContent=JournalModule.editingEntryId?'Update Entry':'Post Entry';updateNextEntryIdDisplay()}
 }
@@ -1614,7 +1626,7 @@ function prepareItems(id){if(entry1430.retained)throw Error('Switch to Double En
  if(!items.length)throw Error('Enter at least one complete transaction.');return items;
 }
 async function save(){const invalid=card?.querySelector('.account-search1428:invalid');if(invalid){invalid.focus();invalid.reportValidity();return;}if(!scope||busy)return;const id=scope,actor=liveProfile?.id,client=ojmDb,draftKey=key(id);let frozen=[],confirmed=false;if(!access113.can('sub-users-workspace','edit'))return showCenterStatus('Editing is not enabled for this workspace.',true);
- try{if(entry1430.mode==='single')entry1430.sync();const items=prepareItems(id);remember();const snapshot={...capture(),workspace_entry_mode240:cashbook(id)?'cashbook':'double',components1437:items,correction_journal14347:state(id).correction||null},requestKey=card._requestKey1437;busy=true;frozen=[...card.querySelectorAll('input,select,textarea,button')].map(n=>[n,n.disabled]);frozen.forEach(([n])=>n.disabled=true);
+ try{if(entry1430.mode==='single')entry1430.sync();const items=prepareItems(id);remember();const snapshot={...capture(),workspace_entry_mode240:entry1430.mode==='single'?'cashbook':'double',components1437:items,correction_journal14347:state(id).correction||null},requestKey=card._requestKey1437;busy=true;frozen=[...card.querySelectorAll('input,select,textarea,button')].map(n=>[n,n.disabled]);frozen.forEach(([n])=>n.disabled=true);
  const r=await window.staffSave14228({p_owner:id,p_key:requestKey,p_items:items,p_snapshot:snapshot,p_edit_ids:card._editIds1437||[]});if(r.error)throw Error(r.error.message+(r.error.code==='PGRST202'?' — run setup/INSTALL-DESKTOP-JOURNAL-v142.17.sql once.':''));
  confirmed=r.queued?'device':true;if(actor!==liveProfile?.id||client!==ojmDb)return;const cleared={mode:snapshot.mode,date:snapshot.date,multiple:snapshot.multiple,rows:[],single:[],memo:'',editIds:[],requestKey:'pj-'+crypto.randomUUID()};drafts.set(draftKey,cleared);localStorage.setItem('ojm-personal-journal1437:'+(window.accountingReset143108?.suffix()||'')+draftKey,JSON.stringify(cleared));if(scope===id&&actor===liveProfile?.id&&client===ojmDb)restore(cleared);if(actor!==liveProfile?.id)return;state(id).month=items[0].date.slice(0,7);wsPeriod[id]=state(id).month;
  if(r.queued)showCenterStatus('Saved on this device. Tap the connection indicator, then Sync now when connected.');else void loadStaffJournalsForReview().catch(e=>{if(actor===liveProfile?.id&&client===ojmDb)showCenterStatus('Entry saved. Refresh History to load the updated records. '+e.message,true)});
@@ -1635,7 +1647,7 @@ function ready(){card=$('journalEntry98');if(!card||!window.entry1430)return;anc
  installDesktop();
 }
 function openCorrection(journalId){const j=(reviewStaffJournals||[]).find(x=>x.id===journalId);if(!j||j.status!=='returned'||!access113.can('sub-users-workspace','edit'))return false;const id=String(j.owner_id);if(!Organization14229.mayOpen(id))return false;document.getElementById('finalRecordsOverlay')?.remove();document.getElementById('returnedBookOverlay')?.remove();openWorkspaceUser(id);installDesktop();state(id).correction=journalId;state(id).tab='journal';updatePanels(id);show(id,'journal');document.getElementById('personalActive1437')?.scrollIntoView({block:'start'});return true;}
-window.personalJournal1437={chooseMode,openCorrection,endCorrection(id){if(busy)return;const d=scope===id?capture():readDraft(id);if(d?.editIds?.some(lineId=>journals(id).find(j=>j.id===state(id).correction)?.lines?.some(l=>l.id===lineId))){restore(null);remember();}state(id).correction=null;updatePanels(id);show(id,'review')},correctionFor(id){return state(id).correction||null},get cashbook(){return !!scope&&cashbook(scope)},get active(){return !!scope},get owner(){return scope},get rules(){return scope?workspaceRules(user(scope)):null},allowed,show,save,prepareItems,detach};
+window.personalJournal1437={chooseMode,openCorrection,endCorrection(id){if(busy)return;const d=scope===id?capture():readDraft(id);if(d?.editIds?.some(lineId=>journals(id).find(j=>j.id===state(id).correction)?.lines?.some(l=>l.id===lineId))){restore(null);remember();}state(id).correction=null;updatePanels(id);show(id,'review')},correctionFor(id){return state(id).correction||null},get offersBothMethods(){return !!scope&&entrySetting(scope)==='both'},get cashbook(){return !!scope&&cashbook(scope)},get active(){return !!scope},get owner(){return scope},get rules(){return scope?workspaceRules(user(scope)):null},allowed,show,save,prepareItems,detach};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 
