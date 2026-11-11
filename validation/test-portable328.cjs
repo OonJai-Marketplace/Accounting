@@ -8,9 +8,11 @@ const create=require('./phase0-browser-fixture.cjs');
   const dates={from:'2026-01-01',to:'2026-10-31'},modules=['journal','staff','payroll','tax','vouchers','reports','schedules','reconciliation','audit'];
   const pack={format:'oonjai-portable-328',...dates,modules,tables:{audit_log:[],journal_entries:[JSON.stringify({id:'j1',amount:0.46,memo:'=42, "saved"',detail:'Record'.repeat(6000)})]},reference:{},keys:{journal_entries:['id']}};
   const file={format:'oonjai-backup-file-328',payload:JSON.stringify(pack),signature:'test'};
-  const actions=[],keys=new Set();
+  const actions=[],keys=new Set();let failBackup=false;
   await page.route('**/rest/v1/rpc/portable_backup328',async route=>{
    const body=route.request().postDataJSON();actions.push(body.p_action);
+   if(failBackup&&body.p_action==='export')return route.fulfill({status:400,json:{message:'Backup unavailable'}});
+   if(body.p_action==='delete')assert.equal(body.p_expected,file.signature);
    switch(body.p_action){
     case 'inspect':case 'restore':assert.deepEqual(body.p_file,file);break;
     default:assert.equal(body.p_from,dates.from);assert.equal(body.p_to,dates.to);assert.deepEqual(body.p_groups,modules);
@@ -42,9 +44,23 @@ const create=require('./phase0-browser-fixture.cjs');
    if(kind==='excel'){await page.getByRole('button',{name:'Restore records',exact:true}).click();await status.filter({hasText:'1 records restored'}).waitFor();}
    else{await status.filter({hasText:'2 archive rows appended'}).waitFor();await root.locator('[data-act=append]').click();await status.filter({hasText:'0 archive rows appended. 2 already present'}).waitFor();}
   }
-  await root.locator('[data-act=delete]').click();await page.getByRole('button',{name:'Cancel',exact:true}).last().click();
+  failBackup=true;
+  await root.locator('[data-act=delete]').click();await status.filter({hasText:'Backup unavailable'}).waitFor();
+  assert(!actions.includes('delete'));failBackup=false;
+  const firstZip=page.waitForEvent('download');
+  await root.locator('[data-act=delete]').click();
+  const dl=await firstZip;assert.equal(dl.suggestedFilename(),'Oon-Jai-2026-01-01-to-2026-10-31-Before-Deletion.zip');
+  const bytes=await fs.readFile(await dl.path());
+  const contents=await page.evaluate(async b=>{
+   const z=await JSZip.loadAsync(b,{base64:true,checkCRC32:true}),names=Object.keys(z.files);
+   const book=await JSZip.loadAsync(await z.file(names.find(n=>n.endsWith('.xlsx'))).async('uint8array'));
+   return {names,backup:JSON.parse(await z.file(names.find(n=>n.endsWith('.json'))).async('string')),workbook:await book.file('xl/workbook.xml').async('string')};
+  },bytes.toString('base64'));
+  assert.equal(contents.names.length,2);assert.deepEqual(contents.backup,file);assert.match(contents.workbook,/journal_entries/);
+  await page.getByRole('button',{name:'Cancel',exact:true}).last().click();
   assert(!actions.includes('delete'));
-  await root.locator('[data-act=delete]').click();await page.getByRole('button',{name:'Permanently delete',exact:true}).click();
+  const secondZip=page.waitForEvent('download');await root.locator('[data-act=delete]').click();await secondZip;
+  await page.getByRole('button',{name:'ZIP saved — permanently delete',exact:true}).click();
   await status.filter({hasText:'1 records cleared'}).waitFor();assert.equal(actions.filter(a=>a==='delete').length,1);
   console.log('PASS Settings navigation, all formats, original XLSX restore, append replay, custom period and one delete confirmation');
  }finally{await fixture.close();}

@@ -85,16 +85,26 @@ function parseCsv(source){
  if(!rows.length||rows.some(r=>r.length!==7||!/^portable-[a-f0-9]{64}:\d+$/.test(r[0])||r[2]!=='BACKUP'))throw Error('Choose a Google Sheets CSV downloaded from Backup & Recovery.');
  return rows;
 }
+function downloadUrl(url,name){
+ const link=document.createElement('a');
+ link.href=url;link.download=name;document.body.append(link);link.click();link.remove();
+}
 function save(blob,name){
- const url=URL.createObjectURL(blob),link=document.createElement('a');
- link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const url=URL.createObjectURL(blob);
+ try{downloadUrl(url,name);}finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
+async function deletionZip(file,pack,stem){
+ const raw=await workbook(file,pack),zip=new JSZip();
+ zip.file(stem+'-Raw.xlsx',await raw.arrayBuffer(),{compression:'STORE'});
+ zip.file(stem+'-Backup.json',JSON.stringify(file),{compression:'DEFLATE'});
+ return zip.generateAsync({type:'blob',mimeType:'application/zip'});
 }
 function install(host,legacy){
  const section=document.createElement('section');section.id='portable328';section.className='panel113';
  section.innerHTML='<header><h2>Backup &amp; Recovery</h2></header><fieldset><legend>Period and records</legend><div class="portable-fields"><label>Period<select name="period"><option value="month">Month</option><option value="custom">Custom dates</option><option value="year">Year</option><option value="quarter">Quarter</option></select></label><label data-for="month">Month<input type="month" name="month"></label><label data-for="year quarter">Year<input type="number" name="year" min="1900" max="2200"></label><label data-for="quarter">Quarter<select name="quarter"><option>1</option><option>2</option><option>3</option><option>4</option></select></label><label data-for="custom">From<input type="date" name="from"></label><label data-for="custom">Through<input type="date" name="to"></label></div><details class="portable-modules"><summary>All modules</summary><label><input type="checkbox" data-all checked> Select all</label>'+Object.entries(modules).map(([k,v])=>'<label><input type="checkbox" data-module="'+k+'" checked> '+v+'</label>').join('')+'</details></fieldset>'+
  '<fieldset><legend>Download</legend><div class="portable-actions"><button data-act="excel">Raw Excel (.xlsx)</button><button data-act="backup">Restorable backup (.json)</button><button data-act="csv">Google Sheets (.csv)</button></div></fieldset>'+
  '<fieldset><legend>Google Sheets archive</legend><p>Append to Source Records in the company archive. Previously imported revisions are skipped.</p><div class="portable-actions"><button data-act="append">Append selected records</button><button data-act="csvfile">Upload archive CSV</button></div></fieldset>'+
- '<fieldset><legend>Database</legend><div class="portable-actions"><button data-act="restore">Restore from file</button><button data-act="delete" class="portable-danger">Delete selected records</button></div><p>Restore accepts an original Excel or JSON backup. Deletion includes locked periods. Employee records, leave requests and leave balances stay in HR. Partial payroll months remove only attendance on the selected dates.</p></fieldset><p role="status" aria-live="polite"></p>';
+ '<fieldset><legend>Database</legend><div class="portable-actions"><button data-act="restore">Restore from file</button><button data-act="delete" class="portable-danger">Delete selected records</button></div><p>Restore accepts an original Excel or JSON backup. Deletion first downloads a ZIP with the raw Excel data and restorable JSON. Locked periods are included. Employee records, leave requests and leave balances stay in HR. Partial payroll months remove only attendance on the selected dates.</p></fieldset><p role="status" aria-live="polite"></p>';
  host.replaceChildren(section);if(legacy)section.append(legacy);
  const get=name=>section.querySelector('[name="'+name+'"]'),msg=section.querySelector('[role=status]'),all=section.querySelector('[data-all]'),boxes=[...section.querySelectorAll('[data-module]')];
  const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Vientiane'}).format(new Date());
@@ -133,14 +143,30 @@ function install(host,legacy){
    const period=r=>escapeHtml(formatAppDate(r.from))+' – '+escapeHtml(formatAppDate(r.to));
    const describe=r=>'<p>'+period(r)+' · '+r.modules.map(k=>escapeHtml(modules[k])).join(', ')+'</p>';
    if(kind==='delete'||kind==='restore'){
-    const file=upload?await readBackup(upload):null;
-    const info=await rpc(file?'inspect':'preview',file?{p_file:file}:sel);
-    if(!info.counts||!Object.hasOwn(info.counts,'audit_log')||Object.hasOwn(info.counts,'payroll_leave_records'))throw Error('This backup or database predates HR leave protection. Download a new backup from the updated app.');
+    const restoring=kind==='restore';
+    msg.textContent=restoring?'Reading backup…':'Preparing the backup for this selection…';
+    const file=restoring?await readBackup(upload):await rpc('export',sel);
+    const info=await rpc('inspect',{p_file:file});
+    if(!info.counts||!Object.hasOwn(info.counts,'audit_log')||Object.hasOwn(info.counts,'payroll_leave_records'))throw Error('This backup or database predates HR leave protection.');
     if(!info.total){msg.textContent='There are no matching operational records.';return;}
-    const body=describe(info)+'<p>'+info.total.toLocaleString()+' affected records. '+(file?'Existing identical records are skipped.':'Permanent deletion includes locked records and changes live report totals. You can restore this period with a previously saved backup.')+'</p>';
-    if(!await confirm(file?'Restore backup?':'Permanently delete this selection?',body,file?'Restore records':'Permanently delete',!file)){msg.textContent='Cancelled.';return;}
-    const result=await rpc(file?'restore':'delete',file?{p_file:file}:{...sel,p_expected:info.selection});
-    msg.textContent=file?result.changed+' records restored. '+result.alreadyPresent+' already present.':result.changed+' records cleared. '+(result.queueRemoved||0)+' pending mirror copies removed.';
+    const summary=describe(info)+'<p>'+info.total.toLocaleString()+' affected records.</p>';
+    let agreed=false;
+    if(restoring){
+     agreed=await confirm('Restore backup?',summary+'<p>Existing identical records are skipped.</p>','Restore records');
+    }else{
+     const pack=JSON.parse(file.payload),stem='Oon-Jai-'+info.from+'-to-'+info.to;
+     const name=stem+'-Before-Deletion.zip';
+     msg.textContent='Creating the raw Excel and restorable JSON files…';
+     const blob=await deletionZip(file,pack,stem);guard();
+     const url=URL.createObjectURL(blob);
+     try{
+      downloadUrl(url,name);
+      agreed=await confirm('Save the ZIP before deleting',summary+'<p>Check Downloads for <strong>'+name+'</strong>. The ZIP contains the raw Excel workbook and restorable JSON.</p><p><a href="'+url+'" download="'+name+'">Download the ZIP again</a></p><p>Confirm after the ZIP is saved. This permanently clears the selected records, including locked periods.</p>','ZIP saved — permanently delete',true);
+     }finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}
+    }
+    if(!agreed){msg.textContent='Cancelled.';return;}
+    const result=await rpc(restoring?'restore':'delete',restoring?{p_file:file}:{...sel,p_expected:file.signature});
+    msg.textContent=restoring?result.changed+' records restored. '+result.alreadyPresent+' already present.':result.changed+' records cleared. '+(result.queueRemoved||0)+' pending mirror copies removed.';
     window.yearWindow14333?.invalidateMemory();
     window.dispatchEvent(new CustomEvent('transactions-reset14316',{detail:{scopes:info.modules}}));
     if(result.changed){

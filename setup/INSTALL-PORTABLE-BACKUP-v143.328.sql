@@ -273,7 +273,7 @@ begin
  changes_digest:=md5((pack-'reference')::text);
  if p_action in ('preview','inspect') then return jsonb_build_object('counts',counts,'total',total,'from',pack->'from','to',pack->'to','modules',pack->'modules','selection',changes_digest); end if;
  if p_action='export' then return jsonb_build_object('format','oonjai-backup-file-328','payload',pack::text,'signature',signature); end if;
- if p_action='delete' and changes_digest is distinct from p_expected then raise exception 'The selected records changed. Review the updated count and confirm again.'; end if;
+ if p_action='delete' and (p_expected is null or signature is distinct from p_expected) then raise exception 'A current backup ZIP is required. Prepare the selection again before deleting.'; end if;
  -- Suppress posting side effects and period guards only inside this signed restore / authorized range deletion.
  -- Internal foreign-key triggers, unique keys, and CHECK constraints remain active.
  for trig in select catalog.ns,catalog.tbl,t.tgname,t.tgenabled from private.portable_catalog328() catalog join pg_trigger t

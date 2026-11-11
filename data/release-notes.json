@@ -1,7 +1,6 @@
 {
-  "version": "143.329",
+  "version": "143.330",
   "changes": [
-    "Use Settings › System & Tools › Backup & Recovery for raw Excel, a restorable file, and append-only Google Sheets archives.",
-    "Clear a month or date range, including locked records, journal history, audit logs and payroll attendance. Employee records and leave balances are retained. Restore an original Excel or JSON backup in the same panel."
+    "Range deletion downloads a ZIP containing raw Excel and a restorable JSON backup. Confirm the ZIP is saved to permanently delete the matching records."
   ]
 }
