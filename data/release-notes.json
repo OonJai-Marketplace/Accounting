@@ -1,1 +1,1 @@
-{"version": "143.348", "changes": ["Phone amounts show live commas even while a mobile keyboard is composing digits. The browser updater opens the correct phone workspace and keeps existing drafts."]}
+{"version": "143.349", "changes": ["Regular foreign salary settlements show separate staff and bank book rates, both FX bridge lines and the realized gain or loss. Generate preserves amount grouping on repeat calculations."]}

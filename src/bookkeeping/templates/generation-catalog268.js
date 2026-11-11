@@ -37,7 +37,15 @@ function templates(chart){
    if(account&&reg.isTax(account))include(reg.bridge('LAK',true),'debit','LAK withholding bridge');
   }
   const exchange=id.startsWith('exchange-'),settlement=id.startsWith('settlement-');
-  if(exchange||settlement){
+  if(settlement){
+   for(const c of new Set(lines.map(l=>l.currency).filter(c=>c&&c!=='LAK'))){
+    include(reg.bridge(c),'debit','Foreign settlement · debit bridge');
+    include(reg.bridge(c),'credit','Foreign settlement · credit bridge');
+    include(reg.byCode('5419'),'','Realized FX if carrying values differ');
+    include(reg.bridge('LAK'),'','LAK bridge for the realized difference');
+   }
+  }
+  if(exchange){
    for(const c of new Set(lines.map(l=>l.currency).filter(c=>c&&c!=='LAK')))include(reg.bridge(c),'','Exchange or settlement at the evidenced rates');
    if(lines.some(l=>l.currency!=='LAK'))include(reg.bridge('LAK'),'','LAK bridge when required');
   }

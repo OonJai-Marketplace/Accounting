@@ -160,6 +160,8 @@ function completePart(input){
   const b=balances[l.a.id];
   if(l.specified>0)return l.specified;
   if(fund(l.a)&&b?.rate>0)return b.rate;
+  if(b?.rate>0&&l.debit>0&&b.quantity<0&&l.debit<=-b.quantity+.005&&
+     (staff(l.a)||l.role==='balance'&&type(l.a)==='LIABILITY'))return b.rate;
   if(!fund(l.a)&&b?.rate>0&&(b.uniform||close(Math.abs(b.quantity),Math.abs(signed(l)))))return b.rate;
   error('Row '+(l.index+1)+': enter the recorded book rate of the balance being cleared.',l.index,true);return null;
  }
@@ -261,6 +263,9 @@ function completePart(input){
  if(!maps.length&&new Set(real.map(l=>l.c)).size===1&&!close(sum(active),0))error('The entered foreign debits and credits differ. Correct the business amounts before generating.');
  const bridges=new Map();
  for(const l of active){if(!(l.book>0)){error('Row '+(l.index+1)+' needs a recorded rate.',l.index,true);continue;}const k=[...bridges.keys()].find(k=>bridges.get(k).c===l.c&&Math.abs(bridges.get(k).book-l.book)<1e-8)||l.c+'|'+l.book,b=bridges.get(k)||{c:l.c,book:l.book,rt:l.rt,n:0,value:0};b.n=round(b.n-signed(l));b.value=round(b.value-round(signed(l)*l.book));bridges.set(k,b);l.book_rate_lak=l.book;l.fx_rate_lak=l.rt;l.autoBook=!l.specified;}
+ const sameCurrencySettlement=settled.length===1&&settled[0].role==='balance'&&out.length===1&&real.length===2&&
+   settled[0].c===out[0].c&&out[0].c!=='LAK'&&settled[0].rt===out[0].rt&&
+   !rows.some(l=>l.a&&reg.isBridge(l.a)&&!l.generated&&(l.debit||l.credit));
  let bridgeValue=0;
  if(exchange){
   // Show the exchange itself, then the release of the fund at its carrying
@@ -274,6 +279,18 @@ function completePart(input){
     add(reg.bridge(l.c),n,'Clear at actual exchange value',actual,actual);
     bridgeValue=round(bridgeValue+value-round(n*l.book));
    }
+  }
+ }else if(sameCurrencySettlement){
+  const staffLine=settled[0],payment=out[0],quantity=payment.credit;
+  const difference=round(round(quantity*payment.book)-round(staffLine.debit*staffLine.book));
+  if(difference){
+   const reference=round(quantity*payment.rt),adjusted=round(reference+difference);
+   // At extreme rates the recorded book values provide a positive bridge pair.
+   const creditRate=adjusted>0?payment.rt:staffLine.book;
+   const debitRate=(round(quantity*creditRate)+difference)/quantity;
+   add(reg.bridge(payment.c),quantity,'Foreign settlement · adjusted value',debitRate,debitRate);
+   add(reg.bridge(payment.c),-quantity,'Foreign settlement · reference value',creditRate,creditRate);
+   bridgeValue=difference;
   }
  }else{
   // Combine same-side exchange-bridge movements using the sum of the actual
@@ -303,7 +320,12 @@ function completePart(input){
  const buckets=new Map(),used=new Set(),result=rows.map(l=>({...l}));
  for(const e of expected){const a=reg.all.find(a=>a.id===e.account_id),k=e.account_id+'|'+(currency(a)==='LAK'?'':e.book_rate_lak),b=buckets.get(k)||{a,items:[],n:0};b.items.push(e);b.n=round(b.n+e.debit-e.credit);buckets.set(k,b);}
  for(const b of buckets.values()){
-  const e=b.items[0],candidates=result.filter(l=>l.a?.id===b.a.id&&(currency(b.a)==='LAK'||Number(l.book_rate_lak||l.specified)?currency(b.a)==='LAK'||Math.abs(Number(l.book_rate_lak||l.specified)-e.book_rate_lak)<1e-8:!signed(l)||Math.sign(signed(l))===Math.sign(b.n))&&(l.generated==='output'||currency(b.a)==='LAK'||reg.isBridge(l.a))),manual=candidates.filter(l=>l.generated!=='output'&&(l.debit||l.credit)&&!(localSeparate&&!technical(l.a))),blank=candidates.filter(l=>l.generated==='output'||!l.debit&&!l.credit),entered=sum(manual);
+  const e=b.items[0],candidates=result.filter(l=>{
+   if(l.a?.id!==b.a.id||used.has(l.index))return false;
+   if(sameCurrencySettlement&&l.generated==='output')return !l.expectedSide||l.expectedSide===(b.n>0?'debit':'credit');
+   const book=Number(l.book_rate_lak||l.specified),matchesRate=currency(b.a)==='LAK'||(book?Math.abs(book-e.book_rate_lak)<1e-8:!signed(l)||Math.sign(signed(l))===Math.sign(b.n));
+   return matchesRate&&(l.generated==='output'||currency(b.a)==='LAK'||reg.isBridge(l.a));
+  }),manual=candidates.filter(l=>l.generated!=='output'&&(l.debit||l.credit)&&!(localSeparate&&!technical(l.a))),blank=candidates.filter(l=>l.generated==='output'||!l.debit&&!l.credit),entered=sum(manual);
   manual.forEach(l=>used.add(l.index));
   // Keep independently generated components (for example two settlement FX
   // rows) separate across recalculation. A template's single empty total cell

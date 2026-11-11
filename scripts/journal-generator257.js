@@ -160,6 +160,8 @@ function completePart(input){
   const b=balances[l.a.id];
   if(l.specified>0)return l.specified;
   if(fund(l.a)&&b?.rate>0)return b.rate;
+  if(b?.rate>0&&l.debit>0&&b.quantity<0&&l.debit<=-b.quantity+.005&&
+     (staff(l.a)||l.role==='balance'&&type(l.a)==='LIABILITY'))return b.rate;
   if(!fund(l.a)&&b?.rate>0&&(b.uniform||close(Math.abs(b.quantity),Math.abs(signed(l)))))return b.rate;
   error('Row '+(l.index+1)+': enter the recorded book rate of the balance being cleared.',l.index,true);return null;
  }
@@ -261,6 +263,9 @@ function completePart(input){
  if(!maps.length&&new Set(real.map(l=>l.c)).size===1&&!close(sum(active),0))error('The entered foreign debits and credits differ. Correct the business amounts before generating.');
  const bridges=new Map();
  for(const l of active){if(!(l.book>0)){error('Row '+(l.index+1)+' needs a recorded rate.',l.index,true);continue;}const k=[...bridges.keys()].find(k=>bridges.get(k).c===l.c&&Math.abs(bridges.get(k).book-l.book)<1e-8)||l.c+'|'+l.book,b=bridges.get(k)||{c:l.c,book:l.book,rt:l.rt,n:0,value:0};b.n=round(b.n-signed(l));b.value=round(b.value-round(signed(l)*l.book));bridges.set(k,b);l.book_rate_lak=l.book;l.fx_rate_lak=l.rt;l.autoBook=!l.specified;}
+ const sameCurrencySettlement=settled.length===1&&settled[0].role==='balance'&&out.length===1&&real.length===2&&
+   settled[0].c===out[0].c&&out[0].c!=='LAK'&&settled[0].rt===out[0].rt&&
+   !rows.some(l=>l.a&&reg.isBridge(l.a)&&!l.generated&&(l.debit||l.credit));
  let bridgeValue=0;
  if(exchange){
   // Show the exchange itself, then the release of the fund at its carrying
@@ -274,6 +279,18 @@ function completePart(input){
     add(reg.bridge(l.c),n,'Clear at actual exchange value',actual,actual);
     bridgeValue=round(bridgeValue+value-round(n*l.book));
    }
+  }
+ }else if(sameCurrencySettlement){
+  const staffLine=settled[0],payment=out[0],quantity=payment.credit;
+  const difference=round(round(quantity*payment.book)-round(staffLine.debit*staffLine.book));
+  if(difference){
+   const reference=round(quantity*payment.rt),adjusted=round(reference+difference);
+   // At extreme rates the recorded book values provide a positive bridge pair.
+   const creditRate=adjusted>0?payment.rt:staffLine.book;
+   const debitRate=(round(quantity*creditRate)+difference)/quantity;
+   add(reg.bridge(payment.c),quantity,'Foreign settlement · adjusted value',debitRate,debitRate);
+   add(reg.bridge(payment.c),-quantity,'Foreign settlement · reference value',creditRate,creditRate);
+   bridgeValue=difference;
   }
  }else{
   // Combine same-side exchange-bridge movements using the sum of the actual
@@ -303,7 +320,12 @@ function completePart(input){
  const buckets=new Map(),used=new Set(),result=rows.map(l=>({...l}));
  for(const e of expected){const a=reg.all.find(a=>a.id===e.account_id),k=e.account_id+'|'+(currency(a)==='LAK'?'':e.book_rate_lak),b=buckets.get(k)||{a,items:[],n:0};b.items.push(e);b.n=round(b.n+e.debit-e.credit);buckets.set(k,b);}
  for(const b of buckets.values()){
-  const e=b.items[0],candidates=result.filter(l=>l.a?.id===b.a.id&&(currency(b.a)==='LAK'||Number(l.book_rate_lak||l.specified)?currency(b.a)==='LAK'||Math.abs(Number(l.book_rate_lak||l.specified)-e.book_rate_lak)<1e-8:!signed(l)||Math.sign(signed(l))===Math.sign(b.n))&&(l.generated==='output'||currency(b.a)==='LAK'||reg.isBridge(l.a))),manual=candidates.filter(l=>l.generated!=='output'&&(l.debit||l.credit)&&!(localSeparate&&!technical(l.a))),blank=candidates.filter(l=>l.generated==='output'||!l.debit&&!l.credit),entered=sum(manual);
+  const e=b.items[0],candidates=result.filter(l=>{
+   if(l.a?.id!==b.a.id||used.has(l.index))return false;
+   if(sameCurrencySettlement&&l.generated==='output')return !l.expectedSide||l.expectedSide===(b.n>0?'debit':'credit');
+   const book=Number(l.book_rate_lak||l.specified),matchesRate=currency(b.a)==='LAK'||(book?Math.abs(book-e.book_rate_lak)<1e-8:!signed(l)||Math.sign(signed(l))===Math.sign(b.n));
+   return matchesRate&&(l.generated==='output'||currency(b.a)==='LAK'||reg.isBridge(l.a));
+  }),manual=candidates.filter(l=>l.generated!=='output'&&(l.debit||l.credit)&&!(localSeparate&&!technical(l.a))),blank=candidates.filter(l=>l.generated==='output'||!l.debit&&!l.credit),entered=sum(manual);
   manual.forEach(l=>used.add(l.index));
   // Keep independently generated components (for example two settlement FX
   // rows) separate across recalculation. A template's single empty total cell
@@ -370,7 +392,15 @@ function templates(chart){
    if(account&&reg.isTax(account))include(reg.bridge('LAK',true),'debit','LAK withholding bridge');
   }
   const exchange=id.startsWith('exchange-'),settlement=id.startsWith('settlement-');
-  if(exchange||settlement){
+  if(settlement){
+   for(const c of new Set(lines.map(l=>l.currency).filter(c=>c&&c!=='LAK'))){
+    include(reg.bridge(c),'debit','Foreign settlement · debit bridge');
+    include(reg.bridge(c),'credit','Foreign settlement · credit bridge');
+    include(reg.byCode('5419'),'','Realized FX if carrying values differ');
+    include(reg.bridge('LAK'),'','LAK bridge for the realized difference');
+   }
+  }
+  if(exchange){
    for(const c of new Set(lines.map(l=>l.currency).filter(c=>c&&c!=='LAK')))include(reg.bridge(c),'','Exchange or settlement at the evidenced rates');
    if(lines.some(l=>l.currency!=='LAK'))include(reg.bridge('LAK'),'','LAK bridge when required');
   }
@@ -522,7 +552,7 @@ const who=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 const chart=()=>AccountingStore.accounts.filter(G.available);
 const key=()=> 'ojm_generator258:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+owner;
 const number=v=>typeof v==='number'?v:String(v??'').trim()?parseAppNumber(String(v)):0;
-const display=v=>typeof v==='number'?v.toLocaleString(typeof appNumberLocale==='function'?appNumberLocale():'en-US',{useGrouping:false,maximumFractionDigits:12}):v??'';
+const display=v=>typeof v==='number'?v.toLocaleString(typeof appNumberLocale==='function'?appNumberLocale():'en-US',{useGrouping:true,maximumFractionDigits:12}):v??'';
 const offline=()=>!navigator.onLine||window.offline14239?.offline()||window.sessionCache14333?.localMode;
 const blank=()=>({account_id:'',line_memo:'',debit:'',credit:''});
 function eligible(){if(!who())throw Error('Sign in before preparing an entry.');if(window.personalJournal1437?.active||window.workspaceRequest138?.target)throw Error('Open the main company journal to use this generator.');if(!window.access113?.can('journal','edit')&&!window.access113?.can('journal','post'))throw Error('Journal editing permission is required.');if(window.DriveDrafts143128?.preparedCount||window.DriveDrafts143128?.editing||pendingWorkspacePostOwnerId||pendingWorkspacePostJournalId)throw Error('Finish the prepared entries before using this generator.');}
@@ -605,20 +635,32 @@ function showHistory(){
  if(!count)host.textContent='No matching posted journals in the loaded period.';
 }
 function restoreProtocolRows(draft,t){
- if(!draft||draft.protocolVersion===1||!t?.builtin)return;
- if(!draft.rows.some(l=>l.generated==='output')){
-  for(const line of templateRows(t).filter(l=>l.generated==='output')){
-   if(!draft.rows.some(l=>l.account_id===line.account_id))draft.rows.push(line);
+ if(!draft||!t?.builtin)return;
+ if(t.id.startsWith('gen268-settlement-')&&draft.protocolVersion!==2){
+  const layout=templateRows(t),bridge=layout.find(l=>l.generated&&l.expectedSide==='debit'&&l.expectedCurrency!=='LAK');
+  const index=bridge?draft.rows.findIndex(l=>l.account_id===bridge.account_id&&l.generated==='output'&&!l.expectedSide&&!l.debit&&!l.credit):-1;
+  if(index>=0){
+   draft.rows.splice(index,1,...layout.filter(l=>l.account_id===bridge.account_id));
+   const kip=layout[layout.length-1],old=draft.rows.find(l=>l.account_id===kip.account_id&&l.generated==='output');
+   if(old){draft.rows.splice(draft.rows.indexOf(old),1);draft.rows.push(old);}
   }
  }
- draft.protocolVersion=1;
+ if(draft.protocolVersion){draft.protocolVersion=2;return;}
+ if(!draft.rows.some(l=>l.generated==='output')){
+  for(const line of templateRows(t).filter(l=>l.generated==='output')){
+   const present=draft.rows.some(l=>l.account_id===line.account_id&&(!line.expectedSide||
+    !t.id.startsWith('gen268-settlement-')||l.expectedSide===line.expectedSide||number(l[line.expectedSide])>0));
+   if(!present)draft.rows.push(line);
+  }
+ }
+ draft.protocolVersion=2;
 }
 function selectTemplate(id,merge=false){
  state.drafts[state.template]={rows:state.rows,memo:state.memo,rates:state.rates,protocolVersion:state.protocolVersion};
  const previous=state.drafts[id],t=definitions().find(t=>t.id===id);if(!t)return;
  const fromEntry=state.entrySignature&&id!=='blank';
  const next=merge||fromEntry?{rows:Catalog.merge(fromEntry&&!merge?(entrySource()?.rows||state.rows):state.rows,t,chart(),templateRows),memo:state.memo||t.generalMemo||'',rates:state.rates}:previous||{rows:templateRows(t),memo:state.memo||t.generalMemo||'',rates:state.rates};
- restoreProtocolRows(next,t);Object.assign(state,next,{template:id,protocolVersion:1});dialog.querySelector('[data-matches]').replaceChildren();invalidate();render();
+ restoreProtocolRows(next,t);Object.assign(state,next,{template:id,protocolVersion:2});dialog.querySelector('[data-matches]').replaceChildren();invalidate();render();suggestSourceBooks();
 }
 function message(text,error=false){const host=dialog?.querySelector('[data-status]');if(host){host.textContent=text+(storageWarning?' '+storageWarning:'');host.classList.toggle('has-error258',error);}}
 function close(){
@@ -664,13 +706,18 @@ function renderRates(){
  for(const c of cs)if(![...host.children].some(n=>n.dataset.currency===c)){const label=document.createElement('label');label.dataset.currency=c;label.textContent='ER / VR · LAK per 1 '+c;const n=document.createElement('input');n.className='je-input';n.inputMode='decimal';n.setAttribute('aria-label','LAK per 1 '+c);bindAppRateInput(n,state.rates[c]??'');n.oninput=()=>{state.rates[c]=n.value;for(const l of state.rows)if(G.currency(chart().find(a=>a.id===l.account_id))===c&&!l.overrideRate)delete l.fx_rate_lak;invalidate();};label.append(n);host.append(label);}
 }
 const bookRequests292=new WeakMap();
+function suggestSourceBooks(){
+ for(const line of state.rows)if(line.account_id&&line.generated!=='output'&&(!line.book_rate_lak||line.autoBook))void suggestBook292(line);
+}
 async function suggestBook292(line){
  const account=chart().find(a=>a.id===line.account_id),date=state.date,actor=who();
  if(!account||G.currency(account)==='LAK'||!window.AccountRates143186)return;
  const request={};bookRequests292.set(line,request);
  if(typeof AccountRates143186.bookRateFor!=='function')return;
- const book=await AccountRates143186.bookRateFor(account,date).catch(()=>null);
- if(bookRequests292.get(line)!==request||actor!==who()||date!==state.date||account.id!==line.account_id||!dialog?.open||!state.rows.includes(line)||line.book_rate_lak&&!line.autoBook)return;
+ const settling=line.role==='balance'||(!line.role&&G.staff(account)&&number(line.debit)>0);
+ const book=await AccountRates143186.bookRateFor(account,date,JournalModule.editingEntryId||null,settling).catch(()=>null);
+ if(busy||bookRequests292.get(line)!==request||actor!==who()||date!==state.date||account.id!==line.account_id||!dialog?.open||!state.rows.includes(line)||line.book_rate_lak&&!line.autoBook)return;
+ if(!book&&!line.book_rate_lak||line.autoBook&&line.book_rate_lak===book)return;
  line.book_rate_lak=book||'';line.autoBook=true;
  const input=dialog.querySelector('[data-row="'+state.rows.indexOf(line)+'"] [data-field=book_rate_lak]');
  if(input&&document.activeElement!==input)bindAppRateInput(input,line.book_rate_lak);
@@ -680,7 +727,7 @@ function renderRows(){
  const body=dialog.querySelector('[data-entry-lines]'),accounts=chart(),options=accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('');body.replaceChildren();
  state.rows.forEach((l,i)=>{
   const a=chart().find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
-  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
+  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
   const rowRate=tr.querySelector('[data-field=fx_rate_lak]');bindAppRateInput(rowRate,l.fx_rate_lak||'');if(a)rowRate.placeholder=display(state.rates[G.currency(a)]||'');
   const bookField=tr.querySelector('[data-field=book_rate_lak]');bindAppRateInput(bookField,l.book_rate_lak??'');
   const select=tr.querySelector('select');select.value=l.account_id;select.onchange=()=>{l.account_id=select.value;l.missing='';delete l.generated;delete l.book_rate_lak;delete l.fx_rate_lak;delete l.autoBook;delete l.overrideRate;
@@ -804,7 +851,7 @@ function open(){
  list.onkeydown=e=>{const buttons=[...list.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.focus();list.hidden=true;query.setAttribute('aria-expanded','false');}};
  dialog.addEventListener('pointerdown',e=>{if(!e.target.closest('.generator-template268')){list.hidden=true;query.setAttribute('aria-expanded','false');}});
  dialog.querySelector('[data-date]').onchange=e=>{state.date=e.target.value;invalidate();for(const line of state.rows)if(line.autoBook||!line.book_rate_lak)void suggestBook292(line);};dialog.querySelector('[data-memo]').oninput=e=>{state.memo=e.target.value;invalidate();if(state.template==='blank')relatedTemplates(suggestions());};
- dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();if(state.template==='blank'&&state.memo)relatedTemplates(suggestions());
+ dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();suggestSourceBooks();if(state.template==='blank'&&state.memo)relatedTemplates(suggestions());
 }
 function ready(){
  const button=document.createElement('button');button.type='button';button.id='generateJournal258';button.className='je-btn je-btn-secondary';button.textContent='Generate';button.onclick=open;$('addEntryRow14271')?.after(button);

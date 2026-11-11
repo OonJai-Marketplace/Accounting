@@ -43,7 +43,7 @@ function renderCard(card){
  const rows=descriptors(source.rows,source.chart);host.hidden=!rows.length;if(!rows.length)return;
  const body=rows.map(({a,currency,date,fx,book})=>{
   const k=key(date,source.exclude),snapshot=snapshots.get(k),remote=snapshot?.data.accounts.find(r=>r.account_id===a.id),device=local(a,date,source.exclude);
-  const average=remote?.average_rate==null?null:Number(remote.average_rate),useDevice=device.pending||!remote,rate=useDevice?device.rate:average;
+  const average=remote?recordedRate(a,remote.foreign_balance,remote.lak_carrying_value,remote.average_rate):null,useDevice=device.pending||!remote,rate=useDevice?recordedRate(a,device.quantity,device.value,device.rate):average;
   const used=book||fx,diff=used!=null&&rate!=null?used-rate:null;
   let detail=remote?'Database checked '+formatAppDate(snapshot.data.calculated_at,true):'Device records · database freshness unconfirmed';
   if(offline())detail='Offline · '+detail;
@@ -93,17 +93,24 @@ function rateCell(row,field,label){
  }
  const action=row.querySelector('td.action-col');row.insertBefore(cell,action);return input;
 }
-function effectiveAverage(account,date,exclude){
+// A credit on a staff ledger is an amount owed to the employee.
+function recordedRate(account,quantity,value,average){
+ if(valid(Number(average)))return Number(average);
+ if(/^12[12]\d$/.test(String(account.code))&&quantity<0&&value<0)return value/quantity;
+ return null;
+}
+function effectiveAverage(account,date,exclude,staffSettlement=false){
  const saved=snapshots.get(key(date,exclude))?.data.accounts.find(r=>r.account_id===account.id);
  const device=local(account,date,exclude);
- if(device.pending||!saved)return device.rate;
+ if(device.pending||!saved)return staffSettlement?recordedRate(account,device.quantity,device.value,device.rate):device.rate;
+ if(staffSettlement)return recordedRate(account,saved.foreign_balance,saved.lak_carrying_value,saved.average_rate);
  return valid(Number(saved.average_rate))?Number(saved.average_rate):null;
 }
-async function bookRateFor(account,date,exclude=null){
+async function bookRateFor(account,date,exclude=null,staffSettlement=false){
  const ownerId=session(),db=client;
  if(!ownerId||!account?.id||!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;
  await fetchSnapshot(date,exclude);
- return ownerId===session()&&db===client?effectiveAverage(account,date,exclude):null;
+ return ownerId===session()&&db===client?effectiveAverage(account,date,exclude,staffSettlement):null;
 }
 function syncLineRates(card){
  const body=$('jeLinesBody'),header=$('jeHeaderRow');

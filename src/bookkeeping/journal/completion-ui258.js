@@ -7,7 +7,7 @@ const who=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 const chart=()=>AccountingStore.accounts.filter(G.available);
 const key=()=> 'ojm_generator258:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+owner;
 const number=v=>typeof v==='number'?v:String(v??'').trim()?parseAppNumber(String(v)):0;
-const display=v=>typeof v==='number'?v.toLocaleString(typeof appNumberLocale==='function'?appNumberLocale():'en-US',{useGrouping:false,maximumFractionDigits:12}):v??'';
+const display=v=>typeof v==='number'?v.toLocaleString(typeof appNumberLocale==='function'?appNumberLocale():'en-US',{useGrouping:true,maximumFractionDigits:12}):v??'';
 const offline=()=>!navigator.onLine||window.offline14239?.offline()||window.sessionCache14333?.localMode;
 const blank=()=>({account_id:'',line_memo:'',debit:'',credit:''});
 function eligible(){if(!who())throw Error('Sign in before preparing an entry.');if(window.personalJournal1437?.active||window.workspaceRequest138?.target)throw Error('Open the main company journal to use this generator.');if(!window.access113?.can('journal','edit')&&!window.access113?.can('journal','post'))throw Error('Journal editing permission is required.');if(window.DriveDrafts143128?.preparedCount||window.DriveDrafts143128?.editing||pendingWorkspacePostOwnerId||pendingWorkspacePostJournalId)throw Error('Finish the prepared entries before using this generator.');}
@@ -90,20 +90,32 @@ function showHistory(){
  if(!count)host.textContent='No matching posted journals in the loaded period.';
 }
 function restoreProtocolRows(draft,t){
- if(!draft||draft.protocolVersion===1||!t?.builtin)return;
- if(!draft.rows.some(l=>l.generated==='output')){
-  for(const line of templateRows(t).filter(l=>l.generated==='output')){
-   if(!draft.rows.some(l=>l.account_id===line.account_id))draft.rows.push(line);
+ if(!draft||!t?.builtin)return;
+ if(t.id.startsWith('gen268-settlement-')&&draft.protocolVersion!==2){
+  const layout=templateRows(t),bridge=layout.find(l=>l.generated&&l.expectedSide==='debit'&&l.expectedCurrency!=='LAK');
+  const index=bridge?draft.rows.findIndex(l=>l.account_id===bridge.account_id&&l.generated==='output'&&!l.expectedSide&&!l.debit&&!l.credit):-1;
+  if(index>=0){
+   draft.rows.splice(index,1,...layout.filter(l=>l.account_id===bridge.account_id));
+   const kip=layout[layout.length-1],old=draft.rows.find(l=>l.account_id===kip.account_id&&l.generated==='output');
+   if(old){draft.rows.splice(draft.rows.indexOf(old),1);draft.rows.push(old);}
   }
  }
- draft.protocolVersion=1;
+ if(draft.protocolVersion){draft.protocolVersion=2;return;}
+ if(!draft.rows.some(l=>l.generated==='output')){
+  for(const line of templateRows(t).filter(l=>l.generated==='output')){
+   const present=draft.rows.some(l=>l.account_id===line.account_id&&(!line.expectedSide||
+    !t.id.startsWith('gen268-settlement-')||l.expectedSide===line.expectedSide||number(l[line.expectedSide])>0));
+   if(!present)draft.rows.push(line);
+  }
+ }
+ draft.protocolVersion=2;
 }
 function selectTemplate(id,merge=false){
  state.drafts[state.template]={rows:state.rows,memo:state.memo,rates:state.rates,protocolVersion:state.protocolVersion};
  const previous=state.drafts[id],t=definitions().find(t=>t.id===id);if(!t)return;
  const fromEntry=state.entrySignature&&id!=='blank';
  const next=merge||fromEntry?{rows:Catalog.merge(fromEntry&&!merge?(entrySource()?.rows||state.rows):state.rows,t,chart(),templateRows),memo:state.memo||t.generalMemo||'',rates:state.rates}:previous||{rows:templateRows(t),memo:state.memo||t.generalMemo||'',rates:state.rates};
- restoreProtocolRows(next,t);Object.assign(state,next,{template:id,protocolVersion:1});dialog.querySelector('[data-matches]').replaceChildren();invalidate();render();
+ restoreProtocolRows(next,t);Object.assign(state,next,{template:id,protocolVersion:2});dialog.querySelector('[data-matches]').replaceChildren();invalidate();render();suggestSourceBooks();
 }
 function message(text,error=false){const host=dialog?.querySelector('[data-status]');if(host){host.textContent=text+(storageWarning?' '+storageWarning:'');host.classList.toggle('has-error258',error);}}
 function close(){
@@ -149,13 +161,18 @@ function renderRates(){
  for(const c of cs)if(![...host.children].some(n=>n.dataset.currency===c)){const label=document.createElement('label');label.dataset.currency=c;label.textContent='ER / VR · LAK per 1 '+c;const n=document.createElement('input');n.className='je-input';n.inputMode='decimal';n.setAttribute('aria-label','LAK per 1 '+c);bindAppRateInput(n,state.rates[c]??'');n.oninput=()=>{state.rates[c]=n.value;for(const l of state.rows)if(G.currency(chart().find(a=>a.id===l.account_id))===c&&!l.overrideRate)delete l.fx_rate_lak;invalidate();};label.append(n);host.append(label);}
 }
 const bookRequests292=new WeakMap();
+function suggestSourceBooks(){
+ for(const line of state.rows)if(line.account_id&&line.generated!=='output'&&(!line.book_rate_lak||line.autoBook))void suggestBook292(line);
+}
 async function suggestBook292(line){
  const account=chart().find(a=>a.id===line.account_id),date=state.date,actor=who();
  if(!account||G.currency(account)==='LAK'||!window.AccountRates143186)return;
  const request={};bookRequests292.set(line,request);
  if(typeof AccountRates143186.bookRateFor!=='function')return;
- const book=await AccountRates143186.bookRateFor(account,date).catch(()=>null);
- if(bookRequests292.get(line)!==request||actor!==who()||date!==state.date||account.id!==line.account_id||!dialog?.open||!state.rows.includes(line)||line.book_rate_lak&&!line.autoBook)return;
+ const settling=line.role==='balance'||(!line.role&&G.staff(account)&&number(line.debit)>0);
+ const book=await AccountRates143186.bookRateFor(account,date,JournalModule.editingEntryId||null,settling).catch(()=>null);
+ if(busy||bookRequests292.get(line)!==request||actor!==who()||date!==state.date||account.id!==line.account_id||!dialog?.open||!state.rows.includes(line)||line.book_rate_lak&&!line.autoBook)return;
+ if(!book&&!line.book_rate_lak||line.autoBook&&line.book_rate_lak===book)return;
  line.book_rate_lak=book||'';line.autoBook=true;
  const input=dialog.querySelector('[data-row="'+state.rows.indexOf(line)+'"] [data-field=book_rate_lak]');
  if(input&&document.activeElement!==input)bindAppRateInput(input,line.book_rate_lak);
@@ -165,7 +182,7 @@ function renderRows(){
  const body=dialog.querySelector('[data-entry-lines]'),accounts=chart(),options=accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('');body.replaceChildren();
  state.rows.forEach((l,i)=>{
   const a=chart().find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
-  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
+  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
   const rowRate=tr.querySelector('[data-field=fx_rate_lak]');bindAppRateInput(rowRate,l.fx_rate_lak||'');if(a)rowRate.placeholder=display(state.rates[G.currency(a)]||'');
   const bookField=tr.querySelector('[data-field=book_rate_lak]');bindAppRateInput(bookField,l.book_rate_lak??'');
   const select=tr.querySelector('select');select.value=l.account_id;select.onchange=()=>{l.account_id=select.value;l.missing='';delete l.generated;delete l.book_rate_lak;delete l.fx_rate_lak;delete l.autoBook;delete l.overrideRate;
@@ -289,7 +306,7 @@ function open(){
  list.onkeydown=e=>{const buttons=[...list.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.focus();list.hidden=true;query.setAttribute('aria-expanded','false');}};
  dialog.addEventListener('pointerdown',e=>{if(!e.target.closest('.generator-template268')){list.hidden=true;query.setAttribute('aria-expanded','false');}});
  dialog.querySelector('[data-date]').onchange=e=>{state.date=e.target.value;invalidate();for(const line of state.rows)if(line.autoBook||!line.book_rate_lak)void suggestBook292(line);};dialog.querySelector('[data-memo]').oninput=e=>{state.memo=e.target.value;invalidate();if(state.template==='blank')relatedTemplates(suggestions());};
- dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();if(state.template==='blank'&&state.memo)relatedTemplates(suggestions());
+ dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();suggestSourceBooks();if(state.template==='blank'&&state.memo)relatedTemplates(suggestions());
 }
 function ready(){
  const button=document.createElement('button');button.type='button';button.id='generateJournal258';button.className='je-btn je-btn-secondary';button.textContent='Generate';button.onclick=open;$('addEntryRow14271')?.after(button);
