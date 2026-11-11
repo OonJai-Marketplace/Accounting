@@ -8,7 +8,15 @@
     location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
-  function captureDraft(e){const n=e.target;if(!n.dataset.field||S.saving)return;const field=n.dataset.field;if(n.dataset.index!==undefined)S.draft[S.draft.mode==='double'?'lines':'single'][Number(n.dataset.index)][field]=n.value;else S.draft[field]=n.value;saveDraftLater();updateValidation();}
+  function captureDraft(e){const n=e.target;if(!n.dataset.field||S.saving)return;const field=n.dataset.field;if(n.dataset.index!==undefined)S.draft[S.draft.mode==='double'?'lines':'single'][Number(n.dataset.index)][field]=n.value;else {
+      S.draft[field]=n.value;
+      if(field==='date'&&S.draft.multiple){
+        const rows=S.draft.mode==='double'?S.draft.lines:S.draft.single;
+        for(const input of $('postForm').querySelectorAll('[data-field=date][data-index]')){
+          if(rows[Number(input.dataset.index)].date==null)input.value=n.value;
+        }
+      }
+    }saveDraftLater();updateValidation();}
   function updateValidation(){if(!$('entryValidation')||!S.draft)return;try{const {items}=StaffEntry14225.prepare(S.draft,accounts(),rules());const sums=new Map();for(const l of items){const c=currency(l.fund);sums.set(c,(sums.get(c)||0)+l.amount);}$('entryValidation').textContent=items.length+' complete '+(items.length===1?'entry':'entries')+' · '+[...sums].map(([c,n])=>money(n,c)).join(' · '); }catch(e){$('entryValidation').textContent=e.message;}}
   let pendingDialog14370=null;
   function phoneDialog14370(draw,read){

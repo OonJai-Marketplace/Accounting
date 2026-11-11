@@ -5,7 +5,12 @@
     const first=g.lines[0],saved=first.editor_snapshot1437,r=rules();let d;
     const normalize=rows=>rows.map(l=>JSON.stringify([l.date,l.direction,l.fund,l.account,Number(l.amount),l.memo])).sort().join('|');
     const actual=g.lines.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo}));
-    if(rules().entryMode!=='cashbook'&&saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(l=>l.date===first.transaction_date))){d={...blankDraft(),mode:saved.mode,date:first.transaction_date,memo:saved.memo,reference:saved.reference||'',single:structuredClone(saved.single||[]),lines:(saved.rows||[]).map(l=>({account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};}
+    if(r.entryMode!=='cashbook'&&saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(l=>l.date===first.transaction_date))){
+      const date=first.transaction_date, onDate=row=>!saved.multiple||(row.date||saved.date)===date;
+      d={...blankDraft(),mode:saved.mode,date,multiple:!!saved.multiple,memo:saved.memo,reference:saved.reference||'',
+        single:structuredClone((saved.single||[]).filter(onDate)),
+        lines:(saved.rows||[]).filter(onDate).map(l=>({date:l.date||date,account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};
+    }
     else d={...blankDraft(),mode:'single',date:first.transaction_date,memo:first.memo,reference:first.reference||'',single:g.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?r.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
     d.correction_journal14347=g.batch.status==='returned'?g.batch.id:null;d.editIds=g.lines.map(l=>l.id);S.draft=d;saveDraftLater();navigate('post');
   }

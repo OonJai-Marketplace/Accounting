@@ -3,8 +3,15 @@
    zoom; never rewrite its initial scale in response to a viewport resize. */
 (()=>{'use strict';
  const ua=navigator.userAgent||'',platform=navigator.platform||'';
- const ipad=/iPad/i.test(ua)||/Mac/i.test(platform)&&navigator.maxTouchPoints>1;
+ const smallTouchScreen=navigator.maxTouchPoints>0&&Math.min(screen.width,screen.height)<=600;
+ const desktopIPhone=smallTouchScreen&&/Macintosh/i.test(ua);
+ const ipad=/iPad/i.test(ua)||!desktopIPhone&&/Mac/i.test(platform)&&navigator.maxTouchPoints>1;
  const android=/Android/i.test(ua),phone=/iPhone|iPod/i.test(ua)||android&&/Mobile/i.test(ua),tablet=ipad||android&&!phone;
+ // Chrome on an Android handset sends a Linux desktop identity for Desktop site.
+ // Keep its desktop workspace wide enough for the journal columns and allow pinch zoom.
+ const touchDesktop=smallTouchScreen||navigator.maxTouchPoints>0&&window.matchMedia?.('(pointer:coarse)').matches;
+ const desktopOnHandset=!phone&&!tablet&&(desktopIPhone||touchDesktop&&/Linux/i.test(ua)&&/Chrome\//.test(ua));
+ if(desktopOnHandset){const meta=document.querySelector('meta[name=viewport]');if(meta)meta.content='width=1280, minimum-scale=0.1, maximum-scale=5, user-scalable=yes';}
  const root=document.documentElement;root.dataset.device132=tablet?'tablet':phone?'phone':'desktop';
  function laptopLayout(){document.body?.classList.toggle('compact-laptop14362',!tablet&&!phone&&innerWidth<=1100)}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',laptopLayout,{once:true});else laptopLayout();

@@ -119,7 +119,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.336', $ = id => document.getElementById(id);
+  const VERSION = '143.337', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -245,10 +245,12 @@ function appLocalDate(date=new Date()) {
   const accountTitle = id => `<span class="currency">${esc(symbol(currency(id)))}</span>${esc(cleanName(id))}`;
   const deviceDelta14333=id=>queue().filter(q=>!Object.values(S.data.months||{}).some(m=>(m.lines||[]).some(l=>String(l.editor_group1437||'').startsWith(q.key+':')))).flatMap(q=>q.params.p_items||[]).filter(l=>l.fund===id).reduce((n,l)=>n+(l.direction==='in'?1:-1)*Number(l.amount||0),0);
   const balance = f => Number(f.closing || 0) + Number(f.draft_in || 0) - Number(f.draft_out || 0)+deviceDelta14333(f.account_id);
-  function blankDraft() { const r = rules(); return {mode:r.entryMode==='double_full'?'double':'single', date:today(), memo:'', reference:'', requestKey:'phone-' + crypto.randomUUID(), editIds:[], single:[{direction:r.directions[0] || 'out', source:r.fundIds.length === 1 ? r.fundIds[0] : '', affected:'', amount:'', memo:''}], lines:[{account:'',debit:'',credit:'',memo:''},{account:'',debit:'',credit:'',memo:''}]}; }
-  function normalizeDraft(value){const d={...blankDraft(),...value};d.single=Array.isArray(d.single)&&d.single.length?d.single:blankDraft().single;d.lines=Array.isArray(d.lines)&&d.lines.length?d.lines:blankDraft().lines;return d;}
+  function blankDraft() { const r = rules(); return {mode:r.entryMode==='double_full'?'double':'single', date:today(), multiple:false, memo:'', reference:'', requestKey:'phone-' + crypto.randomUUID(), editIds:[], single:[{direction:r.directions[0] || 'out', source:r.fundIds.length === 1 ? r.fundIds[0] : '', affected:'', amount:'', memo:''}], lines:[{account:'',debit:'',credit:'',memo:''},{account:'',debit:'',credit:'',memo:''}]}; }
+  function normalizeDraft(value){const d={...blankDraft(),...value};d.single=Array.isArray(d.single)&&d.single.length?d.single:blankDraft().single;d.lines=Array.isArray(d.lines)&&d.lines.length?d.lines:blankDraft().lines;
+    if(value?.multiple==null)d.multiple=(d.mode==='double'?d.lines:d.single).some(line=>line.date&&line.date!==d.date);
+    return d;}
   const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
-  function payloadDraft(p){return normalizeDraft({mode:'single',date:p.p_items[0].date,memo:p.p_snapshot.memo||p.p_items[0].memo,reference:p.p_snapshot.reference||'',requestKey:p.p_key,editIds:p.p_edit_ids||[],single:p.p_items.map(l=>({direction:l.direction,source:l.fund,affected:l.account,amount:String(l.amount),memo:l.memo||''}))});}
+  function payloadDraft(p){return normalizeDraft({mode:'single',date:p.p_items[0].date,memo:p.p_snapshot.memo||p.p_items[0].memo,reference:p.p_snapshot.reference||'',requestKey:p.p_key,editIds:p.p_edit_ids||[],single:p.p_items.map(l=>({date:l.date,direction:l.direction,source:l.fund,affected:l.account,amount:String(l.amount),memo:l.memo||''}))});}
   async function migrateLegacy(owner,data){
     if(window.accountingReset143108?.enabled())return data;
     // Read only this account's earlier phone draft and immutable staff save requests.
@@ -268,7 +270,7 @@ function appLocalDate(date=new Date()) {
       return {...old,queue:all,legacyReferences:seen,...(previousDraft&&!old.legacyDraftImported&&!old.draft?{draft:normalizeDraft(previousDraft),legacyDraftImported:true}:{})};});
   }
   function clearLegacy(q){for(const source of q.legacySources||[]){try{const storage=source.storage==='session'?sessionStorage:localStorage,value=JSON.parse(storage.getItem(source.key));if((value?.payload||value)?.p_key===q.key){storage.removeItem(source.key);storage.removeItem(source.key+':error');}}catch{}}}
-  const draftFilled = () => !!S.draft && (!!S.draft.memo || !!S.draft.reference || !!S.draft.editIds?.length || (S.draft.mode === 'double' ? S.draft.lines.some(l => l.account || l.debit || l.credit || l.memo) : S.draft.single.some(l => l.amount || l.memo || l.affected && l.direction !== 'in')));
+  const draftFilled = () => !!S.draft && (!!S.draft.multiple || !!S.draft.memo || !!S.draft.reference || !!S.draft.editIds?.length || (S.draft.mode === 'double' ? S.draft.lines.some(l => l.account || l.debit || l.credit || l.memo) : S.draft.single.some(l => l.amount || l.memo || l.affected && l.direction !== 'in')));
   function saveMirror() { if (!S.owner || !S.draft) return; try { localStorage.setItem(mirrorKey(S.owner), JSON.stringify(S.draft)); } catch { notice('This browser could not keep the draft. Keep this page open until you can save it.', true); } }
   function rememberLocation(){if(!S.owner)return;try{localStorage.setItem(locationKey(S.owner),JSON.stringify({page:S.page,month:S.month}));}catch{}}
   function saveDraftLater() { saveMirror(); clearTimeout(draftTimer); const owner = S.owner, epoch=S.epoch,draft = structuredClone(S.draft); draftTimer = setTimeout(() => {if(current(owner,epoch))persist(owner,{draft}).catch(e => {if(current(owner,epoch))notice(e.message,true)})}, 150); }
@@ -277,19 +279,25 @@ function appLocalDate(date=new Date()) {
     const d=S.draft;if(!d||S.saving)return false;
     if(next!==d.mode){
       if(next==='double'){
-        d.lines=d.single.flatMap(l=>{const incoming=l.direction==='in';return [{account:incoming?l.source:l.affected,debit:l.amount,credit:'',memo:l.memo||''},{account:incoming?l.affected:l.source,debit:'',credit:l.amount,memo:l.memo||''}];});
+        d.lines=d.single.flatMap(l=>{const incoming=l.direction==='in';const dated=d.multiple?{date:l.date??d.date}:{};return [{...dated,account:incoming?l.source:l.affected,debit:l.amount,credit:'',memo:l.memo||''},{...dated,account:incoming?l.affected:l.source,debit:'',credit:l.amount,memo:l.memo||''}];});
         if(!d.lines.length)d.lines=blankDraft().lines;
       }else{
-        const rows=d.lines.filter(l=>l.account||l.debit||l.credit||l.memo),result=[],r=rules();
+        const rows=d.lines.filter(l=>l.account||l.debit||l.credit||l.memo||d.multiple&&l.date),result=[],r=rules();
         const amount=v=>Number(String(v||'').replaceAll(',',''));
         for(let i=0;i<rows.length;i+=2){
           const a=rows[i],b=rows[i+1];
+          if(d.multiple&&a?.date&&a.date===b?.date&&[a,b].every(row=>!row.debit&&!row.credit&&!row.memo)&&(!a.account&&!b.account||!a.account&&r.fundIds.includes(b.account)&&r.directions.includes('out')||!b.account&&r.fundIds.includes(a.account)&&r.directions.includes('in'))){
+            const row={...blankDraft().single[0],date:a.date};
+            if(a.account||b.account){row.source=a.account||b.account;row.direction=a.account?'in':'out';}
+            result.push(row);
+            continue;
+          }
           const debit=a&&amount(a.debit)>0&&!amount(a.credit)?a:b&&amount(b.debit)>0&&!amount(b.credit)?b:null;
           const credit=a&&amount(a.credit)>0&&!amount(a.debit)?a:b&&amount(b.credit)>0&&!amount(b.debit)?b:null;
           const outgoing=debit&&credit&&r.directions.includes('out')&&r.fundIds.includes(credit.account)&&r.entryIds.includes(debit.account);
           const incoming=debit&&credit&&r.directions.includes('in')&&r.fundIds.includes(debit.account)&&r.entryIds.includes(credit.account);
-          if(!a||!b||!debit||!credit||debit===credit||amount(debit.debit)!==amount(credit.credit)||!Number.isFinite(amount(debit.debit))||currency(debit.account)!==currency(credit.account)||debit.memo&&credit.memo&&debit.memo!==credit.memo||!outgoing&&!incoming){notice('These lines need Double Entry. Your draft is unchanged; finish it before starting a cashbook entry.',true);return false;}
-          result.push({direction:outgoing?'out':'in',source:outgoing?credit.account:debit.account,affected:outgoing?debit.account:credit.account,amount:debit.debit,memo:debit.memo||credit.memo||''});
+          if(!a||!b||!debit||!credit||debit===credit||d.multiple&&(a.date??d.date)!==(b.date??d.date)||amount(debit.debit)!==amount(credit.credit)||!Number.isFinite(amount(debit.debit))||currency(debit.account)!==currency(credit.account)||debit.memo&&credit.memo&&debit.memo!==credit.memo||!outgoing&&!incoming){notice('These lines need Double Entry. Your draft is unchanged; finish it before starting a cashbook entry.',true);return false;}
+          result.push({...(d.multiple?{date:debit.date??d.date}:{}),direction:outgoing?'out':'in',source:outgoing?credit.account:debit.account,affected:outgoing?debit.account:credit.account,amount:debit.debit,memo:debit.memo||credit.memo||''});
         }
         d.single=result.length?result:blankDraft().single;
       }
@@ -510,6 +518,55 @@ function appLocalDate(date=new Date()) {
     const metrics={};for(const f of funds()){const m=metrics[f.currency]||={remaining:0,total:0,used:0};m.remaining+=balance(f);m.total+=Number(f.opening||0)+Number(f.received||0);m.used+=Number(f.used||0)+Number(f.handover||0);}
     return `<div class="card hero funds-hero1425"><div class="row"><b>Remaining Funds</b></div>${Object.entries(metrics).map(([c,m])=>`<strong>${money(m.remaining,c)}</strong>`).join('')||'<strong>—</strong>'}<small>Across assigned accounts</small></div>`+Object.entries(metrics).map(([c,m])=>{const p=progress(m.remaining,m.total);return `<div class="fund-summary1425"><div><small>${Math.round(p)}%</small><div class="bar"><i style="width:${p}%"></i></div><b>${money(m.remaining,c)}</b><small>Remaining</small></div><div><small>${Math.round(100-p)}%</small><div class="bar spent1425"><i style="width:${100-p}%"></i></div><b>${money(m.used,c)}</b><small>Spent / handed over</small></div><div>${visualIcon('chart')}<b>${money(m.total,c)}</b><small>Available funds</small></div></div>`;}).join('')+`<div class="grid quick-tiles1425">${[['Post','Record an expense','post','plus'],['Accounts','View accounts','accounts','wallet'],['Entries','Unsubmitted entries','entries','book'],['History','Submitted reports','history','chart']].map(([t,d,page,k])=>`<button type="button" class="tile" data-go="${page}"><b>${t}</b><small>${d}</small><span class="tile-arrow" aria-hidden="true">›</span></button>`).join('')}</div>${monthControl()}<p class="muted">${lines().length} entries this period · ${monthHeaders().filter(j=>j.status==='submitted').length} waiting for review · ${queue().length} waiting to sync</p>${commonActions()}${S.data.pendingSubmit?'<p class="submit-note">The last submission needs confirmation. Refresh records before retrying.</p>':''}<div class="muted">${funds().map(f=>accountTitle(f.account_id)).join(' · ')}</div>`;
   }
+  function chooseReceiptDates(initialDate) {
+    const start = /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(initialDate) ? initialDate : today();
+    const month = new Date(start.slice(0, 7) + '-01T12:00:00Z');
+    const selected = new Set();
+    return phoneDialog14370(() => {
+      const body = $('dialogBody');
+      body.innerHTML = '<h2>Choose receipt dates</h2><div class="receipt-calendar"><header><button type="button" aria-label="Previous month">‹</button><strong aria-live="polite"></strong><button type="button" aria-label="Next month">›</button></header><div class="receipt-days"></div></div>';
+      $('dialogButtons').innerHTML = '<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes" disabled>Add dates</button>';
+      const grid = body.querySelector('.receipt-days'), add = $('dialogButtons').querySelector('[value=yes]');
+      const draw = () => {
+        body.querySelector('header strong').textContent = month.toLocaleDateString('en-GB', {month:'long',year:'numeric',timeZone:'UTC'});
+        const prefix = month.toISOString().slice(0,7);
+        const end = new Date(month);
+        end.setUTCMonth(end.getUTCMonth()+1,0);
+        grid.innerHTML = ['Su','Mo','Tu','We','Th','Fr','Sa'].map(day=>'<small>'+day+'</small>').join('') + '<span></span>'.repeat(month.getUTCDay());
+        for (let day=1; day<=end.getUTCDate(); day++) {
+          const date=prefix+'-'+String(day).padStart(2,'0'), button=document.createElement('button');
+          button.type='button'; button.textContent=String(day); button.dataset.receiptDate=date;
+          button.setAttribute('aria-label',typeof window.formatAppDate==='function'?window.formatAppDate(date):new Date(date+'T12:00:00Z').toLocaleDateString(undefined,{timeZone:'UTC',day:'numeric',month:'long',year:'numeric'})); button.setAttribute('aria-pressed',String(selected.has(date)));
+          grid.append(button);
+        }
+      };
+      const [previous,next] = body.querySelectorAll('header button');
+      previous.onclick = () => {if(month.getUTCFullYear()>1||month.getUTCMonth()>0){month.setUTCMonth(month.getUTCMonth()-1);draw();}};
+      next.onclick = () => {if(month.getUTCFullYear()<9999||month.getUTCMonth()<11){month.setUTCMonth(month.getUTCMonth()+1);draw();}};
+      grid.onclick = event => {
+        const button=event.target.closest('[data-receipt-date]');
+        if (!button) return;
+        const date=button.dataset.receiptDate;
+        if (selected.has(date)) selected.delete(date); else selected.add(date);
+        button.setAttribute('aria-pressed',String(selected.has(date)));
+        add.disabled=!selected.size; add.textContent=selected.size?'Add dates ('+selected.size+')':'Add dates';
+      };
+      draw();
+    }, () => [...selected].sort());
+  }
+
+  function appendReceiptDates(draft, dates) {
+    const single=draft.mode==='single', rows=single?draft.single:draft.lines;
+    const kind=single?'single':'lines', defaults=blankDraft()[kind];
+    const empty=single ? rows.length===1 && !rows[0].affected && !rows[0].amount && !rows[0].memo && !rows[0].reference && !rows[0].description :
+      rows.length===2 && rows.every(row=>!row.debit&&!row.credit&&!row.memo) &&
+      (rows.every(row=>!row.account) || rows.filter(row=>row.account).length===1 && rows.some(row=>rules().fundIds.includes(row.account)));
+    const replace=empty && !draft.editIds?.length && rows.every(row=>!row.date);
+    const template=replace?rows:defaults;
+    if(single&&!replace)defaults[0].direction=rows[0]?.direction||defaults[0].direction;
+    const dated=dates.flatMap(date=>template.map(row=>({...row,date})));
+    draft[kind]=replace?dated:rows.concat(dated);
+  }
   function options(ids,selected='') { return '<option value="">Choose account</option>'+accounts().filter(a=>ids.includes(a.id)&&a.isPosting!==false&&a.isActive!==false).map(a=>`<option value="${esc(a.id)}" ${a.id===selected?'selected':''}>${esc(symbol(a.currency)+' '+a.code+' — '+cleanName(a.id))}</option>`).join(''); }
   function field(label,input){return `<div class="field"><label>${label}${input}</label></div>`;}
   function post() {
@@ -518,10 +575,12 @@ function appLocalDate(date=new Date()) {
     S.draft ||= blankDraft();const d=S.draft,r=rules(),disabled=S.saving?'disabled':'';
     const methods=`<button type="button" data-action="mode-single" aria-pressed="${d.mode==='single'}" ${disabled}>Single Entry (Cashbook)</button><button type="button" data-action="mode-double" aria-pressed="${d.mode==='double'}" ${disabled}>${r.offersBothMethods?'Double Entry Journal':'Double Entry'}</button>`;
     const controls=`<div class="switches">${r.offersBothMethods?`<div role="group" aria-label="Transaction entry method">${methods}</div>`:`<details><summary>Entry options</summary>${methods}</details>`}${d.mode==='single'?`<button type="button" data-action="direction" class="direction-${d.single[0]?.direction==='in'?'in':'out'}" ${disabled||r.directions.length<2?'disabled':''}>${d.single[0]?.direction==='in'?'Money In':'Money Out'} ⇄</button>`:''}</div>`;
-    const single=d.single.map((l,i)=>`<section class="line staff-single-line14225" data-line="${i}">${i?`<div class="row"><strong>Entry ${i+1} · ${l.direction==='in'?'Money In':'Money Out'}</strong><button type="button" class="remove" data-action="remove-line" data-index="${i}" ${disabled}>Remove</button></div>`:''}${field('Account / fund',`<select data-field="source" data-index="${i}" ${disabled}>${options(r.fundIds,l.source)}</select>`)}<div class="grid">${field('Category',`<select data-field="affected" data-index="${i}" ${disabled}>${options(r.entryIds.filter(id=>!l.source||currency(id)===currency(l.source)),l.affected)}</select>`)}${field('Amount',`<input data-field="amount" data-index="${i}" inputmode="decimal" value="${esc(l.amount)}" ${disabled}>`)}</div>${field('Line memo (optional)',`<input data-field="memo" data-index="${i}" value="${esc(l.memo)}" ${disabled}>`)}</section>`).join('');
-    const double=d.lines.map((l,i)=>`<section class="line staff-double-line14225"><div class="staff-account-row14225"><span class="staff-line-number14225">${i+1}</span><div class="field"><label for="phone-account-${i}">Account for line ${i+1}</label><select id="phone-account-${i}" data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),l.account)}</select></div><button type="button" class="remove" data-action="remove-line" data-index="${i}" aria-label="Remove line ${i+1}" ${disabled}>×</button></div><div class="grid">${field('Debit',`<input data-field="debit" data-index="${i}" inputmode="decimal" value="${esc(l.debit)}" ${disabled}>`)}${field('Credit',`<input data-field="credit" data-index="${i}" inputmode="decimal" value="${esc(l.credit)}" ${disabled}>`)}</div>${field('Line memo (optional)',`<input data-field="memo" data-index="${i}" value="${esc(l.memo)}" ${disabled}>`)}</section>`).join('');
+    const lineDate=(line,index)=>d.multiple?field('Receipt date',`<input type="date" data-field="date" data-index="${index}" value="${esc(line.date??d.date)}" ${disabled}>`):'';
+    const dates=`<div class="switches receipt-date-options"><button type="button" data-action="multiple-dates" aria-pressed="${!!d.multiple}" ${disabled}>Multiple dates</button>${d.multiple?action('choose-dates','Choose dates',disabled):''}</div>`;
+    const single=d.single.map((l,i)=>`<section class="line staff-single-line14225" data-line="${i}">${i||d.multiple&&d.single.length>1?`<div class="row"><strong>Entry ${i+1} · ${l.direction==='in'?'Money In':'Money Out'}</strong><button type="button" class="remove" data-action="remove-line" data-index="${i}" ${disabled}>Remove</button></div>`:''}${lineDate(l,i)}${field('Account / fund',`<select data-field="source" data-index="${i}" ${disabled}>${options(r.fundIds,l.source)}</select>`)}<div class="grid">${field('Category',`<select data-field="affected" data-index="${i}" ${disabled}>${options(r.entryIds.filter(id=>!l.source||currency(id)===currency(l.source)),l.affected)}</select>`)}${field('Amount',`<input data-field="amount" data-index="${i}" inputmode="decimal" value="${esc(l.amount)}" ${disabled}>`)}</div>${field('Line memo (optional)',`<input data-field="memo" data-index="${i}" value="${esc(l.memo)}" ${disabled}>`)}</section>`).join('');
+    const double=d.lines.map((l,i)=>`<section class="line staff-double-line14225">${lineDate(l,i)}<div class="staff-account-row14225"><span class="staff-line-number14225">${i+1}</span><div class="field"><label for="phone-account-${i}">Account for line ${i+1}</label><select id="phone-account-${i}" data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),l.account)}</select></div><button type="button" class="remove" data-action="remove-line" data-index="${i}" aria-label="Remove line ${i+1}" ${disabled}>×</button></div><div class="grid">${field('Debit',`<input data-field="debit" data-index="${i}" inputmode="decimal" value="${esc(l.debit)}" ${disabled}>`)}${field('Credit',`<input data-field="credit" data-index="${i}" inputmode="decimal" value="${esc(l.credit)}" ${disabled}>`)}</div>${field('Line memo (optional)',`<input data-field="memo" data-index="${i}" value="${esc(l.memo)}" ${disabled}>`)}</section>`).join('');
     const description=field('Description',`<input data-field="memo" value="${esc(d.memo)}" ${disabled}>`);
-    return `<h1>${d.editIds?.length?'Edit Entry':'Post Entry'}</h1><form id="postForm">${controls}<div class="grid staff-date14225">${field('Date',`<input type="date" data-field="date" value="${esc(d.date)}" ${disabled}>`)}${field('Reference (optional)',`<input data-field="reference" value="${esc(d.reference)}" ${disabled}>`)}</div>${d.mode==='double'?description+double:single+description}${action('add-line',d.mode==='double'?'Add Line':'Add another entry line',disabled)}<p id="entryValidation" class="preview" aria-live="polite"></p><div class="actions">${action('clear-draft','Clear',disabled)}<button type="submit" class="btn primary" ${disabled}>${S.saving?'Saving…':navigator.onLine?(d.mode==='double'?'Post Entry':'Save Entry'):'Save on device'}</button></div></form>`;
+    return `<h1>${d.editIds?.length?'Edit Entry':'Post Entry'}</h1><form id="postForm">${controls}<div class="grid staff-date14225">${field('Date',`<input type="date" data-field="date" value="${esc(d.date)}" ${disabled}>`)}${field('Reference (optional)',`<input data-field="reference" value="${esc(d.reference)}" ${disabled}>`)}</div>${dates}${d.mode==='double'?description+double:single+description}${action('add-line',d.mode==='double'?'Add Line':'Add another entry line',disabled)}<p id="entryValidation" class="preview" aria-live="polite"></p><div class="actions">${action('clear-draft','Clear',disabled)}<button type="submit" class="btn primary" ${disabled}>${S.saving?'Saving…':navigator.onLine?(d.mode==='double'?'Post Entry':'Save Entry'):'Save on device'}</button></div></form>`;
   }
 
   window.PhoneCashbook240=id=>{if(rules().fundIds.includes(id)){S.cashbookFund240=id;render();}};
@@ -547,7 +606,15 @@ function appLocalDate(date=new Date()) {
     location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
-  function captureDraft(e){const n=e.target;if(!n.dataset.field||S.saving)return;const field=n.dataset.field;if(n.dataset.index!==undefined)S.draft[S.draft.mode==='double'?'lines':'single'][Number(n.dataset.index)][field]=n.value;else S.draft[field]=n.value;saveDraftLater();updateValidation();}
+  function captureDraft(e){const n=e.target;if(!n.dataset.field||S.saving)return;const field=n.dataset.field;if(n.dataset.index!==undefined)S.draft[S.draft.mode==='double'?'lines':'single'][Number(n.dataset.index)][field]=n.value;else {
+      S.draft[field]=n.value;
+      if(field==='date'&&S.draft.multiple){
+        const rows=S.draft.mode==='double'?S.draft.lines:S.draft.single;
+        for(const input of $('postForm').querySelectorAll('[data-field=date][data-index]')){
+          if(rows[Number(input.dataset.index)].date==null)input.value=n.value;
+        }
+      }
+    }saveDraftLater();updateValidation();}
   function updateValidation(){if(!$('entryValidation')||!S.draft)return;try{const {items}=StaffEntry14225.prepare(S.draft,accounts(),rules());const sums=new Map();for(const l of items){const c=currency(l.fund);sums.set(c,(sums.get(c)||0)+l.amount);}$('entryValidation').textContent=items.length+' complete '+(items.length===1?'entry':'entries')+' · '+[...sums].map(([c,n])=>money(n,c)).join(' · '); }catch(e){$('entryValidation').textContent=e.message;}}
   let pendingDialog14370=null;
   function phoneDialog14370(draw,read){
@@ -650,7 +717,12 @@ function appLocalDate(date=new Date()) {
     const first=g.lines[0],saved=first.editor_snapshot1437,r=rules();let d;
     const normalize=rows=>rows.map(l=>JSON.stringify([l.date,l.direction,l.fund,l.account,Number(l.amount),l.memo])).sort().join('|');
     const actual=g.lines.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo}));
-    if(rules().entryMode!=='cashbook'&&saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(l=>l.date===first.transaction_date))){d={...blankDraft(),mode:saved.mode,date:first.transaction_date,memo:saved.memo,reference:saved.reference||'',single:structuredClone(saved.single||[]),lines:(saved.rows||[]).map(l=>({account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};}
+    if(r.entryMode!=='cashbook'&&saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(l=>l.date===first.transaction_date))){
+      const date=first.transaction_date, onDate=row=>!saved.multiple||(row.date||saved.date)===date;
+      d={...blankDraft(),mode:saved.mode,date,multiple:!!saved.multiple,memo:saved.memo,reference:saved.reference||'',
+        single:structuredClone((saved.single||[]).filter(onDate)),
+        lines:(saved.rows||[]).filter(onDate).map(l=>({date:l.date||date,account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};
+    }
     else d={...blankDraft(),mode:'single',date:first.transaction_date,memo:first.memo,reference:first.reference||'',single:g.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?r.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
     d.correction_journal14347=g.batch.status==='returned'?g.batch.id:null;d.editIds=g.lines.map(l=>l.id);S.draft=d;saveDraftLater();navigate('post');
   }
@@ -677,8 +749,29 @@ function appLocalDate(date=new Date()) {
     if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh')return await refresh();if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='mode-single'||name==='mode-double'){if(!changeMode243(name==='mode-single'?'single':'double'))return;}
+    if(name==='multiple-dates'||name==='choose-dates'){
+      const draft=S.draft, rows=draft.mode==='single'?draft.single:draft.lines;
+      if(name==='choose-dates'){
+        const dates=await chooseReceiptDates(rows.at(-1)?.date||draft.date);
+        if(!dates||!current(owner,epoch)||S.draft!==draft||S.saving)return;
+        appendReceiptDates(draft,dates);
+      }else{
+        if(draft.multiple&&rows.some(row=>row.date&&row.date!==draft.date)){
+          if(!await confirmDialog('Use one transaction date?','Every receipt in this draft will use '+draft.date+'.','Use one date'))return;
+          if(!current(owner,epoch)||S.draft!==draft||S.saving)return;
+        }
+        draft.multiple=!draft.multiple;
+        if(!draft.multiple)for(const row of rows)delete row.date;
+      }
+    }
     if(name==='direction'){const direction=S.draft.single[0]?.direction==='in'?'out':'in';if(!rules().directions.includes(direction))return;for(const l of S.draft.single){l.direction=direction;if(!rules().entryIds.includes(l.affected))l.affected='';}}
-    if(name==='add-line')S.draft[S.draft.mode==='double'?'lines':'single'].push(S.draft.mode==='double'?{account:'',debit:'',credit:'',memo:''}:{direction:S.draft.single[0]?.direction||rules().directions[0],source:rules().fundIds.length===1?rules().fundIds[0]:'',affected:'',amount:'',memo:''});
+    if(name==='add-line'){
+      const kind=S.draft.mode==='double'?'lines':'single', rows=S.draft[kind];
+      const row=blankDraft()[kind][0];
+      if(kind==='single')row.direction=rows[0]?.direction||row.direction;
+      if(S.draft.multiple)row.date=rows.at(-1)?.date||S.draft.date;
+      rows.push(row);
+    }
     if(name==='remove-line'){const rows=S.draft[S.draft.mode==='double'?'lines':'single'];if(rows.length<=(S.draft.mode==='double'?2:1)){notice('Keep at least '+(S.draft.mode==='double'?'two journal lines.':'one entry line.'),true);return;}rows.splice(index,1);}
     if(name==='clear-draft'){if(draftFilled()&&!await confirmDialog('Clear the draft?','This only clears the unfinished form. Saved and pending entries are kept.','Clear'))return;if(!current(owner,epoch))return;S.draft=blankDraft();}
     saveDraftLater();render();
