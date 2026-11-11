@@ -8,6 +8,16 @@
     location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
+  // Mobile keyboards and autofill can commit a visible value without an input event.
+  function readPhoneForm() {
+    const draft=S.draft,form=$('postForm');
+    if(!draft||!form)return;
+    const rows=draft.mode==='double'?draft.lines:draft.single;
+    for(const field of form.querySelectorAll('[data-field]')) {
+      const target=field.dataset.index===undefined?draft:rows[Number(field.dataset.index)];
+      if(target)target[field.dataset.field]=field.value;
+    }
+  }
   function captureDraft(e){
     const n=e.target;
     if(!n.dataset.field||S.saving)return;
@@ -23,26 +33,32 @@
         if(picker)picker.innerHTML=options(ids,rows[index].affected);
       }
     }
-    saveDraftLater();updateValidation(n.dataset.index===undefined?undefined:Number(n.dataset.index));
+    readPhoneForm();saveDraftLater();updateValidation(n.dataset.index===undefined?undefined:Number(n.dataset.index));
   }
   function updateValidation(editedIndex){
     if(!$('entryValidation')||!S.draft)return;
     const d=S.draft, single=d.mode==='single',rows=single?d.single:d.lines;
-    const totals=new Map(),problems=[];
+    const totals=new Map(),journalTotals=new Map(),problems=[],cardLabels=[];
     const cards=receiptCards(d);
     cards.forEach((indices,k)=>{
       const sums=new Map();let invalid=false,started=false;
+      const shared = !single && sharedReceiptPayment(d, indices.map(i => rows[i]));
       for(const i of indices){
         const row=rows[i],c=currency(single?row.source:row.account);
         const raw=single?[row.amount]:[row.debit,row.credit];
         const values=raw.map(value=>Number(String(value??'').replaceAll(',','')));
         if(!raw.some(value=>String(value??'').trim()))continue;
         started=true;
+        if(!c){invalid=true;continue;}
         if(values.some(n=>!Number.isFinite(n)||n<0||!Number.isSafeInteger(Math.round(n*100))||Math.abs(n*100-Math.round(n*100))>0.000001)||!single&&values.every(n=>n>0)){invalid=true;continue;}
         const [a,b]=values.map(n=>Math.round(n*100));
-        const date=d.multiple&&!single?cardDate(d,row):'',key=date+'/'+c;
+        const date=d.multiple&&!single&&!shared?cardDate(d,row):'',key=date+'/'+c;
         const sum=sums.get(key)||{date,c,debit:0,credit:0};
         sum.debit+=a;sum.credit+=b||0;sums.set(key,sum);
+        if(!single){
+          const journal=journalTotals.get(c)||{debit:0,credit:0};
+          journal.debit+=a;journal.credit+=b||0;journalTotals.set(c,journal);
+        }
         if(single&&c)totals.set(c,(totals.get(c)||0)+a);
       }
       let label=single?'Enter an amount':'Enter debits and credits',state='neutral';
@@ -58,17 +74,29 @@
         }
         label=lines.join(' / ');
       }
+      cardLabels.push(label);
       const box=$('postForm').querySelector('[data-card-balance="'+k+'"]');
       if(box){box.textContent=label;box.dataset.state=state;}
       if(!single&&state!=='balanced')problems.push({priority:indices.includes(editedIndex)?0:started?1:2,text:(cards.length>1?'Receipt '+(k+1)+' · ':'')+label});
     });
+    const combine=$('postForm').querySelector('[data-action="combine-payment"]');
+    const combined=combine && combinedPayment(d,cards);
+    if(combine)combine.hidden=!combined;
     const summary=$('liveReceiptBalance');
-    const message=single?(totals.size?'Receipt total · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'Receipt total —'):
-      (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?'Balanced':'All '+cards.length+' receipts balanced'));
-    if(summary.textContent!==message)summary.textContent=message;
+    const message=combined?StaffEntry14225.balanceMessage(combined.plan.currency,combined.plan.totalCents/100,combined.plan.totalCents/100)+' overall · Check individual receipts or use one shared credit.':single?(totals.size?'Receipt total · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'Receipt total —'):
+      (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?cardLabels[0]:'All '+cards.length+' receipts balanced'));
+    const overall=!single && cards.length>1 && !combined && journalTotals.size ?
+      'Journal '+[...journalTotals].map(([c,t])=>'DR '+money(t.debit/100,c)+' / CR '+money(t.credit/100,c)).join(' · ')+' · ' : '';
+    if(summary.textContent!==overall+message)summary.textContent=overall+message;
     summary.dataset.state=single?'neutral':problems.length?'pending':'balanced';
-    try{const {items}=preparePhoneEntry(d);$('entryValidation').textContent=items.length+' complete '+(items.length===1?'entry':'entries');}
-    catch(error){$('entryValidation').textContent=error.message;}
+    const validation=$('entryValidation'), alert=$('notice');
+    let errorText='';
+    try{const {items}=preparePhoneEntry(d);validation.textContent=items.length+' complete '+(items.length===1?'entry':'entries');}
+    catch(error){errorText=error.message;validation.textContent=errorText;}
+    if(alert.dataset.entryValidation) {
+      if(!errorText)notice();
+      else if(alert.querySelector('span')?.textContent!==errorText)notice(errorText,true,true);
+    }
   }
   let pendingDialog14370=null;
   function phoneDialog14370(draw,read){

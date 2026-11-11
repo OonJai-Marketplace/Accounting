@@ -1,7 +1,7 @@
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.345', $ = id => document.getElementById(id);
+  const VERSION = '143.346', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -19,4 +19,4 @@
   const fail = (message, code = '') => Object.assign(Error(message), {code});
   const denied = e => ['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e?.code) || [401,403].includes(Number(e?.status));
   const ambiguous = e => !e?.status || Number(e.status) >= 500 || ['NETWORK_TIMEOUT','INVALID_RESPONSE'].includes(e.code);
-  let noticeTimer14246;function notice(message = '', error = false) {if(!error&&/^(?:Entry saved on this device\.|All device entries were confirmed\.|Offline\. Downloaded records|You are offline\. Your device entries)/.test(message)){paintConnection();return;}const box=$('notice');clearTimeout(noticeTimer14246);box.replaceChildren();box.classList.toggle('error',error);if(!message)return;const copy=document.createElement('span');copy.textContent=message;box.append(copy);const close=document.createElement('button');close.type='button';close.textContent='Close';close.setAttribute('aria-label','Close notification');close.onclick=()=>notice();box.append(close);if(!error)noticeTimer14246=setTimeout(()=>notice(),4500);}
+  let noticeTimer14246;function notice(message = '', error = false, entryValidation = false) {if(!error&&/^(?:Entry saved on this device\.|All device entries were confirmed\.|Offline\. Downloaded records|You are offline\. Your device entries)/.test(message)){paintConnection();return;}const box=$('notice');if(entryValidation)box.dataset.entryValidation='1';else delete box.dataset.entryValidation;clearTimeout(noticeTimer14246);box.replaceChildren();box.classList.toggle('error',error);if(!message)return;const copy=document.createElement('span');copy.textContent=message;box.append(copy);const close=document.createElement('button');close.type='button';close.textContent='Close';close.setAttribute('aria-label','Close notification');close.onclick=()=>notice();box.append(close);if(!error)noticeTimer14246=setTimeout(()=>notice(),4500);}

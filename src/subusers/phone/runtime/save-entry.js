@@ -1,9 +1,14 @@
   async function saveEntry(){
     if(S.saving||!permission('sub-users-workspace','edit'))return;
+    readPhoneForm();
+    let prepared;
+    const draft=structuredClone(S.draft);
+    try{prepared=preparePhoneEntry(draft);}
+    catch(error){saveDraftLater();updateValidation();notice(error.message,true,true);return;}
+    if($('notice').dataset.entryValidation)notice();
     const owner=S.owner,epoch=S.epoch;let savedOnDevice=false;S.saving=true;
     for(const input of $('postForm')?.querySelectorAll('input,select,textarea,button')||[])input.disabled=true;
     try{
-      const draft=structuredClone(S.draft),prepared=preparePhoneEntry(draft);
       prepared.snapshot.correction_journal14347=draft.correction_journal14347||null;
       const item={owner,key:draft.requestKey,draft,params:{p_owner:owner,p_key:draft.requestKey,p_items:prepared.items,p_snapshot:prepared.snapshot,p_edit_ids:draft.editIds||[]},status:'pending',createdAt:Date.now()};
       clearTimeout(draftTimer);saveMirror();

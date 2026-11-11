@@ -216,12 +216,79 @@ async function bulk(fixture) {
     await field('reference',i).fill('Line '+(i+1));
   }
   await field('memo').fill('Two dated pairs');
-  assert.equal(await page.locator('#liveReceiptBalance').innerText(),'Balanced');
+  assert.match(await page.locator('#liveReceiptBalance').innerText(),/Debit .*1,000.00 · Credit .*1,000.00 · Balanced/);
   const posted=page.waitForRequest(r=>r.url().includes('/rpc/save_staff_editor1437')&&r.postDataJSON().p_snapshot.memo==='Two dated pairs');
   await page.locator('#postForm button[type=submit]').tap();
   const mixed=(await posted).postDataJSON();
   assert.deepEqual(mixed.p_items.map(l=>[l.date,l.amount,l.reference]),[['2026-11-03',1000,'Line 1'],['2026-11-04',2000,'Line 3']]);
   assert.deepEqual(mixed.p_snapshot.receiptCards341.map(c=>c.rows.map(r=>r.reference)),[['Line 1','Line 2'],['Line 3','Line 4']]);
+  // One petty-cash payment covers two receipt dates, using the existing saved draft.
+  await page.waitForFunction(()=>!document.querySelector('[data-field=memo]:not([data-index])').value);
+  await pick(mainDate,'2026-11-03');
+  await setMultiple();
+  await button('+ Add line').click();
+  await pick(lineDate(1),'2026-11-04');
+  await pick(lineDate(2),'2026-11-04');
+  await field('memo').fill('Shared petty cash');
+  for(const [i,acc,side,amount] of [[0,account,'debit','331,000'],[1,account,'debit','31,000'],[2,fund,'credit','331,000']]){
+    await field('account',i).selectOption(acc);await field(side,i).fill(amount);
+    await field('reference',i).fill('Source '+i);
+  }
+  assert.match(await page.locator('#liveReceiptBalance').innerText(),/31,000.00 credit/);
+  const before=batches.length;
+  await page.locator('#postForm button[type=submit]').tap();
+  assert.equal(await field('memo').inputValue(),'Shared petty cash');
+  assert.equal(batches.length,before);
+  assert.match(await page.locator('#notice').innerText(),/Add CR 31,000/);
+  await field('credit',2).fill('31,000');
+  assert.match(await page.locator('#notice').innerText(),/Add CR 331,000/);
+  await field('credit',2).fill('350,000');
+  assert.match(await page.locator('#notice').innerText(),/Add CR 12,000/);
+  await field('credit',2).fill('362,000');
+  assert.equal(await page.locator('#notice').innerText(),'');
+  await page.locator('[data-page=home]').tap();await page.locator('[data-page=post]').tap();
+  assert.match(await page.locator('#liveReceiptBalance').innerText(),/Debit .*362,000.00 · Credit .*362,000.00 · Balanced/);
+  const savedPayment=page.waitForRequest(r=>r.url().includes('/rpc/save_staff_editor1437')&&r.postDataJSON().p_snapshot.memo==='Shared petty cash');
+  await page.locator('#postForm button[type=submit]').tap();
+  const payment=(await savedPayment).postDataJSON();
+  assert.deepEqual(payment.p_items.map(i=>[i.date,i.amount,i.fund,i.reference]),
+    [['2026-11-03',331000,fund,'Source 0'],['2026-11-04',31000,fund,'Source 1']]);
+  for(const card of payment.p_snapshot.receiptCards341){
+    assert.equal(card.sharedFundCredit.date,'2026-11-04');
+    assert.equal(card.sharedFundCredit.reference,'Source 2');
+    assert.equal(card.rows[0].dr,card.rows[1].credits.LAK);
+  }
+  const paymentRows=payment.p_snapshot.receiptCards341.flatMap((card,k)=>card.components1437.map((item,i)=>({
+    ...saved[0],id:crypto.randomUUID(),line_no:100+k*10+i,transaction_date:item.date,amount:item.amount,
+    memo:item.memo,reference:item.reference,editor_group1437:payment.p_key+':r'+(k+1)+':'+item.date,editor_snapshot1437:card
+  })));
+  await page.route('**/rest/v1/staff_journal_lines?**',route=>route.fulfill({json:paymentRows}));
+  await page.evaluate(()=>PhoneWorkspace14242.refresh());
+  await page.locator('#bottom [data-page=entries]').tap();
+  assert.equal(await page.locator('details.entry').count(),2);
+  for(const row of paymentRows){
+    const entry=page.locator('details[data-group="'+row.id+'"]');
+    await entry.locator('summary').tap();
+    assert.match(await entry.innerText(),new RegExp(row.reference));
+  }
+  await page.locator('[data-page=post]').tap();await mainDate.waitFor();
+  await field('memo').fill('Shared cash across cards');
+  await button('+ Add receipt').tap();
+  for(const [i,acc,side,amount] of [[0,account,'debit','331000'],[2,account,'debit','31000'],[3,fund,'credit','362000']]){
+    await field('account',i).selectOption(acc);await field(side,i).fill(amount);
+  }
+  await page.getByRole('button',{name:'Use one petty-cash credit for these receipts'}).tap();
+  assert.equal(await page.locator('[data-receipt-card]').count(),1);
+  assert.match(await page.locator('#liveReceiptBalance').innerText(),/362,000.00 · Balanced/);
+  // Some keyboards commit a visible field just before submit without input/change.
+  await field('credit',2).evaluate(el=>{el.value='361,000'});
+  await page.locator('#postForm button[type=submit]').tap();
+  assert.match(await page.locator('#notice').innerText(),/Add CR 1,000/);
+  await field('credit',2).evaluate(el=>{el.value='362,000'});
+  const common=page.waitForRequest(r=>r.url().includes('/rpc/save_staff_editor1437')&&r.postDataJSON().p_snapshot.memo==='Shared cash across cards');
+  await page.locator('#postForm button[type=submit]').tap();
+  assert.deepEqual((await common).postDataJSON().p_items.map(i=>i.amount),[331000,31000]);
+  console.log('PASS Money Out phone form: real difference blocked; dated expenses against one credit posted, appeared in Entries, and retained references; explicit shared funding across cards succeeds.');
   await context.close();
   console.log('PASS per-receipt date picker, independent line calendars and references, header mode switch, automatic live per-receipt balance and memos; multi-month picker, repeated receipt date, dated cashbook and balanced journal, offline queue, and one save request per batch');
 }

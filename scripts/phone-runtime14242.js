@@ -119,7 +119,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.345', $ = id => document.getElementById(id);
+  const VERSION = '143.346', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -137,7 +137,7 @@ function appLocalDate(date=new Date()) {
   const fail = (message, code = '') => Object.assign(Error(message), {code});
   const denied = e => ['42501','ACCESS_REVOKED','PGRST301','PGRST302'].includes(e?.code) || [401,403].includes(Number(e?.status));
   const ambiguous = e => !e?.status || Number(e.status) >= 500 || ['NETWORK_TIMEOUT','INVALID_RESPONSE'].includes(e.code);
-  let noticeTimer14246;function notice(message = '', error = false) {if(!error&&/^(?:Entry saved on this device\.|All device entries were confirmed\.|Offline\. Downloaded records|You are offline\. Your device entries)/.test(message)){paintConnection();return;}const box=$('notice');clearTimeout(noticeTimer14246);box.replaceChildren();box.classList.toggle('error',error);if(!message)return;const copy=document.createElement('span');copy.textContent=message;box.append(copy);const close=document.createElement('button');close.type='button';close.textContent='Close';close.setAttribute('aria-label','Close notification');close.onclick=()=>notice();box.append(close);if(!error)noticeTimer14246=setTimeout(()=>notice(),4500);}
+  let noticeTimer14246;function notice(message = '', error = false, entryValidation = false) {if(!error&&/^(?:Entry saved on this device\.|All device entries were confirmed\.|Offline\. Downloaded records|You are offline\. Your device entries)/.test(message)){paintConnection();return;}const box=$('notice');if(entryValidation)box.dataset.entryValidation='1';else delete box.dataset.entryValidation;clearTimeout(noticeTimer14246);box.replaceChildren();box.classList.toggle('error',error);if(!message)return;const copy=document.createElement('span');copy.textContent=message;box.append(copy);const close=document.createElement('button');close.type='button';close.textContent='Close';close.setAttribute('aria-label','Close notification');close.onclick=()=>notice();box.append(close);if(!error)noticeTimer14246=setTimeout(()=>notice(),4500);}
   function openDB() {
     return database ??= new Promise((resolve, reject) => {
       let finished=false;
@@ -532,6 +532,11 @@ function appLocalDate(date=new Date()) {
   // A receipt owns its lines. Dates can repeat, and changing a date never merges cards.
   function receiptCards(draft) {
     if (draft.mode === 'single') return draft.single.map((row, index) => [index]);
+    // Unmarked drafts predate receipt cards. Recognize an explicit shared fund line
+    // before assigning those drafts separate receipt IDs by day.
+    if (draft.lines.every(line => line.receipt == null) && sharedReceiptPayment(draft, draft.lines)) {
+      return [draft.lines.map((_, index) => index)];
+    }
     const groups = new Map();
     draft.lines.forEach((line, index) => {
       // Drafts from the previous editor balanced double-entry lines by day.
@@ -584,6 +589,31 @@ function appLocalDate(date=new Date()) {
     },()=>({multiple,date:value}));
   }
 
+  function sharedReceiptPayment(draft, lines) {
+    if (!draft.multiple || draft.mode !== 'double' || new Set(lines.map(row => row.date ?? draft.date)).size < 2) return null;
+    try { return StaffEntry14225.sharedPayment(draft, lines, accounts(), rules()); }
+    catch { return null; } // Invalid or partially typed amounts use normal line validation.
+  }
+
+  // Offer to combine separate cards only when exactly one assigned payment
+  // covers all their expenses. The user confirms by selecting the action.
+  function combinedPayment(draft, cards) {
+    if (draft.mode !== 'double' || cards.length < 2) return null;
+    const rows = [];
+    for (const indices of cards) {
+      const entered = indices.map(i => draft.lines[i]).filter(row =>
+        row.account || row.debit || row.credit || row.memo || row.reference);
+      if (!entered.length) return null;
+      const dates = new Set(entered.map(row => cardDate(draft,row)));
+      if (indices.some(i => !dates.has(cardDate(draft,draft.lines[i])))) return null;
+      rows.push(...entered);
+    }
+    try {
+      const plan = StaffEntry14225.sharedPayment(draft, rows, accounts(), rules());
+      return plan && Number.isSafeInteger(plan.totalCents) &&
+        plan.totalCents === Math.round(Number(String(plan.fundLine.credit).replaceAll(',', '')) * 100) ? {rows,plan} : null;
+    } catch { return null; }
+  }
   function preparePhoneEntry(draft) {
     draft={...draft,receiptEditor341:true};
     const list=draft.mode==='double'?'lines':'single', parts=[];
@@ -591,6 +621,12 @@ function appLocalDate(date=new Date()) {
     // The personal journal posts balanced movements for each date and currency.
     // Keep separate receipts distinct even when they share a date.
     cards.forEach((indices,i)=>{
+      const shared = sharedReceiptPayment(draft, indices.map(index => draft[list][index]));
+      if (shared) {
+        try { parts.push(...StaffEntry14225.datedPaymentParts(draft, shared, accounts(), rules())); }
+        catch (error) { throw Error((cards.length > 1 ? 'Receipt ' + (i+1) + ' · ' : '') + error.message); }
+        return;
+      }
       const days=new Map();
       for(const index of indices){
         const row=draft[list][index],date=cardDate(draft,row);
@@ -641,7 +677,7 @@ function appLocalDate(date=new Date()) {
       const i=indices[0],indexAttr='data-index="'+i+'"';
       return `<section class="receipt-card" data-receipt-card="${k}">${cards.length>1?`<header><h2>Receipt ${k+1}</h2>${button('remove-receipt','Remove',indexAttr+' aria-label="Remove receipt '+(k+1)+'"')}</header>`:''}${indices.map(j=>line(j,indices)).join('')}${single?'':button('add-line','+ Add line',indexAttr)}${cards.length>1?`<div class="receipt-balance" data-card-balance="${k}"></div>`:''}</section>`;
     };
-    return `<form id="postForm" class="receipt-editor"><header class="receipt-heading"><h1>${d.editIds?.length?'Edit Entry':'Post Entry'}</h1>${switcher}</header>${direction}${field('Description',input('memo',d.memo))}${d.multiple?'':dateReference()}${cards.map(receipt).join('')}${button('add-receipt',single?'+ Add line':'+ Add receipt')}<span id="entryValidation" class="receipt-validation"></span><div class="receipt-footer"><output id="liveReceiptBalance" aria-live="polite" aria-atomic="true"></output><div class="actions">${button('clear-draft','Clear')}<button type="submit" class="btn primary" ${disabled}>${S.saving?'Saving…':navigator.onLine?(single?'Save Entry':'Post Entry'):'Save on device'}</button></div></div></form>`;
+    return `<form id="postForm" class="receipt-editor"><header class="receipt-heading"><h1>${d.editIds?.length?'Edit Entry':'Post Entry'}</h1>${switcher}</header>${direction}${field('Description',input('memo',d.memo))}${d.multiple?'':dateReference()}${cards.map(receipt).join('')}${button('add-receipt',single?'+ Add line':'+ Add receipt')}${!single&&cards.length>1?'<button type="button" class="btn" data-action="combine-payment" hidden>Use one petty-cash credit for these receipts</button>':''}<span id="entryValidation" class="receipt-validation"></span><div class="receipt-footer"><output id="liveReceiptBalance" aria-live="polite" aria-atomic="true"></output><div class="actions">${button('clear-draft','Clear')}<button type="submit" class="btn primary" ${disabled}>${S.saving?'Saving…':navigator.onLine?(single?'Save Entry':'Post Entry'):'Save on device'}</button></div></div></form>`;
   }
   function receiptDetails(group) {
     const first=group.lines[0],saved=first.editor_snapshot1437;
@@ -678,6 +714,16 @@ function appLocalDate(date=new Date()) {
     location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
+  // Mobile keyboards and autofill can commit a visible value without an input event.
+  function readPhoneForm() {
+    const draft=S.draft,form=$('postForm');
+    if(!draft||!form)return;
+    const rows=draft.mode==='double'?draft.lines:draft.single;
+    for(const field of form.querySelectorAll('[data-field]')) {
+      const target=field.dataset.index===undefined?draft:rows[Number(field.dataset.index)];
+      if(target)target[field.dataset.field]=field.value;
+    }
+  }
   function captureDraft(e){
     const n=e.target;
     if(!n.dataset.field||S.saving)return;
@@ -693,26 +739,32 @@ function appLocalDate(date=new Date()) {
         if(picker)picker.innerHTML=options(ids,rows[index].affected);
       }
     }
-    saveDraftLater();updateValidation(n.dataset.index===undefined?undefined:Number(n.dataset.index));
+    readPhoneForm();saveDraftLater();updateValidation(n.dataset.index===undefined?undefined:Number(n.dataset.index));
   }
   function updateValidation(editedIndex){
     if(!$('entryValidation')||!S.draft)return;
     const d=S.draft, single=d.mode==='single',rows=single?d.single:d.lines;
-    const totals=new Map(),problems=[];
+    const totals=new Map(),journalTotals=new Map(),problems=[],cardLabels=[];
     const cards=receiptCards(d);
     cards.forEach((indices,k)=>{
       const sums=new Map();let invalid=false,started=false;
+      const shared = !single && sharedReceiptPayment(d, indices.map(i => rows[i]));
       for(const i of indices){
         const row=rows[i],c=currency(single?row.source:row.account);
         const raw=single?[row.amount]:[row.debit,row.credit];
         const values=raw.map(value=>Number(String(value??'').replaceAll(',','')));
         if(!raw.some(value=>String(value??'').trim()))continue;
         started=true;
+        if(!c){invalid=true;continue;}
         if(values.some(n=>!Number.isFinite(n)||n<0||!Number.isSafeInteger(Math.round(n*100))||Math.abs(n*100-Math.round(n*100))>0.000001)||!single&&values.every(n=>n>0)){invalid=true;continue;}
         const [a,b]=values.map(n=>Math.round(n*100));
-        const date=d.multiple&&!single?cardDate(d,row):'',key=date+'/'+c;
+        const date=d.multiple&&!single&&!shared?cardDate(d,row):'',key=date+'/'+c;
         const sum=sums.get(key)||{date,c,debit:0,credit:0};
         sum.debit+=a;sum.credit+=b||0;sums.set(key,sum);
+        if(!single){
+          const journal=journalTotals.get(c)||{debit:0,credit:0};
+          journal.debit+=a;journal.credit+=b||0;journalTotals.set(c,journal);
+        }
         if(single&&c)totals.set(c,(totals.get(c)||0)+a);
       }
       let label=single?'Enter an amount':'Enter debits and credits',state='neutral';
@@ -728,17 +780,29 @@ function appLocalDate(date=new Date()) {
         }
         label=lines.join(' / ');
       }
+      cardLabels.push(label);
       const box=$('postForm').querySelector('[data-card-balance="'+k+'"]');
       if(box){box.textContent=label;box.dataset.state=state;}
       if(!single&&state!=='balanced')problems.push({priority:indices.includes(editedIndex)?0:started?1:2,text:(cards.length>1?'Receipt '+(k+1)+' · ':'')+label});
     });
+    const combine=$('postForm').querySelector('[data-action="combine-payment"]');
+    const combined=combine && combinedPayment(d,cards);
+    if(combine)combine.hidden=!combined;
     const summary=$('liveReceiptBalance');
-    const message=single?(totals.size?'Receipt total · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'Receipt total —'):
-      (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?'Balanced':'All '+cards.length+' receipts balanced'));
-    if(summary.textContent!==message)summary.textContent=message;
+    const message=combined?StaffEntry14225.balanceMessage(combined.plan.currency,combined.plan.totalCents/100,combined.plan.totalCents/100)+' overall · Check individual receipts or use one shared credit.':single?(totals.size?'Receipt total · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'Receipt total —'):
+      (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?cardLabels[0]:'All '+cards.length+' receipts balanced'));
+    const overall=!single && cards.length>1 && !combined && journalTotals.size ?
+      'Journal '+[...journalTotals].map(([c,t])=>'DR '+money(t.debit/100,c)+' / CR '+money(t.credit/100,c)).join(' · ')+' · ' : '';
+    if(summary.textContent!==overall+message)summary.textContent=overall+message;
     summary.dataset.state=single?'neutral':problems.length?'pending':'balanced';
-    try{const {items}=preparePhoneEntry(d);$('entryValidation').textContent=items.length+' complete '+(items.length===1?'entry':'entries');}
-    catch(error){$('entryValidation').textContent=error.message;}
+    const validation=$('entryValidation'), alert=$('notice');
+    let errorText='';
+    try{const {items}=preparePhoneEntry(d);validation.textContent=items.length+' complete '+(items.length===1?'entry':'entries');}
+    catch(error){errorText=error.message;validation.textContent=errorText;}
+    if(alert.dataset.entryValidation) {
+      if(!errorText)notice();
+      else if(alert.querySelector('span')?.textContent!==errorText)notice(errorText,true,true);
+    }
   }
   let pendingDialog14370=null;
   function phoneDialog14370(draw,read){
@@ -770,10 +834,15 @@ function appLocalDate(date=new Date()) {
   }
   async function saveEntry(){
     if(S.saving||!permission('sub-users-workspace','edit'))return;
+    readPhoneForm();
+    let prepared;
+    const draft=structuredClone(S.draft);
+    try{prepared=preparePhoneEntry(draft);}
+    catch(error){saveDraftLater();updateValidation();notice(error.message,true,true);return;}
+    if($('notice').dataset.entryValidation)notice();
     const owner=S.owner,epoch=S.epoch;let savedOnDevice=false;S.saving=true;
     for(const input of $('postForm')?.querySelectorAll('input,select,textarea,button')||[])input.disabled=true;
     try{
-      const draft=structuredClone(S.draft),prepared=preparePhoneEntry(draft);
       prepared.snapshot.correction_journal14347=draft.correction_journal14347||null;
       const item={owner,key:draft.requestKey,draft,params:{p_owner:owner,p_key:draft.requestKey,p_items:prepared.items,p_snapshot:prepared.snapshot,p_edit_ids:draft.editIds||[]},status:'pending',createdAt:Date.now()};
       clearTimeout(draftTimer);saveMirror();
@@ -795,7 +864,7 @@ function appLocalDate(date=new Date()) {
           if(!current(owner,epoch)||automatic&&!phoneSyncIdle14351())return;
           try{
             if(q.params.p_owner!==owner||q.owner!==owner)throw fail('This entry belongs to a different account.');
-            if(q.legacy){for(const date of new Set(q.params.p_items.map(l=>l.date))){const draft=payloadDraft({...q.params,p_items:q.params.p_items.filter(l=>l.date===date)});StaffEntry14225.prepare(draft,accounts(),rules());}}else if(q.params.p_snapshot.receiptCards341)preparePhoneEntry(q.draft);else StaffEntry14225.prepare(q.draft,accounts(),rules());
+            if(q.legacy){for(const date of new Set(q.params.p_items.map(l=>l.date))){const draft=payloadDraft({...q.params,p_items:q.params.p_items.filter(l=>l.date===date)});StaffEntry14225.prepare(draft,accounts(),rules());}}else if(q.params.p_snapshot.receiptCards341||q.params.p_snapshot.sharedFundCredit)preparePhoneEntry(q.draft);else StaffEntry14225.prepare(q.draft,accounts(),rules());
             const response=await rpc('save_staff_editor1437',q.params);
             if(!Array.isArray(response?.line_ids)||response.line_ids.length!==q.params.p_items.length||response.line_ids.some(id=>!id)||new Set(response.line_ids).size!==response.line_ids.length)throw fail('The complete save was not confirmed. Retry with the same reference.','INVALID_RESPONSE');
             const next=await updateQueue(owner,q.key,{status:'confirmed',receipt:response},false);clearLegacy(q);if(current(owner,epoch))S.data.queue=next.queue;
@@ -892,6 +961,12 @@ function appLocalDate(date=new Date()) {
       const direction=name.slice(10);
       if(!single||!rules().directions.includes(direction))return;
       for(const row of rows)row.direction=direction;
+    }
+    if(name==='combine-payment'){
+      const payment=combinedPayment(d,receiptCards(d));
+      if(!payment)return;
+      const receipt=crypto.randomUUID();
+      d.lines=payment.rows.map(line=>({...line,receipt}));
     }
     if(name==='add-receipt'){
       const date=cardDate(d,rows.at(-1)), defaults=blankDraft();

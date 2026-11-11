@@ -7,10 +7,63 @@
     if (!Number.isFinite(n) || !Number.isSafeInteger(Math.round(n * 100)) || n < 0 || Math.abs(n * 100 - Math.round(n * 100)) > 0.000001) throw Error('Enter a valid, non-negative amount.');
     return n;
   };
+  function assignmentMessage(rules, accounts) {
+    if (rules.directions.length === 1 && rules.directions[0] === 'out') {
+      const funds = accounts.filter(a => rules.fundIds.includes(a.id)).map(a => a.code + ' ' + a.name).join(' / ');
+      if (funds) return 'DR and CR balance. This account allows Money Out: debit an assigned expense or category and credit ' + funds + '.';
+    }
+    return 'DR and CR balance. Check the assigned funds, category accounts and permitted payment directions.';
+  }
   function validDate(value) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return false;
     const day = new Date(value + 'T00:00:00Z');
     return Number.isFinite(day.getTime()) && day.toISOString().slice(0, 10) === value;
+  }
+  function balanceMessage(currency, debit, credit) {
+    const format = n => n.toLocaleString('en-US', {maximumFractionDigits: 2});
+    const gap = Math.round((debit - credit) * 100) / 100;
+    return 'DR ' + format(debit) + ' / CR ' + format(credit) + ' ' + currency +
+      (gap ? ' · Add ' + (gap > 0 ? 'CR ' : 'DR ') + format(Math.abs(gap)) + ' ' + currency : ' · Balanced');
+  }
+
+  // A single assigned fund payment can cover several dated expense debits.
+  // Separate receipts with their own funding lines still balance independently.
+  function sharedPayment(draft, lines, accounts, rules) {
+    if (draft.mode !== 'double' || !rules.directions.includes('out')) return null;
+    let fundLine, currency, totalCents = 0;
+    const expenses = [];
+    for (const line of lines) {
+      const account = accounts.find(a => a.id === line.account);
+      if (!account || !validDate(line.date ?? draft.date) || (currency && account.currency !== currency)) return null;
+      currency = account.currency;
+      const debit = number(line.debit), credit = number(line.credit);
+      if (debit && !credit && rules.entryIds.includes(account.id)) {
+        expenses.push(line);
+        totalCents += Math.round(debit * 100);
+      } else if (credit && !debit && !fundLine && rules.fundIds.includes(account.id)) {
+        fundLine = line;
+      } else return null;
+    }
+    if (!fundLine || expenses.length < 2 || expenses.some(line => line.account === fundLine.account)) return null;
+    return {fundLine, expenses, totalCents, currency};
+  }
+  function datedPaymentParts(draft, plan, accounts, rules) {
+    const {fundLine, expenses, totalCents, currency} = plan;
+    const credit = number(fundLine.credit);
+    if (!Number.isSafeInteger(totalCents)) throw Error('Expense total exceeds the supported range.');
+    if (totalCents !== Math.round(credit * 100)) throw Error(balanceMessage(currency, totalCents / 100, credit));
+    const days = new Map();
+    for (const row of expenses) {
+      const date = row.date ?? draft.date;
+      if (!days.has(date)) days.set(date, []);
+      days.get(date).push(row);
+    }
+    return [...days].map(([date, rows]) => {
+      const slice = rows.reduce((cents, row) => cents + Math.round(number(row.debit) * 100), 0) / 100;
+      const part = prepare({...draft, date, lines:[...rows, {...fundLine, date, credit:slice}]}, accounts, rules);
+      part.snapshot.sharedFundCredit = {...fundLine, date:fundLine.date ?? draft.date};
+      return part;
+    });
   }
   function prepare(data, accounts, rules) {
     const memo = String(data.memo || '').trim();
@@ -54,8 +107,8 @@
         rows.push({account: a.code + ' — ' + a.name, memo: line.memo || '', ...(line.reference==null?{}:{reference:line.reference}), dr: debit || '', credits: {[a.currency]: credit || ''}, date});
       }
       for (const g of groups.values()) {
-        const difference = g.dr.reduce((n, l) => n + l.left, 0) - g.cr.reduce((n, l) => n + l.left, 0);
-        if (Math.abs(difference) > epsilon) throw Error((data.multiple ? g.date + ' · ' : '') + g.currency + ' is unbalanced. Difference: ' + Math.abs(difference).toLocaleString('en-US', {maximumFractionDigits: 8}));
+        const debit = g.dr.reduce((n,l) => n + l.left, 0), credit = g.cr.reduce((n,l) => n + l.left, 0);
+        if (Math.abs(debit-credit) > epsilon) throw Error((data.multiple ? g.date + ' · ' : '') + 'Entry is unbalanced · ' + balanceMessage(g.currency, debit, credit));
         // Match fund payments and collections exactly as the desktop personal journal does.
         for (const d of g.dr) for (const c of g.cr) {
           if (d.left < epsilon || c.left < epsilon) continue;
@@ -66,7 +119,7 @@
           add(outgoing ? 'out' : 'in', outgoing ? c.account.id : d.account.id, outgoing ? d.account.id : c.account.id, value, [...new Set([d.memo, c.memo].filter(Boolean))].join(' · ') || memo, g.date, (outgoing?d.reference??c.reference:c.reference??d.reference)??data.reference??'');
           d.left -= value; c.left -= value;
         }
-        if ([...g.dr, ...g.cr].some(l => l.left > epsilon)) throw Error('These lines use accounts or directions outside this user\u2019s assigned funds and entry permissions.');
+        if ([...g.dr, ...g.cr].some(l => l.left > epsilon)) throw Error(assignmentMessage(rules, accounts));
       }
     } else {
       for (const l of data.single || []) {
@@ -85,7 +138,7 @@
     if (!items.length) throw Error('Enter at least one complete transaction.');
     return {items, snapshot: {...(data.receiptEditor341?{receiptEditor341:true}:{}), mode: data.mode === 'double' ? 'double' : 'single', date: data.date, memo, reference: data.reference || '', multiple: !!data.multiple || items.some(item=>item.date!==data.date), rows, single, owner: '', journal: '', local: false, editIds: data.editIds || [], requestKey: data.requestKey, components1437: items}};
   }
-  const api = {prepare};
+  const api = {prepare, sharedPayment, datedPaymentParts, balanceMessage, assignmentMessage};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.StaffEntry14225 = api;
 })(typeof window === 'undefined' ? globalThis : window);

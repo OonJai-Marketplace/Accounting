@@ -1,6 +1,11 @@
   // A receipt owns its lines. Dates can repeat, and changing a date never merges cards.
   function receiptCards(draft) {
     if (draft.mode === 'single') return draft.single.map((row, index) => [index]);
+    // Unmarked drafts predate receipt cards. Recognize an explicit shared fund line
+    // before assigning those drafts separate receipt IDs by day.
+    if (draft.lines.every(line => line.receipt == null) && sharedReceiptPayment(draft, draft.lines)) {
+      return [draft.lines.map((_, index) => index)];
+    }
     const groups = new Map();
     draft.lines.forEach((line, index) => {
       // Drafts from the previous editor balanced double-entry lines by day.
@@ -53,6 +58,31 @@
     },()=>({multiple,date:value}));
   }
 
+  function sharedReceiptPayment(draft, lines) {
+    if (!draft.multiple || draft.mode !== 'double' || new Set(lines.map(row => row.date ?? draft.date)).size < 2) return null;
+    try { return StaffEntry14225.sharedPayment(draft, lines, accounts(), rules()); }
+    catch { return null; } // Invalid or partially typed amounts use normal line validation.
+  }
+
+  // Offer to combine separate cards only when exactly one assigned payment
+  // covers all their expenses. The user confirms by selecting the action.
+  function combinedPayment(draft, cards) {
+    if (draft.mode !== 'double' || cards.length < 2) return null;
+    const rows = [];
+    for (const indices of cards) {
+      const entered = indices.map(i => draft.lines[i]).filter(row =>
+        row.account || row.debit || row.credit || row.memo || row.reference);
+      if (!entered.length) return null;
+      const dates = new Set(entered.map(row => cardDate(draft,row)));
+      if (indices.some(i => !dates.has(cardDate(draft,draft.lines[i])))) return null;
+      rows.push(...entered);
+    }
+    try {
+      const plan = StaffEntry14225.sharedPayment(draft, rows, accounts(), rules());
+      return plan && Number.isSafeInteger(plan.totalCents) &&
+        plan.totalCents === Math.round(Number(String(plan.fundLine.credit).replaceAll(',', '')) * 100) ? {rows,plan} : null;
+    } catch { return null; }
+  }
   function preparePhoneEntry(draft) {
     draft={...draft,receiptEditor341:true};
     const list=draft.mode==='double'?'lines':'single', parts=[];
@@ -60,6 +90,12 @@
     // The personal journal posts balanced movements for each date and currency.
     // Keep separate receipts distinct even when they share a date.
     cards.forEach((indices,i)=>{
+      const shared = sharedReceiptPayment(draft, indices.map(index => draft[list][index]));
+      if (shared) {
+        try { parts.push(...StaffEntry14225.datedPaymentParts(draft, shared, accounts(), rules())); }
+        catch (error) { throw Error((cards.length > 1 ? 'Receipt ' + (i+1) + ' · ' : '') + error.message); }
+        return;
+      }
       const days=new Map();
       for(const index of indices){
         const row=draft[list][index],date=cardDate(draft,row);

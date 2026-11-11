@@ -1,1 +1,1 @@
-{"version": "143.345", "changes": ["Active Journal shows the manual entry ID immediately offline, including older pending entries. Reconnecting retries saved journal posts with the same ID."]}
+{"version": "143.346", "changes": ["Phone Post Entry recalculates from the amounts on screen, updates old difference warnings as you type, and shows total DR and CR. Dated expenses can share one petty-cash credit."]}

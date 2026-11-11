@@ -34,6 +34,12 @@
       if(!single||!rules().directions.includes(direction))return;
       for(const row of rows)row.direction=direction;
     }
+    if(name==='combine-payment'){
+      const payment=combinedPayment(d,receiptCards(d));
+      if(!payment)return;
+      const receipt=crypto.randomUUID();
+      d.lines=payment.rows.map(line=>({...line,receipt}));
+    }
     if(name==='add-receipt'){
       const date=cardDate(d,rows.at(-1)), defaults=blankDraft();
       if(single)rows.push({...defaults.single[0],direction:rows[0]?.direction||defaults.single[0].direction,...(d.multiple?{date}:{})});
