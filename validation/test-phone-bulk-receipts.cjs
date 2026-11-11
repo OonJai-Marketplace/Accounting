@@ -156,7 +156,7 @@ async function bulk(fixture) {
   await field('credit',1).fill('1200');
   await field('credit',3).fill('3400');
   await page.waitForFunction(()=>document.querySelector('#liveReceiptBalance').textContent.includes('receipts balanced'));
-  assert.equal(await field('credit',3).inputValue(),'3400');
+  assert.equal(await field('credit',3).inputValue(),'3,400');
   assert.match(await page.locator('#entryValidation').innerText(),/2 complete entries/);
   const confirmed=page.waitForResponse(r=>r.url().includes('/rpc/save_staff_editor1437')&&r.request().postDataJSON().p_snapshot.mode==='double'&&r.ok());
   await page.locator('#postForm button[type=submit]').click();

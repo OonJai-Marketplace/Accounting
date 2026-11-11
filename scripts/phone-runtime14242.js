@@ -119,7 +119,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.346', $ = id => document.getElementById(id);
+  const VERSION = '143.347', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -652,6 +652,7 @@ function appLocalDate(date=new Date()) {
     S.draft ||= blankDraft();
     const d=S.draft,r=rules(),disabled=S.saving?'disabled':'',single=d.mode==='single',rows=single?d.single:d.lines,cards=identifyReceipts(d);
     const input=(key,value,index,attrs='')=>`<input data-field="${key}" ${index==null?'':'data-index="'+index+'"'} ${attrs} value="${esc(value)}" ${disabled}>`;
+    const amountInput=(key,value,i)=>input(key,Receipt245.groupAmount(value ?? ''),i,'inputmode="decimal"');
     const select=(label,key,i,ids)=>field(label,`<select data-field="${key}" data-index="${i}" ${disabled}>${options(ids,rows[i][key])}</select>`);
     const button=(name,label,attrs='')=>action(name,label,attrs+' '+disabled);
     const method=single?'Cashbook':'Double Entry',next=single?'Double Entry':'Cashbook';
@@ -670,8 +671,8 @@ function appLocalDate(date=new Date()) {
       const row=rows[i],memo=field('Line memo',input('memo',row.memo,i));
       const dating=d.multiple?dateReference(i):row.reference!=null&&row.reference!==d.reference?field('Line reference',input('reference',row.reference,i)):'';
       if(single)return dating+select('Account / fund','source',i,r.fundIds)+select('Category','affected',i,r.entryIds.filter(id=>!row.source||currency(id)===currency(row.source)))+
-        field('Amount',input('amount',row.amount,i,'inputmode="decimal"'))+memo;
-      return `<div class="receipt-posting">${dating}<div class="staff-account-row14225"><div class="field"><label for="phone-account-${i}">Account for line ${i+1}</label><select id="phone-account-${i}" data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),row.account)}</select></div>${indices.length>2?button('remove-line','×','aria-label="Remove line '+(i+1)+'" data-index="'+i+'"'):''}</div><div class="grid">${field('Debit',input('debit',row.debit,i,'inputmode="decimal"'))}${field('Credit',input('credit',row.credit,i,'inputmode="decimal"'))}</div>${memo}</div>`;
+        field('Amount',amountInput('amount',row.amount,i))+memo;
+      return `<div class="receipt-posting">${dating}<div class="staff-account-row14225"><div class="field"><label for="phone-account-${i}">Account for line ${i+1}</label><select id="phone-account-${i}" data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),row.account)}</select></div>${indices.length>2?button('remove-line','×','aria-label="Remove line '+(i+1)+'" data-index="'+i+'"'):''}</div><div class="grid">${field('Debit',amountInput('debit',row.debit,i))}${field('Credit',amountInput('credit',row.credit,i))}</div>${memo}</div>`;
     }
     const receipt=(indices,k)=>{
       const i=indices[0],indexAttr='data-index="'+i+'"';
@@ -702,7 +703,7 @@ function appLocalDate(date=new Date()) {
     $('workspace').innerHTML=content[S.page]();
     const m=$('month');if(m)m.onchange=()=>{if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(m.value))return;S.month=m.value;S.limit=30;rememberLocation();void persist(S.owner,{month:S.month});render();void loadMonth();};
     const search=$('historySearch14359');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();$('workspace').querySelectorAll('details.entry').forEach(row=>row.hidden=!!q&&!row.textContent.toLowerCase().includes(q))};
-    const form=$('postForm');if(form){form.addEventListener('input',captureDraft);form.addEventListener('change',captureDraft);form.onsubmit=e=>{e.preventDefault();void saveEntry();};updateValidation();}
+    const form=$('postForm');if(form){form.addEventListener('beforeinput',skipGroupingComma);form.addEventListener('compositionend',captureDraft);form.addEventListener('input',captureDraft);form.addEventListener('change',captureDraft);form.onsubmit=e=>{e.preventDefault();void saveEntry();};updateValidation();}
   }
   async function openScanner209(settings=false){
     if(!S.owner||S.owner!==S.actor||!permission('sub-users-workspace')||S.saving||S.submitting)return;
@@ -721,12 +722,21 @@ function appLocalDate(date=new Date()) {
     const rows=draft.mode==='double'?draft.lines:draft.single;
     for(const field of form.querySelectorAll('[data-field]')) {
       const target=field.dataset.index===undefined?draft:rows[Number(field.dataset.index)];
-      if(target)target[field.dataset.field]=field.value;
+      if(target)target[field.dataset.field]=field.inputMode==='decimal'?field.value.replaceAll(',',''):field.value;
     }
+  }
+  function skipGroupingComma(e) {
+    const n=e.target;
+    if(n.inputMode!=='decimal'||e.isComposing||n.selectionStart!==n.selectionEnd)return;
+    const at=n.selectionStart;
+    // Delete the adjacent digit even when the caret touches an inserted comma.
+    if(e.inputType==='deleteContentBackward' && n.value[at-1]===',')n.setSelectionRange(at-2,at);
+    if(e.inputType==='deleteContentForward' && n.value[at]===',')n.setSelectionRange(at,at+2);
   }
   function captureDraft(e){
     const n=e.target;
     if(!n.dataset.field||S.saving)return;
+    if(n.inputMode==='decimal'&&!e.isComposing)Receipt245.formatAmount(n);
     const key=n.dataset.field,d=S.draft,rows=d.mode==='double'?d.lines:d.single;
     if(n.dataset.index===undefined)d[key]=n.value;
     else {

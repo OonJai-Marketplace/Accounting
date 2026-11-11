@@ -1,1 +1,1 @@
-{"version": "143.346", "changes": ["Phone Post Entry recalculates from the amounts on screen, updates old difference warnings as you type, and shows total DR and CR. Dated expenses can share one petty-cash credit."]}
+{"version": "143.347", "changes": ["Phone journal Debit, Credit and Cashbook Amount show thousands separators as you type, without adding decimal places."]}

@@ -6,6 +6,7 @@
     S.draft ||= blankDraft();
     const d=S.draft,r=rules(),disabled=S.saving?'disabled':'',single=d.mode==='single',rows=single?d.single:d.lines,cards=identifyReceipts(d);
     const input=(key,value,index,attrs='')=>`<input data-field="${key}" ${index==null?'':'data-index="'+index+'"'} ${attrs} value="${esc(value)}" ${disabled}>`;
+    const amountInput=(key,value,i)=>input(key,Receipt245.groupAmount(value ?? ''),i,'inputmode="decimal"');
     const select=(label,key,i,ids)=>field(label,`<select data-field="${key}" data-index="${i}" ${disabled}>${options(ids,rows[i][key])}</select>`);
     const button=(name,label,attrs='')=>action(name,label,attrs+' '+disabled);
     const method=single?'Cashbook':'Double Entry',next=single?'Double Entry':'Cashbook';
@@ -24,8 +25,8 @@
       const row=rows[i],memo=field('Line memo',input('memo',row.memo,i));
       const dating=d.multiple?dateReference(i):row.reference!=null&&row.reference!==d.reference?field('Line reference',input('reference',row.reference,i)):'';
       if(single)return dating+select('Account / fund','source',i,r.fundIds)+select('Category','affected',i,r.entryIds.filter(id=>!row.source||currency(id)===currency(row.source)))+
-        field('Amount',input('amount',row.amount,i,'inputmode="decimal"'))+memo;
-      return `<div class="receipt-posting">${dating}<div class="staff-account-row14225"><div class="field"><label for="phone-account-${i}">Account for line ${i+1}</label><select id="phone-account-${i}" data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),row.account)}</select></div>${indices.length>2?button('remove-line','×','aria-label="Remove line '+(i+1)+'" data-index="'+i+'"'):''}</div><div class="grid">${field('Debit',input('debit',row.debit,i,'inputmode="decimal"'))}${field('Credit',input('credit',row.credit,i,'inputmode="decimal"'))}</div>${memo}</div>`;
+        field('Amount',amountInput('amount',row.amount,i))+memo;
+      return `<div class="receipt-posting">${dating}<div class="staff-account-row14225"><div class="field"><label for="phone-account-${i}">Account for line ${i+1}</label><select id="phone-account-${i}" data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),row.account)}</select></div>${indices.length>2?button('remove-line','×','aria-label="Remove line '+(i+1)+'" data-index="'+i+'"'):''}</div><div class="grid">${field('Debit',amountInput('debit',row.debit,i))}${field('Credit',amountInput('credit',row.credit,i))}</div>${memo}</div>`;
     }
     const receipt=(indices,k)=>{
       const i=indices[0],indexAttr='data-index="'+i+'"';

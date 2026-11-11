@@ -15,12 +15,21 @@
     const rows=draft.mode==='double'?draft.lines:draft.single;
     for(const field of form.querySelectorAll('[data-field]')) {
       const target=field.dataset.index===undefined?draft:rows[Number(field.dataset.index)];
-      if(target)target[field.dataset.field]=field.value;
+      if(target)target[field.dataset.field]=field.inputMode==='decimal'?field.value.replaceAll(',',''):field.value;
     }
+  }
+  function skipGroupingComma(e) {
+    const n=e.target;
+    if(n.inputMode!=='decimal'||e.isComposing||n.selectionStart!==n.selectionEnd)return;
+    const at=n.selectionStart;
+    // Delete the adjacent digit even when the caret touches an inserted comma.
+    if(e.inputType==='deleteContentBackward' && n.value[at-1]===',')n.setSelectionRange(at-2,at);
+    if(e.inputType==='deleteContentForward' && n.value[at]===',')n.setSelectionRange(at,at+2);
   }
   function captureDraft(e){
     const n=e.target;
     if(!n.dataset.field||S.saving)return;
+    if(n.inputMode==='decimal'&&!e.isComposing)Receipt245.formatAmount(n);
     const key=n.dataset.field,d=S.draft,rows=d.mode==='double'?d.lines:d.single;
     if(n.dataset.index===undefined)d[key]=n.value;
     else {
