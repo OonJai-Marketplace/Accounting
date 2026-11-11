@@ -1,1 +1,1 @@
-{"version": "143.344", "changes": ["Active Journal shows the manual entry ID immediately offline, including older pending entries. Reconnecting retries saved journal posts with the same ID."]}
+{"version": "143.345", "changes": ["Active Journal shows the manual entry ID immediately offline, including older pending entries. Reconnecting retries saved journal posts with the same ID."]}

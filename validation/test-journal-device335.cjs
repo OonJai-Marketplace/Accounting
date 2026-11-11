@@ -41,7 +41,9 @@ const create=require('./phase0-browser-fixture.cjs');
    return {items,projected:[...new Set(JournalModule.entries.filter(l=>l.journalJob14385===id).map(l=>l.id))],next:offlineAudit143174.provisional(date,'OJM',4)};
   },{date,accounts});
   assert.deepEqual(values,{items:['OJM260379','OJM260380'],projected:['OJM260379','OJM260380'],next:381});
-  const labels=()=>page.locator('#tblJournalHistoryBody .entry-id-stack > span').evaluateAll(nodes=>nodes.map(n=>[n.firstChild.textContent,n.querySelector('small')?.textContent||'']));
+  const labels=()=>page.evaluate(()=>Array.from(document.querySelectorAll('#tblJournalHistoryBody .entry-id-stack'),stack=>[
+   stack.querySelector(':scope > span')?.textContent,stack.querySelector('.journal-sync-note')?.textContent||''
+  ]));
   const pending='Saved on device · pending sync';
   await page.evaluate(()=>refreshAllTables());
   assert.ok((await labels()).some(([id,note])=>id==='OJM260379'&&note===pending));
