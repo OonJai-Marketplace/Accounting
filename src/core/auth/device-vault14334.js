@@ -349,11 +349,11 @@
   async function metadata(email) {
     return JSON.parse(rawLocal.getItem(await metaKey(email)) || "null");
   }
-  async function unlock(email, password) {
+  async function unlock(email, password, firstSignInMessage) {
     const m = await metadata(email);
     if (!m)
       throw Error(
-        "Sign in online once on this device to prepare protected offline access.",
+        firstSignInMessage || "This browser reports it is offline. The first sign-in on this device needs a connection to Accounting.",
       );
     if (m.revoked)
       throw Error(
@@ -587,6 +587,22 @@
     if (screen) document.body.replaceChildren(screen);
     location.reload();
   }
+  async function signInProfile(id, token) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    try {
+      const response = await nativeFetch(
+        (window.OJM_SUPABASE_URL || scope) +
+          "/rest/v1/profiles?select=id,status,role&id=eq." + encodeURIComponent(id),
+        {headers: {apikey: window.OJM_SUPABASE_ANON_KEY, Authorization: "Bearer " + token},
+         signal: controller.signal},
+      );
+      if (!response.ok) throw Object.assign(Error("Account authorization could not be verified."), {status: response.status});
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
   async function attach(authClient) {
     await ready212;
     client = authClient;
@@ -614,29 +630,13 @@
       let verified = false,
         navigating = false;
       try {
-        let result;
+        let result, firstSignInMessage, checkingProfile = false;
         if (navigator.onLine !== false) {
           try {
             result = await signin(credentials);
             if (result.error) throw result.error;
-            const response = await nativeFetch(
-              (window.OJM_SUPABASE_URL || scope) +
-                "/rest/v1/profiles?select=id,status,role&id=eq." +
-                encodeURIComponent(result.data.user.id),
-              {
-                headers: {
-                  apikey: window.OJM_SUPABASE_ANON_KEY,
-                  Authorization: "Bearer " + result.data.session.access_token,
-                },
-                signal: AbortSignal.timeout(12000),
-              },
-            );
-            if (!response.ok)
-              throw Object.assign(
-                Error("Account authorization could not be verified."),
-                { status: response.status },
-              );
-            const rows = await response.json();
+            checkingProfile = true;
+            const rows = await signInProfile(result.data.user.id, result.data.session.access_token);
             if (rows?.[0]?.status !== "active")
               throw Object.assign(Error("This account is inactive."), {
                 status: 403,
@@ -662,10 +662,13 @@
             offline = false;
           } catch (e) {
             if (verified || !transport(e)) throw e;
+            firstSignInMessage = checkingProfile
+              ? "Online sign-in succeeded, but this device could not verify your Accounting profile. Check the connection and try again."
+              : "This device could not reach the Accounting sign-in service. Check the connection and try again. The first sign-in needs online access.";
           }
         }
         if (!verified) {
-          await unlock(credentials.email, credentials.password);
+          await unlock(credentials.email, credentials.password, firstSignInMessage);
           await migrate(localStorage.getItem("ojm_device_role14334"));
           const saved = JSON.parse(localStorage.getItem(authKey()) || "null");
           if (saved?.user?.id !== actor || !saved.refresh_token)

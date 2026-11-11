@@ -1,1 +1,1 @@
-{"version": "143.337", "changes": ["Chrome’s Desktop site opens the full desktop workspace in portrait or landscape, with pinch-to-zoom enabled.", "Phone users can select several receipt dates and save the batch together in Cashbook or Double Entry Journal."]}
+{"version": "143.338", "changes": ["First sign-in works on iPad browsers without newer networking APIs. Sign-in messages distinguish connection and account verification problems."]}

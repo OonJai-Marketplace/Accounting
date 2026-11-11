@@ -1,7 +1,7 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.337', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.338', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
- "docs/protocols/index.html?v=143.336",
+ "docs/protocols/index.html?v=143.338",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.316",
  "docs/protocols/topics/C01.pdf?v=143.316",
  "docs/protocols/topics/C02.pdf?v=143.316",
@@ -58,7 +58,7 @@ const FILES=[
  "assets/vendor/document14285/jspdf.umd.min.js",
  "scripts/operational-reset143108.js?v=143.184",
  "assets/vendor/noble-gcm14334.js?v=143.34",
- "scripts/device-vault14334.js?v=143.325",
+ "scripts/device-vault14334.js?v=143.338",
  "styles/controls14305.css?v=143.265",
  "scripts/action-feedback14296.js?v=143.323",
  "scripts/feedback-viewport14295.js?v=143.20",
@@ -77,14 +77,14 @@ const FILES=[
  "scripts/password-policy14257.js?v=143.67",
  "index.html",
  "phone.html",
- "styles/phone14242.css?v=143.337",
+ "styles/phone14242.css?v=143.338",
  "scripts/reconciliation14345.js?v=143.240",
  "styles/final-review14345.css?v=143.301",
- "scripts/phone-runtime14242.js?v=143.337",
+ "scripts/phone-runtime14242.js?v=143.338",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",
- "scripts/staff-entry14225.js?v=143.337",
+ "scripts/staff-entry14225.js?v=143.338",
  "styles/loading1444.css?v=143.241",
  "scripts/loading1444.js?v=143.241",
  "scripts/password-service14264.js?v=142.84",

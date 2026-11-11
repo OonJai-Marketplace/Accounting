@@ -87,9 +87,19 @@ async function confirmConnection(){if(!canRefresh14338())throw Error('Reconnect 
 function request(promise){let timer;return Promise.race([promise,new Promise((_,reject)=>timer=setTimeout(()=>{const error=Object.assign(Error('The database response was not confirmed. Retained device requests will retry with the same reference.'),{code:'NETWORK_TIMEOUT14241'});connectionIssue(error.message);reject(error)},20000))]).finally(()=>clearTimeout(timer))}
 function identity(headers){try{const t=(headers.get('authorization')||'').replace(/^Bearer /i,'').split('.')[1];const p=JSON.parse(atob(t.replace(/-/g,'+').replace(/_/g,'/')));return p.sub&&(p.exp*1000>Date.now()||window.sessionCache14333?.allowed(p.sub))?p.sub:''}catch{return ''}}
 function errorResponse(message,code='OFFLINE14239'){return new Response(JSON.stringify({message,code}),{status:503,headers:{'Content-Type':'application/json'}})}
+// Keep both caller cancellation and the response-body deadline on older iPad browsers.
+function fetchWithDeadline(request,ms,options={}){
+ const controller=new AbortController(),upstream=request.signal;
+ const cancel=()=>controller.abort();
+ const cleanup=()=>{clearTimeout(timer);upstream?.removeEventListener('abort',cancel);};
+ const timer=setTimeout(cancel,ms);
+ controller.signal.addEventListener('abort',cleanup,{once:true});
+ if(upstream?.aborted)cancel();else upstream?.addEventListener('abort',cancel,{once:true});
+ return nativeFetch(new Request(request,{...options,signal:controller.signal})).catch(error=>{cleanup();throw error;});
+}
 window.fetch=async function(input,options={}){
  const req=new Request(input,options),url=new URL(req.url);
- if(window.OJM_SUPABASE_URL&&url.origin===new URL(window.OJM_SUPABASE_URL).origin&&url.pathname.startsWith('/auth/v1/'))return nativeFetch(new Request(req,{signal:AbortSignal.any([req.signal,AbortSignal.timeout(12000)])}));
+ if(window.OJM_SUPABASE_URL&&url.origin===new URL(window.OJM_SUPABASE_URL).origin&&url.pathname.startsWith('/auth/v1/'))return fetchWithDeadline(req,12000);
  if(!window.OJM_SUPABASE_URL||url.origin!==new URL(window.OJM_SUPABASE_URL).origin||!url.pathname.startsWith('/rest/v1/'))return nativeFetch(input,options);
  if(url.pathname==='/rest/v1/document_download_passwords14312')return nativeFetch(input,options);
  const rpc=url.pathname.split('/rpc/')[1],id=identity(req.headers);let read=req.method==='GET'||req.method==='HEAD'||readRPC.has(rpc);if(rpc==='audit_month1434'&&req.method==='POST'){try{if((await req.clone().json()).p_confirm)read=false}catch{read=false}}
@@ -102,7 +112,7 @@ window.fetch=async function(input,options={}){
  if(direct){
   const referenceKey=id&&req.method==='GET'&&['accounts','sub_accounts','currencies'].includes(url.pathname.split('/').pop())&&!req.headers.has('range')&&!url.searchParams.has('limit')&&!url.searchParams.has('offset')?prefix(id)+'read:'+req.method+':'+url.href+'::'+(req.headers.get('accept')||'')+':workspace:'+(req.headers.get('x-ojm-workspace')||''):'';
   if(navigator.onLine===false||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)return errorResponse('Connect to the database to confirm this operation. No cached result is used.');
-  try{const headers=new Headers(req.headers);headers.delete('x-ojm-database-only');const response=await nativeFetch(new Request(req,{headers,cache:'no-store',signal:AbortSignal.any([req.signal,AbortSignal.timeout(15000)])}));if(response.ok){reachable=true;connectionError='';changed();
+  try{const headers=new Headers(req.headers);headers.delete('x-ojm-database-only');const response=await fetchWithDeadline(req,15000,{headers,cache:'no-store'});if(response.ok){reachable=true;connectionError='';changed();
    // Confirmed reference reads also replace their browsing copy for offline reopening.
    if(referenceKey){const body=await response.clone().text();JSON.parse(body);remember(referenceKey,{body,status:response.status,headers:Object.fromEntries(response.headers),at:new Date().toISOString()});}
   }return response}
@@ -204,7 +214,7 @@ function renderDialog(){
 }
 
 function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and manual sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='143.337';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
+const SHELL_VERSION='143.338';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
 function shellStatus(data){shellReady=data.ready===true&&data.version===SHELL_VERSION;if(data.ready&&String(data.version).localeCompare(SHELL_VERSION,undefined,{numeric:true})>0&&availableShell!==data.version){availableShell=data.version;window.showCenterStatus?.('Website update '+data.version+' is ready. Open System to review and apply it.');}if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}
 async function checkForUpdates(){
  if(checkingUpdate)return;
