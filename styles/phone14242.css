@@ -317,3 +317,9 @@ label.no-print{font-size:11px;color:#627880;font-weight:400;margin:8px 0}#month{
 .receipt-balance{margin:6px 2px 0}.receipt-editor [data-state=balanced]{color:#07543e}.receipt-editor [data-state=pending]{color:#8a4119}
 .receipt-footer{position:sticky;bottom:calc(66px + env(safe-area-inset-bottom));z-index:3;border:1px solid #c2d0bd;border-radius:10px;padding:6px 8px;background:#fffdf7;box-shadow:0 -2px 7px #203a2917}
 .receipt-footer .actions{margin:3px 0 0;display:grid;grid-template-columns:1fr 2fr;gap:6px}
+
+/* Keep the keyboard's native composing text intact beneath its grouped display. */
+.phone-amount{position:relative;display:block}
+#postForm .phone-amount input.composing-amount{color:transparent!important;-webkit-text-fill-color:transparent;caret-color:transparent}
+.phone-amount-display{position:absolute;inset:0;display:flex;align-items:center;overflow:hidden;white-space:pre;pointer-events:none;font-size:14px;font-weight:400;color:#102d38}
+.phone-amount-display i{flex:none;height:1em;border-left:1px solid}

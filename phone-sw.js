@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.347', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.348', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "docs/protocols/index.html?v=143.338",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.316",
@@ -77,10 +77,10 @@ const FILES=[
  "scripts/password-policy14257.js?v=143.67",
  "index.html",
  "phone.html",
- "styles/phone14242.css?v=143.343",
+ "styles/phone14242.css?v=143.348",
  "scripts/reconciliation14345.js?v=143.240",
  "styles/final-review14345.css?v=143.301",
- "scripts/phone-runtime14242.js?v=143.347",
+ "scripts/phone-runtime14242.js?v=143.348",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",
@@ -92,17 +92,36 @@ const FILES=[
 ];
 const OPTIONAL=["assets/vendor/document-detector213/ort-api.js","assets/vendor/document-detector213/ort-wasm-simd-threaded.mjs","assets/vendor/document-detector213/ort-wasm-simd-threaded.wasm","assets/vendor/document-detector213/doccornernet_lean.ort",'scripts/phone-tools14242.js?v='+VERSION,'assets/logo.png'];
 const scopeURL=new URL(self.registration.scope);
+let downloaded=0;
+const progress=()=>({type:'ojm-shell-progress',version:VERSION,completed:downloaded,total:FILES.length});
+
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE),previous=(await caches.keys()).filter(name=>name.startsWith('ojm-phone-shell-')&&name!==CACHE).reverse();
  try{
   for(let i=0;i<FILES.length;i+=2){const results=await Promise.allSettled(FILES.slice(i,i+2).map(async file=>{
    const u=new URL(file,scopeURL),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
    try{if(u.searchParams.has('v')){for(const name of previous){const saved=await(await caches.open(name)).match(u.href);if(saved?.ok){await cache.put(u.href,saved);return;}}}const response=await fetch(u.href,{cache:/\.html$/.test(file)?'reload':'force-cache',signal:controller.signal});if(!response.ok)throw Error('Phone file did not finish downloading');const body=await response.arrayBuffer();await cache.put(u.href,new Response(body,{status:response.status,headers:response.headers}));}finally{clearTimeout(timer)}
-  }));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;}await self.skipWaiting();
+  }));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;downloaded+=results.length;}await self.skipWaiting();
  }catch(e){await caches.delete(CACHE);throw e}
 })()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const client of await self.clients.matchAll())client.postMessage({type:'ojm-phone-ready',version:VERSION});})()));
-self.addEventListener('message',event=>{if(event.data?.type==='ojm-phone-status')event.source?.postMessage({type:'ojm-phone-ready',version:VERSION});});
+self.addEventListener('message',event=>{if(event.data?.type==='ojm-phone-status')event.source?.postMessage({type:'ojm-phone-ready',version:VERSION});
+ if(event.data?.type==='ojm-shell-status')event.ports[0]?.postMessage({version:VERSION,ready:self.registration.active?.state==='activated',progress:progress()});});
+// A deliberate online reload can discover a new complete shell. Ordinary
+// navigation and offline reopening continue to use the installed release.
+async function phoneUpdateOnReload(request) {
+ if(!['reload','no-cache'].includes(request.cache)||self.navigator.onLine===false)return null;
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),1800);
+ try{
+  const response=await fetch(new URL('release-version.json?check='+Date.now(),scopeURL),{cache:'no-store',signal:controller.signal});
+  if(response.ok){
+   const release=await response.json();
+   if(/^\d+\.\d+$/.test(release.version)&&release.version.localeCompare(VERSION,undefined,{numeric:true})>0)
+    return Response.redirect(new URL('update.html?v='+release.version,scopeURL).href);
+  }
+ }catch{}finally{clearTimeout(timer);}
+ return null;
+}
 self.addEventListener('fetch',event=>{
  const request=event.request,u=new URL(request.url);if(request.method!=='GET'||u.origin!==scopeURL.origin||!u.pathname.startsWith(scopeURL.pathname))return;
  let path=u.pathname.slice(scopeURL.pathname.length)||'index.html';
@@ -110,6 +129,10 @@ self.addEventListener('fetch',event=>{
  const candidates=[...FILES,...OPTIONAL],requested=path+(u.searchParams.has('v')?'?v='+u.searchParams.get('v'):'');
  const file=candidates.includes(requested)?requested:candidates.find(f=>f.split('?')[0]===path),cachedURL=new URL(file,scopeURL).href;
  if(/\.(js|css)$/.test(path)&&u.searchParams.get('v')!==new URL(cachedURL).searchParams.get('v'))return;
- event.respondWith((async()=>{const cache=await caches.open(CACHE),saved=await cache.match(cachedURL);if(saved)return saved;if(file.startsWith('assets/vendor/document-detector213/')){const previous=await caches.match(cachedURL);if(previous?.ok)return previous;}const response=await fetch(request);if(OPTIONAL.includes(file)&&response.ok){const body=await response.arrayBuffer(),complete=new Response(body,{status:response.status,headers:response.headers});await cache.put(cachedURL,complete.clone());return complete;}return response;})());
+ event.respondWith((async()=>{
+  if(path==='phone.html'&&request.mode==='navigate'&&!u.searchParams.has('type')&&!u.searchParams.has('error_description')){
+   const update=await phoneUpdateOnReload(request);if(update)return update;
+  }
+  const cache=await caches.open(CACHE),saved=await cache.match(cachedURL);if(saved)return saved;if(file.startsWith('assets/vendor/document-detector213/')){const previous=await caches.match(cachedURL);if(previous?.ok)return previous;}const response=await fetch(request);if(OPTIONAL.includes(file)&&response.ok){const body=await response.arrayBuffer(),complete=new Response(body,{status:response.status,headers:response.headers});await cache.put(cachedURL,complete.clone());return complete;}return response;})());
 });
 

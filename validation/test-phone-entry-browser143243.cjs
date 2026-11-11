@@ -4,7 +4,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
 (async () => {
   const fixture = await createFixture();
   try {
-    const {page, login, me} = await fixture.open('phone', 'submitter');
+    const {page, context, login, me} = await fixture.open('phone', 'submitter');
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await login();
@@ -45,6 +45,23 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       assert.equal(await amount.inputValue(),expected);
       assert(await amount.evaluate(n=>n===document.activeElement));
     }
+    await amount.fill('');
+    const ime=await context.newCDPSession(page),preview=amount.locator('..').locator('.phone-amount-display');
+    for(const [digits,formatted] of [['3310','3,310'],['33100','33,100'],['331000','331,000']]){
+      await ime.send('Input.imeSetComposition',{text:digits,selectionStart:digits.length,selectionEnd:digits.length});
+      assert(await preview.isVisible());
+      assert.equal(await preview.innerText(),formatted);
+      assert.equal(await amount.inputValue(),digits,'keyboard can still replace its composing range');
+    }
+    assert.equal(await amount.evaluate(n=>getComputedStyle(n).webkitTextFillColor),'rgba(0, 0, 0, 0)');
+    await ime.send('Input.insertText',{text:'331000'});
+    assert(!(await preview.isVisible()));
+    assert.equal(await amount.inputValue(),'331,000');
+    await amount.fill('');
+    await ime.send('Input.imeSetComposition',{text:'24000',selectionStart:5,selectionEnd:5});
+    await ime.send('Input.imeSetComposition',{text:'',selectionStart:0,selectionEnd:0});
+    assert.equal(await amount.inputValue(),'');
+    assert(!(await preview.isVisible()));
     await amount.fill('1234567');
     await amount.evaluate(n=>n.setSelectionRange(3,3));
     await amount.press('9');

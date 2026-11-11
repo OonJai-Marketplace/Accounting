@@ -26,10 +26,26 @@
     if(e.inputType==='deleteContentBackward' && n.value[at-1]===',')n.setSelectionRange(at-2,at);
     if(e.inputType==='deleteContentForward' && n.value[at]===',')n.setSelectionRange(at,at+2);
   }
+  function formatPhoneAmount(field,composing) {
+    const display=field.nextElementSibling;
+    const grouped=Receipt245.groupAmount(field.value);
+    // Rewriting an active IME value ends its replacement range. Paint the
+    // grouped text in place until the keyboard commits its original digits.
+    const preview=composing && grouped!==field.value;
+    display.hidden=!preview;
+    field.classList.toggle('composing-amount',preview);
+    if(!preview){if(!composing)Receipt245.formatAmount(field);return;}
+    const offset=field.value.slice(0,field.selectionEnd ?? field.value.length).replaceAll(',','').length;
+    let at=0,digits=0;
+    while(at<grouped.length && digits<offset){if(grouped[at++]!==',')digits++;}
+    const caret=document.createElement('i');
+    display.replaceChildren(grouped.slice(0,at),caret,grouped.slice(at));
+    display.scrollLeft=Math.max(0,caret.offsetLeft-display.clientWidth+2);
+  }
   function captureDraft(e){
     const n=e.target;
     if(!n.dataset.field||S.saving)return;
-    if(n.inputMode==='decimal'&&!e.isComposing)Receipt245.formatAmount(n);
+    if(n.inputMode==='decimal')formatPhoneAmount(n,e.isComposing);
     const key=n.dataset.field,d=S.draft,rows=d.mode==='double'?d.lines:d.single;
     if(n.dataset.index===undefined)d[key]=n.value;
     else {

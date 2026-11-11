@@ -1,1 +1,1 @@
-{"version": "143.347", "changes": ["Phone journal Debit, Credit and Cashbook Amount show thousands separators as you type, without adding decimal places."]}
+{"version": "143.348", "changes": ["Phone amounts show live commas even while a mobile keyboard is composing digits. The browser updater opens the correct phone workspace and keeps existing drafts."]}

@@ -1,6 +1,9 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-let VERSION='143.347';
+let VERSION='143.348';
+const ua=navigator.userAgent||'';
+const phone=/iPhone|iPod/i.test(ua)||/Android/i.test(ua)&&/Mobile/i.test(ua);
+const workerFile=phone?'phone-sw.js':'desktop-sw14242.js';
 const status=document.getElementById('updateStatus'),retry=document.getElementById('updateRetry'),progress=document.getElementById('updateProgress');
 let attempt=0,finished=false,timer,poll,registration,unwatch=()=>{},lastProgress='',reportedError=false;
 function fail(message){clearTimeout(timer);clearInterval(poll);status.textContent=message;retry.hidden=false;}
@@ -18,7 +21,7 @@ function showProgress(data,token){
  status.textContent='Downloading update: '+Math.round(progress.value*100)+'% · '+Math.max(0,data.total-data.completed)+' files remaining'+(file?' · '+file:'')+(data.bytes?' · '+Math.ceil(data.bytes/1024)+' KB':'')+(data.retry?' · retry '+data.retry:'');
 }
 async function verify(worker,token){
- if(!worker||finished||token!==attempt)return;
+ if(!worker||finished||token!==attempt||new URL(worker.scriptURL).pathname!==new URL(workerFile,location.href).pathname)return;
  const channel=new MessageChannel();let timeout;
  try{
   const reply=await new Promise((resolve,reject)=>{timeout=setTimeout(()=>reject(Error('Waiting for the new website files.')),2000);channel.port1.onmessage=e=>resolve(e.data);worker.postMessage({type:'ojm-shell-status'},[channel.port2])});
@@ -27,12 +30,12 @@ async function verify(worker,token){
   if(worker.state!=='activated'||!reply.ready)return;
   if(String(reply.version).localeCompare(VERSION,undefined,{numeric:true})<0){if(new URL(worker.scriptURL).searchParams.get('v')===VERSION&&!registration?.installing&&!registration?.waiting){reportedError=true;fail('The website announced '+VERSION+' but supplied offline files for '+reply.version+'. The release files do not match. Retry after publication finishes.');}return;}
   finished=true;clearTimeout(timer);clearInterval(poll);unwatch();status.textContent='Update ready. Opening Accounting…';progress.value=1;
-  const url=new URL('desktop.html',location.href);url.searchParams.set('v',reply.version);location.replace(url.href);
+  const url=new URL(phone?'phone.html':'desktop.html',location.href);url.searchParams.set('v',reply.version);location.replace(url.href);
  }catch{}finally{clearTimeout(timeout);channel.port1.close();}
 }
 async function start(){
  const token=++attempt;finished=false;reportedError=false;lastProgress='';clearTimeout(timer);clearInterval(poll);unwatch();retry.hidden=true;progress.removeAttribute('value');status.textContent='Downloading update…';
- if(!('serviceWorker'in navigator)){fail('This browser cannot prepare the offline update. Open Accounting in Safari.');return;}
+ if(!('serviceWorker'in navigator)){fail('This browser cannot prepare the offline update. Open Accounting in a browser that supports offline apps.');return;}
  if(navigator.onLine===false){fail('Reconnect to the internet, then tap Retry update.');return;}
  watchForStall(token);
  try{
@@ -45,7 +48,7 @@ async function start(){
    const notes=document.getElementById('updateNotes');notes.replaceChildren();
    if(Array.isArray(release.changes)&&release.changes.length){const heading=document.createElement('h2');heading.textContent='What changed in '+release.version;const list=document.createElement('ul');for(const change of release.changes.filter(x=>typeof x==='string').slice(0,30)){const li=document.createElement('li');li.textContent=change;list.append(li)}notes.append(heading,list);notes.hidden=false;}
   }finally{clearTimeout(timeout);}
-  registration=await navigator.serviceWorker.register('desktop-sw14242.js?v='+VERSION,{scope:'./',updateViaCache:'none'});
+  registration=await navigator.serviceWorker.register(workerFile+'?v='+VERSION,{scope:'./',updateViaCache:'none'});
   if(token!==attempt)return;
   const watched=new Map();
   const watch=()=>{

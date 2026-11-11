@@ -6,7 +6,9 @@
     S.draft ||= blankDraft();
     const d=S.draft,r=rules(),disabled=S.saving?'disabled':'',single=d.mode==='single',rows=single?d.single:d.lines,cards=identifyReceipts(d);
     const input=(key,value,index,attrs='')=>`<input data-field="${key}" ${index==null?'':'data-index="'+index+'"'} ${attrs} value="${esc(value)}" ${disabled}>`;
-    const amountInput=(key,value,i)=>input(key,Receipt245.groupAmount(value ?? ''),i,'inputmode="decimal"');
+    const amountInput=(key,value,i)=>'<span class="phone-amount">'+
+      input(key,Receipt245.groupAmount(value ?? ''),i,'inputmode="decimal"')+
+      '<span class="phone-amount-display" aria-hidden="true" hidden></span></span>';
     const select=(label,key,i,ids)=>field(label,`<select data-field="${key}" data-index="${i}" ${disabled}>${options(ids,rows[i][key])}</select>`);
     const button=(name,label,attrs='')=>action(name,label,attrs+' '+disabled);
     const method=single?'Cashbook':'Double Entry',next=single?'Double Entry':'Cashbook';

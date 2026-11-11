@@ -119,7 +119,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.347', $ = id => document.getElementById(id);
+  const VERSION = '143.348', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -652,7 +652,9 @@ function appLocalDate(date=new Date()) {
     S.draft ||= blankDraft();
     const d=S.draft,r=rules(),disabled=S.saving?'disabled':'',single=d.mode==='single',rows=single?d.single:d.lines,cards=identifyReceipts(d);
     const input=(key,value,index,attrs='')=>`<input data-field="${key}" ${index==null?'':'data-index="'+index+'"'} ${attrs} value="${esc(value)}" ${disabled}>`;
-    const amountInput=(key,value,i)=>input(key,Receipt245.groupAmount(value ?? ''),i,'inputmode="decimal"');
+    const amountInput=(key,value,i)=>'<span class="phone-amount">'+
+      input(key,Receipt245.groupAmount(value ?? ''),i,'inputmode="decimal"')+
+      '<span class="phone-amount-display" aria-hidden="true" hidden></span></span>';
     const select=(label,key,i,ids)=>field(label,`<select data-field="${key}" data-index="${i}" ${disabled}>${options(ids,rows[i][key])}</select>`);
     const button=(name,label,attrs='')=>action(name,label,attrs+' '+disabled);
     const method=single?'Cashbook':'Double Entry',next=single?'Double Entry':'Cashbook';
@@ -733,10 +735,26 @@ function appLocalDate(date=new Date()) {
     if(e.inputType==='deleteContentBackward' && n.value[at-1]===',')n.setSelectionRange(at-2,at);
     if(e.inputType==='deleteContentForward' && n.value[at]===',')n.setSelectionRange(at,at+2);
   }
+  function formatPhoneAmount(field,composing) {
+    const display=field.nextElementSibling;
+    const grouped=Receipt245.groupAmount(field.value);
+    // Rewriting an active IME value ends its replacement range. Paint the
+    // grouped text in place until the keyboard commits its original digits.
+    const preview=composing && grouped!==field.value;
+    display.hidden=!preview;
+    field.classList.toggle('composing-amount',preview);
+    if(!preview){if(!composing)Receipt245.formatAmount(field);return;}
+    const offset=field.value.slice(0,field.selectionEnd ?? field.value.length).replaceAll(',','').length;
+    let at=0,digits=0;
+    while(at<grouped.length && digits<offset){if(grouped[at++]!==',')digits++;}
+    const caret=document.createElement('i');
+    display.replaceChildren(grouped.slice(0,at),caret,grouped.slice(at));
+    display.scrollLeft=Math.max(0,caret.offsetLeft-display.clientWidth+2);
+  }
   function captureDraft(e){
     const n=e.target;
     if(!n.dataset.field||S.saving)return;
-    if(n.inputMode==='decimal'&&!e.isComposing)Receipt245.formatAmount(n);
+    if(n.inputMode==='decimal')formatPhoneAmount(n,e.isComposing);
     const key=n.dataset.field,d=S.draft,rows=d.mode==='double'?d.lines:d.single;
     if(n.dataset.index===undefined)d[key]=n.value;
     else {
@@ -936,7 +954,7 @@ function appLocalDate(date=new Date()) {
   }
   // Guard stale controls from earlier cached phone releases. Reports stay in the full tablet/desktop app.
   async function printReport(){notice('Use a tablet, iPad or desktop to print reports.');}
-  function connectionDialog(){const dialog=$('dialog');dialog.close();dialog.classList.add('phone-connection14246');$('dialogBody').innerHTML='<h2>Connection & sync</h2><p>Saved entries sync automatically. Unfinished form edits stay on this device until saved.</p><section class="sync-section14246"><h3>Connection</h3><p>'+esc(navigator.onLine?(S.online?'Online':'Limited connection'):'Offline')+'</p></section><section class="sync-section14246"><h3>Website files</h3><p>'+esc(S.shellReady?'Downloaded for reopening without connection.':'Still preparing for offline reopening.')+'</p></section><section class="sync-section14246"><h3>Device entries · '+queue().length+'</h3>'+(queue().map(q=>'<article class="sync-entry14246"><strong>'+esc(q.draft.date+' · '+q.draft.memo)+'</strong><p>'+esc(q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Waiting to sync')+'</p>'+(q.message?'<p>'+esc(q.message)+'</p>':'')+'<small>Reference: '+esc(q.key)+'</small></article>').join('')||'<p>No device entries waiting to sync.</p>')+'</section>';$('dialogButtons').innerHTML='<button class="btn" value="close">Close</button>';dialog.onclose=()=>dialog.classList.remove('phone-connection14246');dialog.showModal();}
+  function connectionDialog(){const dialog=$('dialog');dialog.close();dialog.classList.add('phone-connection14246');$('dialogBody').innerHTML='<h2>Connection & sync</h2><p>Saved entries sync automatically. Unfinished form edits stay on this device until saved.</p><section class="sync-section14246"><h3>Connection</h3><p>'+esc(navigator.onLine?(S.online?'Online':'Limited connection'):'Offline')+'</p></section><section class="sync-section14246"><h3>Website files · v'+esc(VERSION)+'</h3><p>'+esc(S.shellReady?'Downloaded for reopening without connection.':'Still preparing for offline reopening.')+'</p>'+(window.ReceiptNative214?.available?'':'<a href="update.html">Check for app update</a>')+'</section><section class="sync-section14246"><h3>Device entries · '+queue().length+'</h3>'+(queue().map(q=>'<article class="sync-entry14246"><strong>'+esc(q.draft.date+' · '+q.draft.memo)+'</strong><p>'+esc(q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Waiting to sync')+'</p>'+(q.message?'<p>'+esc(q.message)+'</p>':'')+'<small>Reference: '+esc(q.key)+'</small></article>').join('')||'<p>No device entries waiting to sync.</p>')+'</section>';$('dialogButtons').innerHTML='<button class="btn" value="close">Close</button>';dialog.onclose=()=>dialog.classList.remove('phone-connection14246');dialog.showModal();}
   async function handle(name,index){const owner=S.owner,epoch=S.epoch;try{
     if(name==='protocols'){
       if(!S.owner)return;
