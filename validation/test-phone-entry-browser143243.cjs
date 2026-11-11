@@ -20,8 +20,9 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       assert.equal(await picker.inputValue(), account);
     };
     const switchMode = async name => {
-      await page.getByText('Entry options',{exact:true}).click();
-      await page.getByRole('button', {name, exact: true}).click();
+      const toggle=page.locator('.receipt-heading [data-action=switch-method]');
+      await toggle.tap();
+      assert.match(await toggle.innerText(),new RegExp(name));
     };
 
     await selectAccount(1, categories[0]);

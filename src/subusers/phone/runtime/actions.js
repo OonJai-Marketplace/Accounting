@@ -13,19 +13,21 @@
     if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
     if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh')return await refresh();if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
-    if(name==='mode-single'||name==='mode-double'){if(!changeMode243(name==='mode-single'?'single':'double'))return;}
+    if(name==='switch-method'&&!changeMode243(S.draft.mode==='single'?'double':'single'))return;
     const d=S.draft, single=d.mode==='single', rows=single?d.single:d.lines;
-    if(name==='calculator'){await phoneCalculator();return;}
-    if(name==='entry-date'){
-      const selected=await chooseReceiptDate(d);
-      if(!selected||!current(owner,epoch)||S.draft!==d||S.saving)return;
-      if(!selected.multiple&&d.multiple&&rows.some(row=>cardDate(d,row)!==selected.date)){
-        if(!await confirmDialog('Use one date for all receipts?',dateLabel(selected.date),'Use one date')||!current(owner,epoch)||S.draft!==d||S.saving)return;
-      }
-      identifyReceipts(d);
-      d.multiple=selected.multiple;
-      d.date=selected.date;
-      for(const row of rows){if(d.multiple)row.date??=d.date;else delete row.date;}
+    if(name==='entry-date'||name==='line-date'){
+      const perLine=name==='line-date';
+      const chosen=await chooseReceiptDate(perLine?cardDate(d,rows[index]):d.date,d.multiple);
+      if(!chosen||!current(owner,epoch)||S.draft!==d||S.saving)return;
+      if(chosen.multiple!==d.multiple){
+        identifyReceipts(d);
+        d.multiple=chosen.multiple;d.date=chosen.date;
+        for(const row of rows){
+          if(d.multiple)row.date=d.date;
+          else {delete row.date;if(row.reference===d.reference)delete row.reference;}
+        }
+      }else if(perLine)rows[index].date=chosen.date;
+      else d.date=chosen.date;
     }
     if(name==='direction-out'||name==='direction-in'){
       const direction=name.slice(10);
@@ -38,8 +40,8 @@
       else {const receipt=crypto.randomUUID();rows.push(...defaults.lines.map(row=>({...row,receipt,...(d.multiple?{date}:{})})));}
     }
     if(name==='add-line'&&!single){
-      const row=rows[index];
-      rows.splice(rows.findLastIndex(l=>l.receipt===row.receipt)+1,0,{...blankDraft().lines[0],receipt:row.receipt,...(d.multiple?{date:cardDate(d,row)}:{})});
+      const last=rows.findLastIndex(l=>l.receipt===rows[index].receipt),row=rows[last];
+      rows.splice(last+1,0,{...blankDraft().lines[0],receipt:row.receipt,...(d.multiple?{date:cardDate(d,row)}:{})});
     }
     if(name==='remove-receipt'){
       const cards=identifyReceipts(d),indices=cards.find(group=>group.includes(index));

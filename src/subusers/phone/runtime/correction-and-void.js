@@ -9,7 +9,7 @@
       const date=first.transaction_date, onDate=row=>!saved.multiple||(row.date||saved.date)===date;
       d={...blankDraft(),mode:saved.mode,date,multiple:!!saved.multiple,memo:saved.memo,reference:saved.reference||'',
         single:(saved.single||[]).filter(onDate).map(row=>{const copy={...row};if(copy.description===saved.memo)delete copy.description;return copy;}),
-        lines:(saved.rows||[]).filter(onDate).map(l=>({date:l.date||date,account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};
+        lines:(saved.rows||[]).filter(onDate).map(l=>({date:l.date||date,...(l.reference==null?{}:{reference:l.reference}),account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};
     }
     else d={...blankDraft(),mode:'single',date:first.transaction_date,memo:first.memo,reference:first.reference||'',single:g.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?r.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
     d.correction_journal14347=g.batch.status==='returned'?g.batch.id:null;d.editIds=g.lines.map(l=>l.id);S.draft=normalizeDraft(d);saveDraftLater();navigate('post');

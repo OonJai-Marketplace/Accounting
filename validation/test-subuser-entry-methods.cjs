@@ -61,14 +61,14 @@ async function postBoth(fixture, device) {
     else await page.evaluate(() => {openWorkspaceUser(liveProfile.id); personalJournal1437.show(liveProfile.id,'journal');showJournalEntry98();});
   }
   await open();
-  const methods = page.getByRole('group', {name:'Transaction entry method'});
+  const methods = phone?page.locator('[data-action=switch-method]'):page.getByRole('group', {name:'Transaction entry method'});
   const single = methods.getByRole('button',{name:phone?'Cashbook':'Single Entry (Cashbook)', exact:true});
   const double = methods.getByRole('button',{name:phone?'Double Entry':'Double Entry Journal', exact:true});
   const fund = me.user_permissions.assigned_fund_account_ids[0];
   const account = me.user_permissions.destination_account_ids[0];
   for (const [index, mode] of ['single','double'].entries()) {
     if (index && !await methods.isVisible()) await open();
-    await single.click();
+    if(phone){if(await methods.getAttribute('data-mode')!=='single')await methods.click();}else await single.click();
     const prefix = phone?'data-field':'data-simple';
     await page.locator('['+prefix+'=source]').first().selectOption(fund,{force:true});
     await page.locator('['+prefix+'=affected]').first().selectOption(account,{force:true});
@@ -76,8 +76,9 @@ async function postBoth(fixture, device) {
     const memo = phone ? page.locator('[data-field=memo]:not([data-index])') :
       page.locator('#jeGeneralMemo').locator('..').locator('.memo-link-text143187');
     await memo.fill('Fixture method '+mode);
-    if (mode === 'double') await double.click();
-    assert.equal(await (mode==='single'?single:double).getAttribute('aria-pressed'), 'true');
+    if (mode === 'double') await (phone?methods:double).click();
+    if(phone)assert.equal(await methods.getAttribute('data-mode'),mode);
+    else assert.equal(await (mode==='single'?single:double).getAttribute('aria-pressed'), 'true');
     await Promise.all([
       page.waitForResponse(r=>r.url().includes('/rpc/save_staff_editor1437')),
       (async () => {

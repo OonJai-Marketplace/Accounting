@@ -290,13 +290,19 @@ label.no-print{font-size:11px;color:#627880;font-weight:400;margin:8px 0}#month{
 /* Receipt cards in the independent phone sub-user editor. */
 #postForm.receipt-editor{display:grid;gap:9px;margin-bottom:8px}
 .receipt-segments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;background:#e9eee2;border:1px solid #cdd8c9;border-radius:10px;padding:3px}
-.receipt-segments button,.receipt-editor [data-action=entry-date]{background:#fffdf7;color:#164c3b;border:0;font:inherit;font-weight:650}
+.receipt-segments button{background:#fffdf7;color:#164c3b;border:0;font:inherit;font-weight:650}
 .receipt-segments button{width:100%;border-radius:7px;min-height:36px}
 .receipt-segments button[aria-pressed=true]{background:#07543e;color:white}
 .receipt-segments button:disabled:not([aria-pressed=true]){opacity:.5}
-.receipt-editor [data-action=entry-date]{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:9px 12px;border:1px solid #b9c9ba;border-radius:8px;min-height:40px;text-align:left}
-.receipt-editor [data-action=entry-date] strong{text-align:right}
-.receipt-options summary{cursor:pointer;color:#155841;padding:5px 2px}
+.receipt-editor .receipt-heading,.receipt-picker-heading{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.receipt-editor .receipt-heading h1,.receipt-picker-heading h2{margin:0}
+.receipt-editor [data-action=switch-method]{background:#07543e;color:#fff;min-width:110px;white-space:nowrap}
+.receipt-date-reference{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;align-items:stretch}
+.receipt-date-reference .field{min-width:0;margin:0}
+.receipt-date-reference .field>span{display:block;font-size:12px;color:#53665a}
+.receipt-date-reference .field>button{display:flex;align-items:center;gap:5px;width:100%;min-height:32px;padding:0;border:0;background:transparent;color:#174c3b;text-align:left;font:inherit}
+.receipt-picker-heading label{display:inline-flex;align-items:center;gap:6px;margin:0;min-height:40px;cursor:pointer}
+.receipt-picker-heading input[type=checkbox]{width:18px;height:18px;margin:0;accent-color:#07543e}
 .receipt-card{border:1px solid #c4d2c4;border-radius:12px;background:#f1f3e9;padding:10px;min-width:0}
 .receipt-card header{display:flex;align-items:center;justify-content:space-between;min-height:24px}
 .receipt-card h2{font-size:14px;margin:0;color:#154c3b}
@@ -306,12 +312,8 @@ label.no-print{font-size:11px;color:#627880;font-weight:400;margin:8px 0}#month{
 .receipt-card .staff-account-row14225{display:flex;gap:4px;align-items:center}
 .receipt-card .staff-account-row14225 .field{flex:1;min-width:0}
 .receipt-card .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-.receipt-tools{display:flex;align-items:center;justify-content:space-between;gap:8px}.receipt-tools .btn{flex:none}.receipt-validation{font-size:12px}
+.receipt-validation{font-size:12px}
 .receipt-balance,.receipt-footer output{font-size:12px;line-height:1.4;font-weight:650;display:block;overflow-wrap:anywhere}
 .receipt-balance{margin:6px 2px 0}.receipt-editor [data-state=balanced]{color:#07543e}.receipt-editor [data-state=pending]{color:#8a4119}
 .receipt-footer{position:sticky;bottom:calc(66px + env(safe-area-inset-bottom));z-index:3;border:1px solid #c2d0bd;border-radius:10px;padding:6px 8px;background:#fffdf7;box-shadow:0 -2px 7px #203a2917}
 .receipt-footer .actions{margin:3px 0 0;display:grid;grid-template-columns:1fr 2fr;gap:6px}
-.receipt-calc-display{display:block;background:#eef3e8;padding:12px;text-align:right;font-size:22px;overflow-wrap:anywhere}
-.receipt-keypad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:8px 0}
-.receipt-keypad button{min-height:38px;border-radius:7px;border:1px solid #c4d1c4;background:#fafbf6;color:#174e3b;font:inherit;font-weight:650}
-#dialog .receipt-calendar[hidden],#dialog .receipt-date-help[hidden]{display:none}

@@ -1,1 +1,1 @@
-{"version": "143.342", "changes": ["Generate Journal values new foreign receipts and their mappings at the receipt rate. Historical book rates apply to funds spent and balances settled.", "Corrected template accounts for owner withdrawals, inventory waste, equipment depreciation, tax accruals, platform receivables and salary accruals."]}
+{"version": "143.343", "changes": ["Phone journal uses a header mode switch, one shared date or individual line dates and references, and an automatic debit or credit difference."]}

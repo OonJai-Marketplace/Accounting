@@ -73,25 +73,40 @@ async function bulk(fixture) {
   await page.locator('[data-page=post]').click();
   const button=name=>page.getByRole('button',{name,exact:true});
   const field=(name,i)=>page.locator('[data-field="'+name+'"]'+(i===undefined?':not([data-index])':'[data-index="'+i+'"]'));
-  const receiptDates=()=>page.locator('input[data-field=date][data-index]').evaluateAll(els=>els.map(el=>el.value));
-  async function setMultiple() {
-    await page.locator('[data-action=entry-date]').click();
-    await button('Multiple dates').click();
-    assert.equal(await page.locator('.receipt-calendar').isVisible(),false);
-    await button('Apply').click();
-    await field('date',0).waitFor({state:'visible'});
+  const lineDate=i=>page.locator('[data-action=line-date][data-index="'+i+'"]');
+  const receiptDates=()=>page.locator('[data-action=line-date]').evaluateAll(els=>els.map(el=>el.dataset.value));
+  const dateMode=()=>page.getByRole('checkbox',{name:'Multiple dates',exact:true});
+  const mainDate=page.locator('[data-action=entry-date]'),toggle=page.locator('.receipt-heading [data-action=switch-method]');
+  async function setMode(mode){if(await toggle.getAttribute('data-mode')!==mode)await toggle.tap();}
+  async function pick(picker,iso) {
+    const [year,month]=iso.split('-').map(Number);
+    const current=(await picker.getAttribute('data-value')).split('-').map(Number);
+    await picker.click();
+    const delta=12*(year-current[0])+month-current[1];
+    for(let i=0;i<Math.abs(delta);i++)await button(delta>0?'Next month':'Previous month').click();
+    await page.locator('[data-receipt-date="'+iso+'"]').tap();
+    await page.waitForFunction(()=>!document.querySelector('#dialog').open);
+    await page.waitForFunction(([name,index,value])=>[...document.querySelectorAll('[data-action="'+name+'"]')].some(b=>b.dataset.index===index&&b.dataset.value===value),[await picker.getAttribute('data-action'),await picker.getAttribute('data-index')??undefined,iso]);
   }
-  await button('Cashbook').click();
+  async function setMultiple(){
+    await mainDate.click(); assert.equal(await dateMode().isChecked(),false);
+    await dateMode().check(); await lineDate(0).waitFor(); assert.equal(await mainDate.count(),0);
+  }
+  await setMode('single');await toggle.tap();assert.equal(await toggle.getAttribute('data-mode'),'double');
+  await toggle.tap();assert.equal(await toggle.getAttribute('data-mode'),'single');
+  assert.equal(await page.getByRole('button',{name:'Calculator',exact:true}).count(),0);
+  assert.equal(await page.locator('[data-action=line-date]').count(),0);
+  await pick(mainDate,'2026-11-03');
   await setMultiple();
-  await field('date',0).fill('2026-11-03');
-  await button('+ Add receipt').click();
-  await field('date',1).fill('2026-12-02');
-  await button('+ Add receipt').click();
-  await page.locator('[data-action=entry-date]').click();
-  await button('One date').click();
-  await button('Apply').click();
-  await button('Cancel').click();
+  await button('+ Add line').click();
+  await pick(lineDate(1),'2026-12-02');
+  await button('+ Add line').click();
   assert.deepEqual(await receiptDates(),['2026-11-03','2026-12-02','2026-12-02']);
+  await lineDate(1).click();await dateMode().uncheck();await mainDate.waitFor();
+  assert.equal(await mainDate.getAttribute('data-value'),'2026-12-02');
+  assert.equal(await page.locator('[data-action=line-date]').count(),0);
+  await setMultiple(); assert.deepEqual(await receiptDates(),Array(3).fill('2026-12-02'));
+  await pick(lineDate(0),'2026-11-03');
   for (let i=0;i<3;i++){
     await field('source',i).selectOption(fund);
     await field('affected',i).selectOption(account);
@@ -111,29 +126,35 @@ async function bulk(fixture) {
   await button('Close').click();
   await context.setOffline(false);
 
-  await button('Double Entry').click();
+  await setMode('double');
+  await pick(mainDate,'2026-11-03');
   await setMultiple();
-  await field('date',0).fill('2026-11-03');
+  await button('+ Add line').click();
+  assert.deepEqual(await receiptDates(),Array(3).fill('2026-11-03'));
+  await pick(lineDate(2),'2026-11-04');
+  assert.deepEqual(await receiptDates(),['2026-11-03','2026-11-03','2026-11-04']);
+  await button('Remove line 3').click();
   await button('+ Add receipt').click();
-  assert.deepEqual(await receiptDates(),['2026-11-03','2026-11-03']);
+  assert.deepEqual(await receiptDates(),Array(4).fill('2026-11-03'));
   for(let i=0;i<4;i++){
     await field('account',i).selectOption(i%2?fund:account);
     await field(i%2?'credit':'debit',i).fill(String(i<2?1200:3400));
+    await field('reference',i).fill('Ref '+(i+1));
     await field('memo',i).fill(['Kitchen items','Cash payment','Transport','Cash fare'][i]);
   }
+  await pick(lineDate(1),'2026-11-04');
+  assert.deepEqual(await receiptDates(),['2026-11-03','2026-11-04','2026-11-03','2026-11-03']);
+  assert.match(await page.locator('#liveReceiptBalance').innerText(),/1,200.00 credit/);
+  await pick(lineDate(1),'2026-11-03');
   // Offsetting differences between same-day receipts must never cancel each other.
   await field('credit',1).fill('1100');
   await field('credit',3).fill('3500');
-  assert.match(await page.locator('#liveReceiptBalance').innerText(),/100.00 credit/);
+  assert.match(await page.locator('[data-card-balance="0"]').innerText(),/100.00 credit/);
   assert.match(await page.locator('[data-card-balance="1"]').innerText(),/100.00 debit/);
   await field('memo').fill('Journal batch');
   assert.match(await page.locator('#entryValidation').innerText(),/unbalanced/);
   await field('credit',1).fill('1200');
-  await button('Calculator').click();
-  for(const key of ['3','5','0','0','−','1','0','0','='])await page.locator('[data-math="'+key+'"]').click();
-  assert.equal(await page.locator('.receipt-calc-display').innerText(),'3400');
-  await page.locator('#receiptCalcTarget').selectOption('7');
-  await button('Use amount').click();
+  await field('credit',3).fill('3400');
   await page.waitForFunction(()=>document.querySelector('#liveReceiptBalance').textContent.includes('receipts balanced'));
   assert.equal(await field('credit',3).inputValue(),'3400');
   assert.match(await page.locator('#entryValidation').innerText(),/2 complete entries/);
@@ -177,9 +198,32 @@ async function bulk(fixture) {
   assert.equal(await field('memo').inputValue(),'Journal batch');
   assert.equal(await field('memo',0).inputValue(),'Kitchen items');
   assert.equal(await field('memo',1).inputValue(),'Cash payment');
+  assert.equal(await field('reference',0).inputValue(),'Ref 1');
+  assert.equal(await field('reference',1).inputValue(),'Ref 2');
   assert.equal(await page.locator('[data-receipt-card]').count(),1);
+  // Add a second dated debit/credit pair in the same card, just as a phone user can.
+  await page.locator('[data-action=clear-draft]').tap();
+  await page.locator('#dialogButtons button[value=yes]').tap();
+  await mainDate.waitFor();
+  await pick(mainDate,'2026-11-03');
+  await setMultiple();
+  await button('+ Add line').click();
+  await button('+ Add line').click();
+  await pick(lineDate(2),'2026-11-04');await pick(lineDate(3),'2026-11-04');
+  for(let i=0;i<4;i++){
+    await field('account',i).selectOption(i%2?fund:account);
+    await field(i%2?'credit':'debit',i).fill(i<2?'1000':'2000');
+    await field('reference',i).fill('Line '+(i+1));
+  }
+  await field('memo').fill('Two dated pairs');
+  assert.equal(await page.locator('#liveReceiptBalance').innerText(),'Balanced');
+  const posted=page.waitForRequest(r=>r.url().includes('/rpc/save_staff_editor1437')&&r.postDataJSON().p_snapshot.memo==='Two dated pairs');
+  await page.locator('#postForm button[type=submit]').tap();
+  const mixed=(await posted).postDataJSON();
+  assert.deepEqual(mixed.p_items.map(l=>[l.date,l.amount,l.reference]),[['2026-11-03',1000,'Line 1'],['2026-11-04',2000,'Line 3']]);
+  assert.deepEqual(mixed.p_snapshot.receiptCards341.map(c=>c.rows.map(r=>r.reference)),[['Line 1','Line 2'],['Line 3','Line 4']]);
   await context.close();
-  console.log('PASS per-receipt date picker, same-day separation, calculator, live per-receipt balance and memos; multi-month picker, repeated receipt date, dated cashbook and balanced journal, offline queue, and one save request per batch');
+  console.log('PASS per-receipt date picker, independent line calendars and references, header mode switch, automatic live per-receipt balance and memos; multi-month picker, repeated receipt date, dated cashbook and balanced journal, offline queue, and one save request per batch');
 }
 
 (async()=>{

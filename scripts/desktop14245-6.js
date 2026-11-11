@@ -196,8 +196,8 @@ window.loadTransactionAudit=async function(...args){await cleanResetCache();retu
         if ((debit > 0) === (credit > 0)) throw Error('Enter either Debit or Credit on each line, with a positive amount.');
         const date = receiptDate(line), key = date + '/' + a.currency;
         if (!groups.has(key)) groups.set(key, {date, currency:a.currency, dr:[], cr:[]});
-        groups.get(key)[debit ? 'dr' : 'cr'].push({account: a, left: debit || credit, memo: line.memo || ''});
-        rows.push({account: a.code + ' — ' + a.name, memo: line.memo || '', dr: debit || '', credits: {[a.currency]: credit || ''}, date});
+        groups.get(key)[debit ? 'dr' : 'cr'].push({account: a, left: debit || credit, memo: line.memo || '', reference: line.reference});
+        rows.push({account: a.code + ' — ' + a.name, memo: line.memo || '', ...(line.reference==null?{}:{reference:line.reference}), dr: debit || '', credits: {[a.currency]: credit || ''}, date});
       }
       for (const g of groups.values()) {
         const difference = g.dr.reduce((n, l) => n + l.left, 0) - g.cr.reduce((n, l) => n + l.left, 0);
@@ -209,7 +209,7 @@ window.loadTransactionAudit=async function(...args){await cleanResetCache();retu
           const incoming = rules.fundIds.includes(d.account.id) && rules.entryIds.includes(c.account.id) && rules.directions.includes('in');
           if (!outgoing && !incoming) continue;
           const value = Math.min(d.left, c.left);
-          add(outgoing ? 'out' : 'in', outgoing ? c.account.id : d.account.id, outgoing ? d.account.id : c.account.id, value, [...new Set([d.memo, c.memo].filter(Boolean))].join(' · ') || memo, g.date);
+          add(outgoing ? 'out' : 'in', outgoing ? c.account.id : d.account.id, outgoing ? d.account.id : c.account.id, value, [...new Set([d.memo, c.memo].filter(Boolean))].join(' · ') || memo, g.date, (outgoing?d.reference??c.reference:c.reference??d.reference)??data.reference??'');
           d.left -= value; c.left -= value;
         }
         if ([...g.dr, ...g.cr].some(l => l.left > epsilon)) throw Error('These lines use accounts or directions outside this user\u2019s assigned funds and entry permissions.');
@@ -224,7 +224,7 @@ window.loadTransactionAudit=async function(...args){await cleanResetCache();retu
         if (!(amount > 0)) throw Error('Enter a positive amount on each entry line.');
         const date=receiptDate(l), description=l.description===undefined?memo:String(l.description).trim();
         if (!description) throw Error('Add the General Description for each entry.');
-        add(l.direction, l.source, l.affected, amount, data.receiptEditor341 ? String(l.memo||'').trim() || description : [description,l.memo].filter(Boolean).join(' — '),date,l.reference||data.reference||'');
+        add(l.direction, l.source, l.affected, amount, data.receiptEditor341 ? String(l.memo||'').trim() || description : [description,l.memo].filter(Boolean).join(' — '),date,l.reference??data.reference??'');
         single.push({...l, amount: String(amount), date, description});
       }
     }

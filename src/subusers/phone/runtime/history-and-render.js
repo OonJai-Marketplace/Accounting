@@ -5,8 +5,8 @@
         const credit=Object.entries(row.credits||{}).find(([,amount])=>Number(amount)>0);
         const side=credit?'Credit':'Debit',currencyCode=credit?.[0]||Object.keys(row.credits||{})[0];
         return '<p><strong>'+side+' · '+esc(money(credit?credit[1]:row.dr,currencyCode))+'</strong><br>'+
-          esc(row.account)+(row.memo?'<br>'+esc(row.memo):'')+'</p>';
-      }).join('')+(first.reference?'<p>Reference · '+esc(first.reference)+'</p>':'');
+          esc(row.account)+(row.memo?'<br>'+esc(row.memo):'')+(row.reference?'<br>Reference · '+esc(row.reference):'')+'</p>';
+      }).join('')+(first.reference&&!saved.rows.some(r=>r.reference!=null)?'<p>Reference · '+esc(first.reference)+'</p>':'');
     }
     return group.lines.map(l=>`<p><strong>${(rules().entryMode==='cashbook'&&S.page==='entries'&&l.fund_account_id!==S.cashbookFund240?l.direction!=='in':l.direction==='in')?'Money In':'Money Out'} · ${esc(money(l.amount,l.currency_code||currency(l.fund_account_id)))}</strong><br>${accountTitle(l.fund_account_id)}<br>${l.direction==='out'?accountTitle(l.account_id)+'<br>':''}${saved?.receiptEditor341&&l.memo===saved.memo?'':esc(l.memo)}${l.reference?'<br>Reference: '+esc(l.reference):''}</p>`).join('');
   }

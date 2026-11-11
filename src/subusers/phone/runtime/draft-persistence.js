@@ -32,29 +32,36 @@
     const d=S.draft;if(!d||S.saving)return false;
     if(next!==d.mode){
       if(next==='double'){
-        d.lines=d.single.flatMap(l=>{const receipt=crypto.randomUUID();const incoming=l.direction==='in';const dated=d.multiple?{date:l.date??d.date}:{};return [{receipt,...dated,account:incoming?l.source:l.affected,debit:l.amount,credit:'',memo:l.memo||''},{receipt,...dated,account:incoming?l.affected:l.source,debit:'',credit:l.amount,memo:l.memo||''}];});
+        d.lines=d.single.flatMap(l=>{const receipt=crypto.randomUUID();const incoming=l.direction==='in';const dated={...(d.multiple?{date:l.date??d.date}:{}),...(l.reference==null?{}:{reference:l.reference})};return [{receipt,...dated,account:incoming?l.source:l.affected,debit:l.amount,credit:'',memo:l.memo||''},{receipt,...dated,account:incoming?l.affected:l.source,debit:'',credit:l.amount,memo:l.memo||''}];});
         if(!d.lines.length)d.lines=blankDraft().lines;
       }else{
-        const rows=d.lines.filter(l=>l.account||l.debit||l.credit||l.memo||d.multiple&&l.date),result=[],r=rules();
+        const rows=d.lines.filter(l=>l.receipt||l.account||l.debit||l.credit||l.memo||l.reference||d.multiple&&l.date),result=[],r=rules();
         const counts=new Map();
         for(const row of rows)if(row.receipt)counts.set(row.receipt,(counts.get(row.receipt)||0)+1);
         if([...counts.values()].some(count=>count>2)){notice('Keep this receipt in Double Entry to preserve all its posting lines.',true);return false;}
         const amount=v=>Number(String(v||'').replaceAll(',',''));
         for(let i=0;i<rows.length;i+=2){
           const a=rows[i],b=rows[i+1];
+          if(a&&b&&(a.reference??d.reference)!==(b.reference??d.reference)){notice('Keep this receipt in Double Entry to preserve both line references.',true);return false;}
+          const reference=a?.reference==null?{}:{reference:a.reference};
           if(a&&b&&a.receipt!==b.receipt){notice('Each receipt needs its own matching debit and credit lines.',true);return false;}
-          if(a&&b&&(!d.multiple||a.date===b.date)&&[a,b].every(row=>!row.debit&&!row.credit&&!row.memo)&&(!a.account&&!b.account||!a.account&&r.fundIds.includes(b.account)&&r.directions.includes('out')||!b.account&&r.fundIds.includes(a.account)&&r.directions.includes('in'))){
-            const row={...blankDraft().single[0],...(d.multiple?{date:a.date??d.date}:{})};
-            if(a.account||b.account){row.source=a.account||b.account;row.direction=a.account?'in':'out';}
-            result.push(row);
-            continue;
+          if(a&&b&&(!d.multiple||a.date===b.date)&&[a,b].every(row=>!row.debit&&!row.credit)&&(!a.memo||!b.memo||a.memo===b.memo)){
+            const compatible=(id,ids)=>!id||ids.includes(id);
+            const out=r.directions.includes('out')&&compatible(a.account,r.entryIds)&&compatible(b.account,r.fundIds);
+            const incoming=r.directions.includes('in')&&compatible(a.account,r.fundIds)&&compatible(b.account,r.entryIds);
+            if(out||incoming){
+              const defaults=blankDraft().single[0],direction=out&&incoming?(d.single[result.length]?.direction||defaults.direction):out?'out':'in';
+              result.push({...defaults,...reference,...(d.multiple?{date:a.date??d.date}:{}),direction,
+                source:(direction==='out'?b.account:a.account)||defaults.source,affected:(direction==='out'?a.account:b.account)||'',memo:a.memo||b.memo||''});
+              continue;
+            }
           }
           const debit=a&&amount(a.debit)>0&&!amount(a.credit)?a:b&&amount(b.debit)>0&&!amount(b.credit)?b:null;
           const credit=a&&amount(a.credit)>0&&!amount(a.debit)?a:b&&amount(b.credit)>0&&!amount(b.debit)?b:null;
           const outgoing=debit&&credit&&r.directions.includes('out')&&r.fundIds.includes(credit.account)&&r.entryIds.includes(debit.account);
           const incoming=debit&&credit&&r.directions.includes('in')&&r.fundIds.includes(debit.account)&&r.entryIds.includes(credit.account);
           if(!a||!b||!debit||!credit||debit===credit||d.multiple&&(a.date??d.date)!==(b.date??d.date)||amount(debit.debit)!==amount(credit.credit)||!Number.isFinite(amount(debit.debit))||currency(debit.account)!==currency(credit.account)||debit.memo&&credit.memo&&debit.memo!==credit.memo||!outgoing&&!incoming){notice('These lines need Double Entry. Your draft is unchanged; finish it before starting a cashbook entry.',true);return false;}
-          result.push({...(d.multiple?{date:debit.date??d.date}:{}),direction:outgoing?'out':'in',source:outgoing?credit.account:debit.account,affected:outgoing?debit.account:credit.account,amount:debit.debit,memo:debit.memo||credit.memo||''});
+          result.push({...reference,...(d.multiple?{date:debit.date??d.date}:{}),direction:outgoing?'out':'in',source:outgoing?credit.account:debit.account,affected:outgoing?debit.account:credit.account,amount:debit.debit,memo:debit.memo||credit.memo||''});
         }
         d.single=result.length?result:blankDraft().single;
       }

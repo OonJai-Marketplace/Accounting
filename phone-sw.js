@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.342', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.343', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "docs/protocols/index.html?v=143.338",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.316",
@@ -77,14 +77,14 @@ const FILES=[
  "scripts/password-policy14257.js?v=143.67",
  "index.html",
  "phone.html",
- "styles/phone14242.css?v=143.341",
+ "styles/phone14242.css?v=143.343",
  "scripts/reconciliation14345.js?v=143.240",
  "styles/final-review14345.css?v=143.301",
- "scripts/phone-runtime14242.js?v=143.342",
+ "scripts/phone-runtime14242.js?v=143.343",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",
- "scripts/staff-entry14225.js?v=143.341",
+ "scripts/staff-entry14225.js?v=143.343",
  "styles/loading1444.css?v=143.241",
  "scripts/loading1444.js?v=143.241",
  "scripts/password-service14264.js?v=142.84",
