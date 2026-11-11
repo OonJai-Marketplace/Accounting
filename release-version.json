@@ -1,1 +1,1 @@
-{"version": "143.333", "changes": ["Google settings now keep receipt storage and AI Journal / HR. The archive spreadsheet accepts manual Excel and JSON uploads.", "Data Check downloads pending entry details as JSON without opening report signatories.", "Journal numbering shows a local estimate with a saved numbering series when the connection is unavailable."]}
+{"version": "143.334", "changes": ["Post Entry reserves selected vouchers on this device. Active Journal and the voucher register show the confirmed link."]}
