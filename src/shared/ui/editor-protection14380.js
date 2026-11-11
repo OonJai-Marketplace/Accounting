@@ -5,8 +5,8 @@ const fields='input:not([type=hidden]):not([type=button]):not([type=submit]):not
 const states=new WeakMap(),replaying=new WeakSet();
 const visible=n=>n?.isConnected&&!n.hidden&&!!n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden';
 function rootOf(node){let root=node?.closest?.(selector);if(!root)return null;let parent=root.parentElement?.closest(selector);while(parent){root=parent;parent=root.parentElement?.closest(selector)}return root;}
-// Report filters own an explicit OK/Cancel draft and never edit a record.
-const editable=root=>!!root&&!root.matches('dialog.report-dialog299')&&!root.querySelector('#auditCleanup313')&&!!root.querySelector(fields);
+// Report filters own their OK/Cancel draft. The journal generator saves its separate device draft on input and dismissal.
+const editable=root=>!!root&&!root.matches('dialog.report-dialog299,dialog#journalGenerator258')&&!root.querySelector('#auditCleanup313')&&!!root.querySelector(fields);
 const snapshot=root=>JSON.stringify([...root.querySelectorAll(fields)].map(n=>[n.id,n.name,n.type==='checkbox'||n.type==='radio'?n.checked:n.isContentEditable?n.innerHTML:n.value]));
 function track(root){if(!visible(root)||!editable(root))return;let state=states.get(root);if(!state){state={base:snapshot(root),changed:false,confirming:false};states.set(root,state)}return state;}
 function scan(node){if(node.nodeType!==1)return;for(const n of [node,...node.querySelectorAll(selector)]){const root=rootOf(n);if(root)track(root)}}

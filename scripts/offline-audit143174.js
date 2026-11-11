@@ -10,11 +10,50 @@ async function initialize(){const c=context();if(!c.actor){state={audit:[],ids:{
 async function update(fn){const c=context();await initialize();assert(c);const value=await localFirst14333.edit(c.actor,NAME,s=>{assert(c);return fn(s||{audit:[],ids:{},jobs:[]});});assert(c);state=value;loaded=key(c);window.dispatchEvent(new Event('local-work14333'));return value;}
 const own=()=>loaded===key(context())?state:{audit:[],ids:{},jobs:[]};
 function idKey(date,prefix,digits){return date.slice(0,4)+':'+String(prefix).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8)+':'+digits;}
-async function rememberIds(date,prefix,digits,value){if(!Array.isArray(value?.issued)||!Number.isSafeInteger(Number(value.next))||value.issued.some(r=>!Number.isSafeInteger(Number(r.number))))throw Error('Incomplete ID availability snapshot.');await update(s=>{s.ids[idKey(date,prefix,digits)]=value;return s;});}
+async function rememberIds(date,prefix,digits,value){if(!Array.isArray(value?.issued)||value.issued.some(r=>!Number.isSafeInteger(Number(r.number))))throw Error('Incomplete ID availability snapshot.');await update(s=>{s.ids[idKey(date,prefix,digits)]=value;return s;});}
 async function rememberAudit(rows){await update(s=>{s.audit=clone(rows);return s;});}
 function remaining(snapshot){const removed=new Set(own().jobs.filter(j=>j.release).map(j=>j.entry));return snapshot.issued.filter(r=>!removed.has(r.id));}
 function latest(entry){for(const snapshot of Object.values(own().ids)){const records=remaining(snapshot),target=records.find(r=>r.id===entry);if(target&&target.source==='manual'&&Number(target.number)===Math.max(...records.map(r=>Number(r.number))))return true;}return false;}
-function provisional(date,prefix,digits){const saved=own().ids[idKey(date,prefix,digits)];if(!saved)return null;const records=remaining(saved),highest=Math.max(0,...records.map(r=>Number(r.number))),removed=new Set(own().jobs.filter(j=>j.release).map(j=>j.entry)),released=saved.issued.filter(r=>removed.has(r.id)&&Number(r.number)>highest).map(r=>Number(r.number));let next=released.length?Math.min(...released):Math.max(highest+1,Number(saved.next));for(const j of window.journalDurable14385?.pending()||[])if(!j.receipt)for(const p of j.payload?.p_entries||[j.payload])if(p&&idKey(p.p_transaction_date,p.p_prefix,p.p_digits)===idKey(date,prefix,digits))next++;return next;}
+function snapshot(date,prefix,digits){return own().ids[idKey(date,prefix,digits)];}
+function provisional(date,prefix,digits,jobs=window.journalDurable14385?.pending()||[]){
+ if(!context().actor||!date)return null;
+ const series=idKey(date,prefix,digits),stem=series.split(':')[1];
+ const saved=snapshot(date,prefix,digits);
+ const snapshots=Object.entries(own().ids).filter(([k])=>k.split(':')[1]===stem).map(([,v])=>v);
+ const latest=snapshots.sort((a,b)=>String(b.checked_at||'').localeCompare(a.checked_at||''))[0];
+ const removed=new Set(own().jobs.filter(j=>j.release).map(j=>j.entry));
+ const occupied=new Set(),outbox=new Set(),released=new Set(),reserved=new Set();
+ const serial=label=>{
+  if(typeof label!=='string'||!label.startsWith(stem))return 0;
+  const tail=label.slice(stem.length);
+  return /^\d{3,18}$/.test(tail)?Number(tail.slice(2)):0;
+ };
+ function add(set,label){const n=serial(label);if(n>0&&Number.isSafeInteger(n))set.add(n);}
+ const issued=saved?.issued||[],removedLabels=new Set(issued.filter(r=>removed.has(r.id)).map(r=>r.entry_no));
+ for(const label of latest?.retained||[])if(!removedLabels.has(label))add(occupied,label);
+ for(const label of saved?.available||[]){add(released,label);occupied.delete(serial(label));}
+ for(const row of issued)if(!removed.has(row.id))occupied.add(Number(row.number));
+ for(const row of window.entryNumber14257?.history?.()||[])if(!row.localJournal14385&&!removed.has(row.dbEntryId))add(occupied,row.id);
+ for(const label of saved?.reserved||[])add(reserved,label);
+ for(const r of saved?.reviews||[])add(reserved,r.to);
+ let legacy=0;
+ for(const job of jobs){
+  if(job.retired)continue;
+  const entries=job.payload?.p_entries||(job.payload?[job.payload]:[]);
+  for(let i=0;i<Math.max(entries.length,job.receipt?.length||0);i++){
+   const r=job.receipt?.[i],proposal=job.localNumbers335?.[i],p=entries[i];
+   if(r){if(!removed.has(r.entry_id))add(outbox,r.entry_no);}
+   else if(proposal)add(outbox,proposal);
+   else if(p?.p_transaction_date&&idKey(p.p_transaction_date,p.p_prefix,p.p_digits).split(':')[1]===stem)legacy++;
+  }
+ }
+ let high=0;for(const n of occupied)high=Math.max(high,n);for(const n of outbox)high=Math.max(high,n);
+ for(const row of issued)if(removed.has(row.id)&&Number(row.number)>high)released.add(Number(row.number));
+ const choices=[...released].filter(n=>!occupied.has(n)&&!outbox.has(n)&&!reserved.has(n)).sort((a,b)=>a-b);
+ let next=choices.shift()||high+1;
+ while(reserved.has(next)||legacy>0){if(!reserved.has(next))legacy--;next=choices.shift()||Math.max(high+1,next+1);}
+ return next;
+}
 function pending(){return own().jobs.filter(j=>j.status!=='saved');}
 function projectAudit(){const s=own(),deleting=new Set(s.jobs.filter(j=>j.release).map(j=>j.entry)),single=new Set(s.jobs.filter(j=>!j.release).map(j=>j.item.id));let rows=clone(s.audit).filter(r=>['R1','R2','R3','R4','R5','R6','R7','O1','O2'].includes(r.category143324)&&!deleting.has(r.record_id)&&!single.has(r.id));if(offline())for(const row of rows)if(row.voidedJournal143122)row.deletePolicy143124=latest(row.record_id)?'latest':'protected';
  for(const job of window.journalDurable14385?.pending()||[])for(const op of job.changes||[]){if(op.kind!=='void'||op.status==='saved')continue;const ref=job.receipt?.[op.index];if(!ref||deleting.has(ref.entry_id))continue;rows=rows.filter(r=>r.record_id!==ref.entry_id);rows.push({id:'device:'+op.id,category143324:'R5',group143198:'red',table_name:'journal_entries',record_id:ref.entry_id,action:'VOID_PENDING',reason:op.reason+' · Saved on this device; sync pending',old_data:{...op.expected,entry_no:ref.entry_no},new_data:{entry_no:ref.entry_no,status:'voided'},actor_id:context().actor,created_at:op.created,voidedJournal143122:true,voidRequest143174:op.id,deletePolicy143124:latest(ref.entry_id)?'latest':'protected'});}
@@ -40,6 +79,6 @@ function findings(){return pending().map(j=>({id:j.id,kind:'journal',periods:[],
 function validateRecovery(j){const a=j?.args;if(!j?.id||a?.p_request_key!==j.id||!['audit_log','record_deletions108'].includes(a.p_source)||typeof a.p_id!=='string'||!j.item||(!a.p_void_request&&(!a.p_expected||String(a.p_expected.id)!==a.p_id))||a.p_void_request&&(!a.p_entry_id||a.p_source!=='audit_log'))throw Error('Incomplete audit deletion recovery.');return j;}
 async function verifyRecovery(j){validateRecovery(j);const c=context();assert(c);if(offline())throw Error('Connect to verify deletion recovery.');const r=await c.db.rpc('audit_delete_receipt143174',{p_request_key:j.id});assert(c);if(r.error)throw r.error;const a=j.args,payload={source:a.p_source,id:a.p_id,expected:a.p_expected,void_request:a.p_void_request,entry_id:a.p_entry_id};return !!r.data&&localFirst14333.canonical(r.data.payload)===localFirst14333.canonical(payload)&&r.data.result?.request_key===j.id;}
 async function restoreRecovery(j){validateRecovery(j);await update(s=>{if(!s.jobs.some(x=>x.id===j.id))s.jobs.push({...clone(j),status:'pending',receipt:null});return s;});}
-window.offlineAudit143174={validateRecovery,verifyRecovery,restoreRecovery,initialize,rememberIds,rememberAudit,projectAudit,queueDelete,sync,beforePost,pending,provisional,latest,findings,offline};
+window.offlineAudit143174={validateRecovery,verifyRecovery,restoreRecovery,initialize,rememberIds,rememberAudit,projectAudit,queueDelete,sync,beforePost,pending,snapshot,provisional,latest,findings,offline};
 window.addEventListener('storage',()=>{loaded='';});
 })();

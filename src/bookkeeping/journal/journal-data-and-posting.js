@@ -41,7 +41,7 @@ submitJournalEntry = async function() {
     const [date,g]=groups[0],oldLines=JournalModule.entries.filter(row=>row.id===JournalModule.editingEntryId);
     if(oldLines.some(row=>row.archived)||PeriodReview.status(String(oldLines[0]?.date||date).slice(0,7))!=='open'){showAppNotification('Archived Period','Only open-period transactions can be edited directly.',true);return}
     JournalModule.pendingLines=g.lines.map(line=>({postingDate:date,date:line.line_date||date,account:line.account,accountId:line.account.id,currency:line.currency,memo:line.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak}));
-    document.getElementById('txtEditReason').value='';openModal('modalEditReason');return;
+    document.getElementById('txtEditReason').value=window.entryNumber14257?.correctionReason?.(JournalModule.editingEntryId)||'';openModal('modalEditReason');return;
   }
   if(groups.length>1||window.journalBatch1440?.hasPending())return window.journalBatch1440.post(groups);
   for(const [date,g] of groups){

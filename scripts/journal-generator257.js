@@ -306,9 +306,26 @@ function selectTemplate(id){
 }
 function message(text,error=false){const host=dialog?.querySelector('[data-status]');if(host){host.textContent=text+(storageWarning?' '+storageWarning:'');host.classList.toggle('has-error258',error);}}
 function close(){
- const previous=dialog;if(!previous)return;revision++;job?.end?.();job=null;busy=false;verified='';
- window.dropdown1434?.close();dialog=null;previous.close();previous.remove();persist();
- $('generateJournal258')?.focus({preventScroll:true});
+ const previous=dialog;if(!previous)return;
+ const pending=job;dialog=null;job=null;revision++;busy=false;verified='';
+ try{if(previous.open)previous.close();}finally{
+  previous.remove();persist();
+  try{window.dropdown1434?.close?.();}finally{pending?.end?.();$('generateJournal258')?.focus({preventScroll:true});}
+ }
+}
+function dismissible(node){
+ const outside=e=>{
+  if(e.target!==node)return false;
+  const b=node.getBoundingClientRect();
+  return e.clientX<b.left||e.clientX>=b.right||e.clientY<b.top||e.clientY>=b.bottom;
+ };
+ let backdrop=false;
+ node.addEventListener('pointerdown',e=>{backdrop=outside(e);});
+ node.addEventListener('pointercancel',()=>{backdrop=false;});
+ node.addEventListener('click',e=>{if(backdrop&&outside(e))close();backdrop=false;});
+ node.querySelector('[data-close]').addEventListener('click',e=>{e.preventDefault();close();});
+ node.addEventListener('cancel',e=>{e.preventDefault();close();});
+ node.addEventListener('close',()=>{if(dialog===node)close();});
 }
 function templateChoices(query=''){
  const host=dialog.querySelector('[data-template-options]'),field=dialog.querySelector('[data-template-query]');host.replaceChildren();
@@ -413,15 +430,15 @@ function open(){
  state.drafts||={};state.rates||={};if(!definitions().some(t=>t.id===state.template))state.template='blank';
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
  dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Choose a template, or enter the accounts and amounts you know. Generate detects a matching template and fills the remaining amounts. Enter the original book rate for a partial balance payment.</p><div data-matches></div><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p>';
- document.body.append(dialog);render();
+ dismissible(dialog);document.body.append(dialog);
+ try{render();}catch(e){close();showCenterStatus(e.message,true);return;}
  dialog.querySelector('[data-template]').onchange=e=>selectTemplate(e.target.value);
  const query=dialog.querySelector('[data-template-query]'),list=dialog.querySelector('[data-template-options]');
  query.onfocus=()=>{query.select();templateChoices();};query.onclick=()=>{if(query.value===definitions().find(t=>t.id===state.template)?.name)query.select();templateChoices(query.value===definitions().find(t=>t.id===state.template)?.name?'':query.value);};query.oninput=()=>templateChoices(query.value);
- query.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.setAttribute('aria-expanded','false');}else if(e.key==='ArrowDown'){e.preventDefault();if(list.hidden)templateChoices();list.querySelector('button')?.focus();}else if(e.key==='Enter'){e.preventDefault();if(list.querySelectorAll('button').length===1)list.querySelector('button').click();}};
+ query.onkeydown=e=>{if(e.key==='Escape'&&!list.hidden){e.preventDefault();e.stopPropagation();list.hidden=true;query.setAttribute('aria-expanded','false');}else if(e.key==='ArrowDown'){e.preventDefault();if(list.hidden)templateChoices();list.querySelector('button')?.focus();}else if(e.key==='Enter'){e.preventDefault();if(list.querySelectorAll('button').length===1)list.querySelector('button').click();}};
  list.onkeydown=e=>{const buttons=[...list.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.focus();list.hidden=true;query.setAttribute('aria-expanded','false');}};
  dialog.addEventListener('pointerdown',e=>{if(!e.target.closest('.generator-template268')){list.hidden=true;query.setAttribute('aria-expanded','false');}});
  dialog.querySelector('[data-date]').onchange=e=>{state.date=e.target.value;invalidate();for(const line of state.rows)if(line.autoBook||!line.book_rate_lak)void suggestBook292(line);};dialog.querySelector('[data-memo]').oninput=e=>{state.memo=e.target.value;invalidate();};
- dialog.querySelector('[data-close]').onclick=close;dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
  dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();
 }
 function ready(){
@@ -431,7 +448,7 @@ function ready(){
  window.addEventListener('page113',context);window.addEventListener('local-work14333',context);document.addEventListener('visibilitychange',context);new MutationObserver(context).observe($('loginGate')||document.body,{attributes:true,attributeFilter:['class','hidden']});
  // The shared editor moves into personal workspaces after page navigation.
  const card=$('journalEntry98');if(card)new MutationObserver(context).observe(card,{attributes:true,attributeFilter:['data-personal-owner1437']});
- style.textContent+='#generateJournal258[hidden]{display:none!important}';context();
+ style.textContent+='#generateJournal258[hidden]{display:none!important}#journalGenerator258>header{position:sticky;top:-1px;background:#fff;z-index:4}#journalGenerator258 [data-close]{min-height:44px;touch-action:manipulation}#journalGenerator258{inset:auto;left:var(--feedback-x14295,50%);top:var(--feedback-y14295,50%);transform:translate(-50%,-50%);margin:0;width:min(1280px,calc(var(--feedback-width14295,100vw) - 24px));max-height:calc(var(--feedback-height14295,100dvh) - 24px)}';context();
 }
 window.GuidedJournal258={open};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
