@@ -14,30 +14,42 @@
     if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh')return await refresh();if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='mode-single'||name==='mode-double'){if(!changeMode243(name==='mode-single'?'single':'double'))return;}
-    if(name==='multiple-dates'||name==='choose-dates'){
-      const draft=S.draft, rows=draft.mode==='single'?draft.single:draft.lines;
-      if(name==='choose-dates'){
-        const dates=await chooseReceiptDates(rows.at(-1)?.date||draft.date);
-        if(!dates||!current(owner,epoch)||S.draft!==draft||S.saving)return;
-        appendReceiptDates(draft,dates);
-      }else{
-        if(draft.multiple&&rows.some(row=>row.date&&row.date!==draft.date)){
-          if(!await confirmDialog('Use one transaction date?','Every receipt in this draft will use '+draft.date+'.','Use one date'))return;
-          if(!current(owner,epoch)||S.draft!==draft||S.saving)return;
-        }
-        draft.multiple=!draft.multiple;
-        if(!draft.multiple)for(const row of rows)delete row.date;
+    const d=S.draft, single=d.mode==='single', rows=single?d.single:d.lines;
+    if(name==='calculator'){await phoneCalculator();return;}
+    if(name==='entry-date'){
+      const selected=await chooseReceiptDate(d);
+      if(!selected||!current(owner,epoch)||S.draft!==d||S.saving)return;
+      if(!selected.multiple&&d.multiple&&rows.some(row=>cardDate(d,row)!==selected.date)){
+        if(!await confirmDialog('Use one date for all receipts?',dateLabel(selected.date),'Use one date')||!current(owner,epoch)||S.draft!==d||S.saving)return;
       }
+      identifyReceipts(d);
+      d.multiple=selected.multiple;
+      d.date=selected.date;
+      for(const row of rows){if(d.multiple)row.date??=d.date;else delete row.date;}
     }
-    if(name==='direction'){const direction=S.draft.single[0]?.direction==='in'?'out':'in';if(!rules().directions.includes(direction))return;for(const l of S.draft.single){l.direction=direction;if(!rules().entryIds.includes(l.affected))l.affected='';}}
-    if(name==='add-line'){
-      const kind=S.draft.mode==='double'?'lines':'single', rows=S.draft[kind];
-      const row=blankDraft()[kind][0];
-      if(kind==='single')row.direction=rows[0]?.direction||row.direction;
-      if(S.draft.multiple)row.date=rows.at(-1)?.date||S.draft.date;
-      rows.push(row);
+    if(name==='direction-out'||name==='direction-in'){
+      const direction=name.slice(10);
+      if(!single||!rules().directions.includes(direction))return;
+      for(const row of rows)row.direction=direction;
     }
-    if(name==='remove-line'){const rows=S.draft[S.draft.mode==='double'?'lines':'single'];if(rows.length<=(S.draft.mode==='double'?2:1)){notice('Keep at least '+(S.draft.mode==='double'?'two journal lines.':'one entry line.'),true);return;}rows.splice(index,1);}
+    if(name==='add-receipt'){
+      const date=cardDate(d,rows.at(-1)), defaults=blankDraft();
+      if(single)rows.push({...defaults.single[0],direction:rows[0]?.direction||defaults.single[0].direction,...(d.multiple?{date}:{})});
+      else {const receipt=crypto.randomUUID();rows.push(...defaults.lines.map(row=>({...row,receipt,...(d.multiple?{date}:{})})));}
+    }
+    if(name==='add-line'&&!single){
+      const row=rows[index];
+      rows.splice(rows.findLastIndex(l=>l.receipt===row.receipt)+1,0,{...blankDraft().lines[0],receipt:row.receipt,...(d.multiple?{date:cardDate(d,row)}:{})});
+    }
+    if(name==='remove-receipt'){
+      const cards=identifyReceipts(d),indices=cards.find(group=>group.includes(index));
+      if(cards.length<=1||!indices)return;
+      for(const i of [...indices].reverse())rows.splice(i,1);
+    }
+    if(name==='remove-line'&&!single){
+      const group=receiptCards(d).find(group=>group.includes(index));
+      if(group?.length>2)rows.splice(index,1);
+    }
     if(name==='clear-draft'){if(draftFilled()&&!await confirmDialog('Clear the draft?','This only clears the unfinished form. Saved and pending entries are kept.','Clear'))return;if(!current(owner,epoch))return;S.draft=blankDraft();}
     saveDraftLater();render();
   }catch(e){if(current(owner,epoch))notice(e.message,true);}}

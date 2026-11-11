@@ -32,15 +32,19 @@
     const d=S.draft;if(!d||S.saving)return false;
     if(next!==d.mode){
       if(next==='double'){
-        d.lines=d.single.flatMap(l=>{const incoming=l.direction==='in';const dated=d.multiple?{date:l.date??d.date}:{};return [{...dated,account:incoming?l.source:l.affected,debit:l.amount,credit:'',memo:l.memo||''},{...dated,account:incoming?l.affected:l.source,debit:'',credit:l.amount,memo:l.memo||''}];});
+        d.lines=d.single.flatMap(l=>{const receipt=crypto.randomUUID();const incoming=l.direction==='in';const dated=d.multiple?{date:l.date??d.date}:{};return [{receipt,...dated,account:incoming?l.source:l.affected,debit:l.amount,credit:'',memo:l.memo||''},{receipt,...dated,account:incoming?l.affected:l.source,debit:'',credit:l.amount,memo:l.memo||''}];});
         if(!d.lines.length)d.lines=blankDraft().lines;
       }else{
         const rows=d.lines.filter(l=>l.account||l.debit||l.credit||l.memo||d.multiple&&l.date),result=[],r=rules();
+        const counts=new Map();
+        for(const row of rows)if(row.receipt)counts.set(row.receipt,(counts.get(row.receipt)||0)+1);
+        if([...counts.values()].some(count=>count>2)){notice('Keep this receipt in Double Entry to preserve all its posting lines.',true);return false;}
         const amount=v=>Number(String(v||'').replaceAll(',',''));
         for(let i=0;i<rows.length;i+=2){
           const a=rows[i],b=rows[i+1];
-          if(d.multiple&&a?.date&&a.date===b?.date&&[a,b].every(row=>!row.debit&&!row.credit&&!row.memo)&&(!a.account&&!b.account||!a.account&&r.fundIds.includes(b.account)&&r.directions.includes('out')||!b.account&&r.fundIds.includes(a.account)&&r.directions.includes('in'))){
-            const row={...blankDraft().single[0],date:a.date};
+          if(a&&b&&a.receipt!==b.receipt){notice('Each receipt needs its own matching debit and credit lines.',true);return false;}
+          if(a&&b&&(!d.multiple||a.date===b.date)&&[a,b].every(row=>!row.debit&&!row.credit&&!row.memo)&&(!a.account&&!b.account||!a.account&&r.fundIds.includes(b.account)&&r.directions.includes('out')||!b.account&&r.fundIds.includes(a.account)&&r.directions.includes('in'))){
+            const row={...blankDraft().single[0],...(d.multiple?{date:a.date??d.date}:{})};
             if(a.account||b.account){row.source=a.account||b.account;row.direction=a.account?'in':'out';}
             result.push(row);
             continue;

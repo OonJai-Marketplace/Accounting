@@ -10,7 +10,7 @@
           if(!current(owner,epoch)||automatic&&!phoneSyncIdle14351())return;
           try{
             if(q.params.p_owner!==owner||q.owner!==owner)throw fail('This entry belongs to a different account.');
-            if(q.legacy){for(const date of new Set(q.params.p_items.map(l=>l.date))){const draft=payloadDraft({...q.params,p_items:q.params.p_items.filter(l=>l.date===date)});StaffEntry14225.prepare(draft,accounts(),rules());}}else StaffEntry14225.prepare(q.draft,accounts(),rules());
+            if(q.legacy){for(const date of new Set(q.params.p_items.map(l=>l.date))){const draft=payloadDraft({...q.params,p_items:q.params.p_items.filter(l=>l.date===date)});StaffEntry14225.prepare(draft,accounts(),rules());}}else if(q.params.p_snapshot.receiptCards341)preparePhoneEntry(q.draft);else StaffEntry14225.prepare(q.draft,accounts(),rules());
             const response=await rpc('save_staff_editor1437',q.params);
             if(!Array.isArray(response?.line_ids)||response.line_ids.length!==q.params.p_items.length||response.line_ids.some(id=>!id)||new Set(response.line_ids).size!==response.line_ids.length)throw fail('The complete save was not confirmed. Retry with the same reference.','INVALID_RESPONSE');
             const next=await updateQueue(owner,q.key,{status:'confirmed',receipt:response},false);clearLegacy(q);if(current(owner,epoch))S.data.queue=next.queue;

@@ -62,8 +62,8 @@ async function postBoth(fixture, device) {
   }
   await open();
   const methods = page.getByRole('group', {name:'Transaction entry method'});
-  const single = methods.getByRole('button',{name:'Single Entry (Cashbook)', exact:true});
-  const double = methods.getByRole('button',{name:'Double Entry Journal', exact:true});
+  const single = methods.getByRole('button',{name:phone?'Cashbook':'Single Entry (Cashbook)', exact:true});
+  const double = methods.getByRole('button',{name:phone?'Double Entry':'Double Entry Journal', exact:true});
   const fund = me.user_permissions.assigned_fund_account_ids[0];
   const account = me.user_permissions.destination_account_ids[0];
   for (const [index, mode] of ['single','double'].entries()) {

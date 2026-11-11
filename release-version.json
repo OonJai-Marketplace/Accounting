@@ -1,1 +1,1 @@
-{"version": "143.340", "changes": ["Journal templates use transaction names. Generate uses the current entry, displays LAK mapping and FX lines, and lets you compare posted journals."]}
+{"version": "143.341", "changes": ["Phone receipt cards keep dates and line memos with each receipt, with a calculator and live balance feedback."]}

@@ -20,7 +20,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       assert.equal(await picker.inputValue(), account);
     };
     const switchMode = async name => {
-      await page.locator('#postForm summary').click();
+      await page.getByText('Entry options',{exact:true}).click();
       await page.getByRole('button', {name, exact: true}).click();
     };
 
@@ -28,7 +28,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
     await selectAccount(2, funds[0]);
     await page.locator('[data-field=debit]').first().fill('100');
     await page.locator('[data-field=credit]').nth(1).fill('100');
-    await switchMode('Single Entry (Cashbook)');
+    await switchMode('Cashbook');
     assert.equal(await page.locator('[data-field=source]').inputValue(), funds[0]);
     assert.equal(await page.locator('[data-field=affected]').inputValue(), categories[0]);
     await page.locator('[data-field=amount]').fill('2500');
@@ -39,7 +39,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
     await selectAccount(2, funds[0]);
     assert.equal(await page.locator('[data-field=debit]').first().inputValue(), '2500');
     assert.equal(await page.locator('[data-field=credit]').nth(1).inputValue(), '2500');
-    await switchMode('Single Entry (Cashbook)');
+    await switchMode('Cashbook');
     assert.equal(await page.locator('[data-field=amount]').inputValue(), '2500');
     assert.equal(await page.locator('[data-field=memo][data-index]').inputValue(), 'Phone retained');
     assert.deepEqual(errors, []);

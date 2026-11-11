@@ -78,12 +78,12 @@
         if (!(amount > 0)) throw Error('Enter a positive amount on each entry line.');
         const date=receiptDate(l), description=l.description===undefined?memo:String(l.description).trim();
         if (!description) throw Error('Add the General Description for each entry.');
-        add(l.direction, l.source, l.affected, amount, [description,l.memo].filter(Boolean).join(' — '),date,l.reference||data.reference||'');
+        add(l.direction, l.source, l.affected, amount, data.receiptEditor341 ? String(l.memo||'').trim() || description : [description,l.memo].filter(Boolean).join(' — '),date,l.reference||data.reference||'');
         single.push({...l, amount: String(amount), date, description});
       }
     }
     if (!items.length) throw Error('Enter at least one complete transaction.');
-    return {items, snapshot: {mode: data.mode === 'double' ? 'double' : 'single', date: data.date, memo, reference: data.reference || '', multiple: !!data.multiple || items.some(item=>item.date!==data.date), rows, single, owner: '', journal: '', local: false, editIds: data.editIds || [], requestKey: data.requestKey, components1437: items}};
+    return {items, snapshot: {...(data.receiptEditor341?{receiptEditor341:true}:{}), mode: data.mode === 'double' ? 'double' : 'single', date: data.date, memo, reference: data.reference || '', multiple: !!data.multiple || items.some(item=>item.date!==data.date), rows, single, owner: '', journal: '', local: false, editIds: data.editIds || [], requestKey: data.requestKey, components1437: items}};
   }
   const api = {prepare};
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

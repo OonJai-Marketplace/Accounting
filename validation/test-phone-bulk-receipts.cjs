@@ -74,26 +74,24 @@ async function bulk(fixture) {
   const button=name=>page.getByRole('button',{name,exact:true});
   const field=(name,i)=>page.locator('[data-field="'+name+'"]'+(i===undefined?':not([data-index])':'[data-index="'+i+'"]'));
   const receiptDates=()=>page.locator('input[data-field=date][data-index]').evaluateAll(els=>els.map(el=>el.value));
-  async function addDates() {
-    await field('date').fill('2026-11-15');
+  async function setMultiple() {
+    await page.locator('[data-action=entry-date]').click();
     await button('Multiple dates').click();
-    await button('Choose dates').click();
-    await page.locator('[data-receipt-date="2026-11-03"]').click();
-    await button('Next month').click();
-    await page.locator('[data-receipt-date="2026-12-02"]').click();
-    await button('Previous month').click();
-    assert.equal(await page.locator('[data-receipt-date="2026-11-03"]').getAttribute('aria-pressed'),'true');
-    await button('Add dates (2)').click();
-    await page.waitForFunction(()=>document.querySelectorAll('[data-index][data-field=date]').length>=2 && document.querySelector('[data-index][data-field=date]').value==='2026-11-03');
+    assert.equal(await page.locator('.receipt-calendar').isVisible(),false);
+    await button('Apply').click();
+    await field('date',0).waitFor({state:'visible'});
   }
-  await button('Single Entry (Cashbook)').click();
-  await addDates();
-  assert.deepEqual(await receiptDates(),['2026-11-03','2026-12-02']);
-  await button('Multiple dates').click();
+  await button('Cashbook').click();
+  await setMultiple();
+  await field('date',0).fill('2026-11-03');
+  await button('+ Add receipt').click();
+  await field('date',1).fill('2026-12-02');
+  await button('+ Add receipt').click();
+  await page.locator('[data-action=entry-date]').click();
+  await button('One date').click();
+  await button('Apply').click();
   await button('Cancel').click();
-  assert.deepEqual(await receiptDates(),['2026-11-03','2026-12-02']);
-  // Multiple receipts can also share a date.
-  await button('Add another entry line').click();
+  assert.deepEqual(await receiptDates(),['2026-11-03','2026-12-02','2026-12-02']);
   for (let i=0;i<3;i++){
     await field('source',i).selectOption(fund);
     await field('affected',i).selectOption(account);
@@ -113,17 +111,31 @@ async function bulk(fixture) {
   await button('Close').click();
   await context.setOffline(false);
 
-  await button('Double Entry Journal').click();
-  await addDates();
-  assert.deepEqual(await receiptDates(),['2026-11-03','2026-11-03','2026-12-02','2026-12-02']);
+  await button('Double Entry').click();
+  await setMultiple();
+  await field('date',0).fill('2026-11-03');
+  await button('+ Add receipt').click();
+  assert.deepEqual(await receiptDates(),['2026-11-03','2026-11-03']);
   for(let i=0;i<4;i++){
     await field('account',i).selectOption(i%2?fund:account);
     await field(i%2?'credit':'debit',i).fill(String(i<2?1200:3400));
+    await field('memo',i).fill(['Kitchen items','Cash payment','Transport','Cash fare'][i]);
   }
+  // Offsetting differences between same-day receipts must never cancel each other.
+  await field('credit',1).fill('1100');
+  await field('credit',3).fill('3500');
+  assert.match(await page.locator('#liveReceiptBalance').innerText(),/100.00 credit/);
+  assert.match(await page.locator('[data-card-balance="1"]').innerText(),/100.00 debit/);
   await field('memo').fill('Journal batch');
-  await field('date',1).fill('2026-12-02');
   assert.match(await page.locator('#entryValidation').innerText(),/unbalanced/);
-  await field('date',1).fill('2026-11-03');
+  await field('credit',1).fill('1200');
+  await button('Calculator').click();
+  for(const key of ['3','5','0','0','−','1','0','0','='])await page.locator('[data-math="'+key+'"]').click();
+  assert.equal(await page.locator('.receipt-calc-display').innerText(),'3400');
+  await page.locator('#receiptCalcTarget').selectOption('7');
+  await button('Use amount').click();
+  await page.waitForFunction(()=>document.querySelector('#liveReceiptBalance').textContent.includes('receipts balanced'));
+  assert.equal(await field('credit',3).inputValue(),'3400');
   assert.match(await page.locator('#entryValidation').innerText(),/2 complete entries/);
   const confirmed=page.waitForResponse(r=>r.url().includes('/rpc/save_staff_editor1437')&&r.request().postDataJSON().p_snapshot.mode==='double'&&r.ok());
   await page.locator('#postForm button[type=submit]').click();
@@ -139,9 +151,35 @@ async function bulk(fixture) {
     assert.deepEqual(batch.p_snapshot.components1437,batch.p_items);
   }
   assert.deepEqual(batches[0].p_items.map(l=>[l.date,l.amount]),[['2026-11-03',1000],['2026-12-02',1001],['2026-12-02',1002]]);
-  assert.deepEqual(batches[1].p_items.map(l=>[l.date,l.amount]),[['2026-11-03',1200],['2026-12-02',3400]]);
+  assert.deepEqual(batches[1].p_items.map(l=>[l.date,l.amount]),[['2026-11-03',1200],['2026-11-03',3400]]);
+  assert.equal(batches[0].p_snapshot.receiptCards341.length,3);
+  assert.equal(batches[0].p_snapshot.receiptCards341[1].single[0].memo,'Receipt 2');
+  assert.equal(batches[0].p_items[1].memo,'Receipt 2');
+  assert.equal(batches[1].p_snapshot.receiptCards341.length,2);
+  assert.deepEqual(batches[1].p_snapshot.receiptCards341.map(c=>[c.memo,c.rows.map(r=>r.memo)]),
+    [['Journal batch',['Kitchen items','Cash payment']],['Journal batch',['Transport','Cash fare']]]);
+  const journalId=crypto.randomUUID(),batch=batches[1];
+  const saved=batch.p_snapshot.receiptCards341.flatMap((snapshot,k)=>snapshot.components1437.map((item,i)=>({
+    id:crypto.randomUUID(),staff_journal_id:journalId,line_no:k*10+i+1,status:'draft',transaction_date:item.date,
+    fund_account_id:item.fund,account_id:item.account,currency_code:'LAK',direction:item.direction,amount:item.amount,
+    memo:item.memo,reference:item.reference,editor_group1437:batch.p_key+':r'+(k+1)+':'+item.date,editor_snapshot1437:snapshot
+  })));
+  await page.route('**/rest/v1/staff_journals?**',route=>route.fulfill({json:[{id:journalId,owner_id:me.id,period_start:'2026-11-01',status:'draft'}]}));
+  await page.route('**/rest/v1/staff_journal_lines?**',route=>route.fulfill({json:saved}));
+  await page.evaluate(()=>PhoneWorkspace14242.refresh());
+  await page.locator('#bottom [data-page=entries]').click();
+  const entries=page.locator('details.entry');
+  assert.equal(await entries.count(),2);
+  await entries.first().locator('summary').click();
+  assert.match(await entries.first().locator('.entry-body').innerText(),/Kitchen items/);
+  assert.match(await entries.first().locator('.entry-body').innerText(),/Cash payment/);
+  await entries.first().getByRole('button',{name:'Edit',exact:true}).click();
+  assert.equal(await field('memo').inputValue(),'Journal batch');
+  assert.equal(await field('memo',0).inputValue(),'Kitchen items');
+  assert.equal(await field('memo',1).inputValue(),'Cash payment');
+  assert.equal(await page.locator('[data-receipt-card]').count(),1);
   await context.close();
-  console.log('PASS multi-month picker, repeated receipt date, dated cashbook and balanced journal, offline queue, and one save request per batch');
+  console.log('PASS per-receipt date picker, same-day separation, calculator, live per-receipt balance and memos; multi-month picker, repeated receipt date, dated cashbook and balanced journal, offline queue, and one save request per batch');
 }
 
 (async()=>{
