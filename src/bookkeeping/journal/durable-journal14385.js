@@ -16,13 +16,33 @@ function desired(j,index){let value=j.entries[index];for(const op of j.changes||
 function changed(){window.dispatchEvent(new Event('local-work14333'));}
 async function read(c){assert(c);const value=await localFirst14333.edit(c.actor,name);assert(c);if(value&&!Array.isArray(value))throw Error('Journal device queue is unreadable. Keep browser data for recovery.');return value||[]}
 async function mutate(c,fn){assert(c);const value=await localFirst14333.edit(c.actor,name,list=>{assert(c);return fn(list||[])});assert(c);rows=value;loaded=identity(c);error='';changed();return value}
-async function initialize(){const c=context();if(!c.actor){rows=[];loaded='';return}if(loaded===identity(c))return;if(loading?.key===identity(c))return loading.promise;rows=[];
- const promise=(async()=>{try{rows=await read(c);loaded=identity(c);
+function missingNumbers(j){
+ return active(j)&&!j.receipt&&j.payload&&(j.payload.p_entries||[j.payload]).some((p,i)=>p.p_transaction_date&&!j.localNumbers335?.[i]);
+}
+// Allocate while holding the device queue transaction, including numbers already issued in another tab.
+function assignNumbers(list){
+ const jobs=list.filter(missingNumbers);
+ if(!jobs.length)return list;
+ for(const job of jobs)job.localNumbers335||=[];
+ const reservations=list.filter(active).map(j=>({receipt:j.receipt,localNumbers335:j.localNumbers335}));
+ for(const job of jobs){
+  for(const [i,p] of (job.payload.p_entries||[job.payload]).entries()){
+   if(job.localNumbers335[i]||!p.p_transaction_date)continue;
+   const prefix=String(p.p_prefix||ApplicationSettings.accounting?.journalPrefix||'OJM').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
+   const digits=Math.max(3,Math.min(9,Number(p.p_digits||ApplicationSettings.accounting?.journalDigits)||4));
+   const number=offlineAudit143174.provisional(p.p_transaction_date,prefix,digits,reservations);
+   if(number)job.localNumbers335[i]=formatEntryId143114(prefix,number,p.p_transaction_date,digits);
+  }
+ }
+ return list;
+}
+async function initialize(){const c=context();if(!c.actor){rows=[];loaded='';return}if(loading?.key===identity(c))return loading.promise;if(loaded===identity(c))return;rows=[];
+ const promise=(async()=>{try{await Promise.all([window.offlineAudit143174.initialize(),window.entryNumber14257.prepareLocalHistory()]);rows=await read(c);loaded=identity(c);
  // Import old durable requests without changing their idempotency references.
  const legacy=localFirst14333.mainLoad(c.actor);const batch=window.journalBatch1440?.getJob();
  const imports=legacy.filter(j=>j.payload).map(j=>({id:j.id,payload:clone(j.payload),entries:(j.payload.p_entries||[j.payload]).map(content),receipt:j.receipt||null,changes:(j.receipt||[]).flatMap((r,index)=>j.voidedEntryIds?.includes(r.entry_id)?[{id:'legacy-void:'+r.entry_id,index,kind:'void',value:null,status:'saved',expected:content((j.payload.p_entries||[j.payload])[index]),reason:'Previously confirmed void'}]:[]),status:j.receipt?'saved':'pending',created:j.created||new Date().toISOString()}));
  if(batch&&!batch.completed&&batch.protocol14228)imports.push({id:batch.id,payload:{p_request_key:batch.id,p_entries:clone(batch.payloads)},entries:batch.payloads.map(content),receipt:batch.result||null,changes:[],status:batch.result?'saved':'pending',created:batch.created});
- if(imports.length)await mutate(c,list=>{for(const j of imports)if(!list.some(x=>x.id===j.id))list.push(j);return list});
+ if(imports.length||rows.some(missingNumbers))await mutate(c,list=>{for(const j of imports)if(!list.some(x=>x.id===j.id))list.push(j);return assignNumbers(list)});
  for(const j of imports){localFirst14333.mainFinish(c.actor,j.id);window.pendingPosts99?.delete(j.id)}
  if(batch&&imports.some(j=>j.id===batch.id))window.journalBatch1440?.retire14385?.(batch.id);
  error='';changed();}catch(e){if(valid(c)){error=e.message;loaded='';changed()}throw e}})();loading={key:identity(c),promise};try{await promise}finally{if(loading?.promise===promise)loading=null}}
@@ -30,15 +50,7 @@ function ownRows(){return loaded===identity(context())?rows:[]}
 function pending(){return ownRows().filter(active)}
 async function create(payload,options={}){if(window.workspaceRequest138?.target)throw Error('Return to your own accounting workspace before posting.');const c=context();await initialize();assert(c);if(window.journalBatch1440?.hasPending())throw Error('An older unfinished batch requires review before another posting.');const j={voucher:options.voucher||null,id:payload.p_request_key,payload:clone(payload),entries:(payload.p_entries||[payload]).map(content),receipt:null,changes:[],status:'pending',created:new Date().toISOString()};
  await window.offlineAudit143174?.initialize();
- await mutate(c,list=>{const old=list.find(x=>x.id===j.id);if(old){if(canonical(old.payload)!==canonical(j.payload))throw Error('Posting reference already belongs to different data.');return list}if(j.voucher&&list.some(other=>active(other)&&other.voucher===j.voucher&&!other.voucherSkipped))throw Error('This voucher already belongs to a saved journal on this device. Open Data Check to review its sync status.');const allocated=[];
- const batch=j.payload.p_entries||[j.payload];
- for(const p of batch){
-  const number=window.offlineAudit143174?.provisional(p.p_transaction_date,p.p_prefix,p.p_digits,[...list,{localNumbers335:allocated,payload:{p_entries:batch.slice(0,allocated.length)}}]);
-  const stem=String(p.p_prefix||'OJM').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);
-  allocated.push(number?stem+p.p_transaction_date.slice(2,4)+String(number).padStart(p.p_digits,'0'):null);
- }
- j.localNumbers335=allocated;
- return [...list,j]});return j.id}
+ await mutate(c,list=>{const old=list.find(x=>x.id===j.id);if(old){if(canonical(old.payload)!==canonical(j.payload))throw Error('Posting reference already belongs to different data.');return list}if(j.voucher&&list.some(other=>active(other)&&other.voucher===j.voucher&&!other.voucherSkipped))throw Error('This voucher already belongs to a saved journal on this device. Open Data Check to review its sync status.');list.push(j);return assignNumbers(list)});return j.id}
 function locate(lines){const first=lines[0];if(!first)return null;const j=pending().find(j=>j.id===first.journalJob14385||j.receipt?.some(r=>r.entry_id===first.dbEntryId));if(j){const index=first.journalIndex14385??j.receipt.findIndex(r=>r.entry_id===first.dbEntryId);return {id:j.id,index}}return null}
 async function change(lines,kind,value,reason,expected){if(window.workspaceRequest138?.target)throw Error('Return to your own accounting workspace before editing.');const c=context();await initialize();assert(c);if(!reason.trim())throw Error('A reason is required.');if(!lines.length)throw Error('Entry is no longer available.');if(kind==='void'&&!canVoidTransactions()||kind==='revise'&&!access113.can('journal','post'))throw Error('Current journal permission required.');
  const target=locate(lines),first=lines[0],id=target?.id||'remote:'+first.dbEntryId,index=target?.index||0;if(!target&&!first.dbEntryId)throw Error('The original journal reference is missing.');
@@ -51,13 +63,16 @@ async function change(lines,kind,value,reason,expected){if(window.workspaceReque
 async function patch(c,id,fn){return mutate(c,list=>{const j=list.find(j=>j.id===id);if(j)fn(j);return list})}
 function receipt(data,count){if(!Array.isArray(data)||data.length!==count||data.some(r=>!r.entry_id||!r.entry_no)||new Set(data.map(r=>r.entry_id)).size!==count)throw Error('Complete database receipt not received. The saved reference will be retried.');return data}
 async function call(c,rpc,args){assert(c);const r=await offline14239.request(c.client.rpc(rpc,args));assert(c);if(r.error)throw r.error;return r.data}
-async function sync({explicit=false,targetId=null}={}){const c=context();await initialize();assert(c);if(flight){await flight;assert(c);if(!explicit&&!ownRows().some(j=>active(j)&&j.status==='pending'))return;}if(explicit)await offline14239.confirmConnection();if(offline14239.offline()||window.workspaceRequest138?.target)return;
- const execute=async()=>{assert(c);await window.offlineAudit143174?.initialize();rows=await read(c);for(const original of rows.filter(j=>active(j)&&(!targetId||j.id===targetId)).sort((a,b)=>Number(!!b.receipt)-Number(!!a.receipt))){
+async function sync({explicit=false,targetId=null,reconnected=false}={}){const c=context();await initialize();assert(c);if(flight){await flight;assert(c);if(!explicit&&!reconnected&&!ownRows().some(j=>active(j)&&j.status==='pending'))return;}if(explicit)await offline14239.confirmConnection();if(offline14239.offline()||window.workspaceRequest138?.target)return;
+ const execute=async()=>{assert(c);await window.offlineAudit143174?.initialize();rows=await read(c);
+ if(reconnected&&(window.offlineAudit143174?.pending().length||rows.some(j=>active(j)&&j.changes.some(op=>op.status!=='saved'))))return;
+ for(const original of rows.filter(j=>active(j)&&(!targetId||j.id===targetId)).sort((a,b)=>Number(!!b.receipt)-Number(!!a.receipt))){
  if(!valid(c)||offline14239.offline())break;const id=original.id;
  try{let j=(await read(c)).find(j=>j.id===id);if(!j||j.retired)continue;
+ if(reconnected&&(j.receipt||j.changes.length||!['pending','uncertain','saving'].includes(j.status)||!access113.can('journal','post')))continue;
  if(!j.receipt){if(j.numberConflict335&&!j.acceptAvailable335)continue;if(targetId&&rows.some(other=>other.id!==targetId&&active(other)&&other.changes?.some(op=>op.status!=='saved')))throw Object.assign(Error('Sync the pending journal edits or voids before posting this entry.'),{code:'DEPENDENCY'});
  if(targetId&&window.offlineAudit143174?.pending().length)throw Object.assign(Error('Sync the earlier audit deletion before posting this entry.'),{code:'DEPENDENCY'});
- if(!targetId)await window.offlineAudit143174?.beforePost();if(!access113.can('journal','post'))throw Object.assign(Error('Current journal posting permission required.'),{code:'42501'});
+ if(!targetId&&!reconnected)await window.offlineAudit143174?.beforePost();if(!access113.can('journal','post'))throw Object.assign(Error('Current journal posting permission required.'),{code:'42501'});
  await patch(c,id,j=>{j.status='saving';j.message='Saved on this device. Synchronizing…'});
  const {p_request_key,...single}=j.payload;
  const constrained=j.localNumbers335?.some(Boolean)&&!j.acceptAvailable335;
@@ -75,7 +90,7 @@ async function sync({explicit=false,targetId=null}={}){const c=context();await i
  await patch(c,id,j=>{j.status=j.changes.some(op=>op.status!=='saved')?'pending':'saved';j.message='Database confirmed. Refreshing journal history.'});
  }catch(e){if(!valid(c))return;await patch(c,id,j=>{if(e.code==='P0335'){j.numberConflict335=true;j.status='conflict';j.message=e.message;return;}j.status=e.code==='40001'?'conflict':e.code&&!/NETWORK|TIMEOUT|OFFLINE/.test(e.code)?'blocked':'uncertain';j.message=j.status==='conflict'?'Another session changed this entry. Your saved change is retained for review.':j.status==='blocked'?'Saved on this device; database rejected synchronization: '+e.message:'Saved on this device; database confirmation is pending. Retry uses the same reference.'});if(offline14239.offline())break;}
  }
- if(targetId){if(valid(c)){project();refreshAllTables()}return;}
+ if(targetId||reconnected){if(valid(c)){project();refreshAllTables()}return;}
  if(valid(c)){await window.offlineAudit143174?.sync();project();refreshAllTables();try{window.yearWindow14333?.invalidateMemory?.();await loadJournalFromSupabase({cacheFirst:false});if(valid(c))await loadTransactionAudit()}catch(e){/* Confirmed operations remain available in the durable device overlay. */}}
  };
  flight=Promise.resolve().then(()=>navigator.locks?navigator.locks.request('ojm-journal14385:'+identity(c),{ifAvailable:true},lock=>lock?execute():undefined):execute()).finally(()=>{flight=null;if(valid(c))changed()});return flight}
@@ -88,7 +103,7 @@ function project(){if(typeof JournalModule==='undefined')return;
  if(!value||r&&!dirty&&base.some(l=>l.dbEntryId===r.entry_id))continue;
  const proposed=j.localNumbers335?.[i];
  const shown=r?.entry_no||(proposed&&!base.some(l=>l.id===proposed)?proposed:null)||'Device-'+j.id+(j.entries.length>1?'-'+(i+1):'');
- for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({localJournal14385:true,local14333:true,journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:shown,dbEntryId:r?.entry_id||null,postingDate:value.date,date:line.line_date||value.date,created_at:j.created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
+ for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({localJournal14385:true,local14333:true,journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:shown,entryNumber:r?.entry_no||proposed,numberConflict:!!j.numberConflict335&&!r,dbEntryId:r?.entry_id||null,postingDate:value.date,date:line.line_date||value.date,created_at:j.created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
  if(base.length!==JournalModule.entries.length||base.some((row,i)=>row!==JournalModule.entries[i]))JournalModule.entries=base}
 function retirementCheckpoint(){return new Map(pending().filter(j=>j.status==='saved'&&j.receipt&&!j.changes.some(op=>op.status!=='saved')).map(j=>[j.id,canonical(j)]))}
 async function reconcile(remote,checkpoint=new Map()){const c=context();if(loaded!==identity(c))return;const ids=new Set(remote.map(l=>l.dbEntryId));await mutate(c,list=>{for(const j of list.filter(active)){if(j.status!=='saved'||!j.receipt||j.voucher&&!j.voucherLinked||j.changes.some(op=>op.status!=='saved'))continue;
@@ -120,9 +135,22 @@ async function verifyRecovery(j){validateRecovery(j);const c=context();assert(c)
  for(const op of j.changes){const r=receipts?.[op.index];if(!r)return false;const data=await call(c,'journal_change_receipt14385',{p_request_key:op.id});if(!data||canonical(data.payload)!==canonical({entry_id:r.entry_id,kind:op.kind,reason:op.reason,expected:op.expected,value:op.value}))return false;}
  if(j.voucher&&!j.voucherLinked)return false;return true;
 }
-async function restoreRecovery(job){validateRecovery(job);const c=context();await initialize();assert(c);await mutate(c,list=>{const old=list.find(j=>j.id===job.id);if(old)return list;const j=clone(job);j.retired=false;j.status='pending';j.changes.forEach(op=>{op.status='pending';delete op.receipt});if(j.payload)j.receipt=null;j.voucherLinked=false;list.push(j);return list});project();}
+async function restoreRecovery(job){validateRecovery(job);const c=context();await initialize();assert(c);await mutate(c,list=>{const old=list.find(j=>j.id===job.id);if(old)return list;const j=clone(job);j.retired=false;j.status='pending';j.changes.forEach(op=>{op.status='pending';delete op.receipt});if(j.payload){if(j.receipt)j.localNumbers335=j.receipt.map(r=>r.entry_no);j.receipt=null;}j.voucherLinked=false;list.push(j);return assignNumbers(list)});project();}
 
 function ready(){
+ // A restored connection retries saved journal posts. Full workspace sync remains manual.
+ let reconnectPending=offline14239.offline(),retrying=false;
+ const reconnect=async()=>{
+  if(offline14239.offline()){reconnectPending=true;return;}
+  if(!reconnectPending||retrying||!actor()||window.workspaceRequest138?.target)return;
+  reconnectPending=false;retrying=true;
+  try{
+   const c=context();await initialize();assert(c);
+   if(pending().some(j=>!j.receipt&&!j.numberConflict335&&['pending','uncertain','saving'].includes(j.status)))await sync({reconnected:true});
+  }finally{retrying=false;}
+ };
+ window.addEventListener('offline',()=>{reconnectPending=true;});
+ for(const event of ['online','connection14239','session-online14333'])window.addEventListener(event,()=>{void reconnect().catch(()=>{});});
  const oldSubmit=window.submitJournalEntry;
  window.submitJournalEntry=async function(){if(liveProfile?.role!=='admin'&&!livePermission?.can_post_directly||JournalModule.editingEntryId||pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId||PeriodReview.pendingAdjustment||window.personalJournal1437?.active||window.workflow136?.state.adjustmentReview||document.getElementById('btnPostJournal')?.dataset.payroll1429)return oldSubmit();if(submitting)return;const c=context();submitting=true;try{if(!access113.can('journal','post'))throw Error('Journal posting permission required.');const entries=payloads();if(window.workflow136?.state.sessions.some(s=>entries.some(p=>p.p_transaction_date.slice(0,7)===String(s.month).slice(0,7))))return await oldSubmit();
  const saved=canonical(entries),payload={p_request_key:crypto.randomUUID(),...(entries.length===1?entries[0]:{p_entries:entries})};const voucher=document.getElementById('jeVoucher14299')?.value;if(voucher&&entries.length!==1)throw Error('Use one date when linking a voucher.');await create(payload,{voucher});assert(c);
@@ -141,7 +169,7 @@ function ready(){
  window.addEventListener('storage',event=>{if(event.key?.startsWith('ojm-report-filters143195:')||event.key?.startsWith('ojm-history-month143195:'))return;if(actor())refreshDevice().catch(()=>{})});
  try{const channel=new BroadcastChannel('ojm-journal14385');channel.onmessage=e=>{if(e.data===identity(context()))refreshDevice().catch(()=>{})};window.addEventListener('local-work14333',()=>{if(loaded===identity(context()))channel.postMessage(loaded)});}catch{}
 }
-async function refreshDevice(){const c=context();if(!c.actor)return;rows=await read(c);loaded=identity(c);project();refreshAllTables();}
+async function refreshDevice(){const c=context();if(!c.actor)return;await initialize();rows=await read(c);loaded=identity(c);project();refreshAllTables();}
 window.journalDurable14385={acceptNextNumber,payloads,validateRecovery,verifyRecovery,restoreRecovery,initialize,create,change,sync,project,reconcile,retirementCheckpoint,findings,pending,content,fromLines,refreshDevice,get running(){return !!flight}};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

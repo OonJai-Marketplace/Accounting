@@ -1,7 +1,7 @@
 /* Number a journal from the signed-in device, then reconcile its durable request. */
 (()=>{
 'use strict';
-let flight=null,historyOwner='',historyDb=null;
+let flight=null,historyOwner='',historyDb=null,deviceHistory=null;
 const date=()=>document.getElementById('jeTransDate')?.value||appLocalDate();
 const owner=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 const permitted=()=>window.access113?.can('journal','view')===true;
@@ -12,8 +12,16 @@ function policy(){
  const day=date();
  return {prefix,digits,day,key:[owner(),day,prefix,digits].join('|')};
 }
+function hasJournal(){return !!historyOwner&&historyOwner===owner()&&historyDb===ojmDb;}
 function history(){
- return !!historyOwner&&historyOwner===owner()&&historyDb===ojmDb&&!window.workspaceRequest138?.target?JournalModule.entries:[];
+ if(!permitted()||window.workspaceRequest138?.target)return [];
+ if(hasJournal())return JournalModule.entries;
+ return deviceHistory?.actor===owner()&&deviceHistory.db===ojmDb?deviceHistory.rows:[];
+}
+async function prepareLocalHistory(){
+ if(hasJournal()||!owner()||!permitted()||window.workspaceRequest138?.target)return;
+ const actor=owner(),db=ojmDb,rows=await window.offline14239.localJournalHistory();
+ if(actor===owner()&&db===ojmDb&&!hasJournal())deviceHistory={actor,db,rows};
 }
 function review(){
  const p=policy();
@@ -28,13 +36,14 @@ function paint(){
  if(!n||typeof JournalModule==='undefined'||window.personalJournal1437?.active)return;
  const p=policy(),r=review(),editing=JournalModule.editingEntryId;
  if(editing){
-  n.textContent=r?.from===editing?'Journal ID '+r.to+' · '+r.voucher:'Editing: '+editing;
+  const number=JournalModule.entries.find(line=>line.id===editing)?.entryNumber||editing;
+  n.textContent=r?.from===editing?'Journal ID '+r.to+' · '+r.voucher:'Editing: '+number;
   return;
  }
  const local=permitted()&&owner()?window.offlineAudit143174?.provisional(p.day,p.prefix,p.digits):null;
  const number=local;
  n.textContent=number?formatEntryId143114(p.prefix,number,p.day,p.digits):'Ready for device posting';
- n.title='Saved on this device. Sync will flag a number already taken by another device.';
+ n.title='Next number from this device’s journal. Sync will flag a number already taken by another device.';
  if(window.workspaceRequest138?.target||!permitted())return;
  const job=window.journalDurable14385?.pending()?.find(j=>j.numberConflict335&&!j.receipt);
  if(!job&&!r)return;
@@ -77,12 +86,12 @@ function ready(){
  document.addEventListener('change',e=>{if(e.target.id==='jeTransDate')void refresh();});
  window.updateNextEntryIdDisplay=paint;
  const load=window.loadJournalFromSupabase;
- window.loadJournalFromSupabase=async function(...args){const actor=owner(),db=ojmDb;const r=await load.apply(this,args);if(actor&&actor===owner()&&db===ojmDb&&!window.workspaceRequest138?.target){historyOwner=actor;historyDb=db;void refresh(true);}paint();return r;};
+ window.loadJournalFromSupabase=async function(...args){const actor=owner(),db=ojmDb;const r=await load.apply(this,args);if(actor&&actor===owner()&&db===ojmDb&&!window.workspaceRequest138?.target){historyOwner=actor;historyDb=db;deviceHistory=null;void refresh(true);}paint();return r;};
  window.addEventListener('page113',()=>{if(document.getElementById('journal')?.classList.contains('active'))void refresh();});
  window.addEventListener('online',()=>void refresh());window.addEventListener('offline',paint);
  window.addEventListener('focus',()=>{if(document.getElementById('journal')?.classList.contains('active'))paint();});
  paint();
 }
-window.addEventListener('local-work14333',paint);window.entryNumber14257={refresh,paint,history,correctionReason(id){const r=review();return r?.from===id?'Correct journal ID to '+r.to:'';}};
+window.addEventListener('local-work14333',paint);window.entryNumber14257={refresh,paint,history,prepareLocalHistory,correctionReason(id){const r=review();return r?.from===id?'Correct journal ID to '+r.to:'';}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

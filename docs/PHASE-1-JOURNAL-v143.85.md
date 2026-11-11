@@ -8,7 +8,7 @@ The normal direct journal posting path now commits its complete request to the e
 
 The original posting request stays immutable. Each subsequent edit or void has its own immutable reference and expected previous content. Synchronization posts the original request, then applies its changes in order. Database receipts make retries return the already recorded result when a response was lost. Repeated attempts do not create another posting or audit change. The database compares the expected content under a row lock, rejecting a stale change instead of overwriting another session's work. Permissions and original/destination period checks still apply.
 
-The visible entry number comes from the existing server sequence. Offline entries display “Awaiting entry number”; their internal synchronization references are separate. Edits keep the original number, and voids do not reset numbering. This preserves sequence-based numbering; it does not promise a gapless sequence after every possible database rollback.
+Current behavior (v143.344): Active Journal shows the manual journal number as soon as the entry is saved on the device. Pending sync identifies entries awaiting a database receipt. Sync checks the same number against the company journal and flags a conflict for review.
 
 Transaction exchange rates and existing book rates travel with the complete lines through the queue, edits, encrypted recovery, synchronization and database audit history. The old manual-post and payroll payload builders also retain these fields. Historical missing rates are not guessed or backfilled.
 

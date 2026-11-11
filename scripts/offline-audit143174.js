@@ -40,7 +40,7 @@ function provisional(date,prefix,digits,jobs=window.journalDurable14385?.pending
  for(const job of jobs){
   if(job.retired)continue;
   const entries=job.payload?.p_entries||(job.payload?[job.payload]:[]);
-  for(let i=0;i<Math.max(entries.length,job.receipt?.length||0);i++){
+  for(let i=0;i<Math.max(entries.length,job.receipt?.length||0,job.localNumbers335?.length||0);i++){
    const r=job.receipt?.[i],proposal=job.localNumbers335?.[i],p=entries[i];
    if(r){if(!removed.has(r.entry_id))add(outbox,r.entry_no);}
    else if(proposal)add(outbox,proposal);

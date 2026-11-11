@@ -1,1 +1,1 @@
-{"version": "143.343", "changes": ["Phone journal uses a header mode switch, one shared date or individual line dates and references, and an automatic debit or credit difference."]}
+{"version": "143.344", "changes": ["Active Journal shows the manual entry ID immediately offline, including older pending entries. Reconnecting retries saved journal posts with the same ID."]}

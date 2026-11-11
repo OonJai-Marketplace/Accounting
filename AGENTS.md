@@ -593,3 +593,5 @@ Budget Request 143.327: the main header contains Fund utilization, New Report an
 Print / PDF. Request details, items, shared categories, templates, Save request and
 copyable email/WhatsApp messages belong inside the request dialog. Keep request
 messages manual and retain totals by original currency.
+
+Journal numbering, 2026-11-11: Show the assigned manual journal number immediately on offline saves and pending rows. Reconnecting retries pending new journal posts with their original request and number. Full workspace sync remains manual.
