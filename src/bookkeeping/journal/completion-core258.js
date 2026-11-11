@@ -4,7 +4,7 @@ const currency=a=>a?.currency||a?.currency_code;
 const type=a=>String(a?.baseType||a?.account_type||a?.type||'').toUpperCase();
 const technical=a=>!!(a?.isTechnical||a?.is_technical||a?.type==='SYSTEM');
 const available=a=>a?.id&&a.isPosting!==false&&a.is_posting!==false&&a.active!==false&&a.is_active!==false&&/^[A-Z]{3}$/.test(currency(a)||'')&&currency(a)!=='NA';
-const fund=a=>available(a)&&type(a)==='ASSET'&&!technical(a)&&/^10\d{2}$/.test(String(a.code));
+const fund=a=>available(a)&&type(a)==='ASSET'&&!technical(a)&&/^10\d{2}$/.test(String(a.code))&&String(a.code)!=='1099';
 const staff=a=>/^12[12]\d$/.test(String(a.code));
 const monetary=a=>fund(a)||staff(a)||type(a)==='LIABILITY'||/^11\d\d$/.test(String(a.code));
 const decimalMoney = new Intl.NumberFormat('en-US', {useGrouping:false, maximumFractionDigits:2});
@@ -88,6 +88,8 @@ function completePart(input){
   const leg=key=>receipt.find(l=>l.receiptLeg===key);
   if(receipt.length!==4||!['receive','equity','deposit','clear'].every(leg)||leg('receive').account_id!==leg('clear').account_id)
    error('The receipt and handover must identify the same staff clearing account.');
+  else if(!staff(leg('receive').a)||!fund(leg('deposit').a)||reg.maps.get(leg('equity').a.id)?.actualCode!=='3023'||new Set(receipt.map(l=>l.c)).size!==1)
+   error('Choose the staff clearing, remaining owner support and receiving fund in the same currency.');
   else{
    const amounts=new Set(receipt.map(l=>l.debit||l.credit).filter(Boolean));
    if(amounts.size!==1)error('Enter the support amount. A full deposit must equal the amount received.');
@@ -97,6 +99,7 @@ function completePart(input){
     else if(!l[side]){l[side]=[...amounts][0];l.generated='source';}
    }
   }
+  if(new Set(receipt.map(l=>l.rt)).size>1)error('A full same-currency handover uses the receipt valuation. Review the receipt and deposit rates.');
   const fee=source.find(l=>l.c==='LAK'&&String(l.a.code)==='5414'&&l.debit),payer=source.find(l=>l.role==='payer');
   if(fee&&payer&&!payer.credit&&!payer.debit){payer.credit=fee.debit;payer.generated='source';}
   if(payer&&(!fee||payer.credit!==fee.debit))error('Enter the separate LAK fee and its paying account.',payer.index);
@@ -200,10 +203,20 @@ function completePart(input){
    }
   }
   if(maps.length&&!close(sum(active),0))error(c+' source rows differ by '+Math.abs(sum(active))+'. Check the gross amount, payment, staff amounts and deductions. This is not automatically FX.',active[0].index);
+  // Matched new receipts have one recognition value, including receipts imported
+  // from older drafts that stored an account average without its provenance.
+  const receiptMap=maps.length===1&&maps[0].credit&&['9190','9390'].includes(reg.maps.get(maps[0].a.id).offsetCode)?maps[0]:null;
+  if(receiptMap&&active.every(l=>l===receiptMap||fund(l.a)&&l.debit||custody.has(l))){
+   if(active.some(l=>l.rt!==receiptMap.rt))error('Use the same recognition rate for this receipt and its mapping. Record a later settlement separately.');
+   if(active.some(l=>l.book_rate_lak&&Number(l.book_rate_lak)!==l.rt))notes.push('Used the receipt rate for the new funds and their mapping.');
+  }
   for(const l of active.filter(l=>!reg.maps.has(l.a.id))){
    if(reg.isTax(l.a)){l.book=l.rt;continue;}
    if(custody.has(l)){l.book=l.rt;continue;}
    if(l.credit>0&&fund(l.a)||l.debit>0&&(staff(l.a)||type(l.a)==='LIABILITY')||l.credit>0&&!fund(l.a)&&!staff(l.a)&&type(l.a)==='ASSET')l.book=carry(l);else l.book=l.specified||l.rt;
+   // New money and a newly recognized obligation enter at this transaction's rate.
+   // A receiving account's existing average belongs to its previous balance.
+   if(fund(l.a)&&l.debit||type(l.a)==='LIABILITY'&&l.credit||staff(l.a)&&l.credit&&maps.some(m=>reg.maps.get(m.a.id).actualCode==='5311'))l.book=l.rt;
    if(fund(l.a)&&l.credit>0)cashNeeds.set(l.a.id,(cashNeeds.get(l.a.id)||0)+l.credit);
   }
   const outs=active.filter(l=>fund(l.a)&&l.credit>0),outQ=outs.reduce((n,l)=>n+l.credit,0),outValue=outs.reduce((n,l)=>n+round(l.credit*(l.book||0)),0),otherDr=active.filter(l=>!reg.maps.has(l.a.id)&&!fund(l.a)&&!reg.isTax(l.a)).reduce((n,l)=>n+l.debit,0),mapDr=maps.reduce((n,l)=>n+l.debit,0),cashPart=Math.max(0,Math.min(mapDr,outQ-otherDr));
@@ -212,10 +225,15 @@ function completePart(input){
    const m=reg.maps.get(l.a.id);if(!m.actual||!m.offset){error('Row '+(l.index+1)+': required LAK accounts '+m.actualCode+' / '+m.offsetCode+' are missing.',l.index);continue;}
    l.book=l.specified||(l.debit>0&&cashPart?(cashPart*(outs.length===1?outs[0].book:outValue/outQ)+(mapDr-cashPart)*l.rt)/mapDr:l.rt);
    if(historical.length){if(historical.length!==1||maps.length!==1){error('Use each historical asset lot and its recorded rate separately.',l.index);continue;}l.book=historical[0].book;l.rt=l.book;}
-   if(m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
+   const historicalEquity=m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size;
+   if(l.credit&&['9190','9390'].includes(m.offsetCode)&&!historicalEquity)l.book=l.rt;
+   if(historicalEquity){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
    if(m.offsetCode==='9490'){l.book=l.rt;}
    if(l.book>0){add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');}
   }
+  const reclass=maps.filter(l=>reg.maps.get(l.a.id).offsetCode==='9390');
+  if(reclass.length===2&&reclass.some(l=>reg.maps.get(l.a.id).actualCode==='3024')&&reclass[0].book!==reclass[1].book)
+   error('Use the same original contribution rate on both sides of the support allocation.');
   for(const l of tax)add(reg.bridge('LAK',true),-round(signed(l)*l.rt),'Payroll withholding · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));
  }
  const taxValue=round(foreign.filter(l=>reg.isTax(l.a)&&(l.debit||l.credit)).reduce((n,l)=>n-signed(l)*l.rt,0));
@@ -225,6 +243,7 @@ function completePart(input){
  const active=foreign.filter(l=>l.debit||l.credit),maps=active.filter(l=>reg.maps.has(l.a.id));
  const real=source.filter(l=>!technical(l.a)&&(l.debit||l.credit)),cash=real.filter(l=>fund(l.a)),out=cash.filter(l=>l.credit>0),incoming=cash.filter(l=>l.debit>0),settled=real.filter(l=>!fund(l.a)&&l.debit>0&&(staff(l.a)||type(l.a)==='LIABILITY'));
  const sameTransfer=!maps.length&&real.length===cash.length&&new Set(cash.map(l=>l.c)).size===1;
+ if(sameTransfer&&cash.length&&out.some(l=>incoming.some(r=>r.account_id===l.account_id)))error('Choose different paying and receiving accounts for this transfer.');
  if(sameTransfer){if(!close(sum(cash),0))error('Transfer debits and credits must match. Record an actual fee separately.');else{const q=out.reduce((n,l)=>n+l.credit,0),v=out.reduce((n,l)=>n+round(l.credit*(l.book||1)),0);for(const l of incoming)if(l.c!=='LAK')l.book=v/q;}}
  const econ=new Map(active.map(l=>[l,round(signed(l)*(sameTransfer?l.book:l.rt))]));
  const exchangeRounding=real.filter(l=>l.c==='LAK'&&String(l.a.code)==='5420');
@@ -272,7 +291,7 @@ function completePart(input){
   }
  }
  const components=[];
- for(const l of active.filter(l=>!technical(l.a)&&monetary(l.a))){const n=round((econ.get(l)??signed(l)*l.rt)-round(signed(l)*l.book));if(n)components.push({l,n});}
+ for(const l of active.filter(l=>!technical(l.a)&&monetary(l.a)&&!(fund(l.a)&&l.debit))){const n=round((econ.get(l)??signed(l)*l.rt)-round(signed(l)*l.book));if(n)components.push({l,n});}
  const net=round(components.reduce((n,x)=>n+x.n,0));
  if(components.length){
   const memo=components.map(({l,n})=>(fund(l.a)?'Cash disposal FX':'Balance settlement FX')+' · '+l.a.name+' · '+Math.abs(n)+' LAK '+(n>0?'loss':'gain')).join(' / ');

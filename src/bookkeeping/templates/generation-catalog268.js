@@ -3,9 +3,9 @@
 const G=()=>root.JournalCompletion258;
 const actions={
  '1310':'Prepay company house rent','3010':'Receive an owner capital contribution',
- '3023':'Receive financial support','3024':'Apply financial support to expenses','3031':'Receive owner support for airfare',
+ '3023':'Receive financial support','3024':'Apply financial support to expenses','3031':'Receive cash contributed for airfare',
  '4010':'Record dine-in sales','4019':'Record other sales','4110':'Receive a donation or external support',
- '4120':'Receive a housing contribution','4130':'Receive other income','5010':'Buy food for the restaurant',
+ '4120':'Receive a housing contribution','4130':'Receive other income','5010':'Buy food for immediate use',
  '5110':'Pay a utility bill','5111':'Buy kitchen supplies','5113':'Pay for transport','5114':'Pay for cleaning',
  '5115':'Pay for marketing','5116':'Pay for maintenance or repairs','5117':'Pay for an event',
  '5118':'Pay legal or permit fees','5119':'Pay restaurant rent','5120':'Pay an operating expense',
@@ -104,7 +104,38 @@ function templates(chart){
    if(remaining)add('local-'+a.code,action(a)+' · LAK',[row(remaining,'debit','Release remaining support'),row(a,'credit','Support applied')],false);
    continue;
   }
-  const expense=g.type(a)==='EXPENSE';add('local-'+a.code,action(a)+' · LAK',expense?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
+  const code=String(a.code);
+  // Opening and retained earnings are prepared in the dedicated opening/closing workflows.
+  if(['3110','3200'].includes(code))continue;
+  const fixed={
+   '3042':['1410','Withdraw inventory for the owner','debit','Inventory at supported cost'],
+   '4011':['1110','Record Foodpanda sales on account','credit','Amount due from Foodpanda'],
+   '4012':['1111','Record EGetS sales on account','credit','Amount due from EGetS'],
+   '4013':['1112','Record Champa sales on account','credit','Amount due from Champa'],
+   '5211':['2111','Accrue employer PIT','debit','PIT payable'],
+   '5212':['2112','Accrue employer SSO','debit','SSO payable'],
+   '5213':['2113','Accrue assessed profit tax','debit','Profit tax payable'],
+   '5416':['1410','Record inventory waste','debit','Inventory at supported cost'],
+   '5417':['1511','Record equipment depreciation','debit','Accumulated depreciation']
+  }[code];
+  if(fixed){
+   const [otherCode,title,side,memo]=fixed,other=reg.byCode(otherCode);
+   if(other)add('local-'+code,title+' · LAK',side==='debit'?[row(a,side),row(other,'credit',memo)]:[row(other,'debit',memo),row(a,side)]);
+   continue;
+  }
+  if(code==='5420'){
+   const payable=reg.byCode('2010');
+   if(payable)add('local-'+code,'Settle a supplier payable with a rounding difference · LAK',
+    [row(payable,'debit','Amount discharged'),row(a,'','Documented rounding difference'),slot('fund','LAK','credit','Actual payment')],false);
+   continue;
+  }
+  if(code==='5311'){
+   add('local-'+code,'Accrue salary owed to staff · LAK',[row(a,'debit','Salary earned'),slot('staff','LAK','credit','Salary owed')]);
+   continue;
+  }
+  const withdrawal=code==='3041',expense=g.type(a)==='EXPENSE';
+  const title=withdrawal?'Withdraw cash for the owner':code==='5418'?'Record a confirmed cash shortage':action(a);
+  add('local-'+code,title+' · LAK',expense||withdrawal?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
  }
  // Releases consume the prepaid asset; they do not repeat the original payment.
  for(const [id,name,expense,prepaid,c] of [['wifi','Recognize prepaid Wi-Fi expense','5110','1311','LAK'],['rent','Recognize prepaid company house rent','5421','1310','LAK'],['restaurant','Recognize prepaid restaurant rent','9222','1312','THB']]){

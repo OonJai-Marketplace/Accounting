@@ -43,3 +43,25 @@ assert(G.complete({chart,rows,rates:{USD:22000},balances:{'1041':{quantity:100,r
 rows=layout('mapping-9321-USD');rows[0].debit=10;rows[0].book_rate_lak=21500;rows[1].book_rate_lak=21500;
 const use=calculate(rows);assert.equal(sum(use,'3023'),215000);assert.equal(sum(use,'3024'),-215000);
 console.log('PASS support receipt, custody, fees, original-rate reclassification, partial exchange, weighted carrying value and duplicate-free recalculation.');
+
+// Reopen the previously generated 12-row draft with synthetic historical
+// values behind its rounded BR display. Only the original eight rows survive.
+const stale=layout('support-deposit-fee-USD');
+for(const line of stale.slice(0,4)){
+ line[line.expectedSide]=1250;line.fx_rate_lak=23000;
+ line.book_rate_lak=line.account_id==='9311'?28700123.45/1250:line.account_id==='1041'?(28750000-24567.89)/1250:23000;
+}
+stale.find(l=>l.account_id==='5414').debit=3500;
+stale.find(l=>l.account_id==='1210').credit=3500;
+stale.find(l=>l.account_id==='3023').credit=28750000;
+stale.find(l=>l.account_id==='9390').debit=28700123.45;
+for(const [id,debit,credit,rate] of [['9011',1250,0,28700123.45/1250],['9011',0,1250,(28750000-24567.89)/1250],['5419',24567.89,0,1],['9010',25308.66,0,1]]){
+ stale.push({account_id:id,debit,credit,book_rate_lak:rate,generated:'output'});
+}
+const repaired=calculate(stale,{rates:{USD:23000}});
+assert.equal(repaired.length,8);
+assert.equal(sum(repaired,'9390'),28750000);assert.equal(sum(repaired,'3023'),-28750000);
+assert(!repaired.some(l=>['9011','5419','9010'].includes(l.account_id)));
+assert(repaired.slice(0,4).every(l=>l.book_rate_lak===23000));
+const conflicting=stale.map(l=>l.receiptLeg==='deposit'?{...l,fx_rate_lak:22900}:l);
+assert(G.complete({rows:conflicting,chart,rates:{USD:23000}}).errors.length);
