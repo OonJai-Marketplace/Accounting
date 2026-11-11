@@ -1,7 +1,7 @@
 {
-  "version": "143.327",
+  "version": "143.328",
   "changes": [
-    "Budget Requests now lists saved requests and utilization. New Report contains request details, budget items, categories, templates and saving.",
-    "Copy the calculated email subject, detailed message or short WhatsApp text. Automatic budget sending and sender settings have been removed."
+    "Use Settings › System & Tools › Backup & Recovery for raw Excel, a restorable file, and append-only Google Sheets archives.",
+    "Clear a month or date range, including locked records, journal history, audit logs and payroll attendance. Employee records and leave balances are retained. Restore an original Excel or JSON backup in the same panel."
   ]
 }

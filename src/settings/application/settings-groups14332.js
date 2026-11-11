@@ -3,9 +3,9 @@
 const groups=[
  {label:'Company',targets:['settings-business','settings-users','settings-organization14229']},
  {label:'Accounting',targets:['settings-accounting','settings-payroll','settings-tax']},
- {label:'System & Tools',targets:['settings-system','settings-data14231','settings-maintenance14324']}
+ {label:'System & Tools',targets:['settings-system','settings-data14231']}
 ];
-const labels={'settings-business':'Business','settings-users':'Users & Permissions','settings-organization14229':'Organization & Reporting','settings-accounting':'Accounting','settings-payroll':'Payroll','settings-tax':'Mandatory','settings-system':'System & Printing','settings-data14231':'Backup & Recovery','settings-maintenance14324':'Maintenance & Audit'};
+const labels={'settings-business':'Business','settings-users':'Users & Permissions','settings-organization14229':'Organization & Reporting','settings-accounting':'Accounting','settings-payroll':'Payroll','settings-tax':'Mandatory','settings-system':'System & Printing','settings-data14231':'Backup & Recovery'};
 const permitted=id=>!!document.getElementById(id)&&(!window.access113||window.access113.can(id));
 const active=()=>document.querySelector('.tab-content.active')?.id||'';
 function available(){return groups.map(g=>({...g,targets:g.targets.filter(permitted)})).filter(g=>g.targets.length)}
@@ -49,7 +49,7 @@ const books=[
 const settings=[
  {label:'Company',icon:'▦',items:[item('Business','settings-business'),item('Users & Permissions','settings-users'),item('Organization & Reporting','settings-organization14229')]},
  {label:'Accounting',icon:'▤',items:[...['Accounting','Vouchers','Currency Manager','Google Drive and Sheets'].map((n,i)=>item(n,'settings-accounting','accounting',['accounting','vouchers','currency','google'][i])),item('Payroll','settings-payroll'),item('Mandatory','settings-tax')]},
- {label:'System & Tools',icon:'⚙',items:[item('System & Printing','settings-system'),item('Backup & Recovery','settings-data14231'),item('Maintenance & Audit','settings-maintenance14324')]}
+ {label:'System & Tools',icon:'⚙',items:[item('System & Printing','settings-system'),item('Backup & Recovery','settings-data14231')]}
 ];
 // Expansion is a user choice, independent of the active workspace.
 const expanded143109={transactions:true,settings:false};

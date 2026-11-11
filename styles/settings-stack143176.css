@@ -252,3 +252,17 @@
 }
 .settings-stack-section143176 #accountingProtocols > h4 { display: none; }
 
+#portable328 fieldset{border:1px solid #cbd8cf;border-radius:6px;padding:12px 14px;margin:0 0 12px;min-width:0}
+#portable328 legend{padding:0 5px;font-weight:650;color:#174c3b}
+#portable328 .portable-fields,#portable328 .portable-actions{display:flex;align-items:end;gap:8px 12px;flex-wrap:wrap}
+#portable328 .portable-fields label{display:grid;gap:4px}
+#portable328 .portable-fields [hidden]{display:none!important}
+#portable328 .portable-modules{margin-top:10px}
+#portable328 .portable-modules label{display:inline-flex;align-items:center;gap:5px;margin:6px 10px 0 0}
+#portable328 .portable-actions button{min-height:32px;border:1px solid #9aafa2;border-radius:5px;padding:4px 10px;color:#174c3b;background:#fff;cursor:pointer}
+#portable328 .portable-actions button.portable-danger{color:#923d30;border-color:#bd8c84}
+#portable328 p{margin:6px 0 10px}
+#portable328 details>summary{cursor:pointer}
+#portable328 .portable-legacy{margin-top:15px}
+#portable328 [role=status]{font-weight:600}
+

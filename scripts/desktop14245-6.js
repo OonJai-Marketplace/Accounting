@@ -2821,7 +2821,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 /* scripts/corrections14231.js */
 /* Requested presentation corrections. Database permissions remain authoritative. */
 (()=>{'use strict';
-const aliases={'settings-appearance113':'settings-system','settings-backup113':'settings-data14231','settings-recovery113':'settings-data14231'};
+const aliases={'settings-maintenance14324':'settings-data14231','settings-appearance113':'settings-system','settings-backup113':'settings-data14231','settings-recovery113':'settings-data14231'};
 function removeLink(id){document.querySelectorAll('#nav-module-settings button').forEach(b=>{if((b.getAttribute('onclick')||'').includes("'"+id+"'"))b.remove()})}
 function embed(node,parent){if(!node||!parent)return;node.classList.remove('tab-content','active');node.classList.add('embedded-settings14231');parent.append(node)}
 let borderChecks=new WeakMap();
@@ -2842,7 +2842,7 @@ function orange(all=false){if(all){borderChecks=new WeakMap();decorationVersion+
  }
 }
 
-function ready(){const system=document.getElementById('settings-system'),banner=document.getElementById('settings-appearance113');embed(banner,system);removeLink('settings-appearance113');shell113.addSettings('settings-data14231','Archive & Recovery');const combined=document.getElementById('settings-data14231');embed(document.getElementById('settings-backup113'),combined);embed(document.getElementById('settings-recovery113'),combined);removeLink('settings-backup113');removeLink('settings-recovery113');const before=window.switchTab;window.switchTab=function(id,...args){const actual=aliases[id]||id,result=before.call(this,actual,...args);if(actual!==id&&document.getElementById(actual)?.classList.contains('active'))requestAnimationFrame(()=>{const target=document.getElementById(id),scroll=document.querySelector('.workspace-scroll');if(target&&scroll)scroll.scrollTo({top:scroll.scrollTop+target.getBoundingClientRect().top-scroll.getBoundingClientRect().top,behavior:'instant'})});return result};orange();let queued=false;const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;orange()})};new MutationObserver(records=>{if(dirty(records))schedule()}).observe(document.body,{childList:true,subtree:true});window.addEventListener('page113',schedule);window.addEventListener('presentation-ready113',()=>{borderChecks=new WeakMap();decorationVersion++;schedule()});window.addEventListener('resize',()=>{borderChecks=new WeakMap();decorationVersion++;schedule()});window.addEventListener('beforeprint',()=>orange(true));}
+function ready(){const system=document.getElementById('settings-system'),banner=document.getElementById('settings-appearance113');embed(banner,system);removeLink('settings-appearance113');shell113.addSettings('settings-data14231','Backup & Recovery');const combined=document.getElementById('settings-data14231');embed(document.getElementById('settings-backup113'),combined);embed(document.getElementById('settings-recovery113'),combined);removeLink('settings-backup113');removeLink('settings-recovery113');const before=window.switchTab;window.switchTab=function(id,...args){const actual=aliases[id]||id,result=before.call(this,actual,...args);if(actual!==id&&document.getElementById(actual)?.classList.contains('active'))requestAnimationFrame(()=>{const target=document.getElementById(id),scroll=document.querySelector('.workspace-scroll');if(target&&scroll)scroll.scrollTo({top:scroll.scrollTop+target.getBoundingClientRect().top-scroll.getBoundingClientRect().top,behavior:'instant'})});return result};orange();let queued=false;const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;orange()})};new MutationObserver(records=>{if(dirty(records))schedule()}).observe(document.body,{childList:true,subtree:true});window.addEventListener('page113',schedule);window.addEventListener('presentation-ready113',()=>{borderChecks=new WeakMap();decorationVersion++;schedule()});window.addEventListener('resize',()=>{borderChecks=new WeakMap();decorationVersion++;schedule()});window.addEventListener('beforeprint',()=>orange(true));}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
 
@@ -2985,11 +2985,199 @@ async function save(id,value,expected){const d=await open();return new Promise((
 window.auditStorage14232={read,save};})();
 
 ;
+/* The signed file keeps exact database numeric values through browsers and Excel. */
+(()=>{
+'use strict';
+const modules={journal:'Journal & history',staff:'Staff reports & cashier',payroll:'Payroll & attendance',tax:'Tax & SSO',vouchers:'Vouchers',reports:'Operational reports',schedules:'Scheduled occurrences',reconciliation:'Reconciliation',audit:'Audit logs & deletion history'};
+const $=id=>document.getElementById(id);
+function chunks(text,size){
+ const out=[];
+ for(let start=0;start<text.length;){
+  let end=Math.min(start+size,text.length);
+  if(end<text.length&&/[\uD800-\uDBFF]/.test(text[end-1]))end--;
+  out.push(text.slice(start,end));start=end;
+ }
+ return out;
+}
+function rawTables(pack){
+ const tables={...pack.reference,...pack.tables},attendance=[];
+ for(const part of pack.attendance||[])for(const item of part.items){
+  attendance.push(JSON.stringify({run_id:part.id,employee_id:item.employee,source:item.bucket,date:item.day.date,day:item.day}));
+ }
+ if(attendance.length)tables.attendance_days=attendance;
+ return tables;
+}
+function viewsOf(pack){
+ const views={};
+ for(const [table,source] of Object.entries(rawTables(pack))){
+  if(!source.length)continue;
+  const rows=source.map(line=>JSON.parse(line)),widths=new Map();
+  const display=v=>v==null?'':typeof v==='object'?JSON.stringify(v):v;
+  for(const row of rows)for(const [field,val] of Object.entries(row)){
+   const v=display(val),n=typeof v==='string'?chunks(v,30000).length:1;
+   widths.set(field,Math.max(widths.get(field)||1,n));
+  }
+  const grid=[[...widths].flatMap(([name,n])=>Array.from({length:n},(_,i)=>i?name+' (part '+(i+1)+')':name))];
+  for(const row of rows)grid.push([...widths].flatMap(([name,n])=>{
+   const v=display(row[name]),parts=typeof v==='string'?chunks(v,30000):[v];
+   return Array.from({length:n},(_,i)=>parts[i]??'');
+  }));
+  views[table]=grid;
+ }
+ return views;
+}
+async function workbook(file,pack){
+ const blob=await archiveXlsx129.create({format:'oonjai-readable-194',rawValues:true,views:viewsOf(pack)});
+ const zip=await JSZip.loadAsync(await blob.arrayBuffer());
+ const xml=JSON.stringify(file).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+ zip.file('customXml/item1.xml','<?xml version="1.0" encoding="UTF-8"?><backup xmlns="urn:oonjai:portable:328">'+xml+'</backup>');
+ const path='xl/_rels/workbook.xml.rels';
+ zip.file(path,(await zip.file(path).async('string')).replace('</Relationships>','<Relationship Id="portableBackup" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml" Target="../customXml/item1.xml"/></Relationships>'));
+ return zip.generateAsync({type:'blob',compression:'DEFLATE'});
+}
+async function readBackup(file){
+ if(!/\.xlsx$/i.test(file.name))return JSON.parse(await file.text());
+ await optionalTools14335.load('zip');
+ const zip=await JSZip.loadAsync(await file.arrayBuffer()),part=zip.file('customXml/item1.xml');
+ if(!part)throw Error('Choose the original Raw Excel workbook or the restorable JSON downloaded here.');
+ const doc=new DOMParser().parseFromString(await part.async('string'),'application/xml');
+ if(doc.documentElement.namespaceURI!=='urn:oonjai:portable:328')throw Error('The workbook backup is unreadable.');
+ return JSON.parse(doc.documentElement.textContent);
+}
+async function sheetRows(pack){
+ const result=[],encoder=new TextEncoder(),now=new Date().toISOString();
+ for(const [table,rows] of Object.entries(rawTables(pack))){
+  for(const raw of rows){
+   const row=JSON.parse(raw),key=(table==='attendance_days'?['run_id','employee_id','source','date']:pack.keys[table]).map(k=>row[k]);
+   const id=key.length===1?String(key[0]):JSON.stringify(key);
+   const bytes=await crypto.subtle.digest('SHA-256',encoder.encode(table+'\n'+raw));
+   const hash=Array.from(new Uint8Array(bytes),x=>x.toString(16).padStart(2,'0')).join('');
+   chunks(raw,28000).forEach((part,i)=>result.push(['portable-'+hash+':'+(i+1),table,'BACKUP',now,id,String(i+1),part]));
+  }
+ }
+ return result;
+}
+const csv=rows=>'\ufeff'+rows.map(row=>row.map(v=>'"'+v.replaceAll('"','""')+'"').join(',')).join('\r\n');
+function parseCsv(source){
+ const text=source.replace(/^\ufeff/,''),rows=[];let row=[],value='',quoted=false;
+ for(let i=0;i<text.length;i++){
+  const c=text[i];
+  if(c==='"'){if(quoted&&text[i+1]==='"'){value+='"';i++;}else quoted=!quoted;}
+  else if(!quoted&&c===','){row.push(value);value='';}
+  else if(!quoted&&(c==='\n'||c==='\r')){if(c==='\r'&&text[i+1]==='\n')i++;row.push(value);rows.push(row);row=[];value='';}
+  else value+=c;
+ }
+ if(quoted)throw Error('The CSV ends inside a quoted field.');
+ if(row.length||value)rows.push([...row,value]);
+ if(!rows.length||rows.some(r=>r.length!==7||!/^portable-[a-f0-9]{64}:\d+$/.test(r[0])||r[2]!=='BACKUP'))throw Error('Choose a Google Sheets CSV downloaded from Backup & Recovery.');
+ return rows;
+}
+function save(blob,name){
+ const url=URL.createObjectURL(blob),link=document.createElement('a');
+ link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function install(host,legacy){
+ const section=document.createElement('section');section.id='portable328';section.className='panel113';
+ section.innerHTML='<header><h2>Backup &amp; Recovery</h2></header><fieldset><legend>Period and records</legend><div class="portable-fields"><label>Period<select name="period"><option value="month">Month</option><option value="custom">Custom dates</option><option value="year">Year</option><option value="quarter">Quarter</option></select></label><label data-for="month">Month<input type="month" name="month"></label><label data-for="year quarter">Year<input type="number" name="year" min="1900" max="2200"></label><label data-for="quarter">Quarter<select name="quarter"><option>1</option><option>2</option><option>3</option><option>4</option></select></label><label data-for="custom">From<input type="date" name="from"></label><label data-for="custom">Through<input type="date" name="to"></label></div><details class="portable-modules"><summary>All modules</summary><label><input type="checkbox" data-all checked> Select all</label>'+Object.entries(modules).map(([k,v])=>'<label><input type="checkbox" data-module="'+k+'" checked> '+v+'</label>').join('')+'</details></fieldset>'+
+ '<fieldset><legend>Download</legend><div class="portable-actions"><button data-act="excel">Raw Excel (.xlsx)</button><button data-act="backup">Restorable backup (.json)</button><button data-act="csv">Google Sheets (.csv)</button></div></fieldset>'+
+ '<fieldset><legend>Google Sheets archive</legend><p>Append to Source Records in the company archive. Previously imported revisions are skipped.</p><div class="portable-actions"><button data-act="append">Append selected records</button><button data-act="csvfile">Upload archive CSV</button></div></fieldset>'+
+ '<fieldset><legend>Database</legend><div class="portable-actions"><button data-act="restore">Restore from file</button><button data-act="delete" class="portable-danger">Delete selected records</button></div><p>Restore accepts an original Excel or JSON backup. Deletion includes locked periods. Employee records, leave requests and leave balances stay in HR. Partial payroll months remove only attendance on the selected dates.</p></fieldset><p role="status" aria-live="polite"></p>';
+ host.replaceChildren(section);if(legacy)section.append(legacy);
+ const get=name=>section.querySelector('[name="'+name+'"]'),msg=section.querySelector('[role=status]'),all=section.querySelector('[data-all]'),boxes=[...section.querySelectorAll('[data-module]')];
+ const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Vientiane'}).format(new Date());
+ get('month').value=today.slice(0,7);get('year').value=today.slice(0,4);get('from').value=today.slice(0,4)+'-01-01';get('to').value=today;
+ function sync(e){
+  section.querySelectorAll('[data-for]').forEach(n=>n.hidden=!n.dataset.for.split(' ').includes(get('period').value));
+  if(e?.target===all)boxes.forEach(n=>n.checked=all.checked);
+  const selected=boxes.filter(n=>n.checked);
+  all.checked=selected.length===boxes.length;all.indeterminate=!!selected.length&&!all.checked;
+  section.querySelector('.portable-modules summary').textContent=all.checked?'All modules':selected.length===1?modules[selected[0].dataset.module]:selected.length+' modules selected';
+ }
+ section.addEventListener('change',sync);sync();
+ function selection(){
+  const period=get('period').value,month=get('month').value,year=Number(period==='month'?month.slice(0,4):get('year').value),q=Number(get('quarter').value);
+  const start=period==='month'?Number(month.slice(5)):period==='quarter'?(q-1)*3+1:1,length=period==='month'?1:period==='quarter'?3:12;
+  const date=(m,d)=>new Date(Date.UTC(year,m-1,d)).toISOString().slice(0,10);
+  if(period!=='custom'&&(!year||!start))throw Error('Choose a valid period.');
+  const from=period==='custom'?get('from').value:date(start,1),to=period==='custom'?get('to').value:date(start+length,0);
+  if(!from||!to||from>to)throw Error('Choose a valid start and end date.');
+  const groups=boxes.filter(n=>n.checked).map(n=>n.dataset.module);
+  if(!groups.length)throw Error('Select at least one module.');
+  return {p_from:from,p_to:to,p_groups:groups};
+ }
+ let busy=false;
+ async function action(kind,upload){
+  if(busy)return;
+  const actor=liveProfile?.id,db=ojmDb;
+  const guard=()=>{if(!actor||actor!==liveProfile?.id||db!==ojmDb||!window.shell113?.admin())throw Error('Please sign in again as administrator.');};
+  const rpc=async(action,params)=>{guard();const {data,error}=await db.rpc('portable_backup328',{p_action:action,...params});guard();if(error)throw Error(error.message);return data;};
+  const fieldsets=[...section.querySelectorAll(':scope>fieldset')];
+  busy=true;fieldsets.forEach(n=>n.disabled=true);msg.textContent='Working…';
+  try{
+   guard();
+   const sel=upload?null:selection();
+   const confirm=(title,html,label,danger=false)=>ui108.modal(title,html,[{label:'Cancel',value:false},{label,value:true,danger,primary:!danger}]);
+   const period=r=>escapeHtml(formatAppDate(r.from))+' – '+escapeHtml(formatAppDate(r.to));
+   const describe=r=>'<p>'+period(r)+' · '+r.modules.map(k=>escapeHtml(modules[k])).join(', ')+'</p>';
+   if(kind==='delete'||kind==='restore'){
+    const file=upload?await readBackup(upload):null;
+    const info=await rpc(file?'inspect':'preview',file?{p_file:file}:sel);
+    if(!info.counts||!Object.hasOwn(info.counts,'audit_log')||Object.hasOwn(info.counts,'payroll_leave_records'))throw Error('This backup or database predates HR leave protection. Download a new backup from the updated app.');
+    if(!info.total){msg.textContent='There are no matching operational records.';return;}
+    const body=describe(info)+'<p>'+info.total.toLocaleString()+' affected records. '+(file?'Existing identical records are skipped.':'Permanent deletion includes locked records and changes live report totals. You can restore this period with a previously saved backup.')+'</p>';
+    if(!await confirm(file?'Restore backup?':'Permanently delete this selection?',body,file?'Restore records':'Permanently delete',!file)){msg.textContent='Cancelled.';return;}
+    const result=await rpc(file?'restore':'delete',file?{p_file:file}:{...sel,p_expected:info.selection});
+    msg.textContent=file?result.changed+' records restored. '+result.alreadyPresent+' already present.':result.changed+' records cleared. '+(result.queueRemoved||0)+' pending mirror copies removed.';
+    window.yearWindow14333?.invalidateMemory();
+    window.dispatchEvent(new CustomEvent('transactions-reset14316',{detail:{scopes:info.modules}}));
+    if(result.changed){
+     const saved=msg.textContent;
+     try{
+      await window.localFirst14333?.invalidateConfirmed();guard();
+      await window.startup14257?.revalidate?.(true,{includeInboxes:false});guard();
+      msg.textContent=saved;
+     }catch{if(actor===liveProfile?.id&&db===ojmDb)msg.textContent=saved+' Refresh the workspace to reload reports.';}
+    }
+    return;
+   }
+   let file,pack,rows;
+   if(kind==='csvfile')rows=parseCsv(await upload.text());
+   else{
+    file=await rpc('export',sel);pack=JSON.parse(file.payload);
+    const stem='Oon-Jai-'+pack.from+'-to-'+pack.to;
+    if(!Object.hasOwn(pack.tables,'audit_log')||Object.hasOwn(pack.tables,'payroll_leave_records'))throw Error('The database backup update is still pending.');
+    if(kind==='backup'){save(new Blob([JSON.stringify(file)],{type:'application/json'}),stem+'-Backup.json');msg.textContent='Backup downloaded.';return;}
+    if(kind==='excel'){const blob=await workbook(file,pack);guard();save(blob,stem+'-Raw.xlsx');msg.textContent='Raw Excel workbook downloaded.';return;}
+    rows=await sheetRows(pack);guard();
+    if(kind==='csv'){save(new Blob([csv(rows)],{type:'text/csv;charset=utf-8'}),stem+'-Source-Records.csv');msg.textContent='Sheets file downloaded. Use Upload archive CSV to append it.';return;}
+   }
+   let added=0,existing=0;
+   for(let i=0;i<rows.length;){
+    guard();const batch=[];let size=0;
+    while(i<rows.length&&batch.length<500&&size<500000){size+=JSON.stringify(rows[i]).length;batch.push(rows[i++]);}
+    const {data,error}=await db.functions.invoke('portable-sheet-append',{body:{rows:batch}});
+    guard();if(error||data?.error){let detail=data?.error;if(!detail&&error?.context?.json)try{detail=(await error.context.json()).error;}catch{}throw Error((detail||error?.message||'Archive unavailable')+' Retry the same selection to continue.');}
+    added+=data.added;existing+=data.existing;msg.textContent=i+' of '+rows.length+' archive rows checked.';
+   }
+   msg.textContent=added+' archive rows appended. '+existing+' already present.';
+  }catch(e){if(actor===liveProfile?.id&&db===ojmDb)msg.textContent=e.message||String(e);}
+  finally{busy=false;fieldsets.forEach(n=>n.disabled=false);}
+ }
+ section.addEventListener('click',e=>{
+  const kind=e.target.closest('[data-act]')?.dataset.act;if(!kind||busy)return;
+  if(kind==='restore'||kind==='csvfile'){
+   const input=document.createElement('input');input.type='file';input.accept=kind==='restore'?'.json,.xlsx':'.csv';
+   input.onchange=()=>{if(input.files[0])void action(kind,input.files[0]);};input.click();
+  }else void action(kind);
+ });
+}
+window.portable328={install};
+})();
+;
 /* scripts/data-tools14232.js */
 /* Portable backup and protected recovery. Annual Google Sheets are the audit destination. */
-(()=>{'use strict';const $=id=>document.getElementById(id),S=archiveScopes14232,esc=v=>escapeHtml(String(v??''));let prepared=null,preparedOwner='',generation=0,preparingVersion=null,resetPack=null,resetHash='',verified=false,resetOwner='',resetGeneration=0,contextClient=typeof ojmDb==='undefined'?null:ojmDb;
+(()=>{'use strict';const $=id=>document.getElementById(id),S=archiveScopes14232,esc=v=>escapeHtml(String(v??''));let prepared=null,preparedOwner='',generation=0,preparingVersion=null,contextClient=typeof ojmDb==='undefined'?null:ojmDb;
 const admin=()=>window.shell113?.admin()&&window.access113?.can('settings-data14231');
-const label=k=>k.replaceAll('_',' ');
 async function rpc(name,args={}){if(!admin())throw Error('Administrator access required.');const actor=liveProfile.id,client=ojmDb,r=await client.rpc(name,args);if(!admin()||liveProfile?.id!==actor||ojmDb!==client)throw Error('Account changed.');if(r.error)throw Error(r.error.message);return r.data}
 function status(id,text,bad=false){const n=$(id);if(n){n.textContent=text;n.classList.toggle('error',bad)}}
 async function download(filename,data){const blob=new Blob([JSON.stringify(data)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);try{const delivered=await (window.exportCenter14337?exportCenter14337.fromLink(a):a.click());if(delivered===false)throw Error('The export was not prepared. Try again before continuing.');return blob}finally{a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}}
@@ -3050,21 +3238,16 @@ async function downloadAnnualReview(){
 }
 async function downloadPreviousAudit(){const owner=liveProfile?.id,client=ojmDb;try{if(!admin())throw Error('Administrator access required.');const saved=await auditStorage14232.read('admin:'+owner);if(!admin()||liveProfile?.id!==owner||ojmDb!==client)throw Error('Account changed.');if(!saved?.value){status('previousAuditStatus230','There is no previous local audit copy for this administrator in this browser.');return;}await download('oonjai-previous-local-audit-'+new Date().toISOString().slice(0,10)+'.json',saved.value);status('previousAuditStatus230','Previous local audit copy downloaded. The stored copy has been retained.')}catch(e){status('previousAuditStatus230',e.message,true)}}
 async function verifyPassword(password){if(!password)throw Error('Enter your current administrator password.');const verifier=window.supabase.createClient(window.OJM_SUPABASE_URL,window.OJM_SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'oonjai-reset-verify14232-'+crypto.randomUUID()}});const r=await verifier.auth.signInWithPassword({email:liveProfile.email,password});try{if(r.error)throw Error(r.error.message);if(r.data.user?.id!==liveProfile.id)throw Error('Verify the current administrator account.')}finally{await verifier.auth.signOut({scope:'local'}).catch(()=>{})}}
-function resetInvalidate(){resetGeneration++;resetPack=null;resetHash='';verified=false;$('resetReview14232').hidden=true;$('resetApply14232').disabled=true}
-function resetEnabled(){$('resetApply14232').disabled=!verified||!resetPack||!admin()||!$('resetPassword14232').value||$('resetPhrase14232').value!=='RESET SELECTED DATA'}
-async function resetPrepare(){if(!admin())return;resetInvalidate();const ids=scopeIDs($('operationalReset142')),version=resetGeneration,owner=liveProfile.id,client=ojmDb;try{if(!ids.length)throw Error('Choose the modules you want to reset.');status('resetStatus14232','Preparing selected-data backup and reset preview…');const p=await rpc('scoped_reset_backup14232',{p_scopes:ids});if(!admin()||owner!==liveProfile?.id||version!==resetGeneration||client!==ojmDb)throw Error('Reset selection changed.');const preview=await rpc('scoped_reset14232',{p_backup:p,p_apply:false,p_confirmation:null});if(!admin()||owner!==liveProfile.id||version!==resetGeneration)throw Error('Reset selection changed.');if(client!==ojmDb)throw Error('Reset connection changed.');const hash=await digest(await download('oonjai-before-selected-reset-'+new Date().toISOString().slice(0,10)+'.json',p));if(!admin()||owner!==liveProfile?.id||version!==resetGeneration||client!==ojmDb)throw Error('Reset selection changed.');resetOwner=owner;resetPack=p;resetHash=hash;$('resetCounts14232').textContent=Object.entries(preview.counts).map(([t,n])=>label(t)+': '+n+' records').join('\n')+'\nTotal: '+preview.total+'\nPreserved: '+preview.preserved;$('resetReview14232').hidden=false;if(preview.requiredTables?.length){const names=preview.requiredTables.map(t=>S.scopes.find(s=>s.tables.includes(t))?.label||t);status('resetStatus14232','Also select these linked areas before resetting: '+[...new Set(names)].join(', ')+'. Nothing was deleted.',true);resetPack=null;return}status('resetStatus14232','Save the downloaded backup, then select that exact file below. Nothing has been deleted.')}catch(e){status('resetStatus14232',e.message+( /function|schema cache|does not exist/i.test(e.message)?' Install the supplied DATA TOOLS v142.32 SQL update first.':''),true)}}
-async function resetApply(){if(!verified||!resetPack||!admin())return;const owner=resetOwner,p=resetPack,version=resetGeneration,client=ojmDb,password=$('resetPassword14232').value;$('resetPassword14232').value='';$('resetApply14232').disabled=true;try{await verifyPassword(password);if(!admin()||liveProfile.id!==owner||client!==ojmDb||version!==resetGeneration||$('resetPhrase14232').value!=='RESET SELECTED DATA')throw Error('Reset context changed.');const approved=await ui108.modal('Reset selected operational data','<p>Only these selected areas will be cleared:</p><p>'+p.scopes.map(id=>esc(S.scopes.find(s=>s.id===id)?.label||id)).join(', ')+'</p><p>Keep the verified backup. This deletion cannot be undone from the website. Accounts, settings, users and identifier continuity are preserved.</p>',[{label:'Cancel',value:false},{label:'Reset selected data',value:true,danger:true}]);if(!approved)return;if(!admin()||liveProfile.id!==owner||client!==ojmDb||version!==resetGeneration)throw Error('Reset context changed.');if(!window.AccountingHistory194)throw Error('Reload the current website to verify Google Sheets before deletion.');const r=await AccountingHistory194.confirmReset(p);if(r.mode!=='cleared')throw Error('Reset was not confirmed.');resetInvalidate();window.dispatchEvent(new CustomEvent('transactions-reset14316',{detail:{scopes:p.scopes}}));status('resetStatus14232','Selected reset complete: '+r.total+' records cleared. Other modules were preserved. Refresh the website to reload their views.');showCenterStatus('Selected reset completed. Refresh to reload the data.')}catch(e){status('resetStatus14232','Reset not completed: '+e.message,true)}finally{resetEnabled()}}
-function install(){const host=$('settings-backup113');if(!host||host.dataset.dataTools14232)return;host.dataset.dataTools14232='1';host.innerHTML=`<section class="panel113"><header><h2>Portable data backup</h2></header><p>Choose a period and modules. Supporting account and linked records are included so the copy remains usable. Preparing a copy does not change live records.</p><form id="archiveExport129">${periodHTML()}${scopeHTML('archive',true)}<div class="data-actions14232"><button type="submit" id="prepareArchive14232" class="primary113">Prepare backup copy</button></div></form><p id="archiveStatus14232" role="status"></p><div id="archiveReview129" hidden><pre id="archiveCounts129" class="backup-preview113"></pre><div class="data-actions14232"><button type="button" id="archiveDownload129">Download Excel backup</button><button type="button" id="archiveJson1441">Download JSON copy</button><button type="button" id="annualReviewJson317">Download annual archive JSON</button></div></div></section><section class="panel113" id="previousAuditRecovery230"><header><h2>Previous local audit copy — recovery only</h2></header><p>The temporary browser audit workspace has been retired. Any existing local copy can still be downloaded from this browser. Company yearly Google Sheets are the intended audit location; check Google Drive and Sheets for the active archive status.</p><button type="button" id="previousAuditDownload230">Download previous local audit copy</button><p id="previousAuditStatus230" role="status"></p></section><section class="panel113" id="operationalReset142"><header><h2>Reset Operational Data</h2></header><p>Reset clears selected database records across all dates, regardless of the archive period above. Downloading an archive does not delete live records. Stored attachment files are not removed by this reset. Choose only the areas you intend to clear. Unselected modules, Chart of Accounts, saved settings, users and generated number continuity are preserved. A linked area may need to be selected together with its dependencies.</p><div class="reset-grid14281"><section class="reset-card14281"><h3>1. Select data</h3>${scopeHTML('reset',false)}</section><section class="reset-card14281"><h3>2. Back up and preview</h3><div class="data-actions14232"><button type="button" id="resetFullBackup14232">Download full backup — recommended</button><button type="button" id="resetPrepare14232">Prepare selected backup & preview</button></div></section><div id="resetReview14232" hidden><section class="reset-card14281"><h3>3. Verify backup</h3><pre id="resetCounts14232" class="backup-preview113"></pre><label>Select the downloaded reset backup<input type="file" id="resetFile14232" accept="application/json,.json"></label></section><section class="reset-card14281"><h3>4. Confirm reset</h3><label>Current administrator password<input type="password" id="resetPassword14232" autocomplete="current-password"></label><label>Type RESET SELECTED DATA<input id="resetPhrase14232" autocomplete="off"></label><button type="button" id="resetApply14232" class="primary113" disabled>Reset selected data</button></section></div></div><p id="resetStatus14232" role="status"></p></section>`;
- $('archiveExport129').onsubmit=e=>{e.preventDefault();prepare()};$('previousAuditDownload230').onclick=downloadPreviousAudit;$('archiveExport129').addEventListener('change',e=>{if(!e.target.closest('.data-scope14232'))fields()});wireScopes($('archiveExport129'),fields);fields();wireScopes($('operationalReset142'),resetInvalidate);
+function install(){const host=$('settings-backup113');if(!host||host.dataset.dataTools14232)return;host.dataset.dataTools14232='1';const legacy=document.createElement('details');legacy.className='portable-legacy';legacy.innerHTML=`<summary>Additional archive formats and file recovery</summary><form id="archiveExport129">${periodHTML()}${scopeHTML('archive',true)}<div class="data-actions14232"><button type="submit" id="prepareArchive14232" class="primary113">Prepare backup copy</button></div></form><p id="archiveStatus14232" role="status"></p><div id="archiveReview129" hidden><pre id="archiveCounts129" class="backup-preview113"></pre><div class="data-actions14232"><button type="button" id="archiveDownload129">Download Excel backup</button><button type="button" id="archiveJson1441">Download JSON copy</button><button type="button" id="annualReviewJson317">Download annual archive JSON</button></div></div><button type="button" id="previousAuditDownload230">Download previous local audit copy</button><p id="previousAuditStatus230" role="status"></p>`;
+ window.portable328.install(host,legacy);
+ $('archiveExport129').onsubmit=e=>{e.preventDefault();prepare()};$('previousAuditDownload230').onclick=downloadPreviousAudit;$('archiveExport129').addEventListener('change',e=>{if(!e.target.closest('.data-scope14232'))fields()});wireScopes($('archiveExport129'),fields);fields();
  $('annualReviewJson317').onclick=downloadAnnualReview;
  $('archiveJson1441').onclick=async()=>{if(!admin()||preparedOwner!==liveProfile?.id||!prepared)return;const owner=liveProfile.id,client=ojmDb;try{await download('oonjai-data-copy-'+(prepared.from||'all-time')+'.json',prepared)}catch(e){if(admin()&&liveProfile?.id===owner&&ojmDb===client)status('archiveStatus14232',e.message,true)}};
  $('archiveDownload129').onclick=async()=>{if(!admin()||!prepared||preparedOwner!==liveProfile.id)return;const p=prepared,owner=preparedOwner,version=generation,client=ojmDb;try{const blob=await archiveXlsx129.create(p);if(!admin()||owner!==liveProfile.id||version!==generation||ojmDb!==client)throw Error('Selection changed.');const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='oonjai-archive-'+(p.from||'all-time')+'.xlsx';try{const delivered=await (window.exportCenter14337?exportCenter14337.fromLink(a):a.click());if(delivered===false)throw Error('The export was not prepared. Try again.')}finally{setTimeout(()=>URL.revokeObjectURL(url),3000)}}catch(e){if(admin()&&owner===liveProfile?.id&&ojmDb===client&&version===generation)status('archiveStatus14232',e.message,true)}};
- $('resetPrepare14232').onclick=resetPrepare;$('resetFile14232').onchange=async e=>{verified=false;const version=resetGeneration,hash=resetHash,actor=liveProfile?.id,client=ojmDb;resetEnabled();try{const file=e.target.files[0];if(!file||!resetPack)return;const actual=await digest(file);if(version!==resetGeneration||actor!==liveProfile?.id||client!==ojmDb||!admin())return;if(actual!==hash)throw Error('Choose the exact backup just prepared.');verified=true;status('resetStatus14232','Backup verified. Enter your password and confirmation phrase.')}catch(e){status('resetStatus14232',e.message,true)}resetEnabled()};$('resetPassword14232').oninput=$('resetPhrase14232').oninput=resetEnabled;$('resetApply14232').onclick=resetApply;
- $('resetFullBackup14232').onclick=async()=>{const owner=liveProfile?.id,client=ojmDb;try{status('resetStatus14232','Preparing full backup…');const check=()=>{if(!admin()||owner!==liveProfile?.id||ojmDb!==client)throw Error('Account changed.')};const p=await snapshot({p_from:null,p_to:null},check);check();await download('oonjai-full-before-reset-'+new Date().toISOString().slice(0,10)+'.json',p);check();status('resetStatus14232','Full backup download started. Nothing was reset.')}catch(e){if(admin()&&owner===liveProfile?.id&&ojmDb===client)status('resetStatus14232',e.message,true)}};
- }
-function accessChanged(){if(window.permissions1441?.reconnecting)return;if(!admin()||contextClient!==ojmDb||[preparedOwner,resetOwner].some(owner=>owner&&owner!==liveProfile?.id)){contextClient=ojmDb;prepared=null;preparedOwner='';resetOwner='';generation++;resetInvalidate()}}
+}
+function accessChanged(){if(window.permissions1441?.reconnecting)return;if(!admin()||contextClient!==ojmDb||preparedOwner&&preparedOwner!==liveProfile?.id){contextClient=ojmDb;prepared=null;preparedOwner='';generation++;}}
 function ready(){install();window.addEventListener('page113',accessChanged);setInterval(accessChanged,500)}
-window.dataTools14232={prepare,snapshot,resetPrepare,verifyPassword};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();})();
+window.dataTools14232={prepare,snapshot,verifyPassword};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();})();
 ;
 /* scripts/save-notices14234.js */
 /* Failed saves are durable per actor and database. Never retry with a new identity. */
@@ -3160,9 +3343,11 @@ async function flow(mode,pack=null){
  }finally{flowBusy=false;confirmation={};}
 }
 async function confirmReset(pack){return flow('reset',pack);}
-async function cleanupYear(){const n=document.getElementById('historyStatus194');try{confirmation={};const allowed=await ui108.modal('Confirm administrator','<label>Current administrator password<input type="password" id="historyPassword194" autocomplete="current-password"></label>',[{label:'Cancel',value:false},{label:'Compare selected year',value:true}]);if(!allowed)return;await dataTools14232.verifyPassword(confirmation.password||'');confirmation={};n.textContent='Comparing the selected year with its saved history…';const r=await flow('year');n.textContent='Year '+r.year+': '+r.total+' database records removed. Google history and your Excel backup remain. Refresh the website to reload all views.';window.dispatchEvent(new CustomEvent('transactions-reset14316',{detail:{scopes:['journal']}}));}catch(e){n.textContent=e.message;}}
 async function status(){if(!admin()||busy)return;busy=true;try{const s=await call({action:'status'}),n=document.getElementById('historyStatus194');if(s.config?.annual231){const year=Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Vientiane',year:'numeric'}).format(new Date())),row=s.annualYears231?.find(r=>r.year===year);s.config.sheet=row?.sheet||'';}const link=document.getElementById('historyWorkbook230');if(link)link.hidden=true;if(link&&/^[\w-]{20,160}$/.test(s.config?.sheet||'')){link.href='https://docs.google.com/spreadsheets/d/'+s.config.sheet+'/edit';link.hidden=false;}if(n)n.textContent=s.config?.last_error?'Saving needs attention: '+s.config.last_error:s.pending?s.pending+' changes saved in Accounting, waiting for the next month-close copy or Save pending changes.':s.config?.last_saved?'Saved to company Google Sheets: '+(typeof formatAppDate==='function'?formatAppDate(s.config.last_saved,true):s.config.last_saved):'First archive save is pending.';}catch(e){const n=document.getElementById('historyStatus194');if(n)n.textContent=e.message;}finally{busy=false;}}
-function install(){const host=document.getElementById('settings-backup113');if(!host||document.getElementById('googleHistory194'))return;const s=document.createElement('section');s.id='googleHistory194';s.className='panel113';s.innerHTML='<header><h2>Google accounting archive</h2></header><p>Accounting saves entries immediately. Google Sheets copies start after a month closes, or when you press Save pending changes. Check the active archive here. Automatic yearly storage is managed in Google Drive and Sheets. Each record follows its accounting year, and archived history must pass a fresh comparison before database cleanup.</p><div class="data-actions14232"><a id="historyWorkbook230" hidden target="_blank" rel="noopener">Open current archive workbook</a><button type="button" id="historySave194" class="je-btn je-btn-secondary">Save pending changes</button><button type="button" id="historyCheck194" class="je-btn je-btn-secondary">Check archive status</button></div><p id="historyStatus194" role="status"></p><label>Closed year to release from database<input id="historyYear194" type="number" min="1900" max="2198" value="'+(Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Vientiane',year:'numeric'}).format(new Date()))-1)+'"></label><div class="data-actions14232"><button type="button" id="historyCleanup194" class="je-btn je-btn-secondary">Compare, back up &amp; review cleanup</button></div><div id="historyComparison194"></div>';host.prepend(s);document.getElementById('historyCleanup194').onclick=cleanupYear;document.getElementById('historyCheck194').onclick=status;document.getElementById('historySave194').onclick=async()=>{const n=document.getElementById('historyStatus194');n.textContent='Saving and checking Google Sheets…';try{const r=await call({action:'sync'});n.textContent=r.busy?'Another save is running. Check status shortly.':r.continuing?'Copy in progress. Check archive status shortly.':'Copy processed. Check archive status to confirm all pending changes are saved.';}catch(e){n.textContent=e.message;}};}
+function install(){
+ const host=document.querySelector('#portable328 .portable-legacy');if(!host||document.getElementById('googleHistory194'))return;
+ const s=document.createElement('div');s.id='googleHistory194';s.innerHTML='<div class="portable-actions"><a id="historyWorkbook230" hidden target="_blank" rel="noopener">Open current archive workbook</a><button type="button" id="historySave194">Save pending changes</button><button type="button" id="historyCheck194">Check archive status</button></div><p id="historyStatus194" role="status"></p>';host.append(s);
+ document.getElementById('historyCheck194').onclick=status;document.getElementById('historySave194').onclick=async()=>{const n=document.getElementById('historyStatus194');n.textContent='Saving and checking Google Sheets…';try{const r=await call({action:'sync'});n.textContent=r.busy?'Another save is running. Check status shortly.':r.continuing?'Copy in progress. Check archive status shortly.':'Copy processed. Check archive status to confirm all pending changes are saved.';}catch(e){n.textContent=e.message;}};}
 window.AccountingHistory194={confirmReset,call};window.addEventListener('page113',()=>{install();const panel=document.getElementById('googleHistory194');if(panel?.closest('.tab-content.active')&&panel.offsetParent)void status();});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
