@@ -8,7 +8,7 @@ const create=require('./phase0-browser-fixture.cjs');
   const dates={from:'2026-01-01',to:'2026-10-31'},modules=['journal','staff','payroll','tax','vouchers','reports','schedules','reconciliation','audit'];
   const pack={format:'oonjai-portable-328',...dates,modules,tables:{audit_log:[],journal_entries:[JSON.stringify({id:'j1',amount:0.46,memo:'=42, "saved"',detail:'Record'.repeat(6000)})]},reference:{},keys:{journal_entries:['id']}};
   const file={format:'oonjai-backup-file-328',payload:JSON.stringify(pack),signature:'test'};
-  const actions=[],keys=new Set();let failBackup=false;
+  const actions=[];let failBackup=false;
   await page.route('**/rest/v1/rpc/portable_backup328',async route=>{
    const body=route.request().postDataJSON();actions.push(body.p_action);
    if(failBackup&&body.p_action==='export')return route.fulfill({status:400,json:{message:'Backup unavailable'}});
@@ -19,11 +19,6 @@ const create=require('./phase0-browser-fixture.cjs');
    }
    const result=body.p_action==='export'?file:['inspect','preview'].includes(body.p_action)?{...dates,modules,total:1,selection:'hash',counts:{audit_log:0}}:{changed:1,alreadyPresent:0};
    await route.fulfill({json:result});
-  });
-  await page.route('**/functions/v1/portable-sheet-append',async route=>{
-   let added=0,existing=0;
-   for(const r of route.request().postDataJSON().rows){assert.equal(r.length,7);if(keys.has(r[0]))existing++;else{keys.add(r[0]);added++;}}
-   await route.fulfill({json:{added,existing}});
   });
   await login();await page.waitForFunction(()=>startup14257.interactive);
   await page.evaluate(()=>switchTab('settings-data14231'));
@@ -39,11 +34,12 @@ const create=require('./phase0-browser-fixture.cjs');
    const received=page.waitForEvent('download');await root.locator('[data-act='+kind+']').click();const dl=await received;
    const path=await dl.path(),buf=await fs.readFile(path);assert(buf.length>0);
    if(kind==='backup'){assert.deepEqual(JSON.parse(buf),file);continue;}
-   const picker=page.waitForEvent('filechooser');await root.locator('[data-act='+(kind==='excel'?'restore':'csvfile')+']').click();
+   if(kind==='csv'){assert.match(buf.toString(),/portable-[a-f0-9]{64}:1/);continue;}
+   const picker=page.waitForEvent('filechooser');await root.locator('[data-act=restore]').click();
    await (await picker).setFiles({name:dl.suggestedFilename(),mimeType:'application/octet-stream',buffer:buf});
-   if(kind==='excel'){await page.getByRole('button',{name:'Restore records',exact:true}).click();await status.filter({hasText:'1 records restored'}).waitFor();}
-   else{await status.filter({hasText:'2 archive rows appended'}).waitFor();await root.locator('[data-act=append]').click();await status.filter({hasText:'0 archive rows appended. 2 already present'}).waitFor();}
+   await page.getByRole('button',{name:'Restore records',exact:true}).click();await status.filter({hasText:'1 records restored'}).waitFor();
   }
+  assert.equal(await root.locator('[data-act=append],[data-act=csvfile],#googleHistory194').count(),0);
   failBackup=true;
   await root.locator('[data-act=delete]').click();await status.filter({hasText:'Backup unavailable'}).waitFor();
   assert(!actions.includes('delete'));failBackup=false;
@@ -62,6 +58,6 @@ const create=require('./phase0-browser-fixture.cjs');
   const secondZip=page.waitForEvent('download');await root.locator('[data-act=delete]').click();await secondZip;
   await page.getByRole('button',{name:'ZIP saved — permanently delete',exact:true}).click();
   await status.filter({hasText:'1 records cleared'}).waitFor();assert.equal(actions.filter(a=>a==='delete').length,1);
-  console.log('PASS Settings navigation, all formats, original XLSX restore, append replay, custom period and one delete confirmation');
+  console.log('PASS Settings navigation, all formats, original XLSX restore, disconnected archive, custom period and one delete confirmation');
  }finally{await fixture.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

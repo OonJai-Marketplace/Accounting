@@ -21,6 +21,6 @@ verify_jwt = false
 [functions.google-oauth-callback]
 verify_jwt = false
 
-# Auth.getUser verifies the signed session before the company archive can be appended.
+# Retired endpoint returns HTTP 410 for previously installed clients.
 [functions.portable-sheet-append]
 verify_jwt = false

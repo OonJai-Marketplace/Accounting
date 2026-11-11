@@ -362,21 +362,3 @@ end $$;
 revoke all on function private.portable_catalog328(),private.portable_edges328(),private.portable_rows328(date,date,text[]),private.portable_pack328(date,date,text[]) from public,anon,authenticated;
 revoke all on function public.portable_backup328(text,date,date,text[],jsonb,text) from public,anon;
 grant execute on function public.portable_backup328(text,date,date,text[],jsonb,text) to authenticated;
-
--- Serialize manual imports with the existing archive writer; release only our own lease.
-create or replace function public.portable_sheet_lease328(p_token uuid,p_release boolean default false)
-returns jsonb language plpgsql security definer set search_path='' as $$
-declare cfg private.sheet_archive_config194;
-begin
- if p_token is null then raise exception 'Missing import token'; end if;
- if p_release then
-  update private.sheet_archive_config194 set lease=null,lease_until=null where id and lease=p_token;
-  return '{}'::jsonb;
- end if;
- update private.sheet_archive_config194 set lease=p_token,lease_until=now()+interval '5 minutes'
- where id and (lease_until is null or lease_until<now()) returning * into cfg;
- if not found then raise exception 'Another archive save is running. Retry the append when it finishes.'; end if;
- return jsonb_build_object('sheet',cfg.sheet,'connection',cfg.connection_sheet);
-end $$;
-revoke all on function public.portable_sheet_lease328(uuid,boolean) from public,anon,authenticated;
-grant execute on function public.portable_sheet_lease328(uuid,boolean) to service_role;

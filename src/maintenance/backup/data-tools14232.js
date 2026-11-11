@@ -1,4 +1,4 @@
-/* Portable backup and protected recovery. Annual Google Sheets are the audit destination. */
+/* Portable backup and protected recovery. */
 (()=>{'use strict';const $=id=>document.getElementById(id),S=archiveScopes14232,esc=v=>escapeHtml(String(v??''));let prepared=null,preparedOwner='',generation=0,preparingVersion=null,contextClient=typeof ojmDb==='undefined'?null:ojmDb;
 const admin=()=>window.shell113?.admin()&&window.access113?.can('settings-data14231');
 async function rpc(name,args={}){if(!admin())throw Error('Administrator access required.');const actor=liveProfile.id,client=ojmDb,r=await client.rpc(name,args);if(!admin()||liveProfile?.id!==actor||ojmDb!==client)throw Error('Account changed.');if(r.error)throw Error(r.error.message);return r.data}

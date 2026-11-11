@@ -1,4 +1,4 @@
-import {storageState231,storageRPC231,ensureYear231} from './storage231.ts';
+import {storageState231,ensureYear231} from './storage231.ts';
 import {receiptYear231} from './receipt-year231.ts';
 // Drive documents are isolated from the journal Sheets connection and from other users.
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.49.8';
@@ -40,40 +40,8 @@ export async function documentHandler(req:Request){
  return response;
 }
 async function documentHandler214(req:Request){
- try{if(req.method==='OPTIONS')return reply({});if(req.method!=='POST')return reply({error:'Use POST'},405);const owner=await actor(req);const raw=await req.text();if(raw.length>20000)throw Error('Request too large.');const b=JSON.parse(raw||'{}'),key=docKey(owner),personal=await connection(key);if(personal&&personal.owner!==owner)throw Error('Connection owner mismatch.');const cfg=await companySettings228(),destination=destination228(cfg);let c=personal;if(destination&&!(['connect','verify-destination228','verify-folders230','storage-status230','activate-yearly231','prepare-yearly231','app-update217'].includes(b.action))){c=await connection(destination.connectionKey);if(!c||c.email.toLowerCase()!==destination.email)throw Error('The company Drive connection needs administrator attention. Your scans are kept.');await manage228(c.owner);}
+ try{if(req.method==='OPTIONS')return reply({});if(req.method!=='POST')return reply({error:'Use POST'},405);const owner=await actor(req);const raw=await req.text();if(raw.length>20000)throw Error('Request too large.');const b=JSON.parse(raw||'{}'),key=docKey(owner),personal=await connection(key);if(personal&&personal.owner!==owner)throw Error('Connection owner mismatch.');const cfg=await companySettings228(),destination=destination228(cfg);let c=personal;if(destination&&!(['connect','verify-destination228','app-update217'].includes(b.action))){c=await connection(destination.connectionKey);if(!c||c.email.toLowerCase()!==destination.email)throw Error('The company Drive connection needs administrator attention. Your scans are kept.');await manage228(c.owner);}
  if(b.action==='status')return reply({connected:!!c,email:c?.email||'',configured:!!clientID()&&!!clientSecret(),companyDestination228:destination?{id:destination.id,name:destination.name,email:destination.email,folderURL:destination.folderURL}:null,companyManaged228:!!destination,annual231:destination?.annual231===true});
- if(b.action==='storage-status230'){
-  await manage228(owner,req);const state=checked(await admin.rpc('sheet_archive_state194')),archive=state?.config||{},annual=archive.annual231;
-  if(annual){const yearly=await storageState231();return reply({archive:{email:annual.email,layout:'yearly',yearlyActive:true,folderURL:'https://drive.google.com/drive/folders/'+annual.archiveRoot,lastSaved:archive.last_saved,error:archive.last_error},years:yearly.years.map((y:any)=>({year:y.year,sheet:y.sheet,folder:y.receipt_folder,ready:y.initialized,savedAt:y.saved_at,closed:!!y.history_digest}))});}
-  const archiveConnection=archive.connection_sheet?await connection(archive.connection_sheet):null;
-  return reply({archive:{sheet:archive.sheet||'',email:archiveConnection?.email||'',lastSaved:archive.last_saved||null,error:archive.last_error||null,layout:'existing-workbook',yearlyActive:false}});
- }
- if(b.action==='prepare-yearly231'){await manage228(owner,req);await storageRPC231('storage_year_prepare231');return reply({queued:true});}
- if(b.action==='activate-yearly231'){
-  await manage228(owner,req);const candidate=await connection(candidateKey228(owner))||personal;
-  if(!candidate||candidate.owner!==owner||!cfg.accountEmail228||candidate.email.toLowerCase()!==String(cfg.accountEmail228).toLowerCase())throw Error('Save both parent folders and connect the saved company Google account first.');
-  const roots:any={};for(const [key,link]of [['receiptRoot',cfg.receiptDrive228?.folderURL],['archiveRoot',cfg.archiveDrive230?.folderURL]]){
-   if(!/^https:\/\/drive\.google\.com\/drive\/folders\/[\w-]{10,160}$/.test(String(link||'')))throw Error('Save both parent folder links first.');
-   const f=await folder(candidate,String(link).split('/').pop()!);if(!f.capabilities?.canAddChildren)throw Error('The company account cannot add files to '+f.name);
-   if(/^20[0-9]{2}$/.test(f.name))throw Error('Select the parent folder, not the '+f.name+' subfolder. The system creates each year inside it.');roots[key]=f.id;
-  }
-  if(roots.receiptRoot===roots.archiveRoot)throw Error('Choose separate parent folders for receipts and accounting data.');
-  const snapshot='documents-company228:'+owner+':'+crypto.randomUUID();checked(await admin.from('google_connections143150').insert({...candidate,sheet:snapshot}));
-  await storageRPC231('storage_year_activate231',{p_actor:owner,p_email:candidate.email.toLowerCase(),p_receipt_root:roots.receiptRoot,p_archive_root:roots.archiveRoot,p_connection:snapshot});
-  return reply({active:true,email:candidate.email});
- }
- if(b.action==='verify-folders230'){
-  await manage228(owner,req);const candidate=await connection(candidateKey228(owner))||personal;
-  if(!candidate)throw Error('Save the folder links and connect the company Google account first.');
-  if(candidate.owner!==owner||!cfg.accountEmail228||candidate.email.toLowerCase()!==String(cfg.accountEmail228).toLowerCase())throw Error('Connect the Google account saved in these settings first.');
-  const result:any={receipts:null,archive:null};
-  for(const [key,link]of [['receipts',cfg.receiptDrive228?.folderURL],['archive',cfg.archiveDrive230?.folderURL]]){
-   if(!link)continue;if(!/^https:\/\/drive\.google\.com\/drive\/folders\/[\w-]{10,160}$/.test(String(link)))throw Error('Save a valid '+key+' folder link first.');
-   const f=await folder(candidate,String(link).split('/').pop()!);if(!f.capabilities?.canAddChildren)throw Error('The company account cannot add files to the '+key+' folder.');
-   result[key]={id:f.id,name:f.name,email:candidate.email.toLowerCase(),folderURL:link,checkedAt:new Date().toISOString()};
-  }
-  if(!result.receipts&&!result.archive)throw Error('Save at least one folder link before checking access.');return reply(result);
- }
  if(b.action==='verify-destination228'){
   if(destination?.annual231)throw Error('Automatic yearly storage is active. Use its company storage controls to change the destination.');
   await manage228(owner,req);const candidate=await connection(candidateKey228(owner))||personal,link=String(cfg.receiptDrive228?.folderURL||'');

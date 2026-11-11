@@ -158,14 +158,7 @@ const settings=()=>({prefix:String(ApplicationSettings.accounting?.journalPrefix
 async function syncChart(){const result=await bridge('accounts-sync');if(!Array.isArray(result.accounts))throw Error('Account refresh was not confirmed.');return result.accounts;}
 async function receipt(id){const c=context(),r=await readQuery(c.db.rpc('drive_journal_receipt143128',{p_sheet:c.sheet,p_draft:id}),'Posted draft check');assert(c);if(r.error)throw r.error;return r.data;}
 const $=id=>document.getElementById(id);
-const initialLinks=[
- ['Journal & HR Submission Inbox','https://docs.google.com/spreadsheets/d/1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk/edit','AI Journal reads the Drafts tab. AI HR reads the HR Submission Inbox tab in this same spreadsheet.'],
- ['Accounting Web — Current and History','https://docs.google.com/spreadsheets/d/1XSlBJL1X2tcbBsVcfDpffm0qIlYPGPwLBgwxcxzWx0I/edit','Company raw data, source revisions, current reports and fixed history.'],
- ['Journal receipts','https://drive.google.com/drive/folders/1GYQRea6PCEjehyZC0Pewq2oqAGB-mCX_','Company receipt PDFs. The active upload destination is controlled above.'],
- ['Journal Submissions folder','https://drive.google.com/drive/folders/1oZWJstSJIU2HvPvelKdBdUkiUIcU-mpa','Company journal and HR submission files.'],
- ['Accounting Website folder','https://drive.google.com/drive/folders/1vgFTHzPeC6ai2HL__U13BYUslHFT-vip','Company Accounting website files.']
-];
-function defaults(){return !!identity()?{sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk',links:initialLinks}:{links:[]};}
+function defaults(){return !!identity()?{sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk'}:{links:[]};}
 async function loadSharedSettings(){
  syncSession();const owner=identity(),db=ojmDb;if(settingsJob?.owner===owner&&settingsJob.db===db)return settingsJob.promise;
  const job={owner,db,promise:null};settingsJob=job;job.promise=readSharedSettings().finally(()=>{if(settingsJob===job)settingsJob=null;});return job.promise;
@@ -410,53 +403,19 @@ async function run(fn){
  finally{busy=false;void window.AIInboxSync143173?.persist?.();drainInbox143173();hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));updatePostButtons();}}
 }
 
-function describeLink(link,cfg){
- const [name='',url='',savedDescription]=Array.isArray(link)?link:[];
- const safe=googleURL(url),known=initialLinks.find(l=>l[1]===safe);
- const submission=!!cfg.sheet&&safe.includes('/spreadsheets/d/'+cfg.sheet+'/');
- return [submission&&name==='Journal Submission Inbox'?'Journal & HR Submission Inbox':String(name),String(url),savedDescription==null?(submission?initialLinks[0][2]:known?.[2]||''):String(savedDescription)];
-}
 function renderSettings(){
  if(!settingsPanel)return;
  if(linkEditorOwner&&linkEditorOwner===identity())return;
  linkEditorOwner='';const cfg=config(),owner=identity();
  const canEdit=()=>owner&&owner===identity()&&sharedLoaded&&sharedOwner===owner&&liveProfile?.role==='admin'&&access113.can('settings-accounting','edit');
- settingsPanel.innerHTML='<h3 class="je-title">Reference links</h3><p>These bookmarks open existing files. Editing a bookmark does not change receipt uploads or approved-data exports.</p><div data-links class="gpt-links143129"></div><div class="je-actions-bar"><button type="button" class="je-btn" data-add-link>Add link</button></div><details data-connection-settings><summary>AI journal and HR connection</summary><p>This is the connected AI workspace for journal and HR submissions. Its spreadsheet is separate from the company storage folders above.</p><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save AI spreadsheet</button><button type="button" class="je-btn" data-reload>Reload AI settings</button><button type="button" class="je-btn" data-connect-sheets228>Connect AI workspace account</button></div><p><a href="docs/SETTINGS-CLEANUP-v143.230.md" target="_blank" rel="noopener">Current Google storage and AI connection guide</a></p></details><p data-drive-status role="status"></p><p data-connection-status role="status"></p>';
- const original=Array.isArray(cfg.links)?cfg.links:[],links=original.map(l=>describeLink(l,cfg)),host=settingsPanel.querySelector('[data-links]');
- const finish=()=>{linkEditorOwner='';renderSettings();};
- const saveLinks=(next)=>{const editorOwner=owner;void run(async()=>{
-  if(!canEdit()||editorOwner!==identity())throw Error('Administrator settings access is required.');
-  if(prepared.size)throw Error('Post or remove the prepared AI entries before changing saved links.');
-  if(JSON.stringify(config().links||[])!==JSON.stringify(original))throw Error('Saved links changed. Cancel your edit and reload settings before saving.');
-  await saveSharedSettings({...config(),links:next});finish();message('Saved links updated.');
- });};
- function card(link,index){
-  const [name,url,description]=link,safe=googleURL(url),folder=safe.includes('/drive/folders/');
-  const item=document.createElement('article');item.className='gpt-link-card143177';item.dataset.linkIndex=index;
-  item.innerHTML='<div data-link-view><header><span class="gpt-link-kind143177">'+(folder?'Drive folder':'Google Sheets')+'</span><h4>'+esc(name||'New link')+'</h4></header><p class="gpt-link-description143177">'+esc(description||'No description yet.')+'</p><div class="gpt-link-actions143177">'+(safe?'<a class="je-btn je-btn-secondary" href="'+esc(safe)+'" target="_blank" rel="noopener noreferrer">Open</a>':'')+'<button type="button" class="je-btn" data-edit-link>Edit</button></div></div><div data-link-editor hidden><label>Name<input data-link-name class="je-input" maxlength="150"></label><label>Description<textarea data-link-description class="je-input" rows="2" maxlength="1000"></textarea></label><label>Google Sheets or Drive folder URL<input data-link-url type="url" class="je-input"></label><div class="gpt-link-actions143177"><button type="button" class="je-btn je-btn-emerald" data-save-link>Save link</button><button type="button" class="je-btn" data-cancel-link>Cancel</button><button type="button" class="je-btn" data-remove-link>Remove link</button></div></div>';
-  const edit=item.querySelector('[data-edit-link]'),editor=item.querySelector('[data-link-editor]');edit.hidden=!canEdit();
-  function open(){
-   if(!canEdit())return;if(linkEditorOwner){message('Save or cancel the link you are editing first.');return;}
-   linkEditorOwner=owner;item.querySelector('[data-link-view]').hidden=true;editor.hidden=false;
-   item.querySelector('[data-link-name]').value=name;item.querySelector('[data-link-description]').value=description;item.querySelector('[data-link-url]').value=url;
-   item.querySelector('[data-remove-link]').hidden=index>=links.length;item.querySelector('[data-link-name]').focus({preventScroll:true});
-  }
-  edit.onclick=open;item.querySelector('[data-cancel-link]').onclick=finish;
-  item.querySelector('[data-save-link]').onclick=()=>{
-   const nextName=item.querySelector('[data-link-name]').value.trim(),nextURL=googleURL(item.querySelector('[data-link-url]').value.trim()),nextDescription=item.querySelector('[data-link-description]').value.trim();
-   if(!nextName||!nextURL){message('Enter a name and a valid Google Sheets or Drive folder URL.');return;}
-   const next=links.map(l=>[...l]);next[index]=[nextName,nextURL,nextDescription];saveLinks(next);
-  };
-  item.querySelector('[data-remove-link]').onclick=()=>saveLinks(links.filter((_,i)=>i!==index));
-  host.append(item);return open;
- }
- links.forEach(card);
- const add=settingsPanel.querySelector('[data-add-link]');add.hidden=!canEdit();add.onclick=()=>{if(!canEdit())return;if(linkEditorOwner){message('Save or cancel the link you are editing first.');return;}card(['','',''],links.length)();};
+ settingsPanel.innerHTML='<details data-connection-settings><summary>AI Journal and HR</summary><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save AI spreadsheet</button><button type="button" class="je-btn" data-reload>Reload AI settings</button><button type="button" class="je-btn" data-connect-sheets228>Connect AI workspace account</button></div><p><a data-ai-open target="_blank" rel="noopener noreferrer">Open submission spreadsheet</a></p></details><p data-drive-status role="status"></p><p data-connection-status role="status"></p>';
+ const aiLink=settingsPanel.querySelector('[data-ai-open]');
+ if(/^[\w-]{20,120}$/.test(cfg.sheet||''))aiLink.href='https://docs.google.com/spreadsheets/d/'+cfg.sheet+'/edit';else aiLink.hidden=true;
  settingsPanel.querySelector('[data-sheet]').value=cfg.sheet||'';
  settingsPanel.querySelector('[data-save]').onclick=()=>{const sheetInput=settingsPanel.querySelector('[data-sheet]').value.trim();void run(async()=>{
   if(linkEditorOwner){message('Save or cancel your link edit first.');return;}
   if(prepared.size){message('Post or remove the prepared AI entries before changing connection settings.');return;}
-  try{let sheet=sheetInput.match(/\/spreadsheets\/d\/([\w-]+)/)?.[1]||sheetInput;if(sheet&&!/^[\w-]{20,120}$/.test(sheet))throw Error('Enter a valid submission spreadsheet ID or URL.');await saveSharedSettings({...config(),links:original,sheet});disconnect();renderSettings();message('Settings saved to the shared accounting system.');void checkBackground();}catch(e){message(e.message)}
+  try{let sheet=sheetInput.match(/\/spreadsheets\/d\/([\w-]+)/)?.[1]||sheetInput;if(sheet&&!/^[\w-]{20,120}$/.test(sheet))throw Error('Enter a valid submission spreadsheet ID or URL.');await saveSharedSettings({...config(),sheet});disconnect();renderSettings();message('Settings saved to the shared accounting system.');void checkBackground();}catch(e){message(e.message)}
  });};
  settingsPanel.querySelector('[data-reload]').onclick=()=>run(async()=>{if(linkEditorOwner)throw Error('Save or cancel your link edit first.');if(prepared.size)throw Error('Post or remove the prepared AI entries first.');await loadSharedSettings();message('Shared Google Sheets settings reloaded.');lastConnectionCheck=0;void checkBackground();});
  settingsPanel.querySelector('[data-connect-sheets228]').onclick=()=>run(connect);

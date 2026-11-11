@@ -100,7 +100,18 @@ function notices(){const items=findings();if(!items.length)return [];const overv
 function pendingFor(monthKey){return findings().filter(f=>!['storage','setup','cleanup','recovery','refresh'].includes(f.kind)&&(!f.periods.length||f.periods.some(m=>m<=monthKey)));}
 function duplicateCandidates(selected){const rows=typeof JournalModule==='undefined'?[]:JournalModule.entries||[],entries=new Map(),same=new Map();for(const row of rows){if(!String(row.date||'').startsWith(selected)||!row.id)continue;let group=entries.get(row.id);if(!group){group=[];entries.set(row.id,group)}group.push(row)}for(const [id,group] of entries){const signature=JSON.stringify([group[0].date,String(group[0].generalMemo||'').trim().toLowerCase(),group.map(r=>[r.accountId||r.account,r.currency,Number(r.debit||0),Number(r.credit||0)]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]);let list=same.get(signature);if(!list){list=[];same.set(signature,list)}list.push(id)}return [...same.values()].filter(ids=>ids.length>1)}
 function beforeClose(monthKey){const pending=pendingFor(monthKey);if(pending.length)throw Error(pending.length+' device entry or save(s) dated through '+monthKey+' still need database confirmation. Open Bookkeeping → Data Check and resolve them before closing.');if(state()?.storageError)throw Error('Device storage has an error. Open Connection & sync and resolve it before closing.');}
-function download(item){const body=item.job?(item.job.entries?item.job:item.job.payload||item.job):{id:item.id,title:item.title,detail:item.detail},blob=new Blob([JSON.stringify({status:item.status,periods:item.periods,entry:body},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='sync-review-'+String(item.id).replace(/[^a-z0-9-]/gi,'_').slice(0,50)+'.json';Promise.resolve(window.exportCenter14337?exportCenter14337.fromLink(a):a.click()).finally(()=>setTimeout(()=>URL.revokeObjectURL(url),60000)).catch(()=>{})}
+function download(item){
+ if(!liveProfile?.id||!access113.can('document-editor105','export')){
+  showCenterStatus('Export permission is required to download entry details.',true);return;
+ }
+ const entry=item.job?(item.job.entries?item.job:item.job.payload||item.job):{id:item.id,title:item.title,detail:item.detail};
+ const details={id:item.id,status:item.status,periods:item.periods,entry};
+ const url=URL.createObjectURL(new Blob([JSON.stringify(details,null,2)],{type:'application/json'}));
+ const link=document.createElement('a');
+ link.href=url;link.download='sync-review-'+String(item.id).replace(/[^a-z0-9-]/gi,'_').slice(0,50)+'.json';
+ document.body.append(link);
+ try{link.click();}finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+}
 function action(f){
  if(f.repair==='recheck')return ['Recheck this save',()=>window.syncRecords284.retry(f.id,{reviewed:true})];
  if(f.repair==='request')return ['Sync this save',()=>window.syncRecords284.retry(f.id)];

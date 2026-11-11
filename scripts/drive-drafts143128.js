@@ -9,22 +9,12 @@ function details(folder,email){
  if(!/^[\w-]{10,160}$/.test(id))throw Error('Enter a Google Drive folder link or folder ID.');
  return {folderURL:'https://drive.google.com/drive/folders/'+id,email};
 }
-// Receipt edits must not replace newer Sheets settings or the active upload connection.
 function merge(latest,value,mode){
- const next={...latest,receiptDrive228:{...latest.receiptDrive228},archiveDrive230:{...latest.archiveDrive230}};
+ const next={...latest,receiptDrive228:{...latest.receiptDrive228}};
  if(mode==='details'){
   next.accountEmail228=value.accountEmail228;
   next.receiptDrive228.folderURL=value.receiptDrive228.folderURL;
-  if(value.archiveDrive230&&Object.hasOwn(value.archiveDrive230,'folderURL'))next.archiveDrive230.folderURL=value.archiveDrive230.folderURL;
-  next.archiveDrive230.layout='yearly';
-  for(const key of ['receiptDrive228','archiveDrive230'])if(latest.accountEmail228!==next.accountEmail228||latest[key]?.folderURL!==next[key].folderURL)delete next[key].verified230;
- }else if(mode==='verify-folders'){
-  for(const key of ['receiptDrive228','archiveDrive230']){
-   const verified=value[key]?.verified230;
-   if(!verified)continue;
-   if(latest.accountEmail228!==verified.email||latest[key]?.folderURL!==verified.folderURL)throw Error('The saved account or folder changed. Save the current details and check access again.');
-   next[key].verified230=verified;
-  }
+  if(latest.accountEmail228!==value.accountEmail228||latest.receiptDrive228?.folderURL!==value.receiptDrive228.folderURL)delete next.receiptDrive228.verified230;
  }else if(mode==='activate'){
   if(latest.receiptDrive228?.active?.annual231)throw Error('Automatic yearly storage is active. Use its company storage controls.');
   const destination=value.receiptDrive228?.active;
@@ -36,67 +26,44 @@ function merge(latest,value,mode){
  return next;
 }
 function mount(host,options){
- const {canEdit,save,request,editing,finish,load}=options;let cfg=options.cfg,archiveStatus=null;
+ const {canEdit,save,request,editing,finish,load}=options;let cfg=options.cfg;
  const section=document.createElement('section');section.className='receipt-drive228 je-card';
- section.innerHTML='<h3 class="je-title">Receipt Google Drive</h3><p>Save the company account and both folder links now. Authorize the company account, check the folder links, then activate the receipt destination for phone scanners.</p><div class="settings-grid"><label>Company Google account email<input class="je-input" type="email" data-receipt-email228 placeholder="name@company.com" autocomplete="off"></label><label>Receipt folder link or ID<input class="je-input" data-receipt-folder228 placeholder="https://drive.google.com/drive/folders/…" autocomplete="off"></label></div><div class="je-actions-bar"><button class="je-btn" type="button" data-save228>Save details</button><button class="je-btn" type="button" data-connect228>Connect / change Google account</button><button class="je-btn" type="button" data-activate228>Check access &amp; activate for everyone</button><button class="je-btn" type="button" data-cancel228>Cancel edits</button></div><p data-active228></p><p data-result228 role="status"></p><p><a href="https://accounts.google.com/signup" target="_blank" rel="noopener noreferrer">Create a Google account</a></p><details><summary>Google setup and company authorization</summary><p>Changing the email or folder does not create a Google account or grant access. Sign in to the chosen account and approve Accounting, then check saved folder access. Activate receipt uploads separately.</p><p><a href="https://console.cloud.google.com/apis/library/drive.googleapis.com?project=128865919484" target="_blank" rel="noopener noreferrer">Google Drive API console</a> · <a href="https://console.cloud.google.com/apis/library/sheets.googleapis.com?project=128865919484" target="_blank" rel="noopener noreferrer">Google Sheets API console</a> · <a href="https://console.cloud.google.com/auth/audience?project=128865919484" target="_blank" rel="noopener noreferrer">OAuth audience and test users</a> · <a href="https://admin.google.com/ac/owl" target="_blank" rel="noopener noreferrer">Google Workspace app access</a></p><p>The console links open the current Accounting project. Your Google account needs project access to change it. A different Cloud project also needs new server credentials; an email change alone does not replace those credentials.</p><p>Accounting currently requests Drive file management and Sheets access. It does not request Gmail access. A company administrator may need to approve these permissions. If the OAuth app is in Testing, Google authorization normally expires after seven days.</p><p>Receipt uploads use the activated receipts folder. Automatic yearly storage creates separate Accounting YYYY workbooks directly in the accounting parent folder and YYYY folders under the receipt parent. December 30 preparation does not change accounting-date routing. Activate the yearly setup explicitly after connecting the company account. The AI journal and HR workspace has its own connection below.</p></details>';
- section.querySelector('h3').textContent='Company Google Drive — storage folders';
- section.querySelector('p').textContent='Save both folder links together. Receipts and approved accounting data have separate destinations. The AI workspace is configured separately below.';
- const grid=section.querySelector('.settings-grid'),receiptLabel=grid.querySelector('[data-receipt-folder228]').parentElement;
- receiptLabel.firstChild.textContent='Receipts and documentation — parent folder link or ID';
- const receiptHelp=document.createElement('small');receiptHelp.textContent='For automatic yearly storage, choose Receipt and Documentation itself, not its 2026 subfolder. Each year is created inside this parent.';receiptLabel.append(receiptHelp);
- const archiveLabel=document.createElement('label');archiveLabel.textContent='Accounting data — parent folder link or ID';
- const archiveInput=document.createElement('input');archiveInput.className='je-input';archiveInput.dataset.archiveFolder230='';archiveInput.placeholder='https://drive.google.com/drive/folders/…';archiveLabel.append(archiveInput);
- const archiveHelp=document.createElement('small');archiveHelp.textContent='Choose Accounting Data itself. The code builds Accounting 2026, Accounting 2027 and later workbooks directly here; no yearly accounting subfolders or template file are required.';archiveLabel.append(archiveHelp);grid.append(archiveLabel);
- section.querySelector('[data-save228]').textContent='Save both destinations';section.querySelector('[data-connect228]').textContent='Connect company Google account';section.querySelector('[data-activate228]').textContent='Activate receipts only';
- const checkFolders=document.createElement('button');checkFolders.type='button';checkFolders.className='je-btn';checkFolders.textContent='Check saved folder access';checkFolders.dataset.checkFolders230='';section.querySelector('[data-activate228]').before(checkFolders);
- const annualActivate=document.createElement('button');annualActivate.type='button';annualActivate.className='je-btn';annualActivate.dataset.annualActivate231='';annualActivate.textContent='Activate automatic yearly storage';checkFolders.after(annualActivate);
- const prepareYear=document.createElement('button');prepareYear.type='button';prepareYear.className='je-btn je-btn-secondary';prepareYear.dataset.prepareYear231='';prepareYear.textContent='Prepare next year now';annualActivate.after(prepareYear);
- const refreshYear=document.createElement('button');refreshYear.type='button';refreshYear.className='je-btn je-btn-secondary';refreshYear.dataset.refreshYear231='';refreshYear.textContent='Refresh storage status';prepareYear.after(refreshYear);
- const yearList=document.createElement('div');yearList.dataset.yearList231='';
- const archiveState=document.createElement('p');archiveState.dataset.archiveState230='';archiveState.setAttribute('role','status');section.querySelector('[data-active228]').after(archiveState);
- const existingArchive=document.createElement('a');existingArchive.textContent='Open current archive workbook';existingArchive.target='_blank';existingArchive.rel='noopener noreferrer';existingArchive.hidden=true;archiveState.after(existingArchive,yearList);
+ section.innerHTML='<h3 class="je-title">Receipts and documentation</h3><p data-active228></p><div class="settings-grid"><label>Google account for folder setup<input class="je-input" type="email" data-receipt-email228 autocomplete="off"></label><label>Receipt folder link or ID<input class="je-input" data-receipt-folder228></label></div><div class="je-actions-bar"><button class="je-btn" data-save228>Save details</button><button class="je-btn" data-connect228>Connect Google account</button><button class="je-btn" data-activate228>Verify and activate folder</button><button class="je-btn" data-cancel228>Cancel edits</button></div><p data-result228 role="status"></p>';
  host.prepend(section);
  const $=selector=>section.querySelector(selector),email=$('[data-receipt-email228]'),folder=$('[data-receipt-folder228]'),result=$('[data-result228]'),active=$('[data-active228]');
  email.value=cfg.accountEmail228||'';folder.value=cfg.receiptDrive228?.folderURL||'';
- archiveInput.value=cfg.archiveDrive230?.folderURL||'';
  result.setAttribute('aria-live','polite');result.tabIndex=-1;
  const authorize=document.createElement('a');authorize.className='je-btn je-btn-secondary';authorize.textContent='Open Google authorization';authorize.target='_blank';authorize.rel='noopener noreferrer';authorize.hidden=true;result.after(authorize);
  let dirty=false,busy=false,popup=null,generation=0,lastError='';
  const current=()=>section.isConnected&&canEdit();
  function status(text,error=false){result.textContent=text;result.style.color=error?'#9b2727':'';result.style.fontWeight='600';lastError=error?text:'';}
  function showActive(){
-  existingArchive.hidden=true;
-  const destination=cfg.receiptDrive228?.active;active.textContent=destination?'Active receipt uploads: '+destination.email+' · '+destination.name:'Receipt uploads use existing device destinations until company storage is activated.';
-  if(archiveStatus?.yearlyActive){archiveState.textContent='Automatic yearly storage is active for '+archiveStatus.email+'. December 30 prepares the next year. Data is routed by its accounting date; January data starts on January 1.'+(archiveStatus.error?' Saving needs attention: '+archiveStatus.error:'');existingArchive.textContent='Open Accounting Data folder';existingArchive.href=archiveStatus.folderURL;existingArchive.hidden=false;}
-  else{const verified=cfg.archiveDrive230?.verified230;archiveState.textContent=(cfg.archiveDrive230?.folderURL?'Accounting parent folder saved'+(verified?' · Access checked for '+verified.email:' · Access not checked')+'. Activate automatic yearly storage to start separate workbooks. ':'Accounting data parent folder has not been saved. ')+(archiveStatus?.email?'Current exports still use '+archiveStatus.email+' and the existing archive workbook.':archiveStatus?'The current archive connection is unavailable; check Backup & Recovery.':'Checking the current archive destination…');if(archiveStatus?.sheet&&/^[\w-]{20,160}$/.test(archiveStatus.sheet)){existingArchive.textContent='Open current archive workbook';existingArchive.href='https://docs.google.com/spreadsheets/d/'+archiveStatus.sheet+'/edit';existingArchive.hidden=false;}}
-  $('[data-activate228]').hidden=!!archiveStatus?.yearlyActive;prepareYear.disabled=!canEdit()||!archiveStatus?.yearlyActive;
+  const dest=cfg.receiptDrive228?.active;
+  active.textContent=dest?'Active receipt uploads: '+dest.email+' · '+dest.name:'Choose a company folder for receipt uploads.';
+  if(dest&&/^https:\/\/drive\.google\.com\/drive\/folders\/[\w-]+$/.test(dest.folderURL)){
+   const link=document.createElement('a');link.href=dest.folderURL;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open folder';active.append(' · ',link);
+  }
  }
- async function refreshStorage(){const value=await request('storage-status230');if(!current())return;archiveStatus=value.archive;yearList.replaceChildren();for(const row of value.years||[]){const line=document.createElement('p');line.append('Accounting '+row.year+' — '+(row.closed?'Closed archive':row.savedAt?'Data verified':row.ready?'Prepared; awaiting dated data':'Preparing'));for(const [id,label,base]of [[row.sheet,'Workbook','https://docs.google.com/spreadsheets/d/'],[row.folder,'Receipts','https://drive.google.com/drive/folders/']])if(/^[\w-]{10,160}$/.test(id||'')){const a=document.createElement('a');a.href=base+id;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label;line.append(' · ',a);}yearList.append(line);}showActive();}
-
- function showNext(){const destination=cfg.receiptDrive228?.active;status(destination&&destination.folderURL===folder.value&&destination.email===email.value?'Receipt folder active. Yearly storage has its own activation and status above.':folder.value||archiveInput.value?'Destinations saved. Next: Connect company Google account, then check folder access.':'Enter the company email and folder links, then click Save both destinations.');}
+ function showNext(){status('');}
  showActive();showNext();
- const lock=()=>{for(const n of section.querySelectorAll('input,button'))n.disabled=busy||!canEdit();prepareYear.disabled=busy||!canEdit()||!archiveStatus?.yearlyActive;};lock();
- for(const input of [email,folder,archiveInput])input.oninput=()=>{dirty=true;editing(true);authorize.hidden=true;status('Unsaved details. Click Save both destinations.');};
+ const lock=()=>{for(const n of section.querySelectorAll('input,button'))n.disabled=busy||!canEdit();};lock();
+ for(const input of [email,folder])input.oninput=()=>{dirty=true;editing(true);authorize.hidden=true;status('Unsaved details. Click Save details.');};
  async function run(label,task){if(busy||!current())return;generation++;busy=true;lock();section.setAttribute('aria-busy','true');status(label);try{await task();}catch(e){if(current()){status(e.message||'The action could not finish.',true);result.focus({preventScroll:true});}}finally{busy=false;section.removeAttribute('aria-busy');if(section.isConnected)lock();}}
- function saved(){if(dirty)throw Error(lastError||'Your changes are not saved yet. Click Save both destinations before continuing.');}
- $('[data-save228]').onclick=()=>run('Saving both company Drive destinations…',async()=>{const value=details(folder.value,email.value),archive=details(archiveInput.value,email.value);cfg=await save({...cfg,accountEmail228:value.email,receiptDrive228:{...cfg.receiptDrive228,folderURL:value.folderURL},archiveDrive230:{...cfg.archiveDrive230,folderURL:archive.folderURL,layout:'yearly'}},'details');if(!current())return;email.value=value.email;folder.value=value.folderURL;archiveInput.value=archive.folderURL;dirty=false;editing(false);showActive();status('Both destination details saved. Next: Connect company Google account, check saved folder access, then Activate automatic yearly storage. Saving links alone does not switch the active destinations.');});
- checkFolders.onclick=()=>{try{saved();}catch(e){status(e.message,true);return;}void run('Checking access to the saved receipt and approved-data folders…',async()=>{const checked=await request('verify-folders230');if(!current())return;cfg=await save({...cfg,receiptDrive228:{...cfg.receiptDrive228,verified230:checked.receipts},archiveDrive230:{...cfg.archiveDrive230,verified230:checked.archive}},'verify-folders');if(current()){showActive();status('Saved folder access checked. Activate automatic yearly storage to build and use separate yearly destinations. Existing files are retained.');}});};
- annualActivate.onclick=()=>{try{saved();}catch(e){status(e.message,true);return;}void run('Verifying both parent folders and activating yearly storage…',async()=>{await request('activate-yearly231');if(!current())return;cfg=await load();await refreshStorage();showActive();status('Automatic yearly storage activated. The current year is being prepared in the background. A notification will confirm when its workbook and receipt folder are ready.');});};
- prepareYear.onclick=()=>{try{saved();}catch(e){status(e.message,true);return;}void run('Requesting next year’s workbook and receipt folder…',async()=>{await request('prepare-yearly231');if(current())status('Year preparation requested. You will receive a notification when both destinations are ready. Current-year entries keep their own destination.');});};
- refreshYear.onclick=()=>run('Checking yearly storage…',async()=>{await refreshStorage();if(current())status(archiveStatus?.error?'Saving needs attention: '+archiveStatus.error:archiveStatus?.yearlyActive?'Storage status refreshed. Prepared years and verified data are listed above.':'Storage status refreshed. Connect and activate both saved parent folders to start yearly storage.',!!archiveStatus?.error);});
+ function saved(){if(dirty)throw Error(lastError||'Your changes are not saved yet. Click Save details before continuing.');}
+ $('[data-save228]').onclick=()=>run('Saving receipt folder…',async()=>{
+  const value=details(folder.value,email.value);
+  cfg=await save({...cfg,accountEmail228:value.email,receiptDrive228:{...cfg.receiptDrive228,folderURL:value.folderURL}},'details');
+  if(!current())return;
+  email.value=value.email;folder.value=value.folderURL;dirty=false;editing(false);showActive();status('Receipt folder details saved.');
+ });
  $('[data-cancel228]').onclick=()=>{dirty=false;editing(false);finish();};
  $('[data-activate228]').onclick=()=>{try{saved();}catch(e){status(e.message,true);return;}void run('Checking Google access and activating the receipt folder…',async()=>{const verified=await request('verify-destination228');if(!current())return;cfg=await save({...cfg,receiptDrive228:{...cfg.receiptDrive228,active:verified.destination}},'activate');if(current()){showActive();status('Folder access verified. '+verified.destination.email+' is now active for every phone scanner. Save one receipt and open it from its journal entry to test the complete upload.');}});};
  $('[data-connect228]').onclick=()=>{if(busy||!current())return;try{saved();}catch(e){status(e.message,true);return;}popup=window.open('about:blank','oonjai-drive-authorization228','width=540,height=720');void run('Opening Google authorization…',async()=>{try{const r=await request('connect',{desktop228:true}),url=new URL(r.authorization_url);if(url.origin!=='https://accounts.google.com')throw Error('Unexpected Google authorization destination.');if(!current()){popup?.close();return;}authorize.href=url.href;authorize.hidden=false;if(popup&&!popup.closed){popup.location.replace(url.href);status('Complete Google authorization in the opened window. If it did not appear, click Open Google authorization below.');}else status('The Google window did not open. Click Open Google authorization below to continue.',true);}catch(e){popup?.close();throw e;}});};
- const receive=event=>{if(!section.isConnected){window.removeEventListener('message',receive);return;}if(event.origin!==new URL(window.OJM_SUPABASE_URL).origin||event.source!==popup||event.data?.type!=='receipt-drive228')return;if(current()){authorize.hidden=true;status(event.data.ok?'Google authorization completed. Next: Check saved folder access, then Activate automatic yearly storage.':'Google authorization was not completed. Your saved details and current destination are kept.',!event.data.ok);}};
+ const receive=event=>{if(!section.isConnected){window.removeEventListener('message',receive);return;}if(event.origin!==new URL(window.OJM_SUPABASE_URL).origin||event.source!==popup||event.data?.type!=='receipt-drive228')return;if(current()){authorize.hidden=true;status(event.data.ok?'Google authorization completed. Next: Verify and activate the receipt folder.':'Google authorization was not completed. Your saved details and current destination are kept.',!event.data.ok);}};
  window.addEventListener('message',receive);
  // AI inbox recovery can contain an old settings snapshot. Always display a fresh destination.
- if(load){const started=generation;active.textContent='Checking the saved upload destination…';void load().then(latest=>{if(!current()||generation!==started)return;cfg=latest;if(!dirty){email.value=cfg.accountEmail228||'';folder.value=cfg.receiptDrive228?.folderURL||'';archiveInput.value=cfg.archiveDrive230?.folderURL||'';showNext();}showActive();}).catch(e=>{if(current()&&generation===started){active.textContent='The active upload destination could not be checked.';status(e.message||'Could not load saved company Drive settings. Reopen Settings to retry.',true);}});}
- if(request)void refreshStorage().catch(()=>{if(current())archiveState.textContent='Current archive status could not be checked. Saved links do not switch destinations; use Backup & Recovery to check the active archive.';});
+ if(load){const started=generation;active.textContent='Checking the saved upload destination…';void load().then(latest=>{if(!current()||generation!==started)return;cfg=latest;if(!dirty){email.value=cfg.accountEmail228||'';folder.value=cfg.receiptDrive228?.folderURL||'';showNext();}showActive();}).catch(e=>{if(current()&&generation===started){active.textContent='The active upload destination could not be checked.';status(e.message||'Could not load saved company Drive settings. Reopen Settings to retry.',true);}});}
 }
-let noticesOwner231='',noticeRows231=[],noticeReadAt231=0,noticeBusy231=false;
-async function loadNotices231(){const actor=typeof liveProfile==='undefined'?null:liveProfile;if(!actor||actor.role!=='admin'){noticesOwner231='';noticeRows231=[];return;}if(noticesOwner231!==actor.id){noticesOwner231=actor.id;noticeRows231=[];noticeReadAt231=0;}if(noticeBusy231||Date.now()-noticeReadAt231<60000||typeof ojmDb==='undefined')return;const owner=actor.id,db=ojmDb;noticeBusy231=true;noticeReadAt231=Date.now();try{const r=await db.from('workspace_notifications').select('id,title,message,created_at').eq('owner_id',owner).eq('notification_type','storage_year_ready231').order('created_at',{ascending:false}).limit(20);if(!r.error&&typeof liveProfile!=='undefined'&&liveProfile?.id===owner&&ojmDb===db){noticeRows231=r.data||[];window.refreshNotices1443?.();}}catch{}finally{noticeBusy231=false;}}
-window.StorageNotices231={notices:()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin'&&liveProfile.id===noticesOwner231?noticeRows231.map(r=>({noticeId:r.id,type:'Yearly accounting storage',title:r.title,detail:r.message,target:'settings-accounting',groupKey:'yearly-storage'})):[]};
-window.addEventListener?.('idle-sync14341',loadNotices231);window.addEventListener?.('connection14239',loadNotices231);window.addEventListener?.('page113',loadNotices231);
 window.ReceiptDriveSettings228={details,merge,mount};
 })();
 ;
@@ -260,14 +227,7 @@ const settings=()=>({prefix:String(ApplicationSettings.accounting?.journalPrefix
 async function syncChart(){const result=await bridge('accounts-sync');if(!Array.isArray(result.accounts))throw Error('Account refresh was not confirmed.');return result.accounts;}
 async function receipt(id){const c=context(),r=await readQuery(c.db.rpc('drive_journal_receipt143128',{p_sheet:c.sheet,p_draft:id}),'Posted draft check');assert(c);if(r.error)throw r.error;return r.data;}
 const $=id=>document.getElementById(id);
-const initialLinks=[
- ['Journal & HR Submission Inbox','https://docs.google.com/spreadsheets/d/1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk/edit','AI Journal reads the Drafts tab. AI HR reads the HR Submission Inbox tab in this same spreadsheet.'],
- ['Accounting Web — Current and History','https://docs.google.com/spreadsheets/d/1XSlBJL1X2tcbBsVcfDpffm0qIlYPGPwLBgwxcxzWx0I/edit','Company raw data, source revisions, current reports and fixed history.'],
- ['Journal receipts','https://drive.google.com/drive/folders/1GYQRea6PCEjehyZC0Pewq2oqAGB-mCX_','Company receipt PDFs. The active upload destination is controlled above.'],
- ['Journal Submissions folder','https://drive.google.com/drive/folders/1oZWJstSJIU2HvPvelKdBdUkiUIcU-mpa','Company journal and HR submission files.'],
- ['Accounting Website folder','https://drive.google.com/drive/folders/1vgFTHzPeC6ai2HL__U13BYUslHFT-vip','Company Accounting website files.']
-];
-function defaults(){return !!identity()?{sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk',links:initialLinks}:{links:[]};}
+function defaults(){return !!identity()?{sheet:'1lkn2dk1PGJyNhrPiZsyqmueK4bN8iDvTNPau5f6U2pk'}:{links:[]};}
 async function loadSharedSettings(){
  syncSession();const owner=identity(),db=ojmDb;if(settingsJob?.owner===owner&&settingsJob.db===db)return settingsJob.promise;
  const job={owner,db,promise:null};settingsJob=job;job.promise=readSharedSettings().finally(()=>{if(settingsJob===job)settingsJob=null;});return job.promise;
@@ -512,53 +472,19 @@ async function run(fn){
  finally{busy=false;void window.AIInboxSync143173?.persist?.();drainInbox143173();hosts.forEach(h=>{if(h)h.inert=false;});if(e===epoch){panel?.querySelectorAll('[data-draft-action="edit"]').forEach(b=>b.disabled=prepared.has(b.closest('[data-draft]').dataset.draft));updatePostButtons();}}
 }
 
-function describeLink(link,cfg){
- const [name='',url='',savedDescription]=Array.isArray(link)?link:[];
- const safe=googleURL(url),known=initialLinks.find(l=>l[1]===safe);
- const submission=!!cfg.sheet&&safe.includes('/spreadsheets/d/'+cfg.sheet+'/');
- return [submission&&name==='Journal Submission Inbox'?'Journal & HR Submission Inbox':String(name),String(url),savedDescription==null?(submission?initialLinks[0][2]:known?.[2]||''):String(savedDescription)];
-}
 function renderSettings(){
  if(!settingsPanel)return;
  if(linkEditorOwner&&linkEditorOwner===identity())return;
  linkEditorOwner='';const cfg=config(),owner=identity();
  const canEdit=()=>owner&&owner===identity()&&sharedLoaded&&sharedOwner===owner&&liveProfile?.role==='admin'&&access113.can('settings-accounting','edit');
- settingsPanel.innerHTML='<h3 class="je-title">Reference links</h3><p>These bookmarks open existing files. Editing a bookmark does not change receipt uploads or approved-data exports.</p><div data-links class="gpt-links143129"></div><div class="je-actions-bar"><button type="button" class="je-btn" data-add-link>Add link</button></div><details data-connection-settings><summary>AI journal and HR connection</summary><p>This is the connected AI workspace for journal and HR submissions. Its spreadsheet is separate from the company storage folders above.</p><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save AI spreadsheet</button><button type="button" class="je-btn" data-reload>Reload AI settings</button><button type="button" class="je-btn" data-connect-sheets228>Connect AI workspace account</button></div><p><a href="docs/SETTINGS-CLEANUP-v143.230.md" target="_blank" rel="noopener">Current Google storage and AI connection guide</a></p></details><p data-drive-status role="status"></p><p data-connection-status role="status"></p>';
- const original=Array.isArray(cfg.links)?cfg.links:[],links=original.map(l=>describeLink(l,cfg)),host=settingsPanel.querySelector('[data-links]');
- const finish=()=>{linkEditorOwner='';renderSettings();};
- const saveLinks=(next)=>{const editorOwner=owner;void run(async()=>{
-  if(!canEdit()||editorOwner!==identity())throw Error('Administrator settings access is required.');
-  if(prepared.size)throw Error('Post or remove the prepared AI entries before changing saved links.');
-  if(JSON.stringify(config().links||[])!==JSON.stringify(original))throw Error('Saved links changed. Cancel your edit and reload settings before saving.');
-  await saveSharedSettings({...config(),links:next});finish();message('Saved links updated.');
- });};
- function card(link,index){
-  const [name,url,description]=link,safe=googleURL(url),folder=safe.includes('/drive/folders/');
-  const item=document.createElement('article');item.className='gpt-link-card143177';item.dataset.linkIndex=index;
-  item.innerHTML='<div data-link-view><header><span class="gpt-link-kind143177">'+(folder?'Drive folder':'Google Sheets')+'</span><h4>'+esc(name||'New link')+'</h4></header><p class="gpt-link-description143177">'+esc(description||'No description yet.')+'</p><div class="gpt-link-actions143177">'+(safe?'<a class="je-btn je-btn-secondary" href="'+esc(safe)+'" target="_blank" rel="noopener noreferrer">Open</a>':'')+'<button type="button" class="je-btn" data-edit-link>Edit</button></div></div><div data-link-editor hidden><label>Name<input data-link-name class="je-input" maxlength="150"></label><label>Description<textarea data-link-description class="je-input" rows="2" maxlength="1000"></textarea></label><label>Google Sheets or Drive folder URL<input data-link-url type="url" class="je-input"></label><div class="gpt-link-actions143177"><button type="button" class="je-btn je-btn-emerald" data-save-link>Save link</button><button type="button" class="je-btn" data-cancel-link>Cancel</button><button type="button" class="je-btn" data-remove-link>Remove link</button></div></div>';
-  const edit=item.querySelector('[data-edit-link]'),editor=item.querySelector('[data-link-editor]');edit.hidden=!canEdit();
-  function open(){
-   if(!canEdit())return;if(linkEditorOwner){message('Save or cancel the link you are editing first.');return;}
-   linkEditorOwner=owner;item.querySelector('[data-link-view]').hidden=true;editor.hidden=false;
-   item.querySelector('[data-link-name]').value=name;item.querySelector('[data-link-description]').value=description;item.querySelector('[data-link-url]').value=url;
-   item.querySelector('[data-remove-link]').hidden=index>=links.length;item.querySelector('[data-link-name]').focus({preventScroll:true});
-  }
-  edit.onclick=open;item.querySelector('[data-cancel-link]').onclick=finish;
-  item.querySelector('[data-save-link]').onclick=()=>{
-   const nextName=item.querySelector('[data-link-name]').value.trim(),nextURL=googleURL(item.querySelector('[data-link-url]').value.trim()),nextDescription=item.querySelector('[data-link-description]').value.trim();
-   if(!nextName||!nextURL){message('Enter a name and a valid Google Sheets or Drive folder URL.');return;}
-   const next=links.map(l=>[...l]);next[index]=[nextName,nextURL,nextDescription];saveLinks(next);
-  };
-  item.querySelector('[data-remove-link]').onclick=()=>saveLinks(links.filter((_,i)=>i!==index));
-  host.append(item);return open;
- }
- links.forEach(card);
- const add=settingsPanel.querySelector('[data-add-link]');add.hidden=!canEdit();add.onclick=()=>{if(!canEdit())return;if(linkEditorOwner){message('Save or cancel the link you are editing first.');return;}card(['','',''],links.length)();};
+ settingsPanel.innerHTML='<details data-connection-settings><summary>AI Journal and HR</summary><label>Submission spreadsheet ID or URL<input data-sheet class="je-input"></label><div class="je-actions-bar"><button type="button" class="je-btn" data-save>Save AI spreadsheet</button><button type="button" class="je-btn" data-reload>Reload AI settings</button><button type="button" class="je-btn" data-connect-sheets228>Connect AI workspace account</button></div><p><a data-ai-open target="_blank" rel="noopener noreferrer">Open submission spreadsheet</a></p></details><p data-drive-status role="status"></p><p data-connection-status role="status"></p>';
+ const aiLink=settingsPanel.querySelector('[data-ai-open]');
+ if(/^[\w-]{20,120}$/.test(cfg.sheet||''))aiLink.href='https://docs.google.com/spreadsheets/d/'+cfg.sheet+'/edit';else aiLink.hidden=true;
  settingsPanel.querySelector('[data-sheet]').value=cfg.sheet||'';
  settingsPanel.querySelector('[data-save]').onclick=()=>{const sheetInput=settingsPanel.querySelector('[data-sheet]').value.trim();void run(async()=>{
   if(linkEditorOwner){message('Save or cancel your link edit first.');return;}
   if(prepared.size){message('Post or remove the prepared AI entries before changing connection settings.');return;}
-  try{let sheet=sheetInput.match(/\/spreadsheets\/d\/([\w-]+)/)?.[1]||sheetInput;if(sheet&&!/^[\w-]{20,120}$/.test(sheet))throw Error('Enter a valid submission spreadsheet ID or URL.');await saveSharedSettings({...config(),links:original,sheet});disconnect();renderSettings();message('Settings saved to the shared accounting system.');void checkBackground();}catch(e){message(e.message)}
+  try{let sheet=sheetInput.match(/\/spreadsheets\/d\/([\w-]+)/)?.[1]||sheetInput;if(sheet&&!/^[\w-]{20,120}$/.test(sheet))throw Error('Enter a valid submission spreadsheet ID or URL.');await saveSharedSettings({...config(),sheet});disconnect();renderSettings();message('Settings saved to the shared accounting system.');void checkBackground();}catch(e){message(e.message)}
  });};
  settingsPanel.querySelector('[data-reload]').onclick=()=>run(async()=>{if(linkEditorOwner)throw Error('Save or cancel your link edit first.');if(prepared.size)throw Error('Post or remove the prepared AI entries first.');await loadSharedSettings();message('Shared Google Sheets settings reloaded.');lastConnectionCheck=0;void checkBackground();});
  settingsPanel.querySelector('[data-connect-sheets228]').onclick=()=>run(connect);
