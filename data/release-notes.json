@@ -1,6 +1,7 @@
 {
-  "version": "143.330",
+  "version": "143.331",
   "changes": [
-    "Range deletion downloads a ZIP containing raw Excel and a restorable JSON backup. Confirm the ZIP is saved to permanently delete the matching records."
+    "Budget request subjects use the budget month. WhatsApp includes each category total, the overall request and your notes.",
+    "Request details show the budget month, recipient and purpose together."
   ]
 }

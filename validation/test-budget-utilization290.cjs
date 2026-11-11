@@ -17,7 +17,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const panel=page.locator('#transactions-budget14313'),request=page.locator('.budget-request327'),table=request.locator('.budget-items290');
   await panel.getByRole('button',{name:'New Report'}).click();
   await request.locator('[name=budgetMonth290]').fill('2026-10');
-  await request.locator('[name=date]').fill('2026-11-01');
+  assert.equal(await request.locator('[name=date]').count(),0);
   await request.locator('[name=recipient]').fill('Fixture');await request.locator('[name=purpose]').fill('Kitchen support');
   await request.getByRole('button',{name:'Budget items',exact:true}).click();
   await page.evaluate(lines=>{budgetWorkflow14316.requestData().lines=lines;budgetWorkflow14316.templateApplied()},lines);
@@ -63,6 +63,12 @@ const fixture=require('./phase0-browser-fixture.cjs');
    return {data:parsed.data,sub:node.querySelectorAll('[data-budget-summary290]').length,sign:!!node.querySelector('[data-report-signature-line275]'),shaded:[...node.querySelectorAll('tfoot tr>*')].every(c=>!!c.style.backgroundColor)};
   });
   assert.equal(doc.sub,2);assert(doc.sign&&doc.shaded);assert.equal(doc.data.budgetMonth290,'2026-10');assert.equal(doc.data.lines.length,3);
+  const legacyDate=await page.evaluate(()=>{
+   const model=documentWorkspace105.model;
+   const html='<p>Request date: <span data-budget-field14316="date">2026-11-01</span></p>'+model.html;
+   return budgetWorkflow14316.parseDocument({...model,html}).data.date;
+  });
+  assert.equal(legacyDate,'2026-11-01');
 
   const saved=[...db.values()].find(r=>r.data.mode==='request');assert(saved);
   await page.exposeFunction('testStoreBudget',r=>{db.set(r.id,r);return r});
