@@ -55,9 +55,10 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),create=require(
  await editor.locator('[name=purpose]').fill('October support');await editor.locator('[name=recipient]').fill('Fixture recipient');
  await editor.locator('[name=budgetMonth290]').fill('2026-10');
  await page.evaluate(()=>{budgetWorkflow14316.requestData().lines=[{key117:'fuel',category:'Transport',description:'Fuel',amount:100,currency:'USD'}];budgetWorkflow14316.templateApplied()});
+ await editor.getByRole('button',{name:'Budget items',exact:true}).click();
  await editor.getByRole('button',{name:'Save request',exact:true}).click();
  await page.waitForFunction(()=>Work82.reports.some(r=>r.data.purpose==='October support'));
- await editor.getByRole('button',{name:'Close',exact:true}).click();
+ await editor.waitFor({state:'detached'});
  await page.screenshot({path:'/tmp/workspace312/budget-request.png'});
  await page.getByRole('button',{name:'Fund utilization',exact:true}).click();
  assert(await page.locator('#categoryTabs').isVisible(),'Budget retains main horizontal navigation');

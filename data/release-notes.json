@@ -1,7 +1,6 @@
 {
-  "version": "143.331",
+  "version": "143.332",
   "changes": [
-    "Budget request subjects use the budget month. WhatsApp includes each category total, the overall request and your notes.",
-    "Request details show the budget month, recipient and purpose together."
+    "Save request in Budget items saves the details and items together, then closes the window and shows the request in the list."
   ]
 }

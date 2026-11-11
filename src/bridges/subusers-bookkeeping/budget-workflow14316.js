@@ -97,13 +97,14 @@ function openRequestForm(data,record){
  <div class="request-footer327"><span role="status" aria-live="polite"></span><button type="button" data-save-request>Save request</button></div>`);
  root.classList.add('budget-request327');
  const e={root,data,record,draftId:record?.id||crypto.randomUUID(),base:JSON.stringify(data),details:root.querySelector('[data-pane=details]'),items:root.querySelector('[data-item-form]'),saving:false};requestEditor=e;
- const status=root.querySelector('[role=status]'),panes=root.querySelectorAll('[data-pane]');
- const linePending=()=>!!(e.items.elements.category.value.trim()||e.items.elements.description.value.trim()||e.items.elements.amount.value.trim());
+ const status=root.querySelector('[role=status]'),panes=root.querySelectorAll('[data-pane]'),saveButton=root.querySelector('[data-save-request]');
+ const linePending=()=>!!(e.items.dataset.editKey||e.items.elements.category.value.trim()||e.items.elements.description.value.trim()||e.items.elements.amount.value.trim());
  const captureDetails=()=>Object.assign(data,Object.fromEntries(new FormData(e.details)));
  function select(name){
   captureDetails();
   if(name==='messages'&&linePending()){select('items');status.textContent='Add or finish editing the item to include it in the messages.';return}
   for(const pane of panes)pane.hidden=pane.dataset.pane!==name;
+  saveButton.hidden=name!=='items';
   root.querySelectorAll('[data-section]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.section===name)));
   if(name==='messages')budgetMessages14314.render(root.querySelector('[data-pane=messages]'),data);
  }
@@ -113,12 +114,13 @@ function openRequestForm(data,record){
  categories.onsubmit=async event=>{event.preventDefault();const b=categories.querySelector('button');b.disabled=true;try{check();const name=categories.elements.newCategory.value.trim();await budget14313.addCategory(name);check();if(requestEditor!==e)return;categories.reset();status.textContent='Category saved.'}catch(err){status.textContent=err.message}finally{b.disabled=false}};
  function resetItem(){e.items.reset();delete e.items.dataset.editKey;updateItems(e)}
  e.items.querySelector('[data-cancel-item]').onclick=resetItem;
- e.items.onsubmit=event=>{
-  event.preventDefault();check();const f=e.items.elements,amount=movementAmount(f.amount),values={category:f.category.value.trim(),description:f.description.value.trim(),currency:f.currency.value,amount};
-  if(!values.category||!values.description||!(amount>0)||!Number.isSafeInteger(Math.round(amount*100))){status.textContent='Enter a category, an item and a positive amount.';return}
+ function applyItem(){
+  check();const f=e.items.elements,amount=movementAmount(f.amount),values={category:f.category.value.trim(),description:f.description.value.trim(),currency:f.currency.value,amount};
+  if(!e.items.reportValidity()||!values.category||!values.description||!(amount>0)||!Number.isSafeInteger(Math.round(amount*100))){status.textContent='Enter a category, an item and a positive amount.';return false}
   const line=data.lines.find(l=>l.key117===e.items.dataset.editKey);if(line)Object.assign(line,values);else data.lines.push({...values,key117:crypto.randomUUID()});
-  resetItem();status.textContent='';
- };
+  resetItem();status.textContent='';return true;
+ }
+ e.items.onsubmit=event=>{event.preventDefault();applyItem()};
  for(const l of data.lines)l.key117||=crypto.randomUUID();
  root.querySelector('[data-item-list]').onclick=async event=>{
   const b=event.target.closest('[data-budget-edit290],[data-budget-delete290]');if(!b)return;
@@ -127,14 +129,24 @@ function openRequestForm(data,record){
   e.items.dataset.editKey=l.key117;for(const k of ['category','description','currency','amount'])e.items.elements[k].value=k==='amount'&&e.items.elements.amount.type!=='number'?formatAppNumber(l.amount):l[k];
   e.items.elements.currency.dispatchEvent(new Event('change',{bubbles:true}));updateItems(e);e.items.elements.description.focus();
  };
- root.querySelector('[data-save-request]').onclick=async()=>{
+ saveButton.onclick=async()=>{
   if(e.saving)return;captureDetails();
-  if(!data.lines.length||linePending()){select('items');status.textContent='Add the budget item to the list before saving.';return}
+  if(linePending()&&!applyItem())return;
+  if(!data.lines.length){status.textContent='Add a budget item before saving.';return}
   if(!e.details.checkValidity()||!data.recipient.trim()||!data.purpose.trim()){select('details');e.details.reportValidity();status.textContent='Complete the request details.';return}
-  if(e.record&&e.base===JSON.stringify(data)){status.textContent='Request already saved.';return}
-  const content=root.querySelector('.ui-body108');e.saving=true;content.inert=true;
+  const pendingMessage='Saved on this device. Sync the budget request in Data Check.';
+  if(e.record&&e.base===JSON.stringify(data)){
+   if(e.record._pending14333&&!window.localFirst14333?.state().jobs.some(j=>j.kind==='reports'&&j.row.id===e.record.id&&j.row.version===e.record.version&&j.status==='synced'&&j.receipt)){
+    status.textContent=pendingMessage;return;
+   }
+   root.resolve108(true);return;
+  }
+  const content=root.querySelector('.ui-body108');e.saving=true;content.inert=true;status.textContent='Saving request…';
   try{check();const saved=await saveDocument({title:'Budget Request — '+data.purpose,html:requestHTML(data),settings:clone(e.record?.data.document14316?.settings||{}),budget14316:{id:e.record?.id||null,version:e.record?.version,draftId14317:e.draftId,data}});
-   check();if(requestEditor!==e)return;selectedParent=saved.id;e.record={id:saved.id,version:saved.version,data:clone(Work82.reportRecord.data)};e.base=JSON.stringify(data);renderRequest();status.textContent=saved._pending14333?'Saved on this device. Sync in Data Check.':'Budget request saved.';
+   check();if(requestEditor!==e)return;
+   selectedParent=saved.id;renderRequest();
+   if(saved._pending14333){e.record=Work82.reportRecord;e.base=JSON.stringify(data);status.textContent=pendingMessage;return}
+   root.resolve108(true);
   }catch(err){status.textContent=err.message}finally{content.inert=false;e.saving=false}
  };
  root.addEventListener('click',async event=>{if(!event.target.closest('[data-dismiss]'))return;event.stopImmediatePropagation();event.preventDefault();if(e.saving)return;captureDetails();if((e.base!==JSON.stringify(data)||linePending())&&!await ui117.confirm('Close without saving your request changes?'))return;root.resolve108(false)},true);

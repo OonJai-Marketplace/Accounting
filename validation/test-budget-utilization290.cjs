@@ -47,7 +47,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   });
   await request.getByRole('button',{name:'Save request'}).click();
   await page.waitForFunction(()=>Work82.reports.some(r=>r.data.purpose==='Kitchen support'));
-  await request.getByRole('button',{name:'Close',exact:true}).click();
+  await request.waitFor({state:'detached'});
   const original=[...db.values()].find(r=>r.data.mode==='request');
   await page.evaluate(id=>{void budgetWorkflow14316.openRequest(id)},original.id);
   await page.getByRole('button',{name:'Add new tab',exact:true}).click();
