@@ -25,13 +25,15 @@ Changing accounts preserves the device draft and resets the destination to the n
 
 Within the same account, **Settings → Move saved PDF** moves this batch's last saved PDF into a chosen writable folder. **Choose folder** instead changes the destination for a new copy. Existing PDFs from earlier batches can be organized directly in Drive.
 
+For a company-managed destination, open **Save destination → Check Drive connection** on the phone. This checks the active company account and asks Google whether it can add files to the saved folder.
+
 ## Scan and group
 
 Confirm the document month, first group type and starting ID. Journal and HR sequences are independent. A named supporting section, such as October 2026 Cash Slips, does not advance either sequence. Use Next entry, Skip / Jump or Add group as needed. This scanner never allocates or changes journal IDs in the database.
 
 Scan with the phone camera or import several photos. Check the four detected corners, adjust them if necessary, preview at readable size, then Keep page. Colors are preserved by default; grayscale is optional. Edges are detected locally, with a whole-image fallback when uncertain. This is a browser scanner, not Google's proprietary scanner SDK. It does not infer entry boundaries: select a group while scanning, or use a page's **Split group here** and **Move page** controls after importing. Automatic separation without confirmed boundaries would risk attaching evidence to the wrong entry.
 
-Group several pages under one ID. Page labels use A–Z, then AA, AB, etc. Reorder within a group or move groups without changing their IDs. Footers sit below the scan, never over the receipt image. The monthly PDF has a clickable contents page and embedded bookmarks. Bookmark panels depend on the PDF viewer; the contents page is included as an additional navigation method. There are no account-classification lookups or OCR changes to financial text.
+Group several pages under one ID. Review or save separates the batch into one device draft and one PDF per nonempty entry ID. Each PDF starts with the first receipt page. Use PDFs by entry ID to review individual files or save all to Drive. On a browser using local storage, review and save each file. Page labels use A–Z, then AA, AB, etc. Reorder within a group or move groups without changing their IDs. Footers sit below the scan, never over the receipt image. The PDF includes bookmarks for the entry and its pages. There are no account-classification lookups or OCR changes to financial text.
 
 Readability takes priority over a target MB size. The scan preview is the exact JPEG embedded in the PDF without another JPEG recompression. Large source photos are limited to 12 million working pixels for phone memory; original images are retained in the encrypted local draft for recropping. Verify small writing and signatures before accepting. The finished monthly file can be large; available phone memory and Google Drive quota still apply.
 
@@ -51,7 +53,7 @@ Only an explicit **Discard photo** or **Discard draft** confirmation removes the
 
 Use **Review / Save PDF**, inspect the filename/account/folder, then Save. Encrypted drafts remain on this device until explicitly cleared. Offline capture works after the scanner assets have been downloaded; Google sign-in, folder browsing and upload need internet. Uploads use resumable chunks and a reserved file ID, and the app verifies the stored size and SHA-256 checksum before showing saved. After an interruption press Save again. A failed verification keeps the draft.
 
-Continue adding pages to the current monthly batch and update its saved PDF. Updates require the original file's latest verified version; an unexpected Drive change blocks overwriting. Use Save as new PDF with another filename for a copy. Identical names already in a destination are not silently overwritten. Starting another batch retains the current one in Unsaved scans; it does not discard its photos. Clearing browser storage removes device drafts; uploaded files remain in Google Drive.
+Continue adding pages to an entry and update its saved PDF. Updates require the original file's latest verified version; an unexpected Drive change blocks overwriting. Use Save as new PDF with another filename for a copy. Identical names already in a destination are not silently overwritten. Starting another batch retains the current one in Unsaved scans; it does not discard its photos. Clearing browser storage removes device drafts; uploaded files remain in Google Drive.
 
 ## Deployment setup
 
