@@ -2,13 +2,13 @@
   "schema": 1,
   "applicationId": "org.oonjai.accounting.preview",
   "signerSha256": "58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c",
-  "version": "143.368-test",
-  "versionCode": 143368,
-  "sha256": "ac7c6dfd983a526aa502e37457fb8ef1efd1a088a249b666b1bf48b1d6c83f78",
-  "url": "https://drive.google.com/file/d/1M_bTFXdO4aV-Nf90JuYf8mnAX9_JptUb/view?usp=drivesdk",
+  "version": "143.369-test",
+  "versionCode": 143369,
+  "sha256": "fb14fc7fc50742b522551b34ab9da84d810dc2624550bf2f2acc75dce89d96d9",
+  "url": "https://drive.google.com/file/d/1Xl4XrEa_oXcK2ffPa4VEprnir9WKzRnt/view?usp=drivesdk",
   "notes": [
-    "Fixes Check for updates when the Accounting website address is blank. The updater uses the official release page and retries through a second connection if needed.",
-    "Browse My Drive inside Accounting, create a folder in the location shown and confirm the full path.",
-    "Save a separate PDF for each transaction ID. The company Google account and desktop receipt-folder default stay protected."
+    "Search by the last digits of an ID, see all matches, and jump to any available earlier or later transaction. Filter by this month when needed.",
+    "Save one receipt PDF per transaction and open the linked pictures or PDF in the journal preview.",
+    "Includes the in-app Drive folder browser and the repaired Android update check."
   ]
 }

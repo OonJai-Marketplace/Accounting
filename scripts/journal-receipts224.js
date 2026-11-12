@@ -17,12 +17,12 @@ const client=()=>ReceiptLinks208.create({url:window.OJM_SUPABASE_URL,key:window.
 function privateURL(value){const u=new URL(value);if(u.origin!==new URL(window.OJM_SUPABASE_URL).origin||!u.pathname.startsWith('/storage/v1/object/sign/scan-documents208/'))throw Error('This receipt preview is unavailable.');return u.href;}
 function pdfURL(value){if(!value)return '';const u=new URL(value);if(u.protocol==='https:'&&u.hostname==='drive.google.com'&&/^\/file\/d\/[\w-]+\/view$/.test(u.pathname))return u.href;return privateURL(value);}
 function loading(text){return '<p class="jr-status224" role="status"><span class="jr-spinner224" aria-hidden="true"></span>'+esc(text)+'</p>';}
-function host(){if(dialog)return dialog;dialog=document.createElement('dialog');dialog.className='journal-receipts224';dialog.setAttribute('aria-labelledby','jr-title224');dialog.addEventListener('close',()=>{if(!dialog.open)clear();});document.body.append(dialog);return dialog;}
+function host(){if(dialog)return dialog;dialog=document.createElement('dialog');dialog.className='journal-receipts224';dialog.setAttribute('aria-labelledby','jr-title224');ReceiptLinks208.dismissOnBackdrop(dialog);dialog.addEventListener('close',()=>{if(!dialog.open)clear();});document.body.append(dialog);return dialog;}
 function retryBox(node,message,retry){node.replaceChildren();const p=document.createElement('p');p.setAttribute('role','alert');p.textContent=message;const b=document.createElement('button');b.type='button';b.textContent='Retry';b.onclick=retry;node.append(p,b);}
 function observe(node,callback){if(!observer){observer=new IntersectionObserver(items=>{for(const item of items)if(item.isIntersecting){observer.unobserve(item.target);item.target._receiptLoad224?.();}},{root:dialog.querySelector('.jr-scroll224'),rootMargin:'300px 0px'});}node._receiptLoad224=callback;observer.observe(node);}
 function enlarge(img,caption){
  if(locked()||!dialog?.open||!img.complete||!img.naturalWidth)return;
- if(!zoom){zoom=document.createElement('dialog');zoom.className='journal-receipt-zoom224';document.body.append(zoom);zoom.addEventListener('close',()=>{if(!zoom.open)zoom.replaceChildren();});}
+ if(!zoom){zoom=document.createElement('dialog');zoom.className='journal-receipt-zoom224';ReceiptLinks208.dismissOnBackdrop(zoom);document.body.append(zoom);zoom.addEventListener('close',()=>{if(!zoom.open)zoom.replaceChildren();});}
  zoom.innerHTML='<header><h2>Receipt</h2><button type="button" data-jr-close>Close enlargement</button></header><p class="jr-zoom-caption224"></p><div class="jr-zoom-scroll224"><img alt=""></div><footer><button type="button" data-jr-zoom>Zoom in</button></footer>';
  zoom.querySelector('p').textContent=caption;const copy=zoom.querySelector('img');copy.src=img.src;copy.alt=img.alt;copy.referrerPolicy='no-referrer';zoom.querySelector('[data-jr-close]').onclick=()=>zoom.close();
  zoom.querySelector('[data-jr-zoom]').onclick=e=>{const full=zoom.classList.toggle('jr-fullsize224');e.currentTarget.textContent=full?'Fit width':'Zoom in';};zoom.showModal();
@@ -50,7 +50,7 @@ async function section(node,doc,ticket,retry=false){
  if(!active(ticket)||!node.isConnected||node.dataset.loading)return;node.dataset.loading='true';const body=node.querySelector('.jr-section-body224');body.innerHTML=loading('Loading this receipt group…');
  try{const result=await view(doc.id,ticket,retry);if(!result||!active(ticket)||!node.isConnected)return;body.replaceChildren();
   result.pages.forEach((p,index)=>{const figure=document.createElement('figure');figure.className='jr-page224';figure.innerHTML='<div class="jr-picture224">'+loading('Receipt loads as you scroll')+'</div><figcaption><strong>'+esc(p.label||result.label)+'</strong><span>Receipt '+(index+1)+' of '+result.pages.length+' · PDF page '+esc(p.page)+'</span>'+(result.label!==entry?'<span>Source entry: '+esc(result.label)+'</span>':'')+'</figcaption>';body.append(figure);picture(figure,doc,index,ticket);});
-  if(result.pdf){const a=document.createElement('a');a.href=result.pdf;a.target='_blank';a.rel='noopener noreferrer';a.referrerPolicy='no-referrer';a.className='jr-original224';a.textContent='Open full PDF';body.append(a);}
+  if(result.pdf)body.append(ReceiptLinks208.pdfPreview(result.pdf,doc.label));
  }catch(e){if(active(ticket)&&node.isConnected)retryBox(body,e.message,()=>section(node,doc,ticket,true));}finally{delete node.dataset.loading;}
 }
 async function open(id){

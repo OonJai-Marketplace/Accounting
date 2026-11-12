@@ -153,6 +153,7 @@ async function documentHandler214(req:Request){
  if(b.action==='app-update217'){
   // Only the published company APK; never accept arbitrary file IDs or expose Drive tokens.
   const releases:Record<string,string>={
+   'fb14fc7fc50742b522551b34ab9da84d810dc2624550bf2f2acc75dce89d96d9':'1Xl4XrEa_oXcK2ffPa4VEprnir9WKzRnt',
    '06c9c699c6c82eb02ff8b59793a0e087c00d8b2af769bb11e46e555ec875c94f':'1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje',
    'ac7c6dfd983a526aa502e37457fb8ef1efd1a088a249b666b1bf48b1d6c83f78':'1M_bTFXdO4aV-Nf90JuYf8mnAX9_JptUb',
    '781abd492f368204934ce14016621665244f97337c4c2418aa593c7961a4829a':'14Y2WK94ba80eOWJu8xOvMFZFLuiljkYo'
