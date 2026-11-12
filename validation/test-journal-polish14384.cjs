@@ -23,8 +23,12 @@ for(const width of [1440,1024]){
   await page.evaluate(()=>{document.querySelectorAll('.test-spacer14384').forEach(n=>n.remove());document.querySelector('.workspace-scroll').scrollTop=0});
  }
  assert.equal(headers[0].height,54);assert.equal(headers[1].height,54);assert.equal(headers[0].bg,headers[1].bg);assert.equal(headers[0].color,headers[1].color);assert.equal(headers[0].border,headers[1].border);for(const h of headers)assert.ok(Math.abs(h.top-h.scrollTop)<=1,JSON.stringify(h));
- await page.evaluate(()=>{switchTab('journal');const s=document.querySelector('.voucher-pick14299 select');s.replaceChildren(new Option('No voucher',''),new Option('H-000001','fixture-voucher'));dropdown1434.open(s)});
- const dropdown=await page.evaluate(()=>{const field=document.querySelector('.voucher-pick14299 input.account-search1428'),box=document.querySelector('.account-list1428');return {field:field.getBoundingClientRect().width,box:box.getBoundingClientRect().width}});assert.ok(Math.abs(dropdown.field-dropdown.box)<=1,JSON.stringify(dropdown));await page.evaluate(()=>dropdown1434.close());
+ await page.evaluate(()=>switchTab('journal'));
+ const documentField=page.getByLabel('Supporting document',{exact:true});
+ assert.equal(await documentField.getAttribute('list'),'journalDocumentChoices');
+ await documentField.fill('S1');await documentField.press('Tab');
+ assert.match(await documentField.inputValue(),/^S[0-9]{4}-01$/);
+
  const main=await page.evaluate(()=>{const n=document.querySelector('#journal .transaction-pages14340'),r=n.getBoundingClientRect(),b=n.lastElementChild.getBoundingClientRect();return {right:r.right-b.right,padding:getComputedStyle(n).padding,gap:getComputedStyle(n).gap}});
  await page.evaluate(()=>openWorkspaceUser(availableSubUsers().find(u=>u.id!==liveProfile.id).id));await page.waitForSelector('#personalWorkspace1437');
  await page.evaluate(()=>{const u=availableSubUsers().find(u=>u.id!==liveProfile.id);personalJournal1437.show(u.id,'journal');tablePagination14383.scan()});

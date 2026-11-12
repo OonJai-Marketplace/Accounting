@@ -13,6 +13,7 @@ function journalContext67(text='') {
   document.getElementById('jeGeneralMemo').classList.toggle('adjustment-description',!!text);
 }
 function clearJournalEntry() {
+  window.vouchers14299?.setDocument();
   JournalModule.editingEntryId=null;JournalModule.pendingLines=null;PeriodReview.pendingAdjustment=null;
   pendingWorkspacePostOwnerId=null;pendingWorkspacePostJournalId=null;pendingWorkspacePostIsLocal=false;
   document.getElementById('jeGeneralMemo').value='';

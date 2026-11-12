@@ -11,7 +11,7 @@ const labels=()=>({H:state.settings?.handwritten_label||'Handwritten',E:state.se
 const code=k=>k==='H'?state.settings?.handwritten_code||'H':state.settings?.editor_code||'E';
 const number=v=>v.data?.id_format?.scheme==='shared245'||v.data?.documentType==='receipt'?v.number:(v.journal_number||v.number);
 const pendingNumber=(k,date=today())=>`${state.settings?.prefix||'OJM'}-${date.slice(state.settings?.year_digits===4?0:2,4)}${code(k)}-${String(Math.max(1,Number(state.sequences.find(r=>r.kind===k&&r.year_no===Number(date.slice(0,4)))?.next_no)||1)).padStart(state.settings?.digits||4,'0')}`;
-async function load(){const actor=liveProfile?.id,client=ojmDb;if(state.loading&&state.loadActor===actor&&state.loadClient===client)return state.loading;if(!admin()){state.ready=false;state.rows=[];state.sequences=[];state.settings=null;state.actor=null;state.client=null;state.error='Sign in with an active administrator account to use vouchers.';render();return false}state.loadActor=actor;state.loadClient=client;const check=guard14370();const task=(async()=>{try{const page=async(table,orders)=>{const read=async()=>{const rows=[];for(let offset=0;;offset+=500){check();let q=client.from(table).select('*');for(const [key,ascending]of orders)q=q.order(key,{ascending});const r=await q.range(offset,offset+499);check();if(r.error)throw r.error;if(!Array.isArray(r.data))throw Error('The complete dataset could not be read.');rows.push(...r.data);if(r.data.length<500)return rows}};const rows=window.offline14239?await offline14239.snapshot('vouchers-complete14370:'+table,read):await read();check();return rows};const [s,rows,sequences]=await Promise.all([client.from('voucher_settings14299').select('*').eq('id',1).single(),page('vouchers14299',[['created_at',false],['id',true]]),page('voucher_sequences14299',[['year_no',true],['kind',true]])]);check();if(s.error)throw s.error;if(!s.data)throw Error('Voucher settings are unavailable.');const prior=new Map((state.actor===actor&&state.client===client?state.rows:[]).map(v=>[v.id,v]));state.settings=s.data;state.rows=rows.map(v=>prior.get(v.id)?.version>v.version?prior.get(v.id):v);state.sequences=sequences;state.ready=true;state.error='';state.actor=actor;state.client=client;render();picker();if($('tblJournalHistoryBody')?.closest('.tab-content.active'))window.renderJournalHistoryTable?.();window.refreshNotices1443?.();return true}catch(e){if(actor!==liveProfile?.id||client!==ojmDb)return false;state.ready=false;state.rows=[];state.error='Voucher database check failed: '+(e.message||e);picker();status(state.error,true);return false}})();state.loading=task;try{return await task}finally{if(state.loading===task)state.loading=null}}
+async function load(){const actor=liveProfile?.id,client=ojmDb;if(state.loading&&state.loadActor===actor&&state.loadClient===client)return state.loading;if(!admin()){state.ready=false;state.rows=[];state.sequences=[];state.settings=null;state.actor=null;state.client=null;state.error='Sign in with an active administrator account to use vouchers.';render();return false}state.loadActor=actor;state.loadClient=client;const check=guard14370();const task=(async()=>{try{const page=async(table,orders)=>{const read=async()=>{const rows=[];for(let offset=0;;offset+=500){check();let q=client.from(table).select('*');for(const [key,ascending]of orders)q=q.order(key,{ascending});const r=await q.range(offset,offset+499);check();if(r.error)throw r.error;if(!Array.isArray(r.data))throw Error('The complete dataset could not be read.');rows.push(...r.data);if(r.data.length<500)return rows}};const rows=window.offline14239?await offline14239.snapshot('vouchers-complete14370:'+table,read):await read();check();return rows};const [s,rows,sequences]=await Promise.all([client.from('voucher_settings14299').select('*').eq('id',1).single(),page('vouchers14299',[['created_at',false],['id',true]]),page('voucher_sequences14299',[['year_no',true],['kind',true]])]);check();if(s.error)throw s.error;if(!s.data)throw Error('Voucher settings are unavailable.');const prior=new Map((state.actor===actor&&state.client===client?state.rows:[]).map(v=>[v.id,v]));state.settings=s.data;state.rows=rows.map(v=>prior.get(v.id)?.version>v.version?prior.get(v.id):v);state.sequences=sequences;state.ready=true;state.error='';state.actor=actor;state.client=client;render();picker();window.preparedViews14340?.documentsChanged?.();window.refreshNotices1443?.();return true}catch(e){if(actor!==liveProfile?.id||client!==ojmDb)return false;state.ready=false;state.rows=[];state.error='Voucher database check failed: '+(e.message||e);picker();status(state.error,true);return false}})();state.loading=task;try{return await task}finally{if(state.loading===task)state.loading=null}}
 async function ensureReady(){if(state.ready&&state.actor===liveProfile?.id&&state.client===ojmDb)return true;status('Checking the voucher database…');if(await load())return true;status(state.error||'The voucher database is unavailable. Refresh and try again.',true);return false}
 function settings(){const s=state.settings;if(!s)return;const form=$('voucherSettings14299');if(!form)return;for(const key of ['prefix','handwritten_code','editor_code','handwritten_label','editor_label','digits','year_digits'])form.elements[key].value=s[key]??(key==='year_digits'?2:'');$('voucherExample14299').textContent=`Example: ${pendingNumber('H')} / ${pendingNumber('E')}. H = handwritten; E = edited and printed. Linked voucher IDs use the main journal Entry ID; unlinked sheets keep their reserved reference.`}
 function render(){settings();const body=$('voucherRows14299');if(!body)return;const reserved=reservedIds();body.replaceChildren();for(const v of state.rows){const waiting=!v.journal_entry_id&&reserved.has(v.id);const tr=document.createElement('tr');tr.innerHTML=`<td>${esc(number(v))}${v.journal_number?`<small class="voucher-sheet-ref14299">Sheet: ${esc(v.number)}</small>`:''}</td><td>${v.data?.documentType==='receipt'?'Receipt · ':''}${esc(v.data?.id_format?.label||labels()[v.kind])} (${esc(v.data?.id_format?.code||code(v.kind))})</td><td>${esc(formatAppDate(v.voucher_date))}</td><td>${esc(waiting?'Pending journal sync':v.status)}</td><td>${esc(v.data?.journal?.entry_no||(waiting?'Saved on this device':'Unlinked'))}</td><td></td>`;const actions=tr.lastElementChild;const button=(text,fn)=>{const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent=text;b.onclick=fn;actions.append(b)};button('View',()=>view(v));if(v.data?.documentType==='receipt'&&v.kind==='H'&&v.status!=='void')button('Attach photo',async()=>{try{const check=guard14370();await Receipt245.script('scripts/receipt-phone245.js?v=143.273',()=>window.ReceiptPhone245);check();await ReceiptPhone245.attach(rpc,v,check);await load()}catch(e){status(e.message,true)}});if(v.kind==='E'&&v.status!=='void')button('Edit',()=>edit(v));if(!v.journal_entry_id&&!waiting&&v.status!=='void')button('Link',()=>link(v));if(v.kind==='H'&&v.status!=='void')button('Open / Print',()=>printBlank([v]));if(!v.journal_entry_id&&!waiting&&v.status!=='void')button('Mark Unused',()=>markUnused(v));body.append(tr)}if(!state.rows.length)body.innerHTML='<tr><td colspan="6">No vouchers issued yet. Opening a draft uses no number.</td></tr>';status(`${state.rows.filter(x=>!x.journal_entry_id&&!reserved.has(x.id)&&x.status!=='void').length} voucher(s) awaiting a journal link.`)}
@@ -29,7 +29,10 @@ async function createReceipt(){
 const sheetSettings={size:10,line:1.15,font:'Arial',paper:'A4',orientation:'portrait',top:12,right:14,bottom:12,left:14,showBusinessName:false,pageNumbers:false};
 async function create(){if(!admin())return;const check=guard14370();if(!await ensureReady())return;const unit=$('voucherUnit14299').value,currency='',when='',issueDate=today(),number=(await nextNumbers245(issueDate))[0];check();await openDocumentEditor105({title:'Payment Voucher · Draft',category:'Transactions',html:voucherHTML(number,when,unit,currency),settings:sheetSettings,voucher14299:{kind:'E',documentType:'voucher',date:when,issueDate,unit,currency,paymentMethod:'',number,requestKey:crypto.randomUUID()}})}
 function blankPages(rows){return rows.map((v,i)=>`<div data-handwritten-sheet14303="${i}">${Receipt245.html({number:v.number,date:v.voucher_date,blank:true,type:v.data?.documentType==='receipt'?'receipt':'voucher'})}</div>`+(i<rows.length-1?'<div data-page-break="1"><br></div>':'')).join('')}
-async function printBlank(rows){if(!rows.length)return;let html=blankPages(rows);if(rows.length===1&&rows[0].data?.html){const template=document.createElement('template');template.innerHTML=rows[0].data.html;const node=template.content;const batch=state.rows.filter(v=>v.batch_key===rows[0].batch_key&&v.batch_key).sort((a,b)=>a.ordinal-b.ordinal);const index=Math.max(0,batch.findIndex(v=>v.id===rows[0].id));const sheets=node.querySelectorAll('[data-handwritten-sheet14303]');const sheet=sheets[index];if(sheet){const numberCell=sheet.querySelector('[data-voucher-number14299]');if(numberCell)numberCell.textContent=rows[0].number;html=sheet.outerHTML}}
+function handwrittenHTML(rows){let html=blankPages(rows);if(rows.length===1&&rows[0].data?.html){const template=document.createElement('template');template.innerHTML=rows[0].data.html;const node=template.content;const batch=state.rows.filter(v=>v.batch_key===rows[0].batch_key&&v.batch_key).sort((a,b)=>a.ordinal-b.ordinal);const index=Math.max(0,batch.findIndex(v=>v.id===rows[0].id));const sheets=node.querySelectorAll('[data-handwritten-sheet14303]');const sheet=sheets[index];if(sheet){const numberCell=sheet.querySelector('[data-voucher-number14299]');if(numberCell)numberCell.textContent=rows[0].number;html=sheet.outerHTML}}
+ return html;
+}
+async function printBlank(rows){if(!rows.length)return;const html=handwrittenHTML(rows);
  await openDocumentEditor105({title:'Handwritten Voucher · '+rows[0].number,category:'Transactions',html,settings:rows[0].data?.settings||sheetSettings,voucher14299:{kind:'H',documentType:rows[0].data?.documentType,id:rows[0].id,date:rows[0].voucher_date,number:rows[0].number,batchIds:rows.map(v=>v.id),batchNumbers:rows.map(v=>v.number),count:rows.length}})}
 async function blankDraft250(count,documentType='voucher',settings=sheetSettings,unit='Accounting'){
  const check=guard14370();if(!admin())throw Error('Administrator access required.');if(!Number.isInteger(count)||count<1||count>50)throw Error('Choose 1 to 50 blank forms.');
@@ -50,13 +53,14 @@ async function linkId(voucherId,entryId){try{const linked=await rpc('voucher_lin
 function reservedIds(){
  return new Set((window.journalDurable14385?.pending()||[]).filter(j=>j.voucher&&!j.voucherSkipped).map(j=>j.voucher));
 }
-function journalReferences(){
+function journalReferences(documents=false){
  const refs=new Map();
  if(!admin()||state.actor!==liveProfile.id||state.client!==ojmDb)return refs;
  const numbers=new Map();
  for(const v of state.rows){
-  numbers.set(v.id,v.number);
-  if(v.journal_entry_id)refs.set(v.journal_entry_id,v.number);
+  const ref=documents?v:v.number;
+  numbers.set(v.id,ref);
+  if(v.journal_entry_id)refs.set(v.journal_entry_id,ref);
  }
  for(const j of window.journalDurable14385?.pending()||[]){
   if(j.voucher&&!j.voucherSkipped&&numbers.has(j.voucher))refs.set(j.receipt?.[0]?.entry_id||j.id,numbers.get(j.voucher));
@@ -68,7 +72,7 @@ function acceptLinked(result){
  if(!admin()||state.actor!==liveProfile.id||state.client!==ojmDb||!v?.journal_entry_id)return;
  const i=state.rows.findIndex(row=>row.id===v.id);
  if(i<0)state.rows.push(v);else if(state.rows[i].version<=v.version)state.rows[i]=v;
- render();picker();window.refreshNotices1443?.();
+ render();picker();window.preparedViews14340?.documentsChanged?.();window.refreshNotices1443?.();
 }
 let lastReservations='';
 window.addEventListener('local-work14333',()=>{
@@ -76,25 +80,105 @@ window.addEventListener('local-work14333',()=>{
  if(key!==lastReservations){lastReservations=key;render();picker();}
 });
 let companySelection=null;
+const docInput=()=>$('journalDocumentRef');
+function readDocument(commit=false){
+ const input=docInput(),select=$('jeVoucher14299');
+ if(!input||input.disabled||!select)return {voucher:'',slip:''};
+ const raw=input.value.trim(),slip=MonthlyCashSlip277.reference(raw);
+ const voucher=raw&&!slip?[...select.options].find(o=>o.value&&o.text.toUpperCase()===raw.toUpperCase()):null;
+ const message=raw&&!slip&&!voucher?'Choose an available voucher or receipt, or enter a slip row such as S1.':'';
+ input.setCustomValidity(message);select.value=voucher?.value||'';
+ if(commit&&!message)input.value=slip||voucher?.text||'';
+ const preview=$('journalSlipPreview');
+ if(preview){preview.textContent=!commit&&slip&&input.value!==slip?slip:'';preview.hidden=!preview.textContent;}
+ if(commit&&message)throw Error(message);
+ return {voucher:select.value,slip};
+}
+function setDocument(value=''){
+ const input=docInput();if(!input)return;
+ input.value=value;readDocument();
+}
 function picker(){
- const select=$('jeVoucher14299');if(!select)return;
- const personal=!!window.personalJournal1437?.active,field=select.closest('.voucher-pick14299');
- if(personal){
-  if(!companySelection)companySelection={id:select.value,owner:liveProfile?.id,client:ojmDb};
-  select.replaceChildren();select.disabled=true;if(field)field.style.setProperty('display','none','important');return;
+ const select=$('jeVoucher14299'),input=docInput();if(!select||!input)return;
+ const field=select.closest('.voucher-pick14299'),list=$('journalDocumentChoices');
+ if(window.personalJournal1437?.active){
+  if(!companySelection)companySelection={text:input.value,owner:liveProfile?.id,client:ojmDb};
+  setDocument();select.replaceChildren();list.replaceChildren();input.disabled=select.disabled=true;
+  field.style.setProperty('display','none','important');return;
  }
- field?.style.removeProperty('display');select.disabled=false;
+ field.style.removeProperty('display');input.disabled=select.disabled=false;
  const current=admin()&&state.actor===liveProfile.id&&state.client===ojmDb;
- const selected=companySelection?(current&&companySelection.owner===liveProfile.id&&companySelection.client===ojmDb?companySelection.id:''):select.value;
- companySelection=null;const reserved=reservedIds();select.innerHTML='<option value="">No voucher</option>'+(current?state.rows:[]).filter(x=>!x.journal_entry_id&&!reserved.has(x.id)&&x.status!=='void').map(x=>`<option value="${esc(x.id)}">${esc(x.number)}</option>`).join('');if([...select.options].some(x=>x.value===selected))select.value=selected;const context=document.createElement('canvas').getContext('2d');context.font=getComputedStyle(select).font||'12px Arial';const width=Math.ceil(Math.max(...[...select.options].map(o=>context.measureText(o.textContent).width))+36);select.closest('.je-meta-grid')?.style.setProperty('--voucher-width14388',Math.max(116,width)+'px')}
+ const selected=companySelection?(companySelection.owner===liveProfile?.id&&companySelection.client===ojmDb?companySelection.text:''):input.value;
+ companySelection=null;
+ const reserved=reservedIds(),available=(current?state.rows:[]).filter(v=>!v.journal_entry_id&&!reserved.has(v.id)&&v.status!=='void');
+ select.replaceChildren(new Option('', ''),...available.map(v=>new Option(v.number,v.id)));
+ list.replaceChildren(...available.map(v=>new Option(v.data?.documentType==='receipt'?'Receipt':'Voucher',v.number)));
+ setDocument(selected);
+}
+function installDocumentField(field){
+ field.innerHTML='<label for="journalDocumentRef">Supporting document</label><input id="journalDocumentRef" class="je-input" type="text" data-plain14285 list="journalDocumentChoices" autocomplete="off" aria-describedby="journalSlipPreview" placeholder="ID or S1" title="Choose a voucher or receipt, or type S and the printed slip row number."><output id="journalSlipPreview" for="journalDocumentRef" aria-live="polite" hidden></output><datalist id="journalDocumentChoices"></datalist><select id="jeVoucher14299" data-plain14285 hidden aria-hidden="true" style="display:none!important"><option value=""></option></select>';
+ const input=field.querySelector('input');
+ input.oninput=()=>readDocument();
+ const commit=()=>{try{readDocument(true)}catch{input.reportValidity()}};
+ input.onchange=commit;
+ input.onblur=()=>{try{readDocument(true)}catch{/* Retain incomplete input for correction. */}};
+ input.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();commit()}};
+}
+// Use the saved sheet or batch page. Each click resolves the specific document.
+async function openJournalDocument(doc){
+ const check=guard14370();check();
+ if(window.deviceVault14334?.unlocked===false)throw Error('Sign in to open supporting documents.');
+ let row=state.actor===liveProfile.id&&state.client===ojmDb&&state.rows.find(v=>v.id===doc.id);
+ if(!row){
+  const response=await ojmDb.from('vouchers14299').select('*').eq('id',doc.id).single();check();
+  if(response.error||!response.data)throw Error('The saved document could not be opened. Refresh and try again.');
+  row=response.data;
+ }
+ const type=row.data?.documentType==='receipt'?'Receipt':'Voucher';
+ const title=type+' '+row.number;
+ if(!row.data?.html&&!row.data?.photos245?.length)return view(row);
+ const html=row.kind==='H'?handwrittenHTML([row]):linkedHTML(row);
+ const template=document.createElement('template');template.innerHTML=documentWorkspace105.sanitize(html);
+ for(const field of template.content.querySelectorAll('[contenteditable]'))field.removeAttribute('contenteditable');
+ for(const a of template.content.querySelectorAll('a'))a.removeAttribute('href');
+ const d=document.createElement('dialog');d.className='journal-document-preview';d.setAttribute('aria-label',title);
+ const heading=document.createElement('h3');heading.textContent=title;
+ const close=document.createElement('button');close.type='button';close.className='je-btn je-btn-secondary';close.textContent='Close';close.onclick=()=>d.close();
+ const header=document.createElement('header');header.append(heading,close);
+ const frame=document.createElement('iframe');frame.title=title;frame.setAttribute('sandbox','');
+ frame.srcdoc=`<!doctype html><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><style>body{font:10pt Arial,sans-serif;color:#17231c;padding:12px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #7b867e;padding:2mm;text-align:left}img{max-width:100%}</style>`+template.innerHTML;
+ d.append(header,frame);
+ for(const photo of row.data?.photos245||[]){if(!/^data:image\/(png|jpeg|webp);base64,/.test(photo.image||''))continue;const img=document.createElement('img');img.src=photo.image;img.alt='Completed '+type.toLowerCase();d.append(img);}
+ const gate=$('loginGate'),observer=new MutationObserver(()=>{if(!gate.classList.contains('is-authenticated'))d.close()});
+ if(gate)observer.observe(gate,{attributes:true,attributeFilter:['class']});
+ d.onclose=()=>{observer.disconnect();d.remove()};document.body.append(d);d.showModal();
+}
+function appendJournalDocuments(cell,entry,refs){
+ if(!entry)return;
+ const doc=admin()&&(refs?.get(entry.dbEntryId||entry.journalJob14385)||entry.supportingDocument);
+ const add=(label,action)=>{
+  const b=document.createElement('button');b.type='button';b.className='journal-document-link';b.textContent=label;
+  b.onclick=async e=>{e.stopPropagation();try{await action()}catch(error){showCenterStatus(error.message,true)}};
+  b.ondblclick=e=>e.stopPropagation();cell.append(' · ',b);
+ };
+ if(doc)add(((doc.documentType||doc.data?.documentType)==='receipt'?'Receipt ':'Voucher ')+doc.number,()=>openJournalDocument(doc));
+ const slip=entry.cashSlipRef;
+ if(slip&&MonthlyCashSlip277.reference(slip)===slip){
+  const period='20'+slip.slice(1,3)+'-'+slip.slice(3,5),row=Number(slip.split('-')[1]);
+  add('Monthly slip '+slip,()=>ui108.modal('Monthly Cash Slip',`<p><strong>${esc(MonthlyCashSlip277.monthLabel(period))}</strong> · Printed row ${row}</p><p>${esc(slip)}</p>`,[{label:'Close',value:true}]));
+ }
+}
 function pendingEditorCount(){const reserved=reservedIds();return state.rows.filter(x=>x.kind==='E'&&!x.journal_entry_id&&!reserved.has(x.id)&&x.status!=='void').length}
 function notices(){if(!admin()||!state.ready||state.actor!==liveProfile.id)return[];const count=pendingEditorCount();return count?[{type:'Editor vouchers to link',title:`${count} editor voucher${count===1?'':'s'} awaiting journal link`,detail:'Open Bookkeeping → Documents',target:'transactions-vouchers14299',count}]:[]}
-async function postWrap(){if(typeof submitJournalEntry!=='function'||submitJournalEntry._voucherWrapped14299)return;const original=submitJournalEntry;submitJournalEntry=async function(...args){const check=guard14370(),select=$('jeVoucher14299'),id=select?.value;if(!id)return original.apply(this,args);if(state.posting)return;if(JournalModule.editingEntryId)return status('Link an existing entry from the voucher register after saving the correction.',true);if(document.getElementById('jeMultipleDates')?.checked||window.journalBatch1440?.hasPending())return status('Choose a single-date entry when linking a voucher during posting.',true);const request=document.getElementById('journalEntry98')._postingRequest14228||crypto.randomUUID();document.getElementById('journalEntry98')._postingRequest14228=request;state.posting=true;try{const result=await original.apply(this,args);check();const receipt=await ojmDb.rpc('journal_receipt14228',{p_request_key:request});check();const entryId=receipt.data?.result?.[0]?.entry_id||receipt.data?.result?.entry_id;if(!entryId){status('The voucher was not linked. If posting succeeded, use Link in the voucher register to connect the saved entry.',true);return result}try{await linkId(id,entryId);select.value=''}catch{}return result}finally{state.posting=false}};submitJournalEntry._voucherWrapped14299=true}
+async function postWrap(){if(typeof submitJournalEntry!=='function'||submitJournalEntry._voucherWrapped14299)return;const original=submitJournalEntry;submitJournalEntry=async function(...args){const check=guard14370(),select=$('jeVoucher14299');let doc;
+try{doc=readDocument(true)}catch(e){showCenterStatus(e.message,true);return}
+if(doc.slip&&!JournalModule.editingEntryId){showCenterStatus('This workflow uses a separate posting form. Include the slip reference in its general description.',true);return}
+const id=doc.voucher;if(!id)return original.apply(this,args);if(state.posting)return;if(JournalModule.editingEntryId)return status('Link an existing entry from the voucher register after saving the correction.',true);if(document.getElementById('jeMultipleDates')?.checked||window.journalBatch1440?.hasPending())return status('Choose a single-date entry when linking a voucher during posting.',true);const request=document.getElementById('journalEntry98')._postingRequest14228||crypto.randomUUID();document.getElementById('journalEntry98')._postingRequest14228=request;state.posting=true;try{const result=await original.apply(this,args);check();const receipt=await ojmDb.rpc('journal_receipt14228',{p_request_key:request});check();const entryId=receipt.data?.result?.[0]?.entry_id||receipt.data?.result?.entry_id;if(!entryId){status('The voucher was not linked. If posting succeeded, use Link in the voucher register to connect the saved entry.',true);return result}try{await linkId(id,entryId);select.value=''}catch{}return result}finally{state.posting=false}};submitJournalEntry._voucherWrapped14299=true}
 function install(){const section=$('journal'),settings=$('settings-accounting');if(!section||!settings)return;const nav=document.querySelector('#nav-module-transactions .nav-links')||document.querySelector('[data-module="transactions"] .nav-links');const b=document.createElement('button');b.type='button';b.className='tab-btn';b.dataset.tabTarget='transactions-vouchers14299';b.textContent='Documents';b.setAttribute('onclick',"switchTab('transactions-vouchers14299');vouchers14299.open()");nav?.append(b);
 const panel=document.createElement('section');panel.id='transactions-vouchers14299';panel.dataset.module='transactions';panel.className='tab-content';panel.innerHTML=`<div class="je-card"><div class="je-card-header"><div><h3 class="je-title">Documents</h3><p class="je-subtitle">Create vouchers, receipts and monthly cash slips.</p></div></div><div class="voucher-controls14299"><label>Operating Unit<select id="voucherUnit14299" class="je-select"><option>Restaurant</option><option>Wellness</option><option>Accounting</option></select></label><label>Currency<select id="voucherCurrency14299" class="je-select"><option>LAK</option><option>USD</option><option>THB</option></select></label><label>Voucher Date<input id="voucherDate14299" type="date" class="je-input"></label><button id="voucherCreate14299" type="button" class="je-btn je-btn-emerald">Create Voucher</button><button id="receiptCreate245" type="button" class="je-btn je-btn-emerald">Create Receipt</button><button id="cashSlipCreate277" type="button" class="je-btn je-btn-emerald">Create Cash Slip</button></div><p id="voucherStatus14299" role="status"></p><div class="table-container"><table class="je-table"><thead><tr><th>Voucher / Receipt ID</th><th>Classification</th><th>Date</th><th>Status</th><th>Journal Entry</th><th class="voucher-actions14299">Actions</th></tr></thead><tbody id="voucherRows14299"></tbody></table></div></div>`;section.after(panel);$('voucherDate14299').value=today();$('voucherCreate14299').onclick=create;$('receiptCreate245').onclick=()=>createReceipt().catch(e=>status(e.message,true));$('cashSlipCreate277').onclick=()=>MonthlyCashSlip277.create().catch(e=>status(e.message,true));
 const card=document.createElement('div');card.className='settings-compact-block voucher-config14299';card.innerHTML=`<div class="settings-mini-header"><div><h4>Voucher and receipt IDs</h4><p>Shared sequence: OJM26-A1101. Two-digit year, letter, two-digit month and count 01–99. After 99 the letter advances. New years restart at A01; issued IDs are never reused. Existing document IDs remain unchanged.</p></div></div>`;const accountingForm=settings.querySelector('form[data-settings-group=accounting]');if(accountingForm)accountingForm.after(card);else settings.querySelector('.je-card')?.append(card);
-const group=document.querySelector('#journalEntry98 .je-meta-grid'),field=document.createElement('div');field.className='je-field-group voucher-pick14299';field.innerHTML='<label for="jeVoucher14299">Voucher ID</label><select id="jeVoucher14299" class="je-select"><option value="">No voucher</option></select>';group?.append(field);const modal=document.createElement('div');modal.id='voucherModal14299';modal.className='voucher-modal14299';modal.hidden=true;document.body.append(modal);postWrap();const hydrate=window.hydrateSupabaseSession;if(typeof hydrate==='function')window.hydrateSupabaseSession=async function(...args){const result=await hydrate.apply(this,args);void load();return result};load();}
-window.vouchers14299={load,picker,acceptLinked,journalReferences,createReceipt,blankDraft250,open(){if(window.workspaceViews14364?.reuseView('transactions-vouchers14299'))return;if(state.ready&&state.actor===liveProfile?.id&&state.client===ojmDb){render();return}return ensureReady()},notices,linkId,get state(){return state},async saveEditor(model){const check=guard14370();if(!await ensureReady())throw Error(state.error||'Voucher database unavailable.');check();const meta=model.voucher14299;if(!meta)throw Error('No voucher is open.');if(meta.kind==='E'&&!meta.id&&!meta.currency){const t=document.createElement('template');t.innerHTML=model.html;if(![...t.content.querySelectorAll('tbody tr')].some(r=>r.cells[2]?.textContent.trim())){meta.kind='H';meta.count=1;meta.issueDate=meta.issueDate||today();}}if(meta.kind==='H'){if(meta.id)return {id:meta.id,number:meta.number,batchIds:meta.batchIds,batchNumbers:meta.batchNumbers};if(!meta.issueRequest){meta.issueRequest={p_kind:'H',p_count:meta.count||1,p_date:meta.date||meta.issueDate||today(),p_data:{html:model.html,settings:model.settings,unit:meta.unit,documentType:meta.documentType||'voucher',company:BusinessSettings.current?.legalName||BusinessSettings.current?.companyName||'',batch_count:meta.count||1},p_request_key:meta.requestKey};await documentWorkspace105.flush();check()}const rows=await rpc('voucher_issue14299',meta.issueRequest);meta.id=rows[0].id;meta.batchIds=rows.map(v=>v.id);meta.batchNumbers=rows.map(v=>v.number);void load();return {...rows[0],batchIds:meta.batchIds,batchNumbers:meta.batchNumbers}}const template=document.createElement('template');template.innerHTML=model.html;const node=template.content;const numberCell=node.querySelector('[data-voucher-number14299]');if(numberCell)numberCell.textContent=meta.number;model.html=template.innerHTML;const totalText=node.querySelector('[data-voucher-total14298]')?.textContent.trim()||'';const total=parseAppNumber(totalText);if(!Number.isFinite(total)||total<0)throw Error('Voucher amount must be valid.');const payload={html:model.html,settings:model.settings,title:model.title,unit:meta.unit,paymentMethod:meta.paymentMethod||'',...(meta.documentType==='receipt'?{documentType:'receipt'}:{}),currency:meta.currency||'',total,company:BusinessSettings.current?.legalName||BusinessSettings.current?.companyName||'',date:meta.date,displayDate250:meta.date};if(!/^\d{4}-\d{2}-\d{2}$/.test(meta.date||''))throw Error('Choose a date in Details.');if(!['LAK','USD','THB'].includes(meta.currency))throw Error('Select a currency.');let row;if(meta.id){const reason=prompt('Short explanation for this voucher correction:');if(reason===null)return null;if(reason.trim().length<4)throw Error('Enter at least four characters explaining the correction.');row=await rpc('voucher_update14299',{p_id:meta.id,p_version:meta.version,p_date:meta.date||meta.issueDate||today(),p_data:{...payload,journal:state.rows.find(v=>v.id===meta.id)?.data?.journal},p_reason:reason.trim()})}else{if(!meta.issueRequest){meta.issueRequest={p_kind:'E',p_count:1,p_date:meta.date||meta.issueDate||today(),p_data:{...payload,tentative_number:meta.number},p_request_key:meta.requestKey};await documentWorkspace105.flush();check()}const result=await rpc('voucher_issue14299',meta.issueRequest);row=result[0]}meta.id=row.id;meta.version=row.version;if(meta.documentType==='receipt')await rpc('receipt_layout245',{p_settings:model.settings});void load();return row}};
+const group=document.querySelector('#journalEntry98 .je-meta-grid'),field=document.createElement('div');field.className='je-field-group voucher-pick14299';group?.append(field);installDocumentField(field);const modal=document.createElement('div');modal.id='voucherModal14299';modal.className='voucher-modal14299';modal.hidden=true;document.body.append(modal);postWrap();const hydrate=window.hydrateSupabaseSession;if(typeof hydrate==='function')window.hydrateSupabaseSession=async function(...args){const result=await hydrate.apply(this,args);void load();return result};load();}
+window.vouchers14299= {load,picker,readDocument,setDocument,appendJournalDocuments,acceptLinked,journalReferences,createReceipt,blankDraft250,open(){if(window.workspaceViews14364?.reuseView('transactions-vouchers14299'))return;if(state.ready&&state.actor===liveProfile?.id&&state.client===ojmDb){render();return}return ensureReady()},notices,linkId,get state(){return state},async saveEditor(model){const check=guard14370();if(!await ensureReady())throw Error(state.error||'Voucher database unavailable.');check();const meta=model.voucher14299;if(!meta)throw Error('No voucher is open.');if(meta.kind==='E'&&!meta.id&&!meta.currency){const t=document.createElement('template');t.innerHTML=model.html;if(![...t.content.querySelectorAll('tbody tr')].some(r=>r.cells[2]?.textContent.trim())){meta.kind='H';meta.count=1;meta.issueDate=meta.issueDate||today();}}if(meta.kind==='H'){if(meta.id)return {id:meta.id,number:meta.number,batchIds:meta.batchIds,batchNumbers:meta.batchNumbers};if(!meta.issueRequest){meta.issueRequest={p_kind:'H',p_count:meta.count||1,p_date:meta.date||meta.issueDate||today(),p_data:{html:model.html,settings:model.settings,unit:meta.unit,documentType:meta.documentType||'voucher',company:BusinessSettings.current?.legalName||BusinessSettings.current?.companyName||'',batch_count:meta.count||1},p_request_key:meta.requestKey};await documentWorkspace105.flush();check()}const rows=await rpc('voucher_issue14299',meta.issueRequest);meta.id=rows[0].id;meta.batchIds=rows.map(v=>v.id);meta.batchNumbers=rows.map(v=>v.number);void load();return {...rows[0],batchIds:meta.batchIds,batchNumbers:meta.batchNumbers}}const template=document.createElement('template');template.innerHTML=model.html;const node=template.content;const numberCell=node.querySelector('[data-voucher-number14299]');if(numberCell)numberCell.textContent=meta.number;model.html=template.innerHTML;const totalText=node.querySelector('[data-voucher-total14298]')?.textContent.trim()||'';const total=parseAppNumber(totalText);if(!Number.isFinite(total)||total<0)throw Error('Voucher amount must be valid.');const payload={html:model.html,settings:model.settings,title:model.title,unit:meta.unit,paymentMethod:meta.paymentMethod||'',...(meta.documentType==='receipt'?{documentType:'receipt'}:{}),currency:meta.currency||'',total,company:BusinessSettings.current?.legalName||BusinessSettings.current?.companyName||'',date:meta.date,displayDate250:meta.date};if(!/^\d{4}-\d{2}-\d{2}$/.test(meta.date||''))throw Error('Choose a date in Details.');if(!['LAK','USD','THB'].includes(meta.currency))throw Error('Select a currency.');let row;if(meta.id){const reason=prompt('Short explanation for this voucher correction:');if(reason===null)return null;if(reason.trim().length<4)throw Error('Enter at least four characters explaining the correction.');row=await rpc('voucher_update14299',{p_id:meta.id,p_version:meta.version,p_date:meta.date||meta.issueDate||today(),p_data:{...payload,journal:state.rows.find(v=>v.id===meta.id)?.data?.journal},p_reason:reason.trim()})}else{if(!meta.issueRequest){meta.issueRequest={p_kind:'E',p_count:1,p_date:meta.date||meta.issueDate||today(),p_data:{...payload,tentative_number:meta.number},p_request_key:meta.requestKey};await documentWorkspace105.flush();check()}const result=await rpc('voucher_issue14299',meta.issueRequest);row=result[0]}meta.id=row.id;meta.version=row.version;if(meta.documentType==='receipt')await rpc('receipt_layout245',{p_settings:model.settings});void load();return row}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 
@@ -105,6 +189,16 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const currentMonth=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit'}).format(new Date());
 const validMonth=value=>/^\d{4}-(0[1-9]|1[0-2])$/.test(value)&&Number(value.slice(0,4))>=1900&&Number(value.slice(0,4))<=9999;
 const monthLabel=value=>validMonth(value)?new Intl.DateTimeFormat('en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value+'-01T12:00:00Z')):'________________ '+currentMonth().slice(0,4);
+// The printed form accepts up to six-digit row numbers across continuation sheets.
+function reference(text){
+ const value=String(text||'').trim().toUpperCase();
+ const full=/^S(\d{2}(?:0[1-9]|1[0-2]))-(\d{1,6})$/.exec(value);
+ const short=/^S(\d{1,6})$/.exec(value);
+ const row=Number(full?.[2]||short?.[1]);
+ if(!row)return '';
+ const period=full?.[1]||currentMonth().slice(2).replace('-','');
+ return 'S'+period+'-'+String(row).padStart(2,'0');
+}
 const permitted=()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin'&&liveProfile.status==='active'&&(!window.access113||access113.can('transactions-vouchers14299','view')&&access113.can('document-editor105','edit'));
 function validate(value){
  const legend=(value.legend||[]).map(r=>({initials:String(r.initials||'').trim().toUpperCase(),name:String(r.name||'').trim()})).filter(r=>r.initials||r.name);
@@ -153,5 +247,5 @@ async function pickMonth(node,changed,isCurrent){
  overlay.querySelector('footer .primary108').onclick=()=>{if(!input.reportValidity())return;if(input.value&&!validMonth(input.value)){document.getElementById('cashSlipMonthError277').textContent='Choose a valid month and year.';return;}value=input.value;overlay.resolve108(true);};
  if(await pending&&current()){node.dataset.cashSlipMonth277=value;node.textContent=monthLabel(value);changed();}
 }
-window.MonthlyCashSlip277={create,html,validate,monthLabel,currentMonth,pickMonth,sheetSettings};
+window.MonthlyCashSlip277={create,html,validate,monthLabel,currentMonth,reference,pickMonth,sheetSettings};
 })();

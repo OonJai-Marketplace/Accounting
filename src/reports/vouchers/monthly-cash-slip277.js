@@ -4,6 +4,16 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const currentMonth=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit'}).format(new Date());
 const validMonth=value=>/^\d{4}-(0[1-9]|1[0-2])$/.test(value)&&Number(value.slice(0,4))>=1900&&Number(value.slice(0,4))<=9999;
 const monthLabel=value=>validMonth(value)?new Intl.DateTimeFormat('en-GB',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value+'-01T12:00:00Z')):'________________ '+currentMonth().slice(0,4);
+// The printed form accepts up to six-digit row numbers across continuation sheets.
+function reference(text){
+ const value=String(text||'').trim().toUpperCase();
+ const full=/^S(\d{2}(?:0[1-9]|1[0-2]))-(\d{1,6})$/.exec(value);
+ const short=/^S(\d{1,6})$/.exec(value);
+ const row=Number(full?.[2]||short?.[1]);
+ if(!row)return '';
+ const period=full?.[1]||currentMonth().slice(2).replace('-','');
+ return 'S'+period+'-'+String(row).padStart(2,'0');
+}
 const permitted=()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin'&&liveProfile.status==='active'&&(!window.access113||access113.can('transactions-vouchers14299','view')&&access113.can('document-editor105','edit'));
 function validate(value){
  const legend=(value.legend||[]).map(r=>({initials:String(r.initials||'').trim().toUpperCase(),name:String(r.name||'').trim()})).filter(r=>r.initials||r.name);
@@ -52,5 +62,5 @@ async function pickMonth(node,changed,isCurrent){
  overlay.querySelector('footer .primary108').onclick=()=>{if(!input.reportValidity())return;if(input.value&&!validMonth(input.value)){document.getElementById('cashSlipMonthError277').textContent='Choose a valid month and year.';return;}value=input.value;overlay.resolve108(true);};
  if(await pending&&current()){node.dataset.cashSlipMonth277=value;node.textContent=monthLabel(value);changed();}
 }
-window.MonthlyCashSlip277={create,html,validate,monthLabel,currentMonth,pickMonth,sheetSettings};
+window.MonthlyCashSlip277={create,html,validate,monthLabel,currentMonth,reference,pickMonth,sheetSettings};
 })();

@@ -58,10 +58,10 @@ function paint(){
    }
    const fresh=review();
    if(!fresh||fresh.id!==r.id)return;
-   const occupied=document.getElementById('jeGeneralMemo')?.value.trim()||document.getElementById('jeVoucher14299')?.value||
+   const occupied=document.getElementById('jeGeneralMemo')?.value.trim()||document.getElementById('journalDocumentRef')?.value||
     [...document.querySelectorAll('#jeLinesBody input')].some(i=>i.type!=='date'&&i.type!=='hidden'&&i.value.trim()&&i.value.trim()!=='0');
    if(occupied&&!await ui108.confirm('Open existing entry','Replace the current editor contents with '+r.from+' for review?'))return;
-   const voucher=document.getElementById('jeVoucher14299');if(voucher)voucher.value='';
+   window.vouchers14299?.setDocument();
    await window.loadEntryForEdit(r.from);
   }catch(e){showAppNotification('Journal review',e.message,true);}
  });
