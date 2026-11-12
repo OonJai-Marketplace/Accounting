@@ -168,7 +168,7 @@ html body #period-review .period-review-table th:first-child{width:110px!importa
 
 @layer corrections14337 {
  @media screen and (min-width:641px) {
-  html body .tab-content :is(.je-card,.module-card,.module109,.work82,.block82,.r79,.panel113,.settings-module94,.settings-section-card,.maintenance-card14324,.maintenance-result14324,.orange-module14231):not(header,h3,h4,summary,.settings-page-heading,.je-card-header,.category-tab-shell,.module-header,.sticky-tabs14344,.area-banner113):not(:where(nav *,table *,#categoryTabShell *,[contenteditable=true] *)){
+  html body .tab-content :is(.je-card,.module-card,.module109,.work82,.block82,.r79,.panel113,.settings-module94,.settings-section-card,.maintenance-card14324,.maintenance-result14324,.orange-module14231):not(header,h3,h4,summary,.plan-item306,.settings-page-heading,.je-card-header,.category-tab-shell,.module-header,.sticky-tabs14344,.area-banner113):not(:where(nav *,table *,#categoryTabShell *,[contenteditable=true] *)){
    border-top:4px solid #b45309!important;
   }
   html body #user-entry-review>.settings-page-heading{

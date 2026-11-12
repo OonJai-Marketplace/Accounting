@@ -147,7 +147,19 @@ function validateRecovery(j){
 }
 async function verifyRecovery(j){validateRecovery(j);const c=context();assert(c);if(offline14239.offline())throw Error('Connect to verify journal recovery.');let receipts=j.receipt;
  if(j.payload){const data=await call(c,'journal_receipt14228',{p_request_key:j.id});const {p_request_key,...single}=j.payload;if(!data||canonical(data.payload)!==canonical(j.payload.p_entries||[single]))return false;receipts=receipt(data.result,j.entries.length);}
- for(const op of j.changes){const r=receipts?.[op.index];if(!r)return false;const data=await call(c,'journal_change_receipt14385',{p_request_key:op.id});if(!data||canonical(data.payload)!==canonical({entry_id:r.entry_id,kind:op.kind,reason:op.reason,expected:op.expected,value:op.value}))return false;}
+ for(const op of j.changes){
+  const r=receipts?.[op.index];if(!r)return false;
+  const data=await call(c,'journal_change_receipt14385',{p_request_key:op.id});
+  if(!data?.payload)return false;
+  const expected={entry_id:r.entry_id,kind:op.kind,reason:op.reason,expected:op.expected,value:op.value};
+  if(data.payload.reason_hash377){
+   const bytes=new TextEncoder().encode(op.id+':'+op.reason);
+   const hash=await crypto.subtle.digest('SHA-256',bytes);
+   expected.reason_hash377=Array.from(new Uint8Array(hash),byte=>byte.toString(16).padStart(2,'0')).join('');
+   delete expected.reason;
+  }
+  if(canonical(data.payload)!==canonical(expected))return false;
+ }
  if(j.voucher&&!j.voucherLinked)return false;return true;
 }
 async function restoreRecovery(job){validateRecovery(job);const c=context();await initialize();assert(c);await mutate(c,list=>{const old=list.find(j=>j.id===job.id);if(old)return list;const j=clone(job);j.retired=false;j.status='pending';j.changes.forEach(op=>{op.status='pending';delete op.receipt});if(j.payload){if(j.receipt)j.localNumbers335=j.receipt.map(r=>r.entry_no);j.receipt=null;}j.voucherLinked=false;list.push(j);return assignNumbers(list)});project();}

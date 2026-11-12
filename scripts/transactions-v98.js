@@ -138,6 +138,58 @@ const auditGroups14361=[['all','Financial audit events'],['red','Red — Permane
     let outside=false;const isOutside=e=>{const r=dialog.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom};dialog.addEventListener('pointerdown',e=>{outside=e.target===dialog&&isOutside(e)});dialog.addEventListener('click',e=>{if(outside&&e.target===dialog&&isOutside(e))dialog.close();outside=false});dialog.showModal();
   }
   window.auditDetails14361={open:openAudit14361,kind:auditKind14361};
+  let editPanelState=null;
+  function editReasonsPanel(month){
+    const owner=liveProfile.id,db=ojmDb,panel=document.createElement('section');
+    panel.className='journal-edit-reasons377';
+    panel.innerHTML='<button type="button" class="je-btn je-btn-secondary" aria-controls="journalEditReasons377" aria-expanded="false">My active journal edits</button><div id="journalEditReasons377" aria-live="polite" hidden></div>';
+    const body=panel.lastElementChild;
+    let generation=0;
+    async function load(offset){
+      const ticket=++generation;
+      const current=()=>panel.isConnected&&!body.hidden&&generation===ticket&&db===ojmDb&&owner===liveProfile?.id&&!window.workspaceRequest138?.target;
+      body.textContent='Loading edit reasons…';
+      try{
+        const {data,error}=await db.rpc('my_active_journal_notes377',{p_month:month+'-01',p_offset:offset});
+        if(!current())return;
+        if(error)throw error;
+        if(!Array.isArray(data))throw Error('The server did not return the edit reasons.');
+        const rows=data.slice(0,50);
+        if(!rows.length&&offset){await load(Math.max(0,offset-50));return;}
+        body.innerHTML=rows.length?'<p>Review your reasons for editing the active journal. Delete a note when you have finished checking it.</p><table><thead><tr><th>Edited</th><th>Entry ID</th><th>Reason</th><th>Action</th></tr></thead><tbody>'+rows.map((r,i)=>'<tr><td>'+esc(formatAppDate(r.edited_at,true))+'</td><td>'+esc(r.entry_no)+'</td><td>'+esc(r.reason)+'</td><td><button type="button" class="je-btn je-btn-danger" data-delete-note="'+i+'">Delete note</button></td></tr>').join('')+'</tbody></table>':'<p>No edit notes for this month.</p>';
+        for(const button of body.querySelectorAll('[data-delete-note]')){
+          const row=rows[Number(button.dataset.deleteNote)];
+          button.onclick=async()=>{
+            if(button.disabled||!current())return;
+            button.disabled=true;
+            try{
+              if(!await ui117.confirm('Permanently delete your edit note for '+esc(row.entry_no)+'? The journal entry and its financial audit events are kept.')||!current())return;
+              const result=await db.rpc('delete_my_journal_edit_note377',{p_note_key:row.note_key});
+              if(result.error)throw result.error;
+              if(current())await load(offset);
+            }catch(e){if(current())window.showCenterStatus?.('Could not confirm deletion. '+(e.message||'Reconnect and try again.'),true);}
+            finally{if(current())button.disabled=false;}
+          };
+        }
+        if(offset||data.length>50){
+          const nav=document.createElement('div');nav.className='audit-pager377';
+          for(const [label,next,disabled] of [['Previous',offset-50,!offset],['Next',offset+50,data.length<=50]]){
+            const button=document.createElement('button');button.type='button';button.className='je-btn je-btn-secondary';
+            button.textContent=label;button.disabled=disabled;button.onclick=()=>load(next);nav.append(button);
+          }
+          body.append(nav);
+        }
+      }catch(e){if(current())body.textContent='Could not load edit reasons. '+(e.message||'Reconnect and reopen this section.');}
+    }
+    const toggle=panel.firstElementChild;
+    toggle.onclick=()=>{
+      body.hidden=!body.hidden;
+      toggle.setAttribute('aria-expanded',String(!body.hidden));
+      if(body.hidden){generation++;body.replaceChildren();}
+      else void load(0);
+    };
+    return panel;
+  }
   window.renderVoidedTransactionsTable = function () {
     const original=byId('tblVoidedTransactions');if(!original)return;original.closest('.table-container').hidden=true;
     let host=byId('auditMonths98');if(!host){host=document.createElement('div');host.id='auditMonths98';original.closest('.table-container').after(host)}host.dataset.historySearch='off';
@@ -149,13 +201,24 @@ const auditGroups14361=[['all','Financial audit events'],['red','Red — Permane
     if(remote)auditFilter14361=page.group;
     const count=key=>remote?(key==='all'?Object.values(page.counts).reduce((n,v)=>n+Number(v),0):Number(page.counts[key]||0)):(key==='all'?month.length:month.filter(item=>auditKind14361(item).group===key).length);
     const cards=auditGroups14361.filter(([key])=>key==='all'||count(key)).map(([key,label])=>`<button type="button" class="period-summary-card" data-audit-filter14361="${key}" aria-pressed="${auditFilter14361===key}"><span>${label}</span><strong>${count(key)}</strong></button>`).join('');
-    const matching=month.filter(item=>auditFilter14361==='all'||auditKind14361(item).group===auditFilter14361),shown=remote?matching.slice(0,50):matching.slice(page?.offset||0,(page?.offset||0)+50);
-    const paging=remote?page:{...page,total:matching.length,offset:page?.offset||0};
-    const pager=(page?.offline?'<p>Showing downloaded audit records. Connect to browse the complete history.</p>':'')+(page?`<div class="archive-month-actions no-print"><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${Math.max(0,paging.offset-50)}" ${paging.offset?'':'disabled'}>Previous</button><span>${paging.total?Math.min(paging.offset+1,paging.total):0}–${Math.min(paging.offset+50,paging.total)} of ${paging.total}</span><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${paging.offset+50}" ${paging.offset+50>=paging.total?'disabled':''}>Next</button></div>`:'');
+    const matching=month.filter(item=>auditFilter14361==='all'||auditKind14361(item).group===auditFilter14361);
+    const total=remote?page.total:matching.length;
+    const lastOffset=Math.max(0,(Math.ceil(total/50)-1)*50);
+    const offset=Math.min(page?.offset||0,lastOffset);
+    const shown=remote?matching.slice(0,50):matching.slice(offset,offset+50);
+    const offlineNote=page?.offline?'<p>Showing downloaded audit records. Connect to browse the complete history.</p>':'';
+    const pager=page&&total>50?`<div class="audit-pager377 no-print"><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${Math.max(0,offset-50)}" ${offset?'':'disabled'}>Previous</button><span>${offset+1}–${Math.min(offset+50,total)} of ${total}</span><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${offset+50}" ${offset===lastOffset?'disabled':''}>Next</button></div>`:'';
     const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify({id:item.id,auditSource1434:item.auditSource1434,record_id:item.record_id,action:item.action,deletePolicy143124:item.deletePolicy143124,old_data:{entry_no:item.old_data?.entry_no},new_data:{entry_no:item.new_data?.entry_no},summary143198:true}))}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td>${esc(kind.label)}</td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
-    host.innerHTML=historyMonth14341.control('audit',selected)+(liveProfile?.role==='admin'?'<div class="audit-cleanup-toolbar313 no-print"><button type="button" class="je-btn je-btn-secondary" data-audit-cleanup313>Clear reviewed Orange…</button></div>':'')+`<div class="period-summary-grid audit-filters14361">${cards}</div>${pager}<section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="period-empty">No audit events match this month and category.</td></tr>'}</tbody></table></div></section>${pager}`;
+    host.innerHTML=historyMonth14341.control('audit',selected)+(liveProfile?.role==='admin'?'<button type="button" class="je-btn je-btn-secondary" data-audit-cleanup313>Clear reviewed Orange…</button>':'')+`<div class="period-summary-grid audit-filters14361">${cards}</div>${offlineNote}<section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th>${liveProfile?.role==='admin'?'<th data-audit-action1434>Action</th>':''}</tr></thead><tbody>${rows||`<tr><td colspan="${liveProfile?.role==='admin'?6:5}" class="period-empty">No audit events match this month and category.</td></tr>`}</tbody></table></div></section>${pager}`;
+    const allowReasons=liveProfile?.role==='admin'&&!window.workspaceRequest138?.target;
+    if(editPanelState&&(!allowReasons||editPanelState.owner!==owner||editPanelState.db!==ojmDb||editPanelState.month!==selected||!editPanelState.panel.isConnected)){
+      editPanelState.panel.remove();editPanelState=null;
+    }
+    if(allowReasons&&!editPanelState){
+      const panel=editReasonsPanel(selected);host.after(panel);editPanelState={panel,month:selected,owner,db:ojmDb};
+    }
     host.querySelector('[data-audit-cleanup313]')?.addEventListener('click',()=>window.openAuditCleanup313(null,selected));
-    host.querySelectorAll('[data-audit-filter14361]').forEach(button=>{button.onclick=()=>{auditFilter14361=button.dataset.auditFilter14361;if(remote){window.auditPage143198.move(0,auditFilter14361).catch(()=>{});return;}renderVoidedTransactionsTable();host.querySelector(`[data-audit-filter14361="${auditFilter14361}"]`)?.focus()}});
+    host.querySelectorAll('[data-audit-filter14361]').forEach(button=>{button.onclick=()=>{auditFilter14361=button.dataset.auditFilter14361;if(page&&!remote)page.offset=0;if(remote){window.auditPage143198.move(0,auditFilter14361).catch(()=>{});return;}renderVoidedTransactionsTable();host.querySelector(`[data-audit-filter14361="${auditFilter14361}"]`)?.focus()}});
     host.querySelectorAll('[data-audit-open14361]').forEach(row=>{row.onclick=e=>{if(e.target.closest('button,a,input,select,textarea,summary,details'))return;openAudit14361(shown[Number(row.dataset.auditOpen14361)],row)};row.onkeydown=e=>{if(e.target===row&&(e.key==='Enter'||e.key===' ')){e.preventDefault();row.click()}}});
     host.querySelectorAll('[data-audit-page143198]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await window.auditPage143198.move(Number(b.dataset.auditPage143198));host.scrollIntoView({block:'start'});}catch{}finally{b.disabled=false;}});
     historyMonth14341.bind(host,'audit',()=>window.auditPage143198.month().catch(()=>{}),'local');

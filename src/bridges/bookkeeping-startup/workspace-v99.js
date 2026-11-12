@@ -27,7 +27,7 @@ function polish(){
 }
 function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(polish)}}
 function menu(cell){
- if(!cell||cell.closest('.clustered-journal-table,.audit-table98')||cell.querySelector('.row-menu99'))return;
+ if(!cell||cell.closest('.clustered-journal-table,.audit-table98,.journal-edit-reasons377')||cell.querySelector('.row-menu99'))return;
  if(!cell.querySelector('button,[onclick]'))return;
  const details=document.createElement('details');details.className='row-menu99';const summary=document.createElement('summary');summary.textContent='⋯';summary.setAttribute('aria-label','Row actions');const panel=document.createElement('div');panel.className='row-menu-panel99';
  while(cell.firstChild)panel.append(cell.firstChild);details.append(summary,panel);cell.append(details);

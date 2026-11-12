@@ -54,12 +54,5 @@ function polish(root=document){hidePrivateDraftActivity(root);initializeHistorie
 function schedule(root){pending.add(root);if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;const roots=new Set(pending);pending.clear();for(const node of roots){let parent=node.parentElement;while(parent&&!roots.has(parent))parent=parent.parentElement;if(node.isConnected&&!parent)polish(node)}})}}
 const switchBefore=window.switchTab;
 window.switchTab=function(...args){const result=switchBefore.apply(this,args);syncTab();return result};
-window.polishAudit14300=function(){
- const root=document.getElementById('auditMonths98'),actions=root?.querySelector('.archive-month-actions'),month=root?.querySelector('[data-history-month14341="audit"]')?.value;
- if(!actions||!/^\d{4}-\d{2}$/.test(month||'')||liveProfile?.role!=='admin'||typeof window.deleteAuditMonth1434!=='function'||actions.querySelector('[data-delete-audit1434]'))return;
- const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-danger no-print';b.dataset.deleteAudit1434=month;b.textContent='Delete entire month';b.onclick=()=>deleteAuditMonth1434(month);actions.append(b);
-};
-const auditBefore=window.renderVoidedTransactionsTable;
-if(typeof auditBefore==='function')window.renderVoidedTransactionsTable=function(...args){const result=auditBefore.apply(this,args);window.polishAudit14300();return result};
 document.addEventListener('DOMContentLoaded',()=>{polish();syncTab();standardizeReportActions();new MutationObserver(records=>{if(lastDateFormat!==ApplicationSettings.system?.dateFormat){lastDateFormat=ApplicationSettings.system?.dateFormat;standardizeVisibleDates()}const roots=new Set();for(const r of records){const context=r.target.closest?.(historySelector+',#voucherRows14299,.th-activity');if(context)schedule(context);const button=r.target.closest?.('button,[role=button]');if(button)roots.add(button);for(const n of r.addedNodes)if(n.nodeType===1)roots.add(n)}for(const root of roots){let parent=root.parentNode;while(parent&&!roots.has(parent))parent=parent.parentNode;if(root.isConnected&&!parent){standardizeReportActions(root);if(root.matches(historySelector+',#voucherRows14299,.th-activity')||root.querySelector(historySelector+',#voucherRows14299,.th-activity'))schedule(root)}}}).observe(document.body,{childList:true,subtree:true})},{once:true});
 })();

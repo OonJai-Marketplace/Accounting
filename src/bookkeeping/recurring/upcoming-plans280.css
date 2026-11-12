@@ -3,7 +3,7 @@
 #amortizationPlans280:has(#legacyAmortization280:not([hidden]) details)>.plan-empty298{display:none}
 
 /* Use the same mint header and emerald edge as the existing schedule cards. */
-#amortizationPlans280 > .plan-item306 {
+:is(#amortizationPlans280,#todos136) > .plan-item306 {
   padding: 0;
   margin: 0 0 12px;
   border: 1px solid var(--module-emerald, #059669);
@@ -12,7 +12,7 @@
   border-radius: 6px;
   background: white;
 }
-#amortizationPlans280 > .plan-item306 > summary {
+:is(#amortizationPlans280,#todos136) > .plan-item306 > summary {
   display: grid;
   grid-template-columns: minmax(180px, 1.7fr) minmax(150px, 1fr) minmax(100px, .7fr) minmax(80px, .6fr);
   gap: 8px 12px;
@@ -23,16 +23,16 @@
   border-radius: 2px;
   list-style: none;
 }
-#amortizationPlans280 > .plan-item306 > summary::before { content: none; }
-#amortizationPlans280 > .plan-item306 > summary::-webkit-details-marker { display: none; }
-#amortizationPlans280 > .plan-item306 > summary strong {
+:is(#amortizationPlans280,#todos136) > .plan-item306 > summary::before { content: none; }
+:is(#amortizationPlans280,#todos136) > .plan-item306 > summary::-webkit-details-marker { display: none; }
+:is(#amortizationPlans280,#todos136) > .plan-item306 > summary strong {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 14px;
   overflow-wrap: anywhere;
 }
-#amortizationPlans280 > .plan-item306 > summary strong::before {
+:is(#amortizationPlans280,#todos136) > .plan-item306 > summary strong::before {
   content: '';
   flex: none;
   width: 7px;
@@ -41,9 +41,9 @@
   border-width: 0 2px 2px 0;
   transform: rotate(-45deg);
 }
-#amortizationPlans280 > .plan-item306[open] > summary strong::before { transform: rotate(45deg); }
-#amortizationPlans280 > .plan-item306 > summary:focus-visible { outline: 2px solid #065f46; outline-offset: 2px; }
-#amortizationPlans280 > .plan-item306 > .plan-content280 { border-top: 1px solid #9bbdaf; padding: 12px; }
+:is(#amortizationPlans280,#todos136) > .plan-item306[open] > summary strong::before { transform: rotate(45deg); }
+:is(#amortizationPlans280,#todos136) > .plan-item306 > summary:focus-visible { outline: 2px solid #065f46; outline-offset: 2px; }
+:is(#amortizationPlans280,#todos136) > .plan-item306 > .plan-content280 { border-top: 1px solid #9bbdaf; padding: 12px; }
 #amortizationPlans280 .plan-previous306{border-top:1px solid #dce5e8;margin-top:16px;padding-top:12px}
 #amortizationPlans280 .plan-previous306>summary{cursor:pointer;font-size:13px;color:#526575}
-@media(max-width:850px){#amortizationPlans280>.plan-item306>summary{grid-template-columns:minmax(0,1fr) auto}#amortizationPlans280>.plan-item306>summary strong{grid-column:1/-1}}
+@media(max-width:850px){:is(#amortizationPlans280,#todos136)>.plan-item306>summary{grid-template-columns:minmax(0,1fr) auto}:is(#amortizationPlans280,#todos136)>.plan-item306>summary strong{grid-column:1/-1}}

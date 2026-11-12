@@ -23,6 +23,11 @@ function position(host,input){
  // The budget table repeats the module title; one heading is sufficient.
  if(key==='budget')host.querySelector('.block82>header')?.remove();
  const print=actions.querySelector('[data-export-menu14337],button[onclick*=print],button[onclick*=Print],.export-trigger14337')||[...actions.querySelectorAll('button')].find(b=>/Print|Preview/.test(b.textContent));if(print)print.before(label);
+ if(key==='audit'){
+  const cleanup=host.querySelector(':scope > [data-audit-cleanup313]');
+  for(const prior of actions.querySelectorAll('[data-audit-cleanup313]'))if(prior!==cleanup)prior.remove();
+  if(cleanup)actions.append(cleanup);
+ }
  if(host.dataset.historySearch==='off')return;
  const existing=header.querySelector('input[type=search]')||host.querySelector('input[type=search]')||host.closest('.je-card,.work82')?.querySelector('input[type=search],#historySearch80');if(existing&&!actions.contains(existing)){const oldLabel=existing.closest('label');actions.prepend(existing);if(oldLabel&&!oldLabel.querySelector('input,select,button'))oldLabel.remove()}if(existing){existing.classList.add('history-search14359');existing.placeholder='Search this month';existing.setAttribute('aria-label','Search selected month')}
  if(!header.querySelector('input[type=search]')){
