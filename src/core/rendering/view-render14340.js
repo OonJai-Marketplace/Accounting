@@ -18,7 +18,7 @@ function ready(){
   const query=document.getElementById('jeSearchInput')?.value||'';
   if(lastRevision===revision&&records===lastRecords&&query===lastQuery)return;
   lastRecords=records;lastQuery=query;lastRevision=revision;
-  let rows=records.filter(r=>!journalIsHistory14342(r)&&!isReopened67(String(r.date).slice(0,7)));const term=query.trim().toLowerCase();if(term){const matches=new Set(rows.filter(r=>[r.id,r.account,r.memo,r.generalMemo].some(v=>String(v||'').toLowerCase().includes(term))).map(r=>String(r.id)));rows=rows.filter(r=>matches.has(String(r.id)));}
+  let rows=records.filter(r=>!journalIsHistory14342(r)&&!isReopened67(String(r.date).slice(0,7)));const term=query.trim().toLowerCase();if(term){const refs=window.vouchers14299?.journalReferences?.();const matches=new Set(rows.filter(r=>[r.id,r.account,r.memo,r.generalMemo,r.cashSlipRef,r.supportingDocument?.number,refs?.get(r.dbEntryId||r.journalJob14385)].some(v=>String(v||'').toLowerCase().includes(term))).map(r=>String(r.id)));rows=rows.filter(r=>matches.has(String(r.id)));}
   journal.call(this,rows);
  };
  const archive=window.renderAllTransactionsTable;let archiveRevision=-1,archiveMonth='',archiveRecords;
@@ -29,7 +29,7 @@ function ready(){
   archiveRevision=revision;archiveRecords=rows;archiveMonth=month;return archive.apply(this,args);
  };
  window.filterJournalHistory=()=>window.renderJournalHistoryTable();
- window.preparedViews14340={revision:()=>revision,withPreparation(fn){const prior=preparing;preparing=true;try{return fn()}finally{preparing=prior}},build(){preparing=true;try{window.renderJournalHistoryTable?.();window.renderAllTransactionsTable?.();window.renderNewTransactionsTable?.();window.renderVoidedTransactionsTable?.();window.renderAccounts69?.()}finally{preparing=false}},invalidate(){revision++}};
+ window.preparedViews14340={documentsChanged(){lastRevision=-1;archiveRevision=-1;if(active('journal'))window.renderJournalHistoryTable();if(active('transactions-all'))window.renderAllTransactionsTable();},revision:()=>revision,withPreparation(fn){const prior=preparing;preparing=true;try{return fn()}finally{preparing=prior}},build(){preparing=true;try{window.renderJournalHistoryTable?.();window.renderAllTransactionsTable?.();window.renderNewTransactionsTable?.();window.renderVoidedTransactionsTable?.();window.renderAccounts69?.()}finally{preparing=false}},invalidate(){revision++}};
  window.addEventListener('page113',()=>{if(active('accounts-modular-container')||active('trial-balance')||active('account-balances'))window.renderAccounts69?.()});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

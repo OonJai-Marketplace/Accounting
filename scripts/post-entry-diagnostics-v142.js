@@ -2,7 +2,7 @@
 (function(){'use strict';
  const byId=id=>document.getElementById(id);
  let touched=false,batchDepth261=0,batchDirty261=false,generalPresent261=false;
- function started(){return touched||!!JournalModule.editingEntryId||!!byId('jeGeneralMemo')?.value.trim()||!!byId('jeVoucher14299')?.value||[...document.querySelectorAll('#jeLinesBody .je-line-acc,#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr,#jeLinesBody .je-line-memo')].some(n=>n.value.trim())}
+ function started(){return touched||!!JournalModule.editingEntryId||!!byId('jeGeneralMemo')?.value.trim()||!!byId('journalDocumentRef')?.value||[...document.querySelectorAll('#jeLinesBody .je-line-acc,#jeLinesBody .je-line-dr,#jeLinesBody .je-line-cr,#jeLinesBody .je-line-memo')].some(n=>n.value.trim())}
  const number=(value,input)=>{const clean=String(value??'').trim();if(!clean)return 0;const n=input?.dataset.numeric88||input?.type==='number'?Number(clean):parseAppNumber(clean);return Number.isFinite(n)?n:NaN};
  const money=value=>typeof formatAppNumber==='function'?formatAppNumber(value):Number(value).toLocaleString(undefined,{maximumFractionDigits:2});
  function diagnose(){
