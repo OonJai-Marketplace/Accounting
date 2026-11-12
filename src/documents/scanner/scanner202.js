@@ -510,7 +510,24 @@ async function nextEntry215(skip=false){
 async function destinationPanel215(){
  destination215=true;dialog=destinationDialog;
  const names={drive:'Google Drive',local:'Phone storage',sd:'SD card'};
- open('Save destination',`<div class="scan-locations216">${Object.entries(names).map(([mode,name])=>`<button type="button" class="scan-location216" data-scan="provider-${mode}215"><strong>${name}</strong><small>${esc(mode==='drive'?(settings.folder?.name||'My Drive'):(settings.localFolders215?.[mode]?.name||'Choose a folder'))}</small></button>`).join('')}</div>`);
+ open('Save destination',`<div class="scan-locations216">${Object.entries(names).map(([mode,name])=>`<button type="button" class="scan-location216" data-scan="provider-${mode}215"><strong>${name}</strong><small>${esc(mode==='drive'?(settings.folder?.name||'My Drive'):(settings.localFolders215?.[mode]?.name||'Choose a folder'))}</small></button>`).join('')}</div>${btn('check-drive-access','Check Drive connection')}<p data-drive-check role="status"></p>`);
+}
+async function checkCompanyDrive() {
+ const result = destinationDialog.querySelector('[data-drive-check]');
+ result.textContent = 'Checking the company receipt folder…';
+ try {
+  const live = await connection();
+  const destination = live.companyDestination228;
+  if (!destination || !live.companyManaged228 || !live.connected)
+   throw Error('The company receipt folder needs an administrator to connect it in Accounting Settings.');
+  const folder = await api('folder',{id:destination.id});
+  if (folder.id !== destination.id || !folder.capabilities?.canAddChildren)
+   throw Error('The company account cannot add files to its receipt folder. Check the folder permissions in Drive.');
+  valid();
+  result.textContent = live.email + ' can save scans to ' + folder.name + '.';
+ } catch (e) {
+  result.textContent = e.message;
+ }
 }
 function driveFolder216(r){
  open('Google Drive',`<div class="scan-drive-account216"><small>${esc(driveState.email)}</small>${driveState.companyManaged228?'<small>Company destination · managed in desktop Settings</small>':btn('connect','Switch account')}</div><nav class="scan-actions" aria-label="Folder navigation">${btn('locations215','Locations')}${btn('folder-root','My Drive')}${r.parent.parents?.length?btn('folder-up','Up'):''}${r.parent.capabilities?.canAddChildren&&!driveState.companyManaged228?btn('folder-new','New folder'):''}</nav><h3 class="scan-drive-path216">${esc(r.parent.name)}</h3><div class="scan-drive-folders216">${folders.items.map(f=>`<button type="button" class="scan-drive-folder216" data-scan="folder-open" data-folder="${f.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7l2 3h9v13H3z"/></svg><span>${esc(f.name)}</span><span aria-hidden="true">›</span></button>`).join('')||'<p>This folder has no subfolders.</p>'}</div>${folders.next?btn('folder-more','More folders'):''}<div class="scan-actions">${r.parent.capabilities?.canAddChildren?btn('folder-select','Use this folder','primary'):'<small>This folder is read-only.</small>'}</div>`);
@@ -586,6 +603,7 @@ async function action215(name,b){
  if(name==='destination-done215'){closeDialog();destination215=false;if($('setupPath215'))$('setupPath215').textContent=destinationName215();else render();return;}
 }
 async function action(name,b){valid();
+ if(name==='check-drive-access')return checkCompanyDrive();
  if(name==='entry-files'){await prepareEntryFiles();return showEntryFiles();}
  if(name==='save-entry-file'){await selectEntryFile(b.dataset.draft);closeDialog();return saveOneEntry();}
  if(name==='review-entry-file'){await selectEntryFile(b.dataset.draft);render();if(nativeUI215()){closeDialog();return;}return review(true);}

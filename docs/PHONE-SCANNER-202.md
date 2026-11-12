@@ -25,6 +25,8 @@ Changing accounts preserves the device draft and resets the destination to the n
 
 Within the same account, **Settings → Move saved PDF** moves this batch's last saved PDF into a chosen writable folder. **Choose folder** instead changes the destination for a new copy. Existing PDFs from earlier batches can be organized directly in Drive.
 
+For a company-managed destination, open **Save destination → Check Drive connection** on the phone. This checks the active company account and asks Google whether it can add files to the saved folder.
+
 ## Scan and group
 
 Confirm the document month, first group type and starting ID. Journal and HR sequences are independent. A named supporting section, such as October 2026 Cash Slips, does not advance either sequence. Use Next entry, Skip / Jump or Add group as needed. This scanner never allocates or changes journal IDs in the database.

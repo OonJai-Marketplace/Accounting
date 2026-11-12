@@ -88,6 +88,19 @@ function functions(start,end) {
     assert.deepEqual(Array.from(manifest.pages,p=>p.groupID),expected.pages.map(()=>group.id));
     assert.ok(uploads.get(manifest.pdf.path).name.startsWith(group.entryLabel));
   }
+  const notice={textContent:''};
+  context.destinationDialog={querySelector:()=>notice};
+  context.connection=async()=>({connected:true,email:'fixture@example.test',companyManaged228:true,companyDestination228:{id:'receipt-folder'}});
+  context.api=async()=>({id:'receipt-folder',name:'Journal receipts',capabilities:{canAddChildren:true}});
+  vm.runInContext(functions('async function checkCompanyDrive()', 'function driveFolder216('),context);
+  await context.checkCompanyDrive();
+  assert.equal(notice.textContent,'fixture@example.test can save scans to Journal receipts.');
+  context.api=async()=>({id:'receipt-folder',capabilities:{canAddChildren:false}});
+  await context.checkCompanyDrive();
+  assert.match(notice.textContent,/cannot add files/);
+  context.api=async()=>{throw Error('Google authorization was revoked');};
+  await context.checkCompanyDrive();
+  assert.match(notice.textContent,/revoked/);
   assert.match(lastStatus,/3 entry PDFs saved/);
   console.log('PASS: 5 pages in 3 independently verified PDFs, ordered pages, normalized IDs, isolated links, safe local split and retry after a partial Drive save.');
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,6 +1,7 @@
 {
   "version": "143.366",
   "changes": [
-    "The phone receipt scanner saves a separate PDF for each transaction ID, with all of its receipt pages together. Save all PDFs to the company Drive folder or review an individual entry."
+    "The phone receipt scanner saves a separate PDF for each transaction ID, with all of its receipt pages together. Save all PDFs to the company Drive folder or review an individual entry.",
+    "Check Drive connection in the phone scanner verifies write access to the company receipt folder."
   ]
 }
