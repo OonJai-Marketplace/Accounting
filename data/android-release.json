@@ -2,13 +2,13 @@
   "schema": 1,
   "applicationId": "org.oonjai.accounting.preview",
   "signerSha256": "58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c",
-  "version": "143.367-test",
-  "versionCode": 143367,
-  "sha256": "781abd492f368204934ce14016621665244f97337c4c2418aa593c7961a4829a",
-  "url": "https://drive.google.com/file/d/14Y2WK94ba80eOWJu8xOvMFZFLuiljkYo/view?usp=drivesdk",
+  "version": "143.368-test",
+  "versionCode": 143368,
+  "sha256": "ac7c6dfd983a526aa502e37457fb8ef1efd1a088a249b666b1bf48b1d6c83f78",
+  "url": "https://drive.google.com/file/d/1M_bTFXdO4aV-Nf90JuYf8mnAX9_JptUb/view?usp=drivesdk",
   "notes": [
-    "Open My Drive inside the scanner, tap through folders, or create a folder in the location shown. Confirm the full path with Use this folder.",
-    "Save each transaction ID as its own PDF with all of its receipt pages together.",
-    "The company Google account and shared default receipt folder stay protected in desktop Settings."
+    "Fixes Check for updates when the Accounting website address is blank. The updater uses the official release page and retries through a second connection if needed.",
+    "Browse My Drive inside Accounting, create a folder in the location shown and confirm the full path.",
+    "Save a separate PDF for each transaction ID. The company Google account and desktop receipt-folder default stay protected."
   ]
 }

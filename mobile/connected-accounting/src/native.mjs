@@ -4,6 +4,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Browser } from '@capacitor/browser';
 import { pendingScan } from './pending-scan.mjs';
+import { getAndroidReleaseManifest } from './update-policy.mjs';
 import { installAndroidUpdates } from './updates.mjs';
 
 if (Capacitor.isNativePlatform()) {
@@ -27,11 +28,7 @@ if (Capacitor.isNativePlatform()) {
   window.OJM_PUBLIC_APP_URL = 'https://oonjai-marketplace.github.io/Accounting/';
   if (platform === 'android') installAndroidUpdates({
     getInfo: () => App.getInfo(),
-    getManifest: async () => {
-      const response = await CapacitorHttp.get({url: window.OJM_PUBLIC_APP_URL + 'data/android-release.json?t=' + Date.now(), headers: {'Cache-Control': 'no-cache'}, connectTimeout: 10000, readTimeout: 10000, responseType: 'json'});
-      if (response.status !== 200) throw Error('The update service is unavailable.');
-      return response.data;
-    },
+    getManifest: () => getAndroidReleaseManifest(options => CapacitorHttp.get(options)),
     openDownload: url => Browser.open({url}),
     downloadUpdate: async release => {
       const session=window.deviceVault14334?.readSession?.();
