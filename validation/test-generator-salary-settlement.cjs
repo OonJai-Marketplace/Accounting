@@ -23,7 +23,7 @@ const setup=require('./phase0-browser-fixture.cjs');
    ];
    AccountingStore.accounts=AccountingStore.accounts.filter(a=>!definitions.some(([code])=>a.code===code));
    for(const [code,currency,type] of definitions)AccountingStore.accounts.push({
-    id:code,code,name:'Fixture '+code,currency,type,baseType:type,isTechnical:type==='SYSTEM',active:true,isPosting:true
+    id:code,code,name:code==='1041'?'BCEL USD':'Fixture '+code,currency,type,baseType:type,isTechnical:type==='SYSTEM',active:true,isPosting:true
    });
    document.querySelector('#jeTransDate').value='2026-11-08';
    JournalModule.entries=records.map(r=>({
@@ -75,6 +75,7 @@ const setup=require('./phase0-browser-fixture.cjs');
   });
   await d.locator('[data-row="0"] select').selectOption('1222',{force:true});
   await d.locator('[data-row="1"] select').selectOption('1041',{force:true});
+  assert.equal(await line(1,'line_memo').inputValue(),'Bank payment · BCEL USD');
   await line(0,'book_rate_lak').focus();
   await page.evaluate(()=>releaseBookLookup());
   await page.waitForFunction(()=>document.querySelector('[data-row="0"] [data-field="book_rate_lak"]').value==='22,200.12');
@@ -139,11 +140,15 @@ const setup=require('./phase0-browser-fixture.cjs');
   assert.equal(rows[2].debit,'1,234.5');assert.equal(rows[3].credit,'1,234.5');
   const cents=(q,r)=>Math.round(q*r*100);
   const loss=(cents(qty,bankBook)-cents(qty,staffBook))/100;
+  const bankLoss=(cents(qty,bankBook)-cents(qty,payday))/100;
+  assert.equal(rows[1].line_memo,'Bank payment · BCEL USD · FX loss '+bankLoss.toLocaleString('en-US')+' LAK');
   assert.equal(rows[4].debit,loss.toLocaleString('en-US'));assert.equal(rows[5].credit,rows[4].debit);
   assert.equal(rows[3].book_rate_lak,payday.toLocaleString('en-US'));
   assert.deepEqual(await generate(),rows);
   await line(1,'book_rate_lak').fill('22000');
   const gain=await generate();assert.equal(gain[4].credit,((cents(qty,staffBook)-cents(qty,22000))/100).toLocaleString('en-US'));
+  const bankGain=(cents(qty,payday)-cents(qty,22000))/100;
+  assert.equal(gain[1].line_memo,'Bank payment · BCEL USD · FX gain '+bankGain.toLocaleString('en-US')+' LAK');
   assert.equal(gain[5].debit,gain[4].credit);assert.deepEqual(await generate(),gain);
   let copyLookups=0;
   page.on('request',request=>{if(request.url().includes('/rpc/account_exchange_rates143186'))copyLookups++;});
@@ -154,6 +159,14 @@ const setup=require('./phase0-browser-fixture.cjs');
   assert.equal(await page.locator('#jeLinesBody tr').count(),6);
   assert.equal(await page.locator('#jeLinesBody tr').first().getAttribute('data-book-rate14383'),String(staffBook));
   const postedRows=page.locator('#jeLinesBody tr');
+  assert.equal(await postedRows.nth(1).locator('.je-line-memo').inputValue(),gain[1].line_memo);
+  await page.locator('#generateJournal258').click();
+  await line(1,'book_rate_lak').fill(String(payday));
+  assert.equal((await generate())[1].line_memo,'Bank payment · BCEL USD');
+  await line(1,'line_memo').fill('Paid by bank transfer, ref A-1234');
+  await line(1,'book_rate_lak').fill('22000');
+  assert.equal((await generate())[1].line_memo,'Paid by bank transfer, ref A-1234');
+  await d.locator('[data-close]').click();
   const staffDebit=postedRows.nth(0).locator('.je-line-dr');
   assert.equal(await staffDebit.getAttribute('placeholder'),'Enter debit');
   assert.equal(await postedRows.nth(1).locator('.je-line-cr').getAttribute('placeholder'),'Enter credit');

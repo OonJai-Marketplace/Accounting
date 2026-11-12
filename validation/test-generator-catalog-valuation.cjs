@@ -41,6 +41,7 @@ const legacyContext = {window:{},document:{readyState:'loading',addEventListener
 vm.runInNewContext(fs.readFileSync(require.resolve('../src/bookkeeping/journal/foreign-currency14383.js'),'utf8'),legacyContext);
 const catalog = [...C.templates(chart), ...legacyContext.window.JournalFX14383.templates()];
 const fund = {LAK:['1010','1040'], USD:['1011','1041'], THB:['1012','1017']};
+for(const a of chart.filter(G.fund))a.name=(a.code.startsWith('104')?'BCEL ':'Cash on Hand ')+a.currency;
 const staff = {LAK:'1210',USD:'1220',THB:'1224'};
 const sums = (rows,id)=>rows.filter(l=>l.account_id===id).reduce((v,l)=>v+l.debit-l.credit,0);
 const checked = new Set();
@@ -153,6 +154,12 @@ for (const t of catalog) {
  for(const [account,value] of Object.entries(expected))assert(Math.abs(sums(result.rows,account)-value)<.005,id+' '+account+' expected '+value+' got '+sums(result.rows,account));
  for(const l of result.rows){
   if(l.expectedSide&&l.generated!=='output')assert.equal(l[l.expectedSide==='debit'?'credit':'debit'],0,'Template side '+id);
+  const account=chart.find(a=>a.id===l.account_id);
+  if(G.fund(account)&&(l.credit||l.debit)){
+   const method=account.name.startsWith('BCEL')?'Bank':'Cash';
+   assert(l.line_memo.startsWith(method+(l.credit?' payment':' receipt')+' · '+account.name),id+' '+l.line_memo);
+   if(l.debit||account.currency==='LAK'||kind==='transfer')assert(!l.line_memo.includes('FX '),id+' '+l.line_memo);
+  }
  }
  if(id.startsWith('support-deposit')||kind==='mapping'&&(code.startsWith('91')||code.startsWith('93'))){
   assert(!result.rows.some(l=>['5419','9010','9011','9012'].includes(l.account_id)),id+' unexpected settlement or FX line');

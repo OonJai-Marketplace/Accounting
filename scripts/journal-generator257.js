@@ -11,6 +11,24 @@ const decimalMoney = new Intl.NumberFormat('en-US', {useGrouping:false, maximumF
 const round=n=>{if(!Number.isFinite(n)||Math.abs(n)>9e12)throw Error('An amount is too large to calculate safely.');return Number(decimalMoney.format(n));};
 const displayRate=n=>typeof formatAppRate==='function'?formatAppRate(n):Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
 const close=(a,b)=>Math.abs(a-b)<.005;
+// Keep the original template wording separately so recalculation can replace its own memo.
+const genericFundMemos=new Set(['Cash / bank payment','Cash / bank receipt','Receiving fund','Paying fund','Amount paid','Amount received','Actual payment','Actual Thai baht cash paid','Actual US dollar cash paid','Actual Thai baht cash received','Actual US dollar cash received','Total cash received in LAK']);
+function updateFundMemo(line,account,side,fx=0){
+ if(line.fundMemoBase===undefined&&line.line_memo)return;
+ if(!fund(account)||!side){
+  if(line.fundMemoBase!==undefined)line.line_memo=line.fundMemoBase;
+  return;
+ }
+ const base=line.fundMemoBase??'',name=account.name||String(account.code);
+ const kind=/\b(?:bank|BCEL)\b/i.test(name)?'Bank':/\b(?:cash|cashier)\b/i.test(name)?'Cash':'';
+ const movement=side==='credit'?'payment':'receipt';
+ const label=kind?kind+' '+movement:movement[0].toUpperCase()+movement.slice(1);
+ let detail=genericFundMemos.has(base)?'':base;
+ if(base==='Full deposit into company cash / bank')detail='Full deposit';
+ if(base==='Fund or staff who paid the fee')detail='Fee payment';
+ line.fundMemoBase=base;
+ line.line_memo=[label,name,detail,fx?'FX '+(fx>0?'loss':'gain')+' '+displayRate(Math.abs(fx))+' LAK':''].filter(Boolean).join(' · ');
+}
 const known={9101:['4010','9190','THB'],9102:['4010','9190','USD'],9111:['4110','9190','USD'],9112:['4110','9190','THB'],9121:['4120','9190','USD'],9131:['4130','9190','USD'],9132:['4130','9190','THB'],9201:['5010','9290','THB'],9202:['5010','9290','USD'],9211:['5111','9290','USD'],9212:['5111','9290','THB'],9222:['5119','9290','THB'],9231:['5311','9290','USD'],9232:['5311','9290','THB'],9233:['5315','9290','USD'],9234:['5315','9290','THB'],9241:['5414','9290','USD'],9242:['5414','9290','THB'],9251:['5120','9290','USD'],9311:['3023','9390','USD'],9312:['3023','9390','THB'],9321:['3024','9390','USD'],9322:['3024','9390','THB'],9331:['3031','9390','USD'],9332:['3031','9390','THB'],9411:['1310','9490','USD']};
 function registry(chart){
  const all=chart.filter(available),byCode=(code,c='LAK')=>all.find(a=>String(a.code)===code&&currency(a)===c),maps=new Map(),unknown=new Set();
@@ -315,6 +333,8 @@ function completePart(input){
  }
  const components=[];
  for(const l of active.filter(l=>!technical(l.a)&&monetary(l.a)&&!(fund(l.a)&&l.debit))){const n=round((econ.get(l)??signed(l)*l.rt)-round(signed(l)*l.book));if(n)components.push({l,n});}
+ const fundFX=new Map(components.filter(({l})=>fund(l.a)).map(({l,n})=>[l,n]));
+ for(const l of source)updateFundMemo(l,l.a,l.credit?'credit':l.debit?'debit':'',fundFX.get(l));
  const net=round(components.reduce((n,x)=>n+x.n,0));
  if(components.length){
   const memo=components.map(({l,n})=>(fund(l.a)?'Cash disposal FX':'Balance settlement FX')+' · '+l.a.name+' · '+displayRate(Math.abs(n))+' LAK '+(n>0?'loss':'gain')).join(' / ');
@@ -355,7 +375,7 @@ function completePart(input){
  if(!final.some(l=>l.debit||l.credit))error('Enter the transaction amounts in the template before generating.');
  return errors.length?{errors}:{errors:[],rows:final.map(({a,c,rt,book,index,specified,...l})=>l),notes,totals};
 }
-root.JournalCompletion258={complete,registry,currency,type,technical,available,fund,staff,monetary};
+root.JournalCompletion258={complete,registry,currency,type,technical,available,fund,staff,monetary,updateFundMemo};
 })(globalThis);
 
 ;
@@ -651,6 +671,7 @@ function entrySource(){
   const data=editorRows[index]?.dataset||{};
   if(data.generatorTemplate)template=data.generatorTemplate;
   rows.push({...blank(),expectedSide:data.templateSide274,role:data.generatorRole,expectedCurrency:data.generatorCurrency,stage:data.generatorStage,receiptLeg:data.generatorReceipt,
+   ...(data.generatorFundMemo&&data.generatorFundMemo===r.memo?{fundMemoBase:data.generatorFundMemoBase||''}:{}),
    ...(r.averageBookRate?{autoBook:true}:{}),
    ...(data.generatorCalculated&&!number(r.dr)&&!credits.length||r.generatorOutput===JSON.stringify([a?.id,number(r.dr),number(credits[0]?.[1]),r.memo||'',number(r.fxRate),number(r.bookRate)])?{generated:'output',autoMemo:true}:{}),sourceIndex:index,account_id:a?.id||'',missing:!a?r.account:'',line_memo:r.memo||'',debit:r.dr||'',credit:credits[0]?.[1]||'',
    fx_rate_lak:r.fxRate?Number(r.fxRate):'',book_rate_lak:r.bookRate?Number(r.bookRate):''});
@@ -776,6 +797,16 @@ function recoverTemplateDraft(draft,t){
  draft.rows.push(...remaining);
 }
 function restoreProtocolRows(draft,t){
+ if(draft&&t){
+  // Existing drafts have the default wording but predate automatic cash and bank memos.
+  const accounts=chart();
+  const defaults=(t.lines||[]).filter(slot=>slot.role==='fund'||slot.role==='payer'||G.fund(Catalog.resolve(slot,accounts)));
+  for(const line of draft.rows){
+   if(line.fundMemoBase!==undefined||!line.line_memo)continue;
+   const slot=defaults.find(s=>s.memo===line.line_memo&&(s.role?s.role===line.role:Catalog.resolve(s,accounts)?.id===line.account_id));
+   if(slot)line.fundMemoBase=slot.memo;
+  }
+ }
  if(!draft||!t?.builtin)return;
  if(/^fx14383-(income|expense)$/.test(t.id)){
   const accounts=chart();
@@ -911,10 +942,13 @@ function renderRows(){
    bookField.placeholder='Enter BR';bookField.title='Book rate for '+a.name+' on '+formatAppDate(state.date);
   }
   const select=tr.querySelector('select');select.value=l.account_id;select.onchange=()=>{l.account_id=select.value;l.missing='';delete l.generated;delete l.book_rate_lak;delete l.fx_rate_lak;delete l.autoBook;delete l.overrideRate;
+   G.updateFundMemo(l,accounts.find(account=>account.id===l.account_id),number(l.credit)?'credit':number(l.debit)?'debit':l.expectedSide);
    if(l.receiptLeg==='receive'){const clear=state.rows.find(r=>r.receiptLeg==='clear');if(clear)clear.account_id=l.account_id;}
    invalidate();renderRows();renderRates();void suggestBook292(l);};
-  for(const n of tr.querySelectorAll('[data-field]'))n.oninput=()=>{l[n.dataset.field]=n.value;if(n.dataset.field==='fx_rate_lak'){l.overrideRate=!!n.value;if(l.generated==='output')delete l.generated;}if(n.dataset.field==='line_memo')delete l.autoMemo;if(['debit','credit'].includes(n.dataset.field)){
+  for(const n of tr.querySelectorAll('[data-field]'))n.oninput=()=>{l[n.dataset.field]=n.value;if(n.dataset.field==='fx_rate_lak'){l.overrideRate=!!n.value;if(l.generated==='output')delete l.generated;}if(n.dataset.field==='line_memo'){delete l.autoMemo;delete l.fundMemoBase;}if(['debit','credit'].includes(n.dataset.field)){
    delete l.generated;
+   G.updateFundMemo(l,a,number(l.credit)?'credit':number(l.debit)?'debit':l.expectedSide);
+   tr.querySelector('[data-field=line_memo]').value=l.line_memo||'';
    if(n.dataset.field==='debit'&&a&&G.staff(a)&&!l.role&&(!l.book_rate_lak||l.autoBook)){
     const settling=l.expectedSide==='debit'||number(l.debit)>0;
     if(bookRequests292.get(l)?.settling!==settling)void suggestBook292(l);
@@ -1111,6 +1145,8 @@ async function useEntry(){
   const fill=()=>{for(const r of oldRows)if(state.entrySignature||!meaningful(r))r.remove();if(!existing||state.entrySignature)$('jeTransDate').value=state.date;
    for(const l of result.rows.filter(l=>l.debit||l.credit)){const a=input.chart.find(a=>a.id===l.account_id);addJournalLineRow(a.code+' — '+a.name,l.line_memo,l.debit?display(l.debit):'',{[G.currency(a)]:l.credit?display(l.credit):''});const r=body.lastElementChild,original=state.entrySignature?oldRows[l.sourceIndex]:null;
     if(original){Object.assign(r.dataset,original.dataset);}
+    delete r.dataset.generatorFundMemo;delete r.dataset.generatorFundMemoBase;
+    if(G.fund(a)&&l.fundMemoBase!==undefined){r.dataset.generatorFundMemo=l.line_memo;r.dataset.generatorFundMemoBase=l.fundMemoBase;}
     if(template){
      r.dataset.generatorTemplate=template.id;r.dataset.templateSide274=l.expectedSide||'';
      if(template.builtin)Object.assign(r.dataset,{generatorRole:l.role||'',generatorCurrency:l.expectedCurrency||'',

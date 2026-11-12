@@ -1,1 +1,1 @@
-{"version": "143.359", "changes": ["Generate Journal shows three recent matching examples, compact date and rate fields, and inline guidance for missing inputs. Copying a verified journal into Post Entry reuses checked rates and builds the rows together. Amounts in new journal descriptions and line memos use digit grouping."]}
+{"version": "143.360", "changes": ["Generate Journal identifies the selected cash or bank account on payments and receipts. Foreign payments show the realized gain or loss on that payment line."]}
