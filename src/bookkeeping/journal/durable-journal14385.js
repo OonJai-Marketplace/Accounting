@@ -48,6 +48,16 @@ async function initialize(){const c=context();if(!c.actor){rows=[];loaded='';ret
  error='';changed();}catch(e){if(valid(c)){error=e.message;loaded='';changed()}throw e}})();loading={key:identity(c),promise};try{await promise}finally{if(loading?.promise===promise)loading=null}}
 function ownRows(){return loaded===identity(context())?rows:[]}
 function pending(){return ownRows().filter(active)}
+// A later server receipt can confirm an older save. Its synchronization time
+// must not move the entry above journals the user saved after it.
+function creationTimesByReceipt(){
+ const times=new Map();
+ for(const job of ownRows()){
+  if(!job.payload||!job.created)continue;
+  for(const receipt of job.receipt||[])times.set(receipt.entry_id,job.created);
+ }
+ return times;
+}
 async function create(payload,options={}){if(window.workspaceRequest138?.target)throw Error('Return to your own accounting workspace before posting.');const c=context();await initialize();assert(c);if(window.journalBatch1440?.hasPending())throw Error('An older unfinished batch requires review before another posting.');const j={voucher:options.voucher||null,id:payload.p_request_key,payload:clone(payload),entries:(payload.p_entries||[payload]).map(content),receipt:null,changes:[],status:'pending',created:new Date().toISOString()};
  await window.offlineAudit143174?.initialize();
  await mutate(c,list=>{const old=list.find(x=>x.id===j.id);if(old){if(canonical(old.payload)!==canonical(j.payload))throw Error('Posting reference already belongs to different data.');return list}if(j.voucher&&list.some(other=>active(other)&&other.voucher===j.voucher&&!other.voucherSkipped))throw Error('This voucher already belongs to a saved journal on this device. Open Data Check to review its sync status.');list.push(j);return assignNumbers(list)});return j.id}
@@ -56,7 +66,7 @@ async function change(lines,kind,value,reason,expected){if(window.workspaceReque
  const target=locate(lines),first=lines[0],id=target?.id||'remote:'+first.dbEntryId,index=target?.index||0;if(!target&&!first.dbEntryId)throw Error('The original journal reference is missing.');
  const op={id:crypto.randomUUID(),index,kind,value:value&&clone(value),expected:clone(expected||fromLines(lines)),reason:reason.trim(),status:'pending',created:new Date().toISOString()};
 
- await mutate(c,list=>{let j=list.find(x=>x.id===id);if(!j){j={id,entries:[fromLines(lines)],receipt:[{entry_id:first.dbEntryId,entry_no:first.id}],changes:[],status:'saved',created:new Date().toISOString()};list.push(j)}
+ await mutate(c,list=>{let j=list.find(x=>x.id===id);if(!j){j={id,entries:[fromLines(lines)],receipt:[{entry_id:first.dbEntryId,entry_no:first.id}],changes:[],status:'saved',entryCreated:first.created_at||first.createdAt||first.postingDate||first.date,created:new Date().toISOString()};list.push(j)}
  if(j.retired){j.retired=false;j.entries=[fromLines(lines)];j.changes=[];j.receipt=[{entry_id:first.dbEntryId,entry_no:first.id}]}
  const now=desired(j,index);if(!now||canonical(now)!==canonical(op.expected))throw Error('This entry changed in another tab or while editing. Your editor is retained; reopen the latest entry.');
  j.changes.push(op);j.status='pending';delete j.message;return list});return op.id}
@@ -98,12 +108,17 @@ function project(){if(typeof JournalModule==='undefined')return;
  const jobs=pending();
  if(!jobs.length&&!JournalModule.entries.some(row=>row.localJournal14385))return;
  let base=JournalModule.entries.filter(r=>!r.localJournal14385);
+ const confirmedNumbers=new Set(base.map(line=>line.id));
+ for(const job of jobs)for(const receipt of job.receipt||[])confirmedNumbers.add(receipt.entry_no);
  for(const j of jobs)for(let i=0;i<j.entries.length;i++){const r=j.receipt?.[i],value=desired(j,i),dirty=j.changes.some(op=>op.index===i);
- if(r&&dirty)base=base.filter(l=>l.dbEntryId!==r.entry_id);
+ const original=r&&dirty?base.find(line=>line.dbEntryId===r.entry_id):null;
+ if(original)base=base.filter(l=>l.dbEntryId!==r.entry_id);
  if(!value||r&&!dirty&&base.some(l=>l.dbEntryId===r.entry_id))continue;
  const proposed=j.localNumbers335?.[i];
- const shown=r?.entry_no||(proposed&&!base.some(l=>l.id===proposed)?proposed:null)||'Device-'+j.id+(j.entries.length>1?'-'+(i+1):'');
- for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({localJournal14385:true,local14333:true,journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:shown,entryNumber:r?.entry_no||proposed,numberConflict:!!j.numberConflict335&&!r,dbEntryId:r?.entry_id||null,postingDate:value.date,date:line.line_date||value.date,created_at:j.created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
+ const collision=!r&&proposed&&(confirmedNumbers.has(proposed)||base.some(line=>line.id===proposed));
+ const created=j.payload?j.created:(j.entryCreated||original?.created_at||original?.createdAt||j.entries[i].date);
+ const shown=r?.entry_no||(!collision&&proposed)||'Device-'+j.id+(j.entries.length>1?'-'+(i+1):'');
+ for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({localJournal14385:true,local14333:true,journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:shown,entryNumber:r?.entry_no||proposed,numberConflict:!!(collision||j.numberConflict335)&&!r,dbEntryId:r?.entry_id||null,postingDate:value.date,date:line.line_date||value.date,created_at:created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
  if(base.length!==JournalModule.entries.length||base.some((row,i)=>row!==JournalModule.entries[i]))JournalModule.entries=base}
 function retirementCheckpoint(){return new Map(pending().filter(j=>j.status==='saved'&&j.receipt&&!j.changes.some(op=>op.status!=='saved')).map(j=>[j.id,canonical(j)]))}
 async function reconcile(remote,checkpoint=new Map()){const c=context();if(loaded!==identity(c))return;const ids=new Set(remote.map(l=>l.dbEntryId));await mutate(c,list=>{for(const j of list.filter(active)){if(j.status!=='saved'||!j.receipt||j.voucher&&!j.voucherLinked||j.changes.some(op=>op.status!=='saved'))continue;
@@ -170,6 +185,6 @@ function ready(){
  try{const channel=new BroadcastChannel('ojm-journal14385');channel.onmessage=e=>{if(e.data===identity(context()))refreshDevice().catch(()=>{})};window.addEventListener('local-work14333',()=>{if(loaded===identity(context()))channel.postMessage(loaded)});}catch{}
 }
 async function refreshDevice(){const c=context();if(!c.actor)return;await initialize();rows=await read(c);loaded=identity(c);project();refreshAllTables();}
-window.journalDurable14385={acceptNextNumber,payloads,validateRecovery,verifyRecovery,restoreRecovery,initialize,create,change,sync,project,reconcile,retirementCheckpoint,findings,pending,content,fromLines,refreshDevice,get running(){return !!flight}};
+window.journalDurable14385={creationTimesByReceipt,acceptNextNumber,payloads,validateRecovery,verifyRecovery,restoreRecovery,initialize,create,change,sync,project,reconcile,retirementCheckpoint,findings,pending,content,fromLines,refreshDevice,get running(){return !!flight}};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
