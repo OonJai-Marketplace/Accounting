@@ -116,7 +116,7 @@ async function confirmSaveTemplate() {
     TemplateStore.templates.push({id:'tpl-'+crypto.randomUUID(), name, ...pendingTemplateLines});
   }
   try{await ensureTemplateNumbers143125();if(liveProfile?.id!==pendingTemplateOwner)return;await TemplateStore.save()}catch(error){TemplateStore.templates=previous;showAppNotification('Template Not Saved',error.message,true);return}finally{savingTemplate143125=false} closeModal('modalTemplateName'); renderTemplateManager();
-  showAppNotification('Template Saved', `${name} was saved and verified on this browser for your signed-in account. ${window.TemplateCloud275?'Cloud confirmation is pending; check Templates for the result.':'It is not a cloud copy.'}`, false);
+  showAppNotification('Saved');
 }
 async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');const status=document.getElementById('templateCloudStatus275'),owner=liveProfile?.id;await window.TemplateCloud275?.sync();if(status?.isConnected&&liveProfile?.id===owner)await renderTemplateManager();}
 function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
