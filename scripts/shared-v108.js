@@ -12,7 +12,19 @@ const formBefore=employeeForm82;employeeForm82=function(r){return formBefore(r).
 function arm(form){if(!form||form.dataset.watched1440)return;form.dataset.watched1440='1';for(const type of ['input','change'])form.addEventListener(type,()=>form.dataset.dirty108='true');}
 window.armNewForm108=arm;
 window.traceSchedule108=function(node){node.querySelector('.schedule-trace108')?.remove();node.classList.remove('schedule-focus89','schedule-focus91');const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','schedule-trace108');svg.setAttribute('aria-hidden','true');svg.innerHTML='<rect x="2" y="2" width="calc(100% - 4px)" height="calc(100% - 4px)" rx="7" pathLength="100"/>';node.append(svg);setTimeout(()=>svg.remove(),10000)};
-function shortcuts(){let dock=document.getElementById('workspaceTools108');if(!dock){dock=document.createElement('div');dock.id='workspaceTools108';dock.className='no-print';dock.innerHTML='<button type="button" id="editorIcon108" title="Open in Document Editor" aria-label="Open in Document Editor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H4v20h16V8M14 2v6h6M9 16l8-8 3 3-8 8-4 1z"/></svg></button>';document.body.append(dock);dock.firstChild.onclick=()=>copyReportToEditor105();const audit=document.getElementById('auditMode101');if(audit){dock.append(audit);audit.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="7"/><path d="m15 15 7 7M6 10l3 3 5-6"/></svg>';audit.title='Audit current tables';audit.setAttribute('aria-label','Audit current tables')}}const active=document.querySelector('.tab-content.active'),has=!!active?.querySelector('table')&&active.id!=='document-editor105';dock.hidden=!liveProfile;for(const id of ['editorIcon108','auditMode101']){const button=document.getElementById(id);if(button)button.hidden=!has||(id==='editorIcon108'&&typeof canAccessAppTarget==='function'&&!canAccessAppTarget('document-editor105'))}window.updateDashboardDock112?.()}
+function shortcuts(){
+ let dock=document.getElementById('workspaceTools108');
+ if(!dock){
+  dock=document.createElement('div');dock.id='workspaceTools108';dock.className='no-print';document.body.append(dock);
+  const audit=document.getElementById('auditMode101');
+  if(audit){dock.append(audit);audit.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="7"/><path d="m15 15 7 7M6 10l3 3 5-6"/></svg>';audit.title='Audit current tables';audit.setAttribute('aria-label',audit.title)}
+ }
+ const active=document.querySelector('.tab-content.active');
+ dock.hidden=!liveProfile;
+ const audit=document.getElementById('auditMode101');
+ if(audit)audit.hidden=!active?.querySelector('table')||active.id==='document-editor105';
+ window.updateDashboardDock112?.();
+}
 function searchInstall(){
  document.querySelector('.universal-search97')?.remove();
  const box=document.createElement('div');box.className='universal-search108';box.innerHTML='<input type="search" name="app-navigation-query" autocomplete="off" autocapitalize="off" spellcheck="false" readonly data-lpignore="true" data-1p-ignore aria-label="Search entire system" placeholder="Search entire system…"><div hidden></div>';

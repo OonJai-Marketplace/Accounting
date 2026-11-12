@@ -2,6 +2,11 @@
   "format": 1,
   "baseline_commit": "71e7a8e28bba8b438d07cd30d6e8eb6d44cc8fad",
   "outputs": {
+    "scripts/desktop-status-dock.js": [
+      {
+        "source": "src/core/navigation/desktop-status-dock.js"
+      }
+    ],
     "scripts/device-mode132.js": [
       {
         "source": "src/core/startup/device-mode132.js",
