@@ -1,1 +1,1 @@
-{"version": "143.363", "changes": ["General Ledger and Trial Balance keep Filter in the report toolbar during loading and refresh.", "Posting shows the linked voucher, receipt or printed Monthly Cash Slip row in the journal\u2019s General description. Type S1 for the current month\u2019s first slip row."]}
+{"version": "143.364", "changes": ["Improved alignment and spacing across Accounting, Google Drive and Sheets, Payroll, Tax, Printing and System settings.", "General preferences now groups the logo with display settings. Install Accounting is in Installation & Handover."]}

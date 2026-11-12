@@ -8,9 +8,9 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.338"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script>
-  <script src="scripts/offline14239.js?v=143.363"></script>
+  <script src="scripts/offline14239.js?v=143.364"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=143.336">
-  <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.363">
+  <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.364">
 <title>Oon Jai Accounting</title>
 <link rel="stylesheet" href="styles/functional-corrections14292.css?v=143.128">
 
@@ -44,7 +44,7 @@
 
 
 
-<script src="scripts/desktop14245-2.js?v=143.363"></script>
+<script src="scripts/desktop14245-2.js?v=143.364"></script>
 <script src="scripts/numeric-caret14257.js?v=142.57"></script>
 <script src="scripts/login-notifications14293.js?v=142.94"></script><link rel="stylesheet" href="styles/login-notifications14293.css?v=142.94"><link rel="stylesheet" href="styles/account-parent14287.css?v=142.96"><script src="scripts/feedback-viewport14295.js?v=143.20"></script><link rel="stylesheet" href="styles/hr-workspace14306.css?v=143.241">
   <link rel="stylesheet" href="styles/budget-messages14314.css?v=143.327">
@@ -909,8 +909,8 @@
               <tr><td>Bracket 5</td><td><input class="je-input" name="pit6From" type="number" value="65000000"></td><td><input class="je-input" name="pit6To" type="number" placeholder="No maximum"></td><td><input class="je-input" name="pit6Rate" type="number" value="25"></td></tr>
             </tbody></table></div></section>
             <section class="statutory-block"><div class="settings-mini-header"><div><h4>Social Security</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Employee Rate (%)</label><input class="je-input" name="ssoEmployeeRate" type="number" step="0.1" value="5.5"></div><div class="settings-field"><label>Employer Rate (%)</label><input class="je-input" name="ssoEmployerRate" type="number" step="0.1" value="6"></div><div class="settings-field"><label>Maximum Contribution Base (LAK)</label><input class="je-input" name="ssoMaxBase" type="number" placeholder="Enter official ceiling"></div><div class="settings-field"><label>SSO Payable Account</label><input class="je-input" name="ssoAccount" value="SSO Payable"></div></div></section>
-            <section class="statutory-block"><div class="settings-mini-header"><div><h4>Value Added Tax</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Standard VAT Rate (%)</label><input class="je-input" name="vatRate" type="number" min="0" max="100" step="0.01" value="10"></div><div class="settings-field"><label>Filing Period</label><select class="je-select" name="filingPeriod"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option></select></div><div class="settings-field"><label>VAT Payable Account</label><input class="je-input" name="vatAccount" value="VAT Payable"></div><div class="settings-field"><label>PIT Payable Account</label><input class="je-input" name="pitAccount" value="PIT Payable"></div></div></section>
-            <section class="statutory-block"><div class="settings-mini-header"><div><h4>Profit Tax</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Applicable Profit-Tax Rate (%)</label><input class="je-input" name="profitTaxRate" type="number" min="0" max="100" step="0.01" placeholder="Enter applicable rate"></div><div class="settings-field"><label>Profit-Tax Expense Account</label><input class="je-input" name="profitTaxExpenseAccount" placeholder="Profit Tax Expense"></div><div class="actions82"><button type="button" class="je-btn je-btn-secondary" onclick="switchTab('tax-profit')">Open Profit Tax Calculation</button></div></div></section>
+            <section class="statutory-block"><div class="settings-mini-header"><div><h4>Value Added Tax</h4></div></div><div class="settings-compact-grid cols-3 settings-vat-grid"><div class="settings-field"><label>Standard VAT Rate (%)</label><input class="je-input" name="vatRate" type="number" min="0" max="100" step="0.01" value="10"></div><div class="settings-field"><label>Filing Period</label><select class="je-select" name="filingPeriod"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annual">Annual</option></select></div><div class="settings-field"><label>VAT Payable Account</label><input class="je-input" name="vatAccount" value="VAT Payable"></div><div class="settings-field"><label>PIT Payable Account</label><input class="je-input" name="pitAccount" value="PIT Payable"></div></div></section>
+            <section class="statutory-block"><div class="settings-mini-header"><div><h4>Profit Tax</h4></div></div><div class="settings-compact-grid cols-3"><div class="settings-field"><label>Applicable Profit-Tax Rate (%)</label><input class="je-input" name="profitTaxRate" type="number" min="0" max="100" step="0.01" placeholder="Enter applicable rate"></div><div class="settings-field"><label>Profit-Tax Expense Account</label><input class="je-input" name="profitTaxExpenseAccount" placeholder="Profit Tax Expense"></div></div></section>
             <section class="statutory-block compliance-reminder-block"><div class="settings-mini-header"><div><h4>Compliance Reminders</h4><p>Set a separate due day and advance warning for each obligation.</p></div></div><div class="settings-compact-grid cols-3 compliance-reminder-grid"><div class="settings-field"><label>PIT Due Day</label><input class="je-input" name="pitDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>SSO Due Day</label><input class="je-input" name="ssoDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>VAT Due Day</label><input class="je-input" name="vatDeadline" type="number" min="1" max="31" value="20"></div><div class="settings-field"><label>PIT Reminder</label><select class="je-select" name="pitReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div><div class="settings-field"><label>SSO Reminder</label><select class="je-select" name="ssoReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div><div class="settings-field"><label>VAT Reminder</label><select class="je-select" name="vatReminderDays"><option value="3">3 days before</option><option value="5" selected>5 days before</option><option value="7">7 days before</option><option value="10">10 days before</option></select></div></div></section>
             <div class="settings-form-actions"><button type="button" class="je-btn je-btn-secondary" onclick="resetSettingsGroup('tax')">Reset</button><button type="submit" class="je-btn je-btn-emerald">Save Statutory Settings</button></div>
           </form>
@@ -920,16 +920,22 @@
     <div class="panel-header">Printing <button type="button" class="setting-help" onclick="openSettingHelp('printing-settings')" aria-label="Explain Printing Settings">*</button></div>
     <div class="print-settings-grid">
       <div class="print-setting-card">
-        <label><strong>Header Image</strong></label>
-        <input type="file" id="printHeaderImageInput" accept="image/*" onchange="handlePrintImageUpload(event, 'header')">
+        <strong>Header image</strong>
         <div class="print-image-preview" id="printHeaderPreview">No header image selected.</div>
-        <button type="button" class="je-btn je-btn-secondary" onclick="clearPrintImage('header')">Remove Header</button>
+        <div class="settings-image-actions">
+          <input hidden type="file" id="printHeaderImageInput" aria-label="Header image" accept="image/*" onchange="handlePrintImageUpload(event, 'header')">
+          <button type="button" class="je-btn je-btn-secondary" aria-label="Choose header image" onclick="document.getElementById('printHeaderImageInput').click()">Choose image</button>
+          <button type="button" class="je-btn je-btn-secondary" data-remove-image onclick="clearPrintImage('header')">Remove Header</button>
+        </div>
       </div>
       <div class="print-setting-card">
-        <label><strong>Footer Image</strong></label>
-        <input type="file" id="printFooterImageInput" accept="image/*" onchange="handlePrintImageUpload(event, 'footer')">
+        <strong>Footer image</strong>
         <div class="print-image-preview" id="printFooterPreview">No footer image selected.</div>
-        <button type="button" class="je-btn je-btn-secondary" onclick="clearPrintImage('footer')">Remove Footer</button>
+        <div class="settings-image-actions">
+          <input hidden type="file" id="printFooterImageInput" aria-label="Footer image" accept="image/*" onchange="handlePrintImageUpload(event, 'footer')">
+          <button type="button" class="je-btn je-btn-secondary" aria-label="Choose footer image" onclick="document.getElementById('printFooterImageInput').click()">Choose image</button>
+          <button type="button" class="je-btn je-btn-secondary" data-remove-image onclick="clearPrintImage('footer')">Remove Footer</button>
+        </div>
       </div>
     </div>
     <form class="settings-print-options settings-compact-block app-settings-form" data-settings-group="printing">
@@ -950,11 +956,6 @@
 </div>
         <div id="transactions-budget14313" data-module="transactions" class="tab-content"></div>
         <div id="settings-system" data-module="settings" class="tab-content">
-          <section id="accountingProtocols" class="settings-section-card">
-            <h4>Protocols</h4>
-            <iframe loading="lazy" title="Accounting protocols" src="docs/protocols/index.html"></iframe>
-          </section>
-          <section class="settings-section-card"><h4>Accounting app</h4><button type="button" class="je-btn je-btn-emerald" data-accounting-install>Install Accounting</button></section>
           <form class="settings-section-card app-settings-form" data-settings-group="system">
             <div class="settings-compact-grid cols-3">
               <div class="settings-field"><label>Date Format</label><select class="je-select" name="dateFormat"><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="MM/DD/YYYY">MM/DD/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="DD MMM YYYY">DD MMM YYYY (09 Oct 2026)</option><option value="MMM DD, YYYY">MMM DD, YYYY (Oct 09, 2026)</option><option value="DD MMMM YYYY">DD MMMM YYYY (09 October 2026)</option><option value="MMMM DD, YYYY">MMMM DD, YYYY (October 09, 2026)</option><option value="DD MMM YY">DD MMM YY (09 Oct 26)</option><option value="MMM DD, YY">MMM DD, YY (Oct 09, 26)</option></select></div>
@@ -971,6 +972,13 @@
               <label class="je-btn je-btn-secondary settings-file-button" for="settingsBackupInput">Restore Settings Backup</label>
               <input id="settingsBackupInput" class="visually-hidden" type="file" accept="application/json,.json" onchange="importApplicationBackup(event)">
             </div>
+          </section>
+          <section id="installationSettings14320" class="settings-section-card">
+            <div class="settings-section-header"><h4>Installation &amp; Handover</h4></div>
+            <div class="installation-setting-row"><button type="button" class="je-btn je-btn-secondary" data-installation14320>Company &amp; Deployment</button><span>Manage the company details and published website.</span></div>
+            <div class="installation-setting-row"><button type="button" class="je-btn je-btn-secondary" data-handover14320>Handover</button><span>Review the checklist for the incoming administrator.</span></div>
+            <div class="installation-setting-row"><button type="button" class="je-btn je-btn-secondary" data-website-update143104>Website Update</button><span>Check the installed website version and available updates.</span></div>
+            <div class="installation-setting-row"><button type="button" class="je-btn je-btn-emerald" data-accounting-install>Install Accounting</button><span>Install the accounting app on this device.</span></div>
           </section>
         </div>
 
@@ -1234,7 +1242,7 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
 
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.363"></script>
+  <script src="scripts/desktop14245-3.js?v=143.364"></script>
 <script src="scripts/optional-tools14335.js?v=143.275"></script>
 
 
@@ -1243,7 +1251,7 @@
 <script src="scripts/desktop14245-5.js?v=143.361"></script>
 <style>#workspaceSwitchBusy141{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;background:rgba(255,250,241,.96);color:#064e3b;font:600 18px sans-serif;padding:24px;text-align:center}[data-switch-error141]{padding:10px;color:#9f321b;background:#fff0e8;white-space:normal}</style>
 
-<script src="scripts/desktop14245-6.js?v=143.363"></script>
+<script src="scripts/desktop14245-6.js?v=143.364"></script>
 <script src="scripts/entry-actions14271.js?v=143.261"></script>
 <script src="scripts/tablet-journal14266.js?v=143.295"></script>
 <script src="scripts/tablet-refresh143244.js?v=143.244"></script>
@@ -1269,12 +1277,12 @@
 <script src="scripts/account-security14257.js?v=143.70"></script>
 <script src="scripts/startup14257.js?v=143.352"></script>
 <script src="scripts/offline-audit143174.js?v=143.344"></script>
-<script src="scripts/entry-number14257.js?v=143.363"></script>
+<script src="scripts/entry-number14257.js?v=143.364"></script>
 <script src="scripts/account-currency14257.js?v=143.70"></script>
 <script src="scripts/report-templates14262.js?v=143.315"></script>
 <script src="scripts/report-routes14262.js?v=143.315"></script>
 <script src="scripts/report-formats14282.js?v=143.353"></script>
-<script src="scripts/journal-description14281.js?v=143.363"></script>
+<script src="scripts/journal-description14281.js?v=143.364"></script>
 <script src="scripts/assigned-ledger14281.js?v=143.70"></script>
 <link rel="stylesheet" href="styles/settings-polish14281.css?v=143.231">
 <link rel="stylesheet" href="styles/design14284.css?v=143.231">
@@ -1287,7 +1295,7 @@
 <script src="scripts/action-feedback14296.js?v=143.323"></script>
 <script src="scripts/heading-case14297.js?v=142.97"></script>
 <script src="scripts/receipt-workflow245.js?v=143.273"></script>
-<script src="scripts/vouchers14299.js?v=143.363"></script>
+<script src="scripts/vouchers14299.js?v=143.364"></script>
 <link rel="stylesheet" href="styles/transaction-consistency14300.css?v=143.04">
 <script src="scripts/transaction-consistency14300.js?v=143.69"></script>
 <link rel="stylesheet" href="styles/layout-voucher-polish14301.css?v=143.279">
@@ -1312,7 +1320,7 @@
 <link rel="stylesheet" href="styles/controls14317.css?v=143.62">
 <script src="scripts/controls14317.js?v=143.325-review2"></script>
 <script src="scripts/period-closing14317.js?v=143.70"></script>
-<link rel="stylesheet" href="styles/installation14320.css?v=143.119"><script src="scripts/installation14320.js?v=143.327"></script><link rel="stylesheet" href="styles/maintenance14324.css?v=143.24">
+<link rel="stylesheet" href="styles/installation14320.css?v=143.119"><script src="scripts/installation14320.js?v=143.364"></script><link rel="stylesheet" href="styles/maintenance14324.css?v=143.24">
 <script src="scripts/maintenance-engine14324.js?v=143.70"></script>
 <script src="scripts/maintenance-selection14325.js?v=143.283"></script>
 <script src="scripts/maintenance-reports14326.js?v=143.70"></script>
@@ -1320,16 +1328,16 @@
 <link rel="stylesheet" href="styles/sync-assessment14332.css?v=143.53"><script src="scripts/sync-assessment14332.js?v=143.333"></script>
 <link rel="stylesheet" href="styles/statutory14332.css?v=143.154"><link rel="stylesheet" href="styles/settings-groups14332.css?v=143.297"><script src="scripts/settings-groups14332.js?v=143.328"></script>
 <link rel="stylesheet" href="styles/polish14325.css?v=143.243"><script src="scripts/polish14325.js?v=143.25"></script>
-<script src="scripts/period-filters14331.js?v=143.363"></script>
+<script src="scripts/period-filters14331.js?v=143.364"></script>
 <script src="scripts/workspace14331.js?v=143.93"></script>
 <script src="scripts/session-cache14333.js?v=143.33"></script>
 <script src="scripts/year-window14333.js?v=143.195"></script>
 <script src="scripts/payroll-window14334.js?v=143.70"></script>
-<script src="scripts/local-first14333.js?v=143.363"></script>
+<script src="scripts/local-first14333.js?v=143.364"></script>
 <link rel="stylesheet" href="styles/workspace14337.css?v=143.297">
-<script src="scripts/export-center14337.js?v=143.363"></script>
+<script src="scripts/export-center14337.js?v=143.364"></script>
 <script src="scripts/workspace14337.js?v=143.315"></script>
-<script src="scripts/view-render14340.js?v=143.363"></script>
+<script src="scripts/view-render14340.js?v=143.364"></script>
 <script src="scripts/history-month14341.js?v=143.289"></script>
 <script src="scripts/idle-sync14341.js?v=143.344"></script>
 <link rel="stylesheet" href="styles/responsive-work14341.css?v=143.62">
@@ -1338,16 +1346,16 @@
 <script src="scripts/closing-eligibility14346.js?v=143.321"></script>
 <script src="scripts/prepared-workspace14364.js?v=143.325"></script>
 <link rel="stylesheet" href="styles/font-size14380.css?v=143.80">
-<script src="scripts/font-size14380.js?v=143.285"></script>
+<script src="scripts/font-size14380.js?v=143.364"></script>
 <script src="scripts/editor-protection14380.js?v=143.335"></script>
 <script src="scripts/undo143103.js?v=143.261"></script>
 <script src="scripts/inbox-sync143173.js?v=143.239"></script>
-<script src="scripts/drive-drafts143128.js?v=143.333"></script>
+<script src="scripts/drive-drafts143128.js?v=143.364"></script>
 <script src="scripts/notification-focus143139.js?v=143.175"></script>
 <link rel="stylesheet" href="styles/hr-inbox143168.css?v=143.175">
 <script src="scripts/hr-inbox143168.js?v=143.182"></script>
-<link rel="stylesheet" href="styles/settings-stack143176.css?v=143.328">
-<script src="scripts/settings-stack143176.js?v=143.333"></script>
+<link rel="stylesheet" href="styles/settings-stack143176.css?v=143.364">
+<script src="scripts/settings-stack143176.js?v=143.364"></script>
 <link rel="stylesheet" href="styles/account-groups143180.css?v=143.352">
 <script src="scripts/organization-zoom143180.js?v=143.180"></script>
 <script src="scripts/account-groups143180.js?v=143.352"></script>

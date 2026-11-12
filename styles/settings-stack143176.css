@@ -159,7 +159,7 @@
  html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table th:nth-child(3){width:30%!important}
  html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table th:nth-child(4){width:20%!important}
  html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table input{width:100%!important;min-width:0!important;max-width:none!important;padding:5px 0!important;font-variant-numeric:tabular-nums}
- html.settings-stack-enabled143176 body #settings-system [data-settings-group=system]>.settings-compact-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html.settings-stack-enabled143176 body #settings-system [data-settings-group=system]>.settings-compact-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
  html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-grid14324{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
  html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-card14324{border:1px solid #d8e0d2!important;border-radius:5px!important;padding:16px!important;margin:0!important;min-width:0;background:#fbfcf6!important}
  html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-card14324 h3{margin:0 0 10px!important}
@@ -192,12 +192,6 @@
  html.settings-stack-enabled143176 body #settings-maintenance14324 .maintenance-card14324>label input{width:100%;box-sizing:border-box}
 }}
 
-@layer corrections14337 { @media screen and (min-width:641px){
- html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101{display:grid!important;grid-template-columns:minmax(0,1fr) 56px auto!important;gap:12px!important;align-items:center!important;padding-top:16px!important;margin-top:16px!important}
- html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101>:is(label,small){grid-column:1/-1!important}
- html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101 #removeLogo101{width:auto!important;max-width:none!important;margin:0!important;justify-self:start!important}
- html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101 #companyLogoUpload101{height:auto!important;min-height:34px!important}
-}}
 
 @layer corrections14337 { @media screen and (min-width:641px){
  html.settings-stack-enabled143176 body #demoUsersList .user-actions14253>[data-user-reset]{margin-left:0!important;width:100%!important}
@@ -243,14 +237,6 @@
  body :is(#modalUserAccess,#modalAccessPicker) .modal-footer{padding:10px 14px!important;gap:8px!important}
 }}
 
-#accountingProtocols iframe {
-  display: block;
-  width: 100%;
-  height: clamp(360px, 67vh, 850px);
-  border: 0;
-  background: #f3f5ee;
-}
-.settings-stack-section143176 #accountingProtocols > h4 { display: none; }
 
 #portable328 fieldset{border:1px solid #cbd8cf;border-radius:6px;padding:12px 14px;margin:0 0 12px;min-width:0}
 #portable328 legend{padding:0 5px;font-weight:650;color:#174c3b}
@@ -265,4 +251,87 @@
 #portable328 details>summary{cursor:pointer}
 #portable328 .portable-legacy{margin-top:15px}
 #portable328 [role=status]{font-weight:600}
+/* Content spacing belongs to the selected section. Keep action controls at their natural width. */
+@layer corrections14337 {
+ #companyLogoSettings101 .settings-logo-controls,
+ #companyLogoSettings101 .settings-image-actions,
+ .system-printing-panel .settings-image-actions,
+ #legendSettings95 .attendance-setting-actions {
+  display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+ }
+ #companyLogoSettings101 .settings-logo-controls {gap:12px}
+ #companyLogoSettings101 img[hidden], #companyLogoSettings101 input[hidden],
+ .system-printing-panel .settings-image-actions input[hidden],
+ #companyLogoSettings101:has(img[hidden]) #removeLogo101,
+ .system-printing-panel .print-setting-card:not(:has(.print-image-preview img)) [data-remove-image] {display:none!important}
+ #installationSettings14320 .installation-setting-row {display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;padding:12px 0;border-bottom:1px solid #d8e0d2}
+ #installationSettings14320 .installation-setting-row:last-child {border-bottom:0}
+ @media screen and (min-width:641px) {
+  html.settings-stack-enabled143176 body :is(#settingsSection143176-accounting,#settingsSection143176-currency,#settingsSection143176-google,#settingsSection143176-printing,#settingsSection143176-preferences,#settingsSection143176-appearance,#settingsSection143176-installation)>.settings-stack-body143176 {
+   padding:clamp(14px,1.5vw,22px)!important;container-type:inline-size;
+  }
+  html.settings-stack-enabled143176 body #settings-accounting .accounting-defaults94 {grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  html.settings-stack-enabled143176 body #settings-accounting .settings-stack-prefix143176 {margin:18px 0 0!important;padding:12px 0!important;border-block:1px solid #d8e0d2}
+  html.settings-stack-enabled143176 body #settings-accounting .settings-stack-prefix143176>summary {padding:4px!important}
+  html.settings-stack-enabled143176 body #settings-accounting .settings-stack-prefix143176[open]>#prefixRegistry89 {padding:16px 4px 0!important}
+  html.settings-stack-enabled143176 body #settings-accounting .currency-add-bar {align-items:end!important;display:grid!important;grid-template-columns:minmax(90px,1fr) minmax(140px,2fr) minmax(72px,.7fr) auto!important;gap:12px!important;padding:0!important;margin:0 0 14px!important}
+  html.settings-stack-enabled143176 body #settings-accounting .currency-add-bar>.je-field-group {display:grid;gap:6px;margin:0!important;padding:0!important}
+  html.settings-stack-enabled143176 body #settings-accounting .currency-add-bar :is(input,label,button) {margin:0!important}
+  html.settings-stack-enabled143176 body #settings-accounting .currency-add-bar input {width:100%!important;min-width:0!important;max-width:none!important;box-sizing:border-box}
+  html.settings-stack-enabled143176 body #googleSheets143129 :is(.receipt-drive228,[data-connection-settings]) {
+   display:grid!important;gap:12px;padding:16px!important;margin:0 0 14px!important;border:1px solid #d8e0d2!important;border-radius:6px;background:#fbfcf6!important;min-width:0;
+  }
+  html.settings-stack-enabled143176 body #googleSheets143129 :is(.receipt-drive228,[data-connection-settings])>:is(h3,p,.settings-grid) {margin:0!important;padding:0!important}
+  html.settings-stack-enabled143176 body #googleSheets143129 .settings-grid {display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+  html.settings-stack-enabled143176 body #googleSheets143129 :is(.settings-grid,[data-connection-settings])>label {display:grid;gap:5px;min-width:0;margin:0!important}
+  html.settings-stack-enabled143176 body #googleSheets143129 :is(.receipt-drive228,[data-connection-settings]) input {width:100%!important;min-width:0;box-sizing:border-box}
+  html.settings-stack-enabled143176 body #googleSheets143129 .je-actions-bar,
+  html.settings-stack-enabled143176 body #appearanceForm113 footer,
+  html.settings-stack-enabled143176 body #legendSettings95 .attendance-setting-actions {
+   display:flex!important;justify-content:flex-start!important;align-items:center!important;flex-wrap:wrap!important;gap:8px!important;margin:0!important;padding:0!important;
+  }
+  html.settings-stack-enabled143176 body #googleSheets143129 .je-actions-bar>button,
+  html.settings-stack-enabled143176 body #appearanceForm113 footer>button,
+  html.settings-stack-enabled143176 body #legendSettings95 .attendance-setting-actions>button,
+  html.settings-stack-enabled143176 body #settings-system .settings-image-actions>button,
+  html.settings-stack-enabled143176 body #installationSettings14320 .installation-setting-row>button {
+   flex:0 0 auto!important;width:auto!important;max-width:100%!important;height:32px!important;min-height:32px!important;margin:0!important;padding:5px 10px!important;line-height:20px!important;box-sizing:border-box;
+  }
+  html.settings-stack-enabled143176 body #googleSheets143129 p:empty,
+  html.settings-stack-enabled143176 body #googleSheets143129 p:has(>a:only-child[hidden]) {display:none}
+  html.settings-stack-enabled143176 body #settings-tax .statutory-block:has(.statutory-bracket-table)>.table-container {width:min(100%,580px)!important}
+  html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table {min-width:0!important}
+  html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table :is(td,th) {padding:3px 8px!important}
+  html.settings-stack-enabled143176 body #settings-tax .statutory-bracket-table input {height:28px!important;min-height:28px!important;padding:3px 5px!important;box-sizing:border-box}
+  html.settings-stack-enabled143176 body #settings-tax .settings-vat-grid.cols-3 {grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  html.settings-stack-enabled143176 body #settings-system [data-settings-group=system]>.settings-compact-grid {align-items:start!important}
+  html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101 {display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:6px!important;padding:0!important;margin:0!important;border:0!important}
+  html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101 .settings-logo-title {font-weight:600}
+  html.settings-stack-enabled143176 body #settings-system #logoPreview101:not([hidden]) {display:block!important;width:64px!important;height:54px!important;max-width:100%!important;max-height:none!important;object-fit:contain;margin:0!important;border:1px solid #d8e0d2;border-radius:5px;background:white;padding:3px;box-sizing:border-box}
+  html.settings-stack-enabled143176 body #settings-system #companyLogoSettings101 .settings-image-actions {gap:6px}
+  html.settings-stack-enabled143176 body #settings-system .system-printing-panel .print-settings-grid {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;margin:0 0 18px!important}
+  html.settings-stack-enabled143176 body #settings-system .system-printing-panel .print-setting-card {display:grid!important;align-content:start;gap:10px!important;padding:14px!important;min-width:0}
+  html.settings-stack-enabled143176 body #settings-system .print-setting-card .print-image-preview {height:64px!important;min-height:0!important;padding:6px!important;margin:0!important;box-sizing:border-box;display:grid;place-items:center;color:#526b5b}
+  html.settings-stack-enabled143176 body #settings-system .print-image-preview img {width:100%;height:100%;min-height:0;max-height:50px;object-fit:contain}
+  html.settings-stack-enabled143176 body #settingsSection143176-appearance .panel113>header,
+  html.settings-stack-enabled143176 body #installationSettings14320>.settings-section-header {display:none!important}
+  html.settings-stack-enabled143176 body #settingsSection143176-appearance .panel113>p {margin:0 0 14px!important}
+  html.settings-stack-enabled143176 body #appearanceForm113 .form113 {display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))!important;gap:12px!important}
+  html.settings-stack-enabled143176 body #appearanceForm113 .form113>label {display:grid;gap:6px;min-width:0}
+  html.settings-stack-enabled143176 body #appearanceForm113 .form113 :is(input,select) {width:100%!important;box-sizing:border-box;min-width:0!important}
+  html.settings-stack-enabled143176 body #appearanceForm113 .banner-preview113 {margin:14px 0!important;max-width:100%}
+  html.settings-stack-enabled143176 body #installationSettings14320 .installation-setting-row {display:grid;grid-template-columns:170px 1fr;align-items:center;justify-items:start;padding:12px 0!important;gap:8px 16px!important}
+  html.settings-stack-enabled143176 body #installationSettings14320 .settings-section-header+.installation-setting-row {padding-top:0!important}
+  @container (max-width:520px) {
+   html.settings-stack-enabled143176 body #settings-accounting .accounting-defaults94,
+   html.settings-stack-enabled143176 body #settings-accounting .currency-add-bar,
+   html.settings-stack-enabled143176 body #settings-system [data-settings-group=system]>.settings-compact-grid {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+   html.settings-stack-enabled143176 body #installationSettings14320 .installation-setting-row,
+   html.settings-stack-enabled143176 body #settings-system .system-printing-panel .print-settings-grid {grid-template-columns:1fr!important}
+  }
+ }
+ @media screen and (min-width:641px) and (max-width:850px) {
+  html.settings-stack-enabled143176 body #settings-tax .settings-vat-grid.cols-3 {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ }
+}
 

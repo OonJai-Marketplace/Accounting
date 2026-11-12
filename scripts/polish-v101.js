@@ -49,8 +49,17 @@ function updateBrand(value){const brand=document.querySelector('.sidebar-brand h
 function installBrand(){document.querySelector('.sidebar-brand .brand-icon-emblem')?.remove();updateBrand(BusinessSettings.current);
  const original=window.renderBusinessIdentity;window.renderBusinessIdentity=function(value,...rest){const result=original.apply(this,[value,...rest]);updateBrand(value);return result};
  const form=document.querySelector('#settings-system .app-settings-form');if(!form||$('companyLogoSettings101'))return;
- const block=document.createElement('div');block.id='companyLogoSettings101';block.className='settings-field';block.innerHTML='<label for="companyLogoUpload101">Company logo (PNG)</label><input type="file" id="companyLogoUpload101" accept="image/png,image/jpeg,image/webp"><img id="logoPreview101" alt="Selected company logo" hidden><button type="button" class="je-btn je-btn-secondary" id="removeLogo101">Remove Logo</button><small>Saved to the database in v113. The company name comes from Business Information.</small>';
- form.querySelector('.settings-form-actions')?.before(block);showLogo(storedLogo101());
+ const block=document.createElement('div');block.id='companyLogoSettings101';block.className='settings-field';block.innerHTML=`<span class="settings-logo-title">Company logo</span>
+  <div class="settings-logo-controls">
+   <img id="logoPreview101" alt="Company logo preview" hidden>
+   <div class="settings-image-actions">
+    <input type="file" hidden id="companyLogoUpload101" aria-label="Company logo" accept="image/png,image/jpeg,image/webp">
+    <button type="button" class="je-btn je-btn-secondary" data-choose-logo>Choose logo</button>
+    <button type="button" class="je-btn je-btn-secondary" id="removeLogo101">Remove</button>
+   </div>
+  </div>`;
+ block.querySelector('[data-choose-logo]').onclick=()=>block.querySelector('input').click();
+ form.querySelector('.settings-compact-grid').append(block);showLogo(storedLogo101());
  // Upload and removal are handled once by the shared database-backed shell.
 
 }
