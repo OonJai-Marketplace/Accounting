@@ -2,13 +2,13 @@
   "schema": 1,
   "applicationId": "org.oonjai.accounting.preview",
   "signerSha256": "58124eaeb0ff570eeb67d3cbe2121db02369d82fb47a4b3bc1889b233b1bfa8c",
-  "version": "143.231-test",
-  "versionCode": 143231,
-  "sha256": "06c9c699c6c82eb02ff8b59793a0e087c00d8b2af769bb11e46e555ec875c94f",
-  "url": "https://drive.google.com/file/d/1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje/view?usp=drivesdk",
+  "version": "143.367-test",
+  "versionCode": 143367,
+  "sha256": "781abd492f368204934ce14016621665244f97337c4c2418aa593c7961a4829a",
+  "url": "https://drive.google.com/file/d/14Y2WK94ba80eOWJu8xOvMFZFLuiljkYo/view?usp=drivesdk",
   "notes": [
-    "Supports company yearly receipt folders activated in desktop Settings.",
-    "Receipt uploads follow the confirmed accounting year; December receipts stay in December even when scanned in January.",
-    "Update preserves the existing app identity and signing certificate."
+    "Open My Drive inside the scanner, tap through folders, or create a folder in the location shown. Confirm the full path with Use this folder.",
+    "Save each transaction ID as its own PDF with all of its receipt pages together.",
+    "The company Google account and shared default receipt folder stay protected in desktop Settings."
   ]
 }
