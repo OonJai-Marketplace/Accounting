@@ -11,7 +11,7 @@ async function prepareSchedules(force){
  throw Error('Prepared journal plans could not be loaded');
 }
 function pending(show,message='Loading this area…',retry){document.body.classList.toggle('startup-pending1443',show);let box=document.getElementById('startup1443');if(!box){box=document.createElement('section');box.id='startup1443';box.setAttribute('role','status');box.innerHTML=(window.loading1444?.markup()||'')+'<p></p><button type="button" class="je-btn" hidden>Retry loading</button>';document.body.append(box)}window.idleSync14341?.preparation(show?message:'',retry);box.hidden=!show;box.setAttribute('aria-label',message);const copy=box.querySelector('p');copy.textContent=message;copy.hidden=false;const motion=box.querySelector('.loading-orbit1444');if(motion)motion.hidden=!!retry;const b=box.querySelector('button');b.hidden=!retry;b.onclick=retry||null}
-function ready(){window.startupData1443=async function(check){clearTimeout(retryTimer14338);const actor=liveProfile.id,fresh=typeof freshLoginRequested!=='undefined'&&freshLoginRequested;const current={actor,loaded:new Map(),done:new Set(),generation:0,refreshNeeded:true};job=current;window.startup14257.dataReady=false;
+function ready(){window.startupData1443=async function(check){clearTimeout(retryTimer14338);const actor=liveProfile.id,fresh=typeof freshLoginRequested!=='undefined'&&freshLoginRequested;const current={actor,loaded:new Map(),done:new Set(),generation:0,refreshNeeded:true};job=current;document.querySelectorAll('[data-area-loading]').forEach(n=>{n.removeAttribute('data-area-loading');n.querySelector(':scope > .area-loading-status')?.remove()});window.startup14257.dataReady=false;
  const valid=()=>{check();if(job!==current||liveProfile?.id!==actor)throw Error('Session changed')};
  const tasks={inboxes:async()=>{await window.AIInboxSync143173?.check(true);valid();const issue=window.AIInboxSync143173?.state.error;if(issue)throw Error(issue);},opening:()=>window.openingBalances14234?.check(true),reference:async force=>{
   await Promise.all([loadReferenceDataFromSupabase(),window.AccountGroups143180?.prepare(force)]);
@@ -38,7 +38,30 @@ function ready(){window.startupData1443=async function(check){clearTimeout(retry
   }
   if(failures.length)throw Error(failures.join(' · '));return true;
  }
- current.activate=async()=>{if(current.initializing||window.startup14257.preparing)return;if(job!==current||liveProfile?.id!==actor)return;const view=Location69.view,revision=++current.generation,needed=requirements(view);if(needed.every(n=>current.done.has(n))){pending(false);window.startup14257.interactive=true;return;}window.startup14257.interactive=false;pending(true,'Opening your saved workspace…');try{await (window.offline14239?.cachedReads?offline14239.cachedReads(()=>Promise.all([...new Set(needed)].map(n=>run(n)))):Promise.all([...new Set(needed)].map(n=>run(n))));valid();if(current.generation===revision){pending(false);window.startup14257.interactive=true}}catch(e){if(job===current&&current.generation===revision)pending(true,'This area could not load: '+e.message,()=>current.activate())}};
+ let loadingPanel=null;
+ function areaStatus(panel,message,retry){
+  loadingPanel?.removeAttribute('data-area-loading');loadingPanel?.querySelector(':scope > .area-loading-status')?.remove();
+  loadingPanel=null;if(!panel)return;
+  loadingPanel=panel;panel.setAttribute('data-area-loading','');
+  const status=document.createElement('div');status.className='area-loading-status';status.setAttribute('role','status');
+  status.textContent=message;
+  if(retry){const button=document.createElement('button');button.type='button';button.className='je-btn';button.textContent='Retry';button.onclick=retry;status.append(' ',button);}
+  panel.append(status);
+ }
+ current.activate=async()=>{
+  if(current.initializing||window.startup14257.preparing||job!==current||liveProfile?.id!==actor)return;
+  const view=Location69.view,revision=++current.generation,needed=requirements(view),panel=document.querySelector('.tab-content.active');
+  if(needed.every(n=>current.done.has(n))){areaStatus(null);pending(false);window.startup14257.interactive=true;return;}
+  window.startup14257.interactive=false;
+  const desktop=panel&&innerWidth>640;
+  if(desktop)areaStatus(panel,'Opening your saved workspace…');else pending(true,'Opening your saved workspace…');
+  try{
+   const load=()=>Promise.all([...new Set(needed)].map(n=>run(n)));
+   await (window.offline14239?.cachedReads?offline14239.cachedReads(load):load());valid();
+   if(current.generation===revision){areaStatus(null);pending(false);window.startup14257.interactive=true;}
+  }catch(e){if(job===current&&current.generation===revision){const message='This area could not load: '+e.message;
+   if(desktop)areaStatus(panel,message,()=>current.activate());else pending(true,message,()=>current.activate());}}
+ };
  window.releaseLogin1443?.();current.refreshDone=new Set();current.initializing=true;const initial=async()=>{const before=window.offline14239?.cacheRevision;window.startup14257.preparing=true;window.startup14257.prepared=false;pending(true,'Preparing your saved workspace…');try{await window.localFirst14333?.initialize();await (window.offline14239?.cachedReads?offline14239.cachedReads(()=>prepare(false)):prepare(false));await window.workflowReady1443;valid();pending(true,'Building your saved screens…');if(!window.workspaceViews14364)await window.preparedViews14340?.build();valid();current.initializing=false;window.startup14257.dataReady=true;window.startup14257.interactive=!window.workspaceViews14364;window.startup14257.prepared=!window.workspaceViews14364;current.refreshedAt=Date.now();current.refreshNeeded=daily().some(name=>!current.done.has(name))||before!==window.offline14239?.cacheRevision;if(!window.workspaceViews14364)pending(false);}catch(e){if(job===current)pending(true,'Preparation paused: '+e.message,async()=>{await initial();if(window.startup14257.dataReady)await window.workspaceViews14364?.finish()});}finally{window.startup14257.preparing=false;window.offline14239?.changed()}};await initial();
  let backgroundJob;const background=(manual=false,{includeInboxes=manual}={})=>{if(!manual&&!current.refreshNeeded)return Promise.resolve();if(current.initializing||!manual&&window.idleSync14341&&!idleSync14341.allowed())return Promise.resolve();if(job!==current||liveProfile?.id!==actor||navigator.onLine===false)return Promise.resolve();if(backgroundJob)return backgroundJob;if(manual)current.refreshDone.clear();clearTimeout(retryTimer14338);window.startup14257.preparing=true;window.startup14257.background=!manual;window.startup14257.refreshError='';window.offline14239?.changed();backgroundJob=(async()=>{try{const complete=await prepare(true,manual,includeInboxes);valid();if(!complete)return;current.refreshDone.clear();window.startup14257.prepared=true;current.refreshedAt=Date.now();current.refreshNeeded=false;window.sessionCache14333?.remember();window.localFirst14333?.setNotice('');return true}catch(e){if(job===current&&liveProfile?.id===actor){window.startup14257.refreshError=e.message;window.localFirst14333?.setNotice('Refreshing saved records is waiting: '+e.message);window.idleSync14341?.request?.()}return false}finally{if(job===current){window.startup14257.preparing=false;window.startup14257.background=false;window.offline14239?.changed()}backgroundJob=null}})();return backgroundJob};
  window.idleSync14341?.request?.();

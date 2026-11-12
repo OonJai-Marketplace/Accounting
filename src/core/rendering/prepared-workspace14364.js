@@ -58,15 +58,15 @@ async function build(initial=true){if(pendingBuild)return pendingBuild;const who
   if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');
   if(initial&&allowed('report-bs'))window.prepareReportDefaults14364?.();
   const initialView=current();
-  const ids=initial?[...document.querySelectorAll('.tab-content[id]')].map(node=>node.id):[initialView];
+  const ids=initial&&!window.startup14257?.interactive?[...document.querySelectorAll('.tab-content[id]')].map(node=>node.id):[initialView];
   // Build the visible screen last so shared controls and report selections end on it.
   const targets=[...new Set([...ids.filter(id=>id!==initialView),initialView])].filter(allowed).filter(id=>!window.startup14257?.requirements||startup14257.requirements(id).every(name=>startup14257.isPrepared(name)));
   for(const id of targets){if(!initial&&window.idleSync14341&&!idleSync14341.allowed())break;if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');if(!initial&&valid(id))continue;
    const fn=renderer(id);if(!fn)continue;
-   preparingTarget=id;const node=document.getElementById(id),prior=[...document.querySelectorAll('.tab-content.active')];prior.forEach(n=>n.classList.remove('active'));node.classList.add('active');restore(id);
+   preparingTarget=id;const node=document.getElementById(id),prior=[...document.querySelectorAll('.tab-content.active')];const swapped=!node.classList.contains('active');if(swapped){prior.forEach(n=>n.classList.remove('active'));node.classList.add('active');}restore(id);
    let result;try{rendering=true;result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(fn):fn();if(result?.then)result=await result;}
    catch(error){prepared.delete(id);console.warn('Screen will load on opening:',id,error.message);continue;}
-   finally{rendering=false;node.classList.remove('active');prior.forEach(n=>n.classList.add('active'));holdPayroll(current());}
+   finally{rendering=false;if(swapped&&current()===id&&actor()===who&&client()===db){node.classList.remove('active');prior.forEach(n=>n.classList.add('active'));}holdPayroll(current());}
    if(result===false){prepared.delete(id);continue;}if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');prepared.set(id,signature(id));
    await new Promise(resolve=>setTimeout(resolve,0));if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');
   }

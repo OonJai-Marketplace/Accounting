@@ -1,1 +1,1 @@
-{"version": "143.372", "changes": ["Journal PDFs use the full entry code as their filename and save directly in the folder you choose."]}
+{"version": "143.373", "changes": ["Apply the Closing & Data Checks border to workspace modules and improve spacing in Reconciliation and Submitted Entries.", "Keep navigation visible while opening a workspace and offer a direct check for server-confirmed device copies."]}
