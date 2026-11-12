@@ -177,6 +177,55 @@ function match(rows,definitions,chart){
  }
  candidates.sort((a,b)=>b.score-a.score);return candidates.filter(x=>x.score===candidates[0]?.score).map(x=>x.template);
 }
+// Posted rows retain their accounts, currencies and amounts, but not the generator template ID.
+function postedExampleMatcher(template,chart){
+ const byId=new Map(chart.map(a=>[a.id,a])),byCode=new Map(chart.map(a=>[String(a.code),a]));
+ const rules=template.lines.map(line=>({line,account:resolve(line,chart)}));
+ const multiCurrency=template.builtin&&/^fx14383-(income|expense)$/.test(template.id);
+ const fx=template.builtin&&rules.some(({line})=>line.calculated&&line.code==='5419')?G().registry(chart):null;
+ const taxRemittance=template.builtin&&/^gen268-remit-(PIT|SSO)$/.test(template.id);
+ function fits({line,account},posted){
+  return (!line.side||line.side===posted.side)&&(!line.currency||line.currency===posted.currency)&&
+   (account?account.id===posted.account.id:accepts(line,posted.account));
+ }
+ return lines=>{
+  const posted=[];
+  for(const l of lines){
+   const debit=Number(l.debit)>0,credit=Number(l.credit)>0;
+   if(!debit&&!credit)continue;
+   const account=l.accountId?byId.get(l.accountId):byCode.get(String(l.accountCode));
+   if(!account||debit===credit||l.currency!==G().currency(account))return false;
+   posted.push({account,currency:l.currency,side:debit?'debit':'credit'});
+  }
+  if(!posted.length)return false;
+  const businessCurrencies=new Set(posted.filter(p=>rules.some(r=>!r.line.calculated&&fits(r,p))).map(p=>p.currency));
+  function allowed(p){
+   if(rules.some(rule=>fits(rule,p)))return true;
+   if(taxRemittance&&String(p.account.code)==='5420'&&p.currency==='LAK')return true;
+   return fx&&(p.currency==='LAK'||businessCurrencies.has(p.currency))&&fx.bridge(p.currency)?.id===p.account.id;
+  }
+  if(!posted.every(allowed))return false;
+  const currencies=new Set(posted.map(p=>p.currency));
+  if(multiCurrency&&![...currencies].some(c=>c!=='LAK'))return false;
+  const required=rules.filter(({line})=>{
+   if(line.calculated)return false;
+   if(!multiCurrency)return true;
+   // Multi-currency sales and food costs may use only one of the two foreign currencies.
+   return currencies.has(line.currency)&&!['1016','5419'].includes(line.code);
+  });
+  // Each required leg needs a distinct posted row, even when two slots allow the same account.
+  const owners=new Map();
+  function assign(rule,visited){
+   for(const p of posted){
+    if(visited.has(p)||!fits(rule,p))continue;
+    visited.add(p);
+    if(!owners.has(p)||assign(owners.get(p),visited)){owners.set(p,rule);return true;}
+   }
+   return false;
+  }
+  return required.length>0&&required.every(rule=>assign(rule,new Set()));
+ };
+}
 function merge(rows,template,chart,makeRows){
  const result=rows.map(l=>({...l})),used=new Set(),layout=makeRows(template);
  for(const [i,line] of (template.lines||[]).entries()){
@@ -187,5 +236,5 @@ function merge(rows,template,chart,makeRows){
  }
  return result;
 }
-root.JournalTemplateCatalog268={templates,accepts,resolve,match,merge};
+root.JournalTemplateCatalog268={templates,accepts,resolve,match,merge,postedExampleMatcher};
 })(globalThis);

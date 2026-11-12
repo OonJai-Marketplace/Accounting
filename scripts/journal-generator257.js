@@ -538,6 +538,55 @@ function match(rows,definitions,chart){
  }
  candidates.sort((a,b)=>b.score-a.score);return candidates.filter(x=>x.score===candidates[0]?.score).map(x=>x.template);
 }
+// Posted rows retain their accounts, currencies and amounts, but not the generator template ID.
+function postedExampleMatcher(template,chart){
+ const byId=new Map(chart.map(a=>[a.id,a])),byCode=new Map(chart.map(a=>[String(a.code),a]));
+ const rules=template.lines.map(line=>({line,account:resolve(line,chart)}));
+ const multiCurrency=template.builtin&&/^fx14383-(income|expense)$/.test(template.id);
+ const fx=template.builtin&&rules.some(({line})=>line.calculated&&line.code==='5419')?G().registry(chart):null;
+ const taxRemittance=template.builtin&&/^gen268-remit-(PIT|SSO)$/.test(template.id);
+ function fits({line,account},posted){
+  return (!line.side||line.side===posted.side)&&(!line.currency||line.currency===posted.currency)&&
+   (account?account.id===posted.account.id:accepts(line,posted.account));
+ }
+ return lines=>{
+  const posted=[];
+  for(const l of lines){
+   const debit=Number(l.debit)>0,credit=Number(l.credit)>0;
+   if(!debit&&!credit)continue;
+   const account=l.accountId?byId.get(l.accountId):byCode.get(String(l.accountCode));
+   if(!account||debit===credit||l.currency!==G().currency(account))return false;
+   posted.push({account,currency:l.currency,side:debit?'debit':'credit'});
+  }
+  if(!posted.length)return false;
+  const businessCurrencies=new Set(posted.filter(p=>rules.some(r=>!r.line.calculated&&fits(r,p))).map(p=>p.currency));
+  function allowed(p){
+   if(rules.some(rule=>fits(rule,p)))return true;
+   if(taxRemittance&&String(p.account.code)==='5420'&&p.currency==='LAK')return true;
+   return fx&&(p.currency==='LAK'||businessCurrencies.has(p.currency))&&fx.bridge(p.currency)?.id===p.account.id;
+  }
+  if(!posted.every(allowed))return false;
+  const currencies=new Set(posted.map(p=>p.currency));
+  if(multiCurrency&&![...currencies].some(c=>c!=='LAK'))return false;
+  const required=rules.filter(({line})=>{
+   if(line.calculated)return false;
+   if(!multiCurrency)return true;
+   // Multi-currency sales and food costs may use only one of the two foreign currencies.
+   return currencies.has(line.currency)&&!['1016','5419'].includes(line.code);
+  });
+  // Each required leg needs a distinct posted row, even when two slots allow the same account.
+  const owners=new Map();
+  function assign(rule,visited){
+   for(const p of posted){
+    if(visited.has(p)||!fits(rule,p))continue;
+    visited.add(p);
+    if(!owners.has(p)||assign(owners.get(p),visited)){owners.set(p,rule);return true;}
+   }
+   return false;
+  }
+  return required.length>0&&required.every(rule=>assign(rule,new Set()));
+ };
+}
 function merge(rows,template,chart,makeRows){
  const result=rows.map(l=>({...l})),used=new Set(),layout=makeRows(template);
  for(const [i,line] of (template.lines||[]).entries()){
@@ -548,7 +597,7 @@ function merge(rows,template,chart,makeRows){
  }
  return result;
 }
-root.JournalTemplateCatalog268={templates,accepts,resolve,match,merge};
+root.JournalTemplateCatalog268={templates,accepts,resolve,match,merge,postedExampleMatcher};
 })(globalThis);
 
 ;
@@ -623,10 +672,15 @@ function relatedTemplates(matches){
   b.onclick=()=>selectTemplate(t.id,true);host.append(b);
  }
 }
-function setupHistory(){
+function setupHistory(template){
  const history=dialog.querySelector('[data-history]'),latest=history.querySelector('[data-history-latest]');
  const toggle=history.querySelector('[data-history-toggle]'),panel=history.querySelector('[data-history-panel]');
  const query=history.querySelector('[data-history-query]'),list=history.querySelector('[data-history-list]'),detail=history.querySelector('[data-history-entry]');
+ latest.replaceChildren();list.replaceChildren();detail.replaceChildren();detail.hidden=true;query.value='';
+ panel.hidden=true;toggle.setAttribute('aria-expanded','false');
+ history.hidden=!template||template.id==='blank';
+ if(history.hidden)return;
+ const matches=Catalog.postedExampleMatcher(template,AccountingStore.accounts);
  const groups=new Map();
  for(const line of (typeof JournalModule==='undefined'?[]:JournalModule.entries||[])){
   if(!line.id||line.voided_at||line.pendingSync||line.local14333||line.status&&line.status!=='posted')continue;
@@ -635,7 +689,7 @@ function setupHistory(){
  }
  const date=lines=>lines[0].postingDate||lines[0].date||'';
  const count=lines=>lines.length+(lines.length===1?' line':' lines');
- const entries=[...groups].sort(([id,a],[other,b])=>date(b).localeCompare(date(a))||String(b[0].created_at||'').localeCompare(String(a[0].created_at||''))||other.localeCompare(id,undefined,{numeric:true}));
+ const entries=[...groups].filter(([,lines])=>matches(lines)).sort(([id,a],[other,b])=>date(b).localeCompare(date(a))||String(b[0].created_at||'').localeCompare(String(a[0].created_at||''))||other.localeCompare(id,undefined,{numeric:true}));
  let selected='';
  function expand(open){
   panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));
@@ -667,7 +721,7 @@ function setupHistory(){
  }
  if(entries.length){
   const [id,lines]=entries[0];latest.append(button(id,lines,false),count(lines));
- }else latest.textContent='No posted journals in the loaded period.';
+ }else latest.textContent='No posted examples for this template in the loaded period.';
  expand(false);toggle.hidden=!entries.length;
  toggle.onclick=()=>{const opening=panel.hidden;expand(opening);if(opening){filter();query.focus();}};
  query.oninput=filter;
@@ -738,7 +792,7 @@ function selectTemplate(id,merge=false){
  const next=merge||fromEntry?{rows:Catalog.merge(fromEntry&&!merge?(entrySource()?.rows||state.rows):state.rows,t,chart(),templateRows),memo:state.memo||t.generalMemo||'',rates:state.rates}:previous||{rows:templateRows(t),memo:state.memo||t.generalMemo||'',rates:state.rates};
  if(next===previous)recoverTemplateDraft(next,t);
  delete state.removedRows;
- restoreProtocolRows(next,t);Object.assign(state,next,{template:id,protocolVersion:2});dialog.querySelector('[data-matches]').replaceChildren();invalidate();render();suggestSourceBooks();
+ restoreProtocolRows(next,t);Object.assign(state,next,{template:id,protocolVersion:2});dialog.querySelector('[data-matches]').replaceChildren();invalidate();render();setupHistory(t);suggestSourceBooks();
 }
 function message(text,error=false){const host=dialog?.querySelector('[data-status]');if(host){host.textContent=text+(storageWarning?' '+storageWarning:'');host.classList.toggle('has-error258',error);}}
 function close(){
@@ -990,8 +1044,7 @@ function open(){
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
  dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-content258"><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><section data-history aria-label="Compare posted journals"><div class="history-bar258"><strong>Compare posted journals</strong><span data-history-latest></span><button type="button" class="je-btn je-btn-secondary" data-history-toggle aria-controls="journalHistoryPanel258"></button></div><div data-history-panel id="journalHistoryPanel258" hidden><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div></div><div data-history-entry hidden></div></section><a href="docs/protocols/index.html#F02" target="_blank" rel="noopener">Journaling protocol</a><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-undo hidden>Undo removal</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p></div>';
  dismissible(dialog);document.body.append(dialog);
- setupHistory();
- try{render();}catch(e){close();showCenterStatus(e.message,true);return;}
+ try{render();setupHistory(template);}catch(e){close();showCenterStatus(e.message,true);return;}
  dialog.querySelector('[data-template]').onchange=e=>selectTemplate(e.target.value);
  const query=dialog.querySelector('[data-template-query]'),list=dialog.querySelector('[data-template-options]');
  query.onfocus=()=>{query.select();templateChoices();};query.onclick=()=>{if(query.value===definitions().find(t=>t.id===state.template)?.name)query.select();templateChoices(query.value===definitions().find(t=>t.id===state.template)?.name?'':query.value);};query.oninput=()=>templateChoices(query.value);
@@ -1025,7 +1078,7 @@ function ready(){
  #journalGenerator258 [data-history-list]{max-height:13rem;overflow:auto}
  #journalGenerator258 [data-history-list]>div{padding:4px;border-bottom:1px solid #d6e1da}
  #journalGenerator258 [data-history-panel] input{margin:4px 0}
- #journalGenerator258 [data-history] [hidden],#journalGenerator258 [data-undo][hidden]{display:none!important}
+ #journalGenerator258 [data-history][hidden],#journalGenerator258 [data-history] [hidden],#journalGenerator258 [data-undo][hidden]{display:none!important}
  @media(max-width:600px){#journalGenerator258 .history-bar258{flex-wrap:wrap}#journalGenerator258 .history-bar258 strong{width:100%}}
  `;context();
 }

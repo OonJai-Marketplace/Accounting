@@ -1,1 +1,1 @@
-{"version": "143.357", "changes": ["Generate Journal shows the newest posted example first, with searchable history, recoverable template rows, debit and credit guidance, and dated book rates in a fixed-header window."]}
+{"version": "143.358", "changes": ["Compare posted journals shows only examples matching the selected transaction template, newest first."]}

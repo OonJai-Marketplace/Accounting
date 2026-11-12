@@ -144,6 +144,8 @@ for (const t of catalog) {
  }
  const input={chart,rows,balances,rates:fx};
  const result=G.complete(input);assert.deepEqual(result.errors,[],id+' '+JSON.stringify(result.errors));
+ const posted=result.rows.filter(l=>l.debit||l.credit).map(l=>({accountId:l.account_id,currency:chart.find(a=>a.id===l.account_id).currency,debit:l.debit,credit:l.credit}));
+ assert(C.postedExampleMatcher(t,chart)(posted),id+' should recognize its own posted example');
  if(kind==='mapping'&&mapActual[code]==='3024'){
   assert.equal(result.rows.length,4,id+' requires two foreign lines and two LAK lines');
   assert(!result.rows.some(l=>l.account_id==='9390'));
