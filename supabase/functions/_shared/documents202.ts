@@ -152,10 +152,18 @@ async function documentHandler214(req:Request){
  if(b.action==='disconnect'){if(destination)throw Error('The company connection is managed in desktop Settings.');checked(await admin.from('google_connections143150').delete().eq('sheet',key).eq('owner',owner));return reply({disconnected:true});}
  if(b.action==='app-update217'){
   // Only the published company APK; never accept arbitrary file IDs or expose Drive tokens.
-  const publisher=await connection('documents202:95db28ba-7a60-4e88-b2c3-aa932a7ca7ce');
+  const releases:Record<string,string>={
+   '06c9c699c6c82eb02ff8b59793a0e087c00d8b2af769bb11e46e555ec875c94f':'1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje',
+   '781abd492f368204934ce14016621665244f97337c4c2418aa593c7961a4829a':'14Y2WK94ba80eOWJu8xOvMFZFLuiljkYo'
+  };
+  const digest=String(b.sha256||'');
+  if(!/^[a-f0-9]{64}$/.test(digest)||!Object.hasOwn(releases,digest))throw Error('The published update changed. Check for updates again.');
+  const publisherOwner='95db28ba-7a60-4e88-b2c3-aa932a7ca7ce';
+  const activePublisher=destination?.email==='oonjaimarketplace@gmail.com'?await connection(destination.connectionKey):null;
+  const publisher=activePublisher?.owner===publisherOwner?activePublisher:await connection(docKey(publisherOwner));
   if(!publisher||publisher.email.toLowerCase()!=='oonjaimarketplace@gmail.com')throw Error('The app publisher connection needs administrator attention.');
   await manage228(publisher.owner);
-  const id='1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje',f=await item(publisher,id);
+  const id=releases[digest],f=await item(publisher,id);
   if(f.trashed||f.mimeType!=='application/vnd.android.package-archive'||!Number(f.size)||Number(f.size)>104857600||!/^([a-f0-9]{64})$/.test(String(b.sha256))||f.sha256Checksum!==b.sha256)throw Error('The published update changed. Check for updates again.');
   const r=await fetch(DRIVE+'/files/'+id+'?alt=media',{headers:{Authorization:'Bearer '+await googleToken(publisher)},signal:AbortSignal.timeout(120000)});
   if(!r.ok)throw Error('Google Drive could not download the app update.');
