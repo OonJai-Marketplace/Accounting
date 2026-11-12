@@ -1,1 +1,1 @@
-{"version": "143.355", "changes": ["Show Enter debit and Enter credit on the intended template line in Post Entry and Generate Journal, including multi-currency sales, food costs, and restored template drafts."]}
+{"version": "143.356", "changes": ["Storage, last check times and Refresh all stay above the scrolling checklists. Each sidebar marker shows the completed fraction of its checklist."]}

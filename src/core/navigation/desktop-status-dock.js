@@ -14,20 +14,25 @@
     .rail{display:grid;width:38px;gap:5px}
     .rail button,.tasks{appearance:none;margin:0;border:0;border-radius:8px;background:var(--pine);color:#fffaf1}
     .tasks{height:clamp(200px,34vh,330px);display:flex;align-items:stretch;justify-content:center;padding:6px 2px}
-    .rail .lane{position:relative;min-width:0;flex:1;display:grid;justify-items:center;grid-template-rows:12px 1fr;gap:5px;padding:5px 0 4px}
-    .marker{position:relative;align-self:center;width:12px;height:12px;border:2px solid var(--tint);border-radius:50%;background:var(--pine)}
-    .complete .marker{background:var(--tint)}
-    .complete .marker::after{content:'';position:absolute;left:2px;top:0;width:4px;height:7px;transform:rotate(45deg);border:solid var(--pine);border-width:0 2px 2px 0}
-    .line{position:relative;background:#547565;border-radius:4px;width:6px;overflow:hidden}
+    .rail .lane{position:relative;min-width:0;flex:1;display:grid;justify-items:center;padding:6px 0}
+    .line{position:relative;background:#547565;border-radius:1px;width:6px}
     .line i,.meter i{position:absolute;bottom:0;inset-inline:0;border-radius:inherit;height:var(--level);background:var(--tint)}
+    .line::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+      background:repeating-linear-gradient(to top,transparent 0 calc(var(--step-size,102%) - 1px),var(--pine) calc(var(--step-size,102%) - 1px) var(--step-size,102%))}
+    .level-thumb{position:absolute;z-index:2;left:50%;bottom:var(--level);transform:translate(-50%,50%);
+      width:14px;height:5px;border-radius:1px;background:var(--tint);box-shadow:0 1px 0 #103728,0 -1px 0 #103728}
     .empty{width:100%;padding:0}
     .db{height:38px;width:38px;padding:0;display:grid;place-items:center}
     .db strong{font:700 15px/1 Arial;font-variant-numeric:tabular-nums;letter-spacing:-.6px}
     .db[data-flag=orange] strong{color:#ffc078}.db[data-flag=red] strong{color:#ffabae}
-    dialog{position:fixed;inset:auto 58px 8px auto;margin:0;width:min(438px,calc(100vw - 76px));max-height:calc(100dvh - 32px);overflow:auto;
-      border:1px solid #adbcae;border-radius:8px;padding:16px 18px;background:#fffdf7;color:var(--ink);box-shadow:0 6px 25px #102a222c;font:13px/1.35 Arial,sans-serif}
+    dialog{position:fixed;inset:max(8px,calc(100dvh - 648px)) 58px auto auto;margin:0;width:min(438px,calc(100vw - 76px));
+      max-height:min(640px,calc(100dvh - 16px));overflow:hidden;border:1px solid #adbcae;border-radius:8px;padding:0;
+      background:#fffdf7;color:var(--ink);box-shadow:0 6px 25px #102a222c;font:13px/1.35 Arial,sans-serif}
+    dialog[open]{display:flex;flex-direction:column}
+    .summary{flex:none;padding:12px 18px;border-bottom:1px solid #cdd8ce}
+    .checklists{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 18px;scroll-padding-block:12px}
     dialog::backdrop{background:transparent}
-    .row,.heading,.foot,.cellhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .row,.heading,.checks,.cellhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
     h2{margin:0;font:700 18px/1.25 Arial}h3{font:700 13px/1.3 Arial;margin:0}
     .quiet,.count,.flags,.times,.notice{font-size:11px;color:#5d6b61}
     .quiet{margin:2px 0 12px;font-size:12px}
@@ -46,24 +51,31 @@
     .icon{min-height:23px;min-width:23px}.icon svg{width:14px;height:14px}
     .icon[aria-pressed=true] svg{fill:var(--pine)}.icon:hover,.close:hover{background:#e3ebe3}
     .close{font-size:22px;width:30px;height:30px}.row{font-size:12px;margin:5px 0}
-    .storage,.foot{margin-top:12px;padding-top:10px;border-top:1px solid #d3dcd3}
+    .checks{margin:4px 0 10px;padding-bottom:9px;border-bottom:1px solid #d3dcd3}
+    .checklists>h2{font-size:16px}
     .flags{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.flags span::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;background:#cf792e}.flags span+span::before{background:#b52b37}
     .times{line-height:1.55}.refresh{border:0;background:#176449;color:white;padding:7px 11px;border-radius:5px;font-weight:700;white-space:nowrap}
     .notice:not(:empty){margin-top:7px;color:#834520}
-    @media(max-height:600px){.tasks{height:clamp(86px,32vh,190px)}}
+    @media(max-height:600px){.tasks{height:clamp(86px,32vh,190px)}.summary{padding:8px 16px}.checklists{padding:10px 16px}}
   </style>
   <div class="rail">
     <div class="tasks" role="group" aria-label="Pinned sequential checklists"></div>
     <button class="db" type="button" aria-haspopup="dialog"><strong>—</strong></button>
   </div>
-  <dialog aria-labelledby="dockTitle">
-    <div class="heading"><h2 id="dockTitle">Sequential tasks</h2><button class="close" aria-label="Close status window" type="button">×</button></div>
-    <p class="quiet"></p><div class="grid"></div><section class="steps" id="dockSteps" aria-labelledby="stepsTitle" hidden></section>
-    <section class="storage"><h3>Supabase storage</h3><div class="row">Database <strong class="dbAmount"></strong></div>
-    <div class="row">File storage <span class="fileAmount"></span></div>
-    <div class="flags"><span>60% · Start archiving</span><span>70% · Red flag</span></div></section>
-    <div class="foot"><div class="times"><div class="taskTime"></div><div class="storageTime"></div></div>
-    <button type="button" class="refresh">Refresh all</button></div><div class="notice" role="status"></div>
+  <dialog aria-labelledby="dockTitle taskTitle">
+    <header class="summary">
+      <div class="heading"><h2 id="dockTitle">Supabase storage</h2><button class="close" aria-label="Close status window" type="button">×</button></div>
+      <div class="checks"><div class="times"><div class="taskTime"></div><div class="storageTime"></div></div>
+        <button type="button" class="refresh">Refresh all</button></div>
+      <div class="row">Database <strong class="dbAmount"></strong></div>
+      <div class="row">File storage <span class="fileAmount"></span></div>
+      <div class="flags"><span>60% · Start archiving</span><span>70% · Red flag</span></div>
+      <div class="notice" role="status"></div>
+    </header>
+    <section class="checklists" aria-labelledby="taskTitle">
+      <h2 id="taskTitle">Sequential tasks</h2><p class="quiet"></p><div class="grid"></div>
+      <section class="steps" id="dockSteps" aria-labelledby="stepsTitle" hidden></section>
+    </section>
   </dialog>`;
   const $ = s => root.querySelector(s);
   const dialog = $('dialog');
@@ -145,11 +157,15 @@
   function paint() {
     const {tasks,pins}=checklists();
     const lanes=pins.map((t,i)=>{
-      const complete=t.total>0 && t.done===t.total, lane=node('button','lane'+(complete?' complete':''));
+      const complete=t.total>0 && t.done===t.total, lane=node('button','lane');
       const label=t.title+' · '+t.done+' of '+t.total+' · '+(complete?'Complete':'Incomplete');
       lane.type='button';lane.style.setProperty('--tint',colors[i]);lane.dataset.id=t.id;
       lane.setAttribute('aria-haspopup','dialog');lane.setAttribute('aria-label',label);lane.title=label;
-      lane.append(node('span','marker'),bar(t,'line',colors[i]));return lane;
+      const track=bar(t,'line',colors[i]);
+      // Keep step divisions legible on long lists. The thumb always uses the exact fraction.
+      if (t.total>1 && t.total<=24) track.style.setProperty('--step-size',(100/t.total)+'%');
+      track.setAttribute('aria-hidden','true');
+      track.append(node('span','level-thumb'));lane.append(track);return lane;
     });
     if (!lanes.length) {
       const open=node('button','empty','—');open.type='button';open.setAttribute('aria-label','Open sequential tasks');lanes.push(open);
@@ -248,19 +264,25 @@
     if (host.parentNode!==dock) dock.prepend(host);
     if (!document.hidden && !busy && slotRead!==slot() && Date.now()>=retryAt && navigator.onLine && !window.deviceVault14334?.offline) request('read');
   }
+  function revealSteps() {
+    const list=$('.checklists'),steps=$('.steps');
+    if (!selected || steps.hidden) {list.scrollTop=0;return;}
+    const top=steps.getBoundingClientRect().top-list.getBoundingClientRect().top;
+    if (top<0 || top+Math.min(100,steps.offsetHeight)>list.clientHeight) list.scrollTop+=top-10;
+  }
   root.addEventListener('click',event=>{
     if (session()!==owner || !owner) {syncView();return;}
     const button=event.target.closest('button');
     if (button?.closest('.rail')) {
       selected=button.dataset.id || '';openedFrom=button.matches('.db')?'db':selected;stepFocus=null;
-      if (!dialog.open) {dialog.showModal();paint();}return;
+      if (!dialog.open) {dialog.showModal();paint();revealSteps();}return;
     }
     if (button?.matches('.close') || (event.target===dialog && !button &&
         (event.clientX<dialog.getBoundingClientRect().left || event.clientX>dialog.getBoundingClientRect().right ||
          event.clientY<dialog.getBoundingClientRect().top || event.clientY>dialog.getBoundingClientRect().bottom))) {dialog.close();return;}
     if (button?.matches('.refresh')) {request('refresh');return;}
     if (button?.dataset.action==='choose') {
-      selected=selected===button.dataset.id?'':button.dataset.id;stepFocus=null;paint();return;
+      selected=selected===button.dataset.id?'':button.dataset.id;stepFocus=null;paint();if(selected)revealSteps();return;
     }
     if (busy || !button?.dataset.id) return;
     const ids=checklists().pins.map(t=>t.id),id=button.dataset.id,index=ids.indexOf(id);
