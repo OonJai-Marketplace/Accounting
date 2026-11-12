@@ -6,7 +6,7 @@ const states=new WeakMap(),replaying=new WeakSet();
 const visible=n=>n?.isConnected&&!n.hidden&&!!n.getClientRects().length&&getComputedStyle(n).visibility!=='hidden';
 function rootOf(node){let root=node?.closest?.(selector);if(!root)return null;let parent=root.parentElement?.closest(selector);while(parent){root=parent;parent=root.parentElement?.closest(selector)}return root;}
 // Report filters own their OK/Cancel draft. The journal generator saves its separate device draft on input and dismissal.
-const editable=root=>!!root&&!root.matches('dialog.report-dialog299,dialog#journalGenerator258')&&!root.querySelector('#auditCleanup313')&&!!root.querySelector(fields);
+const editable=root=>!!root&&!root.matches('dialog.report-dialog299,dialog#journalGenerator258,dialog.rail-calendar379,dialog#syncSummary143162')&&!root.querySelector('#auditCleanup313')&&!!root.querySelector(fields);
 const snapshot=root=>JSON.stringify([...root.querySelectorAll(fields)].map(n=>[n.id,n.name,n.type==='checkbox'||n.type==='radio'?n.checked:n.isContentEditable?n.innerHTML:n.value]));
 function track(root){if(!visible(root)||!editable(root))return;let state=states.get(root);if(!state){state={base:snapshot(root),changed:false,confirming:false};states.set(root,state)}return state;}
 function scan(node){if(node.nodeType!==1)return;for(const n of [node,...node.querySelectorAll(selector)]){const root=rootOf(n);if(root)track(root)}}
@@ -17,7 +17,7 @@ async function confirm(root,button,state){if(state.confirming)return;state.confi
 for(const type of ['pointerdown','mousedown','touchstart','click'])window.addEventListener(type,e=>{
  const root=rootOf(e.target);if(!root||!editable(root))return;const state=track(root);
  const outside=e.target===root&&(root.tagName!=='DIALOG'||(()=>{const r=root.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom})());
- if(outside){stop(e);return;}
+ if(outside){if(!root.hasAttribute('data-rail-dismiss'))stop(e);return;}
  if(type!=='click')return;const b=e.target.closest('button,[role=button],a');if(!b||replaying.has(b)||!isDismiss(b))return;
  if((root.classList.contains('fund-popup326')||root.classList.contains('budget-request327'))&&b.hasAttribute('data-dismiss'))return; // Closing retains this form for the same signed-in session.
  if(state?.changed&&snapshot(root)!==state.base){stop(e);void confirm(root,b,state)}

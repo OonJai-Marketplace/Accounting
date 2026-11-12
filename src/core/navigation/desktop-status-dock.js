@@ -68,9 +68,12 @@
     .watch-scroll{overflow:auto}.watch-body table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
     .watch-body :is(th,td){padding:8px 6px;border-bottom:1px solid #d6dfd8;text-align:right}.watch-body th:first-child{text-align:left;width:35%}.watch-body thead{background:#edf5ee}.watch-body small{display:block;font-weight:normal;color:#53685a}
     .watch-options{max-height:47vh;overflow:auto;margin:8px 0}.watch-options label{display:flex;gap:8px;align-items:center;padding:6px;border-bottom:1px solid #dde5de}.watch-dialog input[type=search]{width:100%;margin-top:8px}.watch-dialog footer{justify-content:flex-end}
-    @media(max-height:650px){.watch-tools{position:static;display:flex;flex-direction:column}.tasks{height:clamp(70px,21vh,140px)}}
+    .ledger-stats379{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}.ledger-stats379>div{padding:8px;background:#edf5ee;border-radius:5px}.ledger-stats379 strong{font-variant-numeric:tabular-nums}
+    .ledger-matches379{display:grid;max-height:24vh;overflow:auto}.ledger-matches379 button{background:white;border:0;border-bottom:1px solid #d6dfd8;text-align:left;padding:7px}.ledger-detail379 .watch-toolbar h3{margin-right:auto}
+    .watch-body .ledger-lines379 :is(th,td):nth-child(-n+3){text-align:left;width:auto}.ledger-lines379 td:nth-child(3){width:40%}.ledger-lines379 td:nth-child(n+4){white-space:nowrap}
+    @media(max-height:735px){.watch-tools{position:static;display:flex;flex-direction:column}.tasks{height:clamp(70px,17vh,115px)}}
   </style>
-  <div class="watch-tools"><button type="button" data-watch="balances" aria-haspopup="dialog" aria-label="Account balances" title="Account balances"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 9h16M11 9v11m3-7h3m-3 4h3"/></svg></button><button type="button" data-watch="rates" aria-haspopup="dialog" aria-label="Foreign account rates" title="Foreign account rates">FX</button></div>
+  <div class="watch-tools"><button type="button" data-watch="balances" aria-haspopup="dialog" aria-label="Account balances" title="Account balances"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 9h16M11 9v11m3-7h3m-3 4h3"/></svg></button><button type="button" data-watch="rates" aria-haspopup="dialog" aria-label="Foreign account rates" title="Foreign account rates">FX</button><button type="button" data-rail-tool="calendar" aria-haspopup="dialog" aria-label="Company calendar" title="Company calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v15H4zM4 10h16M8 3v5m8-5v5m-9 6h3m2 0h3"/></svg></button><button type="button" data-rail-tool="differences" aria-haspopup="dialog" aria-label="Reconciliation differences" title="Reconciliation differences"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h15l-3-3m6 13H6l3 3M6 11h5m3 2h4"/></svg></button><button type="button" data-rail-tool="ledger" aria-haspopup="dialog" aria-label="Account ledger" title="Account ledger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6Q8 3 3 5v14q5-2 9 1 4-3 9-1V5q-5-2-9 1v14"/></svg></button></div>
   <div class="rail">
     <div class="tasks" role="group" aria-label="Pinned sequential checklists"></div>
     <button class="db" type="button" aria-haspopup="dialog"><strong>—</strong></button>
@@ -261,11 +264,12 @@
     }
   }
   const closeWatch=AccountWatch378.install(root,session);
+  const closeRailTools=RailTools379.install(root,session);
   function syncView() {
     const id=session(), db=id?ojmDb:null;
-    if(window.workspaceRequest138?.target)closeWatch();
+    if(window.workspaceRequest138?.target){closeWatch();closeRailTools();}
     if (id!==owner || client!==db) {
-      closeWatch();generation++;selected='';stepFocus=null;if(dialog.open)dialog.close();host.remove();owner=id;client=db;snapshot=null;busy=false;message='';slotRead='';retryAt=0;
+      closeWatch();closeRailTools();generation++;selected='';stepFocus=null;if(dialog.open)dialog.close();host.remove();owner=id;client=db;snapshot=null;busy=false;message='';slotRead='';retryAt=0;
       if (!id) return;
       try {
         const cached=JSON.parse(localStorage.getItem(key()));
@@ -292,9 +296,8 @@
       selected=button.dataset.id || '';openedFrom=button.matches('.db')?'db':selected;stepFocus=null;
       if (!dialog.open) {dialog.showModal();paint();revealSteps();}return;
     }
-    if (button?.matches('.close') || (event.target===dialog && !button &&
-        (event.clientX<dialog.getBoundingClientRect().left || event.clientX>dialog.getBoundingClientRect().right ||
-         event.clientY<dialog.getBoundingClientRect().top || event.clientY>dialog.getBoundingClientRect().bottom))) {dialog.close();return;}
+    if (!dialog.open || !dialog.contains(event.target)) return;
+    if (button?.matches('.close')) {dialog.close();return;}
     if (button?.matches('.refresh')) {request('refresh');return;}
     if (button?.dataset.action==='choose') {
       selected=selected===button.dataset.id?'':button.dataset.id;stepFocus=null;paint();if(selected)revealSteps();return;
@@ -305,6 +308,7 @@
     if (button.dataset.action==='pin') {if(index>=0)ids.splice(index,1);else if(ids.length<2)ids.push(id);}
     request('pins',ids);
   });
+  RailTools379.outside(dialog,()=>dialog.close());
   dialog.addEventListener('close',()=>{
     if (!host.isConnected || session()!==owner) return;
     const target=openedFrom==='db'?$('.db'):[...root.querySelectorAll('.lane')].find(lane=>lane.dataset.id===openedFrom);

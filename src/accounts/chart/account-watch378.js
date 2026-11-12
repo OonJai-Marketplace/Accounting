@@ -112,7 +112,7 @@ window.AccountWatch378=(()=>{
     body.querySelector('[data-save]').onclick=()=>{if(valid()&&persist({[group]:[...body.querySelectorAll(':checked')].map(n=>n.value)}))show();};
     body.querySelector('[data-cancel]').onclick=()=>{toolbar.hidden=false;body.replaceChildren(previous);};search.focus();
    }
-   root.append(dialog);dialog.showModal();
+   root.append(dialog);dialog.showModal();RailTools379.outside(dialog,close);
    dialog.onclose=()=>{if(active===state)close();if(trigger.isConnected)trigger.focus();};
    dialog.querySelector('.close').onclick=close;
    dialog.querySelector('[data-refresh]').onclick=show;dialog.querySelector('[data-edit]').onclick=edit;

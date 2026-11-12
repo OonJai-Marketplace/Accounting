@@ -4,6 +4,10 @@
   "outputs": {
     "scripts/desktop-status-dock.js": [
       {
+        "source": "src/accounts/chart/ledger-rail379.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/accounts/chart/account-watch378.js",
         "suffix": "\n"
       },
