@@ -223,17 +223,23 @@ function completePart(input){
   }
   const outs=active.filter(l=>fund(l.a)&&l.credit>0),outQ=outs.reduce((n,l)=>n+l.credit,0),outValue=outs.reduce((n,l)=>n+round(l.credit*(l.book||0)),0),otherDr=active.filter(l=>!reg.maps.has(l.a.id)&&!fund(l.a)&&!reg.isTax(l.a)).reduce((n,l)=>n+l.debit,0),mapDr=maps.reduce((n,l)=>n+l.debit,0),cashPart=Math.max(0,Math.min(mapDr,outQ-otherDr));
   const historical=active.filter(l=>l.credit>0&&!fund(l.a)&&!monetary(l.a)&&!technical(l.a));
+  const remaining=maps.filter(l=>l.debit&&reg.maps.get(l.a.id).actualCode==='3023');
+  const applied=maps.filter(l=>l.credit&&reg.maps.get(l.a.id).actualCode==='3024');
+  const allocation=remaining.length===1&&applied.length===1&&remaining[0].debit===applied[0].credit?[remaining[0],applied[0]]:[];
   for(const l of maps){
    const m=reg.maps.get(l.a.id);if(!m.actual||!m.offset){error('Row '+(l.index+1)+': required LAK accounts '+m.actualCode+' / '+m.offsetCode+' are missing.',l.index);continue;}
    l.book=l.specified||(l.debit>0&&cashPart?(cashPart*(outs.length===1?outs[0].book:outValue/outQ)+(mapDr-cashPart)*l.rt)/mapDr:l.rt);
    if(historical.length){if(historical.length!==1||maps.length!==1){error('Use each historical asset lot and its recorded rate separately.',l.index);continue;}l.book=historical[0].book;l.rt=l.book;}
-   const historicalEquity=m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size;
+   const historicalEquity=allocation.includes(l)||m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size;
    if(l.credit&&['9190','9390'].includes(m.offsetCode)&&!historicalEquity)l.book=l.rt;
    if(historicalEquity){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
    if(m.offsetCode==='9490'){l.book=l.rt;}
-   if(l.book>0){add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');}
+   if(l.book>0){
+    add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));
+    if(!allocation.includes(l))add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');
+   }
   }
-  const reclass=maps.filter(l=>reg.maps.get(l.a.id).offsetCode==='9390');
+  const reclass=allocation.length?allocation:maps.filter(l=>reg.maps.get(l.a.id).offsetCode==='9390');
   if(reclass.length===2&&reclass.some(l=>reg.maps.get(l.a.id).actualCode==='3024')&&reclass[0].book!==reclass[1].book)
    error('Use the same original contribution rate on both sides of the support allocation.');
   for(const l of tax)add(reg.bridge('LAK',true),-round(signed(l)*l.rt),'Payroll withholding · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));

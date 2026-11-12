@@ -35,6 +35,11 @@ const setup=require('./phase0-browser-fixture.cjs');
   const d=page.locator('#journalGenerator258');
   await d.locator('[data-template]').selectOption('gen268-settlement-USD',{force:true});
   const line=(row,field)=>d.locator('[data-row="'+row+'"] [data-field="'+field+'"]');
+  assert.equal(await line(0,'debit').getAttribute('placeholder'),'Enter debit');
+  assert.equal(await line(1,'credit').getAttribute('placeholder'),'Enter credit');
+  for(const [row,fields] of [[0,['credit']],[1,['debit']],...[2,3,4,5].map(row=>[row,['debit','credit']])]){
+   for(const field of fields)assert.equal(await line(row,field).getAttribute('placeholder'),null);
+  }
   const codes=()=>d.locator('[data-row] select').evaluateAll(items=>items.map(n=>n.value));
   assert.deepEqual(await codes(),['','','9011','9011','5419','9010']);
   await d.locator('[data-row="0"] select').selectOption('1222',{force:true});

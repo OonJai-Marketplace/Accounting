@@ -223,17 +223,23 @@ function completePart(input){
   }
   const outs=active.filter(l=>fund(l.a)&&l.credit>0),outQ=outs.reduce((n,l)=>n+l.credit,0),outValue=outs.reduce((n,l)=>n+round(l.credit*(l.book||0)),0),otherDr=active.filter(l=>!reg.maps.has(l.a.id)&&!fund(l.a)&&!reg.isTax(l.a)).reduce((n,l)=>n+l.debit,0),mapDr=maps.reduce((n,l)=>n+l.debit,0),cashPart=Math.max(0,Math.min(mapDr,outQ-otherDr));
   const historical=active.filter(l=>l.credit>0&&!fund(l.a)&&!monetary(l.a)&&!technical(l.a));
+  const remaining=maps.filter(l=>l.debit&&reg.maps.get(l.a.id).actualCode==='3023');
+  const applied=maps.filter(l=>l.credit&&reg.maps.get(l.a.id).actualCode==='3024');
+  const allocation=remaining.length===1&&applied.length===1&&remaining[0].debit===applied[0].credit?[remaining[0],applied[0]]:[];
   for(const l of maps){
    const m=reg.maps.get(l.a.id);if(!m.actual||!m.offset){error('Row '+(l.index+1)+': required LAK accounts '+m.actualCode+' / '+m.offsetCode+' are missing.',l.index);continue;}
    l.book=l.specified||(l.debit>0&&cashPart?(cashPart*(outs.length===1?outs[0].book:outValue/outQ)+(mapDr-cashPart)*l.rt)/mapDr:l.rt);
    if(historical.length){if(historical.length!==1||maps.length!==1){error('Use each historical asset lot and its recorded rate separately.',l.index);continue;}l.book=historical[0].book;l.rt=l.book;}
-   const historicalEquity=m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size;
+   const historicalEquity=allocation.includes(l)||m.offsetCode==='9390'&&!active.some(x=>fund(x.a))&&!custody.size;
    if(l.credit&&['9190','9390'].includes(m.offsetCode)&&!historicalEquity)l.book=l.rt;
    if(historicalEquity){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
    if(m.offsetCode==='9490'){l.book=l.rt;}
-   if(l.book>0){add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');}
+   if(l.book>0){
+    add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));
+    if(!allocation.includes(l))add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');
+   }
   }
-  const reclass=maps.filter(l=>reg.maps.get(l.a.id).offsetCode==='9390');
+  const reclass=allocation.length?allocation:maps.filter(l=>reg.maps.get(l.a.id).offsetCode==='9390');
   if(reclass.length===2&&reclass.some(l=>reg.maps.get(l.a.id).actualCode==='3024')&&reclass[0].book!==reclass[1].book)
    error('Use the same original contribution rate on both sides of the support allocation.');
   for(const l of tax)add(reg.bridge('LAK',true),-round(signed(l)*l.rt),'Payroll withholding · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));
@@ -382,12 +388,14 @@ function templates(chart){
  const calculated=(a,side,memo)=>a?{...row(a,side,memo),calculated:true}:null;
  function add(id,name,lines,autoMatch=true){
   const outputs=[];
+  const actualCode=l=>reg.maps.get(reg.byCode(l.code,l.currency)?.id)?.actualCode;
+  const allocation=lines.length===2&&actualCode(lines[0])==='3023'&&actualCode(lines[1])==='3024';
   const include=(a,side,memo)=>{const line=calculated(a,side,memo);if(line&&!outputs.some(x=>x.code===line.code&&x.side===line.side))outputs.push(line);};
   for(const line of lines){
    const account=reg.byCode(line.code,line.currency),mapping=reg.maps.get(account?.id);
    if(mapping){
     include(mapping.actual,line.side,'LAK recognition · '+mapping.actual.name);
-    include(mapping.offset,line.side==='debit'?'credit':'debit','LAK mapping offset');
+    if(!allocation)include(mapping.offset,line.side==='debit'?'credit':'debit','LAK mapping offset');
    }
    if(account&&reg.isTax(account))include(reg.bridge('LAK',true),'debit','LAK withholding bridge');
   }
@@ -438,8 +446,9 @@ function templates(chart){
   const fee=[...reg.maps].find(([id,m])=>String(m.actual?.code)==='5414'&&g.currency(reg.all.find(a=>a.id===id))===c);
   if((expense||asset)&&String(m.actual.code)!=='5414'&&fee){const feeAccount=reg.all.find(a=>a.id===fee[0]);const payment=asset?[row(a,'debit'),slot('fund',c,'credit','Prepayment released'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Fee released at its own rate')]:[row(a,'debit'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')];add('fee-'+a.code+'-'+c,name+' and pay a bank fee · '+c,payment,false);}
  }
- const salaries=[...reg.maps].filter(([,m])=>String(m.actual?.code)==='5311').map(([id])=>reg.all.find(a=>a.id===id));
- if(salaries.length>1)add('mixed-payroll','Accrue salaries in multiple currencies',salaries.flatMap(a=>[row(a,'debit','Gross salary'),slot('staff',g.currency(a),'credit','Net salary owed')]),false);
+ const localSalary=reg.byCode('5311'),usdSalary=reg.byCode('9231','USD');
+ if(localSalary&&reg.maps.get(usdSalary?.id)?.actualCode==='5311')
+  add('mixed-payroll','Accrue salaries in LAK and USD',[localSalary,usdSalary].flatMap(a=>[row(a,'debit','Gross salary'),slot('staff',g.currency(a),'credit','Net salary owed')]),false);
  const currencies=[...new Set(reg.all.filter(g.fund).map(g.currency))].sort();
  for(const c of currencies){
   add('transfer-'+c,'Transfer between cash or bank accounts · '+c,[slot('fund',c,'debit','Receiving fund'),slot('fund',c,'credit','Paying fund')],false);
@@ -636,6 +645,9 @@ function showHistory(){
 }
 function restoreProtocolRows(draft,t){
  if(!draft||!t?.builtin)return;
+ if(t.id==='gen268-mixed-payroll'&&draft.rows.some(l=>l.expectedCurrency==='THB')&&!draft.rows.some(l=>l.expectedCurrency==='LAK'&&l.generated!=='output')){
+  draft.rows.unshift(...templateRows(t).filter(l=>l.expectedCurrency==='LAK'&&l.generated!=='output'));
+ }
  if(t.id.startsWith('gen268-settlement-')&&draft.protocolVersion!==2){
   const layout=templateRows(t),bridge=layout.find(l=>l.generated&&l.expectedSide==='debit'&&l.expectedCurrency!=='LAK');
   const index=bridge?draft.rows.findIndex(l=>l.account_id===bridge.account_id&&l.generated==='output'&&!l.expectedSide&&!l.debit&&!l.credit):-1;
@@ -728,6 +740,9 @@ function renderRows(){
  state.rows.forEach((l,i)=>{
   const a=chart().find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
   tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
+  if(l.generated!=='output'&&['debit','credit'].includes(l.expectedSide)){
+   tr.querySelector('[data-field="'+l.expectedSide+'"]').placeholder=l.expectedSide==='debit'?'Enter debit':'Enter credit';
+  }
   const rowRate=tr.querySelector('[data-field=fx_rate_lak]');bindAppRateInput(rowRate,l.fx_rate_lak||'');if(a)rowRate.placeholder=display(state.rates[G.currency(a)]||'');
   const bookField=tr.querySelector('[data-field=book_rate_lak]');bindAppRateInput(bookField,l.book_rate_lak??'');
   const select=tr.querySelector('select');select.value=l.account_id;select.onchange=()=>{l.account_id=select.value;l.missing='';delete l.generated;delete l.book_rate_lak;delete l.fx_rate_lak;delete l.autoBook;delete l.overrideRate;
@@ -766,9 +781,11 @@ function legacyCashLayout(){
 }
 function validateLayout(input){
  if(legacyCashLayout())throw Error('This draft uses a superseded cash posting. Load the current template and review its accounts before generating.');
+ const mixedPayroll=state.template==='gen268-mixed-payroll'&&definitions().find(t=>t.id===state.template)?.builtin;
  for(const [i,l] of input.rows.entries()){
   const a=input.chart.find(a=>a.id===l.account_id);
   if(!a)continue;
+  if(mixedPayroll&&!['LAK','USD'].includes(G.currency(a)))throw Error('Mixed payroll uses LAK and USD. Review and remove the '+G.currency(a)+' row '+(i+1)+' before generating.');
   if(l.overrideRate&&!(l.fx_rate_lak>0))throw Error('Row '+(i+1)+' needs a positive exchange or valuation rate.');
   if(l.role&&!Catalog.accepts({role:l.role,currency:l.expectedCurrency},a))throw Error('Row '+(i+1)+' needs a '+(l.expectedCurrency||'')+' '+l.role+' account.');
   if(l.expectedSide&&l.generated!=='output'&&l[l.expectedSide==='debit'?'credit':'debit']>0)throw Error('Row '+(i+1)+' belongs on the '+l.expectedSide+' side for this template.');

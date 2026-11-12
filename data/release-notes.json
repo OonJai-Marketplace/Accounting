@@ -1,1 +1,1 @@
-{"version": "143.352", "changes": ["Chart of Accounts prepares account groups at sign-in, reuses the list on return, and draws long charts as you scroll."]}
+{"version": "143.353", "changes": ["Use four lines for support moved from Remaining to Used at its recorded rate. Prepare mixed payroll in LAK and USD.", "Show debit or credit entry hints on template input rows and parentheses on negative financial report balances."]}

@@ -67,6 +67,7 @@ for (const t of catalog) {
    set(business[0],'debit',100);expect(pair[0],100);expect(pair[1],-100);
   }
  }else if(kind==='mapping'&&mapActual[code]==='3024'){
+  assert(!rows.some(l=>l.account_id==='9390'),'Support allocation template contains an offset');
   const old=book[currency]-5;for(const l of business)l.book_rate_lak=old;
   set(business[0],'debit',100);expect('3023',100*old);expect('3024',-100*old);expectFX(0);
  }else if(kind==='mapping'||kind==='fee'){
@@ -100,10 +101,14 @@ for (const t of catalog) {
   const carrying=(10000*book[c]+100*fx[c])/10100;
   expectFX(Math.round(50*carrying*100)/100-received*fx[to]);
  }else if(kind==='payroll'||id==='mixed-payroll'){
+  if(id==='mixed-payroll')assert.deepEqual(business.map(l=>[l.account_id,l.expectedSide]),[
+   ['5311','debit'],['1210','credit'],['9231','debit'],['1220','credit']
+  ]);
   const taxRows=id.includes('pit')||id.includes('tax-sso');
   for(const l of business){
    const a=chart.find(a=>a.id===l.account_id),c=a.currency;
-   if(['9231','9232'].includes(a.code)){set(l,'debit',100);expect('5311',100*fx[c]);expect('9290',-100*fx[c]);}
+   if(a.code==='5311'){set(l,'debit',100);expect('5311',100);}
+   else if(['9231','9232'].includes(a.code)){set(l,'debit',100);expect('5311',100*fx[c]);expect('9290',-100*fx[c]);}
    else if(l.role==='staff'){set(l,'credit',taxRows?90:100);expect(a.code,taxRows?-90:-100);}
    else if(a.code==='9042')set(l,'credit',10);
    else if(a.code==='2111'||a.code==='2112'){const v=id.includes('tax-sso')?5:10;set(l,'credit',v*fx.USD);expect(a.code,-v*fx.USD);}
@@ -139,6 +144,10 @@ for (const t of catalog) {
  }
  const input={chart,rows,balances,rates:fx};
  const result=G.complete(input);assert.deepEqual(result.errors,[],id+' '+JSON.stringify(result.errors));
+ if(kind==='mapping'&&mapActual[code]==='3024'){
+  assert.equal(result.rows.length,4,id+' requires two foreign lines and two LAK lines');
+  assert(!result.rows.some(l=>l.account_id==='9390'));
+ }
  for(const [account,value] of Object.entries(expected))assert(Math.abs(sums(result.rows,account)-value)<.005,id+' '+account+' expected '+value+' got '+sums(result.rows,account));
  for(const l of result.rows){
   if(l.expectedSide&&l.generated!=='output')assert.equal(l[l.expectedSide==='debit'?'credit':'debit'],0,'Template side '+id);
@@ -149,6 +158,23 @@ for (const t of catalog) {
  const again=G.complete({...input,rows:result.rows});assert.deepEqual(again.rows,result.rows,'Repeat '+id);
  assert(!checked.has(id));checked.add(id);
 }
+// The same journal can receive new support and release older support at a different rate.
+const leg=(account_id,debit,credit,rate)=>({account_id,debit,credit,book_rate_lak:rate,fx_rate_lak:rate});
+const receiptAndAllocation={chart,balances,rates:fx,rows:[
+ leg('1011',50,0,23000),leg('9311',0,50,23000),
+ leg('9311',70,0,21000),leg('9321',0,70,21000)
+]};
+const combined=G.complete(receiptAndAllocation);
+assert.deepEqual(combined.errors,[]);
+const amounts=(rows,id)=>rows.filter(l=>l.account_id===id).map(l=>[l.debit,l.credit]);
+assert.deepEqual(amounts(combined.rows,'9390'),[[1150000,0]],'Only the new receipt uses the offset');
+assert.deepEqual(amounts(combined.rows,'3023'),[[0,1150000],[1470000,0]]);
+assert.deepEqual(amounts(combined.rows,'3024'),[[0,1470000]]);
+assert.deepEqual(G.complete({...receiptAndAllocation,rows:combined.rows}).rows,combined.rows);
+const mismatched=G.complete({...receiptAndAllocation,rows:[
+ ...receiptAndAllocation.rows.slice(0,3),leg('9321',0,70,22000)
+]});
+assert(mismatched.errors.some(e=>e.message.includes('same original contribution rate')));
 assert(!checked.has('local-3110')&&!checked.has('local-3200'));
 assert.equal(checked.size,111);
 console.log('PASS economic outcome and repeat generation for '+checked.size+' distinct built-in templates with prefilled book rates.');

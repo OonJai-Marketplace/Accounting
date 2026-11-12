@@ -27,12 +27,14 @@ function templates(chart){
  const calculated=(a,side,memo)=>a?{...row(a,side,memo),calculated:true}:null;
  function add(id,name,lines,autoMatch=true){
   const outputs=[];
+  const actualCode=l=>reg.maps.get(reg.byCode(l.code,l.currency)?.id)?.actualCode;
+  const allocation=lines.length===2&&actualCode(lines[0])==='3023'&&actualCode(lines[1])==='3024';
   const include=(a,side,memo)=>{const line=calculated(a,side,memo);if(line&&!outputs.some(x=>x.code===line.code&&x.side===line.side))outputs.push(line);};
   for(const line of lines){
    const account=reg.byCode(line.code,line.currency),mapping=reg.maps.get(account?.id);
    if(mapping){
     include(mapping.actual,line.side,'LAK recognition · '+mapping.actual.name);
-    include(mapping.offset,line.side==='debit'?'credit':'debit','LAK mapping offset');
+    if(!allocation)include(mapping.offset,line.side==='debit'?'credit':'debit','LAK mapping offset');
    }
    if(account&&reg.isTax(account))include(reg.bridge('LAK',true),'debit','LAK withholding bridge');
   }
@@ -83,8 +85,9 @@ function templates(chart){
   const fee=[...reg.maps].find(([id,m])=>String(m.actual?.code)==='5414'&&g.currency(reg.all.find(a=>a.id===id))===c);
   if((expense||asset)&&String(m.actual.code)!=='5414'&&fee){const feeAccount=reg.all.find(a=>a.id===fee[0]);const payment=asset?[row(a,'debit'),slot('fund',c,'credit','Prepayment released'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Fee released at its own rate')]:[row(a,'debit'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')];add('fee-'+a.code+'-'+c,name+' and pay a bank fee · '+c,payment,false);}
  }
- const salaries=[...reg.maps].filter(([,m])=>String(m.actual?.code)==='5311').map(([id])=>reg.all.find(a=>a.id===id));
- if(salaries.length>1)add('mixed-payroll','Accrue salaries in multiple currencies',salaries.flatMap(a=>[row(a,'debit','Gross salary'),slot('staff',g.currency(a),'credit','Net salary owed')]),false);
+ const localSalary=reg.byCode('5311'),usdSalary=reg.byCode('9231','USD');
+ if(localSalary&&reg.maps.get(usdSalary?.id)?.actualCode==='5311')
+  add('mixed-payroll','Accrue salaries in LAK and USD',[localSalary,usdSalary].flatMap(a=>[row(a,'debit','Gross salary'),slot('staff',g.currency(a),'credit','Net salary owed')]),false);
  const currencies=[...new Set(reg.all.filter(g.fund).map(g.currency))].sort();
  for(const c of currencies){
   add('transfer-'+c,'Transfer between cash or bank accounts · '+c,[slot('fund',c,'debit','Receiving fund'),slot('fund',c,'credit','Paying fund')],false);
