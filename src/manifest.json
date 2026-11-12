@@ -4422,6 +4422,11 @@
         "source": "src/bookkeeping/recurring/upcoming-plans280.css",
         "suffix": "\n"
       }
+    ],
+    "styles/public-information.css": [
+      {
+        "source": "src/shared/presentation/public-information.css"
+      }
     ]
   },
   "variants": [

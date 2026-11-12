@@ -166,6 +166,46 @@ function monthTitle(month){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error
 function create(month,start,kind='journal'){if(kind!=='support')nextID(start);const d={id:uid(),created:new Date().toISOString(),month,title:monthTitle(month),groups:[],pages:[],next:{journal:'OJM'+month.slice(2,4)+'-0001',hr:'HR'+month.slice(2,4)+'-0001'},folder:{id:'root',name:'My Drive'},revision:0};if(kind!=='support')d.next[kind]=start;addGroup(d,kind,start);return d;}
 function addGroup(d,type,label){label=String(label||'').trim();if(!label||label.length>120||/[\x00-\x1f]/.test(label))throw Error('Enter a group name, up to 120 characters.');if(d.groups.some(g=>g.label===label))throw Error('That group already exists. Select it to add pages.');if(type!=='support')d.next[type]=nextID(label);const g={id:uid(),type,label};d.groups.push(g);d.active=g.id;return g;}
 function plan(d){return d.groups.map(g=>({...g,pages:d.pages.filter(p=>p.group===g.id).map((p,i)=>({...p,label:g.type==='support'?g.label+' '+letters(i):g.label+letters(i)}))})).filter(g=>g.pages.length);}
+// Split only draft metadata. Page bytes keep their encrypted device keys and have one owning draft.
+function entryDocuments(batch) {
+ if (batch.pending?.length) throw Error('Review the remaining photos before saving the PDFs.');
+ const byLabel = new Map(), ownerOf = new Map();
+ for (const group of batch.groups) {
+  const label = group.type === 'journal' ? group.label.replace(/^OJM[\s-]*(\d{2})[\s-]*(\d{4})(-\d+)?$/i,'OJM$1$2$3') : group.label;
+  const key = group.type + ':' + label;
+  if (!byLabel.has(key)) byLabel.set(key,{...group,label});
+  ownerOf.set(group.id,byLabel.get(key).id);
+ }
+ const pages = batch.pages.map(page => ownerOf.get(page.group) === page.group ? page : {...page,group:ownerOf.get(page.group)});
+ const groups = plan({groups:[...byLabel.values()],pages});
+ if (!groups.length) throw Error('Scan at least one receipt.');
+ if (groups.reduce((sum, group) => sum + group.pages.length, 0) !== batch.pages.length)
+  throw Error('Assign every page to an entry before saving.');
+ if (groups.length === 1 && batch.entryFile?.group === groups[0].id && batch.entryFile.label === groups[0].label && batch.groups.length === 1)
+  return [batch];
+ const family = batch.entryFile?.family || batch.id;
+ const batchTitle = batch.entryFile?.batchTitle || batch.title;
+ return groups.map(group => {
+  const keep = batch.entryFile?.group === group.id && batch.entryFile.label === group.label;
+  const linkedBefore = batch.file || batch.saved || batch.localExport || batch.upload || batch.links208;
+  const reuse = keep || (!linkedBefore && !batch.entryFile && groups.length === 1);
+  const renamed = batch.entryFile?.group === group.id && !keep;
+  const id = reuse ? batch.id : renamed || group.id === batch.id ? uid() : group.id;
+  const child = {...batch, id, groups: [{id:group.id,type:group.type,label:group.label}],
+   pages: pages.filter(page => page.group === group.id), active: group.id, pending: [],
+   idChecks215: {[group.label]: batch.idChecks215?.[group.label] || batch.idChecks215?.[batch.groups.find(item => item.id === group.id)?.label]},
+   entryFile: {family, batchTitle, group: group.id, label: group.label}};
+  if (!keep) {
+   for (const key of ['file','upload','saved','localExport','links208','completed215']) delete child[key];
+   const label = group.label.replace(/[<>:"/\\|?*]/g,'-').trim() || 'Receipts';
+   const detail = batchTitle.replace(/[<>:"/\\|?*]/g,'-').trim();
+   child.title = (detail && detail !== label ? label + ' - ' + detail : label).slice(0,150);
+   child.outputName = child.title + ' - ' + id.slice(0,8) + '.pdf';
+   child.revision = batch.revision + 1;
+  }
+  return child;
+ });
+}
 function split(d,pageID,type,label){const at=d.pages.findIndex(p=>p.id===pageID);if(at<0)throw Error('Page no longer exists.');const original=d.pages[at].group,g=addGroup(d,type,label);for(let i=at;i<d.pages.length;i++)if(d.pages[i].group===original)d.pages[i].group=g.id;return g;}
 function validQuad(p){if(p.length!==4||p.some(a=>!a.every(Number.isFinite)||a.some(x=>x<0||x>1)))return false;let sign=0,area=0;for(let i=0;i<4;i++){const a=p[i],b=p[(i+1)%4],c=p[(i+2)%4],cross=(b[0]-a[0])*(c[1]-b[1])-(b[1]-a[1])*(c[0]-b[0]);if(Math.abs(cross)<.0001)return false;if(sign&&Math.sign(cross)!==sign)return false;sign=Math.sign(cross);area+=a[0]*b[1]-b[0]*a[1];}return sign>0&&area/2>.01;}
 function homography(p){const A=[],B=[],uv=[[0,0],[1,0],[1,1],[0,1]];for(let i=0;i<4;i++){const [u,v]=uv[i],[x,y]=p[i];A.push([u,v,1,0,0,0,-u*x,-v*x],[0,0,0,u,v,1,-u*y,-v*y]);B.push(x,y);}for(let i=0;i<8;i++){let k=i;for(let j=i+1;j<8;j++)if(Math.abs(A[j][i])>Math.abs(A[k][i]))k=j;if(Math.abs(A[k][i])<1e-10)throw Error('Adjust the four corners into a rectangle.');[A[k],A[i]]=[A[i],A[k]];[B[k],B[i]]=[B[i],B[k]];const a=A[i][i];for(let j=i;j<8;j++)A[i][j]/=a;B[i]/=a;for(let r=0;r<8;r++)if(r!==i){const f=A[r][i];for(let j=i;j<8;j++)A[r][j]-=f*A[i][j];B[r]-=f*B[i];}}return B;}
@@ -179,5 +219,5 @@ async function warp(source,corners,gray=false){if(!validQuad(corners))throw Erro
  for(let y=0;y<h;y++){for(let x=0;x<w;x++){const u=x/Math.max(1,w-1),v=y/Math.max(1,h-1),z=m[6]*u+m[7]*v+1,sx=(m[0]*u+m[1]*v+m[2])/z,sy=(m[3]*u+m[4]*v+m[5])/z,ix=Math.max(0,Math.min(source.width-2,Math.floor(sx))),iy=Math.max(0,Math.min(source.height-2,Math.floor(sy))),dx=Math.max(0,Math.min(1,sx-ix)),dy=Math.max(0,Math.min(1,sy-iy)),at=(iy*source.width+ix)*4,to=(y*w+x)*4;for(let k=0;k<3;k++)pixels.data[to+k]=input[at+k]*(1-dx)*(1-dy)+input[at+4+k]*dx*(1-dy)+input[at+source.width*4+k]*(1-dx)*dy+input[at+source.width*4+4+k]*dx*dy;if(gray){const a=pixels.data[to]*.299+pixels.data[to+1]*.587+pixels.data[to+2]*.114;pixels.data[to]=pixels.data[to+1]=pixels.data[to+2]=a;}pixels.data[to+3]=255;}if(y%64===63&&Date.now()-sliceAt>12){await new Promise(r=>setTimeout(r,0));sliceAt=Date.now();}}ctx.putImageData(pixels,0,0);return {data:await jpeg(out,.95),width:w,height:h};}
 async function jpeg(c,quality=.95){if(!c.toBlob)return c.toDataURL('image/jpeg',quality);const blob=await new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(Error('The photo could not be encoded.')),'image/jpeg',quality));return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.readAsDataURL(blob);});}
 async function sourceCanvas(data,rotate=0){const i=await image(data);if(i.naturalWidth<2||i.naturalHeight<2)throw Error('Use a larger photo.');const scale=Math.min(1,Math.sqrt(12000000/(i.naturalWidth*i.naturalHeight))),w=Math.round(i.naturalWidth*scale),h=Math.round(i.naturalHeight*scale),c=canvas(rotate%180?h:w,rotate%180?w:h),x=c.getContext('2d');x.translate(c.width/2,c.height/2);x.rotate(rotate*Math.PI/180);x.drawImage(i,-w/2,-h/2,w,h);return c;}
-const api={nextID,letters,folderID,monthNow,monthTitle,create,addGroup,plan,split,validQuad,homography,project,image,canvas,detect,detectDocument,warp,jpeg,sourceCanvas};root.ReceiptCore202=api;if(typeof module!=='undefined')module.exports=api;
+const api={nextID,letters,folderID,monthNow,monthTitle,create,addGroup,plan,entryDocuments,split,validQuad,homography,project,image,canvas,detect,detectDocument,warp,jpeg,sourceCanvas};root.ReceiptCore202=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
