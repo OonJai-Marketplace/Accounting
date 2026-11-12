@@ -10,6 +10,19 @@ function notificationKind14231(message,kind,pending){
  return 'info';
 }
 function notificationIcon14231(kind){const paths={success:'M5 12l4 4L19 6',warning:'M12 3 2 21h20zM12 9v5M12 17v1',error:'M6 6l12 12M18 6 6 18',info:'M12 10v7M12 7v1'};return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(kind==='info'||kind==='error'?'<circle cx="12" cy="12" r="9"/>':'')+'<path d="'+paths[kind]+'"/></svg>'}
+function dismissNotice(n){
+ clearTimeout(timer);
+ n.hidden=true;
+ n.dataset.persistent1440='';
+ const next=noticeQueue1440.shift();
+ if(next)notify(...next,true);
+}
+function scheduleDismiss(n){
+ clearTimeout(timer);
+ if(n.hidden||!n.dismissAfter)return;
+ if(!n.querySelector('button').hidden&&n.matches(':focus-within, :hover'))return;
+ timer=setTimeout(()=>dismissNotice(n),n.dismissAfter);
+}
 function notify(message,error=false,pending=false,queued=false){
  const quiet=window.actionFeedback14296;if(quiet?.routine(String(message||''),error)){quiet.local(String(message||''));const pendingBox=document.getElementById('status118');if(!quiet.isBusy?.()&&pendingBox?.classList.contains('pending')){clearTimeout(timer);pendingBox.hidden=true;const next=noticeQueue1440.shift();if(next)notify(...next,true)}return}
  const text=String(message||''),workspace=/^Viewing .+ workspace as Administrator\./.test(text),inside=()=>document.getElementById('sub-users-workspace')?.classList.contains('active');if(workspace&&!inside())return;
@@ -18,12 +31,14 @@ function notify(message,error=false,pending=false,queued=false){
  if(window.actionFeedback14296){if(pending){actionFeedback14296.pending(text);return}actionFeedback14296.finishPending();}
  const kind=notificationKind14231(text,error,pending);let n=$('#status118');
  if(!n){n=document.createElement('div');n.id='status118';n.innerHTML='<span class="status-motion118" aria-hidden="true"></span><span class="status-copy118"></span><button type="button" class="status-close1440" aria-label="Close notification">Close</button>';document.body.append(n);
- n.querySelector('button').onclick=()=>{clearTimeout(timer);n.hidden=true;n.dataset.persistent1440='';const next=noticeQueue1440.shift();if(next)notify(...next,true)};
+ n.querySelector('button').onclick=()=>dismissNotice(n);
+ for(const event of ['pointerenter','focusin'])n.addEventListener(event,()=>{if(!n.querySelector('button').hidden)clearTimeout(timer)});
+ for(const event of ['pointerleave','focusout'])n.addEventListener(event,()=>queueMicrotask(()=>scheduleDismiss(n)));
  n.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();n.querySelector('button').click()}});}
  if(pending&&!n.hidden&&n.dataset.persistent1440==='true')return;
  if(!queued&&!n.hidden&&n.dataset.persistent1440==='true'&&text&&(n.dataset.message14296||n.querySelector('.status-copy118').textContent)!==text){if(!noticeQueue1440.some(x=>x[0]===text))noticeQueue1440.push([text,error,pending]);return;}
- clearTimeout(timer);$('#centerStatusToast')?.remove();const persistent=!pending&&(kind==='error'||kind==='warning'||text.length>140||text.includes('\n'));
- n.className=kind;n.dataset.workspace14232=String(workspace);n.dataset.kind14231=kind;n.dataset.persistent1440=String(persistent);n.setAttribute('role',kind==='error'||kind==='warning'?'alert':'status');n.setAttribute('aria-live',pending?'off':kind==='error'?'assertive':'polite');n.setAttribute('aria-label',pending?'Loading':'Notification');n.querySelector('.status-copy118').textContent=pending?'':text;n.dataset.message14296=text;
+ clearTimeout(timer);$('#centerStatusToast')?.remove();const priority=kind==='error'||kind==='warning';
+ n.className=kind;n.dataset.workspace14232=String(workspace);n.dataset.kind14231=kind;n.dataset.persistent1440=String(priority);n.setAttribute('role',kind==='error'||kind==='warning'?'alert':'status');n.setAttribute('aria-live',pending?'off':kind==='error'?'assertive':'polite');n.setAttribute('aria-label',pending?'Loading':'Notification');n.querySelector('.status-copy118').textContent=pending?'':text;n.dataset.message14296=text;
  if(!pending&&/Connection required(?:\.|:|$)/i.test(text)){
   const copy=n.querySelector('.status-copy118'),title=document.createElement('strong'),list=document.createElement('ul');
   title.textContent='Connection required';
@@ -36,8 +51,11 @@ function notify(message,error=false,pending=false,queued=false){
   }
   copy.replaceChildren(title,list);
  }
- const motion=n.querySelector('.status-motion118');motion.innerHTML=pending?(window.loading1444?.markup()||''):notificationIcon14231(kind);n.querySelector('button').hidden=!persistent;n.hidden=!text;
- if(!pending&&!persistent)timer=setTimeout(()=>{n.hidden=true;const next=noticeQueue1440.shift();if(next)notify(...next,true)},workspace?1600:4500);
+ const motion=n.querySelector('.status-motion118');motion.innerHTML=pending?(window.loading1444?.markup()||''):notificationIcon14231(kind);n.querySelector('button').hidden=!(priority||text.length>140);n.hidden=!text;
+ n.dismissAfter=kind==='success'?2400:4500;
+ if(priority||text.length>140)n.dismissAfter=Math.min(20000,Math.max(8000,text.length*50));
+ if(pending)n.dismissAfter=0;
+ scheduleDismiss(n);
 }
 window.addEventListener('page113',()=>{if(document.getElementById('sub-users-workspace')?.classList.contains('active'))return;for(let i=noticeQueue1440.length-1;i>=0;i--)if(/^Viewing .+ workspace as Administrator\./.test(noticeQueue1440[i][0]))noticeQueue1440.splice(i,1);const n=$('#status118');if(n?.dataset.workspace14232==='true')n.querySelector('button').click()});
 window.status118={clear:()=>{window.actionFeedback14296?.finishPending();clearTimeout(timer);noticeQueue1440.length=0;const n=$('#status118');if(n){n.hidden=true;n.dataset.persistent1440=''}$('#centerStatusToast')?.remove()},pending:m=>notify(m,false,true),done:m=>notify(m,'success'),warning:m=>notify(m,'warning'),info:m=>notify(m,'info'),error:m=>notify(m,true)};window.showCenterStatus=(message,error=false)=>notify(message,error);window.showAppNotification=(title,message,error=false)=>typeof message==='string'?notify(title+': '+message,error):notify(title,Boolean(message));

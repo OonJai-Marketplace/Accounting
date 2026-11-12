@@ -18,3 +18,79 @@ html:root body .login-brand-mark{background:transparent;padding:0;overflow:hidde
 
 /* Action controls and document tabs keep their shape; one shared progress mark. */
 button .action-spin14296,[role="tab"] .action-spin14296{display:none!important}
+
+/* Keep journal actions in the visible viewport when the tablet keyboard opens or the page is zoomed. */
+html:root body dialog.journal-action-dialog {
+  --journal-dialog-gap: clamp(12px, 4vh, 36px);
+  position: fixed;
+  inset: auto;
+  left: var(--feedback-x14295, 50%);
+  top: calc(var(--feedback-top14295, 0px) + var(--journal-dialog-gap));
+  margin: 0;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  max-width: calc(var(--feedback-width14295, 100vw) - 24px);
+  max-height: calc(var(--feedback-height14295, 100dvh) - 2 * var(--journal-dialog-gap));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+html body :is(dialog#memoLinkDialog143187, dialog.plan-dialog280.journal-action-dialog, #modalTemplateName .modal-dialog) {
+  border: 1px solid #9bbdaf;
+  border-radius: 8px;
+  padding: 0;
+  color: #18392e;
+  background: #fff;
+  box-shadow: 0 12px 36px rgba(6, 46, 34, .22);
+}
+html body dialog:is(#memoLinkDialog143187, .journal-save-choices) { width: 28rem; }
+html body dialog.journal-action-dialog::backdrop { background: rgba(6, 46, 34, .45); }
+html body :is(dialog.journal-action-dialog header, #modalTemplateName .modal-header) {
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid #c8dfd3;
+  background: #ecfdf5;
+}
+html body :is(dialog.journal-action-dialog header h3, #modalTemplateName .modal-header h4) {
+  color: #065f46;
+  margin: 0;
+  font: inherit;
+  font-weight: 700;
+}
+dialog.journal-action-dialog .journal-link-fields,
+dialog.journal-action-dialog > form,
+dialog.journal-action-dialog .plan-choices280 { padding: 14px 16px; }
+dialog#memoLinkDialog143187 > form { padding: 0; }
+html body #memoLinkDialog143187 label { margin: 0; display: grid; gap: 4px; font-size: 13px; font-weight: 600; }
+html body #memoLinkDialog143187 label + label { margin-top: 12px; }
+html body #memoLinkDialog143187 input {
+  min-height: 36px;
+  border: 1px solid #adc3b8;
+  border-radius: 5px;
+  padding: 6px 9px;
+  font: inherit;
+  font-weight: 400;
+}
+#memoLinkDialog143187 [role=alert]:empty { display: none; }
+html body :is(#memoLinkDialog143187 footer, #modalTemplateName .modal-footer) {
+  padding: 10px 16px;
+  border-top: 1px solid #d6e1da;
+  background: #f6faf8;
+}
+html:root body #modalTemplateName.active {
+  align-items: flex-start !important;
+  padding: clamp(12px, 4vh, 36px) 12px 12px;
+}
+html body #modalTemplateName .modal-dialog { display: flex; flex-direction: column; margin: 0 auto; max-height: 100%; }
+#modalTemplateName .modal-body { min-height: 0; overflow: auto; }
+#modalTemplateName :is(.modal-header, .modal-footer) { flex-shrink: 0; }
+
+html:root body #status118:not(.pending) {
+  box-sizing: border-box;
+  width: max-content !important;
+  max-width: min(26rem, calc(var(--feedback-width14295, 100vw) - 24px)) !important;
+  gap: 8px;
+  padding: 9px 14px !important;
+  font-size: 14px;
+  line-height: 1.4;
+}
+html:root body #status118:not(.pending) .status-copy118 { white-space: pre-wrap; overflow-wrap: anywhere; }

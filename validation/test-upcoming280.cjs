@@ -19,7 +19,7 @@ assert.equal(small.reduce((n,o)=>n+Math.round(o.lines.find(l=>l.account_id==='51
 assert.throws(()=>M.prepare([line('1311',100,0),line('1010',0,100)],chart,'amortization'),/prepaid asset credit/);
 assert.throws(()=>M.dates({...plan,end:'2026-02-30'}),/valid date/);
 assert.throws(()=>M.preview(plan,[line('5110',90,0),line('1311',0,100)],chart),/balance/);
-const catalog=context.JournalTemplateCatalog268.templates(chart);assert(catalog.some(t=>t.name.includes('restaurant rent amortization')));assert(catalog.some(t=>t.name.includes('insurance amortization')));
+const catalog=context.JournalTemplateCatalog268.templates(chart);assert(catalog.some(t=>t.name==='Recognize prepaid restaurant rent · THB'));assert(catalog.some(t=>t.name==='Recognize prepaid insurance expense · LAK'));
 assert.throws(()=>M.prepare([line('5110',100,0),line('1311',0,100)],chart,'recurring'),/Choose Amortization/);
 assert.throws(()=>M.prepare(generated.rows,chart,'recurring'),/Choose Amortization/);
 assert.equal(M.prepare([line('1311',100,0),line('1010',0,100)],chart,'recurring').length,2);
