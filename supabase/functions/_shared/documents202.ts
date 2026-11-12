@@ -54,6 +54,36 @@ async function drive(c:any,path:string,method='GET',body?:any){const response=aw
 const fields='id,name,mimeType,parents,trashed,webViewLink,size,md5Checksum,sha256Checksum,version,appProperties,capabilities(canAddChildren,canRename,canEdit)';
 async function item(c:any,id:string){return drive(c,'/files/'+fileID(id)+'?supportsAllDrives=true&fields='+encodeURIComponent(fields));}
 async function folder(c:any,id:string){const f=await item(c,id);if(f.trashed||f.mimeType!=='application/vnd.google-apps.folder')throw Error('Choose an existing Drive folder.');return f;}
+// Return the selected folder and its actual ancestry. Folder IDs distinguish duplicate names.
+async function folderTrail(c:any, selected:any) {
+ const root=await folder(c,'root'), trail:{id:string,name:string}[]=[], seen=new Set<string>();
+ let current=selected;
+ while(current && !seen.has(current.id) && trail.length<100) {
+  seen.add(current.id);
+  trail.unshift({id:current.id,name:current.id===root.id?'My Drive':current.name});
+  if(current.id===root.id || !current.parents?.length)return trail;
+  const parent=current.parents[0];
+  if(parent===root.id){trail.unshift({id:root.id,name:'My Drive'});return trail;}
+  try{current=await folder(c,parent);}catch(error){
+   if(!/not found|insufficient|permission|forbidden|403|404/i.test(String(error)))throw error;
+   break;
+  }
+ }
+ trail.unshift({id:'',name:'…'});
+ return trail;
+}
+async function browseDriveFolders(c:any,b:any,lockedFolder?:string) {
+ const current=await folder(c,lockedFolder||fileID(b.parent||'root'));
+ const q="'"+current.id+"' in parents and trashed = false and mimeType = 'application/vnd.google-apps.folder'";
+ const [trail,listing]=await Promise.all([folderTrail(c,current),lockedFolder?{files:[]}:drive(c,'/files?'+new URLSearchParams({
+  q,fields:'nextPageToken,files(id,name,parents,capabilities(canAddChildren,canRename))',orderBy:'name',pageSize:'100',supportsAllDrives:'true',includeItemsFromAllDrives:'true',
+  ...(b.pageToken?{pageToken:String(b.pageToken)}:{})
+ }))]);
+ const path=trail.map(part=>part.name).join(' › ');
+ // Installed Android versions use parent.name for both the chooser heading and saved destination.
+ const parent={...current,name:b.folderPicker===true?current.name:path,...(lockedFolder?{parents:[]}:{}),path};
+ return {parent,...listing,trail:lockedFolder?trail.map(part=>({name:part.name})):trail,locked:!!lockedFolder};
+}
 export async function finishDocumentOAuth(saved:any,params:URLSearchParams){
  const returnHome=saved.sheet===docKey(saved.owner)+':native215'?'oonjai-accounting-preview://scan':saved.sheet===docKey(saved.owner)+':native214'?'oonjai-accounting://scan':HOME;
  const returnToApp=saved.sheet===docKey(saved.owner)+':desktopProtected';
@@ -79,7 +109,19 @@ export async function documentHandler(req:Request){
 }
 async function documentHandler214(req:Request){
  try{if(req.method==='OPTIONS')return reply({});if(req.method!=='POST')return reply({error:'Use POST'},405);const owner=await actor(req);const raw=await req.text();if(raw.length>20000)throw Error('Request too large.');const b=JSON.parse(raw||'{}'),key=docKey(owner),personal=await connection(key);if(personal&&personal.owner!==owner)throw Error('Connection owner mismatch.');const cfg=await companySettings228(),destination=destination228(cfg);let c=personal;if(destination&&!(['connect','verify-destination228','save-receipt-details','app-update217'].includes(b.action))){c=await connection(destination.connectionKey);if(!c||c.email.toLowerCase()!==destination.email)throw Error('The company Drive connection needs administrator attention. Your scans are kept.');await manage228(c.owner);}
- if(b.action==='status')return reply({connected:!!c,email:c?.email||'',configured:!!clientID()&&!!clientSecret(),companyDestination228:destination?{id:destination.id,name:destination.name,email:destination.email,folderURL:destination.folderURL}:null,companyManaged228:!!destination,annual231:destination?.annual231===true});
+ // Only the administrator who connected this Drive may choose another folder for their own scans.
+ let canChooseCompanyFolder=false;
+ if(destination && !destination.annual231 && c?.owner===owner && ['status','folders','folder','create-folder','upload-start'].includes(b.action)){
+  try{await manage228(owner,req);canChooseCompanyFolder=true;}catch{ /* Fall back to the protected company destination. */ }
+ }
+ if(b.action==='status'){
+  const nativeLegacy=['https://localhost','capacitor://localhost'].includes(req.headers.get('origin')||'') && b.folderPicker!==true;
+  const company=destination?{id:destination.id,name:destination.name,email:destination.email,folderURL:destination.folderURL}:null;
+  // Earlier APKs force-reset a selected folder on every status call when this legacy field is set.
+  return reply({connected:!!c,email:c?.email||'',configured:!!clientID()&&!!clientSecret(),
+   companyDestination228:canChooseCompanyFolder && nativeLegacy?null:company,companyDefaultFolder:company,
+   companyManaged228:!!destination && !(canChooseCompanyFolder && nativeLegacy),canChooseCompanyFolder,annual231:destination?.annual231===true});
+ }
  if(b.action==='check-receipt-access'){
   await manage228(owner,req);
   if(!destination||!c)throw Error('Verify and activate the receipt folder first.');
@@ -120,16 +162,27 @@ async function documentHandler214(req:Request){
   return new Response(r.body,{headers:{'Content-Type':'application/vnd.android.package-archive','Content-Length':String(f.size),'Cache-Control':'no-store'}});
  }
  if(!c)throw Error('Connect Google Drive in scanner Settings first.');
- // Every scanner uses the activated company folder. Never expose the company Drive tree.
+ // Other users can only see the activated destination. Desktop settings own the account and company default.
  if(destination){
-  if(b.action==='folders')return reply({parent:await folder(c,destination.id),files:[],companyManaged228:true});
-  if(b.action==='folder')return reply(await folder(c,destination.id));
-  if(['create-folder','rename-folder','move-file'].includes(b.action))throw Error('Manage the company folder in desktop Settings.');
-  if(['upload-start','receipt-year231'].includes(b.action)){if(destination.annual231){const state=await storageState231();if(!state.config||state.config.connectionKey!==destination.connectionKey)throw Error('The yearly storage connection changed. Reopen Settings before uploading.');const year=await receiptYear231(req,owner,b),row=await ensureYear231(state.config,year);b.parent=row.receipt_folder;b.verifiedYear231=year;if(b.action==='receipt-year231')return reply({year,folder:row.receipt_folder});}else b.parent=destination.id;}
+  if(b.action==='folders')return reply(await browseDriveFolders(c,b,canChooseCompanyFolder?undefined:destination.id));
+  if(b.action==='folder'){
+   if(canChooseCompanyFolder && b.id==='root')throw Error('Open Destination, choose a Google Drive folder and tap Use this folder before scanning.');
+   return reply(await folder(c,canChooseCompanyFolder?fileID(b.id):destination.id));
+  }
+  if((b.action==='create-folder' && !canChooseCompanyFolder) || ['rename-folder','move-file'].includes(b.action))throw Error('Manage the company folder in desktop Settings.');
+  if(['upload-start','receipt-year231'].includes(b.action)){if(destination.annual231){const state=await storageState231();if(!state.config||state.config.connectionKey!==destination.connectionKey)throw Error('The yearly storage connection changed. Reopen Settings before uploading.');const year=await receiptYear231(req,owner,b),row=await ensureYear231(state.config,year);b.parent=row.receipt_folder;b.verifiedYear231=year;if(b.action==='receipt-year231')return reply({year,folder:row.receipt_folder});}else{
+   if(canChooseCompanyFolder){
+    if(b.parent==='root')throw Error('Choose a folder in Google Drive and tap Use this folder before saving.');
+    b.parent=fileID(b.parent);
+   }else{
+    if(b.parent && b.parent!=='root' && b.parent!==destination.id)throw Error('The selected folder changed. Reopen Destination and confirm the company receipt folder.');
+    b.parent=destination.id;
+   }
+  }}
  }
 
 
- if(b.action==='folders'){const parent=await folder(c,fileID(b.parent||'root'));const q="'"+parent.id+"' in parents and trashed = false and mimeType = 'application/vnd.google-apps.folder'";return reply({parent,...await drive(c,'/files?'+new URLSearchParams({q,fields:'nextPageToken,files(id,name,parents,capabilities(canAddChildren,canRename))',orderBy:'name',pageSize:'100',supportsAllDrives:'true',includeItemsFromAllDrives:'true',...(b.pageToken?{pageToken:String(b.pageToken)}:{})}))});}
+ if(b.action==='folders')return reply(await browseDriveFolders(c,b));
  if(b.action==='folder'){return reply(await folder(c,fileID(b.id)));}
  if(b.action==='create-folder'){const p=await folder(c,fileID(b.parent||'root'));if(!p.capabilities?.canAddChildren)throw Error('This folder does not allow new files.');return reply(await drive(c,'/files?supportsAllDrives=true&fields=id,name,parents','POST',{name:fileName(b.name),mimeType:'application/vnd.google-apps.folder',parents:[p.id]}));}
  if(b.action==='rename-folder'){const f=await folder(c,fileID(b.id));if(!f.capabilities?.canRename)throw Error('You cannot rename this folder.');return reply(await drive(c,'/files/'+f.id+'?supportsAllDrives=true&fields=id,name,parents','PATCH',{name:fileName(b.name)}));}

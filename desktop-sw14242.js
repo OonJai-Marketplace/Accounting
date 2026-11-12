@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.366',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.367',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/desktop-status-dock.js?v=143.356",
  "docs/protocols/index.html?v=143.338",
@@ -59,8 +59,8 @@ const FILES=[
  "scan.html",
  "scripts/receipt-core202.js?v=143.366",
  "scripts/receipt-pdf202.js?v=143.366",
- "scripts/receipt-scanner202.js?v=143.366",
- "styles/receipt-scanner202.css?v=143.223",
+ "scripts/receipt-scanner202.js?v=143.367",
+ "styles/receipt-scanner202.css?v=143.367",
  "assets/vendor/document14285/jspdf.umd.min.js",
  "scripts/word-of-hope183.js?v=143.239",
  "styles/account-groups143180.css?v=143.352",
@@ -96,7 +96,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.361",
  "scripts/desktop14245-6.js?v=143.364",
  "scripts/local-events14310.js?v=143.327",
- "scripts/offline14239.js?v=143.366",
+ "scripts/offline14239.js?v=143.367",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.328",
  "styles/settings-groups14332.css?v=143.297",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.366",
+ "scripts/phone-runtime14242.js?v=143.367",
  "scripts/local-first14333.js?v=143.364",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -269,7 +269,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.323",
  "styles/workspace-consistency14343.css?v=143.243",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.366",
+ "phone-sw.js?v=143.367",
  "scripts/personal-journal1437.js?v=143.350",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
