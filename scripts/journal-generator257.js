@@ -623,25 +623,82 @@ function relatedTemplates(matches){
   b.onclick=()=>selectTemplate(t.id,true);host.append(b);
  }
 }
-function showHistory(){
- const host=dialog.querySelector('[data-history-list]'),detail=dialog.querySelector('[data-history-entry]');
- const q=dialog.querySelector('[data-history-query]').value.toLowerCase().trim(),groups=new Map();
- for(const l of (typeof JournalModule==='undefined'?[]:JournalModule.entries||[])){
-  if(!l.id||l.voided_at||l.pendingSync||l.local14333||l.status&&l.status!=='posted')continue;
-  if(!groups.has(l.id))groups.set(l.id,[]);
-  groups.get(l.id).push(l);
+function setupHistory(){
+ const history=dialog.querySelector('[data-history]'),latest=history.querySelector('[data-history-latest]');
+ const toggle=history.querySelector('[data-history-toggle]'),panel=history.querySelector('[data-history-panel]');
+ const query=history.querySelector('[data-history-query]'),list=history.querySelector('[data-history-list]'),detail=history.querySelector('[data-history-entry]');
+ const groups=new Map();
+ for(const line of (typeof JournalModule==='undefined'?[]:JournalModule.entries||[])){
+  if(!line.id||line.voided_at||line.pendingSync||line.local14333||line.status&&line.status!=='posted')continue;
+  if(!groups.has(line.id))groups.set(line.id,[]);
+  groups.get(line.id).push(line);
  }
- host.replaceChildren();detail.replaceChildren();
- let count=0;
- for(const [id,lines] of [...groups].sort((a,b)=>(b[1][0].postingDate||b[1][0].date||'').localeCompare(a[1][0].postingDate||a[1][0].date||''))){
-  if(!q&&!lines.some(l=>l.currency&&l.currency!=='LAK'))continue;
-  const title=id+' · '+(lines[0].generalMemo||lines[0].memo||''),haystack=(title+' '+lines.map(l=>l.accountCode+' '+l.account).join(' ')).toLowerCase();
-  if(!q.split(/\s+/).every(word=>haystack.includes(word)))continue;
-  const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent=id+' · '+(lines[0].postingDate||lines[0].date||'')+' · '+lines.length+' lines';b.title=title;
-  b.onclick=()=>{detail.innerHTML='<p>'+esc(title)+'</p><div class="generator-table258"><table><thead><tr><th>Account</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th>BR</th></tr></thead><tbody>'+lines.map(l=>'<tr>'+[l.accountCode+' — '+l.account,l.currency,display(Number(l.debit)||''),display(Number(l.credit)||''),l.fx_rate_lak?formatAppRate(l.fx_rate_lak):'',l.book_rate_lak?formatAppRate(l.book_rate_lak):''].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';};
-  host.append(b);if(++count>=12)break;
+ const date=lines=>lines[0].postingDate||lines[0].date||'';
+ const count=lines=>lines.length+(lines.length===1?' line':' lines');
+ const entries=[...groups].sort(([id,a],[other,b])=>date(b).localeCompare(date(a))||String(b[0].created_at||'').localeCompare(String(a[0].created_at||''))||other.localeCompare(id,undefined,{numeric:true}));
+ let selected='';
+ function expand(open){
+  panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));
+  toggle.textContent=open?'Hide list':'Show all ('+entries.length+')';
  }
- if(!count)host.textContent='No matching posted journals in the loaded period.';
+ function compare(id,lines,fromList){
+  expand(false);
+  if(!fromList&&selected===id&&!detail.hidden){detail.hidden=true;selected='';return;}
+  selected=id;detail.hidden=false;
+  const memo=lines[0].generalMemo||lines[0].memo||'';
+  detail.innerHTML='<p><strong>'+esc(id)+'</strong> · '+esc(formatAppDate(date(lines)))+' · '+count(lines)+(memo?' · '+esc(memo):'')+'</p><div class="generator-table258"><table><thead><tr><th>Account</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th>BR</th></tr></thead><tbody>'+lines.map(l=>'<tr>'+[l.accountCode+' — '+l.account,l.currency,display(Number(l.debit)||''),display(Number(l.credit)||''),l.fx_rate_lak?formatAppRate(l.fx_rate_lak):'',l.book_rate_lak?formatAppRate(l.book_rate_lak):''].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+ }
+ function button(id,lines,expanded){
+  const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';
+  b.textContent=id;b.title='Compare '+id;b.onclick=()=>{compare(id,lines,expanded);if(expanded)toggle.focus({preventScroll:true});};
+  return b;
+ }
+ function filter(){
+  const words=query.value.toLowerCase().trim().split(/\s+/).filter(Boolean),items=document.createDocumentFragment();
+  for(const [id,lines] of entries){
+   if(words.length){
+    const text=[id,date(lines),...lines.flatMap(l=>[l.generalMemo,l.memo,l.accountCode,l.account])].join(' ').toLowerCase();
+    if(!words.every(w=>text.includes(w)))continue;
+   }
+   const row=document.createElement('div');row.append(button(id,lines,true),formatAppDate(date(lines))+' · '+count(lines));items.append(row);
+  }
+  if(!items.childElementCount)items.append('No matching posted journals in the loaded period.');
+  list.replaceChildren(items);
+ }
+ if(entries.length){
+  const [id,lines]=entries[0];latest.append(button(id,lines,false),count(lines));
+ }else latest.textContent='No posted journals in the loaded period.';
+ expand(false);toggle.hidden=!entries.length;
+ toggle.onclick=()=>{const opening=panel.hidden;expand(opening);if(opening){filter();query.focus();}};
+ query.oninput=filter;
+}
+const emptyDraftRow=line=>!line.account_id&&!line.role&&!line.missing&&!line.line_memo&&!number(line.debit)&&!number(line.credit)&&!line.fx_rate_lak&&!line.book_rate_lak;
+function returnRemovedRows(draft){
+ if(!draft.removedRows?.length)return;
+ if(draft.rows.length===1&&emptyDraftRow(draft.rows[0]))draft.rows.pop();
+ for(const {index,line} of draft.removedRows.reverse())draft.rows.splice(index,0,line);
+ delete draft.removedRows;
+}
+function recoverTemplateDraft(draft,t){
+ if(!draft||!t||t.id==='blank')return;
+ returnRemovedRows(draft);
+ const layout=templateRows(t);
+ if(draft.rows.every(emptyDraftRow)){draft.rows=layout;return;}
+ // Older drafts saved the shortened row array with no removal history.
+ if(!t.builtin||!t.id.startsWith('gen268-settlement-')||draft.rows.length>=layout.length)return;
+ const remaining=draft.rows.filter(l=>!emptyDraftRow(l));
+ draft.rows=layout.map(slot=>{
+  const index=remaining.findIndex(l=>{
+   if(slot.expectedSide&&l.expectedSide&&slot.expectedSide!==l.expectedSide)return false;
+   if(slot.expectedSide&&number(l[slot.expectedSide==='debit'?'credit':'debit'])>0)return false;
+   if(slot.role)return l.role===slot.role||Catalog.accepts({role:slot.role,currency:slot.expectedCurrency},chart().find(a=>a.id===l.account_id));
+   return slot.account_id&&slot.account_id===l.account_id;
+  });
+  if(index<0)return slot;
+  const [line]=remaining.splice(index,1);
+  return {...slot,...line,expectedSide:slot.expectedSide,role:slot.role,expectedCurrency:slot.expectedCurrency};
+ });
+ draft.rows.push(...remaining);
 }
 function restoreProtocolRows(draft,t){
  if(!draft||!t?.builtin)return;
@@ -675,10 +732,12 @@ function restoreProtocolRows(draft,t){
  draft.protocolVersion=2;
 }
 function selectTemplate(id,merge=false){
- state.drafts[state.template]={rows:state.rows,memo:state.memo,rates:state.rates,protocolVersion:state.protocolVersion};
+ state.drafts[state.template]={rows:state.rows,removedRows:state.removedRows,memo:state.memo,rates:state.rates,protocolVersion:state.protocolVersion};
  const previous=state.drafts[id],t=definitions().find(t=>t.id===id);if(!t)return;
  const fromEntry=state.entrySignature&&id!=='blank';
  const next=merge||fromEntry?{rows:Catalog.merge(fromEntry&&!merge?(entrySource()?.rows||state.rows):state.rows,t,chart(),templateRows),memo:state.memo||t.generalMemo||'',rates:state.rates}:previous||{rows:templateRows(t),memo:state.memo||t.generalMemo||'',rates:state.rates};
+ if(next===previous)recoverTemplateDraft(next,t);
+ delete state.removedRows;
  restoreProtocolRows(next,t);Object.assign(state,next,{template:id,protocolVersion:2});dialog.querySelector('[data-matches]').replaceChildren();invalidate();render();suggestSourceBooks();
 }
 function message(text,error=false){const host=dialog?.querySelector('[data-status]');if(host){host.textContent=text+(storageWarning?' '+storageWarning:'');host.classList.toggle('has-error258',error);}}
@@ -731,31 +790,68 @@ function suggestSourceBooks(){
 async function suggestBook292(line){
  const account=chart().find(a=>a.id===line.account_id),date=state.date,actor=who();
  if(!account||G.currency(account)==='LAK'||!window.AccountRates143186)return;
- const request={};bookRequests292.set(line,request);
+ const settling=line.role==='balance'||(!line.role&&G.staff(account)&&(line.expectedSide==='debit'||number(line.debit)>0));
  if(typeof AccountRates143186.bookRateFor!=='function')return;
- const settling=line.role==='balance'||(!line.role&&G.staff(account)&&number(line.debit)>0);
+ const previous=bookRequests292.get(line);
+ if(previous?.pending&&previous.settling===settling&&previous.date===date&&previous.account===account.id)return;
+ const request={pending:true,settling,date,account:account.id};bookRequests292.set(line,request);
  const book=await AccountRates143186.bookRateFor(account,date,JournalModule.editingEntryId||null,settling).catch(()=>null);
- if(busy||bookRequests292.get(line)!==request||actor!==who()||date!==state.date||account.id!==line.account_id||!dialog?.open||!state.rows.includes(line)||line.book_rate_lak&&!line.autoBook)return;
- if(!book&&!line.book_rate_lak||line.autoBook&&line.book_rate_lak===book)return;
- line.book_rate_lak=book||'';line.autoBook=true;
- const input=dialog.querySelector('[data-row="'+state.rows.indexOf(line)+'"] [data-field=book_rate_lak]');
- if(input&&document.activeElement!==input)bindAppRateInput(input,line.book_rate_lak);
- invalidate();persist();
+ const apply=()=>{
+  if(bookRequests292.get(line)!==request||actor!==who()||date!==state.date||account.id!==line.account_id||!dialog?.open||!state.rows.includes(line)||line.book_rate_lak&&!line.autoBook)return;
+  request.pending=false;
+  const input=dialog.querySelector('[data-row="'+state.rows.indexOf(line)+'"] [data-field=book_rate_lak]');
+  if(input){
+   bindAppRateInput(input,book||'');
+   if(!book&&(settling||G.fund(account)&&line.expectedSide==='credit')){
+    input.placeholder='Enter BR';input.title='No recorded book rate for '+account.name+' on '+formatAppDate(date)+'. Enter the documented rate.';
+   }
+  }
+  if((line.book_rate_lak||'')===(book||''))return;
+  line.book_rate_lak=book||'';line.autoBook=true;persist();
+ };
+ // Generate checks its own fresh balance snapshot. Finish that check before updating a still-open input.
+ if(job)(job.bookUpdates||=[]).push(apply);else apply();
 }
 function renderRows(){
  const body=dialog.querySelector('[data-entry-lines]'),accounts=chart(),options=accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('');body.replaceChildren();
  state.rows.forEach((l,i)=>{
   const a=chart().find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
-  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" aria-label="Delete row '+(i+1)+'">×</button></td>';
+  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" title="Remove from this draft" aria-label="Remove row '+(i+1)+' from this draft">×</button></td>';
   setTemplateAmountHints(tr,l.expectedSide,l.generated==='output');
+  if(l.generated==='output'||String(a?.code)==='5419'&&!l.expectedSide){
+   const side=number(l.debit)>0?'debit':number(l.credit)>0?'credit':l.expectedSide;
+   if(side){
+    const input=tr.querySelector('[data-field="'+side+'"]');
+    input.placeholder=(l.generated==='output'?'Auto ':'Enter ')+side;input.dataset.templateAmountHint='';
+   }else{
+    const hint=document.createElement('small');
+    hint.textContent=String(a?.code)==='5419'?'Loss → debit · Gain → credit':
+     'Generate sets the debit or credit';
+    tr.querySelector('td:nth-child(3)').append(hint);
+   }
+  }
   const rowRate=tr.querySelector('[data-field=fx_rate_lak]');bindAppRateInput(rowRate,l.fx_rate_lak||'');if(a)rowRate.placeholder=display(state.rates[G.currency(a)]||'');
   const bookField=tr.querySelector('[data-field=book_rate_lak]');bindAppRateInput(bookField,l.book_rate_lak??'');
+  if(!bookField.disabled&&l.generated!=='output'&&!l.book_rate_lak&&(l.role==='balance'||G.fund(a)&&l.expectedSide==='credit')){
+   bookField.placeholder='Enter BR';bookField.title='Book rate for '+a.name+' on '+formatAppDate(state.date);
+  }
   const select=tr.querySelector('select');select.value=l.account_id;select.onchange=()=>{l.account_id=select.value;l.missing='';delete l.generated;delete l.book_rate_lak;delete l.fx_rate_lak;delete l.autoBook;delete l.overrideRate;
    if(l.receiptLeg==='receive'){const clear=state.rows.find(r=>r.receiptLeg==='clear');if(clear)clear.account_id=l.account_id;}
    invalidate();renderRows();renderRates();void suggestBook292(l);};
-  for(const n of tr.querySelectorAll('[data-field]'))n.oninput=()=>{l[n.dataset.field]=n.value;if(n.dataset.field==='fx_rate_lak'){l.overrideRate=!!n.value;if(l.generated==='output')delete l.generated;}if(n.dataset.field==='line_memo')delete l.autoMemo;if(['debit','credit'].includes(n.dataset.field))delete l.generated;if(n.dataset.field==='book_rate_lak'){bookRequests292.delete(l);delete l.autoBook;delete l.generated;}invalidate();};
-  tr.querySelector('button').onclick=()=>{state.rows.splice(i,1);if(!state.rows.length)state.rows.push(blank());invalidate();renderRows();renderRates();};body.append(tr);
+  for(const n of tr.querySelectorAll('[data-field]'))n.oninput=()=>{l[n.dataset.field]=n.value;if(n.dataset.field==='fx_rate_lak'){l.overrideRate=!!n.value;if(l.generated==='output')delete l.generated;}if(n.dataset.field==='line_memo')delete l.autoMemo;if(['debit','credit'].includes(n.dataset.field)){
+   delete l.generated;
+   if(n.dataset.field==='debit'&&a&&G.staff(a)&&!l.role&&(!l.book_rate_lak||l.autoBook)){
+    const settling=l.expectedSide==='debit'||number(l.debit)>0;
+    if(bookRequests292.get(l)?.settling!==settling)void suggestBook292(l);
+   }
+  }if(n.dataset.field==='book_rate_lak'){bookRequests292.delete(l);delete l.autoBook;delete l.generated;}invalidate();};
+  tr.querySelector('button').onclick=()=>{
+   (state.removedRows||=[]).push({index:i,line:l});state.rows.splice(i,1);
+   if(!state.rows.length)state.rows.push(blank());
+   invalidate();renderRows();renderRates();
+  };body.append(tr);
  });
+ dialog.querySelector('[data-undo]').hidden=!state.removedRows?.length;
 }
 function render(){
  const repair=dialog.querySelector('[data-repair-layout]');
@@ -816,18 +912,45 @@ async function balances(input){
  }
  return {values,note:estimated?'Device book-value estimate. Recheck after synchronization.':'Recorded account balances checked.'};
 }
-function showErrors(errors){message(errors.map(e=>(e.row!=null?'Row '+(e.row+1)+': ':'')+e.message.replace(/^Row \d+: /,'')).join('\n'),true);const book=errors.find(e=>e.needsBook&&e.row!=null);if(book)dialog.querySelector('[data-row="'+book.row+'"] [data-field="book_rate_lak"]')?.focus({preventScroll:true});}
+function showCheckedBooks(values){
+ for(const [index,line] of state.rows.entries()){
+  const balance=values[line.account_id];
+  if(!balance||line.book_rate_lak&&!line.autoBook||line.generated==='output')continue;
+  const input=dialog.querySelector('[data-row="'+index+'"] [data-field=book_rate_lak]');
+  if(!input||input.disabled)continue;
+  bookRequests292.delete(line);
+  line.book_rate_lak=balance.rate||'';line.autoBook=true;
+  bindAppRateInput(input,line.book_rate_lak);
+ }
+ persist();
+}
+function showErrors(errors){message(errors.map(e=>(e.row!=null?'Row '+(e.row+1)+': ':'')+e.message.replace(/^Row \d+: /,'')).join('\n'),true);const book=errors.find(e=>e.needsBook&&e.row!=null);if(book){
+ const account=chart().find(a=>a.id===state.rows[book.row]?.account_id);
+ if(account)dialog.querySelector('[data-status]').textContent+='\n'+account.code+' — '+account.name+' · '+formatAppDate(state.date)+'. Enter the documented BR in the highlighted row.';
+ }if(book)dialog.querySelector('[data-row="'+book.row+'"] [data-field="book_rate_lak"]')?.focus({preventScroll:true});}
 async function calculate(){
  if(busy)return;const detected=detect();if(detected===null){message('Choose a matching template to see its journal lines.');return;}busy=true;verified='';dialog.querySelector('[data-use]').disabled=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-generate]'),'Generating journal…'),task=job={end};
  try{eligible();if(!state.memo.trim())throw Error('Enter the general description.');if(!/^\d{4}-\d{2}-\d{2}$/.test(state.date))throw Error('Choose the transaction date.');const input=readInput();validateLayout(input);const missing=state.rows.findIndex(l=>!l.account_id&&(l.role||l.missing));if(missing>=0)throw Error('Row '+(missing+1)+': choose the '+(state.rows[missing].role||'missing')+' account before generating.');const b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
-  const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){verified='';dialog.querySelector('[data-use]').disabled=true;showErrors(result.errors);return;}
+  const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){verified='';dialog.querySelector('[data-use]').disabled=true;showCheckedBooks(b.values);showErrors(result.errors);return;}
+  if(state.removedRows?.length){
+   const generated=result.rows.filter(l=>l.generated==='output');
+   const sameOutput=(a,b)=>a.account_id===b.account_id&&(a.expectedSide||(number(a.debit)?'debit':number(a.credit)?'credit':''))===(b.expectedSide||(number(b.debit)?'debit':number(b.credit)?'credit':''));
+   // Reserve surviving outputs before matching any that Generate reinstated.
+   for(const row of state.rows.filter(l=>l.generated==='output')){
+    const i=generated.findIndex(l=>sameOutput(row,l));if(i>=0)generated.splice(i,1);
+   }
+   state.removedRows=state.removedRows.filter(({line})=>{
+    const i=line.generated==='output'?generated.findIndex(l=>sameOutput(line,l)):-1;
+    if(i<0)return true;generated.splice(i,1);return false;
+   });
+  }
   state.rows=result.rows;persist();renderRows();renderRates();verified=JSON.stringify(readInput().rows);dialog.querySelector('[data-use]').disabled=false;message(detected+'Journal amounts filled. Review the debit and credit cells. '+b.note+(result.notes.length?' '+result.notes.join(' '):''));
- }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;}end?.();}
+ }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;for(const update of task.bookUpdates||[])update();}end?.();}
 }
 async function useEntry(){
  if(busy||!verified)return;busy=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-use]'),'Checking journal…'),task=job={end};
  try{eligible();const input=readInput();validateLayout(input);const missing=state.rows.findIndex(l=>!l.account_id&&(l.role||l.missing));if(missing>=0)throw Error('Row '+(missing+1)+': choose the '+(state.rows[missing].role||'missing')+' account before generating.');const b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
-  const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){showErrors(result.errors);verified='';dialog.querySelector('[data-use]').disabled=true;return;}
+  const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){showCheckedBooks(b.values);showErrors(result.errors);verified='';dialog.querySelector('[data-use]').disabled=true;return;}
   if(JSON.stringify(result.rows)!==JSON.stringify(state.rows)){state.rows=result.rows;persist();renderRows();verified=JSON.stringify(readInput().rows);message('Recorded values changed. Review the updated debit and credit amounts, then use the journal again.',true);return;}
   const body=$('jeLinesBody'),memo=$('jeGeneralMemo'),oldMemo=memo.value,oldRates=JournalFX14383.capture(),oldDate=$('jeTransDate').value;
   const meaningful=r=>[...r.querySelectorAll('.je-line-acc,.je-line-memo,.je-line-dr,.je-line-cr')].some(n=>n.value.trim()),existing=[...body.children].some(meaningful);
@@ -851,7 +974,7 @@ async function useEntry(){
    memo.value=!state.entrySignature&&existing&&oldMemo.trim()?oldMemo+'\n'+state.memo:state.memo;JournalFX14383.restore(!state.entrySignature&&existing?{...state.rates,...oldRates}:state.rates);calculateJournalBalance();memo.dispatchEvent(new Event('input',{bubbles:true}));window.dispatchEvent(new Event('save-state14234'));window.drafts1427?.flush();window.JournalUndo143103?.record();
   }catch(e){body.replaceChildren(...oldRows);memo.value=oldMemo;$('jeTransDate').value=oldDate;JournalFX14383.restore(oldRates);calculateJournalBalance();throw e;}
   delete state.drafts[state.template];state=state.standalone||{template:'blank',date:state.date,memo:'',rates:{},rows:[blank(),blank()],drafts:state.drafts};persist();dialog.close();dialog.remove();dialog=null;verified='';showJournalEntry98();showCenterStatus('Completed journal copied. Review it, then use Post Entry when ready.');
- }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;}end?.();}
+ }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;for(const update of task.bookUpdates||[])update();}end?.();}
 }
 function open(){
  let entry;try{eligible();entry=entrySource();if(typeof TemplateStore!=='undefined')TemplateStore.load();}catch(e){showCenterStatus(e.message,true);return;}
@@ -862,11 +985,12 @@ function open(){
   state={template:entry.template,entrySignature:entry.signature,date:entry.date,memo:entry.memo,rates:entry.rates,rows:entry.rows,drafts:{},standalone:state.entrySignature?state.standalone:state};
  }else if(!entry&&state.entrySignature)state=state.standalone||{template:'blank',date:$('jeTransDate').value,memo:'',rates:{},rows:[blank(),blank()],drafts:{}};
  state.drafts||={};state.rates||={};if(!definitions().some(t=>t.id===state.template)&&!legacyCashLayout())state.template='blank';
- restoreProtocolRows(state,definitions().find(t=>t.id===state.template));
+ const template=definitions().find(t=>t.id===state.template);
+ recoverTemplateDraft(state,template);restoreProtocolRows(state,template);persist();
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
- dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><details data-history><summary>Compare posted journals</summary><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div><div data-history-entry></div></details><a href="docs/protocols/index.html#F02" target="_blank" rel="noopener">Journaling protocol</a><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p>';
+ dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-content258"><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><section data-history aria-label="Compare posted journals"><div class="history-bar258"><strong>Compare posted journals</strong><span data-history-latest></span><button type="button" class="je-btn je-btn-secondary" data-history-toggle aria-controls="journalHistoryPanel258"></button></div><div data-history-panel id="journalHistoryPanel258" hidden><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div></div><div data-history-entry hidden></div></section><a href="docs/protocols/index.html#F02" target="_blank" rel="noopener">Journaling protocol</a><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-undo hidden>Undo removal</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p></div>';
  dismissible(dialog);document.body.append(dialog);
- const history=dialog.querySelector('[data-history]');history.ontoggle=()=>{if(history.open)showHistory();};history.querySelector('input').oninput=showHistory;
+ setupHistory();
  try{render();}catch(e){close();showCenterStatus(e.message,true);return;}
  dialog.querySelector('[data-template]').onchange=e=>selectTemplate(e.target.value);
  const query=dialog.querySelector('[data-template-query]'),list=dialog.querySelector('[data-template-options]');
@@ -874,18 +998,36 @@ function open(){
  query.onkeydown=e=>{if(e.key==='Escape'&&!list.hidden){e.preventDefault();e.stopPropagation();list.hidden=true;query.setAttribute('aria-expanded','false');}else if(e.key==='ArrowDown'){e.preventDefault();if(list.hidden)templateChoices();list.querySelector('button')?.focus();}else if(e.key==='Enter'){e.preventDefault();if(list.querySelectorAll('button').length===1)list.querySelector('button').click();}};
  list.onkeydown=e=>{const buttons=[...list.querySelectorAll('button')],i=buttons.indexOf(document.activeElement);if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();buttons[(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();list.hidden=true;query.focus();list.hidden=true;query.setAttribute('aria-expanded','false');}};
  dialog.addEventListener('pointerdown',e=>{if(!e.target.closest('.generator-template268')){list.hidden=true;query.setAttribute('aria-expanded','false');}});
- dialog.querySelector('[data-date]').onchange=e=>{state.date=e.target.value;invalidate();for(const line of state.rows)if(line.autoBook||!line.book_rate_lak)void suggestBook292(line);};dialog.querySelector('[data-memo]').oninput=e=>{state.memo=e.target.value;invalidate();if(state.template==='blank')relatedTemplates(suggestions());};
+ dialog.querySelector('[data-date]').onchange=e=>{state.date=e.target.value;
+  for(const line of state.rows)if(line.autoBook)delete line.book_rate_lak;
+  invalidate();renderRows();suggestSourceBooks();};dialog.querySelector('[data-memo]').oninput=e=>{state.memo=e.target.value;invalidate();if(state.template==='blank')relatedTemplates(suggestions());};
+ dialog.querySelector('[data-undo]').onclick=()=>{
+  const item=state.removedRows?.pop();if(!item)return;
+  if(state.rows.length===1&&emptyDraftRow(state.rows[0]))state.rows.pop();
+  state.rows.splice(item.index,0,item.line);invalidate();renderRows();renderRates();suggestSourceBooks();
+ };
  dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();suggestSourceBooks();if(state.template==='blank'&&state.memo)relatedTemplates(suggestions());
 }
 function ready(){
  const button=document.createElement('button');button.type='button';button.id='generateJournal258';button.className='je-btn je-btn-secondary';button.textContent='Generate';button.onclick=open;$('addEntryRow14271')?.after(button);
- const style=document.createElement('style');style.textContent='#journalGenerator258{position:fixed;inset:0;margin:auto;transform:none;max-width:calc(100vw - 24px);width:min(1280px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-sizing:border-box;overflow:auto;border:1px solid #b9cfc2;border-radius:8px;padding:18px;background:#fff;color:#18392e}#journalGenerator258:not([open]){display:none!important}#journalGenerator258 .generator-template268{position:relative}#journalGenerator258 [data-template-options]{position:absolute;top:100%;left:0;right:0;max-height:260px;overflow:auto;z-index:3;background:#fffdf7;border:1px solid #98b3a2;box-shadow:0 6px 18px #0002}#journalGenerator258 [data-template-options][hidden]{display:none}#journalGenerator258 [data-template-options] button{display:block;width:100%;text-align:left;padding:9px;border:0;background:transparent;color:inherit;cursor:pointer;font-size:13px}#journalGenerator258 [data-template-options] button:hover,#journalGenerator258 [data-template-options] button:focus{background:#e4f1e7}#journalGenerator258 [data-matches]{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}#journalGenerator258::backdrop{background:#0006}#journalGenerator258 header,#journalGenerator258 footer{display:flex;align-items:center;gap:8px;justify-content:space-between}#journalGenerator258 h3{margin:0 0 12px}#journalGenerator258 footer{justify-content:flex-end;flex-wrap:wrap;margin-top:14px}#journalGenerator258 .je-btn{height:32px;min-height:32px}#journalGenerator258 .generator-meta258{display:grid;grid-template-columns:2fr 1fr;gap:12px}#journalGenerator258 label{display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0}#journalGenerator258 .generator-wide258{grid-column:1/-1}#journalGenerator258 input,#journalGenerator258 select,#journalGenerator258 textarea{box-sizing:border-box;width:100%;color:inherit;background:#fff}#journalGenerator258 .generator-rates258{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}#journalGenerator258 .generator-rates258 label{width:180px}#journalGenerator258 p{font-size:13px;line-height:1.4}#journalGenerator258 .generator-table258{overflow:auto}#journalGenerator258 table{border-collapse:collapse;min-width:1070px;width:100%;font-size:12px}#journalGenerator258 th,#journalGenerator258 td{padding:6px;border-bottom:1px solid #d6e1da;text-align:left}#journalGenerator258 th{background:#eff5f1}#journalGenerator258 th:nth-child(2){width:29%}#journalGenerator258 th:nth-child(3){width:20%}#journalGenerator258 td input{border:0;background:transparent;padding:6px;min-width:92px}#journalGenerator258 td:nth-child(n+5) input{text-align:right}#journalGenerator258 td .account-search1428{border:0!important;background:transparent!important;box-shadow:none!important}#journalGenerator258 td select{border:0;background:transparent;min-width:250px}#journalGenerator258 [data-status]{white-space:pre-wrap;color:#235d44}#journalGenerator258 [data-status].has-error258{color:#9f2e24}@media(max-width:650px){#journalGenerator258{padding:12px}#journalGenerator258 .generator-meta258{grid-template-columns:1fr}}';document.head.append(style);
+ const style=document.createElement('style');style.textContent='#journalGenerator258{position:fixed;inset:0;margin:auto;transform:none;max-width:calc(100vw - 24px);width:min(1280px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-sizing:border-box;overflow:hidden;border:1px solid #b9cfc2;border-radius:8px;padding:0;background:#fff;color:#18392e}#journalGenerator258:not([open]){display:none!important}#journalGenerator258 .generator-template268{position:relative}#journalGenerator258 [data-template-options]{position:absolute;top:100%;left:0;right:0;max-height:260px;overflow:auto;z-index:3;background:#fffdf7;border:1px solid #98b3a2;box-shadow:0 6px 18px #0002}#journalGenerator258 [data-template-options][hidden]{display:none}#journalGenerator258 [data-template-options] button{display:block;width:100%;text-align:left;padding:9px;border:0;background:transparent;color:inherit;cursor:pointer;font-size:13px}#journalGenerator258 [data-template-options] button:hover,#journalGenerator258 [data-template-options] button:focus{background:#e4f1e7}#journalGenerator258 [data-matches]{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}#journalGenerator258::backdrop{background:#0006}#journalGenerator258 header,#journalGenerator258 footer{display:flex;align-items:center;gap:8px;justify-content:space-between}#journalGenerator258 h3{margin:0 0 12px}#journalGenerator258 footer{justify-content:flex-end;flex-wrap:wrap;margin-top:14px}#journalGenerator258 .je-btn{height:32px;min-height:32px}#journalGenerator258 .generator-meta258{display:grid;grid-template-columns:2fr 1fr;gap:12px}#journalGenerator258 label{display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0}#journalGenerator258 .generator-wide258{grid-column:1/-1}#journalGenerator258 input,#journalGenerator258 select,#journalGenerator258 textarea{box-sizing:border-box;width:100%;color:inherit;background:#fff}#journalGenerator258 .generator-rates258{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}#journalGenerator258 .generator-rates258 label{width:180px}#journalGenerator258 p{font-size:13px;line-height:1.4}#journalGenerator258 .generator-table258{overflow:auto}#journalGenerator258 table{border-collapse:collapse;min-width:1070px;width:100%;font-size:12px}#journalGenerator258 th,#journalGenerator258 td{padding:6px;border-bottom:1px solid #d6e1da;text-align:left}#journalGenerator258 th{background:#eff5f1}#journalGenerator258 th:nth-child(2){width:29%}#journalGenerator258 th:nth-child(3){width:20%}#journalGenerator258 td input{border:0;background:transparent;padding:6px;min-width:92px}#journalGenerator258 td:nth-child(n+5) input{text-align:right}#journalGenerator258 td .account-search1428{border:0!important;background:transparent!important;box-shadow:none!important}#journalGenerator258 td select{border:0;background:transparent;min-width:250px}#journalGenerator258 [data-status]{white-space:pre-wrap;color:#235d44}#journalGenerator258 [data-status].has-error258{color:#9f2e24}@media(max-width:650px){#journalGenerator258 .generator-content258{padding:12px}#journalGenerator258 .generator-meta258{grid-template-columns:1fr}}';document.head.append(style);
  const context=()=>{button.hidden=!!window.personalJournal1437?.active;const locked=$('loginGate')&&!$('loginGate').classList.contains('is-authenticated');if(dialog&&(owner!==who()||locked||window.personalJournal1437?.active)){close();state=null;verified='';}};
  window.addEventListener('page113',context);window.addEventListener('local-work14333',context);document.addEventListener('visibilitychange',context);new MutationObserver(context).observe($('loginGate')||document.body,{attributes:true,attributeFilter:['class','hidden']});
  // The shared editor moves into personal workspaces after page navigation.
  const card=$('journalEntry98');if(card)new MutationObserver(context).observe(card,{attributes:true,attributeFilter:['data-personal-owner1437']});
  style.textContent+='#jeLinesBody input[data-template-amount-hint]::placeholder,#journalGenerator258 input[data-template-amount-hint]::placeholder{color:#51685c;opacity:1;font-weight:600}';
- style.textContent+='#generateJournal258[hidden]{display:none!important}#journalGenerator258>header{position:sticky;top:-1px;background:#fff;z-index:4}#journalGenerator258 [data-close]{min-height:44px;touch-action:manipulation}#journalGenerator258{inset:auto;left:var(--feedback-left14295,0px);top:var(--feedback-top14295,0px);right:calc(100% - var(--feedback-left14295,0px) - var(--feedback-width14295,100%));bottom:calc(100% - var(--feedback-top14295,0px) - var(--feedback-height14295,100%));transform:none;margin:auto;width:min(1280px,calc(var(--feedback-width14295,100vw) - 24px));max-height:calc(var(--feedback-height14295,100dvh) - 24px)}#journalGenerator258 [data-history-list]{display:flex;gap:4px;flex-wrap:wrap}#journalGenerator258 details{margin:8px 0}#journalGenerator258 small{display:block}';context();
+ style.textContent+='#generateJournal258[hidden]{display:none!important}#journalGenerator258[open]{display:flex;flex-direction:column}#journalGenerator258>header{position:relative;flex:none;background:#fff;padding:8px 18px;border-bottom:1px solid #d6e1da;z-index:4}#journalGenerator258>header h3{margin:0}#journalGenerator258 .generator-content258{overflow:auto;min-height:0;overscroll-behavior:contain;padding:12px 18px}#journalGenerator258 [data-close]{min-height:44px;touch-action:manipulation}#journalGenerator258{inset:auto;left:var(--feedback-left14295,0px);top:var(--feedback-top14295,0px);right:calc(100% - var(--feedback-left14295,0px) - var(--feedback-width14295,100%));bottom:calc(100% - var(--feedback-top14295,0px) - var(--feedback-height14295,100%));transform:none;margin:auto;width:min(1280px,calc(var(--feedback-width14295,100vw) - 24px));max-height:calc(var(--feedback-height14295,100dvh) - 24px)}#journalGenerator258 small{display:block}';
+ style.textContent+=`
+ #journalGenerator258 [data-history]{margin:10px 0;font-size:13px}
+ #journalGenerator258 .history-bar258,#journalGenerator258 [data-history-latest],#journalGenerator258 [data-history-list]>div{display:flex;align-items:center;gap:8px}
+ #journalGenerator258 .history-bar258{min-height:36px}
+ #journalGenerator258 [data-history-toggle]{margin-left:auto;white-space:nowrap}
+ #journalGenerator258 [data-history-list]{max-height:13rem;overflow:auto}
+ #journalGenerator258 [data-history-list]>div{padding:4px;border-bottom:1px solid #d6e1da}
+ #journalGenerator258 [data-history-panel] input{margin:4px 0}
+ #journalGenerator258 [data-history] [hidden],#journalGenerator258 [data-undo][hidden]{display:none!important}
+ @media(max-width:600px){#journalGenerator258 .history-bar258{flex-wrap:wrap}#journalGenerator258 .history-bar258 strong{width:100%}}
+ `;context();
 }
 window.GuidedJournal258={open};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();

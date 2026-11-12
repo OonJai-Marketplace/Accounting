@@ -35,8 +35,8 @@ const createFixture = require('./phase0-browser-fixture.cjs');
    }
   }
   const cases=[
-   ['Record sales received in multiple currencies',['debit','credit','','debit','credit','debit','credit']],
-   ['Pay food costs in multiple currencies',['debit','credit','debit','','','debit','credit']]
+   ['Record sales received in multiple currencies',['debit','credit','debit','debit','credit','debit','credit']],
+   ['Pay food costs in multiple currencies',['debit','credit','debit','credit','','debit','credit']]
   ];
   for (const [title,sides] of cases) {
    await page.evaluate(() => openTemplateManager());

@@ -12,7 +12,8 @@ const setup=require('./phase0-browser-fixture.cjs');
    {account_id:'1041',foreign_balance:3000,lak_carrying_value:3000*bankBook,average_rate:bankBook,rate_status:'available'}
   ];
   await page.route('**/rpc/account_exchange_rates143186',route=>route.fulfill({json:{
-   as_of:route.request().postDataJSON().p_as_of,accounts:records
+   as_of:route.request().postDataJSON().p_as_of,accounts:route.request().postDataJSON().p_as_of==='2026-11-06'?
+    [{...records[0],lak_carrying_value:null,rate_status:'missing_valuation'},records[1]]:records
   }}));
   await page.evaluate(records=>{
    switchTab('journal');showJournalEntry98();clearJournalEntry();
@@ -30,22 +31,51 @@ const setup=require('./phase0-browser-fixture.cjs');
     debit:Math.max(r.foreign_balance,0),credit:Math.max(-r.foreign_balance,0),
     base_debit:Math.max(r.lak_carrying_value,0),base_credit:Math.max(-r.lak_carrying_value,0)
    }));
+   const key='ojm_generator258:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+liveProfile.id;
+   localStorage.setItem(key,JSON.stringify({template:'gen268-settlement-USD',date:'2026-11-08',protocolVersion:2,
+    memo:'Retained salary draft',rows:[{account_id:'',line_memo:'',debit:'',credit:''}],rates:{},drafts:{}}));
   },records);
   await page.locator('#generateJournal258').evaluate(b=>b.click());
   const d=page.locator('#journalGenerator258');
-  await d.locator('[data-template]').selectOption('gen268-settlement-USD',{force:true});
+  assert.equal(await d.locator('[data-template]').inputValue(),'gen268-settlement-USD');
+  assert.equal(await d.locator('[data-row]').count(),6,'Recover the old one-blank-row salary draft');
+  assert.equal(await d.locator('[data-memo]').inputValue(),'Retained salary draft');
   const line=(row,field)=>d.locator('[data-row="'+row+'"] [data-field="'+field+'"]');
   assert.equal(await line(0,'debit').getAttribute('placeholder'),'Enter debit');
   assert.equal(await line(1,'credit').getAttribute('placeholder'),'Enter credit');
   for(const [row,fields] of [[0,['credit']],[1,['debit']],...[2,3,4,5].map(row=>[row,['debit','credit']])]){
-   for(const field of fields)assert.equal(await line(row,field).getAttribute('placeholder'),null);
+   for(const field of fields)assert.equal(await line(row,field).getAttribute('placeholder'),
+    row===2&&field==='debit'||row===3&&field==='credit'?'Auto '+field:null);
+  }
+  assert.match(await d.locator('[data-row="4"]').innerText(),/Loss → debit · Gain → credit/);
+  const remove=i=>d.locator('[data-row="'+i+'"] button[aria-label^="Remove row"]').click();
+  const undo=d.locator('[data-undo]');
+  await remove(2);assert.equal(await d.locator('[data-row]').count(),5);
+  await undo.click();assert.equal(await d.locator('[data-row]').count(),6);
+  for(let i=5;i>=0;i--)await remove(i);
+  assert.equal(await d.locator('[data-row]').count(),1);
+  await d.locator('[data-close]').click();await page.locator('#generateJournal258').click();
+  assert.equal(await d.locator('[data-row]').count(),6);
+  {
+   const changed=await d.locator('[data-row="0"] [data-field=line_memo]').inputValue();
+   assert.equal(changed,'Balance payment');
   }
   const codes=()=>d.locator('[data-row] select').evaluateAll(items=>items.map(n=>n.value));
   assert.deepEqual(await codes(),['','','9011','9011','5419','9010']);
+  await page.evaluate(()=>{
+   const lookup=AccountRates143186.bookRateFor,gate=new Promise(resolve=>window.releaseBookLookup=resolve);
+   AccountRates143186.bookRateFor=async(...args)=>{const book=await lookup(...args);await gate;return book;};
+  });
   await d.locator('[data-row="0"] select').selectOption('1222',{force:true});
   await d.locator('[data-row="1"] select').selectOption('1041',{force:true});
+  await line(0,'book_rate_lak').focus();
+  await page.evaluate(()=>releaseBookLookup());
   await page.waitForFunction(()=>document.querySelector('[data-row="0"] [data-field="book_rate_lak"]').value==='22,200.12');
   assert.equal(await line(1,'book_rate_lak').inputValue(),'22,233.35');
+  await remove(0);
+  await d.locator('[data-template]').selectOption('blank',{force:true});
+  await d.locator('[data-template]').selectOption('gen268-settlement-USD',{force:true});
+  assert.deepEqual(await codes(),['1222','1041','9011','9011','5419','9010']);
   await d.locator('[data-memo]').fill('Partial USD salary settlement');
   await d.locator('[data-rates] input').fill(String(payday));
   await line(0,'debit').pressSequentially(String(qty));
@@ -57,6 +87,16 @@ const setup=require('./phase0-browser-fixture.cjs');
    return d.locator('[data-row]').evaluateAll(rows=>rows.map(row=>Object.fromEntries(
     [...row.querySelectorAll('input[data-field]')].map(n=>[n.dataset.field,n.value]))));
   };
+  const date=d.locator('[data-date]');
+  await date.fill('2026-11-06');
+  await page.waitForFunction(()=>document.querySelector('[data-row="0"] [data-field=book_rate_lak]').title.includes('No recorded book rate'));
+  assert.equal(await line(0,'book_rate_lak').inputValue(),'');
+  await d.locator('[data-generate]').click();
+  await page.waitForFunction(()=>document.querySelector('#journalGenerator258 [data-status]').textContent.includes('1222'));
+  assert.equal(await d.locator('[data-use]').isDisabled(),true);
+  await date.fill('2026-11-08');
+  await line(0,'book_rate_lak').focus();
+  await page.waitForFunction(()=>document.querySelector('[data-row="0"] [data-field=book_rate_lak]').value==='22,200.12');
   const rows=await generate();assert.deepEqual(await codes(),['1222','1041','9011','9011','5419','9010']);
   assert.equal(rows[0].debit,'1,234.5');assert.equal(rows[1].credit,'1,234.5');
   assert.equal(rows[2].debit,'1,234.5');assert.equal(rows[3].credit,'1,234.5');

@@ -111,7 +111,7 @@ function templates(){
  {id:'fx14383-income',builtin:true,name:'Record sales received in multiple currencies',generalMemo:'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:[
  row('1016','LAK','debit','Total cash received in LAK'),
  row('4010','LAK','credit','Total dine-in sales in LAK, including foreign-currency receipts'),
- row('9190','LAK','','LAK equivalent of THB and USD sales received','9035'),
+ row('9190','LAK','debit','LAK equivalent of THB and USD sales received','9035'),
  row('1017','THB','debit','Actual Thai baht cash received'),
  row('9101','THB','credit','System offset for dine-in sales in THB','9031'),
  row('1018','USD','debit','Actual US dollar cash received'),
@@ -120,7 +120,7 @@ function templates(){
  row('9201','THB','debit','System offset for cost of goods in THB','9032'),
  row('1017','THB','credit','Actual Thai baht cash paid'),
  row('5010','LAK','debit','Cost of goods purchased at the transaction-date LAK value'),
- row('9290','LAK','','Recorded LAK value of foreign currency spent','9036'),
+ row('9290','LAK','credit','Recorded LAK value of foreign currency spent','9036'),
  row('5419','LAK','','Realized exchange difference: debit loss or credit gain'),
  row('9202','USD','debit','System offset for cost of goods in USD','9034'),
  row('1018','USD','credit','Actual US dollar cash paid')]}
