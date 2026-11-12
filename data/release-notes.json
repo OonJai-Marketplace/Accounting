@@ -1,8 +1,8 @@
 {
-  "version": "143.379",
+  "version": "143.380",
   "changes": [
-    "Find a single account ledger by name or code and see opening balance, debits, credits and closing balance for one month or all months.",
-    "Open reconciliation differences or add holidays and events to the company calendar from the desktop rail.",
-    "Rail pop-ups close when you click outside."
+    "Cashier Home tracks physical cash still to surrender by currency.",
+    "User Home reflects active fund releases and saved staff movements before approval.",
+    "Review shows submitted and returned records or explains when the list is empty."
   ]
 }

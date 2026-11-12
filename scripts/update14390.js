@@ -1,6 +1,6 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-let VERSION='143.379';
+let VERSION='143.380';
 const ua=navigator.userAgent||'';
 const phone=/iPhone|iPod/i.test(ua)||/Android/i.test(ua)&&/Mobile/i.test(ua);
 const workerFile=phone?'phone-sw.js':'desktop-sw14242.js';

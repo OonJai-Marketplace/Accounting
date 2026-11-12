@@ -143,6 +143,81 @@ window.loadTransactionAudit=async function(...args){await cleanResetCache();retu
 })();
 
 ;
+/* Only the visible workspace listens for changes. The revision contains no amounts. */
+window.WorkingStanding379=(()=>{
+ 'use strict';
+ const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const cents=n=>Math.round(Number(n||0)*100);
+ let active=null;
+ function projected(data,requests){
+  const rows=new Map(data.accounts.map(a=>[a.id,{...a,available:cents(a.opening)+cents(a.received),out:cents(a.used)}]));
+  const seen=new Set(),replaced=new Set();
+  function apply(id,change){const a=rows.get(id);if(a){a.available+=Math.max(change,0);a.out+=Math.max(-change,0)}}
+  for(const p of requests){
+   if(!p?.p_key||seen.has(p.p_key))continue;
+   seen.add(p.p_key);
+   if(data.lines.some(l=>l.group?.startsWith(p.p_key+':')))continue;
+   for(const l of data.lines){
+    if(!p.p_edit_ids?.includes(l.id)||replaced.has(l.id+'/'+l.account))continue;
+    replaced.add(l.id+'/'+l.account);
+    const a=rows.get(l.account);if(a){a.available-=Math.max(cents(l.amount),0);a.out-=Math.max(-cents(l.amount),0)}
+   }
+   for(const l of p.p_items||[]){
+    const n=cents(l.amount)*(l.direction==='in'?1:-1);
+    for(const [id,delta] of [[l.fund,n],[l.account,-n]]){
+     const a=rows.get(id);if(a&&l.date<=data.asOf&&(!a.start||l.date>a.start))apply(id,delta);
+    }
+   }
+  }
+  return [...rows.values()];
+ }
+ function panel(s){
+  const host=s.host();if(!host||!s.current())return;
+  const title=s.cashier?'Cash remaining to surrender':'Remaining funds';
+  let html='<h3>'+title+'</h3>';
+  if(s.data){
+   const rows=projected(s.data,s.queue());
+   html+='<div class="personal-metrics1437">'+rows.map(a=>{
+    const amount=n=>escape(s.money(n/100,a.currency));
+    return '<article class="card currency-coded14231" data-currency-code="'+escape(a.currency)+'"><small>'+escape(a.name)+'</small><strong>'+amount(a.available-a.out)+'</strong><p>Available '+amount(a.available)+' · Paid or handed over '+amount(a.out)+'</p>'+
+      (a.settledThrough&&a.settled?'<p>Carried forward '+amount(cents(a.opening))+' · Handed over by '+escape(s.date(a.settledThrough))+' '+amount(cents(a.settled))+'</p>':'')+'</article>';
+   }).join('')+'</div>';
+   if(!rows.length)html+='<p>No tracked accounts are assigned.</p>';
+  }else html+='<p role="status">'+(s.failed?'Balance unavailable.':'Loading balances…')+'</p>';
+  if(s.failed&&s.data)html+='<small>Showing the last downloaded balance.</small>';
+  if(s.failed)html+='<button type="button" class="je-btn je-btn-secondary" data-standing-retry>Refresh balance</button>';
+  if(host._standingHtml!==html){host.innerHTML=html;host._standingHtml=html;const retry=host.querySelector('[data-standing-retry]');if(retry)retry.onclick=()=>refresh(s)}
+ }
+ async function refresh(s){
+  if(active!==s)return;
+  if(!s.current()){close();return}
+  if(s.loading){s.again=true;return}
+  s.loading=true;
+  try{
+   const data=await s.read();
+   if(active!==s||!s.current())return;
+   if(!Array.isArray(data?.accounts)||!Array.isArray(data?.lines))throw Error('Incomplete balance response');
+   s.data=data;s.failed=false;await s.remember?.(data);
+  }catch(error){if(active===s){s.failed=true;if(['42501','PGRST301','PGRST302'].includes(error.code))s.data=null}}
+  finally{s.loading=false;if(active===s){panel(s);if(s.again){s.again=false;void refresh(s)}}}
+ }
+ function close(){const s=active;active=null;if(s?.channel)s.client.removeChannel(s.channel)}
+ function open(options){
+  if(active?.owner===options.owner&&active.actor===options.actor&&active.client===options.client&&active.current()){
+   Object.assign(active,options);panel(active);return;
+  }
+  close();const s=active={...options,data:options.cached||null};panel(s);void refresh(s);
+  if(s.client.channel){
+   s.channel=s.client.channel('working-funds-'+s.owner)
+    .on('postgres_changes',{event:'*',schema:'public',table:'workspace_fund_revision379',filter:'owner_id=eq.'+s.owner},()=>refresh(s))
+    .subscribe(status=>{if(active!==s)return;if(status==='SUBSCRIBED')void refresh(s);else if(['CLOSED','TIMED_OUT','CHANNEL_ERROR'].includes(status)){s.failed=true;panel(s)}});
+  }
+ }
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){close()}else window.dispatchEvent(new Event('standing-visible379'))});
+ window.addEventListener('online',()=>{if(active)void refresh(active)});
+ return {open,close,projected,refresh:()=>active&&refresh(active),paint:()=>active&&panel(active)};
+})();
+
 /* scripts/staff-entry14225.js */
 /* Phone drafts use the existing atomic personal-journal RPC and snapshot format. */
 (function (root) {
@@ -1652,8 +1727,20 @@ function cashbookHtml240(id){
  const totals=rows.reduce((t,l)=>{const m=movement(l);t.in+=m.in;t.out+=m.out;return t},{in:0,out:0});
  return `<section class="personal-active1437 je-card cashbook240" data-currency-code="${esc(currency)}"><header><h3>Active Cashbook</h3>${picker}</header><div class="table-container"><table class="je-table clustered-journal-table"><thead><tr><th style="width:110px!important;min-width:110px!important;white-space:nowrap!important">Date</th><th>Entry ID</th><th>Related account</th><th>Description / reference</th><th>Money In</th><th>Money Out</th></tr></thead><tbody>${rows.map(l=>{const m=movement(l);return `<tr data-entry-id="${esc(l.id)}" data-created-at="${esc(l.created_at||l.transaction_date)}" class="cluster-row-start cluster-row-end"><td style="width:110px!important;min-width:110px!important;white-space:nowrap!important">${esc(formatAppDate(l.transaction_date))}</td><td><div class="entry-id-stack"><span>${esc(l.workspace_entry_no||'Entry')}</span><div class="transaction-review-actions" hidden><button class="je-btn je-btn-secondary" data-edit-personal="${esc(l.id)}" ${can?'':'disabled'}>Edit</button><button class="je-btn je-btn-danger" data-void-personal="${esc(l.id)}" ${can?'':'disabled'}>Void</button></div></div></td><td>${esc(workspaceAccountName(m.related))}</td><td class="personal-memo267">${journalMemoHtml143187(l.memo||'')}${l.reference?'<small>'+journalMemoHtml143187(l.reference)+'</small>':''}</td><td class="num">${m.in?esc(amount(m.in)):'—'}</td><td class="num">${m.out?esc(amount(m.out)):'—'}</td></tr>`}).join('')||'<tr><td colspan="6" class="period-empty">No editable entries for this account.</td></tr>'}</tbody><tfoot><tr><th colspan="4">Total · ${esc(currency)}</th><td class="num">${esc(amount(totals.in))}</td><td class="num">${esc(amount(totals.out))}</td></tr></tfoot></table></div>${s.correction?`<div class="transaction-review-actions"><button class="je-btn je-btn-secondary" onclick="personalJournal1437.endCorrection(${esc(JSON.stringify(id))})">Cancel correction</button><button class="je-btn je-btn-emerald" onclick="submitWorkspaceForReview(${esc(JSON.stringify(id))})">Finish correction</button></div>`:''}</section>`;
 }
-function homeHtml(id){const data=window.funds113?.confirmed.get(id)||[],currencies=new Map();for(const r of data){if(!currencies.has(r.currency))currencies.set(r.currency,{available:0,used:0,remaining:0});const v=currencies.get(r.currency);v.available+=Number(r.opening||0)+Number(r.received||0);v.used+=Number(r.used||0)+Number(r.handover||0);v.remaining+=Number(r.closing||0)}
- return `<section class="personal-home1437"><h3>Remaining Funds</h3><div class="personal-metrics1437">${[...currencies].map(([c,v])=>`<article class="currency-coded14231" data-currency-code="${esc(c)}"><small>${esc(c)}</small><strong>${esc(amount(v.remaining))}</strong><p>Available ${esc(amount(v.available))} · Used ${esc(amount(v.used))}</p><progress max="100" value="${v.available>0?Math.max(0,Math.min(100,v.remaining/v.available*100)):0}"></progress></article>`).join('')||'<p>Assigned fund balances will appear after loading.</p>'}</div><div class="personal-shortcuts1437">${[['journal','Post Entry','Record a transaction'],['summary','Summary','Funds and account totals'],['history','History','Completed reports']].map(([t,n,d])=>`<button data-personal-tab="${t}"><b>${n}</b><span>${d}</span></button>`).join('')}</div><h3>Recent entries</h3>${journals(id).flatMap(j=>(j.lines||[]).map(l=>({...l,status:j.status}))).sort((a,b)=>String(b.transaction_date).localeCompare(String(a.transaction_date))).slice(0,5).map(l=>`<div class="personal-recent1437"><span>${esc(formatAppDate(l.transaction_date))} · ${esc(l.memo)}<small>${esc(l.status)}</small></span><b>${esc(amount(l.amount))} ${esc(l.currency_code)}</b></div>`).join('')||'<p>No saved entries yet.</p>'}</section>`;
+function startStanding(id){
+ const actor=liveProfile?.id,client=ojmDb,root=$('personalWorkspace1437');
+ const current=()=>actor===liveProfile?.id&&client===ojmDb&&root===$('personalWorkspace1437')&&root?.dataset.owner===id&&state(id).tab==='home'&&$('sub-users-workspace')?.classList.contains('active');
+ if(!current()||document.hidden)return;
+ WorkingStanding379.open({actor,owner:id,client,current,cashier:String(subUserPermission(user(id))?.job_title||'').trim().toLowerCase()==='cashier',
+  host:()=>root.querySelector('[data-standing379]'),date:formatAppDate,money:(n,c)=>amount(n)+' '+c,
+  queue:()=>[...(window.offline14239?.queue()||[]).filter(j=>j.status!=='synced'),...(window.saveNotices14234?.staffPending(id)||[])].map(j=>j.payload).filter(p=>p?.p_owner===id),
+  read:async()=>{const read=async()=>{const r=await client.rpc('workspace_standing379',{p_owner:id});if(r.error)throw r.error;return r.data};return window.offline14239?.freshReads?offline14239.freshReads(read):read()}
+ });
+}
+window.addEventListener('standing-visible379',()=>{const root=$('personalWorkspace1437');if(root)startStanding(root.dataset.owner)});
+window.addEventListener('save-state14234',()=>window.WorkingStanding379?.paint());
+function homeHtml(id){
+ return `<section class="personal-home1437"><div data-standing379></div><div class="personal-shortcuts1437">${[['journal','Post Entry','Record a transaction'],['summary','Summary','Funds and account totals'],['history','History','Completed reports']].map(([t,n,d])=>`<button data-personal-tab="${t}"><b>${n}</b><span>${d}</span></button>`).join('')}</div><h3>Recent entries</h3>${journals(id).flatMap(j=>(j.lines||[]).map(l=>({...l,status:j.status}))).sort((a,b)=>String(b.transaction_date).localeCompare(String(a.transaction_date))).slice(0,5).map(l=>`<div class="personal-recent1437"><span>${esc(formatAppDate(l.transaction_date))} · ${esc(l.memo)}<small>${esc(l.status)}</small></span><b>${esc(amount(l.amount))} ${esc(l.currency_code)}</b></div>`).join('')||'<p>No saved entries yet.</p>'}</section>`;
 }
 function historyCard(j){
  if(Object.hasOwn(j,'request_no'))return window.workspaceRecords1437.card(j);
@@ -1669,8 +1756,21 @@ function historyHtml(id){const s=state(id),all=[...journals(id).filter(j=>comple
 // Compare source markup, not decorated DOM: icons must survive unrelated updates.
 function paintPanel1437(panel,markup){if(!panel||panel._personalMarkup1437===markup)return;panel._personalMarkup1437=markup;panel.innerHTML=markup;panel.querySelectorAll('.personal-active1437 tbody').forEach(body=>window.JournalEntryMenu14387?.decorate(body,[],true));if(panel.matches('[data-personal-panel=history]'))historyMonth14341.expand(panel);window.savedReports1434?.decorate();window.headerIcons112?.decorate();}
 function summaryRows14331(id){const selected=window.funds113?.selectedMonths(id)||[];return journals(id).filter(editable).flatMap(j=>(j.lines||[]).filter(l=>!l.voided_at&&l.status!=='voided'&&(!selected.length||selected.includes(String(l.transaction_date).slice(0,7)))))}
-function updatePanels(id){const root=$('personalWorkspace1437');if(!root||root.dataset.owner!==id)return;const tab=state(id).tab;if(tab==='home')paintPanel1437(root.querySelector('[data-personal-panel=home]'),homeHtml(id));if(tab==='review')paintPanel1437(root.querySelector('[data-personal-panel=review]'),'<h3>Review</h3>'+journals(id).filter(j=>['submitted','returned'].includes(j.status)).map(j=>workspaceRecords1437.card(j)).join(''));if(tab==='journal')paintPanel1437(root.querySelector('#personalActive1437'),activeHtml(id));if(tab==='summary')paintPanel1437(root.querySelector('#personalTotals1437'),workspaceAccountSummary(summaryRows14331(id)));if(tab==='history')paintPanel1437(root.querySelector('[data-personal-panel=history]'),historyHtml(id));window.dropdown1434?.enhance(root.querySelector('[data-personal-panel="'+tab+'"]')||root);}
+function reviewHtml(id){
+ const s=state(id),items=[...(s.reviewJournals||journals(id)),...(s.reviewAdjustments||[])].filter(j=>['submitted','returned'].includes(j.status));
+ return '<h3>Review</h3>'+items.map(j=>workspaceRecords1437.card(j)).join('')+
+  (s.reviewMessage?'<p role="status">'+esc(s.reviewMessage)+'</p>':items.length?'':'<p class="period-empty">No submissions are awaiting review or returned for correction. Drafts are in Journal. Completed submissions are in History.</p>');
+}
+function updatePanels(id){const root=$('personalWorkspace1437');if(!root||root.dataset.owner!==id)return;const tab=state(id).tab;if(tab==='home'){paintPanel1437(root.querySelector('[data-personal-panel=home]'),homeHtml(id));startStanding(id)}if(tab==='review')paintPanel1437(root.querySelector('[data-personal-panel=review]'),reviewHtml(id));if(tab==='journal')paintPanel1437(root.querySelector('#personalActive1437'),activeHtml(id));if(tab==='summary')paintPanel1437(root.querySelector('#personalTotals1437'),workspaceAccountSummary(summaryRows14331(id)));if(tab==='history')paintPanel1437(root.querySelector('[data-personal-panel=history]'),historyHtml(id));window.dropdown1434?.enhance(root.querySelector('[data-personal-panel="'+tab+'"]')||root);}
 function show(id,tab){const actor=liveProfile?.id,client=ojmDb;const root=$('personalWorkspace1437');if(!root||root.dataset.owner!==id||!tabs.includes(tab))return;state(id).tab=tab;try{localStorage.setItem(tabKey(id),tab)}catch{}
+ if(tab!=='home')WorkingStanding379.close();
+ if(tab==='review'){
+  const s=state(id),request=Symbol();s.reviewRequest=request;s.reviewMessage='Loading submissions…';
+  Promise.all([client.from('staff_journals').select('*,lines:staff_journal_lines(*)').eq('owner_id',id).in('status',['submitted','returned']).order('period_start',{ascending:false}),workspaceRecords1437.getAdjustments(id)]).then(([books,adjustments])=>{
+   if(books.error)throw books.error;
+   if(s.reviewRequest===request){s.reviewJournals=books.data;s.reviewAdjustments=adjustments;s.reviewMessage=''}
+  }).catch(e=>{if(s.reviewRequest===request)s.reviewMessage='Review could not load completely. '+e.message}).finally(()=>{if(actor===liveProfile?.id&&client===ojmDb&&root===$('personalWorkspace1437')&&s.tab==='review')updatePanels(id)});
+ }
  root.closest('.v49-desktop-workspace')?.classList.toggle('ledger-view14281',tab==='ledger');
  if(tab==='journal')mount(id);else detach();
  root.querySelectorAll('[data-personal-panel]').forEach(n=>n.hidden=n.dataset.personalPanel!==tab);
@@ -1746,7 +1846,7 @@ function ready(){card=$('journalEntry98');if(!card||!window.entry1430)return;anc
  for(const type of ['input','change'])card.addEventListener(type,()=>{if(scope&&!restoring){card._requestKey1437='pj-'+crypto.randomUUID();remember();label()}});
  window.addEventListener('staff-retried14234',e=>{const d=e.detail;if(d.actor!==liveProfile?.id)return;const k=key(d.owner),saved=drafts.get(k);if(saved?.requestKey===d.key){drafts.delete(k);if(scope===d.owner&&card._requestKey1437===d.key){restore(null);remember();label()}}});
  window.addEventListener('pagehide',remember);window.addEventListener('resize',()=>{if(!desktop())detach();else if($('sub-users-workspace')?.classList.contains('active'))installDesktop()});
- let queued=false;new MutationObserver(records=>{if(queued||!records.some(r=>r.target.closest?.('.fund-result113')))return;queued=true;requestAnimationFrame(()=>{queued=false;const root=$('personalWorkspace1437');if(root)paintPanel1437(root.querySelector('[data-personal-panel=home]'),homeHtml(root.dataset.owner))})}).observe(document.body,{subtree:true,childList:true});
+ let queued=false;new MutationObserver(records=>{if(queued||!records.some(r=>r.target.closest?.('.fund-result113')))return;queued=true;requestAnimationFrame(()=>{queued=false;const root=$('personalWorkspace1437');if(root&&state(root.dataset.owner).tab==='home')updatePanels(root.dataset.owner)})}).observe(document.body,{subtree:true,childList:true});
  installDesktop();
 }
 function openCorrection(journalId){const j=(reviewStaffJournals||[]).find(x=>x.id===journalId);if(!j||j.status!=='returned'||!access113.can('sub-users-workspace','edit'))return false;const id=String(j.owner_id);if(liveProfile?.id===id&&!cashierMonthAllows(id,j.period_start))return false;if(!Organization14229.mayOpen(id))return false;document.getElementById('finalRecordsOverlay')?.remove();document.getElementById('returnedBookOverlay')?.remove();openWorkspaceUser(id);installDesktop();state(id).correction=journalId;state(id).tab='journal';updatePanels(id);show(id,'journal');document.getElementById('personalActive1437')?.scrollIntoView({block:'start'});return true;}
