@@ -1,1 +1,1 @@
-{"version": "143.351", "changes": ["Desktop status dock shows pinned sequential checklists and database usage. Refresh all updates both.", "Removed the floating Open in Document Editor shortcut."]}
+{"version": "143.352", "changes": ["Chart of Accounts prepares account groups at sign-in, reuses the list on return, and draws long charts as you scroll."]}

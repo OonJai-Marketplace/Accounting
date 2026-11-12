@@ -2,6 +2,7 @@
 (()=>{'use strict';
 const $=id=>document.getElementById(id),esc=value=>escapeHtml(String(value??''));
 const types=[['ALL','All types'],['ASSET','Assets'],['LIABILITY','Liabilities'],['EQUITY','Equity'],['INCOME','Income'],['EXPENSE','Expenses'],['SYSTEM','System']];
+let renderedEditAccess;
 let groups=[],owner='',client=null,loaded=false,loading=null,error='',group='all',type='ALL',assignment='all',epoch=0,readSerial=0;
 const desktop=()=>innerWidth>640&&document.documentElement.dataset.device132!=='phone';
 const actor=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
@@ -10,10 +11,32 @@ const canRead=()=>!!actor()&&(liveProfile.role==='admin'||window.access113?.can(
 const canEdit=()=>desktop()&&!!actor()&&liveProfile.role==='admin'&&(!window.access113||access113.can('sec-chart-accounts','edit'));
 function context(){const db=typeof ojmDb==='undefined'?null:ojmDb;if(owner!==actor()||client!==db){owner=actor();client=db;groups=[];loaded=false;loading=null;error='';group='all';type='ALL';assignment='all';epoch++;}return {owner,client,epoch};}
 const current=c=>c.owner===actor()&&c.client===(typeof ojmDb==='undefined'?null:ojmDb)&&c.epoch===epoch;
-function idsFor(id){const chosen=groups.find(g=>g.id===id);return new Set(groups.filter(g=>g.id===id||chosen?.kind==='branch'&&g.parent_id===id).flatMap(g=>g.account_ids||[]));}
-function inGroup(account,id){if(id==='all')return true;if(id==='unassigned')return !groups.some(g=>(g.account_ids||[]).includes(account.id));return idsFor(id).has(account.id);}
+// Membership only changes when a group's saved records are replaced.
+let indexedGroups, memberships, accountLabels;
+function indexGroups(){
+ if(indexedGroups===groups)return;
+ memberships=new Map(groups.map(g=>[g.id,new Set()]));
+ accountLabels=new Map();
+ const branches=new Set(groups.filter(g=>g.kind==='branch').map(g=>g.id));
+ for(const g of groups){
+  const members=memberships.get(g.id),parent=branches.has(g.parent_id)&&memberships.get(g.parent_id);
+  for(const id of new Set(g.account_ids||[])){
+   members.add(id);
+   if(parent)parent.add(id);
+   if(!accountLabels.has(id))accountLabels.set(id,[]);
+   accountLabels.get(id).push(g.name);
+  }
+ }
+ indexedGroups=groups;
+}
+function idsFor(id){indexGroups();return new Set(memberships.get(id));}
+function inGroup(account,id){
+ if(id==='all')return true;
+ indexGroups();
+ return id==='unassigned'?!accountLabels.has(account.id):!!memberships.get(id)?.has(account.id);
+}
 function matches(account){return !desktop()||(inGroup(account,group)&&(type==='ALL'||account.type===type||(type==='INCOME'&&account.type==='REVENUE')));}
-function labels(account){return groups.filter(g=>(g.account_ids||[]).includes(account.id)).map(g=>g.name);}
+function labels(account){indexGroups();return accountLabels.get(account.id)||[];}
 function badge(account){return desktop()?labels(account).map(name=>'<span class="account-group-badge143180 no-print">'+esc(name)+'</span>').join(''):'';}
 async function load(force=false){
  const c=context();if(!canRead()||!c.client)return [];if(loading&&!force)return loading;if(loaded&&!force)return groups;const serial=++readSerial;
@@ -21,6 +44,12 @@ async function load(force=false){
   const read=()=>force&&window.offline14239?.freshReads?offline14239.freshReads(fetchRows):fetchRows();const rows=window.localFirst14333?.snapshot?await localFirst14333.snapshot('account-groups143180',read,{force}):await read();
   if(!current(c)||serial!==readSerial)return [];groups=rows;loaded=true;error='';if(!['all','unassigned'].includes(group)&&!groups.some(g=>g.id===group))group='all';renderChartOfAccountsTable();refreshAssignment();return groups;
  }catch(e){if(current(c)&&serial===readSerial){error=e.message||'Groups could not be loaded.';render();}throw e;}finally{if(current(c)&&loading===task)loading=null;}})();loading=task;return task;
+}
+async function prepare(force=false){
+ if(!desktop()||!actor()||!window.access113?.can('sec-chart-accounts'))return;
+ // An unavailable optional group snapshot can retry when the chart opens.
+ // An explicit refresh still reports its error to the synchronization screen.
+ try{await load(force);}catch(error){if(force)throw error;}
 }
 function choose(nextGroup=group,nextType=type){group=nextGroup;type=nextType;renderChartOfAccountsTable();const main=$('chartMain143180');if(main)main.scrollTop=0;}
 function mount(){const root=$('sec-chart-accounts');if(!root||!desktop()||$('chartBrowser143180'))return;
@@ -34,7 +63,7 @@ function render(){context();if(!desktop()){const grid=$('chartBrowser143180');if
  const list=accounts(),count=id=>list.filter(a=>inGroup(a,id)).length;
  navigation($('chartGroupNav143180'),[['all','All accounts',list.length],...ordered().map(g=>[g.id,g.name,count(g.id),g.kind==='department']),...(count('unassigned')?[['unassigned','Unassigned',count('unassigned')]]:[])],group,id=>choose(id));
  navigation($('chartTypeNav143180'),types.map(([id,label])=>[id,label,list.filter(a=>inGroup(a,group)&&(id==='ALL'||a.type===id||id==='INCOME'&&a.type==='REVENUE')).length]),type,id=>choose(group,id));
- $('chartManage143180').hidden=!canEdit();$('chartAssign143180').hidden=!canEdit();$('chartAssign143180').textContent=groups.some(g=>g.id===group)?'Add existing accounts':'Assign accounts';$('chartGroupStatus143180').textContent=error||(!loaded?'Loading groups…':'');
+ renderedEditAccess=canEdit();$('chartManage143180').hidden=!renderedEditAccess;$('chartAssign143180').hidden=!renderedEditAccess;$('chartAssign143180').textContent=groups.some(g=>g.id===group)?'Add existing accounts':'Assign accounts';$('chartGroupStatus143180').textContent=error||(!loaded?'Loading groups…':'');
  const title=$('sec-chart-accounts').querySelector('.card-title');if(title)title.textContent=group==='all'?'Chart of Accounts':group==='unassigned'?'Unassigned accounts':groups.find(g=>g.id===group)?.name+' accounts';
 }
 async function saveGroup(values,record){const c=context();if(!canEdit())throw Error('Administrator access is required.');if(navigator.onLine===false)throw Error('Connect to save group changes. Your selections are kept here.');
@@ -70,12 +99,13 @@ function refreshAssignment(){
  select.innerHTML='<option value="all">All accounts</option>'+ordered().map(g=>`<option value="${esc(g.id)}">${esc(g.kind==='department'?'↳ ':'')+esc(g.name)}</option>`).join('');select.value=groups.some(g=>g.id===assignment)?assignment:'all';filterAssignment();
 }
 function filterAssignment(){const selected=$('assignmentGroup143180')?.value||'all';for(const input of document.querySelectorAll('#userFundAccountGrid input,#userAccountAccessGrid input')){const a=accounts().find(a=>(a.id||a.code)===input.value);input.closest('label').hidden=!!a&&!input.checked&&!inGroup(a,selected);}}
-let actionHeader=null,actionMenu=null,actionAnchor=null;
+let actionHeader=null,actionMenu=null,actionAnchor=null,anchorBox=null;
 const rowActions=new WeakMap();
-function closeActions(focus=false){actionMenu?.remove();actionMenu=null;if(actionAnchor){actionAnchor.setAttribute('aria-expanded','false');actionAnchor.removeAttribute('aria-controls');if(focus&&actionAnchor.isConnected)actionAnchor.focus();}actionAnchor=null;}
+function closeActions(focus=false){actionMenu?.remove();actionMenu=null;if(actionAnchor){actionAnchor.setAttribute('aria-expanded','false');actionAnchor.removeAttribute('aria-controls');if(focus&&actionAnchor.isConnected)actionAnchor.focus();}actionAnchor=null;anchorBox=null;}
 function decorateTable(){
  closeActions();const table=$('tblChartOfAccounts'),body=$('coaTableBody');if(!table||!body)return;
  const head=table.tHead?.rows[0];if(!head)return;
+ table.classList.toggle('chart-long-list',desktop()&&body.rows.length>=50);
  if(desktop()){
   if(head.cells.length===6){window.tableResize143117?.reset(table);actionHeader=head.lastElementChild;actionHeader.remove();}
   table.classList.add('chart-no-actions143181');
@@ -92,7 +122,7 @@ function openActions(row,event){
  const menu=document.createElement('div');actionMenu=menu;menu.id='chartActionMenu143181';menu.className='chart-action-menu143181';menu.setAttribute('role','menu');menu.setAttribute('aria-label','Account actions');row.setAttribute('aria-expanded','true');row.setAttribute('aria-controls',menu.id);
  const title=document.createElement('strong');title.textContent=row.cells[0].textContent+' · '+row.cells[1].querySelector('strong').textContent;menu.append(title);
  for(const b of buttons){b.setAttribute('role','menuitem');menu.append(b);}
- document.body.append(menu);const box=row.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(event?event.clientX+6:box.left,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(event?event.clientY+6:box.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button:not(:disabled)')?.focus();
+ document.body.append(menu);const box=row.getBoundingClientRect();anchorBox=box;menu.style.left=Math.max(8,Math.min(event?event.clientX+6:box.left,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(event?event.clientY+6:box.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button:not(:disabled)')?.focus({preventScroll:true});
 }
 function ready(){
  document.addEventListener('dblclick',e=>{if(e.target.closest('button,input,select,a,.column-resize143117'))return;const row=e.target.closest('#coaTableBody tr');if(row)openActions(row,e);});
@@ -100,7 +130,11 @@ function ready(){
  document.addEventListener('focusin',e=>{if(actionMenu&&!actionMenu.contains(e.target))closeActions();});
  // Wait until delegated Group/Edit/Delete handlers have received the original button.
  document.addEventListener('click',()=>{const opened=actionMenu;if(opened)setTimeout(()=>{if(actionMenu===opened)closeActions();},0);});
- document.addEventListener('scroll',e=>{if(actionMenu&&!actionMenu.contains(e.target))closeActions();},true);
+ document.addEventListener('scroll',e=>{
+  if(!actionMenu||actionMenu.contains(e.target))return;
+  const box=actionAnchor.getBoundingClientRect();
+  if(box.top!==anchorBox.top||box.left!==anchorBox.left)closeActions();
+ },true);
  window.addEventListener('page113',()=>closeActions());window.addEventListener('resize',()=>closeActions());
 
  const add=window.openAddAccountModal;if(typeof add==='function')window.openAddAccountModal=function(...args){const result=add.apply(this,args);const selected=desktop()&&document.querySelector('.tab-content.active')?.id==='accounts-modular-container'?groups.find(g=>g.id===group):null;const form=$('formAccount');if(form){form.dataset.group143180=selected?.id||'';form.dataset.create143180=crypto.randomUUID();let field=$('newAccountGroupField143180');if(desktop()&&canRead()){if(!field){field=document.createElement('label');field.id='newAccountGroupField143180';field.className='form-group';field.innerHTML='Business group<select id="newAccountGroup143180" required></select>';form.prepend(field);}field.hidden=false;const select=field.querySelector('select');select.disabled=false;const creation=form.dataset.create143180;const fill=()=>{if(form.dataset.create143180!==creation||$('accountOrigCode').value)return;select.innerHTML='<option value="">Choose a group</option>'+ordered().map(g=>'<option value="'+esc(g.id)+'">'+esc(g.name)+'</option>').join('');select.value=selected?.id||'';};fill();select.onchange=()=>form.dataset.group143180=select.value;if(!loaded)load().then(fill).catch(()=>{});}else if(field){field.hidden=true;field.querySelector('select').disabled=true;}}if(selected)$('modalAccountTitle').textContent+=' · '+selected.name;return result;};
@@ -108,10 +142,31 @@ function ready(){
  const open=window.openUserAccessEditor;if(typeof open==='function')window.openUserAccessEditor=function(...args){const result=open.apply(this,args);assignment='all';refreshAssignment();const id=$('userAccessId')?.value;load().then(()=>{if($('userAccessId')?.value!==id)return;assignment=groups.find(g=>g.name.toLocaleLowerCase()===($('userAccessDepartment14229')?.value||'').trim().toLocaleLowerCase())?.id||'all';refreshAssignment();}).catch(()=>{});return result;};
  document.addEventListener('click',e=>{const button=e.target.closest?.('[data-account-group143180]');if(button)assignAccount(button.dataset.accountGroup143180).catch(e=>showCenterStatus(e.message,true));});
  document.addEventListener('change',e=>{if(e.target.id==='userAccessDepartment14229'){assignment=groups.find(g=>g.name.toLocaleLowerCase()===e.target.value.trim().toLocaleLowerCase())?.id||'all';refreshAssignment();}else if(e.target.closest?.('#userFundAccountGrid,#userAccountAccessGrid'))filterAssignment();});
- const route=()=>{render();if(canRead()&&(document.querySelector('.tab-content.active')?.id==='accounts-modular-container'||document.querySelector('.tab-content.active')?.id==='settings-users'))load().catch(()=>{});};
- let queued=false;const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;route();});}};window.addEventListener('page113',schedule);new MutationObserver(rs=>{if(rs.some(r=>r.target.matches?.('.tab-content')))schedule();}).observe(document.querySelector('.main-content-area')||document.body,{attributes:true,subtree:true,attributeFilter:['class']});window.addEventListener('resize',()=>{render();renderChartOfAccountsTable();});window.addEventListener('online',()=>{if(canRead())load(true).catch(()=>{});});route();
+ let desktopLayout=desktop();
+ function route(){
+  context();
+  const area=document.querySelector('.tab-content.active')?.id;
+  if(!desktop()||!canRead()||!['accounts-modular-container','settings-users'].includes(area))return;
+  if(area==='accounts-modular-container'&&(!document.getElementById('chartBrowser143180')||renderedEditAccess!==canEdit())){
+   render();
+  }
+  if(!loaded&&!loading)load().catch(()=>{});
+ }
+ let queued=false;
+ function schedule(){
+  if(queued)return;
+  queued=true;requestAnimationFrame(()=>{queued=false;route();});
+ }
+ window.addEventListener('page113',schedule);
+ new MutationObserver(rs=>{if(rs.some(r=>r.target.matches?.('.tab-content')))schedule();}).observe(document.querySelector('.main-content-area')||document.body,{attributes:true,subtree:true,attributeFilter:['class']});
+ window.addEventListener('resize',()=>{
+  if(desktopLayout===desktop())return;
+  desktopLayout=desktop();render();renderChartOfAccountsTable();route();
+ });
+ window.addEventListener('online',()=>{if(canRead())load(true).catch(()=>{});});
+ route();
 }
-window.AccountGroups143180={decorateTable,matches,badge,render,load,save:saveGroup,idsFor,inGroup,labels,get filterKey(){context();return desktop()?[group,type]:[];},get groups(){return groups;},canEdit,choose,refreshAssignment};
+window.AccountGroups143180={decorateTable,matches,badge,render,load,prepare,save:saveGroup,idsFor,inGroup,labels,get filterKey(){context();return desktop()?[group,type]:[];},get groups(){return groups;},canEdit,choose,refreshAssignment};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
 

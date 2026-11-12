@@ -114,3 +114,31 @@
  html body #chartMain143180 .coa-search1439{flex:1 1 180px!important;min-width:0!important;max-width:100%!important}
 }}
 
+
+/* Keep every row searchable and focusable. Fixed screen columns let the browser
+   skip offscreen row contents. Print, fitted and manually resized tables retain
+   their native table layout. */
+@supports (content-visibility:auto) {
+ @media screen and (min-width:641px) {
+  @layer corrections14337 {
+   #chartMain143180 #tblChartOfAccounts.chart-long-list:not(.table-resized143117,.workspace-fit296) {
+    display:block;
+    --chart-columns:80px 26% 88px 100px minmax(0,1fr);
+   }
+   #tblChartOfAccounts.chart-long-list:not(.table-resized143117,.workspace-fit296) > :is(thead,tbody) {display:block}
+   #tblChartOfAccounts.chart-long-list:not(.table-resized143117,.workspace-fit296) tr {
+    display:grid;
+    grid-template-columns:var(--chart-columns);
+   }
+   html body #chartMain143180 #tblChartOfAccounts.chart-long-list:not(.table-resized143117,.workspace-fit296) tr > :is(th,td) {
+    width:auto!important;
+    min-width:0!important;
+   }
+   #tblChartOfAccounts.chart-long-list:not(.table-resized143117,.workspace-fit296) tbody tr {
+    content-visibility:auto;
+    contain-intrinsic-size:auto 42px;
+   }
+  }
+ }
+}
+
