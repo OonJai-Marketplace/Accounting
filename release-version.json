@@ -1,1 +1,1 @@
-{"version": "143.349", "changes": ["Regular foreign salary settlements show separate staff and bank book rates, both FX bridge lines and the realized gain or loss. Generate preserves amount grouping on repeat calculations."]}
+{"version": "143.350", "changes": ["Cashier Active Journal uses the current month. Prior drafts remain available for review in History."]}

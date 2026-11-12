@@ -9,6 +9,11 @@
   }
   const modeKey243=()=> 'ojm-phone-entry-mode243:'+scope+':'+S.actor+':'+S.owner;
   function preferredMode243(){try{const value=localStorage.getItem(modeKey243());if(['single','double'].includes(value))return value}catch{}const p=(S.owner!==S.actor?S.data.target?.permissions:S.data.access?.permissions)||{};return p.workspace_entry_mode240==='cashbook'?'single':'double';}
+  const cashierBusinessMonth=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit'});
+function cashierMonthAllows(date) {
+    const permission = S.owner===S.actor ? S.data.access?.permissions : S.data.target?.permissions;
+    return String(permission?.job_title||'').trim().toLowerCase()!=='cashier'||String(date).slice(0,7)===cashierBusinessMonth.format(new Date());
+  }
   function rules() {
     const p = (S.owner!==S.actor?S.data.target?.permissions:S.data.access?.permissions) || {};
     return {offersBothMethods:p.workspace_entry_mode240==='both',entryMode:preferredMode243()==='single'?'cashbook':'double_full',directions:(p.allowed_directions?.length ? p.allowed_directions : ['out']).filter(x => ['in','out'].includes(x)), fundIds:(p.assigned_fund_account_ids || []).filter(Boolean), entryIds:(p.destination_account_ids?.length ? p.destination_account_ids : p.allowed_account_ids || []).filter(Boolean), counterpart:p.money_in_counterpart_account_id || '', multiple:!!p.allow_multiple_funds};

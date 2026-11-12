@@ -3,7 +3,10 @@
     readPhoneForm();
     let prepared;
     const draft=structuredClone(S.draft);
-    try{prepared=preparePhoneEntry(draft);}
+    try{
+      prepared=preparePhoneEntry(draft);
+      if(S.owner===S.actor&&prepared.items.some(item=>!cashierMonthAllows(item.date)))throw Error('Cashier entries must be dated in the current month.');
+    }
     catch(error){saveDraftLater();updateValidation();notice(error.message,true,true);return;}
     if($('notice').dataset.entryValidation)notice();
     const owner=S.owner,epoch=S.epoch;let savedOnDevice=false;S.saving=true;

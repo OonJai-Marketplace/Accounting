@@ -50,4 +50,4 @@
   }
   const reopened14348=new Set();
   const correctionKey14348=j=>S.actor+':'+S.owner+':'+j.id;
-  const editable14348=j=>j.status==='draft'||j.status==='returned'&&reopened14348.has(correctionKey14348(j));
+  const editable14348=j=>cashierMonthAllows(j.period_start)&&(j.status==='draft'||j.status==='returned'&&reopened14348.has(correctionKey14348(j)));
