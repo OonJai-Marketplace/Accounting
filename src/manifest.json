@@ -3831,6 +3831,10 @@
     ],
     "scripts/reconciliation14345.js": [
       {
+        "source": "src/subusers/history/submission-history-ids.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/bridges/subusers-bookkeeping/reconciliation14345.js"
       }
     ],

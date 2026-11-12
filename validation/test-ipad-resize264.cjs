@@ -9,7 +9,7 @@ const node=tag=>({tagName:tag,style:style(),classList:classes(),dataset:{},child
  remove(){this.parentElement.children=this.parentElement.children.filter(n=>n!==this);this.isConnected=false},
  setPointerCapture(id){this.capture=id},
 });
-const table=node('TABLE');table.id='journal';table.matches=()=>false;table.closest=()=>table;
+const table=node('TABLE');table.id='journal';table.matches=()=>false;table.closest=selector=>selector==='[id]'?table:null;
 const make=(text,left,width,hidden=false)=>Object.assign(node('TH'),{textContent:text,colSpan:1,rowSpan:1,hidden,closest:()=>table,getBoundingClientRect:()=>({left,right:left+width,width})});
 const date=make('Date',0,100,true),account=make('Account',0,100),memo=make('Memo',100,200),debit=make('Debit',300,180);
 const cells=[date,account,memo,debit];table.tHead={rows:[{cells}]};table.getBoundingClientRect=()=>({left:0,width:480});

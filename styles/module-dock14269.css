@@ -131,3 +131,22 @@ html[data-device132="tablet"] body.shell113 .tab-content{
   .staff-journal-table:not(.table-resized143117) #staffEntryHeader .action-col{width:34px!important}
  }
 }
+
+@layer screenFit296 {
+ @media screen {
+  table:is(.workspace-columns376,.workspace-full376):not(.table-resized143117){
+   width:100%!important;max-width:100%!important;box-sizing:border-box!important
+  }
+  table.workspace-columns376:not(.table-resized143117){
+   min-width:0!important;table-layout:fixed!important
+  }
+  table.workspace-columns376:not(.table-resized143117) > :is(thead,tbody,tfoot) > tr > :is(th,td){
+   min-width:0!important;max-width:none!important;box-sizing:border-box!important;
+   white-space:normal!important;overflow-wrap:anywhere!important
+  }
+  table.workspace-columns376:not(.table-resized143117) > :is(thead,tbody) > tr > th{
+   width:var(--workspace-column376,auto)!important
+  }
+  table.workspace-columns376:not(.table-resized143117) > :is(tbody,tfoot) > tr > td{width:auto!important}
+ }
+}

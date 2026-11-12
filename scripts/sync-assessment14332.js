@@ -93,10 +93,29 @@ function findings(selected=''){
   const request=requests.get(f.id);
   if(!request)return f;
   const confirmed=request.status==='server-confirmed';
-  return {...f,kind:confirmed?'cleanup':f.kind,critical:confirmed?false:f.critical,status:request.state,title:request.source+' · '+window.syncRecords284.summarize(request.items),detail:request.message||request.action,repair:request.retry?'request':request.recheck?'recheck':null};
+  const summary=window.syncRecords284.summarize(request.items);
+  const confirmation=confirmed&&['journal','legacy','batch'].includes(request.kind)&&f.kind==='journal';
+  return {...f,confirmation,kind:confirmed?'cleanup':f.kind,critical:confirmed?false:f.critical,status:request.state,title:summary.startsWith(request.source+' ')?summary:request.source+' · '+summary,detail:request.message||request.action,repair:request.retry?'request':request.recheck?'recheck':null};
  }).map(f=>({...f,created:f.created||f.job?.created||f.job?.syncedAt||null,source:f.job?.kind||f.kind})).filter(f=>!selected||f.periods.includes(selected)||!f.periods.length||f.kind==='storage');
 }
-function notices(){const items=findings();if(!items.length)return [];const overview=window.idleSync14341?.overview(),count=overview?.pending??items.length,issues=new Set(items.filter(f=>f.critical).map(f=>f.id)).size;const fingerprint=JSON.stringify(items.map(f=>[f.id,f.status]).sort()).split('').reduce((hash,c)=>Math.imul(hash^c.charCodeAt(0),16777619)>>>0,2166136261).toString(36);return [{noticeId:'sync-'+fingerprint,type:'Synchronization',title:count?count+' records waiting to sync':issues?'Sync needs attention':'Saved copies need checking',detail:[issues?issues+' need review':'',overview?.pendingBytes?idleSync14341.bytes(overview.pendingBytes)+' queued':'','Open Data Check to sync by group'].filter(Boolean).join(' · '),target:window.access113?.can('transactions-closing14325')?'transactions-closing14325':'sync-status',syncId:'overview',critical:issues>0,persistent:count>0||issues>0}];}
+// Dismissing a confirmation changes only the current account's display in this tab.
+const dismissedByAccount=new Map();
+function dismissed(){
+ const key='sync-confirmations:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+(liveProfile?.id||'');
+ if(!dismissedByAccount.has(key)){
+  let ids=[];try{ids=JSON.parse(sessionStorage.getItem(key)||'[]')}catch{}
+  dismissedByAccount.set(key,new Set(Array.isArray(ids)?ids:[]));
+ }
+ return {key,ids:dismissedByAccount.get(key)};
+}
+function confirmationKey(f){
+ return JSON.stringify([f.id,f.job?.changes?.map(change=>change.id)||[]]);
+}
+function visibleFindings(items){
+ const {ids}=dismissed();
+ return items.filter(f=>!f.confirmation||!ids.has(confirmationKey(f)));
+}
+function notices(){const items=visibleFindings(findings()).filter(f=>!f.confirmation);if(!items.length)return [];const overview=window.idleSync14341?.overview(),count=overview?.pending??items.length,issues=new Set(items.filter(f=>f.critical).map(f=>f.id)).size;const fingerprint=JSON.stringify(items.map(f=>[f.id,f.status]).sort()).split('').reduce((hash,c)=>Math.imul(hash^c.charCodeAt(0),16777619)>>>0,2166136261).toString(36);return [{noticeId:'sync-'+fingerprint,type:'Synchronization',title:count?count+' records waiting to sync':issues?'Sync needs attention':'Saved copies need checking',detail:[issues?issues+' need review':'',overview?.pendingBytes?idleSync14341.bytes(overview.pendingBytes)+' queued':'','Open Data Check to sync by group'].filter(Boolean).join(' · '),target:window.access113?.can('transactions-closing14325')?'transactions-closing14325':'sync-status',syncId:'overview',critical:issues>0,persistent:count>0||issues>0}];}
 function pendingFor(monthKey){return findings().filter(f=>!['storage','setup','cleanup','recovery','refresh'].includes(f.kind)&&(!f.periods.length||f.periods.some(m=>m<=monthKey)));}
 function duplicateCandidates(selected){const rows=typeof JournalModule==='undefined'?[]:JournalModule.entries||[],entries=new Map(),same=new Map();for(const row of rows){if(!String(row.date||'').startsWith(selected)||!row.id)continue;let group=entries.get(row.id);if(!group){group=[];entries.set(row.id,group)}group.push(row)}for(const [id,group] of entries){const signature=JSON.stringify([group[0].date,String(group[0].generalMemo||'').trim().toLowerCase(),group.map(r=>[r.accountId||r.account,r.currency,Number(r.debit||0),Number(r.credit||0)]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)))]);let list=same.get(signature);if(!list){list=[];same.set(signature,list)}list.push(id)}return [...same.values()].filter(ids=>ids.length>1)}
 function beforeClose(monthKey){const pending=pendingFor(monthKey);if(pending.length)throw Error(pending.length+' device entry or save(s) dated through '+monthKey+' still need database confirmation. Open Bookkeeping → Data Check and resolve them before closing.');if(state()?.storageError)throw Error('Device storage has an error. Open Connection & sync and resolve it before closing.');}
@@ -165,26 +184,63 @@ function groupButtons(controls){
   host.append(button);
  }
 }
-function render(){const host=$('maintenanceSync14332');if(!host||!host.closest('.tab-content.active'))return;const selected=$('maintenanceMonth14324')?.value||'',all=findings(),items=all.filter(f=>!selected||f.periods.includes(selected)||!f.periods.length||f.kind==='storage'),late=all.filter(f=>f.late).length,duplicates=duplicateCandidates(selected);
- let controls=host.querySelector('[data-sync-tools14351]');if(!controls){controls=document.createElement('div');controls.dataset.syncTools14351='';controls.className='maintenance-actions14324';controls.innerHTML='<span data-sync-groups></span><button type="button" data-backup>Download Recovery Backup</button><button type="button" data-restore>Restore Recovery Backup</button><button type="button" data-cleanup>Clean Up Synchronized Backups</button><button type="button" data-result>Latest Sync Result</button><p role="status"></p>';host.prepend(controls);controls.querySelector('[data-backup]').onclick=()=>syncRecovery14351.open('export');controls.querySelector('[data-restore]').onclick=()=>syncRecovery14351.open('import');controls.querySelector('[data-cleanup]').onclick=async()=>{try{const r=await syncRecovery14351.cleanup();controls.querySelector('p').textContent=r.message;render()}catch(e){controls.querySelector('p').textContent=e.message}};controls.querySelector('[data-result]').onclick=()=>idleSync14341.show(true);}groupButtons(controls);controls.querySelector('[data-result]').hidden=false;const resultButton=controls.querySelector('[data-result]');if(resultButton.textContent!=='Sync summary')resultButton.textContent='Sync summary';
+function confirmationNotice(rows){
+ if(!rows.length)return '';
+ const names=rows.map(f=>'<li data-sync-finding14351="'+esc(f.id)+'">'+esc(f.title)+'</li>').join('');
+ const entries=rows.length===1?'<ul>'+names+'</ul>':'<details><summary>View confirmed journal saves ('+rows.length+')</summary><ul>'+names+'</ul></details>';
+ return '<article class="sync-finding14332 sync-confirmed"><strong>Saved to database</strong>'+entries+'<p>No action needed.</p><div><button type="button" data-dismiss-confirmed>Dismiss</button></div></article>';
+}
+function findingCard(f,i){
+ const task=action(f),verify=f.kind==='cleanup'&&f.job?.row&&f.job.status==='synced';
+ const detail=verify?'Check the saved version against this device. One check can clear several matching copies.':f.detail;
+ const actions=[];
+ if(task)actions.push('<button type="button" data-open14332="'+i+'">'+esc(task[0])+'</button>');
+ if(f.manualCleanup)actions.push('<button type="button" data-manual-cleanup14351="'+i+'">I removed the downloaded backup</button>');
+ if(!actions.length&&f.kind==='staff')actions.push('<button type="button" data-summary>Review sync status</button>');
+ const extra=[f.date?'Dates: '+esc(f.date):'',f.amount?'Amounts: '+esc(f.amount):''].filter(Boolean).join(' · ');
+ const downloadDetails=!verify&&f.job&&window.access113?.can('document-editor105','export')
+  ?'<details><summary>Technical details</summary><button type="button" data-copy14332="'+i+'">Download entry details</button></details>':'';
+ return '<article data-sync-finding14351="'+esc(f.id)+'" class="sync-finding14332 '+(f.late?'late14332':f.critical?'error14332':'pending14332')+'"><strong>'+esc(f.title)+'</strong><span>'+esc(verify?'Saved to database':f.status||'')+'</span><p>'+esc(detail)+'</p>'+(extra?'<small>'+extra+'</small>':'')+downloadDetails+(actions.length?'<div>'+actions.join('')+'</div>':'')+'</article>';
+}
+function render(){const host=$('maintenanceSync14332');if(!host||!host.closest('.tab-content.active'))return;const selected=$('maintenanceMonth14324')?.value||'',all=visibleFindings(findings()),selectedItems=all.filter(f=>!selected||f.periods.includes(selected)||!f.periods.length||f.kind==='storage'),duplicates=duplicateCandidates(selected);
+ const confirmed=selectedItems.filter(f=>f.confirmation),items=selectedItems.filter(f=>!f.confirmation);
+ const who=liveProfile?.id||'';
+ let controls=host.querySelector('[data-sync-tools14351]');if(!controls){controls=document.createElement('div');controls.dataset.syncTools14351='';controls.className='maintenance-actions14324';controls.innerHTML='<span data-sync-groups></span><button type="button" data-backup>Download Recovery Backup</button><button type="button" data-restore>Restore Recovery Backup</button><button type="button" data-cleanup>Clean Up Synchronized Backups</button><button type="button" data-result>Latest Sync Result</button><p role="status"></p>';const heading=document.createElement('h3');heading.textContent='Sync Station';host.prepend(heading,controls);controls.querySelector('[data-backup]').onclick=()=>syncRecovery14351.open('export');controls.querySelector('[data-restore]').onclick=()=>syncRecovery14351.open('import');controls.querySelector('[data-cleanup]').onclick=async()=>{try{const r=await syncRecovery14351.cleanup();controls.querySelector('p').textContent=r.message;render()}catch(e){controls.querySelector('p').textContent=e.message}};controls.querySelector('[data-result]').onclick=()=>idleSync14341.show(true);}if(controls.dataset.actor!==who){controls.dataset.actor=who;controls.querySelector('p').textContent='';}groupButtons(controls);controls.querySelector('[data-result]').hidden=false;const resultButton=controls.querySelector('[data-result]');if(resultButton.textContent!=='Sync summary')resultButton.textContent='Sync summary';
  let content=host.querySelector('[data-sync-content14335]');if(!content){content=document.createElement('div');content.dataset.syncContent14335='';host.append(content);}
- const markup='<p>'+esc(items.length?items.length+(items.length===1?' item':' items')+' to review. '+(late?late+' closed-period item(s) require review.':''):'No known device sync findings for this month. Other offline devices cannot be checked until they reconnect.')+'</p>'+
- items.map((f,i)=>'<article data-sync-finding14351="'+esc(f.id)+'" class="sync-finding14332 '+(f.late?'late14332':f.critical?'error14332':'pending14332')+'"><strong>'+esc(f.title)+'</strong><span>'+esc(f.periods.join(', ')||'Device')+' · '+esc(f.status)+'</span><p>'+esc(f.detail)+'</p><small>Source: '+esc(f.source)+' · Created: '+esc(f.created?formatAppDate(f.created,true):'Not recorded by the original operation')+(f.date?' · Dates: '+esc(f.date):'')+(f.amount?' · Amounts: '+esc(f.amount):'')+'</small><div><button type="button" data-copy14332="'+i+'">Download entry details</button>'+(action(f)?'<button type="button" data-open14332="'+i+'">'+esc(action(f)[0])+'</button>':'')+' '+(f.manualCleanup?'<button type="button" data-manual-cleanup14351="'+i+'">I removed the downloaded backup</button>':'')+'</div></article>').join('')+
+ const markup=(selectedItems.length?'':'<p>No sync items to review on this device for the selected month.</p>')+
+ items.map(findingCard).join('')+confirmationNotice(confirmed)+
  ((window.idleSync14341?.history()||[]).length?'<details open><summary>Unresolved sync problems</summary>'+window.idleSync14341.history().map(s=>'<p>'+esc(formatAppDate(s.started,true))+' · '+esc(s.result||s.stage)+' · '+esc(s.remaining||0)+' remaining</p>').join('')+'</details>':'')+
  (duplicates.length?'<h4>Possible duplicate journal entries</h4><p>Same date, description, accounts and amounts. Review each pair in Transaction History; equal entries can be legitimate.</p>'+duplicates.map(ids=>'<p class="sync-duplicate14332">Entry IDs: '+ids.map(esc).join(' · ')+'</p>').join(''):'');
- if(content.dataset.render14335===markup)return;content.dataset.render14335=markup;content.innerHTML=markup;
+ if(content.dataset.render14335===markup&&content.dataset.actor===who)return;content.dataset.actor=who;content.dataset.render14335=markup;content.innerHTML=markup;
+ const dismiss=content.querySelector('[data-dismiss-confirmed]');
+ if(dismiss)dismiss.onclick=()=>{
+  if(liveProfile?.id!==who)return;
+  const {key,ids}=dismissed();
+  confirmed.forEach(f=>ids.add(confirmationKey(f)));
+  try{sessionStorage.setItem(key,JSON.stringify([...ids]))}catch{}
+  render();window.refreshNotices1443?.();
+ };
+ content.querySelectorAll('[data-summary]').forEach(b=>b.onclick=()=>window.idleSync14341.show(true));
  host.querySelectorAll('[data-manual-cleanup14351]').forEach(b=>b.onclick=async()=>{await syncRecovery14351.acknowledge(items[Number(b.dataset.manualCleanup14351)].backupId);render()});
  host.querySelectorAll('[data-copy14332]').forEach(b=>b.onclick=()=>download(items[Number(b.dataset.copy14332)]));
  host.querySelectorAll('[data-open14332]').forEach(b=>b.onclick=async()=>{
   const f=items[Number(b.dataset.open14332)],who=liveProfile.id,out=controls.querySelector('p');b.disabled=true;out.textContent=f.title+(f.kind==='cleanup'?' · Verifying…':' · Retrying…');
-  try{await repair(f.id);if(liveProfile?.id===who)out.textContent=f.title+' · Completed.'}
+  const verify=f.kind==='cleanup'&&f.job?.row&&f.job.status==='synced';
+  const before=verify?findings().filter(row=>row.kind==='cleanup'&&row.job?.row&&row.job.status==='synced').map(row=>row.id):[];
+  try{
+   await repair(f.id);if(liveProfile?.id!==who)return;
+   if(verify){
+    const remaining=new Set(findings().map(row=>row.id)),count=before.filter(id=>!remaining.has(id)).length;
+    out.textContent=count+' verified device '+(count===1?'copy cleared.':'copies cleared.');
+   }else out.textContent=f.title+' · Completed.';
+  }
   catch(e){if(liveProfile?.id===who)out.textContent=f.title+' · '+e.message}finally{b.disabled=false}
  });
 }
 function install(){const results=$('maintenanceChecks14324');if(results&&!$('maintenanceSync14332')){const box=document.createElement('section');box.id='maintenanceSync14332';box.className='maintenance-result14324 sync-assessment14332';results.before(box);$('maintenanceMonth14324')?.addEventListener('change',render);render()}
  window.addEventListener('sync-assessment14332',render);window.addEventListener('local-work14333',render);window.addEventListener('connection14239',render);window.addEventListener('save-state14234',render);window.addEventListener('page113',render);
 }
-function focus(id,period){const input=$('maintenanceMonth14324');if(input&&period&&input.value!==period){input.value=period;input.dispatchEvent(new Event('change',{bubbles:true}));}render();const target=[...document.querySelectorAll('[data-sync-finding14351]')].find(n=>n.dataset.syncFinding14351===id);target?.scrollIntoView({block:'center'});}
+function focus(id,period){const input=$('maintenanceMonth14324');if(input&&period&&input.value!==period){input.value=period;input.dispatchEvent(new Event('change',{bubbles:true}));}render();const target=[...document.querySelectorAll('[data-sync-finding14351]')].find(n=>n.dataset.syncFinding14351===id);const details=target?.closest('details');if(details)details.open=true;target?.scrollIntoView({block:'center'});}
 window.syncAssessment14332={action,repair,focus,findings,notices,beforeClose,duplicateCandidates,render};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

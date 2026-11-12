@@ -1,7 +1,8 @@
 {
-  "version": "143.375",
+  "version": "143.376",
   "changes": [
-    "Show current open-book ledger and trial balance under Accounts, and closed-book history under Reports.",
-    "Move Account Activity into Accounts and align the search and report filters."
+    "Fit workspace tables to their panels and give descriptions and memos more room.",
+    "Show compact, searchable history IDs for imported sub-user entries.",
+    "Add the Sync Station heading, right-align Data Check actions and group confirmed journal notices."
   ]
 }
