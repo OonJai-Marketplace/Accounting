@@ -171,10 +171,10 @@ html body #period-review .period-review-table th:first-child{width:110px!importa
   html body .tab-content :is(.je-card,.module-card,.module109,.work82,.block82,.r79,.panel113,.settings-module94,.settings-section-card,.maintenance-card14324,.maintenance-result14324,.orange-module14231):not(header,h3,h4,summary,.settings-page-heading,.je-card-header,.category-tab-shell,.module-header,.sticky-tabs14344,.area-banner113):not(:where(nav *,table *,#categoryTabShell *,[contenteditable=true] *)){
    border-top:4px solid #b45309!important;
   }
-  html body #user-entry-review #submittedEntriesPanel14355>.settings-page-heading{
+  html body #user-entry-review>.settings-page-heading{
    border:0!important;box-shadow:none!important;background:transparent!important;padding:0!important;margin:0 0 12px!important;
   }
-  html body #user-entry-review #submittedEntriesPanel14355,
+  html body #user-entry-review>.settings-page-heading{display:flex;align-items:center;justify-content:space-between}
   html body #reconciliationWork14337 #reconciliationList71{padding:16px!important;box-sizing:border-box}
   html body #reconciliationList71>:is(form,.table-container,.je-card-header){margin-inline:0!important;max-width:100%!important;box-sizing:border-box}
   html body #reconciliationList71>form{margin-block:12px!important}
@@ -183,4 +183,10 @@ html body #period-review .period-review-table th:first-child{width:110px!importa
   #categoryTabs button[data-section14378]:focus-visible{outline:2px solid #24634c;outline-offset:-3px}
   .area-loading-status{display:block!important;padding:16px}
  }
+}
+
+@media screen and (min-width:641px){
+ #categoryTabs:has([data-section14378="Audits"]){display:flex;flex-flow:row nowrap;overflow-x:auto}
+ #categoryTabs:has([data-section14378="Audits"])>.category-tab{min-width:max-content;flex:1 0 auto}
+ #journalEntry98 [data-book-history][hidden],#user-entry-review [data-book-history][hidden]{display:none!important}
 }

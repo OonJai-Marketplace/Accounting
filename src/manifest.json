@@ -4213,41 +4213,9 @@
         "suffix": ";\n"
       }
     ],
-    "scripts/drive-drafts143128.js": [
-      {
-        "source": "src/integrations/google/receipt-drive228.js",
-        "prefix": "/* Receipt Drive settings */\n",
-        "suffix": ";\n"
-      },
-      {
-        "source": "src/bookkeeping/journal/drive-drafts143128.js",
-        "suffix": ""
-      }
-    ],
     "scripts/notification-focus143139.js": [
       {
         "source": "src/shared/presentation/notification-focus143139.js",
-        "suffix": ";\n"
-      }
-    ],
-    "scripts/hr-inbox143168.js": [
-      {
-        "source": "src/hr/inbox/model143168.js",
-        "suffix": "\n"
-      },
-      {
-        "source": "src/hr/inbox/inbox143168.js",
-        "suffix": "\n"
-      }
-    ],
-    "styles/hr-inbox143168.css": [
-      {
-        "source": "src/hr/inbox/inbox143168.css"
-      }
-    ],
-    "scripts/inbox-sync143173.js": [
-      {
-        "source": "src/integrations/google/inbox-sync143173.js",
         "suffix": ";\n"
       }
     ],
@@ -4426,6 +4394,17 @@
     "styles/public-information.css": [
       {
         "source": "src/shared/presentation/public-information.css"
+      }
+    ],
+    "scripts/receipt-settings.js": [
+      {
+        "source": "src/integrations/google/receipt-drive228.js",
+        "prefix": "/* Receipt Drive settings */\n",
+        "suffix": ";\n"
+      },
+      {
+        "source": "src/integrations/google/receipt-settings.js",
+        "suffix": ""
       }
     ]
   },

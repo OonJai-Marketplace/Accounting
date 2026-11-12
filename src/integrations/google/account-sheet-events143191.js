@@ -27,8 +27,6 @@ async function flush(){
    const result=await response.json();if(!current(c))return false;
    if(!response.ok||result.error||!Array.isArray(result.accounts)||!result.sheet)throw Error(result.error||'The Google Sheet update was not confirmed.');
    forget(c,item.token);lastError='';
-   // Inbox validation is secondary: a display error must not undo confirmed delivery.
-   try{await window.AIInboxSync143173?.accountsChanged?.(result);}catch{}
    if(current(c)&&!pending(c))window.showCenterStatus?.('Account saved. Google Sheet Accounts updated.');
    return true;
   }catch(e){if(current(c)){lastError='Account saved. Google Sheet update pending: '+(e.name==='AbortError'?'connection timed out.':e.message)+' It will retry when you reconnect or reopen Oon Jai.';window.showCenterStatus?.(lastError,true);}return false;}

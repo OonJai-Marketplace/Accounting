@@ -61,9 +61,9 @@ async function verify() {
     const currency = await open('currency');
     assert(await currency.getByRole('button',{name:/Add Currency/}).isVisible());
     const drive = await open('google');
-    assert(await drive.locator('[data-sheet]').isVisible());
-    assert.equal(await drive.locator('[data-sheet]').evaluate(n => !!n.closest('details')), false);
-    const buttons = await boxes(drive.locator('.receipt-drive228 .je-actions-bar button'));
+    assert.equal(await drive.locator('[data-sheet]').count(), 0);
+    assert.equal(await drive.locator('.receipt-drive228').evaluate(n => !!n.closest('details')), false);
+    const buttons = await boxes(drive.locator('.receipt-drive228 .je-actions-bar button:visible'));
     assert.equal(buttons.length, 4);
     for (let i=1; i<buttons.length; i++) {
       if (Math.abs(buttons[i].top - buttons[i-1].top) < 2) {

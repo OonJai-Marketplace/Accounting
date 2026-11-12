@@ -41,11 +41,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
 const item=(label,target,kind='',value='',permission=target)=>({label,target,kind,value,permission});
-const books=[
- {label:'Journal',icon:'▤',items:[item('Journal','journal','gpt','journal'),item('Submitted','user-entry-review','final','submitted'),item('Reconcile','user-entry-review','final','reconciliation','report-reconciliation'),item('Data Check','transactions-closing14325'),item('Closing','period-review'),item('Budget','transactions-budget14313'),item('Documents','transactions-vouchers14299'),item('AI Journal','journal','gpt','gpt','journal')]},
- {label:'Upcoming',icon:'◷',items:[item('Recurring','transactions-recurring','upcoming','recurring'),item('Amortization','transactions-recurring','upcoming','amortization'),item('To-dos','transactions-recurring','upcoming','todos'),item('Calendar','transactions-recurring','upcoming','calendar')]},
- {label:'History',icon:'↶',items:[item('Journal','transactions-all','history','journal'),item('User Entries','transactions-all','history','submitted','user-entry-review'),item('Budget Request','transactions-all','history','budget','transactions-budget14313'),item('Audit Logs','transactions-voided')]}
-];
+const books=[{label:'Bookkeeping',icon:'▤',items:[
+ item('Journal','journal'),
+ item('Submitted','user-entry-review','final','submitted'),
+ item('Reconcile','user-entry-review','final','reconciliation','report-reconciliation'),
+ item('Data Check','transactions-closing14325'),item('Closing','period-review'),
+ item('Budget','transactions-budget14313'),item('Documents','transactions-vouchers14299'),
+ item('Recurring','transactions-recurring','upcoming','recurring'),
+ item('Amortization','transactions-recurring','upcoming','amortization'),
+ item('To-do List','transactions-recurring','upcoming','todos'),item('Audits','transactions-voided')
+]}];
+const historyAreas={journal:'Journal',submitted:'Submitted',budget:'Budget'};
+function openHistory(area){
+ const parent=books[0].items.find(i=>i.label===historyAreas[area]);
+ if(!parent||!allowed(parent)||!allowed(item('History','transactions-all')))return;
+ window.switchTab('transactions-all');
+ if(!$('transactions-all')?.classList.contains('active'))return;
+ budgetWorkflow14316.history(area);
+ render('transactions-all');window.workspaceConsistency14343?.layout();
+}
 const settings=[
  {label:'Company',icon:'▦',items:[item('Business','settings-business'),item('Users & Permissions','settings-users'),item('Organization & Reporting','settings-organization14229')]},
  {label:'Accounting',icon:'▤',items:[...['Accounting','Vouchers','Currency Manager','Google Drive and Sheets'].map((n,i)=>item(n,'settings-accounting','accounting',['accounting','vouchers','currency','google'][i])),item('Payroll','settings-payroll'),item('Mandatory','settings-tax')]},
@@ -74,7 +88,7 @@ function rememberChoice(group,i){
 }
 const enabled=()=>innerWidth>640&&document.documentElement.dataset.device132!=='phone';
 const allowed=i=>!!$(i.target)&&(!window.access113||access113.can(i.target)&&access113.can(i.permission));
-function choose(i){if(!i||!allowed(i))return;if(i.kind==='gpt'&&window.DriveDrafts143128?.choose(i.value)===false)return;selected=i;window.switchTab(i.target);if(!$(i.target)?.classList.contains('active'))return;
+function choose(i){if(!i||!allowed(i))return;selected=i;window.switchTab(i.target);if(!$(i.target)?.classList.contains('active'))return;
  if(i.kind==='final')budgetWorkflow14316.finalization(i.value);
  if(i.kind==='history')budgetWorkflow14316.history(i.value);
  if(i.kind==='upcoming')workspace14337.showSection(i.value);
@@ -101,6 +115,7 @@ function sidebar(module,groups,current){
   header.addEventListener('click',e=>{
    if(!enabled())return;e.preventDefault();e.stopImmediatePropagation();
    if(module==='settings'&&window.settingsStack143176?.enabled()){closeGroupMenu14388();window.settingsStack143176.openDefault();return;}
+   if(module==='transactions'){choose(rememberedChoice(module));return;}
    const sidebar=$('appSidebar');
    const drawer=sidebar.classList.contains('mobile-open')||sidebar.classList.contains('rail-open292');
    if(document.documentElement.dataset.device132==='tablet'&&!drawer||$('appSidebar').getBoundingClientRect().width<100){openMenu14388(module,header);return;}
@@ -110,7 +125,7 @@ function sidebar(module,groups,current){
   toggle.onclick=e=>{e.preventDefault();e.stopPropagation();restoreNavigationMemory();expanded143109[module]=!expanded143109[module];saveNavigationMemory();render();};
   header.after(toggle);
  }
- const direct=module==='settings'&&window.settingsStack143176?.enabled();
+ const direct=module==='transactions'||module==='settings'&&window.settingsStack143176?.enabled();
  root.classList.toggle('settings-direct143177',!!direct);
  if(direct){root.classList.remove('groups-open14378','open');nav.hidden=true;root.querySelector('.group-toggle143111').hidden=true;root.querySelector('.nav-header').removeAttribute('aria-expanded');return;}
  nav.hidden=false;root.querySelector('.group-toggle143111').hidden=false;
@@ -125,11 +140,17 @@ function sidebar(module,groups,current){
 
 function render(target=document.querySelector('.tab-content.active')?.id){if(!enabled()||window.workspaceViews14364?.rendering)return false;
  restoreNavigationMemory();
+ for(const button of document.querySelectorAll('[data-book-history]')){
+  const parent=books[0].items.find(i=>i.label===historyAreas[button.dataset.bookHistory]);
+  button.hidden=!parent||!allowed(parent)||!allowed(item('History','transactions-all'))||
+   (button.dataset.bookHistory==='journal'&&!!window.personalJournal1437?.active);
+ }
  const all=[...books,...settings];
- const section=target==='journal'?(window.DriveDrafts143128?.view||'journal'):target==='user-entry-review'?window.budgetWorkflow14316?.finalTab:target==='transactions-all'?window.budgetWorkflow14316?.historyTab:target==='transactions-recurring'?window.workspace14337?.section:target==='settings-accounting'?window.settingsGroups14332?.accountingSection:'';
+ const section=target==='user-entry-review'?window.budgetWorkflow14316?.finalTab:target==='transactions-all'?window.budgetWorkflow14316?.historyTab:target==='transactions-recurring'?window.workspace14337?.section:target==='settings-accounting'?window.settingsGroups14332?.accountingSection:'';
  selected=all.flatMap(g=>g.items).find(i=>i.target===target&&(!section||i.value===section)&&allowed(i));
+ if(target==='transactions-all')selected=books[0].items.find(i=>i.label===historyAreas[section]&&allowed(i));
  const current=all.find(g=>g.items.includes(selected));if(current&&selected)rememberChoice(current,selected);sidebar('transactions',books,books.includes(current)?current:null);sidebar('settings',settings,settings.includes(current)?current:null);
- if(!current||!selected||selected.target!==target)return false;
+ if(!current||!selected||selected.target!==target&&target!=='transactions-all')return false;
  const root=$(target),host=$('categoryTabs'),shell=$('categoryTabShell');if(!host||!shell)return false;
  if(settings.includes(current)&&window.settingsStack143176?.renderNavigation(current,target))return true;
  const items=current.items.filter(allowed),signature=current.label+'|'+items.map(i=>i.label).join('|');
@@ -140,7 +161,11 @@ function render(target=document.querySelector('.tab-content.active')?.id){if(!en
  $('settingsSections14335')?.classList.add('grouped-source14378');
  return true;
 }
-window.groupedNavigation14378={render,choose,books,settings,rememberedChoice,allowed,openMenu:openMenu14388,owns:panel=>enabled()&&[...books,...settings].some(g=>g.items.some(i=>i.target===panel?.id))};
+window.groupedNavigation14378={openHistory,render,choose,books,settings,rememberedChoice,allowed,openMenu:openMenu14388,owns:panel=>enabled()&&(panel?.id==='transactions-all'||[...books,...settings].some(g=>g.items.some(i=>i.target===panel?.id)))};
+document.addEventListener('click',event=>{
+ const button=event.target.closest('[data-book-history]');
+ if(button)openHistory(button.dataset.bookHistory);
+});
 window.addEventListener('page113',()=>render());
 window.addEventListener('DOMContentLoaded',()=>render(),{once:true});
 })();

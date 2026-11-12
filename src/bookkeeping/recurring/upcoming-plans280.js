@@ -28,7 +28,7 @@ function fieldsMissing(snapshot){const lines=snapshot.lines.length?snapshot.line
 }
 function openSave(kind){try{
  allowed();if(pending())throw Error('Finish or close the prepared plan journal first.');
- if(window.DriveDrafts143128?.preparedCount||window.DriveDrafts143128?.editing||pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId)throw Error('Finish the prepared submissions first.');
+ if(pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId)throw Error('Finish the prepared submissions first.');
  const c=context(),snapshot=capture(),rawBefore=JSON.stringify(snapshot),uuid=crypto.randomUUID();
  const prepaid=snapshot.lines.filter(l=>l.debit>0&&chart().some(a=>a.id===l.account_id&&/^13\d\d$/.test(String(a.code))&&G.type(a)==='ASSET'));
  const purchase=kind==='amortization'&&prepaid.length===1&&!snapshot.lines.some(l=>l.credit>0&&chart().some(a=>a.id===l.account_id&&/^13\d\d$/.test(String(a.code))));
@@ -117,7 +117,7 @@ async function prepare(plan){try{allowed();const c=context();
  // join an explicit refresh already in progress. Posting validates the occurrence on the server.
  if(!await (flight?.owner===c.owner&&flight.client===c.client?flight.promise:load()))throw Error(state.error||'Refresh Upcoming before opening the journal.');
  c.check();const p=state.rows.find(x=>x.id===plan.id),o=p&&next(p);if(!o||p.status!=='active')throw Error('No active occurrence is ready.');
- if(JournalModule.editingEntryId||window.DriveDrafts143128?.preparedCount||window.DriveDrafts143128?.editing||pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId)throw Error('Finish the open journal or submitted entries first.');const old=pending();if(old&&old.id!==p.id||!old&&capture().lines.some(l=>l.account_id||l.debit||l.credit))throw Error('Finish or reset your current Post Entry draft before opening this prepared journal.');
+ if(JournalModule.editingEntryId||pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId)throw Error('Finish the open journal or submitted entries first.');const old=pending();if(old&&old.id!==p.id||!old&&capture().lines.some(l=>l.account_id||l.debit||l.credit))throw Error('Finish or reset your current Post Entry draft before opening this prepared journal.');
  const value={id:p.id,occurrence:o.occurrence_no,date:o.due_date,memo:p.memo,kind:p.kind,title:p.title,lines:o.lines,owner:c.owner};remember(value);fill(value);switchTab('journal');showJournalEntry98();banner();
  }catch(e){fail(e);}}
 function banner(){const old=$('preparedPlan280');let p;try{p=pending();}catch(e){fail(e);return;}if(!p||p.owner!==actor()){old?.remove();return;}let n=old;if(!n){n=document.createElement('div');n.id='preparedPlan280';n.className='plan-prepared280';$('jeLinesBody')?.closest('.table-container')?.before(n);}n.replaceChildren();const s=document.createElement('span');s.textContent=p.title+' · '+formatAppDate(p.date)+' · '+(p.kind==='amortization'?'Awaiting your posting':'Review this occurrence before posting');n.append(s);

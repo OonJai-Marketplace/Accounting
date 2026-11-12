@@ -701,7 +701,7 @@ function searchInstall(){
   const add=(group,label,fn,terms='')=>{if(matches(label+' '+terms))results.push({group,label,fn})};
   const go=(root,element)=>{if(!permitted(root.id)||!element.isConnected)return;switchTab(root.id);const key=element.closest('[data-settings-section143176]')?.dataset.settingsSection143176;if(key)window.settingsStack143176?.open(key);for(let n=element.parentElement;n&&n!==root;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true;element.scrollIntoView({block:'center'});element.animate?.([{outline:'3px solid #bd8845'},{outline:'3px solid transparent'}],{duration:1800});};
   // Index the live Settings sections and controls, including extensions added later.
-  const aliases={installation:'website update version release install handover deployment',google:'Google Sheets database connection ChatGPT AI journal',appearance:'logo banner branding quotations images',preferences:'date number format opening page text size',printing:'print paper header footer',recovery:'recovery emergency credentials password',mandatory:'tax PIT SSO VAT statutory'};
+  const aliases={installation:'website update version release install handover deployment',google:'Google Sheets database connection receipts',appearance:'logo banner branding quotations images',preferences:'date number format opening page text size',printing:'print paper header footer',recovery:'recovery emergency credentials password',mandatory:'tax PIT SSO VAT statutory'};
   for(const root of document.querySelectorAll('.tab-content[id^="settings-"]')){
    if(!permitted(root.id))continue;
    for(const el of root.querySelectorAll('.settings-stack-heading143176 strong,h2,h3,h4,button,label')){
@@ -919,7 +919,7 @@ window.shell113={paintBanner,addSettings,areas,area,state,save,saveMany,load,svg
 (function(){'use strict';
 const actions=['view','edit','export','approve','post','void'];
 const labels={view:'View',edit:'Edit',export:'Export / Print',approve:'Approve',post:'Post',void:'Void'};
-const adminOnly=new Set(['hr-ai-inbox','transactions-closing14325','settings-maintenance14324','transactions-budget14313','local-events','local-events-account','settings-users','settings-system','settings-backup113','settings-recovery113','settings-appearance113','settings-organization14229','settings-data14231']);
+const adminOnly=new Set(['transactions-closing14325','settings-maintenance14324','transactions-budget14313','local-events','local-events-account','settings-users','settings-system','settings-backup113','settings-recovery113','settings-appearance113','settings-organization14229','settings-data14231']);
 const esc=v=>window.shell113.esc(v);let editing={};
 function permission(){return typeof livePermission==='undefined'?null:livePermission}
 function can(target,action='view'){if(window.permissions1441?.verified===false)return false;if(typeof liveProfile==='undefined'||!liveProfile||liveProfile.status&&liveProfile.status!=='active')return false;if(liveProfile.role==='admin')return true;if(adminOnly.has(target))return false;const p=permission();if(p&&Object.hasOwn(p,'module_actions113')&&p.module_actions113!==null){const row=p.module_actions113?.[target];if(!Array.isArray(row))return false;return row.includes('view')&&(action==='view'||row.includes(action))}if(target==='sub-users-home14229')return false;if(action==='view')return legacy(target);return legacy(target)&&Boolean(({edit:p?.can_manage_data,export:p?.can_export,approve:p?.can_approve,post:p?.can_post_directly,void:p?.can_void})[action])}

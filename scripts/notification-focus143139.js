@@ -12,10 +12,6 @@ document.addEventListener('click',event=>{
  const current=()=>owner===(typeof liveProfile==='undefined'?null:liveProfile?.id);
  let noticeId='';
  try{const key=JSON.parse(item.dataset.noticeKey143125||'[]');noticeId=String(key[1]||'')}catch{}
- if(destination==='ai-journal'){
-   setTimeout(()=>{if(!current())return;window.DriveDrafts143128?.scrollToTop?.();const target=document.querySelector('#gptDrafts143129 .je-card-header');emphasize(target,false)},250);
-   return;
- }
  if(destination==='website-update'){setTimeout(()=>{if(!current())return;emphasize(document.getElementById('websiteUpdates143103')||document.getElementById('websiteUpdateCheck143103'))},250);return}
  setTimeout(()=>{
  if(!current())return;

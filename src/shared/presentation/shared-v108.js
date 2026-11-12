@@ -71,7 +71,7 @@ function searchInstall(){
   const add=(group,label,fn,terms='')=>{if(matches(label+' '+terms))results.push({group,label,fn})};
   const go=(root,element)=>{if(!permitted(root.id)||!element.isConnected)return;switchTab(root.id);const key=element.closest('[data-settings-section143176]')?.dataset.settingsSection143176;if(key)window.settingsStack143176?.open(key);for(let n=element.parentElement;n&&n!==root;n=n.parentElement)if(n.tagName==='DETAILS')n.open=true;element.scrollIntoView({block:'center'});element.animate?.([{outline:'3px solid #bd8845'},{outline:'3px solid transparent'}],{duration:1800});};
   // Index the live Settings sections and controls, including extensions added later.
-  const aliases={installation:'website update version release install handover deployment',google:'Google Sheets database connection ChatGPT AI journal',appearance:'logo banner branding quotations images',preferences:'date number format opening page text size',printing:'print paper header footer',recovery:'recovery emergency credentials password',mandatory:'tax PIT SSO VAT statutory'};
+  const aliases={installation:'website update version release install handover deployment',google:'Google Sheets database connection receipts',appearance:'logo banner branding quotations images',preferences:'date number format opening page text size',printing:'print paper header footer',recovery:'recovery emergency credentials password',mandatory:'tax PIT SSO VAT statutory'};
   for(const root of document.querySelectorAll('.tab-content[id^="settings-"]')){
    if(!permitted(root.id))continue;
    for(const el of root.querySelectorAll('.settings-stack-heading143176 strong,h2,h3,h4,button,label')){

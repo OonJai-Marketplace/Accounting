@@ -41,7 +41,7 @@ function renderer(id){
  if(id==='accounts-modular-container'||id==='trial-balance'||id==='account-balances')return ()=>renderAccounts69();
  if(id==='chart-of-accounts')return ()=>renderChartOfAccountsTable();
  if(id==='sub-accounts')return ()=>renderSubAccountsTable();
- if(id==='transactions-recurring')return ()=>{window.renderSchedules14364?.();window.renderRecurringWarnings?.();window.hrCalendar14306?.renderUpcoming()};
+ if(id==='transactions-recurring')return ()=>{window.renderSchedules14364?.();window.renderRecurringWarnings?.()};
  if(id.startsWith('tax-'))return ()=>window.taxReports102?.render();
  if(id==='hr-calendar')return ()=>window.hrCalendar14306?.render();
  if(id.startsWith('hr-'))return ()=>window.renderHr99?.();

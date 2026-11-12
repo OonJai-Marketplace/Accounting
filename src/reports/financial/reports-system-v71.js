@@ -322,7 +322,7 @@ async function renderReconciliationList71(){
   if(reportOwner71()!==owner||client!==ojmDb)return;
   if(selected&&host.querySelector('#recCreate117 [name=month]')?.value!==selected){task.reload=true;return;}
   if(host.dataset.recOwner306!==owner||!host.querySelector('[data-rec-rows306]')){
-   host.innerHTML='<div class="je-card-header"><div><h3>Reconciliation</h3><p>Complete the required accounts for the open book. Past months are in Reports.</p></div><div class="module-actions71"><button type="button" class="je-btn je-btn-secondary" data-add-account disabled>Add account</button></div></div><div class="table-container"><table><thead><tr><th>Reconciliation ID</th><th>Account</th><th>Status</th><th>Actual</th><th>Action</th></tr></thead><tbody data-rec-rows306></tbody></table></div>';host.dataset.recOwner306=owner;
+   host.innerHTML='<div class="je-card-header"><div><h3>Reconciliation</h3><p>Complete the required accounts for the open book. Open History for saved reconciliations.</p></div><div class="module-actions71"><button type="button" class="je-btn je-btn-secondary" data-add-account disabled>Add account</button><button type="button" class="je-btn je-btn-secondary" onclick="workspace14337.reconciliationHistory()">History</button></div></div><div class="table-container"><table><thead><tr><th>Reconciliation ID</th><th>Account</th><th>Status</th><th>Actual</th><th>Action</th></tr></thead><tbody data-rec-rows306></tbody></table></div>';host.dataset.recOwner306=owner;
   }
   host.querySelector('[data-rec-error306]')?.remove();
   host.recWorkspace306=work;host.recPreferences306=prefs;

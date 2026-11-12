@@ -1,7 +1,7 @@
 {
-  "version": "143.373",
+  "version": "143.374",
   "changes": [
-    "Apply the Closing & Data Checks border to workspace modules and improve spacing in Reconciliation and Submitted Entries.",
-    "Keep navigation visible while opening a workspace and offer a direct check for server-confirmed device copies."
+    "Unify the Bookkeeping tabs and shortcuts and open history from each work area.",
+    "Retire AI Journal and AI HR and keep Google receipt settings and news separate."
   ]
 }

@@ -14,7 +14,7 @@ function restore(){if(summaryOwner===actor())return;summaryOwner=actor();session
 // never opens it, and closing it never cancels saved work or creates another notice.
 function show(force=false){restore();if(force)window.offline14239?.open();else window.offline14239?.refreshDialog?.();}
 function acknowledge(){if(session&&!session.running){session.acknowledged=true;persist();}}
-const areaNames={inboxes:'AI Journal & HR inboxes',employees:'Employees',leaves:'Leave',runs:'Payroll',reports:'Reports',documents:'Documents',reference:'Accounts & currencies',business:'Company settings',profiles:'People & permissions',opening:'Opening balances',workflow:'Approvals & reminders',legal:'Legal documents',schedules:'Schedules',audit:'Audit history',submissions:'Submissions',review:'Sub-user journals',home:'Team overview',journal:'Journal',payroll:'Payroll',document:'Documents'};
+const areaNames={employees:'Employees',leaves:'Leave',runs:'Payroll',reports:'Reports',documents:'Documents',reference:'Accounts & currencies',business:'Company settings',profiles:'People & permissions',opening:'Opening balances',workflow:'Approvals & reminders',legal:'Legal documents',schedules:'Schedules',audit:'Audit history',submissions:'Submissions',review:'Sub-user journals',home:'Team overview',journal:'Journal',payroll:'Payroll',document:'Documents'};
 function overview(){restore();const rows=pending(),waiting=rows.filter(j=>j.status!=='server-confirmed'),ids=new Set(waiting.map(j=>j.id)),groups=new Map();
  const group=source=>{const name=areaNames[source]||source||'Saved work';if(!groups.has(name))groups.set(name,{name,synced:0,pending:0,updated:false});return groups.get(name)};
  for(const j of session?.initialRecords||[])if(!ids.has(j.id))group(j.source).synced+=j.records;

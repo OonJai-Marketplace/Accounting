@@ -58,3 +58,8 @@ html[data-device132=tablet] body #appSidebar.rail-open292 .grouped-nav14378>.nav
 }}
 
 @media(max-width:640px){.group-toggle143111{display:none!important}}
+
+@media(min-width:641px){
+ #appSidebar #nav-module-transactions.grouped-nav14378>:is(.nav-links,.grouped-children14378,.group-toggle143111),
+ #appSidebar #nav-module-transactions.grouped-nav14378>.nav-header .arrow{display:none!important}
+}
