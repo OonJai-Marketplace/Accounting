@@ -66,3 +66,5 @@ Validation: `node validation/test-receipt-core202.cjs`, `node validation/test-re
 The OAuth callback pins its previously deployed v3 Sheets handler in `google-oauth-callback/legacy143150.ts`. Only the separate document-state branch was added, so deploying scanner OAuth does not also change the live Sheets callback behavior. The document service imports shared token encryption and refresh helpers.
 
 In Destination, open Google Drive and tap My Drive to browse. Open each folder until the path shows the intended location, then tap Use this folder. To create a folder inside the current location, tap New folder. The administrator who connected the company Drive can select a different folder for their scans. Desktop Settings controls the company default. When yearly routing is active, the accounting year determines the receipt subfolder.
+
+To find a journal entry, type its last digits or open the ID list. Show more IDs continues the list. This month only uses the transaction date. Jump to ID can move in either direction. Save the scan, then open Receipts on that same journal entry to see the images or full PDF in a popup. Close it with Close or a tap outside.

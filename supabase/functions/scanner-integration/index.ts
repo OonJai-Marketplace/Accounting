@@ -43,6 +43,21 @@ export async function handler(req:Request){
    check(!b.scan||uuid(b.scan),'Invalid scan reference.');
    return reply({ids:await checkIDs(idRequest(b),b.scan||'')});
   }
+  if(b.action==='journal-id-index'){
+   // Separate keyset cursors keep duplicate staff lines from displacing journal numbers.
+   const readPage=async(staff:boolean,cursor:unknown)=>{
+    if(cursor===null || !(staff?workspace:edit))return {rows:[],next:null};
+    check(typeof cursor==='string' && cursor.length<=120,'Invalid journal search cursor.');
+    const key=staff?'workspace_entry_no':'entry_no';
+    let query=staff?user.from('staff_journal_lines').select('workspace_entry_no,transaction_date,staff_journals!inner(owner_id)').eq('staff_journals.owner_id',owner):
+     user.from('journal_entries').select('entry_no,transaction_date,status');
+    const page=result(await query.gt(key,cursor).order(key).limit(250));
+    const rows=page.filter((r:any)=>r[key] && !/void|deleted/i.test(r.status||'')).map((r:any)=>({label:r[key],date:r.transaction_date||''}));
+    return {rows,next:page.length===250?page[page.length-1][key]:null};
+   };
+   const [entries,lines]=await Promise.all([readPage(false,b.entriesAfter),readPage(true,b.linesAfter)]);
+   return reply({rows:[...entries.rows,...lines.rows],entriesAfter:entries.next,linesAfter:lines.next});
+  }
   if(b.action==='suggest-ids'){
    check(!b.scan||uuid(b.scan),'Invalid scan reference.');
    const q=suggestionRequest217(b);let seed=q.seed;

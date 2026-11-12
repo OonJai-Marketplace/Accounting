@@ -1,1 +1,1 @@
-{"version": "143.367", "changes": ["Browse Google Drive folders and see their full location before selecting where to save receipts. The administrator who connected Drive can choose a scanner folder while keeping the company default protected."]}
+{"version": "143.369", "changes": ["Find transactions by the last digits, show all permitted journal IDs or only this month, and jump to an earlier or later entry.", "Open linked receipt images or the PDF in Accounting. Close the preview with Close or by tapping outside."]}

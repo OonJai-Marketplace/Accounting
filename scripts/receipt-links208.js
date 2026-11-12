@@ -9,5 +9,25 @@ function create({url,key,session,request=fetch}){
  return {api,put,previews,register:manifest=>api('register',{manifest})};
 }
 async function preview(data){const C=root.ReceiptCore202,source=await C.sourceCanvas(data),scale=Math.min(1,1200/source.width,1600/source.height),canvas=C.canvas(Math.round(source.width*scale),Math.round(source.height*scale));canvas.getContext('2d').drawImage(source,0,0,canvas.width,canvas.height);return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Preview could not be prepared.')),'image/jpeg',.85));}
-root.ReceiptLinks208={create,preview,digest,BUCKET};
+function dismissOnBackdrop(dialog){
+ let beganOutside=false;
+ const outside=e=>{if(e.target!==dialog)return false;const r=dialog.getBoundingClientRect();return e.clientX<r.left||e.clientX>=r.right||e.clientY<r.top||e.clientY>=r.bottom;};
+ dialog.addEventListener('pointerdown',e=>{beganOutside=outside(e);});
+ dialog.addEventListener('click',e=>{if(beganOutside&&outside(e)&&dialog.open)dialog.close();beganOutside=false;});
+}
+function pdfPreview(value,title){
+ const url=new URL(value),drive=url.origin==='https://drive.google.com' && /^\/file\/d\/[\w-]+\/view$/.test(url.pathname);
+ const stored=root.OJM_SUPABASE_URL && url.origin===new URL(root.OJM_SUPABASE_URL).origin && url.pathname.startsWith('/storage/v1/object/sign/scan-documents208/');
+ if(!drive&&!stored)throw Error('This PDF location is unavailable.');
+ const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='View full PDF';details.append(summary);
+ details.ontoggle=()=>{
+  if(!details.open){details.querySelector('iframe')?.remove();details.querySelector('a')?.remove();return;}
+  if(details.querySelector('iframe'))return;
+  const frame=document.createElement('iframe');frame.title=title||'Receipt PDF';frame.referrerPolicy='no-referrer';frame.style.cssText='display:block;width:100%;height:min(56vh,620px);border:0';
+  const preview=new URL(url);if(drive)preview.pathname=preview.pathname.replace(/\/view$/,'/preview');frame.src=preview.href;
+  const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open original PDF';details.append(frame,link);
+ };
+ return details;
+}
+root.ReceiptLinks208={create,preview,digest,BUCKET,dismissOnBackdrop,pdfPreview};
 })(globalThis);
