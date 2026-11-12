@@ -5,7 +5,6 @@
   host.id = 'desktopStatusDock';
   host.style.cssText = 'order:-10000;flex:none';
   const root = host.attachShadow({mode:'open'});
-  const path = 'M16 2H25A5 5 0 0 1 30 7V25A5 5 0 0 1 25 30H7A5 5 0 0 1 2 25V7A5 5 0 0 1 7 2Z';
   root.innerHTML = `<style>
     :host{--pine:#194c38;--ink:#193e32;--mint:#9de9b7;--blue:#aed5dc;--sage:#c6d9ac;font:13px/1.35 Arial,sans-serif;color:var(--ink)}
     *,*::before,*::after{box-sizing:border-box}
@@ -13,17 +12,18 @@
     button:focus-visible{outline:2px solid #c49342;outline-offset:1px}
     button:disabled{cursor:default;opacity:.6}
     .rail{display:grid;width:38px;gap:5px}
-    .rail button{appearance:none;margin:0;border:0;border-radius:8px;width:100%;background:var(--pine);color:#fffaf1}
-    .tasks{height:clamp(141px,21.9vh,213px);display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;gap:0;padding:10px 2px 7px}
-    .lane{display:grid;grid-template-rows:1fr 9px;gap:7px;justify-items:center;min-height:0}
-    .line{position:relative;background:#59806c;border-radius:2px;width:2px;margin:2px 0 1px}
-    .line i,.meter i{position:absolute;bottom:0;left:0;right:0;border-radius:inherit;height:var(--level);background:var(--tint)}
-    .line::after{content:'';background:var(--tint);border-radius:50%;width:5px;height:5px;position:absolute;left:50%;bottom:var(--level);transform:translate(-50%,50%)}
-    .code{font:700 8px/9px Arial;color:var(--tint);transform:scaleX(.84)}
-    .empty{align-self:center;font-size:15px;color:#a1bbab}
-    .db{position:relative;height:38px;display:grid;place-content:center;justify-items:center;gap:1px;padding:0}
-    .db svg{position:absolute;inset:3px;width:32px;height:32px;fill:none;stroke-width:1.4}
-    .db small{font:700 7px/7px Arial;color:#d1ead9}.db strong{font:700 11.5px/12px Arial;font-variant-numeric:tabular-nums}
+    .rail button,.tasks{appearance:none;margin:0;border:0;border-radius:8px;background:var(--pine);color:#fffaf1}
+    .tasks{height:clamp(200px,34vh,330px);display:flex;align-items:stretch;justify-content:center;padding:6px 2px}
+    .rail .lane{position:relative;min-width:0;flex:1;display:grid;justify-items:center;grid-template-rows:12px 1fr;gap:5px;padding:5px 0 4px}
+    .marker{position:relative;align-self:center;width:12px;height:12px;border:2px solid var(--tint);border-radius:50%;background:var(--pine)}
+    .complete .marker{background:var(--tint)}
+    .complete .marker::after{content:'';position:absolute;left:2px;top:0;width:4px;height:7px;transform:rotate(45deg);border:solid var(--pine);border-width:0 2px 2px 0}
+    .line{position:relative;background:#547565;border-radius:4px;width:6px;overflow:hidden}
+    .line i,.meter i{position:absolute;bottom:0;inset-inline:0;border-radius:inherit;height:var(--level);background:var(--tint)}
+    .empty{width:100%;padding:0}
+    .db{height:38px;width:38px;padding:0;display:grid;place-items:center}
+    .db strong{font:700 15px/1 Arial;font-variant-numeric:tabular-nums;letter-spacing:-.6px}
+    .db[data-flag=orange] strong{color:#ffc078}.db[data-flag=red] strong{color:#ffabae}
     dialog{position:fixed;inset:auto 58px 8px auto;margin:0;width:min(438px,calc(100vw - 76px));max-height:calc(100dvh - 32px);overflow:auto;
       border:1px solid #adbcae;border-radius:8px;padding:16px 18px;background:#fffdf7;color:var(--ink);box-shadow:0 6px 25px #102a222c;font:13px/1.35 Arial,sans-serif}
     dialog::backdrop{background:transparent}
@@ -31,11 +31,17 @@
     h2{margin:0;font:700 18px/1.25 Arial}h3{font:700 13px/1.3 Arial;margin:0}
     .quiet,.count,.flags,.times,.notice{font-size:11px;color:#5d6b61}
     .quiet{margin:2px 0 12px;font-size:12px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(116px,1fr));gap:8px 12px}
-    .card{display:flex;align-items:flex-start;gap:8px;border-top:1px solid #d9dfd6;padding:7px 0 2px}
-    .meter{display:block;flex:none;position:relative;overflow:hidden;border-radius:4px;background:#d4ddd7;width:4px;height:62px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:6px 12px}
+    .card{position:relative;display:flex;align-items:flex-start;gap:8px;border-top:1px solid #d9dfd6;padding:7px 0 2px}
+    .meter{display:block;flex:none;position:relative;overflow:hidden;border-radius:4px;background:#d4ddd7;width:4px;height:46px}
     .copy{flex:1;min-width:0}.name{overflow-wrap:anywhere;font-size:12px;margin:2px 0}
-    .cellhead{gap:2px}.cellhead>b{margin-right:auto;font-size:12px}
+    .cellhead{gap:2px;align-items:flex-start}.choose{flex:1;text-align:left;overflow-wrap:anywhere;min-width:0;border:0;background:transparent;font-weight:700;padding:2px 0;color:#205c46}
+    .choose::after{content:'';position:absolute;inset:0}.cellhead .icon{position:relative;z-index:1}
+    .choose:hover{text-decoration:underline}.card.selected .choose{text-decoration:underline;text-underline-offset:3px}
+    .steps{margin-top:10px;padding:11px 12px;background:#edf2eb;border-radius:6px}
+    .steps[hidden]{display:none}.steps h3{margin-bottom:5px}.steps label{display:flex;gap:8px;align-items:flex-start;padding:5px 0;overflow-wrap:anywhere;line-height:1.35;cursor:pointer}
+    .steps input{flex:none;width:16px;height:16px;margin:1px 0 0;accent-color:#176449}.steps label:has(:disabled){color:#647168}
+    .step-note{font-size:11px;margin:3px 0 6px;color:#536459}.steps label span{min-width:0}
     .icon,.close{background:transparent;border:0;padding:2px;display:grid;place-content:center;color:#587465;border-radius:3px}
     .icon{min-height:23px;min-width:23px}.icon svg{width:14px;height:14px}
     .icon[aria-pressed=true] svg{fill:var(--pine)}.icon:hover,.close:hover{background:#e3ebe3}
@@ -44,15 +50,15 @@
     .flags{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.flags span::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;background:#cf792e}.flags span+span::before{background:#b52b37}
     .times{line-height:1.55}.refresh{border:0;background:#176449;color:white;padding:7px 11px;border-radius:5px;font-weight:700;white-space:nowrap}
     .notice:not(:empty){margin-top:7px;color:#834520}
-    @media(max-height:600px){.tasks{height:min(141px,25vh)}}
+    @media(max-height:600px){.tasks{height:clamp(86px,32vh,190px)}}
   </style>
   <div class="rail">
-    <button class="tasks" type="button" aria-haspopup="dialog" aria-label="Open sequential task progress"></button>
-    <button class="db" type="button" aria-haspopup="dialog"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="${path}" stroke="#547e68"/><path class="usage" d="${path}" pathLength="100" stroke-linecap="round"/></svg><small>DB</small><strong>—</strong></button>
+    <div class="tasks" role="group" aria-label="Pinned sequential checklists"></div>
+    <button class="db" type="button" aria-haspopup="dialog"><strong>—</strong></button>
   </div>
   <dialog aria-labelledby="dockTitle">
     <div class="heading"><h2 id="dockTitle">Sequential tasks</h2><button class="close" aria-label="Close status window" type="button">×</button></div>
-    <p class="quiet"></p><div class="grid"></div>
+    <p class="quiet"></p><div class="grid"></div><section class="steps" id="dockSteps" aria-labelledby="stepsTitle" hidden></section>
     <section class="storage"><h3>Supabase storage</h3><div class="row">Database <strong class="dbAmount"></strong></div>
     <div class="row">File storage <span class="fileAmount"></span></div>
     <div class="flags"><span>60% · Start archiving</span><span>70% · Red flag</span></div></section>
@@ -61,12 +67,12 @@
   </dialog>`;
   const $ = s => root.querySelector(s);
   const dialog = $('dialog');
-  const known = [
-    [/^payroll/i,'PR'], [/^(journal.*period closing|month.*clos|period clos)/i,'PC'],
-    [/^bank.*reconcil/i,'BR'], [/^payable/i,'AP'], [/^pit.*sso/i,'PS'], [/^trial\b/i,'TR']
-  ];
-  const colors = ['var(--mint)','var(--blue)','var(--sage)'];
-  const panelColors = ['#12644d','#447787','#887139'];
+  const priority = [/^payroll/i,/^(journal.*period closing|month.*clos|period clos)/i,/^bank.*reconcil/i,/^payable/i,/^pit.*sso/i,/^trial\b/i];
+  const colors = ['#b4efc4','#a6d8e6'];
+  const panelColors = ['#12644d','#447787'];
+  let selected = '', openedFrom = '';
+  // Retain keyboard focus when rebuilding the checklist after a confirmed save.
+  let stepFocus = null;
   const pinIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7.5 3h10L16 5l-1 6 3.5 3h-13L9 11l-.5-6zM12 14v7"/></svg>';
   let owner = '', client = null, snapshot = null, busy = false, slotRead = '', retryAt = 0, generation = 0, message = '';
   const percent = t => t.total ? Math.min(100,100*t.done/t.total) : 0;
@@ -90,20 +96,12 @@
       (!value.storage || (Number.isFinite(value.storage.db_bytes) && value.storage.db_limit>0 && value.storage.file_limit>0));
   }
   function checklists() {
-    const taken = new Set();
-    const tasks = (snapshot?.tasks || []).map(t => {
-      const rank = known.findIndex(([re])=>re.test(t.title));
-      return {...t,rank:rank<0?known.length:rank};
+    const tasks=(snapshot?.tasks || []).map(t=>{
+      const rank=priority.findIndex(re=>re.test(t.title));
+      return {...t,rank:rank<0?priority.length:rank};
     }).sort((a,b)=>a.rank-b.rank || a.title.localeCompare(b.title) || a.id.localeCompare(b.id));
-    for (const t of tasks) {
-      const words=t.title.toUpperCase().match(/[A-Z]+/g)||[];
-      const letters=words.join('');
-      let code=known[t.rank]?.[1] || ((words[0]?.[0]||'T')+(words[1]?.[0]||letters[1]||'K'));
-      for (let n=0;taken.has(code)&&n<676;n++) code=String.fromCharCode(65+Math.floor(n/26),65+n%26);
-      taken.add(code);t.code=code;
-    }
-    const ids=snapshot?.pins ?? tasks.slice(0,3).map(t=>t.id);
-    return {tasks,pins:ids.map(id=>tasks.find(t=>t.id===id)).filter(Boolean)};
+    const ids=snapshot?.pins ?? tasks.slice(0,2).map(t=>t.id);
+    return {tasks,pins:ids.map(id=>tasks.find(t=>t.id===id)).filter(Boolean).slice(0,2)};
   }
   function node(tag,cls,value) {
     const el=document.createElement(tag);
@@ -123,14 +121,40 @@
     const el=node('button','icon');el.type='button';el.title=label;el.setAttribute('aria-label',label);
     el.dataset.action=action;el.dataset.id=id;return el;
   }
+  function paintSteps(task) {
+    const box=$('.steps');
+    box.hidden=!task;
+    if (!task) {box.replaceChildren();return;}
+    const heading=node('h3','',task.title);heading.id='stepsTitle';
+    if (!Array.isArray(task.steps) || !task.revision) {
+      box.replaceChildren(heading,node('p','step-note','Refresh all when connected to load the steps.'));return;
+    }
+    const offline=!navigator.onLine || !!window.deviceVault14334?.offline;
+    const note=node('p','step-note',offline?'Offline · Connect to update steps.':task.steps.length?'Complete steps in order. Reopening a step also reopens the steps after it.':'No steps in this checklist.');
+    let pending=false;
+    const rows=task.steps.map((step,index)=>{
+      const label=node('label'),input=node('input');
+      input.type='checkbox';input.checked=step.done===true;
+      input.disabled=busy || pending || offline;
+      input.dataset.step=String(index);input.dataset.id=task.id;
+      if (!step.done) pending=true;
+      label.append(input,node('span','',(index+1)+'. '+step.text));return label;
+    });
+    box.replaceChildren(heading,note,...rows);
+  }
   function paint() {
     const {tasks,pins}=checklists();
     const lanes=pins.map((t,i)=>{
-      const lane=node('span','lane');lane.style.setProperty('--tint',colors[i]);
-      lane.append(bar(t,'line',colors[i]),node('span','code',t.code));return lane;
+      const complete=t.total>0 && t.done===t.total, lane=node('button','lane'+(complete?' complete':''));
+      const label=t.title+' · '+t.done+' of '+t.total+' · '+(complete?'Complete':'Incomplete');
+      lane.type='button';lane.style.setProperty('--tint',colors[i]);lane.dataset.id=t.id;
+      lane.setAttribute('aria-haspopup','dialog');lane.setAttribute('aria-label',label);lane.title=label;
+      lane.append(node('span','marker'),bar(t,'line',colors[i]));return lane;
     });
-    $('.tasks').replaceChildren(...(lanes.length?lanes:[node('span','empty','—')]));
-    $('.tasks').title=pins.map(t=>t.code+' · '+t.title+' · '+t.done+' of '+t.total).join('\n') || 'Open sequential tasks';
+    if (!lanes.length) {
+      const open=node('button','empty','—');open.type='button';open.setAttribute('aria-label','Open sequential tasks');lanes.push(open);
+    }
+    $('.tasks').replaceChildren(...lanes);
     const s=snapshot?.storage, ratio=s?100*s.db_bytes/s.db_limit:null;
     const flag=ratio>=70?'Red flag':ratio>=60?'Start archiving':'';
     const dbLabel=s?'Database storage · '+ratio.toFixed(2)+'%'+(flag?' · '+flag:''):'Database storage · Awaiting snapshot';
@@ -138,49 +162,71 @@
     // Keep the displayed whole number below a warning threshold until it is reached.
     const rounded=ratio==null?null:Math.round(ratio);
     $('.db strong').textContent=ratio==null?'—':((rounded===60||rounded===70)&&ratio<rounded?Math.floor(ratio):rounded)+'%';
-    $('.usage').setAttribute('stroke',ratio>=70?'#ff9294':ratio>=60?'#ffc078':'#8de6ae');
-    $('.usage').setAttribute('stroke-dasharray',Math.min(100,ratio||0)+' 100');
+    $('.db').dataset.flag=ratio>=70?'red':ratio>=60?'orange':'';
     if (!dialog.open) return;
     const focused=root.activeElement?.dataset;
-    $('.quiet').textContent=snapshot?.tasks_at?tasks.length+' checklist'+(tasks.length===1?'':'s')+' · '+pins.length+' of 3 pinned':'Awaiting checklist snapshot';
+    $('.quiet').textContent=snapshot?.tasks_at?tasks.length+' checklists · '+pins.length+' of 2 pinned':'Awaiting checklist snapshot';
     const cards=tasks.map(t=>{
-      const at=pins.findIndex(p=>p.id===t.id), card=node('div','card'), copy=node('div','copy'), head=node('div','cellhead');
-      head.append(node('b','',t.code));
-      if (at>0) {const move=actionIcon('Move '+t.title+' earlier','earlier',t.id);move.textContent='←';head.append(move);}
+      const at=pins.findIndex(p=>p.id===t.id), card=node('div','card'+(selected===t.id?' selected':'')), copy=node('div','copy'), head=node('div','cellhead');
+      const choose=node('button','choose',t.title);choose.type='button';choose.dataset.action='choose';choose.dataset.id=t.id;
+      choose.setAttribute('aria-controls','dockSteps');choose.setAttribute('aria-expanded',String(selected===t.id));head.append(choose);
+      if (at>0) {const move=actionIcon('Move '+t.title+' earlier','earlier',t.id);move.textContent='←';move.disabled=busy;head.append(move);}
       const pin=actionIcon((at>=0?'Unpin ':'Pin ')+t.title,'pin',t.id);pin.innerHTML=pinIcon;
-      pin.setAttribute('aria-pressed',String(at>=0));pin.disabled=busy||(at<0 && pins.length>=3);
-      if (at<0 && pins.length>=3) pin.title='Unpin a checklist to make room';
-      head.append(pin);copy.append(head,node('div','name',t.title),node('div','count',t.done+' of '+t.total+' · '+Math.round(percent(t))+'%'));
+      pin.setAttribute('aria-pressed',String(at>=0));pin.disabled=busy||(at<0 && pins.length>=2);
+      if (at<0 && pins.length>=2) pin.title='Unpin a checklist to make room';
+      head.append(pin);copy.append(head,node('div','count',t.done+' of '+t.total+' · '+Math.round(percent(t))+'%'));
       card.append(bar(t,'meter',panelColors[at]||'#65816d'),copy);return card;
     });
     $('.grid').replaceChildren(...(cards.length?cards:[node('span','count',snapshot?.tasks_at?'No active sequential checklists.':'No checklist snapshot available.')]));
-    if (focused?.id) [...root.querySelectorAll('.icon')].find(b=>b.dataset.id===focused.id && b.dataset.action===focused.action)?.focus({preventScroll:true});
+    paintSteps(tasks.find(t=>t.id===selected));
+    const focusStep=stepFocus && selected===stepFocus.id && !busy;
+    if (focusStep) {
+      $('.steps input[data-step="'+stepFocus.index+'"]')?.focus({preventScroll:true});stepFocus=null;
+    } else if (focused?.action) {
+      [...root.querySelectorAll('.grid button')].find(b=>b.dataset.id===focused.id && b.dataset.action===focused.action)?.focus({preventScroll:true});
+    }
     $('.dbAmount').textContent=s?storageText(s.db_bytes,s.db_limit):'—';
     $('.fileAmount').textContent=s?storageText(s.file_bytes,s.file_limit):'—';
     $('.taskTime').textContent='Tasks checked '+(snapshot?.tasks_at?formatAppDate(snapshot.tasks_at,true):'—');
     $('.storageTime').textContent='Storage checked '+(s?.checked_at?formatAppDate(s.checked_at,true):'—');
     $('.refresh').disabled=busy;$('.notice').textContent=message;
   }
-  async function request(action,pins) {
+  async function request(action,params) {
     if (busy || !owner || session()!==owner || !client) return;
     const active=generation, requestedSlot=slot();
     if (!navigator.onLine || window.deviceVault14334?.offline) {
       message='Offline · Showing the last saved status.';paint();return;
     }
-    busy=true;message=action==='refresh'?'Refreshing tasks and storage…':'';if (dialog.open) paint();
+    busy=true;message=action==='step'?'Saving step…':action==='refresh'?'Refreshing tasks and storage…':'';
+    if (dialog.open && action==='step') {
+      // Keep the native checkbox in place while the user's selection is saving.
+      for (const control of dialog.querySelectorAll('.steps input,.grid .icon,.refresh')) control.disabled=true;
+      $('.notice').textContent=message;
+    } else if (dialog.open) paint();
     try {
-      const {data,error}=await client.rpc('desktop_dock_status',{p_action:action,p_pins:pins??null});
+      const {data,error}=action==='step'
+        ? await client.rpc('set_desktop_dock_step',params)
+        : await client.rpc('desktop_dock_status',{p_action:action,p_pins:params??null});
       if (active!==generation || session()!==owner || client!==ojmDb) return;
       if (error || !valid(data)) throw Error(error?.message||'Invalid status response');
       snapshot=data;slotRead=requestedSlot;retryAt=0;
       if (window.deviceVault14334?.unlocked && window.deviceVault14334.actor===owner) {
         try { localStorage.setItem(key(),JSON.stringify(data)); } catch { /* Current session can still display the result. */ }
       }
-      message=action==='refresh'?'Tasks and storage refreshed.':'';
+      if (action==='step') {
+        const task=data.tasks.find(t=>t.id===params.p_task);
+        const state=window.workflow136?.state;
+        const row=state?.todoLoadedOwner14335===owner && state.todos.find(t=>t.id===params.p_task);
+        if (task && row && row.updated_at===params.p_revision) {
+          Object.assign(row,{steps:structuredClone(task.steps),updated_at:task.revision});
+          window.todos1438?.render();window.refreshNotices1443?.();
+        }
+        message=data.outcome==='saved'?'Step saved.':data.outcome==='order'?'Complete the earlier steps first.':'This checklist changed. Review its latest steps before editing.';
+      } else message=action==='refresh'?'Tasks and storage refreshed.':'';
     } catch {
       if (active!==generation) return;
       retryAt=Date.now()+60000;
-      message=action==='pins'?'Pins could not be saved. Try again.':'Status unavailable · Showing the last saved status.';
+      message=action==='step'?'Could not confirm this step. Refresh all to check its saved status.':action==='pins'?'Pins could not be saved. Try again.':'Status unavailable · Showing the last saved status.';
     } finally {
       if (active===generation) {busy=false;if(session()===owner)paint();}
     }
@@ -188,7 +234,7 @@
   function syncView() {
     const id=session(), db=id?ojmDb:null;
     if (id!==owner || client!==db) {
-      generation++;if(dialog.open)dialog.close();host.remove();owner=id;client=db;snapshot=null;busy=false;message='';slotRead='';retryAt=0;
+      generation++;selected='';stepFocus=null;if(dialog.open)dialog.close();host.remove();owner=id;client=db;snapshot=null;busy=false;message='';slotRead='';retryAt=0;
       if (!id) return;
       try {
         const cached=JSON.parse(localStorage.getItem(key()));
@@ -206,17 +252,35 @@
     if (session()!==owner || !owner) {syncView();return;}
     const button=event.target.closest('button');
     if (button?.closest('.rail')) {
+      selected=button.dataset.id || '';openedFrom=button.matches('.db')?'db':selected;stepFocus=null;
       if (!dialog.open) {dialog.showModal();paint();}return;
     }
     if (button?.matches('.close') || (event.target===dialog && !button &&
         (event.clientX<dialog.getBoundingClientRect().left || event.clientX>dialog.getBoundingClientRect().right ||
          event.clientY<dialog.getBoundingClientRect().top || event.clientY>dialog.getBoundingClientRect().bottom))) {dialog.close();return;}
     if (button?.matches('.refresh')) {request('refresh');return;}
+    if (button?.dataset.action==='choose') {
+      selected=selected===button.dataset.id?'':button.dataset.id;stepFocus=null;paint();return;
+    }
     if (busy || !button?.dataset.id) return;
     const ids=checklists().pins.map(t=>t.id),id=button.dataset.id,index=ids.indexOf(id);
     if (button.dataset.action==='earlier' && index>0) [ids[index-1],ids[index]]=[ids[index],ids[index-1]];
-    if (button.dataset.action==='pin') {if(index>=0)ids.splice(index,1);else if(ids.length<3)ids.push(id);}
+    if (button.dataset.action==='pin') {if(index>=0)ids.splice(index,1);else if(ids.length<2)ids.push(id);}
     request('pins',ids);
+  });
+  dialog.addEventListener('close',()=>{
+    if (!host.isConnected || session()!==owner) return;
+    const target=openedFrom==='db'?$('.db'):[...root.querySelectorAll('.lane')].find(lane=>lane.dataset.id===openedFrom);
+    (target || $('.tasks button'))?.focus({preventScroll:true});
+  });
+  root.addEventListener('change',event=>{
+    const input=event.target;
+    if (!input.matches('.steps input[data-step]') || busy || session()!==owner) return;
+    const task=snapshot?.tasks.find(t=>t.id===selected && t.id===input.dataset.id);
+    if (!task?.revision) return;
+    const index=Number(input.dataset.step);
+    stepFocus={id:task.id,index};
+    request('step',{p_task:task.id,p_revision:task.revision,p_index:index,p_done:input.checked});
   });
   function start() {
     const gate=document.getElementById('loginGate');
