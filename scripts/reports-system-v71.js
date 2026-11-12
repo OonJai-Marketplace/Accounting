@@ -345,7 +345,7 @@ async function reconciliationExport306(preferred=null){
  const owner=reportOwner71(),client=ojmDb,current=()=>owner===reportOwner71()&&client===ojmDb&&reportPermission71();
  try{
   if(!current()||!access113.can('report-reconciliation','export'))throw Error('Reconciliation export access is required.');
-  const all=latestReconciliations306((await reconciliationRecords305()).filter(reconciliationRecorded71));if(!current())return;if(!all.length)throw Error('There are no saved reconciliations to export.');
+  const all=latestReconciliations306((await reconciliationRecords305()).filter(r=>reconciliationRecorded71(r)&&(!document.querySelector("#report-reconciliation.active")||reportBooks.includes("report-reconciliation",r.from,r.to))));if(!current())return;if(!all.length)throw Error('There are no saved reconciliations to export.');
   if(preferred){const i=all.findIndex(r=>r.account.id===preferred.account.id&&r.from===preferred.from&&r.to===preferred.to);if(i>=0)all[i]=preferred;}
   const latest=preferred||all[0],defaults=await window.printPreferences1434?.load();if(!current())return;
   const previous=defaults?.reports275?.['report:report-reconciliation'],signers=previous?.signers||[{name:liveProfile?.full_name||liveProfile?.email||'',role:'Manager'}];

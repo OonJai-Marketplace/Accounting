@@ -34,12 +34,12 @@
  html body .general-description14281{background:#edf5ef!important;padding:7px 10px!important;color:#203d35!important}
  html body .general-description14281 strong{color:#405f4f!important;font-size:11px!important}
  /* Report identifiers and balances retain their complete visible values. */
- html body.shell113 :is(#report-gl,#report-activity) .r79-table table{min-width:1180px!important;table-layout:fixed!important}
- html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(1){width:90px!important;white-space:nowrap!important}
- html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(2){width:100px!important;overflow-wrap:anywhere!important}
- html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(3){width:200px!important}
- html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(4){width:auto!important}
- html body.shell113 :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(n+5){width:180px!important;min-width:180px!important;white-space:nowrap!important;text-align:right!important}
+ html body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-table table{min-width:1180px!important;table-layout:fixed!important}
+ html body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-table :is(th,td):nth-child(1){width:90px!important;white-space:nowrap!important}
+ html body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-table :is(th,td):nth-child(2){width:100px!important;overflow-wrap:anywhere!important}
+ html body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-table :is(th,td):nth-child(3){width:200px!important}
+ html body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-table :is(th,td):nth-child(4){width:auto!important}
+ html body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-table :is(th,td):nth-child(n+5){width:180px!important;min-width:180px!important;white-space:nowrap!important;text-align:right!important}
  html body.shell113 #printableDocArea .tab-content:not(#document-editor105) .r79-table td{overflow:visible!important;text-overflow:clip!important;white-space:normal!important;overflow-wrap:anywhere!important}
  html body.shell113 #printableDocArea .tab-content:not(#document-editor105) .r79-table td :is(a,span){max-width:none!important;text-overflow:clip!important;white-space:inherit!important;overflow-wrap:inherit!important}
  html body .assigned-ledger14281 table{min-width:1000px!important;table-layout:fixed!important}

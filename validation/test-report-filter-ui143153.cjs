@@ -9,6 +9,7 @@ const create=require('./phase0-browser-fixture.cjs');
   fixture.fixture.journalReads=[];
   await login();await page.waitForFunction(()=>startup14257.interactive);
   const month='2026-10';
+  await page.evaluate(m=>{PeriodReview.periods[m]={status:'closed'}},month);
   fixture.fixture.journal=Array.from({length:1200},(_,i)=>({
    id:'GL-TEST-'+i,dbEntryId:'fixture-'+i,date:month+'-05',accountId:'cash',account:'Cash',
    accountCode:'100',currency:'LAK',debit:1,credit:0,base_debit:1,base_credit:0,status:'posted'
@@ -37,8 +38,8 @@ const create=require('./phase0-browser-fixture.cjs');
   await dialog.locator('[name=by]').selectOption('account');
   await dialog.locator('[name=basis]').selectOption('original');
   await dialog.locator('[data-period]').click();
-  await dialog.locator('[data-now]').click();
-  assert.equal(await page.evaluate(()=>Reports79.allMonths14331),true);
+  await dialog.locator('[data-all]').click();
+  assert.equal(await page.evaluate(()=>Reports79.allMonths14331),false);
   assert.equal(await page.evaluate(()=>Reports79.basis),'LAK');
   assert.equal(await page.evaluate(()=>modelCalls),0);
   await dialog.getByRole('button',{name:'Cancel'}).click();

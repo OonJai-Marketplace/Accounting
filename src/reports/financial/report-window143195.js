@@ -12,15 +12,15 @@ function cancelForeground(){sequence++;foreground?.end?.();foreground=null;}
 function reset(){generation++;cancelForeground();for(const task of pending.values())task.controller.abort();cache.clear();pending.clear();failures.clear()}
 function restoreFilters(){
  const next=identity(),db=typeof ojmDb==='undefined'?null:ojmDb,rows=JournalModule.confirmedSnapshot14385||JournalModule.entries;
- if(scope!==next||client!==db){scope=next;client=db;entries=rows;entryContent=JSON.stringify(rows);reset();
+ if(scope!==next||client!==db){reportBooks.reset();scope=next;client=db;entries=rows;entryContent=JSON.stringify(rows);reset();
   try{const saved=JSON.parse(localStorage.getItem('ojm-report-filters143195:'+scope)||'null');
    if(saved&&/^\d{4}-\d{2}-\d{2}$/.test(saved.from)&&/^\d{4}-\d{2}-\d{2}$/.test(saved.to)&&saved.from<=saved.to){for(const field of fields)if(Object.hasOwn(saved,field))Reports79[field]=saved[field]}
    else{const latest=rows.filter(r=>!r.pendingSync&&!r.local14333&&!r.voided_at&&(!r.status||r.status==='posted')).map(r=>String(r.date||'').slice(0,7)).filter(m=>/^\d{4}-\d{2}$/.test(m)).sort().at(-1);if(latest)Object.assign(Reports79,{mode:'monthly',month:latest,year:Number(latest.slice(0,4)),quarter:Math.ceil(Number(latest.slice(5))/3),from:latest+'-01',to:summaryPeriod14331.end(latest),selectedMonths14331:null,allMonths14331:false})}
   }catch{}
  }else if(entries!==rows){entries=rows;const content=JSON.stringify(rows);if(content!==entryContent){entryContent=content;reset()}}
 }
-function save(){try{localStorage.setItem('ojm-report-filters143195:'+scope,JSON.stringify(Object.fromEntries(fields.map(k=>[k,Reports79[k]]))))}catch{}}
-const range=(from,to)=>({from:from<to.slice(0,4)+'-01-01'?to.slice(0,4)+'-01-01':from,to});
+function save(){if(reportBooks.scope()==='live')return;try{localStorage.setItem('ojm-report-filters143195:'+scope,JSON.stringify(Object.fromEntries(fields.map(k=>[k,Reports79[k]]))))}catch{}}
+const range=(from,to)=>({from:reportBooks.scope()==='history'||from<to.slice(0,4)+'-01-01'?to.slice(0,4)+'-01-01':from,to});
 function periods(){const s=Reports79;let list;if(s.allMonths14331)return [allPeriod];
  if(s.kind==='bs'&&window.reportPeriods118)list=reportPeriods118();
  else if(s.selectedMonths14331?.length)list=s.selectedMonths14331.map(m=>({from:m+'-01',to:summaryPeriod14331.end(m)}));
@@ -70,14 +70,17 @@ function addOpening(rows,snapshot){for(const b of snapshot.opening){let row=rows
 function signature(){
  const s=Reports79,kind=s.kind,settings=typeof ApplicationSettings==='undefined'?{}:ApplicationSettings;
  const selection=['gl','activity'].includes(kind)?[s.account,s.query]:kind==='cf'?s.cash:kind==='payroll'?s.payroll:null;
- return JSON.stringify([scope,generation,kind,s.mode,s.month,s.year,s.quarter,s.from,s.to,s.allMonths14331,s.selectedMonths14331,s.basis,s.currency,
+ return JSON.stringify([scope,generation,reportBooks.scope(),reportBooks.closedMonths(),kind,s.mode,s.month,s.year,s.quarter,s.from,s.to,s.allMonths14331,s.selectedMonths14331,s.basis,s.currency,
   selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
   AccountingStore.accounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)]);
 }
-function reuse(host){restoreFilters();normalizeAll();return complete()&&renderedViews.get(host)===signature()}
+function reuse(host){restoreFilters();if(!reportBooks.sync())return false;normalizeAll();return complete()&&renderedViews.get(host)===signature()}
 function rendered(host){host.removeAttribute('aria-busy');renderedViews.set(host,signature());window.workspaceViews14364?.remember?.(active())}
 function prioritize(){const view=active(),wanted=new Set(periods().map(key));if(foreground&&(foreground.view!==view||foreground.selection!==[...wanted].join(',')))cancelForeground();for(const [k,task]of pending)if(!task.keep&&(!view.startsWith('report-')||!wanted.has(k))){task.controller.abort();pending.delete(k)}}
-function prepare(host){restoreFilters();normalizeAll();save();prioritize();if(complete()){host.removeAttribute('aria-busy');return true}
+function prepare(host){restoreFilters();if(!reportBooks.sync()){
+ cancelForeground();renderedViews.delete(host);host.removeAttribute('aria-busy');
+ host.innerHTML='<p role="status">'+(reportBooks.scope()==='live'?'No current open book.':'No closed books are available for this report.')+'</p>';return false;
+ }normalizeAll();save();prioritize();if(complete()){host.removeAttribute('aria-busy');return true}
  const list=periods(),error=list.map(p=>failures.get(key(p))).find(Boolean),selection=list.map(key).join(','),view=active();
  renderedViews.delete(host);host.setAttribute('aria-busy',String(!error));host.innerHTML=reportHeader79(Reports79.kind,true)+'<p role="status">'+escapeHtml(error||'Preparing the selected report…')+'</p>';
  if(!error&&!(foreground?.view===view&&foreground?.selection===selection)){

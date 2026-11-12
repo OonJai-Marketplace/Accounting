@@ -51,8 +51,17 @@ dialog.report-dialog299 {
 .report-fields299 [data-choices] {display:grid; gap:5px; max-height:14rem; overflow:auto; padding:6px}
 .report-fields299 [data-choices] [role=group] {display:grid; gap:5px}
 
-body.shell113 #report-gl .r79-actions .r79-search143153{padding:0;align-items:center}
-body.shell113 #report-gl .r79-actions .r79-search143153 label{width:240px;max-width:100%}
-body.shell113 #report-gl .r79-actions .r79-search143153 input{width:185px}
-body.shell113 #report-gl .r79-header{gap:12px;flex-wrap:wrap}
-body.shell113 #report-gl .r79-actions{align-items:center}
+body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-actions .r79-search143153{padding:0;align-items:center}
+body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-actions .r79-search143153 label{width:240px;max-width:100%}
+body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-actions .r79-search143153 input{width:185px}
+body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-header{gap:12px;flex-wrap:wrap}
+body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-actions{align-items:center}
+/* Use the same label and control grid for every financial filter. */
+html body dialog.report-dialog299 {width:min(520px,calc(100vw - 24px));box-sizing:border-box}
+html body .report-dialog299 .report-fields299 {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;align-items:start}
+html body .report-fields299>label {display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;min-width:0;margin:0;gap:4px;line-height:18px}
+html body .report-fields299>label:has([name=currency]):not(:has(+label [name=account])) {grid-column:1/-1}
+html body .report-fields299>label :is(select,button,[role=combobox],input:not([type=checkbox])) {box-sizing:border-box;width:100%;max-width:100%;margin:0;height:36px;min-height:36px;justify-content:flex-start;text-align:left}
+html body .report-fields299>label [data-period]:disabled {opacity:1;color:inherit;background:#f2f6f4}
+@media(max-width:480px){html body .report-dialog299 .report-fields299{grid-template-columns:minmax(0,1fr)}}
+html body .report-fields299>label:only-child {grid-column:1/-1}

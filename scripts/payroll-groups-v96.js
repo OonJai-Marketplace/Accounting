@@ -282,8 +282,9 @@ function employeesView(){if(window.hrWorkspace14306)return hrWorkspace14306.rend
 function historyView(id){
  const salaryHistory=id==='payroll-history', report=!salaryHistory;
  const closed=r=>(r.data.status==='finalized'||r.data.correction277)&&!r.data.isSample;
- const historyRuns=salaryHistory?Work82.runs.filter(closed):Work82.runs;
- const selected=historyMonth14341.choose(id,historyRuns.map(r=>r.data.month));
+ const historyRuns=salaryHistory?Work82.runs.filter(closed):Work82.runs.filter(r=>reportBooks.closed(r.data.month));
+ const requested=historyMonth14341.choose(id,historyRuns.map(r=>r.data.month));
+ const selected=report&&!reportBooks.closed(requested)?reportBooks.closedMonths().at(-1)||'':requested;
  const monthRuns=historyRuns.filter(r=>r.data.month===selected);
  const query=report&&ui.search.trim().toLowerCase();
  const list=query?monthRuns.filter(r=>JSON.stringify(r.data).toLowerCase().includes(query)):monthRuns;
@@ -314,10 +315,10 @@ function historyView(id){
  if(salaryHistory)return;
  panel.querySelector('[data-payroll-filter143153]').onclick=event=>{
   const input=panel.querySelector('[data-history-month14341]');
-  const dialog=openReportDialog299(event.currentTarget,'Payroll report filters','<label>Month<input name="month" type="month" required></label>',()=>{
+  const dialog=openReportDialog299(event.currentTarget,'Payroll report filters','<label>Period<select data-plain14285 name="month">'+reportBooks.monthOptions(selected,false)+'</select></label>',()=>{
    if(input.isConnected&&input.value!==month.value){input.value=month.value;void input.onchange()}
   });
-  const month=dialog.querySelector('[name=month]');month.value=input.value;
+  const month=dialog.querySelector('[name=month]');month.value=selected;
 
  };
  const input=panel.querySelector('#payHistorySearch95');

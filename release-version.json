@@ -1,1 +1,1 @@
-{"version": "143.374", "changes": ["Unify the Bookkeeping tabs and shortcuts and open history from each work area.", "Retire AI Journal and AI HR and keep Google receipt settings and news separate."]}
+{"version": "143.375", "changes": ["Show current open-book ledger and trial balance under Accounts, and closed-book history under Reports.", "Move Account Activity into Accounts and align the search and report filters."]}

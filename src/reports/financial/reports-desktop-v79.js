@@ -1,12 +1,69 @@
 /* Desktop reports: derived from posted journal lines; no duplicate ledger or mobile changes. */
 const Reports79={kind:'pl',mode:'monthly',month:Accounts69.month,year:Accounts69.year,quarter:Accounts69.quarter,from:Accounts69.from,to:Accounts69.to,currency:'',basis:'LAK',account:'',query:'',notes:{},cash:[],payroll:[]};
-const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'Trial Balance',gl:'General Ledger',activity:'Account Activity',expense:'Expense Report',payroll:'Payroll Report'};
+const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'Trial Balance',gl:'General Ledger',activity:'Account Activity',expense:'Expense',payroll:'Payroll'};
 const re79=v=>escapeHtml(String(v??''));
+const reportBooks=(()=>{
+ const monthOf=value=>String(value||'').slice(0,7);
+ const closed=value=>['closed','locked'].includes(PeriodReview.periods[monthOf(value)]?.status);
+ const closedMonths=()=>Object.keys(PeriodReview.periods).filter(closed).sort();
+ function workingMonth(){
+  const today=appLocalDate().slice(0,7);
+  return Object.keys(PeriodReview.periods).filter(m=>m<=today&&PeriodReview.periods[m].status==='open').sort()[0]||(!closed(today)?today:'');
+ }
+ function closedRange(from,to){
+  const first=monthOf(from),last=monthOf(to);
+  if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(first)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(last)||first>last)return false;
+  const ordinal=m=>Number(m.slice(0,4))*12+Number(m.slice(5));
+  return closedMonths().filter(m=>m>=first&&m<=last).length===ordinal(last)-ordinal(first)+1;
+ }
+ function scope(){
+  const id=document.querySelector('.tab-content.active')?.id||'';
+  return id.startsWith('report-open-')?'live':id==='report-activity'?'activity':id.startsWith('report-')?'history':'';
+ }
+ const keys=['mode','month','quarter','year','from','to','selectedMonths14331','allMonths14331'];
+ const periods=new Map();let previous='';
+ const filters=new Map();
+ function reset(){periods.clear();filters.clear();previous=''}
+ function carryToActivity(){periods.set('activity',Object.fromEntries(keys.map(k=>[k,Reports79[k]])))}
+ function selected(id){const m=filters.get(id);return closed(m)?m:''}
+ function includes(id,from,to=from){
+  const m=selected(id);
+  return closedRange(from,to)&&(!m||(monthOf(from)<=m&&monthOf(to)>=m));
+ }
+ function monthOptions(value,all=true){
+  return (all?'<option value="">All closed months</option>':'')+closedMonths().reverse().map(m=>'<option value="'+m+'" '+(value===m?'selected':'')+'>'+summaryPeriod14331.monthLabel(m)+'</option>').join('');
+ }
+ function filterButton(){return '<button type="button" class="je-btn je-btn-secondary" data-book-filter aria-haspopup="dialog">Filter</button>'}
+ function bind(id,title,render){
+  const button=document.querySelector('#'+id+' [data-book-filter]');if(!button)return;
+  button.onclick=()=>{
+   const dialog=openReportDialog299(button,title+' filters','<label>Period<select name="book" data-plain14285>'+monthOptions(selected(id))+'</select></label>',()=>{
+    filters.set(id,dialog.querySelector('[name=book]').value);render();
+   });
+  };
+ }
+ function sync(){
+  const next=scope(),s=Reports79;
+  if(!next)return true;
+  if(previous!==next){
+   if(previous)periods.set(previous,Object.fromEntries(keys.map(k=>[k,s[k]])));
+   if(periods.has(next))Object.assign(s,periods.get(next));
+   previous=next;
+  }
+  if(next==='activity')return true;
+  const selected=s.selectedMonths14331;
+  if(next==='history'&&!s.allMonths14331&&(selected?.length?selected.every(closed):closedRange(s.from,s.to)))return true;
+  const month=next==='live'?workingMonth():closedMonths().at(-1);
+  if(!month)return false;
+  periodFilters14331.setPeriod(s,[month],{mode:'monthly'});return true;
+ }
+ return {closed,closedMonths,closedRange,workingMonth,scope,sync,reset,includes,selected,monthOptions,filterButton,bind,carryToActivity};
+})();
 function reportRange79(){const r=Reports79;if(r.mode==='custom')return;let y=+r.year,m=1,n=12;if(r.mode==='monthly'){[y,m]=r.month.split('-').map(Number);n=1}if(r.mode==='quarterly'){m=(+r.quarter-1)*3+1;n=3}r.from=date71(y,m,1);const end=new Date(y,m-1+n,0);r.to=date71(end.getFullYear(),end.getMonth()+1,end.getDate())}
 let reportRenderCache14336=null;
 function reportData79(){
  const cacheKey=JSON.stringify([Reports79.kind,Reports79.from,Reports79.to,Reports79.currency,Reports79.account,Reports79.basis]);if(reportRenderCache14336?.has(cacheKey))return reportRenderCache14336.get(cacheKey);
- const old={...Accounts69},originalEntries=JournalModule.entries,reportSnapshot=window.reportWindow143195?.snapshot(Reports79.from,Reports79.to);try{if(reportSnapshot)window.reportWindow143195.calculating=true;JournalModule.entries=(reportSnapshot?.rows||originalEntries).filter(r=>!r.pendingSync&&!r.local14333&&(!r.status||r.status==='posted'));if(['pl','expense'].includes(Reports79.kind))JournalModule.entries=JournalModule.entries.filter(r=>!String(r.generalMemo||'').startsWith('Year-end closing '));Object.assign(Accounts69,{from:Reports79.from,to:Reports79.to});let accountRows=accountData69(Accounts69.to,Reports79.kind!=='tb');if(reportSnapshot)accountRows=reportWindow143195.addOpening(accountRows,reportSnapshot);let rows=accountRows.filter(r=>(['tb','gl','activity'].includes(Reports79.kind)||!r.account.isTechnical)&&(!Reports79.currency||r.currency===Reports79.currency));if(Reports79.basis==='LAK')rows=rows.map(r=>({...r,sourceCurrency:r.currency,original:{opening:r.opening,debit:r.debit,credit:r.credit,closing:r.closing},currency:'LAK',opening:r.baseOpening,debit:r.baseDebit,credit:r.baseCredit,closing:r.baseClosing,lines:r.lines.map(l=>({...l,originalDebit:l.dr,originalCredit:l.cr,originalCurrency:l.currency,dr:cents69(window.JournalFX14383?.base(l,'debit')),cr:cents69(window.JournalFX14383?.base(l,'credit'))}))}));reportRenderCache14336?.set(cacheKey,rows);return rows}finally{Object.assign(Accounts69,old);JournalModule.entries=originalEntries;if(reportSnapshot)window.reportWindow143195.calculating=false}
+ const historical=reportBooks.scope()==='history',old={...Accounts69},originalEntries=JournalModule.entries,reportSnapshot=window.reportWindow143195?.snapshot(Reports79.from,Reports79.to);try{if(reportSnapshot)window.reportWindow143195.calculating=true;JournalModule.entries=(reportSnapshot?.rows||originalEntries).filter(r=>!r.pendingSync&&!r.local14333&&(!r.status||r.status==='posted')&&(!historical||reportBooks.closed(r.date)));if(['pl','expense'].includes(Reports79.kind))JournalModule.entries=JournalModule.entries.filter(r=>!String(r.generalMemo||'').startsWith('Year-end closing '));Object.assign(Accounts69,{from:Reports79.from,to:Reports79.to});let accountRows=accountData69(Accounts69.to,Reports79.kind!=='tb');if(reportSnapshot)accountRows=reportWindow143195.addOpening(accountRows,reportSnapshot);let rows=accountRows.filter(r=>(['tb','gl','activity'].includes(Reports79.kind)||!r.account.isTechnical)&&(!Reports79.currency||r.currency===Reports79.currency));if(Reports79.basis==='LAK')rows=rows.map(r=>({...r,sourceCurrency:r.currency,original:{opening:r.opening,debit:r.debit,credit:r.credit,closing:r.closing},currency:'LAK',opening:r.baseOpening,debit:r.baseDebit,credit:r.baseCredit,closing:r.baseClosing,lines:r.lines.map(l=>({...l,originalDebit:l.dr,originalCredit:l.cr,originalCurrency:l.currency,dr:cents69(window.JournalFX14383?.base(l,'debit')),cr:cents69(window.JournalFX14383?.base(l,'credit'))}))}));reportRenderCache14336?.set(cacheKey,rows);return rows}finally{Object.assign(Accounts69,old);JournalModule.entries=originalEntries;if(reportSnapshot)window.reportWindow143195.calculating=false}
 }
 function reportSet79(k,v){const old={...Reports79};Reports79[k]=v;try{reportRange79()}catch{Object.assign(Reports79,old);showCenterStatus('Choose a valid reporting period.',true);renderReports79();return}if(!Reports79.from||!Reports79.to||Reports79.from>Reports79.to||!/^\d{4}-\d{2}-\d{2}$/.test(Reports79.from)||(+Reports79.year<1900||+Reports79.year>9999)){Object.assign(Reports79,old);showCenterStatus('Choose a valid reporting period.',true)}renderReports79()}
 const reportSorts143153=new Map();
@@ -36,7 +93,7 @@ function toggleReportFilters143153(button){
  const options=(pairs,value)=>pairs.map(([v,n])=>`<option value="${re79(v)}" ${v===value?'selected':''}>${re79(n)}</option>`).join('');
  const field=(label,key,items,value)=>`<label>${label}<select ${key==='account'?'':'data-plain14285'} name="${key}">${options(items,value)}</select></label>`;
  const orders=by=>[['asc',by==='date'?'Oldest to newest':'Lowest to highest'],['desc',by==='date'?'Newest to oldest':'Highest to lowest']];
- const periodControl='<label>Period<button type="button" class="oj-date-button104" data-period aria-haspopup="dialog">'+re79(periodFilters14331.caption(period))+'</button></label>';
+ const periodControl='<label>Period<button type="button" class="oj-date-button104" data-period '+(reportBooks.scope()==='live'?'disabled':'aria-haspopup="dialog"')+'>'+re79(periodFilters14331.caption(period))+'</button></label>';
  const accountField=ledger?field('Account','account',[],''):'';
  const checks=kind==='cf'?'<fieldset><legend>Cash and bank accounts</legend><details><summary data-cash-summary>Choose accounts</summary><div data-choices></div></details></fieldset>':kind==='payroll'?'<fieldset><legend>Payroll accounts</legend><div data-choices></div></fieldset>':'';
  const body=periodControl+field('Report basis','basis',[['LAK','LAK — reporting currency'],['original','Original currencies']],s.basis)+field('Currency','currency',[['','All original currencies'],...currencies.map(c=>[c,c])],s.currency)+accountField+field('Sort by','by',[...(ledger?[['date','Date']]:[]),['account','Account code']],sort.by)+field('Order','direction',orders(sort.by),sort.direction)+checks;
@@ -48,8 +105,9 @@ function toggleReportFilters143153(button){
  });
  const form=dialog.querySelector('form').elements,periodButton=dialog.querySelector('[data-period]');
  periodButton.onclick=()=>summaryPeriod14331.open(periodButton,periodFilters14331.selection(period),(values,meta)=>{
+  if(reportBooks.scope()==='history'&&!values.length&&meta.mode!=='custom'){values=reportBooks.closedMonths();meta={mode:'monthly'}}
   periodFilters14331.setPeriod(period,values,meta);periodButton.textContent=periodFilters14331.caption(period);
- },{mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:true});
+ },{mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:true,closedBooks:reportBooks.scope()==='history'});
  form.by.onchange=()=>{form.direction.innerHTML=options(orders(form.by.value),form.direction.value)};
  function accountChoices(selected){
   const visible=rows.filter(r=>!form.currency.value||r.currency===form.currency.value);
@@ -96,12 +154,12 @@ function bindLedgerBlocks300(host,blocks){
  bodies.forEach(body=>observer.observe(body));
  ledgerScreens300.set(host,{disconnect:()=>observer.disconnect(),expand:()=>{observer.disconnect();bodies.forEach(show)},resume:()=>bodies.forEach(body=>observer.observe(body))});
 }
-function activeLedger300(){return ledgerScreens300.get(document.querySelector(':is(#report-gl,#report-tb).active .r79'))}
+function activeLedger300(){return ledgerScreens300.get(document.querySelector(':is(#report-gl,#report-tb,#report-open-gl,#report-open-tb).active .r79'))}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='f')activeLedger300()?.expand()},true);
 if(typeof window.addEventListener==='function'){
  window.addEventListener('beforeprint',()=>activeLedger300()?.expand());
  window.addEventListener('afterprint',()=>activeLedger300()?.resume());
- window.addEventListener('page113',()=>{for(const host of document.querySelectorAll(':is(#report-gl,#report-tb):not(.active) .r79'))ledgerScreens300.get(host)?.resume()});
+ window.addEventListener('page113',()=>{for(const host of document.querySelectorAll(':is(#report-gl,#report-tb,#report-open-gl,#report-open-tb):not(.active) .r79'))ledgerScreens300.get(host)?.resume()});
 }
 
 function reportTable79(headers,rows,currency,print=false){
@@ -199,26 +257,26 @@ function reportModel79(kind,oldest=false){
 function reportContent79(kind,oldest=false){const groups=reportModel79(kind,oldest);return groups.map(g=>`<section class="r79-group"><h4>${re79(g.currency)}${g.periodLabel?' · '+re79(g.periodLabel):''}</h4><div class="r79-metrics">${g.metrics.map(([label,value])=>`<div><small>${re79(label)}</small><strong class="${value<0?'r79-negative':''}">${money69(value)}</strong></div>`).join('')}</div>${reportTable79(g.headers,g.values,g.currency,oldest)}<p class="r79-note">${re79(g.note)}</p></section>`).join('')||'<p class="r79-note">No chart accounts or posted journal data are available yet.</p>'}
 function reportHeader79(kind,pending=false){
  const s=Reports79,title=reportNames79[kind];
- return `<header class="r79-header"><div><span class="r79-eyebrow">REPORTS · POSTED JOURNAL</span><h3>${title}</h3><p>${s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'||kind==='tb'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · Active and archived posted entries</p></div><div class="r79-actions">${kind==='gl'?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
+ return `<header class="r79-header"><div><span class="r79-eyebrow">${reportBooks.scope()==='live'?'ACCOUNTS · OPEN BOOK':reportBooks.scope()==='history'?'REPORTS · CLOSED BOOKS':'ACCOUNTS · POSTED JOURNAL'}</span><h3>${title}</h3><p>${s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'||kind==='tb'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · ${reportBooks.scope()==='live'?'Prior balances carried forward':reportBooks.scope()==='history'?'Closed-book history':'Posted entries'}</p></div><div class="r79-actions">${['gl','activity'].includes(kind)?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
 }
 function renderReports79(){
  if(!matchMedia('(min-width:768px)').matches)return;
  const previousCache=reportRenderCache14336;reportRenderCache14336=new Map();try{
  for(const kind of Object.keys(reportNames79)){
- const panel=document.getElementById('report-'+kind);if(!panel||!panel.classList.contains('active'))continue;let host=panel.querySelector('.r79');if(!host){if(!panel.querySelector('.r79-original')){const original=document.createElement('div');original.className='r79-original';for(const child of [...panel.childNodes])if(!child.classList?.contains('area-banner113'))original.append(child);panel.append(original)}host=document.createElement('section');host.className='r79';panel.append(host)}
+ const panel=document.querySelector('#report-'+kind+'.active,#report-open-'+kind+'.active');if(!panel)continue;let host=panel.querySelector('.r79');if(!host){if(!panel.querySelector('.r79-original')){const original=document.createElement('div');original.className='r79-original';for(const child of [...panel.childNodes])if(!child.matches?.('.area-banner113,#categoryTabShell,.module-header'))original.append(child);panel.append(original)}host=document.createElement('section');host.className='r79';panel.append(host)}
  Reports79.kind=kind;if(window.reportWindow143195?.reuse(host))continue;if(window.reportWindow143195&&!reportWindow143195.prepare(host))continue;const s=Reports79,isLedger=['gl','activity'].includes(kind);
  if(isLedger||kind==='cf'||kind==='payroll')reportFilterAccounts299.set(host,reportData79().map(r=>({key:r.key,account:r.account,currency:r.sourceCurrency||r.currency})));
  const blocks=['gl','tb'].includes(kind)&&typeof IntersectionObserver==='function'?[]:null;
  let content;
  try{ledgerRenderBlocks300=blocks;content=reportContent79(kind)}finally{ledgerRenderBlocks300=null}
- host.innerHTML=`${reportHeader79(kind)}${isLedger&&kind!=='gl'?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<div class="r79-content">${content}</div><div class="r79-notes"><label>Report notes / findings <span>Optional · included when printing or exporting; kept for this session only</span><textarea rows="3" placeholder="Add context, supporting references or matters to review…" oninput="Reports79.notes['${kind}']=this.value">${re79(s.notes[kind]||'')}</textarea></label></div>`;
+ host.innerHTML=`${reportHeader79(kind)}<div class="r79-content">${content}</div><div class="r79-notes"><label>Report notes / findings <span>Optional · included when printing or exporting; kept for this session only</span><textarea rows="3" placeholder="Add context, supporting references or matters to review…" oninput="Reports79.notes['${kind}']=this.value">${re79(s.notes[kind]||'')}</textarea></label></div>`;
  if(blocks)bindLedgerBlocks300(host,blocks);
  window.reportWindow143195?.rendered(host);
  }
  }finally{reportRenderCache14336=previousCache}
 }
 function accountDataCurrencies79(){return [...(AccountingStore.accounts||[]).map(a=>a.currency),...JournalModule.entries.map(l=>l.currency)]}
-function reportAccount79(name,currency){const row=reportData79().find(r=>r.account.name===name.trim()&&r.currency===currency);if(!row)return;Reports79.account=row.key;Reports79.query='';switchTab('report-activity')}
+function reportAccount79(name,currency){const row=reportData79().find(r=>r.account.name===name.trim()&&r.currency===currency);if(!row)return;reportBooks.carryToActivity();Reports79.account=row.key;Reports79.query='';switchTab('report-activity')}
 async function exportReport79(kind){
  const rows=[[reportNames79[kind]],[Reports79.from,Reports79.to],['Source','Posted journal; active and archived']];reportModel79(kind,true).forEach(g=>{rows.push([],['Currency',g.currency],...(g.periodLabel?[['Period',g.periodLabel]]:[]),...g.metrics.map(([k,v])=>[k,v/100]),g.headers,...g.values,['Report basis',g.note])});if(Reports79.notes[kind])rows.push([],['Notes',Reports79.notes[kind]]);
  const safe=v=>{let s=String(v??'');if(/^[\s\u0000-\u001f]*[=+@]/.test(s)||(/^\-/.test(s)&&!/^-[\d,.]+$/.test(s)))s="'"+s;return '"'+s.replaceAll('"','""')+'"'};const csv=rows.map(r=>r.map(safe).join(',')).join('\r\n'),url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`${kind}-${Reports79.from}-${Reports79.to}.csv`;await (window.exportCenter14337?exportCenter14337.fromLink(a):a.click());setTimeout(()=>URL.revokeObjectURL(url),1000);

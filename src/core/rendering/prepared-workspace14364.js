@@ -16,7 +16,7 @@ function signature(id){const keys=groups(id),out=[actor(),client(),window.worksp
  if(keys.includes('review'))out.push(typeof reviewStaffJournals==='undefined'?null:reviewStaffJournals,typeof liveProfiles==='undefined'?null:liveProfiles,typeof activeSubUserId==='undefined'?'':activeSubUserId,DemoAccess.submissions);
  if(id==='transactions-voided')out.push(typeof LiveTransactionAudit==='undefined'?null:LiveTransactionAudit);
  if(/accounts-|trial-balance|account-balances/.test(id))out.push(JSON.stringify(Accounts69));
- if(id.startsWith('report-'))out.push(window.reportWindow143195?.revision(),Reports79.allMonths14331,Reports79.basis,JSON.stringify(Reports79.cash),JSON.stringify(Reports79.payroll),Reports79.from,Reports79.to,Reports79.mode,Reports79.currency,Reports79.account,Reports79.query,JSON.stringify(Reports79.selectedMonths14331||[]));
+ if(id.startsWith('report-'))out.push(JSON.stringify(PeriodReview.periods),window.reportWindow143195?.revision(),Reports79.allMonths14331,Reports79.basis,JSON.stringify(Reports79.cash),JSON.stringify(Reports79.payroll),Reports79.from,Reports79.to,Reports79.mode,Reports79.currency,Reports79.account,Reports79.query,JSON.stringify(Reports79.selectedMonths14331||[]));
  return out;
 }
 const equal=(a,b)=>a?.length===b.length&&a.every((v,i)=>v===b[i]);
@@ -46,7 +46,7 @@ function renderer(id){
  if(id==='hr-calendar')return ()=>window.hrCalendar14306?.render();
  if(id.startsWith('hr-'))return ()=>window.renderHr99?.();
  if(id.startsWith('payroll-')||['transactions-budget14313','report-subusers82','report-financing82','report-payroll'].includes(id))return ()=>window.renderWork82?.();
- if(id.startsWith('report-')&&typeof reportNames79!=='undefined'&&reportNames79[id.slice(7)])return ()=>renderReports79();
+ if(id.startsWith('report-')&&typeof reportNames79!=='undefined'&&reportNames79[id.replace(/^report-(open-)?/,'')])return ()=>renderReports79();
  if(id==='report-reconciliation')return ()=>window.workspace14337?.summary();
  if(id==='local-events'||id==='local-events-account')return ()=>window.localEvents14364?.render();
  return null;

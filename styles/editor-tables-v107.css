@@ -23,10 +23,10 @@ body .tab-content.active>.doc-source-action105{position:fixed;right:24px;bottom:
 body .doc-source-action105 button{background:#08694d!important;color:#fff!important;border:1px solid #07583f!important;box-shadow:0 3px 10px #123d3230;padding:9px 14px!important;border-radius:7px!important}
 body .tab-content:has(>.doc-source-action105){padding-bottom:64px!important}
 /* Monetary columns retain enough space for 10,000,000,000.00 plus a DR/CR marker. */
-body :is(#report-gl,#report-activity) .r79-table{overflow-x:auto!important}
-body :is(#report-gl,#report-activity) .r79-table table{table-layout:auto!important;min-width:1180px!important;width:100%!important}
-body :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(5),body :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(6){width:180px!important;min-width:180px!important;max-width:none!important;white-space:nowrap!important;overflow:visible!important}
-body :is(#report-gl,#report-activity) .r79-table :is(th,td):nth-child(7){width:224px!important;min-width:224px!important;max-width:none!important;white-space:nowrap!important;overflow:visible!important}
+body :is(#report-gl,#report-open-gl,#report-activity) .r79-table{overflow-x:auto!important}
+body :is(#report-gl,#report-open-gl,#report-activity) .r79-table table{table-layout:auto!important;min-width:1180px!important;width:100%!important}
+body :is(#report-gl,#report-open-gl,#report-activity) .r79-table :is(th,td):nth-child(5),body :is(#report-gl,#report-open-gl,#report-activity) .r79-table :is(th,td):nth-child(6){width:180px!important;min-width:180px!important;max-width:none!important;white-space:nowrap!important;overflow:visible!important}
+body :is(#report-gl,#report-open-gl,#report-activity) .r79-table :is(th,td):nth-child(7){width:224px!important;min-width:224px!important;max-width:none!important;white-space:nowrap!important;overflow:visible!important}
 body #ledger69 .ledger-account69 table{table-layout:auto!important;min-width:1080px!important}
 body #ledger69 .ledger-account69 th:nth-child(4),body #ledger69 .ledger-account69 th:nth-child(5){width:180px!important;min-width:180px!important}
 body #ledger69 .ledger-account69 th:nth-child(6){width:224px!important;min-width:224px!important}
@@ -60,10 +60,10 @@ body #document-editor105 .doc-options105{padding-top:0;gap:9px}
 body #document-editor105 .doc-options105 label{font-size:11px}
 @media(max-width:767px){body .tab-content.active>.doc-source-action105{right:14px;bottom:76px}body #document-editor105 .doc-title105{flex-wrap:wrap}body #document-editor105 .doc-name107{width:100%}body #document-editor105 .doc-tabs107 button{padding:7px 9px}}
 @media print{body .doc-source-action105,body .journal-header-actions107{display:none!important}}
-body :is(#report-gl,#report-activity) .r79-table table{table-layout:fixed!important;min-width:1140px!important}
-body :is(#report-gl,#report-activity) .r79-table th:nth-child(1){width:94px!important}
-body :is(#report-gl,#report-activity) .r79-table th:nth-child(2){width:95px!important}
-body :is(#report-gl,#report-activity) .r79-table th:nth-child(3){width:185px!important}
+body :is(#report-gl,#report-open-gl,#report-activity) .r79-table table{table-layout:fixed!important;min-width:1140px!important}
+body :is(#report-gl,#report-open-gl,#report-activity) .r79-table th:nth-child(1){width:94px!important}
+body :is(#report-gl,#report-open-gl,#report-activity) .r79-table th:nth-child(2){width:95px!important}
+body :is(#report-gl,#report-open-gl,#report-activity) .r79-table th:nth-child(3){width:185px!important}
 body .tab-content:not(#document-editor105) table tbody :is(button,input:not([type=checkbox]):not([type=radio]),select){min-height:24px!important;height:24px!important;max-height:24px!important}
 body .tab-content:not(#document-editor105) table details.row-menu99{margin:0!important;vertical-align:middle;line-height:1}
 body #journal #jeLinesBody td.action-col{padding-top:3px!important;padding-bottom:3px!important}
