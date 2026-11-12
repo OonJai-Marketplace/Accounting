@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.358',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.359',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/desktop-status-dock.js?v=143.356",
  "docs/protocols/index.html?v=143.338",
@@ -36,7 +36,7 @@ const FILES=[
  "docs/protocols/topics/P11.pdf?v=143.316",
  "docs/protocols/topics/S01.pdf?v=143.316",
  "docs/protocols/topics/S02.pdf?v=143.316",
- "scripts/journal-generator257.js?v=143.358",
+ "scripts/journal-generator257.js?v=143.359",
  "scripts/upcoming-plans280.js?v=143.323",
  "styles/upcoming-plans280.css?v=143.323",
  "scripts/receipt-workflow245.js?v=143.273",
@@ -96,7 +96,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.353",
  "scripts/desktop14245-6.js?v=143.357",
  "scripts/local-events14310.js?v=143.327",
- "scripts/offline14239.js?v=143.358",
+ "scripts/offline14239.js?v=143.359",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.328",
  "styles/settings-groups14332.css?v=143.297",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.358",
+ "scripts/phone-runtime14242.js?v=143.359",
  "scripts/local-first14333.js?v=143.344",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -269,7 +269,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.323",
  "styles/workspace-consistency14343.css?v=143.243",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.358",
+ "phone-sw.js?v=143.359",
  "scripts/personal-journal1437.js?v=143.350",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",

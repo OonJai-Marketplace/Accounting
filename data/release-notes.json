@@ -1,1 +1,1 @@
-{"version": "143.358", "changes": ["Compare posted journals shows only examples matching the selected transaction template, newest first."]}
+{"version": "143.359", "changes": ["Generate Journal shows three recent matching examples, compact date and rate fields, and inline guidance for missing inputs. Copying a verified journal into Post Entry reuses checked rates and builds the rows together. Amounts in new journal descriptions and line memos use digit grouping."]}

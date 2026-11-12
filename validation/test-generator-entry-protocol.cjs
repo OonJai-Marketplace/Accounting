@@ -43,11 +43,15 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await d.locator('[data-template]').selectOption('gen268-support-deposit-fee-USD',{force:true});
   assert.equal(await d.locator('.generator-table258 tbody tr').count(),8);
   const latest=d.locator('[data-history-latest]'),toggle=d.locator('[data-history-toggle]'),list=d.locator('[data-history-list]');
-  assert.equal(await latest.locator('button').innerText(),'REF-30');
+  assert.deepEqual(await latest.locator('button').allTextContents(),['REF-30','REF-29','REF-28']);
   assert.match(await latest.innerText(),/8 lines/);
   assert.equal(await list.isVisible(),false);
-  await latest.locator('button').click();
-  assert.match(await d.locator('[data-history-entry]').innerText(),/Latest posted/);
+  for(const id of ['REF-30','REF-29','REF-28']){
+   const choice=latest.getByRole('button',{name:id,exact:true});
+   assert.match(await choice.locator('..').innerText(),/8 lines/);
+   await choice.click();
+   assert.equal(await d.locator('[data-history-entry] strong').innerText(),id);
+  }
   await toggle.click();
   assert.equal(await list.locator('button').count(),31);
   assert.equal(await list.locator('button').first().innerText(),'REF-30');
@@ -56,7 +60,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await d.locator('[data-history-query]').fill('TEST-REF');
   await list.locator('button').click();assert.match(await d.locator('[data-history-entry]').innerText(),/21,000|21000/);
   assert.equal(await list.isVisible(),false);
-  assert.equal(await latest.locator('button').innerText(),'REF-30');
+  assert.deepEqual(await latest.locator('button').allTextContents(),['REF-30','REF-29','REF-28']);
   const pinned=await d.evaluate(el=>{
    const header=el.querySelector('header'),content=el.querySelector('.generator-content258');
    const top=header.getBoundingClientRect().top;

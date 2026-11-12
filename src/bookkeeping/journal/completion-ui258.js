@@ -18,6 +18,24 @@ function definitions(){
  return [{id:'blank',name:'Enter manually — detect template',lines:[{},{}]},...saved];
 }
 function templateRows(t){return (t.lines||[]).map(l=>{const a=l.code?chart().find(a=>String(a.code)===String(l.code)&&G.currency(a)===l.currency):l.accountId?chart().find(a=>a.id===l.accountId):typeof resolveTemplateAccount14397==='function'?resolveTemplateAccount14397(l):null;return {...blank(),account_id:a?.id||'',line_memo:l.memo||'',role:l.role,stage:l.stage,receiptLeg:l.receiptLeg,...(l.calculated?{generated:'output',autoMemo:true}:{}),expectedCurrency:l.currency,expectedSide:l.side,missing:!a&&(l.accountId||l.account||l.code)?String(l.account||l.code||l.accountId):''};});}
+function formatMemoAmounts(text){
+ if(!/\d{4}/.test(text))return text;
+ const locale=typeof appNumberLocale==='function'?appNumberLocale():'en-US';
+ const group=locale==='de-DE'?'.':locale==='fr-FR'?'\u202f':',',decimal=locale==='en-US'?'.':',';
+ const codes=new Set(AccountingStore.accounts.map(a=>String(a.code)));
+ // Keep links, identifiers, dates and existing punctuation intact. Group the original digits without rounding.
+ return text.replace(/https?:\/\/[^\s]+|[\w.,:/#+-]+/gi,(token,index)=>{
+  const match=/^((?:USD|LAK|THB)?)([+-]?)(\d{4,})([.,]\d+)?((?:USD|LAK|THB)?)([.,:]?)$/i.exec(token);
+  if(!match)return token;
+  const [,prefix,sign,whole,fraction='',suffix,punctuation]=match;
+  if(whole[0]==='0'||fraction&&fraction[0]!==decimal)return token;
+  const before=text.slice(0,index),after=text.slice(index+token.length);
+  if(/\b(?:account|acct|code|ref(?:erence)?|id|invoice|receipt|voucher|phone|tel|no\.?|number)\s*[:#-]?\s*$/i.test(before))return token;
+  const money=prefix||suffix||/(?:\b(?:LAK|USD|THB|kip|baht)|[₭$฿])\s*$/i.test(before)||/^\s*(?:\b(?:LAK|USD|THB|kip|baht)\b|[₭$฿])/i.test(after);
+  if(!money&&!fraction&&(/^(19|20)\d{2}$/.test(whole)||codes.has(whole)))return token;
+  return prefix+sign+whole.replace(/\B(?=(\d{3})+(?!\d))/g,group)+fraction+suffix+punctuation;
+ });
+}
 function entrySource(){
  const snap=typeof snapshotJournal69==='function'?snapshotJournal69():null;
  const memo=$('jeGeneralMemo')?.value||'',date=$('jeTransDate')?.value||'';
@@ -117,7 +135,10 @@ function setupHistory(template){
   list.replaceChildren(items);
  }
  if(entries.length){
-  const [id,lines]=entries[0];latest.append(button(id,lines,false),count(lines));
+  for(const [id,lines] of entries.slice(0,3)){
+   const sample=document.createElement('span');
+   sample.append(button(id,lines,false),count(lines));latest.append(sample);
+  }
  }else latest.textContent='No posted examples for this template in the loaded period.';
  expand(false);toggle.hidden=!entries.length;
  toggle.onclick=()=>{const opening=panel.hidden;expand(opening);if(opening){filter();query.focus();}};
@@ -305,6 +326,7 @@ function renderRows(){
  dialog.querySelector('[data-undo]').hidden=!state.removedRows?.length;
 }
 function render(){
+ clearFieldErrors();
  const repair=dialog.querySelector('[data-repair-layout]');
  repair.hidden=!legacyCashLayout();
  if(!repair.hidden){
@@ -317,7 +339,10 @@ function render(){
   };
  }
  dialog.querySelector('[data-template]').value=state.template;dialog.querySelector('[data-date]').value=state.date;dialog.querySelector('[data-memo]').value=state.memo;
- dialog.querySelector('[data-template-query]').value=definitions().find(t=>t.id===state.template)?.name||'';
+ const picker=dialog.querySelector('[data-template-query]');
+ picker.value=definitions().find(t=>t.id===state.template)?.name||'';
+ picker.title=picker.value;
+ picker.parentElement.style.setProperty('--template-width',Math.max(26,picker.value.length+4)+'ch');
  dialog.querySelector('[data-rates]').replaceChildren();renderRates();renderRows();dialog.querySelector('[data-use]').disabled=true;
  const missing=state.rows.filter(l=>l.missing);if(missing.length)message('Choose current accounts for these saved template lines: '+missing.map(l=>l.missing).join(', '),true);
 }
@@ -332,24 +357,28 @@ function legacyCashLayout(){
   t.id==='gen268-local-5420'&&!state.rows.some(l=>l.account_id===Catalog.resolve(t.lines[0],chart())?.id);
 }
 function validateLayout(input){
+ const issue=(message,row,field)=>Object.assign(new Error(message),{row,field});
  if(legacyCashLayout())throw Error('This draft uses a superseded cash posting. Load the current template and review its accounts before generating.');
  const mixedPayroll=state.template==='gen268-mixed-payroll'&&definitions().find(t=>t.id===state.template)?.builtin;
  for(const [i,l] of input.rows.entries()){
   const a=input.chart.find(a=>a.id===l.account_id);
   if(!a)continue;
-  if(mixedPayroll&&!['LAK','USD'].includes(G.currency(a)))throw Error('Mixed payroll uses LAK and USD. Review and remove the '+G.currency(a)+' row '+(i+1)+' before generating.');
-  if(l.overrideRate&&!(l.fx_rate_lak>0))throw Error('Row '+(i+1)+' needs a positive exchange or valuation rate.');
-  if(l.role&&!Catalog.accepts({role:l.role,currency:l.expectedCurrency},a))throw Error('Row '+(i+1)+' needs a '+(l.expectedCurrency||'')+' '+l.role+' account.');
-  if(l.expectedSide&&l.generated!=='output'&&l[l.expectedSide==='debit'?'credit':'debit']>0)throw Error('Row '+(i+1)+' belongs on the '+l.expectedSide+' side for this template.');
+  if(mixedPayroll&&!['LAK','USD'].includes(G.currency(a)))throw issue('Mixed payroll uses LAK and USD. Review and remove the '+G.currency(a)+' row '+(i+1)+' before generating.',i,'account');
+  if(l.overrideRate&&!(l.fx_rate_lak>0))throw issue('Enter a positive exchange or valuation rate.',i,'fx_rate_lak');
+  if(l.role&&!Catalog.accepts({role:l.role,currency:l.expectedCurrency},a))throw issue('Choose a '+(l.expectedCurrency||'')+' '+l.role+' account.',i,'account');
+  if(l.expectedSide&&l.generated!=='output'&&l[l.expectedSide==='debit'?'credit':'debit']>0)throw issue('Enter the amount on the '+l.expectedSide+' side for this template.',i,l.expectedSide==='debit'?'credit':'debit');
  }
 }
 function fingerprint(){return JSON.stringify([who(),window.OJM_SUPABASE_URL,JournalModule.editingEntryId,state,snapshotJournal69(),$('jeGeneralMemo')?.value,$('jeTransDate')?.value]);}
-async function balances(input){
+function ledgerContext(){
+ return {entries:JournalModule.entries,length:JournalModule.entries?.length,date:state.date,editing:JournalModule.editingEntryId,offline:offline()};
+}
+async function balances(input,refresh=true){
  const explicitPrepaid=({l,a})=>a&&/^13\d\d$/.test(String(a.code))&&G.type(a)==='ASSET'&&!G.technical(a)&&l.credit>0&&l.book_rate_lak>0&&!l.autoBook;
  const source=input.rows.filter(l=>l.generated!=='output').map(l=>({l,a:input.chart.find(a=>a.id===l.account_id)}));
  const needs=source.filter(x=>!x.l.receiptLeg&&!explicitPrepaid(x)).filter(({l,a})=>a&&G.currency(a)!=='LAK'&&(G.fund(a)&&!l.debit||(l.debit>0||!l.debit&&!l.credit)&&(G.staff(a)||G.type(a)==='LIABILITY')||l.credit>0&&!G.technical(a)&&!G.fund(a)&&!G.staff(a)&&G.type(a)==='ASSET'));
  if(!needs.length)return {values:{},note:source.some(explicitPrepaid)?'Uses the entered historical prepaid rate. Check the source balance before posting.':''};
- const exclude=JournalModule.editingEntryId||null,localMode=offline(),snapshot=localMode?null:await AccountRates143186.snapshot(input.date,exclude,true);
+ const exclude=JournalModule.editingEntryId||null,localMode=offline(),snapshot=localMode?null:await AccountRates143186.snapshot(input.date,exclude,refresh);
  if(!localMode&&!snapshot)throw Error('Recorded balances could not be checked. Your draft is retained; reconnect and Generate again.');
  const values={};let estimated=false;
  for(const a of new Map(needs.map(({a})=>[a.id,a])).values()){
@@ -375,13 +404,77 @@ function showCheckedBooks(values){
  }
  persist();
 }
-function showErrors(errors){message(errors.map(e=>(e.row!=null?'Row '+(e.row+1)+': ':'')+e.message.replace(/^Row \d+: /,'')).join('\n'),true);const book=errors.find(e=>e.needsBook&&e.row!=null);if(book){
- const account=chart().find(a=>a.id===state.rows[book.row]?.account_id);
- if(account)dialog.querySelector('[data-status]').textContent+='\n'+account.code+' — '+account.name+' · '+formatAppDate(state.date)+'. Enter the documented BR in the highlighted row.';
- }if(book)dialog.querySelector('[data-row="'+book.row+'"] [data-field="book_rate_lak"]')?.focus({preventScroll:true});}
+function clearFieldError(field){
+ const id=field?.dataset.generatorError;
+ if(!id)return;
+ document.getElementById(id)?.remove();
+ field.removeAttribute('aria-invalid');
+ const remaining=(field.getAttribute('aria-describedby')||'').split(/\s+/).filter(value=>value&&value!==id);
+ if(remaining.length)field.setAttribute('aria-describedby',remaining.join(' '));else field.removeAttribute('aria-describedby');
+ delete field.dataset.generatorError;
+}
+function clearFieldErrors(){
+ dialog.querySelectorAll('[data-generator-error]').forEach(clearFieldError);
+}
+function issueControl(error){
+ if(error.field==='memo'||error.field==='date')return dialog.querySelector('[data-'+error.field+']');
+ const row=dialog.querySelector('[data-row="'+error.row+'"]');
+ if(!row)return null;
+ if(error.needsBook)return row.querySelector('[data-field=book_rate_lak]');
+ if(error.field==='account')return row.querySelector('.account-search1428')||row.querySelector('select');
+ if(error.field==='rate'){
+  const currency=row.querySelector('[data-currency]').textContent;
+  return [...dialog.querySelectorAll('[data-rates] label')].find(label=>label.dataset.currency===currency)?.querySelector('input');
+ }
+ if(error.field)return row.querySelector('[data-field="'+error.field+'"]');
+ row.tabIndex=-1;return row;
+}
+function showErrors(errors){
+ clearFieldErrors();
+ let first;
+ const summary=errors.map((error,i)=>{
+  const text=error.message.replace(/^Row \d+: /,''),control=issueControl(error);
+  if(control&&!control.dataset.generatorError){
+   const note=document.createElement('small');note.className='generator-error258';note.id='generatorFieldError258-'+i;
+   note.textContent=text;
+   const host=control.matches('tr')?control.cells[2]:control.closest('td,label')||control.parentElement;
+   host.append(note);control.dataset.generatorError=note.id;control.setAttribute('aria-invalid','true');
+   control.setAttribute('aria-describedby',[control.getAttribute('aria-describedby'),note.id].filter(Boolean).join(' '));first||=control;
+  }
+  let line=(error.row!=null?'Row '+(error.row+1)+': ':'')+text;
+  if(error.needsBook){
+   const a=chart().find(a=>a.id===state.rows[error.row]?.account_id);
+   if(a)line+=' '+a.code+' — '+a.name+' · '+formatAppDate(state.date)+'.';
+  }
+  return line;
+ });
+ message(summary.join('\n'),true);
+ if(first)first.focus({preventScroll:true});
+ (first||dialog.querySelector('[data-status]')).scrollIntoView?.({block:'nearest',inline:'nearest'});
+}
+function missingFields(checkManual=false){
+ const issues=[];
+ if(!state.memo.trim())issues.push({field:'memo',message:'Enter the general description.'});
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(state.date))issues.push({field:'date',message:'Choose the transaction date.'});
+ state.rows.forEach((l,row)=>{
+  if(!l.account_id&&(l.role||l.missing||l.line_memo?.trim()||number(l.debit)||number(l.credit)))issues.push({field:'account',row,message:'Choose the '+(l.role||'posting')+' account.'});
+ });
+ if(checkManual&&state.template==='blank'&&!state.rows.some(l=>l.account_id)&&!issues.some(e=>e.field==='account')){
+  issues.push({row:0,field:'account',message:'Choose a posting account.'});
+ }
+ if((state.template!=='blank'||checkManual)&&!state.rows.some(l=>!l.generated&&(number(l.debit)>0||number(l.credit)>0))){
+  const row=state.rows.findIndex(l=>l.generated!=='output');
+  if(row>=0)issues.push({row,field:state.rows[row].expectedSide||'debit',message:'Enter a known transaction amount.'});
+ }
+ return issues;
+}
 async function calculate(){
- if(busy)return;const detected=detect();if(detected===null){message('Choose a matching template to see its journal lines.');return;}busy=true;verified='';dialog.querySelector('[data-use]').disabled=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-generate]'),'Generating journal…'),task=job={end};
- try{eligible();if(!state.memo.trim())throw Error('Enter the general description.');if(!/^\d{4}-\d{2}-\d{2}$/.test(state.date))throw Error('Choose the transaction date.');const input=readInput();validateLayout(input);const missing=state.rows.findIndex(l=>!l.account_id&&(l.role||l.missing));if(missing>=0)throw Error('Row '+(missing+1)+': choose the '+(state.rows[missing].role||'missing')+' account before generating.');const b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
+ if(busy)return;
+ clearFieldErrors();
+ const issues=missingFields();
+ if(issues.length){verified='';dialog.querySelector('[data-use]').disabled=true;showErrors(issues);return;}
+ const detected=detect();if(detected===null){message('Choose a matching template to see its journal lines.');return;}busy=true;verified='';dialog.querySelector('[data-use]').disabled=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-generate]'),'Generating journal…'),task=job={end};
+ try{eligible();const input=readInput();validateLayout(input);const required=missingFields(true);if(required.length){showErrors(required);return;}const b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
   const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){verified='';dialog.querySelector('[data-use]').disabled=true;showCheckedBooks(b.values);showErrors(result.errors);return;}
   if(state.removedRows?.length){
    const generated=result.rows.filter(l=>l.generated==='output');
@@ -395,22 +488,25 @@ async function calculate(){
     if(i<0)return true;generated.splice(i,1);return false;
    });
   }
-  state.rows=result.rows;persist();renderRows();renderRates();verified=JSON.stringify(readInput().rows);dialog.querySelector('[data-use]').disabled=false;message(detected+'Journal amounts filled. Review the debit and credit cells. '+b.note+(result.notes.length?' '+result.notes.join(' '):''));
- }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;for(const update of task.bookUpdates||[])update();}end?.();}
+  state.rows=result.rows;persist();renderRows();renderRates();verified=ledgerContext();dialog.querySelector('[data-use]').disabled=false;message(detected+'Journal amounts filled. Review the debit and credit cells. '+b.note+(result.notes.length?' '+result.notes.join(' '):''));
+ }catch(e){if(job===task&&actor===who()&&dialog?.open)showErrors([e]);}finally{if(job===task){busy=false;job=null;for(const update of task.bookUpdates||[])update();}end?.();}
 }
 async function useEntry(){
- if(busy||!verified)return;busy=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-use]'),'Checking journal…'),task=job={end};
- try{eligible();const input=readInput();validateLayout(input);const missing=state.rows.findIndex(l=>!l.account_id&&(l.role||l.missing));if(missing>=0)throw Error('Row '+(missing+1)+': choose the '+(state.rows[missing].role||'missing')+' account before generating.');const b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
+ if(busy||!verified)return;busy=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-use]'),'Copying journal…'),task=job={end};
+ try{eligible();const input=readInput();validateLayout(input);const required=missingFields(true);if(required.length){showErrors(required);return;}const ledger=ledgerContext();
+  // Copy uses the rates already checked by Generate. A changed ledger or connection needs a new snapshot.
+  const changed=Object.keys(ledger).some(key=>ledger[key]!==verified[key]);
+  const b=await balances(input,changed);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
   const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){showCheckedBooks(b.values);showErrors(result.errors);verified='';dialog.querySelector('[data-use]').disabled=true;return;}
-  if(JSON.stringify(result.rows)!==JSON.stringify(state.rows)){state.rows=result.rows;persist();renderRows();verified=JSON.stringify(readInput().rows);message('Recorded values changed. Review the updated debit and credit amounts, then use the journal again.',true);return;}
+  if(JSON.stringify(result.rows)!==JSON.stringify(state.rows)){state.rows=result.rows;persist();renderRows();verified=ledgerContext();message('Recorded values changed. Review the updated debit and credit amounts, then use the journal again.',true);return;}
   const body=$('jeLinesBody'),memo=$('jeGeneralMemo'),oldMemo=memo.value,oldRates=JournalFX14383.capture(),oldDate=$('jeTransDate').value;
   const meaningful=r=>[...r.querySelectorAll('.je-line-acc,.je-line-memo,.je-line-dr,.je-line-cr')].some(n=>n.value.trim()),existing=[...body.children].some(meaningful);
   if(state.entrySignature&&entrySource()?.signature!==state.entrySignature)throw Error('Post Entry changed. Reopen Generate to use its current lines.');
   if(existing&&!state.entrySignature&&oldDate!==state.date)throw Error('Post Entry has an unfinished journal on another date. Finish it before copying this journal.');
   window.JournalUndo143103?.checkpoint();window.entry1430?.setMode('double');
   const oldRows=[...body.children],template=state.template!=='blank'&&definitions().find(t=>t.id===state.template);
-  try{for(const r of oldRows)if(state.entrySignature||!meaningful(r))r.remove();if(!existing||state.entrySignature)$('jeTransDate').value=state.date;
-   for(const l of result.rows.filter(l=>l.debit||l.credit)){const a=chart().find(a=>a.id===l.account_id);addJournalLineRow(a.code+' — '+a.name,l.line_memo,l.debit?display(l.debit):'',{[G.currency(a)]:l.credit?display(l.credit):''});const r=body.lastElementChild,original=state.entrySignature?oldRows[l.sourceIndex]:null;
+  const fill=()=>{for(const r of oldRows)if(state.entrySignature||!meaningful(r))r.remove();if(!existing||state.entrySignature)$('jeTransDate').value=state.date;
+   for(const l of result.rows.filter(l=>l.debit||l.credit)){const a=input.chart.find(a=>a.id===l.account_id);addJournalLineRow(a.code+' — '+a.name,l.line_memo,l.debit?display(l.debit):'',{[G.currency(a)]:l.credit?display(l.credit):''});const r=body.lastElementChild,original=state.entrySignature?oldRows[l.sourceIndex]:null;
     if(original){Object.assign(r.dataset,original.dataset);}
     if(template){
      r.dataset.generatorTemplate=template.id;r.dataset.templateSide274=l.expectedSide||'';
@@ -422,10 +518,14 @@ async function useEntry(){
     if(l.generated==='output')r.dataset.generatorOutput=JSON.stringify([a.id,l.debit,l.credit,l.line_memo||'',number(r.dataset.fxRate14383),number(r.dataset.bookRate14383)]);
     if(template||r.dataset.generatorTemplate)setTemplateAmountHints(r,r.dataset.templateSide274,l.generated==='output'||r.dataset.generatorCalculated);
     if(l.fx_rate_lak&&G.currency(a)!=='LAK')r.dataset.explicitFx291='true';}
-   memo.value=!state.entrySignature&&existing&&oldMemo.trim()?oldMemo+'\n'+state.memo:state.memo;JournalFX14383.restore(!state.entrySignature&&existing?{...state.rates,...oldRates}:state.rates);calculateJournalBalance();memo.dispatchEvent(new Event('input',{bubbles:true}));window.dispatchEvent(new Event('save-state14234'));window.drafts1427?.flush();window.JournalUndo143103?.record();
+   memo.value=!state.entrySignature&&existing&&oldMemo.trim()?oldMemo+'\n'+state.memo:state.memo;JournalFX14383.restore(!state.entrySignature&&existing?{...state.rates,...oldRates}:state.rates);calculateJournalBalance();memo.dispatchEvent(new Event('input',{bubbles:true}));
+  };
+  try{
+   if(window.JournalRendering261)JournalRendering261.batch(fill);else fill();
+   window.dispatchEvent(new Event('save-state14234'));window.drafts1427?.flush();window.JournalUndo143103?.record();
   }catch(e){body.replaceChildren(...oldRows);memo.value=oldMemo;$('jeTransDate').value=oldDate;JournalFX14383.restore(oldRates);calculateJournalBalance();throw e;}
   delete state.drafts[state.template];state=state.standalone||{template:'blank',date:state.date,memo:'',rates:{},rows:[blank(),blank()],drafts:state.drafts};persist();dialog.close();dialog.remove();dialog=null;verified='';showJournalEntry98();showCenterStatus('Completed journal copied. Review it, then use Post Entry when ready.');
- }catch(e){if(job===task&&actor===who()&&dialog?.open)message(e.message,true);}finally{if(job===task){busy=false;job=null;for(const update of task.bookUpdates||[])update();}end?.();}
+ }catch(e){if(job===task&&actor===who()&&dialog?.open)showErrors([e]);}finally{if(job===task){busy=false;job=null;for(const update of task.bookUpdates||[])update();}end?.();}
 }
 function open(){
  let entry;try{eligible();entry=entrySource();if(typeof TemplateStore!=='undefined')TemplateStore.load();}catch(e){showCenterStatus(e.message,true);return;}
@@ -439,8 +539,10 @@ function open(){
  const template=definitions().find(t=>t.id===state.template);
  recoverTemplateDraft(state,template);restoreProtocolRows(state,template);persist();
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
- dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-content258"><div class="generator-meta258"><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label>Transaction date<input class="je-input" type="date" data-date></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo></textarea></label></div><div data-rates class="generator-rates258"></div><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><section data-history aria-label="Compare posted journals"><div class="history-bar258"><strong>Compare posted journals</strong><span data-history-latest></span><button type="button" class="je-btn je-btn-secondary" data-history-toggle aria-controls="journalHistoryPanel258"></button></div><div data-history-panel id="journalHistoryPanel258" hidden><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div></div><div data-history-entry hidden></div></section><a href="docs/protocols/index.html#F02" target="_blank" rel="noopener">Journaling protocol</a><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-undo hidden>Undo removal</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p></div>';
+ dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-content258"><div class="generator-meta258"><label class="generator-date258">Transaction date<input class="je-input" type="date" data-date required></label><div data-rates class="generator-rates258"></div><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo required></textarea></label></div><section data-history aria-label="Compare posted journals"><div class="history-bar258"><strong>Compare posted journals</strong><span data-history-latest></span><button type="button" class="je-btn je-btn-secondary" data-history-toggle aria-controls="journalHistoryPanel258"></button></div><div data-history-panel id="journalHistoryPanel258" hidden><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div></div><div data-history-entry hidden></div></section><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-undo hidden>Undo removal</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p></div>';
  dismissible(dialog);document.body.append(dialog);
+ const clearEdited=e=>{const field=e.target;if(field.value?.trim())clearFieldError(field);};
+ dialog.addEventListener('input',clearEdited);dialog.addEventListener('change',clearEdited);
  try{render();setupHistory(template);}catch(e){close();showCenterStatus(e.message,true);return;}
  dialog.querySelector('[data-template]').onchange=e=>selectTemplate(e.target.value);
  const query=dialog.querySelector('[data-template-query]'),list=dialog.querySelector('[data-template-options]');
@@ -459,8 +561,17 @@ function open(){
  dialog.querySelector('[data-add]').onclick=()=>{state.rows.push(blank());invalidate();renderRows();};dialog.querySelector('[data-generate]').onclick=()=>void calculate();dialog.querySelector('[data-use]').onclick=()=>void useEntry();dialog.showModal();suggestSourceBooks();if(state.template==='blank'&&state.memo)relatedTemplates(suggestions());
 }
 function ready(){
+ const memoFields='#jeGeneralMemo,#jeLinesBody .je-line-memo,#simpleRows1430 [data-simple="memo"],#journalGenerator258 [data-memo],#journalGenerator258 [data-field="line_memo"]';
+ const edited=new WeakSet();
+ document.addEventListener('input',e=>{if(e.target.matches?.(memoFields))edited.add(e.target);},true);
+ document.addEventListener('change',e=>{
+  const field=e.target;
+  if(!edited.delete(field))return;
+  const formatted=formatMemoAmounts(field.value);
+  if(formatted!==field.value){field.value=formatted;field.dispatchEvent(new Event('input',{bubbles:true}));edited.delete(field);}
+ },true);
  const button=document.createElement('button');button.type='button';button.id='generateJournal258';button.className='je-btn je-btn-secondary';button.textContent='Generate';button.onclick=open;$('addEntryRow14271')?.after(button);
- const style=document.createElement('style');style.textContent='#journalGenerator258{position:fixed;inset:0;margin:auto;transform:none;max-width:calc(100vw - 24px);width:min(1280px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-sizing:border-box;overflow:hidden;border:1px solid #b9cfc2;border-radius:8px;padding:0;background:#fff;color:#18392e}#journalGenerator258:not([open]){display:none!important}#journalGenerator258 .generator-template268{position:relative}#journalGenerator258 [data-template-options]{position:absolute;top:100%;left:0;right:0;max-height:260px;overflow:auto;z-index:3;background:#fffdf7;border:1px solid #98b3a2;box-shadow:0 6px 18px #0002}#journalGenerator258 [data-template-options][hidden]{display:none}#journalGenerator258 [data-template-options] button{display:block;width:100%;text-align:left;padding:9px;border:0;background:transparent;color:inherit;cursor:pointer;font-size:13px}#journalGenerator258 [data-template-options] button:hover,#journalGenerator258 [data-template-options] button:focus{background:#e4f1e7}#journalGenerator258 [data-matches]{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}#journalGenerator258::backdrop{background:#0006}#journalGenerator258 header,#journalGenerator258 footer{display:flex;align-items:center;gap:8px;justify-content:space-between}#journalGenerator258 h3{margin:0 0 12px}#journalGenerator258 footer{justify-content:flex-end;flex-wrap:wrap;margin-top:14px}#journalGenerator258 .je-btn{height:32px;min-height:32px}#journalGenerator258 .generator-meta258{display:grid;grid-template-columns:2fr 1fr;gap:12px}#journalGenerator258 label{display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0}#journalGenerator258 .generator-wide258{grid-column:1/-1}#journalGenerator258 input,#journalGenerator258 select,#journalGenerator258 textarea{box-sizing:border-box;width:100%;color:inherit;background:#fff}#journalGenerator258 .generator-rates258{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}#journalGenerator258 .generator-rates258 label{width:180px}#journalGenerator258 p{font-size:13px;line-height:1.4}#journalGenerator258 .generator-table258{overflow:auto}#journalGenerator258 table{border-collapse:collapse;min-width:1070px;width:100%;font-size:12px}#journalGenerator258 th,#journalGenerator258 td{padding:6px;border-bottom:1px solid #d6e1da;text-align:left}#journalGenerator258 th{background:#eff5f1}#journalGenerator258 th:nth-child(2){width:29%}#journalGenerator258 th:nth-child(3){width:20%}#journalGenerator258 td input{border:0;background:transparent;padding:6px;min-width:92px}#journalGenerator258 td:nth-child(n+5) input{text-align:right}#journalGenerator258 td .account-search1428{border:0!important;background:transparent!important;box-shadow:none!important}#journalGenerator258 td select{border:0;background:transparent;min-width:250px}#journalGenerator258 [data-status]{white-space:pre-wrap;color:#235d44}#journalGenerator258 [data-status].has-error258{color:#9f2e24}@media(max-width:650px){#journalGenerator258 .generator-content258{padding:12px}#journalGenerator258 .generator-meta258{grid-template-columns:1fr}}';document.head.append(style);
+ const style=document.createElement('style');style.textContent='#journalGenerator258{position:fixed;inset:0;margin:auto;transform:none;max-width:calc(100vw - 24px);width:min(1280px,calc(100vw - 24px));max-height:calc(100dvh - 24px);box-sizing:border-box;overflow:hidden;border:1px solid #b9cfc2;border-radius:8px;padding:0;background:#fff;color:#18392e}#journalGenerator258:not([open]){display:none!important}#journalGenerator258 .generator-template268{position:relative;flex:1 1 17rem;max-width:min(100%,var(--template-width,40ch))}#journalGenerator258 [data-template-options]{position:absolute;top:100%;left:0;right:0;max-height:260px;overflow:auto;z-index:3;background:#fffdf7;border:1px solid #98b3a2;box-shadow:0 6px 18px #0002}#journalGenerator258 [data-template-options][hidden]{display:none}#journalGenerator258 [data-template-options] button{display:block;width:100%;text-align:left;padding:9px;border:0;background:transparent;color:inherit;cursor:pointer;font-size:13px}#journalGenerator258 [data-template-options] button:hover,#journalGenerator258 [data-template-options] button:focus{background:#e4f1e7}#journalGenerator258 [data-matches]{display:flex;flex-wrap:wrap;gap:6px;font-size:13px}#journalGenerator258::backdrop{background:#0006}#journalGenerator258 header,#journalGenerator258 footer{display:flex;align-items:center;gap:8px;justify-content:space-between}#journalGenerator258 h3{margin:0 0 12px}#journalGenerator258 footer{justify-content:flex-end;flex-wrap:wrap;margin-top:14px}#journalGenerator258 .je-btn{height:32px;min-height:32px}#journalGenerator258 .generator-meta258{display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px 12px}#journalGenerator258 label{display:flex;flex-direction:column;gap:5px;font-size:13px;min-width:0}#journalGenerator258 .generator-wide258{flex:0 0 100%}#journalGenerator258 input,#journalGenerator258 select,#journalGenerator258 textarea{box-sizing:border-box;width:100%;color:inherit;background:#fff}#journalGenerator258 .generator-rates258{display:contents}#journalGenerator258 .generator-date258{width:8.8rem}#journalGenerator258 .generator-rates258 input{width:calc(11ch + 18px)}#journalGenerator258 p{font-size:13px;line-height:1.4}#journalGenerator258 .generator-table258{overflow:auto}#journalGenerator258 table{border-collapse:collapse;min-width:1070px;width:100%;font-size:12px}#journalGenerator258 th,#journalGenerator258 td{padding:6px;border-bottom:1px solid #d6e1da;text-align:left}#journalGenerator258 th{background:#eff5f1}#journalGenerator258 th:nth-child(2){width:29%}#journalGenerator258 th:nth-child(3){width:20%}#journalGenerator258 td input{border:0;background:transparent;padding:6px;min-width:92px}#journalGenerator258 td:nth-child(n+5) input{text-align:right}#journalGenerator258 td .account-search1428{border:0!important;background:transparent!important;box-shadow:none!important}#journalGenerator258 td select{border:0;background:transparent;min-width:250px}#journalGenerator258 [data-status]{white-space:pre-wrap;color:#235d44}#journalGenerator258 [data-status].has-error258{color:#9f2e24}@media(max-width:650px){#journalGenerator258 .generator-content258{padding:12px}#journalGenerator258 .generator-template268{flex-basis:100%}}';document.head.append(style);
  const context=()=>{button.hidden=!!window.personalJournal1437?.active;const locked=$('loginGate')&&!$('loginGate').classList.contains('is-authenticated');if(dialog&&(owner!==who()||locked||window.personalJournal1437?.active)){close();state=null;verified='';}};
  window.addEventListener('page113',context);window.addEventListener('local-work14333',context);document.addEventListener('visibilitychange',context);new MutationObserver(context).observe($('loginGate')||document.body,{attributes:true,attributeFilter:['class','hidden']});
  // The shared editor moves into personal workspaces after page navigation.
@@ -468,15 +579,19 @@ function ready(){
  style.textContent+='#jeLinesBody input[data-template-amount-hint]::placeholder,#journalGenerator258 input[data-template-amount-hint]::placeholder{color:#51685c;opacity:1;font-weight:600}';
  style.textContent+='#generateJournal258[hidden]{display:none!important}#journalGenerator258[open]{display:flex;flex-direction:column}#journalGenerator258>header{position:relative;flex:none;background:#fff;padding:8px 18px;border-bottom:1px solid #d6e1da;z-index:4}#journalGenerator258>header h3{margin:0}#journalGenerator258 .generator-content258{overflow:auto;min-height:0;overscroll-behavior:contain;padding:12px 18px}#journalGenerator258 [data-close]{min-height:44px;touch-action:manipulation}#journalGenerator258{inset:auto;left:var(--feedback-left14295,0px);top:var(--feedback-top14295,0px);right:calc(100% - var(--feedback-left14295,0px) - var(--feedback-width14295,100%));bottom:calc(100% - var(--feedback-top14295,0px) - var(--feedback-height14295,100%));transform:none;margin:auto;width:min(1280px,calc(var(--feedback-width14295,100vw) - 24px));max-height:calc(var(--feedback-height14295,100dvh) - 24px)}#journalGenerator258 small{display:block}';
  style.textContent+=`
+ #journalGenerator258 [data-generator-error]{outline:2px solid #a33625;outline-offset:1px}
+ #journalGenerator258 .generator-error258{color:#872a1d;font-weight:600;white-space:normal}
  #journalGenerator258 [data-history]{margin:10px 0;font-size:13px}
  #journalGenerator258 .history-bar258,#journalGenerator258 [data-history-latest],#journalGenerator258 [data-history-list]>div{display:flex;align-items:center;gap:8px}
  #journalGenerator258 .history-bar258{min-height:36px}
+ #journalGenerator258 [data-history-latest]>span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+ @media(max-width:1000px){#journalGenerator258 [data-history-latest]>span{flex-direction:column;gap:2px}}
  #journalGenerator258 [data-history-toggle]{margin-left:auto;white-space:nowrap}
  #journalGenerator258 [data-history-list]{max-height:13rem;overflow:auto}
  #journalGenerator258 [data-history-list]>div{padding:4px;border-bottom:1px solid #d6e1da}
  #journalGenerator258 [data-history-panel] input{margin:4px 0}
  #journalGenerator258 [data-history][hidden],#journalGenerator258 [data-history] [hidden],#journalGenerator258 [data-undo][hidden]{display:none!important}
- @media(max-width:600px){#journalGenerator258 .history-bar258{flex-wrap:wrap}#journalGenerator258 .history-bar258 strong{width:100%}}
+ @media(max-width:650px){#journalGenerator258 .history-bar258{flex-wrap:wrap}#journalGenerator258 [data-history-latest]{order:1;width:100%;overflow-x:auto;gap:5px}#journalGenerator258 [data-history-latest] button{padding-inline:5px!important}}
  `;context();
 }
 window.GuidedJournal258={open};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

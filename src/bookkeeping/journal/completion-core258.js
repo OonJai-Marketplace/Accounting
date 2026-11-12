@@ -67,13 +67,13 @@ function complete(input){
 }
 function completePart(input){
  const reg=registry(input.chart||[]),errors=[],notes=[],expected=[],rates=input.rates||{},balances=input.balances||{};
- const error=(message,row,needsBook=false)=>errors.push({message,row,needsBook});
+ const error=(message,row,needsBook=false,field)=>errors.push({message,row,needsBook,field});
  const signed=l=>round(l.debit-l.credit),sum=ls=>round(ls.reduce((n,l)=>n+signed(l),0));
  const rows=(input.rows||[]).map((l,i)=>({...l,index:i,debit:Number(l.debit??0),credit:Number(l.credit??0),a:reg.all.find(a=>String(a.id)===String(l.account_id))}));
  function add(a,n,memo,fx=1,book=null){n=round(n);if(!n)return;if(!a){error('A required mapping or bridge account is missing from the chart.');return;}expected.push({account_id:a.id,debit:n>0?n:0,credit:n<0?-n:0,line_memo:memo,autoMemo:true,fx_rate_lak:fx,book_rate_lak:book,generated:'output'});}
  for(const l of rows){
-  if(!l.a){if(l.account_id||l.debit||l.credit)error('Choose a valid account on row '+(l.index+1)+'.',l.index);continue;}
-  if([l.debit,l.credit].some(v=>!Number.isFinite(v)||v<0||Math.abs(v-round(v))>1e-8)||l.debit>0&&l.credit>0)error('Row '+(l.index+1)+' needs one nonnegative debit or credit with at most two decimals.',l.index);
+  if(!l.a){if(l.account_id||l.debit||l.credit)error('Choose a valid account on row '+(l.index+1)+'.',l.index,false,'account');continue;}
+  if([l.debit,l.credit].some(v=>!Number.isFinite(v)||v<0||Math.abs(v-round(v))>1e-8)||l.debit>0&&l.credit>0)error('Row '+(l.index+1)+' needs one nonnegative debit or credit with at most two decimals.',l.index,false,l.credit?'credit':'debit');
   if(l.book_rate_lak!==''&&l.book_rate_lak!=null&&Number(l.book_rate_lak)!==0&&!(Number(l.book_rate_lak)>0))error('Row '+(l.index+1)+' needs a positive book rate.',l.index,true);
   l.c=currency(l.a);l.rt=l.c==='LAK'?1:Number(l.fx_rate_lak||rates[l.c]);l.specified=l.autoBook?null:Number(l.book_rate_lak)||null;
   if(l.generated){l.debit=0;l.credit=0;}
@@ -179,7 +179,7 @@ function completePart(input){
   if(gap&&eligibleBlank.length===1){const l=eligibleBlank[0];l.debit=gap<0?-gap:0;l.credit=gap>0?gap:0;l.generated='source';active.push(l);notes.push('Filled row '+(l.index+1)+'.');}
   const prepaidRelease=active.filter(l=>l.credit>0&&type(l.a)==='ASSET'&&!fund(l.a)&&!monetary(l.a)&&!technical(l.a));
   if(prepaidRelease.length===1&&active.length===2&&active.filter(l=>reg.maps.has(l.a.id)).length===1){const recorded=carry(prepaidRelease[0]);if(recorded>0)for(const l of active)l.rt=recorded;}
-  for(const l of active){if(!Number.isFinite(l.rt)||!(l.rt>0))error('Enter the '+c+' exchange rate above the table.',l.index);if(reg.unknown.has(l.a.id)||technical(l.a)&&!reg.maps.has(l.a.id)&&!reg.isTax(l.a))error('Row '+(l.index+1)+': this mapping has no supported LAK counterpart in the chart.',l.index);}
+  for(const l of active){if(!Number.isFinite(l.rt)||!(l.rt>0))error('Enter the '+c+' exchange rate above the table.',l.index,false,'rate');if(reg.unknown.has(l.a.id)||technical(l.a)&&!reg.maps.has(l.a.id)&&!reg.isTax(l.a))error('Row '+(l.index+1)+': this mapping has no supported LAK counterpart in the chart.',l.index);}
   if(errors.length)continue;
   const maps=active.filter(l=>reg.maps.has(l.a.id)),tax=active.filter(l=>reg.isTax(l.a));
   const newSupport=maps.some(l=>reg.maps.get(l.a.id).actualCode==='3023'&&l.credit>0);
@@ -235,14 +235,14 @@ function completePart(input){
    if(historicalEquity){if(!l.specified){error('Row '+(l.index+1)+': enter the original contribution book rate.',l.index,true);continue;}l.rt=l.book;}
    if(m.offsetCode==='9490'){l.book=l.rt;}
    if(l.book>0){
-    add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));
+    add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+displayRate(Math.abs(signed(l)))+' '+c+' × '+displayRate(l.rt));
     if(!allocation.includes(l))add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');
    }
   }
   const reclass=allocation.length?allocation:maps.filter(l=>reg.maps.get(l.a.id).offsetCode==='9390');
   if(reclass.length===2&&reclass.some(l=>reg.maps.get(l.a.id).actualCode==='3024')&&reclass[0].book!==reclass[1].book)
    error('Use the same original contribution rate on both sides of the support allocation.');
-  for(const l of tax)add(reg.bridge('LAK',true),-round(signed(l)*l.rt),'Payroll withholding · '+Math.abs(signed(l))+' '+c+' × '+displayRate(l.rt));
+  for(const l of tax)add(reg.bridge('LAK',true),-round(signed(l)*l.rt),'Payroll withholding · '+displayRate(Math.abs(signed(l)))+' '+c+' × '+displayRate(l.rt));
  }
  const taxValue=round(foreign.filter(l=>reg.isTax(l.a)&&(l.debit||l.credit)).reduce((n,l)=>n-signed(l)*l.rt,0));
  if(taxValue){const liabilities=rows.filter(l=>l.a&&l.c==='LAK'&&['2111','2112'].includes(String(l.a.code))),blank=liabilities.filter(l=>!l.debit&&!l.credit),entered=liabilities.reduce((n,l)=>n+l.credit-l.debit,0),employer=source.filter(l=>l.c==='LAK'&&['5211','5212'].includes(String(l.a.code))).reduce((n,l)=>n+l.debit-l.credit,0);if(blank.length===1&&taxValue+employer-entered>0)add(blank[0].a,-round(taxValue+employer-entered),'Entered employee withholding and employer obligation');else if(!close(entered-employer,taxValue))error('Choose and allocate the PIT / SSO payable amounts. Withholding cannot be assigned to a tax account automatically.');}
@@ -317,7 +317,7 @@ function completePart(input){
  for(const l of active.filter(l=>!technical(l.a)&&monetary(l.a)&&!(fund(l.a)&&l.debit))){const n=round((econ.get(l)??signed(l)*l.rt)-round(signed(l)*l.book));if(n)components.push({l,n});}
  const net=round(components.reduce((n,x)=>n+x.n,0));
  if(components.length){
-  const memo=components.map(({l,n})=>(fund(l.a)?'Cash disposal FX':'Balance settlement FX')+' · '+l.a.name+' · '+Math.abs(n)+' LAK '+(n>0?'loss':'gain')).join(' / ');
+  const memo=components.map(({l,n})=>(fund(l.a)?'Cash disposal FX':'Balance settlement FX')+' · '+l.a.name+' · '+displayRate(Math.abs(n))+' LAK '+(n>0?'loss':'gain')).join(' / ');
   add(reg.byCode('5419'),net,memo);
  }
  if(bridgeValue)add(reg.bridge('LAK'),-bridgeValue,'Exchange / settlement · LAK valuation');
