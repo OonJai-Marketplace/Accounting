@@ -1,4 +1,4 @@
-import {storageState231,ensureYear231} from './storage231.ts';
+import {storageState231,ensureYear231,storageRPC231} from './storage231.ts';
 import {receiptYear231} from './receipt-year231.ts';
 // Drive documents are isolated from the journal Sheets connection and from other users.
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.49.8';
@@ -11,7 +11,40 @@ const candidateKey228=(owner:string)=>'documents-admin228:'+owner;
 async function companySettings228(){const row=checked(await admin.from('budget_settings14313').select('data').eq('id',true).maybeSingle());return row?.data?.googleSheets143129||{};}
 async function manage228(owner:string,req?:Request){const p=await profile(owner);if(p.role!=='admin')throw Error('Administrator required.');if(req){const user=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{global:{headers:{Authorization:req.headers.get('Authorization')!}},auth:{persistSession:false,autoRefreshToken:false}});const allowed=await user.rpc('can_action113',{p_target:'settings-accounting',p_action:'edit'});if(allowed.error||allowed.data!==true)throw Error('Administrator settings access is required.');}}
 export function destination228(cfg:any){const value=cfg?.receiptDrive228?.active;if(!value||!/^https:\/\/drive\.google\.com\/drive\/folders\/[\w-]{10,160}$/.test(String(value.folderURL||''))||!value.email)return null;const id=value.folderURL.split('/').pop();if(!/^documents-company228:[\w-]+:[\w-]+$/.test(String(value.connectionKey||'')))return null;return {id,name:String(value.name||'Company receipts').slice(0,180),email:String(value.email).toLowerCase(),folderURL:value.folderURL,connectionKey:value.connectionKey,annual231:value.annual231===true};}
-function desktopReturn228(ok:boolean){const nonce=crypto.randomUUID().replace(/-/g,'');return new Response('<!doctype html><meta charset="utf-8"><title>Google Drive authorization</title><p>'+ (ok?'Google Drive connected. Return to Accounting settings and check folder access.':'Google authorization was not completed. Your saved details and current destination are kept.')+'</p><script nonce="'+nonce+'">if(window.opener){window.opener.postMessage({type:"receipt-drive228",ok:'+JSON.stringify(ok)+'},'+JSON.stringify(ORIGIN)+');window.close();}</script>',{headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; script-src 'nonce-"+nonce+"'; base-uri 'none'; frame-ancestors 'none'"}});}
+function desktopReturn228(result:string,returnToApp=true){
+ if(!returnToApp){
+  const messages:Record<string,string>={
+   active:'The company receipt folder is connected for every phone. You can close this window.',
+   authorized:'Google access is saved. Return to Accounting Settings and verify the receipt folder.',
+   cancelled:'Google authorization was cancelled. You can close this window.',
+   'wrong-account':'Choose the Google account saved in Accounting Settings.',
+   'folder-check':'Google access is saved. Check whether this account can add files to the receipt folder.',
+   retry:'Google authorization could not finish. Return to Accounting Settings and try again.'
+  };
+  return new Response(messages[result]||messages.retry,{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
+ }
+ const target=new URL('/Accounting/integrations/receipt-drive-result.html',ORIGIN);
+ target.hash=result;
+ return new Response(null,{status:303,headers:{Location:target.href,'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
+}
+async function persistReceiptSettings(owner:string,expected:any,email:string,folderURL:string,active:any=null){
+ const r=await admin.rpc('save_receipt_destination_settings',{p_actor:owner,p_expected:expected,p_email:email,p_folder:folderURL,p_active:active});
+ if(r.error)throw Error(r.error.message);
+ return r.data;
+}
+async function renewReceiptDestination(cfg:any,candidate:any){
+ const destination=destination228(cfg);
+ if(!destination||destination.annual231||destination.email!==candidate.email.toLowerCase()||
+    cfg.accountEmail228?.toLowerCase()!==destination.email||cfg.receiptDrive228.folderURL!==destination.folderURL)return false;
+ const previous=await connection(destination.connectionKey);
+ if(!previous||previous.owner!==candidate.owner||previous.email.toLowerCase()!==destination.email)return false;
+ const target=await folder(candidate,destination.id);
+ if(!target.capabilities?.canAddChildren)throw Error('The saved folder is read-only.');
+ const {refresh_token,access_token,expires_at}=candidate;
+ const result=await admin.from('google_connections143150').update({refresh_token,access_token,expires_at})
+  .eq('sheet',destination.connectionKey).eq('owner',candidate.owner).eq('refresh_token',previous.refresh_token).select('sheet').maybeSingle();
+ return !!checked(result);
+}
 export function fileID(value:any){if(!/^[\w-]{10,160}$/.test(String(value||''))&&value!=='root')throw Error('Choose a valid Google Drive folder or file.');return String(value);}
 export function fileName(value:any){const name=String(value||'').trim();if(!name||name.length>180||/[\x00-\x1f/\\]/.test(name))throw Error('Enter a name without slashes, up to 180 characters.');return name;}
 export function resumableURL(value:any){const u=new URL(String(value));if(u.origin!=='https://www.googleapis.com'||!/^\/upload\/drive\/v3\/files(?:\/[\w-]+)?$/.test(u.pathname)||!u.searchParams.has('upload_id'))throw Error('Invalid upload session');return u.href;}
@@ -23,14 +56,19 @@ async function item(c:any,id:string){return drive(c,'/files/'+fileID(id)+'?suppo
 async function folder(c:any,id:string){const f=await item(c,id);if(f.trashed||f.mimeType!=='application/vnd.google-apps.folder')throw Error('Choose an existing Drive folder.');return f;}
 export async function finishDocumentOAuth(saved:any,params:URLSearchParams){
  const returnHome=saved.sheet===docKey(saved.owner)+':native215'?'oonjai-accounting-preview://scan':saved.sheet===docKey(saved.owner)+':native214'?'oonjai-accounting://scan':HOME;
- const desktop=saved.sheet===docKey(saved.owner)+':desktop228';
- try{await profile(saved.owner);if(desktop)await manage228(saved.owner);if(![docKey(saved.owner),docKey(saved.owner)+':native214',docKey(saved.owner)+':native215',docKey(saved.owner)+':desktop228'].includes(saved.sheet))throw Error('Invalid document authorization.');if(params.has('error'))throw Error('Google connection cancelled. Your scans are still on this device.');
+ const returnToApp=saved.sheet===docKey(saved.owner)+':desktopProtected';
+ const desktop=returnToApp||saved.sheet===docKey(saved.owner)+':desktop228';
+ let failure='retry';
+ try{await profile(saved.owner);if(desktop)await manage228(saved.owner);if(![docKey(saved.owner),docKey(saved.owner)+':native214',docKey(saved.owner)+':native215',docKey(saved.owner)+':desktop228',docKey(saved.owner)+':desktopProtected'].includes(saved.sheet))throw Error('Invalid document authorization.');if(params.has('error')){failure='cancelled';throw Error('Google connection cancelled. Your scans are still on this device.');}
  const response=await fetch('https://oauth2.googleapis.com/token',{method:'POST',body:new URLSearchParams({client_id:clientID(),client_secret:clientSecret(),redirect_uri:redirect(),grant_type:'authorization_code',code:params.get('code')||''})});const t=await response.json();if(!response.ok||!t.access_token||!t.refresh_token)throw Error('Google did not grant persistent document access. Connect again.');if(!String(t.scope).split(' ').includes(SCOPE))throw Error('Allow Google Drive access to browse folders and save scans.');
  const identity=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+t.access_token}}),info=await identity.json();if(!identity.ok||!info.email||info.email_verified!==true)throw Error('Google account identity could not be verified.');
- if(desktop){const cfg=await companySettings228();if(cfg.accountEmail228&&String(info.email).toLowerCase()!==String(cfg.accountEmail228).toLowerCase())throw Error('Choose the Google account saved in Accounting settings.');}
- checked(await admin.from('google_connections143150').upsert({sheet:desktop?candidateKey228(saved.owner):docKey(saved.owner),owner:saved.owner,email:info.email,refresh_token:await encrypt(t.refresh_token),access_token:await encrypt(t.access_token),expires_at:new Date(Date.now()+t.expires_in*1000).toISOString()}));
- if(desktop)return desktopReturn228(true);return new Response(null,{status:303,headers:{Location:returnHome+'?connected=1','Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
- }catch(e){if(desktop)return desktopReturn228(false);return new Response(null,{status:303,headers:{Location:returnHome+'?connection_error='+encodeURIComponent(e.message),'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});}
+ const cfg=desktop?await companySettings228():null;
+ if(desktop&&cfg.accountEmail228&&String(info.email).toLowerCase()!==String(cfg.accountEmail228).toLowerCase()){failure='wrong-account';throw Error('Choose the Google account saved in Accounting settings.');}
+ const candidate={sheet:desktop?candidateKey228(saved.owner):docKey(saved.owner),owner:saved.owner,email:info.email.toLowerCase(),refresh_token:await encrypt(t.refresh_token),access_token:await encrypt(t.access_token),expires_at:new Date(Date.now()+t.expires_in*1000).toISOString()};
+ checked(await admin.from('google_connections143150').upsert(candidate));
+ if(desktop){failure='folder-check';return desktopReturn228(await renewReceiptDestination(cfg,candidate)?'active':'authorized',returnToApp);}
+ return new Response(null,{status:303,headers:{Location:returnHome+'?connected=1','Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
+ }catch(e){if(desktop)return desktopReturn228(failure,returnToApp);return new Response(null,{status:303,headers:{Location:returnHome+'?connection_error='+encodeURIComponent(e.message),'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});}
 }
 export async function documentHandler(req:Request){
  const origin=req.headers.get('origin')||'';
@@ -40,8 +78,19 @@ export async function documentHandler(req:Request){
  return response;
 }
 async function documentHandler214(req:Request){
- try{if(req.method==='OPTIONS')return reply({});if(req.method!=='POST')return reply({error:'Use POST'},405);const owner=await actor(req);const raw=await req.text();if(raw.length>20000)throw Error('Request too large.');const b=JSON.parse(raw||'{}'),key=docKey(owner),personal=await connection(key);if(personal&&personal.owner!==owner)throw Error('Connection owner mismatch.');const cfg=await companySettings228(),destination=destination228(cfg);let c=personal;if(destination&&!(['connect','verify-destination228','app-update217'].includes(b.action))){c=await connection(destination.connectionKey);if(!c||c.email.toLowerCase()!==destination.email)throw Error('The company Drive connection needs administrator attention. Your scans are kept.');await manage228(c.owner);}
+ try{if(req.method==='OPTIONS')return reply({});if(req.method!=='POST')return reply({error:'Use POST'},405);const owner=await actor(req);const raw=await req.text();if(raw.length>20000)throw Error('Request too large.');const b=JSON.parse(raw||'{}'),key=docKey(owner),personal=await connection(key);if(personal&&personal.owner!==owner)throw Error('Connection owner mismatch.');const cfg=await companySettings228(),destination=destination228(cfg);let c=personal;if(destination&&!(['connect','verify-destination228','save-receipt-details','app-update217'].includes(b.action))){c=await connection(destination.connectionKey);if(!c||c.email.toLowerCase()!==destination.email)throw Error('The company Drive connection needs administrator attention. Your scans are kept.');await manage228(c.owner);}
  if(b.action==='status')return reply({connected:!!c,email:c?.email||'',configured:!!clientID()&&!!clientSecret(),companyDestination228:destination?{id:destination.id,name:destination.name,email:destination.email,folderURL:destination.folderURL}:null,companyManaged228:!!destination,annual231:destination?.annual231===true});
+ if(b.action==='check-receipt-access'){
+  await manage228(owner,req);
+  if(!destination||!c)throw Error('Verify and activate the receipt folder first.');
+  const target=await folder(c,destination.id);
+  if(!target.capabilities?.canAddChildren)throw Error('The saved receipt folder is read-only for the company account.');
+  return reply({ready:true,email:destination.email,name:target.name});
+ }
+ if(b.action==='save-receipt-details'){
+  await manage228(owner,req);
+  return reply({settings:await persistReceiptSettings(owner,b.expected,b.email,b.folderURL)});
+ }
  if(b.action==='verify-destination228'){
   if(destination?.annual231)throw Error('Automatic yearly storage is active. Use its company storage controls to change the destination.');
   await manage228(owner,req);const candidate=await connection(candidateKey228(owner))||personal,link=String(cfg.receiptDrive228?.folderURL||'');
@@ -50,9 +99,14 @@ async function documentHandler214(req:Request){
   if(candidate.owner!==owner||cfg.accountEmail228&&candidate.email.toLowerCase()!==String(cfg.accountEmail228).toLowerCase())throw Error('Connect the Google account saved in these settings first.');
   const f=await folder(candidate,link.split('/').pop()!);if(!f.capabilities?.canAddChildren)throw Error('This account cannot save files in that folder. Ask the folder owner for access.');
   const snapshot='documents-company228:'+owner+':'+crypto.randomUUID();checked(await admin.from('google_connections143150').insert({...candidate,sheet:snapshot}));
-  return reply({destination:{id:f.id,name:f.name,email:candidate.email,folderURL:link,connectionKey:snapshot}});
+  const verified={id:f.id,name:f.name,email:candidate.email,folderURL:link,connectionKey:snapshot};
+  if(b.activate===true){
+   const settings=await persistReceiptSettings(owner,b.expected,candidate.email,link,verified);
+   return reply({destination:verified,settings});
+  }
+  return reply({destination:verified});
  }
- if(b.action==='connect'){if(b.desktop228===true)await manage228(owner,req);else if(destination)throw Error('The company Drive connection is managed in desktop Settings.');if(!clientID()||!clientSecret())throw Error('Google authorization is not configured.');const state=crypto.randomUUID()+crypto.randomUUID();checked(await admin.from('google_states143150').delete().lt('expires_at',new Date().toISOString()));checked(await admin.from('google_states143150').insert({state_hash:await hash(state),owner,sheet:b.desktop228===true?key+':desktop228':b.native215===true?key+':native215':b.native214===true?key+':native214':key,expires_at:new Date(Date.now()+600000).toISOString()}));const u=new URL('https://accounts.google.com/o/oauth2/v2/auth');u.search=new URLSearchParams({client_id:clientID(),redirect_uri:redirect(),response_type:'code',scope:SCOPE+' https://www.googleapis.com/auth/userinfo.email',access_type:'offline',prompt:'consent select_account',state,login_hint:b.desktop228===true?(cfg.accountEmail228||personal?.email||''):(c?.email||'oonjaimarketplace@gmail.com')}).toString();return reply({authorization_url:u.href});}
+ if(b.action==='connect'){if(b.desktop228===true)await manage228(owner,req);else if(destination)throw Error('The company Drive connection is managed in desktop Settings.');if(!clientID()||!clientSecret())throw Error('Google authorization is not configured.');const state=crypto.randomUUID()+crypto.randomUUID();checked(await admin.from('google_states143150').delete().lt('expires_at',new Date().toISOString()));checked(await admin.from('google_states143150').insert({state_hash:await hash(state),owner,sheet:b.desktop228===true?key+(b.returnToApp===true?':desktopProtected':':desktop228'):b.native215===true?key+':native215':b.native214===true?key+':native214':key,expires_at:new Date(Date.now()+600000).toISOString()}));const u=new URL('https://accounts.google.com/o/oauth2/v2/auth');u.search=new URLSearchParams({client_id:clientID(),redirect_uri:redirect(),response_type:'code',scope:SCOPE+' https://www.googleapis.com/auth/userinfo.email',access_type:'offline',prompt:'consent select_account',state,login_hint:b.desktop228===true?(cfg.accountEmail228||personal?.email||''):(c?.email||'oonjaimarketplace@gmail.com')}).toString();return reply({authorization_url:u.href});}
  if(b.action==='disconnect'){if(destination)throw Error('The company connection is managed in desktop Settings.');checked(await admin.from('google_connections143150').delete().eq('sheet',key).eq('owner',owner));return reply({disconnected:true});}
  if(b.action==='app-update217'){
   // Only the published company APK; never accept arbitrary file IDs or expose Drive tokens.
