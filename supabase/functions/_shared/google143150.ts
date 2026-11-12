@@ -32,8 +32,12 @@ async function googleToken(c:any){
  if(!c?.refresh_token)throw Error('Connect Google once to activate background checks.');
  if(c.access_token&&Date.parse(c.expires_at)>Date.now()+60000)return decrypt(c.access_token);
  const r=await fetch('https://oauth2.googleapis.com/token',{method:'POST',body:new URLSearchParams({client_id:clientID(),client_secret:clientSecret(),refresh_token:await decrypt(c.refresh_token),grant_type:'refresh_token'})});
- const t=await r.json();if(!r.ok||!t.access_token)throw Error('Google authorization expired or was revoked. Reconnect Google.');
- checked(await admin.from('google_connections143150').update({access_token:await encrypt(t.access_token),expires_at:new Date(Date.now()+t.expires_in*1000).toISOString(),...(t.refresh_token?{refresh_token:await encrypt(t.refresh_token)}:{})}).eq('sheet',c.sheet));return t.access_token;
+ const t=await r.json().catch(()=>({}));if(!r.ok||!t.access_token){
+  if(t.error==='invalid_grant')throw Error(String(c.sheet).startsWith('documents-company228:')?'Google requires the administrator to reconnect the company account in Accounting Settings. Your scans are kept.':'Google authorization expired or was revoked. Reconnect Google.');
+  if(t.error==='invalid_client')throw Error('The Google app credentials need administrator attention.');
+  throw Error('Google could not renew access right now. Retry when the connection is available.');
+ }
+ checked(await admin.from('google_connections143150').update({access_token:await encrypt(t.access_token),expires_at:new Date(Date.now()+t.expires_in*1000).toISOString(),...(t.refresh_token?{refresh_token:await encrypt(t.refresh_token)}:{})}).eq('sheet',c.sheet).eq('refresh_token',c.refresh_token));return t.access_token;
 }
 async function sheetRequest(c:any,path:string,method='GET',body?:unknown){
  const r=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+encodeURIComponent(c.sheet)+path,{method,headers:{Authorization:'Bearer '+await googleToken(c),'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(25000)});

@@ -28,9 +28,9 @@ assert.equal((await invoke('status')).connected,false,'saving pending details do
 actor='staff';assert.match((await invoke('connect',{desktop228:true})).error,/Administrator/);assert.match((await invoke('verify-destination228')).error,/Administrator/);
 actor='admin';let response=await invoke('connect',{desktop228:true});assert.equal(new URL(response.authorization_url).searchParams.get('login_hint'),'company@example.test');
 const state=written.at(-1);assert.equal(state.sheet,'documents202:admin:desktop228');
-response=await context.api.finishDocumentOAuth(state,new URLSearchParams({error:'access_denied'}));assert.match(await response.text(),/not completed/);assert.equal(connections.size,0);
+response=await context.api.finishDocumentOAuth(state,new URLSearchParams({error:'access_denied'}));assert.match(await response.text(),/cancelled/);assert.equal(connections.size,0);
 googleEmail='wrong@example.test';response=await context.api.finishDocumentOAuth(state,new URLSearchParams({code:'fixture'}));assert.equal(connections.size,0,'wrong Google identity is not stored');
-googleEmail='company@example.test';response=await context.api.finishDocumentOAuth(state,new URLSearchParams({code:'fixture'}));assert.match(await response.text(),/postMessage/);assert(connections.has('documents-admin228:admin'));
+googleEmail='company@example.test';response=await context.api.finishDocumentOAuth(state,new URLSearchParams({code:'fixture'}));assert.match(await response.text(),/Google access is saved/);assert(connections.has('documents-admin228:admin'));
 assert.equal((await invoke('status')).connected,false,'authorizing a candidate does not replace the active destination');
 const verified=await invoke('verify-destination228');assert(verified.destination.connectionKey.startsWith('documents-company228:admin:'));cfg.receiptDrive228.active=verified.destination;
 actor='staff';response=await invoke('status');assert.equal(response.companyManaged228,true);assert.equal(response.email,'company@example.test');assert(!JSON.stringify(response).includes('encrypted-'));assert(!JSON.stringify(response).includes('connectionKey'));

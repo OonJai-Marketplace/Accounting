@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>Receipt scanner · Google Drive</title>
+<style>html{font:17px/1.5 system-ui;color:#17362f;background:#f8f7f1}main{max-width:32rem;margin:12vh auto;padding:1.5rem}h1{font-size:1.4rem}a{color:#095740}</style></head>
+<body><main><h1>Receipt scanner</h1><p id="result" role="status">Return to Accounting Settings to check the connection.</p><a href="../desktop.html">Return to Accounting</a></main>
+<script>
+const messages={
+ active:'The company receipt folder is connected. You can close this window and scan on your phone.',
+ authorized:'Google access is saved. Return to Accounting Settings and select Verify and activate folder.',
+ cancelled:'Google authorization was cancelled. You can close this window.',
+ 'wrong-account':'The Google account you chose differs from the account saved in Accounting Settings. Reconnect using the saved account.',
+ 'folder-check':'Google authorization was saved. Return to Accounting Settings and verify that this account can add files to the receipt folder.',
+ retry:'Google authorization could not finish. Return to Accounting Settings and try again.'
+};
+const result=location.hash.slice(1);
+if(Object.hasOwn(messages,result)){
+ document.getElementById('result').textContent=messages[result];
+ if(window.opener)window.opener.postMessage({type:'receipt-drive228',result,ok:result==='active'||result==='authorized'},location.origin);
+}
+</script></body></html>

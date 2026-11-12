@@ -1,1 +1,1 @@
-{"version": "143.364", "changes": ["Improved alignment and spacing across Accounting, Google Drive and Sheets, Payroll, Tax, Printing and System settings.", "General preferences now groups the logo with display settings. Install Accounting is in Installation & Handover."]}
+{"version": "143.365", "changes": ["Phone scanners reuse the company Drive connection. Accounting protects the authorized receipt account and folder, and administrators can check access or explicitly change the destination."]}
