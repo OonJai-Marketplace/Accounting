@@ -49,11 +49,13 @@ async function resumePhoto(key){const pending=draft.pending?.find(p=>p.key===key
 async function resumeDraft(id){if(cameraQueue.length)await protectImports();if(draft)await persist(false);const selected=await store('draft:'+id);if(!selected)throw Error('This draft is no longer available.');draft=selected;draft.pending||=[];pdfCache=null;await persist(false);closeDialog();render();if(draft.pending.length)await nextPhoto();}
 async function api(action,args={}){valid();const session=await db.auth.getSession();if(session.error||session.data.session?.user?.id!==owner)throw Error('Sign in again to connect to Drive.');const r=await fetch(scope+'/functions/v1/accounting-documents',{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token,apikey:OJM_SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(35000)});const data=await r.json();valid();if(!r.ok||data.error){const disabled=/Google Drive API has not been used in project (\d+) before, or it is disabled/i.exec(data.error||'');throw Error(disabled?'Google Drive is authorized, but the Drive API is disabled for app project '+disabled[1]+'. Enable Google Drive API in Google Cloud, then retry.':data.error||'The connection did not complete.');}return data;}
 async function connection(){
- const next=await api('status'),company=next.companyDestination228;
+ const next=await api('status',{folderPicker:true}),company=next.companyDestination228;
  if(company&&next.companyManaged228){
-  const target={id:company.id,name:company.name};
+  const selected=settings.email===next.email && settings.folder?.id!=='root' && settings.folder;
+  const target=next.canChooseCompanyFolder && selected ? selected :
+   {id:company.id,name:company.name,...(settings.folder?.id===company.id?{path:settings.folder.path}:{})};
   settings.folder=target;
-  if(draft&&(draft.folder?.id!==target.id || (settings.email && settings.email!==next.email))){
+  if(draft&&((!next.canChooseCompanyFolder || !draft.folder?.id || draft.folder.id==='root') && draft.folder?.id!==target.id || settings.email && settings.email!==next.email)){
    draft.folder=target;draft.file=null;draft.upload=null;await persist(false);
   }
   settings.companyManaged228=true;
@@ -76,7 +78,7 @@ async function scannerSettings(){return destinationPanel215();}
 async function chooseFolder(id='root',more=false){
  destination215=true;dialog=destinationDialog;
  if(!driveState.connected){await connection();if(!driveState.connected){settings.resumeFolder216=true;await store('settings',settings);return action('connect',null);}}
- const r=await api('folders',{parent:id,...(more?{pageToken:folders.next}:{})});
+ const r=await api('folders',{parent:id,folderPicker:true,...(more?{pageToken:folders.next}:{})});
  folders={parent:r.parent,items:more?[...folders.items,...r.files]:r.files,next:r.nextPageToken};return driveFolder216(r);
 }
 function groupDialog(jump=false){const type=draft.groups.find(g=>g.id===draft.active)?.type==='hr'?'hr':'journal';open(jump?'Skip or jump to an entry':'Add document group',`<label>Group type<select id="newType"><option value="journal">Journal entry ID</option><option value="hr" ${type==='hr'?'selected':''}>HR document ID</option><option value="support">Named supporting document</option></select></label><label>Name or entry ID<input id="newLabel" value="${esc(draft.next[type])}" maxlength="120"></label><small>Supporting documents do not advance journal numbering.</small><div class="scan-actions">${btn('group-confirm','Use this group','primary')}</div>`);$('newType').onchange=()=>{$('newLabel').value=$('newType').value==='support'?draft.title+' — Cash Slips':draft.next[$('newType').value];};}
@@ -191,7 +193,7 @@ function showEntryFiles() {
  dialog = primaryDialog;
  const members = familyMembers();
  const cards = members.map(item => `<section class="scan-card"><h3>${esc(item.entryLabel)}</h3><p>${item.pages} page(s) · ${item.linked ? 'Linked to Accounting' : item.backed ? 'Saved' : 'Ready to save'}</p><button type="button" class="scan-action" data-scan="review-entry-file" data-draft="${esc(item.id)}">${nativeUI215() ? 'View pages' : 'Review PDF'}</button>${nativeUI215() ? ` <button type="button" class="scan-action" data-scan="save-entry-file" data-draft="${esc(item.id)}">Save this ID</button>` : ''}</section>`);
- open('PDFs by entry ID', cards.join('') + (storageMode() === 'drive' || nativeUI215() ? btn('save-entry-files','Save all PDFs','primary') : ''));
+ open('PDFs by entry ID', '<p>Save to <strong>'+esc(destinationName215())+'</strong></p>'+cards.join('') + (storageMode() === 'drive' || nativeUI215() ? btn('save-entry-files','Save all PDFs','primary') : ''));
 }
 async function selectEntryFile(id) {
  await saveChain;
@@ -205,10 +207,14 @@ async function selectEntryFile(id) {
  }
 }
 async function saveEntryFiles(files) {
- const folder = settings.folder?.id, account = driveState.email;
+ const selectedFolder = draft?.folder || settings.folder;
+ const folder = selectedFolder?.id, account = driveState.email;
  let count = 0;
  for (const file of files) {
   await selectEntryFile(file.id);
+  if(storageMode()==='drive' && folder && draft.folder?.id!==folder){
+   draft.folder=selectedFolder;draft.upload=null;draft.file=null;await persist(false);
+  }
   const savedHere = storageMode() === 'drive' ? draft.saved?.revision === draft.revision &&
    draft.folder?.id === folder && draft.file?.email === account : draft.localExport?.revision === draft.revision &&
    draft.localExport.verified && draft.localDestination === destinationName215();
@@ -236,7 +242,7 @@ async function pdf(){if(C.plan(draft).length!==1)throw Error('Choose one entry P
 function pdfFilename(){const name=($('pdfName')?.value||draft.outputName||draft.file?.name||draft.title+'.pdf').trim();if(!name||name.length>180||/[\\/\x00-\x1f]/.test(name)||!name.toLowerCase().endsWith('.pdf'))throw Error('Use a PDF filename without slashes, up to 180 characters.');return name;}
 function localFile(){if(pdfCache?.revision!==draft.revision)throw Error('Open Review / Save PDF to prepare the latest pages first.');return new File([pdfCache.blob],pdfFilename(),{type:'application/pdf',lastModified:Date.parse(draft.created)});}
 function canSharePDF(){try{return !!navigator.share&&!!navigator.canShare?.({files:[localFile()]});}catch{return false;}}
-async function review(one=false){const files=await prepareEntryFiles();if(!one&&(files.length>1||familyMembers().length>1))return showEntryFiles();if(!draft.pages.length)throw Error('Scan a receipt first.');const r=await pdf();if(pdfURL)URL.revokeObjectURL(pdfURL);pdfURL=URL.createObjectURL(r.blob);const local=storageMode()==='local';dialog=primaryDialog;open('Save PDF',`<div class="scan-save-summary211"><img src="${draft.pages[0].thumb}" alt="First scanned page"><div><p>${draft.pages.length} scans · ${(r.blob.size/1048576).toFixed(1)} MB</p><a class="scan-link" href="${pdfURL}" target="_blank" rel="noopener">Preview PDF</a></div></div><label>Filename<input id="pdfName" value="${esc(draft.outputName||draft.file?.name||draft.title+'.pdf')}" maxlength="180"></label>${driveState.annual231&&C.plan(draft).some(g=>g.type!=='journal')?`<label>Document date<input id="documentDate231" type="date" value="${esc(draft.documentDate231||draft.month+'-01')}"></label>`:''}<label>Save to</label><div class="scan-save-destination211"><span>${local?'Phone / local storage':esc(driveState.email||settings.email||'Google Drive')+'<br>'+esc(draft.folder?.name||'My Drive')}</span>${icon211('save-destination','Change save destination','folder')}</div>${local?btn('local-save',typeof window.showSaveFilePicker==='function'?'Choose location and save':'Save PDF','primary scan-save-button211'):btn('upload',draft.file?'Update saved PDF':'Save PDF','primary scan-save-button211')}<details><summary>More options</summary><div class="scan-actions">${local?`${typeof window.showSaveFilePicker==='function'?btn('local-download','Download instead'):''}<span id="localShareOption"></span>`:`${draft.file?btn('save-new','Save as new PDF'):''}${btn('local-review','Save to phone instead')}`}${btn('batch','PDF title and month')}${storageMode()==='local'?btn('link-local208','Upload a copy and link to Accounting'):draft.saved?btn('link-accounting208','Refresh document links'):''}</div></details>`);if(local&&canSharePDF())$('localShareOption').innerHTML=btn('local-share','Share PDF');status('');}
+async function review(one=false){const files=await prepareEntryFiles();if(!one&&(files.length>1||familyMembers().length>1))return showEntryFiles();if(!draft.pages.length)throw Error('Scan a receipt first.');const r=await pdf();if(pdfURL)URL.revokeObjectURL(pdfURL);pdfURL=URL.createObjectURL(r.blob);const local=storageMode()==='local';dialog=primaryDialog;open('Save PDF',`<div class="scan-save-summary211"><img src="${draft.pages[0].thumb}" alt="First scanned page"><div><p>${draft.pages.length} scans · ${(r.blob.size/1048576).toFixed(1)} MB</p><a class="scan-link" href="${pdfURL}" target="_blank" rel="noopener">Preview PDF</a></div></div><label>Filename<input id="pdfName" value="${esc(draft.outputName||draft.file?.name||draft.title+'.pdf')}" maxlength="180"></label>${driveState.annual231&&C.plan(draft).some(g=>g.type!=='journal')?`<label>Document date<input id="documentDate231" type="date" value="${esc(draft.documentDate231||draft.month+'-01')}"></label>`:''}<label>Save to</label><div class="scan-save-destination211"><span>${local?esc(localFolderPath(settings.storage)):esc(driveState.email||settings.email||'Google Drive')+'<br>'+esc(drivePath(draft.folder))}</span>${icon211('save-destination','Change save destination','folder')}</div>${local?btn('local-save',typeof window.showSaveFilePicker==='function'?'Choose location and save':'Save PDF','primary scan-save-button211'):btn('upload',draft.file?'Update saved PDF':'Save PDF','primary scan-save-button211')}<details><summary>More options</summary><div class="scan-actions">${local?`${typeof window.showSaveFilePicker==='function'?btn('local-download','Download instead'):''}<span id="localShareOption"></span>`:`${draft.file?btn('save-new','Save as new PDF'):''}${btn('local-review','Save to phone instead')}`}${btn('batch','PDF title and month')}${storageMode()==='local'?btn('link-local208','Upload a copy and link to Accounting'):draft.saved?btn('link-accounting208','Refresh document links'):''}</div></details>`);if(local&&canSharePDF())$('localShareOption').innerHTML=btn('local-share','Share PDF');status('');}
 async function localExport(method='save'){
  const file=localFile(),revision=draft.revision,expected=pdfCache.sha;let verified=false,used=method;
  try{if(window.ReceiptNative214?.available){await ReceiptNative214.sharePDF(file);used='native-share';status('PDF handed to the selected destination. Your draft is kept.');}
@@ -288,7 +294,26 @@ function cachedIDs221(form,exclude){
 }
 const nativeUI215=()=>!!window.ReceiptNative214?.available;
 const typeName215=type=>({journal:'Journal',hr:'HR',support:'Supporting document'}[type]||'Document');
-const destinationName215=()=>storageMode()==='drive'?'Google Drive / '+(settings.folder?.name||'My Drive'):(settings.storage==='sd'?'SD card / ':'Phone storage / ')+(settings.localFolders215?.[settings.storage]?.name||'Choose a folder');
+function localFolderPath(mode){
+ const selected=settings.localFolders215?.[mode], storage=mode==='sd'?'SD card':'Phone storage';
+ if(!selected)return storage+' · Choose a folder';
+ try{
+  const uri=new URL(selected.id);
+  if(uri.protocol==='content:' && uri.hostname==='com.android.externalstorage.documents'){
+   const match=uri.pathname.match(/\/document\/([^/]+)$/) || uri.pathname.match(/\/tree\/([^/]+)/);
+   if(match){
+    const document=decodeURIComponent(match[1]), split=document.indexOf(':');
+    if(split>0)return [document.slice(0,split)==='primary'?'Phone storage':'SD card ('+document.slice(0,split)+')',...document.slice(split+1).split('/').filter(Boolean)].join(' › ');
+   }
+  }
+ }catch{/* Browser and iOS pickers may expose only the selected folder name. */}
+ return storage+' › '+selected.name;
+}
+function drivePath(folder){
+ const path=folder?.path||folder?.name||'Choose a folder';
+ return path+(driveState.annual231?' › [accounting year]':'');
+}
+const destinationName215=()=>storageMode()==='drive'?drivePath(draft?.folder||settings.folder):localFolderPath(settings.storage);
 function nextLabel215(type,label){if(type!=='support')return C.nextID(label);try{return C.nextID(label);}catch{return label+' 2';}}
 function suggested215(type){return settings.nextIDs215?.[type]||(type==='support'?'Supporting documents 1':(type==='hr'?'HR':'OJM')+C.monthNow().slice(2,4)+'0001');}
 async function ids215(groups,scan=draft?.id){
@@ -437,7 +462,7 @@ async function refreshIDs215(choose=false,resume=false,allowFetch=choose){
 async function checkDestination215(){
  if(storageMode()==='drive'){
   await connection();if(!driveState.connected)throw Error('Connect Google Drive and choose a folder before scanning.');
-  const folder=await api('folder',{id:settings.folder?.id||'root'});if(!folder.capabilities?.canAddChildren)throw Error('Choose a writable Google Drive folder.');
+  const folder=await api('folder',{id:draft?.folder?.id||settings.folder?.id||'root'});if(!folder.capabilities?.canAddChildren)throw Error('Choose a writable Google Drive folder.');
  }else{
   const folder=settings.localFolders215?.[settings.storage];if(!folder)throw Error('Choose the phone or SD-card folder first.');
   if(nativeUI215())await ReceiptNative214.checkDirectory(folder);
@@ -510,14 +535,14 @@ async function nextEntry215(skip=false){
 async function destinationPanel215(){
  destination215=true;dialog=destinationDialog;
  const names={drive:'Google Drive',local:'Phone storage',sd:'SD card'};
- open('Save destination',`<div class="scan-locations216">${Object.entries(names).map(([mode,name])=>`<button type="button" class="scan-location216" data-scan="provider-${mode}215"><strong>${name}</strong><small>${esc(mode==='drive'?(settings.folder?.name||'My Drive'):(settings.localFolders215?.[mode]?.name||'Choose a folder'))}</small></button>`).join('')}</div>${btn('check-drive-access','Check Drive connection')}<p data-drive-check role="status"></p>`);
+ open('Save destination',`<div class="scan-locations216">${Object.entries(names).map(([mode,name])=>`<button type="button" class="scan-location216" data-scan="provider-${mode}215"><strong>${name}</strong><small>${esc(mode==='drive'?drivePath(draft?.folder||settings.folder):localFolderPath(mode))}</small></button>`).join('')}</div>${btn('check-drive-access','Check Drive connection')}<p data-drive-check role="status"></p>`);
 }
 async function checkCompanyDrive() {
  const result = destinationDialog.querySelector('[data-drive-check]');
  result.textContent = 'Checking the company receipt folder…';
  try {
   const live = await connection();
-  const destination = live.companyDestination228;
+  const destination = live.companyDefaultFolder || live.companyDestination228;
   if (!destination || !live.companyManaged228 || !live.connected)
    throw Error('The company receipt folder needs an administrator to connect it in Accounting Settings.');
   const folder = await api('folder',{id:destination.id});
@@ -530,8 +555,20 @@ async function checkCompanyDrive() {
  }
 }
 function driveFolder216(r){
- open('Google Drive',`<div class="scan-drive-account216"><small>${esc(driveState.email)}</small>${driveState.companyManaged228?'<small>Company destination · managed in desktop Settings</small>':btn('connect','Switch account')}</div><nav class="scan-actions" aria-label="Folder navigation">${btn('locations215','Locations')}${btn('folder-root','My Drive')}${r.parent.parents?.length?btn('folder-up','Up'):''}${r.parent.capabilities?.canAddChildren&&!driveState.companyManaged228?btn('folder-new','New folder'):''}</nav><h3 class="scan-drive-path216">${esc(r.parent.name)}</h3><div class="scan-drive-folders216">${folders.items.map(f=>`<button type="button" class="scan-drive-folder216" data-scan="folder-open" data-folder="${f.id}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7l2 3h9v13H3z"/></svg><span>${esc(f.name)}</span><span aria-hidden="true">›</span></button>`).join('')||'<p>This folder has no subfolders.</p>'}</div>${folders.next?btn('folder-more','More folders'):''}<div class="scan-actions">${r.parent.capabilities?.canAddChildren?btn('folder-select','Use this folder','primary'):'<small>This folder is read-only.</small>'}</div>`);
- status('Choose the folder for your PDF.');
+ const current=r.parent,locked=r.locked??(driveState.companyManaged228 && !driveState.canChooseCompanyFolder);
+ const trail=r.trail?.length?r.trail:[{id:current.id,name:current.name}];
+ const crumbs=trail.map((part,i)=>i===trail.length-1?'<strong aria-current="location">'+esc(part.name)+'</strong>':
+  !locked && part.id?'<button type="button" data-scan="folder-open" data-folder="'+esc(part.id)+'">'+esc(part.name)+'</button>':'<span>'+esc(part.name)+'</span>').join('<span aria-hidden="true">›</span>');
+ const rows=folders.items.map(f=>`<button type="button" class="scan-drive-folder216" data-scan="folder-open" data-folder="${esc(f.id)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7l2 3h9v13H3z"/></svg><span>${esc(f.name)}</span><span aria-hidden="true">›</span></button>`).join('');
+ const navigation=!locked && !trail.some(part=>part.name==='My Drive')?btn('folder-root','My Drive'):'';
+ const selected=draft?.folder||settings.folder;
+ const savedFolder=!locked && selected?.id && selected.id!=='root' && current.id!==selected.id && trail.length===1?
+  '<button class="scan-action scan-saved-folder" type="button" data-scan="folder-open" data-folder="'+esc(selected.id)+'">Selected folder · '+esc(selected.path||selected.name)+'</button>':'';
+ const create=!locked && current.capabilities?.canAddChildren?
+  '<details class="scan-create-folder"><summary>New folder</summary><label>Folder name<input id="scanNewFolder" maxlength="180" autocomplete="off"></label>'+btn('folder-create-here','Create folder')+'</details>':'';
+ const otherTools=!locked && !driveState.companyManaged228?'<details><summary>Account options</summary>'+btn('connect','Switch account')+'</details>':'';
+ open('Choose a Drive folder',`<div class="scan-folder-picker"><small class="scan-picker-account">${esc(driveState.email)}</small><section class="scan-picker-path"><small>${driveState.annual231?'Receipt folder by accounting year':'Current folder'}</small><nav aria-label="Current folder path">${crumbs}</nav>${driveState.annual231?'<small>The PDF goes into the year of its accounting entry.</small>':''}</section>${navigation}${savedFolder}${create}${locked?'':`<div class="scan-drive-folders216">${rows||'<p>No subfolders here.</p>'}</div>`}${folders.next?btn('folder-more','Show more folders'):''}${otherTools}<div class="scan-picker-confirm">${current.capabilities?.canAddChildren?btn('folder-select','Use this folder','primary'):'<small>This folder is read-only.</small>'}${btn('locations215','Back')}</div></div>`);
+ status('');
 }
 async function browserFolder215(value){
  const database=await new Promise((resolve,reject)=>{const r=indexedDB.open('ojm-scan-folders215',1);r.onupgradeneeded=()=>r.result.createObjectStore('folders');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
@@ -542,7 +579,7 @@ async function browse215(previousStorage=settings.storage){
  if(storageMode()==='drive'){
   await connection();
   if(!driveState.connected){settings.resumeFolder216=true;await store('settings',settings);return action('connect',null);}
-  return chooseFolder(settings.folder?.id||'root');
+  return chooseFolder(draft?.folder?.id||settings.folder?.id||'root');
  }
  let selected;
  if(nativeUI215())selected=await ReceiptNative214.pickDirectory({...settings.localFolders215?.[settings.storage],kind:settings.storage});
@@ -592,7 +629,12 @@ async function action215(name,b){
  if(name==='save-pdf215')return saveBatch215();
  if(name==='destination215'){if($('setupID215'))await keepSetup215();return destinationPanel215();}
  if(name==='locations215')return destinationPanel215();
- if(/^provider-(drive|local|sd)215$/.test(name)){const previous=settings.storage;await setStorage(name.slice(9,-3));try{return await browse215(previous);}catch(e){await setStorage(previous);await destinationPanel215();throw e;}}
+ if(name==='provider-drive215'){
+  await connection();
+  if(!driveState.connected){settings.resumeFolder216=true;await store('settings',settings);return action('connect',null);}
+  return chooseFolder(driveState.companyManaged228 && !driveState.canChooseCompanyFolder ? driveState.companyDestination228?.id||'root' : 'root');
+ }
+ if(/^provider-(local|sd)215$/.test(name)){const previous=settings.storage;await setStorage(name.slice(9,-3));try{return await browse215(previous);}catch(e){await setStorage(previous);await destinationPanel215();throw e;}}
  if(name==='browse215')return browse215();
  if(name==='create-folder215'){
   if(storageMode()==='drive'){await chooseFolder(settings.folder?.id||'root');return action('folder-new',null);}
@@ -600,7 +642,7 @@ async function action215(name,b){
   if(nativeUI215())made=await ReceiptNative214.createDirectory(folder,name);else{const parent=await browserFolder215(),child=await parent.getDirectoryHandle(name,{create:true});await browserFolder215(child);made={name:parent.name+' / '+child.name,browser:true};}
   settings.localFolders215[settings.storage]=made;await store('settings',settings);return destinationPanel215();
  }
- if(name==='destination-done215'){closeDialog();destination215=false;if($('setupPath215'))$('setupPath215').textContent=destinationName215();else render();return;}
+ if(name==='destination-done215'){closeDialog();destination215=false;if($('setupPath215'))$('setupPath215').textContent=destinationName215();else if($('pdfName') && draft)await review(true);else render();return;}
 }
 async function action(name,b){valid();
  if(name==='check-drive-access')return checkCompanyDrive();
@@ -624,9 +666,15 @@ if(name==='link-accounting208'||name==='link-local208')return linkSaved208(null,
  if(name==='connect'){if(destination215){settings.resumeFolder216=true;await store('settings',settings);}await checkpointEditing();if(cameraQueue.length)await protectImports();await setStorage('drive');await saveChain;const r=await api('connect',{native214:!!window.ReceiptNative214?.available,native215:window.ReceiptNative214?.preview215===true});if(window.ReceiptNative214?.available){await ReceiptNative214.openConnection(r.authorization_url);return;}location.assign(r.authorization_url);return;}
  if(name==='disconnect'){if(!confirm('Disconnect this scanner from '+driveState.email+'? Existing Drive files remain unchanged.'))return;await api('disconnect');driveState={connected:false};await scannerSettings();return;}
  if(name==='move-saved'){movingSaved=true;return chooseFolder(draft.folder.id);}if(name==='destination'){movingSaved=false;return chooseFolder(draft?.folder?.id||settings.folder?.id||'root');}if(name==='folder-root')return chooseFolder('root');if(name==='folder-up')return chooseFolder(folders.parent.parents[0]);if(name==='folder-open')return chooseFolder(b.dataset.folder);if(name==='folder-more')return chooseFolder(folders.parent.id,true);if(name==='folder-link')return chooseFolder(C.folderID($('folderLink').value));
+ if(name==='folder-create-here'){
+  const input=$('scanNewFolder'),name=input?.value.trim();
+  if(!name){input?.focus();throw Error('Enter the new folder name.');}
+  const folder=await api('create-folder',{parent:folders.parent.id,name});
+  return chooseFolder(folder.id);
+ }
  if(name==='folder-new'){const name=prompt('New folder name');if(!name?.trim())return;await api('create-folder',{parent:folders.parent.id,name});return chooseFolder(folders.parent.id);}
  if(name==='folder-rename'){const name=prompt('Rename this folder',folders.parent.name);if(!name?.trim()||name===folders.parent.name)return;await api('rename-folder',{id:folders.parent.id,name});return chooseFolder(folders.parent.id);}
- if(name==='folder-select'){const f={id:folders.parent.id,name:folders.parent.name};if(destination215){settings.folder=f;settings.driveFolders215||={};if(driveState.email)settings.driveFolders215[driveState.email]=f;await store('settings',settings);if(draft&&draft.folder?.id!==f.id){draft.folder=f;draft.file=null;draft.upload=null;await persist(false);}return action215('destination-done215',null);}if(movingSaved){movingSaved=false;if(!confirm('Move the saved PDF to '+f.name+'?'))return;const moved=await api('move-file',{id:draft.file.id,scan:draft.id,parent:f.id,version:draft.file.version});draft.file.version=moved.version;draft.folder=f;await persist(false);closeDialog();render();status('Saved PDF moved to '+f.name+'.');return;}settings.folder=f;await store('settings',settings);if(draft){if(draft.folder?.id!==f.id){draft.folder=f;draft.file=null;draft.upload=null;}await persist(false);render();}closeDialog();status('Destination: '+driveState.email+' / '+f.name);if($('pdfName'))return review();return;}
+ if(name==='folder-select'){const f={id:folders.parent.id,name:folders.parent.name,path:folders.parent.path||folders.parent.name};if(destination215){await setStorage('drive');settings.folder=f;settings.driveFolders215||={};if(driveState.email)settings.driveFolders215[driveState.email]=f;await store('settings',settings);if(draft){if(draft.folder?.id!==f.id){draft.file=null;draft.upload=null;}draft.folder=f;await persist(false);}return action215('destination-done215',null);}if(movingSaved){movingSaved=false;if(!confirm('Move the saved PDF to '+f.name+'?'))return;const moved=await api('move-file',{id:draft.file.id,scan:draft.id,parent:f.id,version:draft.file.version});draft.file.version=moved.version;draft.folder=f;await persist(false);closeDialog();render();status('Saved PDF moved to '+f.name+'.');return;}settings.folder=f;await store('settings',settings);if(draft){if(draft.folder?.id!==f.id){draft.folder=f;draft.file=null;draft.upload=null;}await persist(false);render();}closeDialog();status('Destination: '+driveState.email+' / '+f.name);if($('pdfName'))return review();return;}
  if(name==='group'||name==='jump')return groupDialog(name==='jump');if(name==='group-confirm'){const type=$('newType').value,label=$('newLabel').value;const empty=draft.groups.find(g=>g.id===draft.active&&!draft.pages.some(p=>p.group===g.id)&&!draft.pending?.some(p=>p.group===g.id));C.addGroup(draft,type,label);if(empty)draft.groups=draft.groups.filter(g=>g.id!==empty.id);await persist();closeDialog();return render();}
  if(name==='next'){const current=draft.groups.find(g=>g.id===draft.active);if(!draft.pages.some(p=>p.group===current.id))throw Error('Scan a receipt for this entry first.');await advanceGroup211();return openCamera209();}
  if(name==='rename-group'){const g=draft.groups.find(g=>g.id===b.dataset.group),label=prompt('Group name / entry ID',g.label)?.trim();if(!label||label===g.label)return;if(draft.groups.some(x=>x!==g&&x.label===label))throw Error('That group already exists.');if(g.type!=='support')C.nextID(label);g.label=label;await persist();return render();}
@@ -675,5 +723,5 @@ const actionLoading217=name=>name==='folder-new'?'Creating folder…':/folder|pr
 document.addEventListener('click',e=>{const b=e.target.closest('[data-scan]');if(!b)return;e.preventDefault();void run(()=>action(b.dataset.scan,b),actionLoading217(b.dataset.scan),b);});for(const id of ['scanCamera','scanImport'])$(id).onchange=e=>run(async()=>{valid();cameraQueue.push(...Array.from(e.target.files||[]).map((file,i)=>({file,group:retakeTarget211?.group||draft.active,replace:i===0?retakeTarget211?.key:null})));e.target.value='';await protectImports();await nextPhoto();});for(const d of [primaryDialog,destinationDialog])d.addEventListener('cancel',e=>{e.preventDefault();if(!busy)void run(()=>action('close',null));});document.addEventListener('visibilitychange',cameraVisibility213);window.addEventListener('beforeunload',e=>{if(cameraQueue.length){e.preventDefault();e.returnValue='';}});
 window.addEventListener('offline',()=>status('Offline: scans stay on this device. Upload when connected.'));window.addEventListener('online',()=>status('Connection available. Pending scans can be uploaded.'));
 try{await deviceVault14334.ready;db=supabase.createClient(scope,OJM_SUPABASE_ANON_KEY,{auth:{autoRefreshToken:false,detectSessionInUrl:false}});await deviceVault14334.attach(db);let s;try{s=await db.auth.getSession();if(s.error)throw s.error;}catch(e){if([400,401,403].includes(Number(e.status))||/invalid.*token|revoked|refresh_token_not_found/i.test(e.code+' '+e.message))throw e;const cached=deviceVault14334.readSession?.();if(!cached?.refresh_token||cached.user?.id!==deviceVault14334.actor)throw e;s={data:{session:cached}};}owner=s.data.session?.user?.id||'';valid();settings=await store('settings')||settings;idCache221=await store('id-suggestions221')||[];draftIndex=await store('draft-list')||[];draft=await store('current')||null;if(draft){draft.pending||=[];await persist(false);}render();status('Ready. Readability comes first; review each scan before keeping it.');const params=new URL(location.href).searchParams,error=params.get('connection_error'),showSettings=params.get('settings')==='1';history.replaceState(null,'',location.pathname);if(error)status(error,true);if(window.ReceiptNative214?.available&&await ReceiptNative214.recover()){await ensureDraft211();await nativeScan214(true);}else if(showSettings){if(settings.pendingSetup215)await openSetup215();else await destinationPanel215();if(settings.resumeFolder216&&!error){delete settings.resumeFolder216;await store('settings',settings);destination215=true;dialog=destinationDialog;try{await loading217(()=>chooseFolder(settings.folder?.id||'root'),'Opening Drive folders…');}catch(e){await destinationPanel215();status(e.message,true);}}}else if(quickCapture209){if(draft?.pending.length)await nextPhoto();else await openSetup215();}if(storageMode()==='drive')void connection().then(()=>{if(!dialog.open)render();else if($('settingsStorage'))scannerSettings();}).catch(e=>status('Drive is unavailable. You can still scan and save locally.',false));setInterval(()=>{try{valid();}catch{lockUI();}},1000);}catch(e){lockUI();status(e.message,true);}
-window.ReceiptScanner202={version:'143.366',get state(){return {owner,draft,busy,driveState,draftIndex};}};
+window.ReceiptScanner202={version:'143.367',get state(){return {owner,draft,busy,driveState,draftIndex};}};
 })();

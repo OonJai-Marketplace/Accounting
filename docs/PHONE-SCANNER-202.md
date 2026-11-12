@@ -64,3 +64,5 @@ Refresh/access tokens are encrypted in the existing server-only connection table
 Validation: `node validation/test-receipt-core202.cjs`, `node validation/test-receipt-backend202.mjs`, and `node validation/test-receipt-browser202.cjs` (Playwright/Chromium; synthetic documents and mocked Drive). Real camera behavior and the company's Google OAuth policy require a phone/account acceptance check after connecting.
 
 The OAuth callback pins its previously deployed v3 Sheets handler in `google-oauth-callback/legacy143150.ts`. Only the separate document-state branch was added, so deploying scanner OAuth does not also change the live Sheets callback behavior. The document service imports shared token encryption and refresh helpers.
+
+In Destination, open Google Drive and tap My Drive to browse. Open each folder until the path shows the intended location, then tap Use this folder. To create a folder inside the current location, tap New folder. The administrator who connected the company Drive can select a different folder for their scans. Desktop Settings controls the company default. When yearly routing is active, the accounting year determines the receipt subfolder.
