@@ -153,6 +153,7 @@ async function documentHandler214(req:Request){
  if(b.action==='app-update217'){
   // Only the published company APK; never accept arbitrary file IDs or expose Drive tokens.
   const releases:Record<string,string>={
+   '40afb55a17ed250fc1fd676c6d6476806b40bb6b4572fdd9473ad3d1515ddeb3':'1DWsfHCJ-SUO1jOF4c0yvY74dDKhAaB18',
    'fb14fc7fc50742b522551b34ab9da84d810dc2624550bf2f2acc75dce89d96d9':'1Xl4XrEa_oXcK2ffPa4VEprnir9WKzRnt',
    '06c9c699c6c82eb02ff8b59793a0e087c00d8b2af769bb11e46e555ec875c94f':'1zp0jP2YoM2nxxZw2n32thUZKEUzvDEje',
    'ac7c6dfd983a526aa502e37457fb8ef1efd1a088a249b666b1bf48b1d6c83f78':'1M_bTFXdO4aV-Nf90JuYf8mnAX9_JptUb',
@@ -201,10 +202,14 @@ async function documentHandler214(req:Request){
  if(b.action==='file'){const f=await item(c,fileID(b.id));if(f.appProperties?.ojmOwner!==owner||f.appProperties?.ojmScan!==String(b.scan))throw Error('This file is not this account’s scan.');return reply(f);}
  if(b.action==='upload-start'){
  const p=await folder(c,fileID(b.parent)),name=fileName(b.name),id=fileID(b.id),scan=String(b.scan||'');if(!name.toLowerCase().endsWith('.pdf')||!/^[-\w]{20,80}$/.test(scan)||!Number.isSafeInteger(b.size)||b.size<=0||b.size>1024*1024*1024)throw Error('Invalid scan PDF.');if(!p.capabilities?.canAddChildren)throw Error('Choose a writable folder.');
+ // Separate attachments with an identical journal code keep separate reserved Drive file IDs.
+ const code=b.codeFilename===true && b.groups?.length===1 && b.groups[0].type==='journal'
+  ? String(b.groups[0].label).replace(/^OJM[\s-]*(\d{2})[\s-]*(\d{4})(-\d+)?$/i,'OJM$1$2$3').replace(/[<>:"/\\|?*]/g,'-') : '';
+ if(b.codeFilename===true && (!code || name!==code+'.pdf'))throw Error('Reopen the entry to confirm its PDF name.');
  let existing:any=null;try{existing=await item(c,id);}catch(e){if(!/404|not found/i.test(e.message))throw e;}
  if(existing){if(existing.appProperties?.ojmOwner!==owner||existing.appProperties?.ojmScan!==scan||existing.trashed)throw Error('Existing file does not match this scan.');if(String(existing.version)!==String(b.version))throw Error('The PDF changed in Drive. Review it before updating.');if(existing.name!==name||!existing.parents?.includes(p.id))throw Error('For another name or folder, choose Save as new PDF.');}
- if(!existing){const q="'"+p.id+"' in parents and trashed=false and name='"+name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'";const duplicates=await drive(c,'/files?'+new URLSearchParams({q,fields:'files(id)',pageSize:'1',supportsAllDrives:'true',includeItemsFromAllDrives:'true'}));if(duplicates.files?.length)throw Error('A file with this name already exists. Choose a different name; it will not be overwritten.');}
- const metadata=existing?{name}:{id,name,mimeType:'application/pdf',parents:[p.id],appProperties:{ojmOwner:owner,ojmScan:scan,ojmMonth:String(b.month||'').slice(0,7),ojmVersion:'202',...(b.verifiedYear231?{ojmAccountingYear:String(b.verifiedYear231)}:{})}};
+ if(!existing){const q="'"+p.id+"' in parents and trashed=false and name='"+name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'";const duplicates=await drive(c,'/files?'+new URLSearchParams({q,fields:'files(id,appProperties),nextPageToken',pageSize:'100',supportsAllDrives:'true',includeItemsFromAllDrives:'true'}));if(duplicates.files?.length && !(code && !duplicates.nextPageToken && duplicates.files.every((f:any)=>f.appProperties?.ojmReceiptID===code)))throw Error('A different file already uses this name in the selected folder. Choose another folder to keep both files.');}
+ const metadata=existing?{name}:{id,name,mimeType:'application/pdf',parents:[p.id],appProperties:{ojmOwner:owner,ojmScan:scan,...(code?{ojmReceiptID:code}:{}),ojmMonth:String(b.month||'').slice(0,7),ojmVersion:'202',...(b.verifiedYear231?{ojmAccountingYear:String(b.verifiedYear231)}:{})}};
  const url='https://www.googleapis.com/upload/drive/v3/files'+(existing?'/'+id:'')+'?uploadType=resumable&supportsAllDrives=true&fields='+encodeURIComponent(fields);
  const r=await fetch(url,{method:existing?'PATCH':'POST',headers:{Authorization:'Bearer '+await googleToken(c),'Content-Type':'application/json','X-Upload-Content-Type':'application/pdf','X-Upload-Content-Length':String(b.size)},body:JSON.stringify(metadata),signal:AbortSignal.timeout(25000)});if(!r.ok)throw Error('Drive could not start the upload ('+r.status+').');const session=r.headers.get('location');if(!session)throw Error('Drive did not return an upload session.');if(b.verifiedYear231)await storageRPC231('storage_year_receipt231',{p_file:id,p_owner:owner,p_year:b.verifiedYear231});return reply({session:resumableURL(session),id,...b.verifiedYear231?{year:b.verifiedYear231,folder:p.id}:{}});
  }
