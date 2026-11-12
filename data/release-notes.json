@@ -1,8 +1,8 @@
 {
-  "version": "143.377",
+  "version": "143.378",
   "changes": [
-    "Review and permanently delete your own active journal edit notes in Audits.",
-    "Group audit controls beside the month picker and show page controls only when more results are available.",
-    "Use the same collapsible checklist cards in To-do Lists and Amortization."
+    "Open Account balances to check selected clearing, asset and liability accounts, including active journal entries.",
+    "Open Foreign account rates to see current carrying rates and the dates of recorded valuations.",
+    "Both tools load on demand and remember account selections on this device."
   ]
 }

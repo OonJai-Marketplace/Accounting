@@ -57,7 +57,20 @@
     .times{line-height:1.55}.refresh{border:0;background:#176449;color:white;padding:7px 11px;border-radius:5px;font-weight:700;white-space:nowrap}
     .notice:not(:empty){margin-top:7px;color:#834520}
     @media(max-height:600px){.tasks{height:clamp(86px,32vh,190px)}.summary{padding:8px 16px}.checklists{padding:10px 16px}}
+    .watch-tools{position:fixed;top:12px;right:inherit;display:grid;gap:5px}
+    .watch-tools button{width:38px;height:38px;border:0;border-radius:7px;background:var(--pine);color:white;font-weight:bold;font-size:12px}
+    .watch-tools svg{width:21px;height:21px;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.7}
+    dialog.watch-dialog{inset:12px 58px auto auto;width:min(740px,calc(100vw - 84px));max-height:calc(100dvh - 24px);padding:16px;gap:12px}
+    .watch-dialog header,.watch-toolbar,.watch-dialog footer{display:flex;align-items:center;gap:8px}
+    .watch-dialog header{justify-content:space-between}.watch-toolbar{justify-content:flex-end;flex-wrap:wrap}.watch-toolbar label{margin-right:auto}
+    .watch-toolbar button,.watch-dialog footer button,.watch-dialog select,.watch-dialog input[type=search]{border:1px solid #aec1b3;border-radius:5px;padding:5px 9px;min-height:32px;background:#fff}
+    .watch-dialog [hidden]{display:none!important}.watch-body{min-height:0;overflow:auto}.watch-body p{font-size:12px;color:#52665b}
+    .watch-scroll{overflow:auto}.watch-body table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+    .watch-body :is(th,td){padding:8px 6px;border-bottom:1px solid #d6dfd8;text-align:right}.watch-body th:first-child{text-align:left;width:35%}.watch-body thead{background:#edf5ee}.watch-body small{display:block;font-weight:normal;color:#53685a}
+    .watch-options{max-height:47vh;overflow:auto;margin:8px 0}.watch-options label{display:flex;gap:8px;align-items:center;padding:6px;border-bottom:1px solid #dde5de}.watch-dialog input[type=search]{width:100%;margin-top:8px}.watch-dialog footer{justify-content:flex-end}
+    @media(max-height:650px){.watch-tools{position:static;display:flex;flex-direction:column}.tasks{height:clamp(70px,21vh,140px)}}
   </style>
+  <div class="watch-tools"><button type="button" data-watch="balances" aria-haspopup="dialog" aria-label="Account balances" title="Account balances"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 9h16M11 9v11m3-7h3m-3 4h3"/></svg></button><button type="button" data-watch="rates" aria-haspopup="dialog" aria-label="Foreign account rates" title="Foreign account rates">FX</button></div>
   <div class="rail">
     <div class="tasks" role="group" aria-label="Pinned sequential checklists"></div>
     <button class="db" type="button" aria-haspopup="dialog"><strong>—</strong></button>
@@ -247,10 +260,12 @@
       if (active===generation) {busy=false;if(session()===owner)paint();}
     }
   }
+  const closeWatch=AccountWatch378.install(root,session);
   function syncView() {
     const id=session(), db=id?ojmDb:null;
+    if(window.workspaceRequest138?.target)closeWatch();
     if (id!==owner || client!==db) {
-      generation++;selected='';stepFocus=null;if(dialog.open)dialog.close();host.remove();owner=id;client=db;snapshot=null;busy=false;message='';slotRead='';retryAt=0;
+      closeWatch();generation++;selected='';stepFocus=null;if(dialog.open)dialog.close();host.remove();owner=id;client=db;snapshot=null;busy=false;message='';slotRead='';retryAt=0;
       if (!id) return;
       try {
         const cached=JSON.parse(localStorage.getItem(key()));
