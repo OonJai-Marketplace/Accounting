@@ -13,6 +13,13 @@ function functions(start,end) {
 }
 (async () => {
   const batch=core.create('2026-11','OJM260377');
+  batch.folder={id:'hand-picked-folder',name:'My own folder'};
+  const ten=core.create('2026-11','OJM260001');ten.folder=batch.folder;
+  for(let n=1;n<=10;n++){
+    const code='OJM26'+String(n).padStart(4,'0'),group=n===1?ten.groups[0]:core.addGroup(ten,'journal',code);
+    ten.pages.push({id:crypto.randomUUID(),group:group.id});
+  }
+  assert.deepEqual(core.entryDocuments(ten).map(d=>[d.outputName,d.folder.id]),Array.from({length:10},(_,i)=>['OJM26'+String(i+1).padStart(4,'0')+'.pdf',batch.folder.id]));
   const first=batch.groups[0], second=core.addGroup(batch,'journal','OJM260378');
   const third=core.addGroup(batch,'hr','HR260010'), alias=core.addGroup(batch,'journal','OJM26-0377');
   core.addGroup(batch,'support','Unused');
@@ -42,7 +49,7 @@ function functions(start,end) {
     api:async(action,data)=>{
       if(action==='reserve-id')return {ids:['drive-file-'+crypto.randomUUID()]};
       if(action==='file'){if(!uploads.has(data.id))throw Error('File not found 404');return uploads.get(data.id);}
-      if(action==='upload-start'){starts.set(data.id,data);return {session:'https://www.googleapis.com/upload/drive/v3/files?upload_id='+data.id};}
+      if(action==='upload-start'){assert.equal(data.parent,batch.folder.id);if(data.groups[0].type==='journal')assert.equal(data.name,data.groups[0].label+'.pdf');starts.set(data.id,data);return {session:'https://www.googleapis.com/upload/drive/v3/files?upload_id='+data.id};}
       throw Error(action);
     },
     async fetch(url,options){const id=new URL(url).searchParams.get('upload_id');

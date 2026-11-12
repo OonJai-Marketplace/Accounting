@@ -1,8 +1,6 @@
 {
-  "version": "143.371",
+  "version": "143.372",
   "changes": [
-    "Keep foreign-currency valuation columns steady while scrolling and loading rates.",
-    "Show a single exchange-rate input in each foreign journal row.",
-    "Clear a selected Post Entry account with one tap."
+    "Journal PDFs use the full entry code as their filename and save directly in the folder you choose."
   ]
 }

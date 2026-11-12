@@ -24,7 +24,12 @@ function entryDocuments(batch) {
  if (groups.reduce((sum, group) => sum + group.pages.length, 0) !== batch.pages.length)
   throw Error('Assign every page to an entry before saving.');
  if (groups.length === 1 && batch.entryFile?.group === groups[0].id && batch.entryFile.label === groups[0].label && batch.groups.length === 1)
-  return [batch];
+  {
+   const group=groups[0];
+   if(group.type!=='journal' || batch.entryFile.codeName || batch.file || batch.saved || batch.upload || batch.localExport || batch.links208)return [batch];
+   return [{...batch,title:group.label,outputName:group.label.replace(/[<>:"/\\|?*]/g,'-')+'.pdf',
+    entryFile:{...batch.entryFile,codeName:true},revision:batch.revision+1}];
+  }
  const family = batch.entryFile?.family || batch.id;
  const batchTitle = batch.entryFile?.batchTitle || batch.title;
  return groups.map(group => {
@@ -43,6 +48,11 @@ function entryDocuments(batch) {
    const detail = batchTitle.replace(/[<>:"/\\|?*]/g,'-').trim();
    child.title = (detail && detail !== label ? label + ' - ' + detail : label).slice(0,150);
    child.outputName = child.title + ' - ' + id.slice(0,8) + '.pdf';
+   if(group.type==='journal'){
+    child.title=group.label;
+    child.outputName=label+'.pdf';
+    child.entryFile.codeName=true;
+   }
    child.revision = batch.revision + 1;
   }
   return child;
