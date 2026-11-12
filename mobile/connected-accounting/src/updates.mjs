@@ -47,7 +47,7 @@ export function installAndroidUpdates({getInfo, getManifest, openDownload, downl
           }
           paintMenu();
           if(release.available&&downloadUpdate){help.textContent='Updates download inside Accounting. Android asks for confirmation before installing.';if(auto.checked)await prepare();}
-        } catch { status.textContent = 'Could not check for updates. Connect to the internet and try again.'; }
+        } catch (error) { status.textContent = 'Could not check for updates. ' + (error?.message || 'Tap Check again to retry.'); }
         finally { check.disabled = false; job = null; }
       })();
       return job;

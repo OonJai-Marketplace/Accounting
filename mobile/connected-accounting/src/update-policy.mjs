@@ -12,3 +12,21 @@ export function updateRelease(manifest, installed) {
   if (!Array.isArray(manifest.notes) || manifest.notes.length > 8 || manifest.notes.some(note => typeof note !== 'string' || note.length > 300)) throw Error('The update notes are invalid.');
   return {available: manifest.versionCode > Number(installed.build), version: manifest.version, versionCode: manifest.versionCode, sha256:manifest.sha256, url: url.href, notes: [...manifest.notes], provider: drive ? 'drive' : 'github'};
 }
+
+// The updater must work before sign-in, even when Accounting's optional site URL is empty.
+export async function getAndroidReleaseManifest(nativeGet, webFetch=fetch, now=Date.now) {
+  const url='https://oonjai-marketplace.github.io/Accounting/data/android-release.json?t='+now();
+  try {
+    const response=await nativeGet({url,headers:{'Cache-Control':'no-cache'},connectTimeout:10000,readTimeout:10000,responseType:'json'});
+    if(response.status===200){
+      const data=typeof response.data==='string'?JSON.parse(response.data):response.data;
+      if(data && typeof data==='object')return data;
+    }
+  } catch { /* Try the WebView connection if native HTTP is unavailable. */ }
+  let response;
+  try {response=await webFetch(url,{cache:'no-store',signal:AbortSignal.timeout(12000)});}
+  catch {throw Error('The phone could not reach the Accounting update page. Tap Check again to retry.');}
+  if(!response.ok)throw Error('The Accounting update page returned HTTP '+response.status+'. Tap Check again to retry.');
+  try {return await response.json();}
+  catch {throw Error('The Accounting update page returned an unreadable release. Tap Check again to retry.');}
+}
