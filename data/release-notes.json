@@ -1,1 +1,1 @@
-{"version": "143.354", "changes": ["Two taller checklist bars show progress and completion. Open a checklist to update its steps. The storage tile shows the percentage."]}
+{"version": "143.355", "changes": ["Show Enter debit and Enter credit on the intended template line in Post Entry and Generate Journal, including multi-currency sales, food costs, and restored template drafts."]}

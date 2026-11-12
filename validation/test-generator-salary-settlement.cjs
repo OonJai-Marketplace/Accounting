@@ -71,6 +71,13 @@ const setup=require('./phase0-browser-fixture.cjs');
   await d.locator('[data-use]').click();await d.waitFor({state:'detached',timeout:3500}).catch(async e=>{throw Error((await d.locator('[data-status]').innerText())+' '+e.message);});
   assert.equal(await page.locator('#jeLinesBody tr').count(),6);
   assert.equal(await page.locator('#jeLinesBody tr').first().getAttribute('data-book-rate14383'),String(staffBook));
+  const postedRows=page.locator('#jeLinesBody tr');
+  const staffDebit=postedRows.nth(0).locator('.je-line-dr');
+  assert.equal(await staffDebit.getAttribute('placeholder'),'Enter debit');
+  assert.equal(await postedRows.nth(1).locator('.je-line-cr').getAttribute('placeholder'),'Enter credit');
+  await staffDebit.fill('');
+  assert(await staffDebit.evaluate(n=>n.matches(':placeholder-shown')));
+  assert.equal(await postedRows.nth(2).locator('[data-template-amount-hint]').count(),0);
   console.log('PASS staff credit balance BR, partial salary, six ordered rows, both FX directions, commas during typing and repeat Generate, full precision copied into Post Entry.');
  }finally{await f.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

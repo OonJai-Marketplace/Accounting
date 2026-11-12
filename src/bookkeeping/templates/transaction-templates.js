@@ -161,6 +161,31 @@ async function renderTemplateManager(){
       </div>
     </div>`).join('') : '<div class="empty-archive-state">No templates saved.</div>');window.TemplateCloud275?.decorate(host);return true;
 }
+function setTemplateAmountHints(row,side,calculated){
+  for(const input of row.querySelectorAll('.je-line-dr,.je-line-cr,[data-field="debit"],[data-field="credit"]')){
+    const field=input.dataset.field||(input.classList.contains('je-line-dr')?'debit':'credit');
+    if(!calculated&&side===field){
+      input.placeholder='Enter '+field;
+      input.dataset.templateAmountHint='';
+    }else{
+      input.removeAttribute('placeholder');
+      delete input.dataset.templateAmountHint;
+    }
+  }
+}
+function currencyTemplateSide(template,account){
+  if(!template?.builtin||!account)return '';
+  return template.lines.find(line=>line.code===account.code&&line.currency===account.currency)?.side||'';
+}
+function restoreJournalTemplateHints(row){
+  const data=row.dataset;
+  if(data.generatorCurrency&&!data.templateSide274&&!data.generatorCalculated&&!data.generatorOutput&&/^fx14383-(income|expense)$/.test(data.generatorTemplate)){
+    const template=window.JournalFX14383?.templates().find(t=>t.id===data.generatorTemplate);
+    const side=currencyTemplateSide(template,getSelectedAccountInfo(row.querySelector('.je-line-acc').value));
+    if(side)data.templateSide274=side;
+  }
+  setTemplateAmountHints(row,data.templateSide274,data.generatorCalculated||data.generatorOutput);
+}
 function applyTransactionTemplate(id){
   const t=availableTransactionTemplates().find(x=>x.id===id); if(!t)return;
   let lines=t.lines;
@@ -180,8 +205,12 @@ function applyTransactionTemplate(id){
   window.entry1430?.restore('double',[]);
   const body=document.getElementById('jeLinesBody'); body.innerHTML='';
   document.getElementById('jeGeneralMemo').value=t.generalMemo || '';
-  lines.forEach(line=>{addJournalLineRow(line.account,line.memo,'',{});const data=body.lastElementChild.dataset;data.templateSide274=line.side||'';
-    if(t.builtin){data.generatorTemplate=t.id;data.generatorRole=line.role||'';data.generatorCurrency=line.currency||'';data.generatorStage=line.stage||'';data.generatorReceipt=line.receiptLeg||'';if(line.calculated)data.generatorCalculated='true';}});
+  lines.forEach(line=>{
+    addJournalLineRow(line.account,line.memo,'',{});
+    const row=body.lastElementChild,data=row.dataset;
+    data.generatorTemplate=t.id;data.templateSide274=line.side||'';
+    setTemplateAmountHints(row,line.side,line.calculated);
+    if(t.builtin){data.generatorRole=line.role||'';data.generatorCurrency=line.currency||'';data.generatorStage=line.stage||'';data.generatorReceipt=line.receiptLeg||'';if(line.calculated)data.generatorCalculated='true';}});
   while(body.querySelectorAll('tr').length<2)addJournalLineRow();
 
   setTransactionDateToToday(true); updateNextEntryIdDisplay(); calculateJournalBalance();
