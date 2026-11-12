@@ -54,7 +54,7 @@ function renderCard(card){
   if(!offline())void fetchSnapshot(date,source.exclude);
   return '<tr><td>'+esc(a.code+' — '+a.name)+'<small>'+esc(currency+' · '+(date?formatAppDate(date):'Choose date'))+'</small></td><td>'+esc(fmt(fx))+'</td><td>'+esc(book==null?'Uses ER':fmt(book))+'</td><td><strong>'+esc(fmt(rate))+'</strong></td><td class="'+(diff!=null&&Math.abs(diff)>0.00000001?'rate-different143186':'')+'">'+esc(diff==null?'—':Math.abs(diff)<0.00000001?'Matches':(diff>0?'+':'')+fmt(diff))+'</td></tr><tr class="rate-source143186"><td colspan="5">'+esc(detail)+'</td></tr>';
  }).join('');
- const html='<div class="rate-review-title143186"><strong>Account book rate · LAK per foreign unit</strong><button type="button" class="je-btn je-btn-secondary" data-refresh-rates>Refresh averages</button></div><small>ER = exchange rate · VR = valuation rate · BR = book rate</small><div class="rate-review-scroll143186"><table><thead><tr><th>Account / date</th><th title="Entered exchange rate">ER</th><th title="Entered book rate">Entered BR</th><th title="Book rate from the account balance">Account BR</th><th>Difference</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+ const html='<div class="rate-review-title143186"><strong>Account book rate · LAK per foreign unit</strong><button type="button" class="je-btn je-btn-secondary" data-refresh-rates>Refresh averages</button></div><small>ER = exchange rate · VR = valuation rate · BR = book rate</small><div class="rate-review-scroll143186"><table class="valuation-columns"><thead><tr><th>Account / date</th><th title="Entered exchange rate">ER</th><th title="Entered book rate">Entered BR</th><th title="Book rate from the account balance">Account BR</th><th>Difference</th></tr></thead><tbody>'+body+'</tbody></table></div>';
  if(host._html!==html){host.innerHTML=html;host._html=html;host.querySelector('[data-refresh-rates]').onclick=async()=>{const button=host.querySelector('button');button.disabled=true;await Promise.all(rows.map(r=>fetchSnapshot(r.date,source.exclude,true)));renderCard(card);button.disabled=false;};}
 }
 
@@ -76,21 +76,6 @@ function rateCell(row,field,label){
   input.setCustomValidity(input.value.trim()&&!valid(n)?'Enter a positive rate.':'');
  });
  cell.append(input);
- if(field==='fxRate14383'){
-  const use=document.createElement('button');use.type='button';use.className='use-book-rate294';use.hidden=true;
-  use.textContent='Use BR';use.setAttribute('aria-label','Use book rate');use.title='Use this row’s book rate as its transaction rate';
-  use.onclick=()=>{
-   const book=Number(row.dataset.bookRate14383);
-   if(!valid(book))return;
-   row.dataset.fxRate14383=String(book);
-   row.dataset.explicitFx291='1';
-   bindAppRateInput(input,book);
-   input.setCustomValidity('');
-   input.dispatchEvent(new Event('change',{bubbles:true}));
-   use.hidden=true;input.focus();
-  };
-  cell.append(use);
- }
  const action=row.querySelector('td.action-col');row.insertBefore(cell,action);return input;
 }
 // A credit on a staff ledger is an amount owed to the employee.
@@ -171,11 +156,6 @@ function syncLineRates(card){
    const n=raw&&valid(Number(raw))?Number(raw):null;
    if((n===null&&input.value)||(n!==null&&readAppRateInput(input)!==n))bindAppRateInput(input,n??'');
    input.setCustomValidity('');
-   const use=input.parentElement.querySelector('.use-book-rate294');
-   if(use){
-    const offer=!!(active&&n===null&&valid(Number(row.dataset.bookRate14383)));
-    if(use.hidden===offer)use.hidden=!offer;
-   }
    const placeholder=active&&field==='fxRate14383'?'Enter rate':'—';
    if(input.placeholder!==placeholder)input.placeholder=placeholder;
   }

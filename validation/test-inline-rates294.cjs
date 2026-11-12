@@ -14,10 +14,7 @@ const assert=require('node:assert/strict'),fixture=require('./phase0-browser-fix
   const rows=page.locator('#jeLinesBody tr'),fx=i=>rows.nth(i).getByRole('textbox',{name:'Exchange rate',exact:true});
   await page.waitForFunction(()=>document.querySelector('#jeLinesBody [aria-label="Book rate"]')?.value==='22,229.21');
   assert.ok(await page.locator('#journalRates14383').isHidden());assert.equal(await fx(0).inputValue(),'');
-  await rows.nth(0).getByRole('button',{name:'Use book'}).click();
-  await page.waitForFunction(()=>document.querySelectorAll('#jeLinesBody [aria-label="Exchange rate"]')[1].value==='22,229.21');
-  let stored=await page.evaluate(()=>[...document.querySelectorAll('#jeLinesBody tr')].slice(0,2).map(r=>JournalFX14383.lineRate(r,'USD')));
-  assert.deepEqual(stored,[22229.2109265,22229.2109265]);
+  assert.equal(await rows.getByRole('button',{name:'Use book rate'}).count(),0);
   await fx(0).fill('22287');await fx(0).press('Tab');
   await page.waitForFunction(()=>document.querySelectorAll('#jeLinesBody [aria-label="Exchange rate"]')[1].value==='22,287');
   assert.equal(await rows.nth(0).getByRole('textbox',{name:'Book rate',exact:true}).inputValue(),'22,229.21');
@@ -25,6 +22,6 @@ const assert=require('node:assert/strict'),fixture=require('./phase0-browser-fix
   assert.equal(await rows.nth(2).getByRole('textbox',{name:'Book rate',exact:true}).count(),0);
   await page.evaluate(()=>{document.querySelector('#jeLinesBody').replaceChildren();addJournalLineRow('1010 — Cash LAK','Local',1,{});AccountRates143186.refresh();});
   await page.waitForFunction(()=>!document.querySelector('#journalEntry98').classList.contains('foreign-lines291'));
-  console.log('PASS inline account average, full-precision adoption, same-entry propagation, independent row overrides, LAK-only layout and hidden header');
+  console.log('PASS inline account average, compact ER cells, same-entry propagation, independent row overrides, LAK-only layout and hidden header');
  }finally{await f.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

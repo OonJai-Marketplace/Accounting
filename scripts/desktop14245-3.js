@@ -6760,7 +6760,7 @@ function reportTable79(headers,rows,currency,print=false){
  }else{
   body='<tbody>'+(rows.map(renderRow).join('')||`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`)+'</tbody>';
  }
- return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead>${body}</table></div>`}
+ return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':headers.includes('Average carrying rate')?'class="valuation-columns"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead>${body}</table></div>`}
 
 function reportHierarchy14383(rows){
  return window.ForeignFunds14386?ForeignFunds14386.hierarchy(rows,compareReportAccounts143153):[...rows].sort(compareReportAccounts143153);

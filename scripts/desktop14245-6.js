@@ -739,7 +739,34 @@ function withChoices(fn){const previous=enhancementChoices;if(!previous)enhancem
 function accountForChoice(value){if(!enhancementChoices)return resolveAccountForChoice(value);if(!enhancementChoices.has(value))enhancementChoices.set(value,resolveAccountForChoice(value));return enhancementChoices.get(value)}
 function resolveAccountForChoice(value){if(!value)return null;const key=String(value).split('|')[0];let subs=[];try{subs=typeof AccountingStore!=='undefined'?AccountingStore.subAccounts||[]:parent.PhoneApp132?.subAccounts?.()||[]}catch{}const chart=accounts(),sub=subs.find(a=>String(a.id||a.code)===key);if(sub){const parentAccount=chart.find(a=>a.id===sub.parentId||a.code===sub.parentCode);return chart.find(a=>String(a.id)===String(sub.postingAccountId14285))||{...sub,type:parentAccount?.type,baseType:parentAccount?.baseType,currency:sub.currency||parentAccount?.currency||parentAccount?.currency_code}}return chart.find(a=>String(a.id)===key||String(a.code)===key)||(typeof getSelectedAccountInfo==='function'?getSelectedAccountInfo(value):null)}
 function choiceSymbol14231(code){if(/^(NA|N\/A|PARENT|__PARENT__)$/i.test(String(code||'')))return '▦';return typeof currencySymbolV6==='function'?currencySymbolV6(code):({LAK:'₭',USD:'$',THB:'฿',EUR:'€'}[code]||code)}
-function selectedBadge14231(input,source){const financial=source.tagName==='SELECT'?[...source.options].some(o=>accountForChoice(o.value)):!!source.dataset.accountList1428&&choices(source).some(o=>accountForChoice(o.value));if(!financial)return;const existing=input.closest('.account-input-wrap')?.querySelector('.currency-symbol-badge');let badge=existing,wrap=input.closest('.account-choice14231');if(!badge&&!wrap){wrap=document.createElement('span');wrap.className='account-choice14231';input.before(wrap);wrap.append(input);input.dataset.accountSelected14231='';badge=document.createElement('span');badge.className='currency-symbol-badge account-selected-badge14231';wrap.prepend(badge)}else if(!badge)badge=wrap.querySelector('.account-selected-badge14231');const account=input.dataset.pickerDraft1444==='true'?null:accountForChoice(source.value),code=account?.currency_code||account?.currency||'';markType(input,account?.id||account?.code||'');badge.dataset.currencyCode=code;badge.title=code||'Choose an account';badge.setAttribute('aria-label',code||'Choose an account');const symbol=code?choiceSymbol14231(code):'¤';if(badge.textContent!==symbol)badge.textContent=symbol;if(wrap){if(wrap.hidden!==input.hidden)wrap.hidden=input.hidden;wrap.classList.toggle('disabled14231',input.disabled)}}
+function syncJournalClear(input,source){
+ if(!source.closest('#journalEntry98')||!input.matches('.je-line-acc,.account-search1428'))return;
+ const wrap=input.closest('.account-input-wrap,.account-choice14231');
+ if(!wrap)return;
+ let button=wrap.querySelector('.journal-account-clear');
+ if(!button){
+  button=document.createElement('button');
+  button.type='button';button.className='journal-account-clear';
+  button.textContent='×';button.setAttribute('aria-label','Clear selected account');
+  button.addEventListener('pointerdown',e=>e.preventDefault());
+  button.onclick=e=>{
+   e.preventDefault();
+   if(source.disabled||input.disabled||source.readOnly&&!input.hasAttribute('data-tablet-choice143264'))return;
+   window.JournalUndo143103?.checkpoint();
+   pickerBefore(input,source);close();
+   source.value='';input.value='';delete input.dataset.pickerDraft1444;
+   input.setCustomValidity('');
+   source.dispatchEvent(new Event('input',{bubbles:true}));
+   source.dispatchEvent(new Event('change',{bubbles:true}));
+   selectedBadge14231(input,source);
+   pickerRecord(input,source);window.JournalUndo143103?.record();
+  };
+  wrap.append(button);
+ }
+ const hidden=!source.value||input.disabled||source.disabled||input.hidden;
+ if(button.hidden!==hidden)button.hidden=hidden;
+}
+function selectedBadge14231(input,source){const financial=source.tagName==='SELECT'?[...source.options].some(o=>accountForChoice(o.value)):!!source.dataset.accountList1428&&choices(source).some(o=>accountForChoice(o.value));if(!financial){if(input.matches('.je-line-acc'))syncJournalClear(input,source);return;}const existing=input.closest('.account-input-wrap')?.querySelector('.currency-symbol-badge');let badge=existing,wrap=input.closest('.account-choice14231');if(!badge&&!wrap){wrap=document.createElement('span');wrap.className='account-choice14231';input.before(wrap);wrap.append(input);input.dataset.accountSelected14231='';badge=document.createElement('span');badge.className='currency-symbol-badge account-selected-badge14231';wrap.prepend(badge)}else if(!badge)badge=wrap.querySelector('.account-selected-badge14231');const account=input.dataset.pickerDraft1444==='true'?null:accountForChoice(source.value),code=account?.currency_code||account?.currency||'';markType(input,account?.id||account?.code||'');badge.dataset.currencyCode=code;badge.title=code||'Choose an account';badge.setAttribute('aria-label',code||'Choose an account');const symbol=code?choiceSymbol14231(code):'¤';if(badge.textContent!==symbol)badge.textContent=symbol;if(wrap){if(wrap.hidden!==input.hidden)wrap.hidden=input.hidden;wrap.classList.toggle('disabled14231',input.disabled)}syncJournalClear(input,source)}
 function choiceLabel(value,fallback){const a=accountForChoice(value);if(!a)return fallback;const symbol=choiceSymbol14231(a.currency_code||a.currency);let name=String(a.name||'');const currency=String(a.currency_code||a.currency||'');const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');if(currency)name=name.replace(new RegExp('(?:\\s*[-—–·]\\s*|\\s+)'+escape(currency)+'$','i'),'').replace(new RegExp('\\s*\\('+escape(currency)+'\\)\\s*$','i'),'').trim();if(symbol&&symbol!==currency)name=name.replace(new RegExp('^'+escape(symbol)+'\\s*|\\s*'+escape(symbol)+'$','g'),'').trim();return (a.code?a.code+' — ':'')+name;}
 function displayChoice(source,value,fallback){return source.tagName!=='SELECT'||!!accountForChoice(value)||legacyAccountSelect(source)||source.matches('[data-inline-field117=account],[data-inline-field117=fund],.staff-entry-account')?choiceLabel(value,fallback):fallback;}
 function selectedLabel(source){const option=source.selectedOptions[0];let label=source.value?displayChoice(source,source.value,option?.textContent.trim()||''):'';if(/^staff(?:Fund|Category|Account)/.test(source.id)){const a=accountForChoice(source.value);if(a)label=label.replace(a.code+' — ','')}return label;}
@@ -2099,7 +2126,7 @@ function renderCard(card){
   if(!offline())void fetchSnapshot(date,source.exclude);
   return '<tr><td>'+esc(a.code+' — '+a.name)+'<small>'+esc(currency+' · '+(date?formatAppDate(date):'Choose date'))+'</small></td><td>'+esc(fmt(fx))+'</td><td>'+esc(book==null?'Uses ER':fmt(book))+'</td><td><strong>'+esc(fmt(rate))+'</strong></td><td class="'+(diff!=null&&Math.abs(diff)>0.00000001?'rate-different143186':'')+'">'+esc(diff==null?'—':Math.abs(diff)<0.00000001?'Matches':(diff>0?'+':'')+fmt(diff))+'</td></tr><tr class="rate-source143186"><td colspan="5">'+esc(detail)+'</td></tr>';
  }).join('');
- const html='<div class="rate-review-title143186"><strong>Account book rate · LAK per foreign unit</strong><button type="button" class="je-btn je-btn-secondary" data-refresh-rates>Refresh averages</button></div><small>ER = exchange rate · VR = valuation rate · BR = book rate</small><div class="rate-review-scroll143186"><table><thead><tr><th>Account / date</th><th title="Entered exchange rate">ER</th><th title="Entered book rate">Entered BR</th><th title="Book rate from the account balance">Account BR</th><th>Difference</th></tr></thead><tbody>'+body+'</tbody></table></div>';
+ const html='<div class="rate-review-title143186"><strong>Account book rate · LAK per foreign unit</strong><button type="button" class="je-btn je-btn-secondary" data-refresh-rates>Refresh averages</button></div><small>ER = exchange rate · VR = valuation rate · BR = book rate</small><div class="rate-review-scroll143186"><table class="valuation-columns"><thead><tr><th>Account / date</th><th title="Entered exchange rate">ER</th><th title="Entered book rate">Entered BR</th><th title="Book rate from the account balance">Account BR</th><th>Difference</th></tr></thead><tbody>'+body+'</tbody></table></div>';
  if(host._html!==html){host.innerHTML=html;host._html=html;host.querySelector('[data-refresh-rates]').onclick=async()=>{const button=host.querySelector('button');button.disabled=true;await Promise.all(rows.map(r=>fetchSnapshot(r.date,source.exclude,true)));renderCard(card);button.disabled=false;};}
 }
 
@@ -2121,21 +2148,6 @@ function rateCell(row,field,label){
   input.setCustomValidity(input.value.trim()&&!valid(n)?'Enter a positive rate.':'');
  });
  cell.append(input);
- if(field==='fxRate14383'){
-  const use=document.createElement('button');use.type='button';use.className='use-book-rate294';use.hidden=true;
-  use.textContent='Use BR';use.setAttribute('aria-label','Use book rate');use.title='Use this row’s book rate as its transaction rate';
-  use.onclick=()=>{
-   const book=Number(row.dataset.bookRate14383);
-   if(!valid(book))return;
-   row.dataset.fxRate14383=String(book);
-   row.dataset.explicitFx291='1';
-   bindAppRateInput(input,book);
-   input.setCustomValidity('');
-   input.dispatchEvent(new Event('change',{bubbles:true}));
-   use.hidden=true;input.focus();
-  };
-  cell.append(use);
- }
  const action=row.querySelector('td.action-col');row.insertBefore(cell,action);return input;
 }
 // A credit on a staff ledger is an amount owed to the employee.
@@ -2216,11 +2228,6 @@ function syncLineRates(card){
    const n=raw&&valid(Number(raw))?Number(raw):null;
    if((n===null&&input.value)||(n!==null&&readAppRateInput(input)!==n))bindAppRateInput(input,n??'');
    input.setCustomValidity('');
-   const use=input.parentElement.querySelector('.use-book-rate294');
-   if(use){
-    const offer=!!(active&&n===null&&valid(Number(row.dataset.bookRate14383)));
-    if(use.hidden===offer)use.hidden=!offer;
-   }
    const placeholder=active&&field==='fxRate14383'?'Enter rate':'—';
    if(input.placeholder!==placeholder)input.placeholder=placeholder;
   }
@@ -2290,7 +2297,7 @@ function detailRows(rows){
 const headers=['Account / parent','Original closing balance','Recorded closing LAK','Average carrying rate'];
 const note='Parent subtotals sum each descendant posting account once. Original currencies remain separate; there is no mixed-currency average. Recorded LAK = opening LAK + recorded debits − recorded credits. Foreign-currency tracking is automatic for all posting accounts, including System and mapping accounts. Average carrying rate = recorded closing LAK ÷ original closing balance. A mapping balance’s rate describes its recorded net valuation, not a rate to use for a new transaction. Use the General Ledger for each saved transaction/carrying rate. These are recorded values, not current market valuations. Parent and child rows are explanatory and must not be added together.';
 function reportDetails(rows,kind){let selected=rows;if(['pl','expense'].includes(kind))selected=rows.filter(r=>['REVENUE','EXPENSE'].includes(r.account.baseType||r.account.type));if(kind==='bs')selected=rows.filter(r=>['ASSET','LIABILITY','EQUITY'].includes(r.account.baseType||r.account.type));if(['cf','payroll'].includes(kind))selected=rows.filter(r=>Reports79[kind==='cf'?'cash':'payroll'].includes(r.key));if(['gl','activity'].includes(kind)&&Reports79.account)selected=select(rows,Reports79.account);const values=detailRows(selected);return values.length?{currency:'Recorded valuation detail',headers,values,metrics:[],note}:null;}
-function html(rows){const values=detailRows(rows);return values.length?'<h4>Recorded valuation detail</h4><div class="table-container"><table><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+values.map(r=>{const p=presentation(r[0]);return '<tr'+(p.subtotal?' class="report-subtotal143185"':'')+'>'+r.map((v,i)=>'<td>'+(p.subtotal?'<strong>':'')+(i===0?label(v):esc(v))+(p.subtotal?'</strong>':'')+'</td>').join('')+'</tr>'}).join('')+'</tbody></table></div><p class="report-note69">'+esc(note)+'</p>':'';}
+function html(rows){const values=detailRows(rows);return values.length?'<h4>Recorded valuation detail</h4><div class="table-container"><table class="valuation-columns"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+values.map(r=>{const p=presentation(r[0]);return '<tr'+(p.subtotal?' class="report-subtotal143185"':'')+'>'+r.map((v,i)=>'<td>'+(p.subtotal?'<strong>':'')+(i===0?label(v):esc(v))+(p.subtotal?'</strong>':'')+'</td>').join('')+'</tr>'}).join('')+'</tbody></table></div><p class="report-note69">'+esc(note)+'</p>':'';}
 window.ForeignFunds14386={presentation,label,tracked,select,hierarchy,descendants,average,lineRateText,reportDetails,detailRows,html};
 })();
 

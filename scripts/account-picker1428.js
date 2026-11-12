@@ -17,7 +17,34 @@ function withChoices(fn){const previous=enhancementChoices;if(!previous)enhancem
 function accountForChoice(value){if(!enhancementChoices)return resolveAccountForChoice(value);if(!enhancementChoices.has(value))enhancementChoices.set(value,resolveAccountForChoice(value));return enhancementChoices.get(value)}
 function resolveAccountForChoice(value){if(!value)return null;const key=String(value).split('|')[0];let subs=[];try{subs=typeof AccountingStore!=='undefined'?AccountingStore.subAccounts||[]:parent.PhoneApp132?.subAccounts?.()||[]}catch{}const chart=accounts(),sub=subs.find(a=>String(a.id||a.code)===key);if(sub){const parentAccount=chart.find(a=>a.id===sub.parentId||a.code===sub.parentCode);return chart.find(a=>String(a.id)===String(sub.postingAccountId14285))||{...sub,type:parentAccount?.type,baseType:parentAccount?.baseType,currency:sub.currency||parentAccount?.currency||parentAccount?.currency_code}}return chart.find(a=>String(a.id)===key||String(a.code)===key)||(typeof getSelectedAccountInfo==='function'?getSelectedAccountInfo(value):null)}
 function choiceSymbol14231(code){if(/^(NA|N\/A|PARENT|__PARENT__)$/i.test(String(code||'')))return '▦';return typeof currencySymbolV6==='function'?currencySymbolV6(code):({LAK:'₭',USD:'$',THB:'฿',EUR:'€'}[code]||code)}
-function selectedBadge14231(input,source){const financial=source.tagName==='SELECT'?[...source.options].some(o=>accountForChoice(o.value)):!!source.dataset.accountList1428&&choices(source).some(o=>accountForChoice(o.value));if(!financial)return;const existing=input.closest('.account-input-wrap')?.querySelector('.currency-symbol-badge');let badge=existing,wrap=input.closest('.account-choice14231');if(!badge&&!wrap){wrap=document.createElement('span');wrap.className='account-choice14231';input.before(wrap);wrap.append(input);input.dataset.accountSelected14231='';badge=document.createElement('span');badge.className='currency-symbol-badge account-selected-badge14231';wrap.prepend(badge)}else if(!badge)badge=wrap.querySelector('.account-selected-badge14231');const account=input.dataset.pickerDraft1444==='true'?null:accountForChoice(source.value),code=account?.currency_code||account?.currency||'';markType(input,account?.id||account?.code||'');badge.dataset.currencyCode=code;badge.title=code||'Choose an account';badge.setAttribute('aria-label',code||'Choose an account');const symbol=code?choiceSymbol14231(code):'¤';if(badge.textContent!==symbol)badge.textContent=symbol;if(wrap){if(wrap.hidden!==input.hidden)wrap.hidden=input.hidden;wrap.classList.toggle('disabled14231',input.disabled)}}
+function syncJournalClear(input,source){
+ if(!source.closest('#journalEntry98')||!input.matches('.je-line-acc,.account-search1428'))return;
+ const wrap=input.closest('.account-input-wrap,.account-choice14231');
+ if(!wrap)return;
+ let button=wrap.querySelector('.journal-account-clear');
+ if(!button){
+  button=document.createElement('button');
+  button.type='button';button.className='journal-account-clear';
+  button.textContent='×';button.setAttribute('aria-label','Clear selected account');
+  button.addEventListener('pointerdown',e=>e.preventDefault());
+  button.onclick=e=>{
+   e.preventDefault();
+   if(source.disabled||input.disabled||source.readOnly&&!input.hasAttribute('data-tablet-choice143264'))return;
+   window.JournalUndo143103?.checkpoint();
+   pickerBefore(input,source);close();
+   source.value='';input.value='';delete input.dataset.pickerDraft1444;
+   input.setCustomValidity('');
+   source.dispatchEvent(new Event('input',{bubbles:true}));
+   source.dispatchEvent(new Event('change',{bubbles:true}));
+   selectedBadge14231(input,source);
+   pickerRecord(input,source);window.JournalUndo143103?.record();
+  };
+  wrap.append(button);
+ }
+ const hidden=!source.value||input.disabled||source.disabled||input.hidden;
+ if(button.hidden!==hidden)button.hidden=hidden;
+}
+function selectedBadge14231(input,source){const financial=source.tagName==='SELECT'?[...source.options].some(o=>accountForChoice(o.value)):!!source.dataset.accountList1428&&choices(source).some(o=>accountForChoice(o.value));if(!financial){if(input.matches('.je-line-acc'))syncJournalClear(input,source);return;}const existing=input.closest('.account-input-wrap')?.querySelector('.currency-symbol-badge');let badge=existing,wrap=input.closest('.account-choice14231');if(!badge&&!wrap){wrap=document.createElement('span');wrap.className='account-choice14231';input.before(wrap);wrap.append(input);input.dataset.accountSelected14231='';badge=document.createElement('span');badge.className='currency-symbol-badge account-selected-badge14231';wrap.prepend(badge)}else if(!badge)badge=wrap.querySelector('.account-selected-badge14231');const account=input.dataset.pickerDraft1444==='true'?null:accountForChoice(source.value),code=account?.currency_code||account?.currency||'';markType(input,account?.id||account?.code||'');badge.dataset.currencyCode=code;badge.title=code||'Choose an account';badge.setAttribute('aria-label',code||'Choose an account');const symbol=code?choiceSymbol14231(code):'¤';if(badge.textContent!==symbol)badge.textContent=symbol;if(wrap){if(wrap.hidden!==input.hidden)wrap.hidden=input.hidden;wrap.classList.toggle('disabled14231',input.disabled)}syncJournalClear(input,source)}
 function choiceLabel(value,fallback){const a=accountForChoice(value);if(!a)return fallback;const symbol=choiceSymbol14231(a.currency_code||a.currency);let name=String(a.name||'');const currency=String(a.currency_code||a.currency||'');const escape=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');if(currency)name=name.replace(new RegExp('(?:\\s*[-—–·]\\s*|\\s+)'+escape(currency)+'$','i'),'').replace(new RegExp('\\s*\\('+escape(currency)+'\\)\\s*$','i'),'').trim();if(symbol&&symbol!==currency)name=name.replace(new RegExp('^'+escape(symbol)+'\\s*|\\s*'+escape(symbol)+'$','g'),'').trim();return (a.code?a.code+' — ':'')+name;}
 function displayChoice(source,value,fallback){return source.tagName!=='SELECT'||!!accountForChoice(value)||legacyAccountSelect(source)||source.matches('[data-inline-field117=account],[data-inline-field117=fund],.staff-entry-account')?choiceLabel(value,fallback):fallback;}
 function selectedLabel(source){const option=source.selectedOptions[0];let label=source.value?displayChoice(source,source.value,option?.textContent.trim()||''):'';if(/^staff(?:Fund|Category|Account)/.test(source.id)){const a=accountForChoice(source.value);if(a)label=label.replace(a.code+' — ','')}return label;}

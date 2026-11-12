@@ -1,1 +1,1 @@
-{"version": "143.369", "changes": ["Find transactions by the last digits, show all permitted journal IDs or only this month, and jump to an earlier or later entry.", "Open linked receipt images or the PDF in Accounting. Close the preview with Close or by tapping outside."]}
+{"version": "143.371", "changes": ["Keep foreign-currency valuation columns steady while scrolling and loading rates.", "Show a single exchange-rate input in each foreign journal row.", "Clear a selected Post Entry account with one tap."]}
