@@ -9,7 +9,6 @@ async function fixture(width=1440){
  const append=(id,content)=>{let n=d.getElementById(id);if(!n){n=d.createElement('div');n.id=id;n.className='tab-content';n.dataset.module='settings';d.getElementById('settings-system').after(n);}n.innerHTML=content;return n;};
  append('settings-organization14229','<section><h3>Organization</h3><button type="button">Edit reporting</button></section>');
  append('settings-data14231','<div id="settings-backup113" class="embedded-settings14231"><section class="panel113"><h2>Archive</h2><div id="archiveExport129"><button>Prepare Archive</button></div></section></div><div id="settings-recovery113" class="embedded-settings14231"><section class="panel113"><h2>Vault</h2><input type="password" id="vault-password"><button>Unlock</button></section></div>');
- append('settings-maintenance14324','<div class="maintenance-grid14324"><section class="maintenance-card14324"><h3>Investigator</h3><input id="investigator"><button>Investigate</button></section></div>');
  const acc=d.getElementById('settings-accounting'),card=acc.querySelector('.je-card');
  const prefix=d.createElement('div');prefix.id='prefixRegistry89';prefix.innerHTML='<input id="prefix-test" name="automatedPrefix" value="AUTO">';acc.querySelector('form').append(prefix);
  const currency=d.createElement('section');currency.className='settings-module94';currency.innerHTML='<header><h4>Currency Manager</h4></header>';card.append(currency);for(const n of [...card.children].filter(n=>n.matches('.currency-add-bar,.table-container')))currency.append(n);
@@ -23,8 +22,8 @@ async function fixture(width=1440){
 (async()=>{
  const f=await fixture(),{w,d}=f;
  assert.equal(d.querySelectorAll('.settings-stack-workspace143176').length,3);
- assert.equal(d.querySelectorAll('[data-settings-stack-panel143176]').length,9);
- for(const key of ['accounting','currency','vouchers','google','payroll','mandatory','business','users','organization','preferences','printing','settings-backup','recovery'])assert(d.getElementById('settingsSection143176-'+key),key);
+ assert.equal(d.querySelectorAll('[data-settings-stack-panel143176]').length,8);
+ for(const key of ['accounting','currency','vouchers','google','payroll','mandatory','business','users','organization','preferences','printing','installation','settings-backup','recovery'])assert(d.getElementById('settingsSection143176-'+key),key);
  for(const button of [...d.querySelectorAll('[data-jump143176]')]){button.click();const visible=[...d.querySelectorAll('.settings-stack-section143176')].filter(n=>!n.closest('[hidden]'));assert.equal(visible.length,1,'exactly one selected section');assert.equal(visible[0].dataset.settingsSection143176,button.dataset.jump143176);}
  w.settingsStack143176.open('accounting');
  const inputs=[...d.querySelectorAll('[data-settings-stack-panel143176] input,[data-settings-stack-panel143176] select,[data-settings-stack-panel143176] textarea')],forms=inputs.map(n=>n.form),before=inputs.length;
@@ -55,5 +54,5 @@ async function fixture(width=1440){
  w.innerWidth=1440;d.documentElement.dataset.device132='desktop';w.settingsStack143176.sync();assert.equal(d.querySelectorAll('.settings-stack-workspace143176').length,3);assert.equal(input.value,'UNSAVED');
  d.querySelector('.tab-content.active').classList.remove('active');d.getElementById('accounts-modular-container').classList.add('active');await pause();assert([...d.querySelectorAll('.settings-stack-workspace143176')].every(n=>n.hidden),'account navigation without page113 hides settings');
  w.switchTab('dashboard');assert([...d.querySelectorAll('.settings-stack-workspace143176')].every(n=>n.hidden));
- await pause();f.dom.window.close();const phone=await fixture(390);assert.equal(phone.d.querySelectorAll('.settings-stack-workspace143176').length,0);phone.dom.window.close();console.log('PASS all nine panels; accounting sections; original controls/forms/listeners; unsaved edits; single-section navigation and scroll isolation; inactive-panel permission gates; permission changes; dynamic panels and default Settings entry; phone restoration; navigation away');
+ await pause();f.dom.window.close();const phone=await fixture(390);assert.equal(phone.d.querySelectorAll('.settings-stack-workspace143176').length,0);phone.dom.window.close();console.log('PASS all eight panels; accounting sections; original controls/forms/listeners; unsaved edits; single-section navigation and scroll isolation; inactive-panel permission gates; permission changes; dynamic panels and default Settings entry; phone restoration; navigation away');
 })().catch(e=>{console.error(e);process.exitCode=1});

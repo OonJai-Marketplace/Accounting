@@ -26,7 +26,7 @@ function wrap(root,nodes,key,title,description='',open=false){
  const homes=nodes.map(n=>{const marker=document.createComment('Settings layout position');n.before(marker);return {n,marker};});
  homes[0].marker.after(details);body.append(...nodes);
  const record={root,key,title,description,details,summary,body,homes,headingControls:[]};sections.set(key,record);
- const pageHeading=body.querySelector(':scope>.settings-page-heading');
+ const pageHeading=body.querySelector(':scope>.settings-page-heading')||(key==='printing'&&body.querySelector('.panel-header'));
  if(pageHeading){const actions=node('div','settings-stack-heading-actions143181');for(const control of pageHeading.querySelectorAll('button')){const marker=document.createComment('Settings heading control');control.before(marker);record.headingControls.push({control,marker});actions.append(control);}if(actions.childNodes.length)summary.append(actions);pageHeading.classList.add('settings-stack-redundant143181');record.pageHeading=pageHeading;}
  return record;
 }
@@ -52,9 +52,8 @@ function prepare(root){
  else if(id==='settings-tax')whole(root,'mandatory','Mandatory','PIT, SSO, VAT and reminders');
  else if(id==='settings-system'){
   wrap(root,[root.querySelector('[data-settings-group=system]')],'preferences','General preferences','Dates, numbers, text size and opening page',true);
-  wrap(root,[$('accountingProtocols')],'protocols','Protocols','Journal, payroll and closing procedures');
   wrap(root,[root.querySelector('.system-printing-panel')],'printing','Printing','Paper, images, page numbers and file names');
-  wrap(root,[$('settings-appearance113')],'appearance','Logo & banner','Company branding and banner placement');
+  wrap(root,[$('settings-appearance113')],'appearance','Banner','Image position by area and tab');
   const backup=[...root.querySelectorAll(':scope>.settings-section-card')].find(n=>n.querySelector('#settingsBackupInput'));
   wrap(root,[backup],'settings-backup','Settings backup','Download or restore application preferences');
   wrap(root,[$('installationSettings14320')],'installation','Installation & Handover','Company deployment and administrator handover');
