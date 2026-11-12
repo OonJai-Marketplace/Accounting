@@ -58,7 +58,8 @@ dialog > .scan-wait217{position:sticky;top:0;left:auto;bottom:auto;transform:non
 .scan-folder-picker>.scan-picker-account{display:block;overflow-wrap:anywhere;color:#42594d}
 .scan-picker-path{display:grid;gap:6px;padding:12px 14px;border:1px solid #c2d2c7;border-radius:10px;background:#f1f6f0}
 .scan-picker-path small{color:#41584b}.scan-picker-path nav{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;overflow-wrap:anywhere}
-.scan-picker-path nav button,.scan-picker-path a{border:0;background:none;padding:5px 0;color:#07513e;text-decoration:underline;font:inherit;text-align:left;cursor:pointer}
-.scan-picker-path a{font-size:.9em;justify-self:start}.scan-folder-picker .scan-drive-folders216{max-height:min(34vh,350px);overflow-y:auto;margin:0}
+.scan-picker-path nav button{border:0;background:none;padding:5px 0;color:#07513e;text-decoration:underline;font:inherit;text-align:left;cursor:pointer}
+.scan-folder-picker .scan-drive-folders216{max-height:min(34vh,350px);overflow-y:auto;margin:0}
 .scan-picker-confirm{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.scan-folder-picker details summary{cursor:pointer}
 body:has(#destinationDialog204[open]) #scanDialog[open]{visibility:hidden}
+.scan-folder-picker .scan-saved-folder{white-space:normal;overflow-wrap:anywhere;text-align:start}

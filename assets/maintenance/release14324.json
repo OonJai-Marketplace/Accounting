@@ -1403,7 +1403,7 @@
     },
     {
       "path": "scripts/receipt-scanner202.js",
-      "sha256": "e5f4841483d21abec88dcd66feb1e24325a60999460499a65d24103f3f8774fb",
+      "sha256": "67693914c3454a93b66f4d2d2dab8eac19f253897a783bdb795e0e7bcc53fb94",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {
@@ -2616,7 +2616,7 @@
     },
     {
       "path": "styles/receipt-scanner202.css",
-      "sha256": "542cadef6caebdd8218b6ffb90ebbffa4fd319001694086835bef480de1763ec",
+      "sha256": "53384ff0d2dd96fd2e7ccddb2bed91fd669f387ac74ac0dd5dcd61fb1bd85c8e",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {

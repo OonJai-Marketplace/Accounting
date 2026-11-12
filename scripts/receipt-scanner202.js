@@ -300,7 +300,7 @@ function localFolderPath(mode){
  try{
   const uri=new URL(selected.id);
   if(uri.protocol==='content:' && uri.hostname==='com.android.externalstorage.documents'){
-   const match=uri.pathname.match(/\/tree\/([^/]+)/);
+   const match=uri.pathname.match(/\/document\/([^/]+)$/) || uri.pathname.match(/\/tree\/([^/]+)/);
    if(match){
     const document=decodeURIComponent(match[1]), split=document.indexOf(':');
     if(split>0)return [document.slice(0,split)==='primary'?'Phone storage':'SD card ('+document.slice(0,split)+')',...document.slice(split+1).split('/').filter(Boolean)].join(' › ');
@@ -560,12 +560,14 @@ function driveFolder216(r){
  const crumbs=trail.map((part,i)=>i===trail.length-1?'<strong aria-current="location">'+esc(part.name)+'</strong>':
   !locked && part.id?'<button type="button" data-scan="folder-open" data-folder="'+esc(part.id)+'">'+esc(part.name)+'</button>':'<span>'+esc(part.name)+'</span>').join('<span aria-hidden="true">›</span>');
  const rows=folders.items.map(f=>`<button type="button" class="scan-drive-folder216" data-scan="folder-open" data-folder="${esc(f.id)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h7l2 3h9v13H3z"/></svg><span>${esc(f.name)}</span><span aria-hidden="true">›</span></button>`).join('');
- const folderURL='https://drive.google.com/drive/folders/'+encodeURIComponent(current.id);
  const navigation=!locked && !trail.some(part=>part.name==='My Drive')?btn('folder-root','My Drive'):'';
+ const selected=draft?.folder||settings.folder;
+ const savedFolder=!locked && selected?.id && selected.id!=='root' && current.id!==selected.id && trail.length===1?
+  '<button class="scan-action scan-saved-folder" type="button" data-scan="folder-open" data-folder="'+esc(selected.id)+'">Selected folder · '+esc(selected.path||selected.name)+'</button>':'';
  const create=!locked && current.capabilities?.canAddChildren?
   '<details class="scan-create-folder"><summary>New folder</summary><label>Folder name<input id="scanNewFolder" maxlength="180" autocomplete="off"></label>'+btn('folder-create-here','Create folder')+'</details>':'';
  const otherTools=!locked && !driveState.companyManaged228?'<details><summary>Account options</summary>'+btn('connect','Switch account')+'</details>':'';
- open('Choose a Drive folder',`<div class="scan-folder-picker"><small class="scan-picker-account">${esc(driveState.email)}</small><section class="scan-picker-path"><small>${driveState.annual231?'Receipt folder by accounting year':'Current folder'}</small><nav aria-label="Current folder path">${crumbs}</nav>${driveState.annual231?'<small>The PDF goes into the year of its accounting entry.</small>':''}<a href="${esc(folderURL)}" target="_blank" rel="noopener noreferrer">Open in Google Drive</a></section>${navigation}${create}${locked?'':`<div class="scan-drive-folders216">${rows||'<p>No subfolders here.</p>'}</div>`}${folders.next?btn('folder-more','Show more folders'):''}${otherTools}<div class="scan-picker-confirm">${current.capabilities?.canAddChildren?btn('folder-select','Use this folder','primary'):'<small>This folder is read-only.</small>'}${btn('locations215','Back')}</div></div>`);
+ open('Choose a Drive folder',`<div class="scan-folder-picker"><small class="scan-picker-account">${esc(driveState.email)}</small><section class="scan-picker-path"><small>${driveState.annual231?'Receipt folder by accounting year':'Current folder'}</small><nav aria-label="Current folder path">${crumbs}</nav>${driveState.annual231?'<small>The PDF goes into the year of its accounting entry.</small>':''}</section>${navigation}${savedFolder}${create}${locked?'':`<div class="scan-drive-folders216">${rows||'<p>No subfolders here.</p>'}</div>`}${folders.next?btn('folder-more','Show more folders'):''}${otherTools}<div class="scan-picker-confirm">${current.capabilities?.canAddChildren?btn('folder-select','Use this folder','primary'):'<small>This folder is read-only.</small>'}${btn('locations215','Back')}</div></div>`);
  status('');
 }
 async function browserFolder215(value){
