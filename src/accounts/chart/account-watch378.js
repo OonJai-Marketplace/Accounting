@@ -63,7 +63,7 @@ window.AccountWatch378=(()=>{
    if(!rates&&groups.includes(prefs().lastGroup))group=prefs().lastGroup;
    const selected=()=>{const saved=prefs()[group];return Array.isArray(saved)?list.filter(a=>saved.includes(a.id)):list.filter(a=>suggested(a,group)).slice(0,8);};
    dialog.className='watch-dialog';dialog.setAttribute('aria-label',name);
-   dialog.innerHTML='<header><h2>'+name+'</h2><button class="close" aria-label="Close" type="button">×</button></header><div class="watch-toolbar">'+(rates?'':'<label>Group <select>'+groups.map(g=>'<option>'+g+'</option>').join('')+'</select></label>')+'<button data-edit type="button">Edit accounts</button><button data-refresh type="button">Refresh</button></div><div class="watch-body"></div>';
+   dialog.innerHTML='<header><h2>'+name+'</h2><div class="watch-toolbar">'+(rates?'':'<label>Group <select>'+groups.map(g=>'<option>'+g+'</option>').join('')+'</select></label>')+'<button data-edit type="button">Edit accounts</button><button data-refresh type="button">Refresh</button></div><button class="close" aria-label="Close" type="button">×</button></header><div class="watch-body"></div>';
    const body=dialog.querySelector('.watch-body'),toolbar=dialog.querySelector('.watch-toolbar');
    const date=d=>d?formatAppDate(d):'—';
    function persist(updates){try{localStorage.setItem(key,JSON.stringify({...prefs(),...updates}));return true;}catch{body.textContent='This device could not save your account selection.';return false;}}

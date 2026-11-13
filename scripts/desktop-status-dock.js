@@ -4,7 +4,6 @@ window.RailTools379=(()=>{
  const esc=v=>escapeHtml(String(v??''));
  const amt=n=>Math.abs(n/100).toLocaleString(appNumberLocale(),{minimumFractionDigits:2,maximumFractionDigits:2});
  const signed=n=>n<0?'('+amt(n)+')':amt(n);
- const standing=n=>signed(n)+(n>0?' DR':n<0?' CR':'');
  const option=(v,label)=>'<option value="'+esc(v)+'">'+esc(label)+'</option>';
  function outside(box,close){
   const beyond=e=>{const r=box.getBoundingClientRect();return e.target===box&&(e.clientX<r.left||e.clientX>=r.right||e.clientY<r.top||e.clientY>=r.bottom);};
@@ -38,29 +37,70 @@ window.RailTools379=(()=>{
   return {detail,start,dr,cr,balance};
  }
  function ledger(panel,scope){
-  panel.innerHTML='<label>Find account <input type="search" aria-label="Find ledger account" placeholder="Account name or code"></label><div class="ledger-matches379"></div><section class="ledger-detail379" aria-live="polite"></section>';
-  const input=panel.querySelector('input'),matches=panel.querySelector('.ledger-matches379'),detail=panel.querySelector('section');
+  const header=panel.previousElementSibling,close=header.querySelector('.close');
+  close.insertAdjacentHTML('beforebegin','<div class="ledger-search379"><span role="searchbox" contenteditable="plaintext-only" aria-label="Search accounts" aria-placeholder="Search accounts" spellcheck="false" data-placeholder="Search accounts"></span><div class="ledger-matches379" hidden></div></div><select aria-label="Ledger month"></select><button type="button" data-refresh>Refresh</button>');
+  panel.innerHTML='<div class="ledger-tabs379" role="group" aria-label="Open ledgers"></div><section class="ledger-detail379" aria-live="polite"></section>';
+  const input=header.querySelector('[role=searchbox]'),matches=header.querySelector('.ledger-matches379'),picker=header.querySelector('select'),refresh=header.querySelector('[data-refresh]');
+  const tabs=panel.querySelector('.ledger-tabs379'),detail=panel.querySelector('section');
   const accounts=AccountingStore.accounts.filter(a=>a.id&&a.isPosting!==false&&a.is_posting!==false).sort((a,b)=>String(a.code).localeCompare(String(b.code),undefined,{numeric:true}));
-  let selected,month=appLocalDate().slice(0,7),lines=[],page=0,source='',coverage=null;
+  const key='ledger-tabs381:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+liveProfile.id;
+  const views=[],request=scope.begin(),today=appLocalDate().slice(0,7);
+  let active;
+  function newView(account,month=today){return {account,month,page:0,selectedRow:null,lines:null,revision:0};}
+  try{
+   const saved=JSON.parse(localStorage.getItem(key)||'{}');
+   for(const item of (Array.isArray(saved.tabs)?saved.tabs:[]).slice(0,10)){
+    const account=accounts.find(a=>a.id===item?.id);
+    if(account&&!views.some(v=>v.account===account))views.push(newView(account,item.month===''||/^\d{4}-(0[1-9]|1[0-2])$/.test(item.month)?item.month:today));
+   }
+   active=views.find(v=>v.account.id===saved.active)||views[0];
+  }catch{}
+  function remember(){try{localStorage.setItem(key,JSON.stringify({active:active?.account.id,tabs:views.map(v=>({id:v.account.id,month:v.month}))}));}catch{}}
+  function drawTabs(){
+   tabs.replaceChildren();
+   for(const view of views){
+    const tab=document.createElement('span'),choose=document.createElement('button'),remove=document.createElement('button');
+    choose.type=remove.type='button';choose.textContent=view.account.code;choose.title=view.account.name;
+    choose.setAttribute('aria-pressed',String(view===active));choose.onclick=()=>activate(view);
+    remove.textContent='×';remove.setAttribute('aria-label','Close ledger '+view.account.code);
+    remove.onclick=()=>{const i=views.indexOf(view);views.splice(i,1);if(active===view)activate(views[i]||views[i-1]);else{remember();drawTabs();}};
+    tab.append(choose,remove);tabs.append(tab);
+   }
+  }
+  function activate(view){
+   active=view;remember();drawTabs();draw();
+   if(view&&!view.lines&&!view.busy)void read(view);
+  }
   function search(){
-   const term=input.value.toLowerCase().trim();matches.replaceChildren();
-   if(!term){matches.hidden=true;return;}
-   const found=accounts.filter(a=>(a.code+' '+a.name+' '+a.currency).toLowerCase().includes(term));matches.hidden=false;
+   const term=input.textContent.toLowerCase().trim();matches.replaceChildren();matches.hidden=!term;
+   if(!term)return;
+   const found=accounts.filter(a=>(a.code+' '+a.name+' '+a.currency).toLowerCase().includes(term));
    for(const a of found.slice(0,15)){
-    const b=document.createElement('button');b.type='button';b.textContent=a.code+' · '+a.name+' ('+a.currency+')';b.onclick=()=>{selected=a;input.value='';matches.hidden=true;month=appLocalDate().slice(0,7);void read();};matches.append(b);
+    const b=document.createElement('button');b.type='button';b.textContent=a.code+' · '+a.name+' ('+a.currency+')';
+    b.onclick=()=>{
+     let view=views.find(v=>v.account.id===a.id);
+     if(!view&&views.length===10){matches.textContent='Close a ledger tab to open another account.';return;}
+     if(!view){view=newView(a);views.push(view);}
+     input.textContent='';matches.hidden=true;activate(view);
+    };matches.append(b);
    }
    if(!found.length)matches.textContent='No matching accounts.';
   }
-  input.oninput=search;input.onkeydown=e=>{if(e.key==='Enter'&&input.value.trim())matches.querySelector('button')?.click();};input.focus();
-  async function read(){
-   const a=selected;if(!a)return;const request=scope.begin();detail.textContent='Loading ledger…';
+  input.oninput=search;input.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();matches.querySelector('button')?.click();}else if(e.key==='Escape'&&!matches.hidden){e.preventDefault();matches.hidden=true;}else if(e.key==='ArrowDown'){e.preventDefault();matches.querySelector('button')?.focus();}};
+  input.onfocus=search;
+  header.querySelector('.ledger-search379').onfocusout=e=>{if(!e.currentTarget.contains(e.relatedTarget))matches.hidden=true;};
+  picker.onchange=()=>{active.month=picker.value;active.page=0;active.selectedRow=null;remember();draw();};
+  refresh.onclick=()=>{for(const view of views)void read(view);};
+  async function read(view){
+   const a=view.account,revision=++view.revision;view.busy=true;view.error='';if(active===view)draw();
+   const current=()=>scope.current(request)&&views.includes(view)&&revision===view.revision;
    try{
-    coverage=null;let rows;const offline=window.offline14239?.offline();
+    let coverage=null,rows,source;const offline=window.offline14239?.offline();
     if(offline){
      const all=window.reportWindow143195?.cachedLedger?.();
      const local=localRows(a);
      rows=[...(all||[]).filter(l=>l.accountId===a.id&&(l.date<local.win.from||l.date>local.win.to)),...local.rows];
-     if(!all){coverage=local.win;month=month>=coverage.from.slice(0,7)&&month<=coverage.to.slice(0,7)?month:coverage.to.slice(0,7);}
+     if(!all)coverage=local.win;
      source=all?'Offline · downloaded history':'Downloaded period only · '+formatAppDate(local.win.from)+' – '+formatAppDate(local.win.to);
     }else{
      rows=await scope.rpc('account_ledger379',{p_account:a.id},request);if(!scope.current(request))return;
@@ -69,13 +109,22 @@ window.RailTools379=(()=>{
      const pending=window.journalDurable14385?.pending().some(j=>(j.status!=='saved'||j.changes?.some(op=>op.status!=='saved'))&&[...(j.entries||[]),...(j.changes||[]).flatMap(op=>[op.expected,op.value].filter(Boolean))].some(e=>e.lines?.some(l=>l.account_id===a.id)));
      if(pending){const local=localRows(a);rows=[...rows.filter(l=>l.date<local.win.from||l.date>local.win.to),...local.rows];source='Includes active journal changes saved on this device';}
     }
-    if(!scope.current(request))return;
+    if(!current())return;
     if(rows.some(l=>l.currency!==a.currency))throw Error('Review mismatched currencies for this account.');
-    lines=rows;page=0;draw();
-   }catch(e){if(scope.current(request)){detail.textContent=e.message||'Could not load the ledger.';retry(detail,read);}}
+    if(coverage&&view.month&&(view.month<coverage.from.slice(0,7)||view.month>coverage.to.slice(0,7)))view.month=coverage.to.slice(0,7);
+    Object.assign(view,{lines:rows,source,coverage,page:0,selectedRow:null});
+   }catch(e){if(current())view.error=e.message||'Could not load the ledger.';}
+   finally{if(current()){view.busy=false;if(active===view)draw();}}
   }
   function draw(){
-   const dates=lines.map(l=>l.date.slice(0,7)),today=appLocalDate().slice(0,7);
+   picker.disabled=!active||!active.lines||active.busy;refresh.disabled=!views.length;
+   if(!active||active.busy||active.error||!active.lines){
+    picker.innerHTML=option(active?.month||'',active?.month?summaryPeriod14331.monthLabel(active.month):'All months');
+    detail.textContent=active?(active.error||'Loading ledger…'):'';
+    if(active?.error)retry(detail,()=>read(active));return;
+   }
+   const {account:selected,month,lines,page,coverage,source}=active;
+   const dates=lines.map(l=>l.date.slice(0,7));
    const bounds=coverage?[coverage.from.slice(0,7),coverage.to.slice(0,7)]:[today.slice(0,4)+'-01',today,...dates].sort();
    const months=[];
    for(let m=bounds.at(-1);m>=bounds[0];){
@@ -84,27 +133,54 @@ window.RailTools379=(()=>{
     m=number===1?(year-1)+'-12':year+'-'+String(number-1).padStart(2,'0');
    }
    const r=journalRows(lines,month),data=r.detail.slice(page*100,page*100+100);
-   detail.innerHTML='<div class="watch-toolbar"><h3>'+esc(selected.code+' · '+selected.name+' ('+selected.currency+')')+'</h3><select aria-label="Ledger month">'+option('',coverage?'All downloaded months':'All months')+months.map(m=>option(m,summaryPeriod14331.monthLabel(m))).join('')+'</select><button type="button" data-refresh>Refresh</button></div><div class="ledger-stats379">'+[['Opening',standing(r.start)],['Total debit',amt(r.dr)],['Total credit',amt(r.cr)],['Closing balance',standing(r.balance)]].map(([k,v])=>'<div><small>'+k+'</small><strong>'+esc(v)+'</strong></div>').join('')+'</div><p>'+esc(source)+(month?'':' · Annual opening entries establish each year’s balance and are excluded from turnover.')+'</p><div class="watch-scroll"><table class="ledger-lines379"><thead><tr><th>Date</th><th>Entry ID</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>'+data.map(({l,debit,credit,balance})=>'<tr>'+[formatAppDate(l.date),l.id,l.memo||l.generalMemo,amt(debit),amt(credit),standing(balance)].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+(data.length?'':'<tr><td colspan="6">No activity in this period.</td></tr>')+'</tbody></table></div>'+(r.detail.length>100?'<footer><button data-prev>Previous</button><span>'+String(page*100+1)+'–'+Math.min((page+1)*100,r.detail.length)+' of '+r.detail.length+'</span><button data-next>Next</button></footer>':'');
-   const sel=detail.querySelector('select');sel.value=month;sel.onchange=()=>{month=sel.value;page=0;draw();};
-   detail.querySelector('[data-refresh]').onclick=read;
-   for(const [selector,step] of [['[data-prev]',-1],['[data-next]',1]]){const b=detail.querySelector(selector);if(b){b.disabled=page+step<0||(page+step)*100>=r.detail.length;b.onclick=()=>{page+=step;draw();};}}
+   picker.innerHTML=option('',coverage?'All downloaded months':'All months')+months.map(m=>option(m,summaryPeriod14331.monthLabel(m))).join('');picker.value=month;
+   detail.innerHTML='<h3>'+esc(selected.code+' · '+selected.name+' ('+selected.currency+')')+'</h3><div class="ledger-stats379">'+[['Opening',signed(r.start)],['Total debit',amt(r.dr)],['Total credit',amt(r.cr)],['Closing balance',signed(r.balance)]].map(([k,v])=>'<div><small>'+k+'</small><strong>'+esc(v)+'</strong></div>').join('')+'</div><p>'+esc(source)+(month?'':' · Annual opening entries establish each year’s balance and are excluded from turnover.')+'</p><div class="watch-scroll"><table class="ledger-lines379"><thead><tr><th>Date</th><th>Entry ID</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>'+data.map(({l,debit,credit,balance},i)=>'<tr tabindex="0" data-line="'+(page*100+i)+'" class="'+(active.selectedRow===page*100+i?'selected':'')+'">'+[formatAppDate(l.date),l.id,l.memo||l.generalMemo,amt(debit),amt(credit),signed(balance)].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+(data.length?'':'<tr><td colspan="6">No activity in this period.</td></tr>')+'</tbody></table></div>'+(r.detail.length>100?'<footer><button data-prev>Previous</button><span>'+String(page*100+1)+'–'+Math.min((page+1)*100,r.detail.length)+' of '+r.detail.length+'</span><button data-next>Next</button></footer>':'');
+   const highlight=e=>{const row=e.target.closest('[data-line]');if(!row)return;
+    detail.querySelector('tr.selected')?.classList.remove('selected');row.classList.add('selected');active.selectedRow=Number(row.dataset.line);};
+   detail.onclick=highlight;detail.onkeydown=e=>{if(e.target.matches('[data-line]')&&['Enter',' '].includes(e.key)){e.preventDefault();highlight(e);}};
+   for(const [selector,step] of [['[data-prev]',-1],['[data-next]',1]]){const b=detail.querySelector(selector);if(b){b.disabled=page+step<0||(page+step)*100>=r.detail.length;b.onclick=()=>{active.page+=step;draw();};}}
   }
+  activate(active);
  }
  function retry(node,fn){const b=document.createElement('button');b.type='button';b.textContent='Retry';b.onclick=fn;node.append(' ',b);}
  function differences(panel,scope){
-  let month=null;
-  async function read(){
+  const header=panel.previousElementSibling;
+  header.querySelector('.close').insertAdjacentHTML('beforebegin','<select aria-label="Reconciliation month"></select><button type="button" data-refresh>Refresh</button>');
+  const picker=header.querySelector('select'),refresh=header.querySelector('[data-refresh]');
+  let month='',openMonths=[],saved=[],initial;
+  async function read(reload=false){
    const request=scope.begin();panel.textContent='Checking reconciliation differences…';
    try{
-    const work=await scope.rpc('reconciliation_differences379',{p_month:month?month+'-01':null},request);
+    let work;
+    if(reload||!initial){
+     const [live,history,local]=await Promise.all([
+      scope.rpc('reconciliation_differences379',{p_month:null},request),
+      scope.rpc('reconciliation_records305',{},request),
+      reportStore71('readonly',store=>store.getAll()).catch(()=>[])
+     ]);
+     if(!scope.current(request))return;
+     if(!Array.isArray(live?.months)||!Array.isArray(history))throw Error('Incomplete reconciliation response.');
+     initial=live;openMonths=live.months.map(m=>m.month);
+     const records=new Map(local.filter(r=>r?.owner===reportOwner71()).map(r=>[reconciliationKey71(r),r]));
+     for(const r of history)records.set(reconciliationKey71(r),r);
+     saved=latestReconciliations306([...records.values()].filter(r=>r.from&&r.account&&reconciliationRecorded71(r)));
+    }
+    const months=[...new Set([...openMonths,...saved.map(r=>r.from.slice(0,7))])].sort().reverse();
+    if(!months.includes(month))month=initial.month||months[0]||'';
+    picker.innerHTML=months.map(m=>option(m,summaryPeriod14331.monthLabel(m))).join('');picker.value=month;picker.disabled=!months.length;
+    const history=!openMonths.includes(month);
+    if(history){
+     work={rows:saved.filter(r=>r.from.slice(0,7)===month).map(r=>{
+      const c=reportCalculation71(r);return {...r.account,currency:r.currency,method:r.method,book:r.closing,actual:c.statement,outstanding:c.outstanding,difference:c.difference};
+     })};
+    }else work=month===initial.month&&reload?initial:await scope.rpc('reconciliation_differences379',{p_month:month+'-01'},request);
     if(!scope.current(request))return;
-    if(!Array.isArray(work?.rows)||!Array.isArray(work.months))throw Error('Incomplete reconciliation response.');
-    month=work.month;
-    panel.innerHTML='<div class="watch-toolbar"><label>Open book <select>'+work.months.map(m=>option(m.month,summaryPeriod14331.monthLabel(m.month))).join('')+'</select></label><button type="button">Refresh</button></div>'+(work.rows.length?'<div class="watch-scroll"><table><thead><tr><th>Account</th><th>Book balance</th><th>Statement / count</th><th>Outstanding</th><th>Difference</th></tr></thead><tbody>'+work.rows.map(r=>'<tr><th scope="row">'+esc(r.name)+'<small>'+esc(r.code+' · '+r.currency)+(r.changed?' · Review updated ledger':'')+'</small></th><td>'+esc(signed(r.book))+'</td><td>'+esc(r.actual==null?({cash:'Awaiting count',bank:'Awaiting statement',balance:'Awaiting balance'}[r.method]||'Awaiting balance'):signed(r.actual))+'</td><td>'+esc(r.actual==null?'—':signed(r.outstanding))+'</td><td>'+esc(r.difference==null?'—':signed(r.difference))+'</td></tr>').join('')+'</tbody></table></div>':'<p>'+(month?'No outstanding reconciliation differences for this book.':'No open book.')+'</p>');
-    const sel=panel.querySelector('select');sel.value=month||'';sel.onchange=()=>{month=sel.value;read();};panel.querySelector('button').onclick=read;
-   }catch(e){if(scope.current(request)){panel.textContent=e.message||'Could not load reconciliations.';retry(panel,read);}}
+    if(!Array.isArray(work?.rows))throw Error('Incomplete reconciliation response.');
+    panel.innerHTML=(history&&month?'<h3>Saved reconciliations</h3>':'')+(work.rows.length?'<div class="watch-scroll"><table><thead><tr><th>Account</th><th>Book balance</th><th>Statement / count</th><th>Outstanding</th><th>Difference</th></tr></thead><tbody>'+work.rows.map(r=>'<tr><th scope="row">'+esc(r.name)+'<small>'+esc(r.code+' · '+r.currency)+(r.changed?' · Review updated ledger':'')+'</small></th><td>'+esc(signed(r.book))+'</td><td>'+esc(r.actual==null?({cash:'Awaiting count',bank:'Awaiting statement',balance:'Awaiting balance'}[r.method]||'Awaiting balance'):signed(r.actual))+'</td><td>'+esc(r.actual==null?'—':signed(r.outstanding))+'</td><td>'+esc(r.difference==null?'—':signed(r.difference))+'</td></tr>').join('')+'</tbody></table></div>':'<p>'+(month?'No outstanding reconciliation differences for this book.':'No reconciliation periods available.')+'</p>');
+   }catch(e){if(scope.current(request)){panel.textContent=e.message||'Could not load reconciliations.';retry(panel,()=>read(true));}}
   }
-  read();
+  picker.onchange=()=>{month=picker.value;void read();};
+  refresh.onclick=()=>read(true);void read(true);
  }
  function install(root,session){
   let active;
@@ -193,7 +269,7 @@ window.AccountWatch378=(()=>{
    if(!rates&&groups.includes(prefs().lastGroup))group=prefs().lastGroup;
    const selected=()=>{const saved=prefs()[group];return Array.isArray(saved)?list.filter(a=>saved.includes(a.id)):list.filter(a=>suggested(a,group)).slice(0,8);};
    dialog.className='watch-dialog';dialog.setAttribute('aria-label',name);
-   dialog.innerHTML='<header><h2>'+name+'</h2><button class="close" aria-label="Close" type="button">×</button></header><div class="watch-toolbar">'+(rates?'':'<label>Group <select>'+groups.map(g=>'<option>'+g+'</option>').join('')+'</select></label>')+'<button data-edit type="button">Edit accounts</button><button data-refresh type="button">Refresh</button></div><div class="watch-body"></div>';
+   dialog.innerHTML='<header><h2>'+name+'</h2><div class="watch-toolbar">'+(rates?'':'<label>Group <select>'+groups.map(g=>'<option>'+g+'</option>').join('')+'</select></label>')+'<button data-edit type="button">Edit accounts</button><button data-refresh type="button">Refresh</button></div><button class="close" aria-label="Close" type="button">×</button></header><div class="watch-body"></div>';
    const body=dialog.querySelector('.watch-body'),toolbar=dialog.querySelector('.watch-toolbar');
    const date=d=>d?formatAppDate(d):'—';
    function persist(updates){try{localStorage.setItem(key,JSON.stringify({...prefs(),...updates}));return true;}catch{body.textContent='This device could not save your account selection.';return false;}}
@@ -328,6 +404,26 @@ window.AccountWatch378=(()=>{
     .ledger-stats379{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}.ledger-stats379>div{padding:8px;background:#edf5ee;border-radius:5px}.ledger-stats379 strong{font-variant-numeric:tabular-nums}
     .ledger-matches379{display:grid;max-height:24vh;overflow:auto}.ledger-matches379 button{background:white;border:0;border-bottom:1px solid #d6dfd8;text-align:left;padding:7px}.ledger-detail379 .watch-toolbar h3{margin-right:auto}
     .watch-body .ledger-lines379 :is(th,td):nth-child(-n+3){text-align:left;width:auto}.ledger-lines379 td:nth-child(3){width:40%}.ledger-lines379 td:nth-child(n+4){white-space:nowrap}
+    .watch-dialog header{flex:none;justify-content:flex-start;flex-wrap:wrap}
+    .watch-dialog header>h2{margin-right:auto}
+    .watch-dialog header>.close{flex:none}
+    .watch-dialog header>button:not(.close),.ledger-tabs379 button{min-height:32px;padding:4px 9px;border:1px solid #aec1b3;border-radius:5px;background:#fff}
+    .ledger-search379{position:relative;flex:1 1 125px;min-width:0}
+    .ledger-search379 [role=searchbox]{display:block;width:100%;height:32px;padding:6px 9px;border:1px solid #aec1b3;border-radius:5px;background:white;white-space:nowrap;overflow:hidden}
+    .ledger-search379 [role=searchbox]:empty::before{content:attr(data-placeholder);color:#587065;pointer-events:none}
+    .ledger-search379 .ledger-matches379{position:absolute;z-index:2;top:100%;left:0;min-width:100%;width:max-content;max-width:min(310px,65vw);background:white;box-shadow:0 3px 8px #193e3226}
+    .watch-dialog:has(.ledger-search379){min-height:min(300px,65dvh)}
+    .ledger-tabs379{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;margin-bottom:8px}
+    .ledger-tabs379:empty{display:none}
+    .ledger-tabs379>span{display:inline-flex;flex:none}
+    .ledger-tabs379 button:first-child{border-radius:5px 0 0 5px;font-weight:bold}
+    .ledger-tabs379 button:last-child{border-left:0;border-radius:0 5px 5px 0;padding:3px 6px}
+    .ledger-tabs379 [aria-pressed=true]{color:white;background:#194c38}
+    .ledger-detail379>h3{margin:0 0 8px}
+    .ledger-lines379 tr[data-line]{cursor:pointer}
+    .ledger-lines379 tr[data-line]:hover{background:#edf5ee}
+    .ledger-lines379 tr.selected>td{background:#d3e7dc}
+    .ledger-lines379 tr.selected>td:first-child{box-shadow:inset 3px 0 #176449}
     @media(max-height:735px){.watch-tools{position:static;display:flex;flex-direction:column}.tasks{height:clamp(70px,17vh,115px)}}
   </style>
   <div class="watch-tools"><button type="button" data-watch="balances" aria-haspopup="dialog" aria-label="Account balances" title="Account balances"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 9h16M11 9v11m3-7h3m-3 4h3"/></svg></button><button type="button" data-watch="rates" aria-haspopup="dialog" aria-label="Foreign account rates" title="Foreign account rates">FX</button><button type="button" data-rail-tool="calendar" aria-haspopup="dialog" aria-label="Company calendar" title="Company calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v15H4zM4 10h16M8 3v5m8-5v5m-9 6h3m2 0h3"/></svg></button><button type="button" data-rail-tool="differences" aria-haspopup="dialog" aria-label="Reconciliation differences" title="Reconciliation differences"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h15l-3-3m6 13H6l3 3M6 11h5m3 2h4"/></svg></button><button type="button" data-rail-tool="ledger" aria-haspopup="dialog" aria-label="Account ledger" title="Account ledger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6Q8 3 3 5v14q5-2 9 1 4-3 9-1V5q-5-2-9 1v14"/></svg></button></div>

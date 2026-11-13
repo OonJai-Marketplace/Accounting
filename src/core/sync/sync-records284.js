@@ -62,11 +62,19 @@ async function retryGroup(ids,source){
   return send();
  });
 }
-function render(host,{busy=false,online=true,opened=new Set(),onReview=()=>{},rows=pending()}={}){const who=actor(),doc=host.ownerDocument,add=(tag,text,parent)=>{const n=doc.createElement(tag);n.textContent=text;parent.append(n);return n},list=groups(rows),section=add('section','',host);section.className='sync-records284';add('h3','Waiting for database confirmation',section);add('p','Saved requests on this device, for this account. Unsaved editor changes and work on other devices are not included.',section).className='sync-caption143162';
- if(!list.length)add('p','No saved requests are waiting on this device.',section);
- const bullets=add('ul','',section);
- for(const g of list){const li=add('li','',bullets);add('strong',g.source+' — '+g.state,li);add('p',g.summary,li);const details=add('details','',li);details.dataset.section='records:'+g.id;details.open=opened.has(details.dataset.section);add('summary','Show '+g.rows.length+' saved request'+(g.rows.length===1?'':'s')+' and next steps',details);
-  for(const r of g.rows){const article=add('article','',details);article.dataset.request284=r.id;const entries=add('ul','',article);for(const item of r.items){const line=add('li',item.label,entries);if(item.detail&&item.detail!==item.label)add('small',item.detail,line);}const reference=add('details','',article);add('summary','Technical reference',reference);add('small',r.id,reference);if(r.created)add('small','Saved on this device · '+r.created,article);if(r.message)add('p','Last result: '+r.message,article);add('p',r.action,article);const button=add('button',r.retry?'Retry this save':'Open Data Check',article);button.type='button';button.dataset.action='request-'+r.id;button.disabled=busy||r.retry&&!online;button.onclick=async()=>{if(actor()!==who)return;if(!r.retry){onReview(r.id);return}button.disabled=true;try{await retry(r.id)}catch(e){if(actor()===who&&article.isConnected){const alert=add('p',e.message,article);alert.setAttribute('role','alert')}}finally{if(article.isConnected)button.disabled=busy||!online}};}
+function render(host,{busy=false,online=true,opened=new Set(),onReview=()=>{},rows=pending()}={}){const who=actor(),doc=host.ownerDocument,add=(tag,text,parent)=>{const n=doc.createElement(tag);n.textContent=text;parent.append(n);return n},list=groups(rows),section=add('section','',host);section.className='sync-records284';add('h3','Pending saves',section);
+ if(!list.length&&!rows.length)add('p','No pending saves.',section);
+ for(const g of list){
+  const group=add('div','',section);group.className='sync-request-group';
+  add('strong',g.source+' · '+g.state,group);add('p',g.summary,group);
+  const toggle=add('button',g.rows.length+' saved request'+(g.rows.length===1?'':'s'),group);
+  const key='records:'+g.id,details=add('div','',group);
+  details.id='sync-requests-'+encodeURIComponent(g.id);
+  toggle.type='button';toggle.dataset.section=key;toggle.dataset.action=key;
+  toggle.setAttribute('aria-controls',details.id);
+  const expand=show=>{details.hidden=!show;toggle.setAttribute('aria-expanded',String(show))};
+  expand(opened.has(key));toggle.onclick=()=>expand(details.hidden);
+  for(const r of g.rows){const article=add('article','',details);article.dataset.request284=r.id;const entries=add('ul','',article);for(const item of r.items){const line=add('li',item.label,entries);if(item.detail&&item.detail!==item.label)add('small',item.detail,line);}add('small','Reference · '+r.id,article);if(r.created)add('small','Saved on this device · '+r.created,article);if(r.message)add('p','Last result: '+r.message,article);const button=add('button',r.retry?'Retry this save':'Open Data Check',article);button.type='button';button.dataset.action='request-'+r.id;button.disabled=busy||r.retry&&!online;button.onclick=async()=>{if(actor()!==who)return;if(!r.retry){onReview(r.id);return}button.disabled=true;try{await retry(r.id)}catch(e){if(actor()===who&&article.isConnected){const alert=add('p',e.message,article);alert.setAttribute('role','alert')}}finally{if(article.isConnected)button.disabled=busy||!online}};}
  }
  const confirmed=rows.filter(r=>r.status==='server-confirmed');if(confirmed.length)add('p',confirmed.length+' request'+(confirmed.length===1?' is':'s are')+' already database-confirmed; checking or refreshing the saved copies remains.',section);
  return section;

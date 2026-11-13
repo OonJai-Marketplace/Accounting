@@ -22,9 +22,11 @@ const fixture=require('./phase0-browser-fixture.cjs');
    const row={...route.request().postDataJSON(),id:'fixture-'+saved.length};
    saved.push(row);return route.fulfill({json:[row]});
   });
+  await page.route('**/rpc/reconciliation_records305',route=>route.fulfill({json:[{account:{id:'fixture-clearing',name:'Fixture bank',code:'TEST'},currency:'USD',from:'2025-04-01',to:'2025-04-30',closing:10000,statement:'80',findings:[],status:'reconciled'}]}));
   await login();await page.waitForFunction(()=>startup14257.interactive);
   await page.evaluate(()=>{
    AccountingStore.accounts.push({id:'fixture-clearing',name:'Fixture clearing',code:'TEST',currency:'USD',isPosting:true});
+   for(let i=1;i<=10;i++)AccountingStore.accounts.push({id:'extra-'+i,code:'T'+i,name:'Extra '+i,currency:'USD',isPosting:true});
    window.dispatchEvent(new Event('focus'));
   });
   const dock=page.locator('#desktopStatusDock'),dialog=dock.locator('.watch-dialog');
@@ -38,18 +40,37 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await dialog.getByRole('button',{name:/TEST · Fixture/}).click();
   const period=dialog.getByLabel('Ledger month'),stats=dialog.locator('.ledger-stats379 strong');
   await period.selectOption('2025-04');
-  assert.deepEqual(await stats.allTextContents(),['59.99 DR','0.00','0.00','59.99 DR']);
+  assert.deepEqual(await stats.allTextContents(),['59.99','0.00','0.00','59.99']);
   await period.selectOption('2025-05');
-  assert.deepEqual(await stats.allTextContents(),['59.99 DR','0.00','60.00','(0.01) CR']);
+  assert.deepEqual(await stats.allTextContents(),['59.99','0.00','60.00','(0.01)']);
   await dialog.getByText('Final payment',{exact:true}).waitFor();
   await period.selectOption('');
-  assert.deepEqual(await stats.allTextContents(),['100.00 DR','0.00','100.01','(0.01) CR']);
+  assert.deepEqual(await stats.allTextContents(),['100.00','0.00','100.01','(0.01)']);
   assert.deepEqual(calls,[{p_account:'fixture-clearing'}]);
-  await dismiss(dialog);
-  await tool('Reconciliation differences').click();await dialog.getByText('Awaiting statement').waitFor();await dismiss(dialog);
-  for(const name of ['Account balances','Foreign account rates']){await tool(name).click();await dismiss(dialog);}
+  const search=dialog.getByRole('searchbox');
+  assert.equal(await search.evaluate(n=>n.tagName),'SPAN');
+  await dialog.locator('[data-line]').first().click();assert.equal(await dialog.locator('tr.selected').count(),1);
+  for(let i=1;i<=9;i++){await search.fill('Extra '+i);await dialog.getByRole('button',{name:'T'+i+' · Extra '+i+' (USD)',exact:true}).click();}
+  await search.fill('Extra 10');await dialog.getByRole('button',{name:'T10 · Extra 10 (USD)',exact:true}).click();
+  await dialog.getByText('Close a ledger tab to open another account.').waitFor();await search.fill('');
+  const tab=code=>dialog.getByRole('button',{name:code,exact:true});
+  await tab('TEST').click();assert.equal(await period.inputValue(),'');assert.equal(await dialog.locator('tr.selected').count(),1);
+  const before=calls.length;await dialog.getByRole('button',{name:'Refresh',exact:true}).click();
+  await page.waitForFunction(()=>!document.querySelector('#desktopStatusDock').shadowRoot.querySelector('.watch-dialog select').disabled);
+  await dialog.getByText('Final payment',{exact:true}).waitFor();
+  for(let i=0;i<20&&calls.length<before+10;i++)await page.waitForTimeout(50);
+  assert.equal(calls.length,before+10);
+  await dialog.getByRole('button',{name:'Close ledger T9',exact:true}).click();
+  await dismiss(dialog);await tool('Account ledger').click();assert.equal(await dialog.locator('.ledger-tabs379 span').count(),9);await dismiss(dialog);
+  await tool('Reconciliation differences').click();await dialog.getByText('Awaiting statement').waitFor();
+  const recMonth=dialog.getByLabel('Reconciliation month');await recMonth.selectOption('2025-04');
+  await dialog.getByText('Fixture bank').waitFor();await dialog.getByText('20.00',{exact:true}).waitFor();
+  await recMonth.selectOption('2026-11');await dialog.getByText('Awaiting statement').waitFor();await dismiss(dialog);
+  for(const name of ['Account balances','Foreign account rates']){await tool(name).click();assert.equal(await dialog.locator('header [data-edit],header [data-refresh],header .close').count(),3);await dismiss(dialog);}
   await tool('Company calendar').click();
   const calendar=page.getByRole('dialog',{name:'Company calendar',exact:true}),form=page.locator('dialog.hr-dialog14306[open]');
+  await calendar.locator('[data-cal-add] + button').waitFor();
+  assert.equal(await calendar.locator('[data-cal-add] + button').textContent(),'Close');
   for(const [selector,type] of [['[data-cal-add]','occasion'],['[data-cal-holiday]','holiday']]){
    await calendar.locator(selector).click();await form.locator('[name=title]').fill('Fixture '+type);
    await form.getByRole('button',{name:'Save',exact:true}).click();await form.waitFor({state:'hidden'});
@@ -66,7 +87,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   assert.ok(last.y+last.height<=task.y,'Five shortcuts must fit above the task controls');
   assert.equal(await page.evaluate(()=>hrCalendar14306.state.rows.filter(r=>r.id.startsWith('fixture-')).length),2);
   await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('local-work14333'));});
-  assert.equal(calls.length,2);
-  console.log('PASS single-account search, monthly and all-month balances, quiet months, on-demand reads, calendar saves, and outside dismissal');
+  assert(calls.length>=before+10);
+  console.log('PASS ledger search, ten persistent tabs, signed balances, row highlighting, refresh all, historical reconciliation, header controls and calendar dismissal');
  }finally{await f.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});

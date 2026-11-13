@@ -1,8 +1,8 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.380',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.381',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
- "scripts/desktop-status-dock.js?v=143.379",
+ "scripts/desktop-status-dock.js?v=143.381",
  "docs/protocols/index.html?v=143.338",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.316",
  "docs/protocols/topics/C01.pdf?v=143.316",
@@ -77,7 +77,7 @@ const FILES=[
  "scripts/font-size14380.js?v=143.364",
  "styles/font-size14380.css?v=143.80",
  "docs/UPDATE-v143.21.md",
- "scripts/hr-calendar14306.js?v=143.379",
+ "scripts/hr-calendar14306.js?v=143.381",
  "scripts/desktop14245-1.js?v=143.338",
  "deployment-config.js?v=143.109",
  "scripts/supabase-config.js?v=143.109",
@@ -93,7 +93,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.375",
  "scripts/desktop14245-6.js?v=143.380",
  "scripts/local-events14310.js?v=143.375",
- "scripts/offline14239.js?v=143.380",
+ "scripts/offline14239.js?v=143.381",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -176,7 +176,7 @@ const FILES=[
  "phone-accounting.html",
  "assets/banners/transactions.webp",
  "styles/password-help14278.css?v=142.94",
- "styles/desktop14245.css?v=143.377",
+ "styles/desktop14245.css?v=143.381",
  "scripts/tablet-journal14266.js?v=143.295",
  "scripts/tablet-refresh143244.js?v=143.244",
  "scripts/workspace-header14266.js?v=142.83",
@@ -227,7 +227,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.375",
  "styles/settings-groups14332.css?v=143.375",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.380",
+ "scripts/phone-runtime14242.js?v=143.381",
  "scripts/local-first14333.js?v=143.377",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -253,7 +253,7 @@ const FILES=[
  "docs/UPDATE-v143.40.md",
  "docs/UPDATE-v143.41.md",
  "scripts/history-month14341.js?v=143.377",
- "scripts/idle-sync14341.js?v=143.375",
+ "scripts/idle-sync14341.js?v=143.381",
  "styles/responsive-work14341.css?v=143.62",
  "docs/UPDATE-v143.42.md",
  "scripts/phone-tools14242.js?v=143.339",
@@ -266,7 +266,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.323",
  "styles/workspace-consistency14343.css?v=143.377",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.380",
+ "phone-sw.js?v=143.381",
  "scripts/personal-journal1437.js?v=143.380",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
@@ -306,7 +306,7 @@ const FILES=[
  "scripts/layout-voucher-polish14301.js?v=143.250",
  "scripts/subusers-final-v55.js?v=143.69",
  "styles/voucher-layout14299.css?v=143.364",
- "styles/hr-workspace14306.css?v=143.379",
+ "styles/hr-workspace14306.css?v=143.381",
  "scripts/heading-case14297.js?v=142.97",
  "styles/transaction-consistency14300.css?v=143.04",
  "styles/layout-voucher-polish14301.css?v=143.279",
@@ -329,7 +329,7 @@ const FILES=[
  "setup.html",
  "styles/polish1444.css?v=142.47",
  "styles/team-home14227.css?v=143.297",
- "styles/offline14239.css?v=143.284",
+ "styles/offline14239.css?v=143.381",
  "styles/corrections14231.css?v=143.109",
  "scripts/currency-colors14231.js?v=142.47"
 ];

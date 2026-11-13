@@ -196,7 +196,7 @@ body #payDay95 .attendance-record237 p{margin:5px 0;font-size:12px;line-height:1
 
 /* Company holidays have a separate date-header indicator from weekly days off. */
 body table.attendance-grid99 thead th.holiday238{background:#fff0cf!important;color:#745113!important;border-bottom:2px solid #c39131!important}
-dialog.rail-calendar379{position:fixed;inset:12px 58px auto auto;margin:0;padding:12px;width:min(1060px,calc(100vw - 82px));max-height:calc(100dvh - 28px);box-sizing:border-box;overflow:auto;background:#fffdf8;border:1px solid #a9c3b3;border-top:4px solid #008563;border-radius:8px;color:#183e2e}
+dialog.rail-calendar379{position:fixed;inset:12px 58px auto auto;margin:0;padding:0;width:min(1060px,calc(100vw - 82px));max-height:calc(100dvh - 28px);box-sizing:border-box;overflow:auto;background:#fffdf8;border:1px solid #a9c3b3;border-top:4px solid #008563;border-radius:8px;color:#183e2e}
 .rail-calendar379::backdrop{background:#102a221f}
-.rail-calendar-close379{display:flex;justify-content:flex-end;margin-bottom:6px}
-.rail-calendar379 .hr-calendar14306{--hr-calendar-height:clamp(390px,calc(100dvh - 220px),650px)}
+.rail-calendar379 [data-calendar-content]:not(:has(.hr-calendar14306)){padding:12px}
+.rail-calendar379 .hr-calendar14306{border:0;border-radius:0;--hr-calendar-height:clamp(390px,calc(100dvh - 220px),650px)}

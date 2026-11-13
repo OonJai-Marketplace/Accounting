@@ -194,34 +194,75 @@ async function measureDeviceData(){const id=actor();if(!id)return;if(dataMeasure
 function open(findingId=''){if(!actor())return null;if(dialog?.open){renderDialog();return dialog;}const box=document.createElement('dialog');box.id='syncSummary143162';box.className='connection-dialog14239';dialog=box;box.dataset.finding14335=typeof findingId==='string'?findingId:'';document.body.append(box);void measureDeviceData();renderDialog();box.showModal();window.RailTools379?.outside(box,()=>box.close());box.addEventListener('close',()=>{window.idleSync14341?.acknowledge();box.remove();if(dialog===box)dialog=null});return box;}
 function renderDialog(){
  if(!dialog)return;const s=state(),overview=window.idleSync14341?.overview()||{groups:[],pending:s.pending,synced:0,pendingBytes:0},session=overview.session,items=(window.syncAssessment14332?.findings()||[]).filter(f=>f.kind!=='cleanup'&&!f.manualCleanup),busy=!!(session?.running||s.syncing||s.preparing||window.localFirst14333?.syncing),size=dataSize143162.actor===actor()?dataSize143162:{value:null,pending:true};
- const signature=JSON.stringify([s,overview,items.map(f=>[f.id,f.title,f.detail,f.status]),size,checkingStorage14335,storageCheck14335]);if(dialog.__render14335===signature)return;dialog.__render14335=signature;const scroll=dialog.scrollTop,opened=new Set([...dialog.querySelectorAll('details[open]')].map(n=>n.dataset.section)),focused=dialog.contains(document.activeElement)?document.activeElement.dataset.action:null;dialog.replaceChildren();dialog.setAttribute('aria-labelledby','connectionTitle14246');
+ const signature=JSON.stringify([s,overview,items.map(f=>[f.id,f.title,f.detail,f.status]),size,checkingStorage14335,storageCheck14335]);if(dialog.__render14335===signature)return;dialog.__render14335=signature;const scroll=dialog.querySelector('.sync-body')?.scrollTop||0;
+ const opened=new Set(Array.from(dialog.querySelectorAll('[data-section][aria-expanded="true"]'),n=>n.dataset.section));
+ const focused=dialog.contains(document.activeElement)?document.activeElement.dataset.action:null;
+ dialog.replaceChildren();
+ dialog.setAttribute('aria-labelledby','connectionTitle14246');
  const add=(tag,text,parent=dialog,className='')=>{const n=document.createElement(tag);n.textContent=text;if(className)n.className=className;parent.append(n);return n};
  const row=(name,value,parent)=>{const line=add('div','',parent,'sync-row143162');add('span',name,line);add('strong',value,line);return line};
  const button=(label,action,parent,onclick)=>{const b=add('button',label,parent);b.type='button';b.dataset.action=action;b.onclick=onclick;return b};
- const detail=(label,id)=>{const d=add('details','');d.dataset.section=id;d.open=opened.has(id)||!!dialog.dataset.finding14335&&id==='review';const title=add('summary',label,d);title.dataset.action=id;return d};
- const header=add('header',''),title=add('h2','Synchronization',header);title.id='connectionTitle14246';add('span',s.online?'Online':'Offline',header,'sync-connection143162');
+ const header=add('header',''),title=add('h2','Synchronization',header);title.id='connectionTitle14246';
+ const connection=add('span',s.online?'Online':'Offline',header,'sync-connection143162');
+ connection.dataset.online=String(s.online);
+ const nav=add('div','',dialog,'sync-views'),body=add('div','',dialog,'sync-body');
+ nav.setAttribute('role','group');nav.setAttribute('aria-label','Synchronization views');
+ const panels={};
+ function selectView(key){
+  dialog.dataset.view=key;
+  for(const [id,panel] of Object.entries(panels)){
+   panel.hidden=id!==key;
+   nav.querySelector('[data-action="view-'+id+'"]').setAttribute('aria-pressed',String(id===key));
+  }
+ }
+ for(const [id,label] of [['overview','Overview'],['details','Details'],['tools','Device tools']]){
+  const panel=add('section','',body,'sync-pane');panels[id]=panel;
+  panel.id='sync-view-'+id;panel.setAttribute('aria-label',label);
+  const control=button(label,'view-'+id,nav,()=>{selectView(id);body.scrollTop=0});
+  control.setAttribute('aria-controls',panel.id);
+ }
+ const main=panels.overview,details=panels.details,device=panels.tools;
+ selectView(dialog.dataset.view||'overview');
  const refreshWaiting=overview.groups.some(g=>['waiting','refreshing'].includes(g.refresh)),issues=items.filter(f=>f.critical||f.kind==='setup'),needsReview=issues.length||!!overview.problem||/needs attention|needs review/i.test(session?.result||''),status=busy?'Syncing…':!s.online?'Waiting for connection':needsReview?'Needs review':overview.pending?'Waiting for database confirmation':overview.checking?'Checking saved copies':refreshWaiting?'Refresh pending':session?.finished?'Up to date':'Ready to sync';
- const stateRow=add('div','',dialog,'sync-state143162');stateRow.dataset.tone=!s.online||needsReview?'attention':busy?'working':'ready';add('strong',status,stateRow).setAttribute('role','status');add('span',busy?session?.stage||'Refreshing records':session?.finished?'Last sync '+formatAppDate(session.finished,true):'Open Data Check to sync a group of saved records.',stateRow);if(busy)add('progress','',stateRow).setAttribute('aria-label','Synchronization in progress');
- const stats=add('div','',dialog,'sync-stats143162');for(const [label,value] of [['Uploaded',String(overview.synced)],['Waiting',String(overview.pending)],['Measured data',window.idleSync14341?.bytes((session?.uploaded||0)+(session?.downloaded||0))||'0 bytes']]){const card=add('div','',stats);add('strong',value,card);add('span',label,card);}add('p','Records uploaded in this sync · records still waiting',dialog,'sync-caption143162');
- const openReview=id=>{dialog.close();window.switchTab?.('transactions-closing14325');const f=items.find(row=>row.id===id);if(f)window.syncAssessment14332?.focus(id,f.periods[0])};
- window.syncRecords284?.render(dialog,{busy,online:canRefresh14338(),opened,onReview:openReview,rows:overview.requests});
- const areas=detail('Downloaded data refresh','refresh');add('p','These are downloaded copies. A refresh result does not confirm that a pending save succeeded.',areas);
- for(const g of overview.groups.filter(g=>g.refresh||g.updated)){row(g.name,g.refresh==='failed'?'Refresh failed':g.refresh==='refreshing'?'Refreshing…':g.refresh==='waiting'?'Refresh waiting':g.updated?'Downloaded':'Checked',areas);}
- const data=add('section','',dialog,'sync-data143162'),format=window.idleSync14341?.bytes||String;row('Upload requests',format(session?.uploaded||0),data);row('Downloaded',format(session?.downloaded||0),data);row('Waiting upload data',overview.unmeasured?(overview.pendingBytes?'At least '+format(overview.pendingBytes):'Not measured'):format(overview.pendingBytes),data);row('Stored on this device',size.pending?'Measuring…':size.value==null?'Unavailable':format(size.value),data);
- if(items.length||needsReview||s.connectionError){const review=detail('Needs checking'+(items.length?' · '+new Set(items.map(f=>f.id)).size:''),'review');if(overview.problem)add('p',overview.problem,review);else if(session&&!session.running&&needsReview)add('p',session.stage,review);if(s.connectionError)add('p',s.connectionError,review);for(const f of [...new Map(items.map(f=>[f.id,f])).values()]){const item=add('article','',review);item.dataset.finding14335=f.id;add('strong',f.title,item);add('p',f.detail||f.status||'Review needed',item);const task=window.syncAssessment14332?.action?.(f);
+ const stateRow=add('div','',main,'sync-state143162');stateRow.dataset.tone=!s.online||needsReview?'attention':busy?'working':'ready';add('strong',status,stateRow).setAttribute('role','status');
+ if(busy||session?.finished)add('span',busy?session?.stage||'Refreshing records':'Last sync '+formatAppDate(session.finished,true),stateRow);
+ if(busy)add('progress','',stateRow).setAttribute('aria-label','Synchronization in progress');
+ const stats=add('div','',main,'sync-stats143162');for(const [label,value] of [['Uploaded',String(overview.synced)],['Waiting',String(overview.pending)],['Data transferred',window.idleSync14341?.bytes((session?.uploaded||0)+(session?.downloaded||0))||'0 bytes']]){const card=add('div','',stats);add('strong',value,card);add('span',label,card);}
+ const openReview=id=>{dialog.close();window.switchTab?.('transactions-closing14325');const f=items.find(row=>row.id===id);if(f)window.syncAssessment14332?.focus(id,f.periods?.[0])};
+ if(overview.pending||overview.requests?.length)window.syncRecords284?.render(main,{busy,online:canRefresh14338(),opened,onReview:openReview,rows:overview.requests});
+ if(items.length||needsReview||s.connectionError){
+ const review=add('section','',main,'sync-review');add('h3','Needs checking',review);
+ if(overview.problem)add('p',overview.problem,review);else if(session&&!session.running&&needsReview)add('p',session.stage,review);if(s.connectionError)add('p',s.connectionError,review);for(const f of [...new Map(items.map(f=>[f.id,f])).values()]){const item=add('article','',review);item.dataset.finding14335=f.id;add('strong',f.title,item);add('p',f.detail||f.status||'Review needed',item);const task=window.syncAssessment14332?.action?.(f);
  if(task&&f.repair!=='recheck'){const who=actor(),b=button(task[0],'repair-'+f.id,item,async()=>{
   b.disabled=true;try{await window.syncAssessment14332.repair(f.id);if(who===actor())window.showCenterStatus?.(f.title+' · Completed.')}
   catch(e){if(who===actor())window.showCenterStatus?.(f.title+' · '+e.message,true)}finally{b.disabled=false}
  });b.disabled=busy;}
- else button('Review in Data Check','review-'+f.id,item,()=>openReview(f.id));}button('Open Data Check','data-check',review,()=>{dialog.close();window.switchTab?.('transactions-closing14325')});}
- const help=detail('If synchronization fails','help');const steps=add('ul','',help);for(const text of ['Do not enter the record again. A lost response can occur after the database has saved it.','For Waiting or Confirmation not received: reconnect and retry the saved request above. It keeps the original reference and checks the existing save.','For a version conflict, rejected save or older request needing review: open Data Check, review the error and compare the saved records before correcting anything.','If device storage failed, keep the editor open and use Check device storage. Download a recovery backup from Data Check when available; verify that it contains the affected work.','Do not clear browser data or uninstall while requests are waiting. If a request stays unresolved, keep its full reference and error for troubleshooting.'])add('li',text,steps);
- const more=detail('Details & device tools','tools');add('p','Choose a group in Bookkeeping → Data Check or select Sync now for a full sync. Unsaved editor changes are not uploaded.',more);add('p','Data sizes use decimal KB/MB. Measured data is the request and response content observed during this sync; retries count again. It excludes website files, network headers and requests outside the sync meter. Waiting data is an estimate. Stored data counts this account’s downloaded copies and saved requests, including recovery copies; it is not the cloud database total.',more);
- if(session?.cleanup)add('p',session.cleanup,more);row('Website version',s.appVersion,more);const tools=add('div','',more,'sync-tools143162');const again=button('Check for new data','check-data',tools,()=>window.idleSync14341?.syncNow());again.disabled=busy||!canRefresh14338();const update=button(s.checkingUpdate?'Checking…':'Check updates','check-updates',tools,checkForUpdates);update.disabled=s.checkingUpdate;const updateLink=add('a',s.availableShell?'Install '+s.availableShell:'Update website',tools);updateLink.href='update.html?check='+Date.now();if(s.updateMessage)add('p',s.updateMessage,more);const check=button(checkingStorage14335?'Checking…':'Check device storage','check-storage',tools,checkStorage14335);check.disabled=checkingStorage14335;if(storageCheck14335)add('p',storageCheck14335,more);
- const footer=add('footer','');button('Close','close',footer,()=>dialog.close());const feedback=window.idleSync14341?.feedback();const sync=button(feedback?.label||(busy?'Syncing…':'Sync now'),'sync',footer,()=>window.idleSync14341?.syncNow());sync.dataset.syncNow14343='';sync.disabled=feedback?.disabled??(busy||!canRefresh14338());dialog.scrollTop=scroll;if(focused)dialog.querySelector('[data-action="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});
+ else button('Review in Data Check','review-'+f.id,item,()=>openReview(f.id)); }
+ }
+ button('Open Data Check','data-check',main,()=>openReview());
+ const format=window.idleSync14341?.bytes||String;
+ add('h3','Data transfer',details);
+ row('Uploaded',format(session?.uploaded||0),details);
+ row('Downloaded',format(session?.downloaded||0),details);
+ row('Waiting to upload (estimate)',overview.unmeasured?(overview.pendingBytes?'At least '+format(overview.pendingBytes):'Not measured'):format(overview.pendingBytes),details);
+ add('h3','Downloaded copies',details);
+ const refreshed=overview.groups.filter(g=>g.refresh||g.updated);
+ if(!refreshed.length)add('p','No refresh results yet.',details);
+ for(const g of refreshed)row(g.name,g.refresh==='failed'?'Refresh failed':g.refresh==='refreshing'?'Refreshing…':g.refresh==='waiting'?'Waiting':g.updated?'Downloaded':'Checked',details);
+ if(session?.cleanup)add('p',session.cleanup,details);
+ row('Website version',s.appVersion,device);
+ row('Stored on this device',size.pending?'Measuring…':size.value==null?'Unavailable':format(size.value),device);
+ const tools=add('div','',device,'sync-tools143162');
+ const update=button(s.checkingUpdate?'Checking…':'Check updates','check-updates',tools,checkForUpdates);update.disabled=s.checkingUpdate;
+ const updateLink=add('a',s.availableShell?'Install '+s.availableShell:'Update website',tools);
+ updateLink.href='update.html?check='+Date.now();updateLink.dataset.action='update-website';
+ const check=button(checkingStorage14335?'Checking…':'Check storage','check-storage',tools,checkStorage14335);check.disabled=checkingStorage14335;
+ for(const message of [s.updateMessage,storageCheck14335])if(message)add('p',message,device).setAttribute('role','status');
+ const footer=add('footer','');button('Close','close',footer,()=>dialog.close());const feedback=window.idleSync14341?.feedback();const sync=button(feedback?.label||(busy?'Syncing…':'Sync now'),'sync',footer,()=>window.idleSync14341?.syncNow());sync.dataset.syncNow14343='';sync.disabled=feedback?.disabled??(busy||!canRefresh14338());body.scrollTop=scroll;if(focused)dialog.querySelector('[data-action="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});
 }
 
 function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and manual sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='143.380';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
+const SHELL_VERSION='143.381';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
 function shellStatus(data){shellReady=data.ready===true&&data.version===SHELL_VERSION;if(data.ready&&String(data.version).localeCompare(SHELL_VERSION,undefined,{numeric:true})>0&&availableShell!==data.version){availableShell=data.version;window.showCenterStatus?.('Website update '+data.version+' is ready. Open System to review and apply it.');}if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}
 async function checkForUpdates(){
  if(checkingUpdate)return;

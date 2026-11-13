@@ -71,6 +71,26 @@
     .ledger-stats379{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}.ledger-stats379>div{padding:8px;background:#edf5ee;border-radius:5px}.ledger-stats379 strong{font-variant-numeric:tabular-nums}
     .ledger-matches379{display:grid;max-height:24vh;overflow:auto}.ledger-matches379 button{background:white;border:0;border-bottom:1px solid #d6dfd8;text-align:left;padding:7px}.ledger-detail379 .watch-toolbar h3{margin-right:auto}
     .watch-body .ledger-lines379 :is(th,td):nth-child(-n+3){text-align:left;width:auto}.ledger-lines379 td:nth-child(3){width:40%}.ledger-lines379 td:nth-child(n+4){white-space:nowrap}
+    .watch-dialog header{flex:none;justify-content:flex-start;flex-wrap:wrap}
+    .watch-dialog header>h2{margin-right:auto}
+    .watch-dialog header>.close{flex:none}
+    .watch-dialog header>button:not(.close),.ledger-tabs379 button{min-height:32px;padding:4px 9px;border:1px solid #aec1b3;border-radius:5px;background:#fff}
+    .ledger-search379{position:relative;flex:1 1 125px;min-width:0}
+    .ledger-search379 [role=searchbox]{display:block;width:100%;height:32px;padding:6px 9px;border:1px solid #aec1b3;border-radius:5px;background:white;white-space:nowrap;overflow:hidden}
+    .ledger-search379 [role=searchbox]:empty::before{content:attr(data-placeholder);color:#587065;pointer-events:none}
+    .ledger-search379 .ledger-matches379{position:absolute;z-index:2;top:100%;left:0;min-width:100%;width:max-content;max-width:min(310px,65vw);background:white;box-shadow:0 3px 8px #193e3226}
+    .watch-dialog:has(.ledger-search379){min-height:min(300px,65dvh)}
+    .ledger-tabs379{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;margin-bottom:8px}
+    .ledger-tabs379:empty{display:none}
+    .ledger-tabs379>span{display:inline-flex;flex:none}
+    .ledger-tabs379 button:first-child{border-radius:5px 0 0 5px;font-weight:bold}
+    .ledger-tabs379 button:last-child{border-left:0;border-radius:0 5px 5px 0;padding:3px 6px}
+    .ledger-tabs379 [aria-pressed=true]{color:white;background:#194c38}
+    .ledger-detail379>h3{margin:0 0 8px}
+    .ledger-lines379 tr[data-line]{cursor:pointer}
+    .ledger-lines379 tr[data-line]:hover{background:#edf5ee}
+    .ledger-lines379 tr.selected>td{background:#d3e7dc}
+    .ledger-lines379 tr.selected>td:first-child{box-shadow:inset 3px 0 #176449}
     @media(max-height:735px){.watch-tools{position:static;display:flex;flex-direction:column}.tasks{height:clamp(70px,17vh,115px)}}
   </style>
   <div class="watch-tools"><button type="button" data-watch="balances" aria-haspopup="dialog" aria-label="Account balances" title="Account balances"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 9h16M11 9v11m3-7h3m-3 4h3"/></svg></button><button type="button" data-watch="rates" aria-haspopup="dialog" aria-label="Foreign account rates" title="Foreign account rates">FX</button><button type="button" data-rail-tool="calendar" aria-haspopup="dialog" aria-label="Company calendar" title="Company calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v15H4zM4 10h16M8 3v5m8-5v5m-9 6h3m2 0h3"/></svg></button><button type="button" data-rail-tool="differences" aria-haspopup="dialog" aria-label="Reconciliation differences" title="Reconciliation differences"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h15l-3-3m6 13H6l3 3M6 11h5m3 2h4"/></svg></button><button type="button" data-rail-tool="ledger" aria-haspopup="dialog" aria-label="Account ledger" title="Account ledger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6Q8 3 3 5v14q5-2 9 1 4-3 9-1V5q-5-2-9 1v14"/></svg></button></div>

@@ -1,8 +1,8 @@
 {
-  "version": "143.380",
+  "version": "143.381",
   "changes": [
-    "Cashier Home tracks physical cash still to surrender by currency.",
-    "User Home reflects active fund releases and saved staff movements before approval.",
-    "Review shows submitted and returned records or explains when the list is empty."
+    "The synchronization window has Overview, Details and Device tools buttons, compact status rows and a single Sync now action.",
+    "Account ledger remembers up to ten account tabs, highlights selected rows, and refreshes every open ledger.",
+    "Reconciliation differences shows saved prior months. The right-side shortcuts put their controls in the header."
   ]
 }
