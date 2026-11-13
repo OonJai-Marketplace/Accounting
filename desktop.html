@@ -8,7 +8,7 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.338"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script>
-  <script src="scripts/offline14239.js?v=143.381"></script>
+  <script src="scripts/offline14239.js?v=143.382"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=143.381">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.364">
 <title>Oon Jai Accounting</title>
@@ -66,6 +66,7 @@
       <button type="submit" class="je-btn je-btn-emerald login-submit">Sign In</button>
       <button type="button" class="login-link-button" onclick="requestPasswordReset()">Forgot password?</button>
       <button type="button" class="login-link-button" data-accounting-install>Install Accounting</button>
+      <a href="https://oonjai-marketplace.github.io/web/hub/" rel="noreferrer" class="login-link-button" style="text-align:center">Oon Jai Hub</a>
     </form>
     <form id="passwordRecoveryForm" class="login-card" onsubmit="saveRecoveredPassword(event)" hidden>
       <div class="login-brand-mark"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai company logo" width="52" height="52"></div>
@@ -226,6 +227,7 @@
             <button type="button" class="header-menu-item" id="global-csv-btn" onclick="exportJournalCSV();closeHeaderAccountMenu()">📦 <span>Export CSV</span></button>
             <button type="button" class="header-menu-item" id="global-print-btn" onclick="openPrintDialog();closeHeaderAccountMenu()">🖨️ <span>Print</span></button>
             <div class="header-account-divider module-export-divider"></div>
+            <a href="https://oonjai-marketplace.github.io/web/hub/" rel="noreferrer" class="header-menu-item" target="_blank" aria-label="Oon Jai Hub (opens in a new tab)">Oon Jai Hub</a>
             <button type="button" class="header-menu-item" onclick="switchAccount()">⇄ <span>Switch Account</span></button>
             <button type="button" class="header-menu-item danger" onclick="confirmSignOut()">↪ <span>Sign Out</span></button>
           </div>
