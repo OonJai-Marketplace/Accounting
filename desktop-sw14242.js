@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.384',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.385',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/desktop-status-dock.js?v=143.381",
  "docs/protocols/index.html?v=143.338",
@@ -65,7 +65,7 @@ const FILES=[
  "scripts/word-of-hope183.js?v=143.239",
  "styles/account-groups143180.css?v=143.352",
  "scripts/organization-zoom143180.js?v=143.180",
- "scripts/account-groups143180.js?v=143.384",
+ "scripts/account-groups143180.js?v=143.385",
  "scripts/settings-stack143176.js?v=143.375",
  "styles/settings-stack143176.css?v=143.364",
  "scripts/offline-audit143174.js?v=143.344",
@@ -93,7 +93,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.375",
  "scripts/desktop14245-6.js?v=143.380",
  "scripts/local-events14310.js?v=143.375",
- "scripts/offline14239.js?v=143.384",
+ "scripts/offline14239.js?v=143.385",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -227,7 +227,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.375",
  "styles/settings-groups14332.css?v=143.375",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.384",
+ "scripts/phone-runtime14242.js?v=143.385",
  "scripts/local-first14333.js?v=143.377",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.195",
@@ -266,7 +266,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.323",
  "styles/workspace-consistency14343.css?v=143.377",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.384",
+ "phone-sw.js?v=143.385",
  "scripts/personal-journal1437.js?v=143.380",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
@@ -356,6 +356,16 @@ async function storageStep(operation){
  try{return await Promise.race([operation,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Browser storage is not responding')),30000)})]);}
  finally{clearTimeout(timer);}
 }
+// The release check requires a different URL whenever an asset changes.
+// Keep one complete copy of each versioned asset for offline use across releases.
+async function sharedDesktopFile(url){
+ if(!url.searchParams.has('v'))return;
+ const names=(await storageStep(caches.keys())).filter(name=>name!==CACHE&&name.startsWith('ojm-desktop-shell-'));
+ for(const name of names){
+  const saved=await storageStep(caches.match(url.href,{cacheName:name}));
+  if(saved?.ok&&saved.type!=='opaque')return saved;
+ }
+}
 async function downloadFile(cache,file){
  const url=new URL(file,scopeURL);
  // A rejected installation never serves pages. Its complete files are safe to
@@ -366,18 +376,15 @@ async function downloadFile(cache,file){
   const controller=new AbortController();let timer,lastReport=0;
   const arm=()=>{clearTimeout(timer);timer=setTimeout(()=>controller.abort(),60000)};
   try{
-   const saved=url.searchParams.has('v')?await storageStep(caches.match(url.href)):null;
-   let response=saved;
-   if(!response){
-    arm();response=await fetch(url.href,{cache:'no-cache',signal:controller.signal});
-    if(!response.ok||response.type==='opaque')throw Error('Download returned '+response.status);
-    if(response.body){
-     const reader=response.body.getReader(),chunks=[];let bytes=0;
-     try{while(true){const part=await reader.read();if(part.done)break;chunks.push(part.value);bytes+=part.value.byteLength;arm();if(Date.now()-lastReport>500){lastReport=Date.now();await reportDownload({file:file.split('?')[0],bytes,retry});}}}
-     finally{reader.releaseLock();}
-     response=new Response(new Blob(chunks),{status:response.status,statusText:response.statusText,headers:response.headers});
-    }else response=await completeResponse(response);
-   }
+   if(await sharedDesktopFile(url))return;
+   arm();let response=await fetch(url.href,{cache:'no-cache',signal:controller.signal});
+   if(!response.ok||response.type==='opaque')throw Error('Download returned '+response.status);
+   if(response.body){
+    const reader=response.body.getReader(),chunks=[];let bytes=0;
+    try{while(true){const part=await reader.read();if(part.done)break;chunks.push(part.value);bytes+=part.value.byteLength;arm();if(Date.now()-lastReport>500){lastReport=Date.now();await reportDownload({file:file.split('?')[0],bytes,retry});}}}
+    finally{reader.releaseLock();}
+    response=new Response(new Blob(chunks),{status:response.status,statusText:response.statusText,headers:response.headers});
+   }else response=await completeResponse(response);
    clearTimeout(timer);
    await storageStep(cache.put(url.href,response));return;
   }catch(error){
@@ -433,6 +440,7 @@ self.addEventListener('fetch',event=>{
   // A navigation uses its complete cached release immediately. Updates install
   // separately; ordinary tab changes never depend on this network path.
   if(saved)return saved;
+  const shared=await sharedDesktopFile(canonical);if(shared)return shared;
   if(SCANNER_ASSETS.includes(file)){const previous=await caches.match(canonical.href);if(previous?.ok)return previous;}
   const response=await completeResponse(await fetch(request));
   await cache.put(canonical.href,response.clone());return response;
