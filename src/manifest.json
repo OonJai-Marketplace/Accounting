@@ -4264,6 +4264,10 @@
     ],
     "scripts/account-groups143180.js": [
       {
+        "source": "src/accounts/chart/foreign-account-review.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/accounts/chart/account-groups143180.js",
         "suffix": "\n"
       }
