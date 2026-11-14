@@ -16,6 +16,8 @@ window.openForeignAccountReview2026 = async function () {
   if (!data.chart?.length) throw Error('There is no prepared chart reclassification.');
   const esc = value => escapeHtml(String(value ?? ''));
   const next = data.chart.filter(a => !a.deferred && !a.created);
+  const unusedThb = ['9212', '9234', '9242'];
+  const canRetire = !next.length && AccountingStore.accounts.some(a => unusedThb.includes(a.code) && a.active !== false);
   const chartRows = data.chart.map(a => '<tr><td>' + esc(a.code) + '</td><td>' + esc(a.name) +
     '</td><td>' + esc(a.deferred ? 'Deferred' : a.created ? 'Created' : 'Prepared') + '</td></tr>').join('');
   const months = data.months.map(m => {
@@ -34,12 +36,14 @@ window.openForeignAccountReview2026 = async function () {
   const content = '<div class="group-manager143180"><details><summary>Chart of accounts</summary>' +
     '<table><thead><tr><th>Code</th><th>Regular account</th><th>Status</th></tr></thead><tbody>' + chartRows +
     '</tbody></table></details>' + (next.length ? '<button class="je-btn je-btn-emerald" type="button" data-chart>Create ' +
-      next.length + ' regular accounts</button>' : '') + months + '<p role="status"></p></div>';
+      next.length + ' regular accounts</button>' : '') + (canRetire ?
+      '<button class="je-btn je-btn-secondary" type="button" data-retire>Retire unused THB mappings</button>' : '') +
+    months + '<p role="status"></p></div>';
   const closed = ui108.modal('Foreign-currency reclassification', content, [{label:'Close',value:false}]);
   const overlay = document.querySelector('.ui-overlay108:last-child');
   let busy = false;
   overlay.addEventListener('click', async event => {
-    const button = event.target.closest('[data-chart],[data-prepare],[data-finish]');
+    const button = event.target.closest('[data-chart],[data-retire],[data-prepare],[data-finish]');
     if (!button || busy || !valid()) return;
     busy = true;
     button.disabled = true;
@@ -49,11 +53,15 @@ window.openForeignAccountReview2026 = async function () {
       const month = button.dataset.prepare || button.dataset.finish;
       if (button.hasAttribute('data-chart')) {
         await call('prepare_foreign_chart_2026');
+      } else if (button.hasAttribute('data-retire')) {
+        await call('retire_unused_foreign_mappings_2026');
       } else if (button.hasAttribute('data-prepare')) {
         await call('prepare_foreign_journal_month_2026', {p_month:month});
       }
       if (!valid()) return;
-      window.AccountSheet143191?.changed({owner:actor, db});
+      if (button.hasAttribute('data-chart') || button.hasAttribute('data-retire')) {
+        window.AccountSheet143191?.changed({owner:actor, db});
+      }
       await loadReferenceDataFromSupabase({databaseOnly:true});
       if (!valid()) return;
       await window.AccountGroups143180.load(true);

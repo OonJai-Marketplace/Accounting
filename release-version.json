@@ -1,1 +1,1 @@
-{"version": "143.383", "changes": ["Administrators can review prepared foreign-currency account and journal reclassifications in the Chart of Accounts."]}
+{"version": "143.384", "changes": ["The chart administrator can retire unused THB expense mappings after the system checks for dependent records."]}
