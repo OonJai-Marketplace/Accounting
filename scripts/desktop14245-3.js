@@ -853,6 +853,14 @@ function syncCoaDatalist() {
   });
 }
 
+async function refreshChartAccounts(button){
+  button.disabled=true;
+  try{
+    await loadReferenceDataFromSupabase({databaseOnly:true});
+    showCenterStatus('Chart of accounts refreshed.');
+  }catch(error){showCenterStatus(error.message||'Could not refresh the chart of accounts.',true);}
+  finally{button.disabled=false;}
+}
 function renderChartOfAccountsTable() {
   const tbody = document.getElementById('coaTableBody');
   if (!tbody) return;
@@ -860,12 +868,15 @@ function renderChartOfAccountsTable() {
   const filterCurr = document.getElementById('filterCoaCurrency')?.value || 'ALL';
   const table=tbody.closest('table');
   table.dataset.preservePage14397='true';
-  const filterKey=JSON.stringify([filterCurr,document.getElementById('searchCoa1439')?.value||'',window.AccountGroups143180?.filterKey]);
+  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts)||new Map();
+  const includeHistory=document.getElementById('includeHistoricalCoa')?.checked===true;
+  const filterKey=JSON.stringify([filterCurr,includeHistory,document.getElementById('searchCoa1439')?.value||'',window.AccountGroups143180?.filterKey]);
   if(table.dataset.filterKey14397!==filterKey){window.tablePagination14383?.reset(table);table.dataset.filterKey14397=filterKey}
   tbody.innerHTML = '';
 
   const terms=(document.getElementById('searchCoa1439')?.value||'').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   const visibleAccounts = AccountingStore.accounts.filter(acc => {
+    if(!includeHistory&&historical.has(String(acc.code)))return false;
     const text=[acc.code,acc.name,acc.currency,currencySymbolV6(acc.currency),acc.type,acc.desc].join(' ').toLocaleLowerCase();
     return (filterCurr === 'ALL' || acc.currency === filterCurr)&&terms.every(term=>text.includes(term))&&(!window.AccountGroups143180||AccountGroups143180.matches(acc));
   });
@@ -884,7 +895,7 @@ function renderChartOfAccountsTable() {
       <td><strong class="${acc.isTechnical||acc.type==='SYSTEM'?'system-account-name14399':''}">${escapeHtml(acc.name)}</strong><div>${window.AccountGroups143180?.badge(acc)||''}</div></td>
       <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'Parent':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${escapeHtml(acc.type)}</span></td>
-      <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
+      <td style="color: var(--text-muted);">${escapeHtml([historical.get(String(acc.code)),acc.desc].filter(Boolean).join(' · ')||'—')}</td>
       <td style="text-align: right;">
         <div style="display: inline-flex; gap: 6px;">
           <button type="button" class="btn-action-edit" title="Edit Account" onclick="openEditAccountModal(${escapeHtml(JSON.stringify(acc.code))})">✏️</button>
@@ -2340,7 +2351,11 @@ async function confirmSaveTemplate() {
   showAppNotification('Saved');
 }
 async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');const status=document.getElementById('templateCloudStatus275'),owner=liveProfile?.id;await window.TemplateCloud275?.sync();if(status?.isConnected&&liveProfile?.id===owner)await renderTemplateManager();}
-function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
+function builtInTransactionTemplates268(){
+ const chart=AccountingStore.accounts,historical=window.JournalCompletion258?.historicalMappings(chart);
+ const templates=[...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(chart)||[])];
+ return historical?.size?templates.filter(t=>!t.lines.some(l=>historical.has(String(l.code)))):templates;
+}
 function availableTransactionTemplates(){
   TemplateStore.load();
   const overrides=new Map(TemplateStore.templates.map(t=>[t.id,t]));
@@ -2366,11 +2381,12 @@ function templateEditorFields14399(t){
   const label=document.createElement('label');label.textContent='General description';
   const memo=document.createElement('textarea');memo.value=t.generalMemo||'';memo.dataset.templateMemo14399='';label.append(memo);host.append(label);
   const list=document.createElement('div');list.id='templateRows14399';host.append(list);
+  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts);
   function add(line={}){
     const row=document.createElement('div');row.className='template-row14399';
     const account=document.createElement('select');account.setAttribute('aria-label','Template account');account.dataset.templateAccount14399='';account.innerHTML='<option value="">Choose account</option>';
     const resolved=line.code?AccountingStore.accounts.find(a=>a.code===line.code&&a.currency===line.currency):resolveTemplateAccount14397(line);
-    for(const a of AccountingStore.accounts.filter(a=>a.isPosting!==false&&a.active!==false&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)))){const o=document.createElement('option');o.value=a.id;o.textContent=a.code+' — '+a.name+' ('+a.currency+')';account.append(o)}
+    for(const a of AccountingStore.accounts.filter(a=>(a.id===resolved?.id||!historical?.has(String(a.code)))&&a.isPosting!==false&&a.active!==false&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)))){const o=document.createElement('option');o.value=a.id;o.textContent=a.code+' — '+a.name+' ('+a.currency+')';account.append(o)}
     account.value=resolved?.id||'';
     const description=document.createElement('input');description.value=line.memo||'';description.placeholder='Line description';description.setAttribute('aria-label','Line description');description.dataset.templateLineMemo14399='';
     const remove=document.createElement('button');remove.type='button';remove.className='je-btn je-btn-secondary';remove.textContent='Remove line';remove.onclick=()=>row.remove();
@@ -2781,7 +2797,8 @@ syncCoaDatalist = function() {
   const dl = document.getElementById('coaList');
   if (!dl) return;
   dl.innerHTML = '';
-  AccountingStore.accounts.filter(acc=>acc.isPosting!==false&&acc.is_posting!==false&&acc.active!==false&&acc.is_active!==false).forEach(acc => {
+  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts);
+  AccountingStore.accounts.filter(acc=>!historical?.has(String(acc.code))&&acc.isPosting!==false&&acc.is_posting!==false&&acc.active!==false&&acc.is_active!==false).forEach(acc => {
     const opt = document.createElement('option');
     /* Include the account code in the selected value so identically named
        accounts in different currencies cannot resolve to the wrong badge. */
@@ -3127,7 +3144,7 @@ async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=f
   const byId=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
   AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
   for(const sub of AccountingStore.subAccounts){const posting=byId.get(sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
-  CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
+  CurrencyStore.render(); initCoaCurrencyFilter(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
 }
 
 CurrencyStore.add = async function(code,name,symbol){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;

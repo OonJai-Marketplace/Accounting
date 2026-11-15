@@ -16,7 +16,7 @@ async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=f
   const byId=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
   AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
   for(const sub of AccountingStore.subAccounts){const posting=byId.get(sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
-  CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
+  CurrencyStore.render(); initCoaCurrencyFilter(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
 }
 
 CurrencyStore.add = async function(code,name,symbol){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;

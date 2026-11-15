@@ -41,6 +41,28 @@ const regularRules=Object.entries(regularReplacements).map(([legacy,code])=>{
  const [localCode,offset,c]=known[legacy];
  return {legacy,code,localCode,c,type:{'9190':'REVENUE','9290':'EXPENSE','9490':'ASSET'}[offset]};
 }).concat({code:'5424',localCode:'5421',c:'USD',type:'EXPENSE'});
+// Labels belong to the reviewed foreign recognition accounts only. Equity and FX
+// bridges retain their own posting rules. Keep a family offset if another mapping uses it.
+function historicalMappings(chart){
+ const result=new Map();
+ for(const a of chart){
+  const code=String(a.code);
+  if(technical(a)&&regularReplacements[code]&&known[code][2]===currency(a)){
+   result.set(code,'Use '+regularReplacements[code]+' for new entries');
+  }
+ }
+ for(const [parent,offset] of [['9100','9190'],['9200','9290'],['9400','9490']]){
+  const current=chart.some(a=>available(a)&&technical(a)&&String(a.code)!==offset&&
+    (a.parentCode===parent||a.parent_code===parent||String(a.code).slice(0,2)===parent.slice(0,2))&&
+    !result.has(String(a.code)));
+  if(current)continue;
+  for(const code of [parent,offset]){
+   const a=chart.find(item=>String(item.code)===code);
+   if(a&&technical(a))result.set(code,code===parent?'Historical mapping group':'Historical LAK recognition offset');
+  }
+ }
+ return result;
+}
 function registry(chart){
  const all=chart.filter(available),byCode=(code,c='LAK')=>all.find(a=>String(a.code)===code&&currency(a)===c),maps=new Map(),unknown=new Set();
  const regular=new Map();
@@ -443,7 +465,7 @@ function completePart(input){
  if(!final.some(l=>l.debit||l.credit))error('Enter the transaction amounts in the template before generating.');
  return errors.length?{errors}:{errors:[],rows:final.map(({a,c,rt,book,index,specified,...l})=>l),notes,totals};
 }
-root.JournalCompletion258={complete,registry,currency,type,technical,available,fund,staff,monetary,round,updateFundMemo};
+root.JournalCompletion258={complete,registry,historicalMappings,currency,type,technical,available,fund,staff,monetary,round,updateFundMemo};
 })(globalThis);
 
 ;
@@ -1093,10 +1115,15 @@ function showLakValues(checked){
  }
 }
 function renderRows(){
- const body=dialog.querySelector('[data-entry-lines]'),accounts=chart(),options=accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('');body.replaceChildren();
+ const body=dialog.querySelector('[data-entry-lines]'),accounts=chart();
+ const historical=G.historicalMappings(AccountingStore.accounts);
+ const options=accounts.filter(a=>!historical.has(String(a.code))).map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('');body.replaceChildren();
  state.rows.forEach((l,i)=>{
-  const a=chart().find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
-  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td data-day-value>—</td><td data-book-value>—</td><td><button type="button" class="je-btn je-btn-secondary" title="Remove from this draft" aria-label="Remove row '+(i+1)+' from this draft">×</button></td>';
+  const a=accounts.find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
+  const old=a&&historical.get(String(a.code));
+  const retained=l.account_id&&(old||!a)?'<option disabled value="'+esc(l.account_id)+'">'+
+    esc(a?a.code+' — '+a.name+' · '+old:'Unavailable saved account · choose a replacement')+'</option>':'';
+  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+retained+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td data-day-value>—</td><td data-book-value>—</td><td><button type="button" class="je-btn je-btn-secondary" title="Remove from this draft" aria-label="Remove row '+(i+1)+' from this draft">×</button></td>';
   setTemplateAmountHints(tr,l.expectedSide,l.generated==='output');
   if(l.generated==='output'||String(a?.code)==='5419'&&!l.expectedSide){
    const side=number(l.debit)>0?'debit':number(l.credit)>0?'credit':l.expectedSide;
@@ -1278,7 +1305,12 @@ function missingFields(checkManual=false){
  const issues=[];
  if(!state.memo.trim())issues.push({field:'memo',message:'Enter the general description.'});
  if(!/^\d{4}-\d{2}-\d{2}$/.test(state.date))issues.push({field:'date',message:'Choose the transaction date.'});
+ const historical=G.historicalMappings(AccountingStore.accounts);
+ const byId=new Map(chart().map(a=>[a.id,a]));
  state.rows.forEach((l,row)=>{
+  const a=byId.get(l.account_id),reason=a&&historical.get(String(a.code));
+  if(reason)issues.push({field:'account',row,message:a.code+' · '+reason+'. Review this saved line.'});
+  if(l.account_id&&!a)issues.push({field:'account',row,message:'This saved account is unavailable. Choose a current account.'});
   if(!l.account_id&&(l.role||l.missing||l.line_memo?.trim()||number(l.debit)||number(l.credit)))issues.push({field:'account',row,message:'Choose the '+(l.role||'posting')+' account.'});
  });
  if(checkManual&&state.template==='blank'&&!state.rows.some(l=>l.account_id)&&!issues.some(e=>e.field==='account')){

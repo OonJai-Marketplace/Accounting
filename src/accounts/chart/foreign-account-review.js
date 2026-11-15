@@ -29,7 +29,7 @@ window.openForeignAccountReview2026 = async function (postingResult = '') {
   const postOctober = data.octoberRestored && octoberGroup.length === 8 &&
     octoberGroup.some(j => j.result !== 'Applied');
   const retirementRows = retirement.map(a => '<tr><td>' + esc(a.code) + '</td><td>' +
-    esc(a.replacement) + '</td><td>' + (a.active ? 'Active' : 'Inactive') + '</td></tr>').join('');
+    esc(a.replacement || 'Direct prepaid valuation') + '</td><td>' + (a.active ? 'Active' : 'Inactive') + '</td></tr>').join('');
   const chartRows = data.chart.map(a => '<tr><td>' + esc(a.code) + '</td><td>' + esc(a.name) +
     '</td><td>' + esc(a.deferred ? 'Deferred' : a.created ? 'Created' : 'Prepared') + '</td></tr>').join('');
   const months = data.months.map(m => {

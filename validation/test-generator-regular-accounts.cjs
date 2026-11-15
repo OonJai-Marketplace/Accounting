@@ -145,3 +145,10 @@ assert.equal(stored,JSON.stringify([sample]));
 stored=JSON.stringify([{...sample,lines:[{account:'My custom salary'},...sample.lines.slice(1)]}]);
 assert.equal(saved().lines[0].account,'My custom salary');
 console.log('PASS saved payroll sample keeps its ID and memos on the current chart, and custom edits keep their saved layout.');
+
+const history=G.historicalMappings(chart);
+assert.equal(history.get('9231'),'Use 5316 for new entries');
+assert(history.has('9190')&&history.has('9290')&&history.has('9490'));
+for(const code of ['5316','5422','9311','9321','9011','9042','9390'])assert(!history.has(code),code);
+const newMapping={id:'other-food',code:'9261',parentCode:'9200',currency:'EUR',type:'SYSTEM'};
+assert(!G.historicalMappings([...chart,newMapping]).has('9290'),'a current expense mapping keeps its shared offset');

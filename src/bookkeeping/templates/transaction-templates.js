@@ -119,7 +119,11 @@ async function confirmSaveTemplate() {
   showAppNotification('Saved');
 }
 async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');const status=document.getElementById('templateCloudStatus275'),owner=liveProfile?.id;await window.TemplateCloud275?.sync();if(status?.isConnected&&liveProfile?.id===owner)await renderTemplateManager();}
-function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
+function builtInTransactionTemplates268(){
+ const chart=AccountingStore.accounts,historical=window.JournalCompletion258?.historicalMappings(chart);
+ const templates=[...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(chart)||[])];
+ return historical?.size?templates.filter(t=>!t.lines.some(l=>historical.has(String(l.code)))):templates;
+}
 function availableTransactionTemplates(){
   TemplateStore.load();
   const overrides=new Map(TemplateStore.templates.map(t=>[t.id,t]));
@@ -145,11 +149,12 @@ function templateEditorFields14399(t){
   const label=document.createElement('label');label.textContent='General description';
   const memo=document.createElement('textarea');memo.value=t.generalMemo||'';memo.dataset.templateMemo14399='';label.append(memo);host.append(label);
   const list=document.createElement('div');list.id='templateRows14399';host.append(list);
+  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts);
   function add(line={}){
     const row=document.createElement('div');row.className='template-row14399';
     const account=document.createElement('select');account.setAttribute('aria-label','Template account');account.dataset.templateAccount14399='';account.innerHTML='<option value="">Choose account</option>';
     const resolved=line.code?AccountingStore.accounts.find(a=>a.code===line.code&&a.currency===line.currency):resolveTemplateAccount14397(line);
-    for(const a of AccountingStore.accounts.filter(a=>a.isPosting!==false&&a.active!==false&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)))){const o=document.createElement('option');o.value=a.id;o.textContent=a.code+' — '+a.name+' ('+a.currency+')';account.append(o)}
+    for(const a of AccountingStore.accounts.filter(a=>(a.id===resolved?.id||!historical?.has(String(a.code)))&&a.isPosting!==false&&a.active!==false&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)))){const o=document.createElement('option');o.value=a.id;o.textContent=a.code+' — '+a.name+' ('+a.currency+')';account.append(o)}
     account.value=resolved?.id||'';
     const description=document.createElement('input');description.value=line.memo||'';description.placeholder='Line description';description.setAttribute('aria-label','Line description');description.dataset.templateLineMemo14399='';
     const remove=document.createElement('button');remove.type='button';remove.className='je-btn je-btn-secondary';remove.textContent='Remove line';remove.onclick=()=>row.remove();

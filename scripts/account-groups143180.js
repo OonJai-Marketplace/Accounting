@@ -29,7 +29,7 @@ window.openForeignAccountReview2026 = async function (postingResult = '') {
   const postOctober = data.octoberRestored && octoberGroup.length === 8 &&
     octoberGroup.some(j => j.result !== 'Applied');
   const retirementRows = retirement.map(a => '<tr><td>' + esc(a.code) + '</td><td>' +
-    esc(a.replacement) + '</td><td>' + (a.active ? 'Active' : 'Inactive') + '</td></tr>').join('');
+    esc(a.replacement || 'Direct prepaid valuation') + '</td><td>' + (a.active ? 'Active' : 'Inactive') + '</td></tr>').join('');
   const chartRows = data.chart.map(a => '<tr><td>' + esc(a.code) + '</td><td>' + esc(a.name) +
     '</td><td>' + esc(a.deferred ? 'Deferred' : a.created ? 'Created' : 'Prepared') + '</td></tr>').join('');
   const months = data.months.map(m => {
@@ -214,7 +214,9 @@ function mount(){const root=$('sec-chart-accounts');if(!root||!desktop()||$('cha
 function navigation(host,items,selected,handler){const signature=JSON.stringify(items);if(host.dataset.signature!==signature){host.dataset.signature=signature;host.innerHTML=items.map(([id,name,count,child])=>`<button type="button" class="chart-filter143180${child?' chart-department143180':''}" data-filter="${esc(id)}"><span>${esc(name)}</span><small>${count}</small></button>`).join('');host.querySelectorAll('button').forEach(b=>b.onclick=()=>handler(b.dataset.filter));}for(const b of host.querySelectorAll('button')){b.classList.toggle('active',b.dataset.filter===selected);b.setAttribute('aria-current',b.dataset.filter===selected?'page':'false');}}
 function ordered(){const priority=['Company','Restaurant','Wellness','Other'];return [...groups].sort((a,b)=>{const ai=priority.indexOf(a.name),bi=priority.indexOf(b.name);return (ai<0?priority.length:ai)-(bi<0?priority.length:bi)||a.name.localeCompare(b.name);});}
 function render(){context();if(!desktop()){const grid=$('chartBrowser143180');if(grid){$('chartAssign143180')?.remove();grid.before(...$('chartMain143180').childNodes);grid.remove();}return;}mount();if(!$('chartBrowser143180'))return;
- const list=accounts(),count=id=>list.filter(a=>inGroup(a,id)).length;
+ const historical=window.JournalCompletion258?.historicalMappings(accounts());
+ const list=$('includeHistoricalCoa')?.checked?accounts():accounts().filter(a=>!historical?.has(String(a.code)));
+ const count=id=>list.filter(a=>inGroup(a,id)).length;
  navigation($('chartGroupNav143180'),[['all','All accounts',list.length],...ordered().map(g=>[g.id,g.name,count(g.id),g.kind==='department']),...(count('unassigned')?[['unassigned','Unassigned',count('unassigned')]]:[])],group,id=>choose(id));
  navigation($('chartTypeNav143180'),types.map(([id,label])=>[id,label,list.filter(a=>inGroup(a,group)&&(id==='ALL'||a.type===id||id==='INCOME'&&a.type==='REVENUE')).length]),type,id=>choose(group,id));
  renderedEditAccess=canEdit();$('chartManage143180').hidden=!renderedEditAccess;$('chartAssign143180').hidden=!renderedEditAccess;$('chartAssign143180').textContent=groups.some(g=>g.id===group)?'Add existing accounts':'Assign accounts';$('chartGroupStatus143180').textContent=error||(!loaded?'Loading groups…':'');

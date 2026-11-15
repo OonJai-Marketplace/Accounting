@@ -41,6 +41,28 @@ const regularRules=Object.entries(regularReplacements).map(([legacy,code])=>{
  const [localCode,offset,c]=known[legacy];
  return {legacy,code,localCode,c,type:{'9190':'REVENUE','9290':'EXPENSE','9490':'ASSET'}[offset]};
 }).concat({code:'5424',localCode:'5421',c:'USD',type:'EXPENSE'});
+// Labels belong to the reviewed foreign recognition accounts only. Equity and FX
+// bridges retain their own posting rules. Keep a family offset if another mapping uses it.
+function historicalMappings(chart){
+ const result=new Map();
+ for(const a of chart){
+  const code=String(a.code);
+  if(technical(a)&&regularReplacements[code]&&known[code][2]===currency(a)){
+   result.set(code,'Use '+regularReplacements[code]+' for new entries');
+  }
+ }
+ for(const [parent,offset] of [['9100','9190'],['9200','9290'],['9400','9490']]){
+  const current=chart.some(a=>available(a)&&technical(a)&&String(a.code)!==offset&&
+    (a.parentCode===parent||a.parent_code===parent||String(a.code).slice(0,2)===parent.slice(0,2))&&
+    !result.has(String(a.code)));
+  if(current)continue;
+  for(const code of [parent,offset]){
+   const a=chart.find(item=>String(item.code)===code);
+   if(a&&technical(a))result.set(code,code===parent?'Historical mapping group':'Historical LAK recognition offset');
+  }
+ }
+ return result;
+}
 function registry(chart){
  const all=chart.filter(available),byCode=(code,c='LAK')=>all.find(a=>String(a.code)===code&&currency(a)===c),maps=new Map(),unknown=new Set();
  const regular=new Map();
@@ -443,5 +465,5 @@ function completePart(input){
  if(!final.some(l=>l.debit||l.credit))error('Enter the transaction amounts in the template before generating.');
  return errors.length?{errors}:{errors:[],rows:final.map(({a,c,rt,book,index,specified,...l})=>l),notes,totals};
 }
-root.JournalCompletion258={complete,registry,currency,type,technical,available,fund,staff,monetary,round,updateFundMemo};
+root.JournalCompletion258={complete,registry,historicalMappings,currency,type,technical,available,fund,staff,monetary,round,updateFundMemo};
 })(globalThis);

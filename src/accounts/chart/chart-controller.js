@@ -44,6 +44,14 @@ function syncCoaDatalist() {
   });
 }
 
+async function refreshChartAccounts(button){
+  button.disabled=true;
+  try{
+    await loadReferenceDataFromSupabase({databaseOnly:true});
+    showCenterStatus('Chart of accounts refreshed.');
+  }catch(error){showCenterStatus(error.message||'Could not refresh the chart of accounts.',true);}
+  finally{button.disabled=false;}
+}
 function renderChartOfAccountsTable() {
   const tbody = document.getElementById('coaTableBody');
   if (!tbody) return;
@@ -51,12 +59,15 @@ function renderChartOfAccountsTable() {
   const filterCurr = document.getElementById('filterCoaCurrency')?.value || 'ALL';
   const table=tbody.closest('table');
   table.dataset.preservePage14397='true';
-  const filterKey=JSON.stringify([filterCurr,document.getElementById('searchCoa1439')?.value||'',window.AccountGroups143180?.filterKey]);
+  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts)||new Map();
+  const includeHistory=document.getElementById('includeHistoricalCoa')?.checked===true;
+  const filterKey=JSON.stringify([filterCurr,includeHistory,document.getElementById('searchCoa1439')?.value||'',window.AccountGroups143180?.filterKey]);
   if(table.dataset.filterKey14397!==filterKey){window.tablePagination14383?.reset(table);table.dataset.filterKey14397=filterKey}
   tbody.innerHTML = '';
 
   const terms=(document.getElementById('searchCoa1439')?.value||'').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   const visibleAccounts = AccountingStore.accounts.filter(acc => {
+    if(!includeHistory&&historical.has(String(acc.code)))return false;
     const text=[acc.code,acc.name,acc.currency,currencySymbolV6(acc.currency),acc.type,acc.desc].join(' ').toLocaleLowerCase();
     return (filterCurr === 'ALL' || acc.currency === filterCurr)&&terms.every(term=>text.includes(term))&&(!window.AccountGroups143180||AccountGroups143180.matches(acc));
   });
@@ -75,7 +86,7 @@ function renderChartOfAccountsTable() {
       <td><strong class="${acc.isTechnical||acc.type==='SYSTEM'?'system-account-name14399':''}">${escapeHtml(acc.name)}</strong><div>${window.AccountGroups143180?.badge(acc)||''}</div></td>
       <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'Parent':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${escapeHtml(acc.type)}</span></td>
-      <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
+      <td style="color: var(--text-muted);">${escapeHtml([historical.get(String(acc.code)),acc.desc].filter(Boolean).join(' · ')||'—')}</td>
       <td style="text-align: right;">
         <div style="display: inline-flex; gap: 6px;">
           <button type="button" class="btn-action-edit" title="Edit Account" onclick="openEditAccountModal(${escapeHtml(JSON.stringify(acc.code))})">✏️</button>
