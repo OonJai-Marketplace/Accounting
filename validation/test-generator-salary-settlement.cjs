@@ -91,7 +91,7 @@ const setup=require('./phase0-browser-fixture.cjs');
   const memo=d.locator('[data-memo]'),rate=d.locator('[data-rates] input');
   const templateField=d.locator('[data-template-query]');
   const dateField=d.locator('[data-date]');
-  assert.equal(await d.locator('a[href*="protocols"]').count(),0);
+  assert.match(await d.getByRole('link',{name:'Journal protocol',exact:true}).getAttribute('href'),/index\.html.*#J05$/);
   const [dateBox,rateBox,templateBox]=await Promise.all([dateField.boundingBox(),rate.boundingBox(),templateField.boundingBox()]);
   assert(dateBox.width<170&&rateBox.width<140);
   assert(dateBox.x+dateBox.width<=rateBox.x);

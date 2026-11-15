@@ -1,5 +1,6 @@
 """Build the static Settings reader and printable protocols from handbook.txt."""
 from pathlib import Path
+import re
 from html import escape
 from xml.sax.saxutils import escape as xml
 from reportlab.pdfgen import canvas
@@ -11,7 +12,8 @@ from reportlab.platypus import Paragraph, Table, TableStyle
 root = Path(__file__).resolve().parents[2] / 'docs' / 'protocols'
 pdf_name = 'Oon-Jai-Accounting-Protocols.pdf'
 public_source = 'https://taxsummaries.pwc.com/lao-pdr/individual/other-taxes'
-edition = '8 November 2026'
+previous_edition = '8 November 2026'
+edition = '15 November 2026'
 groups = {}
 topics = []
 for line in (root/'handbook.txt').read_text().splitlines():
@@ -25,6 +27,8 @@ for line in (root/'handbook.txt').read_text().splitlines():
         topic = dict(code=code, title=title, group=area, steps=[], boxes=[])
         groups[area].append(topic)
         topics.append(topic)
+    elif line.startswith('* '):
+        topic['revised'] = line[2:]
     elif line.startswith('> '):
         topic['route'] = line[2:]
     elif line.startswith('= '):
@@ -44,6 +48,13 @@ assert len({t['code'] for t in topics}) == len(topics)
 for i,t in enumerate(topics,3):
     t['page'] = i
     assert all(t.get(k) for k in ('route','lead','check','steps'))
+
+topic_codes = {t['code'] for t in topics}
+
+def topic_refs(value):
+    return re.sub(r'\b([A-Z][0-9]{2})\b',
+                  lambda m: f'<a href="#{m[0]}">{m[0]}</a>' if m[0] in topic_codes else m[0],
+                  escape(value))
 
 def url(t):
     return 'topics/'+t['code']+'.pdf'
@@ -65,16 +76,16 @@ for name,group in groups.items():
     for t in group:
         code,title=t['code'],escape(t['title'])
         rows.append(f'<li><a class="topic-title" href="#{code}"><span class="code">{code}</span>{title}</a><span class="links"><a href="#{code}" aria-label="Read {title} here">Read</a>{links(t)}</span></li>')
-        steps=''.join(f'<li><h3>{escape(k)}</h3><p>{escape(v)}</p></li>' for k,v in t['steps'])
+        steps=''.join(f'<li><h3>{escape(k)}</h3><p>{topic_refs(v)}</p></li>' for k,v in t['steps'])
         boxes=''.join(f'<section class="example"><h3>{escape(k)}</h3><p>{escape(v)}</p></section>' for k,v in t['boxes'])
         if 'table' in t:
             caption,grid=t['table']
             def cells(row,tag): return ''.join(f'<{tag}>{escape(v)}</{tag}>' for v in row)
             body=''.join('<tr>'+cells(r,'td')+'</tr>' for r in grid[1:])
             boxes+=f'<section class="example"><h3>{escape(caption)}</h3><table><thead><tr>{cells(grid[0],"th")}</tr></thead><tbody>{body}</tbody></table></section>'
-        articles.append(f'<article class="reader" id="{code}" hidden><nav class="toolbar"><a href="#">All protocols</a>{links(t)}</nav><header><div class="category">{escape(name)} · {code}</div><h1 tabindex="-1">{title}</h1><p class="route">{escape(t["route"])}</p></header><p class="lead">{escape(t["lead"])}</p><ol class="steps">{steps}</ol>{boxes}<section class="check"><h3>Before you finish</h3><p>{escape(t["check"])}</p></section><footer>Oon Jai Company Limited · {edition}</footer></article>')
+        articles.append(f'<article class="reader" id="{code}" hidden><nav class="toolbar"><a href="#">All protocols</a>{links(t)}</nav><header><div class="category">{escape(name)} · {code}</div><h1 tabindex="-1">{title}</h1><p class="route">{escape(t["route"])}</p></header><p class="lead">{escape(t["lead"])}</p><ol class="steps">{steps}</ol>{boxes}<section class="check"><h3>Before you finish</h3><p>{topic_refs(t["check"])}</p></section><footer>Oon Jai Company Limited · {t.get("revised", previous_edition)}</footer></article>')
     indexes.append(f'<section data-area="{escape(name)}"><h2>{escape(name)}</h2><ul class="topic-list">{"".join(rows)}</ul></section>')
-html=(root/'reader-template.html').read_text().replace('[[INDEX]]','\n'.join(indexes)).replace('[[ARTICLES]]','\n'.join(articles)).replace('[[OPTIONS]]',''.join(f'<option>{escape(name)}</option>' for name in groups))
+html=(root/'reader-template.html').read_text().replace('[[EDITION]]',edition).replace('[[INDEX]]','\n'.join(indexes)).replace('[[ARTICLES]]','\n'.join(articles)).replace('[[OPTIONS]]',''.join(f'<option>{escape(name)}</option>' for name in groups))
 (root/'index.html').write_text(html)
 
 W,H=A4
@@ -100,13 +111,13 @@ def header(c,section):
     label(c,left,H-40,'OON JAI COMPANY LIMITED','Helvetica-Bold',9,forest)
     c.setFillColor(color(muted));c.setFont('Helvetica',9);c.drawRightString(right,H-40,section)
     line(c,left,H-52,right)
-def footer(c,number=None,back=None):
+def footer(c,number=None,back=None,date=edition):
     line(c,left,45,right)
     if back:
         label(c,left,28,'Contents','Helvetica-Bold',9,forest)
         c.linkRect('Back to contents',back,(left-4,20,left+67,41),relative=0,thickness=0)
     else:label(c,left,28,'Accounting protocols','Helvetica',9,muted)
-    c.setFillColor(color(muted));c.setFont('Helvetica',9);c.drawCentredString(W/2,28,edition)
+    c.setFillColor(color(muted));c.setFont('Helvetica',9);c.drawCentredString(W/2,28,date)
     c.drawRightString(right,28,str(number) if number else 'Protocol reference')
 def panel(c,y,title,body,tint=pale):
     end=paragraph(c,left+14,y-28,body,width-28,11.2,15.5,draw=False)
@@ -130,8 +141,9 @@ def topic_page(c,t,single=False):
         caption,grid=t['table']
         label(c,left,y-9,caption,'Helvetica-Bold',10.5,forest);y-=17
         widths=([width*.48,width*.26,width*.26] if len(grid[0])==3 else [width*.34,width*.22,width*.22,width*.22])
+        padding=3 if len(grid)>10 else 5
         table=Table(grid,colWidths=widths)
-        table.setStyle(TableStyle([('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),('FONTSIZE',(0,0),(-1,-1),10),('TEXTCOLOR',(0,0),(-1,-1),color(ink)),('BACKGROUND',(0,0),(-1,0),color(pale)),('ALIGN',(1,0),(-1,-1),'RIGHT'),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,color('#F7F9F5')]),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
+        table.setStyle(TableStyle([('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),('FONTSIZE',(0,0),(-1,-1),10),('TEXTCOLOR',(0,0),(-1,-1),color(ink)),('BACKGROUND',(0,0),(-1,0),color(pale)),('ALIGN',(1,0),(-1,-1),'RIGHT'),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,color('#F7F9F5')]),('TOPPADDING',(0,0),(-1,-1),padding),('BOTTOMPADDING',(0,0),(-1,-1),padding)]))
         _,h=table.wrap(width,H);y-=h;table.drawOn(c,left,y);y-=12
     for k,v in t['boxes']:y=panel(c,y,k,v)
     y=panel(c,y,'Before you finish',t['check'],sand)
@@ -140,14 +152,14 @@ def topic_page(c,t,single=False):
         if y>=62:
             label(c,left,y-7,'Source: PwC Lao PDR · Individual · Other taxes','Helvetica',9,forest)
             c.linkURL(public_source,(left,y-14,left+210,y+4),relative=0,thickness=0)
-    footer(c,None if single else t['page'],None if single else ('contents-1' if t['page']<18 else 'contents-2'))
+    footer(c,None if single else t['page'],None if single else ('contents-1' if t['group'] in list(groups)[:3] else 'contents-2'),t.get('revised',previous_edition) if single else edition)
     c.showPage()
 def contents(c,num,names):
     key='contents-'+str(num);c.bookmarkPage(key);c.addOutlineEntry('Contents · '+('Journal and operations' if num==1 else 'Payroll and closing'),key,0)
     header(c,'Operating handbook')
     label(c,left,H-83,'CONTENTS    /    '+str(num)+' OF 2','Helvetica-Bold',10,forest)
     y=paragraph(c,left,H-96,'Accounting protocols' if num==1 else 'Payroll and closing',size=33,leading=38,font='Times-Bold')-5
-    y=paragraph(c,left,y,'Select a procedure to open its page. Each procedure is also available in Settings.',size=11.5,leading=16,tint=muted)-14
+    y=paragraph(c,left,y,'Select a procedure to open its page. The in-app reader also offers a separate PDF for each topic.',size=11.5,leading=16,tint=muted)-14
     for name in names:
         label(c,left,y-11,name,'Helvetica-Bold',13,forest)
         y-=19
@@ -163,7 +175,7 @@ def contents(c,num,names):
     c.linkRect('Other contents page','contents-'+str(3-num),(left,y-17,left+250,y+3),relative=0,thickness=0)
     if num==1:
         y-=35
-        y=paragraph(c,left,y,'Edition of 8 November 2026. Based on the 29 October journal protocol and Oon Jai Accounting workflows through v143.315. Examples are illustrative. Use the chart and policies saved for the period.',size=10.4,leading=14,tint=muted)-5
+        y=paragraph(c,left,y,'Generate Journal and the account guide reflect v143.387. Examples are illustrative. Use the chart and policies saved for the period.',size=10.4,leading=14,tint=muted)-5
         label(c,left,y-9,'Rate reference · PwC Lao PDR, Individual – Other taxes (7 August 2026)','Helvetica',9,forest)
         c.linkURL(public_source,(left,y-14,right,y+2),relative=0,thickness=0)
     footer(c,num);c.showPage()
