@@ -148,15 +148,18 @@ function detailedOverview(){
  const overviewCards=chartReady?`<section class="overview-summary"><header><h2>Monthly activity</h2><small>${esc(labelMonth(state.month))} · ${esc(state.currency)}</small></header><div class="overview-metrics">${['revenue','otherIncome','cogs','operating','support'].map(metric).join('')}</div><footer class="overview-result"><span>Net income for ${esc(labelMonth(state.month))}</span><strong>${esc(money(income==null||expense==null?null:income-expense))}</strong></footer></section>`:'';
  return overviewCards+directory('Explore your accounts',Object.keys(classes))+`<div class="dash-bottom112">${allowed('transactions-all')?journal():''}${allowed('transactions-recurring')?obligations():''}</div>`;
 }
-function welcome(){
+function welcome(business,first,filters){
  const quick=[['journal','Open journal','doc'],['Overview','View overview','bank'],['Graphs','Compare graphs','revenue']];
  const links=quick.filter(([k])=>k==='Overview'||(k==='Graphs'?allowed('sec-chart-accounts'):allowed(k))).map(([target,label,mark])=>
-  `<button type="button" ${target==='journal'?'data-go112':'data-dash-open'}="${target}"><span>${icon(mark)}</span>${esc(label)} ${icon('arrow')}</button>`).join('');
+  `<button type="button" ${target==='journal'?'data-go112':'data-dash-open'}="${target}">${icon(mark)} ${esc(label)}</button>`).join('');
  const financial=allowed('sec-chart-accounts')&&model.entries.length;
  const current=allowed('transactions-recurring')&&upcoming().find(row=>row.nextDate>=appLocalDate());
- const focus=allowed('transactions-recurring')&&current?`<button type="button" class="welcome-focus" data-go112="transactions-recurring"><small>Next on the calendar</small><strong>${esc(current.memo||'Scheduled entry')}</strong><span>${date(current.nextDate)}</span></button>`:'';
- return `<div class="welcome-layout"><section class="welcome-start"><h2>Your workspace</h2><div class="welcome-links">${links}</div></section>
- ${financial?`<section class="welcome-glance"><small>${esc(labelMonth(state.month))} · ${esc(state.currency)}</small><h2>Month at a glance</h2><dl>${[['income','Income'],['expense','Expenses']].map(([id,label])=>`<div><dt>${label}</dt><dd>${esc(money(amount(id)))}</dd></div>`).join('')}</dl></section>`:''}${focus}</div>`;
+ const focus=current?`<button type="button" class="welcome-focus" data-go112="transactions-recurring">${icon('calendar')} <span>Next on the calendar</span> <strong>${esc(current.memo||'Scheduled entry')}</strong> <time>${date(current.nextDate)}</time></button>`:'';
+ return `<section class="dash-hero112 welcome-cover">
+  <img class="welcome-photo" src="assets/dashboard/vientiane-terrace.webp" width="1485" height="1059" alt="Lantern-lit garden terrace overlooking Patuxai at dusk">
+  <div class="welcome-intro"><small>${esc(business)}</small><h1>${first?'Welcome back,':'Welcome to'} <span>${esc(first||business)}</span></h1>
+  <p>${esc(formatAppDate(appLocalDate()))}</p><nav class="welcome-actions" aria-label="Workspace shortcuts">${links}</nav></div></section>
+  ${financial?`<section class="welcome-glance"><div><h2>Month at a glance</h2>${filters}</div><dl>${[['income','Income'],['expense','Expenses']].map(([id,label])=>`<div><dt>${label}</dt><dd>${esc(money(amount(id)))}</dd></div>`).join('')}</dl></section>`:''}${focus}`;
 }
 const graphs=window.createLedgerGraphs({owner,allowed,state,money,esc,valueFor,flowAccount,groups,render,model:getModel});
 function selectDashboardTab(tab){
@@ -176,10 +179,11 @@ function render(){
   const business=signed&&BusinessSettings.current.companyName||'Oon Jai Marketplace';
   const heading=current==='Home'?(first?'Welcome back, '+first:'Welcome to '+business):current==='Operation'?'Operations':current;
   const currencyList=[...new Set(['LAK','USD','THB',...model.entries.filter(r=>r.posting).map(r=>r.a.currency),...(typeof CurrencyStore==='undefined'?[]:CurrencyStore.currencies.map(c=>c.code))])].filter(c=>c&&c!=='NA'&&c!=='__PARENT__');
+  const filters=`<div class="dash-hero-controls112"><label>${icon('calendar')} Month <input type="month" data-month112 value="${esc(state.month)}"></label><label>Currency <select data-currency112>${currencyList.map(c=>`<option value="${esc(c)}" ${state.currency===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label></div>`;
   host.innerHTML=`<div class="dash-shell112" data-dash-view="${esc(current)}"><nav class="dash-tabs112" role="tablist" aria-label="Overview views">${tabs.filter(t=>t!=='Graphs'||allowed('sec-chart-accounts')).map(t=>`<button role="tab" data-tab112="${t}" aria-selected="${t===current}" type="button">${t==='Operation'?'Operations':t}</button>`).join('')}</nav>
-  <div class="dash-content112"><section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons by month':esc(labelMonth(state.month))+' accounting overview'}</p></div>
-  <div class="dash-hero-controls112"><label>${icon('calendar')} Month <input type="month" data-month112 value="${esc(state.month)}"></label><label>Currency <select data-currency112>${currencyList.map(c=>`<option value="${esc(c)}" ${state.currency===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label></div></section>
-  ${signed?(current==='Home'?welcome():current==='Overview'?detailedOverview():current==='Graphs'?graphs.view(model):secondary()):'<p class="dash-empty112">Sign in to see your overview.</p>'}</div></div>`;
+  <div class="dash-content112">${current==='Home'&&signed?welcome(business,first,filters):`<section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons by month':esc(labelMonth(state.month))+' accounting overview'}</p></div>
+  ${filters}</section>
+  ${signed?(current==='Overview'?detailedOverview():current==='Graphs'?graphs.view(model):secondary()):'<p class="dash-empty112">Sign in to see your overview.</p>'}`}</div></div>`;
   graphs.mount(host,current==='Graphs'&&signed);
   host.style.setProperty('--dash-zoom112',String(state.zoom));document.body.classList.toggle('dash-active112',host.classList.contains('active'));window.updateDashboardDock112?.();
  }finally{model=null}

@@ -5132,23 +5132,40 @@ body #dashboard .overview-grid .overview-category-amount{display:flex;align-item
 .overview-documents{list-style:none;margin:0;padding:0}.overview-documents li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #e2e7db}
 body #dashboard .overview-result{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 2px 0;color:#315540;font-size:12px}body #dashboard .overview-result strong{font-variant-numeric:tabular-nums}
 /* The landing page keeps the welcome and the few next actions in the foreground. */
-#dashboard .welcome-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(235px,.85fr);gap:14px;align-items:stretch}
-#dashboard .welcome-layout :is(.welcome-start,.welcome-glance,.welcome-focus){padding:clamp(18px,2.1vw,32px);border:1px solid #d6ddcb;border-radius:12px;background:#fffdf6;color:#204836}
-#dashboard .welcome-layout h2,#dashboard .graph-toolbar h2{margin:0 0 14px;color:#1d4935;font:600 clamp(19px,2vw,27px)/1.15 Georgia,serif}
-#dashboard .welcome-layout .welcome-start{border-top:3px solid #426b50}
-#dashboard .welcome-layout .welcome-glance{background:#214b39;color:#f7f4e8;border-color:#214b39}
-#dashboard .welcome-glance h2{color:#fffaf0;margin:5px 0 14px}
-#dashboard .welcome-glance>small{color:#d7dbbb;font-size:11px;letter-spacing:.04em}
-#dashboard .welcome-glance dl{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0}
-#dashboard .welcome-glance dt{font-size:12px;color:#d3e3d4}
-#dashboard .welcome-glance dd{margin:4px 0 0;font:600 clamp(16px,1.7vw,24px)/1.2 Georgia,serif;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-#dashboard .welcome-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-#dashboard .welcome-links button{display:flex;min-width:0;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px;border-radius:8px;border:1px solid #d7dfce;background:#f5f6ee;color:#285840;text-align:left;font-size:13px;font-weight:600;line-height:1.3;cursor:pointer}
-#dashboard .welcome-links button span{flex-basis:100%;padding-bottom:4px}
-#dashboard .welcome-links button span svg{width:23px;height:23px}#dashboard .welcome-links button>svg{width:14px;height:14px}
-#dashboard .welcome-links button:hover{background:#e9f0e4;border-color:#8ea78d}
-#dashboard .welcome-layout .welcome-focus{grid-column:1/-1;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;padding:12px 18px}
-#dashboard .welcome-focus span{margin-left:auto}
+/* A photographic welcome and a quiet, separate monthly glance. */
+html body #dashboard .dash-shell112[data-dash-view=Home] .dash-content112{gap:14px!important}
+html body #dashboard .dash-shell112 .dash-hero112.welcome-cover{
+ position:relative;isolation:isolate;display:grid!important;grid-template-columns:minmax(0,1fr);justify-content:stretch!important;align-items:center!important;align-content:center!important;
+ padding:clamp(28px,4vw,68px)!important;box-sizing:border-box;height:auto!important;min-height:clamp(350px,56vh,580px)!important;
+ border:0!important;border-radius:12px!important;overflow:hidden;background:#153b30!important;color:#fff9e8;
+}
+html body #dashboard .welcome-cover .welcome-photo{position:absolute;z-index:-2;inset:0 0 0 auto;width:73%;height:100%;object-fit:cover;object-position:55% 57%;display:block}
+html body #dashboard .dash-hero112.welcome-cover:before{z-index:-1;background:linear-gradient(90deg,#153b30 0%,#153b30 28%,#153b30de 38%,#153b305a 54%,transparent 68%)!important}
+html body #dashboard .welcome-cover .welcome-intro{position:relative;z-index:1;max-width:62%}
+html body #dashboard .welcome-cover .welcome-intro>small{font-size:11px;line-height:1.5;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#edcea1}
+html body #dashboard .dash-hero112.welcome-cover .welcome-intro h1{display:block!important;color:#fff9e8!important;font:400 clamp(40px,5.2vw,82px)/1.06 Georgia,serif!important;letter-spacing:-.035em;margin:18px 0 12px!important;overflow-wrap:anywhere}
+html body #dashboard .welcome-cover h1 span{display:block;color:#f1d9ab}
+html body #dashboard .welcome-cover h1 svg{display:none!important}
+html body #dashboard .welcome-cover .welcome-intro p{font:400 15px/1.5 Arial,sans-serif;color:#e1e7da}
+#dashboard .welcome-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:clamp(22px,3.4vw,44px)}
+html body #dashboard .welcome-actions button{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;border:1px solid #c6d1b8a8;background:#153b30e8;color:#fff9e8;font-size:12px;font-weight:650;cursor:pointer}
+html body #dashboard .welcome-actions button:first-child{background:#f3e8c8;border-color:#f3e8c8;color:#193e31}
+#dashboard .welcome-actions button:hover{filter:brightness(1.12)}
+#dashboard .welcome-actions button svg,#dashboard .welcome-focus svg{width:16px;height:16px;flex:none}
+html body #dashboard .welcome-glance{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:12px 16px;background:#fafaf3;border:1px solid #dddccc;border-radius:9px;color:#294438}
+#dashboard .welcome-glance>div{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+#dashboard .welcome-glance h2,#dashboard .graph-toolbar h2{margin:0;color:#234e3a;font:600 21px/1.2 Georgia,serif}
+html body #dashboard .welcome-glance .dash-hero-controls112{position:static!important;inset:auto!important;width:auto!important;max-width:100%!important;justify-content:flex-start!important;align-self:center!important}
+#dashboard .welcome-glance dl{display:flex;flex-wrap:wrap;gap:clamp(22px,4vw,60px);margin:0}
+#dashboard .welcome-glance dt{font-size:11px;color:#5d6d60}
+#dashboard .welcome-glance dd{margin:3px 0 0;font:600 17px/1.2 Georgia,serif;font-variant-numeric:tabular-nums}
+#dashboard .welcome-focus{display:flex;align-items:center;flex-wrap:wrap;gap:10px;justify-self:start;padding:9px 13px;border:1px solid #dcdccd;border-radius:7px;background:#fffdf6;color:#28513b;cursor:pointer}
+@media(max-width:780px){
+ html body #dashboard .dash-shell112 .dash-hero112.welcome-cover{min-height:360px!important}
+ html body #dashboard .welcome-cover .welcome-photo{width:100%}
+ html body #dashboard .dash-hero112.welcome-cover:before{background:linear-gradient(90deg,#102e25f2,#102e25b3 45%,#102e250a 100%)!important}
+ html body #dashboard .welcome-cover .welcome-intro{max-width:86%}
+}
 #dashboard .graph-workspace{color:#213d31;min-width:0}
 #dashboard .graph-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:3px 0 12px}
 #dashboard .graph-toolbar h2{margin:0;font-size:21px}
@@ -5202,7 +5219,23 @@ dialog.graph-dialog{box-sizing:border-box;width:min(520px,calc(100vw - 20px));pa
 .graph-dialog input{accent-color:#286244}.graph-dialog footer{justify-content:flex-end;border-top:1px solid #d7dfce}
 .graph-dialog [data-error]{margin:0;color:#8d3c25}.graph-dialog [data-error]:empty{display:none}
 .graph-dialog .graph-remove{justify-self:start;color:#88412e}
-@media(max-width:780px){#dashboard .graph-board,#dashboard .graph-board.main-left{grid-template-columns:1fr;grid-template-areas:"primary" "stack"}#dashboard .graph-main .graph-plot{height:225px}#dashboard .welcome-layout{grid-template-columns:1fr}#dashboard .welcome-focus{flex-wrap:wrap}}
+@media(max-width:780px){#dashboard .graph-board,#dashboard .graph-board.main-left{grid-template-columns:1fr;grid-template-areas:"primary" "stack"}#dashboard .graph-main .graph-plot{height:225px}}
+/* The native dialog shares the same visible-viewport coordinates as other editors. */
+html:root body dialog.graph-dialog[open]{position:fixed!important;inset:auto!important;left:var(--feedback-x14295,50%)!important;top:var(--feedback-y14295,50%)!important;margin:0!important;transform:translate(-50%,-50%)!important;max-width:calc(var(--feedback-width14295,100vw) - 24px)!important;max-height:calc(var(--feedback-height14295,100dvh) - 24px)!important}
+html:root body .graph-dialog form{max-height:min(85dvh,calc(var(--feedback-height14295,100dvh) - 26px))}
+#dashboard .ledger-graph{box-sizing:border-box;position:relative;width:clamp(min(100%,220px),var(--card-width,100%),100%);padding-bottom:33px}
+#dashboard .ledger-graph.graph-main{padding-bottom:33px}
+#dashboard .graph-plot{height:var(--plot-height,126px)}
+#dashboard .graph-main .graph-plot{height:var(--plot-height,clamp(246px,31vw,350px))}
+#dashboard .graph-size{position:absolute;bottom:0;right:0;width:34px;height:32px;display:grid;place-items:center;border:0;border-radius:8px 0;background:transparent;color:#587863;cursor:nwse-resize;touch-action:none;user-select:none}
+#dashboard .graph-size svg{display:block;width:17px;height:17px}
+#dashboard .graph-size:is(:hover,:focus-visible),#dashboard .graph-resizing .graph-size{color:#1d5038;background:#e4ecdf}
+#dashboard .ledger-graph.graph-resizing{outline:2px solid #63886c;outline-offset:-1px}
+@media(min-width:781px){
+ #dashboard .graph-board:not(.single,.main-left) .graph-main,#dashboard .graph-board.main-left .graph-small{margin-left:auto}
+ #dashboard .graph-board:not(.single,.main-left) .graph-main .graph-size,#dashboard .graph-board.main-left .graph-small .graph-size{right:auto;left:0;cursor:nesw-resize;transform:scaleX(-1)}
+}
+@media(max-width:780px){#dashboard .graph-main .graph-plot{height:var(--plot-height,225px)}}
 
 /* styles/polish-v113.css */
 /* One shared rhythm and readable warm palette across the application. */

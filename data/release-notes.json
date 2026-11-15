@@ -1,7 +1,7 @@
 {
-  "version": "143.392",
+  "version": "143.393",
   "changes": [
-    "Home welcomes you with a brief monthly glance. Overview retains the full dashboard.",
-    "Graphs compares monthly income and expense activity with month-end balances and individual accounts. Add, arrange and resize graph cards and save the layout on this device."
+    "Home welcomes you with a lantern-lit Vientiane terrace and keeps the monthly glance below the picture.",
+    "Graph dialogs open in the center. Drag the corner of each graph to resize its width and height and keep your preferred size on this device."
   ]
 }

@@ -29,6 +29,11 @@ const create = require('./phase0-browser-fixture.cjs');
   await page.locator('#nav-module-dashboard .nav-header').click();
   assert.equal(await dash.locator('.welcome-glance dt').allTextContents().then(x=>x.join('/')),'Income/Expenses');
   assert.equal(await dash.locator('.overview-summary').count(),0);
+  await dash.locator('.welcome-photo').evaluate(img=>img.decode());
+  assert((await dash.locator('.welcome-cover').boundingBox()).height>300);
+  const glance=await dash.locator('.welcome-glance').boundingBox(),controls=await dash.locator('.welcome-glance .dash-hero-controls112').boundingBox();
+  assert(controls.y>=glance.y&&controls.y+controls.height<=glance.y+glance.height,'month controls belong to the glance');
+  assert((await dash.locator('.welcome-photo').boundingBox()).width>(await dash.locator('.welcome-cover').boundingBox()).width/2);
   await tab('Overview').click();await dash.locator('.overview-summary').waitFor();
   await tab('Graphs').click();
   if(await dash.locator('[data-month112]').inputValue()!=='2026-11'){
@@ -38,6 +43,42 @@ const create = require('./phase0-browser-fixture.cjs');
   assert.equal(await dash.locator('.ledger-graph').count(),3);
   const firstSmall=dash.locator('.graph-small').first();
   if(!process.env.PHASE0_DEVICE||process.env.PHASE0_DEVICE==='tablet')assert((await main.boundingBox()).x>(await firstSmall.boundingBox()).x);
+  async function assertCentered(){
+   await dialog.waitFor();
+   const offset=await dialog.evaluate(el=>{
+    const r=el.getBoundingClientRect(),v=visualViewport;
+    return [r.x+r.width/2-v.offsetLeft-v.width/2,r.y+r.height/2-v.offsetTop-v.height/2];
+   });
+   assert(offset.every(n=>Math.abs(n)<3),'Dialog center offset '+offset);
+  }
+  for(const action of ['edit','layout','add','move']){
+   await dash.locator('[data-graph-action="'+action+'"]').first().click();
+   await assertCentered();await dialog.getByRole('button',{name:'Close',exact:true}).click();
+  }
+  const corner=main.locator('.graph-size');
+  async function dragCorner(handle,dx,dy){
+   await handle.scrollIntoViewIfNeeded();const r=await handle.boundingBox(),x=r.x+r.width/2,y=r.y+r.height/2;
+   if(process.env.PHASE0_DEVICE==='tablet'){
+    const dev=await page.context().newCDPSession(page);
+    try{
+     await dev.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+     await dev.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx,y:y+dy}]});
+     await dev.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+    }finally{await dev.detach()}
+   }else{await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x+dx,y+dy,{steps:6});await page.mouse.up()}
+  }
+  const before=await main.boundingBox();
+  await dragCorner(corner,74,42);
+  const resized=await main.boundingBox();
+  assert(resized.width<before.width-58,'main width shrinks from its inside corner');
+  assert(resized.height>before.height+28,'main height increases');
+  const storedHeight=await main.locator('[data-graph-plot]').evaluate(el=>el.clientHeight);
+  await dash.locator('.graph-main [data-graph-action="edit"]').click();await dialog.getByRole('button',{name:'Save graph'}).click();
+  assert.equal(await main.locator('[data-graph-plot]').evaluate(el=>el.clientHeight),storedHeight);
+  const smallBefore=await firstSmall.boundingBox();
+  await dragCorner(firstSmall.locator('.graph-size'),42,-18);
+  const smallAfter=await firstSmall.boundingBox();
+  assert(smallAfter.width>smallBefore.width+23&&smallAfter.height<smallBefore.height-6,'small chart can grow beyond its starting column and shrink in height');
   const checkValues=async(name,index,amounts)=>{
    const card=dash.locator('.ledger-graph').filter({has:page.getByRole('heading',{name:new RegExp('^'+name+'$','i')})});
    const plot=card.locator('[data-graph-plot]');await plot.locator('svg').waitFor();await plot.focus();await plot.press('Home');
@@ -80,6 +121,9 @@ const create = require('./phase0-browser-fixture.cjs');
   await page.locator('#nav-module-dashboard .nav-header').click();await tab('Graphs').click();
   assert.equal(await dash.locator('.ledger-graph').count(),4);assert.equal(await dash.locator('.graph-board.main-left').count(),1);assert.equal(await dash.locator('[data-graph-period]').inputValue(),'3');
   assert.equal(await dash.locator('.graph-main li').count(),3);
+  assert.equal(await main.locator('[data-graph-plot]').evaluate(el=>el.clientHeight),storedHeight);
+  await main.locator('.graph-size').focus();await main.locator('.graph-size').press('ArrowDown');
+  assert.equal(await main.locator('[data-graph-plot]').evaluate(el=>el.clientHeight),storedHeight+16);
   await dash.getByRole('button',{name:'Move Monthly comparison'}).click();await dialog.getByRole('button',{name:'Remove graph'}).click();
   assert.equal(await dash.locator('.ledger-graph').count(),3);assert.deepEqual(errors,[]);
   console.log('PASS welcome, retained overview, monthly ledger series, negative values, multiple currencies, saved graphs, layout width and position, drag, touch controls and reload');

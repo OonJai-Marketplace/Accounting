@@ -11,7 +11,7 @@ window.createLedgerGraphs=function(context){
   result:{name:'Net income',lines:['net']}
  };
  const palette=['#186448','#ad5628','#365b9e','#89529a','#247483','#865819','#a54763','#545bbe'];
- const icons={grip:'M8 5h1m6 0h1M8 12h1m6 0h1M8 19h1m6 0h1',edit:'M4 20l4-1L20 7l-3-3L5 16l-1 4zM14 7l3 3',add:'M12 4v16M4 12h16',layout:'M3 4h18v16H3zM10 4v16M3 12h7'};
+ const icons={size:'M5 19 19 5M11 19l8-8M17 19l2-2',grip:'M8 5h1m6 0h1M8 12h1m6 0h1M8 19h1m6 0h1',edit:'M4 20l4-1L20 7l-3-3L5 16l-1 4zM14 7l3 3',add:'M12 4v16M4 12h16',layout:'M3 4h18v16H3zM10 4v16M3 12h7'};
  const icon=name=>`<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="${name==='grip'?3:1.7}" stroke-linecap="round" stroke-linejoin="round"><path d="${icons[name]}"/></svg>`;
  const make=(preset,id=crypto.randomUUID())=>({id,title:presets[preset].name,lines:[...presets[preset].lines]});
  const defaults=()=>({months:6,side:'right',width:63,cards:[make('performance','main'),make('cash','cash'),make('position','position')]});
@@ -34,11 +34,11 @@ window.createLedgerGraphs=function(context){
   }catch{}
   return board;
  }
- function changed(){
+ function persist(){
   if(!canView()||scope!==key())return;
   try{localStorage.setItem(scope,JSON.stringify(board))}catch{window.showCenterStatus?.('The graph layout is available for this session. Device storage could not save it.',true)}
-  render();
  }
+ function changed(){persist();render()}
  function periods(end,count){
   const last=new Date(end+'-01T12:00:00Z');
   return Array.from({length:count},(_,i)=>new Date(Date.UTC(last.getUTCFullYear(),last.getUTCMonth()+i+1-count,1)).toISOString().slice(0,7));
@@ -101,7 +101,8 @@ window.createLedgerGraphs=function(context){
    <button type="button" class="graph-edit" aria-label="Edit ${esc(c.title)}" data-graph-action="edit">${icon('edit')} Edit</button></header>
    <div class="graph-plot" data-graph-plot aria-label="${esc(c.title)} monthly line graph"></div>
    <div class="graph-readout"><div><span data-graph-month>${shortMonth(months.at(-1),true)}</span><span>${esc(state.currency)}</span></div>
-   <ul>${lines.map(s=>`<li>${swatch(s)}<span>${esc(s.label)}<small>${esc(s.basis)}</small></span><strong>${esc(money(s.data.at(-1)))}</strong></li>`).join('')}</ul></div></article>`;
+   <ul>${lines.map(s=>`<li>${swatch(s)}<span>${esc(s.label)}<small>${esc(s.basis)}</small></span><strong>${esc(money(s.data.at(-1)))}</strong></li>`).join('')}</ul></div>
+   <button type="button" class="graph-size" aria-label="Resize ${esc(c.title)}" title="Drag to resize. Arrow keys adjust the size. Home restores the default size.">${icon('size')}</button></article>`;
  }
  function view(m){
   const b=settings();plots=new Map();
@@ -172,7 +173,7 @@ window.createLedgerGraphs=function(context){
   const d=dialog(c?'Edit graph':'Add graph',form,root=>{
    const title=root.querySelector('[name=title]').value.trim();
    if(!title||!selected.size){root.querySelector('[data-error]').textContent=title?'Select at least one line.':'Enter a graph title.';return false}
-   const saved={id:draft.id,title,lines:[...selected]};if(c)board.cards[board.cards.indexOf(c)]=saved;else board.cards.push(saved);
+   const saved={...draft,title,lines:[...selected]};if(c)board.cards[board.cards.indexOf(c)]=saved;else board.cards.push(saved);
   },c?'Save graph':'Add graph');
   const f=d.querySelector('form'),options=d.querySelector('.graph-options'),search=d.querySelector('[data-graph-search]');
   const all=[...catalog.values()];
@@ -229,10 +230,75 @@ window.createLedgerGraphs=function(context){
   button.onpointerup=end;button.onpointercancel=e=>end(e,true);
   button.onclick=e=>{e.stopPropagation();if(suppress){suppress=false;return}move(card.dataset.graphId)};
  }
+ // Use the corner facing the other column. The outer edge stays anchored while dragging.
+ function bindSize(button){
+  const card=button.closest('[data-graph-id]'),plot=card.querySelector('[data-graph-plot]');
+  const grid=card.closest('.graph-board'),column=card.parentElement;
+  const item=board.cards.find(c=>c.id===card.dataset.graphId);
+  const main=card.classList.contains('graph-main');
+  const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+  let start=null,draft=null;
+  function begin(){
+   if(!canView()||scope!==key())return false;
+   const stacked=getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length===1;
+   const fromLeft=!stacked&&(main?board.side==='right':board.side==='left');
+   const scale=grid.getBoundingClientRect().width/grid.offsetWidth||1;
+   start={fromLeft,stacked,scale,available:grid.clientWidth-(stacked?0:parseFloat(getComputedStyle(grid).columnGap)),
+    column:column.clientWidth,width:card.getBoundingClientRect().width/scale,height:plot.clientHeight,
+    split:board.width,actor:scope};
+   return true;
+  }
+  function preview(dx,dy){
+   const wanted=start.width+(start.fromLeft?-dx:dx)/start.scale;
+   let split=start.split,space=start.column;
+   if(!start.stacked&&wanted>space){
+    const share=wanted*100/start.available;
+    split=clamp(main?share:100-share,40,75);
+    space=start.available*(main?split:100-split)/100;
+   }
+   const width=clamp(wanted,Math.min(220,space),space);
+   const height=clamp(Math.round(start.height+dy/start.scale),96,850);
+   draft={widthPercent:Math.round(width*10000/space)/100,plotHeight:height,split};
+   grid.style.setProperty('--graph-main',split+'fr');grid.style.setProperty('--graph-side',(100-split)+'fr');
+   card.style.setProperty('--card-width',draft.widthPercent+'%');card.style.setProperty('--plot-height',height+'px');
+  }
+  function end(commit){
+   if(!start)return;
+   card.classList.remove('graph-resizing');
+   if(draft&&start.actor===key()&&canView()){
+    if(commit){item.widthPercent=draft.widthPercent;item.plotHeight=draft.plotHeight;board.width=draft.split;persist()}
+    else{grid.style.setProperty('--graph-main',board.width+'fr');grid.style.setProperty('--graph-side',(100-board.width)+'fr');applySize(card,item)}
+   }
+   start=null;draft=null;
+  }
+  button.onpointerdown=e=>{
+   if(!e.isPrimary||e.button!==0||!begin())return;
+   e.preventDefault();start.x=e.clientX;start.y=e.clientY;start.pointer=e.pointerId;
+   button.setPointerCapture(e.pointerId);card.classList.add('graph-resizing');
+  };
+  button.onpointermove=e=>{if(start?.pointer===e.pointerId)preview(e.clientX-start.x,e.clientY-start.y)};
+  button.onpointerup=e=>{if(start?.pointer===e.pointerId){if(draft)preview(e.clientX-start.x,e.clientY-start.y);end(true)}};
+  button.onlostpointercapture=button.onpointercancel=()=>end(false);
+  button.onkeydown=e=>{
+   if(start||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(e.key)||!begin())return;
+   e.preventDefault();e.stopPropagation();
+   if(e.key==='Home'){delete item.widthPercent;delete item.plotHeight;applySize(card,item);start=null;persist();return}
+   const step=16*start.scale;
+   preview(e.key==='ArrowLeft'?-step:e.key==='ArrowRight'?step:0,e.key==='ArrowUp'?-step:e.key==='ArrowDown'?step:0);end(true);
+  };
+  applySize(card,item);
+ }
+ function applySize(card,item){
+  if(Number.isFinite(item.widthPercent))card.style.setProperty('--card-width',Math.max(1,Math.min(100,item.widthPercent))+'%');
+  else card.style.removeProperty('--card-width');
+  if(Number.isFinite(item.plotHeight))card.style.setProperty('--plot-height',Math.max(96,Math.min(850,item.plotHeight))+'px');
+  else card.style.removeProperty('--plot-height');
+ }
  function mount(parent,active){
   resize?.disconnect();resize=null;host=parent;if(!active){if(popup?.open)popup.close();return}
   const root=parent.querySelector('.graph-workspace');if(!root)return;
   root.querySelectorAll('.graph-grip').forEach(bindGrip);
+  root.querySelectorAll('.graph-size').forEach(bindSize);
   root.onclick=e=>{const action=e.target.closest('[data-graph-action]')?.dataset.graphAction;if(!action||!canView())return;
    if(action==='add')edit();else if(action==='edit')edit(e.target.closest('[data-graph-id]').dataset.graphId);else if(action==='layout')layout();
   };
@@ -393,15 +459,18 @@ function detailedOverview(){
  const overviewCards=chartReady?`<section class="overview-summary"><header><h2>Monthly activity</h2><small>${esc(labelMonth(state.month))} · ${esc(state.currency)}</small></header><div class="overview-metrics">${['revenue','otherIncome','cogs','operating','support'].map(metric).join('')}</div><footer class="overview-result"><span>Net income for ${esc(labelMonth(state.month))}</span><strong>${esc(money(income==null||expense==null?null:income-expense))}</strong></footer></section>`:'';
  return overviewCards+directory('Explore your accounts',Object.keys(classes))+`<div class="dash-bottom112">${allowed('transactions-all')?journal():''}${allowed('transactions-recurring')?obligations():''}</div>`;
 }
-function welcome(){
+function welcome(business,first,filters){
  const quick=[['journal','Open journal','doc'],['Overview','View overview','bank'],['Graphs','Compare graphs','revenue']];
  const links=quick.filter(([k])=>k==='Overview'||(k==='Graphs'?allowed('sec-chart-accounts'):allowed(k))).map(([target,label,mark])=>
-  `<button type="button" ${target==='journal'?'data-go112':'data-dash-open'}="${target}"><span>${icon(mark)}</span>${esc(label)} ${icon('arrow')}</button>`).join('');
+  `<button type="button" ${target==='journal'?'data-go112':'data-dash-open'}="${target}">${icon(mark)} ${esc(label)}</button>`).join('');
  const financial=allowed('sec-chart-accounts')&&model.entries.length;
  const current=allowed('transactions-recurring')&&upcoming().find(row=>row.nextDate>=appLocalDate());
- const focus=allowed('transactions-recurring')&&current?`<button type="button" class="welcome-focus" data-go112="transactions-recurring"><small>Next on the calendar</small><strong>${esc(current.memo||'Scheduled entry')}</strong><span>${date(current.nextDate)}</span></button>`:'';
- return `<div class="welcome-layout"><section class="welcome-start"><h2>Your workspace</h2><div class="welcome-links">${links}</div></section>
- ${financial?`<section class="welcome-glance"><small>${esc(labelMonth(state.month))} · ${esc(state.currency)}</small><h2>Month at a glance</h2><dl>${[['income','Income'],['expense','Expenses']].map(([id,label])=>`<div><dt>${label}</dt><dd>${esc(money(amount(id)))}</dd></div>`).join('')}</dl></section>`:''}${focus}</div>`;
+ const focus=current?`<button type="button" class="welcome-focus" data-go112="transactions-recurring">${icon('calendar')} <span>Next on the calendar</span> <strong>${esc(current.memo||'Scheduled entry')}</strong> <time>${date(current.nextDate)}</time></button>`:'';
+ return `<section class="dash-hero112 welcome-cover">
+  <img class="welcome-photo" src="assets/dashboard/vientiane-terrace.webp" width="1485" height="1059" alt="Lantern-lit garden terrace overlooking Patuxai at dusk">
+  <div class="welcome-intro"><small>${esc(business)}</small><h1>${first?'Welcome back,':'Welcome to'} <span>${esc(first||business)}</span></h1>
+  <p>${esc(formatAppDate(appLocalDate()))}</p><nav class="welcome-actions" aria-label="Workspace shortcuts">${links}</nav></div></section>
+  ${financial?`<section class="welcome-glance"><div><h2>Month at a glance</h2>${filters}</div><dl>${[['income','Income'],['expense','Expenses']].map(([id,label])=>`<div><dt>${label}</dt><dd>${esc(money(amount(id)))}</dd></div>`).join('')}</dl></section>`:''}${focus}`;
 }
 const graphs=window.createLedgerGraphs({owner,allowed,state,money,esc,valueFor,flowAccount,groups,render,model:getModel});
 function selectDashboardTab(tab){
@@ -421,10 +490,11 @@ function render(){
   const business=signed&&BusinessSettings.current.companyName||'Oon Jai Marketplace';
   const heading=current==='Home'?(first?'Welcome back, '+first:'Welcome to '+business):current==='Operation'?'Operations':current;
   const currencyList=[...new Set(['LAK','USD','THB',...model.entries.filter(r=>r.posting).map(r=>r.a.currency),...(typeof CurrencyStore==='undefined'?[]:CurrencyStore.currencies.map(c=>c.code))])].filter(c=>c&&c!=='NA'&&c!=='__PARENT__');
+  const filters=`<div class="dash-hero-controls112"><label>${icon('calendar')} Month <input type="month" data-month112 value="${esc(state.month)}"></label><label>Currency <select data-currency112>${currencyList.map(c=>`<option value="${esc(c)}" ${state.currency===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label></div>`;
   host.innerHTML=`<div class="dash-shell112" data-dash-view="${esc(current)}"><nav class="dash-tabs112" role="tablist" aria-label="Overview views">${tabs.filter(t=>t!=='Graphs'||allowed('sec-chart-accounts')).map(t=>`<button role="tab" data-tab112="${t}" aria-selected="${t===current}" type="button">${t==='Operation'?'Operations':t}</button>`).join('')}</nav>
-  <div class="dash-content112"><section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons by month':esc(labelMonth(state.month))+' accounting overview'}</p></div>
-  <div class="dash-hero-controls112"><label>${icon('calendar')} Month <input type="month" data-month112 value="${esc(state.month)}"></label><label>Currency <select data-currency112>${currencyList.map(c=>`<option value="${esc(c)}" ${state.currency===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label></div></section>
-  ${signed?(current==='Home'?welcome():current==='Overview'?detailedOverview():current==='Graphs'?graphs.view(model):secondary()):'<p class="dash-empty112">Sign in to see your overview.</p>'}</div></div>`;
+  <div class="dash-content112">${current==='Home'&&signed?welcome(business,first,filters):`<section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons by month':esc(labelMonth(state.month))+' accounting overview'}</p></div>
+  ${filters}</section>
+  ${signed?(current==='Overview'?detailedOverview():current==='Graphs'?graphs.view(model):secondary()):'<p class="dash-empty112">Sign in to see your overview.</p>'}`}</div></div>`;
   graphs.mount(host,current==='Graphs'&&signed);
   host.style.setProperty('--dash-zoom112',String(state.zoom));document.body.classList.toggle('dash-active112',host.classList.contains('active'));window.updateDashboardDock112?.();
  }finally{model=null}
