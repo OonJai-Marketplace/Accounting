@@ -133,17 +133,28 @@ def topic_page(c,t,single=False):
     y=paragraph(c,left,H-96,t['title'],size=29,leading=32,font='Times-Bold')-10
     y=paragraph(c,left,y,t['route'],size=10.5,leading=14,tint=muted)-14
     y=paragraph(c,left,y,t['lead'],size=14.2,leading=18.5,font='Times-Italic')-17
+    step_gap=6 if t['code']=='F02' else 11
     for n,(title,body) in enumerate(t['steps'],1):
         label(c,left,y-10,f'{n:02d}','Helvetica-Bold',10,forest)
         y=paragraph(c,left+29,y,title,width-29,12,15,font='Helvetica-Bold')-3
-        y=paragraph(c,left+29,y,body,width-29,11.6,15.8)-11
+        y=paragraph(c,left+29,y,body,width-29,11.6,15.8)-step_gap
     if 'table' in t:
         caption,grid=t['table']
         label(c,left,y-9,caption,'Helvetica-Bold',10.5,forest);y-=17
         widths=([width*.48,width*.26,width*.26] if len(grid[0])==3 else [width*.34,width*.22,width*.22,width*.22])
-        padding=3 if len(grid)>10 else 5
-        table=Table(grid,colWidths=widths)
-        table.setStyle(TableStyle([('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),('FONTSIZE',(0,0),(-1,-1),10),('TEXTCOLOR',(0,0),(-1,-1),color(ink)),('BACKGROUND',(0,0),(-1,0),color(pale)),('ALIGN',(1,0),(-1,-1),'RIGHT'),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,color('#F7F9F5')]),('TOPPADDING',(0,0),(-1,-1),padding),('BOTTOMPADDING',(0,0),(-1,-1),padding)]))
+        if len(grid)>10:
+            # Two side-by-side groups keep the existing topic on one printed page.
+            pairs=len(grid)//2
+            data=[grid[0]*2]
+            for i in range(pairs):
+                second=i+1+pairs
+                data.append(grid[i+1]+(grid[second] if second<len(grid) else ['']*4))
+            widths=[width*.275,width*.075,width*.075,width*.075]*2
+            table=Table(data,colWidths=widths)
+            table.setStyle(TableStyle([('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),('FONTSIZE',(0,0),(-1,-1),8.5),('LEADING',(0,0),(-1,-1),10),('LEFTPADDING',(0,0),(-1,-1),2),('RIGHTPADDING',(0,0),(-1,-1),2),('TEXTCOLOR',(0,0),(-1,-1),color(ink)),('BACKGROUND',(0,0),(-1,0),color(pale)),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,color('#F7F9F5')]),('TOPPADDING',(0,0),(-1,-1),2),('BOTTOMPADDING',(0,0),(-1,-1),2)]))
+        else:
+            table=Table(grid,colWidths=widths)
+            table.setStyle(TableStyle([('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),('FONTSIZE',(0,0),(-1,-1),10),('TEXTCOLOR',(0,0),(-1,-1),color(ink)),('BACKGROUND',(0,0),(-1,0),color(pale)),('ALIGN',(1,0),(-1,-1),'RIGHT'),('ROWBACKGROUNDS',(0,1),(-1,-1),[colors.white,color('#F7F9F5')]),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
         _,h=table.wrap(width,H);y-=h;table.drawOn(c,left,y);y-=12
     for k,v in t['boxes']:y=panel(c,y,k,v)
     y=panel(c,y,'Before you finish',t['check'],sand)

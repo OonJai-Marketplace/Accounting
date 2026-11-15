@@ -14,7 +14,7 @@ Write a usable description | Give the shared purpose once. Use line memos for it
 = Start with the event that occurred. A saved layout can be reused with new amounts, dates and evidence.
 Choose the layout | Select a saved template by name and permanent number, or choose a chart-backed starter. Read the rows before applying it. Use a salary accrual template for wages earned and a settlement template for wages already owed.
 Replace the changing fields | Enter this event’s date, counterparty, memo, amount, currency-specific accounts and rate evidence. Resolve every unassigned fund, employee or payable. Check the intended debit and credit directions.
-Review generated lines | Open Journal protocol inside Generate for the account list and rate rules. Review each foreign amount, its value in LAK at ER / VR, and its book value. Check any exchange, withholding or rounding lines against the source.
+Review generated lines | For the regular foreign accounts in F02, check the original amount and both LAK values. The regular line carries its recognition value. Verify each required exchange or withholding bridge, its book rate and any rounding before using the draft in Post Entry.
 Save or post | Saving a template retains its layout. A draft or generated preview can still be edited. Use the explicit posting action only after review and retain the confirmed journal ID.
 ~ Template choice | A supplier invoice already credited Accounts Payable. When the bank transfers the money, select settlement and debit that payable. A second purchase template would duplicate the expense.
 ! A balanced template can still use the wrong accounts. Check the ledger effect as well as the totals.
@@ -37,46 +37,11 @@ Correct with a trail | In an open book, use the authorized edit or void workflow
 ~ Duplicate check | Two equal purchases on the same day can both be valid. Compare supplier, receipt number, custodian and line details before deciding whether one is a duplicate.
 ! Never fill an older numbering gap by hand. Use the ID assigned by the app after confirmation.
 
-# J05 | Generate and review a journal
-* 15 November 2026
-> Bookkeeping / Journal / Generate Journal / Transaction template
-= Select the event you can document. Use the original currency and the accounts that actually received, owed or paid the money.
-Choose the event | Separate salary accrual from salary settlement, a prepaid purchase from its monthly release, and support received from support used. For a LAK-priced sale with THB tender, enter the actual THB received, LAK sale and LAK change separately.
-Enter rates | ER is the documented exchange rate. VR is the supported rate on the transaction date. Use the saved payroll rate for accrual. BR is the carrying rate of the particular fund, staff balance or prepaid lot. Rates are LAK per foreign unit.
-Generate and read both values | Review the original debit or credit, value at ER / VR and book value for each row. Check balance in each currency and in LAK at book value. Credits appear in parentheses in the LAK value columns. Keep the precision of rate inputs.
-Transfer the reviewed draft | Use in Post Entry copies the lines for review. Post Entry is the separate action that records a journal. A saved draft with an old layout may need its amounts checked against the source and its accounts reselected.
-~ Example · fee paid in USD | USD 10 at a dated rate of 23,000 records a fee of LAK 230,000. If the paying bank carries USD at 22,900, the book value released is LAK 229,000. The difference is a LAK 1,000 credit to 5419. The bridge clears the valuation difference.
-! Use J06 for the account codes, F02 for FX, P09 for salary settlement and S01 for prepaid releases.
-
-# J06 | Choose a regular foreign-currency account
-* 15 November 2026
-> Generate Journal / Transaction template and Account
-= Choose the column for the currency of the sale, expense or prepaid asset. Each regular account carries its own LAK value.
-Recognize once | Debit an expense or prepaid asset for a purchase. Credit income for a receipt. Settle an existing receivable, staff balance or payable against that balance. Use the actual cash, bank or clearing account on the other side.
-Read the chart | A dash means this list has no reviewed regular account for that combination. Check the source currency and the active chart. Historical mapping entries keep their original meaning.
-% Regular accounts by purpose and denomination | Purpose | LAK | USD | THB
-: Dine-in sales | 4010 | 4020 | 4021
-: External donations | 4110 | 4111 | 4112
-: House contributions | 4120 | 4121 | —
-: Other income | 4130 | 4131 | 4132
-: Food cost | 5010 | 5011 | 5012
-: Kitchen supplies | 5111 | 5121 | 5122
-: Restaurant rent expense | 5119 | — | 5123
-: Other operating expenses | 5120 | 5124 | —
-: Salaries | 5311 | 5316 | 5317
-: Employee benefits | 5315 | 5320 | 5321
-: Bank fees | 5414 | 5422 | 5423
-: Company house rent expense | 5421 | 5424 | —
-: Prepaid company house rent | 1310 | 1314 | —
-! A regular foreign account already contains the LAK valuation. A second LAK recognition and offset would duplicate the event. Owner support, currency exchange and payroll withholding have separate templates.
-
 @ Operating entries
 # O01 | Record sales, refunds and collections
-* 15 November 2026
 > Bookkeeping / Journal · POS closing and BCEL evidence
 = Classify receipts by who earned the money, the payment channel and the date the sale was recognized.
 Record verified sales | Reconcile the POS or invoice total by cash, QR/bank and credit. Debit the actual cash, bank or receivable and credit sales. Separate output VAT when the tax invoice and configured treatment require it.
-Price and tender | For a LAK-priced sale paid with THB, use the tender-and-change template. Enter the full THB received, the LAK sale and actual LAK change. A sale priced in THB uses 4021 for THB dine-in revenue.
 Settle receivables | For an invoice sale, debit the customer or platform receivable at recognition. When the customer pays, debit the receiving fund and credit that same receivable. Split any documented platform fee from the gross collection.
 Record reversals | Link a refund or credit note to its original sale, channel and tax treatment. Use the approved returns or discount account. For deposits received before earning revenue, credit a customer liability and release it when earned.
 Separate money held for others | Keep tips, consignment collections and other third-party proceeds in the relevant payable until settlement. Record only the earned commission or fee as Oon Jai income.
@@ -97,7 +62,7 @@ Record a later recovery | On the actual recovery date debit cash/bank and credit
 = Decide whether the item was consumed, held in stock, prepaid or capitalized, and whether it has already been paid.
 Recognize the purchase | Debit the supported expense, inventory, prepaid or fixed-asset account. Separate recoverable tax only where supported. Credit the actual cash/bank for immediate payment or the supplier payable for an unpaid invoice.
 Handle partial settlement | On the payment date debit the same supplier payable and credit the paying fund. Record invoice number, currency and amount settled so the remaining balance can be identified.
-Separate bank fees | Use the bank advice to split the fee from the principal. Debit 5414 for LAK, 5422 for USD or 5423 for THB. For a foreign fee, check its dated LAK value against the paying fund’s BR and review any realized FX.
+Separate bank fees | Split bank charges from supplier payments. Use 5414 for LAK, 5422 for USD and 5423 for THB. Check the dated value of a foreign fee, the paying fund’s BR and any realized FX.
 Handle employee purchases | If someone used personal funds, credit an employee reimbursement payable or approved clearing account. Match the later repayment to that balance. Check whether the cost was already recorded before entering a claim.
 ~ Supplier example · LAK | Invoice 600,000: debit supplies 600,000 and credit supplier payable 600,000. Pay 400,000: debit payable and credit bank 400,000. The unpaid invoice balance is 200,000.
 ! The expense or asset should appear once. The payable should explain exactly what remains unpaid.
@@ -111,13 +76,12 @@ Track fund allocations | Record approved limits or budget allocations in their o
 ~ Advance example · LAK | Issue 500,000. Receipts support 380,000 and the employee returns 120,000. The advance ledger shows a 500,000 debit and credits of 380,000 and 120,000.
 ! Check both fund ledgers and the employee balance. A transfer, budget or repaid advance has no sales-income effect.
 # O05 | Record owner support and designated funds
-* 15 November 2026
 > Bookkeeping / Journal · Funding and reimbursement evidence
 = The funding terms determine the credit side. Identify the beneficiary and repayment terms before selecting a template.
 Classify the receipt | For documented nonrepayable owner capital, debit the receiving fund and credit the approved equity account. For repayable support, credit the owner loan/payable. Keep money held for a named beneficiary in the designated liability.
 Record direct payments | If the owner paid a company supplier directly, debit the supported expense, asset or payable and credit owner funding under the agreement. Enter the bank account only if company cash actually moved.
 Split recoverable costs | If an employee owes part of an owner-funded purchase, identify the recoverable share separately. Preserve its original amount and carrying value, then record collections against that employee’s balance.
-Track support separately | Use Receive financial support or Use financial support for their approved purposes. Keep the existing equity treatment and purpose reference. A regular expense recognizes the purchase once. Check any monthly support allocation for prior recognition.
+Track restricted amounts | Keep funding receipts, uses and releases under the same purpose or beneficiary reference. For shared house costs distinguish the company’s rent, staff contributions and funds held for others.
 ~ Funding example · LAK | An owner pays a 900,000 company invoice directly under a documented loan. Debit the outstanding supplier payable 900,000 and credit the owner loan 900,000. The company bank balance stays the same.
 ! Reconcile the confirmed funding balance to the agreement, payment evidence and beneficiary schedule.
 # O06 | Record inventory and equipment
@@ -153,10 +117,24 @@ Record the evidence | Keep the Rate field numeric. Put ER/FX for actual, VR for 
 * 15 November 2026
 > Post Transaction / Generate · Reports / General Ledger
 = Follow the original currency and the LAK reporting effect through the same event.
-Recognize each event once | Use the regular foreign income, expense or prepaid account when listed in J06. The amount and its LAK value belong on that line. Older charts can use their configured mapping and offset. Keep distinct equity, exchange and payroll-withholding bridges.
-Trace the exchange | Compare the dated ER / VR with each monetary account’s own BR. Follow 9011 for USD or 9012 for THB and 9010 for LAK. Check the separate effect on the balance settled and the paying fund. Their net realized difference belongs on 5419.
-Classify the difference | Credit 5419 for a realized gain and debit it for a loss. Use the applicable rounding treatment only for a documented rounding difference. Check unresolved rates and missing accounts before transferring the draft.
-Review special cases | Same-currency transfers between funds may move carrying value. Foreign monetary accounts may require an approved period-end revaluation. Keep realized settlement and period-end revaluation schedules distinct from historical prepaid costs.
+Use the matching account | Recognize foreign income, expense and prepaid purchases directly on the regular account in the table. It already carries its LAK value. Preserve the existing owner-support equity mapping.
+Separate conversions and settlements | Compare the dated rate with each balance’s BR. Trace USD through 9011, THB through 9012 and LAK through 9010. Review both the settled balance and the paying fund.
+Classify the difference | Credit 5419 for a realized gain, debit it for a loss. Account for documented rounding separately.
+Review special cases | A transfer may carry book value. Use historical cost for prepaid releases and the approved procedure for revaluation.
+% Regular accounts by purpose and denomination | Purpose | LAK | USD | THB
+: Dine-in sales | 4010 | 4020 | 4021
+: External donations | 4110 | 4111 | 4112
+: House contributions | 4120 | 4121 | —
+: Other income | 4130 | 4131 | 4132
+: Food cost | 5010 | 5011 | 5012
+: Kitchen supplies | 5111 | 5121 | 5122
+: Restaurant rent expense | 5119 | — | 5123
+: Other operating expenses | 5120 | 5124 | —
+: Salaries | 5311 | 5316 | 5317
+: Employee benefits | 5315 | 5320 | 5321
+: Bank fees | 5414 | 5422 | 5423
+: Company house rent expense | 5421 | 5424 | —
+: Prepaid company house rent | 1310 | 1314 | —
 ~ LAK settlement example | A USD 100 payable carries at LAK 2,200,000. It is settled from a LAK bank account for 2,230,000. Debit payable carrying value 2,200,000 and FX loss 30,000. Credit bank 2,230,000. The generator may express these amounts through currency bridges.
 ! Verify original-currency balance, LAK result and bridge clearance. A zero overall journal difference alone cannot establish the correct gain or loss.
 # S01 | Purchase and amortize a prepaid item
@@ -166,7 +144,7 @@ Review special cases | Same-currency transfers between funds may move carrying v
 Record the purchase | Debit the correct prepaid asset and credit the actual paying fund. Retain the contract, coverage period, original currency and historical LAK basis. Identify restaurant rent, company house rent, Wi-Fi or another prepaid separately.
 Prepare the plan | From Post Entry, use Save as for an amortization plan where available. Select expense and prepaid accounts, first month, installments and allocation basis. Review the final remainder against the original balance.
 Post each due occurrence | After the prior month closes, open the due notice or Upcoming plan. Check the first-day journal date, service month, remaining balance and generated lines. Use Post explicitly. The confirmed occurrence uses the AMO series.
-Release the prepaid lot at cost | Debit expense and credit prepaid. Use 5110 / 1311 for LAK Wi-Fi, 5421 / 1310 for LAK house rent, 5424 / 1314 for USD house rent and 5123 / 1312 for THB restaurant rent. Apply the original lot rate to both sides. Cash moved at purchase.
+Check the account pair | For each release debit expense and credit prepaid. Use 5110 / 1311 for LAK Wi-Fi, 5421 / 1310 for LAK house rent, 5424 / 1314 for USD house rent, and 5123 / 1312 for THB restaurant rent. Both foreign lines use the original prepaid lot’s rate.
 ~ Wi-Fi example · LAK | Prepay 600,000 for six equal months. At purchase debit prepaid Wi-Fi and credit bank 600,000. Each month debit Wi-Fi expense and credit prepaid 100,000. After three releases, prepaid holds 300,000.
 ! Compare the plan’s posted releases plus its remaining balance to the original cost. If a legacy plan disagrees, identify the existing postings before editing or retrying.
 # S02 | Prepare and post a recurring journal
@@ -221,7 +199,7 @@ Review the period settings | Preserve the approved brackets, rates, coverage, sh
 = Trace each employee adjustment to the balance or approved expense that it settles.
 Identify the opening balance | For an advance or loan, verify the original disbursement, amount outstanding, employee, currency and repayment agreement. Record the authorized recovery in the corresponding payroll field.
 Map the recovery | Inspect the employee clearing rows. The template separates final cash entitlement from the amount allocated to recovery. Trace the recovery credit against the earlier debit and check the remaining employee balance.
-Classify the reimbursement | Record the receipt, purpose, approval and employee. For a new expense choose the debit account in its currency. If it was recognized earlier, settle the existing payable. Split a separate bank fee from the reimbursement.
+Map each reimbursement | Record the receipt, purpose, approval and employee. For a new expense, use the regular expense account in its currency. If expense and payable were recognized earlier, settle the existing payable.
 Review other adjustments | Document bonuses, allowances, unpaid time or final-pay items separately. Verify their approved treatment before the run is closed. A manual attendance override needs its own reason.
 ~ Advance example · LAK | Staff clearing already has a 100,000 debit. Net entitlement before recovery is 1,000,000. The template allocates 100,000 to recovery and 900,000 to final pay. The settlement pays only 900,000.
 ! The employee ledger after settlement should show only the remaining supported balance. Check that a reimbursement was expensed once.
@@ -251,22 +229,21 @@ Check a whole accrual | The example below uses hypothetical approved deductions 
 * 15 November 2026
 > Payroll / Prepare journal / Currency groups
 = Keep USD and THB quantities in their own groups. LAK remains the reporting currency and the statutory basis.
-Generate the accrual | At the payroll run’s saved rate, debit salaries in LAK 5311, USD 5316 or THB 5317. Credit staff clearing for the entitlement and allocate applicable deductions. Each regular salary line already carries its LAK expense value.
+Post the gross and net | At the saved payroll rate, debit 5311 for LAK, 5316 for USD or 5317 for approved THB payroll. Credit employee clearing and allocate deductions. The salary line carries its LAK expense value.
 Trace the withholding | Preserve the assessed LAK employee and company shares. The USD withholding bridge is 9042 with 9041 in LAK. Confirm the LAK bridge equals the rounded USD withholding multiplied by the saved calculation rate. For another currency, resolve a valid matching tax bridge.
 Apply the template’s rounding boundary | Round a grouped row once after summing its raw values. Round separate employee payables individually. Compare using the same grouping in the report and review conversion rounding on 5420.
-Inspect mixed payroll | Use the LAK + USD mixed templates for those two currency groups. Check each group, the statutory bridges and the combined LAK book total. Keep conversion rounding identifiable.
+Inspect mixed payroll | Check each currency group, then combined LAK. In the LAK + USD mixed template, verify salaries, withholding bridges and conversion rounding separately.
 ~ Grouped versus individual | Three values of 3.005 produce one grouped entry of 9.02. Three separately payable entries round to 3.01 each, totaling 9.03. The posting rule determines which figure the report must reproduce.
 ~ USD withholding example | LAK 12,320 ÷ 22,000 = USD 0.56. Credit 9042 by USD 0.56 and debit 9041 by LAK 12,320. The equal PIT shares total LAK 24,640 in 2111.
 ! Check each currency, each employee entitlement, both statutory payables and each bridge. A foreign reference amount must never replace the approved LAK PIT basis.
 # P09 | Pay salaries and settle employee balances
-* 15 November 2026
-> Bookkeeping / Journal / Generate Journal / Salary settlement
+> Bookkeeping / Journal / Templates / Pay salary or existing balance
 = Settle only the amount actually released. Payroll expense was recognized when the payroll journal posted.
 Identify the entitlement | Open Salary History and the employee ledger. Match the linked accrual, employee, currency, recoveries, remaining balance and approved final payment.
 Record the payment | On the payment date debit that employee’s clearing or salary payable and credit the actual cash/bank fund. For partial payment, identify the unpaid portion. Retain bank advice or signed salary voucher.
-Settle foreign pay | Use the payment-date rate and check staff clearing BR and paying fund BR independently. For a same-currency settlement with a carrying-value difference the six lines are staff debit, bank credit, two foreign bridge lines, 5419 gain/loss and 9010 LAK bridge. Equal carrying values can leave only staff and bank.
+Settle foreign pay | Preserve the payroll calculation rate and original liability basis. Determine the payment amount and the payment-date rate from evidence. If paying in another currency, trace the liability discharged, the fund’s carrying value, bridges and any supported realized FX.
 Verify each person | Check employee balances separately. A combined bank transfer must reconcile to its employee breakdown. Save the settlement journal ID against the evidence.
-~ Settlement example · USD | Pay USD 100. The staff balance has BR 22,800, the bank has BR 22,900 and the payment-date rate is 23,000. Debit staff clearing at LAK 2,280,000 and credit the bank at LAK 2,290,000 in book value. The six-line journal includes a LAK 10,000 debit to 5419.
+~ Same-currency example · LAK | A payroll accrual credits employee clearing 2,795,000. Paying it in full debits that clearing account and credits BCEL – LAK 2,795,000. Salary expense was already recorded.
 ! Verify the person received their approved amount and any remaining balance has a reason. Keep payment rounding separate from a realized exchange difference.
 # P10 | Remit PIT and SSO in whole kip
 > Tax & SSO / Payment summary · Post Transaction / Templates
@@ -324,7 +301,7 @@ Inspect individual entries | Check balanced debits and credits by currency and t
 Review schedules | Reconcile prepaid original cost, releases and amounts remaining. Review due recurring and AMO occurrences. Confirm each expected posting has its own receipt and date, including the first-day releases.
 Follow each exception | Open the affected journal, employee, reconciliation or plan. Compare with evidence and correct the underlying record through its normal workflow. Re-run checks after relevant changes.
 Read warnings separately | A blocking error must be resolved before close. For a warning that remains, record the supported reason in the close review. Balanced totals cannot verify an external exchange quote or the historical cost of a prepaid by themselves.
-~ Foreign expense check | A regular USD fee on 5422 already carries its LAK expense value. Check the dated rate and the bank’s book value. For a historical fee on a legacy mapping, trace its original LAK recognition and offset.
+~ Mapping example | A regular USD fee on 5422 carries the LAK expense value. For an older journal using a fee mapping, trace the original LAK expense and offset. Compare the paying fund’s BR and the realized FX in either case.
 ! Retain the unresolved-item list, explanations, reviewer and fresh check result for the closing period.
 # C05 | Close a month or year and maintain opening balances
 > Bookkeeping / Journal / Closing · Reports

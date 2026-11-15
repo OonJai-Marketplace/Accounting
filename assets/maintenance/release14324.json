@@ -89,7 +89,7 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "2a874bd1d20d61e7b6d8ab764d54e8e7f3661336cd3b286e523773fb7f3e1e08",
+      "sha256": "76d3284d04502a4331ab1f0801a62f582cd6baec3c15f4b72070a123a2c97c9a",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -119,7 +119,7 @@
     },
     {
       "path": "phone-sw.js",
-      "sha256": "01b55bdeca27f11073d07271b9b97fe90861cc611a8bbac2d2def9fd40a3e5bc",
+      "sha256": "b202ec4a17870d914996ea9caf155b03ea77f1fd90bdcea84d9216857dfc0edc",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1058,7 +1058,7 @@
     },
     {
       "path": "scripts/journal-generator257.js",
-      "sha256": "7c3049e58dd9c7a27eff2aaecd5dcf5ec10bee6955f644d39ac764efdad91633",
+      "sha256": "1a3491605503722c851eb23df06cca6d2db59063f35b8565262439a5e94b0830",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {

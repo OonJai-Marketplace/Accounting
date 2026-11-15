@@ -39,26 +39,26 @@ async function run() {
     await desktop.page.evaluate(() => { switchTab('journal'); showJournalEntry98(); });
     await desktop.page.locator('#generateJournal258').evaluate(button => button.click());
     const generator = desktop.page.locator('#journalGenerator258');
-    for (const [label, code] of [['Journal protocol', 'J05'], ['Account codes', 'J06']]) {
+    for (const [label, code] of [['Journal protocol', 'J02'], ['Account codes', 'F02']]) {
       const [guide] = await Promise.all([
         desktop.context.waitForEvent('page'),
         generator.getByRole('link', {name: label, exact: true}).click()
       ]);
       const topic = guide.locator('article:visible');
       await guide.locator('#' + code + ':visible').waitFor();
-      if (code === 'J05') {
-        await topic.getByRole('link', {name: 'J06', exact: true}).click();
-        await guide.locator('#J06:visible').waitFor();
+      if (code === 'J02') {
+        await topic.getByRole('link', {name: 'F02', exact: true}).click();
+        await guide.locator('#F02:visible').waitFor();
       }
-      assert.equal(await guide.locator('#J06 tbody tr').count(), 13);
+      assert.equal(await guide.locator('#F02 tbody tr').count(), 13);
       const [pdf] = await Promise.all([
         guide.waitForEvent('download'),
-        guide.locator('#J06').getByRole('link', {name: /Download .* PDF/}).click()
+        guide.locator('#F02').getByRole('link', {name: /Download .* PDF/}).click()
       ]);
-      assert.equal(pdf.suggestedFilename(), 'J06.pdf');
+      assert.equal(pdf.suggestedFilename(), 'F02.pdf');
       assert.equal((await fs.readFile(await pdf.path())).subarray(0,5).toString(), '%PDF-');
-      if (code === 'J05') {
-        await guide.locator('#J06').getByRole('link', {name: 'All protocols'}).click();
+      if (code === 'J02') {
+        await guide.locator('#F02').getByRole('link', {name: 'All protocols'}).click();
         await checkReader(guide, desktop.context, guide);
       }
       await guide.close();
