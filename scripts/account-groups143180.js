@@ -16,8 +16,10 @@ window.openForeignAccountReview2026 = async function () {
   if (!data.chart?.length) throw Error('There is no prepared chart reclassification.');
   const esc = value => escapeHtml(String(value ?? ''));
   const next = data.chart.filter(a => !a.deferred && !a.created);
-  const unusedThb = ['9212', '9234', '9242'];
-  const canRetire = !next.length && AccountingStore.accounts.some(a => unusedThb.includes(a.code) && a.active !== false);
+  const retirement = data.retirement || [];
+  const activeMappings = retirement.filter(a => a.active);
+  const retirementRows = retirement.map(a => '<tr><td>' + esc(a.code) + '</td><td>' +
+    esc(a.replacement) + '</td><td>' + (a.active ? 'Active' : 'Inactive') + '</td></tr>').join('');
   const chartRows = data.chart.map(a => '<tr><td>' + esc(a.code) + '</td><td>' + esc(a.name) +
     '</td><td>' + esc(a.deferred ? 'Deferred' : a.created ? 'Created' : 'Prepared') + '</td></tr>').join('');
   const months = data.months.map(m => {
@@ -36,8 +38,12 @@ window.openForeignAccountReview2026 = async function () {
   const content = '<div class="group-manager143180"><details><summary>Chart of accounts</summary>' +
     '<table><thead><tr><th>Code</th><th>Regular account</th><th>Status</th></tr></thead><tbody>' + chartRows +
     '</tbody></table></details>' + (next.length ? '<button class="je-btn je-btn-emerald" type="button" data-chart>Create ' +
-      next.length + ' regular accounts</button>' : '') + (canRetire ?
-      '<button class="je-btn je-btn-secondary" type="button" data-retire>Retire unused THB mappings</button>' : '') +
+      next.length + ' regular accounts</button>' : '') + (retirementRows ?
+      '<details><summary>Unused mapping accounts · ' + (retirement.length - activeMappings.length) + ' of ' +
+      retirement.length + ' inactive</summary><table><thead><tr><th>Mapping account</th><th>Replacement</th>' +
+      '<th>Status</th></tr></thead><tbody>' + retirementRows + '</tbody></table></details>' : '') +
+    (!next.length && activeMappings.length ? '<button class="je-btn je-btn-secondary" type="button" data-retire>Deactivate ' +
+      activeMappings.length + ' unused mapping accounts</button>' : '') +
     months + '<p role="status"></p></div>';
   const closed = ui108.modal('Foreign-currency reclassification', content, [{label:'Close',value:false}]);
   const overlay = document.querySelector('.ui-overlay108:last-child');

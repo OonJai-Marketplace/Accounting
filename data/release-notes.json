@@ -1,5 +1,5 @@
 {
-  "version": "143.386",
+  "version": "143.387",
   "changes": [
     "Generate Journal uses regular USD and THB accounts for sales, expenses, payroll and prepaid rent. Each generated line shows both the transaction-rate and book values in LAK."
   ]
