@@ -1,1 +1,1 @@
-{"version": "143.385", "changes": ["Desktop updates reuse previously downloaded files to reduce the space needed on this device."]}
+{"version": "143.386", "changes": ["Generate Journal uses regular USD and THB accounts for sales, expenses, payroll and prepaid rent. Each generated line shows both the transaction-rate and book values in LAK."]}
