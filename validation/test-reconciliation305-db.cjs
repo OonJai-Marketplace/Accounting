@@ -20,7 +20,8 @@ await db.exec(`
 CREATE FUNCTION private.maintenance_base281(p_month date) RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT jsonb_build_object('month',p_month,'version',14324,'issues','[]'::jsonb,'fingerprint','base','pending',jsonb_build_object('revision','test'))$$;
 CREATE FUNCTION private.extended_check281(p_month date) RETURNS jsonb LANGUAGE sql STABLE AS $$SELECT jsonb_build_object('issues','[]'::jsonb,'fingerprint','extra','entry_checks','[]'::jsonb,'coverage',jsonb_build_object('version',281))$$;
 CREATE TRIGGER guard_maintenance14324 BEFORE INSERT OR UPDATE OF status ON public.accounting_periods FOR EACH ROW EXECUTE FUNCTION public.guard_maintenance14324();
-BEGIN;
+`);
+await db.exec(`BEGIN;
 DO $gate$
 DECLARE actor uuid=gen_random_uuid();a uuid=gen_random_uuid();b uuid=gen_random_uuid();p uuid=gen_random_uuid();snap jsonb;rec jsonb;rejected boolean;cfg jsonb;
 BEGIN
@@ -47,4 +48,14 @@ ROLLBACK;
 console.log('PASS closing trigger: missing or partially completed lists block; all saved accounts allow close; frozen monthly list and concurrent-list revision guard.');
 console.log('PASS local PostgreSQL: account/date fingerprints, receipt dates, unrelated and memo-only edits, correction projection, changed movements, stale save, idempotency, required list and history, permissions.');
 assert.equal((await db.query('select count(*) n from private.reconciliation_records305')).rows[0].n,0,'Temporary tests persisted records');
+await db.exec(`
+CREATE ROLE service_role;
+ALTER TABLE public.accounting_periods ADD closed_at timestamptz, ADD locked_at timestamptz;
+ALTER TABLE public.book_sessions136 ADD original jsonb;
+CREATE TABLE private.fx_reclass_journals_2026(entry_no text,entry_id uuid,period_month date,original_header jsonb,original_lines jsonb,proposed_lines jsonb,original_evidence jsonb);
+CREATE TABLE private.fx_reclass_receipts_2026(entry_no text,session_id uuid,actor_id uuid,applied_at timestamptz);
+`);
+await db.exec(fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261115041052_post_approved_chart_changes_with_prior_close.sql'),'utf8'));
+await db.exec(fs.readFileSync(path.join(__dirname,'test-prior-close-chart-2026.sql'),'utf8'));
+console.log('PASS prior close evidence scope, missing and stale reports, both bank date bases, cash movements and statement totals.');
 }finally{await db.close()}})().catch(e=>{console.error(e.message,e.where||'');process.exitCode=1});

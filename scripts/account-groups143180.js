@@ -1,5 +1,5 @@
 // Load the one-time reconstruction only when an administrator opens this action.
-window.openForeignAccountReview2026 = async function () {
+window.openForeignAccountReview2026 = async function (postingResult = '') {
   const db = ojmDb, actor = liveProfile?.id;
   const valid = () => db === ojmDb && actor === liveProfile?.id &&
     window.AccountGroups143180?.canEdit() && !window.workspaceRequest138?.target;
@@ -18,6 +18,10 @@ window.openForeignAccountReview2026 = async function () {
   const next = data.chart.filter(a => !a.deferred && !a.created);
   const retirement = data.retirement || [];
   const activeMappings = retirement.filter(a => a.active);
+  const approvedMonths = data.months.filter(m => m.status === 'closed' &&
+    m.month >= '2026-01-01' && m.month <= '2026-09-01' &&
+    m.journals.every(j => j.result === 'In correction'));
+  const approvedCount = approvedMonths.reduce((count, m) => count + m.journals.length, 0);
   const retirementRows = retirement.map(a => '<tr><td>' + esc(a.code) + '</td><td>' +
     esc(a.replacement) + '</td><td>' + (a.active ? 'Active' : 'Inactive') + '</td></tr>').join('');
   const chartRows = data.chart.map(a => '<tr><td>' + esc(a.code) + '</td><td>' + esc(a.name) +
@@ -44,12 +48,14 @@ window.openForeignAccountReview2026 = async function () {
       '<th>Status</th></tr></thead><tbody>' + retirementRows + '</tbody></table></details>' : '') +
     (!next.length && activeMappings.length ? '<button class="je-btn je-btn-secondary" type="button" data-retire>Deactivate ' +
       activeMappings.length + ' unused mapping accounts</button>' : '') +
-    months + '<p role="status"></p></div>';
+    (approvedCount ? '<button class="je-btn je-btn-emerald" type="button" data-post-reviewed>Post ' +
+      approvedCount + ' approved journals</button>' : '') + months + '<p role="status">' +
+      (typeof postingResult === 'string' ? esc(postingResult) : '') + '</p></div>';
   const closed = ui108.modal('Foreign-currency reclassification', content, [{label:'Close',value:false}]);
   const overlay = document.querySelector('.ui-overlay108:last-child');
   let busy = false;
   overlay.addEventListener('click', async event => {
-    const button = event.target.closest('[data-chart],[data-retire],[data-prepare],[data-finish]');
+    const button = event.target.closest('[data-chart],[data-retire],[data-prepare],[data-finish],[data-post-reviewed]');
     if (!button || busy || !valid()) return;
     busy = true;
     button.disabled = true;
@@ -57,7 +63,33 @@ window.openForeignAccountReview2026 = async function () {
     status.textContent = 'Checking the current ledger…';
     try {
       const month = button.dataset.prepare || button.dataset.finish;
-      if (button.hasAttribute('data-chart')) {
+      if (button.hasAttribute('data-post-reviewed')) {
+        const failures = [];
+        let posted = 0;
+        for (const item of approvedMonths) {
+          if (!valid() || !overlay.isConnected) return;
+          const label = item.month.slice(0, 7);
+          status.textContent = posted + ' posted. Checking ' + label + '…';
+          try {
+            const result = await call('post_reviewed_foreign_month_2026', {p_month:item.month});
+            if (!Array.isArray(result?.journals) || result.journals.length !== item.journals.length ||
+                !item.journals.every(j => result.journals.includes(j.number)) ||
+                !(result.posted === item.journals.length || result.alreadyPosted === true)) {
+              throw Error('Reopen the review to verify the posting result.');
+            }
+            posted += result.journals.length;
+          } catch (error) {
+            failures.push(label + ' — ' + (error.message || 'Posting could not be confirmed.'));
+          }
+        }
+        if (!valid() || !overlay.isConnected) return;
+        window.yearWindow14333?.invalidateMemory();
+        await window.workflow136.reload();
+        if (!valid() || !overlay.isConnected) return;
+        overlay.resolve108(false);
+        await window.openForeignAccountReview2026([posted + ' approved journals posted.', ...failures].join(' '));
+        return;
+      } else if (button.hasAttribute('data-chart')) {
         await call('prepare_foreign_chart_2026');
       } else if (button.hasAttribute('data-retire')) {
         await call('retire_unused_foreign_mappings_2026');

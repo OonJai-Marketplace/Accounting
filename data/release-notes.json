@@ -1,7 +1,6 @@
 {
-  "version": "143.387",
+  "version": "143.388",
   "changes": [
-    "Generate Journal uses regular USD and THB accounts for sales, expenses, payroll and prepaid rent. Each generated line shows both the transaction-rate and book values in LAK.",
-    "Open Journal protocol or Account codes inside Generate Journal for the posting steps, exchange-rate rules and the printable currency account guide."
+    "Approved historical chart changes can be posted on their original journal IDs when the prior close and all protected movements match."
   ]
 }
