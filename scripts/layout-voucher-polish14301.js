@@ -42,10 +42,12 @@ function tableTools(){
  selectTablePanel(sidebar,0);
 }
 function connection(){
- const source=$('.area-banner113>.connection14239,.dash-hero112>.connection14239');let button=$('#connectionFloat14301');
- if(!button){button=document.createElement('button');button.id='connectionFloat14301';button.type='button';button.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8a15 15 0 0 1 18 0M6 12a10 10 0 0 1 12 0M9 16a5 5 0 0 1 6 0M12 20h.01"/></svg>';button.onclick=()=>$('.area-banner113>.connection14239,.dash-hero112>.connection14239')?.click();document.body.append(button)}
+ let button=$('#connectionFloat14301');
+ if(!button){button=document.createElement('button');button.id='connectionFloat14301';button.type='button';button.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8a15 15 0 0 1 18 0M6 12a10 10 0 0 1 12 0M9 16a5 5 0 0 1 6 0M12 20h.01"/></svg>';button.setAttribute('aria-haspopup','dialog');button.onclick=()=>window.offline14239?.open();document.body.append(button)}
  const dock=$('#workspaceTools108');if(dock&&dock.firstElementChild!==button)dock.prepend(button);
- const state=source?.dataset.state||(!navigator.onLine?'offline':'online'),label=source?.textContent?.trim()||(!navigator.onLine?'Offline':'Online');button.dataset.state=state;button.title=label;button.setAttribute('aria-label',label+' connection status');
+ const state=!navigator.onLine?'offline':window.offline14239?.offline()?'limited':'online';
+ const label={online:'Online',offline:'Offline',limited:'Limited connection'}[state];
+ button.dataset.state=state;button.title=label;button.setAttribute('aria-label',label+' connection status');
  const tile=$('.logo-tile113');if(tile){let dot=$('.connection-logo14301',tile);if(!dot){dot=document.createElement('i');dot.className='connection-logo14301';dot.setAttribute('aria-hidden','true');tile.append(dot)}dot.dataset.state=state}
 }
 function polish(){queued=false;pageHeaders();periodRows();tableTools();connection()}
