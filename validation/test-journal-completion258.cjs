@@ -15,7 +15,13 @@ check('salary accrual with PIT amount inferred from selected bridges',()=>{const
 check('salary gross and net with entered PIT',()=>{const rows=ok(run([line('9231',1000),line('1220',0,950),line('2111',0,1100000)],{USD:22000}));assert.equal(net(rows,'9042'),-50);assert.equal(net(rows,'9041'),1100000);});
 check('payroll accrual multiple employees currencies',()=>{const rows=ok(run([line('9231',1000),line('1220',0,600),line('1221',0,400),line('9232',1000),line('1224',0,1000),line('5311',3000000),line('1214',0,3000000)],{USD:22000,THB:650}));assert.equal(net(rows,'5311'),25650000);});
 check('settlement uses two book rates',()=>{const rows=ok(run([line('1220',950),line('1041',0,950)]));assert.equal(net(rows,'5419'),475000);assert.equal(rows.filter(l=>l.account_id==='9011').length,2);assert.equal(net(rows,'5311'),0);});
-check('partial settlement needs exact lot rate',()=>{assert(run([line('1220',100),line('1041',0,100)]).errors.some(e=>e.needsBook));assert.equal(net(ok(run([line('1220',100,0,22000),line('1041',0,100)])),'5419'),50000);});
+check('partial staff settlement uses the recorded credit balance rate',()=>{
+ const draft=[line('1220',100),line('1041',0,100)];
+ const rows=ok(run(draft));
+ assert.equal(rows.find(l=>l.account_id==='1220').book_rate_lak,22000);
+ assert.equal(net(rows,'5419'),50000);
+ assert(run(draft,{USD:23000},{balances:{...balances,'1220':{quantity:-950,rate:null}}}).errors.some(e=>e.needsBook));
+});
 check('cross foreign payroll settlement',()=>{const rows=ok(run([line('1220',100,0,22000),line('1012',0,3400)]));assert.equal(net(rows,'5419'),-24000);});
 check('payroll USD paid in LAK',()=>assert.equal(net(ok(run([line('1220',100,0,22000),line('1040',0,2300000)])),'5419'),100000));
 check('LAK debt paid in THB',()=>assert.equal(net(ok(run([line('2010',650000),line('1012',0,1000)])),'5419'),-10000));

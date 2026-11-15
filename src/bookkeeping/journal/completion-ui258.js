@@ -12,12 +12,12 @@ const offline=()=>!navigator.onLine||window.offline14239?.offline()||window.sess
 const blank=()=>({account_id:'',line_memo:'',debit:'',credit:''});
 function eligible(){if(!who())throw Error('Sign in before preparing an entry.');if(window.personalJournal1437?.active||window.workspaceRequest138?.target)throw Error('Open the main company journal to use this generator.');if(!window.access113?.can('journal','edit')&&!window.access113?.can('journal','post'))throw Error('Journal editing permission is required.');if(pendingWorkspacePostOwnerId||pendingWorkspacePostJournalId)throw Error('Finish the prepared entries before using this generator.');}
 function persist(){if(owner!==who()||!state)return;try{localStorage.setItem(key(),JSON.stringify(state));storageWarning='';}catch{storageWarning='This draft could not be saved on this device. Keep the window open until it is copied to Post Entry.';}}
-function invalidate(){revision++;verified='';if(dialog){dialog.querySelector('[data-use]').disabled=true;dialog.querySelector('[data-status]').textContent='';}persist();}
+function invalidate(){revision++;if(verified)showLakValues(false);verified='';if(dialog){dialog.querySelector('[data-use]').disabled=true;dialog.querySelector('[data-status]').textContent='';}persist();}
 function definitions(){
  const saved=typeof availableTransactionTemplates==='function'?availableTransactionTemplates():[];
  return [{id:'blank',name:'Enter manually — detect template',lines:[{},{}]},...saved];
 }
-function templateRows(t){return (t.lines||[]).map(l=>{const a=l.code?chart().find(a=>String(a.code)===String(l.code)&&G.currency(a)===l.currency):l.accountId?chart().find(a=>a.id===l.accountId):typeof resolveTemplateAccount14397==='function'?resolveTemplateAccount14397(l):null;return {...blank(),account_id:a?.id||'',line_memo:l.memo||'',role:l.role,stage:l.stage,receiptLeg:l.receiptLeg,...(l.calculated?{generated:'output',autoMemo:true}:{}),expectedCurrency:l.currency,expectedSide:l.side,missing:!a&&(l.accountId||l.account||l.code)?String(l.account||l.code||l.accountId):''};});}
+function templateRows(t){return (t.lines||[]).map(l=>{const a=l.code?chart().find(a=>String(a.code)===String(l.code)&&G.currency(a)===l.currency):l.accountId?chart().find(a=>a.id===l.accountId):typeof resolveTemplateAccount14397==='function'?resolveTemplateAccount14397(l):null;return {...blank(),account_id:a?.id||'',line_memo:l.memo||'',role:l.role,stage:l.stage,optionalStage:l.optionalStage,receiptLeg:l.receiptLeg,...(l.calculated?{generated:'output',autoMemo:true}:{}),expectedCurrency:l.currency,expectedSide:l.side,missing:!a&&(l.accountId||l.account||l.code)?String(l.account||l.code||l.accountId):''};});}
 function formatMemoAmounts(text){
  if(!/\d{4}/.test(text))return text;
  const locale=typeof appNumberLocale==='function'?appNumberLocale():'en-US';
@@ -47,7 +47,7 @@ function entrySource(){
   if(credits.length>1||a&&credits.some(([c])=>c!==G.currency(a)))throw Error('Check the credit currencies in Post Entry before generating.');
   const data=editorRows[index]?.dataset||{};
   if(data.generatorTemplate)template=data.generatorTemplate;
-  rows.push({...blank(),expectedSide:data.templateSide274,role:data.generatorRole,expectedCurrency:data.generatorCurrency,stage:data.generatorStage,receiptLeg:data.generatorReceipt,
+  rows.push({...blank(),expectedSide:data.templateSide274,role:data.generatorRole,expectedCurrency:data.generatorCurrency,stage:data.generatorStage,optionalStage:(data.generatorStage&&/^fx14383-(income|expense)$/.test(data.generatorTemplate))||undefined,receiptLeg:data.generatorReceipt,
    ...(data.generatorFundMemo&&data.generatorFundMemo===r.memo?{fundMemoBase:data.generatorFundMemoBase||''}:{}),
    ...(r.averageBookRate?{autoBook:true}:{}),
    ...(data.generatorCalculated&&!number(r.dr)&&!credits.length||r.generatorOutput===JSON.stringify([a?.id,number(r.dr),number(credits[0]?.[1]),r.memo||'',number(r.fxRate),number(r.bookRate)])?{generated:'output',autoMemo:true}:{}),sourceIndex:index,account_id:a?.id||'',missing:!a?r.account:'',line_memo:r.memo||'',debit:r.dr||'',credit:credits[0]?.[1]||'',
@@ -173,7 +173,39 @@ function recoverTemplateDraft(draft,t){
  });
  draft.rows.push(...remaining);
 }
+function refreshRegularDraft(draft,t){
+ if(!t?.builtin||draft.entrySignature)return;
+ const reg=G.registry(chart());
+ if(!reg.regular.size)return;
+ const byId=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
+ const old=draft.rows.filter(l=>reg.superseded(byId.get(l.account_id)));
+ if(!old.length)return;
+ const layout=templateRows(t);
+ // An old mixed-currency LAK total may already include the foreign tenders.
+ // Leave the draft intact for review instead of relabelling that total.
+ if(/^(fx14383-income|fx14383-expense)$/.test(t.id))return;
+ const updates=[];
+ for(const l of old){
+  const account=byId.get(l.account_id),code=reg.superseded(account),replacement=reg.byCode(code,G.currency(account));
+  const slot=layout.find(r=>r.account_id&&r.account_id===replacement?.id&&!r.generated);
+  if(!slot)return;
+  updates.push({l,account,slot});
+ }
+ // User-entered LAK recognition/offset amounts need review. Preserve the
+ // whole draft when the old line cannot be identified as a generated output.
+ const localCodes=new Set(updates.map(({slot})=>reg.regular.get(slot.account_id).localCode));
+ if(draft.rows.some(l=>l.generated!=='output'&&(localCodes.has(String(byId.get(l.account_id)?.code))||
+    ['9190','9290','9490'].includes(String(byId.get(l.account_id)?.code)))))return;
+ for(const {l,account,slot} of updates){
+  l.account_id=slot.account_id;l.missing='';
+  if(l.line_memo===account.name||l.autoMemo)l.line_memo=slot.line_memo;
+  delete l.book_rate_lak;delete l.autoBook;
+ }
+ draft.rows=draft.rows.filter(l=>l.generated!=='output');
+ draft.rows.push(...layout.filter(l=>l.generated==='output'));
+}
 function restoreProtocolRows(draft,t){
+ if(draft)refreshRegularDraft(draft,t);
  if(draft&&t){
   // Existing drafts have the default wording but predate automatic cash and bank memos.
   const accounts=chart();
@@ -273,7 +305,8 @@ function suggestSourceBooks(){
 async function suggestBook292(line){
  const account=chart().find(a=>a.id===line.account_id),date=state.date,actor=who();
  if(!account||G.currency(account)==='LAK'||!window.AccountRates143186)return;
- const settling=line.role==='balance'||(!line.role&&G.staff(account)&&(line.expectedSide==='debit'||number(line.debit)>0));
+ if(G.registry(chart()).regular.has(account.id)&&!(G.type(account)==='ASSET'&&(line.expectedSide==='credit'||number(line.credit)>0)))return;
+ const settling=line.role==='balance'||line.role==='repayment'||(!line.role&&G.staff(account)&&(line.expectedSide==='debit'||number(line.debit)>0));
  if(typeof AccountRates143186.bookRateFor!=='function')return;
  const previous=bookRequests292.get(line);
  if(previous?.pending&&previous.settling===settling&&previous.date===date&&previous.account===account.id)return;
@@ -295,11 +328,23 @@ async function suggestBook292(line){
  // Generate checks its own fresh balance snapshot. Finish that check before updating a still-open input.
  if(job)(job.bookUpdates||=[]).push(apply);else apply();
 }
+function showLakValues(checked){
+ if(!dialog)return;
+ const fmt=(n,credit)=>credit?'('+display(n)+')':display(n);
+ for(const tr of dialog.querySelectorAll('[data-entry-lines] tr')){
+  const l=state.rows[Number(tr.dataset.row)],amount=number(l.debit)||number(l.credit);
+  const c=tr.querySelector('[data-currency]').textContent;
+  const day=c==='LAK'?1:number(l.fx_rate_lak),book=c==='LAK'?1:number(l.book_rate_lak)||day;
+  for(const [selector,rate] of [['[data-day-value]',day],['[data-book-value]',book]]){
+   tr.querySelector(selector).textContent=checked&&amount&&rate>0?fmt(G.round(amount*rate),number(l.credit)>0):'—';
+  }
+ }
+}
 function renderRows(){
  const body=dialog.querySelector('[data-entry-lines]'),accounts=chart(),options=accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name+' · '+G.currency(a))+'</option>').join('');body.replaceChildren();
  state.rows.forEach((l,i)=>{
   const a=chart().find(a=>a.id===l.account_id),tr=document.createElement('tr');tr.dataset.row=i;
-  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td><button type="button" class="je-btn je-btn-secondary" title="Remove from this draft" aria-label="Remove row '+(i+1)+' from this draft">×</button></td>';
+  tr.innerHTML='<td>'+(i+1)+(l.stage?'<small>'+esc(l.stage)+'</small>':'')+'</td><td><select class="je-select" aria-label="Account row '+(i+1)+'"><option value="">'+esc(l.role?'Choose '+l.role+(l.expectedCurrency?' · '+l.expectedCurrency:''):'Choose account')+'</option>'+options+'</select></td><td><input aria-label="Memo row '+(i+1)+'" data-field="line_memo" value="'+esc(l.line_memo)+'"></td><td data-currency>'+esc(a?G.currency(a):'')+'</td>'+['debit','credit','fx_rate_lak','book_rate_lak'].map(k=>'<td><input inputmode="decimal" '+(['debit','credit'].includes(k)?'data-numeric88="true" data-precision88="2" ':'')+'aria-label="'+({debit:'Debit',credit:'Credit',fx_rate_lak:'Transaction or valuation rate',book_rate_lak:'Book rate'}[k])+' row '+(i+1)+'" data-field="'+k+'" value="'+esc(display(l[k]&&['debit','credit'].includes(k)&&Number.isFinite(number(l[k]))?number(l[k]):l[k]||''))+'"'+((k==='book_rate_lak'||k==='fx_rate_lak')&&(!a||G.currency(a)==='LAK')?' disabled':'')+'></td>').join('')+'<td data-day-value>—</td><td data-book-value>—</td><td><button type="button" class="je-btn je-btn-secondary" title="Remove from this draft" aria-label="Remove row '+(i+1)+' from this draft">×</button></td>';
   setTemplateAmountHints(tr,l.expectedSide,l.generated==='output');
   if(l.generated==='output'||String(a?.code)==='5419'&&!l.expectedSide){
    const side=number(l.debit)>0?'debit':number(l.credit)>0?'credit':l.expectedSide;
@@ -342,13 +387,15 @@ function renderRows(){
 function render(){
  clearFieldErrors();
  const repair=dialog.querySelector('[data-repair-layout]');
- repair.hidden=!legacyCashLayout();
+ const current=definitions().find(t=>t.id===state.template);
+ const reg=G.registry(chart()),oldRows=current?.builtin&&state.rows.some(l=>reg.superseded(AccountingStore.accounts.find(a=>a.id===l.account_id)));
+ repair.hidden=!legacyCashLayout()&&!oldRows;
  if(!repair.hidden){
-  const t=definitions().find(t=>t.id===state.template);
-  repair.textContent=t?'Load corrected template':'Choose a different template';
+  const t=current;
+  repair.textContent=oldRows?'Reset this draft to the current template':t?'Load corrected template':'Choose a different template';
   repair.onclick=()=>{
    if(!t){dialog.querySelector('[data-template-query]').focus();templateChoices('');return;}
-   state.rows=templateRows(t);invalidate();render();
+   state.rows=templateRows(t);delete state.removedRows;invalidate();render();
    message('Enter the documented amounts in the corrected layout.');
   };
  }
@@ -359,8 +406,9 @@ function render(){
  picker.parentElement.style.setProperty('--template-width',Math.max(26,picker.value.length+4)+'ch');
  dialog.querySelector('[data-rates]').replaceChildren();renderRates();renderRows();dialog.querySelector('[data-use]').disabled=true;
  const missing=state.rows.filter(l=>l.missing);if(missing.length)message('Choose current accounts for these saved template lines: '+missing.map(l=>l.missing).join(', '),true);
+ if(oldRows)message('This draft uses the earlier mapping layout. Review the original amounts before resetting the draft or changing its accounts.',true);
 }
-function readInput(){return {date:state.date,chart:chart(),rates:Object.fromEntries(Object.entries(state.rates).map(([c,v])=>[c,number(v)])),rows:state.rows.map(l=>({...l,debit:number(l.debit),credit:number(l.credit),book_rate_lak:number(l.book_rate_lak),fx_rate_lak:number(l.fx_rate_lak)}))};}
+function readInput(){return {tenderWithChange:state.template==='gen268-tender-THB-change-LAK'&&definitions().some(t=>t.id===state.template&&t.builtin),date:state.date,chart:chart(),rates:Object.fromEntries(Object.entries(state.rates).map(([c,v])=>[c,number(v)])),rows:state.rows.map(l=>({...l,debit:number(l.debit),credit:number(l.credit),book_rate_lak:number(l.book_rate_lak),fx_rate_lak:number(l.fx_rate_lak)}))};}
 function legacyCashLayout(){
  if(!String(state.template||'').startsWith('gen268-local-'))return false;
  const t=definitions().find(t=>t.id===state.template);
@@ -373,7 +421,7 @@ function legacyCashLayout(){
 function validateLayout(input){
  const issue=(message,row,field)=>Object.assign(new Error(message),{row,field});
  if(legacyCashLayout())throw Error('This draft uses a superseded cash posting. Load the current template and review its accounts before generating.');
- const mixedPayroll=state.template==='gen268-mixed-payroll'&&definitions().find(t=>t.id===state.template)?.builtin;
+ const mixedPayroll=['gen268-mixed-payroll','gen268-mixed-payroll-deductions'].includes(state.template)&&definitions().find(t=>t.id===state.template)?.builtin;
  for(const [i,l] of input.rows.entries()){
   const a=input.chart.find(a=>a.id===l.account_id);
   if(!a)continue;
@@ -388,9 +436,17 @@ function ledgerContext(){
  return {entries:JournalModule.entries,length:JournalModule.entries?.length,date:state.date,editing:JournalModule.editingEntryId,offline:offline()};
 }
 async function balances(input,refresh=true){
- const explicitPrepaid=({l,a})=>a&&/^13\d\d$/.test(String(a.code))&&G.type(a)==='ASSET'&&!G.technical(a)&&l.credit>0&&l.book_rate_lak>0&&!l.autoBook;
- const source=input.rows.filter(l=>l.generated!=='output').map(l=>({l,a:input.chart.find(a=>a.id===l.account_id)}));
- const needs=source.filter(x=>!x.l.receiptLeg&&!explicitPrepaid(x)).filter(({l,a})=>a&&G.currency(a)!=='LAK'&&(G.fund(a)&&!l.debit||(l.debit>0||!l.debit&&!l.credit)&&(G.staff(a)||G.type(a)==='LIABILITY')||l.credit>0&&!G.technical(a)&&!G.fund(a)&&!G.staff(a)&&G.type(a)==='ASSET'));
+ const activeStages=new Set(input.rows.filter(l=>l.debit||l.credit).map(l=>l.stage));
+ const source=input.rows.filter(l=>l.generated!=='output'&&(!l.optionalStage||activeStages.has(l.stage))).map(l=>({l,a:input.chart.find(a=>a.id===l.account_id)}));
+ const releasing=({l,a})=>a&&/^13\d\d$/.test(String(a.code))&&G.type(a)==='ASSET'&&!G.technical(a)&&(l.credit>0||!l.debit&&l.expectedSide==='credit');
+ const explicitPrepaid=x=>releasing(x)&&x.l.book_rate_lak>0&&!x.l.autoBook;
+ const needs=source.filter(x=>!x.l.receiptLeg&&!explicitPrepaid(x)).filter(x=>{
+  const {l,a}=x;if(!a||G.currency(a)==='LAK')return false;
+  if(releasing(x)||l.role==='repayment')return true;
+  if(G.fund(a))return !l.debit&&l.expectedSide!=='debit';
+  if(G.staff(a)||G.type(a)==='LIABILITY')return l.debit>0||!l.debit&&!l.credit&&l.expectedSide!=='credit';
+  return l.credit>0&&!G.technical(a)&&G.type(a)==='ASSET';
+ });
  if(!needs.length)return {values:{},note:source.some(explicitPrepaid)?'Uses the entered historical prepaid rate. Check the source balance before posting.':''};
  const exclude=JournalModule.editingEntryId||null,localMode=offline(),snapshot=localMode?null:await AccountRates143186.snapshot(input.date,exclude,refresh);
  if(!localMode&&!snapshot)throw Error('Recorded balances could not be checked. Your draft is retained; reconnect and Generate again.');
@@ -489,7 +545,7 @@ async function calculate(){
  if(issues.length){verified='';dialog.querySelector('[data-use]').disabled=true;showErrors(issues);return;}
  const detected=detect();if(detected===null){message('Choose a matching template to see its journal lines.');return;}busy=true;verified='';dialog.querySelector('[data-use]').disabled=true;const actor=who(),rev=revision,before=fingerprint(),end=window.actionFeedback14296?.begin(dialog.querySelector('[data-generate]'),'Generating journal…'),task=job={end};
  try{eligible();const input=readInput();validateLayout(input);const required=missingFields(true);if(required.length){showErrors(required);return;}const b=await balances(input);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
-  const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){verified='';dialog.querySelector('[data-use]').disabled=true;showCheckedBooks(b.values);showErrors(result.errors);return;}
+  const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.optionalStage&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){verified='';dialog.querySelector('[data-use]').disabled=true;showCheckedBooks(b.values);showErrors(result.errors);return;}
   if(state.removedRows?.length){
    const generated=result.rows.filter(l=>l.generated==='output');
    const sameOutput=(a,b)=>a.account_id===b.account_id&&(a.expectedSide||(number(a.debit)?'debit':number(a.credit)?'credit':''))===(b.expectedSide||(number(b.debit)?'debit':number(b.credit)?'credit':''));
@@ -502,7 +558,7 @@ async function calculate(){
     if(i<0)return true;generated.splice(i,1);return false;
    });
   }
-  state.rows=result.rows;persist();renderRows();renderRates();verified=ledgerContext();dialog.querySelector('[data-use]').disabled=false;message(detected+'Journal amounts filled. Review the debit and credit cells. '+b.note+(result.notes.length?' '+result.notes.join(' '):''));
+  state.rows=result.rows;persist();renderRows();renderRates();showLakValues(true);verified=ledgerContext();dialog.querySelector('[data-use]').disabled=false;message(detected+'Journal amounts filled. Review the debit and credit cells. '+b.note+(result.notes.length?' '+result.notes.join(' '):''));
  }catch(e){if(job===task&&actor===who()&&dialog?.open)showErrors([e]);}finally{if(job===task){busy=false;job=null;for(const update of task.bookUpdates||[])update();}end?.();}
 }
 async function useEntry(){
@@ -511,8 +567,8 @@ async function useEntry(){
   // Copy uses the rates already checked by Generate. A changed ledger or connection needs a new snapshot.
   const changed=Object.keys(ledger).some(key=>ledger[key]!==verified[key]);
   const b=await balances(input,changed);if(!dialog?.open||actor!==who()||rev!==revision||before!==fingerprint())return;
-  const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){showCheckedBooks(b.values);showErrors(result.errors);verified='';dialog.querySelector('[data-use]').disabled=true;return;}
-  if(JSON.stringify(result.rows)!==JSON.stringify(state.rows)){state.rows=result.rows;persist();renderRows();verified=ledgerContext();message('Recorded values changed. Review the updated debit and credit amounts, then use the journal again.',true);return;}
+  const result=G.complete({...input,balances:b.values});if(!result.errors.length){const unfinished=result.rows.find(l=>l.sourceIndex!=null&&!l.optionalStage&&!l.debit&&!l.credit&&(l.account_id||l.line_memo));if(unfinished)throw Error('Complete or remove the unfinished Post Entry line before using this journal.');}if(result.errors.length){showCheckedBooks(b.values);showErrors(result.errors);verified='';dialog.querySelector('[data-use]').disabled=true;return;}
+  if(JSON.stringify(result.rows)!==JSON.stringify(state.rows)){state.rows=result.rows;persist();renderRows();showLakValues(true);verified=ledgerContext();message('Recorded values changed. Review the updated debit and credit amounts, then use the journal again.',true);return;}
   const body=$('jeLinesBody'),memo=$('jeGeneralMemo'),oldMemo=memo.value,oldRates=JournalFX14383.capture(),oldDate=$('jeTransDate').value;
   const meaningful=r=>[...r.querySelectorAll('.je-line-acc,.je-line-memo,.je-line-dr,.je-line-cr')].some(n=>n.value.trim()),existing=[...body.children].some(meaningful);
   if(state.entrySignature&&entrySource()?.signature!==state.entrySignature)throw Error('Post Entry changed. Reopen Generate to use its current lines.');
@@ -555,7 +611,7 @@ function open(){
  const template=definitions().find(t=>t.id===state.template);
  recoverTemplateDraft(state,template);restoreProtocolRows(state,template);persist();
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
- dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-content258"><div class="generator-meta258"><label class="generator-date258">Transaction date<input class="je-input" type="date" data-date required></label><div data-rates class="generator-rates258"></div><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo required></textarea></label></div><section data-history aria-label="Compare posted journals"><div class="history-bar258"><strong>Compare posted journals</strong><span data-history-latest></span><button type="button" class="je-btn je-btn-secondary" data-history-toggle aria-controls="journalHistoryPanel258"></button></div><div data-history-panel id="journalHistoryPanel258" hidden><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div></div><div data-history-entry hidden></div></section><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-undo hidden>Undo removal</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p></div>';
+ dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-content258"><div class="generator-meta258"><label class="generator-date258">Transaction date<input class="je-input" type="date" data-date required></label><div data-rates class="generator-rates258"></div><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo required></textarea></label></div><section data-history aria-label="Compare posted journals"><div class="history-bar258"><strong>Compare posted journals</strong><span data-history-latest></span><button type="button" class="je-btn je-btn-secondary" data-history-toggle aria-controls="journalHistoryPanel258"></button></div><div data-history-panel id="journalHistoryPanel258" hidden><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div></div><div data-history-entry hidden></div></section><p>Enter each amount in its own currency. Use the payroll run rate for salary accruals, the original cost for prepaid releases, and the dated rate for a receipt or payment. Generate shows the LAK values and any exchange difference. <a href="docs/protocols/index.html?v=143.387#J02" target="_blank" rel="noopener">Journal protocol</a> · <a href="docs/protocols/index.html?v=143.387#F02" target="_blank" rel="noopener">Account codes</a></p><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th>Value at ER / VR (LAK)</th><th>Book value (LAK)</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-undo hidden>Undo removal</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p></div>';
  dismissible(dialog);document.body.append(dialog);
  const clearEdited=e=>{const field=e.target;if(field.value?.trim())clearFieldError(field);};
  dialog.addEventListener('input',clearEdited);dialog.addEventListener('change',clearEdited);
@@ -595,6 +651,7 @@ function ready(){
  style.textContent+='#jeLinesBody input[data-template-amount-hint]::placeholder,#journalGenerator258 input[data-template-amount-hint]::placeholder{color:#51685c;opacity:1;font-weight:600}';
  style.textContent+='#generateJournal258[hidden]{display:none!important}#journalGenerator258[open]{display:flex;flex-direction:column}#journalGenerator258>header{position:relative;flex:none;background:#fff;padding:8px 18px;border-bottom:1px solid #d6e1da;z-index:4}#journalGenerator258>header h3{margin:0}#journalGenerator258 .generator-content258{overflow:auto;min-height:0;overscroll-behavior:contain;padding:12px 18px}#journalGenerator258 [data-close]{min-height:44px;touch-action:manipulation}#journalGenerator258{inset:auto;left:var(--feedback-left14295,0px);top:var(--feedback-top14295,0px);right:calc(100% - var(--feedback-left14295,0px) - var(--feedback-width14295,100%));bottom:calc(100% - var(--feedback-top14295,0px) - var(--feedback-height14295,100%));transform:none;margin:auto;width:min(1280px,calc(var(--feedback-width14295,100vw) - 24px));max-height:calc(var(--feedback-height14295,100dvh) - 24px)}#journalGenerator258 small{display:block}';
  style.textContent+=`
+ #journalGenerator258 [data-day-value],#journalGenerator258 [data-book-value]{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
  #journalGenerator258 [data-generator-error]{outline:2px solid #a33625;outline-offset:1px}
  #journalGenerator258 .generator-error258{color:#872a1d;font-weight:600;white-space:normal}
  #journalGenerator258 [data-history]{margin:10px 0;font-size:13px}

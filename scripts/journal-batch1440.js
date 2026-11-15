@@ -106,6 +106,8 @@ function base(line,side){const c=line.currency||line.currency_code;if(c==='LAK')
 function carrying(accountId,date){const ws=window.yearWindow14333?.state();let qty=0,value=0,missing=false;for(const b of ws?.opening||[])if(String(b.accountId)===String(accountId)){qty+=Number(b.balance);if(b.base_balance==null&&b.currency!=='LAK')missing=true;else value+=Number(b.currency==='LAK'?b.balance:b.base_balance)}for(const l of JournalModule.entries){if(String(l.accountId)!==String(accountId)||l.date>date||l.id===JournalModule.editingEntryId||l.pendingSync||l.local14333||l.voided_at||(l.status&&l.status!=='posted'))continue;qty+=Number(l.debit)-Number(l.credit);const d=base(l,'debit'),c=base(l,'credit');if(d===null||c===null)missing=true;else value+=d-c}return !missing&&qty>0&&value>0?{quantity:qty,value:round(value),rate:value/qty}:null}
 // Built-ins use the same editable, zero-amount journal structure as saved templates.
 function templates(){
+ const direct=window.JournalTemplateCatalog268?.currencyTemplates?.(accounts());
+ if(direct)return direct;
  const row=(code,currency,side,memo,legacy)=>({code:accounts().some(a=>a.code===code)?code:legacy||code,currency,side,memo});
  return [
  {id:'fx14383-income',builtin:true,name:'Record sales received in multiple currencies',generalMemo:'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:[
