@@ -55,11 +55,14 @@ function defaultTemplate(run){
  const t={name:'Oon Jai payroll journal',version:143275,journalDate:journalDate(run),employeeAccounts:{},lines:[]};
  rows.forEach(r=>t.employeeAccounts[r.employeeId]=employeeAccount(r.employee));
  const tax=(run.status==='finalized'?run.settingsSnapshot:ApplicationSettings)?.tax||ApplicationSettings.tax||{};
+ const chart=window.JournalCompletion258?.registry(eligible());
  const pitExpense=exact('5211','LAK',['PIT Expense','OJM- PITx Expense']),pitPayable=settingsAccount(tax.pitAccount,'2111',['PIT Payable','OJM- PITx Payable']),ssoExpense=exact('5212','LAK',['SSO Expense']),ssoPayable=settingsAccount(tax.ssoAccount,'2112',['SSO Payable','OJM- SSO Payable']);
  const rule=(account,side,basis,currency,scope,memo,expectedCurrency=currency)=>({account,side,basis,employees:currency,scope,memo,expectedCurrency,manual:''});
  for(const c of currencies){
   const group=rows.filter(r=>r.employee.currency===c),sso=group.some(r=>r.employee.sso),foreign=c!=='LAK';
-  const salary=exact({USD:'9231',LAK:'5311',THB:'9232'}[c]||'',c);
+  const regularSalary=chart?.byCode?.({USD:'5316',THB:'5317'}[c],c);
+  const direct=chart?.regular?.has(regularSalary?.id);
+  const salary=direct?regularSalary.id:foreign&&chart?.regular?.size?'':exact({USD:'9231',LAK:'5311',THB:'9232'}[c]||'',c);
   const start=t.lines.length;
   t.lines.push(rule(salary,'DR','gross',c,'total','Gross salaries · '+c),rule('$employee','CR','adjusted',c,'each','Final salary'));
   t.lines.push(rule('$employee','CR','cashAdvance',c,'each','Entitlement allocated to advance recovery'),rule('$employee','CR','loanRecovery',c,'each','Entitlement allocated to loan recovery'));
@@ -71,8 +74,8 @@ function defaultTemplate(run){
    if(sso)t.lines.push(rule(taxBridge,'CR','employeeSso',c,'total','Employee SSO withholding'));
    for(const r of t.lines.slice(start))r.conversionSource274=true;
    const derived=(account,kind,memo)=>({...rule(account,'AUTO','rounding',c,'total',memo,kind==='quantity'?c:'LAK'),derived274:kind});
-   t.lines.push(rule(exact('5311','LAK'),'DR','gross',c,'total','Salary expense · '+c+' payroll','LAK'),derived(exact('9290','LAK'),'salaryOffset','Salary mapping · converted value'));
-   for(const row of group)if(Number(row.input?.reimbursement)>0||run.results?.some(x=>x.employeeId===row.employeeId&&Number(x.reimbursement)>0)){
+   if(!direct)t.lines.push(rule(exact('5311','LAK'),'DR','gross',c,'total','Salary expense · '+c+' payroll','LAK'),derived(exact('9290','LAK'),'salaryOffset','Salary mapping · converted value'));
+   for(const row of group)if(!direct&&(Number(row.input?.reimbursement)>0||run.results?.some(x=>x.employeeId===row.employeeId&&Number(x.reimbursement)>0))){
     for(const [kind,memo] of [['reimbursementExpense','Reimbursement expense'],['reimbursementOffset','Reimbursement mapping · converted value']])t.lines.push({...derived('',kind,memo),employees:'employee:'+row.employeeId,scope:'each'});
    }
    t.lines.push(derived(exact('9041','LAK'),'taxBridge','Employee withholding · converted value'));
@@ -92,6 +95,31 @@ function defaultTemplate(run){
 // amounts, dates and employee mappings; never rewrite a saved payroll result.
 function upgrade308(template){
  const t={...template,lines:template.lines.map(r=>({...r}))};
+ const chart=window.JournalCompletion258?.registry(eligible());
+ if(chart?.regular?.size){
+  const accounts=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
+  const remove=new Set();
+  for(const [c,legacy,replacement] of [['USD','9231','5316'],['THB','9232','5317']]){
+   const salary=chart.byCode(replacement,c);
+   if(!chart.regular.has(salary?.id))continue;
+   const group=t.lines.filter(r=>(r.groupCurrency275||r.employees)===c);
+   const gross=group.filter(r=>r.conversionSource274&&r.basis==='gross'&&r.side==='DR'&&r.scope==='total'&&accounts.get(r.account)?.code===legacy);
+   if(gross.length!==1)continue;
+   const recognition=group.filter(r=>r.basis==='gross'&&r.scope==='total'&&r.side==='DR'&&r.expectedCurrency==='LAK'&&accounts.get(r.account)?.code==='5311');
+   const offset=group.filter(r=>r.derived274==='salaryOffset'&&accounts.get(r.account)?.code==='9290');
+   if(recognition.length!==1||offset.length!==1||[...recognition,...offset].some(r=>String(r.manual??'').trim()||r.manualMemo!=null))continue;
+   gross[0].account=salary.id;
+   remove.add(recognition[0]);remove.add(offset[0]);
+   for(const r of group){
+    if(r.basis==='reimbursement'&&r.account){
+     const a=accounts.get(r.account),code=chart.superseded(a),replacement=code&&chart.byCode(code,c);
+     if(chart.regular.get(replacement?.id)?.type==='EXPENSE')r.account=replacement.id;
+    }
+    if(['reimbursementExpense','reimbursementOffset'].includes(r.derived274)&&!r.account&&!String(r.manual??'').trim()&&r.manualMemo==null)remove.add(r);
+   }
+  }
+  t.lines=t.lines.filter(r=>!remove.has(r));
+ }
  t.lines=t.lines.flatMap(r=>{
   if(['taxConversionRounding308','pitRoundingPayable308','pitRoundingOffset308'].includes(r.derived274))return [];
   if(r.derived274==='taxBridge')return [{...r,memo:'Employee withholding · converted value'}];
@@ -115,11 +143,13 @@ function evaluate(run,template){
  if(!template?.lines?.length)throw Error('Add at least two payroll template lines.');
  const lines=[],issues=[],rules=template.lines;
  const employees=new Map((run.rows||[]).map(row=>[row.employeeId,row.employee])),accounts=new Map(eligible().map(a=>[a.id,a]));
+ const registry=window.JournalCompletion258?.registry(eligible());
  const report=m=>{if(!issues.includes(m))issues.push(m);};
  const accountFor=(r,x)=>{
   const e=employees.get(x.employeeId)||x.employee||{};
   const id=r.account==='$employee'?(Object.hasOwn(template.employeeAccounts||{},x.employeeId)?template.employeeAccounts[x.employeeId]:e.payrollAccountId):r.account;
   const a=accounts.get(id),currency=r.account==='$employee'?x.currency:r.expectedCurrency||a?.currency||x.currency;
+  if(registry?.superseded?.(a))report('Update the saved payroll layout for '+currency+' to use account '+registry.superseded(a)+' and review its LAK recognition lines.');
   if(!a)report('Choose '+currency+' account: '+(r.account==='$employee'?e.name||x.employeeId:r.memo||fields[r.basis]));
   else if(r.account==='$employee'&&a.currency!==x.currency)report((e.name||'Employee')+' clearing account must use '+x.currency+'.');
   else if(r.expectedCurrency&&a.currency!==r.expectedCurrency)report((r.memo||fields[r.basis])+' requires '+r.expectedCurrency+'.');
@@ -129,7 +159,8 @@ function evaluate(run,template){
   if(!Number.isFinite(value)||!Number.isFinite(round(value))){report('Payroll amount exceeds the supported range.');return;}
   if(!value)return;
   const e=employees.get(x.employeeId)||x.employee||{};
-  lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex,employeeId275:x.employeeId,sourceLak274,fx_rate_lak:a.currency==='LAK'?1:Number(run.rates?.[a.currency]),book_rate_lak:null});
+  const rate=a.currency==='LAK'?1:Number(run.rates?.[a.currency]);
+  lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex,employeeId275:x.employeeId,sourceLak274,fx_rate_lak:rate,book_rate_lak:registry?.regular?.has(a.id)?rate:null});
  }
  rules.forEach((r,ruleIndex)=>{
   if(r.basis==='rounding'||r.derived274)return;
@@ -179,8 +210,12 @@ function evaluate(run,template){
   if(!source.length)continue;
   if(!(rate>0)||source.some(l=>l.sourceLak274===null)||original!==0){report(c+' payroll source amounts must match the saved calculations before conversion rounding. Review edited or missing business rows.');continue;}
   const reimbursements=source.filter(l=>rules[l.ruleIndex].basis==='reimbursement');
-  const registry=window.JournalCompletion258?.registry(eligible());
+  const directCosts=source.filter(l=>registry?.regular?.get(l.account.id)?.type==='EXPENSE'&&l.side==='DR'&&['gross','reimbursement'].includes(rules[l.ruleIndex].basis));
+  if(directCosts.some(l=>rules[l.ruleIndex].basis==='gross')&&rules.some(r=>groupCurrency(r)===c&&(r.derived274==='salaryOffset'||r.basis==='gross'&&r.expectedCurrency==='LAK'))){
+   report('Review the duplicate LAK salary lines in the saved '+c+' payroll layout.');continue;
+  }
   for(const l of reimbursements){
+   if(directCosts.includes(l))continue;
    const mapping=registry?.maps.get(l.account.id),pair=rules.filter(r=>groupCurrency(r)===c&&r.employees==='employee:'+l.employeeId275&&/^reimbursement/.test(r.derived274||''));
    if(!mapping?.actual||!mapping?.offset||mapping.offsetCode!=='9290'||!/^5/.test(mapping.actual.code)||pair.length!==2||new Set(pair.map(r=>r.derived274)).size!==2||l.side!=='DR'){
     report('Choose a supported foreign expense mapping for each reimbursement; use the default journal to include its LAK counterparts.');continue;
@@ -191,11 +226,14 @@ function evaluate(run,template){
   if(Math.abs(qty)>source.length*.005+.000001){report(c+' difference exceeds the calculated conversion rounding.');continue;}
   const converted=bases=>round(source.filter(l=>bases.includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n+round(signed(l)*rate),0));
   const entitlement=source.filter(l=>['adjusted','cashAdvance','loanRecovery'].includes(rules[l.ruleIndex].basis));
-  const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,0));
+  // Grouped foreign costs now carry their own LAK value. Only their evidenced
+  // conversion cents, together with the per-employee differences, belong to rounding.
+  const costRounding=directCosts.reduce((n,l)=>n+l.sourceLak274-round(l.amount*rate),0);
+  const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,costRounding));
   const values={salaryOffset:-converted(['gross']),taxBridge:-converted(['employeePit','employeeSso']),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
   for(const [i,r] of rules.entries())if(r.derived274&&groupCurrency(r)===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
   const local=round(lines.filter(l=>l.account.currency==='LAK'&&groupCurrency(rules[l.ruleIndex])===c).reduce((n,l)=>n+signed(l),0));
-  if(local!==0)report(c+' LAK mapping rows differ from the saved payroll by '+Math.abs(local)+'. Review the accounts and amounts; no balancing adjustment was invented.');
+  if(local!==0)report(c+(directCosts.length?' LAK rows':' LAK mapping rows')+' differ from the saved payroll by '+Math.abs(local)+'. Review the accounts and amounts.');
  }
  // PIT payable is the sum of the equal rounded shares. Do not generate
  // an offsetting pair to restore the unallocated tax-assessment cent.

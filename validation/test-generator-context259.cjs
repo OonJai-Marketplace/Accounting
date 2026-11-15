@@ -4,7 +4,8 @@ async function scenario(initialPersonal){
  const dom=new JSDOM('<style>.je-btn{display:flex!important}</style><div id="loginGate" class="is-authenticated"></div><section id="journalEntry98"><input id="jeTransDate" value="2026-11-03"><button id="addEntryRow14271">Add</button></section>',{url:'https://accounting.example.test',runScripts:'outside-only'}),w=dom.window,d=w.document;
  try{
   await new Promise(resolve=>w.addEventListener('load',resolve,{once:true}));
-  w.liveProfile={id:'review-admin'};w.AccountingStore={accounts:[]};w.JournalCompletion258={available:()=>true,currency:()=>"LAK"};w.escapeHtml=s=>s;w.access113={can:()=>true};w.pendingWorkspacePostOwnerId='';w.pendingWorkspacePostJournalId='';w.personalJournal1437={active:initialPersonal};w.showCenterStatus=()=>{};
+  w.liveProfile={id:'review-admin'};w.AccountingStore={accounts:[]};w.escapeHtml=s=>s;w.access113={can:()=>true};w.pendingWorkspacePostOwnerId='';w.pendingWorkspacePostJournalId='';w.personalJournal1437={active:initialPersonal};w.showCenterStatus=()=>{};
+  for(const module of ['journal/completion-core258.js','templates/generation-catalog268.js'])w.eval(fs.readFileSync('src/bookkeeping/'+module,'utf8'));
   w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false};
   const card=d.querySelector('#journalEntry98');if(initialPersonal)card.dataset.personalOwner1437='user-a';
   w.ApplicationSettings={system:{},accounting:{}};w.eval(fs.readFileSync('src/shared/formatting/numbers.js','utf8'));

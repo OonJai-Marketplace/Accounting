@@ -1,1 +1,1 @@
-{"version": "143.389", "changes": ["The October monthly lock can be restored to Closed by its original administrator. The approved October journals and linked November house rent are posted together on their original IDs."]}
+{"version": "143.390", "changes": ["Payroll journals use the regular USD and THB salary accounts and the saved payroll rate. Rent installments use the expense and prepaid accounts in their original currency at their recorded carrying value."]}

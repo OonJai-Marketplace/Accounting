@@ -958,7 +958,7 @@ function refreshRegularDraft(draft,t){
 }
 function restoreProtocolRows(draft,t){
  if(draft)refreshRegularDraft(draft,t);
- if(draft&&t){
+ if(draft&&t&&t.id!=='blank'){
   // Existing drafts have the default wording but predate automatic cash and bank memos.
   const accounts=chart();
   const defaults=(t.lines||[]).filter(slot=>slot.role==='fund'||slot.role==='payer'||G.fund(Catalog.resolve(slot,accounts)));

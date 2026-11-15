@@ -123,7 +123,19 @@ function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.tem
 function availableTransactionTemplates(){
   TemplateStore.load();
   const overrides=new Map(TemplateStore.templates.map(t=>[t.id,t]));
-  return [...builtInTransactionTemplates268().filter(t=>!overrides.has(t.id)),...TemplateStore.templates].filter(t=>!t.deleted);
+  const catalog=builtInTransactionTemplates268();
+  const saved=TemplateStore.templates.map(t=>{
+    // Early installations saved this sample with three display labels and no staff
+    // or withholding bridge. Keep its permanent number and the user's line memos.
+    if(t.deleted||t.id!=='tpl-payroll-sample'||t.lines.length!==3)return t;
+    const labels=['Salaries & Wages (USD)','Payroll Tax Payable (LAK)','SSO Payable (LAK)'];
+    if(!t.lines.every((l,i)=>l.account===labels[i]&&!l.accountId&&!l.code&&!l.side))return t;
+    const layout=catalog.find(item=>item.id==='gen268-payroll-tax-sso-USD'&&item.lines[0]?.code==='5316');
+    if(!layout)return t;
+    const memos=new Map(['5316','2111','2112'].map((code,i)=>[code,t.lines[i].memo]));
+    return {...layout,...t,builtin:true,autoMatch:false,lines:layout.lines.map(line=>({...line,memo:memos.get(line.code)??line.memo}))};
+  });
+  return [...catalog.filter(t=>!overrides.has(t.id)),...saved].filter(t=>!t.deleted);
 }
 function templateEditorFields14399(t){
   let host=document.getElementById('templateFields14399');
@@ -151,7 +163,8 @@ async function renderTemplateManager(){
   const host=document.getElementById('templateManagerList'); if(!host)return;
   const owner=liveProfile?.id;let numbers;try{numbers=await ensureTemplateNumbers143125()}catch(error){if(window.TemplateCloud275){TemplateCloud275.renderFailure(host,error);return true;}showAppNotification('Template Numbers Unavailable',error.message,true);return}if(liveProfile?.id!==owner)return;
   const templates=availableTransactionTemplates();
-  host.innerHTML = '<p class="je-subtitle">'+TemplateStore.templates.filter(t=>!t.deleted).length+' saved custom templates · '+templates.filter(t=>t.builtin).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
+  const savedIds=new Set(TemplateStore.templates.filter(t=>!t.deleted).map(t=>t.id));
+  host.innerHTML = '<p class="je-subtitle">'+savedIds.size+' saved custom templates · '+templates.filter(t=>t.builtin&&!savedIds.has(t.id)).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
     <div class="template-item">
       <div><strong><span class="template-number143125">${numbers[t.id]}.</span> ${escapeHtml(templateDisplayName143125(t))}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">

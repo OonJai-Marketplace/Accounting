@@ -132,3 +132,16 @@ const partial=chart.filter(a=>a.code!=='5422');
 assert(!C.templates(partial).some(t=>t.id==='gen268-mapping-9241-USD'));
 assert(catalog.some(t=>t.lines.some(l=>l.code==='9311')&&t.lines.some(l=>l.code==='9390')));
 console.log('PASS all 21 regular accounts, native and LAK values, repeat generation, FX, payroll, tender/change, partial charts and equity exceptions.');
+
+const fs=require('node:fs'),vm=require('node:vm');
+const sample={id:'tpl-payroll-sample',name:'Monthly Payroll — Sample',generalMemo:'Payroll',lines:['Salaries & Wages (USD)','Payroll Tax Payable (LAK)','SSO Payable (LAK)'].map((account,i)=>({account,memo:'Saved memo '+i}))};
+let stored=JSON.stringify([sample]);
+const env={liveProfile:{id:'test'},AccountingStore:{accounts:chart},JournalTemplateCatalog268:C,localStorage:{getItem:()=>stored}};
+env.window=env;vm.createContext(env);vm.runInContext(fs.readFileSync('src/bookkeeping/templates/transaction-templates.js','utf8'),env);
+const saved=()=>env.availableTransactionTemplates().find(t=>t.id===sample.id);
+assert.deepEqual(Array.from(saved().lines,l=>l.code||l.role),['5316','staff','9042','2111','2112','9041']);
+assert.deepEqual(Array.from(saved().lines).filter(l=>['5316','2111','2112'].includes(l.code)).map(l=>l.memo),sample.lines.map(l=>l.memo));
+assert.equal(stored,JSON.stringify([sample]));
+stored=JSON.stringify([{...sample,lines:[{account:'My custom salary'},...sample.lines.slice(1)]}]);
+assert.equal(saved().lines[0].account,'My custom salary');
+console.log('PASS saved payroll sample keeps its ID and memos on the current chart, and custom edits keep their saved layout.');

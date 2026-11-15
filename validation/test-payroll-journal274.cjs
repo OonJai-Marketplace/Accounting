@@ -20,3 +20,31 @@ const thb=run([employee('thai','THB','1224')],[result('thai','THB',650000)]);bal
 const advance=run([employee('local','LAK','1210')],[{...result('local','LAK',3000000),adjusted:2100000,cashAdvance:900000}]);({e}=evalRun(advance));balanced(e);assert.equal(signed(e,'1210'),-3000000,'accrual retains whole entitlement; payment/advance settlement separate');
 assert.equal(p.journalDate(r),'2026-10-31');assert.equal(p.journalDate(r,{journalDate:'2026-10-30'}),'2026-10-30');assert.throws(()=>p.journalDate(r,{journalDate:''}),/valid/);assert.throws(()=>p.journalDate(r,{journalDate:'2026-02-30'}),/valid/);
 console.log('PASS payroll protocol cases: local, USD, mixed, THB, PIT/SSO, rounding, saved rates/date, advances, missing/edited rows and input immutability. No posting performed.');
+
+// The payroll module and the journal generator must use the same reviewed chart.
+const savedLayout=p.defaultTemplate(r),snapshot=JSON.stringify(savedLayout),oldExpense=signed(p.evaluate(r,savedLayout),'5311');
+for(const a of chart){a.isTechnical=/^9/.test(a.code);a.type=a.isTechnical?'SYSTEM':/^5/.test(a.code)?'EXPENSE':/^2/.test(a.code)?'LIABILITY':'ASSET';}
+for(const [code,currency] of [['5316','USD'],['5317','THB'],['5124','USD']])chart.push({id:code,code,currency,name:code,type:'EXPENSE',active:true,isPosting:true});
+vm.runInContext(fs.readFileSync('src/bookkeeping/journal/completion-core258.js','utf8'),c);
+c.window.JournalCompletion258=c.JournalCompletion258;
+for(const template of [p.defaultTemplate(r),p.upgrade308(savedLayout)]){
+ const evaluated=p.evaluate(r,template);balanced(evaluated);
+ assert.equal(signed(evaluated,'5316'),1000);
+ assert.equal(signed(evaluated,'5311')+signed(evaluated,'5316')*r.rates.USD,oldExpense);
+ assert.equal(signed(evaluated,'9231'),0);assert.equal(signed(evaluated,'9290'),0);
+ assert.equal(signed(evaluated,'2111'),-1253421);assert.equal(signed(evaluated,'2112'),-423456);
+ assert.equal(signed(evaluated,'5420'),15.36);assert.equal(evaluated.lines.find(l=>l.account.code==='5316').book_rate_lak,22294);
+ assert.deepEqual(p.upgrade308(template),template);
+}
+assert.equal(JSON.stringify(savedLayout),snapshot);
+const edited=structuredClone(savedLayout);
+edited.lines.find(l=>l.basis==='gross'&&l.employees==='USD'&&l.expectedCurrency==='LAK').manual='100';
+assert.throws(()=>p.buildLines(r,edited),/saved payroll layout/);
+const expenseRun=run([employee('one','USD','1220')],[{...result('one','USD',22000040,211123),reimbursement:199940,adjusted:21988857}]);
+const expenseLayout=p.defaultTemplate(expenseRun);
+expenseLayout.lines.find(l=>l.basis==='reimbursement').account='5124';
+const withReimbursement=p.evaluate(expenseRun,expenseLayout);balanced(withReimbursement);
+assert.equal(signed(withReimbursement,'5124'),9.09);assert.equal(signed(withReimbursement,'9290'),0);
+const simpleThai=run([employee('thai','THB','1224')],[result('thai','THB',650000)]);
+const thaiEval=evalRun(simpleThai).e;balanced(thaiEval);assert.equal(signed(thaiEval,'5317'),1000);
+console.log('PASS regular USD/THB payroll, saved template migration, mixed salaries, direct reimbursement, historical immutability and rounding.');
