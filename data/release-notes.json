@@ -1,6 +1,6 @@
 {
-  "version": "143.385",
+  "version": "143.386",
   "changes": [
-    "Desktop updates reuse previously downloaded files to reduce the space needed on this device."
+    "The chart review shows replacement accounts and lets administrators deactivate unused mappings after checking their dependencies."
   ]
 }
