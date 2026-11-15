@@ -203,9 +203,10 @@
 
   function navigateCategory(category, defaultTarget) {
     if (category?.dataset.module === 'dashboard') {
-      const saved=window.navigationMemory312.get('dashboard-section') || 'Home';
       window.switchTab('dashboard');
-      const button=[...document.querySelectorAll('#dashboard [data-tab112]')].find(b=>b.dataset.tab112===saved);button?.click();return;
+      const home = document.querySelector('#dashboard [data-tab112="Home"]');
+      if (home?.getAttribute('aria-selected') !== 'true') home?.click();
+      return;
     }
     if (!category) return;
     if (mobileQuery.matches) {

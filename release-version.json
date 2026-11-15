@@ -1,1 +1,1 @@
-{"version": "143.390", "changes": ["Payroll journals use the regular USD and THB salary accounts and the saved payroll rate. Rent installments use the expense and prepaid accounts in their original currency at their recorded carrying value."]}
+{"version": "143.391", "changes": ["Home is available from the navigation and organizes the live chart by account type and currency. The top logo opens the company profile and the lower avatar opens the user profile.", "In both company calendars, choose a date anywhere in its cell or select a saved item to view its details."]}

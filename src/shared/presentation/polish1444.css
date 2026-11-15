@@ -33,3 +33,15 @@ body #journalEntry98 #jeLinesBody .je-btn-del{display:inline-flex!important;alig
 @media print{body #journalEntry98 .je-actions-bar{display:none!important}}
 body #journalEntry98 #jeLinesBody .action-col{overflow:visible!important;text-overflow:clip!important}
 body #journalEntry98 #jeLinesBody .row-menu99>summary{max-width:100%;box-sizing:border-box;text-overflow:clip}
+/* Company and employee profiles share the accounting shell's emerald and ivory. */
+dialog.identity-dialog{width:min(460px,calc(100vw - 24px));max-height:88dvh;padding:0;overflow:auto;background:#fffdf7;color:#183e30;border:1px solid #d0d9c9;border-radius:18px;box-shadow:0 20px 70px #102f2e40}
+.identity-dialog::backdrop{background:#102d26a3}
+.identity-hero{position:relative;text-align:center;padding:20px 48px;background:radial-gradient(ellipse at 88% 15%,#30664c 0%,transparent 55%),linear-gradient(120deg,#143e30,#20513d);color:#fffaf0;border-bottom:3px solid #d1b67d}
+.identity-hero small,.identity-section h3{font-size:11px;font-weight:700;line-height:1.4;letter-spacing:.09em;text-transform:uppercase}
+.identity-hero small{color:#e9d5a7;font-size:11px;font-weight:700}
+.identity-hero h2{font:600 27px/1.2 Georgia,serif;color:inherit!important;margin:7px 0 0}
+.identity-hero p{margin:5px 0 0;color:#e2ebdd}
+.identity-avatar{margin:12px auto 0;width:66px;height:66px;display:grid;place-items:center;overflow:hidden;background:#f3efdd;color:#244e37;border:2px solid #decea1;border-radius:50%;font:600 25px Georgia,serif}
+.identity-avatar img{width:100%;height:100%;object-fit:contain}
+.identity-hero [data-close]{position:absolute;right:12px;top:12px;background:transparent;color:#fff;font:24px/1 Arial;border:1px solid #8da896;border-radius:50%;width:32px;height:32px}
+.identity-body{padding:4px 24px 12px}.identity-section h3{margin:16px 0 5px;color:#506954;font-size:11px}.identity-section dl{display:block;margin:0}.identity-section dl>div{display:grid;grid-template-columns:minmax(92px,35%) 1fr;gap:12px;padding:8px 0;border-bottom:1px solid #e4e6da}.identity-section dt{color:#52615a}.identity-section dd{margin:0;overflow-wrap:anywhere;font-weight:600}.identity-dialog footer{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding:12px 24px;background:#f2f3e9}.identity-dialog footer button{padding:6px 12px;background:#fffdf7;color:#225540;border:1px solid #b7c6b4;border-radius:6px;cursor:pointer}.identity-dialog footer [data-close]{background:#21523c;color:white}

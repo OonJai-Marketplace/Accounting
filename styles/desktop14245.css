@@ -5109,6 +5109,28 @@ body #sub-users-workspace .settings-page-heading h3,body #sub-users-workspace .j
 body .tab-content.active tr[data-entry-id]:focus-within,body .tab-content.active tbody tr[aria-selected=true]{background:#f8ebd0!important}
 @media(max-width:620px){body .tab-content.active .im-edit-overlay112{padding:8px}body .tab-content.active .im-edit-overlay112>.im-card104{max-height:calc(100dvh - 16px)}body .tab-content.active .im-edit-overlay112 .im-form104{grid-template-columns:1fr}}
 body #sub-users-workspace .v49-desktop-home-title h2,body #sub-users-workspace .v49-desktop-home-title h3{font-size:clamp(17px,1.4vw,21px)!important;line-height:1.25!important}
+body #dashboard .overview-summary{padding:16px;background:#fffdf7;border:1px solid #d6ddce;border-radius:10px}
+body #dashboard .overview-summary header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+body #dashboard .overview-summary h2{margin:0;font:600 19px/1.3 Georgia,serif;color:#214e38}
+body #dashboard .overview-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+body #dashboard .overview-metric,body #dashboard .overview-grid button{min-width:0;cursor:pointer;text-align:left;border:1px solid #d6ddce;border-radius:8px;background:#f5f6ed;color:#244b38}
+body #dashboard .overview-metric{display:grid;gap:7px;padding:12px}
+body #dashboard .overview-metric>span{font-weight:600;font-size:12px}
+body #dashboard .overview-metric>strong{font:600 clamp(15px,1.5vw,21px)/1.2 Georgia,serif;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+body #dashboard .overview-metric small{display:flex;justify-content:space-between;color:#516550}
+body #dashboard .overview-metric:last-child{background:#ede9dc;border-color:#d7ccb5}
+body #dashboard .overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:6px;margin-top:10px}
+body #dashboard .overview-grid button{padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;background:#fffdf8}
+body #dashboard .overview-grid button span{display:grid;gap:3px}
+body #dashboard :is(.overview-grid button,.overview-metric):hover{border-color:#75947a;background:#edf2e7}
+.overview-details section{margin:14px 0}.overview-details h4{margin:0 0 4px;padding:7px 8px;background:#e8eee2;color:#24503a}
+.overview-detail-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 8px;border-bottom:1px solid #e2e7db}.overview-detail-row strong{white-space:nowrap;font-variant-numeric:tabular-nums}.overview-detail-row small{color:#687769;font-variant-numeric:tabular-nums}
+#nav-module-dashboard .nav-header{font:inherit;text-align:left;width:100%;cursor:pointer}
+body #dashboard .overview-directory{min-height:0}
+body #dashboard .overview-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr))}
+body #dashboard .overview-grid .overview-category-amount{display:flex;align-items:center;justify-content:flex-end;gap:7px;overflow-wrap:anywhere;font-size:12px;font-variant-numeric:tabular-nums}
+.overview-documents{list-style:none;margin:0;padding:0}.overview-documents li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #e2e7db}
+body #dashboard .overview-result{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 2px 0;color:#315540;font-size:12px}body #dashboard .overview-result strong{font-variant-numeric:tabular-nums}
 
 /* styles/polish-v113.css */
 /* One shared rhythm and readable warm palette across the application. */
@@ -6263,6 +6285,18 @@ body #journalEntry98 #jeLinesBody .je-btn-del{display:inline-flex!important;alig
 @media print{body #journalEntry98 .je-actions-bar{display:none!important}}
 body #journalEntry98 #jeLinesBody .action-col{overflow:visible!important;text-overflow:clip!important}
 body #journalEntry98 #jeLinesBody .row-menu99>summary{max-width:100%;box-sizing:border-box;text-overflow:clip}
+/* Company and employee profiles share the accounting shell's emerald and ivory. */
+dialog.identity-dialog{width:min(460px,calc(100vw - 24px));max-height:88dvh;padding:0;overflow:auto;background:#fffdf7;color:#183e30;border:1px solid #d0d9c9;border-radius:18px;box-shadow:0 20px 70px #102f2e40}
+.identity-dialog::backdrop{background:#102d26a3}
+.identity-hero{position:relative;text-align:center;padding:20px 48px;background:radial-gradient(ellipse at 88% 15%,#30664c 0%,transparent 55%),linear-gradient(120deg,#143e30,#20513d);color:#fffaf0;border-bottom:3px solid #d1b67d}
+.identity-hero small,.identity-section h3{font-size:11px;font-weight:700;line-height:1.4;letter-spacing:.09em;text-transform:uppercase}
+.identity-hero small{color:#e9d5a7;font-size:11px;font-weight:700}
+.identity-hero h2{font:600 27px/1.2 Georgia,serif;color:inherit!important;margin:7px 0 0}
+.identity-hero p{margin:5px 0 0;color:#e2ebdd}
+.identity-avatar{margin:12px auto 0;width:66px;height:66px;display:grid;place-items:center;overflow:hidden;background:#f3efdd;color:#244e37;border:2px solid #decea1;border-radius:50%;font:600 25px Georgia,serif}
+.identity-avatar img{width:100%;height:100%;object-fit:contain}
+.identity-hero [data-close]{position:absolute;right:12px;top:12px;background:transparent;color:#fff;font:24px/1 Arial;border:1px solid #8da896;border-radius:50%;width:32px;height:32px}
+.identity-body{padding:4px 24px 12px}.identity-section h3{margin:16px 0 5px;color:#506954;font-size:11px}.identity-section dl{display:block;margin:0}.identity-section dl>div{display:grid;grid-template-columns:minmax(92px,35%) 1fr;gap:12px;padding:8px 0;border-bottom:1px solid #e4e6da}.identity-section dt{color:#52615a}.identity-section dd{margin:0;overflow-wrap:anywhere;font-weight:600}.identity-dialog footer{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding:12px 24px;background:#f2f3e9}.identity-dialog footer button{padding:6px 12px;background:#fffdf7;color:#225540;border:1px solid #b7c6b4;border-radius:6px;cursor:pointer}.identity-dialog footer [data-close]{background:#21523c;color:white}
 
 /* styles/subusers-header14226.css */
 /* Keep Home actions together, independent of older absolute-position rules. */

@@ -73,8 +73,8 @@ body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
 .hr-month-grid14306{height:calc(var(--hr-calendar-height) - 107px);grid-auto-rows:1fr;border-left:1px solid #d2ded4;border-top:1px solid #d2ded4}
 .hr-date14306{min-width:0;min-height:0;overflow:hidden;padding:5px;border-right:1px solid #d2ded4;border-bottom:1px solid #d2ded4;background:#fff}
 .hr-date14306.off-day{background:#f5f5f0}.hr-date14306.other-month{opacity:.45}
-.hr-date14306>button{width:32px;padding:0;border-color:transparent!important;background:transparent;color:#203f2f;box-shadow:none;border-radius:50%}
-.hr-date14306>button[aria-current=date]{background:#008563;color:white;font-weight:700;border-color:#008563!important}
+.hr-date14306>[data-cal-day]{width:32px;padding:0;border-color:transparent!important;background:transparent;color:#203f2f;box-shadow:none;border-radius:50%}
+.hr-date14306>[data-cal-day][aria-current=date]{background:#008563;color:white;font-weight:700;border-color:#008563!important}
 .hr-cal-chip14306{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:4px;margin:3px 0;font-size:10px;border-radius:3px;background:#e6eff7;color:#244c70}
 .hr-cal-chip14306.holiday{background:#fff0cf;color:#745113}.hr-cal-chip14306.leave{background:#ebe3f4;color:#654382}.hr-cal-chip14306.contract{background:#d8efdf;color:#225d3a}
 .hr-calendar-key14306{display:flex;flex-wrap:wrap;gap:12px;padding-top:10px;font-size:10px;color:#667c6e}.hr-calendar-key14306 span:first-child{color:#9b7023}.hr-calendar-key14306 span:nth-child(2){color:#765494}
@@ -82,7 +82,7 @@ body #payDay95 form>p:not([role=alert]){font-size:11px;line-height:1.35}
 @media(max-width:900px){.hr-calendar-layout14306{grid-template-columns:220px minmax(0,1fr);gap:10px}.hr-calendar14306{padding:10px}.hr-event14306{grid-template-columns:28px minmax(0,1fr) auto;padding:6px;gap:5px}.hr-date14306{padding:2px}.hr-cal-chip14306{font-size:9px;padding:3px}.hr-month-head14306{gap:5px}}
 @media(max-width:700px){.hr-calendar-layout14306{grid-template-columns:1fr}.hr-calendar-layout14306>aside{order:2}.hr-calendar14306>header{flex-wrap:wrap}.hr-employee-dialog14306 #employeeForm82 .fields82{grid-template-columns:repeat(2,minmax(0,1fr))!important}.hr-week14306{grid-template-columns:70px 24px 1fr 1fr 75px;font-size:10px;gap:5px}.hr-fields14306{grid-template-columns:1fr}.hr-wide14306{grid-column:auto}}
 
-@layer app-controls14305{body .hr-date14306>button:not([aria-current=date]){border-color:transparent!important}}
+@layer app-controls14305{body .hr-date14306>[data-cal-day]:not([aria-current=date]){border-color:transparent!important}}
 body.shell113 :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendance) :is(.module109,.inner-module109),body.shell113 #hr-calendar .hr-calendar14306{border-top-color:#008563!important;box-shadow:none!important}
 
 body #hrEmployeeDialog14306 #employeeForm82 .form-actions82{gap:8px}
@@ -132,8 +132,8 @@ body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendan
 
 /* Calendar-specific controls, never navigation or employee cards. */
 @layer app-controls14305{
- body .hr-date14306>button{box-sizing:border-box!important;width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;min-width:28px!important;padding:0!important;border:0!important;box-shadow:none!important;border-radius:50%!important}
- body .hr-date14306>button[aria-current=date]{background:#008563!important;color:white!important}
+ body .hr-date14306>[data-cal-day]{box-sizing:border-box!important;width:28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;min-width:28px!important;padding:0!important;border:0!important;box-shadow:none!important;border-radius:50%!important}
+ body .hr-date14306>[data-cal-day][aria-current=date]{background:#008563!important;color:white!important}
  body .hr-calendar14306 :is(.actions82,.hr-month-head14306,.hr-agenda-head14306,.hr-event14306) button.je-btn,body .hr-news-dialog14309 button.je-btn{background:#e4eee6!important;color:#194c38!important;border:1px solid #abc5b2!important;box-shadow:0 1px 2px #194c381a!important;border-radius:5px!important;font-weight:600!important}
  body .hr-calendar14306 .actions82 button.primary82,body .hr-news-dialog14309 button.primary82{background:#008563!important;color:white!important}
  body .hr-month-head14306 .oj-date-button104{background:#fffdf8!important;border:1px solid #abc5b2!important;border-radius:5px!important;box-shadow:0 1px 2px #194c381a!important}
@@ -200,3 +200,14 @@ dialog.rail-calendar379{position:fixed;inset:12px 58px auto auto;margin:0;paddin
 .rail-calendar379::backdrop{background:#102a221f}
 .rail-calendar379 [data-calendar-content]:not(:has(.hr-calendar14306)){padding:12px}
 .rail-calendar379 .hr-calendar14306{border:0;border-radius:0;--hr-calendar-height:clamp(390px,calc(100dvh - 220px),650px)}
+
+/* The day button covers the cell; saved records remain separate keyboard targets. */
+.hr-date14306{position:relative}
+.hr-date14306>[data-cal-day]{position:static;cursor:pointer}
+.hr-date14306>[data-cal-day]::after{content:"";position:absolute;inset:0}
+.hr-date14306>[data-cal-day]:focus-visible::after{outline:2px solid #227553;outline-offset:-2px}
+.hr-date14306>small{pointer-events:none}
+.hr-date14306>button.hr-cal-chip14306{position:relative;z-index:1;display:block;width:100%;max-width:100%;min-width:0;min-height:0;height:auto;margin:2px 0;padding:2px 4px;border:0;border-radius:4px;text-align:left;font-size:10px;font-weight:600;line-height:1.3;cursor:pointer}
+.hr-date14306>.hr-cal-chip14306:hover,.hr-date14306>.hr-cal-chip14306:focus-visible{text-decoration:underline}
+.hr-detail14306.calendar-record dd{white-space:pre-wrap;overflow-wrap:anywhere}
+.hr-agenda14306 .hr-event14306{position:relative}.hr-agenda14306 [data-cal-open]::after{content:"";position:absolute;inset:0;cursor:pointer}

@@ -175,3 +175,25 @@ body #sub-users-workspace .settings-page-heading h3,body #sub-users-workspace .j
 body .tab-content.active tr[data-entry-id]:focus-within,body .tab-content.active tbody tr[aria-selected=true]{background:#f8ebd0!important}
 @media(max-width:620px){body .tab-content.active .im-edit-overlay112{padding:8px}body .tab-content.active .im-edit-overlay112>.im-card104{max-height:calc(100dvh - 16px)}body .tab-content.active .im-edit-overlay112 .im-form104{grid-template-columns:1fr}}
 body #sub-users-workspace .v49-desktop-home-title h2,body #sub-users-workspace .v49-desktop-home-title h3{font-size:clamp(17px,1.4vw,21px)!important;line-height:1.25!important}
+body #dashboard .overview-summary{padding:16px;background:#fffdf7;border:1px solid #d6ddce;border-radius:10px}
+body #dashboard .overview-summary header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+body #dashboard .overview-summary h2{margin:0;font:600 19px/1.3 Georgia,serif;color:#214e38}
+body #dashboard .overview-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+body #dashboard .overview-metric,body #dashboard .overview-grid button{min-width:0;cursor:pointer;text-align:left;border:1px solid #d6ddce;border-radius:8px;background:#f5f6ed;color:#244b38}
+body #dashboard .overview-metric{display:grid;gap:7px;padding:12px}
+body #dashboard .overview-metric>span{font-weight:600;font-size:12px}
+body #dashboard .overview-metric>strong{font:600 clamp(15px,1.5vw,21px)/1.2 Georgia,serif;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+body #dashboard .overview-metric small{display:flex;justify-content:space-between;color:#516550}
+body #dashboard .overview-metric:last-child{background:#ede9dc;border-color:#d7ccb5}
+body #dashboard .overview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:6px;margin-top:10px}
+body #dashboard .overview-grid button{padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;background:#fffdf8}
+body #dashboard .overview-grid button span{display:grid;gap:3px}
+body #dashboard :is(.overview-grid button,.overview-metric):hover{border-color:#75947a;background:#edf2e7}
+.overview-details section{margin:14px 0}.overview-details h4{margin:0 0 4px;padding:7px 8px;background:#e8eee2;color:#24503a}
+.overview-detail-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 8px;border-bottom:1px solid #e2e7db}.overview-detail-row strong{white-space:nowrap;font-variant-numeric:tabular-nums}.overview-detail-row small{color:#687769;font-variant-numeric:tabular-nums}
+#nav-module-dashboard .nav-header{font:inherit;text-align:left;width:100%;cursor:pointer}
+body #dashboard .overview-directory{min-height:0}
+body #dashboard .overview-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr))}
+body #dashboard .overview-grid .overview-category-amount{display:flex;align-items:center;justify-content:flex-end;gap:7px;overflow-wrap:anywhere;font-size:12px;font-variant-numeric:tabular-nums}
+.overview-documents{list-style:none;margin:0;padding:0}.overview-documents li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #e2e7db}
+body #dashboard .overview-result{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 2px 0;color:#315540;font-size:12px}body #dashboard .overview-result strong{font-variant-numeric:tabular-nums}
