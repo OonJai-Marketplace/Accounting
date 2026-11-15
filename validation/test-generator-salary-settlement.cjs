@@ -19,7 +19,7 @@ const setup=require('./phase0-browser-fixture.cjs');
    switchTab('journal');showJournalEntry98();clearJournalEntry();
    const definitions=[
     ['1222','USD','ASSET'],['1041','USD','ASSET'],['9011','USD','SYSTEM'],
-    ['9010','LAK','SYSTEM'],['5419','LAK','EXPENSE']
+    ['9010','LAK','SYSTEM'],['5419','LAK','EXPENSE'],['5110','LAK','EXPENSE'],['1040','LAK','ASSET']
    ];
    AccountingStore.accounts=AccountingStore.accounts.filter(a=>!definitions.some(([code])=>a.code===code));
    for(const [code,currency,type] of definitions)AccountingStore.accounts.push({
@@ -150,6 +150,16 @@ const setup=require('./phase0-browser-fixture.cjs');
   const bankGain=(cents(qty,payday)-cents(qty,22000))/100;
   assert.equal(gain[1].line_memo,'Bank payment · BCEL USD · FX gain '+bankGain.toLocaleString('en-US')+' LAK');
   assert.equal(gain[5].debit,gain[4].credit);assert.deepEqual(await generate(),gain);
+  // Change templates through the visible picker while the six-row draft is verified.
+  const shortTemplate=await page.evaluate(()=>availableTransactionTemplates().find(t=>t.id==='gen268-local-5110').name);
+  await templateField.fill(shortTemplate);
+  await d.getByRole('option',{name:shortTemplate,exact:true}).click();
+  assert.equal(await d.locator('[data-template]').inputValue(),'gen268-local-5110');
+  assert.equal(await d.locator('[data-entry-lines] tr').count(),2);
+  assert(await d.locator('[data-use]').isDisabled());
+  assert(await d.locator('[data-template-options]').isHidden());
+  await d.locator('[data-template]').selectOption('gen268-settlement-USD',{force:true});
+  assert.deepEqual(await generate(),gain);
   let copyLookups=0;
   page.on('request',request=>{if(request.url().includes('/rpc/account_exchange_rates143186'))copyLookups++;});
   await d.locator('[data-use]').click();await d.waitFor({state:'detached',timeout:3500}).catch(async e=>{throw Error((await d.locator('[data-status]').innerText())+' '+e.message);});

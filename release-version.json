@@ -1,1 +1,1 @@
-{"version": "143.395", "changes": ["Chart of Accounts shows current accounts by default. Select Expenses and USD to see dollar expense accounts, or Refresh accounts for the latest chart.", "Generate Journal offers current posting accounts and identifies superseded lines retained in saved drafts."]}
+{"version": "143.396", "changes": ["Switching from a generated journal to a shorter template now displays the new template\u2019s accounts, amounts and editable lines."]}

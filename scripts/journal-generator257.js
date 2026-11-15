@@ -1104,13 +1104,18 @@ async function suggestBook292(line){
 }
 function showLakValues(checked){
  if(!dialog)return;
+ if(!checked){
+  // A template switch replaces state.rows before the previous table is redrawn.
+  for(const cell of dialog.querySelectorAll('[data-day-value],[data-book-value]'))cell.textContent='—';
+  return;
+ }
  const fmt=(n,credit)=>credit?'('+display(n)+')':display(n);
  for(const tr of dialog.querySelectorAll('[data-entry-lines] tr')){
   const l=state.rows[Number(tr.dataset.row)],amount=number(l.debit)||number(l.credit);
   const c=tr.querySelector('[data-currency]').textContent;
   const day=c==='LAK'?1:number(l.fx_rate_lak),book=c==='LAK'?1:number(l.book_rate_lak)||day;
   for(const [selector,rate] of [['[data-day-value]',day],['[data-book-value]',book]]){
-   tr.querySelector(selector).textContent=checked&&amount&&rate>0?fmt(G.round(amount*rate),number(l.credit)>0):'—';
+   tr.querySelector(selector).textContent=amount&&rate>0?fmt(G.round(amount*rate),number(l.credit)>0):'—';
   }
  }
 }
