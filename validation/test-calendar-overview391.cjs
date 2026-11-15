@@ -16,6 +16,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
   const home = page.getByRole('button',{name:'Home / Overview',exact:true});
   await home.click();
   assert.match(await page.locator('#dashboard .dash-hero112 h1').innerText(), /Welcome back/i);
+  await page.locator('[data-tab112="Overview"]').click();
   await page.locator('[data-map112="assets"]').click();
   const details = page.locator('.ui-overlay108').last();
   assert.match(await details.innerText(), /Cash on Hand/);

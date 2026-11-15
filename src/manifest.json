@@ -1507,6 +1507,10 @@
     ],
     "scripts/dashboard-warm-v112.js": [
       {
+        "source": "src/dashboard/ledger-graphs.js",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/dashboard/dashboard-warm-v112.js",
         "suffix": ";\n"
       }
@@ -1576,8 +1580,12 @@
         "suffix": ";\n\n;\n"
       },
       {
+        "source": "src/dashboard/ledger-graphs.js",
+        "suffix": ";\n",
+        "prefix": "/* scripts/dashboard-warm-v112.js */\n"
+      },
+      {
         "source": "src/dashboard/dashboard-warm-v112.js",
-        "prefix": "/* scripts/dashboard-warm-v112.js */\n",
         "suffix": ";\n\n;\n"
       },
       {

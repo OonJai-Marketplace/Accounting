@@ -1,7 +1,7 @@
 /* Oon Jai Home: figures come only from posted journals and mapped Chart of Accounts. */
 (function(){'use strict';
 const host=document.getElementById('dashboard');if(!host)return;
-const tabs=['Home','Finance','People','Operation','Compliance','Documents'];
+const tabs=['Home','Overview','Graphs','Finance','People','Operation','Compliance','Documents'];
 const classes={income:'Income',expense:'Expenses',assets:'Assets',liabilities:'Liabilities',equity:'Equity',system:'System & mapping',other:'Other accounts'};
 const groups={revenue:'Restaurant sales',otherIncome:'Non-sales income',cogs:'Cost of sales',operating:'Other expenses',support:'Owner support movement',cash:'Cash on hand',bank:'Bank accounts',...classes};
 const state={tab:'Home',month:'',currency:'LAK',zoom:1,present:false,mappings:{},owner:'',lastRefresh:0};
@@ -31,7 +31,7 @@ function overview(){
   const type=String(a.baseType||a.type||'').toUpperCase(),root=path[0],branch=String(root.code);
   const technical=path.some(p=>p.isTechnical||p.type==='SYSTEM'||p.purpose&&p.purpose!=='regular');
   const kind=technical?'system':({ASSET:'assets',LIABILITY:'liabilities',EQUITY:'equity',DRAWING:'equity',REVENUE:'income',INCOME:'income',EXPENSE:'expense',COST:'expense'})[type]||'other';
-  const row={a,root,path,kind,posting:a.isPosting!==false,sign:['LIABILITY','EQUITY','INCOME','REVENUE'].includes(type)?-1:1,balance:0,months:new Map(),lines:[]};
+  const row={a,root,path,kind,posting:a.isPosting!==false,sign:['LIABILITY','EQUITY','INCOME','REVENUE'].includes(type)?-1:1,opening:0,openingMonth:null,balanceChanges:new Map(),months:new Map(),lines:[]};
   entries.push(row);byId.set(String(a.id),row);byName.set(JSON.stringify([a.name,a.currency]),row);
   add(kind,row);add('branch:'+branch,row);
   if(kind==='income')add(branch==='4000'||/^(restaurant sales|sales)\b/i.test(root.name)?'revenue':'otherIncome',row);
@@ -45,23 +45,29 @@ function overview(){
  const byAccountCode=new Map(entries.map(row=>[String(row.a.code),row]));
  const windowState=window.yearWindow14333?.state();
  const hasMonth=m=>!windowState?.available||m>=windowState.from.slice(0,7)&&m<=windowState.to.slice(0,7);
- const lines=posted();const year=state.month.slice(0,4);
+ const lines=posted();
  for(const l of lines){
   const row=byId.get(String(l.accountId))||byAccountCode.get(String(l.accountCode))||byName.get(JSON.stringify([l.account,l.currency]));
   if(!row?.posting||l.currency!==row.a.currency||!l.date)continue;
   const m=l.date.slice(0,7),net=(cents69(l.debit)-cents69(l.credit))*row.sign;
-  if(m.slice(0,4)===year&&m<=state.month)row.balance+=net;
+  row.balanceChanges.set(m,(row.balanceChanges.get(m)||0)+net);
   if(l.annualOpening||/^Annual opening balances |^Opening Balances$|^Year-end closing /i.test(l.generalMemo||''))continue;
   row.months.set(m,(row.months.get(m)||0)+net);row.lines.push(l);
  }
- for(const b of windowState?.opening||[]){const row=byId.get(String(b.accountId));if(row&&row.a.currency===b.currency&&windowState.from.startsWith(year))row.balance+=row.sign*cents69(b.balance)}
+ for(const b of windowState?.opening||[]){const row=byId.get(String(b.accountId));if(row&&row.a.currency===b.currency){row.openingMonth=windowState.from.slice(0,7);row.opening+=row.sign*cents69(b.balance)}}
  return {entries,buckets,lines,hasMonth};
 }
 let model;
 const getModel=()=>model||overview();
 function rowsFor(group,m=getModel()){return m.buckets.get(group)||[]}
 function flowAccount(row){return ['income','expense'].includes(row.kind)}
-function valueFor(row,month,movement=flowAccount(row)){return (movement?(row.months.get(month)||0):row.balance)/100}
+function valueFor(row,month,movement=flowAccount(row)){
+ if(movement)return (row.months.get(month)||0)/100;
+ const january=month.slice(0,4)+'-01';
+ let cents=row.openingMonth>=january&&row.openingMonth<=month?row.opening:0;
+ for(const [period,change] of row.balanceChanges)if(period>=january&&period<=month)cents+=change;
+ return cents/100;
+}
 function amount(group,month=state.month,currency=state.currency){
  const m=getModel();if(!allowed('sec-chart-accounts')||!m.hasMonth(month))return null;
  return rowsFor(group,m).filter(row=>row.posting&&row.a.currency===currency).reduce((sum,row)=>sum+Math.round(valueFor(row,month,group==='support'||flowAccount(row))*100),0)/100;
@@ -136,26 +142,45 @@ function secondary(){
  }
  return '';
 }
-function home(){
+function detailedOverview(){
  const chartReady=allowed('sec-chart-accounts')&&getModel().entries.length;
  const income=amount('income'),expense=amount('expense');
  const overviewCards=chartReady?`<section class="overview-summary"><header><h2>Monthly activity</h2><small>${esc(labelMonth(state.month))} · ${esc(state.currency)}</small></header><div class="overview-metrics">${['revenue','otherIncome','cogs','operating','support'].map(metric).join('')}</div><footer class="overview-result"><span>Net income for ${esc(labelMonth(state.month))}</span><strong>${esc(money(income==null||expense==null?null:income-expense))}</strong></footer></section>`:'';
  return overviewCards+directory('Explore your accounts',Object.keys(classes))+`<div class="dash-bottom112">${allowed('transactions-all')?journal():''}${allowed('transactions-recurring')?obligations():''}</div>`;
 }
+function welcome(){
+ const quick=[['journal','Open journal','doc'],['Overview','View overview','bank'],['Graphs','Compare graphs','revenue']];
+ const links=quick.filter(([k])=>k==='Overview'||(k==='Graphs'?allowed('sec-chart-accounts'):allowed(k))).map(([target,label,mark])=>
+  `<button type="button" ${target==='journal'?'data-go112':'data-dash-open'}="${target}"><span>${icon(mark)}</span>${esc(label)} ${icon('arrow')}</button>`).join('');
+ const financial=allowed('sec-chart-accounts')&&model.entries.length;
+ const current=allowed('transactions-recurring')&&upcoming().find(row=>row.nextDate>=appLocalDate());
+ const focus=allowed('transactions-recurring')&&current?`<button type="button" class="welcome-focus" data-go112="transactions-recurring"><small>Next on the calendar</small><strong>${esc(current.memo||'Scheduled entry')}</strong><span>${date(current.nextDate)}</span></button>`:'';
+ return `<div class="welcome-layout"><section class="welcome-start"><h2>Your workspace</h2><div class="welcome-links">${links}</div></section>
+ ${financial?`<section class="welcome-glance"><small>${esc(labelMonth(state.month))} · ${esc(state.currency)}</small><h2>Month at a glance</h2><dl>${[['income','Income'],['expense','Expenses']].map(([id,label])=>`<div><dt>${label}</dt><dd>${esc(money(amount(id)))}</dd></div>`).join('')}</dl></section>`:''}${focus}</div>`;
+}
+const graphs=window.createLedgerGraphs({owner,allowed,state,money,esc,valueFor,flowAccount,groups,render,model:getModel});
+function selectDashboardTab(tab){
+ if(!tabs.includes(tab)||tab==='Graphs'&&!allowed('sec-chart-accounts'))return;
+ state.tab=tab;render();
+ if(tab==='Documents')void readDocumentIndex();
+ if(tab==='Graphs')void graphs.prepareRange();
+}
 function render(){
- const actor=owner();if(state.owner!==actor){documents=null;documentRequest++;state.tab='Home';state.month=monthNow();state.currency='LAK';state.owner=actor}
+ const actor=owner();if(state.owner!==actor){documents=null;documentRequest++;state.tab='Home';state.month=monthNow();state.currency='LAK';state.owner=actor;graphs.reset()}
  model=overview();
  try{
   state.mappings=Object.fromEntries(Object.keys(groups).map(k=>[k,rowsFor(k).filter(r=>r.posting).map(r=>String(r.a.id||r.a.code))]));
+  if(state.tab==='Graphs'&&!allowed('sec-chart-accounts'))state.tab='Home';
   const signed=allowed('dashboard'),current=state.tab;
   const first=signed?String(liveProfile.full_name||'').trim().split(/\s+/)[0]:'';
   const business=signed&&BusinessSettings.current.companyName||'Oon Jai Marketplace';
   const heading=current==='Home'?(first?'Welcome back, '+first:'Welcome to '+business):current==='Operation'?'Operations':current;
   const currencyList=[...new Set(['LAK','USD','THB',...model.entries.filter(r=>r.posting).map(r=>r.a.currency),...(typeof CurrencyStore==='undefined'?[]:CurrencyStore.currencies.map(c=>c.code))])].filter(c=>c&&c!=='NA'&&c!=='__PARENT__');
-  host.innerHTML=`<div class="dash-shell112"><nav class="dash-tabs112" role="tablist" aria-label="Overview views">${tabs.map(t=>`<button role="tab" data-tab112="${t}" aria-selected="${t===current}" type="button">${t==='Operation'?'Operations':t}</button>`).join('')}</nav>
-  <div class="dash-content112"><section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${esc(labelMonth(state.month))} accounting overview</p></div>
+  host.innerHTML=`<div class="dash-shell112" data-dash-view="${esc(current)}"><nav class="dash-tabs112" role="tablist" aria-label="Overview views">${tabs.filter(t=>t!=='Graphs'||allowed('sec-chart-accounts')).map(t=>`<button role="tab" data-tab112="${t}" aria-selected="${t===current}" type="button">${t==='Operation'?'Operations':t}</button>`).join('')}</nav>
+  <div class="dash-content112"><section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons by month':esc(labelMonth(state.month))+' accounting overview'}</p></div>
   <div class="dash-hero-controls112"><label>${icon('calendar')} Month <input type="month" data-month112 value="${esc(state.month)}"></label><label>Currency <select data-currency112>${currencyList.map(c=>`<option value="${esc(c)}" ${state.currency===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label></div></section>
-  ${signed?(current==='Home'?home():secondary()):'<p class="dash-empty112">Sign in to see your overview.</p>'}</div></div>`;
+  ${signed?(current==='Home'?welcome():current==='Overview'?detailedOverview():current==='Graphs'?graphs.view(model):secondary()):'<p class="dash-empty112">Sign in to see your overview.</p>'}</div></div>`;
+  graphs.mount(host,current==='Graphs'&&signed);
   host.style.setProperty('--dash-zoom112',String(state.zoom));document.body.classList.toggle('dash-active112',host.classList.contains('active'));window.updateDashboardDock112?.();
  }finally{model=null}
 }
@@ -183,11 +208,12 @@ function updateDock(){
 }
 window.updateDashboardDock112=updateDock;
 function addDock(){const dock=byId('workspaceTools108');if(!dock||byId('docExpandDock112'))return;const editor=document.createElement('button');editor.type='button';editor.id='docExpandDock112';editor.innerHTML=icon('expand');editor.onclick=()=>{byId('document-editor105')?.classList.toggle('expanded108');window.syncDocumentExpand112?.(byId('document-editor105')?.classList.contains('expanded108'))};dock.append(editor);updateDock()}
-function zoom(delta){state.zoom=Math.max(.75,Math.min(1.5,Math.round((state.zoom+delta)*10)/10));host.style.setProperty('--dash-zoom112',String(state.zoom));const out=byId('dashZoomLabel112');if(out)out.textContent=Math.round(state.zoom*100)+'%'}
+function zoom(delta){state.zoom=Math.max(.75,Math.min(1.5,Math.round((state.zoom+delta)*10)/10));
+  host.style.setProperty('--dash-zoom112',String(state.zoom));const out=byId('dashZoomLabel112');if(out)out.textContent=Math.round(state.zoom*100)+'%'}
 function profileDock(){const dock=byId('workspaceTools108');if(!dock||byId('dashProfile112'))return;const button=document.createElement('button');button.id='dashProfile112';button.type='button';button.title='Account profile';button.setAttribute('aria-label','Account profile');button.innerHTML='<span>OJ</span>';button.onclick=()=>{const menu=byId('headerAccountDropdown');if(menu){menu.hidden=!menu.hidden;button.setAttribute('aria-expanded',String(!menu.hidden));if(!menu.hidden){const b=(window.desktopScale14320?.rect(button)||button.getBoundingClientRect());menu.style.position='fixed';menu.style.left='auto';menu.style.right=((window.desktopScale14320?.width||innerWidth)-b.right)+'px';menu.style.bottom=((window.desktopScale14320?.height||innerHeight)-b.top+8)+'px';menu.style.top='auto';menu.style.zIndex='3000'}}else byId('headerAccountTrigger')?.click()};dock.append(button);const existingMenu=byId('headerAccountDropdown');if(existingMenu)document.body.append(existingMenu);function identity(){const avatar=byId('headerAccountInitials');button.innerHTML=avatar?.innerHTML||'<span>OJ</span>';button.hidden=owner()==='guest';button.title=(typeof liveProfile!=='undefined'&&liveProfile?.full_name)||'Account profile'}identity();setInterval(identity,30000)}
 window.syncDocumentExpand112=()=>updateDock();
 function refresh(){if(!host.classList.contains('active'))return;render()}
-function install(){profileDock();addDock();render();new MutationObserver(updateDock).observe(host,{attributes:true,attributeFilter:['class']});document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&state.present)presentation(false)});host.addEventListener('click',e=>{if(e.target.closest('[data-doc-list]')&&allowed('document-editor105')&&admin82())return openDocumentEditor105({list:true});const t=e.target.closest('[data-tab112],[data-go112],[data-map112]');if(!t)return;if(t.dataset.tab112){state.tab=t.dataset.tab112;render();if(state.tab==='Documents')void readDocumentIndex()}else if(t.dataset.map112)accountDetails(t.dataset.map112);else if(t.dataset.go112)navigate(t.dataset.go112)});host.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('tr[data-go112]')){e.preventDefault();navigate(e.target.dataset.go112)}});host.addEventListener('change',e=>{if(e.target.matches('[data-month112]')){state.month=e.target.value||monthNow();const selected=state.month,actor=owner();render();window.yearWindow14333?.ensure(selected,selected).then(()=>{if(owner()===actor&&state.month===selected)refresh()}).catch(error=>showCenterStatus(error.message,true))}if(e.target.matches('[data-currency112]')){state.currency=e.target.value;render()}});const previous=window.switchTab;if(typeof previous==='function')window.switchTab=function(id,...rest){const r=previous.call(this,id,...rest);if(id==='dashboard'&&!window.workspaceViews14364?.reuseView(id)){render();addDock()}else updateDock();return r};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.present)presentation(false);if(e.key==='Escape'&&byId('document-editor105')?.classList.contains('expanded108')){byId('document-editor105').classList.remove('expanded108');updateDock()}});setInterval(()=>{if(owner()!==state.owner||host.classList.contains('active')&&Date.now()-state.lastRefresh>20000){state.lastRefresh=Date.now();refresh()}},2000);}
+function install(){profileDock();addDock();render();new MutationObserver(updateDock).observe(host,{attributes:true,attributeFilter:['class']});document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&state.present)presentation(false)});host.addEventListener('click',e=>{const shortcut=e.target.closest('[data-dash-open]');if(shortcut)return selectDashboardTab(shortcut.dataset.dashOpen);if(e.target.closest('[data-doc-list]')&&allowed('document-editor105')&&admin82())return openDocumentEditor105({list:true});const t=e.target.closest('[data-tab112],[data-go112],[data-map112]');if(!t)return;if(t.dataset.tab112){selectDashboardTab(t.dataset.tab112)}else if(t.dataset.map112)accountDetails(t.dataset.map112);else if(t.dataset.go112)navigate(t.dataset.go112)});host.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('tr[data-go112]')){e.preventDefault();navigate(e.target.dataset.go112)}});host.addEventListener('change',e=>{if(e.target.matches('[data-month112]')){state.month=e.target.value||monthNow();const selected=state.month,actor=owner();render();if(state.tab==='Graphs'){void graphs.prepareRange();return;}window.yearWindow14333?.ensure(selected,selected).then(()=>{if(owner()===actor&&state.month===selected)refresh()}).catch(error=>showCenterStatus(error.message,true))}if(e.target.matches('[data-currency112]')){state.currency=e.target.value;render()}});const previous=window.switchTab;if(typeof previous==='function')window.switchTab=function(id,...rest){const r=previous.call(this,id,...rest);if(id==='dashboard'&&!window.workspaceViews14364?.reuseView(id)){render();addDock()}else updateDock();return r};document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.present)presentation(false);if(e.key==='Escape'&&byId('document-editor105')?.classList.contains('expanded108')){byId('document-editor105').classList.remove('expanded108');updateDock()}});setInterval(()=>{if(owner()!==state.owner||state.tab!=='Graphs'&&host.classList.contains('active')&&Date.now()-state.lastRefresh>20000){state.lastRefresh=Date.now();refresh()}},2000);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
-window.dashboardWarm112={render,amount,linesFor,state,mapDialog:accountDetails};
+window.dashboardWarm112={tabs,render,amount,linesFor,state,mapDialog:accountDetails};
 })()

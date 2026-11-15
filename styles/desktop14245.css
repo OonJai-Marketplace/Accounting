@@ -5131,6 +5131,78 @@ body #dashboard .overview-grid{grid-template-columns:repeat(auto-fit,minmax(min(
 body #dashboard .overview-grid .overview-category-amount{display:flex;align-items:center;justify-content:flex-end;gap:7px;overflow-wrap:anywhere;font-size:12px;font-variant-numeric:tabular-nums}
 .overview-documents{list-style:none;margin:0;padding:0}.overview-documents li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid #e2e7db}
 body #dashboard .overview-result{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 2px 0;color:#315540;font-size:12px}body #dashboard .overview-result strong{font-variant-numeric:tabular-nums}
+/* The landing page keeps the welcome and the few next actions in the foreground. */
+#dashboard .welcome-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(235px,.85fr);gap:14px;align-items:stretch}
+#dashboard .welcome-layout :is(.welcome-start,.welcome-glance,.welcome-focus){padding:clamp(18px,2.1vw,32px);border:1px solid #d6ddcb;border-radius:12px;background:#fffdf6;color:#204836}
+#dashboard .welcome-layout h2,#dashboard .graph-toolbar h2{margin:0 0 14px;color:#1d4935;font:600 clamp(19px,2vw,27px)/1.15 Georgia,serif}
+#dashboard .welcome-layout .welcome-start{border-top:3px solid #426b50}
+#dashboard .welcome-layout .welcome-glance{background:#214b39;color:#f7f4e8;border-color:#214b39}
+#dashboard .welcome-glance h2{color:#fffaf0;margin:5px 0 14px}
+#dashboard .welcome-glance>small{color:#d7dbbb;font-size:11px;letter-spacing:.04em}
+#dashboard .welcome-glance dl{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0}
+#dashboard .welcome-glance dt{font-size:12px;color:#d3e3d4}
+#dashboard .welcome-glance dd{margin:4px 0 0;font:600 clamp(16px,1.7vw,24px)/1.2 Georgia,serif;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#dashboard .welcome-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#dashboard .welcome-links button{display:flex;min-width:0;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:12px;border-radius:8px;border:1px solid #d7dfce;background:#f5f6ee;color:#285840;text-align:left;font-size:13px;font-weight:600;line-height:1.3;cursor:pointer}
+#dashboard .welcome-links button span{flex-basis:100%;padding-bottom:4px}
+#dashboard .welcome-links button span svg{width:23px;height:23px}#dashboard .welcome-links button>svg{width:14px;height:14px}
+#dashboard .welcome-links button:hover{background:#e9f0e4;border-color:#8ea78d}
+#dashboard .welcome-layout .welcome-focus{grid-column:1/-1;display:flex;align-items:center;gap:12px;text-align:left;cursor:pointer;padding:12px 18px}
+#dashboard .welcome-focus span{margin-left:auto}
+#dashboard .graph-workspace{color:#213d31;min-width:0}
+#dashboard .graph-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:3px 0 12px}
+#dashboard .graph-toolbar h2{margin:0;font-size:21px}
+#dashboard .graph-toolbar>div{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#dashboard .graph-toolbar :is(button,label),#dashboard .graph-edit,.graph-dialog footer button,.graph-dialog .graph-remove{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:6px;padding:7px 10px;border:1px solid #c7d3c1;background:#fffefa;color:#204d39;font-size:12px;font-weight:650;cursor:pointer}
+#dashboard .graph-toolbar label{padding:3px 6px;gap:5px;color:#56695c}
+#dashboard .graph-toolbar select{border:0;background:transparent;color:#214b38;min-height:24px;width:auto;font:inherit}
+#dashboard .graph-toolbar [data-graph-action=add],.graph-dialog footer [type=submit]{background:#235b41;border-color:#235b41;color:#fff}
+#dashboard .graph-board{display:grid;grid-template-columns:minmax(0,var(--graph-side)) minmax(0,var(--graph-main));grid-template-areas:"stack primary";gap:12px;align-items:start}
+#dashboard .graph-board.main-left{grid-template-columns:minmax(0,var(--graph-main)) minmax(0,var(--graph-side));grid-template-areas:"primary stack"}
+#dashboard .graph-board.single{grid-template-columns:1fr;grid-template-areas:"primary"}
+#dashboard .graph-primary{grid-area:primary;min-width:0}#dashboard .graph-stack{grid-area:stack;display:grid;gap:12px;min-width:0}
+#dashboard .graph-board.single .graph-stack{display:none}
+#dashboard .ledger-graph{padding:14px 16px 12px;border:1px solid #d2dbc9;border-top:3px solid #709678;border-radius:10px;background:#fffefa;box-shadow:0 2px 6px #263b2709;min-width:0}
+#dashboard .ledger-graph.graph-main{border-top-color:#275f43;padding:18px 20px}
+#dashboard .ledger-graph>header,#dashboard .graph-title{display:flex;align-items:center;gap:6px;min-width:0}
+#dashboard .ledger-graph>header{justify-content:space-between;margin-bottom:9px}
+#dashboard .ledger-graph h3{margin:0;color:#244d39;font:600 17px/1.2 Georgia,serif;overflow-wrap:anywhere}
+#dashboard .graph-main h3{font-size:23px}
+#dashboard .graph-grip{display:grid;place-items:center;border:0;background:transparent;padding:4px;color:#6d826e;cursor:grab;touch-action:none}
+#dashboard .graph-edit{background:transparent;border-color:#d9dfd4;white-space:nowrap;padding:4px 7px}
+#dashboard .graph-drop{outline:3px dashed #987842;outline-offset:-4px}#dashboard .graph-dragging{opacity:.68}
+#dashboard .graph-plot{width:100%;height:126px;position:relative;min-width:0}
+#dashboard .graph-main .graph-plot{height:clamp(246px,31vw,350px)}
+#dashboard .graph-plot svg{width:100%;height:100%;display:block;overflow:visible;cursor:crosshair}
+#dashboard .graph-plot text{fill:#58695e;font:10px Arial,sans-serif;font-variant-numeric:tabular-nums}
+#dashboard .graph-gridline{fill:none;stroke:#dce4d8;stroke-width:1}
+#dashboard .graph-cursor{stroke:#8b9b8c;stroke-dasharray:3 4;opacity:.8;pointer-events:none}
+#dashboard .graph-readout{border-top:1px solid #dfe5d9;margin-top:4px}
+#dashboard .graph-readout>div{display:flex;justify-content:space-between;color:#5b6f5e;font-size:10px;font-weight:700;padding:6px 0 3px;letter-spacing:.04em}
+#dashboard .graph-readout ul{display:grid;gap:4px;list-style:none;margin:0;padding:0}
+#dashboard .graph-readout li{display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:6px;font-size:12px}
+#dashboard .graph-readout li svg{width:20px;height:8px}
+#dashboard .graph-readout li span{overflow-wrap:anywhere}#dashboard .graph-readout li small{display:block;font-size:10px;color:#627264}
+#dashboard .graph-readout li strong{font-variant-numeric:tabular-nums;text-align:right;font-size:12px}
+#dashboard .graph-empty{display:grid;place-items:center;margin:0;padding:12px;height:100%;color:#627264}
+dialog.graph-dialog{box-sizing:border-box;width:min(520px,calc(100vw - 20px));padding:0;border:1px solid #bdcdbb;border-radius:12px;color:#213d31;background:#fffdf7;max-height:90dvh;box-shadow:0 12px 50px #18372c35}
+.graph-dialog::backdrop{background:#112d2480}
+.graph-dialog form{display:flex;flex-direction:column;max-height:85dvh}
+.graph-dialog header,.graph-dialog footer{display:flex;align-items:center;gap:8px;padding:13px 18px;background:#f1f4e9}
+.graph-dialog header{justify-content:space-between;border-bottom:1px solid #d7dfce}.graph-dialog h2{margin:0;font:600 21px Georgia,serif;color:#23503b}
+.graph-dialog header button{border:0;background:transparent;color:#244c38;font-size:22px;cursor:pointer}
+.graph-dialog .graph-form{padding:14px 18px;display:grid;gap:10px;overflow:auto;min-height:0}
+.graph-dialog .graph-form>label{display:grid;gap:5px;font-size:12px;color:#415c49;font-weight:650}
+.graph-dialog :is(input:not([type=checkbox]),select){box-sizing:border-box;width:100%;border:1px solid #c5d0c1;padding:6px 8px;border-radius:5px;background:white;color:#213d31}
+.graph-dialog .graph-line-head{display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.graph-dialog .graph-options{border:1px solid #d7dfd2;overflow:auto;max-height:36dvh;padding:6px 10px;border-radius:7px}
+.graph-dialog fieldset{border:0;margin:7px 0;padding:0}.graph-dialog legend{color:#376347;font-size:12px;font-weight:750;margin:0 0 3px}
+.graph-dialog fieldset label{display:flex;align-items:center;gap:8px;padding:5px 2px;border-top:1px solid #eff1e9;font-size:13px;cursor:pointer}
+.graph-dialog fieldset small{display:block;color:#69776a;font-size:10px}
+.graph-dialog input{accent-color:#286244}.graph-dialog footer{justify-content:flex-end;border-top:1px solid #d7dfce}
+.graph-dialog [data-error]{margin:0;color:#8d3c25}.graph-dialog [data-error]:empty{display:none}
+.graph-dialog .graph-remove{justify-self:start;color:#88412e}
+@media(max-width:780px){#dashboard .graph-board,#dashboard .graph-board.main-left{grid-template-columns:1fr;grid-template-areas:"primary" "stack"}#dashboard .graph-main .graph-plot{height:225px}#dashboard .welcome-layout{grid-template-columns:1fr}#dashboard .welcome-focus{flex-wrap:wrap}}
 
 /* styles/polish-v113.css */
 /* One shared rhythm and readable warm palette across the application. */
