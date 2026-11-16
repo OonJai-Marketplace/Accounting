@@ -47,4 +47,20 @@ async function reuseAtQuota(){
  }
  assert.deepEqual(writes,[]);assert(reads.length>=4&&reads.every(name=>name===previous));
 }
-(async()=>{for(const kind of ['network','storage','quota'])await scenario(kind);await reuseAtQuota();console.log('PASS bounded network/storage retries, incomplete release isolation and offline reuse of exact-version desktop files at quota');})().catch(e=>{console.error(e);process.exit(1)});
+async function verifyStaticReuse(){
+ const scope='https://fixture.test/Accounting/',file='assets/logo.png',url=scope+file,events={},removed=[];
+ const image=fs.readFileSync(file),stored=new Map([[url,new Response(image)]]);
+ const cache={match:async key=>stored.get(key)?.clone(),delete:async key=>{removed.push(key);return stored.delete(key)},put:async()=>{throw Error('Quota full')}};
+ const previous='ojm-desktop-shell-previous',older='ojm-desktop-shell-older';
+ const context={URL,Response,Blob,AbortController,Date,Promise,Error,console,setTimeout,clearTimeout,crypto:require('node:crypto').webcrypto,
+  caches:{open:async()=>cache,keys:async()=>[previous,older],match:async(key,{cacheName})=>new Response(cacheName===older?image:'outdated image')},
+  self:{registration:{scope},addEventListener:(type,fn)=>events[type]=fn,clients:{matchAll:async()=>[]},skipWaiting:async()=>{}},
+  fetch:async()=>{throw Error('Expected offline reuse')}
+ };
+ vm.runInNewContext(source.replace("['ready.js?v=1','blocked.js?v=1']","['assets/logo.png']"),context);
+ let task;events.install({waitUntil:p=>task=p});await task;
+ assert.deepEqual(removed,[url]);
+ events.fetch({request:{method:'GET',url},respondWith:p=>task=p});
+ assert.deepEqual(Buffer.from(await (await task).arrayBuffer()),image);
+}
+(async()=>{for(const kind of ['network','storage','quota'])await scenario(kind);await reuseAtQuota();await verifyStaticReuse();console.log('PASS bounded network/storage retries, incomplete release isolation and offline reuse of exact-version desktop files at quota');})().catch(e=>{console.error(e);process.exit(1)});

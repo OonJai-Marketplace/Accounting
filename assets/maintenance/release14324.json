@@ -89,7 +89,7 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "c1c8bb0f012c9a79f54028f22273f1c71d7cc1ff504e25311c4e0b302077e33e",
+      "sha256": "2f25d01c25401aa85f546011aec2206d05840f7e88637272fc0e8c43624a6ba6",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {

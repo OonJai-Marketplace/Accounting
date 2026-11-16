@@ -35,6 +35,26 @@ def check_changed_cache_keys():
             if not old.returncode and old.stdout != path.read_bytes():
                 raise ValueError('Changed cached asset keeps its old URL in '+worker+': '+url)
 
+def refresh_static_digests(check):
+    worker = ROOT / 'desktop-sw14242.js'
+    source = worker.read_text()
+    files = json.loads(re.search(r'const FILES=(\[.*?\]);', source, re.S)[1])
+    digests = {}
+    for name in files:
+        if name.startswith('assets/') and '?' not in name and (ROOT/name).suffix in {'.png', '.webp', '.mjs', '.js', '.xlsx'}:
+            data = (ROOT/name).read_bytes()
+            if len(data) >= 32768:
+                digests[name] = hashlib.sha256(data).hexdigest()
+    literal = 'const STATIC_DIGESTS=' + json.dumps(digests, indent=1, sort_keys=True) + ';'
+    updated, matches = re.subn(r'const STATIC_DIGESTS=\{[^}]*\};', lambda _: literal, source, count=1)
+    if matches != 1:
+        raise ValueError('Desktop cache digest table is missing')
+    if updated != source:
+        if check:
+            raise ValueError('Desktop cache digests are stale; refresh-release-manifest.py')
+        worker.write_text(updated)
+
+
 def build():
     check_changed_cache_keys()
     manifest = json.loads(TARGET.read_text())
@@ -82,6 +102,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
+    refresh_static_digests(args.check)
     data = build()
     version_path = ROOT / 'release-version.json'
     notes = json.loads((ROOT/'data/release-notes.json').read_text())

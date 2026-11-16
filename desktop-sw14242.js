@@ -359,19 +359,45 @@ async function storageStep(operation){
 }
 // The release check requires a different URL whenever an asset changes.
 // Keep one complete copy of each versioned asset for offline use across releases.
+const STATIC_DIGESTS={
+ "assets/app-icons/accounting-180-v1.png": "0315a72eab5c85735919551a5c6b483b89e7609f4f224305ec95e8b4c407dc89",
+ "assets/app-icons/accounting-192-v1.png": "475aab73e4647689712966f456e172d57149707260946a5e0510ea867297e27d",
+ "assets/app-icons/accounting-512-v1.png": "fd75dea18fee1c7cec176373ecad3fd5c31004aa7d27a5db216cb211c9261a43",
+ "assets/app-icons/accounting-maskable-v1.png": "22bc73c7bc95f0fa95150c5ee8e9bd73489faa94f0affd4d5977a51eb3df05ab",
+ "assets/banners/transactions.webp": "25ca7baf28203267f86d71a0b0d3f68084664188cf6d4a1c52880db9ef69324f",
+ "assets/brand/oonjai-logo.png": "b6dac3da99b8afd642653735b72e6ce5ecb29c85183129c5ba81de48a7c0cf11",
+ "assets/dashboard/vientiane-terrace.webp": "7b7b51e5ba0d76c7a78fb626dbcc9c476f1f9c1c0e494ea9df63c661e7881633",
+ "assets/logo.png": "b6dac3da99b8afd642653735b72e6ce5ecb29c85183129c5ba81de48a7c0cf11",
+ "assets/maintenance/Oon-Jai-Maintenance-Comparison.xlsx": "d984fb11627d9c53f984a08b5942af911b10774e38a29d4b5dc59b2855f30a6f",
+ "assets/payroll-voucher-footer1424.png": "2022038238c93286ab983821d617a8085e4fc4aabed7df0f80082c716e43d3ac",
+ "assets/payroll-voucher-header1424.png": "e23f4abad1966a7ce439a9fb560752058cc70c404b15ebfda4053471f91bda1b",
+ "assets/vendor/document14285/jspdf.umd.min.js": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54",
+ "assets/vendor/document14285/pdf.min.mjs": "bccc24ea711db8e44503629519904a5292d73b9daaa214bbe7cdcc282b0f4259",
+ "assets/vendor/document14285/pdf.worker.min.mjs": "145d2dd3ab0c86151011dba95acfa2d5336e2accd59388ea43dbee0efddaaec6"
+};
+async function sameStaticBytes(response,expected){
+ const digest=await crypto.subtle.digest('SHA-256',await response.clone().arrayBuffer());
+ return Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,'0')).join('')===expected;
+}
 async function sharedDesktopFile(url){
- if(!url.searchParams.has('v'))return;
+ const expected=STATIC_DIGESTS[url.pathname.slice(scopeURL.pathname.length)];
+ if(!url.searchParams.has('v')&&!expected)return;
  const names=(await storageStep(caches.keys())).filter(name=>name!==CACHE&&name.startsWith('ojm-desktop-shell-'));
  for(const name of names){
   const saved=await storageStep(caches.match(url.href,{cacheName:name}));
-  if(saved?.ok&&saved.type!=='opaque')return saved;
+  if(saved?.ok&&saved.type!=='opaque'&&(!expected||await sameStaticBytes(saved,expected)))return saved;
  }
 }
 async function downloadFile(cache,file){
  const url=new URL(file,scopeURL);
  // A rejected installation never serves pages. Its complete files are safe to
  // resume; older active releases and all accounting storage remain untouched.
- if(await storageStep(cache.match(url.href)))return;
+ if(await storageStep(cache.match(url.href))){
+  // A resumed installation may have copied images or libraries before the update stopped.
+  // Keep the verified earlier copy available offline and free only this installation's duplicate.
+  if(STATIC_DIGESTS[file]&&await sharedDesktopFile(url))await storageStep(cache.delete(url.href));
+  return;
+ }
  for(let retry=0;retry<3;retry++){
   await reportDownload({file:file.split('?')[0],bytes:0,retry});
   const controller=new AbortController();let timer,lastReport=0;
