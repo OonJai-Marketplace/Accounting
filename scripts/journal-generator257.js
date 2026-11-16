@@ -147,13 +147,13 @@ function completePart(input){
  const source=rows.filter(l=>l.a&&l.generated!=='output'&&!reg.isBridge(l.a));
  const foreign=source.filter(l=>l.c!=='LAK');
  if(input.tenderWithChange){
-  const tender=source.find(l=>l.c==='THB'&&fund(l.a)&&l.debit);
+  const tender=source.find(l=>['THB','USD'].includes(l.c)&&fund(l.a)&&l.debit);
   const sale=source.find(l=>String(l.a.code)==='4010'&&l.credit);
   const change=source.find(l=>l.c==='LAK'&&fund(l.a)&&l.credit);
   if(!tender||!sale||!change||source.filter(l=>l.debit||l.credit).length!==3)
-   return {errors:[{message:'Enter the THB received, the price of the goods in LAK and the LAK change given.'}]};
+   return {errors:[{message:'Enter the foreign cash received, the price of the goods in LAK and the LAK change given.'}]};
   if(!(tender.rt>0)||!close(round(tender.debit*tender.rt),round(sale.credit+change.credit)))
-   return {errors:[{message:'The value of the THB tender must equal the price of the goods plus the LAK change.',row:tender.index,field:'rate'}]};
+   return {errors:[{message:'The recorded value of the cash received must equal the sale price plus the LAK change.',row:tender.index,field:'rate'}]};
  }
  // A full bank deposit via a custodian is one receipt with two movements.
  // Only this explicitly selected layout equates the four amounts.
@@ -660,10 +660,13 @@ function templates(chart){
    [row(operating,'debit'),slot('staff','USD','debit','Staff reimbursement'),slot('fund','USD','credit','Expense and reimbursement payment'),
     row(fee,'debit','Bank fee'),slot('fund','USD','credit','Bank fee payment')],false);
   const sale=reg.byCode('4010');
-  if(sale&&currencies.includes('THB')&&currencies.includes('LAK')&&reg.bridge('THB')&&reg.bridge('LAK'))
-   add('tender-THB-change-LAK','Record a kip-priced sale with THB tender and LAK change',
-    [slot('fund','THB','debit','Full THB tender received'),row(sale,'credit','Price of goods in LAK'),slot('fund','LAK','credit','Actual change given in LAK'),
-     calculated(reg.bridge('THB'),'credit','THB tender at receipt value'),calculated(reg.bridge('LAK'),'debit','LAK value of the tender')],false);
+  for(const tender of ['THB','USD']){
+   if(!sale||!currencies.includes(tender)||!currencies.includes('LAK')||!reg.bridge(tender)||!reg.bridge('LAK'))continue;
+   add('tender-'+tender+'-change-LAK','Record a kip-priced sale with '+tender+' tender and LAK change',
+    [slot('fund',tender,'debit','Full '+tender+' tender received'),row(sale,'credit','Price of goods in LAK'),
+     slot('fund','LAK','credit','Actual change given in LAK'),calculated(reg.bridge(tender),'credit',tender+' tender at receipt value'),
+     calculated(reg.bridge('LAK'),'debit','LAK value of the tender')],false);
+  }
  }
  return out;
 }
@@ -1192,7 +1195,7 @@ function render(){
  const missing=state.rows.filter(l=>l.missing);if(missing.length)message('Choose current accounts for these saved template lines: '+missing.map(l=>l.missing).join(', '),true);
  if(oldRows)message('This draft uses the earlier mapping layout. Review the original amounts before resetting the draft or changing its accounts.',true);
 }
-function readInput(){return {tenderWithChange:state.template==='gen268-tender-THB-change-LAK'&&definitions().some(t=>t.id===state.template&&t.builtin),date:state.date,chart:chart(),rates:Object.fromEntries(Object.entries(state.rates).map(([c,v])=>[c,number(v)])),rows:state.rows.map(l=>({...l,debit:number(l.debit),credit:number(l.credit),book_rate_lak:number(l.book_rate_lak),fx_rate_lak:number(l.fx_rate_lak)}))};}
+function readInput(){return {tenderWithChange:['gen268-tender-THB-change-LAK','gen268-tender-USD-change-LAK'].includes(state.template)&&definitions().some(t=>t.id===state.template&&t.builtin),date:state.date,chart:chart(),rates:Object.fromEntries(Object.entries(state.rates).map(([c,v])=>[c,number(v)])),rows:state.rows.map(l=>({...l,debit:number(l.debit),credit:number(l.credit),book_rate_lak:number(l.book_rate_lak),fx_rate_lak:number(l.fx_rate_lak)}))};}
 function legacyCashLayout(){
  if(!String(state.template||'').startsWith('gen268-local-'))return false;
  const t=definitions().find(t=>t.id===state.template);

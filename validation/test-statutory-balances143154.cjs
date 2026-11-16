@@ -15,3 +15,20 @@ c.JournalModule.entries=[line('pit','2026-02-01',0,50.01),line('pit','2026-02-02
 c.window.remittanceSummary('tax-payment');
 assert.deepEqual(JSON.parse(JSON.stringify(c.window.testState.exports.at(-1).rows)),[['PIT','100.02','0.98','101'],['SSO','21.99','0.01','22']]);
 console.log('PASS statutory payment report and CSV use one whole-kip ceiling per obligation.');
+
+c.AccountingStore.accounts.push(...[
+ ['sale','4010','LAK','REVENUE','4000'],['usd','4020','USD','REVENUE','4000'],['thb','4021','THB','REVENUE','4000'],
+ ['tender','1012','THB','ASSET','1000'],['support','4121','USD','REVENUE','4100'],['liability','2110','LAK','LIABILITY','2100']
+].map(([id,code,currency,baseType,parentCode])=>({id,code,currency,baseType,parentCode})));
+c.accountForLine69=l=>c.AccountingStore.accounts.find(a=>a.id===l.accountId);
+c.ApplicationSettings={tax:{vatRate:'10'}};
+c.formatAppNumber=String;
+c.window.JournalFX14383={base:(l,side)=>l.currency==='LAK'?l[side]:l['base_'+side]??(l[side]?null:0)};
+const fixture=(id,dr,cr,extra={})=>line(id,'2026-02-13',dr,cr,extra);
+c.JournalModule.entries=[fixture('sale',0,200000),fixture('tender',300,0,{currency:'THB',base_debit:201000}),fixture('usd',0,10,{currency:'USD',base_credit:220000}),fixture('thb',0,20,{currency:'THB',base_credit:13400}),fixture('sale',4000,0),fixture('support',0,15,{currency:'USD',base_credit:330000}),fixture('liability',0,40000),fixture('liability',10000,0),fixture('sale',0,500000,{status:'voided'}),fixture('sale',0,500000,{source:'opening'})];
+let sales=c.window.taxReports102.salesVat('2026-02');
+assert.deepEqual(Array.from(sales.reconciliation,r=>r[1]),['429400','42940','40000','2940']);
+assert.equal(sales.rows.length,3);
+delete c.JournalModule.entries[2].base_credit;
+assert.equal(c.window.taxReports102.salesVat('2026-02').reconciliation[1][1],'Unavailable');
+console.log('PASS monthly VAT uses net merchandise and saved currency valuations, with separate liability credits.');

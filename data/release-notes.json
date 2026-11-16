@@ -1,8 +1,7 @@
 {
-  "version": "143.397",
+  "version": "143.398",
   "changes": [
-    "Trial Balance and General Ledger summarize all closed months together within each accounting year.",
-    "Search Post Entry accounts by currency and name. Opening an account category clears the previous text search.",
-    "Report Refresh updates the saved report copy and current account list."
+    "Compare recorded restaurant sales in LAK, USD and THB with output VAT and posted VAT in the monthly statutory report.",
+    "Generate a kip-priced sale paid with US dollars or baht, including the full cash received and actual kip change."
   ]
 }

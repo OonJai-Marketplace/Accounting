@@ -418,7 +418,7 @@ function render(){
  const missing=state.rows.filter(l=>l.missing);if(missing.length)message('Choose current accounts for these saved template lines: '+missing.map(l=>l.missing).join(', '),true);
  if(oldRows)message('This draft uses the earlier mapping layout. Review the original amounts before resetting the draft or changing its accounts.',true);
 }
-function readInput(){return {tenderWithChange:state.template==='gen268-tender-THB-change-LAK'&&definitions().some(t=>t.id===state.template&&t.builtin),date:state.date,chart:chart(),rates:Object.fromEntries(Object.entries(state.rates).map(([c,v])=>[c,number(v)])),rows:state.rows.map(l=>({...l,debit:number(l.debit),credit:number(l.credit),book_rate_lak:number(l.book_rate_lak),fx_rate_lak:number(l.fx_rate_lak)}))};}
+function readInput(){return {tenderWithChange:['gen268-tender-THB-change-LAK','gen268-tender-USD-change-LAK'].includes(state.template)&&definitions().some(t=>t.id===state.template&&t.builtin),date:state.date,chart:chart(),rates:Object.fromEntries(Object.entries(state.rates).map(([c,v])=>[c,number(v)])),rows:state.rows.map(l=>({...l,debit:number(l.debit),credit:number(l.credit),book_rate_lak:number(l.book_rate_lak),fx_rate_lak:number(l.fx_rate_lak)}))};}
 function legacyCashLayout(){
  if(!String(state.template||'').startsWith('gen268-local-'))return false;
  const t=definitions().find(t=>t.id===state.template);

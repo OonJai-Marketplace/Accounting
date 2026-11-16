@@ -147,13 +147,13 @@ function completePart(input){
  const source=rows.filter(l=>l.a&&l.generated!=='output'&&!reg.isBridge(l.a));
  const foreign=source.filter(l=>l.c!=='LAK');
  if(input.tenderWithChange){
-  const tender=source.find(l=>l.c==='THB'&&fund(l.a)&&l.debit);
+  const tender=source.find(l=>['THB','USD'].includes(l.c)&&fund(l.a)&&l.debit);
   const sale=source.find(l=>String(l.a.code)==='4010'&&l.credit);
   const change=source.find(l=>l.c==='LAK'&&fund(l.a)&&l.credit);
   if(!tender||!sale||!change||source.filter(l=>l.debit||l.credit).length!==3)
-   return {errors:[{message:'Enter the THB received, the price of the goods in LAK and the LAK change given.'}]};
+   return {errors:[{message:'Enter the foreign cash received, the price of the goods in LAK and the LAK change given.'}]};
   if(!(tender.rt>0)||!close(round(tender.debit*tender.rt),round(sale.credit+change.credit)))
-   return {errors:[{message:'The value of the THB tender must equal the price of the goods plus the LAK change.',row:tender.index,field:'rate'}]};
+   return {errors:[{message:'The recorded value of the cash received must equal the sale price plus the LAK change.',row:tender.index,field:'rate'}]};
  }
  // A full bank deposit via a custodian is one receipt with two movements.
  // Only this explicitly selected layout equates the four amounts.

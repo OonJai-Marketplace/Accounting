@@ -189,10 +189,13 @@ function templates(chart){
    [row(operating,'debit'),slot('staff','USD','debit','Staff reimbursement'),slot('fund','USD','credit','Expense and reimbursement payment'),
     row(fee,'debit','Bank fee'),slot('fund','USD','credit','Bank fee payment')],false);
   const sale=reg.byCode('4010');
-  if(sale&&currencies.includes('THB')&&currencies.includes('LAK')&&reg.bridge('THB')&&reg.bridge('LAK'))
-   add('tender-THB-change-LAK','Record a kip-priced sale with THB tender and LAK change',
-    [slot('fund','THB','debit','Full THB tender received'),row(sale,'credit','Price of goods in LAK'),slot('fund','LAK','credit','Actual change given in LAK'),
-     calculated(reg.bridge('THB'),'credit','THB tender at receipt value'),calculated(reg.bridge('LAK'),'debit','LAK value of the tender')],false);
+  for(const tender of ['THB','USD']){
+   if(!sale||!currencies.includes(tender)||!currencies.includes('LAK')||!reg.bridge(tender)||!reg.bridge('LAK'))continue;
+   add('tender-'+tender+'-change-LAK','Record a kip-priced sale with '+tender+' tender and LAK change',
+    [slot('fund',tender,'debit','Full '+tender+' tender received'),row(sale,'credit','Price of goods in LAK'),
+     slot('fund','LAK','credit','Actual change given in LAK'),calculated(reg.bridge(tender),'credit',tender+' tender at receipt value'),
+     calculated(reg.bridge('LAK'),'debit','LAK value of the tender')],false);
+  }
  }
  return out;
 }

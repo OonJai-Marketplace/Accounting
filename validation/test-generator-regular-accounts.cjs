@@ -126,6 +126,11 @@ assert.equal(amount(result,'4010'),-361500);assert.equal(amount(result,'9012'),-
 assert.equal(amount(result,'9010'),402000);assert.equal(amount(result,'5419'),0);
 rows[2].credit=90000;
 assert(G.complete({chart,balances,rates,rows,tenderWithChange:true}).errors.length);
+rows=layout('tender-USD-change-LAK');rows[0].debit=20;rows[1].credit=400000;rows[2].credit=60100;
+result=run(rows,{tenderWithChange:true});
+assert.equal(amount(result,'4010'),-400000);assert.equal(amount(result,'9011'),-20);assert.equal(amount(result,'9010'),460100);
+rows[1].credit=460100;
+assert(G.complete({chart,balances,rates,rows,tenderWithChange:true}).errors.length);
 const stale=G.complete({chart,rates,balances,rows:[moneyLine('9241',1,0),moneyLine('1041',0,1)]});
 assert.match(stale.errors[0].message,/5422/);
 const partial=chart.filter(a=>a.code!=='5422');
