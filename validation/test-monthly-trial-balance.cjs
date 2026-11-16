@@ -5,6 +5,15 @@ const fixture=require('./phase0-browser-fixture.cjs');
  const app=await fixture();
  try{
   const {page,login}=await app.open(),account=app.fixture.tables.accounts[0];
+  const chart=app.fixture.tables.accounts;
+  for(const [code,name,accountType,currency,posting] of [
+   ['2000','Supplier Payables','LIABILITY','LAK',true],['3000','Owner Capital','EQUITY','USD',true],
+   ['4000','Sales Group','INCOME','NA',false],['4100','Food Sales','INCOME','LAK',true],
+   ['9000','FX Bridge','SYSTEM','USD',true]
+  ]){
+   chart.push({...account,id:'00000000-0000-4000-8000-00000000'+code,code,name,type:accountType,account_type:accountType,
+    currency,currency_code:currency,isPosting:posting,is_posting:posting,is_technical:accountType==='SYSTEM'});
+  }
   const postings=[
    ['2025-12-31',300,0,false],['2026-01-01',40,0,true],['2026-01-02',50.25,0,false],
    ['2026-03-02',0,130,false],['2026-10-01',4.5,0,false]
@@ -20,6 +29,25 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await button.click();
   const table=dialog.getByRole('table'),period=dialog.getByRole('button',{name:/^Period/});
   await table.waitFor();
+  assert.equal(await table.locator('tbody tr').count(),chart.length,'The whole chart is available in one scrollable table');
+  const rowNamed=name=>table.locator('tbody tr').filter({hasText:name});
+  assert.ok((await rowNamed('Sales Group').locator('td').allTextContents()).every(cell=>cell===''));
+  assert.equal(await table.locator('tfoot tr').filter({hasText:'Total · NA'}).count(),0);
+  await dialog.getByText('Edit accounts',{exact:true}).click();
+  const search=dialog.getByRole('searchbox'),allAccounts=dialog.getByLabel('All accounts',{exact:true});
+  const matches=dialog.locator('.trial-account-list label:visible');
+  await search.click();
+  for(const [term,names] of [['income',['Sales Group','Food Sales']],['expense',['Supplies']],['2000',['Supplier Payables']],
+   ['equity USD',['Owner Capital']],['SYSTEM',['FX Bridge']],['Parent account',['Sales Group']]]){
+   await search.fill(term);
+   assert.equal(await matches.count(),names.length);
+   for(const name of names)assert.equal(await matches.filter({hasText:name}).count(),1);
+  }
+  await allAccounts.uncheck();await matches.getByRole('checkbox').check();
+  assert.equal(await table.locator('tbody tr').count(),1);assert.equal(await rowNamed('Sales Group').count(),1);
+  assert.equal(await table.locator('tfoot tr').count(),0);
+  await allAccounts.check();await search.click();await search.fill('');await dialog.getByText('Edit accounts',{exact:true}).click();
+  assert.equal(await table.locator('tbody tr').count(),chart.length);
   async function range(first,last){
    await period.click();
    if(!await dialog.locator('[data-month="'+first+'"]').count())await dialog.locator('[data-step="1"]').click();
@@ -66,6 +94,11 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const report=page.locator('#report-tb'),filter=page.locator('dialog.report-dialog299[open]');
   await report.getByRole('button',{name:'Filter',exact:true}).click();
   await filter.locator('[name=trialView]').selectOption('comparative');
+  await filter.getByText('Edit accounts',{exact:true}).click();
+  const reportSearch=filter.getByRole('searchbox',{name:'Find accounts'});
+  await reportSearch.click();await reportSearch.fill('parent account');
+  assert.match(await filter.locator('.trial-account-list label:visible').textContent(),/4000 · Sales Group · Parent account$/);
+  await filter.getByText('Edit accounts',{exact:true}).click();
   await filter.locator('[name=basis]').selectOption('original');
   await filter.locator('[data-period]').click();
   await filter.locator('[data-month="2026-01"]').click();await filter.locator('[data-month="2026-10"]').click();

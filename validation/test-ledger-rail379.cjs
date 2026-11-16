@@ -8,7 +8,8 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await page.route('**/rpc/account_ledger379',route=>{
    calls.push(route.request().postDataJSON());
    if(calls.at(-1).p_account==='extra-1')return route.fulfill({json:
-    [98,5,4].flatMap((count,id)=>Array.from({length:count},()=>({id:'MULTI-'+id,date:'2026-11-01',currency:'USD',debit:1,credit:0})))
+    [98,5,4].flatMap((count,id)=>Array.from({length:count},(_,i)=>({id:'MULTI-'+id,date:'2026-11-01',currency:'USD',debit:1,credit:0,
+     memo:i===0&&id===0?'Kitchen supplies invoice K12':i===count-1&&id===2?'Vendor delivery fee':''})))
    });
    return route.fulfill({json:[
     {id:'OPEN',date:'2025-01-01',memo:'Opening Balances',debit:100,credit:0,annualOpening:true},
@@ -108,6 +109,8 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const frame=page.frameLocator('#docFrame105');await frame.getByText(/^Fixture signer$/i).first().waitFor();
   const reportRows=frame.locator('tbody tr').filter({hasText:/MULTI-/});
   assert.equal(await reportRows.count(),107,'Every posting from both ledger screen pages reaches the editor');
+  assert.equal(await reportRows.first().locator('td').nth(2).textContent(),'Kitchen supplies invoice K12');
+  assert.equal(await reportRows.last().locator('td').nth(2).textContent(),'Vendor delivery fee');
   assert.equal(await reportRows.last().locator('td').last().textContent(),'107.00');
   for(const name of ['Opening balance','Total debit','Total credit','Closing balance','Running balance'])await frame.getByText(new RegExp('^'+name+'$','i')).first().waitFor();
   await page.evaluate(()=>{void documentWorkspace105.action('export')});

@@ -13,6 +13,12 @@ function saveMonthlyTrialPreferences(prefs){
 function monthlyTrialColumnControl(value){
  return '<label>Columns<select data-plain14285 name="trialColumns"><option value="full">Debit, Credit, Balance</option><option value="balance"'+(value==='balance'?' selected':'')+'>Balance only</option></select></label>';
 }
+function monthlyTrialParent(account,currency){
+ return currency===account.currency&&(account.isPosting===false||account.is_posting===false||/^(NA|N\/A|PARENT|__PARENT__)$/i.test(currency));
+}
+function monthlyTrialLabel(account,unit){
+ return [account.code,account.name,unit].filter(Boolean).join(' · ');
+}
 function monthlyTrialChoices(entries){
  const choices=new Map(),byId=new Map(),byCode=new Map(),byName=new Map();
  function add(a,currency){
@@ -21,7 +27,7 @@ function monthlyTrialChoices(entries){
  }
  for(const a of AccountingStore.accounts){
   byId.set(String(a.id),a);byCode.set(String(a.code),a);byName.set(a.name+'|'+a.currency,a);
-  if(a.isPosting!==false&&a.is_posting!==false&&!['NA','__PARENT__'].includes(a.currency))add(a,a.currency);
+  add(a,a.currency);
  }
  for(const l of entries){
   const a=byId.get(String(l.accountId))||byCode.get(String(l.accountCode))||byName.get(l.account+'|'+l.currency)||{name:l.account,code:l.accountCode||'Unmapped',currency:l.currency};
@@ -29,15 +35,23 @@ function monthlyTrialChoices(entries){
  }
  return [...choices.values()].sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
 }
-// A null selection tracks all posting accounts, including accounts added later.
+// A null selection tracks the entire chart, including accounts added later.
 function monthlyTrialAccountPicker(host,choices,selected,onChange){
  const picked=new Set(selected||choices.map(r=>r.key));
- host.innerHTML='<details class="trial-account-picker"><summary>Edit accounts</summary><div><input type="search" aria-label="Find accounts" placeholder="Find account"><label><input type="checkbox" data-all-accounts> All accounts</label><div class="trial-account-list">'+choices.map(r=>'<label><input type="checkbox" value="'+re79(r.key)+'" '+(picked.has(r.key)?'checked':'')+'> '+re79(r.account.code+' · '+r.account.name+' · '+r.currency)+'</label>').join('')+'</div></div></details>';
+ const labels=choices.map(({account,currency,key})=>{
+  const unit=monthlyTrialParent(account,currency)?'Parent account':currency;
+  return '<label><input type="checkbox" value="'+re79(key)+'" '+(picked.has(key)?'checked':'')+'> '+re79(monthlyTrialLabel(account,unit))+'</label>';
+ });
+ host.innerHTML='<details class="trial-account-picker"><summary>Edit accounts</summary><div><input type="search" aria-label="Find accounts" placeholder="Code, name, type or currency"><label><input type="checkbox" data-all-accounts> All accounts</label><div class="trial-account-list">'+labels.join('')+'</div></div></details>';
  const all=host.querySelector('[data-all-accounts]'),items=[...host.querySelectorAll('.trial-account-list input')];
+ const searchText=choices.map(({account,currency},i)=>[items[i].parentElement.textContent,account.type,account.baseType,account.desc,currency].join(' ').toLowerCase());
  const read=()=>items.every(b=>b.checked)?null:items.filter(b=>b.checked).map(b=>b.value);
  function sync(){const count=items.filter(b=>b.checked).length;all.checked=count===items.length;all.indeterminate=count>0&&!all.checked}
  host.onchange=e=>{if(e.target===all)for(const b of items)b.checked=all.checked;sync();onChange?.(read())};
- host.querySelector('[type=search]').oninput=e=>{const term=e.target.value.trim().toLowerCase();for(const b of items)b.parentElement.hidden=!b.parentElement.textContent.toLowerCase().includes(term)};
+ host.querySelector('[type=search]').oninput=e=>{
+  const terms=e.target.value.trim().toLowerCase().split(/\s+/);
+  items.forEach((b,i)=>{b.parentElement.hidden=!terms.every(term=>searchText[i].includes(term))});
+ };
  sync();return read;
 }
 
@@ -59,11 +73,12 @@ function monthlyTrialModel(entries,months,options){
   for(const row of accountDataForPeriod69(buckets.get(month)||[],start,end,false)){
    const {account,key}=row;
    if(currency&&currency!==row.currency||selected&&!selected.has(key))continue;
-   if((account.isPosting===false||account.is_posting===false||['NA','__PARENT__'].includes(row.currency))&&!(row.opening||row.debit||row.credit))continue;
-   if(!records.has(key))records.set(key,{account,currency:row.currency,months:[]});
+   if(!records.has(key))records.set(key,{account,currency:row.currency,months:[],headingOnly:monthlyTrialParent(account,row.currency)});
+   const record=records.get(key);
+   if(row.opening||row.debit||row.credit||row.baseOpening||row.baseDebit||row.baseCredit||row.missingRates)record.headingOnly=false;
    carry.set(key,(carry.get(key)||0)+(base?row.baseClosing:row.closing));
    if(base&&row.missingRates)incomplete.add(key);
-   records.get(key).months[index]={debit:base?row.baseDebit:row.debit,credit:base?row.baseCredit:row.credit,
+   record.months[index]={debit:base?row.baseDebit:row.debit,credit:base?row.baseCredit:row.credit,
     balance:carry.get(key),missingTurnover:base&&row.missingRates>0,missingBalance:incomplete.has(key)};
   }
   for(const [key,record] of records){
@@ -78,6 +93,7 @@ function monthlyTrialModel(entries,months,options){
  }
  const empty=()=>({debit:0,credit:0,balance:0});
  const values=ordered.map(row=>{
+  if(row.headingOnly)return [monthlyTrialLabel(row.account,'Parent account'),...Array(months.length*subheads.length).fill('')];
   const unit=base?'LAK':row.currency;
   if(!totals.has(unit))totals.set(unit,months.map(empty));
   const amounts=months.flatMap((_,i)=>{
@@ -86,7 +102,7 @@ function monthlyTrialModel(entries,months,options){
    sum.missingTurnover||=t.missingTurnover;sum.missingBalance||=t.missingBalance;
    return cells(t);
   });
-  return [row.account.code+' · '+row.account.name+' · '+row.currency,...amounts];
+  return [monthlyTrialLabel(row.account,row.currency),...amounts];
  });
  const totalRows=[...totals].map(([unit,list])=>[(selected?'Selected total':'Total')+' · '+unit,...list.flatMap(cells)]);
  return {monthlyTrial:true,months,subheads,headers:['Accounts',...months.flatMap(m=>subheads.map(h=>summaryPeriod14331.monthLabel(m)+' '+h))],

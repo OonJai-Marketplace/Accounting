@@ -1,1 +1,1 @@
-{"version": "143.417", "changes": ["Account balances and the Trial Balance filter now offer a compact monthly comparison with editable accounts, full columns or balance only. Account ledger opens a detailed running-balance report in the document editor for printing or PDF."]}
+{"version": "143.418", "changes": ["Account balances and Monthly comparative trial balance now show the entire active chart, including searchable parent headings and zero-activity accounts. Search by code, name, account type or currency."]}
