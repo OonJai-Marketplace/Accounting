@@ -6710,13 +6710,18 @@ const reportBooks=(()=>{
  const filters=new Map();
  function reset(){periods.clear();filters.clear();previous=''}
  function carryToActivity(){periods.set('activity',Object.fromEntries(keys.map(k=>[k,Reports79[k]])))}
- function selected(id){const m=filters.get(id);return closed(m)?m:''}
+ function selected(id){
+  const month=filters.get(id);if(closed(month))return month;
+  const months=closedMonths();
+  return months.length&&!closedRange(months[0],months.at(-1))?months.at(-1):'';
+ }
  function includes(id,from,to=from){
   const m=selected(id);
   return closedRange(from,to)&&(!m||(monthOf(from)<=m&&monthOf(to)>=m));
  }
  function monthOptions(value,all=true){
-  return (all?'<option value="">All closed months</option>':'')+closedMonths().reverse().map(m=>'<option value="'+m+'" '+(value===m?'selected':'')+'>'+summaryPeriod14331.monthLabel(m)+'</option>').join('');
+  const months=closedMonths();
+  return (all&&months.length&&closedRange(months[0],months.at(-1))?'<option value="">All closed months</option>':'')+months.reverse().map(m=>'<option value="'+m+'" '+(value===m?'selected':'')+'>'+summaryPeriod14331.monthLabel(m)+'</option>').join('');
  }
  function filterButton(){return '<button type="button" class="je-btn je-btn-secondary" data-book-filter aria-haspopup="dialog">Filter</button>'}
  function bind(id,title,render){
@@ -6736,8 +6741,7 @@ const reportBooks=(()=>{
    previous=next;
   }
   if(next==='activity')return true;
-  const selected=s.selectedMonths14331;
-  if(next==='history'&&!s.allMonths14331&&(selected?.length?selected.every(closed):closedRange(s.from,s.to)))return true;
+  if(next==='history'&&!s.allMonths14331&&closedRange(s.from,s.to))return true;
   const month=next==='live'?workingMonth():closedMonths().at(-1);
   if(!month)return false;
   periodFilters14331.setPeriod(s,[month],{mode:'monthly'});return true;
@@ -6756,15 +6760,11 @@ function accountingYears79(from,to){
  return periods;
 }
 function comparisonMonths79(kind,s){
- const months=s.selectedMonths14331;
- if(kind!=='tb'||!months?.length)return months;
- const ordinal=m=>Number(m.slice(0,4))*12+Number(m.slice(5,7));
- return ordinal(months.at(-1))-ordinal(months[0])+1===months.length?null:months;
+ if(!s.selectedMonths14331?.length)return null;
+ const months=summaryPeriod14331.requireRange(s.selectedMonths14331);
+ return kind==='tb'?null:months;
 }
-function trialPeriodLabel79(s){
- const separate=comparisonMonths79('tb',s);
- return separate?.length?separate.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):formatAppDate(s.from)+' – '+formatAppDate(s.to);
-}
+function trialPeriodLabel79(s){return formatAppDate(s.from)+' – '+formatAppDate(s.to)}
 function reportAccountRows79(from,to){
  const historical=reportBooks.scope()==='history',old={...Accounts69},originalEntries=JournalModule.entries;
  const snapshot=window.reportWindow143195?.snapshot(from,to);
@@ -6831,7 +6831,7 @@ function toggleReportFilters143153(button){
  const options=(pairs,value)=>pairs.map(([v,n])=>`<option value="${re79(v)}" ${v===value?'selected':''}>${re79(n)}</option>`).join('');
  const field=(label,key,items,value)=>`<label>${label}<select ${key==='account'?'':'data-plain14285'} name="${key}">${options(items,value)}</select></label>`;
  const orders=by=>[['asc',by==='date'?'Oldest to newest':'Lowest to highest'],['desc',by==='date'?'Newest to oldest':'Highest to lowest']];
- const periodCaption=()=>kind==='tb'&&period.selectedMonths14331?.length&&!comparisonMonths79(kind,period)?trialPeriodLabel79(period):periodFilters14331.caption(period);
+ const periodCaption=()=>kind==='tb'&&period.selectedMonths14331?.length?trialPeriodLabel79(period):periodFilters14331.caption(period);
  const periodControl='<label>Period<button type="button" class="oj-date-button104" data-period '+(reportBooks.scope()==='live'?'disabled':'aria-haspopup="dialog"')+'>'+re79(periodCaption())+'</button></label>';
  const accountField=ledger?field('Account','account',[],''):'';
  const checks=kind==='cf'?'<fieldset><legend>Cash and bank accounts</legend><details><summary data-cash-summary>Choose accounts</summary><div data-choices></div></details></fieldset>':kind==='payroll'?'<fieldset><legend>Payroll accounts</legend><div data-choices></div></fieldset>':'';
@@ -6844,7 +6844,6 @@ function toggleReportFilters143153(button){
  });
  const form=dialog.querySelector('form').elements,periodButton=dialog.querySelector('[data-period]');
  periodButton.onclick=()=>summaryPeriod14331.open(periodButton,periodFilters14331.selection(period),(values,meta)=>{
-  if(reportBooks.scope()==='history'&&!values.length&&meta.mode!=='custom'){values=reportBooks.closedMonths();meta={mode:'monthly'}}
   periodFilters14331.setPeriod(period,values,meta);periodButton.textContent=periodCaption();
  },{mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:true,closedBooks:reportBooks.scope()==='history'});
  form.by.onchange=()=>{form.direction.innerHTML=options(orders(form.by.value),form.direction.value)};

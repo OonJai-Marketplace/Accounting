@@ -4,7 +4,7 @@ const line=(id,date,accountId,debit,credit,annualOpening=false)=>({id,date,dbEnt
 const remote=[line('OB25','2025-01-01','cash',100,0,true),line('OB25','2025-01-01','equity',0,100,true),line('DEC25','2025-12-15','cash',0,10),line('DEC25','2025-12-15','expense',10,0),line('OB26','2026-01-01','cash',90,0,true),line('OB26','2026-01-01','equity',0,90,true),line('JAN26','2026-01-15','cash',0,20),line('JAN26','2026-01-15','expense',20,0),line('SEP26','2026-09-20','cash',0,30),line('SEP26','2026-09-20','expense',30,0)];
 const requests=[],saved=new Map();let revision='r1',hold=null;
 const c={console,Map,Set,Date,URL,Object,structuredClone,AbortController,addEventListener(){},liveProfile:{id:'actor-a'},localStorage:{getItem:k=>saved.get(k),setItem:(k,v)=>saved.set(k,v)},AccountingStore:{accounts},JournalModule:{entries:remote},CurrencyStore:{currencies:[{code:'LAK'}]},formatAppNumber:n=>n.toFixed(2),escapeHtml:String,formatAppDate:String,formatAppRate:String,matchMedia:()=>({matches:true,addEventListener(){}}),document:{readyState:'loading',addEventListener(){},getElementById(){return null},querySelector(){return null},querySelectorAll(){return []}},switchTab(){},logoutDemoUser(){},refreshAllTables(){},renderAccounts69(){},JournalFX14383:{base:(l,k)=>l[k]},summaryPeriod14331:{clean:v=>v,end:m=>m+'-'+new Date(Number(m.slice(0,4)),Number(m.slice(5)),0).getDate(),monthLabel:m=>m},ojmDb:{supabaseUrl:'test',async rpc(name,p){requests.push(p);if(hold)await hold;const rows=remote.filter(l=>l.date>=p.p_from&&l.date<=p.p_to),opening=accounts.map(a=>({accountId:a.id,currency:'LAK',balance:remote.filter(l=>l.accountId===a.id&&l.date>=p.p_from.slice(0,4)+'-01-01'&&l.date<p.p_from).reduce((s,l)=>s+l.debit-l.credit,0)})).map(r=>({...r,base_balance:r.balance}));return {data:{rows:rows.slice(p.p_offset,p.p_offset+500),opening,revision}}}}};c.window=c;vm.createContext(c);const load=f=>vm.runInContext(fs.readFileSync(f,'utf8'),c),run=s=>vm.runInContext(s,c),plain=v=>JSON.parse(JSON.stringify(v));
-load('src/bookkeeping/journal/memo-links143187.js');const accountSource=fs.readFileSync('src/accounts/chart/accounts-v69.js','utf8');vm.runInContext(accountSource.slice(0,accountSource.indexOf('function reportControls69')),c);load('src/reports/financial/reports-desktop-v79.js');load('src/reports/financial/reports-v118.js');load('src/reports/financial/period-filters14331.js');load('src/reports/financial/report-window143195.js');c.reportWindow143195.restoreFilters();
+load('src/reports/financial/summary-period14331.js');load('src/bookkeeping/journal/memo-links143187.js');const accountSource=fs.readFileSync('src/accounts/chart/accounts-v69.js','utf8');vm.runInContext(accountSource.slice(0,accountSource.indexOf('function reportControls69')),c);load('src/reports/financial/reports-desktop-v79.js');load('src/reports/financial/reports-v118.js');load('src/reports/financial/period-filters14331.js');load('src/reports/financial/report-window143195.js');c.reportWindow143195.restoreFilters();
 (async()=>{
 const set=(s)=>run('Object.assign(Reports79,'+JSON.stringify(s)+')');
 set({kind:'gl',mode:'monthly',month:'2026-09',year:2026,from:'2026-09-01',to:'2026-09-30',basis:'original',account:'cash|LAK'});
@@ -14,7 +14,7 @@ assert.equal(c.reportWindow143195.snapshot('2026-09-01','2026-09-30').rows.lengt
 let groups=plain(run("reportModel79('gl')"));assert.deepEqual(groups[0].metrics.map(m=>m[1]),[7000,0,3000,4000]);assert.equal(groups[0].values.length,1);assert.equal(c.JournalModule.entries,original);
 await c.reportWindow143195.ensure();assert.equal(requests.length,1,'unchanged filters reuse cached period');
 // Bounded and full-journal calculations agree for all reports, including comparison columns.
-for(const config of [{mode:'monthly',month:'2026-09',year:2026,from:'2026-09-01',to:'2026-09-30'},{mode:'custom',from:'2025-12-01',to:'2026-01-31'},{mode:'custom',selectedMonths14331:['2025-12','2026-09'],from:'2025-12-01',to:'2026-09-30'},{mode:'custom',selectedMonths14331:null,allMonths14331:true,from:'2025-01-01',to:'2026-09-30'}])for(const kind of ['gl','tb','pl','bs','expense','cf']){
+for(const config of [{mode:'monthly',month:'2026-09',year:2026,from:'2026-09-01',to:'2026-09-30'},{mode:'custom',from:'2025-12-01',to:'2026-01-31'},{mode:'custom',selectedMonths14331:['2025-12','2026-01'],from:'2025-12-01',to:'2026-01-31'},{mode:'custom',selectedMonths14331:null,allMonths14331:true,from:'2025-01-01',to:'2026-09-30'}])for(const kind of ['gl','tb','pl','bs','expense','cf']){
  set({...config,kind,account:'',cash:['cash|LAK']});await c.reportWindow143195.ensure();const bounded=plain(run('reportModel79('+JSON.stringify(kind)+')'));const api=c.reportWindow143195;c.reportWindow143195=null;let full;try{full=plain(run('reportModel79('+JSON.stringify(kind)+')'))}finally{c.reportWindow143195=api}assert.deepEqual(bounded,full,kind+' '+JSON.stringify(config));assert.equal(c.JournalModule.entries,original);
 }
 // Ten consecutive months use the same opening, activity and closing as exact dates.
@@ -34,10 +34,15 @@ for(const basis of ['original','LAK']){
  }
 }
 set({kind:'tb',from:'2026-01-01',to:'2026-03-31',selectedMonths14331:['2026-01','2026-03']});
-await c.reportWindow143195.ensure();
-assert.deepEqual(plain(run("reportModel79('tb')")).map(g=>g.periodLabel),['2026-01','2026-03']);
+await assert.rejects(c.reportWindow143195.ensure(),/continuous range/);
+assert.throws(()=>run("periodFilters14331.setPeriod(Reports79,['2026-01','2026-03'],{mode:'monthly'})"),/continuous range/);
+const storageKey=[...saved.keys()][0];
+saved.set(storageKey,run('JSON.stringify(Reports79)'));
+load('src/reports/financial/report-window143195.js');c.reportWindow143195.restoreFilters();
+assert.deepEqual(plain(run('Reports79.selectedMonths14331')),['2026-01','2026-02','2026-03']);
+await c.reportWindow143195.ensure();assert.equal(plain(run("reportModel79('tb')")).length,1);
 // A fresh object containing the same journal must reuse the complete cached report.
-c.JournalModule.entries=[...remote];set({kind:'gl',mode:'monthly',month:'2026-09',year:2026,from:'2026-09-01',to:'2026-09-30',selectedMonths14331:null,allMonths14331:false});let before=requests.length;await c.reportWindow143195.ensure();assert.equal(requests.length,before);
+c.JournalModule.entries=[...remote];set({kind:'gl',mode:'monthly',month:'2026-09',year:2026,from:'2026-09-01',to:'2026-09-30',selectedMonths14331:null,allMonths14331:false});await c.reportWindow143195.ensure();let before=requests.length;await c.reportWindow143195.ensure();assert.equal(requests.length,before);
 // Actual financial changes still invalidate cached data.
 c.JournalModule.entries=structuredClone(remote);c.JournalModule.entries[0].debit++;before=requests.length;await c.reportWindow143195.ensure();assert.equal(requests.length,before+1);
 // Reinitialization restores the last filter for this actor, not another actor.

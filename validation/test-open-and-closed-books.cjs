@@ -92,6 +92,11 @@ const createFixture = require('./phase0-browser-fixture.cjs');
   await dialog.locator('[data-all]').click();await dialog.getByRole('button',{name:'OK',exact:true}).click();
   assert.deepEqual(await rowAmounts(),full);
   assert.equal(await panel.locator('table.trial-columns143116').count(),1);
+  await openPeriod();
+  await dialog.locator('[data-month="2026-01"]').click();
+  await dialog.locator('[data-month="2026-10"]').click();
+  assert.deepEqual(await dialog.locator('[data-month][aria-pressed=true]').evaluateAll(nodes=>nodes.map(n=>n.dataset.month)),months);
+  await apply();assert.deepEqual(await rowAmounts(),full);
   const outputs=await page.evaluate(async()=>{
    const print=document.createElement('template');print.innerHTML=reportFormats14282.financial('tb');
    let csv;const center=exportCenter14337.fromLink;
@@ -102,6 +107,20 @@ const createFixture = require('./phase0-browser-fixture.cjs');
   assert.deepEqual(outputs,{print:1,csv:1});
   await openPeriod();await dialog.locator('[data-clear]').click();await dialog.locator('[data-month="2026-09"]').click();await apply();
   assert.equal(await page.evaluate(()=>parseReportAmount69(reportModel79('tb')[0].values.find(r=>r[0]==='Cash on Hand')[3])),80);
+  // An unavailable month inside a range blocks both endpoint and All closed months selection.
+  await page.evaluate(()=>{PeriodReview.periods['2026-05'].status='open'});
+  await openPeriod();
+  await dialog.locator('[data-month="2026-01"]').click();await dialog.locator('[data-month="2026-10"]').click();
+  assert.ok(await dialog.locator('[data-apply]').isDisabled());
+  assert.match(await dialog.locator('.summary-period14331 [role=status]').innerText(),/open or unavailable/);
+  await dialog.locator('[data-all]').click();assert.ok(await dialog.locator('.summary-period14331').isVisible());
+  await dialog.locator('[data-month="2026-04"]').click();await apply();
+  assert.deepEqual(await page.evaluate(()=>[Reports79.from,Reports79.to]),['2026-01-01','2026-04-30']);
+  // Selecting the end first works across December and January.
+  await page.evaluate(()=>{PeriodReview.periods['2025-12']={status:'closed'}});
+  await openPeriod();await dialog.locator('[data-month="2026-02"]').click();
+  await dialog.locator('[data-step="-1"]').click();await dialog.locator('[data-month="2025-12"]').click();await apply();
+  assert.deepEqual(await page.evaluate(()=>Reports79.selectedMonths14331),['2025-12','2026-01','2026-02']);
   for(const id of ['tax-overview','tax-pit']){
    await navigate(id);
    await page.locator('#'+id+' #taxFilter143153').click();

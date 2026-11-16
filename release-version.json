@@ -1,1 +1,1 @@
-{"version": "143.415", "changes": ["Trial Balance combines a selected date range into one statement on screen, in CSV and in print. Report filters use aligned fields and a consistent period picker."]}
+{"version": "143.416", "changes": ["Choose a single month or tap a start and an end month for a continuous range. The shared period filter includes every month in between."]}

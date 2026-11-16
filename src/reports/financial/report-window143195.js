@@ -14,7 +14,9 @@ function restoreFilters(){
  const next=identity(),db=typeof ojmDb==='undefined'?null:ojmDb,rows=JournalModule.confirmedSnapshot14385||JournalModule.entries;
  if(scope!==next||client!==db){reportBooks.reset();scope=next;client=db;entries=rows;entryContent=JSON.stringify(rows);reset();
   try{const saved=JSON.parse(localStorage.getItem('ojm-report-filters143195:'+scope)||'null');
-   if(saved&&/^\d{4}-\d{2}-\d{2}$/.test(saved.from)&&/^\d{4}-\d{2}-\d{2}$/.test(saved.to)&&saved.from<=saved.to){for(const field of fields)if(Object.hasOwn(saved,field))Reports79[field]=saved[field]}
+   if(saved&&/^\d{4}-\d{2}-\d{2}$/.test(saved.from)&&/^\d{4}-\d{2}-\d{2}$/.test(saved.to)&&saved.from<=saved.to){for(const field of fields)if(Object.hasOwn(saved,field))Reports79[field]=saved[field];
+    if(saved.selectedMonths14331?.length)periodFilters14331.setPeriod(Reports79,summaryPeriod14331.monthRange(saved.selectedMonths14331),{mode:'monthly'});
+   }
    else{const latest=rows.filter(r=>!r.pendingSync&&!r.local14333&&!r.voided_at&&(!r.status||r.status==='posted')).map(r=>String(r.date||'').slice(0,7)).filter(m=>/^\d{4}-\d{2}$/.test(m)).sort().at(-1);if(latest)Object.assign(Reports79,{mode:'monthly',month:latest,year:Number(latest.slice(0,4)),quarter:Math.ceil(Number(latest.slice(5))/3),from:latest+'-01',to:summaryPeriod14331.end(latest),selectedMonths14331:null,allMonths14331:false})}
   }catch{}
  }else if(entries!==rows){entries=rows;const content=JSON.stringify(rows);if(content!==entryContent){entryContent=content;reset()}}
