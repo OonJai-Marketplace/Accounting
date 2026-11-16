@@ -8,7 +8,36 @@ const canonical=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArra
 let database,owner='',jobs=[],error='',errorKind='',notice='',running=false,refreshTimer,readyJob,workWindow='',syncChain=null;
 const tableNames={employees:'payroll_employees',leaves:'payroll_leave_records',runs:'payroll_runs',reports:'operational_reports',documents:'company_documents105'};
 function db(){return database??=new Promise((resolve,reject)=>{let done=false;const r=indexedDB.open('ojm-local14333',1),fail=e=>{if(done)return;done=true;clearTimeout(timer);reject(e)},timer=setTimeout(()=>fail(Error('Device storage could not open within 8 seconds.')),8000);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('state'))r.result.createObjectStore('state')};r.onsuccess=()=>{if(done){r.result.close();return}done=true;clearTimeout(timer);r.result.onversionchange=()=>{r.result.close();database=null};resolve(r.result)};r.onerror=r.onblocked=()=>fail(r.error||Error('Device storage blocked.'))}).catch(e=>{database=null;throw e})}
-async function edit(id,name,update){const storageKey=key(id,name);const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction('state',update?'readwrite':'readonly'),s=tx.objectStore('state'),r=s.get(storageKey);let value;const timer=setTimeout(()=>{try{tx.abort()}catch{}reject(Error('Device storage did not finish. Your editor is retained.'))},10000);r.onsuccess=()=>{try{value=window.deviceVault14334?deviceVault14334.unpack(r.result,'ojm-local14333:'+storageKey):r.result;if(name==='outbox'&&Array.isArray(value))value=value.filter(j=>window.accountingReset143108?.keepJob(j)!==false);if(update){value=update(value);s.put(window.deviceVault14334?deviceVault14334.pack(value,'ojm-local14333:'+storageKey):value,storageKey)}}catch(e){tx.abort();reject(e)}};tx.oncomplete=()=>{clearTimeout(timer);resolve(value)};tx.onabort=tx.onerror=()=>{clearTimeout(timer);reject(tx.error||Error('Device storage could not save.'))}})}
+async function edit(id,name,update){
+ const storageKey=key(id,name),d=await db();
+ return new Promise((resolve,reject)=>{
+  const tx=d.transaction('state',update?'readwrite':'readonly'),store=tx.objectStore('state'),request=store.get(storageKey);
+  const notify=update&&(name==='outbox'||name==='journal-outbox14385');
+  let value,didChange=false;
+  const timer=setTimeout(()=>{try{tx.abort()}catch{}reject(Error('Device storage did not finish. Your editor is retained.'))},10000);
+  request.onsuccess=()=>{
+   try{
+    const label='ojm-local14333:'+storageKey;
+    value=window.deviceVault14334?deviceVault14334.unpack(request.result,label):request.result;
+    if(name==='outbox'&&Array.isArray(value))value=value.filter(j=>window.accountingReset143108?.keepJob(j)!==false);
+    if(!update)return;
+    const before=notify?JSON.stringify(value):null;
+    value=update(value);
+    didChange=notify&&JSON.stringify(value)!==before;
+    store.put(window.deviceVault14334?deviceVault14334.pack(value,label):value,storageKey);
+   }catch(e){tx.abort();reject(e)}
+  };
+  tx.oncomplete=()=>{
+   clearTimeout(timer);
+   if(didChange&&actor()===id){
+    // Other tabs reread committed device work. Never put journal data in the signal.
+    try{localStorage.setItem(storageKey+':changed',crypto.randomUUID())}catch{}
+   }
+   resolve(value);
+  };
+  tx.onabort=tx.onerror=()=>{clearTimeout(timer);reject(tx.error||Error('Device storage could not save.'))};
+ });
+}
 const mainPrefix=id=>'ojm-main14333:'+scope()+(window.accountingReset143108?.suffix()||'')+':'+id+':';
 function mainSave(job,id=actor()){const k=mainPrefix(id)+job.id,prior=JSON.parse(localStorage.getItem(k)||'null');if(prior?.done14333)return prior;if(prior?.payload&&canonical(prior.payload)!==canonical(job.payload))throw Error('This posting reference already belongs to different data.');const saved={...job,...(prior?.receipt&&!job.receipt?{receipt:prior.receipt}: {})};localStorage.setItem(k,JSON.stringify(saved));return saved}
 function mainFinish(id,ref){const k=mainPrefix(id)+ref,prior=JSON.parse(localStorage.getItem(k)||'null');if(prior)localStorage.setItem(k,JSON.stringify({...prior,done14333:true}));}
@@ -108,9 +137,19 @@ function ready(){
  const loadWork=window.loadWork82;let workJob,workOwner;window.loadWork82=function(force=false){const id=actor();if(workJob){if(workOwner===id)return workJob;return workJob.then(()=>actor()===id?window.loadWork82(force):undefined)}workOwner=id;const period=window.yearWindow14333?.state(),from=period?.from||new Date().getFullYear()+'-01-01',to=period?.to||new Date().getFullYear()+'-12-31',memoryKey=id+':'+from+':'+to;if(!force&&id&&Work82.owner===id&&Work82.loaded&&!Work82.error&&workWindow===memoryKey)return Promise.resolve();return workJob=(async()=>{await initialize();assertActor(id);Work82.queryFrom14333=from;Work82.queryTo14333=to;const saved=await snapshot('payroll:'+Work82.queryFrom14333+':'+Work82.queryTo14333,async()=>{await loadWork(true);if(Work82.error)throw Error(Work82.error);return {...Object.fromEntries(Object.keys(tableNames).map(k=>[k,structuredClone(Work82[k])])),payrollRevision14351:window.payrollWindow14334?.checkpoint?.(),leaveCarry14334:structuredClone(Work82.leaveCarry14334||[]),payrollIndex14334:structuredClone(Work82.payrollIndex14334||[])}},{force});if(actor()!==id)return;Object.assign(Work82,{leaveCarry14334:[],payrollIndex14334:[]},saved,{owner:id,loaded:true,loading:false,error:''});applyWork();await window.hrCalendar14306?.load();assertActor(id);workWindow=memoryKey;if(!window.startup14257?.background||!window.idleSync14341||idleSync14341.allowed())renderWork82();else window.addEventListener('idle-sync14341',()=>{if(actor()===id)renderWork82()},{once:true})})().catch(e=>{if(actor()===id){Work82.error=e.message;Work82.loading=false;renderWork82();changed()}}).finally(()=>workJob=null)};
  const before=window.openDocumentEditor105;window.openDocumentEditor105=function(options={}){if(options.printPreview&&window.yearWindow14333?.loading){showCenterStatus('Wait for the requested reporting period to finish loading.',true);return;}const count=(window.offline14239?.state().pending||0);if(options.html&&options.printPreview&&count)options={...options,reportNotices270:[...(options.reportNotices270||[]),'Device copy — '+count+' save(s) awaiting database confirmation.']};return before.call(this,options)};
  const profile=window.loadLiveProfile;window.loadLiveProfile=async function(...args){const r=await profile.apply(this,args);await initialize();return r};
- window.addEventListener('storage',event=>{if(event.key==='ojm_last_active_view_v1'||event.key?.startsWith('ojm-report-filters143195:')||event.key?.startsWith('ojm-history-month143195:')||event.key?.startsWith('ojm-vault14334:'))return;if(actor()&&window.pendingPosts99){try{const entries=mainLoad();pendingPosts99.clear();entries.forEach(j=>pendingPosts99.set(j.id,j));projectJournal();refreshAllTables()}catch(e){error=e.message;changed()}}const id=actor();if(id)edit(id,'outbox').then(rows=>{if(actor()!==id)return;jobs=rows||[];applyWork();changed()}).catch(()=>{})});
+ window.addEventListener('storage',event=>{
+  const id=actor(),k=event.key;
+  if(!id)return;
+  if(window.pendingPosts99&&(k===null||k.startsWith(mainPrefix(id))||k==='ojm_pending_posts99_'+id)){
+   try{const entries=mainLoad(id);pendingPosts99.clear();entries.forEach(j=>pendingPosts99.set(j.id,j));projectJournal();refreshAllTables()}catch(e){error=e.message;changed()}
+  }
+  if(k===null||k===key(id,'outbox')+':changed')edit(id,'outbox').then(rows=>{
+   if(actor()!==id)return;
+   jobs=rows||[];applyWork();changed();
+  }).catch(()=>{});
+ });
  window.addEventListener('save-state14234',()=>{projectJournal()});
 }
-window.localFirst14333={verifyCleanup,async storageBytes(){const id=actor(),normal=key(id,''),reset=key(id,'snapshot:').slice(0,-9);if(!id)throw Error('Sign in to measure saved data');return window.offline14239.measureStore(await db(),'state',k=>k.startsWith(normal)||k.startsWith(reset));},pruneYears:pruneYears14341,checkStorage,storageError(message){error=message;errorKind='write';changed()},mainLoad,mainSave,mainFinish,signature:()=>[error,notice,jobs.map(j=>[j.id,j.status,j.message])],get syncing(){return running},documents:rows=>latestRows('documents',rows),saveDocument:async(data,record)=>({data:[await saveWork('documents',data,record,{data,version:record?record.version+1:1})],error:null}),setNotice(value){notice=value;changed()},initialize,invalidateConfirmed,loadDocuments,loadDocument,saveWork,sync:(options={})=>!options.coordinated&&window.idleSync14341?.run?idleSync14341.run(!!options.automatic):sync(options),snapshot,staffFunds,confirmJournalReceipts,projectJournal,findings,retry,assess,state:()=>({jobs:structuredClone(jobs),error,running}),edit,canonical};
+window.localFirst14333={queueSignal:name=>key(actor(),name)+':changed',verifyCleanup,async storageBytes(){const id=actor(),normal=key(id,''),reset=key(id,'snapshot:').slice(0,-9);if(!id)throw Error('Sign in to measure saved data');return window.offline14239.measureStore(await db(),'state',k=>k.startsWith(normal)||k.startsWith(reset));},pruneYears:pruneYears14341,checkStorage,storageError(message){error=message;errorKind='write';changed()},mainLoad,mainSave,mainFinish,signature:()=>[error,notice,jobs.map(j=>[j.id,j.status,j.message])],get syncing(){return running},documents:rows=>latestRows('documents',rows),saveDocument:async(data,record)=>({data:[await saveWork('documents',data,record,{data,version:record?record.version+1:1})],error:null}),setNotice(value){notice=value;changed()},initialize,invalidateConfirmed,loadDocuments,loadDocument,saveWork,sync:(options={})=>!options.coordinated&&window.idleSync14341?.run?idleSync14341.run(!!options.automatic):sync(options),snapshot,staffFunds,confirmJournalReceipts,projectJournal,findings,retry,assess,state:()=>({jobs:structuredClone(jobs),error,running}),edit,canonical};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();

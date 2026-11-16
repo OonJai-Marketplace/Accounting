@@ -1,1 +1,1 @@
-{"version": "143.413", "changes": ["Open Budget Requests when unrelated journal downloads are paused. Record verified budget history with gross fund use and a separate cash distribution when needed."]}
+{"version": "143.414", "changes": ["Journal and report downloads check voucher access once per query. Open Accounting tabs refresh saved journal work when an entry changes."]}

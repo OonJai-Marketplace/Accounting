@@ -198,10 +198,22 @@ function ready(){
  const oldVoidConfirm=window.confirmVoidTransaction;window.confirmVoidTransaction=async function(){const p=pendingVoidTransaction;if(!p||p.busy)return;const lines=JournalModule.entries.filter(l=>l.id===p.entryNo);if(!lines.length)return oldVoidConfirm();if(window.workflow136?.state.sessions.some(s=>String(s.month).slice(0,7)===lines[0].date.slice(0,7)))return oldVoidConfirm();const c=context();if(p.actor!==c.actor||p.client!==c.client)return; p.busy=true;try{if(PeriodReview.status(lines[0].date.slice(0,7))!=='open')throw Error('Reopen the period before voiding.');await change(lines,'void',null,document.getElementById('voidTransactionReason').value);assert(c);requestSync();closeVoidTransactionModal();project();refreshAllTables();showCenterStatus('Void saved on this device. Database confirmation is pending.');await loadTransactionAudit();await window.entryNumber14257?.refresh(true);requestSync();if(!offline14239.offline())void sync().catch(()=>{});}catch(e){if(valid(c))document.getElementById('voidTransactionError').textContent=e.message}finally{p.busy=false}};
  const oldProfile=window.loadLiveProfile;window.loadLiveProfile=async function(...args){const r=await oldProfile.apply(this,args);await initialize();await window.offlineAudit143174?.initialize();project();return r};
  const oldRefresh=window.refreshAllTables;window.refreshAllTables=function(...args){project();return oldRefresh.apply(this,args)};
- window.addEventListener('storage',event=>{if(event.key?.startsWith('ojm-report-filters143195:')||event.key?.startsWith('ojm-history-month143195:'))return;if(actor())refreshDevice().catch(()=>{})});
- try{const channel=new BroadcastChannel('ojm-journal14385');channel.onmessage=e=>{if(e.data===identity(context()))refreshDevice().catch(()=>{})};window.addEventListener('local-work14333',()=>{if(loaded===identity(context()))channel.postMessage(loaded)});}catch{}
+ window.addEventListener('storage',event=>{
+  if(actor()&&(event.key===null||event.key===localFirst14333.queueSignal(name)))refreshDevice(true).catch(()=>{});
+ });
+ // Earlier releases broadcast local work. Honor genuine changes from an older open tab.
+ try{const channel=new BroadcastChannel('ojm-journal14385');channel.onmessage=e=>{
+  if(e.data===identity(context()))refreshDevice(true).catch(()=>{});
+ };}catch{}
+
 }
-async function refreshDevice(){const c=context();if(!c.actor)return;await initialize();rows=await read(c);loaded=identity(c);project();refreshAllTables();}
+async function refreshDevice(onlyChanges=false){
+ const c=context();if(!c.actor)return;
+ const previous=ownRows();await initialize();
+ const latest=await read(c);
+ if(onlyChanges&&JSON.stringify(previous)===JSON.stringify(latest))return;
+ rows=latest;loaded=identity(c);project();refreshAllTables();
+}
 window.journalDurable14385={creationTimesByReceipt,acceptNextNumber,payloads,validateRecovery,verifyRecovery,restoreRecovery,initialize,create,change,sync,project,reconcile,retirementCheckpoint,findings,pending,content,fromLines,refreshDevice,get running(){return !!flight}};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
 })();
