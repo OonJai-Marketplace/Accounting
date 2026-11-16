@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.407',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.408',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/desktop-status-dock.js?v=143.407",
  "docs/protocols/index.html?v=143.387",
@@ -91,11 +91,11 @@ const FILES=[
  "scripts/module-dock14269.js?v=143.20",
  "scripts/desktop14245-2.js?v=143.376",
  "scripts/desktop14245-3.js?v=143.407",
- "scripts/desktop14245-4.js?v=143.406",
+ "scripts/desktop14245-4.js?v=143.408",
  "scripts/desktop14245-5.js?v=143.406",
  "scripts/desktop14245-6.js?v=143.407",
  "scripts/local-events14310.js?v=143.375",
- "scripts/offline14239.js?v=143.407",
+ "scripts/offline14239.js?v=143.408",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -117,7 +117,7 @@ const FILES=[
  "scripts/budget14313.js?v=143.375",
  "scripts/budget-messages14314.js?v=143.331",
  "scripts/action-feedback14296.js?v=143.323",
- "scripts/vouchers14299.js?v=143.406",
+ "scripts/vouchers14299.js?v=143.408",
  "scripts/navigation-badges14311.js?v=143.189",
  "scripts/layout14256.js?v=143.113",
  "scripts/backup-validation1441.js?v=143.109",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.375",
  "styles/settings-groups14332.css?v=143.375",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.407",
+ "scripts/phone-runtime14242.js?v=143.408",
  "scripts/local-first14333.js?v=143.377",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.391",
@@ -269,7 +269,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.393",
  "styles/workspace-consistency14343.css?v=143.377",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.407",
+ "phone-sw.js?v=143.408",
  "scripts/personal-journal1437.js?v=143.380",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
@@ -289,7 +289,7 @@ const FILES=[
  "docs/UPDATE-v143.49.md",
  "setup/INSTALL-REPORT-POSTING-v143.49.sql",
  "scripts/corrections14231.js?v=143.330",
- "scripts/document-editor-v105.js?v=143.406",
+ "scripts/document-editor-v105.js?v=143.408",
  "scripts/hr-calendar-model14306.js?v=143.236",
  "scripts/opening-balances14234.js?v=143.364",
  "scripts/dashboard-warm-v112.js?v=143.393",

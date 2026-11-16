@@ -12,7 +12,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       if(consume)next.set(key,start+q.p_count);
       return Array.from({length:q.p_count},(_,i)=>'OJM'+q.p_date.slice(2,4)+'-'+(q.p_type==='receipt'?'R':'V')+'A'+q.p_date.slice(5,7)+String(start+i).padStart(2,'0'));
     };
-    const route=(name,fn)=>page.route('**/rest/v1/rpc/'+name,async r=>{
+    const route=(name,fn)=>page.route('**/rest/v1/rpc/'+name+'*',async r=>{
       if(disconnected){attemptedOffline++;return r.abort()}
       const result=fn(r.request().postDataJSON());
       return r.fulfill(result?.error?{status:400,json:result.error}:{json:result});

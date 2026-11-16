@@ -1,7 +1,7 @@
 {
-  "version": "143.407",
+  "version": "143.408",
   "changes": [
-    "History actions share the top-right toolbar.",
-    "Tables show a single floating bottom pager only when more than one page is needed. Journal and ledger page breaks keep each Entry ID together."
+    "Receipt and voucher printing checks saved PDF copies together and prepares only missing pages.",
+    "Saving a receipt reuses unchanged letterhead settings. Batch issuance returns only confirmed document IDs, numbers and versions."
   ]
 }
