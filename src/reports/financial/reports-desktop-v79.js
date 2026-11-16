@@ -163,7 +163,7 @@ function toggleReportFilters143153(button){
  const prefs=trial?monthlyTrialPreferences():null;
  const trialFields=trial?field('Report type','trialView',[['standard','Standard Trial Balance'],['comparative','Monthly comparative']],s.trialView||'standard')+
   '<div class="trial-filter-options" data-trial-options>'+monthlyTrialColumnControl(prefs.columns)+'<div data-trial-accounts></div></div>':'';
- const body=trialFields+periodControl+field('Report basis','basis',[['LAK','LAK equivalent'],['original','Original currencies']],s.basis)+field('Currency','currency',[['','All original currencies'],...currencies.map(c=>[c,c])],s.currency)+accountField+field('Sort by','by',[...(ledger?[['date','Date']]:[]),['account','Account code']],sort.by)+field('Order','direction',orders(sort.by),sort.direction)+checks;
+ const body=trialFields+periodControl+field('Report basis','basis',[['LAK','LAK equivalent · posted values'],['original','Original Amount · by currency'],['reporting','Reporting Amount · dated book rate']],s.basis)+field('Currency','currency',[['','All original currencies'],...currencies.map(c=>[c,c])],s.currency)+accountField+field('Sort by','by',[...(ledger?[['date','Date']]:[]),['account','Account code']],sort.by)+field('Order','direction',orders(sort.by),sort.direction)+checks;
  const dialog=openReportDialog299(button,reportNames79[kind]+' filters',body,()=>{
   const next={...period,basis:form.basis.value,currency:form.currency.value};
   if(ledger)next.account=form.account.value;
@@ -185,10 +185,14 @@ function toggleReportFilters143153(button){
   periodFilters14331.setPeriod(period,values,meta);periodButton.textContent=periodCaption();
  },{mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:true,closedBooks:historical()});
  form.by.onchange=()=>{form.direction.innerHTML=options(orders(form.by.value),form.direction.value)};
+ form.basis.onchange=()=>accountChoices(ledger?form.account.value:'');
  function accountChoices(selected){
   const visible=rows.filter(r=>!form.currency.value||r.currency===form.currency.value);
   const label=r=>r.account.code+' — '+r.account.name+' · '+r.currency;
-  if(ledger)form.account.innerHTML=options([['','All accounts'],...visible.map(r=>[r.key,label(r)])],selected);
+  if(ledger){
+   const linked=form.basis.value==='reporting'?[...new Set([...reportingAmounts.links().values()].filter(Boolean))].map(a=>['report:'+a.id,a.code+' — '+a.name+' · all linked currencies']):[];
+   form.account.innerHTML=options([['','All accounts'],...linked,...visible.map(r=>[r.key,label(r)])],selected);
+  }
   if(!checks)return;
   const eligible=visible.filter(r=>kind!=='cf'||r.account.type==='ASSET'),box=dialog.querySelector('[data-choices]');
   const choice=r=>`<label><input type="checkbox" value="${re79(r.key)}" ${chosen.has(r.key)?'checked':''}> ${re79(label(r))}</label>`;
@@ -251,7 +255,8 @@ function reportTable79(headers,rows,currency,print=false){
   const account=accountIndex>=0?(window.ForeignFunds14386?.presentation(row[accountIndex])||{text:String(row[accountIndex]).trim(),name:String(row[accountIndex]).trim(),subtotal:false}):null;
   return `<tr${account?.subtotal?' class="report-subtotal143185"':''}>${row.map((v,i)=>{
    const isAccount=i===accountIndex,value=isAccount?account.text:v;
-   let content=!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(account.name)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(value)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="reportWindow143195.source(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:headers[i]==='Description / Reference'?journalMemoHtml143187(value):re79(headers[i]==='Date'?formatAppDate(v):value);
+   const reportGroup=headers[i]==='Reporting account',reportSource=headers[i]==='Source account';
+   let content=!print&&(reportGroup||reportSource)&&value!=='Unclosed accumulated result'?`<button class="r79-link" data-account="${re79(value)}" onclick="reportingAmounts.open(this.dataset.account,${reportGroup})">${re79(value)}</button>`:!print&&headers[i]==='Account'?`<button class="r79-link" data-account="${re79(account.name)}" data-currency="${re79(currency)}" onclick="reportAccount79(this.dataset.account,this.dataset.currency)">${re79(value)}</button>`:!print&&headers[i]==='Entry ID'?`<button class="r79-link" data-entry="${re79(v)}" onclick="reportWindow143195.source(encodeURIComponent(this.dataset.entry))">${re79(v)}</button>`:headers[i]==='Description / Reference'?journalMemoHtml143187(value):re79(['Date','Rate date'].includes(headers[i])?formatAppDate(v):value);
    if(trial&&headers[i]==='Classification'){
     const [side,...type]=String(v).split(' · ');
     content='<span class="balance-badge118" title="Closing balance side">'+re79(side)+'</span>'+re79(type.join(' · '));
@@ -298,6 +303,7 @@ function balanceExplanation143154(currency,assets,liabilities,equity,result){
 }
 function reportModel79(kind,oldest=false){
  if(kind==='tb'&&reportBooks.scope()==='comparison')return [monthlyTrialReportModel()];
+ if(Reports79.basis==='reporting')return reportingAmounts.model(kind);
  if(Reports79.basis==='LAK'){const missing=reportData79().filter(r=>r.missingRates);if(missing.length)return [{currency:'LAK — incomplete',headers:['Account','Original currency','Missing rate records'],values:missing.map(r=>[r.account.name,r.sourceCurrency,r.missingRates]),metrics:[],note:'LAK totals are withheld until missing exchange rates are supplied. Original-currency records remain available. No exchange rate has been guessed.'}];}
  const data=reportData79(),groups=[];const sum=(rows,f)=>rows.reduce((s,r)=>s+f(r),0),type=(rows,t)=>rows.filter(r=>String(r.account.baseType||r.account.type).toUpperCase()===t),active=r=>r.opening||r.debit||r.credit||(kind==='tb'&&r.closing);
  for(const currency of [...new Set(data.map(r=>r.currency))].sort()){
@@ -332,7 +338,9 @@ function reportModel79(kind,oldest=false){
  const selected=window.ForeignFunds14386?ForeignFunds14386.select(all,Reports79.account).filter(active):rows.filter(r=>!Reports79.account||r.key===Reports79.account);headers=['Date','Entry ID','Account','Description / Reference','Debit','Credit','Running DR / CR'];let lines=[];
  selected.forEach(r=>{let running=r.opening;r.lines.forEach(l=>{running+=l.dr-l.cr;lines.push({...l,accountName:r.account.name,accountCode:r.account.code,running})})});const q=Reports79.query.trim().toLowerCase();lines=lines.filter(l=>!q||`${l.id} ${l.date} ${l.accountName} ${l.memo} ${l.generalMemo||''}`.toLowerCase().includes(q)).sort((a,b)=>compareReportLines143153(a,b,kind));
  if(Reports79.basis==='LAK')headers.splice(4,0,'LAK rate');values=lines.map(l=>[l.date,l.id,l.accountName,journalMemoValue143187(l),...(Reports79.basis==='LAK'?[(window.JournalFX14383?.lineRates(l)||[]).join(' / ')||(l.originalCurrency==='LAK'?'1':'—')]:[]),money69(l.dr),money69(l.cr),balanceText69(l.running)]);metrics=[['Opening (DR less CR)',sum(selected,r=>r.opening)],['Period debit',sum(selected,r=>r.debit)],['Period credit',sum(selected,r=>r.credit)],['Closing (DR less CR)',sum(selected,r=>r.closing)]];note='Running balances are calculated chronologically for each account. The selected display order applies to the screen, print and export; running balances retain their chronological values. Search filters the detail rows only; totals cover the selected accounts for the full period.';
+ if(Reports79.basis==='original'&&currency!=='LAK'){headers.push('Posted rate evidence');values.forEach((v,i)=>v.push(reportingAmounts.evidence(lines[i])))}
  }
+
  const unknown=all.filter(r=>active(r)&&!['ASSET','LIABILITY','EQUITY','REVENUE','EXPENSE','SYSTEM'].includes(String(r.account.type).toUpperCase()));if(unknown.length)note+=` Attention: ${unknown.length} account(s) have no recognized classification. Review the Trial Balance before relying on statements.`;
  if(Reports79.basis==='LAK'){note+=' LAK amounts use saved transaction/carrying rates. Original currencies are retained; mapping accounts are excluded from operating results.';if(!['gl','activity','bs','tb'].includes(kind)){const index=headers.indexOf('Account');if(index>=0){headers.splice(index+1,0,'Original currency / net');values=values.map(v=>{const row=rows.find(r=>r.account.name===String(v[index]).trim());return [...v.slice(0,index+1),row?row.sourceCurrency+' '+balanceText69(['pl','expense'].includes(kind)?row.original.debit-row.original.credit:row.original.closing):'Subtotal in LAK',...v.slice(index+1)]})}}}
  groups.push({currency,headers,values,metrics,note});

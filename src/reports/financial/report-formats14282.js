@@ -39,13 +39,27 @@ function format(html){const root=document.createElement('div');root.innerHTML=ht
 function financial(kind){const groups=reportModel79(kind,true);let html=title(reportNames79[kind],kind==='tb'?trialPeriodLabel79(Reports79):Reports79.selectedMonths14331?.length?Reports79.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):Reports79.allMonths14331?'All months':formatAppDate(Reports79.from)+' — '+formatAppDate(Reports79.to)),omitted=[];
  for(const g of groups){
   if(g.monthlyTrial){html+=head('Monthly comparative · '+g.currency)+monthlyTrialTable(g,true);continue}
+  if(Reports79.basis==='reporting'){
+   let headers=g.headers,values=g.values.map(row=>row.map((value,i)=>['Date','Rate date'].includes(headers[i])?formatAppDate(value):value));
+   // Keep the journal and source account visible on every printed continuation.
+   if(headers.includes('Entry ID')){
+    headers=['Entry ID / source account',...headers.slice(3)];
+    values=values.map(([date,id,account,...rest])=>[[id,account,date].join('\n'),...rest]);
+   }else if(headers[1]==='Source account'){
+    headers=['Reporting account / source account',...headers.slice(2)];
+    values=values.map(([parent,account,...rest])=>[parent+'\n'+account,...rest]);
+   }
+   html+=head(g.currency+(g.periodLabel?' · '+g.periodLabel:''))+table(headers,values);
+   if(g.metrics.length)html+=table(['Total / result','LAK'],g.metrics.map(([k,v])=>[k,money69(v)]),[72,28],[1]);
+   html+='<p>'+esc(g.note)+'</p>';continue;
+  }
   const trialWidths=g.headers.includes('Year-opening change')?[22,15,13,12,12,13,13]:[25,17,15,14,14,15];if(Reports79.basis==='LAK'||g.currency==='Recorded valuation detail'){html+=head(g.currency+(g.periodLabel?' · '+g.periodLabel:''))+table(g.headers,g.values,g.headers.includes('Entry ID')?[9,10,18,25,8,10,10,10]:g.headers.includes('Closing balance')?trialWidths:undefined);if(g.metrics.length)html+=table(['Total / result','LAK'],g.metrics.map(([k,v])=>[k,money69(v)]),[72,28],[1]);html+=`<p>${esc(g.note)}</p>`;continue;}const start=['gl','activity'].includes(kind)?4:['cf','payroll'].includes(kind)?1:2;const hasAmounts=g.values.some(r=>r.slice(start).some(v=>parseReportAmount69(v)));if(!hasAmounts&&!g.metrics.some(([,v])=>Number(v))){omitted.push(g.currency);continue}html+=head(g.currency+(g.periodLabel?' · '+g.periodLabel:''));
  if(kind==='pl'||kind==='expense'){
  for(const type of kind==='expense'?['EXPENSE']:['REVENUE','EXPENSE']){const rows=g.values.filter(r=>String(r[0]).toUpperCase()===type).map(r=>[r[1],r[4]]);html+=head(type==='REVENUE'?'Income':'Expenses')+table(['Account / Description','Amount'],rows.length?rows:[['No activity','—']],[72,28],[1]);}
  }else if(kind==='tb'){
  html+=table(g.headers,g.values,trialWidths,g.headers.map((_,i)=>i).slice(2));
  }else if(['gl','activity'].includes(kind)){
- const accountName=r=>String(r[2]).replace(/^(DR|CR|—) · /,'');const accounts=[...new Set(g.values.map(accountName))];for(const account of accounts)html+=head(String(account).replace(/^(DR|CR|—) · /,''))+table(['Date','Entry / description','Debit','Credit','Running amount'],g.values.filter(r=>accountName(r)===account).map(r=>[r[0],r[1]+'\n'+r[3],r[4],r[5],r[6]]),[12,40,16,16,16],[2,3,4]);
+ const accountName=r=>String(r[2]).replace(/^(DR|CR|—) · /,'');const accounts=[...new Set(g.values.map(accountName))];for(const account of accounts)html+=head(String(account).replace(/^(DR|CR|—) · /,''))+table(['Date','Entry / description','Debit','Credit','Running amount'],g.values.filter(r=>accountName(r)===account).map(r=>[r[0],r[1]+'\n'+r[3],r[4],r[5],r[6]]),[12,40,16,16,16],[2,3,4]);if(g.headers.includes('Posted rate evidence'))html+=table(['Entry ID','Account','Posted rate evidence'],g.values.map(r=>[r[1],r[2],r.at(-1)]),[19,36,45]);
  }else html+=table(g.headers,g.values,undefined,g.headers.map((h,i)=>/amount|debit|credit|opening|closing|20\d\d/i.test(h)?i:-1));
  if(g.metrics.length)html+=table(['Total / result','Amount'],g.metrics.map(([k,v])=>[k,money69(v)]),[72,28],[1]);html+=`<p>${esc(g.note)}</p>`;
  }

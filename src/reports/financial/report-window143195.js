@@ -22,7 +22,7 @@ function restoreFilters(){
  }else if(entries!==rows){entries=rows;const content=JSON.stringify(rows);if(content!==entryContent){entryContent=content;reset()}}
 }
 function save(){if(reportBooks.scope()==='live')return;try{localStorage.setItem('ojm-report-filters143195:'+scope,JSON.stringify(Object.fromEntries(fields.map(k=>[k,Reports79[k]]))))}catch{}}
-const range=(from,to)=>({from:reportBooks.scope()==='history'||from<to.slice(0,4)+'-01-01'?to.slice(0,4)+'-01-01':from,to});
+const range=(from,to)=>({from:Reports79.basis==='reporting'||reportBooks.scope()==='history'||from<to.slice(0,4)+'-01-01'?to.slice(0,4)+'-01-01':from,to});
 function periods(){const s=Reports79;let list;if(s.allMonths14331||reportBooks.scope()==='comparison')return [allPeriod];
  if(s.kind==='bs'&&window.reportPeriods118)list=reportPeriods118();
  else if(comparisonMonths79(s.kind,s)?.length)list=s.selectedMonths14331.map(m=>({from:m+'-01',to:summaryPeriod14331.end(m)}));
@@ -80,7 +80,7 @@ function signature(){
  const selection=['gl','activity'].includes(kind)?[s.account,s.query]:kind==='cf'?s.cash:kind==='payroll'?s.payroll:null;
  return JSON.stringify([scope,generation,reportBooks.scope(),reportBooks.closedMonths(),kind,s.mode,s.month,s.year,s.quarter,s.from,s.to,s.allMonths14331,s.selectedMonths14331,s.basis,s.currency,
   kind==='tb'&&s.trialView==='comparative'?monthlyTrialPreferences():null,selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
-  AccountingStore.accounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)]);
+  AccountingStore.accounts,AccountingStore.subAccounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)]);
 }
 function reuse(host){restoreFilters();if(!reportBooks.sync())return false;normalizeAll();return complete()&&renderedViews.get(host)===signature()}
 function rendered(host){host.removeAttribute('aria-busy');renderedViews.set(host,signature());window.workspaceViews14364?.remember?.(active())}

@@ -57,6 +57,7 @@ function monthlyTrialAccountPicker(host,choices,selected,onChange){
 
 // Group lines once. Prior activity establishes the first month's opening. A new book uses its own saved opening.
 function monthlyTrialModel(entries,months,options){
+ if(options.basis==='reporting')return reportingAmounts.comparison(entries,months,options);
  const {basis,currency,accounts,columns,from,to,direction}=options,selected=accounts&&new Set(accounts);
  const first=months[0],last=months.at(-1),yearStart=first.slice(0,4)+'-01',buckets=new Map(),records=new Map();
  for(const line of entries){
@@ -119,7 +120,7 @@ function monthlyTrialTable(model,print=false){
  const {months,subheads,values,totalCount}=model,width=subheads.length,span=print?(width===1?5:2):months.length,tables=[];
  if(!values.length)return '<p class="r79-note">No accounts match this selection.</p>';
  for(let first=0;first<months.length;first+=span){
-  const part=months.slice(first,first+span),labels=part.map(m=>'<th colspan="'+width+'" scope="colgroup"><span>'+re79(summaryPeriod14331.monthLabel(m))+'</span></th>').join('');
+  const part=months.slice(first,first+span),labels=part.map((m,i)=>'<th colspan="'+width+'" scope="colgroup"'+(model.rateDates?' data-as-of="'+re79(model.rateDates[first+i])+'"':'')+'><span>'+re79(model.rateDates?formatAppDate(model.rateDates[first+i]):summaryPeriod14331.monthLabel(m))+'</span></th>').join('');
   const headers=part.map(()=>subheads.map((h,j)=>'<th scope="col"'+(j===0?' class="month-start"':'')+'>'+h+'</th>').join('')).join('');
   const rowHTML=row=>'<tr><th scope="row" title="'+re79(row[0])+'">'+re79(row[0])+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td'+(j%width===0?' class="month-start"':'')+'>'+re79(value)+'</td>').join('')+'</tr>';
   const split=values.length-totalCount;

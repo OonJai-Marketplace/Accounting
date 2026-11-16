@@ -1,6 +1,6 @@
 {
-  "version": "143.422",
+  "version": "143.423",
   "changes": [
-    "Journal posts and editable records save on the device first. Sign-in and reconnect deliver pending work and check for changes without an idle sync timer."
+    "Reports now offer Reporting Amount in LAK using each linked account’s average book rate on the selected date. Currency contributions, posted journal evidence, monthly comparisons, print and CSV use the same reporting figures."
   ]
 }

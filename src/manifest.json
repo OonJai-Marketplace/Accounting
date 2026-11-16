@@ -480,6 +480,10 @@
     ],
     "scripts/reports-desktop-v79.js": [
       {
+        "source": "src/reports/financial/reporting-amounts.js",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/reports/financial/reports-desktop-v79.js",
         "suffix": ";\n"
       }
@@ -1190,6 +1194,10 @@
         "source": "src/subusers/review/review-mobile-v78.js",
         "prefix": "/* scripts/review-mobile-v78.js */\n",
         "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/reports/financial/reporting-amounts.js",
+        "suffix": ";\n"
       },
       {
         "source": "src/reports/financial/reports-desktop-v79.js",
