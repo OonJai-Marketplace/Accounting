@@ -3847,6 +3847,9 @@
     ],
     "scripts/budget-workflow14316.js": [
       {
+        "source": "src/budget/requests/spending-worksheet.js"
+      },
+      {
         "source": "src/budget/requests/budget-report290.js"
       },
       {

@@ -53,6 +53,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       await page.evaluate(type => document.getElementById(type==='voucher'?'voucherCreate14299':'receiptCreate245').click(), type);
       await editor.getByRole('heading',{name:type==='voucher'?'PAYMENT VOUCHER':'PAYMENT RECEIPT',exact:true}).waitFor();
       assert.equal(await signatures.count(),1);
+      assert.equal(await editor.locator('p > strong').first().innerText(),type==='voucher'?'Payee':'Payer');
       const outgoing=type==='voucher'?'Released by':'Paid by';
       assert((await signatures.innerText()).includes(outgoing));
       assert((await signatures.innerText()).includes('Received by'));
@@ -120,6 +121,18 @@ const createFixture = require('./phase0-browser-fixture.cjs');
     await editor.locator('[data-handwritten-sheet14303]').nth(1).waitFor();
     assert.equal(await editor.locator('.page').count(),2);
     assert.equal(await signatures.count(),2);
+    assert.equal(await editor.getByText('Payer',{exact:true}).count(),2);
+    // Reopen an earlier voucher. Only its generated header caption changes.
+    await page.evaluate(()=>{
+      const html=Receipt245.html({type:'voucher',number:'OJM26-A1101',party:'Sample supplier',
+        rows:[{description:'Pay to',amount:'15'}]}).replace('>Payee</strong>','>Pay to</strong>');
+      return documentWorkspace105.newTab({title:'Saved voucher',voucher14299:{kind:'E',documentType:'voucher'},
+        settings:{paper:'A5'},html});
+    });
+    await editor.getByText('Payee',{exact:true}).waitFor();
+    assert.equal(await editor.getByText('Sample supplier',{exact:true}).count(),1);
+    assert.equal(await editor.locator('tbody tr').first().locator('td').first().innerText(),'Pay to');
+    assert.equal(await editor.locator('[data-voucher-number14299]').innerText(),'OJM26-A1101');
     assert.equal(await page.evaluate(()=>documentWorkspace105.model.settings.paper),'A5');
     // A previously saved non-A4 design starts from its saved size and receiver.
     await page.evaluate(()=>documentWorkspace105.newTab({

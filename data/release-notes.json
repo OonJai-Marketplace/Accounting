@@ -1,6 +1,6 @@
 {
-  "version": "143.403",
+  "version": "143.405",
   "changes": [
-    "Restore the November 13 chart of accounts, journal generation, payroll journal rules and financial reporting logic."
+    "Restore the November 13 chart, journal generation, payroll posting and financial reports."
   ]
 }
