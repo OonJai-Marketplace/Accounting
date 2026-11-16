@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Phase 2 · Oon Jai Accounting</title>
 <style>body{max-width:44rem;margin:4rem auto;padding:0 1.25rem;color:#123d32;font:1rem/1.5 system-ui;background:#faf8f2}button{padding:.7rem 1rem;color:white;background:#09543f;border:0;border-radius:.4rem;font:inherit}button:disabled{opacity:.5}</style>
-<script src="../../deployment-config.js"></script><script src="../../scripts/supabase-config.js"></script><script src="../../assets/vendor/supabase.js"></script></head>
+<script src="../../deployment-config.js"></script><script src="../../scripts/supabase-config.js"></script><script src="../../assets/vendor/noble-gcm14334.js"></script><script src="../../scripts/device-vault14334.js"></script><script src="../../assets/vendor/supabase.js"></script></head>
 <body><main><h1>Prepare foreign-currency accounts</h1><p>Activate the reviewed regular posting accounts and match their branch groups to their LAK accounts.</p><p role="status" id="status">Checking the Accounting administrator session…</p><button id="apply" type="button" disabled>Prepare 21 accounts</button></main>
 <script>
 'use strict';
@@ -24,7 +24,7 @@ async function check(){
   return s;
  });
 }
-(async()=>{try{await admin();const children=await check();statusText.textContent=children.filter(s=>s.is_active).length+' of 21 accounts active.';button.disabled=false}
+(async()=>{try{await window.deviceVault14334.attach(db);await admin();const children=await check();statusText.textContent=children.filter(s=>s.is_active).length+' of 21 accounts active.';button.disabled=false}
 catch(err){statusText.textContent=err.message}})();
 button.addEventListener('click',async()=>{
  button.disabled=true;statusText.textContent='Preparing the accounts…';
