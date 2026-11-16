@@ -64,12 +64,37 @@ function syncSubAccountCurrencyDropdown(selected = '') {
   window.dropdown1434?.enhance(document.getElementById('formSubAccount'));
 }
 
+function syncSubAccountReportingDropdown(selected = '') {
+  const field = document.getElementById('subReportLakField');
+  const select = document.getElementById('subReportLak');
+  const parent = AccountingStore.accounts.find(a => a.code === document.getElementById('subParentCode').value);
+  const currency = document.getElementById('subCurrency').value;
+  const eligible = parent && !parent.isTechnical && (!parent.purpose || parent.purpose === 'regular')
+    && currency && !['LAK', 'NA'].includes(currency);
+  field.hidden = !eligible;
+  select.disabled = !eligible;
+  select.replaceChildren(new Option('No reporting link', ''));
+  if (eligible) {
+    const type = parent.baseType || parent.type;
+    const accounts = AccountingStore.accounts.filter(a => a.id && a.currency === 'LAK'
+      && a.isPosting !== false && !a.isTechnical && (!a.purpose || a.purpose === 'regular')
+      && (a.baseType || a.type) === type);
+    for (const account of accounts) select.add(new Option(`${account.code} — ${account.name}`, account.id));
+    if (selected && !accounts.some(a => a.id === selected)) {
+      select.add(new Option('Previously linked account (inactive or unavailable)', selected));
+    }
+    select.value = selected;
+  }
+  window.dropdown1434?.enhance(document.getElementById('formSubAccount'));
+}
+
 function openAddSubAccountModal() {
   syncSubAccountParentDropdown();
   document.getElementById('modalSubAccountTitle').innerText = 'Add Sub-Account';
   document.getElementById('subAccountOrigCode').value = '';
   document.getElementById('formSubAccount').reset();
   syncSubAccountCurrencyDropdown();
+  syncSubAccountReportingDropdown();
   showSubAccountType14380();
   openModal('modalSubAccount');
   document.getElementById('subCode').focus();
@@ -86,6 +111,7 @@ function openEditSubAccountModal(code) {
   document.getElementById('subName').value = sub.name;
   document.getElementById('subDesc').value = sub.desc || '';
   syncSubAccountCurrencyDropdown(sub.currency || AccountingStore.accounts.find(a => a.code === sub.parentCode)?.currency || '');
+  syncSubAccountReportingDropdown(sub.reportLakId || '');
   showSubAccountType14380();
   openModal('modalSubAccount');
 }
@@ -99,6 +125,8 @@ function handleSubAccountFormSubmit(event) {
   const desc = document.getElementById('subDesc').value.trim();
   const currency = document.getElementById('subCurrency').value;
 
+  const reportLakId = document.getElementById('subReportLak').value || null;
+
   if (origCode) {
     const sub = AccountingStore.subAccounts.find(s => s.code === origCode);
     if (sub) {
@@ -111,13 +139,14 @@ function handleSubAccountFormSubmit(event) {
       sub.name = name;
       sub.desc = desc;
       sub.currency = currency;
+      sub.reportLakId = reportLakId;
     }
   } else {
     if (AccountingStore.subAccounts.some(s => s.code === code)) {
       showAppNotification('Notice','Sub-Account code already exists.');
       return;
     }
-    AccountingStore.subAccounts.push({ parentCode, code, name, desc, currency });
+    AccountingStore.subAccounts.push({ parentCode, code, name, desc, currency, reportLakId });
   }
 
   closeModal('modalSubAccount');
@@ -143,3 +172,11 @@ function showSubAccountType14380(){
  const parent=AccountingStore.accounts.find(a=>a.code===select.value);box.value=parent?(window.AccountGroups14253?.type(parent)||parent.type):'Choose a parent account';
 }
 document.addEventListener('change',e=>{if(e.target.id==='subParentCode')showSubAccountType14380()});
+
+document.addEventListener('change', event => {
+  if (!['subParentCode', 'subCurrency'].includes(event.target.id)) return;
+  const select = document.getElementById('subReportLak');
+  const previous = select.value;
+  syncSubAccountReportingDropdown();
+  if (Array.from(select.options).some(option => option.value === previous)) select.value = previous;
+});

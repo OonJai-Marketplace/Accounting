@@ -8,7 +8,7 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.338"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script>
-  <script src="scripts/offline14239.js?v=143.411"></script>
+  <script src="scripts/offline14239.js?v=143.412"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=143.407">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.364">
 <title>Oon Jai Accounting</title>
@@ -1117,6 +1117,10 @@
             <select class="je-select" id="subCurrency" required aria-label="Currency Type"></select>
           </div>
           </div>
+          <div class="settings-field" id="subReportLakField" hidden>
+            <label for="subReportLak">Report with LAK account</label>
+            <select class="je-select" id="subReportLak"></select>
+          </div>
           <div class="settings-field">
             <label for="subCode">Sub-Account Code *</label>
             <input class="je-input" type="text" id="subCode" required placeholder="e.g., 1000-01">
@@ -1247,7 +1251,7 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
 
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.411"></script>
+  <script src="scripts/desktop14245-3.js?v=143.412"></script>
 <script src="scripts/optional-tools14335.js?v=143.275"></script>
 
 

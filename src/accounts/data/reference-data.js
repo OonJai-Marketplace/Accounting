@@ -1,7 +1,7 @@
 let referenceLoadSerial14370=0,referenceSignature143190='',referenceOwner143190='',referenceClient143190=null;
 async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=false}={}) {
   const actor=liveProfile?.id,db=ojmDb,serial=++referenceLoadSerial14370;
-  const read=table=>{const query=db.from(table).select('*').eq('is_active',true).order('code');return databaseOnly?query.setHeader('x-ojm-database-only','1'):query};
+  const read=table=>{const query=db.from(table).select(table==='sub_accounts'?'*,sub_account_reporting_links(lak_account_id)':'*').eq('is_active',true).order('code');return databaseOnly?query.setHeader('x-ojm-database-only','1'):query};
   const [{data:currencies,error:currencyError},{data:accounts,error:accountError},{data:subs,error:subError}] = await Promise.all([
     read('currencies'),read('accounts'),read('sub_accounts')
   ]);
@@ -14,7 +14,7 @@ async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=f
   CurrencyStore.currencies=(currencies||[]).map(c=>({code:c.code,name:c.name,symbol:c.symbol,isBase:c.is_base}));
   AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,baseType:a.account_type,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true,trackForeignFunds:a.is_posting!==false&&!!a.currency_code&&!['LAK','NA'].includes(a.currency_code)}));
   const byId=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
-  AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
+  AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,reportLakId:(Array.isArray(s.sub_account_reporting_links)?s.sub_account_reporting_links[0]:s.sub_account_reporting_links)?.lak_account_id||null,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
   for(const sub of AccountingStore.subAccounts){const posting=byId.get(sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
   CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
 }
@@ -111,14 +111,18 @@ handleSubAccountFormSubmit = async function(event){const actor=liveProfile?.id,d
   if(!payload.code||!payload.name){showCenterStatus('Enter a sub-account code and name.',true);return}
   const existing=AccountingStore.subAccounts.find(s=>s.code===original);
   if(original&&!existing){showCenterStatus('This sub-account is no longer in the loaded chart. Reopen the chart before editing it.',true);return;}
-  const editorState=()=>JSON.stringify(['subAccountOrigCode','subParentCode','subCurrency','subCode','subName','subDesc'].map(id=>document.getElementById(id)?.value));
+  const editorState=()=>JSON.stringify(['subAccountOrigCode','subParentCode','subCurrency','subCode','subName','subDesc','subReportLak'].map(id=>document.getElementById(id)?.value));
   const submittedState=editorState(),sameEditor=()=>form.isConnected&&document.getElementById('formSubAccount')===form&&editorState()===submittedState;
   const button=form.querySelector('[type=submit]');
   if(button.disabled)return;
   button.disabled=true;let confirmed=false;
   try{
-    if(!isCurrent())return;const query=existing?db.from('sub_accounts').update(payload).eq('id',existing.id):db.from('sub_accounts').insert(payload);
-    let {error,data}=await query.select('id,code');
+    if(!isCurrent())return;
+    const reportingLink=document.getElementById('subReportLak');
+    let {error,data}=await db.rpc('save_sub_account_with_reporting_link',{
+      p_id:existing?.id||null,p_fields:payload,p_old_link:existing?.reportLakId||null,
+      p_link:reportingLink.disabled?null:reportingLink.value||null
+    });
     if(!error&&(data?.length!==1||!data[0].id||data[0].code!==payload.code||(existing&&data[0].id!==existing.id)))error={message:'Sub-account save was not confirmed. Reopen the chart before retrying.'};
     if(!error)window.AccountSheet143191?.changed({owner:actor,db});
     if(!isCurrent())return;if(error)throw error;

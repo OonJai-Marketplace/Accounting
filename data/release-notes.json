@@ -1,7 +1,6 @@
 {
-  "version": "143.411",
+  "version": "143.412",
   "changes": [
-    "Phone Cashbook and Double Entry preserve drafts when switching styles. Split a line into up to ten categories under one receipt reference.",
-    "Split lines carry their letter labels and receipt subtotal into sub-user cashbook and petty cash liquidation reports."
+    "Add or edit a foreign-currency sub-account and choose its LAK reporting account."
   ]
 }
