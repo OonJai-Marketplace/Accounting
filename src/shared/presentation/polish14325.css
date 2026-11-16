@@ -1,9 +1,23 @@
 /* Approved desktop adjustments. Screen-only: phone and printed reports are unchanged. */
 @layer action-finalization14317 {
+@media screen {
+ html[data-device132=desktop] body:is(.shell113,.workspace-full1439) #workspaceTools108{
+  --rail-gap:5px;--rail-clearance:8px;
+  --rail-button:clamp(26px,calc((100dvh - 134px) / 10),38px);
+  top:0!important;bottom:0!important;right:4px!important;margin-block:auto!important;height:fit-content;
+  max-height:calc(100dvh - 2 * var(--rail-clearance));box-sizing:border-box;align-items:center;
+  gap:var(--rail-gap)!important;padding:3px!important;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;
+ }
+ html[data-device132=desktop] body:is(.shell113,.workspace-full1439) #workspaceTools108>button{
+  width:var(--rail-button)!important;height:var(--rail-button)!important;min-width:var(--rail-button)!important;min-height:var(--rail-button)!important;
+  padding:clamp(3px,1dvh,8px)!important;box-sizing:border-box!important;flex:none;
+ }
+ html[data-device132=desktop] body.shell113.has-calculation14391 #workspaceTools108{--rail-clearance:calc(var(--calculation-height14391,40px) + 16px)}
+ /* Narrow Desktop site windows use the same status tile as the wider desktop rail. */
+ html[data-device132=desktop] body.shell113 #workspaceTools108 #connectionFloat14301:not([hidden]){position:static!important;display:grid!important}
+}
 @media screen and (min-width:641px) {
  html body [data-action-tone14317] {transition:none!important;animation:none!important}
- html[data-device132=desktop] body:is(.shell113,.workspace-full1439) #workspaceTools108{right:4px!important;bottom:4px!important;gap:5px!important;padding:3px!important}
- html[data-device132=desktop] body:is(.shell113,.workspace-full1439) #workspaceTools108>button{width:38px!important;height:38px!important;min-height:38px!important;padding:8px!important;box-sizing:border-box!important}
  html[data-device132=desktop] body:is(.shell113,.workspace-full1439) .workspace-scroll{padding-right:calc(54px - var(--workspace-scrollbar14325,0px))!important;padding-bottom:12px!important;padding-left:0!important}
  html[data-device132=desktop] body .workspace-scroll>.tab-content{padding-right:0!important}
  html[data-device132=desktop] body.workspace-full1439 #appSidebar .sidebar-brand{align-items:center!important;justify-content:center!important;width:100%!important;box-sizing:border-box!important;padding:0!important}

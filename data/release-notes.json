@@ -1,6 +1,6 @@
 {
-  "version": "143.418",
+  "version": "143.419",
   "changes": [
-    "Account balances and Monthly comparative trial balance now show the entire active chart, including searchable parent headings and zero-activity accounts. Search by code, name, account type or currency."
+    "The desktop right-side shortcuts now share one vertically centered column with even spacing and the sequential checklist in the middle."
   ]
 }

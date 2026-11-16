@@ -1,6 +1,9 @@
 /* Compact desktop/tablet data controls and lists. Phone and print stay unchanged.
    Declared first in desktop.html so these explicit !important rules have stable priority. */
 @layer compact14327 {
+ @media screen {
+  html[data-device132=desktop] #workspaceTools108 #auditMode101{display:none!important}
+ }
  @media screen and (min-width:641px) {
   /* Retired dock shortcut; fullscreen remains the workspace expansion control. */
   body #auditMode101 {display:none!important;}

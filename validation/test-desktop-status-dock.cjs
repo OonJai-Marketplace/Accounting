@@ -45,16 +45,27 @@ async function assertLevel(lane, fraction) {
     await db.filter({hasText:'16%'}).waitFor();
     assert.equal(await db.textContent(),'16%');assert.deepEqual(await bars.allTextContents(),['','']);
     assert.equal(await rail.locator('.marker').count(),0);
-    for (const [width,height] of [[1440,940],[1152,768]]) {
+    for (const [width,height] of [[1440,940],[1152,768],[1024,768],[390,844],[844,390],[900,560]]) {
       await page.setViewportSize({width,height});
       const line=await rail.locator('.tasks').boundingBox(),tile=await db.boundingBox(),wifi=await page.locator('#connectionFloat14301').boundingBox();
-      assert.ok(Math.abs(line.height-height*.34)<1);
+      const shortcuts=await rail.locator('.watch-tools button').all();
+      const topTiles=await Promise.all(shortcuts.map(b=>b.boundingBox()));
+      const bottomTiles=await page.locator('#workspaceTools108>button:visible').evaluateAll(buttons=>buttons.map(b=>b.getBoundingClientRect().toJSON()).sort((a,b)=>a.y-b.y));
+      const tiles=[...topTiles,line,tile,...bottomTiles],first=tiles[0],last=tiles.at(-1);
+      assert.ok(first.y>=0 && Math.abs(first.y-(height-last.y-last.height))<1,'Equal space above and below the complete dock at '+width+' × '+height);
+      assert.ok(Math.abs(line.y+line.height/2-height/2)<1,'The sequential checklist is centered');
+      for(let i=1;i<tiles.length;i++){
+        assert.ok(Math.abs(tiles[i].y-tiles[i-1].y-tiles[i-1].height-5)<1,'Consistent adjacent spacing');
+        assert.ok(Math.abs(tiles[i].x-first.x)<1,'All tiles share one column');
+      }
+      if(height>=768)assert.ok(Math.abs(line.height-height*.34)<1);
       assert.equal((await rail.locator('.line').first().boundingBox()).width,6);
       await assertLevel(bars.first(),1);await assertLevel(bars.nth(1),0);
       assert.equal(tile.width,tile.height);assert.equal(tile.width,wifi.width);assert.equal(tile.x,wifi.x);
       assert.ok(line.y>0 && line.y+line.height<tile.y && tile.y+tile.height<wifi.y);
       assert.equal(await page.locator('#editorIcon108').count(),0);
     }
+    await page.setViewportSize({width:1152,height:768});
     await bars.nth(1).click();
     assert.equal(await popup.locator('.card').count(),6);
     const boxes=popup.locator('.steps input');

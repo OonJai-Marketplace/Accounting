@@ -1,8 +1,8 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.418',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.419',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
- "scripts/desktop-status-dock.js?v=143.418",
+ "scripts/desktop-status-dock.js?v=143.419",
  "docs/protocols/index.html?v=143.413",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.387",
  "docs/protocols/topics/C01.pdf?v=143.316",
@@ -95,7 +95,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.406",
  "scripts/desktop14245-6.js?v=143.411",
  "scripts/local-events14310.js?v=143.375",
- "scripts/offline14239.js?v=143.418",
+ "scripts/offline14239.js?v=143.419",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -208,12 +208,12 @@ const FILES=[
  "setup/INSTALL-MAINTENANCE-v143.24.sql",
  "docs/MAINTENANCE-v143.24.md",
  "scripts/polish14325.js?v=143.25",
- "styles/polish14325.css?v=143.407",
+ "styles/polish14325.css?v=143.419",
  "scripts/maintenance-selection14325.js?v=143.283",
  "scripts/maintenance-reports14326.js?v=143.70",
  "assets/maintenance/report-template14326.xlsx",
  "docs/UPDATE-v143.26.md",
- "styles/compact14327.css?v=143.58-polish",
+ "styles/compact14327.css?v=143.419-polish",
  "docs/UPDATE-v143.27.md",
  "docs/UPDATE-v143.28.md",
  "docs/UPDATE-v143.29.md",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.375",
  "styles/settings-groups14332.css?v=143.375",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.418",
+ "scripts/phone-runtime14242.js?v=143.419",
  "scripts/local-first14333.js?v=143.414",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.391",
@@ -269,7 +269,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.393",
  "styles/workspace-consistency14343.css?v=143.377",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.418",
+ "phone-sw.js?v=143.419",
  "scripts/personal-journal1437.js?v=143.380",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",

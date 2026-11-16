@@ -11,9 +11,10 @@
     button{font:inherit;color:inherit;cursor:pointer}
     button:focus-visible{outline:2px solid #c49342;outline-offset:1px}
     button:disabled{cursor:default;opacity:.6}
-    .rail{display:grid;width:38px;gap:5px}
+    .shortcut-stack,.rail,.watch-tools{display:grid;gap:var(--rail-gap)}
+    .rail{width:var(--rail-button)}
     .rail button,.tasks{appearance:none;margin:0;border:0;border-radius:8px;background:var(--pine);color:#fffaf1}
-    .tasks{height:clamp(200px,34vh,330px);display:flex;align-items:stretch;justify-content:center;padding:6px 2px}
+    .tasks{height:clamp(48px,min(34dvh,calc(100dvh - 10 * (var(--rail-button) + var(--rail-gap)) - 2 * var(--rail-clearance) - 8px)),330px);display:flex;align-items:stretch;justify-content:center;padding:6px 2px}
     .rail .lane{position:relative;min-width:0;flex:1;display:grid;justify-items:center;padding:6px 0}
     .line{position:relative;background:#547565;border-radius:1px;width:6px}
     .line i,.meter i{position:absolute;bottom:0;inset-inline:0;border-radius:inherit;height:var(--level);background:var(--tint)}
@@ -22,7 +23,7 @@
     .level-thumb{position:absolute;z-index:2;left:50%;bottom:var(--level);transform:translate(-50%,50%);
       width:14px;height:5px;border-radius:1px;background:var(--tint);box-shadow:0 1px 0 #103728,0 -1px 0 #103728}
     .empty{width:100%;padding:0}
-    .db{height:38px;width:38px;padding:0;display:grid;place-items:center}
+    .db{height:var(--rail-button);width:var(--rail-button);padding:0;display:grid;place-items:center}
     .db strong{font:700 15px/1 Arial;font-variant-numeric:tabular-nums;letter-spacing:-.6px}
     .db[data-flag=orange] strong{color:#ffc078}.db[data-flag=red] strong{color:#ffabae}
     dialog{position:fixed;inset:max(8px,calc(100dvh - 648px)) 58px auto auto;margin:0;width:min(438px,calc(100vw - 76px));
@@ -56,9 +57,8 @@
     .flags{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}.flags span::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;background:#cf792e}.flags span+span::before{background:#b52b37}
     .times{line-height:1.55}.refresh{border:0;background:#176449;color:white;padding:7px 11px;border-radius:5px;font-weight:700;white-space:nowrap}
     .notice:not(:empty){margin-top:7px;color:#834520}
-    @media(max-height:600px){.tasks{height:clamp(86px,32vh,190px)}.summary{padding:8px 16px}.checklists{padding:10px 16px}}
-    .watch-tools{position:fixed;top:12px;right:inherit;display:grid;gap:5px}
-    .watch-tools button{width:38px;height:38px;border:0;border-radius:7px;background:var(--pine);color:white;font-weight:bold;font-size:12px}
+    @media(max-height:600px){.summary{padding:8px 16px}.checklists{padding:10px 16px}}
+    .watch-tools button{width:var(--rail-button);height:var(--rail-button);padding:0;border:0;border-radius:7px;background:var(--pine);color:white;font-weight:bold;font-size:12px}
     .watch-tools svg{width:21px;height:21px;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.7}
     dialog.watch-dialog{inset:12px 58px auto auto;width:min(740px,calc(100vw - 84px));max-height:calc(100dvh - 24px);padding:16px;gap:12px}
     .watch-dialog header,.watch-toolbar,.watch-dialog footer{display:flex;align-items:center;gap:8px}
@@ -92,12 +92,13 @@
     .ledger-lines379 tr[data-line]:hover{background:#edf5ee}
     .ledger-lines379 tr.selected>td{background:#d3e7dc}
     .ledger-lines379 tr.selected>td:first-child{box-shadow:inset 3px 0 #176449}
-    @media(max-height:735px){.watch-tools{position:static;display:flex;flex-direction:column}.tasks{height:clamp(70px,17vh,115px)}}
   </style>
+  <div class="shortcut-stack">
   <div class="watch-tools"><button type="button" data-rail-tool="trial-months" aria-haspopup="dialog" aria-label="Account balances" title="Account balances"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM4 9h16M11 9v11m3-7h3m-3 4h3"/></svg></button><button type="button" data-watch="rates" aria-haspopup="dialog" aria-label="Foreign account rates" title="Foreign account rates">FX</button><button type="button" data-rail-tool="calendar" aria-haspopup="dialog" aria-label="Company calendar" title="Company calendar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v15H4zM4 10h16M8 3v5m8-5v5m-9 6h3m2 0h3"/></svg></button><button type="button" data-rail-tool="differences" aria-haspopup="dialog" aria-label="Reconciliation differences" title="Reconciliation differences"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h15l-3-3m6 13H6l3 3M6 11h5m3 2h4"/></svg></button><button type="button" data-rail-tool="ledger" aria-haspopup="dialog" aria-label="Account ledger" title="Account ledger"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6Q8 3 3 5v14q5-2 9 1 4-3 9-1V5q-5-2-9 1v14"/></svg></button></div>
   <div class="rail">
     <div class="tasks" role="group" aria-label="Pinned sequential checklists"></div>
     <button class="db" type="button" aria-haspopup="dialog"><strong>—</strong></button>
+  </div>
   </div>
   <dialog aria-labelledby="dockTitle taskTitle">
     <header class="summary">

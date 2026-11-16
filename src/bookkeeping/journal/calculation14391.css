@@ -24,7 +24,7 @@
  html body.has-calculation14391 .main-content-area{padding-bottom:calc(var(--calc-original-padding14391,24px) + var(--calculation-height14391,40px) + 12px)!important}
  html:has(body.has-calculation14391){scroll-padding-bottom:calc(var(--calculation-height14391,40px) + 16px)}
  html body.has-calculation14391 :is(#printableDocArea,.main-content-area){scroll-padding-bottom:calc(var(--calculation-height14391,40px) + 16px)}
- html body.has-calculation14391 #workspaceTools108,html body.has-calculation14391 #connectionFloat14301{bottom:calc(var(--calculation-height14391,40px) + 16px)!important}
+ html body.has-calculation14391 #connectionFloat14301{bottom:calc(var(--calculation-height14391,40px) + 16px)!important}
 }
 @media(max-width:800px){#journalCalculation14391{padding-inline:8px;font-size:11px}#calcResults14391{column-gap:10px}}
 @layer corrections14337 {@media screen and (min-width:641px){html[data-device132=tablet] body #journalEntry98 .journal-rates14383 input{width:92px!important}}}
