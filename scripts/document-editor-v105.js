@@ -525,7 +525,22 @@ function showPrintSnapshot(snapshot){
  },0),{once:true});
  win.print();
 }
-let paymentOutputPending=false;
+let paymentOutputPending=false,lastPaymentLayout=null;
+async function archivedPrintIds(rows,check){
+ check();
+ const expected=new Map(rows.map(row=>[row.id,row.version]));
+ // Check the server-owned evidence without downloading the base64 PDF for each page.
+ const {data,error}=await ojmDb.from('vouchers14299').select('id,version,status')
+  .in('id',[...expected.keys()]).not('data->pdf245->>base64','is',null);
+ check();if(error)throw error;
+ if(!Array.isArray(data))throw Error('Could not confirm the printed copies. Retry printing.');
+ const present=new Set();
+ for(const row of data){
+  if(row.version!==expected.get(row.id)||row.status==='void')throw Error('The document changed. Reopen it before printing.');
+  present.add(row.id);
+ }
+ return present;
+}
 async function receiptOutput245(output=true){
  if(paymentOutputPending||!model?.voucher14299||!admin82()||!docCan1434('export'))return;
  const current=documentGuard14370(),tab=activeTab1432,actor=activeUser(),check=()=>{if(!current()||tab!==activeTab1432||activeUser()!==actor||!docCan1434('export'))throw Error('Account or document changed. Reopen the document.');};
@@ -535,28 +550,37 @@ async function receiptOutput245(output=true){
   if(!await recordBeforeOutput14303())return;
   check();const revision=revision1428;
   const checkRevision=()=>{check();if(revision1428!==revision)throw Error('The document changed during print preparation. Print again to use the latest changes.');};
-  collect();await renderFrame(true);checkRevision();
+  if(lastPaymentLayout?.generation!==generation108||lastPaymentLayout?.revision!==revision||laying108){
+   collect();await renderFrame(true);checkRevision();
+  }
   if(overflow108)throw Error('Fix oversized content before printing.');
-  snapshot=await printSnapshot();checkRevision();
-  const dom=snapshot.contentDocument,meta=model.voucher14299;
+  const meta=model.voucher14299,group=meta.kind==='H'&&meta.batchIds?.length>1;
+  const rows=group?meta.batchIds.map(id=>({id,version:1})):[{id:meta.id,version:meta.version||1}];
   const call=async(name,args)=>{check();if(meta.local401&&name==='receipt_pdf245')return vouchers14299.numbering.pendingPdf(meta.requestKey,args);const r=await ojmDb.rpc(name,args);check();if(r.error)throw r.error;return r.data;};
   status('Preparing printed copies…');
+  const archived=!output&&!meta.local401?await archivedPrintIds(rows,checkRevision):null;
+  snapshot=await printSnapshot();checkRevision();
+  const dom=snapshot.contentDocument,pages=[...dom.querySelectorAll('.page')];
+  if(group&&pages.length!==rows.length)throw Error('Each blank form must fit on one page. Check page setup.');
   let file;
-  if(meta.kind==='H'&&meta.batchIds?.length>1){
-   const pages=[...dom.querySelectorAll('.page')];
-   if(pages.length!==meta.batchIds.length)throw Error('Each blank form must fit on one page. Check page setup.');
-   // Limit concurrent image buffers and overlap the individual record confirmations.
-   for(let start=0;start<pages.length;start+=2){
-    check();
-    const jobs=pages.slice(start,start+2).map((page,i)=>{
-     const single={images:page.querySelectorAll('img'),querySelectorAll:selector=>selector==='.page'?[page]:[]};
-     return Receipt245.retained(call,{id:meta.batchIds[start+i],version:1},()=>Receipt245.pdf(single),check);
-    });
-    const failed=(await Promise.allSettled(jobs)).find(job=>job.status==='rejected');if(failed)throw failed.reason;
-    status('Prepared '+Math.min(start+2,pages.length)+' of '+pages.length+' forms.');
-   }
-   if(output)file=new File([await Receipt245.pdf(dom)],(meta.documentType==='receipt'?'Receipts-':'Vouchers-')+meta.batchNumbers[0]+'.pdf',{type:'application/pdf'});
-  }else file=await Receipt245.retained(call,{id:meta.id,version:meta.version||1},()=>Receipt245.pdf(dom),check);
+  const missing=rows.map((row,i)=>({row,page:pages[i]})).filter(({row})=>!archived?.has(row.id));
+  for(let start=0;start<missing.length;start+=2){
+   checkRevision();
+   const jobs=missing.slice(start,start+2).map(async({row,page})=>{
+    const source=group?{images:page.querySelectorAll('img'),querySelectorAll:selector=>selector==='.page'?[page]:[]}:dom;
+    if(archived){
+     const pdf=await Receipt245.base64(await Receipt245.pdf(source));checkRevision();
+     const saved=await call('receipt_pdf245',{p_id:row.id,p_version:row.version,p_pdf:pdf});
+     if(saved?.base64!==pdf)throw Error('The company PDF copy was not confirmed. Retry printing.');
+    }else{
+     const retained=await Receipt245.retained(call,row,()=>Receipt245.pdf(source),checkRevision);
+     if(!group)file=retained;
+    }
+   });
+   const failed=(await Promise.allSettled(jobs)).find(job=>job.status==='rejected');if(failed)throw failed.reason;
+   if(group)status('Prepared '+Math.min(rows.length,rows.length-missing.length+start+2)+' of '+rows.length+' forms.');
+  }
+  if(group&&output)file=new File([await Receipt245.pdf(dom)],(meta.documentType==='receipt'?'Receipts-':'Vouchers-')+meta.batchNumbers[0]+'.pdf',{type:'application/pdf'});
   checkRevision();
   status(meta.local401?'Printed copy saved on this device · awaiting document sync.':'Company PDF copy saved.');
   if(output)Receipt245.release(file,check,output===true?'choose':output);
@@ -708,6 +732,7 @@ async function renderFrame(keep=false){
  const priorPages1428=[...oldRoot1428.children];pages.forEach((p,i)=>{const old=priorPages1428[i];if(old&&old.innerHTML===p.innerHTML&&old.className===p.className){p.remove();pages[i]=old}else if(old){reconcile1428(old,p);p.remove();pages[i]=old}else oldRoot1428.append(p)});priorPages1428.slice(pages.length).forEach(p=>p.remove());stage1428.remove();oldRoot1428.style.zoom=zoom108;positionFooters(oldRoot1428);
  frameEvents1428?.abort();frameEvents1428=new frame.contentWindow.AbortController();const listen1428=(target,type,handler)=>target.addEventListener(type,handler,{signal:frameEvents1428.signal});
  installPageImages109(doc);overflow108=oversized;laying108=false;range=null;cell=null;lastElement=null;selectedCells1424.clear();selectedImage1424=null;if(!keep){bookmark1424=null;undo=[];cursor=-1;}if(!undo.length)checkpoint();historyButtons110();const root=editor();listen1428(root,'beforeinput',beforeEdit1429);listen1428(root,'compositionstart',()=>composing1428=true);listen1428(root,'compositionend',()=>{composing1428=false;changed({inputType:'insertCompositionText'})});listen1428(root,'input',event=>{if(!composing1428&&model?.voucher14299?.kind!=='H'){const sel=doc.getSelection(),n=sel?.anchorNode,td=(n?.nodeType===1?n:n?.parentElement)?.closest('td');if(td?.cellIndex===2&&td.closest('tbody')&&td.closest('[data-voucher-table14298]'))Receipt245.formatAmount(td);}changed(event);});listen1428(doc,'selectionchange',remember);listen1428(doc,'pointerdown',()=>{closeColor1432();window.mobileDocument1443?.closeFormatting();historyGroup1429=null;document.getElementById(ID)?.menu1426?.close()});listen1428(doc,'keydown',e=>{window.navigationWorkflow14316?.keydown(e);if(e.defaultPrevented)return;if(e.key==='Escape'){document.getElementById(ID)?.menu1426?.close();if(document.body.classList.contains('workspace-full1439'))window.workspaceFullscreen1440?.set(false);}if(e.ctrlKey&&e.shiftKey&&e.key.toLowerCase()==='f'){e.preventDefault();const n=document.querySelector('#'+ID+' .doc-quick1426');if(n){n.hidden=!n.hidden;document.getElementById(ID)?.resizeCanvas1426?.()}}});for(const kind of ['cut','drop','dragstart'])listen1428(root,kind,e=>window.payrollFields273?.stop(e,doc,status));listen1428(root,'click',e=>{window.payrollFields273?.focusName(e,doc);const choice=e.target.closest('[data-receipt-choice249]');if(choice&&model?.voucher14299&&model.voucher14299.kind!=='H'&&docCan1434('edit')){const [key,value]=choice.dataset.receiptChoice249.split(':');if(['currency','paymentMethod'].includes(key)){model.voucher14299[key]=model.voucher14299[key]===value?'':value;changed();}return;}remember();lastElement=e.target;cell=e.target.closest('td,th');if(e.target.closest('a'))e.preventDefault()});listen1428(root,'dblclick',e=>{const month=e.target.closest('[data-cash-slip-month277]');if(month&&docCan1434('edit')){e.preventDefault();const current=documentGuard14370(),tab=activeTab1432,previousTitle='Monthly Cash Slip · '+window.MonthlyCashSlip277?.monthLabel(month.dataset.cashSlipMonth277);void window.MonthlyCashSlip277?.pickMonth(month,()=>{const titleInput=document.querySelector('#'+ID+' [name=docTitle]');if(model.title===previousTitle&&(!titleInput||titleInput.value===previousTitle)){model.title='Monthly Cash Slip · '+window.MonthlyCashSlip277.monthLabel(month.dataset.cashSlipMonth277);if(titleInput)titleInput.value=model.title;}changed();},()=>current()&&activeTab1432===tab).catch(e=>status(e.message));return;}const node=e.target.closest('[data-voucher-date14299]');if(!node||!model?.voucher14299)return;const picker=document.createElement('input');picker.type='date';picker.value=model.voucher14299.date;picker.className='je-input';picker.style.maxWidth='160px';node.replaceWith(picker);picker.focus();picker.showPicker?.();let finished=false;const finish=()=>{if(finished||!picker.isConnected)return;finished=true;const date=picker.value||model.voucher14299.date;model.voucher14299.date=date;const label=node.cloneNode(false);label.dataset.voucherDate14299='1';label.title='Double-click to choose a date';label.textContent=date?formatAppDate(date):'\u00a0';picker.replaceWith(label);changed()};picker.addEventListener('change',finish,{once:true});picker.addEventListener('blur',()=>{if(picker.isConnected)finish()},{once:true})});listen1428(root,'paste',e=>{e.preventDefault();const html=e.clipboardData.getData('text/html');insert(html||esc(e.clipboardData.getData('text/plain')).replace(/\n/g,'<br>'))});listen1428(doc,'keydown',e=>{if(!e.defaultPrevented&&!e.altKey&&(e.ctrlKey||e.metaKey)){if(e.shiftKey&&!['z','Z'].includes(e.key))return;if(e.key.toLowerCase()==='s'){e.preventDefault();model?.voucher14299?saveVoucher14299():save()}if(e.key.toLowerCase()==='p'){e.preventDefault();print108()}if(e.key.toLowerCase()==='z'){e.preventDefault();historyMove(e.shiftKey?1:-1)}if(e.key.toLowerCase()==='y'){e.preventDefault();historyMove(1)}}});installTable1424(doc);caret108(caret);if(selectedImage1424?.isConnected)selectedImage1424.dispatchEvent(new Event('image-select110'));frame.contentWindow.scrollTo(0,scroll108);syncToolbar1424();const words=pages.map(p=>p.querySelector('main').innerText).join(' ').trim().split(/\s+/).filter(Boolean).length;if(document.getElementById('docWords109'))document.getElementById('docWords109').textContent=words+' words';document.getElementById('docCount108').textContent=`${pages.length} page${pages.length===1?'':'s'} · ${words} words`+(oversized?' · Oversized content: reduce image, table row or block size':'');window.mobileDocument1443?.frameReady(frame);
+ lastPaymentLayout=paymentForm?{generation:renderId108,revision:revisionAtStart1428}:null;
 }
 function closeColumns110(){const menu=document.getElementById('docColumns110');if(menu)menu.hidden=true}
 function applyColumns110(count){restore();const sel=frame.contentWindow.getSelection();let block=sel.anchorNode?.nodeType===1?sel.anchorNode:sel.anchorNode?.parentElement,existing=block?.closest('[style*="column-count"]');checkpoint();if(existing){existing.style.columnCount=count;existing.style.columnGap='6mm'}else if(!sel.isCollapsed){const r=sel.getRangeAt(0),div=frame.contentDocument.createElement('div');div.style.columnCount=count;div.style.columnGap='6mm';div.append(r.extractContents());r.insertNode(div)}else{status('Highlight the paragraphs you want to arrange in columns.');closeColumns110();return}closeColumns110();remember();changed()}

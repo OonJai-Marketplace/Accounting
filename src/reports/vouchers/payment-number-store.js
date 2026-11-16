@@ -102,7 +102,7 @@ function paymentNumberStore401({rpc, guard, actor, offline}) {
     const check=guard(),item=await local(s=>s.pending[id]);
     if(!item)return local(s=>s.confirmed[id]);
     let rows;
-    try{rows=await rpc('voucher_issue14299',item.request)}catch(e){
+    try{rows=await rpc('voucher_issue14299',item.request,'id,number,version')}catch(e){
       if(e.code==='P0401'||e.message?.includes('pending document number is no longer available')){
         check();await local(s=>{if(s.pending[id])s.pending[id].conflict=true},true);
       }throw e;
