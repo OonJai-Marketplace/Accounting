@@ -15,7 +15,21 @@
     const rows=draft.mode==='double'?draft.lines:draft.single;
     for(const field of form.querySelectorAll('[data-field]')) {
       const target=field.dataset.index===undefined?draft:rows[Number(field.dataset.index)];
-      if(target)target[field.dataset.field]=field.inputMode==='decimal'?field.value.replaceAll(',',''):field.value;
+      if (!target) continue;
+      const key = field.dataset.field;
+      if (key === 'reference' && target !== draft && target.reference == null && field.value === draft.reference) continue;
+      // A previously assigned account can be absent from today's picker.
+      if (field.tagName === 'SELECT' && !field.value && target[key] && !Array.from(field.options).some(o => o.value === target[key])) continue;
+      target[key] = field.inputMode === 'decimal' ? field.value.replaceAll(',','') : field.value;
+    }
+    // The split panel exposes one receipt reference and one Cashbook fund.
+    const shared=new Map();
+    for(const row of rows){
+      if(!row.splitGroup)continue;
+      if(!shared.has(row.splitGroup)){shared.set(row.splitGroup,row);continue;}
+      const first=shared.get(row.splitGroup);
+      if(first.reference==null)delete row.reference;else row.reference=first.reference;
+      if(draft.mode==='single')row.source=first.source;
     }
   }
   function skipGroupingComma(e) {
@@ -47,15 +61,24 @@
     if(!n.dataset.field||S.saving)return;
     if(n.inputMode==='decimal')formatPhoneAmount(n,e.isComposing);
     const key=n.dataset.field,d=S.draft,rows=d.mode==='double'?d.lines:d.single;
-    if(n.dataset.index===undefined)d[key]=n.value;
+    if(n.dataset.index===undefined){
+      d[key]=n.value;
+      if(key==='reference')for(const field of $('postForm').querySelectorAll('[data-field=reference][data-index]')){
+        if(rows[Number(field.dataset.index)].reference==null)field.value=n.value;
+      }
+    }
     else {
       const index=Number(n.dataset.index),previous=rows[index][key];
       rows[index][key]=n.value;
       if(key==='source'&&previous!==n.value){
-        const picker=$('postForm').querySelector('[data-field=affected][data-index="'+index+'"]');
         const ids=rules().entryIds.filter(id=>!n.value||currency(id)===currency(n.value));
-        if(!ids.includes(rows[index].affected))rows[index].affected='';
-        if(picker)picker.innerHTML=options(ids,rows[index].affected);
+        rows.forEach((row,i)=>{
+          if(i!==index && !(rows[index].splitGroup && row.splitGroup===rows[index].splitGroup))return;
+          row.source=n.value;
+          if(!ids.includes(row.affected))row.affected='';
+          const picker=$('postForm').querySelector('[data-field=affected][data-index="'+i+'"]');
+          if(picker)picker.innerHTML=options(ids,row.affected);
+        });
       }
     }
     readPhoneForm();saveDraftLater();updateValidation(n.dataset.index===undefined?undefined:Number(n.dataset.index));
@@ -66,6 +89,11 @@
     const totals=new Map(),journalTotals=new Map(),problems=[],cardLabels=[];
     const cards=receiptCards(d);
     cards.forEach((indices,k)=>{
+      if (single && rows[indices[0]].journalLines) {
+        const box=$('postForm').querySelector('[data-card-balance="'+k+'"]');
+        if (box) box.textContent='Double Entry lines retained';
+        return;
+      }
       const sums=new Map();let invalid=false,started=false;
       const shared = !single && sharedReceiptPayment(d, indices.map(i => rows[i]));
       for(const i of indices){
@@ -112,7 +140,9 @@
       (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?cardLabels[0]:'All '+cards.length+' receipts balanced'));
     const overall=!single && cards.length>1 && !combined && journalTotals.size ?
       'Journal '+[...journalTotals].map(([c,t])=>'DR '+money(t.debit/100,c)+' / CR '+money(t.credit/100,c)).join(' · ')+' · ' : '';
-    if(summary.textContent!==overall+message)summary.textContent=overall+message;
+    const retainedCount=single ? rows.filter(row=>row.journalLines).length : 0;
+    const summaryText=retainedCount ? 'Double Entry receipts: '+retainedCount+(totals.size?' · Cashbook subtotal · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'') : overall+message;
+    if(summary.textContent!==summaryText)summary.textContent=summaryText;
     summary.dataset.state=single?'neutral':problems.length?'pending':'balanced';
     const validation=$('entryValidation'), alert=$('notice');
     let errorText='';

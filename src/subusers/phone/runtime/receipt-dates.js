@@ -1,6 +1,66 @@
+  const maxReceiptParts = 10;
+
+  // Count the top-level line once. Its category allocations occupy A, B, C...
+  function numberedReceiptLines(rows) {
+    const reserved=new Set(rows.filter(row=>row.splitGroup && row.splitNumber).map(row=>row.splitNumber));
+    const groups = new Map();
+    let number = 0;
+    function nextNumber(){do {number++;} while(reserved.has(number));return number;}
+    return rows.map(row => {
+      if (!row.splitGroup) return {number:nextNumber()};
+      if (!groups.has(row.splitGroup)) {
+        const value=row.splitNumber || nextNumber();
+        groups.set(row.splitGroup,{number:value,count:0});
+        number=Math.max(value,number);
+      }
+      const group=groups.get(row.splitGroup);
+      return {number:group.number, suffix:String.fromCharCode(65 + group.count++)};
+    });
+  }
+
+  function addReceiptPart(draft, index) {
+    const single = draft.mode === 'single', rows = single ? draft.single : draft.lines;
+    const parent = rows[index];
+    if (!parent || parent.journalLines) return;
+    const group = parent.splitGroup || crypto.randomUUID();
+    const parts = parent.splitGroup ? rows.filter(l => l.splitGroup === group) : [parent];
+    if (parts.length >= maxReceiptParts) return;
+    parent.splitNumber=numberedReceiptLines(rows)[index].number;
+    parent.splitGroup = group;
+    parent.receipt ||= crypto.randomUUID();
+    const newLine = single ? {direction:parent.direction, source:parent.source, affected:'', amount:'', memo:''}
+                           : {account:'', debit:'', credit:'', memo:''};
+    if (single) newLine.split = parent.split ||= parent.direction === 'in' ? 'credit' : 'debit';
+    rows.splice(rows.indexOf(parts.at(-1))+1, 0, {...newLine, receipt:parent.receipt, splitGroup:group, splitNumber:parent.splitNumber,
+      ...(parent.reference == null ? {} : {reference:parent.reference}),
+      ...(draft.multiple ? {date:cardDate(draft,parent)} : {})});
+  }
+
+  function removeReceiptPart(draft, index) {
+    const rows = draft.mode === 'single' ? draft.single : draft.lines;
+    const group = rows[index]?.splitGroup;
+    if (!group) return;
+    rows.splice(index,1);
+    const remaining = rows.filter(row => row.splitGroup === group);
+    if (remaining.length === 1) {
+      delete remaining[0].splitGroup;
+      delete remaining[0].splitNumber;
+      delete remaining[0].splitLabel;
+      if (draft.mode === 'single' && rows.filter(l=>l.receipt === remaining[0].receipt).length === 1) delete remaining[0].split;
+    }
+  }
+
   // A receipt owns its lines. Dates can repeat, and changing a date never merges cards.
   function receiptCards(draft) {
-    if (draft.mode === 'single') return draft.single.map((row, index) => [index]);
+    if (draft.mode === 'single') {
+      const groups = new Map();
+      draft.single.forEach((row, i) => {
+        const key = row.split ? row.receipt : i;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(i);
+      });
+      return [...groups.values()];
+    }
     // Unmarked drafts predate receipt cards. Recognize an explicit shared fund line
     // before assigning those drafts separate receipt IDs by day.
     if (draft.lines.every(line => line.receipt == null) && sharedReceiptPayment(draft, draft.lines)) {
@@ -83,13 +143,26 @@
         plan.totalCents === Math.round(Number(String(plan.fundLine.credit).replaceAll(',', '')) * 100) ? {rows,plan} : null;
     } catch { return null; }
   }
-  function preparePhoneEntry(draft) {
+  function preparePhoneEntry(draft, keepLabels=false) {
     draft={...draft,receiptEditor341:true};
     const list=draft.mode==='double'?'lines':'single', parts=[];
+    const labels=numberedReceiptLines(draft[list]);
+    draft[list]=draft[list].map((row,i)=>row.splitGroup ? {...row,splitLabel:keepLabels && row.splitLabel || labels[i].number+labels[i].suffix} : row);
+    if (draft[list].some(l=>l.splitGroup && !(draft.mode==='double' ? l.debit || l.credit : l.amount)))
+      throw Error('Enter an amount for each split line, or remove the unused line.');
     const cards=receiptCards(draft);
     // The personal journal posts balanced movements for each date and currency.
     // Keep separate receipts distinct even when they share a date.
     cards.forEach((indices,i)=>{
+      const row = draft.mode === 'single' && draft.single[indices[0]];
+      const retained = row && (row.journalLines || row.split && splitJournalLines(draft, indices.map(i => draft.single[i])));
+      if (retained) {
+        const prepared = preparePhoneEntry({...draft, mode:'double', lines:retained},!!row.split);
+        const snapshots = prepared.snapshot.receiptCards341;
+        if (snapshots) parts.push(...snapshots.map(snapshot => ({items:snapshot.components1437, snapshot})));
+        else parts.push(prepared);
+        return;
+      }
       const shared = sharedReceiptPayment(draft, indices.map(index => draft[list][index]));
       if (shared) {
         try { parts.push(...StaffEntry14225.datedPaymentParts(draft, shared, accounts(), rules())); }
@@ -103,7 +176,15 @@
         days.get(date).push(row);
       }
       for(const [date,rows] of days){
-        try{parts.push(StaffEntry14225.prepare({...draft,date,[list]:rows},accounts(),rules()));}
+        const r = rules();
+        // Two transfer accounts can both be funds and categories. Preserve
+        // the Cashbook fund when its debit and counterpart credit still match.
+        const prior = draft.mode === 'double' && rows.length === 2 &&
+          draft.single?.find(l => l.receipt && l.receipt === rows[0].receipt && l.direction === 'in');
+        const incoming = prior && r.directions.includes('in') && r.fundIds.includes(prior.source) && r.entryIds.includes(prior.affected) &&
+          rows.some(l => l.account === prior.source && l.debit && !l.credit) &&
+          rows.some(l => l.account === prior.affected && l.credit && !l.debit);
+        try{parts.push(StaffEntry14225.prepare({...draft,date,[list]:rows},accounts(),incoming ? {...r,directions:['in']} : r));}
         catch(error){throw Error((cards.length>1?'Receipt '+(i+1)+' · ':'')+error.message);}
       }
     });

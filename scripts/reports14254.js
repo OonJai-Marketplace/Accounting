@@ -4,6 +4,64 @@ const esc=v=>escapeHtml(String(v??'')), num=v=>Number(v)||0, money=v=>formatAppN
 const green='#176249',pale='#eaf1eb',line='#b8c8bd';
 const textStyle='font-family:Arial,sans-serif;font-size:10pt;line-height:1.15;';
 const cellStyle='border-bottom:0.5pt solid '+line+';padding:0.55mm 0.65mm;vertical-align:top;';
+// Join only verified saved line identities. Equal amounts, dates or typed
+// receipt references do not identify a split.
+const splitPart = l => {
+  const map=l.editor_snapshot1437?.splitByLine;
+  return map && (map[l.id] || map[l.client_key]);
+};
+function groupReceiptTable(html, entries, accountColumn, amountColumns, format) {
+  if(!entries.some(e=>splitPart(e.line)))return html;
+  const root=document.createElement('div');
+  root.innerHTML=html;
+  const body=root.querySelector('tbody'), rows=Array.from(body.rows), ordered=new Map();
+  entries.forEach((entry,i)=>{
+    const part=splitPart(entry.line);
+    const key=part ? JSON.stringify([entry.line.staff_journal_id || entry.line.journalId,part.group]) : i;
+    if(!ordered.has(key))ordered.set(key,[]);
+    ordered.get(key).push({entry,part,row:rows[i]});
+  });
+  const replacement=document.createDocumentFragment();
+  for(const members of ordered.values()){
+    const section=document.createElement('tbody');
+    replacement.append(section);
+    if(!members[0].part){section.append(members[0].row);continue;}
+    section.style.breakInside='avoid';
+    section.dataset.splitReceipt='1';
+    members.sort((a,b)=>String(a.part.label).localeCompare(String(b.part.label)));
+    const {part,row}=members[0], columns=row.cells.length;
+    const headerRow=section.insertRow(),date=headerRow.insertCell();
+    // The document editor preserves row-spanned groups during A4 pagination.
+    date.rowSpan=members.length+2;
+    date.style.cssText='vertical-align:top;border-left:2pt solid #176249;padding:1mm';
+    date.textContent=row.cells[0].textContent;
+    const header=headerRow.insertCell();
+    header.colSpan=columns-1;
+    header.style.cssText='font-weight:bold;text-align:left;padding:1mm 2mm;background:#eaf1eb';
+    header.textContent=['Split receipt '+String(part.label).replace(/[A-Z]$/,''),part.reference].filter(Boolean).join(' · ');
+    for(const m of members){
+      const label=document.createElement('strong');
+      label.textContent=m.part.label+' · ';
+      m.row.cells[accountColumn].prepend(label);
+      m.row.deleteCell(0);
+      section.append(m.row);
+    }
+    const total=section.insertRow();
+    for(let i=1;i<columns;i++){
+      const cell=total.insertCell();cell.style.cssText='font-weight:bold;padding:0.6mm;border-bottom:0.7pt solid #176249';
+      if(i===accountColumn)cell.textContent='Receipt subtotal';
+      const col=amountColumns.indexOf(i);
+      if(col>=0){
+        const values=members.map(m=>m.entry.amounts[col]);
+        cell.style.textAlign='right';
+        cell.textContent=values.some(v=>v==null)?'—':format(values.reduce((sum,n)=>sum+Math.round(n*100),0)/100);
+      }
+    }
+  }
+  body.replaceWith(replacement);
+  return root.innerHTML;
+}
+window.splitReceiptReport={part:splitPart,table:groupReceiptTable};
 const safeColor=v=>/^#[0-9a-f]{3,8}$/i.test(v||'')?v:'#888888';
 const heading=(text,n)=>`<h3 style="${textStyle}font-weight:bold;background-color:${green};color:white;padding:1mm 1.5mm;margin:2mm 0 1mm;break-after:avoid">${n?esc(n)+'. ':''}${esc(text)}</h3>`;
 const title=(name,details)=>`<h1 style="${textStyle}font-size:15pt;color:${green};margin:0 0 1.5mm;text-align:center">${esc(name)}</h1><p style="${textStyle}margin:0 0 2mm">${esc(details)}</p>`;
@@ -22,10 +80,10 @@ function accountReport(pack){const j=pack.journal||{},accounts=pack.accounts||[]
 // Report presentation is always a cashbook, independent of the user's entry mode.
 // A transfer appears once in each identified fund's view with the opposite direction.
 const fundIds=new Set([...source.map(l=>l.fund_account_id),...(pack.fund_snapshot14254||[]).map(f=>f.account_id||f.id),...(j.reconciliation14345?.funds||[]).filter(f=>String(f.account_type||accountIndex.get(String(f.account_id))?.account_type||accountIndex.get(String(f.account_id))?.type||'ASSET').toUpperCase()==='ASSET').map(f=>f.account_id)].filter(Boolean).map(String));
-function movement(l,fund,related,incoming,currency){const key=String(fund)+'|'+currency,f=funds.get(key)||{id:fund,currency,received:0,spent:0,rows:[]},amount=num(l.amount);f[incoming?'received':'spent']+=amount;f.rows.push([formatAppDate(l.transaction_date),window.submissionHistoryIds.entry(l)||l.id,name(related),[l.memo,l.reference].filter(Boolean).join(' · '),incoming?money(amount):'—',incoming?'—':money(amount)]);funds.set(key,f);}
+function movement(l,fund,related,incoming,currency){const key=String(fund)+'|'+currency,f=funds.get(key)||{id:fund,currency,received:0,spent:0,rows:[],entries:[]},amount=num(l.amount);f.entries.push({line:l,amounts:[incoming?amount:0,incoming?0:amount]});f[incoming?'received':'spent']+=amount;f.rows.push([formatAppDate(l.transaction_date),window.submissionHistoryIds.entry(l)||l.id,name(related),[l.memo,splitPart(l)?.reference===l.reference?'':l.reference].filter(Boolean).join(' · '),incoming?money(amount):'—',incoming?'—':money(amount)]);funds.set(key,f);}
 for(const l of source){const currency=l.currency_code||accountIndex.get(String(l.fund_account_id))?.currency_code||accountIndex.get(String(l.fund_account_id))?.currency||'LAK',amount=num(l.amount),incoming=l.direction==='in'||l.entry_kind==='collection';movement(l,l.fund_account_id,l.account_id,incoming,currency);if(String(l.account_id)!==String(l.fund_account_id)&&fundIds.has(String(l.account_id)))movement(l,l.account_id,l.fund_account_id,!incoming,currency);const key=l.fund_account_id+'|'+currency,k=key+'|'+l.account_id,t=liquidation.get(k)||{fund:l.fund_account_id,account:l.account_id,currency,received:0,spent:0,receivedLAK:0,spentLAK:0,missing:false};const rate=currency==='LAK'?1:num(l.fx_rate_lak);if(rate>0)t[incoming?'receivedLAK':'spentLAK']+=Math.round(amount*rate*100)/100;else t.missing=true;t[incoming?'received':'spent']+=amount;liquidation.set(k,t);}
 const person=user.full_name||user.name||'Sub-user',period=String(j.period_start||'').slice(0,7),types=(j.report_types14253||[]).map(t=>t.name).filter(Boolean).join(' / '),reportTitle=types||'Sub-user Account Report';let html=title(reportTitle,person+' · '+period+' · '+(window.submissionHistoryIds.report(j)||j.id||''))+`<p data-report-notice270>${esc(j.status||'')}</p>`;
-for(const f of funds.values()){const totals=`<tfoot><tr><th colspan="4" style="${cellStyle}text-align:left;border-top:1pt solid ${green}">Total · ${esc(f.currency)}</th><td style="${cellStyle}text-align:right;border-top:1pt solid ${green}">${money(f.received)}</td><td style="${cellStyle}text-align:right;border-top:1pt solid ${green}">${money(f.spent)}</td></tr></tfoot>`;html+=heading('Cashbook · '+name(f.id)+' · '+f.currency)+table(['Date','Entry ID','Account / category','Description / reference','Money In','Money Out'],f.rows,[12,15,20,25,14,14],{numeric:[4,5]}).replace('</table>',totals+'</table>');}
+for(const f of funds.values()){const totals=`<tfoot><tr><th colspan="4" style="${cellStyle}text-align:left;border-top:1pt solid ${green}">Total · ${esc(f.currency)}</th><td style="${cellStyle}text-align:right;border-top:1pt solid ${green}">${money(f.received)}</td><td style="${cellStyle}text-align:right;border-top:1pt solid ${green}">${money(f.spent)}</td></tr></tfoot>`;html+=heading('Cashbook · '+name(f.id)+' · '+f.currency)+groupReceiptTable(table(['Date','Entry ID','Account / category','Description / reference','Money In','Money Out'],f.rows,[12,15,20,25,14,14],{numeric:[4,5]}),f.entries,2,[4,5],money).replace('</table>',totals+'</table>');}
 html+=heading('Main account summary');const snapshot=pack.fund_snapshot14254;
 if(Array.isArray(snapshot)){html+=table(['Main account','Currency','Opening','Received','Used','Handover','Closing'],snapshot.map(f=>[accounts.some(a=>String(a.id)===String(f.account_id||f.id))?name(f.account_id||f.id):(f.name||name(f.account_id||f.id)),f.currency,money(f.opening),money(f.received),money(f.used),money(f.handover),money(f.closing)]),[28,9,12,13,12,13,13],{numeric:[2,3,4,5,6]});html+=`<p style="${textStyle}font-size:9pt;margin:0 0 2mm">Posted ledger balances saved with this report${pack.fund_snapshot_at14254?' on '+esc(formatAppDate(pack.fund_snapshot_at14254,true)):''}.</p><p data-report-notice270>Report activity may await posting.</p>`;}
 else html+=table(['Main account','Currency','Opening','Received in report','Spent in report','Closing'],[...funds.values()].map(f=>[name(f.id),f.currency,'Not recorded',money(f.received),money(f.spent),'Not recorded']),[29,9,15,16,16,15],{numeric:[3,4]})+`<p style="${textStyle}font-size:9pt;margin:0 0 2mm">This earlier report has no saved opening or closing balances.</p>`;
