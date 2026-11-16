@@ -62,6 +62,28 @@
      categorySection.append(button);
    }
    months.after(categorySection);
+   const laterMonths=document.createElement('section');
+   const laterTitle=document.createElement('h2');
+   laterTitle.textContent='May–October foreign journals';
+   laterMonths.append(laterTitle);
+   for(const [offset,name] of ['May','June','July','August','September','October'].entries()){
+     const period='2026-'+String(offset+5).padStart(2,'0')+'-01';
+     const button=document.createElement('button');
+     button.textContent='Post '+name+' reviewed journals';
+     button.onclick=async()=>{
+       const buttons=Array.from(document.querySelectorAll('button'));
+       buttons.forEach(control=>control.disabled=true);
+       result.textContent='Checking '+name+' against the reviewed entries…';
+       try{
+         const {data,error}=await db.rpc('post_category_transfers26',{p_month:period});
+         if(error)throw error;
+         result.textContent=name+' posted: '+data.posted.join(', ');
+       }catch(error){result.textContent=name+' — '+error.message;}
+       finally{buttons.forEach(control=>control.disabled=false);}
+     };
+     laterMonths.append(button);
+   }
+   categorySection.after(laterMonths);
    for(const [i,label] of ['January','February','March','April'].entries()){
      const group=document.createElement('div');months.append(group);
      for(const commit of [false,true]){
