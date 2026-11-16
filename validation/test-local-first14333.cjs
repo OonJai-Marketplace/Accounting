@@ -4,6 +4,30 @@ const server=http.createServer((req,res)=>{const name=path.join(root,req.url.spl
 (async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/tmp/chromium',args:['--no-sandbox']});const context=await browser.newContext();const page=await context.newPage();
 const fixture=async()=>{await page.goto('http://127.0.0.1:'+server.address().port+'/fixture');await page.evaluate(()=>{window.OJM_SUPABASE_URL='https://test.supabase.co';window.liveProfile={id:'actor-a',role:'admin',status:'active'};window.Work82={owner:'actor-a',runs:[],leaves:[],employees:[],reports:[],documents:[]};window.JournalModule={entries:[]};window.AccountingStore={accounts:[{id:'cash',name:'Cash',code:'100'},{id:'expense',name:'Expense',code:'200'}]};window.pendingPosts99=new Map();window.refreshAllTables=()=>{};window.loadWork82=async()=>{};window.renderWork82=()=>{};window.openDocumentEditor105=x=>x;window.loadLiveProfile=async()=>{};window.offline14239={changed(){},state:()=>({pending:1}),offline:()=>!navigator.onLine};window.remote=new Map();window.writeCount=0;window.loseReply=false;window.ojmDb={from(table){let operation='read',body,filters={};const q={select(){return q},eq(k,v){filters[k]=v;return q},maybeSingle(){return q},insert(p){operation='insert';body=p;return q},update(p){operation='update';body=p;return q},then(resolve,reject){return Promise.resolve().then(()=>{let row=remote.get(table+':'+(body?.id||filters.id));if(operation==='read')return {data:row||null,error:null};if(operation==='insert'&&row)return {data:null,error:{code:'23505',message:'duplicate'}};if(operation==='update'&&row?.version!==filters.version)return {data:[],error:null};row={...row,...body,id:body.id||filters.id};remote.set(table+':'+row.id,structuredClone(row));writeCount++;if(loseReply){loseReply=false;return {data:null,error:{code:'NETWORK_TIMEOUT',message:'Connection lost after commit'}}}return {data:[row],error:null}}).then(resolve,reject)}};return q}}});await page.addScriptTag({url:'/scripts/local-first14333.js'});await page.evaluate(()=>localFirst14333.initialize());};
 await fixture();
+// Another desktop tab can write settings repeatedly without redrawing the journal.
+const peer=await context.newPage();
+await peer.goto('http://127.0.0.1:'+server.address().port+'/fixture');
+await page.evaluate(async()=>{
+ window.entryNumber14257={prepareLocalHistory:async()=>{}};
+ window.offlineAudit143174={initialize:async()=>{}};
+ await journalDurable14385.initialize();
+ window.storageRedraws=0;
+ window.refreshAllTables=()=>{window.storageRedraws++};
+});
+await peer.evaluate(()=>{
+ for(let i=0;i<25;i++)localStorage.setItem('ojm-display-preference',String(i));
+ localStorage.setItem('test-peer-complete','yes');
+});
+await page.waitForFunction(()=>localStorage.getItem('test-peer-complete')==='yes');
+assert.equal(await page.evaluate(()=>window.storageRedraws),0);
+await peer.evaluate(()=>{window.liveProfile={id:'actor-a'};window.OJM_SUPABASE_URL='https://test.supabase.co';window.offline14239={offline:()=>false};});
+await peer.addScriptTag({url:'/scripts/local-first14333.js'});
+await peer.evaluate(()=>localFirst14333.edit('actor-a','journal-outbox14385',()=>[{id:'peer-journal',entries:[],changes:[],status:'pending'}]));
+await page.waitForFunction(()=>journalDurable14385.pending().some(j=>j.id==='peer-journal'));
+assert.equal(await page.evaluate(()=>window.storageRedraws),1);
+await peer.evaluate(()=>localFirst14333.edit('actor-a','journal-outbox14385',()=>[]));
+await page.waitForFunction(()=>!journalDurable14385.pending().length);
+await peer.close();
 const races=await page.evaluate(async()=>{const results=[];for(const kind of ['save','snapshot','sync']){const task=kind==='save'?localFirst14333.saveWork('employees',{name:'Original account'},null,{data:{name:'Original account'},version:1}):kind==='snapshot'?localFirst14333.snapshot('actor-race',async()=>[]):localFirst14333.sync();liveProfile.id='actor-b';let rejected=false;try{await task}catch(e){rejected=/Account changed/.test(e.message)}await localFirst14333.initialize();results.push({kind,rejected,jobs:localFirst14333.state().jobs.length});liveProfile.id='actor-a';await localFirst14333.initialize()}return results});assert(races.every(r=>r.rejected&&r.jobs===0),JSON.stringify(races));
 await context.setOffline(true);
 const saved=await page.evaluate(async()=>{const data={month:'2026-10',status:'draft',rows:[],reference:'PAY-TEST'};const row=await localFirst14333.saveWork('runs',data,null,{data,version:1,period_start:'2026-10-01',period_end:'2026-10-31',status:'draft'});return {row,jobs:localFirst14333.state().jobs.length}});assert.equal(saved.jobs,1);assert(saved.row._pending14333);assert.equal(await page.evaluate(()=>Work82.runs[0].data.reference),'PAY-TEST');
