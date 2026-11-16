@@ -62,7 +62,12 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       assert(nums[0].includes(type==='receipt'?'-RA':'-VA'));assert(nums[9].endsWith('10'));
       assert.deepEqual(await frame.locator('[data-voucher-number14299]').allTextContents(),nums);
       // Native print calls the retained-PDF path before rendering the frame.
-      await page.evaluate(async()=>{const win=document.querySelector('#docFrame105').contentWindow;window.__didPrint=false;win.print=()=>{window.__didPrint=true};await documentWorkspace105.preview()});
+      await page.evaluate(async()=>{
+        window.__didPrint=false;
+        const intercept=event=>{const frame=event.target;if(frame.matches?.('iframe[data-document-print]'))frame.contentWindow.print=()=>{window.__didPrint=true}};
+        document.addEventListener('load',intercept,true);
+        try{await documentWorkspace105.preview()}finally{document.removeEventListener('load',intercept,true)}
+      });
       assert(await page.evaluate(()=>window.__didPrint),'offline printing: '+await page.locator('#docStatus105').innerText());
     }
     assert.equal(attemptedOffline,0);
