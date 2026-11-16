@@ -4093,6 +4093,10 @@
     ],
     "scripts/vouchers14299.js": [
       {
+        "source": "src/reports/vouchers/payment-number-store.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/reports/vouchers/vouchers14299.js"
       },
       {
