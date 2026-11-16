@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>January–April foreign journals · Oon Jai Accounting</title><style>body{font:16px system-ui;max-width:52rem;margin:4rem auto;padding:1rem;color:#173c32}button{font:inherit;margin:.3rem .5rem .3rem 0;padding:.55rem .9rem}pre{white-space:pre-wrap}a{color:#176453}</style></head>
-<body><main><h1>January–April foreign journals</h1><p>Apply the reviewed salary, rent and donation transfers to the selected closed month. Each month retains its journal IDs and saved rates.</p><div id="months"></div><pre id="result" role="status">Checking access…</pre><p><a href="../../desktop.html">Open Accounting</a></p></main>
+<body><main><h1>January–April foreign journals</h1><p>Apply the reviewed salary, rent and donation transfers to the selected closed month. Each month retains its journal IDs and saved rates.</p><div id="months"></div><div id="review"></div><pre id="result" role="status">Checking access…</pre><p><a href="../../desktop.html">Open Accounting</a></p></main>
 <script src="../../deployment-config.js"></script><script src="../../scripts/supabase-config.js"></script><script src="../../assets/vendor/noble-gcm14334.js"></script><script src="../../scripts/device-vault14334.js"></script><script src="../../assets/vendor/supabase.js"></script><script>
 (async()=>{
  const result=document.querySelector('#result'),months=document.querySelector('#months');
@@ -9,6 +9,24 @@
    const {data,error}=await db.auth.getUser();
    if(error||!data?.user){result.textContent='Sign in to Accounting, then return to this page.';return;}
    result.textContent='Select a month.';
+   const review=document.createElement('button');
+   review.textContent='Review all four months';
+   document.querySelector('#review').append(review);
+   review.onclick=async()=>{
+     review.disabled=true;
+     const all=[];
+     try {
+       for(const [i,name] of ['January','February','March','April'].entries()){
+         const {data,error}=await db.rpc('maintenance_preflight14324',{p_month:'2026-0'+(i+1)+'-01'});
+         if(error)throw error;
+         const issues=(data.issues||[]).map(v=>({level:v.severity,area:v.title,detail:v.detail,
+           saved:!!data.decisions319?.[v.id]?.saved?.reason}));
+         all.push({month:name,reconciliationComplete:data.reconciliation305?.complete,issues});
+       }
+       result.textContent=JSON.stringify(all,null,2);
+     }catch(error){result.textContent=error.message;}
+     finally{review.disabled=false;}
+   };
    for(const [i,label] of ['January','February','March','April'].entries()){
      const button=document.createElement('button');button.textContent='Apply '+label;
      button.onclick=async()=>{
