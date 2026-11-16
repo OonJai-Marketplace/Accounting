@@ -51,14 +51,24 @@ function templates(chart){
    for(const c of new Set(lines.map(l=>l.currency).filter(c=>c&&c!=='LAK')))include(reg.bridge(c),'','Exchange or settlement at the evidenced rates');
    if(lines.some(l=>l.currency!=='LAK'))include(reg.bridge('LAK'),'','LAK bridge when required');
   }
-  if((exchange||settlement||lines.some(l=>l.role==='fund'&&l.side==='credit'))&&lines.some(l=>l.currency&&l.currency!=='LAK'))include(reg.byCode('5419'),'','Realized FX if carrying and settlement values differ');
+  if((exchange||settlement||(lines.some(l=>l.role==='fund'&&l.side==='credit')&&!lines.some(l=>reg.direct.has(reg.byCode(l.code,l.currency)?.id))))&&lines.some(l=>l.currency&&l.currency!=='LAK'))include(reg.byCode('5419'),'','Realized FX if carrying and settlement values differ');
   const layout=id.startsWith('support-deposit-fee-')?[...lines.slice(0,4),...outputs,...lines.slice(4)]:[...lines,...outputs];
   out.push({id:'gen268-'+id,name,builtin:true,lines:layout,generalMemo:'',autoMatch});
  }
+ const purposes=new Map();
  for(const [id,m] of reg.maps){
-  const a=reg.all.find(a=>a.id===id),c=g.currency(a);if(!m.actual||!m.offset)continue;
+  const old=reg.all.find(a=>a.id===id);
+  if(m.actual&&m.offset)purposes.set(String(old.code),{account:old,info:m});
+ }
+ for(const [legacy,account] of reg.replacement){
+  const info=reg.direct.get(account.id);
+  if(info.actual)purposes.set(legacy,{account,info});
+ }
+ for(const [legacy,{account:a,info:m}] of purposes){
+  const c=g.currency(a);
+  if(['9341','9342'].includes(legacy))continue; // Opening and retained earnings use the dedicated workflow.
   const expense=g.type(m.actual)==='EXPENSE',asset=g.type(m.actual)==='ASSET';
-  const name=action(m.actual);
+  const name=legacy==='9361'?'Withdraw cash for the owner':action(m.actual);
   if(String(m.actual.code)==='5311'){
    add('payroll-'+c,'Accrue salaries · '+c,[row(a,'debit','Gross salary'),slot('staff',c,'credit','Net salary owed')]);
    const tax=reg.bridge(c,true),pit=reg.byCode('2111'),sso=reg.byCode('2112');
@@ -71,7 +81,7 @@ function templates(chart){
    if(remaining)add('mapping-'+a.code+'-'+c,name+' · '+c,[row(reg.all.find(item=>item.id===remaining[0]),'debit','Release remaining support at its original rate'),row(a,'credit','Support used at the same original rate')],false);
    continue;
   }
-  add('mapping-'+a.code+'-'+c,name+' · '+c,expense||asset?[row(a,'debit'),slot('fund',c,'credit','Cash / bank payment')]:[slot('fund',c,'debit','Cash / bank receipt'),row(a,'credit')]);
+  add('mapping-'+legacy+'-'+c,name+' · '+c,expense||asset||legacy==='9361'?[row(a,'debit'),slot('fund',c,'credit','Cash / bank payment')]:[slot('fund',c,'debit','Cash / bank receipt'),row(a,'credit')]);
   if(m.actualCode==='3023'){
    const receipt=[{...slot('staff',c,'debit','Support received through staff'),receiptLeg:'receive'},
     {...row(a,'credit','Owner support received'),receiptLeg:'equity'},
@@ -82,16 +92,25 @@ function templates(chart){
    if(feeAccount)add('support-deposit-fee-'+c,'Receive financial support via staff, deposit it and record a LAK fee · '+c,
     [...receipt,row(feeAccount,'debit','Separate LAK bank fee'),slot('payer','LAK','credit','Fund or staff who paid the fee')],false);
   }
-  const fee=[...reg.maps].find(([id,m])=>String(m.actual?.code)==='5414'&&g.currency(reg.all.find(a=>a.id===id))===c);
-  if((expense||asset)&&String(m.actual.code)!=='5414'&&fee){const feeAccount=reg.all.find(a=>a.id===fee[0]);const payment=asset?[row(a,'debit'),slot('fund',c,'credit','Prepayment released'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Fee released at its own rate')]:[row(a,'debit'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')];add('fee-'+a.code+'-'+c,name+' and pay a bank fee · '+c,payment,false);}
+  const fee=[...purposes.values()].find(item=>item.info.actualCode==='5414'&&g.currency(item.account)===c);
+  if((expense||asset)&&String(m.actual.code)!=='5414'&&fee){const feeAccount=fee.account;const payment=asset?[row(a,'debit'),slot('fund',c,'credit','Prepayment released'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Fee released at its own rate')]:[row(a,'debit'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')];add('fee-'+legacy+'-'+c,name+' and pay a bank fee · '+c,payment,false);}
  }
- const localSalary=reg.byCode('5311'),usdSalary=reg.byCode('9231','USD');
- if(localSalary&&reg.maps.get(usdSalary?.id)?.actualCode==='5311')
+ const localSalary=reg.byCode('5311'),usdSalary=reg.replacement.get('9231')||reg.byCode('9231','USD');
+ if(localSalary&&reg.category(usdSalary)?.actualCode==='5311')
   add('mixed-payroll','Accrue salaries in LAK and USD',[localSalary,usdSalary].flatMap(a=>[row(a,'debit','Gross salary'),slot('staff',g.currency(a),'credit','Net salary owed')]),false);
+ const house=reg.byCode('5424','USD');
+ if(house&&!g.technical(house)&&g.type(house)==='EXPENSE')add('house-rent-USD','Pay company house rent · USD',[row(house,'debit'),slot('fund','USD','credit','Cash / bank payment')]);
  const currencies=[...new Set(reg.all.filter(g.fund).map(g.currency))].sort();
  for(const c of currencies){
   add('transfer-'+c,'Transfer between cash or bank accounts · '+c,[slot('fund',c,'debit','Receiving fund'),slot('fund',c,'credit','Paying fund')],false);
   add('settlement-'+c,'Settle a salary or outstanding payable · '+c,[slot('balance',c,'debit','Balance payment'),slot('fund','', 'credit','Cash / bank payment')],false);
+  const airfare=reg.replacement.get('9331'),payable=reg.byCode('2212',c);
+  if(c==='USD'&&airfare&&payable&&g.type(payable)==='LIABILITY'){
+   const salary=out[out.length-1],contribution=[row(payable,'debit','Release the original airfare payable'),row(airfare,'credit','Owner airfare contribution at the original rate')];
+   add('airfare-contribution-'+c,'Apply an airfare payable to owner contribution · USD',contribution,false);
+   out.push({id:'gen268-salary-with-airfare-USD',name:'Settle salary and apply an airfare contribution · USD',builtin:true,autoMatch:false,
+    lines:[...salary.lines.map(l=>({...l,stage:'Salary payment'})),...contribution.map(l=>({...l,stage:'Airfare contribution'}))]});
+  }
   for(const to of currencies.filter(x=>x!==c))add('exchange-'+c+'-'+to,'Exchange currency · '+c+' to '+to,[slot('fund',c,'credit','Amount paid'),slot('fund',to,'debit','Amount received')],false);
  }
  for(const receipt of out.filter(t=>/^gen268-mapping-931[12]-/.test(t.id))){
@@ -149,7 +168,7 @@ function templates(chart){
   add('local-'+code,title+' · LAK',expense||withdrawal?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
  }
  // Releases consume the prepaid asset; they do not repeat the original payment.
- for(const [id,name,expense,prepaid,c] of [['wifi','Recognize prepaid Wi-Fi expense','5110','1311','LAK'],['rent','Recognize prepaid company house rent','5421','1310','LAK'],['restaurant','Recognize prepaid restaurant rent','9222','1312','THB']]){
+ for(const [id,name,expense,prepaid,c] of [['wifi','Recognize prepaid Wi-Fi expense','5110','1311','LAK'],['rent','Recognize prepaid company house rent','5421','1310','LAK'],['restaurant','Recognize prepaid restaurant rent',reg.replacement.get('9222')?.code||'9222','1312','THB'],['house-usd','Recognize prepaid company house rent','5424','1314','USD']]){
   const e=reg.byCode(expense,c),p=reg.byCode(prepaid,c);
   if(!p)continue;
   const debit=e&&g.type(e)==='EXPENSE'?row(e,'debit','Monthly prepaid expense'):null;
@@ -182,7 +201,9 @@ function postedExampleMatcher(template,chart){
  const byId=new Map(chart.map(a=>[a.id,a])),byCode=new Map(chart.map(a=>[String(a.code),a]));
  const rules=template.lines.map(line=>({line,account:resolve(line,chart)}));
  const multiCurrency=template.builtin&&/^fx14383-(income|expense)$/.test(template.id);
- const fx=template.builtin&&rules.some(({line})=>line.calculated&&line.code==='5419')?G().registry(chart):null;
+ const registry=G().registry(chart);
+ const fx=template.builtin&&(rules.some(({line})=>line.calculated&&line.code==='5419')||
+  rules.some(({account})=>registry.direct.has(account?.id))&&rules.some(({line})=>line.role==='fund'&&line.side==='credit'))?registry:null;
  const taxRemittance=template.builtin&&/^gen268-remit-(PIT|SSO)$/.test(template.id);
  function fits({line,account},posted){
   return (!line.side||line.side===posted.side)&&(!line.currency||line.currency===posted.currency)&&
@@ -202,7 +223,7 @@ function postedExampleMatcher(template,chart){
   function allowed(p){
    if(rules.some(rule=>fits(rule,p)))return true;
    if(taxRemittance&&String(p.account.code)==='5420'&&p.currency==='LAK')return true;
-   return fx&&(p.currency==='LAK'||businessCurrencies.has(p.currency))&&fx.bridge(p.currency)?.id===p.account.id;
+   return fx&&(p.currency==='LAK'&&p.account.code==='5419'||(p.currency==='LAK'||businessCurrencies.has(p.currency))&&fx.bridge(p.currency)?.id===p.account.id);
   }
   if(!posted.every(allowed))return false;
   const currencies=new Set(posted.map(p=>p.currency));

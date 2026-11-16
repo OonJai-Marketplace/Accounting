@@ -30,6 +30,8 @@ function updateFundMemo(line,account,side,fx=0){
  line.line_memo=[label,name,detail,fx?'FX '+(fx>0?'loss':'gain')+' '+displayRate(Math.abs(fx))+' LAK':''].filter(Boolean).join(' · ');
 }
 const known={9101:['4010','9190','THB'],9102:['4010','9190','USD'],9111:['4110','9190','USD'],9112:['4110','9190','THB'],9121:['4120','9190','USD'],9131:['4130','9190','USD'],9132:['4130','9190','THB'],9201:['5010','9290','THB'],9202:['5010','9290','USD'],9211:['5111','9290','USD'],9212:['5111','9290','THB'],9222:['5119','9290','THB'],9231:['5311','9290','USD'],9232:['5311','9290','THB'],9233:['5315','9290','USD'],9234:['5315','9290','THB'],9241:['5414','9290','USD'],9242:['5414','9290','THB'],9251:['5120','9290','USD'],9311:['3023','9390','USD'],9312:['3023','9390','THB'],9321:['3024','9390','USD'],9322:['3024','9390','THB'],9331:['3031','9390','USD'],9332:['3031','9390','THB'],9411:['1310','9490','USD']};
+// Permanent legacy codes also identify the built-in templates on older devices.
+const replacements={9101:'4021',9102:'4020',9111:'4111',9112:'4112',9121:'4121',9131:'4131',9132:'4132',9201:'5012',9202:'5011',9211:'5121',9212:'5122',9222:'5123',9231:'5316',9232:'5317',9233:'5320',9234:'5321',9241:'5422',9242:'5423',9251:'5124',9311:'3026',9331:'3032',9332:'3033',9341:'3111',9342:'3112',9361:'3043',9411:'1314'};
 function registry(chart){
  const all=chart.filter(available),byCode=(code,c='LAK')=>all.find(a=>String(a.code)===code&&currency(a)===c),maps=new Map(),unknown=new Set();
  const codes=[...new Set(all.map(currency))];
@@ -49,7 +51,16 @@ function registry(chart){
   const code=tax?{USD:'9042'}[c]:{USD:'9011',THB:'9012'}[c];if(code&&byCode(code,c))return byCode(code,c);
   const found=all.filter(a=>currency(a)===c&&technical(a)&&(tax?/payroll tax bridge/i:/fx exchange bridge/i).test(a.name));return found.length===1?found[0]:null;
  }
- return {all,maps,unknown,byCode,bridge,isBridge:a=>currency(a)!=='LAK'&&bridge(currency(a))?.id===a.id,isTax:a=>currency(a)!=='LAK'&&bridge(currency(a),true)?.id===a.id};
+ const direct=new Map(),replacement=new Map();
+ for(const [legacy,code] of Object.entries(replacements)){
+  const spec=known[legacy]||({9341:['3110','9390','USD'],9342:['3110','9390','THB'],9361:['3041','9390','USD']})[legacy];
+  const target=byCode(code,spec[2]);
+  if(!target||technical(target)||type(target)!==({91:'REVENUE',92:'EXPENSE',93:'EQUITY',94:'ASSET'})[legacy.slice(0,2)])continue;
+  replacement.set(legacy,target);
+  direct.set(target.id,{legacy,actualCode:spec[0],offsetCode:spec[1],actual:byCode(spec[0])});
+ }
+ const category=a=>direct.get(a?.id)||maps.get(a?.id);
+ return {all,maps,direct,replacement,category,unknown,byCode,bridge,isBridge:a=>currency(a)!=='LAK'&&bridge(currency(a))?.id===a.id,isTax:a=>currency(a)!=='LAK'&&bridge(currency(a),true)?.id===a.id};
 }
 function complete(input){
  if(!input.rows?.some(l=>l.stage))return completePart(input);
@@ -98,6 +109,13 @@ function completePart(input){
  }
  if(errors.length)return {errors};
  const source=rows.filter(l=>l.a&&l.generated!=='output'&&!reg.isBridge(l.a));
+ const supportAllocation=source.some(l=>['9321','9322'].includes(String(l.a.code)));
+ for(const l of source){
+  const target=reg.replacement.get(String(l.a.code));
+  if(target&&!(l.a.code==='9311'&&(supportAllocation||l.debit>0)))
+   error('Row '+(l.index+1)+': use '+target.code+' — '+target.name+' and review any old LAK equivalents.',l.index,false,'account');
+ }
+ if(errors.length)return {errors};
  const foreign=source.filter(l=>l.c!=='LAK');
  // A full bank deposit via a custodian is one receipt with two movements.
  // Only this explicitly selected layout equates the four amounts.
@@ -106,7 +124,7 @@ function completePart(input){
   const leg=key=>receipt.find(l=>l.receiptLeg===key);
   if(receipt.length!==4||!['receive','equity','deposit','clear'].every(leg)||leg('receive').account_id!==leg('clear').account_id)
    error('The receipt and handover must identify the same staff clearing account.');
-  else if(!staff(leg('receive').a)||!fund(leg('deposit').a)||reg.maps.get(leg('equity').a.id)?.actualCode!=='3023'||new Set(receipt.map(l=>l.c)).size!==1)
+  else if(!staff(leg('receive').a)||!fund(leg('deposit').a)||reg.category(leg('equity').a)?.actualCode!=='3023'||new Set(receipt.map(l=>l.c)).size!==1)
    error('Choose the staff clearing, remaining owner support and receiving fund in the same currency.');
   else{
    const amounts=new Set(receipt.map(l=>l.debit||l.credit).filter(Boolean));
@@ -186,8 +204,8 @@ function completePart(input){
  for(const c of new Set(foreign.map(l=>l.c))){
   const group=foreign.filter(l=>l.c===c),active=group.filter(l=>l.debit||l.credit),blank=group.filter(l=>!l.debit&&!l.credit);
   if(!active.length)continue;
-  if(!group.some(l=>reg.maps.has(l.a.id))&&active.length===1&&fund(active[0].a)){
-   const payment=active[0],matches=[...reg.maps.entries()].filter(([id,m])=>currency(reg.all.find(a=>a.id===id))===c&&m.actual&&source.some(l=>l.a.id===m.actual.id&&(!l.debit&&!l.credit||Math.sign(signed(l))===-Math.sign(signed(payment))&&close(Math.abs(signed(l)),round(Math.abs(signed(payment))*payment.rt)))));
+  if(!group.some(l=>reg.category(l.a))&&active.length===1&&fund(active[0].a)){
+   const payment=active[0],matches=[...reg.maps.entries()].filter(([id,m])=>!reg.replacement.has(String(reg.all.find(a=>a.id===id)?.code))&&currency(reg.all.find(a=>a.id===id))===c&&m.actual&&source.some(l=>l.a.id===m.actual.id&&(!l.debit&&!l.credit||Math.sign(signed(l))===-Math.sign(signed(payment))&&close(Math.abs(signed(l)),round(Math.abs(signed(payment))*payment.rt)))));
    if(matches.length===1){const [id]=matches[0],a=reg.all.find(a=>a.id===id),l={a,c,account_id:id,index:rows.length,rt:payment.rt,debit:payment.credit,credit:payment.debit,line_memo:'Foreign mapping · '+a.name,generated:'source'};rows.push(l);source.push(l);foreign.push(l);active.push(l);}
   }
   const gap=sum(active);
@@ -196,24 +214,25 @@ function completePart(input){
   const eligibleBlank=blank.filter(l=>!reg.isTax(l.a));
   if(gap&&eligibleBlank.length===1){const l=eligibleBlank[0];l.debit=gap<0?-gap:0;l.credit=gap>0?gap:0;l.generated='source';active.push(l);notes.push('Filled row '+(l.index+1)+'.');}
   const prepaidRelease=active.filter(l=>l.credit>0&&type(l.a)==='ASSET'&&!fund(l.a)&&!monetary(l.a)&&!technical(l.a));
-  if(prepaidRelease.length===1&&active.length===2&&active.filter(l=>reg.maps.has(l.a.id)).length===1){const recorded=carry(prepaidRelease[0]);if(recorded>0)for(const l of active)l.rt=recorded;}
+  if(prepaidRelease.length===1&&active.length===2&&active.some(l=>l.debit>0&&(type(l.a)==='EXPENSE'&&!technical(l.a)||type(reg.maps.get(l.a.id)?.actual)==='EXPENSE'))){const recorded=carry(prepaidRelease[0]);if(recorded>0)for(const l of active){l.rt=recorded;if(!technical(l.a)&&type(l.a)==='EXPENSE')l.specified=recorded;}}
   for(const l of active){if(!Number.isFinite(l.rt)||!(l.rt>0))error('Enter the '+c+' exchange rate above the table.',l.index,false,'rate');if(reg.unknown.has(l.a.id)||technical(l.a)&&!reg.maps.has(l.a.id)&&!reg.isTax(l.a))error('Row '+(l.index+1)+': this mapping has no supported LAK counterpart in the chart.',l.index);}
   if(errors.length)continue;
   const maps=active.filter(l=>reg.maps.has(l.a.id)),tax=active.filter(l=>reg.isTax(l.a));
-  const newSupport=maps.some(l=>reg.maps.get(l.a.id).actualCode==='3023'&&l.credit>0);
+  const categories=active.filter(l=>reg.category(l.a));
+  const newSupport=categories.some(l=>reg.category(l.a).actualCode==='3023'&&l.credit>0);
   // Staff may receive funds on behalf of the company and deposit the same
   // funds. This line creates a new balance at receipt value, not a settlement
   // of an older payroll liability. Require a matching support receipt amount.
   const custody=new Set();
   if(newSupport){
-   const receipts=active.filter(l=>reg.maps.get(l.a.id)?.actualCode==='3023'&&l.credit);
+   const receipts=categories.filter(l=>reg.category(l.a).actualCode==='3023'&&l.credit);
    const staffReceipts=active.filter(l=>staff(l.a)&&l.debit);
    if(staffReceipts.length===1&&receipts.length===1&&close(staffReceipts[0].debit,receipts[0].credit)){
     const incoming=staffReceipts[0];custody.add(incoming);
     for(const handover of active.filter(l=>l.a.id===incoming.a.id&&l.credit>0&&l.credit<=incoming.debit))custody.add(handover);
    }
   }
-  if(maps.length&&sum(active)>0&&!tax.length){
+  if(categories.some(l=>reg.category(l.a).actualCode==='5311')&&sum(active)>0&&!tax.length){
    const withholding=round(source.filter(l=>l.c==='LAK'&&['2111','2112'].includes(String(l.a.code))).reduce((n,l)=>n+l.credit-l.debit,0)-source.filter(l=>l.c==='LAK'&&['5211','5212'].includes(String(l.a.code))).reduce((n,l)=>n+l.debit-l.credit,0));
    const used=foreign.filter(l=>l.c!==c&&reg.isTax(l.a)).reduce((n,l)=>n+round(l.credit*l.rt),0),q=sum(active);
    const selectedTax=blank.filter(l=>reg.isTax(l.a)),blankLiability=rows.filter(l=>l.a&&l.c==='LAK'&&['2111','2112'].includes(String(l.a.code))&&!l.debit&&!l.credit);
@@ -222,13 +241,25 @@ function completePart(input){
     else{let l=blank.find(l=>l.a.id===a.id);if(!l){l={a,c,account_id:a.id,index:rows.length,rt:Number(rates[c]),line_memo:'Employee withholding',debit:0,credit:0};rows.push(l);source.push(l);foreign.push(l);}l.credit=q;l.generated='source';active.push(l);tax.push(l);}
    }
   }
-  if(maps.length&&!close(sum(active),0))error(c+' source rows differ by '+Math.abs(sum(active))+'. Check the gross amount, payment, staff amounts and deductions. This is not automatically FX.',active[0].index);
+  const otherTender=source.some(l=>l.c!==c&&fund(l.a)&&(l.debit||l.credit));
+  if(categories.length&&!close(sum(active),0)&&(maps.length||!otherTender||categories.some(l=>reg.category(l.a).actualCode==='5311')))
+   error(c+' source rows differ by '+Math.abs(sum(active))+'. Check the gross amount, payment, staff amounts and deductions. This is not automatically FX.',active[0].index);
   // Matched new receipts have one recognition value, including receipts imported
   // from older drafts that stored an account average without its provenance.
-  const receiptMap=maps.length===1&&maps[0].credit&&['9190','9390'].includes(reg.maps.get(maps[0].a.id).offsetCode)?maps[0]:null;
+  const receiptMap=categories.length===1&&categories[0].credit&&['9190','9390'].includes(reg.category(categories[0].a).offsetCode)?categories[0]:null;
   if(receiptMap&&active.every(l=>l===receiptMap||fund(l.a)&&l.debit||custody.has(l))){
-   if(active.some(l=>l.rt!==receiptMap.rt))error('Use the same recognition rate for this receipt and its mapping. Record a later settlement separately.');
-   if(active.some(l=>l.book_rate_lak&&Number(l.book_rate_lak)!==l.rt))notes.push('Used the receipt rate for the new funds and their mapping.');
+   if(active.some(l=>l.rt!==receiptMap.rt))error('Use the same recognition rate for the receipt and the receiving account. Record a later settlement separately.');
+   if(active.some(l=>l.book_rate_lak&&Number(l.book_rate_lak)!==l.rt))notes.push('Used the receipt rate for the new funds and their counterpart.');
+  }
+  const airfare=active.find(l=>reg.direct.get(l.a.id)?.actualCode==='3031'&&l.credit);
+  const released=active.find(l=>l.a.code==='2212'&&l.debit);
+  if(airfare&&released&&active.length===2){
+   const recorded=carry(released);
+   if(recorded>0){
+    if(airfare.specified&&airfare.specified!==recorded||active.some(l=>l.overrideRate&&l.rt!==recorded))
+     error('The airfare contribution must use the original rate of the payable.',airfare.index,true);
+    else for(const l of active){l.rt=recorded;l.specified=recorded;}
+   }
   }
   for(const l of active.filter(l=>!reg.maps.has(l.a.id))){
    if(reg.isTax(l.a)){l.book=l.rt;continue;}
@@ -236,7 +267,10 @@ function completePart(input){
    if(l.credit>0&&fund(l.a)||l.debit>0&&(staff(l.a)||type(l.a)==='LIABILITY')||l.credit>0&&!fund(l.a)&&!staff(l.a)&&type(l.a)==='ASSET')l.book=carry(l);else l.book=l.specified||l.rt;
    // New money and a newly recognized obligation enter at this transaction's rate.
    // A receiving account's existing average belongs to its previous balance.
-   if(fund(l.a)&&l.debit||type(l.a)==='LIABILITY'&&l.credit||staff(l.a)&&l.credit&&maps.some(m=>reg.maps.get(m.a.id).actualCode==='5311'))l.book=l.rt;
+   if(fund(l.a)&&l.debit||type(l.a)==='LIABILITY'&&l.credit||staff(l.a)&&l.credit&&categories.some(m=>reg.category(m.a).actualCode==='5311'))l.book=l.rt;
+   if(l===receiptMap)l.book=l.rt;
+   if(reg.direct.get(l.a.id)?.offsetCode==='9390'&&!newSupport&&!active.some(x=>fund(x.a))&&!l.specified)
+    error('Enter the original contribution book rate for this noncash equity entry.',l.index,true);
    if(fund(l.a)&&l.credit>0)cashNeeds.set(l.a.id,(cashNeeds.get(l.a.id)||0)+l.credit);
   }
   const outs=active.filter(l=>fund(l.a)&&l.credit>0),outQ=outs.reduce((n,l)=>n+l.credit,0),outValue=outs.reduce((n,l)=>n+round(l.credit*(l.book||0)),0),otherDr=active.filter(l=>!reg.maps.has(l.a.id)&&!fund(l.a)&&!reg.isTax(l.a)).reduce((n,l)=>n+l.debit,0),mapDr=maps.reduce((n,l)=>n+l.debit,0),cashPart=Math.max(0,Math.min(mapDr,outQ-otherDr));
@@ -432,14 +466,24 @@ function templates(chart){
    for(const c of new Set(lines.map(l=>l.currency).filter(c=>c&&c!=='LAK')))include(reg.bridge(c),'','Exchange or settlement at the evidenced rates');
    if(lines.some(l=>l.currency!=='LAK'))include(reg.bridge('LAK'),'','LAK bridge when required');
   }
-  if((exchange||settlement||lines.some(l=>l.role==='fund'&&l.side==='credit'))&&lines.some(l=>l.currency&&l.currency!=='LAK'))include(reg.byCode('5419'),'','Realized FX if carrying and settlement values differ');
+  if((exchange||settlement||(lines.some(l=>l.role==='fund'&&l.side==='credit')&&!lines.some(l=>reg.direct.has(reg.byCode(l.code,l.currency)?.id))))&&lines.some(l=>l.currency&&l.currency!=='LAK'))include(reg.byCode('5419'),'','Realized FX if carrying and settlement values differ');
   const layout=id.startsWith('support-deposit-fee-')?[...lines.slice(0,4),...outputs,...lines.slice(4)]:[...lines,...outputs];
   out.push({id:'gen268-'+id,name,builtin:true,lines:layout,generalMemo:'',autoMatch});
  }
+ const purposes=new Map();
  for(const [id,m] of reg.maps){
-  const a=reg.all.find(a=>a.id===id),c=g.currency(a);if(!m.actual||!m.offset)continue;
+  const old=reg.all.find(a=>a.id===id);
+  if(m.actual&&m.offset)purposes.set(String(old.code),{account:old,info:m});
+ }
+ for(const [legacy,account] of reg.replacement){
+  const info=reg.direct.get(account.id);
+  if(info.actual)purposes.set(legacy,{account,info});
+ }
+ for(const [legacy,{account:a,info:m}] of purposes){
+  const c=g.currency(a);
+  if(['9341','9342'].includes(legacy))continue; // Opening and retained earnings use the dedicated workflow.
   const expense=g.type(m.actual)==='EXPENSE',asset=g.type(m.actual)==='ASSET';
-  const name=action(m.actual);
+  const name=legacy==='9361'?'Withdraw cash for the owner':action(m.actual);
   if(String(m.actual.code)==='5311'){
    add('payroll-'+c,'Accrue salaries · '+c,[row(a,'debit','Gross salary'),slot('staff',c,'credit','Net salary owed')]);
    const tax=reg.bridge(c,true),pit=reg.byCode('2111'),sso=reg.byCode('2112');
@@ -452,7 +496,7 @@ function templates(chart){
    if(remaining)add('mapping-'+a.code+'-'+c,name+' · '+c,[row(reg.all.find(item=>item.id===remaining[0]),'debit','Release remaining support at its original rate'),row(a,'credit','Support used at the same original rate')],false);
    continue;
   }
-  add('mapping-'+a.code+'-'+c,name+' · '+c,expense||asset?[row(a,'debit'),slot('fund',c,'credit','Cash / bank payment')]:[slot('fund',c,'debit','Cash / bank receipt'),row(a,'credit')]);
+  add('mapping-'+legacy+'-'+c,name+' · '+c,expense||asset||legacy==='9361'?[row(a,'debit'),slot('fund',c,'credit','Cash / bank payment')]:[slot('fund',c,'debit','Cash / bank receipt'),row(a,'credit')]);
   if(m.actualCode==='3023'){
    const receipt=[{...slot('staff',c,'debit','Support received through staff'),receiptLeg:'receive'},
     {...row(a,'credit','Owner support received'),receiptLeg:'equity'},
@@ -463,16 +507,25 @@ function templates(chart){
    if(feeAccount)add('support-deposit-fee-'+c,'Receive financial support via staff, deposit it and record a LAK fee · '+c,
     [...receipt,row(feeAccount,'debit','Separate LAK bank fee'),slot('payer','LAK','credit','Fund or staff who paid the fee')],false);
   }
-  const fee=[...reg.maps].find(([id,m])=>String(m.actual?.code)==='5414'&&g.currency(reg.all.find(a=>a.id===id))===c);
-  if((expense||asset)&&String(m.actual.code)!=='5414'&&fee){const feeAccount=reg.all.find(a=>a.id===fee[0]);const payment=asset?[row(a,'debit'),slot('fund',c,'credit','Prepayment released'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Fee released at its own rate')]:[row(a,'debit'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')];add('fee-'+a.code+'-'+c,name+' and pay a bank fee · '+c,payment,false);}
+  const fee=[...purposes.values()].find(item=>item.info.actualCode==='5414'&&g.currency(item.account)===c);
+  if((expense||asset)&&String(m.actual.code)!=='5414'&&fee){const feeAccount=fee.account;const payment=asset?[row(a,'debit'),slot('fund',c,'credit','Prepayment released'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Fee released at its own rate')]:[row(a,'debit'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')];add('fee-'+legacy+'-'+c,name+' and pay a bank fee · '+c,payment,false);}
  }
- const localSalary=reg.byCode('5311'),usdSalary=reg.byCode('9231','USD');
- if(localSalary&&reg.maps.get(usdSalary?.id)?.actualCode==='5311')
+ const localSalary=reg.byCode('5311'),usdSalary=reg.replacement.get('9231')||reg.byCode('9231','USD');
+ if(localSalary&&reg.category(usdSalary)?.actualCode==='5311')
   add('mixed-payroll','Accrue salaries in LAK and USD',[localSalary,usdSalary].flatMap(a=>[row(a,'debit','Gross salary'),slot('staff',g.currency(a),'credit','Net salary owed')]),false);
+ const house=reg.byCode('5424','USD');
+ if(house&&!g.technical(house)&&g.type(house)==='EXPENSE')add('house-rent-USD','Pay company house rent · USD',[row(house,'debit'),slot('fund','USD','credit','Cash / bank payment')]);
  const currencies=[...new Set(reg.all.filter(g.fund).map(g.currency))].sort();
  for(const c of currencies){
   add('transfer-'+c,'Transfer between cash or bank accounts · '+c,[slot('fund',c,'debit','Receiving fund'),slot('fund',c,'credit','Paying fund')],false);
   add('settlement-'+c,'Settle a salary or outstanding payable · '+c,[slot('balance',c,'debit','Balance payment'),slot('fund','', 'credit','Cash / bank payment')],false);
+  const airfare=reg.replacement.get('9331'),payable=reg.byCode('2212',c);
+  if(c==='USD'&&airfare&&payable&&g.type(payable)==='LIABILITY'){
+   const salary=out[out.length-1],contribution=[row(payable,'debit','Release the original airfare payable'),row(airfare,'credit','Owner airfare contribution at the original rate')];
+   add('airfare-contribution-'+c,'Apply an airfare payable to owner contribution · USD',contribution,false);
+   out.push({id:'gen268-salary-with-airfare-USD',name:'Settle salary and apply an airfare contribution · USD',builtin:true,autoMatch:false,
+    lines:[...salary.lines.map(l=>({...l,stage:'Salary payment'})),...contribution.map(l=>({...l,stage:'Airfare contribution'}))]});
+  }
   for(const to of currencies.filter(x=>x!==c))add('exchange-'+c+'-'+to,'Exchange currency · '+c+' to '+to,[slot('fund',c,'credit','Amount paid'),slot('fund',to,'debit','Amount received')],false);
  }
  for(const receipt of out.filter(t=>/^gen268-mapping-931[12]-/.test(t.id))){
@@ -530,7 +583,7 @@ function templates(chart){
   add('local-'+code,title+' · LAK',expense||withdrawal?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
  }
  // Releases consume the prepaid asset; they do not repeat the original payment.
- for(const [id,name,expense,prepaid,c] of [['wifi','Recognize prepaid Wi-Fi expense','5110','1311','LAK'],['rent','Recognize prepaid company house rent','5421','1310','LAK'],['restaurant','Recognize prepaid restaurant rent','9222','1312','THB']]){
+ for(const [id,name,expense,prepaid,c] of [['wifi','Recognize prepaid Wi-Fi expense','5110','1311','LAK'],['rent','Recognize prepaid company house rent','5421','1310','LAK'],['restaurant','Recognize prepaid restaurant rent',reg.replacement.get('9222')?.code||'9222','1312','THB'],['house-usd','Recognize prepaid company house rent','5424','1314','USD']]){
   const e=reg.byCode(expense,c),p=reg.byCode(prepaid,c);
   if(!p)continue;
   const debit=e&&g.type(e)==='EXPENSE'?row(e,'debit','Monthly prepaid expense'):null;
@@ -563,7 +616,9 @@ function postedExampleMatcher(template,chart){
  const byId=new Map(chart.map(a=>[a.id,a])),byCode=new Map(chart.map(a=>[String(a.code),a]));
  const rules=template.lines.map(line=>({line,account:resolve(line,chart)}));
  const multiCurrency=template.builtin&&/^fx14383-(income|expense)$/.test(template.id);
- const fx=template.builtin&&rules.some(({line})=>line.calculated&&line.code==='5419')?G().registry(chart):null;
+ const registry=G().registry(chart);
+ const fx=template.builtin&&(rules.some(({line})=>line.calculated&&line.code==='5419')||
+  rules.some(({account})=>registry.direct.has(account?.id))&&rules.some(({line})=>line.role==='fund'&&line.side==='credit'))?registry:null;
  const taxRemittance=template.builtin&&/^gen268-remit-(PIT|SSO)$/.test(template.id);
  function fits({line,account},posted){
   return (!line.side||line.side===posted.side)&&(!line.currency||line.currency===posted.currency)&&
@@ -583,7 +638,7 @@ function postedExampleMatcher(template,chart){
   function allowed(p){
    if(rules.some(rule=>fits(rule,p)))return true;
    if(taxRemittance&&String(p.account.code)==='5420'&&p.currency==='LAK')return true;
-   return fx&&(p.currency==='LAK'||businessCurrencies.has(p.currency))&&fx.bridge(p.currency)?.id===p.account.id;
+   return fx&&(p.currency==='LAK'&&p.account.code==='5419'||(p.currency==='LAK'||businessCurrencies.has(p.currency))&&fx.bridge(p.currency)?.id===p.account.id);
   }
   if(!posted.every(allowed))return false;
   const currencies=new Set(posted.map(p=>p.currency));
@@ -996,7 +1051,9 @@ function legacyCashLayout(){
 function validateLayout(input){
  const issue=(message,row,field)=>Object.assign(new Error(message),{row,field});
  if(legacyCashLayout())throw Error('This draft uses a superseded cash posting. Load the current template and review its accounts before generating.');
- const mixedPayroll=state.template==='gen268-mixed-payroll'&&definitions().find(t=>t.id===state.template)?.builtin;
+ const selected=definitions().find(t=>t.id===state.template);
+ if(selected?.reviewDirectAccounts)throw Error('Edit the saved template and review its foreign and LAK lines before generating.');
+ const mixedPayroll=state.template==='gen268-mixed-payroll'&&selected?.builtin;
  for(const [i,l] of input.rows.entries()){
   const a=input.chart.find(a=>a.id===l.account_id);
   if(!a)continue;
@@ -1178,7 +1235,7 @@ function open(){
  const template=definitions().find(t=>t.id===state.template);
  recoverTemplateDraft(state,template);restoreProtocolRows(state,template);persist();
  dialog=document.createElement('dialog');dialog.id='journalGenerator258';dialog.setAttribute('aria-labelledby','generatorTitle258');
- dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-content258"><div class="generator-meta258"><label class="generator-date258">Transaction date<input class="je-input" type="date" data-date required></label><div data-rates class="generator-rates258"></div><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo required></textarea></label></div><section data-history aria-label="Compare posted journals"><div class="history-bar258"><strong>Compare posted journals</strong><span data-history-latest></span><button type="button" class="je-btn je-btn-secondary" data-history-toggle aria-controls="journalHistoryPanel258"></button></div><div data-history-panel id="journalHistoryPanel258" hidden><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div></div><div data-history-entry hidden></div></section><p>Enter the business amounts and dated rates. Generate fills the LAK valuation, mappings and applicable FX. Use the row rate when a fee or exchange has its own rate.</p><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-undo hidden>Undo removal</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p></div>';
+ dialog.innerHTML='<header><h3 id="generatorTitle258">Generate journal</h3><button type="button" class="je-btn je-btn-secondary" data-close>Close</button></header><div class="generator-content258"><div class="generator-meta258"><label class="generator-date258">Transaction date<input class="je-input" type="date" data-date required></label><div data-rates class="generator-rates258"></div><label class="generator-template268">Transaction template<input class="je-input" data-template-query data-plain14285 role="combobox" aria-label="Transaction template" aria-autocomplete="list" aria-expanded="false" aria-controls="generatorTemplates268" autocomplete="off"><select hidden data-plain14285 data-template>'+definitions().map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('')+'</select><div id="generatorTemplates268" data-template-options role="listbox" hidden></div></label><label class="generator-wide258">General description<textarea class="je-input" rows="2" data-memo required></textarea></label></div><section data-history aria-label="Compare posted journals"><div class="history-bar258"><strong>Compare posted journals</strong><span data-history-latest></span><button type="button" class="je-btn je-btn-secondary" data-history-toggle aria-controls="journalHistoryPanel258"></button></div><div data-history-panel id="journalHistoryPanel258" hidden><input data-plain14285 data-history-query type="search" aria-label="Find a posted journal" placeholder="Journal ID, description or account"><div data-history-list></div></div><div data-history-entry hidden></div></section><p>Enter the business amounts and dated rates. Generate uses the dated rates and adds any required withholding or exchange lines. Use the row rate when a fee or exchange has its own rate.</p><div data-matches></div><button type="button" class="je-btn je-btn-secondary" data-repair-layout hidden></button><div class="generator-table258"><table><thead><tr><th>#</th><th>Account</th><th>Line memo</th><th>Currency</th><th>Debit</th><th>Credit</th><th>ER / VR</th><th title="Book rate in LAK per foreign unit">BR · LAK/unit</th><th></th></tr></thead><tbody data-entry-lines></tbody></table></div><footer><button type="button" class="je-btn je-btn-secondary" data-add>Add line</button><button type="button" class="je-btn je-btn-secondary" data-undo hidden>Undo removal</button><button type="button" class="je-btn je-btn-secondary" data-generate>Generate</button><button type="button" class="je-btn je-btn-emerald" data-use disabled>Use in Post Entry</button></footer><p role="status" aria-live="polite" data-status></p></div>';
  dismissible(dialog);document.body.append(dialog);
  const clearEdited=e=>{const field=e.target;if(field.value?.trim())clearFieldError(field);};
  dialog.addEventListener('input',clearEdited);dialog.addEventListener('change',clearEdited);

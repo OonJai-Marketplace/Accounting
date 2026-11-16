@@ -21,8 +21,15 @@ function carrying(accountId,date){const ws=window.yearWindow14333?.state();let q
 // Built-ins use the same editable, zero-amount journal structure as saved templates.
 function templates(){
  const row=(code,currency,side,memo,legacy)=>({code:accounts().some(a=>a.code===code)?code:legacy||code,currency,side,memo});
+ const reg=window.JournalCompletion258?.registry(accounts());
+ const directPair=(code,side,memo)=>{const a=reg.replacement.get(code);return row(a.code,a.currency||a.currency_code,side,memo);};
+ const sales=reg?.replacement.has('9101')&&reg.replacement.has('9102');
+ const costs=reg?.replacement.has('9201')&&reg.replacement.has('9202');
  return [
- {id:'fx14383-income',builtin:true,name:'Record sales received in multiple currencies',generalMemo:'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:[
+ {id:'fx14383-income',builtin:true,name:'Record sales received in multiple currencies',generalMemo:sales?'Record sales in the currency received.':'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:sales?[
+ row('1016','LAK','debit','Cash received in LAK'),row('4010','LAK','credit','Sales paid in LAK'),
+ row('1017','THB','debit','Actual Thai baht cash received'),directPair('9101','credit','Sales paid in THB'),
+ row('1018','USD','debit','Actual US dollar cash received'),directPair('9102','credit','Sales paid in USD')]:[
  row('1016','LAK','debit','Total cash received in LAK'),
  row('4010','LAK','credit','Total dine-in sales in LAK, including foreign-currency receipts'),
  row('9190','LAK','debit','LAK equivalent of THB and USD sales received','9035'),
@@ -30,7 +37,10 @@ function templates(){
  row('9101','THB','credit','System offset for dine-in sales in THB','9031'),
  row('1018','USD','debit','Actual US dollar cash received'),
  row('9102','USD','credit','System offset for dine-in sales in USD','9033')]},
- {id:'fx14383-expense',builtin:true,name:'Pay food costs in multiple currencies',generalMemo:'Record expenses paid in foreign currencies, with LAK mapping and exchange gain or loss.',lines:[
+ {id:'fx14383-expense',builtin:true,name:'Pay food costs in multiple currencies',generalMemo:costs?'Record food costs in the currency paid.':'Record expenses paid in foreign currencies, with LAK mapping and exchange gain or loss.',lines:costs?[
+ directPair('9201','debit','Food costs paid in THB'),row('1017','THB','credit','Actual Thai baht cash paid'),
+ directPair('9202','debit','Food costs paid in USD'),row('1018','USD','credit','Actual US dollar cash paid'),
+ row('5010','LAK','debit','Food costs paid in LAK'),row('1016','LAK','credit','Cash paid in LAK')]:[
  row('9201','THB','debit','System offset for cost of goods in THB','9032'),
  row('1017','THB','credit','Actual Thai baht cash paid'),
  row('5010','LAK','debit','Cost of goods purchased at the transaction-date LAK value'),

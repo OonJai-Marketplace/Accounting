@@ -1,1 +1,1 @@
-{"version": "143.419", "changes": ["The desktop right-side shortcuts now share one vertically centered column with even spacing and the sequential checklist in the middle."]}
+{"version": "143.420", "changes": ["Generate Journal and payroll use regular foreign-currency accounts for purchases, income and owner receipts. Salary settlements retain the required book rates and FX lines. New rent amortizations use the prepaid lot\u2019s historical rate."]}

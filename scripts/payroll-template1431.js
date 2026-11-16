@@ -59,7 +59,8 @@ function defaultTemplate(run){
  const rule=(account,side,basis,currency,scope,memo,expectedCurrency=currency)=>({account,side,basis,employees:currency,scope,memo,expectedCurrency,manual:''});
  for(const c of currencies){
   const group=rows.filter(r=>r.employee.currency===c),sso=group.some(r=>r.employee.sso),foreign=c!=='LAK';
-  const salary=exact({USD:'9231',LAK:'5311',THB:'9232'}[c]||'',c);
+  const directSalary=window.JournalCompletion258?.registry(eligible()).replacement.get({USD:'9231',THB:'9232'}[c]);
+  const salary=directSalary?.id||exact({USD:'9231',LAK:'5311',THB:'9232'}[c]||'',c);
   const start=t.lines.length;
   t.lines.push(rule(salary,'DR','gross',c,'total','Gross salaries · '+c),rule('$employee','CR','adjusted',c,'each','Final salary'));
   t.lines.push(rule('$employee','CR','cashAdvance',c,'each','Entitlement allocated to advance recovery'),rule('$employee','CR','loanRecovery',c,'each','Entitlement allocated to loan recovery'));
@@ -71,8 +72,8 @@ function defaultTemplate(run){
    if(sso)t.lines.push(rule(taxBridge,'CR','employeeSso',c,'total','Employee SSO withholding'));
    for(const r of t.lines.slice(start))r.conversionSource274=true;
    const derived=(account,kind,memo)=>({...rule(account,'AUTO','rounding',c,'total',memo,kind==='quantity'?c:'LAK'),derived274:kind});
-   t.lines.push(rule(exact('5311','LAK'),'DR','gross',c,'total','Salary expense · '+c+' payroll','LAK'),derived(exact('9290','LAK'),'salaryOffset','Salary mapping · converted value'));
-   for(const row of group)if(Number(row.input?.reimbursement)>0||run.results?.some(x=>x.employeeId===row.employeeId&&Number(x.reimbursement)>0)){
+   if(!directSalary)t.lines.push(rule(exact('5311','LAK'),'DR','gross',c,'total','Salary expense · '+c+' payroll','LAK'),derived(exact('9290','LAK'),'salaryOffset','Salary mapping · converted value'));
+   for(const row of group)if(!directSalary&&(Number(row.input?.reimbursement)>0||run.results?.some(x=>x.employeeId===row.employeeId&&Number(x.reimbursement)>0))){
     for(const [kind,memo] of [['reimbursementExpense','Reimbursement expense'],['reimbursementOffset','Reimbursement mapping · converted value']])t.lines.push({...derived('',kind,memo),employees:'employee:'+row.employeeId,scope:'each'});
    }
    t.lines.push(derived(exact('9041','LAK'),'taxBridge','Employee withholding · converted value'));
@@ -98,6 +99,23 @@ function upgrade308(template){
   if(r.basis==='pit'&&r.side==='CR'&&r.scope==='total'&&r.expectedCurrency==='LAK'&&String(r.manual??'').trim()==='')return [{...r,basis:'employeePit',memo:'PIT · employee share payable'},{...r,basis:'employerPit',memo:'PIT · company share payable'}];
   return [r];
  });
+ const chart=eligible(),registry=window.JournalCompletion258?.registry(chart);
+ if(registry?.replacement.size){
+  const account=r=>chart.find(a=>a.id===r.account);
+  for(const gross of t.lines.filter(r=>r.basis==='gross'&&r.conversionSource274)){
+   const group=gross.groupCurrency275||gross.employees,old=account(gross),direct=registry.replacement.get(String(old?.code));
+   if(!direct||!['5316','5317'].includes(String(direct.code)))continue;
+   const groupRules=t.lines.filter(r=>(r.groupCurrency275||r.employees)===group);
+   const counterparts=groupRules.filter(r=>r.derived274==='salaryOffset'||(r.basis==='gross'&&r.expectedCurrency==='LAK'&&account(r)?.code==='5311'&&r.side==='DR'));
+   if(counterparts.length!==2||counterparts.some(r=>String(r.manual??'').trim()!==''))continue;
+   gross.account=direct.id;
+   t.lines=t.lines.filter(r=>!counterparts.includes(r));
+  }
+  for(const r of t.lines.filter(r=>r.basis==='reimbursement'&&r.conversionSource274)){
+   const replacement=registry.replacement.get(String(account(r)?.code));
+   if(replacement&&registry.direct.get(replacement.id)?.offsetCode==='9290')r.account=replacement.id;
+  }
+ }
  t.version=143309;return t;
 }
 function isStarter(t){return t?.lines?.length===2&&t.lines[0].account===''&&t.lines[0].basis==='gross'&&t.lines[1].account==='$employee'&&t.lines[1].basis==='adjusted';}
@@ -181,6 +199,7 @@ function evaluate(run,template){
   const reimbursements=source.filter(l=>rules[l.ruleIndex].basis==='reimbursement');
   const registry=window.JournalCompletion258?.registry(eligible());
   for(const l of reimbursements){
+   if(registry&&window.JournalCompletion258.type(l.account)==='EXPENSE'&&!window.JournalCompletion258.technical(l.account)&&l.side==='DR')continue;
    const mapping=registry?.maps.get(l.account.id),pair=rules.filter(r=>groupCurrency(r)===c&&r.employees==='employee:'+l.employeeId275&&/^reimbursement/.test(r.derived274||''));
    if(!mapping?.actual||!mapping?.offset||mapping.offsetCode!=='9290'||!/^5/.test(mapping.actual.code)||pair.length!==2||new Set(pair.map(r=>r.derived274)).size!==2||l.side!=='DR'){
     report('Choose a supported foreign expense mapping for each reimbursement; use the default journal to include its LAK counterparts.');continue;
@@ -191,7 +210,9 @@ function evaluate(run,template){
   if(Math.abs(qty)>source.length*.005+.000001){report(c+' difference exceeds the calculated conversion rounding.');continue;}
   const converted=bases=>round(source.filter(l=>bases.includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n+round(signed(l)*rate),0));
   const entitlement=source.filter(l=>['adjusted','cashAdvance','loanRecovery'].includes(rules[l.ruleIndex].basis));
-  const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,0));
+  const directCosts=source.filter(l=>registry&&window.JournalCompletion258.type(l.account)==='EXPENSE'&&!window.JournalCompletion258.technical(l.account)&&['gross','reimbursement'].includes(rules[l.ruleIndex].basis));
+  const costRounding=directCosts.reduce((n,l)=>n+l.sourceLak274-round(l.amount*rate),0);
+  const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,costRounding));
   const values={salaryOffset:-converted(['gross']),taxBridge:-converted(['employeePit','employeeSso']),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
   for(const [i,r] of rules.entries())if(r.derived274&&groupCurrency(r)===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
   const local=round(lines.filter(l=>l.account.currency==='LAK'&&groupCurrency(rules[l.ruleIndex])===c).reduce((n,l)=>n+signed(l),0));

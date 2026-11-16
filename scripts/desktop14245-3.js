@@ -2378,10 +2378,39 @@ async function confirmSaveTemplate() {
 }
 async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');const status=document.getElementById('templateCloudStatus275'),owner=liveProfile?.id;await window.TemplateCloud275?.sync();if(status?.isConnected&&liveProfile?.id===owner)await renderTemplateManager();}
 function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
+// Adapt the working copy only. Preserve template numbers, stored revisions and custom business lines.
+function directTransactionTemplate(template,reg){
+  const accounts=AccountingStore.accounts;
+  const sampleAccounts={'Salaries & Wages (USD)':reg.replacement.get('9231'),'Payroll Tax Payable (LAK)':reg.byCode('2111','LAK'),'SSO Payable (LAK)':reg.byCode('2112','LAK')};
+  const lines=template.lines.map(l=>{
+    const a=template.id==='tpl-payroll-sample'&&!l.accountId&&!l.code&&sampleAccounts[l.account];
+    return a?{...l,accountId:a.id,currency:a.currency,code:a.code,account:a.code+' — '+a.name}:l;
+  });
+  const resolved=lines.map(l=>accounts.find(a=>l.accountId?a.id===l.accountId:l.code&&a.code===l.code&&a.currency===l.currency)||resolveTemplateAccount14397(l));
+  const removed=new Set();
+  const allocation=resolved.some(a=>a?.code==='9321'||a?.code==='9322');
+  for(const [i,old] of resolved.entries()){
+    const target=reg.replacement.get(old?.code);
+    if(!target||(old.code==='9311'&&(allocation||lines[i].side!=='credit')))continue;
+    const info=reg.direct.get(target.id),side=lines[i].side;
+    const matches=(code,expected)=>resolved.map((a,n)=>a?.code===code&&!removed.has(n)&&lines[n].side===expected?n:-1).filter(n=>n>=0);
+    const offsets=matches(info.offsetCode,side==='debit'?'credit':'debit'),actual=matches(info.actualCode,side);
+    if(resolved.some(a=>a?.code===info.offsetCode)){
+      if(!side||offsets.length!==1||actual.length!==1||resolved.filter(a=>a?.id===old.id).length!==1){
+        return {...template,reviewDirectAccounts:true};
+      }
+      removed.add(offsets[0]);removed.add(actual[0]);
+    }
+    lines[i]={...lines[i],accountId:target.id,code:target.code,currency:target.currency,account:target.code+' — '+target.name};
+  }
+  return lines.some((l,i)=>l!==template.lines[i])?{...template,lines:lines.filter((l,i)=>!removed.has(i))}:template;
+}
 function availableTransactionTemplates(){
   TemplateStore.load();
   const overrides=new Map(TemplateStore.templates.map(t=>[t.id,t]));
-  return [...builtInTransactionTemplates268().filter(t=>!overrides.has(t.id)),...TemplateStore.templates].filter(t=>!t.deleted);
+  const reg=window.JournalCompletion258?.registry(AccountingStore.accounts);
+  const saved=TemplateStore.templates.filter(t=>!t.deleted).map(t=>reg?.replacement?.size?directTransactionTemplate(t,reg):t);
+  return [...builtInTransactionTemplates268().filter(t=>!overrides.has(t.id)),...saved];
 }
 function templateEditorFields14399(t){
   let host=document.getElementById('templateFields14399');
@@ -2446,6 +2475,7 @@ function restoreJournalTemplateHints(row){
 }
 function applyTransactionTemplate(id){
   const t=availableTransactionTemplates().find(x=>x.id===id); if(!t)return;
+  if(t.reviewDirectAccounts){showAppNotification('Review saved template','Choose the direct foreign accounts in Edit and review the separate LAK lines.',true);return;}
   let lines=t.lines;
   if(t.builtin){
     lines=t.lines.map(line=>{const a=AccountingStore.accounts.find(a=>a.code===line.code&&a.currency===line.currency&&a.isPosting!==false&&a.active!==false);return {...line,account:a?a.code+' — '+a.name:'',resolved:a}});

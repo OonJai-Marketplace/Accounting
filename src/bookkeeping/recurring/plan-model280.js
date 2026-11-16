@@ -25,10 +25,12 @@ function checkAmortization(normalized,chart){
   if(prepaid.length!==1)throw Error('Use one prepaid asset credit per amortization plan. Prepare the expense release with Generate first.');
   if(normalized.some(l=>G().fund(chart.find(a=>a.id===l.account_id))||String(chart.find(a=>a.id===l.account_id).code)==='5419'))throw Error('Amortization releases a prepaid balance. Remove cash, bank and exchange gain/loss lines.');
   const p=prepaid[0],same=normalized.filter(l=>l.currency_code===p.currency_code),expense=same.find(l=>l.debit>0);
-  if(same.length!==2||!expense||normalized.length!==(p.currency_code==='LAK'?2:4))throw Error('Use one expense and one prepaid asset, plus the two LAK mapping lines for foreign prepaids.');
+  if(same.length!==2||!expense)throw Error('Use one expense debit and one prepaid asset credit in the same currency.');
   const a=chart.find(a=>a.id===expense.account_id);
-  if(p.currency_code==='LAK'){if(G().type(a)!=='EXPENSE'||G().technical(a))throw Error('Choose the expense account for this prepaid release.');}
-  else{const m=G().registry(chart).maps.get(a.id);if(!m?.actual||!m.offset||G().type(m.actual)!=='EXPENSE')throw Error('Choose a supported expense mapping for the prepaid currency.');
+  if(!G().technical(a)){
+   if(normalized.length!==2||G().type(a)!=='EXPENSE'||expense.book_rate_lak!==p.book_rate_lak)throw Error('Use one regular expense and one prepaid asset at the same historical rate.');
+  }
+  else{if(normalized.length!==4||p.currency_code==='LAK')throw Error('Check the prepaid release layout.');const m=G().registry(chart).maps.get(a.id);if(!m?.actual||!m.offset||G().type(m.actual)!=='EXPENSE')throw Error('Choose a supported expense mapping for the prepaid currency.');
    const actual=normalized.find(l=>l.account_id===m.actual.id),offset=normalized.find(l=>l.account_id===m.offset.id);
    if(!actual?.debit||!offset?.credit||Math.abs(actual.debit-round(p.credit*p.book_rate_lak))>.01||expense.book_rate_lak!==p.book_rate_lak)throw Error('The LAK expense and mapping must use the prepaid’s recorded book rate. Run Generate with that rate.');
   }
@@ -60,10 +62,10 @@ function preview(config,source,chart){
  return periods.map((p,index)=>{const before=used;used+=p.weight;let allocated=lines.map(l=>({...l,debit:total?round(round(l.debit*used/totalWeight)-round(l.debit*before/totalWeight)):l.debit,credit:total?round(round(l.credit*used/totalWeight)-round(l.credit*before/totalWeight)):l.credit}));
   if(config.kind==='amortization'){
    const foreign=allocated.find(l=>l.credit>0&&l.currency_code!=='LAK');
-   if(foreign){const original=lines.find(l=>l.account_id===foreign.account_id),a=allocated.find(l=>l.debit>0&&l.currency_code==='LAK'),c=allocated.find(l=>l.credit>0&&l.currency_code==='LAK');const basis=total?original.credit:round(original.credit*periods.length),previous=total?round(basis*before/totalWeight):round(original.credit*index),cumulative=total?round(basis*used/totalWeight):round(original.credit*(index+1));a.debit=c.credit=round(round(cumulative*foreign.book_rate_lak)-round(previous*foreign.book_rate_lak));
+   if(foreign){const original=lines.find(l=>l.account_id===foreign.account_id),a=allocated.find(l=>l.debit>0&&l.currency_code==='LAK'),c=allocated.find(l=>l.credit>0&&l.currency_code==='LAK');const basis=total?original.credit:round(original.credit*periods.length),previous=total?round(basis*before/totalWeight):round(original.credit*index),cumulative=total?round(basis*used/totalWeight):round(original.credit*(index+1));const carrying=round(round(cumulative*foreign.book_rate_lak)-round(previous*foreign.book_rate_lak));if(a&&c)a.debit=c.credit=carrying;
     // Allocate the historical LAK cents cumulatively too. A tiny effective-rate
     // rounding adjustment keeps the foreign ledger and its LAK mapping identical.
-    if(round(foreign.credit*foreign.book_rate_lak)!==a.debit){const r=Number((a.debit/foreign.credit).toFixed(10));if(round(foreign.credit*r)!==a.debit)throw Error('This allocation needs a smaller amount or fewer rate decimals.');for(const l of allocated.filter(l=>l.currency_code!=='LAK'))l.book_rate_lak=l.fx_rate_lak=r;}
+    if(round(foreign.credit*foreign.book_rate_lak)!==carrying){const r=Number((carrying/foreign.credit).toFixed(10));if(round(foreign.credit*r)!==carrying)throw Error('This allocation needs a smaller amount or fewer rate decimals.');for(const l of allocated.filter(l=>l.currency_code!=='LAK'))l.book_rate_lak=l.fx_rate_lak=r;}
    }
   }
   return {...p,index,lines:allocated};
