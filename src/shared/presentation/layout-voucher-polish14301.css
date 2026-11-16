@@ -99,3 +99,20 @@ body.shell113 #document-editor105 .doc-quick1426 [data-doc-action="receipt-pdf24
 body.shell113 #document-editor105 .doc-quick1426 [data-doc-action="receipt-share245"]{order:102!important;white-space:nowrap!important;width:auto!important}
 
 body.shell113 #document-editor105 .doc-quick1426 .doc-voucher-actions250{display:inline-flex!important;align-items:center;gap:4px;flex:0 0 auto;flex-wrap:nowrap;margin-left:3px!important;order:99!important}
+
+/* Keep the payment form visible below the document switcher and editable title. */
+body #document-editor105.payment-form-editor .doc-worktabs1432{padding:3px 6px;gap:4px}
+body #document-editor105.payment-form-editor .doc-worktab1432{max-width:180px;min-width:0}
+body #document-editor105.payment-form-editor .doc-worktabs1432 button{
+ height:24px!important;min-height:24px!important;padding:2px 6px!important;font-size:12px!important;line-height:1.2!important
+}
+body #document-editor105.payment-form-editor .doc-worktab1432 [role=tab]{min-width:0;max-width:150px}
+body #document-editor105.payment-form-editor .doc-worktab1432 [data-close-document1432]{flex:none;min-width:24px}
+body #document-editor105.payment-form-editor.menus1426 .doc-name107{max-width:min(240px,100%);min-width:0}
+@layer compact14327 {
+ body #document-editor105.payment-form-editor.menus1426 .doc-name107 input{
+   box-sizing:border-box;height:24px!important;min-height:24px!important;max-height:24px!important;padding:2px 6px!important;font-size:13px!important;line-height:1.2!important
+ }
+}
+.payment-signers{display:flex;gap:12px;flex-wrap:wrap}
+.payment-signers fieldset{flex:1 1 180px;min-width:0}

@@ -17,7 +17,7 @@ function choices(field,value,blank=false){const options=field==='currency'?['LAK
 // Upgrade only the known generated payment layout when an editable copy is opened.
 function upgradeLayout(root){
  const tables=[...root.querySelectorAll('table[data-voucher-table14298]')].filter(t=>/^payment-(receipt|voucher)$/.test(t.dataset.voucherTable14298));
- if(!tables.length)return;
+ if(!tables.length&&!root.querySelector('[data-handwritten-sheet14303]'))return;
  for(const table of tables){
   const heads=table.querySelectorAll('thead th');
   if(heads[1]?.textContent.trim()==='Reference / Unit')heads[1].textContent='Quantity';
@@ -98,6 +98,6 @@ function release(file,check,action){
  const failed=e=>{if(e.name==='AbortError')return;try{check();delivery(file,check,e.name==='NotAllowedError'?'Your PDF is ready. Tap Share to choose an app.':e.message);}catch{}};
  try{Promise.resolve(share(file,check)).catch(failed);}catch(e){failed(e);}
 }
-async function pdf(dom){await script('scripts/document-downloads14311.js?v=143.75',()=>window.documentDownloads14311);return documentDownloads14311.pdf(dom);}
+async function pdf(dom){await script('scripts/document-downloads14311.js?v=143.400',()=>window.documentDownloads14311);return documentDownloads14311.pdf(dom);}
 window.Receipt245={upgradeLayout,amountWords,groupAmount,formatAmount,choices,syncFields,html,total,fmt,esc,frameHTML,retained,delivery,release,pdf,base64,pdfBlob,script};
 })();
