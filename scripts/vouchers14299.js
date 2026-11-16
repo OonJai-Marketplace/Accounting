@@ -1,3 +1,187 @@
+// One transaction assigns a number to one local save, even in concurrent tabs.
+function paymentNumberStore401({rpc, guard, actor, offline}) {
+  const scope = (type,date) => type + ':' + date.slice(0,7);
+  const empty = () => ({stock:[], next:{}, intents:{}, pending:{}, confirmed:{}});
+  function serial(number) {
+    const m = /^OJM\d{2}-[VR]([A-Z])\d{2}(\d{2})$/.exec(number);
+    return m ? (m[1].charCodeAt(0)-65)*99 + Number(m[2]) : 0;
+  }
+  function labels(type,date,start,count) {
+    if(start+count-1>2574)throw Error('No more numbers are available for this type and month.');
+    return Array.from({length:count},(_,i)=>{
+      const n=start+i-1;
+      return 'OJM'+date.slice(2,4)+'-'+(type==='receipt'?'R':'V')+String.fromCharCode(65+Math.floor(n/99))+date.slice(5,7)+String(n%99+1).padStart(2,'0');
+    });
+  }
+  async function local(change,write=false,fileKey=null) {
+    const check=guard(),user=actor(),label='payment-documents401:'+user;
+    check();
+    const db=await new Promise((resolve,reject)=>{
+      const req=indexedDB.open('oonjai-payment-documents401',1);
+      req.onupgradeneeded=()=>req.result.createObjectStore('accounts');
+      req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+    });
+    try {
+      check();
+      return await new Promise((resolve,reject)=>{
+        const tx=db.transaction('accounts',write?'readwrite':'readonly'),store=tx.objectStore('accounts'),req=store.get(user);
+        let value,failed;
+        const pdfKey=key=>user+':pdf:'+key;
+        const pdf=fileKey===null?null:store.get(pdfKey(fileKey));
+        (pdf||req).onsuccess=()=>{try{
+          check();
+          const state=deviceVault14334.unpack(req.result,label)||empty();
+          const bytes=pdf?.result?deviceVault14334.unpack(pdf.result,label+':pdf:'+fileKey):null;
+          value=change(state,bytes,{
+            put:data=>store.put(deviceVault14334.pack(data,label+':pdf:'+fileKey),pdfKey(fileKey)),
+            remove:key=>store.delete(pdfKey(key))
+          });
+          if(write)store.put(deviceVault14334.pack(state,label),user);
+        }catch(e){failed=e;tx.abort()}};
+        tx.oncomplete=()=>{try{check();resolve(value)}catch(e){reject(e)}};
+        tx.onabort=tx.onerror=()=>reject(failed||tx.error||Error('Could not retain the document on this device.'));
+      });
+    }finally{db.close()}
+  }
+  const networkFailure=e=>offline()||/failed to fetch|networkerror|network request failed|load failed|network connection|fetch failed|timeout/i.test(e?.message||'');
+  function available(s,type,date,count) {
+    const key=scope(type,date),stock=s.stock.filter(x=>x.scope===key);
+    if(stock.length>=count)return stock.slice(0,count).map(x=>x.number);
+    return labels(type,date,s.next[key]||1,count);
+  }
+  async function preview(type,date,count=1) {
+    const check=guard(),key=scope(type,date);
+    const saved=await local(s=>s.stock.filter(x=>x.scope===key).slice(0,count));
+    if(saved.length===count)return saved.map(x=>x.number);
+    if(!offline()){
+      try{
+        const numbers=await rpc('payment_preview401',{p_type:type,p_date:date,p_count:count});
+        if(!Array.isArray(numbers)||numbers.length!==count||!serial(numbers[0]))throw Error('Document number preview is unavailable.');
+        check();await local(s=>{s.next[key]=Math.max(s.next[key]||1,serial(numbers[0]))},true);
+        return numbers;
+      }catch(e){check();if(!networkFailure(e))throw e}
+    }
+    return local(s=>available(s,type,date,count));
+  }
+  async function reserve(type,date,count) {
+    const check=guard(),key=scope(type,date);
+    // Persist an intent before contacting the server. A lost response reuses its key.
+    const intent=await local(s=>s.intents[key] ||= {key:crypto.randomUUID(),type,date,count},true);
+    const numbers=await rpc('payment_reserve401',{p_type:type,p_date:intent.date,p_count:intent.count,p_key:intent.key});
+    check();
+    if(!Array.isArray(numbers)||numbers.length!==intent.count||numbers.some(n=>!serial(n)))throw Error('Number reservation was not confirmed.');
+    await local(s=>{
+      if(s.intents[key]?.key!==intent.key)return;
+      s.stock.push(...numbers.map(number=>({number,key:intent.key,scope:key})));
+      s.next[key]=Math.max(s.next[key]||1,serial(numbers.at(-1))+1);
+      delete s.intents[key];
+    },true);
+    return numbers;
+  }
+  function localRows(item) {
+    return item.numbers.map((number,i)=>({id:item.request.p_request_key+':'+i,number,version:1,local401:true,held401:item.held}));
+  }
+  async function enqueue(request) {
+    return local(s=>{
+      const id=request.p_request_key;
+      if(s.confirmed[id])return;
+      if(s.pending[id])return;
+      const req=structuredClone(request),type=req.p_data.documentType||'voucher',date=req.p_date,key=scope(type,date),count=req.p_count;
+      const holds=s.stock.filter(x=>x.scope===key).slice(0,count);
+      const held=!!req.p_data.numberSeries401&&holds.length===count;
+      const numbers=available(s,type,date,count);
+      if(held){
+        req.p_data.holds401=holds.map(({key,number})=>({key,number}));
+        const used=new Set(numbers);s.stock=s.stock.filter(x=>!used.has(x.number));
+      }else if(req.p_data.numberSeries401)req.p_data.expected401=numbers;
+      s.next[key]=Math.max(s.next[key]||1,serial(numbers.at(-1))+1);
+      s.pending[id]={request:req,numbers,held,pdfs:{},conflict:false};
+    },true);
+  }
+  async function syncOne(id) {
+    const check=guard(),item=await local(s=>s.pending[id]);
+    if(!item)return local(s=>s.confirmed[id]);
+    let rows;
+    try{rows=await rpc('voucher_issue14299',item.request)}catch(e){
+      if(e.code==='P0401'||e.message?.includes('pending document number is no longer available')){
+        check();await local(s=>{if(s.pending[id])s.pending[id].conflict=true},true);
+      }throw e;
+    }
+    check();
+    if(rows?.length!==item.numbers.length||rows.some(r=>!r.id||!r.number))throw Error('The complete document batch was not confirmed.');
+    const confirmed=rows.map(({id,number,version})=>({id,number,version}));
+    const uploaded={};
+    // A print may finish while a sync is in flight. Retire the queue only once
+    // every PDF actually retained on this device has a matching server copy.
+    for(;;){
+      const pending=await local(s=>s.pending[id]);
+      for(const i of Object.keys(pending?.pdfs||{})){
+        if(uploaded[i])continue;
+        const pdf=await local((state,bytes)=>state.pending[id]?bytes:null,false,id+':'+i);
+        if(!pdf){
+          if(await local(state=>!!state.pending[id]))throw Error('The retained PDF could not be read on this device.');
+          continue;
+        }
+        if(confirmed[i].version!==1)throw Error('The recorded document changed after offline printing. The printed copy is retained on this device for review.');
+        const args={p_id:confirmed[i].id,p_version:1};
+        const existing=await rpc('receipt_pdf245',args);
+        const retained=existing||await rpc('receipt_pdf245',{...args,p_pdf:pdf});
+        if(retained?.base64!==pdf)throw Error('The saved PDF differs from the printed device copy. Both copies have been retained for review.');
+        uploaded[i]=true;
+      }
+      check();
+      const done=await local((s,bytes,files)=>{
+        if(Object.keys(s.pending[id]?.pdfs||{}).some(k=>!uploaded[k]))return false;
+        const key=scope(item.request.p_data.documentType||'voucher',item.request.p_date);
+        s.next[key]=Math.max(s.next[key]||1,serial(confirmed.at(-1).number)+1);
+        for(const i of Object.keys(s.pending[id]?.pdfs||{}))files.remove(id+':'+i);
+        s.confirmed[id]=confirmed;delete s.pending[id];return true;
+      },true);
+      if(done)return confirmed;
+    }
+  }
+  async function issue(request){
+    const id=request.p_request_key,check=guard();
+    const known=await local(s=>!!(s.pending[id]||s.confirmed[id]));
+    if(!known&&!offline()&&request.p_data.numberSeries401)await preview(request.p_data.documentType||'voucher', request.p_date,request.p_count);
+    check();await enqueue(request);
+    if(!offline()){
+      try{return await syncOne(id)}catch(e){check();if(!networkFailure(e))throw e}
+    }
+    return local(s=>s.confirmed[id]||localRows(s.pending[id]));
+  }
+  async function pendingPdf(id,args){
+    const index=Number(String(args.p_id).split(':')[1]);
+    if(!Number.isInteger(index))return rpc('receipt_pdf245',args);
+    const result=await local((s,bytes,files)=>{
+      const item=s.pending[id];
+      if(!item)return {confirmed:s.confirmed[id]?.[index]};
+      if(!item.held)throw Error('This number is pending confirmation. Sync documents before printing, or prepare offline numbers before your next offline session.');
+      if(index<0||index>=item.numbers.length)throw Error('Document page not found.');
+      if(args.p_pdf){
+        if(item.pdfs[index]&&bytes!==args.p_pdf)throw Error('A different device PDF is already retained.');
+        if(!item.pdfs[index])files.put(args.p_pdf);
+        item.pdfs[index]=true;
+      }
+      return {file:item.pdfs[index]?{base64:bytes||args.p_pdf,filename:item.numbers[index]+'.pdf',version:1}:null};
+    },!!args.p_pdf,id+':'+index);
+    if(result.confirmed)return rpc('receipt_pdf245',{...args,p_id:result.confirmed.id,p_version:result.confirmed.version});
+    return result.file;
+  }
+  async function acceptNext(id,numbers) {
+    await local(s=>{
+      const item=s.pending[id];
+      if(!item?.conflict||item.held||Object.keys(item.pdfs).length)throw Error('These numbers cannot be reassigned.');
+      item.request.p_data.expected401=numbers;item.numbers=numbers;item.conflict=false;
+    },true);
+    return syncOne(id);
+  }
+  const summary=()=>local(s=>({stock:s.stock.reduce((map,x)=>(map[x.scope]=(map[x.scope]||0)+1,map),{}),
+    pending:Object.entries(s.pending).map(([id,i])=>({id,type:i.request.p_data.documentType||'voucher',numbers:i.numbers,conflict:i.conflict,held:i.held}))}));
+  return {preview,reserve,issue,syncOne,acceptNext,summary,pendingPdf,
+    confirmed:id=>local(s=>s.confirmed[id]),pending:id=>local(s=>s.pending[id]),localRows};
+}
+
 /* Voucher register: Stable sheet references plus journal-derived voucher IDs. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id), esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -5,38 +189,40 @@ const state={settings:null,rows:[],versions:[],ready:false,loading:null,error:''
 const admin=()=>typeof liveProfile!=='undefined'&&liveProfile?.role==='admin'&&liveProfile.status==='active';
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const guard14370=()=>{const actor=liveProfile?.id,client=ojmDb;return()=>{if(!admin()||actor!==liveProfile?.id||client!==ojmDb)throw Error('Account changed. Reopen vouchers.')}};
-const rpc=async(name,args)=>{const check=guard14370();check();const {data,error}=await ojmDb.rpc(name,args);check();if(error)throw Error(error.message);return data};
+const rpc=async(name,args)=>{const check=guard14370();check();const {data,error}=await ojmDb.rpc(name,args);check();if(error)throw Object.assign(Error(error.message),{code:error.code});return data};
 const status=(message,bad=false)=>{const el=$('voucherStatus14299');if(el){el.textContent=message;el.classList.toggle('error',bad)}};
+const offline=()=>navigator.onLine===false||window.deviceVault14334?.offline===true||window.sessionCache14333?.localMode===true;
+const numbering=paymentNumberStore401({rpc,guard:guard14370,actor:()=>liveProfile.id,today,offline});
 const labels=()=>({H:state.settings?.handwritten_label||'Handwritten',E:state.settings?.editor_label||'Edited and Printed'});
 const code=k=>k==='H'?state.settings?.handwritten_code||'H':state.settings?.editor_code||'E';
-const number=v=>v.data?.id_format?.scheme==='shared245'||v.data?.documentType==='receipt'?v.number:(v.journal_number||v.number);
+const number=v=>['shared245','separate401'].includes(v.data?.id_format?.scheme)||v.data?.documentType==='receipt'?v.number:(v.journal_number||v.number);
 const pendingNumber=(k,date=today())=>`${state.settings?.prefix||'OJM'}-${date.slice(state.settings?.year_digits===4?0:2,4)}${code(k)}-${String(Math.max(1,Number(state.sequences.find(r=>r.kind===k&&r.year_no===Number(date.slice(0,4)))?.next_no)||1)).padStart(state.settings?.digits||4,'0')}`;
 async function load(){const actor=liveProfile?.id,client=ojmDb;if(state.loading&&state.loadActor===actor&&state.loadClient===client)return state.loading;if(!admin()){state.ready=false;state.rows=[];state.sequences=[];state.settings=null;state.actor=null;state.client=null;state.error='Sign in with an active administrator account to use vouchers.';render();return false}state.loadActor=actor;state.loadClient=client;const check=guard14370();const task=(async()=>{try{const page=async(table,orders)=>{const read=async()=>{const rows=[];for(let offset=0;;offset+=500){check();let q=client.from(table).select('*');for(const [key,ascending]of orders)q=q.order(key,{ascending});const r=await q.range(offset,offset+499);check();if(r.error)throw r.error;if(!Array.isArray(r.data))throw Error('The complete dataset could not be read.');rows.push(...r.data);if(r.data.length<500)return rows}};const rows=window.offline14239?await offline14239.snapshot('vouchers-complete14370:'+table,read):await read();check();return rows};const [s,rows,sequences]=await Promise.all([client.from('voucher_settings14299').select('*').eq('id',1).single(),page('vouchers14299',[['created_at',false],['id',true]]),page('voucher_sequences14299',[['year_no',true],['kind',true]])]);check();if(s.error)throw s.error;if(!s.data)throw Error('Voucher settings are unavailable.');const prior=new Map((state.actor===actor&&state.client===client?state.rows:[]).map(v=>[v.id,v]));state.settings=s.data;state.rows=rows.map(v=>prior.get(v.id)?.version>v.version?prior.get(v.id):v);state.sequences=sequences;state.ready=true;state.error='';state.actor=actor;state.client=client;render();picker();window.preparedViews14340?.documentsChanged?.();window.refreshNotices1443?.();return true}catch(e){if(actor!==liveProfile?.id||client!==ojmDb)return false;state.ready=false;state.rows=[];state.error='Voucher database check failed: '+(e.message||e);picker();status(state.error,true);return false}})();state.loading=task;try{return await task}finally{if(state.loading===task)state.loading=null}}
 async function ensureReady(){if(state.ready&&state.actor===liveProfile?.id&&state.client===ojmDb)return true;status('Checking the voucher database…');if(await load())return true;status(state.error||'The voucher database is unavailable. Refresh and try again.',true);return false}
 function settings(){const s=state.settings;if(!s)return;const form=$('voucherSettings14299');if(!form)return;for(const key of ['prefix','handwritten_code','editor_code','handwritten_label','editor_label','digits','year_digits'])form.elements[key].value=s[key]??(key==='year_digits'?2:'');$('voucherExample14299').textContent=`Example: ${pendingNumber('H')} / ${pendingNumber('E')}. H = handwritten; E = edited and printed. Linked voucher IDs use the main journal Entry ID; unlinked sheets keep their reserved reference.`}
-function render(){settings();const body=$('voucherRows14299');if(!body)return;const reserved=reservedIds();body.replaceChildren();for(const v of state.rows){const waiting=!v.journal_entry_id&&reserved.has(v.id);const tr=document.createElement('tr');tr.innerHTML=`<td>${esc(number(v))}${v.journal_number?`<small class="voucher-sheet-ref14299">Sheet: ${esc(v.number)}</small>`:''}</td><td>${v.data?.documentType==='receipt'?'Receipt · ':''}${esc(v.data?.id_format?.label||labels()[v.kind])} (${esc(v.data?.id_format?.code||code(v.kind))})</td><td>${esc(formatAppDate(v.voucher_date))}</td><td>${esc(waiting?'Pending journal sync':v.status)}</td><td>${esc(v.data?.journal?.entry_no||(waiting?'Saved on this device':'Unlinked'))}</td><td></td>`;const actions=tr.lastElementChild;const button=(text,fn)=>{const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent=text;b.onclick=fn;actions.append(b)};button('View',()=>view(v));if(v.data?.documentType==='receipt'&&v.kind==='H'&&v.status!=='void')button('Attach photo',async()=>{try{const check=guard14370();await Receipt245.script('scripts/receipt-phone245.js?v=143.273',()=>window.ReceiptPhone245);check();await ReceiptPhone245.attach(rpc,v,check);await load()}catch(e){status(e.message,true)}});if(v.kind==='E'&&v.status!=='void')button('Edit',()=>edit(v));if(!v.journal_entry_id&&!waiting&&v.status!=='void')button('Link',()=>link(v));if(v.kind==='H'&&v.status!=='void')button('Open / Print',()=>printBlank([v]));if(!v.journal_entry_id&&!waiting&&v.status!=='void')button('Mark Unused',()=>markUnused(v));body.append(tr)}if(!state.rows.length)body.innerHTML='<tr><td colspan="6">No vouchers issued yet. Opening a draft uses no number.</td></tr>';status(`${state.rows.filter(x=>!x.journal_entry_id&&!reserved.has(x.id)&&x.status!=='void').length} voucher(s) awaiting a journal link.`)}
+function render(){settings();const body=$('voucherRows14299');if(!body)return;const reserved=reservedIds();body.replaceChildren();for(const v of state.rows){const waiting=!v.journal_entry_id&&reserved.has(v.id);const tr=document.createElement('tr');tr.innerHTML=`<td>${esc(number(v))}${v.journal_number?`<small class="voucher-sheet-ref14299">Sheet: ${esc(v.number)}</small>`:''}</td><td>${v.data?.documentType==='receipt'?'Receipt · ':''}${esc(v.data?.id_format?.label||labels()[v.kind])} (${esc(v.data?.id_format?.code||code(v.kind))})</td><td>${esc(formatAppDate(v.voucher_date))}</td><td>${esc(waiting?'Pending journal sync':v.status)}</td><td>${esc(v.data?.journal?.entry_no||(waiting?'Saved on this device':'Unlinked'))}</td><td></td>`;const actions=tr.lastElementChild;const button=(text,fn)=>{const b=document.createElement('button');b.type='button';b.className='je-btn je-btn-secondary';b.textContent=text;b.onclick=fn;actions.append(b)};button('View',()=>view(v));if(v.data?.documentType==='receipt'&&v.kind==='H'&&v.status!=='void')button('Attach photo',async()=>{try{const check=guard14370();await Receipt245.script('scripts/receipt-phone245.js?v=143.401',()=>window.ReceiptPhone245);check();await ReceiptPhone245.attach(rpc,v,check);await load()}catch(e){status(e.message,true)}});if(v.kind==='E'&&v.status!=='void')button('Edit',()=>edit(v));if(!v.journal_entry_id&&!waiting&&v.status!=='void')button('Link',()=>link(v));if(v.kind==='H'&&v.status!=='void')button('Open / Print',()=>printBlank([v]));if(!v.journal_entry_id&&!waiting&&v.status!=='void')button('Mark Unused',()=>markUnused(v));body.append(tr)}if(!state.rows.length)body.innerHTML='<tr><td colspan="6">No vouchers issued yet. Opening a draft uses no number.</td></tr>';status(`${state.rows.filter(x=>!x.journal_entry_id&&!reserved.has(x.id)&&x.status!=='void').length} voucher(s) awaiting a journal link.`)}
 async function saveSettings(e){e.preventDefault();if(!admin())return;const f=e.currentTarget,b=f.querySelector('button[type=submit]');b.disabled=true;status('Saving voucher ID settings…');try{const o=Object.fromEntries(new FormData(f));o.prefix=o.prefix.trim().toUpperCase();o.handwritten_code=o.handwritten_code.trim().toUpperCase();o.editor_code=o.editor_code.trim().toUpperCase();if(o.handwritten_code===o.editor_code)throw Error('Choose different letters for the two classifications.');state.settings=await rpc('voucher_config14299',{p_prefix:o.prefix,p_handwritten_code:o.handwritten_code,p_editor_code:o.editor_code,p_handwritten_label:o.handwritten_label,p_editor_label:o.editor_label,p_digits:Number(o.digits),p_year_digits:Number(o.year_digits)});settings();render();status('Voucher ID settings saved. Issued numbers retain their original prefix and codes.')}catch(error){status(error.message,true)}finally{b.disabled=false}}
 function voucherHTML(number,date,unit='Restaurant',currency='',rows=7,heading='PAYMENT VOUCHER'){
  return Receipt245.html({number,date,currency,blank:heading.startsWith('HANDWRITTEN'),type:'voucher',displayDate:date?formatAppDate(date):''});
 }
 function receiptHTML(number,date,currency='',method=''){return Receipt245.html({number,date,currency,paymentMethod:method,displayDate:date?formatAppDate(date):''})}
-async function nextNumbers245(date,count=1){return rpc('receipt_preview245',{p_date:date,p_count:count})}
+
 async function createReceipt(){
- if(!admin())return;const check=guard14370();if(!await ensureReady())return;check();
- const unit=$('voucherUnit14299').value,currency='',when='',issueDate=today(),number=(await nextNumbers245(issueDate))[0];check();
+ if(!admin())return;const check=guard14370();check();
+ const unit=$('voucherUnit14299').value,currency='',when='',issueDate=today(),number=(await numbering.preview('receipt',issueDate))[0];check();
  await openDocumentEditor105({title:'Payment Receipt · Draft',category:'Transactions',html:receiptHTML(number,when,currency),settings:{paper:'A4',orientation:'portrait',size:10,line:1.15,top:12,right:14,bottom:12,left:14,showBusinessName:false,pageNumbers:false},voucher14299:{kind:'E',documentType:'receipt',date:when,issueDate,unit,currency,paymentMethod:'',number,requestKey:crypto.randomUUID()}});
 }
 const sheetSettings={size:10,line:1.15,font:'Arial',paper:'A4',orientation:'portrait',top:12,right:14,bottom:12,left:14,showBusinessName:false,pageNumbers:false};
-async function create(){if(!admin())return;const check=guard14370();if(!await ensureReady())return;const unit=$('voucherUnit14299').value,currency='',when='',issueDate=today(),number=(await nextNumbers245(issueDate))[0];check();await openDocumentEditor105({title:'Payment Voucher · Draft',category:'Transactions',html:voucherHTML(number,when,unit,currency),settings:sheetSettings,voucher14299:{kind:'E',documentType:'voucher',date:when,issueDate,unit,currency,paymentMethod:'',number,requestKey:crypto.randomUUID()}})}
+async function create(){if(!admin())return;const check=guard14370();check();const unit=$('voucherUnit14299').value,currency='',when='',issueDate=today(),number=(await numbering.preview('voucher',issueDate))[0];check();await openDocumentEditor105({title:'Payment Voucher · Draft',category:'Transactions',html:voucherHTML(number,when,unit,currency),settings:sheetSettings,voucher14299:{kind:'E',documentType:'voucher',date:when,issueDate,unit,currency,paymentMethod:'',number,requestKey:crypto.randomUUID()}})}
 function blankPages(rows){return rows.map((v,i)=>`<div data-handwritten-sheet14303="${i}">${Receipt245.html({number:v.number,date:v.voucher_date,blank:true,type:v.data?.documentType==='receipt'?'receipt':'voucher'})}</div>`+(i<rows.length-1?'<div data-page-break="1"><br></div>':'')).join('')}
 function handwrittenHTML(rows){let html=blankPages(rows);if(rows.length===1&&rows[0].data?.html){const template=document.createElement('template');template.innerHTML=rows[0].data.html;const node=template.content;const batch=state.rows.filter(v=>v.batch_key===rows[0].batch_key&&v.batch_key).sort((a,b)=>a.ordinal-b.ordinal);const index=Math.max(0,batch.findIndex(v=>v.id===rows[0].id));const sheets=node.querySelectorAll('[data-handwritten-sheet14303]');const sheet=sheets[index];if(sheet){const numberCell=sheet.querySelector('[data-voucher-number14299]');if(numberCell)numberCell.textContent=rows[0].number;html=sheet.outerHTML}}
  return html;
 }
 async function printBlank(rows){if(!rows.length)return;const html=handwrittenHTML(rows);
- await openDocumentEditor105({title:'Handwritten Voucher · '+rows[0].number,category:'Transactions',html,settings:rows[0].data?.settings||sheetSettings,voucher14299:{kind:'H',documentType:rows[0].data?.documentType,id:rows[0].id,date:rows[0].voucher_date,number:rows[0].number,batchIds:rows.map(v=>v.id),batchNumbers:rows.map(v=>v.number),count:rows.length}})}
+ await openDocumentEditor105({title:(rows[0].data?.documentType==='receipt'?'Receipt':'Voucher')+' · '+rows[0].number,category:'Transactions',html,settings:rows[0].data?.settings||sheetSettings,voucher14299:{kind:'H',documentType:rows[0].data?.documentType,id:rows[0].id,date:rows[0].voucher_date,number:rows[0].number,batchIds:rows.map(v=>v.id),batchNumbers:rows.map(v=>v.number),count:rows.length}})}
 async function blankDraft250(count,documentType='voucher',settings=sheetSettings,unit='Accounting'){
  const check=guard14370();if(!admin())throw Error('Administrator access required.');if(!Number.isInteger(count)||count<1||count>50)throw Error('Choose 1 to 50 blank forms.');
- const when=today(),numbers=await nextNumbers245(when,count);check();const rows=numbers.map(number=>({number,voucher_date:when,data:{unit,documentType}}));
+ const when=today(),numbers=await numbering.preview(documentType,when,count);check();const rows=numbers.map(number=>({number,voucher_date:when,data:{unit,documentType}}));
  await openDocumentEditor105({title:(documentType==='receipt'?'Blank Receipts':'Blank Vouchers')+' · Draft ('+count+')',category:'Transactions',html:blankPages(rows),settings:{...sheetSettings,...settings},voucher14299:{kind:'H',documentType,date:'',issueDate:when,unit,number:numbers[0],count,requestKey:crypto.randomUUID()}});
 }
 async function view(v){const check=guard14370(),client=ojmDb;const lines=v.data?.journal?.lines||[];const box=document.createElement('div');box.className='voucher-detail14299';box.innerHTML=`<h3>${esc(number(v))} · ${esc(v.status)}</h3><p>${esc(v.data?.id_format?.label||labels()[v.kind])} · ${esc(formatAppDate(v.voucher_date))} · Journal ${esc(v.data?.journal?.entry_no||'unlinked')}</p><p>${journalMemoHtml143187(v.data?.journal?.memo||'')}</p><table><thead><tr><th>Account</th><th>Memo</th><th>Debit</th><th>Credit</th><th>Currency</th></tr></thead><tbody>${lines.map(x=>`<tr><td>${esc(x.code)} ${esc(x.account)}</td><td>${journalMemoHtml143187(x.description)}</td><td>${esc(x.debit)}</td><td>${esc(x.credit)}</td><td>${esc(x.currency)}</td></tr>`).join('')}</tbody></table><p>Supporting proof: ${esc(v.data?.proof||'Record the location of the external proof in the editor.')}</p>${(v.data?.photos245||[]).map(p=>/^data:image\/(png|jpeg|webp);base64,/.test(p.image||'')?`<img src="${esc(p.image)}" alt="Completed receipt" style="max-width:100%;height:auto">`:'').join('')}<div id="voucherHistory14299">Loading correction history…</div><button type="button" class="je-btn" id="voucherClose14299">Close</button>`;const modal=$('voucherModal14299');modal.replaceChildren(box);modal.hidden=false;box.querySelector('#voucherClose14299').onclick=()=>modal.hidden=true;const history=box.querySelector('#voucherHistory14299');let versions;
@@ -174,11 +360,61 @@ async function postWrap(){if(typeof submitJournalEntry!=='function'||submitJourn
 try{doc=readDocument(true)}catch(e){showCenterStatus(e.message,true);return}
 if(doc.slip&&!JournalModule.editingEntryId){showCenterStatus('This workflow uses a separate posting form. Include the slip reference in its general description.',true);return}
 const id=doc.voucher;if(!id)return original.apply(this,args);if(state.posting)return;if(JournalModule.editingEntryId)return status('Link an existing entry from the voucher register after saving the correction.',true);if(document.getElementById('jeMultipleDates')?.checked||window.journalBatch1440?.hasPending())return status('Choose a single-date entry when linking a voucher during posting.',true);const request=document.getElementById('journalEntry98')._postingRequest14228||crypto.randomUUID();document.getElementById('journalEntry98')._postingRequest14228=request;state.posting=true;try{const result=await original.apply(this,args);check();const receipt=await ojmDb.rpc('journal_receipt14228',{p_request_key:request});check();const entryId=receipt.data?.result?.[0]?.entry_id||receipt.data?.result?.entry_id;if(!entryId){status('The voucher was not linked. If posting succeeded, use Link in the voucher register to connect the saved entry.',true);return result}try{await linkId(id,entryId);select.value=''}catch{}return result}finally{state.posting=false}};submitJournalEntry._voucherWrapped14299=true}
+async function showDeviceDocuments(){
+ const panel=$('paymentDevice401');if(!panel||!admin())return;
+ const check=guard14370(),info=await numbering.summary();check();panel.replaceChildren();
+ for(const [key,count] of Object.entries(info.stock)){
+  const line=document.createElement('p');line.textContent=count+' offline '+key.split(':')[0]+' numbers available for '+key.split(':')[1];panel.append(line);
+ }
+ for(const item of info.pending){
+  const line=document.createElement('div'),open=document.createElement('button');
+  open.type='button';open.className='je-btn je-btn-secondary';open.textContent='Open';
+  const range=item.numbers.length>1?item.numbers[0]+' – '+item.numbers.at(-1):item.numbers[0];
+  line.append(range+' · '+(item.conflict?'Number conflict':item.held?'Saved on this device · reserved ID':'Saved on this device · pending ID')+' ');
+  open.onclick=async()=>{try{
+   const pending=await numbering.pending(item.id);check();if(!pending){await showDeviceDocuments();return}
+   const req=pending.request,d=req.p_data,rows=numbering.localRows(pending),html=document.createElement('div');html.innerHTML=d.html;
+   html.querySelectorAll('[data-voucher-number14299]').forEach((el,i)=>{if(rows[i])el.textContent=rows[i].number});
+   await openDocumentEditor105({title:(item.type==='receipt'?'Receipt ':'Voucher ')+range,category:'Transactions',html:html.innerHTML,settings:d.settings,
+    voucher14299:{kind:req.p_kind,id:rows[0].id,number:rows[0].number,date:d.displayDate250??req.p_date,issueDate:req.p_date,unit:d.unit,currency:d.currency,paymentMethod:d.paymentMethod,
+      documentType:item.type,local401:true,held401:item.held,requestKey:item.id,issueRequest:req,count:rows.length,batchNumbers:pending.numbers,batchIds:rows.map(r=>r.id),reopened401:true}});
+  }catch(e){status(e.message,true)}};
+  line.append(open);
+  if(item.conflict){const review=document.createElement('button');review.type='button';review.className=open.className;review.textContent='Review numbers';
+   review.onclick=async()=>{try{const pending=await numbering.pending(item.id);check();if(!pending)return;
+    const next=await rpc('payment_preview401',{p_type:item.type,p_date:pending.request.p_date,p_count:pending.request.p_count});check();
+    if(!await ui108.confirm('Assign available numbers','Replace '+range+' with '+next.join(', ')+' for these unprinted documents?'))return;
+    check();await numbering.acceptNext(item.id,next);await load();await showDeviceDocuments();
+   }catch(e){status(e.message,true)}};line.append(review);}
+  panel.append(line);
+ }
+}
+async function offlineNumbersDialog(){
+ if(!admin())return;const check=guard14370();
+ const pending=ui108.modal('Prepare offline numbers','<div id="paymentReserve401"><label>Document type<select name="type"><option value="voucher">Payment voucher</option><option value="receipt">Receipt</option></select></label><label>Issue month<input name="month" type="month" value="'+today().slice(0,7)+'"></label><label>Number of forms<input name="count" type="number" min="1" max="50" value="10"></label><p>Reserve consecutive numbers for this device so its saved documents can be printed offline.</p></div>',[{label:'Cancel',value:false},{label:'Reserve numbers',value:true,primary:true}]);
+ const dialog=$('paymentReserve401');if(!await pending)return;check();
+ const type=dialog.querySelector('[name=type]').value,month=dialog.querySelector('[name=month]').value,count=Number(dialog.querySelector('[name=count]').value);
+ if(!/^\d{4}-\d{2}$/.test(month)||!Number.isInteger(count)||count<1||count>50)throw Error('Choose a month and 1 to 50 forms.');
+ const nums=await numbering.reserve(type,month+'-01',count);check();await showDeviceDocuments();
+ status('Ready on this device: '+nums[0]+(nums.length>1?' – '+nums.at(-1):'')+'.');
+}
+async function syncDeviceDocuments(){
+ const check=guard14370(),info=await numbering.summary();let problem='';
+ for(const item of info.pending){check();try{await numbering.syncOne(item.id)}catch(e){problem=e.message;}}
+ check();await load();await showDeviceDocuments();if(problem)status(problem,true);
+}
 function install(){const section=$('journal'),settings=$('settings-accounting');if(!section||!settings)return;const nav=document.querySelector('#nav-module-transactions .nav-links')||document.querySelector('[data-module="transactions"] .nav-links');const b=document.createElement('button');b.type='button';b.className='tab-btn';b.dataset.tabTarget='transactions-vouchers14299';b.textContent='Documents';b.setAttribute('onclick',"switchTab('transactions-vouchers14299');vouchers14299.open()");nav?.append(b);
-const panel=document.createElement('section');panel.id='transactions-vouchers14299';panel.dataset.module='transactions';panel.className='tab-content';panel.innerHTML=`<div class="je-card"><div class="je-card-header"><div><h3 class="je-title">Documents</h3><p class="je-subtitle">Create vouchers, receipts and monthly cash slips.</p></div></div><div class="voucher-controls14299"><label>Operating Unit<select id="voucherUnit14299" class="je-select"><option>Restaurant</option><option>Wellness</option><option>Accounting</option></select></label><label>Currency<select id="voucherCurrency14299" class="je-select"><option>LAK</option><option>USD</option><option>THB</option></select></label><label>Voucher Date<input id="voucherDate14299" type="date" class="je-input"></label><button id="voucherCreate14299" type="button" class="je-btn je-btn-emerald">Create Voucher</button><button id="receiptCreate245" type="button" class="je-btn je-btn-emerald">Create Receipt</button><button id="cashSlipCreate277" type="button" class="je-btn je-btn-emerald">Create Cash Slip</button></div><p id="voucherStatus14299" role="status"></p><div class="table-container"><table class="je-table"><thead><tr><th>Voucher / Receipt ID</th><th>Classification</th><th>Date</th><th>Status</th><th>Journal Entry</th><th class="voucher-actions14299">Actions</th></tr></thead><tbody id="voucherRows14299"></tbody></table></div></div>`;section.after(panel);$('voucherDate14299').value=today();$('voucherCreate14299').onclick=create;$('receiptCreate245').onclick=()=>createReceipt().catch(e=>status(e.message,true));$('cashSlipCreate277').onclick=()=>MonthlyCashSlip277.create().catch(e=>status(e.message,true));
-const card=document.createElement('div');card.className='settings-compact-block voucher-config14299';card.innerHTML=`<div class="settings-mini-header"><div><h4>Voucher and receipt IDs</h4><p>Shared sequence: OJM26-A1101. Two-digit year, letter, two-digit month and count 01–99. After 99 the letter advances. New years restart at A01; issued IDs are never reused. Existing document IDs remain unchanged.</p></div></div>`;const accountingForm=settings.querySelector('form[data-settings-group=accounting]');if(accountingForm)accountingForm.after(card);else settings.querySelector('.je-card')?.append(card);
+const panel=document.createElement('section');panel.id='transactions-vouchers14299';panel.dataset.module='transactions';panel.className='tab-content';panel.innerHTML=`<div class="je-card"><div class="je-card-header"><div><h3 class="je-title">Documents</h3><p class="je-subtitle">Create vouchers, receipts and monthly cash slips.</p></div></div><div class="voucher-controls14299"><label>Operating Unit<select id="voucherUnit14299" class="je-select"><option>Restaurant</option><option>Wellness</option><option>Accounting</option></select></label><label>Currency<select id="voucherCurrency14299" class="je-select"><option>LAK</option><option>USD</option><option>THB</option></select></label><label>Voucher Date<input id="voucherDate14299" type="date" class="je-input"></label><button id="voucherCreate14299" type="button" class="je-btn je-btn-emerald">Create Voucher</button><button id="receiptCreate245" type="button" class="je-btn je-btn-emerald">Create Receipt</button><button id="paymentReserveButton401" type="button" class="je-btn je-btn-secondary">Prepare offline numbers</button><button id="paymentSync401" type="button" class="je-btn je-btn-secondary">Sync documents</button><button id="cashSlipCreate277" type="button" class="je-btn je-btn-emerald">Create Cash Slip</button></div><div id="paymentDevice401"></div><p id="voucherStatus14299" role="status"></p><div class="table-container"><table class="je-table"><thead><tr><th>Voucher / Receipt ID</th><th>Classification</th><th>Date</th><th>Status</th><th>Journal Entry</th><th class="voucher-actions14299">Actions</th></tr></thead><tbody id="voucherRows14299"></tbody></table></div></div>`;section.after(panel);
+ for(const [id,action] of [['paymentReserveButton401',offlineNumbersDialog],['paymentSync401',syncDeviceDocuments]]){
+  const button=$(id);button.onclick=async()=>{button.disabled=true;try{await action()}catch(e){status(e.message,true)}finally{button.disabled=false}};
+ }
+ $('voucherDate14299').value=today();$('voucherCreate14299').onclick=create;$('receiptCreate245').onclick=()=>createReceipt().catch(e=>status(e.message,true));$('cashSlipCreate277').onclick=()=>MonthlyCashSlip277.create().catch(e=>status(e.message,true));
+const card=document.createElement('div');card.className='settings-compact-block voucher-config14299';card.innerHTML=`<div class="settings-mini-header"><div><h4>Voucher and receipt IDs</h4><p>Vouchers and receipts have separate monthly numbers, for example OJM26-VA1101 and OJM26-RA1101. Each series starts at 01 and advances to B after A99. Earlier documents keep their original numbers.</p></div></div>`;const accountingForm=settings.querySelector('form[data-settings-group=accounting]');if(accountingForm)accountingForm.after(card);else settings.querySelector('.je-card')?.append(card);
 const group=document.querySelector('#journalEntry98 .je-meta-grid'),field=document.createElement('div');field.className='je-field-group voucher-pick14299';group?.append(field);installDocumentField(field);const modal=document.createElement('div');modal.id='voucherModal14299';modal.className='voucher-modal14299';modal.hidden=true;document.body.append(modal);postWrap();const hydrate=window.hydrateSupabaseSession;if(typeof hydrate==='function')window.hydrateSupabaseSession=async function(...args){const result=await hydrate.apply(this,args);void load();return result};load();}
-window.vouchers14299= {load,picker,readDocument,setDocument,appendJournalDocuments,acceptLinked,journalReferences,createReceipt,blankDraft250,open(){if(window.workspaceViews14364?.reuseView('transactions-vouchers14299'))return;if(state.ready&&state.actor===liveProfile?.id&&state.client===ojmDb){render();return}return ensureReady()},notices,linkId,get state(){return state},async saveEditor(model){const check=guard14370();if(!await ensureReady())throw Error(state.error||'Voucher database unavailable.');check();const meta=model.voucher14299;if(!meta)throw Error('No voucher is open.');if(meta.kind==='E'&&!meta.id&&!meta.currency){const t=document.createElement('template');t.innerHTML=model.html;if(![...t.content.querySelectorAll('tbody tr')].some(r=>r.cells[2]?.textContent.trim())){meta.kind='H';meta.count=1;meta.issueDate=meta.issueDate||today();}}if(meta.kind==='H'){if(meta.id)return {id:meta.id,number:meta.number,batchIds:meta.batchIds,batchNumbers:meta.batchNumbers};if(!meta.issueRequest){meta.issueRequest={p_kind:'H',p_count:meta.count||1,p_date:meta.date||meta.issueDate||today(),p_data:{html:model.html,settings:model.settings,unit:meta.unit,documentType:meta.documentType||'voucher',company:BusinessSettings.current?.legalName||BusinessSettings.current?.companyName||'',batch_count:meta.count||1},p_request_key:meta.requestKey};await documentWorkspace105.flush();check()}const rows=await rpc('voucher_issue14299',meta.issueRequest);meta.id=rows[0].id;meta.batchIds=rows.map(v=>v.id);meta.batchNumbers=rows.map(v=>v.number);void load();return {...rows[0],batchIds:meta.batchIds,batchNumbers:meta.batchNumbers}}const template=document.createElement('template');template.innerHTML=model.html;const node=template.content;const numberCell=node.querySelector('[data-voucher-number14299]');if(numberCell)numberCell.textContent=meta.number;model.html=template.innerHTML;const totalText=node.querySelector('[data-voucher-total14298]')?.textContent.trim()||'';const total=parseAppNumber(totalText);if(!Number.isFinite(total)||total<0)throw Error('Voucher amount must be valid.');const payload={html:model.html,settings:model.settings,title:model.title,unit:meta.unit,paymentMethod:meta.paymentMethod||'',...(meta.documentType==='receipt'?{documentType:'receipt'}:{}),currency:meta.currency||'',total,company:BusinessSettings.current?.legalName||BusinessSettings.current?.companyName||'',date:meta.date,displayDate250:meta.date};if(!/^\d{4}-\d{2}-\d{2}$/.test(meta.date||''))throw Error('Choose a date in Details.');if(!['LAK','USD','THB'].includes(meta.currency))throw Error('Select a currency.');let row;if(meta.id){const reason=prompt('Short explanation for this voucher correction:');if(reason===null)return null;if(reason.trim().length<4)throw Error('Enter at least four characters explaining the correction.');row=await rpc('voucher_update14299',{p_id:meta.id,p_version:meta.version,p_date:meta.date||meta.issueDate||today(),p_data:{...payload,journal:state.rows.find(v=>v.id===meta.id)?.data?.journal},p_reason:reason.trim()})}else{if(!meta.issueRequest){meta.issueRequest={p_kind:'E',p_count:1,p_date:meta.date||meta.issueDate||today(),p_data:{...payload,tentative_number:meta.number},p_request_key:meta.requestKey};await documentWorkspace105.flush();check()}const result=await rpc('voucher_issue14299',meta.issueRequest);row=result[0]}meta.id=row.id;meta.version=row.version;if(meta.documentType==='receipt')await rpc('receipt_layout245',{p_settings:model.settings});void load();return row}};
+window.vouchers14299= {load,picker,numbering,showDeviceDocuments,readDocument,setDocument,appendJournalDocuments,acceptLinked,journalReferences,createReceipt,blankDraft250,open(){void showDeviceDocuments().catch(e=>status(e.message,true));if(window.workspaceViews14364?.reuseView('transactions-vouchers14299'))return;if(state.ready&&state.actor===liveProfile?.id&&state.client===ojmDb){render();return}return ensureReady()},notices,linkId,get state(){return state},async saveEditor(model){const check=guard14370();check();const meta=model.voucher14299;if(!meta)throw Error('No voucher is open.');if(meta.kind==='E'&&!meta.id&&!meta.currency){const t=document.createElement('template');t.innerHTML=model.html;if(![...t.content.querySelectorAll('tbody tr')].some(r=>r.cells[2]?.textContent.trim())){meta.kind='H';meta.count=1;meta.issueDate=meta.issueDate||today();}}if(meta.local401)throw Error('Sync this saved device copy before recording changes. Your edits remain in the editor draft.');if(meta.kind==='H'){if(meta.id)return {id:meta.id,number:meta.number,batchIds:meta.batchIds,batchNumbers:meta.batchNumbers};if(!meta.issueRequest){meta.issueRequest={p_kind:'H',p_count:meta.count||1,p_date:meta.date||meta.issueDate||today(),p_data:{numberSeries401:true,html:model.html,settings:model.settings,unit:meta.unit,documentType:meta.documentType||'voucher',company:BusinessSettings.current?.legalName||BusinessSettings.current?.companyName||'',batch_count:meta.count||1},p_request_key:meta.requestKey};await documentWorkspace105.flush();check()}const rows=await numbering.issue(meta.issueRequest);check();meta.local401=!!rows[0].local401;meta.held401=!!rows[0].held401;meta.id=rows[0].id;meta.batchIds=rows.map(v=>v.id);meta.batchNumbers=rows.map(v=>v.number);if(!meta.local401)void load();void showDeviceDocuments().catch(()=>{});return {...rows[0],batchIds:meta.batchIds,batchNumbers:meta.batchNumbers}}const template=document.createElement('template');template.innerHTML=model.html;const node=template.content;const numberCell=node.querySelector('[data-voucher-number14299]');if(numberCell)numberCell.textContent=meta.number;model.html=template.innerHTML;const totalText=node.querySelector('[data-voucher-total14298]')?.textContent.trim()||'';const total=parseAppNumber(totalText);if(!Number.isFinite(total)||total<0)throw Error('Voucher amount must be valid.');const payload={html:model.html,settings:model.settings,title:model.title,unit:meta.unit,paymentMethod:meta.paymentMethod||'',...(meta.documentType==='receipt'?{documentType:'receipt'}:{}),currency:meta.currency||'',total,company:BusinessSettings.current?.legalName||BusinessSettings.current?.companyName||'',date:meta.date,displayDate250:meta.date};if(!/^\d{4}-\d{2}-\d{2}$/.test(meta.date||''))throw Error('Choose a date in Details.');if(!['LAK','USD','THB'].includes(meta.currency))throw Error('Select a currency.');let row;if(meta.id){const reason=prompt('Short explanation for this voucher correction:');if(reason===null)return null;if(reason.trim().length<4)throw Error('Enter at least four characters explaining the correction.');row=await rpc('voucher_update14299',{p_id:meta.id,p_version:meta.version,p_date:meta.date||meta.issueDate||today(),p_data:{...payload,journal:state.rows.find(v=>v.id===meta.id)?.data?.journal},p_reason:reason.trim()})}else{if(!meta.issueRequest){meta.issueRequest={p_kind:'E',p_count:1,p_date:meta.date||meta.issueDate||today(),p_data:{...payload,numberSeries401:true,tentative_number:meta.number},p_request_key:meta.requestKey};await documentWorkspace105.flush();check()}const result=await numbering.issue(meta.issueRequest);check();row=result[0];meta.local401=!!row.local401;meta.held401=!!row.held401}meta.id=row.id;meta.version=row.version;if(!meta.local401){if(meta.documentType==='receipt')await rpc('receipt_layout245',{p_settings:model.settings});void load()}void showDeviceDocuments().catch(()=>{});return row}};
+window.addEventListener('online',async()=>{
+ if(!admin())return;try{if((await numbering.summary()).pending.length)await syncDeviceDocuments()}catch(e){status(e.message,true)}
+});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 
