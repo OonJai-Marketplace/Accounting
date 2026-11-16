@@ -3693,9 +3693,9 @@ dialog.report-dialog299 {
 }
 .report-dialog299::backdrop {background:#12362b66}
 .report-dialog299 form {display:flex; flex-direction:column; max-height:calc(100dvh - 36px)}
-.report-dialog299 header,.report-dialog299 footer {padding:14px 18px}
+.report-dialog299 form>header,.report-dialog299 form>footer {padding:14px 18px}
 .report-dialog299 h3 {margin:0; font-size:18px}
-.report-dialog299 footer {display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #d7e5df}
+.report-dialog299 form>footer {display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #d7e5df}
 .report-fields299 {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); gap:14px; padding:16px 18px; overflow:auto; border-top:1px solid #d7e5df}
 .report-fields299>label {display:grid; align-content:start; gap:5px; font-weight:600; font-size:13px}
 .report-fields299 :is(select,[data-period],input[type=month]) {width:100%; min-width:0; min-height:38px; border:1px solid #b8cec4; border-radius:6px; background:white; color:inherit; padding:6px 8px; font:inherit}
@@ -3708,15 +3708,21 @@ body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-actions .r79
 body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-actions .r79-search143153 input{width:185px}
 body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-header{gap:12px;flex-wrap:wrap}
 body.shell113 :is(#report-gl,#report-open-gl,#report-activity) .r79-actions{align-items:center}
-/* Use the same label and control grid for every financial filter. */
+/* Keep period, currency and sorting controls in predictable rows across reports. */
 html body dialog.report-dialog299 {width:min(520px,calc(100vw - 24px));box-sizing:border-box}
-html body .report-dialog299 .report-fields299 {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;align-items:start}
-html body .report-fields299>label {display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;min-width:0;margin:0;gap:4px;line-height:18px}
-html body .report-fields299>label:has([name=currency]):not(:has(+label [name=account])) {grid-column:1/-1}
-html body .report-fields299>label :is(select,button,[role=combobox],input:not([type=checkbox])) {box-sizing:border-box;width:100%;max-width:100%;margin:0;height:36px;min-height:36px;justify-content:flex-start;text-align:left}
+html body .report-dialog299 .report-fields299 {grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;align-items:start}
+html body .report-fields299>label {display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;min-width:0;margin:0;gap:5px;line-height:18px}
+html body .report-fields299>label:is(:only-child,:has([data-period]),:has([name=account])) {grid-column:1/-1}
+html body dialog.report-dialog299 .report-fields299>label :is(select,button,[role=combobox],input:not([type=checkbox],.oj-date-original104)) {
+ box-sizing:border-box;width:100%!important;max-width:100%!important;min-width:0!important;
+ height:38px!important;min-height:38px!important;margin:0;justify-content:flex-start;text-align:left;
+}
+html body dialog.report-dialog299 .report-fields299>label select {appearance:auto!important}
+html body dialog.report-dialog299 form>footer [data-cancel] {background:white!important;color:#225342!important;border:1px solid #b8cec4!important}
+html body dialog.report-dialog299 .report-fields299>label button[data-period] {display:flex;align-items:center;justify-content:space-between;gap:8px}
+html body .report-fields299>label [data-period]:enabled::after {content:'';width:6px;height:6px;margin-right:4px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);flex:none}
 html body .report-fields299>label [data-period]:disabled {opacity:1;color:inherit;background:#f2f6f4}
-@media(max-width:480px){html body .report-dialog299 .report-fields299{grid-template-columns:minmax(0,1fr)}}
-html body .report-fields299>label:only-child {grid-column:1/-1}
+@media(max-width:440px){html body .report-dialog299 .report-fields299{grid-template-columns:minmax(0,1fr)}}
 
 /* styles/desktop-corrections-v80.css */
 .ledger-side80{display:none}

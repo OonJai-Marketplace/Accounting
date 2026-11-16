@@ -18,7 +18,7 @@ function open(button){const s=Reports79;P.open(button,selection(s),apply,{mode:s
 window.periodFilters14331={selection,caption,markup,apply,open,setPeriod};
 // Compare selected months as complete independent periods. Never add balance snapshots.
 const model=window.reportModel79;window.reportModel79=function(kind,...args){
- const selected=Reports79.selectedMonths14331,old={...Reports79};if(kind==='bs')return model.call(this,kind,...args);
+ const selected=comparisonMonths79(kind,Reports79),old={...Reports79};if(kind==='bs'||(kind==='tb'&&!selected?.length))return model.call(this,kind,...args);
  let periods;
  if(selected?.length)periods=selected.map(month=>({mode:'monthly',month,year:Number(month.slice(0,4)),from:month+'-01',to:P.end(month),label:P.monthLabel(month),prefix:'Selected month: '}));
  else{

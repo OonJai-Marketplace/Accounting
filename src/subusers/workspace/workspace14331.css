@@ -36,29 +36,37 @@
   body #subUserWorkspacePanel .v49-desktop-user-actions>.workspace-expand1438{margin-left:auto!important}
  }
 }
-.summary-period14331{width:300px;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;box-sizing:border-box;z-index:100020}
-.summary-period14331 .oj-date-grid104.quarter{grid-template-columns:repeat(2,minmax(0,1fr))}
-.summary-period14331 .quarter button{height:58px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
-.summary-period14331 .quarter small{font-size:11px}
-.summary-period14331 button[aria-pressed=true]{background:#dff3e9!important;color:#075b43!important;border-color:#68a78b!important}
-.summary-period14331 .period-modes14331{display:flex;gap:4px;border-top:1px solid #c8d6cb;margin-top:8px;padding-top:8px}
-.summary-period14331 .period-modes14331 button{flex:1;min-width:0;padding:5px 3px!important;font-size:11px!important}
-.summary-period14331 .oj-date-footer104{display:flex;gap:6px;justify-content:space-between}
-.summary-period14331 .oj-date-footer104 button{flex:1;padding-inline:4px!important;white-space:nowrap}
-.summary-period14331 footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;font-size:11px}
-.summary-period14331 [data-apply]{background:#176249!important;color:white!important;padding-inline:18px!important}
-.summary-period14331 .period-range14331{display:grid;gap:8px}.summary-period14331 .period-range14331 label,.fund-period14331{display:flex;flex-direction:column;gap:6px}
+body .summary-period14331 {
+ width:396px!important;max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);
+ overflow:auto;box-sizing:border-box;z-index:100020;padding:12px;background:#fff;
+ font:12px/1.4 'Plus Jakarta Sans',Arial,sans-serif;
+}
+.summary-period14331 .period-modes14331 {display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;gap:3px;padding:3px;border-radius:7px;background:#edf4f0}
+body .summary-period14331 .period-modes14331 button {padding:4px 2px!important;font-size:12px!important;border-color:transparent;background:transparent}
+body .summary-period14331 button[aria-pressed=true] {background:#dff3e9!important;color:#075b43!important;border-color:#68a78b!important}
+.summary-period14331 .period-body14331 {min-height:159px;padding:10px 0;box-sizing:content-box}
+.summary-period14331 .oj-date-grid104.month {grid-template-columns:repeat(4,minmax(0,1fr))}
+.summary-period14331 .oj-date-grid104.quarter {grid-template-columns:repeat(2,minmax(0,1fr))}
+.summary-period14331 .quarter button {height:53px!important;display:grid;place-content:center;gap:3px}
+.summary-period14331 .quarter small {font-size:11px}
+.summary-period14331 .period-body14331:has(.period-range14331) {display:grid;align-items:center}
+.summary-period14331 .period-range14331 {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px 0}
+.summary-period14331 .period-range14331 label {display:grid;min-width:0;gap:5px;text-align:left;color:#234a3c;font-weight:600}
+.summary-period14331 .period-range14331 input {box-sizing:border-box;width:100%;min-width:0;height:36px;padding:4px 6px;font:inherit;border:1px solid #b8cec4;border-radius:5px;background:white;color:inherit}
+.summary-period14331 .oj-date-footer104 {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.summary-period14331 .oj-date-footer104 button {min-width:0;padding-inline:3px!important}
+.summary-period14331 footer {display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:34px;margin-top:10px;padding-top:10px;border-top:1px solid #c8d6cb;font-size:12px}
+.summary-period14331 [data-apply] {background:#176249!important;color:white!important;padding-inline:18px!important}
+.fund-period14331{display:flex;flex-direction:column;gap:6px}
 .fund-period14331{flex:0 0 200px;max-width:100%;font-size:12px}.fund-period14331 button{min-width:175px}
 @media print{.summary-period14331{display:none!important}}
 
 @media screen and (min-width:641px){body .r79-filters:has(.shared-period14331){display:flex!important;flex-wrap:wrap!important;gap:12px!important;align-items:flex-end!important}body .r79-filters .shared-period14331{min-width:200px!important;flex:0 1 250px!important}body .r79-filters .shared-period14331>button{width:100%!important;min-width:0!important}body .r79-filters>label{min-width:130px;flex:1 1 160px}body .r79-filters>.filter-search81{flex:2 1 220px}}
 /* Reuse the same calendar button appearance outside the single-date input wrapper. */
 body :is(.shared-period14331,.fund-period14331)>button{display:flex!important;align-items:center;gap:8px;text-align:left;background:#fffdf8!important;color:#174d3a!important;border:1px solid #b4cbbb!important;border-radius:4px!important;padding:0 10px!important;font:600 12px/1.25 'Plus Jakarta Sans',Arial,sans-serif!important;cursor:pointer;height:32px;box-sizing:border-box}
-body .summary-period14331{width:320px!important;font:12px/1.4 'Plus Jakarta Sans',Arial,sans-serif}
 body .summary-period14331 button{font:600 12px/1.2 'Plus Jakarta Sans',Arial,sans-serif;border:1px solid #bfd4c5;border-radius:5px;background:#fffdf8;color:#17553f;cursor:pointer;min-height:30px;padding:5px 7px}
 body .summary-period14331 button:hover{background:#edf8f3}
 body .summary-period14331 button:focus-visible{outline:2px solid #b78b42;outline-offset:1px}
-body .summary-period14331 .period-modes14331 button{font-size:11px!important}
 
 /* v143.36: retain the original compact personal workspace components on tablets. */
 @media screen and (min-width:641px) and (max-width:1024px){

@@ -17,6 +17,25 @@ await c.reportWindow143195.ensure();assert.equal(requests.length,1,'unchanged fi
 for(const config of [{mode:'monthly',month:'2026-09',year:2026,from:'2026-09-01',to:'2026-09-30'},{mode:'custom',from:'2025-12-01',to:'2026-01-31'},{mode:'custom',selectedMonths14331:['2025-12','2026-09'],from:'2025-12-01',to:'2026-09-30'},{mode:'custom',selectedMonths14331:null,allMonths14331:true,from:'2025-01-01',to:'2026-09-30'}])for(const kind of ['gl','tb','pl','bs','expense','cf']){
  set({...config,kind,account:'',cash:['cash|LAK']});await c.reportWindow143195.ensure();const bounded=plain(run('reportModel79('+JSON.stringify(kind)+')'));const api=c.reportWindow143195;c.reportWindow143195=null;let full;try{full=plain(run('reportModel79('+JSON.stringify(kind)+')'))}finally{c.reportWindow143195=api}assert.deepEqual(bounded,full,kind+' '+JSON.stringify(config));assert.equal(c.JournalModule.entries,original);
 }
+// Ten consecutive months use the same opening, activity and closing as exact dates.
+const months=Array.from({length:10},(_,i)=>'2026-'+String(i+1).padStart(2,'0'));
+for(const basis of ['original','LAK']){
+ for(const [from,to,monthsSelected,expected] of [
+  ['2026-01-01','2026-10-31',months,['90.00 DR','0.00','50.00','40.00']],
+  ['2026-01-01','2026-10-31',null,['90.00 DR','0.00','50.00','40.00']],
+  ['2026-01-16','2026-09-19',null,['70.00 DR','0.00','0.00','70.00']],
+  ['2026-09-01','2026-09-30',null,['70.00 DR','0.00','30.00','40.00']]
+ ]){
+  set({kind:'tb',from,to,mode:monthsSelected?'monthly':'custom',selectedMonths14331:monthsSelected,allMonths14331:false,basis});
+  await c.reportWindow143195.ensure();
+  const result=plain(run("reportModel79('tb')"));
+  assert.equal(result.length,1);
+  assert.deepEqual(result[0].values.find(row=>row[0]==='cash').slice(2),expected);
+ }
+}
+set({kind:'tb',from:'2026-01-01',to:'2026-03-31',selectedMonths14331:['2026-01','2026-03']});
+await c.reportWindow143195.ensure();
+assert.deepEqual(plain(run("reportModel79('tb')")).map(g=>g.periodLabel),['2026-01','2026-03']);
 // A fresh object containing the same journal must reuse the complete cached report.
 c.JournalModule.entries=[...remote];set({kind:'gl',mode:'monthly',month:'2026-09',year:2026,from:'2026-09-01',to:'2026-09-30',selectedMonths14331:null,allMonths14331:false});let before=requests.length;await c.reportWindow143195.ensure();assert.equal(requests.length,before);
 // Actual financial changes still invalidate cached data.

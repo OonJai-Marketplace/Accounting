@@ -6746,9 +6746,62 @@ const reportBooks=(()=>{
 })();
 function reportRange79(){const r=Reports79;if(r.mode==='custom')return;let y=+r.year,m=1,n=12;if(r.mode==='monthly'){[y,m]=r.month.split('-').map(Number);n=1}if(r.mode==='quarterly'){m=(+r.quarter-1)*3+1;n=3}r.from=date71(y,m,1);const end=new Date(y,m-1+n,0);r.to=date71(end.getFullYear(),end.getMonth()+1,end.getDate())}
 let reportRenderCache14336=null;
+// Accounting years have independent saved openings. Combine movement across years
+// while retaining the first opening and the last book's recorded closing.
+function accountingYears79(from,to){
+ const first=Number(from.slice(0,4)),last=Number(to.slice(0,4)),periods=[];
+ for(let year=first;year<=last;year++){
+  periods.push({from:year===first?from:year+'-01-01',to:year===last?to:year+'-12-31'});
+ }
+ return periods;
+}
+function comparisonMonths79(kind,s){
+ const months=s.selectedMonths14331;
+ if(kind!=='tb'||!months?.length)return months;
+ const ordinal=m=>Number(m.slice(0,4))*12+Number(m.slice(5,7));
+ return ordinal(months.at(-1))-ordinal(months[0])+1===months.length?null:months;
+}
+function trialPeriodLabel79(s){
+ const separate=comparisonMonths79('tb',s);
+ return separate?.length?separate.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):formatAppDate(s.from)+' – '+formatAppDate(s.to);
+}
+function reportAccountRows79(from,to){
+ const historical=reportBooks.scope()==='history',old={...Accounts69},originalEntries=JournalModule.entries;
+ const snapshot=window.reportWindow143195?.snapshot(from,to);
+ try{
+  if(snapshot)reportWindow143195.calculating=true;
+  JournalModule.entries=(snapshot?.rows||originalEntries).filter(r=>!r.pendingSync&&!r.local14333&&(!r.status||r.status==='posted')&&(!historical||reportBooks.closed(r.date)));
+  if(['pl','expense'].includes(Reports79.kind))JournalModule.entries=JournalModule.entries.filter(r=>!String(r.generalMemo||'').startsWith('Year-end closing '));
+  Object.assign(Accounts69,{from,to});
+  const rows=accountData69(to,Reports79.kind!=='tb');
+  return snapshot?reportWindow143195.addOpening(rows,snapshot):rows;
+ }finally{
+  Object.assign(Accounts69,old);JournalModule.entries=originalEntries;
+  if(snapshot)reportWindow143195.calculating=false;
+ }
+}
+function trialRangeRows79(from,to){
+ const years=accountingYears79(from,to),combined=new Map();
+ for(const [index,period] of years.entries()){
+  for(const row of reportAccountRows79(period.from,period.to)){
+   let total=combined.get(row.key);
+   if(!total){
+    total={...row,opening:index===0?row.opening:0,baseOpening:index===0?row.baseOpening:0,closing:0,baseClosing:0,debit:0,credit:0,baseDebit:0,baseCredit:0,missingRates:0};
+    combined.set(row.key,total);
+   }
+   for(const key of ['debit','credit','baseDebit','baseCredit','missingRates'])total[key]+=row[key];
+   if(index===years.length-1){total.closing=row.closing;total.baseClosing=row.baseClosing}
+  }
+ }
+ return [...combined.values()];
+}
 function reportData79(){
- const cacheKey=JSON.stringify([Reports79.kind,Reports79.from,Reports79.to,Reports79.currency,Reports79.account,Reports79.basis]);if(reportRenderCache14336?.has(cacheKey))return reportRenderCache14336.get(cacheKey);
- const historical=reportBooks.scope()==='history',old={...Accounts69},originalEntries=JournalModule.entries,reportSnapshot=window.reportWindow143195?.snapshot(Reports79.from,Reports79.to);try{if(reportSnapshot)window.reportWindow143195.calculating=true;JournalModule.entries=(reportSnapshot?.rows||originalEntries).filter(r=>!r.pendingSync&&!r.local14333&&(!r.status||r.status==='posted')&&(!historical||reportBooks.closed(r.date)));if(['pl','expense'].includes(Reports79.kind))JournalModule.entries=JournalModule.entries.filter(r=>!String(r.generalMemo||'').startsWith('Year-end closing '));Object.assign(Accounts69,{from:Reports79.from,to:Reports79.to});let accountRows=accountData69(Accounts69.to,Reports79.kind!=='tb');if(reportSnapshot)accountRows=reportWindow143195.addOpening(accountRows,reportSnapshot);let rows=accountRows.filter(r=>(['tb','gl','activity'].includes(Reports79.kind)||!r.account.isTechnical)&&(!Reports79.currency||r.currency===Reports79.currency));if(Reports79.basis==='LAK')rows=rows.map(r=>({...r,sourceCurrency:r.currency,original:{opening:r.opening,debit:r.debit,credit:r.credit,closing:r.closing},currency:'LAK',opening:r.baseOpening,debit:r.baseDebit,credit:r.baseCredit,closing:r.baseClosing,lines:r.lines.map(l=>({...l,originalDebit:l.dr,originalCredit:l.cr,originalCurrency:l.currency,dr:cents69(window.JournalFX14383?.base(l,'debit')),cr:cents69(window.JournalFX14383?.base(l,'credit'))}))}));reportRenderCache14336?.set(cacheKey,rows);return rows}finally{Object.assign(Accounts69,old);JournalModule.entries=originalEntries;if(reportSnapshot)window.reportWindow143195.calculating=false}
+ const {kind,from,to,currency,account,basis}=Reports79;
+ const cacheKey=JSON.stringify([kind,from,to,currency,account,basis]);if(reportRenderCache14336?.has(cacheKey))return reportRenderCache14336.get(cacheKey);
+ const accountRows=kind==='tb'&&from.slice(0,4)!==to.slice(0,4)?trialRangeRows79(from,to):reportAccountRows79(from,to);
+ let rows=accountRows.filter(r=>(['tb','gl','activity'].includes(kind)||!r.account.isTechnical)&&(!currency||r.currency===currency));
+ if(basis==='LAK')rows=rows.map(r=>({...r,sourceCurrency:r.currency,original:{opening:r.opening,debit:r.debit,credit:r.credit,closing:r.closing},currency:'LAK',opening:r.baseOpening,debit:r.baseDebit,credit:r.baseCredit,closing:r.baseClosing,lines:r.lines.map(l=>({...l,originalDebit:l.dr,originalCredit:l.cr,originalCurrency:l.currency,dr:cents69(window.JournalFX14383?.base(l,'debit')),cr:cents69(window.JournalFX14383?.base(l,'credit'))}))}));
+ reportRenderCache14336?.set(cacheKey,rows);return rows;
 }
 function reportSet79(k,v){const old={...Reports79};Reports79[k]=v;try{reportRange79()}catch{Object.assign(Reports79,old);showCenterStatus('Choose a valid reporting period.',true);renderReports79();return}if(!Reports79.from||!Reports79.to||Reports79.from>Reports79.to||!/^\d{4}-\d{2}-\d{2}$/.test(Reports79.from)||(+Reports79.year<1900||+Reports79.year>9999)){Object.assign(Reports79,old);showCenterStatus('Choose a valid reporting period.',true)}renderReports79()}
 const reportSorts143153=new Map();
@@ -6778,10 +6831,11 @@ function toggleReportFilters143153(button){
  const options=(pairs,value)=>pairs.map(([v,n])=>`<option value="${re79(v)}" ${v===value?'selected':''}>${re79(n)}</option>`).join('');
  const field=(label,key,items,value)=>`<label>${label}<select ${key==='account'?'':'data-plain14285'} name="${key}">${options(items,value)}</select></label>`;
  const orders=by=>[['asc',by==='date'?'Oldest to newest':'Lowest to highest'],['desc',by==='date'?'Newest to oldest':'Highest to lowest']];
- const periodControl='<label>Period<button type="button" class="oj-date-button104" data-period '+(reportBooks.scope()==='live'?'disabled':'aria-haspopup="dialog"')+'>'+re79(periodFilters14331.caption(period))+'</button></label>';
+ const periodCaption=()=>kind==='tb'&&period.selectedMonths14331?.length&&!comparisonMonths79(kind,period)?trialPeriodLabel79(period):periodFilters14331.caption(period);
+ const periodControl='<label>Period<button type="button" class="oj-date-button104" data-period '+(reportBooks.scope()==='live'?'disabled':'aria-haspopup="dialog"')+'>'+re79(periodCaption())+'</button></label>';
  const accountField=ledger?field('Account','account',[],''):'';
  const checks=kind==='cf'?'<fieldset><legend>Cash and bank accounts</legend><details><summary data-cash-summary>Choose accounts</summary><div data-choices></div></details></fieldset>':kind==='payroll'?'<fieldset><legend>Payroll accounts</legend><div data-choices></div></fieldset>':'';
- const body=periodControl+field('Report basis','basis',[['LAK','LAK — reporting currency'],['original','Original currencies']],s.basis)+field('Currency','currency',[['','All original currencies'],...currencies.map(c=>[c,c])],s.currency)+accountField+field('Sort by','by',[...(ledger?[['date','Date']]:[]),['account','Account code']],sort.by)+field('Order','direction',orders(sort.by),sort.direction)+checks;
+ const body=periodControl+field('Report basis','basis',[['LAK','LAK equivalent'],['original','Original currencies']],s.basis)+field('Currency','currency',[['','All original currencies'],...currencies.map(c=>[c,c])],s.currency)+accountField+field('Sort by','by',[...(ledger?[['date','Date']]:[]),['account','Account code']],sort.by)+field('Order','direction',orders(sort.by),sort.direction)+checks;
  const dialog=openReportDialog299(button,reportNames79[kind]+' filters',body,()=>{
   const next={...period,basis:form.basis.value,currency:form.currency.value};
   if(ledger)next.account=form.account.value;
@@ -6791,7 +6845,7 @@ function toggleReportFilters143153(button){
  const form=dialog.querySelector('form').elements,periodButton=dialog.querySelector('[data-period]');
  periodButton.onclick=()=>summaryPeriod14331.open(periodButton,periodFilters14331.selection(period),(values,meta)=>{
   if(reportBooks.scope()==='history'&&!values.length&&meta.mode!=='custom'){values=reportBooks.closedMonths();meta={mode:'monthly'}}
-  periodFilters14331.setPeriod(period,values,meta);periodButton.textContent=periodFilters14331.caption(period);
+  periodFilters14331.setPeriod(period,values,meta);periodButton.textContent=periodCaption();
  },{mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:true,closedBooks:reportBooks.scope()==='history'});
  form.by.onchange=()=>{form.direction.innerHTML=options(orders(form.by.value),form.direction.value)};
  function accountChoices(selected){
@@ -6907,7 +6961,7 @@ function balanceExplanation143154(currency,assets,liabilities,equity,result){
 }
 function reportModel79(kind,oldest=false){
  if(Reports79.basis==='LAK'){const missing=reportData79().filter(r=>r.missingRates);if(missing.length)return [{currency:'LAK — incomplete',headers:['Account','Original currency','Missing rate records'],values:missing.map(r=>[r.account.name,r.sourceCurrency,r.missingRates]),metrics:[],note:'LAK totals are withheld until missing exchange rates are supplied. Original-currency records remain available. No exchange rate has been guessed.'}];}
- const data=reportData79(),groups=[];const sum=(rows,f)=>rows.reduce((s,r)=>s+f(r),0),type=(rows,t)=>rows.filter(r=>String(r.account.baseType||r.account.type).toUpperCase()===t),active=r=>r.opening||r.debit||r.credit;
+ const data=reportData79(),groups=[];const sum=(rows,f)=>rows.reduce((s,r)=>s+f(r),0),type=(rows,t)=>rows.filter(r=>String(r.account.baseType||r.account.type).toUpperCase()===t),active=r=>r.opening||r.debit||r.credit||(kind==='tb'&&r.closing);
  for(const currency of [...new Set(data.map(r=>r.currency))].sort()){
  const all=data.filter(r=>r.currency===currency),rows=all.filter(active);let headers=[],values=[],metrics=[],note='';
  if(kind==='pl'||kind==='expense'){
@@ -6920,7 +6974,16 @@ function reportModel79(kind,oldest=false){
  headers=['Classification','Account','Closing amount'];values=['ASSET','LIABILITY','EQUITY'].flatMap(t=>reportHierarchy14383(type(rows,t)).map(r=>[t,r.account.name,money69(t==='ASSET'?r.closing:-r.closing)]));values.push(['EQUITY','Unclosed accumulated result',money69(earnings)]);metrics=[['Assets',assets],['Liabilities + equity + result',liabilities+equity+earnings],['Difference',assets-liabilities-equity-earnings]];
  note=balanceExplanation143154(currency,assets,liabilities,equity,earnings);
  }else if(kind==='tb'){
- headers=['Account','Classification','Opening balance','Period debit','Period credit','Closing balance'];values=reportHierarchy14383(rows).map(r=>[r.account.name,(r.closing>0?'DR · ':r.closing<0?'CR · ':'— · ')+r.account.type,balanceText69(r.opening),money69(r.debit),money69(r.credit),money69(r.closing)]);const dr=sum(rows,r=>Math.max(r.closing,0)),cr=sum(rows,r=>Math.max(-r.closing,0));metrics=[['Closing debit',dr],['Closing credit',cr],['Difference',dr-cr]];note='Equal totals check arithmetic; they do not confirm that every entry is complete or correctly classified.';
+ const ordered=reportHierarchy14383(rows);headers=['Account','Classification','Opening balance','Period debit','Period credit','Closing balance'];values=ordered.map(r=>[r.account.name,(r.closing>0?'DR · ':r.closing<0?'CR · ':'— · ')+r.account.type,balanceText69(r.opening),money69(r.debit),money69(r.credit),money69(r.closing)]);const dr=sum(rows,r=>Math.max(r.closing,0)),cr=sum(rows,r=>Math.max(-r.closing,0));metrics=[['Closing debit',dr],['Closing credit',cr],['Difference',dr-cr]];note='Equal totals check arithmetic; they do not confirm that every entry is complete or correctly classified.';
+ if(Reports79.from.slice(0,4)!==Reports79.to.slice(0,4)){
+  note+=' Opening and closing balances come from the first and last books. Period debits and credits exclude annual opening entries.';
+  const carryChange=r=>r.closing-r.opening-r.debit+r.credit;
+  if(rows.some(carryChange)){
+   headers.splice(-1,0,'Year-opening change');
+   ordered.forEach((row,i)=>values[i].splice(-1,0,money69(carryChange(row))));
+   note+=' Year-opening change shows the difference between a closing balance and the next book’s recorded opening.';
+  }
+ }
  }else if(kind==='cf'||kind==='payroll'){
  const selected=all.filter(r=>Reports79[kind==='cf'?'cash':'payroll'].includes(r.key));
  headers=['Account','Opening (DR − CR)','Period debit','Period credit','Closing DR / CR'];values=reportHierarchy14383(selected).map(r=>[r.account.name,balanceText69(r.opening),money69(r.debit),money69(r.credit),balanceText69(r.closing)]);
@@ -6942,7 +7005,7 @@ function reportModel79(kind,oldest=false){
 function reportContent79(kind,oldest=false){const groups=reportModel79(kind,oldest);return groups.map(g=>`<section class="r79-group"><h4>${re79(g.currency)}${g.periodLabel?' · '+re79(g.periodLabel):''}</h4><div class="r79-metrics">${g.metrics.map(([label,value])=>`<div><small>${re79(label)}</small><strong class="${value<0?'r79-negative':''}">${money69(value)}</strong></div>`).join('')}</div>${reportTable79(g.headers,g.values,g.currency,oldest)}<p class="r79-note">${re79(g.note)}</p></section>`).join('')||'<p class="r79-note">No chart accounts or posted journal data are available yet.</p>'}
 function reportHeader79(kind,pending=false){
  const s=Reports79,title=reportNames79[kind];
- return `<header class="r79-header"><div><span class="r79-eyebrow">${reportBooks.scope()==='live'?'ACCOUNTS · OPEN BOOK':reportBooks.scope()==='history'?'REPORTS · CLOSED BOOKS':'ACCOUNTS · POSTED JOURNAL'}</span><h3>${title}</h3><p>${s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'||kind==='tb'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · ${reportBooks.scope()==='live'?'Prior balances carried forward':reportBooks.scope()==='history'?'Closed-book history':'Posted entries'}</p></div><div class="r79-actions">${['gl','activity'].includes(kind)?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
+ return `<header class="r79-header"><div><span class="r79-eyebrow">${reportBooks.scope()==='live'?'ACCOUNTS · OPEN BOOK':reportBooks.scope()==='history'?'REPORTS · CLOSED BOOKS':'ACCOUNTS · POSTED JOURNAL'}</span><h3>${title}</h3><p>${kind==='tb'?trialPeriodLabel79(s):s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · ${reportBooks.scope()==='live'?'Prior balances carried forward':reportBooks.scope()==='history'?'Closed-book history':'Posted entries'}</p></div><div class="r79-actions">${['gl','activity'].includes(kind)?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
 }
 function renderReports79(){
  if(!matchMedia('(min-width:768px)').matches)return;
@@ -9405,9 +9468,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     }
     content=balanceSummary(active)+remittanceSummary(active)+content;
     let report=host.querySelector(':scope>.tax-report102');
-    if(!report){for(const child of [...host.children])if(!child.classList.contains('area-banner113'))child.remove();report=document.createElement('div');report.className='tax-report102';report.innerHTML=`<div class="tax-toolbar102"><strong data-tax-period143154></strong><button type="button" class="je-btn je-btn-secondary" id="taxFilter143153" aria-expanded="false" aria-controls="taxFilters143153-${active}">Filter</button><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div><div id="taxFilters143153-${active}" class="tax-filters143153 no-print" hidden><label for="taxMonth102">Month <input id="taxMonth102" type="month" value="${escape(state.month)}"></label></div><p class="tax-error102" hidden role="status"></p><p class="tax-note102" hidden role="status">Loading saved records…</p><div class="tax-content102"></div>`;host.append(report);
-      report.querySelector('#taxFilter143153').onclick=event=>{const filters=report.querySelector('.tax-filters143153');filters.hidden=!filters.hidden;event.currentTarget.setAttribute('aria-expanded',String(!filters.hidden));};
-      report.querySelector('#taxMonth102').onchange=event=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)){state.month=event.target.value;state.monthChosen=true;refresh(false)}};
+    if(!report){for(const child of [...host.children])if(!child.classList.contains('area-banner113'))child.remove();report=document.createElement('div');report.className='tax-report102';report.innerHTML=`<div class="tax-toolbar102"><strong data-tax-period143154></strong><button type="button" class="je-btn je-btn-secondary" id="taxFilter143153" aria-haspopup="dialog">Filter</button><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div><p class="tax-error102" hidden role="status"></p><p class="tax-note102" hidden role="status">Loading saved records…</p><div class="tax-content102"></div>`;host.append(report);
+      report.querySelector('#taxFilter143153').onclick=event=>{
+        const dialog=openReportDialog299(event.currentTarget,views[active]+' filters','<label>Month<input name="month" type="month" required value="'+escape(state.month)+'"></label>',()=>{
+          state.month=dialog.querySelector('[name=month]').value;state.monthChosen=true;refresh(false);
+        });
+      };
       report.querySelector('#taxRefresh102').onclick=()=>refresh(true);
       report.querySelector('#taxCsv102').onclick=downloadCsv;
       report.querySelector('#taxPrint102').onclick=()=>window.print();
@@ -9417,7 +9483,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const error=report.querySelector('.tax-error102');error.hidden=!state.error;if(error.textContent!==state.error)error.textContent=state.error;
     report.querySelector('.tax-note102').hidden=!state.loading;
     report.querySelector('#taxRefresh102').disabled=state.loading;
-    const month=report.querySelector('#taxMonth102');if(month.value!==state.month)month.value=state.month;
+    report.dataset.month=state.month;
 
   }
   function downloadCsv(){render();if(liveProfile?.role!=='admin')return;if(!state.exports.some(block=>block.rows.length))return window.showCenterStatus?.('No current table rows to export.',true);const lines=state.exports.flatMap((block,index)=>[...(index?[[]]:[]),block.headers,...block.rows]);const csv=lines.map(row=>row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff',csv],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=id()+'-'+state.month+'.csv';Promise.resolve(window.exportCenter14337?exportCenter14337.fromLink(link):link.click()).finally(()=>setTimeout(()=>URL.revokeObjectURL(url),60000)).catch(()=>{})}

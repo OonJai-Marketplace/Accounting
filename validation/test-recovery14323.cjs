@@ -66,8 +66,8 @@ await check('Mandatory controls keep identity, focus and colors through a slow r
  const mutations=await page.evaluate(()=>new Promise(resolve=>{let n=0;const m=new MutationObserver(rs=>n+=rs.length);m.observe(document.querySelector('#tax-overview .tax-toolbar102'),{childList:true,subtree:true});setTimeout(()=>{m.disconnect();resolve(n)},700)}));assert.equal(mutations,0);
 });
 await check('Mandatory printing uses the active month and ignores hidden loading messages',async()=>{
- await page.locator('#tax-overview #taxMonth102').fill('2026-09');await page.locator('#tax-overview #taxMonth102').dispatchEvent('change');
- await page.evaluate(()=>switchTab('tax-pit'));await page.waitForTimeout(200);await page.locator('#tax-pit #taxMonth102').fill('2026-10');await page.locator('#tax-pit #taxMonth102').dispatchEvent('change');
+ await page.locator('#tax-overview #taxFilter143153').click();await page.locator('dialog.report-dialog299 [name=month]').evaluate(n=>n.value='2026-09');await page.locator('dialog.report-dialog299 button[type=submit]').click();
+ await page.evaluate(()=>switchTab('tax-pit'));await page.waitForTimeout(200);await page.locator('#tax-pit #taxFilter143153').click();await page.locator('dialog.report-dialog299 [name=month]').evaluate(n=>n.value='2026-10');await page.locator('dialog.report-dialog299 button[type=submit]').click();
  assert.equal(await page.evaluate(()=>reportTemplates14262.model().period),'2026-10');
  const opened=await page.evaluate(async()=>{const open=window.openDocumentEditor105,sign=window.choosePrintSignatories1424;let result=null;window.openDocumentEditor105=async o=>{result=o};window.choosePrintSignatories1424=async()=>({enabled:false});try{await reportTemplates14262.print();return result?.title}finally{window.openDocumentEditor105=open;window.choosePrintSignatories1424=sign}});assert(opened?.includes('2026-10'));
 });

@@ -1,1 +1,1 @@
-{"version": "143.414", "changes": ["Journal and report downloads check voucher access once per query. Open Accounting tabs refresh saved journal work when an entry changes."]}
+{"version": "143.415", "changes": ["Trial Balance combines a selected date range into one statement on screen, in CSV and in print. Report filters use aligned fields and a consistent period picker."]}

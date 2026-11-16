@@ -23,8 +23,8 @@ function save(){if(reportBooks.scope()==='live')return;try{localStorage.setItem(
 const range=(from,to)=>({from:reportBooks.scope()==='history'||from<to.slice(0,4)+'-01-01'?to.slice(0,4)+'-01-01':from,to});
 function periods(){const s=Reports79;let list;if(s.allMonths14331)return [allPeriod];
  if(s.kind==='bs'&&window.reportPeriods118)list=reportPeriods118();
- else if(s.selectedMonths14331?.length)list=s.selectedMonths14331.map(m=>({from:m+'-01',to:summaryPeriod14331.end(m)}));
- else{list=[];for(let y=Number(s.from.slice(0,4));y<=Number(s.to.slice(0,4));y++)list.push({from:y===Number(s.from.slice(0,4))?s.from:y+'-01-01',to:y===Number(s.to.slice(0,4))?s.to:y+'-12-31'})}
+ else if(comparisonMonths79(s.kind,s)?.length)list=s.selectedMonths14331.map(m=>({from:m+'-01',to:summaryPeriod14331.end(m)}));
+ else list=accountingYears79(s.from,s.to);
  return [...new Map(list.map(p=>{const r=range(p.from,p.to);return [key(r),r]})).values()];
 }
 const available=p=>cache.get(allKey)||cache.get(key(p));
@@ -63,7 +63,7 @@ function read(p,{refresh=false,persist=false,cacheFirst=false}={}){
 async function preload(force=false){restoreFilters();if(!client?.rpc)throw Error('Connect to the company journal to load reports.');await read(allPeriod,{refresh:force,persist:true,cacheFirst:!force});normalizeAll();save()}
 async function ensure(){restoreFilters();if(!client?.rpc)throw Error('Connect to the company journal to load this period.');await Promise.all(periods().map(p=>read(p)));normalizeAll();save()}
 function snapshot(from,to){if(Reports79.allMonths14331)return cache.get(allKey)||null;
- if(Reports79.selectedMonths14331?.length>1&&from===Reports79.selectedMonths14331[0]+'-01'&&to===summaryPeriod14331.end(Reports79.selectedMonths14331.at(-1)))from=Reports79.selectedMonths14331.at(-1)+'-01';
+ if(comparisonMonths79(Reports79.kind,Reports79)?.length>1&&from===Reports79.selectedMonths14331[0]+'-01'&&to===summaryPeriod14331.end(Reports79.selectedMonths14331.at(-1)))from=Reports79.selectedMonths14331.at(-1)+'-01';
  return available(range(from,to))||null;
 }
 function addOpening(rows,snapshot){for(const b of snapshot.opening){let row=rows.find(r=>String(r.account.id)===String(b.accountId)&&r.currency===b.currency);if(!row){const account=AccountingStore.accounts.find(a=>String(a.id)===String(b.accountId))||{id:b.accountId,name:'Unmapped',code:'Unmapped',type:'Unmapped',currency:b.currency};row={account,key:accountKey69(account,b.currency),currency:b.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]};rows.push(row)}const amount=cents69(b.balance);row.opening+=amount;row.closing+=amount;if(b.currency!=='LAK'&&b.base_balance==null)row.missingRates++;else{const base=cents69(b.currency==='LAK'?b.balance:b.base_balance);row.baseOpening+=base;row.baseClosing+=base}}return rows}
@@ -116,7 +116,7 @@ function open(button){const s=Reports79;P.open(button,selection(s),apply,{mode:s
 window.periodFilters14331={selection,caption,markup,apply,open,setPeriod};
 // Compare selected months as complete independent periods. Never add balance snapshots.
 const model=window.reportModel79;window.reportModel79=function(kind,...args){
- const selected=Reports79.selectedMonths14331,old={...Reports79};if(kind==='bs')return model.call(this,kind,...args);
+ const selected=comparisonMonths79(kind,Reports79),old={...Reports79};if(kind==='bs'||(kind==='tb'&&!selected?.length))return model.call(this,kind,...args);
  let periods;
  if(selected?.length)periods=selected.map(month=>({mode:'monthly',month,year:Number(month.slice(0,4)),from:month+'-01',to:P.end(month),label:P.monthLabel(month),prefix:'Selected month: '}));
  else{

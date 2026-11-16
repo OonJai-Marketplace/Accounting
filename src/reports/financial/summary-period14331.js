@@ -17,7 +17,7 @@ function position(){
 
 function close(focus=false){if(!active)return;const {button,panel}=active;panel.remove();button.setAttribute('aria-expanded','false');active=null;if(focus&&button.isConnected)button.focus({preventScroll:true})}
 function open(button,values,onChange,options={}){
- if(active?.button===button)return close(true);close();let selected=new Set(clean(values)),year=Number(([...selected][0]||current()).slice(0,4)),mode=options.mode||'monthly';
+ if(active?.button===button)return close(true);close();let selected=new Set(clean(values)),year=Number(([...selected][0]||options.from||current()).slice(0,4)),mode=options.mode||'monthly';
  if(!['monthly','quarterly','yearly','custom'].includes(mode))mode='monthly';
  const panel=document.createElement('div');panel.className='oj-date-popup104 summary-period14331';panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Select reporting period');panel.tabIndex=-1;active={button,panel};button.setAttribute('aria-expanded','true');(button.closest('dialog[open]')||document.body).append(panel);
  const validDate=value=>/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(value)&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;
@@ -29,7 +29,15 @@ function open(button,values,onChange,options={}){
  if(mode==='quarterly')grid='<div class="oj-date-grid104 quarter">'+[0,1,2,3].map(q=>'<button type="button" data-quarter="'+q+'" aria-pressed="'+(selected.size===3&&yearMonths(year).slice(q*3,q*3+3).every(m=>selected.has(m)))+'"><strong>Q'+(q+1)+'</strong><small>'+['Jan–Mar','Apr–Jun','Jul–Sep','Oct–Dec'][q]+'</small></button>').join('')+'</div>';
  if(mode==='yearly')grid='<div class="oj-date-grid104 month">'+Array.from({length:12},(_,i)=>year-5+i).map(y=>'<button type="button" data-year="'+y+'" aria-pressed="'+(selected.size===12&&yearMonths(y).every(m=>selected.has(m)))+'">'+y+'</button>').join('')+'</div>';
  if(mode==='custom')grid='<div class="period-range14331"><label>From<input type="date" data-from value="'+(from||'')+'"></label><label>Through<input type="date" data-to value="'+(to||'')+'"></label></div>';
- panel.innerHTML='<div class="oj-date-head104"><button type="button" data-step="-1" aria-label="Previous year">‹</button><strong>'+heading+'</strong><button type="button" data-step="1" aria-label="Next year">›</button></div>'+grid+'<div class="period-modes14331" role="group" aria-label="Calendar view">'+['monthly','quarterly','yearly',...(options.custom?['custom']:[])].map(m=>'<button type="button" data-mode="'+m+'" aria-pressed="'+(mode===m)+'">'+m[0].toUpperCase()+m.slice(1)+'</button>').join('')+'</div><div class="oj-date-footer104"><button type="button" data-now>This month</button><button type="button" data-all>All months</button><button type="button" data-clear>Clear</button></div><footer><span role="status">'+(selected.size?selected.size+' selected':'All months')+'</span><button type="button" data-apply>Apply</button></footer>';
+ const names={monthly:'Months',quarterly:'Quarters',yearly:'Years',custom:'Date range'};
+ const modes=['monthly','quarterly','yearly',...(options.custom?['custom']:[])];
+ const tabs=modes.map(m=>'<button type="button" data-mode="'+m+'" aria-pressed="'+(mode===m)+'">'+names[m]+'</button>').join('');
+ const navigation='<div class="oj-date-head104"><button type="button" data-step="-1" aria-label="Previous year">‹</button><strong>'+heading+'</strong><button type="button" data-step="1" aria-label="Next year">›</button></div>';
+ const status=mode==='custom'?(from&&to?formatAppDate(from)+' – '+formatAppDate(to):'Choose both dates'):label([...selected]);
+ panel.innerHTML='<div class="period-modes14331" role="group" aria-label="Calendar view">'+tabs+'</div>'+
+  '<div class="period-body14331">'+(mode==='custom'?'':navigation)+grid+'</div>'+
+  '<div class="oj-date-footer104"><button type="button" data-now>This month</button><button type="button" data-all>All months</button><button type="button" data-clear>Clear</button></div>'+
+  '<footer><span role="status">'+status+'</span><button type="button" data-apply>Apply</button></footer>';
  if(options.closedBooks){
   panel.querySelectorAll('[data-month]').forEach(b=>b.disabled=!reportBooks.closed(b.dataset.month));
   panel.querySelectorAll('[data-quarter]').forEach(b=>b.disabled=!yearMonths(year).slice(+b.dataset.quarter*3,+b.dataset.quarter*3+3).every(reportBooks.closed));
@@ -40,10 +48,15 @@ function open(button,values,onChange,options={}){
  const redrawFocus=selector=>{draw();position();panel.querySelector(selector)?.focus({preventScroll:true})};
  panel.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{year+=Number(b.dataset.step)*(mode==='yearly'?12:1);year=Math.max(1900,Math.min(9993,year));redrawFocus('[data-step="'+b.dataset.step+'"]')});
  panel.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;redrawFocus('[data-mode="'+mode+'"]')});
- panel.querySelectorAll('[data-month]').forEach(b=>b.onclick=()=>{selected.has(b.dataset.month)?selected.delete(b.dataset.month):selected.add(b.dataset.month);b.setAttribute('aria-pressed',String(selected.has(b.dataset.month)));panel.querySelector('[role=status]').textContent=selected.size?selected.size+' selected':'All months'});
+ panel.querySelectorAll('[data-month]').forEach(b=>b.onclick=()=>{selected.has(b.dataset.month)?selected.delete(b.dataset.month):selected.add(b.dataset.month);b.setAttribute('aria-pressed',String(selected.has(b.dataset.month)));panel.querySelector('[role=status]').textContent=label([...selected])});
  panel.querySelectorAll('[data-quarter]').forEach(b=>b.onclick=()=>{selected=new Set(yearMonths(year).slice(Number(b.dataset.quarter)*3,Number(b.dataset.quarter)*3+3));redrawFocus('[data-quarter="'+b.dataset.quarter+'"]')});
  panel.querySelectorAll('[data-year]').forEach(b=>b.onclick=()=>{selected=new Set(yearMonths(Number(b.dataset.year)));redrawFocus('[data-year="'+b.dataset.year+'"]')});
- if(mode==='custom'){panel.querySelector('[data-from]').onchange=e=>from=e.target.value;panel.querySelector('[data-to]').onchange=e=>to=e.target.value}
+ if(mode==='custom'){
+  const update=()=>{from=panel.querySelector('[data-from]').value;to=panel.querySelector('[data-to]').value;
+   panel.querySelector('[role=status]').textContent=from&&to&&from<=to?formatAppDate(from)+' – '+formatAppDate(to):'Choose a valid start and end date.'};
+  panel.querySelector('[data-from]').oninput=panel.querySelector('[data-to]').oninput=update;
+  panel.querySelector('[data-from]').onchange=panel.querySelector('[data-to]').onchange=update;
+ }
  panel.querySelector('[data-now]').onclick=()=>apply([current()],'monthly');panel.querySelector('[data-all]').title=options.allMonthsYear?'All months in '+year:'All available months';panel.querySelector('[data-all]').onclick=()=>apply(options.allMonthsYear?yearMonths(year):[],options.allMonthsYear?'yearly':'all');panel.querySelector('[data-clear]').onclick=()=>{selected.clear();from=to='';redrawFocus('[data-clear]')};panel.querySelector('[data-apply]').onclick=()=>apply([...selected]);
  }
  draw();position();panel.querySelector('[aria-pressed=true], [data-month]')?.focus({preventScroll:true});panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close(true)}if(e.key==='Tab'){const list=[...panel.querySelectorAll('button:not(:disabled),input:not(:disabled)')],index=list.indexOf(document.activeElement);if(e.shiftKey&&index<=0){e.preventDefault();list.at(-1).focus()}else if(!e.shiftKey&&index===list.length-1){e.preventDefault();list[0].focus()}}};

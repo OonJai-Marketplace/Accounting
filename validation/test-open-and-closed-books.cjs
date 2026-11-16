@@ -65,6 +65,50 @@ const createFixture = require('./phase0-browser-fixture.cjs');
   await balances('report-gl','2026-10',[0,3000,3000]);
   await page.evaluate(()=>{PeriodReview.periods={};switchTab('report-gl')});
   assert.match(await page.locator('#report-gl .r79').innerText(),/No closed books/);
+  // Exercise the shared period window from its actual report toolbar.
+  const months=Array.from({length:10},(_,i)=>'2026-'+String(i+1).padStart(2,'0'));
+  await page.evaluate(months=>{PeriodReview.periods=Object.fromEntries(months.map(m=>[m,{status:'closed'}]));switchTab('report-tb')},months);
+  const panel=page.locator('#report-tb'),dialog=page.locator('dialog.report-dialog299[open]');
+  const openPeriod=async()=>{await panel.getByRole('button',{name:'Filter',exact:true}).click();await dialog.locator('[data-period]').click()};
+  const apply=async()=>{await dialog.locator('[data-apply]').click();await dialog.getByRole('button',{name:'OK',exact:true}).click();await panel.locator('.r79-content').waitFor()};
+  const rowAmounts=()=>panel.locator('table.trial-columns143116 tbody tr').filter({has:page.getByRole('button',{name:account.name,exact:true})}).first().locator('td').allTextContents();
+  await openPeriod();
+  const footerAt=()=>dialog.locator('[data-apply]').evaluate(n=>Math.round(n.getBoundingClientRect().top));
+  const monthlyY=await footerAt();
+  const widths=await dialog.locator('.report-fields299>label').evaluateAll(labels=>labels.map(label=>{
+   const control=label.querySelector('select,button');return Math.abs(label.clientWidth-control.getBoundingClientRect().width);
+  }));
+  assert.ok(widths.every(delta=>delta<=2),'Each field fills its assigned filter column: '+widths);
+  for(const mode of ['quarterly','yearly','custom']){
+   await dialog.locator('[data-mode='+mode+']').click();
+   assert.ok(Math.abs((await footerAt())-monthlyY)<=2,'Apply stays in place in '+mode);
+  }
+  await dialog.locator('[data-from]').fill('2026-01-01');
+  await dialog.locator('[data-to]').fill('2026-10-31');
+  await apply();
+  assert.equal(await panel.locator('table.trial-columns143116').count(),1);
+  const full=await rowAmounts();assert.equal(await page.evaluate(()=>parseReportAmount69(reportModel79('tb')[0].values.find(r=>r[0]==='Cash on Hand')[3])),130);
+  await openPeriod();await dialog.locator('[data-mode=monthly]').click();
+  await dialog.locator('[data-all]').click();await dialog.getByRole('button',{name:'OK',exact:true}).click();
+  assert.deepEqual(await rowAmounts(),full);
+  assert.equal(await panel.locator('table.trial-columns143116').count(),1);
+  const outputs=await page.evaluate(async()=>{
+   const print=document.createElement('template');print.innerHTML=reportFormats14282.financial('tb');
+   let csv;const center=exportCenter14337.fromLink;
+   exportCenter14337.fromLink=async a=>{csv=await (await fetch(a.href)).text()};
+   try{await exportReport79('tb')}finally{exportCenter14337.fromLink=center}
+   return {print:[...print.content.querySelectorAll('thead')].filter(h=>h.textContent.toLowerCase().includes('period debit')).length,csv:(csv.match(/"Period debit"/g)||[]).length};
+  });
+  assert.deepEqual(outputs,{print:1,csv:1});
+  await openPeriod();await dialog.locator('[data-clear]').click();await dialog.locator('[data-month="2026-09"]').click();await apply();
+  assert.equal(await page.evaluate(()=>parseReportAmount69(reportModel79('tb')[0].values.find(r=>r[0]==='Cash on Hand')[3])),80);
+  for(const id of ['tax-overview','tax-pit']){
+   await navigate(id);
+   await page.locator('#'+id+' #taxFilter143153').click();
+   await dialog.locator('[name=month]').evaluate(input=>{input.value='2026-09'});
+   await dialog.getByRole('button',{name:'OK',exact:true}).click();
+   assert.equal(await page.locator('#'+id+' [data-tax-period143154]').textContent(),'Reporting month: 2026-09');
+  }
   console.log('Passed open and closed balances, navigation, report filters, and reopened books.');
  } finally { await fixture.close(); }
 })().catch(e=>{console.error(e);process.exitCode=1});

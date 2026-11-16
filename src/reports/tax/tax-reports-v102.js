@@ -93,9 +93,12 @@
     }
     content=balanceSummary(active)+remittanceSummary(active)+content;
     let report=host.querySelector(':scope>.tax-report102');
-    if(!report){for(const child of [...host.children])if(!child.classList.contains('area-banner113'))child.remove();report=document.createElement('div');report.className='tax-report102';report.innerHTML=`<div class="tax-toolbar102"><strong data-tax-period143154></strong><button type="button" class="je-btn je-btn-secondary" id="taxFilter143153" aria-expanded="false" aria-controls="taxFilters143153-${active}">Filter</button><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div><div id="taxFilters143153-${active}" class="tax-filters143153 no-print" hidden><label for="taxMonth102">Month <input id="taxMonth102" type="month" value="${escape(state.month)}"></label></div><p class="tax-error102" hidden role="status"></p><p class="tax-note102" hidden role="status">Loading saved records…</p><div class="tax-content102"></div>`;host.append(report);
-      report.querySelector('#taxFilter143153').onclick=event=>{const filters=report.querySelector('.tax-filters143153');filters.hidden=!filters.hidden;event.currentTarget.setAttribute('aria-expanded',String(!filters.hidden));};
-      report.querySelector('#taxMonth102').onchange=event=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(event.target.value)){state.month=event.target.value;state.monthChosen=true;refresh(false)}};
+    if(!report){for(const child of [...host.children])if(!child.classList.contains('area-banner113'))child.remove();report=document.createElement('div');report.className='tax-report102';report.innerHTML=`<div class="tax-toolbar102"><strong data-tax-period143154></strong><button type="button" class="je-btn je-btn-secondary" id="taxFilter143153" aria-haspopup="dialog">Filter</button><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div><p class="tax-error102" hidden role="status"></p><p class="tax-note102" hidden role="status">Loading saved records…</p><div class="tax-content102"></div>`;host.append(report);
+      report.querySelector('#taxFilter143153').onclick=event=>{
+        const dialog=openReportDialog299(event.currentTarget,views[active]+' filters','<label>Month<input name="month" type="month" required value="'+escape(state.month)+'"></label>',()=>{
+          state.month=dialog.querySelector('[name=month]').value;state.monthChosen=true;refresh(false);
+        });
+      };
       report.querySelector('#taxRefresh102').onclick=()=>refresh(true);
       report.querySelector('#taxCsv102').onclick=downloadCsv;
       report.querySelector('#taxPrint102').onclick=()=>window.print();
@@ -105,7 +108,7 @@
     const error=report.querySelector('.tax-error102');error.hidden=!state.error;if(error.textContent!==state.error)error.textContent=state.error;
     report.querySelector('.tax-note102').hidden=!state.loading;
     report.querySelector('#taxRefresh102').disabled=state.loading;
-    const month=report.querySelector('#taxMonth102');if(month.value!==state.month)month.value=state.month;
+    report.dataset.month=state.month;
 
   }
   function downloadCsv(){render();if(liveProfile?.role!=='admin')return;if(!state.exports.some(block=>block.rows.length))return window.showCenterStatus?.('No current table rows to export.',true);const lines=state.exports.flatMap((block,index)=>[...(index?[[]]:[]),block.headers,...block.rows]);const csv=lines.map(row=>row.map(value=>'"'+String(value??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob(['\ufeff',csv],{type:'text/csv;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=id()+'-'+state.month+'.csv';Promise.resolve(window.exportCenter14337?exportCenter14337.fromLink(link):link.click()).finally(()=>setTimeout(()=>URL.revokeObjectURL(url),60000)).catch(()=>{})}
