@@ -29,14 +29,3 @@ assert.equal(house(catalog).lines[0].role,'expense','A missing house account req
 const houseTemplate=house(context.JournalTemplateCatalog268.templates([...chart,account('5421','Company House Rent','EXPENSE')]));
 assert.deepEqual(Array.from(houseTemplate.lines,l=>l.code),['5421','1310']);
 console.log('PASS: inherited memos, equal/daily allocations, residual cents, year carryover, month-end dates, historical THB mapping without current rate, no repeated payment, named amortization templates');
-
-chart.push(account('5123','Restaurant Rent','EXPENSE','THB'),account('1314','Prepaid Company House Rent','ASSET','USD'),account('5424','Company House Rent','EXPENSE','USD'));
-const restaurant=[line('5123',100000,0,677.9554666),line('1312',0,100000,677.9554666)];
-const schedule=M.preview({...plan,start:'2026-11-01',end:'2027-03-31'},restaurant,chart);
-assert.deepEqual(Array.from(schedule,x=>Math.round(x.lines[0].debit*x.lines[0].book_rate_lak*100)),[1355910933,1355910933,1355910934,1355910933,1355910933]);
-assert(schedule.every(x=>x.lines.length===2&&x.lines[0].debit===20000&&x.lines[1].credit===20000&&x.lines[0].book_rate_lak===x.lines[1].book_rate_lak));
-const usd=M.preview({...plan,amount_basis:'monthly'},[line('5424',500,0,22228),line('1314',0,500,22228)],chart);
-assert(usd.every(x=>x.lines[0].debit*x.lines[0].book_rate_lak===11114000));
-assert.throws(()=>M.prepare(restaurant,chart,'recurring'),/Choose Amortization/);
-assert.throws(()=>M.prepare([restaurant[0],line('1312',0,100000,675)],chart,'amortization'),/same historical rate/);
-console.log('PASS direct THB and USD releases, cumulative historical LAK cents, account pairs and plan routing.');

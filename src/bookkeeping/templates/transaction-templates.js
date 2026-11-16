@@ -119,27 +119,11 @@ async function confirmSaveTemplate() {
   showAppNotification('Saved');
 }
 async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');const status=document.getElementById('templateCloudStatus275'),owner=liveProfile?.id;await window.TemplateCloud275?.sync();if(status?.isConnected&&liveProfile?.id===owner)await renderTemplateManager();}
-function builtInTransactionTemplates268(){
- const chart=AccountingStore.accounts,historical=window.JournalCompletion258?.historicalMappings(chart);
- const templates=[...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(chart)||[])];
- return historical?.size?templates.filter(t=>!t.lines.some(l=>historical.has(String(l.code)))):templates;
-}
+function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
 function availableTransactionTemplates(){
   TemplateStore.load();
   const overrides=new Map(TemplateStore.templates.map(t=>[t.id,t]));
-  const catalog=builtInTransactionTemplates268();
-  const saved=TemplateStore.templates.map(t=>{
-    // Early installations saved this sample with three display labels and no staff
-    // or withholding bridge. Keep its permanent number and the user's line memos.
-    if(t.deleted||t.id!=='tpl-payroll-sample'||t.lines.length!==3)return t;
-    const labels=['Salaries & Wages (USD)','Payroll Tax Payable (LAK)','SSO Payable (LAK)'];
-    if(!t.lines.every((l,i)=>l.account===labels[i]&&!l.accountId&&!l.code&&!l.side))return t;
-    const layout=catalog.find(item=>item.id==='gen268-payroll-tax-sso-USD'&&item.lines[0]?.code==='5316');
-    if(!layout)return t;
-    const memos=new Map(['5316','2111','2112'].map((code,i)=>[code,t.lines[i].memo]));
-    return {...layout,...t,builtin:true,autoMatch:false,lines:layout.lines.map(line=>({...line,memo:memos.get(line.code)??line.memo}))};
-  });
-  return [...catalog.filter(t=>!overrides.has(t.id)),...saved].filter(t=>!t.deleted);
+  return [...builtInTransactionTemplates268().filter(t=>!overrides.has(t.id)),...TemplateStore.templates].filter(t=>!t.deleted);
 }
 function templateEditorFields14399(t){
   let host=document.getElementById('templateFields14399');
@@ -149,12 +133,11 @@ function templateEditorFields14399(t){
   const label=document.createElement('label');label.textContent='General description';
   const memo=document.createElement('textarea');memo.value=t.generalMemo||'';memo.dataset.templateMemo14399='';label.append(memo);host.append(label);
   const list=document.createElement('div');list.id='templateRows14399';host.append(list);
-  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts);
   function add(line={}){
     const row=document.createElement('div');row.className='template-row14399';
     const account=document.createElement('select');account.setAttribute('aria-label','Template account');account.dataset.templateAccount14399='';account.innerHTML='<option value="">Choose account</option>';
     const resolved=line.code?AccountingStore.accounts.find(a=>a.code===line.code&&a.currency===line.currency):resolveTemplateAccount14397(line);
-    for(const a of AccountingStore.accounts.filter(a=>(a.id===resolved?.id||!historical?.has(String(a.code)))&&a.isPosting!==false&&a.active!==false&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)))){const o=document.createElement('option');o.value=a.id;o.textContent=a.code+' — '+a.name+' ('+a.currency+')';account.append(o)}
+    for(const a of AccountingStore.accounts.filter(a=>a.isPosting!==false&&a.active!==false&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)))){const o=document.createElement('option');o.value=a.id;o.textContent=a.code+' — '+a.name+' ('+a.currency+')';account.append(o)}
     account.value=resolved?.id||'';
     const description=document.createElement('input');description.value=line.memo||'';description.placeholder='Line description';description.setAttribute('aria-label','Line description');description.dataset.templateLineMemo14399='';
     const remove=document.createElement('button');remove.type='button';remove.className='je-btn je-btn-secondary';remove.textContent='Remove line';remove.onclick=()=>row.remove();
@@ -168,8 +151,7 @@ async function renderTemplateManager(){
   const host=document.getElementById('templateManagerList'); if(!host)return;
   const owner=liveProfile?.id;let numbers;try{numbers=await ensureTemplateNumbers143125()}catch(error){if(window.TemplateCloud275){TemplateCloud275.renderFailure(host,error);return true;}showAppNotification('Template Numbers Unavailable',error.message,true);return}if(liveProfile?.id!==owner)return;
   const templates=availableTransactionTemplates();
-  const savedIds=new Set(TemplateStore.templates.filter(t=>!t.deleted).map(t=>t.id));
-  host.innerHTML = '<p class="je-subtitle">'+savedIds.size+' saved custom templates · '+templates.filter(t=>t.builtin&&!savedIds.has(t.id)).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
+  host.innerHTML = '<p class="je-subtitle">'+TemplateStore.templates.filter(t=>!t.deleted).length+' saved custom templates · '+templates.filter(t=>t.builtin).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
     <div class="template-item">
       <div><strong><span class="template-number143125">${numbers[t.id]}.</span> ${escapeHtml(templateDisplayName143125(t))}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">

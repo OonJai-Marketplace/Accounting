@@ -1,1 +1,1 @@
-{"version": "143.400", "changes": ["Payment vouchers and receipts scale the saved design to the selected paper size.", "Both forms have editable names and role labels for the person paying and the person receiving.", "The payment document tab and name field take less space in the editor."]}
+{"version": "143.401", "changes": ["Restore the November 13 chart of accounts, journal generation, payroll journal rules and financial reporting logic."]}
