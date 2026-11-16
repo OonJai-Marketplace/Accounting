@@ -77,7 +77,9 @@
        try{
          const {data,error}=await db.rpc('post_category_transfers26',{p_month:period});
          if(error)throw error;
-         result.textContent=name+' posted: '+data.posted.join(', ');
+         result.textContent=data.requiresReview
+           ?name+' requires review of '+data.requiresReview+' close findings. No journals were posted.'
+           :name+' posted: '+data.posted.join(', ');
        }catch(error){result.textContent=name+' — '+error.message;}
        finally{buttons.forEach(control=>control.disabled=false);}
      };
