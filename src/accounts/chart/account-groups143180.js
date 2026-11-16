@@ -51,7 +51,13 @@ async function prepare(force=false){
  // An explicit refresh still reports its error to the synchronization screen.
  try{await load(force);}catch(error){if(force)throw error;}
 }
-function choose(nextGroup=group,nextType=type){group=nextGroup;type=nextType;renderChartOfAccountsTable();const main=$('chartMain143180');if(main)main.scrollTop=0;}
+function choose(nextGroup=group,nextType=type){
+ group=nextGroup;type=nextType;
+ const search=$('searchCoa1439');
+ if(search)search.value='';
+ renderChartOfAccountsTable();
+ const main=$('chartMain143180');if(main)main.scrollTop=0;
+}
 function mount(){const root=$('sec-chart-accounts');if(!root||!desktop()||$('chartBrowser143180'))return;
  const grid=document.createElement('div');grid.id='chartBrowser143180';const main=document.createElement('div');main.id='chartMain143180';main.tabIndex=0;main.setAttribute('aria-label','Chart of accounts list');main.append(...root.childNodes);
  const aside=document.createElement('aside');aside.id='chartAside143180';aside.className='no-print';aside.innerHTML='<section class="chart-sidecard143180"><h3>Account groups</h3><nav id="chartGroupNav143180" aria-label="Account groups"></nav><button type="button" class="je-btn je-btn-secondary" id="chartManage143180">Manage groups</button><p role="status" id="chartGroupStatus143180"></p></section><section class="chart-sidecard143180"><h3>Account types</h3><nav id="chartTypeNav143180" aria-label="Account types"></nav></section>';
