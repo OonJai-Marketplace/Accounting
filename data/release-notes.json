@@ -1,6 +1,7 @@
 {
-  "version": "143.406",
+  "version": "143.407",
   "changes": [
-    "Restore the November 13 chart, journal generation, payroll posting and financial reports."
+    "History actions share the top-right toolbar.",
+    "Tables show a single floating bottom pager only when more than one page is needed. Journal and ledger page breaks keep each Entry ID together."
   ]
 }

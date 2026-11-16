@@ -22,7 +22,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   for(const [key,panel,name] of [['journal','journal','Journal'],['submitted','user-entry-review','Submitted Entries'],['budget','transactions-budget14313','Budget']]){
    await page.evaluate(panel=>window.switchTab(panel),panel);
    await page.locator('#'+panel+' [data-book-history="'+key+'"]').first().click();
-   await page.getByRole('button',{name:'Back to '+name,exact:true}).click();
+   await page.locator('#transactions-all .history-header14342:visible .archive-month-actions').getByRole('button',{name:'Back',exact:true}).click();
    assert.equal(await page.locator('.tab-content.active').getAttribute('id'),panel);
   }
   const budget=page.locator('#transactions-budget14313');

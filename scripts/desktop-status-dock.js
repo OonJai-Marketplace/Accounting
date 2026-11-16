@@ -123,7 +123,7 @@ window.RailTools379=(()=>{
     detail.textContent=active?(active.error||'Loading ledger…'):'';
     if(active?.error)retry(detail,()=>read(active));return;
    }
-   const {account:selected,month,lines,page,coverage,source}=active;
+   const {account:selected,month,lines,coverage,source}=active;
    const dates=lines.map(l=>l.date.slice(0,7));
    const bounds=coverage?[coverage.from.slice(0,7),coverage.to.slice(0,7)]:[today.slice(0,4)+'-01',today,...dates].sort();
    const months=[];
@@ -132,13 +132,14 @@ window.RailTools379=(()=>{
     const [year,number]=m.split('-').map(Number);
     m=number===1?(year-1)+'-12':year+'-'+String(number-1).padStart(2,'0');
    }
-   const r=journalRows(lines,month),data=r.detail.slice(page*100,page*100+100);
+   const r=journalRows(lines,month),pages=entryPageRanges14340(r.detail,row=>row.l.dbEntryId||row.l.id);
+   const page=active.page=Math.min(active.page,pages.length-1),[start,end]=pages[page],data=r.detail.slice(start,end);
    picker.innerHTML=option('',coverage?'All downloaded months':'All months')+months.map(m=>option(m,summaryPeriod14331.monthLabel(m))).join('');picker.value=month;
-   detail.innerHTML='<h3>'+esc(selected.code+' · '+selected.name+' ('+selected.currency+')')+'</h3><div class="ledger-stats379">'+[['Opening',signed(r.start)],['Total debit',amt(r.dr)],['Total credit',amt(r.cr)],['Closing balance',signed(r.balance)]].map(([k,v])=>'<div><small>'+k+'</small><strong>'+esc(v)+'</strong></div>').join('')+'</div><p>'+esc(source)+(month?'':' · Annual opening entries establish each year’s balance and are excluded from turnover.')+'</p><div class="watch-scroll"><table class="ledger-lines379"><thead><tr><th>Date</th><th>Entry ID</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>'+data.map(({l,debit,credit,balance},i)=>'<tr tabindex="0" data-line="'+(page*100+i)+'" class="'+(active.selectedRow===page*100+i?'selected':'')+'">'+[formatAppDate(l.date),l.id,l.memo||l.generalMemo,amt(debit),amt(credit),signed(balance)].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+(data.length?'':'<tr><td colspan="6">No activity in this period.</td></tr>')+'</tbody></table></div>'+(r.detail.length>100?'<footer><button data-prev>Previous</button><span>'+String(page*100+1)+'–'+Math.min((page+1)*100,r.detail.length)+' of '+r.detail.length+'</span><button data-next>Next</button></footer>':'');
+   detail.innerHTML='<h3>'+esc(selected.code+' · '+selected.name+' ('+selected.currency+')')+'</h3><div class="ledger-stats379">'+[['Opening',signed(r.start)],['Total debit',amt(r.dr)],['Total credit',amt(r.cr)],['Closing balance',signed(r.balance)]].map(([k,v])=>'<div><small>'+k+'</small><strong>'+esc(v)+'</strong></div>').join('')+'</div><p>'+esc(source)+(month?'':' · Annual opening entries establish each year’s balance and are excluded from turnover.')+'</p><div class="watch-scroll"><table class="ledger-lines379"><thead><tr><th>Date</th><th>Entry ID</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>'+data.map(({l,debit,credit,balance},i)=>'<tr tabindex="0" data-line="'+(start+i)+'" class="'+(active.selectedRow===start+i?'selected':'')+'">'+[formatAppDate(l.date),l.id,l.memo||l.generalMemo,amt(debit),amt(credit),signed(balance)].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+(data.length?'':'<tr><td colspan="6">No activity in this period.</td></tr>')+'</tbody></table></div>'+(pages.length>1?'<footer class="ledger-page-controls" aria-label="Ledger pagination"><button data-prev>Previous</button><span>'+String(start+1)+'–'+end+' of '+r.detail.length+'</span><button data-next>Next</button></footer>':'');
    const highlight=e=>{const row=e.target.closest('[data-line]');if(!row)return;
     detail.querySelector('tr.selected')?.classList.remove('selected');row.classList.add('selected');active.selectedRow=Number(row.dataset.line);};
    detail.onclick=highlight;detail.onkeydown=e=>{if(e.target.matches('[data-line]')&&['Enter',' '].includes(e.key)){e.preventDefault();highlight(e);}};
-   for(const [selector,step] of [['[data-prev]',-1],['[data-next]',1]]){const b=detail.querySelector(selector);if(b){b.disabled=page+step<0||(page+step)*100>=r.detail.length;b.onclick=()=>{active.page+=step;draw();};}}
+   for(const [selector,step] of [['[data-prev]',-1],['[data-next]',1]]){const b=detail.querySelector(selector);if(b){b.disabled=page+step<0||page+step>=pages.length;b.onclick=()=>{active.page+=step;draw();};}}
   }
   activate(active);
  }
@@ -419,6 +420,7 @@ window.AccountWatch378=(()=>{
     .ledger-tabs379 button:first-child{border-radius:5px 0 0 5px;font-weight:bold}
     .ledger-tabs379 button:last-child{border-left:0;border-radius:0 5px 5px 0;padding:3px 6px}
     .ledger-tabs379 [aria-pressed=true]{color:white;background:#194c38}
+    .watch-dialog .ledger-page-controls{position:sticky;bottom:0;z-index:1;justify-content:center;width:max-content;max-width:100%;margin:4px auto 0;padding:3px 8px;background:white;border:1px solid #aec1b3;border-radius:7px;box-shadow:0 2px 8px #193e3226}
     .ledger-detail379>h3{margin:0 0 8px}
     .ledger-lines379 tr[data-line]{cursor:pointer}
     .ledger-lines379 tr[data-line]:hover{background:#edf5ee}

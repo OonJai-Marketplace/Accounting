@@ -69,7 +69,6 @@ body .budget-request327 [data-pane=details]{grid-template-columns:minmax(0,.8fr)
 
 body .budget-request327 .budget-dialog14313{height:min(660px,calc(100vh - 36px));height:min(660px,calc(100dvh - 36px));box-sizing:border-box}
 .budget-request327 .ui-body108{flex:1}
-#bookHistoryReturn{margin:4px 0 12px}
 .worksheet-header,.worksheet-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .worksheet-header{justify-content:space-between;margin-bottom:14px}
 .worksheet-header span,.spending-worksheet small{display:block;color:#50655c}

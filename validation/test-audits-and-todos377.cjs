@@ -38,7 +38,8 @@ const fixture=require('./phase0-browser-fixture.cjs');
    assert.equal(await cleanup.count(),1);
   }
   const pager=page.locator('#auditMonths98 .audit-pager377');
-  assert.equal(await pager.evaluate(n=>getComputedStyle(n).justifyContent),'flex-end');
+  await pager.waitFor({state:'visible'});
+  assert.equal(await pager.evaluate(n=>getComputedStyle(n).position),'fixed');
   await pager.getByText('Next').click();await pager.getByText('51–51 of 51').waitFor();
   assert(await pager.getByText('Next').isDisabled());
   await pager.getByText('Previous').click();await pager.getByText('1–50 of 51').waitFor();
