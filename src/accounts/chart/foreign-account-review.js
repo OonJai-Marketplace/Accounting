@@ -46,7 +46,7 @@ window.openForeignAccountReview2026 = async function (postingResult = '') {
       m.journals.length + ' journals</summary><table><thead><tr><th>Journal</th><th>Lines</th><th>Status</th></tr></thead><tbody>' +
       detail + '</tbody></table>' + action + review + '</details>';
   }).join('');
-  const content = '<div class="group-manager143180"><details><summary>Chart of accounts</summary>' +
+  const content = '<div class="group-manager143180"><button class="je-btn je-btn-secondary" type="button" data-friday-chart>Restore 15 original mapping accounts</button><details><summary>Chart of accounts</summary>' +
     '<table><thead><tr><th>Code</th><th>Regular account</th><th>Status</th></tr></thead><tbody>' + chartRows +
     '</tbody></table></details>' + (next.length ? '<button class="je-btn je-btn-emerald" type="button" data-chart>Create ' +
       next.length + ' regular accounts</button>' : '') + (retirementRows ?
@@ -65,7 +65,7 @@ window.openForeignAccountReview2026 = async function (postingResult = '') {
   const overlay = document.querySelector('.ui-overlay108:last-child');
   let busy = false;
   overlay.addEventListener('click', async event => {
-    const button = event.target.closest('[data-chart],[data-retire],[data-prepare],[data-finish],[data-post-reviewed],[data-restore-october],[data-post-october]');
+    const button = event.target.closest('[data-friday-chart],[data-chart],[data-retire],[data-prepare],[data-finish],[data-post-reviewed],[data-restore-october],[data-post-october]');
     if (!button || busy || !valid()) return;
     busy = true;
     button.disabled = true;
@@ -81,6 +81,18 @@ window.openForeignAccountReview2026 = async function (postingResult = '') {
     status.textContent = 'Checking the current ledger…';
     try {
       const month = button.dataset.prepare || button.dataset.finish;
+      if (button.hasAttribute('data-friday-chart')) {
+        const count = await call('restore_friday_chart_flags_2026');
+        if (count !== 0 && count !== 15) throw Error('The original account flags could not be confirmed.');
+        window.AccountSheet143191?.changed({owner:actor, db});
+        await loadReferenceDataFromSupabase({databaseOnly:true});
+        if (!valid() || !overlay.isConnected) return;
+        await window.AccountGroups143180.load(true);
+        if (!valid() || !overlay.isConnected) return;
+        overlay.resolve108(false);
+        await window.openForeignAccountReview2026('All 15 original mapping accounts are active.');
+        return;
+      }
       if (button.hasAttribute('data-restore-october')) {
         const result = await call('restore_october_monthly_close_2026');
         if (result?.status !== 'closed') throw Error('Reopen the chart to verify the October close.');

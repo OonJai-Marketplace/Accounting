@@ -1,1 +1,1 @@
-{"version": "143.401", "changes": ["Payment vouchers and receipts now have independent V and R numbers in the editor and Bookkeeping Documents.", "Prepare numbers on a device for offline printing, or save a pending document and confirm its number after reconnecting.", "The receipt and payment voucher editor actions are both labeled Save."]}
+{"version": "143.402", "changes": ["The chart administrator can restore the original November 13 mapping accounts after verifying their identities."]}
