@@ -2,6 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),base=require('./payroll-ac
 const read=p=>fs.readFileSync(p,'utf8');
 function setup(){
  const w=window,clone=v=>JSON.parse(JSON.stringify(v)),qa=w.qa276;
+ w.access113={can:()=>true}; // This fixture runs the administrator's payroll workflow.
  qa.entries=[];qa.ledger=[];qa.calls=[];qa.periodClosed=false;qa.prints=[];
  w.ApplicationSettings.payroll={nonWorkDays99:[]};w.ApplicationSettings.accounting={journalPrefix:'TEST',journalDigits:6};
  Object.assign(w.Work82,{loaded:true,loading:false,error:'',leaves:[],employees:[],busy:false});

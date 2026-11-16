@@ -1,1 +1,1 @@
-{"version": "143.420", "changes": ["Generate Journal and payroll use regular foreign-currency accounts for purchases, income and owner receipts. Salary settlements retain the required book rates and FX lines. New rent amortizations use the prepaid lot\u2019s historical rate."]}
+{"version": "143.421", "changes": ["Generate Journal can combine a new owner-support receipt and an earlier allocation at their separate rates. Payroll checks the saved amounts before line rounding and identifies customized rules that still use legacy mappings."]}

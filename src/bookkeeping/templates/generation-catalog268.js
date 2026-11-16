@@ -121,6 +121,11 @@ function templates(chart){
     lines:[...receipt.lines.map(l=>({...l,stage:'Receipt'})),...exchange.lines.map(l=>({...l,stage:'Exchange'}))]});
   }
  }
+ const deposit=out.find(t=>t.id==='gen268-support-deposit-USD');
+ const allocation=out.find(t=>t.id==='gen268-mapping-9321-USD');
+ if(reg.replacement.has('9311')&&deposit&&allocation)
+  out.push({id:'gen268-support-deposit-allocation-USD',name:'Receive support via staff and allocate earlier support · USD',builtin:true,autoMatch:false,
+   lines:[...deposit.lines.map(l=>({...l,stage:'Receipt'})),...allocation.lines.map(l=>({...l,stage:'Allocation'}))]});
  if(currencies.includes('LAK')){
   for(const [code,label] of [['2111','PIT'],['2112','SSO']]){
    const payable=reg.byCode(code,'LAK');

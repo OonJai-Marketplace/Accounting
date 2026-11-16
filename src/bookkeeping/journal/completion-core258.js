@@ -109,10 +109,10 @@ function completePart(input){
  }
  if(errors.length)return {errors};
  const source=rows.filter(l=>l.a&&l.generated!=='output'&&!reg.isBridge(l.a));
- const supportAllocation=source.some(l=>['9321','9322'].includes(String(l.a.code)));
  for(const l of source){
   const target=reg.replacement.get(String(l.a.code));
-  if(target&&!(l.a.code==='9311'&&(supportAllocation||l.debit>0)))
+  const allocatedSupport=l.a.code==='9311'&&!l.credit&&(l.debit>0||l.expectedSide==='debit')&&source.some(other=>other.a.code==='9321');
+  if(target&&!allocatedSupport)
    error('Row '+(l.index+1)+': use '+target.code+' — '+target.name+' and review any old LAK equivalents.',l.index,false,'account');
  }
  if(errors.length)return {errors};
@@ -274,7 +274,7 @@ function completePart(input){
    if(fund(l.a)&&l.credit>0)cashNeeds.set(l.a.id,(cashNeeds.get(l.a.id)||0)+l.credit);
   }
   const outs=active.filter(l=>fund(l.a)&&l.credit>0),outQ=outs.reduce((n,l)=>n+l.credit,0),outValue=outs.reduce((n,l)=>n+round(l.credit*(l.book||0)),0),otherDr=active.filter(l=>!reg.maps.has(l.a.id)&&!fund(l.a)&&!reg.isTax(l.a)).reduce((n,l)=>n+l.debit,0),mapDr=maps.reduce((n,l)=>n+l.debit,0),cashPart=Math.max(0,Math.min(mapDr,outQ-otherDr));
-  const historical=active.filter(l=>l.credit>0&&!fund(l.a)&&!monetary(l.a)&&!technical(l.a));
+  const historical=active.filter(l=>l.credit>0&&type(l.a)==='ASSET'&&!fund(l.a)&&!monetary(l.a)&&!technical(l.a));
   const remaining=maps.filter(l=>l.debit&&reg.maps.get(l.a.id).actualCode==='3023');
   const applied=maps.filter(l=>l.credit&&reg.maps.get(l.a.id).actualCode==='3024');
   const allocation=remaining.length===1&&applied.length===1&&remaining[0].debit===applied[0].credit?[remaining[0],applied[0]]:[];

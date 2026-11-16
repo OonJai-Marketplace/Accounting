@@ -47,4 +47,28 @@ const template=payrollTemplate1431.defaultTemplate(payroll);
 result=payrollTemplate1431.buildLines(payroll,template);
 assert.deepEqual(result.map(x=>x.account.code),['5316','1220','9042','9041','2111']);
 assert.equal(result[0].amount,1000);
+const receiptAndUse=[
+ line('1220',50,0,22000),line('3026',0,50,22000),line('1041',50,0,22000),line('1220',0,50,22000),
+ line('9311',70,0,21000),line('9321',0,70,21000)
+];
+result=complete(receiptAndUse);
+assert.deepEqual(result.map(l=>[l.account_id,l.debit,l.credit]).slice(-2),[['3023',1470000,0],['3024',0,1470000]]);
+assert.deepEqual(complete(result),result);
+const combinedLayout=layout('support-deposit-allocation-USD');
+assert.deepEqual(combinedLayout.filter(l=>!l.calculated).map(l=>l.stage),['Receipt','Receipt','Receipt','Receipt','Allocation','Allocation']);
+assert(G.complete({chart,rows:receiptAndUse.map(l=>l.account_id==='3026'?{...l,account_id:'9311'}:l),rates:{USD:22000}}).errors.length);
+const local={...payroll,rows:['a','b'].map(employeeId=>({employeeId,employee:{name:employeeId,currency:'LAK',payrollAccountId:'1040'}})),
+ results:['a','b'].map(employeeId=>({employeeId,currency:'LAK',gross:100.006,adjusted:100.006}))};
+const lt=payrollTemplate1431.defaultTemplate(local),snapshot=JSON.stringify(local);
+result=payrollTemplate1431.buildLines(local,lt);
+assert.deepEqual(result.filter(l=>l.account.code==='5420').map(l=>[l.side,l.amount]),[['DR',0.01]]);
+assert.equal(JSON.stringify(local),snapshot);
+const underpaid=structuredClone(local);underpaid.results[0].adjusted-=0.01;
+assert.throws(()=>payrollTemplate1431.buildLines(underpaid,lt),/balance/);
+const tinyTax={...payroll,results:[{employeeId:'a',currency:'USD',gross:22000000,adjusted:21999990,employeePit:10}]};
+result=payrollTemplate1431.buildLines(tinyTax,payrollTemplate1431.defaultTemplate(tinyTax));
+assert(result.some(l=>l.account.code==='2111'&&l.amount===10&&l.side==='CR'));
+assert(!result.some(l=>l.account.code==='9042'));
+const edited=structuredClone(template);edited.lines.find(r=>r.basis==='gross').account='9231';
+assert.throws(()=>payrollTemplate1431.buildLines(payroll,edited),/Review this payroll rule/);
 console.log('Direct purchase, bank fee, salary settlement, owner support, amortization and payroll passed.');
