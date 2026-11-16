@@ -10,7 +10,25 @@ async function prepareSchedules(force){
  if(!force&&window.offline14239?.offline())return;
  throw Error('Prepared journal plans could not be loaded');
 }
-function pending(show,message='Loading this area…',retry){document.body.classList.toggle('startup-pending1443',show);let box=document.getElementById('startup1443');if(!box){box=document.createElement('section');box.id='startup1443';box.setAttribute('role','status');box.innerHTML=(window.loading1444?.markup()||'')+'<p></p><button type="button" class="je-btn" hidden>Retry loading</button>';document.body.append(box)}window.idleSync14341?.preparation(show?message:'',retry);box.hidden=!show;box.setAttribute('aria-label',message);const copy=box.querySelector('p');copy.textContent=message;copy.hidden=false;const motion=box.querySelector('.loading-orbit1444');if(motion)motion.hidden=!!retry;const b=box.querySelector('button');b.hidden=!retry;b.onclick=retry||null}
+function pending(show,message='Loading this area…',retry){document.body.classList.toggle('startup-pending1443',show);let box=document.getElementById('startup1443');if(!box){box=document.createElement('section');box.id='startup1443';box.setAttribute('role','status');box.innerHTML=(window.loading1444?.markup()||'')+'<p></p><button type="button" class="je-btn" hidden>Retry loading</button>';document.body.append(box)}window.idleSync14341?.preparation(show?message:'',retry);box.hidden=!show;box.setAttribute('aria-label',message);const copy=box.querySelector('p');copy.textContent=message;copy.hidden=false;const motion=box.querySelector('.loading-orbit1444');if(motion)motion.hidden=!!retry;const b=box.querySelector('button');b.hidden=!retry;b.onclick=retry||null;budgetShortcut(box,retry)}
+// Offer the existing budget dialogs only after this account's own budget data is ready.
+function budgetAvailable(){
+ const id=typeof liveProfile==='undefined'?null:liveProfile?.id;
+ return !!id && liveProfile.role==='admin' && Work82.loaded && !Work82.error && !Work82.loading &&
+  Work82.owner===id && !window.workspaceRequest138?.target &&
+  window.access113?.can('transactions-budget14313') &&
+  ['reference','business','profiles','payroll'].every(name=>window.startup14257?.isPrepared(name));
+}
+function budgetShortcut(box,retry){
+ let button=box.querySelector('[data-open-budget]');
+ if(!retry||!budgetAvailable()){button?.remove();return;}
+ if(!button){button=document.createElement('button');button.type='button';button.className='je-btn';
+  button.dataset.openBudget='';button.textContent='Open Budget Requests';box.append(button);}
+ const owner=liveProfile.id,client=ojmDb;
+ button.onclick=()=>{
+  if(owner===liveProfile?.id&&client===ojmDb&&budgetAvailable())window.budgetWorkflow14316.chooseRequest(true);
+ };
+}
 function ready(){window.startupData1443=async function(check){clearTimeout(retryTimer14338);const actor=liveProfile.id,fresh=typeof freshLoginRequested!=='undefined'&&freshLoginRequested;const current={actor,loaded:new Map(),done:new Set(),generation:0,refreshNeeded:true};job=current;document.querySelectorAll('[data-area-loading]').forEach(n=>{n.removeAttribute('data-area-loading');n.querySelector(':scope > .area-loading-status')?.remove()});window.startup14257.dataReady=false;
  const valid=()=>{check();if(job!==current||liveProfile?.id!==actor)throw Error('Session changed')};
  const tasks={opening:()=>window.openingBalances14234?.check(true),reference:async force=>{

@@ -1,6 +1,6 @@
 {
-  "version": "143.412",
+  "version": "143.413",
   "changes": [
-    "Add or edit a foreign-currency sub-account and choose its LAK reporting account."
+    "Open Budget Requests when unrelated journal downloads are paused. Record verified budget history with gross fund use and a separate cash distribution when needed."
   ]
 }

@@ -9,3 +9,8 @@ body .budget-dialog14313 details label{display:block;margin-top:10px}
 :is(#transactions-budget14313,.budget-request327) .budget-items290 .row-menu99>summary::marker{content:''}
 :is(#transactions-budget14313,.budget-request327) .budget-items290 .row-menu99>summary::-webkit-details-marker{display:none}
 :is(#budgetFunds290,#fundAllocation14316) .finance-controls117 [hidden]{display:none!important}
+
+/* Keep the startup screen behind the budget form and its confirmation dialogs. */
+html:root body.startup-pending1443:has(#startup1443 [data-open-budget]):has(.budget-dialog14313) > .ui-overlay108 {
+ z-index: 110000 !important;
+}
