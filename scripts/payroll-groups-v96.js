@@ -307,7 +307,7 @@ function historyView(id){
   return `<section class="pay-group95"><header class="salary-history-record"><div><strong>${esc(title)}</strong><div>${esc(summary)}</div></div><div class="actions82 no-print">${actions}</div></header><div class="pay-group-body95">${tables}</div></section>`;
  }).join('')||'<p class="empty82">No matching saved payroll.</p>';
  const filters=report?'<div hidden class="payroll-report-filters143153">'+monthControl+'</div>':'';
- const actions=salaryHistory?monthControl:`<input id="payHistorySearch95" class="je-input" type="search" aria-label="Search payroll history" placeholder="Search payroll history" value="${esc(ui.search)}"><button type="button" class="je-btn je-btn-secondary" data-payroll-filter143153 aria-haspopup="dialog">Filter</button>`+action82('Reload Records','loadWork82(true)');
+ const actions=salaryHistory?(access113.can('payroll-overview')?action82('Back to Payroll Overview',"switchTab('payroll-overview')"):'')+monthControl:`<input id="payHistorySearch95" class="je-input" type="search" aria-label="Search payroll history" placeholder="Search payroll history" value="${esc(ui.search)}"><button type="button" class="je-btn je-btn-secondary" data-payroll-filter143153 aria-haspopup="dialog">Filter</button>`+action82('Reload Records','loadWork82(true)');
  mount82(id,'Salary History',report?'Search references, employees, payroll codes, months, amounts and saved notes.':'',storageNotice82()+filters+historyMonth14341.summary([['Payroll records',monthRuns.length],['Adjusted total (LAK)',money(sum(finalRows,'adjusted'))]])+'<div id="historyRecords95">'+records+'</div>',actions);
  const panel=document.getElementById(id);
  historyMonth14341.bind(panel,id,()=>historyView(id),true);

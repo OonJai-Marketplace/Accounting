@@ -80,22 +80,28 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await page.route('**/rest/v1/rpc/budget_capabilities14316',r=>r.fulfill({json:{version:14316}}));
   await page.locator('#document-editor105').getByRole('button',{name:'Fund utilization',exact:true}).click();
   const popup=page.getByRole('dialog',{name:'Fund utilization',exact:true});
-  await popup.locator('#financeMove82').waitFor();
+  await popup.locator('[data-spending-rows]').waitFor();
   async function movement(type,values){
-   await popup.locator('#financeMove82').evaluate((f,{type,values})=>{
+   const group=type==='receipt'?'receipt':type==='spend'?'spend':'other';
+   await popup.locator('[data-activity="'+group+'"]').click();
+   await page.locator('.fund-activity #financeMove82').evaluate((f,{type,values})=>{
     f.elements.type290.value=type;f.onchange();f.elements.date290.value='2026-11-05';
     for(const [k,v] of Object.entries(values))f.elements[k].value=v;
     f.onchange();f.requestSubmit();
    },{type,values});
   }
   await movement('receipt',{account:'Sponsor',destination290:'USD account',currency:'USD',amount:'100',reference:'R1'});
-  const fx=popup.locator('#financeFx117');
+  await popup.getByRole('button',{name:'Currency conversion',exact:true}).click();
+  const fx=page.locator('.fund-activity #financeFx117');
   await fx.evaluate(f=>{for(const [k,v] of Object.entries({date:'2026-11-05',source:'USD account',currency:'USD',amount:'40',target:'LAK',targetAmount290:'800000',destination290:'Cash box',evidence:'FX1'}))f.elements[k].value=v;f.requestSubmit()});
   await movement('spend',{account:'USD account',destination290:'Vendor',currency:'USD',amount:'10',budgetKey117:'a',reference:'S1',description290:'Fuel for delivery route'});
   await movement('borrow',{account:'Company petty cash',destination290:'Cash box',currency:'LAK',amount:'100000',reference:'A1'});
   await movement('spend',{account:'Cash box',destination290:'Supplier',currency:'LAK',budgetKey117:'a',amount:'200000',equivalent:'10',reference:'S2'});
-  const loan=await popup.locator('[name=loanId290] option').last().getAttribute('value');
+  await popup.locator('[data-activity=other]').click();
+  const loan=await page.locator('.fund-activity [name=loanId290] option').last().getAttribute('value');
+  await page.locator('.fund-activity [data-dismiss]').click();
   await movement('repay',{account:'Cash box',destination290:'Company petty cash',currency:'LAK',amount:'60000',loanId290:loan,reference:'P1'});
+  await popup.getByText('Report details',{exact:true}).click();
   await popup.locator('#fundHeader290 [name=receiptReference290]').fill('TEST-RECEIPT');
   await popup.getByRole('button',{name:'Save report',exact:true}).click();
   await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'));
@@ -107,11 +113,11 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await page.evaluate(()=>switchTab('transactions-budget14313'));
   assert(await panel.getByRole('button',{name:'Open request'}).isVisible());
   const count=db.size;
-  await panel.getByRole('button',{name:'Fund utilization',exact:true}).click();
+  await panel.locator('header').getByRole('button',{name:'Fund utilization',exact:true}).click();
   await popup.getByRole('button',{name:'Requests and saved reports'}).click();
   await page.evaluate(()=>{ui117.confirm=async()=>true});
   await page.getByRole('dialog',{name:'Requests and saved reports'}).getByRole('button',{name:'Continue',exact:true}).click();
-  await popup.locator('#financeMove82').waitFor();
+  await popup.locator('[data-spending-rows]').waitFor();
   assert.equal(await popup.locator('#fundHeader290 [name=receiptReference290]').inputValue(),'TEST-RECEIPT');
   assert.equal(await popup.locator('#fundHeader290 [name=date]').inputValue(),report.data.date);
   assert.equal(db.size,count);
