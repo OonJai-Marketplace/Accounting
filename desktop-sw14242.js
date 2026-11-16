@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.402',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.403',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/desktop-status-dock.js?v=143.381",
  "docs/protocols/index.html?v=143.387",
@@ -39,8 +39,8 @@ const FILES=[
  "scripts/journal-generator257.js?v=143.399",
  "scripts/upcoming-plans280.js?v=143.390",
  "styles/upcoming-plans280.css?v=143.377",
- "scripts/receipt-workflow245.js?v=143.400",
- "scripts/receipt-phone245.js?v=143.401",
+ "scripts/receipt-workflow245.js?v=143.403",
+ "scripts/receipt-phone245.js?v=143.403",
  "scripts/journal-receipts224.js?v=143.369",
  "styles/journal-receipts224.css?v=143.247",
  "scripts/receipt-detector-worker213.js?v=143.213",
@@ -95,7 +95,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.399",
  "scripts/desktop14245-6.js?v=143.399",
  "scripts/local-events14310.js?v=143.375",
- "scripts/offline14239.js?v=143.402",
+ "scripts/offline14239.js?v=143.403",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -117,7 +117,7 @@ const FILES=[
  "scripts/budget14313.js?v=143.375",
  "scripts/budget-messages14314.js?v=143.331",
  "scripts/action-feedback14296.js?v=143.323",
- "scripts/vouchers14299.js?v=143.401",
+ "scripts/vouchers14299.js?v=143.403",
  "scripts/navigation-badges14311.js?v=143.189",
  "scripts/layout14256.js?v=143.113",
  "scripts/backup-validation1441.js?v=143.109",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.375",
  "styles/settings-groups14332.css?v=143.375",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.402",
+ "scripts/phone-runtime14242.js?v=143.403",
  "scripts/local-first14333.js?v=143.377",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.391",
@@ -269,7 +269,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.393",
  "styles/workspace-consistency14343.css?v=143.377",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.402",
+ "phone-sw.js?v=143.403",
  "scripts/personal-journal1437.js?v=143.380",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",

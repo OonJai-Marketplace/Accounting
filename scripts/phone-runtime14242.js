@@ -140,7 +140,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.402', $ = id => document.getElementById(id);
+  const VERSION = '143.403', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -897,7 +897,7 @@ function cashierMonthAllows(date) {
     if(!isAdmin()||S.saving||S.submitting)return;
     const actor=S.actor,epoch=S.epoch,check=()=>{if(!isAdmin()||actor!==S.actor||epoch!==S.epoch)throw fail('Administrator access changed. Reopen Receipts.');};
     saveMirror();$('accountMenu').hidden=true;
-    await Receipt245.script('scripts/receipt-phone245.js?v=143.401',()=>window.ReceiptPhone245);check();
+    await Receipt245.script('scripts/receipt-phone245.js?v=143.403',()=>window.ReceiptPhone245);check();
     await ReceiptPhone245.open({check,today,rpc,
       getDraft:async()=>(await record(actor)).receiptDraft245,
       saveDraft:draft=>{check();return persist(actor,{receiptDraft245:draft})},
