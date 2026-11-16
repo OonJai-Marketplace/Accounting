@@ -6,8 +6,10 @@ const createFixture = require('./phase0-browser-fixture.cjs');
   try {
     const { page, login } = await fixture.open();
     fixture.fixture.tables.voucher_settings14299 = [{ id: 1, prefix: 'TEST' }];
-    await page.route('**/rest/v1/rpc/receipt_preview245', route =>
-      route.fulfill({ json: ['SAMPLE-01', 'SAMPLE-02'] }));
+    await page.route('**/rest/v1/rpc/payment_preview401', route => {
+      const q=route.request().postDataJSON(), prefix='OJM'+q.p_date.slice(2,4)+'-'+(q.p_type==='receipt'?'R':'V')+'A'+q.p_date.slice(5,7);
+      return route.fulfill({ json:Array.from({length:q.p_count},(_,i)=>prefix+String(i+1).padStart(2,'0')) });
+    });
     await login();
     await page.evaluate(() => {
       const modal = ui108.modal.bind(ui108);

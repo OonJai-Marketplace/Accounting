@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),create=require(
 (async()=>{const f=await create();try{
  const {page,login}=await f.open(),errors=[];page.on('pageerror',e=>errors.push(e.message));
  f.fixture.tables.voucher_settings14299=[{id:1,prefix:'OJM',handwritten_code:'H',editor_code:'E',digits:4}];f.fixture.tables.vouchers14299=[];f.fixture.tables.voucher_sequences14299=[];
- await page.route('**/rest/v1/rpc/receipt_preview245',r=>r.fulfill({json:['OJM26-A1103']}));
+ await page.route('**/rest/v1/rpc/payment_preview401',r=>r.fulfill({json:['OJM26-RA1103']}));
  await page.route('**/rest/v1/rpc/receipt_layout245',r=>r.fulfill({json:{}}));
  await login();await page.evaluate(()=>{ui108.confirm=async()=>true;const modal=ui108.modal.bind(ui108);ui108.modal=(t,...args)=>t==='Open in Document Editor'?Promise.resolve('new'):modal(t,...args)});
  await page.evaluate(async()=>{const img=async kind=>'data:image/png;base64,'+await Receipt245.base64(await(await fetch('assets/payroll-voucher-'+kind+'1424.png')).blob());PrintSettings.headerImage=await img('header');PrintSettings.footerImage=await img('footer');await vouchers14299.createReceipt()});
