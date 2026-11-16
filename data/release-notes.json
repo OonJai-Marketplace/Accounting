@@ -1,8 +1,6 @@
 {
-  "version": "143.405",
+  "version": "143.406",
   "changes": [
-    "Apply in voucher and receipt Details uses the blank-form count and carries the configured signatories into the batch.",
-    "Print uses the formatted pages with their footer and signatures for documents and reports.",
-    "Printing a batch prepares each numbered copy once and reuses confirmed copies on reprints."
+    "Restore the November 13 chart, journal generation, payroll posting and financial reports."
   ]
 }

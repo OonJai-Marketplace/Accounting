@@ -13,8 +13,7 @@ run("reportSorts143153.set('gl',{by:'account',direction:'asc'})");assert.deepEqu
 run("reportSorts143153.set('gl',{by:'account',direction:'desc'})");assert.deepEqual(Array.from(values(),r=>r[2]),['High','High','Low','Low']);
 for(const row of values())assert.equal(row.at(-1),balances.get(row[1]));assert.deepEqual(JSON.parse(JSON.stringify(run("reportModel79('gl',true)[0].values"))),JSON.parse(JSON.stringify(values())));
 const parent={id:'p',code:'5000',name:'Group',isPosting:false},children=[{...data[0],account:{...data[0].account,parentCode:'5000'}},{...data[1],account:{...data[1].account,parentCode:'5000'}}];ctx.AccountingStore.accounts=[parent,...children.map(r=>r.account)];const grouped=ctx.ForeignFunds14386.hierarchy(children,(a,b)=>Number(b.account.code)-Number(a.account.code));assert.equal(grouped[0].isSubtotal14386,true);assert.deepEqual(Array.from(grouped.slice(1),r=>r.account.code),['9000','1000']);assert.equal(grouped[0].debit,60);
-ctx.AccountingStore.accounts=[];ctx.periodFilters14331={allClosedLedger:()=>false,markup:()=>'<label>Period<button>All months</button></label>'};
-ctx.document.querySelector=selector=>panels[selector.match(/^#(report-[\w-]+)\.active,/)?.[1]]||null;
+ctx.AccountingStore.accounts=[];ctx.periodFilters14331={markup:()=>'<label>Period<button>All months</button></label>'};
 for(const kind of ['gl','activity','pl','bs','tb','cf','expense','payroll']){
  const host={innerHTML:''};panels['report-'+kind]={classList:{contains:()=>true},querySelector:()=>host};ctx.syncCashAccountPicker14230=()=>{};run('renderReports79()');assert.match(host.innerHTML,/onclick="toggleReportFilters143153\(this\)"/);assert.match(host.innerHTML,/aria-haspopup="dialog"/);assert.ok(host.innerHTML.indexOf('>Filter</button>')<host.innerHTML.indexOf('>Refresh</button>'));if(['gl','activity'].includes(kind))assert.match(host.innerHTML,/r79-search143153/);delete panels['report-'+kind];
 }

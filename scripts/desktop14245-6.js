@@ -860,7 +860,7 @@ function pickerRecord(input,source){let h=histories.get(input);if(!h){pickerBefo
 function choose(index,refocus=true){const current=active,option=current?.shown[index];if(!option)return;const {source,input}=current;if(!source.isConnected||source.disabled||!choices(source).some(o=>o.value===option.value)){close(true);return}window.JournalUndo143103?.checkpoint();pickerBefore(input,source);delete input.dataset.pickerDraft1444;input.setCustomValidity('');source.value=option.value;if(source!==input)input.value=option.label;close();source.dispatchEvent(new Event('input',{bubbles:true}));source.dispatchEvent(new Event('change',{bubbles:true}));selectedBadge14231(input,source);if(tabletPicker()&&source.matches('.inline-cell117'))window.workspaceCellCommit14233?.(source.dataset.inlineUser117,source.dataset.inlineRow117);pickerRecord(input,source);window.JournalUndo143103?.record();if(window.JournalCells143116?.chosen(input))return;if(refocus)input.focus({preventScroll:true});}
 function highlight(index){if(!active||!active.shown.length)return;active.index=(index+active.shown.length)%active.shown.length;active.box.querySelectorAll('[role=option]').forEach((n,i)=>{n.setAttribute('aria-selected',String(i===active.index));if(i===active.index){active.input.setAttribute('aria-activedescendant',n.id);const list=n.closest('.account-options14266')||active.box,r=n.getBoundingClientRect(),v=list.getBoundingClientRect();if(r.top<v.top)list.scrollTop+=r.top-v.top;else if(r.bottom>v.bottom)list.scrollTop+=r.bottom-v.bottom}})}
 function draw(query=''){return withChoices(()=>drawChoices(query))}
-function drawChoices(query=''){if(!active)return;active.query=query;const tokens=query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);active.shown=choices(active.source).filter(o=>(!active.kind||group(accountForChoice(o.value))===active.kind)&&tokens.every(t=>(o.label+' '+o.value+' '+(o.currency||'')).toLocaleLowerCase().includes(t)));if(!tokens.length&&active.initial){const selected=accountForChoice(active.initial),i=active.shown.findIndex(o=>o.value===active.initial||selected&&accountForChoice(o.value)?.id===selected.id);if(i>0)active.shown.unshift(active.shown.splice(i,1)[0])}active.index=-1;const {box}=active,list=box.querySelector('.account-options14266')||box;list.replaceChildren();if(!active.shown.length){const empty=document.createElement('div');empty.className='account-empty1428';empty.textContent=active.source.matches('[data-simple=affected]')&&!choices(active.source).some(o=>o.value)?'No assigned category accounts for this main account and direction. Check its currency or the user’s account settings.':'No matching choices';list.append(empty)}else active.shown.forEach((o,i)=>{const row=document.createElement('div');row.id=box.id+'-'+i;row.className='account-option1428';row.setAttribute('role','option');row.setAttribute('aria-selected','false');markType(row,o.value);if(o.currency){const badge=document.createElement('span');badge.className='currency-tag';badge.dataset.currencyCode=o.currency;badge.textContent=choiceSymbol14231(o.currency);badge.title=o.currency;badge.setAttribute('aria-label',o.currency);row.append(badge)}const label=document.createElement('span');label.textContent=o.label;row.append(label);row.onpointerdown=e=>{if(e.pointerType!=='touch')e.preventDefault()};row.onclick=()=>choose(i,!tabletPicker());list.append(row)});position()}
+function drawChoices(query=''){if(!active)return;active.query=query;const tokens=query.toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);active.shown=choices(active.source).filter(o=>(!active.kind||group(accountForChoice(o.value))===active.kind)&&tokens.every(t=>(o.label+' '+o.value).toLocaleLowerCase().includes(t)));if(!tokens.length&&active.initial){const selected=accountForChoice(active.initial),i=active.shown.findIndex(o=>o.value===active.initial||selected&&accountForChoice(o.value)?.id===selected.id);if(i>0)active.shown.unshift(active.shown.splice(i,1)[0])}active.index=-1;const {box}=active,list=box.querySelector('.account-options14266')||box;list.replaceChildren();if(!active.shown.length){const empty=document.createElement('div');empty.className='account-empty1428';empty.textContent=active.source.matches('[data-simple=affected]')&&!choices(active.source).some(o=>o.value)?'No assigned category accounts for this main account and direction. Check its currency or the user’s account settings.':'No matching choices';list.append(empty)}else active.shown.forEach((o,i)=>{const row=document.createElement('div');row.id=box.id+'-'+i;row.className='account-option1428';row.setAttribute('role','option');row.setAttribute('aria-selected','false');markType(row,o.value);if(o.currency){const badge=document.createElement('span');badge.className='currency-tag';badge.dataset.currencyCode=o.currency;badge.textContent=choiceSymbol14231(o.currency);badge.title=o.currency;badge.setAttribute('aria-label',o.currency);row.append(badge)}const label=document.createElement('span');label.textContent=o.label;row.append(label);row.onpointerdown=e=>{if(e.pointerType!=='touch')e.preventDefault()};row.onclick=()=>choose(i,!tabletPicker());list.append(row)});position()}
 function addTypeRail(box,source){const available=choices(source).filter(o=>o.value&&accountForChoice(o.value)),types=[...new Set(available.map(o=>group(accountForChoice(o.value))).filter(Boolean))];if(available.length<=12||types.length<2)return;const rail=document.createElement('div');rail.className='account-type-rail14277';rail.setAttribute('role','group');rail.setAttribute('aria-label','Filter account types');const symbols={DRAWING:'↗',EXPENSE:'▤',ASSET:'▣',LIABILITY:'≋',EQUITY:'◈',REVENUE:'↙',SYSTEM:'⚙'};for(const key of ['',...types]){const button=document.createElement('button');button.type='button';button.textContent=symbols[key]||'●';button.setAttribute('aria-label',key?groupName(key):'All account types');button.title=key?groupName(key):'All account types';button.setAttribute('aria-pressed',String(!key));button.onclick=()=>{active.kind=key;for(const item of rail.children)item.setAttribute('aria-pressed',String(item===button));draw(active.query||'');};rail.append(button)}box.prepend(rail)}
 function open(input,source,all=true){return withChoices(()=>openChoices(input,source,all))}
 function openChoices(input,source,all=true){if(source.disabled||(source.readOnly&&!tabletPicker()))return;if(active?.input!==input){close();const box=document.createElement('div');box.id='account-list1428-'+(++serial);box.className='account-list1428';box.setAttribute('role',tabletPicker()?'group':'listbox');box.setAttribute('aria-label','Choose an option');const list=document.createElement('div');list.className='account-options14266';list.setAttribute('role','listbox');box.append(list);(input.closest('dialog[open]')||document.body).append(box);active={input,source,box,initial:source.value,shown:[],index:-1,kind:''};box.addEventListener('pointerdown',()=>{if(active?.box===box)active.touching=true});for(const event of ['pointerup','pointercancel'])box.addEventListener(event,()=>{const current=active;setTimeout(()=>{if(current===active&&current)current.touching=false},200)});addTypeRail(box,source);input.setAttribute('aria-controls',box.id)}input.setAttribute('aria-expanded','true');draw(all?'':input.value);window.tabletJournal14266?.reveal()}
@@ -971,14 +971,11 @@ function defaultTemplate(run){
  const t={name:'Oon Jai payroll journal',version:143275,journalDate:journalDate(run),employeeAccounts:{},lines:[]};
  rows.forEach(r=>t.employeeAccounts[r.employeeId]=employeeAccount(r.employee));
  const tax=(run.status==='finalized'?run.settingsSnapshot:ApplicationSettings)?.tax||ApplicationSettings.tax||{};
- const chart=window.JournalCompletion258?.registry(eligible());
  const pitExpense=exact('5211','LAK',['PIT Expense','OJM- PITx Expense']),pitPayable=settingsAccount(tax.pitAccount,'2111',['PIT Payable','OJM- PITx Payable']),ssoExpense=exact('5212','LAK',['SSO Expense']),ssoPayable=settingsAccount(tax.ssoAccount,'2112',['SSO Payable','OJM- SSO Payable']);
  const rule=(account,side,basis,currency,scope,memo,expectedCurrency=currency)=>({account,side,basis,employees:currency,scope,memo,expectedCurrency,manual:''});
  for(const c of currencies){
   const group=rows.filter(r=>r.employee.currency===c),sso=group.some(r=>r.employee.sso),foreign=c!=='LAK';
-  const regularSalary=chart?.byCode?.({USD:'5316',THB:'5317'}[c],c);
-  const direct=chart?.regular?.has(regularSalary?.id);
-  const salary=direct?regularSalary.id:foreign&&chart?.regular?.size?'':exact({USD:'9231',LAK:'5311',THB:'9232'}[c]||'',c);
+  const salary=exact({USD:'9231',LAK:'5311',THB:'9232'}[c]||'',c);
   const start=t.lines.length;
   t.lines.push(rule(salary,'DR','gross',c,'total','Gross salaries · '+c),rule('$employee','CR','adjusted',c,'each','Final salary'));
   t.lines.push(rule('$employee','CR','cashAdvance',c,'each','Entitlement allocated to advance recovery'),rule('$employee','CR','loanRecovery',c,'each','Entitlement allocated to loan recovery'));
@@ -990,8 +987,8 @@ function defaultTemplate(run){
    if(sso)t.lines.push(rule(taxBridge,'CR','employeeSso',c,'total','Employee SSO withholding'));
    for(const r of t.lines.slice(start))r.conversionSource274=true;
    const derived=(account,kind,memo)=>({...rule(account,'AUTO','rounding',c,'total',memo,kind==='quantity'?c:'LAK'),derived274:kind});
-   if(!direct)t.lines.push(rule(exact('5311','LAK'),'DR','gross',c,'total','Salary expense · '+c+' payroll','LAK'),derived(exact('9290','LAK'),'salaryOffset','Salary mapping · converted value'));
-   for(const row of group)if(!direct&&(Number(row.input?.reimbursement)>0||run.results?.some(x=>x.employeeId===row.employeeId&&Number(x.reimbursement)>0))){
+   t.lines.push(rule(exact('5311','LAK'),'DR','gross',c,'total','Salary expense · '+c+' payroll','LAK'),derived(exact('9290','LAK'),'salaryOffset','Salary mapping · converted value'));
+   for(const row of group)if(Number(row.input?.reimbursement)>0||run.results?.some(x=>x.employeeId===row.employeeId&&Number(x.reimbursement)>0)){
     for(const [kind,memo] of [['reimbursementExpense','Reimbursement expense'],['reimbursementOffset','Reimbursement mapping · converted value']])t.lines.push({...derived('',kind,memo),employees:'employee:'+row.employeeId,scope:'each'});
    }
    t.lines.push(derived(exact('9041','LAK'),'taxBridge','Employee withholding · converted value'));
@@ -1011,31 +1008,6 @@ function defaultTemplate(run){
 // amounts, dates and employee mappings; never rewrite a saved payroll result.
 function upgrade308(template){
  const t={...template,lines:template.lines.map(r=>({...r}))};
- const chart=window.JournalCompletion258?.registry(eligible());
- if(chart?.regular?.size){
-  const accounts=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
-  const remove=new Set();
-  for(const [c,legacy,replacement] of [['USD','9231','5316'],['THB','9232','5317']]){
-   const salary=chart.byCode(replacement,c);
-   if(!chart.regular.has(salary?.id))continue;
-   const group=t.lines.filter(r=>(r.groupCurrency275||r.employees)===c);
-   const gross=group.filter(r=>r.conversionSource274&&r.basis==='gross'&&r.side==='DR'&&r.scope==='total'&&accounts.get(r.account)?.code===legacy);
-   if(gross.length!==1)continue;
-   const recognition=group.filter(r=>r.basis==='gross'&&r.scope==='total'&&r.side==='DR'&&r.expectedCurrency==='LAK'&&accounts.get(r.account)?.code==='5311');
-   const offset=group.filter(r=>r.derived274==='salaryOffset'&&accounts.get(r.account)?.code==='9290');
-   if(recognition.length!==1||offset.length!==1||[...recognition,...offset].some(r=>String(r.manual??'').trim()||r.manualMemo!=null))continue;
-   gross[0].account=salary.id;
-   remove.add(recognition[0]);remove.add(offset[0]);
-   for(const r of group){
-    if(r.basis==='reimbursement'&&r.account){
-     const a=accounts.get(r.account),code=chart.superseded(a),replacement=code&&chart.byCode(code,c);
-     if(chart.regular.get(replacement?.id)?.type==='EXPENSE')r.account=replacement.id;
-    }
-    if(['reimbursementExpense','reimbursementOffset'].includes(r.derived274)&&!r.account&&!String(r.manual??'').trim()&&r.manualMemo==null)remove.add(r);
-   }
-  }
-  t.lines=t.lines.filter(r=>!remove.has(r));
- }
  t.lines=t.lines.flatMap(r=>{
   if(['taxConversionRounding308','pitRoundingPayable308','pitRoundingOffset308'].includes(r.derived274))return [];
   if(r.derived274==='taxBridge')return [{...r,memo:'Employee withholding · converted value'}];
@@ -1059,13 +1031,11 @@ function evaluate(run,template){
  if(!template?.lines?.length)throw Error('Add at least two payroll template lines.');
  const lines=[],issues=[],rules=template.lines;
  const employees=new Map((run.rows||[]).map(row=>[row.employeeId,row.employee])),accounts=new Map(eligible().map(a=>[a.id,a]));
- const registry=window.JournalCompletion258?.registry(eligible());
  const report=m=>{if(!issues.includes(m))issues.push(m);};
  const accountFor=(r,x)=>{
   const e=employees.get(x.employeeId)||x.employee||{};
   const id=r.account==='$employee'?(Object.hasOwn(template.employeeAccounts||{},x.employeeId)?template.employeeAccounts[x.employeeId]:e.payrollAccountId):r.account;
   const a=accounts.get(id),currency=r.account==='$employee'?x.currency:r.expectedCurrency||a?.currency||x.currency;
-  if(registry?.superseded?.(a))report('Update the saved payroll layout for '+currency+' to use account '+registry.superseded(a)+' and review its LAK recognition lines.');
   if(!a)report('Choose '+currency+' account: '+(r.account==='$employee'?e.name||x.employeeId:r.memo||fields[r.basis]));
   else if(r.account==='$employee'&&a.currency!==x.currency)report((e.name||'Employee')+' clearing account must use '+x.currency+'.');
   else if(r.expectedCurrency&&a.currency!==r.expectedCurrency)report((r.memo||fields[r.basis])+' requires '+r.expectedCurrency+'.');
@@ -1075,8 +1045,7 @@ function evaluate(run,template){
   if(!Number.isFinite(value)||!Number.isFinite(round(value))){report('Payroll amount exceeds the supported range.');return;}
   if(!value)return;
   const e=employees.get(x.employeeId)||x.employee||{};
-  const rate=a.currency==='LAK'?1:Number(run.rates?.[a.currency]);
-  lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex,employeeId275:x.employeeId,sourceLak274,fx_rate_lak:rate,book_rate_lak:registry?.regular?.has(a.id)?rate:null});
+  lines.push({account:a,amount:round(value),side:r.side,memo:r.manualMemo??((r.scope==='each'?(e.name||x.employeeId)+' · ':'')+(r.memo||fields[r.basis])+' · '+run.reference),ruleIndex,employeeId275:x.employeeId,sourceLak274,fx_rate_lak:a.currency==='LAK'?1:Number(run.rates?.[a.currency]),book_rate_lak:null});
  }
  rules.forEach((r,ruleIndex)=>{
   if(r.basis==='rounding'||r.derived274)return;
@@ -1126,12 +1095,8 @@ function evaluate(run,template){
   if(!source.length)continue;
   if(!(rate>0)||source.some(l=>l.sourceLak274===null)||original!==0){report(c+' payroll source amounts must match the saved calculations before conversion rounding. Review edited or missing business rows.');continue;}
   const reimbursements=source.filter(l=>rules[l.ruleIndex].basis==='reimbursement');
-  const directCosts=source.filter(l=>registry?.regular?.get(l.account.id)?.type==='EXPENSE'&&l.side==='DR'&&['gross','reimbursement'].includes(rules[l.ruleIndex].basis));
-  if(directCosts.some(l=>rules[l.ruleIndex].basis==='gross')&&rules.some(r=>groupCurrency(r)===c&&(r.derived274==='salaryOffset'||r.basis==='gross'&&r.expectedCurrency==='LAK'))){
-   report('Review the duplicate LAK salary lines in the saved '+c+' payroll layout.');continue;
-  }
+  const registry=window.JournalCompletion258?.registry(eligible());
   for(const l of reimbursements){
-   if(directCosts.includes(l))continue;
    const mapping=registry?.maps.get(l.account.id),pair=rules.filter(r=>groupCurrency(r)===c&&r.employees==='employee:'+l.employeeId275&&/^reimbursement/.test(r.derived274||''));
    if(!mapping?.actual||!mapping?.offset||mapping.offsetCode!=='9290'||!/^5/.test(mapping.actual.code)||pair.length!==2||new Set(pair.map(r=>r.derived274)).size!==2||l.side!=='DR'){
     report('Choose a supported foreign expense mapping for each reimbursement; use the default journal to include its LAK counterparts.');continue;
@@ -1142,14 +1107,11 @@ function evaluate(run,template){
   if(Math.abs(qty)>source.length*.005+.000001){report(c+' difference exceeds the calculated conversion rounding.');continue;}
   const converted=bases=>round(source.filter(l=>bases.includes(rules[l.ruleIndex].basis)).reduce((n,l)=>n+round(signed(l)*rate),0));
   const entitlement=source.filter(l=>['adjusted','cashAdvance','loanRecovery'].includes(rules[l.ruleIndex].basis));
-  // Grouped foreign costs now carry their own LAK value. Only their evidenced
-  // conversion cents, together with the per-employee differences, belong to rounding.
-  const costRounding=directCosts.reduce((n,l)=>n+l.sourceLak274-round(l.amount*rate),0);
-  const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,costRounding));
+  const residual=round(entitlement.reduce((n,l)=>n+round(l.amount*rate)-l.sourceLak274,0));
   const values={salaryOffset:-converted(['gross']),taxBridge:-converted(['employeePit','employeeSso']),quantity:-qty,quantityValue:round(qty*rate),roundingExpense:residual};
   for(const [i,r] of rules.entries())if(r.derived274&&groupCurrency(r)===c){const v=values[r.derived274];if(v)push({...r,side:v>0?'DR':'CR'},accountFor(r,chosen[0]),Math.abs(v),chosen[0],i);}
   const local=round(lines.filter(l=>l.account.currency==='LAK'&&groupCurrency(rules[l.ruleIndex])===c).reduce((n,l)=>n+signed(l),0));
-  if(local!==0)report(c+(directCosts.length?' LAK rows':' LAK mapping rows')+' differ from the saved payroll by '+Math.abs(local)+'. Review the accounts and amounts.');
+  if(local!==0)report(c+' LAK mapping rows differ from the saved payroll by '+Math.abs(local)+'. Review the accounts and amounts; no balancing adjustment was invented.');
  }
  // PIT payable is the sum of the equal rounded shares. Do not generate
  // an offsetting pair to restore the unallocated tax-assessment cent.
@@ -2167,8 +2129,6 @@ function base(line,side){const c=line.currency||line.currency_code;if(c==='LAK')
 function carrying(accountId,date){const ws=window.yearWindow14333?.state();let qty=0,value=0,missing=false;for(const b of ws?.opening||[])if(String(b.accountId)===String(accountId)){qty+=Number(b.balance);if(b.base_balance==null&&b.currency!=='LAK')missing=true;else value+=Number(b.currency==='LAK'?b.balance:b.base_balance)}for(const l of JournalModule.entries){if(String(l.accountId)!==String(accountId)||l.date>date||l.id===JournalModule.editingEntryId||l.pendingSync||l.local14333||l.voided_at||(l.status&&l.status!=='posted'))continue;qty+=Number(l.debit)-Number(l.credit);const d=base(l,'debit'),c=base(l,'credit');if(d===null||c===null)missing=true;else value+=d-c}return !missing&&qty>0&&value>0?{quantity:qty,value:round(value),rate:value/qty}:null}
 // Built-ins use the same editable, zero-amount journal structure as saved templates.
 function templates(){
- const direct=window.JournalTemplateCatalog268?.currencyTemplates?.(accounts());
- if(direct)return direct;
  const row=(code,currency,side,memo,legacy)=>({code:accounts().some(a=>a.code===code)?code:legacy||code,currency,side,memo});
  return [
  {id:'fx14383-income',builtin:true,name:'Record sales received in multiple currencies',generalMemo:'Record sales received in LAK and foreign currencies, with income mapped to LAK.',lines:[
@@ -2435,7 +2395,7 @@ function detailRows(rows){
  return values;
 }
 const headers=['Account / parent','Original closing balance','Recorded closing LAK','Average carrying rate'];
-const note='Parent subtotals sum each descendant posting account once. Original currencies remain separate; there is no mixed-currency average. Recorded LAK = opening LAK + recorded debits − recorded credits. Average carrying rate = recorded closing LAK ÷ original closing balance. Use the General Ledger for each saved transaction/carrying rate. These are recorded values, not current market valuations. Parent and child rows are explanatory and must not be added together.';
+const note='Parent subtotals sum each descendant posting account once. Original currencies remain separate; there is no mixed-currency average. Recorded LAK = opening LAK + recorded debits − recorded credits. Foreign-currency tracking is automatic for all posting accounts, including System and mapping accounts. Average carrying rate = recorded closing LAK ÷ original closing balance. A mapping balance’s rate describes its recorded net valuation, not a rate to use for a new transaction. Use the General Ledger for each saved transaction/carrying rate. These are recorded values, not current market valuations. Parent and child rows are explanatory and must not be added together.';
 function reportDetails(rows,kind){let selected=rows;if(['pl','expense'].includes(kind))selected=rows.filter(r=>['REVENUE','EXPENSE'].includes(r.account.baseType||r.account.type));if(kind==='bs')selected=rows.filter(r=>['ASSET','LIABILITY','EQUITY'].includes(r.account.baseType||r.account.type));if(['cf','payroll'].includes(kind))selected=rows.filter(r=>Reports79[kind==='cf'?'cash':'payroll'].includes(r.key));if(['gl','activity'].includes(kind)&&Reports79.account)selected=select(rows,Reports79.account);const values=detailRows(selected);return values.length?{currency:'Recorded valuation detail',headers,values,metrics:[],note}:null;}
 function html(rows){const values=detailRows(rows);return values.length?'<h4>Recorded valuation detail</h4><div class="table-container"><table class="valuation-columns"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+values.map(r=>{const p=presentation(r[0]);return '<tr'+(p.subtotal?' class="report-subtotal143185"':'')+'>'+r.map((v,i)=>'<td>'+(p.subtotal?'<strong>':'')+(i===0?label(v):esc(v))+(p.subtotal?'</strong>':'')+'</td>').join('')+'</tr>'}).join('')+'</tbody></table></div><p class="report-note69">'+esc(note)+'</p>':'';}
 window.ForeignFunds14386={presentation,label,tracked,select,hierarchy,descendants,average,lineRateText,reportDetails,detailRows,html};

@@ -22,8 +22,7 @@ syncCoaDatalist = function() {
   const dl = document.getElementById('coaList');
   if (!dl) return;
   dl.innerHTML = '';
-  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts);
-  AccountingStore.accounts.filter(acc=>!historical?.has(String(acc.code))&&acc.isPosting!==false&&acc.is_posting!==false&&acc.active!==false&&acc.is_active!==false).forEach(acc => {
+  AccountingStore.accounts.filter(acc=>acc.isPosting!==false&&acc.is_posting!==false&&acc.active!==false&&acc.is_active!==false).forEach(acc => {
     const opt = document.createElement('option');
     /* Include the account code in the selected value so identically named
        accounts in different currencies cannot resolve to the wrong badge. */

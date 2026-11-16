@@ -15,28 +15,3 @@ run("Object.assign(Reports79,{kind:'gl',account:'cash|LAK',selectedMonths14331:[
 run("Object.assign(Reports79,{selectedMonths14331:null,from:'2026-01-01',to:'2026-01-31',allMonths14331:false})");groups=plain(run("reportModel79('gl')"));assert.equal(groups.length,1);assert.equal(groups[0].periodLabel,undefined);assert.deepEqual(groups[0].values.map(r=>r[1]),['JAN26']);
 const reconciliation=fs.readFileSync('src/reports/financial/reports-system-v71.js','utf8');vm.runInContext(reconciliation.slice(reconciliation.indexOf('function reconciliationReceiptDate71'),reconciliation.indexOf('async function readReconciliationAccount71')),c);entries.find(l=>l.id==='DEC25'&&l.accountId==='cash').memo='Receipt [Receipt date: 2026-01-05]';const cash=plain(c.reconciliationAccount71('cash|LAK','2025-12-01','2026-01-31',entries,'posting'));assert.deepEqual([cash.opening,cash.debit,cash.credit,cash.closing],[10000,0,3000,7000]);assert.deepEqual(cash.lines.map(l=>[l.id,l.date]),[['DEC25','2025-12-15'],['JAN26','2026-01-15']]);assert.equal(cash.dateBasis,'posting');
 console.log('PASS cross-year custom/All months reports include each year; opening balances are not duplicated; date sorting, LAK/original results, trial balance, latest balance sheet, selected months and state restoration remain correct');
-
-// All closed months uses a single opening and one movement total even with an open month between closed books.
-c.document.querySelector=selector=>selector==='.tab-content.active'?{id:'report-gl'}:null;
-c.PeriodReview={periods:{'2026-01':{status:'closed'},'2026-02':{status:'open'},'2026-03':{status:'closed'}}};
-entries.push(line('FEB26','2026-02-15','cash',0,10),line('FEB26','2026-02-15','expense',10,0),
- line('MAR26','2026-03-15','cash',0,5),line('MAR26','2026-03-15','expense',5,0));
-run("Object.assign(Reports79,{kind:'gl',from:'2026-01-01',to:'2026-03-31',selectedMonths14331:['2026-01','2026-03'],account:'cash|LAK'})");
-groups=plain(run("reportModel79('gl')"));
-assert.equal(groups.length,1);
-assert.deepEqual(groups[0].values.map(r=>r[1]),['JAN26','MAR26']);
-assert.deepEqual(groups[0].metrics.map(m=>m[1]),[9000,0,2500,6500]);
-run("Reports79.kind='tb'");
-groups=plain(run("reportModel79('tb')"));
-assert.equal(groups.length,1);
-assert.equal(groups[0].metrics.at(-1)[1],0);
-assert.deepEqual(groups[0].values.find(r=>r[0]==='cash').slice(2),['90.00 DR','0.00','25.00','65.00']);
-console.log('PASS All closed months produces one Trial Balance and one continuous General Ledger.');
-
-// Open correction workspaces display projections in Bookkeeping; reports still use posted lines.
-c.PeriodReview.periods['2026-01']={status:'open',officialStatus:'closed'};
-assert.deepEqual(plain(run('reportBooks.closedMonths()')),['2026-01','2026-03']);
-assert.equal(run("reportBooks.closed('2026-01-15')"),true);
-assert.equal(run("reportBooks.closed('2026-02-15')"),false);
-assert.deepEqual(plain(run("reportModel79('tb')"))[0].values.find(r=>r[0]==='cash').slice(2),['90.00 DR','0.00','25.00','65.00']);
-console.log('PASS closed-book balances survive a pending correction session.');

@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.405', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.406', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "docs/protocols/index.html?v=143.387",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.387",
@@ -34,8 +34,8 @@ const FILES=[
  "docs/protocols/topics/P11.pdf?v=143.316",
  "docs/protocols/topics/S01.pdf?v=143.387",
  "docs/protocols/topics/S02.pdf?v=143.316",
- "scripts/receipt-workflow245.js?v=143.405",
- "scripts/receipt-phone245.js?v=143.403",
+ "scripts/receipt-workflow245.js?v=143.406",
+ "scripts/receipt-phone245.js?v=143.406",
  "scripts/receipt-detector-worker213.js?v=143.213",
  "styles/phone-login210.css?v=143.210",
  "scripts/receipt-camera209.js?v=143.213",
@@ -80,7 +80,7 @@ const FILES=[
  "styles/phone14242.css?v=143.348",
  "scripts/reconciliation14345.js?v=143.376",
  "styles/final-review14345.css?v=143.301",
- "scripts/phone-runtime14242.js?v=143.405",
+ "scripts/phone-runtime14242.js?v=143.406",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",
