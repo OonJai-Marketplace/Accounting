@@ -9,7 +9,7 @@ const create=require('./phase0-browser-fixture.cjs');
  try{
   const {page,context,login}=await f.open();
   const errors=[],outbound=[],records=new Map(),templates=[];let settings=null;
-  let rejectNextInsert=true,pauseEdits=false,releaseInsert;
+  let pauseEdits=false,releaseInsert;
   const insertGate=new Promise(resolve=>{releaseInsert=resolve});
   page.on('pageerror',e=>errors.push(e.message));
   page.on('request',r=>{if(/gmail\.googleapis|wa\.me|api\.whatsapp/.test(r.url()))outbound.push(r.url())});
@@ -24,7 +24,6 @@ const create=require('./phase0-browser-fixture.cjs');
   await page.route('**/rest/v1/operational_reports*',async route=>{
    const req=route.request(),u=new URL(req.url()),id=u.searchParams.get('id')?.slice(3);
    if(req.method()==='POST'){
-    if(rejectNextInsert){rejectNextInsert=false;return route.fulfill({status:400,json:{message:'Please retry saving the request.'}})}
     await insertGate;
     const row=req.postDataJSON();assert(!records.has(row.id));records.set(row.id,row);return route.fulfill({json:[row]});
    }
@@ -88,11 +87,9 @@ const create=require('./phase0-browser-fixture.cjs');
   await editor.getByRole('button',{name:'Copy WhatsApp message'}).click();
   assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),short);
   await editor.getByRole('button',{name:'Budget items',exact:true}).click();
-  await save.click();await editor.getByText('Please retry saving the request.',{exact:true}).waitFor();
-  assert.equal(await editor.locator('[data-budget-key14316]').count(),5);assert.equal(records.size,0);
-  await save.click();await editor.getByText('Saving request…',{exact:true}).waitFor();
-  assert(await editor.isVisible());releaseInsert();
-  await editor.waitFor({state:'detached'});
+  await save.click();await editor.waitFor({state:'detached'});
+  assert.equal(records.size,0);
+  releaseInsert();await page.waitForFunction(()=>localFirst14333.state().jobs.some(j=>j.kind==='reports'&&j.status==='synced'));
   const savedList=main.getByRole('row').filter({hasText:'Budget Request for November 2026'});
   assert.equal(await savedList.count(),1);assert.match(await savedList.innerText(),/LAK 180,000/);
   assert.equal(records.size,1);assert.deepEqual(settings.data.categories,['Supplies']);assert.equal(templates.length,1);
@@ -116,6 +113,7 @@ const create=require('./phase0-browser-fixture.cjs');
   await form.locator('[name=description]').fill('Final delivery');
   await form.locator('[name=currency]').selectOption('LAK');await form.locator('[name=amount]').fill('20000');
   await save.click();await editor.waitFor({state:'detached'});
+  await page.waitForFunction(()=>localFirst14333.state().jobs.some(j=>j.kind==='reports'&&j.row.version===2&&j.status==='synced'));
   assert.equal(records.size,1);assert.equal([...records.values()][0].data.lines.length,6);
   assert.match(await savedList.innerText(),/LAK 200,000/);
   await main.getByRole('button',{name:'Open request'}).click();
@@ -126,12 +124,10 @@ const create=require('./phase0-browser-fixture.cjs');
   await editor.getByRole('button',{name:'Budget items',exact:true}).click();
   pauseEdits=true;
   await save.click();
-  await editor.getByText('Saved on this device. Sync the budget request in Data Check.').waitFor();
-  await page.locator('#status118').filter({hasText:'Saved on this device'}).getByRole('button').click();
-  await save.click();assert(await editor.isVisible());assert.equal([...records.values()][0].version,2);
-  pauseEdits=false;
-  await page.evaluate(()=>localFirst14333.sync({coordinated:true}));
-  await save.click();await editor.waitFor({state:'detached'});
+  await editor.waitFor({state:'detached'});
+  await page.waitForFunction(()=>localFirst14333.state().jobs.some(j=>j.row.version===3&&j.status==='uncertain'));
+  assert.equal([...records.values()][0].version,2);
+  pauseEdits=false;await page.evaluate(()=>localFirst14333.resumeDrafts());
   assert.equal([...records.values()][0].version,3);assert.equal([...records.values()][0].data.notes,'Updated delivery date.');
   await main.getByRole('button',{name:'New Report'}).click();await editor.getByRole('button',{name:'Budget items',exact:true}).click();
   await editor.getByRole('button',{name:'Templates',exact:true}).click();

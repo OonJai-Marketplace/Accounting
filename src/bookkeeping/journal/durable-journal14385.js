@@ -2,8 +2,8 @@
 (()=>{'use strict';
 const actor=()=>typeof liveProfile==='undefined'?'':liveProfile?.id||'';
 const scope=()=>String(window.OJM_SUPABASE_URL||location.origin);
-const context=()=>({actor:actor(),scope:scope(),client:ojmDb});
-const valid=c=>c.actor&&actor()===c.actor&&scope()===c.scope&&ojmDb===c.client;
+const context=()=>({actor:actor(),scope:scope(),client:ojmDb,workspace:window.workspaceRequest138?.target||''});
+const valid=c=>c.actor&&actor()===c.actor&&scope()===c.scope&&ojmDb===c.client&&(window.workspaceRequest138?.target||'')===c.workspace;
 const assert=c=>{if(!valid(c))throw Error('Account or database changed. Work remains with the original account.')};
 const clone=v=>structuredClone(v),canonical=v=>localFirst14333.canonical(v);
 let rows=[],loaded='',loading=null,error='',flight=null,submitting=false,editing=null;
@@ -73,37 +73,71 @@ async function change(lines,kind,value,reason,expected){if(window.workspaceReque
 async function patch(c,id,fn){return mutate(c,list=>{const j=list.find(j=>j.id===id);if(j)fn(j);return list})}
 function receipt(data,count){if(!Array.isArray(data)||data.length!==count||data.some(r=>!r.entry_id||!r.entry_no)||new Set(data.map(r=>r.entry_id)).size!==count)throw Error('Complete database receipt not received. The saved reference will be retried.');return data}
 async function call(c,rpc,args){assert(c);const r=await offline14239.request(c.client.rpc(rpc,args));assert(c);if(r.error)throw r.error;return r.data}
-async function sync({explicit=false,targetId=null,reconnected=false}={}){const c=context();await initialize();assert(c);if(flight){await flight;assert(c);if(!explicit&&!reconnected&&!ownRows().some(j=>active(j)&&j.status==='pending'))return;}if(explicit)await offline14239.confirmConnection();if(offline14239.offline()||window.workspaceRequest138?.target)return;
- const execute=async()=>{assert(c);await window.offlineAudit143174?.initialize();rows=await read(c);
+function sync(options={}){
+ const c=context(),preceding=flight;
+ const next=(preceding||Promise.resolve()).catch(()=>{}).then(async()=>{
+  assert(c);await initialize();assert(c);
+  if(options.explicit)await offline14239.confirmConnection();
+  if(offline14239.offline()||window.workspaceRequest138?.target)return;
+  const execute=()=>send(c,options);
+  if(navigator.locks)return navigator.locks.request('ojm-journal14385:'+identity(c),{},execute);
+  return execute();
+ });
+ flight=next;
+ next.finally(()=>{if(flight===next)flight=null;if(valid(c))changed()}).catch(()=>{});
+ return next;
+}
+async function send(c,{targetId=null,reconnected=false}){
+ assert(c);if(offline14239.offline()||window.workspaceRequest138?.target)return;await window.offlineAudit143174?.initialize();rows=await read(c);
  if(reconnected&&(window.offlineAudit143174?.pending().length||rows.some(j=>active(j)&&j.changes.some(op=>op.status!=='saved'))))return;
- for(const original of rows.filter(j=>active(j)&&(!targetId||j.id===targetId)).sort((a,b)=>Number(!!b.receipt)-Number(!!a.receipt))){
+ for(const original of rows.filter(j=>active(j)&&(!targetId||j.id===targetId)&&(!reconnected||!j.receipt||j.voucher&&!j.voucherLinked)).sort((a,b)=>Number(!!b.receipt)-Number(!!a.receipt))){
  if(!valid(c)||offline14239.offline())break;const id=original.id;
  try{let j=(await read(c)).find(j=>j.id===id);if(!j||j.retired)continue;
- if(reconnected&&(j.receipt||j.changes.length||!['pending','uncertain','saving'].includes(j.status)||!access113.can('journal','post')))continue;
+ if(reconnected&&(j.changes.length||!['pending','uncertain','saving','saved'].includes(j.status)||j.receipt&&(!j.voucher||j.voucherLinked)||!access113.can('journal','post')))continue;
  if(!j.receipt){if(j.numberConflict335&&!j.acceptAvailable335)continue;if(targetId&&rows.some(other=>other.id!==targetId&&active(other)&&other.changes?.some(op=>op.status!=='saved')))throw Object.assign(Error('Sync the pending journal edits or voids before posting this entry.'),{code:'DEPENDENCY'});
  if(targetId&&window.offlineAudit143174?.pending().length)throw Object.assign(Error('Sync the earlier audit deletion before posting this entry.'),{code:'DEPENDENCY'});
  if(!targetId&&!reconnected)await window.offlineAudit143174?.beforePost();if(!access113.can('journal','post'))throw Object.assign(Error('Current journal posting permission required.'),{code:'42501'});
  await patch(c,id,j=>{j.status='saving';j.message='Saved on this device. Synchronizing…'});
+ updateStatus(id);
  const {p_request_key,...single}=j.payload;
  const constrained=j.localNumbers335?.some(Boolean)&&!j.acceptAvailable335;
  const device=constrained||!!j.voucher||j.entries.some(entry=>entry.cashSlipRef);
  const rpc=device?'post_device_journal335':j.payload.p_entries?'post_journal_batch14228':'post_manual_journal14228';
  const args=device?{p_request_key,p_entries:j.payload.p_entries||[single],p_numbers:constrained?j.localNumbers335:j.entries.map(()=>null),p_voucher:j.voucher||null}:j.payload;
  const data=receipt(await call(c,rpc,args),j.entries.length);
- await patch(c,id,j=>{j.receipt=data;j.status='saved';delete j.message});}
+ await patch(c,id,j=>{j.receipt=data;j.status=j.voucher&&!j.voucherLinked||j.changes.some(op=>op.status!=='saved')?'pending':'saved';delete j.message});}
  // Re-read each time: an edit/void may have been saved while a request was in flight.
- for(;;){j=(await read(c)).find(j=>j.id===id);const op=j.changes.find(op=>op.status!=='saved');if(!op)break;
+ for(;;){j=(await read(c)).find(j=>j.id===id);const op=j.changes.find(op=>op.status!=='saved');if(!op||reconnected)break;
  const r=j.receipt[op.index];const result=await call(c,'change_journal14385',{p_request_key:op.id,p_entry_id:r.entry_id,p_kind:op.kind,p_reason:op.reason,p_expected:op.expected,p_value:op.value});
  if(result?.entry_id!==r.entry_id||result?.request_key!==op.id||result?.kind!==op.kind)throw Error('The change receipt was not confirmed. The same change will be retried.');
  await patch(c,id,j=>{const x=j.changes.find(x=>x.id===op.id);x.status='saved';x.receipt=result;if(result.entry_no)j.receipt[op.index].entry_no=result.entry_no;delete j.message});}
  j=(await read(c)).find(j=>j.id===id);if(j.voucher&&!j.voucherLinked){if(desired(j,0)){const linked=await call(c,'voucher_link14299',{p_id:j.voucher,p_entry_id:j.receipt[0].entry_id});assert(c);window.vouchers14299?.acceptLinked?.(linked);}await patch(c,id,j=>{j.voucherLinked=true;j.voucherSkipped=!desired(j,0)});}
- await patch(c,id,j=>{j.status=j.changes.some(op=>op.status!=='saved')?'pending':'saved';j.message='Database confirmed. Refreshing journal history.'});
- }catch(e){if(!valid(c))return;await patch(c,id,j=>{if(e.code==='P0335'){j.numberConflict335=true;j.status='conflict';j.message=e.message;return;}j.status=e.code==='40001'?'conflict':e.code&&!/NETWORK|TIMEOUT|OFFLINE/.test(e.code)?'blocked':'uncertain';j.message=j.status==='conflict'?'Another session changed this entry. Your saved change is retained for review.':j.status==='blocked'?'Saved on this device; database rejected synchronization: '+e.message:'Saved on this device; database confirmation is pending. Retry uses the same reference.'});if(offline14239.offline())break;}
+ await patch(c,id,j=>{j.status=j.changes.some(op=>op.status!=='saved')?'pending':'saved';j.message='Database confirmed.'});
+ if(reconnected&&valid(c))paintJournal();
+ }catch(e){if(!valid(c))return;await patch(c,id,j=>{if(e.code==='P0335'){j.numberConflict335=true;j.status='conflict';j.message=e.message;return;}j.status=e.code==='40001'?'conflict':e.code&&!/NETWORK|TIMEOUT|OFFLINE|DATABASE_REQUIRED|^5\d\d$/.test(e.code)&&!/(fetch|network|timeout)/i.test(e.message||'')?'blocked':'uncertain';j.message=j.status==='conflict'?'Another session changed this entry. Your saved change is retained for review.':j.status==='blocked'?'Saved on this device; database rejected synchronization: '+e.message:'Saved on this device; database confirmation is pending. Retry uses the same reference.'});if(reconnected&&ownRows().find(j=>j.id===id)?.status==='uncertain')window.startup14257?.retryDelivery?.();if(offline14239.offline())break;}
  }
- if(targetId||reconnected){if(valid(c)){project();refreshAllTables()}return;}
+ if(targetId||reconnected){if(valid(c))paintJournal();return;}
  if(valid(c)){await window.offlineAudit143174?.sync();project();refreshAllTables();try{window.yearWindow14333?.invalidateMemory?.();await loadJournalFromSupabase({cacheFirst:false});if(valid(c))await loadTransactionAudit()}catch(e){/* Confirmed operations remain available in the durable device overlay. */}}
- };
- flight=Promise.resolve().then(()=>navigator.locks?navigator.locks.request('ojm-journal14385:'+identity(c),{ifAvailable:true},lock=>lock?execute():undefined):execute()).finally(()=>{flight=null;if(valid(c))changed()});return flight}
+ }
+function paintJournal(){
+ project();
+ window.workspaceViews14364?.invalidate('journal',false);
+ if(document.getElementById('journal')?.classList.contains('active')){
+  window.renderJournalHistoryTable?.();window.renderReopened67?.();
+ }
+}
+function statusText(job,collision){
+ if(collision||job?.numberConflict335)return 'ID conflict · review in Post Entry';
+ if(job?.status==='blocked'||job?.status==='conflict')return 'Needs review · Data Check';
+ if(job?.status==='saving'&&flight&&!offline14239.offline())return 'Syncing…';
+ return 'Saved on device · pending sync';
+}
+function updateStatus(id){
+ const job=ownRows().find(j=>j.id===id);
+ document.querySelectorAll('[data-sync-job] .journal-sync-note').forEach(note=>{
+  if(note.parentElement.dataset.syncJob===id)note.textContent=statusText(job,job?.numberConflict335);
+ });
+}
 function project(){if(typeof JournalModule==='undefined')return;
  const jobs=pending();
  if(!jobs.length&&!JournalModule.entries.some(row=>row.localJournal14385))return;
@@ -118,7 +152,7 @@ function project(){if(typeof JournalModule==='undefined')return;
  const collision=!r&&proposed&&(confirmedNumbers.has(proposed)||base.some(line=>line.id===proposed));
  const created=j.payload?j.created:(j.entryCreated||original?.created_at||original?.createdAt||j.entries[i].date);
  const shown=r?.entry_no||(!collision&&proposed)||'Device-'+j.id+(j.entries.length>1?'-'+(i+1):'');
- for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({cashSlipRef:value.cashSlipRef,localJournal14385:true,local14333:true,journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:shown,entryNumber:r?.entry_no||proposed,numberConflict:!!(collision||j.numberConflict335)&&!r,dbEntryId:r?.entry_id||null,postingDate:value.date,date:line.line_date||value.date,created_at:created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
+ for(const line of value.lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({cashSlipRef:value.cashSlipRef,localJournal14385:true,local14333:!r||j.status!=='saved',syncLabel:statusText(j,collision&&!r),journalJob14385:j.id,journalIndex14385:i,pendingSync:j.status!=='saved',requestKey:j.id,id:shown,entryNumber:r?.entry_no||proposed,numberConflict:!!(collision||j.numberConflict335)&&!r,dbEntryId:r?.entry_id||null,postingDate:value.date,date:line.line_date||value.date,created_at:created,account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description,generalMemo:value.memo,debit:line.debit,credit:line.credit,fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}}
  if(base.length!==JournalModule.entries.length||base.some((row,i)=>row!==JournalModule.entries[i]))JournalModule.entries=base}
 function retirementCheckpoint(){return new Map(pending().filter(j=>j.status==='saved'&&j.receipt&&!j.changes.some(op=>op.status!=='saved')).map(j=>[j.id,canonical(j)]))}
 async function reconcile(remote,checkpoint=new Map()){const c=context();if(loaded!==identity(c))return;const ids=new Set(remote.map(l=>l.dbEntryId));await mutate(c,list=>{for(const j of list.filter(active)){if(j.status!=='saved'||!j.receipt||j.voucher&&!j.voucherLinked||j.changes.some(op=>op.status!=='saved'))continue;
@@ -169,6 +203,7 @@ function ready(){
  let reconnectPending=offline14239.offline(),retrying=false;
  const reconnect=async()=>{
   if(offline14239.offline()){reconnectPending=true;return;}
+  if(window.startup14257?.interactive&&window.startup14257?.checkBooks)return;
   if(!reconnectPending||retrying||!actor()||window.workspaceRequest138?.target)return;
   reconnectPending=false;retrying=true;
   try{
@@ -187,10 +222,10 @@ function ready(){
  }
  const saved=canonical(entries),payload={p_request_key:crypto.randomUUID(),...(entries.length===1?entries[0]:{p_entries:entries})};const voucher=document.getElementById('jeVoucher14299')?.value;if(voucher&&entries.length!==1)throw Error('Use one date when linking a voucher.');await create(payload,{voucher});assert(c);
  // Clear only the draft actually saved, not subsequent typing during the storage commit.
- let same=false;try{same=canonical(payloads(doc))===saved&&(document.getElementById('journalDocumentRef')?.value||'')===docText}catch{}if(same)clearJournalEntry();window.JournalUndo143103?.reset();project();refreshAllTables();requestSync();
+ let same=false;try{same=canonical(payloads(doc))===saved&&(document.getElementById('journalDocumentRef')?.value||'')===docText}catch{}if(same)clearJournalEntry();window.JournalUndo143103?.reset();paintJournal();requestSync();
  const numbers=ownRows().find(j=>j.id===payload.p_request_key)?.localNumbers335?.filter(Boolean)||[];
  showCenterStatus('Saved on this device'+(numbers.length?' · '+numbers.join(', '):'')+'. Sync pending.');
- if(offline14239.canRefresh())void sync().catch(()=>{});
+ if(offline14239.canRefresh())void offline14239.confirmConnection().then(()=>valid(c)&&sync({reconnected:true})).catch(()=>{});
  }catch(e){if(valid(c))showAppNotification('Journal save needs attention',e.message+' Your editor is retained.',true)}finally{submitting=false}};
  const oldEdit=window.loadEntryForEdit;window.loadEntryForEdit=async function(id){const c=context(),lines=JournalModule.entries.filter(l=>l.id===id),expected=lines.length?fromLines(lines):null;const result=await oldEdit(id);if(valid(c)&&JournalModule.editingEntryId===id){editing={id,expected,lines:clone(lines),context:c};window.vouchers14299?.setDocument?.(lines[0]?.cashSlipRef);}return result};
  const oldConfirm=window.confirmEntryOverride;window.confirmEntryOverride=async function(){const id=JournalModule.editingEntryId,lines=JournalModule.entries.filter(l=>l.id===id);if(!lines.length)return oldConfirm();if(window.workflow136?.state.sessions.some(s=>String(s.month).slice(0,7)===lines[0].date.slice(0,7)))return oldConfirm();if(submitting)return;const c=context();submitting=true;try{if(!editing||editing.id!==id||!valid(editing.context))throw Error('Reopen the entry before saving this edit.');const entries=payloads();if(document.getElementById('jeVoucher14299')?.value)throw Error('Use Link in Documents to attach an issued voucher or receipt to an existing entry.');if(entries.length!==1)throw Error('An edit must have one transaction date.');await change(editing.lines,'revise',content(entries[0]),document.getElementById('txtEditReason').value,editing.expected);assert(c);closeModal('modalEditReason');finalizePostSuccess();project();refreshAllTables();showCenterStatus('Edit saved on this device. Database confirmation is pending.');requestSync();if(!offline14239.offline())void sync().catch(()=>{});}catch(e){if(valid(c))showAppNotification('Edit retained',e.message,true)}finally{submitting=false}};
@@ -212,7 +247,7 @@ async function refreshDevice(onlyChanges=false){
  const previous=ownRows();await initialize();
  const latest=await read(c);
  if(onlyChanges&&JSON.stringify(previous)===JSON.stringify(latest))return;
- rows=latest;loaded=identity(c);project();refreshAllTables();
+ rows=latest;loaded=identity(c);paintJournal();
 }
 window.journalDurable14385={creationTimesByReceipt,acceptNextNumber,payloads,validateRecovery,verifyRecovery,restoreRecovery,initialize,create,change,sync,project,reconcile,retirementCheckpoint,findings,pending,content,fromLines,refreshDevice,get running(){return !!flight}};
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();

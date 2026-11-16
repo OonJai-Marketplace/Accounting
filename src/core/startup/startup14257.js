@@ -88,9 +88,89 @@ function ready(){window.startupData1443=async function(check){clearTimeout(retry
   if(!daily().includes(name))throw Error('This area is unavailable with your current access.');
   await run(name,true);valid();current.refreshDone.add(name);
  };
+ // Login and an actual reconnect each get one bounded pass after the cached workspace opens.
+ // Opening a journal/report can request its own revision check. No timer polls Supabase.
+ const client=ojmDb;
+ const available=()=>job===current&&liveProfile?.id===actor&&ojmDb===client&&!window.workspaceRequest138?.target&&window.offline14239?.canRefresh();
+ const guard=()=>{valid();if(!available())throw Error('Workspace or connection changed.');};
+ let booksFlight=null,sessionFlight=null,lastView='',opened=false,disconnected=false;
+ current.books=()=>{
+  if(!available()||!window.startup14257.interactive||(!current.done.has('journal')&&!current.done.has('reports')))return Promise.resolve();
+  if(booksFlight)return booksFlight;
+  booksFlight=(async()=>{
+   const windows=yearWindow14333.state(),checked=new Map();
+   // This RPC fingerprints all posted lines through p_to on every page. A single-day
+   // noninitial page avoids transferring journal history or computing opening balances.
+   async function revision(to){
+    if(!checked.has(to)){
+     const r=await client.rpc('journal_window14333',{p_from:to,p_to:to,p_offset:1}).setHeader('x-ojm-database-only','1');
+     guard();if(r.error)throw r.error;if(!r.data?.revision)throw Error('Missing journal revision.');
+     checked.set(to,r.data.revision);
+    }
+    return checked.get(to);
+   }
+   if(current.done.has('journal')&&await revision(windows.to)!==windows.revision14341){
+    guard();if(yearWindow14333.state().from!==windows.from||yearWindow14333.state().to!==windows.to)return;
+    await run('journal',true);guard();
+   }
+   if(current.done.has('reports')&&await revision('9999-12-31')!==reportWindow143195.savedRevision()){
+    guard();await run('reports',true);guard();
+    if(document.querySelector('.tab-content.active')?.id.startsWith('report-'))window.renderReports79?.();
+   }
+  })().finally(()=>{booksFlight=null});
+  return booksFlight;
+ };
+ const notice=(area,e)=>{if(available())window.idleSync14341?.areaStatus(area,'failed');};
+ current.resume=()=>{
+  if(!available()||!window.startup14257.interactive||sessionFlight)return sessionFlight;
+  sessionFlight=(async()=>{
+   await offline14239.confirmConnection();guard();
+   await journalDurable14385.initialize();guard();
+   if(journalDurable14385.pending().some(j=>['pending','saving','uncertain'].includes(j.status)))await journalDurable14385.sync({reconnected:true});
+   guard();await offline14239.resumeStaff();guard();await localFirst14333.resumeDrafts();guard();
+   const steps=[
+    ['reference',()=>loadReferenceDataFromSupabase({databaseOnly:true,onlyIfChanged:true})],
+    ['journal',()=>current.books()],
+    ['payroll',()=>offline14239.freshReads(()=>localFirst14333.refreshWork())],
+    ['documents',()=>localFirst14333.loadDocuments(true)]
+   ];
+   for(const [name,load] of steps){
+    guard();if(!current.done.has(name)&&!(name==='journal'&&current.done.has('reports')))continue;
+    try{await load();guard();}catch(e){notice(name,e);}
+   }
+  })().catch(e=>notice('journal',e)).finally(()=>{sessionFlight=null;});
+  return sessionFlight;
+ };
+ let retryTimer=null,retrying=false;
+ // One delayed retry covers a dropped acknowledgment while Wi-Fi still appears online.
+ // A persistent failure waits for the next save, reconnect, or sign-in.
+ window.startup14257.retryDelivery=()=>{
+  if(retryTimer||retrying||!available())return;
+  retryTimer=setTimeout(async()=>{
+   retryTimer=null;if(!available())return;retrying=true;
+   try{
+    await offline14239.confirmConnection();guard();
+    if(journalDurable14385.pending().some(j=>j.status==='uncertain'))await journalDurable14385.sync({reconnected:true});
+    guard();await offline14239.resumeStaff();guard();await localFirst14333.resumeDrafts();
+   }catch(e){notice('journal',e);}finally{retrying=false;}
+  },8000+Math.random()*2000);
+ };
+ current.connected=()=>{
+  if(!window.startup14257.interactive)return;
+  if(!available()||offline14239.offline()){disconnected=true;return;}
+  if(opened&&!disconnected)return;
+  if(sessionFlight)return;
+  opened=true;disconnected=false;void current.resume();
+ };
+ current.visit=view=>{
+  if(lastView===view)return;lastView=view;
+  if(opened&&!sessionFlight&&(view==='journal'||view.startsWith('report-')||view==='accounts-modular-container'))void current.books().catch(e=>notice('journal',e));
+ };
+ window.startup14257.checkBooks=()=>current.books();
  current.revalidate=background;window.startup14257.revalidate=background;return current.done.size>0;
  };
- const change=window.switchTab;window.switchTab=function(...args){const r=change.apply(this,args);void job?.activate?.();return r};const accountChange=window.scrollToAccountModule;window.scrollToAccountModule=function(...args){const r=accountChange.apply(this,args);void job?.activate?.();return r};
+ const change=window.switchTab;window.switchTab=function(...args){const r=change.apply(this,args);void job?.activate?.();job?.visit?.(Location69.view);return r};const accountChange=window.scrollToAccountModule;window.scrollToAccountModule=function(...args){const r=accountChange.apply(this,args);void job?.activate?.();return r};
+ for(const event of ['workspace-opened421','online','offline','connection14239','session-online14333'])window.addEventListener(event,()=>job?.connected?.());
  window.addEventListener('idle-sync14341',()=>{if(job)job.refreshNeeded=true;});
  window.addEventListener('online',()=>{if(job)job.refreshNeeded=true;window.idleSync14341?.request?.()});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-(job?.refreshedAt||0)>60000)window.idleSync14341?.request?.()});

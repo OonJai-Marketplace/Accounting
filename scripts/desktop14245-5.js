@@ -460,10 +460,16 @@ wsIsCollection=function(row){return row.entry_kind==='collection'&&String(row.ac
 async function rpc(name,args={}){const check=context136();installRpc();const raw=state.rawRpc;check();const r=await raw(name,args);check();if(r.error)throw Error(r.error.message);return r.data;}
 function rowMonth(args){if(args.p_entry_id)return JournalModule.entries.find(r=>r.dbEntryId===args.p_entry_id)?.date?.slice(0,7);return args.p_transaction_date?.slice(0,7);}
 function installRpc(){if(!ojmDb||state.client===ojmDb)return;state.client=ojmDb;state.rawRpc=ojmDb.rpc.bind(ojmDb);const client=ojmDb,raw=state.rawRpc;
- ojmDb.rpc=async function(name,args={}){
+ // Preserve the Supabase request builder for reads (headers, cancellation and filters).
+ const kinds={post_manual_journal14228:'post',revise_open_journal_entry:'revise',void_journal_entry:'void'};
+ ojmDb.rpc=function(name,args={},options){
+  if(client===ojmDb&&!Object.hasOwn(kinds,name))return raw(name,args,options);
+  return routeJournal(name,args);
+ };
+ async function routeJournal(name,args){
   if(client!==ojmDb)return {data:null,error:{message:'Account changed. Reopen the workflow.'}};const check=context136();
   if(name==='post_manual_journal14228'&&state.postingReview){const review=state.postingReview;const r=await raw('post_review_adjustment136',{p_review:review,p_payload:args});check();if(!r.error){state.adjustmentReview=null;state.postingReview=null;}return r;}
-  const kinds={post_manual_journal14228:'post',revise_open_journal_entry:'revise',void_journal_entry:'void'},s=session(rowMonth(args));
+  const s=session(rowMonth(args));
   if(kinds[name]&&s){try{const next=await rpc('stage_book_operation136',{p_session:s.id,p_kind:kinds[name],p_payload:args});state.sessions=state.sessions.map(x=>x.id===s.id?next:x);return {data:{staged14228:true},error:null};}catch(e){return {data:null,error:{message:e.message}};}}
   return raw(name,args);
  };

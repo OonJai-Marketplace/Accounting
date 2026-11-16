@@ -1,1 +1,1 @@
-{"version": "143.421", "changes": ["Generate Journal can combine a new owner-support receipt and an earlier allocation at their separate rates. Payroll checks the saved amounts before line rounding and identifies customized rules that still use legacy mappings."]}
+{"version": "143.422", "changes": ["Journal posts and editable records save on the device first. Sign-in and reconnect deliver pending work and check for changes without an idle sync timer."]}

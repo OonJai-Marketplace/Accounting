@@ -140,7 +140,7 @@ function openMonthlyTrialBalance(panel,scope){
   period.textContent=calendar.label(months);period.setAttribute('aria-label','Period · '+period.textContent);
   panel.innerHTML=monthlyTrialTable(monthlyTrialModel(entries,months,prefs));
  }
- async function load(refresh){
+ async function load(refresh,check=true){
   const request=scope.begin();
   period.disabled=columns.disabled=true;accountPicker.hidden=true;panel.textContent='Loading balances…';
   try{
@@ -166,6 +166,12 @@ function openMonthlyTrialBalance(panel,scope){
    columns.onchange=()=>{if(scope.current(request)){prefs.columns=columns.value;saveMonthlyTrialPreferences(prefs);draw()}};
    period.onclick=()=>calendar.open(period,months,selected=>{if(scope.current(request)){months=selected.length?selected:allMonths;draw()}});
    period.disabled=columns.disabled=false;accountPicker.hidden=false;draw();
+   if(check&&!refresh&&!offline&&window.startup14257?.checkBooks){
+    const prior=reportWindow143195.savedRevision();
+    void startup14257.checkBooks().then(()=>{
+     if(scope.current(request)&&prior!==reportWindow143195.savedRevision())void load(false,false);
+    }).catch(()=>{if(scope.current(request))status.textContent='Showing device copy · refresh pending';});
+   }
   }catch(error){
    if(scope.current(request))panel.textContent=error.message||'Could not load the journal. Choose Refresh to retry.';
   }

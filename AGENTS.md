@@ -578,8 +578,7 @@ Workspace 2026-11-06 v143.312: monthly cash slips use neutral Signature 1 / Sign
 Audit cleanup 2026-11-06 v143.313: user supersedes the older green-only retention restriction for explicit Bookkeeping log cleanup. Record important orange/red events only; skip routine posting and normal actions. Clear existing Bookkeeping audit and deletion-history logs, but keep administrator-assisted activity unchanged. Provide individual-log, entire-record, month, quarter, year and all-log deletion with a server preview/count and one confirmation. New cleanup must never purge journals, payroll or release numbering reservations; guard this on the database. Keep legacy explicitly queued deletion behavior separate. Period cleanup uses Asia/Vientiane boundaries.
 
 Desktop and tablet synchronization, 2026-11-10: full sync requires an explicit user action.
-Signing in, reconnecting and inactivity must never drain the outbox. Prepare authorized
-screens at sign-in. Show retained saves in the bell and provide source-group actions in
+After cached screens open at sign-in, and once on reconnect, deliver safe saved journal posts and editable records with their original keys. Inactivity never starts sync. Check published journal revisions and record versions before downloading changes. Show retained saves in the bell and provide source-group actions in
 Data Check, preserving individual review and server checks. Calendar News follows Monday
 08:00 Asia/Vientiane plus explicit refresh. Permission revalidation is interaction-driven.
 Release checks use worker events and explicit checks without a recurring desktop timer.

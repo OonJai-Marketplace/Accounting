@@ -77,10 +77,10 @@ async function finish(){
  const who=actor(),db=client();window.startup14257.preparing=true;
  try{await build(true);if(actor()!==who||client()!==db)return;window.startup14257.prepared=true;}
  finally{window.startup14257.preparing=false;}
- // Preparing cached screens must never submit this account's outbox.
+ // Resume ordinary saved work only after cached screens are usable.
  if(actor()!==who||client()!==db)return;
  window.startup14257.interactive=true;document.body.classList.remove('startup-pending1443');
- const box=document.getElementById('startup1443');if(box)box.hidden=true;window.idleSync14341?.preparation('');
+ const box=document.getElementById('startup1443');if(box)box.hidden=true;window.idleSync14341?.preparation('');window.dispatchEvent(new Event('workspace-opened421'));
 }
 function ready(){
  const original=window.preparedViews14340;original.build=()=>build(true);

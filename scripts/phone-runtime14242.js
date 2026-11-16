@@ -140,7 +140,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.421', $ = id => document.getElementById(id);
+  const VERSION = '143.422', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -628,7 +628,8 @@ function cashierMonthAllows(date) {
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
         touch();if(new URL(window.location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){window.location.replace('scan.html?capture=1');return;}$('loginForm').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
-        if(!data.savedAt)await refresh();else {void access().then(()=>{if(current(owner,epoch))render(S.page!=='post')}).catch(e=>{if(current(owner,epoch)&&denied(e))void revoke(e)});phoneSyncActivity14351();}
+        if(!data.savedAt)await refresh();
+        if(current(owner,epoch)&&navigator.onLine&&(data.savedAt||queue().length))void resumePhone();
         if(current(owner,epoch))window.phoneLogin210?.finish();
       } catch(e) { if(current(owner,epoch)){window.phoneLogin210?.finish();notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('loginForm').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;
@@ -1208,20 +1209,30 @@ function cashierMonthAllows(date) {
       clearTimeout(draftTimer);saveMirror();
       const stored=await record(owner,old=>{const all=old.queue||[];const previous=all.find(q=>q.key===item.key);if(previous&&JSON.stringify(previous.params)!==JSON.stringify(item.params))throw fail('This save reference is already in use. Sync the pending entry before making another change.');return {...old,queue:previous?all:[...all,item],draft:null};});
       if(!current(owner,epoch))return;savedOnDevice=true;S.data=stored;S.draft=blankDraft();saveMirror();S.saving=false;notice('Entry saved on this device.');render();
-      if(navigator.onLine)await sync();
+      if(navigator.onLine)void sync({automatic:true});
     }catch(e){if(current(owner,epoch))notice(e.message,true);}
     finally{if(!savedOnDevice&&current(owner,epoch)){S.saving=false;paintConnection();if(S.page==='post')render();}}
   }
   async function updateQueue(owner,keyValue,patch,remove=false){return record(owner,old=>({...old,queue:(old.queue||[]).flatMap(q=>q.key!==keyValue?[q]:remove?[]:[{...q,...patch}])}));}
-  async function sync({automatic=false}={}){
+  let phoneSend=Promise.resolve();
+  function sync({automatic=false}={}){
+    const owner=S.owner,epoch=S.epoch;
+    const task=phoneSend.catch(()=>{}).then(()=>current(owner,epoch)&&sendEntries(automatic));
+    phoneSend=task;return task;
+  }
+  async function sendEntries(automatic){
     if(S.syncing||!S.owner)return;if(!navigator.onLine){notice('You are offline. Your device entries are kept.');return;}
     const owner=S.owner,epoch=S.epoch;S.syncing=true;paintConnection();
     const run=async()=>{
       try{
-        if(!current(owner,epoch))return;await access();if(!current(owner,epoch))return;if(!permission('sub-users-workspace','edit'))throw fail('Posting is no longer enabled for this account.');
+        if(!current(owner,epoch))return;
+        const pending=await record(owner);if(!current(owner,epoch))return;
+        if(automatic&&!pending.queue?.some(q=>['pending','uncertain'].includes(q.status)))return;
+        await access();if(!current(owner,epoch))return;if(!permission('sub-users-workspace','edit'))throw fail('Posting is no longer enabled for this account.');
         const stored=await record(owner);if(!current(owner,epoch))return;S.data.queue=stored.queue||[];
         for(const q of queue().filter(q=>q.status!=='confirmed')){
-          if(!current(owner,epoch)||automatic&&!phoneSyncIdle14351())return;
+          if(!current(owner,epoch))return;
+          if(automatic&&q.status==='blocked')continue;
           try{
             if(q.params.p_owner!==owner||q.owner!==owner)throw fail('This entry belongs to a different account.');
             if(q.legacy){for(const date of new Set(q.params.p_items.map(l=>l.date))){const draft=payloadDraft({...q.params,p_items:q.params.p_items.filter(l=>l.date===date)});StaffEntry14225.prepare(draft,accounts(),rules());}}else if(q.params.p_snapshot.receiptCards341||q.params.p_snapshot.sharedFundCredit)preparePhoneEntry(q.draft);else StaffEntry14225.prepare(q.draft,accounts(),rules());
@@ -1230,10 +1241,10 @@ function cashierMonthAllows(date) {
             const next=await updateQueue(owner,q.key,{status:'confirmed',receipt:response},false);clearLegacy(q);if(current(owner,epoch))S.data.queue=next.queue;
           }catch(e){if(!current(owner,epoch))return;const next=await updateQueue(owner,q.key,{status:ambiguous(e)?'uncertain':'blocked',message:e.message});if(current(owner,epoch))S.data.queue=next.queue;throw e;}
         }
-        if(current(owner,epoch)){S.online=true;notice('All device entries were confirmed.');if(!automatic||phoneSyncIdle14351())await refresh();}
+        if(current(owner,epoch)){S.online=true;if(!queue().some(q=>q.status!=='confirmed'))notice('All device entries were confirmed.');await refresh();}
       }catch(e){if(!current(owner,epoch))return;if(denied(e))await revoke(e);else{S.online=false;notice('Pending entries are kept with their original save references. '+e.message,true);}}
     };
-    try{if(navigator.locks)await navigator.locks.request('ojm-phone-sync:'+key(owner),{ifAvailable:true},lock=>lock?run():notice('Another tab is syncing this account.'));else await run();}
+    try{if(navigator.locks)await navigator.locks.request('ojm-phone-sync:'+key(owner),{},run);else await run();}
     finally{if(current(owner,epoch)){S.syncing=false;paintConnection();if(S.page!=='post')render();}}
   }
   async function chooseReconciliation14345(batch){const owner=S.owner,epoch=S.epoch;const c=await rpc('submission_context14345',{p_journal:batch.id});if(!current(owner,epoch))return false;return new Promise(resolve=>{const dialog=$('dialog');dialog.close();$('dialogBody').innerHTML='<h2>Confirm remaining funds</h2>'+submissionReconciliation14345.fields(c);$('dialogButtons').innerHTML='<button class="btn" value="cancel">Cancel</button><button class="btn primary" value="yes" disabled>Submit</button>';submissionReconciliation14345.bind($('dialogBody'),$('dialogButtons').querySelector('[value=yes]'));dialog.onclose=()=>{if(dialog.returnValue!=='yes'){resolve(false);return;}try{resolve({context:c,actuals:submissionReconciliation14345.answers($('dialogBody'))})}catch(e){notice(e.message,true);resolve(false)}};dialog.returnValue='cancel';dialog.showModal()})}
@@ -1381,18 +1392,16 @@ function cashierMonthAllows(date) {
   document.addEventListener('click',e=>{if(!e.target.closest('#avatar,#accountMenu'))$('accountMenu').hidden=true;});
   for(const event of ['pointerdown','keydown','input','touchstart','wheel'])document.addEventListener(event,touch,{passive:true,capture:true});
   document.addEventListener('keydown',e=>{if(e.isComposing||S.page!=='post'||!e.target.closest('#postForm'))return;const inputs=[...$('postForm').querySelectorAll('input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')],i=inputs.indexOf(e.target);if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'){e.preventDefault();saveDraftLater();inputs[i+1]?.focus();}});
-  window.addEventListener('pagehide',saveMirror);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveMirror();else phoneSyncActivity14351();});
-  window.addEventListener('online',()=>{S.online=true;paintConnection();phoneSyncActivity14351();});window.addEventListener('offline',()=>{S.online=false;paintConnection();notice('Offline. Downloaded records and your drafts remain available.');});
+  window.addEventListener('pagehide',saveMirror);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveMirror();});
+  window.addEventListener('online',()=>{S.online=true;paintConnection();void resumePhone();});window.addEventListener('offline',()=>{S.online=false;paintConnection();notice('Offline. Downloaded records and your drafts remain available.');});
   window.addEventListener('storage',e=>{if(e.key===storageKey){const session=cachedSession();if(!session?.user||session.user.id!==S.actor){saveMirror();sessionGate();void boot();}else S.session=session;}});
   let pullStart=null;document.addEventListener('touchstart',e=>{if(window.scrollY===0&&!e.target.closest('input,textarea,select,dialog'))pullStart=e.touches[0].clientY;},{passive:true});document.addEventListener('touchend',e=>{if(pullStart!==null&&e.changedTouches[0].clientY-pullStart>90&&S.page!=='post')void refresh();pullStart=null;},{passive:true});
   const icons={camera:'M3 7h4l2-3h6l2 3h4v14H3z M16 14a4 4 0 1 1-8 0 4 4 0 0 1 8 0',home:'M3 10l9-7 9 7v11h-6v-6H9v6H3z',wallet:'M3 6h18v14H3z M3 6V3h14v3 M16 12h5',plus:'M12 4v16 M4 12h16',book:'M4 3h16v18H4z M8 7h8 M8 11h8 M8 15h5',chart:'M4 20V10 M10 20V4 M16 20v-9 M22 20H2'};for(const node of document.querySelectorAll('[data-icon]'))node.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+icons[node.dataset.icon]+'"/></svg>';
   if(window.ReceiptNative214?.available){S.shellReady=true;paintConnection();}else if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='ojm-phone-ready'&&e.data.version===VERSION){S.shellReady=true;paintConnection();}});window.addEventListener('load',()=>{navigator.serviceWorker.register('phone-sw.js?v='+VERSION,{scope:'./',updateViaCache:'none'}).then(reg=>{if(reg.active)reg.active.postMessage({type:'ojm-phone-status'});}).catch(()=>notice('Offline reopening is not ready yet. Continue online and reconnect to finish downloading the phone files.',true));},{once:true});}
   window.PhoneWorkspace14242={version:VERSION,ready:()=>!!S.owner&&permission('sub-users-workspace'),offlineReady:()=>S.shellReady,documentSession:async()=>{if(S.owner!==S.actor||!permission('sub-users-workspace'))throw Error('Open your own workspace first.');if(!validSession(S.session)||Number(S.session.expires_at)*1000-Date.now()<30000)await access();return S.session;},refresh,navigate};
-  // This standalone runtime has one timer; it is not loaded alongside the desktop coordinator.
-  let phoneSyncLast14351=Date.now(),phoneSyncTimer14351;
-  const phoneSyncIdle14351=()=>Date.now()-phoneSyncLast14351>=120000;
-  function phoneSyncActivity14351(){phoneSyncLast14351=Date.now();clearTimeout(phoneSyncTimer14351);phoneSyncTimer14351=setTimeout(async()=>{if(!phoneSyncIdle14351()||!S.owner||!navigator.onLine||S.syncing||S.saving||S.loading||authBusy)return;if(queue().some(q=>q.status!=='confirmed'))await sync({automatic:true});else await refresh();},120000);}
-  for(const type of ['pointerdown','pointermove','keydown','input','touchstart','wheel','scroll'])document.addEventListener(type,phoneSyncActivity14351,{passive:true,capture:true});
-  window.addEventListener('focus',phoneSyncActivity14351);phoneSyncActivity14351();
+  function resumePhone(){
+    if(!S.owner||S.owner!==S.actor||!navigator.onLine)return;
+    return queue().some(q=>['pending','uncertain'].includes(q.status))?sync({automatic:true}):refresh();
+  }
   void boot();
 })();

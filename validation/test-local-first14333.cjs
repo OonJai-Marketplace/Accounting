@@ -24,7 +24,7 @@ await peer.evaluate(()=>{window.liveProfile={id:'actor-a'};window.OJM_SUPABASE_U
 await peer.addScriptTag({url:'/scripts/local-first14333.js'});
 await peer.evaluate(()=>localFirst14333.edit('actor-a','journal-outbox14385',()=>[{id:'peer-journal',entries:[],changes:[],status:'pending'}]));
 await page.waitForFunction(()=>journalDurable14385.pending().some(j=>j.id==='peer-journal'));
-assert.equal(await page.evaluate(()=>window.storageRedraws),1);
+assert.equal(await page.evaluate(()=>window.storageRedraws),0);
 await peer.evaluate(()=>localFirst14333.edit('actor-a','journal-outbox14385',()=>[]));
 await page.waitForFunction(()=>!journalDurable14385.pending().length);
 await peer.close();
