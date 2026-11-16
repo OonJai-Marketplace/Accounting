@@ -3745,30 +3745,45 @@ submitStaffJournal=async function(){const actor=liveProfile?.id,db=ojmDb;const s
 function transactionCurrencies(){return (CurrencyStore.currencies||[]).filter(c=>c.is_active!==false);}
 function canVoidTransactions(){return liveProfile?.role==='admin'||Boolean(livePermission?.can_void);}
 function isAdjustedTransaction(lines){return (lines||[]).some(row=>row.adjusted===true||/^\s*adjustment\b/i.test(String(row.memo||'')));}
-// Limit each page to 100 lines; repeat shared entry cells for continued transactions.
+// End a page at the first complete entry boundary at or beyond 100 lines.
+function entryPageRanges14340(rows,keyOf,weightOf=()=>1,spanOf=()=>1){
+ const last=new Map();
+ rows.forEach((r,i)=>{const id=keyOf(r);if(id)last.set(id,i);});
+ const pages=[];let start=0,lines=0,through=-1;
+ rows.forEach((r,i)=>{
+  through=Math.max(through,last.get(keyOf(r))??i,i+spanOf(r)-1);
+  lines+=weightOf(r);
+  if(lines>=100&&i>=through&&i+1<rows.length){pages.push([start,i+1]);start=i+1;lines=0;}
+ });
+ pages.push([start,rows.length]);return pages;
+}
 function transactionPage14340(tbody,groups,ids){
-  const limit=100;const pages=[[]];let lines=0;
-  ids.forEach(id=>{for(let start=0;start<groups[id].length;){if(lines===limit){pages.push([]);lines=0}const count=Math.min(limit-lines,groups[id].length-start);pages.at(-1).push({id,start,end:start+count});start+=count;lines+=count}});
-  const table=tbody.closest('table'),container=table?.closest('.table-container');
-  if(!container)return ids.map(id=>({id,start:0,end:groups[id].length}));
-  table.dataset.ownPager14383='1';
-  let bar=container.nextElementSibling;
-  if(!bar?.classList.contains('transaction-pages14340')){bar=document.createElement('div');bar.className='transaction-pages14340 module-actions71 no-print';container.after(bar)}
-  const heading=container.closest('.history-table14343')?.querySelector(':scope > .je-card-header');
-  let top=heading?.querySelector('.transaction-pages-top143197');
-  if(heading&&!top){top=document.createElement('div');top.className='transaction-pages14340 transaction-pages-top143197 module-actions71 no-print';heading.append(top)}
-  const bars=[bar,top].filter(Boolean);
-  if(typeof isPrintMode!=='undefined'&&isPrintMode){bars.forEach(b=>b.hidden=true);return ids.map(id=>({id,start:0,end:groups[id].length}))}
-  const max=pages.length,selected=Math.min(Number(tbody.dataset.page14340)||0,max-1);tbody.dataset.page14340=String(selected);
-  const go=step=>{tbody.dataset.page14340=String(selected+step);renderTransactionReviewTable(tbody,Object.values(groups).flat(),'page14340:'+tbody.dataset.action14340);if(heading)requestAnimationFrame(()=>{if(heading.isConnected)heading.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'})})};
-  for(const pager of bars){
-  pager.hidden=max<=1;pager.replaceChildren();pager.setAttribute('role','navigation');pager.setAttribute('aria-label',pager===top?'Transaction History top pagination':'Transaction pagination');
-  const previous=document.createElement('button'),next=document.createElement('button'),label=document.createElement('span');
-  previous.type=next.type='button';previous.className=next.className='je-btn je-btn-secondary';previous.textContent='Previous';next.textContent='Next';previous.disabled=selected===0;next.disabled=selected===max-1;
-  label.textContent=`${selected+1} of ${max}`;
-  previous.onclick=()=>go(-1);next.onclick=()=>go(1);pager.append(previous,label,next);
-  }
-  return pages[selected];
+ const table=tbody.closest('table'),container=table?.closest('.table-container');
+ const whole=id=>({id,start:0,end:groups[id].length});
+ if(!container)return ids.map(whole);
+ table.dataset.ownPager14383='1';
+ const pages=entryPageRanges14340(ids,id=>id,id=>groups[id].length);
+ const max=pages.length,selected=Math.min(Number(tbody.dataset.page14340)||0,max-1);
+ tbody.dataset.page14340=String(selected);
+ let bar=container.nextElementSibling;
+ if(!bar?.classList.contains('transaction-pages14340'))bar=null;
+ if(max===1||(typeof isPrintMode!=='undefined'&&isPrintMode)){bar?.remove();return ids.map(whole);}
+ if(!bar){
+  bar=document.createElement('nav');bar.className='transaction-pages14340 module-actions71 no-print';
+  bar.setAttribute('aria-label','Transaction pagination');
+  bar.innerHTML='<button type="button" class="je-btn je-btn-secondary">Previous</button><span aria-live="polite"></span><button type="button" class="je-btn je-btn-secondary">Next</button>';
+  container.after(bar);
+ }
+ const [previous,label,next]=bar.children;
+ const heading=container.closest('.history-table14343')?.querySelector(':scope > .je-card-header')||table;
+ const go=step=>{
+  tbody.dataset.page14340=String(selected+step);
+  renderTransactionReviewTable(tbody,Object.values(groups).flat(),'page14340:'+tbody.dataset.action14340);
+  requestAnimationFrame(()=>{if(heading.isConnected)heading.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'});});
+ };
+ previous.disabled=selected===0;next.disabled=selected===max-1;
+ previous.onclick=()=>go(-1);next.onclick=()=>go(1);label.textContent=(selected+1)+' of '+max;
+ const [start,end]=pages[selected];return ids.slice(start,end).map(whole);
 }
 function journalDateSpans143120(lines){const spans=Array(lines.length).fill(0);for(let i=0;i<lines.length;){let end=i+1;while(end<lines.length&&lines[end].date===lines[i].date)end++;spans[i]=end-i;i=end}return spans}
 function renderTransactionReviewTable(tbody, records, actionMode='none'){
@@ -5696,12 +5711,21 @@ renderAllTransactionsTable=function(){
  const currencies=[...new Set(group.map(r=>r.currency))];
  const total=side=>currencies.map(c=>escapeHtml(c)+' '+escapeHtml(formatAppNumber(group.filter(r=>r.currency===c).reduce((sum,r)=>sum+Number(r[side]||0),0)))).join('<br>')||'—';
  const status=PeriodReview.periods[month]?.status||(group.length?'open':'No records');
- host.innerHTML=`<section class="archive-month period-review-shell"><header class="history-header14342 period-review-toolbar"><h3 class="je-title">${escapeHtml(monthLabel(month))}</h3><div class="archive-month-actions">${historyMonth14341.control('journal',month)}<button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')">Review Month</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')">Export Month</button></div></header><div class="period-summary-grid history-summary14343"><div class="period-summary-card"><span>Status</span><strong>${escapeHtml(status.toUpperCase())}</strong></div><div class="period-summary-card"><span>Journal Entries</span><strong>${new Set(group.map(r=>r.id)).size}</strong></div><div class="period-summary-card"><span>Total Debits</span><strong>${total('debit')}</strong></div><div class="period-summary-card"><span>Total Credits</span><strong>${total('credit')}</strong></div></div><section class="je-card history-table14343"><div class="je-card-header"><h3 class="je-title">Transaction History</h3></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section></section>`;
+ host.innerHTML=`<section class="archive-month period-review-shell"><header class="history-header14342 period-review-toolbar"><h3 class="je-title">${escapeHtml(monthLabel(month))}</h3><div class="archive-month-actions">${historyMonth14341.control('journal',month)}<button class="je-btn je-btn-secondary" onclick="switchTab('period-review');selectReviewPeriod('${month}')" title="Review selected month">Review</button><button class="je-btn je-btn-secondary" onclick="exportArchiveMonth67('${month}')" title="Export selected month">Export</button></div></header><div class="period-summary-grid history-summary14343"><div class="period-summary-card"><span>Status</span><strong>${escapeHtml(status.toUpperCase())}</strong></div><div class="period-summary-card"><span>Journal Entries</span><strong>${new Set(group.map(r=>r.id)).size}</strong></div><div class="period-summary-card"><span>Total Debits</span><strong>${total('debit')}</strong></div><div class="period-summary-card"><span>Total Credits</span><strong>${total('credit')}</strong></div></div><section class="je-card history-table14343"><div class="je-card-header"><h3 class="je-title">Transaction History</h3></div><div class="table-container"><table class="clustered-journal-table"><thead><tr id="archiveHead0"></tr></thead><tbody id="archiveBody0"></tbody></table></div>${archiveFindings67(month)}</section></section>`;
  card.classList.add('history-shell14343');
  const oldHeader=card.querySelector(':scope>.je-card-header');if(oldHeader){oldHeader.querySelector('.je-subtitle')?.remove();oldHeader.querySelector('h3')?.remove();oldHeader.classList.add('history-search14343');}
 
- setTransactionTableHeaders('archiveHead0',false);renderTransactionReviewTable(document.getElementById('archiveBody0'),group,'none');
- historyMonth14341.bind(host,'journal',renderAllTransactionsTable);
+ setTransactionTableHeaders('archiveHead0',false);
+ const renderMatches=value=>{
+  const query=value.trim().toLowerCase(),matches=new Set();
+  if(query)for(const row of group){
+   const text=[row.id,row.entryNumber,formatAppDate(row.date),row.date,row.account,row.currency,row.memo,row.generalMemo,
+    formatAppNumber(row.debit),formatAppNumber(row.credit),row.debit,row.credit, ...(window.JournalFX14383?.lineRates(row)||[])].join(' ');
+   if(text.toLowerCase().includes(query))matches.add(row.id);
+  }
+  renderTransactionReviewTable(document.getElementById('archiveBody0'),query?group.filter(row=>matches.has(row.id)):group,'none');
+ };
+ historyMonth14341.bind(host,'journal',renderAllTransactionsTable,false,renderMatches);
  if(oldHeader&&!oldHeader.querySelector('input,select,textarea,button'))oldHeader.remove();
 };
 
@@ -6491,12 +6515,12 @@ function records(table){const heads=grid([...table.tHead?.rows||[]]),labels=[];h
  if(!record){record={key,id,rows:[],lines:[],attention:false,index:result.length};result.push(record);if(id)byId.set(key,record)}record.rows.push(row);record.lines.push(fields);record.attention ||=!!row.closest('.reopened-book')||row.matches('.attention,.error,.invalid,.period-linked-finding')||!!row.querySelector('.negative-amount,.field-error,[aria-invalid="true"]');previous=record;
  });return result}
 function select(record){document.querySelectorAll('.tx72-selected,.tx72-selected-alert').forEach(r=>r.classList.remove('tx72-selected','tx72-selected-alert'));record.rows.forEach(r=>r.classList.add(record.attention?'tx72-selected-alert':'tx72-selected'))}
-function open(table,index=0){if(table.closest('#submissionComparisonOverlay')&&window.openMobileComparison74?.(table.querySelectorAll('tbody tr[data-links]')[index]||table.querySelector('tbody tr')))return;const items=records(table);if(!items.length)return;lastFocus=document.activeElement;viewer={table,items,start:Math.min(items.length-1,Math.max(0,index)),size:3};select(items[viewer.start]);draw()}
+function open(table,index=0){if(table.closest('#submissionComparisonOverlay')&&window.openMobileComparison74?.(table.querySelectorAll('tbody tr[data-links]')[index]||table.querySelector('tbody tr')))return;const items=records(table);if(!items.length)return;lastFocus=document.activeElement;viewer={table,items,start:Math.floor(Math.min(items.length-1,Math.max(0,index))/3)*3,size:3};select(items[viewer.start]);draw()}
 function close(){document.getElementById('tx72Viewer')?.remove();viewer=null;lastFocus?.focus?.({preventScroll:true})}
 function draw(){if(!viewer)return;document.getElementById('tx72Viewer')?.remove();const {items,start,size}=viewer,batch=items.slice(start,start+size);const overlay=document.createElement('div');overlay.id='tx72Viewer';overlay.className='tx72-overlay';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','tx72Title');
- overlay.innerHTML=`<section class="tx72-sheet"><header><div><h2 id="tx72Title">Transaction details</h2><p>Records ${start+1}–${Math.min(start+size,items.length)} of ${items.length}</p></div><button type="button" data-close aria-label="Close details">Close</button></header><div class="tx72-batchbar"><label>Records per batch <select id="tx72BatchSize">${[2,3,4,5].map(n=>`<option ${n===size?'selected':''}>${n}</option>`).join('')}</select></label><span>Tap a description to read it below.</span></div><div class="tx72-records">${batch.map((r,ri)=>`<article class="tx72-record ${r.attention?'tx72-attention':''}" data-record="${start+ri}"><h3>Record ${start+ri+1}${r.id?' · '+esc(r.id):''}</h3>${fields73(r,start+ri)}<div class="tx72-record-actions" data-actions="${start+ri}"></div></article>`).join('')}</div><section class="tx72-full-description"><label for="tx72Description" id="tx72DescriptionLabel">Full description</label><textarea id="tx72Description" readonly rows="3" placeholder="Select a description above"></textarea></section><footer><button type="button" data-prev ${start===0?'disabled':''}>Previous Batch</button><button type="button" data-next ${start+size>=items.length?'disabled':''}>Next Batch</button></footer></section>`;
+ overlay.innerHTML=`<section class="tx72-sheet"><header><div><h2 id="tx72Title">Transaction details</h2><p>Records ${start+1}–${Math.min(start+size,items.length)} of ${items.length}</p></div><button type="button" data-close aria-label="Close details">Close</button></header><div class="tx72-batchbar"><label>Records per batch <select id="tx72BatchSize">${[2,3,4,5].map(n=>`<option ${n===size?'selected':''}>${n}</option>`).join('')}</select></label><span>Tap a description to read it below.</span></div><div class="tx72-records">${batch.map((r,ri)=>`<article class="tx72-record ${r.attention?'tx72-attention':''}" data-record="${start+ri}"><h3>Record ${start+ri+1}${r.id?' · '+esc(r.id):''}</h3>${fields73(r,start+ri)}<div class="tx72-record-actions" data-actions="${start+ri}"></div></article>`).join('')}</div><section class="tx72-full-description"><label for="tx72Description" id="tx72DescriptionLabel">Full description</label><textarea id="tx72Description" readonly rows="3" placeholder="Select a description above"></textarea></section><footer ${items.length<=size?'hidden':''}><button type="button" data-prev ${start===0?'disabled':''}>Previous</button><button type="button" data-next ${start+size>=items.length?'disabled':''}>Next</button></footer></section>`;
  if(batch.length>1&&batch.every(r=>r.lines.length===1)&&!viewer.table.closest('#journal,#period-review,#transactions-all')){const host=overlay.querySelector('.tx72-records'),combined=document.createElement('article');combined.className='tx72-record';combined.innerHTML=fields73({lines:batch.map(r=>r.lines[0])},start);combined.querySelectorAll('.tx73-value small').forEach(n=>n.textContent=n.textContent.replace('L','R'));combined.querySelectorAll('[data-description]').forEach(n=>{const parts=n.dataset.description.split(',').map(Number);n.dataset.description=[start+parts[1],0,parts[2]].join(',')});host.querySelectorAll('.tx73-fields').forEach(n=>n.remove());host.prepend(combined)}
- overlay.querySelector('[data-close]').onclick=close;overlay.addEventListener('click',e=>{if(!e.target.closest('.tx72-full-description,[data-description]')){overlay.querySelector('.tx72-full-description').classList.remove('has-description');overlay.querySelectorAll('[data-description]').forEach(n=>n.classList.remove('is-active'))}if(e.target===overlay)close()});overlay.querySelector('[data-prev]').onclick=()=>{viewer.start=Math.max(0,viewer.start-viewer.size);select(viewer.items[viewer.start]);draw()};overlay.querySelector('[data-next]').onclick=()=>{viewer.start+=viewer.size;select(viewer.items[viewer.start]);draw()};overlay.querySelector('select').onchange=e=>{viewer.size=Number(e.target.value);draw()};
+ overlay.querySelector('[data-close]').onclick=close;overlay.addEventListener('click',e=>{if(!e.target.closest('.tx72-full-description,[data-description]')){overlay.querySelector('.tx72-full-description').classList.remove('has-description');overlay.querySelectorAll('[data-description]').forEach(n=>n.classList.remove('is-active'))}if(e.target===overlay)close()});overlay.querySelector('[data-prev]').onclick=()=>{viewer.start=Math.max(0,viewer.start-viewer.size);select(viewer.items[viewer.start]);draw()};overlay.querySelector('[data-next]').onclick=()=>{viewer.start+=viewer.size;select(viewer.items[viewer.start]);draw()};overlay.querySelector('select').onchange=e=>{viewer.size=Number(e.target.value);viewer.start=Math.floor(viewer.start/viewer.size)*viewer.size;draw()};
  overlay.querySelectorAll('[data-description]').forEach(btn=>btn.onclick=()=>{const [ri,li,fi]=btn.dataset.description.split(',').map(Number),r=viewer.items[ri],f=r.lines[li][fi];select(r);overlay.querySelector('#tx72DescriptionLabel').textContent=`${r.id||'Record '+(ri+1)} · ${f.label}`;overlay.querySelector('#tx72Description').value=f.value;overlay.querySelector('.tx72-full-description').classList.add('has-description');overlay.querySelectorAll('[data-description]').forEach(n=>n.classList.toggle('is-active',n===btn))});
  overlay.querySelectorAll('[data-actions]').forEach(host=>{const r=viewer.items[Number(host.dataset.actions)],originals=[...new Set(r.rows.flatMap(row=>[...row.querySelectorAll('button,a[href]')]))];originals.forEach(original=>{if(original.hidden||getComputedStyle(original).display==='none')return;const btn=document.createElement('button');btn.type='button';btn.textContent=original.textContent.trim()||original.getAttribute('aria-label')||original.title||'Open';btn.disabled=original.disabled;btn.onclick=()=>{if(!original.isConnected){close();return}close();original.click()};host.append(btn)})});document.body.append(overlay);overlay.querySelector('[data-close]').focus({preventScroll:true});
 }
@@ -6915,10 +6939,6 @@ const logoutBefore79=logoutDemoUser;logoutDemoUser=async function(){reportSorts1
 /* scripts/desktop-corrections-v80.js */
 /* Desktop refinements; original mobile DOM text is restored at the breakpoint. */
 const desktop80=matchMedia('(min-width:768px)');
-let historyQuery80='';
-function historyFilter80(scope=document){
- const q=historyQuery80.trim().toLowerCase();desktopNodes80(scope,'#archiveMonths67 .clustered-journal-table tbody').forEach(body=>{const groups=new Map();let key='';for(const row of body.rows){key=row.dataset.entryId||key||String(groups.size);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row)}for(const rows of groups.values()){const show=!q||rows.some(r=>r.textContent.toLowerCase().includes(q));rows.forEach(r=>r.hidden=!show)}});
-}
 // Mutation passes stay within changed panels; initial and breakpoint passes remain complete.
 function desktopNodes80(scope,selector){return [...(scope.matches?.(selector)?[scope]:[]),...scope.querySelectorAll(selector)]}
 function desktopMutationRoots80(records){
@@ -6936,7 +6956,6 @@ function polishDesktop80(scope=document){
  const all=selector=>desktopNodes80(scope,selector),one=selector=>all(selector)[0];
  const desktop=desktop80.matches;
  all('.final-record-count').forEach(n=>{const label=n.querySelector('small'),count=n.querySelector('b');if(!label||!count)return;if(desktop){if(!label.dataset.original80)label.dataset.original80=label.textContent;const adjustment=/change/i.test(label.dataset.original80);const text=Number(count.textContent)===1?(adjustment?'change':'entry'):(adjustment?'changes':'entries');if(label.textContent!==text)label.textContent=text}else if(label.dataset.original80){label.textContent=label.dataset.original80;delete label.dataset.original80}});
- const search=one('#archiveMonths67 .history-header14342 input[type=search]');if(search){if(search.value!==historyQuery80&&document.activeElement!==search)search.value=historyQuery80;search.oninput=e=>{historyQuery80=e.target.value;historyFilter80(scope)};historyFilter80(scope)}
  if(desktop){const n=one('#reminderUnit');if(n){const width=((n.selectedOptions[0]?.textContent.length||12)+5)+'ch';if(n.style.width!==width)n.style.width=width}}
  all('.ledger-summary71').forEach(summary=>{if(summary.classList.contains('aligned85')||summary.querySelector('.ledger-side80'))return;const stats=summary.querySelectorAll('.ledger-stat71'),closing=stats[stats.length-1]?.querySelector('strong');if(!closing)return;const text=closing.textContent,side=text.match(/\b(DR|CR)\b/)?.[1]||'—';const extra=document.createElement('span');extra.className='ledger-stat71 ledger-side80';extra.innerHTML='<small>Balance side</small><strong>'+side+'</strong>';stats[0].after(extra);closing.className='ledger-closing-original80';const amount=document.createElement('strong');amount.className='ledger-side80';amount.textContent=text.replace(/\s+(DR|CR)$/,'');closing.after(amount)});
  all('button.tab-btn,.category-tab').forEach(n=>{if(n.textContent.trim()==='System Accounts & Mapping'&&desktop){n.dataset.systemTitle80='true';n.textContent='System Accounts'}else if(n.dataset.systemTitle80&&!desktop){n.textContent='System Accounts & Mapping';delete n.dataset.systemTitle80}});
@@ -8011,7 +8030,7 @@ function historyView(id){
   return `<section class="pay-group95"><header class="salary-history-record"><div><strong>${esc(title)}</strong><div>${esc(summary)}</div></div><div class="actions82 no-print">${actions}</div></header><div class="pay-group-body95">${tables}</div></section>`;
  }).join('')||'<p class="empty82">No matching saved payroll.</p>';
  const filters=report?'<div hidden class="payroll-report-filters143153">'+monthControl+'</div>':'';
- const actions=salaryHistory?(access113.can('payroll-overview')?action82('Back to Payroll Overview',"switchTab('payroll-overview')"):'')+monthControl:`<input id="payHistorySearch95" class="je-input" type="search" aria-label="Search payroll history" placeholder="Search payroll history" value="${esc(ui.search)}"><button type="button" class="je-btn je-btn-secondary" data-payroll-filter143153 aria-haspopup="dialog">Filter</button>`+action82('Reload Records','loadWork82(true)');
+ const actions=salaryHistory?(access113.can('payroll-overview')?action82('Back',"switchTab('payroll-overview')"):'')+monthControl:`<input id="payHistorySearch95" class="je-input" type="search" aria-label="Search payroll history" placeholder="Search payroll history" value="${esc(ui.search)}"><button type="button" class="je-btn je-btn-secondary" data-payroll-filter143153 aria-haspopup="dialog">Filter</button>`+action82('Reload Records','loadWork82(true)');
  mount82(id,'Salary History',report?'Search references, employees, payroll codes, months, amounts and saved notes.':'',storageNotice82()+filters+historyMonth14341.summary([['Payroll records',monthRuns.length],['Adjusted total (LAK)',money(sum(finalRows,'adjusted'))]])+'<div id="historyRecords95">'+records+'</div>',actions);
  const panel=document.getElementById(id);
  historyMonth14341.bind(panel,id,()=>historyView(id),true);
@@ -8767,12 +8786,12 @@ const auditGroups14361=[['all','Financial audit events'],['red','Red — Permane
           };
         }
         if(offset||data.length>50){
-          const nav=document.createElement('div');nav.className='audit-pager377';
+          const nav=document.createElement('div');nav.className='audit-pager377 no-print';nav.setAttribute('role','navigation');nav.setAttribute('aria-label','Journal edit notes pagination');
           for(const [label,next,disabled] of [['Previous',offset-50,!offset],['Next',offset+50,data.length<=50]]){
             const button=document.createElement('button');button.type='button';button.className='je-btn je-btn-secondary';
             button.textContent=label;button.disabled=disabled;button.onclick=()=>load(next);nav.append(button);
           }
-          body.append(nav);
+          nav.firstElementChild.after(document.createTextNode('Page '+(Math.floor(offset/50)+1)));body.append(nav);
         }
       }catch(e){if(current())body.textContent='Could not load edit reasons. '+(e.message||'Reconnect and reopen this section.');}
     }
@@ -8802,7 +8821,7 @@ const auditGroups14361=[['all','Financial audit events'],['red','Red — Permane
     const offset=Math.min(page?.offset||0,lastOffset);
     const shown=remote?matching.slice(0,50):matching.slice(offset,offset+50);
     const offlineNote=page?.offline?'<p>Showing downloaded audit records. Connect to browse the complete history.</p>':'';
-    const pager=page&&total>50?`<div class="audit-pager377 no-print"><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${Math.max(0,offset-50)}" ${offset?'':'disabled'}>Previous</button><span>${offset+1}–${Math.min(offset+50,total)} of ${total}</span><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${offset+50}" ${offset===lastOffset?'disabled':''}>Next</button></div>`:'';
+    const pager=page&&total>50?`<div class="audit-pager377 no-print" role="navigation" aria-label="Audit pagination"><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${Math.max(0,offset-50)}" ${offset?'':'disabled'}>Previous</button><span>${offset+1}–${Math.min(offset+50,total)} of ${total}</span><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${offset+50}" ${offset===lastOffset?'disabled':''}>Next</button></div>`:'';
     const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify({id:item.id,auditSource1434:item.auditSource1434,record_id:item.record_id,action:item.action,deletePolicy143124:item.deletePolicy143124,old_data:{entry_no:item.old_data?.entry_no},new_data:{entry_no:item.new_data?.entry_no},summary143198:true}))}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td>${esc(kind.label)}</td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
     host.innerHTML=historyMonth14341.control('audit',selected)+(liveProfile?.role==='admin'?'<button type="button" class="je-btn je-btn-secondary" data-audit-cleanup313>Clear reviewed Orange…</button>':'')+`<div class="period-summary-grid audit-filters14361">${cards}</div>${offlineNote}<section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th>${liveProfile?.role==='admin'?'<th data-audit-action1434>Action</th>':''}</tr></thead><tbody>${rows||`<tr><td colspan="${liveProfile?.role==='admin'?6:5}" class="period-empty">No audit events match this month and category.</td></tr>`}</tbody></table></div></section>${pager}`;
     const allowReasons=liveProfile?.role==='admin'&&!window.workspaceRequest138?.target;

@@ -1,20 +1,50 @@
 const assert=require('node:assert/strict'),create=require('./phase0-browser-fixture.cjs');
-(async()=>{const f=await create();try{const {page,login}=await f.open();await login();await page.waitForFunction(()=>!window.idleSync14341?.running);await page.evaluate(()=>{
- const account=AccountingStore.accounts[0];
- window.historyPagerRows143197=Array.from({length:260},(_,i)=>({id:'PAGER'+String(Math.floor(i/2)).padStart(3,'0'),dbEntryId:'pager-'+Math.floor(i/2),date:'2026-09-30',created_at:'2026-09-30T12:00:00Z',account:account.name,accountId:account.id,currency:'LAK',debit:i%2?0:1000,credit:i%2?1000:0,memo:'September payroll line '+i,generalMemo:'September 2026 payroll. Source entry 312 · Group 2026-09. [Source rate](https://www.bcel.com.la/bcel/exchange-rate.html?lang=en)',archived:false}));
- JournalModule.entries=historyPagerRows143197;switchTab('transactions-all');renderAllTransactionsTable();
- });
- const top=page.locator('.history-table14343 .transaction-pages-top143197'),bottom=page.locator('.history-table14343 .table-container + .transaction-pages14340');
- await top.waitFor({state:'visible'});assert.equal(await top.locator('span').textContent(),'1 of 3');assert.equal(await bottom.locator('span').textContent(),'1 of 3');assert(await top.getByRole('button',{name:'Previous'}).isDisabled());
- const seen=new Set();const collect=async()=>{const ids=await page.locator('#archiveBody0 tr[data-entry-id]:not(.journal-description14281)').evaluateAll(rows=>rows.map(r=>r.dataset.entryId+':'+r.dataset.lineIndex));for(const id of ids){assert(!seen.has(id),'duplicate line across pages');seen.add(id);}return ids.length};
- assert.equal(await collect(),100);
- await bottom.getByRole('button',{name:'Next',exact:true}).click();await page.waitForFunction(()=>{const h=document.querySelector('.history-table14343>.je-card-header'),r=h.getBoundingClientRect();return r.top>=0&&r.bottom<innerHeight});
- assert.equal(await top.locator('span').textContent(),'2 of 3');assert.equal(await bottom.locator('span').textContent(),'2 of 3');assert.equal(await collect(),100);
- await top.getByRole('button',{name:'Next',exact:true}).click();assert.equal(await collect(),60);assert.equal(seen.size,260);assert(await top.getByRole('button',{name:'Next',exact:true}).isDisabled());assert(await bottom.getByRole('button',{name:'Next',exact:true}).isDisabled());
- await top.getByRole('button',{name:'Previous'}).click();assert.equal(await bottom.locator('span').textContent(),'2 of 3');
- assert(await page.locator('#archiveBody0 .journal-source-link143187').count()>0);assert.equal(await page.locator('#archiveBody0 .general-description14281 br').count(),0);
- const aligned=await top.evaluate(n=>{const t=n.parentElement.querySelector('h3').getBoundingClientRect(),r=n.getBoundingClientRect();return r.left>t.right&&r.top<t.bottom&&r.bottom>t.top});assert(aligned,'top controls sit beside the heading'); await page.screenshot({path:'/tmp/history-pagination143197.png'});
- await page.evaluate(()=>renderTransactionReviewTable(document.getElementById('archiveBody0'),historyPagerRows143197.slice(0,2),'none'));assert(await top.isHidden());assert(await bottom.isHidden());
- await page.evaluate(()=>renderTransactionReviewTable(document.getElementById('archiveBody0'),[],'none'));assert(await top.isHidden());assert(await bottom.isHidden());
- console.log('PASS paired history pagination, boundary buttons, 260 lines without loss, scroll-to-heading, compact linked memo, one-page/empty state');
- }finally{await f.close()}})().catch(e=>{console.error(e);process.exit(1)});
+(async()=>{
+ const f=await create();
+ try{
+  const {page,login}=await f.open();await login();
+  await page.waitForFunction(()=>!window.idleSync14341?.running);
+  await page.evaluate(()=>{
+   const account=AccountingStore.accounts[0];
+   window.setTestEntries=(sizes)=>{
+    const rows=sizes.flatMap((size,entry)=>Array.from({length:size},(_,line)=>({
+     id:'PAGER'+String(sizes.length-entry).padStart(3,'0'),dbEntryId:'pager-'+entry,date:'2026-09-30',
+     created_at:'2026-09-30T12:00:00Z',account:account.name,accountId:account.id,currency:'LAK',
+     debit:line%2?0:1000,credit:line%2?1000:0,memo:'September payroll line '+line,generalMemo:'Payroll',archived:false
+    })));
+    JournalModule.entries=rows;historyMonth14341.setMonth('journal','2026-09');renderAllTransactionsTable();
+   };
+   switchTab('transactions-all');setTestEntries([98,7,118,1]);
+  });
+  const area=page.locator('#transactions-all'),bar=area.getByRole('navigation',{name:'Transaction pagination'});
+  const controls=area.locator('.history-header14342:visible .archive-month-actions');
+  for(const name of ['Back','Review','Export'])assert(await controls.getByRole('button',{name,exact:true}).isVisible(),name);
+  assert.equal(await area.locator('.transaction-pages-top143197').count(),0);
+  const search=controls.locator('input[type=search]');
+  const rows=area.locator('#archiveBody0 tr[data-entry-id]:not(.journal-description14281)');
+  const ids=()=>rows.evaluateAll(rs=>[...new Set(rs.map(r=>r.dataset.entryId))]);
+  const checkBottom=async()=>{await page.waitForFunction(()=>{
+   const bar=document.querySelector('.tab-content.active [data-current-pager]');if(!bar)return false;
+   const r=bar.getBoundingClientRect();return r.height>0&&r.width<360&&Math.abs(innerHeight-r.bottom)<20;
+  });};
+  await checkBottom();assert.equal(await rows.count(),105);assert.deepEqual(await ids(),['PAGER004','PAGER003']);
+  assert.equal(await bar.locator('span').innerText(),'1 of 3');assert(await bar.getByRole('button',{name:'Previous'}).isDisabled());
+  await page.locator('#printableDocArea').evaluate(n=>n.scrollTop=600);await checkBottom();
+  await bar.getByRole('button',{name:'Next'}).click();assert.equal(await rows.count(),118);assert.deepEqual(await ids(),['PAGER002']);
+  assert.equal(await bar.locator('span').innerText(),'2 of 3');
+  await bar.getByRole('button',{name:'Next'}).click();assert.equal(await rows.count(),1);assert.deepEqual(await ids(),['PAGER001']);await checkBottom();
+  assert(await bar.getByRole('button',{name:'Next'}).isDisabled());
+  await bar.getByRole('button',{name:'Previous'}).click();assert.equal(await rows.count(),118);
+  for(const sizes of [[],[3],[100],[156],[98,7]]){
+   await page.evaluate(s=>setTestEntries(s),sizes);assert.equal(await bar.count(),0);
+  }
+  await page.evaluate(()=>setTestEntries([100,1]));await checkBottom();assert.equal(await rows.count(),100);
+  await bar.getByRole('button',{name:'Next'}).click();assert.equal(await rows.count(),1);
+  // Ledger lines may be interleaved by receipt date. No page break splits an ID or changes date order.
+  assert.deepEqual(await page.evaluate(()=>{const ids=Array.from({length:107},(_,i)=>i===90||i===103?'one':String(i));return entryPageRanges14340(ids,id=>id);}),[[0,104],[104,107]]);
+  await search.click();await search.fill('PAGER001');assert.equal(await rows.count(),1);assert.equal(await bar.count(),0);
+  await search.fill('');await checkBottom();assert.equal(await rows.count(),100);
+  await controls.getByRole('button',{name:'Back',exact:true}).click();assert.equal(await page.locator('.tab-content.active').getAttribute('id'),'journal');
+  console.log('PASS compact History header, one floating pager, complete Entry IDs, boundary and short last pages.');
+ }finally{await f.close();}
+})().catch(e=>{console.error(e);process.exitCode=1});

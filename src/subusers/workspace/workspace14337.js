@@ -26,16 +26,21 @@ function reconciliationHistory(){
  const list=$('reconciliationList71');if(!list||!list.closest('.tab-content.active'))return;
  closeReconciliationHistory();
  const panel=document.createElement('section');panel.id='reconciliationLocalHistory';panel.className='module-card';
- const back=document.createElement('button');back.type='button';back.className='je-btn je-btn-secondary';back.textContent='Back to Reconcile';back.onclick=closeReconciliationHistory;
- const content=document.createElement('div');content.textContent='Loading saved reconciliations…';panel.append(back,content);
+ const back=document.createElement('button');back.type='button';back.className='je-btn je-btn-secondary';back.textContent='Back';back.title='Back to Reconcile';back.onclick=closeReconciliationHistory;
+ const header=document.createElement('header');header.className='je-card-header';
+ header.innerHTML='<h3>Reconciliation History</h3><div class="module-actions71"></div>';
+ header.lastElementChild.append(back);
+ const content=document.createElement('div');content.textContent='Loading saved reconciliations…';panel.append(header,content);
  list.after(panel);list.hidden=true;void summary(content);
 }
 async function summary(destination){
  mountReconciliation();const node=destination||$('reconciliationSummary14337'),owner=reportOwner71(),generation=++summaryGeneration;if(!node||!reportPermission71())return;
  try{const all=await reconciliationRecords305();if(owner!==reportOwner71()||generation!==summaryGeneration)return;const rows=latestReconciliations306(all.filter(r=>r.owner===owner&&reconciliationRecorded71(r)&&(destination||reportBooks.includes('report-reconciliation',r.from,r.to))));
- node.innerHTML='<div class="je-card-header"><div><h3>Reconciliation</h3><p>'+ (destination?'Saved reconciliations.':'Saved reconciliations from closed books.') +' Choose accounts and dates to export a summary, ledger details and signatories.</p></div><div class="module-actions71">'+(destination?'':reportBooks.filterButton())+'<button type="button" class="je-btn je-btn-secondary" data-rec-print14337>Export / Print</button></div></div>'+reconciliationSummary306(rows)+(rows.length?'<section data-rec-ledgers307><h3>Ledger details</h3>'+rows.map(r=>'<details class="rec-section71"><summary>'+esc(reconciliationAccountLabel306(r,true))+' · '+esc(reconciliationPeriod306(r.from,r.to))+'</summary>'+reconciliationReportContent306([r],{summary:false,ledger:true})+'</details>').join('')+'</section>':'<p>No saved reconciliations.</p>');
+ const exportButton='<button type="button" class="je-btn je-btn-secondary" data-rec-print14337>Export</button>';
+ if(destination)node.previousElementSibling.querySelector('.module-actions71').insertAdjacentHTML('beforeend',exportButton);
+ node.innerHTML=(destination?'':'<div class="je-card-header"><div><h3>Reconciliation</h3><p>Saved reconciliations from closed books. Choose accounts and dates to export a summary, ledger details and signatories.</p></div><div class="module-actions71">'+reportBooks.filterButton()+'<button type="button" class="je-btn je-btn-secondary" data-rec-print14337>Export / Print</button></div></div>')+reconciliationSummary306(rows)+(rows.length?'<section data-rec-ledgers307><h3>Ledger details</h3>'+rows.map(r=>'<details class="rec-section71"><summary>'+esc(reconciliationAccountLabel306(r,true))+' · '+esc(reconciliationPeriod306(r.from,r.to))+'</summary>'+reconciliationReportContent306([r],{summary:false,ledger:true})+'</details>').join('')+'</section>':'<p>No saved reconciliations.</p>');
  if(!destination)reportBooks.bind('report-reconciliation','Reconciliation',()=>summary());
- node.querySelector('[data-rec-print14337]').onclick=()=>reconciliationExport306();
+ (destination?node.previousElementSibling:node).querySelector('[data-rec-print14337]').onclick=()=>reconciliationExport306();
  }catch(e){if(owner===reportOwner71()&&generation===summaryGeneration){node.textContent='Reconciliation summaries could not load: '+e.message;}}
 }
 function ready(){

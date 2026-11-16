@@ -7,6 +7,9 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const {page,login}=await f.open(),calls=[],saved=[];
   await page.route('**/rpc/account_ledger379',route=>{
    calls.push(route.request().postDataJSON());
+   if(calls.at(-1).p_account==='extra-1')return route.fulfill({json:
+    [98,5,4].flatMap((count,id)=>Array.from({length:count},()=>({id:'MULTI-'+id,date:'2026-11-01',currency:'USD',debit:1,credit:0})))
+   });
    return route.fulfill({json:[
     {id:'OPEN',date:'2025-01-01',memo:'Opening Balances',debit:100,credit:0,annualOpening:true},
     {id:'FIRST',date:'2025-03-12',memo:'Initial payment',debit:0,credit:40.01},
@@ -51,6 +54,12 @@ const fixture=require('./phase0-browser-fixture.cjs');
   assert.equal(await search.evaluate(n=>n.tagName),'SPAN');
   await dialog.locator('[data-line]').first().click();assert.equal(await dialog.locator('tr.selected').count(),1);
   for(let i=1;i<=9;i++){await search.fill('Extra '+i);await dialog.getByRole('button',{name:'T'+i+' · Extra '+i+' (USD)',exact:true}).click();}
+  await dialog.getByRole('button',{name:'T1',exact:true}).click();await period.selectOption('');
+  const pager=dialog.locator('.ledger-page-controls');await pager.waitFor();
+  assert.equal(await dialog.locator('.ledger-lines379 tbody tr').count(),103);
+  assert.equal(await pager.evaluate(n=>getComputedStyle(n).position),'sticky');
+  await pager.getByRole('button',{name:'Next'}).click();assert.equal(await dialog.locator('.ledger-lines379 tbody tr').count(),4);
+  assert(await pager.getByRole('button',{name:'Next'}).isDisabled());await pager.getByRole('button',{name:'Previous'}).click();
   await search.fill('Extra 10');await dialog.getByRole('button',{name:'T10 · Extra 10 (USD)',exact:true}).click();
   await dialog.getByText('Close a ledger tab to open another account.').waitFor();await search.fill('');
   const tab=code=>dialog.getByRole('button',{name:code,exact:true});

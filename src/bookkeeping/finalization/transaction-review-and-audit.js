@@ -2,30 +2,45 @@
 function transactionCurrencies(){return (CurrencyStore.currencies||[]).filter(c=>c.is_active!==false);}
 function canVoidTransactions(){return liveProfile?.role==='admin'||Boolean(livePermission?.can_void);}
 function isAdjustedTransaction(lines){return (lines||[]).some(row=>row.adjusted===true||/^\s*adjustment\b/i.test(String(row.memo||'')));}
-// Limit each page to 100 lines; repeat shared entry cells for continued transactions.
+// End a page at the first complete entry boundary at or beyond 100 lines.
+function entryPageRanges14340(rows,keyOf,weightOf=()=>1,spanOf=()=>1){
+ const last=new Map();
+ rows.forEach((r,i)=>{const id=keyOf(r);if(id)last.set(id,i);});
+ const pages=[];let start=0,lines=0,through=-1;
+ rows.forEach((r,i)=>{
+  through=Math.max(through,last.get(keyOf(r))??i,i+spanOf(r)-1);
+  lines+=weightOf(r);
+  if(lines>=100&&i>=through&&i+1<rows.length){pages.push([start,i+1]);start=i+1;lines=0;}
+ });
+ pages.push([start,rows.length]);return pages;
+}
 function transactionPage14340(tbody,groups,ids){
-  const limit=100;const pages=[[]];let lines=0;
-  ids.forEach(id=>{for(let start=0;start<groups[id].length;){if(lines===limit){pages.push([]);lines=0}const count=Math.min(limit-lines,groups[id].length-start);pages.at(-1).push({id,start,end:start+count});start+=count;lines+=count}});
-  const table=tbody.closest('table'),container=table?.closest('.table-container');
-  if(!container)return ids.map(id=>({id,start:0,end:groups[id].length}));
-  table.dataset.ownPager14383='1';
-  let bar=container.nextElementSibling;
-  if(!bar?.classList.contains('transaction-pages14340')){bar=document.createElement('div');bar.className='transaction-pages14340 module-actions71 no-print';container.after(bar)}
-  const heading=container.closest('.history-table14343')?.querySelector(':scope > .je-card-header');
-  let top=heading?.querySelector('.transaction-pages-top143197');
-  if(heading&&!top){top=document.createElement('div');top.className='transaction-pages14340 transaction-pages-top143197 module-actions71 no-print';heading.append(top)}
-  const bars=[bar,top].filter(Boolean);
-  if(typeof isPrintMode!=='undefined'&&isPrintMode){bars.forEach(b=>b.hidden=true);return ids.map(id=>({id,start:0,end:groups[id].length}))}
-  const max=pages.length,selected=Math.min(Number(tbody.dataset.page14340)||0,max-1);tbody.dataset.page14340=String(selected);
-  const go=step=>{tbody.dataset.page14340=String(selected+step);renderTransactionReviewTable(tbody,Object.values(groups).flat(),'page14340:'+tbody.dataset.action14340);if(heading)requestAnimationFrame(()=>{if(heading.isConnected)heading.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'})})};
-  for(const pager of bars){
-  pager.hidden=max<=1;pager.replaceChildren();pager.setAttribute('role','navigation');pager.setAttribute('aria-label',pager===top?'Transaction History top pagination':'Transaction pagination');
-  const previous=document.createElement('button'),next=document.createElement('button'),label=document.createElement('span');
-  previous.type=next.type='button';previous.className=next.className='je-btn je-btn-secondary';previous.textContent='Previous';next.textContent='Next';previous.disabled=selected===0;next.disabled=selected===max-1;
-  label.textContent=`${selected+1} of ${max}`;
-  previous.onclick=()=>go(-1);next.onclick=()=>go(1);pager.append(previous,label,next);
-  }
-  return pages[selected];
+ const table=tbody.closest('table'),container=table?.closest('.table-container');
+ const whole=id=>({id,start:0,end:groups[id].length});
+ if(!container)return ids.map(whole);
+ table.dataset.ownPager14383='1';
+ const pages=entryPageRanges14340(ids,id=>id,id=>groups[id].length);
+ const max=pages.length,selected=Math.min(Number(tbody.dataset.page14340)||0,max-1);
+ tbody.dataset.page14340=String(selected);
+ let bar=container.nextElementSibling;
+ if(!bar?.classList.contains('transaction-pages14340'))bar=null;
+ if(max===1||(typeof isPrintMode!=='undefined'&&isPrintMode)){bar?.remove();return ids.map(whole);}
+ if(!bar){
+  bar=document.createElement('nav');bar.className='transaction-pages14340 module-actions71 no-print';
+  bar.setAttribute('aria-label','Transaction pagination');
+  bar.innerHTML='<button type="button" class="je-btn je-btn-secondary">Previous</button><span aria-live="polite"></span><button type="button" class="je-btn je-btn-secondary">Next</button>';
+  container.after(bar);
+ }
+ const [previous,label,next]=bar.children;
+ const heading=container.closest('.history-table14343')?.querySelector(':scope > .je-card-header')||table;
+ const go=step=>{
+  tbody.dataset.page14340=String(selected+step);
+  renderTransactionReviewTable(tbody,Object.values(groups).flat(),'page14340:'+tbody.dataset.action14340);
+  requestAnimationFrame(()=>{if(heading.isConnected)heading.scrollIntoView({block:'start',inline:'nearest',behavior:'instant'});});
+ };
+ previous.disabled=selected===0;next.disabled=selected===max-1;
+ previous.onclick=()=>go(-1);next.onclick=()=>go(1);label.textContent=(selected+1)+' of '+max;
+ const [start,end]=pages[selected];return ids.slice(start,end).map(whole);
 }
 function journalDateSpans143120(lines){const spans=Array(lines.length).fill(0);for(let i=0;i<lines.length;){let end=i+1;while(end<lines.length&&lines[end].date===lines[i].date)end++;spans[i]=end-i;i=end}return spans}
 function renderTransactionReviewTable(tbody, records, actionMode='none'){

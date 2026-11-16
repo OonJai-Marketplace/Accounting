@@ -18,7 +18,7 @@ const create=require('./phase0-browser-fixture.cjs');
  await page.keyboard.press('Control+Alt+b');await page.keyboard.press('r');
  await page.locator('#reconciliationList71 button:has-text("History")').click();
  await page.locator('#reconciliationLocalHistory [data-reconciliation-summary306]').waitFor();
- await page.getByRole('button',{name:'Back to Reconcile'}).click();assert(await page.locator('#reconciliationList71').isVisible());
+ await page.locator('#reconciliationLocalHistory .module-actions71').getByRole('button',{name:'Back',exact:true}).click();assert(await page.locator('#reconciliationList71').isVisible());
  for(const label of labels.slice(7)){await page.locator('#categoryTabs [data-section14378="'+label+'"]').click();assert.equal(await page.locator('#categoryTabs button.active').textContent(),label);}
  await page.locator('#nav-module-transactions .nav-header').click();assert.equal(await page.locator('#groupMenu14388:visible,#nav-module-transactions .grouped-children14378:visible,#gptDrafts143129,#hr-ai-inbox').count(),0);
  await page.evaluate(()=>switchTab('settings-accounting'));

@@ -172,12 +172,12 @@ const auditGroups14361=[['all','Financial audit events'],['red','Red — Permane
           };
         }
         if(offset||data.length>50){
-          const nav=document.createElement('div');nav.className='audit-pager377';
+          const nav=document.createElement('div');nav.className='audit-pager377 no-print';nav.setAttribute('role','navigation');nav.setAttribute('aria-label','Journal edit notes pagination');
           for(const [label,next,disabled] of [['Previous',offset-50,!offset],['Next',offset+50,data.length<=50]]){
             const button=document.createElement('button');button.type='button';button.className='je-btn je-btn-secondary';
             button.textContent=label;button.disabled=disabled;button.onclick=()=>load(next);nav.append(button);
           }
-          body.append(nav);
+          nav.firstElementChild.after(document.createTextNode('Page '+(Math.floor(offset/50)+1)));body.append(nav);
         }
       }catch(e){if(current())body.textContent='Could not load edit reasons. '+(e.message||'Reconnect and reopen this section.');}
     }
@@ -207,7 +207,7 @@ const auditGroups14361=[['all','Financial audit events'],['red','Red — Permane
     const offset=Math.min(page?.offset||0,lastOffset);
     const shown=remote?matching.slice(0,50):matching.slice(offset,offset+50);
     const offlineNote=page?.offline?'<p>Showing downloaded audit records. Connect to browse the complete history.</p>':'';
-    const pager=page&&total>50?`<div class="audit-pager377 no-print"><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${Math.max(0,offset-50)}" ${offset?'':'disabled'}>Previous</button><span>${offset+1}–${Math.min(offset+50,total)} of ${total}</span><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${offset+50}" ${offset===lastOffset?'disabled':''}>Next</button></div>`:'';
+    const pager=page&&total>50?`<div class="audit-pager377 no-print" role="navigation" aria-label="Audit pagination"><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${Math.max(0,offset-50)}" ${offset?'':'disabled'}>Previous</button><span>${offset+1}–${Math.min(offset+50,total)} of ${total}</span><button type="button" class="je-btn je-btn-secondary" data-audit-page143198="${offset+50}" ${offset===lastOffset?'disabled':''}>Next</button></div>`:'';
     const rows=shown.map((item,index)=>{const kind=auditKind14361(item);return `<tr class="audit-summary-row" tabindex="0" data-audit-open14361="${index}" data-audit-search="${esc(JSON.stringify({id:item.id,auditSource1434:item.auditSource1434,record_id:item.record_id,action:item.action,deletePolicy143124:item.deletePolicy143124,old_data:{entry_no:item.old_data?.entry_no},new_data:{entry_no:item.new_data?.entry_no},summary143198:true}))}" aria-haspopup="dialog" aria-label="View ${esc(kind.label)} ${esc(auditRecordId(item))}"><td>${formatAppDate(item.created_at,true)}</td><td>${esc(auditRecordId(item))}</td><td>${esc(kind.label)}</td><td>${esc(item.reason||'—')}</td><td>${esc(getLiveUserName(item.actor_id)||'System')}</td></tr>`}).join('');
     host.innerHTML=historyMonth14341.control('audit',selected)+(liveProfile?.role==='admin'?'<button type="button" class="je-btn je-btn-secondary" data-audit-cleanup313>Clear reviewed Orange…</button>':'')+`<div class="period-summary-grid audit-filters14361">${cards}</div>${offlineNote}<section class="archive-month audit-month98"><div class="table-container"><table class="audit-table98"><thead><tr><th>Date &amp; Time</th><th>Record</th><th>Audit Action</th><th>Reason / Note</th><th>Recorded By</th>${liveProfile?.role==='admin'?'<th data-audit-action1434>Action</th>':''}</tr></thead><tbody>${rows||`<tr><td colspan="${liveProfile?.role==='admin'?6:5}" class="period-empty">No audit events match this month and category.</td></tr>`}</tbody></table></div></section>${pager}`;
     const allowReasons=liveProfile?.role==='admin'&&!window.workspaceRequest138?.target;

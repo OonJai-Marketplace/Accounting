@@ -1,9 +1,5 @@
 /* Desktop refinements; original mobile DOM text is restored at the breakpoint. */
 const desktop80=matchMedia('(min-width:768px)');
-let historyQuery80='';
-function historyFilter80(scope=document){
- const q=historyQuery80.trim().toLowerCase();desktopNodes80(scope,'#archiveMonths67 .clustered-journal-table tbody').forEach(body=>{const groups=new Map();let key='';for(const row of body.rows){key=row.dataset.entryId||key||String(groups.size);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row)}for(const rows of groups.values()){const show=!q||rows.some(r=>r.textContent.toLowerCase().includes(q));rows.forEach(r=>r.hidden=!show)}});
-}
 // Mutation passes stay within changed panels; initial and breakpoint passes remain complete.
 function desktopNodes80(scope,selector){return [...(scope.matches?.(selector)?[scope]:[]),...scope.querySelectorAll(selector)]}
 function desktopMutationRoots80(records){
@@ -21,7 +17,6 @@ function polishDesktop80(scope=document){
  const all=selector=>desktopNodes80(scope,selector),one=selector=>all(selector)[0];
  const desktop=desktop80.matches;
  all('.final-record-count').forEach(n=>{const label=n.querySelector('small'),count=n.querySelector('b');if(!label||!count)return;if(desktop){if(!label.dataset.original80)label.dataset.original80=label.textContent;const adjustment=/change/i.test(label.dataset.original80);const text=Number(count.textContent)===1?(adjustment?'change':'entry'):(adjustment?'changes':'entries');if(label.textContent!==text)label.textContent=text}else if(label.dataset.original80){label.textContent=label.dataset.original80;delete label.dataset.original80}});
- const search=one('#archiveMonths67 .history-header14342 input[type=search]');if(search){if(search.value!==historyQuery80&&document.activeElement!==search)search.value=historyQuery80;search.oninput=e=>{historyQuery80=e.target.value;historyFilter80(scope)};historyFilter80(scope)}
  if(desktop){const n=one('#reminderUnit');if(n){const width=((n.selectedOptions[0]?.textContent.length||12)+5)+'ch';if(n.style.width!==width)n.style.width=width}}
  all('.ledger-summary71').forEach(summary=>{if(summary.classList.contains('aligned85')||summary.querySelector('.ledger-side80'))return;const stats=summary.querySelectorAll('.ledger-stat71'),closing=stats[stats.length-1]?.querySelector('strong');if(!closing)return;const text=closing.textContent,side=text.match(/\b(DR|CR)\b/)?.[1]||'—';const extra=document.createElement('span');extra.className='ledger-stat71 ledger-side80';extra.innerHTML='<small>Balance side</small><strong>'+side+'</strong>';stats[0].after(extra);closing.className='ledger-closing-original80';const amount=document.createElement('strong');amount.className='ledger-side80';amount.textContent=text.replace(/\s+(DR|CR)$/,'');closing.after(amount)});
  all('button.tab-btn,.category-tab').forEach(n=>{if(n.textContent.trim()==='System Accounts & Mapping'&&desktop){n.dataset.systemTitle80='true';n.textContent='System Accounts'}else if(n.dataset.systemTitle80&&!desktop){n.textContent='System Accounts & Mapping';delete n.dataset.systemTitle80}});

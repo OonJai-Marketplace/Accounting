@@ -86,6 +86,7 @@
     .ledger-tabs379 button:first-child{border-radius:5px 0 0 5px;font-weight:bold}
     .ledger-tabs379 button:last-child{border-left:0;border-radius:0 5px 5px 0;padding:3px 6px}
     .ledger-tabs379 [aria-pressed=true]{color:white;background:#194c38}
+    .watch-dialog .ledger-page-controls{position:sticky;bottom:0;z-index:1;justify-content:center;width:max-content;max-width:100%;margin:4px auto 0;padding:3px 8px;background:white;border:1px solid #aec1b3;border-radius:7px;box-shadow:0 2px 8px #193e3226}
     .ledger-detail379>h3{margin:0 0 8px}
     .ledger-lines379 tr[data-line]{cursor:pointer}
     .ledger-lines379 tr[data-line]:hover{background:#edf5ee}
