@@ -853,14 +853,6 @@ function syncCoaDatalist() {
   });
 }
 
-async function refreshChartAccounts(button){
-  button.disabled=true;
-  try{
-    await loadReferenceDataFromSupabase({databaseOnly:true});
-    showCenterStatus('Chart of accounts refreshed.');
-  }catch(error){showCenterStatus(error.message||'Could not refresh the chart of accounts.',true);}
-  finally{button.disabled=false;}
-}
 function renderChartOfAccountsTable() {
   const tbody = document.getElementById('coaTableBody');
   if (!tbody) return;
@@ -868,15 +860,12 @@ function renderChartOfAccountsTable() {
   const filterCurr = document.getElementById('filterCoaCurrency')?.value || 'ALL';
   const table=tbody.closest('table');
   table.dataset.preservePage14397='true';
-  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts)||new Map();
-  const includeHistory=document.getElementById('includeHistoricalCoa')?.checked===true;
-  const filterKey=JSON.stringify([filterCurr,includeHistory,document.getElementById('searchCoa1439')?.value||'',window.AccountGroups143180?.filterKey]);
+  const filterKey=JSON.stringify([filterCurr,document.getElementById('searchCoa1439')?.value||'',window.AccountGroups143180?.filterKey]);
   if(table.dataset.filterKey14397!==filterKey){window.tablePagination14383?.reset(table);table.dataset.filterKey14397=filterKey}
   tbody.innerHTML = '';
 
   const terms=(document.getElementById('searchCoa1439')?.value||'').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
   const visibleAccounts = AccountingStore.accounts.filter(acc => {
-    if(!includeHistory&&historical.has(String(acc.code)))return false;
     const text=[acc.code,acc.name,acc.currency,currencySymbolV6(acc.currency),acc.type,acc.desc].join(' ').toLocaleLowerCase();
     return (filterCurr === 'ALL' || acc.currency === filterCurr)&&terms.every(term=>text.includes(term))&&(!window.AccountGroups143180||AccountGroups143180.matches(acc));
   });
@@ -895,7 +884,7 @@ function renderChartOfAccountsTable() {
       <td><strong class="${acc.isTechnical||acc.type==='SYSTEM'?'system-account-name14399':''}">${escapeHtml(acc.name)}</strong><div>${window.AccountGroups143180?.badge(acc)||''}</div></td>
       <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'Parent':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${escapeHtml(acc.type)}</span></td>
-      <td style="color: var(--text-muted);">${escapeHtml([historical.get(String(acc.code)),acc.desc].filter(Boolean).join(' · ')||'—')}</td>
+      <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
       <td style="text-align: right;">
         <div style="display: inline-flex; gap: 6px;">
           <button type="button" class="btn-action-edit" title="Edit Account" onclick="openEditAccountModal(${escapeHtml(JSON.stringify(acc.code))})">✏️</button>
@@ -2351,27 +2340,11 @@ async function confirmSaveTemplate() {
   showAppNotification('Saved');
 }
 async function openTemplateManager(){if(await renderTemplateManager())openModal('modalTemplateManager');const status=document.getElementById('templateCloudStatus275'),owner=liveProfile?.id;await window.TemplateCloud275?.sync();if(status?.isConnected&&liveProfile?.id===owner)await renderTemplateManager();}
-function builtInTransactionTemplates268(){
- const chart=AccountingStore.accounts,historical=window.JournalCompletion258?.historicalMappings(chart);
- const templates=[...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(chart)||[])];
- return historical?.size?templates.filter(t=>!t.lines.some(l=>historical.has(String(l.code)))):templates;
-}
+function builtInTransactionTemplates268(){return [...(window.JournalFX14383?.templates()||[]),...(window.JournalTemplateCatalog268?.templates(AccountingStore.accounts)||[])];}
 function availableTransactionTemplates(){
   TemplateStore.load();
   const overrides=new Map(TemplateStore.templates.map(t=>[t.id,t]));
-  const catalog=builtInTransactionTemplates268();
-  const saved=TemplateStore.templates.map(t=>{
-    // Early installations saved this sample with three display labels and no staff
-    // or withholding bridge. Keep its permanent number and the user's line memos.
-    if(t.deleted||t.id!=='tpl-payroll-sample'||t.lines.length!==3)return t;
-    const labels=['Salaries & Wages (USD)','Payroll Tax Payable (LAK)','SSO Payable (LAK)'];
-    if(!t.lines.every((l,i)=>l.account===labels[i]&&!l.accountId&&!l.code&&!l.side))return t;
-    const layout=catalog.find(item=>item.id==='gen268-payroll-tax-sso-USD'&&item.lines[0]?.code==='5316');
-    if(!layout)return t;
-    const memos=new Map(['5316','2111','2112'].map((code,i)=>[code,t.lines[i].memo]));
-    return {...layout,...t,builtin:true,autoMatch:false,lines:layout.lines.map(line=>({...line,memo:memos.get(line.code)??line.memo}))};
-  });
-  return [...catalog.filter(t=>!overrides.has(t.id)),...saved].filter(t=>!t.deleted);
+  return [...builtInTransactionTemplates268().filter(t=>!overrides.has(t.id)),...TemplateStore.templates].filter(t=>!t.deleted);
 }
 function templateEditorFields14399(t){
   let host=document.getElementById('templateFields14399');
@@ -2381,12 +2354,11 @@ function templateEditorFields14399(t){
   const label=document.createElement('label');label.textContent='General description';
   const memo=document.createElement('textarea');memo.value=t.generalMemo||'';memo.dataset.templateMemo14399='';label.append(memo);host.append(label);
   const list=document.createElement('div');list.id='templateRows14399';host.append(list);
-  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts);
   function add(line={}){
     const row=document.createElement('div');row.className='template-row14399';
     const account=document.createElement('select');account.setAttribute('aria-label','Template account');account.dataset.templateAccount14399='';account.innerHTML='<option value="">Choose account</option>';
     const resolved=line.code?AccountingStore.accounts.find(a=>a.code===line.code&&a.currency===line.currency):resolveTemplateAccount14397(line);
-    for(const a of AccountingStore.accounts.filter(a=>(a.id===resolved?.id||!historical?.has(String(a.code)))&&a.isPosting!==false&&a.active!==false&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)))){const o=document.createElement('option');o.value=a.id;o.textContent=a.code+' — '+a.name+' ('+a.currency+')';account.append(o)}
+    for(const a of AccountingStore.accounts.filter(a=>a.isPosting!==false&&a.active!==false&&(!window.personalJournal1437?.active||personalJournal1437.allowed(a)))){const o=document.createElement('option');o.value=a.id;o.textContent=a.code+' — '+a.name+' ('+a.currency+')';account.append(o)}
     account.value=resolved?.id||'';
     const description=document.createElement('input');description.value=line.memo||'';description.placeholder='Line description';description.setAttribute('aria-label','Line description');description.dataset.templateLineMemo14399='';
     const remove=document.createElement('button');remove.type='button';remove.className='je-btn je-btn-secondary';remove.textContent='Remove line';remove.onclick=()=>row.remove();
@@ -2400,8 +2372,7 @@ async function renderTemplateManager(){
   const host=document.getElementById('templateManagerList'); if(!host)return;
   const owner=liveProfile?.id;let numbers;try{numbers=await ensureTemplateNumbers143125()}catch(error){if(window.TemplateCloud275){TemplateCloud275.renderFailure(host,error);return true;}showAppNotification('Template Numbers Unavailable',error.message,true);return}if(liveProfile?.id!==owner)return;
   const templates=availableTransactionTemplates();
-  const savedIds=new Set(TemplateStore.templates.filter(t=>!t.deleted).map(t=>t.id));
-  host.innerHTML = '<p class="je-subtitle">'+savedIds.size+' saved custom templates · '+templates.filter(t=>t.builtin&&!savedIds.has(t.id)).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
+  host.innerHTML = '<p class="je-subtitle">'+TemplateStore.templates.filter(t=>!t.deleted).length+' saved custom templates · '+templates.filter(t=>t.builtin).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
     <div class="template-item">
       <div><strong><span class="template-number143125">${numbers[t.id]}.</span> ${escapeHtml(templateDisplayName143125(t))}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">
@@ -2797,8 +2768,7 @@ syncCoaDatalist = function() {
   const dl = document.getElementById('coaList');
   if (!dl) return;
   dl.innerHTML = '';
-  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts);
-  AccountingStore.accounts.filter(acc=>!historical?.has(String(acc.code))&&acc.isPosting!==false&&acc.is_posting!==false&&acc.active!==false&&acc.is_active!==false).forEach(acc => {
+  AccountingStore.accounts.filter(acc=>acc.isPosting!==false&&acc.is_posting!==false&&acc.active!==false&&acc.is_active!==false).forEach(acc => {
     const opt = document.createElement('option');
     /* Include the account code in the selected value so identically named
        accounts in different currencies cannot resolve to the wrong badge. */
@@ -3144,7 +3114,7 @@ async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=f
   const byId=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
   AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
   for(const sub of AccountingStore.subAccounts){const posting=byId.get(sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
-  CurrencyStore.render(); initCoaCurrencyFilter(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
+  CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
 }
 
 CurrencyStore.add = async function(code,name,symbol){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
@@ -6654,14 +6624,11 @@ const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'
 const re79=v=>escapeHtml(String(v??''));
 const reportBooks=(()=>{
  const monthOf=value=>String(value||'').slice(0,7);
- const closed=value=>{
-  const period=PeriodReview.periods[monthOf(value)];
-  return ['closed','locked'].includes(period?.officialStatus||period?.status);
- };
+ const closed=value=>['closed','locked'].includes(PeriodReview.periods[monthOf(value)]?.status);
  const closedMonths=()=>Object.keys(PeriodReview.periods).filter(closed).sort();
  function workingMonth(){
   const today=appLocalDate().slice(0,7);
-  return Object.keys(PeriodReview.periods).filter(m=>m<=today&&PeriodReview.periods[m].status==='open'&&!closed(m)).sort()[0]||(!closed(today)?today:'');
+  return Object.keys(PeriodReview.periods).filter(m=>m<=today&&PeriodReview.periods[m].status==='open').sort()[0]||(!closed(today)?today:'');
  }
  function closedRange(from,to){
   const first=monthOf(from),last=monthOf(to);
@@ -6739,8 +6706,7 @@ function toggleReportFilters143153(button){
  const s=Reports79,kind=s.kind,ledger=['gl','activity'].includes(kind),sort={...reportSort143153(kind)};
  const period={};for(const key of ['mode','month','year','quarter','from','to','selectedMonths14331','allMonths14331'])period[key]=s[key];
  const listKey=kind==='cf'?'cash':'payroll',chosen=new Set(s[listKey]);
- const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts||[]);
- const accounts=new Map((AccountingStore.accounts||[]).filter(a=>!historical?.has(String(a.code))).map(a=>[accountKey69(a),{key:accountKey69(a),account:a,currency:a.currency}]));
+ const accounts=new Map((AccountingStore.accounts||[]).map(a=>[accountKey69(a),{key:accountKey69(a),account:a,currency:a.currency}]));
  for(const row of reportFilterAccounts299.get(button.closest('.r79'))||[])accounts.set(row.key,row);
  const rows=[...accounts.values()].sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
  const currencies=[...new Set([...(CurrencyStore.currencies||[]).map(c=>c.code),...rows.map(r=>r.currency)])].filter(Boolean);
@@ -6902,7 +6868,7 @@ function reportModel79(kind,oldest=false){
  if(Reports79.basis==='LAK')headers.splice(4,0,'LAK rate');values=lines.map(l=>[l.date,l.id,l.accountName,journalMemoValue143187(l),...(Reports79.basis==='LAK'?[(window.JournalFX14383?.lineRates(l)||[]).join(' / ')||(l.originalCurrency==='LAK'?'1':'—')]:[]),money69(l.dr),money69(l.cr),balanceText69(l.running)]);metrics=[['Opening (DR less CR)',sum(selected,r=>r.opening)],['Period debit',sum(selected,r=>r.debit)],['Period credit',sum(selected,r=>r.credit)],['Closing (DR less CR)',sum(selected,r=>r.closing)]];note='Running balances are calculated chronologically for each account. The selected display order applies to the screen, print and export; running balances retain their chronological values. Search filters the detail rows only; totals cover the selected accounts for the full period.';
  }
  const unknown=all.filter(r=>active(r)&&!['ASSET','LIABILITY','EQUITY','REVENUE','EXPENSE','SYSTEM'].includes(String(r.account.type).toUpperCase()));if(unknown.length)note+=` Attention: ${unknown.length} account(s) have no recognized classification. Review the Trial Balance before relying on statements.`;
- if(Reports79.basis==='LAK'){note+=' LAK amounts use saved transaction/carrying rates. Each line retains its original currency.';if(!['gl','activity','bs','tb'].includes(kind)){const index=headers.indexOf('Account');if(index>=0){headers.splice(index+1,0,'Original currency / net');values=values.map(v=>{const row=rows.find(r=>r.account.name===String(v[index]).trim());return [...v.slice(0,index+1),row?row.sourceCurrency+' '+balanceText69(['pl','expense'].includes(kind)?row.original.debit-row.original.credit:row.original.closing):'Subtotal in LAK',...v.slice(index+1)]})}}}
+ if(Reports79.basis==='LAK'){note+=' LAK amounts use saved transaction/carrying rates. Original currencies are retained; mapping accounts are excluded from operating results.';if(!['gl','activity','bs','tb'].includes(kind)){const index=headers.indexOf('Account');if(index>=0){headers.splice(index+1,0,'Original currency / net');values=values.map(v=>{const row=rows.find(r=>r.account.name===String(v[index]).trim());return [...v.slice(0,index+1),row?row.sourceCurrency+' '+balanceText69(['pl','expense'].includes(kind)?row.original.debit-row.original.credit:row.original.closing):'Subtotal in LAK',...v.slice(index+1)]})}}}
  groups.push({currency,headers,values,metrics,note});
  }
  if(window.ForeignFunds14386){const detail=ForeignFunds14386.reportDetails(data,kind);if(detail)groups.push(detail)}
@@ -6911,9 +6877,7 @@ function reportModel79(kind,oldest=false){
 function reportContent79(kind,oldest=false){const groups=reportModel79(kind,oldest);return groups.map(g=>`<section class="r79-group"><h4>${re79(g.currency)}${g.periodLabel?' · '+re79(g.periodLabel):''}</h4><div class="r79-metrics">${g.metrics.map(([label,value])=>`<div><small>${re79(label)}</small><strong class="${value<0?'r79-negative':''}">${money69(value)}</strong></div>`).join('')}</div>${reportTable79(g.headers,g.values,g.currency,oldest)}<p class="r79-note">${re79(g.note)}</p></section>`).join('')||'<p class="r79-note">No chart accounts or posted journal data are available yet.</p>'}
 function reportHeader79(kind,pending=false){
  const s=Reports79,title=reportNames79[kind];
- const allClosed=window.periodFilters14331?.allClosedLedger(kind,s.selectedMonths14331);
- const periodLabel=allClosed?'All closed months · '+formatAppDate(s.from)+' – '+formatAppDate(s.to):s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'||kind==='tb'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to);
- return `<header class="r79-header"><div><span class="r79-eyebrow">${reportBooks.scope()==='live'?'ACCOUNTS · OPEN BOOK':reportBooks.scope()==='history'?'REPORTS · CLOSED BOOKS':'ACCOUNTS · POSTED JOURNAL'}</span><h3>${title}</h3><p>${re79(periodLabel)} · ${reportBooks.scope()==='live'?'Prior balances carried forward':reportBooks.scope()==='history'?'Closed-book history':'Posted entries'}</p></div><div class="r79-actions">${['gl','activity'].includes(kind)?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
+ return `<header class="r79-header"><div><span class="r79-eyebrow">${reportBooks.scope()==='live'?'ACCOUNTS · OPEN BOOK':reportBooks.scope()==='history'?'REPORTS · CLOSED BOOKS':'ACCOUNTS · POSTED JOURNAL'}</span><h3>${title}</h3><p>${s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'||kind==='tb'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · ${reportBooks.scope()==='live'?'Prior balances carried forward':reportBooks.scope()==='history'?'Closed-book history':'Posted entries'}</p></div><div class="r79-actions">${['gl','activity'].includes(kind)?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
 }
 function renderReports79(){
  if(!matchMedia('(min-width:768px)').matches)return;
@@ -6921,11 +6885,7 @@ function renderReports79(){
  for(const kind of Object.keys(reportNames79)){
  const panel=document.querySelector('#report-'+kind+'.active,#report-open-'+kind+'.active');if(!panel)continue;let host=panel.querySelector('.r79');if(!host){if(!panel.querySelector('.r79-original')){const original=document.createElement('div');original.className='r79-original';for(const child of [...panel.childNodes])if(!child.matches?.('.area-banner113,#categoryTabShell,.module-header'))original.append(child);panel.append(original)}host=document.createElement('section');host.className='r79';panel.append(host)}
  Reports79.kind=kind;if(window.reportWindow143195?.reuse(host))continue;if(window.reportWindow143195&&!reportWindow143195.prepare(host))continue;const s=Reports79,isLedger=['gl','activity'].includes(kind);
- if(isLedger||kind==='cf'||kind==='payroll'){
-  const historical=window.JournalCompletion258?.historicalMappings(AccountingStore.accounts||[]);
-  const relevant=reportData79().filter(r=>!historical?.has(String(r.account.code))||r.original?.opening||r.original?.debit||r.original?.credit||r.opening||r.debit||r.credit||r.lines?.length);
-  reportFilterAccounts299.set(host,relevant.map(r=>({key:r.key,account:r.account,currency:r.sourceCurrency||r.currency})));
- }
+ if(isLedger||kind==='cf'||kind==='payroll')reportFilterAccounts299.set(host,reportData79().map(r=>({key:r.key,account:r.account,currency:r.sourceCurrency||r.currency})));
  const blocks=['gl','tb'].includes(kind)&&typeof IntersectionObserver==='function'?[]:null;
  let content;
  try{ledgerRenderBlocks300=blocks;content=reportContent79(kind)}finally{ledgerRenderBlocks300=null}
@@ -9304,50 +9264,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function groupOf(line){const name=String(line.account||'');if(/\bprofit.tax\b/i.test(name))return 'Profit Tax';if(/\b(?:VAT|value.added.tax)\b/i.test(name))return 'VAT';if(/\b(?:PITx?|personal.income.tax|withholding.tax|payroll.tax.bridge)\b/i.test(name))return 'PIT';if(/\b(?:SSO|social.security)\b/i.test(name))return 'SSO';return ''}
   const postedLines=()=>((typeof JournalModule!=='undefined'&&JournalModule.entries)||[]).filter(line=>!line.pendingSync&&!line.local14333&&!line.voided_at&&(!line.status||line.status==='posted'));
   function journalRows(){return postedLines().filter(line=>String(line.date||'').slice(0,7)===state.month).map(line=>({...line,group:groupOf(line)})).filter(line=>line.group)}
-  // Restaurant sales are tax-exclusive. Use the value already recorded on each revenue
-  // line so a foreign payment, change or subsequent settlement cannot add a second sale.
-  function salesVat(period){
-    const chart=AccountingStore.accounts||[],accounts=new Map(chart.map(a=>[String(a.code),a]));
-    const groups=new Map(),cents=n=>Math.round(Number(n)*100);
-    const restaurant=new Set(chart.filter(a=>{
-      if(a.isTechnical||String(a.baseType||a.type).toUpperCase()!=='REVENUE')return false;
-      const seen=new Set();let parent=a.parentCode;
-      while(parent&&!seen.has(parent)){
-        if(String(parent)==='4000')return true;
-        seen.add(parent);parent=accounts.get(String(parent))?.parentCode;
-      }
-      return false;
-    }).map(a=>a.id));
-    let accrued=0,missing=false;
-    for(const l of postedLines()){
-      if(String(l.date||'').slice(0,7)!==period||l.annualOpening||l.source==='opening'||
-        /^(ANNUAL-OPENING-|YEAR-CLOSE-)/.test(l.reference||'')||/^(Annual opening balances |Opening Balances$|Year-end closing |Annual closing balances )/i.test(l.generalMemo||''))continue;
-      const a=accountForLine69(l);
-      if(String(a?.code)==='2110'&&a.currency==='LAK')accrued+=cents(l.credit||0);
-      if(!restaurant.has(a?.id))continue;
-      const currency=a.currency,group=groups.get(currency)||{amount:0,lak:0,missing:false};
-      group.amount+=cents(l.credit||0)-cents(l.debit||0);
-      const cr=window.JournalFX14383.base(l,'credit'),dr=window.JournalFX14383.base(l,'debit');
-      if(cr==null||dr==null){group.missing=true;missing=true}
-      else group.lak+=cents(cr)-cents(dr);
-      groups.set(currency,group);
-    }
-    const rateValue=typeof ApplicationSettings!=='undefined'?ApplicationSettings.tax?.vatRate:null;
-    const rate=rateValue!=null&&String(rateValue).trim()!==''&&Number.isFinite(Number(rateValue))&&Number(rateValue)>=0?Number(rateValue):null;
-    const net=[...groups.values()].reduce((n,g)=>n+g.lak,0);
-    const vat=rate===null||missing?null:Math.round(net*rate/100);
-    const rows=[...groups].sort(([a],[b])=>a.localeCompare(b)).map(([currency,g])=>[currency,number(g.amount/100),g.missing?'Missing valuation':number(g.lak/100)]);
-    return {headers:['Sales currency','Net sales in original currency','Recorded sales · LAK'],rows,
-      reconciliation:[['Restaurant sales · LAK',missing?'Missing valuation':number(net/100)],
-        ['Output VAT at '+(rate===null?'unconfigured rate':rate+'%')+' · LAK',vat===null?'Unavailable':number(vat/100)],
-        ['Credits posted to 2110 VAT Payable · LAK',number(accrued/100)],
-        ['Calculated output VAT less posted credits · LAK',vat===null?'Unavailable':number((vat-accrued)/100)]]};
-  }
-  function salesVatCard(){
-    const report=salesVat(state.month);
-    return card('Restaurant sales and output VAT',table(report.headers,report.rows)+table(['Monthly VAT comparison','Amount'],report.reconciliation)+
-      '<p class="tax-note102">Sales are grouped by the currency of the selling price. Returns reduce sales. The calculation applies the configured rate to tax-exclusive restaurant sales. Posted VAT and settlements appear separately.</p>');
-  }
   function statutoryBalances(){
     const accounts=typeof AccountingStore!=='undefined'?AccountingStore.accounts||[]:[],groups=new Map(),balances=new Map(),start=state.month+'-01',year=state.month.slice(0,4)+'-01-01';
     const cents=v=>Math.round(Number(v||0)*100);
@@ -9418,7 +9334,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       content=card('Finalized payroll snapshots',table(['Month','Reference','Finalized','Employees','PIT · LAK','SSO · LAK'],paidRuns().map(record=>[record.data.month,record.data.reference,record.data.finalizedAt?.slice(0,10)||'—',record.data.results?.length||0,number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.pitPayable309??r.pit??(Number(r.employeePit||0)+Number(r.employerPit||0))),0)),number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.employeeSso||0)+Number(r.employerSso||0),0))])))+
         card('Posted tax and SSO journal lines',journalTable(journal));
     }
-    content=balanceSummary(active)+(['tax-overview','tax-vat'].includes(active)?salesVatCard():'')+remittanceSummary(active)+content;
+    content=balanceSummary(active)+remittanceSummary(active)+content;
     let report=host.querySelector(':scope>.tax-report102');
     if(!report){for(const child of [...host.children])if(!child.classList.contains('area-banner113'))child.remove();report=document.createElement('div');report.className='tax-report102';report.innerHTML=`<div class="tax-toolbar102"><strong data-tax-period143154></strong><button type="button" class="je-btn je-btn-secondary" id="taxFilter143153" aria-expanded="false" aria-controls="taxFilters143153-${active}">Filter</button><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div><div id="taxFilters143153-${active}" class="tax-filters143153 no-print" hidden><label for="taxMonth102">Month <input id="taxMonth102" type="month" value="${escape(state.month)}"></label></div><p class="tax-error102" hidden role="status"></p><p class="tax-note102" hidden role="status">Loading saved records…</p><div class="tax-content102"></div>`;host.append(report);
       report.querySelector('#taxFilter143153').onclick=event=>{const filters=report.querySelector('.tax-filters143153');filters.hidden=!filters.hidden;event.currentTarget.setAttribute('aria-expanded',String(!filters.hidden));};
@@ -9439,7 +9355,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   async function refresh(force){const actor=liveProfile?.id,db=ojmDb,month=state.month,request=++refreshRequest14370,current=()=>liveProfile?.id===actor&&ojmDb===db&&request===refreshRequest14370&&state.month===month;state.loading=true;state.error='';render();try{if(typeof ojmDb!=='undefined'&&ojmDb){await window.yearWindow14333?.ensure(month+'-01',month+'-01');if(!current())return;await window.loadWork82?.(Boolean(force));if(!current())return;if(typeof Work82!=='undefined'&&Work82.error)state.error=Work82.error;if(force)await window.loadJournalFromSupabase?.()}}catch(error){if(current())state.error='Some records could not be loaded: '+(error.message||error)}finally{if(request===refreshRequest14370)state.loading=false;if(current())render()}}
   const previous=window.switchTab;
   window.switchTab=function(target,...args){const result=previous.call(this,target,...args);if(views[target]&&!window.workspaceViews14364?.reuseView(target)){render();if(!window.startup14257?.isPrepared('payroll'))refresh(false)}return result};
-  window.taxReports102={render,refresh,groupOf,payrollRows,journalRows,statutoryBalances,salesVat};
+  window.taxReports102={render,refresh,groupOf,payrollRows,journalRows,statutoryBalances};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{if(views[id()])refresh(false)},{once:true});else if(views[id()])refresh(false);
 })()
 ;

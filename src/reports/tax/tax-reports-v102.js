@@ -21,50 +21,6 @@
   function groupOf(line){const name=String(line.account||'');if(/\bprofit.tax\b/i.test(name))return 'Profit Tax';if(/\b(?:VAT|value.added.tax)\b/i.test(name))return 'VAT';if(/\b(?:PITx?|personal.income.tax|withholding.tax|payroll.tax.bridge)\b/i.test(name))return 'PIT';if(/\b(?:SSO|social.security)\b/i.test(name))return 'SSO';return ''}
   const postedLines=()=>((typeof JournalModule!=='undefined'&&JournalModule.entries)||[]).filter(line=>!line.pendingSync&&!line.local14333&&!line.voided_at&&(!line.status||line.status==='posted'));
   function journalRows(){return postedLines().filter(line=>String(line.date||'').slice(0,7)===state.month).map(line=>({...line,group:groupOf(line)})).filter(line=>line.group)}
-  // Restaurant sales are tax-exclusive. Use the value already recorded on each revenue
-  // line so a foreign payment, change or subsequent settlement cannot add a second sale.
-  function salesVat(period){
-    const chart=AccountingStore.accounts||[],accounts=new Map(chart.map(a=>[String(a.code),a]));
-    const groups=new Map(),cents=n=>Math.round(Number(n)*100);
-    const restaurant=new Set(chart.filter(a=>{
-      if(a.isTechnical||String(a.baseType||a.type).toUpperCase()!=='REVENUE')return false;
-      const seen=new Set();let parent=a.parentCode;
-      while(parent&&!seen.has(parent)){
-        if(String(parent)==='4000')return true;
-        seen.add(parent);parent=accounts.get(String(parent))?.parentCode;
-      }
-      return false;
-    }).map(a=>a.id));
-    let accrued=0,missing=false;
-    for(const l of postedLines()){
-      if(String(l.date||'').slice(0,7)!==period||l.annualOpening||l.source==='opening'||
-        /^(ANNUAL-OPENING-|YEAR-CLOSE-)/.test(l.reference||'')||/^(Annual opening balances |Opening Balances$|Year-end closing |Annual closing balances )/i.test(l.generalMemo||''))continue;
-      const a=accountForLine69(l);
-      if(String(a?.code)==='2110'&&a.currency==='LAK')accrued+=cents(l.credit||0);
-      if(!restaurant.has(a?.id))continue;
-      const currency=a.currency,group=groups.get(currency)||{amount:0,lak:0,missing:false};
-      group.amount+=cents(l.credit||0)-cents(l.debit||0);
-      const cr=window.JournalFX14383.base(l,'credit'),dr=window.JournalFX14383.base(l,'debit');
-      if(cr==null||dr==null){group.missing=true;missing=true}
-      else group.lak+=cents(cr)-cents(dr);
-      groups.set(currency,group);
-    }
-    const rateValue=typeof ApplicationSettings!=='undefined'?ApplicationSettings.tax?.vatRate:null;
-    const rate=rateValue!=null&&String(rateValue).trim()!==''&&Number.isFinite(Number(rateValue))&&Number(rateValue)>=0?Number(rateValue):null;
-    const net=[...groups.values()].reduce((n,g)=>n+g.lak,0);
-    const vat=rate===null||missing?null:Math.round(net*rate/100);
-    const rows=[...groups].sort(([a],[b])=>a.localeCompare(b)).map(([currency,g])=>[currency,number(g.amount/100),g.missing?'Missing valuation':number(g.lak/100)]);
-    return {headers:['Sales currency','Net sales in original currency','Recorded sales · LAK'],rows,
-      reconciliation:[['Restaurant sales · LAK',missing?'Missing valuation':number(net/100)],
-        ['Output VAT at '+(rate===null?'unconfigured rate':rate+'%')+' · LAK',vat===null?'Unavailable':number(vat/100)],
-        ['Credits posted to 2110 VAT Payable · LAK',number(accrued/100)],
-        ['Calculated output VAT less posted credits · LAK',vat===null?'Unavailable':number((vat-accrued)/100)]]};
-  }
-  function salesVatCard(){
-    const report=salesVat(state.month);
-    return card('Restaurant sales and output VAT',table(report.headers,report.rows)+table(['Monthly VAT comparison','Amount'],report.reconciliation)+
-      '<p class="tax-note102">Sales are grouped by the currency of the selling price. Returns reduce sales. The calculation applies the configured rate to tax-exclusive restaurant sales. Posted VAT and settlements appear separately.</p>');
-  }
   function statutoryBalances(){
     const accounts=typeof AccountingStore!=='undefined'?AccountingStore.accounts||[]:[],groups=new Map(),balances=new Map(),start=state.month+'-01',year=state.month.slice(0,4)+'-01-01';
     const cents=v=>Math.round(Number(v||0)*100);
@@ -135,7 +91,7 @@
       content=card('Finalized payroll snapshots',table(['Month','Reference','Finalized','Employees','PIT · LAK','SSO · LAK'],paidRuns().map(record=>[record.data.month,record.data.reference,record.data.finalizedAt?.slice(0,10)||'—',record.data.results?.length||0,number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.pitPayable309??r.pit??(Number(r.employeePit||0)+Number(r.employerPit||0))),0)),number((record.data.results||[]).reduce((sum,r)=>sum+Number(r.employeeSso||0)+Number(r.employerSso||0),0))])))+
         card('Posted tax and SSO journal lines',journalTable(journal));
     }
-    content=balanceSummary(active)+(['tax-overview','tax-vat'].includes(active)?salesVatCard():'')+remittanceSummary(active)+content;
+    content=balanceSummary(active)+remittanceSummary(active)+content;
     let report=host.querySelector(':scope>.tax-report102');
     if(!report){for(const child of [...host.children])if(!child.classList.contains('area-banner113'))child.remove();report=document.createElement('div');report.className='tax-report102';report.innerHTML=`<div class="tax-toolbar102"><strong data-tax-period143154></strong><button type="button" class="je-btn je-btn-secondary" id="taxFilter143153" aria-expanded="false" aria-controls="taxFilters143153-${active}">Filter</button><button type="button" class="je-btn je-btn-secondary" id="taxRefresh102">Refresh</button><button type="button" class="je-btn je-btn-secondary" id="taxCsv102">Export CSV</button><button type="button" class="je-btn je-btn-secondary" id="taxPrint102">Print</button></div><div id="taxFilters143153-${active}" class="tax-filters143153 no-print" hidden><label for="taxMonth102">Month <input id="taxMonth102" type="month" value="${escape(state.month)}"></label></div><p class="tax-error102" hidden role="status"></p><p class="tax-note102" hidden role="status">Loading saved records…</p><div class="tax-content102"></div>`;host.append(report);
       report.querySelector('#taxFilter143153').onclick=event=>{const filters=report.querySelector('.tax-filters143153');filters.hidden=!filters.hidden;event.currentTarget.setAttribute('aria-expanded',String(!filters.hidden));};
@@ -156,6 +112,6 @@
   async function refresh(force){const actor=liveProfile?.id,db=ojmDb,month=state.month,request=++refreshRequest14370,current=()=>liveProfile?.id===actor&&ojmDb===db&&request===refreshRequest14370&&state.month===month;state.loading=true;state.error='';render();try{if(typeof ojmDb!=='undefined'&&ojmDb){await window.yearWindow14333?.ensure(month+'-01',month+'-01');if(!current())return;await window.loadWork82?.(Boolean(force));if(!current())return;if(typeof Work82!=='undefined'&&Work82.error)state.error=Work82.error;if(force)await window.loadJournalFromSupabase?.()}}catch(error){if(current())state.error='Some records could not be loaded: '+(error.message||error)}finally{if(request===refreshRequest14370)state.loading=false;if(current())render()}}
   const previous=window.switchTab;
   window.switchTab=function(target,...args){const result=previous.call(this,target,...args);if(views[target]&&!window.workspaceViews14364?.reuseView(target)){render();if(!window.startup14257?.isPrepared('payroll'))refresh(false)}return result};
-  window.taxReports102={render,refresh,groupOf,payrollRows,journalRows,statutoryBalances,salesVat};
+  window.taxReports102={render,refresh,groupOf,payrollRows,journalRows,statutoryBalances};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{if(views[id()])refresh(false)},{once:true});else if(views[id()])refresh(false);
 })()

@@ -39,8 +39,7 @@ function templates(chart){
    if(account&&reg.isTax(account))include(reg.bridge('LAK',true),'debit','LAK withholding bridge');
   }
   const exchange=id.startsWith('exchange-'),settlement=id.startsWith('settlement-');
-  const directPayment=lines.some(l=>reg.regular.has(reg.byCode(l.code,l.currency)?.id))&&lines.some(l=>l.role==='fund'&&l.side==='credit');
-  if(settlement||directPayment){
+  if(settlement){
    for(const c of new Set(lines.map(l=>l.currency).filter(c=>c&&c!=='LAK'))){
     include(reg.bridge(c),'debit','Foreign settlement · debit bridge');
     include(reg.bridge(c),'credit','Foreign settlement · credit bridge');
@@ -56,30 +55,24 @@ function templates(chart){
   const layout=id.startsWith('support-deposit-fee-')?[...lines.slice(0,4),...outputs,...lines.slice(4)]:[...lines,...outputs];
   out.push({id:'gen268-'+id,name,builtin:true,lines:layout,generalMemo:'',autoMatch});
  }
- const categories=[];
- for(const a of reg.all){
-  const rule=reg.regular.get(a.id),m=reg.maps.get(a.id);
-  if(rule)categories.push({a,localCode:rule.localCode,categoryType:rule.type,key:rule.legacy||a.code});
-  else if(m?.actual&&m.offset)categories.push({a,localCode:m.actualCode,categoryType:g.type(m.actual),key:a.code});
- }
- for(const {a,localCode,categoryType,key} of categories){
-  const c=g.currency(a),expense=categoryType==='EXPENSE',asset=categoryType==='ASSET';
-  const name=actions[localCode]||action(reg.byCode(localCode)||a);
-  if(localCode==='5311'){
+ for(const [id,m] of reg.maps){
+  const a=reg.all.find(a=>a.id===id),c=g.currency(a);if(!m.actual||!m.offset)continue;
+  const expense=g.type(m.actual)==='EXPENSE',asset=g.type(m.actual)==='ASSET';
+  const name=action(m.actual);
+  if(String(m.actual.code)==='5311'){
    add('payroll-'+c,'Accrue salaries · '+c,[row(a,'debit','Gross salary'),slot('staff',c,'credit','Net salary owed')]);
    const tax=reg.bridge(c,true),pit=reg.byCode('2111'),sso=reg.byCode('2112');
    if(tax&&pit)add('payroll-pit-'+c,'Accrue salaries with PIT · '+c,[row(a,'debit','Gross salary'),slot('staff',c,'credit','Net salary owed'),row(tax,'credit','Employee PIT withholding'),row(pit,'credit','PIT payable')],false);
    if(tax&&pit&&sso)add('payroll-tax-sso-'+c,'Accrue salaries with PIT and SSO · '+c,[row(a,'debit','Gross salary'),slot('staff',c,'credit','Net salary owed'),row(tax,'credit','Employee withholding'),row(pit,'credit','PIT payable — enter the allocation'),row(sso,'credit','SSO payable — enter the allocation')],false);
    continue;
   }
-  if(localCode==='3024'){
+  if(m.actualCode==='3024'){
    const remaining=[...reg.maps].find(([key,v])=>v.actualCode==='3023'&&g.currency(reg.all.find(item=>item.id===key))===c);
    if(remaining)add('mapping-'+a.code+'-'+c,name+' · '+c,[row(reg.all.find(item=>item.id===remaining[0]),'debit','Release remaining support at its original rate'),row(a,'credit','Support used at the same original rate')],false);
    continue;
   }
-  // Keep the existing template ID so saved numbers and user overrides still match.
-  add('mapping-'+key+'-'+c,name+' · '+c,expense||asset?[row(a,'debit'),slot('fund',c,'credit','Cash / bank payment')]:[slot('fund',c,'debit','Cash / bank receipt'),row(a,'credit')]);
-  if(localCode==='3023'){
+  add('mapping-'+a.code+'-'+c,name+' · '+c,expense||asset?[row(a,'debit'),slot('fund',c,'credit','Cash / bank payment')]:[slot('fund',c,'debit','Cash / bank receipt'),row(a,'credit')]);
+  if(m.actualCode==='3023'){
    const receipt=[{...slot('staff',c,'debit','Support received through staff'),receiptLeg:'receive'},
     {...row(a,'credit','Owner support received'),receiptLeg:'equity'},
     {...slot('fund',c,'debit','Full deposit into company cash / bank'),receiptLeg:'deposit'},
@@ -89,26 +82,12 @@ function templates(chart){
    if(feeAccount)add('support-deposit-fee-'+c,'Receive financial support via staff, deposit it and record a LAK fee · '+c,
     [...receipt,row(feeAccount,'debit','Separate LAK bank fee'),slot('payer','LAK','credit','Fund or staff who paid the fee')],false);
   }
-  const fee=categories.find(x=>x.localCode==='5414'&&g.currency(x.a)===c);
-  if((expense||asset)&&localCode!=='5414'&&fee){
-   const payment=asset?[row(a,'debit'),slot('fund',c,'credit','Prepayment released'),row(fee.a,'debit','Separate bank fee'),slot('fund',c,'credit','Fee released at its own rate')]:
-    [row(a,'debit'),row(fee.a,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')];
-   add('fee-'+key+'-'+c,name+' and pay a bank fee · '+c,payment,false);
-  }
+  const fee=[...reg.maps].find(([id,m])=>String(m.actual?.code)==='5414'&&g.currency(reg.all.find(a=>a.id===id))===c);
+  if((expense||asset)&&String(m.actual.code)!=='5414'&&fee){const feeAccount=reg.all.find(a=>a.id===fee[0]);const payment=asset?[row(a,'debit'),slot('fund',c,'credit','Prepayment released'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Fee released at its own rate')]:[row(a,'debit'),row(feeAccount,'debit','Separate bank fee'),slot('fund',c,'credit','Total paid including bank fee')];add('fee-'+a.code+'-'+c,name+' and pay a bank fee · '+c,payment,false);}
  }
- const localSalary=reg.byCode('5311'),usdSalary=categories.find(x=>x.localCode==='5311'&&g.currency(x.a)==='USD')?.a;
- if(localSalary&&usdSalary)
+ const localSalary=reg.byCode('5311'),usdSalary=reg.byCode('9231','USD');
+ if(localSalary&&reg.maps.get(usdSalary?.id)?.actualCode==='5311')
   add('mixed-payroll','Accrue salaries in LAK and USD',[localSalary,usdSalary].flatMap(a=>[row(a,'debit','Gross salary'),slot('staff',g.currency(a),'credit','Net salary owed')]),false);
- if(localSalary&&reg.regular.has(usdSalary?.id)){
-  const tax=reg.bridge('USD',true),pit=reg.byCode('2111'),sso=reg.byCode('2112');
-  const employerPit=reg.byCode('5211'),employerSso=reg.byCode('5212');
-  if(tax&&pit&&sso&&employerPit&&employerSso)
-   add('mixed-payroll-deductions','Accrue salaries in LAK and USD with PIT and SSO',[
-    row(localSalary,'debit','Gross LAK salaries'),slot('staff','LAK','credit','LAK salary owed or allocated to advances'),
-    row(usdSalary,'debit','Gross USD salaries at payroll rate'),slot('staff','USD','credit','USD salary owed'),
-    row(tax,'credit','USD employee withholding'),row(employerPit,'debit','Employer PIT'),row(employerSso,'debit','Employer SSO'),
-    row(pit,'credit','PIT payable per payroll'),row(sso,'credit','SSO payable per payroll')],false);
- }
  const currencies=[...new Set(reg.all.filter(g.fund).map(g.currency))].sort();
  for(const c of currencies){
   add('transfer-'+c,'Transfer between cash or bank accounts · '+c,[slot('fund',c,'debit','Receiving fund'),slot('fund',c,'credit','Paying fund')],false);
@@ -170,10 +149,7 @@ function templates(chart){
   add('local-'+code,title+' · LAK',expense||withdrawal?[row(a,'debit'),slot('fund','LAK','credit','Paying fund')]:[slot('fund','LAK','debit','Receiving fund'),row(a,'credit')]);
  }
  // Releases consume the prepaid asset; they do not repeat the original payment.
- for(const [id,name,expense,prepaid,c] of [
-  ['wifi','Recognize prepaid Wi-Fi expense','5110','1311','LAK'],['rent','Recognize prepaid company house rent','5421','1310','LAK'],
-  ['restaurant','Recognize prepaid restaurant rent',reg.regular.size?'5123':'9222','1312','THB'],
-  ['rent-usd','Recognize prepaid company house rent','5424','1314','USD']]){
+ for(const [id,name,expense,prepaid,c] of [['wifi','Recognize prepaid Wi-Fi expense','5110','1311','LAK'],['rent','Recognize prepaid company house rent','5421','1310','LAK'],['restaurant','Recognize prepaid restaurant rent','9222','1312','THB']]){
   const e=reg.byCode(expense,c),p=reg.byCode(prepaid,c);
   if(!p)continue;
   const debit=e&&g.type(e)==='EXPENSE'?row(e,'debit','Monthly prepaid expense'):null;
@@ -181,47 +157,9 @@ function templates(chart){
  }
  add('amortization-insurance','Recognize prepaid insurance expense · LAK',[slot('expense','LAK','debit','Insurance expense'),slot('prepaid','LAK','credit','Release prepaid insurance')],false);
  add('amortization-other','Recognize another prepaid expense · LAK',[slot('expense','LAK','debit','Prepaid expense allocation'),slot('prepaid','LAK','credit','Release prepaid balance')],false);
- if(reg.regular.size){
-  const housing=reg.byCode('4121','USD'),operating=reg.byCode('5124','USD'),fee=reg.byCode('5422','USD');
-  if(reg.regular.has(housing?.id))add('housing-repayment-USD','Receive a housing contribution and a staff repayment · USD',
-   [slot('fund','USD','debit','Total deposit'),slot('repayment','USD','credit','Staff repayment'),row(housing,'credit','Housing contribution')],false);
-  if(reg.regular.has(operating?.id)&&reg.regular.has(fee?.id))add('expense-reimbursement-fee-USD','Pay an operating expense, staff reimbursement and bank fee · USD',
-   [row(operating,'debit'),slot('staff','USD','debit','Staff reimbursement'),slot('fund','USD','credit','Expense and reimbursement payment'),
-    row(fee,'debit','Bank fee'),slot('fund','USD','credit','Bank fee payment')],false);
-  const sale=reg.byCode('4010');
-  for(const tender of ['THB','USD']){
-   if(!sale||!currencies.includes(tender)||!currencies.includes('LAK')||!reg.bridge(tender)||!reg.bridge('LAK'))continue;
-   add('tender-'+tender+'-change-LAK','Record a kip-priced sale with '+tender+' tender and LAK change',
-    [slot('fund',tender,'debit','Full '+tender+' tender received'),row(sale,'credit','Price of goods in LAK'),
-     slot('fund','LAK','credit','Actual change given in LAK'),calculated(reg.bridge(tender),'credit',tender+' tender at receipt value'),
-     calculated(reg.bridge('LAK'),'debit','LAK value of the tender')],false);
-  }
- }
  return out;
 }
-// Each currency pair records only that part of the sale or purchase. A blank
-// pair is optional. The THB-tender/kip-change case has its own evidenced layout.
-function currencyTemplates(chart){
- const g=G(),reg=g?.registry(chart);
- if(!reg?.regular.size)return null;
- const layouts=[];
- for(const income of [true,false]){
-  const lines=[];
-  for(const [c,fundCode,category] of [['LAK','1016',income?'4010':'5010'],['THB','1017',income?'4021':'5012'],['USD','1018',income?'4020':'5011']]){
-   const cash=reg.byCode(fundCode,c),account=reg.byCode(category,c);
-   if(!g.fund(cash)||!account||(c!=='LAK'&&!reg.regular.has(account.id)))continue;
-   const stage=c+(income?' sales':' food costs');
-   const fundLine={code:fundCode,currency:c,side:income?'debit':'credit',memo:income?'Cash received in '+c:'Cash paid in '+c,stage,optionalStage:true};
-   const categoryLine={code:category,currency:c,side:income?'credit':'debit',memo:income?'Sale in '+c:'Food cost in '+c,stage,optionalStage:true};
-   lines.push(...(income?[fundLine,categoryLine]:[categoryLine,fundLine]));
-  }
-  if(lines.some(l=>l.currency!=='LAK'))layouts.push({id:'fx14383-'+(income?'income':'expense'),builtin:true,
-   name:income?'Record sales received in multiple currencies':'Pay food costs in multiple currencies',
-   generalMemo:income?'Sales by currency received':'Food costs by currency paid',lines});
- }
- return layouts;
-}
-function accepts(line,a){const g=G();return !!a&&(!line.currency||line.currency===g.currency(a))&&(line.role==='fund'?g.fund(a):line.role==='staff'||line.role==='repayment'?g.staff(a):line.role==='payer'?g.fund(a)||g.staff(a):line.role==='balance'?g.staff(a)||g.type(a)==='LIABILITY':line.role==='prepaid'?g.type(a)==='ASSET'&&/^13\d\d$/.test(String(a.code)):line.role==='expense'?g.type(a)==='EXPENSE'&&!g.technical(a):false);}
+function accepts(line,a){const g=G();return !!a&&(!line.currency||line.currency===g.currency(a))&&(line.role==='fund'?g.fund(a):line.role==='staff'?g.staff(a):line.role==='payer'?g.fund(a)||g.staff(a):line.role==='balance'?g.staff(a)||g.type(a)==='LIABILITY':line.role==='prepaid'?g.type(a)==='ASSET'&&/^13\d\d$/.test(String(a.code)):line.role==='expense'?g.type(a)==='EXPENSE'&&!g.technical(a):false);}
 function resolve(line,chart){return line.accountId?chart.find(a=>a.id===line.accountId&&(!line.currency||G().currency(a)===line.currency)):line.code?chart.find(a=>String(a.code)===String(line.code)&&(!line.currency||G().currency(a)===line.currency)):root.resolveTemplateAccount14397?.(line);}
 function match(rows,definitions,chart){
  const g=G(),reg=g.registry(chart),entered=rows.filter(l=>l.account_id&&l.generated!=='output'),anchors=entered.filter(l=>{const a=chart.find(a=>a.id===l.account_id);return a&&!g.fund(a)&&(!g.technical(a)||reg.maps.has(a.id))});
@@ -244,7 +182,7 @@ function postedExampleMatcher(template,chart){
  const byId=new Map(chart.map(a=>[a.id,a])),byCode=new Map(chart.map(a=>[String(a.code),a]));
  const rules=template.lines.map(line=>({line,account:resolve(line,chart)}));
  const multiCurrency=template.builtin&&/^fx14383-(income|expense)$/.test(template.id);
- const fx=template.builtin&&(rules.some(({line})=>line.calculated&&line.code==='5419')||multiCurrency&&rules.some(({line})=>line.optionalStage))?G().registry(chart):null;
+ const fx=template.builtin&&rules.some(({line})=>line.calculated&&line.code==='5419')?G().registry(chart):null;
  const taxRemittance=template.builtin&&/^gen268-remit-(PIT|SSO)$/.test(template.id);
  function fits({line,account},posted){
   return (!line.side||line.side===posted.side)&&(!line.currency||line.currency===posted.currency)&&
@@ -264,7 +202,6 @@ function postedExampleMatcher(template,chart){
   function allowed(p){
    if(rules.some(rule=>fits(rule,p)))return true;
    if(taxRemittance&&String(p.account.code)==='5420'&&p.currency==='LAK')return true;
-   if(fx&&multiCurrency&&template.id==='fx14383-expense'&&String(p.account.code)==='5419')return true;
    return fx&&(p.currency==='LAK'||businessCurrencies.has(p.currency))&&fx.bridge(p.currency)?.id===p.account.id;
   }
   if(!posted.every(allowed))return false;
@@ -273,7 +210,6 @@ function postedExampleMatcher(template,chart){
   const required=rules.filter(({line})=>{
    if(line.calculated)return false;
    if(!multiCurrency)return true;
-   if(line.optionalStage)return businessCurrencies.has(line.currency);
    // Multi-currency sales and food costs may use only one of the two foreign currencies.
    return currencies.has(line.currency)&&!['1016','5419'].includes(line.code);
   });
@@ -294,11 +230,11 @@ function merge(rows,template,chart,makeRows){
  const result=rows.map(l=>({...l})),used=new Set(),layout=makeRows(template);
  for(const [i,line] of (template.lines||[]).entries()){
   const a=resolve(line,chart),index=result.findIndex((l,j)=>!used.has(j)&&l.account_id&&(!line.side||!Number(l.debit)&&!Number(l.credit)||Number(l[line.side])>0)&&(a?.id===l.account_id||accepts(line,chart.find(a=>a.id===l.account_id))));
-  if(index>=0){const current=result[index];result[index]={...current,role:line.role,expectedSide:line.side,expectedCurrency:line.currency,stage:line.stage,optionalStage:line.optionalStage,receiptLeg:line.receiptLeg,generated:layout[i].generated,autoMemo:layout[i].autoMemo,line_memo:current.line_memo||layout[i].line_memo};if(current.line_memo)result[index].autoMemo=current.autoMemo;if(!line.calculated||current.debit||current.credit)result[index].generated=current.generated;used.add(index);continue;}
+  if(index>=0){const current=result[index];result[index]={...current,role:line.role,expectedSide:line.side,expectedCurrency:line.currency,stage:line.stage,receiptLeg:line.receiptLeg,generated:layout[i].generated,autoMemo:layout[i].autoMemo,line_memo:current.line_memo||layout[i].line_memo};if(current.line_memo)result[index].autoMemo=current.autoMemo;if(!line.calculated||current.debit||current.credit)result[index].generated=current.generated;used.add(index);continue;}
   const empty=result.findIndex((l,j)=>!used.has(j)&&!l.account_id&&!l.line_memo&&!l.debit&&!l.credit),next=layout[i];
   if(empty>=0){result[empty]=next;used.add(empty);}else{result.push(next);used.add(result.length-1);}
  }
  return result;
 }
-root.JournalTemplateCatalog268={templates,currencyTemplates,accepts,resolve,match,merge,postedExampleMatcher};
+root.JournalTemplateCatalog268={templates,accepts,resolve,match,merge,postedExampleMatcher};
 })(globalThis);

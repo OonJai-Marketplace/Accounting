@@ -23,7 +23,7 @@ function save(){if(reportBooks.scope()==='live')return;try{localStorage.setItem(
 const range=(from,to)=>({from:reportBooks.scope()==='history'||from<to.slice(0,4)+'-01-01'?to.slice(0,4)+'-01-01':from,to});
 function periods(){const s=Reports79;let list;if(s.allMonths14331)return [allPeriod];
  if(s.kind==='bs'&&window.reportPeriods118)list=reportPeriods118();
- else if(s.selectedMonths14331?.length&&!window.periodFilters14331?.allClosedLedger(s.kind,s.selectedMonths14331))list=s.selectedMonths14331.map(m=>({from:m+'-01',to:summaryPeriod14331.end(m)}));
+ else if(s.selectedMonths14331?.length)list=s.selectedMonths14331.map(m=>({from:m+'-01',to:summaryPeriod14331.end(m)}));
  else{list=[];for(let y=Number(s.from.slice(0,4));y<=Number(s.to.slice(0,4));y++)list.push({from:y===Number(s.from.slice(0,4))?s.from:y+'-01-01',to:y===Number(s.to.slice(0,4))?s.to:y+'-12-31'})}
  return [...new Map(list.map(p=>{const r=range(p.from,p.to);return [key(r),r]})).values()];
 }
@@ -50,7 +50,7 @@ function read(p,{refresh=false,persist=false,cacheFirst=false}={}){
   for(let offset=0;;offset+=500){check();let request=db.rpc('journal_window14333',{p_from:p.from,p_to:p.to,p_offset:offset});if(request.abortSignal)request=request.abortSignal(controller.signal);const response=await request;check();if(response.error)throw response.error;
    const data=response.data;if(!Array.isArray(data?.rows)||offset===0&&!Array.isArray(data.opening))throw Error('The selected period is incomplete.');
    if(!offset){opening=data.opening;if(opening.some(b=>!b.accountId||!b.currency||!Number.isFinite(Number(b.balance))||b.base_balance!=null&&!Number.isFinite(Number(b.base_balance))))throw Error('The opening balances are incomplete.');revision=data.revision;
-    if(!refresh&&revision&&previous?.revision===revision&&previous.accounts===accounts&&Array.isArray(previous.rows))return previous;
+    if(revision&&previous?.revision===revision&&previous.accounts===accounts&&Array.isArray(previous.rows))return previous;
    }else if(revision!==data.revision)throw Error('The journal changed during download. Refresh this report.');
    if(data.rows.some(l=>!l.id||!l.date||l.date<p.from||l.date>p.to||!Number.isFinite(Number(l.debit))||!Number.isFinite(Number(l.credit))))throw Error('The selected period contains an invalid record.');
    rows.push(...data.rows);if(persist)window.idleSync14341?.progress('Preparing reports · '+rows.length.toLocaleString()+' journal lines downloaded…');if(data.rows.length<500)break;
@@ -63,7 +63,7 @@ function read(p,{refresh=false,persist=false,cacheFirst=false}={}){
 async function preload(force=false){restoreFilters();if(!client?.rpc)throw Error('Connect to the company journal to load reports.');await read(allPeriod,{refresh:force,persist:true,cacheFirst:!force});normalizeAll();save()}
 async function ensure(){restoreFilters();if(!client?.rpc)throw Error('Connect to the company journal to load this period.');await Promise.all(periods().map(p=>read(p)));normalizeAll();save()}
 function snapshot(from,to){if(Reports79.allMonths14331)return cache.get(allKey)||null;
- if(Reports79.selectedMonths14331?.length>1&&!window.periodFilters14331?.allClosedLedger(Reports79.kind,Reports79.selectedMonths14331)&&from===Reports79.selectedMonths14331[0]+'-01'&&to===summaryPeriod14331.end(Reports79.selectedMonths14331.at(-1)))from=Reports79.selectedMonths14331.at(-1)+'-01';
+ if(Reports79.selectedMonths14331?.length>1&&from===Reports79.selectedMonths14331[0]+'-01'&&to===summaryPeriod14331.end(Reports79.selectedMonths14331.at(-1)))from=Reports79.selectedMonths14331.at(-1)+'-01';
  return available(range(from,to))||null;
 }
 function addOpening(rows,snapshot){for(const b of snapshot.opening){let row=rows.find(r=>String(r.account.id)===String(b.accountId)&&r.currency===b.currency);if(!row){const account=AccountingStore.accounts.find(a=>String(a.id)===String(b.accountId))||{id:b.accountId,name:'Unmapped',code:'Unmapped',type:'Unmapped',currency:b.currency};row={account,key:accountKey69(account,b.currency),currency:b.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]};rows.push(row)}const amount=cents69(b.balance);row.opening+=amount;row.closing+=amount;if(b.currency!=='LAK'&&b.base_balance==null)row.missingRates++;else{const base=cents69(b.currency==='LAK'?b.balance:b.base_balance);row.baseOpening+=base;row.baseClosing+=base}}return rows}
@@ -89,16 +89,7 @@ function prepare(host){restoreFilters();if(!reportBooks.sync()){
   void ensure().then(()=>{if(current())renderReports79()}).catch(e=>{if(current()&&e.name!=='AbortError')renderReports79()}).finally(()=>{end?.();if(token===sequence)foreground=null});
  }return false;
 }
-async function refresh(){
- restoreFilters();reset();
- const view=active(),who=scope;
- try{
-  if(typeof loadReferenceDataFromSupabase==='function')await loadReferenceDataFromSupabase({databaseOnly:true,onlyIfChanged:true});
-  if(identity()!==who||active()!==view)return;
-  await preload(true);
-  if(identity()===who&&active()===view)renderReports79();
- }catch(e){if(identity()===who&&active()===view&&e.name!=='AbortError')showCenterStatus(e.message,true)}
-}
+async function refresh(){restoreFilters();reset();const view=active(),who=scope;renderReports79();try{await ensure()}catch(e){if(identity()===who&&active()===view&&e.name!=='AbortError')showCenterStatus(e.message,true)}}
 async function source(encoded){restoreFilters();const who=scope,db=client,id=decodeURIComponent(encoded),line=[...cache.values()].flatMap(p=>p.rows).find(l=>l.id===id);if(!line?.dbEntryId)return showCenterStatus('Refresh the selected period before opening this entry.',true);
  try{const response=await db.from('journal_entries').select('id,entry_no,transaction_date,memo,cash_slip_ref,updated_at,status,journal_fx_evidence288(entry_updated_at,display_memo,line_kinds),journal_lines(line_no,line_date,description,currency_code,debit,credit,fx_rate_lak,book_rate_lak,accounts(id,name,code))').eq('id',line.dbEntryId).eq('status','posted').maybeSingle();if(identity()!==who||ojmDb!==db)return;if(response.error)throw response.error;if(!response.data)throw Error('This entry is no longer posted. Refresh the report.');const e=response.data,review=e.journal_fx_evidence288,valid=review&&review.entry_updated_at===e.updated_at,lines=(e.journal_lines||[]).sort((a,b)=>a.line_no-b.line_no).map(l=>({id:e.entry_no,dbEntryId:e.id,date:l.line_date||e.transaction_date,account:l.accounts?.name||'Unknown Account',currency:l.currency_code,memo:l.description||e.memo||'',generalMemo:e.memo,cashSlipRef:e.cash_slip_ref,supportingDocument:line.supportingDocument,fxEvidenceMemo288:valid?review.display_memo:null,fxRateKind288:valid?review.line_kinds?.[l.line_no]:null,fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak,debit:Number(l.debit),credit:Number(l.credit),archived:(PeriodReview.periods[e.transaction_date.slice(0,7)]?.status||'open')!=='open'}));showJournalSource69(encoded,lines)}catch(e){if(identity()===who)showCenterStatus(e.message,true)}}
 window.reportWindow143195={cachedLedger:()=>scope===identity()&&client===ojmDb?cache.get(allKey)?.rows||null:null,restoreFilters,ensure,preload,snapshot,addOpening,prepare,reuse,rendered,refresh,reset,source,prioritize,revision:()=>generation+':'+(cache.get(allKey)?.revision||''),calculating:false};
