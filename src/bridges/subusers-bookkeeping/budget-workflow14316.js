@@ -202,7 +202,7 @@ function renderAllocation(){
  const host=fundPopup?.querySelector('#budgetFunds290');if(!host||!allocation)return;
  const d=allocation;
  const actions='<button type="button" data-activity="receipt">Amount received</button><button type="button" data-activity="conversion">Currency conversion</button><button type="button" data-activity="other">Other fund movements</button>';
- const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Category</th><th>Item / detail</th><th>Requested</th><th>Currency spent</th><th>Actual spending</th><th></th></tr></thead><tbody data-spending-rows></tbody></table></div><div class="worksheet-actions"><button type="button" data-add-spending>Add row</button><button type="button" data-activity="spend">Spending details</button></div>';
+ const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th>Status</th><th>Funded amount</th><th>Actual spending</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div><div class="worksheet-actions"><button type="button" data-add-spending>Add row</button><button type="button" data-activity="spend">Spending details</button></div>';
  const rowHeader=d.requestId14316?[report.period(d),d.recipient].filter(Boolean).map(esc).join(' · '):'';
  const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fields82 budget-header14316">'+(d.requestId14316?'':field82('Budget month','budgetMonth290',d.budgetMonth290||String(d.date).slice(0,7),'month','required'))+field82('Report date','date',d.date,'date','required')+field82('Receipt / journal reference (optional)','receiptReference290',d.receiptReference290||'')+field82('Recipient','recipient',d.recipient,'text','required')+field82('Purpose','purpose',d.purpose,'text','required')+field82('Notes','notes',d.notes)+'</div></form>';
  host.innerHTML='<header class="worksheet-header"><div><h3>'+esc(d.purpose||'Unlinked utilization report')+'</h3><span>'+rowHeader+'</span></div>'+button('Requests and saved reports','chooseRequest()')+'</header>'+
@@ -351,7 +351,7 @@ function validateAllocation(d,finalize){
  if(!validDate14317(d.date))throw Error('Enter a valid report date.');
  const currencies=new Set(CurrencyStore.currencies.map(c=>c.code));
  const positive=n=>Number.isFinite(Number(n))&&Number(n)>0&&Number.isSafeInteger(Math.round(Number(n)*100));
- if(!d.movements.length&&!d.conversions.length)throw Error('Record a receipt, movement or conversion first.');
+ if(!d.movements.length&&!d.conversions.length&&!(d.lines.length&&d.fundingByItem))throw Error('Record a funding decision, receipt, movement or conversion first.');
  const loans=new Map(d.movements.filter(m=>report.kind(m)==='borrow').map(m=>[m.id290,m]));
  for(const m of d.movements){
   const type=report.kind(m),incoming=type==='receipt'||type==='borrow';

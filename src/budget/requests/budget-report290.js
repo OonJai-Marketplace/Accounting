@@ -96,6 +96,15 @@ window.BudgetReport290 = (() => {
   return round(Number(loan.inflow)-(d.movements||[]).filter(m=>kind(m)==='repay'&&m.loanId290===loan.id290).reduce((sum,m)=>sum+Number(m.loanAmount290||m.outflow),0));
  }
  function forLine(m,line,index){return m.budgetKey117?m.budgetKey117===line.key117:!line.key117&&m.worksheetLine===index;}
+ const fundingLabels={approved:'Approved',declined:'Declined',deduction:'Deduction'};
+ // A utilization owns its decisions. Its linked request lines are an immutable snapshot.
+ const fundingKey=(line,index)=>line.key117?'item:'+line.key117:'row:'+index;
+ function lineFunding(d,line,index){
+  const saved=d.fundingByItem?.[fundingKey(line,index)];
+  const status=saved?.status||'approved';
+  const amount=status==='approved'?Number(line.amount):status==='declined'?0:saved.received;
+  return {status,amount};
+ }
  function summary(d){
   const totals=[...balances(d)],columns=totals.map(([c])=>c);
   const fields=[['requested','Requested'],['receipt','Funding received'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],['spend','Expenses paid'],['borrow','Temporary advances received'],['repay','Advances repaid'],['refund','Unused funding returned'],['remaining','Cash remaining']];
@@ -107,11 +116,13 @@ window.BudgetReport290 = (() => {
    const spent=amountList(amounts(used.map(m=>({amount:m.outflow,currency:m.currency}))));
    const complete=used.every(m=>m.currency===l.currency||Number(m.budgetAmount290)>0);
    const equivalent=used.reduce((n,m)=>n+Number(m.currency===l.currency?m.outflow:m.budgetAmount290||0),0);
-   return [esc(l.category),esc(l.description)+(used.some(m=>m.description290)?'<br><small>'+used.filter(m=>m.description290).map(m=>esc(m.description290)).join('; ')+'</small>':''),esc(l.currency+' '+money(l.amount)),esc(spent||'—'),complete?esc(l.currency+' '+money(l.amount-equivalent)):'Equivalent pending'];
+   const funding=lineFunding(d,l,d.lines.indexOf(l));
+   const limit=d.fundingByItem?funding.amount:l.amount;
+   return [esc(l.category),esc(l.description)+(used.some(m=>m.description290)?'<br><small>'+used.filter(m=>m.description290).map(m=>esc(m.description290)).join('; ')+'</small>':''),esc(l.currency+' '+money(l.amount)),...(d.fundingByItem?[fundingLabels[funding.status],esc(l.currency+' '+money(funding.amount))]:[]),esc(spent||'—'),complete?esc(l.currency+' '+money(limit-equivalent)):'Equivalent pending'];
   });
   const unassigned=d.movements.filter(m=>kind(m)==='spend'&&!d.lines.some((l,i)=>forLine(m,l,i)));
-  if(unassigned.length)uses.push(['Unassigned','—','—',esc(amountList(amounts(unassigned.map(m=>({currency:m.currency,amount:m.outflow}))))),'—']);
-  return section82('Funding by currency',cash)+debt+section82('Budget compared with actual spending',table82(['Category','Item','Requested','Actual spending','Budget remaining'],uses));
+  if(unassigned.length)uses.push(['Unassigned','—','—',...(d.fundingByItem?['—','—']:[]),esc(amountList(amounts(unassigned.map(m=>({currency:m.currency,amount:m.outflow}))))),'—']);
+  return section82('Funding by currency',cash)+debt+section82('Budget compared with actual spending',table82(['Category','Item','Requested',...(d.fundingByItem?['Status','Funded amount']:[]),'Actual spending',d.fundingByItem?'Funding remaining':'Budget remaining'],uses));
  }
  function movementRows(d){
   return d.movements.map(m=>{
@@ -130,5 +141,5 @@ window.BudgetReport290 = (() => {
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Receipt / journal reference: '+esc(d.receiptReference290):''].filter(Boolean).join(' · ');
   return '<h1 style="text-align:center">Internal Fund Utilization Report</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>Budget month: '+esc(period(d))+' · Report date: '+esc(formatAppDate(d.date))+(refs?'<br>'+refs:'')+'</p>'+summary(d)+section82('Receipts, spending and repayments',table82(['Date / activity','Source and destination','Budget item','Amount','Reference'],movements))+section82('Currency conversions',table82(['Date / reference','Source and destination','Exchanged','Received','Rate'],exchanges))+(d.notes?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
  }
- return {items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine};
+ return {items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();

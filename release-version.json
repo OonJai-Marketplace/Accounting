@@ -1,1 +1,1 @@
-{"version": "143.408", "changes": ["Receipt and voucher printing checks saved PDF copies together and prepares only missing pages.", "Saving a receipt reuses unchanged letterhead settings. Batch issuance returns only confirmed document IDs, numbers and versions."]}
+{"version": "143.409", "changes": ["Fund utilization now tracks Approved, Declined and Deduction for each requested item. Choose Deduction to enter the amount received.", "The worksheet fits narrower screens and shows funded amounts alongside actual spending in the utilization report."]}

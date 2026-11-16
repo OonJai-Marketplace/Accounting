@@ -5,19 +5,44 @@ window.BudgetSpendingWorksheet = (() => {
   const body = host.querySelector('[data-spending-rows]');
   const currencies = budget14313.currencyOptions(draft.lines);
   const rows = [];
-  function append(line, movement, first = true) {
+  const decisions = [];
+  function fundingCells(row,line,index) {
+   const {status,amount} = BudgetReport290.lineFunding(draft,line,index);
+   const name = esc(line.description);
+   const statusCell = row.insertCell(), fundedCell = row.insertCell();
+   statusCell.innerHTML = '<select data-plain14285 aria-label="Funding status for '+name+'">'+
+    Object.entries(BudgetReport290.fundingLabels).map(([value,label]) =>
+     '<option value="'+value+'">'+label+'</option>').join('')+'</select>';
+   fundedCell.innerHTML = '<span data-funded-value></span><div data-deduction><input type="number" name="receivedAmount" step="0.01" min="0" data-currency="'+esc(line.currency)+'" aria-label="Amount received for '+name+'" placeholder="Received"></div>';
+   const select = statusCell.querySelector('select'), deduction = fundedCell.querySelector('[data-deduction]');
+   const received = deduction.querySelector('input'), display = fundedCell.querySelector('[data-funded-value]');
+   select.value = status;
+   if (status === 'deduction') received.value = amount;
+   function update() {
+    const partial = select.value === 'deduction';
+    deduction.hidden = !partial; display.hidden = partial;
+    if (!partial) display.textContent = line.currency+' '+formatAppNumber(select.value === 'declined' ? 0 : line.amount);
+   }
+   select.onchange = update;
+   update();
+   decisions.push({line,index,select,received});
+  }
+  function append(line, movement, first = true, index = -1) {
    const row = body.insertRow();
    const currency = movement?.currency || line?.currency || currencies[0]?.[0];
    const linked = !!line;
    const cell = html => { row.insertCell().innerHTML = html; };
    const item = line?.description || movement?.description290 || '';
-   cell(linked ? esc(first ? line.category : '') : 'Additional');
-   cell(linked ? esc(item) + (movement?.description290 ? '<small>' + esc(movement.description290) + '</small>' : '') :
-    '<input name="description" aria-label="Additional spending detail" placeholder="Spending detail" value="' + esc(item) + '">');
-   cell(linked && first ? esc(line.currency + ' ' + formatAppNumber(line.amount)) : '—');
-   cell(linked || movement ? esc(currency) : '<select data-plain14285 aria-label="Spending currency">' + currencies.map(([c]) => '<option' + (c === currency ? ' selected' : '') + '>' + esc(c) + '</option>').join('') + '</select>');
+   cell(linked ? '<strong>'+esc(item)+'</strong>'+(first?'<small>'+esc(line.category)+'</small>':'')+
+    (movement?.description290?'<small>'+esc(movement.description290)+'</small>':'') :
+    '<small>Additional spending</small><input name="description" aria-label="Additional spending detail" placeholder="Spending detail" value="'+esc(item)+'">');
+   cell(linked && first ? esc(line.currency+' '+formatAppNumber(line.amount)) : '');
+   if (linked && first) fundingCells(row,line,index);
+   else { row.insertCell(); row.insertCell(); }
+   const currencyChoice = !linked && !movement ? '<select data-plain14285 data-spending-currency aria-label="Spending currency">'+currencies.map(([c]) =>
+    '<option'+(c===currency?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select>' : '';
    const cross = linked && currency !== line.currency;
-   cell('<input type="number" step="0.01" min="0" name="actualAmount" data-currency="' + esc(currency) + '" aria-label="Actual spending' + (item ? ' for ' + esc(item) : '') + '" value="' + esc(movement?.outflow ?? '') + '" placeholder="0.00"' + (cross ? ' readonly' : '') + '>');
+   cell(currencyChoice + (cross?'<small>'+esc(currency)+'</small>':'') + '<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?.outflow??'')+'" placeholder="0.00"'+(cross?' readonly':'')+'>');
    const action = row.insertCell();
    if (movement) {
     const details = document.createElement('button');
@@ -32,19 +57,20 @@ window.BudgetSpendingWorksheet = (() => {
     };
     action.append(remove);
    }
-   const amount = row.querySelector('[name=actualAmount]'), choice = row.querySelector('select');
+   const amount = row.querySelector('[name=actualAmount]'), choice = row.querySelector('[data-spending-currency]');
    if (choice) choice.onchange = () => { amount.dataset.currency = choice.value; window.financialNumbers14231?.scan(row); };
    const state = {line, movement, row, amount, choice, currency, amountEdited:false, detailEdited:false};
    amount.addEventListener('input', () => { state.amountEdited=true; });
    row.querySelector('[name=description]')?.addEventListener('input', () => { state.detailEdited=true; });
+   for (const td of row.cells) td.dataset.label = body.parentElement.tHead.rows[0].cells[td.cellIndex].textContent;
    rows.push(state);
    return row;
   }
   const spent = draft.movements.filter(m => BudgetReport290.kind(m) === 'spend');
   for (const [index,line] of draft.lines.entries()) {
    const matches = spent.filter(m => BudgetReport290.forLine(m, line, index));
-   if (matches.length) matches.forEach((m,i) => append(line,m,i===0));
-   else append(line,null);
+   if (matches.length) matches.forEach((m,i) => append(line,m,i===0,index));
+   else append(line,null,true,index);
   }
   for (const m of spent.filter(m => !draft.lines.some((line,i) => BudgetReport290.forLine(m,line,i)))) append(null,m);
   host.querySelector('[data-add-spending]').onclick = () => {
@@ -54,6 +80,17 @@ window.BudgetSpendingWorksheet = (() => {
    input.focus(); throw Error(message);
   }
   return function apply() {
+   const funding = {};
+   for (const {line,index,select,received} of decisions) {
+    const decision = {status:select.value};
+    if (decision.status === 'deduction') {
+     const n = received.valueAsNumber;
+     if (!Number.isFinite(n) || n < 0 || n > Number(line.amount) || !Number.isSafeInteger(Math.round(n*100)) || Math.abs(n*100-Math.round(n*100))>0.00001)
+      invalid(received,'Enter the amount received for '+line.description+' between 0 and '+line.currency+' '+formatAppNumber(line.amount)+', with up to two decimal places.');
+     decision.received = n;
+    }
+    funding[BudgetReport290.fundingKey(line,index)] = decision;
+   }
    const changes = [];
    for (const state of rows) {
     const {line,movement,row,amount,choice,currency} = state;
@@ -74,6 +111,7 @@ window.BudgetSpendingWorksheet = (() => {
     if (description) next.description290 = detail;
     changes.push({state,next});
    }
+   if (decisions.length) draft.fundingByItem = funding;
    for (const {state,next} of changes) {
     if (state.movement) draft.movements[draft.movements.indexOf(state.movement)] = next;
     else draft.movements.push(next);
@@ -189,6 +227,15 @@ window.BudgetReport290 = (() => {
   return round(Number(loan.inflow)-(d.movements||[]).filter(m=>kind(m)==='repay'&&m.loanId290===loan.id290).reduce((sum,m)=>sum+Number(m.loanAmount290||m.outflow),0));
  }
  function forLine(m,line,index){return m.budgetKey117?m.budgetKey117===line.key117:!line.key117&&m.worksheetLine===index;}
+ const fundingLabels={approved:'Approved',declined:'Declined',deduction:'Deduction'};
+ // A utilization owns its decisions. Its linked request lines are an immutable snapshot.
+ const fundingKey=(line,index)=>line.key117?'item:'+line.key117:'row:'+index;
+ function lineFunding(d,line,index){
+  const saved=d.fundingByItem?.[fundingKey(line,index)];
+  const status=saved?.status||'approved';
+  const amount=status==='approved'?Number(line.amount):status==='declined'?0:saved.received;
+  return {status,amount};
+ }
  function summary(d){
   const totals=[...balances(d)],columns=totals.map(([c])=>c);
   const fields=[['requested','Requested'],['receipt','Funding received'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],['spend','Expenses paid'],['borrow','Temporary advances received'],['repay','Advances repaid'],['refund','Unused funding returned'],['remaining','Cash remaining']];
@@ -200,11 +247,13 @@ window.BudgetReport290 = (() => {
    const spent=amountList(amounts(used.map(m=>({amount:m.outflow,currency:m.currency}))));
    const complete=used.every(m=>m.currency===l.currency||Number(m.budgetAmount290)>0);
    const equivalent=used.reduce((n,m)=>n+Number(m.currency===l.currency?m.outflow:m.budgetAmount290||0),0);
-   return [esc(l.category),esc(l.description)+(used.some(m=>m.description290)?'<br><small>'+used.filter(m=>m.description290).map(m=>esc(m.description290)).join('; ')+'</small>':''),esc(l.currency+' '+money(l.amount)),esc(spent||'—'),complete?esc(l.currency+' '+money(l.amount-equivalent)):'Equivalent pending'];
+   const funding=lineFunding(d,l,d.lines.indexOf(l));
+   const limit=d.fundingByItem?funding.amount:l.amount;
+   return [esc(l.category),esc(l.description)+(used.some(m=>m.description290)?'<br><small>'+used.filter(m=>m.description290).map(m=>esc(m.description290)).join('; ')+'</small>':''),esc(l.currency+' '+money(l.amount)),...(d.fundingByItem?[fundingLabels[funding.status],esc(l.currency+' '+money(funding.amount))]:[]),esc(spent||'—'),complete?esc(l.currency+' '+money(limit-equivalent)):'Equivalent pending'];
   });
   const unassigned=d.movements.filter(m=>kind(m)==='spend'&&!d.lines.some((l,i)=>forLine(m,l,i)));
-  if(unassigned.length)uses.push(['Unassigned','—','—',esc(amountList(amounts(unassigned.map(m=>({currency:m.currency,amount:m.outflow}))))),'—']);
-  return section82('Funding by currency',cash)+debt+section82('Budget compared with actual spending',table82(['Category','Item','Requested','Actual spending','Budget remaining'],uses));
+  if(unassigned.length)uses.push(['Unassigned','—','—',...(d.fundingByItem?['—','—']:[]),esc(amountList(amounts(unassigned.map(m=>({currency:m.currency,amount:m.outflow}))))),'—']);
+  return section82('Funding by currency',cash)+debt+section82('Budget compared with actual spending',table82(['Category','Item','Requested',...(d.fundingByItem?['Status','Funded amount']:[]),'Actual spending',d.fundingByItem?'Funding remaining':'Budget remaining'],uses));
  }
  function movementRows(d){
   return d.movements.map(m=>{
@@ -223,7 +272,7 @@ window.BudgetReport290 = (() => {
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Receipt / journal reference: '+esc(d.receiptReference290):''].filter(Boolean).join(' · ');
   return '<h1 style="text-align:center">Internal Fund Utilization Report</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>Budget month: '+esc(period(d))+' · Report date: '+esc(formatAppDate(d.date))+(refs?'<br>'+refs:'')+'</p>'+summary(d)+section82('Receipts, spending and repayments',table82(['Date / activity','Source and destination','Budget item','Amount','Reference'],movements))+section82('Currency conversions',table82(['Date / reference','Source and destination','Exchanged','Received','Rate'],exchanges))+(d.notes?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
  }
- return {items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine};
+ return {items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();
 /* Requests and received-fund finalization share the operational-report lifecycle. */
 (()=>{'use strict';
@@ -429,7 +478,7 @@ function renderAllocation(){
  const host=fundPopup?.querySelector('#budgetFunds290');if(!host||!allocation)return;
  const d=allocation;
  const actions='<button type="button" data-activity="receipt">Amount received</button><button type="button" data-activity="conversion">Currency conversion</button><button type="button" data-activity="other">Other fund movements</button>';
- const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Category</th><th>Item / detail</th><th>Requested</th><th>Currency spent</th><th>Actual spending</th><th></th></tr></thead><tbody data-spending-rows></tbody></table></div><div class="worksheet-actions"><button type="button" data-add-spending>Add row</button><button type="button" data-activity="spend">Spending details</button></div>';
+ const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th>Status</th><th>Funded amount</th><th>Actual spending</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div><div class="worksheet-actions"><button type="button" data-add-spending>Add row</button><button type="button" data-activity="spend">Spending details</button></div>';
  const rowHeader=d.requestId14316?[report.period(d),d.recipient].filter(Boolean).map(esc).join(' · '):'';
  const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fields82 budget-header14316">'+(d.requestId14316?'':field82('Budget month','budgetMonth290',d.budgetMonth290||String(d.date).slice(0,7),'month','required'))+field82('Report date','date',d.date,'date','required')+field82('Receipt / journal reference (optional)','receiptReference290',d.receiptReference290||'')+field82('Recipient','recipient',d.recipient,'text','required')+field82('Purpose','purpose',d.purpose,'text','required')+field82('Notes','notes',d.notes)+'</div></form>';
  host.innerHTML='<header class="worksheet-header"><div><h3>'+esc(d.purpose||'Unlinked utilization report')+'</h3><span>'+rowHeader+'</span></div>'+button('Requests and saved reports','chooseRequest()')+'</header>'+
@@ -578,7 +627,7 @@ function validateAllocation(d,finalize){
  if(!validDate14317(d.date))throw Error('Enter a valid report date.');
  const currencies=new Set(CurrencyStore.currencies.map(c=>c.code));
  const positive=n=>Number.isFinite(Number(n))&&Number(n)>0&&Number.isSafeInteger(Math.round(Number(n)*100));
- if(!d.movements.length&&!d.conversions.length)throw Error('Record a receipt, movement or conversion first.');
+ if(!d.movements.length&&!d.conversions.length&&!(d.lines.length&&d.fundingByItem))throw Error('Record a funding decision, receipt, movement or conversion first.');
  const loans=new Map(d.movements.filter(m=>report.kind(m)==='borrow').map(m=>[m.id290,m]));
  for(const m of d.movements){
   const type=report.kind(m),incoming=type==='receipt'||type==='borrow';
