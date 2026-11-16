@@ -66,3 +66,28 @@ body .budget-request327 [data-pane=details]{grid-template-columns:minmax(0,.8fr)
 .budget-request327 [data-category-form]{padding:12px 0}
 .budget-request327 [data-pane=messages] textarea,.budget-copy327 textarea{width:100%;box-sizing:border-box;background:white;resize:vertical}
 .budget-request327 [data-pane=messages] [role=status],.budget-copy327 [role=status]{margin-left:8px}
+
+body .budget-request327 .budget-dialog14313{height:min(660px,calc(100vh - 36px));height:min(660px,calc(100dvh - 36px));box-sizing:border-box}
+.budget-request327 .ui-body108{flex:1}
+#bookHistoryReturn{margin:4px 0 12px}
+.worksheet-header,.worksheet-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.worksheet-header{justify-content:space-between;margin-bottom:14px}
+.worksheet-header span,.spending-worksheet small{display:block;color:#50655c}
+.worksheet-actions{margin:10px 0}
+footer.worksheet-actions{justify-content:flex-end}
+.worksheet-actions button,.worksheet-header button,.spending-worksheet button,.fund-activity button{min-height:32px}
+footer.worksheet-actions button:last-child,.fund-activity button[type=submit]{background:#145c4a;color:white}
+.spending-worksheet td{vertical-align:middle}
+.spending-worksheet th{background:#e7efe9}
+.spending-worksheet td:nth-child(3){text-align:right;white-space:nowrap}
+.spending-worksheet td:nth-child(5){min-width:100px}
+.spending-worksheet input,.spending-worksheet select{width:100%;box-sizing:border-box}
+.spending-worksheet .money-field14231{min-width:84px;max-width:180px}
+.spending-worksheet td:last-child:empty{width:0}
+.worksheet-details{border-top:1px solid #cad8d2;padding:8px 0}
+.worksheet-details summary{cursor:pointer;font-weight:600}
+.worksheet-details[open]>summary{margin-bottom:8px}
+body .fund-activity .budget-dialog14313{width:min(880px,calc(100vw - 36px))!important}
+body .fund-activity form.finance-controls117{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));align-items:end;gap:12px;padding-bottom:14px}
+.fund-activity [hidden]{display:none!important}
+.fund-activity .data-table82{overflow-x:auto}

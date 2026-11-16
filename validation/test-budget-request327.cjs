@@ -39,7 +39,7 @@ const create=require('./phase0-browser-fixture.cjs');
   await login();await page.waitForFunction(()=>startup14257.interactive);
   await page.evaluate(()=>switchTab('transactions-budget14313'));
   const main=page.locator('#transactions-budget14313'),actions=main.locator('.work82>header .actions82 button');
-  assert.deepEqual((await actions.allTextContents()).map(t=>t.trim()),['Fund utilization','New Report','Print / PDF']);
+  assert.deepEqual((await actions.allTextContents()).map(t=>t.trim()),['Fund utilization','New Report','Print / PDF','History']);
   assert.equal(await main.locator('form').count(),0);
   await main.getByRole('button',{name:'New Report',exact:true}).click();
   const editor=page.locator('.budget-request327'),details=editor.locator('[data-pane=details]'),form=editor.locator('[data-item-form]');
