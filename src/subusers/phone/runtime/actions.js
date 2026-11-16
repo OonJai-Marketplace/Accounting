@@ -13,8 +13,16 @@
     if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
     if(name==='reopen-correction'){const j=headers().filter(j=>cashierMonthAllows(j.period_start)&&j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
-    if(name==='switch-method'&&!changeMode243(S.draft.mode==='single'?'double':'single'))return;
+    if(name==='switch-method'){
+      readPhoneForm();
+      if(!changeMode243(S.draft.mode==='single'?'double':'single'))return;
+    }
     const d=S.draft, single=d.mode==='single', rows=single?d.single:d.lines;
+    if(name==='split-receipt'||name==='remove-part'){
+      readPhoneForm();
+      if (name==='split-receipt') addReceiptPart(d,index);
+      else removeReceiptPart(d,index);
+    }
     if(name==='entry-date'||name==='line-date'){
       const perLine=name==='line-date';
       const chosen=await chooseReceiptDate(perLine?cardDate(d,rows[index]):d.date,d.multiple);
@@ -22,17 +30,22 @@
       if(chosen.multiple!==d.multiple){
         identifyReceipts(d);
         d.multiple=chosen.multiple;d.date=chosen.date;
-        for(const row of rows){
+        const datedRows = rows.flatMap(row=>row.journalLines || [row]);
+        if (single && rows.some(row=>row.split)) datedRows.push(...d.lines);
+        for(const row of datedRows){
           if(d.multiple)row.date=d.date;
           else {delete row.date;if(row.reference===d.reference)delete row.reference;}
         }
-      }else if(perLine)rows[index].date=chosen.date;
+      }else if(perLine){
+        const parent=rows[index];
+        for(const row of rows)if(row===parent || parent.splitGroup && row.splitGroup===parent.splitGroup)row.date=chosen.date;
+      }
       else d.date=chosen.date;
     }
     if(name==='direction-out'||name==='direction-in'){
       const direction=name.slice(10);
       if(!single||!rules().directions.includes(direction))return;
-      for(const row of rows)row.direction=direction;
+      for(const row of rows)if(!row.journalLines)row.direction=direction;
     }
     if(name==='combine-payment'){
       const payment=combinedPayment(d,receiptCards(d));

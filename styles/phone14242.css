@@ -323,3 +323,11 @@ label.no-print{font-size:11px;color:#627880;font-weight:400;margin:8px 0}#month{
 #postForm .phone-amount input.composing-amount{color:transparent!important;-webkit-text-fill-color:transparent;caret-color:transparent}
 .phone-amount-display{position:absolute;inset:0;display:flex;align-items:center;overflow:hidden;white-space:pre;pointer-events:none;font-size:14px;font-weight:400;color:#102d38}
 .phone-amount-display i{flex:none;height:1em;border-left:1px solid}
+
+.receipt-card .split-line-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:3px 0}
+.receipt-card .split-line-heading label{font-size:13px;font-weight:600}
+.receipt-card [data-action=split-receipt] svg{vertical-align:middle}
+.receipt-card .split-receipt{border-inline-start:3px solid #34715a;padding-inline-start:9px;margin:8px 0}
+.receipt-card .split-receipt>header small{color:#395f4d}
+.receipt-card .split-receipt .split-line-heading strong{color:#154c3b}
+.entry-body .split-receipt-part{border-inline-start:3px solid #34715a;padding-inline-start:8px;margin:0;padding-block:3px}

@@ -12,6 +12,20 @@
     const owner=S.owner,epoch=S.epoch;let savedOnDevice=false;S.saving=true;
     for(const input of $('postForm')?.querySelectorAll('input,select,textarea,button')||[])input.disabled=true;
     try{
+      // The staff save RPC retains existing edit IDs and assigns new client
+      // keys using their one-based position in this full save request.
+      let offset=0;
+      for(const card of prepared.snapshot.receiptCards341 || [prepared.snapshot]){
+        if(card.splitParts){
+          card.splitByLine={};
+          for(const [index,part] of Object.entries(card.splitParts)){
+            const position=offset+Number(index);
+            card.splitByLine[draft.editIds?.[position] || draft.requestKey+':'+(position+1)]=part;
+          }
+          delete card.splitParts;
+        }
+        offset+=card.components1437.length;
+      }
       prepared.snapshot.correction_journal14347=draft.correction_journal14347||null;
       const item={owner,key:draft.requestKey,draft,params:{p_owner:owner,p_key:draft.requestKey,p_items:prepared.items,p_snapshot:prepared.snapshot,p_edit_ids:draft.editIds||[]},status:'pending',createdAt:Date.now()};
       clearTimeout(draftTimer);saveMirror();

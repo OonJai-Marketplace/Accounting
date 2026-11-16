@@ -3,7 +3,9 @@
     const visible=S.printing14294?monthHeaders():S.page==='entries'?headers().filter(editable14348):monthHeaders().filter(j=>!['draft','returned'].includes(j.status)||!cashierMonthAllows(j.period_start));
     const batches=new Map(visible.map(j=>[j.id,j])),groups=new Map();
     const rows=S.page==='entries'?Object.values(S.data.months||{}).flatMap(m=>m.lines||[]):lines();
-    for(const l of rows.filter(l=>batches.has(l.staff_journal_id)&&!l.voided_at&&l.status!=='voided')){const groupKey=l.staff_journal_id+':'+(rules().entryMode==='cashbook'&&S.page==='entries'?l.id:l.editor_group1437||l.id);if(!groups.has(groupKey))groups.set(groupKey,{batch:batches.get(l.staff_journal_id),lines:[]});groups.get(groupKey).lines.push(l);}
+    for(const l of rows.filter(l=>batches.has(l.staff_journal_id)&&!l.voided_at&&l.status!=='voided')){const snapshot=l.editor_snapshot1437;
+      const splitSlip=snapshot?.splitByLine && snapshot.components1437?.every(item=>item.fund===l.fund_account_id);
+      const groupKey=l.staff_journal_id+':'+(rules().entryMode==='cashbook'&&S.page==='entries'&&!splitSlip?l.id:l.editor_group1437||l.id);if(!groups.has(groupKey))groups.set(groupKey,{batch:batches.get(l.staff_journal_id),lines:[]});groups.get(groupKey).lines.push(l);}
     if(rules().entryMode==='cashbook'&&S.page==='entries'){const ids=rules().fundIds;if(!ids.includes(S.cashbookFund240))S.cashbookFund240=ids[0]||'';return [...groups.values()].filter(g=>g.lines.some(l=>l.fund_account_id===S.cashbookFund240||l.account_id===S.cashbookFund240)).sort((a,b)=>String(a.batch.period_start).localeCompare(String(b.batch.period_start))||Number(a.lines[0].line_no)-Number(b.lines[0].line_no));}
     return [...groups.values()].sort((a,b)=>Number(b.batch.status==='returned')-Number(a.batch.status==='returned')||String(b.lines[0].transaction_date).localeCompare(String(a.lines[0].transaction_date)));
   }

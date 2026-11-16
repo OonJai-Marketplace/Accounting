@@ -98,9 +98,9 @@ async function bulk(fixture) {
   assert.equal(await page.locator('[data-action=line-date]').count(),0);
   await pick(mainDate,'2026-11-03');
   await setMultiple();
-  await button('+ Add line').click();
+  await button('+ Add receipt').click();
   await pick(lineDate(1),'2026-12-02');
-  await button('+ Add line').click();
+  await button('+ Add receipt').click();
   assert.deepEqual(await receiptDates(),['2026-11-03','2026-12-02','2026-12-02']);
   await lineDate(1).click();await dateMode().uncheck();await mainDate.waitFor();
   assert.equal(await mainDate.getAttribute('data-value'),'2026-12-02');
