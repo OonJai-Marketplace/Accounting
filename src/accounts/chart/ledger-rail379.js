@@ -16,37 +16,46 @@ window.RailTools379=(()=>{
   if(!win.revision14341||yearWindow14333.loading)throw Error('The device journal is incomplete. Reconnect to read this ledger.');
   return {win,rows:JournalModule.entries.filter(l=>l.accountId===a.id&&!l.voided_at&&(!l.status||l.status==='posted'))};
  }
- function journalRows(lines,month){
-  const isOpening=l=>l.annualOpening||/^Annual opening balances |^Opening Balances$/.test(l.generalMemo||'');
-  const chronological=[...lines].sort((a,b)=>a.date.localeCompare(b.date)||Number(!!isOpening(b))-Number(!!isOpening(a)));
-  let balance=0,start=0,dr=0,cr=0,lastOpeningYear='';
-  const detail=[];
+ function journalRows(lines,month,initial=0){
+  const opening=l=>l.annualOpening||/^Annual opening balances |^Opening Balances$/.test(l.generalMemo||'');
+  const chronological=[...lines].sort((a,b)=>a.date.localeCompare(b.date)||Number(!!opening(b))-Number(!!opening(a)));
+  let balance=initial,start=initial,dr=0,cr=0,year='';
+  const detail=[],firstYear=month?.slice(0,4)||chronological[0]?.date.slice(0,4);
   for(const l of chronological){
-   const year=l.date.slice(0,4),period=l.date.slice(0,7);
+   const book=l.date.slice(0,4),period=l.date.slice(0,7);
    if(month&&period>month)break;
-   const debit=cents69(l.debit),credit=cents69(l.credit),opening=isOpening(l);
-   if(opening&&lastOpeningYear!==year){balance=0;lastOpeningYear=year;}
+   if(month&&book!==firstYear)continue;
+   if(year&&book!==year)balance=0;
+   year=book;
+   const debit=cents69(l.debit),credit=cents69(l.credit),isOpening=opening(l);
    balance+=debit-credit;
-   if(month&&period<month){start=balance;continue;}
-   if(opening){
-    if(month||year===chronological[0].date.slice(0,4))start=balance-dr+cr;
-    if(month)continue;
-   }else{dr+=debit;cr+=credit;}
-   detail.push({l,debit,credit,balance});
+   if(month&&period<month){start=balance;continue}
+   if(isOpening){if(book===firstYear)start+=debit-credit}
+   else{dr+=debit;cr+=credit}
+   detail.push({l,debit,credit,balance,isOpening});
   }
   return {detail,start,dr,cr,balance};
  }
+ const ledgerHeadings=['Date','Entry ID','Description','Debit','Credit','Running balance'];
+ function ledgerCells({l,debit,credit,balance,isOpening}){
+  const memo=l.memo||l.generalMemo||(isOpening?'Opening balance':'');
+  return [formatAppDate(l.date),l.id,memo,amt(debit),amt(credit),signed(balance)];
+ }
+ function ledgerSummary(r){
+  return [['Opening balance',signed(r.start)],['Total debit',amt(r.dr)],['Total credit',amt(r.cr)],['Closing balance',signed(r.balance)]];
+ }
  function ledger(panel,scope){
   const header=panel.previousElementSibling,close=header.querySelector('.close');
-  close.insertAdjacentHTML('beforebegin','<div class="ledger-search379"><span role="searchbox" contenteditable="plaintext-only" aria-label="Search accounts" aria-placeholder="Search accounts" spellcheck="false" data-placeholder="Search accounts"></span><div class="ledger-matches379" hidden></div></div><select aria-label="Ledger month"></select><button type="button" data-refresh>Refresh</button>');
+  close.insertAdjacentHTML('beforebegin','<div class="ledger-search379"><span role="searchbox" contenteditable="plaintext-only" aria-label="Search accounts" aria-placeholder="Search accounts" spellcheck="false" data-placeholder="Search accounts"></span><div class="ledger-matches379" hidden></div></div><select aria-label="Ledger month"></select><button type="button" data-refresh>Refresh</button><button type="button" data-editor>Open in editor</button>');
   panel.innerHTML='<div class="ledger-tabs379" role="group" aria-label="Open ledgers"></div><section class="ledger-detail379" aria-live="polite"></section>';
   const input=header.querySelector('[role=searchbox]'),matches=header.querySelector('.ledger-matches379'),picker=header.querySelector('select'),refresh=header.querySelector('[data-refresh]');
+  const editor=header.querySelector('[data-editor]');
   const tabs=panel.querySelector('.ledger-tabs379'),detail=panel.querySelector('section');
   const accounts=AccountingStore.accounts.filter(a=>a.id&&a.isPosting!==false&&a.is_posting!==false).sort((a,b)=>String(a.code).localeCompare(String(b.code),undefined,{numeric:true}));
   const key='ledger-tabs381:'+String(window.OJM_SUPABASE_URL||location.origin)+':'+liveProfile.id;
   const views=[],request=scope.begin(),today=appLocalDate().slice(0,7);
   let active;
-  function newView(account,month=today){return {account,month,page:0,selectedRow:null,lines:null,revision:0};}
+  function newView(account,month=''){return {account,month,page:0,selectedRow:null,lines:null,revision:0};}
   try{
    const saved=JSON.parse(localStorage.getItem(key)||'{}');
    for(const item of (Array.isArray(saved.tabs)?saved.tabs:[]).slice(0,10)){
@@ -116,7 +125,38 @@ window.RailTools379=(()=>{
    }catch(e){if(current())view.error=e.message||'Could not load the ledger.';}
    finally{if(current()){view.busy=false;if(active===view)draw();}}
   }
+  function amounts(view){
+   const opening=view.coverage?.opening?.find(b=>String(b.accountId)===String(view.account.id)&&b.currency===view.account.currency);
+   const useOpening=opening&&(!view.month||view.month.slice(0,4)===view.coverage.from.slice(0,4));
+   return journalRows(view.lines,view.month,useOpening?cents69(opening.balance):0);
+  }
+  function periodLabel(view){
+   if(view.month)return summaryPeriod14331.monthLabel(view.month);
+   if(view.coverage)return formatAppDate(view.coverage.from)+' – '+formatAppDate(view.coverage.to);
+   if(!view.lines.length)return 'All months';
+   const days=view.lines.map(l=>l.date).sort();
+   return formatAppDate(days[0])+' – '+formatAppDate(days.at(-1));
+  }
+  editor.onclick=async()=>{
+   if(!scope.current(request)||!active?.lines||active.busy||active.error)return;
+   if(!access113.can('report-gl','export')||!access113.can('report-gl','view'))return showCenterStatus('Ledger view and export access are required.',true);
+   const view=active,r=amounts(view),summary=ledgerSummary(r);
+   const name=view.account.code+' · '+view.account.name+' ('+view.account.currency+')',period=periodLabel(view);
+   const title='Account ledger · '+name+' · '+period;
+   const html='<h1>Account ledger</h1><h2>'+esc(name)+'</h2><p>'+esc(period+' · '+view.source)+'</p>'+
+    reports14254.table(summary.map(pair=>pair[0]),[summary.map(pair=>pair[1])],[25,25,25,25],{numeric:[0,1,2,3]})+
+    reports14254.table(ledgerHeadings,r.detail.map(ledgerCells),[13,16,29,13,13,16],{numeric:[3,4,5]})+
+    (r.detail.length?'':'<p>No postings in this period.</p>')+
+    (r.detail.some(row=>row.isOpening)?'<p>Annual opening entries establish the opening balance and are excluded from debit and credit turnover.</p>':'')+
+    printSignatures1424({enabled:true,prepared:liveProfile.full_name||liveProfile.email,receiver:'',approver:''});
+   const actor=liveProfile.id,client=ojmDb;
+   panel.closest('dialog').close();
+   try{
+    await openDocumentEditor105({title,category:'Reports',source:'report-gl',printPreview:true,approvedLayout14254:true,settings:reports14254.settings(),html});
+   }catch(e){if(liveProfile?.id===actor&&ojmDb===client)showCenterStatus(e.message||'The ledger could not open in the editor.',true)}
+  };
   function draw(){
+   editor.disabled=!active?.lines||active.busy||!!active.error||!access113.can('report-gl','export');
    picker.disabled=!active||!active.lines||active.busy;refresh.disabled=!views.length;
    if(!active||active.busy||active.error||!active.lines){
     picker.innerHTML=option(active?.month||'',active?.month?summaryPeriod14331.monthLabel(active.month):'All months');
@@ -132,10 +172,15 @@ window.RailTools379=(()=>{
     const [year,number]=m.split('-').map(Number);
     m=number===1?(year-1)+'-12':year+'-'+String(number-1).padStart(2,'0');
    }
-   const r=journalRows(lines,month),pages=entryPageRanges14340(r.detail,row=>row.l.dbEntryId||row.l.id);
+   const r=amounts(active),pages=entryPageRanges14340(r.detail,row=>row.l.dbEntryId||row.l.id);
    const page=active.page=Math.min(active.page,pages.length-1),[start,end]=pages[page],data=r.detail.slice(start,end);
    picker.innerHTML=option('',coverage?'All downloaded months':'All months')+months.map(m=>option(m,summaryPeriod14331.monthLabel(m))).join('');picker.value=month;
-   detail.innerHTML='<h3>'+esc(selected.code+' · '+selected.name+' ('+selected.currency+')')+'</h3><div class="ledger-stats379">'+[['Opening',signed(r.start)],['Total debit',amt(r.dr)],['Total credit',amt(r.cr)],['Closing balance',signed(r.balance)]].map(([k,v])=>'<div><small>'+k+'</small><strong>'+esc(v)+'</strong></div>').join('')+'</div><p>'+esc(source)+(month?'':' · Annual opening entries establish each year’s balance and are excluded from turnover.')+'</p><div class="watch-scroll"><table class="ledger-lines379"><thead><tr><th>Date</th><th>Entry ID</th><th>Description</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>'+data.map(({l,debit,credit,balance},i)=>'<tr tabindex="0" data-line="'+(start+i)+'" class="'+(active.selectedRow===start+i?'selected':'')+'">'+[formatAppDate(l.date),l.id,l.memo||l.generalMemo,amt(debit),amt(credit),signed(balance)].map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('')+(data.length?'':'<tr><td colspan="6">No activity in this period.</td></tr>')+'</tbody></table></div>'+(pages.length>1?'<footer class="ledger-page-controls" aria-label="Ledger pagination"><button data-prev>Previous</button><span>'+String(start+1)+'–'+end+' of '+r.detail.length+'</span><button data-next>Next</button></footer>':'');
+   const summary='<div class="ledger-stats379">'+ledgerSummary(r).map(([k,v])=>'<div><small>'+esc(k)+'</small><strong>'+esc(v)+'</strong></div>').join('')+'</div>';
+   const rows=data.map((row,i)=>'<tr tabindex="0" data-line="'+(start+i)+'" class="'+(active.selectedRow===start+i?'selected':'')+'">'+ledgerCells(row).map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('');
+   const paging=pages.length>1?'<footer class="ledger-page-controls" aria-label="Ledger pagination"><button data-prev>Previous</button><span>'+String(start+1)+'–'+end+' of '+r.detail.length+'</span><button data-next>Next</button></footer>':'';
+   detail.innerHTML='<h3>'+esc(selected.code+' · '+selected.name+' ('+selected.currency+')')+'</h3>'+
+    '<div class="watch-scroll"><table class="ledger-lines379"><thead><tr>'+ledgerHeadings.map(v=>'<th>'+esc(v)+'</th>').join('')+'</tr></thead><tbody>'+(rows||'<tr><td colspan="6">No postings in this period.</td></tr>')+'</tbody></table></div>'+
+    paging+summary+'<p>'+esc(source)+(r.detail.some(row=>row.isOpening)?' · Annual opening entries are excluded from turnover.':'')+'</p>';
    const highlight=e=>{const row=e.target.closest('[data-line]');if(!row)return;
     detail.querySelector('tr.selected')?.classList.remove('selected');row.classList.add('selected');active.selectedRow=Number(row.dataset.line);};
    detail.onclick=highlight;detail.onkeydown=e=>{if(e.target.matches('[data-line]')&&['Enter',' '].includes(e.key)){e.preventDefault();highlight(e);}};
@@ -191,14 +236,20 @@ window.RailTools379=(()=>{
    if(!id||window.workspaceRequest138?.target)return;
    close();
    if(kind==='calendar'){void hrCalendar14306.openRail();return;}
-   if(!canAccessAppTarget(kind==='ledger'?'report-open-gl':'report-reconciliation'))return showCenterStatus('Access to this report is required.',true);
+   const target={ledger:'report-open-gl','trial-months':'report-tb',differences:'report-reconciliation'}[kind];
+   if(!target||!canAccessAppTarget(target))return showCenterStatus('Access to this report is required.',true);
    const box=document.createElement('dialog'),name=button.getAttribute('aria-label'),state={dialog:box};active=state;
    box.className='watch-dialog';box.setAttribute('aria-label',name);box.innerHTML='<header><h2>'+esc(name)+'</h2><button class="close" aria-label="Close" type="button">×</button></header><div class="watch-body"></div>';
-   root.append(box);box.showModal();box.querySelector('.close').onclick=()=>box.close();outside(box,()=>box.close());
+   if(kind==='trial-months'){
+    box.className='monthly-trial-dialog';
+    document.body.append(box);
+   }else root.append(box);
+   box.showModal();box.querySelector('.close').onclick=()=>box.close();outside(box,()=>box.close());
    box.addEventListener('close',()=>{state.request?.abort();box.remove();if(active===state){active=null;button.focus();}},{once:true});
    const scope={begin(){state.request?.abort();return state.request=new AbortController();},current(q){return active===state&&q===state.request&&box.open&&id===session()&&client===ojmDb&&!window.workspaceRequest138?.target;},
     async rpc(name,args,q){const result=await client.schema('public').rpc(name,args).abortSignal(q.signal);if(result.error)throw result.error;return result.data;}};
-   (kind==='ledger'?ledger:differences)(box.querySelector('.watch-body'),scope);
+   const show={ledger,differences,'trial-months':openMonthlyTrialBalance}[kind];
+   show(box.querySelector('.watch-body'),scope);
   };
   return close;
  }

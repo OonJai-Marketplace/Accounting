@@ -1,0 +1,160 @@
+// The rail and report filter share display preferences within the signed-in company account.
+function monthlyTrialPreferenceKey(){
+ return 'monthly-trial:'+JSON.stringify([window.OJM_SUPABASE_URL||location.origin,liveProfile.id,window.workspaceRequest138?.target||'']);
+}
+function monthlyTrialPreferences(){
+ let saved;
+ try{saved=JSON.parse(localStorage.getItem(monthlyTrialPreferenceKey()))}catch{}
+ return {columns:saved?.columns==='balance'?'balance':'full',accounts:Array.isArray(saved?.accounts)?saved.accounts:null};
+}
+function saveMonthlyTrialPreferences(prefs){
+ try{localStorage.setItem(monthlyTrialPreferenceKey(),JSON.stringify(prefs))}catch{showCenterStatus('Could not save the comparison settings on this device.',true)}
+}
+function monthlyTrialColumnControl(value){
+ return '<label>Columns<select data-plain14285 name="trialColumns"><option value="full">Debit, Credit, Balance</option><option value="balance"'+(value==='balance'?' selected':'')+'>Balance only</option></select></label>';
+}
+function monthlyTrialChoices(entries){
+ const choices=new Map(),byId=new Map(),byCode=new Map(),byName=new Map();
+ function add(a,currency){
+  const key=accountKey69(a,currency);
+  if(!choices.has(key))choices.set(key,{key,account:a,currency});
+ }
+ for(const a of AccountingStore.accounts){
+  byId.set(String(a.id),a);byCode.set(String(a.code),a);byName.set(a.name+'|'+a.currency,a);
+  if(a.isPosting!==false&&a.is_posting!==false&&!['NA','__PARENT__'].includes(a.currency))add(a,a.currency);
+ }
+ for(const l of entries){
+  const a=byId.get(String(l.accountId))||byCode.get(String(l.accountCode))||byName.get(l.account+'|'+l.currency)||{name:l.account,code:l.accountCode||'Unmapped',currency:l.currency};
+  add(a,l.currency);
+ }
+ return [...choices.values()].sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
+}
+// A null selection tracks all posting accounts, including accounts added later.
+function monthlyTrialAccountPicker(host,choices,selected,onChange){
+ const picked=new Set(selected||choices.map(r=>r.key));
+ host.innerHTML='<details class="trial-account-picker"><summary>Edit accounts</summary><div><input type="search" aria-label="Find accounts" placeholder="Find account"><label><input type="checkbox" data-all-accounts> All accounts</label><div class="trial-account-list">'+choices.map(r=>'<label><input type="checkbox" value="'+re79(r.key)+'" '+(picked.has(r.key)?'checked':'')+'> '+re79(r.account.code+' · '+r.account.name+' · '+r.currency)+'</label>').join('')+'</div></div></details>';
+ const all=host.querySelector('[data-all-accounts]'),items=[...host.querySelectorAll('.trial-account-list input')];
+ const read=()=>items.every(b=>b.checked)?null:items.filter(b=>b.checked).map(b=>b.value);
+ function sync(){const count=items.filter(b=>b.checked).length;all.checked=count===items.length;all.indeterminate=count>0&&!all.checked}
+ host.onchange=e=>{if(e.target===all)for(const b of items)b.checked=all.checked;sync();onChange?.(read())};
+ host.querySelector('[type=search]').oninput=e=>{const term=e.target.value.trim().toLowerCase();for(const b of items)b.parentElement.hidden=!b.parentElement.textContent.toLowerCase().includes(term)};
+ sync();return read;
+}
+
+// Group lines once. Prior activity establishes the first month's opening. A new book uses its own saved opening.
+function monthlyTrialModel(entries,months,options){
+ const {basis,currency,accounts,columns,from,to,direction}=options,selected=accounts&&new Set(accounts);
+ const first=months[0],last=months.at(-1),yearStart=first.slice(0,4)+'-01',buckets=new Map(),records=new Map();
+ for(const line of entries){
+  const month=String(line.date||'').slice(0,7);
+  if(month<yearStart||month>last)continue;
+  const key=month<first?first:month;
+  if(!buckets.has(key))buckets.set(key,[]);
+  buckets.get(key).push(line);
+ }
+ const carry=new Map(),incomplete=new Set(),base=basis==='LAK';
+ for(const [index,month] of months.entries()){
+  if(month.endsWith('-01')){carry.clear();incomplete.clear()}
+  const start=index===0&&from?from:month+'-01',end=month===last&&to?to:summaryPeriod14331.end(month);
+  for(const row of accountDataForPeriod69(buckets.get(month)||[],start,end,false)){
+   const {account,key}=row;
+   if(currency&&currency!==row.currency||selected&&!selected.has(key))continue;
+   if((account.isPosting===false||account.is_posting===false||['NA','__PARENT__'].includes(row.currency))&&!(row.opening||row.debit||row.credit))continue;
+   if(!records.has(key))records.set(key,{account,currency:row.currency,months:[]});
+   carry.set(key,(carry.get(key)||0)+(base?row.baseClosing:row.closing));
+   if(base&&row.missingRates)incomplete.add(key);
+   records.get(key).months[index]={debit:base?row.baseDebit:row.debit,credit:base?row.baseCredit:row.credit,
+    balance:carry.get(key),missingTurnover:base&&row.missingRates>0,missingBalance:incomplete.has(key)};
+  }
+  for(const [key,record] of records){
+   if(!record.months[index])record.months[index]={debit:0,credit:0,balance:carry.get(key)||0,missingBalance:incomplete.has(key)};
+  }
+ }
+ const ordered=[...records.values()].sort((a,b)=>(direction==='desc'?-1:1)*String(a.account.code||'').localeCompare(String(b.account.code||''),undefined,{numeric:true}));
+ const subheads=columns==='balance'?['Balance']:['Debit','Credit','Balance'],totals=new Map();
+ function cells(t){
+  const balance=t.missingBalance?'Rate missing':money69(t.balance);
+  return columns==='balance'?[balance]:[t.missingTurnover?'Rate missing':money69(t.debit),t.missingTurnover?'Rate missing':money69(t.credit),balance];
+ }
+ const empty=()=>({debit:0,credit:0,balance:0});
+ const values=ordered.map(row=>{
+  const unit=base?'LAK':row.currency;
+  if(!totals.has(unit))totals.set(unit,months.map(empty));
+  const amounts=months.flatMap((_,i)=>{
+   const t=row.months[i]||empty(),sum=totals.get(unit)[i];
+   sum.debit+=t.debit;sum.credit+=t.credit;sum.balance+=t.balance;
+   sum.missingTurnover||=t.missingTurnover;sum.missingBalance||=t.missingBalance;
+   return cells(t);
+  });
+  return [row.account.code+' · '+row.account.name+' · '+row.currency,...amounts];
+ });
+ const totalRows=[...totals].map(([unit,list])=>[(selected?'Selected total':'Total')+' · '+unit,...list.flatMap(cells)]);
+ return {monthlyTrial:true,months,subheads,headers:['Accounts',...months.flatMap(m=>subheads.map(h=>summaryPeriod14331.monthLabel(m)+' '+h))],
+  values:values.concat(totalRows),totalCount:totalRows.length,currency:base?'LAK equivalent':'Original currencies',metrics:[],note:''};
+}
+
+function monthlyTrialReportModel(){
+ const s=Reports79,months=summaryPeriod14331.monthRange([s.from.slice(0,7),s.to.slice(0,7)]);
+ const entries=reportWindow143195.cachedLedger();
+ if(!entries)throw Error('The posted journal for this comparison has not finished loading.');
+ return monthlyTrialModel(entries,months,{...monthlyTrialPreferences(),from:s.from,to:s.to,currency:s.currency,basis:s.basis,direction:reportSort143153('tb').direction});
+}
+function monthlyTrialTable(model,print=false){
+ const {months,subheads,values,totalCount}=model,width=subheads.length,span=print?(width===1?5:2):months.length,tables=[];
+ if(!values.length)return '<p class="r79-note">No accounts match this selection.</p>';
+ for(let first=0;first<months.length;first+=span){
+  const part=months.slice(first,first+span),labels=part.map(m=>'<th colspan="'+width+'" scope="colgroup"><span>'+re79(summaryPeriod14331.monthLabel(m))+'</span></th>').join('');
+  const headers=part.map(()=>subheads.map((h,j)=>'<th scope="col"'+(j===0?' class="month-start"':'')+'>'+h+'</th>').join('')).join('');
+  const rowHTML=row=>'<tr><th scope="row" title="'+re79(row[0])+'">'+re79(row[0])+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td'+(j%width===0?' class="month-start"':'')+'>'+re79(value)+'</td>').join('')+'</tr>';
+  const split=values.length-totalCount;
+  tables.push('<table class="monthly-trial-table" aria-label="Monthly comparative trial balance" data-own-pager14383="1"><thead><tr><th scope="col" rowspan="2">Accounts</th>'+labels+'</tr><tr>'+headers+'</tr></thead><tbody>'+values.slice(0,split).map(rowHTML).join('')+'</tbody><tfoot>'+values.slice(split).map(rowHTML).join('')+'</tfoot></table>');
+ }
+ return print?tables.join(''):'<div class="monthly-trial-scroll">'+tables.join('')+'</div>';
+}
+
+function openMonthlyTrialBalance(panel,scope){
+ const dialog=panel.closest('dialog'),header=dialog.querySelector('header'),close=header.querySelector('.close');
+ close.classList.add('je-btn','je-btn-secondary');close.textContent='Close';
+ const prefs=monthlyTrialPreferences(),calendar=summaryPeriod14331;
+ close.insertAdjacentHTML('beforebegin','<button type="button" class="je-btn je-btn-secondary" data-period aria-haspopup="dialog">Period</button>'+monthlyTrialColumnControl(prefs.columns)+'<div data-accounts></div><button type="button" class="je-btn je-btn-secondary" data-refresh>Refresh</button>');
+ const period=header.querySelector('[data-period]'),columns=header.querySelector('[name=trialColumns]'),accountPicker=header.querySelector('[data-accounts]');
+ const status=document.createElement('small');header.querySelector('h2').append(status);
+ let entries,months,allMonths;
+ function draw(){
+  period.textContent=calendar.label(months);period.setAttribute('aria-label','Period · '+period.textContent);
+  panel.innerHTML=monthlyTrialTable(monthlyTrialModel(entries,months,prefs));
+ }
+ async function load(refresh){
+  const request=scope.begin();
+  period.disabled=columns.disabled=true;accountPicker.hidden=true;panel.textContent='Loading balances…';
+  try{
+   const offline=!!window.offline14239?.offline();
+   const saved=await reportWindow143195.postedLedger(refresh&&!offline);
+   if(!scope.current(request))return;
+   entries=saved;status.textContent=offline?'Downloaded journal':'';
+   const pending=window.journalDurable14385?.pending().some(j=>j.status!=='saved'||j.changes?.some(op=>op.status!=='saved'));
+   if(pending){
+    const w=yearWindow14333.state();
+    if(!w.revision14341||yearWindow14333.loading)throw Error('The device journal is incomplete. Refresh when the journal is ready.');
+    entries=saved.filter(l=>l.date<w.from||l.date>w.to).concat(JournalModule.entries.map(l=>({...l,pendingSync:false,local14333:false})));
+    status.textContent='Includes changes saved on this device';
+   }
+   let first='',last='';
+   for(const entry of entries){const m=entry.date.slice(0,7);if(!first||m<first)first=m;if(m>last)last=m}
+   const previousAll=months===allMonths;
+   allMonths=first?calendar.monthRange([first,last]):[calendar.current()];
+   if(!months||previousAll)months=allMonths;
+   monthlyTrialAccountPicker(accountPicker,monthlyTrialChoices(entries),prefs.accounts,accounts=>{
+    if(!scope.current(request))return;prefs.accounts=accounts;saveMonthlyTrialPreferences(prefs);draw();
+   });
+   columns.onchange=()=>{if(scope.current(request)){prefs.columns=columns.value;saveMonthlyTrialPreferences(prefs);draw()}};
+   period.onclick=()=>calendar.open(period,months,selected=>{if(scope.current(request)){months=selected.length?selected:allMonths;draw()}});
+   period.disabled=columns.disabled=false;accountPicker.hidden=false;draw();
+  }catch(error){
+   if(scope.current(request))panel.textContent=error.message||'Could not load the journal. Choose Refresh to retry.';
+  }
+ }
+ header.querySelector('[data-refresh]').onclick=()=>load(true);
+ dialog.addEventListener('close',()=>{if(dialog.querySelector('.summary-period14331'))calendar.close();if(reportBooks.scope()==='comparison')renderReports79()},{once:true});
+ void load(false);
+}

@@ -75,7 +75,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const recMonth=dialog.getByLabel('Reconciliation month');await recMonth.selectOption('2025-04');
   await dialog.getByText('Fixture bank').waitFor();await dialog.getByText('20.00',{exact:true}).waitFor();
   await recMonth.selectOption('2026-11');await dialog.getByText('Awaiting statement').waitFor();await dismiss(dialog);
-  for(const name of ['Account balances','Foreign account rates']){await tool(name).click();assert.equal(await dialog.locator('header [data-edit],header [data-refresh],header .close').count(),3);await dismiss(dialog);}
+  {await tool('Foreign account rates').click();assert.equal(await dialog.locator('header [data-edit],header [data-refresh],header .close').count(),3);await dismiss(dialog);}
   await tool('Company calendar').click();
   const calendar=page.getByRole('dialog',{name:'Company calendar',exact:true}),form=page.locator('dialog.hr-dialog14306[open]');
   await calendar.locator('[data-cal-add] + button').waitFor();
@@ -97,6 +97,29 @@ const fixture=require('./phase0-browser-fixture.cjs');
   assert.equal(await page.evaluate(()=>hrCalendar14306.state.rows.filter(r=>r.id.startsWith('fixture-')).length),2);
   await page.evaluate(()=>{window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('local-work14333'));});
   assert(calls.length>=before+10);
+  await tool('Account ledger').click();
+  await tab('T1').click();await period.selectOption('2026-11');
+  await dialog.getByRole('columnheader',{name:'Running balance'}).waitFor();
+  assert.equal(await dialog.locator('.ledger-lines379 tbody tr').count(),103);
+  await dialog.getByRole('button',{name:'Open in editor'}).click();
+  const signers=page.locator('#reportSignatories275');await signers.locator('[name=person0]').fill('Fixture signer');
+  await page.locator('.ui-overlay108').last().getByRole('button',{name:'Open report',exact:true}).click();
+  await page.getByRole('button',{name:'Add new tab',exact:true}).click();
+  const frame=page.frameLocator('#docFrame105');await frame.getByText(/^Fixture signer$/i).first().waitFor();
+  const reportRows=frame.locator('tbody tr').filter({hasText:/MULTI-/});
+  assert.equal(await reportRows.count(),107,'Every posting from both ledger screen pages reaches the editor');
+  assert.equal(await reportRows.last().locator('td').last().textContent(),'107.00');
+  for(const name of ['Opening balance','Total debit','Total credit','Closing balance','Running balance'])await frame.getByText(new RegExp('^'+name+'$','i')).first().waitFor();
+  await page.evaluate(()=>{void documentWorkspace105.action('export')});
+  const downloadBox=page.locator('.document-download14313');
+  await downloadBox.locator('[name=downloadFormat]').selectOption('pdf');
+  await downloadBox.locator('[name=encryptDownload]').uncheck();
+  const downloaded=page.waitForEvent('download',{timeout:60000});
+  await downloadBox.getByRole('button',{name:'Download',exact:true}).click();
+  const pdf=await downloaded,stream=await pdf.createReadStream(),chunks=[];
+  for await(const chunk of stream)chunks.push(chunk);
+  const bytes=Buffer.concat(chunks).toString('latin1');
+  assert(bytes.startsWith('%PDF-')&&bytes.match(/\/Type \/Page\b/g).length>1,'Downloaded ledger is a multi-page PDF');
   console.log('PASS ledger search, ten persistent tabs, signed balances, row highlighting, refresh all, historical reconciliation, header controls and calendar dismissal');
  }finally{await f.close();}
 })().catch(e=>{console.error(e);process.exitCode=1});

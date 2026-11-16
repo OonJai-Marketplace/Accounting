@@ -1,6 +1,6 @@
 {
-  "version": "143.416",
+  "version": "143.417",
   "changes": [
-    "Choose a single month or tap a start and an end month for a continuous range. The shared period filter includes every month in between."
+    "Account balances and the Trial Balance filter now offer a compact monthly comparison with editable accounts, full columns or balance only. Account ledger opens a detailed running-balance report in the document editor for printing or PDF."
   ]
 }

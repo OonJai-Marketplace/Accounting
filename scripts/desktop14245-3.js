@@ -5852,21 +5852,24 @@ function accountForLine69(line){
 }
 function accountKey69(a,currency){return `${a.id||a.code||a.name}|${currency||a.currency||''}`}
 function accountData69(through=Accounts69.to,includeLines=true){
+ return accountDataForPeriod69(JournalModule.entries,Accounts69.from,through,includeLines);
+}
+function accountDataForPeriod69(entries,from,through,includeLines){
  // Build each lookup once for this calculation; preserve first-match resolution.
  const byId=new Map(),byCode=new Map(),byName=new Map();
  for(const a of AccountingStore.accounts||[]){if(!byId.has(String(a.id)))byId.set(String(a.id),a);if(!byCode.has(String(a.code)))byCode.set(String(a.code),a);let currencies=byName.get(a.name);if(!currencies)byName.set(a.name,currencies=new Map());if(!currencies.has(a.currency))currencies.set(a.currency,a)}
  const resolve=line=>(line.accountId&&byId.get(String(line.accountId)))||(line.accountCode&&byCode.get(String(line.accountCode)))||byName.get(line.account)?.get(line.currency)||null;
  const map=new Map();
  (AccountingStore.accounts||[]).forEach(a=>map.set(accountKey69(a),{account:a,key:accountKey69(a),currency:a.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]}));
- JournalModule.entries.forEach((line,index)=>{
+ entries.forEach((line,index)=>{
   if(line.pendingSync||line.local14333||line.voided_at||(line.status&&line.status!=='posted'))return;
   const a=resolve(line)||{name:line.account,code:line.accountCode||'Unmapped',currency:line.currency,type:'Unmapped'};
   const key=accountKey69(a,line.currency);if(!map.has(key))map.set(key,{account:a,key,currency:line.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]});
   const r=map.get(key),date=String(line.date||'').slice(0,10),dr=cents69(line.debit),cr=cents69(line.credit);
-  if(!date||date>through||date<String(through||Accounts69.to).slice(0,4)+'-01-01')return;
+  if(!date||date>through||date<String(through).slice(0,4)+'-01-01')return;
   const bd=window.JournalFX14383?.base(line,'debit')??(line.currency==='LAK'?Number(line.debit):null),bc=window.JournalFX14383?.base(line,'credit')??(line.currency==='LAK'?Number(line.credit):null);
   if(bd===null||bc===null)r.missingRates++;
-  if((line.annualOpening||String(line.generalMemo||'').startsWith('Annual opening balances ')||line.generalMemo==='Opening Balances')||(Accounts69.from&&date<Accounts69.from)){r.opening+=dr-cr;if(bd!==null&&bc!==null)r.baseOpening+=cents69(bd)-cents69(bc);}
+  if((line.annualOpening||String(line.generalMemo||'').startsWith('Annual opening balances ')||line.generalMemo==='Opening Balances')||(from&&date<from)){r.opening+=dr-cr;if(bd!==null&&bc!==null)r.baseOpening+=cents69(bd)-cents69(bc);}
   else{r.debit+=dr;r.credit+=cr;if(bd!==null)r.baseDebit+=cents69(bd);if(bc!==null)r.baseCredit+=cents69(bc);if(includeLines)r.lines.push({...line,date,dr,cr,originalIndex:index})}
  });
  return [...map.values()].map(r=>{r.closing=r.opening+r.debit-r.credit;r.baseClosing=r.baseOpening+r.baseDebit-r.baseCredit;r.lines.sort((a,b)=>a.date.localeCompare(b.date)||String(a.id).localeCompare(String(b.id))||a.originalIndex-b.originalIndex);return r}).sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
@@ -6684,7 +6687,7 @@ function orderedRecords78(records,oldest=false){return [...records].sort((a,b)=>
 ;
 /* scripts/reports-desktop-v79.js */
 /* Desktop reports: derived from posted journal lines; no duplicate ledger or mobile changes. */
-const Reports79={kind:'pl',mode:'monthly',month:Accounts69.month,year:Accounts69.year,quarter:Accounts69.quarter,from:Accounts69.from,to:Accounts69.to,currency:'',basis:'LAK',account:'',query:'',notes:{},cash:[],payroll:[]};
+const Reports79={kind:'pl',trialView:'standard',mode:'monthly',month:Accounts69.month,year:Accounts69.year,quarter:Accounts69.quarter,from:Accounts69.from,to:Accounts69.to,currency:'',basis:'LAK',account:'',query:'',notes:{},cash:[],payroll:[]};
 const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'Trial Balance',gl:'General Ledger',activity:'Account Activity',expense:'Expense',payroll:'Payroll'};
 const re79=v=>escapeHtml(String(v??''));
 const reportBooks=(()=>{
@@ -6703,6 +6706,7 @@ const reportBooks=(()=>{
  }
  function scope(){
   const id=document.querySelector('.tab-content.active')?.id||'';
+  if(Reports79.trialView==='comparative'&&['report-tb','report-open-tb'].includes(id))return 'comparison';
   return id.startsWith('report-open-')?'live':id==='report-activity'?'activity':id.startsWith('report-')?'history':'';
  }
  const keys=['mode','month','quarter','year','from','to','selectedMonths14331','allMonths14331'];
@@ -6740,13 +6744,21 @@ const reportBooks=(()=>{
    if(periods.has(next))Object.assign(s,periods.get(next));
    previous=next;
   }
-  if(next==='activity')return true;
+  if(next==='activity'||next==='comparison')return true;
   if(next==='history'&&!s.allMonths14331&&closedRange(s.from,s.to))return true;
   const month=next==='live'?workingMonth():closedMonths().at(-1);
   if(!month)return false;
   periodFilters14331.setPeriod(s,[month],{mode:'monthly'});return true;
  }
- return {closed,closedMonths,closedRange,workingMonth,scope,sync,reset,includes,selected,monthOptions,filterButton,bind,carryToActivity};
+ function applyFilters(next){
+  const oldScope=scope(),before=Object.fromEntries(keys.map(k=>[k,Reports79[k]]));
+  Object.assign(Reports79,next);
+  if(scope()!==oldScope){
+   if(next.trialView==='standard'&&periods.has(scope())&&keys.every(k=>before[k]===Reports79[k]))Object.assign(Reports79,periods.get(scope()));
+   periods.set(oldScope,before);previous=scope();
+  }
+ }
+ return {applyFilters,closed,closedMonths,closedRange,workingMonth,scope,sync,reset,includes,selected,monthOptions,filterButton,bind,carryToActivity};
 })();
 function reportRange79(){const r=Reports79;if(r.mode==='custom')return;let y=+r.year,m=1,n=12;if(r.mode==='monthly'){[y,m]=r.month.split('-').map(Number);n=1}if(r.mode==='quarterly'){m=(+r.quarter-1)*3+1;n=3}r.from=date71(y,m,1);const end=new Date(y,m-1+n,0);r.to=date71(end.getFullYear(),end.getMonth()+1,end.getDate())}
 let reportRenderCache14336=null;
@@ -6835,17 +6847,31 @@ function toggleReportFilters143153(button){
  const periodControl='<label>Period<button type="button" class="oj-date-button104" data-period '+(reportBooks.scope()==='live'?'disabled':'aria-haspopup="dialog"')+'>'+re79(periodCaption())+'</button></label>';
  const accountField=ledger?field('Account','account',[],''):'';
  const checks=kind==='cf'?'<fieldset><legend>Cash and bank accounts</legend><details><summary data-cash-summary>Choose accounts</summary><div data-choices></div></details></fieldset>':kind==='payroll'?'<fieldset><legend>Payroll accounts</legend><div data-choices></div></fieldset>':'';
- const body=periodControl+field('Report basis','basis',[['LAK','LAK equivalent'],['original','Original currencies']],s.basis)+field('Currency','currency',[['','All original currencies'],...currencies.map(c=>[c,c])],s.currency)+accountField+field('Sort by','by',[...(ledger?[['date','Date']]:[]),['account','Account code']],sort.by)+field('Order','direction',orders(sort.by),sort.direction)+checks;
+ const trial=kind==='tb',openBook=button.closest('.tab-content')?.id==='report-open-tb';
+ const prefs=trial?monthlyTrialPreferences():null;
+ const trialFields=trial?field('Report type','trialView',[['standard','Standard Trial Balance'],['comparative','Monthly comparative']],s.trialView||'standard')+
+  '<div class="trial-filter-options" data-trial-options>'+monthlyTrialColumnControl(prefs.columns)+'<div data-trial-accounts></div></div>':'';
+ const body=trialFields+periodControl+field('Report basis','basis',[['LAK','LAK equivalent'],['original','Original currencies']],s.basis)+field('Currency','currency',[['','All original currencies'],...currencies.map(c=>[c,c])],s.currency)+accountField+field('Sort by','by',[...(ledger?[['date','Date']]:[]),['account','Account code']],sort.by)+field('Order','direction',orders(sort.by),sort.direction)+checks;
  const dialog=openReportDialog299(button,reportNames79[kind]+' filters',body,()=>{
   const next={...period,basis:form.basis.value,currency:form.currency.value};
   if(ledger)next.account=form.account.value;
   if(checks)next[listKey]=[...chosen];
-  Object.assign(s,next);reportSorts143153.set(kind,{by:form.by.value,direction:form.direction.value});renderReports79();
+  if(trial){next.trialView=form.trialView.value;if(next.trialView==='comparative')saveMonthlyTrialPreferences({columns:form.trialColumns.value,accounts:readAccounts()})}
+  reportBooks.applyFilters(next);reportSorts143153.set(kind,{by:form.by.value,direction:form.direction.value});renderReports79();
  });
  const form=dialog.querySelector('form').elements,periodButton=dialog.querySelector('[data-period]');
+ const comparing=()=>trial&&form.trialView.value==='comparative';
+ let readAccounts;
+ if(trial){
+  const controls=dialog.querySelector('[data-trial-options]');
+  readAccounts=monthlyTrialAccountPicker(controls.querySelector('[data-trial-accounts]'),monthlyTrialChoices(window.reportWindow143195?.cachedLedger?.()||[]),prefs.accounts);
+  const syncType=()=>{controls.hidden=!comparing();periodButton.disabled=openBook&&!comparing();periodButton.setAttribute('aria-haspopup','dialog')};
+  form.trialView.onchange=syncType;syncType();
+ }
+ const historical=()=>!comparing()&&button.closest('.tab-content')?.id!=='report-open-tb'&&(kind==='tb'||reportBooks.scope()==='history');
  periodButton.onclick=()=>summaryPeriod14331.open(periodButton,periodFilters14331.selection(period),(values,meta)=>{
   periodFilters14331.setPeriod(period,values,meta);periodButton.textContent=periodCaption();
- },{mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:true,closedBooks:reportBooks.scope()==='history'});
+ },{mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:true,closedBooks:historical()});
  form.by.onchange=()=>{form.direction.innerHTML=options(orders(form.by.value),form.direction.value)};
  function accountChoices(selected){
   const visible=rows.filter(r=>!form.currency.value||r.currency===form.currency.value);
@@ -6959,6 +6985,7 @@ function balanceExplanation143154(currency,assets,liabilities,equity,result){
  return note;
 }
 function reportModel79(kind,oldest=false){
+ if(kind==='tb'&&reportBooks.scope()==='comparison')return [monthlyTrialReportModel()];
  if(Reports79.basis==='LAK'){const missing=reportData79().filter(r=>r.missingRates);if(missing.length)return [{currency:'LAK — incomplete',headers:['Account','Original currency','Missing rate records'],values:missing.map(r=>[r.account.name,r.sourceCurrency,r.missingRates]),metrics:[],note:'LAK totals are withheld until missing exchange rates are supplied. Original-currency records remain available. No exchange rate has been guessed.'}];}
  const data=reportData79(),groups=[];const sum=(rows,f)=>rows.reduce((s,r)=>s+f(r),0),type=(rows,t)=>rows.filter(r=>String(r.account.baseType||r.account.type).toUpperCase()===t),active=r=>r.opening||r.debit||r.credit||(kind==='tb'&&r.closing);
  for(const currency of [...new Set(data.map(r=>r.currency))].sort()){
@@ -7001,10 +7028,10 @@ function reportModel79(kind,oldest=false){
  if(window.ForeignFunds14386){const detail=ForeignFunds14386.reportDetails(data,kind);if(detail)groups.push(detail)}
  return groups;
 }
-function reportContent79(kind,oldest=false){const groups=reportModel79(kind,oldest);return groups.map(g=>`<section class="r79-group"><h4>${re79(g.currency)}${g.periodLabel?' · '+re79(g.periodLabel):''}</h4><div class="r79-metrics">${g.metrics.map(([label,value])=>`<div><small>${re79(label)}</small><strong class="${value<0?'r79-negative':''}">${money69(value)}</strong></div>`).join('')}</div>${reportTable79(g.headers,g.values,g.currency,oldest)}<p class="r79-note">${re79(g.note)}</p></section>`).join('')||'<p class="r79-note">No chart accounts or posted journal data are available yet.</p>'}
+function reportContent79(kind,oldest=false){const groups=reportModel79(kind,oldest);if(groups[0]?.monthlyTrial)return '<section class="r79-group"><h4>'+re79(groups[0].currency)+'</h4>'+monthlyTrialTable(groups[0],oldest)+'</section>';return groups.map(g=>`<section class="r79-group"><h4>${re79(g.currency)}${g.periodLabel?' · '+re79(g.periodLabel):''}</h4><div class="r79-metrics">${g.metrics.map(([label,value])=>`<div><small>${re79(label)}</small><strong class="${value<0?'r79-negative':''}">${money69(value)}</strong></div>`).join('')}</div>${reportTable79(g.headers,g.values,g.currency,oldest)}<p class="r79-note">${re79(g.note)}</p></section>`).join('')||'<p class="r79-note">No chart accounts or posted journal data are available yet.</p>'}
 function reportHeader79(kind,pending=false){
- const s=Reports79,title=reportNames79[kind];
- return `<header class="r79-header"><div><span class="r79-eyebrow">${reportBooks.scope()==='live'?'ACCOUNTS · OPEN BOOK':reportBooks.scope()==='history'?'REPORTS · CLOSED BOOKS':'ACCOUNTS · POSTED JOURNAL'}</span><h3>${title}</h3><p>${kind==='tb'?trialPeriodLabel79(s):s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · ${reportBooks.scope()==='live'?'Prior balances carried forward':reportBooks.scope()==='history'?'Closed-book history':'Posted entries'}</p></div><div class="r79-actions">${['gl','activity'].includes(kind)?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
+ const s=Reports79,title=kind==='tb'&&s.trialView==='comparative'?'Monthly Comparative Trial Balance':reportNames79[kind];
+ return `<header class="r79-header"><div><span class="r79-eyebrow">${reportBooks.scope()==='live'?'ACCOUNTS · OPEN BOOK':reportBooks.scope()==='history'?'REPORTS · CLOSED BOOKS':reportBooks.scope()==='comparison'?'POSTED JOURNAL':'ACCOUNTS · POSTED JOURNAL'}</span><h3>${title}</h3><p>${kind==='tb'?trialPeriodLabel79(s):s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · ${reportBooks.scope()==='live'?'Prior balances carried forward':reportBooks.scope()==='history'?'Closed-book history':'Posted entries'}</p></div><div class="r79-actions">${['gl','activity'].includes(kind)?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
 }
 function renderReports79(){
  if(!matchMedia('(min-width:768px)').matches)return;

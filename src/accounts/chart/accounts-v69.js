@@ -29,21 +29,24 @@ function accountForLine69(line){
 }
 function accountKey69(a,currency){return `${a.id||a.code||a.name}|${currency||a.currency||''}`}
 function accountData69(through=Accounts69.to,includeLines=true){
+ return accountDataForPeriod69(JournalModule.entries,Accounts69.from,through,includeLines);
+}
+function accountDataForPeriod69(entries,from,through,includeLines){
  // Build each lookup once for this calculation; preserve first-match resolution.
  const byId=new Map(),byCode=new Map(),byName=new Map();
  for(const a of AccountingStore.accounts||[]){if(!byId.has(String(a.id)))byId.set(String(a.id),a);if(!byCode.has(String(a.code)))byCode.set(String(a.code),a);let currencies=byName.get(a.name);if(!currencies)byName.set(a.name,currencies=new Map());if(!currencies.has(a.currency))currencies.set(a.currency,a)}
  const resolve=line=>(line.accountId&&byId.get(String(line.accountId)))||(line.accountCode&&byCode.get(String(line.accountCode)))||byName.get(line.account)?.get(line.currency)||null;
  const map=new Map();
  (AccountingStore.accounts||[]).forEach(a=>map.set(accountKey69(a),{account:a,key:accountKey69(a),currency:a.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]}));
- JournalModule.entries.forEach((line,index)=>{
+ entries.forEach((line,index)=>{
   if(line.pendingSync||line.local14333||line.voided_at||(line.status&&line.status!=='posted'))return;
   const a=resolve(line)||{name:line.account,code:line.accountCode||'Unmapped',currency:line.currency,type:'Unmapped'};
   const key=accountKey69(a,line.currency);if(!map.has(key))map.set(key,{account:a,key,currency:line.currency,opening:0,debit:0,credit:0,closing:0,baseOpening:0,baseDebit:0,baseCredit:0,baseClosing:0,missingRates:0,lines:[]});
   const r=map.get(key),date=String(line.date||'').slice(0,10),dr=cents69(line.debit),cr=cents69(line.credit);
-  if(!date||date>through||date<String(through||Accounts69.to).slice(0,4)+'-01-01')return;
+  if(!date||date>through||date<String(through).slice(0,4)+'-01-01')return;
   const bd=window.JournalFX14383?.base(line,'debit')??(line.currency==='LAK'?Number(line.debit):null),bc=window.JournalFX14383?.base(line,'credit')??(line.currency==='LAK'?Number(line.credit):null);
   if(bd===null||bc===null)r.missingRates++;
-  if((line.annualOpening||String(line.generalMemo||'').startsWith('Annual opening balances ')||line.generalMemo==='Opening Balances')||(Accounts69.from&&date<Accounts69.from)){r.opening+=dr-cr;if(bd!==null&&bc!==null)r.baseOpening+=cents69(bd)-cents69(bc);}
+  if((line.annualOpening||String(line.generalMemo||'').startsWith('Annual opening balances ')||line.generalMemo==='Opening Balances')||(from&&date<from)){r.opening+=dr-cr;if(bd!==null&&bc!==null)r.baseOpening+=cents69(bd)-cents69(bc);}
   else{r.debit+=dr;r.credit+=cr;if(bd!==null)r.baseDebit+=cents69(bd);if(bc!==null)r.baseCredit+=cents69(bc);if(includeLines)r.lines.push({...line,date,dr,cr,originalIndex:index})}
  });
  return [...map.values()].map(r=>{r.closing=r.opening+r.debit-r.credit;r.baseClosing=r.baseOpening+r.baseDebit-r.baseCredit;r.lines.sort((a,b)=>a.date.localeCompare(b.date)||String(a.id).localeCompare(String(b.id))||a.originalIndex-b.originalIndex);return r}).sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));

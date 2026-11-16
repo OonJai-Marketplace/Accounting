@@ -2,7 +2,7 @@
  * Periods and report screens share it; it never replaces the editable journal. */
 (()=>{'use strict';
 const cache=new Map(),pending=new Map(),failures=new Map(),renderedViews=new WeakMap();
-const fields=['mode','month','year','quarter','from','to','currency','basis','account','query','selectedMonths14331','allMonths14331','cash','payroll'];
+const fields=['mode','month','year','quarter','from','to','currency','basis','account','query','selectedMonths14331','allMonths14331','cash','payroll','trialView'];
 const allPeriod={from:'1900-01-01',to:'9999-12-31'},key=p=>p.from+'|'+p.to,allKey=key(allPeriod);
 let scope='',client=null,entries=null,entryContent='',generation=0,foreground=null,sequence=0;
 const identity=()=>[typeof liveProfile==='undefined'?'':liveProfile?.id||'',window.workspaceRequest138?.target||'',typeof ojmDb==='undefined'?'':ojmDb?.supabaseUrl||''].join(':');
@@ -12,7 +12,7 @@ function cancelForeground(){sequence++;foreground?.end?.();foreground=null;}
 function reset(){generation++;cancelForeground();for(const task of pending.values())task.controller.abort();cache.clear();pending.clear();failures.clear()}
 function restoreFilters(){
  const next=identity(),db=typeof ojmDb==='undefined'?null:ojmDb,rows=JournalModule.confirmedSnapshot14385||JournalModule.entries;
- if(scope!==next||client!==db){reportBooks.reset();scope=next;client=db;entries=rows;entryContent=JSON.stringify(rows);reset();
+ if(scope!==next||client!==db){reportBooks.reset();Reports79.trialView="standard";scope=next;client=db;entries=rows;entryContent=JSON.stringify(rows);reset();
   try{const saved=JSON.parse(localStorage.getItem('ojm-report-filters143195:'+scope)||'null');
    if(saved&&/^\d{4}-\d{2}-\d{2}$/.test(saved.from)&&/^\d{4}-\d{2}-\d{2}$/.test(saved.to)&&saved.from<=saved.to){for(const field of fields)if(Object.hasOwn(saved,field))Reports79[field]=saved[field];
     if(saved.selectedMonths14331?.length)periodFilters14331.setPeriod(Reports79,summaryPeriod14331.monthRange(saved.selectedMonths14331),{mode:'monthly'});
@@ -23,7 +23,7 @@ function restoreFilters(){
 }
 function save(){if(reportBooks.scope()==='live')return;try{localStorage.setItem('ojm-report-filters143195:'+scope,JSON.stringify(Object.fromEntries(fields.map(k=>[k,Reports79[k]]))))}catch{}}
 const range=(from,to)=>({from:reportBooks.scope()==='history'||from<to.slice(0,4)+'-01-01'?to.slice(0,4)+'-01-01':from,to});
-function periods(){const s=Reports79;let list;if(s.allMonths14331)return [allPeriod];
+function periods(){const s=Reports79;let list;if(s.allMonths14331||reportBooks.scope()==='comparison')return [allPeriod];
  if(s.kind==='bs'&&window.reportPeriods118)list=reportPeriods118();
  else if(comparisonMonths79(s.kind,s)?.length)list=s.selectedMonths14331.map(m=>({from:m+'-01',to:summaryPeriod14331.end(m)}));
  else list=accountingYears79(s.from,s.to);
@@ -62,8 +62,14 @@ function read(p,{refresh=false,persist=false,cacheFirst=false}={}){
  task.promise=Promise.resolve().then(()=>persist&&window.offline14239?.snapshot?offline14239.snapshot('report-journal-complete143267',download,{cacheFirst,prepareCached:value=>{previous=value}}):download()).then(result=>{check();if(!Array.isArray(result?.rows)||!Array.isArray(result?.opening)||result.from!==p.from||result.to!==p.to)throw Error('The downloaded report copy is incomplete.');cache.set(k,result);failures.delete(k);return result}).catch(error=>{if(current()&&!controller.signal.aborted&&error.name!=='AbortError')failures.set(k,error.message||String(error));throw error}).finally(()=>{if(pending.get(k)===task)pending.delete(k)});
  pending.set(k,task);return task.promise;
 }
+// The floating comparison reads the same complete, account-scoped posted journal as Reports.
+async function postedLedger(refresh=false){
+ restoreFilters();
+ if(!client?.rpc)throw Error('Connect to the company journal to load reports.');
+ return (await read(allPeriod,{refresh,persist:true,cacheFirst:!refresh})).rows;
+}
 async function preload(force=false){restoreFilters();if(!client?.rpc)throw Error('Connect to the company journal to load reports.');await read(allPeriod,{refresh:force,persist:true,cacheFirst:!force});normalizeAll();save()}
-async function ensure(){restoreFilters();if(!client?.rpc)throw Error('Connect to the company journal to load this period.');await Promise.all(periods().map(p=>read(p)));normalizeAll();save()}
+async function ensure(){restoreFilters();if(!client?.rpc)throw Error('Connect to the company journal to load this period.');if(reportBooks.scope()==='comparison')await postedLedger();else await Promise.all(periods().map(p=>read(p)));normalizeAll();save()}
 function snapshot(from,to){if(Reports79.allMonths14331)return cache.get(allKey)||null;
  if(comparisonMonths79(Reports79.kind,Reports79)?.length>1&&from===Reports79.selectedMonths14331[0]+'-01'&&to===summaryPeriod14331.end(Reports79.selectedMonths14331.at(-1)))from=Reports79.selectedMonths14331.at(-1)+'-01';
  return available(range(from,to))||null;
@@ -73,7 +79,7 @@ function signature(){
  const s=Reports79,kind=s.kind,settings=typeof ApplicationSettings==='undefined'?{}:ApplicationSettings;
  const selection=['gl','activity'].includes(kind)?[s.account,s.query]:kind==='cf'?s.cash:kind==='payroll'?s.payroll:null;
  return JSON.stringify([scope,generation,reportBooks.scope(),reportBooks.closedMonths(),kind,s.mode,s.month,s.year,s.quarter,s.from,s.to,s.allMonths14331,s.selectedMonths14331,s.basis,s.currency,
-  selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
+  kind==='tb'&&s.trialView==='comparative'?monthlyTrialPreferences():null,selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
   AccountingStore.accounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)]);
 }
 function reuse(host){restoreFilters();if(!reportBooks.sync())return false;normalizeAll();return complete()&&renderedViews.get(host)===signature()}
@@ -81,7 +87,7 @@ function rendered(host){host.removeAttribute('aria-busy');renderedViews.set(host
 function prioritize(){const view=active(),wanted=new Set(periods().map(key));if(foreground&&(foreground.view!==view||foreground.selection!==[...wanted].join(',')))cancelForeground();for(const [k,task]of pending)if(!task.keep&&(!view.startsWith('report-')||!wanted.has(k))){task.controller.abort();pending.delete(k)}}
 function prepare(host){restoreFilters();if(!reportBooks.sync()){
  cancelForeground();renderedViews.delete(host);host.removeAttribute('aria-busy');
- host.innerHTML='<p role="status">'+(reportBooks.scope()==='live'?'No current open book.':'No closed books are available for this report.')+'</p>';return false;
+ host.innerHTML=(Reports79.kind==='tb'?reportHeader79('tb',true):'')+'<p role="status">'+(reportBooks.scope()==='live'?'No current open book.':'No closed books are available for this report.')+'</p>';return false;
  }normalizeAll();save();prioritize();if(complete()){host.removeAttribute('aria-busy');return true}
  const list=periods(),error=list.map(p=>failures.get(key(p))).find(Boolean),selection=list.map(key).join(','),view=active();
  renderedViews.delete(host);host.setAttribute('aria-busy',String(!error));host.innerHTML=reportHeader79(Reports79.kind,true)+'<p role="status">'+escapeHtml(error||'Preparing the selected report…')+'</p>';
@@ -94,7 +100,7 @@ function prepare(host){restoreFilters();if(!reportBooks.sync()){
 async function refresh(){restoreFilters();reset();const view=active(),who=scope;renderReports79();try{await ensure()}catch(e){if(identity()===who&&active()===view&&e.name!=='AbortError')showCenterStatus(e.message,true)}}
 async function source(encoded){restoreFilters();const who=scope,db=client,id=decodeURIComponent(encoded),line=[...cache.values()].flatMap(p=>p.rows).find(l=>l.id===id);if(!line?.dbEntryId)return showCenterStatus('Refresh the selected period before opening this entry.',true);
  try{const response=await db.from('journal_entries').select('id,entry_no,transaction_date,memo,cash_slip_ref,updated_at,status,journal_fx_evidence288(entry_updated_at,display_memo,line_kinds),journal_lines(line_no,line_date,description,currency_code,debit,credit,fx_rate_lak,book_rate_lak,accounts(id,name,code))').eq('id',line.dbEntryId).eq('status','posted').maybeSingle();if(identity()!==who||ojmDb!==db)return;if(response.error)throw response.error;if(!response.data)throw Error('This entry is no longer posted. Refresh the report.');const e=response.data,review=e.journal_fx_evidence288,valid=review&&review.entry_updated_at===e.updated_at,lines=(e.journal_lines||[]).sort((a,b)=>a.line_no-b.line_no).map(l=>({id:e.entry_no,dbEntryId:e.id,date:l.line_date||e.transaction_date,account:l.accounts?.name||'Unknown Account',currency:l.currency_code,memo:l.description||e.memo||'',generalMemo:e.memo,cashSlipRef:e.cash_slip_ref,supportingDocument:line.supportingDocument,fxEvidenceMemo288:valid?review.display_memo:null,fxRateKind288:valid?review.line_kinds?.[l.line_no]:null,fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak,debit:Number(l.debit),credit:Number(l.credit),archived:(PeriodReview.periods[e.transaction_date.slice(0,7)]?.status||'open')!=='open'}));showJournalSource69(encoded,lines)}catch(e){if(identity()===who)showCenterStatus(e.message,true)}}
-window.reportWindow143195={cachedLedger:()=>scope===identity()&&client===ojmDb?cache.get(allKey)?.rows||null:null,restoreFilters,ensure,preload,snapshot,addOpening,prepare,reuse,rendered,refresh,reset,source,prioritize,revision:()=>generation+':'+(cache.get(allKey)?.revision||''),calculating:false};
+window.reportWindow143195={postedLedger,cachedLedger:()=>scope===identity()&&client===ojmDb?cache.get(allKey)?.rows||null:null,restoreFilters,ensure,preload,snapshot,addOpening,prepare,reuse,rendered,refresh,reset,source,prioritize,revision:()=>generation+':'+(cache.get(allKey)?.revision||''),calculating:false};
 window.addEventListener('page113',prioritize);
 })();
 ;
