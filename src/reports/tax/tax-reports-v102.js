@@ -38,7 +38,7 @@
     let accrued=0,missing=false;
     for(const l of postedLines()){
       if(String(l.date||'').slice(0,7)!==period||l.annualOpening||l.source==='opening'||
-        /^(ANNUAL-OPENING-|YEAR-CLOSE-)/.test(l.reference||'')||/^(Annual opening balances |Opening Balances$|Annual closing balances )/i.test(l.generalMemo||''))continue;
+        /^(ANNUAL-OPENING-|YEAR-CLOSE-)/.test(l.reference||'')||/^(Annual opening balances |Opening Balances$|Year-end closing |Annual closing balances )/i.test(l.generalMemo||''))continue;
       const a=accountForLine69(l);
       if(String(a?.code)==='2110'&&a.currency==='LAK')accrued+=cents(l.credit||0);
       if(!restaurant.has(a?.id))continue;

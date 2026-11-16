@@ -6654,11 +6654,14 @@ const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'
 const re79=v=>escapeHtml(String(v??''));
 const reportBooks=(()=>{
  const monthOf=value=>String(value||'').slice(0,7);
- const closed=value=>['closed','locked'].includes(PeriodReview.periods[monthOf(value)]?.status);
+ const closed=value=>{
+  const period=PeriodReview.periods[monthOf(value)];
+  return ['closed','locked'].includes(period?.officialStatus||period?.status);
+ };
  const closedMonths=()=>Object.keys(PeriodReview.periods).filter(closed).sort();
  function workingMonth(){
   const today=appLocalDate().slice(0,7);
-  return Object.keys(PeriodReview.periods).filter(m=>m<=today&&PeriodReview.periods[m].status==='open').sort()[0]||(!closed(today)?today:'');
+  return Object.keys(PeriodReview.periods).filter(m=>m<=today&&PeriodReview.periods[m].status==='open'&&!closed(m)).sort()[0]||(!closed(today)?today:'');
  }
  function closedRange(from,to){
   const first=monthOf(from),last=monthOf(to);
@@ -9318,7 +9321,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     let accrued=0,missing=false;
     for(const l of postedLines()){
       if(String(l.date||'').slice(0,7)!==period||l.annualOpening||l.source==='opening'||
-        /^(ANNUAL-OPENING-|YEAR-CLOSE-)/.test(l.reference||'')||/^(Annual opening balances |Opening Balances$|Annual closing balances )/i.test(l.generalMemo||''))continue;
+        /^(ANNUAL-OPENING-|YEAR-CLOSE-)/.test(l.reference||'')||/^(Annual opening balances |Opening Balances$|Year-end closing |Annual closing balances )/i.test(l.generalMemo||''))continue;
       const a=accountForLine69(l);
       if(String(a?.code)==='2110'&&a.currency==='LAK')accrued+=cents(l.credit||0);
       if(!restaurant.has(a?.id))continue;

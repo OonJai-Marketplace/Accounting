@@ -31,7 +31,13 @@ async function reload({skipJournal=false}={}){if(!liveProfile||!ojmDb)return;ins
  state.loading=task;state.loadingOwner=owner;state.loadingClient=client;try{return await task}finally{if(state.loading===task)state.loading=false;}
 }
 function previewSessions(){
- for(const book of state.sessions){const month=String(book.month).slice(0,7);PeriodReview.periods[month]={...(PeriodReview.periods[month]||{}),status:'open',reopenedAt:book.created_at,reopenReason:book.reason,reopenedByName:liveProfile?.full_name};JournalModule.entries.filter(r=>r.date.startsWith(month)).forEach(r=>r.archived=false);}
+ for(const book of state.sessions){
+  const month=String(book.month).slice(0,7),period=PeriodReview.periods[month]||{};
+  // An editing session projects revisions for Bookkeeping. Its original posted book stays closed.
+  PeriodReview.periods[month]={...period,officialStatus:period.status==='locked'?'locked':'closed',status:'open',
+   reopenedAt:book.created_at,reopenReason:book.reason,reopenedByName:liveProfile?.full_name};
+  JournalModule.entries.filter(r=>r.date.startsWith(month)).forEach(r=>r.archived=false);
+ }
 }
 function stagedBookRows(){let rows=JournalModule.entries.map(r=>({...r}));
  for(const book of state.sessions)for(const op of book.operations||[]){const p=op.payload;

@@ -32,3 +32,11 @@ assert.equal(groups.length,1);
 assert.equal(groups[0].metrics.at(-1)[1],0);
 assert.deepEqual(groups[0].values.find(r=>r[0]==='cash').slice(2),['90.00 DR','0.00','25.00','65.00']);
 console.log('PASS All closed months produces one Trial Balance and one continuous General Ledger.');
+
+// Open correction workspaces display projections in Bookkeeping; reports still use posted lines.
+c.PeriodReview.periods['2026-01']={status:'open',officialStatus:'closed'};
+assert.deepEqual(plain(run('reportBooks.closedMonths()')),['2026-01','2026-03']);
+assert.equal(run("reportBooks.closed('2026-01-15')"),true);
+assert.equal(run("reportBooks.closed('2026-02-15')"),false);
+assert.deepEqual(plain(run("reportModel79('tb')"))[0].values.find(r=>r[0]==='cash').slice(2),['90.00 DR','0.00','25.00','65.00']);
+console.log('PASS closed-book balances survive a pending correction session.');

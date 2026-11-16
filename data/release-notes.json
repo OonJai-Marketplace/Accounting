@@ -1,6 +1,7 @@
 {
-  "version": "143.398",
+  "version": "143.399",
   "changes": [
+    "Trial Balance and General Ledger include posted history for closed months with pending corrections.",
     "Compare recorded restaurant sales in LAK, USD and THB with output VAT and posted VAT in the monthly statutory report.",
     "Generate a kip-priced sale paid with US dollars or baht, including the full cash received and actual kip change."
   ]

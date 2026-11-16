@@ -4,11 +4,14 @@ const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'
 const re79=v=>escapeHtml(String(v??''));
 const reportBooks=(()=>{
  const monthOf=value=>String(value||'').slice(0,7);
- const closed=value=>['closed','locked'].includes(PeriodReview.periods[monthOf(value)]?.status);
+ const closed=value=>{
+  const period=PeriodReview.periods[monthOf(value)];
+  return ['closed','locked'].includes(period?.officialStatus||period?.status);
+ };
  const closedMonths=()=>Object.keys(PeriodReview.periods).filter(closed).sort();
  function workingMonth(){
   const today=appLocalDate().slice(0,7);
-  return Object.keys(PeriodReview.periods).filter(m=>m<=today&&PeriodReview.periods[m].status==='open').sort()[0]||(!closed(today)?today:'');
+  return Object.keys(PeriodReview.periods).filter(m=>m<=today&&PeriodReview.periods[m].status==='open'&&!closed(m)).sort()[0]||(!closed(today)?today:'');
  }
  function closedRange(from,to){
   const first=monthOf(from),last=monthOf(to);
