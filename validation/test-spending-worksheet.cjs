@@ -6,7 +6,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const {page,login}=await f.open(); const errors=[]; page.on('pageerror',e=>errors.push(e.message));
   const request={id:'00000000-0000-4000-a000-000000000404',version:1,data:{kind:'finance',mode:'request',date:'2026-09-22',budgetMonth290:'2026-10',recipient:'Office',purpose:'Supplies',notes:'',lines:[
    {key117:'rice',category:'Kitchen',description:'Rice',currency:'LAK',amount:500000},
-   {key117:'rent',category:'Rent',description:'House rent',currency:'USD',amount:200}
+   {category:'Rent',description:'House rent',currency:'USD',amount:200}
   ]}};
   const records=new Map([[request.id,request]]);
   await page.route('**/rest/v1/operational_reports*',r=>{
@@ -38,6 +38,38 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const fund=page.getByRole('dialog',{name:'Fund utilization',exact:true}), grid=fund.locator('[data-spending-rows]');
   await grid.waitFor();assert.equal(await grid.locator('tr').count(),2);
   assert.equal(await fund.getByRole('button',{name:/template/i}).count(),0);
+  const riceStatus=grid.getByLabel('Funding status for Rice'),rentStatus=grid.getByLabel('Funding status for House rent');
+  const received=grid.getByLabel('Amount received for House rent');
+  assert.equal(await riceStatus.inputValue(),'approved');
+  assert.equal(await rentStatus.inputValue(),'approved');
+  assert.equal(await received.isVisible(),false);
+  await riceStatus.selectOption('declined');await rentStatus.selectOption('deduction');
+  await fund.getByRole('button',{name:'Save report'}).click();
+  assert.equal(records.size,1);assert(await received.evaluate(input=>input===document.activeElement));
+  await received.fill('201');await fund.getByRole('button',{name:'Save report'}).click();
+  assert.equal(records.size,1);
+  await received.fill('125.75');
+  for(const width of [1280,820,768,390]){
+   await page.setViewportSize({width,height:900});
+   const sizes=await grid.evaluate(body=>{
+    const table=body.closest('table'),wrap=table.parentElement,dialog=table.closest('[role=dialog]');
+    const bounds=dialog.getBoundingClientRect();
+    return {width:innerWidth,client:wrap.clientWidth,scroll:wrap.scrollWidth,left:bounds.left,right:bounds.right,
+     overflow:[...body.querySelectorAll('input,select')].filter(e=>e.offsetWidth&&e.getBoundingClientRect().right>wrap.getBoundingClientRect().right+1).length};
+   });
+   assert(sizes.scroll<=sizes.client+1 && sizes.left>=0 && sizes.right<=sizes.width+1 && !sizes.overflow,JSON.stringify(sizes));
+  }
+  await page.setViewportSize({width:1280,height:900});
+  await fund.getByRole('button',{name:'Save report'}).click();
+  await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'));
+  const initial=[...records.values()].find(r=>r.data.mode==='utilization');
+  assert.deepEqual(initial.data.lines,request.data.lines);
+  assert.deepEqual(initial.data.fundingByItem,{'item:rice':{status:'declined'},'row:1':{status:'deduction',received:125.75}});
+  assert.deepEqual(initial.data.movements,[]);
+  await fund.getByRole('button',{name:'Close',exact:true}).click();
+  await page.evaluate(()=>ui117.confirm=async()=>true);
+  await budget.getByRole('button',{name:'Continue',exact:true}).click();
+  assert.equal(await riceStatus.inputValue(),'declined');assert.equal(Number(await received.inputValue()),125.75);
   const rice=grid.getByRole('textbox',{name:'Actual spending for Rice'});await rice.fill('325000');
   await fund.getByRole('button',{name:'Add row'}).click();
   const extra=grid.locator('tr').last();await extra.locator('[name=description]').fill('Delivery');
@@ -51,18 +83,30 @@ const fixture=require('./phase0-browser-fixture.cjs');
   dialog=page.getByRole('dialog',{name:'Currency conversion',exact:true});
   for(const [k,v] of Object.entries({source:'Bank',destination290:'Cash box',amount:'20',targetAmount290:'420000',evidence:'FX1'}))await dialog.locator('[name='+k+']').fill(v);
   await dialog.getByRole('button',{name:'Add conversion'}).click();
-  await fund.getByRole('button',{name:'Save report'}).click();await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'));
+  await fund.getByRole('button',{name:'Save report'}).click();await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'&&r.version===2));
   const saved=[...records.values()].find(r=>r.data.mode==='utilization');
   assert.deepEqual(saved.data.lines,request.data.lines);assert.equal(saved.data.movements.length,3);
   assert.equal(saved.data.conversions.length,1);assert.equal(saved.data.movements[0].outflow,325000);
   assert.equal(saved.data.movements[1].description290,'Delivery');assert.equal(saved.data.movements[1].outflow,10.25);
   assert.deepEqual(await page.evaluate(d=>[...BudgetReport290.balances(d)].map(([c,v])=>[c,v.remaining]),saved.data),[['LAK',95000],['USD',69.75]]);
   await rice.fill('350000');await fund.getByRole('button',{name:'Save report'}).click();
-  await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'&&r.version===2));
+  await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'&&r.version===3));
   const updated=records.get(saved.id);assert.equal(updated.data.movements.length,3);assert.equal(saved.data.movements[0].id290,updated.data.movements[0].id290);
   await fund.getByRole('button',{name:'Close',exact:true}).click();
   await page.evaluate(()=>ui117.confirm=async()=>true);
   await budget.getByRole('button',{name:'Continue',exact:true}).click();await rice.waitFor();assert.equal(Number(await rice.evaluate(e=>e.value)),350000);
+  const summary=await page.evaluate(data=>{
+   const node=document.createElement('div');node.innerHTML=BudgetReport290.report(data);
+   const table=[...node.querySelectorAll('table')].find(t=>t.textContent.includes('Funding remaining'));
+   return [...table.tBodies[0].rows].map(row=>[...row.cells].map(c=>c.textContent.trim()));
+  },updated.data);
+  assert.match(summary[0].join(' '),/Declined LAK 0.*LAK 350,000.*LAK -350,000/);
+  assert.match(summary[1].join(' '),/Deduction USD 125.75.*USD 125.75/);
+  await rentStatus.selectOption('approved');
+  await fund.getByRole('button',{name:'Save report'}).click();
+  await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'&&r.version===4));
+  assert.deepEqual(records.get(saved.id).data.fundingByItem['row:1'],{status:'approved'});
+  assert.equal(records.get(saved.id).data.movements.length,3);
   assert.deepEqual(errors,[]);
   console.log('PASS History returns, stable request window, linked worksheet, extra spending, receipts, conversions and save/reopen.');
  }finally{await f.close();}
