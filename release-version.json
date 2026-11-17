@@ -1,1 +1,1 @@
-{"version": "143.434", "changes": ["FX opens to Foreign account rates. The BCEL bank rates tab looks up all published currencies by date and round, shows note, bill, EFT and sell rates, and lets you save the official source link on this device."]}
+{"version": "143.435", "changes": ["Staff Entries and History show each receipt\u2019s line memo, including previously saved Cashbook batches. The general description is available as a fallback for a receipt without a line memo."]}

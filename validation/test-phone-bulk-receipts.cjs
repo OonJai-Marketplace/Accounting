@@ -192,6 +192,7 @@ async function bulk(fixture) {
   await page.locator('#bottom [data-page=entries]').click();
   const entries=page.locator('details.entry');
   assert.equal(await entries.count(),2);
+  assert.deepEqual((await entries.locator('summary .entry-copy b').allTextContents()).sort(),batch.p_items.map(l=>l.memo).sort());
   await entries.first().locator('summary').click();
   assert.match(await entries.first().locator('.entry-body').innerText(),/Kitchen items/);
   assert.match(await entries.first().locator('.entry-body').innerText(),/Cash payment/);
