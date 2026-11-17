@@ -127,7 +127,7 @@ function openActions(row,event){
 const canReviewMappings=()=>!!actor() && liveProfile.role==='admin' &&
  (!window.access113 || (access113.can('sec-chart-accounts','view') && access113.can('journal','view')));
 let reviewOwner='',reviewClient=null,reviewRequest=0,reviewRows=[],reviewSubscription,reviewLoading=false;
-let postingRent=false;
+let postingRent=false,retiringMappings=false;
 function syncMappingReview(){
  const button=$('mappingReviewOpen'),dialog=$('mappingReview');
  if(!button||!dialog)return;
@@ -158,13 +158,17 @@ function renderMappingReview(){
  rentButton.hidden=!['9222','9290'].every(code=>rows.some(r=>r.code===code&&r.journals?.includes('AMO26-000006'))) ||
   !window.access113?.can('journal','post') || !window.access113?.can('sec-chart-accounts','edit');
  rentButton.disabled=postingRent;
+ const retire=$('mappingReviewRetire');
+ retire.hidden=filter!=='Retirement candidate'||!rows.length||!window.access113?.can('sec-chart-accounts','edit');
+ retire.disabled=retiringMappings;
+ retire.textContent='Deactivate '+rows.length+(rows.length===1?' account':' accounts');
  $('mappingReviewStatus').textContent=rows.length+' of '+reviewRows.length+' mapping accounts · All posting dates';
 }
 async function readMappingReview(){
  const dialog=$('mappingReview'),filter=$('mappingReviewFilter');
  if(reviewLoading)return;
  const request=++reviewRequest,selection=filter.value;
- filter.disabled=true;reviewLoading=true;$('mappingReviewRent').hidden=true;
+ filter.disabled=true;reviewLoading=true;$('mappingReviewRent').hidden=true;$('mappingReviewRetire').hidden=true;
  reviewRows=[];dialog.querySelector('tbody').replaceChildren();
  $('mappingReviewStatus').textContent='Checking accounts and posted journals…';
  try{
@@ -199,6 +203,26 @@ async function correctNovemberRent(){
   if(sameSession())showCenterStatus(error.message||'Check the connection and refresh the review.',true);
  }finally{postingRent=false;button.disabled=false;}
 }
+async function deactivateReviewedMappings(){
+ const button=$('mappingReviewRetire'),client=reviewClient,user=reviewOwner;
+ const sameSession=()=>actor()===user&&(typeof ojmDb==='undefined'?null:ojmDb)===client;
+ if(retiringMappings||reviewLoading||button.hidden||!client||!user||!sameSession()||!$('mappingReview').open)return;
+ const codes=reviewRows.filter(row=>row.recommendation==='Retirement candidate'&&row.active).map(row=>row.code);
+ if(!codes.length)return;
+ retiringMappings=true;button.disabled=true;
+ try{
+  const {data,error}=await client.rpc('deactivate_reviewed_mapping_accounts',{p_codes:codes});
+  if(!sameSession())return;
+  if(error||data!==codes.length)throw Error(error?.message||'Refresh the review to verify which accounts are inactive.');
+  window.AccountSheet143191?.changed({owner:user,db:client});
+  if($('mappingReview').open&&reviewOwner===user)await readMappingReview();
+  if(!sameSession())return;
+  showCenterStatus(data+' mapping '+(data===1?'account deactivated':'accounts deactivated'));
+  if(typeof loadReferenceDataFromSupabase==='function')await loadReferenceDataFromSupabase({databaseOnly:true});
+ }catch(error){
+  if(sameSession())showCenterStatus(error.message||'Refresh the mapping review and check the accounts.',true);
+ }finally{retiringMappings=false;button.disabled=false;}
+}
 function initMappingReview(){
  const button=$('mappingReviewOpen'),dialog=$('mappingReview');
  if(!button||!dialog)return;
@@ -214,11 +238,12 @@ function initMappingReview(){
  dialog.querySelector('[data-close-review]').onclick=()=>dialog.close();
  $('mappingReviewRefresh').onclick=readMappingReview;
  $('mappingReviewRent').onclick=correctNovemberRent;
+ $('mappingReviewRetire').onclick=deactivateReviewedMappings;
  $('mappingReviewFilter').onchange=renderMappingReview;
  dialog.addEventListener('close',()=>{
   reviewRequest++;reviewSubscription?.unsubscribe();reviewSubscription=null;reviewRows=[];reviewOwner='';reviewClient=null;
   dialog.querySelector('tbody').replaceChildren();$('mappingReviewStatus').textContent='';
-  reviewLoading=false;$('mappingReviewRent').hidden=true;
+  reviewLoading=false;$('mappingReviewRent').hidden=true;$('mappingReviewRetire').hidden=true;
   $('mappingReviewFilter').replaceChildren(new Option('All accounts',''));
  });
  syncMappingReview();

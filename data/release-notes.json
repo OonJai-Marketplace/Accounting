@@ -1,7 +1,6 @@
 {
-  "version": "143.430",
+  "version": "143.431",
   "changes": [
-    "Budget utilization now keeps report actions at the top right while scrolling. Open reports opens the list, Save draft keeps the report editable, and Finalize saves a read-only report.",
-    "Report date, Reference, Recipient and Purpose share a single row in Report details."
+    "Chart of Accounts administrators can deactivate the unused accounts shown under Retirement candidate in Mapping review. The database checks the displayed accounts and their dependencies again before applying the change."
   ]
 }

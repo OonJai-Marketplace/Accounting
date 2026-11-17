@@ -79,6 +79,22 @@ const setup=require('./phase0-browser-fixture.cjs');
   await dialog.getByText('4 of 4 mapping accounts',{exact:false}).waitFor();
   await correction.waitFor({state:'hidden'});
   assert.equal(postings,1);
+  const retire=dialog.locator('#mappingReviewRetire');
+  let retirements=0;
+  await page.route('**/rpc/deactivate_reviewed_mapping_accounts',route=>{
+   assert.deepEqual(route.request().postDataJSON(),{p_codes:['9211']});
+   retirements++;
+   rows[0].active=false;rows[0].recommendation='Already inactive';
+   return route.fulfill({status:200,contentType:'application/json',body:'1'});
+  });
+  assert.equal(await retire.isVisible(),false);
+  await dialog.locator('select').selectOption('Retirement candidate');
+  assert.equal(await retire.innerText(),'Deactivate 1 account');
+  assert.equal(retirements,0);
+  await retire.click();
+  await dialog.locator('select').getByText('Retirement candidate').waitFor({state:'detached'});
+  assert.equal(await retire.isVisible(),false);
+  assert.equal(retirements,1);
   console.log('PASS on-demand review, filter, refresh, retry, close and explicitly posted rent correction.');
  }finally{await f.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
