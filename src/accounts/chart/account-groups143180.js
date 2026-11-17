@@ -222,8 +222,13 @@ async function postOwnerReceipts(){
    if(error||data?.period!==month+'-01')throw Error(error?.message||'The monthly receipt check did not finish.');
   }
   if(!current())return;
+  month='Monthly utilization';
+  status.textContent='Applying verified owner spending in the original months…';
+  const result=await client.rpc('apply_verified_owner_support_uses_2026');
+  if(result.error||result.data?.applied!==true)throw Error(result.error?.message||'The spending import did not finish.');
+  if(!current())return;
   await readMappingReview();
-  if(current())status.textContent='Phase 8 owner receipts verified in their original months.';
+  if(current())status.textContent='Phase 8 receipts and matched spending posted. Unmatched spending remains under review.';
   if(current()&&typeof loadJournalFromSupabase==='function')await loadJournalFromSupabase();
  }catch(error){
   if(current())status.textContent=month+' · '+(error?.message||'Check the connection and retry.');
