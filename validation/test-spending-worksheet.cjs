@@ -97,7 +97,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await budget.getByRole('button',{name:'Continue',exact:true}).click();await rice.waitFor();assert.equal(Number(await rice.evaluate(e=>e.value)),350000);
   const summary=await page.evaluate(data=>{
    const node=document.createElement('div');node.innerHTML=BudgetReport290.report(data);
-   const table=[...node.querySelectorAll('table')].find(t=>t.textContent.includes('Funding remaining'));
+   const table=[...node.querySelectorAll('table')].find(t=>t.textContent.includes('Funded amount less spending'));
    return [...table.tBodies[0].rows].map(row=>[...row.cells].map(c=>c.textContent.trim()));
   },updated.data);
   assert.match(summary[0][0],/Declined/);

@@ -1,6 +1,6 @@
 {
-  "version": "143.438",
+  "version": "143.439",
   "changes": [
-    "The sub-user Active Journal shows each saved receipt under the same Entry ID on phone, iPad and desktop. Entry ID sorting defaults to highest first and keeps split lines together."
+    "Fund utilization shows original-currency cash payments, cash before returns and closing cash. Click or tap an accounting table row to highlight it during review."
   ]
 }

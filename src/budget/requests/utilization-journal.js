@@ -20,7 +20,7 @@ window.BudgetUtilizationJournal=(()=>{
  function localJob(id){return window.journalDurable14385?.pending().find(j=>j.id.startsWith('budget-use:'+id+':'));}
  function reference(link){return link?link.entry_no+(link.status==='posted'?'':' ('+link.status+')'):'';}
  function amounts(data){
-  const comparison=BudgetReport290.compare(data);
+  const comparison=BudgetReport290.compare(data,"cost");
   const requested=[...new Set(data.lines.map(l=>l.currency))],currency=requested[0];
   if(requested.length===1&&comparison.totals[currency]?.used!=null)
    return [[currency,Math.round(comparison.totals[currency].used*100)/100]].filter(([,n])=>n>0);

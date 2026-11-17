@@ -264,8 +264,10 @@ function renderAllocation(){
  toolbar.querySelectorAll('[data-activity]').forEach(b=>b.onclick=()=>openActivity(b.dataset.activity));
  const summary=host.querySelector('[data-summary]'),balance=summary.querySelector('[data-budget-balance]');
  function showBalance(){
-  const {currencies,totals}=report.compare(d);
-  balance.textContent=currencies.length?' · Remaining '+currencies.map(c=>currencySymbolV6(c)+' '+report.amountText(totals[c].remaining)).join(' / '):'';
+  const cash=report.balances(d);
+  const returned=[...cash.values()].some(t=>t.refund>0);
+  const amounts=report.orderedUnits([...cash.keys()]).map(c=>currencySymbolV6(c)+' '+report.amountText(cash.get(c)[returned?'beforeReturn':'remaining']));
+  balance.textContent=amounts.length?' · '+(returned?'Cash before returns':'Cash remaining')+' · '+amounts.join(' / '):'';
  }
  showBalance();
  host.oninput=()=>{summary.open=false;balance.textContent='';};
@@ -355,6 +357,8 @@ function saveMovement(f){
    next.worksheetLine=allocation.lines.findIndex((l,i)=>!l.key117&&'worksheet:'+i===next.budgetKey117);
    next.budgetKey117='';
   }
+  if(type==='spend' && next.cashDistributed!=null && prior?.cashBudgetAmount!=null && prior.currency===next.currency &&
+     prior.budgetKey117===next.budgetKey117 && prior.worksheetLine===next.worksheetLine && next.cashDistributed===prior.cashDistributed)next.cashBudgetAmount=prior.cashBudgetAmount;
   if(type==='repay'){next.loanId290=fields.loanId290;const loan=allocation.movements.find(m=>m.id290===next.loanId290);next.loanAmount290=loan?.currency===next.currency?amount:movementAmount(f.elements.equivalent);}
   if(type==='spend'&&!f.querySelector('[data-equivalent-field]').hidden&&fields.equivalent)next.budgetAmount290=movementAmount(f.elements.equivalent);
   const rows=[...allocation.movements];if(prior)rows[editMove]=next;else rows.push(next);
@@ -509,6 +513,7 @@ function validateAllocation(d,finalize){
   if(type==='transfer'&&(!m.destination290||m.destination290===m.account))throw Error('Choose different source and destination accounts for a transfer.');
   const line=d.lines.find(l=>l.key117===m.budgetKey117);
   if(m.budgetKey117&&!line)throw Error('Select a budget item from this request.');
+  if(m.cashBudgetAmount!=null&&(m.cashDistributed==null||!positive(m.cashBudgetAmount)))throw Error('Enter a positive cash equivalent, or leave it blank.');
   if(m.budgetAmount290!=null&&!positive(m.budgetAmount290))throw Error('Enter a positive budget equivalent, or leave it blank.');
   if(type==='borrow'&&(!m.id290||report.outstanding(d,m)<0))throw Error('Repayments exceed the amount borrowed. Review the linked advance.');
   if(type==='repay'&&(!loans.has(m.loanId290)||!positive(m.loanAmount290)||m.date290<loans.get(m.loanId290).date290))throw Error('Choose an advance, its settlement amount, and a repayment date on or after the advance.');
