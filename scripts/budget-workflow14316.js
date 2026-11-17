@@ -8,12 +8,14 @@ window.BudgetSpendingWorksheet = (() => {
   const decisions = [];
   const base=BudgetReport290.requestCurrency(draft);
   const report=BudgetReport290;
+  const toggle=host.querySelector('[data-item-equivalents]');
+  if(toggle)toggle.onchange=refreshValuations;
   function refreshValuations() {
    const paidByLine=new Map();
    for(const state of rows){
     const {line,choice,amount,equivalent,stack,secondary}=state;
     const paid=choice?.value||state.currency, requested=line?.currency||base;
-    const cross=requested && paid!==requested;
+    const cross=requested && paid!==requested && (!toggle||toggle.checked);
     const n=amount.valueAsNumber;
     secondary.hidden=!cross;
     if(!cross)continue;
@@ -145,7 +147,7 @@ window.BudgetSpendingWorksheet = (() => {
      invalid(amount, movement ? 'Enter a positive spending amount. Use Details to remove the expense.' : 'Enter a positive spending amount with up to two decimal places.');
     }
     if (!line && !detail && (!movement || movement.worksheetSpend)) invalid(description,'Enter a description for the additional spending.');
-    const explicit=state.equivalentEdited && !state.secondary.hidden;
+    const explicit=state.equivalentEdited && line && line.currency!==(choice?.value||currency);
     const equivalent=explicit && state.equivalent.value!==''?state.equivalent.valueAsNumber:null;
     if(explicit && equivalent!==null && (!Number.isFinite(equivalent)||equivalent<=0||!Number.isSafeInteger(Math.round(equivalent*100))||Math.abs(equivalent*100-Math.round(equivalent*100))>0.00001))
      invalid(state.equivalent,'Enter a positive spending equivalent with up to two decimal places, or leave it blank to use the report exchange rate.');
@@ -369,34 +371,46 @@ window.BudgetReport290 = (() => {
   return {rows,currencies,totals};
  }
  function comparisonTable(d){
-  const {rows,currencies,totals}=compare(d);
-  const adjusted=rows.some(r=>r.line&&lineFunding(d,r.line,r.index).status!=='approved');
-  const measures=[['requested','Requested'],...(adjusted?[['funded','Funded']]:[]),['used','Actual spending'],['remaining',adjusted?'Funded amount less spending':'Budget less spending']];
-  const itemWidth=adjusted?32:40;
-  const col=w=>'<col style="width:'+w+'%">';
-  const cols=col(itemWidth)+measures.map(()=>col((100-itemWidth)/measures.length)).join('');
-  const heading='background-color:#e4eee8;color:#193d30;padding:4px;text-align:right';
-  const head='<tr><th style="'+heading+';text-align:left">Item / category</th>'+
-   measures.map(([,label])=>'<th style="'+heading+'">'+label+'</th>').join('')+'</tr>';
-  function cells(values,visible,hasRequest,isTotal){
-   return measures.map(([key])=>{
-    const value=!hasRequest&&(key==='requested'||key==='funded')?'—':amountLines(visible,c=>values[c][key]);
-    return '<td style="text-align:right;vertical-align:top;padding:4px 3px;'+(isTotal?fill:'')+'">'+value+'</td>';
-   }).join('');
-  }
-  const body=rows.map(row=>{
-   const {line,movements}=row,extra=movements[0];
-   const item=line?.description||extra?.destination290||extra?.description290||'Additional spending';
-   const detail=[line?.category||'Additional spending'];
-   if(line&&d.fundingByItem)detail.push(fundingLabels[lineFunding(d,line,row.index).status]);
-   return '<tr><td style="padding:4px 5px;vertical-align:top"><strong>'+esc(item)+'</strong><br><span style="color:#52665b">'+detail.map(esc).join(' · ')+'</span></td>'+
-    cells(row.values,row.currencies,!!line,false)+'</tr>';
+  const {rows}=compare(d);
+  const balancesByCurrency=balances(d), codes=orderedUnits([...balancesByCurrency.keys()]);
+  if(!codes.length)return section82('Budget compared with actual spending','<p>No budget items or spending recorded.</p>');
+  const approved=new Map();
+  const amountsCell=(values,style='')=>'<td style="text-align:right;vertical-align:top;padding:4px 3px;'+style+'">'+
+   (values.size?amountLines([...values.keys()],c=>values.get(c)):'—')+'</td>';
+  const rowHTML=(label,columns,style='')=>'<tr><td style="text-align:left;padding:4px 5px;'+style+'">'+label+'</td>'+columns.map(v=>amountsCell(v,style)).join('')+'</tr>';
+  const body=rows.map(({line,index,movements})=>{
+   const requested=new Map(),funded=new Map(),spent=new Map(),left=new Map();
+   if(line){
+    const amount=lineFunding(d,line,index).amount;
+    requested.set(line.currency,line.amount);funded.set(line.currency,amount);
+    approved.set(line.currency,(approved.get(line.currency)||0)+Number(amount));
+   }
+   if(line&&!movements.length)spent.set(line.currency,0);
+   for(const m of movements)spent.set(m.currency,(spent.get(m.currency)||0)+cashPaid(m));
+   // Exchanges are recorded for the fund, and are not allocated to an individual item.
+   if(!line||[...spent.keys()].every(c=>c===line.currency)){
+    for(const c of new Set([...funded.keys(),...spent.keys()]))left.set(c,(funded.get(c)||0)-(spent.get(c)||0));
+   }
+   const extra=movements[0],item=line?.description||extra?.destination290||extra?.description290||'Additional spending';
+   const detail=line?[line.category,fundingLabels[lineFunding(d,line,index).status]].filter(Boolean).join(' · '):'Additional spending';
+   return rowHTML(esc(item)+'<br><small>'+esc(detail)+'</small>',[requested,funded,spent,left]);
   }).join('');
-  const tables=currencies.length?'<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup>'+cols+'</colgroup><thead>'+head+'</thead><tbody>'+body+
-   '<tr data-budget-summary290="total"><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,currencies,true,true)+'</tr></tbody></table></div>':'<p>No budget items or spending recorded.</p>';
-  const rate=currencies.includes('USD')&&currencies.includes('LAK')&&reportRate(d,'USD','LAK');
-  const note=currencies.length>1?'<p>Report totals include all items in each currency.'+(rate?' Report exchange rate · ₭ '+esc(formatAppRate(rate))+' for $1. Recorded item equivalents take priority.':'')+'</p>':'';
-  return section82('Budget compared with actual spending',tables+note);
+  const values=(get,includeZero=false)=>new Map(codes.map(c=>[c,round(get(balancesByCurrency.get(c),c))]).filter(([,v])=>includeZero||v!==0));
+  function adjustment(label,get){
+   const net=values(get);
+   return net.size?rowHTML(label,[new Map(),net,new Map(),net]):'';
+  }
+  const changes=adjustment('Receipts above or below item funding',(t,c)=>t.receipt-(approved.get(c)||0))+
+   adjustment('Currency exchanged',t=>t.convertedIn-t.convertedOut)+
+   adjustment('Shortfall covered by restaurant',t=>t.coverage)+adjustment('Temporary advances, less repayments',t=>t.borrow-t.repay);
+  const totals=[values(t=>t.requested,true),values(t=>t.receipt+t.coverage+t.convertedIn-t.convertedOut+t.borrow-t.repay,true),
+   values(t=>t.cashSpent,true),values(t=>t.beforeReturn,true)];
+  const table='<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup><col style="width:32%"><col style="width:17%"><col style="width:17%"><col style="width:17%"><col style="width:17%"></colgroup><thead><tr>'+
+   ['Item / category','Requested','Funds available','Actual spending','Remaining'].map((h,i)=>'<th style="background:#e4eee8;padding:4px;text-align:'+(i?'right':'left')+'">'+h+'</th>').join('')+
+   '</tr></thead><tbody>'+body+changes+'<tr data-budget-summary290="total"><th style="text-align:left;'+fill+'">Report total</th>'+
+   totals.map(v=>amountsCell(v,fill)).join('')+'</tr></tbody></table></div>';
+  return section82('Budget compared with actual spending',table);
+
  }
  function sizedTable(headers,rows,widths){
   const cols='<colgroup>'+widths.map(w=>'<col style="width:'+w+'%">').join('')+'</colgroup>';
@@ -708,6 +722,7 @@ const esc=v=>escapeHtml(String(v??'')),clone=x=>structuredClone(x),num=x=>Number
 let finalTab='submitted',historyTab='journal',allocation=null,allocationRecord=null,fundPopup=null,retainedForm=null,actor='',busy=false,editMove=null,editFx=null,actorClient=null,allocationRequest14370=0;
 const report=BudgetReport290,journal=BudgetUtilizationJournal;
 let activityPopup=null;
+const equivalentViews=new WeakSet();
 const confirmedFinals=new Map();
 let checkedOnVisit=new Set();
 function budgetRows(){return Work82.reports.filter(r=>r.data?.kind==='finance').map(r=>confirmedFinals.get(r.id)||r);}
@@ -1032,11 +1047,72 @@ async function openAllocation(id){
   allocation.conversions||=[];allocationRecord=r;presentFundEditor();
  }catch(e){showCenterStatus(e.message,true)}
 }
+function supplements(record){
+ if(!record?.data.requestId14316||isFinal(record))return [];
+ const rows=budgetRows(),parent=record.data.requestId14316;
+ return rows.filter(r=>r.id!==parent&&r.data.mode==='request'&&r.data.budgetMonth290===record.data.budgetMonth290&&
+  !r._pending14333&&!rows.some(child=>child.data.requestId14316===r.id));
+}
+async function combineRequests(){
+ try{
+  const check=context(),saved=allocationRecord;
+  captureFund();applySpending();
+  if(editorData(allocation)!==editorData(saved.data))throw Error('Save your draft changes before combining requests.');
+  const base=await live(saved.data.requestId14316,saved.data.requestVersion14316);check();
+  const candidates=supplements(saved);
+  if(!candidates.length)throw Error('No additional request is available for this budget month.');
+  const option=(id,name)=>'<option value="'+esc(id)+'">'+esc(name)+'</option>';
+  const {root}=budgetDialog('Combine budget requests','<form><label>Additional request<select data-plain14285 name="extra">'+
+   candidates.map(r=>option(r.id,r.data.purpose+' · '+totals327(r.data))).join('')+'</select></label><div data-items></div>'+
+   '<p>This saves one combined request and keeps the existing utilization draft and receipts. The two source requests are kept in deletion history.</p>'+
+   '<p role="status"></p><button type="submit">Save combined request</button></form>');
+  const form=root.querySelector('form'),content=form.querySelector('[data-items]'),status=form.querySelector('[role=status]');
+  const select=form.elements.extra,baseData=BudgetReportWording.data(base);
+  const unassigned=saved.data.movements.filter(m=>report.kind(m)==='spend'&&m.id290&&!m.budgetKey117&&m.worksheetLine==null);
+  const pick=()=>candidates.find(r=>r.id===select.value);
+  function list(){
+   content.innerHTML=pick().data.lines.map((l,i)=>{
+    const current=baseData.lines.filter((b,j)=>b.currency===l.currency&&report.lineFunding(saved.data,b,j).status==='approved');
+    return '<fieldset><legend>'+esc(l.description)+' · '+esc(l.currency)+' '+esc(formatAppNumber(l.amount))+'</legend>'+
+     '<label>Budget item<select data-plain14285 name="line'+i+'">'+option('','Add as a new item')+current.map(b=>option(b.key117,b.description)).join('')+'</select></label>'+
+     (unassigned.length?'<label>Link existing spending<select data-plain14285 name="move'+i+'">'+option('','None')+
+       unassigned.map(m=>option(m.id290,(m.destination290||m.description290)+' · '+m.currency+' '+formatAppNumber(report.cashPaid(m)))).join('')+'</select></label>':'')+'</fieldset>';
+   }).join('');
+  }
+  select.onchange=list;list();
+  form.onsubmit=async event=>{
+   event.preventDefault();const submit=form.querySelector('[type=submit]');if(submit.disabled)return;submit.disabled=true;
+   try{
+    check();const extra=pick(),merged=clone(baseData),links={},assignments={};
+    merged.notes=[baseData.notes,BudgetReportWording.data(extra).notes].filter(Boolean).join('\n\n');
+    for(const [i,l] of extra.data.lines.entries()){
+     const target=form.elements['line'+i].value,move=form.elements['move'+i]?.value;
+     if(target){
+      links[l.key117]=target;const line=merged.lines.find(b=>b.key117===target);
+      line.amount=Math.round((Number(line.amount)+Number(l.amount))*100)/100;
+     }else merged.lines.push(clone(l));
+     if(move){if(assignments[move])throw Error('Choose an existing expense only once.');assignments[move]=target||l.key117;}
+    }
+    const layout=document.createElement('template');layout.innerHTML=documentWorkspace105.sanitize(baseData.document14316?.html||requestHTML(baseData));
+    const table=layout.content.querySelector('[data-budget-table14316="items"]'),notes=layout.content.querySelector('[data-budget-field14316="notes"]');
+    if(table&&notes){table.outerHTML=report.items(merged.lines);notes.textContent=merged.notes;}else layout.innerHTML=requestHTML(merged);
+    const result=await ojmDb.rpc('combine_draft_budget_requests',{p_report:saved.id,p_version:saved.version,p_parent_version:base.version,
+     p_extra:extra.id,p_extra_version:extra.version,p_links:links,p_assignments:assignments,p_lines:merged.lines,p_notes:merged.notes,p_html:layout.innerHTML});
+    check();if(result.error)throw Error(result.error.message);
+    const {request,draft}=result.data;
+    Work82.reports=[request,draft,...Work82.reports.filter(r=>![base.id,extra.id,draft.id].includes(r.id))];
+    selectedParent=request.id;allocation=clone(draft.data);allocationRecord=draft;
+    root.resolve108(true);renderRequest();renderAllocation();
+   }catch(err){status.textContent=err.message;submit.disabled=false;}
+  };
+ }catch(err){showCenterStatus(err.message,true);}
+}
+
 function renderAllocation(){
  const host=fundPopup?.querySelector('#budgetFunds290');if(!host||!allocation)return;
  const d=allocation;
  const actions=button('Open reports','chooseRequest()')+button('Print / PDF','previewAllocation()')+
-  button('Save draft','saveAllocation(false)')+button('Finalize','saveAllocation(true)')+postControl(allocationRecord);
+  (supplements(allocationRecord).length?button('Combine requests','combineRequests()'):'')+button('Save draft','saveAllocation(false)')+button('Finalize','saveAllocation(true)')+postControl(allocationRecord);
  const activities='<button type="button" data-add-spending>Add row</button><button type="button" data-activity="spend">Spending details</button>'+
   '<button type="button" data-activity="receipt">Amount received</button><button type="button" data-activity="coverage">Restaurant coverage</button><button type="button" data-activity="conversion">Currency conversion</button><button type="button" data-activity="other">Other fund movements</button>';
  const toolbar=reportToolbar(fundPopup,actions,activities);
@@ -1044,7 +1120,7 @@ function renderAllocation(){
  toolbar.querySelector('[onclick*="saveAllocation(true)"]').title='Save as read-only in History';
  const save=toolbar.querySelector('[onclick*="saveAllocation(false)"]');
  save.title='Save an editable draft';save.classList.add('fund-save-draft');
- const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th>Status</th><th>Funded</th><th>Actual spending</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div>';
+ const table='<label><input type="checkbox" data-item-equivalents> Show item equivalents</label><div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th>Status</th><th>Funded</th><th>Actual spending</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div>';
  const rowHeader=d.requestId14316?[report.period(d),d.recipient].filter(Boolean).map(esc).join(' · '):'';
  const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fund-report-fields">'+
   field82('Report date','date',d.date,'date','required')+field82('Reference','receiptReference290',d.receiptReference290||'')+
@@ -1060,6 +1136,9 @@ function renderAllocation(){
  host.querySelector('#fundHeader290').oninput=captureFund;
  function refreshWorksheet(){
   host.querySelector('[data-spending-rows]').replaceChildren();
+  const toggle=host.querySelector('[data-item-equivalents]');
+  toggle.checked=equivalentViews.has(d);
+  toggle.oninput=()=>{if(toggle.checked)equivalentViews.add(d);else equivalentViews.delete(d);};
   host.applySpending=BudgetSpendingWorksheet.mount(fundPopup,d,editMovement);
  }
  refreshWorksheet();
@@ -1382,7 +1461,7 @@ const switchBefore=window.switchTab;window.switchTab=function(id,...args){if(id=
 const renderBefore=window.renderWork82;window.renderWork82=function(...args){const out=renderBefore.apply(this,args);if(document.querySelector('#user-entry-review.active'))renderFinalization();if(document.querySelector('#transactions-all.active'))renderHistory();return out};
 const deleteBefore=window.deleteWork108;window.deleteWork108=function(kind,id){return kind==='reports'&&Work82.reports.find(r=>r.id===id)?.data.kind==='finance'?remove(id):deleteBefore(kind,id)};
 const openBefore=window.openOperational82;window.openOperational82=function(id){const r=Work82.reports.find(r=>r.id===id);return r?.data.kind==='finance'?(r.data.mode==='utilization'?openAllocation(id):openRequest(id)):openBefore(id)};
-window.budgetWorkflow14316={get finalTab(){return finalTab},get historyTab(){return historyTab},prepareHistory:renderHistory,prepareFinalization:renderFinalization,renderRequest,newRequest,editRequest,requestData,refreshCategories,templateApplied,printPicker,requestHTML,showFunds,saveDocument,requireSaved,decorateEditor,openRequest,startAllocation,openAllocation,chooseRequest,importHistory,saveAllocation,previewAllocation,newUnlinked,removeMovement,removeConversion,finalization,history,view,printRecord,remove,parseDocument,recalculate,validDate14317,editMovement,editConversion};
+window.budgetWorkflow14316={get finalTab(){return finalTab},get historyTab(){return historyTab},prepareHistory:renderHistory,prepareFinalization:renderFinalization,renderRequest,newRequest,editRequest,requestData,refreshCategories,templateApplied,printPicker,requestHTML,showFunds,combineRequests,saveDocument,requireSaved,decorateEditor,openRequest,startAllocation,openAllocation,chooseRequest,importHistory,saveAllocation,previewAllocation,newUnlinked,removeMovement,removeConversion,finalization,history,view,printRecord,remove,parseDocument,recalculate,validDate14317,editMovement,editConversion};
 window.addEventListener('transactions-reset14316',e=>{if(e.detail.scopes.includes('reports')){confirmedFinals.clear();checkedOnVisit=new Set();selectedParent='';if(requestEditor){requestEditor.root.resolve108(false);requestEditor=null;}allocation=null;allocationRecord=null;clearFundPopup();Work82.reports=[];Work82.report=null;Work82.reportRecord=null;Object.assign(Finance82,{mode:'request',date:today82(),recipient:'',purpose:'',notes:'',lines:[],movements:[],conversions:[]});renderHistory()}});
 function checkPopupAccess(){
  if(requestEditor&&(liveProfile?.id!==actor||ojmDb!==actorClient||liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))){requestEditor.root.resolve108(false);requestEditor=null;}

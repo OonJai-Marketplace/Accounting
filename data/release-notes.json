@@ -1,7 +1,7 @@
 {
-  "version": "143.443",
+  "version": "143.444",
   "changes": [
-    "On iPad, selecting a word or dragging its handles in Users and the main workspace no longer makes the app scroll back to the focused field.",
-    "Pull-to-refresh yields to text selection, sideways gestures and the open tablet keyboard."
+    "Fund utilization totals show requested funds, available funds after actual exchanges, cash distributed and cash remaining in each original currency.",
+    "Saved supplemental requests can be combined with an open utilization draft and linked to existing spending."
   ]
 }

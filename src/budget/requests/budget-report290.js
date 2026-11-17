@@ -186,34 +186,46 @@ window.BudgetReport290 = (() => {
   return {rows,currencies,totals};
  }
  function comparisonTable(d){
-  const {rows,currencies,totals}=compare(d);
-  const adjusted=rows.some(r=>r.line&&lineFunding(d,r.line,r.index).status!=='approved');
-  const measures=[['requested','Requested'],...(adjusted?[['funded','Funded']]:[]),['used','Actual spending'],['remaining',adjusted?'Funded amount less spending':'Budget less spending']];
-  const itemWidth=adjusted?32:40;
-  const col=w=>'<col style="width:'+w+'%">';
-  const cols=col(itemWidth)+measures.map(()=>col((100-itemWidth)/measures.length)).join('');
-  const heading='background-color:#e4eee8;color:#193d30;padding:4px;text-align:right';
-  const head='<tr><th style="'+heading+';text-align:left">Item / category</th>'+
-   measures.map(([,label])=>'<th style="'+heading+'">'+label+'</th>').join('')+'</tr>';
-  function cells(values,visible,hasRequest,isTotal){
-   return measures.map(([key])=>{
-    const value=!hasRequest&&(key==='requested'||key==='funded')?'—':amountLines(visible,c=>values[c][key]);
-    return '<td style="text-align:right;vertical-align:top;padding:4px 3px;'+(isTotal?fill:'')+'">'+value+'</td>';
-   }).join('');
-  }
-  const body=rows.map(row=>{
-   const {line,movements}=row,extra=movements[0];
-   const item=line?.description||extra?.destination290||extra?.description290||'Additional spending';
-   const detail=[line?.category||'Additional spending'];
-   if(line&&d.fundingByItem)detail.push(fundingLabels[lineFunding(d,line,row.index).status]);
-   return '<tr><td style="padding:4px 5px;vertical-align:top"><strong>'+esc(item)+'</strong><br><span style="color:#52665b">'+detail.map(esc).join(' · ')+'</span></td>'+
-    cells(row.values,row.currencies,!!line,false)+'</tr>';
+  const {rows}=compare(d);
+  const balancesByCurrency=balances(d), codes=orderedUnits([...balancesByCurrency.keys()]);
+  if(!codes.length)return section82('Budget compared with actual spending','<p>No budget items or spending recorded.</p>');
+  const approved=new Map();
+  const amountsCell=(values,style='')=>'<td style="text-align:right;vertical-align:top;padding:4px 3px;'+style+'">'+
+   (values.size?amountLines([...values.keys()],c=>values.get(c)):'—')+'</td>';
+  const rowHTML=(label,columns,style='')=>'<tr><td style="text-align:left;padding:4px 5px;'+style+'">'+label+'</td>'+columns.map(v=>amountsCell(v,style)).join('')+'</tr>';
+  const body=rows.map(({line,index,movements})=>{
+   const requested=new Map(),funded=new Map(),spent=new Map(),left=new Map();
+   if(line){
+    const amount=lineFunding(d,line,index).amount;
+    requested.set(line.currency,line.amount);funded.set(line.currency,amount);
+    approved.set(line.currency,(approved.get(line.currency)||0)+Number(amount));
+   }
+   if(line&&!movements.length)spent.set(line.currency,0);
+   for(const m of movements)spent.set(m.currency,(spent.get(m.currency)||0)+cashPaid(m));
+   // Exchanges are recorded for the fund, and are not allocated to an individual item.
+   if(!line||[...spent.keys()].every(c=>c===line.currency)){
+    for(const c of new Set([...funded.keys(),...spent.keys()]))left.set(c,(funded.get(c)||0)-(spent.get(c)||0));
+   }
+   const extra=movements[0],item=line?.description||extra?.destination290||extra?.description290||'Additional spending';
+   const detail=line?[line.category,fundingLabels[lineFunding(d,line,index).status]].filter(Boolean).join(' · '):'Additional spending';
+   return rowHTML(esc(item)+'<br><small>'+esc(detail)+'</small>',[requested,funded,spent,left]);
   }).join('');
-  const tables=currencies.length?'<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup>'+cols+'</colgroup><thead>'+head+'</thead><tbody>'+body+
-   '<tr data-budget-summary290="total"><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,currencies,true,true)+'</tr></tbody></table></div>':'<p>No budget items or spending recorded.</p>';
-  const rate=currencies.includes('USD')&&currencies.includes('LAK')&&reportRate(d,'USD','LAK');
-  const note=currencies.length>1?'<p>Report totals include all items in each currency.'+(rate?' Report exchange rate · ₭ '+esc(formatAppRate(rate))+' for $1. Recorded item equivalents take priority.':'')+'</p>':'';
-  return section82('Budget compared with actual spending',tables+note);
+  const values=(get,includeZero=false)=>new Map(codes.map(c=>[c,round(get(balancesByCurrency.get(c),c))]).filter(([,v])=>includeZero||v!==0));
+  function adjustment(label,get){
+   const net=values(get);
+   return net.size?rowHTML(label,[new Map(),net,new Map(),net]):'';
+  }
+  const changes=adjustment('Receipts above or below item funding',(t,c)=>t.receipt-(approved.get(c)||0))+
+   adjustment('Currency exchanged',t=>t.convertedIn-t.convertedOut)+
+   adjustment('Shortfall covered by restaurant',t=>t.coverage)+adjustment('Temporary advances, less repayments',t=>t.borrow-t.repay);
+  const totals=[values(t=>t.requested,true),values(t=>t.receipt+t.coverage+t.convertedIn-t.convertedOut+t.borrow-t.repay,true),
+   values(t=>t.cashSpent,true),values(t=>t.beforeReturn,true)];
+  const table='<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup><col style="width:32%"><col style="width:17%"><col style="width:17%"><col style="width:17%"><col style="width:17%"></colgroup><thead><tr>'+
+   ['Item / category','Requested','Funds available','Actual spending','Remaining'].map((h,i)=>'<th style="background:#e4eee8;padding:4px;text-align:'+(i?'right':'left')+'">'+h+'</th>').join('')+
+   '</tr></thead><tbody>'+body+changes+'<tr data-budget-summary290="total"><th style="text-align:left;'+fill+'">Report total</th>'+
+   totals.map(v=>amountsCell(v,fill)).join('')+'</tr></tbody></table></div>';
+  return section82('Budget compared with actual spending',table);
+
  }
  function sizedTable(headers,rows,widths){
   const cols='<colgroup>'+widths.map(w=>'<col style="width:'+w+'%">').join('')+'</colgroup>';

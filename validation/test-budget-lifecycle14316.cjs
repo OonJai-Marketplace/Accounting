@@ -45,5 +45,28 @@ const preview=(await db.query('SELECT scoped_reset14232($1,false,null) result',[
 await db.query('SELECT scoped_reset14232($1,true,$2)',[backup,'RESET SELECTED DATA']);assert.equal((await db.query('SELECT count(*)::int n FROM operational_reports')).rows[0].n,0);assert.equal((await db.query('SELECT count(*)::int n FROM budget_templates14313')).rows[0].n,1);assert.equal((await db.query('SELECT count(*)::int n FROM budget_settings14313')).rows[0].n,1);
 console.log('PASS Verified selected reset clears request documents and allocations together while preserving templates/settings');
 const refs=(await db.query('SELECT audit_snapshot14232() pack')).rows[0].pack.references;assert(refs.includes('budget_templates14313'));assert(refs.includes('budget_settings14313'));
+// A supplemental request can contribute to an existing item and fund a previously unassigned expense.
+await db.exec("create function public.budget_utilization_journal(uuid) returns jsonb language sql as 'select null::jsonb'");
+await db.exec(fs.readFileSync('supabase/migrations/20261117072000_combine_draft_budget_requests.sql','utf8'));
+const extraId='00000000-0000-4000-8000-000000000013', month='2027-01';
+const extraLines=[{key117:'b',currency:'USD',amount:20},{key117:'c',currency:'USD',amount:10}];
+for(const [id,items] of [[request,lines],[extraId,extraLines]])
+ await db.query('insert into operational_reports(id,data) values($1,$2)',[id,{mode:'request',kind:'finance',purpose:'Test',budgetMonth290:month,lines:items}]);
+const spend={id290:'payment',type290:'spend',currency:'USD',outflow:20};
+await db.query('insert into operational_reports(id,data) values($1,$2)',[allocation,{...child,budgetMonth290:month,movements:[spend]}]);
+const combine=(version,items)=>db.query('select combine_draft_budget_requests($1,$2,1,$3,1,$4,$5,$6,$7,$8) as result',
+ [allocation,version,extraId,{c:'a'},{payment:'b'},JSON.stringify(items),'','<p>Combined test request</p>']);
+const amended=[{...lines[0],amount:510},extraLines[0]];
+await assert.rejects(combine(2,amended),/changed/);
+await assert.rejects(combine(1,lines),/changed/);
+const merged=(await combine(1,amended)).rows[0].result;
+assert.deepEqual(merged.request.data.lines,amended);
+assert.deepEqual(merged.draft.data.lines,amended);
+assert.equal(merged.draft.id,allocation);
+assert.equal(merged.draft.budget_request_id14316,merged.request.id);
+assert.deepEqual(merged.draft.data.movements,[{...spend,budgetKey117:'b'}]);
+assert.equal((await db.query('select count(*)::int as n from operational_reports')).rows[0].n,2);
+await assert.rejects(combine(1,amended));
+console.log('PASS Combined request and draft have identical items, preserved spending and protected retries');
 await db.exec("UPDATE profiles SET status='inactive'");await assert.rejects(db.query('SELECT delete_budget14316($1,$2)',[request,1]),/administrator/);
 console.log('PASS Configuration enters archive snapshots; inactive administrators cannot delete');await db.close();})().catch(e=>{console.error(e);process.exit(1)});

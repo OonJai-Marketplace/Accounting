@@ -8,12 +8,14 @@ window.BudgetSpendingWorksheet = (() => {
   const decisions = [];
   const base=BudgetReport290.requestCurrency(draft);
   const report=BudgetReport290;
+  const toggle=host.querySelector('[data-item-equivalents]');
+  if(toggle)toggle.onchange=refreshValuations;
   function refreshValuations() {
    const paidByLine=new Map();
    for(const state of rows){
     const {line,choice,amount,equivalent,stack,secondary}=state;
     const paid=choice?.value||state.currency, requested=line?.currency||base;
-    const cross=requested && paid!==requested;
+    const cross=requested && paid!==requested && (!toggle||toggle.checked);
     const n=amount.valueAsNumber;
     secondary.hidden=!cross;
     if(!cross)continue;
@@ -145,7 +147,7 @@ window.BudgetSpendingWorksheet = (() => {
      invalid(amount, movement ? 'Enter a positive spending amount. Use Details to remove the expense.' : 'Enter a positive spending amount with up to two decimal places.');
     }
     if (!line && !detail && (!movement || movement.worksheetSpend)) invalid(description,'Enter a description for the additional spending.');
-    const explicit=state.equivalentEdited && !state.secondary.hidden;
+    const explicit=state.equivalentEdited && line && line.currency!==(choice?.value||currency);
     const equivalent=explicit && state.equivalent.value!==''?state.equivalent.valueAsNumber:null;
     if(explicit && equivalent!==null && (!Number.isFinite(equivalent)||equivalent<=0||!Number.isSafeInteger(Math.round(equivalent*100))||Math.abs(equivalent*100-Math.round(equivalent*100))>0.00001))
      invalid(state.equivalent,'Enter a positive spending equivalent with up to two decimal places, or leave it blank to use the report exchange rate.');
