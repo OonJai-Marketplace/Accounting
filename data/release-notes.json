@@ -1,6 +1,6 @@
 {
-  "version": "143.449",
+  "version": "143.450",
   "changes": [
-    "Account pickers identify non-posting parents as currency-neutral, including parents created under the older chart format."
+    "Mapping review can apply verified owner-support receipts in their original months and preserve the original exchange rates."
   ]
 }

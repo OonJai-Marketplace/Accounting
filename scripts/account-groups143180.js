@@ -127,7 +127,7 @@ function openActions(row,event){
 const canReviewMappings=()=>!!actor() && liveProfile.role==='admin' &&
  (!window.access113 || (access113.can('sec-chart-accounts','view') && access113.can('journal','view')));
 let reviewOwner='',reviewClient=null,reviewRequest=0,reviewRows=[],reviewSubscription,reviewLoading=false;
-let postingRent=false,retiringMappings=false;
+let postingRent=false,retiringMappings=false,postingOwnerReceipts=false;
 function syncMappingReview(){
  const button=$('mappingReviewOpen'),dialog=$('mappingReview');
  if(!button||!dialog)return;
@@ -161,6 +161,9 @@ function renderMappingReview(){
  const retire=$('mappingReviewRetire');
  retire.hidden=filter!=='Retirement candidate'||!rows.length||!window.access113?.can('sec-chart-accounts','edit');
  retire.disabled=retiringMappings;
+ const ownerReceipts=$('mappingReviewOwnerReceipts');
+ ownerReceipts.hidden=!window.access113?.can('journal','post')||!window.access113?.can('sec-chart-accounts','edit');
+ ownerReceipts.disabled=postingOwnerReceipts;
  retire.textContent='Deactivate '+rows.length+(rows.length===1?' account':' accounts');
  $('mappingReviewStatus').textContent=rows.length+' of '+reviewRows.length+' mapping accounts · All posting dates';
 }
@@ -203,6 +206,29 @@ async function correctNovemberRent(){
   if(sameSession())showCenterStatus(error.message||'Check the connection and refresh the review.',true);
  }finally{postingRent=false;button.disabled=false;}
 }
+async function postOwnerReceipts(){
+ const button=$('mappingReviewOwnerReceipts'),dialog=$('mappingReview'),client=reviewClient,user=reviewOwner;
+ const current=()=>user===actor()&&reviewOwner===user&&reviewClient===client&&dialog.open;
+ if(postingOwnerReceipts||!user||!client||button.hidden||!current())return;
+ postingOwnerReceipts=true;button.disabled=true;
+ const status=$('mappingReviewStatus');
+ let month='';
+ try{
+  for(let i=1;i<=10;i++){
+   if(!current())return;
+   month='2026-'+String(i).padStart(2,'0');
+   status.textContent='Checking owner receipts for '+month+'…';
+   const {data,error}=await client.rpc('phase8_owner_receipts_2026',{p_month:month+'-01'});
+   if(error||data?.period!==month+'-01')throw Error(error?.message||'The monthly receipt check did not finish.');
+  }
+  if(!current())return;
+  await readMappingReview();
+  if(current())status.textContent='Phase 8 owner receipts verified in their original months.';
+  if(current()&&typeof loadJournalFromSupabase==='function')await loadJournalFromSupabase();
+ }catch(error){
+  if(current())status.textContent=month+' · '+(error?.message||'Check the connection and retry.');
+ }finally{postingOwnerReceipts=false;button.disabled=false;}
+}
 async function deactivateReviewedMappings(){
  const button=$('mappingReviewRetire'),client=reviewClient,user=reviewOwner;
  const sameSession=()=>actor()===user&&(typeof ojmDb==='undefined'?null:ojmDb)===client;
@@ -238,6 +264,7 @@ function initMappingReview(){
  dialog.querySelector('[data-close-review]').onclick=()=>dialog.close();
  $('mappingReviewRefresh').onclick=readMappingReview;
  $('mappingReviewRent').onclick=correctNovemberRent;
+ $('mappingReviewOwnerReceipts').onclick=postOwnerReceipts;
  $('mappingReviewRetire').onclick=deactivateReviewedMappings;
  $('mappingReviewFilter').onchange=renderMappingReview;
  dialog.addEventListener('close',()=>{
