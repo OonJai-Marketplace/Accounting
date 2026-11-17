@@ -142,17 +142,18 @@ async function bulk(fixture) {
     await field('reference',i).fill('Ref '+(i+1));
     await field('memo',i).fill(['Kitchen items','Cash payment','Transport','Cash fare'][i]);
   }
+  await field('memo').fill('Journal batch');
   await pick(lineDate(1),'2026-11-04');
   assert.deepEqual(await receiptDates(),['2026-11-03','2026-11-04','2026-11-03','2026-11-03']);
-  assert.match(await page.locator('#liveReceiptBalance').innerText(),/1,200.00 credit/);
+  assert.match(await page.locator('#liveReceiptBalance').innerText(),/Balanced/);
   await pick(lineDate(1),'2026-11-03');
-  // Offsetting differences between same-day receipts must never cancel each other.
+  // The full journal can balance across cards. Each cash movement still has an assigned counterpart.
   await field('credit',1).fill('1100');
   await field('credit',3).fill('3500');
-  assert.match(await page.locator('[data-card-balance="0"]').innerText(),/100.00 credit/);
-  assert.match(await page.locator('[data-card-balance="1"]').innerText(),/100.00 debit/);
+  assert.match(await page.locator('[data-card-balance="0"]').innerText(),/Balanced in the full journal/);
+  assert.match(await page.locator('[data-card-balance="1"]').innerText(),/Balanced in the full journal/);
   await field('memo').fill('Journal batch');
-  assert.match(await page.locator('#entryValidation').innerText(),/unbalanced/);
+  assert.match(await page.locator('#entryValidation').innerText(),/complete entries/);
   await field('credit',1).fill('1200');
   await field('credit',3).fill('3400');
   await page.waitForFunction(()=>document.querySelector('#liveReceiptBalance').textContent.includes('receipts balanced'));
@@ -277,14 +278,13 @@ async function bulk(fixture) {
   for(const [i,acc,side,amount] of [[0,account,'debit','331000'],[2,account,'debit','31000'],[3,fund,'credit','362000']]){
     await field('account',i).selectOption(acc);await field(side,i).fill(amount);
   }
-  await page.getByRole('button',{name:'Use one petty-cash credit for these receipts'}).tap();
-  assert.equal(await page.locator('[data-receipt-card]').count(),1);
-  assert.match(await page.locator('#liveReceiptBalance').innerText(),/362,000.00 · Balanced/);
+  assert.equal(await page.locator('[data-receipt-card]').count(),2);
+  assert.match(await page.locator('#liveReceiptBalance').innerText(),/Balanced/);
   // Some keyboards commit a visible field just before submit without input/change.
-  await field('credit',2).evaluate(el=>{el.value='361,000'});
+  await field('credit',3).evaluate(el=>{el.value='361,000'});
   await page.locator('#postForm button[type=submit]').tap();
   assert.match(await page.locator('#notice').innerText(),/Add CR 1,000/);
-  await field('credit',2).evaluate(el=>{el.value='362,000'});
+  await field('credit',3).evaluate(el=>{el.value='362,000'});
   const common=page.waitForRequest(r=>r.url().includes('/rpc/save_staff_editor1437')&&r.postDataJSON().p_snapshot.memo==='Shared cash across cards');
   await page.locator('#postForm button[type=submit]').tap();
   assert.deepEqual((await common).postDataJSON().p_items.map(i=>i.amount),[331000,31000]);

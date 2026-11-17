@@ -1,5 +1,5 @@
   function connectionDialog(){const dialog=$('dialog');dialog.close();dialog.classList.add('phone-connection14246');$('dialogBody').innerHTML='<h2>Connection & sync</h2><p>Saved entries sync automatically. Unfinished form edits stay on this device until saved.</p><section class="sync-section14246"><h3>Connection</h3><p>'+esc(navigator.onLine?(S.online?'Online':'Limited connection'):'Offline')+'</p></section><section class="sync-section14246"><h3>Website files · v'+esc(VERSION)+'</h3><p>'+esc(S.shellReady?'Downloaded for reopening without connection.':'Still preparing for offline reopening.')+'</p>'+(window.ReceiptNative214?.available?'':'<a href="update.html">Check for app update</a>')+'</section><section class="sync-section14246"><h3>Device entries · '+queue().length+'</h3>'+(queue().map(q=>'<article class="sync-entry14246"><strong>'+esc(q.draft.date+' · '+q.draft.memo)+'</strong><p>'+esc(q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Waiting to sync')+'</p>'+(q.message?'<p>'+esc(q.message)+'</p>':'')+'<small>Reference: '+esc(q.key)+'</small></article>').join('')||'<p>No device entries waiting to sync.</p>')+'</section>';$('dialogButtons').innerHTML='<button class="btn" value="close">Close</button>';dialog.onclose=()=>dialog.classList.remove('phone-connection14246');dialog.showModal();}
-  async function handle(name,index){const owner=S.owner,epoch=S.epoch;try{
+  async function handle(name,index,journalParent){const owner=S.owner,epoch=S.epoch;try{
     if(name==='protocols'){
       if(!S.owner)return;
       $('accountMenu').hidden=true;
@@ -11,31 +11,34 @@
     }
     if(name==='issue-receipt')return await openReceipt245();
     if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
-    if(name==='reopen-correction'){const j=headers().filter(j=>cashierMonthAllows(j.period_start)&&j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
+    if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='switch-method'){
       readPhoneForm();
       if(!changeMode243(S.draft.mode==='single'?'double':'single'))return;
     }
-    const d=S.draft, single=d.mode==='single', rows=single?d.single:d.lines;
+    const d=S.draft;
+    const editor=journalParent==null ? d : {...d, mode:'double', lines:d.single[journalParent].journalLines};
+    const single=editor.mode==='single', rows=single?editor.single:editor.lines;
     if(name==='split-receipt'||name==='remove-part'){
       readPhoneForm();
-      if (name==='split-receipt') addReceiptPart(d,index);
-      else removeReceiptPart(d,index);
+      if (name==='split-receipt') addReceiptPart(editor,index);
+      else removeReceiptPart(editor,index);
     }
-    if(name==='entry-date'||name==='line-date'){
+    if(name==='entry-date'||name==='line-date'||name==='fund-date'){
       const perLine=name==='line-date';
-      const chosen=await chooseReceiptDate(perLine?cardDate(d,rows[index]):d.date,d.multiple);
+      const chosen=await chooseReceiptDate(name==='fund-date'?rows[index].fundDate:perLine?cardDate(d,rows[index]):d.date,d.multiple);
       if(!chosen||!current(owner,epoch)||S.draft!==d||S.saving)return;
       if(chosen.multiple!==d.multiple){
         identifyReceipts(d);
         d.multiple=chosen.multiple;d.date=chosen.date;
-        const datedRows = rows.flatMap(row=>row.journalLines || [row]);
-        if (single && rows.some(row=>row.split)) datedRows.push(...d.lines);
+        const datedRows = [...d.lines, ...d.single.flatMap(row=>row.journalLines || [row])];
         for(const row of datedRows){
           if(d.multiple)row.date=d.date;
-          else {delete row.date;if(row.reference===d.reference)delete row.reference;}
+          else {delete row.date;delete row.fundDate;if(row.reference===d.reference)delete row.reference;}
         }
+      }else if(name==='fund-date'){
+        rows[index].fundDate=chosen.date;
       }else if(perLine){
         const parent=rows[index];
         for(const row of rows)if(row===parent || parent.splitGroup && row.splitGroup===parent.splitGroup)row.date=chosen.date;
@@ -68,7 +71,7 @@
       for(const i of [...indices].reverse())rows.splice(i,1);
     }
     if(name==='remove-line'&&!single){
-      const group=receiptCards(d).find(group=>group.includes(index));
+      const group=receiptCards(editor).find(group=>group.includes(index));
       if(group?.length>2)rows.splice(index,1);
     }
     if(name==='clear-draft'){if(draftFilled()&&!await confirmDialog('Clear the draft?','This only clears the unfinished form. Saved and pending entries are kept.','Clear'))return;if(!current(owner,epoch))return;S.draft=blankDraft();}

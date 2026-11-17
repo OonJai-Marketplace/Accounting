@@ -140,7 +140,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.432', $ = id => document.getElementById(id);
+  const VERSION = '143.433', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -244,11 +244,6 @@ function appLocalDate(date=new Date()) {
   }
   const modeKey243=()=> 'ojm-phone-entry-mode243:'+scope+':'+S.actor+':'+S.owner;
   function preferredMode243(){try{const value=localStorage.getItem(modeKey243());if(['single','double'].includes(value))return value}catch{}const p=(S.owner!==S.actor?S.data.target?.permissions:S.data.access?.permissions)||{};return p.workspace_entry_mode240==='cashbook'?'single':'double';}
-  const cashierBusinessMonth=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit'});
-function cashierMonthAllows(date) {
-    const permission = S.owner===S.actor ? S.data.access?.permissions : S.data.target?.permissions;
-    return String(permission?.job_title||'').trim().toLowerCase()!=='cashier'||String(date).slice(0,7)===cashierBusinessMonth.format(new Date());
-  }
   function rules() {
     const p = (S.owner!==S.actor?S.data.target?.permissions:S.data.access?.permissions) || {};
     return {offersBothMethods:p.workspace_entry_mode240==='both',entryMode:preferredMode243()==='single'?'cashbook':'double_full',directions:(p.allowed_directions?.length ? p.allowed_directions : ['out']).filter(x => ['in','out'].includes(x)), fundIds:(p.assigned_fund_account_ids || []).filter(Boolean), entryIds:(p.destination_account_ids?.length ? p.destination_account_ids : p.allowed_account_ids || []).filter(Boolean), counterpart:p.money_in_counterpart_account_id || '', multiple:!!p.allow_multiple_funds};
@@ -274,6 +269,12 @@ function cashierMonthAllows(date) {
   function blankDraft() { const r = rules(); return {mode:r.entryMode==='double_full'?'double':'single', date:today(), multiple:false, memo:'', reference:'', requestKey:'phone-' + crypto.randomUUID(), editIds:[], single:[{direction:r.directions[0] || 'out', source:r.fundIds.length === 1 ? r.fundIds[0] : '', affected:'', amount:'', memo:''}], lines:[{account:'',debit:'',credit:'',memo:''},{account:'',debit:'',credit:'',memo:''}]}; }
   function normalizeDraft(value){const d={...blankDraft(),...value};d.single=Array.isArray(d.single)&&d.single.length?d.single:blankDraft().single;d.lines=Array.isArray(d.lines)&&d.lines.length?d.lines:blankDraft().lines;
     if(value?.multiple==null)d.multiple=(d.mode==='double'?d.lines:d.single).some(line=>line.date&&line.date!==d.date);
+    if (d.mode === 'single' && d.single.some(row => row.journalLines)) {
+      const retained = d.single.filter(row=>row.journalLines);
+      const receipts = new Set(retained.map(row=>row.receipt));
+      d.lines = [...d.lines.filter(l=>!receipts.has(l.receipt)), ...retained.flatMap(row=>row.journalLines)];
+      d.single = d.single.flatMap(row => row.journalLines ? cashbookReceiptRows(d, row.journalLines, row) : [row]);
+    }
     return d;}
   const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
   function payloadDraft(p){return normalizeDraft({mode:'single',date:p.p_items[0].date,memo:p.p_snapshot.memo||p.p_items[0].memo,reference:p.p_snapshot.reference||'',requestKey:p.p_key,editIds:p.p_edit_ids||[],single:p.p_items.map(l=>({date:l.date,direction:l.direction,source:l.fund,affected:l.account,amount:String(l.amount),memo:l.memo||''}))});}
@@ -311,7 +312,8 @@ function cashierMonthAllows(date) {
   // Match the two sides by their accounts and typed amounts, even if the user
   // has entered only one side or entered the credit first.
   function cashbookPair(draft, lines, previous) {
-    if (lines.length > 2 || lines.some(l=>l.splitGroup)) return null;
+    lines = pairCandidates(lines);
+    if (!lines.length || lines.length > 2 || lines.some(l=>l.splitGroup)) return null;
     const r = rules(), [first, second = {}] = lines;
     const defaults = lines.some(l => l.debit || l.credit) ? ['out','in'] : r.directions;
     const directions = [...new Set([previous?.direction, ...defaults])].filter(dir => r.directions.includes(dir));
@@ -322,10 +324,10 @@ function cashierMonthAllows(date) {
         if ((fund.account && !r.fundIds.includes(fund.account)) || (category.account && !r.entryIds.includes(category.account))) continue;
         if (debit.credit || credit.debit) continue;
         if (debit.debit && credit.credit && Number(String(debit.debit).replaceAll(',','')) !== Number(String(credit.credit).replaceAll(',',''))) continue;
-        if (fund.memo && category.memo && fund.memo !== category.memo) continue;
-        if (fund.reference != null && category.reference != null && fund.reference !== category.reference) continue;
-        const started = l => l.splitGroup || l.account || l.debit || l.credit || l.memo || l.reference != null || l.date;
-        if (draft.multiple && started(fund) && started(category) && cardDate(draft,fund) !== cardDate(draft,category)) continue;
+        const separateMemo = fund.memo && category.memo && fund.memo !== category.memo;
+        const separateRef = fund.reference != null && category.reference != null && fund.reference !== category.reference;
+        const separateDate = draft.multiple && journalLineEntered(fund) && journalLineEntered(category) &&
+          cardDate(draft,fund) !== cardDate(draft,category);
         const source = fund.account || (r.fundIds.length === 1 ? r.fundIds[0] : '');
         if (category.account && source && (source === category.account || currency(source) !== currency(category.account))) continue;
         const reference = category.reference ?? fund.reference;
@@ -333,7 +335,10 @@ function cashierMonthAllows(date) {
           receipt:first.receipt, direction, source, affected:category.account || '',
           amount:debit.debit || credit.credit || '', memo:category.memo || fund.memo || '',
           ...(reference == null ? {} : {reference}),
-          ...(draft.multiple ? {date:category.date ?? fund.date ?? draft.date} : {})
+          ...(separateMemo ? {fundMemo:fund.memo} : {}),
+          ...(separateDate ? {fundDate:cardDate(draft,fund)} : {}),
+          ...(separateRef ? {fundReference:fund.reference} : {}),
+          ...(draft.multiple ? {date:(journalLineEntered(category) ? category.date ?? fund.date : fund.date ?? category.date) ?? draft.date} : {})
         }};
       }
     }
@@ -342,6 +347,9 @@ function cashierMonthAllows(date) {
 
   function journalPair(draft, row, original) {
     const receipt = row.receipt || crypto.randomUUID();
+    if (!cashbookLineEntered(row, rules().fundIds)) {
+      return blankDraft().lines.map(line=>({...line,receipt,...(draft.multiple?{date:cardDate(draft,row)}:{})}));
+    }
     const pair = original && cashbookPair(draft, original, row);
     const out = row.direction === 'out';
     const makeLine = (side, before = {}) => {
@@ -354,7 +362,9 @@ function cashierMonthAllows(date) {
         if (row.reference == null) delete line.reference;
         else line.reference = row.reference;
       }
-      if (draft.multiple) line.date = row.date ?? draft.date;
+      if (row.fundMemo != null) line.memo = debit === out ? row.memo : row.fundMemo;
+      if (row.fundReference != null) line.reference = debit === out ? row.reference : row.fundReference;
+      if (draft.multiple) line.date = (debit === out ? row.date : row.fundDate ?? row.date) ?? draft.date;
       else delete line.date;
       return line;
     };
@@ -362,7 +372,7 @@ function cashierMonthAllows(date) {
     const debitBefore = reversed ? pair.credit : pair?.debit, creditBefore = reversed ? pair.debit : pair?.credit;
     const debit = makeLine('debit', debitBefore), credit = makeLine('credit', creditBefore);
     if (row.splitGroup) Object.assign(out ? debit : credit, {splitGroup:row.splitGroup,splitNumber:row.splitNumber,splitLabel:row.splitLabel,splitSide:out?'debit':'credit'});
-    return pair && original[0] === creditBefore ? [credit, debit] : [debit, credit];
+    return pair && pairCandidates(original)[0] === creditBefore ? [credit, debit] : [debit, credit];
   }
 
   // Several expense lines can share a single payment. Only infer that payment
@@ -375,7 +385,7 @@ function cashierMonthAllows(date) {
       if (categories.length < 2 || lines.length - categories.length > 1) continue;
       const remaining = lines.filter(l => !categories.includes(l));
       const fund = remaining[0] || {};
-      if (fund[side] || fund.memo || fund.reference != null && fund.reference !== draft.reference) continue;
+      if (fund[side]) continue;
       if (fund.account && !r.fundIds.includes(fund.account)) continue;
       const source = fund.account || (r.fundIds.length === 1 ? r.fundIds[0] : '');
       const c = currency(categories.find(l=>l.account)?.account || source);
@@ -384,7 +394,10 @@ function cashierMonthAllows(date) {
       if (total == null && !categories.some(l => l.splitGroup) || fund[other] && (total == null || cashbookTotal([fund[other]]) !== total)) continue;
       return categories.map(l => ({receipt:l.receipt, split:side, direction, source, affected:l.account || '', amount:l[side] || '',
         ...(l.splitGroup ? {splitGroup:l.splitGroup,splitNumber:l.splitNumber} : {}),
-        memo:l.memo || '', ...((l.reference ?? fund.reference) == null ? {} : {reference:l.reference ?? fund.reference}),
+        memo:l.memo || '', ...(l.reference == null ? {} : {reference:l.reference}),
+        ...(l === categories[0] && draft.multiple && fund.account && categories.some(c=>cardDate(draft,c)!==cardDate(draft,fund)) ? {fundDate:cardDate(draft,fund)} : {}),
+        ...(l === categories[0] && fund.memo ? {fundMemo:fund.memo} : {}),
+        ...(l === categories[0] && fund.reference != null ? {fundReference:fund.reference} : {}),
         ...(draft.multiple ? {date:cardDate(draft,l)} : {})}));
     }
     return null;
@@ -402,7 +415,7 @@ function cashierMonthAllows(date) {
 
   function splitJournalLines(draft, rows) {
     const first = rows[0], receipt = first.receipt;
-    const original = draft.lines.filter(l => l.receipt === receipt);
+    const original = draft.lines.filter(l => l.receipt === receipt && journalLineEntered(l));
     const total = cashbookTotal(rows.map(l => l.amount));
     // Different funds or an incomplete edit need independent balancing lines.
     if ((total == null && !rows.some(l => l.splitGroup)) || rows.some(l => l.direction !== first.direction || l.source !== first.source)) {
@@ -419,14 +432,40 @@ function cashierMonthAllows(date) {
       return rows.flatMap((l,i) => journalPair(draft, {...l, receipt:receipt + '-part-' + i}));
     }
     const out = first.direction === 'out';
-    const categories = rows.map(l => journalPair(draft,l)[out ? 0 : 1]);
+    const categories = rows.map(l => {
+      const line = journalPair(draft,l)[out ? 0 : 1];
+      line.memo = l.memo || '';
+      if (l.reference == null) delete line.reference;
+      else line.reference = l.reference;
+      return line;
+    });
     const originalFund = original.findIndex(l => !l.splitGroup && !l[first.split]);
     const before = originalFund < 0 ? {} : original[originalFund];
-    const fund = {...before, receipt, account:first.source, debit:out ? '' : total || '', credit:out ? total || '' : '', memo:before.memo || ''};
-    if (draft.multiple) fund.date = before.date ?? first.date ?? draft.date;
+    const fund = {...before, receipt, account:first.source, debit:out ? '' : total || '', credit:out ? total || '' : '', memo:first.fundMemo ?? before.memo ?? ''};
+    if (first.fundReference != null) fund.reference=first.fundReference;
+    if (draft.multiple) fund.date = first.fundDate ?? before.date ?? first.date ?? draft.date;
     else delete fund.date;
     categories.splice(originalFund < 0 ? categories.length : originalFund, 0, fund);
     return categories;
+  }
+
+  function journalLineEntered(line) {
+    return !!(line.account || line.debit || line.credit || line.memo?.trim() || line.reference?.trim() || line.splitGroup);
+  }
+
+  // Keep the position of an unfinished two-line pair. Extra date-only slots
+  // are form scaffolding and do not create a payment or a dated posting.
+  function pairCandidates(lines) {
+    if (lines.length <= 2) return lines;
+    const entered = lines.filter(journalLineEntered);
+    return entered.length ? entered : lines.slice(0, 2);
+  }
+
+  function cashbookReceiptRows(draft, original, previous) {
+    const lines = pairCandidates(original);
+    const pair = cashbookPair(draft, lines, previous);
+    if (pair) return [{...(previous?.description == null ? {} : {description:previous.description}), ...pair.row}];
+    return splitPaymentRows(draft,lines) || [{receipt:original[0]?.receipt, journalLines:original}];
   }
 
   function changeMode243(next) {
@@ -435,13 +474,30 @@ function cashierMonthAllows(date) {
     if (next !== d.mode) {
       if (next === 'single') {
         const previous = new Map(d.single.map(row => [row.receipt, row]));
-        d.single = identifyReceipts(d).flatMap(indices => {
+        let cards=identifyReceipts(d);
+        // A payment entered across cards must be paired before converting:
+        // independently completing both half-receipts would duplicate the amount.
+        if (cards.length>1) {
+          const open=cards.filter(indices=>{
+            const sums=new Map();
+            for(const i of indices){
+              const l=d.lines[i], c=currency(l.account);
+              if(!c)continue;
+              const cents=v=>Math.round(Number(String(v||0).replaceAll(',',''))*100);
+              sums.set(c,(sums.get(c)||0)+cents(l.debit)-cents(l.credit));
+            }
+            return [...sums.values()].some(n=>n!==0);
+          });
+          const entered=open.flat().map(i=>d.lines[i]).filter(journalLineEntered);
+          if(open.length>1 && entered.some(l=>l.debit) && entered.some(l=>l.credit)){
+            const receipt=entered[0].receipt;
+            for(const indices of open)for(const i of indices)d.lines[i].receipt=receipt;
+            cards=identifyReceipts(d);
+          }
+        }
+        d.single = cards.flatMap(indices => {
           const lines = indices.map(i => d.lines[i]), receipt = lines[0].receipt;
-          const old = previous.get(receipt), pair = cashbookPair(d, lines, old);
-          // A compound receipt or distinct line details can still travel with
-          // a Cashbook draft. Keep its original rows and validation together.
-          if (!pair) return splitPaymentRows(d,lines) || [{receipt, journalLines:lines}];
-          return {...(old?.description == null ? {} : {description:old.description}), ...pair.row};
+          return cashbookReceiptRows(d, lines, previous.get(receipt));
         });
       } else {
         const original = new Map();
@@ -503,7 +559,7 @@ function cashierMonthAllows(date) {
     $('adminNav').hidden=!isAdmin();if($('issueReceipt245'))$('issueReceipt245').hidden=!isAdmin();$('userTabs').hidden=true;$('bottom').hidden=$('bottom').hidden||S.area!=='users';
     document.querySelector('.brand small').textContent='Marketplace';
     for(const b of $('adminNav').querySelectorAll('[data-area]'))b.classList.toggle('active',b.dataset.area===S.area);
-    for (const b of $('bottom').querySelectorAll('[data-page]')) {let badge=b.querySelector('.returned-badge14347');const count=b.dataset.page==='entries'?headers().filter(j=>cashierMonthAllows(j.period_start)&&j.status==='returned').length:0;if(count){if(!badge){badge=document.createElement('span');badge.className='returned-badge14347';b.append(badge)}badge.textContent=String(count);badge.setAttribute('aria-label',count+' submissions returned for correction');}else badge?.remove(); b.classList.toggle('active', b.dataset.page === (S.page==='history'?'entries':S.page)); b.setAttribute('aria-current', b.dataset.page === (S.page==='history'?'entries':S.page) ? 'page' : 'false'); }
+    for (const b of $('bottom').querySelectorAll('[data-page]')) {let badge=b.querySelector('.returned-badge14347');const count=b.dataset.page==='entries'?headers().filter(j=>j.status==='returned').length:0;if(count){if(!badge){badge=document.createElement('span');badge.className='returned-badge14347';b.append(badge)}badge.textContent=String(count);badge.setAttribute('aria-label',count+' submissions returned for correction');}else badge?.remove(); b.classList.toggle('active', b.dataset.page === (S.page==='history'?'entries':S.page)); b.setAttribute('aria-current', b.dataset.page === (S.page==='history'?'entries':S.page) ? 'page' : 'false'); }
     for(const b of $('workspace').querySelectorAll('[data-action=refresh]')){b.disabled=S.loading;b.textContent=S.loading?'Updating…':'Refresh';}
   }
   function sessionGate(message = '') {
@@ -657,10 +713,10 @@ function cashierMonthAllows(date) {
   }
   const reopened14348=new Set();
   const correctionKey14348=j=>S.actor+':'+S.owner+':'+j.id;
-  const editable14348=j=>cashierMonthAllows(j.period_start)&&(j.status==='draft'||j.status==='returned'&&reopened14348.has(correctionKey14348(j)));
-  function returnedReview14348(){if(S.page!=='entries')return '';const returned=headers().filter(j=>cashierMonthAllows(j.period_start)&&j.status==='returned'&&!reopened14348.has(correctionKey14348(j)));return returned.length?'<section class="card"><h2>Review <span class="returned-badge14347">'+returned.length+'</span></h2>'+returned.map((j,i)=>'<article><p><strong>'+esc(j.period_start)+'</strong></p><p>'+esc(j.return_note||'Returned for correction')+'</p>'+action('reopen-correction','Reopen for correction','data-index="'+i+'"')+'</article>').join('')+'</section>':'';}
+  const editable14348=j=>(j.status==='draft'||j.status==='returned'&&reopened14348.has(correctionKey14348(j)));
+  function returnedReview14348(){if(S.page!=='entries')return '';const returned=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)));return returned.length?'<section class="card"><h2>Review <span class="returned-badge14347">'+returned.length+'</span></h2>'+returned.map((j,i)=>'<article><p><strong>'+esc(j.period_start)+'</strong></p><p>'+esc(j.return_note||'Returned for correction')+'</p>'+action('reopen-correction','Reopen for correction','data-index="'+i+'"')+'</article>').join('')+'</section>':'';}
   function groupEntries() {
-    const visible=S.printing14294?monthHeaders():S.page==='entries'?headers().filter(editable14348):monthHeaders().filter(j=>!['draft','returned'].includes(j.status)||!cashierMonthAllows(j.period_start));
+    const visible=S.printing14294?monthHeaders():S.page==='entries'?headers().filter(editable14348):monthHeaders().filter(j=>!['draft','returned'].includes(j.status));
     const batches=new Map(visible.map(j=>[j.id,j])),groups=new Map();
     const rows=S.page==='entries'?Object.values(S.data.months||{}).flatMap(m=>m.lines||[]):lines();
     for(const l of rows.filter(l=>batches.has(l.staff_journal_id)&&!l.voided_at&&l.status!=='voided')){const snapshot=l.editor_snapshot1437;
@@ -818,7 +874,9 @@ function cashierMonthAllows(date) {
   }
 
   function sharedReceiptPayment(draft, lines) {
-    if (!draft.multiple || draft.mode !== 'double' || new Set(lines.map(row => row.date ?? draft.date)).size < 2) return null;
+    if (!draft.multiple || draft.mode !== 'double') return null;
+    lines = lines.filter(journalLineEntered);
+    if (new Set(lines.map(row => row.date ?? draft.date)).size < 2) return null;
     try { return StaffEntry14225.sharedPayment(draft, lines, accounts(), rules()); }
     catch { return null; } // Invalid or partially typed amounts use normal line validation.
   }
@@ -829,11 +887,7 @@ function cashierMonthAllows(date) {
     if (draft.mode !== 'double' || cards.length < 2) return null;
     const rows = [];
     for (const indices of cards) {
-      const entered = indices.map(i => draft.lines[i]).filter(row =>
-        row.account || row.debit || row.credit || row.memo || row.reference);
-      if (!entered.length) return null;
-      const dates = new Set(entered.map(row => cardDate(draft,row)));
-      if (indices.some(i => !dates.has(cardDate(draft,draft.lines[i])))) return null;
+      const entered = indices.map(i => draft.lines[i]).filter(journalLineEntered);
       rows.push(...entered);
     }
     try {
@@ -842,6 +896,13 @@ function cashierMonthAllows(date) {
         plan.totalCents === Math.round(Number(String(plan.fundLine.credit).replaceAll(',', '')) * 100) ? {rows,plan} : null;
     } catch { return null; }
   }
+  function cashbookLineEntered(row, funds) {
+    return row.journalLines?.some(journalLineEntered) || row.splitGroup || row.affected || row.amount ||
+      row.memo?.trim() || row.description?.trim() || row.reference?.trim() ||
+      row.fundMemo?.trim() || row.fundReference?.trim() ||
+      row.source && !(funds.length === 1 && row.source === funds[0]);
+  }
+
   function preparePhoneEntry(draft, keepLabels=false) {
     draft={...draft,receiptEditor341:true};
     const list=draft.mode==='double'?'lines':'single', parts=[];
@@ -849,12 +910,21 @@ function cashierMonthAllows(date) {
     draft[list]=draft[list].map((row,i)=>row.splitGroup ? {...row,splitLabel:keepLabels && row.splitLabel || labels[i].number+labels[i].suffix} : row);
     if (draft[list].some(l=>l.splitGroup && !(draft.mode==='double' ? l.debit || l.credit : l.amount)))
       throw Error('Enter an amount for each split line, or remove the unused line.');
-    const cards=receiptCards(draft);
+    const cards=receiptCards(draft), funds=rules().fundIds, unmatched=[];
     // The personal journal posts balanced movements for each date and currency.
     // Keep separate receipts distinct even when they share a date.
-    cards.forEach((indices,i)=>{
-      const row = draft.mode === 'single' && draft.single[indices[0]];
-      const retained = row && (row.journalLines || row.split && splitJournalLines(draft, indices.map(i => draft.single[i])));
+    function prepareCard(indices){
+      const active = indices.map(index => draft[list][index]).filter(row => draft.mode === 'double' ?
+        journalLineEntered(row) : cashbookLineEntered(row, funds));
+      if (!active.length) return;
+      if (draft.mode === 'double' && active.some(line=>!line.account))
+        throw Error('Choose an account for each journal line you have started.');
+      if (draft.mode === 'single' && active.some(line=>!line.journalLines && !line.amount))
+        throw Error('Enter an amount for each receipt you have started.');
+      const row = draft.mode === 'single' && active[0];
+      const pairDetails = row && (row.fundMemo != null || row.fundReference != null || row.fundDate != null);
+      const retained = row && (row.journalLines || (row.split ? splitJournalLines(draft, active) :
+        pairDetails && journalPair(draft, row, draft.lines.filter(l=>l.receipt===row.receipt))));
       if (retained) {
         const prepared = preparePhoneEntry({...draft, mode:'double', lines:retained},!!row.split);
         const snapshots = prepared.snapshot.receiptCards341;
@@ -862,15 +932,14 @@ function cashierMonthAllows(date) {
         else parts.push(prepared);
         return;
       }
-      const shared = sharedReceiptPayment(draft, indices.map(index => draft[list][index]));
+      const shared = sharedReceiptPayment(draft, active);
       if (shared) {
-        try { parts.push(...StaffEntry14225.datedPaymentParts(draft, shared, accounts(), rules())); }
-        catch (error) { throw Error((cards.length > 1 ? 'Receipt ' + (i+1) + ' · ' : '') + error.message); }
+        parts.push(...StaffEntry14225.datedPaymentParts(draft, shared, accounts(), rules()));
         return;
       }
       const days=new Map();
-      for(const index of indices){
-        const row=draft[list][index],date=cardDate(draft,row);
+      for(const row of active){
+        const date=cardDate(draft,row);
         if(!days.has(date))days.set(date,[]);
         days.get(date).push(row);
       }
@@ -883,15 +952,67 @@ function cashierMonthAllows(date) {
         const incoming = prior && r.directions.includes('in') && r.fundIds.includes(prior.source) && r.entryIds.includes(prior.affected) &&
           rows.some(l => l.account === prior.source && l.debit && !l.credit) &&
           rows.some(l => l.account === prior.affected && l.credit && !l.debit);
-        try{parts.push(StaffEntry14225.prepare({...draft,date,[list]:rows},accounts(),incoming ? {...r,directions:['in']} : r));}
-        catch(error){throw Error((cards.length>1?'Receipt '+(i+1)+' · ':'')+error.message);}
+        parts.push(StaffEntry14225.prepare({...draft,date,[list]:rows},accounts(),incoming ? {...r,directions:['in']} : r));
+      }
+    }
+    let originalError;
+    const order=new Map();
+    cards.forEach((indices,i)=>{
+      const start=parts.length;
+      try { prepareCard(indices); parts.slice(start).forEach(part=>order.set(part,i)); }
+      catch(error) {
+        const message=(cards.length>1?'Receipt '+(i+1)+' · ':'')+error.message;
+        if(draft.mode!=='double' || error.code!=='STAFF_JOURNAL_MATCH')throw Error(message);
+        originalError ||= Error(message);
+        parts.length=start;
+        unmatched.push(...indices.map(index=>draft.lines[index]).filter(journalLineEntered));
       }
     });
+    if(unmatched.length){
+      try {
+        const cardOrder=new Map(cards.map((indices,i)=>[draft.lines[indices[0]].receipt,i]));
+        for(const part of allocatePhoneReceipts(draft,unmatched)){
+          order.set(part,cardOrder.get(part.snapshot.receipt));
+          parts.push(part);
+        }
+        parts.sort((a,b)=>order.get(a)-order.get(b));
+      }
+      catch(error){if(cards.length===1 && error.code==='STAFF_JOURNAL_MATCH')throw originalError;throw error;}
+    }
     if(parts.length===1)return parts[0];
-    if(!parts.length)return StaffEntry14225.prepare(draft,accounts(),rules());
+    if(!parts.length)return StaffEntry14225.prepare({...draft,[list]:[]},accounts(),rules());
     const items=parts.flatMap(p=>p.items);
     return {items,snapshot:{mode:draft.mode,date:draft.date,memo:draft.memo.trim(),reference:draft.reference||'',
       multiple:!!draft.multiple,components1437:items,receiptCards341:parts.map(p=>p.snapshot)}};
+  }
+
+  // Keep already balanced receipt cards independent. For the remaining lines,
+  // allocate each fund against its category once and keep both entered dates.
+  function allocatePhoneReceipts(draft,lines) {
+    const allocations=[];
+    const prepared=StaffEntry14225.prepare({...draft,lines},accounts(),rules(),(debit,credit,category,amount)=>{
+      allocations.push({debit,credit,category,amount});
+    });
+    const groups=new Map(), positions=new Map(lines.map((l,i)=>[l,i]));
+    allocations.forEach(({debit,credit,category,amount},i)=>{
+      const item=prepared.items[i], key=JSON.stringify([category.receipt,item.date]);
+      if(!groups.has(key))groups.set(key,{date:item.date,receipt:category.receipt,items:[],amounts:new Map(),splitParts:{}});
+      const g=groups.get(key);
+      const split=prepared.snapshot.splitParts?.[i];
+      if(split)g.splitParts[g.items.length]=split;
+      g.items.push(item);
+      for(const l of [debit,credit])g.amounts.set(l,(g.amounts.get(l)||0)+Math.round(amount*100));
+    });
+    return [...groups.values()].map(({date,receipt,items,amounts,splitParts})=>{
+      const rows=[...amounts.keys()].sort((a,b)=>positions.get(a)-positions.get(b)).map(line=>{
+        const original=prepared.snapshot.rows[positions.get(line)], value=amounts.get(line)/100;
+        const currency=Object.keys(original.credits)[0];
+        return {...original, dr:original.dr?value:'', credits:{[currency]:original.dr?'':value},
+          ...(original.dr===value || original.credits[currency]===value ? {} : {enteredAmount:original.dr || original.credits[currency]})};
+      });
+      const {splitParts:unused,...base}=prepared.snapshot;
+      return {items,snapshot:{...base,date,receipt,rows,components1437:items,...(Object.keys(splitParts).length?{splitParts}:{}),allocatedReceipt:true}};
+    });
   }
   function options(ids,selected='') { return '<option value="">Choose account</option>'+accounts().filter(a=>ids.includes(a.id)&&a.isPosting!==false&&a.isActive!==false).map(a=>`<option value="${esc(a.id)}" ${a.id===selected?'selected':''}>${esc(symbol(a.currency)+' '+a.code+' — '+cleanName(a.id))}</option>`).join(''); }
   function field(label,input){return `<div class="field"><label>${label}${input}</label></div>`;}
@@ -900,68 +1021,69 @@ function cashierMonthAllows(date) {
     if(!S.data.savedAt)return '<h1>Post entry</h1>'+empty('Download your assigned accounts once before gathering entries offline.')+action('refresh','Try loading accounts','',true);
     S.draft ||= blankDraft();
     const d=S.draft,r=rules(),disabled=S.saving?'disabled':'',single=d.mode==='single',rows=single?d.single:d.lines,cards=identifyReceipts(d);
-    const labels=numberedReceiptLines(rows);
     const splitIcon='<svg aria-hidden="true" width="15" height="15" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 16V5m0 7c5 0 9-2 9-7M2 7l3-3 3 3m3 0 3-3 3 3"/></svg>';
     const input=(key,value,index,attrs='')=>`<input data-field="${key}" ${index==null?'':'data-index="'+index+'"'} ${attrs} value="${esc(value)}" ${disabled}>`;
     const amountInput=(key,value,i)=>'<span class="phone-amount">'+
       input(key,Receipt245.groupAmount(value ?? ''),i,'inputmode="decimal"')+
       '<span class="phone-amount-display" aria-hidden="true" hidden></span></span>';
-    const select=(label,key,i,ids)=>field(label,`<select data-field="${key}" data-index="${i}" ${disabled}>${options(ids,rows[i][key])}</select>`);
     const button=(name,label,attrs='')=>action(name,label,attrs+' '+disabled);
     const method=single?'Cashbook':'Double Entry',next=single?'Double Entry':'Cashbook';
     const switcher=button('switch-method',esc(method)+' <span aria-hidden="true">⇄</span>','data-mode="'+d.mode+'" aria-label="'+method+' — switch to '+next+'"');
     const editableRows = single ? rows.filter(row => !row.journalLines) : [];
     const direction=editableRows.length?`<div class="receipt-segments" aria-label="Cash movement">${['out','in'].map(dir=>button('direction-'+dir,'Money '+dir,'aria-pressed="'+(editableRows.every(row=>row.direction===dir))+'" '+(r.directions.includes(dir)?'':'disabled'))).join('')}</div>`:'';
     const calendarIcon='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 10h18"/></svg>';
-    function dateReference(i) {
-      const perLine=i!==undefined, row=perLine?rows[i]:null;
+    function dateReference(i,row) {
+      const perLine=i!==undefined;
       const date=perLine?cardDate(d,row):d.date, text=dateLabel(date);
       const picker=button(perLine?'line-date':'entry-date',calendarIcon+'<strong>'+esc(text)+'</strong>',
         'data-value="'+esc(date)+'" aria-haspopup="dialog" aria-label="Choose date'+(perLine?' for line '+(i+1):' for all lines')+' · '+esc(text)+'"'+(perLine?' data-index="'+i+'"':''));
       return '<div class="receipt-date-reference"><div class="field"><span>Date</span>'+picker+'</div>'+
         field('Reference',input('reference',perLine?(row.reference??d.reference):d.reference,i))+'</div>';
     }
-    function line(i,indices) {
-      const row=rows[i],memo=field('Line memo',input('memo',row.memo,i));
-      if (single && row.journalLines) {
-        const retainedLabels=numberedReceiptLines(row.journalLines);
-        const details = row.journalLines.map((l,j) => {
-          const values = [l.splitGroup && 'Split '+retainedLabels[j].number+retainedLabels[j].suffix, l.account ? name(l.account) : 'Choose account',
-            l.debit && 'Debit ' + Receipt245.groupAmount(l.debit),
-            l.credit && 'Credit ' + Receipt245.groupAmount(l.credit),
-            d.multiple && dateLabel(cardDate(d,l)), (l.reference ?? d.reference) && 'Ref ' + (l.reference ?? d.reference), l.memo];
-          return '<li>' + values.filter(Boolean).map(esc).join(' · ') + '</li>';
-        }).join('');
-        return '<strong>Double Entry lines</strong><ul>' + details + '</ul><p>Switch to Double Entry to edit these lines.</p>';
+    function renderCards(rows, single, cards, parentIndex) {
+      const labels=numberedReceiptLines(rows);
+      const select=(label,key,i,ids)=>field(label,`<select data-field="${key}" data-index="${i}" ${disabled}>${options(ids,rows[i][key])}</select>`);
+      function line(i,indices) {
+        const row=rows[i],memo=field('Line memo',input('memo',row.memo,i));
+        if (single && row.journalLines) {
+          const indices = row.journalLines.map((_,j)=>j);
+          return '<div data-journal-parent="'+i+'"><h2>Double Entry lines</h2>'+
+            renderCards(row.journalLines, false, [indices], i)+'</div>';
+        }
+        const dating=row.splitGroup?'':d.multiple?dateReference(i,row):row.reference!=null&&row.reference!==d.reference?field('Line reference',input('reference',row.reference,i)):'';
+        const partLabel=labels[i].number+(labels[i].suffix || '');
+        const splitButton=button('split-receipt',splitIcon+' Split','data-index="'+i+'" aria-label="Split receipt on line '+labels[i].number+'"');
+        const partHeading=row.splitGroup ? '<div class="split-line-heading"><strong>'+partLabel+'</strong>'+
+          button('remove-part','×','data-index="'+i+'" aria-label="Remove split line '+partLabel+'"')+'</div>' : '';
+        const showFund=!row.splitGroup || i===indices.find(j=>rows[j].splitGroup===row.splitGroup);
+        if(single)return partHeading+(editableRows.some(l=>l.direction!==row.direction)?'<strong>Money '+(row.direction==='in'?'in':'out')+'</strong>':'')+dating+(row.description && row.description!==d.memo?field('Receipt description',input('description',row.description,i)):'')+(showFund?select('Account / fund','source',i,r.fundIds):'')+select('Category','affected',i,r.entryIds.filter(id=>!row.source||currency(id)===currency(row.source)))+
+          field('Amount',amountInput('amount',row.amount,i))+memo+
+          (d.multiple && row.fundDate ? '<div class="field fund-date"><span>Fund line date</span>'+button('fund-date',calendarIcon+' '+esc(dateLabel(row.fundDate)),'data-index="'+i+'" data-value="'+esc(row.fundDate)+'" aria-haspopup="dialog"')+'</div>' : '')+
+          (row.fundMemo!=null?field('Fund line memo',input('fundMemo',row.fundMemo,i)):'')+
+          (row.fundReference!=null?field('Fund reference',input('fundReference',row.fundReference,i)):'')+(row.splitGroup?'':splitButton);
+        const label='Account for line '+partLabel, id='phone-account-'+(parentIndex==null?'':parentIndex+'-')+i;
+        const controls=row.splitGroup ? '' : splitButton+(indices.length>2?button('remove-line','×','aria-label="Remove line '+labels[i].number+'" data-index="'+i+'"'):'');
+        return `<div class="receipt-posting">${partHeading}${dating}<div class="split-line-heading"><label for="${id}">${row.splitGroup?'Account':'Line '+partLabel+' · Account'}</label><div>${controls}</div></div><select id="${id}" aria-label="${label}" data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),row.account)}</select><div class="grid">${field('Debit',amountInput('debit',row.debit,i))}${field('Credit',amountInput('credit',row.credit,i))}</div>${memo}</div>`;
       }
-      const dating=row.splitGroup?'':d.multiple?dateReference(i):row.reference!=null&&row.reference!==d.reference?field('Line reference',input('reference',row.reference,i)):'';
-      const partLabel=labels[i].number+(labels[i].suffix || '');
-      const splitButton=button('split-receipt',splitIcon+' Split','data-index="'+i+'" aria-label="Split receipt on line '+labels[i].number+'"');
-      const partHeading=row.splitGroup ? '<div class="split-line-heading"><strong>'+partLabel+'</strong>'+
-        button('remove-part','×','data-index="'+i+'" aria-label="Remove split line '+partLabel+'"')+'</div>' : '';
-      const showFund=!row.splitGroup || i===indices.find(j=>rows[j].splitGroup===row.splitGroup);
-      if(single)return partHeading+(editableRows.some(l=>l.direction!==row.direction)?'<strong>Money '+(row.direction==='in'?'in':'out')+'</strong>':'')+dating+(showFund?select('Account / fund','source',i,r.fundIds):'')+select('Category','affected',i,r.entryIds.filter(id=>!row.source||currency(id)===currency(row.source)))+
-        field('Amount',amountInput('amount',row.amount,i))+memo+(row.splitGroup?'':splitButton);
-      const label='Account for line '+partLabel;
-      const controls=row.splitGroup ? '' : splitButton+(indices.length>2?button('remove-line','×','aria-label="Remove line '+labels[i].number+'" data-index="'+i+'"'):'');
-      return `<div class="receipt-posting">${partHeading}${dating}<div class="split-line-heading"><label for="phone-account-${i}">${row.splitGroup?'Account':'Line '+partLabel+' · Account'}</label><div>${controls}</div></div><select id="phone-account-${i}" aria-label="${label}" data-field="account" data-index="${i}" ${disabled}>${options(accountIds(),row.account)}</select><div class="grid">${field('Debit',amountInput('debit',row.debit,i))}${field('Credit',amountInput('credit',row.credit,i))}</div>${memo}</div>`;
+      const receipt=(indices,k)=>{
+        const i=indices[0],indexAttr='data-index="'+i+'"';
+        const content=indices.map(j=>{
+          const group=rows[j].splitGroup;
+          if (!group) return line(j,indices);
+          const parts=indices.filter(n=>rows[n].splitGroup===group);
+          if(j!==parts[0])return '';
+          const reference=d.multiple?dateReference(j,rows[j]):field('Receipt reference',input('reference',rows[j].reference??d.reference,j));
+          const limit=parts.length>=maxReceiptParts;
+          const add=button('split-receipt','+ Add split line','data-index="'+j+'" '+(limit?'disabled':''));
+          return '<section class="split-receipt" data-split-number="'+labels[j].number+'"><header><h2>Line '+labels[j].number+' · Split receipt</h2><small>'+parts.length+' / '+maxReceiptParts+' parts</small></header>'+
+            reference+parts.map(n=>line(n,indices)).join('')+add+'</section>';
+        }).join('');
+        if(parentIndex!=null)return content+button('add-line','+ Add line',indexAttr);
+        return `<section class="receipt-card" data-receipt-card="${k}">${cards.length>1?`<header><h2>Receipt ${k+1}</h2>${button('remove-receipt','Remove',indexAttr+' aria-label="Remove receipt '+(k+1)+'"')}</header>`:''}${content}${single?'':button('add-line','+ Add line',indexAttr)}${cards.length>1?`<div class="receipt-balance" data-card-balance="${k}"></div>`:''}</section>`;
+      };
+      return cards.map(receipt).join('');
     }
-    const receipt=(indices,k)=>{
-      const i=indices[0],indexAttr='data-index="'+i+'"';
-      const content=indices.map(j=>{
-        const group=rows[j].splitGroup;
-        if (!group) return line(j,indices);
-        const parts=indices.filter(n=>rows[n].splitGroup===group);
-        if(j!==parts[0])return '';
-        const reference=d.multiple?dateReference(j):field('Receipt reference',input('reference',rows[j].reference??d.reference,j));
-        const limit=parts.length>=maxReceiptParts;
-        const add=button('split-receipt','+ Add split line','data-index="'+j+'" '+(limit?'disabled':''));
-        return '<section class="split-receipt" data-split-number="'+labels[j].number+'"><header><h2>Line '+labels[j].number+' · Split receipt</h2><small>'+parts.length+' / '+maxReceiptParts+' parts</small></header>'+
-          reference+parts.map(n=>line(n,indices)).join('')+add+'</section>';
-      }).join('');
-      return `<section class="receipt-card" data-receipt-card="${k}">${cards.length>1?`<header><h2>Receipt ${k+1}</h2>${button('remove-receipt','Remove',indexAttr+' aria-label="Remove receipt '+(k+1)+'"')}</header>`:''}${content}${single?'':button('add-line','+ Add line',indexAttr)}${cards.length>1?`<div class="receipt-balance" data-card-balance="${k}"></div>`:''}</section>`;
-    };
-    return `<form id="postForm" class="receipt-editor"><header class="receipt-heading"><h1>${d.editIds?.length?'Edit Entry':'Post Entry'}</h1>${switcher}</header>${direction}${field('Description',input('memo',d.memo))}${d.multiple?'':dateReference()}${cards.map(receipt).join('')}${button('add-receipt','+ Add receipt')}${!single&&cards.length>1?'<button type="button" class="btn" data-action="combine-payment" hidden>Use one petty-cash credit for these receipts</button>':''}<span id="entryValidation" class="receipt-validation"></span><div class="receipt-footer"><output id="liveReceiptBalance" aria-live="polite" aria-atomic="true"></output><div class="actions">${button('clear-draft','Clear')}<button type="submit" class="btn primary" ${disabled}>${S.saving?'Saving…':navigator.onLine?(single?'Save Entry':'Post Entry'):'Save on device'}</button></div></div></form>`;
+    return `<form id="postForm" class="receipt-editor"><header class="receipt-heading"><h1>${d.editIds?.length?'Edit Entry':'Post Entry'}</h1>${switcher}</header>${direction}${field('Description',input('memo',d.memo))}${d.multiple?'':dateReference()}${renderCards(rows,single,cards)}${button('add-receipt','+ Add receipt')}${!single&&cards.length>1?'<button type="button" class="btn" data-action="combine-payment" hidden>Use one petty-cash credit for these receipts</button>':''}<span id="entryValidation" class="receipt-validation"></span><div class="receipt-footer"><output id="liveReceiptBalance" aria-live="polite" aria-atomic="true"></output><div class="actions">${button('clear-draft','Clear')}<button type="submit" class="btn primary" ${disabled}>${S.saving?'Saving…':navigator.onLine?(single?'Save Entry':'Post Entry'):'Save on device'}</button></div></div></form>`;
   }
   function receiptDetails(group) {
     const first=group.lines[0],saved=first.editor_snapshot1437;
@@ -975,7 +1097,7 @@ function cashierMonthAllows(date) {
         const ref=row.reference??saved.reference;
         const groupHeader=firstPart?'<strong>Split receipt'+(ref?' · '+esc(ref):'')+'</strong>':'';
         return groupHeader+'<p'+(row.splitGroup?' class="split-receipt-part"':'')+'><strong>'+(row.splitGroup?esc(row.splitLabel)+' · ':'')+side+' · '+esc(money(credit?credit[1]:row.dr,currencyCode))+'</strong><br>'+
-          esc(row.account)+(row.memo?'<br>'+esc(row.memo):'')+(!row.splitGroup&&row.reference?'<br>Reference · '+esc(row.reference):'')+'</p>';
+          esc(row.account)+(saved.allocatedReceipt&&row.date?'<br>'+esc(dateLabel(row.date)):'')+(row.enteredAmount?'<br>Original line amount · '+esc(money(row.enteredAmount,currencyCode)):'')+(row.memo?'<br>'+esc(row.memo):'')+(!row.splitGroup&&row.reference?'<br>Reference · '+esc(row.reference):'')+'</p>';
       }).join('')+(first.reference&&!saved.splitByLine&&!saved.rows.some(r=>r.reference!=null)?'<p>Reference · '+esc(first.reference)+'</p>':'');
     }
     return group.lines.map(l=>`<p><strong>${(rules().entryMode==='cashbook'&&S.page==='entries'&&l.fund_account_id!==S.cashbookFund240?l.direction!=='in':l.direction==='in')?'Money In':'Money Out'} · ${esc(money(l.amount,l.currency_code||currency(l.fund_account_id)))}</strong><br>${accountTitle(l.fund_account_id)}<br>${l.direction==='out'?accountTitle(l.account_id)+'<br>':''}${saved?.receiptEditor341&&l.memo===saved.memo?'':esc(l.memo)}${l.reference?'<br>Reference: '+esc(l.reference):''}</p>`).join('');
@@ -1003,13 +1125,18 @@ function cashierMonthAllows(date) {
     location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
+  function fieldRows(draft, field) {
+    const parent = field.closest('[data-journal-parent]');
+    if (parent) return draft.single[Number(parent.dataset.journalParent)].journalLines;
+    return draft.mode === 'double' ? draft.lines : draft.single;
+  }
   // Mobile keyboards and autofill can commit a visible value without an input event.
   function readPhoneForm() {
     const draft=S.draft,form=$('postForm');
     if(!draft||!form)return;
     const rows=draft.mode==='double'?draft.lines:draft.single;
     for(const field of form.querySelectorAll('[data-field]')) {
-      const target=field.dataset.index===undefined?draft:rows[Number(field.dataset.index)];
+      const target=field.dataset.index===undefined?draft:fieldRows(draft,field)[Number(field.dataset.index)];
       if (!target) continue;
       const key = field.dataset.field;
       if (key === 'reference' && target !== draft && target.reference == null && field.value === draft.reference) continue;
@@ -1018,13 +1145,15 @@ function cashierMonthAllows(date) {
       target[key] = field.inputMode === 'decimal' ? field.value.replaceAll(',','') : field.value;
     }
     // The split panel exposes one receipt reference and one Cashbook fund.
-    const shared=new Map();
-    for(const row of rows){
-      if(!row.splitGroup)continue;
-      if(!shared.has(row.splitGroup)){shared.set(row.splitGroup,row);continue;}
-      const first=shared.get(row.splitGroup);
-      if(first.reference==null)delete row.reference;else row.reference=first.reference;
-      if(draft.mode==='single')row.source=first.source;
+    for (const group of [rows,...rows.filter(r=>r.journalLines).map(r=>r.journalLines)]) {
+      const shared=new Map();
+      for(const row of group){
+        if(!row.splitGroup)continue;
+        if(!shared.has(row.splitGroup)){shared.set(row.splitGroup,row);continue;}
+        const first=shared.get(row.splitGroup);
+        if(first.reference==null)delete row.reference;else row.reference=first.reference;
+        if(draft.mode==='single' && group===rows)row.source=first.source;
+      }
     }
   }
   function skipGroupingComma(e) {
@@ -1055,11 +1184,11 @@ function cashierMonthAllows(date) {
     const n=e.target;
     if(!n.dataset.field||S.saving)return;
     if(n.inputMode==='decimal')formatPhoneAmount(n,e.isComposing);
-    const key=n.dataset.field,d=S.draft,rows=d.mode==='double'?d.lines:d.single;
+    const key=n.dataset.field,d=S.draft,rows=fieldRows(d,n);
     if(n.dataset.index===undefined){
       d[key]=n.value;
       if(key==='reference')for(const field of $('postForm').querySelectorAll('[data-field=reference][data-index]')){
-        if(rows[Number(field.dataset.index)].reference==null)field.value=n.value;
+        if(fieldRows(d,field)[Number(field.dataset.index)].reference==null)field.value=n.value;
       }
     }
     else {
@@ -1084,37 +1213,41 @@ function cashierMonthAllows(date) {
     const totals=new Map(),journalTotals=new Map(),problems=[],cardLabels=[];
     const cards=receiptCards(d);
     cards.forEach((indices,k)=>{
-      if (single && rows[indices[0]].journalLines) {
+      const journalLines = single && rows[indices[0]].journalLines;
+      const cash = single && !journalLines;
+      const cardRows = journalLines || indices.map(i=>rows[i]);
+      const active = cash ? cardRows.filter(l=>cashbookLineEntered(l,rules().fundIds)) : cardRows.filter(journalLineEntered);
+      if (!active.length && cards.length>1) {
         const box=$('postForm').querySelector('[data-card-balance="'+k+'"]');
-        if (box) box.textContent='Double Entry lines retained';
+        if(box){box.textContent='';box.dataset.state='neutral';}
         return;
       }
       const sums=new Map();let invalid=false,started=false;
-      const shared = !single && sharedReceiptPayment(d, indices.map(i => rows[i]));
-      for(const i of indices){
-        const row=rows[i],c=currency(single?row.source:row.account);
-        const raw=single?[row.amount]:[row.debit,row.credit];
+      const shared = !cash && sharedReceiptPayment({...d,mode:'double'}, active);
+      for(const row of active){
+        const c=currency(cash?row.source:row.account);
+        const raw=cash?[row.amount]:[row.debit,row.credit];
         const values=raw.map(value=>Number(String(value??'').replaceAll(',','')));
         if(!raw.some(value=>String(value??'').trim()))continue;
         started=true;
         if(!c){invalid=true;continue;}
-        if(values.some(n=>!Number.isFinite(n)||n<0||!Number.isSafeInteger(Math.round(n*100))||Math.abs(n*100-Math.round(n*100))>0.000001)||!single&&values.every(n=>n>0)){invalid=true;continue;}
+        if(values.some(n=>!Number.isFinite(n)||n<0||!Number.isSafeInteger(Math.round(n*100))||Math.abs(n*100-Math.round(n*100))>0.000001)||!cash&&values.every(n=>n>0)){invalid=true;continue;}
         const [a,b]=values.map(n=>Math.round(n*100));
-        const date=d.multiple&&!single&&!shared?cardDate(d,row):'',key=date+'/'+c;
+        const date=d.multiple&&!cash&&!shared?cardDate(d,row):'',key=date+'/'+c;
         const sum=sums.get(key)||{date,c,debit:0,credit:0};
         sum.debit+=a;sum.credit+=b||0;sums.set(key,sum);
-        if(!single){
+        if(!cash){
           const journal=journalTotals.get(c)||{debit:0,credit:0};
           journal.debit+=a;journal.credit+=b||0;journalTotals.set(c,journal);
         }
-        if(single&&c)totals.set(c,(totals.get(c)||0)+a);
+        if(cash&&c)totals.set(c,(totals.get(c)||0)+a);
       }
-      let label=single?'Enter an amount':'Enter debits and credits',state='neutral';
+      let label=cash?'Enter an amount':'Enter debits and credits',state='neutral';
       if(invalid){label='Check the account and amounts';state='pending';}
       else if(started&&sums.size){
         const lines=[];state='balanced';
         for(const {date,c,debit,credit} of sums.values()){
-          if(single){lines.push(c?money(debit/100,c):'Choose a fund account');continue;}
+          if(cash){lines.push(c?money(debit/100,c):'Choose a fund account');continue;}
           const diff=debit-credit;
           const message=diff?'Add '+money(Math.abs(diff)/100,c)+(diff>0?' credit':' debit'):!c?'Choose an account':debit?'Balanced':'Enter an amount';
           if(diff||!debit||!c)state='pending';
@@ -1125,24 +1258,31 @@ function cashierMonthAllows(date) {
       cardLabels.push(label);
       const box=$('postForm').querySelector('[data-card-balance="'+k+'"]');
       if(box){box.textContent=label;box.dataset.state=state;}
-      if(!single&&state!=='balanced')problems.push({priority:indices.includes(editedIndex)?0:started?1:2,text:(cards.length>1?'Receipt '+(k+1)+' · ':'')+label});
+      if(!cash&&state!=='balanced')problems.push({priority:indices.includes(editedIndex)?0:started?1:2,text:(cards.length>1?'Receipt '+(k+1)+' · ':'')+label});
     });
     const combine=$('postForm').querySelector('[data-action="combine-payment"]');
     const combined=combine && combinedPayment(d,cards);
     if(combine)combine.hidden=!combined;
+    const validation=$('entryValidation'), alert=$('notice');
+    let errorText='', allocated=false;
+    try {
+      const {items,snapshot}=preparePhoneEntry(d);
+      allocated=snapshot.allocatedReceipt || snapshot.receiptCards341?.some(card=>card.allocatedReceipt);
+      validation.textContent=items.length+' complete '+(items.length===1?'entry':'entries');
+    } catch(error){errorText=error.message;validation.textContent=errorText;}
     const summary=$('liveReceiptBalance');
     const message=combined?StaffEntry14225.balanceMessage(combined.plan.currency,combined.plan.totalCents/100,combined.plan.totalCents/100)+' overall · Check individual receipts or use one shared credit.':single?(totals.size?'Receipt total · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'Receipt total —'):
-      (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?cardLabels[0]:'All '+cards.length+' receipts balanced'));
+      (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?cardLabels[0]:'All '+cardLabels.length+' receipts balanced'));
     const overall=!single && cards.length>1 && !combined && journalTotals.size ?
       'Journal '+[...journalTotals].map(([c,t])=>'DR '+money(t.debit/100,c)+' / CR '+money(t.credit/100,c)).join(' · ')+' · ' : '';
     const retainedCount=single ? rows.filter(row=>row.journalLines).length : 0;
-    const summaryText=retainedCount ? 'Double Entry receipts: '+retainedCount+(totals.size?' · Cashbook subtotal · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'') : overall+message;
-    if(summary.textContent!==summaryText)summary.textContent=summaryText;
-    summary.dataset.state=single?'neutral':problems.length?'pending':'balanced';
-    const validation=$('entryValidation'), alert=$('notice');
-    let errorText='';
-    try{const {items}=preparePhoneEntry(d);validation.textContent=items.length+' complete '+(items.length===1?'entry':'entries');}
-    catch(error){errorText=error.message;validation.textContent=errorText;}
+    const summaryText=retainedCount ? (problems[0]?.text || (cards.length===1 ? cardLabels[0] : cardLabels.join(' / '))) : overall+message;
+    const text=allocated ? [...journalTotals].map(([c,t])=>StaffEntry14225.balanceMessage(c,t.debit/100,t.credit/100)).join(' / ') : summaryText;
+    if(allocated)for(const box of $('postForm').querySelectorAll('[data-card-balance][data-state=pending]')){
+      box.textContent='Balanced in the full journal';box.dataset.state='balanced';
+    }
+    if(summary.textContent!==text)summary.textContent=text;
+    summary.dataset.state=allocated?'balanced':problems.length?'pending':single?'neutral':'balanced';
     if(alert.dataset.entryValidation) {
       if(!errorText)notice();
       else if(alert.querySelector('span')?.textContent!==errorText)notice(errorText,true,true);
@@ -1184,7 +1324,6 @@ function cashierMonthAllows(date) {
     const draft=structuredClone(S.draft);
     try{
       prepared=preparePhoneEntry(draft);
-      if(S.owner===S.actor&&prepared.items.some(item=>!cashierMonthAllows(item.date)))throw Error('Cashier entries must be dated in the current month.');
     }
     catch(error){saveDraftLater();updateValidation();notice(error.message,true,true);return;}
     if($('notice').dataset.entryValidation)notice();
@@ -1236,7 +1375,7 @@ function cashierMonthAllows(date) {
           if(automatic&&q.status==='blocked')continue;
           try{
             if(q.params.p_owner!==owner||q.owner!==owner)throw fail('This entry belongs to a different account.');
-            if(q.legacy){for(const date of new Set(q.params.p_items.map(l=>l.date))){const draft=payloadDraft({...q.params,p_items:q.params.p_items.filter(l=>l.date===date)});StaffEntry14225.prepare(draft,accounts(),rules());}}else if(q.params.p_snapshot.receiptCards341||q.params.p_snapshot.sharedFundCredit)preparePhoneEntry(q.draft);else StaffEntry14225.prepare(q.draft,accounts(),rules());
+            if(q.legacy){for(const date of new Set(q.params.p_items.map(l=>l.date))){const draft=payloadDraft({...q.params,p_items:q.params.p_items.filter(l=>l.date===date)});StaffEntry14225.prepare(draft,accounts(),rules());}}else if(q.params.p_snapshot.receiptEditor341||q.params.p_snapshot.receiptCards341||q.params.p_snapshot.sharedFundCredit)preparePhoneEntry(q.draft);else StaffEntry14225.prepare(q.draft,accounts(),rules());
             const response=await rpc('save_staff_editor1437',q.params);
             if(!Array.isArray(response?.line_ids)||response.line_ids.length!==q.params.p_items.length||response.line_ids.some(id=>!id)||new Set(response.line_ids).size!==response.line_ids.length)throw fail('The complete save was not confirmed. Retry with the same reference.','INVALID_RESPONSE');
             const next=await updateQueue(owner,q.key,{status:'confirmed',receipt:response},false);clearLegacy(q);if(current(owner,epoch))S.data.queue=next.queue;
@@ -1282,14 +1421,14 @@ function cashierMonthAllows(date) {
     const first=g.lines[0],saved=first.editor_snapshot1437,r=rules();let d;
     const normalize=rows=>rows.map(l=>JSON.stringify([l.date,l.direction,l.fund,l.account,Number(l.amount),l.memo])).sort().join('|');
     const actual=g.lines.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo}));
-    if((r.entryMode!=='cashbook'||saved?.mode==='single'||saved?.splitByLine)&&saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(l=>l.date===first.transaction_date))){
-      const date=first.transaction_date, onDate=row=>!saved.multiple||(row.date||saved.date)===date;
+    if(saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(l=>l.date===first.transaction_date))){
+      const date=first.transaction_date, onDate=row=>saved.allocatedReceipt || !saved.multiple||(row.date||saved.date)===date;
       d={...blankDraft(),mode:saved.mode,date,multiple:!!saved.multiple,memo:saved.memo,reference:saved.reference||'',
         single:(saved.single||[]).filter(onDate).map(row=>{const copy={...row};if(copy.description===saved.memo)delete copy.description;return copy;}),
         lines:(saved.rows||[]).filter(onDate).map(l=>({...(l.splitGroup?{splitGroup:l.splitGroup,splitNumber:l.splitNumber,splitLabel:l.splitLabel}:{}),date:l.date||date,...(l.reference==null?{}:{reference:l.reference}),account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};
     }
     else d={...blankDraft(),mode:'single',date:first.transaction_date,memo:first.memo,reference:first.reference||'',single:g.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?r.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
-    d.correction_journal14347=g.batch.status==='returned'?g.batch.id:null;d.editIds=g.lines.map(l=>l.id);S.draft=normalizeDraft(d);if(saved?.splitByLine && r.entryMode==='cashbook' && d.mode==='double')changeMode243('single');saveDraftLater();navigate('post');
+    d.correction_journal14347=g.batch.status==='returned'?g.batch.id:null;d.editIds=g.lines.map(l=>l.id);S.draft=normalizeDraft(d);if(r.entryMode==='cashbook' && d.mode==='double')changeMode243('single');saveDraftLater();navigate('post');
   }
   async function voidEntry(index){const g=groupEntries()[index];if(!g||!permission('sub-users-workspace','void')||!editable14348(g.batch))return;
     if(!navigator.onLine||queue().length){notice('Sync pending entries and reconnect before voiding.',true);return;}
@@ -1299,7 +1438,7 @@ function cashierMonthAllows(date) {
   // Guard stale controls from earlier cached phone releases. Reports stay in the full tablet/desktop app.
   async function printReport(){notice('Use a tablet, iPad or desktop to print reports.');}
   function connectionDialog(){const dialog=$('dialog');dialog.close();dialog.classList.add('phone-connection14246');$('dialogBody').innerHTML='<h2>Connection & sync</h2><p>Saved entries sync automatically. Unfinished form edits stay on this device until saved.</p><section class="sync-section14246"><h3>Connection</h3><p>'+esc(navigator.onLine?(S.online?'Online':'Limited connection'):'Offline')+'</p></section><section class="sync-section14246"><h3>Website files · v'+esc(VERSION)+'</h3><p>'+esc(S.shellReady?'Downloaded for reopening without connection.':'Still preparing for offline reopening.')+'</p>'+(window.ReceiptNative214?.available?'':'<a href="update.html">Check for app update</a>')+'</section><section class="sync-section14246"><h3>Device entries · '+queue().length+'</h3>'+(queue().map(q=>'<article class="sync-entry14246"><strong>'+esc(q.draft.date+' · '+q.draft.memo)+'</strong><p>'+esc(q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Waiting to sync')+'</p>'+(q.message?'<p>'+esc(q.message)+'</p>':'')+'<small>Reference: '+esc(q.key)+'</small></article>').join('')||'<p>No device entries waiting to sync.</p>')+'</section>';$('dialogButtons').innerHTML='<button class="btn" value="close">Close</button>';dialog.onclose=()=>dialog.classList.remove('phone-connection14246');dialog.showModal();}
-  async function handle(name,index){const owner=S.owner,epoch=S.epoch;try{
+  async function handle(name,index,journalParent){const owner=S.owner,epoch=S.epoch;try{
     if(name==='protocols'){
       if(!S.owner)return;
       $('accountMenu').hidden=true;
@@ -1311,31 +1450,34 @@ function cashierMonthAllows(date) {
     }
     if(name==='issue-receipt')return await openReceipt245();
     if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
-    if(name==='reopen-correction'){const j=headers().filter(j=>cashierMonthAllows(j.period_start)&&j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
+    if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='switch-method'){
       readPhoneForm();
       if(!changeMode243(S.draft.mode==='single'?'double':'single'))return;
     }
-    const d=S.draft, single=d.mode==='single', rows=single?d.single:d.lines;
+    const d=S.draft;
+    const editor=journalParent==null ? d : {...d, mode:'double', lines:d.single[journalParent].journalLines};
+    const single=editor.mode==='single', rows=single?editor.single:editor.lines;
     if(name==='split-receipt'||name==='remove-part'){
       readPhoneForm();
-      if (name==='split-receipt') addReceiptPart(d,index);
-      else removeReceiptPart(d,index);
+      if (name==='split-receipt') addReceiptPart(editor,index);
+      else removeReceiptPart(editor,index);
     }
-    if(name==='entry-date'||name==='line-date'){
+    if(name==='entry-date'||name==='line-date'||name==='fund-date'){
       const perLine=name==='line-date';
-      const chosen=await chooseReceiptDate(perLine?cardDate(d,rows[index]):d.date,d.multiple);
+      const chosen=await chooseReceiptDate(name==='fund-date'?rows[index].fundDate:perLine?cardDate(d,rows[index]):d.date,d.multiple);
       if(!chosen||!current(owner,epoch)||S.draft!==d||S.saving)return;
       if(chosen.multiple!==d.multiple){
         identifyReceipts(d);
         d.multiple=chosen.multiple;d.date=chosen.date;
-        const datedRows = rows.flatMap(row=>row.journalLines || [row]);
-        if (single && rows.some(row=>row.split)) datedRows.push(...d.lines);
+        const datedRows = [...d.lines, ...d.single.flatMap(row=>row.journalLines || [row])];
         for(const row of datedRows){
           if(d.multiple)row.date=d.date;
-          else {delete row.date;if(row.reference===d.reference)delete row.reference;}
+          else {delete row.date;delete row.fundDate;if(row.reference===d.reference)delete row.reference;}
         }
+      }else if(name==='fund-date'){
+        rows[index].fundDate=chosen.date;
       }else if(perLine){
         const parent=rows[index];
         for(const row of rows)if(row===parent || parent.splitGroup && row.splitGroup===parent.splitGroup)row.date=chosen.date;
@@ -1368,13 +1510,13 @@ function cashierMonthAllows(date) {
       for(const i of [...indices].reverse())rows.splice(i,1);
     }
     if(name==='remove-line'&&!single){
-      const group=receiptCards(d).find(group=>group.includes(index));
+      const group=receiptCards(editor).find(group=>group.includes(index));
       if(group?.length>2)rows.splice(index,1);
     }
     if(name==='clear-draft'){if(draftFilled()&&!await confirmDialog('Clear the draft?','This only clears the unfinished form. Saved and pending entries are kept.','Clear'))return;if(!current(owner,epoch))return;S.draft=blankDraft();}
     saveDraftLater();render();
   }catch(e){if(current(owner,epoch))notice(e.message,true);}}
-  document.addEventListener('click',e=>{const owner=e.target.closest('[data-owner]'),area=e.target.closest('[data-area]');if(owner){void selectUser(owner.dataset.owner).catch(e=>notice(e.message,true));return;}if(area){void openArea(area.dataset.area).catch(e=>notice(e.message,true));return;}const page=e.target.closest('[data-page],[data-go]');if(page)return navigate(page.dataset.page||page.dataset.go);const b=e.target.closest('[data-action]');if(b&&!b.disabled){e.preventDefault();void handle(b.dataset.action,Number(b.dataset.index||0)).catch(e=>notice(e.message,true));}});
+  document.addEventListener('click',e=>{const owner=e.target.closest('[data-owner]'),area=e.target.closest('[data-area]');if(owner){void selectUser(owner.dataset.owner).catch(e=>notice(e.message,true));return;}if(area){void openArea(area.dataset.area).catch(e=>notice(e.message,true));return;}const page=e.target.closest('[data-page],[data-go]');if(page)return navigate(page.dataset.page||page.dataset.go);const b=e.target.closest('[data-action]');if(b&&!b.disabled){e.preventDefault();void handle(b.dataset.action,Number(b.dataset.index||0),b.closest('[data-journal-parent]')?.dataset.journalParent).catch(e=>notice(e.message,true));}});
   $('phoneForgotPassword210').onclick=phonePasswordReset210;
   $('loginForm').onsubmit=async e=>{
     e.preventDefault();if(authBusy)return;authBusy=true;window.phoneLogin210.start();loginMessageTarget14293().textContent='';

@@ -1,6 +1,12 @@
   function blankDraft() { const r = rules(); return {mode:r.entryMode==='double_full'?'double':'single', date:today(), multiple:false, memo:'', reference:'', requestKey:'phone-' + crypto.randomUUID(), editIds:[], single:[{direction:r.directions[0] || 'out', source:r.fundIds.length === 1 ? r.fundIds[0] : '', affected:'', amount:'', memo:''}], lines:[{account:'',debit:'',credit:'',memo:''},{account:'',debit:'',credit:'',memo:''}]}; }
   function normalizeDraft(value){const d={...blankDraft(),...value};d.single=Array.isArray(d.single)&&d.single.length?d.single:blankDraft().single;d.lines=Array.isArray(d.lines)&&d.lines.length?d.lines:blankDraft().lines;
     if(value?.multiple==null)d.multiple=(d.mode==='double'?d.lines:d.single).some(line=>line.date&&line.date!==d.date);
+    if (d.mode === 'single' && d.single.some(row => row.journalLines)) {
+      const retained = d.single.filter(row=>row.journalLines);
+      const receipts = new Set(retained.map(row=>row.receipt));
+      d.lines = [...d.lines.filter(l=>!receipts.has(l.receipt)), ...retained.flatMap(row=>row.journalLines)];
+      d.single = d.single.flatMap(row => row.journalLines ? cashbookReceiptRows(d, row.journalLines, row) : [row]);
+    }
     return d;}
   const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
   function payloadDraft(p){return normalizeDraft({mode:'single',date:p.p_items[0].date,memo:p.p_snapshot.memo||p.p_items[0].memo,reference:p.p_snapshot.reference||'',requestKey:p.p_key,editIds:p.p_edit_ids||[],single:p.p_items.map(l=>({date:l.date,direction:l.direction,source:l.fund,affected:l.account,amount:String(l.amount),memo:l.memo||''}))});}
@@ -38,7 +44,8 @@
   // Match the two sides by their accounts and typed amounts, even if the user
   // has entered only one side or entered the credit first.
   function cashbookPair(draft, lines, previous) {
-    if (lines.length > 2 || lines.some(l=>l.splitGroup)) return null;
+    lines = pairCandidates(lines);
+    if (!lines.length || lines.length > 2 || lines.some(l=>l.splitGroup)) return null;
     const r = rules(), [first, second = {}] = lines;
     const defaults = lines.some(l => l.debit || l.credit) ? ['out','in'] : r.directions;
     const directions = [...new Set([previous?.direction, ...defaults])].filter(dir => r.directions.includes(dir));
@@ -49,10 +56,10 @@
         if ((fund.account && !r.fundIds.includes(fund.account)) || (category.account && !r.entryIds.includes(category.account))) continue;
         if (debit.credit || credit.debit) continue;
         if (debit.debit && credit.credit && Number(String(debit.debit).replaceAll(',','')) !== Number(String(credit.credit).replaceAll(',',''))) continue;
-        if (fund.memo && category.memo && fund.memo !== category.memo) continue;
-        if (fund.reference != null && category.reference != null && fund.reference !== category.reference) continue;
-        const started = l => l.splitGroup || l.account || l.debit || l.credit || l.memo || l.reference != null || l.date;
-        if (draft.multiple && started(fund) && started(category) && cardDate(draft,fund) !== cardDate(draft,category)) continue;
+        const separateMemo = fund.memo && category.memo && fund.memo !== category.memo;
+        const separateRef = fund.reference != null && category.reference != null && fund.reference !== category.reference;
+        const separateDate = draft.multiple && journalLineEntered(fund) && journalLineEntered(category) &&
+          cardDate(draft,fund) !== cardDate(draft,category);
         const source = fund.account || (r.fundIds.length === 1 ? r.fundIds[0] : '');
         if (category.account && source && (source === category.account || currency(source) !== currency(category.account))) continue;
         const reference = category.reference ?? fund.reference;
@@ -60,7 +67,10 @@
           receipt:first.receipt, direction, source, affected:category.account || '',
           amount:debit.debit || credit.credit || '', memo:category.memo || fund.memo || '',
           ...(reference == null ? {} : {reference}),
-          ...(draft.multiple ? {date:category.date ?? fund.date ?? draft.date} : {})
+          ...(separateMemo ? {fundMemo:fund.memo} : {}),
+          ...(separateDate ? {fundDate:cardDate(draft,fund)} : {}),
+          ...(separateRef ? {fundReference:fund.reference} : {}),
+          ...(draft.multiple ? {date:(journalLineEntered(category) ? category.date ?? fund.date : fund.date ?? category.date) ?? draft.date} : {})
         }};
       }
     }
@@ -69,6 +79,9 @@
 
   function journalPair(draft, row, original) {
     const receipt = row.receipt || crypto.randomUUID();
+    if (!cashbookLineEntered(row, rules().fundIds)) {
+      return blankDraft().lines.map(line=>({...line,receipt,...(draft.multiple?{date:cardDate(draft,row)}:{})}));
+    }
     const pair = original && cashbookPair(draft, original, row);
     const out = row.direction === 'out';
     const makeLine = (side, before = {}) => {
@@ -81,7 +94,9 @@
         if (row.reference == null) delete line.reference;
         else line.reference = row.reference;
       }
-      if (draft.multiple) line.date = row.date ?? draft.date;
+      if (row.fundMemo != null) line.memo = debit === out ? row.memo : row.fundMemo;
+      if (row.fundReference != null) line.reference = debit === out ? row.reference : row.fundReference;
+      if (draft.multiple) line.date = (debit === out ? row.date : row.fundDate ?? row.date) ?? draft.date;
       else delete line.date;
       return line;
     };
@@ -89,7 +104,7 @@
     const debitBefore = reversed ? pair.credit : pair?.debit, creditBefore = reversed ? pair.debit : pair?.credit;
     const debit = makeLine('debit', debitBefore), credit = makeLine('credit', creditBefore);
     if (row.splitGroup) Object.assign(out ? debit : credit, {splitGroup:row.splitGroup,splitNumber:row.splitNumber,splitLabel:row.splitLabel,splitSide:out?'debit':'credit'});
-    return pair && original[0] === creditBefore ? [credit, debit] : [debit, credit];
+    return pair && pairCandidates(original)[0] === creditBefore ? [credit, debit] : [debit, credit];
   }
 
   // Several expense lines can share a single payment. Only infer that payment
@@ -102,7 +117,7 @@
       if (categories.length < 2 || lines.length - categories.length > 1) continue;
       const remaining = lines.filter(l => !categories.includes(l));
       const fund = remaining[0] || {};
-      if (fund[side] || fund.memo || fund.reference != null && fund.reference !== draft.reference) continue;
+      if (fund[side]) continue;
       if (fund.account && !r.fundIds.includes(fund.account)) continue;
       const source = fund.account || (r.fundIds.length === 1 ? r.fundIds[0] : '');
       const c = currency(categories.find(l=>l.account)?.account || source);
@@ -111,7 +126,10 @@
       if (total == null && !categories.some(l => l.splitGroup) || fund[other] && (total == null || cashbookTotal([fund[other]]) !== total)) continue;
       return categories.map(l => ({receipt:l.receipt, split:side, direction, source, affected:l.account || '', amount:l[side] || '',
         ...(l.splitGroup ? {splitGroup:l.splitGroup,splitNumber:l.splitNumber} : {}),
-        memo:l.memo || '', ...((l.reference ?? fund.reference) == null ? {} : {reference:l.reference ?? fund.reference}),
+        memo:l.memo || '', ...(l.reference == null ? {} : {reference:l.reference}),
+        ...(l === categories[0] && draft.multiple && fund.account && categories.some(c=>cardDate(draft,c)!==cardDate(draft,fund)) ? {fundDate:cardDate(draft,fund)} : {}),
+        ...(l === categories[0] && fund.memo ? {fundMemo:fund.memo} : {}),
+        ...(l === categories[0] && fund.reference != null ? {fundReference:fund.reference} : {}),
         ...(draft.multiple ? {date:cardDate(draft,l)} : {})}));
     }
     return null;
@@ -129,7 +147,7 @@
 
   function splitJournalLines(draft, rows) {
     const first = rows[0], receipt = first.receipt;
-    const original = draft.lines.filter(l => l.receipt === receipt);
+    const original = draft.lines.filter(l => l.receipt === receipt && journalLineEntered(l));
     const total = cashbookTotal(rows.map(l => l.amount));
     // Different funds or an incomplete edit need independent balancing lines.
     if ((total == null && !rows.some(l => l.splitGroup)) || rows.some(l => l.direction !== first.direction || l.source !== first.source)) {
@@ -146,14 +164,40 @@
       return rows.flatMap((l,i) => journalPair(draft, {...l, receipt:receipt + '-part-' + i}));
     }
     const out = first.direction === 'out';
-    const categories = rows.map(l => journalPair(draft,l)[out ? 0 : 1]);
+    const categories = rows.map(l => {
+      const line = journalPair(draft,l)[out ? 0 : 1];
+      line.memo = l.memo || '';
+      if (l.reference == null) delete line.reference;
+      else line.reference = l.reference;
+      return line;
+    });
     const originalFund = original.findIndex(l => !l.splitGroup && !l[first.split]);
     const before = originalFund < 0 ? {} : original[originalFund];
-    const fund = {...before, receipt, account:first.source, debit:out ? '' : total || '', credit:out ? total || '' : '', memo:before.memo || ''};
-    if (draft.multiple) fund.date = before.date ?? first.date ?? draft.date;
+    const fund = {...before, receipt, account:first.source, debit:out ? '' : total || '', credit:out ? total || '' : '', memo:first.fundMemo ?? before.memo ?? ''};
+    if (first.fundReference != null) fund.reference=first.fundReference;
+    if (draft.multiple) fund.date = first.fundDate ?? before.date ?? first.date ?? draft.date;
     else delete fund.date;
     categories.splice(originalFund < 0 ? categories.length : originalFund, 0, fund);
     return categories;
+  }
+
+  function journalLineEntered(line) {
+    return !!(line.account || line.debit || line.credit || line.memo?.trim() || line.reference?.trim() || line.splitGroup);
+  }
+
+  // Keep the position of an unfinished two-line pair. Extra date-only slots
+  // are form scaffolding and do not create a payment or a dated posting.
+  function pairCandidates(lines) {
+    if (lines.length <= 2) return lines;
+    const entered = lines.filter(journalLineEntered);
+    return entered.length ? entered : lines.slice(0, 2);
+  }
+
+  function cashbookReceiptRows(draft, original, previous) {
+    const lines = pairCandidates(original);
+    const pair = cashbookPair(draft, lines, previous);
+    if (pair) return [{...(previous?.description == null ? {} : {description:previous.description}), ...pair.row}];
+    return splitPaymentRows(draft,lines) || [{receipt:original[0]?.receipt, journalLines:original}];
   }
 
   function changeMode243(next) {
@@ -162,13 +206,30 @@
     if (next !== d.mode) {
       if (next === 'single') {
         const previous = new Map(d.single.map(row => [row.receipt, row]));
-        d.single = identifyReceipts(d).flatMap(indices => {
+        let cards=identifyReceipts(d);
+        // A payment entered across cards must be paired before converting:
+        // independently completing both half-receipts would duplicate the amount.
+        if (cards.length>1) {
+          const open=cards.filter(indices=>{
+            const sums=new Map();
+            for(const i of indices){
+              const l=d.lines[i], c=currency(l.account);
+              if(!c)continue;
+              const cents=v=>Math.round(Number(String(v||0).replaceAll(',',''))*100);
+              sums.set(c,(sums.get(c)||0)+cents(l.debit)-cents(l.credit));
+            }
+            return [...sums.values()].some(n=>n!==0);
+          });
+          const entered=open.flat().map(i=>d.lines[i]).filter(journalLineEntered);
+          if(open.length>1 && entered.some(l=>l.debit) && entered.some(l=>l.credit)){
+            const receipt=entered[0].receipt;
+            for(const indices of open)for(const i of indices)d.lines[i].receipt=receipt;
+            cards=identifyReceipts(d);
+          }
+        }
+        d.single = cards.flatMap(indices => {
           const lines = indices.map(i => d.lines[i]), receipt = lines[0].receipt;
-          const old = previous.get(receipt), pair = cashbookPair(d, lines, old);
-          // A compound receipt or distinct line details can still travel with
-          // a Cashbook draft. Keep its original rows and validation together.
-          if (!pair) return splitPaymentRows(d,lines) || [{receipt, journalLines:lines}];
-          return {...(old?.description == null ? {} : {description:old.description}), ...pair.row};
+          return cashbookReceiptRows(d, lines, previous.get(receipt));
         });
       } else {
         const original = new Map();

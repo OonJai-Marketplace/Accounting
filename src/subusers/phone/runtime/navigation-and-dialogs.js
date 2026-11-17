@@ -8,13 +8,18 @@
     location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
+  function fieldRows(draft, field) {
+    const parent = field.closest('[data-journal-parent]');
+    if (parent) return draft.single[Number(parent.dataset.journalParent)].journalLines;
+    return draft.mode === 'double' ? draft.lines : draft.single;
+  }
   // Mobile keyboards and autofill can commit a visible value without an input event.
   function readPhoneForm() {
     const draft=S.draft,form=$('postForm');
     if(!draft||!form)return;
     const rows=draft.mode==='double'?draft.lines:draft.single;
     for(const field of form.querySelectorAll('[data-field]')) {
-      const target=field.dataset.index===undefined?draft:rows[Number(field.dataset.index)];
+      const target=field.dataset.index===undefined?draft:fieldRows(draft,field)[Number(field.dataset.index)];
       if (!target) continue;
       const key = field.dataset.field;
       if (key === 'reference' && target !== draft && target.reference == null && field.value === draft.reference) continue;
@@ -23,13 +28,15 @@
       target[key] = field.inputMode === 'decimal' ? field.value.replaceAll(',','') : field.value;
     }
     // The split panel exposes one receipt reference and one Cashbook fund.
-    const shared=new Map();
-    for(const row of rows){
-      if(!row.splitGroup)continue;
-      if(!shared.has(row.splitGroup)){shared.set(row.splitGroup,row);continue;}
-      const first=shared.get(row.splitGroup);
-      if(first.reference==null)delete row.reference;else row.reference=first.reference;
-      if(draft.mode==='single')row.source=first.source;
+    for (const group of [rows,...rows.filter(r=>r.journalLines).map(r=>r.journalLines)]) {
+      const shared=new Map();
+      for(const row of group){
+        if(!row.splitGroup)continue;
+        if(!shared.has(row.splitGroup)){shared.set(row.splitGroup,row);continue;}
+        const first=shared.get(row.splitGroup);
+        if(first.reference==null)delete row.reference;else row.reference=first.reference;
+        if(draft.mode==='single' && group===rows)row.source=first.source;
+      }
     }
   }
   function skipGroupingComma(e) {
@@ -60,11 +67,11 @@
     const n=e.target;
     if(!n.dataset.field||S.saving)return;
     if(n.inputMode==='decimal')formatPhoneAmount(n,e.isComposing);
-    const key=n.dataset.field,d=S.draft,rows=d.mode==='double'?d.lines:d.single;
+    const key=n.dataset.field,d=S.draft,rows=fieldRows(d,n);
     if(n.dataset.index===undefined){
       d[key]=n.value;
       if(key==='reference')for(const field of $('postForm').querySelectorAll('[data-field=reference][data-index]')){
-        if(rows[Number(field.dataset.index)].reference==null)field.value=n.value;
+        if(fieldRows(d,field)[Number(field.dataset.index)].reference==null)field.value=n.value;
       }
     }
     else {
@@ -89,37 +96,41 @@
     const totals=new Map(),journalTotals=new Map(),problems=[],cardLabels=[];
     const cards=receiptCards(d);
     cards.forEach((indices,k)=>{
-      if (single && rows[indices[0]].journalLines) {
+      const journalLines = single && rows[indices[0]].journalLines;
+      const cash = single && !journalLines;
+      const cardRows = journalLines || indices.map(i=>rows[i]);
+      const active = cash ? cardRows.filter(l=>cashbookLineEntered(l,rules().fundIds)) : cardRows.filter(journalLineEntered);
+      if (!active.length && cards.length>1) {
         const box=$('postForm').querySelector('[data-card-balance="'+k+'"]');
-        if (box) box.textContent='Double Entry lines retained';
+        if(box){box.textContent='';box.dataset.state='neutral';}
         return;
       }
       const sums=new Map();let invalid=false,started=false;
-      const shared = !single && sharedReceiptPayment(d, indices.map(i => rows[i]));
-      for(const i of indices){
-        const row=rows[i],c=currency(single?row.source:row.account);
-        const raw=single?[row.amount]:[row.debit,row.credit];
+      const shared = !cash && sharedReceiptPayment({...d,mode:'double'}, active);
+      for(const row of active){
+        const c=currency(cash?row.source:row.account);
+        const raw=cash?[row.amount]:[row.debit,row.credit];
         const values=raw.map(value=>Number(String(value??'').replaceAll(',','')));
         if(!raw.some(value=>String(value??'').trim()))continue;
         started=true;
         if(!c){invalid=true;continue;}
-        if(values.some(n=>!Number.isFinite(n)||n<0||!Number.isSafeInteger(Math.round(n*100))||Math.abs(n*100-Math.round(n*100))>0.000001)||!single&&values.every(n=>n>0)){invalid=true;continue;}
+        if(values.some(n=>!Number.isFinite(n)||n<0||!Number.isSafeInteger(Math.round(n*100))||Math.abs(n*100-Math.round(n*100))>0.000001)||!cash&&values.every(n=>n>0)){invalid=true;continue;}
         const [a,b]=values.map(n=>Math.round(n*100));
-        const date=d.multiple&&!single&&!shared?cardDate(d,row):'',key=date+'/'+c;
+        const date=d.multiple&&!cash&&!shared?cardDate(d,row):'',key=date+'/'+c;
         const sum=sums.get(key)||{date,c,debit:0,credit:0};
         sum.debit+=a;sum.credit+=b||0;sums.set(key,sum);
-        if(!single){
+        if(!cash){
           const journal=journalTotals.get(c)||{debit:0,credit:0};
           journal.debit+=a;journal.credit+=b||0;journalTotals.set(c,journal);
         }
-        if(single&&c)totals.set(c,(totals.get(c)||0)+a);
+        if(cash&&c)totals.set(c,(totals.get(c)||0)+a);
       }
-      let label=single?'Enter an amount':'Enter debits and credits',state='neutral';
+      let label=cash?'Enter an amount':'Enter debits and credits',state='neutral';
       if(invalid){label='Check the account and amounts';state='pending';}
       else if(started&&sums.size){
         const lines=[];state='balanced';
         for(const {date,c,debit,credit} of sums.values()){
-          if(single){lines.push(c?money(debit/100,c):'Choose a fund account');continue;}
+          if(cash){lines.push(c?money(debit/100,c):'Choose a fund account');continue;}
           const diff=debit-credit;
           const message=diff?'Add '+money(Math.abs(diff)/100,c)+(diff>0?' credit':' debit'):!c?'Choose an account':debit?'Balanced':'Enter an amount';
           if(diff||!debit||!c)state='pending';
@@ -130,24 +141,31 @@
       cardLabels.push(label);
       const box=$('postForm').querySelector('[data-card-balance="'+k+'"]');
       if(box){box.textContent=label;box.dataset.state=state;}
-      if(!single&&state!=='balanced')problems.push({priority:indices.includes(editedIndex)?0:started?1:2,text:(cards.length>1?'Receipt '+(k+1)+' · ':'')+label});
+      if(!cash&&state!=='balanced')problems.push({priority:indices.includes(editedIndex)?0:started?1:2,text:(cards.length>1?'Receipt '+(k+1)+' · ':'')+label});
     });
     const combine=$('postForm').querySelector('[data-action="combine-payment"]');
     const combined=combine && combinedPayment(d,cards);
     if(combine)combine.hidden=!combined;
+    const validation=$('entryValidation'), alert=$('notice');
+    let errorText='', allocated=false;
+    try {
+      const {items,snapshot}=preparePhoneEntry(d);
+      allocated=snapshot.allocatedReceipt || snapshot.receiptCards341?.some(card=>card.allocatedReceipt);
+      validation.textContent=items.length+' complete '+(items.length===1?'entry':'entries');
+    } catch(error){errorText=error.message;validation.textContent=errorText;}
     const summary=$('liveReceiptBalance');
     const message=combined?StaffEntry14225.balanceMessage(combined.plan.currency,combined.plan.totalCents/100,combined.plan.totalCents/100)+' overall · Check individual receipts or use one shared credit.':single?(totals.size?'Receipt total · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'Receipt total —'):
-      (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?cardLabels[0]:'All '+cards.length+' receipts balanced'));
+      (problems.sort((a,b)=>a.priority-b.priority)[0]?.text|| (cards.length===1?cardLabels[0]:'All '+cardLabels.length+' receipts balanced'));
     const overall=!single && cards.length>1 && !combined && journalTotals.size ?
       'Journal '+[...journalTotals].map(([c,t])=>'DR '+money(t.debit/100,c)+' / CR '+money(t.credit/100,c)).join(' · ')+' · ' : '';
     const retainedCount=single ? rows.filter(row=>row.journalLines).length : 0;
-    const summaryText=retainedCount ? 'Double Entry receipts: '+retainedCount+(totals.size?' · Cashbook subtotal · '+[...totals].map(([c,n])=>money(n/100,c)).join(' / '):'') : overall+message;
-    if(summary.textContent!==summaryText)summary.textContent=summaryText;
-    summary.dataset.state=single?'neutral':problems.length?'pending':'balanced';
-    const validation=$('entryValidation'), alert=$('notice');
-    let errorText='';
-    try{const {items}=preparePhoneEntry(d);validation.textContent=items.length+' complete '+(items.length===1?'entry':'entries');}
-    catch(error){errorText=error.message;validation.textContent=errorText;}
+    const summaryText=retainedCount ? (problems[0]?.text || (cards.length===1 ? cardLabels[0] : cardLabels.join(' / '))) : overall+message;
+    const text=allocated ? [...journalTotals].map(([c,t])=>StaffEntry14225.balanceMessage(c,t.debit/100,t.credit/100)).join(' / ') : summaryText;
+    if(allocated)for(const box of $('postForm').querySelectorAll('[data-card-balance][data-state=pending]')){
+      box.textContent='Balanced in the full journal';box.dataset.state='balanced';
+    }
+    if(summary.textContent!==text)summary.textContent=text;
+    summary.dataset.state=allocated?'balanced':problems.length?'pending':single?'neutral':'balanced';
     if(alert.dataset.entryValidation) {
       if(!errorText)notice();
       else if(alert.querySelector('span')?.textContent!==errorText)notice(errorText,true,true);

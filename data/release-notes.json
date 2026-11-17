@@ -1,7 +1,7 @@
 {
-  "version": "143.432",
+  "version": "143.433",
   "changes": [
-    "Budget utilization shows only the request currency for same-currency spending and unspent items. Cross-currency spending adds separate valuation columns in the worksheet, comparison, and printed report.",
-    "Currency headings, aligned amounts and a wider item column keep budget comparisons readable on desktop and tablet."
+    "Phone journal posting ignores unused dated lines, supports balanced funding across receipt cards, and keeps transferred accounts, amounts, dates, references and memos editable.",
+    "Staff can enter late receipts using their original date. Cashier month-end timing is an internal procedure. Phone posting fields use the smaller line-memo text size."
   ]
 }

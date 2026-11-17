@@ -51,7 +51,7 @@
     const {fundLine, expenses, totalCents, currency} = plan;
     const credit = number(fundLine.credit);
     if (!Number.isSafeInteger(totalCents)) throw Error('Expense total exceeds the supported range.');
-    if (totalCents !== Math.round(credit * 100)) throw Error(balanceMessage(currency, totalCents / 100, credit));
+    if (totalCents !== Math.round(credit * 100)) throw journalMismatch(balanceMessage(currency, totalCents / 100, credit));
     const days = new Map();
     for (const row of expenses) {
       const date = row.date ?? draft.date;
@@ -65,7 +65,45 @@
       return part;
     });
   }
-  function prepare(data, accounts, rules) {
+  function journalMismatch(message) {
+    return Object.assign(Error(message), {code:'STAFF_JOURNAL_MATCH'});
+  }
+
+  // Use integer cents and a bipartite flow for compound journals. A transfer
+  // account may be both a fund and a category. An earlier tentative match can
+  // then need to move to leave a valid counterpart for a later line.
+  function matchJournal(dr, cr, rules, accounts, record) {
+    const end=dr.length+cr.length+1, graph=Array.from({length:end+1},()=>[]);
+    function edge(from,to,capacity) {
+      const forward={to,capacity}, back={to:from,capacity:0};
+      forward.back=back;back.back=forward;
+      graph[from].push(forward);graph[to].push(back);
+      return forward;
+    }
+    dr.forEach((d,i)=>edge(0,i+1,Math.round(d.left*100)));
+    cr.forEach((c,j)=>edge(dr.length+j+1,end,Math.round(c.left*100)));
+    const matches=[];
+    dr.forEach((d,i)=>cr.forEach((c,j)=>{
+      if(d.account.id===c.account.id)return;
+      const out=rules.directions.includes('out') && rules.fundIds.includes(c.account.id) && rules.entryIds.includes(d.account.id);
+      const incoming=rules.directions.includes('in') && rules.fundIds.includes(d.account.id) && rules.entryIds.includes(c.account.id);
+      if(out || incoming)matches.push({d,c,out,link:edge(i+1,dr.length+j+1,Math.round(Math.min(d.left,c.left)*100))});
+    }));
+    for (;;) {
+      const via=new Map([[0,null]]), queue=[0];
+      for(let i=0;i<queue.length && !via.has(end);i++) {
+        for(const e of graph[queue[i]]) if(e.capacity && !via.has(e.to)){via.set(e.to,e);queue.push(e.to);}
+      }
+      if(!via.has(end))break;
+      let amount=Infinity;
+      for(let node=end;node;node=via.get(node).back.to)amount=Math.min(amount,via.get(node).capacity);
+      for(let node=end;node;node=via.get(node).back.to){const e=via.get(node);e.capacity-=amount;e.back.capacity+=amount;}
+    }
+    if(graph[0].some(e=>e.capacity))throw journalMismatch(assignmentMessage(rules,accounts));
+    for(const {d,c,out,link} of matches) if(link.back.capacity)record(d,c,out,link.back.capacity/100);
+  }
+
+  function prepare(data, accounts, rules, onAllocation) {
     const memo = String(data.memo || '').trim();
     if (!memo) throw Error('Add the General Description / Memo.');
     if (!validDate(data.date)) throw Error('Choose a transaction date.');
@@ -102,25 +140,34 @@
         }
         const a = account(line.account);
         if ((debit > 0) === (credit > 0)) throw Error('Enter either Debit or Credit on each line, with a positive amount.');
-        const date = receiptDate(line), key = date + '/' + a.currency;
+        const date = receiptDate(line), key = onAllocation ? a.currency : date + '/' + a.currency;
         if (!groups.has(key)) groups.set(key, {date, currency:a.currency, dr:[], cr:[]});
-        groups.get(key)[debit ? 'dr' : 'cr'].push({account: a, left: debit || credit, memo: line.memo || '', reference: line.reference, split:line.splitGroup ? line : null});
+        groups.get(key)[debit ? 'dr' : 'cr'].push({line,account: a, left: debit || credit, memo: line.memo || '', reference: line.reference, split:line.splitGroup ? line : null});
         rows.push({...(line.splitGroup ? {splitGroup:line.splitGroup,splitNumber:line.splitNumber,splitLabel:line.splitLabel} : {}), account: a.code + ' — ' + a.name, memo: line.memo || '', ...(line.reference==null?{}:{reference:line.reference}), dr: debit || '', credits: {[a.currency]: credit || ''}, date});
       }
       for (const g of groups.values()) {
         const debit = g.dr.reduce((n,l) => n + l.left, 0), credit = g.cr.reduce((n,l) => n + l.left, 0);
-        if (Math.abs(debit-credit) > epsilon) throw Error((data.multiple ? g.date + ' · ' : '') + 'Entry is unbalanced · ' + balanceMessage(g.currency, debit, credit));
+        if (Math.abs(debit-credit) > epsilon) throw journalMismatch((data.multiple && !onAllocation ? g.date + ' · ' : '') + 'Entry is unbalanced · ' + balanceMessage(g.currency, debit, credit));
+        if(onAllocation) {
+          matchJournal(g.dr,g.cr,rules,accounts,(d,c,out,value)=>{
+            const category=out?d:c, fund=out?c:d;
+            add(out?'out':'in',fund.account.id,category.account.id,value,[...new Set([d.memo,c.memo].filter(Boolean))].join(' · ') || memo,
+              receiptDate(category.line), category.reference ?? fund.reference ?? data.reference ?? '',category.split || fund.split);
+            onAllocation(d.line,c.line,category.line,value);
+          });
+          continue;
+        }
         // Match fund payments and collections exactly as the desktop personal journal does.
         for (const d of g.dr) for (const c of g.cr) {
           if (d.left < epsilon || c.left < epsilon) continue;
           const outgoing = rules.fundIds.includes(c.account.id) && rules.entryIds.includes(d.account.id) && rules.directions.includes('out');
           const incoming = rules.fundIds.includes(d.account.id) && rules.entryIds.includes(c.account.id) && rules.directions.includes('in');
-          if (!outgoing && !incoming) continue;
+          if (d.account.id===c.account.id || (!outgoing && !incoming)) continue;
           const value = Math.min(d.left, c.left);
           add(outgoing ? 'out' : 'in', outgoing ? c.account.id : d.account.id, outgoing ? d.account.id : c.account.id, value, [...new Set([d.memo, c.memo].filter(Boolean))].join(' · ') || memo, g.date, (outgoing?d.reference??c.reference:c.reference??d.reference)??data.reference??'', outgoing ? d.split || c.split : c.split || d.split);
-          d.left -= value; c.left -= value;
+          d.left = Math.round((d.left-value)*100)/100; c.left = Math.round((c.left-value)*100)/100;
         }
-        if ([...g.dr, ...g.cr].some(l => l.left > epsilon)) throw Error(assignmentMessage(rules, accounts));
+        if ([...g.dr, ...g.cr].some(l => l.left > epsilon)) throw journalMismatch(assignmentMessage(rules, accounts));
       }
     } else {
       for (const l of data.single || []) {
@@ -130,7 +177,7 @@
           continue;
         }
         if (!(amount > 0)) throw Error('Enter a positive amount on each entry line.');
-        const date=receiptDate(l), description=l.description===undefined?memo:String(l.description).trim();
+        const date=receiptDate(l), description=data.receiptEditor341 ? String(l.description || '').trim() || memo : l.description===undefined?memo:String(l.description).trim();
         if (!description) throw Error('Add the General Description for each entry.');
         add(l.direction, l.source, l.affected, amount, data.receiptEditor341 ? String(l.memo||'').trim() || description : [description,l.memo].filter(Boolean).join(' — '),date,l.reference??data.reference??'', l);
         single.push({...l, amount: String(amount), date, description});

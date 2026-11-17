@@ -331,3 +331,34 @@ label.no-print{font-size:11px;color:#627880;font-weight:400;margin:8px 0}#month{
 .receipt-card .split-receipt>header small{color:#395f4d}
 .receipt-card .split-receipt .split-line-heading strong{color:#154c3b}
 .entry-body .split-receipt-part{border-inline-start:3px solid #34715a;padding-inline-start:8px;margin:0;padding-block:3px}
+
+/* Use the line memo's type size throughout the phone posting form. */
+#postForm.receipt-editor {
+  --entry-font-size: 13px;
+  gap: 5px;
+}
+#postForm.receipt-editor .field {
+  box-sizing: border-box;
+  min-height: 36px;
+  margin: 2px 0;
+  padding: 3px 7px;
+}
+#postForm.receipt-editor .field label { margin: 0; }
+#postForm.receipt-editor .field :is(input,select,textarea),
+#postForm.receipt-editor .receipt-posting > select,
+#postForm.receipt-editor :is(.receipt-date-reference,.fund-date) button,
+#postForm.receipt-editor .phone-amount-display {
+  font-size: var(--entry-font-size) !important;
+  line-height: 1.25;
+  font-weight: 400;
+}
+#postForm.receipt-editor .field :is(input,select,textarea),
+#postForm.receipt-editor :is(.receipt-date-reference,.fund-date) button {
+  height: 22px;
+  min-height: 22px;
+  padding-block: 0;
+}
+#postForm.receipt-editor .receipt-posting > select { height: 32px; min-height: 32px; padding-block: 2px; }
+#postForm.receipt-editor .receipt-card { padding: 6px 8px; }
+
+#postForm .fund-date button { display:flex; align-items:center; gap:5px; width:100%; border:0; background:transparent; color:#174c3b; }

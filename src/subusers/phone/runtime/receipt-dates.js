@@ -119,7 +119,9 @@
   }
 
   function sharedReceiptPayment(draft, lines) {
-    if (!draft.multiple || draft.mode !== 'double' || new Set(lines.map(row => row.date ?? draft.date)).size < 2) return null;
+    if (!draft.multiple || draft.mode !== 'double') return null;
+    lines = lines.filter(journalLineEntered);
+    if (new Set(lines.map(row => row.date ?? draft.date)).size < 2) return null;
     try { return StaffEntry14225.sharedPayment(draft, lines, accounts(), rules()); }
     catch { return null; } // Invalid or partially typed amounts use normal line validation.
   }
@@ -130,11 +132,7 @@
     if (draft.mode !== 'double' || cards.length < 2) return null;
     const rows = [];
     for (const indices of cards) {
-      const entered = indices.map(i => draft.lines[i]).filter(row =>
-        row.account || row.debit || row.credit || row.memo || row.reference);
-      if (!entered.length) return null;
-      const dates = new Set(entered.map(row => cardDate(draft,row)));
-      if (indices.some(i => !dates.has(cardDate(draft,draft.lines[i])))) return null;
+      const entered = indices.map(i => draft.lines[i]).filter(journalLineEntered);
       rows.push(...entered);
     }
     try {
@@ -143,6 +141,13 @@
         plan.totalCents === Math.round(Number(String(plan.fundLine.credit).replaceAll(',', '')) * 100) ? {rows,plan} : null;
     } catch { return null; }
   }
+  function cashbookLineEntered(row, funds) {
+    return row.journalLines?.some(journalLineEntered) || row.splitGroup || row.affected || row.amount ||
+      row.memo?.trim() || row.description?.trim() || row.reference?.trim() ||
+      row.fundMemo?.trim() || row.fundReference?.trim() ||
+      row.source && !(funds.length === 1 && row.source === funds[0]);
+  }
+
   function preparePhoneEntry(draft, keepLabels=false) {
     draft={...draft,receiptEditor341:true};
     const list=draft.mode==='double'?'lines':'single', parts=[];
@@ -150,12 +155,21 @@
     draft[list]=draft[list].map((row,i)=>row.splitGroup ? {...row,splitLabel:keepLabels && row.splitLabel || labels[i].number+labels[i].suffix} : row);
     if (draft[list].some(l=>l.splitGroup && !(draft.mode==='double' ? l.debit || l.credit : l.amount)))
       throw Error('Enter an amount for each split line, or remove the unused line.');
-    const cards=receiptCards(draft);
+    const cards=receiptCards(draft), funds=rules().fundIds, unmatched=[];
     // The personal journal posts balanced movements for each date and currency.
     // Keep separate receipts distinct even when they share a date.
-    cards.forEach((indices,i)=>{
-      const row = draft.mode === 'single' && draft.single[indices[0]];
-      const retained = row && (row.journalLines || row.split && splitJournalLines(draft, indices.map(i => draft.single[i])));
+    function prepareCard(indices){
+      const active = indices.map(index => draft[list][index]).filter(row => draft.mode === 'double' ?
+        journalLineEntered(row) : cashbookLineEntered(row, funds));
+      if (!active.length) return;
+      if (draft.mode === 'double' && active.some(line=>!line.account))
+        throw Error('Choose an account for each journal line you have started.');
+      if (draft.mode === 'single' && active.some(line=>!line.journalLines && !line.amount))
+        throw Error('Enter an amount for each receipt you have started.');
+      const row = draft.mode === 'single' && active[0];
+      const pairDetails = row && (row.fundMemo != null || row.fundReference != null || row.fundDate != null);
+      const retained = row && (row.journalLines || (row.split ? splitJournalLines(draft, active) :
+        pairDetails && journalPair(draft, row, draft.lines.filter(l=>l.receipt===row.receipt))));
       if (retained) {
         const prepared = preparePhoneEntry({...draft, mode:'double', lines:retained},!!row.split);
         const snapshots = prepared.snapshot.receiptCards341;
@@ -163,15 +177,14 @@
         else parts.push(prepared);
         return;
       }
-      const shared = sharedReceiptPayment(draft, indices.map(index => draft[list][index]));
+      const shared = sharedReceiptPayment(draft, active);
       if (shared) {
-        try { parts.push(...StaffEntry14225.datedPaymentParts(draft, shared, accounts(), rules())); }
-        catch (error) { throw Error((cards.length > 1 ? 'Receipt ' + (i+1) + ' · ' : '') + error.message); }
+        parts.push(...StaffEntry14225.datedPaymentParts(draft, shared, accounts(), rules()));
         return;
       }
       const days=new Map();
-      for(const index of indices){
-        const row=draft[list][index],date=cardDate(draft,row);
+      for(const row of active){
+        const date=cardDate(draft,row);
         if(!days.has(date))days.set(date,[]);
         days.get(date).push(row);
       }
@@ -184,13 +197,65 @@
         const incoming = prior && r.directions.includes('in') && r.fundIds.includes(prior.source) && r.entryIds.includes(prior.affected) &&
           rows.some(l => l.account === prior.source && l.debit && !l.credit) &&
           rows.some(l => l.account === prior.affected && l.credit && !l.debit);
-        try{parts.push(StaffEntry14225.prepare({...draft,date,[list]:rows},accounts(),incoming ? {...r,directions:['in']} : r));}
-        catch(error){throw Error((cards.length>1?'Receipt '+(i+1)+' · ':'')+error.message);}
+        parts.push(StaffEntry14225.prepare({...draft,date,[list]:rows},accounts(),incoming ? {...r,directions:['in']} : r));
+      }
+    }
+    let originalError;
+    const order=new Map();
+    cards.forEach((indices,i)=>{
+      const start=parts.length;
+      try { prepareCard(indices); parts.slice(start).forEach(part=>order.set(part,i)); }
+      catch(error) {
+        const message=(cards.length>1?'Receipt '+(i+1)+' · ':'')+error.message;
+        if(draft.mode!=='double' || error.code!=='STAFF_JOURNAL_MATCH')throw Error(message);
+        originalError ||= Error(message);
+        parts.length=start;
+        unmatched.push(...indices.map(index=>draft.lines[index]).filter(journalLineEntered));
       }
     });
+    if(unmatched.length){
+      try {
+        const cardOrder=new Map(cards.map((indices,i)=>[draft.lines[indices[0]].receipt,i]));
+        for(const part of allocatePhoneReceipts(draft,unmatched)){
+          order.set(part,cardOrder.get(part.snapshot.receipt));
+          parts.push(part);
+        }
+        parts.sort((a,b)=>order.get(a)-order.get(b));
+      }
+      catch(error){if(cards.length===1 && error.code==='STAFF_JOURNAL_MATCH')throw originalError;throw error;}
+    }
     if(parts.length===1)return parts[0];
-    if(!parts.length)return StaffEntry14225.prepare(draft,accounts(),rules());
+    if(!parts.length)return StaffEntry14225.prepare({...draft,[list]:[]},accounts(),rules());
     const items=parts.flatMap(p=>p.items);
     return {items,snapshot:{mode:draft.mode,date:draft.date,memo:draft.memo.trim(),reference:draft.reference||'',
       multiple:!!draft.multiple,components1437:items,receiptCards341:parts.map(p=>p.snapshot)}};
+  }
+
+  // Keep already balanced receipt cards independent. For the remaining lines,
+  // allocate each fund against its category once and keep both entered dates.
+  function allocatePhoneReceipts(draft,lines) {
+    const allocations=[];
+    const prepared=StaffEntry14225.prepare({...draft,lines},accounts(),rules(),(debit,credit,category,amount)=>{
+      allocations.push({debit,credit,category,amount});
+    });
+    const groups=new Map(), positions=new Map(lines.map((l,i)=>[l,i]));
+    allocations.forEach(({debit,credit,category,amount},i)=>{
+      const item=prepared.items[i], key=JSON.stringify([category.receipt,item.date]);
+      if(!groups.has(key))groups.set(key,{date:item.date,receipt:category.receipt,items:[],amounts:new Map(),splitParts:{}});
+      const g=groups.get(key);
+      const split=prepared.snapshot.splitParts?.[i];
+      if(split)g.splitParts[g.items.length]=split;
+      g.items.push(item);
+      for(const l of [debit,credit])g.amounts.set(l,(g.amounts.get(l)||0)+Math.round(amount*100));
+    });
+    return [...groups.values()].map(({date,receipt,items,amounts,splitParts})=>{
+      const rows=[...amounts.keys()].sort((a,b)=>positions.get(a)-positions.get(b)).map(line=>{
+        const original=prepared.snapshot.rows[positions.get(line)], value=amounts.get(line)/100;
+        const currency=Object.keys(original.credits)[0];
+        return {...original, dr:original.dr?value:'', credits:{[currency]:original.dr?'':value},
+          ...(original.dr===value || original.credits[currency]===value ? {} : {enteredAmount:original.dr || original.credits[currency]})};
+      });
+      const {splitParts:unused,...base}=prepared.snapshot;
+      return {items,snapshot:{...base,date,receipt,rows,components1437:items,...(Object.keys(splitParts).length?{splitParts}:{}),allocatedReceipt:true}};
+    });
   }
