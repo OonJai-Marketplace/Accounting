@@ -6,6 +6,52 @@ window.BudgetSpendingWorksheet = (() => {
   const currencies = budget14313.currencyOptions(draft.lines);
   const rows = [];
   const decisions = [];
+  const base=BudgetReport290.requestCurrency(draft);
+  const table=body.closest('table');
+  const fundingInputs=new Map();
+  function moneyText(currency,value,headingCurrency) {
+   const text=BudgetReport290.amountText(value);
+   return currency===headingCurrency?text:currency+' '+text;
+  }
+  const headings=table.tHead.rows[0].cells;
+  if(base){
+   headings[1].textContent='Requested ('+base+')';
+   headings[4].textContent='Funded ('+base+')';
+  }
+  function refreshValuations() {
+   const active=[];
+   for(const state of rows){
+    const paid=state.choice?.value||state.currency,requested=state.line?.currency||base;
+    for(const cell of [state.requestEquivalent,state.fundedEquivalent,state.spendEquivalent])cell.textContent='';
+    if(requested && paid!==requested && state.amount.valueAsNumber>0)active.push({state,paid,requested});
+   }
+   const paidUnits=new Set(active.filter(r=>r.state.line).map(r=>r.paid));
+   const requestUnits=new Set(active.map(r=>r.requested));
+   const paidUnit=paidUnits.size===1?[...paidUnits][0]:null;
+   const requestUnit=requestUnits.size===1?[...requestUnits][0]:null;
+   headings[2].textContent=paidUnit?'In '+paidUnit:'Request equiv.';
+   headings[5].textContent=paidUnit?'In '+paidUnit:'Funded equiv.';
+   headings[7].textContent=requestUnit?'In '+requestUnit:'Spend equiv.';
+   const seen=new Map();
+   let adjusted=false;
+   for(const {state,paid,requested} of active){
+    const {line,amount,movement}=state;
+    const n=amount.valueAsNumber,original=n===Number(movement?.outflow)?movement:null;
+    state.spendEquivalent.textContent=moneyText(requested,BudgetReport290.valueIn(draft,n,paid,requested,line,original),requestUnit);
+    if(!line)continue;
+    if(!seen.has(line))seen.set(line,new Set());
+    if(seen.get(line).has(paid))continue;
+    seen.get(line).add(paid);
+    state.requestEquivalent.textContent=moneyText(paid,BudgetReport290.valueIn(draft,line.amount,requested,paid),paidUnit);
+    const {select,received}=fundingInputs.get(line);
+    if(select.value!=='approved')adjusted=true;
+    const funded=select.value==='approved'?Number(line.amount):select.value==='declined'?0:received.valueAsNumber;
+    if(Number.isFinite(funded))state.fundedEquivalent.textContent=moneyText(paid,BudgetReport290.valueIn(draft,funded,requested,paid),paidUnit);
+   }
+   table.toggleAttribute('data-show-fx',active.length>0);
+   table.toggleAttribute('data-request-fx',paidUnits.size>0);
+   table.toggleAttribute('data-funded-fx',adjusted);
+  }
   function fundingCells(row,line,index) {
    const {status,amount} = BudgetReport290.lineFunding(draft,line,index);
    const name = esc(line.description);
@@ -21,9 +67,11 @@ window.BudgetSpendingWorksheet = (() => {
    function update() {
     const partial = select.value === 'deduction';
     deduction.hidden = !partial; display.hidden = partial;
-    if (!partial) display.innerHTML = BudgetReport290.dualAmount(draft,select.value === 'declined' ? 0 : line.amount,line.currency);
+    if (!partial) display.textContent = moneyText(line.currency,select.value === 'declined' ? 0 : line.amount,base);
    }
-   select.onchange = update;
+   select.onchange = () => {update();refreshValuations();};
+   received.addEventListener('input',refreshValuations);
+   fundingInputs.set(line,{select,received});
    update();
    decisions.push({line,index,select,received});
   }
@@ -36,23 +84,17 @@ window.BudgetSpendingWorksheet = (() => {
    cell(linked ? '<strong>'+esc(item)+'</strong>'+(first?'<small>'+esc(line.category)+'</small>':'')+
     (movement?.description290?'<small>'+esc(movement.description290)+'</small>':'') :
     '<small>'+esc(movement?.destination290||'Additional spending')+'</small><input name="description" aria-label="Additional spending detail" placeholder="Spending detail" value="'+esc(item)+'">');
-   cell(linked && first ? BudgetReport290.dualAmount(draft,line.amount,line.currency) : '');
+   cell(linked && first ? esc(moneyText(line.currency,line.amount,base)) : '');
+   const requestEquivalent=row.insertCell();requestEquivalent.setAttribute('data-request-equiv','');
    if (linked && first) fundingCells(row,line,index);
    else { row.insertCell(); row.insertCell(); }
+   const fundedEquivalent=row.insertCell();fundedEquivalent.setAttribute('data-funded-equiv','');
    const currencyChoice = !linked && !movement ? '<select data-plain14285 data-spending-currency aria-label="Spending currency">'+currencies.map(([c]) =>
     '<option'+(c===currency?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select>' : '';
    const cross = linked && currency !== line.currency;
-   cell(currencyChoice + (cross?'<small>'+esc(currency)+'</small>':'') + '<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?.outflow??'')+'" placeholder="0.00"'+(cross?' readonly':'')+'>');
-   const actualCell=row.lastElementChild;
-   const alternate=document.createElement('small');actualCell.append(alternate);
-   function updateEquivalent(){
-    const input=actualCell.querySelector('[name=actualAmount]'),selected=actualCell.querySelector('select')?.value||currency;
-    if(!input.value){alternate.textContent='';return;}
-    const amount=Number(input.valueAsNumber);
-    if(!Number.isFinite(amount)){alternate.textContent='';return;}
-    alternate.innerHTML=BudgetReport290.dualAmount(draft,amount,selected,line,amount===Number(movement?.outflow)?movement:null).split('<br>').slice(1).join('<br>');
-   }
-   updateEquivalent();actualCell.addEventListener('input',updateEquivalent);actualCell.addEventListener('change',updateEquivalent);
+   const unit=currencyChoice||'<span class="worksheet-unit">'+esc(currency)+'</span>';
+   cell((cross?'<span class="worksheet-paid">'+esc(moneyText(currency,movement.outflow))+'</span>':'')+'<div class="worksheet-amount"'+(cross?' hidden':'')+'>'+unit+'<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?.outflow??'')+'" placeholder="0.00"'+(cross?' readonly':'')+'></div>');
+   const spendEquivalent=row.insertCell();spendEquivalent.setAttribute('data-spend-equiv','');
    const action = row.insertCell();
    if (movement) {
     const details = document.createElement('button');
@@ -63,14 +105,14 @@ window.BudgetSpendingWorksheet = (() => {
     remove.type = 'button'; remove.textContent = 'Remove';
     remove.onclick = () => {
      if (state.movement) { edit(draft.movements.indexOf(state.movement)); return; }
-     rows.splice(rows.indexOf(state), 1); row.remove();
+     rows.splice(rows.indexOf(state), 1); row.remove();refreshValuations();
     };
     action.append(remove);
    }
    const amount = row.querySelector('[name=actualAmount]'), choice = row.querySelector('[data-spending-currency]');
-   if (choice) choice.onchange = () => { amount.dataset.currency = choice.value; window.financialNumbers14231?.scan(row); };
-   const state = {line, movement, row, amount, choice, currency, amountEdited:false, detailEdited:false};
-   amount.addEventListener('input', () => { state.amountEdited=true; });
+   if (choice) choice.onchange = () => { amount.dataset.currency = choice.value; window.financialNumbers14231?.scan(row);refreshValuations(); };
+   const state = {line, movement, row, amount, choice, currency,requestEquivalent,fundedEquivalent,spendEquivalent, amountEdited:false, detailEdited:false};
+   amount.addEventListener('input', () => { state.amountEdited=true;refreshValuations(); });
    row.querySelector('[name=description]')?.addEventListener('input', () => { state.detailEdited=true; });
    for (const td of row.cells) td.dataset.label = body.parentElement.tHead.rows[0].cells[td.cellIndex].textContent;
    rows.push(state);
@@ -83,6 +125,7 @@ window.BudgetSpendingWorksheet = (() => {
    else append(line,null,true,index);
   }
   for (const m of spent.filter(m => !draft.lines.some((line,i) => BudgetReport290.forLine(m,line,i)))) append(null,m);
+  refreshValuations();
   host.querySelector('[data-add-spending]').onclick = () => {
    const row = append(null,null); row.querySelector('[name=description]').focus();
   };
@@ -127,7 +170,7 @@ window.BudgetSpendingWorksheet = (() => {
     else draft.movements.push(next);
     state.movement = next; state.amountEdited=false; state.detailEdited=false;
     if (state.choice) state.choice.disabled = true;
-    const action = state.row.cells[5];
+    const action = state.row.lastElementChild;
     if (!action.querySelector('button') || action.textContent === 'Remove') {
      const details = document.createElement('button');
      details.type = 'button'; details.textContent = 'Details';
@@ -277,23 +320,26 @@ window.BudgetReport290 = (() => {
  function totalValues(components){
   return components.some(v=>v==null)?null:components.reduce((sum,v)=>sum+v,0);
  }
- function moneyCell(currencies,values){
-  return currencies.map((c,i)=>values[i]==null?esc(c)+' · rate needed':esc(c+' '+money(round(values[i])))).join('<br>');
+ function requestCurrency(d){
+  const currencies=new Set(d.lines.map(line=>line.currency));
+  return currencies.size===1?currencies.values().next().value:null;
  }
- function displayCurrencies(native){
-  return [...new Set([...(native||[]),'USD','LAK'])];
+ function rowCurrencies(line,movements,base){
+  const paid=movements.filter(m=>Number(m.outflow)>0).map(m=>m.currency);
+  return [...new Set([line?.currency||base,...paid].filter(Boolean))];
  }
- function dualAmount(d,amount,currency,line,movement){
-  const currencies=displayCurrencies([currency]);
-  return moneyCell(currencies,currencies.map(c=>valueIn(d,amount,currency,c,line,movement)));
+ function amountText(value){
+  return value==null?'Rate needed':money(round(value));
  }
  function compare(d){
   const spent=(d.movements||[]).filter(m=>kind(m)==='spend');
   const rows=d.lines.map((line,index)=>({line,index,movements:spent.filter(m=>forLine(m,line,index))}));
   const linked=new Set(rows.flatMap(row=>row.movements));
   for(const movement of spent)if(!linked.has(movement))rows.push({movements:[movement]});
-  const native=[...new Set([...d.lines.map(l=>l.currency),...spent.map(m=>m.currency)])];
-  const currencies=displayCurrencies(['USD','LAK',...native]);
+  const base=requestCurrency(d);
+  for(const row of rows)row.currencies=rowCurrencies(row.line,row.movements,base);
+  const native=new Set(rows.flatMap(row=>row.currencies));
+  const currencies=[...new Set(['USD','LAK',...native])].filter(c=>native.has(c));
   function values(row,c){
    const {line,movements}=row;
    const requested=line?valueIn(d,line.amount,line.currency,c):0;
@@ -308,22 +354,42 @@ window.BudgetReport290 = (() => {
  }
  function comparisonTable(d){
   const {rows,currencies,totals}=compare(d);
-  const render=(values,k)=>moneyCell(currencies,currencies.map(c=>values[c][k]));
-  const body=rows.map(row=>{
-   const {line,movements,values}=row,extra=movements[0];
-   const item=line?.description||extra.destination290||extra.description290||'Additional spending';
-   const detail=movements.map(m=>m.description290).filter(t=>t&&t!==item).map(esc).join('<br>');
-   const category=line?.category||'Additional spending';
-   const decision=line&&lineFunding(d,line,row.index);
-   return ['<strong>'+esc(item)+'</strong><br>'+esc(category)+(detail?'<br>'+detail:''),
-    line?render(values,'requested'):'—',
-    ...(d.fundingByItem?[line?esc(fundingLabels[decision.status])+'<br>'+render(values,'funded'):'—']:[]),
-    render(values,'used'),render(values,'remaining')];
-  });
-  body.push(['<strong>Total</strong>',render(totals,'requested'),...(d.fundingByItem?[render(totals,'funded')]:[]),render(totals,'used'),render(totals,'remaining')]);
-  const rate=reportRate(d,'USD','LAK');
-  return section82('Budget compared with actual spending',sizedTable(['Item / category','Requested',...(d.fundingByItem?['Status / funded']:[]),'Actual spending',d.fundingByItem?'Funding remaining':'Budget remaining'],body,d.fundingByItem?[40,15,15,15,15]:[49,17,17,17])+
-   (rate?'<p>Report exchange rate · LAK '+esc(formatAppRate(rate))+' per USD. Recorded item equivalents take priority.</p>':''));
+  const adjusted=rows.some(r=>r.line&&lineFunding(d,r.line,r.index).status!=='approved');
+  const measures=[['requested','Requested'],...(adjusted?[['funded','Funded']]:[]),['used','Actual spending'],['remaining',d.fundingByItem?'Funding remaining':'Budget remaining']];
+  function table(codes){
+   const single=codes.length===1;
+   const itemWidth=single?44:adjusted?26:34;
+   const available=(100-itemWidth)/measures.length;
+   const weights=codes.map(code=>code==='LAK'?1.5:1);
+   const weightTotal=weights.reduce((sum,weight)=>sum+weight,0);
+   const widths=weights.map(weight=>available*weight/weightTotal);
+   const col=w=>'<col style="width:'+w+'%">';
+   const cols=col(itemWidth)+measures.map(()=>widths.map(col).join('')).join('');
+   const heading='background-color:#e4eee8;color:#193d30;padding:4px;text-align:right';
+   const head='<tr><th rowspan="2" style="'+heading+';text-align:left">Item / category</th>'+
+    measures.map(([,label])=>'<th colspan="'+codes.length+'" style="'+heading+'">'+label+'</th>').join('')+'</tr><tr>'+
+    measures.map(()=>codes.map(c=>'<th style="'+heading+'">'+esc(c)+'</th>').join('')).join('')+'</tr>';
+   function cells(values,visible,hasRequest,isTotal){
+    return measures.map(([key])=>codes.map(c=>{
+     const value=!visible.includes(c)?'':!hasRequest&&(key==='requested'||key==='funded')?'—':esc(amountText(values[c][key]));
+     return '<td style="text-align:right;vertical-align:top;padding:4px 3px;'+(isTotal?fill:'')+'">'+value+'</td>';
+    }).join('')).join('');
+   }
+   const body=rows.filter(row=>row.currencies.some(c=>codes.includes(c))).map(row=>{
+    const {line,movements}=row,extra=movements[0];
+    const item=line?.description||extra?.destination290||extra?.description290||'Additional spending';
+    const detail=[line?.category||'Additional spending'];
+    if(line&&d.fundingByItem)detail.push(fundingLabels[lineFunding(d,line,row.index).status]);
+    return '<tr><td style="padding:4px 5px;vertical-align:top"><strong>'+esc(item)+'</strong><br><span style="color:#52665b">'+detail.map(esc).join(' · ')+'</span></td>'+
+     cells(row.values,row.currencies,!!line,false)+'</tr>';
+   }).join('');
+   return '<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup>'+cols+'</colgroup><thead>'+head+'</thead><tbody>'+body+
+    '<tr><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,codes,true,true)+'</tr></tbody></table></div>';
+  }
+  const tables=currencies.length>2?currencies.map(c=>table([c])).join(''):currencies.length?table(currencies):'<p>No budget items or spending recorded.</p>';
+  const rate=currencies.includes('USD')&&currencies.includes('LAK')&&reportRate(d,'USD','LAK');
+  const note=currencies.length>1?'<p>Report totals include all items in each currency.'+(rate?' Report exchange rate · LAK '+esc(formatAppRate(rate))+' per USD. Recorded item equivalents take priority.':'')+'</p>':'';
+  return section82('Budget compared with actual spending',tables+note);
  }
  function sizedTable(headers,rows,widths){
   const cols='<colgroup>'+widths.map(w=>'<col style="width:'+w+'%">').join('')+'</colgroup>';
@@ -354,7 +420,7 @@ window.BudgetReport290 = (() => {
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Reference: '+esc(d.receiptReference290):'',journalReference?'Utilization journal: '+esc(journalReference):''].filter(Boolean).join(' · ');
   return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>Budget month: '+esc(period(d))+' · Report date: '+esc(formatAppDate(d.date))+(refs?'<br>'+refs:'')+'</p>'+summary(d)+section82('Receipts, spending and repayments',sizedTable(['Date / activity','Source and destination','Budget item','Amount','Reference'],movements,[15,18,36,16,15]))+section82('Currency conversions',table82(['Date / reference','Source and destination','Exchanged','Received','Rate'],exchanges))+(d.notes?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
  }
- return {title,compare,reportRate,dualAmount,moneyCell,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
+ return {title,compare,reportRate,requestCurrency,valueIn,amountText,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();
 /* The normal Post Transaction form and durable journal queue own posting and numbering. */
 window.BudgetUtilizationJournal=(()=>{
@@ -678,7 +744,7 @@ function renderAllocation(){
  toolbar.querySelector('[onclick*="saveAllocation(true)"]').title='Save as read-only in History';
  const save=toolbar.querySelector('[onclick*="saveAllocation(false)"]');
  save.title='Save an editable draft';save.classList.add('fund-save-draft');
- const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th>Status</th><th>Funded amount</th><th>Actual spending</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div>';
+ const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th data-fx>Request equiv.</th><th>Status</th><th>Funded</th><th data-fx>Funded equiv.</th><th>Actual spending</th><th data-fx>Spend equiv.</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div>';
  const rowHeader=d.requestId14316?[report.period(d),d.recipient].filter(Boolean).map(esc).join(' · '):'';
  const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fund-report-fields">'+
   field82('Report date','date',d.date,'date','required')+field82('Reference','receiptReference290',d.receiptReference290||'')+
@@ -701,7 +767,7 @@ function renderAllocation(){
  const summary=host.querySelector('[data-summary]'),balance=summary.querySelector('[data-budget-balance]');
  function showBalance(){
   const {currencies,totals}=report.compare(d);
-  balance.textContent=' · Remaining '+currencies.map(c=>c+' '+(totals[c].remaining==null?'rate needed':formatAppNumber(totals[c].remaining))).join(' / ');
+  balance.textContent=currencies.length?' · Remaining '+currencies.map(c=>c+' '+report.amountText(totals[c].remaining)).join(' / '):'';
  }
  showBalance();
  host.oninput=()=>{summary.open=false;balance.textContent='';};
