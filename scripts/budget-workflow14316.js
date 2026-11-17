@@ -263,13 +263,18 @@ window.BudgetReport290 = (() => {
   const month=d.budgetMonth290 || String(d.date||'').slice(0,7);
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(month)?new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(month+'-01T12:00:00Z')):'';
  }
- const kind=m=>m.type290 || (Number(m.inflow)>0?'receipt':'spend');
- const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Unused funding returned',transfer:'Transfer between accounts'};
+ function kind(m){
+  const type=m.type290||(Number(m.inflow)>0?'receipt':'spend');
+  // Earlier imports recorded a restaurant-covered shortage as a receipt, with its source and purpose intact.
+  if(type==='receipt'&&/^restaurant funds$/i.test((m.account||'').trim())&&/^restaurant covered\b.*\b(shortage|shortfall)\b/i.test(m.description290||''))return 'coverage';
+  return type;
+ }
+ const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Unused funding returned',transfer:'Transfer between accounts',coverage:'Shortfall covered by restaurant'};
  function cashPaid(m){return Number(m.cashDistributed??m.outflow);}
  function equivalentField(m){return m?.cashDistributed!=null?'cashBudgetAmount':'budgetAmount290';}
  function balances(d) {
   const sums=new Map();
-  const currency=c=>{if(!sums.has(c))sums.set(c,{requested:0,receipt:0,spend:0,cashSpent:0,borrow:0,repay:0,refund:0,transfer:0,convertedIn:0,convertedOut:0,remaining:0});return sums.get(c);};
+  const currency=c=>{if(!sums.has(c))sums.set(c,{requested:0,receipt:0,coverage:0,spend:0,cashSpent:0,borrow:0,repay:0,refund:0,transfer:0,convertedIn:0,convertedOut:0,remaining:0});return sums.get(c);};
   for(const l of d.lines)currency(l.currency).requested+=Number(l.amount);
   for(const m of d.movements||[]){
    const t=currency(m.currency),type=kind(m);
@@ -278,7 +283,7 @@ window.BudgetReport290 = (() => {
   }
   for(const fx of d.conversions||[]){currency(fx.currency).convertedOut+=Number(fx.amount);currency(fx.target).convertedIn+=conversionAmount(fx);}
   for(const t of sums.values()){
-   const available=t.receipt+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.convertedOut;
+   const available=t.receipt+t.coverage+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.convertedOut;
    t.beforeReturn=round(available);
    t.remaining=round(available-t.refund);
   }
@@ -388,7 +393,7 @@ window.BudgetReport290 = (() => {
     cells(row.values,row.currencies,!!line,false)+'</tr>';
   }).join('');
   const tables=currencies.length?'<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup>'+cols+'</colgroup><thead>'+head+'</thead><tbody>'+body+
-   '<tr><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,currencies,true,true)+'</tr></tbody></table></div>':'<p>No budget items or spending recorded.</p>';
+   '<tr data-budget-summary290="total"><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,currencies,true,true)+'</tr></tbody></table></div>':'<p>No budget items or spending recorded.</p>';
   const rate=currencies.includes('USD')&&currencies.includes('LAK')&&reportRate(d,'USD','LAK');
   const note=currencies.length>1?'<p>Report totals include all items in each currency.'+(rate?' Report exchange rate · ₭ '+esc(formatAppRate(rate))+' for $1. Recorded item equivalents take priority.':'')+'</p>':'';
   return section82('Budget compared with actual spending',tables+note);
@@ -399,11 +404,14 @@ window.BudgetReport290 = (() => {
  }
  function summary(d){
   const totals=[...balances(d)],columns=totals.map(([c])=>c);
-  const fields=[['requested','Requested'],['receipt','Funding received'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],...(totals.some(([,t])=>t.refund>0)?[['beforeReturn','Cash before returns'],['refund','Unused funding returned'],['remaining','Cash after returns']]:[['remaining','Cash remaining']])];
-  const cash=table82(['Activity',...columns],fields.filter(([key])=>['receipt','spend','remaining','requested'].includes(key)||totals.some(([,t])=>t[key])).map(([key,label])=>[esc(label),...totals.map(([,t])=>money(t[key]))]));
+  const fields=[['requested','Requested'],['receipt','Funding received'],['coverage','Shortfall covered by restaurant'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],...(totals.some(([,t])=>t.refund>0)?[['beforeReturn','Cash before returns'],['refund','Unused funding returned'],['remaining','Cash after returns']]:[['remaining','Cash remaining']])];
+  const cash=document.createElement('div');
+  cash.innerHTML=table82(['Activity',...columns],fields.filter(([key])=>['receipt','spend','remaining','requested'].includes(key)||totals.some(([,t])=>t[key])).map(([key,label])=>[esc(label),...totals.map(([,t])=>money(t[key]))]));
+  const requestedRow=cash.querySelector('tbody tr');
+  if(requestedRow){requestedRow.dataset.budgetSummary290='requested';for(const cell of requestedRow.cells)cell.style.cssText+=fill;}
   const loans=d.movements.filter(m=>kind(m)==='borrow');
   const debt=loans.length?section82('Temporary advances',table82(['Lender / source','Reference','Currency','Borrowed','Outstanding'],loans.map(l=>[esc(l.account),esc(l.reference),esc(l.currency),money(l.inflow),money(outstanding(d,l))]))):'';
-  return section82('Funding by currency',cash)+debt+comparisonTable(d);
+  return section82('Funding by currency',cash.innerHTML)+debt+comparisonTable(d);
  }
  function movementRows(d){
   return d.movements.map(m=>{
@@ -424,6 +432,132 @@ window.BudgetReport290 = (() => {
  }
  return {title,compare,cashPaid,equivalentField,reportRate,requestCurrency,valueIn,amountText,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();
+/* USD owner support is accounted for in regular equity, in its original currency. */
+window.BudgetSupportEquity=(()=>{
+ 'use strict';
+ const round=n=>Math.round((n+Number.EPSILON)*100)/100;
+ const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ const journalRefs=s=>[...new Set(String(s||'').toUpperCase().match(/\bOJM\d{6}(?:-\d+)?\b/g)||[])];
+ const roleName={remaining:'Owner Financial Support — Remaining — USD',used:'Owner Financial Support — Used — USD'};
+ const regular=(a,type)=>a?.currency==='USD'&&a.isPosting!==false&&!a.isTechnical&&a.type===type&&(!a.purpose||a.purpose==='regular');
+ function equity(role){
+  const matches=AccountingStore.accounts.filter(a=>regular(a,'EQUITY')&&norm(a.name).replace(/\busd\b/g,'').trim()===norm(roleName[role]).replace(/ usd$/,''));
+  return matches.length===1?matches[0]:null;
+ }
+ function receipts(d){return (d.movements||[]).filter(m=>BudgetReport290.kind(m)==='receipt'&&m.currency==='USD'&&Number(m.inflow)>0);}
+ function groups(d){
+  const list=receipts(d),header=journalRefs(d.receiptReference290),groups=new Map();
+  for(const m of list){
+   let refs=journalRefs(m.reference);
+   if(!refs.length&&header.length){
+    if(list.length!==1)throw Error('Identify the posted journal on each USD receipt before preparing this report.');
+    refs=header;
+   }
+   if(refs.length>1)throw Error('Identify one funding journal per USD receipt.');
+   const reference=refs[0]||'',destination=m.destination290||'',key=reference||'new:'+destination;
+   if(!groups.has(key))groups.set(key,{reference,destination,amount:0});
+   groups.get(key).amount+=Number(m.inflow);
+  }
+  return [...groups.values()];
+ }
+ async function evidence(groups){
+  const numbers=groups.map(g=>g.reference).filter(Boolean);
+  if(!numbers.length)return [];
+  const {data,error}=await ojmDb.from('journal_entries').select('entry_no,status,journal_lines(currency_code,debit,credit,fx_rate_lak,book_rate_lak,accounts(id,code,name))').in('entry_no',numbers).setHeader('x-ojm-database-only','1');
+  if(error)throw Error('Could not verify the funding journal. '+error.message);
+  return data||[];
+ }
+ function usage(d,received){
+  const balances=BudgetReport290.balances(d),usd=balances.get('USD');
+  let used=0;
+  const fxRows=d.conversions||[];
+  for(const [currency,b] of balances){
+   if(currency==='USD')continue;
+   const sales=fxRows.filter(f=>f.currency==='USD'&&f.target===currency);
+   const proceeds=sales.reduce((n,f)=>n+BudgetReport290.conversionAmount(f),0);
+   const sold=sales.reduce((n,f)=>n+Number(f.amount),0);
+   const boughtBack=fxRows.filter(f=>f.currency===currency&&f.target==='USD').reduce((n,f)=>n+Number(f.amount),0);
+   if((sales.length||b.cashSpent)&&fxRows.some(f=>f.currency!=='USD'&&f.target!=='USD'&&(f.currency===currency||f.target===currency)))
+    throw Error('Review the cross-currency conversion before allocating USD support to '+currency+' spending.');
+   // Local top-ups cover shortfalls. Other funds, returns and unspent proceeds are not owner spending.
+   const available=Math.max(0,proceeds-boughtBack);
+   if(round(b.cashSpent+b.repay+b.refund+boughtBack-proceeds-b.receipt-b.coverage-b.borrow)>0)
+    throw Error('Record the exchange or separate funding that covered the '+currency+' payments before preparing USD support.');
+   const ownerPaid=Math.max(0,b.cashSpent-b.coverage);
+   if(available>0&&ownerPaid>0)used+=Math.min(available,ownerPaid)*sold/proceeds;
+  }
+  const otherUsd=Math.max(0,usd.receipt-received)+usd.borrow+usd.coverage;
+  if(round(usd.cashSpent+usd.convertedOut+usd.refund+usd.repay-usd.convertedIn-received-otherUsd)>0)
+   throw Error('The USD payments exceed the recorded cash available. Review receipts and exchanges.');
+  if(otherUsd>0&&usd.convertedOut>0&&usd.convertedOut>received)
+   throw Error('Separate the USD exchange funded by other sources before preparing owner support.');
+  used=round(used+Math.max(0,usd.cashSpent-usd.coverage));
+  if(used>received&&otherUsd<=0)throw Error('USD used exceeds owner funding. Review payments, receipts and conversions.');
+  return Math.min(used,received);
+ }
+ function receivingAccount(destination){
+  const accounts=AccountingStore.accounts.filter(a=>regular(a,'ASSET'));
+  const match=getSelectedAccountInfo(destination);
+  if(match)return regular(match,'ASSET')?match:null;
+  const text=norm(destination);
+  if(text&&!['budget funds','budget funds usd','bcel','bcel usd'].includes(text)){
+   const matches=accounts.filter(a=>norm(a.name)===text||norm(a.name).replace(/ usd$/,'')===text);
+   return matches.length===1?matches[0]:null;
+  }
+  return accounts.find(a=>a.code==='1041'&&/\bbcel\b/i.test(a.name));
+ }
+ function plan(d,groups,journals){
+  const remaining=equity('remaining'),usedAccount=equity('used');
+  const received=round(groups.reduce((s,g)=>s+g.amount,0)),used=usage(d,received);
+  const pairs=[],notes=[];let classified=0,carryingValue=0,valuedAmount=0;
+  function pair(label,amount,debit,credit,roles,rate){
+   pairs.push({label,amount:round(amount),currency:'USD',debitCode:debit?.code||'',creditCode:credit?.code||'',debitId:debit?.id||'',creditId:credit?.id||'',roles,rate});
+  }
+  for(const g of groups){
+   if(!g.reference){
+    pair('Funding received',g.amount,receivingAccount(g.destination),remaining,['asset','remaining']);
+    continue;
+   }
+   const entry=journals.find(j=>j.entry_no===g.reference&&j.status==='posted');
+   if(!entry)throw Error('Check receipt reference '+g.reference+'. A posted journal must be verified before preparing its funding.');
+   const lines=entry.journal_lines.filter(l=>l.currency_code==='USD');
+   const credits=lines.filter(l=>Number(l.credit)>0&&((remaining&&l.accounts?.id===remaining.id)||l.accounts?.code==='3026'));
+   if(!credits.length||round(credits.reduce((s,l)=>s+Number(l.credit),0))!==round(g.amount))
+    throw Error('The USD support credit in '+g.reference+' does not match this receipt. Review the funding reference and amount.');
+   for(const l of credits){
+    const amount=Number(l.credit),rate=Number(l.book_rate_lak||l.fx_rate_lak)||null;
+    if(rate){carryingValue+=amount*rate;valuedAmount+=amount;}
+    if(l.accounts.code==='3026'){
+     const prior=AccountingStore.accounts.find(a=>a.id===l.accounts.id&&regular(a,'EQUITY'));
+     if(!prior)throw Error('Refresh the chart to load the original support account from '+g.reference+'.');
+     pair('Funding received · reclassify '+g.reference,amount,prior,remaining,['original','remaining'],rate);
+    }
+   }
+   const usedCredit=lines.filter(l=>usedAccount&&l.accounts?.id===usedAccount.id).reduce((s,l)=>s+Number(l.credit),0);
+   const remainingDebit=lines.filter(l=>remaining&&l.accounts?.id===remaining.id).reduce((s,l)=>s+Number(l.debit),0);
+   if(round(usedCredit)!==round(remainingDebit))throw Error('Review the existing support allocation in '+g.reference+'.');
+   classified+=usedCredit;
+   notes.push('Receipt already posted in '+g.reference+'.');
+  }
+  const toClassify=round(used-classified);
+  if(toClassify<0)throw Error('The referenced journals already classify more USD as used than this report shows.');
+  if(toClassify>0)pair('Fund used',toClassify,remaining,usedAccount,['remaining','used'],round(valuedAmount)===received?carryingValue/valuedAmount:null);
+  if(!pairs.length)throw Error('The referenced journal already records the full support allocation for this report.');
+  const missing=['remaining','used'].filter(role=>pairs.some(p=>p.roles.includes(role))&&!equity(role)).map(role=>roleName[role]);
+  const notice=['USD support · $'+formatAppNumber(received)+' received · $'+formatAppNumber(used)+' used · $'+formatAppNumber(round(received-used))+' remaining.',...notes];
+  if(missing.length)notice.push('Required in the Chart of Accounts: '+missing.join(' and ')+'.');
+  return {pairs,notice:notice.join(' ')};
+ }
+ function validate(pair,lines){
+  return pair.roles.every((role,i)=>{
+   const id=lines[i].account_id;
+   if(role==='asset')return regular(AccountingStore.accounts.find(a=>a.id===id),'ASSET');
+   if(role==='original')return id===pair.debitId;
+   return id===equity(role)?.id;
+  });
+ }
+ return {groups,evidence,plan,validate};
+})();
 /* The normal Post Transaction form and durable journal queue own posting and numbering. */
 window.BudgetUtilizationJournal=(()=>{
  'use strict';
@@ -435,7 +569,7 @@ window.BudgetUtilizationJournal=(()=>{
   $('budgetJournalNotice')?.remove();
   if(!prepared)return;
   const notice=document.createElement('p');notice.id='budgetJournalNotice';
-  notice.textContent='Budget utilization · '+prepared.period+'. Choose the debit and credit accounts for each summary pair. For funding already posted, use the budget tracking accounts.';
+  notice.textContent=prepared.notice||'Budget utilization · '+prepared.period+'. Choose the debit and credit accounts for each summary pair. For funding already posted, use the budget tracking accounts.';
   $('journalEntry98')?.prepend(notice);
  }
  async function lookup(id){
@@ -452,11 +586,12 @@ window.BudgetUtilizationJournal=(()=>{
    return [[currency,Math.round(comparison.totals[currency].used*100)/100]].filter(([,n])=>n>0);
   return [...BudgetReport290.balances(data)].map(([c,t])=>[c,Math.round(t.spend*100)/100]).filter(([,n])=>n>0);
  }
- function open(record){
+ function open(record,groups=BudgetSupportEquity.groups(record.data),journals=[]){
   if(!access113.can('journal','post')||window.workspaceRequest138?.target)throw Error('Open your company journal with Post permission.');
   const d=record.data;
   const received=[...BudgetReport290.balances(d)].map(([currency,v])=>[currency,Math.round(v.receipt*100)/100]).filter(([,n])=>n>0);
-  const pairs=[
+  const support=groups.length?BudgetSupportEquity.plan(d,groups,journals):null;
+  const pairs=support?.pairs||[
    ...received.map(([currency,amount])=>({label:'Funding received',currency,amount})),
    ...amounts(d).map(([currency,amount])=>({label:'Fund used',currency,amount}))
   ];
@@ -472,18 +607,24 @@ window.BudgetUtilizationJournal=(()=>{
   const receipts=[...new Set([d.receiptReference290,...d.movements.filter(m=>BudgetReport290.kind(m)==='receipt').map(m=>m.reference)].filter(Boolean))];
   switchTab('journal');showJournalEntry98(true,false);window.entry1430?.setMode('double');setJournalDateMode(false);
   $('jeTransDate').value=d.date;window.datePicker104?.refresh($('jeTransDate'));
-  $('jeGeneralMemo').value=['Budget utilization · '+period,d.purpose,received.length?'Funding received · '+received.map(([c,n])=>c+' '+formatAppNumber(n)).join(' + '):'',receipts.join(' / ')].filter(Boolean).join(' · ');
+  $('jeGeneralMemo').value=['Budget utilization · '+period,d.purpose,support?'USD owner support':received.length?'Funding received · '+received.map(([c,n])=>c+' '+formatAppNumber(n)).join(' + '):'',receipts.join(' / ')].filter(Boolean).join(' · ');
   const body=$('jeLinesBody');body.replaceChildren();
   const rates={};
-  for(const {label,currency,amount:n} of pairs){
+  for(const {label,currency,amount:n,debitCode,creditCode,roles,rate} of pairs){
    const amount=String(n),description=label+' · '+period+' · '+currency+' '+formatAppNumber(n);
-   const fx=BudgetReport290.reportRate(d,currency,'LAK');
+   const fx=rate||BudgetReport290.reportRate(d,currency,'LAK');
    if(currency!=='LAK'&&fx)rates[currency]=fx;
-   addJournalLineRow('',description,amount,{});
-   addJournalLineRow('',description,'',{[currency]:amount});
+   const names={asset:'Receiving account',remaining:'Support Remaining',used:'Support Used',original:'Support Received'};
+   for(const [i,code] of [debitCode,creditCode].entries()){
+    addJournalLineRow(code||'',roles?description+' · '+names[roles[i]]:description,i===0?amount:'',i===1?{[currency]:amount}:{});
+    if(rate){
+     body.lastElementChild.dataset.fxRate14383=rate;
+     body.lastElementChild.dataset.bookRate14383=rate;
+    }
+   }
   }
   window.JournalFX14383?.restore(rates);calculateJournalBalance();
-  restore({owner:liveProfile.id,id:record.id,version:record.version,period,pairs});
+  restore({owner:liveProfile.id,id:record.id,version:record.version,period,pairs,notice:support?.notice});
   $('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles:true}));window.drafts1427?.flush();
  }
  function postingKey(entries){
@@ -494,9 +635,13 @@ window.BudgetUtilizationJournal=(()=>{
   const expected=source.pairs||source.used.map(([currency,amount])=>({currency,amount}));
   const valid=lines.length===2*expected.length&&expected.every(({currency,amount},i)=>{
    const pair=lines.slice(2*i,2*i+2);
+   if(expected[i].roles)return pair.every(l=>l.currency_code===currency)&&
+    pair[0].debit===amount&&!pair[0].credit&&pair[1].credit===amount&&!pair[1].debit&&
+    BudgetSupportEquity.validate(expected[i],pair);
    return pair.every(l=>l.currency_code===currency)&&pair[0].account_id!==pair[1].account_id&&
     pair.some(l=>l.debit===amount&&!l.credit)&&pair.some(l=>l.credit===amount&&!l.debit);
   });
+  if(!valid&&source.pairs?.some(p=>p.roles))throw Error('Use the receiving USD asset or original receipt account and the regular USD Remaining and Used equity accounts in the prepared order.');
   if(!valid)throw Error('Keep each saved summary pair together and choose two different accounts in its currency.');
   return 'budget-use:'+source.id+':'+source.version;
  }
@@ -839,7 +984,7 @@ function movementFields(f){
  const item=allocation.lines.find((l,i)=>(l.key117||'worksheet:'+i)===f.elements.budgetKey117.value);
  f.querySelector('[data-loan-field]').hidden=!repay;f.elements.loanId290.required=repay;
  f.querySelector('[data-item-field]').hidden=!spend;f.querySelector('[data-cash-field]').hidden=!spend;
- const labels={receipt:['Funding from','Received into'],borrow:['Lender / company fund','Received into'],repay:['Paid from','Repaid to'],spend:['Paid from','Paid to / destination'],refund:['Returned from','Returned to'],transfer:['Transferred from','Transferred to']};
+ const labels={receipt:['Funding from','Received into'],coverage:['Covered by','Applied to'],borrow:['Lender / company fund','Received into'],repay:['Paid from','Repaid to'],spend:['Paid from','Paid to / destination'],refund:['Returned from','Returned to'],transfer:['Transferred from','Transferred to']};
  f.querySelector('[data-source-label]').textContent=labels[type][0];f.querySelector('[data-dest-label]').textContent=labels[type][1];
  f.elements.destination290.required=transfer;
  const target=repay?loan:spend?item:null,cross=target&&target.currency!==f.elements.currency.value;
@@ -852,7 +997,7 @@ function editMovement(i){
 }
 function saveMovement(f){
  try{guard();if(!activityPopup?.contains(f)||!f.reportValidity())return;captureFund();
-  const fields=Object.fromEntries(new FormData(f)),type=fields.type290,amount=movementAmount(f.elements.amount),incoming=type==='receipt'||type==='borrow';
+  const fields=Object.fromEntries(new FormData(f)),type=fields.type290,amount=movementAmount(f.elements.amount),incoming=['receipt','coverage','borrow'].includes(type);
   const prior=editMove===null?null:allocation.movements[editMove];
   const next={id290:prior?.id290||crypto.randomUUID(),type290:type,date290:fields.date290,account:fields.account.trim(),destination290:fields.destination290.trim(),reference:fields.reference.trim(),description290:fields.description290.trim(),currency:fields.currency,budgetKey117:type==='spend'?fields.budgetKey117:'',inflow:incoming?amount:0,outflow:incoming?0:amount};
   if(type==='spend'&&fields.cashDistributed!=='')next.cashDistributed=movementAmount(f.elements.cashDistributed);
@@ -918,7 +1063,10 @@ async function prepareSummary(record,host,post){
   const link=await journal.lookup(record.id);check();if(!host.isConnected)return;
   if(link)throw Error('This report is already linked to journal '+journal.reference(link)+'.');
   if(journal.localJob(record.id))throw Error('The utilization posting is waiting for confirmation. Open Data Check to review it.');
-  saved();journal.open(current);
+  const groups=BudgetSupportEquity.groups(current.data);
+  const evidence=await BudgetSupportEquity.evidence(groups);
+  check();if(!host.isConnected)return;
+  saved();journal.open(current,groups,evidence);
   if(worksheet)clearFundPopup();else host.resolve108(false);
  }catch(e){showCenterStatus(e.message,true)}finally{post.disabled=false}
 }
@@ -1011,7 +1159,7 @@ function validateAllocation(d,finalize){
  if(!d.movements.length&&!d.conversions.length&&!(d.lines.length&&d.fundingByItem))throw Error('Record a funding decision, receipt, movement or conversion first.');
  const loans=new Map(d.movements.filter(m=>report.kind(m)==='borrow').map(m=>[m.id290,m]));
  for(const m of d.movements){
-  const type=report.kind(m),incoming=type==='receipt'||type==='borrow';
+  const type=report.kind(m),incoming=['receipt','coverage','borrow'].includes(type);
   if(!Object.hasOwn(report.labels,type)||!currencies.has(m.currency)||(!(type==='spend'&&m.worksheetSpend)&&(!m.account||!m.reference))||m.date290&&!validDate14317(m.date290)||!positive(incoming?m.inflow:m.outflow)||Number((incoming?m.outflow:m.inflow)||0)!==0)throw Error('Each movement needs a source, reference, configured currency and one positive amount.');
   if(m.cashDistributed!=null&&(type!=='spend'||!Number.isFinite(m.cashDistributed)||m.cashDistributed<0||!Number.isSafeInteger(Math.round(m.cashDistributed*100))||Math.abs(m.cashDistributed*100-Math.round(m.cashDistributed*100))>0.00001))throw Error('Enter a nonnegative cash distribution with up to two decimal places.');
   if(type==='transfer'&&(!m.destination290||m.destination290===m.account))throw Error('Choose different source and destination accounts for a transfer.');

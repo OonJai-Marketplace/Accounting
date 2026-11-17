@@ -335,7 +335,7 @@ function movementFields(f){
  const item=allocation.lines.find((l,i)=>(l.key117||'worksheet:'+i)===f.elements.budgetKey117.value);
  f.querySelector('[data-loan-field]').hidden=!repay;f.elements.loanId290.required=repay;
  f.querySelector('[data-item-field]').hidden=!spend;f.querySelector('[data-cash-field]').hidden=!spend;
- const labels={receipt:['Funding from','Received into'],borrow:['Lender / company fund','Received into'],repay:['Paid from','Repaid to'],spend:['Paid from','Paid to / destination'],refund:['Returned from','Returned to'],transfer:['Transferred from','Transferred to']};
+ const labels={receipt:['Funding from','Received into'],coverage:['Covered by','Applied to'],borrow:['Lender / company fund','Received into'],repay:['Paid from','Repaid to'],spend:['Paid from','Paid to / destination'],refund:['Returned from','Returned to'],transfer:['Transferred from','Transferred to']};
  f.querySelector('[data-source-label]').textContent=labels[type][0];f.querySelector('[data-dest-label]').textContent=labels[type][1];
  f.elements.destination290.required=transfer;
  const target=repay?loan:spend?item:null,cross=target&&target.currency!==f.elements.currency.value;
@@ -348,7 +348,7 @@ function editMovement(i){
 }
 function saveMovement(f){
  try{guard();if(!activityPopup?.contains(f)||!f.reportValidity())return;captureFund();
-  const fields=Object.fromEntries(new FormData(f)),type=fields.type290,amount=movementAmount(f.elements.amount),incoming=type==='receipt'||type==='borrow';
+  const fields=Object.fromEntries(new FormData(f)),type=fields.type290,amount=movementAmount(f.elements.amount),incoming=['receipt','coverage','borrow'].includes(type);
   const prior=editMove===null?null:allocation.movements[editMove];
   const next={id290:prior?.id290||crypto.randomUUID(),type290:type,date290:fields.date290,account:fields.account.trim(),destination290:fields.destination290.trim(),reference:fields.reference.trim(),description290:fields.description290.trim(),currency:fields.currency,budgetKey117:type==='spend'?fields.budgetKey117:'',inflow:incoming?amount:0,outflow:incoming?0:amount};
   if(type==='spend'&&fields.cashDistributed!=='')next.cashDistributed=movementAmount(f.elements.cashDistributed);
@@ -414,7 +414,10 @@ async function prepareSummary(record,host,post){
   const link=await journal.lookup(record.id);check();if(!host.isConnected)return;
   if(link)throw Error('This report is already linked to journal '+journal.reference(link)+'.');
   if(journal.localJob(record.id))throw Error('The utilization posting is waiting for confirmation. Open Data Check to review it.');
-  saved();journal.open(current);
+  const groups=BudgetSupportEquity.groups(current.data);
+  const evidence=await BudgetSupportEquity.evidence(groups);
+  check();if(!host.isConnected)return;
+  saved();journal.open(current,groups,evidence);
   if(worksheet)clearFundPopup();else host.resolve108(false);
  }catch(e){showCenterStatus(e.message,true)}finally{post.disabled=false}
 }
@@ -507,7 +510,7 @@ function validateAllocation(d,finalize){
  if(!d.movements.length&&!d.conversions.length&&!(d.lines.length&&d.fundingByItem))throw Error('Record a funding decision, receipt, movement or conversion first.');
  const loans=new Map(d.movements.filter(m=>report.kind(m)==='borrow').map(m=>[m.id290,m]));
  for(const m of d.movements){
-  const type=report.kind(m),incoming=type==='receipt'||type==='borrow';
+  const type=report.kind(m),incoming=['receipt','coverage','borrow'].includes(type);
   if(!Object.hasOwn(report.labels,type)||!currencies.has(m.currency)||(!(type==='spend'&&m.worksheetSpend)&&(!m.account||!m.reference))||m.date290&&!validDate14317(m.date290)||!positive(incoming?m.inflow:m.outflow)||Number((incoming?m.outflow:m.inflow)||0)!==0)throw Error('Each movement needs a source, reference, configured currency and one positive amount.');
   if(m.cashDistributed!=null&&(type!=='spend'||!Number.isFinite(m.cashDistributed)||m.cashDistributed<0||!Number.isSafeInteger(Math.round(m.cashDistributed*100))||Math.abs(m.cashDistributed*100-Math.round(m.cashDistributed*100))>0.00001))throw Error('Enter a nonnegative cash distribution with up to two decimal places.');
   if(type==='transfer'&&(!m.destination290||m.destination290===m.account))throw Error('Choose different source and destination accounts for a transfer.');

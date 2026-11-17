@@ -9,7 +9,7 @@ window.BudgetUtilizationJournal=(()=>{
   $('budgetJournalNotice')?.remove();
   if(!prepared)return;
   const notice=document.createElement('p');notice.id='budgetJournalNotice';
-  notice.textContent='Budget utilization · '+prepared.period+'. Choose the debit and credit accounts for each summary pair. For funding already posted, use the budget tracking accounts.';
+  notice.textContent=prepared.notice||'Budget utilization · '+prepared.period+'. Choose the debit and credit accounts for each summary pair. For funding already posted, use the budget tracking accounts.';
   $('journalEntry98')?.prepend(notice);
  }
  async function lookup(id){
@@ -26,11 +26,12 @@ window.BudgetUtilizationJournal=(()=>{
    return [[currency,Math.round(comparison.totals[currency].used*100)/100]].filter(([,n])=>n>0);
   return [...BudgetReport290.balances(data)].map(([c,t])=>[c,Math.round(t.spend*100)/100]).filter(([,n])=>n>0);
  }
- function open(record){
+ function open(record,groups=BudgetSupportEquity.groups(record.data),journals=[]){
   if(!access113.can('journal','post')||window.workspaceRequest138?.target)throw Error('Open your company journal with Post permission.');
   const d=record.data;
   const received=[...BudgetReport290.balances(d)].map(([currency,v])=>[currency,Math.round(v.receipt*100)/100]).filter(([,n])=>n>0);
-  const pairs=[
+  const support=groups.length?BudgetSupportEquity.plan(d,groups,journals):null;
+  const pairs=support?.pairs||[
    ...received.map(([currency,amount])=>({label:'Funding received',currency,amount})),
    ...amounts(d).map(([currency,amount])=>({label:'Fund used',currency,amount}))
   ];
@@ -46,18 +47,24 @@ window.BudgetUtilizationJournal=(()=>{
   const receipts=[...new Set([d.receiptReference290,...d.movements.filter(m=>BudgetReport290.kind(m)==='receipt').map(m=>m.reference)].filter(Boolean))];
   switchTab('journal');showJournalEntry98(true,false);window.entry1430?.setMode('double');setJournalDateMode(false);
   $('jeTransDate').value=d.date;window.datePicker104?.refresh($('jeTransDate'));
-  $('jeGeneralMemo').value=['Budget utilization · '+period,d.purpose,received.length?'Funding received · '+received.map(([c,n])=>c+' '+formatAppNumber(n)).join(' + '):'',receipts.join(' / ')].filter(Boolean).join(' · ');
+  $('jeGeneralMemo').value=['Budget utilization · '+period,d.purpose,support?'USD owner support':received.length?'Funding received · '+received.map(([c,n])=>c+' '+formatAppNumber(n)).join(' + '):'',receipts.join(' / ')].filter(Boolean).join(' · ');
   const body=$('jeLinesBody');body.replaceChildren();
   const rates={};
-  for(const {label,currency,amount:n} of pairs){
+  for(const {label,currency,amount:n,debitCode,creditCode,roles,rate} of pairs){
    const amount=String(n),description=label+' · '+period+' · '+currency+' '+formatAppNumber(n);
-   const fx=BudgetReport290.reportRate(d,currency,'LAK');
+   const fx=rate||BudgetReport290.reportRate(d,currency,'LAK');
    if(currency!=='LAK'&&fx)rates[currency]=fx;
-   addJournalLineRow('',description,amount,{});
-   addJournalLineRow('',description,'',{[currency]:amount});
+   const names={asset:'Receiving account',remaining:'Support Remaining',used:'Support Used',original:'Support Received'};
+   for(const [i,code] of [debitCode,creditCode].entries()){
+    addJournalLineRow(code||'',roles?description+' · '+names[roles[i]]:description,i===0?amount:'',i===1?{[currency]:amount}:{});
+    if(rate){
+     body.lastElementChild.dataset.fxRate14383=rate;
+     body.lastElementChild.dataset.bookRate14383=rate;
+    }
+   }
   }
   window.JournalFX14383?.restore(rates);calculateJournalBalance();
-  restore({owner:liveProfile.id,id:record.id,version:record.version,period,pairs});
+  restore({owner:liveProfile.id,id:record.id,version:record.version,period,pairs,notice:support?.notice});
   $('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles:true}));window.drafts1427?.flush();
  }
  function postingKey(entries){
@@ -68,9 +75,13 @@ window.BudgetUtilizationJournal=(()=>{
   const expected=source.pairs||source.used.map(([currency,amount])=>({currency,amount}));
   const valid=lines.length===2*expected.length&&expected.every(({currency,amount},i)=>{
    const pair=lines.slice(2*i,2*i+2);
+   if(expected[i].roles)return pair.every(l=>l.currency_code===currency)&&
+    pair[0].debit===amount&&!pair[0].credit&&pair[1].credit===amount&&!pair[1].debit&&
+    BudgetSupportEquity.validate(expected[i],pair);
    return pair.every(l=>l.currency_code===currency)&&pair[0].account_id!==pair[1].account_id&&
     pair.some(l=>l.debit===amount&&!l.credit)&&pair.some(l=>l.credit===amount&&!l.debit);
   });
+  if(!valid&&source.pairs?.some(p=>p.roles))throw Error('Use the receiving USD asset or original receipt account and the regular USD Remaining and Used equity accounts in the prepared order.');
   if(!valid)throw Error('Keep each saved summary pair together and choose two different accounts in its currency.');
   return 'budget-use:'+source.id+':'+source.version;
  }

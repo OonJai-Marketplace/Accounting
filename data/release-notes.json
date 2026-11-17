@@ -1,6 +1,6 @@
 {
-  "version": "143.440",
+  "version": "143.441",
   "changes": [
-    "Each saved staff receipt uses one Entry ID across all of its lines. Adding split lines does not consume the next receipt number."
+    "Prepare USD owner support in regular Remaining and Used equity accounts. Fund utilization separates restaurant-covered shortfalls from funding received. Budget totals print with full-row shading."
   ]
 }

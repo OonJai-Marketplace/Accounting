@@ -80,13 +80,18 @@ window.BudgetReport290 = (() => {
   const month=d.budgetMonth290 || String(d.date||'').slice(0,7);
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(month)?new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(month+'-01T12:00:00Z')):'';
  }
- const kind=m=>m.type290 || (Number(m.inflow)>0?'receipt':'spend');
- const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Unused funding returned',transfer:'Transfer between accounts'};
+ function kind(m){
+  const type=m.type290||(Number(m.inflow)>0?'receipt':'spend');
+  // Earlier imports recorded a restaurant-covered shortage as a receipt, with its source and purpose intact.
+  if(type==='receipt'&&/^restaurant funds$/i.test((m.account||'').trim())&&/^restaurant covered\b.*\b(shortage|shortfall)\b/i.test(m.description290||''))return 'coverage';
+  return type;
+ }
+ const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Unused funding returned',transfer:'Transfer between accounts',coverage:'Shortfall covered by restaurant'};
  function cashPaid(m){return Number(m.cashDistributed??m.outflow);}
  function equivalentField(m){return m?.cashDistributed!=null?'cashBudgetAmount':'budgetAmount290';}
  function balances(d) {
   const sums=new Map();
-  const currency=c=>{if(!sums.has(c))sums.set(c,{requested:0,receipt:0,spend:0,cashSpent:0,borrow:0,repay:0,refund:0,transfer:0,convertedIn:0,convertedOut:0,remaining:0});return sums.get(c);};
+  const currency=c=>{if(!sums.has(c))sums.set(c,{requested:0,receipt:0,coverage:0,spend:0,cashSpent:0,borrow:0,repay:0,refund:0,transfer:0,convertedIn:0,convertedOut:0,remaining:0});return sums.get(c);};
   for(const l of d.lines)currency(l.currency).requested+=Number(l.amount);
   for(const m of d.movements||[]){
    const t=currency(m.currency),type=kind(m);
@@ -95,7 +100,7 @@ window.BudgetReport290 = (() => {
   }
   for(const fx of d.conversions||[]){currency(fx.currency).convertedOut+=Number(fx.amount);currency(fx.target).convertedIn+=conversionAmount(fx);}
   for(const t of sums.values()){
-   const available=t.receipt+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.convertedOut;
+   const available=t.receipt+t.coverage+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.convertedOut;
    t.beforeReturn=round(available);
    t.remaining=round(available-t.refund);
   }
@@ -205,7 +210,7 @@ window.BudgetReport290 = (() => {
     cells(row.values,row.currencies,!!line,false)+'</tr>';
   }).join('');
   const tables=currencies.length?'<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup>'+cols+'</colgroup><thead>'+head+'</thead><tbody>'+body+
-   '<tr><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,currencies,true,true)+'</tr></tbody></table></div>':'<p>No budget items or spending recorded.</p>';
+   '<tr data-budget-summary290="total"><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,currencies,true,true)+'</tr></tbody></table></div>':'<p>No budget items or spending recorded.</p>';
   const rate=currencies.includes('USD')&&currencies.includes('LAK')&&reportRate(d,'USD','LAK');
   const note=currencies.length>1?'<p>Report totals include all items in each currency.'+(rate?' Report exchange rate · ₭ '+esc(formatAppRate(rate))+' for $1. Recorded item equivalents take priority.':'')+'</p>':'';
   return section82('Budget compared with actual spending',tables+note);
@@ -216,11 +221,14 @@ window.BudgetReport290 = (() => {
  }
  function summary(d){
   const totals=[...balances(d)],columns=totals.map(([c])=>c);
-  const fields=[['requested','Requested'],['receipt','Funding received'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],...(totals.some(([,t])=>t.refund>0)?[['beforeReturn','Cash before returns'],['refund','Unused funding returned'],['remaining','Cash after returns']]:[['remaining','Cash remaining']])];
-  const cash=table82(['Activity',...columns],fields.filter(([key])=>['receipt','spend','remaining','requested'].includes(key)||totals.some(([,t])=>t[key])).map(([key,label])=>[esc(label),...totals.map(([,t])=>money(t[key]))]));
+  const fields=[['requested','Requested'],['receipt','Funding received'],['coverage','Shortfall covered by restaurant'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],...(totals.some(([,t])=>t.refund>0)?[['beforeReturn','Cash before returns'],['refund','Unused funding returned'],['remaining','Cash after returns']]:[['remaining','Cash remaining']])];
+  const cash=document.createElement('div');
+  cash.innerHTML=table82(['Activity',...columns],fields.filter(([key])=>['receipt','spend','remaining','requested'].includes(key)||totals.some(([,t])=>t[key])).map(([key,label])=>[esc(label),...totals.map(([,t])=>money(t[key]))]));
+  const requestedRow=cash.querySelector('tbody tr');
+  if(requestedRow){requestedRow.dataset.budgetSummary290='requested';for(const cell of requestedRow.cells)cell.style.cssText+=fill;}
   const loans=d.movements.filter(m=>kind(m)==='borrow');
   const debt=loans.length?section82('Temporary advances',table82(['Lender / source','Reference','Currency','Borrowed','Outstanding'],loans.map(l=>[esc(l.account),esc(l.reference),esc(l.currency),money(l.inflow),money(outstanding(d,l))]))):'';
-  return section82('Funding by currency',cash)+debt+comparisonTable(d);
+  return section82('Funding by currency',cash.innerHTML)+debt+comparisonTable(d);
  }
  function movementRows(d){
   return d.movements.map(m=>{

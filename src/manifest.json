@@ -3889,6 +3889,9 @@
         "source": "src/budget/requests/budget-report290.js"
       },
       {
+        "source": "src/budget/requests/support-equity.js"
+      },
+      {
         "source": "src/budget/requests/utilization-journal.js"
       },
       {
