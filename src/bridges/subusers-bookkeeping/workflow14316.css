@@ -87,41 +87,6 @@ body.shell113 .fund-report-layout .ui-dialog108>header .fund-save-draft{font-wei
 }
 .worksheet-header{margin-bottom:14px}
 .worksheet-header span,.spending-worksheet small{display:block;color:#50655c}
-.spending-worksheet button,.fund-activity button{min-height:32px}
-.fund-activity button[type=submit]{background:#145c4a;color:white}
-#budgetFunds290 .spending-worksheet{width:100%;min-width:0;table-layout:auto;border-collapse:collapse}
-body #budgetFunds290 .spending-worksheet :is(th,td){padding:5px 6px!important;vertical-align:middle;overflow-wrap:normal}
-body #budgetFunds290 .spending-worksheet th{font-size:12px!important;line-height:1.25;text-transform:none!important;letter-spacing:0!important}
-#budgetFunds290 .spending-worksheet :is(th,td):not(:first-child){width:1%}
-body #budgetFunds290 .spending-worksheet td:first-child{overflow-wrap:anywhere}
-body #budgetFunds290 .spending-worksheet :is(th,td):is(:nth-child(2),:nth-child(4),:nth-child(5)){text-align:right!important;font-variant-numeric:tabular-nums}
-body #budgetFunds290 .spending-worksheet td:not(:first-child){white-space:nowrap!important}
-#budgetFunds290 .spending-worksheet :is(input,select){width:100%;min-width:0;box-sizing:border-box}
-body #budgetFunds290 .spending-worksheet td:nth-child(3) select{width:7.5em!important;padding:3px 4px!important}
-body #budgetFunds290 .spending-worksheet td:last-child button{min-width:0!important;padding:4px 7px!important}
-#budgetFunds290 .worksheet-stack{display:grid;gap:4px;min-width:9.5em}
-#budgetFunds290 .worksheet-amount{display:flex;align-items:center;justify-content:flex-end;gap:3px}
-#budgetFunds290 .worksheet-amount .money-field14231{flex:1;min-width:0}
-/* The currency symbol is the picker hit area on editable rows. Every amount uses the same field. */
-#budgetFunds290 .worksheet-amount [data-spending-currency]{
- position:absolute;left:0;top:0;z-index:2;width:2.5rem!important;max-width:40%;height:100%;min-height:0!important;
- margin:0;opacity:0;cursor:pointer;
-}
-#budgetFunds290 .worksheet-amount .money-field14231:has([data-spending-currency]:focus-visible) .money-symbol14231{
- outline:2px solid currentColor;outline-offset:2px;border-radius:2px;
-}
-#budgetFunds290 .worksheet-amount input{text-align:right;min-width:0}
-#budgetFunds290 .worksheet-amount[data-equivalent] input::placeholder{color:#486154;opacity:1}
-.spending-worksheet [hidden]{display:none!important}
-@media(max-width:640px){
- #budgetFunds290 .spending-worksheet,#budgetFunds290 .spending-worksheet tbody{display:block}
- #budgetFunds290 .spending-worksheet thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
- #budgetFunds290 .spending-worksheet tbody tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;padding:10px;border-bottom:1px solid #cad8d2}
- #budgetFunds290 .spending-worksheet tbody td{border:0;padding:0;text-align:left;min-width:0;width:auto!important}
- #budgetFunds290 .spending-worksheet td:first-child{grid-column:1/-1}
- #budgetFunds290 .spending-worksheet td:empty{display:none}
- #budgetFunds290 .spending-worksheet td[data-label]:not(:first-child):not(:last-child)::before{content:attr(data-label);display:block;font-size:12px;color:#50655c;margin-bottom:3px}
-}
 #fundHeader290{container-type:inline-size}
 #fundHeader290 .fund-report-fields{
  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:6px 10px;
@@ -163,3 +128,15 @@ body .fund-activity form.finance-controls117{display:grid;grid-template-columns:
 /* The saved document uses fixed print columns. Wrap long notes and references in the screen preview. */
 body .budget-report-preview .ui-body108 :is(th,td){white-space:normal!important;overflow-wrap:anywhere}
 body .budget-report-preview .ui-body108 table{max-width:100%}
+
+
+#budgetFunds290 :is([data-request-summary],[data-disbursements]) :is(input,select){max-width:100%;box-sizing:border-box}
+#budgetFunds290 [data-paid-in],#budgetFunds290 [data-adjusted]{width:9em;text-align:right}
+#budgetFunds290 [data-payment-reference]{width:15em;max-width:100%;min-height:28px}
+#budgetFunds290 [data-disbursements] small{display:inline-block;margin-top:4px}
+#budgetFunds290 :is([data-cash-summary],[data-request-summary],[data-disbursements]) td:first-child{overflow-wrap:anywhere}
+#budgetFunds290 [data-request-summary] [hidden],.fund-activity label[hidden]{display:none!important}
+#budgetFunds290 .block82>header .actions82{display:flex;gap:5px}
+#budgetFunds290 .block82>header .actions82 button{margin:0;min-width:0}
+.fund-activity .spend-more{grid-column:1/-1}
+.fund-activity .spend-more>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:8px 0}

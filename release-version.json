@@ -1,1 +1,1 @@
-{"version": "143.453", "changes": ["Monthly fund utilization shows owner support received, used and remaining in each funding currency. Company cash handovers are shown separately."]}
+{"version": "143.454", "changes": ["Fund utilization follows the board report with a funding summary, requested and adjusted items, and disbursements by currency and reference. New items added to a linked budget request appear in its open utilization draft."]}

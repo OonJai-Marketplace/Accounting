@@ -198,70 +198,86 @@ window.BudgetReport290 = (() => {
   const totals=Object.fromEntries(currencies.map(c=>[c,Object.fromEntries(['requested','funded','used','remaining'].map(k=>[k,totalValues(rows.map(r=>r.values[c][k]))]))]));
   return {rows,currencies,totals};
  }
- function comparisonTable(d){
-  const rows=spendingRows(d);
-  const balancesByCurrency=balances(d), codes=orderedUnits([...balancesByCurrency.keys()]);
-  if(!codes.length)return section82('Budget compared with actual spending','<p>No budget items or spending recorded.</p>');
-  const approved=new Map();
-  const amountsCell=(values,style='')=>'<td style="text-align:right;vertical-align:top;padding:4px 3px;'+style+'">'+
-   (values.size?amountLines([...values.keys()],c=>values.get(c)):'—')+'</td>';
-  const rowHTML=(label,columns,style='')=>'<tr><td style="text-align:left;padding:4px 5px;'+style+'">'+label+'</td>'+columns.map(v=>amountsCell(v,style)).join('')+'</tr>';
-  const body=rows.map(({line,index,movements})=>{
-   const requested=new Map(),funded=new Map(),spent=new Map(),left=new Map();
-   if(line){
-    const amount=lineFunding(d,line,index).amount;
-    requested.set(line.currency,line.amount);
-    if(amount!=null){funded.set(line.currency,amount);approved.set(line.currency,(approved.get(line.currency)||0)+Number(amount));}
-   }
-   if(line&&!movements.length)spent.set(line.currency,0);
-   for(const m of movements)spent.set(m.currency,(spent.get(m.currency)||0)+Number(m.outflow));
-   // Exchanges are recorded for the fund, and are not allocated to an individual item.
-   if(!line||funded.size&&[...spent.keys()].every(c=>c===line.currency)){
-    for(const c of new Set([...funded.keys(),...spent.keys()]))left.set(c,(funded.get(c)||0)-(spent.get(c)||0));
-   }
-   const extra=movements[0],item=line?.description||extra?.destination290||extra?.description290||'Additional spending';
-   const detail=line?[line.category,fundingLabels[lineFunding(d,line,index).status]].filter(Boolean).join(' · '):'Additional spending';
-   return rowHTML(esc(item)+'<br><small>'+esc(detail)+'</small>',[requested,funded,spent,left]);
-  }).join('');
-  const values=get=>new Map(codes.map(c=>[c,round(get(balancesByCurrency.get(c),c))]).filter(([,v])=>v!==0));
-  function adjustment(label,get){
-   const net=values(get);
-   return net.size?rowHTML(label,[new Map(),net,new Map(),net]):'';
-  }
-  const changes=adjustment('Receipts above or below item funding',(t,c)=>t.receipt-(approved.get(c)||0))+
-   adjustment('Currency exchanged',t=>t.convertedIn-t.convertedOut)+
-   adjustment('Shortfall covered by restaurant',t=>t.coverage)+adjustment('Temporary advances, less repayments',t=>t.borrow-t.repay);
-  const available=t=>t.receipt+t.coverage+t.convertedIn-t.convertedOut+t.borrow-t.repay;
-  const totals=codes.map(c=>{
-   const t=balancesByCurrency.get(c),funds=available(t);
-   const cells=[t.requested,funds,t.spend,funds-t.spend].map(n=>'<td style="text-align:right;'+fill+'">'+amountHtml(c,n)+'</td>');
-   return '<tr data-budget-summary290="total"><th scope="row" style="text-align:left;'+fill+'">Total · '+esc(c)+'</th>'+cells.join('')+'</tr>';
-  }).join('');
-  const table='<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup><col style="width:32%"><col style="width:17%"><col style="width:17%"><col style="width:17%"><col style="width:17%"></colgroup><thead><tr>'+
-   ['Item / category','Requested','Funds available','Actual spending','Budget remaining'].map((h,i)=>'<th style="background:#e4eee8;padding:4px;text-align:'+(i?'right':'left')+'">'+h+'</th>').join('')+
-   '</tr></thead><tbody>'+body+changes+totals+'</tbody></table></div>';
-  return section82('Budget compared with actual spending',table);
-
+ // The board report keeps all receipts, exchanges and disbursements in their native currencies.
+ function cashCodes(d){
+  return orderedUnits(['USD','LAK',...balances(d).keys()]);
  }
- function sizedTable(headers,rows,widths){
-  const cols='<colgroup>'+widths.map(w=>'<col style="width:'+w+'%">').join('')+'</colgroup>';
-  return table82(headers,rows).replace('<table>','<table style="width:100%;table-layout:fixed;border-collapse:collapse">'+cols);
+ function summaryTable(headers,rows,totals=[],marker=''){
+  const heading=headers.map((h,i)=>'<th scope="col" style="text-align:'+(i?'right':'left')+'">'+esc(h)+'</th>').join('');
+  const tr=(cells,total)=>'<tr'+(total?' data-budget-summary290="total"':'')+'>'+cells.map((cell,i)=>'<td style="vertical-align:top;text-align:'+(i?'right':'left')+';padding:4px 6px;'+(total?fill:'')+'">'+cell+'</td>').join('')+'</tr>';
+  return '<div class="data-table82"><table '+marker+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
+   rows.map(r=>tr(r,false)).join('')+'</tbody>'+(totals.length?'<tfoot>'+totals.map(r=>tr(r,true)).join('')+'</tfoot>':'')+'</table></div>';
+ }
+ function cashSummary(d,editable=false){
+  const totals=balances(d),codes=cashCodes(d),rows=[];
+  const cols=(name,value)=>[name,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
+  const key=(name,k)=>cols(name,c=>totals.get(c)?.[k]||0);
+  const edit=(kind,i)=>editable?' <button type="button" data-edit-'+kind+'="'+i+'">Edit</button>':'';
+  const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
+  for(const [i,m] of d.movements.entries()){
+   if(kind(m)!=='receipt')continue;
+   rows.push(cols(esc(m.account||'Receipt')+edit('movement',i)+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
+  }
+  rows.push(key('Total received','receipt'));
+  for(const [i,f] of (d.conversions||[]).entries()){
+   const received=conversionAmount(f);
+   const base=f.target==='USD'?f.target:f.currency;
+   const quote=base===f.currency?f.target:f.currency;
+   const rate=base===f.currency?received/f.amount:f.amount/received;
+   rows.push(cols('Exchange'+edit('exchange',i)+ref(formatAppRate(rate)+' '+quote+' / '+base+(f.evidence||f.reference?' · '+(f.evidence||f.reference):'')),
+    c=>c===f.currency?-Number(f.amount):c===f.target?received:null));
+  }
+  for(const [i,m] of d.movements.entries()){
+   const type=kind(m);
+   if(['borrow','repay','coverage'].includes(type))rows.push(cols(esc(labels[type])+edit('movement',i)+ref(m.reference),c=>c===m.currency?Number(m.inflow||0)-Number(m.outflow||0):null));
+  }
+  rows.push(cols('Available to distribute',c=>{const t=totals.get(c);return t?t.receipt+t.coverage+t.borrow-t.repay+t.convertedIn-t.convertedOut:0;}));
+  rows.push(key('Total distributed','cashSpent'));
+  const handover=d.movements.some(m=>kind(m)==='refund');
+  const closing=[key(handover?'Remaining before handover':'Remaining','beforeReturn')];
+  if(handover){
+   for(const [i,m] of d.movements.entries())if(kind(m)==='refund')closing.push(cols('Handed over'+edit('movement',i)+ref(m.reference),c=>c===m.currency?-Number(m.outflow):null));
+   closing.push(key('Cash after handover','remaining'));
+  }
+  return summaryTable(['Source / activity',...codes],rows,closing,'data-cash-summary');
+ }
+ function requestSummary(d,editable=false){
+  const sum=new Map(),funded=new Map();
+  const rows=d.lines.map((l,i)=>{
+   const {status,amount}=lineFunding(d,l,i);
+   sum.set(l.currency,(sum.get(l.currency)||0)+Number(l.amount));
+   funded.set(l.currency,amount==null||funded.get(l.currency)===null?null:(funded.get(l.currency)||0)+Number(amount));
+   const decision=editable?'<select data-plain14285 data-decision="'+i+'" aria-label="Funding status for '+esc(l.description)+'">'+Object.entries(fundingLabels).map(([k,v])=>'<option value="'+k+'"'+(k===status?' selected':'')+'>'+v+'</option>').join('')+'</select>':esc(fundingLabels[status]);
+   const adjustment=editable?'<input data-adjusted="'+i+'" data-currency="'+esc(l.currency)+'" aria-label="Adjusted funding for '+esc(l.description)+'" type="number" min="0" max="'+Number(l.amount)+'" step="0.01" value="'+(status==='deduction'?Number(amount):'')+'"'+(status==='deduction'?'':' hidden')+'>':'';
+   return [esc(l.description)+'<br><small>'+esc(l.category)+'</small>',amountHtml(l.currency,l.amount),decision,
+    '<span data-funded="'+i+'"'+(editable&&status==='deduction'?' hidden':'')+'>'+(amount==null?'Unconfirmed':amountHtml(l.currency,amount))+'</span>'+adjustment];
+  });
+  return summaryTable(['Item / category','Requested','Status','Funded / adjusted'],rows,[['Total requested',amountLines(sum.keys(),c=>sum.get(c)),'Total funded','<span data-funded-total>'+fundedTotal(funded)+'</span>']],'data-request-summary');
+ }
+ function fundedTotal(sums){return orderedUnits(sums.keys()).map(c=>sums.get(c)==null?esc(c)+' unconfirmed':amountHtml(c,sums.get(c))).join('<br>');}
+ function disbursements(d,editable=false){
+  const codes=cashCodes(d),rows=[],sums=balances(d);
+  for(const {line,index,movements} of spendingRows(d)){
+   for(const m of movements.length?movements:[null]){
+    const i=m?d.movements.indexOf(m):-1,item=line?.description||m?.item290||m?.destination290||m?.description290||'Additional spending';
+    const category=line?.category||m?.category290||'Additional spending';
+    const identity=' data-payment="'+i+'" data-line="'+(index??-1)+'"';
+    const reference=editable?'<input data-payment-reference'+identity+' aria-label="Reference for '+esc(item)+'" placeholder="Reference" value="'+esc(m?.reference||'')+'">':esc(m?.reference||'—');
+    const itemCell='<strong>'+esc(item)+'</strong> · '+esc(category)+(line?'':' · Outside request')+'<br><small>Reference &nbsp;'+reference+'</small>';
+    const amounts=codes.map(c=>{
+     if(m&&m.currency!==c)return '—';
+     const n=m?cashPaid(m):null;
+     return editable?'<input type="number" min="0" step="0.01" data-paid-in="'+esc(c)+'" data-currency="'+esc(c)+'"'+identity+' aria-label="'+esc(c)+' paid for '+esc(item)+'" value="'+(n==null?'':Number(n))+'" placeholder="0.00">':
+      n==null?(c===line.currency?amountHtml(c,0):'—'):amountHtml(c,n);
+    });
+    rows.push([itemCell,...amounts,...(editable?['<button type="button" data-pay-detail'+identity+'>Details</button>']:[])]);
+   }
+  }
+  const total=['Total distributed',...codes.map(c=>amountHtml(c,sums.get(c)?.cashSpent||0)),...(editable?['']:[])];
+  return summaryTable(['Item / category',...codes,...(editable?['']:[])],rows,[total],'data-disbursements');
  }
  function summary(d){
-  const totals=balances(d),columns=orderedUnits(totals.keys());
-  const hasHandover=columns.some(c=>totals.get(c).refund);
-  const fields=[['requested','Requested'],['receipt','Funding received'],['coverage','Shortfall covered by restaurant'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],['borrow','Temporary advances received'],['repay','Advances repaid'],['cashSpent','Cash distributed'],['beforeReturn',hasHandover?'Cash before handover':'Cash remaining']];
-  if(hasHandover){
-   fields.push(['refund','Cash handed over or returned'],['remaining','Cash held after handover']);
-  }
-  const cash=document.createElement('div');
-  cash.innerHTML=table82(['Activity',...columns],fields.filter(([key])=>['receipt','cashSpent','beforeReturn','remaining','requested'].includes(key)||columns.some(c=>totals.get(c)[key])).map(([key,label])=>[esc(label),...columns.map(c=>amountHtml(c,totals.get(c)[key]))]));
-  for(const row of cash.querySelectorAll('tr'))for(const cell of [...row.cells].slice(1))cell.style.textAlign='right';
-  const requestedRow=cash.querySelector('tbody tr');
-  if(requestedRow){requestedRow.dataset.budgetSummary290='requested';for(const cell of requestedRow.cells)cell.style.cssText+=fill;}
-  const loans=d.movements.filter(m=>kind(m)==='borrow');
-  const debt=loans.length?section82('Temporary advances',table82(['Lender / source','Reference','Currency','Borrowed','Outstanding'],loans.map(l=>[esc(l.account),esc(l.reference),esc(l.currency),amountHtml(l.currency,l.inflow),amountHtml(l.currency,outstanding(d,l))]))):'';
-  return section82('Funding by currency',cash.innerHTML)+debt+comparisonTable(d);
+  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d));
  }
  function movementRows(d){
   return d.movements.map(m=>{
@@ -271,15 +287,12 @@ window.BudgetReport290 = (() => {
   });
  }
  const movementHeaders=['Date','Activity','Source / lender','Paid to / destination','Budget item','Amount','Reference'];
- function report(d,journalReference='',ownerBalance){
+ function report(d,journalReference='',print=false){
   if(d.mode!=='utilization'&&d.document14316?.html)return documentWorkspace105.sanitize(d.document14316.html);
   if(d.mode!=='utilization')return window.budgetWorkflow14316.requestHTML(d);
-  const owner=ownerBalance||BudgetOwnerBalance.calculate(d,null,null);
-  const route=(source,to)=>esc(source)+(to?' → '+esc(to):'');
-  const movements=movementRows(d).map(([date,activity,source,to,item,amount,reference])=>[date+'<br>'+activity,source+(to==='—'?'':' → '+to),item,amount,reference]);
-  const exchanges=(d.conversions||[]).map(f=>[esc(formatAppDate(f.date))+'<br>'+esc(f.evidence||f.reference),route(f.source,f.destination290),amountHtml(f.currency,f.amount),amountHtml(f.target,conversionAmount(f)),esc(formatAppRate(f.rate)+' '+f.target+'/'+f.currency)]);
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Reference: '+esc(d.receiptReference290):'',journalReference?'Utilization journal: '+esc(journalReference):''].filter(Boolean).join(' · ');
-  return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>Budget month: '+esc(period(d))+' · Report date: '+esc(formatAppDate(d.date))+(refs?'<br>'+refs:'')+'</p>'+BudgetOwnerBalance.render(owner)+summary(d)+section82('Receipts, spending and repayments',sizedTable(['Date / activity','Source and destination','Budget item','Amount','Reference'],movements,[15,18,36,16,15]))+section82('Currency conversions',table82(['Date / reference','Source and destination','Exchanged','Received','Rate'],exchanges))+(d.notes?'<p>'+esc(d.notes)+'</p>':'')+BudgetOwnerBalance.closing(owner)+signature(d);
+  return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>'+esc(period(d))+' · '+esc(formatAppDate(d.date))+
+   (d.status==='finalized'?' · <span data-final-status>Finalized</span>':'')+(refs?'<br>'+refs:'')+'</p>'+summary(d)+(d.notes&&print?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
  }
- return {title,compare,cashPaid,equivalentField,reportRate,requestCurrency,valueIn,amountText,currencyAmount,amountHtml,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
+ return {title,compare,cashPaid,equivalentField,reportRate,requestCurrency,valueIn,amountText,currencyAmount,amountHtml,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,cashSummary,requestSummary,disbursements,fundedTotal,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();

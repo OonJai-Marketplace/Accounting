@@ -1,187 +1,71 @@
-/* The request snapshot stays intact. Each worksheet amount belongs to one expense. */
-window.BudgetSpendingWorksheet = (() => {
- const esc = value => escapeHtml(String(value ?? ''));
- function mount(host, draft, edit) {
-  const body = host.querySelector('[data-spending-rows]');
-  const currencies = budget14313.currencyOptions(draft.lines);
-  const rows = [];
-  const decisions = [];
-  const base=BudgetReport290.requestCurrency(draft);
-  const report=BudgetReport290;
-  const toggle=host.querySelector('[data-item-equivalents]');
-  if(toggle)toggle.onchange=refreshValuations;
-  function refreshValuations() {
-   const paidByLine=new Map();
-   for(const state of rows){
-    const {line,choice,amount,equivalent,stack,secondary}=state;
-    const paid=choice?.value||state.currency, requested=line?.currency||base;
-    const cross=requested && paid!==requested && (!toggle||toggle.checked);
-    const n=amount.valueAsNumber;
-    secondary.hidden=!cross;
-    if(!cross)continue;
-    const value=Number.isFinite(n)&&n>0?report.valueIn(draft,n,paid,requested):null;
-    if(equivalent)equivalent.placeholder=n>0?report.amountText(value):'0.00';
-    else secondary.innerHTML=n>0?report.amountLines([requested],()=>value):'';
-    const first=report.orderedUnits([paid,requested])[0]===requested?secondary:state.native;
-    if(stack.firstElementChild!==first)stack.prepend(first);
-    if(line && n>0){
-     if(!paidByLine.has(line))paidByLine.set(line,new Set());
-     paidByLine.get(line).add(paid);
-    }
+/* Funding decisions and cash disbursements belong to the utilization draft. */
+window.BudgetSpendingWorksheet=(()=>{
+ function mount(host,draft,openPayment){
+  const report=BudgetReport290,request=host.querySelector('[data-request-summary]'),payments=host.querySelector('[data-disbursements]');
+  const decisions=[...request.querySelectorAll('[data-decision]')].map((select,i)=>({
+   select,input:request.querySelector('[data-adjusted="'+i+'"]'),display:request.querySelector('[data-funded="'+i+'"]'),line:draft.lines[i]
+  }));
+  const rows=[...payments.tBodies[0].rows].map(row=>({
+   inputs:[...row.querySelectorAll('[data-paid-in]')],ref:row.querySelector('[data-payment-reference]'),button:row.querySelector('[data-pay-detail]')
+  }));
+  for(const row of rows)row.button.onclick=()=>openPayment(row.button,row.inputs);
+  const dirty=()=>decisions.some(({select,input,line},i)=>{
+   const prior=report.lineFunding(draft,line,i);
+   return prior.status!==select.value||(select.value==='deduction'&&prior.amount!==input.valueAsNumber);
+  })||rows.some(({inputs,ref})=>ref.value.trim()!==(draft.movements[Number(ref.dataset.payment)]?.reference||'')||
+   inputs.some(input=>{const m=draft.movements[Number(input.dataset.payment)];return input.validity.badInput||(m?input.valueAsNumber!==report.cashPaid(m):!!input.value);}));
+  function read(commit=false){
+   const movements=draft.movements.slice(),funding={...draft.fundingByItem},funded=new Map();
+   function invalid(field,message){if(commit)field.focus();throw Error(message);}
+   for(const [i,{select,input,display,line}] of decisions.entries()){
+    const status=select.value,adjusted=status==='deduction';
+    input.hidden=!adjusted;display.hidden=adjusted;
+    const amount=adjusted?input.valueAsNumber:status==='approved'?Number(line.amount):status==='declined'?0:null;
+    if(adjusted&&(!Number.isFinite(amount)||!input.validity.valid))invalid(input,'Enter the adjusted funding for '+line.description+' between zero and the requested amount.');
+    display.innerHTML=amount==null?'Unconfirmed':report.amountHtml(line.currency,amount);
+    funding[report.fundingKey(line,i)]=adjusted?{status,received:amount}:{status};
+    funded.set(line.currency,amount==null||funded.get(line.currency)===null?null:(funded.get(line.currency)||0)+amount);
    }
-   for(const {line,requestCell,select,received,display,deduction} of decisions){
-    const codes=[line.currency,...(paidByLine.get(line)||[])];
-    requestCell.innerHTML=report.amountLines(codes,c=>report.valueIn(draft,line.amount,line.currency,c));
-    const partial=select.value==='deduction';
-    deduction.hidden=!partial;
-    if(select.value==='unconfirmed'){display.textContent='—';continue;}
-    if(!partial){
-     const funded=select.value==='declined'?0:line.amount;
-     display.innerHTML=report.amountLines(select.value==='approved'?[line.currency]:codes,c=>report.valueIn(draft,funded,line.currency,c));
-    }else{
-     const others=codes.filter(c=>c!==line.currency);
-     display.innerHTML=report.amountLines(others,c=>Number.isFinite(received.valueAsNumber)?report.valueIn(draft,received.valueAsNumber,line.currency,c):null);
-     const first=report.orderedUnits(codes)[0]===line.currency?deduction:display;
-     if(first.parentElement.firstElementChild!==first)first.parentElement.prepend(first);
+   request.querySelector('[data-funded-total]').innerHTML=report.fundedTotal(funded);
+   const assignments=[];
+   for(const {inputs,ref,button} of rows){
+    const reference=ref.value.trim();
+    for(const input of inputs){
+     const index=Number(input.dataset.payment),prior=draft.movements[index],lineIndex=Number(input.dataset.line);
+     const amount=input.valueAsNumber,currency=input.dataset.paidIn;
+     if(prior&&amount===report.cashPaid(prior)&&reference===(prior.reference||''))continue;
+     if(!input.value&&!input.validity.badInput&&!prior)continue;
+     if(!Number.isFinite(amount)||!Number.isSafeInteger(Math.round(amount*100))||!input.validity.valid||(amount===0&&prior&&prior.cashDistributed==null))
+      invalid(input,'Enter a valid amount paid in '+currency+'. Use Details to remove an existing payment.');
+     if(!prior&&amount===0)continue;
+     if(prior){
+      if(!reference&&prior.reference&&!prior.worksheetSpend)invalid(ref,'Enter the payment reference.');
+      if(reference===prior.reference&&amount===report.cashPaid(prior))continue;
+      const next={...prior,reference};
+      if(amount!==report.cashPaid(prior)){
+       if(prior.cashDistributed!=null){next.cashDistributed=amount;delete next.cashBudgetAmount;}
+       else{next.outflow=amount;delete next.ownerAmount;delete next.ownerCurrency;delete next.budgetAmount290;}
+      }
+      movements[index]=next;
+     }else{
+      const line=draft.lines[lineIndex];
+      const next={type290:'spend',worksheetSpend:true,account:'',reference,date290:draft.date,currency,inflow:0,outflow:amount,budgetKey117:line?.key117||''};
+      if(!next.budgetKey117)next.worksheetLine=lineIndex;
+      if(commit)next.id290=crypto.randomUUID();
+      assignments.push({input,button,ref,index:movements.length});
+      movements.push(next);
+     }
     }
+    if(reference&&inputs.every(input=>Number(input.dataset.payment)<0&&!input.valueAsNumber))invalid(ref,'Enter the disbursement amount for this reference.');
    }
+   const preview={...draft,movements,fundingByItem:funding};
+   if(commit){
+    Object.assign(draft,{movements,fundingByItem:funding});
+    for(const {input,button,ref,index} of assignments){input.dataset.payment=String(index);if(button.dataset.payment==='-1')button.dataset.payment=ref.dataset.payment=String(index);}
+   }
+   return preview;
   }
-  function fundingCells(row,line,index,requestCell) {
-   const {status,amount} = report.lineFunding(draft,line,index);
-   const name = esc(line.description);
-   const statusCell = row.insertCell(), fundedCell = row.insertCell();
-   statusCell.innerHTML = '<select data-plain14285 aria-label="Funding status for '+name+'">'+
-    Object.entries(report.fundingLabels).map(([value,label]) =>
-     '<option value="'+value+'">'+label+'</option>').join('')+'</select>';
-   fundedCell.innerHTML = '<div data-funded-value></div><div data-deduction><input type="number" name="receivedAmount" step="0.01" min="0" data-currency="'+esc(line.currency)+'" aria-label="Amount received for '+name+'" placeholder="Received"></div>';
-   const select = statusCell.querySelector('select'), deduction = fundedCell.querySelector('[data-deduction]');
-   const received = deduction.querySelector('input'), display = fundedCell.querySelector('[data-funded-value]');
-   select.value = status;
-   if (status === 'deduction') received.value = amount;
-   select.onchange = refreshValuations;
-   received.addEventListener('input',refreshValuations);
-   decisions.push({line,index,requestCell,select,received,display,deduction});
-  }
-  function append(line, movement, first = true, index = -1) {
-   const row = body.insertRow();
-   const currency = movement?.currency || line?.currency || currencies[0]?.[0];
-   const linked = !!line;
-   const cell = html => { row.insertCell().innerHTML = html; };
-   const item = line?.description || movement?.description290 || '';
-   cell(linked ? '<strong>'+esc(item)+'</strong>'+(first?'<small>'+esc(line.category)+'</small>':'')+
-    (movement?.description290?'<small>'+esc(movement.description290)+'</small>':'') :
-    '<small>'+esc(movement?.destination290||'Additional spending')+'</small><input name="description" aria-label="Additional spending detail" placeholder="Spending detail" value="'+esc(item)+'">');
-   const requestCell=row.insertCell();
-   if (linked && first) fundingCells(row,line,index,requestCell);
-   else { row.insertCell(); row.insertCell(); }
-   const currencyChoice = !movement && currencies.length>1 ? '<select data-plain14285 data-spending-currency aria-label="Spending currency" title="Spending currency">'+currencies.map(([c]) =>
-    '<option value="'+esc(c)+'"'+(c===currency?' selected':'')+'>'+esc(currencySymbolV6(c))+'</option>').join('')+'</select>' : '';
-   const moneyField=(code,input,picker='')=>'<span class="money-field14231"><span class="money-symbol14231" title="'+esc(code)+'">'+esc(currencySymbolV6(code))+'</span>'+picker+input+'</span>';
-   const native='<div class="worksheet-amount" data-native>'+moneyField(currency,'<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?.outflow??'')+'" placeholder="0.00">',currencyChoice)+'</div>';
-   const equivalent=linked?moneyField(line.currency,'<input type="number" step="0.01" min="0.01" name="equivalentAmount" data-currency="'+esc(line.currency)+'" aria-label="Spending equivalent in '+esc(line.currency)+' for '+esc(item)+'" title="Enter the recorded equivalent, or leave blank to use the report exchange rate." value="'+esc(movement?.budgetAmount290??'')+'">'):'';
-   cell('<div class="worksheet-stack">'+native+'<div class="worksheet-amount" data-equivalent hidden>'+equivalent+'</div></div>');
-   const action = row.insertCell();
-   if (movement) {
-    const details = document.createElement('button');
-    details.type = 'button'; details.textContent = 'Details';
-    details.onclick = () => edit(draft.movements.indexOf(state.movement)); action.append(details);
-   } else if (!linked) {
-    const remove = document.createElement('button');
-    remove.type = 'button'; remove.textContent = 'Remove';
-    remove.onclick = () => {
-     if (state.movement) { edit(draft.movements.indexOf(state.movement)); return; }
-     rows.splice(rows.indexOf(state), 1); row.remove();refreshValuations();
-    };
-    action.append(remove);
-   }
-   const amount = row.querySelector('[name=actualAmount]'), choice = row.querySelector('[data-spending-currency]');
-   const stack=row.querySelector('.worksheet-stack'), secondary=stack.querySelector('[data-equivalent]');
-   const state = {line,movement,row,amount,choice,currency,stack,native:stack.querySelector('[data-native]'),secondary,
-    equivalent:secondary.querySelector('input'),amountEdited:false,equivalentEdited:false,detailEdited:false};
-   if (choice) choice.onchange = () => {
-    amount.dataset.currency = choice.value;
-    if(state.equivalent){state.equivalent.value='';state.equivalentEdited=false;}
-    window.financialNumbers14231?.scan(row); refreshValuations();
-   };
-   state.equivalent?.addEventListener('input',()=>{state.equivalentEdited=true;});
-   amount.addEventListener('input', () => { state.amountEdited=true;refreshValuations(); });
-   row.querySelector('[name=description]')?.addEventListener('input', () => { state.detailEdited=true; });
-   for (const td of row.cells) td.dataset.label = body.parentElement.tHead.rows[0].cells[td.cellIndex].textContent;
-   rows.push(state);
-   return row;
-  }
-  const spent = draft.movements.filter(m => BudgetReport290.kind(m) === 'spend');
-  for (const [index,line] of draft.lines.entries()) {
-   const matches = spent.filter(m => BudgetReport290.forLine(m, line, index));
-   if (matches.length) matches.forEach((m,i) => append(line,m,i===0,index));
-   else append(line,null,true,index);
-  }
-  for (const m of spent.filter(m => !draft.lines.some((line,i) => BudgetReport290.forLine(m,line,i)))) append(null,m);
-  refreshValuations();
-  host.querySelector('[data-add-spending]').onclick = () => {
-   const row = append(null,null); refreshValuations(); row.querySelector('[name=description]').focus();
-  };
-  function invalid(input,message) {
-   input.focus(); throw Error(message);
-  }
-  return function apply() {
-   const funding = {};
-   for (const {line,index,select,received} of decisions) {
-    const decision = {status:select.value};
-    if (decision.status === 'deduction') {
-     const n = received.valueAsNumber;
-     if (!Number.isFinite(n) || n < 0 || n > Number(line.amount) || !Number.isSafeInteger(Math.round(n*100)) || Math.abs(n*100-Math.round(n*100))>0.00001)
-      invalid(received,'Enter the amount received for '+line.description+' between 0 and '+line.currency+' '+formatAppNumber(line.amount)+', with up to two decimal places.');
-     decision.received = n;
-    }
-    funding[BudgetReport290.fundingKey(line,index)] = decision;
-   }
-   const changes = [];
-   for (const state of rows) {
-    const {line,movement,row,amount,choice,currency} = state;
-    if (movement && !state.amountEdited && !state.equivalentEdited && !state.detailEdited) continue;
-    const description = row.querySelector('[name=description]');
-    const detail = description?.value.trim() || '';
-    const raw = amount.value, value = movement && !state.amountEdited ? Number(movement.outflow) : amount.valueAsNumber;
-    if (!movement && !detail && !state.equivalent?.value && !amount.validity.badInput && (!raw || value === 0)) continue;
-    if (!Number.isFinite(value) || value <= 0 || !Number.isSafeInteger(Math.round(value*100)) || (state.amountEdited && Math.abs(value*100-Math.round(value*100))>0.00001)) {
-     invalid(amount, movement ? 'Enter a positive spending amount. Use Details to remove the expense.' : 'Enter a positive spending amount with up to two decimal places.');
-    }
-    if (!line && !detail && (!movement || movement.worksheetSpend)) invalid(description,'Enter a description for the additional spending.');
-    const explicit=state.equivalentEdited && line && line.currency!==(choice?.value||currency);
-    const equivalent=explicit && state.equivalent.value!==''?state.equivalent.valueAsNumber:null;
-    if(explicit && equivalent!==null && (!Number.isFinite(equivalent)||equivalent<=0||!Number.isSafeInteger(Math.round(equivalent*100))||Math.abs(equivalent*100-Math.round(equivalent*100))>0.00001))
-     invalid(state.equivalent,'Enter a positive spending equivalent with up to two decimal places, or leave it blank to use the report exchange rate.');
-    if (!explicit && movement && Number(movement.outflow) === value && (!description || detail === (movement.description290 || ''))) continue;
-    const next = movement ? {...movement} : {id290:crypto.randomUUID(),type290:'spend',worksheetSpend:true,date290:draft.date,
-     account:'',reference:'',currency:choice?.value || currency,budgetKey117:line?.key117 || '',inflow:0};
-    if (!movement && line && !line.key117) next.worksheetLine = draft.lines.indexOf(line);
-    if(explicit){
-     if(equivalent===null)delete next.budgetAmount290;
-     else next.budgetAmount290=equivalent;
-    }
-    if(next.ownerAmount!=null&&value!==Number(movement?.outflow)){
-     delete next.ownerAmount;delete next.ownerCurrency;
-    }
-    next.outflow=value;
-    if (description) next.description290 = detail;
-    changes.push({state,next});
-   }
-   if (decisions.length) draft.fundingByItem = funding;
-   for (const {state,next} of changes) {
-    if (state.movement) draft.movements[draft.movements.indexOf(state.movement)] = next;
-    else draft.movements.push(next);
-    state.movement = next; state.amountEdited=false; state.equivalentEdited=false; state.detailEdited=false;
-    if (state.choice) state.choice.disabled = true;
-    const action = state.row.lastElementChild;
-    if (!action.querySelector('button') || action.textContent === 'Remove') {
-     const details = document.createElement('button');
-     details.type = 'button'; details.textContent = 'Details';
-     details.onclick = () => edit(draft.movements.indexOf(state.movement));
-     action.replaceChildren(details);
-    }
-   }
-  };
+  return {read,dirty};
  }
  return {mount};
 })();
