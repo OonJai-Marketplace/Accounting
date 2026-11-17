@@ -221,9 +221,9 @@ window.BudgetReport290 = (() => {
  }
  function summary(d){
   const totals=[...balances(d)],columns=totals.map(([c])=>c);
-  const fields=[['requested','Requested'],['receipt','Funding received'],['coverage','Shortfall covered by restaurant'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],...(totals.some(([,t])=>t.refund>0)?[['beforeReturn','Cash before returns'],['refund','Unused funding returned'],['remaining','Cash after returns']]:[['remaining','Cash remaining']])];
+  const fields=[['requested','Requested'],['receipt','Funding received'],['coverage','Shortfall covered by restaurant'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],['borrow','Temporary advances received'],['repay','Advances repaid'],['cashSpent','Cash distributed'],['beforeReturn','Cash remaining']];
   const cash=document.createElement('div');
-  cash.innerHTML=table82(['Activity',...columns],fields.filter(([key])=>['receipt','spend','remaining','requested'].includes(key)||totals.some(([,t])=>t[key])).map(([key,label])=>[esc(label),...totals.map(([,t])=>money(t[key]))]));
+  cash.innerHTML=table82(['Activity',...columns],fields.filter(([key])=>['receipt','cashSpent','beforeReturn','requested'].includes(key)||totals.some(([,t])=>t[key])).map(([key,label])=>[esc(label),...totals.map(([,t])=>money(t[key]))]));
   const requestedRow=cash.querySelector('tbody tr');
   if(requestedRow){requestedRow.dataset.budgetSummary290='requested';for(const cell of requestedRow.cells)cell.style.cssText+=fill;}
   const loans=d.movements.filter(m=>kind(m)==='borrow');
