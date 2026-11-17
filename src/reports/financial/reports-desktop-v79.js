@@ -370,7 +370,10 @@ function renderReports79(){
  }finally{reportRenderCache14336=previousCache}
 }
 function accountDataCurrencies79(){return [...(AccountingStore.accounts||[]).map(a=>a.currency),...JournalModule.entries.map(l=>l.currency)]}
-function reportAccount79(name,currency){const row=reportData79().find(r=>r.account.name===name.trim()&&r.currency===currency);if(!row)return;reportBooks.carryToActivity();Reports79.account=row.key;Reports79.query='';switchTab('report-activity')}
+function reportAccount79(name,currency){const parent=AccountingStore.accounts.find(a=>a.isPosting===false&&a.name===name.trim());
+ const row=parent?null:reportData79().find(r=>r.account.name===name.trim()&&r.currency===currency);
+ if(!parent&&!row)return;reportBooks.carryToActivity();if(parent&&Reports79.basis==='original')Reports79.currency=currency;
+ Reports79.account=parent?accountKey69(parent):row.key;Reports79.query='';switchTab('report-activity')}
 async function exportReport79(kind){
  const rows=[[reportNames79[kind]],[Reports79.from,Reports79.to],['Source','Posted journal; active and archived']];reportModel79(kind,true).forEach(g=>{rows.push([],['Currency',g.currency],...(g.periodLabel?[['Period',g.periodLabel]]:[]),...g.metrics.map(([k,v])=>[k,v/100]),g.headers,...g.values,['Report basis',g.note])});if(Reports79.notes[kind])rows.push([],['Notes',Reports79.notes[kind]]);
  const safe=v=>{let s=String(v??'');if(/^[\s\u0000-\u001f]*[=+@]/.test(s)||(/^\-/.test(s)&&!/^-[\d,.]+$/.test(s)))s="'"+s;return '"'+s.replaceAll('"','""')+'"'};const csv=rows.map(r=>r.map(safe).join(',')).join('\r\n'),url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`${kind}-${Reports79.from}-${Reports79.to}.csv`;await (window.exportCenter14337?exportCenter14337.fromLink(a):a.click());setTimeout(()=>URL.revokeObjectURL(url),1000);

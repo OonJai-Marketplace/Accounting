@@ -5,7 +5,7 @@ function monthlyTrialPreferenceKey(){
 function monthlyTrialPreferences(){
  let saved;
  try{saved=JSON.parse(localStorage.getItem(monthlyTrialPreferenceKey()))}catch{}
- return {columns:saved?.columns==='balance'?'balance':'full',accounts:Array.isArray(saved?.accounts)?saved.accounts:null};
+ return {basis:saved?.basis==='reporting'?'reporting':'original',columns:saved?.columns==='balance'?'balance':'full',accounts:Array.isArray(saved?.accounts)?saved.accounts:null};
 }
 function saveMonthlyTrialPreferences(prefs){
  try{localStorage.setItem(monthlyTrialPreferenceKey(),JSON.stringify(prefs))}catch{showCenterStatus('Could not save the comparison settings on this device.',true)}
@@ -67,13 +67,14 @@ function monthlyTrialModel(entries,months,options){
   if(!buckets.has(key))buckets.set(key,[]);
   buckets.get(key).push(line);
  }
- const carry=new Map(),incomplete=new Set(),base=basis==='LAK';
+ const carry=new Map(),incomplete=new Set(),base=basis==='LAK',parents=ForeignFunds14386.parentIndex();
  for(const [index,month] of months.entries()){
   if(month.endsWith('-01')){carry.clear();incomplete.clear()}
   const start=index===0&&from?from:month+'-01',end=month===last&&to?to:summaryPeriod14331.end(month);
   for(const row of accountDataForPeriod69(buckets.get(month)||[],start,end,false)){
    const {account,key}=row;
-   if(currency&&currency!==row.currency||selected&&!selected.has(key))continue;
+   if(currency&&currency!==row.currency&&!monthlyTrialParent(account,row.currency))continue;
+   if(selected&&!selected.has(key)&&!parents(account).some(p=>selected.has(accountKey69(p))))continue;
    if(!records.has(key))records.set(key,{account,currency:row.currency,months:[],headingOnly:monthlyTrialParent(account,row.currency)});
    const record=records.get(key);
    if(row.opening||row.debit||row.credit||row.baseOpening||row.baseDebit||row.baseCredit||row.missingRates)record.headingOnly=false;
@@ -93,8 +94,25 @@ function monthlyTrialModel(entries,months,options){
   return columns==='balance'?[balance]:[t.missingTurnover?'Rate missing':money69(t.debit),t.missingTurnover?'Rate missing':money69(t.credit),balance];
  }
  const empty=()=>({debit:0,credit:0,balance:0});
- const values=ordered.map(row=>{
-  if(row.headingOnly)return [monthlyTrialLabel(row.account,'Parent account'),...Array(months.length*subheads.length).fill('')];
+ const byParent=new Map();
+ for(const row of ordered.filter(r=>!r.headingOnly&&r.account.isPosting!==false)){
+  for(const parent of parents(row.account)){
+   if(!byParent.has(parent.code))byParent.set(parent.code,new Map());
+   const units=byParent.get(parent.code),unit=base?'LAK':row.currency;
+   if(!units.has(unit))units.set(unit,months.map(empty));
+   row.months.forEach((m,i)=>{
+    const t=units.get(unit)[i];
+    t.debit+=m.debit;t.credit+=m.credit;t.balance+=m.balance;
+    t.missingTurnover||=m.missingTurnover;t.missingBalance||=m.missingBalance;
+   });
+  }
+ }
+ const values=ordered.flatMap(row=>{
+  if(row.headingOnly){
+   const units=byParent.get(row.account.code);
+   if(!units?.size)return [[monthlyTrialLabel(row.account,'Parent account'),...Array(months.length*subheads.length).fill('')]];
+   return [...units].sort(([a],[b])=>a.localeCompare(b)).map(([unit,series])=>[monthlyTrialLabel(row.account,'Subtotal · '+unit),...series.flatMap(cells)]);
+  }
   const unit=base?'LAK':row.currency;
   if(!totals.has(unit))totals.set(unit,months.map(empty));
   const amounts=months.flatMap((_,i)=>{
@@ -103,7 +121,7 @@ function monthlyTrialModel(entries,months,options){
    sum.missingTurnover||=t.missingTurnover;sum.missingBalance||=t.missingBalance;
    return cells(t);
   });
-  return [monthlyTrialLabel(row.account,row.currency),...amounts];
+  return [[monthlyTrialLabel(row.account,row.currency),...amounts]];
  });
  const totalRows=[...totals].map(([unit,list])=>[(selected?'Selected total':'Total')+' · '+unit,...list.flatMap(cells)]);
  return {monthlyTrial:true,months,subheads,headers:['Accounts',...months.flatMap(m=>subheads.map(h=>summaryPeriod14331.monthLabel(m)+' '+h))],
@@ -133,8 +151,10 @@ function openMonthlyTrialBalance(panel,scope){
  const dialog=panel.closest('dialog'),header=dialog.querySelector('header'),close=header.querySelector('.close');
  close.classList.add('je-btn','je-btn-secondary');close.textContent='Close';
  const prefs=monthlyTrialPreferences(),calendar=summaryPeriod14331;
- close.insertAdjacentHTML('beforebegin','<button type="button" class="je-btn je-btn-secondary" data-period aria-haspopup="dialog">Period</button>'+monthlyTrialColumnControl(prefs.columns)+'<div data-accounts></div><button type="button" class="je-btn je-btn-secondary" data-refresh>Refresh</button>');
+ const basisControl='<label>Currency view<select data-plain14285 name="trialBasis"><option value="original">Original currencies</option><option value="reporting">Reporting · LAK</option></select></label>';
+ close.insertAdjacentHTML('beforebegin','<button type="button" class="je-btn je-btn-secondary" data-period aria-haspopup="dialog">Period</button>'+basisControl+monthlyTrialColumnControl(prefs.columns)+'<div data-accounts></div><button type="button" class="je-btn je-btn-secondary" data-refresh>Refresh</button>');
  const period=header.querySelector('[data-period]'),columns=header.querySelector('[name=trialColumns]'),accountPicker=header.querySelector('[data-accounts]');
+ const basis=header.querySelector('[name=trialBasis]');basis.value=prefs.basis;
  const status=document.createElement('small');header.querySelector('h2').append(status);
  let entries,months,allMonths;
  function draw(){
@@ -143,7 +163,7 @@ function openMonthlyTrialBalance(panel,scope){
  }
  async function load(refresh,check=true){
   const request=scope.begin();
-  period.disabled=columns.disabled=true;accountPicker.hidden=true;panel.textContent='Loading balances…';
+  period.disabled=columns.disabled=basis.disabled=true;accountPicker.hidden=true;panel.textContent='Loading balances…';
   try{
    const offline=!!window.offline14239?.offline();
    const saved=await reportWindow143195.postedLedger(refresh&&!offline);
@@ -164,9 +184,10 @@ function openMonthlyTrialBalance(panel,scope){
    monthlyTrialAccountPicker(accountPicker,monthlyTrialChoices(entries),prefs.accounts,accounts=>{
     if(!scope.current(request))return;prefs.accounts=accounts;saveMonthlyTrialPreferences(prefs);draw();
    });
+   basis.onchange=()=>{if(scope.current(request)){prefs.basis=basis.value;saveMonthlyTrialPreferences(prefs);draw()}};
    columns.onchange=()=>{if(scope.current(request)){prefs.columns=columns.value;saveMonthlyTrialPreferences(prefs);draw()}};
    period.onclick=()=>calendar.open(period,months,selected=>{if(scope.current(request)){months=selected.length?selected:allMonths;draw()}});
-   period.disabled=columns.disabled=false;accountPicker.hidden=false;draw();
+   period.disabled=columns.disabled=basis.disabled=false;accountPicker.hidden=false;draw();
    if(check&&!refresh&&!offline&&window.startup14257?.checkBooks){
     const prior=reportWindow143195.savedRevision();
     void startup14257.checkBooks().then(()=>{

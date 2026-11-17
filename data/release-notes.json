@@ -1,7 +1,7 @@
 {
-  "version": "143.446",
+  "version": "143.447",
   "changes": [
-    "Fund utilization shows separate original-currency totals and remaining balances in the worksheet, saved list, final report and print view.",
-    "Utilization amounts share one currency format, including zero and negative balances."
+    "Chart parents accept children in every active currency. Searching for a currency includes parents of matching accounts.",
+    "Account balances and financial reports show parent subtotals by original currency or in reporting LAK."
   ]
 }

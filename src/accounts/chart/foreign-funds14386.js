@@ -6,8 +6,23 @@ const posting=a=>a.isPosting!==false&&a.is_posting!==false;
 const tracked=a=>posting(a)&&!!(a.currency||a.currency_code)&&!['LAK','NA','__PARENT__'].includes(a.currency||a.currency_code);
 function lineRateText(l){const c=l.originalCurrency||l.currency||l.currency_code;if(c==='LAK')return '1';const rates=window.JournalFX14383?.lineRates?.(l);if(rates?.length)return rates.join(' / ');const amount=num(l.debit)-num(l.credit),d=JournalFX14383.base(l,'debit'),cr=JournalFX14383.base(l,'credit');const saved=Number(l.book_rate_lak||l.fx_rate_lak);const r=saved>0?saved:amount&&d!==null&&cr!==null?(d-cr)/amount:null;return rateText(r)+' LAK / '+c+(l.book_rate_lak?' · carrying':'');}
 function original(r){return r.original||r}
-function descendants(rows,parent){const byCode=new Map(AccountingStore.accounts.map(a=>[a.code,a]));return rows.filter(r=>{if(!posting(r.account))return false;let a=r.account;const seen=new Set([a.code]);while(a?.parentCode&&!seen.has(a.parentCode)){if(a.parentCode===parent.code)return true;seen.add(a.parentCode);a=byCode.get(a.parentCode)}return false})}
-function select(rows,key){if(!key)return rows;const target=rows.find(r=>r.key===key);return target&&!posting(target.account)?descendants(rows,target.account):rows.filter(r=>r.key===key);}
+function parentIndex(){
+ const byCode=new Map(AccountingStore.accounts.map(a=>[a.code,a])),cache=new Map();
+ return account=>{
+  if(cache.has(account.code))return cache.get(account.code);
+  const parents=[],seen=new Set([account.code]);
+  let p=byCode.get(account.parentCode);
+  while(p&&!posting(p)&&!seen.has(p.code)){
+   parents.push(p);seen.add(p.code);p=byCode.get(p.parentCode);
+  }
+  cache.set(account.code,parents);return parents;
+ };
+}
+function descendants(rows,parent){
+ const parents=parentIndex();
+ return rows.filter(r=>posting(r.account)&&parents(r.account).some(p=>p.code===parent.code));
+}
+function select(rows,key){if(!key)return rows;const parent=AccountingStore.accounts.find(a=>!posting(a)&&accountKey69(a)===key);return parent?descendants(rows,parent):rows.filter(r=>r.key===key);}
 function hierarchy(rows,compare){
  if(compare)rows=[...rows].sort(compare);
  // Subtotals are display rows only. Financial metrics always use the leaf rows.
@@ -40,5 +55,5 @@ const headers=['Account / parent','Original closing balance','Recorded closing L
 const note='Parent subtotals sum each descendant posting account once. Original currencies remain separate; there is no mixed-currency average. Recorded LAK = opening LAK + recorded debits − recorded credits. Foreign-currency tracking is automatic for all posting accounts, including System and mapping accounts. Average carrying rate = recorded closing LAK ÷ original closing balance. A mapping balance’s rate describes its recorded net valuation, not a rate to use for a new transaction. Use the General Ledger for each saved transaction/carrying rate. These are recorded values, not current market valuations. Parent and child rows are explanatory and must not be added together.';
 function reportDetails(rows,kind){let selected=rows;if(['pl','expense'].includes(kind))selected=rows.filter(r=>['REVENUE','EXPENSE'].includes(r.account.baseType||r.account.type));if(kind==='bs')selected=rows.filter(r=>['ASSET','LIABILITY','EQUITY'].includes(r.account.baseType||r.account.type));if(['cf','payroll'].includes(kind))selected=rows.filter(r=>Reports79[kind==='cf'?'cash':'payroll'].includes(r.key));if(['gl','activity'].includes(kind)&&Reports79.account)selected=select(rows,Reports79.account);const values=detailRows(selected);return values.length?{currency:'Recorded valuation detail',headers,values,metrics:[],note}:null;}
 function html(rows){const values=detailRows(rows);return values.length?'<h4>Recorded valuation detail</h4><div class="table-container"><table class="valuation-columns"><thead><tr>'+headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+values.map(r=>{const p=presentation(r[0]);return '<tr'+(p.subtotal?' class="report-subtotal143185"':'')+'>'+r.map((v,i)=>'<td>'+(p.subtotal?'<strong>':'')+(i===0?label(v):esc(v))+(p.subtotal?'</strong>':'')+'</td>').join('')+'</tr>'}).join('')+'</tbody></table></div><p class="report-note69">'+esc(note)+'</p>':'';}
-window.ForeignFunds14386={presentation,label,tracked,select,hierarchy,descendants,average,lineRateText,reportDetails,detailRows,html};
+window.ForeignFunds14386={presentation,label,tracked,select,hierarchy,descendants,parentIndex,average,lineRateText,reportDetails,detailRows,html};
 })();

@@ -74,6 +74,17 @@ const reportingAmounts = (() => {
    return {row,target,rate,...values};
   });
  }
+ function parentGroups(items,selected){
+  const parents=ForeignFunds14386.parentIndex(),grouped=new Map();
+  for(const part of items){
+   for(const parent of parents(part.row.account)){
+    if(selected&&!selected.has(accountKey69(parent)))continue;
+    if(!grouped.has(parent.code))grouped.set(parent.code,{account:parent,parts:[]});
+    grouped.get(parent.code).parts.push(part);
+   }
+  }
+  return [...grouped.values()].map(g=>({...g,...Object.fromEntries(fields.map(f=>[f,total(g.parts,f)]))})).sort(compareReportAccounts143153);
+ }
  function groups(parts){
   const grouped=new Map();
   for(const p of parts){
@@ -132,6 +143,8 @@ const reportingAmounts = (() => {
   const result=[{currency,headers:['Reporting account','Classification',...(kind==='bs'?[]:performance?['Period debit','Period credit']:['Opening balance','Period debit','Period credit']),...(yearOpening?['Year-opening change']:[]),performance?'Net amount':'Closing balance'],values:summary,metrics,note}];
   result.push({currency:'Currency contributions · LAK',headers:['Reporting account','Source account','Currency','Original '+(performance?'net':'balance'),'Average book rate','Rate date','LAK contribution'],values:grouped.flatMap(g=>g.parts.map(p=>[groupLabel(g.account),label(p.row.account),p.row.currency,amount(net(p.row.account,p.row)),p.rate.rate?p.rate.rate.toLocaleString(appNumberLocale(),{maximumFractionDigits:10})+' LAK/'+p.row.currency:p.rate.issue,to,amount(net(p.row.account,p))])),metrics:[],note:'These rows explain the reporting-account totals above. Each source is counted once.'});
   if(kind==='gl'||kind==='activity')result.push(ledger(items,to));
+  const parents=parentGroups(items).filter(g=>kind!=='bs'||!['REVENUE','EXPENSE'].includes(type(g.account)));
+  if(parents.length)result.push({currency:'Parent subtotals · LAK',headers:['Parent account','Opening balance','Period debit','Period credit','Closing balance'],values:parents.map(g=>[label(g.account),...fields.map(f=>amount(g[f]))]),metrics:[],note:'Each parent includes all selected posting accounts below it. Grand totals count each posting account once.'});
   return result;
  }
  function ledger(items,to){
@@ -154,7 +167,7 @@ const reportingAmounts = (() => {
   reportBooks.carryToActivity();Reports79.account=group?'report:'+acct.id:accountKey69(acct);Reports79.query='';switchTab('report-activity');
  }
  function comparison(entries,months,options){
-  const groupedRows=new Map(),contributions=new Map(),monthlyTotals=[];
+  const groupedRows=new Map(),contributions=new Map(),parentRows=new Map(),monthlyTotals=[],parents=ForeignFunds14386.parentIndex();
   const choices=options.accounts&&new Set(options.accounts),targets=links();
   const subheads=options.columns==='balance'?['Balance']:['Debit','Credit','Balance'];
   const blank=()=>Array(subheads.length).fill('—');
@@ -162,8 +175,12 @@ const reportingAmounts = (() => {
   const ends=months.map((m,i)=>i===months.length-1&&options.to?options.to:summaryPeriod14331.end(m));
   months.forEach((month,i)=>{
    const start=i===0&&options.from?options.from:month+'-01',end=ends[i];
-   const rows=accountDataForPeriod69(entries,start,end,false).filter(row=>(!options.currency||options.currency===row.currency)&&(!choices||choices.has(row.key)));
+   const rows=accountDataForPeriod69(entries,start,end,false).filter(row=>(!options.currency||options.currency===row.currency)&&(!choices||choices.has(row.key)||parents(row.account).some(p=>choices.has(accountKey69(p)))));
    const selectedParts=parts(rows.filter(visible),markReviewedRates(rows,entries,end),targets),grouped=groups(selectedParts);
+   for(const g of parentGroups(selectedParts,choices)){
+    if(!parentRows.has(g.account.code))parentRows.set(g.account.code,{account:g.account,months:[]});
+    parentRows.get(g.account.code).months[i]=cells(g);
+   }
    for(const g of grouped){
     const key=g.account.id||g.account.code;
     if(!groupedRows.has(key))groupedRows.set(key,{account:g.account,months:[]});
@@ -180,8 +197,9 @@ const reportingAmounts = (() => {
   const order=(a,b)=>(options.direction==='desc'?-1:1)*String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true});
   const cellsByMonth=r=>months.flatMap((_,i)=>r.months[i]||blank());
   const values=[...groupedRows.values()].sort(order).map(r=>[groupLabel(r.account),...cellsByMonth(r)]);
+  const parentValues=[...parentRows.values()].sort(order).map(r=>[label(r.account)+' · Subtotal · LAK',...cellsByMonth(r)]);
   const detail=[...contributions.values()].sort(order).map(r=>[groupLabel(r.target)+' / '+label(r.account),...cellsByMonth(r)]);
-  return {monthlyTrial:true,months,subheads,headers:['Accounts',...ends.flatMap(end=>subheads.map(h=>end+' '+h))],values:[...values,...detail,[options.accounts?'Selected total · LAK':'Total · LAK',...monthlyTotals.flat()]],totalCount:1,currency:'Reporting Amount · LAK',metrics:[],rateDates:ends,note:'Each column uses the book rate at its closing date. Currency contributions are included in the reporting-account totals.'};
+  return {monthlyTrial:true,months,subheads,headers:['Accounts',...ends.flatMap(end=>subheads.map(h=>end+' '+h))],values:[...values,...parentValues,...detail,[options.accounts?'Selected total · LAK':'Total · LAK',...monthlyTotals.flat()]],totalCount:1,currency:'Reporting Amount · LAK',metrics:[],rateDates:ends,note:'Each column uses the book rate at its closing date. Currency contributions are included in the reporting-account totals.'};
  }
  return {model,comparison,links,evidence,open};
 })();

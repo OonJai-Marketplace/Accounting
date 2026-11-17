@@ -810,7 +810,7 @@ function initCoaCurrencyFilter() {
       opt.textContent = `${c.code} — ${c.name}`;
       modalSelect.appendChild(opt);
     });
-    modalSelect.insertAdjacentHTML('beforeend','<option value="__PARENT__">Parent account (non-posting)</option>');
+    modalSelect.insertAdjacentHTML('beforeend','<option value="__PARENT__">Parent account (all currencies, non-posting)</option>');
   }
 }
 
@@ -838,9 +838,17 @@ function renderChartOfAccountsTable() {
   tbody.innerHTML = '';
 
   const terms=(document.getElementById('searchCoa1439')?.value||'').toLocaleLowerCase().trim().split(/\s+/).filter(Boolean);
+  const parents=ForeignFunds14386.parentIndex(), currenciesByParent=new Map();
+  for(const child of AccountingStore.accounts.filter(a=>a.isPosting!==false)){
+    for(const parent of parents(child)){
+      if(!currenciesByParent.has(parent.code))currenciesByParent.set(parent.code,new Set());
+      currenciesByParent.get(parent.code).add(child.currency);
+    }
+  }
   const visibleAccounts = AccountingStore.accounts.filter(acc => {
-    const text=[acc.code,acc.name,acc.currency,currencySymbolV6(acc.currency),acc.type,acc.desc].join(' ').toLocaleLowerCase();
-    return (filterCurr === 'ALL' || acc.currency === filterCurr)&&terms.every(term=>text.includes(term))&&(!window.AccountGroups143180||AccountGroups143180.matches(acc));
+    const units=acc.isPosting===false?[...(currenciesByParent.get(acc.code)||[])]:[acc.currency];
+    const text=[acc.code,acc.name,...units,...units.map(currencySymbolV6),acc.type,acc.desc].join(' ').toLocaleLowerCase();
+    return (filterCurr === 'ALL' || units.includes(filterCurr))&&terms.every(term=>text.includes(term))&&(!window.AccountGroups143180||AccountGroups143180.matches(acc));
   });
 
   if (visibleAccounts.length === 0) {
