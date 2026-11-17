@@ -111,13 +111,13 @@ window.BudgetReport290 = (() => {
   return round(Number(loan.inflow)-(d.movements||[]).filter(m=>kind(m)==='repay'&&m.loanId290===loan.id290).reduce((sum,m)=>sum+Number(m.loanAmount290||m.outflow),0));
  }
  function forLine(m,line,index){return m.budgetKey117?m.budgetKey117===line.key117:!line.key117&&m.worksheetLine===index;}
- const fundingLabels={approved:'Approved',declined:'Declined',deduction:'Deduction'};
+ const fundingLabels={approved:'Approved',declined:'Declined',deduction:'Deduction',unconfirmed:'Unconfirmed'};
  // A utilization owns its decisions. Its linked request lines are an immutable snapshot.
  const fundingKey=(line,index)=>line.key117?'item:'+line.key117:'row:'+index;
  function lineFunding(d,line,index){
   const saved=d.fundingByItem?.[fundingKey(line,index)];
   const status=saved?.status||'approved';
-  const amount=status==='approved'?Number(line.amount):status==='declined'?0:saved.received;
+  const amount=status==='approved'?Number(line.amount):status==='declined'?0:status==='unconfirmed'?null:saved.received;
   return {status,amount};
  }
  const title='Budget Request Utilization Report';
@@ -138,6 +138,7 @@ window.BudgetReport290 = (() => {
   return proceeds/original;
  }
  function valueIn(d,amount,currency,to,line,movement,field="budgetAmount290"){
+  if(amount==null)return null;
   if(!Number(amount))return 0;
   if(currency===to)return Number(amount);
   if(movement&&line&&line.currency===to&&Number(movement[field])>0)return Number(movement[field]);
@@ -209,13 +210,13 @@ window.BudgetReport290 = (() => {
    const requested=new Map(),funded=new Map(),spent=new Map(),left=new Map();
    if(line){
     const amount=lineFunding(d,line,index).amount;
-    requested.set(line.currency,line.amount);funded.set(line.currency,amount);
-    approved.set(line.currency,(approved.get(line.currency)||0)+Number(amount));
+    requested.set(line.currency,line.amount);
+    if(amount!=null){funded.set(line.currency,amount);approved.set(line.currency,(approved.get(line.currency)||0)+Number(amount));}
    }
    if(line&&!movements.length)spent.set(line.currency,0);
    for(const m of movements)spent.set(m.currency,(spent.get(m.currency)||0)+Number(m.outflow));
    // Exchanges are recorded for the fund, and are not allocated to an individual item.
-   if(!line||[...spent.keys()].every(c=>c===line.currency)){
+   if(!line||funded.size&&[...spent.keys()].every(c=>c===line.currency)){
     for(const c of new Set([...funded.keys(),...spent.keys()]))left.set(c,(funded.get(c)||0)-(spent.get(c)||0));
    }
    const extra=movements[0],item=line?.description||extra?.destination290||extra?.description290||'Additional spending';

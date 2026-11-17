@@ -34,6 +34,7 @@ window.BudgetSpendingWorksheet = (() => {
     requestCell.innerHTML=report.amountLines(codes,c=>report.valueIn(draft,line.amount,line.currency,c));
     const partial=select.value==='deduction';
     deduction.hidden=!partial;
+    if(select.value==='unconfirmed'){display.textContent='—';continue;}
     if(!partial){
      const funded=select.value==='declined'?0:line.amount;
      display.innerHTML=report.amountLines(select.value==='approved'?[line.currency]:codes,c=>report.valueIn(draft,funded,line.currency,c));

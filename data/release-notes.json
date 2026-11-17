@@ -1,7 +1,6 @@
 {
-  "version": "143.447",
+  "version": "143.448",
   "changes": [
-    "Chart parents accept children in every active currency. Searching for a currency includes parents of matching accounts.",
-    "Account balances and financial reports show parent subtotals by original currency or in reporting LAK."
+    "An existing fund utilization draft can be linked to its matching monthly request. Existing receipts and spending stay on the draft, and unconfirmed funding decisions are shown explicitly."
   ]
 }

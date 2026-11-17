@@ -193,6 +193,24 @@ const fixture=require('./phase0-browser-fixture.cjs');
   assert.equal(spendingCells[0],'₭ 6,500,000.00');
   assert.equal(spendingCells[1],'$ 10.00');
   assert.deepEqual(spendingCells.slice(-2),['$ 10.00','₭ 6,500,000.00']);
+  await fund.getByRole('button',{name:'Close',exact:true}).click();
+  await fund.waitFor({state:'detached'});
+  const original={...request,id:'00000000-0000-4000-a000-000000000408',data:{...request.data,purpose:'Matching monthly request'}};
+  const orphan={id:'00000000-0000-4000-a000-000000000409',version:2,data:{...original.data,lines:[],mode:'utilization',status:'draft',
+   movements:[{type290:'receipt',currency:'USD',inflow:150,account:'Bank',reference:'Receipt'}],conversions:[]}};
+  records.set(original.id,original);records.set(orphan.id,orphan);
+  await page.evaluate(rows=>Work82.reports.push(...rows),[original,orphan]);
+  await page.evaluate(id=>budgetWorkflow14316.openAllocation(id),orphan.id);
+  await fund.getByRole('button',{name:'Open reports'}).click();
+  await page.getByRole('button',{name:'Link to this draft'}).click();
+  assert.equal(await grid.getByLabel('Funding status for Rice').inputValue(),'unconfirmed');
+  assert.equal(await grid.locator('tr').first().locator('[data-funded-value]').textContent(),'—');
+  await fund.getByRole('button',{name:'Save draft'}).click();
+  await page.waitForFunction(id=>Work82.reports.some(r=>r.id===id&&r.version===3),orphan.id);
+  const repaired=records.get(orphan.id).data;
+  assert.equal(repaired.requestId14316,original.id);assert.equal(repaired.requestVersion14316,original.version);
+  assert.deepEqual(repaired.movements,orphan.data.movements);assert.deepEqual(repaired.lines,original.data.lines);
+  assert.equal(await page.evaluate(d=>BudgetReport290.compare(d).rows[0].values.LAK.funded,repaired),null);
   assert.deepEqual(errors,[]);
   console.log('PASS History returns, stable request window, linked worksheet, extra spending, receipts, conversions and save/reopen.');
  }finally{await f.close();}
