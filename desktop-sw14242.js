@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.442',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.443',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/desktop-status-dock.js?v=143.434",
  "docs/protocols/index.html?v=143.413",
@@ -80,7 +80,7 @@ const FILES=[
  "styles/font-size14380.css?v=143.80",
  "docs/UPDATE-v143.21.md",
  "scripts/hr-calendar14306.js?v=143.391",
- "scripts/desktop14245-1.js?v=143.338",
+ "scripts/desktop14245-1.js?v=143.443",
  "deployment-config.js?v=143.109",
  "scripts/supabase-config.js?v=143.109",
  "scripts/desktop-scale14320.js?v=143.23",
@@ -95,7 +95,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.423",
  "scripts/desktop14245-6.js?v=143.440",
  "scripts/local-events14310.js?v=143.375",
- "scripts/offline14239.js?v=143.442",
+ "scripts/offline14239.js?v=143.443",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -180,8 +180,8 @@ const FILES=[
  "assets/dashboard/vientiane-terrace.webp",
  "styles/password-help14278.css?v=142.94",
  "styles/desktop14245.css?v=143.436",
- "scripts/tablet-journal14266.js?v=143.295",
- "scripts/tablet-refresh143244.js?v=143.244",
+ "scripts/tablet-journal14266.js?v=143.443",
+ "scripts/tablet-refresh143244.js?v=143.443",
  "scripts/workspace-header14266.js?v=142.83",
  "styles/tablet-journal14266.css?v=143.297",
  "styles/workspace-header14266.css?v=143.48",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.375",
  "styles/settings-groups14332.css?v=143.375",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.442",
+ "scripts/phone-runtime14242.js?v=143.443",
  "scripts/local-first14333.js?v=143.428",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.391",
@@ -269,7 +269,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.393",
  "styles/workspace-consistency14343.css?v=143.377",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.442",
+ "phone-sw.js?v=143.443",
  "scripts/personal-journal1437.js?v=143.440",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",

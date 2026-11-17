@@ -1,8 +1,7 @@
 {
-  "version": "143.442",
+  "version": "143.443",
   "changes": [
-    "Fund utilization opens the saved finalized report from its budget request and refreshes outdated draft buttons when Budget opens.",
-    "Finalized budget reports use the full draft window width. All utilization summaries show cash distributed and remaining, with returns in the movement detail.",
-    "Restaurant coverage has its own worksheet action. Administrators can revise published report notes and movement descriptions."
+    "On iPad, selecting a word or dragging its handles in Users and the main workspace no longer makes the app scroll back to the focused field.",
+    "Pull-to-refresh yields to text selection, sideways gestures and the open tablet keyboard."
   ]
 }

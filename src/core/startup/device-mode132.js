@@ -17,6 +17,11 @@
  window.addEventListener('resize',laptopLayout);if(!tablet)return;
  const designWidth=1280,heights=new Map();let frame=0,state=null,awaitingRefit=false;
  const editing=()=>!!document.activeElement?.matches?.('input:not([readonly]):not([disabled]):not([type=button]):not([type=checkbox]):not([type=radio]),textarea:not([readonly]),[contenteditable="true"],[contenteditable="plaintext-only"]');
+ function hasTextSelection(){
+  const field=document.activeElement;
+  if(field?.matches('input,textarea')&&field.selectionStart!=null&&field.selectionStart!==field.selectionEnd)return true;
+  return window.getSelection()?.isCollapsed===false;
+ }
  function landscape(){const type=screen.orientation?.type;if(type)return type.startsWith('landscape');if(typeof window.orientation==='number')return Math.abs(window.orientation)===90;return screen.width>screen.height}
  function set(name,value){if(root.style.getPropertyValue(name)!==value)root.style.setProperty(name,value)}
  function update(){
@@ -57,7 +62,7 @@
   window.dispatchEvent(new CustomEvent('tabletviewport132',{detail:state}));
  }
  function schedule(){if(!frame)frame=requestAnimationFrame(update)}
- window.tabletViewport132={get state(){return state},landscape,update:schedule};
+ window.tabletViewport132={get state(){return state},landscape,update:schedule,hasTextSelection};
  const meta=document.querySelector('meta[name=viewport]');
  if(meta)meta.content='width=1280, minimum-scale=0.25, maximum-scale=5, user-scalable=yes';
  // A deliberate pinch is independent of the browser's delayed rotation refit.
@@ -65,6 +70,9 @@
  window.addEventListener('pageshow',schedule);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()});
  update();window.addEventListener('resize',schedule);window.addEventListener('orientationchange',schedule);
- screen.orientation?.addEventListener('change',schedule);window.visualViewport?.addEventListener('resize',schedule);window.visualViewport?.addEventListener('scroll',schedule);
+ screen.orientation?.addEventListener('change',schedule);window.visualViewport?.addEventListener('resize',schedule);
+ // Safari pans its visual viewport while a selection handle moves. Keep the
+ // workspace geometry steady for that pan; actual size changes still update it.
+ window.visualViewport?.addEventListener('scroll',()=>{if(!hasTextSelection())schedule()});
  document.addEventListener('DOMContentLoaded',schedule,{once:true});
 })();

@@ -17,6 +17,7 @@
  }
  function nestedScroller(target,host){for(let n=target;n&&n!==host;n=n.parentElement){if(n.scrollHeight>n.clientHeight+2&&/auto|scroll/.test(getComputedStyle(n).overflowY))return true}return false;}
  function blocked(){return !!document.querySelector('dialog[open],.modal-backdrop.active,.ui-overlay108,.account-list1428')||document.body.classList.contains('nav-drawer-open');}
+ function editingOrSelecting(){return window.tabletViewport132.state.keyboard||window.tabletViewport132.hasTextSelection();}
  function cancel(){gesture=null;if(!busy)hide();}
  async function refresh(host,key){
   if(busy||!same(key))return;
@@ -38,17 +39,18 @@
   finally{busy=false;if(!same(key))hide();}
  }
  document.addEventListener('touchstart',e=>{
-  gesture=null;if(busy||!actor()||e.touches.length!==1||blocked()||e.target.closest?.(excluded))return;
-  const host=e.target.closest?.('.workspace-scroll');if(!host||host.scrollTop>1||nestedScroller(e.target,host)||String(window.getSelection?.()||''))return;
-  const t=e.touches[0];gesture={host,key:identity(),x:t.clientX,y:t.clientY,distance:0};
+  gesture=null;if(busy||!actor()||e.touches.length!==1||blocked()||editingOrSelecting()||e.target.closest?.(excluded))return;
+  const host=e.target.closest?.('.workspace-scroll');if(!host||host.scrollTop>1||nestedScroller(e.target,host))return;
+  const t=e.touches[0];gesture={host,key:identity(),x:t.clientX,y:t.clientY,started:e.timeStamp,distance:0};
  },{passive:true});
  document.addEventListener('touchmove',e=>{
-  if(!gesture)return;if(e.touches.length!==1||!same(gesture.key)||blocked()||gesture.host.scrollTop>1){cancel();return}
+  if(!gesture)return;if(e.touches.length!==1||!same(gesture.key)||blocked()||editingOrSelecting()||gesture.host.scrollTop>1){cancel();return}
   const t=e.touches[0],dy=t.clientY-gesture.y,dx=Math.abs(t.clientX-gesture.x);
-  if(dy< -8||dx>20&&dx>Math.abs(dy)){cancel();return}
-  gesture.distance=Math.max(0,dy);
-  if(dy>12&&dy>dx){if(e.cancelable)e.preventDefault();status(dy>=90?'Release to refresh':'Pull down to refresh',gesture.host);}
+  // A stationary press can start native word selection before its range is exposed.
+  if(dy< -8||(dx>8&&dy<1.5*dx)||(!gesture.distance&&e.timeStamp-gesture.started>=400)){cancel();return}
+  if(dy>12&&dy>dx){gesture.distance=dy;if(e.cancelable)e.preventDefault();status(dy>=90?'Release to refresh':'Pull down to refresh',gesture.host);}
  },{passive:false});
- document.addEventListener('touchend',e=>{const g=gesture;gesture=null;if(!g)return;const t=e.changedTouches[0],dy=t?t.clientY-g.y:0;hide();if(!e.touches.length&&g.distance>=90&&dy>=90&&g.host.scrollTop<=1&&same(g.key)&&!blocked())void refresh(g.host,g.key);},{passive:true});
+ document.addEventListener('selectionchange',()=>{if(gesture&&editingOrSelecting())cancel()});
+ document.addEventListener('touchend',e=>{const g=gesture;gesture=null;if(!g)return;const t=e.changedTouches[0],dy=t?t.clientY-g.y:0;hide();if(!e.touches.length&&g.distance>=90&&dy>=90&&g.host.scrollTop<=1&&same(g.key)&&!blocked()&&!editingOrSelecting())void refresh(g.host,g.key);},{passive:true});
  document.addEventListener('touchcancel',cancel,{passive:true});window.addEventListener('page113',cancel);window.addEventListener('orientationchange',cancel);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancel()});
 })();

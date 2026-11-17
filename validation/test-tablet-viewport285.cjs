@@ -42,6 +42,28 @@ check('iPad journal actions stay anchored while the active row uses the visible 
  }
 });
 check('switching fields and Safari offset preserve focus and reveal the edited row',()=>{const f=fixture();f.memo.focus();f.vv.height=900;f.resize();f.top=1300;f.rich.focus();f.flush();assert.equal(f.w.document.activeElement,f.rich);assert.equal(f.top+40,884);f.vv.offsetTop=100;f.vv.dispatchEvent(new f.w.Event('scroll'));f.flush();assert.equal(f.w.document.activeElement,f.rich);assert(f.top>=116);f.close()});
+check('native input, textarea and read-only page text retain their selection during viewport movement',()=>{
+ const f=fixture(),doc=f.w.document;
+ for(const open of [false,true]){
+  const full=f.vv.height;
+  for(const tag of ['input','textarea']){
+   const field=doc.createElement(tag);field.value='Copy receipt details';f.host.append(field);
+   field.getBoundingClientRect=()=>({top:1900,bottom:1940,height:40});
+   field.focus();field.setSelectionRange(5,12);const before=f.scroll;
+   f.vv.height=open?full-400:full;f.resize();
+   f.vv.dispatchEvent(new f.w.Event('scroll'));f.flush();
+   assert.equal(f.scroll,before);assert.equal(field.value.slice(field.selectionStart,field.selectionEnd),'receipt');
+   assert(f.w.tabletViewport132.hasTextSelection());field.blur();field.remove();
+  }
+  const label=doc.createElement('p');label.textContent='Saved receipt';f.host.append(label);
+  const range=doc.createRange();range.setStart(label.firstChild,6);range.setEnd(label.firstChild,13);
+  const selection=f.w.getSelection();selection.removeAllRanges();selection.addRange(range);
+  f.vv.dispatchEvent(new f.w.Event('scroll'));f.flush();
+  assert(f.w.tabletViewport132.hasTextSelection());assert.equal(String(selection),'receipt');
+  selection.removeAllRanges();label.remove();f.vv.height=full;f.resize();
+ }
+ f.close();
+});
 check('Android tablet keeps its action bar above the keyboard',()=>{
  const f=fixture({ua:'Android',platform:'Linux',touch:5});
  f.memo.focus();f.vv.height=900;f.resize();
