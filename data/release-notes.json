@@ -1,5 +1,5 @@
 {
-  "version": "143.452",
+  "version": "143.453",
   "changes": [
     "Monthly fund utilization shows owner support received, used and remaining in each funding currency. Company cash handovers are shown separately."
   ]

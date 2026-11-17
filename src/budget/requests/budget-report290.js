@@ -86,7 +86,7 @@ window.BudgetReport290 = (() => {
   if(type==='receipt'&&/^restaurant funds$/i.test((m.account||'').trim())&&/^restaurant covered\b.*\b(shortage|shortfall)\b/i.test(m.description290||''))return 'coverage';
   return type;
  }
- const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Unused funding returned',transfer:'Transfer between accounts',coverage:'Shortfall covered by restaurant'};
+ const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Cash handover / return',transfer:'Transfer between accounts',coverage:'Shortfall covered by restaurant'};
  function cashPaid(m){return Number(m.cashDistributed??m.outflow);}
  function equivalentField(m){return m?.cashDistributed!=null?'cashBudgetAmount':'budgetAmount290';}
  function balances(d) {
@@ -249,8 +249,9 @@ window.BudgetReport290 = (() => {
  }
  function summary(d){
   const totals=balances(d),columns=orderedUnits(totals.keys());
-  const fields=[['requested','Requested'],['receipt','Funding received'],['coverage','Shortfall covered by restaurant'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],['borrow','Temporary advances received'],['repay','Advances repaid'],['cashSpent','Cash distributed'],['beforeReturn','Cash remaining']];
-  if(columns.some(c=>totals.get(c).refund)){
+  const hasHandover=columns.some(c=>totals.get(c).refund);
+  const fields=[['requested','Requested'],['receipt','Funding received'],['coverage','Shortfall covered by restaurant'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],['borrow','Temporary advances received'],['repay','Advances repaid'],['cashSpent','Cash distributed'],['beforeReturn',hasHandover?'Cash before handover':'Cash remaining']];
+  if(hasHandover){
    fields.push(['refund','Cash handed over or returned'],['remaining','Cash held after handover']);
   }
   const cash=document.createElement('div');

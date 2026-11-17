@@ -97,7 +97,7 @@ const create=require('./phase0-browser-fixture.cjs');
    const calculated=amount();paid.cashBudgetAmount=22;
    const box=document.createElement('div');box.innerHTML=BudgetReport290.summary(d);
    const rows=[...box.querySelector('tbody').rows].map(r=>[...r.cells].map(c=>c.textContent));
-   if(!rows.some(r=>r[0]==='Cash distributed')||!rows.some(r=>r[0]==='Cash remaining'&&r[1]==='$ 25.00')||
+   if(!rows.some(r=>r[0]==='Cash distributed')||!rows.some(r=>r[0]==='Cash before handover'&&r[1]==='$ 25.00')||
     !rows.some(r=>r[0]==='Cash held after handover'&&r[1]==='$ 21.00'))throw Error('Unexpected cash summary '+JSON.stringify(rows));
    return [cash.beforeReturn,cash.remaining,calculated,amount(),BudgetReport290.compare(d).rows[0].values.USD.used];
   },report.data);

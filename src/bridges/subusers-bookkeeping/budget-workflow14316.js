@@ -120,7 +120,7 @@ function renderRequest(notice=''){
  const units=report.orderedUnits(reports.flatMap(({balances})=>[...balances.keys()]));
  const headings=units.length?units.map(c=>'Cash remaining ('+c+')'):['Cash remaining'];
  const utilization=reports.map(({record:r,balances})=>{
-  const remaining=units.length?units.map(c=>balances.has(c)?report.amountHtml(c,balances.get(c).beforeReturn):'—'):['—'];
+  const remaining=units.length?units.map(c=>balances.has(c)?report.amountHtml(c,balances.get(c).remaining):'—'):['—'];
   return [esc(report.period(r.data)),esc(r.data.purpose),esc(r.data.status||'Draft'),'<span data-owner-register="'+esc(r.id)+'">—</span>',...remaining,
    button(isFinal(r)?'View report':'Continue',`openAllocation(${JSON.stringify(r.id)})`)];
  });
@@ -476,7 +476,7 @@ function renderAllocation(){
  }).catch(()=>{});
  function showBalance(){
   const cash=report.balances(d);
-  balance.innerHTML=cash.size?'<span>Cash remaining</span><span>'+report.amountLines(cash.keys(),c=>cash.get(c).beforeReturn)+'</span>':'';
+  balance.innerHTML=cash.size?'<span>Cash remaining</span><span>'+report.amountLines(cash.keys(),c=>cash.get(c).remaining)+'</span>':'';
  }
  showBalance();
  host.oninput=e=>{if(!e.target.matches('[data-item-equivalents]')){summary.open=false;balance.textContent='';if(e.target.closest('[data-spending-rows]')&&d.movements.some(m=>m.ownerAmount!=null))panel.textContent='Apply worksheet changes in Funding and spending summary to update owner support.';}};
@@ -792,10 +792,10 @@ async function showFinal(record){
  }
  selectedParent=record.data.requestId14316||'';
  if(document.querySelector('#transactions-budget14313.active'))renderRequest();
- showReport(record);
+ return showReport(record);
 }
 async function view(id){
- try{const r=await editableRecord(id);if(isFinal(r))showFinal(r);else showReport(r);}catch(e){showCenterStatus(e.message,true)}
+ try{const r=await editableRecord(id);if(isFinal(r))await showFinal(r);else await showReport(r);}catch(e){showCenterStatus(e.message,true)}
 }
 function cacheWording(record){
  const index=Work82.reports.findIndex(r=>r.id===record.id);
