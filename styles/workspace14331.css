@@ -147,3 +147,11 @@ body .summary-period14331 button:focus-visible{outline:2px solid #b78b42;outline
  html body #journalEntry98#journalEntry98 #jeLinesBody td.cell-editing143116 input{caret-color:#102d24!important}
  html body #jeLinesBody td.cell-selected143116:not(.cell-editing143116) input{caret-color:transparent}
 }
+
+@media screen {
+ body table tr.table-selected107 > :is(td,th) {
+  background-color:#d8f0e4!important;
+  box-shadow:inset 0 1px #83baa3,inset 0 -1px #83baa3!important;
+ }
+ body table tr.table-selected107 > :first-child {border-inline-start-color:#317254!important}
+}

@@ -3714,6 +3714,10 @@
     ],
     "scripts/phone-runtime14242.js": [
       {
+        "source": "src/subusers/workspace/workspace14331.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/bookkeeping/journal/memo-links143187.js",
         "prefix": "/* Journal description links */\n",
         "suffix": ";\n"
@@ -3847,6 +3851,10 @@
     "styles/phone14242.css": [
       {
         "source": "src/subusers/phone/phone14242.css"
+      },
+      {
+        "source": "src/shared/presentation/table-reading-row.css",
+        "prefix": "\n"
       }
     ],
     "styles/workspace-consistency14343.css": [
@@ -3862,6 +3870,10 @@
     "styles/workspace14331.css": [
       {
         "source": "src/subusers/workspace/workspace14331.css"
+      },
+      {
+        "source": "src/shared/presentation/table-reading-row.css",
+        "prefix": "\n"
       }
     ],
     "styles/workspace14337.css": [

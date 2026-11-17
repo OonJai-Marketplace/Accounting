@@ -82,6 +82,8 @@ window.BudgetReport290 = (() => {
  }
  const kind=m=>m.type290 || (Number(m.inflow)>0?'receipt':'spend');
  const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Unused funding returned',transfer:'Transfer between accounts'};
+ function cashPaid(m){return Number(m.cashDistributed??m.outflow);}
+ function equivalentField(m){return m?.cashDistributed!=null?'cashBudgetAmount':'budgetAmount290';}
  function balances(d) {
   const sums=new Map();
   const currency=c=>{if(!sums.has(c))sums.set(c,{requested:0,receipt:0,spend:0,cashSpent:0,borrow:0,repay:0,refund:0,transfer:0,convertedIn:0,convertedOut:0,remaining:0});return sums.get(c);};
@@ -89,10 +91,14 @@ window.BudgetReport290 = (() => {
   for(const m of d.movements||[]){
    const t=currency(m.currency),type=kind(m);
    t[type]+=Number(m.inflow||m.outflow||0);
-   if(type==='spend')t.cashSpent+=Number(m.cashDistributed??m.outflow);
+   if(type==='spend')t.cashSpent+=cashPaid(m);
   }
   for(const fx of d.conversions||[]){currency(fx.currency).convertedOut+=Number(fx.amount);currency(fx.target).convertedIn+=conversionAmount(fx);}
-  for(const t of sums.values())t.remaining=round(t.receipt+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.refund-t.convertedOut);
+  for(const t of sums.values()){
+   const available=t.receipt+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.convertedOut;
+   t.beforeReturn=round(available);
+   t.remaining=round(available-t.refund);
+  }
   return sums;
  }
  function conversionAmount(fx){return fx.targetAmount290==null?round(Number(fx.amount)*Number(fx.rate)):Number(fx.targetAmount290);}
@@ -126,10 +132,10 @@ window.BudgetReport290 = (() => {
   }
   return proceeds/original;
  }
- function valueIn(d,amount,currency,to,line,movement){
+ function valueIn(d,amount,currency,to,line,movement,field="budgetAmount290"){
   if(!Number(amount))return 0;
   if(currency===to)return Number(amount);
-  if(movement&&line&&line.currency===to&&Number(movement.budgetAmount290)>0)return Number(movement.budgetAmount290);
+  if(movement&&line&&line.currency===to&&Number(movement[field])>0)return Number(movement[field]);
   const rate=reportRate(d,currency,to);
   return rate?Number(amount)*rate:null;
  }
@@ -154,7 +160,7 @@ window.BudgetReport290 = (() => {
  function amountLines(codes,value){
   return orderedUnits(codes).map(c=>esc(currencySymbolV6(c))+' '+esc(amountText(value(c)))).join('<br>');
  }
- function compare(d){
+ function compare(d,basis="cash"){
   const spent=(d.movements||[]).filter(m=>kind(m)==='spend');
   const rows=d.lines.map((line,index)=>({line,index,movements:spent.filter(m=>forLine(m,line,index))}));
   const linked=new Set(rows.flatMap(row=>row.movements));
@@ -166,7 +172,7 @@ window.BudgetReport290 = (() => {
    const {line,movements}=row;
    const requested=line?valueIn(d,line.amount,line.currency,c):0;
    const funded=line?valueIn(d,lineFunding(d,line,row.index).amount,line.currency,c):0;
-   const used=totalValues(movements.map(m=>valueIn(d,m.outflow,m.currency,c,line,m)));
+   const used=totalValues(movements.map(m=>basis==="cost"?valueIn(d,m.outflow,m.currency,c,line,m):valueIn(d,cashPaid(m),m.currency,c,line,m,equivalentField(m))));
    const remaining=funded==null||used==null?null:funded-used;
    return {requested,funded,used,remaining};
   }
@@ -177,7 +183,7 @@ window.BudgetReport290 = (() => {
  function comparisonTable(d){
   const {rows,currencies,totals}=compare(d);
   const adjusted=rows.some(r=>r.line&&lineFunding(d,r.line,r.index).status!=='approved');
-  const measures=[['requested','Requested'],...(adjusted?[['funded','Funded']]:[]),['used','Actual spending'],['remaining',d.fundingByItem?'Funding remaining':'Budget remaining']];
+  const measures=[['requested','Requested'],...(adjusted?[['funded','Funded']]:[]),['used','Actual spending'],['remaining',adjusted?'Funded amount less spending':'Budget less spending']];
   const itemWidth=adjusted?32:40;
   const col=w=>'<col style="width:'+w+'%">';
   const cols=col(itemWidth)+measures.map(()=>col((100-itemWidth)/measures.length)).join('');
@@ -210,7 +216,7 @@ window.BudgetReport290 = (() => {
  }
  function summary(d){
   const totals=[...balances(d)],columns=totals.map(([c])=>c);
-  const fields=[['requested','Requested'],['receipt','Funding received'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],['refund','Unused funding returned'],['remaining','Cash remaining']];
+  const fields=[['requested','Requested'],['receipt','Funding received'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],...(totals.some(([,t])=>t.refund>0)?[['beforeReturn','Cash before returns'],['refund','Unused funding returned'],['remaining','Cash after returns']]:[['remaining','Cash remaining']])];
   const cash=table82(['Activity',...columns],fields.filter(([key])=>['receipt','spend','remaining','requested'].includes(key)||totals.some(([,t])=>t[key])).map(([key,label])=>[esc(label),...totals.map(([,t])=>money(t[key]))]));
   const loans=d.movements.filter(m=>kind(m)==='borrow');
   const debt=loans.length?section82('Temporary advances',table82(['Lender / source','Reference','Currency','Borrowed','Outstanding'],loans.map(l=>[esc(l.account),esc(l.reference),esc(l.currency),money(l.inflow),money(outstanding(d,l))]))):'';
@@ -233,5 +239,5 @@ window.BudgetReport290 = (() => {
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Reference: '+esc(d.receiptReference290):'',journalReference?'Utilization journal: '+esc(journalReference):''].filter(Boolean).join(' · ');
   return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>Budget month: '+esc(period(d))+' · Report date: '+esc(formatAppDate(d.date))+(refs?'<br>'+refs:'')+'</p>'+summary(d)+section82('Receipts, spending and repayments',sizedTable(['Date / activity','Source and destination','Budget item','Amount','Reference'],movements,[15,18,36,16,15]))+section82('Currency conversions',table82(['Date / reference','Source and destination','Exchanged','Received','Rate'],exchanges))+(d.notes?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
  }
- return {title,compare,reportRate,requestCurrency,valueIn,amountText,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
+ return {title,compare,cashPaid,equivalentField,reportRate,requestCurrency,valueIn,amountText,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();

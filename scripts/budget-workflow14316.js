@@ -74,8 +74,8 @@ window.BudgetSpendingWorksheet = (() => {
    const currencyChoice = !movement && currencies.length>1 ? '<select data-plain14285 data-spending-currency aria-label="Spending currency">'+currencies.map(([c]) =>
     '<option value="'+esc(c)+'"'+(c===currency?' selected':'')+'>'+esc(currencySymbolV6(c))+'</option>').join('')+'</select>' : '';
    const unit=currencyChoice||'<span class="worksheet-unit">'+esc(currencySymbolV6(currency))+'</span>';
-   const native='<div class="worksheet-amount" data-native>'+unit+'<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?.outflow??'')+'" placeholder="0.00"></div>';
-   const equivalent=linked?'<span class="worksheet-unit">'+esc(currencySymbolV6(line.currency))+'</span><input type="number" step="0.01" min="0.01" name="equivalentAmount" data-currency="'+esc(line.currency)+'" aria-label="Spending equivalent in '+esc(line.currency)+' for '+esc(item)+'" title="Enter the recorded equivalent, or leave blank to use the report exchange rate." value="'+esc(movement?.budgetAmount290??'')+'">':'';
+   const native='<div class="worksheet-amount" data-native>'+unit+'<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?report.cashPaid(movement):'')+'" placeholder="0.00"></div>';
+   const equivalent=linked?'<span class="worksheet-unit">'+esc(currencySymbolV6(line.currency))+'</span><input type="number" step="0.01" min="0.01" name="equivalentAmount" data-currency="'+esc(line.currency)+'" aria-label="Spending equivalent in '+esc(line.currency)+' for '+esc(item)+'" title="Enter the recorded equivalent, or leave blank to use the report exchange rate." value="'+esc(movement?.[report.equivalentField(movement)]??'')+'">':'';
    cell('<div class="worksheet-stack">'+native+'<div class="worksheet-amount" data-equivalent hidden>'+equivalent+'</div></div>');
    const action = row.insertCell();
    if (movement) {
@@ -139,9 +139,9 @@ window.BudgetSpendingWorksheet = (() => {
     if (movement && !state.amountEdited && !state.equivalentEdited && !state.detailEdited) continue;
     const description = row.querySelector('[name=description]');
     const detail = description?.value.trim() || '';
-    const raw = amount.value, value = movement && !state.amountEdited ? Number(movement.outflow) : amount.valueAsNumber;
+    const raw = amount.value, value = movement && !state.amountEdited ? report.cashPaid(movement) : amount.valueAsNumber;
     if (!movement && !detail && !state.equivalent?.value && !amount.validity.badInput && (!raw || value === 0)) continue;
-    if (!Number.isFinite(value) || value <= 0 || !Number.isSafeInteger(Math.round(value*100)) || (state.amountEdited && Math.abs(value*100-Math.round(value*100))>0.00001)) {
+    if (!Number.isFinite(value) || value < 0 || (value===0 && (!raw || movement?.cashDistributed==null)) || !Number.isSafeInteger(Math.round(value*100)) || (state.amountEdited && Math.abs(value*100-Math.round(value*100))>0.00001)) {
      invalid(amount, movement ? 'Enter a positive spending amount. Use Details to remove the expense.' : 'Enter a positive spending amount with up to two decimal places.');
     }
     if (!line && !detail && (!movement || movement.worksheetSpend)) invalid(description,'Enter a description for the additional spending.');
@@ -149,15 +149,17 @@ window.BudgetSpendingWorksheet = (() => {
     const equivalent=explicit && state.equivalent.value!==''?state.equivalent.valueAsNumber:null;
     if(explicit && equivalent!==null && (!Number.isFinite(equivalent)||equivalent<=0||!Number.isSafeInteger(Math.round(equivalent*100))||Math.abs(equivalent*100-Math.round(equivalent*100))>0.00001))
      invalid(state.equivalent,'Enter a positive spending equivalent with up to two decimal places, or leave it blank to use the report exchange rate.');
-    if (!explicit && movement && Number(movement.outflow) === value && (!description || detail === (movement.description290 || ''))) continue;
+    if (!explicit && movement && report.cashPaid(movement) === value && (!description || detail === (movement.description290 || ''))) continue;
     const next = movement ? {...movement} : {id290:crypto.randomUUID(),type290:'spend',worksheetSpend:true,date290:draft.date,
      account:'',reference:'',currency:choice?.value || currency,budgetKey117:line?.key117 || '',inflow:0};
     if (!movement && line && !line.key117) next.worksheetLine = draft.lines.indexOf(line);
     if(explicit){
-     if(equivalent===null)delete next.budgetAmount290;
-     else next.budgetAmount290=equivalent;
+     const field=report.equivalentField(movement);
+     if(equivalent===null)delete next[field];
+     else next[field]=equivalent;
     }
-    next.outflow = value;
+    if(movement?.cashDistributed!=null)next.cashDistributed=value;
+    else next.outflow=value;
     if (description) next.description290 = detail;
     changes.push({state,next});
    }
@@ -263,6 +265,8 @@ window.BudgetReport290 = (() => {
  }
  const kind=m=>m.type290 || (Number(m.inflow)>0?'receipt':'spend');
  const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Unused funding returned',transfer:'Transfer between accounts'};
+ function cashPaid(m){return Number(m.cashDistributed??m.outflow);}
+ function equivalentField(m){return m?.cashDistributed!=null?'cashBudgetAmount':'budgetAmount290';}
  function balances(d) {
   const sums=new Map();
   const currency=c=>{if(!sums.has(c))sums.set(c,{requested:0,receipt:0,spend:0,cashSpent:0,borrow:0,repay:0,refund:0,transfer:0,convertedIn:0,convertedOut:0,remaining:0});return sums.get(c);};
@@ -270,10 +274,14 @@ window.BudgetReport290 = (() => {
   for(const m of d.movements||[]){
    const t=currency(m.currency),type=kind(m);
    t[type]+=Number(m.inflow||m.outflow||0);
-   if(type==='spend')t.cashSpent+=Number(m.cashDistributed??m.outflow);
+   if(type==='spend')t.cashSpent+=cashPaid(m);
   }
   for(const fx of d.conversions||[]){currency(fx.currency).convertedOut+=Number(fx.amount);currency(fx.target).convertedIn+=conversionAmount(fx);}
-  for(const t of sums.values())t.remaining=round(t.receipt+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.refund-t.convertedOut);
+  for(const t of sums.values()){
+   const available=t.receipt+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.convertedOut;
+   t.beforeReturn=round(available);
+   t.remaining=round(available-t.refund);
+  }
   return sums;
  }
  function conversionAmount(fx){return fx.targetAmount290==null?round(Number(fx.amount)*Number(fx.rate)):Number(fx.targetAmount290);}
@@ -307,10 +315,10 @@ window.BudgetReport290 = (() => {
   }
   return proceeds/original;
  }
- function valueIn(d,amount,currency,to,line,movement){
+ function valueIn(d,amount,currency,to,line,movement,field="budgetAmount290"){
   if(!Number(amount))return 0;
   if(currency===to)return Number(amount);
-  if(movement&&line&&line.currency===to&&Number(movement.budgetAmount290)>0)return Number(movement.budgetAmount290);
+  if(movement&&line&&line.currency===to&&Number(movement[field])>0)return Number(movement[field]);
   const rate=reportRate(d,currency,to);
   return rate?Number(amount)*rate:null;
  }
@@ -335,7 +343,7 @@ window.BudgetReport290 = (() => {
  function amountLines(codes,value){
   return orderedUnits(codes).map(c=>esc(currencySymbolV6(c))+' '+esc(amountText(value(c)))).join('<br>');
  }
- function compare(d){
+ function compare(d,basis="cash"){
   const spent=(d.movements||[]).filter(m=>kind(m)==='spend');
   const rows=d.lines.map((line,index)=>({line,index,movements:spent.filter(m=>forLine(m,line,index))}));
   const linked=new Set(rows.flatMap(row=>row.movements));
@@ -347,7 +355,7 @@ window.BudgetReport290 = (() => {
    const {line,movements}=row;
    const requested=line?valueIn(d,line.amount,line.currency,c):0;
    const funded=line?valueIn(d,lineFunding(d,line,row.index).amount,line.currency,c):0;
-   const used=totalValues(movements.map(m=>valueIn(d,m.outflow,m.currency,c,line,m)));
+   const used=totalValues(movements.map(m=>basis==="cost"?valueIn(d,m.outflow,m.currency,c,line,m):valueIn(d,cashPaid(m),m.currency,c,line,m,equivalentField(m))));
    const remaining=funded==null||used==null?null:funded-used;
    return {requested,funded,used,remaining};
   }
@@ -358,7 +366,7 @@ window.BudgetReport290 = (() => {
  function comparisonTable(d){
   const {rows,currencies,totals}=compare(d);
   const adjusted=rows.some(r=>r.line&&lineFunding(d,r.line,r.index).status!=='approved');
-  const measures=[['requested','Requested'],...(adjusted?[['funded','Funded']]:[]),['used','Actual spending'],['remaining',d.fundingByItem?'Funding remaining':'Budget remaining']];
+  const measures=[['requested','Requested'],...(adjusted?[['funded','Funded']]:[]),['used','Actual spending'],['remaining',adjusted?'Funded amount less spending':'Budget less spending']];
   const itemWidth=adjusted?32:40;
   const col=w=>'<col style="width:'+w+'%">';
   const cols=col(itemWidth)+measures.map(()=>col((100-itemWidth)/measures.length)).join('');
@@ -391,7 +399,7 @@ window.BudgetReport290 = (() => {
  }
  function summary(d){
   const totals=[...balances(d)],columns=totals.map(([c])=>c);
-  const fields=[['requested','Requested'],['receipt','Funding received'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],['refund','Unused funding returned'],['remaining','Cash remaining']];
+  const fields=[['requested','Requested'],['receipt','Funding received'],['convertedOut','Amount exchanged'],['convertedIn','Received from exchanges'],...(d.movements.some(m=>m.cashDistributed!=null)?[['spend','Fund used (gross payroll and employer costs)'],['cashSpent','Cash distributed']]:[['spend','Expenses paid']]),['borrow','Temporary advances received'],['repay','Advances repaid'],...(totals.some(([,t])=>t.refund>0)?[['beforeReturn','Cash before returns'],['refund','Unused funding returned'],['remaining','Cash after returns']]:[['remaining','Cash remaining']])];
   const cash=table82(['Activity',...columns],fields.filter(([key])=>['receipt','spend','remaining','requested'].includes(key)||totals.some(([,t])=>t[key])).map(([key,label])=>[esc(label),...totals.map(([,t])=>money(t[key]))]));
   const loans=d.movements.filter(m=>kind(m)==='borrow');
   const debt=loans.length?section82('Temporary advances',table82(['Lender / source','Reference','Currency','Borrowed','Outstanding'],loans.map(l=>[esc(l.account),esc(l.reference),esc(l.currency),money(l.inflow),money(outstanding(d,l))]))):'';
@@ -414,7 +422,7 @@ window.BudgetReport290 = (() => {
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Reference: '+esc(d.receiptReference290):'',journalReference?'Utilization journal: '+esc(journalReference):''].filter(Boolean).join(' · ');
   return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>Budget month: '+esc(period(d))+' · Report date: '+esc(formatAppDate(d.date))+(refs?'<br>'+refs:'')+'</p>'+summary(d)+section82('Receipts, spending and repayments',sizedTable(['Date / activity','Source and destination','Budget item','Amount','Reference'],movements,[15,18,36,16,15]))+section82('Currency conversions',table82(['Date / reference','Source and destination','Exchanged','Received','Rate'],exchanges))+(d.notes?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
  }
- return {title,compare,reportRate,requestCurrency,valueIn,amountText,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
+ return {title,compare,cashPaid,equivalentField,reportRate,requestCurrency,valueIn,amountText,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();
 /* The normal Post Transaction form and durable journal queue own posting and numbering. */
 window.BudgetUtilizationJournal=(()=>{
@@ -438,7 +446,7 @@ window.BudgetUtilizationJournal=(()=>{
  function localJob(id){return window.journalDurable14385?.pending().find(j=>j.id.startsWith('budget-use:'+id+':'));}
  function reference(link){return link?link.entry_no+(link.status==='posted'?'':' ('+link.status+')'):'';}
  function amounts(data){
-  const comparison=BudgetReport290.compare(data);
+  const comparison=BudgetReport290.compare(data,"cost");
   const requested=[...new Set(data.lines.map(l=>l.currency))],currency=requested[0];
   if(requested.length===1&&comparison.totals[currency]?.used!=null)
    return [[currency,Math.round(comparison.totals[currency].used*100)/100]].filter(([,n])=>n>0);
@@ -760,8 +768,10 @@ function renderAllocation(){
  toolbar.querySelectorAll('[data-activity]').forEach(b=>b.onclick=()=>openActivity(b.dataset.activity));
  const summary=host.querySelector('[data-summary]'),balance=summary.querySelector('[data-budget-balance]');
  function showBalance(){
-  const {currencies,totals}=report.compare(d);
-  balance.textContent=currencies.length?' · Remaining '+currencies.map(c=>currencySymbolV6(c)+' '+report.amountText(totals[c].remaining)).join(' / '):'';
+  const cash=report.balances(d);
+  const returned=[...cash.values()].some(t=>t.refund>0);
+  const amounts=report.orderedUnits([...cash.keys()]).map(c=>currencySymbolV6(c)+' '+report.amountText(cash.get(c)[returned?'beforeReturn':'remaining']));
+  balance.textContent=amounts.length?' · '+(returned?'Cash before returns':'Cash remaining')+' · '+amounts.join(' / '):'';
  }
  showBalance();
  host.oninput=()=>{summary.open=false;balance.textContent='';};
@@ -851,6 +861,8 @@ function saveMovement(f){
    next.worksheetLine=allocation.lines.findIndex((l,i)=>!l.key117&&'worksheet:'+i===next.budgetKey117);
    next.budgetKey117='';
   }
+  if(type==='spend' && next.cashDistributed!=null && prior?.cashBudgetAmount!=null && prior.currency===next.currency &&
+     prior.budgetKey117===next.budgetKey117 && prior.worksheetLine===next.worksheetLine && next.cashDistributed===prior.cashDistributed)next.cashBudgetAmount=prior.cashBudgetAmount;
   if(type==='repay'){next.loanId290=fields.loanId290;const loan=allocation.movements.find(m=>m.id290===next.loanId290);next.loanAmount290=loan?.currency===next.currency?amount:movementAmount(f.elements.equivalent);}
   if(type==='spend'&&!f.querySelector('[data-equivalent-field]').hidden&&fields.equivalent)next.budgetAmount290=movementAmount(f.elements.equivalent);
   const rows=[...allocation.movements];if(prior)rows[editMove]=next;else rows.push(next);
@@ -1005,6 +1017,7 @@ function validateAllocation(d,finalize){
   if(type==='transfer'&&(!m.destination290||m.destination290===m.account))throw Error('Choose different source and destination accounts for a transfer.');
   const line=d.lines.find(l=>l.key117===m.budgetKey117);
   if(m.budgetKey117&&!line)throw Error('Select a budget item from this request.');
+  if(m.cashBudgetAmount!=null&&(m.cashDistributed==null||!positive(m.cashBudgetAmount)))throw Error('Enter a positive cash equivalent, or leave it blank.');
   if(m.budgetAmount290!=null&&!positive(m.budgetAmount290))throw Error('Enter a positive budget equivalent, or leave it blank.');
   if(type==='borrow'&&(!m.id290||report.outstanding(d,m)<0))throw Error('Repayments exceed the amount borrowed. Review the linked advance.');
   if(type==='repay'&&(!loans.has(m.loanId290)||!positive(m.loanAmount290)||m.date290<loans.get(m.loanId290).date290))throw Error('Choose an advance, its settlement amount, and a repayment date on or after the advance.');
