@@ -29,7 +29,7 @@ const create=require('./phase0-browser-fixture.cjs');
   for(const width of [1440,1024,768]){
    await page.setViewportSize({width,height:900});
    const fields=await header.locator('label').evaluateAll(labels=>Object.fromEntries(labels.map(label=>{
-    const input=label.querySelector('input'),control=label.querySelector('.oj-date-button104')||input;
+    const input=label.querySelector('input,textarea'),control=label.querySelector('.oj-date-button104')||input;
     const box=control.getBoundingClientRect();
     return [input.name,{left:box.left,right:box.right,top:box.top,width:box.width}];
    })));
@@ -83,6 +83,10 @@ const create=require('./phase0-browser-fixture.cjs');
    const cash=BudgetReport290.balances(d).get('USD');
    const amount=()=>BudgetReport290.compare(d).rows[0].values.USD.used;
    const calculated=amount();paid.cashBudgetAmount=22;
+   const box=document.createElement('div');box.innerHTML=BudgetReport290.summary(d);
+   const rows=[...box.querySelector('tbody').rows].map(r=>[...r.cells].map(c=>c.textContent));
+   if(!rows.some(r=>r[0]==='Cash distributed')||!rows.some(r=>r[0]==='Cash remaining'&&r[1]==='25.00')||
+    rows.some(r=>/returned|after returns|before returns/i.test(r[0])))throw Error('Unexpected cash summary '+JSON.stringify(rows));
    return [cash.beforeReturn,cash.remaining,calculated,amount(),BudgetReport290.compare(d,'cost').rows[0].values.USD.used];
   },report.data);
   assert.deepEqual(cashCheck,[25,21,20,22,27]);
@@ -106,7 +110,7 @@ const create=require('./phase0-browser-fixture.cjs');
      return Math.abs(r.top-before[i])<1 && document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===b;
     })};
    });
-   assert(pinned.scrolled>100 && pinned.positions.length===10 && pinned.positions.every(Boolean),JSON.stringify(pinned));
+   assert(pinned.scrolled>100 && pinned.positions.length===11 && pinned.positions.every(Boolean),JSON.stringify(pinned));
   }
   await page.setViewportSize({width:1280,height:900});
   await popup.getByRole('button',{name:'Print / PDF'}).click();

@@ -43,8 +43,9 @@ const fixture=require('./phase0-browser-fixture.cjs');
    const req=route.request(),u=new URL(req.url()),id=u.searchParams.get('id')?.slice(3);
    if(req.method()==='POST'){const row=req.postDataJSON();db.set(row.id,row);return route.fulfill({json:[row]});}
    if(req.method()==='PATCH'){const row={...db.get(id),...req.postDataJSON()};db.set(id,row);return route.fulfill({json:[row]});}
-   if(id)return route.fulfill({json:db.get(id)||null});
-   return route.fulfill({json:[...db.values()].filter(r=>r.data.requestId14316===u.searchParams.get('data->>requestId14316')?.slice(3)&&r.data.status==='draft')});
+   const ids=u.searchParams.get('id')||'',parent=u.searchParams.get('data->>requestId14316')?.slice(3),status=u.searchParams.get('data->>status')?.slice(3);
+   if(ids.startsWith('eq.'))return route.fulfill({json:db.get(id)||null});
+   return route.fulfill({json:[...db.values()].filter(r=>(!ids||ids.includes(r.id))&&(!parent||r.data.requestId14316===parent)&&(!status||r.data.status===status))});
   });
   const persisted=page.waitForResponse(r=>r.url().includes('/rest/v1/operational_reports')&&r.request().method()==='POST');
   await request.getByRole('button',{name:'Save request'}).click();
@@ -86,7 +87,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const popup=page.getByRole('dialog',{name:'Budget Request Utilization Report',exact:true});
   await popup.locator('[data-spending-rows]').waitFor();
   async function movement(type,values){
-   const group=type==='receipt'?'receipt':type==='spend'?'spend':'other';
+   const group=['receipt','spend','coverage'].includes(type)?type:'other';
    await popup.locator('[data-activity="'+group+'"]').click();
    await page.locator('.fund-activity #financeMove82').evaluate((f,{type,values})=>{
     f.elements.type290.value=type;f.onchange();f.elements.date290.value='2026-11-05';
@@ -99,6 +100,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const fx=page.locator('.fund-activity #financeFx117');
   await fx.evaluate(f=>{for(const [k,v] of Object.entries({date:'2026-11-05',source:'USD account',currency:'USD',amount:'40',target:'LAK',targetAmount290:'800000',destination290:'Cash box',evidence:'FX1'}))f.elements[k].value=v;f.requestSubmit()});
   await movement('spend',{account:'USD account',destination290:'Vendor',currency:'USD',amount:'10',budgetKey117:'a',reference:'S1',description290:'Fuel for delivery route'});
+  await movement('coverage',{account:'Restaurant till',currency:'LAK',amount:'1000',reference:'Till receipt'});
   await movement('borrow',{account:'Company petty cash',destination290:'Cash box',currency:'LAK',amount:'100000',reference:'A1'});
   await movement('spend',{account:'Cash box',destination290:'Supplier',currency:'LAK',budgetKey117:'a',amount:'200000',equivalent:'10',reference:'S2'});
   await popup.locator('[data-activity=other]').click();
@@ -110,9 +112,9 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await popup.getByRole('button',{name:'Save draft',exact:true}).click();
   await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'));
   const report=[...db.values()].find(r=>r.data.mode==='utilization');
-  assert.equal(report.data.movements.length,5);assert.equal(report.data.conversions.length,1);
+  assert.equal(report.data.movements.length,6);assert.equal(report.data.conversions.length,1);
   const result=await page.evaluate(d=>({totals:[...BudgetReport290.balances(d)],debt:BudgetReport290.outstanding(d,d.movements.find(m=>m.type290==='borrow')),html:BudgetReport290.report(d)}),report.data);
-  const amounts=Object.fromEntries(result.totals);assert.equal(amounts.USD.remaining,50);assert.equal(amounts.LAK.remaining,640000);assert.equal(result.debt,40000);assert.match(result.html,/October 2026/);assert.match(result.html,/Supplier/);assert.match(result.html,/Fuel for delivery route/);assert.match(result.html,/TEST-RECEIPT/);assert.match(result.html,/Budget Request Utilization Report/);assert.equal(report.data.movements[0].date290,'2026-11-05');
+  const amounts=Object.fromEntries(result.totals);assert.equal(amounts.USD.remaining,50);assert.equal(amounts.LAK.remaining,641000);assert.equal(result.debt,40000);assert.match(result.html,/October 2026/);assert.match(result.html,/Supplier/);assert.match(result.html,/Fuel for delivery route/);assert.match(result.html,/TEST-RECEIPT/);assert.match(result.html,/Budget Request Utilization Report/);assert.equal(report.data.movements[0].date290,'2026-11-05');
   await popup.getByRole('button',{name:'Close',exact:true}).click();
   await page.evaluate(()=>switchTab('transactions-budget14313'));
   assert(await panel.getByRole('button',{name:'Open request'}).isVisible());
@@ -125,16 +127,55 @@ const fixture=require('./phase0-browser-fixture.cjs');
   assert.equal(await popup.locator('#fundHeader290 [name=receiptReference290]').inputValue(),'TEST-RECEIPT');
   assert.equal(await popup.locator('#fundHeader290 [name=date]').inputValue(),report.data.date);
   assert.equal(db.size,count);
+  const draftWidth=(await popup.boundingBox()).width;
   await popup.getByRole('button',{name:'Finalize',exact:true}).click();
   await popup.waitFor({state:'detached'});
   assert.equal(db.get(report.id).data.status,'finalized');
+  // Another browser can still have the earlier draft when the server has finalized it.
+  await page.evaluate(id=>{
+   const index=Work82.reports.findIndex(r=>r.id===id),row=Work82.reports[index];
+   Work82.reports[index]={...row,version:row.version-1,data:{...row.data,status:'draft'}};
+   switchTab('journal');switchTab('transactions-budget14313');
+  },report.id);
+  await panel.getByRole('button',{name:'View report',exact:true}).waitFor();
   await panel.getByRole('button',{name:'View report',exact:true}).click();
+  await page.route('**/rest/v1/rpc/save_budget_report_wording',route=>{
+   const a=route.request().postDataJSON(),r=db.get(a.p_report);
+   assert.equal(a.p_version,r.version);assert.equal(a.p_revision,0);
+   r.budget_report_wording={revision:1,report_version:r.version,notes:a.p_notes,descriptions:a.p_descriptions};
+   return route.fulfill({json:1});
+  });
+  await popup.getByRole('button',{name:'Edit report wording'}).click();
+  const wording=page.getByRole('dialog',{name:'Edit report wording'});
+  await wording.getByLabel('Report notes').fill('Amounts verified.');
+  await wording.getByText('Movement descriptions',{exact:true}).click();
+  await wording.locator('[data-description="0"]').fill('Owner transfer.');
+  await wording.getByRole('button',{name:'Save wording'}).click();
+  await popup.getByText('Amounts verified.',{exact:true}).waitFor();
+  assert.match(await popup.innerText(),/Owner transfer/);
+  assert.equal(db.get(report.id).data.status,'finalized');
   const print=popup.locator('header').getByRole('button',{name:'Print / PDF'});
   await print.waitFor();
+  assert.equal((await popup.boundingBox()).width,draftWidth);
+  for(const width of [1440,1280,1024,768,390]){
+   await page.setViewportSize({width,height:730});
+   const dialog=await popup.boundingBox();
+   assert(Math.abs(dialog.width-Math.min(1050,width-36))<2,JSON.stringify({width,dialog}));
+   const fits=await popup.locator('.ui-body108').evaluate(el=>el.scrollWidth<=el.clientWidth+1);
+   assert(fits,'Report body must fit at '+width+'px');
+  }
+  await page.setViewportSize({width:1280,height:730});
   const y=(await print.boundingBox()).y;
   assert(await popup.locator('.ui-body108').evaluate(el=>{el.scrollTop=el.scrollHeight;return el.scrollTop>0;}));
   assert.equal((await print.boundingBox()).y,y);
   assert.equal(await popup.getByRole('button',{name:'Save draft'}).count(),0);
+  assert.equal(await popup.locator('[data-final-status]').innerText(),'Finalized');
+  await popup.getByRole('button',{name:'Close',exact:true}).last().click();
+  await panel.getByRole('row').filter({has:page.getByRole('button',{name:'Open request',exact:true})})
+   .getByRole('button',{name:'Fund utilization',exact:true}).click();
+  await popup.locator('[data-final-status]').waitFor();
+  assert.equal(await popup.getByRole('button',{name:'Save draft'}).count(),0);
+  assert.equal([...db.values()].filter(r=>r.data.mode==='utilization').length,1);
   assert(!f.requests.some(r=>/POST .*post_payroll|POST .*post_journal/.test(r)),'Budget actions must stay inside the budget');
   assert.deepEqual(errors,[]);console.log('PASS category editing and grouped document, full-row totals, signature, independent template currencies, October request with November activities, source/destination, conversion, spending and partial advance repayment. Synthetic storage only.');
  }finally{await f.close()}
