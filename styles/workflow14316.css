@@ -98,6 +98,26 @@ footer.worksheet-actions button:last-child,.fund-activity button[type=submit]{ba
  #budgetFunds290 .spending-worksheet td:empty{display:none}
  #budgetFunds290 .spending-worksheet td[data-label]:not(:first-child):not(:last-child)::before{content:attr(data-label);display:block;font-size:12px;color:#50655c;margin-bottom:3px}
 }
+#fundHeader290{container-type:inline-size}
+#fundHeader290 .fund-report-fields{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:end;gap:6px 10px;
+}
+#fundHeader290 label{display:grid;gap:3px;min-width:0}
+#fundHeader290 label:has([name=notes]){grid-column:1/-1}
+#fundHeader290 :is(input:not(.oj-date-original104),.oj-date-shell104,.oj-date-button104){
+ width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box;
+}
+@container (min-width:600px){
+ #fundHeader290 .fund-report-fields{grid-template-columns:9rem minmax(10rem,1fr) minmax(9rem,1.6fr) minmax(8rem,.95fr)}
+ #fundHeader290 .fund-report-fields:has([name=budgetMonth290]) label:has([name=budgetMonth290]){grid-column:1/-1;width:10rem}
+}
+@container (min-width:780px){
+ #fundHeader290 .fund-report-fields:has([name=budgetMonth290]){grid-template-columns:9rem 9rem minmax(10rem,1fr) minmax(9rem,1.6fr) minmax(8rem,.95fr)}
+ #fundHeader290 .fund-report-fields:has([name=budgetMonth290]) label:has([name=budgetMonth290]){grid-column:auto;width:auto}
+}
+@container (max-width:360px){
+ #fundHeader290 .fund-report-fields{grid-template-columns:1fr}
+}
 .worksheet-details{border-top:1px solid #cad8d2;padding:8px 0}
 .worksheet-details summary{cursor:pointer;font-weight:600}
 .worksheet-details[open]>summary{margin-bottom:8px}

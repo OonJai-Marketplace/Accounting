@@ -8,7 +8,8 @@ const create=require('./phase0-browser-fixture.cjs');
    kind:'finance',mode:'utilization',status:'draft',date:'2026-11-15',budgetMonth290:'2026-11',recipient:'Office',purpose:'Office supplies',
    lines:[{category:'Supplies',description:'Paper',currency:'USD',amount:100,key117:'paper'}],
    conversions:[{date:'2026-11-15',currency:'USD',target:'LAK',amount:75,targetAmount290:1500000,rate:20000,source:'USD',evidence:'FX-1'}],
-   movements:[{type290:'spend',outflow:500000,currency:'LAK',budgetKey117:'paper',account:'Cash',reference:'R1'},
+   movements:[{type290:'receipt',inflow:100,currency:'USD',reference:'FUND-1',account:'Owner'},
+    {type290:'spend',outflow:500000,currency:'LAK',budgetKey117:'paper',account:'Cash',reference:'R1'},
     {type290:'spend',outflow:7000,currency:'LAK',destination290:'Transfer fees',account:'Cash',reference:'R2'}],
    receiptReference290:'RECEIPT-TEST'
   }};
@@ -23,6 +24,23 @@ const create=require('./phase0-browser-fixture.cjs');
   const open=()=>page.evaluate(id=>budgetWorkflow14316.openAllocation(id),report.id);
   await open();
   const popup=page.getByRole('dialog',{name:'Budget Request Utilization Report',exact:true});
+  const header=popup.locator('#fundHeader290');
+  assert.equal(await header.getByLabel('Reference',{exact:true}).inputValue(),'RECEIPT-TEST');
+  for(const width of [1440,1024,768]){
+   await page.setViewportSize({width,height:900});
+   const fields=await header.locator('label').evaluateAll(labels=>Object.fromEntries(labels.map(label=>{
+    const input=label.querySelector('input'),control=label.querySelector('.oj-date-button104')||input;
+    const box=control.getBoundingClientRect();
+    return [input.name,{left:box.left,right:box.right,top:box.top,width:box.width}];
+   })));
+   const primary=['date','receiptReference290','purpose','recipient'].map(k=>fields[k]);
+   assert(primary.every(f=>Math.abs(f.top-primary[0].top)<=1),JSON.stringify(fields));
+   assert(primary.every((f,i)=>!i||f.left>=primary[i-1].right),JSON.stringify(fields));
+   assert(fields.notes.top>primary[0].top);
+   assert(fields.receiptReference290.width>=150&&fields.budgetMonth290.width>=120,JSON.stringify(fields));
+   if(width>=1024)assert.equal(fields.budgetMonth290.top,fields.date.top);
+  }
+  await page.setViewportSize({width:1440,height:900});
   await popup.locator('[data-summary] summary').click();
   assert.match(await popup.locator('[data-budget-balance]').innerText(),/74.65.*1,493,000/);
   const comparison=popup.locator('table').filter({hasText:/Funding remaining|Budget remaining/i});
@@ -45,14 +63,17 @@ const create=require('./phase0-browser-fixture.cjs');
   await popup.waitFor({state:'detached'});
   const editor=page.locator('#journalEntry98');
   const lines=editor.locator('#jeLinesBody tr');
-  assert.equal(await lines.count(),2);
-  assert.equal(Number(await lines.nth(0).locator('.je-line-dr').inputValue()),25.35);
-  assert.equal(Number(await lines.nth(1).locator('.je-line-cr').inputValue()),25.35);
+  assert.equal(await lines.count(),4);
+  assert.equal(Number(await lines.nth(0).locator('.je-line-dr').inputValue()),100);
+  assert.equal(Number(await lines.nth(1).locator('.je-line-cr').inputValue()),100);
+  assert.match(await lines.nth(0).locator('.je-line-memo').inputValue(),/Funding received/);
+  assert.equal(Number(await lines.nth(2).locator('.je-line-dr').inputValue()),25.35);
+  assert.equal(Number(await lines.nth(3).locator('.je-line-cr').inputValue()),25.35);
   assert.match(await editor.locator('#jeGeneralMemo').inputValue(),/RECEIPT-TEST/);
   const key='budget-use:'+report.id+':1';
   await page.route('**/rpc/post_device_journal335',async route=>{
    const payload=route.request().postDataJSON();assert.equal(payload.p_request_key,key);
-   assert.equal(payload.p_entries[0].p_lines.length,2);
+   assert.equal(payload.p_entries[0].p_lines.length,4);
    linked={entry_no:payload.p_numbers[0],status:'posted',report_version:1};
    await route.fulfill({json:[{entry_id:'70000000-0000-4000-a000-000000000010',entry_no:linked.entry_no}]});
   });
@@ -62,7 +83,7 @@ const create=require('./phase0-browser-fixture.cjs');
    AccountingStore.accounts.push(...accounts);syncCoaDatalist();
    const rows=[...document.querySelectorAll('#jeLinesBody tr')];
    rows.forEach((r,i)=>{
-    const input=r.querySelector('.je-line-acc');input.value=accounts[i].code+' — '+accounts[i].name;
+    const input=r.querySelector('.je-line-acc');const account=accounts[[0,1,1,0][i]];input.value=account.code+' — '+account.name;
     input.dispatchEvent(new Event('change',{bubbles:true}));
    });
    calculateJournalBalance();
@@ -80,12 +101,12 @@ const create=require('./phase0-browser-fixture.cjs');
    }
    return {id:job.id,lines:job.entries[0].lines};
   });
-  assert.equal(job.id,key);assert.equal(job.lines[0].debit,25.35);assert.equal(job.lines[1].credit,25.35);
+  assert.equal(job.id,key);assert.equal(job.lines[0].debit,100);assert.equal(job.lines[1].credit,100);assert.equal(job.lines[2].debit,25.35);assert.equal(job.lines[3].credit,25.35);
   await page.evaluate(key=>journalDurable14385.sync({targetId:key}),key);
   assert(linked?.entry_no);
   await page.evaluate(()=>switchTab('transactions-budget14313'));await open();
   await popup.getByText('Utilization journal · '+linked.entry_no,{exact:false}).waitFor();
   assert(await popup.getByRole('button',{name:'Open in Post Transaction'}).isHidden());
-  console.log('PASS dual-currency totals, named additional spending, signatory cancellation and editor entry, print widths, summary-only draft and posted reference.');
+  console.log('PASS compact report fields, combined receipt and spending pairs, dual-currency totals, named additional spending, signatory cancellation and editor entry, print widths, summary-only draft and posted reference.');
  }finally{await fixture.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

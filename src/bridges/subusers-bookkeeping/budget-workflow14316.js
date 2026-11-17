@@ -220,7 +220,15 @@ function renderAllocation(){
  const actions='<button type="button" data-activity="receipt">Amount received</button><button type="button" data-activity="conversion">Currency conversion</button><button type="button" data-activity="other">Other fund movements</button>';
  const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th>Status</th><th>Funded amount</th><th>Actual spending</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div><div class="worksheet-actions"><button type="button" data-add-spending>Add row</button><button type="button" data-activity="spend">Spending details</button></div>';
  const rowHeader=d.requestId14316?[report.period(d),d.recipient].filter(Boolean).map(esc).join(' · '):'';
- const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fields82 budget-header14316">'+(d.requestId14316?'':field82('Budget month','budgetMonth290',d.budgetMonth290||String(d.date).slice(0,7),'month','required'))+field82('Report date','date',d.date,'date','required')+field82('Funding receipt / journal reference','receiptReference290',d.receiptReference290||'')+field82('Recipient','recipient',d.recipient,'text','required')+field82('Purpose','purpose',d.purpose,'text','required')+field82('Notes','notes',d.notes)+'</div></form>';
+ const headerFields=[
+  d.requestId14316?'':field82('Budget month','budgetMonth290',d.budgetMonth290||String(d.date).slice(0,7),'month','required'),
+  field82('Report date','date',d.date,'date','required'),
+  field82('Reference','receiptReference290',d.receiptReference290||''),
+  field82('Purpose','purpose',d.purpose,'text','required'),
+  field82('Recipient','recipient',d.recipient,'text','required'),
+  field82('Notes','notes',d.notes)
+ ].join('');
+ const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fund-report-fields">'+headerFields+'</div></form>';
  host.innerHTML='<header class="worksheet-header"><div><h3>'+esc(d.purpose||'Unlinked utilization report')+'</h3><span>'+rowHeader+'</span></div>'+button('Requests and saved reports','chooseRequest()')+'</header>'+
   '<div data-journal-ref aria-live="polite"></div>'+section82('Budget and actual spending',table)+'<div class="worksheet-actions">'+actions+'</div>'+
   '<details class="worksheet-details" '+(d.requestId14316?'':'open')+'><summary>Report details</summary>'+header+'</details>'+

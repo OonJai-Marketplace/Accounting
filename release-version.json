@@ -1,1 +1,1 @@
-{"version": "143.428", "changes": ["Budget Request Utilization Report shows requested, used and remaining amounts in USD and LAK, with wider item columns in the worksheet and print editor.", "Saved utilization reports can prepare a summary in Post Transaction and show the confirmed journal ID."]}
+{"version": "143.429", "changes": ["Budget utilization fits the report date, reference, purpose and recipient on one row where space allows.", "Post Transaction prepares funding received and fund used as balanced summary pairs in one journal entry."]}
