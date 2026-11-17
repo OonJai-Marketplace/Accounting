@@ -541,20 +541,13 @@ function showPrintSnapshot(snapshot){
  win.print();
 }
 let paymentOutputPending=false,lastPaymentLayout=null;
-async function archivedPrintIds(rows,check){
+async function confirmPaymentOutput(rows,check){
  check();
  const expected=new Map(rows.map(row=>[row.id,row.version]));
- // Check the server-owned evidence without downloading the base64 PDF for each page.
- const {data,error}=await ojmDb.from('vouchers14299').select('id,version,status')
-  .in('id',[...expected.keys()]).not('data->pdf245->>base64','is',null);
+ const {data,error}=await ojmDb.from('vouchers14299').select('id,version,status').in('id',[...expected.keys()]);
  check();if(error)throw error;
- if(!Array.isArray(data))throw Error('Could not confirm the printed copies. Retry printing.');
- const present=new Set();
- for(const row of data){
-  if(row.version!==expected.get(row.id)||row.status==='void')throw Error('The document changed. Reopen it before printing.');
-  present.add(row.id);
- }
- return present;
+ if(data?.length!==expected.size||data.some(row=>row.version!==expected.get(row.id)||row.status==='void'))
+  throw Error('The document changed or is unavailable. Reopen it before printing.');
 }
 async function receiptOutput245(output=true){
  if(paymentOutputPending||!model?.voucher14299||!admin82()||!docCan1434('export'))return;
@@ -571,35 +564,19 @@ async function receiptOutput245(output=true){
   if(overflow108)throw Error('Fix oversized content before printing.');
   const meta=model.voucher14299,group=meta.kind==='H'&&meta.batchIds?.length>1;
   const rows=group?meta.batchIds.map(id=>({id,version:1})):[{id:meta.id,version:meta.version||1}];
-  const call=async(name,args)=>{check();if(meta.local401&&name==='receipt_pdf245')return vouchers14299.numbering.pendingPdf(meta.requestKey,args);const r=await ojmDb.rpc(name,args);check();if(r.error)throw r.error;return r.data;};
-  status('Preparing printed copies…');
-  const archived=!output&&!meta.local401?await archivedPrintIds(rows,checkRevision):null;
+  if(meta.local401){
+   if(!meta.held401)throw Error('Sync to confirm these document numbers before printing.');
+  }else await confirmPaymentOutput(rows,checkRevision);
+  status('Preparing document…');
   snapshot=await printSnapshot();checkRevision();
-  const dom=snapshot.contentDocument,pages=[...dom.querySelectorAll('.page')];
-  if(group&&pages.length!==rows.length)throw Error('Each blank form must fit on one page. Check page setup.');
-  let file;
-  const missing=rows.map((row,i)=>({row,page:pages[i]})).filter(({row})=>!archived?.has(row.id));
-  for(let start=0;start<missing.length;start+=2){
-   checkRevision();
-   const jobs=missing.slice(start,start+2).map(async({row,page})=>{
-    const source=group?{images:page.querySelectorAll('img'),querySelectorAll:selector=>selector==='.page'?[page]:[]}:dom;
-    if(archived){
-     const pdf=await Receipt245.base64(await Receipt245.pdf(source));checkRevision();
-     const saved=await call('receipt_pdf245',{p_id:row.id,p_version:row.version,p_pdf:pdf});
-     if(saved?.base64!==pdf)throw Error('The company PDF copy was not confirmed. Retry printing.');
-    }else{
-     const retained=await Receipt245.retained(call,row,()=>Receipt245.pdf(source),checkRevision);
-     if(!group)file=retained;
-    }
-   });
-   const failed=(await Promise.allSettled(jobs)).find(job=>job.status==='rejected');if(failed)throw failed.reason;
-   if(group)status('Prepared '+Math.min(rows.length,rows.length-missing.length+start+2)+' of '+rows.length+' forms.');
-  }
-  if(group&&output)file=new File([await Receipt245.pdf(dom)],(meta.documentType==='receipt'?'Receipts-':'Vouchers-')+meta.batchNumbers[0]+'.pdf',{type:'application/pdf'});
-  checkRevision();
-  status(meta.local401?'Printed copy saved on this device · awaiting document sync.':'Company PDF copy saved.');
-  if(output)Receipt245.release(file,check,output===true?'choose':output);
-  else{showPrintSnapshot(snapshot);snapshot=null}
+  const dom=snapshot.contentDocument;
+  if(group&&dom.querySelectorAll('.page').length!==rows.length)throw Error('Each blank form must fit on one page. Check page setup.');
+  if(output){
+   const name=group?(meta.documentType==='receipt'?'Receipts-':'Vouchers-')+meta.batchNumbers[0]:meta.number;
+   const file=new File([await Receipt245.pdf(dom)],name+'.pdf',{type:'application/pdf'});
+   checkRevision();Receipt245.release(file,check,output===true?'choose':output);
+  }else{showPrintSnapshot(snapshot);snapshot=null}
+  status(meta.local401?'Document saved on this device.':'Document recorded.');
   return true;
  }catch(e){if(current()&&tab===activeTab1432)status(e.message||String(e));}
  finally{snapshot?.remove();paymentOutputPending=false}

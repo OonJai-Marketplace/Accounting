@@ -61,7 +61,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       assert.equal(nums.length,10);assert.equal(new Set(nums).size,10);
       assert(nums[0].includes(type==='receipt'?'-RA':'-VA'));assert(nums[9].endsWith('10'));
       assert.deepEqual(await frame.locator('[data-voucher-number14299]').allTextContents(),nums);
-      // Native print calls the retained-PDF path before rendering the frame.
+      // Reserved numbers print offline from the saved form.
       await page.evaluate(async()=>{
         window.__didPrint=false;
         const intercept=event=>{const frame=event.target;if(frame.matches?.('iframe[data-document-print]'))frame.contentWindow.print=()=>{window.__didPrint=true}};
@@ -88,11 +88,11 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       if(Date.now()>deadline)throw Error('Reconnect did not confirm both printed batches and flag the provisional conflict.');
       await new Promise(resolve=>setTimeout(resolve,100));
     }
-    assert.equal(issued.size,2);assert.equal(pdfs.size,20);
+    assert.equal(issued.size,2);assert.equal(pdfs.size,0);
     const remaining=(await summary()).pending[0];assert.equal(remaining.id,preliminary.requestKey);
     const options=labels({p_type:'receipt',p_date:date,p_count:1});
     await page.evaluate(([id,nums])=>vouchers14299.numbering.acceptNext(id,nums),[remaining.id,options]);
     assert.equal((await summary()).pending.length,0);assert.equal(issued.size,3);
-    console.log('PASS separate 10-page batches, offline save and print, stable sync and PDF retention, reviewed provisional collision');
+    console.log('PASS separate 10-page batches, offline save and print, stable sync with no PDF uploads, reviewed provisional collision');
   } finally {await f.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

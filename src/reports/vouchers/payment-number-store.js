@@ -110,35 +110,21 @@ function paymentNumberStore401({rpc, guard, actor, offline}) {
     check();
     if(rows?.length!==item.numbers.length||rows.some(r=>!r.id||!r.number))throw Error('The complete document batch was not confirmed.');
     const confirmed=rows.map(({id,number,version})=>({id,number,version}));
-    const uploaded={};
-    // A print may finish while a sync is in flight. Retire the queue only once
-    // every PDF actually retained on this device has a matching server copy.
-    for(;;){
-      const pending=await local(s=>s.pending[id]);
-      for(const i of Object.keys(pending?.pdfs||{})){
-        if(uploaded[i])continue;
-        const pdf=await local((state,bytes)=>state.pending[id]?bytes:null,false,id+':'+i);
-        if(!pdf){
-          if(await local(state=>!!state.pending[id]))throw Error('The retained PDF could not be read on this device.');
-          continue;
-        }
-        if(confirmed[i].version!==1)throw Error('The recorded document changed after offline printing. The printed copy is retained on this device for review.');
-        const args={p_id:confirmed[i].id,p_version:1};
-        const existing=await rpc('receipt_pdf245',args);
-        const retained=existing||await rpc('receipt_pdf245',{...args,p_pdf:pdf});
-        if(retained?.base64!==pdf)throw Error('The saved PDF differs from the printed device copy. Both copies have been retained for review.');
-        uploaded[i]=true;
+    // Old offline installations may still have locally rendered PDF files.
+    // Retire these only after the matching saved document and number are confirmed.
+    check();
+    await local((s,bytes,files)=>{
+      for(const index of Object.keys(s.pending[id]?.pdfs||{})){
+        const row=confirmed[Number(index)];
+        if(!row||row.version!==1||row.number!==item.numbers[index])
+          throw Error('The printed number or version differs. The device copy is kept for review.');
+        files.remove(id+':'+index);
       }
-      check();
-      const done=await local((s,bytes,files)=>{
-        if(Object.keys(s.pending[id]?.pdfs||{}).some(k=>!uploaded[k]))return false;
-        const key=scope(item.request.p_data.documentType||'voucher',item.request.p_date);
-        s.next[key]=Math.max(s.next[key]||1,serial(confirmed.at(-1).number)+1);
-        for(const i of Object.keys(s.pending[id]?.pdfs||{}))files.remove(id+':'+i);
-        s.confirmed[id]=confirmed;delete s.pending[id];return true;
-      },true);
-      if(done)return confirmed;
-    }
+      const key=scope(item.request.p_data.documentType||'voucher',item.request.p_date);
+      s.next[key]=Math.max(s.next[key]||1,serial(confirmed.at(-1).number)+1);
+      s.confirmed[id]=confirmed;delete s.pending[id];
+    },true);
+    return confirmed;
   }
   async function issue(request){
     const id=request.p_request_key,check=guard();

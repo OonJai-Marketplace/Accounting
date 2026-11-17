@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
 (async()=>{const f=await create();try{
  const {page,login}=await f.open('phone','admin'),errors=[],previews=[];let issues=0;
  page.on('pageerror',e=>errors.push(e.message));
- await page.route('**/rest/v1/rpc/receipt_preview245',async r=>{const p=r.request().postDataJSON();previews.push(p);if(p.p_date==='2026-10-03')await new Promise(resolve=>setTimeout(resolve,120));await r.fulfill({json:['OJM'+p.p_date.slice(2,4)+'-A'+p.p_date.slice(5,7)+'02']});});
+ await page.route('**/rest/v1/rpc/payment_preview401',async r=>{const p=r.request().postDataJSON();previews.push(p);if(p.p_date==='2026-10-03')await new Promise(resolve=>setTimeout(resolve,120));await r.fulfill({json:['OJM'+p.p_date.slice(2,4)+'-A'+p.p_date.slice(5,7)+'02']});});
  await page.route('**/rest/v1/rpc/receipt_layout245',r=>r.fulfill({json:{}}));
  await page.route('**/rest/v1/rpc/voucher_issue14299',r=>{issues++;return r.fulfill({status:500,json:{message:'No issuing expected in this test'}})});
  await login();await page.locator('#avatar').click();await page.locator('#issueReceipt245').click();
@@ -26,10 +26,22 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
   await page.evaluate(async newer=>{
    ReceiptPhone245.close();const fields={mode:'typed',count:'1',date:'2026-12-03',currency:'LAK',paymentMethod:'Cash',party:'Saved payer',rows:[{description:'Saved receipt',amount:'100'}]};
    window.__recovery251={draft:structuredClone(fields),pending:{p_kind:'E',p_request_key:'saved-request',p_data:{typedFields245:fields}},issues:[]};if(newer)__recovery251.draft.party='New unfinished payer';
-   await ReceiptPhone245.open({check:()=>{},today:()=> '2026-12-03',getDraft:async()=>__recovery251.draft,saveDraft:async d=>__recovery251.draft=d,getPending:async()=>__recovery251.pending,savePending:async p=>__recovery251.pending=p,list:async()=>[],get:async()=>null,rpc:async(name,args)=>{if(name==='receipt_layout245')return {};if(name==='receipt_preview245')return ['OJM26-A1203'];if(name==='voucher_issue14299'){__recovery251.issues.push(args.p_request_key);return [{number:'OJM26-A1202'}]}throw Error(name)}});
+   await ReceiptPhone245.open({check:()=>{},today:()=> '2026-12-03',getDraft:async()=>__recovery251.draft,saveDraft:async d=>__recovery251.draft=d,getPending:async()=>__recovery251.pending,savePending:async p=>__recovery251.pending=p,list:async()=>[],get:async()=>null,rpc:async(name,args)=>{if(name==='receipt_layout245')return {};if(name==='payment_preview401')return ['OJM26-A1203'];if(name==='voucher_issue14299'){__recovery251.issues.push(args.p_request_key);return [{number:'OJM26-A1202'}]}throw Error(name)}});
   },newer);
   assert.equal(await form.locator('[name=party]').inputValue(),newer?'New unfinished payer':'');assert.equal(await form.locator('[name=date]').inputValue(),newer?'2026-12-03':'');assert.equal(await page.evaluate(()=>__recovery251.pending),null);assert.deepEqual(await page.evaluate(()=>__recovery251.issues),['saved-request']);assert.equal(await page.evaluate(()=>__recovery251.draft===null),!newer);
  }
  console.log('PASS recovered issued receipt clears only its matching draft; newer unfinished details are preserved');
+ const reopens=await page.evaluate(()=>{
+  const template=['<span data-voucher-number14299>','</span><p>','</p>'];
+  const parts={template,layout:{settings:{paper:'A5'},assets:{headerImage:'logo'}},logo:'data:image/png;base64,iVBORw0KGgo='};
+  const packed={number:'V-02',data:{printForm:{template:'template',fields:['V-02','Payee &amp; Co.'],layout:'layout'}}};
+  const restored=Receipt245.expandForm(packed,parts);
+  const batch={kind:'H',number:'R-02',data:{html:'<div data-handwritten-sheet14303="0"><span data-voucher-number14299>R-01</span>A</div><div data-handwritten-sheet14303="1"><span data-voucher-number14299>R-02</span>B</div>'}};
+  return [restored.data.html,restored.data.settings,Receipt245.savedPage(batch,0),Receipt245.expandForm(packed,{})];
+ });
+ assert.equal(reopens[0],'<span data-voucher-number14299>V-02</span><p>Payee &amp; Co.</p>');
+ assert.equal(reopens[1].paper,'A5');assert.match(reopens[1].headerImage,/^data:image/);
+ assert.match(reopens[2],/R-02<\/span>B/);assert(!reopens[2].includes('R-01'));assert.equal(reopens[3],null);
+ console.log('PASS saved template, entered text, shared artwork and individual batch page reconstruction');
  assert.deepEqual(errors,[]);
 }finally{await f.close()}})().catch(e=>{console.error(e);process.exitCode=1});

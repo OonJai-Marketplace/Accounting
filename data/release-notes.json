@@ -1,6 +1,6 @@
 {
-  "version": "143.425",
+  "version": "143.426",
   "changes": [
-    "Posting administrators can apply the reviewed November restaurant-rent revision from Mapping review, keeping the prepaid installment and its journal together."
+    "Vouchers and receipts use shared print templates. Printing and downloading generate the document from its saved details."
   ]
 }

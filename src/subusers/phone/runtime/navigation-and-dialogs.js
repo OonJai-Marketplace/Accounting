@@ -171,13 +171,14 @@
     if(!isAdmin()||S.saving||S.submitting)return;
     const actor=S.actor,epoch=S.epoch,check=()=>{if(!isAdmin()||actor!==S.actor||epoch!==S.epoch)throw fail('Administrator access changed. Reopen Receipts.');};
     saveMirror();$('accountMenu').hidden=true;
-    await Receipt245.script('scripts/receipt-phone245.js?v=143.403',()=>window.ReceiptPhone245);check();
+    await Receipt245.script('scripts/receipt-phone245.js?v=143.426',()=>window.ReceiptPhone245);check();
     await ReceiptPhone245.open({check,today,rpc,
       getDraft:async()=>(await record(actor)).receiptDraft245,
       saveDraft:draft=>{check();return persist(actor,{receiptDraft245:draft})},
       getPending:async()=>(await record(actor)).receiptPending245,
       savePending:request=>{check();return persist(actor,{receiptPending245:request})},
       list:async()=>(await http('vouchers14299',{'data->>documentType':'eq.receipt',select:'id,number,voucher_date,kind,status,version',order:'created_at.desc',limit:'100'})).data,
-      get:async id=>(await http('vouchers14299',{id:'eq.'+id,select:'*'})).data[0]
+      get:async id=>(await http('voucher_documents_read',{id:'eq.'+id,select:'*'})).data[0],
+      batchIndex:async row=>(await http('vouchers14299',{batch_key:'eq.'+row.batch_key,ordinal:'lt.'+row.ordinal,select:'id',limit:'50'})).data.length
     });
   }

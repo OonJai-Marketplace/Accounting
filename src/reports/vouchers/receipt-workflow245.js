@@ -1,4 +1,4 @@
-/* Shared receipt layout and retained PDF delivery. No automatic sending. */
+/* Shared receipt layout and on-demand PDF delivery. No automatic sending. */
 (()=>{'use strict';
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const image=v=>/^data:image\/(png|jpeg|webp);base64,/i.test(v||'')?v:'';
@@ -86,16 +86,54 @@ async function frameHTML(host,contents,settings={}){
  const ready=new Promise(r=>f.onload=r);f.srcdoc=`<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; script-src 'none'"><style>@page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;background:#eee;font:10pt Arial;color:#17231c}.page{width:210mm;height:297mm;padding:12mm 14mm;background:white;position:relative;margin:0 auto 8px}header{height:26mm}footer{position:absolute;bottom:12mm;left:14mm;right:14mm;height:22mm}table{width:100%}td,th{border:1px solid #7b867e;padding:2mm;text-align:left;overflow-wrap:anywhere}p{line-height:1.2}main{max-height:223mm;overflow:visible}@media print{body{background:white}.page{margin:0;break-after:page}}</style></head><body>${pages}</body></html>`;await ready;await Promise.all([...f.contentDocument.images].map(i=>i.decode().catch(()=>{})));if([...f.contentDocument.querySelectorAll('main')].some(m=>m.scrollHeight>m.clientHeight+2))throw Error('The details exceed one A4 page. Shorten the text before saving or printing.');return f;
 }
 const base64=blob=>new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result).split(',')[1]);r.onerror=()=>reject(r.error);r.readAsDataURL(blob)});
-function pdfBlob(b64){const b=atob(b64),bytes=Uint8Array.from(b,c=>c.charCodeAt(0));return new Blob([bytes],{type:'application/pdf'});}
-async function retained(rpc,row,makePDF,check=()=>{}){check();let saved=await rpc('receipt_pdf245',{p_id:row.id,p_version:row.version});check();if(!saved){const blob=await makePDF();check();saved=await rpc('receipt_pdf245',{p_id:row.id,p_version:row.version,p_pdf:await base64(blob)});check();}if(!saved?.base64)throw Error('The company PDF copy was not confirmed. Retry before sharing.');return new File([pdfBlob(saved.base64)],saved.filename,{type:'application/pdf'});}
+// The register downloads compact rows and a shared dictionary once. Materialize
+// just the selected form, including on a device with a cached register.
+function expandForm(row,parts){
+ const form=row.data?.printForm;
+ if(!form)return row;
+ if(!parts)return null;
+ const data={...row.data};
+ if(form.template){
+  const pattern=parts[form.template],fields=form.fields;
+  if(!Array.isArray(pattern)||!Array.isArray(fields)||pattern.length!==fields.length+1)return null;
+  data.html=pattern.map((segment,i)=>segment+(fields[i]??'')).join('');
+ }
+ for(const [key,nested] of [[form.layout,false],[form.typedLayout,true]]){
+  if(!key)continue;
+  const layout=parts[key];if(!layout?.settings||!layout.assets)return null;
+  const settings={...layout.settings};
+  for(const [name,asset] of Object.entries(layout.assets)){
+   if(!Object.hasOwn(parts,asset))return null;
+   settings[name]=parts[asset];
+  }
+  if(nested)data.typedFields245={...data.typedFields245,settings};
+  else data.settings=settings;
+ }
+ delete data.printForm;
+ return {...row,data};
+}
+function savedPage(row,index){
+ const d=row.data||{},template=document.createElement('template');
+ template.innerHTML=d.html||'';
+ const pages=Array.from(template.content.querySelectorAll('[data-handwritten-sheet14303]'));
+ const match=pages.find(page=>page.querySelector('[data-voucher-number14299]')?.textContent.trim()===row.number);
+ const page=match||pages[index]||(pages.length===1?pages[0]:null);
+ if(pages.length&&!page)throw Error('The saved page could not be identified. Reopen the document.');
+ const body=page||template.content;
+ const number=body.querySelector('[data-voucher-number14299]');if(number)number.textContent=row.number;
+ if(page)return page.outerHTML;
+ if(template.innerHTML.trim())return template.innerHTML;
+ if(row.kind==='H'||d.typedFields245)return html({...d.typedFields245,blank:row.kind==='H',number:row.number,type:d.documentType||'voucher'});
+ throw Error('The saved receipt details are unavailable.');
+}
 function download(file,check=()=>{}){check();const u=URL.createObjectURL(file),a=document.createElement('a');a.href=u;a.download=file.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),30000);}
 function canShare(file){try{return !!window.ReceiptNative214?.sharePDF||!!navigator.canShare?.({files:[file]});}catch{return false;}}
 function share(file,check){check();return window.ReceiptNative214?.sharePDF?ReceiptNative214.sharePDF(file):navigator.share({files:[file],title:file.name});}
 function delivery(file,check=()=>{},notice=''){
- check();const d=document.createElement('dialog');d.className='receipt-delivery245';d.innerHTML='<h3>PDF saved</h3><p>Your company copy is retained. Choose how to release it.</p><p role="status"></p><div><button type="button" data-share>Share</button> <button type="button" data-download>Download</button> <button type="button" data-close>Close</button></div>';
+ check();const d=document.createElement('dialog');d.className='receipt-delivery245';d.innerHTML='<h3>PDF ready</h3><p role="status"></p><div><button type="button" data-share>Share</button> <button type="button" data-download>Download</button> <button type="button" data-close>Close</button></div>';
  document.body.append(d);const message=d.querySelector('[role=status]');message.textContent=notice;d.querySelector('[data-close]').onclick=()=>d.close();d.onclose=()=>d.remove();d.querySelector('[data-download]').onclick=()=>{try{download(file,check);}catch(e){message.textContent=e.message}};
  const shareButton=d.querySelector('[data-share]');if(!canShare(file)){shareButton.disabled=true;message.textContent='This browser does not support sharing PDF files. Download the PDF and attach it in your chosen app.';}
- shareButton.onclick=async()=>{try{await share(file,check);check();message.textContent='Share menu closed. The company copy remains saved.';}catch(e){message.textContent=e.name==='AbortError'?'Sharing cancelled. The saved receipt is unchanged.':e.message}};d.showModal();return d;
+ shareButton.onclick=async()=>{try{await share(file,check);check();message.textContent='Share menu closed.';}catch(e){message.textContent=e.name==='AbortError'?'Sharing cancelled. The saved receipt is unchanged.':e.message}};d.showModal();return d;
 }
 function release(file,check,action){
  check();if(action==='download'){download(file,check);return;}
@@ -106,5 +144,5 @@ function release(file,check,action){
  try{Promise.resolve(share(file,check)).catch(failed);}catch(e){failed(e);}
 }
 async function pdf(dom){await script('scripts/document-downloads14311.js?v=143.405',()=>window.documentDownloads14311);return documentDownloads14311.pdf(dom);}
-window.Receipt245={upgradeLayout,amountWords,groupAmount,formatAmount,choices,syncFields,html,total,fmt,esc,frameHTML,retained,delivery,release,pdf,base64,pdfBlob,script};
+window.Receipt245={upgradeLayout,amountWords,groupAmount,formatAmount,choices,syncFields,html,total,fmt,esc,frameHTML,expandForm,savedPage,delivery,release,pdf,base64,script};
 })();

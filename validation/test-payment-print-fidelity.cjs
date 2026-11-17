@@ -11,7 +11,7 @@ const fixture = require('./phase0-browser-fixture.cjs');
       path:path.join(__dirname,'../assets/vendor/document14285',path.basename(new URL(route.request().url()).pathname)),
       contentType:'application/javascript'
     }));
-    const pdfs = new Map(), versions = new Map();
+    const versions = new Map();
     let archiveReads=0,metadataChecks=0;
     const prefix = q => 'OJM'+q.p_date.slice(2,4)+'-'+(q.p_type==='receipt'?'R':'V')+'A'+q.p_date.slice(5,7);
     await page.route('**/rpc/payment_preview401',r=>{
@@ -28,14 +28,11 @@ const fixture = require('./phase0-browser-fixture.cjs');
     await page.route('**/vouchers14299?*',r=>{
       const params=new URL(r.request().url()).searchParams, ids=params.get('id');
       if(!ids?.startsWith('in.'))return r.fallback();
-      assert.equal(params.get('select'),'id,version,status');assert.equal(params.get('data->pdf245->>base64'),'not.is.null');
-      metadataChecks++;return r.fulfill({json:ids.slice(4,-1).split(',').filter(id=>pdfs.has(id)).map(id=>({id,version:versions.get(id),status:'reserved'}))});
+      assert.equal(params.get('select'),'id,version,status');assert.equal(params.has('data->pdf245->>base64'),false);
+      metadataChecks++;return r.fulfill({json:ids.slice(4,-1).split(',').filter(id=>versions.has(id)).map(id=>({id,version:versions.get(id),status:'reserved'}))});
     });
     await page.route('**/rpc/receipt_pdf245',r=>{
-      const q=r.request().postDataJSON();
-      if(!q.p_pdf)archiveReads++;
-      if(q.p_pdf)pdfs.set(q.p_id,{base64:q.p_pdf,filename:q.p_id+'.pdf',version:1});
-      return r.fulfill({json:pdfs.get(q.p_id)||null});
+      archiveReads++;return r.fulfill({status:500,json:{message:'Print must not write a PDF'}});
     });
     f.fixture.tables.voucher_settings14299=[{id:1,prefix:'OJM'}];
     await login();
@@ -113,7 +110,7 @@ const fixture = require('./phase0-browser-fixture.cjs');
       else {await frame.locator('.page-content').last().focus();await page.keyboard.press('Control+p')}
       await page.waitForFunction(()=>!!window.printedHTML,null,{timeout:60000});
       const ms=Date.now()-start;
-      assert.deepEqual(await page.evaluate(()=>window.captures),Array(10).fill(1));
+      assert.deepEqual(await page.evaluate(()=>window.captures),[]);
       const sheets=snapshot.locator('.page');
       assert.equal(await sheets.count(),10);
       const rows=await sheets.evaluateAll(pages=>pages.map(p=>{
@@ -126,7 +123,6 @@ const fixture = require('./phase0-browser-fixture.cjs');
       assert.equal(new Set(rows.map(r=>r.id)).size,10);
       assert(rows.every(r=>r.footer&&r.inPage&&r.names.includes('First Signer')&&r.names.includes('Second Signer')));
       await exportNative(type+'.pdf');
-      if(process.env.PRINT_PDF_DIR)fs.writeFileSync(path.join(process.env.PRINT_PDF_DIR,type+'-retained.pdf'),Buffer.from([...pdfs.values()].at(-1).base64,'base64'));
       // Reprinting a confirmed batch must not rasterize any page again.
       await page.evaluate(()=>{window.printedHTML='';window.captures=[]});
       const checks=metadataChecks,reads=archiveReads;
@@ -134,9 +130,7 @@ const fixture = require('./phase0-browser-fixture.cjs');
       assert.equal(metadataChecks,checks+1);assert.equal(archiveReads,reads);
       assert.deepEqual(await page.evaluate(()=>window.captures),[]);
       const ids=await page.evaluate(()=>documentWorkspace105.model.voucher14299.batchIds);
-      pdfs.delete(ids[4]);
-      await page.evaluate(()=>{window.captures=[];window.printedHTML='';return documentWorkspace105.preview()});
-      assert(await page.evaluate(()=>!!window.printedHTML));assert.deepEqual(await page.evaluate(()=>window.captures),[1]);
+      assert.equal(archiveReads,0);
       versions.set(ids[0],2);
       await page.evaluate(()=>{window.captures=[];window.printedHTML='';return documentWorkspace105.preview()});
       assert.equal(await page.evaluate(()=>window.printedHTML),'');assert.deepEqual(await page.evaluate(()=>window.captures),[]);
