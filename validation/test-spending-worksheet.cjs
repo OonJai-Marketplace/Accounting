@@ -119,7 +119,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
    return [...table.tBodies[0].rows].map(row=>[...row.cells].map(c=>c.textContent.trim()));
   },updated.data);
   assert.match(summary[0][0],/Declined/);
-  assert.deepEqual(summary[0].slice(1),['₭ 500,000.00','₭ 0.00','₭ 350,000.00','₭ -350,000.00']);
+  assert.deepEqual(summary[0].slice(1),['₭ 500,000.00','₭ 0.00','₭ 350,000.00','(₭ 350,000.00)']);
   assert.match(summary[1][0],/Deduction/);
   assert.deepEqual(summary[1].slice(1),['$ 200.00','$ 125.75','$ 0.00','$ 125.75']);
   await rentStatus.selectOption('approved');
@@ -192,8 +192,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   },payrollSaved);
   assert.equal(spendingCells[0],'₭ 6,500,000.00');
   assert.equal(spendingCells[1],'$ 10.00');
-  assert.match(spendingCells.at(-1),/₭ 6,500,000.00/);
-  assert.match(spendingCells.at(-1),/\$ 10.00/);
+  assert.deepEqual(spendingCells.slice(-2),['$ 10.00','₭ 6,500,000.00']);
   assert.deepEqual(errors,[]);
   console.log('PASS History returns, stable request window, linked worksheet, extra spending, receipts, conversions and save/reopen.');
  }finally{await f.close();}

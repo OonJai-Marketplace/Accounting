@@ -105,22 +105,26 @@ function refreshCategories(){
  const names=requestEditor?.root.querySelector('[data-categories]');
  if(names)names.textContent=(budget14313.config().categories||[]).join(' · ');
 }
-function totals327(d){
+function totals327(d,asLines=false){
  const sums=new Map();
  for(const line of d.lines||[])sums.set(line.currency,(sums.get(line.currency)||0)+Math.round(Number(line.amount)*100));
- return [...sums].map(([code,cents])=>code+' '+formatAppNumber(cents/100)).join(' + ')||'—';
+ const codes=report.orderedUnits(sums.keys()),value=c=>sums.get(c)/100;
+ return (asLines?report.amountLines(codes,value):codes.map(c=>report.currencyAmount(c,value(c))).join(' · '))||'—';
 }
 function renderRequest(notice=''){
  guard();
  const rows=budgetRows();
  checkListedDrafts(rows,notice);
- const requestRows=rows.filter(r=>r.data.mode!=='utilization').map(r=>[esc(report.period(r.data)),esc(r.data.recipient),esc(r.data.purpose),esc(totals327(r.data)),button('Open request',`editRequest(${JSON.stringify(r.id)})`)+button('Fund utilization',`startAllocation(${JSON.stringify(r.id)})`)]);
- const utilization=rows.filter(r=>r.data.mode==='utilization').map(r=>{
-  const balances=report.balances({...r.data,lines:r.data.lines||[]});
-  return [esc(report.period(r.data)),esc(r.data.purpose),esc(r.data.status||'Draft'),report.amountLines([...balances.keys()],c=>balances.get(c).beforeReturn)||'—',
+ const requestRows=rows.filter(r=>r.data.mode!=='utilization').map(r=>[esc(report.period(r.data)),esc(r.data.recipient),esc(r.data.purpose),totals327(r.data,true),button('Open request',`editRequest(${JSON.stringify(r.id)})`)+button('Fund utilization',`startAllocation(${JSON.stringify(r.id)})`)]);
+ const reports=rows.filter(r=>r.data.mode==='utilization').map(record=>({record,balances:report.balances({...record.data,lines:record.data.lines||[]})}));
+ const units=report.orderedUnits(reports.flatMap(({balances})=>[...balances.keys()]));
+ const headings=units.length?units.map(c=>'Cash remaining ('+c+')'):['Cash remaining'];
+ const utilization=reports.map(({record:r,balances})=>{
+  const remaining=units.length?units.map(c=>balances.has(c)?report.amountHtml(c,balances.get(c).beforeReturn):'—'):['—'];
+  return [esc(report.period(r.data)),esc(r.data.purpose),esc(r.data.status||'Draft'),...remaining,
    button(isFinal(r)?'View report':'Continue',`openAllocation(${JSON.stringify(r.id)})`)];
  });
- const content=section82('Saved budget requests',table82(['Budget month','Recipient','Purpose','Requested',''],requestRows))+section82('Fund utilization reports',table82(['Budget month','Purpose','Status','Cash remaining',''],utilization));
+ const content=section82('Saved budget requests',table82(['Budget month','Recipient','Purpose','Requested',''],requestRows))+section82('Fund utilization reports',table82(['Budget month','Purpose','Status',...headings,''],utilization));
  mount82('transactions-budget14313','Budget Requests','',notice+content+historyImportButton(),button('Fund utilization','showFunds()')+button('New Report','newRequest()')+button('Print / PDF','printPicker()')+(access113.can('transactions-all')?'<button type="button" data-book-history="budget">History</button>':''));
 }
 function printPicker(){
@@ -365,7 +369,7 @@ async function combineRequests(){
     return '<fieldset><legend>'+esc(l.description)+' · '+esc(l.currency)+' '+esc(formatAppNumber(l.amount))+'</legend>'+
      '<label>Budget item<select data-plain14285 name="line'+i+'">'+option('','Add as a new item')+current.map(b=>option(b.key117,b.description)).join('')+'</select></label>'+
      (unassigned.length?'<label>Link existing spending<select data-plain14285 name="move'+i+'">'+option('','None')+
-       unassigned.map(m=>option(m.id290,(m.destination290||m.description290)+' · '+m.currency+' '+formatAppNumber(report.cashPaid(m)))).join('')+'</select></label>':'')+'</fieldset>';
+       unassigned.map(m=>option(m.id290,(m.destination290||m.description290)+' · '+report.currencyAmount(m.currency,m.outflow))).join('')+'</select></label>':'')+'</fieldset>';
    }).join('');
   }
   select.onchange=list;list();
@@ -444,11 +448,10 @@ function renderAllocation(){
  const summary=host.querySelector('[data-summary]'),balance=summary.querySelector('[data-budget-balance]');
  function showBalance(){
   const cash=report.balances(d);
-  const amounts=report.orderedUnits([...cash.keys()]).map(c=>currencySymbolV6(c)+' '+report.amountText(cash.get(c).beforeReturn));
-  balance.textContent=amounts.length?' · Cash remaining · '+amounts.join(' / '):'';
+  balance.innerHTML=cash.size?'<span>Cash remaining</span><span>'+report.amountLines(cash.keys(),c=>cash.get(c).beforeReturn)+'</span>':'';
  }
  showBalance();
- host.oninput=()=>{summary.open=false;balance.textContent='';};
+ host.oninput=e=>{if(!e.target.matches('[data-item-equivalents]')){summary.open=false;balance.textContent='';}};
  summary.ontoggle=()=>{if(summary.open){try{captureFund();host.applySpending();refreshWorksheet();showBalance();summary.lastElementChild.innerHTML=report.summary(d)}catch(err){summary.open=false;showCenterStatus(err.message,true)}}};
 }
 function applySpending(){
@@ -471,7 +474,7 @@ function openActivity(group,index=null){
   const actions=(kind,i)=>button('Edit',`edit${kind}(${i})`)+button('Delete',`remove${kind}(${i})`);
   const title={receipt:'Amount received',coverage:'Restaurant coverage',conversion:'Currency conversion',spend:'Spending details',other:'Other fund movements'}[group];
  const movement=`<form id="financeMove82" class="finance-controls117">${types.length>1?select82('Activity','type290',type,types):'<input type="hidden" name="type290" value="'+esc(type)+'">'}${field82('Date','date290',d.date,'date','required')}
-  <label data-loan-field hidden>Advance to repay<select name="loanId290"><option value="">Choose an advance</option>${options(loans.map(l=>[l.id290,l.account+' · '+l.reference+' · '+l.currency+' '+formatAppNumber(report.outstanding(d,l))+' outstanding']))}</select>${loans.length?'':'<small>Record the original advance with its borrowing date first.</small>'}</label>
+  <label data-loan-field hidden>Advance to repay<select name="loanId290"><option value="">Choose an advance</option>${options(loans.map(l=>[l.id290,l.account+' · '+l.reference+' · '+report.currencyAmount(l.currency,report.outstanding(d,l))+' outstanding']))}</select>${loans.length?'':'<small>Record the original advance with its borrowing date first.</small>'}</label>
   <label><span data-source-label>Funding from</span><input name="account" required></label><label><span data-dest-label>Received into</span><input name="destination290"></label>
   <label data-item-field hidden>Budget item<select name="budgetKey117"><option value="">Unassigned</option>${options(d.lines.map((l,i)=>[l.key117||'worksheet:'+i,l.category+' · '+l.description+' · '+l.currency]))}</select></label>
   ${select82('Currency','currency',d.lines[0]?.currency||'LAK',cs)}${amountInput('Amount','amount')}
@@ -480,7 +483,7 @@ function openActivity(group,index=null){
   ${field82('Description / use of money','description290','','text')}${field82('Reference','reference','','text','required')}<button type="submit">Add movement</button><button type="button" data-cancel hidden>Cancel edit</button></form>`;
  const fx=`<form id="financeFx117" class="finance-controls117">${field82('Date','date',d.date,'date','required')}${field82('From account','source','','text','required')}${select82('From currency','currency','USD',cs)}${amountInput('Amount exchanged','amount')}
   ${field82('Received into','destination290','','text','required')}${select82('To currency','target','LAK',cs)}${amountInput('Amount received','targetAmount290')}${field82('Evidence / reference','evidence','','text','required')}<output aria-live="polite"></output><button type="submit">Add conversion</button><button type="button" data-cancel hidden>Cancel edit</button></form>`;
- const fxTable=table82(['Date','From account','Amount exchanged','Received into','Amount received','Rate','Reference','Action'],d.conversions.map((f,i)=>[esc(formatAppDate(f.date)),esc(f.source),esc(f.currency+' '+formatAppNumber(f.amount)),esc(f.destination290||'—'),esc(f.target+' '+formatAppNumber(report.conversionAmount(f))),esc(formatAppRate(f.rate)),esc(f.evidence||f.reference),actions('Conversion',i)]));
+ const fxTable=table82(['Date','From account','Amount exchanged','Received into','Amount received','Rate','Reference','Action'],d.conversions.map((f,i)=>[esc(formatAppDate(f.date)),esc(f.source),report.amountHtml(f.currency,f.amount),esc(f.destination290||'—'),report.amountHtml(f.target,report.conversionAmount(f)),esc(formatAppRate(f.rate)),esc(f.evidence||f.reference),actions('Conversion',i)]));
  const movementRows=report.movementRows(d).flatMap((row,i)=>types.some(([k])=>k===report.kind(d.movements[i]))?[[...row,actions('Movement',i)]]:[]);
  const {root,pending}=budgetDialog(title,isFx?fx+fxTable:movement+table82([...report.movementHeaders,'Action'],movementRows));
  activityPopup=root;root.classList.add('fund-activity');fundPopup.querySelector('.ui-dialog108').inert=true;

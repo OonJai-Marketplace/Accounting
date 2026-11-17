@@ -49,13 +49,15 @@ const create=require('./phase0-browser-fixture.cjs');
    const read=report=>{
     const host=document.createElement('div');host.innerHTML=BudgetReport290.summary(report);
     const table=[...host.querySelectorAll('table')].find(t=>t.tHead.textContent.includes('Actual spending'));
-    return {headings:[...table.tHead.rows[0].cells].map(c=>c.textContent),rows:[...table.tBodies[0].rows].map(r=>[...r.cells].slice(1).map(c=>Array.from(c.childNodes).map(n=>n.textContent).filter(Boolean)))};
+    return {totals:[...table.querySelectorAll('tr[data-budget-summary290="total"] th')].map(h=>h.textContent),headings:[...table.tHead.rows[0].cells].map(c=>c.textContent),rows:[...table.tBodies[0].rows].map(r=>[...r.cells].slice(1).map(c=>Array.from(c.childNodes).map(n=>n.textContent).filter(Boolean)))};
    };
    const mixed={...d,lines:[dollar,unpaid,...d.lines],movements:[payment,...d.movements]};
    const usd={...mixed,lines:[dollar,unpaid],movements:[payment,{type290:'receipt',currency:'LAK',inflow:5000}]};
-   return {usd:read(usd),mixed:read(mixed),withoutRate:read({...mixed,conversions:[]})};
+   const single=read({...d,lines:[dollar],movements:[payment],conversions:[]});
+   const extra=read({...mixed,movements:[{type290:'receipt',currency:'THB',inflow:250},...mixed.movements]});
+   return {usd:read(usd),mixed:read(mixed),withoutRate:read({...mixed,conversions:[]}),single,extra};
   },report.data);
-  assert.deepEqual(examples.usd.headings,['Item / category','Requested','Funds available','Actual spending','Remaining']);
+  assert.deepEqual(examples.usd.headings,['Item / category','Requested','Funds available','Actual spending','Budget remaining']);
   assert.deepEqual(examples.mixed.headings,examples.usd.headings);
   assert.deepEqual(examples.usd.rows[0],[['$ 50.00'],['$ 50.00'],['$ 40.00'],['$ 10.00']]);
   assert.deepEqual(examples.mixed.rows[0],examples.usd.rows[0]);
@@ -63,7 +65,14 @@ const create=require('./phase0-browser-fixture.cjs');
   assert.deepEqual(examples.mixed.rows[2],[['$ 100.00'],['$ 100.00'],['₭ 500,000.00'],['—']]);
   assert.deepEqual(examples.withoutRate.rows[0],examples.mixed.rows[0]);
   assert.deepEqual(examples.withoutRate.rows[2],examples.mixed.rows[2]);
-  assert.deepEqual(examples.mixed.rows.at(-1),[['$ 155.00','₭ 0.00'],['$ 25.00','₭ 1,500,000.00'],['$ 40.00','₭ 507,000.00'],['$ -15.00','₭ 993,000.00']]);
+  assert.deepEqual(examples.mixed.totals,['Total · USD','Total · LAK']);
+  assert.deepEqual(examples.single.totals,['Total · USD']);
+  assert.deepEqual(examples.extra.totals,['Total · USD','Total · LAK','Total · THB']);
+  assert.deepEqual(examples.extra.rows.at(-1),[['฿ 0.00'],['฿ 250.00'],['฿ 0.00'],['฿ 250.00']]);
+  assert.deepEqual(examples.mixed.rows.slice(-2),[
+   [['$ 155.00'],['$ 25.00'],['$ 40.00'],['($ 15.00)']],
+   [['₭ 0.00'],['₭ 1,500,000.00'],['₭ 507,000.00'],['₭ 993,000.00']]
+  ]);
   const worksheet=popup.locator('.spending-worksheet');
   const paper=worksheet.getByRole('row').filter({hasText:'Paper'});
   assert.equal(await paper.locator('td').nth(1).innerText(),'$ 100.00');
@@ -88,7 +97,7 @@ const create=require('./phase0-browser-fixture.cjs');
    const calculated=amount();paid.cashBudgetAmount=22;
    const box=document.createElement('div');box.innerHTML=BudgetReport290.summary(d);
    const rows=[...box.querySelector('tbody').rows].map(r=>[...r.cells].map(c=>c.textContent));
-   if(!rows.some(r=>r[0]==='Cash distributed')||!rows.some(r=>r[0]==='Cash remaining'&&r[1]==='25.00')||
+   if(!rows.some(r=>r[0]==='Cash distributed')||!rows.some(r=>r[0]==='Cash remaining'&&r[1]==='$ 25.00')||
     rows.some(r=>/returned|after returns|before returns/i.test(r[0])))throw Error('Unexpected cash summary '+JSON.stringify(rows));
    return [cash.beforeReturn,cash.remaining,calculated,amount(),BudgetReport290.compare(d).rows[0].values.USD.used];
   },report.data);
@@ -97,7 +106,10 @@ const create=require('./phase0-browser-fixture.cjs');
   await kip.fill('500000');
   await popup.locator('[data-summary] summary').click();
   await popup.locator('[data-budget-balance]').filter({hasText:'Cash remaining'}).waitFor();
-  assert.match(await popup.locator('[data-budget-balance]').innerText(),/Cash remaining.*25.00.*993,000/);
+  assert.deepEqual(await popup.locator('[data-budget-balance] .fund-amount').allTextContents(),['$ 25.00','₭ 993,000.00']);
+  const list=page.locator('#transactions-budget14313 table').filter({hasText:'Cash remaining (USD)'});
+  assert.deepEqual(await list.locator('thead th').allTextContents(),['Budget Month','Purpose','Status','Cash Remaining (USD)','Cash Remaining (LAK)','']);
+  assert.deepEqual(await list.locator('tbody tr').first().locator('.fund-amount').allTextContents(),['$ 25.00','₭ 993,000.00']);
   const comparison=popup.locator('table').filter({hasText:/Funds available/i});
   assert.match(await comparison.innerText(),/Transfer fees/);
   for(const width of [1280,1024,768]){
@@ -130,6 +142,9 @@ const create=require('./phase0-browser-fixture.cjs');
   const widths=await printed.locator('tbody tr').first().locator('th,td').evaluateAll(cells=>cells.map(c=>c.getBoundingClientRect().width));
   assert(widths.length===5 && widths[0]>Math.max(...widths.slice(1))*1.7,JSON.stringify(widths));
   await page.emulateMedia({media:'print'});
+  const printTotals=frame.locator('.page-content tr[data-budget-summary290="total"]');
+  assert.deepEqual(await printTotals.locator('th').allTextContents(),['Total · USD','Total · LAK']);
+  assert.deepEqual(await printTotals.locator('td:last-child').allTextContents(),['$ 25.00','₭ 993,000.00']);
   for(const name of ['total','requested']){
    const colors=await frame.locator('tr[data-budget-summary290="'+name+'"]').first().locator('th,td').evaluateAll(cells=>cells.map(c=>getComputedStyle(c).backgroundColor));
    assert(colors.length>=2&&colors.every(c=>c==='rgb(220, 238, 227)'),JSON.stringify({name,colors}));
@@ -160,7 +175,7 @@ const create=require('./phase0-browser-fixture.cjs');
   assert.deepEqual(equityCheck.fresh,[['1041','3028',1000],['3028','3029',900]]);assert.match(equityCheck.notice,/100.00 remaining/);
   assert.deepEqual(equityCheck.posted,[['3026','3028',1000,20100],['3028','3029',900,20100]]);
   assert.equal(equityCheck.already,1);assert.deepEqual(equityCheck.lak,[0,10000,0]);
-  assert.equal(equityCheck.receiptLabel,'0.00');assert.equal(equityCheck.coverageLabel,'10,000.00');
+  assert.equal(equityCheck.receiptLabel,'₭ 0.00');assert.equal(equityCheck.coverageLabel,'₭ 10,000.00');
   await page.evaluate(()=>{ui117.confirm=async()=>true;switchTab('transactions-budget14313');});await open();
   await popup.getByRole('button',{name:'Open in Post Transaction'}).click();
   await popup.waitFor({state:'detached'});
