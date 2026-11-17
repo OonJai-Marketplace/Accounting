@@ -140,7 +140,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.437', $ = id => document.getElementById(id);
+  const VERSION = '143.438', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -718,18 +718,26 @@ function appLocalDate(date=new Date()) {
   function returnedReview14348(){if(S.page!=='entries')return '';const returned=returnedReports();return returned.length?'<section class="card"><h2>Review <span class="returned-badge14347">'+returned.length+'</span></h2>'+returned.map((j,i)=>'<article><p><strong>'+esc(j.period_start)+'</strong></p><p>'+esc(j.return_note||'Returned for correction')+'</p>'+action('reopen-correction','Reopen for correction','data-index="'+i+'"')+'</article>').join('')+'</section>':'';}
   function groupEntries() {
     const visible=S.printing14294?monthHeaders():S.page==='entries'?headers().filter(editable14348):monthHeaders().filter(j=>!['draft','returned'].includes(j.status));
-    const batches=new Map(visible.map(j=>[j.id,j])),groups=new Map();
-    const rows=S.page==='entries'?Object.values(S.data.months||{}).flatMap(m=>m.lines||[]):lines();
-    for(const l of rows.filter(l=>batches.has(l.staff_journal_id)&&!l.voided_at&&l.status!=='voided')){const snapshot=l.editor_snapshot1437;
-      const splitSlip=snapshot?.splitByLine && snapshot.components1437?.every(item=>item.fund===l.fund_account_id);
-      const groupKey=l.staff_journal_id+':'+(rules().entryMode==='cashbook'&&S.page==='entries'&&!splitSlip?l.id:l.editor_group1437||l.id);if(!groups.has(groupKey))groups.set(groupKey,{batch:batches.get(l.staff_journal_id),lines:[]});groups.get(groupKey).lines.push(l);}
-    let result=[...groups.values()];
+    const batches=new Map(visible.map(j=>[j.id,j]));
+    const active=S.page==='entries'&&!S.printing14294;
+    const all=active?Object.values(S.data.months||{}).flatMap(m=>m.lines||[]):lines();
+    const rows=all.filter(l=>batches.has(l.staff_journal_id)&&!l.voided_at&&l.status!=='voided');
+    if(!active){
+      const groups=new Map();
+      for(const l of rows){
+        const key=JSON.stringify([l.staff_journal_id,l.editor_group1437||l.id]);
+        if(!groups.has(key))groups.set(key,{batch:batches.get(l.staff_journal_id),lines:[]});
+        groups.get(key).lines.push(l);
+      }
+      return [...groups.values()].sort((a,b)=>StaffJournalView.newestLine(a.lines[0],b.lines[0]));
+    }
+    let result=StaffJournalView.activeGroups(rows,S.entryAscending).map(lines=>({batch:batches.get(lines[0].staff_journal_id),lines}));
     if(rules().entryMode==='cashbook'&&S.page==='entries'){
       const ids=rules().fundIds;
       if(!ids.includes(S.cashbookFund240))S.cashbookFund240=ids[0]||'';
       result=result.filter(g=>g.lines.some(l=>l.fund_account_id===S.cashbookFund240||l.account_id===S.cashbookFund240));
     }
-    return result.sort((a,b)=>StaffJournalView.newestLine(a.lines[0],b.lines[0]));
+    return result;
   }
   function monthControl(){return `<header class="phone-history-header14359"><strong>${esc(new Date(S.month+'-01T12:00:00Z').toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'}))}</strong><label class="no-print"><input id="month" aria-label="History month" type="month" value="${esc(S.month)}"></label></header>`;}
   function commonActions(){return `<div class="actions no-print">${action('submit',S.submitting?'Submitting…':'Submit',S.submitting?'disabled':'',true)}${action('refresh',S.loading?'Updating…':'Refresh',S.loading?'disabled':'')}</div>`;}
@@ -1144,38 +1152,61 @@ function appLocalDate(date=new Date()) {
     }
     return [...memos].join(' · ') || general || cleanName(first.account_id);
   }
+  function savedJournalAccount(label){
+    const code=String(label||'').split(/\s+[—–-]\s+/)[0];
+    return accounts().find(a=>a.id===label||a.code===code);
+  }
+  function currentJournalSides(line){
+    const incoming=line.direction==='in',cash=line.fund_account_id,other=line.account_id;
+    if(line.entry_kind==='collection'&&cash===other)return [['Reported collection',cash]];
+    return [['Debit',incoming?cash:other],['Credit',incoming?other:cash]];
+  }
   function receiptDetails(group) {
     const first=group.lines[0],saved=first.editor_snapshot1437;
-    if(saved?.receiptEditor341&&saved.mode==='double'&&saved.rows?.length&&saved.components1437?.length===group.lines.length){
+    const active=S.page==='entries', snapshot=active?StaffJournalView.validSnapshot(group.lines):saved;
+    const number=v=>Number(String(v||0).replaceAll(',',''));
+    if(snapshot?.mode==='double'&&snapshot.rows?.length&&(active||snapshot.receiptEditor341&&snapshot.components1437?.length===group.lines.length)){
       const seen=new Set();
-      return saved.rows.map(row=>{
-        const credit=Object.entries(row.credits||{}).find(([,amount])=>Number(amount)>0);
-        const side=credit?'Credit':'Debit',currencyCode=credit?.[0]||Object.keys(row.credits||{})[0];
+      return snapshot.rows.filter(row=>row.account&&(!active||snapshot.allocatedReceipt||!snapshot.multiple||row.date===first.transaction_date)).map(row=>{
+        const credit=Object.entries(row.credits||{}).find(([,amount])=>number(amount)>0);
+        const side=credit?'Credit':'Debit',currencyCode=credit?.[0]||savedJournalAccount(row.account)?.currency||Object.keys(row.credits||{})[0];
         const firstPart=row.splitGroup && !seen.has(row.splitGroup);
         if(row.splitGroup)seen.add(row.splitGroup);
         const ref=row.reference??saved.reference;
         const groupHeader=firstPart?'<strong>Split receipt'+(ref?' · '+esc(ref):'')+'</strong>':'';
-        return groupHeader+'<p'+(row.splitGroup?' class="split-receipt-part"':'')+'><strong>'+(row.splitGroup?esc(row.splitLabel)+' · ':'')+side+' · '+esc(money(credit?credit[1]:row.dr,currencyCode))+'</strong><br>'+
+        return groupHeader+'<p'+(row.splitGroup?' class="split-receipt-part"':'')+'><strong>'+(row.splitGroup?esc(row.splitLabel)+' · ':'')+side+' · '+esc(money(number(credit?credit[1]:row.dr),currencyCode))+'</strong><br>'+
           esc(row.account)+(saved.allocatedReceipt&&row.date?'<br>'+esc(dateLabel(row.date)):'')+(row.enteredAmount?'<br>Original line amount · '+esc(money(row.enteredAmount,currencyCode)):'')+(row.memo?'<br>'+esc(row.memo):'')+(!row.splitGroup&&row.reference?'<br>Reference · '+esc(row.reference):'')+'</p>';
       }).join('')+(first.reference&&!saved.splitByLine&&!saved.rows.some(r=>r.reference!=null)?'<p>Reference · '+esc(first.reference)+'</p>':'');
+    }
+    if(active&&saved?.mode==='double'){
+      return group.lines.map(l=>{
+        return currentJournalSides(l).map(([label,id])=>`<p><strong>${label} · ${esc(money(l.amount,l.currency_code||currency(l.fund_account_id)))}</strong><br>${accountTitle(id)}${l.memo?'<br>'+esc(l.memo):''}${l.reference?'<br>Reference · '+esc(l.reference):''}</p>`).join('');
+      }).join('');
     }
     return group.lines.map(l=>`<p><strong>${(rules().entryMode==='cashbook'&&S.page==='entries'&&l.fund_account_id!==S.cashbookFund240?l.direction!=='in':l.direction==='in')?'Money In':'Money Out'} · ${esc(money(l.amount,l.currency_code||currency(l.fund_account_id)))}</strong><br>${accountTitle(l.fund_account_id)}<br>${l.direction==='out'?accountTitle(l.account_id)+'<br>':''}${saved?.receiptEditor341&&l.memo===saved.memo?'':esc(l.memo)}${l.reference?'<br>Reference: '+esc(l.reference):''}</p>`).join('');
   }
   window.PhoneCashbook240=id=>{if(rules().fundIds.includes(id)){S.cashbookFund240=id;render();}};
   function entries(){
     const groups=groupEntries(),pending=S.page==='history'?[]:queue();
-    const visibleGroups=groups.map((group,index)=>({group,index,line:group.lines[0]}));
+    const visibleGroups=groups.map(group=>({group,line:group.lines[0]}));
     const incomplete=pending.filter(q=>!groups.some(g=>g.lines.some(l=>l.editor_group1437?.startsWith(q.key+':'))));
-    const timeline=visibleGroups.filter(({group})=>!incomplete.some(q=>group.lines.some(l=>q.params?.p_edit_ids?.includes(l.id))));
+    const pendingEdits=new Map(incomplete.flatMap(q=>(q.params?.p_edit_ids||[]).map(id=>[id,q])));
+    const displayed=new Set();
+    const timeline=visibleGroups.flatMap(item=>{
+      const q=item.group.lines.map(l=>pendingEdits.get(l.id)).find(Boolean);
+      if(!q)return [item];
+      if(displayed.has(q))return [];
+      displayed.add(q);
+      return [{q,line:item.line}];
+    });
     for(const q of incomplete){
+      if(displayed.has(q))continue;
       const items=q.params?.p_items||[],cashbook=rules().entryMode==='cashbook';
       const relevant=cashbook?items.filter(l=>l.fund===S.cashbookFund240||l.account===S.cashbookFund240):items;
       if(cashbook&&items.length&&!relevant.length)continue;
-      const date=relevant.map(l=>l.date).filter(Boolean).sort().at(-1)||q.draft.date;
-      timeline.push({q,line:{transaction_date:date,created_at:q.createdAt?new Date(q.createdAt).toISOString():'',id:q.key}});
+      timeline.push({q,line:{transaction_date:relevant[0]?.date||q.draft.date}});
     }
-    timeline.sort((a,b)=>StaffJournalView.newestLine(a.line,b.line));
-    return '<h1>'+ (rules().entryMode==='cashbook'&&S.page==='entries'?'Active Cashbook':'Entries')+'</h1>'+ (rules().entryMode==='cashbook'&&S.page==='entries'?'<label>Account<select data-cashbook-fund240 onchange="PhoneCashbook240(this.value)">'+rules().fundIds.map(id=>'<option value="'+esc(id)+'" '+(id===S.cashbookFund240?'selected':'')+'>'+esc(cleanName(id))+'</option>').join('')+'</select></label>':'')+'<nav class=entry-tabs212 aria-label="Entry views"><button type=button data-page=entries aria-current="'+(S.page==='entries'?'page':'false')+'">Current</button><button type=button data-page=history aria-current="'+(S.page==='history'?'page':'false')+'">History</button></nav>'+returnedReview14348()+(S.page==='history'?monthControl()+'<input id=historySearch14359 type=search placeholder="Search this month" aria-label="Search selected month"><p class=history-summary14359>'+groups.length+' entries · '+new Set(groups.map(g=>g.batch.id)).size+' reports</p>':'')+timeline.slice(0,S.limit).map(({q,group:g,index:i,line})=>{if(q)return `<section class="card queue-item"><div class="row"><strong>Saved on this device</strong><span class="status">${q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Pending sync'}</span></div><p>${esc(dateLabel(line.transaction_date))} · ${esc(q.draft.memo)}</p><p class="muted">${esc(q.message||'Saved entries sync automatically when connected. Submission is available after all entries are confirmed.')}</p></section>`;const first=g.lines[0],canEdit=S.page==='entries'&&editable14348(g.batch)&&permission('sub-users-workspace','edit'),amounts=new Map();for(const l of g.lines){const c=l.currency_code||currency(l.fund_account_id);amounts.set(c,(amounts.get(c)||0)+Number(l.amount));}return `<details class="entry" data-group="${esc(first.id)}" data-batch-description="${esc(first.editor_snapshot1437?.memo||'')}"><summary class="entry-heading"><span class="entry-copy"><small>${first.editor_snapshot1437?.splitByLine?'Split receipt · ':''}${esc(first.transaction_date)}${S.page==='history'&&first.workspace_entry_no?' · '+esc(window.submissionHistoryIds.entry(first)):rules().entryMode==='cashbook'&&S.page==='entries'?' · '+esc(first.workspace_entry_no||''):''}</small><b>${esc(receiptHeading(g))}</b></span><span class="entry-value"><span class="amount">${[...amounts].map(([c,n])=>esc(money(n,c))).join(' · ')}</span><span class="status ${esc(g.batch.status)}">${esc(g.batch.status)}</span></span><span class="entry-chevron" aria-hidden="true">⌄</span></summary><div class="entry-body">${receiptDetails(g)}<button type="button" class="scan-support-link208" data-scan-line208="${esc(first.id)}">Documents</button>${S.page==='history'?submissionReconciliation14345.summary(g.batch):''}${g.batch.return_note?'<p>Review note: '+esc(g.batch.return_note)+'</p>':''}${canEdit?`<div class="actions no-print">${action('edit','Edit',`data-index="${i}"`)}${permission('sub-users-workspace','void')?action('void','Void',`data-index="${i}"`):''}</div>`:''}</div></details>`;}).join('')+(timeline.length>S.limit?action('more','Show more'):'')+(!timeline.length?empty(S.data.months?.[S.month]?'No saved entries in this period.':'This period has not downloaded yet.'):'')+commonActions();}
+    return '<h1>'+ (rules().entryMode==='cashbook'&&S.page==='entries'?'Active Cashbook':'Entries')+'</h1>'+ (rules().entryMode==='cashbook'&&S.page==='entries'?'<label>Account<select data-cashbook-fund240 onchange="PhoneCashbook240(this.value)">'+rules().fundIds.map(id=>'<option value="'+esc(id)+'" '+(id===S.cashbookFund240?'selected':'')+'>'+esc(cleanName(id))+'</option>').join('')+'</select></label>':'')+'<nav class=entry-tabs212 aria-label="Entry views"><button type=button data-page=entries aria-current="'+(S.page==='entries'?'page':'false')+'">Current</button><button type=button data-page=history aria-current="'+(S.page==='history'?'page':'false')+'">History</button></nav>'+(S.page==='entries'?action('sort-entry-id','Entry ID '+(S.entryAscending?'↑':'↓'),'aria-label="Sort by Entry ID, '+(S.entryAscending?'highest':'lowest')+' first"'):'')+returnedReview14348()+(S.page==='history'?monthControl()+'<input id=historySearch14359 type=search placeholder="Search this month" aria-label="Search selected month"><p class=history-summary14359>'+groups.length+' entries · '+new Set(groups.map(g=>g.batch.id)).size+' reports</p>':'')+timeline.slice(0,S.limit).map(({q,group:g,line})=>{if(q)return `<section class="card queue-item"><div class="row"><strong>${line.workspace_entry_no?esc(line.workspace_entry_no)+' · ':''}Saved on this device</strong><span class="status">${q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Pending sync'}</span></div><p>${esc(dateLabel(line.transaction_date))} · ${esc(q.draft.memo)}</p><p class="muted">${esc(q.message||'Saved entries sync automatically when connected. Submission is available after all entries are confirmed.')}</p></section>`;const first=g.lines[0],canEdit=S.page==='entries'&&editable14348(g.batch)&&permission('sub-users-workspace','edit'),amounts=new Map();for(const l of g.lines){if(S.page==='entries'&&rules().entryMode==='cashbook'&&l.fund_account_id!==S.cashbookFund240&&l.account_id!==S.cashbookFund240)continue;const c=l.currency_code||currency(l.fund_account_id);amounts.set(c,(amounts.get(c)||0)+Number(l.amount));}return `<details class="entry" data-group="${esc(first.id)}" data-batch-description="${esc(first.editor_snapshot1437?.memo||'')}"><summary class="entry-heading"><span class="entry-copy"><small>${first.editor_snapshot1437?.splitByLine?'Split receipt · ':''}${S.page==='entries'&&first.workspace_entry_no?esc(first.workspace_entry_no)+' · ':''}${esc(dateLabel(first.transaction_date))}${S.page==='history'&&first.workspace_entry_no?' · '+esc(window.submissionHistoryIds.entry(first)):''}</small><b>${esc(receiptHeading(g))}</b></span><span class="entry-value"><span class="amount">${[...amounts].map(([c,n])=>esc(money(n,c))).join(' · ')}</span><span class="status ${esc(g.batch.status)}">${esc(g.batch.status)}</span></span><span class="entry-chevron" aria-hidden="true">⌄</span></summary><div class="entry-body">${receiptDetails(g)}<button type="button" class="scan-support-link208" data-scan-line208="${esc(first.id)}">Documents</button>${S.page==='history'?submissionReconciliation14345.summary(g.batch):''}${g.batch.return_note?'<p>Review note: '+esc(g.batch.return_note)+'</p>':''}${canEdit?`<div class="actions no-print">${action('edit','Edit',`data-entry-line="${esc(first.id)}"`)}${permission('sub-users-workspace','void')?action('void','Void',`data-entry-line="${esc(first.id)}"`):''}</div>`:''}</div></details>`;}).join('')+(timeline.length>S.limit?action('more','Show more'):'')+(!timeline.length?empty(S.data.months?.[S.month]?'No saved entries in this period.':'This period has not downloaded yet.'):'')+commonActions();}
   function render(force=true) {
     paintConnection();if(!S.owner)return;
     if(S.area!=='users')return;
@@ -1487,23 +1518,28 @@ function appLocalDate(date=new Date()) {
       notice('Submitted for review.');render();void refresh();void window.WorkingStanding379?.refresh();
     }catch(e){if(!current(owner,epoch))return;if(denied(e))await revoke(e);else{if(!ambiguous(e)){const stored=await persist(owner,{pendingSubmit:null});if(!current(owner,epoch))return;S.data=stored}notice('Submission was not confirmed. Refresh to check its status before retrying. '+e.message,true);render();}}
   }
-  async function edit(index){const owner=S.owner,epoch=S.epoch;const g=groupEntries()[index];if(!g||!permission('sub-users-workspace','edit')||!editable14348(g.batch))return;
+  async function edit(lineId){const owner=S.owner,epoch=S.epoch;const g=groupEntries().find(g=>g.lines[0].id===lineId);if(!g||!permission('sub-users-workspace','edit')||!editable14348(g.batch))return;
     if(queue().some(q=>q.params.p_edit_ids.some(id=>g.lines.some(l=>l.id===id)))){notice('Sync the pending change to this entry first.',true);return;}
     if(draftFilled()&&!await confirmDialog('Replace the current draft?','Save the current draft first if you need to keep it.','Replace'))return;
     if(!current(owner,epoch))return;
     const first=g.lines[0],saved=first.editor_snapshot1437,r=rules();let d;
-    const normalize=rows=>rows.map(l=>JSON.stringify([l.date,l.direction,l.fund,l.account,Number(l.amount),l.memo])).sort().join('|');
-    const actual=g.lines.map(l=>({date:l.transaction_date,direction:l.direction,fund:l.fund_account_id,account:l.account_id,amount:l.amount,memo:l.memo}));
-    if(saved?.components1437&&normalize(actual)===normalize(saved.components1437.filter(l=>l.date===first.transaction_date))){
+    if(StaffJournalView.validSnapshot(g.lines)){
       const date=first.transaction_date, onDate=row=>saved.allocatedReceipt || !saved.multiple||(row.date||saved.date)===date;
       d={...blankDraft(),mode:saved.mode,date,multiple:!!saved.multiple,memo:saved.memo,reference:saved.reference||'',
         single:(saved.single||[]).filter(onDate).map(row=>{const copy={...row};if(copy.description===saved.memo)delete copy.description;return copy;}),
-        lines:(saved.rows||[]).filter(onDate).map(l=>({...(l.splitGroup?{splitGroup:l.splitGroup,splitNumber:l.splitNumber,splitLabel:l.splitLabel}:{}),date:l.date||date,...(l.reference==null?{}:{reference:l.reference}),account:accounts().find(a=>a.code+' — '+a.name===l.account||a.id===l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(x)>0)||'',memo:l.memo||''}))};
+        lines:(saved.rows||[]).filter(onDate).map(l=>({...(l.splitGroup?{splitGroup:l.splitGroup,splitNumber:l.splitNumber,splitLabel:l.splitLabel}:{}),date:l.date||date,...(l.reference==null?{}:{reference:l.reference}),account:savedJournalAccount(l.account)?.id||'',debit:l.dr||'',credit:Object.values(l.credits||{}).find(x=>Number(String(x).replaceAll(',',''))>0)||'',memo:l.memo||''}))};
+    }
+    else if(saved?.mode==='double'&&g.lines.length>1&&g.lines.every(l=>currentJournalSides(l).length===2)){
+      // A corrected component supersedes the original form. Reopen all current sides as one receipt.
+      const receipt=crypto.randomUUID();
+      d={...blankDraft(),mode:'double',date:first.transaction_date,memo:saved.memo||first.memo,reference:first.reference||'',
+        lines:g.lines.flatMap(l=>currentJournalSides(l).map(([side,account])=>({receipt,account,date:l.transaction_date,
+          debit:side==='Debit'?String(l.amount):'',credit:side==='Credit'?String(l.amount):'',memo:l.memo||'',reference:l.reference||''})))};
     }
     else d={...blankDraft(),mode:'single',date:first.transaction_date,memo:first.memo,reference:first.reference||'',single:g.lines.map(l=>({direction:l.direction,source:l.fund_account_id,affected:l.direction==='in'&&l.account_id===l.fund_account_id?r.counterpart:l.account_id,amount:String(l.amount),memo:l.memo||''}))};
     d.correction_journal14347=g.batch.status==='returned'?g.batch.id:null;d.editIds=g.lines.map(l=>l.id);S.draft=normalizeDraft(d);if(r.entryMode==='cashbook' && d.mode==='double')changeMode243('single');saveDraftLater();navigate('post');
   }
-  async function voidEntry(index){const g=groupEntries()[index];if(!g||!permission('sub-users-workspace','void')||!editable14348(g.batch))return;
+  async function voidEntry(lineId){const g=groupEntries().find(g=>g.lines[0].id===lineId);if(!g||!permission('sub-users-workspace','void')||!editable14348(g.batch))return;
     if(!navigator.onLine||queue().length){notice('Sync pending entries and reconnect before voiding.',true);return;}
     const owner=S.owner,epoch=S.epoch,reason=await confirmDialog('Void this entry?','All lines in this entry will be voided together.','Void',true);if(!reason||!current(owner,epoch))return;
     try{await access();if(!current(owner,epoch))return;await rpc('void_staff_editor1437',{p_owner:owner,p_ids:g.lines.map(l=>l.id),p_reason:reason});if(!current(owner,epoch))return;notice('Entry voided.');await refresh();}catch(e){if(current(owner,epoch)){if(denied(e))await revoke(e);else notice('The result needs confirmation. Refresh before retrying. '+e.message,true);}}
@@ -1521,6 +1557,7 @@ function appLocalDate(date=new Date()) {
         $('dialogButtons').innerHTML='<button class="btn" value="cancel">Close protocols</button>';
       },()=>false);
     }
+    if(name==='sort-entry-id'){S.entryAscending=!S.entryAscending;render();return;}
     if(name==='issue-receipt')return await openReceipt245();
     if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
     if(name==='reopen-correction'){const j=returnedReports()[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
@@ -1589,7 +1626,7 @@ function appLocalDate(date=new Date()) {
     if(name==='clear-draft'){if(draftFilled()&&!await confirmDialog('Clear the draft?','This only clears the unfinished form. Saved and pending entries are kept.','Clear'))return;if(!current(owner,epoch))return;S.draft=blankDraft();}
     saveDraftLater();render();
   }catch(e){if(current(owner,epoch))notice(e.message,true);}}
-  document.addEventListener('click',e=>{const owner=e.target.closest('[data-owner]'),area=e.target.closest('[data-area]');if(owner){void selectUser(owner.dataset.owner).catch(e=>notice(e.message,true));return;}if(area){void openArea(area.dataset.area).catch(e=>notice(e.message,true));return;}const page=e.target.closest('[data-page],[data-go]');if(page)return navigate(page.dataset.page||page.dataset.go);const b=e.target.closest('[data-action]');if(b&&!b.disabled){e.preventDefault();void handle(b.dataset.action,Number(b.dataset.index||0),b.closest('[data-journal-parent]')?.dataset.journalParent).catch(e=>notice(e.message,true));}});
+  document.addEventListener('click',e=>{const owner=e.target.closest('[data-owner]'),area=e.target.closest('[data-area]');if(owner){void selectUser(owner.dataset.owner).catch(e=>notice(e.message,true));return;}if(area){void openArea(area.dataset.area).catch(e=>notice(e.message,true));return;}const page=e.target.closest('[data-page],[data-go]');if(page)return navigate(page.dataset.page||page.dataset.go);const b=e.target.closest('[data-action]');if(b&&!b.disabled){e.preventDefault();void handle(b.dataset.action,b.dataset.entryLine||Number(b.dataset.index||0),b.closest('[data-journal-parent]')?.dataset.journalParent).catch(e=>notice(e.message,true));}});
   $('phoneForgotPassword210').onclick=phonePasswordReset210;
   $('loginForm').onsubmit=async e=>{
     e.preventDefault();if(authBusy)return;authBusy=true;window.phoneLogin210.start();loginMessageTarget14293().textContent='';

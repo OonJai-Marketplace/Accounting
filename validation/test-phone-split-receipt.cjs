@@ -54,7 +54,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
     const records=body.p_items.map((item,i)=>({id:crypto.randomUUID(),staff_journal_id:batch,line_no:i+1,
       client_key:body.p_key+':'+(i+1),editor_snapshot1437:snap,editor_group1437:body.p_key+':'+item.date,
       transaction_date:item.date,reference:item.reference,workspace_entry_no:'ENTRY-'+(i+1),
-      direction:item.direction,fund_account_id:item.fund,account_id:item.account,
+      entry_kind:item.kind,direction:item.direction,fund_account_id:item.fund,account_id:item.account,
       currency_code:'LAK',amount:item.amount,memo:item.memo,status:'draft'}));
     await page.route('**/rest/v1/staff_journals?**',route=>route.fulfill({json:[{id:batch,owner_id:me.id,period_start:snap.date.slice(0,7)+'-01',status:'draft'}]}));
     await page.route('**/rest/v1/staff_journal_lines?**',route=>route.fulfill({json:records}));
