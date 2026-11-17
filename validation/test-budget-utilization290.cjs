@@ -42,10 +42,13 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await page.route('**/rest/v1/operational_reports*',async route=>{
    const req=route.request(),u=new URL(req.url()),id=u.searchParams.get('id')?.slice(3);
    if(req.method()==='POST'){const row=req.postDataJSON();db.set(row.id,row);return route.fulfill({json:[row]});}
+   if(req.method()==='PATCH'){const row={...db.get(id),...req.postDataJSON()};db.set(id,row);return route.fulfill({json:[row]});}
    if(id)return route.fulfill({json:db.get(id)||null});
    return route.fulfill({json:[...db.values()].filter(r=>r.data.requestId14316===u.searchParams.get('data->>requestId14316')?.slice(3)&&r.data.status==='draft')});
   });
+  const persisted=page.waitForResponse(r=>r.url().includes('/rest/v1/operational_reports')&&r.request().method()==='POST');
   await request.getByRole('button',{name:'Save request'}).click();
+  await persisted;
   await page.waitForFunction(()=>Work82.reports.some(r=>r.data.purpose==='Kitchen support'));
   await request.waitFor({state:'detached'});
   const original=[...db.values()].find(r=>r.data.mode==='request');
@@ -76,10 +79,11 @@ const fixture=require('./phase0-browser-fixture.cjs');
    const save=window.saveWork82;window.saveWork82=(kind,d,record)=>kind==='reports'?window.testStoreBudget({id:record?.id||'00000000-0000-4000-a000-000000000321',version:(record?.version||0)+1,data:d}):save(kind,d,record);
   });
   assert(await page.evaluate(()=>documentWorkspace105.save()),'Save the reviewed document from Editor');
+  await page.waitForFunction(async()=>{const m=documentWorkspace105.model.budget14316;const r=await ojmDb.from('operational_reports').select('version').eq('id',m.id).single();return r.data?.version===m.version;});
   assert.equal((await page.evaluate(()=>budgetWorkflow14316.requireSaved())).id,saved.id);
   await page.route('**/rest/v1/rpc/budget_capabilities14316',r=>r.fulfill({json:{version:14316}}));
   await page.locator('#document-editor105').getByRole('button',{name:'Fund utilization',exact:true}).click();
-  const popup=page.getByRole('dialog',{name:'Fund utilization',exact:true});
+  const popup=page.getByRole('dialog',{name:'Budget Request Utilization Report',exact:true});
   await popup.locator('[data-spending-rows]').waitFor();
   async function movement(type,values){
    const group=type==='receipt'?'receipt':type==='spend'?'spend':'other';
@@ -108,7 +112,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const report=[...db.values()].find(r=>r.data.mode==='utilization');
   assert.equal(report.data.movements.length,5);assert.equal(report.data.conversions.length,1);
   const result=await page.evaluate(d=>({totals:[...BudgetReport290.balances(d)],debt:BudgetReport290.outstanding(d,d.movements.find(m=>m.type290==='borrow')),html:BudgetReport290.report(d)}),report.data);
-  const amounts=Object.fromEntries(result.totals);assert.equal(amounts.USD.remaining,50);assert.equal(amounts.LAK.remaining,640000);assert.equal(result.debt,40000);assert.match(result.html,/October 2026/);assert.match(result.html,/Supplier/);assert.match(result.html,/Fuel for delivery route/);assert.match(result.html,/TEST-RECEIPT/);assert.match(result.html,/Internal Fund Utilization Report/);assert.equal(report.data.movements[0].date290,'2026-11-05');
+  const amounts=Object.fromEntries(result.totals);assert.equal(amounts.USD.remaining,50);assert.equal(amounts.LAK.remaining,640000);assert.equal(result.debt,40000);assert.match(result.html,/October 2026/);assert.match(result.html,/Supplier/);assert.match(result.html,/Fuel for delivery route/);assert.match(result.html,/TEST-RECEIPT/);assert.match(result.html,/Budget Request Utilization Report/);assert.equal(report.data.movements[0].date290,'2026-11-05');
   await popup.getByRole('button',{name:'Close',exact:true}).click();
   await page.evaluate(()=>switchTab('transactions-budget14313'));
   assert(await panel.getByRole('button',{name:'Open request'}).isVisible());

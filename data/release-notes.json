@@ -1,6 +1,7 @@
 {
-  "version": "143.427",
+  "version": "143.428",
   "changes": [
-    "Mapping account review opens on the right. The chart and review actions align in compact toolbars."
+    "Budget Request Utilization Report shows requested, used and remaining amounts in USD and LAK, with wider item columns in the worksheet and print editor.",
+    "Saved utilization reports can prepare a summary in Post Transaction and show the confirmed journal ID."
   ]
 }

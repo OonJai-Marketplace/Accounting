@@ -215,14 +215,37 @@ function ready(){
  for(const event of ['online','connection14239','session-online14333'])window.addEventListener(event,()=>{void reconnect().catch(()=>{});});
  const oldSubmit=window.submitJournalEntry;
  window.submitJournalEntry=async function(){if(liveProfile?.role!=='admin'&&!livePermission?.can_post_directly||JournalModule.editingEntryId||pendingWorkspacePostJournalId||pendingWorkspacePostOwnerId||PeriodReview.pendingAdjustment||window.personalJournal1437?.active||window.workflow136?.state.adjustmentReview||document.getElementById('btnPostJournal')?.dataset.payroll1429)return oldSubmit();if(submitting)return;const c=context();submitting=true;try{if(!access113.can('journal','post'))throw Error('Journal posting permission required.');const doc=window.vouchers14299?.readDocument?.(true),entries=payloads(doc);
+ const budgetKey=window.BudgetUtilizationJournal?.postingKey(entries);
  const docText=document.getElementById('journalDocumentRef')?.value||'';
  if(window.workflow136?.state.sessions.some(s=>entries.some(p=>p.p_transaction_date.slice(0,7)===String(s.month).slice(0,7)))){
+  if(budgetKey)throw Error('Choose an open posting date for the utilization summary.');
   if(doc?.slip)throw Error('This correction workspace uses a separate posting form. Put the monthly slip reference in its general description.');
   return await oldSubmit();
  }
- const saved=canonical(entries),payload={p_request_key:crypto.randomUUID(),...(entries.length===1?entries[0]:{p_entries:entries})};const voucher=document.getElementById('jeVoucher14299')?.value;if(voucher&&entries.length!==1)throw Error('Use one date when linking a voucher.');await create(payload,{voucher});assert(c);
- // Clear only the draft actually saved, not subsequent typing during the storage commit.
- let same=false;try{same=canonical(payloads(doc))===saved&&(document.getElementById('journalDocumentRef')?.value||'')===docText}catch{}if(same)clearJournalEntry();window.JournalUndo143103?.reset();paintJournal();requestSync();
+ const saved=canonical(entries),payload={p_request_key:budgetKey||crypto.randomUUID(),...(entries.length===1?entries[0]:{p_entries:entries})};
+ const voucher=document.getElementById('jeVoucher14299')?.value;
+ if(voucher&&entries.length!==1)throw Error('Use one date when linking a voucher.');
+ const editor=document.getElementById('journalEntry98');
+ let edited=false;
+ const onEdit=()=>{edited=true;};
+ if(budgetKey)editor.addEventListener('input',onEdit,true);
+ try{
+  await create(payload,{voucher});assert(c);
+  // The queue refresh can recalculate suggested book rates while an unchanged report is saving.
+  let same=false;
+  try{
+   const current=payloads(doc);
+   if((document.getElementById('journalDocumentRef')?.value||'')===docText){
+    same=canonical(current)===saved;
+    if(!same&&budgetKey&&!edited&&window.BudgetUtilizationJournal?.postingKey(current)===budgetKey){
+     const reviewed=e=>e.map(p=>({...p,p_lines:p.p_lines.map(({book_rate_lak,...l})=>l)}));
+     same=canonical(reviewed(current))===canonical(reviewed(entries));
+    }
+   }
+  }catch{}
+  if(same)clearJournalEntry();
+ }finally{if(budgetKey)editor.removeEventListener('input',onEdit,true);}
+ window.JournalUndo143103?.reset();paintJournal();requestSync();
  const numbers=ownRows().find(j=>j.id===payload.p_request_key)?.localNumbers335?.filter(Boolean)||[];
  showCenterStatus('Saved on this device'+(numbers.length?' · '+numbers.join(', '):'')+'. Sync pending.');
  if(offline14239.canRefresh())void offline14239.confirmConnection().then(()=>valid(c)&&sync({reconnected:true})).catch(()=>{});

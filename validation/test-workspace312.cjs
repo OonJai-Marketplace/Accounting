@@ -62,7 +62,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),create=require(
  await page.screenshot({path:'/tmp/workspace312/budget-request.png'});
  await page.getByRole('button',{name:'Fund utilization',exact:true}).click();
  assert(await page.locator('#categoryTabs').isVisible(),'Budget retains main horizontal navigation');
- const popup=page.getByRole('dialog',{name:'Fund utilization',exact:true});
+ const popup=page.getByRole('dialog',{name:'Budget Request Utilization Report',exact:true});
  await popup.locator('#financeMove82').waitFor();
  await popup.getByRole('button',{name:'Close',exact:true}).click();
  await page.locator('#categoryTabs').getByRole('tab',{name:'Journal',exact:true}).click();

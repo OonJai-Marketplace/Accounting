@@ -3,7 +3,7 @@
 function validDate14317(value){if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const date=new Date(value+'T00:00:00Z');return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value}
 const esc=v=>escapeHtml(String(v??'')),clone=x=>structuredClone(x),num=x=>Number(x)||0;
 let finalTab='submitted',historyTab='journal',allocation=null,allocationRecord=null,fundPopup=null,retainedForm=null,actor='',busy=false,editMove=null,editFx=null,actorClient=null,allocationRequest14370=0;
-const report=BudgetReport290;
+const report=BudgetReport290,journal=BudgetUtilizationJournal;
 let activityPopup=null;
 let selectedParent='',requestEditor=null;
 const requests=()=>Work82.reports.filter(r=>r.data.kind==='finance'&&r.data.mode!=='utilization'&&!r.data.requestId14316);
@@ -37,7 +37,7 @@ function showFunds(open=true){
 function presentFundEditor(){
  if(fundPopup?.isConnected){closeActivity();renderAllocation();return;}
  const previous=retainedForm;retainedForm=null;
- const {root,pending}=budgetDialog('Fund utilization','<div id="budgetFunds290"></div>');
+ const {root,pending}=budgetDialog(report.title,'<div id="budgetFunds290"></div>');
  root.classList.add('fund-popup326');fundPopup=root;
  if(previous?.allocation===allocation)root.querySelector('#budgetFunds290').replaceWith(previous.host);
  else renderAllocation();
@@ -220,12 +220,15 @@ function renderAllocation(){
  const actions='<button type="button" data-activity="receipt">Amount received</button><button type="button" data-activity="conversion">Currency conversion</button><button type="button" data-activity="other">Other fund movements</button>';
  const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th>Status</th><th>Funded amount</th><th>Actual spending</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div><div class="worksheet-actions"><button type="button" data-add-spending>Add row</button><button type="button" data-activity="spend">Spending details</button></div>';
  const rowHeader=d.requestId14316?[report.period(d),d.recipient].filter(Boolean).map(esc).join(' · '):'';
- const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fields82 budget-header14316">'+(d.requestId14316?'':field82('Budget month','budgetMonth290',d.budgetMonth290||String(d.date).slice(0,7),'month','required'))+field82('Report date','date',d.date,'date','required')+field82('Receipt / journal reference (optional)','receiptReference290',d.receiptReference290||'')+field82('Recipient','recipient',d.recipient,'text','required')+field82('Purpose','purpose',d.purpose,'text','required')+field82('Notes','notes',d.notes)+'</div></form>';
+ const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fields82 budget-header14316">'+(d.requestId14316?'':field82('Budget month','budgetMonth290',d.budgetMonth290||String(d.date).slice(0,7),'month','required'))+field82('Report date','date',d.date,'date','required')+field82('Funding receipt / journal reference','receiptReference290',d.receiptReference290||'')+field82('Recipient','recipient',d.recipient,'text','required')+field82('Purpose','purpose',d.purpose,'text','required')+field82('Notes','notes',d.notes)+'</div></form>';
  host.innerHTML='<header class="worksheet-header"><div><h3>'+esc(d.purpose||'Unlinked utilization report')+'</h3><span>'+rowHeader+'</span></div>'+button('Requests and saved reports','chooseRequest()')+'</header>'+
-  section82('Budget and actual spending',table)+'<div class="worksheet-actions">'+actions+'</div>'+
+  '<div data-journal-ref aria-live="polite"></div>'+section82('Budget and actual spending',table)+'<div class="worksheet-actions">'+actions+'</div>'+
   '<details class="worksheet-details" '+(d.requestId14316?'':'open')+'><summary>Report details</summary>'+header+'</details>'+
-  '<details class="worksheet-details" data-summary><summary>Funding and spending summary</summary><div></div></details>'+
-  '<footer class="worksheet-actions">'+button('Print / PDF','previewAllocation()')+button('Finalize','saveAllocation(true)')+button('Save report','saveAllocation(false)')+'</footer>';
+  '<details class="worksheet-details" data-summary><summary>Funding and spending summary <span data-budget-balance></span></summary><div></div></details>'+
+  '<footer class="worksheet-actions">'+button('Print / PDF','previewAllocation()')+button('Finalize','saveAllocation(true)')+button('Save report','saveAllocation(false)')+postControl(allocationRecord)+'</footer>';
+ host.querySelector('footer [onclick*="saveAllocation(true)"]').title='Save as read-only in History';
+ host.querySelector('footer [onclick*="saveAllocation(false)"]').title='Save an editable draft';
+ showJournalReference(host,allocationRecord);
  host.querySelector('#fundHeader290').oninput=captureFund;
  function refreshWorksheet(){
   host.querySelector('[data-spending-rows]').replaceChildren();
@@ -233,9 +236,14 @@ function renderAllocation(){
  }
  refreshWorksheet();
  host.querySelectorAll('[data-activity]').forEach(b=>b.onclick=()=>openActivity(b.dataset.activity));
- const summary=host.querySelector('[data-summary]');
- host.oninput=()=>{summary.open=false};
- summary.ontoggle=()=>{if(summary.open){try{captureFund();host.applySpending();refreshWorksheet();summary.lastElementChild.innerHTML=report.summary(d)}catch(err){summary.open=false;showCenterStatus(err.message,true)}}};
+ const summary=host.querySelector('[data-summary]'),balance=summary.querySelector('[data-budget-balance]');
+ function showBalance(){
+  const {currencies,totals}=report.compare(d);
+  balance.textContent=' · Remaining '+currencies.map(c=>c+' '+(totals[c].remaining==null?'rate needed':formatAppNumber(totals[c].remaining))).join(' / ');
+ }
+ showBalance();
+ host.oninput=()=>{summary.open=false;balance.textContent='';};
+ summary.ontoggle=()=>{if(summary.open){try{captureFund();host.applySpending();refreshWorksheet();showBalance();summary.lastElementChild.innerHTML=report.summary(d)}catch(err){summary.open=false;showCenterStatus(err.message,true)}}};
 }
 function applySpending(){
  guard();captureFund();
@@ -342,12 +350,61 @@ function saveConversion(f){
   validateAllocation({...allocation,conversions:rows},false);allocation.conversions=rows;closeActivity();renderAllocation();
  }catch(e){showCenterStatus(e.message,true)}
 }
-function printUtilization(d){
- const content=document.createElement('div');content.innerHTML=report.report(d);content.querySelector('h1')?.remove();
- return print82('Internal Fund Utilization Report',content.innerHTML,'');
+function postControl(record){
+ if(!access113.can('journal','post'))return '';
+ return record?'<button type="button" data-prepare-budget>Open in Post Transaction</button>':'<small>Save the report to open its summary in Post Transaction.</small>';
+}
+function editorData(d){
+ return JSON.stringify([d.date,d.budgetMonth290,d.receiptReference290||'',d.recipient||'',d.purpose||'',d.notes||'',d.movements||[],d.conversions||[],d.lines.map((l,i)=>report.lineFunding(d,l,i))]);
+}
+function showJournalReference(host,record){
+ const field=host.querySelector('[data-journal-ref]'),post=host.querySelector('[data-prepare-budget]');
+ if(!record)return;
+ if(post)post.onclick=()=>prepareSummary(record,host);
+ const check=context();
+ journal.lookup(record.id).then(link=>{
+  check();if(!field.isConnected)return;
+  const label=journal.reference(link);
+  if(label){field.textContent='Utilization journal · '+label+' · report version '+link.report_version;if(post)post.hidden=true;}
+  else{
+   const job=journal.localJob(record.id);
+   if(job){field.textContent='Utilization journal · '+(job.message||'Awaiting posting confirmation');if(post)post.hidden=true;}
+  }
+ }).catch(()=>{if(field.isConnected)field.textContent='Utilization journal reference unavailable.';});
+}
+async function prepareSummary(record,host){
+ const check=context(),post=host.querySelector('[data-prepare-budget]');if(busy||post.disabled)return;
+ post.disabled=true;
+ try{
+  const worksheet=!!host.querySelector('#fundHeader290');
+  function saved(){
+   if(worksheet){applySpending();if(editorData(allocation)!==editorData(record.data))throw Error('Save the report before opening the updated summary in Post Transaction.');}
+  }
+  saved();
+  const current=await live(record.id,record.version);check();
+  const link=await journal.lookup(record.id);check();if(!host.isConnected)return;
+  if(link)throw Error('This report is already linked to journal '+journal.reference(link)+'.');
+  if(journal.localJob(record.id))throw Error('The utilization posting is waiting for confirmation. Open Data Check to review it.');
+  saved();journal.open(current);
+  if(worksheet)clearFundPopup();else host.resolve108(false);
+ }catch(e){showCenterStatus(e.message,true)}finally{post.disabled=false}
+}
+async function printUtilization(d,record,dialog){
+ const check=context(),origin=fundPopup;
+ let reference='';
+ if(record){
+  try{reference=journal.reference(await journal.lookup(record.id));}
+  catch{reference='Reference unavailable';}
+  check();
+ }
+ const content=document.createElement('div');content.innerHTML=report.report(d,reference);content.querySelector('h1')?.remove();
+ if(await print82(report.title,content.innerHTML,'')){
+  if(dialog?.isConnected)dialog.resolve108(false);
+  if(origin&&origin===fundPopup)origin.resolve108(false);
+ }
 }
 function headerValid(){const form=fundPopup?.querySelector('#fundHeader290');if(form&&!form.checkValidity())form.closest('details').open=true;return form?.reportValidity();}
-function previewAllocation(){try{if(!headerValid())return;applySpending();const d=clone(captureFund());validateAllocation(d,false);d.preparedBy=liveProfile.full_name||liveProfile.email;printUtilization(d)}catch(e){showCenterStatus(e.message,true)}}
+async function previewAllocation(){try{if(!headerValid())return;applySpending();const d=clone(captureFund());validateAllocation(d,false);d.preparedBy=liveProfile.full_name||liveProfile.email;await printUtilization(d,allocationRecord)}catch(e){showCenterStatus(e.message,true)}}
 // The verified source file stays in private Bookkeeping. Save the complete linked batch in one database request.
 function historyImportButton(){
  const months=new Set(Work82.reports.filter(r=>r.data?.mode==='utilization').map(r=>r.data.budgetMonth290));
@@ -443,8 +500,23 @@ function renderFinalization(){if(liveProfile?.role!=='admin')return;if(finalTab=
 function finalization(tab){if(tab==='reconciliation'&&!access113.can('report-reconciliation'))return showCenterStatus('Reconciliation access is required.',true);if(tab==='funds'&&(liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')))return showCenterStatus('Budget Request access is required for Fund Allocation.',true);if(tab==='funds')tab='submitted';finalTab=tab;window.workspace14337?.closeReconciliationHistory();renderFinalization()}
 function renderHistory(){const budgetAllowed=liveProfile?.role==='admin'&&!!access113.can('transactions-budget14313')&&Work82.owner===liveProfile.id;const submissionAllowed=!!access113.can('user-entry-review');if(historyTab==='budget'&&!(liveProfile?.role==='admin'&&access113.can('transactions-budget14313'))||historyTab==='submitted'&&!submissionAllowed)historyTab='journal';const panel=document.getElementById('transactions-all');if(!panel)return;let bar=panel.querySelector('#historySwitch14316');if(!bar){const journal=document.createElement('div');journal.id='journalHistory14316';for(const child of [...panel.children])if(!child.matches('.area-banner113,.module-header,#categoryTabShell'))journal.append(child);panel.append(journal);bar=document.createElement('div');bar.id='historySwitch14316';bar.className='workflow-switch14316';bar.innerHTML=button('Journal',"history('journal')")+button('Submitted Entries',"history('submitted')")+button('Budget Requests',"history('budget')");journal.before(bar);const budget=document.createElement('section');budget.id='budgetHistory14316';panel.append(budget)}bar.querySelectorAll('button').forEach((b,i)=>b.hidden=i===1&&!submissionAllowed||i===2&&!budgetAllowed);const submission=document.getElementById('userEntryHistoryPanel');if(submission&&submission.parentElement!==panel){panel.append(submission);submission.querySelectorAll('[onclick*=toggleSubmissionHistory]').forEach(b=>b.remove())}document.getElementById('journalHistory14316').hidden=historyTab!=='journal';if(submission)submission.hidden=historyTab!=='submitted';const budget=document.getElementById('budgetHistory14316');budget.hidden=historyTab!=='budget';bar.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(['journal','submitted','budget'][i]===historyTab)));const historyRecords=(budgetAllowed?Work82.reports:[]).filter(r=>r.data.kind==='finance');const month=historyMonth14341.choose('budget',historyRecords.map(r=>String(r.data.date).slice(0,7)));if(historyTab!=='budget')return;budget.innerHTML=historyMonth14341.control('budget',month)+historyMonth14341.summary([['Budget Records',historyRecords.filter(r=>String(r.data.date).startsWith(month)).length]])+section82('Budget Request History',table82(['Date','Purpose','Record','Status','Action'],historyRecords.filter(r=>String(r.data.date).startsWith(month)).map(r=>[esc(formatAppDate(r.data.date)),esc(r.data.purpose),r.data.mode==='utilization'?'Fund allocation':'Budget request',esc(r.data.status||'Saved'),button('View',`view(${JSON.stringify(r.id)})`)+(r.data.mode!=='utilization'?button('Editor',`openRequest(${JSON.stringify(r.id)})`):r.data.status!=='finalized'?button('Continue',`openAllocation(${JSON.stringify(r.id)})`):'')+button('Delete',`remove(${JSON.stringify(r.id)})`)])));historyMonth14341.bind(budget,'budget',renderHistory,true)}
 function history(tab){historyTab=tab;renderHistory();if(tab==='submitted')window.renderUserEntryReview?.();if(tab==='budget')(window.startup14257?.isPrepared('payroll')?Promise.resolve():loadWork82()).then(renderHistory)}
-async function view(id){try{const r=await live(id);const html=documentWorkspace105.sanitize(r.data.document14316?.html||financeHtml82(r.data));const {root}=budgetDialog(r.data.mode==='utilization'?'Fund utilization report':'Budget request',html+button('Print / PDF',`printRecord(${JSON.stringify(r.id)})`));root.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'))}catch(e){showCenterStatus(e.message,true)}}
-async function printRecord(id){try{const r=await live(id);if(r.data.mode==='utilization')return printUtilization(r.data);print82('Budget Request',documentWorkspace105.sanitize(r.data.document14316?.html||financeHtml82(r.data)),r.data.date)}catch(e){showCenterStatus(e.message,true)}}
+async function view(id){
+ try{
+  const r=await live(id),utilization=r.data.mode==='utilization';
+  const html=documentWorkspace105.sanitize(utilization?report.report(r.data):r.data.document14316?.html||financeHtml82(r.data));
+  const {root}=budgetDialog(utilization?report.title:'Budget request',html+'<div data-journal-ref></div><button type="button" data-print-record>Print / PDF</button>'+(utilization?postControl(r):''));
+  root.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+  root.querySelector('[data-print-record]').onclick=()=>printRecord(id,root);
+  if(utilization)showJournalReference(root,r);
+ }catch(e){showCenterStatus(e.message,true)}
+}
+async function printRecord(id,dialog){
+ try{
+  const r=await live(id);
+  if(r.data.mode==='utilization')return await printUtilization(r.data,r,dialog);
+  return await print82('Budget Request',documentWorkspace105.sanitize(r.data.document14316?.html||financeHtml82(r.data)),r.data.date);
+ }catch(e){showCenterStatus(e.message,true)}
+}
 async function remove(id){try{const check=context(),client=ojmDb;const r=await live(id);const children=Work82.reports.filter(x=>x.data.requestId14316===id);if(!await ui117.confirm('Delete this '+(r.data.mode==='utilization'?'allocation':'request and all linked allocations')+'? The saved document and shared link will also be removed.'))return;check();const out=await client.rpc('delete_budget14316',{p_id:id,p_version:r.version});check();if(out.error)throw Error(out.error.code==='PGRST202'?'Install INSTALL-BUDGET-LIFECYCLE-v143.16.sql before deleting a linked budget record.':out.error.message);const removed=new Set(out.data?.deletedIds||[id,...children.map(x=>x.id)]);Work82.reports=Work82.reports.filter(x=>!removed.has(x.id));if(removed.has(allocationRecord?.id)||removed.has(allocation?.requestId14316)){allocation=null;allocationRecord=null}if(removed.has(Work82.reportRecord?.id)){Work82.reportRecord=null;Work82.report=null}renderHistory();showCenterStatus('Budget transaction deleted.')}catch(e){showCenterStatus(e.message,true)}}
 const switchBefore=window.switchTab;window.switchTab=function(id,...args){captureFund();return switchBefore.call(this,id,...args)};
 const renderBefore=window.renderWork82;window.renderWork82=function(...args){const out=renderBefore.apply(this,args);if(document.querySelector('#user-entry-review.active'))renderFinalization();if(document.querySelector('#transactions-all.active'))renderHistory();return out};

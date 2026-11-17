@@ -7,7 +7,7 @@ const create=require('./phase0-browser-fixture.cjs');
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await login();await page.waitForFunction(()=>startup14257.interactive);
   await page.evaluate(()=>switchTab('transactions-budget14313'));
-  const panel=page.locator('#transactions-budget14313'),popup=page.getByRole('dialog',{name:'Fund utilization',exact:true});
+  const panel=page.locator('#transactions-budget14313'),popup=page.getByRole('dialog',{name:'Budget Request Utilization Report',exact:true});
   await panel.getByRole('button',{name:'Fund utilization',exact:true}).click();
   const form=page.getByRole('dialog',{name:'Other fund movements'}).locator('#financeMove82'),header=popup.locator('#fundHeader290');
   await popup.locator('[data-spending-rows]').waitFor({state:'attached'});

@@ -21,7 +21,7 @@ window.BudgetSpendingWorksheet = (() => {
    function update() {
     const partial = select.value === 'deduction';
     deduction.hidden = !partial; display.hidden = partial;
-    if (!partial) display.textContent = line.currency+' '+formatAppNumber(select.value === 'declined' ? 0 : line.amount);
+    if (!partial) display.innerHTML = BudgetReport290.dualAmount(draft,select.value === 'declined' ? 0 : line.amount,line.currency);
    }
    select.onchange = update;
    update();
@@ -35,14 +35,24 @@ window.BudgetSpendingWorksheet = (() => {
    const item = line?.description || movement?.description290 || '';
    cell(linked ? '<strong>'+esc(item)+'</strong>'+(first?'<small>'+esc(line.category)+'</small>':'')+
     (movement?.description290?'<small>'+esc(movement.description290)+'</small>':'') :
-    '<small>Additional spending</small><input name="description" aria-label="Additional spending detail" placeholder="Spending detail" value="'+esc(item)+'">');
-   cell(linked && first ? esc(line.currency+' '+formatAppNumber(line.amount)) : '');
+    '<small>'+esc(movement?.destination290||'Additional spending')+'</small><input name="description" aria-label="Additional spending detail" placeholder="Spending detail" value="'+esc(item)+'">');
+   cell(linked && first ? BudgetReport290.dualAmount(draft,line.amount,line.currency) : '');
    if (linked && first) fundingCells(row,line,index);
    else { row.insertCell(); row.insertCell(); }
    const currencyChoice = !linked && !movement ? '<select data-plain14285 data-spending-currency aria-label="Spending currency">'+currencies.map(([c]) =>
     '<option'+(c===currency?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select>' : '';
    const cross = linked && currency !== line.currency;
    cell(currencyChoice + (cross?'<small>'+esc(currency)+'</small>':'') + '<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?.outflow??'')+'" placeholder="0.00"'+(cross?' readonly':'')+'>');
+   const actualCell=row.lastElementChild;
+   const alternate=document.createElement('small');actualCell.append(alternate);
+   function updateEquivalent(){
+    const input=actualCell.querySelector('[name=actualAmount]'),selected=actualCell.querySelector('select')?.value||currency;
+    if(!input.value){alternate.textContent='';return;}
+    const amount=Number(input.valueAsNumber);
+    if(!Number.isFinite(amount)){alternate.textContent='';return;}
+    alternate.innerHTML=BudgetReport290.dualAmount(draft,amount,selected,line,amount===Number(movement?.outflow)?movement:null).split('<br>').slice(1).join('<br>');
+   }
+   updateEquivalent();actualCell.addEventListener('input',updateEquivalent);actualCell.addEventListener('change',updateEquivalent);
    const action = row.insertCell();
    if (movement) {
     const details = document.createElement('button');

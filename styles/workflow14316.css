@@ -79,11 +79,12 @@ footer.worksheet-actions button:last-child,.fund-activity button[type=submit]{ba
 #budgetFunds290 .spending-worksheet{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse}
 #budgetFunds290 .spending-worksheet :is(th,td){padding:6px;vertical-align:middle;white-space:normal;overflow-wrap:anywhere}
 .spending-worksheet th{background:#e7efe9}
-#budgetFunds290 .spending-worksheet th:nth-child(1){width:25%}
-#budgetFunds290 .spending-worksheet th:nth-child(2){width:14%}
-#budgetFunds290 .spending-worksheet th:nth-child(3){width:15%}
-#budgetFunds290 .spending-worksheet th:nth-child(4),#budgetFunds290 .spending-worksheet th:nth-child(5){width:18%}
-#budgetFunds290 .spending-worksheet th:last-child{width:10%}
+#budgetFunds290 .spending-worksheet th:nth-child(1){width:41%}
+#budgetFunds290 .spending-worksheet th:nth-child(2){width:12%}
+#budgetFunds290 .spending-worksheet th:nth-child(3){width:12%}
+#budgetFunds290 .spending-worksheet th:nth-child(4){width:12%}
+#budgetFunds290 .spending-worksheet th:nth-child(5){width:15%}
+#budgetFunds290 .spending-worksheet th:last-child{width:8%}
 .spending-worksheet :is(th,td):is(:nth-child(2),:nth-child(4),:nth-child(5)){text-align:right;font-variant-numeric:tabular-nums}
 #budgetFunds290 .spending-worksheet :is(input,select){width:100%;min-width:0;box-sizing:border-box}
 .spending-worksheet [hidden]{display:none!important}
@@ -104,3 +105,7 @@ body .fund-activity .budget-dialog14313{width:min(880px,calc(100vw - 36px))!impo
 body .fund-activity form.finance-controls117{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));align-items:end;gap:12px;padding-bottom:14px}
 .fund-activity [hidden]{display:none!important}
 .fund-activity .data-table82{overflow-x:auto}
+
+#budgetFunds290 [data-summary] table{min-width:0}
+#budgetFunds290 [data-summary] :is(td,th){white-space:normal;vertical-align:top;overflow-wrap:anywhere}
+.budget-journal-reference{font-weight:600}
