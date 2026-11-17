@@ -24,3 +24,7 @@ verify_jwt = false
 # Retired endpoint returns HTTP 410 for previously installed clients.
 [functions.portable-sheet-append]
 verify_jwt = false
+
+# Public bank quotes only. The gateway verifies the project JWT.
+[functions.bcel-rates]
+verify_jwt = true

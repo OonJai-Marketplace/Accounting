@@ -440,6 +440,134 @@ window.RailTools379=(()=>{
  return {install,outside};
 })();
 
+// Created only when the bank tab is opened. The lookup does not read or write the books.
+function createBcelRatePanel(dialog, preferenceKey, valid) {
+ const defaults = 'https://www.bcel.com.la/bcel/exchange-rate.html?lang=en';
+ const today = new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Vientiane'}).format(new Date());
+ const panel = dialog.querySelector('#fx-bank-panel');
+ const settingsKey = preferenceKey + ':bcel-source', cacheKey = preferenceKey + ':bcel-quotes';
+ function saved(key) { try { return localStorage.getItem(key); } catch { return null; } }
+ function sourceUrl(value) {
+  const url = new URL(value);
+  if (url.protocol !== 'https:' || !['www.bcel.com.la','bcel.com.la'].includes(url.hostname) || url.port || url.username || url.password || url.pathname.replace(/\/{2,}/g,'/') !== '/bcel/exchange-rate.html') throw Error('Use BCEL’s official HTTPS exchange-rate page.');
+  const source = new URL(defaults);
+  if (url.searchParams.get('lang') === 'la') source.searchParams.set('lang','la');
+  const d = url.searchParams.get('exDate'), r = url.searchParams.get('round');
+  if (d) {
+   const time = Date.parse(d + 'T00:00:00Z');
+   if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !Number.isFinite(time) || new Date(time).toISOString().slice(0,10) !== d || d > today) throw Error('Use a BCEL link with a valid rate date.');
+   source.searchParams.set('exDate',d);
+  }
+  if (r) {
+   if (!/^[1-9]\d{0,3}$/.test(r)) throw Error('Use a valid BCEL round number.');
+   source.searchParams.set('round',r);
+  }
+  return source;
+ }
+ let source;
+ try { source = sourceUrl(saved(settingsKey) || defaults); } catch { source = new URL(defaults); }
+ let cache;
+ try { cache = JSON.parse(saved(cacheKey)); } catch {}
+ if (!Array.isArray(cache)) cache = [];
+ let request = null;
+ panel.innerHTML = `<form class="fx-source" hidden><label>BCEL source link<input name="source" type="url" required></label><div class="watch-toolbar"><button type="button" data-cancel>Cancel</button><button type="submit">Save source</button></div><small role="status"></small></form>
+ <div class="fx-filters"><label>Rate date<input type="date" name="date" required></label><label>Round<select name="round"></select></label><a data-source-link target="_blank" rel="noopener noreferrer">View BCEL source ↗</a></div>
+ <p data-bank-status role="status"></p><div class="watch-scroll" data-quotes></div>`;
+ const form = panel.querySelector('form'), day = panel.querySelector('[name=date]'), round = panel.querySelector('[name=round]');
+ const sourceLink = panel.querySelector('[data-source-link]'), status = panel.querySelector('[data-bank-status]'), result = panel.querySelector('[data-quotes]');
+ const settingsButton = dialog.querySelector('[data-bank-settings]');
+ day.max = today;
+ function rounds(available, selected) {
+  round.replaceChildren(new Option('Latest',''), ...available.map(n => new Option(n,n)));
+  round.value = selected;
+ }
+ function resetDate() {
+  day.value = source.searchParams.get('exDate') || today;
+  const initial = source.searchParams.get('round') || '';
+  rounds(initial ? [initial] : [], initial);
+ }
+ function updateLink(effectiveRound) {
+  const link = new URL(source);
+  if (day.value) link.searchParams.set('exDate',day.value); else link.searchParams.delete('exDate');
+  if (effectiveRound) link.searchParams.set('round',effectiveRound); else link.searchParams.delete('round');
+  sourceLink.href = link.href;
+ }
+ function render(data, fromCache) {
+  rounds(data.rounds, round.value);
+  updateLink(data.round);
+  const checked = new Date(data.checkedAt);
+  const checkedDate = checked.toLocaleDateString('sv-SE',{timeZone:'Asia/Vientiane'});
+  const checkedTime = checked.toLocaleTimeString('en-GB',{timeZone:'Asia/Vientiane',hour:'2-digit',minute:'2-digit'});
+  status.textContent = `${formatAppDate(data.date)} · Round ${data.round} · LAK per foreign unit · ${fromCache ? 'Saved copy, checked' : 'Checked'} ${formatAppDate(checkedDate)} ${checkedTime} (Laos)`;
+  const esc = v => escapeHtml(String(v ?? '—'));
+  const rows = data.quotes.map(q => `<tr><th scope="row">${esc(q.code)}<small>${esc(q.name)}</small></th>${[q.note,q.bill,q.eft,q.sell].map(v => '<td>'+esc(v)+'</td>').join('')}</tr>`);
+  result.innerHTML = '<table aria-label="BCEL exchange rates in Lao kip"><thead><tr><th scope="col">Currency</th><th scope="col">Buy · Note</th><th scope="col">Buy · Bill</th><th scope="col">Buy · EFT</th><th scope="col">Sell</th></tr></thead><tbody>'+rows.join('')+'</tbody></table>';
+ }
+ function cancel() { request?.abort(); request = null; }
+ async function load(refresh = false) {
+  cancel(); if (!valid() || panel.hidden) return;
+  const date = day.value, choice = round.value;
+  const cacheId = date + '/' + choice;
+  const cached = cache.find(item => item?.key === cacheId && item.data?.date === date && Array.isArray(item.data.quotes) && Array.isArray(item.data.rounds));
+  result.replaceChildren(); updateLink(choice);
+  if (!day.validity.valid) { status.textContent = 'Choose a rate date through today.'; return; }
+  if (cached && !refresh) { render(cached.data, true); return; }
+  if (!navigator.onLine) {
+   if (cached) render(cached.data, true);
+   status.textContent = cached ? status.textContent+' · Offline' : 'Offline. No saved BCEL rate for this date and round.';
+   return;
+  }
+  const controller = new AbortController(); request = controller;
+  const timeout = setTimeout(() => controller.abort(), 25000);
+  const current = () => request === controller && valid() && !panel.hidden;
+  status.textContent = 'Checking BCEL…';
+  try {
+   const endpoint = new URL(window.OJM_SUPABASE_URL + '/functions/v1/bcel-rates');
+   endpoint.searchParams.set('date', date);
+   if (choice) endpoint.searchParams.set('round', choice);
+   // Only the public project key is used for public bank data.
+   const key = window.OJM_SUPABASE_ANON_KEY;
+   const response = await fetch(endpoint, {signal:controller.signal, cache:'no-store', headers:{apikey:key, Authorization:'Bearer '+key}});
+   if (!response.ok) throw Error('The lookup is unavailable.');
+   const data = await response.json();
+   if (!current()) return;
+   if (data.status === 'unavailable' && data.date === date) {
+    cache = cache.filter(item => item?.key !== cacheId);
+    try { localStorage.setItem(cacheKey,JSON.stringify(cache)); } catch {}
+    status.textContent = 'No confirmed BCEL rate for '+formatAppDate(date)+(choice ? ', round '+choice : '')+'.'; return;
+   }
+   if (data.status !== 'published' || data.date !== date || (choice && data.round !== choice) || !data.quotes?.length || !data.rounds?.includes(data.round)) throw Error('Unconfirmed result.');
+   render(data, false);
+   cache = [{key:cacheId,data}, ...cache.filter(item => item?.key !== cacheId)].slice(0,16);
+   try { localStorage.setItem(cacheKey,JSON.stringify(cache)); } catch { /* The online result is still available. */ }
+  } catch {
+   if (!current()) return;
+   if (cached) render(cached.data, true);
+   status.textContent = (cached ? status.textContent+' · ' : '')+'Could not reach or verify BCEL. Try Refresh or View BCEL source.';
+  } finally { clearTimeout(timeout); if (request === controller) request = null; }
+ }
+ function toggleSettings(open) {
+  form.hidden = !open; settingsButton.setAttribute('aria-expanded',String(open));
+  if (open) { form.elements.source.value = source.href; form.querySelector('small').textContent = ''; form.elements.source.focus(); }
+  else settingsButton.focus();
+ }
+ settingsButton.onclick = () => toggleSettings(form.hidden);
+ form.querySelector('[data-cancel]').onclick = () => toggleSettings(false);
+ form.onsubmit = event => {
+  event.preventDefault(); if (!valid()) return;
+  let next;
+  try { next = sourceUrl(form.elements.source.value.trim()); }
+  catch (e) { form.querySelector('small').textContent = e.message || 'Use BCEL’s official exchange-rate link.'; return; }
+  try { localStorage.setItem(settingsKey,next.href); } catch { form.querySelector('small').textContent = 'This device could not save the source.'; return; }
+  source = next; resetDate(); toggleSettings(false); load();
+ };
+ day.onchange = () => { rounds([], ''); load(); };
+ round.onchange = () => load();
+ dialog.querySelector('[data-bank-refresh]').onclick = () => load(true);
+ resetDate();
+ return {load, cancel};
+}
+
 // The rail registers click handlers at startup. Only an open dialog reads accounts or journal lines.
 window.AccountWatch378=(()=>{
  'use strict';
@@ -493,7 +621,7 @@ window.AccountWatch378=(()=>{
  }
  function install(root,session){
   let active=null;
-  function close(){if(active){active.controller?.abort();if(active.dialog.open)active.dialog.close();active.dialog.remove();active=null;}}
+  function close(){if(active){active.controller?.abort();active.bank?.cancel();if(active.dialog.open)active.dialog.close();active.dialog.remove();active=null;}}
   function open(rates,trigger){
    close();const owner=session(),db=ojmDb;
    if(!owner||window.workspaceRequest138?.target)return;
@@ -507,6 +635,32 @@ window.AccountWatch378=(()=>{
    dialog.className='watch-dialog';dialog.setAttribute('aria-label',name);
    dialog.innerHTML='<header><h2>'+name+'</h2><div class="watch-toolbar">'+(rates?'':'<label>Group <select>'+groups.map(g=>'<option>'+g+'</option>').join('')+'</select></label>')+'<button data-edit type="button">Edit accounts</button><button data-refresh type="button">Refresh</button></div><button class="close" aria-label="Close" type="button">×</button></header><div class="watch-body"></div>';
    const body=dialog.querySelector('.watch-body'),toolbar=dialog.querySelector('.watch-toolbar');
+   if(rates){
+    dialog.classList.add('fx-dialog');dialog.setAttribute('aria-label','Exchange rates');
+    dialog.querySelector('h2').textContent='Exchange rates';
+    toolbar.classList.add('account-tools');
+    toolbar.insertAdjacentHTML('afterend','<div class="watch-toolbar" data-bank-tools hidden><button type="button" data-bank-settings aria-expanded="false">Source settings</button><button type="button" data-bank-refresh>Refresh</button></div>');
+    body.insertAdjacentHTML('beforebegin','<div class="fx-tabs" role="tablist" aria-label="Exchange rates"><button type="button" role="tab" id="fx-account-tab" aria-controls="fx-account-panel" aria-selected="true">Foreign account rates</button><button type="button" role="tab" id="fx-bank-tab" aria-controls="fx-bank-panel" aria-selected="false" tabindex="-1">BCEL bank rates</button></div>');
+    body.id='fx-account-panel';body.setAttribute('role','tabpanel');body.setAttribute('aria-labelledby','fx-account-tab');
+    body.insertAdjacentHTML('afterend','<div class="watch-body" id="fx-bank-panel" role="tabpanel" aria-labelledby="fx-bank-tab" hidden></div>');
+    const bankPanel=dialog.querySelector('#fx-bank-panel'),bankTools=dialog.querySelector('[data-bank-tools]');
+    const tabs=[...dialog.querySelectorAll('[role=tab]')];
+    function selectTab(tab){
+     if(!valid()||tab.getAttribute('aria-selected')==='true')return;
+     const bank=tab.id==='fx-bank-tab';body.hidden=bank;bankPanel.hidden=!bank;bankTools.hidden=!bank;
+     dialog.classList.toggle('bank-open',bank);
+     for(const t of tabs){t.tabIndex=t===tab?0:-1;t.setAttribute('aria-selected',String(t===tab));}
+     if(bank){state.bank??=createBcelRatePanel(dialog,key,valid);state.bank.load();}else state.bank?.cancel();
+    }
+    for(const tab of tabs){
+     tab.onclick=()=>selectTab(tab);
+     tab.onkeydown=e=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+      e.preventDefault();const next=e.key==='Home'?tabs[0]:e.key==='End'?tabs[1]:tabs.find(t=>t!==tab);
+      next.focus();selectTab(next);
+     };
+    }
+   }
    const date=d=>d?formatAppDate(d):'—';
    function persist(updates){try{localStorage.setItem(key,JSON.stringify({...prefs(),...updates}));return true;}catch{body.textContent='This device could not save your account selection.';return false;}}
    function cancelRead(){state.controller?.abort();state.controller=null;}
@@ -637,6 +791,19 @@ window.AccountWatch378=(()=>{
     .watch-scroll{overflow:auto}.watch-body table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
     .watch-body :is(th,td){padding:8px 6px;border-bottom:1px solid #d6dfd8;text-align:right}.watch-body th:first-child{text-align:left;width:35%}.watch-body thead{background:#edf5ee}.watch-body small{display:block;font-weight:normal;color:#53685a}
     .watch-options{max-height:47vh;overflow:auto;margin:8px 0}.watch-options label{display:flex;gap:8px;align-items:center;padding:6px;border-bottom:1px solid #dde5de}.watch-dialog input[type=search]{width:100%;margin-top:8px}.watch-dialog footer{justify-content:flex-end}
+    .fx-dialog.bank-open .account-tools{display:none}
+    .fx-tabs{display:flex;gap:4px;border-bottom:1px solid #ccdace}
+    .fx-tabs button{min-height:34px;padding:4px 12px;background:none;border:0;border-bottom:2px solid transparent;color:#52665b;font-weight:600}
+    .fx-tabs [aria-selected=true]{color:#194c38;border-bottom-color:#20704c;background:#edf5ee;border-radius:5px 5px 0 0}
+    .fx-filters,.fx-source{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px}
+    .fx-dialog .fx-filters label,.fx-dialog .fx-source label{display:grid;gap:3px;font-size:12px;font-weight:bold}
+    .fx-dialog .fx-filters :is(input,select),.fx-dialog .fx-source input{font:inherit;font-weight:normal;min-height:32px;padding:4px 8px;color:var(--ink);border:1px solid #aec1b3;border-radius:5px;background:white}
+    .fx-source{margin:0 0 12px;padding:12px;border:1px solid #cbdacf;border-radius:7px;background:#f1f6f1}
+    .fx-source label{flex:1 1 220px;min-width:0}.fx-source input{width:100%}.fx-source small:not(:empty){flex-basis:100%;color:#903823}
+    .fx-source [type=submit]{color:white;background:var(--pine);border-color:var(--pine)}
+    .fx-filters a{margin-left:auto;align-self:center;color:#176449;text-underline-offset:3px}
+    .fx-dialog [data-quotes] :is(th,td):nth-child(4){background-color:#edf5ef;font-weight:600}
+    .fx-dialog [data-quotes] td{white-space:nowrap}.fx-dialog [data-quotes] thead th{white-space:nowrap}
     .ledger-stats379{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}.ledger-stats379>div{padding:8px;background:#edf5ee;border-radius:5px}.ledger-stats379 strong{font-variant-numeric:tabular-nums}
     .ledger-matches379{display:grid;max-height:24vh;overflow:auto}.ledger-matches379 button{background:white;border:0;border-bottom:1px solid #d6dfd8;text-align:left;padding:7px}.ledger-detail379 .watch-toolbar h3{margin-right:auto}
     .watch-body .ledger-lines379 :is(th,td):nth-child(-n+3){text-align:left;width:auto}.ledger-lines379 td:nth-child(3){width:40%}.ledger-lines379 td:nth-child(n+4){white-space:nowrap}

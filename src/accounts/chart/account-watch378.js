@@ -51,7 +51,7 @@ window.AccountWatch378=(()=>{
  }
  function install(root,session){
   let active=null;
-  function close(){if(active){active.controller?.abort();if(active.dialog.open)active.dialog.close();active.dialog.remove();active=null;}}
+  function close(){if(active){active.controller?.abort();active.bank?.cancel();if(active.dialog.open)active.dialog.close();active.dialog.remove();active=null;}}
   function open(rates,trigger){
    close();const owner=session(),db=ojmDb;
    if(!owner||window.workspaceRequest138?.target)return;
@@ -65,6 +65,32 @@ window.AccountWatch378=(()=>{
    dialog.className='watch-dialog';dialog.setAttribute('aria-label',name);
    dialog.innerHTML='<header><h2>'+name+'</h2><div class="watch-toolbar">'+(rates?'':'<label>Group <select>'+groups.map(g=>'<option>'+g+'</option>').join('')+'</select></label>')+'<button data-edit type="button">Edit accounts</button><button data-refresh type="button">Refresh</button></div><button class="close" aria-label="Close" type="button">×</button></header><div class="watch-body"></div>';
    const body=dialog.querySelector('.watch-body'),toolbar=dialog.querySelector('.watch-toolbar');
+   if(rates){
+    dialog.classList.add('fx-dialog');dialog.setAttribute('aria-label','Exchange rates');
+    dialog.querySelector('h2').textContent='Exchange rates';
+    toolbar.classList.add('account-tools');
+    toolbar.insertAdjacentHTML('afterend','<div class="watch-toolbar" data-bank-tools hidden><button type="button" data-bank-settings aria-expanded="false">Source settings</button><button type="button" data-bank-refresh>Refresh</button></div>');
+    body.insertAdjacentHTML('beforebegin','<div class="fx-tabs" role="tablist" aria-label="Exchange rates"><button type="button" role="tab" id="fx-account-tab" aria-controls="fx-account-panel" aria-selected="true">Foreign account rates</button><button type="button" role="tab" id="fx-bank-tab" aria-controls="fx-bank-panel" aria-selected="false" tabindex="-1">BCEL bank rates</button></div>');
+    body.id='fx-account-panel';body.setAttribute('role','tabpanel');body.setAttribute('aria-labelledby','fx-account-tab');
+    body.insertAdjacentHTML('afterend','<div class="watch-body" id="fx-bank-panel" role="tabpanel" aria-labelledby="fx-bank-tab" hidden></div>');
+    const bankPanel=dialog.querySelector('#fx-bank-panel'),bankTools=dialog.querySelector('[data-bank-tools]');
+    const tabs=[...dialog.querySelectorAll('[role=tab]')];
+    function selectTab(tab){
+     if(!valid()||tab.getAttribute('aria-selected')==='true')return;
+     const bank=tab.id==='fx-bank-tab';body.hidden=bank;bankPanel.hidden=!bank;bankTools.hidden=!bank;
+     dialog.classList.toggle('bank-open',bank);
+     for(const t of tabs){t.tabIndex=t===tab?0:-1;t.setAttribute('aria-selected',String(t===tab));}
+     if(bank){state.bank??=createBcelRatePanel(dialog,key,valid);state.bank.load();}else state.bank?.cancel();
+    }
+    for(const tab of tabs){
+     tab.onclick=()=>selectTab(tab);
+     tab.onkeydown=e=>{
+      if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
+      e.preventDefault();const next=e.key==='Home'?tabs[0]:e.key==='End'?tabs[1]:tabs.find(t=>t!==tab);
+      next.focus();selectTab(next);
+     };
+    }
+   }
    const date=d=>d?formatAppDate(d):'—';
    function persist(updates){try{localStorage.setItem(key,JSON.stringify({...prefs(),...updates}));return true;}catch{body.textContent='This device could not save your account selection.';return false;}}
    function cancelRead(){state.controller?.abort();state.controller=null;}
