@@ -1,6 +1,6 @@
 {
-  "version": "143.435",
+  "version": "143.436",
   "changes": [
-    "Staff Entries and History show each receipt’s line memo, including previously saved Cashbook batches. The general description is available as a fallback for a receipt without a line memo."
+    "Fund utilization shows dollar and kip amounts in the same cell, with dollars first. Kip payments can be edited directly in Actual spending. The budget comparison and its printout use the same layout."
   ]
 }
