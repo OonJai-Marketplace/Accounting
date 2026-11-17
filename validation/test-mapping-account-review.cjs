@@ -44,6 +44,23 @@ const setup=require('./phase0-browser-fixture.cjs');
   await dialog.locator('tbody tr').nth(2).waitFor();
   await dialog.getByRole('button',{name:'Close'}).click();
   await dialog.waitFor({state:'hidden'});
-  console.log('PASS on-demand mapping review, evidence, signed balances, filtering, errors, retry and close.');
+  // The posting action appears only on the reviewed November journal and requires a click.
+  const correction=dialog.getByRole('button',{name:'Correct November restaurant rent'});
+  let postings=0;
+  rows.push({code:'9222',name:'Restaurant rent',currency:'THB',active:true,recommendation:'Keep posted history',replacement:'5123',posting_count:1,balance:20000,reasons:[],journals:['AMO26-000006']});
+  rows[1].journals=['AMO26-000006'];
+  await page.route('**/rpc/apply_reviewed_restaurant_rent_2026',route=>{
+   postings++;
+   for(const row of [rows[1],rows[3]]){row.posting_count=0;row.balance=0;row.journals=[];}
+   return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify('AMO26-000006')});
+  });
+  await open.click();
+  await correction.waitFor({state:'visible'});
+  assert.equal(postings,0);
+  await correction.click();
+  await dialog.getByText('4 of 4 mapping accounts',{exact:false}).waitFor();
+  await correction.waitFor({state:'hidden'});
+  assert.equal(postings,1);
+  console.log('PASS on-demand review, filter, refresh, retry, close and explicitly posted rent correction.');
  }finally{await f.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

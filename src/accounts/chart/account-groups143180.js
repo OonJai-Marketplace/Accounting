@@ -127,6 +127,7 @@ function openActions(row,event){
 const canReviewMappings=()=>!!actor() && liveProfile.role==='admin' &&
  (!window.access113 || (access113.can('sec-chart-accounts','view') && access113.can('journal','view')));
 let reviewOwner='',reviewClient=null,reviewRequest=0,reviewRows=[],reviewSubscription,reviewLoading=false;
+let postingRent=false;
 function syncMappingReview(){
  const button=$('mappingReviewOpen'),dialog=$('mappingReview');
  if(!button||!dialog)return;
@@ -153,13 +154,17 @@ function renderMappingReview(){
   cell(item.posting_count+' posted',journals.join(', '));fragment.append(row);
  }
  body.replaceChildren(fragment);
+ const rentButton=$('mappingReviewRent');
+ rentButton.hidden=!['9222','9290'].every(code=>rows.some(r=>r.code===code&&r.journals?.includes('AMO26-000006'))) ||
+  !window.access113?.can('journal','post') || !window.access113?.can('sec-chart-accounts','edit');
+ rentButton.disabled=postingRent;
  $('mappingReviewStatus').textContent=rows.length+' of '+reviewRows.length+' mapping accounts · All posting dates';
 }
 async function readMappingReview(){
  const dialog=$('mappingReview'),filter=$('mappingReviewFilter');
  if(reviewLoading)return;
  const request=++reviewRequest,selection=filter.value;
- filter.disabled=true;reviewLoading=true;
+ filter.disabled=true;reviewLoading=true;$('mappingReviewRent').hidden=true;
  reviewRows=[];dialog.querySelector('tbody').replaceChildren();
  $('mappingReviewStatus').textContent='Checking accounts and posted journals…';
  try{
@@ -178,6 +183,22 @@ async function readMappingReview(){
   if(request===reviewRequest&&dialog.open)$('mappingReviewStatus').textContent=error?.message||'Could not load mapping accounts. Select Refresh to try again.';
  }finally{if(request===reviewRequest)reviewLoading=false;}
 }
+async function correctNovemberRent(){
+ const button=$('mappingReviewRent'),client=reviewClient,user=reviewOwner,dialog=$('mappingReview');
+ if(postingRent||!client||!user||user!==actor()||button.hidden||!dialog.open)return;
+ const sameSession=()=>actor()===user&&(typeof ojmDb==='undefined'?null:ojmDb)===client;
+ postingRent=true;button.disabled=true;
+ try{
+  const result=await client.rpc('apply_reviewed_restaurant_rent_2026');
+  if(!sameSession())return;
+  if(result.error||result.data!=='AMO26-000006')throw Error(result.error?.message||'Could not verify the November rent revision.');
+  showCenterStatus('November restaurant rent corrected · AMO26-000006');
+  if(dialog.open&&reviewOwner===user)await readMappingReview();
+  if(sameSession()&&typeof loadJournalFromSupabase==='function')await loadJournalFromSupabase();
+ }catch(error){
+  if(sameSession())showCenterStatus(error.message||'Check the connection and refresh the review.',true);
+ }finally{postingRent=false;button.disabled=false;}
+}
 function initMappingReview(){
  const button=$('mappingReviewOpen'),dialog=$('mappingReview');
  if(!button||!dialog)return;
@@ -192,11 +213,12 @@ function initMappingReview(){
  };
  dialog.querySelector('[data-close-review]').onclick=()=>dialog.close();
  $('mappingReviewRefresh').onclick=readMappingReview;
+ $('mappingReviewRent').onclick=correctNovemberRent;
  $('mappingReviewFilter').onchange=renderMappingReview;
  dialog.addEventListener('close',()=>{
   reviewRequest++;reviewSubscription?.unsubscribe();reviewSubscription=null;reviewRows=[];reviewOwner='';reviewClient=null;
   dialog.querySelector('tbody').replaceChildren();$('mappingReviewStatus').textContent='';
-  reviewLoading=false;
+  reviewLoading=false;$('mappingReviewRent').hidden=true;
   $('mappingReviewFilter').replaceChildren(new Option('All accounts',''));
  });
  syncMappingReview();
