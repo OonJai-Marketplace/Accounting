@@ -28,6 +28,15 @@ function format(html){const root=document.createElement('div');root.innerHTML=ht
  root.querySelectorAll('table').forEach(t=>{const reconciliation=t.matches('.rec-ledger71');t.removeAttribute('class');t.style.cssText='font-family:Arial;font-size:10pt;line-height:1.15;width:100%;border-collapse:collapse;table-layout:fixed;margin:0 0 2mm';
  const heads=[...t.querySelectorAll('thead tr:last-child>th')],remove=heads.map((h,i)=>/^actions?$/i.test(h.textContent.trim())?i:-1).filter(i=>i>=0).reverse();for(const r of t.rows)for(const i of remove)if(r.cells.length===heads.length||r.parentElement.tagName==='THEAD')r.cells[i]?.remove();
  t.querySelectorAll('th,td').forEach(c=>{const bold=!!c.querySelector('strong')||c.closest('tr')?.classList.contains('report-subtotal143185'),numeric=/^(?:[−–-]?[\d,.\s]+|\([\d,.\s]+\))(?:\s*(?:DR|CR))?$/i.test(c.textContent.trim());c.style.cssText='border-bottom:0.5pt solid #b8c8bd;padding:0.55mm 0.65mm;vertical-align:top;overflow-wrap:anywhere;'+(c.tagName==='TH'?'background-color:#eaf1eb;text-align:left;font-weight:bold;':numeric?'text-align:right;white-space:nowrap;overflow-wrap:normal;':'white-space:pre-line;')+(bold?'font-weight:700;':'');if(numeric){const m=c.textContent.trim().match(/^(.*)\s+(DR|CR|Dr|Cr)$/);if(m)c.innerHTML=esc(m[1])+'<br><small>'+esc(m[2])+'</small>';}});
+ // The shared print formatter replaces cell styles. Reinstate the full-width budget totals afterwards.
+ for(const r of t.rows){
+  if(!r.matches('[data-budget-summary290]')&&!r.querySelector('[data-budget-total14316]')&&
+     !(t.matches('[data-budget-table14316]')&&r.parentElement===t.tFoot))continue;
+  for(const cell of r.cells){
+   cell.style.backgroundColor='#dceee3';cell.style.color='#173f30';cell.style.fontWeight='700';
+   if(cell.cellIndex>0&&r.dataset.budgetSummary290==='total')cell.style.textAlign='right';
+  }
+ }
  // Reconciliation keeps both dates and both amounts beside the description.
  // Atomic spans retain content-sized columns after document sanitization.
  if(reconciliation){t.style.tableLayout='auto';t.querySelectorAll('.rec-compact71').forEach(c=>{c.style.width='1%';const span=document.createElement('span');span.style.cssText='display:inline-block;min-width:max-content';span.append(...c.childNodes);c.append(span)});t.querySelectorAll('.rec-number71').forEach(c=>c.style.textAlign='right');}

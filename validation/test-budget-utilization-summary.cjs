@@ -16,7 +16,7 @@ const create=require('./phase0-browser-fixture.cjs');
   let linked=null;
   await page.route('**/rpc/account_exchange_rates143186',route=>{
    const p=route.request().postDataJSON();
-   return route.fulfill({json:{as_of:p.p_as_of,calculated_at:'2026-11-15T01:00:00Z',accounts:[0,1].map(i=>({account_id:'00000000-0000-4000-a000-00000000000'+i,average_rate:20000,rate_status:'available'}))}});
+   return route.fulfill({json:{as_of:p.p_as_of,calculated_at:'2026-11-15T01:00:00Z',accounts:[0,1,2].map(i=>({account_id:'00000000-0000-4000-a000-00000000000'+i,average_rate:20000,rate_status:'available'}))}});
   });
   await page.route('**/rest/v1/rpc/budget_utilization_journal',r=>r.fulfill({body:JSON.stringify(linked),contentType:'application/json'}));
   await page.route('**/rest/v1/operational_reports*',r=>r.fulfill({json:new URL(r.request().url()).searchParams.has('id')?report:[report]}));
@@ -89,6 +89,7 @@ const create=require('./phase0-browser-fixture.cjs');
   await kip.fill('510000');assert.equal(await usd.getAttribute('placeholder'),'25.50');
   await kip.fill('500000');
   await popup.locator('[data-summary] summary').click();
+  await popup.locator('[data-budget-balance]').filter({hasText:'Cash remaining'}).waitFor();
   assert.match(await popup.locator('[data-budget-balance]').innerText(),/Cash remaining.*25.00.*993,000/);
   const comparison=popup.locator('table').filter({hasText:/less spending/i});
   assert.match(await comparison.innerText(),/Transfer fees/);
@@ -121,6 +122,38 @@ const create=require('./phase0-browser-fixture.cjs');
   assert.match(await printed.innerText(),/1,493,000/);
   const widths=await printed.locator('tbody tr').first().locator('td').evaluateAll(cells=>cells.map(c=>c.getBoundingClientRect().width));
   assert(widths.length===4 && widths[0]>Math.max(...widths.slice(1))*1.7,JSON.stringify(widths));
+  await page.emulateMedia({media:'print'});
+  for(const name of ['total','requested']){
+   const colors=await frame.locator('tr[data-budget-summary290="'+name+'"]').first().locator('th,td').evaluateAll(cells=>cells.map(c=>getComputedStyle(c).backgroundColor));
+   assert(colors.length>=2&&colors.every(c=>c==='rgb(220, 238, 227)'),JSON.stringify({name,colors}));
+  }
+  await page.emulateMedia({media:'screen'});
+  const equityCheck=await page.evaluate(data=>{
+   const acc=(code,name,type,i)=>({id:'00000000-0000-4000-a000-00000000000'+i,code,name,type,currency:'USD',isPosting:true});
+   const bank=acc('1041','BCEL – USD','ASSET',0),remaining=acc('3028','Owner Financial Support — Remaining — USD','EQUITY',1);
+   const used=acc('3029','Owner Financial Support — Used — USD','EQUITY',2),original=acc('3026','Owner Financial Support Received — USD','EQUITY',3);
+   AccountingStore.accounts.push(bank,remaining,used,original);syncCoaDatalist();
+   const receipt={type290:'receipt',currency:'USD',inflow:1000,reference:'Bank advice'};
+   const spend={type290:'spend',currency:'USD',outflow:900};
+   const d={...data,receiptReference290:'',conversions:[],movements:[receipt,spend]};
+   const plan=(report,evidence=[])=>BudgetSupportEquity.plan(report,BudgetSupportEquity.groups(report),evidence);
+   const fresh=plan(d);
+   const coverage={type290:'receipt',account:'Restaurant funds',description290:'Restaurant covered the kip shortage.',currency:'LAK',inflow:10000};
+   const fx={currency:'USD',amount:100,target:'LAK',targetAmount290:2000000};
+   const mixed={...d,conversions:[fx],movements:[{...receipt,reference:'OJM990001'},{...spend,cashDistributed:800},coverage,
+    {type290:'spend',currency:'LAK',outflow:2500000,cashDistributed:2010000},{type290:'refund',currency:'USD',outflow:100}]};
+   const prior={entry_no:'OJM990001',status:'posted',journal_lines:[{currency_code:'USD',credit:1000,debit:0,accounts:original,book_rate_lak:20100}]};
+   const posted=plan(mixed,[prior]),already=plan(mixed,[{...prior,journal_lines:[{...prior.journal_lines[0],accounts:remaining}]}]);
+   const paid=BudgetReport290.balances(mixed).get('LAK');
+   const supportHtml=BudgetReport290.summary(mixed);
+   const sourceDoc=document.createElement('div');sourceDoc.innerHTML=supportHtml;
+   const line=label=>[...sourceDoc.querySelectorAll('tbody tr')].find(r=>r.cells[0].textContent===label)?.cells[2].textContent;
+   return {fresh:fresh.pairs.map(p=>[p.debitCode,p.creditCode,p.amount]),notice:fresh.notice,posted:posted.pairs.map(p=>[p.debitCode,p.creditCode,p.amount,p.rate]),already:already.pairs.length,lak:[paid.receipt,paid.coverage,paid.remaining],receiptLabel:line('Funding received'),coverageLabel:line('Shortfall covered by restaurant')};
+  },report.data);
+  assert.deepEqual(equityCheck.fresh,[['1041','3028',1000],['3028','3029',900]]);assert.match(equityCheck.notice,/100.00 remaining/);
+  assert.deepEqual(equityCheck.posted,[['3026','3028',1000,20100],['3028','3029',900,20100]]);
+  assert.equal(equityCheck.already,1);assert.deepEqual(equityCheck.lak,[0,10000,0]);
+  assert.equal(equityCheck.receiptLabel,'0.00');assert.equal(equityCheck.coverageLabel,'10,000.00');
   await page.evaluate(()=>{ui117.confirm=async()=>true;switchTab('transactions-budget14313');});await open();
   await popup.getByRole('button',{name:'Open in Post Transaction'}).click();
   await popup.waitFor({state:'detached'});
@@ -142,13 +175,8 @@ const create=require('./phase0-browser-fixture.cjs');
   });
   const job=await page.evaluate(async()=>{
    const snapshot=snapshotJournal69();restoreJournal69(snapshot);
-   const accounts=['Remaining','Used'].map((name,i)=>({id:'00000000-0000-4000-a000-00000000000'+i,code:String(9311+i),name,currency:'USD',type:'EQUITY',isPosting:true}));
-   AccountingStore.accounts.push(...accounts);syncCoaDatalist();
-   const rows=[...document.querySelectorAll('#jeLinesBody tr')];
-   rows.forEach((r,i)=>{
-    const input=r.querySelector('.je-line-acc');const account=accounts[[0,1,1,0][i]];input.value=account.code+' — '+account.name;
-    input.dispatchEvent(new Event('change',{bubbles:true}));
-   });
+   const codes=[...document.querySelectorAll('#jeLinesBody .je-line-acc')].map(n=>getSelectedAccountInfo(n.value)?.code);
+   if(codes.join(',')!=='1041,3028,3028,3029')throw Error('Unexpected prepared accounts: '+codes.join(','));
    calculateJournalBalance();
    const messages=[],status=window.showCenterStatus,notice=window.showAppNotification;
    window.showCenterStatus=(message,...args)=>{messages.push(message);return status(message,...args);};
