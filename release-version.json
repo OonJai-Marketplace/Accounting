@@ -1,1 +1,1 @@
-{"version": "143.448", "changes": ["An existing fund utilization draft can be linked to its matching monthly request. Existing receipts and spending stay on the draft, and unconfirmed funding decisions are shown explicitly."]}
+{"version": "143.449", "changes": ["Account pickers identify non-posting parents as currency-neutral, including parents created under the older chart format."]}

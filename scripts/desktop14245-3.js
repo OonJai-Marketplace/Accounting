@@ -853,6 +853,11 @@ function syncCoaDatalist() {
   });
 }
 
+function chartDescription(account){
+  if(account.isPosting!==false)return account.desc||'';
+  return (account.desc||'').replace('Non-posting LAK parent for','Non-posting parent for')
+    .replace('Main grouping account in LAK; no direct posting.','Original balances are grouped by currency. Reporting combines the child accounts in LAK.');
+}
 function renderChartOfAccountsTable() {
   const tbody = document.getElementById('coaTableBody');
   if (!tbody) return;
@@ -874,7 +879,7 @@ function renderChartOfAccountsTable() {
   }
   const visibleAccounts = AccountingStore.accounts.filter(acc => {
     const units=acc.isPosting===false?[...(currenciesByParent.get(acc.code)||[])]:[acc.currency];
-    const text=[acc.code,acc.name,...units,...units.map(currencySymbolV6),acc.type,acc.desc].join(' ').toLocaleLowerCase();
+    const text=[acc.code,acc.name,...units,...units.map(currencySymbolV6),acc.type,chartDescription(acc)].join(' ').toLocaleLowerCase();
     return (filterCurr === 'ALL' || units.includes(filterCurr))&&terms.every(term=>text.includes(term))&&(!window.AccountGroups143180||AccountGroups143180.matches(acc));
   });
 
@@ -892,7 +897,7 @@ function renderChartOfAccountsTable() {
       <td><strong class="${acc.isTechnical||acc.type==='SYSTEM'?'system-account-name14399':''}">${escapeHtml(acc.name)}</strong><div>${window.AccountGroups143180?.badge(acc)||''}</div></td>
       <td><span class="currency-tag" data-currency-code="${escapeHtml(acc.currency)}" title="${escapeHtml(acc.isPosting===false?'Grouping account':acc.currency)}">${acc.isPosting===false?'Parent':escapeHtml(currencySymbolV6(acc.currency)+' '+acc.currency)}</span></td>
       <td><span class="badge-type ${badgeClass}">${escapeHtml(acc.type)}</span></td>
-      <td style="color: var(--text-muted);">${escapeHtml(acc.desc || '—')}</td>
+      <td style="color: var(--text-muted);">${escapeHtml(chartDescription(acc) || '—')}</td>
       <td style="text-align: right;">
         <div style="display: inline-flex; gap: 6px;">
           <button type="button" class="btn-action-edit" title="Edit Account" onclick="openEditAccountModal(${escapeHtml(JSON.stringify(acc.code))})">✏️</button>
