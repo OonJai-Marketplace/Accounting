@@ -23,6 +23,13 @@ const fixture=require('./phase0-browser-fixture.cjs');
           amount:item.amount,reference:'',memo:i===0?'Corrected '+base:item.memo
         });
       }
+      // A corrected receipt has one persisted number, even when an older editor rewrites its group metadata.
+      for(const n of [54,65]){
+        const parts=rows.filter(l=>l.editor_group1437==='receipt-'+n);
+        parts[1].receipt_parent_id=parts[0].id;
+        parts[1].workspace_entry_no=parts[0].workspace_entry_no;
+        parts[1].editor_group1437='later-component-edit-'+n;
+      }
       const numbers=['SRR260065','SRR260063','SRR260062','SRR260054'];
       const anchor=rows.find(l=>l.workspace_entry_no===numbers[0]).id;
       const order=device==='phone'?[...rows].reverse():rows;

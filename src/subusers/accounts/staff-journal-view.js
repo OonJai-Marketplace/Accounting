@@ -10,20 +10,31 @@ window.StaffJournalView=(()=>{
     const left=a.workspace_entry_no||'',right=b.workspace_entry_no||'';
     return ids.compare(left,right)||Number(a.line_no||0)-Number(b.line_no||0)||ids.compare(a.id||'',b.id||'');
   }
-  function activeGroups(rows,ascending=false){
+  function groupReceipts(rows,legacyKey){
+    const parents=new Set(rows.map(l=>l.receipt_parent_id).filter(Boolean));
     const groups=new Map();
     for(const line of rows){
-      const saved=line.editor_snapshot1437;
-      // Older double-entry receipts have a saved editor group but no split labels.
-      // An ordinary bulk cashbook save can also share a group across independent slips.
-      const receipt=saved?.mode==='double'||saved?.receiptEditor341||saved?.splitByLine||saved?.groupedReceipt;
-      const group=receipt && line.editor_group1437;
-      const key=JSON.stringify([line.staff_journal_id,group || line.workspace_entry_no || line.id]);
+      const root=line.receipt_parent_id || (parents.has(line.id)?line.id:null);
+      const key=JSON.stringify([line.staff_journal_id,root||legacyKey(line)]);
       if(!groups.has(key))groups.set(key,[]);
       groups.get(key).push(line);
     }
-    const entries=[...groups.values()];
-    for(const lines of entries)lines.sort(compareEntry);
+    for(const lines of groups.values()){
+      if(parents.has(lines[0].id)||lines[0].receipt_parent_id){
+        lines.sort((a,b)=>Number(!!a.receipt_parent_id)-Number(!!b.receipt_parent_id)||compareEntry(a,b));
+      }
+    }
+    return [...groups.values()];
+  }
+  function activeGroups(rows,ascending=false){
+    const entries=groupReceipts(rows,line=>{
+      // Older double-entry receipts share an editor group. Ordinary cashbook slips
+      // entered in bulk can share an editor group while owning separate numbers.
+      const saved=line.editor_snapshot1437;
+      const receipt=saved?.mode==='double'||saved?.receiptEditor341||saved?.splitByLine||saved?.groupedReceipt;
+      return (receipt&&line.editor_group1437)||line.workspace_entry_no||line.id;
+    });
+    for(const lines of entries)if(!lines.some(l=>l.receipt_parent_id))lines.sort(compareEntry);
     return entries.sort((a,b)=>ascending?compareEntry(a[0],b[0]):compareEntry(b[0],a[0]));
   }
   function validSnapshot(group){
@@ -51,5 +62,5 @@ window.StaffJournalView=(()=>{
     if(new Set(rows.map(r=>r.id)).size!==rows.length)throw Error('The ledger changed while loading. Refresh the ledger.');
     return {...period,rows:rows.reverse(),opening:data.opening,closing:data.closing};
   }
-  return {activeGroups,validSnapshot,newestLine,newestReport,balance,ledgerPeriod};
+  return {groupReceipts,activeGroups,validSnapshot,newestLine,newestReport,balance,ledgerPeriod};
 })();

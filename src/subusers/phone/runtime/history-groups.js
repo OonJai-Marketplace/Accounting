@@ -7,13 +7,9 @@
     const all=active?Object.values(S.data.months||{}).flatMap(m=>m.lines||[]):lines();
     const rows=all.filter(l=>batches.has(l.staff_journal_id)&&!l.voided_at&&l.status!=='voided');
     if(!active){
-      const groups=new Map();
-      for(const l of rows){
-        const key=JSON.stringify([l.staff_journal_id,l.editor_group1437||l.id]);
-        if(!groups.has(key))groups.set(key,{batch:batches.get(l.staff_journal_id),lines:[]});
-        groups.get(key).lines.push(l);
-      }
-      return [...groups.values()].sort((a,b)=>StaffJournalView.newestLine(a.lines[0],b.lines[0]));
+      const groups=StaffJournalView.groupReceipts(rows,l=>l.editor_group1437||l.id)
+        .map(lines=>({batch:batches.get(lines[0].staff_journal_id),lines}));
+      return groups.sort((a,b)=>StaffJournalView.newestLine(a.lines[0],b.lines[0]));
     }
     let result=StaffJournalView.activeGroups(rows,S.entryAscending).map(lines=>({batch:batches.get(lines[0].staff_journal_id),lines}));
     if(rules().entryMode==='cashbook'&&S.page==='entries'){

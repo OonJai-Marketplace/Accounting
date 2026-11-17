@@ -1,1 +1,1 @@
-{"version": "143.439", "changes": ["Fund utilization shows original-currency cash payments, cash before returns and closing cash. Click or tap an accounting table row to highlight it during review."]}
+{"version": "143.440", "changes": ["Each saved staff receipt uses one Entry ID across all of its lines. Adding split lines does not consume the next receipt number."]}
