@@ -98,7 +98,7 @@ const create=require('./phase0-browser-fixture.cjs');
    const box=document.createElement('div');box.innerHTML=BudgetReport290.summary(d);
    const rows=[...box.querySelector('tbody').rows].map(r=>[...r.cells].map(c=>c.textContent));
    if(!rows.some(r=>r[0]==='Cash distributed')||!rows.some(r=>r[0]==='Cash remaining'&&r[1]==='$ 25.00')||
-    rows.some(r=>/returned|after returns|before returns/i.test(r[0])))throw Error('Unexpected cash summary '+JSON.stringify(rows));
+    !rows.some(r=>r[0]==='Cash held after handover'&&r[1]==='$ 21.00'))throw Error('Unexpected cash summary '+JSON.stringify(rows));
    return [cash.beforeReturn,cash.remaining,calculated,amount(),BudgetReport290.compare(d).rows[0].values.USD.used];
   },report.data);
   assert.deepEqual(cashCheck,[25,21,20,22,27]);
@@ -108,7 +108,7 @@ const create=require('./phase0-browser-fixture.cjs');
   await popup.locator('[data-budget-balance]').filter({hasText:'Cash remaining'}).waitFor();
   assert.deepEqual(await popup.locator('[data-budget-balance] .fund-amount').allTextContents(),['$ 25.00','₭ 993,000.00']);
   const list=page.locator('#transactions-budget14313 table').filter({hasText:'Cash remaining (USD)'});
-  assert.deepEqual(await list.locator('thead th').allTextContents(),['Budget Month','Purpose','Status','Cash Remaining (USD)','Cash Remaining (LAK)','']);
+  assert.deepEqual(await list.locator('thead th').allTextContents(),['Budget Month','Purpose','Status','Owner Support Remaining','Cash Remaining (USD)','Cash Remaining (LAK)','']);
   assert.deepEqual(await list.locator('tbody tr').first().locator('.fund-amount').allTextContents(),['$ 25.00','₭ 993,000.00']);
   const comparison=popup.locator('table').filter({hasText:/Funds available/i});
   assert.match(await comparison.innerText(),/Transfer fees/);

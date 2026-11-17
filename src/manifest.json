@@ -3892,6 +3892,9 @@
         "source": "src/budget/requests/support-equity.js"
       },
       {
+        "source": "src/budget/requests/owner-support-balance.js"
+      },
+      {
         "source": "src/budget/requests/report-wording.js"
       },
       {

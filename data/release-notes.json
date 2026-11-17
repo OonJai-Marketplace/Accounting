@@ -1,6 +1,6 @@
 {
-  "version": "143.451",
+  "version": "143.452",
   "changes": [
-    "Phase 8 applies documented owner-support spending in the original months and separates receipts from funds used."
+    "Monthly fund utilization shows owner support received, used and remaining in each funding currency. Company cash handovers are shown separately."
   ]
 }

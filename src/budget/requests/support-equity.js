@@ -10,7 +10,7 @@ window.BudgetSupportEquity=(()=>{
   const matches=AccountingStore.accounts.filter(a=>regular(a,'EQUITY')&&norm(a.name).replace(/\busd\b/g,'').trim()===norm(roleName[role]).replace(/ usd$/,''));
   return matches.length===1?matches[0]:null;
  }
- function receipts(d){return (d.movements||[]).filter(m=>BudgetReport290.kind(m)==='receipt'&&m.currency==='USD'&&Number(m.inflow)>0);}
+ function receipts(d){return (d.movements||[]).filter(m=>BudgetReport290.kind(m)==='receipt'&&m.ownerSource!=='other'&&m.currency==='USD'&&Number(m.inflow)>0);}
  function groups(d){
   const list=receipts(d),header=journalRefs(d.receiptReference290),groups=new Map();
   for(const m of list){
@@ -74,7 +74,17 @@ window.BudgetSupportEquity=(()=>{
  }
  function plan(d,groups,journals){
   const remaining=equity('remaining'),usedAccount=equity('used');
-  const received=round(groups.reduce((s,g)=>s+g.amount,0)),used=usage(d,received);
+  const received=round(groups.reduce((s,g)=>s+g.amount,0));
+  let used;
+  if((d.movements||[]).some(m=>m.ownerAmount!=null)){
+   const review=BudgetOwnerBalance.calculate(d,null,{links:{},amounts:journals.filter(j=>j.status==='posted').map(j=>({
+    entry_no:j.entry_no,currency:'USD',received:j.journal_lines.filter(l=>l.currency_code==='USD'&&(l.accounts?.id===remaining?.id||l.accounts?.code==='3026')).reduce((n,l)=>n+Number(l.credit),0),debited:0,used:0
+   }))});
+   const usd=review.rows.get('USD');
+   if(usd?.basis!=='Report entries'||usd.received!==Math.round(received*100)||usd.used>usd.received)
+    throw Error('Review the owner-funded receipts and spending before preparing their equity allocation.');
+   used=usd.used/100;
+  }else used=usage(d,received);
   const pairs=[],notes=[];let classified=0,carryingValue=0,valuedAmount=0;
   function pair(label,amount,debit,credit,roles,rate){
    pairs.push({label,amount:round(amount),currency:'USD',debitCode:debit?.code||'',creditCode:credit?.code||'',debitId:debit?.id||'',creditId:credit?.id||'',roles,rate});

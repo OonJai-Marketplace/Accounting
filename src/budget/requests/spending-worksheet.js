@@ -160,6 +160,9 @@ window.BudgetSpendingWorksheet = (() => {
      if(equivalent===null)delete next.budgetAmount290;
      else next.budgetAmount290=equivalent;
     }
+    if(next.ownerAmount!=null&&value!==Number(movement?.outflow)){
+     delete next.ownerAmount;delete next.ownerCurrency;
+    }
     next.outflow=value;
     if (description) next.description290 = detail;
     changes.push({state,next});
